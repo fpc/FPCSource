@@ -83,6 +83,7 @@ implementation
       var
          t : tnode;
          rd,ld : pdef;
+         rv,lv : tconstexprint;
       begin
          result:=nil;
          resulttypepass(left);
@@ -91,6 +92,31 @@ implementation
          set_varstate(right,true);
          if codegenerror then
            exit;
+
+         { constant folding }
+         if is_constintnode(left) and is_constintnode(right) then
+           begin
+              rv:=tordconstnode(right).value;
+              lv:=tordconstnode(left).value;
+
+              { check for division by zero }
+              if (rv=0) then
+               begin
+                 Message(parser_e_division_by_zero);
+                 { recover }
+                 rv:=1;
+               end;
+
+              case nodetype of
+                modn:
+                  t:=genintconstnode(lv mod rv);
+                divn:
+                  t:=genintconstnode(lv div rv);
+              end;
+              resulttypepass(t);
+              result:=t;
+              exit;
+           end;
 
          { allow operator overloading }
          t:=self;
@@ -166,38 +192,12 @@ implementation
     function tmoddivnode.pass_1 : tnode;
       var
          t : tnode;
-         rv,lv : tconstexprint;
-
       begin
          result:=nil;
          firstpass(left);
          firstpass(right);
          if codegenerror then
            exit;
-
-         if is_constintnode(left) and is_constintnode(right) then
-           begin
-              rv:=tordconstnode(right).value;
-              lv:=tordconstnode(left).value;
-
-              { check for division by zero }
-              if (rv=0) then
-               begin
-                 Message(parser_e_division_by_zero);
-                 { recover }
-                 rv:=1;
-               end;
-
-              case nodetype of
-                modn:
-                  t:=genintconstnode(lv mod rv);
-                divn:
-                  t:=genintconstnode(lv div rv);
-              end;
-              firstpass(t);
-              result:=t;
-              exit;
-           end;
 
          { 64bit }
          if (left.resulttype.def^.deftype=orddef) and (right.resulttype.def^.deftype=orddef) and
@@ -232,6 +232,20 @@ implementation
          if codegenerror then
            exit;
 
+         { constant folding }
+         if is_constintnode(left) and is_constintnode(right) then
+           begin
+              case nodetype of
+                 shrn:
+                   t:=genintconstnode(tordconstnode(left).value shr tordconstnode(right).value);
+                 shln:
+                   t:=genintconstnode(tordconstnode(left).value shl tordconstnode(right).value);
+              end;
+              resulttypepass(t);
+              result:=t;
+              exit;
+           end;
+
          { allow operator overloading }
          t:=self;
          if isbinaryoverloaded(t) then
@@ -264,19 +278,6 @@ implementation
          firstpass(right);
          if codegenerror then
            exit;
-
-         if is_constintnode(left) and is_constintnode(right) then
-           begin
-              case nodetype of
-                 shrn:
-                   t:=genintconstnode(tordconstnode(left).value shr tordconstnode(right).value);
-                 shln:
-                   t:=genintconstnode(tordconstnode(left).value shl tordconstnode(right).value);
-              end;
-              firstpass(t);
-              result:=t;
-              exit;
-           end;
 
          { 64 bit ints have their own shift handling }
          if not(is_64bitint(left.resulttype.def)) then
@@ -311,8 +312,24 @@ implementation
          set_varstate(left,true);
          if codegenerror then
            exit;
-         resulttype:=left.resulttype;
 
+         { constant folding }
+         if is_constintnode(left) then
+           begin
+              tordconstnode(left).value:=-tordconstnode(left).value;
+              result:=left;
+              left:=nil;
+              exit;
+           end;
+         if is_constrealnode(left) then
+           begin
+              trealconstnode(left).value_real:=-trealconstnode(left).value_real;
+              result:=left;
+              left:=nil;
+              exit;
+           end;
+
+         resulttype:=left.resulttype;
          if (left.resulttype.def^.deftype=floatdef) then
            begin
            end
@@ -371,21 +388,6 @@ implementation
          if codegenerror then
            exit;
 
-         if is_constintnode(left) then
-           begin
-              t:=cordconstnode.create(-tordconstnode(left).value,resulttype);
-              firstpass(t);
-              result:=t;
-              exit;
-           end;
-         if is_constrealnode(left) then
-           begin
-              t:=crealconstnode.create(-trealconstnode(left).value_real,resulttype);
-              firstpass(t);
-              result:=t;
-              exit;
-           end;
-
          registers32:=left.registers32;
          registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -436,12 +438,36 @@ implementation
       var
          t : tnode;
          notdef : pprocdef;
+         v : tconstexprint;
       begin
          result:=nil;
          resulttypepass(left);
          set_varstate(left,true);
          if codegenerror then
            exit;
+
+         { constant folding }
+         if (left.nodetype=ordconstn) then
+           begin
+              if is_boolean(left.resulttype.def) then
+                { here we do a boolean(byte(..)) type cast because }
+                { boolean(<int64>) is buggy in 1.00                }
+                t:=cordconstnode.create(byte(not(boolean(byte(tordconstnode(left).value)))),left.resulttype)
+              else
+                begin
+                  v:=tordconstnode(left).value;
+                  case left.resulttype.def^.size of
+                    1 : v:=(not(v and $ff)) and $ff;
+                    2 : v:=(not(v and $ffff)) and $ffff;
+                    4 : v:=(not(v and $ffffffff)) and $ffffffff;
+                    8 : v:=not(v);
+                  end;
+                  t:=cordconstnode.create(v,left.resulttype);
+                end;
+              resulttypepass(t);
+              result:=t;
+              exit;
+           end;
 
          resulttype:=left.resulttype;
          if is_boolean(resulttype.def) then
@@ -460,8 +486,6 @@ implementation
              end
          else if is_integer(left.resulttype.def) then
            begin
-              if (porddef(left.resulttype.def)^.typ <> u32bit) then
-                inserttypeconv(left,s32bittype);
            end
          else
            begin
@@ -494,25 +518,10 @@ implementation
       begin
          result:=nil;
          firstpass(left);
-         set_varstate(left,true);
          if codegenerror then
            exit;
 
-         if (left.nodetype=ordconstn) then
-           begin
-              if is_boolean(left.resulttype.def) then
-                { here we do a boolena(byte(..)) type cast because }
-                { boolean(<int64>) is buggy in 1.00                }
-                t:=cordconstnode.create(byte(not(boolean(byte(tordconstnode(left).value)))),left.resulttype)
-              else
-                t:=cordconstnode.create(not(tordconstnode(left).value),left.resulttype);
-              firstpass(t);
-              result:=t;
-              exit;
-           end;
-
          location.loc:=left.location.loc;
-         resulttype:=left.resulttype;
          registers32:=left.registers32;
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
@@ -569,7 +578,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-04-02 21:20:31  peter
+  Revision 1.18  2001-04-04 22:42:40  peter
+    * move constant folding into det_resulttype
+
+  Revision 1.17  2001/04/02 21:20:31  peter
     * resulttype rewrite
 
   Revision 1.16  2001/03/20 18:11:03  jonas

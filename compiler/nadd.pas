@@ -76,10 +76,20 @@ implementation
 
     function taddnode.det_resulttype:tnode;
       var
-         hp    : tnode;
+         hp,t    : tnode;
          lt,rt   : tnodetype;
          rd,ld   : pdef;
          htype   : ttype;
+         ot      : tnodetype;
+         concatstrings : boolean;
+         resultset : pconstset;
+         i       : longint;
+         b       : boolean;
+         s1,s2   : pchar;
+         l1,l2   : longint;
+         rv,lv   : tconstexprint;
+         rvd,lvd : bestreal;
+
       begin
          result:=nil;
 
@@ -112,6 +122,310 @@ implementation
             resulttypepass(right);
             rd:=right.resulttype.def;
           end;
+
+         { both are int constants }
+         if (((is_constintnode(left) and is_constintnode(right)) or
+              (is_constboolnode(left) and is_constboolnode(right) and
+               (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,andn,xorn,orn])))) or
+            { support pointer arithmetics on constants (JM) }
+            ((lt = pointerconstn) and is_constintnode(right) and
+             (nodetype in [addn,subn])) or
+            ((lt = pointerconstn) and (rt = pointerconstn) and
+             (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,subn])) then
+           begin
+              { when comparing/substracting  pointers, make sure they are }
+              { of the same  type (JM)                                    }
+              if (lt = pointerconstn) and (rt = pointerconstn) then
+               begin
+                 if not(cs_extsyntax in aktmoduleswitches) and
+                    not(nodetype in [equaln,unequaln]) then
+                   CGMessage(type_e_mismatch)
+                 else
+                   if (nodetype <> subn) and
+                      is_voidpointer(rd) then
+                     inserttypeconv(right,left.resulttype)
+                   else if (nodetype <> subn) and
+                           is_voidpointer(ld) then
+                     inserttypeconv(left,right.resulttype)
+                   else if not(is_equal(ld,rd)) then
+                     CGMessage(type_e_mismatch);
+                end
+              else if (lt=ordconstn) and (rt=ordconstn) then
+                begin
+                  { make left const type the biggest, this type will be used
+                    for orn,andn,xorn }
+                  if rd^.size>ld^.size then
+                    inserttypeconv(left,right.resulttype);
+                end;
+
+              { load values }
+              if (lt = ordconstn) then
+                lv:=tordconstnode(left).value
+              else
+                lv:=tpointerconstnode(left).value;
+              if (rt = ordconstn) then
+                rv:=tordconstnode(right).value
+              else
+                rv:=tpointerconstnode(right).value;
+              if (lt = pointerconstn) and
+                 (rt <> pointerconstn) then
+                rv := rv * ppointerdef(left.resulttype.def)^.pointertype.def^.size;
+              if (rt = pointerconstn) and
+                 (lt <> pointerconstn) then
+                lv := lv * ppointerdef(right.resulttype.def)^.pointertype.def^.size;
+              case nodetype of
+                addn :
+                  if (lt <> pointerconstn) then
+                    t := genintconstnode(lv+rv)
+                  else
+                    t := cpointerconstnode.create(lv+rv,left.resulttype);
+                subn :
+                  if (lt <> pointerconstn) or (rt = pointerconstn) then
+                    t := genintconstnode(lv-rv)
+                  else
+                    t := cpointerconstnode.create(lv-rv,left.resulttype);
+                muln :
+                  t:=genintconstnode(lv*rv);
+                xorn :
+                  t:=cordconstnode.create(lv xor rv,left.resulttype);
+                orn :
+                  t:=cordconstnode.create(lv or rv,left.resulttype);
+                andn :
+                  t:=cordconstnode.create(lv and rv,left.resulttype);
+                ltn :
+                  t:=cordconstnode.create(ord(lv<rv),booltype);
+                lten :
+                  t:=cordconstnode.create(ord(lv<=rv),booltype);
+                gtn :
+                  t:=cordconstnode.create(ord(lv>rv),booltype);
+                gten :
+                  t:=cordconstnode.create(ord(lv>=rv),booltype);
+                equaln :
+                  t:=cordconstnode.create(ord(lv=rv),booltype);
+                unequaln :
+                  t:=cordconstnode.create(ord(lv<>rv),booltype);
+                slashn :
+                  begin
+                    { int/int becomes a real }
+                    if int(rv)=0 then
+                     begin
+                       Message(parser_e_invalid_float_operation);
+                       t:=crealconstnode.create(0,pbestrealtype^);
+                     end
+                    else
+                     t:=crealconstnode.create(int(lv)/int(rv),pbestrealtype^);
+                  end;
+                else
+                  CGMessage(type_e_mismatch);
+              end;
+              resulttypepass(t);
+              result:=t;
+              exit;
+           end;
+
+       { both real constants ? }
+         if (lt=realconstn) and (rt=realconstn) then
+           begin
+              lvd:=trealconstnode(left).value_real;
+              rvd:=trealconstnode(right).value_real;
+              case nodetype of
+                 addn :
+                   t:=crealconstnode.create(lvd+rvd,pbestrealtype^);
+                 subn :
+                   t:=crealconstnode.create(lvd-rvd,pbestrealtype^);
+                 muln :
+                   t:=crealconstnode.create(lvd*rvd,pbestrealtype^);
+                 starstarn,
+                 caretn :
+                   begin
+                     if lvd<0 then
+                      begin
+                        Message(parser_e_invalid_float_operation);
+                        t:=crealconstnode.create(0,pbestrealtype^);
+                      end
+                     else if lvd=0 then
+                       t:=crealconstnode.create(1.0,pbestrealtype^)
+                     else
+                       t:=crealconstnode.create(exp(ln(lvd)*rvd),pbestrealtype^);
+                   end;
+                 slashn :
+                   begin
+                     if rvd=0 then
+                      begin
+                        Message(parser_e_invalid_float_operation);
+                        t:=crealconstnode.create(0,pbestrealtype^);
+                      end
+                     else
+                      t:=crealconstnode.create(lvd/rvd,pbestrealtype^);
+                   end;
+                 ltn :
+                   t:=cordconstnode.create(ord(lvd<rvd),booltype);
+                 lten :
+                   t:=cordconstnode.create(ord(lvd<=rvd),booltype);
+                 gtn :
+                   t:=cordconstnode.create(ord(lvd>rvd),booltype);
+                 gten :
+                   t:=cordconstnode.create(ord(lvd>=rvd),booltype);
+                 equaln :
+                   t:=cordconstnode.create(ord(lvd=rvd),booltype);
+                 unequaln :
+                   t:=cordconstnode.create(ord(lvd<>rvd),booltype);
+                 else
+                   CGMessage(type_e_mismatch);
+              end;
+              resulttypepass(t);
+              result:=t;
+              exit;
+           end;
+
+       { concating strings ? }
+         concatstrings:=false;
+         s1:=nil;
+         s2:=nil;
+         if (lt=ordconstn) and (rt=ordconstn) and
+            is_char(ld) and is_char(rd) then
+           begin
+              s1:=strpnew(char(byte(tordconstnode(left).value)));
+              s2:=strpnew(char(byte(tordconstnode(right).value)));
+              l1:=1;
+              l2:=1;
+              concatstrings:=true;
+           end
+         else
+           if (lt=stringconstn) and (rt=ordconstn) and is_char(rd) then
+           begin
+              s1:=tstringconstnode(left).getpcharcopy;
+              l1:=tstringconstnode(left).len;
+              s2:=strpnew(char(byte(tordconstnode(right).value)));
+              l2:=1;
+              concatstrings:=true;
+           end
+         else
+           if (lt=ordconstn) and (rt=stringconstn) and is_char(ld) then
+           begin
+              s1:=strpnew(char(byte(tordconstnode(left).value)));
+              l1:=1;
+              s2:=tstringconstnode(right).getpcharcopy;
+              l2:=tstringconstnode(right).len;
+              concatstrings:=true;
+           end
+         else if (lt=stringconstn) and (rt=stringconstn) then
+           begin
+              s1:=tstringconstnode(left).getpcharcopy;
+              l1:=tstringconstnode(left).len;
+              s2:=tstringconstnode(right).getpcharcopy;
+              l2:=tstringconstnode(right).len;
+              concatstrings:=true;
+           end;
+         if concatstrings then
+           begin
+              case nodetype of
+                 addn :
+                   t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2);
+                 ltn :
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),booltype);
+                 lten :
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<=0),booltype);
+                 gtn :
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>0),booltype);
+                 gten :
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>=0),booltype);
+                 equaln :
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)=0),booltype);
+                 unequaln :
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<>0),booltype);
+              end;
+              ansistringdispose(s1,l1);
+              ansistringdispose(s2,l2);
+              resulttypepass(t);
+              result:=t;
+              exit;
+           end;
+
+         { set constant evaluation }
+         if (right.nodetype=setconstn) and
+            not assigned(tsetconstnode(right).left) and
+            (left.nodetype=setconstn) and
+            not assigned(tsetconstnode(left).left) then
+           begin
+              new(resultset);
+              case nodetype of
+                 addn :
+                   begin
+                      for i:=0 to 31 do
+                        resultset^[i]:=tsetconstnode(right).value_set^[i] or tsetconstnode(left).value_set^[i];
+                      t:=csetconstnode.create(resultset,left.resulttype);
+                   end;
+                 muln :
+                   begin
+                      for i:=0 to 31 do
+                        resultset^[i]:=tsetconstnode(right).value_set^[i] and tsetconstnode(left).value_set^[i];
+                      t:=csetconstnode.create(resultset,left.resulttype);
+                   end;
+                 subn :
+                   begin
+                      for i:=0 to 31 do
+                        resultset^[i]:=tsetconstnode(left).value_set^[i] and not(tsetconstnode(right).value_set^[i]);
+                      t:=csetconstnode.create(resultset,left.resulttype);
+                   end;
+                 symdifn :
+                   begin
+                      for i:=0 to 31 do
+                        resultset^[i]:=tsetconstnode(left).value_set^[i] xor tsetconstnode(right).value_set^[i];
+                      t:=csetconstnode.create(resultset,left.resulttype);
+                   end;
+                 unequaln :
+                   begin
+                      b:=true;
+                      for i:=0 to 31 do
+                       if tsetconstnode(right).value_set^[i]=tsetconstnode(left).value_set^[i] then
+                        begin
+                          b:=false;
+                          break;
+                        end;
+                      t:=cordconstnode.create(ord(b),booltype);
+                   end;
+                 equaln :
+                   begin
+                      b:=true;
+                      for i:=0 to 31 do
+                       if tsetconstnode(right).value_set^[i]<>tsetconstnode(left).value_set^[i] then
+                        begin
+                          b:=false;
+                          break;
+                        end;
+                      t:=cordconstnode.create(ord(b),booltype);
+                   end;
+                 lten :
+                   begin
+                     b := true;
+                     For i := 0 to 31 Do
+                       If (tsetconstnode(right).value_set^[i] And tsetconstnode(left).value_set^[i]) <>
+                           tsetconstnode(left).value_set^[i] Then
+                         Begin
+                           b := false;
+                           Break
+                         End;
+                     t := cordconstnode.create(ord(b),booltype);
+                   End;
+                 gten :
+                   Begin
+                     b := true;
+                     For i := 0 to 31 Do
+                       If (tsetconstnode(left).value_set^[i] And tsetconstnode(right).value_set^[i]) <>
+                           tsetconstnode(right).value_set^[i] Then
+                         Begin
+                           b := false;
+                           Break
+                         End;
+                     t := cordconstnode.create(ord(b),booltype);
+                   End;
+              end;
+              dispose(resultset);
+              resulttypepass(t);
+              result:=t;
+              exit;
+           end;
 
          { allow operator overloading }
          hp:=self;
@@ -147,7 +461,62 @@ implementation
                    inserttypeconv(left,right.resulttype);
                    ttypeconvnode(left).convtype:=tc_bool_2_int;
                    include(left.flags,nf_explizit);
-                 end
+                 end;
+                case nodetype of
+                  xorn,
+                  ltn,
+                  lten,
+                  gtn,
+                  gten,
+                  andn,
+                  orn:
+                    begin
+                    end;
+                  unequaln,
+                  equaln:
+                    begin
+                      if not(cs_full_boolean_eval in aktlocalswitches) then
+                       begin
+                         { Remove any compares with constants }
+                         if (left.nodetype=ordconstn) then
+                          begin
+                            hp:=right;
+                            b:=(tordconstnode(left).value<>0);
+                            ot:=nodetype;
+                            left.free;
+                            left:=nil;
+                            right:=nil;
+                            if (not(b) and (ot=equaln)) or
+                               (b and (ot=unequaln)) then
+                             begin
+                               hp:=cnotnode.create(hp);
+                               resulttypepass(hp);
+                             end;
+                            result:=hp;
+                            exit;
+                          end;
+                         if (right.nodetype=ordconstn) then
+                          begin
+                            hp:=left;
+                            b:=(tordconstnode(right).value<>0);
+                            ot:=nodetype;
+                            right.free;
+                            right:=nil;
+                            left:=nil;
+                            if (not(b) and (ot=equaln)) or
+                               (b and (ot=unequaln)) then
+                             begin
+                               hp:=cnotnode.create(hp);
+                               resulttypepass(hp);
+                             end;
+                            result:=hp;
+                            exit;
+                          end;
+                       end;
+                    end;
+                  else
+                    CGMessage(type_e_mismatch);
+                end;
               end
              { Both are chars? }
              else if is_char(rd) and is_char(ld) then
@@ -565,23 +934,10 @@ implementation
 
 
     function taddnode.pass_1 : tnode;
-
       var
-         t,hp    : tnode;
-         ot,
+         hp      : tnode;
          lt,rt   : tnodetype;
-         rv,lv   : tconstexprint;
-         rvd,lvd : bestreal;
          rd,ld   : pdef;
-         concatstrings : boolean;
-
-         { to evalute const sets }
-         resultset : pconstset;
-         i : longint;
-         b : boolean;
-         s1,s2 : pchar;
-         l1,l2 : longint;
-
       begin
          result:=nil;
          { first do the two subtrees }
@@ -595,284 +951,6 @@ implementation
          ld:=left.resulttype.def;
          rt:=right.nodetype;
          lt:=left.nodetype;
-
-         { both are int constants }
-         if (((is_constintnode(left) and is_constintnode(right)) or
-              (is_constboolnode(left) and is_constboolnode(right) and
-               (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,andn,xorn,orn])))) or
-            { support pointer arithmetics on constants (JM) }
-            ((lt = pointerconstn) and is_constintnode(right) and
-             (nodetype in [addn,subn])) or
-            ((lt = pointerconstn) and (rt = pointerconstn) and
-             (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,subn])) then
-           begin
-              if (lt = ordconstn) then
-                lv:=tordconstnode(left).value
-              else
-                lv:=tpointerconstnode(left).value;
-              if (rt = ordconstn) then
-                rv:=tordconstnode(right).value
-              else
-                rv:=tpointerconstnode(right).value;
-              if (lt = pointerconstn) and
-                 (rt <> pointerconstn) then
-                rv := rv * ppointerdef(left.resulttype.def)^.pointertype.def^.size;
-              if (rt = pointerconstn) and
-                 (lt <> pointerconstn) then
-                lv := lv * ppointerdef(right.resulttype.def)^.pointertype.def^.size;
-              case nodetype of
-                addn :
-                  if (lt <> pointerconstn) then
-                    t := cordconstnode.create(lv+rv,resulttype)
-                  else
-                    t := cpointerconstnode.create(lv+rv,resulttype);
-                subn :
-                  if (lt <> pointerconstn) or (rt = pointerconstn) then
-                    t := cordconstnode.create(lv-rv,resulttype)
-                  else
-                    t := cpointerconstnode.create(lv-rv,resulttype);
-                muln :
-                  t:=cordconstnode.create(lv*rv,resulttype);
-                xorn :
-                  t:=cordconstnode.create(lv xor rv,resulttype);
-                orn :
-                  t:=cordconstnode.create(lv or rv,resulttype);
-                andn :
-                  t:=cordconstnode.create(lv and rv,resulttype);
-                ltn :
-                  t:=cordconstnode.create(ord(lv<rv),resulttype);
-                lten :
-                  t:=cordconstnode.create(ord(lv<=rv),resulttype);
-                gtn :
-                  t:=cordconstnode.create(ord(lv>rv),resulttype);
-                gten :
-                  t:=cordconstnode.create(ord(lv>=rv),resulttype);
-                equaln :
-                  t:=cordconstnode.create(ord(lv=rv),resulttype);
-                unequaln :
-                  t:=cordconstnode.create(ord(lv<>rv),resulttype);
-                slashn :
-                  begin
-                    { int/int becomes a real }
-                    if int(rv)=0 then
-                     begin
-                       Message(parser_e_invalid_float_operation);
-                       t:=crealconstnode.create(0,resulttype);
-                     end
-                    else
-                     t:=crealconstnode.create(int(lv)/int(rv),resulttype);
-                  end;
-                else
-                  CGMessage(type_e_mismatch);
-              end;
-              firstpass(t);
-              result:=t;
-              exit;
-           end;
-
-       { both real constants ? }
-         if (lt=realconstn) and (rt=realconstn) then
-           begin
-              lvd:=trealconstnode(left).value_real;
-              rvd:=trealconstnode(right).value_real;
-              case nodetype of
-                 addn :
-                   t:=crealconstnode.create(lvd+rvd,pbestrealtype^);
-                 subn :
-                   t:=crealconstnode.create(lvd-rvd,pbestrealtype^);
-                 muln :
-                   t:=crealconstnode.create(lvd*rvd,pbestrealtype^);
-                 starstarn,
-                 caretn :
-                   begin
-                     if lvd<0 then
-                      begin
-                        Message(parser_e_invalid_float_operation);
-                        t:=crealconstnode.create(0,pbestrealtype^);
-                      end
-                     else if lvd=0 then
-                       t:=crealconstnode.create(1.0,pbestrealtype^)
-                     else
-                       t:=crealconstnode.create(exp(ln(lvd)*rvd),pbestrealtype^);
-                   end;
-                 slashn :
-                   begin
-                     if rvd=0 then
-                      begin
-                        Message(parser_e_invalid_float_operation);
-                        t:=crealconstnode.create(0,pbestrealtype^);
-                      end
-                     else
-                      t:=crealconstnode.create(lvd/rvd,pbestrealtype^);
-                   end;
-                 ltn :
-                   t:=cordconstnode.create(ord(lvd<rvd),booltype);
-                 lten :
-                   t:=cordconstnode.create(ord(lvd<=rvd),booltype);
-                 gtn :
-                   t:=cordconstnode.create(ord(lvd>rvd),booltype);
-                 gten :
-                   t:=cordconstnode.create(ord(lvd>=rvd),booltype);
-                 equaln :
-                   t:=cordconstnode.create(ord(lvd=rvd),booltype);
-                 unequaln :
-                   t:=cordconstnode.create(ord(lvd<>rvd),booltype);
-                 else
-                   CGMessage(type_e_mismatch);
-              end;
-              firstpass(t);
-              result:=t;
-              exit;
-           end;
-
-       { concating strings ? }
-         concatstrings:=false;
-         s1:=nil;
-         s2:=nil;
-         if (lt=ordconstn) and (rt=ordconstn) and
-            is_char(ld) and is_char(rd) then
-           begin
-              s1:=strpnew(char(byte(tordconstnode(left).value)));
-              s2:=strpnew(char(byte(tordconstnode(right).value)));
-              l1:=1;
-              l2:=1;
-              concatstrings:=true;
-           end
-         else
-           if (lt=stringconstn) and (rt=ordconstn) and is_char(rd) then
-           begin
-              s1:=tstringconstnode(left).getpcharcopy;
-              l1:=tstringconstnode(left).len;
-              s2:=strpnew(char(byte(tordconstnode(right).value)));
-              l2:=1;
-              concatstrings:=true;
-           end
-         else
-           if (lt=ordconstn) and (rt=stringconstn) and is_char(ld) then
-           begin
-              s1:=strpnew(char(byte(tordconstnode(left).value)));
-              l1:=1;
-              s2:=tstringconstnode(right).getpcharcopy;
-              l2:=tstringconstnode(right).len;
-              concatstrings:=true;
-           end
-         else if (lt=stringconstn) and (rt=stringconstn) then
-           begin
-              s1:=tstringconstnode(left).getpcharcopy;
-              l1:=tstringconstnode(left).len;
-              s2:=tstringconstnode(right).getpcharcopy;
-              l2:=tstringconstnode(right).len;
-              concatstrings:=true;
-           end;
-         if concatstrings then
-           begin
-              case nodetype of
-                 addn :
-                   t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2);
-                 ltn :
-                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),booltype);
-                 lten :
-                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<=0),booltype);
-                 gtn :
-                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>0),booltype);
-                 gten :
-                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>=0),booltype);
-                 equaln :
-                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)=0),booltype);
-                 unequaln :
-                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<>0),booltype);
-              end;
-              ansistringdispose(s1,l1);
-              ansistringdispose(s2,l2);
-              firstpass(t);
-              result:=t;
-              exit;
-           end;
-
-         { set constant evaluation }
-         if (right.nodetype=setconstn) and
-            not assigned(tsetconstnode(right).left) and
-            (left.nodetype=setconstn) and
-            not assigned(tsetconstnode(left).left) then
-           begin
-              new(resultset);
-              case nodetype of
-                 addn :
-                   begin
-                      for i:=0 to 31 do
-                        resultset^[i]:=tsetconstnode(right).value_set^[i] or tsetconstnode(left).value_set^[i];
-                      t:=csetconstnode.create(resultset,left.resulttype);
-                   end;
-                 muln :
-                   begin
-                      for i:=0 to 31 do
-                        resultset^[i]:=tsetconstnode(right).value_set^[i] and tsetconstnode(left).value_set^[i];
-                      t:=csetconstnode.create(resultset,left.resulttype);
-                   end;
-                 subn :
-                   begin
-                      for i:=0 to 31 do
-                        resultset^[i]:=tsetconstnode(left).value_set^[i] and not(tsetconstnode(right).value_set^[i]);
-                      t:=csetconstnode.create(resultset,left.resulttype);
-                   end;
-                 symdifn :
-                   begin
-                      for i:=0 to 31 do
-                        resultset^[i]:=tsetconstnode(left).value_set^[i] xor tsetconstnode(right).value_set^[i];
-                      t:=csetconstnode.create(resultset,left.resulttype);
-                   end;
-                 unequaln :
-                   begin
-                      b:=true;
-                      for i:=0 to 31 do
-                       if tsetconstnode(right).value_set^[i]=tsetconstnode(left).value_set^[i] then
-                        begin
-                          b:=false;
-                          break;
-                        end;
-                      t:=cordconstnode.create(ord(b),booltype);
-                   end;
-                 equaln :
-                   begin
-                      b:=true;
-                      for i:=0 to 31 do
-                       if tsetconstnode(right).value_set^[i]<>tsetconstnode(left).value_set^[i] then
-                        begin
-                          b:=false;
-                          break;
-                        end;
-                      t:=cordconstnode.create(ord(b),booltype);
-                   end;
-                 lten :
-                   begin
-                     b := true;
-                     For i := 0 to 31 Do
-                       If (tsetconstnode(right).value_set^[i] And tsetconstnode(left).value_set^[i]) <>
-                           tsetconstnode(left).value_set^[i] Then
-                         Begin
-                           b := false;
-                           Break
-                         End;
-                     t := cordconstnode.create(ord(b),booltype);
-                   End;
-                 gten :
-                   Begin
-                     b := true;
-                     For i := 0 to 31 Do
-                       If (tsetconstnode(left).value_set^[i] And tsetconstnode(right).value_set^[i]) <>
-                           tsetconstnode(right).value_set^[i] Then
-                         Begin
-                           b := false;
-                           Break
-                         End;
-                     t := cordconstnode.create(ord(b),booltype);
-                   End;
-              end;
-              dispose(resultset);
-              firstpass(t);
-              result:=t;
-              exit;
-           end;
 
          { int/int gives real/real! }
          if nodetype=slashn then
@@ -894,71 +972,20 @@ implementation
            { 2 booleans ? }
              if is_boolean(ld) and is_boolean(rd) then
               begin
-                if (cs_full_boolean_eval in aktlocalswitches) or
-                   (nodetype in [xorn,ltn,lten,gtn,gten]) then
-                  begin
-                     if (left.location.loc in [LOC_JUMP,LOC_FLAGS]) and
-                        (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
-                       calcregisters(self,2,0,0)
-                     else
-                       calcregisters(self,1,0,0);
-                  end
+                if not(cs_full_boolean_eval in aktlocalswitches) and
+                   (nodetype in [andn,orn]) then
+                 begin
+                   calcregisters(self,0,0,0);
+                   location.loc:=LOC_JUMP;
+                 end
                 else
-                  case nodetype of
-                    andn,
-                    orn:
-                      begin
-                        calcregisters(self,0,0,0);
-                        location.loc:=LOC_JUMP;
-                      end;
-                    unequaln,
-                    equaln:
-                      begin
-                        { Remove any compares with constants }
-                        if (left.nodetype=ordconstn) then
-                         begin
-                           hp:=right;
-                           b:=(tordconstnode(left).value<>0);
-                           ot:=nodetype;
-                           left.free;
-                           left:=nil;
-                           right:=nil;
-                           if (not(b) and (ot=equaln)) or
-                              (b and (ot=unequaln)) then
-                            begin
-                              hp:=cnotnode.create(hp);
-                              firstpass(hp);
-                            end;
-                           result:=hp;
-                           exit;
-                         end;
-                        if (right.nodetype=ordconstn) then
-                         begin
-                           hp:=left;
-                           b:=(tordconstnode(right).value<>0);
-                           ot:=nodetype;
-                           right.free;
-                           right:=nil;
-                           left:=nil;
-
-                           if (not(b) and (ot=equaln)) or
-                              (b and (ot=unequaln)) then
-                            begin
-                              hp:=cnotnode.create(hp);
-                              firstpass(hp);
-                            end;
-                           result:=hp;
-                           exit;
-                         end;
-                        if (left.location.loc in [LOC_JUMP,LOC_FLAGS]) and
-                           (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
-                          calcregisters(self,2,0,0)
-                        else
-                          calcregisters(self,1,0,0);
-                      end;
-                  else
-                    CGMessage(type_e_mismatch);
-                  end;
+                 begin
+                   if (left.location.loc in [LOC_JUMP,LOC_FLAGS]) and
+                      (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
+                     calcregisters(self,2,0,0)
+                   else
+                     calcregisters(self,1,0,0);
+                 end;
               end
              else
              { Both are chars? only convert to shortstrings for addn }
@@ -1170,7 +1197,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2001-04-02 21:20:30  peter
+  Revision 1.24  2001-04-04 22:42:39  peter
+    * move constant folding into det_resulttype
+
+  Revision 1.23  2001/04/02 21:20:30  peter
     * resulttype rewrite
 
   Revision 1.22  2001/02/04 11:12:17  jonas

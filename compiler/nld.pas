@@ -164,6 +164,8 @@ implementation
          p1 : tnode;
       begin
          result:=nil;
+
+         { optimize simple with loadings }
          if (symtable^.symtabletype=withsymtable) and
             (pwithsymtable(symtable)^.direct_with) and
             (symtableentry^.typ=varsym) then
@@ -312,6 +314,7 @@ implementation
           (symtable = tloadnode(p).symtable);
       end;
 
+
 {*****************************************************************************
                              TASSIGNMENTNODE
 *****************************************************************************}
@@ -440,6 +443,7 @@ implementation
           (assigntype = tassignmentnode(p).assigntype);
       end;
 
+
 {*****************************************************************************
                                  TFUNCRETNODE
 *****************************************************************************}
@@ -451,6 +455,7 @@ implementation
          funcretprocinfo:=p;
       end;
 
+
     function tfuncretnode.getcopy : tnode;
       var
          n : tfuncretnode;
@@ -460,11 +465,13 @@ implementation
          getcopy:=n;
       end;
 
+
     function tfuncretnode.det_resulttype:tnode;
       begin
         result:=nil;
         resulttype:=pprocinfo(funcretprocinfo)^.returntype;
       end;
+
 
     function tfuncretnode.pass_1 : tnode;
       begin
@@ -475,12 +482,14 @@ implementation
            registers32:=1;
       end;
 
+
     function tfuncretnode.docompare(p: tnode): boolean;
       begin
         docompare :=
           inherited docompare(p) and
           (funcretprocinfo = tfuncretnode(p).funcretprocinfo);
       end;
+
 
 {*****************************************************************************
                            TARRAYCONSTRUCTORRANGENODE
@@ -519,22 +528,21 @@ implementation
 *****************************************************************************}
 
     constructor tarrayconstructornode.create(l,r : tnode);
-
       begin
          inherited create(arrayconstructorn,l,r);
          constructortype.reset;
       end;
 
-    function tarrayconstructornode.getcopy : tnode;
 
+    function tarrayconstructornode.getcopy : tnode;
       var
          n : tarrayconstructornode;
-
       begin
          n:=tarrayconstructornode(inherited getcopy);
          n.constructortype:=constructortype;
          result:=n;
       end;
+
 
     function tarrayconstructornode.det_resulttype:tnode;
       var
@@ -544,6 +552,7 @@ implementation
         varia : boolean;
       begin
         result:=nil;
+
       { are we allowing array constructor? Then convert it to a set }
         if not allow_array_constructor then
          begin
@@ -553,6 +562,7 @@ implementation
            result:=hp;
            exit;
          end;
+
       { only pass left tree, right tree contains next construct if any }
         htype:=constructortype;
         len:=0;
@@ -589,43 +599,12 @@ implementation
 
     function tarrayconstructornode.pass_1 : tnode;
       var
-        htype : ttype;
         thp,
         chp,
         hp : tarrayconstructornode;
-        len : longint;
-        varia : boolean;
-
-      procedure postprocess(t : tnode);
-
-        begin
-           calcregisters(tbinarynode(t),0,0,0);
-           { looks a little bit dangerous to me            }
-           { len-1 gives problems with is_open_array if len=0, }
-           { is_open_array checks now for isconstructor (FK)   }
-           { if no type is set then we set the type to voiddef to overcome a
-           0 addressing }
-           if not assigned(htype.def) then
-             htype:=voidtype;
-           { skip if already done ! (PM) }
-           if not assigned(t.resulttype.def) or
-              (t.resulttype.def^.deftype<>arraydef) or
-              not parraydef(t.resulttype.def)^.IsConstructor or
-              (parraydef(t.resulttype.def)^.lowrange<>0) or
-              (parraydef(t.resulttype.def)^.highrange<>len-1) then
-             t.resulttype.setdef(new(parraydef,init(0,len-1,s32bittype)));
-
-           parraydef(t.resulttype.def)^.elementtype:=htype;
-           parraydef(t.resulttype.def)^.IsConstructor:=true;
-           parraydef(t.resulttype.def)^.IsVariant:=varia;
-           t.location.loc:=LOC_MEM;
-        end;
       begin
         result:=nil;
       { only pass left tree, right tree contains next construct if any }
-        htype:=constructortype;
-        len:=0;
-        varia:=false;
         if assigned(left) then
          begin
            hp:=self;
@@ -633,8 +612,8 @@ implementation
             begin
               firstpass(hp.left);
               set_varstate(hp.left,true);
-              if (not get_para_resulttype) and
-                (not(nf_novariaallowed in flags)) then
+              { Insert typeconvs for array of const }
+              if parraydef(resulttype.def)^.IsVariant then
                begin
                  case hp.left.resulttype.def^.deftype of
                    enumdef :
@@ -676,23 +655,6 @@ implementation
                      CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def^.typename);
                  end;
                end;
-              if (htype.def=nil) then
-               htype:=hp.left.resulttype
-              else
-               begin
-                 if ((nf_novariaallowed in flags) or (not varia)) and
-                    (not is_equal(htype.def,hp.left.resulttype.def)) then
-                  begin
-                    { if both should be equal try inserting a conversion }
-                    if nf_novariaallowed in flags then
-                     begin
-                       hp.left:=ctypeconvnode.create(hp.left,htype);
-                       firstpass(hp.left);
-                     end;
-                    varia:=true;
-                  end;
-               end;
-              inc(len);
               hp:=tarrayconstructornode(hp.right);
             end;
          { swap the tree for cargs }
@@ -711,13 +673,16 @@ implementation
                end;
               include(chp.flags,nf_cargs);
               include(chp.flags,nf_cargswap);
-              postprocess(chp);
+              calcregisters(chp,0,0,0);
+              chp.location.loc:=LOC_MEM;
               result:=chp;
               exit;
             end;
          end;
-         postprocess(self);
+        calcregisters(self,0,0,0);
+        location.loc:=LOC_MEM;
       end;
+
 
     function tarrayconstructornode.docompare(p: tnode): boolean;
       begin
@@ -732,11 +697,11 @@ implementation
 *****************************************************************************}
 
     constructor ttypenode.create(t : ttype);
-
       begin
          inherited create(typen);
          restype:=t;
       end;
+
 
     function ttypenode.det_resulttype:tnode;
       begin
@@ -744,10 +709,12 @@ implementation
         resulttype:=restype;
       end;
 
+
     function ttypenode.pass_1 : tnode;
       begin
          result:=nil;
       end;
+
 
     function ttypenode.docompare(p: tnode): boolean;
       begin
@@ -765,7 +732,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2001-04-02 21:20:31  peter
+  Revision 1.12  2001-04-04 22:42:40  peter
+    * move constant folding into det_resulttype
+
+  Revision 1.11  2001/04/02 21:20:31  peter
     * resulttype rewrite
 
   Revision 1.10  2000/12/31 11:14:10  jonas

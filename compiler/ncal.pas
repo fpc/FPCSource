@@ -1268,6 +1268,16 @@ implementation
          { ensure that the result type is set }
          resulttype:=procdefinition^.rettype;
 
+         { constructors return their current class type, not the type where the
+           constructor is declared, this can be different because of inheritance }
+         if (procdefinition^.proctypeoption=potype_constructor) then
+           begin
+             if assigned(methodpointer) and
+                assigned(methodpointer.resulttype.def) and
+                (methodpointer.resulttype.def^.deftype=classrefdef) then
+               resulttype:=pclassrefdef(methodpointer.resulttype.def)^.pointertype;
+           end;
+
          { insert type conversions }
          if assigned(left) then
           tcallparanode(left).insert_typeconv(tparaitem(procdefinition^.Para.first),true);
@@ -1388,13 +1398,12 @@ implementation
                 begin
                    { extra handling of classes }
                    { methodpointer should be assigned! }
-                   if assigned(methodpointer) and assigned(methodpointer.resulttype.def) and
-                     (methodpointer.resulttype.def^.deftype=classrefdef) then
+                   if assigned(methodpointer) and
+                      assigned(methodpointer.resulttype.def) and
+                      (methodpointer.resulttype.def^.deftype=classrefdef) then
                      begin
                         location.loc:=LOC_REGISTER;
                         registers32:=1;
-                        { the result type depends on the classref }
-                        resulttype:=pclassrefdef(methodpointer.resulttype.def)^.pointertype;
                      end
                   { a object constructor returns the result with the flags }
                    else
@@ -1604,7 +1613,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2001-04-02 21:20:30  peter
+  Revision 1.26  2001-04-04 22:42:39  peter
+    * move constant folding into det_resulttype
+
+  Revision 1.25  2001/04/02 21:20:30  peter
     * resulttype rewrite
 
   Revision 1.24  2001/03/12 12:47:46  michael

@@ -40,6 +40,15 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode) : boolean; override;
+       private
+          function resulttype_cord_to_pointer : tnode;
+          function resulttype_string_to_string : tnode;
+          function resulttype_char_to_string : tnode;
+          function resulttype_int_to_real : tnode;
+          function resulttype_real_to_real : tnode;
+          function resulttype_cchar_to_pchar : tnode;
+          function resulttype_arrayconstructor_to_set : tnode;
+          function resulttype_call_helper(c : tconverttype) : tnode;
        protected
           function first_int_to_int : tnode;virtual;
           function first_cstring_to_pchar : tnode;virtual;
@@ -218,10 +227,9 @@ implementation
                  p.left:=nil;
                  p3:=nil;
                end;
-              {$warning todo: firstpass}
-              firstpass(p2);
+              resulttypepass(p2);
               if assigned(p3) then
-               firstpass(p3);
+               resulttypepass(p3);
               if codegenerror then
                break;
               case p2.resulttype.def^.deftype of
@@ -382,11 +390,11 @@ implementation
       end;
 
 
-    function ttypeconvnode.first_cord_to_pointer : tnode;
+    function ttypeconvnode.resulttype_cord_to_pointer : tnode;
       var
         t : tnode;
       begin
-        first_cord_to_pointer:=nil;
+        result:=nil;
         if left.nodetype=ordconstn then
           begin
             { check if we have a valid pointer constant (JM) }
@@ -406,260 +414,86 @@ implementation
               else
                 internalerror(2001020801);
             t:=cpointerconstnode.create(tpointerord(tordconstnode(left).value),resulttype);
-            firstpass(t);
-            first_cord_to_pointer:=t;
-            exit;
+            resulttypepass(t);
+            result:=t;
           end
-        else
-          internalerror(432472389);
+         else
+          internalerror(200104023);
       end;
 
 
-    function ttypeconvnode.first_int_to_int : tnode;
+    function ttypeconvnode.resulttype_string_to_string : tnode;
       begin
-        first_int_to_int:=nil;
-        if (left.location.loc<>LOC_REGISTER) and
-           (resulttype.def^.size>left.resulttype.def^.size) then
-           location.loc:=LOC_REGISTER;
-        if is_64bitint(resulttype.def) then
-          registers32:=max(registers32,2)
-        else
-          registers32:=max(registers32,1);
+         result:=nil;
+         if left.nodetype=stringconstn then
+          begin
+             tstringconstnode(left).st_type:=pstringdef(resulttype.def)^.string_typ;
+             tstringconstnode(left).resulttype:=resulttype;
+             result:=left;
+             left:=nil;
+          end;
       end;
 
 
-    function ttypeconvnode.first_cstring_to_pchar : tnode;
-      begin
-         first_cstring_to_pchar:=nil;
-         registers32:=1;
-         location.loc:=LOC_REGISTER;
-      end;
-
-
-    function ttypeconvnode.first_string_to_chararray : tnode;
-      begin
-         first_string_to_chararray:=nil;
-         registers32:=1;
-         location.loc:=LOC_REGISTER;
-      end;
-
-
-    function ttypeconvnode.first_string_to_string : tnode;
-      begin
-         first_string_to_string:=nil;
-         if pstringdef(resulttype.def)^.string_typ<>
-            pstringdef(left.resulttype.def)^.string_typ then
-           begin
-              if left.nodetype=stringconstn then
-                begin
-                   tstringconstnode(left).st_type:=pstringdef(resulttype.def)^.string_typ;
-                   tstringconstnode(left).resulttype:=resulttype;
-                   { remove typeconv node }
-                   first_string_to_string:=left;
-                   left:=nil;
-                   exit;
-                end
-              else
-                procinfo^.flags:=procinfo^.flags or pi_do_call;
-           end;
-         { for simplicity lets first keep all ansistrings
-           as LOC_MEM, could also become LOC_REGISTER }
-         if pstringdef(resulttype.def)^.string_typ in [st_ansistring,st_widestring] then
-           { we may use ansistrings so no fast exit here }
-           procinfo^.no_fast_exit:=true;
-         location.loc:=LOC_MEM;
-      end;
-
-
-    function ttypeconvnode.first_char_to_string : tnode;
+    function ttypeconvnode.resulttype_char_to_string : tnode;
       var
          hp : tstringconstnode;
       begin
-         first_char_to_string:=nil;
+         result:=nil;
          if left.nodetype=ordconstn then
            begin
               hp:=cstringconstnode.createstr(chr(tordconstnode(left).value),st_default);
               hp.st_type:=pstringdef(resulttype.def)^.string_typ;
-              firstpass(hp);
-              first_char_to_string:=hp;
-           end
-         else
-           location.loc:=LOC_MEM;
+              resulttypepass(hp);
+              result:=hp;
+           end;
       end;
 
 
-    function ttypeconvnode.first_nothing : tnode;
-      begin
-         first_nothing:=nil;
-         location.loc:=LOC_MEM;
-      end;
-
-
-    function ttypeconvnode.first_array_to_pointer : tnode;
-      begin
-         first_array_to_pointer:=nil;
-         if registers32<1 then
-           registers32:=1;
-         location.loc:=LOC_REGISTER;
-      end;
-
-
-    function ttypeconvnode.first_int_to_real : tnode;
+    function ttypeconvnode.resulttype_int_to_real : tnode;
       var
         t : trealconstnode;
       begin
-        first_int_to_real:=nil;
+        result:=nil;
         if left.nodetype=ordconstn then
          begin
            t:=crealconstnode.create(tordconstnode(left).value,resulttype);
-           firstpass(t);
-           first_int_to_real:=t;
+           resulttypepass(t);
+           result:=t;
            exit;
          end;
-        if registersfpu<1 then
-         registersfpu:=1;
-        location.loc:=LOC_FPU;
       end;
 
 
-    function ttypeconvnode.first_real_to_real : tnode;
+    function ttypeconvnode.resulttype_real_to_real : tnode;
       var
         t : tnode;
       begin
-         first_real_to_real:=nil;
+         result:=nil;
          if left.nodetype=realconstn then
            begin
              t:=crealconstnode.create(trealconstnode(left).value_real,resulttype);
-             firstpass(t);
-             first_real_to_real:=t;
-             exit;
+             resulttypepass(t);
+             result:=t;
            end;
-        { comp isn't a floating type }
-{$ifdef i386}
-         if (pfloatdef(resulttype.def)^.typ=s64comp) and
-            (pfloatdef(left.resulttype.def)^.typ<>s64comp) and
-            not (nf_explizit in flags) then
-           CGMessage(type_w_convert_real_2_comp);
-{$endif}
-         if registersfpu<1 then
-           registersfpu:=1;
-         location.loc:=LOC_FPU;
       end;
 
 
-    function ttypeconvnode.first_pointer_to_array : tnode;
+    function ttypeconvnode.resulttype_cchar_to_pchar : tnode;
       begin
-         first_pointer_to_array:=nil;
-         if registers32<1 then
-           registers32:=1;
-         location.loc:=LOC_REFERENCE;
-      end;
-
-
-    function ttypeconvnode.first_chararray_to_string : tnode;
-      begin
-         first_chararray_to_string:=nil;
-         { the only important information is the location of the }
-         { result                                               }
-         { other stuff is done by firsttypeconv           }
-         location.loc:=LOC_MEM;
-      end;
-
-
-    function ttypeconvnode.first_cchar_to_pchar : tnode;
-      begin
-         first_cchar_to_pchar:=nil;
+         result:=nil;
          inserttypeconv(left,cshortstringtype);
          { evaluate again, reset resulttype so the convert_typ
            will be calculated again }
-         det_resulttype;
-         first_cchar_to_pchar:=pass_1;
+         result:=det_resulttype;
       end;
 
 
-    function ttypeconvnode.first_bool_to_int : tnode;
-      begin
-         first_bool_to_int:=nil;
-         { byte(boolean) or word(wordbool) or longint(longbool) must
-         be accepted for var parameters }
-         if (nf_explizit in flags) and
-            (left.resulttype.def^.size=resulttype.def^.size) and
-            (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
-           exit;
-         location.loc:=LOC_REGISTER;
-         if registers32<1 then
-           registers32:=1;
-      end;
-
-
-    function ttypeconvnode.first_int_to_bool : tnode;
-      begin
-         first_int_to_bool:=nil;
-         { byte(boolean) or word(wordbool) or longint(longbool) must
-         be accepted for var parameters }
-         if (nf_explizit in flags) and
-            (left.resulttype.def^.size=resulttype.def^.size) and
-            (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
-           exit;
-         location.loc:=LOC_REGISTER;
-         { need if bool to bool !!
-           not very nice !!
-         insertypeconv(left,s32bittype);
-         left.explizit:=true;
-         firstpass(left);  }
-         if registers32<1 then
-           registers32:=1;
-      end;
-
-
-    function ttypeconvnode.first_bool_to_bool : tnode;
-      begin
-         first_bool_to_bool:=nil;
-         location.loc:=LOC_REGISTER;
-         if registers32<1 then
-           registers32:=1;
-      end;
-
-
-    function ttypeconvnode.first_proc_to_procvar : tnode;
-      begin
-         first_proc_to_procvar:=nil;
-         if (left.location.loc<>LOC_REFERENCE) then
-           CGMessage(cg_e_illegal_expression);
-         registers32:=left.registers32;
-         if registers32<1 then
-           registers32:=1;
-         location.loc:=LOC_REGISTER;
-      end;
-
-
-    function ttypeconvnode.first_load_smallset : tnode;
-      begin
-         first_load_smallset:=nil;
-      end;
-
-
-    function ttypeconvnode.first_pchar_to_string : tnode;
-      begin
-         first_pchar_to_string:=nil;
-         location.loc:=LOC_REFERENCE;
-      end;
-
-
-    function ttypeconvnode.first_ansistring_to_pchar : tnode;
-      begin
-         first_ansistring_to_pchar:=nil;
-         location.loc:=LOC_REGISTER;
-         if registers32<1 then
-           registers32:=1;
-      end;
-
-
-    function ttypeconvnode.first_arrayconstructor_to_set : tnode;
+    function ttypeconvnode.resulttype_arrayconstructor_to_set : tnode;
       var
         hp : tnode;
       begin
-        first_arrayconstructor_to_set:=nil;
+        result:=nil;
         if left.nodetype<>arrayconstructorn then
          internalerror(5546);
       { remove typeconv node }
@@ -668,64 +502,56 @@ implementation
       { create a set constructor tree }
         arrayconstructor_to_set(tarrayconstructornode(hp));
       { now resulttypepass the set }
-        firstpass(hp);
-        first_arrayconstructor_to_set:=hp;
+        resulttypepass(hp);
+        result:=hp;
       end;
 
-    function ttypeconvnode.first_class_to_intf : tnode;
 
-      begin
-         first_class_to_intf:=nil;
-         location.loc:=LOC_REFERENCE;
-         if registers32<1 then
-           registers32:=1;
-      end;
-
-    function ttypeconvnode.first_call_helper(c : tconverttype) : tnode;
+    function ttypeconvnode.resulttype_call_helper(c : tconverttype) : tnode;
 
       const
-         firstconvert : array[tconverttype] of pointer = (
-           @ttypeconvnode.first_nothing, {equal}
-           @ttypeconvnode.first_nothing, {not_possible}
-           @ttypeconvnode.first_string_to_string,
-           @ttypeconvnode.first_char_to_string,
-           @ttypeconvnode.first_pchar_to_string,
-           @ttypeconvnode.first_cchar_to_pchar,
-           @ttypeconvnode.first_cstring_to_pchar,
-           @ttypeconvnode.first_ansistring_to_pchar,
-           @ttypeconvnode.first_string_to_chararray,
-           @ttypeconvnode.first_chararray_to_string,
-           @ttypeconvnode.first_array_to_pointer,
-           @ttypeconvnode.first_pointer_to_array,
-           @ttypeconvnode.first_int_to_int,
-           @ttypeconvnode.first_int_to_bool,
-           @ttypeconvnode.first_bool_to_bool,
-           @ttypeconvnode.first_bool_to_int,
-           @ttypeconvnode.first_real_to_real,
-           @ttypeconvnode.first_int_to_real,
-           @ttypeconvnode.first_proc_to_procvar,
-           @ttypeconvnode.first_arrayconstructor_to_set,
-           @ttypeconvnode.first_load_smallset,
-           @ttypeconvnode.first_cord_to_pointer,
-           @ttypeconvnode.first_nothing,
-           @ttypeconvnode.first_nothing,
-           @ttypeconvnode.first_class_to_intf
+         resulttypeconvert : array[tconverttype] of pointer = (
+          {equal} nil,
+          {not_possible} nil,
+          { string_2_string } @ttypeconvnode.resulttype_string_to_string,
+          { char_2_string } @ttypeconvnode.resulttype_char_to_string,
+          { pchar_2_string } nil,
+          { cchar_2_pchar } @ttypeconvnode.resulttype_cchar_to_pchar,
+          { cstring_2_pchar } nil,
+          { ansistring_2_pchar } nil,
+          { string_2_chararray } nil,
+          { chararray_2_string } nil,
+          { array_2_pointer } nil,
+          { pointer_2_array } nil,
+          { int_2_int } nil,
+          { int_2_bool } nil,
+          { bool_2_bool } nil,
+          { bool_2_int } nil,
+          { real_2_real } @ttypeconvnode.resulttype_real_to_real,
+          { int_2_real } @ttypeconvnode.resulttype_int_to_real,
+          { proc_2_procvar } nil,
+          { arrayconstructor_2_set } @ttypeconvnode.resulttype_arrayconstructor_to_set,
+          { load_smallset } nil,
+          { cord_2_pointer } @ttypeconvnode.resulttype_cord_to_pointer,
+          { intf_2_string } nil,
+          { intf_2_guid } nil,
+          { class_2_intf } nil
          );
       type
          tprocedureofobject = function : tnode of object;
-
       var
          r : packed record
                 proc : pointer;
                 obj : pointer;
              end;
-
       begin
+         result:=nil;
          { this is a little bit dirty but it works }
          { and should be quite portable too        }
-         r.proc:=firstconvert[c];
+         r.proc:=resulttypeconvert[c];
          r.obj:=self;
-         first_call_helper:=tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
+         if assigned(r.proc) then
+          result:=tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
       end;
 
 
@@ -784,8 +610,6 @@ implementation
              exit;
           end;
 
-        {$WARNING Todo: remove firstpass}
-        firstpass(left);
         if isconvertable(left.resulttype.def,resulttype.def,convtype,left.nodetype,nf_explizit in flags)=0 then
          begin
            {Procedures have a resulttype.def of voiddef and functions of their
@@ -1025,6 +849,277 @@ implementation
              result:=hp;
              exit;
           end;
+
+        { now call the resulttype helper to do constant folding }
+        result:=resulttype_call_helper(convtype);
+      end;
+
+
+    function ttypeconvnode.first_cord_to_pointer : tnode;
+      begin
+        result:=nil;
+        internalerror(200104043);
+      end;
+
+
+    function ttypeconvnode.first_int_to_int : tnode;
+      begin
+        first_int_to_int:=nil;
+        if (left.location.loc<>LOC_REGISTER) and
+           (resulttype.def^.size>left.resulttype.def^.size) then
+           location.loc:=LOC_REGISTER;
+        if is_64bitint(resulttype.def) then
+          registers32:=max(registers32,2)
+        else
+          registers32:=max(registers32,1);
+      end;
+
+
+    function ttypeconvnode.first_cstring_to_pchar : tnode;
+      begin
+         first_cstring_to_pchar:=nil;
+         registers32:=1;
+         location.loc:=LOC_REGISTER;
+      end;
+
+
+    function ttypeconvnode.first_string_to_chararray : tnode;
+      begin
+         first_string_to_chararray:=nil;
+         registers32:=1;
+         location.loc:=LOC_REGISTER;
+      end;
+
+
+    function ttypeconvnode.first_string_to_string : tnode;
+      begin
+         first_string_to_string:=nil;
+         if pstringdef(resulttype.def)^.string_typ<>
+            pstringdef(left.resulttype.def)^.string_typ then
+           begin
+             procinfo^.flags:=procinfo^.flags or pi_do_call;
+           end;
+         { for simplicity lets first keep all ansistrings
+           as LOC_MEM, could also become LOC_REGISTER }
+         if pstringdef(resulttype.def)^.string_typ in [st_ansistring,st_widestring] then
+           { we may use ansistrings so no fast exit here }
+           procinfo^.no_fast_exit:=true;
+         location.loc:=LOC_MEM;
+      end;
+
+
+    function ttypeconvnode.first_char_to_string : tnode;
+      begin
+         first_char_to_string:=nil;
+         location.loc:=LOC_MEM;
+      end;
+
+
+    function ttypeconvnode.first_nothing : tnode;
+      begin
+         first_nothing:=nil;
+         location.loc:=LOC_MEM;
+      end;
+
+
+    function ttypeconvnode.first_array_to_pointer : tnode;
+      begin
+         first_array_to_pointer:=nil;
+         if registers32<1 then
+           registers32:=1;
+         location.loc:=LOC_REGISTER;
+      end;
+
+
+    function ttypeconvnode.first_int_to_real : tnode;
+      begin
+        first_int_to_real:=nil;
+        if registersfpu<1 then
+         registersfpu:=1;
+        location.loc:=LOC_FPU;
+      end;
+
+
+    function ttypeconvnode.first_real_to_real : tnode;
+      begin
+         first_real_to_real:=nil;
+        { comp isn't a floating type }
+{$ifdef i386}
+         if (pfloatdef(resulttype.def)^.typ=s64comp) and
+            (pfloatdef(left.resulttype.def)^.typ<>s64comp) and
+            not (nf_explizit in flags) then
+           CGMessage(type_w_convert_real_2_comp);
+{$endif}
+         if registersfpu<1 then
+           registersfpu:=1;
+         location.loc:=LOC_FPU;
+      end;
+
+
+    function ttypeconvnode.first_pointer_to_array : tnode;
+      begin
+         first_pointer_to_array:=nil;
+         if registers32<1 then
+           registers32:=1;
+         location.loc:=LOC_REFERENCE;
+      end;
+
+
+    function ttypeconvnode.first_chararray_to_string : tnode;
+      begin
+         first_chararray_to_string:=nil;
+         { the only important information is the location of the }
+         { result                                               }
+         { other stuff is done by firsttypeconv           }
+         location.loc:=LOC_MEM;
+      end;
+
+
+    function ttypeconvnode.first_cchar_to_pchar : tnode;
+      begin
+         first_cchar_to_pchar:=nil;
+         internalerror(200104021);
+      end;
+
+
+    function ttypeconvnode.first_bool_to_int : tnode;
+      begin
+         first_bool_to_int:=nil;
+         { byte(boolean) or word(wordbool) or longint(longbool) must
+         be accepted for var parameters }
+         if (nf_explizit in flags) and
+            (left.resulttype.def^.size=resulttype.def^.size) and
+            (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
+           exit;
+         location.loc:=LOC_REGISTER;
+         if registers32<1 then
+           registers32:=1;
+      end;
+
+
+    function ttypeconvnode.first_int_to_bool : tnode;
+      begin
+         first_int_to_bool:=nil;
+         { byte(boolean) or word(wordbool) or longint(longbool) must
+         be accepted for var parameters }
+         if (nf_explizit in flags) and
+            (left.resulttype.def^.size=resulttype.def^.size) and
+            (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
+           exit;
+         location.loc:=LOC_REGISTER;
+         { need if bool to bool !!
+           not very nice !!
+         insertypeconv(left,s32bittype);
+         left.explizit:=true;
+         firstpass(left);  }
+         if registers32<1 then
+           registers32:=1;
+      end;
+
+
+    function ttypeconvnode.first_bool_to_bool : tnode;
+      begin
+         first_bool_to_bool:=nil;
+         location.loc:=LOC_REGISTER;
+         if registers32<1 then
+           registers32:=1;
+      end;
+
+
+    function ttypeconvnode.first_proc_to_procvar : tnode;
+      begin
+         first_proc_to_procvar:=nil;
+         if (left.location.loc<>LOC_REFERENCE) then
+           CGMessage(cg_e_illegal_expression);
+         registers32:=left.registers32;
+         if registers32<1 then
+           registers32:=1;
+         location.loc:=LOC_REGISTER;
+      end;
+
+
+    function ttypeconvnode.first_load_smallset : tnode;
+      begin
+         first_load_smallset:=nil;
+      end;
+
+
+    function ttypeconvnode.first_pchar_to_string : tnode;
+      begin
+         first_pchar_to_string:=nil;
+         location.loc:=LOC_REFERENCE;
+      end;
+
+
+    function ttypeconvnode.first_ansistring_to_pchar : tnode;
+      begin
+         first_ansistring_to_pchar:=nil;
+         location.loc:=LOC_REGISTER;
+         if registers32<1 then
+           registers32:=1;
+      end;
+
+
+    function ttypeconvnode.first_arrayconstructor_to_set : tnode;
+      begin
+        first_arrayconstructor_to_set:=nil;
+        internalerror(200104022);
+      end;
+
+    function ttypeconvnode.first_class_to_intf : tnode;
+
+      begin
+         first_class_to_intf:=nil;
+         location.loc:=LOC_REFERENCE;
+         if registers32<1 then
+           registers32:=1;
+      end;
+
+    function ttypeconvnode.first_call_helper(c : tconverttype) : tnode;
+
+      const
+         firstconvert : array[tconverttype] of pointer = (
+           @ttypeconvnode.first_nothing, {equal}
+           @ttypeconvnode.first_nothing, {not_possible}
+           @ttypeconvnode.first_string_to_string,
+           @ttypeconvnode.first_char_to_string,
+           @ttypeconvnode.first_pchar_to_string,
+           @ttypeconvnode.first_cchar_to_pchar,
+           @ttypeconvnode.first_cstring_to_pchar,
+           @ttypeconvnode.first_ansistring_to_pchar,
+           @ttypeconvnode.first_string_to_chararray,
+           @ttypeconvnode.first_chararray_to_string,
+           @ttypeconvnode.first_array_to_pointer,
+           @ttypeconvnode.first_pointer_to_array,
+           @ttypeconvnode.first_int_to_int,
+           @ttypeconvnode.first_int_to_bool,
+           @ttypeconvnode.first_bool_to_bool,
+           @ttypeconvnode.first_bool_to_int,
+           @ttypeconvnode.first_real_to_real,
+           @ttypeconvnode.first_int_to_real,
+           @ttypeconvnode.first_proc_to_procvar,
+           @ttypeconvnode.first_arrayconstructor_to_set,
+           @ttypeconvnode.first_load_smallset,
+           @ttypeconvnode.first_cord_to_pointer,
+           @ttypeconvnode.first_nothing,
+           @ttypeconvnode.first_nothing,
+           @ttypeconvnode.first_class_to_intf
+         );
+      type
+         tprocedureofobject = function : tnode of object;
+
+      var
+         r : packed record
+                proc : pointer;
+                obj : pointer;
+             end;
+
+      begin
+         { this is a little bit dirty but it works }
+         { and should be quite portable too        }
+         r.proc:=firstconvert[c];
+         r.obj:=self;
+         first_call_helper:=tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
       end;
 
 
@@ -1200,7 +1295,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2001-04-02 21:20:30  peter
+  Revision 1.23  2001-04-04 22:42:39  peter
+    * move constant folding into det_resulttype
+
+  Revision 1.22  2001/04/02 21:20:30  peter
     * resulttype rewrite
 
   Revision 1.21  2001/03/08 17:44:47  jonas
