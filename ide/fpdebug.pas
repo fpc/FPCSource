@@ -1275,7 +1275,7 @@ begin
   else
     begin
       IDEApp.ShowIDEScreen;
-      Message(Application,evBroadcast,cmDebuggerStopped,pointer(RunCount));
+      Message(Application,evBroadcast,cmDebuggerStopped,pointer(ptrint(RunCount)));
       PopStatus;
     end;
 {$ifdef win32}
@@ -3658,7 +3658,10 @@ end.
 
 {
   $Log$
-  Revision 1.57  2004-12-06 20:39:25  peter
+  Revision 1.58  2004-12-19 18:39:50  florian
+    * made 64 bit safe
+
+  Revision 1.57  2004/12/06 20:39:25  peter
   change a[1,2] to a[1][2]
 
   Revision 1.56  2004/11/21 20:53:26  peter
