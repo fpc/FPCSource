@@ -117,8 +117,6 @@ implementation
               end;
             varsym :
                begin
-                  if (tvarsym(symtableentry).varspez=vs_const) then
-                    location_reset(location,LOC_CREFERENCE,newsize);
                   symtabletype:=symtable.symtabletype;
                   hregister:=NR_NO;
                   { C variable }
@@ -202,13 +200,15 @@ implementation
                       secondpass(left);
                       if left.location.loc<>LOC_REGISTER then
                         internalerror(200309286);
+                      if tvarsym(symtableentry).localloc.loc<>LOC_REFERENCE then
+                        internalerror(200409241);
                       hregister:=left.location.register;
-                      location.reference.base:=hregister;
-                      location.reference.offset:=tvarsym(symtableentry).localloc.reference.offset;
+                      reference_reset_base(location.reference,hregister,tvarsym(symtableentry).localloc.reference.offset);
                     end
                   { normal variable }
                   else
                     begin
+{$ifdef OLDREGVARS}
                        { in case it is a register variable: }
                        if tvarsym(symtableentry).localloc.loc in [LOC_REGISTER,LOC_FPUREGISTER] then
                          begin
@@ -229,15 +229,13 @@ implementation
                             end;
                          end
                        else
+{$endif OLDREGVARS}
                          begin
                            case symtabletype of
+                              stt_exceptsymtable,
                               localsymtable,
                               parasymtable :
-                                begin
-                                  if tvarsym(symtableentry).localloc.loc<>LOC_REFERENCE then
-                                    internalerror(2003091816);
-                                  location.reference:=tvarsym(symtableentry).localloc.reference;
-                                end;
+                                location:=tvarsym(symtableentry).localloc;
                               globalsymtable,
                               staticsymtable :
                                 begin
@@ -249,12 +247,6 @@ implementation
                                     end
                                   else
                                     location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
-                                end;
-                              stt_exceptsymtable:
-                                begin
-                                  if tvarsym(symtableentry).localloc.loc<>LOC_REFERENCE then
-                                    internalerror(2003091817);
-                                  location.reference:=tvarsym(symtableentry).localloc.reference;
                                 end;
                               else
                                 internalerror(200305102);
@@ -275,12 +267,14 @@ implementation
                       { we need to load only an address }
                       location.size:=OS_ADDR;
                       cg.a_load_loc_reg(exprasmlist,location.size,location,hregister);
-                      if tvarsym(symtableentry).varspez=vs_const then
-                       location_reset(location,LOC_CREFERENCE,newsize)
-                      else
-                       location_reset(location,LOC_REFERENCE,newsize);
+                      location_reset(location,LOC_REFERENCE,newsize);
                       location.reference.base:=hregister;
                     end;
+
+                  { make const a LOC_CREFERENCE }
+                  if (tvarsym(symtableentry).varspez=vs_const) and
+                     (location.loc=LOC_REFERENCE) then
+                    location.loc:=LOC_CREFERENCE;
                end;
             procsym:
                begin
@@ -559,6 +553,7 @@ implementation
               LOC_CREFERENCE :
                 begin
                   case left.location.loc of
+                    LOC_REGISTER,
                     LOC_CREGISTER :
                       begin
                         cgsize:=def_cgsize(left.resulttype.def);
@@ -569,6 +564,7 @@ implementation
 {$endif cpu64bit}
                           cg.a_load_ref_reg(exprasmlist,cgsize,cgsize,right.location.reference,left.location.register);
                       end;
+                    LOC_FPUREGISTER,
                     LOC_CFPUREGISTER :
                       begin
                         cg.a_loadfpu_ref_reg(exprasmlist,
@@ -631,7 +627,8 @@ implementation
 {$endif cpu64bit}
                     cg.a_load_reg_loc(exprasmlist,right.location.size,right.location.register,left.location);
                 end;
-              LOC_FPUREGISTER,LOC_CFPUREGISTER :
+              LOC_FPUREGISTER,
+              LOC_CFPUREGISTER :
                 begin
                   if (left.resulttype.def.deftype=floatdef) then
                    fputyp:=tfloatdef(left.resulttype.def).typ
@@ -675,7 +672,7 @@ implementation
               LOC_FLAGS :
                 begin
                   {This can be a wordbool or longbool too, no?}
-                  if left.location.loc=LOC_CREGISTER then
+                  if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
                     cg.g_flags2reg(exprasmlist,def_cgsize(left.resulttype.def),right.location.resflags,left.location.register)
                   else
                     begin
@@ -930,7 +927,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.125  2004-09-25 14:23:54  peter
+  Revision 1.126  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.125  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

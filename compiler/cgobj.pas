@@ -111,6 +111,8 @@ unit cgobj;
           procedure a_reg_alloc(list : taasmoutput;r : tregister);
           {# Deallocates register r by inserting a pa_regdealloc record}
           procedure a_reg_dealloc(list : taasmoutput;r : tregister);
+          { Synchronize register, make sure it is still valid }
+          procedure a_reg_sync(list : taasmoutput;r : tregister);
 
           {# Pass a parameter, which is located in a register, to a routine.
 
@@ -710,6 +712,16 @@ implementation
     procedure tcg.a_reg_dealloc(list : taasmoutput;r : tregister);
       begin
          list.concat(tai_regalloc.dealloc(r));
+      end;
+
+
+    procedure tcg.a_reg_sync(list : taasmoutput;r : tregister);
+      var
+        instr : tai;
+      begin
+        instr:=tai_regalloc.sync(r);
+        list.concat(instr);
+        add_reg_instruction(instr,r);
       end;
 
 
@@ -2192,7 +2204,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.170  2004-09-25 14:23:54  peter
+  Revision 1.171  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.170  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

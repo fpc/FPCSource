@@ -231,7 +231,7 @@ interface
        { cut type, required for alphanumeric ordering of the assembler filenames }
        TCutPlace=(cut_normal,cut_begin,cut_end);
 
-       TRegAllocType = (ra_alloc,ra_dealloc,ra_resize);
+       TRegAllocType = (ra_alloc,ra_dealloc,ra_sync,ra_resize);
 
        TMarker = (NoPropInfoStart,NoPropInfoEnd,
                   AsmBlockStart,AsmBlockEnd,
@@ -489,6 +489,7 @@ interface
           ratype  : TRegAllocType;
           constructor alloc(r : tregister);
           constructor dealloc(r : tregister);
+          constructor sync(r : tregister);
           constructor resize(r : tregister);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1734,6 +1735,15 @@ implementation
       end;
 
 
+    constructor tai_regalloc.sync(r : tregister);
+      begin
+        inherited create;
+        typ:=ait_regalloc;
+        ratype:=ra_sync;
+        reg:=r;
+      end;
+
+
     constructor tai_regalloc.resize(r : tregister);
       begin
         inherited create;
@@ -2214,7 +2224,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2004-08-15 13:30:18  florian
+  Revision 1.89  2004-09-26 17:45:29  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.88  2004/08/15 13:30:18  florian
     * fixed alignment of variant records
     * more alignment problems fixed
 

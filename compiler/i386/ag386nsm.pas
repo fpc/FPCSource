@@ -382,7 +382,7 @@ interface
 
     procedure T386NasmAssembler.WriteTree(p:taasmoutput);
     const
-      regallocstr : array[tregalloctype] of string[10]=(' released',' allocated','resized');
+      regallocstr : array[tregalloctype] of string[10]=(' released',' allocated',' sync',' resized');
       tempallocstr : array[boolean] of string[10]=(' released',' allocated');
     var
       s : string;
@@ -909,7 +909,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.47  2004-06-20 08:55:31  florian
+  Revision 1.48  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.47  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.46  2004/06/16 20:07:10  florian

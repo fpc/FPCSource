@@ -313,6 +313,8 @@ implementation
         if codegenerror then
          exit;
 
+        make_not_regable(left);
+
         { don't allow constants }
         if is_constnode(left) then
          begin
@@ -464,7 +466,6 @@ implementation
          if codegenerror then
           exit;
 
-         make_not_regable(left);
          if nf_procvarload in flags then
           begin
             registersint:=left.registersint;
@@ -981,7 +982,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2004-06-20 08:55:29  florian
+  Revision 1.86  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.85  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.84  2004/06/16 20:07:09  florian

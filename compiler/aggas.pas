@@ -342,7 +342,7 @@ var
 
     procedure TGNUAssembler.WriteTree(p:TAAsmoutput);
     const
-      regallocstr : array[tregalloctype] of string[10]=(' allocated',' released','resized');
+      regallocstr : array[tregalloctype] of string[10]=(' allocated',' released',' sync',' resized');
       tempallocstr : array[boolean] of string[10]=(' released',' allocated');
     var
       ch       : char;
@@ -969,7 +969,10 @@ var
 end.
 {
   $Log$
-  Revision 1.58  2004-08-27 20:53:52  peter
+  Revision 1.59  2004-09-26 17:45:29  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.58  2004/08/27 20:53:52  peter
   don't lowercase filenames in stabs
 
   Revision 1.57  2004/07/18 22:04:55  hajny

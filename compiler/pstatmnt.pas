@@ -864,6 +864,9 @@ implementation
          else
            Message(parser_f_assembler_reader_not_supported);
 
+         { Mark procedure that it has assembler blocks }
+         include(current_procinfo.flags,pi_has_assembler_block);
+
          { Read first the _ASM statement }
          consume(_ASM);
 
@@ -1183,7 +1186,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.139  2004-09-21 17:25:12  peter
+  Revision 1.140  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.139  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.138  2004/09/21 16:00:50  peter

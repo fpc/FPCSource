@@ -1447,7 +1447,7 @@ unit rgobj;
 {$endif EXTDEBUG}
                   list.insertbefore(Tai_regalloc.alloc(r),live_start);
                   { Insert live end deallocation before reg allocations
-                  to reduce conflicts }
+                    to reduce conflicts }
                   p:=live_end;
                   while assigned(p) and
                         assigned(p.previous) and
@@ -1455,7 +1455,15 @@ unit rgobj;
                         (tai_regalloc(p.previous).ratype=ra_alloc) and
                         (tai_regalloc(p.previous).reg<>r) do
                     p:=tai(p.previous);
-                  list.insertbefore(Tai_regalloc.dealloc(r),p);
+                  { , but add release after sync }
+                  if assigned(p) and
+                     (p.typ=ait_regalloc) and
+                     (tai_regalloc(p).ratype=ra_sync) then
+                    p:=tai(p.next);
+                  if assigned(p) then
+                    list.insertbefore(Tai_regalloc.dealloc(r),p)
+                  else
+                    list.concat(Tai_regalloc.dealloc(r));
                 end
 {$ifdef EXTDEBUG}
               else
@@ -1544,32 +1552,43 @@ unit rgobj;
               ait_regalloc:
                 with Tai_regalloc(p) do
                   begin
-                    if (getregtype(reg)=regtype) then
-                      setsupreg(reg,reginfo[getsupreg(reg)].colour);
-
-                    {
-                      Remove sequences of release and
-                      allocation of the same register like:
-
-                         # Register X released
-                         # Register X allocated
-                    }
-                    if assigned(previous) and
-                       (Tai(previous).typ=ait_regalloc) and
-                       (Tai_regalloc(previous).reg=reg) and
-                       { deallocation,allocation }
-                       { note: do not remove allocation,deallocation, those }
-                       {   do have a real meaning                           }
-                       (not(Tai_regalloc(previous).ratype=ra_alloc) and (ratype=ra_alloc)) then
+                    { Only alloc/dealloc is needed for the optimizer, remove
+                      other regalloc }
+                    if not(ratype in [ra_alloc,ra_dealloc]) then
                       begin
                         q:=Tai(next);
-                        hp:=tai(previous);
-                        list.remove(hp);
-                        hp.free;
                         list.remove(p);
                         p.free;
                         p:=q;
                         continue;
+                      end
+                    else
+                      begin
+                        if (getregtype(reg)=regtype) then
+                          setsupreg(reg,reginfo[getsupreg(reg)].colour);
+                        {
+                          Remove sequences of release and
+                          allocation of the same register like. Other combinations
+                          of release/allocate need to stay in the list.
+
+                             # Register X released
+                             # Register X allocated
+                        }
+                        if assigned(previous) and
+                           (ratype=ra_alloc) and
+                           (Tai(previous).typ=ait_regalloc) and
+                           (Tai_regalloc(previous).reg=reg) and
+                           (Tai_regalloc(previous).ratype=ra_dealloc) then
+                          begin
+                            q:=Tai(next);
+                            hp:=tai(previous);
+                            list.remove(hp);
+                            hp.free;
+                            list.remove(p);
+                            p.free;
+                            p:=q;
+                            continue;
+                          end;
                       end;
                   end;
               ait_instruction:
@@ -1996,7 +2015,10 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.136  2004-09-25 14:23:54  peter
+  Revision 1.137  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.136  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

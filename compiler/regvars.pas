@@ -151,7 +151,7 @@ implementation
         { we have to store regvars back to memory in this case (the nested }
         { procedures can access the variables of the parent)               }
         (tcgprocinfo(current_procinfo).nestedprocs.count = 0) and
-         not(pi_uses_asm in current_procinfo.flags) and
+         not(pi_has_assembler_block in current_procinfo.flags) and
          not(pi_uses_exceptions in current_procinfo.flags) then
         begin
           new(regvarinfo);
@@ -458,7 +458,7 @@ implementation
       regvarinfo: pregvarinfo;
     begin
       if (cs_regvars in aktglobalswitches) and
-         not(pi_uses_asm in current_procinfo.flags) and
+         not(pi_has_assembler_block in current_procinfo.flags) and
          not(pi_uses_exceptions in current_procinfo.flags) then
         begin
           regvarinfo := pregvarinfo(current_procinfo.procdef.regvarinfo);
@@ -557,7 +557,7 @@ implementation
       if not assigned(current_procinfo.procdef.regvarinfo) then
         exit;
       if (cs_regvars in aktglobalswitches) and
-         not(pi_uses_asm in current_procinfo.flags) and
+         not(pi_has_assembler_block in current_procinfo.flags) and
          not(pi_uses_exceptions in current_procinfo.flags) then
         with pregvarinfo(current_procinfo.procdef.regvarinfo)^ do
           begin
@@ -669,7 +669,10 @@ end.
 
 {
   $Log$
-  Revision 1.79  2004-09-25 14:23:54  peter
+  Revision 1.80  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.79  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

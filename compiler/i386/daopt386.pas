@@ -1513,7 +1513,7 @@ begin {checks whether two taicpu instructions are equal}
               RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef -
                                               [getsupreg(taicpu(p2).oper[1]^.reg)];
 {$ifdef csdebug}
-              Writeln(std_regname(getsupreg(taicpu(p2).oper[1]^.reg)), ' removed');
+              Writeln(std_regname(newreg(R_INTREGISTER,getsupreg(taicpu(p2).oper[1]^.reg),R_SUBWHOLE)), ' removed');
 {$endif csdebug}
             end;
           InstructionsEquivalent :=
@@ -2719,7 +2719,10 @@ end.
 
 {
   $Log$
-  Revision 1.68  2004-06-20 08:55:31  florian
+  Revision 1.69  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.68  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.67  2004/05/22 23:34:28  peter

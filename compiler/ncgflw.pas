@@ -1159,6 +1159,7 @@ implementation
          if assigned(exceptsymtable) then
            begin
              tvarsym(exceptsymtable.symindex.first).localloc.loc:=LOC_REFERENCE;
+             tvarsym(exceptsymtable.symindex.first).localloc.size:=OS_ADDR;
              tg.GetLocal(exprasmlist,sizeof(aint),voidpointertype.def,
                 tvarsym(exceptsymtable.symindex.first).localloc.reference);
              cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,tvarsym(exceptsymtable.symindex.first).localloc.reference);
@@ -1442,7 +1443,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.99  2004-09-25 14:23:54  peter
+  Revision 1.100  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.99  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

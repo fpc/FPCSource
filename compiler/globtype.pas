@@ -201,8 +201,8 @@ interface
        tproccalloptions = set of tproccalloption;
 
        tprocinfoflag=(
-         { procedure uses asm }
-         pi_uses_asm,
+         { procedure has at least one assembler block }
+         pi_has_assembler_block,
          { procedure does a call }
          pi_do_call,
          { procedure has a try statement = no register optimization }
@@ -295,7 +295,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2004-07-14 23:19:22  olle
+  Revision 1.60  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.59  2004/07/14 23:19:22  olle
     + added external facilities for macpas
 
   Revision 1.58  2004/06/20 08:55:29  florian

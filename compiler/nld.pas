@@ -138,11 +138,11 @@ implementation
 
     uses
       cutils,verbose,globtype,globals,systems,
-      symtable,symnot,
+      symnot,
       defutil,defcmp,
       htypechk,pass_1,procinfo,paramgr,
       ncon,ninl,ncnv,nmem,ncal,nutils,
-      cpubase,cgobj,cgbase
+      cgobj,cgbase
       ;
 
 {*****************************************************************************
@@ -264,6 +264,8 @@ implementation
                    if assigned(left) then
                      internalerror(200309289);
                    left:=cloadparentfpnode.create(tprocdef(symtable.defowner));
+                   { reference in nested procedures, variable needs to be in memory }
+                   make_not_regable(self);
                  end;
                { fix self type which is declared as voidpointer in the
                  definition }
@@ -340,8 +342,14 @@ implementation
               begin
                 if assigned(left) then
                   firstpass(left);
-                if (tvarsym(symtableentry).varspez=vs_const) then
-                  expectloc:=LOC_CREFERENCE;
+                if (cs_regvars in aktglobalswitches) and
+                   (symtable.symtabletype in [localsymtable]) and
+                   not(pi_has_assembler_block in current_procinfo.flags) and
+                   (vo_regable in tvarsym(symtableentry).varoptions) then
+                  expectloc:=LOC_CREGISTER
+                else
+                  if (tvarsym(symtableentry).varspez=vs_const) then
+                    expectloc:=LOC_CREFERENCE;
                 { we need a register for call by reference parameters }
                 if paramanager.push_addr_param(tvarsym(symtableentry).varspez,tvarsym(symtableentry).vartype.def,pocall_default) then
                   registersint:=1;
@@ -880,12 +888,8 @@ implementation
 
     procedure tarrayconstructornode.insert_typeconvs;
       var
-        thp,
-        chp,
         hp        : tarrayconstructornode;
         dovariant : boolean;
-        htype     : ttype;
-        orgflags  : tnodeflags;
       begin
         dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
         { only pass left tree, right tree contains next construct if any }
@@ -1137,7 +1141,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.128  2004-06-20 08:55:29  florian
+  Revision 1.129  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.128  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.127  2004/06/16 20:07:08  florian

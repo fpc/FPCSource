@@ -1033,7 +1033,7 @@ implementation
              { remove cross unit overloads }
              tstoredsymtable(procdef.localst).unchain_overloaded;
              { check for unused symbols, but only if there is no asm block }
-             if not(pi_uses_asm in flags) then
+             if not(pi_has_assembler_block in flags) then
                begin
                  tstoredsymtable(procdef.localst).allsymbolsused;
                  tstoredsymtable(procdef.parast).allsymbolsused;
@@ -1393,7 +1393,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.206  2004-09-21 17:25:12  peter
+  Revision 1.207  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.206  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.205  2004/09/13 20:34:28  peter

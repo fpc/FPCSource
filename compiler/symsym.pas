@@ -314,15 +314,10 @@ implementation
        systems,
        { symtable }
        defutil,symtable,
-{$ifdef GDB}
-       gdb,
-{$endif GDB}
        { tree }
        node,
        { aasm }
        aasmcpu,
-       { module }
-       fmodule,
        { codegen }
        paramgr,cresstr,
        procinfo
@@ -1593,7 +1588,12 @@ implementation
                       st := 'p'+st;
                   end;
                 case loc of
-                  LOC_REGISTER, LOC_FPUREGISTER :
+                  LOC_REGISTER,
+                  LOC_CREGISTER,
+                  LOC_MMREGISTER,
+                  LOC_CMMREGISTER,
+                  LOC_FPUREGISTER,
+                  LOC_CFPUREGISTER :
                     begin
                       regidx:=findreg_by_number(localloc.register);
                       { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
@@ -2215,7 +2215,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.176  2004-09-21 17:25:12  peter
+  Revision 1.177  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.176  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.175.4.1  2004/08/31 20:43:06  peter

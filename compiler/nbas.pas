@@ -641,7 +641,7 @@ implementation
         result:=nil;
         resulttype:=voidtype;
         if not(nf_get_asm_position in flags) then
-          include(current_procinfo.flags,pi_uses_asm);
+          include(current_procinfo.flags,pi_has_assembler_block);
       end;
 
 
@@ -1018,7 +1018,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  2004-07-16 19:45:15  jonas
+  Revision 1.87  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.86  2004/07/16 19:45:15  jonas
     + temps can now also hold fpu values in registers (take care with use,
       bacause of the x86 fpu stack)
     * fpu parameters to node-inlined procedures can now also be put in

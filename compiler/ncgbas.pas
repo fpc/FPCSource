@@ -473,8 +473,7 @@ interface
             begin
               { make sure the register allocator doesn't reuse the }
               { register e.g. in the middle of a loop              }
-              cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,tempinfo^.loc.reg,
-                tempinfo^.loc.reg);
+              cg.a_reg_sync(exprasmlist,tempinfo^.loc.reg);
               if release_to_normal then
                 tempinfo^.loc.loc := LOC_REGISTER;
             end;
@@ -493,7 +492,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2004-09-25 14:23:54  peter
+  Revision 1.68  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.67  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

@@ -1500,6 +1500,15 @@ implementation
             end;
         end;
 
+        if (nf_explicit in flags) or
+           (nf_absolute in flags) then
+         begin
+           { check if the result could be in a register }
+           if not(tstoreddef(resulttype.def).is_intregable) and
+              not(tstoreddef(resulttype.def).is_fpuregable) then
+            make_not_regable(left);
+         end;
+
         { now call the resulttype helper to do constant folding }
         result:=resulttype_call_helper(convtype);
       end;
@@ -1950,15 +1959,6 @@ implementation
         registersmmx:=left.registersmmx;
 {$endif}
         expectloc:=left.expectloc;
-
-        if (nf_explicit in flags) or
-           (nf_absolute in flags) then
-         begin
-           { check if the result could be in a register }
-           if not(tstoreddef(resulttype.def).is_intregable) and
-              not(tstoreddef(resulttype.def).is_fpuregable) then
-            make_not_regable(left);
-         end;
 
         result:=first_call_helper(convtype);
       end;
@@ -2450,7 +2450,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.152  2004-08-08 16:00:56  florian
+  Revision 1.153  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.152  2004/08/08 16:00:56  florian
     * constant floating point assignments etc. are now overflow checked
       if Q+ or R+ is turned on
 

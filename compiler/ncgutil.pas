@@ -1027,13 +1027,16 @@ implementation
           ressym:=tvarsym(current_procinfo.procdef.funcretsym);
         if (ressym.refs>0) then
           begin
+{$ifdef OLDREGVARS}
             case ressym.localloc.loc of
+              LOC_CFPUREGISTER:
               LOC_FPUREGISTER:
                 begin
                   location_reset(restmploc,LOC_CFPUREGISTER,funcretloc^.size);
                   restmploc.register:=ressym.localloc.register;
                 end;
 
+              LOC_CREGISTER:
               LOC_REGISTER:
                 begin
                   location_reset(restmploc,LOC_CREGISTER,funcretloc^.size);
@@ -1054,6 +1057,9 @@ implementation
               else
                 internalerror(200309184);
             end;
+{$else}
+            restmploc:=ressym.localloc;
+{$endif}
 
             { Here, we return the function result. In most architectures, the value is
               passed into the FUNCTION_RETURN_REG, but in a windowed architecure like sparc a
@@ -1155,7 +1161,6 @@ implementation
     procedure gen_load_para_value(list:TAAsmoutput);
       var
         hp : tparaitem;
-        gotregvarparas : boolean;
         hiparaloc,
         paraloc : pcgparalocation;
       begin
@@ -1167,7 +1172,6 @@ implementation
             { we do this before init_paras because that one calls routines which may overwrite these  }
             { registers and it also expects the values to be in memory                                }
             hp:=tparaitem(current_procinfo.procdef.para.first);
-            gotregvarparas := false;
             while assigned(hp) do
               begin
                 paraloc:=hp.paraloc[calleeside].location;
@@ -1179,7 +1183,6 @@ implementation
                   LOC_MMREGISTER,
                   LOC_FPUREGISTER:
                     begin
-                      gotregvarparas := true;
                       { cg.a_load_param_reg will first allocate and then deallocate paraloc }
                       { register (if the parameter resides in a register) and then allocate }
                       { the regvar (which is currently not allocated)                       }
@@ -1715,12 +1718,34 @@ implementation
               begin
                 with tvarsym(sym) do
                   begin
-{$warning TODO Add support for register variables}
-                    localloc.loc:=LOC_REFERENCE;
-                    tg.GetLocal(list,getvaluesize,vartype.def,localloc.reference);
-                    if cs_asm_source in aktglobalswitches then
-                      list.concat(Tai_comment.Create(strpnew('Local '+realname+' located at '+
-                          std_regname(localloc.reference.base)+tostr_with_plus(localloc.reference.offset))));
+{$ifndef OLDREGVARS}
+                    { When there is assembler code we can't use regvars }
+                    if (cs_regvars in aktglobalswitches) and
+                       not(pi_has_assembler_block in current_procinfo.flags) and
+                       (vo_regable in varoptions) then
+                      begin
+                        localloc.loc:=LOC_CREGISTER;
+                        localloc.size:=def_cgsize(vartype.def);
+                        localloc.register:=cg.getintregister(list,localloc.size);
+                        if cs_asm_source in aktglobalswitches then
+                          begin
+                            if (cs_no_regalloc in aktglobalswitches) then
+                              list.concat(Tai_comment.Create(strpnew('Local '+realname+' located in register '+
+                                 std_regname(localloc.register))))
+                            else
+                              list.concat(Tai_comment.Create(strpnew('Local '+realname+' located in register')));
+                          end;
+                      end
+                    else
+{$endif NOT OLDREGVARS}
+                      begin
+                        localloc.loc:=LOC_REFERENCE;
+                        localloc.size:=def_cgsize(vartype.def);
+                        tg.GetLocal(list,getvaluesize,vartype.def,localloc.reference);
+                        if cs_asm_source in aktglobalswitches then
+                          list.concat(Tai_comment.Create(strpnew('Local '+realname+' located at '+
+                             std_regname(localloc.reference.base)+tostr_with_plus(localloc.reference.offset))));
+                      end;
                   end;
               end;
             sym:=tsym(sym.indexnext);
@@ -1744,6 +1769,8 @@ implementation
                       for the sub procedures that can access local data
                       in the parent procedures }
                     case localloc.loc of
+                      LOC_CREGISTER :
+                        cg.a_reg_sync(list,localloc.register);
                       LOC_REFERENCE :
                         tg.Ungetlocal(list,localloc.reference);
                     end;
@@ -1906,7 +1933,6 @@ implementation
 
     procedure gen_alloc_inline_funcret(list:TAAsmoutput;pd:tprocdef);
       var
-        sym : tsym;
         calleeparaloc,
         callerparaloc : pcgparalocation;
       begin
@@ -1981,6 +2007,8 @@ implementation
                       for the sub procedures that can access local data
                       in the parent procedures }
                     case localloc.loc of
+                      LOC_REGISTER :
+                        cg.a_reg_sync(list,localloc.register);
                       LOC_REFERENCE :
                         tg.UngetLocal(list,localloc.reference);
                     end;
@@ -2065,7 +2093,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.217  2004-09-25 14:23:54  peter
+  Revision 1.218  2004-09-26 17:45:30  peter
+    * simple regvar support, not yet finished
+
+  Revision 1.217  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister
