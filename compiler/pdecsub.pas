@@ -128,7 +128,7 @@ implementation
                      begin
                        Message(parser_w_cdecl_has_no_high);
                        { removing it is too complicated, we just hide it PM }
-                       owner.rename(highvarsym.name,'hidden'+copy(highvarsym.name,5,length(name)));
+                       owner.rename(highvarsym.name,'hidden'+copy(highvarsym.name,5,length(highvarsym.name)));
                      end;
                   end;
                  if is_array_of_const(vartype.def) and
@@ -2116,7 +2116,10 @@ const
 end.
 {
   $Log$
-  Revision 1.104  2003-01-12 15:42:23  peter
+  Revision 1.105  2003-01-15 20:02:28  carl
+    * fix highname problem
+
+  Revision 1.104  2003/01/12 15:42:23  peter
     * m68k pathexist update from 1.0.x
     * palmos res update from 1.0.x
 
