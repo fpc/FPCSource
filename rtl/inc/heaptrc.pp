@@ -197,7 +197,7 @@ begin
 end;
 
 {$ifdef EXTRA}
-Function calculate_release_sig(p : pheap_mem_info) : longint;
+Function calculate_release_sig(p : pheap_mem_info) : longword;
 var
    crc : longword;
    pl : plongint;
@@ -1145,7 +1145,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.17  2002-09-07 15:07:45  peter
+  Revision 1.18  2002-09-09 15:45:49  jonas
+    * made result type of calculate_release_sig() a longword instead of a
+      longint
+
+  Revision 1.17  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
 }
