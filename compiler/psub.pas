@@ -373,11 +373,16 @@ implementation
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
-                    { if vmt<>0 then afterconstruction }
+                    { Self can be nil when fail is called }
+                    { if self<>nil and vmt<>nil then afterconstruction }
                     addstatement(newstatement,cifnode.create(
-                        caddnode.create(unequaln,
-                            load_vmt_pointer_node,
-                            cnilnode.create),
+                        caddnode.create(andn,
+                            caddnode.create(unequaln,
+                                load_self_pointer_node,
+                                cnilnode.create),
+                            caddnode.create(unequaln,
+                                load_vmt_pointer_node,
+                                cnilnode.create)),
                         ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node),
                         nil));
                   end
@@ -499,7 +504,7 @@ implementation
 
     procedure tcgprocinfo.add_entry_exit_code;
       var
-        trycode,
+        finalcode,
         bodyentrycode,
         bodyexitcode,
         exceptcode   : tnode;
@@ -534,9 +539,9 @@ implementation
             aktfilepos:=exitpos;
             exceptcode:=generate_except_block;
             { Generate code that will be in the try...finally }
-            trycode:=internalstatements(codestatement,true);
-            addstatement(codestatement,code);
+            finalcode:=internalstatements(codestatement,true);
             addstatement(codestatement,bodyexitcode);
+            addstatement(codestatement,final_asmnode);
             { Initialize before try...finally...end frame }
             addstatement(newstatement,entry_asmnode);
             addstatement(newstatement,loadpara_asmnode);
@@ -544,8 +549,8 @@ implementation
             addstatement(newstatement,bodyentrycode);
             aktfilepos:=entrypos;
             addstatement(newstatement,ctryfinallynode.create_implicit(
-               trycode,
-               final_asmnode,
+               code,
+               finalcode,
                exceptcode));
             addstatement(newstatement,exitlabel_asmnode);
           end
@@ -556,8 +561,8 @@ implementation
             addstatement(newstatement,init_asmnode);
             addstatement(newstatement,bodyentrycode);
             addstatement(newstatement,code);
-            addstatement(newstatement,bodyexitcode);
             addstatement(newstatement,exitlabel_asmnode);
+            addstatement(newstatement,bodyexitcode);
             addstatement(newstatement,final_asmnode);
           end;
         resulttypepass(newblock);
@@ -1303,7 +1308,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.168  2003-10-30 16:22:40  peter
+  Revision 1.169  2003-10-31 15:52:18  peter
+    * fix crash with fail in constructor
+
+  Revision 1.168  2003/10/30 16:22:40  peter
     * call firstpass before allocation and codegeneration is started
     * move leftover code from pass_2.generatecode() to psub
 
