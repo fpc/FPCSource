@@ -30,9 +30,6 @@ uses
 {$ifdef go32v2}
   dpmiexcp,
 {$endif go32v2}
-{$ifdef exedebug}
-  lineinfo,
-{$endif exedebug}
   Dos,Objects,
   BrowCol,
   Drivers,Views,App,Dialogs,ColorSel,Menus,StdDlg,Validate,
@@ -271,7 +268,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:39  pierre
+  Revision 1.3  2000-10-01 22:44:18  pierre
+   * remove lineinfo in _USES
+
+  Revision 1.2  2000/08/22 09:41:39  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.2  2000/08/16 18:46:14  peter
