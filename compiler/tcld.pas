@@ -39,11 +39,18 @@ implementation
     uses
       cobjects,verbose,globtype,globals,systems,
       symconst,symtable,aasm,types,
-      hcodegen,htypechk,pass_1,
+      htypechk,pass_1,
       tccnv,cpubase
+{$ifdef newcg}
+      ,cgbase
+      ,tgobj
+      ,tgcpu
+{$else newcg}
+      ,hcodegen
 {$ifdef i386}
       ,tgeni386
 {$endif}
+{$endif newcg}
       ;
 
 {*****************************************************************************
@@ -478,7 +485,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2000-02-09 13:23:07  peter
+  Revision 1.60  2000-02-17 14:53:43  florian
+    * some updates for the newcg
+
+  Revision 1.59  2000/02/09 13:23:07  peter
     * log truncated
 
   Revision 1.58  2000/01/21 22:06:16  florian

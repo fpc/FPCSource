@@ -40,13 +40,19 @@ implementation
       globtype,systems,
       cobjects,verbose,globals,
       symconst,aasm,types,
-      hcodegen,htypechk,pass_1,cpubase
+      htypechk,pass_1,cpubase
+{$ifdef newcg}
+      ,cgbase
+      ,tgobj
+{$else newcg}
+      ,hcodegen
 {$ifdef i386}
       ,tgeni386
 {$endif}
 {$ifdef m68k}
       ,tgen68k
 {$endif m68k}
+{$endif newcg}
       ;
 
 {*****************************************************************************
@@ -489,7 +495,7 @@ implementation
            begin
               { procedure does a call }
               procinfo^.flags:=procinfo^.flags or pi_do_call;
-
+{$ifndef newcg}
               { calc the correture value for the register }
 {$ifdef i386}
               for regi:=R_EAX to R_EDI do
@@ -499,6 +505,7 @@ implementation
               for regi:=R_D0 to R_A6 do
                 inc(reg_pushes[regi],t_times*2);
 {$endif}
+{$endif newcg}
               { calculate the type of the parameters }
               if assigned(p^.left) then
                 begin
@@ -1051,6 +1058,7 @@ implementation
                 begin
                    firstcallparan(p^.left,pparaitem(p^.procdefinition^.para^.first),true);
                 end;
+{$ifndef newcg}
 {$ifdef i386}
               for regi:=R_EAX to R_EDI do
                 begin
@@ -1065,6 +1073,7 @@ implementation
                     inc(reg_pushes[regi],t_times*2);
                end;
 {$endif}
+{$endif newcg}
            end;
          { ensure that the result type is set }
          p^.resulttype:=p^.procdefinition^.rettype.def;
@@ -1224,7 +1233,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2000-02-09 13:23:07  peter
+  Revision 1.80  2000-02-17 14:53:43  florian
+    * some updates for the newcg
+
+  Revision 1.79  2000/02/09 13:23:07  peter
     * log truncated
 
   Revision 1.78  2000/01/07 09:35:12  pierre

@@ -345,12 +345,20 @@ unit tree;
 
 {$I innr.inc}
 
+{$ifdef newcg}
+{$I nodeh.inc}
+{$endif newcg}
   implementation
 
     uses
        systems,
-       globals,verbose,files,types,hcodegen;
-
+       globals,verbose,files,types,
+{$ifdef newcg}
+       cgbase
+{$else newcg}
+       hcodegen
+{$endif newcg}
+       ;
 
     function getnode : ptree;
 
@@ -1915,10 +1923,16 @@ unit tree;
          case_get_min:=hp^._low;
       end;
 
+{$ifdef newcg}
+{$I node.inc}
+{$endif newcg}
 end.
 {
   $Log$
-  Revision 1.111  2000-02-09 13:23:09  peter
+  Revision 1.112  2000-02-17 14:53:43  florian
+    * some updates for the newcg
+
+  Revision 1.111  2000/02/09 13:23:09  peter
     * log truncated
 
   Revision 1.110  2000/01/26 12:02:30  peter

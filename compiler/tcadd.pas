@@ -36,7 +36,12 @@ implementation
       globtype,systems,tokens,
       cobjects,verbose,globals,
       symconst,symtable,aasm,types,
-      hcodegen,htypechk,pass_1,
+{$ifdef newcg}
+      cgbase,
+{$else newcg}
+      hcodegen,
+{$endif newcg}
+      htypechk,pass_1,
       cpubase,tccnv
       ;
 
@@ -1255,7 +1260,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2000-02-14 22:34:28  florian
+  Revision 1.69  2000-02-17 14:53:42  florian
+    * some updates for the newcg
+
+  Revision 1.68  2000/02/14 22:34:28  florian
     * fixed another internalerror
 
   Revision 1.67  2000/02/13 22:46:28  florian

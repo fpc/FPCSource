@@ -46,8 +46,13 @@ implementation
       globtype,systems,
       cobjects,verbose,globals,
       symconst,symtable,aasm,types,
-      hcodegen,htypechk,pass_1,cpubase;
-
+      htypechk,pass_1,cpubase
+{$ifdef newcg}
+      ,cgbase
+{$else newcg}
+      ,hcodegen
+{$endif newcg}
+      ;
 {*****************************************************************************
                             FirstLoadVMT
 *****************************************************************************}
@@ -641,7 +646,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2000-02-09 13:23:08  peter
+  Revision 1.42  2000-02-17 14:53:43  florian
+    * some updates for the newcg
+
+  Revision 1.41  2000/02/09 13:23:08  peter
     * log truncated
 
   Revision 1.40  2000/01/10 16:38:43  pierre

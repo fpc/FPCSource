@@ -48,14 +48,21 @@ implementation
     uses
       globtype,systems,
       cobjects,verbose,globals,
-      symconst,symtable,aasm,types,
-      hcodegen,htypechk,temp_gen,pass_1,cpubase
+      symconst,symtable,aasm,types,htypechk,pass_1,cpubase
+{$ifdef newcg}
+      ,tgobj
+      ,tgcpu
+      ,cgbase
+{$else newcg}
+      ,hcodegen
+      ,temp_gen
 {$ifdef i386}
       ,tgeni386
 {$endif}
 {$ifdef m68k}
       ,tgen68k
 {$endif m68k}
+{$endif newcg}
       ;
 
 {*****************************************************************************
@@ -71,8 +78,12 @@ implementation
          { calc register weight }
          if not(cs_littlesize in aktglobalswitches ) then
            t_times:=t_times*8;
-
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
          cleartempgen;
+{$endif newcg}
+
          firstpass(p^.left);
          set_varstate(p^.left,true);
          if codegenerror then
@@ -92,7 +103,11 @@ implementation
          { loop instruction }
          if assigned(p^.right) then
            begin
+{$ifdef newcg}
+              tg.cleartempgen;
+{$else newcg}
               cleartempgen;
+{$endif newcg}
               firstpass(p^.right);
               if codegenerror then
                 exit;
@@ -121,7 +136,11 @@ implementation
          hp : ptree;
       begin
          old_t_times:=t_times;
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
          cleartempgen;
+{$endif newcg}
          firstpass(p^.left);
          set_varstate(p^.left,true);
 
@@ -148,7 +167,11 @@ implementation
          { if path }
          if assigned(p^.right) then
            begin
+{$ifdef newcg}
+              tg.cleartempgen;
+{$else newcg}
               cleartempgen;
+{$endif newcg}
               firstpass(p^.right);
 
               if p^.registers32<p^.right^.registers32 then
@@ -164,7 +187,11 @@ implementation
          { else path }
          if assigned(p^.t1) then
            begin
+{$ifdef newcg}
+              tg.cleartempgen;
+{$else newcg}
               cleartempgen;
+{$endif newcg}
               firstpass(p^.t1);
 
               if p^.registers32<p^.t1^.registers32 then
@@ -247,11 +274,19 @@ implementation
          if p^.left^.treetype<>assignn then
            CGMessage(cg_e_illegal_expression);
 
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
          cleartempgen;
+{$endif newcg}
          firstpass(p^.left);
          set_varstate(p^.left,false);
 
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
          cleartempgen;
+{$endif newcg}
          if assigned(p^.t1) then
           begin
             firstpass(p^.t1);
@@ -274,7 +309,11 @@ implementation
 {$endif SUPPORT_MMX}
 
          { process count var }
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
          cleartempgen;
+{$endif newcg}
          firstpass(p^.t2);
          set_varstate(p^.t2,true);
          if codegenerror then
@@ -306,13 +345,21 @@ implementation
            p^.registersmmx:=p^.t2^.registersmmx;
 {$endif SUPPORT_MMX}
 
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
          cleartempgen;
+{$endif newcg}
          firstpass(p^.right);
          set_varstate(p^.right,true);
          if p^.right^.treetype<>ordconstn then
            begin
               p^.right:=gentypeconvnode(p^.right,p^.t2^.resulttype);
+{$ifdef newcg}
+              tg.cleartempgen;
+{$else newcg}
               cleartempgen;
+{$endif newcg}
               firstpass(p^.right);
            end;
 
@@ -381,7 +428,11 @@ implementation
 
     procedure firstlabel(var p : ptree);
       begin
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
          cleartempgen;
+{$endif newcg}
          p^.exceptionblock:=aktexceptblock;
          firstpass(p^.left);
          p^.registers32:=p^.left^.registers32;
@@ -439,7 +490,11 @@ implementation
          oldexceptblock : ptree;
 
       begin
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
          cleartempgen;
+{$endif newcg}
          oldexceptblock:=aktexceptblock;
          aktexceptblock:=p^.left;
          firstpass(p^.left);
@@ -447,7 +502,11 @@ implementation
          { on statements }
          if assigned(p^.right) then
            begin
+{$ifdef newcg}
+              tg.cleartempgen;
+{$else newcg}
               cleartempgen;
+{$endif newcg}
               oldexceptblock:=aktexceptblock;
               aktexceptblock:=p^.right;
               firstpass(p^.right);
@@ -485,14 +544,22 @@ implementation
 
       begin
          p^.resulttype:=voiddef;
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
          cleartempgen;
+{$endif newcg}
          oldexceptblock:=aktexceptblock;
          aktexceptblock:=p^.left;
          firstpass(p^.left);
          aktexceptblock:=oldexceptblock;
          set_varstate(p^.left,true);
 
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
          cleartempgen;
+{$endif newcg}
          oldexceptblock:=aktexceptblock;
          aktexceptblock:=p^.right;
          firstpass(p^.right);
@@ -515,7 +582,11 @@ implementation
 
       begin
          { that's really an example procedure for a firstpass :) }
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
          cleartempgen;
+{$endif newcg}
          p^.resulttype:=voiddef;
          p^.registers32:=0;
          p^.registersfpu:=0;
@@ -532,7 +603,11 @@ implementation
 {$endif SUPPORT_MMX}
            end;
 
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
          cleartempgen;
+{$endif newcg}
          if assigned(p^.right) then
            begin
               oldexceptblock:=aktexceptblock;
@@ -551,7 +626,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2000-02-09 13:23:07  peter
+  Revision 1.35  2000-02-17 14:53:43  florian
+    * some updates for the newcg
+
+  Revision 1.34  2000/02/09 13:23:07  peter
     * log truncated
 
   Revision 1.33  2000/02/01 09:43:22  peter

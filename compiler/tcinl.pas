@@ -35,11 +35,18 @@ implementation
       cobjects,verbose,globals,systems,
       globtype,
       symconst,symtable,aasm,types,
-      hcodegen,htypechk,pass_1,
+      htypechk,pass_1,
       tccal,cpubase
+{$ifdef newcg}
+      ,cgbase
+      ,tgobj
+      ,tgcpu
+{$else newcg}
+      ,hcodegen
 {$ifdef i386}
       ,tgeni386
 {$endif}
+{$endif newcg}
       ;
 
 {*****************************************************************************
@@ -1285,7 +1292,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2000-02-13 14:21:51  jonas
+  Revision 1.67  2000-02-17 14:53:43  florian
+    * some updates for the newcg
+
+  Revision 1.66  2000/02/13 14:21:51  jonas
     * modifications to make the compiler functional when compiled with
       -Or
 

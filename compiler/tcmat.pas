@@ -38,7 +38,12 @@ implementation
       globtype,systems,tokens,
       cobjects,verbose,globals,
       symconst,symtable,aasm,types,
-      hcodegen,htypechk,pass_1,cpubase,
+      htypechk,pass_1,cpubase,
+{$ifdef newcg}
+      cgbase,
+{$else newcg}
+      hcodegen,
+{$endif newcg}
       { for isbinaryoverloaded function }
       tcadd;
 
@@ -447,7 +452,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2000-02-09 13:23:08  peter
+  Revision 1.29  2000-02-17 14:53:43  florian
+    * some updates for the newcg
+
+  Revision 1.28  2000/02/09 13:23:08  peter
     * log truncated
 
   Revision 1.27  2000/01/07 01:14:46  peter

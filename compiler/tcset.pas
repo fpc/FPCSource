@@ -38,14 +38,20 @@ implementation
       globtype,systems,
       cobjects,verbose,globals,
       symconst,symtable,aasm,types,
-      hcodegen,htypechk,pass_1,
+      htypechk,pass_1,
       tccnv,cpubase
+{$ifdef newcg}
+      ,cgbase
+      ,tgcpu
+{$else newcg}
+      ,hcodegen
 {$ifdef i386}
       ,tgeni386
 {$endif}
 {$ifdef m68k}
       ,tgen68k
 {$endif}
+{$endif newcg}
       ;
 
 {*****************************************************************************
@@ -239,7 +245,11 @@ implementation
          hp : ptree;
       begin
          { evalutes the case expression }
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
          cleartempgen;
+{$endif newcg}
          firstpass(p^.left);
          set_varstate(p^.left,true);
          if codegenerror then
@@ -264,7 +274,11 @@ implementation
          hp:=p^.right;
          while assigned(hp) do
            begin
+{$ifdef newcg}
+              tg.cleartempgen;
+{$else newcg}
               cleartempgen;
+{$endif newcg}
               firstpass(hp^.right);
 
               { searchs max registers }
@@ -283,7 +297,11 @@ implementation
          { may be handle else tree }
          if assigned(p^.elseblock) then
            begin
+{$ifdef newcg}
+              tg.cleartempgen;
+{$else newcg}
               cleartempgen;
+{$endif newcg}
               firstpass(p^.elseblock);
               if codegenerror then
                 exit;
@@ -306,7 +324,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2000-02-09 13:23:08  peter
+  Revision 1.19  2000-02-17 14:53:43  florian
+    * some updates for the newcg
+
+  Revision 1.18  2000/02/09 13:23:08  peter
     * log truncated
 
   Revision 1.17  2000/01/07 01:14:47  peter
@@ -334,4 +355,3 @@ end.
     * some other type/const renamings
 
 }
-

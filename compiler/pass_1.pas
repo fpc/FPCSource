@@ -39,14 +39,20 @@ implementation
       globtype,systems,
       cobjects,verbose,globals,
       aasm,symtable,types,
-      hcodegen,htypechk,
+      htypechk,
       tcadd,tccal,tccnv,tccon,tcflw,
       tcinl,tcld,tcmat,tcmem,tcset,cpubase,cpuasm
+{$ifdef newcg}
+      ,cgbase
+      ,tgcpu
+{$else newcg}
+      ,hcodegen
 {$ifdef i386}
       ,tgeni386
 {$endif}
 {$ifdef m68k}
       ,tgen68k
+{$endif}
 {$endif}
       ;
 
@@ -76,7 +82,11 @@ implementation
          { left is the next statement in the list }
          p^.resulttype:=voiddef;
          { no temps over several statements }
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
          cleartempgen;
+{$endif newcg}
          { right is the statement itself calln assignn or a complex one }
          {must_be_valid:=true; obsolete PM }
          firstpass(p^.right);
@@ -155,7 +165,11 @@ implementation
                 end;
               if assigned(hp^.right) then
                 begin
+{$ifdef newcg}
+                   tg.cleartempgen;
+{$else newcg}
                    cleartempgen;
+{$endif newcg}
                    codegenerror:=false;
                    firstpass(hp^.right);
                    if (not (cs_extsyntax in aktmoduleswitches)) and
@@ -372,7 +386,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.113  2000-02-09 13:22:55  peter
+  Revision 1.114  2000-02-17 14:53:42  florian
+    * some updates for the newcg
+
+  Revision 1.113  2000/02/09 13:22:55  peter
     * log truncated
 
   Revision 1.112  2000/01/07 01:14:28  peter

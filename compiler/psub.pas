@@ -53,11 +53,11 @@ uses
   scanner,aasm,tree,types,
   import,gendef,
 {$ifdef newcg}
-  cgbase,
+  cgbase,tgcpu,
 {$else newcg}
-  hcodegen,
+  hcodegen,temp_gen,
 {$endif newcg}
-  temp_gen,pass_1,cpubase,cpuasm
+  pass_1,cpubase,cpuasm
 {$ifndef NOPASS2}
   ,pass_2
 {$endif}
@@ -1970,7 +1970,10 @@ end.
 
 {
   $Log$
-  Revision 1.48  2000-02-09 13:23:00  peter
+  Revision 1.49  2000-02-17 14:53:42  florian
+    * some updates for the newcg
+
+  Revision 1.48  2000/02/09 13:23:00  peter
     * log truncated
 
   Revision 1.47  2000/02/08 13:55:13  peter
