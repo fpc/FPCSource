@@ -77,10 +77,9 @@ function MatchesMask(What, Mask: string): boolean;
     i1:=0;
     i2:=0;
     found:=true;
-    while found and (i1<length(hstr1)) and (i2<=length(hstr2)) do
+    while found and (i1<length(hstr1)) and (i2<length(hstr2)) do
      begin
-       if found then
-        inc(i2);
+       inc(i2);
        inc(i1);
        case hstr1[i1] of
          '?' :
@@ -105,7 +104,12 @@ function MatchesMask(What, Mask: string): boolean;
        end;
      end;
     if found then
-      found:=(i1>=length(hstr1)) and (i2>=length(hstr2));
+     begin
+       { allow 'p*' matching 'p' }
+       if (i1<length(hstr1)) and (hstr1[i1+1]='*') then
+        inc(i1);
+       found:=(i1>=length(hstr1)) and (i2>=length(hstr2));
+     end;
     CmpStr:=found;
   end;
 
@@ -161,12 +165,12 @@ var
   hp     : pmaskitem;
   found  : boolean;
 begin
+  AddMask('*.ppw *.ow *.aw *.sw');
   AddMask('*.exe *.so *.dll');
   AddMask('ppas.bat ppas.sh link.res fpcmaked fpcmade fpcmade.*');
   AddMask('*.tpu *.tpp *.tpw *.tr');
   AddMask('*.log *.bak');
   AddMask('*.ppu *.o *.a *.s');
-  AddMask('*.ppw *.ow *.aw *.sw');
   AddMask('*.pp1 *.o1 *.a1 *.s1');
   AddMask('*.ppo *.oo *.ao *.so');
   WriteLn('DelPascal ',version,' (C) 1999 Peter Vreman');
@@ -209,7 +213,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-01-07 16:46:02  daniel
+  Revision 1.5  2000-01-12 10:40:59  peter
+    * fixed bug which sometimes matched .ppw with .pp
+
+  Revision 1.4  2000/01/07 16:46:02  daniel
     * copyright 2000
 
   Revision 1.3  1999/12/19 17:12:10  peter
