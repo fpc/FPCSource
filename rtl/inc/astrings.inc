@@ -266,20 +266,24 @@ end;
 
 
 Procedure CharArray_To_AnsiStr(var a : ansistring;p : pchar;l:longint);[Public,Alias : 'FPC_CHARARRAY_TO_ANSISTR'];
-
-Var NewLen : Longint;
-
+var
+  i  : longint;
+  hp : pchar;
 begin
   if p[0]=#0 Then
     Pointer(a):=nil
   else
     begin
-    NewLen:=strlen(p); 
-    If NewLen>L then 
-      newlen:=L;
-    Pointer(a):=NewAnsistring(NewLen);
-    SetLength(A,NewLen);
-    Move (P[0],Pointer(A)^,NewLen)
+      Pointer(a):=NewAnsistring(L);
+      hp:=p;
+      i:=0;
+      while (i<l) and (hp^<>#0) do
+       begin
+         inc(hp);
+         inc(i);
+       end;
+      SetLength(A,i);
+      Move (P[0],Pointer(A)^,i)
     end;
 end;
 
@@ -748,7 +752,7 @@ begin
   If Index>0 then
     move (Pointer(S)^,Pointer(Temp)^,Index);
   Move (Pointer(Source)^,PByte(Temp)[Index],Length(Source));
-  If (LS-Index)>1 then
+  If (LS-Index)>0 then
     Move(PByte(Pointer(S))[Index],PByte(temp)[Length(Source)+index],LS-Index);
   S:=Temp;
 end;
@@ -756,7 +760,11 @@ end;
 
 {
   $Log$
-  Revision 1.16  1999-04-06 10:06:51  michael
+  Revision 1.17  1999-04-06 11:23:58  peter
+    * fixed insert on last char
+    * saver chararray 2 ansi
+
+  Revision 1.16  1999/04/06 10:06:51  michael
   * Fixed chararray to ansistring conversion
 
   Revision 1.15  1999/04/01 22:00:48  peter
