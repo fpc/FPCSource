@@ -858,8 +858,7 @@ implementation
              begin
                { object pascal objects }
                if (def_from.deftype=objectdef) and
-                  (tobjectdef(def_from).is_related(tobjectdef(def_to)) or
-                   tobjectdef(def_to).is_related(tobjectdef(def_from))) then
+                  (tobjectdef(def_from).is_related(tobjectdef(def_to))) then
                 begin
                   doconv:=tc_equal;
                   eq:=te_convert_l1;
@@ -1259,7 +1258,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2004-01-02 17:19:04  jonas
+  Revision 1.41  2004-01-06 02:17:44  florian
+    * fixed webbug 2878
+
+  Revision 1.40  2004/01/02 17:19:04  jonas
     * if currency = int64, FPC_CURRENCY_IS_INT64 is defined
     + round and trunc for currency and comp if FPC_CURRENCY_IS_INT64 is
       defined
