@@ -412,6 +412,8 @@ end;
 {*****************************************************************************
                          Stack check code
 *****************************************************************************}
+{$IFNDEF NO_GENERIC_STACK_CHECK}
+
 {$IFOPT S+}
 {$DEFINE STACKCHECK}
 {$ENDIF}
@@ -429,6 +431,7 @@ end;
 {$ENDIF}
 {$UNDEF STACKCHECK}
 
+{$ENDIF NO_GENERIC_STACK_CHECK}
 
 {*****************************************************************************
                         Initialization / Finalization
@@ -711,7 +714,10 @@ end;
 
 {
   $Log$
-  Revision 1.25  2002-04-12 17:37:36  carl
+  Revision 1.26  2002-04-15 18:51:20  carl
+  + generic stack checking can be overriden
+
+  Revision 1.25  2002/04/12 17:37:36  carl
   + generic stack checking
 
   Revision 1.24  2001/12/13 20:23:19  michael
