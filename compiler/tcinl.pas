@@ -925,8 +925,8 @@ implementation
                     If Not((hpp^.left^.resulttype^.deftype = floatdef) or
                            ((hpp^.left^.resulttype^.deftype = orddef) And
                             (POrdDef(hpp^.left^.resulttype)^.typ in
-                              [u32bit,s32bit,{s64bitint,u64bit, -- not supported yet in RTL}
-                               u8bit,s8bit,u16bit,s16bit])))
+                              [u32bit,s32bit,
+                               u8bit,s8bit,u16bit,s16bit,s64bitint,u64bit])))
                         Then CGMessage(type_e_mismatch);
                   must_be_valid:=true;
                  {hp = source (String)}
@@ -947,7 +947,10 @@ implementation
 
                   { val doesn't calculate the registers really }
                   { correct, we need one register extra   (FK) }
-                  inc(p^.registers32,1);
+                  if is_64bitint(hpp^.left^.resulttype) then
+                    inc(p^.registers32,2)
+                  else
+                    inc(p^.registers32,1);
                end;
 {$EndIf OLDVAL}
 
@@ -1118,7 +1121,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  1999-07-01 15:49:22  florian
+  Revision 1.39  1999-07-03 14:14:31  florian
+    + start of val(int64/qword)
+    * longbool, wordbool constants weren't written, fixed
+
+  Revision 1.38  1999/07/01 15:49:22  florian
     * int64/qword type release
     + lo/hi for int64/qword
 

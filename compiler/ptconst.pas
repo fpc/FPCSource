@@ -135,6 +135,16 @@ unit ptconst;
                                     Message(cg_e_illegal_expression);
                                   curconstsegment^.concat(new(pai_const,init_8bit(p^.value)));
                                end;
+                    bool16bit : begin
+                                  if not is_constboolnode(p) then
+                                    Message(cg_e_illegal_expression);
+                                  curconstsegment^.concat(new(pai_const,init_16bit(p^.value)));
+                               end;
+                    bool32bit : begin
+                                  if not is_constboolnode(p) then
+                                    Message(cg_e_illegal_expression);
+                                  curconstsegment^.concat(new(pai_const,init_32bit(p^.value)));
+                               end;
                     uchar : begin
                                 if not is_constcharnode(p) then
                                   Message(cg_e_illegal_expression);
@@ -159,6 +169,8 @@ unit ptconst;
                               curconstsegment^.concat(new(pai_const,init_32bit(0)));
                            end;
                       end;
+                    else
+                      internalerror(3799);
                  end;
                  disposetree(p);
               end;
@@ -713,7 +725,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.46  1999-05-27 19:44:54  peter
+  Revision 1.47  1999-07-03 14:14:28  florian
+    + start of val(int64/qword)
+    * longbool, wordbool constants weren't written, fixed
+
+  Revision 1.46  1999/05/27 19:44:54  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

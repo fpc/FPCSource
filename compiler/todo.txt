@@ -66,8 +66,8 @@ compiler version and your short cut.
   - val/str
   - range checking
   - type cast QWord -> real
-  - lo/hi testing
-  - overflow checking test
+        - lo/hi testing ......................................... 0.99.13 (FK)
+        - overflow checking test ................................ 0.99.13 (FK)
 * Misc
         - array of const as subroutine parameter ................ 0.99.9 (PFV)
         - open array with call by value ......................... 0.99.6 (FK)
@@ -84,7 +84,7 @@ compiler version and your short cut.
         - open strings, $P....................................... 0.99.10 (PFV)
         - include/exclude........................................ 0.99.10 (PM)
 - fix all bugs of the bug directory
-- sysutils unit for go32v2 (excpetions!)
+- sysutils unit for go32v2 (exceptions!)
         - initialisation/finalization for units ................. 0.99.11 (PFV)
 - fixed data type
 - add alignment $A switch

@@ -626,12 +626,13 @@ implementation
 
         var
            hp,node, code_para, dest_para : ptree;
-           hreg: TRegister;
+           hreg,hreg2: TRegister;
            hdef: POrdDef;
            procedureprefix : string;
            hr, hr2: TReference;
            dummycoll : tdefcoll;
            has_code, has_32bit_code, oldregisterdef: boolean;
+           r : preference;
 
           begin
            dummycoll.register:=R_NO;
@@ -702,16 +703,26 @@ implementation
              floatdef:
                procedureprefix := 'FPC_VAL_REAL_';
              orddef:
-               if is_signed(dest_para^.resulttype) then
+               if is_64bitint(dest_para^.resulttype) then
                  begin
-                   {if we are converting to a signed number, we have to include the
-                    size of the destination, so the Val function can extend the sign
-                    of the result to allow proper range checking}
-                   exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,dest_para^.resulttype^.size)));
-                   procedureprefix := 'FPC_VAL_SINT_'
+                    if is_signed(dest_para^.resulttype) then
+                      procedureprefix := 'FPC_VAL_INT64_'
+                    else
+                      procedureprefix := 'FPC_VAL_QWORD_';
                  end
                else
-                 procedureprefix := 'FPC_VAL_UINT_';
+                 begin
+                    if is_signed(dest_para^.resulttype) then
+                      begin
+                        {if we are converting to a signed number, we have to include the
+                         size of the destination, so the Val function can extend the sign
+                         of the result to allow proper range checking}
+                        exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,dest_para^.resulttype^.size)));
+                        procedureprefix := 'FPC_VAL_SINT_'
+                      end
+                    else
+                      procedureprefix := 'FPC_VAL_UINT_';
+                 end;
            End;
            emitcall(procedureprefix+pstringdef(node^.resulttype)^.stringtypname);
            { before disposing node we need to ungettemp !! PM }
@@ -729,6 +740,11 @@ implementation
                register variable}
                hreg := getexplicitregister32(R_EAX);
                emit_reg_reg(A_MOV,S_L,R_EAX,hreg);
+               if is_64bitint(dest_para^.resulttype) then
+                 begin
+                    hreg2:=getexplicitregister32(R_EDX);
+                    emit_reg_reg(A_MOV,S_L,R_EDX,hreg2);
+                 end;
               {as of now, hreg now holds the location of the result, if it was
                integer}
              End;
@@ -770,11 +786,20 @@ implementation
                  u32bit,s32bit:
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV, S_L,
                      hreg,newreference(hr2))));
-                 {u64bit,s64bitint: ???}
+                 u64bit,s64bitint:
+                   begin
+                      exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV, S_L,
+                        hreg,newreference(hr2))));
+                      r:=newreference(hr2);
+                      inc(r^.offset,4);
+                      exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV, S_L,
+                        hreg2,r)));
+                   end;
                End;
            End;
            If (cs_check_range in aktlocalswitches) and
               (dest_para^.left^.resulttype^.deftype = orddef) and
+              (not(is_64bitint(dest_para^.left^.resulttype))) and
             {the following has to be changed to 64bit checking, once Val
              returns 64 bit values (unless a special Val function is created
              for that)}
@@ -1293,7 +1318,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  1999-07-01 15:49:09  florian
+  Revision 1.61  1999-07-03 14:14:27  florian
+    + start of val(int64/qword)
+    * longbool, wordbool constants weren't written, fixed
+
+  Revision 1.60  1999/07/01 15:49:09  florian
     * int64/qword type release
     + lo/hi for int64/qword
 
