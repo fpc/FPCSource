@@ -41,7 +41,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=38;
+  CurrentPPUVersion=39;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -153,9 +153,9 @@ type
   end;
 
   tppuentry=packed record
+    size : longint;
     id   : byte;
     nr   : byte;
-    size : longint;
   end;
 
   tppufile=class
@@ -993,7 +993,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.44  2003-11-10 22:02:52  peter
+  Revision 1.45  2004-01-30 13:42:03  florian
+    * fixed more alignment issues
+
+  Revision 1.44  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.43  2003/10/22 20:40:00  peter

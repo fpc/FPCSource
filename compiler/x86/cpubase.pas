@@ -228,7 +228,7 @@ uses
     type
       { reference record }
       preference = ^treference;
-      treference = packed record
+      treference = record
          segment,
          base,
          index       : tregister;
@@ -253,7 +253,7 @@ uses
         References are given from the caller's point of view. The usual
         TLocation isn't used, because contains a lot of unnessary fields.
       }
-      tparalocation = packed record
+      tparalocation = record
          size : TCGSize;
          loc  : TCGLoc;
          alignment : byte;
@@ -535,7 +535,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2004-01-15 14:01:32  florian
+  Revision 1.38  2004-01-30 13:42:03  florian
+    * fixed more alignment issues
+
+  Revision 1.37  2004/01/15 14:01:32  florian
     + x86 instruction tables for x86-64 extended
 
   Revision 1.36  2004/01/14 23:39:05  florian

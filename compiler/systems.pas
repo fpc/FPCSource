@@ -179,7 +179,7 @@ interface
 
 
        palignmentinfo = ^talignmentinfo;
-       talignmentinfo = packed record
+       talignmentinfo = record
          procalign,
          loopalign,
          jumpalign,
@@ -195,7 +195,7 @@ interface
        end;
 
        pasminfo = ^tasminfo;
-       tasminfo = packed record
+       tasminfo = record
           id          : tasm;
           idtxt       : string[9];
           asmbin      : string[8];
@@ -211,13 +211,13 @@ interface
        end;
 
        parinfo = ^tarinfo;
-       tarinfo = packed record
+       tarinfo = record
           id      : tar;
           arcmd   : string[50];
        end;
 
        presinfo = ^tresinfo;
-       tresinfo = packed record
+       tresinfo = record
           id      : tres;
           resbin  : string[8];
           rescmd  : string[50];
@@ -650,7 +650,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.81  2004-01-28 15:36:46  florian
+  Revision 1.82  2004-01-30 13:42:03  florian
+    * fixed more alignment issues
+
+  Revision 1.81  2004/01/28 15:36:46  florian
     * fixed another couple of arm bugs
 
   Revision 1.80  2004/01/21 20:53:50  marco

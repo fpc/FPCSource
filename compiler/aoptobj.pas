@@ -85,7 +85,7 @@ Type
  { structure or to improve alignment                                         }
   TStateInt = Byte;
 
-  TContent = Packed Record
+  TContent = Record
     { start and end of block instructions that defines the }
     { content of this register. If Typ = con_const, then   }
     { Longint(StartMod) = value of the constant)           }
@@ -788,7 +788,10 @@ End.
 
 {
  $Log$
- Revision 1.8  2002-11-18 17:31:54  peter
+ Revision 1.9  2004-01-30 13:42:03  florian
+   * fixed more alignment issues
+
+ Revision 1.8  2002/11/18 17:31:54  peter
    * pass proccalloption to ret_in_xxx and push_xxx functions
 
  Revision 1.7  2002/08/18 18:16:55  florian

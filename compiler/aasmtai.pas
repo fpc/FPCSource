@@ -141,8 +141,9 @@ interface
       toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_bool,top_local,
        { ARM only }
        top_regset,
-       { ARM only }
-       top_shifterop);
+       top_shifterop,
+       { m68k only }
+       top_reglist);
 
       { kinds of operations that an instruction can perform on an operand }
       topertype = (operand_read,operand_write,operand_readwrite);
@@ -163,6 +164,9 @@ interface
          top_regset : (regset:^tcpuregisterset);
          top_shifterop : (shifterop : pshifterop);
       {$endif arm}
+      {$ifdef m68k}
+         top_regset : (regset:^tcpuregisterset);
+      {$endif m68k}
       end;
       poper=^toper;
 
@@ -1971,7 +1975,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2004-01-26 16:12:27  daniel
+  Revision 1.68  2004-01-30 13:42:03  florian
+    * fixed more alignment issues
+
+  Revision 1.67  2004/01/26 16:12:27  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 

@@ -39,7 +39,7 @@ unit rabase;
        tcbaseasmreader = class of tbaseasmreader;
 
        pasmmodeinfo = ^tasmmodeinfo;
-       tasmmodeinfo = packed record
+       tasmmodeinfo = record
           id    : tasmmode;
           idtxt : string[8];
           casmreader : tcbaseasmreader;
@@ -106,7 +106,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2003-11-12 16:58:42  peter
+  Revision 1.3  2004-01-30 13:42:03  florian
+    * fixed more alignment issues
+
+  Revision 1.2  2003/11/12 16:58:42  peter
     * fixed wrong initialization
 
   Revision 1.1  2003/11/12 16:05:39  florian

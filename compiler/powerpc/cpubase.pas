@@ -364,71 +364,6 @@ uses
     const
       max_operands = 5;
 
-(*
-      {# Table of registers which can be allocated by the code generator
-         internally, when generating the code.
-      }
-      { legend:                                                                }
-      { xxxregs = set of all possibly used registers of that type in the code  }
-      {           generator                                                    }
-      { usableregsxxx = set of all 32bit components of registers that can be   }
-      {           possible allocated to a regvar or using getregisterxxx (this }
-      {           excludes registers which can be only used for parameter      }
-      {           passing on ABI's that define this)                           }
-      { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
-
-      maxintregs = 18;
-      { to determine how many registers to use for regvars }
-      maxintscratchregs = 3;
-      usableregsint = [RS_R13..RS_R27];
-      c_countusableregsint = 18;
-
-      maxfpuregs = 31-14+1;
-      usableregsfpu = [RS_F14..RS_F31];
-      c_countusableregsfpu = 31-14+1;
-
-      usableregsmm  = [RS_M14..RS_M31];
-      c_countusableregsmm  = 31-14+1;
-
-      { no distinction on this platform }
-      maxaddrregs = 0;
-      addrregs    = [];
-      usableregsaddr = [];
-      c_countusableregsaddr = 0;
-
-      firstsaveintreg = RS_R13;
-      lastsaveintreg  = RS_R31;
-      firstsavefpureg = RS_F14;
-      lastsavefpureg  = RS_F31;
-      { no altivec support yet. Need to override tcgobj.a_loadmm_* first in tcgppc }
-      firstsavemmreg  = RS_INVALID;
-      lastsavemmreg   = RS_INVALID;
-
-      maxvarregs = 15;
-      varregs : Array [1..maxvarregs] of Tsuperregister =
-                (RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,RS_R20,RS_R21,
-                 RS_R22,RS_R23,RS_R24,RS_R25,RS_R26,RS_R27,RS_R28);
-
-      maxfpuvarregs = 31-14+1;
-      fpuvarregs : Array [1..maxfpuvarregs] of Tsuperregister =
-                (RS_F14,RS_F15,RS_F16,RS_F17,RS_F18,RS_F19,RS_F20,RS_F21,RS_F22,RS_F23,
-                 RS_F24,RS_F25,RS_F26,RS_F27,RS_F28,RS_F29,RS_F30,RS_F31);
-
-{
-//      max_param_regs_int = 8;
-//      param_regs_int: Array[1..max_param_regs_int] of Tsuperregister =
-//        (R_3,R_4,R_5,R_6,R_7,R_8,R_9,R_10);
-
-//      max_param_regs_fpu = 13;
-//      param_regs_fpu: Array[1..max_param_regs_fpu] of Toldregister =
-//        (RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,RS_F9,RS_F10,RS_F11,RS_F12,RS_F13);
-
-      max_param_regs_mm = 13;
-      param_regs_mm: Array[1..max_param_regs_mm] of Toldregister =
-        (R_M1,R_M2,R_M3,R_M4,R_M5,R_M6,R_M7,R_M8,R_M9,R_M10,R_M11,R_M12,R_M13);
-}
-
-*)
 
 {*****************************************************************************
                           Default generic sizes
@@ -694,7 +629,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2004-01-10 00:16:21  jonas
+  Revision 1.83  2004-01-30 13:42:03  florian
+    * fixed more alignment issues
+
+  Revision 1.82  2004/01/10 00:16:21  jonas
     * fixed mtfsb0 instruction for assembler reader/writer
     * fixed initialisation of fpscr register to avoid spurious SIGPFE's
       (uses mtfsb0 instruction, so added extra define in options.pas to avoid

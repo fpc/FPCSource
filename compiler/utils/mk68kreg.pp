@@ -257,9 +257,9 @@ begin
         end
       else
         first:=false;
-      writeln(confile,'NR_',names[i],' = ',numbers[i],';');
       writeln(supfile,'RS_',names[i],' = ',supregs[i],';');
-      write(numfile,'NR_',names[i]);
+      writeln(confile,'NR_'+names[i],' = ','tregister(',numbers[i],')',';');
+      write(numfile,'tregister(',numbers[i],')');
       write(stdfile,'''',stdnames[i],'''');
       write(stabfile,stabs[i]);
       write(rnifile,regnumber_index[i]);
@@ -293,6 +293,9 @@ begin
 end.
 {
 $Log$
-Revision 1.2  2003-12-10 02:22:59  karoly
+Revision 1.3  2004-01-30 13:42:03  florian
+  * fixed more alignment issues
+
+Revision 1.2  2003/12/10 02:22:59  karoly
   * fixed logs
 }

@@ -1141,7 +1141,7 @@ implementation
       var
         ps,nps : tvarsym;
         pd,npd : tdef;
-        varalignrecord,
+        varalignrecord,varalign,
         storesize,storealign : longint;
       begin
         storesize:=datasize;
@@ -1162,8 +1162,14 @@ implementation
             symsearch.insert(ps);
             { update address }
             ps.fieldoffset:=datasize;
+
             { update alignment of this record }
-            varalignrecord:=used_align(ps.vartype.def.alignment,aktalignment.recordalignmin,aktalignment.recordalignmax);
+            varalign:=ps.vartype.def.alignment;
+            {
+            if varalign=0 then
+              varalign:=size_2_align(ps.getvaluesize);
+            }
+            varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.recordalignmax);
             recordalignment:=max(recordalignment,varalignrecord);
             { next }
             ps:=nps;
@@ -2333,7 +2339,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.129  2004-01-29 16:51:29  peter
+  Revision 1.130  2004-01-30 13:42:03  florian
+    * fixed more alignment issues
+
+  Revision 1.129  2004/01/29 16:51:29  peter
     * fixed alignment calculation for variant records
     * fixed alignment padding of records
 
