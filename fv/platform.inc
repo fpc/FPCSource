@@ -164,10 +164,12 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$DEFINE ASM_FPC}
   {$UNDEF BP_VMTLink}
   {$DEFINE Use_API}
+  {$DEFINE NO_WINDOW}
 {$ENDIF}
 
 {$IFDEF NoAPI}
 {$UNDEF Use_API}
+{$UNDEF NO_WINDOW}
 {$ENDIF UseAPI}
 
 
@@ -348,6 +350,10 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$ENDIF}
 {$ENDIF}
 
+{$IFDEF OS_DOS}
+  {$DEFINE NO_WINDOW}
+{$ENDIF}
+
 {---------------------------------------------------------------------------}
 {  WIN16 AND WIN32 set if in windows - Updated 16Oct2000 LdB                }
 {---------------------------------------------------------------------------}
@@ -363,7 +369,10 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
 {
  $Log$
- Revision 1.4  2001-04-10 21:57:56  pierre
+ Revision 1.5  2001-05-03 22:32:52  pierre
+  new bunch of changes, displays something for dos at least
+
+ Revision 1.4  2001/04/10 21:57:56  pierre
   + first adds for Use_API define
 
  Revision 1.3  2001/04/10 21:29:55  pierre

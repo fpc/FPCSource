@@ -280,7 +280,7 @@ TYPE
       PROCEDURE PutEvent (Var Event: TEvent); Virtual;
       PROCEDURE GetEvent (Var Event: TEvent); Virtual;
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
-      {$IFNDEF OS_DOS}                                { WIN/NT/OS2 CODE }
+      {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
       FUNCTION GetClassName: String; Virtual;
       FUNCTION GetClassText: String; Virtual;
       FUNCTION GetClassAttr: LongInt; Virtual;
@@ -798,6 +798,7 @@ BEGIN
    State := sfVisible + sfSelected + sfFocused +
       sfModal + sfExposed;                            { Deafult states }
    Options := 0;                                      { No options set }
+   {$IFNDEF NO_WINDOW}
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
    ODc := GetDc(GetDeskTopWindow);                    { Get desktop context }
    For I := 0 To 15 Do Begin
@@ -811,6 +812,7 @@ BEGIN
    {$ENDIF}
    {$IFDEF OS_OS2}
    CreateWindowNow(swp_Show);                         { Create app window }
+   {$ENDIF}
    {$ENDIF}
    {$IFNDEF OS_DOS}                                   { WIN/NT/OS2 CODE }
    AppWindow := HWindow;                              { Set app window handle }
@@ -1083,7 +1085,7 @@ BEGIN
    End;
 END;
 
-{$IFNDEF OS_DOS}
+{$IFNDEF NO_WINDOW}
 {***************************************************************************}
 {                  TProgram OBJECT WIN/NT/OS2 ONLY METHODS                  }
 {***************************************************************************}
@@ -1159,9 +1161,9 @@ END;
 CONSTRUCTOR TApplication.Init;
 BEGIN
    InitMemory;                                        { Start memory up }
-   InitVideo;                                         { Start video up }
-   InitEvents;                                        { Start event drive }
-   InitSysError;                                      { Start system error }
+   Drivers.InitVideo;                                         { Start video up }
+   Drivers.InitEvents;                                        { Start event drive }
+   Drivers.InitSysError;                                      { Start system error }
    InitHistory;                                       { Start history up }
    Inherited Init;                                    { Call ancestor }
 END;
@@ -1173,9 +1175,9 @@ DESTRUCTOR TApplication.Done;
 BEGIN
    Inherited Done;                                    { Call ancestor }
    DoneHistory;                                       { Close history }
-   DoneSysError;                                      { Close system error }
-   DoneEvents;                                        { Close event drive }
-   DoneVideo;                                         { Close video }
+   Drivers.DoneSysError;                                      { Close system error }
+   Drivers.DoneEvents;                                        { Close event drive }
+   Drivers.DoneVideo;                                         { Close video }
    DoneMemory;                                        { Close memory }
 END;
 
@@ -1323,7 +1325,10 @@ END;
 END.
 {
  $Log$
- Revision 1.4  2001-04-10 21:57:55  pierre
+ Revision 1.5  2001-05-03 22:32:52  pierre
+  new bunch of changes, displays something for dos at least
+
+ Revision 1.4  2001/04/10 21:57:55  pierre
   + first adds for Use_API define
 
  Revision 1.3  2001/04/10 21:29:54  pierre

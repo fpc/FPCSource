@@ -495,7 +495,7 @@ TYPE
       PROCEDURE GetPeerViewPtr (Var S: TStream; Var P);
       PROCEDURE PutPeerViewPtr (Var S: TStream; P: PView);
       PROCEDURE CalcBounds (Var Bounds: TRect; Delta: TPoint); Virtual;
-      {$IFNDEF OS_DOS}                                { WIN/NT/OS2 CODE }
+      {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
       FUNCTION GetClassId: LongInt; Virtual;
       FUNCTION GetClassName: String; Virtual;
       FUNCTION GetClassText: String; Virtual;
@@ -530,7 +530,7 @@ TYPE
       FUNCTION FontWidth: Integer;
       FUNCTION Fontheight: Integer;
 
-      {$IFNDEF OS_DOS}                                { WIN/NT/OS2 CODE }
+      {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
       PROCEDURE CreateWindowNow (CmdShow: Integer);                  Virtual;
       {$ENDIF}
    END;
@@ -579,7 +579,7 @@ TYPE
       PROCEDURE ChangeBounds (Var Bounds: TRect); Virtual;
       PROCEDURE GetSubViewPtr (Var S: TStream; Var P);
       PROCEDURE PutSubViewPtr (Var S: TStream; P: PView);
-      {$IFNDEF OS_DOS}                                { WIN/NT/OS2 CODE }
+      {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
       PROCEDURE CreateWindowNow (CmdShow: Integer); Virtual;
       {$ENDIF}
 
@@ -631,7 +631,7 @@ TYPE
       PROCEDURE SetParams (AValue, AMin, AMax, APgStep, AArStep: Integer);
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
-      {$IFNDEF OS_DOS}                                { WIN/NT/OS2 CODE }
+      {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
       FUNCTION GetClassName: String; Virtual;
       FUNCTION GetClassAttr: LongInt; Virtual;
       PROCEDURE CreateWindowNow (CmdShow: Integer);                  Virtual;
@@ -698,7 +698,7 @@ TYPE
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
       PROCEDURE ChangeBounds (Var Bounds: TRect); Virtual;
-      {$IFDEF OS_WINDOWS}                             { WIN/NT CODE }
+      {$IFNDEF NO_WINDOW}                             { WIN/NT CODE }
       FUNCTION GetNotifyCmd: LongInt; Virtual;
       FUNCTION GetClassName: String; Virtual;
       FUNCTION GetClassAttr: LongInt; Virtual;
@@ -734,7 +734,7 @@ TYPE
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
       PROCEDURE SizeLimits (Var Min, Max: TPoint); Virtual;
-      {$IFNDEF OS_DOS}                                { WIN/NT/OS2 CODE }
+      {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
       FUNCTION GetClassText: String; Virtual;
       FUNCTION GetClassAttr: LongInt; Virtual;
       {$ENDIF}
@@ -993,6 +993,10 @@ CONST
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                              IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
+{$ifdef Use_API}
+  uses
+    Video;
+{$endif Use_API}
 
 {***************************************************************************}
 {                     PRIVATE CONSTANT DEFINITIONS                          }
@@ -1238,6 +1242,7 @@ BEGIN
              LongInt(Tp) := GetProp(LoWord(lParam),
                ViewPtr);                              { Fetch combo ptr }
              {$ENDIF}
+             {$IFNDEF NO_WINDOW}
              If (Tp <> Nil) Then Begin                { View is valid }
                I := SendMessage(LoWord(lParam),
                  Tp^.GetNotifyCmd, 0, 0);             { Get current state }
@@ -1246,6 +1251,7 @@ BEGIN
                Event.data := I;                       { Load data value }
                Event.InfoPtr := Tp;                   { Pointer to view }
              End;
+             {$ENDIF}
            End;
            cbn_SetFocus: Begin                        { DROP BOX FOCUSED }
              {$IFDEF BIT_16}                          { 16 BIT WINDOWS CODE }
@@ -1567,7 +1573,7 @@ BEGIN
      FreeMem(HoldLimit, SizeOf(TComplexArea));        { Release memory }
      HoldLimit := P;                                  { Shuffle to next }
    End;
-   {$IFNDEF OS_DOS}                                   { WIN/NT/OS2 CODE }
+   {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
    If (HWindow <> 0) Then Begin                       { Handle valid }
      S := GetClassName + #0;                          { Make asciiz }
      {$IFDEF OS_WINDOWS}                              { WIN/NT CODE}
@@ -2138,7 +2144,10 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TView.DrawBackGround;
 VAR Bc: Byte; X1, Y1, X2, Y2: Integer; ViewPort: ViewPortType;
+{$IFDEF Use_API}X, Y: Integer;
+{$ELSE not Use_API}
 {$IFDEF OS_DOS} X, Y: Integer; {$ENDIF}
+{$ENDIF not Use_API}
 {$IFDEF OS_OS2} Ptl: PointL; {$ENDIF}
 BEGIN
    If (GOptions AND goNoDrawView = 0) Then Begin      { Non draw views exit }
@@ -2156,6 +2165,20 @@ BEGIN
      If (ViewPort.Y2 >= RawOrigin.Y+RawSize.Y) Then
        Y2 := RawSize.Y Else                           { Right to bottom edge }
        Y2 := ViewPort.Y2-RawOrigin.Y;                 { Offset from bottom }
+     {$IFDEF Use_API}                                 { DOS/DPMI CODE }
+         X1 := (RawOrigin.X+X1) DIV SysFontWidth;
+         Y1 := (RawOrigin.Y+Y1) DIV SysFontHeight;
+         X2 := (RawOrigin.X+X2) DIV SysFontWidth;
+         Y2 := (RawOrigin.Y+Y2) DIV SysFontHeight;
+         If (State AND sfDisabled = 0) Then
+           Bc := GetColor(1) Else           { Select back colour }
+           Bc := GetColor(4);               { Disabled back colour }
+         For Y := Y1 To Y2 Do
+           For X := X1 To X2 Do Begin
+             VideoBuf^[(Y*Drivers.ScreenWidth+X)] := (Bc shl 8) or $20;
+           End;
+         UpdateScreen(false);
+     {$ELSE not Use_API}
      {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
        If (TextModeGFV <> True) Then Begin            { GRAPHICS MODE GFV }
          SetFillStyle(SolidFill, Bc);                 { Set fill colour }
@@ -2170,8 +2193,8 @@ BEGIN
            Bc := GetColor(4);               { Disabled back colour }
          For Y := Y1 To Y2 Do
            For X := X1 To X2 Do Begin
-             Mem[$B800:$0+(Y*ScreenWidth+X)*2] := $20;
-             Mem[$B800:$0+(Y*ScreenWidth+X)*2+1] := Bc;
+             Mem[$B800:$0+(Y*Drivers.ScreenWidth+X)*2] := $20;
+             Mem[$B800:$0+(Y*Drivers.ScreenWidth+X)*2+1] := Bc;
            End;
        End;
      {$ENDIF}
@@ -2193,6 +2216,7 @@ BEGIN
        GpiBox(Ps, dro_Fill, Ptl, 0, 0);               { Clear the view area }
      End;
      {$ENDIF}
+     {$ENDIF not Use_API}
    End;
 END;
 
@@ -2768,7 +2792,7 @@ END;
 {--TView--------------------------------------------------------------------}
 {  CalcBounds -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB        }
 {---------------------------------------------------------------------------}
-PROCEDURE TView.CalcBounds (Var Bounds: TRect; Delta: TPoint);
+PROCEDURE TView.CalcBounds (Var Bounds: Objects.TRect; Delta: TPoint);
 VAR S, D: Integer; Min, Max: TPoint;
 
    FUNCTION Range (Val, Min, Max: Integer): Integer;
@@ -2778,7 +2802,7 @@ VAR S, D: Integer; Min, Max: TPoint;
        Range := Val;                                  { Accept value }
    END;
 
-   PROCEDURE Grow (Var I: Integer);
+   PROCEDURE GrowI (Var I: sw_Integer);
    BEGIN
      If (GrowMode AND gfGrowRel = 0) Then Inc(I, D)
        Else I := (I * S + (S - D) SHR 1) DIV (S - D); { Calc grow value }
@@ -2790,16 +2814,16 @@ BEGIN
    S := Owner^.Size.X;                                { Set initial size }
    D := Delta.X;                                      { Set initial delta }
    If (GrowMode AND gfGrowLoX <> 0) Then
-     Grow(Bounds.A.X);                                { Grow left side }
+     GrowI(Bounds.A.X);                                { Grow left side }
    If (GrowMode AND gfGrowHiX <> 0) Then
-     Grow(Bounds.B.X);                                { Grow right side }
+     GrowI(Bounds.B.X);                                { Grow right side }
    If (Bounds.B.X - Bounds.A.X > MaxViewWidth) Then
      Bounds.B.X := Bounds.A.X + MaxViewWidth;         { Check values }
    S := Owner^.Size.Y; D := Delta.Y;                  { set initial values }
    If (GrowMode AND gfGrowLoY <> 0) Then
-     Grow(Bounds.A.Y);                                { Grow top side }
+     GrowI(Bounds.A.Y);                                { Grow top side }
    If (GrowMode AND gfGrowHiY <> 0) Then
-     Grow(Bounds.B.Y);                                { grow lower side }
+     GrowI(Bounds.B.Y);                                { grow lower side }
    SizeLimits(Min, Max);                              { Check sizes }
    Bounds.B.X := Bounds.A.X + Range(Bounds.B.X -
      Bounds.A.X, Min.X, Max.X);                       { Set right side }
@@ -2807,7 +2831,7 @@ BEGIN
      Bounds.A.Y, Min.Y, Max.Y);                       { Set lower side }
 END;
 
-{$IFNDEF OS_DOS}                                      { WIN/NT/OS2 CODE }
+{$IFNDEF NO_WINDOW}                                      { WIN/NT/OS2 CODE }
 {***************************************************************************}
 {                    TView OBJECT WIN/NT/OS2 ONLY METHODS                   }
 {***************************************************************************}
@@ -3283,7 +3307,7 @@ BEGIN
        P^.DisplaceBy(Origin.X*FontWidth,
          Origin.Y*FontHeight);                        { Displace old view }
    InsertBefore(P, First);                            { Insert the view }
-   {$IFNDEF OS_DOS}                                   { WIN/NT/OS2 CODE }
+   {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
    If (HWindow <> 0) Then                             { We are created }
      If (P^.HWindow = 0) Then                         { Child not created }
        P^.CreateWindowNow(0);                         { Create child window }
@@ -3705,7 +3729,7 @@ BEGIN
    S.Write(Index, 2);                                 { Write the index }
 END;
 
-{$IFNDEF OS_DOS}                                      { WIN/NT/OS2 CODE }
+{$IFNDEF NO_WINDOW}                                      { WIN/NT/OS2 CODE }
 {***************************************************************************}
 {                  TGroup OBJECT WIN/NT/OS2 ONLY METHODS                    }
 {***************************************************************************}
@@ -4247,7 +4271,7 @@ BEGIN
    End;
 END;
 
-{$IFNDEF OS_DOS}                                      { WIN/NT/OS2 CODE }
+{$IFNDEF NO_WINDOW}                                      { WIN/NT/OS2 CODE }
 {***************************************************************************}
 {                TScrollBar OBJECT WIN/NT/OS2 ONLY METHODS                  }
 {***************************************************************************}
@@ -4991,7 +5015,7 @@ BEGIN
        VScrollBar^.ArStep);                           { Update vert bar }
 END;
 
-{$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
+{$IFNDEF NO_WINDOW}                                   { WIN/NT CODE }
 {***************************************************************************}
 {                  TListViewer OBJECT WIN/NT ONLY METHODS                   }
 {***************************************************************************}
@@ -5362,7 +5386,7 @@ BEGIN
    Min.Y := MinWinSize.Y;                             { Set min y size }
 END;
 
-{$IFNDEF OS_DOS}
+{$IFNDEF NO_WINDOW}
 {***************************************************************************}
 {                   TWindow OBJECT WIN/NT/OS2 ONLY METHODS                  }
 {***************************************************************************}
@@ -5576,10 +5600,26 @@ END;
 {  ClearArea -> Platforms DOS/DPMI/WIN/OS2 - Checked 19Sep97 LdB            }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.ClearArea (X1, Y1, X2, Y2: Integer; Colour: Byte);
-VAR {$IFDEF OS_DOS} X, Y: Integer; ViewPort: ViewPortType; {$ENDIF}
+VAR
+    {$IFDEF Use_API}X, Y: Integer;
+    {$ELSE not Use_API}
+    {$IFDEF OS_DOS} X, Y: Integer; ViewPort: ViewPortType; {$ENDIF}{$ENDIF}
     {$IFDEF OS_WINDOWS} ODc: hDc; {$ENDIF}
     {$IFDEF OS_OS2} Lp: PointL; OPs: HPs; {$ENDIF}
 BEGIN
+   {$IFDEF Use_API}                                    { DOS/DPMI CODE }
+   Begin                                     { TEXT MODE GFV }
+     X1 := (RawOrigin.X+X1) DIV SysFontWidth;
+     Y1 := (RawOrigin.Y+Y1) DIV SysFontHeight;
+     X2 := (RawOrigin.X+X2) DIV SysFontWidth;
+     Y2 := (RawOrigin.Y+Y2) DIV SysFontHeight;
+     For Y := Y1 To Y2 Do
+       For X := X1 To X2 Do Begin
+         VideoBuf^[(Y*Drivers.ScreenWidth+X)] := (Colour shl 12) or $20;
+       End;
+       UpdateScreen(false);
+   End;
+   {$ELSE not Use_API}
    {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
    GetViewSettings(ViewPort, TextModeGFV);            { Get viewport }
    If (TextModeGFV <> TRUE) Then Begin                { GRAPHICAL GFV MODE }
@@ -5594,8 +5634,8 @@ BEGIN
      Y2 := (RawOrigin.Y+Y2) DIV SysFontHeight;
      For Y := Y1 To Y2 Do
        For X := X1 To X2 Do Begin
-         Mem[$B800:$0+(Y*ScreenWidth+X)*2] := $20;
-         Mem[$B800:$0+(Y*ScreenWidth+X)*2+1] := Colour SHL 4;
+         Mem[$B800:$0+(Y*Drivers.ScreenWidth+X)*2] := $20;
+         Mem[$B800:$0+(Y*Drivers.ScreenWidth+X)*2+1] := Colour SHL 4;
        End;
    End;
    {$ENDIF}
@@ -5637,6 +5677,7 @@ BEGIN
      Ps := OPs;                                       { Reset held struct }
    End;
    {$ENDIF}
+   {$ENDIF not Use_API}
 END;
 
 
@@ -5762,6 +5803,24 @@ BEGIN
    If (State AND sfVisible <> 0) AND                  { View is visible }
    (State AND sfIconised = 0) AND                     { View is not icon}
    (State AND sfExposed <> 0) AND (W > 0) AND (H > 0) { View is exposed }
+   {$ifdef Use_API}
+     then begin
+       P := @TDrawBuffer(Buf);                          { Set draw buffer ptr }
+       L := 0;                                          { Set buffer position }
+       X := X + Origin.X;
+       Y := Y + Origin.Y;
+     For J := 1 To H Do Begin                         { For each line }
+       K := X;                                        { Reset x position }
+       For I := 0 To (W-1) Do Begin                   { For each character }
+         VideoBuf^[((y * Drivers.ScreenWidth)+k)] := P^[L];
+         Inc(K);
+         Inc(L);                                      { Next character }
+       End;
+       Inc(Y);                                        { Next line down }
+     end;
+   Video.UpdateScreen(false);
+   end;
+   {$else not Use_API}
    {$IFNDEF OS_DOS} AND (HWindow <> 0) {$ENDIF}       { WIN/NT/OS2 CODE }
    Then Begin
      P := @TDrawBuffer(Buf);                          { Set draw buffer ptr }
@@ -5800,8 +5859,8 @@ BEGIN
            End Else Begin                             { TEXT MODE GFV }
              Tix := (K + ViewPort.X1) DIV SysFontWidth;
              Tiy := (Y + 2 + ViewPort.Y1) DIV SysFontHeight;
-             Mem[$B800:$0+((Tiy * ScreenWidth)+Tix)*2] := Lo(P^[L]);
-             Mem[$B800:$0+((Tiy * ScreenWidth)+Tix)*2+1] := Hi(P^[L]);
+             Mem[$B800:$0+((Tiy * Drivers.ScreenWidth)+Tix)*2] := Lo(P^[L]);
+             Mem[$B800:$0+((Tiy * Drivers.ScreenWidth)+Tix)*2+1] := Hi(P^[L]);
            End;
          {$ENDIF}
          {$IFDEF OS_WINDOWS}                          { WIN/NT CODE }
@@ -5834,6 +5893,7 @@ BEGIN
        Ps := OPs;                                     { Restore original PS }
      {$ENDIF}
    End;
+   {$endif not Use_API}
 END;
 
 PROCEDURE TView.WriteLine (X, Y, W, H: Integer; Var Buf);
@@ -5845,6 +5905,22 @@ BEGIN
    If (State AND sfVisible <> 0) AND                  { View is visible }
    (State AND sfIconised = 0) AND                     { View is not icon}
    (State AND sfExposed <> 0) AND (W > 0) AND (H > 0) { View is exposed }
+   {$ifdef Use_API}
+     then begin
+       P := @TDrawBuffer(Buf);                          { Set draw buffer ptr }
+       X := X + Origin.X;
+       Y := Y + Origin.Y;
+     For J := 1 To H Do Begin                         { For each line }
+       K := X;                                        { Reset x position }
+       For I := 0 To (W-1) Do Begin                   { For each character }
+         VideoBuf^[((y * Drivers.ScreenWidth)+k)] := P^[I];
+         Inc(K);
+       End;
+       Inc(Y);                                        { Next line down }
+     end;
+     Video.UpdateScreen(false);
+     end;
+   {$else not Use_API}
    {$IFNDEF OS_DOS} AND (HWindow <> 0) {$ENDIF}       { WIN/NT/OS2 CODE }
    Then Begin
      P := @TDrawBuffer(Buf);                          { Set draw buffer ptr }
@@ -5882,8 +5958,8 @@ BEGIN
            End Else Begin                             { TEXT MODE GFV }
              Tix := (K + ViewPort.X1) DIV SysFontWidth;
              Tiy := (Y + ViewPort.Y1 + 2) DIV SysFontHeight;
-             Mem[$B800:$0+((Tiy * ScreenWidth)+Tix)*2] := Lo(P^[I]);
-             Mem[$B800:$0+((Tiy * ScreenWidth)+Tix)*2+1] := Hi(P^[I]);
+             Mem[$B800:$0+((Tiy * Drivers.ScreenWidth)+Tix)*2] := Lo(P^[I]);
+             Mem[$B800:$0+((Tiy * Drivers.ScreenWidth)+Tix)*2+1] := Hi(P^[I]);
            End;
          {$ENDIF}
          {$IFDEF OS_WINDOWS}                          { WIN/NT CODE }
@@ -5915,6 +5991,7 @@ BEGIN
        Ps := OPs;                                     { Restore original PS }
      {$ENDIF}
    End;
+   {$endif not Use_API}
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -5947,7 +6024,9 @@ END;
 
 PROCEDURE TView.WriteStr (X, Y: Integer; Str: String; Color: Byte);
 VAR Fc, Bc, B: Byte; X1, Y1, X2, Y2: Integer;
-    {$IFDEF OS_DOS} Tix, Tiy, Ti: Integer; ViewPort: ViewPortType; {$ENDIF}
+    {$IFDEF Use_API}Tix, Tiy, Ti: Integer;
+    {$ELSE not Use_API}
+    {$IFDEF OS_DOS} Tix, Tiy, Ti: Integer; ViewPort: ViewPortType; {$ENDIF}{$ENDIF}
     {$IFDEF OS_WINDOWS} ODc: HDc; P: Pointer; {$ENDIF}
     {$IFDEF OS_OS2} OPs: HPs; P: Pointer; Pt: PointL; {$ENDIF}
 BEGIN
@@ -5967,6 +6046,22 @@ BEGIN
      End;
 
 
+     {$IFDEF Use_API}
+     If (X >= 0) AND (Y >= 0) Then Begin
+       X := RawOrigin.X+X*FontWidth;                    { X position }
+       Y := RawOrigin.Y+Y*FontHeight;                   { Y position }
+     End Else Begin
+       X := RawOrigin.X + Abs(X);
+       Y := RawOrigin.Y + Abs(Y);
+     End;
+       Tix := X DIV SysFontWidth;
+       Tiy := Y DIV SysFontHeight;
+       For Ti := 1 To length(Str) Do Begin
+         VideoBuf^[((Tiy * Drivers.ScreenWidth)+Tix)] := (GetColor(Color) shl 8) or Ord(Str[Ti]);
+         Tix := Tix + SysFontWidth;
+       end;
+       UpdateScreen(false);
+     {$ELSE not Use_API}
      {$IFDEF OS_DOS}
      If (X >= 0) AND (Y >= 0) Then Begin
        X := RawOrigin.X+X*FontWidth;                    { X position }
@@ -5987,8 +6082,8 @@ BEGIN
        Tix := X DIV SysFontWidth;
        Tiy := Y DIV SysFontHeight;
        For Ti := 1 To length(Str) Do Begin
-         Mem[$B800:$0+((Tiy * ScreenWidth)+Tix)*2] := Ord(Str[Ti]);
-         Mem[$B800:$0+((Tiy * ScreenWidth)+Tix)*2+1] := GetColor(Color);
+         Mem[$B800:$0+((Tiy * Drivers.ScreenWidth)+Tix)*2] := Ord(Str[Ti]);
+         Mem[$B800:$0+((Tiy * Drivers.ScreenWidth)+Tix)*2+1] := GetColor(Color);
          Tix := Tix + SysFontWidth;
        End;
      End;
@@ -6065,6 +6160,7 @@ BEGIN
        Ps := OPs;                                 { Clear device handle }
      End;
      {$ENDIF}
+     {$ENDIF not Use_API}
 
    End;
 END;
@@ -6073,8 +6169,32 @@ PROCEDURE TView.WriteChar (X, Y: Integer; C: Char; Color: Byte;
   Count: Integer);
 {$IFDEF OS_DOS}
 VAR Fc, Bc: Byte; I, Ti, Tix, Tiy: Integer; Col: Word; S: String; ViewPort: ViewPortType;
+{$else}
+{$ifdef Use_API}
+VAR Fc, Bc: Byte; I, Ti, Tix, Tiy: Integer; Col: Word; S: String;
+{$endif Use_API}
 {$ENDIF}
 BEGIN
+     {$IFDEF Use_API}
+     Col := GetColor(Color);                          { Get view color }
+     Fc := Col AND $0F;                               { Foreground colour }
+     Bc := Col AND $F0 SHR 4;                         { Background colour }
+     FillChar(S[1], 255, C);                          { Fill the string }
+     If (X >= 0) AND (Y >= 0) Then Begin
+       X := RawOrigin.X+X*FontWidth;                    { X position }
+       Y := RawOrigin.Y+Y*FontHeight;                   { Y position }
+     End Else Begin
+       X := RawOrigin.X + Abs(X);
+       Y := RawOrigin.Y + Abs(Y);
+     End;
+       Tix := X DIV SysFontWidth;
+       Tiy := Y DIV SysFontHeight;
+       For Ti := 1 To length(S) Do Begin
+         VideoBuf^[((Tiy * Drivers.ScreenWidth)+Tix)] := (GetColor(Color) shl 8) or Ord(S[Ti]);
+         Tix := Tix + SysFontWidth;
+       end;
+       UpdateScreen(false);
+     {$ELSE not Use_API}
    {$IFDEF OS_DOS}
    If (State AND sfVisible <> 0) AND                  { View visible }
    (State AND sfExposed <> 0) Then Begin              { View exposed }
@@ -6099,8 +6219,8 @@ BEGIN
          Tix := X DIV SysFontWidth;
          Tiy := Y DIV SysFontHeight;
          For Ti := 1 To length(S) Do Begin
-           Mem[$B800:$0+((Tiy * ScreenWidth)+Tix)*2] := Ord(S[Ti]);
-           Mem[$B800:$0+((Tiy * ScreenWidth)+Tix)*2+1] := GetColor(Color);
+           Mem[$B800:$0+((Tiy * Drivers.ScreenWidth)+Tix)*2] := Ord(S[Ti]);
+           Mem[$B800:$0+((Tiy * Drivers.ScreenWidth)+Tix)*2+1] := GetColor(Color);
            Tix := Tix + SysFontWidth;
          End;
        End;
@@ -6109,6 +6229,7 @@ BEGIN
      End;
    End;
    {$ENDIF}
+     {$ENDIF not Use_API}
 END;
 
 PROCEDURE TView.DragView (Event: TEvent; Mode: Byte; Var Limits: TRect;
@@ -6260,7 +6381,7 @@ BEGIN
 END;
 
 
-{$IFNDEF OS_DOS}
+{$IFNDEF NO_WINDOW}
 {***************************************************************************}
 {                      TView OBJECT WIN/NT ONLY METHODS                     }
 {***************************************************************************}
@@ -6663,7 +6784,10 @@ END.
 
 {
  $Log$
- Revision 1.4  2001-04-10 21:57:56  pierre
+ Revision 1.5  2001-05-03 22:32:52  pierre
+  new bunch of changes, displays something for dos at least
+
+ Revision 1.4  2001/04/10 21:57:56  pierre
   + first adds for Use_API define
 
  Revision 1.3  2001/04/10 21:29:55  pierre

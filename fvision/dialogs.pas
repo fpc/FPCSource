@@ -296,7 +296,7 @@ TYPE
       PROCEDURE SetData (Var Rec); Virtual;
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent);                     Virtual;
-      {$IFNDEF OS_DOS}                                { WIN/NT/OS2 CODE }
+      {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
       FUNCTION GetClassName: String; Virtual;
       FUNCTION SubClassAttr: LongInt; Virtual;
       FUNCTION GetMsgHandler: Pointer; Virtual;
@@ -319,7 +319,7 @@ TYPE
       PROCEDURE Press (Item: Integer); Virtual;
       PROCEDURE MovedTo(Item: Integer); Virtual;
       PROCEDURE SetData (Var Rec); Virtual;
-      {$IFNDEF OS_DOS}                                { WIN/NT CODE }
+      {$IFNDEF NO_WINDOW}                                { WIN/NT CODE }
       FUNCTION SubClassAttr: LongInt; Virtual;
       {$ENDIF}
    END;
@@ -333,7 +333,7 @@ TYPE
       FUNCTION Mark (Item: Integer): Boolean; Virtual;
       PROCEDURE DrawFocus; Virtual;
       PROCEDURE Press (Item: Integer); Virtual;
-      {$IFNDEF OS_DOS}                                { WIN/NT CODE }
+      {$IFNDEF NO_WINDOW}                                { WIN/NT CODE }
       FUNCTION SubClassAttr: LongInt; Virtual;
       {$ENDIF}
    END;
@@ -358,7 +358,7 @@ TYPE
       PROCEDURE GetData (Var Rec); Virtual;
       PROCEDURE SetData (Var Rec); Virtual;
       PROCEDURE Store (Var S: TStream);
-      {$IFNDEF OS_DOS}                                { WIN/NT CODE }
+      {$IFNDEF NO_WINDOW}                                { WIN/NT CODE }
       FUNCTION SubClassAttr: LongInt; Virtual;
       {$ENDIF}
    END;
@@ -1757,7 +1757,7 @@ END;
 DESTRUCTOR TCluster.Done;
 VAR I: Integer;
 BEGIN
-   {$IFNDEF OS_DOS}                                   { WIN/NT/OS2 CODE }
+   {$IFNDEF NO_WINDOW}                                   { WIN/NT/OS2 CODE }
    If (WndHandles <> Nil) Then Begin                  { Handles valid }
      For I := 1 To Strings.Count Do                   { For each entry }
        {$IFDEF OS_WINDOWS}                            { WIN/NT CODE }
@@ -2147,7 +2147,7 @@ BEGIN
    End;
 END;
 
-{$IFNDEF OS_DOS}                                      { WIN/NT/OS2 CODE }
+{$IFNDEF NO_WINDOW}                                      { WIN/NT/OS2 CODE }
 {***************************************************************************}
 {                  TCLuster OBJECT WIN/NT/OS2 ONLY METHODS                  }
 {***************************************************************************}
@@ -2369,7 +2369,7 @@ BEGIN
    Inherited SetData(Rec);                            { Call ancestor }
 END;
 
-{$IFNDEF OS_DOS}                                      { WIN/NT CODE }
+{$IFNDEF NO_WINDOW}                                      { WIN/NT CODE }
 {***************************************************************************}
 {             TRadioButtons OBJECT WIN/NT/OS2 ONLY METHODS                  }
 {***************************************************************************}
@@ -2416,7 +2416,7 @@ BEGIN
    Inherited Press(Item);                             { Call ancestor }
 END;
 
-{$IFNDEF OS_DOS}                                      { WIN/NT/OS2 CODE }
+{$IFNDEF NO_WINDOW}                                      { WIN/NT/OS2 CODE }
 {***************************************************************************}
 {               TCheckBoxes OBJECT WIN/NT/OS2 ONLY METHODS                  }
 {***************************************************************************}
@@ -2541,7 +2541,7 @@ BEGIN
    S.WriteStr(States);                                { Write strings }
 END;
 
-{$IFNDEF OS_DOS}                                      { WIN/NT/OS2 CODE }
+{$IFNDEF NO_WINDOW}                                      { WIN/NT/OS2 CODE }
 {***************************************************************************}
 {             TMultiCheckBoxes OBJECT WIN/NT/OS2 ONLY METHODS               }
 {***************************************************************************}
@@ -3216,7 +3216,10 @@ END;
 END.
 {
  $Log$
- Revision 1.3  2001-04-10 21:29:55  pierre
+ Revision 1.4  2001-05-03 22:32:52  pierre
+  new bunch of changes, displays something for dos at least
+
+ Revision 1.3  2001/04/10 21:29:55  pierre
   * import of Leon de Boer's files
 
  Revision 1.2  2000/08/24 12:00:20  marco

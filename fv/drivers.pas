@@ -91,7 +91,9 @@ UNIT Drivers;
 
 {$X+} { Extended syntax is ok }
 {$R-} { Disable range checking }
+{$IFNDEF OS_LINUX}
 {$S-} { Disable Stack Checking }
+{$ENDIF}
 {$I-} { Disable IO Checking }
 {$Q-} { Disable Overflow Checking }
 {$V-} { Turn off strict VAR strings }
@@ -124,6 +126,12 @@ USES
        BseDos, Os2Def,                                { Standard units }
      {$ENDIF}
    {$ENDIF}
+
+   {$IFDEF OS_LINUX}
+     unix,
+     {$DEFINE Use_API}
+   {$ENDIF}
+
    {$ifdef Use_API}
    video,
    {$endif Use_API}
@@ -1289,7 +1297,7 @@ END;
 {---------------------------------------------------------------------------}
 {  GetMousePosition -> Platforms DOS/DPMI - Updated 19May98 LdB             }
 {---------------------------------------------------------------------------}
-PROCEDURE GetMousePosition (Var X, Y: Integer); ASSEMBLER;
+PROCEDURE GetMousePosition (Var X, Y: sw_Integer); ASSEMBLER;
 {$IFDEF ASM_BP}                                       { BP COMPATABLE ASM }
 ASM
    MOV AX, $3;                                        { Set function id }
@@ -1325,10 +1333,14 @@ END;
 {---------------------------------------------------------------------------}
 {  ExitDrivers -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08Jun98 LdB       }
 {---------------------------------------------------------------------------}
-PROCEDURE ExitDrivers; FAR;
+PROCEDURE ExitDrivers; {$IFNDEF OS_LINUX} FAR; {$ENDIF}
 BEGIN
    DoneSysError;                                      { Relase error trap }
    DoneEvents;                                        { Close event driver }
+{$ifdef Use_API}
+   DoneKeyboard;
+   DoneVideo;
+{$endif Use_API}
    ExitProc := SaveExit;                              { Restore old exit }
 END;
 
@@ -1340,6 +1352,7 @@ procedure DetectVideo;
 VAR
   CurrMode : TVideoMode;
 begin
+  Video.InitVideo;
   GetVideoMode(CurrMode);
   ScreenMode:=CurrMode;
 end;
@@ -1776,8 +1789,8 @@ begin
   if Mouse.PollMouseEvent(e) then
    begin
      Mouse.GetMouseEvent(e);
-     MouseWhere.X:=e.x;
-     MouseWhere.Y:=e.y;
+     MouseWhere.X:=e.x * SysFontWidth;
+     MouseWhere.Y:=e.y * SysFontHeight;
      Event.Double:=false;
      case e.Action of
        MouseActionMove :
@@ -1785,12 +1798,14 @@ begin
        MouseActionDown :
          begin
            Event.What:=evMouseDown;
-           if (DownButtons=e.Buttons) and (LastWhere.X=e.x) and (LastWhere.Y=e.y) and
+           if (DownButtons=e.Buttons) and
+              (LastWhere.X=MouseWhere.X) and
+              (LastWhere.Y=MouseWhere.Y) and
               (GetDosTicks-DownTicks<=DoubleDelay) then
              Event.Double:=true;
            DownButtons:=e.Buttons;
-           DownWhere.X:=e.x;
-           DownWhere.Y:=e.y;
+           DownWhere.X:=MouseWhere.X;
+           DownWhere.Y:=MouseWhere.Y;
            DownTicks:=GetDosTicks;
            AutoTicks:=GetDosTicks;
            AutoDelay:=RepeatDelay;
@@ -1810,8 +1825,8 @@ begin
          end;
      end;
      Event.Buttons:=e.Buttons;
-     Event.Where.X:=e.x;
-     Event.Where.Y:=e.y;
+     Event.Where.X:=MouseWhere.X;
+     Event.Where.Y:=MouseWhere.Y;
      LastButtons:=Event.Buttons;
      LastWhere.x:=Event.Where.x;
      LastWhere.y:=Event.Where.y;
@@ -2537,17 +2552,24 @@ END;
 {  InitVideo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Nov99 LdB         }
 {---------------------------------------------------------------------------}
 PROCEDURE InitVideo;
-{$ifndef Use_API}
-VAR {$IFDEF OS_DOS} I, J: Integer; Ts: TextSettingsType; {$ENDIF}
+VAR {$ifdef Use_API}I, J: Integer;
+    {$else not Use_API}
+    {$IFDEF OS_DOS} I, J: Integer;Ts: TextSettingsType;{$ENDIF}
     {$IFDEF OS_WINDOWS} Dc, Mem: HDc; TempFont: TLogFont; Tm: TTextmetric; {$ENDIF}
     {$IFDEF OS_OS2} Ts, Fs: Integer; Ps: HPs; Tm: FontMetrics; {$ENDIF}
-{$endif not Use_API}
+    {$ENDIF}
 BEGIN
    {$ifdef Use_API}
    Video.InitVideo;
    ScreenWidth:=Video.ScreenWidth;
    ScreenHeight:=Video.ScreenHeight;
    GetVideoMode(ScreenMode);
+   I := ScreenWidth*8 -1;                         { Mouse width }
+   J := ScreenHeight*8 -1;                        { Mouse height }
+   SysScreenWidth := I + 1;
+   SysScreenHeight := J + 1;
+   SysFontWidth := 8;                             { Font width }
+   SysFontHeight := 8;                            { Font height }
    {$else not Use_API}
    {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
      If (TextModeGFV = True) Then Begin               { TEXT MODE GFV }
@@ -2812,9 +2834,13 @@ END;
 {  PrintStr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18Feb99 LdB          }
 {---------------------------------------------------------------------------}
 PROCEDURE PrintStr (CONST S: String);
-{$IFNDEF OS_DOS} VAR Ts: String; {$ENDIF}
+{$IFDEF OS_WINDOWS} VAR Ts: String; {$ENDIF}
+{$IFDEF OS_OS2}     VAR Ts: String; {$ENDIF}
 BEGIN
    {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   Write(S);                                          { Write to screen }
+   {$ENDIF}
+   {$IFDEF OS_LINUX}                                  { LINIX CODE }
    Write(S);                                          { Write to screen }
    {$ENDIF}
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
@@ -2982,13 +3008,17 @@ BEGIN
    DetectVideo;                                       { Detect video }
    {$ifdef Use_API}
    TextModeGFV:=True;
+   InitKeyboard;
    {$endif Use_API}
    SaveExit := ExitProc;                              { Save old exit }
    ExitProc := @ExitDrivers;                          { Set new exit }
 END.
 {
  $Log$
- Revision 1.4  2001-04-10 21:57:55  pierre
+ Revision 1.5  2001-05-03 22:32:52  pierre
+  new bunch of changes, displays something for dos at least
+
+ Revision 1.4  2001/04/10 21:57:55  pierre
   + first adds for Use_API define
 
  Revision 1.3  2001/04/10 21:29:55  pierre
