@@ -116,6 +116,7 @@ Var SInfo : Stat;
     TAttr : Longint;
 
 begin
+  TAttr:=$ffffffff;
   P:=pglob(Info.FindHandle);
   Result:=Fstat(p^.name,SInfo);
   Info.FindHandle:=Longint(P^.Next);
@@ -208,6 +209,7 @@ Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
 
 begin
   //!! Still Needs doing
+  Result:=0;
 end;
 
 
@@ -219,8 +221,6 @@ end;
 
 
 Function RenameFile (Const OldName, NewName : String) : Boolean;
-
-Var P1,P2 : String;
 
 begin
   RenameFile:=Linux.FRename(OldNAme,NewName);
@@ -267,12 +267,15 @@ end;
 Procedure InitInternational;
 
 begin
- InitAnsi;  
+ InitAnsi;
 end;
 
 {
   $Log$
-  Revision 1.8  1999-02-28 13:18:10  michael
+  Revision 1.9  1999-04-08 11:31:01  peter
+    * removed warnings
+
+  Revision 1.8  1999/02/28 13:18:10  michael
   + Added internationalization support
 
   Revision 1.7  1999/02/24 15:57:29  michael

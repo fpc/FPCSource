@@ -17,6 +17,9 @@
 
 function strpas(p : pchar) : string;
 begin
+{$ifndef NEWATT}
+  strpas:='';
+{$endif}
   asm
         cld
         movl    p,%edi
@@ -74,7 +77,10 @@ end ['EDI','ESI','EBX','EAX','ECX'];
 
 {
   $Log$
-  Revision 1.4  1999-03-30 16:58:51  peter
+  Revision 1.5  1999-04-08 11:30:58  peter
+    * removed warnings
+
+  Revision 1.4  1999/03/30 16:58:51  peter
     * use assembler and remove all rets
 
   Revision 1.3  1999/03/01 15:41:01  peter

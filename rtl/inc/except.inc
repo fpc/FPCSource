@@ -18,8 +18,8 @@
 ****************************************************************************}
 
 
-Const 
-  { Type of exception. Currently only one. } 
+Const
+  { Type of exception. Currently only one. }
   FPC_EXCEPTION   = 1;
   { types of frames for the exception address stack }
   cExceptionFrame = 1;
@@ -42,7 +42,7 @@ Type
 
   TExceptObjectClass = Class of TObject;
 
-Const 
+Const
   CatchAllExceptions = -1;
 
 Var ExceptAddrStack : PExceptAddr;
@@ -50,10 +50,10 @@ Var ExceptAddrStack : PExceptAddr;
 
 
 Function PushExceptAddr (Ft: Longint): PJmp_buf ;[Public, Alias : 'FPC_PUSHEXCEPTADDR'];
-    
-var Buf : PJmp_buf; 
+
+var Buf : PJmp_buf;
     NewAddr : PExceptAddr;
-    
+
 begin
 {$ifdef excdebug}
   writeln ('In PushExceptAddr');
@@ -78,9 +78,9 @@ end;
 
 Procedure PushExceptObj (Obj : TObject; AnAddr : Pointer);
 
-var 
+var
     Newobj : PExceptObject;
-    
+
 begin
 {$ifdef excdebug}
   writeln ('In PushExceptObject');
@@ -115,6 +115,7 @@ begin
 {$ifdef excdebug}
   writeln ('In RaiseException');
 {$endif}
+  Raiseexcept:=nil;
   PushExceptObj(Obj,AnAddr);
   If ExceptAddrStack=Nil then
     DoUnhandledException (Obj,AnAddr);
@@ -172,8 +173,8 @@ begin
     begin
     Writeln ('Internal error.');
     halt (255);
-    end; 
-  if Not ((Objtype = TExceptObjectClass(CatchAllExceptions)) or 
+    end;
+  if Not ((Objtype = TExceptObjectClass(CatchAllExceptions)) or
       (ExceptObjectStack^.FObject is ObjType)) then
     Catches:=Nil
   else

@@ -94,7 +94,7 @@ end;
     S1 = S2  = 0     }
 
 function CompareStr(const S1, S2: string): Integer;
-var i, count, count1, count2: integer;
+var count, count1, count2: integer;
 begin
 result := 0;
 Count1 := Length(S1);
@@ -184,26 +184,32 @@ end ;
 
 function AnsiCompareStr(const S1, S2: string): integer;
 begin
+  result:=0;
 end ;
 
 function AnsiCompareText(const S1, S2: string): integer;
 begin
+  result:=0;
 end ;
 
 function AnsiStrComp(S1, S2: PChar): integer;
 begin
+  result:=0;
 end ;
 
 function AnsiStrIComp(S1, S2: PChar): integer;
 begin
+  result:=0;
 end ;
 
 function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;
 begin
+  result:=0;
 end ;
 
 function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;
 begin
+  result:=0;
 end ;
 
 function AnsiStrLower(Str: PChar): PChar;
@@ -230,10 +236,12 @@ end ;
 
 function AnsiLastChar(const S: string): PChar;
 begin
+  result:=nil;
 end ;
 
 function AnsiStrLastChar(Str: PChar): PChar;
 begin
+  result:=nil;
 end ;
 
 {==============================================================================}
@@ -419,6 +427,7 @@ end ;
 
 function LoadStr(Ident: integer): string;
 begin
+  result:='';
 end ;
 
 {   FmtLoadStr returns the string resource Ident and formats it accordingly   }
@@ -426,6 +435,7 @@ end ;
 
 function FmtLoadStr(Ident: integer; const Args: array of const): string;
 begin
+  result:='';
 end;
 
 Const
@@ -970,7 +980,10 @@ const
 
 {
   $Log$
-  Revision 1.16  1999-04-08 10:19:41  peter
+  Revision 1.17  1999-04-08 11:31:03  peter
+    * removed warnings
+
+  Revision 1.16  1999/04/08 10:19:41  peter
     * pchar support for %s
 
   Revision 1.15  1999/04/04 10:19:07  peter

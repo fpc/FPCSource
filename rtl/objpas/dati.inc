@@ -58,8 +58,8 @@ function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;
 
 begin
 result.Time := Trunc(Frac(DateTime) * MSecsPerDay);
-result.Date := 1 
-               + DateDelta 
+result.Date := 1
+               + DateDelta
                + Trunc(System.Int(DateTime));
 end ;
 
@@ -111,7 +111,6 @@ const
    D100 = D4 * 25 - 1;  { number of days in 100 years }
    D400 = D100 * 4 + 1; { number of days in 400 years }
 var
-   i:Longint;
    l:longint;
    ly:boolean;
 begin
@@ -131,8 +130,6 @@ end ;
     Hour, Minute, Second and MilliSecond    }
 
 procedure DecodeTime(Time: TDateTime; var Hour, Minute, Second, MilliSecond: word);
-var l:TDateTime;
-
 begin
 { l := Trunc(Frac(time) * MSecsPerDay);
  Hour   := l div 3600000;l := l mod 3600000;
@@ -305,7 +302,7 @@ else if (df = 'M/D/Y') then begin
 else if (df = 'Y/M/D') then begin
    if (n = 3) then begin
       y := values[0];
-   	m := values[1];
+        m := values[1];
       d := values[2];
       end
    else if (n = 2) then begin
@@ -334,7 +331,8 @@ var
    Len, Current: integer; PM: boolean;
 
    function GetElement: integer;
-   var i, j: integer; c: word;
+   var
+     j: integer; c: word;
    begin
    result := -1;
    Inc(Current);
@@ -581,7 +579,7 @@ Var YY,MM,DD,H,m,s,msec : Word;
 
 begin
   Decodedate (DateTime,YY,MM,DD);
-  If (YY<1980) or (YY>2099) then 
+  If (YY<1980) or (YY>2099) then
     Result:=0
   else
     begin
@@ -605,7 +603,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  1999-02-24 15:56:28  michael
+  Revision 1.9  1999-04-08 11:31:02  peter
+    * removed warnings
+
+  Revision 1.8  1999/02/24 15:56:28  michael
   + Small fixes. Moved getlocaltime to system-dependent files
 
   Revision 1.7  1999/02/10 22:15:10  michael

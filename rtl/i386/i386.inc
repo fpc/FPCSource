@@ -516,6 +516,10 @@ end;
 
 function strpas(p:pchar):string;[public,alias:'FPC_PCHAR_TO_SHORTSTR'];
 begin
+{$ifndef NEWATT}
+  { remove warning }
+  strpas:='';
+{$endif}
   asm
         cld
         movl    p,%edi
@@ -525,8 +529,7 @@ begin
         repne
         scasb
         movl    %ecx,%eax
-
-{$ifdef NEWATT1}
+{$ifdef NEWATT}
         movl    __RESULT,%edi
 {$else}
         movl    8(%ebp),%edi
@@ -769,7 +772,10 @@ end;
 
 {
   $Log$
-  Revision 1.42  1999-04-07 16:21:10  pierre
+  Revision 1.43  1999-04-08 11:30:57  peter
+    * removed warnings
+
+  Revision 1.42  1999/04/07 16:21:10  pierre
    + no assembler if systemdebug defined
 
   Revision 1.41  1999/03/01 15:40:55  peter

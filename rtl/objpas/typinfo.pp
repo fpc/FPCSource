@@ -197,27 +197,21 @@ unit typinfo;
 {$ASMMODE ATT}
 
     function CallIntegerFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint) : Integer;assembler;
-
-      Label LINoPush;
-
       asm
          movl S,%esi
          movl Address,%edi
          // ? Indexed function
          movl Index,%eax
          xorl %eax,%eax
-         jnz LINoPush
+         jnz .LINoPush
          movl IValue,%eax
          pushl %eax
-      LINoPush:
+      .LINoPush:
          call (%edi)
          // now the result should be in EAX, untested yet (FK)
       end;
 
     function CallIntegerProc(s : Pointer;Address : Pointer;Value : Integer; INdex,IVAlue : Longint) : Integer;assembler;
-
-      label LIPNoPush;
-
       asm
          movl S,%esi
          movl Address,%edi
@@ -227,36 +221,30 @@ unit typinfo;
          // ? Indexed procedure
          movl Index,%eax
          xorl %eax,%eax
-         jnz LIPNoPush
+         jnz .LIPNoPush
          movl IValue,%eax
          pushl %eax
-      LIPNoPush:
+      .LIPNoPush:
          call (%edi)
          // now the result should be in EAX, untested yet (FK)
       end;
 
     function CallExtendedFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint) : Extended;assembler;
-
-      Label LINoPush;
-
       asm
          movl S,%esi
          movl Address,%edi
          // ? Indexed function
          movl Index,%eax
          xorl %eax,%eax
-         jnz LINoPush
+         jnz .LINoPush
          movl IValue,%eax
          pushl %eax
-      LINoPush:
+      .LINoPush:
          call (%edi)
          //!! now What ??
       end;
 
     function CallExtendedProc(s : Pointer;Address : Pointer;Value : Extended; INdex,IVAlue : Longint) : Integer;assembler;
-
-      label LIPNoPush;
-
       asm
          movl S,%esi
          movl Address,%edi
@@ -267,27 +255,24 @@ unit typinfo;
          // ? Indexed procedure
          movl Index,%eax
          xorl %eax,%eax
-         jnz LIPNoPush
+         jnz .LIPNoPush
          movl IValue,%eax
          pushl %eax
-      LIPNoPush:
+      .LIPNoPush:
          call (%edi)
       end;
 
     function CallBooleanFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Boolean;assembler;
-
-      Label LBNoPush;
-
       asm
          movl S,%edi
          movl Address,%edi
          // ? Indexed function
          movl Index,%eax
          xorl %eax,%eax
-         jnz LBNoPush
+         jnz .LBNoPush
          movl IValue,%eax
          pushl %eax
-      LBNoPush:
+      .LBNoPush:
          call (%edi)
          // now the result should be in EAX, untested yet (FK)
       end;
@@ -297,27 +282,21 @@ unit typinfo;
 
     Procedure CallSStringFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint;
                             Var Res: Shortstring);assembler;
-
-      Label LSSNoPush;
-
       asm
          movl S,%esi
          movl Address,%edi
          // ? Indexed function
          movl Index,%eax
          xorl %eax,%eax
-         jnz LSSNoPush
+         jnz .LSSNoPush
          movl IValue,%eax
          pushl %eax
-      LSSNoPush:
+      .LSSNoPush:
          call (%edi)
          //!! now what ?? MVC
       end;
 
     Procedure CallSStringProc(s : Pointer;Address : Pointer;Value : ShortString; INdex,IVAlue : Longint);assembler;
-
-      label LSSPNoPush;
-
       asm
          movl S,%esi
          movl Address,%edi
@@ -328,10 +307,10 @@ unit typinfo;
          // ? Indexed procedure
          movl Index,%eax
          xorl %eax,%eax
-         jnz LSSPNoPush
+         jnz .LSSPNoPush
          movl IValue,%eax
          pushl %eax
-      LSSPNoPush:
+      .LSSPNoPush:
          call (%edi)
          //!! now what ? MVC
       end;
@@ -677,6 +656,7 @@ unit typinfo;
                                      (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)),
                                      Index,IValue);
          end;
+         Result:=Value;
       end;
 
     procedure SetFloatProp(Instance : TObject;PropInfo : PPropInfo;
@@ -696,7 +676,7 @@ unit typinfo;
                ftExtended:
                  PExtended(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
                ftcomp:
-                 PComp(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+                 PComp(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Comp(Value);
                { Uncommenting this code results in a internal error!!
                ftFixed16:
                  PFixed16(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
@@ -717,6 +697,7 @@ unit typinfo;
 
       begin
          {!!!!!!!!!!!}
+         Result:=nil;
       end;
 
     procedure SetVariantProp(Instance : TObject;PropInfo : PPropInfo;
@@ -730,6 +711,7 @@ unit typinfo;
 
       begin
         {!!!!!!!!!!!!}
+         Result:=nil;
       end;
 
     procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo;
@@ -781,7 +763,10 @@ end.
 
 {
   $Log$
-  Revision 1.18  1999-01-19 16:08:12  pierre
+  Revision 1.19  1999-04-08 11:31:04  peter
+    * removed warnings
+
+  Revision 1.18  1999/01/19 16:08:12  pierre
    ?? is callSStringProc a function ??
 
   Revision 1.17  1998/12/15 22:43:13  peter

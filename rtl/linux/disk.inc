@@ -4,7 +4,7 @@
     Copyright (c) 1998 by the Free Pascal development team
 
     Disk functions from Delphi's sysutils.pas
-        
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -80,6 +80,7 @@ Function SetCurrentDir (Const NewDir : String) : Boolean;
 
 begin
   ChDir (NewDir);
+  SetCurrentDir:=true;
 end;
 
 
@@ -87,6 +88,7 @@ Function CreateDir (Const NewDir : String) : Boolean;
 
 begin
   MkDir (NewDir);
+  CreateDir:=true;
 end;
 
 
@@ -94,13 +96,17 @@ Function RemoveDir (Const Dir : String) : Boolean;
 
 begin
   ChDir (Dir);
+  RemoveDir:=true;
 end;
 
 
 
 {
  $Log$
- Revision 1.1  1998-10-11 13:42:04  michael
+ Revision 1.2  1999-04-08 11:31:00  peter
+   * removed warnings
+
+ Revision 1.1  1998/10/11 13:42:04  michael
  + Added disk and directory functions
 
 }
