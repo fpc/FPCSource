@@ -8,10 +8,11 @@ begin
    gd:=detect;
    initgraph(gd,gm,'');
    line(1,1,100,100);
-   readkey;
+   {readkey;}
    setgraphmode($107);
    line(100,100,1024,800);
-   readkey;
+   {readkey;}
+   delay(1000);
    closegraph;
 end.
    

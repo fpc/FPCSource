@@ -1,3 +1,4 @@
+{ bug for shrd assemblerreader }
 begin
 {$asmmode intel}
    asm

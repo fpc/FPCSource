@@ -1,5 +1,5 @@
 uses 
-  graph;
+  crt,graph;
 
 const
   Triangle: array[1..3] of PointType = ((X: 50; Y: 100), (X: 100; Y:100),
@@ -16,10 +16,10 @@ begin
   if GraphResult <> grOk then
     Halt(1);
   drawpoly(SizeOf(Triangle) div SizeOf(PointType), Triangle);
-  readln;
+  {readln;}delay(1000);
   setcolor(red);
   fillpoly(SizeOf(Triangle) div SizeOf(PointType), Triangle);
-  readln;
+  {readln;}delay(1000);
   SetFillStyle(SolidFill,blue);
   Bar(0,0,GetMaxX,GetMaxY);
   Rectangle(25,25,GetMaxX-25,GetMaxY-25);
@@ -30,6 +30,6 @@ begin
   fillpoly(SizeOf(Rect) div SizeOf(PointType), Rect);
   fillpoly(SizeOf(Penta) div SizeOf(PointType), Penta);
   graphdefaults;
-  readln;
+  {readln;}delay(1000);
   CloseGraph;
 end.

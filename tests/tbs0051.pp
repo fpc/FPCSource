@@ -38,7 +38,7 @@ BEGIN
   for i:=0 to 255 do
    if not ColorsEqual(getpixel(i,15),getpixel(i,30)) then
      Halt(1); 
-  readkey;
+  {readkey;}delay(1000);
 
   closegraph;
 END.

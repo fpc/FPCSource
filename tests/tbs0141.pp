@@ -23,15 +23,15 @@ var
 
 begin
 a := TObjectAB.Create;
-WriteLn(a.InstanceSize, '  Should be: 8');
-if a.InstanceSize + SizeOf(integer)*2 <> SizeOf(TObjectABCD) then
+WriteLn(a.InstanceSize, '  Should be: 12');
+if a.InstanceSize + SizeOf(integer)*2 <> TObjectABCD.InstanceSize then
   Halt(1);
 b := TObjectABCD.Create;
-if b.InstanceSize + SizeOf(integer)*2 <> SizeOf(TObjectABCDEF) then
+if b.InstanceSize + SizeOf(integer)*2 <> TObjectABCDEF.InstanceSize then
   Halt(1);
-WriteLn(b.InstanceSize, '  Should be: 16');
+WriteLn(b.InstanceSize, '  Should be: 20');
 c := TObjectABCDEF.Create;
-WriteLn(c.InstanceSize, '  Should be: 24');
+WriteLn(c.InstanceSize, '  Should be: 28');
 end.
 
 {
