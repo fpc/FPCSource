@@ -177,6 +177,11 @@ implementation
                     begin
                       p^.left:=gentypeconvnode(p^.left,defcoll^.data);
                       firstpass(p^.left);
+                      { this is necessary if an arrayconstruct -> set is done
+                        first, then the set generation tree needs to be passed
+                        to get the end resulttype (PFV) }
+                      if not assigned(p^.left^.resulttype) then
+                       firstpass(p^.left);
                     end;
                    if codegenerror then
                      begin
@@ -989,7 +994,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1999-01-12 14:25:40  peter
+  Revision 1.19  1999-01-19 14:20:16  peter
+    * fixed [char] crash
+
+  Revision 1.18  1999/01/12 14:25:40  peter
     + BrowserLog for browser.log generation
     + BrowserCol for browser info in TCollections
     * released all other UseBrowser
