@@ -283,29 +283,42 @@ begin
   Result := v2l[0];
   if vp > Result
   then
-    lp := Length(Dest) + 1
+    begin
+      lp := Length(Dest) + 1;
+      vp := Result;
+    end
   else
     lp := v2l[vp];
   c := Dest[lp];
-  if DirectionOf(c) = drRTL
-  then
+  Result := vp;
+  case DirectionOf(c) of
+  drRTL:
     begin
-      lp := lp + Length(c);
+      lp += Length(c);
+      if DirectionOf(Src) <> drRTL
+      then
+        begin
+          while (Result <= Length(Dest)) and (DirectionOf(Dest[v2l[Result]]) <> drLTR) do
+            Result += 1;
+          while (Result > vp) and (DirectionOf(Dest[v2l[Result]]) <> drRTL) do
+            Result -= 1;
+          Result += 2;
+        end;
+    end;
+  drLTR:
+    Result += 1;
+  else
+    if DirectionOf(Src) = drRTL
+    then
+      begin
+        while (Result > 0) and (DirectionOf(Dest[v2l[Result]]) <> drLTR) do
+          Result -= 1;
+        while (Result < vp) and (DirectionOf(Dest[v2l[Result]]) <> drRTL) do
+          Result += 1;
+      end
+    else
       Result += 1;
-    end
-  else
-    Result := vp;
-  if DirectionOf(Src) = drRTL
-  then
-    begin
-      Result := vp;
-      while (Result > 0) and (DirectionOf(Dest[v2l[Result]]) <> drLTR) do
-        Result -= 1;
-      while (Result < vp) and (DirectionOf(Dest[v2l[Result]]) <> drRTL) do
-        Result += 1;
-    end
-  else
-     Result += 1;
+  end;
   Insert(Src, Dest, lp);
 end;
 
@@ -326,7 +339,7 @@ var
 begin
   v2l := VisualToLogical(str, pDir);
   for i := 1 to v2l[0] do
-    if(v2l[i] < vp) and (v2l[i] > vp + len)
+    if(v2l[i] >= vp) and (v2l[i] < vp + len)
     then
       Delete(str, v2l[i], 1);
 end;
