@@ -161,19 +161,8 @@ implementation
                         secondpass(p^.right);
                         if pushed then restore(p,false);
                         { release used registers }
-                        case p^.right^.location.loc of
-                          LOC_REFERENCE,LOC_MEM:
-                            del_reference(p^.right^.location.reference);
-                          LOC_REGISTER,LOC_CREGISTER:
-                            ungetregister32(p^.right^.location.register);
-                        end;
-                        case p^.left^.location.loc of
-                          LOC_REFERENCE,LOC_MEM:
-                            del_reference(p^.left^.location.reference);
-                          LOC_REGISTER,LOC_CREGISTER:
-                            ungetregister32(p^.left^.location.register);
-                        end;
-
+                        del_location(p^.right^.location);
+                        del_location(p^.left^.location);
                         { push the still used registers }
                         pushusedregisters(pushedregs,$ff);
                         { push data }
@@ -199,18 +188,8 @@ implementation
                         secondpass(p^.right);
                         if pushed then restore(p,false);
                         { release used registers }
-                        case p^.right^.location.loc of
-                          LOC_REFERENCE,LOC_MEM:
-                            del_reference(p^.right^.location.reference);
-                          LOC_REGISTER,LOC_CREGISTER:
-                            ungetregister32(p^.right^.location.register);
-                        end;
-                        case p^.left^.location.loc of
-                          LOC_REFERENCE,LOC_MEM:
-                            del_reference(p^.left^.location.reference);
-                          LOC_REGISTER,LOC_CREGISTER:
-                            ungetregister32(p^.left^.location.register);
-                        end;
+                        del_location(p^.right^.location);
+                        del_location(p^.left^.location);
                         { push the still used registers }
                         pushusedregisters(pushedregs,$ff);
                         { push data }
@@ -398,8 +377,8 @@ implementation
                   : begin
                      cmpop:=true;
 {$IfNDef regallocfix}
-                     del_reference(p^.left^.location.reference);
-                     del_reference(p^.right^.location.reference);
+                     del_location(p^.left^.location);
+                     del_location(p^.right^.location);
                      pushusedregisters(pushedregs,$ff);
 {$EndIf regallocfix}
 {$IfNDef NoSetInclusion}
@@ -408,11 +387,11 @@ implementation
 {$EndIf NoSetInclusion}
                          emitpushreferenceaddr(p^.right^.location.reference);
 {$IfDef regallocfix}
-                         del_reference(p^.right^.location.reference);
+                         del_location(p^.right^.location);
 {$EndIf regallocfix}
                          emitpushreferenceaddr(p^.left^.location.reference);
 {$IfDef regallocfix}
-                         del_reference(p^.left^.location.reference);
+                         del_location(p^.left^.location);
 {$EndIf regallocfix}
 {$IfNDef NoSetInclusion}
                        End
@@ -420,11 +399,11 @@ implementation
                        Begin
                          emitpushreferenceaddr(p^.left^.location.reference);
 {$IfDef regallocfix}
-                         del_reference(p^.left^.location.reference);
+                         del_location(p^.left^.location);
 {$EndIf regallocfix}
                          emitpushreferenceaddr(p^.right^.location.reference);
 {$IfDef regallocfix}
-                         del_reference(p^.right^.location.reference);
+                         del_location(p^.right^.location);
 {$EndIf regallocfix}
                        End;
                      Case p^.treetype of
@@ -443,8 +422,8 @@ implementation
             addn : begin
                    { add can be an other SET or Range or Element ! }
 {$IfNDef regallocfix}
-                     del_reference(p^.left^.location.reference);
-                     del_reference(p^.right^.location.reference);
+                     del_location(p^.left^.location);
+                     del_location(p^.right^.location);
                      pushusedregisters(pushedregs,$ff);
 {$EndIf regallocfix}
                      href.symbol:=nil;
@@ -452,8 +431,8 @@ implementation
                      if createset then
                       begin
 {$IfDef regallocfix}
-                        del_reference(p^.left^.location.reference);
-                        del_reference(p^.right^.location.reference);
+                        del_location(p^.left^.location);
+                        del_location(p^.right^.location);
 {$EndIf regallocfix}
                         pushsetelement(p^.right^.left);
                         emitpushreferenceaddr(href);
@@ -489,11 +468,11 @@ implementation
                            emitpushreferenceaddr(href);
                            emitpushreferenceaddr(p^.right^.location.reference);
 {$IfDef regallocfix}
-                        del_reference(p^.right^.location.reference);
+                           del_location(p^.right^.location);
 {$EndIf regallocfix}
                            emitpushreferenceaddr(p^.left^.location.reference);
 {$IfDef regallocfix}
-                        del_reference(p^.left^.location.reference);
+                           del_location(p^.left^.location);
 {$EndIf regallocfix}
                            emitcall('FPC_SET_ADD_SETS');
                          end;
@@ -509,8 +488,8 @@ implementation
          symdifn,
             muln : begin
 {$IfNDef regallocfix}
-                     del_reference(p^.left^.location.reference);
-                     del_reference(p^.right^.location.reference);
+                     del_location(p^.left^.location);
+                     del_location(p^.right^.location);
                      pushusedregisters(pushedregs,$ff);
 {$EndIf regallocfix}
                      href.symbol:=nil;
@@ -518,11 +497,11 @@ implementation
                      emitpushreferenceaddr(href);
                      emitpushreferenceaddr(p^.right^.location.reference);
 {$IfDef regallocfix}
-                     del_reference(p^.right^.location.reference);
+                     del_location(p^.right^.location);
 {$EndIf regallocfix}
                      emitpushreferenceaddr(p^.left^.location.reference);
 {$IfDef regallocfix}
-                     del_reference(p^.left^.location.reference);
+                     del_location(p^.left^.location);
 {$EndIf regallocfix}
                      case p^.treetype of
                       subn : emitcall('FPC_SET_SUB_SETS');
@@ -886,7 +865,7 @@ implementation
                                      if p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE] then
                                       begin
                                         ungetiftemp(p^.left^.location.reference);
-                                        del_reference(p^.left^.location.reference);
+                                        del_location(p^.left^.location);
 {!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!}
                                         hregister:=getregister32;
                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
@@ -899,7 +878,7 @@ implementation
                                      if p^.right^.location.loc in [LOC_MEM,LOC_REFERENCE] then
                                       begin
                                         ungetiftemp(p^.right^.location.reference);
-                                        del_reference(p^.right^.location.reference);
+                                        del_location(p^.right^.location);
                                         hregister:=getregister32;
                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
                                           newreference(p^.right^.location.reference),hregister)));
@@ -2110,7 +2089,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  1999-06-09 23:00:11  peter
+  Revision 1.66  1999-06-09 23:22:37  peter
+    + del_location
+
+  Revision 1.65  1999/06/09 23:00:11  peter
     * small ansistring fixes
     * val_ansistr_sint destsize changed to longint
     * don't write low/hi ascii with -al

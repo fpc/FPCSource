@@ -60,6 +60,7 @@ unit tgeni386;
     procedure cleartempgen;
     procedure del_reference(const ref : treference);
     procedure del_locref(const location : tlocation);
+    procedure del_location(const l : tlocation);
 
     { pushs and restores registers }
     procedure pushusedregisters(var pushed : tpushed;b : byte);
@@ -350,8 +351,8 @@ implementation
          ungetregister32(ref.index);
       end;
 
-    procedure del_locref(const location : tlocation);
 
+    procedure del_locref(const location : tlocation);
       begin
          if (location.loc<>loc_mem) and (location.loc<>loc_reference) then
            exit;
@@ -359,11 +360,21 @@ implementation
            exit;
          ungetregister32(location.reference.base);
          ungetregister32(location.reference.index);
-         { ref.segment:=R_DEFAULT_SEG; }
       end;
 
-    function getregister32 : tregister;
 
+    procedure del_location(const l : tlocation);
+      begin
+        case l.loc of
+          LOC_REGISTER :
+            ungetregister(l.register);
+          LOC_MEM,LOC_REFERENCE :
+            del_reference(l.reference);
+        end;
+      end;
+
+
+    function getregister32 : tregister;
       begin
          if usablereg32=0 then
            internalerror(10);
@@ -459,7 +470,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  1999-05-27 19:45:27  peter
+  Revision 1.27  1999-06-09 23:22:39  peter
+    + del_location
+
+  Revision 1.26  1999/05/27 19:45:27  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
