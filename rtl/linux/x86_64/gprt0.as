@@ -81,6 +81,10 @@ _start:
 main_stub:
         /* save return address */
         popq    %rax
+
+	// stack alignment
+        pushq   %rax
+
         movq    %rax,___fpc_ret
         movq    %rbp,___fpc_ret_rbp
         pushq   %rax
@@ -152,7 +156,10 @@ ___fpc_ret_rbp:
 
 /*
   $Log$
-  Revision 1.2  2004-11-02 20:41:57  florian
+  Revision 1.3  2004-11-02 21:49:46  florian
+    * x86_64 requires always 16 byte alignment of the stack
+
+  Revision 1.2  2004/11/02 20:41:57  florian
     * initial implementation
 
   Revision 1.1  2003/01/06 19:39:17  florian

@@ -81,6 +81,10 @@ _start:
 main_stub:
         /* save return address */
         popq    %rax
+
+	// stack alignment
+	pushq	%rax
+
         movq    %rax,___fpc_ret
         movq    %rbp,___fpc_ret_rbp
         pushq   %rax
@@ -145,7 +149,10 @@ ___fpc_ret_rbp:
 
 /*
   $Log$
-  Revision 1.3  2004-07-03 21:50:31  daniel
+  Revision 1.4  2004-11-02 21:49:46  florian
+    * x86_64 requires always 16 byte alignment of the stack
+
+  Revision 1.3  2004/07/03 21:50:31  daniel
     * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
       longer necessary
 
