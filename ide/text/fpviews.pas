@@ -196,10 +196,6 @@ type
       function    GetPalette: PPalette;virtual;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
-
-
-
-
       destructor  Done; virtual;
     end;
 
@@ -1265,8 +1261,8 @@ var OldState: word;
 begin
   OldState:=State;
   inherited SetState(AState,Enable);
-  if ((AState xor State) and sfActive)<>0 then
-  UpdateCommands;
+  if ((AState xor OldState) and sfActive)<>0 then
+    UpdateCommands;
 end;
 
 procedure TSourceWindow.UpdateCommands;
@@ -1399,7 +1395,7 @@ begin
   if ExistsFile(GDBOutputFile) then
     begin
       if Editor^.LoadFile=false then
-        ErrorBox(#3'Error reading file.',nil);
+        ErrorBox(#3'Error reading file'#13#3+GDBOutputFile,nil);
     end
   else
   { Empty files are buggy !! }
@@ -3078,7 +3074,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.54  2000-01-10 14:59:50  pierre
+  Revision 1.55  2000-02-01 10:58:41  pierre
+   * avoid Search sometimes disabled for Editor Windows
+
+  Revision 1.54  2000/01/10 14:59:50  pierre
    * TProgramInfo was not registered
 
   Revision 1.53  2000/01/07 14:02:52  pierre
