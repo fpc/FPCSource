@@ -1047,7 +1047,10 @@ implementation
                         begin
                           readchar;
                           if c<>'''' then
-                           break;
+                           begin
+                             next_char_loaded:=true;
+                             break;
+                           end;
                         end;
                     end;
                   until false;
@@ -1936,7 +1939,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.10  2000-12-16 15:36:02  peter
+  Revision 1.11  2000-12-18 17:59:01  peter
+    * fixed skipuntildirective
+
+  Revision 1.10  2000/12/16 15:36:02  peter
     * fixed parsing of strings and comments in skipuntildirective
 
   Revision 1.9  2000/11/30 20:27:51  peter
