@@ -1167,13 +1167,13 @@ procedure TIDEApp.OpenINI;
 var D: PFileDialog;
     FileName: string;
 begin
-  New(D, Init(ININame,'Open Options',ININame,fdOpenButton,0));
+  New(D, Init(INIFileName,'Open Options',INIFileName,fdOpenButton,0));
   if Desktop^.ExecView(D)<>cmCancel then
     begin
       D^.GetFileName(FileName);
       if ExistsFile(FileName)=false then ErrorBox('Can''t open config file.',nil) else
         begin
-          INIPath:=FileName;
+          IniFileName:=FileName;
           ReadINIFile;
           Message(Application,evBroadcast,cmUpdate,nil);
         end;
@@ -1192,7 +1192,7 @@ var D: PFileDialog;
     FileName: string;
     CanWrite: boolean;
 begin
-  New(D, Init(ININame,'Save Options',ININame,fdOpenButton,0));
+  New(D, Init(INIFileName,'Save Options',INIFileName,fdOpenButton,0));
   if Desktop^.ExecView(D)<>cmCancel then
     begin
       D^.GetFileName(FileName);
@@ -1201,7 +1201,7 @@ begin
         CanWrite:=ConfirmBox('File '+SmartPath(FileName)+' already exists. Overwrite?',nil,false)=cmYes;
       if CanWrite then
         begin
-          INIPath:=FileName;
+          IniFileName:=FileName;
           if WriteINIFile=false then
             ErrorBox('Error saving config file.',nil);
           Message(Application,evBroadcast,cmUpdate,nil);
@@ -1212,7 +1212,10 @@ end;
 
 {
   $Log$
-  Revision 1.29  2000-03-07 22:52:50  pierre
+  Revision 1.30  2000-03-13 20:34:07  pierre
+   * IniPath removed
+
+  Revision 1.29  2000/03/07 22:52:50  pierre
    + Assembler tab in Options|Compiler
 
   Revision 1.28  2000/02/07 12:02:32  pierre
