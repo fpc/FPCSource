@@ -14,11 +14,6 @@ unit UnzipDLL;
 interface
 
 const
-{$IFDEF OS2}
- AllFiles: string [1] = '*';
-{$ELSE}
- AllFiles: string [3] = '*.*';
-{$ENDIF}
  UnzipErr: longint = 0;
 
 type
@@ -55,6 +50,13 @@ type
  UzpMainFunc = function (ArgC: longint; var ArgV: TArgV): longint; cdecl;
 
 const
+{$IFDEF OS2}
+ AllFiles: string [1] = '*';
+{$ELSE}
+ {$IFDEF WIN32}
+ AllFiles: string [3] = '*.*';
+ {$ENDIF}
+{$ENDIF}
 {$IFDEF OS2}
  LibPath = 'LIBPATH';
 {$ELSE}
@@ -97,7 +99,11 @@ begin
    Write (#13#10'Error while loading module ');
    WriteLn (PChar (@ErrPath));
   end;
+ {$IFDEF FPC}
+ end else DLLInit := DosQueryProcAddr (DLLHandle, UzpMainOrd, nil, pointer (UzpMain)) = 0;
+ {$ELSE}
  end else DLLInit := DosQueryProcAddr (DLLHandle, UzpMainOrd, nil, @UzpMain) = 0;
+ {$ENDIF}
 {$ELSE}
  {$IFDEF WIN32}
  DLLHandle := LoadLibrary (@DLLPath [1]);
@@ -210,7 +216,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:22  michael
+  Revision 1.2  2000-10-18 20:14:32  hajny
+    * FPC compatibility issues
+
+  Revision 1.1  2000/07/13 06:30:22  michael
   + Initial import
 
   Revision 1.5  2000/06/18 18:27:32  hajny
