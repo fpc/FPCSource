@@ -604,13 +604,13 @@ begin
       if Length(Result) = 0 then
       begin
         Result := Engine.FindAbsoluteLink(Module.PathName + '.' + Name);
-//	WriteLn('Suche nach ', Module.PathName + '.' + Name, ' => ', Result);
+	// WriteLn('Searching for ', Module.PathName + '.' + Name, ' => ', Result);
         if Length(Result) = 0 then
           for i := Length(Name) downto 1 do
             if Name[i] = '.' then
 	    begin
 	      Result := ResolveLinkID(Copy(Name, 1, i - 1));
-              break;
+              exit;
 	    end;
       end;
       ThisPackage := ThisPackage.NextSibling;
@@ -1701,7 +1701,6 @@ var
 begin
   AppendMenuBar(0);
   AppendTitle(Format(SDocPackageTitle, [Copy(Package.Name, 2, 256)]));
-WriteLn('Package Pathname: ', Package.PathName); // ###
   AppendShortDescr(CreatePara(BodyElement), Package);
 
   AppendText(CreateH2(BodyElement), SDocUnits);
@@ -2578,7 +2577,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-04-17 14:15:24  sg
+  Revision 1.4  2003-04-22 00:00:05  sg
+  * Fixed bug in path building for links to elements which don't have their
+    own page, but their parent element has
+
+  Revision 1.3  2003/04/17 14:15:24  sg
   * Added writing of array ranges
 
   Revision 1.2  2003/03/18 19:28:44  michael
