@@ -1,100 +1,24 @@
-{Set tabsize to 4.}
-{****************************************************************************
-
+{
     $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2002 by the Free Pascal development team.
 
-                           DOSCALLS interface unit
-                     FPC Pascal Runtime Library for OS/2
-                   Copyright (c) 1999-2000 by Florian Klaempfl
-                    Copyright (c) 1999-2000 by Daniel Mantione
+    Basic OS/2 constants, types and functions
+    implemented (mostly) in DOSCALL1.DLL.
 
- The Free Pascal runtime library is distributed under the Library GNU Public
- License v2. So is this unit. The Library GNU Public License requires you to
- distribute the source code of this unit with any product that uses it.
- Because the EMX library isn't under the LGPL, we grant you an exception to
- this, and that is, when you compile a program with the Free Pascal Compiler,
- you do not need to ship source code with that program, AS LONG AS YOU ARE
- USING UNMODIFIED CODE! If you modify this code, you MUST change the next
- line:
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
- <This an official, unmodified Free Pascal source code file.>
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
- Send us your modified files, we can work together if you want!
-
- Free Pascal is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- Library GNU General Public License for more details.
-
- You should have received a copy of the Library GNU General Public License
- along with Free Pascal; see the file COPYING.LIB.  If not, write to
- the Free Software Foundation, 59 Temple Place - Suite 330,
- Boston, MA 02111-1307, USA.
-
-****************************************************************************}
+ **********************************************************************}
 
 unit DosCalls;
 
-{This unit was called bsedos in the original OS/2 runtime library.
- Changed, because it's an interface library to DOSCALLS.DLL.
-
- The goal was to make this unit a real Pascal unit instead of a C unit in
- Pascal clothes. Not that I want to make every translated statement look
- exactly like other Pascal code, but in this case, it was too crazy.
- Therefore typenames, constants etc. have names like the ones in IBM's
- documentation (which is C oriented), but do not match exactly. In general
- constants do now use the common two letter prefix, followed by the constant
- description. Type names use a capital T in front of their name, handles do
- not have separate types, longints are used, and whenever possible pointers
- were replaced by var parameters. All constructions like 'type LONG=longint'
- have been removed. Furthermore, most of the procedures also accept strings
- instead of just a PChar, thanks to that cool feature of procedure
- overloading.
-
- Daniel Mantione,
- June 1997
-
- Please, note, that all calls of the original functions from DOSCALLS.DLL must
- be declared using cdecl (C calling convention)! This doesn't apply to wrapped
- around functions, of course (like equivalents of some functions with string
- instead of PChar).
-
-Changelog:
-
-    People:
-        KOMH    - KO Myung-Hun ( komh@chollian.net )
-
-    Date:           Description of change:              Changed by:
-
-                    Type of parameter is corrected,     KOMH
-                    'word' to 'longint'.
-    People:
-
-        DM - Daniel Mantione
-        TH - Tomas Hajny (XHajT03@mbox.vol.cz on Internet)
-
-    Date:           Description of change:              Changed by:
-
-     -              First released version 0.1.         DM
-    98/11/21        Mostly cosmetic changes - higher    TH
-                    level of compatibility with other
-                    OS/2 compilers, some Dutch names of
-                    parameters changed to English ones,
-                    better readability of identifiers,
-                    some mistypings corrected etc.
-
-Coding style:
-
-    It may be well possible that coding style feels a bit strange to you.
-    Nevertheless I friendly ask you to try to make your changes not look all
-    too different. To make life easier, set your IDE to use tab characters,
-    turn optimal fill, autoindent and backspace unindents on and set a
-    tabsize of 4.}
-
 {****************************************************************************
-
                            Preprocessor definitions
-
 ****************************************************************************}
 
 
@@ -120,9 +44,7 @@ uses    Strings,Objects;
  {$ENDIF}
 {$ENDIF}
 
-{$IFDEF FPC}
-    {$PACKRECORDS 1}
-{$ENDIF FPC}
+{$PACKRECORDS 1}
 
 type    TByteArray=array[0..$fff0] of byte;
         PByteArray=^TByteArray;
@@ -132,9 +54,7 @@ type    TByteArray=array[0..$fff0] of byte;
         PWordArray=^TWordArray;
 
 {****************************************************************************
-
                             Thread related routines.
-
 ****************************************************************************}
 
 type    TThreadEntry = function (Param: pointer): longint; cdecl;
@@ -537,7 +457,7 @@ const   dpProcess       = 0;
                       2 = Change to regular class.
                       3 = Change to time-critical class.
  Delta              = Value to add to priority. Resulting priority must be in
-                      the range 0..31 (Delta value must be within -31..31).
+                      the range 0..31 (Delta itself must be within -31..31).
  PortID             = Process ID when Scope=0 or 1, thread ID when Scope=2.}
 function DosSetPriority(Scope,TrClass,Delta,PortID:longint):longint; cdecl;
 
@@ -612,6 +532,10 @@ type    TFileLock=record
 function DosSetFileLocks(Handle:longint;var Unlock,Lock:TFileLock;
                          Timeout,Flags:longint):longint; cdecl;
 
+function DosProtectSetFileLocks (Handle: longint; var Unlock, Lock: TFileLock;
+                                 Timeout, Flags: cardinal;
+                                   FileHandleLockID: cardinal): longint; cdecl;
+
 {Cancel a filelock area.
 
 Handle  = File handle.
@@ -634,78 +558,111 @@ const   fEA_needEA=$80;
         eaMVST          = $ffde;
         eaASN1          = $ffdd;
 
-type    TgEA=record
-            NameLen:byte;
-            Name:array[0..9999] of char;
+type    TgEA = record
+            case byte of
+                1: (NameLen: byte;
+                    Name: array [0..0] of char);
+                2: (cbName: byte;         { name length not including NULL }
+                    szName: char);        { attribute name }
         end;
-        PgEA=^TgEA;
+        PgEA = ^TgEA;
+        GEA = TgEA;
 
-        TgEAList=record
-            ListLen:longint;
-            List:array[0..9999] of TgEA;
+        TgEAList = record
+            ListLen: longint;  { total bytes of structure including full list }
+            List: array [0..0] of TgEA;      { variable length GEA structures }
         end;
-        PgEAList=^TgEAList;
+        PgEAList = ^TgEAList;
+        GEAList = TgEAList;
 
-        TfEA=record
-            EA,
-            NameLen:byte;
-            Value:word;
+        TfEA = record
+            case byte of
+                1: (EA,
+                    NameLen: byte;
+                    Value: word);
+                2: (fEA: byte;          { flags                          }
+                    cbName: byte;       { name length not including NULL }
+                    cbValue: word);     { value length }
         end;
-        PfEA=^TfEA;
+        PfEA = ^TfEA;
+        FEA=TfEA;
 
-        TfEAList=record
-            Size:longint;
-            List:array[0..9999] of TfEA;
+        TfEAList = record
+            Size: longint;  { total bytes of structure including full list }
+            List: array [0..0] of TfEA;   { variable length FEA structures }
         end;
-        PfEAList=^TfEAlist;
+        PfEAList = ^TfEAlist;
+        FEAList = TfEAList;
 
-        TEAOp=record
-            gEAList:PgEAList;
-            fEAList:PfEAList;
-            Error:longint;
+        TEAOp = record
+            case byte of
+                1: (gEAList: PgEAList;
+                    fEAList: PfEAList;
+                    Error: longint);
+                2: (fpGEAList: PGEAList;    { general EA list }
+                    fpFEAList: PFEAList;    { full EA list }
+                    oError: longint);
         end;
-        PEAOp=^TEAOp;
+        PEAOp = ^TEAOp;
+        EAOp = TEAOp;
 
-        TfEA2=record
-            NextEntry:longint;
+        TfEA2 = record
+            NextEntry: longint;
             Flags,
-            NameLen:byte;
-            Value:word;
-            szName:array[0..9999] of char;
+            NameLen: byte;
+            Value: word;
+            szName: array [0..0] of char;
         end;
-        PfEA2=^TfEA2;
+        PfEA2 = ^TfEA2;
+        FEA2 = TfEA2;
 
-        TfEA2List=record
-            ListLen:longint;
-            List:array[0..9999] of TfEA2;
+        TfEA2List = record
+            ListLen: longint;
+            List: array [0..0] of TfEA2;
         end;
-        PfEA2List=^TfEA2List;
+        PfEA2List = ^TfEA2List;
+        FEA2List = TfEA2List;
 
-        TgEA2=record
-            NextEntry:longint;
-            NameLen:byte;
-            Name:array[0..9999] of char;
+        TgEA2 = record
+            case byte of
+                1: (NextEntry: longint;
+                    NameLen: byte;
+                    Name: array [0..0] of char);
+                2: (oNextEntryOffset: longint;      { new field }
+                    cbName: byte;
+                    szName: array [0..0] of byte);  { new field }
         end;
-        PgEA2=^TgEA2;
+        PgEA2 = ^TgEA2;
+        GEA2 = TgEA2;
 
-        TgEA2list=record
-          ListLen:longint;
-          List:array[0..9999] of TgEA2;
+        TgEA2list = record
+          ListLen: longint;
+          List: array [0..0] of TgEA2;
         end;
-        PgEA2List=^TgEA2List;
+        PgEA2List = ^TgEA2List;
+        GEA2List = TgEAList;
 
-        TEAOp2=record
-            gEA2List:PgEA2List;
-            fEA2List:PfEA2List;
-            Error:longint;
+        TEAOp2 = record
+            case byte of
+                1: (gEA2List: PgEA2List;
+                    fEA2List: PfEA2List;
+                    Error: longint);
+                2: (fpGEA2List: PGEA2List;      { GEA set }
+                    fpFEA2List: PFEA2List;      { FEA set }
+                    oError: longint);           { offset of FEA error }
         end;
-        PEAOp2=^TEAOp2;
+        PEAOp2 = ^TEAOp2;
+        EAOp2 = TEAOp2;
 
-        TEASizeBuf=record
-            MaxEASize:word;
-            MaxEAListSize:longint;
+        TEASizeBuf = record     { struct for FSCTL fn 2 - max ea size }
+            case byte of
+                1: (MaxEASize: word;
+                    MaxEAListSize: longint);
+                2: (cbMaxEASize: word;         { max size of one EA }
+                    cbMaxEAListSize: longint); { max size of the full EA list }
         end;
-        PEASizeBuf=^TEASizeBuf;
+        PEASizeBuf = ^TEASizeBuf;
+        EASizeBuf = TEASizeBuf;
 
 
 {*******************End of extented attribute datastructures.***************}
@@ -863,10 +820,32 @@ function DosCreate(const FileName:string;var Handle:longint;
 function DosOpen(const FileName:string;var Handle:longint;
                  Attrib,OpenMode:cardinal):longint;
 
+function DosProtectOpen (FileName: PChar; var Handle: longint;
+                         var Action: longint; InitSize, Attrib,
+                         OpenFlags, OpenMode: longint; ea: PEAOp2;
+                               var FileHandleLockID: cardinal): longint; cdecl;
+
+function DosProtectOpen (FileName: PChar; var Handle: longint;
+                         var Action: cardinal; InitSize, Attrib,
+                         OpenFlags, OpenMode: cardinal; ea: PEAOp2;
+                               var FileHandleLockID: cardinal): longint; cdecl;
+
+function DosProtectOpen (const FileName: string; var Handle: longint;
+                         var Action: longint; InitSize, Attrib,
+                         OpenFlags, OpenMode: longint; ea: PEAOp2;
+                                      var FileHandleLockID: cardinal): longint;
+
+function DosProtectOpen (const FileName: string; var Handle: longint;
+                         var Action: cardinal; InitSize, Attrib,
+                         OpenFlags, OpenMode: cardinal; ea: PEAOp2;
+                                      var FileHandleLockID: cardinal): longint;
 
 {Close a file.
 Cannot fail if handle does exist.}
 function DosClose(Handle:longint):longint; cdecl;
+
+function DosProtectClose (Handle: longint;
+                                   FileHandleLockID: cardinal): longint; cdecl;
 
 {Read from a file or other type of handle.
 
@@ -880,6 +859,12 @@ function DosRead(Handle:longint;var Buffer;Count:longint;
 function DosRead(Handle:longint;var Buffer;Count:cardinal;
                  var ActCount:cardinal):longint; cdecl;
 
+function DosProtectRead (Handle: longint; var Buffer; Count: longint;
+            var ActCount: longint; FileHandleLockID: cardinal): longint; cdecl;
+
+function DosProtectRead (Handle: longint; var Buffer; Count: cardinal;
+           var ActCount: cardinal; FileHandleLockID: cardinal): longint; cdecl;
+
 {Write to a file or other type of handle.
 
     Handle      = File handle.
@@ -892,23 +877,58 @@ function DosWrite(Handle:longint;var Buffer;Count:longint;
 function DosWrite(Handle:longint;var Buffer;Count:cardinal;
                   var ActCount:cardinal):longint; cdecl;
 
+function DosProtectWrite (Handle: longint; var Buffer; Count: longint;
+                          var ActCount: longint;
+                          FileHandleLockID: cardinal): longint; cdecl;
+
+function DosProtectWrite (Handle: longint; var Buffer; Count: cardinal;
+                          var ActCount: cardinal;
+                          FileHandleLockID: cardinal): longint; cdecl;
+
 const   dsZeroBased=0;      {Set filepointer from begin of file.}
         dsRelative=1;       {Set filepointer relative to the current one.}
         dsEndBased=2;       {Set filepointer from end of file.}
+(* The following for compatibility only *)
+        FILE_BEGIN   = dsZeroBased; { Move relative to beginning of file }
+        FILE_CURRENT = dsRelative;  { Move relative to current fptr position }
+        FILE_END     = dsEndBased;  { Move relative to end of file }
 
 {Change the filepointer of a file.}
-function DosSetFilePtr(Handle:Longint;Pos,Method:longint;
-                       var PosActual:longint):Longint; cdecl;
+function DosSetFilePtr(Handle:Longint;Pos:longint;Method:cardinal;
+                       var PosActual:longint):longint; cdecl;
+function DosSetFilePtr(Handle:Longint;Pos:longint;Method:cardinal;
+                       var PosActual:cardinal):longint; cdecl;
+function DosProtectSetFilePtr (Handle: longint; Pos, Method: longint;
+                               var PosActual: longint;
+                               FileHandleLockID: cardinal): longint; cdecl;
+
+function DosProtectSetFilePtr (Handle: longint; Pos, Method: longint;
+                               var PosActual: cardinal;
+                               FileHandleLockID: cardinal): longint; cdecl;
+
 {This variant seeks always from begin of file and does not return the
  actual position.}
 function DosSetFilePtr(Handle:longint;Pos:longint):longint;
+function DosProtectSetFilePtr (Handle: longint; Pos: longint;
+                                          FileHandleLockID: cardinal): longint;
 {This variant returns the current filepointer.}
 function DosGetFilePtr(Handle:longint;var PosActual:longint):longint;
+
+function DosGetFilePtr (Handle: longint; var PosActual: cardinal): longint;
+
+function DosProtectGetFilePtr (Handle: longint;
+                  var PosActual: longint; FileHandleLockID: cardinal): longint;
+
+function DosProtectGetFilePtr (Handle: longint;
+                 var PosActual: cardinal; FileHandleLockID: cardinal): longint;
 
 {Use DosQueryFileInfo or DosQueryPathInfo to get the size of a file.}
 
 {Change the size of a file.}
-function DosSetFileSize(Handle,Size:longint):longint; cdecl;
+function DosSetFileSize(Handle:longint;Size:cardinal):longint; cdecl;
+
+function DosProtectSetFileSize (Handle: longint; Size: cardinal;
+                                   FileHandleLockID: cardinal): longint; cdecl;
 
 {Flush update the changes to a file to disk.}
 function DosResetBuffer(Handle:longint):longint; cdecl;
@@ -925,9 +945,15 @@ function DosDupHandle(Handle:longint;var Duplicate:longint):longint; cdecl;
  description of FileMode.}
 function DosQueryFHState(Handle:longint;var FileMode:longint):longint; cdecl;
 
+function DosProtectQueryFHState (Handle: longint; var FileMode: cardinal;
+                                   FileHandleLockID: cardinal): longint; cdecl;
+
 {Set information about a specific handle. See DosOpen for a description
  of FileMode.}
 function DosSetFHState(Handle,FileMode:longint):longint; cdecl;
+
+function DosProtectSetFHState (Handle: longint; FileMode: cardinal;
+                                   FileHandleLockID: cardinal): longint; cdecl;
 
 {Usefull constants for the handle type.}
 const   dhFile      =    0;
@@ -1054,8 +1080,7 @@ const   faReadOnly      =  1;
         faHidden        =  2;
         faSystem        =  4;
         faReserve       =  8;
-        faDirectory     = 16;
-        faArchive       = 32;
+        faDirecA P                    faArchive       = 32;
 
         ilStandard      =  1;
         ilQueryEAsize   =  2;
@@ -1181,16 +1206,16 @@ type
                   for exact meaning. For normal use: Use ilStandard and
                   use PFileFindBuf3 for AFileStatus.}
 function DosFindFirst(FileMask:PChar;var Handle:longint;Attrib:longint;
-                      AFileStatus:PFileStatus;FileStatusLen:longint;
-                      var Count:longint;InfoLevel:longint):longint; cdecl;
+                      AFileStatus:PFileStatus;FileStatusLen:cardinal;
+                      var Count:cardinal;InfoLevel:cardinal):longint; cdecl;
 function DosFindFirst(const FileMask:string;var Handle:longint;
                       Attrib:longint;AFileStatus:PFileStatus;
-                      FileStatusLen:longint;var Count:longint;
-                      InfoLevel:longint):longint;
+                      FileStatusLen:cardinal;var Count:cardinal;
+                      InfoLevel:cardinal):longint;
 
 {Find next matching file.}
 function DosFindNext(Handle:longint;AFileStatus:PFileStatus;
-                     FileStatusLen:longint;var Count:longint):longint; cdecl;
+                     FileStatusLen:cardinal;var Count:cardinal):longint; cdecl;
 
 {Close a search handle. Cannot fail if handle does exist.}
 function DosFindClose(Handle:longint):longint; cdecl;
@@ -1204,19 +1229,27 @@ function DosFindClose(Handle:longint):longint; cdecl;
  AFileStatus    = An info return buffer.
  FileStatusLen  = Size of info buffer.}
 function DosQueryFileInfo(Handle,InfoLevel:longint;AFileStatus:PFileStatus;
-                          FileStatusLen:longint):longint; cdecl;
+                                        FileStatusLen:cardinal):longint; cdecl;
+
+function DosProtectQueryFileInfo (Handle: longint; InfoLevel: cardinal;
+                             AFileStatus: PFileStatus; FileStatusLen: cardinal;
+                                   FileHandleLockID: cardinal): longint; cdecl;
 
 {Set info about a file. File must be opened with write permissions. See
  above fo the parameters.}
 function DosSetFileInfo(Handle,InfoLevel:longint;AFileStatus:PFileStatus;
-                        FileStatusLen:longint):longint; cdecl;
+                                        FileStatusLen:cardinal):longint; cdecl;
+
+function DosProtectSetFileInfo (Handle: longint; InfoLevel: cardinal;
+                             AFileStatus: PFileStatus; FileStatusLen: cardinal;
+                                   FileHandleLockID: cardinal): longint; cdecl;
 
 {Return info about a file. In contradiction to the above functions, the
  file does not have to be open.}
-function DosQueryPathInfo(FileName:PChar;InfoLevel:longint;
-                 AFileStatus:PFileStatus;FileStatusLen:longint):longint; cdecl;
-function DosQueryPathInfo(const FileName:string;InfoLevel:longint;
-                        AFileStatus:PFileStatus;FileStatusLen:longint):longint;
+function DosQueryPathInfo(FileName:PChar;InfoLevel:cardinal;
+                AFileStatus:PFileStatus;FileStatusLen:cardinal):longint; cdecl;
+function DosQueryPathInfo(const FileName:string;InfoLevel:cardinal;
+                       AFileStatus:PFileStatus;FileStatusLen:cardinal):longint;
 
 {Set information about a file.}
 function DosSetPathInfo(FileName:PChar;InfoLevel:longint;
@@ -1240,11 +1273,29 @@ function DosSetPathInfo(FileName:PChar;InfoLevel:longint;
 function DosEnumAttribute(RefType:longint;AFile:pointer;
                           Entry:longint;var Buf;BufSize:longint;
                           var Count:longint;InfoLevel:longint):longint; cdecl;
+
+function DosProtectEnumAttribute (RefType: longint; AFile: pointer;
+                                  Entry: cardinal; var Buf; BufSize: cardinal;
+                                  var Count: cardinal; InfoLevel: cardinal;
+                                  FileHandleLockID: cardinal): longint; cdecl;
+
 function DosEnumAttribute(Handle,Entry:longint;var Buf;BufSize:longint;
                           var Count:longint;InfoLevel:longint):longint;
+
+function DosProtectEnumAttribute (Handle: longint; Entry: cardinal; var Buf;
+                                  BufSize: cardinal; var Count: cardinal;
+                                  InfoLevel: cardinal;
+                                  FileHandleLockID: cardinal): longint;
+
 function DosEnumAttribute(const FileName:string;
                           Entry:longint;var Buf;BufSize:longint;
                           var Count:longint;InfoLevel:longint):longint;
+
+function DosProtectEnumAttribute (const FileName: string; Entry: cardinal;
+                                  var Buf; BufSize: cardinal;
+                                  var Count: cardinal; InfoLevel: cardinal;
+                                  FileHandleLockID: cardinal): longint;
+
 
 {Get an environment variable.
  Name               = Name of environment variable to get.
@@ -1551,7 +1602,7 @@ const   mfPag_Read      = $00001;   {Give read access to memory.}
               of 4096. This is probably not the case on non-intel 386
               versions of OS/2.
  Flags      = One or more of the mfXXXX constants.}
-function DosAllocMem(var P:pointer;Size,Flag:longint):longint; cdecl;
+function DosAllocMem(var P:pointer;Size,Flag:cardinal):longint; cdecl;
 
 {Free a memory block.}
 function DosFreeMem(P:pointer):longint; cdecl;
@@ -1563,7 +1614,7 @@ function DosFreeMem(P:pointer):longint; cdecl;
  Size       = Number of bytes to change settings for. Is rounded up to a
               multile of 4096.
  Flags      = New flags for the memory.}
-function DosSetMem(P:pointer;Size,Flag:longint):longint; cdecl;
+function DosSetMem(P:pointer;Size,Flag:cardinal):longint; cdecl;
 
 {Give another process access to a shared memory block.
 
@@ -1593,10 +1644,10 @@ function DosGetNamedSharedMem(var P:pointer;const Name:string;
  Name       = Optional: name to give memory. Must start with '\SHAREMEM\'.
               Use nil for the PChar or '' for the string variant for no name.
  Size       = Number of bytes to allocate.}
-function DosAllocSharedMem(var P:pointer;Name:PChar;Size,Flag:longint):longint;
-                                                                         cdecl;
+function DosAllocSharedMem(var P:pointer;Name:PChar;
+                                            Size,Flag:cardinal):longint; cdecl;
 function DosAllocSharedMem(var P:pointer;const Name:string;Size,
-                                                            Flag:longint):longint;
+                                                        Flag:cardinal):longint;
 
 {Get the size and flags of a block of memory.
 
@@ -1609,21 +1660,21 @@ function DosQueryMem(P:pointer;var Size,Flag:longint):longint; cdecl;
  Base       = Pointer to the start of the heap.
  P          = Receives pointer to the memory bock.
  Size       = Number of bytes to allocate.}
-function DosSubAllocMem(Base:pointer;var P:pointer;Size:longint):longint;
+function DosSubAllocMem(Base:pointer;var P:pointer;Size:cardinal):longint;
                                                                          cdecl;
 
 {Free a block of memory in a heap.
  Base       = Pointer to the start of the heap.
  P          = Pointer to memory block to free.
  Size       = Number of bytes to free.}
-function DosSubFreeMem(Base,P:pointer;Size:longint):longint; cdecl;
+function DosSubFreeMem(Base,P:pointer;Size:cardinal):longint; cdecl;
 
 {Turn a block of memory into a heap.
 
 Base        = Pointer to memory block to turn into a heap.
 Flag        = One or more of the mfSub_XXXX flags.
 Size        = Size of the requested heap.}
-function DosSubSetMem(Base:pointer;Flag,Size:longint):longint; cdecl;
+function DosSubSetMem(Base:pointer;Flag,Size:cardinal):longint; cdecl;
 
 {Destroy a heap. (Memory remains allocated).
 
@@ -2166,6 +2217,9 @@ const       XCPT_Continue_Search            = $00000000;
             XCPT_Async_Process_Terminate    = $c0010002;
             XCPT_Signal                     = $c0010003;
 
+const
+    MaxExceptionParameters = 4;  { Enough for all system exceptions. }
+
 type        PExceptionRegistrationRecord=^TExceptionRegistrationRecord;
             PExceptionReportRecord=^TExceptionReportRecord;
             PContextRecord=^TContextRecord;
@@ -2186,7 +2240,7 @@ type        PExceptionRegistrationRecord=^TExceptionRegistrationRecord;
                 Nested_RepRec:PExceptionReportRecord;
                 Address:pointer;
                 ParamCount:longint;
-                Parameters:array [0..9999] of longint;
+                Parameters:array [0..MaxExceptionParameters] of longint;
             end;
 
             TContextRecord=record
@@ -2451,7 +2505,7 @@ function DosInsertMessage(Table:array of PString;
  Handle         = Handle of file.
  Size           = Size of message.
  Buf            = Buffer where message is located.}
-function DosPutMessage(Handle,Size:longint;Buf:PChar):longint; cdecl;
+function DosPutMessage(Handle:longint;Size:cardinal;Buf:PChar):longint; cdecl;
 function DosPutMessage(Handle:longint;const Buf:string):longint;
 
 {Get info about which codepages and languages a messagefile supports.
@@ -2582,7 +2636,9 @@ const   {np_XXXX constants for openmode.}
         np_Access_Inbound       = $0000;    {Client to server connection.}
         np_Access_Outbound      = $0001;    {Server to client access.}
         np_Access_Duplex        = $0002;    {Two way access.}
-        np_Inherit              = $0080;    {Pipe handle is inherited by
+        np_Inherit              = $0000;    {Pipe handle is inherited by
+                                             child processes.}
+        np_NoInherit            = $0080;    {Pipe handle is _not_ inherited by
                                              child processes.}
         np_No_Write_Behind      = $4000;    {Don't allow write behind for
                                              remote pipes.}
@@ -2902,6 +2958,12 @@ function DosSetFileLocks(Handle:longint;var Unlock,Lock:TFileLock;
 
 external 'DOSCALLS' index 428;
 
+function DosProtectSetFileLocks (Handle: longint; var Unlock, Lock: TFileLock;
+                                 Timeout, Flags: cardinal;
+                                   FileHandleLockID: cardinal): longint; cdecl;
+
+external 'DOSCALLS' index 639;
+
 function DosCancelLockRequest(Handle:longint;var Lock:TFileLock):longint;
                                                                          cdecl;
 
@@ -2981,9 +3043,52 @@ begin
     DosOpen:=DosOpen(@T,Handle,Action,0,Attrib,1,OpenMode,nil);
 end;
 
+function DosProtectOpen (FileName: PChar; var Handle: longint;
+                         var Action: longint; InitSize, Attrib,
+                         OpenFlags, OpenMode: longint; ea: PEAOp2;
+                               var FileHandleLockID: cardinal): longint; cdecl;
+
+external 'DOSCALLS' index 637;
+
+function DosProtectOpen (FileName: PChar; var Handle: longint;
+                         var Action: cardinal; InitSize, Attrib,
+                         OpenFlags, OpenMode: cardinal; ea: PEAOp2;
+                               var FileHandleLockID: cardinal): longint; cdecl;
+
+external 'DOSCALLS' index 637;
+
+function DosProtectOpen (const FileName: string; var Handle: longint;
+                         var Action: longint; InitSize, Attrib,
+                         OpenFlags, OpenMode: longint; ea: PEAOp2;
+                               var FileHandleLockID: cardinal): longint;
+
+var T:array[0..255] of char;
+
+begin
+    StrPCopy(@T,FileName);
+    DosProtectOpen:=DosProtectOpen(@T,Handle,Action,InitSize,Attrib,OpenFlags,OpenMode,EA,FileHandleLockID);
+end;
+
+function DosProtectOpen (const FileName: string; var Handle: longint;
+                         var Action: cardinal; InitSize, Attrib,
+                         OpenFlags, OpenMode: cardinal; ea: PEAOp2;
+                               var FileHandleLockID: cardinal): longint;
+
+var T:array[0..255] of char;
+
+begin
+    StrPCopy(@T,FileName);
+    DosProtectOpen:=DosProtectOpen(@T,Handle,Action,InitSize,Attrib,OpenFlags,OpenMode,EA,FileHandleLockID);
+end;
+
 function DosClose(Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 257;
+
+function DosProtectClose (Handle: longint;
+                                   FileHandleLockID: cardinal): longint; cdecl;
+
+external 'DOSCALLS' index 638;
 
 function DosRead(Handle:longint;var Buffer;Count:longint;
                  var ActCount:longint):longint; cdecl;
@@ -2995,6 +3100,16 @@ function DosRead(Handle:longint;var Buffer;Count:cardinal;
 
 external 'DOSCALLS' index 281;
 
+function DosProtectRead (Handle: longint; var Buffer; Count: longint;
+            var ActCount: longint; FileHandleLockID: cardinal): longint; cdecl;
+
+external 'DOSCALLS' index 641;
+
+function DosProtectRead (Handle: longint; var Buffer; Count: cardinal;
+           var ActCount: cardinal; FileHandleLockID: cardinal): longint; cdecl;
+
+external 'DOSCALLS' index 641;
+
 function DosWrite(Handle:longint;var Buffer;Count:longint;
                   var ActCount:longint):longint; cdecl;
 
@@ -3005,17 +3120,56 @@ function DosWrite(Handle:longint;var Buffer;Count:cardinal;
 
 external 'DOSCALLS' index 282;
 
-function DosSetFilePtr(Handle:longint;Pos,Method:longint;
+function DosProtectWrite (Handle: longint; var Buffer; Count: longint;
+                          var ActCount: longint;
+                          FileHandleLockID: cardinal): longint; cdecl;
+
+external 'DOSCALLS' index 642;
+
+function DosProtectWrite (Handle: longint; var Buffer; Count: cardinal;
+                          var ActCount: cardinal;
+                          FileHandleLockID: cardinal): longint; cdecl;
+
+external 'DOSCALLS' index 642;
+
+function DosSetFilePtr(Handle:longint;Pos:longint;Method:cardinal;
                        var PosActual:longint):longint; cdecl;
+
+external 'DOSCALLS' index 256;
+
+function DosSetFilePtr(Handle:longint;Pos:longint;Method:cardinal;
+                       var PosActual:cardinal):longint; cdecl;
 
 external 'DOSCALLS' index 256;
 
 function DosSetFilePtr(Handle:longint;Pos:longint):longint;
 
-var PosActual:longint;
+var PosActual:cardinal;
 
 begin
     DosSetFilePtr:=DosSetFilePtr(Handle,Pos,0,PosActual);
+end;
+
+function DosProtectSetFilePtr (Handle: longint; Pos, Method: longint;
+                               var PosActual: longint;
+                               FileHandleLockID: cardinal): longint; cdecl;
+
+external 'DOSCALLS' index 621;
+
+function DosProtectSetFilePtr (Handle: longint; Pos, Method: longint;
+                               var PosActual: cardinal;
+                               FileHandleLockID: cardinal): longint; cdecl;
+
+external 'DOSCALLS' index 621;
+
+function DosProtectSetFilePtr (Handle: longint; Pos: longint;
+                                          FileHandleLockID: cardinal): longint;
+
+var PosActual:cardinal;
+
+begin
+    DosProtectSetFilePtr:=DosProtectSetFilePtr(Handle,Pos,0,PosActual,
+                                                             FileHandleLockID);
 end;
 
 function DosGetFilePtr(Handle:longint;var PosActual:longint):longint;
@@ -3024,9 +3178,36 @@ begin
     DosGetFilePtr:=DosSetFilePtr(Handle,0,1,PosActual);
 end;
 
-function DosSetFileSize(Handle,Size:longint):longint; cdecl;
+function DosGetFilePtr(Handle:longint;var PosActual:cardinal):longint;
+
+begin
+    DosGetFilePtr:=DosSetFilePtr(Handle,0,1,PosActual);
+end;
+
+function DosProtectGetFilePtr (Handle: longint;
+                  var PosActual: longint; FileHandleLockID: cardinal): longint;
+
+begin
+    DosProtectGetFilePtr := DosProtectSetFilePtr (Handle, 0, 1, PosActual,
+                                                             FileHandleLockID);
+end;
+
+function DosProtectGetFilePtr (Handle: longint;
+                 var PosActual: cardinal; FileHandleLockID: cardinal): longint;
+
+begin
+    DosProtectGetFilePtr := DosProtectSetFilePtr (Handle, 0, 1, PosActual,
+                                                             FileHandleLockID);
+end;
+
+function DosSetFileSize(Handle:longint;Size:cardinal):longint; cdecl;
 
 external 'DOSCALLS' index 272;
+
+function DosProtectSetFileSize (Handle: longint; Size: cardinal;
+                                   FileHandleLockID: cardinal): longint; cdecl;
+
+external 'DOSCALLS' index 640;
 
 function DosResetBuffer(Handle:longint):longint; cdecl;
 
@@ -3040,9 +3221,19 @@ function DosQueryFHState(Handle:longint;var FileMode:longint):longint; cdecl;
 
 external 'DOSCALLS' index 276;
 
+function DosProtectQueryFHState (Handle: longint; var FileMode: cardinal;
+                                   FileHandleLockID: cardinal): longint; cdecl;
+
+external 'DOSCALLS' index 645;
+
 function DosSetFHState(Handle,FileMode:longint):longint; cdecl;
 
 external 'DOSCALLS' index 221;
+
+function DosProtectSetFHState (Handle: longint; FileMode: cardinal;
+                                   FileHandleLockID: cardinal): longint; cdecl;
+
+external 'DOSCALLS' index 644;
 
 function DosQueryHType(Handle:longint;var HandType:longint;
                        var Attr:longint):longint; cdecl;
@@ -3205,15 +3396,15 @@ function DosDevIOCtl(Handle,Category,Func:longint;var Params;
 external 'DOSCALLS' index 284;
 
 function DosFindFirst(FileMask:PChar;var Handle:longint;Attrib:longint;
-                      AFileStatus:PFileStatus;FileStatusLen:longint;
-                      var Count:longint;InfoLevel:longint):longint; cdecl;
+                      AFileStatus:PFileStatus;FileStatusLen:cardinal;
+                      var Count:cardinal;InfoLevel:cardinal):longint; cdecl;
 
 external 'DOSCALLS' index 264;
 
 function DosFindFirst(const FileMask:string;var Handle:longint;
                       Attrib:longint;AFileStatus:PFileStatus;
-                      FileStatusLen:longint;var Count:longint;
-                      InfoLevel:longint):longint;
+                      FileStatusLen:cardinal;var Count:cardinal;
+                      InfoLevel:cardinal):longint;
 
 var T:array[0..255] of char;
 
@@ -3224,7 +3415,7 @@ begin
 end;
 
 function DosFindNext(Handle:longint;AFileStatus:PFileStatus;
-                     FileStatusLen:longint;var Count:longint):longint; cdecl;
+                     FileStatusLen:cardinal;var Count:cardinal):longint; cdecl;
 
 external 'DOSCALLS' index 265;
 
@@ -3233,22 +3424,34 @@ function DosFindClose(Handle:longint):longint; cdecl;
 external 'DOSCALLS' index 263;
 
 function DosQueryFileInfo(Handle,InfoLevel:longint;AFileStatus:PFileStatus;
-                          FileStatusLen:longint):longint; cdecl;
+                                        FileStatusLen:cardinal):longint; cdecl;
 
 external 'DOSCALLS' index 279;
 
+function DosProtectQueryFileInfo (Handle: longint; InfoLevel: cardinal;
+                             AFileStatus: PFileStatus; FileStatusLen: cardinal;
+                                   FileHandleLockID: cardinal): longint; cdecl;
+
+external 'DOSCALLS' index 646;
+
 function DosSetFileInfo(Handle,InfoLevel:longint;AFileStatus:PFileStatus;
-                        FileStatusLen:longint):longint; cdecl;
+                                        FileStatusLen:cardinal):longint; cdecl;
 
 external 'DOSCALLS' index 218;
 
-function DosQueryPathInfo(FileName:PChar;InfoLevel:longint;
-                 AFileStatus:PFileStatus;FileStatusLen:longint):longint; cdecl;
+function DosProtectSetFileInfo (Handle: longint; InfoLevel: cardinal;
+                             AFileStatus: PFileStatus; FileStatusLen: cardinal;
+                                   FileHandleLockID: cardinal): longint; cdecl;
+
+external 'DOSCALLS' index 643;
+
+function DosQueryPathInfo(FileName:PChar;InfoLevel:cardinal;
+                 AFileStatus:PFileStatus;FileStatusLen:cardinal):longint; cdecl;
 
 external 'DOSCALLS' index 223;
 
-function DosQueryPathInfo(const FileName:string;InfoLevel:longint;
-                 AFileStatus:PFileStatus;FileStatusLen:longint):longint;
+function DosQueryPathInfo(const FileName:string;InfoLevel:cardinal;
+                 AFileStatus:PFileStatus;FileStatusLen:cardinal):longint;
 
 var T:array[0..255] of char;
 
@@ -3270,12 +3473,30 @@ function DosEnumAttribute(RefType:longint;AFile:pointer;
 
 external 'DOSCALLS' index 372;
 
+
+function DosProtectEnumAttribute (RefType: longint; AFile: pointer;
+                                  Entry: cardinal; var Buf; BufSize: cardinal;
+                                  var Count: cardinal; InfoLevel: cardinal;
+                                  FileHandleLockID: cardinal): longint; cdecl;
+
+external 'DOSCALLS' index 636;
+
 function DosEnumAttribute(Handle,Entry:longint;var Buf;BufSize:longint;
                           var Count:longint;InfoLevel:longint):longint;
 
 begin
     DosEnumAttribute:=DosEnumAttribute(0,@Handle,Entry,Buf,BufSize,Count,
      InfoLevel);
+end;
+
+function DosProtectEnumAttribute (Handle: longint; Entry: cardinal; var Buf;
+                                  BufSize: cardinal; var Count: cardinal;
+                                  InfoLevel: cardinal;
+                                          FileHandleLockID: cardinal): longint;
+
+begin
+    DosProtectEnumAttribute := DosProtectEnumAttribute (0, @Handle, Entry, Buf,
+                                  BufSize, Count, InfoLevel, FileHandleLockID);
 end;
 
 function DosEnumAttribute(const FileName:string;
@@ -3288,6 +3509,19 @@ begin
     StrPCopy(@T,FileName);
     DosEnumAttribute:=DosEnumAttribute(1,@T,Entry,Buf,BufSize,Count,
      InfoLevel);
+end;
+
+function DosProtectEnumAttribute (const FileName: string; Entry: cardinal;
+                                  var Buf; BufSize: cardinal;
+                                  var Count: cardinal; InfoLevel: cardinal;
+                                          FileHandleLockID: cardinal): longint;
+
+var T: array [0..255] of char;
+
+begin
+    StrPCopy (@T, FileName);
+    DosProtectEnumAttribute := DosProtectEnumAttribute (1, @T, Entry, Buf,
+                                  BufSize, Count, InfoLevel, FileHandleLockID);
 end;
 
 function DosScanEnv(Name:PChar;var Value:PChar):longint; cdecl;
@@ -3413,7 +3647,7 @@ function DosPhysicalDisk(Func:longint;Buf:pointer;BufSize:longint;
 
 external 'DOSCALLS' index 287;
 
-function DosAllocMem(var P:pointer;Size,Flag:longint):longint; cdecl;
+function DosAllocMem(var P:pointer;Size,Flag:cardinal):longint; cdecl;
 
 external 'DOSCALLS' index 299;
 
@@ -3421,7 +3655,7 @@ function DosFreeMem(P:pointer):longint; cdecl;
 
 external 'DOSCALLS' index 304;
 
-function DosSetMem(P:pointer;Size,Flag:longint):longint; cdecl;
+function DosSetMem(P:pointer;Size,Flag:cardinal):longint; cdecl;
 
 external 'DOSCALLS' index 305;
 
@@ -3448,13 +3682,13 @@ begin
     DosGetNamedSharedMem:=DosGetNamedSharedMem(P,@T,Flag);
 end;
 
-function DosAllocSharedMem(var P:pointer;Name:PChar;Size,Flag:longint):longint;
-                                                                         cdecl;
+function DosAllocSharedMem(var P:pointer;Name:PChar;
+                                            Size,Flag:cardinal):longint; cdecl;
 
 external 'DOSCALLS' index 300;
 
 function DosAllocSharedMem(var P:pointer;const Name:string;
-                                                    Size,Flag:longint):longint;
+                                                   Size,Flag:cardinal):longint;
 
 var T:array[0..255] of char;
 
@@ -3472,16 +3706,16 @@ function DosQueryMem(P:pointer;var Size,Flag:longint):longint; cdecl;
 
 external 'DOSCALLS' index 306;
 
-function DosSubAllocMem(Base:pointer;var P:pointer;Size:longint):longint;
+function DosSubAllocMem(Base:pointer;var P:pointer;Size:cardinal):longint;
                                                                          cdecl;
 
 external 'DOSCALLS' index 345;
 
-function DosSubFreeMem(Base,P:pointer;Size:longint):longint; cdecl;
+function DosSubFreeMem(Base,P:pointer;Size:cardinal):longint; cdecl;
 
 external 'DOSCALLS' index 346;
 
-function DosSubSetMem(Base:pointer;Flag,Size:longint):longint; cdecl;
+function DosSubSetMem(Base:pointer;Flag,Size:cardinal):longint; cdecl;
 
 external 'DOSCALLS' index 344;
 
@@ -4085,7 +4319,7 @@ function DosInsertMessage(Table:array of PString;
                           Buf:PChar;BufSize:longint;
                           var DstMessageSize:longint):longint;}
 
-function DosPutMessage(Handle,Size:longint;Buf:PChar):longint; cdecl;
+function DosPutMessage(Handle:longint;Size:cardinal;Buf:PChar):longint; cdecl;
 
 external 'MSG' index 5;
 
@@ -4318,7 +4552,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.16  2002-10-13 15:25:27  hajny
+  Revision 1.17  2002-11-04 21:22:12  hajny
+    + DosProtect* functions added, first part of longint->cardinal fixes
+
+  Revision 1.16  2002/10/13 15:25:27  hajny
     * More DosOpen fixes
 
   Revision 1.15  2002/10/12 19:36:08  hajny
