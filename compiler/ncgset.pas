@@ -251,11 +251,11 @@ implementation
 
          { location is always LOC_JUMP }
          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
-         { allocate a register for the result }
-         location.register := cg.getintregister(exprasmlist,location.size);
 
          if genjumps then
           begin
+            { allocate a register for the result }
+            location.register := cg.getintregister(exprasmlist,location.size);
             { Get a label to jump to the end }
             objectlibrary.getlabel(l);
 
@@ -385,10 +385,12 @@ implementation
                if left.nodetype=ordconstn then
                 begin
                   location_force_reg(exprasmlist,right.location,OS_32,true);
+                 cg.ungetregister(exprasmlist,right.location.register);
+                 { allocate a register for the result }
+                 location.register := cg.getintregister(exprasmlist,location.size);
                  { then SHR the register }
                  cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_INT,
                    tordconstnode(left).value and 31,right.location.register,location.register);
-                 cg.ungetregister(exprasmlist,right.location.register);
                  { then extract the lowest bit }
                  cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,1,location.register);
                 end
@@ -413,10 +415,12 @@ implementation
                   end;
 
                   location_force_reg(exprasmlist,right.location,OS_32,true);
-                  { emit bit test operation }
-                  emit_bit_test_reg_reg(exprasmlist,hr,right.location.register,location.register);
                   { free the resources }
                   cg.ungetregister(exprasmlist,right.location.register);
+                  { allocate a register for the result }
+                  location.register := cg.getintregister(exprasmlist,location.size);
+                  { emit bit test operation }
+                  emit_bit_test_reg_reg(exprasmlist,hr,right.location.register,location.register);
                   { free bitnumber register }
                   cg.ungetregister(exprasmlist,hr);
                 end;
@@ -426,50 +430,40 @@ implementation
              begin
                if right.location.loc=LOC_CONSTANT then
                 begin
-                  { this section has not been tested!    }
                   { can it actually occur currently? CEC }
                   { yes: "if bytevar in [1,3,5,7,9,11,13,15]" (JM) }
-                  objectlibrary.getlabel(l);
-                  objectlibrary.getlabel(l2);
 
-                  case left.location.loc of
-                     LOC_REGISTER,
-                     LOC_CREGISTER:
-                       begin
-                          hr:=cg.makeregsize(left.location.register,OS_INT);
-                          cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr);
-                          cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_BE,31,hr,l);
-                        { reset of result register is done in routine entry }
-                          cg.a_jmp_always(exprasmlist,l2);
-                          cg.a_label(exprasmlist,l);
-                        { We have to load the value into a register because
-                          btl does not accept values only refs or regs (PFV) }
-                          hr2:=cg.getintregister(exprasmlist,OS_INT);
-                          cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
-                       end;
-                     LOC_REFERENCE,
-                     LOC_CREFERENCE:
-                       begin
-                          cg.a_cmp_const_ref_label(exprasmlist,OS_8,OC_BE,31,left.location.reference,l);
-                          cg.a_jmp_always(exprasmlist,l2);
-                          cg.a_label(exprasmlist,l);
-                          location_release(exprasmlist,left.location);
-                          hr:=cg.getintregister(exprasmlist,OS_INT);
-                          cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,left.location.reference,hr);
-                        { We have to load the value into a register because
-                          btl does not accept values only refs or regs (PFV) }
-                          hr2:=cg.getintregister(exprasmlist,OS_INT);
-                          cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
-                       end;
-                     else
-                       internalerror(2002081002);
-                  end;
+                  { note: this code assumes that left in [0..255], which is a valid }
+                  { assumption (other cases will be caught by range checking) (JM)  }
+
+                  { load left in register }
+                  location_force_reg(exprasmlist,left.location,OS_INT,true);
+                  if left.location.loc = LOC_CREGISTER then
+                    hr := cg.getintregister(exprasmlist,OS_INT)
+                  else
+                    hr := left.location.register;
+                  { load right in register }
+                  hr2:=cg.getintregister(exprasmlist,OS_INT);
+                  cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
+
                   { emit bit test operation }
-                  emit_bit_test_reg_reg(exprasmlist,hr,hr2,location.register);
+                  emit_bit_test_reg_reg(exprasmlist,left.location.register,hr2,hr2);
+                  
+                  { if left > 31 then hr := 0 else hr := $ffffffff }
+                  cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,32,left.location.register,hr);
+                  cg.a_op_const_reg(exprasmlist,OP_SAR,OS_INT,31,hr);
+
+                  { free registers }
                   cg.ungetregister(exprasmlist,hr2);
-                  if not (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                    cg.ungetregister(exprasmlist,hr);
-                  cg.a_label(exprasmlist,l2);
+                  if (left.location.loc in [LOC_CREGISTER]) then
+                    cg.ungetregister(exprasmlist,hr)
+                  else
+                    cg.ungetregister(exprasmlist,left.location.register);
+
+                  { allocate a register for the result }
+                  location.register := cg.getintregister(exprasmlist,location.size);
+                  { if left > 31, then result := 0 else result := result of bit test }
+                  cg.a_op_reg_reg_reg(exprasmlist,OP_AND,OS_INT,hr,hr2,location.register);
                 end { of right.location.loc=LOC_CONSTANT }
                { do search in a normal set which could have >32 elementsm
                  but also used if the left side contains higher values > 32 }
@@ -481,8 +475,10 @@ implementation
                   else
                     { adjust for endianess differences }
                     inc(right.location.reference.offset,(tordconstnode(left).value shr 3) xor 3);
-                  cg.a_load_ref_reg(exprasmlist,OS_8,location.size,right.location.reference, location.register);
                   location_release(exprasmlist,right.location);
+                  { allocate a register for the result }
+                  location.register := cg.getintregister(exprasmlist,location.size);
+                  cg.a_load_ref_reg(exprasmlist,OS_8,location.size,right.location.reference, location.register);
                   cg.a_op_const_reg(exprasmlist,OP_SHR,location.size,tordconstnode(left).value and 7,
                     location.register);
                   cg.a_op_const_reg(exprasmlist,OP_AND,location.size,1,location.register);
@@ -511,7 +507,10 @@ implementation
                       href.index := hr;
                     end;
                   reference_release(exprasmlist,href);
+                  { allocate a register for the result }
+                  location.register := cg.getintregister(exprasmlist,location.size);
                   cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,location.register);
+
                   cg.ungetregister(exprasmlist,pleftreg);
                   hr := cg.getintregister(exprasmlist,OS_32);
                   cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_32,31,pleftreg,hr);
@@ -1011,7 +1010,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2003-11-10 19:10:31  peter
+  Revision 1.54  2003-12-09 19:14:50  jonas
+    * fixed and optimized in-node with constant smallset
+    * some register usage optimisations.
+
+  Revision 1.53  2003/11/10 19:10:31  peter
     * fixed range compare when the last value was an equal
       compare. The compare for the lower range was skipped
 
