@@ -190,8 +190,21 @@ function fdRead(handle : longint;var bufptr;size : dword) : dword;
      d : dword;
 
   begin
-     if not(Windows.ReadFile(handle,bufptr,size,d,nil)) then
-       SocketError:=Windows.GetLastError
+     if ioctlsocket(handle,FIONREAD,@d)<>0 then
+       begin
+         SocketError:=WSAGetLastError;
+         fdRead:=0;
+         exit;
+       end;
+     if d>0 then
+       begin
+         if size>d then
+           size:=d;
+         if not(Windows.ReadFile(handle,bufptr,size,d,nil)) then
+           SocketError:=Windows.GetLastError
+         else
+           SocketError:=0;
+       end
      else
        SocketError:=0;
      fdRead:=d;
@@ -211,7 +224,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.6  2000-06-19 13:32:18  michael
+  Revision 1.7  2000-06-21 22:26:47  pierre
+   * use ioctlsocket in fdRead
+
+  Revision 1.6  2000/06/19 13:32:18  michael
   + Corrected GetSocketOptions
 
   Revision 1.5  2000/02/09 16:59:34  peter
