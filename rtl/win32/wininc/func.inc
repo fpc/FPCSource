@@ -214,7 +214,9 @@ function GetTapeStatus(hDevice:HANDLE):DWORD; external 'kernel32' name 'GetTapeS
 function GetTapeParameters(hDevice:HANDLE; dwOperation:DWORD; lpdwSize:LPDWORD; lpTapeInformation:LPVOID):DWORD; external 'kernel32' name 'GetTapeParameters';
 function SetTapeParameters(hDevice:HANDLE; dwOperation:DWORD; lpTapeInformation:LPVOID):DWORD; external 'kernel32' name 'SetTapeParameters';
 function Beep(dwFreq:DWORD; dwDuration:DWORD):WINBOOL; external 'kernel32' name 'Beep';
-{$ifdef Unknown_functions}{ WARNING: functions not found !!}procedure OpenSound; external External_library name 'OpenSound';
+{$ifdef Unknown_functions}
+{ WARNING: functions not found !!}
+procedure OpenSound; external External_library name 'OpenSound';
 procedure CloseSound; external External_library name 'CloseSound';
 procedure StartSound; external External_library name 'StartSound';
 procedure StopSound; external External_library name 'StopSound';
@@ -230,7 +232,8 @@ function SetVoiceNote(nVoice:DWORD; nValue:DWORD; nLength:DWORD; nCdots:DWORD):D
 function SetVoiceQueueSize(nVoice:DWORD; nBytes:DWORD):DWORD; external External_library name 'SetVoiceQueueSize';
 function SetVoiceSound(nVoice:DWORD; Frequency:DWORD; nDuration:DWORD):DWORD; external External_library name 'SetVoiceSound';
 function SetVoiceThreshold(nVoice:DWORD; nNotes:DWORD):DWORD; external External_library name 'SetVoiceThreshold';
-{$endif Unknown_functions}function MulDiv(nNumber:longint; nNumerator:longint; nDenominator:longint):longint; external 'kernel32' name 'MulDiv';
+{$endif Unknown_functions}
+function MulDiv(nNumber:longint; nNumerator:longint; nDenominator:longint):longint; external 'kernel32' name 'MulDiv';
 procedure GetSystemTime(lpSystemTime:LPSYSTEMTIME); external 'kernel32' name 'GetSystemTime';
 function SetSystemTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external 'kernel32' name 'SetSystemTime';
 procedure GetLocalTime(lpSystemTime:LPSYSTEMTIME); external 'kernel32' name 'GetLocalTime';
@@ -982,25 +985,41 @@ function DragQueryPoint(_para1:HDROP; _para2:LPPOINT):WINBOOL; external 'shell32
 procedure DragFinish(_para1:HDROP); external 'shell32' name 'DragFinish';
 procedure DragAcceptFiles(_para1:HWND; _para2:WINBOOL); external 'shell32' name 'DragAcceptFiles';
 function DuplicateIcon(_para1:HINST; _para2:HICON):HICON; external 'shell32' name 'DuplicateIcon';
+function DdeAbandonTransaction(_para1:DWORD; _para2:HCONV; _para3:DWORD):BOOL;external 'user32' name 'DdeAbandonTransaction';
+function DdeAccessData(_para1:HDDEDATA; _para2:PDWORD):PBYTE;external 'user32' name 'DdeAccessData';
+function DdeAddData(_para1:HDDEDATA; _para2:PBYTE; _para3:DWORD; _para4:DWORD):HDDEDATA;external 'user32' name 'DdeAddData';
+function DdeClientTransaction(_para1:PBYTE; _para2:DWORD; _para3:HCONV; _para4:HSZ; _para5:UINT;
+           _para6:UINT; _para7:DWORD; _para8:PDWORD):HDDEDATA;external 'user32' name 'DdeClientTransaction';
+function DdeCmpStringHandles(_para1:HSZ; _para2:HSZ):longint; external 'user32' name 'DdeCmpStringHandles';
 function DdeConnect(_para1:DWORD; _para2:HSZ; _para3:HSZ; var _para4:CONVCONTEXT):HCONV; external 'user32' name 'DdeConnect';
+function DdeConnectList(_para1:DWORD; _para2:HSZ; _para3:HSZ; _para4:HCONVLIST; _para5:PCONVCONTEXT):HCONVLIST;external 'user32' name 'DdeConnectList';
+function DdeCreateDataHandle(_para1:DWORD; _para2:LPBYTE; _para3:DWORD; _para4:DWORD; _para5:HSZ;_para6:UINT; _para7:UINT):HDDEDATA; external 'user32' name 'DdeCreateDataHandle';
 function DdeDisconnect(_para1:HCONV):WINBOOL; external 'user32' name 'DdeDisconnect';
+function DdeDisconnectList(_para1:HCONVLIST):BOOL;external 'user32' name 'DdeDisconnectList';
+function DdeEnableCallback(_para1:DWORD; _para2:HCONV; _para3:UINT):BOOL;external 'user32' name 'DdeEnableCallback';
 function DdeFreeDataHandle(_para1:HDDEDATA):WINBOOL; external 'user32' name 'DdeFreeDataHandle';
+function DdeFreeStringHandle(_para1:DWORD;_para2:HSZ):WINBOOL; external 'user32' name 'DdeFreeStringHandle';
 function DdeGetData(_para1:HDDEDATA; var _para2:BYTE; _para3:DWORD; _para4:DWORD):DWORD; external 'user32' name 'DdeGetData';
 function DdeGetLastError(_para1:DWORD):UINT; external 'user32' name 'DdeGetLastError';
+function DdeImpersonateClient(_para1:HCONV):BOOL;external 'user32' name 'DdeImpersonateClient';
+function DdeKeepStringHandle(_para1:DWORD; _para2:HSZ):BOOL;external 'user32' name 'DdeKeepStringHandle';
 function DdeNameService(_para1:DWORD; _para2:HSZ; _para3:HSZ; _para4:UINT):HDDEDATA; external 'user32' name 'DdeNameService';
 function DdePostAdvise(_para1:DWORD; _para2:HSZ; _para3:HSZ):WINBOOL; external 'user32' name 'DdePostAdvise';
+function DdeQueryConvInfo(_para1:HCONV; _para2:DWORD; _para3:PCONVINFO):UINT;external 'user32' name 'DdeQueryConvInfo';
+function DdeQueryNextServer(_para1:HCONVLIST; _para2:HCONV):HCONV;external 'user32' name 'DdeQueryNextServer';
 function DdeReconnect(_para1:HCONV):HCONV; external 'user32' name 'DdeReconnect';
+function DdeSetUserHandle(_para1:HCONV; _para2:DWORD; _para3:DWORD):BOOL;external 'user32' name 'DdeSetUserHandle';
+function DdeUnaccessData(_para1:HDDEDATA):BOOL;external 'user32' name 'DdeUnaccessData';
 function DdeUninitialize(_para1:DWORD):WINBOOL; external 'user32' name 'DdeUninitialize';
-function DdeCmpStringHandles(_para1:HSZ; _para2:HSZ):longint; external 'user32' name 'DdeCmpStringHandles';
-function DdeFreeStringHandle(_para1:DWORD;_para2:HSZ):WINBOOL; external 'user32' name 'DdeFreeStringHandle';
-function DdeCreateDataHandle(_para1:DWORD; _para2:LPBYTE; _para3:DWORD; _para4:DWORD; _para5:HSZ;_para6:UINT; _para7:UINT):HDDEDATA; external 'user32' name 'DdeCreateDataHandle';
-{$ifdef Unknown_functions}function NetUserEnum(_para1:LPWSTR; _para2:DWORD; _para3:DWORD; var _para4:LPBYTE; _para5:DWORD;_para6:LPDWORD; _para7:LPDWORD; _para8:LPDWORD):DWORD; external 'netapi32' name 'NetUserEnum';
+{$ifdef Unknown_functions}
+function NetUserEnum(_para1:LPWSTR; _para2:DWORD; _para3:DWORD; var _para4:LPBYTE; _para5:DWORD;_para6:LPDWORD; _para7:LPDWORD; _para8:LPDWORD):DWORD; external 'netapi32' name 'NetUserEnum';
 function NetApiBufferFree(_para1:LPVOID):DWORD; external 'netapi32' name 'NetApiBufferFree';
 function NetUserGetInfo(_para1:LPWSTR; _para2:LPWSTR; _para3:DWORD; _para4:LPBYTE):DWORD; external 'netapi32' name 'NetUserGetInfo';
 function NetGetDCName(_para1:LPWSTR; _para2:LPWSTR; var _para3:LPBYTE):DWORD; external 'netapi32' name 'NetGetDCName';
 function NetGroupEnum(_para1:LPWSTR; _para2:DWORD; var _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD;_para6:LPDWORD; _para7:LPDWORD):DWORD; external 'netapi32' name 'NetGroupEnum';
 function NetLocalGroupEnum(_para1:LPWSTR; _para2:DWORD; var _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD;_para6:LPDWORD; _para7:LPDWORD):DWORD; external 'netapi32' name 'NetLocalGroupEnum';
-{$endif Unknown_functions}procedure SHAddToRecentDocs(_para1:UINT; _para2:LPCVOID); external 'shell32' name 'SHAddToRecentDocs';
+{$endif Unknown_functions}
+procedure SHAddToRecentDocs(_para1:UINT; _para2:LPCVOID); external 'shell32' name 'SHAddToRecentDocs';
 function SHBrowseForFolder(_para1:LPBROWSEINFO):LPITEMIDLIST; external 'shell32' name 'SHBrowseForFolder';
 procedure SHChangeNotify(_para1:LONG; _para2:UINT; _para3:LPCVOID; _para4:LPCVOID); external 'shell32' name 'SHChangeNotify';
 function SHFileOperation(_para1:LPSHFILEOPSTRUCT):longint; external 'shell32' name 'SHFileOperation';
@@ -2159,7 +2178,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2000-06-15 11:26:58  pierre
+  Revision 1.10  2000-06-15 19:56:12  pierre
+   * fix for bug 969: missing DDE functions
+
+  Revision 1.9  2000/06/15 11:26:58  pierre
     * avoid lines longer than 255 chars
     + add smartlink on by default, if not version 0.99.14
     * some functions not present in win95 DLL's are now only inserted if

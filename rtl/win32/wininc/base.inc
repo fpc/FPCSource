@@ -658,7 +658,8 @@ type
 
      CALLB = procedure ;CDECL;
 
-     PFNCALLBACK = CALLB;
+     { PFNCALLBACK = CALLB; }
+     PFNCALLBACK = function(_para1, _para2: UINT;_para3: HCONV;_para4, _para5: HSZ; _para6: HDDEDATA;_para7 ,_para8 :DWORD): HDDEData;cdecl;
 
      SECURITY_CONTEXT_TRACKING_MODE = WINBOOL;
   { End of stuff from ddeml.h in old Cygnus headers  }
@@ -940,7 +941,10 @@ type
 
 {
   $Log$
-  Revision 1.7  2000-06-11 07:04:58  peter
+  Revision 1.8  2000-06-15 19:56:12  pierre
+   * fix for bug 969: missing DDE functions
+
+  Revision 1.7  2000/06/11 07:04:58  peter
     * Windows unit has now more Delphi compatibile functions
     * placed the external functions only in the interface
 
