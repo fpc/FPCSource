@@ -1229,17 +1229,11 @@ implementation
              internalerror(200304251);
            case token of
               _LABEL:
-                begin
-                   label_dec;
-                end;
+                label_dec;
               _CONST:
-                begin
-                   const_dec;
-                end;
+                const_dec;
               _TYPE:
-                begin
-                   type_dec;
-                end;
+                type_dec;
               _VAR:
                 var_dec;
               _THREADVAR:
@@ -1251,8 +1245,6 @@ implementation
               _OPERATOR,
               _CLASS:
                 read_proc;
-              _RESOURCESTRING:
-                resourcestring_dec;
               _EXPORTS:
                 begin
                    if not(assigned(current_procinfo.procdef.localst)) or
@@ -1272,7 +1264,21 @@ implementation
                      end;
                 end
               else
-                break;
+                begin
+                  case idtoken of
+                    _RESOURCESTRING :
+                      resourcestring_dec;
+                    _PROPERTY:
+                      begin
+                        if (m_fpc in aktmodeswitches) then
+                          property_dec
+                        else
+                          break;
+                      end;
+                    else
+                      break;
+                  end;
+                end;
            end;
          until false;
 
@@ -1301,10 +1307,19 @@ implementation
                read_proc;
              else
                begin
-                 if idtoken=_RESOURCESTRING then
-                   resourcestring_dec
-                 else
-                   break;
+                 case idtoken of
+                   _RESOURCESTRING :
+                     resourcestring_dec;
+                   _PROPERTY:
+                     begin
+                       if (m_fpc in aktmodeswitches) then
+                         property_dec
+                       else
+                         break;
+                     end;
+                   else
+                     break;
+                 end;
                end;
            end;
          until false;
@@ -1318,7 +1333,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.175  2003-12-03 23:13:20  peter
+  Revision 1.176  2003-12-10 16:37:01  peter
+    * global property support for fpc modes
+
+  Revision 1.175  2003/12/03 23:13:20  peter
     * delayed paraloc allocation, a_param_*() gets extra parameter
       if it needs to allocate temp or real paralocation
     * optimized/simplified int-real loading

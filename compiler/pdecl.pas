@@ -41,6 +41,7 @@ interface
     procedure type_dec;
     procedure var_dec;
     procedure threadvar_dec;
+    procedure property_dec;
     procedure resourcestring_dec;
 
 implementation
@@ -564,6 +565,23 @@ implementation
       end;
 
 
+    procedure property_dec;
+      var
+         old_block_type : tblock_type;
+      begin
+         consume(_PROPERTY);
+         if not(symtablestack.symtabletype in [staticsymtable,globalsymtable]) then
+           message(parser_e_resourcestring_only_sg);
+         old_block_type:=block_type;
+         block_type:=bt_const;
+         repeat
+           read_property_dec(nil);
+           consume(_SEMICOLON);
+         until token<>_ID;
+         block_type:=old_block_type;
+      end;
+
+
     procedure threadvar_dec;
     { parses thread variable declarations and inserts them in }
     { the top symbol table of symtablestack                }
@@ -637,7 +655,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2003-11-12 15:48:48  peter
+  Revision 1.73  2003-12-10 16:37:01  peter
+    * global property support for fpc modes
+
+  Revision 1.72  2003/11/12 15:48:48  peter
     * don't give redefinition warning for forward classes
 
   Revision 1.71  2003/10/03 14:45:09  peter
