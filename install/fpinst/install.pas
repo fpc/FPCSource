@@ -421,7 +421,7 @@ program install;
   procedure tunzipdialog.do_unzip(s,topath : string);
     var
       again : boolean;
-      fn,dir,wild : string;
+      s,fn,dir,wild : string;
     begin
        Disposestr(filetext^.text);
        filetext^.Text:=NewStr('File: '+s);
@@ -439,13 +439,14 @@ program install;
          DosError := 0;
          again:=false;
 {$IFDEF DLL}
-         if FileUnzipEx(@fn[1],@dir[1],@wild[1])=0 then
+         doserror:=FileUnzipEx(@fn[1],@dir[1],@wild[1]);
 {$ELSE}
          FileUnzipEx(@fn[1],@dir[1],@wild[1]);
-         if (doserror<>0) then
 {$ENDIF}
+         if (doserror<>0) then
            begin
-              if messagebox('Error when extracting. Disk full?'#13+
+              str(doserror,s);
+              if messagebox('Error ('+s+') when extracting.  Disk full?'#13+
                             #13#3'Try again?',nil,mferror+mfyesbutton+mfnobutton)=cmNo then
                errorhalt
               else
@@ -1106,7 +1107,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2000-01-26 21:49:33  peter
+  Revision 1.14  2000-02-02 15:21:31  peter
+    * show errorcode in message when error in unzipping
+
+  Revision 1.13  2000/01/26 21:49:33  peter
     * install.pas compilable by FPC again
     * removed some notes from unzip.pas
     * support installer creation under linux (install has name conflict)
