@@ -1,24 +1,126 @@
 #
-#   $Id$
-#   This file is part of the Free Pascal run time library.
-#   Copyright (c) 1996-98 by Michael van Canneyt
-#
-#   Makefile for the Free Pascal Runtime Library
-#
-#   See the file COPYING.FPC, included in this distribution,
-#   for details about the copyright.
-#
-#   This program is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# Makefile generated from Makefile.fpc on 1999-11-10 00:46
 #
 
+defaultrule: Makefile native
+
+Makefile: Makefile.fpc
+	fpcmake
+	
+
 #####################################################################
-# Start of configurable section
+# Autodetect OS (Linux or Dos or Windows NT)
+# define inlinux when running under linux
+# define inWinNT when running under WinNT
 #####################################################################
 
-# Default place of makefile.fpc
-DEFAULTFPCDIR=..
+# We need only / in the path
+override PATH:=$(subst \,/,$(PATH))
+
+# Search for PWD and determine also if we are under linux
+PWD:=$(strip $(wildcard $(addsuffix /pwd.exe,$(subst ;, ,$(PATH)))))
+ifeq ($(PWD),)
+PWD:=$(strip $(wildcard $(addsuffix /pwd,$(subst :, ,$(PATH)))))
+ifeq ($(PWD),)
+nopwd:
+	@echo You need the GNU utils package to use this Makefile!
+	@echo Get ftp://ftp.freepascal.org/pub/fpc/dist/go32v2/utilgo32.zip
+	@exit
+else
+inlinux=1
+endif
+else
+PWD:=$(firstword $(PWD))
+endif
+
+# Detect NT - NT sets OS to Windows_NT
+ifndef inlinux
+ifeq ($(OS),Windows_NT)
+inWinNT=1
+endif
+endif
+
+# Detect OS/2 - OS/2 has OS2_SHELL defined
+ifndef inlinux
+ifndef inWinNT
+ifdef OS2_SHELL
+inOS2=1
+endif
+endif
+endif
+
+# The extension of executables
+ifdef inlinux
+EXEEXT=
+else
+EXEEXT=.exe
+endif
+
+# The path which is search separated by spaces
+ifdef inlinux
+SEARCHPATH=$(subst :, ,$(PATH))
+else
+SEARCHPATH=$(subst ;, ,$(PATH))
+endif
+
+#####################################################################
+# FPC version/target Detection
+#####################################################################
+
+# What compiler to use ?
+ifndef FPC
+ifdef inOS2
+export FPC=ppos2$(EXEEXT)
+else
+export FPC=ppc386$(EXEEXT)
+endif
+endif
+
+# Target OS
+ifndef OS_TARGET
+export OS_TARGET:=$(shell $(FPC) -iTO)
+endif
+
+# Source OS
+ifndef OS_SOURCE
+export OS_SOURCE:=$(shell $(FPC) -iSO)
+endif
+
+# Target CPU
+ifndef CPU_TARGET
+export CPU_TARGET:=$(shell $(FPC) -iTP)
+endif
+
+# Source CPU
+ifndef CPU_SOURCE
+export CPU_SOURCE:=$(shell $(FPC) -iSP)
+endif
+
+# FPC version
+ifndef FPC_VERSION
+export FPC_VERSION:=$(shell $(FPC) -iV)
+endif
+
+#####################################################################
+# Default Settings
+#####################################################################
+
+# Release ? Then force OPT and don't use extra opts via commandline
+ifdef RELEASE
+override OPT:=-Xs -OG2p3 -n
+endif
+
+# Verbose settings (warning,note,info)
+ifdef VERBOSE
+override OPT+=-vwni
+endif
+
+#####################################################################
+# User Settings
+#####################################################################
+
+
+# Pre Settings
 
 # Set redir to YES if you want a log file to be kept.
 ifndef REDIR
@@ -42,28 +144,27 @@ ifndef ERRORFILE
 ERRORFILE=
 endif
 
-
 #######################################################################
 # Fix options
 #######################################################################
 
 # Check debugging.
 ifneq ($(NODEBUG),YES)
-override OPT+=-g
+override FPCOPT+=-g
 endif
 
 # Check error definitions file.
 ifdef ERRORFILE
-override OPT+=-Fr$(ERRORFILE)
+override FPCOPT+=-Fr$(ERRORFILE)
 endif
 
 # Check logfile.
 ifeq ($(REDIR),YES)
 ifndef inlinux
-override PP=redir -eo $(PP)
+override FPC=redir -eo $(PP)
 endif
 # set the verbosity to max
-override OPT+=-va
+override FPCOPT+=-va
 ifdef REDIRFILE
 override REDIR:= >> $(REDIRFILE)
 else
@@ -74,81 +175,584 @@ override REDIR:=
 endif
 
 # Variables to export
-export PP OPT REDIR REDIRFILE ERRORFILE
+export REDIR REDIRFILE ERRORFILE
+
+# Targets
 
 
-############################################################################
+# Clean
+
+
+# Install
+
+
 # Defaults
-############################################################################
 
-.PHONY: rtl_go32v1 rtl_go32v2 rtl_linux rtl_os2 rtl_win32 \
-	install_go32v1 install_go32v2 install_linux install_os2 install_win32 \
-	go32v1libs go32v2libs linuxlibs os2libs win32libs \
-	clean install native diffs diffclean \
-	libs libinstall \
 
-all: native
+# Directories
 
-clean:
-	$(MAKE) -C go32v1 clean
-	$(MAKE) -C go32v2 clean
-	$(MAKE) -C linux clean
-	$(MAKE) -C win32 clean
-	$(MAKE) -C os2 clean
-	-$(DEL) *.dif
+
+# Libraries
 
 
 #####################################################################
-# Include default makefile
+# Compiler Command Line
 #####################################################################
 
-# test if FPCMAKE is still valid
-ifndef FPCMAKE
-ifdef FPCDIR
-FPCMAKE=$(FPCDIR)/makefile.fpc
-endif
-endif
-ifdef FPCMAKE
-ifeq ($(strip $(wildcard $(FPCMAKE))),)
-FPCDIR=
-FPCMAKE=
-endif
+# Load commandline OPTDEF and add FPC_CPU define
+override FPCOPTDEF:=-d$(CPU_TARGET)
+
+# Load commandline OPT and add target and unit dir to be sure
+ifneq ($(OS_TARGET),$(OS_SOURCE))
+override FPCOPT+=-T$(OS_TARGET)
 endif
 
-ifndef FPCDIR
-ifdef DEFAULTFPCDIR
-FPCDIR=$(DEFAULTFPCDIR)
-endif
+
+ifdef NEEDOPT
+override FPCOPT+=$(NEEDOPT)
 endif
 
-ifndef FPCMAKE
-ifdef FPCDIR
-FPCMAKE=$(FPCDIR)/makefile.fpc
+# Smartlinking
+ifeq ($(SMARTLINK),YES)
+override FPCOPT+=-Cx
+endif
+
+# Add commandline options
+ifdef OPT
+override FPCOPT+=$(OPT)
+endif
+ifdef UNITDIR
+override FPCOPT+=$(addprefix -Fu,$(UNITDIR))
+endif
+ifdef LIBDIR
+override FPCOPT+=$(addprefix -Fl,$(LIBDIR))
+endif
+ifdef OBJDIR
+override FPCOPT+=$(addprefix -Fo,$(OBJDIR))
+endif
+ifdef INCDIR
+override FPCOPT+=$(addprefix -Fi,$(INCDIR))
+endif
+
+# Add defines from FPCOPTDEF to FPCOPT
+ifdef FPCOPTDEF
+override FPCOPT+=$(FPCOPTDEF)
+endif
+
+# Was a config file specified ?
+ifdef CFGFILE
+override FPCOPT+=@$(CFGFILE)
+endif
+
+override COMPILER=$(FPC) $(FPCOPT)
+
+#####################################################################
+# Default Directories
+#####################################################################
+
+# Base dir
+ifdef PWD
+BASEDIR:=$(shell $(PWD))
 else
-FPCMAKE=makefile.fpc
+BASEDIR=.
+endif
+
+# set the prefix directory where to install everything
+ifndef PREFIXINSTALLDIR
+ifdef inlinux
+export PREFIXINSTALLDIR=/usr
+else
+export PREFIXINSTALLDIR=/pp
 endif
 endif
 
-override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
-ifndef FPCMAKE
-testfpcmake:
-	@echo makefile.fpc not found!
-	@echo Check the FPCMAKE and FPCDIR environment variables.
-	@stopnow
-ifndef NODEFAULTALL
-all: testfpcmake
-endif
-install: testfpcmake
-clean: testfpcmake
+# set the directory to the rtl base
+ifndef RTLDIR
+ifdef RTL
+RTLDIR:=$(RTL)/$(OS_TARGET)
 else
-include $(FPCMAKE)
-testfpcmake:
+RTLDIR:=$(FPCDIR)/rtl/$(OS_TARGET)
 endif
+endif
+
+# specify where units are.
+ifndef UNITDIR
+ifdef UNITS
+UNITDIR=$(UNITS)/$(OS_TARGET)
+else
+UNITDIR=$(FPCDIR)/units/$(OS_TARGET)
+endif
+endif
+ifeq ($(strip $(wildcard $(UNITDIR)/*)),)
+UNITDIR=
+endif
+
+# On linux, try to find where libgcc.a is.
+ifdef inlinux
+ifndef GCCLIBDIR
+export GCCLIBDIR:=$(shell dirname `(gcc -v 2>&1)| head -n 1| awk '{ print $$4 } '`)
+endif
+endif
+
+# Where to find other libraries
+ifdef inlinux
+ifndef OTHERLIBDIR
+export OTHERLIBDIR:=$(shell grep -v "^\#" /etc/ld.so.conf | awk '{ ORS=" "; print $1 }')
+endif
+endif
+
+#####################################################################
+# Install Directories based on BASEINSTALLDIR
+#####################################################################
+
+# set the base directory where to install everything
+ifndef BASEINSTALLDIR
+ifdef inlinux
+BASEINSTALLDIR=$(PREFIXINSTALLDIR)/lib/fpc/$(FPC_VERSION)
+else
+BASEINSTALLDIR=$(PREFIXINSTALLDIR)
+endif
+endif
+
+
+# Linux binary really goes to baseinstalldir
+ifndef LIBINSTALLDIR
+ifdef inlinux
+LIBINSTALLDIR=$(BASEINSTALLDIR)
+else
+LIBINSTALLDIR=$(BASEINSTALLDIR)/lib
+endif
+endif
+
+# set the directory where to install the binaries
+ifndef BININSTALLDIR
+ifdef inlinux
+BININSTALLDIR=$(PREFIXINSTALLDIR)/bin
+else
+BININSTALLDIR=$(BASEINSTALLDIR)/bin/$(OS_TARGET)
+endif
+endif
+
+# Where the .msg files will be stored
+ifndef MSGINSTALLDIR
+MSGINSTALLDIR=$(BASEINSTALLDIR)/msg
+endif
+
+# Where the .msg files will be stored
+ifndef SOURCEINSTALLDIR
+SOURCEINSTALLDIR=$(BASEINSTALLDIR)/source
+endif
+
+# Where the doc files will be stored
+ifndef DOCINSTALLDIR
+ifdef inlinux
+DOCINSTALLDIR=$(PREFIXINSTALLDIR)/doc/fpc/$(FPC_VERSION)
+else
+DOCINSTALLDIR=$(BASEINSTALLDIR)/doc
+endif
+endif
+
+########################
+# Unit Directories
+########################
+
+# this can be set to 'rtl' when the RTL units are installed
+ifndef UNITPREFIX
+UNITPREFIX=units
+endif
+
+# set the directory where to install the units.
+ifndef UNITINSTALLDIR
+UNITINSTALLDIR=$(BASEINSTALLDIR)/$(UNITPREFIX)/$(OS_TARGET)
+endif
+
+# set the directory where to install the units.
+ifndef STATIC_UNITINSTALLDIR
+STATIC_UNITINSTALLDIR=$(UNITINSTALLDIR)/static
+endif
+
+# set the directory where to install the units.
+ifndef SHARED_UNITINSTALLDIR
+SHARED_UNITINSTALLDIR=$(UNITINSTALLDIR)/shared
+endif
+
+# set the directory where to install the libs (must exist)
+ifndef STATIC_LIBINSTALLDIR
+STATIC_LIBINSTALLDIR=$(STATIC_UNITINSTALLDIR)
+endif
+
+# set the directory where to install the libs (must exist)
+ifndef SHARED_LIBINSTALLDIR
+ifdef inlinux
+SHARED_LIBINSTALLDIR=$(PREFIXINSTALLDIR)/lib
+else
+SHARED_LIBINSTALLDIR=$(SHARED_UNITINSTALLDIR)
+endif
+endif
+
+#####################################################################
+# Default extensions
+#####################################################################
+
+# Default needed extensions (Go32v2,Linux)
+LOADEREXT=.as
+PPLEXT=.ppl
+PPUEXT=.ppu
+OEXT=.o
+ASMEXT=.s
+SMARTEXT=.sl
+STATICLIBEXT=.a
+SHAREDLIBEXT=.so
+PACKAGESUFFIX=
+
+# Go32v1
+ifeq ($(OS_TARGET),go32v1)
+PPUEXT=.pp1
+OEXT=.o1
+ASMEXT=.s1
+SMARTEXT=.sl1
+STATICLIBEXT=.a1
+SHAREDLIBEXT=.so1
+PACKAGESUFFIX=v1
+endif
+
+# Go32v2
+ifeq ($(OS_TARGET),go32v2)
+PACKAGESUFFIX=go32
+endif
+
+# Linux
+ifeq ($(OS_TARGET),linux)
+PACKAGESUFFIX=linux
+endif
+
+# Win32
+ifeq ($(OS_TARGET),win32)
+PPUEXT=.ppw
+OEXT=.ow
+ASMEXT=.sw
+SMARTEXT=.slw
+STATICLIBEXT=.aw
+SHAREDLIBEXT=.dll
+PACKAGESUFFIX=win32
+endif
+
+# OS/2
+ifeq ($(OS_TARGET),os2)
+PPUEXT=.ppo
+ASMEXT=.so2
+OEXT=.oo2
+SMARTEXT=.so
+STATICLIBEXT=.ao2
+SHAREDLIBEXT=.dll
+PACKAGESUFFIX=os2
+endif
+
+# library prefix
+LIBPREFIX=lib
+ifeq ($(OS_TARGET),go32v2)
+LIBPREFIX=
+endif
+ifeq ($(OS_TARGET),go32v1)
+LIBPREFIX=
+endif
+
+# determine which .pas extension is used
+ifndef PASEXT
+ifdef EXEOBJECTS
+override TESTPAS:=$(strip $(wildcard $(addsuffix .pas,$(firstword $(EXEOBJECTS)))))
+else
+override TESTPAS:=$(strip $(wildcard $(addsuffix .pas,$(firstword $(UNITOBJECTS)))))
+endif
+ifeq ($(TESTPAS),)
+PASEXT=.pp
+else
+PASEXT=.pas
+endif
+endif
+
+#####################################################################
+# Default rules
+#####################################################################
+
+.PHONY: defaultrule all staticlib sharedlib showinstall install \
+	staticinstall sharedinstall libinstall zipinstall zipinstalladd \
+	clean cleanall depend info
+
+all: fpc_all
+
+staticlib: fpc_staticlib
+
+sharedlib: fpc_sharedlib
+
+showinstall: fpc_showinstall
+
+staticinstall: fpc_staticinstall
+
+sharedinstall: fpc_sharedinstall
+
+zipinstall: fpc_zipinstall
+
+zipinstalladd: fpc_zipinstalladd
+
+clean: fpc_clean
+
+clean_all: fpc_clean_all
+
+depend: fpc_depend
+
+info: fpc_info
+
+#####################################################################
+# General compile rules
+#####################################################################
+
+.PHONY: fpc_all fpc_units fpc_exes fpc_loaders
+
+# Create Filenames
+LOADEROFILES=$(addsuffix $(OEXT),$(LOADEROBJECTS))
+EXEFILES=$(addsuffix $(EXEEXT),$(EXEOBJECTS))
+EXEOFILES=$(addsuffix $(OEXT),$(EXEOBJECTS))
+UNITPPUFILES=$(addsuffix $(PPUEXT),$(UNITOBJECTS))
+UNITOFILES=$(addsuffix $(OEXT),$(UNITOBJECTS))
+UNITAFILES=$(addsuffix $(STATICLIBEXT),$(UNITOBJECTS))
+
+.SUFFIXES: $(EXEEXT) $(PPUEXT) $(OEXT) .pas .pp
+
+ifdef DEFAULTUNITS
+fpc_all: fpc_loaders fpc_units
+else
+fpc_all: fpc_loaders fpc_units fpc_exes
+endif
+
+fpc_loaders: $(LOADEROFILES)
+
+fpc_units: $(UNITPPUFILES)
+
+fpc_exes: $(EXEFILES)
+
+# General compile rules, available for both possible PASEXT
+%$(PPUEXT): %.pp
+	$(COMPILER) $< $(REDIR)
+	$(EXECPASS)
+
+%$(PPUEXT): %.pas
+	$(COMPILER) $< $(REDIR)
+	$(EXECPASS)
+
+%$(EXEEXT): %.pp
+	$(COMPILER) $< $(REDIR)
+	$(EXECPASS)
+
+%$(EXEEXT): %.pas
+	$(COMPILER) $< $(REDIR)
+	$(EXECPASS)
+
+%$(OEXT): %$(LOADEREXT)
+	$(AS) -o $*$(OEXT) $<
+
+#####################################################################
+# Library
+#####################################################################
+
+.PHONY: fpc_staticlib fpc_sharedlib
+
+# Default sharedlib units are all unit objects
+ifndef SHAREDLIBUNITOBJECTS
+SHAREDLIBUNITOBJECTS=$(UNITOBJECTS)
+endif
+
+fpc_staticlib:
+	$(MAKE) libsclean
+	$(MAKE) all SMARTLINK=YES
+
+fpc_sharedlib: all
+ifdef inlinux
+ifndef LIBNAME
+	@$(ECHO) LIBNAME not set
+else
+	$(PPUMOVE) $(SHAREDLIBUNITOBJECTS) -o$(LIBNAME)
+endif
+else
+	@$(ECHO) Shared Libraries not supported
+endif
+
+#####################################################################
+# Install rules
+#####################################################################
+
+.PHONY: fpc_showinstallfiles fpc_install
+
+ifdef UNITOBJECTS
+override UNITINSTALLFILES=$(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES))
+endif
+ifdef EXTRAINSTALLUNITS
+override EXTRAINSTALLFILES+=$(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS)))
+endif
+
+fpc_showinstallfiles : all
+ifndef DEFAULTUNITS
+ifdef EXEOBJECTS
+	@$(ECHO) $(addprefix "\n"$(BININSTALLDIR)/,$(EXEFILES))
+endif
+endif
+ifdef LOADEROBJECTS
+	@$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(LOADEROFILES))
+endif
+ifdef UNITINSTALLFILES
+	@$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(UNITINSTALLFILES))
+endif
+ifdef EXTRAINSTALLFILES
+	@$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(EXTRAINSTALLFILES))
+endif
+
+fpc_install:
+# Create UnitInstallFiles
+ifndef DEFAULTUNITS
+ifdef EXEOBJECTS
+	$(MKDIR) $(BININSTALLDIR)
+# Compress the exes if upx is defined
+ifdef UPXPROG
+	-$(UPXPROG) $(EXEFILES)
+endif
+	$(INSTALLEXE) $(EXEFILES) $(BININSTALLDIR)
+endif
+endif
+ifdef LOADEROBJECTS
+	$(MKDIR) $(UNITINSTALLDIR)
+	$(INSTALL) $(LOADEROFILES) $(UNITINSTALLDIR)
+endif
+ifdef UNITINSTALLFILES
+	$(MKDIR) $(UNITINSTALLDIR)
+	$(INSTALL) $(UNITINSTALLFILES) $(UNITINSTALLDIR)
+endif
+ifdef EXTRAINSTALLFILES
+	$(MKDIR) $(UNITINSTALLDIR)
+	$(INSTALL) $(EXTRAINSTALLFILES) $(UNITINSTALLDIR)
+endif
+
+#####################################################################
+# Zip
+#####################################################################
+
+.PHONY: fpc_zipinstall fpc_zipinstalladd
+
+# Temporary path to pack a file
+ifndef PACKDIR
+ifndef inlinux
+PACKDIR=pack_tmp
+else
+PACKDIR=/tmp/fpc-pack
+endif
+endif
+
+# Test dir if none specified
+ifndef PACKAGEDIR
+PACKAGEDIR=$(BASEDIR)
+endif
+
+# Add .zip/.tar.gz extension
+ifdef ZIPNAME
+ifndef inlinux
+override ZIPNAME:=$(ZIPNAME)$(ZIPEXT)
+endif
+endif
+
+# Default target which is call before zipping
+ifndef ZIPTARGET
+ZIPTARGET=install
+endif
+
+# Note: This will not remove the zipfile first
+fpc_zipinstalladd:
+ifndef ZIPNAME
+	@$(ECHO) Please specify ZIPNAME!
+	@exit
+else
+	$(MAKE) $(ZIPTARGET) PREFIXINSTALLDIR=$(PACKDIR)
+ifdef inlinux
+	gzip -d $(PACKAGEDIR)/$(ZIPNAME).tar.gz
+	cd $(PACKDIR) ; tar rv --file $(PACKAGEDIR)/$(ZIPNAME).tar * ; cd $(BASEDIR)
+	gzip $(PACKAGEDIR)/$(ZIPNAME).tar
+else
+	cd $(PACKDIR) ; $(ZIPPROG) $(PACKAGEDIR)/$(ZIPNAME) * ; cd $(BASEDIR)
+endif
+	$(DELTREE) $(PACKDIR)
+endif
+
+# First remove the zip and then install
+fpc_zipinstall:
+ifndef ZIPNAME
+	@$(ECHO) Please specify ZIPNAME!
+	@exit
+else
+	$(DEL) $(PACKAGEDIR)/$(ZIPNAME)
+	$(MAKE) $(ZIPTARGET) PREFIXINSTALLDIR=$(PACKDIR)
+ifdef inlinux
+	cd $(PACKDIR) ; tar cvz --file $(PACKAGEDIR)/$(ZIPNAME).tar.gz * ; cd $(BASEDIR)
+else
+	cd $(PACKDIR) ; $(ZIPPROG) $(PACKAGEDIR)/$(ZIPNAME) * ; cd $(BASEDIR)
+endif
+	$(DELTREE) $(PACKDIR)
+endif
+
+#####################################################################
+# Clean rules
+#####################################################################
+
+.PHONY: fpc_clean fpc_libsclean fpc_cleanall
+
+ifdef UNITOBJECTS
+override UNITCLEANFILES=$(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES))
+endif
+ifdef EXTRACLEANUNITS
+override EXTRACLEANFILES+=$(wildcard $(addsuffix $(OEXT),$(EXTRACLEANUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRACLEANUNITS)) $(addsuffix $(PPUEXT),$(EXTRACLEANUNITS)))
+endif
+
+fpc_clean:
+ifdef EXEOBJECTS
+	-$(DEL) $(EXEFILES) $(EXEOFILES)
+endif
+ifdef LOADEROBJECTS
+	-$(DEL) $(LOADEROFILES)
+endif
+ifdef UNITCLEANFILES
+	-$(DEL) $(UNITCLEANFILES)
+endif
+ifdef EXTRACLEANFILES
+	-$(DEL) $(EXTRACLEANFILES)
+endif
+	-$(DEL) $(PPAS) link.res log
+
+fpc_libsclean: clean
+	-$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+
+fpc_cleanall:
+ifdef EXEOBJECTS
+	-$(DEL) $(EXEFILES)
+endif
+	-$(DEL) *$(OEXT) *$(PPUEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+	-$(DELTREE) *$(SMARTEXT)
+
+#####################################################################
+# Depend rules
+#####################################################################
+
+.PHONY: fpc_depend
+
+fpc_depend:
+	$(PPDEP) $(UNITOBJECTS)
+
+#####################################################################
+# Users rules
+#####################################################################
 
 
 ############################################################################
 # RTLs
 ############################################################################
+
+.PHONY: native rtls rtlgo32v1 rtlgo32v2 rtllinux rtlos2 rtlwin32 rtlamiga
 
 native: rtl$(OS_SOURCE)
 
@@ -177,6 +781,8 @@ rtlamiga:
 # Libs
 ############################################################################
 
+.PHONY: nativelibs libs libgo32v1 libgo32v2 liblinux libos2 libwin32
+
 nativelibs : $(OS_SOURCE)libs
 
 libs: go32v1libs go32v2libs linuxlibs os2libs win32libs
@@ -201,18 +807,25 @@ win32libs:
 # Install
 ############################################################################
 
+.PHONY: install native_install install_go32v1 install_go32v2 install_linux \
+	install_os2 install_win32
+
 install: install_linux install_go32v1 install_go32v2 install_os2 install_win32
 
 native_install: install_$(OS_SRC)
 
 install_go32v1:
 	$(MAKE) -C go32v1 install
+
 install_go32v2:
 	$(MAKE) -C go32v2 install
+
 install_linux:
 	$(MAKE) -C linux install
+
 install_os2:
 	$(MAKE) -C os2 install
+
 install_win32:
 	$(MAKE) -C win32 install
 
@@ -221,71 +834,25 @@ install_win32:
 # LibInstall
 ############################################################################
 
+.PHONY: native_libinstall libinstall libinstall_go32v1 libinstall_go32v2 \
+	libinstall_linux libinstall_os2 libinstall_win32
+
 libinstall: libinstall_linux libinstall_go32v1 libinstall_go32v2 \
-	libinstall_os2 libinstall_win32
+	    libinstall_os2 libinstall_win32
 
 native_libinstall: libinstall_$(OS_SOURCE)
 
 libinstall_go32v1:
 	$(MAKE) -C go32v1 libinstall
+
 libinstall_go32v2:
 	$(MAKE) -C go32v2 libinstall
+
 libinstall_linux:
 	$(MAKE) -C linux libinstall
+
 libinstall_os2:
 	$(MAKE) -C os2 libinstall
+
 libinstall_win32:
 	$(MAKE) -C win32 libinstall
-
-
-############################################################################
-# Diffs
-############################################################################
-
-diffs: diffs_rtl diffs_inc diffs_i386 diffs_m68k diffs_dos diffs_cfg \
-	diffs_os2 diffs_go32v1 diffs_go32v2 diffs_linux diffs_win32 \
-	diffs_template
-
-makefile.dif : makefile
-	-$(DIFF) $(DIFFOPTS) makefile $(REFPATH)/makefile > makefile.dif
-
-diffs_rtl: makefile.dif
-
-diffs_inc:
-	$(MAKE) -C inc diffs
-diffs_i386:
-	$(MAKE) -C i386 diffs
-diffs_m68k:
-	$(MAKE) -C m68k diffs
-diffs_cfg:
-	$(MAKE) -C cfg diffs
-diffs_template:
-	$(MAKE) -C template diffs
-diffs_go32v1:
-	$(MAKE) -C go32v1 diffs
-diffs_go32v2:
-	$(MAKE) -C go32v2 diffs
-diffs_linux:
-	$(MAKE) -C linux diffs
-diffs_os2:
-	$(MAKE) -C os2 diffs
-diffs_win32:
-	$(MAKE) -C win32 diffs
-
-diffclean:
-	$(MAKE) -C template diffclean
-	$(MAKE) -C dos diffclean
-	$(MAKE) -C go32v1 diffclean
-	$(MAKE) -C go32v2 diffclean
-	$(MAKE) -C linux diffclean
-	$(MAKE) -C os2 diffclean
-	$(MAKE) -C win32 diffclean
-	-$(DEL) *.dif
-
-#
-# $Log$
-# Revision 1.7  1999-06-01 13:23:07  peter
-#   * fixes to work with the new makefile
-#   * os2 compiles now correct under linux
-#
-#
