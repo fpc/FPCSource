@@ -864,6 +864,7 @@ asm
     stosw
     xor eax, eax
     mov al, dl
+    imul 10
     shl eax, 16
     mov al, dh
     stosd
@@ -986,7 +987,10 @@ end.
 
 {
   $Log$
-  Revision 1.27  2003-04-01 15:57:41  peter
+  Revision 1.28  2003-06-06 23:31:17  hajny
+    * fix for bug 2518 applied to OS/2 as well
+
+  Revision 1.27  2003/04/01 15:57:41  peter
     * made THandle platform dependent and unique type
 
   Revision 1.26  2003/03/31 02:18:39  yuri
