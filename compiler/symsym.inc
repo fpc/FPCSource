@@ -1273,9 +1273,11 @@
           ((properties and sp_static)<>0) then
          begin
             if (cs_gdb_gsym in aktglobalswitches) then st := 'G' else st := 'S';
+{$ifndef Delphi}
             stabstring := strpnew('"'+owner^.name^+'__'+name+':'+
                      +definition^.numberstring+'",'+
                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
+{$endif}
          end
        else if (owner^.symtabletype = globalsymtable) or
           (owner^.symtabletype = unitsymtable) then
@@ -1972,7 +1974,10 @@
 
 {
   $Log$
-  Revision 1.84  1999-05-04 16:05:13  pierre
+  Revision 1.85  1999-05-04 21:45:07  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.84  1999/05/04 16:05:13  pierre
    * fix for unitsym problem
 
   Revision 1.83  1999/04/28 06:02:13  florian

@@ -39,7 +39,7 @@ unit pexports;
 
       var
          hp : pexported_item;
-         code : word;
+         code : integer;
          DefString:string;
          ProcName:string;
          InternalProcName:string;
@@ -120,7 +120,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  1999-03-26 00:05:35  peter
+  Revision 1.9  1999-05-04 21:44:56  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.8  1999/03/26 00:05:35  peter
     * released valintern
     + deffile is now removed when compiling is finished
     * ^( compiles now correct

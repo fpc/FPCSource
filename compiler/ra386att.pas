@@ -990,7 +990,7 @@ end;
   var expr: string;
       tempstr: string;
       r : bestreal;
-      code : word;
+      code : integer;
       negativ : boolean;
       errorflag: boolean;
   Begin
@@ -2056,7 +2056,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  1999-05-02 14:25:07  peter
+  Revision 1.43  1999-05-04 21:45:01  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.42  1999/05/02 14:25:07  peter
     * only allow *<reg/ref> when call/jmp is used
 
   Revision 1.41  1999/05/01 13:48:39  peter

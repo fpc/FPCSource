@@ -30,6 +30,9 @@ procedure CompileResourceFiles;
 implementation
 
 uses
+{$ifdef Delphi}
+  dmisc,
+{$endif Delphi}
   Dos,
   Systems,Globtype,Globals,Verbose,Files,
   Script;
@@ -53,7 +56,11 @@ var
            utilsdirectory,resfound);
       end
     else
+{$ifdef Delphi}
+      respath:=Search(target_res.resbin+source_os.exeext,'.;'+exepath+';'+dmisc.getenv('PATH'),resfound);
+{$else Delphi}
       respath:=Search(target_res.resbin+source_os.exeext,'.;'+exepath+';'+dos.getenv('PATH'),resfound);
+{$endif Delphi}
     resbin:=respath+target_res.resbin+source_os.exeext;
     if (not resfound) and not(cs_link_extern in aktglobalswitches) then
      begin
@@ -103,7 +110,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-01-06 14:38:09  michael
+  Revision 1.4  1999-05-04 21:44:40  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.3  1999/01/06 14:38:09  michael
   + Fixed wrong unit name.
 
   Revision 1.2  1999/01/06 12:56:01  peter

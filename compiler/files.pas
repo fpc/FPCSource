@@ -221,6 +221,9 @@ unit files;
 implementation
 
 uses
+{$ifdef Delphi}
+   dmisc,
+{$endif Delphi}
   dos,verbose,systems,
   symtable,scanner;
 
@@ -1191,7 +1194,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.93  1999-04-26 13:31:29  peter
+  Revision 1.94  1999-05-04 21:44:42  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.93  1999/04/26 13:31:29  peter
     * release storenumber,double_checksum
 
   Revision 1.92  1999/04/25 15:08:36  peter

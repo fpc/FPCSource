@@ -28,6 +28,9 @@ unit scanner;
   interface
 
     uses
+{$ifdef Delphi}
+       dmisc,
+{$endif Delphi}
        globtype,version,tokens,
        cobjects,globals,verbose,comphook,files;
 
@@ -1651,7 +1654,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  1999-04-07 14:36:44  pierre
+  Revision 1.82  1999-05-04 21:45:04  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.81  1999/04/07 14:36:44  pierre
    + better preproc stack checking and report
 
   Revision 1.80  1999/04/06 11:20:59  peter

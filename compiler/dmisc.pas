@@ -328,7 +328,7 @@ var
   SI: TStartupInfo;
   PI: TProcessInformation;
   Proc : THandle;
-  l    : Longint;
+  l    : DWord;
   AppPath,
   AppParam : array[0..255] of char;
 begin
@@ -351,7 +351,7 @@ begin
   if WaitForSingleObject(Proc, Infinite) <> $ffffffff then
     GetExitCodeProcess(Proc,l)
   else
-    l:=-1;
+    l:=$ffffffff;
   CloseHandle(Proc);
   LastDosExitCode:=l;
 end;
@@ -395,7 +395,7 @@ function diskfree(drive : byte) : longint;
 var
   disk : array[1..4] of char;
   secs,bytes,
-  free,total : longint;
+  free,total : DWord;
 begin
   if drive=0 then
    begin
@@ -420,7 +420,7 @@ function disksize(drive : byte) : longint;
 var
   disk : array[1..4] of char;
   secs,bytes,
-  free,total : longint;
+  free,total : DWord;
 begin
   if drive=0 then
    begin
@@ -848,7 +848,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.1  1998-09-18 16:03:38  florian
+  Revision 1.2  1999-05-04 21:44:41  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.1  1998/09/18 16:03:38  florian
     * some changes to compile with Delphi
 
 }

@@ -47,7 +47,11 @@ type
 
 implementation
 
-uses    globtype,dos,strings,globals,link,files;
+  uses
+{$ifdef Delphi}
+     dmisc,
+{$endif Delphi}
+     globtype,dos,strings,globals,link,files;
 
 const   profile_flag:boolean=false;
 
@@ -329,7 +333,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-12-11 00:03:25  peter
+  Revision 1.7  1999-05-04 21:44:52  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.6  1998/12/11 00:03:25  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.5  1998/10/16 14:20:53  daniel

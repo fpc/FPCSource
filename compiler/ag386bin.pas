@@ -78,7 +78,7 @@ unit ag386bin;
       var
         ofs,
         nidx,nother,i,line,j : longint;
-        code : word;
+        code : integer;
         hp : pchar;
         reloc : boolean;
         sec : tsection;
@@ -662,7 +662,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.1  1999-05-01 13:23:57  peter
+  Revision 1.2  1999-05-04 21:44:30  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.1  1999/05/01 13:23:57  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

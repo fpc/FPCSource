@@ -64,7 +64,10 @@ type
 implementation
 
 uses
-  dos;
+{$ifdef Delphi}
+   dmisc,
+{$endif Delphi}
+   dos;
 
 const
 {$ifdef TP}
@@ -273,7 +276,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-05-01 13:24:26  peter
+  Revision 1.2  1999-05-04 21:44:53  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.1  1999/05/01 13:24:26  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

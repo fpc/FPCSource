@@ -106,7 +106,7 @@
     procedure writedefref(p : pdef);
       begin
         if p=nil then
-         current_ppu^.putlongint($ffffffff)
+         current_ppu^.putlongint(-1)
         else
          begin
            if p^.owner^.symtabletype=staticsymtable then
@@ -129,7 +129,7 @@
     procedure writesymref(p : psym);
       begin
         if p=nil then
-         current_ppu^.putlongint($ffffffff)
+         current_ppu^.putlongint(-1)
         else
          begin
            if p^.owner^.symtabletype=staticsymtable then
@@ -510,7 +510,10 @@
 
 {
   $Log$
-  Revision 1.38  1999-04-26 13:31:51  peter
+  Revision 1.39  1999-05-04 21:45:06  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.38  1999/04/26 13:31:51  peter
     * release storenumber,double_checksum
 
   Revision 1.37  1999/04/21 09:43:53  peter

@@ -360,7 +360,8 @@ end;
 function tppufile.GetPPUVersion:longint;
 var
   l    : longint;
-  code : word;
+  code : integer;
+
 begin
   Val(header.ver[1]+header.ver[2]+header.ver[3],l,code);
   if code=0 then
@@ -396,7 +397,12 @@ end;
 function tppufile.open:boolean;
 var
   ofmode : byte;
+{$ifdef delphi}
+  i      : integer;
+{$else delphi}
   i      : word;
+{$endif delphi}
+
 begin
   open:=false;
   assign(f,fname);
@@ -868,7 +874,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  1999-04-26 18:30:00  peter
+  Revision 1.31  1999-05-04 21:44:59  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.30  1999/04/26 18:30:00  peter
     * farpointerdef moved into pointerdef.is_far
 
   Revision 1.29  1999/04/26 13:31:41  peter

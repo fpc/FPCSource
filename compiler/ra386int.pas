@@ -894,7 +894,7 @@ Procedure BuildBracketExpression(var Instr: TInstruction);
 var
   l : longint;
   hs : string;
-  code : word;
+  code : integer;
   hreg,
   oldbase : tregister;
   GotPlus,Negative : boolean;
@@ -1724,7 +1724,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  1999-05-01 13:48:41  peter
+  Revision 1.32  1999-05-04 21:45:02  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.31  1999/05/01 13:48:41  peter
     * merged nasm compiler
 
   Revision 1.6  1999/04/26 23:26:18  peter

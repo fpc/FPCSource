@@ -1,4 +1,8 @@
+{$ifdef Delphi}
+const msgtxt : array[0..00103] of string[240]=(
+{$else}
 const msgtxt : array[0..00103,1..240] of char=(
+{$endif}
   'T_Compiler: $1'#000+
   'D_Source OS: $1'#000+
   'I_Target OS: $1'#000+
@@ -537,7 +541,7 @@ const msgtxt : array[0..00103,1..240] of char=(
   'Compiler Date  : $FPCDATE'#000+
   'Compiler Target: $FPCTARGET'#000+
   #000+
-  'This program comes under the GNU General Public Licence'#000,+
+  'This program comes under the GNU General Public Licence'#000,
   'For more information read COPYING.FPC'#000+
   #000+
   'Report bugs,suggestions etc to:'#000+

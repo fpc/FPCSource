@@ -190,6 +190,20 @@ implementation
       end;
 
 {$else}
+{$ifdef Delphi}
+
+    function setjmp(var rec : jmp_buf) : longint;
+
+      begin
+         result:=0;
+      end;
+
+    procedure longjmp(const rec : jmp_buf;return_value : longint);
+
+      begin
+      end;
+      
+{$else Delphi}
 
     function setjmp(var rec : jmp_buf) : longint;
       begin
@@ -330,13 +344,16 @@ implementation
             ret
          end;
       end;
-
+{$endif Delphi}
 {$endif TP}
 
 end.
 {
   $Log$
-  Revision 1.5  1998-10-28 18:26:23  pierre
+  Revision 1.6  1999-05-04 21:45:08  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.5  1998/10/28 18:26:23  pierre
    * removed some erros after other errors (introduced by useexcept)
    * stabs works again correctly (for how long !)
 

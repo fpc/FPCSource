@@ -99,11 +99,15 @@ unit ag386nsm;
         c  : comp;
         dd : pdouble;
       begin
-      {$ifdef TP}
+{$ifdef TP}
          c:=d;
-      {$else}
+{$else TP}
+{$ifdef Delphi}
+         c:=d;
+{$else Delphi}
          c:=comp(d);
-       {$endif}
+{$endif Delphi}
+{$endif TP}
          dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
          comp2str:=double2str(dd^);
       end;
@@ -733,7 +737,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.30  1999-05-02 22:41:50  peter
+  Revision 1.31  1999-05-04 21:44:32  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.30  1999/05/02 22:41:50  peter
     * moved section names to systems
     * fixed nasm,intel writer
 

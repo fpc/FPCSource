@@ -229,7 +229,9 @@ begin
   exitproc:=@myexit;
 {$ifndef VER0_99_5}
   {$ifndef TP}
+  {$ifndef Delphi}
     heapblocks:=true;
+  {$endif Delphi}    
   {$endif}
 {$endif}
 {$ifdef UseOverlay}
@@ -241,7 +243,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1998-09-18 16:03:44  florian
+  Revision 1.2  1999-05-04 21:44:58  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.1  1998/09/18 16:03:44  florian
     * some changes to compile with Delphi
 
   Revision 1.28  1998/08/26 15:31:17  peter

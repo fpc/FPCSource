@@ -261,7 +261,7 @@ unit pdecl;
          { to handle absolute }
          abssym : pabsolutesym;
          l    : longint;
-         code : word;
+         code : integer;
          { c var }
          newtype : ptypesym;
          is_dll,
@@ -792,7 +792,7 @@ unit pdecl;
            p,p2 : ppropertysym;
            overriden : psym;
            hs : string;
-           code : word;
+           code : integer;
            varspez : tvarspez;
            sc : pstringcontainer;
            hp : pdef;
@@ -2272,7 +2272,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.113  1999-05-01 13:24:30  peter
+  Revision 1.114  1999-05-04 21:44:54  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.113  1999/05/01 13:24:30  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

@@ -534,6 +534,31 @@ unit pexpr;
          afterassignment:=prevafterassn;
       end;
 
+    procedure handle_procvar(procvar : pprocvardef;var t : ptree);
+
+      begin
+         if ((procvar^.options and pomethodpointer)<>0) then
+           begin
+              if (t^.methodpointer^.resulttype^.deftype=objectdef) and
+                 (pobjectdef(t^.methodpointer^.resulttype)^.isclass) and
+                 (proc_to_procvar_equal(procvar,pprocsym(t^.symtableentry)^.definition)) then
+                begin
+                   t^.treetype:=loadn;
+                   t^.disposetyp:=dt_left;
+                   t^.left:=t^.methodpointer;
+                   t^.resulttype:=pprocsym(t^.symtableprocentry)^.definition;
+                   t^.symtableentry:=pvarsym(t^.symtableprocentry);
+                end
+              else
+                Message(type_e_mismatch);
+           end
+         else if (proc_to_procvar_equal(getprocvardef,pprocsym(t^.symtableentry)^.definition)) then
+           begin
+              t^.treetype:=loadn;
+              t^.resulttype:=pprocsym(t^.symtableprocentry)^.definition;
+              t^.symtableentry:=t^.symtableprocentry;
+           end;
+      end;
 
     { the following procedure handles the access to a property symbol }
     procedure handle_propertysym(sym : psym;st : psymtable;var p1 : ptree;
@@ -578,8 +603,12 @@ unit pexpr;
                         p1^.left:=paras;
                         consume(ASSIGNMENT);
                         { read the expression }
+                        getprocvar:=ppropertysym(sym)^.proptype^.deftype=procvardef;
                         p2:=comp_expr(true);
+                        if (p2^.treetype<>errorn) and getprocvar then
+                          handle_procvar(pprocvardef(ppropertysym(sym)^.proptype),p2);
                         p1^.left:=gencallparanode(p2,p1^.left);
+                        getprocvar:=false;
                      end
                    else if ppropertysym(sym)^.writeaccesssym^.typ=varsym then
                      begin
@@ -928,7 +957,7 @@ unit pexpr;
                                  else { not LKLAMMER}
                                   if (token=POINT) and
                                      (pd^.deftype=objectdef) and
-                                     ((pobjectdef(pd)^.options and oo_is_class)=0) then
+                                     not(pobjectdef(pd)^.isclass) then
                                     begin
                                       consume(POINT);
                                       if assigned(procinfo._class) then
@@ -983,7 +1012,7 @@ unit pexpr;
                                     begin
                                        { class reference ? }
                                        if (pd^.deftype=objectdef)
-                                         and ((pobjectdef(pd)^.options and oo_is_class)<>0) then
+                                         and pobjectdef(pd)^.isclass then
                                          begin
                                             p1:=gentypenode(pd);
                                             p1^.resulttype:=pd;
@@ -1056,7 +1085,7 @@ unit pexpr;
                                 again,p1,pd);
                               if possible_error and
                                  ((p1^.procdefinition^.options and poclassmethod)=0) then
-                               Message(parser_e_only_class_methods);
+                                Message(parser_e_only_class_methods);
                             end;
               propertysym : begin
                               { access to property in a method }
@@ -1869,29 +1898,7 @@ unit pexpr;
                               end;
                             p2:=sub_expr(opcompare,true);
                             if getprocvar and (p2^.treetype=calln) then
-                              begin
-                                 if ((getprocvardef^.options and pomethodpointer)<>0) then
-                                   begin
-                                      if (p2^.methodpointer^.resulttype^.deftype=objectdef) and
-                                         (pobjectdef(p2^.methodpointer^.resulttype)^.isclass) and
-                                         (proc_to_procvar_equal(getprocvardef,pprocsym(p2^.symtableentry)^.definition)) then
-                                        begin
-                                           p2^.treetype:=loadn;
-                                           p2^.disposetyp:=dt_left;
-                                           p2^.left:=p2^.methodpointer;
-                                           p2^.resulttype:=pprocsym(p2^.symtableprocentry)^.definition;
-                                           p2^.symtableentry:=pvarsym(p2^.symtableprocentry);
-                                        end
-                                      else
-                                        Message(type_e_mismatch);
-                                   end
-                                 else if (proc_to_procvar_equal(getprocvardef,pprocsym(p2^.symtableentry)^.definition)) then
-                                   begin
-                                      p2^.treetype:=loadn;
-                                      p2^.resulttype:=pprocsym(p2^.symtableprocentry)^.definition;
-                                      p2^.symtableentry:=p2^.symtableprocentry;
-                                   end;
-                              end;
+                              handle_procvar(getprocvardef,p2);
                             getprocvar:=false;
                             p1:=gennode(assignn,p1,p2);
                          end;
@@ -1972,7 +1979,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.99  1999-05-01 13:24:31  peter
+  Revision 1.100  1999-05-04 21:44:57  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.99  1999/05/01 13:24:31  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

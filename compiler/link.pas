@@ -65,6 +65,9 @@ Var
 Implementation
 
 uses
+{$ifdef Delphi}
+  dmisc,
+{$endif Delphi}
   globtype,systems,
   script,globals,verbose
 {$ifdef i386}
@@ -637,7 +640,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.52  1999-05-03 21:30:30  peter
+  Revision 1.53  1999-05-04 21:44:44  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.52  1999/05/03 21:30:30  peter
     + glibc 2.1
 
   Revision 1.51  1999/04/28 23:42:33  pierre

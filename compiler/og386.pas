@@ -28,6 +28,9 @@ unit og386;
 
   interface
     uses
+{$ifdef Delphi}
+       dmisc,
+{$endif Delphi}
        dos,
        owbase,owar,
        systems,i386base,aasm;
@@ -236,7 +239,10 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.2  1999-05-02 22:41:54  peter
+  Revision 1.3  1999-05-04 21:44:50  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.2  1999/05/02 22:41:54  peter
     * moved section names to systems
     * fixed nasm,intel writer
 

@@ -92,6 +92,9 @@ uses
 {$ifdef BrowserCol}
   browcol,
 {$endif BrowserCol}
+{$ifdef Delphi}
+  dmisc,
+{$endif Delphi}
   dos,verbose,comphook,systems,
   globals,options,parser,symtable,link,import,export;
 
@@ -266,7 +269,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  1999-04-21 09:43:33  peter
+  Revision 1.21  1999-05-04 21:44:39  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.20  1999/04/21 09:43:33  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)

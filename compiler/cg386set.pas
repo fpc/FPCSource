@@ -659,8 +659,11 @@ implementation
       var
          lv,hv,min_label,max_label,labels : longint;
          max_linear_list : longint;
+{$ifdef Delphi}
+         dist : longword;
+{$else Delphi}
          dist : dword;
-
+{$endif Delphi}
       begin
          getlabel(endlabel);
          getlabel(elselabel);
@@ -741,10 +744,17 @@ implementation
 
               if (min_label<0) and (max_label>0) then
                 begin
+{$ifdef Delphi}
+                   if min_label=$80000000 then
+                     dist:=longword(max_label)+longword($80000000)
+                   else
+                     dist:=longword(max_label)+longword(-min_label)
+{$else Delphi}
                    if min_label=$80000000 then
                      dist:=dword(max_label)+dword($80000000)
                    else
                      dist:=dword(max_label)+dword(-min_label)
+{$endif Delphi}
                 end
               else
                 dist:=max_label-min_label;
@@ -824,7 +834,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1999-05-01 13:24:15  peter
+  Revision 1.29  1999-05-04 21:44:34  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.28  1999/05/01 13:24:15  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

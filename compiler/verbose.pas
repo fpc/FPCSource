@@ -123,7 +123,7 @@ end;
 function SetVerbosity(const s:string):boolean;
 var
   m : Longint;
-  i : Word;
+  i : Integer;
   inverse : boolean;
   c : char;
 begin
@@ -133,11 +133,12 @@ begin
    status.verbosity:=m
   else
    begin
-     for i:=1 to length(s) do
+     i:=1;
+     while i<=length(s) do
        begin
           c:=upcase(s[i]);
           inverse:=false;
-        { on/off ? }
+          { on/off ? }
           if (i<length(s)) then
            case s[i+1] of
             '-' : begin
@@ -146,7 +147,7 @@ begin
                   end;
             '+' : inc(i);
            end;
-         { handle switch }
+          { handle switch }
           case c of
           { Special cases }
            'A' : status.verbosity:=V_All;
@@ -225,6 +226,7 @@ begin
                  else
                    status.verbosity:=status.verbosity or V_Assem;
            end;
+          inc(i);
        end;
      end;
   if status.verbosity=0 then
@@ -465,7 +467,10 @@ end.
 
 {
   $Log$
-  Revision 1.37  1999-04-21 07:41:06  pierre
+  Revision 1.38  1999-05-04 21:45:09  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.37  1999/04/21 07:41:06  pierre
    + added -vz for assembler specifc comments
 
   Revision 1.36  1999/03/24 23:17:44  peter

@@ -29,6 +29,9 @@ interface
 {$endif}
   
 uses
+{$ifdef Delphi}
+  dmisc,
+{$endif Delphi}
   dos,cobjects,globtype,globals,aasm;
 
 const
@@ -545,7 +548,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.44  1999-05-02 23:28:42  peter
+  Revision 1.45  1999-05-04 21:44:33  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.44  1999/05/02 23:28:42  peter
     * don't include ag386bin for oldasm
 
   Revision 1.43  1999/05/02 22:41:51  peter

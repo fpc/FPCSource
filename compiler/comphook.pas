@@ -154,13 +154,17 @@ begin
 { Status info?, Called every line }
   if ((status.verbosity and V_Status)<>0) then
    begin
+{$ifndef Delphi}
      if (status.compiledlines=1) then
        WriteLn(memavail shr 10,' Kb Free');
+{$endif Delphi}
      if (status.currentline>0) and (status.currentline mod 100=0) then
 {$ifdef FPC}
        WriteLn(status.currentline,' ',memavail shr 10,'/',system.heapsize shr 10,' Kb Free');
 {$else}
+{$ifndef Delphi}
        WriteLn(status.currentline,' ',memavail shr 10,' Kb Free');
+{$endif Delphi}
 {$endif}
    end
 end;
@@ -261,7 +265,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1999-01-15 12:27:23  peter
+  Revision 1.16  1999-05-04 21:44:38  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.15  1999/01/15 12:27:23  peter
     * removed path from output, was there only for debugging
 
   Revision 1.14  1999/01/14 21:47:09  peter

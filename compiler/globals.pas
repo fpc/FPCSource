@@ -33,6 +33,10 @@ unit globals;
 {$ifdef TP}
       objects,
 {$endif}
+{$ifdef Delphi4}
+      dmisc,
+      sysutils,
+{$endif}
 {$ifdef linux}
       linux,
 {$endif}
@@ -655,7 +659,11 @@ unit globals;
       var
         hour,min,sec,hsec : word;
       begin
+{$ifdef delphi}
+        dmisc.gettime(hour,min,sec,hsec);
+{$else delphi}
         dos.gettime(hour,min,sec,hsec);
+{$endif delphi}
         gettimestr:=L0(Hour)+':'+L0(min)+':'+L0(sec);
       end;
 
@@ -667,7 +675,11 @@ unit globals;
       var
         Year,Month,Day,Wday : Word;
       begin
+{$ifdef delphi}
+        dmisc.getdate(year,month,day,wday);
+{$else}
         dos.getdate(year,month,day,wday);
+{$endif}
         getdatestr:=L0(Year)+'/'+L0(Month)+'/'+L0(Day);
       end;
 
@@ -728,7 +740,14 @@ unit globals;
       Begin
       End;
 {$endif not FPC}
+{$ifdef delphi}
+    Function FileExists ( Const F : String) : Boolean;
 
+      begin
+         FileExists:=sysutils.FileExists(f);
+      end;
+
+{$else}
     Function FileExists ( Const F : String) : Boolean;
       Var
       {$ifdef linux}
@@ -745,6 +764,7 @@ unit globals;
         findclose(Info);
       {$endif}
       end;
+{$endif}
 
 
     Function RemoveFile(const f:string):boolean;
@@ -1014,7 +1034,11 @@ unit globals;
      if FStat (F,Info) then
       L:=info.mtime;
    {$else}
+{$ifdef delphi}
+     dmisc.FindFirst (F,archive+readonly+hidden,info);
+{$else delphi}
      FindFirst (F,archive+readonly+hidden,info);
+{$endif delphi}
      if DosError=0 then
       l:=info.time;
      {$ifdef Linux}
@@ -1057,7 +1081,11 @@ unit globals;
    function FindExe(bin:string;var found:boolean):string;
    begin
      bin:=FixFileName(bin)+source_os.exeext;
+{$ifdef delphi}
+     FindExe:=Search(bin,'.;'+exepath+';'+dmisc.getenv('PATH'),found)+bin;
+{$else delphi}
      FindExe:=Search(bin,'.;'+exepath+';'+dos.getenv('PATH'),found)+bin;
+{$endif delphi}
    end;
 
    procedure abstract;
@@ -1075,7 +1103,11 @@ unit globals;
        hs1 : namestr;
        hs2 : extstr;
      begin
+{$ifdef delphi}
+       exepath:=dmisc.getenv('PPC_EXEC_PATH');
+{$else delphi}
        exepath:=dos.getenv('PPC_EXEC_PATH');
+{$endif delphi}
        if exepath='' then
         fsplit(FixFileName(paramstr(0)),exepath,hs1,hs2);
      {$ifdef linux}
@@ -1159,7 +1191,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1999-04-26 13:31:32  peter
+  Revision 1.5  1999-05-04 21:44:43  florian
+    * changes to compile it with Delphi 4.0
+
+  Revision 1.4  1999/04/26 13:31:32  peter
     * release storenumber,double_checksum
 
   Revision 1.3  1999/04/21 14:12:55  peter
