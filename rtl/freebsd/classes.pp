@@ -45,13 +45,17 @@ initialization
 finalization
   CommonCleanup;
 
+{$ifndef ver1_0}
   if ThreadsInited then
      DoneThreads;
-
+{$endif}
 end.
 {
   $Log$
-  Revision 1.3  2003-11-17 10:05:51  marco
+  Revision 1.4  2003-12-22 16:16:33  marco
+   * small 1.0 compat fix
+
+  Revision 1.3  2003/11/17 10:05:51  marco
    * threads for FreeBSD. Not working tho
 
   Revision 1.2  2003/10/09 10:55:20  marco
