@@ -16,8 +16,10 @@ units=$(SYSTEMUNIT) objpas strings syscall baseunix unixutil \
       sysutils typinfo systhrds classes math varutils \
       cpu mmx charset ucomplex crt getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
-      video mouse keyboard console serial variants types sysctl dateutils sysconst
-rsts=math varutils typinfo classes variants dateutils sysconst
+      video mouse keyboard console serial variants types sysctl dateutils\
+      sysconst cthreads runerrors
+
+rsts=math varutils typinfo classes variants dateutils sysconst runerrors
 
 [require]
 nortl=y
@@ -229,5 +231,7 @@ ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
 
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
+
+runerrors$(PPUEXT) : $(INC)/runerrors.pp $(SYSTEMUNIT)$(PPUEXT)
 
 sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT)
