@@ -50,6 +50,7 @@ package=gdbw32.zip,GNU ~D~ebugger for Win32
 package=ufclw32.zip,~F~ree Component Libary (FCL)
 package=uapiw32.zip,~A~PI units (needed by FV)
 package=ubasw32.zip,~B~asic units (needed by FCL)
+package=ugfxw32.zip,O~p~enGL units
 package=ugtkw32.zip,GT~K~ units
 package=unetw32.zip,~N~etworking units
 package=udbw32.zip,Da~t~abase (interbase,mysql) units
