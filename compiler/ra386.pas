@@ -195,7 +195,8 @@ begin
             else
              begin
                { if no register then take the opsize (which is available with ATT) }
-               operands[i]^.size:=opsize;
+               if opsize<>S_NO then
+                 operands[i]^.size:=opsize;
              end;
           end;
         OPR_SYMBOL :
@@ -364,7 +365,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2000-04-04 13:48:44  pierre
+  Revision 1.14  2000-04-14 12:26:33  pierre
+   avoid to reset operand size of opsize is S_NO
+
+  Revision 1.13  2000/04/04 13:48:44  pierre
     + TOperand.SetCorrectSize virtual method added
       to be able to change the suffix according to the instruction
       (FIADD word ptr w need a s as ATT suffix
