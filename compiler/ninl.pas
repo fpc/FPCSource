@@ -519,7 +519,9 @@ implementation
                 { Actually, thge same goes for every non-simple expression    }
                 { (such as an addition, ...) -> put everything but load nodes }
                 { into temps (JM)                                             }
-                if (para.left.nodetype <> loadn) then
+                { of course, this must only be allowed for writes!!! (JM)     }
+                if not(do_read) and
+                   (para.left.nodetype <> loadn) then
                   begin
                     { create temp for result }
                     temp := ctempcreatenode.create(para.left.resulttype,
@@ -2352,7 +2354,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.104  2002-12-30 12:48:07  jonas
+  Revision 1.105  2002-12-30 12:54:45  jonas
+    * don't allow erroneuos read(typedfile,...) statements
+
+  Revision 1.104  2002/12/30 12:48:07  jonas
     * fixed web bug 2296
 
   Revision 1.103  2002/12/17 22:19:33  peter
