@@ -7,7 +7,7 @@ Program PtoP;
     the Free Pascal development team
 
     Pascal pretty print program
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -23,13 +23,15 @@ Var
   Infilename,OutFileName,ConfigFile : String;
   BeVerbose : Boolean;
   TheIndent,TheBufSize,TheLineSize : Integer;
-  
+
 Function StrToInt(Const S : String) : Integer;
 
 Var Code : integer;
+    Int : integer;
 
 begin
-  Val(S,StrToInt,Code);
+  Val(S,int,Code);
+  StrToInt := int;
   If Code<>0 then StrToInt:=0;
 end;
   
@@ -57,7 +59,9 @@ Var S : PBufStream;
 begin
   S:=New(PBufStream,Init(ConfigFile,stCreate,255));
   GeneratecfgFile(S);
+{$ifndef tp}
   S^.Close;
+{$endif}
   S^.Done;
 end;
 
@@ -114,8 +118,31 @@ Var DiagS : PMemoryStream;
     PPrinter : TPrettyPrinter;
     P : Pchar;
     i : longint;
-    
+
+
+Procedure StreamErrorProcedure(Var S: TStream); FAR;
+Begin
+ If S.Status = StError then
+    WriteLn('ERROR: General Access failure. Halting');
+ If S.Status = StInitError then
+    WriteLn('ERROR: Cannot Init Stream. Halting. ');
+ If S.Status = StReadError then
+    WriteLn('ERROR: Read beyond end of Stream. Halting');
+ If S.Status = StWriteError then
+    WriteLn('ERROR: Cannot expand Stream. Halting');
+ If S.Status = StGetError then
+    WriteLn('ERROR: Get of Unregistered type. Halting');
+ If S.Status = StPutError then
+    WriteLn('ERROR: Put of Unregistered type. Halting');
+end;
+
+
 begin
+{$IFDEF TP}
+  StreamError:= @StreamErrorProcedure;
+{$ELSE}
+  StreamError:= StreamErrorProcedure;
+{$ENDIF}
   ProcessOpts;
   If (Length(InfileName)=0) or (Length(OutFileName)=0) Then
     Usage;
@@ -144,8 +171,12 @@ begin
     getmem (P,I+1);
     DiagS^.Read(P[0],I);
     P[I]:=#0;
+{$ifndef tp}
     Writeln (stderr,P);
     Flush(stderr);
+{$else}
+    Writeln (P);
+{$endif}
     DiagS^.Done;
     end;
   If Assigned(CfgS) then 
@@ -156,7 +187,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-01-07 16:46:04  daniel
+  Revision 1.4  2000-02-06 19:58:24  carl
+    + Error detection of streams
+
+  Revision 1.3  2000/01/07 16:46:04  daniel
     * copyright 2000
 
   Revision 1.2  1999/07/08 21:17:10  michael
