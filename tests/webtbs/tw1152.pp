@@ -26,12 +26,15 @@ procedure my_exit;
   end;
 
 
+var
+  p : pointer;
 BEGIN
   saveexit:=exitproc;
   exitproc:=@my_exit;
   finally_called:=false;
 try
-  mem[$ffffffff]:=0;
+  p:=$ffffffff;
+  longint(p^):=0;
 finally
   finally_called:=true;
   writeln('Error !!!');

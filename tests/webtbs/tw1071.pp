@@ -1,3 +1,5 @@
+{ %VERSION=1.1 }
+
 var i: int64;
     il: longint;
 
