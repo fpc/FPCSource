@@ -16,60 +16,204 @@
 
 {$IFDEF INT64}
 
-function DiskFree (Drive : Byte) : int64;
+function DiskFree (Drive: byte): int64;
+
+var FI: TFSinfo;
+    RC: longint;
 
 begin
+    if (os_mode = osDOS) or (os_mode = osDPMI) then
+    {Function 36 is not supported in OS/2.}
+        asm
+            movb 8(%ebp),%dl
+            movb $0x36,%ah
+            call syscall
+            cmpw $-1,%ax
+            je .LDISKFREE1
+            mulw %cx
+            mulw %bx
+            shll $16,%edx
+            movw %ax,%dx
+            xchgl %edx,%eax
+            leave
+            ret
+         .LDISKFREE1:
+            cltd
+            leave
+            ret
+        end
+    else
+        {In OS/2, we use the filesystem information.}
+        begin
+            RC := DosQueryFSInfo (Drive, 1, FI, SizeOf (FI));
+            if RC = 0 then
+                DiskFree := int64 (FI.Free_Clusters) *
+                   int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
+            else
+                DiskFree := -1;
+        end;
 end;
 
+function DiskSize (Drive: byte): int64;
 
-function DiskSize (Drive : Byte) : int64;
+var FI: TFSinfo;
+    RC: longint;
 
 begin
+    if (os_mode = osDOS) or (os_mode = osDPMI) then
+        {Function 36 is not supported in OS/2.}
+        asm
+            movb 8(%ebp),%dl
+            movb $0x36,%ah
+            call syscall
+            movw %dx,%bx
+            cmpw $-1,%ax
+            je .LDISKSIZE1
+            mulw %cx
+            mulw %bx
+            shll $16,%edx
+            movw %ax,%dx
+            xchgl %edx,%eax
+            leave
+            ret
+        .LDISKSIZE1:
+            cltd
+            leave
+            ret
+        end
+    else
+        {In OS/2, we use the filesystem information.}
+        begin
+            RC := DosQueryFSinfo (Drive, 1, FI, SizeOf (FI));
+            if RC = 0 then
+                DiskSize := int64 (FI.Total_Clusters) *
+                   int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
+            else
+                DiskSize := -1;
+        end;
 end;
 
 {$ELSE}
 
-function DiskFree (Drive : Byte) : Longint;
+function DiskFree (Drive: byte): longint;
+
+var FI: TFSinfo;
+    RC: longint;
 
 begin
+    if (os_mode = osDOS) or (os_mode = osDPMI) then
+    {Function 36 is not supported in OS/2.}
+        asm
+            movb 8(%ebp),%dl
+            movb $0x36,%ah
+            call syscall
+            cmpw $-1,%ax
+            je .LDISKFREE1
+            mulw %cx
+            mulw %bx
+            shll $16,%edx
+            movw %ax,%dx
+            xchgl %edx,%eax
+            leave
+            ret
+         .LDISKFREE1:
+            cltd
+            leave
+            ret
+        end
+    else
+        {In OS/2, we use the filesystem information.}
+        begin
+            RC := DosQueryFSInfo (Drive, 1, FI, SizeOf (FI));
+            if RC = 0 then
+                DiskFree := FI.Free_Clusters *
+                                   FI.Sectors_Per_Cluster * FI.Bytes_Per_Sector
+            else
+                DiskFree := -1;
+        end;
 end;
 
+function DiskSize (Drive: byte): longint;
 
-function DiskSize (Drive : Byte) : Longint;
+var FI: TFSinfo;
+    RC: longint;
 
 begin
+    if (os_mode = osDOS) or (os_mode = osDPMI) then
+        {Function 36 is not supported in OS/2.}
+        asm
+            movb 8(%ebp),%dl
+            movb $0x36,%ah
+            call syscall
+            movw %dx,%bx
+            cmpw $-1,%ax
+            je .LDISKSIZE1
+            mulw %cx
+            mulw %bx
+            shll $16,%edx
+            movw %ax,%dx
+            xchgl %edx,%eax
+            leave
+            ret
+        .LDISKSIZE1:
+            cltd
+            leave
+            ret
+        end
+    else
+        {In OS/2, we use the filesystem information.}
+        begin
+            RC := DosQueryFSinfo (Drive, 1, FI, SizeOf (FI));
+            if RC = 0 then
+                DiskSize := FI.Total_Clusters *
+                                   FI.Sectors_Per_Cluster * FI.Bytes_Per_Sector
+            else
+                DiskSize := -1;
+        end;
 end;
 
 {$ENDIF}
 
-Function GetCurrentDir : String;
-
+function GetCurrentDir: string;
 begin
+ GetDir (0, Result);
 end;
 
 
-Function SetCurrentDir (Const NewDir : String) : Boolean;
-
+function SetCurrentDir (const NewDir: string): boolean;
 begin
+{$I-}
+ ChDir (NewDir);
+ Result := (IOResult = 0);
+{$I+}
 end;
 
 
-Function CreateDir (Const NewDir : String) : Boolean;
-
+function CreateDir (const NewDir: string): boolean;
 begin
+{$I-}
+ MkDir (NewDir);
+ Result := (IOResult = 0);
+{$I+}
 end;
 
 
-Function RemoveDir (Const Dir : String) : Boolean;
-
+function RemoveDir (const Dir: string): boolean;
 begin
+{$I-}
+ RmDir (Dir);
+ Result := (IOResult = 0);
+ {$I+}
 end;
 
 
 
 {
  $Log$
- Revision 1.4  2000-05-21 15:55:11  hajny
+ Revision 1.5  2000-05-28 18:21:51  hajny
+   + initial implementation
+
+ Revision 1.4  2000/05/21 15:55:11  hajny
    * int64 result for Disk* functions
 
  Revision 1.3  2000/02/09 16:59:33  peter
