@@ -146,16 +146,15 @@ function fpc_set_set_range(const orgset: fpc_normal_set; l,h : byte): fpc_normal
 }
 asm
   // copy source to result
-  li       r0,8
-  mtctr    r0
-  subi     r4,r4,4
-  subi     r3,r3,4
-Lset_set_range_copy:
-  lwzu     r0,4(r4)
-  stwu     r0,4(r3)
-  bdnz     Lset_set_range_copy
-  subi     r3,r3,32
-
+  lfd      f0,0(r4)
+  lfd      f1,8(r4)
+  lfd      f2,16(r4)
+  lfd      f3,24(r4)
+  stfd     f0,0(r3)
+  stfd     f1,8(r3)
+  stfd     f2,16(r3)
+  stfd     f3,24(r3)
+  
   cmplw  cr0,r5,r6
   bgt    cr0,Lset_range_exit
   rlwinm r4,r5,31-3+1,3,31-2  // divide by 8 to get starting and ending byte-
@@ -163,13 +162,14 @@ Lset_set_range_copy:
   dcbst  r3,r4
   rlwinm r9,r6,31-3+1,3,31-2  // address and clear two lowest bits to get
                               //  start/end longint address
-  sub.   r9,r4,r9             // are bit lo and hi in the same longint?
+  sub.   r9,r9,r4             // are bit lo and hi in the same longint?
   rlwinm r6,r6,0,31-5+1,31    // hi := hi mod 32 (= "hi and 31", but the andi
+                              //  instr. only exists in flags modifying form)
+  rlwinm r5,r5,0,31-5+1,31    // lo := lo mod 32 (= "lo and 31", but the andi
                               //  instr. only exists in flags modifying form)
   li     r10,-1               // r10 = $0x0ffffffff = bitmask to be inserted
   subfic r6,r6,31             // hi := 31 - (hi mod 32) = shift count for later
-  srw    r10,r10,r4           // shift bitmask to clear bits below lo
-                              // note: shift right = opposite little endian!!
+  slw    r10,r10,r5           // shift bitmask to clear bits below lo
   lwzux  r5,r3,r4             // go to starting pos in set and load value
                               //  (lo is not necessary anymore)
   beq    Lset_range_hi        // if bit lo and hi in same longint, keep
@@ -180,15 +180,16 @@ Lset_set_range_copy:
   li     r10,-1               // new mask
   lwzu   r5,4(r3)             // load next longint of set
   beq    Lset_range_hi        // bit hi in this longint -> go to adjust for hi
+  subi   r3,r3,4
 Lset_range_loop:
   subic. r9,r9,4
-  stwu   r10,4(r3)            // fill longints in between with full mask
+  stwu   r10,4(r3)             // fill longints in between with full mask
   bne    Lset_range_loop
   lwzu   r5,4(r3)             // load next value from set
 Lset_range_hi:                // in all cases, r3 here contains the address of
                               //  the longint which contains the hi bit and r4
                               //  contains this longint
-  slw    r9,r10,r6            // r9 := bitmask shl (31 - (hi mod 32)) =
+  srw    r9,r10,r6            // r9 := bitmask shl (31 - (hi mod 32)) =
                               //  bitmask with bits higher than hi cleared
                               //  (r8 = $0xffffffff unless the first beq was
                               //   taken)
@@ -523,7 +524,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  2003-04-26 15:29:34  jonas
+  Revision 1.19  2003-05-02 15:10:53  jonas
+    * fixed fpc_set_set_range
+
+  Revision 1.18  2003/04/26 15:29:34  jonas
     * fixed fpc_set_in_byte
 
   Revision 1.17  2003/04/26 12:40:33  florian
