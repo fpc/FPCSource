@@ -572,7 +572,7 @@ procedure testtypecastqword;
      l1,l2 : longint;
      d1,d2 : dword;
      q1,q2 : qword;
-     d1,d2 : double;
+     r1,r2 : double;
 
   begin
      { shortint }
@@ -1041,7 +1041,7 @@ procedure testcritical;
      if a[i,j,k]<>2468 then
        do_error(2700);
      if not(not(a[i,j,k]))<>a[i,j,k] then
-       do_error(2701);                       
+       do_error(2701);
      if -(-(a[i,j,k]))<>a[i,j,k] then
        do_error(2702);
      if (a[i,j,k] shl (i-i))<>a[i,j,k] then
