@@ -1,3 +1,5 @@
+var
+    t : text;
 type tFoo = object
        a:integer;
        constructor Create;
@@ -12,7 +14,7 @@ end;
 
 procedure tFoo.ReadA;
 begin
-  write('a: '); Readln(a);
+  write('a: '); Readln(t,a);
 end;
 
 procedure tFoo.ShowA;
@@ -22,7 +24,16 @@ end;
 
 var Foo:tFoo;
 begin
+
+  assign(t,'tbug772.txt');
+  rewrite(t);
+  writeln(t,'4');
+  close(t);
+  reset(t);
   Foo.Create;
   Foo.ReadA; {this leaves Foo.a untouched, but it should'nt}
   Foo.ShowA;
+  if Foo.A<>4 then
+   Halt(1);
+  close(t);
 end.
