@@ -121,8 +121,7 @@ FreeBSD: same implementation as NetBSD.
 }
 
 begin
-  {ugly implicit returnvalue}
-  do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,longint(fd),0,lo(Offset),{0} hi(offset),Whence);
+  sys_lseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,longint(fd),0,lo(Offset),{0} hi(offset),Whence);
 end;
 
 function sys_read(fd: cint; buf: pchar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_READ'];
@@ -334,7 +333,7 @@ function sys_ftruncate(fd : cint; flength : off_t): cint; [public, alias : 'FPC_
 
 }
 begin
- Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate,0,fd,0,lo(flength),hi(flength));
+ sys_ftruncate:=Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate,0,fd,0,lo(flength),hi(flength));
 end;
 
 function sys_fstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FSTAT'];
@@ -527,7 +526,10 @@ end;
 
 {
  $Log$
- Revision 1.3  2002-09-07 16:01:17  peter
+ Revision 1.4  2002-10-16 18:44:18  marco
+  * Lseek and ftruncate 64-bit fix
+
+ Revision 1.3  2002/09/07 16:01:17  peter
    * old logs removed and tabs fixed
 
  Revision 1.2  2002/08/21 07:03:16  marco
