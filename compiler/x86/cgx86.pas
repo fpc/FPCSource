@@ -385,7 +385,12 @@ unit cgx86;
         if r.segment<>R_NO then
           CGMessage(cg_e_cant_use_far_pointer_there);
         if (r.base=R_NO) and (r.index=R_NO) then
-          list.concat(Taicpu.Op_sym_ofs(A_PUSH,S_L,r.symbol,r.offset))
+          begin
+            if assigned(r.symbol) then
+              list.concat(Taicpu.Op_sym_ofs(A_PUSH,S_L,r.symbol,r.offset))
+            else
+              list.concat(Taicpu.Op_const(A_PUSH,S_L,r.offset));
+          end
         else if (r.base=R_NO) and (r.index<>R_NO) and
                 (r.offset=0) and (r.scalefactor=0) and (r.symbol=nil) then
           list.concat(Taicpu.Op_reg(A_PUSH,S_L,r.index))
@@ -1676,7 +1681,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.15  2002-09-16 18:06:29  peter
+  Revision 1.16  2002-09-16 19:08:47  peter
+    * support references without registers and symbol in paramref_addr. It
+      pushes only the offset
+
+  Revision 1.15  2002/09/16 18:06:29  peter
     * move CGSize2Opsize to interface
 
   Revision 1.14  2002/09/01 14:42:41  peter
