@@ -897,16 +897,6 @@ implementation
       end;
 {$endif}
 
-    procedure dir_threading;
-      begin
-        do_moduleswitch(cs_threading);
-        { defined/undefine FPC_THREADING }
-        if cs_threading in aktmoduleswitches then
-          def_system_macro('FPC_THREADING')
-        else
-          undef_system_macro('FPC_THREADING');
-      end;
-
     procedure dir_typedaddress;
       begin
         do_delphiswitch('T');
@@ -1167,7 +1157,6 @@ implementation
 {$ifdef powerpc}
         AddDirective('SYSCALL',directive_all, @dir_syscall);
 {$endif powerpc}
-        AddDirective('THREADING',directive_all, @dir_threading);
         AddDirective('THREADNAME',directive_all, @dir_threadname);
         AddDirective('TYPEDADDRESS',directive_all, @dir_typedaddress);
         AddDirective('TYPEINFO',directive_all, @dir_typeinfo);
@@ -1189,7 +1178,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2005-01-20 17:32:33  peter
+  Revision 1.55  2005-02-06 11:15:32  peter
+    * removed $threading
+
+  Revision 1.54  2005/01/20 17:32:33  peter
     * $COPERATORS added
 
   Revision 1.53  2005/01/20 17:05:53  peter

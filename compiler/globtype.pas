@@ -103,7 +103,7 @@ than 255 characters. That's why using Ansi Strings}
          cs_support_c_operators,cs_static_keyword,
          { generation }
          cs_profile,cs_debuginfo,cs_browser,cs_local_browser,cs_compilesystem,
-         cs_lineinfo,cs_threading,cs_implicit_exceptions,
+         cs_lineinfo,cs_implicit_exceptions,
          { linking }
          cs_create_smart,cs_create_dynamic,cs_create_pic
        );
@@ -319,7 +319,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2005-01-23 21:09:12  florian
+  Revision 1.69  2005-02-06 11:15:31  peter
+    * removed $threading
+
+  Revision 1.68  2005/01/23 21:09:12  florian
     + added pi bit pattern to the compiler, so pi should always be correct
 
   Revision 1.67  2005/01/04 16:20:51  florian

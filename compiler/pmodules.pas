@@ -446,9 +446,6 @@ implementation
         if (cs_fp_emulation in aktmoduleswitches) then
           AddUnit('SoftFpu');
 {$endif cpufpemu}
-        { Thread support unit? }
-        if (cs_threading in aktmoduleswitches) then
-          AddUnit('SysThrds');
         { Objpas unit? }
         if m_objpas in aktmodeswitches then
           AddUnit('ObjPas');
@@ -1608,7 +1605,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.182  2005-02-06 00:05:56  florian
+  Revision 1.183  2005-02-06 11:15:31  peter
+    * removed $threading
+
+  Revision 1.182  2005/02/06 00:05:56  florian
     + x86_64 pic draft
 
   Revision 1.181  2005/01/24 22:08:32  peter
