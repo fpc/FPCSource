@@ -114,18 +114,15 @@ const
   SFixedColTooBig = 'El numero de columnas fijas tiene que ser menor que el contador Column';
   SFixedRowTooBig = 'El numero de filas fijas tiene que ser menor que el contador Row';
 {?}  SInvalidStringGridOp = 'Es können keine Zeilen des ''Grids'' gelöscht oder eingefügt werden';
-  //!!! SParseError = '%s en Linia %d';
-  SParseError = ' en linia ';
+  SParseError = '%s en Linia %d';
 
   SIdentifierExpected = 'Falta identificador';
   SStringExpected = 'Falta string';
   SNumberExpected = 'Falta numero';
 
-  //!!! SCharExpected = 'Falta %s';
-  SCharExpected = ' falta';
+  SCharExpected = 'Falta %s';
 
-  //!!! SSymbolExpected = 'Falta %s';
-  SSymbolExpected = ' falta';
+  SSymbolExpected = 'Falta %s';
 
   SInvalidNumber = 'Valor numerico no valido';
   SInvalidString = 'Constante string no valida';

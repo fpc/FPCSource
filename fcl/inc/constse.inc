@@ -36,7 +36,7 @@ const
   SDuplicateClass = 'A Class with name %s exists already';
   SNoComSupport = '%s is not registered as COM-Class';
   SLineTooLong = 'Line too long';
- 
+
   SInvalidPropertyValue = 'Invalid property value';
   SInvalidPropertyPath = 'Invalid property path';
   SUnknownProperty = 'Unknown property';
@@ -114,19 +114,16 @@ const
   SFixedColTooBig = 'The number of fixed Columns must be less than the Column count';
   SFixedRowTooBig = 'The number of fixed Rows must be less that the Row count';
   SInvalidStringGridOp = 'Es können keine Zeilen des ''Grids'' gelöscht oder eingefügt werden';
-  //!!! SParseError = '%s in Line %d';
-  SParseError = ' in line ';
-  
+  SParseError = '%s in Line %d';
+
   SIdentifierExpected = 'Identifier expected';
   SStringExpected = 'String expected';
   SNumberExpected = 'Number expected';
 
-  //!!! SCharExpected = '%s expected';
-  SCharExpected = ' excpected';
-  
-  //!!! SSymbolExpected = '%s expected';
-  SSymbolExpected = ' expected';
-  
+  SCharExpected = '%s expected';
+
+  SSymbolExpected = '%s expected';
+
   SInvalidNumber = 'Invalid numerical value';
   SInvalidString = 'Invalid string constant';
   SInvalidProperty = 'Invalid property value';

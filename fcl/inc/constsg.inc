@@ -12,8 +12,6 @@
 
  **********************************************************************}
 
-{!!!TSE 21.09.1998}  
-{ Sorry, error messages are in german languae at this time}
 const
   SAssignError = '%s kann nicht zu  %s zugewiesen werden';
   SFCreateError = 'Datei %s kann nicht erstellt werden';
@@ -39,7 +37,7 @@ const
   SNoComSupport = '%s wurde nicht als COM-Klasse registriert';
   SInvalidInteger = '''''%s'''' ist kein gültiger Integerwert';
   SLineTooLong = 'Zeile zu lang';
- 
+
   SInvalidPropertyValue = 'Ungültiger Wert der Eigenschaft';
   SInvalidPropertyPath = 'Ungültiger Pfad für Eigenschaft';
   SUnknownProperty = 'Eigenschaft existiert nicht';
@@ -117,19 +115,16 @@ const
   SFixedColTooBig = 'Die Anzahl fester Spalten muß kleiner sein als die Spaltenanzahl';
   SFixedRowTooBig = 'Die Anzahl fester Zeilen muß kleiner sein als die Zeilenanzahl';
   SInvalidStringGridOp = 'Es können keine Zeilen des ''Grids'' gelöscht oder eingefügt werden';
-  //!!! SParseError = '%s in Zeile %d';
-  SParseError = ' in Zeile ';
-  
+  SParseError = '%s in Zeile %d';
+
   SIdentifierExpected = 'Bezeichner erwartet';
   SStringExpected = 'String erwartet';
   SNumberExpected = 'Zahl erwartet';
 
-  //!!! SCharExpected = '%s erwartet';
-  SCharExpected = ' erwartet';
-  
-  //!!! SSymbolExpected = '%s erwartet';
-  SSymbolExpected = ' erwartet';
-  
+  SCharExpected = '%s erwartet';
+
+  SSymbolExpected = '%s erwartet';
+
   SInvalidNumber = 'Ungültiger numerischer Wert';
   SInvalidString = 'Ungültige Stringkonstante';
   SInvalidProperty = 'Ungültiger Wert der Eigenschaft';

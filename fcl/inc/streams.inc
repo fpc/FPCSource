@@ -219,21 +219,22 @@
     end;
 
   Function TStream.ReadAnsiString : String;
-
-    Type PByte = ^Byte;
-
-    Var TheSize : Longint;
-        P : PByte ;
-
-
+  Type
+    PByte = ^Byte;
+  Var
+    TheSize : Longint;
+    P : PByte ;
   begin
     ReadBuffer (TheSize,SizeOf(TheSize));
-    SetLength(Result,Size);
+    SetLength(Result,TheSize);
     // Illegal typecast if no AnsiStrings defined.
-    ReadBuffer (Pointer(Result)^,Size);
-    P:=Pointer(Result)+Size;
-    p^:=0;
-    end;
+    if TheSize>0 then
+     begin
+       ReadBuffer (Pointer(Result)^,TheSize);
+       P:=Pointer(Result)+TheSize;
+       p^:=0;
+     end;
+   end;
 
   Procedure TStream.WriteAnsiString (S : String);
 
@@ -480,7 +481,7 @@ procedure TMemoryStream.SetSize(NewSize: Longint);
 begin
   SetCapacity (NewSize);
   FSize:=NewSize;
-  IF FPosition>FSize then 
+  IF FPosition>FSize then
     FPosition:=FSize;
 end;
 
@@ -619,7 +620,11 @@ end;
 
 {
   $Log$
-  Revision 1.15  1999-09-13 08:35:16  fcl
+  Revision 1.16  1999-10-03 19:38:06  peter
+    * fixed readansistring
+    * fixed constants
+
+  Revision 1.15  1999/09/13 08:35:16  fcl
   * Changed some argument names (Root->ARoot etc.) because the new compiler
     now performs more ambiguity checks  (sg)
 
