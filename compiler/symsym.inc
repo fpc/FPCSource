@@ -1032,7 +1032,7 @@
                 vs_value,
                 vs_const :
                   begin
-                    case definition^.deftype of
+                    (*case definition^.deftype of
                       arraydef,
                       setdef,
                       stringdef,
@@ -1041,8 +1041,12 @@
                         getpushsize:=target_os.size_of_pointer;
                       else
                         getpushsize:=definition^.size;
-                    end;
-                 end;
+                        this is obsolete use push_param instead (PM) *)
+                      if push_addr_param(definition) then
+                        getpushsize:=target_os.size_of_pointer
+                      else
+                        getpushsize:=definition^.size;
+                  end;
               end;
            end
          else
@@ -2015,7 +2019,13 @@
 
 {
   $Log$
-  Revision 1.95  1999-06-22 16:24:48  pierre
+  Revision 1.96  1999-06-28 10:49:48  pierre
+   merged from 0-99-12 branch
+
+  Revision 1.94.2.2  1999/06/28 10:32:29  pierre
+   * fixes bug453
+
+  Revision 1.94.2.1  1999/06/22 16:26:45  pierre
    * local browser stuff corrected
 
   Revision 1.94  1999/06/03 16:25:05  pierre
