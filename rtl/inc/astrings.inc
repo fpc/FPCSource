@@ -273,9 +273,6 @@ Function fpc_Char_To_AnsiStr(const c : Char): AnsiString; {$ifdef hascompilerpro
   Converts a Char to a AnsiString;
 }
 begin
-  if c = #0 then
-    { result is automatically set to '' }
-    exit;
   Setlength (fpc_Char_To_AnsiStr,1);
   PByte(Pointer(fpc_Char_To_AnsiStr))^:=byte(c);
   { Terminating Zero }
@@ -800,7 +797,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  2001-11-17 23:58:12  florian
+  Revision 1.23  2002-01-07 13:23:53  jonas
+    * fixed bug in fpc_char_to_ansistr when converting #0 (found by Peter)
+
+  Revision 1.22  2001/11/17 23:58:12  florian
     * code of ansitr_concat improved
 
   Revision 1.21  2001/08/30 15:43:15  jonas
