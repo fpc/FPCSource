@@ -752,14 +752,16 @@ program install;
                   { maybe only config }
                   if (data.cfgval and 1)<>0 then
                    begin
-                     result:=messagebox('No components selected.'#13#13'Create a configfile ?',nil,mfinformation+mfyesbutton+mfnobutton);
+                     result:=messagebox('No components selected.'#13#13'Create a configfile ?',nil,
+                                                mfinformation+mfyesbutton+mfnobutton);
                      if (result=cmYes) and createinstalldir(data.basepath) then
                       writedefcfg(data.basepath+cfg.binsub+DirSep+cfg.defcfgfile);
                      exit;
                    end
                   else
                    begin
-                     result:=messagebox('No components selected.'#13#13'Abort installation?',nil,mferror+mfyesbutton+mfnobutton);
+                     result:=messagebox('No components selected.'#13#13'Abort installation?',nil,
+                                               mferror+mfyesbutton+mfnobutton);
                      if result=cmYes then
                       exit;
                    end;
@@ -957,7 +959,9 @@ program install;
                dec(cfg.packs);
                dec(j);
              end;
+{$IFNDEF TP}
             findclose(dir);
+{$ENDIF}
           end;
        end;
      end;
@@ -1102,7 +1106,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-01-24 22:21:48  peter
+  Revision 1.12  2000-01-26 21:15:59  hajny
+    * compilable with TP again (lines < 127install.pas, ifdef around findclose)
+
+  Revision 1.11  2000/01/24 22:21:48  peter
     * new install version (keys not wrong correct yet)
 
   Revision 1.10  2000/01/18 00:22:48  peter
@@ -1180,4 +1187,5 @@ end.
   Revision 1.2  1998/04/07 22:47:57  florian
     + version/release/patch numbers as string added
 
+}
 }
