@@ -350,17 +350,10 @@ end;
                               Str() Helpers
 *****************************************************************************}
 
-procedure fpc_shortstr_longint(v : longint;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_LONGINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
-begin
-  int_str(v,s);
-  if length(s)<len then
-    s:=space(len-length(s))+s;
-end;
-
-{$ifdef ver1_0}
-procedure fpc_shortstr_cardinal(v : longword;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_CARDINAL']; {$ifdef hascompilerproc} compilerproc; {$endif}
+{$ifdef STR_USES_VALINT}
+procedure fpc_shortstr_SInt(v : valSInt;len : StrLenInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_SINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
-procedure fpc_shortstr_longword(v : longword;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_LONGWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_shortstr_longint(v : longint;len : StrLenInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_LONGINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif}
 begin
   int_str(v,s);
@@ -368,13 +361,71 @@ begin
     s:=space(len-length(s))+s;
 end;
 
-{ fpc_shortstr_longint must appear before this file is included, because }
+{$ifdef STR_USES_VALINT}
+procedure fpc_shortstr_UInt(v : valUInt;len : StrLenInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_UINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+{$else}
+  {$ifdef ver1_0}
+  procedure fpc_shortstr_cardinal(v : longword;len : StrLenInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_CARDINAL']; {$ifdef hascompilerproc} compilerproc; {$endif}
+  {$else}
+  procedure fpc_shortstr_longword(v : longword;len : StrLenInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_LONGWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+  {$endif}
+{$endif}
+begin
+  int_str(v,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
+
+{$ifndef CPU64}
+
+    procedure int_qword_str(value : qword;var s : string);
+      var
+         hs : string;
+      begin
+         hs:='';
+         repeat
+           hs:=chr(longint(value mod qword(10))+48)+hs;
+           value:=value div qword(10);
+         until value=0;
+         s:=hs;
+      end;
+
+
+  procedure fpc_shortstr_qword(v : qword;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    begin
+       int_qword_str(v,s);
+       if length(s)<len then
+         s:=space(len-length(s))+s;
+    end;
+
+
+  procedure fpc_shortstr_int64(v : int64;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_INT64'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+    var
+       hs : shortstring;
+       q : qword;
+    begin
+       if v<0 then
+         begin
+            q:=qword(-v);
+            int_qword_str(q,hs);
+            s:='-'+hs;
+         end
+       else
+         int_qword_str(qword(v),s);
+       if length(s)<len then
+         s:=space(len-length(s))+s;
+    end;
+
+{$endif CPU64}
+
+
+{ fpc_shortstr_sInt must appear before this file is included, because }
 { it's used inside real2str.inc and otherwise the searching via the      }
 { compilerproc name will fail (JM)                                       }
 
 {$I real2str.inc}
 
-procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT']; {$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
+procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : StrLenInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT']; {$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
 begin
   str_real(len,fr,d,treal_type(rt),s);
 end;
@@ -384,10 +435,14 @@ end;
    Array Of Char Str() helpers
 }
 
-procedure fpc_chararray_longint(v : longint;len : longint;var a:array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
+{$ifdef STR_USES_VALINT}
+procedure fpc_chararray_sint(v : valsint;len : StrLenInt;var a:array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
+{$else}
+procedure fpc_chararray_longint(v : longint;len : StrLenInt;var a:array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
+{$endif}
 var
   ss : shortstring;
-  maxlen : longint;
+  maxlen : StrLenInt;
 begin
   int_str(v,ss);
   if length(ss)<len then
@@ -399,10 +454,15 @@ begin
   move(ss[1],pchar(@a)^,maxlen);
 end;
 
-procedure fpc_chararray_longword(v : longword;len : longint;var a : array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
+
+{$ifdef STR_USES_VALINT}
+procedure fpc_chararray_uint(v : valuint;len : StrLenInt;var a : array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
+{$else}
+procedure fpc_chararray_longword(v : longword;len : StrLenInt;var a : array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
+{$endif}
 var
   ss : shortstring;
-  maxlen : longint;
+  maxlen : StrLenInt;
 begin
   int_str(v,ss);
   if length(ss)<len then
@@ -415,10 +475,54 @@ begin
 end;
 
 
-procedure fpc_chararray_Float(d : ValReal;len,fr,rt : longint;var a : array of char);{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
+{$ifndef CPU64}
+
+procedure fpc_chararray_qword(v : qword;len : StrLenInt;var a : array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
 var
   ss : shortstring;
-  maxlen : longint;
+  maxlen : StrLenInt;
+begin
+  int_qword_str(v,ss);
+  if length(ss)<len then
+    ss:=space(len-length(ss))+ss;
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  move(ss[1],pchar(@a)^,maxlen);
+end;
+
+
+procedure fpc_chararray_int64(v : int64;len : StrLenInt;var a : array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
+var
+  ss : shortstring;
+  maxlen : StrLenInt;
+  q : qword;
+begin
+  if v<0 then
+    begin
+      q:=qword(-v);
+      int_qword_str(q,ss);
+      ss:='-'+ss;
+    end
+  else
+   int_qword_str(qword(v),ss);
+  if length(ss)<len then
+    ss:=space(len-length(ss))+ss;
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  move(ss[1],pchar(@a)^,maxlen);
+end;
+
+{$endif CPU64}
+
+
+procedure fpc_chararray_Float(d : ValReal;len,fr,rt : StrLenInt;var a : array of char);{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
+var
+  ss : shortstring;
+  maxlen : StrLenInt;
 begin
   str_real(len,fr,d,treal_type(rt),ss);
   if length(ss)<high(a)+1 then
@@ -435,7 +539,7 @@ end;
 
 Function InitVal(const s:shortstring;var negativ:boolean;var base:byte):ValSInt;
 var
-  Code : Longint;
+  Code : StrLenInt;
 begin
 {Skip Spaces and Tab}
   code:=1;
@@ -476,7 +580,8 @@ begin
   InitVal:=code;
 end;
 
-Function fpc_Val_SInt_ShortStr(DestSize: longint; Const S: ShortString; var Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+
+Function fpc_Val_SInt_ShortStr(DestSize: StrLenInt; Const S: ShortString; var Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   u, temp, prev, maxPrevValue, maxNewValue: ValUInt;
   base : byte;
@@ -523,14 +628,14 @@ begin
       1: fpc_Val_SInt_ShortStr := shortint(fpc_Val_SInt_ShortStr);
       2: fpc_Val_SInt_ShortStr := smallint(fpc_Val_SInt_ShortStr);
 {     Uncomment the folling once full 64bit support is in place
-      4: fpc_Val_SInt_ShortStr := longint(fpc_Val_SInt_ShortStr);}
+      4: fpc_Val_SInt_ShortStr := StrLenInt(fpc_Val_SInt_ShortStr);}
     End;
 end;
 
 {$ifdef hascompilerproc}
 { we need this for fpc_Val_SInt_Ansistr and fpc_Val_SInt_WideStr because }
 { we have to pass the DestSize parameter on (JM)                         }
-Function fpc_Val_SInt_ShortStr(DestSize: longint; Const S: ShortString; var Code: ValSInt): ValSInt; [external name 'FPC_VAL_SINT_SHORTSTR'];
+Function fpc_Val_SInt_ShortStr(DestSize: StrLenInt; Const S: ShortString; var Code: ValSInt): ValSInt; [external name 'FPC_VAL_SINT_SHORTSTR'];
 {$endif hascompilerproc}
 
 
@@ -567,11 +672,116 @@ begin
 end;
 
 
+{$ifndef CPU64}
+
+  Function fpc_val_int64_shortstr(Const S: ShortString; var Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+   type
+     QWordRec = packed record
+       l1,l2: longint;
+     end;
+
+    var
+       u, temp, prev, maxint64, maxqword : qword;
+       base : byte;
+       negative : boolean;
+
+  begin
+    fpc_val_int64_shortstr := 0;
+    Temp:=0;
+    Code:=InitVal(s,negative,base);
+    if Code>length(s) then
+     exit;
+    { high(int64) produces 0 in version 1.0 (JM) }
+    with qwordrec(maxint64) do
+      begin
+        l1 := longint($ffffffff);
+        l2 := $7fffffff;
+      end;
+    with qwordrec(maxqword) do
+      begin
+        l1 := longint($ffffffff);
+        l2 := longint($ffffffff);
+      end;
+
+    while Code<=Length(s) do
+     begin
+       case s[Code] of
+         '0'..'9' : u:=Ord(S[Code])-Ord('0');
+         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
+         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+       else
+        u:=16;
+       end;
+       Prev:=Temp;
+       Temp:=Temp*Int64(base);
+     If (u >= base) or
+        ((base = 10) and
+         (maxint64-temp+ord(negative) < u)) or
+        ((base <> 10) and
+         (qword(maxqword-temp) < u)) or
+        (prev > maxqword div qword(base)) Then
+       Begin
+         fpc_val_int64_shortstr := 0;
+         Exit
+       End;
+       Temp:=Temp+u;
+       inc(code);
+     end;
+    code:=0;
+    fpc_val_int64_shortstr:=int64(Temp);
+    If Negative Then
+      fpc_val_int64_shortstr:=-fpc_val_int64_shortstr;
+  end;
+
+
+  Function fpc_val_qword_shortstr(Const S: ShortString; var Code: ValSInt): QWord; [public, alias:'FPC_VAL_QWORD_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    type qwordrec = packed record
+      l1,l2: longint;
+    end;
+    var
+       u, prev, maxqword: QWord;
+       base : byte;
+       negative : boolean;
+  begin
+    fpc_val_qword_shortstr:=0;
+    Code:=InitVal(s,negative,base);
+    If Negative or (Code>length(s)) Then
+      Exit;
+    with qwordrec(maxqword) do
+      begin
+        l1 := longint($ffffffff);
+        l2 := longint($ffffffff);
+      end;
+    while Code<=Length(s) do
+     begin
+       case s[Code] of
+         '0'..'9' : u:=Ord(S[Code])-Ord('0');
+         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
+         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+       else
+        u:=16;
+       end;
+       prev := fpc_val_qword_shortstr;
+       If (u>=base) or
+         ((QWord(maxqword-u) div QWord(base))<prev) then
+         Begin
+           fpc_val_qword_shortstr := 0;
+           Exit
+         End;
+       fpc_val_qword_shortstr:=fpc_val_qword_shortstr*QWord(base) + u;
+       inc(code);
+     end;
+    code := 0;
+  end;
+
+{$endif CPU64}
+
+
 Function fpc_Val_Real_ShortStr(const s : shortstring; var code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   hd,
   esign,sign : valreal;
-  exponent,i : longint;
+  exponent,i : StrLenInt;
   flags      : byte;
 begin
   fpc_Val_Real_ShortStr:=0.0;
@@ -670,7 +880,7 @@ fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
 end;
 
 
-Procedure SetString (Var S : Shortstring; Buf : PChar; Len : Longint);
+Procedure SetString (Var S : Shortstring; Buf : PChar; Len : StrLenInt);
 begin
   If Len > High(S) then
     Len := High(S);
@@ -683,7 +893,11 @@ end;
 
 {
   $Log$
-  Revision 1.27  2003-02-26 20:04:47  jonas
+  Revision 1.28  2004-04-29 18:59:43  peter
+    * str() helpers now also use valint/valuint
+    * int64/qword helpers disabled for cpu64
+
+  Revision 1.27  2003/02/26 20:04:47  jonas
     * fixed shortstring version of setstring
 
   Revision 1.26  2002/10/21 19:52:47  jonas

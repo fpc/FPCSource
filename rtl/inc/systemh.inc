@@ -472,8 +472,8 @@ Procedure Insert(const source:shortstring;Var s:shortstring;index:StrLenInt);
 Procedure Insert(source:Char;Var s:shortstring;index:StrLenInt);
 Function  Pos(const substr:shortstring;const s:shortstring):StrLenInt;
 Function  Pos(C:Char;const s:shortstring):StrLenInt;
-Procedure SetString (Var S : Shortstring; Buf : PChar; Len : Longint);
-Procedure SetString (Var S : AnsiString; Buf : PChar; Len : Longint);
+Procedure SetString (Var S : Shortstring; Buf : PChar; Len : StrLenInt);
+Procedure SetString (Var S : AnsiString; Buf : PChar; Len : StrLenInt);
 {$ifndef INTERNLENGTH}
 Function  Length(s:string):byte;
 {$endif INTERNLENGTH}
@@ -505,20 +505,20 @@ function  length(c:char):byte;
 ****************************************************************************}
 
 {$ifndef INTERNSETLENGTH}
-Procedure SetLength (Var S : AnsiString; l : Longint);
+Procedure SetLength (Var S : AnsiString; l : StrLenInt);
 {$endif INTERNSETLENGTH}
 Procedure UniqueString (Var S : AnsiString);
 {$ifndef INTERNLENGTH}
-Function  Length (Const S : AnsiString) : Longint;
+Function  Length (Const S : AnsiString) : StrLenInt;
 {$endif INTERNLENGTH}
 {$ifndef InternCopy}
-Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
+Function  Copy (Const S : AnsiString; Index,Size : StrLenInt) : AnsiString;
 {$endif interncopy}
-Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
-Function  Pos (c : Char; Const s : AnsiString) : Longint;
-Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
-Procedure Delete (Var S : AnsiString; Index,Size: Longint);
-Function  StringOfChar(c : char;l : longint) : AnsiString;
+Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : StrLenInt;
+Function  Pos (c : Char; Const s : AnsiString) : StrLenInt;
+Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : StrLenInt);
+Procedure Delete (Var S : AnsiString; Index,Size: StrLenInt);
+Function  StringOfChar(c : char;l : StrLenInt) : AnsiString;
 function  upcase(const s : ansistring) : ansistring;
 function  lowercase(const s : ansistring) : ansistring;
 
@@ -529,32 +529,32 @@ function  lowercase(const s : ansistring) : ansistring;
 
 {$ifdef HASWIDESTRING}
 {$ifndef INTERNSETLENGTH}
-Procedure SetLength (Var S : WideString; l : Longint);
+Procedure SetLength (Var S : WideString; l : StrLenInt);
 {$endif INTERNSETLENGTH}
 Procedure UniqueString (Var S : WideString);
 {$ifndef INTERNLENGTH}
-Function  Length (Const S : WideString) : Longint;
+Function  Length (Const S : WideString) : StrLenInt;
 {$endif INTERNLENGTH}
 {$ifndef InternCopy}
-Function  Copy (Const S : WideString; Index,Size : Longint) : WideString;
+Function  Copy (Const S : WideString; Index,Size : StrLenInt) : WideString;
 {$endif interncopy}
-Function  Pos (Const Substr : WideString; Const Source : WideString) : Longint;
-Function  Pos (c : Char; Const s : WideString) : Longint;
-Function  Pos (c : WideChar; Const s : WideString) : Longint;
-Procedure Insert (Const Source : WideString; Var S : WideString; Index : Longint);
-Procedure Delete (Var S : WideString; Index,Size: Longint);
-Procedure SetString (Var S : WideString; Buf : PWideChar; Len : Longint);
-Procedure SetString (Var S : WideString; Buf : PChar; Len : Longint);
+Function  Pos (Const Substr : WideString; Const Source : WideString) : StrLenInt;
+Function  Pos (c : Char; Const s : WideString) : StrLenInt;
+Function  Pos (c : WideChar; Const s : WideString) : StrLenInt;
+Procedure Insert (Const Source : WideString; Var S : WideString; Index : StrLenInt);
+Procedure Delete (Var S : WideString; Index,Size: StrLenInt);
+Procedure SetString (Var S : WideString; Buf : PWideChar; Len : StrLenInt);
+Procedure SetString (Var S : WideString; Buf : PChar; Len : StrLenInt);
 
 function WideCharToString(S : PWideChar) : AnsiString;
-function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : LongInt) : PWideChar;
-function WideCharLenToString(S : PWideChar;Len : LongInt) : AnsiString;
-procedure WideCharLenToStrVar(Src : PWideChar;Len : LongInt;var Dest : AnsiString);
+function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : StrLenInt) : PWideChar;
+function WideCharLenToString(S : PWideChar;Len : StrLenInt) : AnsiString;
+procedure WideCharLenToStrVar(Src : PWideChar;Len : StrLenInt;var Dest : AnsiString);
 procedure WideCharToStrVar(S : PWideChar;var Dest : AnsiString);
 
 Type
-  TWide2AnsiMove=procedure(source:pwidechar;dest:pchar;len:longint);
-  TAnsi2WideMove=procedure(source:pchar;dest:pwidechar;len:longint);
+  TWide2AnsiMove=procedure(source:pwidechar;dest:pchar;len:StrLenInt);
+  TAnsi2WideMove=procedure(source:pchar;dest:pwidechar;len:StrLenInt);
 
   TWideStringManager = record
     Wide2AnsiMove : TWide2AnsiMove;
@@ -737,7 +737,11 @@ const
 
 {
   $Log$
-  Revision 1.88  2004-04-22 17:10:38  peter
+  Revision 1.89  2004-04-29 18:59:43  peter
+    * str() helpers now also use valint/valuint
+    * int64/qword helpers disabled for cpu64
+
+  Revision 1.88  2004/04/22 17:10:38  peter
     * random(int64) added
 
   Revision 1.87  2004/03/23 22:35:45  peter

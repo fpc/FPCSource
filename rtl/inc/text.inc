@@ -651,13 +651,15 @@ Begin
 End;
 
 
+{$ifndef CPU64}
+
 procedure fpc_write_text_qword(len : longint;var t : text;q : qword); iocheck; [public,alias:'FPC_WRITE_TEXT_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   s : string;
 begin
   if (InOutRes<>0) then
    exit;
-  qword_str(q,s);
+  str(q,s); 
   write_str(len,t,s);
 end;
 
@@ -667,10 +669,11 @@ var
 begin
   if (InOutRes<>0) then
    exit;
-  int64_str(i,s);
+  str(i,s);
   write_str(len,t,s);
 end;
 
+{$endif CPU64}
 
 Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); iocheck; [Public,Alias:'FPC_WRITE_TEXT_FLOAT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
@@ -1266,7 +1269,11 @@ end;
 
 {
   $Log$
-  Revision 1.21  2004-04-22 21:10:56  peter
+  Revision 1.22  2004-04-29 18:59:43  peter
+    * str() helpers now also use valint/valuint
+    * int64/qword helpers disabled for cpu64
+
+  Revision 1.21  2004/04/22 21:10:56  peter
     * do_read/do_write addr argument changed to pointer
 
   Revision 1.20  2002/11/29 16:26:52  peter

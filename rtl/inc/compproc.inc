@@ -54,8 +54,8 @@ function fpc_chararray_to_shortstr(const arr: array of char):shortstring; compil
 function fpc_shortstr_to_chararray(arraysize: longint; const src: ShortString): fpc_big_chararray; compilerproc;
 
 Function  fpc_shortstr_Copy(const s:shortstring;index:StrLenInt;count:StrLenInt):shortstring;compilerproc;
-Function  fpc_ansistr_Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;compilerproc;
-Function  fpc_widestr_Copy (Const S : WideString; Index,Size : Longint) : WideString;compilerproc;
+Function  fpc_ansistr_Copy (Const S : AnsiString; Index,Size : StrLenInt) : AnsiString;compilerproc;
+Function  fpc_widestr_Copy (Const S : WideString; Index,Size : StrLenInt) : WideString;compilerproc;
 function  fpc_char_copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;compilerproc;
 procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;lowidx,count:tdynarrayindex);compilerproc;
 
@@ -66,15 +66,57 @@ procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); compilerproc;
 procedure fpc_dynarray_incr_ref(p : pointer); compilerproc;
 procedure fpc_dynarray_setlength(var p : pointer;pti : pointer; dimcount : dword;dims : pdynarrayindex); compilerproc;
 
-procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : longint;var s : shortstring); compilerproc;
+{ Str() support }
+{$ifdef STR_USES_VALINT}
+procedure fpc_ShortStr_sint(v : valsint;len : strlenint;var s : shortstring); compilerproc;
+procedure fpc_shortstr_uint(v : valuint;len : strlenint;var s : shortstring); compilerproc;
+procedure fpc_chararray_sint(v : valsint;len : strlenint;var a : array of char); compilerproc;
+procedure fpc_chararray_uint(v : valuint;len : strlenint;var a : array of char); compilerproc;
+procedure fpc_AnsiStr_sint(v : valsint; Len : strlenint; Var S : AnsiString); compilerproc;
+procedure fpc_AnsiStr_uint(v : valuint;Len : strlenint; Var S : AnsiString); compilerproc;
+procedure fpc_WideStr_sint(v : valsint; Len : strlenint; Var S : WideString); compilerproc;
+procedure fpc_WideStr_uint(v : valuint;Len : strlenint; Var S : WideString); compilerproc;
+{$else}
 procedure fpc_ShortStr_Longint(v : longint;len : longint;var s : shortstring); compilerproc;
 procedure fpc_shortstr_longword(v : longword;len : longint;var s : shortstring); compilerproc;
-procedure fpc_chararray_Float(d : ValReal;len,fr,rt : longint;var a : array of char); compilerproc;
 procedure fpc_chararray_Longint(v : longint;len : longint;var a : array of char); compilerproc;
 procedure fpc_chararray_longword(v : longword;len : longint;var a : array of char); compilerproc;
+procedure fpc_AnsiStr_Longint(v : Longint; Len : Longint; Var S : AnsiString); compilerproc;
+procedure fpc_AnsiStr_Longword(v : Longword;Len : Longint; Var S : AnsiString); compilerproc;
+procedure fpc_WideStr_Longint(v : Longint; Len : Longint; Var S : WideString); compilerproc;
+procedure fpc_WideStr_Longword(v : Longword;Len : Longint; Var S : WideString); compilerproc;
+{$endif}
+procedure fpc_shortstr_qword(v : qword;len : strlenint;var s : shortstring); compilerproc;
+procedure fpc_shortstr_int64(v : int64;len : strlenint;var s : shortstring); compilerproc;
+procedure fpc_chararray_qword(v : qword;len : strlenint;var a : array of char); compilerproc;
+procedure fpc_chararray_int64(v : int64;len : strlenint;var a : array of char); compilerproc;
+procedure fpc_ansistr_qword(v : qword;len : strlenint;var s : ansistring); compilerproc;
+procedure fpc_ansistr_int64(v : int64;len : strlenint;var s : ansistring); compilerproc;
+procedure fpc_widestr_qword(v : qword;len : strlenint;var s : widestring); compilerproc;
+procedure fpc_widestr_int64(v : int64;len : strlenint;var s : widestring); compilerproc;
+procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : strlenint;var s : shortstring); compilerproc;
+procedure fpc_chararray_Float(d : ValReal;len,fr,rt : strlenint;var a : array of char); compilerproc;
+procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : strlenint;var s : ansistring); compilerproc;
+procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : strlenint;var s : WideString); compilerproc;
+
+{ Val() support }
+Function fpc_Val_Real_ShortStr(const s : shortstring; var code : ValSInt): ValReal; compilerproc;
+Function fpc_Val_Real_AnsiStr(Const S : AnsiString; Var Code : ValSInt): ValReal; compilerproc;
+Function fpc_Val_Real_WideStr(Const S : WideString; Var Code : ValSInt): ValReal; compilerproc;
 Function fpc_Val_SInt_ShortStr(DestSize: longint; Const S: ShortString; var Code: ValSInt): ValSInt; compilerproc;
 Function fpc_Val_UInt_Shortstr(Const S: ShortString; var Code: ValSInt): ValUInt; compilerproc;
-Function fpc_Val_Real_ShortStr(const s : shortstring; var code : ValSInt): ValReal; compilerproc;
+Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; Var Code : ValSInt): ValUInt; compilerproc;
+Function fpc_Val_SInt_AnsiStr (DestSize: longint; Const S : AnsiString; Var Code : ValSInt): ValSInt; compilerproc;
+Function fpc_Val_UInt_WideStr (Const S : WideString; Var Code : ValSInt): ValUInt; compilerproc;
+Function fpc_Val_SInt_WideStr (DestSize: longint; Const S : WideString; Var Code : ValSInt): ValSInt; compilerproc;
+{$ifndef CPU64}
+Function fpc_val_int64_shortstr(Const S: ShortString; var Code: ValSInt): Int64; compilerproc;
+Function fpc_val_qword_shortstr(Const S: ShortString; var Code: ValSInt): QWord; compilerproc;
+Function fpc_Val_qword_AnsiStr (Const S : AnsiString; Var Code : ValSInt): qword;compilerproc;
+Function fpc_Val_int64_AnsiStr (Const S : AnsiString; Var Code : ValSInt): Int64; compilerproc;
+Function fpc_Val_qword_WideStr (Const S : WideString; Var Code : ValSInt): qword; compilerproc;
+Function fpc_Val_int64_WideStr (Const S : WideString; Var Code : ValSInt): Int64; compilerproc;
+{$endif CPU64}
 
 Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); compilerproc;
 Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); compilerproc;
@@ -83,7 +125,6 @@ function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): AnsiString; compilerproc
 Procedure fpc_ansistr_append_char(Var S : AnsiString;c : char); compilerproc;
 Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;Str : ShortString); compilerproc;
 Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;Str : AnsiString); compilerproc;
-
 {$ifdef EXTRAANSISHORT}
 Procedure fpc_AnsiStr_ShortStr_Concat (Var S1: AnsiString; Var S2 : ShortString); compilerproc;
 {$endif EXTRAANSISHORT}
@@ -129,24 +170,6 @@ Function fpc_PWideChar_To_WideStr(const p : pwidechar): widestring; compilerproc
 Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerproc;
 {$endif HASWIDECHAR}
 
-Function fpc_Val_Real_AnsiStr(Const S : AnsiString; Var Code : ValSInt): ValReal; compilerproc;
-Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; Var Code : ValSInt): ValUInt; compilerproc;
-Function fpc_Val_SInt_AnsiStr (DestSize: longint; Const S : AnsiString; Var Code : ValSInt): ValSInt; compilerproc;
-Function fpc_Val_qword_AnsiStr (Const S : AnsiString; Var Code : ValSInt): qword;compilerproc;
-Function fpc_Val_int64_AnsiStr (Const S : AnsiString; Var Code : ValSInt): Int64; compilerproc;
-procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : longint;var s : ansistring); compilerproc;
-Procedure fpc_AnsiStr_Longword(C : Longword;Len : Longint; Var S : AnsiString); compilerproc;
-Procedure fpc_AnsiStr_Longint(L : Longint; Len : Longint; Var S : AnsiString); compilerproc;
-
-Function fpc_Val_Real_WideStr(Const S : WideString; Var Code : ValSInt): ValReal; compilerproc;
-Function fpc_Val_UInt_WideStr (Const S : WideString; Var Code : ValSInt): ValUInt; compilerproc;
-Function fpc_Val_SInt_WideStr (DestSize: longint; Const S : WideString; Var Code : ValSInt): ValSInt; compilerproc;
-Function fpc_Val_qword_WideStr (Const S : WideString; Var Code : ValSInt): qword; compilerproc;
-Function fpc_Val_int64_WideStr (Const S : WideString; Var Code : ValSInt): Int64; compilerproc;
-procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : longint;var s : WideString); compilerproc;
-Procedure fpc_WideStr_Longword(C : Longword;Len : Longint; Var S : WideString); compilerproc;
-Procedure fpc_WideStr_Longint(L : Longint; Len : Longint; Var S : WideString); compilerproc;
-
 { from text.inc }
 Procedure fpc_Write_End(var f:Text); compilerproc;
 Procedure fpc_Writeln_End(var f:Text); compilerproc;
@@ -159,8 +182,10 @@ Procedure fpc_Write_Text_WideStr (Len : Longint; Var f : Text; S : WideString); 
 {$endif HASWIDESTRING}
 Procedure fpc_Write_Text_SInt(Len : Longint;var t : Text;l : ValSInt); compilerproc;
 Procedure fpc_Write_Text_UInt(Len : Longint;var t : Text;l : ValUInt); compilerproc;
+{$ifndef CPU64}
 procedure fpc_write_text_qword(len : longint;var t : text;q : qword); compilerproc;
 procedure fpc_write_text_int64(len : longint;var t : text;i : int64); compilerproc;
+{$endif CPU64}
 Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); compilerproc;
 Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); compilerproc;
 Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); compilerproc;
@@ -194,15 +219,6 @@ function fpc_mod_longint(n,z : longint) : longint; compilerproc;
 {$endif FPC_INCLUDE_SOFTWARE_MOD_DIV}
 
 { from int64.inc }
-procedure fpc_shortstr_qword(v : qword;len : longint;var s : shortstring); compilerproc;
-procedure fpc_shortstr_int64(v : int64;len : longint;var s : shortstring); compilerproc;
-procedure fpc_ansistr_qword(v : qword;len : longint;var s : ansistring); compilerproc;
-procedure fpc_ansistr_int64(v : int64;len : longint;var s : ansistring); compilerproc;
-Function fpc_val_int64_shortstr(Const S: ShortString; var Code: ValSInt): Int64; compilerproc;
-Function fpc_val_qword_shortstr(Const S: ShortString; var Code: ValSInt): QWord; compilerproc;
-procedure fpc_widestr_qword(v : qword;len : longint;var s : widestring); compilerproc;
-procedure fpc_widestr_int64(v : int64;len : longint;var s : widestring); compilerproc;
-
 function fpc_div_qword(n,z : qword) : qword; compilerproc;
 function fpc_mod_qword(n,z : qword) : qword; compilerproc;
 function fpc_div_int64(n,z : int64) : int64; compilerproc;
@@ -310,7 +326,11 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.52  2004-04-12 18:51:02  florian
+  Revision 1.53  2004-04-29 18:59:43  peter
+    * str() helpers now also use valint/valuint
+    * int64/qword helpers disabled for cpu64
+
+  Revision 1.52  2004/04/12 18:51:02  florian
     * fixed getmem prototype for 64 bit systems
 
   Revision 1.51  2004/01/01 17:58:16  jonas
