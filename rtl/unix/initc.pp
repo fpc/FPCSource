@@ -59,6 +59,9 @@ function geterrnolocation: Plibcint; cdecl;external clib name '__error';
 {$ifdef NetBSD} // from a sparc dump.
 function geterrnolocation: Plibcint; cdecl;external clib name '__errno';
 {$else}
+{$ifdef Darwin}
+function geterrnolocation: Plibcint; cdecl;external clib name '__error';
+{$endif}
 {$endif}
 {$endif}
 {$endif}
@@ -79,7 +82,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2003-12-11 18:20:50  florian
+  Revision 1.9  2004-01-04 20:36:53  jonas
+    + geterrnolocation for Darwin
+
+  Revision 1.8  2003/12/11 18:20:50  florian
     * replaced VER1_0 by HASGLOBALPROPERTY
 
   Revision 1.7  2003/12/10 17:14:27  marco
