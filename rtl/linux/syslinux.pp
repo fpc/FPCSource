@@ -512,10 +512,11 @@ end;
                            Directory Handling
 *****************************************************************************}
 
-Procedure MkDir(Const s: String);
+Procedure MkDir(Const s: String);[IOCheck];
 Var
   Buffer: Array[0..255] of Char;
 Begin
+  If InOutRes <> 0 then exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
 {$ifdef crtlib}
@@ -527,10 +528,11 @@ Begin
 End;
 
 
-Procedure RmDir(Const s: String);
+Procedure RmDir(Const s: String);[IOCheck];
 Var
   Buffer: Array[0..255] of Char;
 Begin
+  If InOutRes <> 0 then exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
 {$ifdef crtlib}
@@ -542,10 +544,11 @@ Begin
 End;
 
 
-Procedure ChDir(Const s: String);
+Procedure ChDir(Const s: String);[IOCheck];
 Var
   Buffer: Array[0..255] of Char;
 Begin
+  If InOutRes <> 0 then exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
 {$ifdef crtlib}
@@ -675,7 +678,10 @@ End.
 
 {
   $Log$
-  Revision 1.6  1998-07-01 15:30:01  peter
+  Revision 1.7  1998-07-02 12:36:21  carl
+    * IOCheck/InOutRes check for mkdir, chdir and rmdir as in TP
+
+  Revision 1.6  1998/07/01 15:30:01  peter
     * better readln/writeln
 
   Revision 1.4  1998/05/30 14:18:43  peter
