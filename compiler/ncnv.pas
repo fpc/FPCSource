@@ -275,7 +275,7 @@ implementation
         htype       : ttype;
         constset    : Pconstset;
         constsetlo,
-        constsethi  : longint;
+        constsethi  : TConstExprInt;
 
         procedure update_constsethi(t:ttype);
         begin
@@ -2388,7 +2388,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.130  2003-11-04 22:30:15  florian
+  Revision 1.131  2003-11-22 00:31:52  jonas
+    * fixed range error
+
+  Revision 1.130  2003/11/04 22:30:15  florian
     + type cast variant<->enum
     * cnv. node second pass uses now as well helper wrappers
 
