@@ -107,12 +107,15 @@ implementation
                     v:=torddef(t.def).high;
                   { low/high of torddef are longints, so we need special }
                   { handling for cardinal and 64bit types (JM)           }
+                  { 1.0.x doesn't support int64($ffffffff) correct, it'll expand
+                    to -1 instead of staying $ffffffff. Therefor we use $ffff with
+                    shl twice (PFV) }
                   if is_signed(t.def) and
                      is_64bitint(t.def) then
                     if (inlinenumber=in_low_x) then
                       v := int64($80000000) shl 32
                     else
-                      v := (int64($7fffffff) shl 32) or $ffffffff
+                      v := (int64($7fffffff) shl 32) or int64($ffff) shl 16 or int64($ffff)
                   else
                     if is_64bitint(t.def) then
                       { we have to use a dirty trick for high(qword),     }
@@ -1136,7 +1139,7 @@ implementation
 {
                                 Doesn't work because that procedure isn't in
                                 the interface of the system unit :( (JM)
-                                
+
                                 srsym:=searchsymonlyin(systemunit,'FPC_DYNARRAY_HIGH');
                                 if not assigned(srsym) then
                                   internalerror(200104291);
@@ -1747,7 +1750,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2001-05-06 17:16:43  jonas
+  Revision 1.41  2001-06-03 20:12:53  peter
+    * changed int64($ffffffff) that is buggy under 1.0.x to expression
+      with a shl
+
+  Revision 1.40  2001/05/06 17:16:43  jonas
     + added warning about missing implementation for high(dynamic_array)
 
   Revision 1.39  2001/04/26 21:57:05  peter
