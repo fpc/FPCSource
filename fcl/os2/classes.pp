@@ -22,7 +22,7 @@ unit Classes;
 interface
 
 uses
-  objpas,dos;
+  objpas,dos,strings;
 
 {$i classesh.inc}
 
@@ -33,7 +33,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-05-04 14:31:51  michael
+  Revision 1.3  1998-05-06 13:00:25  michael
+  + Added strings to uses clause, for TStrings class.
+
+  Revision 1.2  1998/05/04 14:31:51  michael
   + Split classes file.
 
   Revision 1.1  1998/05/04 12:16:01  florian
