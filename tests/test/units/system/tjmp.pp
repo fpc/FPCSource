@@ -4,54 +4,56 @@ program tjmp;
 
 var
  global_envbuf: jmp_buf;
- 
- 
- type 
+
+
+ type
    tmyobject = object
      envbuf : jmp_buf;
-     i, j : integer;
+     j : integer;
      jmpresult : integer;
      constructor init;
      destructor done;
      procedure testlongjmp;virtual;
      procedure testsetjmp;virtual;
-   end;  
+   end;
 
-  pderivedobject = ^tderivedobject;   
+  pderivedobject = ^tderivedobject;
   tderivedobject = object(tmyobject)
      procedure testlongjmp; virtual;
      procedure testsetjmp; virtual;
-  end;  
-   
-     
+  end;
+
+
 
 
 
 constructor tmyobject.init;
  begin
  end;
- 
- 
- 
+
+
+
 destructor tmyobject.done;
  begin
  end;
- 
- 
+
+
 procedure tmyobject.testlongjmp;
  begin
  end;
- 
+
 procedure tmyobject.testsetjmp;
  begin
  end;
- 
+
 procedure tderivedobject.testlongjmp;
  begin
     longjmp(envbuf, 255);
  end;
- 
+
 procedure tderivedobject.testsetjmp;
+  var
+    i : integer;
  begin
    j:=0;
    jmpresult:=setjmp(envbuf);
@@ -63,7 +65,7 @@ procedure tderivedobject.testsetjmp;
           j:=j + 13;
           if j = 13 then
             self.testlongjmp;
-        end; 
+        end;
      end;
    255 : WriteLn('Sucess!');
    else
@@ -78,8 +80,8 @@ procedure testlongjmp;
  begin
     longjmp(global_envbuf, 255);
  end;
- 
- 
+
+
 procedure testsetjmp;
   var
      i, j : integer;
@@ -95,7 +97,7 @@ procedure testsetjmp;
           j:=j + 13;
           if j = 13 then
             testlongjmp;
-        end; 
+        end;
      end;
    255 : WriteLn('Sucess!');
    else
@@ -105,7 +107,7 @@ procedure testsetjmp;
      end
    end;
  end;
- 
+
 var
  pobj : pderivedobject;
 begin
@@ -119,7 +121,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-09-15 09:53:05  carl
+  Revision 1.2  2003-05-10 09:55:00  peter
+    * fix loop variable
+
+  Revision 1.1  2002/09/15 09:53:05  carl
     * initial revision of longjmp/setjmp testing
 
 }
