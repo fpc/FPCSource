@@ -132,7 +132,8 @@ unit symtable;
 
        tsymtable = object
           symtabletype : tsymtabletype;
-          unitid    : integer;     { each symtable gets a number }
+          { each symtable gets a number }
+          unitid    : word{integer give range check errors PM};
           name      : pstring;
           datasize  : longint;
           dataalignment : longint;
@@ -526,7 +527,7 @@ implementation
         while assigned(hp1) do
          begin
            if assigned(hp1^.globalsymtable) then
-             psymtable(hp1^.globalsymtable)^.unitid:=-1;
+             psymtable(hp1^.globalsymtable)^.unitid:=$ffff;
            hp1:=pmodule(hp1^.next);
          end;
         { Our own symtable gets unitid 0, for a program there is
@@ -2345,7 +2346,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  1999-08-10 12:33:36  pierre
+  Revision 1.40  1999-08-10 16:25:42  pierre
+   * unitid changed to word
+
+  Revision 1.39  1999/08/10 12:33:36  pierre
    * pprocsym defined earlier for use in tprocdef
 
   Revision 1.38  1999/08/05 16:53:18  peter
