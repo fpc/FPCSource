@@ -1441,9 +1441,11 @@ var
       WriteAsmFileHeader;
       WriteExternals;
 
-    { PowerPC MPW ASM doesn't support stabs, as we know.
-      WriteTree(debuglist);}
-
+      { PowerPC MPW ASM doesn't support stabs, at the moment:}
+(*
+      If (cs_debuginfo in aktmoduleswitches) then
+        WriteTree(debuglist);
+*)
       WriteTree(codesegment);
       WriteTree(datasegment);
       WriteTree(consts);
@@ -1485,7 +1487,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.38  2004-09-10 11:23:52  olle
+  Revision 1.39  2004-10-09 10:48:34  olle
+    * minor fix
+
+  Revision 1.38  2004/09/10 11:23:52  olle
     * floating point constants is now written as byte pattern, to have exact control of each bit.
 
   Revision 1.37  2004/07/26 22:26:39  olle
