@@ -436,15 +436,28 @@ implementation
                  assigned(tt.def) and (tt.def^.deftype=recorddef) and (tt.def^.size=16) then
                 rec_tguid:=precorddef(tt.def);
             end;
-           if assigned(newtype^.restype.def) and
-              (newtype^.restype.def^.deftype=procvardef) then
+           if assigned(newtype^.restype.def) then
             begin
-              if not is_proc_directive(token) then
-               consume(_SEMICOLON);
-              parse_var_proc_directives(psym(newtype));
-            end
-           else
-            consume(_SEMICOLON);
+              case newtype^.restype.def^.deftype of
+                pointerdef :
+                  begin
+                    consume(_SEMICOLON);
+                    if try_to_consume(_FAR) then
+                     begin
+                       ppointerdef(newtype^.restype.def)^.is_far:=true;
+                       consume(_SEMICOLON);
+                     end;
+                  end;
+                procvardef :
+                  begin
+                    if not is_proc_directive(token) then
+                     consume(_SEMICOLON);
+                    parse_var_proc_directives(psym(newtype));
+                  end;
+                else
+                  consume(_SEMICOLON);
+              end;
+            end;
          until token<>_ID;
          typecanbeforward:=false;
          symtablestack^.foreach({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward);
@@ -532,7 +545,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2000-11-04 14:25:20  florian
+  Revision 1.20  2000-11-11 16:19:11  peter
+    * allow far directive for pointer type declarations
+
+  Revision 1.19  2000/11/04 14:25:20  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.18  2000/10/31 22:02:49  peter
