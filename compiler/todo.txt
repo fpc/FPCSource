@@ -6,17 +6,17 @@ Please indent task which are done 8 spaces and add the
 compiler version and your short cut.
 
 * OPOM (Object Pascal Object Modell)
-  - virtual constructors
+        - virtual constructors ................................... 0.99.6 (FK)
   * properties
-    - save the def and not the sym which
-      does read/write access
-    - indexed properties
-    - default properties
+        - save the def and not the sym which
+          does read/write access ................................. 0.99.6 (FK)
+        - indexed properties ..................................... 0.99.6 (FK)
+        - default properties ..................................... 0.99.6 (FK)
     - stored qualifier
-    - read/write from/to unit file
+        - read/write from/to unit file ........................... 0.99.6 (FK)
   - call of destructor helper routine
   - message qualifier
-  - correct handling of constructor result type
+        - correct handling of constructor result type ............ 0.99.6 (FK)
   - rtti
   - dynamic methods
   - correct handling of access specifiers
@@ -39,6 +39,9 @@ compiler version and your short cut.
 - $P
 - range checking for open arrays
 - array of const as subroutine parameter
+- open array with call by value
+- subrange types of enumerations
+- method pointers (procedure of object)
 - code generation for exceptions
 - initialisation/finalization for units
 - fixed data type

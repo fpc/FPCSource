@@ -669,18 +669,59 @@ unit types;
          _name : string;
          stored : boolean;
 
+      { creates a new entry in the procsym list }
+      procedure newentry;
+
+        begin
+           { if not, generate a new symbol item }
+           new(symcoll);
+           symcoll^.name:=stringdup(sym^.name);
+           symcoll^.next:=wurzel;
+           symcoll^.data:=nil;
+           wurzel:=symcoll;
+           hp:=pprocsym(sym)^.definition;
+
+           { inserts all definitions }
+           while assigned(hp) do
+             begin
+                new(procdefcoll);
+                procdefcoll^.data:=hp;
+                procdefcoll^.next:=symcoll^.data;
+                symcoll^.data:=procdefcoll;
+
+                { if it's a virtual method }
+                if (hp^.options and povirtualmethod)<>0 then
+                  begin
+                     { then it gets a number ... }
+                     hp^.extnumber:=nextvirtnumber;
+                     { and we inc the number }
+                     inc(nextvirtnumber);
+                     has_virtual_method:=true;
+                  end;
+
+                if (hp^.options and poconstructor)<>0 then
+                  has_constructor:=true;
+
+                { check, if a method should be overridden }
+                if (hp^.options and pooverridingmethod)<>0 then
+                  Message1(parser_e_nothing_to_be_overridden,_c^.name^+'.'+_name);
+                { next overloaded method }
+                hp:=hp^.nextoverloaded;
+             end;
+        end;
+
       begin
-         { nur Unterprogrammsymbole werden in die VMT aufgenommen }
+         { put only sub routines into the VMT }
          if sym^.typ=procsym then
            begin
               _name:=sym^.name;
               symcoll:=wurzel;
               while assigned(symcoll) do
                 begin
-                   { wenn das Symbol in der Liste schon existiert }
+                   { does the symbol already exist in the list ? }
                    if _name=symcoll^.name^ then
                      begin
-                        { walk thorugh all defs of the symbol }
+                        { walk through all defs of the symbol }
                         hp:=pprocsym(sym)^.definition;
                         while assigned(hp) do
                           begin
@@ -701,7 +742,22 @@ unit types;
                                        { Fehler falls nur eine VIRTUAL }
                                        if (procdefcoll^.data^.options and povirtualmethod)<>
                                           (hp^.options and povirtualmethod) then
-                                            Message1(parser_e_overloaded_are_not_both_virtual,_c^.name^+'.'+_name);
+                                         begin
+                                            { in classes, we hide the old method }
+                                            if _c^.isclass then
+                                              begin
+                                                 { warn only if it is the first time,
+                                                   we hide the method }
+                                                 if _c=hp^._class then
+                                                   Message1(parser_w_should_use_override,_c^.name^+'.'+_name);
+                                                 newentry;
+                                                 exit;
+                                              end
+                                            else
+                                              begin
+                                                 Message1(parser_e_overloaded_are_not_both_virtual,_c^.name^+'.'+_name);
+                                              end;
+                                         end;
 
                                        { check, if the overridden directive is set }
                                        { (povirtualmethod is set! }
@@ -710,10 +766,13 @@ unit types;
                                        if _c^.isclass and
                                          ((hp^.options and pooverridingmethod)=0) then
                                          begin
-                                            { this isn't like handled like delphi !!!!! }
-                                            Message1(parser_e_must_use_override,_c^.name^+'.'+_name);
+                                            { warn only if it is the first time,
+                                              we hide the method }
+                                            if _c=hp^._class then
+                                              Message1(parser_w_should_use_override,_c^.name^+'.'+_name);
+                                            newentry;
+                                            exit;
                                          end;
-
 
                                        { error, if the return types aren't equal }
                                        if not(is_equal(procdefcoll^.data^.retdef,hp^.retdef)) then
@@ -759,41 +818,7 @@ unit types;
                      end;
                    symcoll:=symcoll^.next;
                 end;
-              { if not, generate a new symbol item }
-              new(symcoll);
-              symcoll^.name:=stringdup(sym^.name);
-              symcoll^.next:=wurzel;
-              symcoll^.data:=nil;
-              wurzel:=symcoll;
-              hp:=pprocsym(sym)^.definition;
-
-              { inserts all definitions }
-              while assigned(hp) do
-                begin
-                   new(procdefcoll);
-                   procdefcoll^.data:=hp;
-                   procdefcoll^.next:=symcoll^.data;
-                   symcoll^.data:=procdefcoll;
-
-                   { if it's a virtual method }
-                   if (hp^.options and povirtualmethod)<>0 then
-                     begin
-                        { then it gets a number ... }
-                        hp^.extnumber:=nextvirtnumber;
-                        { and we inc the number }
-                        inc(nextvirtnumber);
-                        has_virtual_method:=true;
-                     end;
-
-                   if (hp^.options and poconstructor)<>0 then
-                     has_constructor:=true;
-
-                   { check, if a method should be overridden }
-                   if (hp^.options and pooverridingmethod)<>0 then
-                     Message1(parser_e_nothing_to_be_overridden,_c^.name^+'.'+_name);
-                   { next overloaded method }
-                   hp:=hp^.nextoverloaded;
-                end;
+             newentry;
            end;
       end;
 
@@ -900,7 +925,13 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.7  1998-04-10 21:36:56  florian
+  Revision 1.8  1998-04-12 22:39:44  florian
+    * problem with read access to properties solved
+    * correct handling of hidding methods via virtual (COM)
+    * correct result type of constructor calls (COM), the resulttype
+      depends now on the type of the class reference
+
+  Revision 1.7  1998/04/10 21:36:56  florian
     + some stuff to support method pointers (procedure of object) added
       (declaration, parameter handling)
 

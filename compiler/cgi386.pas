@@ -3050,11 +3050,11 @@ implementation
               if (p^.procdefinition^.options and pomethodpointer)<>0 then
                 begin
                    { method pointer can't be in a register }
-                   inc(p^.right^.location.reference^.offset,4);
+                   inc(p^.right^.location.reference.offset,4);
                    { push self pointer }
                    exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(p^.right^.location.reference))));
                    del_reference(p^.right^.location.reference);
-                   dec(p^.right^.location.reference^.offset,4);
+                   dec(p^.right^.location.reference.offset,4);
                 end;
               case p^.right^.location.loc of
                  LOC_REGISTER,LOC_CREGISTER:
@@ -5725,7 +5725,13 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.9  1998-04-10 21:36:55  florian
+  Revision 1.10  1998-04-12 22:39:43  florian
+    * problem with read access to properties solved
+    * correct handling of hidding methods via virtual (COM)
+    * correct result type of constructor calls (COM), the resulttype
+      depends now on the type of the class reference
+
+  Revision 1.9  1998/04/10 21:36:55  florian
     + some stuff to support method pointers (procedure of object) added
       (declaration, parameter handling)
 

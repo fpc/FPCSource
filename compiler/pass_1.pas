@@ -2136,6 +2136,7 @@ unit pass_1;
        if not assigned(p^.left^.resulttype) then
         begin
           codegenerror:=true;
+          internalerror(52349);
           exit;
         end;
 
@@ -2988,11 +2989,11 @@ unit pass_1;
                end;
 {$endif}
            end; { not assigned(p^.procdefinition) }
-
+         { ensure that the result type is set }
+         p^.resulttype:=p^.procdefinition^.retdef;
          { get a register for the return value }
          if (p^.resulttype<>pdef(voiddef)) then
            begin
-              { the constructor returns the result with the flags }
               if (p^.procdefinition^.options and poconstructor)<>0 then
                 begin
                    { extra handling of classes }
@@ -3002,7 +3003,10 @@ unit pass_1;
                      begin
                         p^.location.loc:=LOC_REGISTER;
                         p^.registers32:=1;
+                        { the result type depends on the classref }
+                        p^.resulttype:=pclassrefdef(p^.methodpointer^.resulttype)^.definition;
                      end
+                  { a object constructor returns the result with the flags }
                    else
                      p^.location.loc:=LOC_FLAGS;
                 end
@@ -4496,7 +4500,13 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.6  1998-04-09 22:16:34  florian
+  Revision 1.7  1998-04-12 22:39:44  florian
+    * problem with read access to properties solved
+    * correct handling of hidding methods via virtual (COM)
+    * correct result type of constructor calls (COM), the resulttype
+      depends now on the type of the class reference
+
+  Revision 1.6  1998/04/09 22:16:34  florian
     * problem with previous REGALLOC solved
     * improved property support
 
