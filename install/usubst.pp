@@ -110,7 +110,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2005-01-09 13:36:12  michael
+  Revision 1.2  2005-01-09 15:19:03  peter
+    * fix linebreak
+
+  Revision 1.1  2005/01/09 13:36:12  michael
   + Initial implementation of installer tools
 
 
