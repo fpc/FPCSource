@@ -121,7 +121,7 @@ function Compile(const cmd:string):longint;
 implementation
 
 uses
-  cpubase;
+  cpubase,cpuasm;
 
 var
   CompilerInitedAfterArgs,
@@ -177,6 +177,7 @@ begin
      DoneExport;
      DoneLinker;
      DoneAssembler;
+     DoneAsm;
      DoneCpu;
    end;
 { Free memory for the others }
@@ -223,6 +224,7 @@ begin
   InitLinker;
   InitAssembler;
   InitCpu;
+  InitAsm;
   CompilerInitedAfterArgs:=true;
 end;
 
@@ -337,7 +339,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2002-03-24 19:05:31  carl
+  Revision 1.24  2002-04-15 18:56:42  carl
+  + InitAsm
+
+  Revision 1.23  2002/03/24 19:05:31  carl
   + patch for SPARC from Mazen NEIFER
 
   Revision 1.22  2001/09/18 11:30:47  michael
