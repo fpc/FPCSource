@@ -1,6 +1,5 @@
 {
     $Id$
-    $Id$
     Copyright (C) 1995,97 by Florian Klaempfl
 
     This unit contains information about the target systems supported
@@ -72,7 +71,6 @@ unit systems;
      type
        tasm = (as_none
             ,as_i386_as,as_i386_as_aout,as_i386_asw,
-            ,as_i386_o,as_i386_o_aout,as_i386_asw,
             as_i386_nasmcoff,as_i386_nasmelf,as_i386_nasmobj,
             as_i386_tasm,as_i386_masm,
             as_i386_dbg,as_i386_coff,as_i386_pecoff
@@ -81,11 +79,6 @@ unit systems;
        { binary assembler writers, needed to test for -a }
      const
        {$ifdef i386} i386asmcnt=11; {$else} i386asmcnt=0; {$endif}
-            as_i386_coff
-            ,as_m68k_o,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw
-       );
-     const
-       {$ifdef i386} i386asmcnt=9; {$else} i386asmcnt=0; {$endif}
        {$ifdef m68k} m68kasmcnt=5; {$else} m68kasmcnt=0; {$endif}
        asmcnt=i386asmcnt+m68kasmcnt+1;
 
@@ -142,7 +135,6 @@ unit systems;
           name      : string[30];
           shortname : string[8];
           sharedlibext : string[10];
-          sharedlibext,
           staticlibext,
           sourceext,
           pasext,
@@ -168,7 +160,6 @@ unit systems;
           allowdirect,
           externals,
           needar      : boolean;
-          externals   : boolean;
           labelprefix : string[2];
           comment     : string[2];
           secnames    : array[tsection] of string[20];
@@ -257,9 +248,6 @@ unit systems;
     function set_string_asmmode(s:string;var t:tasmmode):boolean;
 
     procedure InitSystems;
-    function set_string_target(s : string) : boolean;
-    function set_string_asm(s : string) : boolean;
-    function set_string_asmmode(s:string;var t:tasmmode):boolean;
 
 
 implementation
@@ -315,15 +303,6 @@ implementation
             size_of_pointer : 4;
             size_of_longint : 4;
             use_bound_instruction : false;
-            scriptext    : '.bat';
-            libprefix    : '';
-            Cprefix      : '_';
-            newline      : #13#10;
-            endian       : endian_little;
-            stackalignment : 2;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : true;
             use_function_relative_addresses : true
           ),
           (
@@ -387,15 +366,6 @@ implementation
             size_of_pointer : 4;
             size_of_longint : 4;
             use_bound_instruction : false;
-            scriptext    : '.bat';
-            libprefix    : 'lib';
-            Cprefix      : '_';
-            newline      : #13#10;
-            endian       : endian_little;
-            stackalignment : 4;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : true;
             use_function_relative_addresses : true
           ),
           (
@@ -545,22 +515,6 @@ implementation
               '.text','.data','.bss',
               '','','','','','',
               '.stab','.stabstr')
-            id     : as_i386_o;
-            idtxt  : 'O';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
-            externals : false;
-            labelprefix : '.L';
-            comment : '# '
-          )
-          ,(
-            id     : as_i386_o_aout;
-            idtxt  : 'O_AOUT';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
-            externals : false;
-            labelprefix : 'L';
-            comment : '# '
           )
           ,(
             id     : as_i386_asw;
@@ -577,9 +531,6 @@ implementation
               '.section .idata$2','.section .idata$4','.section .idata$5',
                 '.section .idata$6','.section .idata$7','.section .edata',
               '.stab','.stabstr')
-            externals : false;
-            labelprefix : '.L';
-            comment : '# '
           )
           ,(
             id     : as_i386_nasmcoff;
@@ -595,9 +546,6 @@ implementation
               '.text','.data','.bss',
               '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
               '.stab','.stabstr')
-            externals : true;
-            labelprefix : 'L';
-            comment : '; '
           )
           ,(
             id     : as_i386_nasmelf;
@@ -613,9 +561,6 @@ implementation
               '.text','.data','.bss',
               '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
               '.stab','.stabstr')
-            externals : true;
-            labelprefix : 'L';
-            comment : '; '
           )
           ,(
             id     : as_i386_nasmobj;
@@ -631,9 +576,6 @@ implementation
               '.text','.data','.bss',
               '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
               '.stab','.stabstr')
-            externals : true;
-            labelprefix : 'L';
-            comment : '; '
           )
           ,(
             id     : as_i386_tasm;
@@ -649,9 +591,6 @@ implementation
               'CODE','DATA','BSS',
               '','','','','','',
               '','')
-            externals : true;
-            labelprefix : '.L';
-            comment : '; '
           )
           ,(
             id     : as_i386_masm;
@@ -682,9 +621,6 @@ implementation
               '.text','.data','.bss',
               '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
               '.stab','.stabstr')
-            externals : true;
-            labelprefix : '.L';
-            comment : '; '
           )
           ,(
             id     : as_i386_coff;
@@ -732,22 +668,6 @@ implementation
               '.text','.data','.bss',
               '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
               '.stab','.stabstr')
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
-            externals : false;
-            labelprefix : '.L';
-            comment : '# '
-          )
-{$endif i386}
-{$ifdef m68k}
-          ,(
-            id     : as_m68k_o;
-            idtxt  : 'O';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
-            externals : false;
-            labelprefix : '.L';
-            comment : '# '
           )
           ,(
             id     : as_m68k_gas;
@@ -763,9 +683,6 @@ implementation
               '.text','.data','.bss',
               '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
               '.stab','.stabstr')
-            externals : false;
-            labelprefix : '.L';
-            comment : '| '
           )
           ,(
             id     : as_m68k_mit;
@@ -781,9 +698,6 @@ implementation
               '.text','.data','.bss',
               '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
               '.stab','.stabstr')
-            externals : false;
-            labelprefix : '.L';
-            comment : '| '
           )
           ,(
             id     : as_m68k_mot;
@@ -799,9 +713,6 @@ implementation
               '.text','.data','.bss',
               '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
               '.stab','.stabstr')
-            externals : false;
-            labelprefix : '__L';
-            comment : '| '
           )
           ,(
             id     : as_m68k_mpw;
@@ -817,9 +728,6 @@ implementation
               '.text','.data','.bss',
               '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
               '.stab','.stabstr')
-            externals : false;
-            labelprefix : '__L';
-            comment : '| '
           )
 {$endif m68k}
           );
@@ -1023,10 +931,6 @@ implementation
             ar    : ar_i386_ar;
             res  : res_none;
             heapsize    : 256*1024;
-            assem       : as_i386_o;
-            ar          : ar_i386_ar;
-            res         : res_none;
-            heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 16384
           ),
@@ -1052,10 +956,6 @@ implementation
             ar    : ar_i386_ar;
             res  : res_none;
             heapsize    : 256*1024;
-            assem       : as_i386_o;
-            ar          : ar_i386_ar;
-            res         : res_none;
-            heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 16384
           ),
@@ -1081,10 +981,6 @@ implementation
             ar    : ar_i386_ar;
             res  : res_none;
             heapsize    : 256*1024;
-            assem       : as_i386_o;
-            ar          : ar_i386_ar;
-            res         : res_none;
-            heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
           ),
@@ -1107,7 +1003,6 @@ implementation
             link        : link_i386_ldos2;
             assem       : as_i386_as_aout;
             assemsrc    : as_i386_as_aout;
-            assem       : as_i386_o_aout;
             ar    : ar_i386_ar;
             res  : res_none;
             heapsize    : 256*1024;
@@ -1133,15 +1028,11 @@ implementation
             link        : link_i386_ldw;
             assem       : as_i386_pecoff;
             assemsrc    : as_i386_asw;
-            assem       : as_i386_asw;
             ar    : ar_i386_arw;
             res  : res_i386_windres;
             heapsize    : 256*1024;
             maxheapsize : 32*1024*1024;
             stacksize   : 32*1024*1024
-            heapsize    : 2048*1024;
-            maxheapsize : 32768*1024;
-            stacksize   : 32768
           )
 {$endif i386}
 {$ifdef m68k}
@@ -1164,7 +1055,6 @@ implementation
             link        : link_m68k_ld;
             assem       : as_m68k_as;
             assemsrc    : as_m68k_as;
-            assem       : as_m68k_o;
             ar    : ar_m68k_ar;
             res  : res_none;
             heapsize    : 128*1024;
@@ -1190,7 +1080,6 @@ implementation
             link        : link_m68k_ld;
             assem       : as_m68k_as;
             assemsrc    : as_m68k_as;
-            assem       : as_m68k_o;
             ar    : ar_m68k_ar;
             res  : res_none;
             heapsize    : 16*1024;
@@ -1241,7 +1130,6 @@ implementation
             link        : link_m68k_ld;
             assem       : as_m68k_as;
             assemsrc    : as_m68k_as;
-            assem       : as_m68k_o;
             ar    : ar_m68k_ar;
             res  : res_none;
             heapsize    : 128*1024;
@@ -1267,7 +1155,6 @@ implementation
             link        : link_m68k_ld;
             assem       : as_m68k_as;
             assemsrc    : as_m68k_as;
-            assem       : as_m68k_o;
             ar    : ar_m68k_ar;
             res  : res_none;
             heapsize    : 128*1024;
@@ -1532,7 +1419,6 @@ begin
         set_source_os(os_i386_OS2);
         if (OS_Mode = osDOS) or (OS_Mode = osDPMI)
                                             then source_os.scriptext := '.bat';
-        if OS_Mode = osDOS then source_os.scriptext := '.bat';
 {OS/2 via EMX can be run under DOS as well}
       {$else}
         {$ifdef LINUX}
@@ -1615,7 +1501,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  1999-06-02 13:25:34  hajny
+  Revision 1.80  1999-06-02 14:20:31  hajny
+    * fixed my mistake from previously commited version
+
+  Revision 1.79  1999/06/02 13:25:34  hajny
     * fixed stripping symbols for OS/2
 
   Revision 1.78  1999/05/31 20:34:00  peter
