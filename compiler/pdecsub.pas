@@ -227,7 +227,7 @@ implementation
               { check the types for procedures only }
               if not is_procvar then
                begin
-                 if compare_defs(tt.def,procinfo._class,nothingn)>=te_equal then
+                 if compare_defs(tt.def,procinfo._class,nothingn)=te_incompatible then
                    CGMessage2(type_e_incompatible_types,tt.def.typename,procinfo._class.typename);
                end;
             end
@@ -2057,7 +2057,10 @@ const
 end.
 {
   $Log$
-  Revision 1.82  2002-11-25 17:43:21  peter
+  Revision 1.83  2002-11-27 02:35:28  peter
+    * fixed typo in method comparing
+
+  Revision 1.82  2002/11/25 17:43:21  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
