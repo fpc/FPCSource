@@ -18,13 +18,21 @@
 unit sysutils;
 interface
 
+{$IFNDEF VIRTUALPASCAL}
 {$MODE objfpc}
+{$ENDIF}
 { force ansistrings }
 {$H+}
 
 uses
-  dos,windows;
-
+  {$IFDEF VIRTUALPASCAL}
+  vpglue,
+  strings,
+  crt,
+  {$ENDIF}
+  dos,
+  windows;
+  
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -145,14 +153,19 @@ Function DosToWinTime (DTime:longint;Var Wtime : TFileTime):longbool;
 var
   lft : TFileTime;
 begin
+  {$IFDEF VIRTUALPASCAL}
+  DosToWinTime:=DosDateTimeToFileTime(longrec(dtime).hi,longrec(dtime).lo,lft) and
+                LocalFileTimeToFileTime(lft,Wtime);
+ {$ELSE}
   DosToWinTime:=DosDateTimeToFileTime(longrec(dtime).hi,longrec(dtime).lo,@lft) and
                 LocalFileTimeToFileTime(lft,Wtime);
+ {$ENDIF}
 end;
 
 
 Function WinToDosTime (Var Wtime : TFileTime;var DTime:longint):longbool;
 var
-  lft : FileTime;
+  lft : TFileTime;
 begin
   WinToDosTime:=FileTimeToLocalFileTime(WTime,lft) and
                 FileTimeToDosDateTime(lft,Longrec(Dtime).Hi,LongRec(DTIME).lo);
@@ -164,7 +177,7 @@ var
   Handle: THandle;
   FindData: TWin32FindData;
 begin
-  Handle := FindFirstFile(Pchar(FileName), @FindData);
+  Handle := FindFirstFile(Pchar(FileName), FindData);
   if Handle <> INVALID_HANDLE_VALUE then
     begin
       Windows.FindClose(Handle);
@@ -181,7 +194,7 @@ var
   Handle: THandle;
   FindData: TWin32FindData;
 begin
-  Handle := FindFirstFile(Pchar(FileName), @FindData);
+  Handle := FindFirstFile(Pchar(FileName), FindData);
   Result:=Handle <> INVALID_HANDLE_VALUE;
   If Result then
     Windows.FindClose(Handle);
@@ -193,7 +206,7 @@ var
   Handle: THandle;
   FindData: TWin32FindData;
 begin
-  Handle := FindFirstFile(Pchar(Directory), @FindData);
+  Handle := FindFirstFile(Pchar(Directory), FindData);
   Result:=(Handle <> INVALID_HANDLE_VALUE) and
           ((FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = FILE_ATTRIBUTE_DIRECTORY);
   If Result then
@@ -206,7 +219,7 @@ begin
   { Find file with correct attribute }
   While (F.FindData.dwFileAttributes and cardinal(F.ExcludeAttr))<>0 do
    begin
-     if not FindNextFile (F.FindHandle,@F.FindData) then
+     if not FindNextFile (F.FindHandle,F.FindData) then
       begin
         Result:=GetLastError;
         exit;
@@ -228,7 +241,7 @@ begin
   Rslt.ExcludeAttr:=(not Attr) and ($1e);
                  { $1e = faHidden or faSysFile or faVolumeID or faDirectory }
   { FindFirstFile is a Win32 Call }
-  Rslt.FindHandle:=FindFirstFile (PChar(Path),@Rslt.FindData);
+  Rslt.FindHandle:=FindFirstFile (PChar(Path),Rslt.FindData);
   If Rslt.FindHandle=Invalid_Handle_value then
    begin
      Result:=GetLastError;
@@ -241,7 +254,7 @@ end;
 
 Function FindNext (Var Rslt : TSearchRec) : Longint;
 begin
-  if FindNextFile(Rslt.FindHandle, @Rslt.FindData) then
+  if FindNextFile(Rslt.FindHandle, Rslt.FindData) then
     Result := FindMatch(Rslt)
   else
     Result := GetLastError;
@@ -270,11 +283,15 @@ Function FileSetDate (Handle,Age : Longint) : Longint;
 Var
   FT: TFileTime;
 begin
-  Result := 0;
-  if DosToWinTime(Age,FT) and
-     SetFileTime(Handle, ft, ft, FT) then
-    Exit;
+  {$IFDEF VIRTUALPASCAL}
+    Result := 0;
+  {$ELSE}
+    Result := 0;
+    if DosToWinTime(Age,FT) and
+      SetFileTime(Handle, ft, ft, FT) then
+      Exit;
   Result := GetLastError;
+  {$ENDIF}
 end;
 
 
@@ -313,7 +330,13 @@ function GetDiskFreeSpace(drive:pchar;var sector_cluster,bytes_sector,
                           freeclusters,totalclusters:longint):longbool;
          external 'kernel32' name 'GetDiskFreeSpaceA';
 type
-  TGetDiskFreeSpaceEx = function(drive:pchar;var availableforcaller,total,free):longbool;stdcall;
+  {$IFDEF VIRTUALPASCAL}
+   {&StdCall+}
+   TGetDiskFreeSpaceEx = function(drive:pchar;var availableforcaller,total,free):longbool;
+   {&StdCall-}
+  {$ELSE}
+   TGetDiskFreeSpaceEx = function(drive:pchar;var availableforcaller,total,free):longbool;stdcall;
+  {$ENDIF}
 
 var
  GetDiskFreeSpaceEx : TGetDiskFreeSpaceEx;
@@ -631,7 +654,7 @@ begin
      begin
         s:=strpas(hp);
         i:=pos('=',s);
-        if upcase(copy(s,1,i-1))=upcase(envvar) then
+        if uppercase(copy(s,1,i-1))=upcase(envvar) then
           begin
              Result:=copy(s,i+1,length(s)-i);
              break;
@@ -648,12 +671,12 @@ end;
 ****************************************************************************}
 
 var
-   versioninfo : OSVERSIONINFO;
+   versioninfo : TOSVERSIONINFO;
    kernel32dll : THandle;
 
 function FreeLibrary(hLibModule : THANDLE) : longbool;
   external 'kernel32' name 'FreeLibrary';
-function GetVersionEx(var VersionInformation:OSVERSIONINFO) : longbool;
+function GetVersionEx(var VersionInformation:TOSVERSIONINFO) : longbool;
   external 'kernel32' name 'GetVersionExA';
 function LoadLibrary(lpLibFileName : pchar):THandle;
   external 'kernel32' name 'LoadLibraryA';
@@ -675,7 +698,11 @@ Initialization
     begin
        kernel32dll:=LoadLibrary('kernel32');
        if kernel32dll<>0 then
+	{$IFDEF VIRTUALPASCAL}
+         @GetDiskFreeSpaceEx:=GetProcAddress(0,'GetDiskFreeSpaceExA');
+        {$ELSE}
          GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
+        {$ENDIF}
     end;
 
 Finalization
@@ -685,7 +712,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.22  2003-04-01 15:57:41  peter
+  Revision 1.23  2003-09-06 22:23:35  marco
+   * VP fixes.
+
+  Revision 1.22  2003/04/01 15:57:41  peter
     * made THandle platform dependent and unique type
 
   Revision 1.21  2003/03/29 18:21:42  hajny
