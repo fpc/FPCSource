@@ -744,6 +744,24 @@ implementation
                htype.setdef(tsetdef.create(tsetdef(ld).elementtype,255));
                inserttypeconv(left,htype);
              end;
+
+            { if the destination is not a smallset then insert a typeconv
+              which loads a smallset into a normal set }
+            if (tsetdef(ld).settype<>smallset) and
+               (tsetdef(rd).settype=smallset) then
+             begin
+               if (right.nodetype=setconstn) then
+                 begin
+                    t:=csetconstnode.create(tsetconstnode(right).value_set,left.resulttype);
+                    tsetconstnode(t).left:=tsetconstnode(right).left;
+                    tsetconstnode(right).left := nil;
+                    right.free;
+                    right:=t;
+                 end
+               else
+                 inserttypeconv(right,left.resulttype);
+               resulttypepass(right);
+             end;
           end
 
          { compare pchar to char arrays by addresses like BP/Delphi }
@@ -1357,7 +1375,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2001-08-30 15:43:14  jonas
+  Revision 1.35  2001-08-31 15:42:15  jonas
+    * added missing type conversion from small to normal sets
+
+  Revision 1.34  2001/08/30 15:43:14  jonas
     * converted adding/comparing of strings to compileproc. Note that due
       to the way the shortstring helpers for i386 are written, they are
       still handled by the old code (reason: fpc_shortstr_compare returns
