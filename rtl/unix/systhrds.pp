@@ -302,9 +302,9 @@ CONST
       {$Warning ThreadGetPriority needs to be implemented}
     end;
 
-    function  GetCurrentThreadHandle : dword;
+    function  GetCurrentThreadId : dword;
     begin
-      GetCurrentThreadHandle:=dword(pthread_self);
+      GetCurrentThreadId:=dword(pthread_self);
     end;
 
 
@@ -385,7 +385,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2003-10-01 20:53:08  peter
+  Revision 1.15  2003-10-01 21:00:09  peter
+    * GetCurrentThreadHandle renamed to GetCurrentThreadId
+
+  Revision 1.14  2003/10/01 20:53:08  peter
     * GetCurrentThreadId implemented
 
   Revision 1.13  2003/09/20 12:38:29  marco

@@ -81,7 +81,7 @@ function  GetLastError : dword; stdcall;external 'kernel32' name 'GetLastError';
 function  WaitForSingleObject (hHandle,Milliseconds: dword): dword; stdcall;external 'kernel32' name 'WaitForSingleObject';
 function  WinThreadSetPriority (threadHandle : dword; Prio: longint): boolean; stdcall;external 'kernel32' name 'SetThreadPriority';
 function  WinThreadGetPriority (threadHandle : dword): Integer; stdcall;external 'kernel32' name 'GetThreadPriority';
-function  WinGetCurrentThreadHandle : dword; stdcall;external 'kernel32' name 'GetCurrentThread';
+function  WinGetCurrentThreadId : dword; stdcall;external 'kernel32' name 'GetCurrentThread';
 
 {*****************************************************************************
                              Threadvar support
@@ -264,9 +264,9 @@ function  WinGetCurrentThreadHandle : dword; stdcall;external 'kernel32' name 'G
     end;
 
 
-    function  GetCurrentThreadHandle : dword;
+    function  GetCurrentThreadId : dword;
     begin
-      GetCurrentThreadHandle:=WinGetCurrentThreadHandle;
+      GetCurrentThreadId:=WinGetCurrentThreadId;
     end;
 
 {*****************************************************************************
@@ -355,7 +355,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2003-09-17 15:06:36  peter
+  Revision 1.6  2003-10-01 21:00:09  peter
+    * GetCurrentThreadHandle renamed to GetCurrentThreadId
+
+  Revision 1.5  2003/09/17 15:06:36  peter
     * stdcall patch
 
   Revision 1.4  2003/03/27 17:14:27  armin

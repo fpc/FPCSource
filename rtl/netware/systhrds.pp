@@ -269,9 +269,9 @@ end;
 
 function GetThreadID : dword; cdecl; external 'clib' name 'GetThreadID';
 
-function  GetCurrentThreadHandle : dword;
+function  GetCurrentThreadId : dword;
 begin
-  GetCurrentThreadHandle := GetThreadID;
+  GetCurrentThreadId := GetThreadID;
 end;
 
 
@@ -454,7 +454,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-03-27 17:14:27  armin
+  Revision 1.3  2003-10-01 21:00:09  peter
+    * GetCurrentThreadHandle renamed to GetCurrentThreadId
+
+  Revision 1.2  2003/03/27 17:14:27  armin
   * more platform independent thread routines, needs to be implemented for unix
 
   Revision 1.1  2003/02/16 17:12:15  armin

@@ -52,7 +52,7 @@ function  KillThread (threadHandle : dword) : dword;
 function  WaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;  {0=no timeout}
 function  ThreadSetPriority (threadHandle : dword; Prio: longint): boolean;            {-15..+15, 0=normal}
 function  ThreadGetPriority (threadHandle : dword): Integer;
-function  GetCurrentThreadHandle : dword;
+function  GetCurrentThreadId : dword;
 
 
 { this allows to do a lot of things in MT safe way }
@@ -65,7 +65,10 @@ procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
 
 {
   $Log$
-  Revision 1.10  2003-03-27 17:14:27  armin
+  Revision 1.11  2003-10-01 21:00:09  peter
+    * GetCurrentThreadHandle renamed to GetCurrentThreadId
+
+  Revision 1.10  2003/03/27 17:14:27  armin
   * more platform independent thread routines, needs to be implemented for unix
 
   Revision 1.9  2002/10/16 19:04:27  michael
