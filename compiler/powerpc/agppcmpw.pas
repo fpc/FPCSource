@@ -48,7 +48,9 @@ interface
       private
         procedure WriteInstruction(hp : tai);
         procedure WriteProcedureHeader(var hp:tai);
-        procedure WriteDataExportHeader(var s:string; isGlobal, isConst:boolean);
+        procedure WriteDataHeader(var s:string; isExported, isConst:boolean);
+        cur_CSECT_name: String;
+        cur_CSECT_class: String;
       end;
 
 
@@ -67,11 +69,16 @@ interface
       {Whether internal procedure references should be xxx[PR]: }
       use_PR = false;
 
-      const_storage_class = '[RW]';
+      const_storage_class = '';
+      var_storage_class = '';
 
-      secnames : array[TAsmSectionType] of string[10] = ('',
-        'csect','csect [TC]','csect [TC]',  {TODO: Perhaps use other section types.}
-        '','','','','','','','','','','','',''
+      secnames : array[TAsmSectionType] of string[10] = (
+        '',      {none}
+        'csect', {code}
+        'csect', {data}
+        'csect', {read only data}
+        'csect', {bss}
+        'csect','csect','csect','csect','','','','','','','',''
       );
 
 {$ifdef GDB}
@@ -465,6 +472,24 @@ var
        fixline:=Copy(s,j,i-j+1);
      end;
 
+    Function PadTabs(const p:string;addch:char):string;
+    var
+      s : string;
+      i : longint;
+    begin
+      i:=length(p);
+      if addch<>#0 then
+       begin
+         inc(i);
+         s:=p+addch;
+       end
+      else
+       s:=p;
+      if i<8 then
+       PadTabs:=s+#9#9
+      else
+       PadTabs:=s+#9;
+    end;
 
 {****************************************************************************
                                PowerPC MPW Assembler
@@ -605,7 +630,7 @@ var
       until not GetAdjacentTaiSymbol(hp);
     end;
 
-    procedure TPPCMPWAssembler.WriteDataExportHeader(var s:string; isGlobal, isConst:boolean);
+    procedure TPPCMPWAssembler.WriteDataHeader(var s:string; isExported, isConst:boolean);
     // Returns in s the changed string
     var
       sym: string;
@@ -615,14 +640,14 @@ var
       sym:= s;
       replaced:= ReplaceForbiddenChars(s);
 
-      if isGlobal then
+      if isExported then
         begin
           AsmWrite(#9'export'#9);
           AsmWrite(s);
           if isConst then
             AsmWrite(const_storage_class)
           else
-            AsmWrite('[RW]');
+            AsmWrite(var_storage_class);
           if replaced then
               begin
                 AsmWrite(' => ''');
@@ -634,6 +659,7 @@ var
 
       if not macos_direct_globals then
         begin
+          {The actual section is here interrupted, by inserting a "tc" entry}
           AsmWriteLn(#9'toc');
 
           AsmWrite(#9'tc'#9);
@@ -643,15 +669,13 @@ var
           if isConst then
             AsmWrite(const_storage_class)
           else
-            AsmWrite('[RW]');
+            AsmWrite(var_storage_class);
           AsmLn;
 
+          {The interrupted section is here continued.}
           AsmWrite(#9'csect'#9);
-          AsmWrite(s);
-          if isConst then
-            AsmWrite(const_storage_class)
-          else
-            AsmWrite('[RW]');
+          AsmWriteln(cur_CSECT_name+cur_CSECT_class);
+          AsmWrite(PadTabs(s+':',#0));
         end
       else
         begin
@@ -673,24 +697,6 @@ var
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
         (#9'dc.l'#9,#9'dc.w'#9,#9'dc.b'#9);
 
-    Function PadTabs(const p:string;addch:char):string;
-    var
-      s : string;
-      i : longint;
-    begin
-      i:=length(p);
-      if addch<>#0 then
-       begin
-         inc(i);
-         s:=p+addch;
-       end
-      else
-       s:=p;
-      if i<8 then
-       PadTabs:=s+#9#9
-      else
-       PadTabs:=s+#9;
-    end;
 
 {$ifdef GDB}
     procedure TPPCMPWAssembler.WriteFileLineInfo(var fileinfo : tfileposinfo);
@@ -876,12 +882,26 @@ var
               begin
                  {if LasTSec<>sec_none then
                   AsmWriteLn('_'+target_asm.secnames[LasTSec]+#9#9'ENDS');}
+
                  if tai_section(hp).sectype<>sec_none then
                   begin
+                    if tai_section(hp).sectype in [sec_data,sec_rodata,sec_bss] then
+                      cur_CSECT_class:= '[RW]'
+                    else if tai_section(hp).sectype in [sec_code] then
+                      cur_CSECT_class:= ''
+                    else
+                      cur_CSECT_class:= '[RO]';
+
+                    s:= tai_section(hp).name^;
+                    if s = '' then
+                      InternalError(2004101001);    {Nameless sections should not occur on MPW}
+                    ReplaceForbiddenChars(s);
+                    cur_CSECT_name:= s;
+
                     AsmLn;
-                    AsmWriteLn(#9+secnames[tai_section(hp).sectype]);
+                    AsmWriteLn(#9+secnames[tai_section(hp).sectype]+' '+cur_CSECT_name+cur_CSECT_class);
 {$ifdef GDB}
-                  lastfileinfo.line:=-1;
+                    lastfileinfo.line:=-1;
 {$endif GDB}
                   end;
                  LasTSec:=tai_section(hp).sectype;
@@ -895,12 +915,11 @@ var
                    otherwise internalerror(2002110302);
                  end;
               end;
-            ait_datablock:
+            ait_datablock: {Storage for global variables.}
               begin
                  s:= tai_datablock(hp).sym.name;
 
-                 WriteDataExportHeader(s, tai_datablock(hp).is_global, false);
-
+                 WriteDataHeader(s, tai_datablock(hp).is_global, false);
                  if not macos_direct_globals then
                    begin
                      AsmWriteLn(#9'ds.b '+tostr(tai_datablock(hp).size));
@@ -950,36 +969,34 @@ var
                repeat
                  if assigned(tai_const(hp).sym) then
                    begin
-  	  	  	  	  	 if assigned(tai_const(hp).endsym) then
+                     if assigned(tai_const(hp).endsym) then
                        begin
-												 if (tai_const(hp).endsym.typ = AT_FUNCTION) and use_PR then
-													 AsmWrite('.');
+                         if (tai_const(hp).endsym.typ = AT_FUNCTION) and use_PR then
+                           AsmWrite('.');
 
-  	  	  	  	  	     s:=tai_const(hp).endsym.name;
-  	  	                 ReplaceForbiddenChars(s);
-  	                     AsmWrite(s);
+                         s:=tai_const(hp).endsym.name;
+                         ReplaceForbiddenChars(s);
+                         AsmWrite(s);
                          inc(l,length(s));
 
-												 if tai_const(hp).endsym.typ = AT_FUNCTION then
-													 begin
-														 if use_PR then
-															 AsmWrite('[PR]')
-														 else
-															 AsmWrite('[DS]');
-													 end
-												 else if not macos_direct_globals then
-													 AsmWrite(const_storage_class);
+                         if tai_const(hp).endsym.typ = AT_FUNCTION then
+                           begin
+                             if use_PR then
+                               AsmWrite('[PR]')
+                             else
+                               AsmWrite('[DS]');
+                           end;
 
                          AsmWrite('-');
-												 inc(l,5); {Approx 5 extra, no need to be exactly}
-  	  	  	  	  	   end;
+                         inc(l,5); {Approx 5 extra, no need to be exactly}
+                       end;
 
                      if (tai_const(hp).sym.typ = AT_FUNCTION) and use_PR then
                        AsmWrite('.');
 
                      s:= tai_const(hp).sym.name;
-  	  	  	  	  	 ReplaceForbiddenChars(s);
-  	  	  	  	  	 AsmWrite(s);
+                     ReplaceForbiddenChars(s);
+                     AsmWrite(s);
                      inc(l,length(s));
 
                      if tai_const(hp).sym.typ = AT_FUNCTION then
@@ -988,9 +1005,7 @@ var
                            AsmWrite('[PR]')
                          else
                            AsmWrite('[DS]');
-                       end
-                     else if not macos_direct_globals then
-                       AsmWrite(const_storage_class);
+                       end;
                      inc(l,5); {Approx 5 extra, no need to be exactly}
 
                      if tai_const(hp).value > 0 then
@@ -1021,7 +1036,7 @@ var
                until false;
                AsmLn;
              end;
-
+ 
             ait_real_64bit :
               begin
                 AsmWriteLn(target_asm.comment+'value: '+double2str(tai_real_64bit(hp).value));
@@ -1107,65 +1122,62 @@ var
                       end; { end for j:=0 ... }
 
                   { do last line of lines }
-                	if counter < tai_string(hp).len then
-                  	AsmWrite(#9'dc.b'#9);
-                	quoted:=false;
-                	for i:=counter to tai_string(hp).len-1 do
-                  	begin
+                  if counter < tai_string(hp).len then
+                    AsmWrite(#9'dc.b'#9);
+                  quoted:=false;
+                  for i:=counter to tai_string(hp).len-1 do
+                    begin
                       { it is an ascii character. }
-                    	if (ord(tai_string(hp).str[i])>31) and
+                      if (ord(tai_string(hp).str[i])>31) and
                          (ord(tai_string(hp).str[i])<128) and
                          (tai_string(hp).str[i]<>'''') and
                          (tai_string(hp).str[i]<>'\') then
-                      	begin
-                        	if not(quoted) then
-                          	begin
-                            	if i>counter then
-                              	AsmWrite(',');
-                            	AsmWrite('''');
-                          	end;
-                        	AsmWrite(tai_string(hp).str[i]);
-                        	quoted:=true;
-                      	end { if > 31 and < 128 and " }
-                    	else
-                      	begin
-                        	if quoted then
-                          	AsmWrite('''');
-                        	if i>counter then
-                          	AsmWrite(',');
-                        	quoted:=false;
-                        	AsmWrite(tostr(ord(tai_string(hp).str[i])));
-                      	end;
-                  	end; { end for i:=0 to... }
-                	if quoted then
-                  	AsmWrite('''');
+                        begin
+                          if not(quoted) then
+                            begin
+                              if i>counter then
+                                AsmWrite(',');
+                              AsmWrite('''');
+                            end;
+                          AsmWrite(tai_string(hp).str[i]);
+                          quoted:=true;
+                        end { if > 31 and < 128 and " }
+                      else
+                        begin
+                          if quoted then
+                            AsmWrite('''');
+                          if i>counter then
+                            AsmWrite(',');
+                          quoted:=false;
+                          AsmWrite(tostr(ord(tai_string(hp).str[i])));
+                        end;
+                    end; { end for i:=0 to... }
+                  if quoted then
+                    AsmWrite('''');
                 end;
-              	AsmLn;
+                AsmLn;
               end;
             ait_label:
               begin
                  if tai_label(hp).l.is_used then
                   begin
                     s:= tai_label(hp).l.name;
-                    ReplaceForbiddenChars(s);
                     if s[1] = '@' then
-                      //Local labels:
-                      AsmWriteLn(s+':')
+                      begin
+                        ReplaceForbiddenChars(s);
+                        //Local labels:
+                        AsmWriteLn(s+':')
+                      end
                     else
                       begin
                         //Procedure entry points:
                         if not macos_direct_globals then
                           begin
-                            AsmWriteLn(#9'toc');
-                            AsmWrite(#9'tc'#9); AsmWrite(s);
-                            AsmWrite('[TC], '); AsmWrite(s);
-                            AsmWriteLn(const_storage_class);
-
-                            AsmWrite(#9'csect'#9); AsmWrite(s);
-                            AsmWriteLn(const_storage_class);
+                            WriteDataHeader(s, tai_label(hp).is_global, true);
                           end
                         else
                           begin
+                            ReplaceForbiddenChars(s);
                             AsmWrite(#9'csect'#9); AsmWrite(s);
                             AsmWriteLn('[TC]');
 
@@ -1186,9 +1198,7 @@ var
                   else if tai_symbol(hp).sym.typ=AT_DATA then
                     begin
                        s:= tai_symbol(hp).sym.name;
-
-                       WriteDataExportHeader(s, tai_symbol(hp).is_global, true);
-
+                       WriteDataHeader(s, tai_symbol(hp).is_global, true);
                        if macos_direct_globals then
                          begin
                            AsmWrite(s);
@@ -1223,41 +1233,9 @@ var
 {$endif GDB}
               ait_cutobject :
                 begin
-                     { only reset buffer if nothing has changed }
-                       if AsmSize=AsmStartSize then
-                        AsmClear
-                       else
-                        begin
-                          {
-                          if LasTSec<>sec_none then
-                           AsmWriteLn('_'+target_asm.secnames[LasTSec]+#9#9'ends');
-                          AsmLn;
-                          }
-                          AsmWriteLn(#9'end');
-                          AsmClose;
-                          DoAssemble;
-                          AsmCreate(tai_cutobject(hp).place);
-                        end;
-                     { avoid empty files }
-                       while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
-                        begin
-                          if tai(hp.next).typ=ait_section then
-                           begin
-                             lasTSec:=tai_section(hp.next).sectype;
-                           end;
-                          hp:=tai(hp.next);
-                        end;
-                       WriteAsmFileHeader;
-
-                       if lasTSec<>sec_none then
-                         AsmWriteLn(#9+secnames[lasTSec]);
-                       {   AsmWriteLn('_'+target_asm.secnames[lasTSec]+#9#9+
-                                     'SEGMENT'#9'PARA PUBLIC USE32 '''+
-                                     target_asm.secnames[lasTSec]+'''');
-                       }
-                       AsmStartSize:=AsmSize;
-                 end;
-               ait_marker :
+                  InternalError(2004101101);  {Smart linking is done transparently by the MPW linker.}
+                end;
+              ait_marker :
                  begin
                    if tai_marker(hp).kind=InlineStart then
                      inc(InlineLevel)
@@ -1330,7 +1308,7 @@ var
                   begin
                     AsmWrite(#9'import'#9);
                     AsmWrite(s);
-                    AsmWrite('[RW]');
+                    AsmWrite(var_storage_class);
                     if replaced then
                       begin
                         AsmWrite(' <= ''');
@@ -1344,7 +1322,7 @@ var
                     AsmWrite(s);
                     AsmWrite('[TC],');
                     AsmWrite(s);
-                    AsmWriteLn('[RW]');
+                    AsmWriteLn(var_storage_class);
                   end
                 else
                   InternalError(2003090901);
@@ -1484,7 +1462,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.40  2004-10-15 09:30:13  mazen
+  Revision 1.41  2004-10-31 15:32:13  olle
+    + Change of the way global variables, with multiple entrypoints,
+      are referenced, fixes a lot of failed tests
+
+  Revision 1.40  2004/10/15 09:30:13  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 
