@@ -5564,7 +5564,8 @@ implementation
 
     procedure terrordef.concatstabto(asmlist : taasmoutput);
       begin
-        internalerror(20021119);
+        { No internal error needed, an normal error is already
+          thrown }
       end;
 {$endif GDB}
 
@@ -5724,7 +5725,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.131  2003-03-17 16:54:41  peter
+  Revision 1.132  2003-03-18 16:25:50  peter
+    * no itnernalerror for errordef.concatstabto()
+
+  Revision 1.131  2003/03/17 16:54:41  peter
     * support DefaultHandler and anonymous inheritance fixed
       for message methods
 
