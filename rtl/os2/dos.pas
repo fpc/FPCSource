@@ -156,14 +156,28 @@ var Args: PByteArray;
     ArgSize: word;
     Res: TResultCodes;
     ObjName: string;
+    RC: longint;
+    HQ: THandle;
+    SPID, STID, QName: string;
+    SD: TStartData;
+    SID, PID: cardinal;
+    RD: TRequestData;
+    PCI: PChildInfo;
+    CISize: cardinal;
+    Prio: byte;
 const
     MaxArgsSize = 2048; (* Amount of memory reserved for arguments in bytes. *)
 begin
 {  LastDosExitCode := Exec (Path, ExecRunFlags (ExecFlags), efDefault, ComLine);}
+  QName := FExpand (Path);
+  if ComLine = '' then
+   Args := nil
+  else
+   begin
     GetMem (Args, MaxArgsSize);
     ArgSize := 0;
-    Move (Path [1], Args^ [ArgSize], Length (Path));
-    Inc (ArgSize, Length (Path));
+    Move (QName [1], Args^ [ArgSize], Length (QName));
+    Inc (ArgSize, Length (QName));
     Args^ [ArgSize] := 0;
     Inc (ArgSize);
     {Now do the real arguments.}
@@ -172,18 +186,61 @@ begin
     Args^ [ArgSize] := 0;
     Inc (ArgSize);
     Args^ [ArgSize] := 0;
-    DosError := DosExecPgm (ObjName, cardinal (ExecFlags), Args, nil, Res, Path);
-    if DosError = 0 then
+   end;
+  RC := DosExecPgm (ObjName, cardinal (ExecFlags), Args, nil, Res, Path);
+  if RC = 0 then
+   begin
+    LastDosExitCode := Res.ExitCode;
+    LastDosErrorModuleName := '';
+   end
+  else
+   if (RC = 190) or (RC = 191) then
+    begin
+     FillChar (SD, SizeOf (SD), 0);
+     SD.Length := 24;
+     SD.Related := ssf_Related_Child;
+     if Args = nil then
+(* No parameters passed, Args not allocated for DosExecPgm, so allocate now. *)
       begin
-        LastDosExitCode := Res.ExitCode;
-        LastDosErrorModuleName := '';
+       GetMem (Args, MaxArgsSize);
+       Move (QName [1], Args^ [0], Length (QName));
+       Args^ [Length (QName)] := 0;
       end
-    else
+     else
+      SD.PgmInputs := PChar (@Args^ [Length (QName) + 1]);
+     SD.PgmName := PChar (Args);
+     SD.InheritOpt := ssf_InhertOpt_Parent;
+     Str (GetProcessID, SPID);
+     Str (ThreadID, STID);
+     QName := '\QUEUES\FPC_Dos_Exec_p' + SPID + 't' + STID + '.QUE'#0;
+     SD.TermQ := @QName [1];
+     RC := DosCreateQueue (HQ, quFIFO or quConvert_Address, @QName [1]);
+     if RC = 0 then
       begin
-        LastDosErrorModuleName := ObjName;
-        LastDosExitCode := 0; (* Needed for TP/BP compatibility *)
+       RC := DosStartSession (SD, SID, PID);
+       if (RC = 0) or (RC = 457) then
+        begin
+         RC := DosReadQueue (HQ, RD, CISize, PCI, 0, 0, Prio, 0);
+         if RC = 0 then
+          begin
+           LastDosExitCode := PCI^.Return;
+           DosCloseQueue (HQ);
+           DosFreeMem (PCI);
+          end
+         else
+          DosCloseQueue (HQ);
+        end
+       else
+        DosCloseQueue (HQ);
       end;
-    FreeMem (Args, MaxArgsSize);
+    end
+   else
+    LastDosErrorModuleName := ObjName;
+  if RC <> 0 then
+   LastDosExitCode := 0; (* Needed for TP/BP compatibility *)
+  DosError := RC;
+  if Args <> nil then
+   FreeMem (Args, MaxArgsSize);
 end;
 
 
@@ -477,7 +534,10 @@ end.
 
 {
   $Log$
-  Revision 1.42  2004-12-05 19:16:54  hajny
+  Revision 1.43  2004-12-06 21:50:04  hajny
+    * allow running any type of session from Exec
+
+  Revision 1.42  2004/12/05 19:16:54  hajny
     * GetMsCount added, platform independent routines moved to single include file
 
   Revision 1.41  2004/05/23 21:47:34  hajny
