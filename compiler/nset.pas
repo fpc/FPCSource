@@ -356,8 +356,6 @@ implementation
 
 
     function trangenode.det_resulttype : tnode;
-      var
-         ct : tconverttype;
       begin
          result:=nil;
          resulttypepass(left);
@@ -709,7 +707,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-11-27 02:37:14  peter
+  Revision 1.38  2002-12-07 14:12:56  carl
+    - removed unused variable
+
+  Revision 1.37  2002/11/27 02:37:14  peter
     * case statement inlining added
     * fixed inlining of write()
     * switched statementnode left and right parts so the statements are
