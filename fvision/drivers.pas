@@ -1,3 +1,4 @@
+{ $Id$ }
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {    System independent clone of DRIVERS.PAS               }
@@ -2622,3 +2623,10 @@ BEGIN
    SaveExit := ExitProc;                              { Save old exit }
    ExitProc := @ExitDrivers;                          { Set new exit }
 END.
+{
+ $Log$
+ Revision 1.2  2000-08-24 12:00:21  marco
+  * CVS log and ID tags
+	
+
+}

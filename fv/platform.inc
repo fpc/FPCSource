@@ -1,3 +1,4 @@
+{ $Id$ }
 {***************[ PLATFORM INCLUDE UNIT ]******************}
 {                                                          }
 {    System independent INCLUDE file to sort PLATFORMS     }
@@ -340,3 +341,11 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$ENDIF}
 {$ENDIF}
 
+
+{
+ $Log$
+ Revision 1.2  2000-08-24 12:00:22  marco
+  * CVS log and ID tags
+
+
+}

@@ -1,3 +1,4 @@
+{ $Id$ }
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {   System independent GRAPHICAL clone of VALIDATE.PAS     }
@@ -1054,3 +1055,11 @@ BEGIN
 END;
 
 END.
+
+{
+ $Log$
+ Revision 1.2  2000-08-24 12:00:22  marco
+  * CVS log and ID tags
+
+
+}

@@ -1,3 +1,4 @@
+{ $Id$ }
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {          System independent FILE I/O control             }
@@ -621,3 +622,10 @@ END;
 {$ENDIF}
 
 END.
+{
+ $Log$
+ Revision 1.2  2000-08-24 12:00:21  marco
+  * CVS log and ID tags
+
+
+}

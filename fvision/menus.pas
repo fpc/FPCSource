@@ -1,3 +1,4 @@
+{ $Id$ }
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {   System independent GRAPHICAL clone of MENUS.PAS        }
@@ -1665,3 +1666,7 @@ BEGIN
 END;
 
 END.
+{
+ $Log				$
+
+}

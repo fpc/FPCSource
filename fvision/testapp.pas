@@ -1,3 +1,4 @@
+{ $Id$ }
 PROGRAM TestApp;
 
 {&PMTYPE PM}                                          { FULL GUI MODE }
@@ -243,3 +244,11 @@ BEGIN
    {DisposeRGBPalette(SystemPalette);}
 END.
 
+
+{
+ $Log$
+ Revision 1.2  2000-08-24 12:00:22  marco
+  * CVS log and ID tags
+
+
+}

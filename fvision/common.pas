@@ -1,3 +1,4 @@
+{ $Id$  }
 {********************[ COMMON UNIT ]***********************}
 {                                                          }
 {    System independent COMMON TYPES & DEFINITIONS         }
@@ -402,3 +403,10 @@ END;
 {$ENDIF}
 
 END.
+{
+ $Log$
+ Revision 1.2  2000-08-24 12:00:20  marco
+  * CVS log and ID tags
+
+
+}
