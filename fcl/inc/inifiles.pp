@@ -14,6 +14,7 @@
 unit IniFiles;
 
 {$mode delphi}
+{$H+}
 
 interface
 
@@ -367,7 +368,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-04-08 15:44:10  michael
+  Revision 1.2  1999-04-29 16:21:54  michael
+  + Default mode Hugestrings
+
+  Revision 1.1  1999/04/08 15:44:10  michael
   + Donated by Michael A. Hess
 
   Initial Release 1999/04/07 MAH
