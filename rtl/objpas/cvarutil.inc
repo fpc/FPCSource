@@ -446,6 +446,7 @@ begin
         VarLongWord : Result:=IntToStr(VLongWord);
         VarInt64    : Result:=IntToStr(VInt64);
         VarQword    : Result:=IntToStr(VQWord);
+        VarString   : Result:=ansistring(VString);
     else
       VariantTypeMismatch;
     end;
@@ -587,7 +588,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2005-02-14 17:13:31  peter
+  Revision 1.12  2005-03-10 21:05:36  florian
+    + writing of variants implemented
+
+  Revision 1.11  2005/02/14 17:13:31  peter
     * truncate log
 
 }
