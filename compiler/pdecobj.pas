@@ -755,13 +755,12 @@ implementation
                    classtype:=odt_cppclass;
                    consume(_CPPCLASS);
                 end;
-{$ifdef SUPPORT_INTERFACE}
               _INTERFACE:
                 begin
                    if aktinterfacetype=it_interfacecom then
-                     objecttype:=odt_interfacecom
+                     classtype:=odt_interfacecom
                    else {it_interfacecorba}
-                     objecttype:=odt_interfacecorba;
+                     classtype:=odt_interfacecorba;
                    consume(_INTERFACE);
                    { forward declaration }
                    if not(assigned(fd)) and (token=_SEMICOLON) then
@@ -769,14 +768,13 @@ implementation
                        { also anonym objects aren't allow (o : object a : longint; end;) }
                        if n='' then
                          Message(parser_f_no_anonym_objects);
-                       aktclass:=new(pobjectdef,init(objecttype,n,nil));
+                       aktclass:=new(pobjectdef,init(classtype,n,nil));
                        if (cs_compilesystem in aktmoduleswitches) and
-                          (objecttype=odt_interfacecom) and (n='IUNKNOWN') then
+                          (classtype=odt_interfacecom) and (n='IUNKNOWN') then
                          interface_iunknown:=aktclass;
                        aktclass^.objectoptions:=aktclass^.objectoptions+[oo_is_forward];
                      end;
                 end;
-{$endif SUPPORT_INTERFACE}
               _CLASS:
                 begin
                    classtype:=odt_class;
@@ -856,6 +854,30 @@ implementation
           end;
         end;
 
+      procedure readinterfaceiid;
+        var
+          tt: ttype;
+          p : tnode;
+          isiidguidvalid: boolean;
+
+        begin
+          p:=comp_expr(true);
+          do_firstpass(p);
+          if p.nodetype=stringconstn then
+            begin
+              aktclass^.iidstr:=stringdup(strpas(tstringconstnode(p).value_str)); { or upper? }
+              p.free;
+              aktclass^.isiidguidvalid:=string2guid(aktclass^.iidstr^,aktclass^.iidguid);
+              if (classtype=odt_interfacecom) and not aktclass^.isiidguidvalid then
+                Message(parser_e_improper_guid_syntax);
+            end
+          else
+            begin
+              p.free;
+              Message(cg_e_illegal_expression);
+            end;
+        end;
+
       procedure readparentclasses;
 
         begin
@@ -915,10 +937,17 @@ implementation
                 consume(_RKLAMMER);
              end
            { if no parent class, then a class get tobject as parent }
-           else if classtype=odt_class then
+           else if classtype in [odt_class,odt_interfacecom] then
              setclassparent
            else
              aktclass:=new(pobjectdef,init(classtype,n,nil));
+           { read GUID }
+             if (classtype in [odt_interfacecom,odt_interfacecorba]) and
+                try_to_consume(_LECKKLAMMER) then
+               begin
+                 readinterfaceiid;
+                 consume(_RECKKLAMMER);
+               end;
         end;
 
       procedure chkcpp;
@@ -930,30 +959,6 @@ implementation
                 aktprocsym^.definition^.setmangledname(
                   target_os.Cprefix+aktprocsym^.definition^.cplusplusmangledname);
              end;
-        end;
-
-      procedure readinterfaceiid;
-        var
-          tt: ttype;
-          p : tnode;
-          isiidguidvalid: boolean;
-
-        begin
-          p:=comp_expr(true);
-          do_firstpass(p);
-          if p.nodetype=stringconstn then
-            begin
-              aktclass^.iidstr:=stringdup(strpas(tstringconstnode(p).value_str)); { or upper? }
-              p.free;
-              aktclass^.isiidguidvalid:=string2guid(aktclass^.iidstr^,aktclass^.iidguid);
-              if (classtype=odt_interfacecom) and not aktclass^.isiidguidvalid then
-                Message(parser_e_improper_guid_syntax);
-            end
-          else
-            begin
-              p.free;
-              Message(cg_e_illegal_expression);
-            end;
         end;
 
       var
@@ -1007,7 +1012,7 @@ implementation
          procinfo^._class:=aktclass;
 
 
-       { short class declaration ? }
+         { short class declaration ? }
          if (classtype<>odt_class) or (token<>_SEMICOLON) then
           begin
           { Parse componenten }
@@ -1122,7 +1127,7 @@ implementation
          { generate vmt space if needed }
          if not(oo_has_vmt in aktclass^.objectoptions) and
             (([oo_has_virtual,oo_has_constructor,oo_has_destructor]*aktclass^.objectoptions<>[]) or
-             (classtype=odt_class)
+             (classtype in [odt_class])
             ) then
            aktclass^.insertvmt;
          if (cs_create_smart in aktmoduleswitches) then
@@ -1152,7 +1157,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-11-04 14:25:20  florian
+  Revision 1.6  2000-11-04 17:31:00  florian
+    * fixed some problems of previous commit
+
+  Revision 1.5  2000/11/04 14:25:20  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.4  2000/10/31 22:02:49  peter

@@ -1041,12 +1041,22 @@ implementation
   procedure writeinterfaceids(c : pobjectdef);
     var
       i: longint;
+      s1,s2 : string;
     begin
+       if c^.owner^.name=nil then
+         s1:=''
+       else
+         s1:=c^.owner^.name^;
+       if c^.objname=nil then
+         s2:=''
+       else
+         s2:=upper(c^.objname^);
+      s1:=s1+'$_'+s2;
       if c^.isiidguidvalid then
         begin
           if (cs_create_smart in aktmoduleswitches) then
             datasegment^.concat(new(pai_cut,init));
-          datasegment^.concat(new(pai_symbol,initname_global(c^.vmt_mangledname+'$_IID',0)));
+          datasegment^.concat(new(pai_symbol,initname_global('IID$_'+s1,0)));
           datasegment^.concat(new(pai_const,init_32bit(c^.iidguid.D1)));
           datasegment^.concat(new(pai_const,init_16bit(c^.iidguid.D2)));
           datasegment^.concat(new(pai_const,init_16bit(c^.iidguid.D3)));
@@ -1055,7 +1065,7 @@ implementation
         end;
       if (cs_create_smart in aktmoduleswitches) then
         datasegment^.concat(new(pai_cut,init));
-      datasegment^.concat(new(pai_symbol,initname_global(c^.vmt_mangledname+'$_IIDSTR',0)));
+      datasegment^.concat(new(pai_symbol,initname_global('IIDSTR$_'+s1,0)));
       datasegment^.concat(new(pai_const,init_8bit(length(c^.iidstr^))));
       datasegment^.concat(new(pai_string,init(c^.iidstr^)));
     end;
@@ -1063,7 +1073,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-11-04 14:25:19  florian
+  Revision 1.11  2000-11-04 17:31:00  florian
+    * fixed some problems of previous commit
+
+  Revision 1.10  2000/11/04 14:25:19  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.9  2000/11/01 23:04:37  peter
