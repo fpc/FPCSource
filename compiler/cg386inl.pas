@@ -556,7 +556,6 @@ implementation
          hregister : tregister;
          otlabel,oflabel   : plabel;
          oldpushedparasize : longint;
-         oldrl : plinkedlist;
 
       begin
       { save & reset pushedparasize }
@@ -1024,7 +1023,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1999-02-15 11:40:21  pierre
+  Revision 1.27  1999-02-17 14:21:40  pierre
+   * unused local removed
+
+  Revision 1.26  1999/02/15 11:40:21  pierre
    * pred/succ with overflow check must use ADD DEC !!
 
   Revision 1.25  1999/02/05 10:56:19  florian
