@@ -3,7 +3,7 @@ Program PtoP;
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt, member of
+    Copyright (c) 1999-2002 by Michael Van Canneyt, member of
     the Free Pascal development team
 
     Pascal pretty print program
@@ -18,6 +18,12 @@ Program PtoP;
  **********************************************************************}
 
 Uses PtoPu,Objects,getopts;
+
+const
+  Version   = 'Version 1.1';
+  Title     = 'DelPascal';
+  Copyright = 'Copyright (c) 1999-2002 by the Free Pascal Development Team';
+
 
 Var
   Infilename,OutFileName,ConfigFile : String;
@@ -79,7 +85,7 @@ begin
   TheLineSize:=MaxLineSize;
   BeVerbose:=False;
   Repeat
-    c:=getopt('i:c:g:b:hv');
+    c:=getopt('i:c:g:l:b:hv');
     case c of
       'i' : begin
             TheIndent:=StrToInt(OptArg);
@@ -140,6 +146,12 @@ end;
 begin
   StreamError:={$ifndef tp}@{$endif}StreamErrorProcedure;
   ProcessOpts;
+  if BeVerbose then
+    begin
+      writeln(Title+' '+Version);
+      writeln(Copyright);
+      Writeln;
+    end;
   If (Length(InfileName)=0) or (Length(OutFileName)=0) Then
     Usage;
   Ins:=New(PBufStream,Init(InFileName,StopenRead,TheBufSize));
@@ -183,22 +195,9 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 10:16:22  michael
-  + Initial import
-
-  Revision 1.7  2000/07/04 19:05:55  peter
-    * be optimistic: version 1.00 for some utils
-
-  Revision 1.6  2000/02/09 16:44:15  peter
-    * log truncated
-
-  Revision 1.5  2000/02/07 13:41:51  peter
-    * fix wrong $ifdef tp
-
-  Revision 1.4  2000/02/06 19:58:24  carl
-    + Error detection of streams
-
-  Revision 1.3  2000/01/07 16:46:04  daniel
-    * copyright 2000
+  Revision 1.2  2002-02-27 16:33:45  carl
+  - truncated log
+  * bugfix of -l parameter (was never valid)
+  + added version information
 
 }
