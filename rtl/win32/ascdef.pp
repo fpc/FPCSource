@@ -352,7 +352,6 @@ unit ascdef;
 
   function GetMessage(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT):WINBOOL;
 
-(* Const before type ignored *)
   function DispatchMessage(var lpMsg:MSG):LONG;
 
   function PeekMessage(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT; wRemoveMsg:UINT):WINBOOL;
@@ -375,14 +374,12 @@ unit ascdef;
 
   function CallWindowProc(lpPrevWndFunc:WNDPROC; hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT;
 
-(* Const before type ignored *)
   function RegisterClass(var lpWndClass:WNDCLASS):ATOM;
 
   function UnregisterClass(lpClassName:LPCSTR; hInstance:HINST):WINBOOL;
 
   function GetClassInfo(hInstance:HINST; lpClassName:LPCSTR; lpWndClass:LPWNDCLASS):WINBOOL;
 
-(* Const before type ignored *)
   function RegisterClassEx(var _para1:WNDCLASSEX):ATOM;
 
   function GetClassInfoEx(_para1:HINST; _para2:LPCSTR; _para3:LPWNDCLASSEX):WINBOOL;
@@ -461,7 +458,6 @@ unit ascdef;
 
   function LoadMenu(hInstance:HINST; lpMenuName:LPCSTR):HMENU;
 
-(* Const before type ignored *)
   function LoadMenuIndirect(var lpMenuTemplate:MENUTEMPLATE):HMENU;
 
   function ChangeMenu(hMenu:HMENU; cmd:UINT; lpszNewItem:LPCSTR; cmdInsert:UINT; flags:UINT):WINBOOL;
@@ -576,18 +572,13 @@ unit ascdef;
 
   function CopyMetaFile(_para1:HMETAFILE; _para2:LPCSTR):HMETAFILE;
 
-(* Const before type ignored *)
   function CreateFontIndirect(var _para1:LOGFONT):HFONT;
 
-(* Const before type ignored *)
   function CreateIC(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; var _para4:DEVMODE):HDC;
 
   function CreateMetaFile(_para1:LPCSTR):HDC;
 
   function CreateScalableFontResource(_para1:DWORD; _para2:LPCSTR; _para3:LPCSTR; _para4:LPCSTR):WINBOOL;
-
-(* Const before type ignored *)
-  function DeviceCapabilities(_para1:LPCSTR; _para2:LPCSTR; _para3:WORD; _para4:LPSTR; var _para5:DEVMODE):longint;
 
   function EnumFontFamiliesEx(_para1:HDC; _para2:LPLOGFONT; _para3:FONTENUMEXPROC; _para4:LPARAM; _para5:DWORD):longint;
 
@@ -605,7 +596,6 @@ unit ascdef;
 
   function GetCharABCWidthsFloat(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPABCFLOAT):WINBOOL;
 
-(* Const before type ignored *)
   function GetGlyphOutline(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPGLYPHMETRICS; _para5:DWORD;
              _para6:LPVOID; var _para7:MAT2):DWORD;
 
@@ -623,14 +613,12 @@ unit ascdef;
   function GetCharacterPlacement(_para1:HDC; _para2:LPCSTR; _para3:longint; _para4:longint; _para5:LPGCP_RESULTS;
              _para6:DWORD):DWORD;
 
-(* Const before type ignored *)
   function ResetDC(_para1:HDC; var _para2:DEVMODE):HDC;
 
   function RemoveFontResource(_para1:LPCSTR):WINBOOL;
 
   function CopyEnhMetaFile(_para1:HENHMETAFILE; _para2:LPCSTR):HENHMETAFILE;
 
-(* Const before type ignored *)
   function CreateEnhMetaFile(_para1:HDC; _para2:LPCSTR; var _para3:RECT; _para4:LPCSTR):HDC;
 
   function GetEnhMetaFile(_para1:LPCSTR):HENHMETAFILE;
@@ -639,19 +627,15 @@ unit ascdef;
 
   function GetTextMetrics(_para1:HDC; _para2:LPTEXTMETRIC):WINBOOL;
 
-(* Const before type ignored *)
   function StartDoc(_para1:HDC; var _para2:DOCINFO):longint;
 
   function GetObject(_para1:HGDIOBJ; _para2:longint; _para3:LPVOID):longint;
 
   function TextOut(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCSTR; _para5:longint):WINBOOL;
 
-(* Const before type ignored *)
-(* Const before type ignored *)
   function ExtTextOut(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; var _para5:RECT;
              _para6:LPCSTR; _para7:UINT; var _para8:INT):WINBOOL;
 
-(* Const before type ignored *)
   function PolyTextOut(_para1:HDC; var _para2:POLYTEXT; _para3:longint):WINBOOL;
 
   function GetTextFace(_para1:HDC; _para2:longint; _para3:LPSTR):longint;
@@ -725,7 +709,6 @@ unit ascdef;
   { was #define dname(params) def_expr }
   function DialogBoxIndirect(hInstance:HINST; hDialogTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
 
-(* Const before type ignored *)
   function CreateDC(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; var _para4:DEVMODE):HDC;
 
   function VerInstallFile(uFlags:DWORD; szSrcFileName:LPSTR; szDestFileName:LPSTR; szSrcDir:LPSTR; szDestDir:LPSTR;
@@ -737,7 +720,6 @@ unit ascdef;
 
   function VerLanguageName(wLang:DWORD; szLang:LPSTR; nSize:DWORD):DWORD;
 
-(* Const before type ignored *)
   function VerQueryValue(pBlock:LPVOID; lpSubBlock:LPSTR; var lplpBuffer:LPVOID; puLen:PUINT):WINBOOL;
 
   function VerFindFile(uFlags:DWORD; szFileName:LPSTR; szWinDir:LPSTR; szAppDir:LPSTR; szCurDir:LPSTR;
@@ -787,7 +769,6 @@ unit ascdef;
 
   function RegSetValue(hKey:HKEY; lpSubKey:LPCSTR; dwType:DWORD; lpData:LPCSTR; cbData:DWORD):LONG;
 
-(* Const before type ignored *)
   function RegSetValueEx(hKey:HKEY; lpValueName:LPCSTR; Reserved:DWORD; dwType:DWORD; var lpData:BYTE;
              cbData:DWORD):LONG;
 
@@ -807,19 +788,15 @@ unit ascdef;
 
   function SetLocaleInfo(Locale:LCID; LCType:LCTYPE; lpLCData:LPCSTR):WINBOOL;
 
-(* Const before type ignored *)
   function GetTimeFormat(Locale:LCID; dwFlags:DWORD; var lpTime:SYSTEMTIME; lpFormat:LPCSTR; lpTimeStr:LPSTR;
              cchTime:longint):longint;
 
-(* Const before type ignored *)
   function GetDateFormat(Locale:LCID; dwFlags:DWORD; var lpDate:SYSTEMTIME; lpFormat:LPCSTR; lpDateStr:LPSTR;
              cchDate:longint):longint;
 
-(* Const before type ignored *)
   function GetNumberFormat(Locale:LCID; dwFlags:DWORD; lpValue:LPCSTR; var lpFormat:NUMBERFMT; lpNumberStr:LPSTR;
              cchNumber:longint):longint;
 
-(* Const before type ignored *)
   function GetCurrencyFormat(Locale:LCID; dwFlags:DWORD; lpValue:LPCSTR; var lpFormat:CURRENCYFMT; lpCurrencyStr:LPSTR;
              cchCurrency:longint):longint;
 
@@ -843,12 +820,10 @@ unit ascdef;
 
   function ReadConsoleInput(hConsoleInput:HANDLE; lpBuffer:PINPUT_RECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):WINBOOL;
 
-(* Const before type ignored *)
   function WriteConsoleInput(hConsoleInput:HANDLE; var lpBuffer:INPUT_RECORD; nLength:DWORD; lpNumberOfEventsWritten:LPDWORD):WINBOOL;
 
   function ReadConsoleOutput(hConsoleOutput:HANDLE; lpBuffer:PCHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpReadRegion:PSMALL_RECT):WINBOOL;
 
-(* Const before type ignored *)
   function WriteConsoleOutput(hConsoleOutput:HANDLE; var lpBuffer:CHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpWriteRegion:PSMALL_RECT):WINBOOL;
 
   function ReadConsoleOutputCharacter(hConsoleOutput:HANDLE; lpCharacter:LPSTR; nLength:DWORD; dwReadCoord:COORD; lpNumberOfCharsRead:LPDWORD):WINBOOL;
@@ -857,9 +832,6 @@ unit ascdef;
 
   function FillConsoleOutputCharacter(hConsoleOutput:HANDLE; cCharacter:CHAR; nLength:DWORD; dwWriteCoord:COORD; lpNumberOfCharsWritten:LPDWORD):WINBOOL;
 
-(* Const before type ignored *)
-(* Const before type ignored *)
-(* Const before type ignored *)
   function ScrollConsoleScreenBuffer(hConsoleOutput:HANDLE; var lpScrollRectangle:SMALL_RECT; var lpClipRectangle:SMALL_RECT; dwDestinationOrigin:COORD; var lpFill:CHAR_INFO):WINBOOL;
 
   function GetConsoleTitle(lpConsoleTitle:LPSTR; nSize:DWORD):DWORD;
@@ -868,7 +840,6 @@ unit ascdef;
 
   function ReadConsole(hConsoleInput:HANDLE; lpBuffer:LPVOID; nNumberOfCharsToRead:DWORD; lpNumberOfCharsRead:LPDWORD; lpReserved:LPVOID):WINBOOL;
 
-(* Const before type ignored *)
   function WriteConsole(hConsoleOutput:HANDLE;lpBuffer:pointer; nNumberOfCharsToWrite:DWORD; lpNumberOfCharsWritten:LPDWORD; lpReserved:LPVOID):WINBOOL;
 
   function WNetAddConnection(lpRemoteName:LPCSTR; lpPassword:LPCSTR; lpLocalName:LPCSTR):DWORD;
@@ -952,20 +923,12 @@ unit ascdef;
 
   function ExtractAssociatedIcon(_para1:HINST; var _para2:char; var _para3:WORD):HICON;
 
-(* Const before type ignored *)
   function ExtractIcon(_para1:HINST; var _para2:char; _para3:cardinal):HICON;
 
-(* Const before type ignored *)
-(* Const before type ignored *)
   function FindExecutable(var _para1:char; var _para2:char; var _para3:char):HINST;
 
-(* Const before type ignored *)
-(* Const before type ignored *)
   function ShellAbout(_para1:HWND; var _para2:char; var _para3:char; _para4:HICON):longint;
 
-(* Const before type ignored *)
-(* Const before type ignored *)
-(* Const before type ignored *)
   function ShellExecute(_para1:HWND; var _para2:char; var _para3:char; var _para4:char; var _para5:char;
              _para6:longint):HINST;
 
@@ -1250,9 +1213,6 @@ unit ascdef;
 
   function wvsprintf(_para1:LPSTR; _para2:LPCSTR; arglist:va_list):longint; external 'user32' name 'wvsprintfA';
 
-(*  function wsprintf(_para1:LPSTR; _para2:LPCSTR; ...):longint;CDECL; external 'user32' name 'wsprintfA';
-  not implemented *)
-
   function LoadKeyboardLayout(pwszKLID:LPCSTR; Flags:UINT):HKL; external 'user32' name 'LoadKeyboardLayoutA';
 
   function GetKeyboardLayoutName(pwszKLID:LPSTR):WINBOOL; external 'user32' name 'GetKeyboardLayoutNameA';
@@ -1505,8 +1465,6 @@ unit ascdef;
   function CreateMetaFile(_para1:LPCSTR):HDC; external 'gdi32' name 'CreateMetaFileA';
 
   function CreateScalableFontResource(_para1:DWORD; _para2:LPCSTR; _para3:LPCSTR; _para4:LPCSTR):WINBOOL; external 'gdi32' name 'CreateScalableFontResourceA';
-
-  function DeviceCapabilities(_para1:LPCSTR; _para2:LPCSTR; _para3:WORD; _para4:LPSTR; var _para5:DEVMODE):longint; external 'winspool' name 'DeviceCapabilitiesA';
 
   function EnumFontFamiliesEx(_para1:HDC; _para2:LPLOGFONT; _para3:FONTENUMEXPROC; _para4:LPARAM; _para5:DWORD):longint; external 'gdi32' name 'EnumFontFamiliesExA';
 
@@ -1892,7 +1850,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.5  1998-10-27 11:17:07  peter
+  Revision 1.6  1999-01-07 15:52:22  peter
+    * removed winspool requirement
+
+  Revision 1.5  1998/10/27 11:17:07  peter
     * type HINSTANCE -> HINST
 
   Revision 1.4  1998/09/04 17:17:28  pierre

@@ -591,9 +591,6 @@ unit unifun;
 
   function CreateScalableFontResource(_para1:DWORD; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPCWSTR):WINBOOL;
 
-(* Const before type ignored *)
-  function DeviceCapabilities(_para1:LPCWSTR; _para2:LPCWSTR; _para3:WORD; _para4:LPWSTR; var _para5:DEVMODE):longint;
-
   function EnumFontFamiliesEx(_para1:HDC; _para2:LPLOGFONT; _para3:FONTENUMEXPROC; _para4:LPARAM; _para5:DWORD):longint;
 
   function EnumFontFamilies(_para1:HDC; _para2:LPCWSTR; _para3:FONTENUMPROC; _para4:LPARAM):longint;
@@ -1520,8 +1517,6 @@ unit unifun;
 
   function CreateScalableFontResource(_para1:DWORD; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPCWSTR):WINBOOL; external 'gdi32' name 'CreateScalableFontResourceW';
 
-  function DeviceCapabilities(_para1:LPCWSTR; _para2:LPCWSTR; _para3:WORD; _para4:LPWSTR; var _para5:DEVMODE):longint; external 'winspool' name 'DeviceCapabilitiesW';
-
   function EnumFontFamiliesEx(_para1:HDC; _para2:LPLOGFONT; _para3:FONTENUMEXPROC; _para4:LPARAM; _para5:DWORD):longint; external 'gdi32' name 'EnumFontFamiliesExW';
 
   function EnumFontFamilies(_para1:HDC; _para2:LPCWSTR; _para3:FONTENUMPROC; _para4:LPARAM):longint; external 'gdi32' name 'EnumFontFamiliesW';
@@ -1913,7 +1908,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.5  1998-10-27 11:17:18  peter
+  Revision 1.6  1999-01-07 15:52:25  peter
+    * removed winspool requirement
+
+  Revision 1.5  1998/10/27 11:17:18  peter
     * type HINSTANCE -> HINST
 
   Revision 1.4  1998/09/04 17:17:37  pierre
