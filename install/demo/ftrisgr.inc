@@ -58,7 +58,7 @@ PROCEDURE DisplMainField;
 
 VAR Row,Column,Difference,StartRow,EndRow,
     L : LONGINT;
-    LastCol : LONGINT;
+{    LastCol : LONGINT; }
 
 BEGIN
  FOR Row:=0 TO TheHeight-1 DO

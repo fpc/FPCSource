@@ -54,8 +54,10 @@ Uses Crt,Dos,
 
 CONST TheWidth  = 11; {Watch out, also correct RowMask!}
       TheHeight = 20;
+{$IFNDEF UseGraphics}
       PosXField = 10; { Upper X,Y coordinates of playfield}
       PosYField = 3;
+{$ENDIF}
       MaxFigures= 16; {Maximum # figures place is reserved for.}
       NrLevels  = 12; {Number of levels currenty defined}
 {      FieldSpace= 177;}
@@ -168,9 +170,13 @@ VAR
     CurrentCol  : LONGINT;                      {Color of current falling piece}
     UseColor    : BOOLEAN;                      {Color/Mono mode}
     Level       : LONGINT;                      {The current level number}
+{$IFNDEF UseGraphics}
     Style       : String;                       {Contains all chars to create the field}
+{$ENDIF}
     nonupdatemode  : BOOLEAN;                   {Helpmode/highscore screen or game mode}
+{$IFNDEF UseGraphics}
     HelpMode    : BOOLEAN;
+{$ENDIF}
     NextFigure  : LONGINT;                      {Next figure to fall}
     Score       : LONGINT;                      {The score}
 
@@ -517,11 +523,14 @@ END;
 
 PROCEDURE FixHighScores;
 
-VAR I,J : LONGINT;
-    S   : String;
+VAR I : LONGINT;
+{$IFNDEF UseGraphics}
+    J : LONGINT;
+{$ENDIF}
+    S : String;
 
 BEGIN
- {$IFDEF UseGraphics}
+{$IFDEF UseGraphics}
   Str(Score:5,S);
   SetFillStyle(SolidFill,0);            {Clear part of playfield}
   Bar(DisplGrX+DisplGrScale,DisplGrY + ((TheHeight DIV 2)-2)*DisplGrScale,
@@ -530,7 +539,7 @@ BEGIN
   OuttextXY(DisplGrX+DisplGrScale,DisplGrY+ DisplGrScale*((TheHeight DIV 2)-1),'GAME OVER');
   SetTextStyle(0,Horizdir,1);
   OutTextXY(DisplGrX+DisplGrScale,DisplGrY+ DisplGrScale*((TheHeight DIV 2)+3),'Score= '+S);
- {$ELSE}
+{$ELSE}
  FOR J:=9 TO 22 DO
     BEGIN
      GotoXY(40,J);
@@ -540,12 +549,14 @@ BEGIN
   TextColor(White);
  GotoXY(40,23);
  Writeln('Game Over, score = ',Score);
- {$ENDIF}
+{$ENDIF}
  I:=SlipInScore(Score);
  IF I<>0 THEN
   BEGIN
    NonUpdateMode:=TRUE;
+{$IFNDEF UseGraphics}
    HelpMode:=FALSE;
+{$ENDIF}
    ShowHighScore;
    {$IFDEF UseGraphics}
     OutTextXY(450,HelpY+20+(17-I+1)*LineDistY,S);
@@ -565,7 +576,7 @@ VAR
 {$ENDIF}
 
 BEGIN
- {$IFDEF UseGraphics}
+{$IFDEF UseGraphics}
   gm:=vgahi;
   gd:=vga;
   InitGraph(gd,gm,'');
@@ -577,11 +588,13 @@ BEGIN
   SetFillStyle(SolidFill,1);
   GetDefaultPalette(Pal);
   SetAllPalette(Pal);
- {$ENDIF}
+{$ENDIF}
 
  {Here should be some terminal-detection for Linux}
  nonupdatemode:=FALSE;
+{$IFNDEF UseGraphics}
  HelpMode :=TRUE;
+{$ENDIF}
  {$IFDEF Linux}
   UseColor:=FALSE;
  {$ELSE}
@@ -593,10 +606,12 @@ BEGIN
  HighX:=BaseX;
  HighY:=BaseY;
  CreateFiguresArray;                  { Load and precalculate a lot of stuff}
+{$IFNDEF UseGraphics}
  IF UseColor THEN
   Style:= ColorString
  ELSE
   Style:=DumbTermStr;
+{$ENDIF}
 
  NrFigures:=7;                        {Default standard tetris mode, only use
                                         the first 7 standard figures}
@@ -814,8 +829,8 @@ END.
 
 {
   $Log$
-  Revision 1.6  2000-02-22 03:10:39  alex
-  fixed the warnings
+  Revision 1.7  2000-02-22 03:36:48  alex
+  fixed the warning
 
   Revision 1.5  2000/01/21 00:44:51  peter
     * remove unused vars
