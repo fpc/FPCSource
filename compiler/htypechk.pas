@@ -194,13 +194,6 @@ implementation
                                     doconv:=tc_real_2_fix
                                   else
                                     doconv:=tc_real_2_real;
-                                { comp isn't a floating type }
-{$ifdef i386}
-                                if (pfloatdef(def_to)^.typ=s64bit) and
-                                   (pfloatdef(def_from)^.typ<>s64bit) and
-                                   not (explicit) then
-                                  CGMessage(type_w_convert_real_2_comp);
-{$endif}
                              end;
                            b:=1;
                          end;
@@ -656,7 +649,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1999-03-02 18:24:20  peter
+  Revision 1.18  1999-03-06 17:25:19  peter
+    * moved comp<->real warning so it doesn't occure everytime that
+      isconvertable is called with
+
+  Revision 1.17  1999/03/02 18:24:20  peter
     * fixed overloading of array of char
 
   Revision 1.16  1999/01/27 13:53:27  pierre

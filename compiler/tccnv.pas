@@ -411,6 +411,13 @@ implementation
 
     procedure first_real_to_real(var p : ptree);
       begin
+        { comp isn't a floating type }
+{$ifdef i386}
+         if (pfloatdef(p^.resulttype)^.typ=s64bit) and
+            (pfloatdef(p^.left^.resulttype)^.typ<>s64bit) and
+            not (p^.explizit) then
+           CGMessage(type_w_convert_real_2_comp);
+{$endif}
          if p^.registersfpu<1 then
            p^.registersfpu:=1;
          p^.location.loc:=LOC_FPU;
@@ -911,7 +918,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1999-03-02 18:24:23  peter
+  Revision 1.21  1999-03-06 17:25:20  peter
+    * moved comp<->real warning so it doesn't occure everytime that
+      isconvertable is called with
+
+  Revision 1.20  1999/03/02 18:24:23  peter
     * fixed overloading of array of char
 
   Revision 1.19  1999/02/22 02:15:46  peter
