@@ -1322,6 +1322,8 @@ unit i386;
     function regtoreg64(reg : tregister) : tregister;
 
      begin
+        { to avoid warning }
+        regtoreg64:=R_NO;
         internalerror(6464);
      end;
 
@@ -1952,7 +1954,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.29  1999-01-19 10:19:02  florian
+  Revision 1.30  1999-01-19 10:50:01  pierre
+   * avoid result no set warning in regtoreg64
+
+  Revision 1.29  1999/01/19 10:19:02  florian
     * bug with mul. of dwords fixed, reported by Alexander Stohr
     * some changes to compile with TP
     + small enhancements for the new code generator
