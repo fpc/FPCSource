@@ -2179,10 +2179,12 @@ end;
 
 Function StrCharLength(const Str: PChar): Integer;
 begin
+{$ifdef HASWIDESTRING}
   result:=widestringmanager.CharLengthPCharProc(Str);
+{$endif HASWIDESTRING}
 end;
 
-  
+
 Function FindCmdLineSwitch(const Switch: string; const Chars: TSysCharSet;IgnoreCase: Boolean): Boolean;
 
 Var
@@ -2344,7 +2346,10 @@ const
 
 {
   $Log$
-  Revision 1.27  2005-02-06 09:38:45  florian
+  Revision 1.28  2005-02-07 08:29:00  michael
+  + Patch from peter to fix 1.0 compile
+
+  Revision 1.27  2005/02/06 09:38:45  florian
     +  StrCharLength infrastructure
 
   Revision 1.26  2005/01/17 18:38:48  peter
