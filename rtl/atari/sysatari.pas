@@ -685,7 +685,7 @@ begin
   dir[2]:=':';
   dir[3]:='\';
   dir[0]:=char(i+2);
-{ upcase the string (FPKPascal function) }
+{ upcase the string (FPC Pascal function) }
   dir:=upcase(dir);
   if drivenr<>0 then   { Drive was supplied. We know it }
    dir[1]:=chr(65+drivenr-1)
@@ -739,7 +739,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:30:30  michael
+  Revision 1.2  2000-07-14 10:30:58  michael
+  +
+
+  Revision 1.1  2000/07/13 06:30:30  michael
   + Initial import
 
   Revision 1.14  2000/01/07 16:41:29  daniel
