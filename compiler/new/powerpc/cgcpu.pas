@@ -413,12 +413,34 @@ const
 
      procedure tcgppc.a_loadaddress_ref_reg(list : paasmoutput;const ref2 : treference;r : tregister);
 
-     Var
-       ref: TReference;
+     var tmpreg: tregister;
+         ref, tmpref: treference;
 
        begin
          ref := ref2;
          FixRef(ref);
+         if assigned(ref.symbol) then
+           { add the symbol's value to the base of the reference, and if the }
+           { reference doesn't have a base, create one                       }
+	 	       begin
+	           tmpreg := get_scratch_reg(list);
+	           reset_reference(tmpref);
+	           tmpref.symbol := ref.symbol;
+	           tmpref.symaddr := refs_ha;
+	           tmpref.is_immediate := true;
+	           if ref.base <> R_NO then
+	             list^.concat(new(paicpu,op_reg_reg_ref(A_ADDIS,tmpreg,
+	               ref.base,newreference(tmpref))))
+	           else
+	             list^.concat(new(paicpu,op_reg_ref(A_LIS,tmpreg,
+	                newreference(tmpref))));
+	           ref.base := tmpreg
+	           ref.symaddr := refs_l;
+	           { can be folded with one of the next instructions by the }
+	           { optimizer probably                                     }
+	           list^.concat(new(paicpu,op_reg_ref(A_ADDI,tmpreg,tmpreg
+	              newreference(tmpref))));
+	 	       end;
          If ref.offset <> 0 Then
            If ref.base <> R_NO then
              a_op_reg_reg_const32(list,A_ADDI,A_ADDIS,r,r,ref.offset)
@@ -428,8 +450,20 @@ const
          else
            if ref.index <> R_NO Then
              list^.concat(new(paicpu,op_reg_reg_reg(A_ADD,r,ref.base,ref.index)))
-           else list^.concat(new(paicpu,op_reg_reg(A_MR,r,ref.base)))
+           else list^.concat(new(paicpu,op_reg_reg(A_MR,r,ref.base)));
+         If assigned(ref.symbol) then
+           free_scratch_reg(list,tmpreg);
        end;
+
+
+	     begin
+	         begin
+	         end;
+	       list^.concat(new(paicpu,op_reg_ref(op,reg,newreference(ref))));
+	       if assigned(ref.symbol) then
+	         free_scratch_reg(list,tmpreg);
+	     end;
+
 
 { ************* concatcopy ************ }
 
@@ -461,13 +495,20 @@ const
         if count > 3 then
           { generate a loop }
           begin
+            { the offsets are zero after the a_loadaddress_ref_reg and just }
+            { have to be set to 4. I put an Inc there so debugging may be   }
+            { easier (should offset be different from zero here, it will be }
+            { easy to notice in the genreated assembler                     }
             Inc(dst.offset,4);
             Inc(src.offset,4);
             a_op_reg_reg_const32(list,A_SUBI,A_NONE,src.base,src.base,4);
             a_op_reg_reg_const32(list,A_SUBI,A_NONE,dst.base,dst.base,4);
             countreg := get_scratch_reg(list);
             a_load_const_reg(list,OS_32,count-1,countreg);
-            tempreg := get_scratch_reg(list);
+            { explicitely allocate R_0 since it can be used safely here }
+            { (for holding date that's being copyied)                   }
+            tempreg := R_0;
+            a_reg_alloc(list,R_0);
             getlabel(lab);
             a_label(list, lab);
             list^.concat(new(paicpu,op_reg_ref(A_LWZU,tempreg,
@@ -504,7 +545,7 @@ const
            a_load_ref_reg(list,OS_8,src,tempreg);
            a_load_reg_ref(list,OS_8,tempreg,dst);
          end;
-       free_scratch_reg(list,tempreg);
+       a_reg_dealloc(list,tempreg);
        free_scratch_reg(list,src.base);
        free_scratch_reg(list,dst.base);
       end;
@@ -558,6 +599,7 @@ const
               list^.concat(new(paicpu,op_reg_ref(A_LIS,tmpreg,
                  newreference(tmpref))));
             ref.base := tmpreg
+            ref^.symaddr := refs_l;
           end;
         list^.concat(new(paicpu,op_reg_ref(op,reg,newreference(ref))));
         if assigned(ref.symbol) then
@@ -575,7 +617,11 @@ const
 end.
 {
   $Log$
-  Revision 1.6  1999-09-15 20:35:47  florian
+  Revision 1.7  1999-10-20 12:23:24  jonas
+    * fixed a_loadaddress_ref_reg (mentioned as ToDo in rev. 1.5)
+    * small bugfix in a_load_store
+
+  Revision 1.6  1999/09/15 20:35:47  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers
@@ -583,7 +629,10 @@ end.
     * .... ???
 
   Revision 1.5  1999/09/03 13:14:11  jonas
-    + implemented some parameter passing methods, but they require\n    some more helper routines\n  * fix for loading symbol addresses (still needs to be done in a_loadaddress)\n  * several changes to the way conditional branches are handled
+    + implemented some parameter passing methods, but they require
+      some more helper routines
+    * fix for loading symbol addresses (still needs to be done in a_loadaddress)
+    * several changes to the way conditional branches are handled
 
   Revision 1.4  1999/08/26 14:53:41  jonas
     * first implementation of concatcopy (requires 4 scratch regs)
