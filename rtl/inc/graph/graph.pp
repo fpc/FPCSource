@@ -619,7 +619,6 @@ const
      ($80,$40,$20,$10,$08,$04,$02,$01);
 
 
-  MaxModes = 13;
 
 
     { pre expanded line patterns }
@@ -942,7 +941,7 @@ var
 		    { Optimization from Thomas - mod 16 = and 15 }
 		    if LinePatterns[PixelCount and 15] = TRUE then
 		     begin
-			DirectPutPixel(PixelCount,y2+i);
+   			   DirectPutPixel(PixelCount,y2+i);
 		     end;
 		end;
 	    end;
@@ -976,7 +975,7 @@ var
 		  { with predefined line patterns...                 }
 		    if LinePatterns[PixelCount and 15] = TRUE then
 		     begin
-			DirectPutPixel(x1+i,PixelCount);
+     			DirectPutPixel(x1+i,PixelCount);
 		     end;
 		end;
 	    end;
@@ -1294,7 +1293,7 @@ var
 	   Begin
 			  { x1 mod 8 }
 	     if RevBitArray[x1 and 7] and TmpFillPattern <> 0 then
-		DirectPutpixel(x1,y)
+   	        DirectPutpixel(x1,y)
 	     else
 	       begin
 		 { According to the TP graph manual, we overwrite everything }
@@ -1371,11 +1370,11 @@ var
        LineInfo.Thickness := Thickness;
        LineInfo.LineStyle := LineStyle;
        case LineStyle of
-	UserBitLn: Lineinfo.Pattern := pattern;
-	SolidLn:   Lineinfo.Pattern  := $ffff;  { ------- }
-	DashedLn : Lineinfo.Pattern := $F8F8;   { -- -- --}
-	DottedLn:  LineInfo.Pattern := $CCCC;   { - - - - }
-	CenterLn: LineInfo.Pattern :=  $FC78;   { -- - -- }
+	    UserBitLn: Lineinfo.Pattern := pattern;
+	    SolidLn:   Lineinfo.Pattern  := $ffff;  { ------- }
+	    DashedLn : Lineinfo.Pattern := $F8F8;   { -- -- --}
+	    DottedLn:  LineInfo.Pattern := $CCCC;   { - - - - }
+	    CenterLn: LineInfo.Pattern :=  $FC78;   { -- - -- }
        end; { end case }
        { setup pattern styles }
        j:=15;
@@ -1403,19 +1402,30 @@ var
 
 Procedure ClearViewPortDefault;
 var
- i,j: integer;
- MaxWidth, MaxHeight: Integer;
+ j: integer;
+ OldWriteMode, OldCurColor: word;
+ LineSets : LineSettingsType;
 Begin
   { CP is always RELATIVE coordinates }
   CurrentX := 0;
   CurrentY := 0;
-  MaxWidth  := StartXViewPort + ViewWidth;
-  MaxHeight := StartYViewPort + ViewHeight;
-  for J:=StartYViewPort to MaxHeight do
-   Begin
-     for i:=StartXViewPort to MaxWidth do
-       PutPixel(I,J,CurrentBkColor);
-   end;
+
+  { Save all old settings }
+  OldCurColor := CurrentColor;
+  CurrentColor:=CurrentBkColor;
+  OldWriteMode:=CurrentWriteMode;
+  GetLineSettings(LineSets);
+  { reset to normal line style...}
+  SetLineStyle(SolidLn, 0, NormWidth);
+
+  { routines are relative here...}
+  for J:=0 to ViewHeight do
+       HLine(0, ViewWidth, J);
+
+  { restore old settings...}
+  SetLineStyle(LineSets.LineStyle, LineSets.Pattern, LineSets.Thickness);
+  CurrentColor := OldCurColor;
+  CurrentWriteMode := OldWriteMode;
 end;
 
 
@@ -1531,18 +1541,18 @@ Begin
    Begin
      for i:=X to X1 do
       begin
-	 case BitBlt of
+	    case BitBlt of
 {$R-}
-	  CopyPut: color:= pt(Bitmap)[k];  { also = normalput }
-	  XORPut: color:= pt(Bitmap)[k] XOR GetPixel(i,j);
-	  OrPut: color:= pt(Bitmap)[k] OR GetPixel(i,j);
-	  AndPut: color:= pt(Bitmap)[k] AND GetPixel(i,j);
-	  NotPut: color:= not pt(Bitmap)[k];
+         CopyPut: color:= pt(Bitmap)[k];  { also = normalput }
+	     XORPut: color:= pt(Bitmap)[k] XOR GetPixel(i,j);
+	     OrPut: color:= pt(Bitmap)[k] OR GetPixel(i,j);
+	     AndPut: color:= pt(Bitmap)[k] AND GetPixel(i,j);
+	     NotPut: color:= not pt(Bitmap)[k];
 {$R+}
-	 end;
-	 putpixel(i,j,color);
-	 Inc(k);
-      end;
+   	   end;
+	   putpixel(i,j,color);
+	   Inc(k);
+     end;
    end;
 end;
 
@@ -1561,9 +1571,9 @@ Begin
      for i:=X1 to X2 do
       begin
 {$R-}
-	 pt(Bitmap)[k] :=getpixel(i,j);
+	    pt(Bitmap)[k] :=getpixel(i,j);
 {$R+}
-	 Inc(k);
+	    Inc(k);
       end;
    end;
    ptw(Bitmap)[0] := X2-X1;   { First longint  is width  }
@@ -1696,11 +1706,11 @@ end;
 
      if (Radius = 1) then
        begin
-	  OldWriteMode:=CurrentWriteMode;
-	  CurrentWriteMode := NormalPut;
-	  DirectPutPixel(X, Y);
-	  CurrentWriteMode := OldWriteMode;
-	  Exit;
+         { must use clipping ... }
+         { don't need to explicitly set NormalPut mode }
+         { because PutPixel only supports normal put   }
+	     PutPixel(X, Y,CurrentColor);
+	     Exit;
        end;
 
      { Only if we are using thickwidths lines do we accept }
@@ -1708,7 +1718,7 @@ end;
      OldWriteMode := CurrentWriteMode;
      if (LineInfo.Thickness = NormWidth) then
        CurrentWriteMode := NormalPut;
-	  InternalEllipse(X,Y,Radius,Radius,StAngle,Endangle);
+	 InternalEllipse(X,Y,Radius,Radius,StAngle,Endangle);
      CurrentWriteMode := OldWriteMode;
    end;
 
@@ -1767,10 +1777,8 @@ end;
 
      if (Radius = 1) then
      begin
-	  OldWriteMode := CurrentWriteMode;
-	  CurrentWriteMode := NormalPut;
-	  DirectPutPixel(X, Y);
-	  CurrentWriteMode := OldWriteMode;
+      { only normal put mode is supported by a call to PutPixel }
+	  PutPixel(X, Y, CurrentColor);
 	  Exit;
      end;
 
@@ -1780,8 +1788,8 @@ end;
      move(ArcCall,OriginalArcInfo, sizeof(ArcCall));
      if LineInfo.Thickness = Normwidth then
        begin
-	 OldWriteMode := CurrentWriteMode;
-	 CurrentWriteMode := CopyPut;
+	     OldWriteMode := CurrentWriteMode;
+	     CurrentWriteMode := CopyPut;
        end;
      InternalEllipse(X,Y,Radius,Radius,0,360);
      if LineInfo.Thickness = Normwidth then
@@ -1803,9 +1811,11 @@ end;
      Currentwritemode:=normalput;
      Line(ArcCall.XStart, ArcCall.YStart, x,y);
      Line(x,y,ArcCall.Xend,ArcCall.YEnd);
-     DirectPutPixel(ArcCall.xstart,ArcCall.ystart);
-     DirectPutPixel(x,y);
-     DirectPutPixel(ArcCall.xend,ArcCall.yend);
+     { we must take care of clipping so we call PutPixel instead }
+     { of DirectPutPixel...                                      }
+     PutPixel(ArcCall.xstart,ArcCall.ystart,CurrentColor);
+     PutPixel(x,y,CurrentColor);
+     PutPixel(ArcCall.xend,ArcCall.yend,CurrentColor);
      stangle:=Stangle mod 360; EndAngle:=Endangle mod 360;
      if stAngle<=Endangle then
        Angle:=(stAngle+EndAngle)/2
@@ -1831,8 +1841,8 @@ end;
      { unchanged.                                         }
      if (Pattern > UserFill) or (Color > GetMaxColor) then
       begin
-	_GraphResult := grError;
-	exit;
+	   _GraphResult := grError;
+	   exit;
       end;
      FillSettings.Color := Color;
      FillSettings.Pattern := Pattern;
@@ -1852,8 +1862,8 @@ end;
    begin
      if Color > GetMaxColor then
        begin
-	 _GraphResult := grError;
-	 exit;
+	    _GraphResult := grError;
+	    exit;
        end;
 
      FillSettings.Color := Color;
@@ -1888,21 +1898,23 @@ end;
      Lineinfo.thickness:=normwidth;
 
      case Fillsettings.pattern of
-     EmptyFill : begin
+     EmptyFill :
+           begin
 		     Currentcolor:=CurrentBkColor;
 		     for y:=y1 to y2 do
 		       Hline(x1,x2,y);
 		   end;
-     SolidFill :  begin
+     SolidFill :
+           begin
 		     CurrentColor:=FillSettings.color;
 		     for y:=y1 to y2 do
 		       Hline(x1,x2,y);
 		  end;
      else
       Begin
-	CurrentColor:=FillSettings.color;
-	for y:=y1 to y2 do
-	     patternline(x1,x2,y);
+   	    CurrentColor:=FillSettings.color;
+        for y:=y1 to y2 do
+	          patternline(x1,x2,y);
       end;
     end;
     CurrentColor:= Origcolor;
@@ -2203,9 +2215,11 @@ end;
      Arc(x,y,StAngle,EndAngle,Radius);
      Line(ArcCall.XStart, ArcCall.YStart, x,y);
      Line(x,y, ArcCall.XEnd, ArcCall.YEnd);
-     DirectPutPixel(ArcCall.xstart,ArcCall.ystart);
-     DirectPutPixel(x,y);
-     DirectPutPixel(ArcCall.xend,ArcCall.yend);
+     { must use PutPixel() instead of DirectPutPixel because we need }
+     { clipping...                                                   }
+     PutPixel(ArcCall.xstart,ArcCall.ystart,CurrentColor);
+     PutPixel(x,y,CurrentColor);
+     PutPixel(ArcCall.xend,ArcCall.yend,CurrentColor);
      Stangle:=stAngle mod 360; EndAngle:=Endangle mod 360;
      if Stangle<=Endangle then
        angle:=(StAngle+EndAngle)/2
@@ -2321,14 +2335,6 @@ SetPalette
 SetRGBPalette
 SetVisualPage
 DetectGraph
-
-{ These routine must be hooked for every new platform:  }
-{                                                       }
-{   InitGraph()                                         }
-{   PutPixel()                                          }
-{   DirectPutPixel()                                    }
-{   GetPixel()                                          }
-{   CloseGraph()                                        }
 
 {   DetectGraph()                                       }
 {   GetPalette()                                        }
