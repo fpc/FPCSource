@@ -32,6 +32,7 @@ Const
 }
 Type
   long = Cardinal; { Untill we know better. M.}
+  PLong = ^Long;
   PInteger = ^Integer;
 
 Type
@@ -386,17 +387,12 @@ extern Status XGetWMName(
     Window              { w },
     XTextProperty*      { text_prop_return }
 #endif
-);
+);*)
 
-extern Status XGetWMNormalHints(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    Window              { w },
-    XSizeHints*         { hints_return },
-    long*               { supplied_return }
-#endif
-);
+function XGetWMNormalHints(display: PDisplay; w: TWindow;
+  hints_return: PXSizeHints; supplied_return: PLong): TStatus; cdecl; external;
 
+(*
 extern Status XGetWMSizeHints(
 #if NeedFunctionPrototypes
     Display*            { display },
@@ -504,16 +500,12 @@ extern XSetIconSizes(
     XIconSize*          { size_list },
     int                 { count }
 #endif
-);
+); *)
 
-extern XSetNormalHints(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    Window              { w },
-    XSizeHints*         { hints }
-#endif
-);
+procedure XSetNormalHints(display: PDisplay; w: TWindow;
+  hints: PXSizeHints); cdecl; external;
 
+(*
 extern void XSetRGBColormaps(
 #if NeedFunctionPrototypes
     Display*            { display },
@@ -538,46 +530,23 @@ function XSetStandardProperties(display: PDisplay; w: TWindow;
   argv: PPChar; argc: Integer; hints: PXSizeHints): Integer;
   cdecl; external;
 
-(*
-extern void XSetTextProperty(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    Window              { w },
-    XTextProperty*      { text_prop },
-    Atom                { property }
-#endif
-);
+procedure XSetTextProperty(display: PDisplay; w: TWindow;
+  text_prop: PXTextProperty; AProperty: TAtom); cdecl; external;
 
-extern void XSetWMClientMachine(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    Window              { w },
-    XTextProperty*      { text_prop }
-#endif
-);
-*)
+procedure XSetWMClientMachine(display: PDisplay; w: TWindow;
+  text_prop: PXTextProperty); cdecl; external;
 
-function XSetWMHints(display: PDisplay; w: TWindow; wm_hints: PXWMHints): Integer; cdecl; external;
+function XSetWMHints(display: PDisplay; w: TWindow;
+  wm_hints: PXWMHints): Integer; cdecl; external;
 
-(*
-extern void XSetWMIconName(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    Window              { w },
-    XTextProperty*      { text_prop }
-#endif
-);
+procedure XSetWMIconName(display: PDisplay; w: TWindow;
+  text_prop: PXTextProperty); cdecl; external;
 
-extern void XSetWMName(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    Window              { w },
-    XTextProperty*      { text_prop }
-#endif
-); *)
+procedure XSetWMName(display: PDisplay; w: TWindow;
+  text_prop: PXTextProperty); cdecl; external;
 
-procedure XSetWMNormalHints(display: PDisplay; w: TWindow; hints: PXSizeHints);
-  cdecl; external;
+procedure XSetWMNormalHints(display: PDisplay; w: TWindow;
+  hints: PXSizeHints); cdecl; external;
 
 (*
 extern void XSetWMProperties(
@@ -768,7 +737,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-05-24 09:37:29  sg
+  Revision 1.8  2000-05-26 14:28:13  sg
+  * More functions added
+
+  Revision 1.7  2000/05/24 09:37:29  sg
   * translated more X11 functions
 
   Revision 1.6  2000/03/06 16:15:43  peter
