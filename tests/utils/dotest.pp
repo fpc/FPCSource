@@ -389,7 +389,7 @@ begin
   args:=args+' '+ppfile;
   Verbose(V_Debug,'Executing '+compilerbin+' '+args);
   { also get the output from as and ld that writes to stderr sometimes }
-  execres:=ExecuteRedir(CompilerBin,args,'',OutName,OutName);
+  execres:=ExecuteRedir(CompilerBin,args,'',OutName,'stdout');
   Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
 
   { Error during execution? }
@@ -857,7 +857,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2004-05-02 09:31:52  peter
+  Revision 1.34  2004-05-03 14:48:51  peter
+    * support redir from stderr to stdout so the same file can be used
+
+  Revision 1.33  2004/05/02 09:31:52  peter
     * remove failed_to_execute_ strings, use the failed_to_run
 
   Revision 1.32  2004/04/29 21:41:44  peter

@@ -409,36 +409,51 @@ function ChangeRedirIn(Const Redir : String) : Boolean;
      RedirChangedIn:=True;
   end;
 
+
 function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolean;
+  var
+    PF : ^File;
   begin
     ChangeRedirError:=False;
-    If Redir = '' then Exit;
-    Assign (FERR^, Redir);
-    If AppendToFile and FileExist(Redir) then
-      Begin
-      Reset(FERR^,1);
-      Seek(FERR^,FileSize(FERR^));
-      End else Rewrite (FERR^);
+    If Redir = '' then
+      Exit;
+    if Redir='stdout' then
+      begin
+        PF:=FOut;
+      end
+    else
+      begin
+        Assign (FERR^, Redir);
+        If AppendToFile and FileExist(Redir) then
+          Begin
+            Reset(FERR^,1);
+            Seek(FERR^,FileSize(FERR^));
+          End
+        else
+          Rewrite (FERR^);
 
-    RedirErrorError:=IOResult;
-    IOStatus:=RedirErrorError;
-    If IOStatus <> 0 then Exit;
+        RedirErrorError:=IOResult;
+        IOStatus:=RedirErrorError;
+        If IOStatus <> 0 then Exit;
+        PF:=FErr;
+      end;
+
 {$ifndef FPC}
     Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
     OldHandleError:=Handles^[StdErrorHandle];
-    Handles^[StdErrorHandle]:=Handles^[FileRec (FERR^).Handle];
+    Handles^[StdErrorHandle]:=Handles^[FileRec (PF^).Handle];
     ChangeRedirError:=True;
     ErrorRedirDisabled:=False;
 {$else}
 {$ifdef win32}
-    if SetStdHandle(Std_Error_Handle,FileRec(FERR^).Handle) then
+    if SetStdHandle(Std_Error_Handle,FileRec(PF^).Handle) then
 {$else not win32}
     {$ifdef ver1_0}
     dup(StdErrorHandle,TempHError);
-    dup2(FileRec(FERR^).Handle,StdErrorHandle);
+    dup2(FileRec(PF^).Handle,StdErrorHandle);
     {$else}
     TempHError:=fpdup(StdErrorHandle);
-    fpdup2(FileRec(FERR^).Handle,StdErrorHandle);
+    fpdup2(FileRec(PF^).Handle,StdErrorHandle);
     {$endif}
     if (TempHError<>UnusedHandle) and
        (StdErrorHandle<>UnusedHandle) then
@@ -448,7 +463,7 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
          ErrorRedirDisabled:=False;
       end;
 {$endif}
-     RedirChangedError:=True;
+    RedirChangedError:=True;
   end;
 
 
@@ -968,7 +983,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.16  2003-10-14 08:30:37  peter
+  Revision 1.17  2004-05-03 14:48:51  peter
+    * support redir from stderr to stdout so the same file can be used
+
+  Revision 1.16  2003/10/14 08:30:37  peter
     * go32v2 fixed
 
   Revision 1.15  2003/09/29 14:36:39  peter
