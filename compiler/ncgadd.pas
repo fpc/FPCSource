@@ -453,6 +453,8 @@ interface
         checkoverflow : boolean;
         ovloc : tlocation;
       begin
+        ovloc.loc:=LOC_VOID;
+
         pass_left_right;
         force_reg_left_right(false,(cs_check_overflow in aktlocalswitches) and
                                    (nodetype in [addn,subn]));
@@ -618,6 +620,8 @@ interface
         tmpreg : tregister;
         ovloc : tlocation;
       begin
+        ovloc.loc:=LOC_VOID;
+
         pass_left_right;
         force_reg_left_right(false,(cs_check_overflow in aktlocalswitches) and
                                    (nodetype in [addn,subn,muln]));
@@ -777,7 +781,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2005-02-13 18:55:19  florian
+  Revision 1.42  2005-02-13 19:12:05  florian
+    * setup ovlov correctly
+
+  Revision 1.41  2005/02/13 18:55:19  florian
     + overflow checking for the arm
 
   Revision 1.40  2005/01/29 00:40:18  peter
