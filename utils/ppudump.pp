@@ -540,7 +540,7 @@ begin
    begin
      write(space,'    File Pos: ');
      readposinfo;
-     write(space,'     Options: ');
+     write(space,'  SymOptions: ');
      first:=true;
      for i:=1to symopts do
       if (symopt[i].mask in symoptions) then
@@ -585,6 +585,7 @@ var
   totalsyms,
   symcnt,
   i,j,len : longint;
+  l1,l2 : longint;
 begin
   symcnt:=1;
   with ppufile^ do
@@ -636,15 +637,15 @@ begin
              case tconsttyp(b) of
                constord :
                  begin
-                   write (space,' Ordinal Type : ');
+                   write   (space,'OrdinalType: ');
                    readtype;
-                   writeln (space,'      Value : ',getlongint)
+                   writeln (space,'      Value: ',getlongint)
                  end;
                constpointer :
                  begin
-                   write (space,' Pointer Type : ');
+                   write (space,' Pointer Type: ');
                    readtype;
-                   writeln (space,'      Value : ',getlongint)
+                   writeln (space,'      Value: ',getlongint)
                  end;
                conststring,
                constresourcestring :
@@ -652,30 +653,34 @@ begin
                    len:=getlongint;
                    getmem(pc,len+1);
                    getdata(pc^,len);
-                   writeln(space,' Length : ',len);
-                   writeln(space,'  Value : "',pc,'"');
+                   writeln(space,'      Length: ',len);
+                   writeln(space,'       Value: "',pc,'"');
                    freemem(pc,len+1);
                    if tconsttyp(b)=constresourcestring then
-                    writeln(space,'  Index : ',getlongint);
+                    writeln(space,'       Index: ',getlongint);
                  end;
                constreal :
-                 writeln(space,'  Value : ',getreal);
+                 writeln(space,'       Value: ',getreal);
                constbool :
                  if getlongint<>0 then
-                   writeln (space,'  Value : True')
+                   writeln (space,'      Value : True')
                  else
-                   writeln (space,'  Value : False');
+                   writeln (space,'      Value: False');
                constint :
-                 writeln(space,'  Value : ',getlongint);
+                 begin
+                   l1:=getlongint;
+                   l2:=getlongint;
+                   writeln(space,'       Value: ',int64(l2 shl 32) or l1);
+                 end;
                constchar :
-                 writeln(space,'  Value : "'+chr(getlongint)+'"');
+                 writeln(space,'       Value: "'+chr(getlongint)+'"');
                constset :
                  begin
-                   write (space,'  Set Type : ');
+                   write (space,'     Set Type: ');
                    readtype;
                    for i:=1to 4 do
                     begin
-                      write (space,'  Value : ');
+                      write (space,'       Value: ');
                       for j:=1to 8 do
                        begin
                          if j>1 then
@@ -756,19 +761,28 @@ begin
          ibpropertysym :
            begin
              readcommonsym('Property ');
-             write  (space,'     Prop Type: ');
-             readtype;
-             writeln(space,'       Options: ',getlongint);
-             writeln(space,'         Index: ',getlongint);
-             writeln(space,'       Default: ',getlongint);
-             write  (space,'    Index Type: ');
-             readtype;
-             write  (space,'   Read access: ');
-             readsymlist(space+'           Sym: ');
-             write  (space,'  Write access: ');
-             readsymlist(space+'           Sym: ');
-             write  (space,' Stored access: ');
-             readsymlist(space+'           Sym: ');
+             i:=getlongint;
+             writeln(space,' PropOptions: ',i);
+             if (i and 32)>0 then
+              begin
+                write  (space,'OverrideProp: ');
+                readsymref;
+              end
+             else
+              begin
+                write  (space,'   Prop Type: ');
+                readtype;
+                writeln(space,'       Index: ',getlongint);
+                writeln(space,'     Default: ',getlongint);
+                write  (space,'  Index Type: ');
+                readtype;
+                write  (space,'  Readaccess: ');
+                readsymlist(space+'         Sym: ');
+                write  (space,' Writeaccess: ');
+                readsymlist(space+'         Sym: ');
+                write  (space,'Storedaccess: ');
+                readsymlist(space+'         Sym: ');
+              end;
            end;
 
          ibfuncretsym :
@@ -1067,6 +1081,12 @@ begin
                varset   : writeln(space,'  Set with ',getlongint,' Elements');
                else       writeln('!! Warning: Invalid set type ',b);
              end;
+           end;
+
+
+         ibvariantdef :
+           begin
+             readcommondef('Variant definition');
            end;
 
          iberror :
@@ -1508,7 +1528,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2001-04-04 22:42:59  peter
+  Revision 1.5  2001-04-10 21:21:41  peter
+    * variantdef support
+    * propertysym fixed
+
+  Revision 1.4  2001/04/04 22:42:59  peter
     * updated for new objectdef with interfaces
 
   Revision 1.3  2000/09/09 19:46:40  peter

@@ -20,16 +20,15 @@
 
  ****************************************************************************
 }
-{$ifdef TP}
-  {$N+,E+}
-{$endif}
 unit ppu;
+
+{$H-}
+
 interface
 
 { Also write the ppu if only crc if done, this can be used with ppudump to
   see the differences between the intf and implementation }
 { define INTFPPU}
-{$define ORDERSOURCES}
 
 {$ifdef Test_Double_checksum}
 var
@@ -43,26 +42,14 @@ type
 
 const
 {$ifdef newcg}
-{$ifdef ORDERSOURCES}
-  CurrentPPUVersion=103;
-{$else ORDERSOURCES}
   CurrentPPUVersion=102;
-{$endif ORDERSOURCES}
 {$else newcg}
-{$ifdef ORDERSOURCES}
   CurrentPPUVersion=22;
-{$else ORDERSOURCES}
-  CurrentPPUVersion=20;
-{$endif ORDERSOURCES}
 {$endif newcg}
 
 { buffer sizes }
   maxentrysize = 1024;
-{$ifdef TP}
-  ppubufsize   = 1024;
-{$else}
   ppubufsize   = 16384;
-{$endif}
 
 {ppu entries}
   mainentryid         = 1;
@@ -126,6 +113,7 @@ const
   iblongstringdef  = 54;
   ibansistringdef  = 55;
   ibwidestringdef  = 56;
+  ibvariantdef     = 57;
 
 { unit flags }
   uf_init          = $1;
@@ -351,11 +339,7 @@ end;
 function tppufile.open:boolean;
 var
   ofmode : byte;
-{$ifdef delphi}
-  i      : integer;
-{$else delphi}
-  i      : word;
-{$endif delphi}
+  i      : longint;
 begin
   open:=false;
   assign(f,fname);
@@ -388,18 +372,9 @@ end;
 
 
 procedure tppufile.reloadbuf;
-{$ifdef TP}
-var
-  i : word;
-{$endif}
 begin
   inc(bufstart,bufsize);
-{$ifdef TP}
-  blockread(f,buf^,ppubufsize,i);
-  bufsize:=i;
-{$else}
   blockread(f,buf^,ppubufsize,bufsize);
-{$endif}
   bufidx:=0;
 end;
 
@@ -585,15 +560,7 @@ function tppufile.getstring:string;
 var
   s : string;
 begin
-  {$ifndef TP}
-    {$ifopt H+}
-      setlength(s,getbyte);
-    {$else}
-      s[0]:=chr(getbyte);
-    {$endif}
-  {$else}
-    s[0]:=chr(getbyte);
-  {$endif}
+  s[0]:=chr(getbyte);
   if entryidx+length(s)>entry.size then
    begin
      error:=true;
@@ -658,8 +625,8 @@ begin
   bufstart:=sizeof(tppuheader);
   bufidx:=0;
 {reset}
-  crc:=$ffffffff;
-  interface_crc:=$ffffffff;
+  crc:=longint($ffffffff);
+  interface_crc:=longint($ffffffff);
   do_interface_crc:=true;
   Error:=false;
   do_crc:=true;
@@ -923,8 +890,33 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-08-13 12:58:06  peter
-    * updated for ppu additions
+  Revision 1.3  2001-04-10 21:21:42  peter
+    * variantdef support
+    * propertysym fixed
+
+  Revision 1.7  2001/03/22 00:10:58  florian
+    + basic variant type support in the compiler
+
+  Revision 1.6  2000/12/07 17:19:43  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.5  2000/10/31 22:02:50  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.4  2000/09/24 15:06:24  peter
+    * use defines.inc
+
+  Revision 1.3  2000/08/13 13:04:38  peter
+    * new ppu version
 
   Revision 1.2  2000/07/13 11:32:45  michael
   + removed logs
