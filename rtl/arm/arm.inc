@@ -117,9 +117,76 @@ asm
 end;
 
 
+(*
+{$define FPC_SYSTEM_HAS_MOVE}
+procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
+asm
+	// count <=0 ?
+	cmp r2,#0
+	movle pc,lr
+	// overlap?
+	cmp r2,r1
+	bls .Lnoverlap
+	add r3,r0,r2
+	cmp r3,r2
+	bls .Lnooverlap
+	// overlap, copy backward
+.Loverlapped
+  subs r2,r2,#1
+  ldrb r3,[r0,r2]
+  strb r3,[r1,r2]
+  bne .Loverlapped
+  mov pc,lr
+.Lnooverlap:
+  // less then 16 bytes to copy?
+  cmp r2,#16
+  // yes, the forget about the whole optimizations
+  // and do a bytewise copy
+  blt .Lbyteloop
+
+  // both uneven aligned?
+  eor r3,r0,r1
+  tst r3,#1
+
+  bne .Ldifferentaligned
+  // yes, then align
+  // alignment to 4 byte boundries is enough
+  ldrb ip,[r0],#1
+  sub r2,r2,#1
+  stb ip,[r1],#1
+  tst r3,#2
+  bne .Ldifferentaligned
+  ldrh ip,[r0],#2
+  sub r2,r2,#2
+  sth ip,[r1],#2
+
+.Ldifferentaligned
+  // qword aligned?
+  orrs r3,r0,r1
+  tst r3,#7
+  bne .Ldwordloop
+.Lqwordloop:
+  sub r2,r2,#8
+  ldmia r0!,{r3,ip}
+  stmia r1!,{r3,ip}
+
+
+
+.Lbyteloop:
+  ldrb r3,[r0],#1
+  strb r3,[r1],#1
+  subs r2,r2,#1
+  bne .Lbyteloop
+  mov pc,lr
+end;
+*)
+
 {
   $Log$
-  Revision 1.11  2005-02-14 17:13:21  peter
+  Revision 1.12  2005-03-13 10:04:52  florian
+    * move draft
+
+  Revision 1.11  2005/02/14 17:13:21  peter
     * truncate log
 
   Revision 1.10  2005/01/05 15:59:02  florian
@@ -132,3 +199,4 @@ end;
     + correct setting of FPU exception mask
 
 }
+
