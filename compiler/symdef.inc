@@ -1903,7 +1903,7 @@
       { references do not change the ppu caracteristics      }
       { this only save the references to variables/functions }
       { defined in the unit what about the others            }
-         ppufile^.do_crc:=false;
+         ppufile.do_crc:=false;
          if assigned(lastwritten) then
            ref:=lastwritten
          else
@@ -1918,7 +1918,7 @@
            end;
          lastwritten:=lastref;
          writebyte(ibend);
-         ppufile^.do_crc:=true;
+         ppufile.do_crc:=true;
       end;
 
     procedure tprocdef.write_external_references;
@@ -1926,7 +1926,7 @@
       var ref : pref;
 
       begin
-         ppufile^.do_crc:=false;
+         ppufile.do_crc:=false;
          if lastwritten=lastref then exit;
          writebyte(ibextdefref);
          writedefref(@self);
@@ -1944,7 +1944,7 @@
            end;
          lastwritten:=lastref;
          writebyte(ibend);
-         ppufile^.do_crc:=true;
+         ppufile.do_crc:=true;
       end;
 
     procedure tprocdef.write_ref_to_file(var f : text);
@@ -2620,7 +2620,10 @@
 
 {
   $Log$
-  Revision 1.7  1998-06-07 15:30:25  florian
+  Revision 1.8  1998-06-11 10:11:58  peter
+    * -gb works again
+
+  Revision 1.7  1998/06/07 15:30:25  florian
     + first working rtti
     + data init/final. for local variables
 

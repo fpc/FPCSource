@@ -96,7 +96,7 @@ implementation
         inputfile:=get_source_file(moduleindex,posinfo.fileindex);
         if assigned(inputfile) then
           if Use_Rhide then
-            get_file_line:=globals.lowercase(inputfile^.name^+inputfile^.ext^)
+            get_file_line:=lower(inputfile^.name^+inputfile^.ext^)
               +':'+tostr(posinfo.line)+':'+tostr(posinfo.column)+':'
           else
             get_file_line:=inputfile^.name^+inputfile^.ext^
@@ -148,7 +148,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-05-20 09:42:32  pierre
+  Revision 1.4  1998-06-11 10:11:57  peter
+    * -gb works again
+
+  Revision 1.3  1998/05/20 09:42:32  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)

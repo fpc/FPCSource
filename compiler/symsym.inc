@@ -209,7 +209,7 @@
       { references do not change the ppu caracteristics      }
       { this only save the references to variables/functions }
       { defined in the unit what about the others            }
-         ppufile^.do_crc:=false;
+         ppufile.do_crc:=false;
          if assigned(lastwritten) then
            ref:=lastwritten
          else
@@ -224,7 +224,7 @@
            end;
          lastwritten:=lastref;
          writebyte(ibend);
-         ppufile^.do_crc:=true;
+         ppufile.do_crc:=true;
       end;
 
 
@@ -263,7 +263,7 @@
       var ref : pref;
           prdef : pdef;
       begin
-         ppufile^.do_crc:=false;
+         ppufile.do_crc:=false;
          if lastwritten=lastref then
            exit;
          writebyte(ibextsymref);
@@ -291,7 +291,7 @@
                    prdef:=pprocdef(prdef)^.nextoverloaded;
                 end;
            end;
-         ppufile^.do_crc:=true;
+         ppufile.do_crc:=true;
       end;
 
 {$endif NEWPPU}
@@ -1741,7 +1741,10 @@
 
 {
   $Log$
-  Revision 1.7  1998-06-09 16:01:51  pierre
+  Revision 1.8  1998-06-11 10:11:59  peter
+    * -gb works again
+
+  Revision 1.7  1998/06/09 16:01:51  pierre
     + added procedure directive parsing for procvars
       (accepted are popstack cdecl and pascal)
     + added C vars with the following syntax
