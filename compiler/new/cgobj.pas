@@ -229,285 +229,29 @@ unit cgobj;
     { generates the code for initialisation of local data }
     procedure tcg.g_initialize_data(p : psym);
 
-      var
-         r : preference;
-         hr : treference;
-
       begin
-{$ifdef dummy}
-         if (p^.typ=varsym) and
-            assigned(pvarsym(p)^.definition) and
-            pvarsym(p)^.definition^.needs_inittable and
-            not((pvarsym(p)^.definition^.deftype=objectdef) and
-              pobjectdef(pvarsym(p)^.definition)^.isclass) then
-           begin
-              if is_ansistring(pvarsym(p)^.definition) or
-                is_widestring(pvarsym(p)^.definition) then
-                begin
-                   new(r);
-                   reset_reference(r^);
-                   if p^.owner^.symtabletype=localsymtable then
-                     begin
-                        r^.base:=procinfo.framepointer;
-                        r^.offset:=-pvarsym(p)^.address;
-                     end
-                   else
-                     r^.symbol:=stringdup(pvarsym(p)^.mangledname);
-                   curlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,r)));
-                end
-              else
-                begin
-                   reset_reference(hr);
-                   hr.symbol:=stringdup(lab2str(pvarsym(p)^.definition^.get_inittable_label));
-                   emitpushreferenceaddr(curlist,hr);
-                   clear_reference(hr);
-                   if p^.owner^.symtabletype=localsymtable then
-                     begin
-                        hr.base:=procinfo.framepointer;
-                        hr.offset:=-pvarsym(p)^.address;
-                     end
-                   else
-                     begin
-                        hr.symbol:=stringdup(pvarsym(p)^.mangledname);
-                     end;
-                   emitpushreferenceaddr(curlist,hr);
-                   clear_reference(hr);
-                   curlist^.concat(new(pai386,
-                     op_csymbol(A_CALL,S_NO,newcsymbol('FPC_INITIALIZE',0))));
-                   if not(cs_compilesystem in aktmoduleswitches) then
-                     concat_external('FPC_INITIALIZE',EXT_NEAR);
-                end;
-           end;
-{$endif dummy}
+         runerror(255);
       end;
 
     { generates the code for incrementing the reference count of parameters }
     procedure tcg.g_incr_data(p : psym);
 
-      var
-         hr : treference;
-
       begin
-{$ifdef dummy}
-         if (p^.typ=varsym) and
-            pvarsym(p)^.definition^.needs_inittable and
-            ((pvarsym(p)^.varspez=vs_value) {or
-             (pvarsym(p)^.varspez=vs_const) and
-             not(dont_copy_const_param(pvarsym(p)^.definition))}) and
-            not((pvarsym(p)^.definition^.deftype=objectdef) and
-              pobjectdef(pvarsym(p)^.definition)^.isclass) then
-           begin
-              reset_reference(hr);
-              hr.symbol:=stringdup(lab2str(pvarsym(p)^.definition^.get_inittable_label));
-              emitpushreferenceaddr(curlist,hr);
-              clear_reference(hr);
-              hr.base:=procinfo.framepointer;
-              hr.offset:=pvarsym(p)^.address+procinfo.call_offset;
-
-              emitpushreferenceaddr(curlist,hr);
-              clear_reference(hr);
-
-              curlist^.concat(new(pai386,
-                op_csymbol(A_CALL,S_NO,newcsymbol('FPC_ADDREF',0))));
-              if not (cs_compilesystem in aktmoduleswitches) then
-                concat_external('FPC_ADDREF',EXT_NEAR);
-           end;
-{$endif}
+         runerror(255);
       end;
 
     { generates the code for finalisation of local data }
     procedure tcg.g_finalize_data(p : pnamedindexobject);
 
-      var
-         hr : treference;
-
       begin
-{$ifdef dummy}
-         if (p^.typ=varsym) and
-            assigned(pvarsym(p)^.definition) and
-            pvarsym(p)^.definition^.needs_inittable and
-            not((pvarsym(p)^.definition^.deftype=objectdef) and
-              pobjectdef(pvarsym(p)^.definition)^.isclass) then
-           begin
-              { not all kind of parameters need to be finalized  }
-              if (p^.owner^.symtabletype=parasymtable) and
-                ((pvarsym(p)^.varspez=vs_var)  or
-                 (pvarsym(p)^.varspez=vs_const) { and
-                 (dont_copy_const_param(pvarsym(p)^.definition)) } ) then
-                exit;
-              reset_reference(hr);
-              hr.symbol:=stringdup(lab2str(pvarsym(p)^.definition^.get_inittable_label));
-              emitpushreferenceaddr(curlist,hr);
-              clear_reference(hr);
-              case p^.owner^.symtabletype of
-                 localsymtable:
-                   begin
-                      hr.base:=procinfo.framepointer;
-                      hr.offset:=-pvarsym(p)^.address;
-                   end;
-                 parasymtable:
-                   begin
-                      hr.base:=procinfo.framepointer;
-                      hr.offset:=pvarsym(p)^.address+procinfo.call_offset;
-                   end;
-                 else
-                   hr.symbol:=stringdup(pvarsym(p)^.mangledname);
-              end;
-              emitpushreferenceaddr(curlist,hr);
-              clear_reference(hr);
-              curlist^.concat(new(pai386,
-                op_csymbol(A_CALL,S_NO,newcsymbol('FPC_FINALIZE',0))));
-              if not (cs_compilesystem in aktmoduleswitches) then
-              concat_external('FPC_FINALIZE',EXT_NEAR);
-           end;
-{$endif dummy}
+         runerror(255);
       end;
 
 
     { generates the code to make local copies of the value parameters }
-  {$ifndef VALUEPARA}
     procedure tcg.g_copyopenarrays(p : pnamedindexobject);
-  {$else}
-    procedure tcg.g_copyvalueparas(p : pnamedindexobject);
-  {$endif}
-      var
-  {$ifdef VALUEPARA}
-        href1,href2 : treference;
-  {$endif}
-        r    : preference;
-        len  : longint;
-        opsize : topsize;
-        oldexprasmlist : paasmoutput;
       begin
-{$ifdef dummy}
-         if (p^.typ=varsym) and
-  {$ifdef VALUEPARA}
-            (pvarsym(p)^.varspez=vs_value) and
-            (push_addr_param(pvarsym(p)^.definition)) then
-  {$else}
-            (pvarsym(p)^.varspez=vs_value) then
-  {$endif}
-          begin
-            oldexprasmlist:=exprasmlist;
-            exprasmlist:=curlist;
-  {$ifdef VALUEPARA}
-  {$ifdef GDB}
-            if (cs_debuginfo in aktmoduleswitches) and
-               (exprasmlist^.first=exprasmlist^.last) then
-              exprasmlist^.concat(new(pai_force_line,init));
-  {$endif GDB}
-  {$endif}
-            if is_open_array(pvarsym(p)^.definition) then
-             begin
-                { get stack space }
-                new(r);
-                reset_reference(r^);
-                r^.base:=procinfo.framepointer;
-                r^.offset:=pvarsym(p)^.address+4+procinfo.call_offset;
-                curlist^.concat(new(pai386,
-                  op_ref_reg(A_MOV,S_L,r,R_EDI)));
-
-                curlist^.concat(new(pai386,
-                  op_reg(A_INC,S_L,R_EDI)));
-
-                curlist^.concat(new(pai386,
-                  op_const_reg(A_IMUL,S_L,
-                  parraydef(pvarsym(p)^.definition)^.definition^.size,R_EDI)));
-
-                curlist^.concat(new(pai386,
-                  op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
-                { load destination }
-                curlist^.concat(new(pai386,
-                  op_reg_reg(A_MOV,S_L,R_ESP,R_EDI)));
-
-                { don't destroy the registers! }
-                curlist^.concat(new(pai386,
-                  op_reg(A_PUSH,S_L,R_ECX)));
-                curlist^.concat(new(pai386,
-                  op_reg(A_PUSH,S_L,R_ESI)));
-
-                { load count }
-                new(r);
-                reset_reference(r^);
-                r^.base:=procinfo.framepointer;
-                r^.offset:=pvarsym(p)^.address+4+procinfo.call_offset;
-                curlist^.concat(new(pai386,
-                  op_ref_reg(A_MOV,S_L,r,R_ECX)));
-
-                { load source }
-                new(r);
-                reset_reference(r^);
-                r^.base:=procinfo.framepointer;
-                r^.offset:=pvarsym(p)^.address+procinfo.call_offset;
-                curlist^.concat(new(pai386,
-                  op_ref_reg(A_MOV,S_L,r,R_ESI)));
-
-                { scheduled .... }
-                curlist^.concat(new(pai386,
-                  op_reg(A_INC,S_L,R_ECX)));
-
-                { calculate size }
-                len:=parraydef(pvarsym(p)^.definition)^.definition^.size;
-                if (len and 3)=0 then
-                 begin
-                   opsize:=S_L;
-                   len:=len shr 2;
-                 end
-                else
-                 if (len and 1)=0 then
-                  begin
-                    opsize:=S_W;
-                    len:=len shr 1;
-                  end;
-
-                curlist^.concat(new(pai386,
-                  op_const_reg(A_IMUL,S_L,len,R_ECX)));
-                curlist^.concat(new(pai386,
-                  op_none(A_REP,S_NO)));
-                curlist^.concat(new(pai386,
-                  op_none(A_MOVS,opsize)));
-
-                curlist^.concat(new(pai386,
-                  op_reg(A_POP,S_L,R_ESI)));
-                curlist^.concat(new(pai386,
-                  op_reg(A_POP,S_L,R_ECX)));
-
-                { patch the new address }
-                new(r);
-                reset_reference(r^);
-                r^.base:=procinfo.framepointer;
-                r^.offset:=pvarsym(p)^.address+procinfo.call_offset;
-                curlist^.concat(new(pai386,
-                  op_reg_ref(A_MOV,S_L,R_ESP,r)));
-             end
-  {$ifdef VALUEPARA}
-            else
-             if is_shortstring(pvarsym(p)^.definition) then
-              begin
-                reset_reference(href1);
-                href1.base:=procinfo.framepointer;
-                href1.offset:=pvarsym(p)^.address+procinfo.call_offset;
-                reset_reference(href2);
-                href2.base:=procinfo.framepointer;
-                href2.offset:=-pvarsym(p)^.localaddress;
-                copyshortstring(href2,href1,pstringdef(pvarsym(p)^.definition)^.len,true);
-              end
-             else
-              begin
-                reset_reference(href1);
-                href1.base:=procinfo.framepointer;
-                href1.offset:=pvarsym(p)^.address+procinfo.call_offset;
-                reset_reference(href2);
-                href2.base:=procinfo.framepointer;
-                href2.offset:=-pvarsym(p)^.localaddress;
-                concatcopy(href1,href2,pvarsym(p)^.definition^.size,true,true);
-              end;
-  {$else}
-            ;
-  {$endif}
-            exprasmlist:=oldexprasmlist;
-          end;
-{$endif dummy}
+         runerror(255);
       end;
 
     { wrappers for the methods, because TP doesn't know procedures }
@@ -530,6 +274,7 @@ unit cgobj;
       begin
          cg^.g_incr_data(psym(s));
       end;
+
     procedure _initialize_data(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
 
       begin
@@ -557,7 +302,7 @@ unit cgobj;
            begin
               { gprof uses 16 byte granularity !! }
               if (cs_profile in aktmoduleswitches) then
-                list^.insert(new(pai_align,init_op(16,$90)))
+                list^.insert(new(pai_align,init(16)))
               else
                 if not(cs_littlesize in aktglobalswitches) then
                   list^.insert(new(pai_align,init(4)));
@@ -568,9 +313,11 @@ unit cgobj;
               for r:=firstreg to lastreg do
                 begin
                    if (r in registers_saved_on_cdecl) then
-                     if (r in general_registers) then
+                     if (r in (tg.availabletempregsint+
+		               tg.availabletempregsfpu+
+			       tg.availabletempregsmm)) then
                        begin
-                          if not(r in tg.unusedregsint) then
+                          if not(r in tg.usedinproc) then
                             a_push_reg(list,r)
                        end
                      else
@@ -586,14 +333,14 @@ unit cgobj;
                if (aktprocsym^.definition^.options and (pounitinit or poproginit or pounitfinalize)<>0) then
                  parasize:=0
                else
-                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-4;
+                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-pointersize;
             end
           else
             begin
                if (aktprocsym^.definition^.options and (pounitinit or poproginit or pounitfinalize)<>0) then
                  parasize:=0
                else
-                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-8;
+                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-pointersize*2;
                nostackframe:=false;
 
                if (aktprocsym^.definition^.options and pointerrupt)<>0 then
@@ -633,6 +380,7 @@ unit cgobj;
                 end;
            end;
 
+{$ifdef dummy}
          { a constructor needs a help procedure }
          if (aktprocsym^.definition^.options and poconstructor)<>0 then
            begin
@@ -652,7 +400,7 @@ unit cgobj;
                  }
                end;
            end;
-
+{$endif dummy}
   {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) then
            list^.insert(new(pai_force_line,init));
@@ -928,7 +676,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.8  1999-08-02 17:14:07  florian
+  Revision 1.9  1999-08-02 23:13:21  florian
+    * more changes to compile for the Alpha
+
+  Revision 1.8  1999/08/02 17:14:07  florian
     + changed the temp. generator to an object
 
   Revision 1.7  1999/08/01 23:05:55  florian

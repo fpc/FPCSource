@@ -68,10 +68,15 @@ unit tgcpu;
       begin
       end;
 
+
+begin
+   tg.init;
 end.
 {
   $Log$
-  Revision 1.1  1999-08-02 17:14:14  florian
-    + changed the temp. generator to an object
+  Revision 1.2  1999-08-02 23:13:24  florian
+    * more changes to compile for the Alpha
 
+  Revision 1.1  1999/08/02 17:14:14  florian
+    + changed the temp. generator to an object
 }

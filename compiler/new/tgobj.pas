@@ -58,6 +58,8 @@ unit tgobj;
 
       ttgobj = object
           unusedregsint,availabletempregsint : tregisterset;
+          unusedregsfpu,availabletempregsfpu : tregisterset;
+          unusedregsmm,availabletempregsmm : tregisterset;
           countusableregsint,
 	  countusableregsfpu,
 	  countusableregsmm : byte;
@@ -690,7 +692,10 @@ unit tgobj;
 end.
 {
   $Log$
-  Revision 1.1  1999-08-02 17:14:12  florian
+  Revision 1.2  1999-08-02 23:13:22  florian
+    * more changes to compile for the Alpha
+
+  Revision 1.1  1999/08/02 17:14:12  florian
     + changed the temp. generator to an object
 
 }

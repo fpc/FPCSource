@@ -37,7 +37,11 @@ type
 {$endif Test_Double_checksum}
 
 const
+{$ifdef newcg}
+  CurrentPPUVersion=100;
+{$else newcg}
   CurrentPPUVersion=17;
+{$endif newcg}
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -871,7 +875,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  1999-07-23 16:05:25  peter
+  Revision 1.37  1999-08-02 23:13:20  florian
+    * more changes to compile for the Alpha
+
+  Revision 1.36  1999/07/23 16:05:25  peter
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs
