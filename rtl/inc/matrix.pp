@@ -28,6 +28,11 @@ unit matrix;
 
 {*****************************************************************************}
 
+{$ifdef VER1_0}
+{1.0 has too much macro bugs :( }
+interface implementation end.
+{$else}
+
 interface
 
 {*****************************************************************************}
@@ -822,10 +827,13 @@ implementation
 {$i mmatimp.inc}
 
 end.
-
+{$endif VER1_0}
 {
   $Log$
-  Revision 1.2  2004-07-07 21:37:30  daniel
+  Revision 1.3  2004-07-08 10:16:21  daniel
+    * Doesn't compile with 1.0 :(
+
+  Revision 1.2  2004/07/07 21:37:30  daniel
     * Matrix unit included in build process
 
 }
