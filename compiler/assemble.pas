@@ -162,17 +162,17 @@ begin
      swapvectors;
      exec(command,para);
      swapvectors;
-     if (dosexitcode<>0) then
+     if (doserror<>0) then
       begin
-        Message(exec_w_error_while_assembling);
-        callassembler:=false;
+        Message(exec_w_cant_call_assembler);
+        externasm:=true;
         exit;
       end
      else
-      if (doserror<>0) then
+      if (dosexitcode<>0) then
        begin
-         Message(exec_w_cant_call_assembler);
-         externasm:=true;
+        Message(exec_w_error_while_assembling);
+        callassembler:=false;
        end;
    end;
   if externasm then
@@ -450,7 +450,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1998-06-08 22:59:43  peter
+  Revision 1.12  1998-07-08 14:58:34  daniel
+  * First check if call to assembler is succesfull, then check it's exit code.
+  This is more logical than first checking the exit code. For some mysterious
+  reason this did not give problems on DOS & Linux. On OS/2 it did.
+
+  Revision 1.11  1998/06/08 22:59:43  peter
     * smartlinking works for win32
     * some defines to exclude some compiler parts
 
