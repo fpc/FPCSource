@@ -140,11 +140,23 @@ implementation
       { be caught when range checking is on! (JM)                        }
       { cg.a_op_const_reg(list,OP_AND,31,bitnumber);                     }
 
-      { rotate value register "bitnumber" bits to the right }
-      cg.a_op_reg_reg(list,OP_SHR,bitsize,bitnumber,value);
-      { extract the bit we want }
-      cg.a_op_const_reg(list,OP_AND,bitsize,1,value);
-      cg.a_load_reg_reg(list,bitsize,ressize,value,res);
+      if bitsize<>ressize then
+        begin
+          { FIX ME! We're not allowed to modify the value register here! }
+
+          { shift value register "bitnumber" bits to the right }
+          cg.a_op_reg_reg(list,OP_SHR,bitsize,bitnumber,value);
+          { extract the bit we want }
+          cg.a_op_const_reg(list,OP_AND,bitsize,1,value);
+          cg.a_load_reg_reg(list,bitsize,ressize,value,res);
+        end
+      else
+        begin
+          { rotate value register "bitnumber" bits to the right }
+          cg.a_op_reg_reg_reg(list,OP_SHR,OS_32,bitnumber,value,res);
+          { extract the bit we want }
+          cg.a_op_const_reg(list,OP_AND,OS_32,1,res);
+        end;
     end;
 
 
@@ -471,13 +483,12 @@ implementation
                 end
                else
                 begin
-                  location_force_reg(exprasmlist,left.location,OS_32,true);
+                  location_force_reg(exprasmlist,left.location,OS_INT,true);
                   pleftreg := left.location.register;
 
                   location_freetemp(exprasmlist,left.location);
-                  cg.a_op_const_reg(exprasmlist,OP_SHR,OS_32,5,pleftreg);
                   hr := cg.getaddressregister(exprasmlist);
-                  cg.a_load_reg_reg(exprasmlist,OS_32,OS_ADDR,pleftreg,hr);
+                  cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_ADDR,5,pleftreg,hr);
                   cg.a_op_const_reg(exprasmlist,OP_SHL,OS_ADDR,2,hr);
 
                   href := right.location.reference;
@@ -495,15 +506,15 @@ implementation
                     end;
                   reference_release(exprasmlist,href);
                   { allocate a register for the result }
-                  hr := cg.getintregister(exprasmlist,OS_32);
-                  cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,hr);
-                  cg.a_op_const_reg(exprasmlist,OP_AND,OS_32,31,pleftreg);
-                  cg.a_op_reg_reg(exprasmlist,OP_SHR,OS_32,pleftreg,hr);
+                  location.register := cg.getintregister(exprasmlist,OS_INT);
+                  cg.a_load_ref_reg(exprasmlist,OS_32,OS_INT,href,location.register);
+
                   cg.ungetregister(exprasmlist,pleftreg);
-                  cg.a_op_const_reg(exprasmlist,OP_AND,OS_32,1,hr);
-                  location.register := cg.getintregister(exprasmlist,location.size);
-                  cg.a_load_reg_reg(exprasmlist,OS_32,location.size,hr,location.register);
+                  hr := cg.getintregister(exprasmlist,OS_INT);
+                  cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_INT,31,pleftreg,hr);
+                  cg.a_op_reg_reg(exprasmlist,OP_SHR,OS_INT,hr,location.register);
                   cg.ungetregister(exprasmlist,hr);
+                  cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,1,location.register);
                 end;
              end;
           end;
@@ -997,7 +1008,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2004-01-31 17:45:17  peter
+  Revision 1.57  2004-01-31 23:37:07  florian
+    * another improvement to tcginnode.pass_2
+
+  Revision 1.56  2004/01/31 17:45:17  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 
