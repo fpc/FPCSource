@@ -13,6 +13,14 @@
  **********************************************************************}
 {$MODE objfpc}
 
+{$ifdef win32}
+  {$define notUnix}
+{$endif}
+
+{$ifdef netware}
+  {$define notUnix}
+{$endif}
+
 unit ssockets;
 
 
@@ -109,8 +117,7 @@ type
     Property Port : Word Read FPort;
   end;
   
-{$ifndef win32}
-
+{$ifndef notUnix}
   TUnixServer = Class(TSocketServer)
   Private
     FUnixAddr : TUnixSockAddr;
@@ -139,7 +146,8 @@ type
     Property Port : Word Read FPort;
   end;
 
-{$ifndef win32}
+{$ifndef notUnix}
+
   TUnixSocket = Class(TSocketStream)
   Private
     FFileName : String;
@@ -353,7 +361,7 @@ end;
 Procedure TSocketServer.SetNonBlocking;
 
 begin
-{$ifndef win32}
+{$ifndef notUnix}
   fcntl(FSocket,F_SETFL,OPEN_NONBLOCK);
 {$endif}
   FNonBlocking:=True;
@@ -404,7 +412,7 @@ begin
   L:=SizeOf(FAddr);
   Result:=Sockets.Accept(Socket,Faddr,L);
   If Result<0 then
-{$ifndef win32}
+{$ifndef notUnix}
     If SocketError={$ifdef ver1_0}Sys_EWOULDBLOCK{$else}ESysEWOULDBLOCK{$endif} then
       Raise ESocketError.Create(seAcceptWouldBlock,[socket])
     else
@@ -415,7 +423,7 @@ end;
 { ---------------------------------------------------------------------
     TUnixServer
   ---------------------------------------------------------------------}
-{$ifndef win32}
+{$ifndef notUnix}
 Constructor TUnixServer.Create(AFileName : String);
 
 Var S : Longint;
@@ -519,7 +527,7 @@ end;
 { ---------------------------------------------------------------------
     TUnixSocket
   ---------------------------------------------------------------------}
-{$ifndef win32}
+{$ifndef notUnix}
 Constructor TUnixSocket.Create(ASocket : Longint);
 
 begin
@@ -552,7 +560,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2003-03-11 13:15:40  michael
+  Revision 1.18  2003-03-21 23:10:24  armin
+  * changed defines not win32 to not Unix (Netware is not Unix nor win32)
+
+  Revision 1.17  2003/03/11 13:15:40  michael
   + Initial version working on Win32. Needs some further work
 
   Revision 1.16  2003/03/10 21:42:39  michael
