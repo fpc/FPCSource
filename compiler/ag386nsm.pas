@@ -639,7 +639,17 @@ unit ag386nsm;
                    s:=#9+getopstr_jmp(paicpu(hp)^.oper[0],paicpu(hp)^.opcode)
                   else
                    begin
-                     for i:=0to paicpu(hp)^.ops-1 do
+                      { We need to explicitely set
+                        word prefix to get selectors
+                        to be pushed in 2 bytes  PM }
+                      if (paicpu(hp)^.opsize=S_W) and
+                         ((paicpu(hp)^.opcode=A_PUSH) or
+                          (paicpu(hp)^.opcode=A_POP)) and
+                          (paicpu(hp)^.oper[0].typ=top_reg) and
+                          ((paicpu(hp)^.oper[0].reg>=firstsreg) and
+                           (paicpu(hp)^.oper[0].reg<=lastsreg)) then
+                        AsmWriteln(#9#9'DB'#9'066h');
+                     for i:=0 to paicpu(hp)^.ops-1 do
                       begin
                         if i=0 then
                          sep:=#9
@@ -754,7 +764,11 @@ unit ag386nsm;
 end.
 {
   $Log$
-  Revision 1.57  2000-04-06 07:09:15  pierre
+  Revision 1.58  2000-05-09 21:44:27  pierre
+    * add .byte 066h to force correct pushw %es
+    * handle push es as a pushl %es
+
+  Revision 1.57  2000/04/06 07:09:15  pierre
     * handle offset fixup
     + add source lines
     * no NEAR for opcodes that only support short jumps

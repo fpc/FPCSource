@@ -488,6 +488,16 @@ unit ag386int;
                        suffix:='';
                        prefix:= '';
                        s:='';
+                      { We need to explicitely set
+                        word prefix to get selectors
+                        to be pushed in 2 bytes  PM }
+                      if (paicpu(hp)^.opsize=S_W) and
+                         ((paicpu(hp)^.opcode=A_PUSH) or
+                          (paicpu(hp)^.opcode=A_POP)) and
+                          (paicpu(hp)^.oper[0].typ=top_reg) and
+                          ((paicpu(hp)^.oper[0].reg>=firstsreg) and
+                           (paicpu(hp)^.oper[0].reg<=lastsreg)) then
+                        AsmWriteln(#9#9'DB'#9'066h');
                      { added prefix instructions, must be on same line as opcode }
                        if (paicpu(hp)^.ops = 0) and
                           ((paicpu(hp)^.opcode = A_REP) or
@@ -633,7 +643,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.60  2000-04-06 07:05:57  pierre
+  Revision 1.61  2000-05-09 21:44:27  pierre
+    * add .byte 066h to force correct pushw %es
+    * handle push es as a pushl %es
+
+  Revision 1.60  2000/04/06 07:05:57  pierre
    * handle offsetfixup
 
   Revision 1.59  2000/02/09 13:22:43  peter

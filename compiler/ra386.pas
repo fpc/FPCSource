@@ -226,7 +226,15 @@ begin
   case ops of
     0 : ;
     1 :
-      opsize:=operands[1]^.size;
+      { "push es" must be stored as a long PM }
+      if ((opcode=A_PUSH) or
+          (opcode=A_POP)) and
+         (operands[1]^.opr.typ=OPR_REGISTER) and
+         ((operands[1]^.opr.reg>=firstsreg) and
+          (operands[1]^.opr.reg<=lastsreg)) then
+        opsize:=S_L
+      else
+        opsize:=operands[1]^.size;
     2 :
       begin
         case opcode of
@@ -267,7 +275,7 @@ begin
   { Check only the most common opcodes here, the others are done in
     the assembler pass }
   case opcode of
-    A_PUSH,A_DEC,A_INC,A_NOT,A_NEG,
+    A_PUSH,A_POP,A_DEC,A_INC,A_NOT,A_NEG,
     A_CMP,A_MOV,
     A_ADD,A_SUB,A_ADC,A_SBB,
     A_AND,A_OR,A_TEST,A_XOR: ;
@@ -365,7 +373,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2000-04-14 12:26:33  pierre
+  Revision 1.15  2000-05-09 21:44:28  pierre
+    * add .byte 066h to force correct pushw %es
+    * handle push es as a pushl %es
+
+  Revision 1.14  2000/04/14 12:26:33  pierre
    avoid to reset operand size of opsize is S_NO
 
   Revision 1.13  2000/04/04 13:48:44  pierre
