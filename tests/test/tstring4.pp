@@ -6,6 +6,9 @@ Program ansitest;
 {$ifdef cpupowerpc}
   {$define COMP_IS_INT64}
 {$endif cpupowerpc}
+{$ifdef FPC_COMP_IS_INT64}
+  {$define COMP_IS_INT64}
+{$endif FPC_COMP_IS_INT64}
 
 {$ifndef fpc}
 Function Memavail : Longint;
