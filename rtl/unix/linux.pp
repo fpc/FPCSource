@@ -221,6 +221,7 @@ function SetDateTime(Year,Month,Day,hour,minute,second:Word) : Boolean;
 
 function  CreateShellArgV(const prog:string):ppchar;
 function  CreateShellArgV(const prog:Ansistring):ppchar;
+procedure FreeShellArgV(p:ppchar);
 Procedure Execve(Path:pathstr;args:ppchar;ep:ppchar);
 Procedure Execve(path:pchar;args:ppchar;ep:ppchar);
 Procedure Execv(const path:pathstr;args:ppchar);
@@ -251,6 +252,19 @@ Function  GetUid:Longint;
 Function  GetEUid:Longint;
 Function  GetGid:Longint;
 Function  GetEGid:Longint;
+
+{$ifdef solaris}
+// Set the real userid/groupid (uid/gid from calling process)	
+Function SetUid(aUID:Longint):Boolean;
+Function SetGid(aGID:Longint):Boolean;
+
+// Set the real and effective userid/groupid (like setuid/setgid bit in file permissions)
+function SetreUid(aRealUID,aEffUid:Longint):Boolean; overload;
+function SetreUid(aUID:Longint):Boolean;overload; 
+
+function SetreGid(aRealGid,aEffGid:Longint):Boolean; overload; 
+function SetreGid(aGid:Longint):Boolean;overload; 
+{$endif}
 
 {**************************
      File Handling
@@ -396,7 +410,7 @@ function  TTYname(var F:Text):string;
 {**************************
      Memory functions
 ***************************}
-
+(* the consts are System-dependend, not checked for solaris *)
 const
   PROT_READ  = $1;             { page can be read }
   PROT_WRITE = $2;             { page can be written }
@@ -425,7 +439,7 @@ type
     offset  : longint;
   end;
 
-function MMap(const m:tmmapargs):longint;
+function MMap(const m:tmmapargs):longint; 
 function MUnMap (P : Pointer; Size : Longint) : Boolean;
 
 {**************************
@@ -1335,8 +1349,11 @@ begin
      errno:=Sys_EBADF;
      exit;
    end;
- {$ifndef bsd}
+ {$ifndef bsd}				{Should be ifdef Linux, but can't because
+						of 1.0.5 cycle}
+  {$ifndef Solaris}
   p^.nextoff:=Sys_lseek(p^.fd,off,seek_set);
+  {$endif}
  {$endif}
   p^.size:=0;
   p^.loc:=0;
@@ -2939,7 +2956,10 @@ End.
 
 {
   $Log$
-  Revision 1.13  2001-07-12 12:42:39  marco
+  Revision 1.14  2001-07-16 20:27:30  marco
+   * Some small detail fixes for Solaris
+
+  Revision 1.13  2001/07/12 12:42:39  marco
    * Fixes to the FreeBSD compability of the datetime patches
 
   Revision 1.12  2001/07/12 07:20:05  michael
