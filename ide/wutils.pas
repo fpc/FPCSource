@@ -190,7 +190,7 @@ const LastStrToIntResult : integer = 0;
       LastStrToCardResult : integer = 0;
       LastHexToCardResult : integer = 0;
       DirSep             : char    = {$ifdef Unix}'/'{$else}'\'{$endif};
-      UseFastBufStreamMethod : boolean = false;
+      UseOldBufStreamMethod : boolean = false;
 
 procedure RegisterWUtils;
 
@@ -1362,7 +1362,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.13  2002-09-09 06:58:27  pierre
+  Revision 1.14  2002-09-10 12:19:14  pierre
+   * use faster method for loading files by default
+
+  Revision 1.13  2002/09/09 06:58:27  pierre
    + FastBufStream.readline method added
 
   Revision 1.12  2002/09/07 15:40:50  peter

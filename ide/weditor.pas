@@ -6635,7 +6635,7 @@ begin
    begin
      while OK and (eofstream(Stream)=false) and (GetLineCount<MaxLineCount) do
        begin
-         if UseFastBufStreamMethod then
+         if not UseOldBufStreamMethod then
            Stream^.Readline(S,LineComplete,hasCR)
          else
            ReadlnFromStream(Stream,S,LineComplete,hasCR);
@@ -7116,7 +7116,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.30  2002-09-09 06:58:28  pierre
+  Revision 1.31  2002-09-10 12:19:14  pierre
+   * use faster method for loading files by default
+
+  Revision 1.30  2002/09/09 06:58:28  pierre
    + FastBufStream.readline method added
 
   Revision 1.29  2002/09/07 15:40:48  peter

@@ -171,7 +171,7 @@ begin
          { 'M' : TryToMaximizeScreen:=true;}
 {$endif fpc}
 {$ifdef DEBUG}
-          'Z' : UseFastBufStreamMethod:=true;
+          'Z' : UseOldBufStreamMethod:=true;
           'X' : CloseImmediately:=true;
 {$endif DEBUG}
         end;
@@ -470,7 +470,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.12  2002-09-09 06:59:16  pierre
+  Revision 1.13  2002-09-10 12:19:14  pierre
+   * use faster method for loading files by default
+
+  Revision 1.12  2002/09/09 06:59:16  pierre
    * new debug options added
 
   Revision 1.11  2002/09/07 15:40:41  peter

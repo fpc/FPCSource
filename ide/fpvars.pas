@@ -43,7 +43,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       TabsPattern      : string{$ifdef GABOR}[40]{$endif} = 'make*;make*.*';
       SourceDirs       : string{$ifdef GABOR}[40]{$endif} = '';
       StandardUnits    : string{$ifdef GABOR}[40]{$endif} = '';
-      UseStandardUnitsInCodeComplete : boolean = true;
+      UseStandardUnitsInCodeComplete : boolean = false;
       UseAllUnitsInCodeComplete : boolean = true;
       ShowOnlyUnique   : boolean = true;
       PrimaryFile      : string{$ifdef GABOR}[60]{$endif} = '';
@@ -116,7 +116,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.5  2002-09-07 15:40:46  peter
+  Revision 1.6  2002-09-10 12:19:14  pierre
+   * use faster method for loading files by default
+
+  Revision 1.5  2002/09/07 15:40:46  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/09/04 14:06:36  pierre
