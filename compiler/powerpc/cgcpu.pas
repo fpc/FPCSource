@@ -201,10 +201,8 @@ const
             end;
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
             case size of
-               OS_32:
-                 a_loadfpu_ref_reg(list,OS_F32,r,locpara.register);
-               OS_64:
-                 a_loadfpu_ref_reg(list,OS_F64,r,locpara.register);
+               OS_F32, OS_F64:
+                 a_loadfpu_ref_reg(list,size,r,locpara.register);
                else
                  internalerror(2002072801);
             end;
@@ -2542,7 +2540,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.100  2003-05-29 21:17:27  jonas
+  Revision 1.101  2003-05-30 18:52:10  jonas
+    * fixed bug with intregvars
+    * locapara.loc can also be LOC_CFPUREGISTER -> also fixed
+      rcgppc.a_param_ref, which previously got bogus size values
+
+  Revision 1.100  2003/05/29 21:17:27  jonas
     * compile with -dppc603 to not use unaligned float loads in move() and
       g_concatcopy, because the 603 and 604 take an exception for those
       (and netbsd doesn't even handle those in the kernel). There are

@@ -817,7 +817,7 @@ implementation
              LOC_REFERENCE,
              LOC_CREFERENCE :
                begin
-                 if locpara.loc=LOC_FPUREGISTER then
+                 if locpara.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
                    cg.a_paramfpu_ref(list,def_cgsize(p.resulttype.def),p.location.reference,locpara)
                  else
                    begin
@@ -1342,7 +1342,7 @@ implementation
                  hp:=tparaitem(current_procdef.para.first);
                  while assigned(hp) do
                    begin
-                     if Tvarsym(hp.parasym).reg.enum>lastreg then
+                     if Tvarsym(hp.parasym).reg.enum>R_INTREGISTER then
                        internalerror(200301081);
                      if (tvarsym(hp.parasym).reg.enum<>R_NO) then
                        case hp.paraloc.loc of
@@ -1904,7 +1904,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.109  2003-05-27 21:19:08  jonas
+  Revision 1.110  2003-05-30 18:52:10  jonas
+    * fixed bug with intregvars
+    * locapara.loc can also be LOC_CFPUREGISTER -> also fixed
+      rcgppc.a_param_ref, which previously got bogus size values
+
+  Revision 1.109  2003/05/27 21:19:08  jonas
     * fixed ppc cycle
 
   Revision 1.108  2003/05/27 14:28:14  jonas
