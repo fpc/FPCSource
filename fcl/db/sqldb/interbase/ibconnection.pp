@@ -2,10 +2,17 @@ unit IBConnection;
 
 {$mode objfpc}{$H+}
 
+{$Define LinkDynamically}
+
 interface
 
 uses
-  Classes, SysUtils, IBase60, sqldb, db, math, dbconst;
+  Classes, SysUtils, sqldb, db, math, dbconst,
+{$IfDef LinkDynamically}
+  ibase60dyn;
+{$Else}
+  ibase60;
+{$EndIf}
 
 type
   TAccessMode = (amReadWrite, amReadOnly);
@@ -39,6 +46,7 @@ type
     FSQLDatabaseHandle   : pointer;
     FStatus              : array [0..19] of ISC_STATUS;
     FDialect             : integer;
+
     procedure SetDBDialect;
     procedure AllocSQLDA(Cursor : TIBCursor;Count : integer);
     procedure TranslateFldType(SQLType, SQLLen, SQLScale : integer; var LensSet : boolean;
@@ -69,6 +77,7 @@ type
     function StartdbTransaction(trans : TSQLHandle) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
+    procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
 
   published
     property Dialect  : integer read FDialect write FDialect;
@@ -216,6 +225,9 @@ procedure TIBConnection.DoInternalConnect;
 var
   DPB : string;
 begin
+{$IfDef LinkDynamically}
+  InitialiseIBase60;
+{$EndIf}
   inherited dointernalconnect;
 
   DPB := chr(isc_dpb_version1);
@@ -229,9 +241,9 @@ begin
      DPB := DPB + chr(isc_dpb_sql_role_name) + chr(Length(Role)) + Role;
   if Length(CharSet) > 0 then
     DPB := DPB + Chr(isc_dpb_lc_ctype) + Chr(Length(CharSet)) + CharSet;
-
   if (DatabaseName = '') then
     DatabaseError(SErrNoDatabaseName,self);
+
   FSQLDatabaseHandle := nil;
   if isc_attach_database(@FStatus, Length(DatabaseName), @DatabaseName[1], @FSQLDatabaseHandle,
          Length(DPB), @DPB[1]) <> 0 then
@@ -249,6 +261,10 @@ begin
 
   isc_detach_database(@FStatus[0], @FSQLDatabaseHandle);
   CheckError('Close', FStatus);
+{$IfDef LinkDynamically}
+  ReleaseIBase60;
+{$EndIf}
+
 end;
 
 
@@ -318,7 +334,7 @@ begin
         TrLen := SQLLen;
       end;
     SQL_TYPE_DATE :
-      TrType := ftDateTime;
+      TrType := ftDate{Time};
     SQL_TYPE_TIME :
         TrType := ftDateTime;
     SQL_TIMESTAMP :
@@ -599,6 +615,59 @@ begin
 
   PTime := SystemTimeToDateTime(STime);
   Move(PTime, Buffer^, SizeOf(PTime));
+end;
+
+procedure TIBConnection.UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string);
+
+var qry : TSQLQuery;
+
+begin
+  if not assigned(Transaction) then
+    DatabaseError(SErrConnTransactionnSet);
+
+  qry := tsqlquery.Create(nil);
+  qry.transaction := Transaction;
+  qry.database := Self;
+  with qry do
+    begin
+    ReadOnly := True;
+    sql.clear;
+    sql.add('select '+
+              'ind.rdb$index_name, '+
+              'ind.rdb$relation_name, '+
+              'ind.rdb$unique_flag, '+
+              'ind_seg.rdb$field_name, '+
+              'rel_con.rdb$constraint_type '+
+            'from '+
+              'rdb$index_segments ind_seg, '+
+              'rdb$indices ind '+
+             'left outer join '+
+              'rdb$relation_constraints rel_con '+
+             'on '+
+              'rel_con.rdb$index_name = ind.rdb$index_name '+
+            'where '+
+              '(ind_seg.rdb$index_name = ind.rdb$index_name) and '+
+              '(ind.rdb$relation_name=''' +  UpperCase(TableName) +''') '+
+            'order by '+
+              'ind.rdb$index_name;');
+    open;
+    end;
+    
+  while not qry.eof do with IndexDefs.AddIndexDef do
+    begin
+    Name := trim(qry.fields[0].asstring);
+    Fields := trim(qry.Fields[3].asstring);
+    If qry.fields[4].asstring = 'PRIMARY KEY' then options := options + [ixPrimary];
+    If qry.fields[2].asinteger = 1 then options := options + [ixUnique];
+    qry.next;
+    while (name = qry.fields[0].asstring) and (not qry.eof) do
+      begin
+      Fields := Fields + ';' + trim(qry.Fields[3].asstring);
+      qry.next;
+      end;
+    end;
+  qry.close;
+  qry.free;
 end;
 
 procedure TIBConnection.GetFloat(CurrBuff, Buffer : pointer; Field : TFieldDef);
