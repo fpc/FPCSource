@@ -181,7 +181,7 @@ Begin
   If TextRec(t).mode=fmClosed Then
    Begin
      Do_Rename(PChar(@TextRec(t).Name),p);
-     Move(p,TextRec(t).Name,StrLen(p)+1);
+     Move(p^,TextRec(t).Name,StrLen(p)+1);
    End;
 End;
 
@@ -1135,7 +1135,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  1998-07-10 11:02:40  peter
+  Revision 1.17  1998-07-19 19:55:33  michael
+  + fixed rename. Changed p to p^
+
+  Revision 1.16  1998/07/10 11:02:40  peter
     * support_fixed, becuase fixed is not 100% yet for the m68k
 
   Revision 1.15  1998/07/06 15:56:43  michael

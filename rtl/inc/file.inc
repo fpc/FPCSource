@@ -291,7 +291,7 @@ Begin
   If FileRec(f).mode=fmClosed Then
    Begin
      Do_Rename(PChar(@FileRec(f).Name),p);
-     Move(p,FileRec(f).Name,StrLen(p)+1);
+     Move(p^,FileRec(f).Name,StrLen(p)+1);
    End;
 End;
 
@@ -319,7 +319,10 @@ End;
 
 {
   $Log$
-  Revision 1.5  1998-07-02 12:15:39  carl
+  Revision 1.6  1998-07-19 19:55:32  michael
+  + fixed rename. Changed p to p^
+
+  Revision 1.5  1998/07/02 12:15:39  carl
     + Each IOCheck routine now checks for InOures before executing, like TP
 
   Revision 1.4  1998/06/23 16:57:16  peter
