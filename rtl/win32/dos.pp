@@ -397,7 +397,7 @@ begin
    end;
   Proc:=PI.hProcess;
   CloseHandle(PI.hThread);
-  if WaitForSingleObject(Proc, Infinite) <> $ffffffff then
+  if WaitForSingleObject(Proc, dword(Infinite)) <> $ffffffff then
     GetExitCodeProcess(Proc,l)
   else
     l:=-1;
@@ -1011,7 +1011,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2001-11-23 01:35:09  carl
+  Revision 1.12  2002-05-16 19:32:57  carl
+  * fix range check error
+
+  Revision 1.11  2001/11/23 01:35:09  carl
   * Range check error fix
 
   Revision 1.10  2001/11/23 00:36:26  carl
