@@ -3,7 +3,7 @@
 
 type
   tsubr = 1..100000;
-  tarr = array[1..10] of longint;
+  tarr = array[1..100000] of longint;
 
 function test(b: tsubr): longint;
 begin
