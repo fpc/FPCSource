@@ -110,7 +110,7 @@ Var
 begin
   P:=Path;
   D:=DirList;
-  DosError:=DosSearchPath(0, PChar(D), PChar(P), @A, 255);
+  DosError := DosSearchPath (dsIgnoreNetErrs, PChar(D), PChar(P), @A, 255);
   fsearch := StrPas (@A);
 end;
 
@@ -534,7 +534,10 @@ end.
 
 {
   $Log$
-  Revision 1.43  2004-12-06 21:50:04  hajny
+  Revision 1.44  2004-12-27 22:25:43  hajny
+    * FSearch must skip invalid paths
+
+  Revision 1.43  2004/12/06 21:50:04  hajny
     * allow running any type of session from Exec
 
   Revision 1.42  2004/12/05 19:16:54  hajny
