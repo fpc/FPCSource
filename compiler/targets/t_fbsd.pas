@@ -174,7 +174,7 @@ begin
            { place jump in codesegment }
            codesegment.concat(Tai_align.Create_op(4,$90));
            codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,0));
-           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,current_library.newasmsymbol(tprocsym(hp2.sym).defs^.def.mangledname)));
+           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).defs^.def.mangledname)));
            codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
          end;
@@ -514,7 +514,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.26  2002-08-11 13:24:19  peter
+  Revision 1.27  2002-08-11 14:32:32  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.26  2002/08/11 13:24:19  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

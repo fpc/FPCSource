@@ -509,7 +509,7 @@ Var
                   insertllitem(asml,p1,p1.next,Tai_asm_comment.Create(
                     strpnew('previous label inserted'))));
   {$endif finaldestdebug}
-                  current_library.getlabel(l);
+                  objectlibrary.getlabel(l);
                   insertllitem(asml,p1,p1.next,Tai_label.Create(l));
                   dec(tasmlabel(Taicpu(hp).oper[0].sym).refs);
                   hp.oper[0].sym := l;
@@ -2044,7 +2044,10 @@ End.
 
 {
   $Log$
-  Revision 1.31  2002-08-11 13:24:17  peter
+  Revision 1.32  2002-08-11 14:32:30  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.31  2002/08/11 13:24:17  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

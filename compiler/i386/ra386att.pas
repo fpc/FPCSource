@@ -1275,7 +1275,7 @@ begin
    begin
      opr.typ:=OPR_SYMBOL;
      opr.symofs:=l;
-     opr.symbol:=current_library.newasmsymbol(tempstr);
+     opr.symbol:=objectlibrary.newasmsymbol(tempstr);
    end
   else
    begin
@@ -1543,7 +1543,7 @@ Begin
                           Begin
                             { not found, finally ... add it anyways ... }
                             Message1(asmr_w_id_supposed_external,expr);
-                            opr.ref.symbol:=current_library.newasmsymbol(expr);
+                            opr.ref.symbol:=objectlibrary.newasmsymbol(expr);
                           end;
                        end
                     else
@@ -2129,7 +2129,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.27  2002-08-11 13:24:17  peter
+  Revision 1.28  2002-08-11 14:32:31  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.27  2002/08/11 13:24:17  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

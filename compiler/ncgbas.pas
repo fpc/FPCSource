@@ -115,7 +115,7 @@ interface
              if not assigned(p.altsymbol) then
               begin
                 { generatealtsymbol will also increase the refs }
-                current_library.GenerateAltSymbol(p);
+                objectlibrary.GenerateAltSymbol(p);
               end
              else
               begin
@@ -135,7 +135,7 @@ interface
       begin
          if inlining_procedure then
            begin
-             current_library.CreateUsedAsmSymbolList;
+             objectlibrary.CreateUsedAsmSymbolList;
              localfixup:=aktprocdef.localst.address_fixup;
              parafixup:=aktprocdef.parast.address_fixup;
              hp:=tai(p_asm.first);
@@ -203,8 +203,8 @@ interface
                 hp:=tai(hp.next);
               end;
              { restore used symbols }
-             current_library.UsedAsmSymbolListResetAltSym;
-             current_library.DestroyUsedAsmSymbolList;
+             objectlibrary.UsedAsmSymbolListResetAltSym;
+             objectlibrary.DestroyUsedAsmSymbolList;
            end
          else
            begin
@@ -293,7 +293,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-08-11 13:24:11  peter
+  Revision 1.22  2002-08-11 14:32:26  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.21  2002/08/11 13:24:11  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

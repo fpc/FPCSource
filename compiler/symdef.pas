@@ -1103,7 +1103,7 @@ implementation
           begin
             if not assigned(localrttilab[rt]) then
              begin
-               current_library.getdatalabel(localrttilab[rt]);
+               objectlibrary.getdatalabel(localrttilab[rt]);
                write_child_rtti_data(rt);
                if (cs_create_smart in aktmoduleswitches) then
                 rttiList.concat(Tai_cut.Create);
@@ -1523,7 +1523,7 @@ implementation
          if rangenr=0 then
            begin
               { generate two constant for bounds }
-              current_library.getlabelnr(rangenr);
+              objectlibrary.getlabelnr(rangenr);
               if (cs_create_smart in aktmoduleswitches) then
                 dataSegment.concat(Tai_symbol.Createname_global(getrangecheckstring,8))
               else
@@ -1743,7 +1743,7 @@ implementation
               else
                rangechecksize:=16;
               { generate two constant for bounds }
-              current_library.getlabelnr(rangenr);
+              objectlibrary.getlabelnr(rangenr);
               if (cs_create_smart in aktmoduleswitches) then
                 dataSegment.concat(Tai_symbol.Createname_global(getrangecheckstring,rangechecksize))
               else
@@ -2622,7 +2622,7 @@ implementation
          if rangenr=0 then
            begin
               { generates the data for range checking }
-              current_library.getlabelnr(rangenr);
+              objectlibrary.getlabelnr(rangenr);
               if (cs_create_smart in aktmoduleswitches) then
                 dataSegment.concat(Tai_symbol.Createname_global(getrangecheckstring,8))
               else
@@ -4922,8 +4922,8 @@ implementation
 
       begin
          classtablelist:=TLinkedList.Create;
-         current_library.getdatalabel(fieldtable);
-         current_library.getdatalabel(classtable);
+         objectlibrary.getdatalabel(fieldtable);
+         objectlibrary.getdatalabel(classtable);
          count:=0;
          tablecount:=0;
          symtable.foreach({$ifdef FPC}@{$endif}count_published_fields,nil);
@@ -5501,7 +5501,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  2002-08-11 13:24:13  peter
+  Revision 1.88  2002-08-11 14:32:28  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.87  2002/08/11 13:24:13  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

@@ -123,7 +123,7 @@ implementation
              { :-(, we must generate a new entry }
              if not assigned(lab_real) then
                begin
-                  current_library.getdatalabel(lastlabel);
+                  objectlibrary.getdatalabel(lastlabel);
                   lab_real:=lastlabel;
                   if (cs_create_smart in aktmoduleswitches) then
                    Consts.concat(Tai_cut.Create);
@@ -299,7 +299,7 @@ implementation
               { :-(, we must generate a new entry }
               if not assigned(lab_str) then
                 begin
-                   current_library.getdatalabel(lastlabel);
+                   objectlibrary.getdatalabel(lastlabel);
                    lab_str:=lastlabel;
                    if (cs_create_smart in aktmoduleswitches) then
                     Consts.concat(Tai_cut.Create);
@@ -313,8 +313,8 @@ implementation
                              Consts.concat(Tai_const.Create_32bit(0))
                            else
                              begin
-                                current_library.getdatalabel(l1);
-                                current_library.getdatalabel(l2);
+                                objectlibrary.getdatalabel(l1);
+                                objectlibrary.getdatalabel(l2);
                                 Consts.concat(Tai_label.Create(l2));
                                 Consts.concat(Tai_const_symbol.Create(l1));
                                 Consts.concat(Tai_const.Create_32bit(len));
@@ -338,8 +338,8 @@ implementation
                              Consts.concat(Tai_const.Create_32bit(0))
                            else
                              begin
-                                current_library.getdatalabel(l1);
-                                current_library.getdatalabel(l2);
+                                objectlibrary.getdatalabel(l1);
+                                objectlibrary.getdatalabel(l2);
                                 Consts.concat(Tai_label.Create(l2));
                                 Consts.concat(Tai_const_symbol.Create(l1));
 
@@ -460,7 +460,7 @@ implementation
              { :-(, we must generate a new entry }
              if not assigned(lab_set) then
                begin
-                 current_library.getdatalabel(lastlabel);
+                 objectlibrary.getdatalabel(lastlabel);
                  lab_set:=lastlabel;
                  if (cs_create_smart in aktmoduleswitches) then
                   Consts.concat(Tai_cut.Create);
@@ -503,7 +503,7 @@ implementation
       begin
         location_reset(location,LOC_CREFERENCE,OS_NO);
         { label for GUID }
-        current_library.getdatalabel(tmplabel);
+        objectlibrary.getdatalabel(tmplabel);
         consts.concat(Tai_label.Create(tmplabel));
         consts.concat(Tai_const.Create_32bit(value.D1));
         consts.concat(Tai_const.Create_16bit(value.D2));
@@ -525,7 +525,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2002-08-11 13:24:11  peter
+  Revision 1.18  2002-08-11 14:32:26  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.17  2002/08/11 13:24:11  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

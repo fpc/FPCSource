@@ -250,12 +250,12 @@ implementation
              begin
                 if (cs_create_smart in aktmoduleswitches) then
                   begin
-                    current_library.getdatalabel(hl);
+                    objectlibrary.getdatalabel(hl);
                     { we still want a warning if unused }
                     hl.refs:=0;
                   end
                 else
-                  current_library.getlabel(hl);
+                  objectlibrary.getlabel(hl);
                 if token=_ID then
                  symtablestack.insert(tlabelsym.create(orgpattern,hl))
                 else
@@ -613,7 +613,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2002-08-11 13:24:12  peter
+  Revision 1.51  2002-08-11 14:32:27  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.50  2002/08/11 13:24:12  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

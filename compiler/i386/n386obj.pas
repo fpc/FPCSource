@@ -216,7 +216,7 @@ begin
   { case 0 }
   else
     begin
-      lab:=current_library.newasmsymbol(procdef.mangledname);
+      lab:=objectlibrary.newasmsymbol(procdef.mangledname);
       emit_sym(A_JMP,S_NO,lab);
     end;
   exprasmlist:=oldexprasmlist;
@@ -228,7 +228,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2002-08-11 13:24:17  peter
+  Revision 1.15  2002-08-11 14:32:30  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.14  2002/08/11 13:24:17  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

@@ -142,7 +142,7 @@ begin
   if checklength then
     begin
       { is it already maximal? }
-      current_library.getlabel(l);
+      objectlibrary.getlabel(l);
       if tg.istemp(left.location.reference) then
         len:=255
       else
@@ -248,7 +248,10 @@ end.
 
 {
   $Log$
-  Revision 1.22  2002-08-11 13:24:17  peter
+  Revision 1.23  2002-08-11 14:32:30  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.22  2002/08/11 13:24:17  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

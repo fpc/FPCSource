@@ -138,7 +138,7 @@ implementation
                         begin
                           { a jump, but less operations }
                           emit_reg_reg(A_TEST,S_L,hreg1,hreg1);
-                          current_library.getlabel(hl);
+                          objectlibrary.getlabel(hl);
                           emitjmp(C_NS,hl);
                           if power=1 then
                             emit_reg(A_INC,S_L,hreg1)
@@ -396,9 +396,9 @@ implementation
                    { so we've to do some tricks here                           }
                    if nodetype=shln then
                      begin
-                        current_library.getlabel(l1);
-                        current_library.getlabel(l2);
-                        current_library.getlabel(l3);
+                        objectlibrary.getlabel(l1);
+                        objectlibrary.getlabel(l2);
+                        objectlibrary.getlabel(l3);
                         emit_const_reg(A_CMP,S_L,64,R_ECX);
                         emitjmp(C_L,l1);
                         emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
@@ -422,9 +422,9 @@ implementation
                      end
                    else
                      begin
-                        current_library.getlabel(l1);
-                        current_library.getlabel(l2);
-                        current_library.getlabel(l3);
+                        objectlibrary.getlabel(l1);
+                        objectlibrary.getlabel(l2);
+                        objectlibrary.getlabel(l3);
                         emit_const_reg(A_CMP,S_L,64,R_ECX);
                         emitjmp(C_L,l1);
                         emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
@@ -830,7 +830,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2002-08-11 13:24:17  peter
+  Revision 1.36  2002-08-11 14:32:30  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.35  2002/08/11 13:24:17  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

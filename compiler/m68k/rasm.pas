@@ -1618,7 +1618,7 @@ var
                           l:=instr.operands[operandnum]^.opr.val;
                           instr.operands[operandnum]^.opr.typ := OPR_SYMBOL;
                           instr.operands[operandnum]^.opr.symofs := l;
-                          instr.operands[operandnum]^.opr.symbol := current_library.newasmsymbol(tempstr);
+                          instr.operands[operandnum]^.opr.symbol := objectlibrary.newasmsymbol(tempstr);
                         end;
                  end;
    { // Constant memory offset .              // }
@@ -1715,7 +1715,7 @@ var
                             Begin
                              if getasmsymbol(actasmpattern) =nil then
                                Message1(asmr_w_id_supposed_external,actasmpattern);
-                             instr.operands[operandnum]^.opr.ref.symbol:=current_library.newasmsymbol(actasmpattern);
+                             instr.operands[operandnum]^.opr.ref.symbol:=objectlibrary.newasmsymbol(actasmpattern);
                             end
                            else
                              Message(asmr_e_syntax_error);
@@ -2218,7 +2218,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.2  2002-08-11 13:24:18  peter
+  Revision 1.3  2002-08-11 14:32:32  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.2  2002/08/11 13:24:18  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

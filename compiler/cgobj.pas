@@ -1204,7 +1204,7 @@ unit cgobj;
               p.location.reference,hreg);
             a_op_const_reg(list,OP_SUB,aword(lto),hreg);
           end;
-        current_library.getlabel(neglabel);
+        objectlibrary.getlabel(neglabel);
         a_cmp_const_reg_label(list,OS_INT,OC_BE,aword(hto-lto),hreg,neglabel);
         { !!! should happen right after the compare (JM) }
         free_scratch_reg(list,hreg);
@@ -1339,7 +1339,7 @@ unit cgobj;
            { must the object be finalized ? }
            if procinfo^._class.needs_inittable then
             begin
-              current_library.getlabel(nofinal);
+              objectlibrary.getlabel(nofinal);
               reference_reset_base(href,procinfo^.framepointer,target_info.first_parm_offset);
               a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nofinal);
               reference_reset_base(href,SELF_POINTER_REG,0);
@@ -1470,7 +1470,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.46  2002-08-11 13:24:11  peter
+  Revision 1.47  2002-08-11 14:32:26  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.46  2002/08/11 13:24:11  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

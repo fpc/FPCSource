@@ -283,7 +283,7 @@ implementation
          if genjumps then
           begin
             { Get a label to jump to the end }
-            current_library.getlabel(l);
+            objectlibrary.getlabel(l);
 
             { clear the register value, indicating result is FALSE }
             cg.a_load_const_reg(exprasmlist,OS_INT,0,location.register);
@@ -378,7 +378,7 @@ implementation
               end;
              { To compensate for not doing a second pass }
              right.location.reference.symbol:=nil;
-             current_library.getlabel(l3);
+             objectlibrary.getlabel(l3);
              cg.a_jmp_always(exprasmlist,l3);
              { Now place the end label if IN success }
              cg.a_label(exprasmlist,l);
@@ -507,8 +507,8 @@ implementation
                   { this section has not been tested!    }
                   { can it actually occur currently? CEC }
                   { yes: "if bytevar in [1,3,5,7,9,11,13,15]" (JM) }
-                  current_library.getlabel(l);
-                  current_library.getlabel(l2);
+                  objectlibrary.getlabel(l);
+                  objectlibrary.getlabel(l2);
 
                   case left.location.loc of
                      LOC_REGISTER,
@@ -812,8 +812,8 @@ implementation
          dist : cardinal;
          hp : tnode;
       begin
-         current_library.getlabel(endlabel);
-         current_library.getlabel(elselabel);
+         objectlibrary.getlabel(endlabel);
+         objectlibrary.getlabel(elselabel);
          with_sign:=is_signed(left.resulttype.def);
          if with_sign then
            begin
@@ -833,9 +833,9 @@ implementation
          if left.location.loc=LOC_JUMP then
           begin
             otl:=truelabel;
-            current_library.getlabel(truelabel);
+            objectlibrary.getlabel(truelabel);
             ofl:=falselabel;
-            current_library.getlabel(falselabel);
+            objectlibrary.getlabel(falselabel);
             isjump:=true;
           end;
          secondpass(left);
@@ -956,7 +956,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2002-08-11 13:24:12  peter
+  Revision 1.16  2002-08-11 14:32:27  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.15  2002/08/11 13:24:12  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

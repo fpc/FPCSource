@@ -205,7 +205,7 @@ interface
 
 
     var
-      current_library : tasmlibrarydata;
+      objectlibrary : tasmlibrarydata;
 
 
 implementation
@@ -839,7 +839,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2002-08-11 13:24:10  peter
+  Revision 1.5  2002-08-11 14:32:25  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.4  2002/08/11 13:24:10  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

@@ -164,8 +164,8 @@ implementation
                 rg.ungetregisterint(exprasmlist,R_EDI);
                 reference_reset_base(href,R_ESP,0);
                 emit_ref(A_FILD,S_IQ,href);
-                current_library.getdatalabel(l1);
-                current_library.getlabel(l2);
+                objectlibrary.getdatalabel(l1);
+                objectlibrary.getlabel(l2);
                 emitjmp(C_Z,l2);
                 Consts.concat(Tai_label.Create(l1));
                 { I got this constant from a test progtram (FK) }
@@ -198,8 +198,8 @@ implementation
       begin
          oldtruelabel:=truelabel;
          oldfalselabel:=falselabel;
-         current_library.getlabel(truelabel);
-         current_library.getlabel(falselabel);
+         objectlibrary.getlabel(truelabel);
+         objectlibrary.getlabel(falselabel);
          secondpass(left);
          if codegenerror then
           exit;
@@ -255,7 +255,7 @@ implementation
             LOC_JUMP :
               begin
                 hregister:=rg.getregisterint(exprasmlist);
-                current_library.getlabel(hlabel);
+                objectlibrary.getlabel(hlabel);
                 cg.a_label(exprasmlist,truelabel);
                 cg.a_load_const_reg(exprasmlist,OS_INT,1,hregister);
                 cg.a_jmp_always(exprasmlist,hlabel);
@@ -294,14 +294,14 @@ implementation
          { NIL must be accepted !! }
          emit_reg_reg(A_OR,S_L,r^.base,r^.base);
          rg.ungetregisterint(exprasmlist,R_EDI);
-         current_library.getlabel(nillabel);
+         objectlibrary.getlabel(nillabel);
          emitjmp(C_E,nillabel);
          { this is one point where we need vmt_offset (PM) }
          r^.offset:= tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_offset;
          rg.getexplicitregisterint(exprasmlist,R_EDI);
          emit_ref_reg(A_MOV,S_L,r,R_EDI);
          emit_sym(A_PUSH,S_L,
-           current_library.newasmsymbol(tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_mangledname));
+           objectlibrary.newasmsymbol(tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_mangledname));
          emit_reg(A_PUSH,S_L,R_EDI);
          rg.ungetregister32(exprasmlist,R_EDI);
          emitcall('FPC_CHECK_OBJECT_EXT');
@@ -365,7 +365,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2002-08-11 13:24:16  peter
+  Revision 1.47  2002-08-11 14:32:30  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.46  2002/08/11 13:24:16  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

@@ -295,7 +295,7 @@ implementation
                   begin
                     cg.a_label(list,truelabel);
                     cg.a_load_const_reg(list,OS_INT,1,hregister);
-                    current_library.getlabel(hl);
+                    objectlibrary.getlabel(hl);
                     cg.a_jmp_always(list,hl);
                     cg.a_label(list,falselabel);
                     cg.a_load_const_reg(list,OS_INT,0,hregister);
@@ -383,7 +383,7 @@ implementation
                begin
                  cg.a_label(list,truelabel);
                  cg.a_load_const_reg(list,dst_size,1,hregister);
-                 current_library.getlabel(hl);
+                 objectlibrary.getlabel(hl);
                  cg.a_jmp_always(list,hl);
                  cg.a_label(list,falselabel);
                  cg.a_load_const_reg(list,dst_size,0,hregister);
@@ -437,7 +437,7 @@ implementation
                   begin
                     cg.a_label(list,truelabel);
                     cg.a_load_const_reg(list,OS_INT,1,hregister);
-                    current_library.getlabel(hl);
+                    objectlibrary.getlabel(hl);
                     cg.a_jmp_always(list,hl);
                     cg.a_label(list,falselabel);
                     cg.a_load_const_reg(list,OS_INT,0,hregister);
@@ -475,7 +475,7 @@ implementation
                begin
                  cg.a_label(list,truelabel);
                  cg.a_load_const_reg(list,dst_size,1,hregister);
-                 current_library.getlabel(hl);
+                 objectlibrary.getlabel(hl);
                  cg.a_jmp_always(list,hl);
                  cg.a_label(list,falselabel);
                  cg.a_load_const_reg(list,dst_size,0,hregister);
@@ -869,7 +869,7 @@ implementation
            (vo_is_thread_var in tvarsym(p).varoptions) then
          begin
            cg.a_param_const(list,OS_INT,tvarsym(p).getsize,paramanager.getintparaloc(2));
-           reference_reset_symbol(href,current_library.newasmsymbol(tvarsym(p).mangledname),0);
+           reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(p).mangledname),0);
            cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
            rg.saveregvars(list,all_registers);
            cg.a_call_name(list,'FPC_INIT_THREADVAR');
@@ -894,7 +894,7 @@ implementation
            if tsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
             reference_reset_base(href,procinfo^.framepointer,-tvarsym(p).address+tvarsym(p).owner.address_fixup)
            else
-            reference_reset_symbol(href,current_library.newasmsymbol(tvarsym(p).mangledname),0);
+            reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(p).mangledname),0);
            cg.g_initialize(list,tvarsym(p).vartype.def,href,false);
          end;
       end;
@@ -915,7 +915,7 @@ implementation
            if tsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
             reference_reset_base(href,procinfo^.framepointer,-tvarsym(p).address+tvarsym(p).owner.address_fixup)
            else
-            reference_reset_symbol(href,current_library.newasmsymbol(tvarsym(p).mangledname),0);
+            reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(p).mangledname),0);
            cg.g_finalize(list,tvarsym(p).vartype.def,href,false);
          end;
       end;
@@ -1413,7 +1413,7 @@ implementation
           begin
              { the exception helper routines modify all registers }
              aktprocdef.usedregisters:=all_registers;
-             current_library.getlabel(noreraiselabel);
+             objectlibrary.getlabel(noreraiselabel);
              free_exception(list,
                   procinfo^.exception_jmp_ref,
                   procinfo^.exception_env_ref,
@@ -1427,7 +1427,7 @@ implementation
                        pd:=procinfo^._class.searchdestructor;
                        if assigned(pd) then
                          begin
-                            current_library.getlabel(nodestroycall);
+                            objectlibrary.getlabel(nodestroycall);
                             reference_reset_base(href,procinfo^.framepointer,procinfo^.selfpointer_offset);
                             cg.a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nodestroycall);
                             if is_class(procinfo^._class) then
@@ -1438,7 +1438,7 @@ implementation
                             else if is_object(procinfo^._class) then
                              begin
                                cg.a_param_reg(list,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(2));
-                               reference_reset_symbol(href,current_library.newasmsymbol(procinfo^._class.vmt_mangledname),0);
+                               reference_reset_symbol(href,objectlibrary.newasmsymbol(procinfo^._class.vmt_mangledname),0);
                                cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
                              end
                             else
@@ -1500,7 +1500,7 @@ implementation
                 { successful constructor deletes the zero flag }
                 { and returns self in eax                   }
                 { eax must be set to zero if the allocation failed !!! }
-                current_library.getlabel(okexitlabel);
+                objectlibrary.getlabel(okexitlabel);
                 cg.a_jmp_always(list,okexitlabel);
                 cg.a_label(list,faillabel);
                 cg.g_call_fail_helper(list);
@@ -1529,7 +1529,7 @@ implementation
 {$ifdef GDB}
         if ((cs_debuginfo in aktmoduleswitches) and not inlined) then
           begin
-            current_library.getlabel(stabsendlabel);
+            objectlibrary.getlabel(stabsendlabel);
             cg.a_label(list,stabsendlabel);
           end;
 {$endif GDB}
@@ -1705,7 +1705,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2002-08-11 13:24:12  peter
+  Revision 1.33  2002-08-11 14:32:27  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.32  2002/08/11 13:24:12  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

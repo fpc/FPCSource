@@ -1840,7 +1840,7 @@ const
                    if aprocdef.has_mangledname then
                     begin
                       { rename also asmsymbol first, because the name can already be used }
-                      current_library.renameasmsymbol(hd.mangledname,aprocdef.mangledname);
+                      objectlibrary.renameasmsymbol(hd.mangledname,aprocdef.mangledname);
                       { update the mangledname }
                       hd.has_mangledname:=true;
                       hd.setmangledname(aprocdef.mangledname);
@@ -1957,7 +1957,10 @@ const
 end.
 {
   $Log$
-  Revision 1.62  2002-08-11 13:24:12  peter
+  Revision 1.63  2002-08-11 14:32:27  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.62  2002/08/11 13:24:12  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

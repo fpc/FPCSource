@@ -486,7 +486,7 @@ unit cg64f32;
                  got_scratch := true;
                  a_load64high_ref_reg(list,p.location.reference,hreg);
                end;
-             current_library.getlabel(poslabel);
+             objectlibrary.getlabel(poslabel);
 
              { check high dword, must be 0 (for positive numbers) }
              cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,0,hreg,poslabel);
@@ -494,7 +494,7 @@ unit cg64f32;
              { It can also be $ffffffff, but only for negative numbers }
              if from_signed and to_signed then
                begin
-                 current_library.getlabel(neglabel);
+                 objectlibrary.getlabel(neglabel);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,aword(-1),hreg,neglabel);
                end;
              { !!! freeing of register should happen directly after compare! (JM) }
@@ -518,7 +518,7 @@ unit cg64f32;
 
              if from_signed and to_signed then
                begin
-                 current_library.getlabel(endlabel);
+                 objectlibrary.getlabel(endlabel);
                  cg.a_jmp_always(list,endlabel);
                  { if the high dword = $ffffffff, then the low dword (when }
                  { considered as a longint) must be < 0                    }
@@ -535,7 +535,7 @@ unit cg64f32;
                      a_load64low_ref_reg(list,p.location.reference,hreg);
                    end;
                  { get a new neglabel (JM) }
-                 current_library.getlabel(neglabel);
+                 objectlibrary.getlabel(neglabel);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_LT,0,hreg,neglabel);
                  { !!! freeing of register should happen directly after compare! (JM) }
                  if got_scratch then
@@ -593,7 +593,7 @@ unit cg64f32;
                    else
                      cg.a_load_ref_reg(list,opsize,p.location.reference,hreg);
                  end;
-               current_library.getlabel(poslabel);
+               objectlibrary.getlabel(poslabel);
                cg.a_cmp_const_reg_label(list,opsize,OC_GTE,0,hreg,poslabel);
 
                { !!! freeing of register should happen directly after compare! (JM) }
@@ -617,7 +617,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-08-11 13:24:11  peter
+  Revision 1.24  2002-08-11 14:32:26  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.23  2002/08/11 13:24:11  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

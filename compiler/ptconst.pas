@@ -240,7 +240,7 @@ implementation
                       if not(tobjectdef(tclassrefdef(p.resulttype.def).pointertype.def).is_related(
                         tobjectdef(tclassrefdef(t.def).pointertype.def))) then
                         Message(cg_e_illegal_expression);
-                      curconstSegment.concat(Tai_const_symbol.Create(current_library.newasmsymbol(tobjectdef(
+                      curconstSegment.concat(Tai_const_symbol.Create(objectlibrary.newasmsymbol(tobjectdef(
                         tclassrefdef(p.resulttype.def).pointertype.def).vmt_mangledname)));
                    end;
                  niln:
@@ -282,7 +282,7 @@ implementation
                 if is_char(tpointerdef(t.def).pointertype.def) and
                    (p.nodetype<>addrn) then
                   begin
-                    current_library.getdatalabel(ll);
+                    objectlibrary.getdatalabel(ll);
                     curconstSegment.concat(Tai_const_symbol.Create(ll));
                     if p.nodetype=stringconstn then
                      varalign:=size_2_align(tstringconstnode(p).len)
@@ -313,7 +313,7 @@ implementation
                 if is_widechar(tpointerdef(t.def).pointertype.def) and
                    (p.nodetype<>addrn) then
                   begin
-                    current_library.getdatalabel(ll);
+                    objectlibrary.getdatalabel(ll);
                     curconstSegment.concat(Tai_const_symbol.Create(ll));
                     Consts.concat(Tai_label.Create(ll));
                     if (p.nodetype in [stringconstn,ordconstn]) then
@@ -563,7 +563,7 @@ implementation
                           curconstSegment.concat(Tai_const.Create_32bit(0))
                         else
                           begin
-                            current_library.getdatalabel(ll);
+                            objectlibrary.getdatalabel(ll);
                             curconstSegment.concat(Tai_const_symbol.Create(ll));
                             { first write the maximum size }
                             Consts.concat(Tai_const.Create_32bit(strlength));
@@ -590,7 +590,7 @@ implementation
                           curconstSegment.concat(Tai_const.Create_32bit(0))
                         else
                           begin
-                            current_library.getdatalabel(ll);
+                            objectlibrary.getdatalabel(ll);
                             curconstSegment.concat(Tai_const_symbol.Create(ll));
                             Consts.concat(Tai_const.Create_32bit(strlength));
                             Consts.concat(Tai_const.Create_32bit(strlength));
@@ -986,7 +986,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2002-08-11 13:24:13  peter
+  Revision 1.55  2002-08-11 14:32:27  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.54  2002/08/11 13:24:13  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

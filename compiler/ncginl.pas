@@ -184,8 +184,8 @@ implementation
           internalerror(7123458);
        otlabel:=truelabel;
        oflabel:=falselabel;
-       current_library.getlabel(truelabel);
-       current_library.getlabel(falselabel);
+       objectlibrary.getlabel(truelabel);
+       objectlibrary.getlabel(falselabel);
        secondpass(tcallparanode(left).left);
        maketojumpbool(exprasmlist,tcallparanode(left).left,lr_load_regvars);
        cg.a_label(exprasmlist,falselabel);
@@ -227,7 +227,7 @@ implementation
         if left.nodetype=typen then
           begin
             hregister:=rg.getaddressregister(exprasmlist);
-            reference_reset_symbol(href,current_library.newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),0);
+            reference_reset_symbol(href,objectlibrary.newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),0);
             cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
           end
         else
@@ -269,7 +269,7 @@ implementation
             begin
               location_force_reg(exprasmlist,left.location,OS_ADDR,false);
               hregister:=left.location.register;
-              current_library.getlabel(lengthlab);
+              objectlibrary.getlabel(lengthlab);
               cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,hregister,lengthlab);
               reference_reset_base(href,hregister,-8);
               cg.a_load_ref_reg(exprasmlist,OS_32,href,hregister);
@@ -429,7 +429,7 @@ implementation
             end
           else
             begin
-              current_library.getlabel(ptrvalidlabel);
+              objectlibrary.getlabel(ptrvalidlabel);
               cg.a_load_const_reg(exprasmlist, OS_INT, 1, hreg);
               cg.a_cmp_const_ref_label(exprasmlist, OS_ADDR, OC_NE, 0,
                   tcallparanode(left).left.location.reference, ptrvalidlabel);
@@ -641,7 +641,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2002-08-11 13:24:11  peter
+  Revision 1.12  2002-08-11 14:32:26  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.11  2002/08/11 13:24:11  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

@@ -107,7 +107,7 @@ implementation
          location_reset(location,LOC_REGISTER,OS_ADDR);
          location.register:=rg.getregisterint(exprasmlist);
          cg.a_load_sym_ofs_reg(exprasmlist,
-           current_library.newasmsymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),
+           objectlibrary.newasmsymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),
            0,location.register);
       end;
 
@@ -407,8 +407,8 @@ implementation
                   if (cs_debuginfo in aktmoduleswitches) then
                     begin
                       inc(withlevel);
-                      current_library.getaddrlabel(withstartlabel);
-                      current_library.getaddrlabel(withendlabel);
+                      objectlibrary.getaddrlabel(withstartlabel);
+                      objectlibrary.getaddrlabel(withendlabel);
                       cg.a_label(exprasmlist,withstartlabel);
                       withdebugList.concat(Tai_stabs.Create(strpnew(
                          '"with'+tostr(withlevel)+':'+tostr(symtablestack.getnewtypecount)+
@@ -749,9 +749,9 @@ implementation
               if isjump then
                begin
                  otl:=truelabel;
-                 current_library.getlabel(truelabel);
+                 objectlibrary.getlabel(truelabel);
                  ofl:=falselabel;
-                 current_library.getlabel(falselabel);
+                 objectlibrary.getlabel(falselabel);
                end;
               maybe_save(exprasmlist,right.registers32,location,pushedregs);
               secondpass(right);
@@ -775,7 +775,7 @@ implementation
                         firstpass(hightree);
                         secondpass(hightree);
                         location_release(exprasmlist,hightree.location);
-                        reference_reset_symbol(href,current_library.newasmsymbol(tarraydef(left.resulttype.def).getrangecheckstring),4);
+                        reference_reset_symbol(href,objectlibrary.newasmsymbol(tarraydef(left.resulttype.def).getrangecheckstring),4);
                         cg.a_load_loc_ref(exprasmlist,hightree.location,href);
                         hightree.free;
                         hightree:=nil;
@@ -875,7 +875,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-08-11 13:24:12  peter
+  Revision 1.23  2002-08-11 14:32:26  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.22  2002/08/11 13:24:12  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

@@ -380,9 +380,9 @@ implementation
               if isjump then
                begin
                  otl:=truelabel;
-                 current_library.getlabel(truelabel);
+                 objectlibrary.getlabel(truelabel);
                  ofl:=falselabel;
-                 current_library.getlabel(falselabel);
+                 objectlibrary.getlabel(falselabel);
                end;
               maybe_save(exprasmlist,right.registers32,location,pushedregs);
               secondpass(right);
@@ -406,7 +406,7 @@ implementation
                         firstpass(hightree);
                         secondpass(hightree);
                         location_release(exprasmlist,hightree.location);
-                        reference_reset_symbol(href,current_library.newasmsymbol(tarraydef(left.resulttype.def).getrangecheckstring),4);
+                        reference_reset_symbol(href,objectlibrary.newasmsymbol(tarraydef(left.resulttype.def).getrangecheckstring),4);
                         cg.a_load_loc_ref(exprasmlist,hightree.location,href);
                         hightree.free;
                         hightree:=nil;
@@ -507,7 +507,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2002-08-11 13:24:17  peter
+  Revision 1.41  2002-08-11 14:32:30  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.40  2002/08/11 13:24:17  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

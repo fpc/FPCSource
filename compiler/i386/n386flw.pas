@@ -90,7 +90,7 @@ implementation
                 end
               else
                 begin
-                   current_library.getaddrlabel(a);
+                   objectlibrary.getaddrlabel(a);
                    cg.a_label(exprasmlist,a);
                    cg.a_param_reg(exprasmlist,OS_INT,R_EBP,paramanager.getintparaloc(2));
                    emit_sym(A_PUSH,S_L,a);
@@ -185,20 +185,20 @@ implementation
            end;
 
          { get new labels for the control flow statements }
-         current_library.getlabel(exittrylabel);
-         current_library.getlabel(exitexceptlabel);
+         objectlibrary.getlabel(exittrylabel);
+         objectlibrary.getlabel(exitexceptlabel);
          if assigned(aktbreaklabel) then
            begin
-              current_library.getlabel(breaktrylabel);
-              current_library.getlabel(continuetrylabel);
-              current_library.getlabel(breakexceptlabel);
-              current_library.getlabel(continueexceptlabel);
+              objectlibrary.getlabel(breaktrylabel);
+              objectlibrary.getlabel(continuetrylabel);
+              objectlibrary.getlabel(breakexceptlabel);
+              objectlibrary.getlabel(continueexceptlabel);
            end;
 
-         current_library.getlabel(exceptlabel);
-         current_library.getlabel(doexceptlabel);
-         current_library.getlabel(endexceptlabel);
-         current_library.getlabel(lastonlabel);
+         objectlibrary.getlabel(exceptlabel);
+         objectlibrary.getlabel(doexceptlabel);
+         objectlibrary.getlabel(endexceptlabel);
+         objectlibrary.getlabel(lastonlabel);
 
          tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
          tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
@@ -275,8 +275,8 @@ implementation
 
               { the destruction of the exception object must be also }
               { guarded by an exception frame                        }
-              current_library.getlabel(doobjectdestroy);
-              current_library.getlabel(doobjectdestroyandreraise);
+              objectlibrary.getlabel(doobjectdestroy);
+              objectlibrary.getlabel(doobjectdestroyandreraise);
 
               tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
               tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
@@ -422,11 +422,11 @@ implementation
       begin
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[];
-         current_library.getlabel(nextonlabel);
+         objectlibrary.getlabel(nextonlabel);
 
          { push the vmt }
          emit_sym(A_PUSH,S_L,
-           current_library.newasmsymbol(excepttype.vmt_mangledname));
+           objectlibrary.newasmsymbol(excepttype.vmt_mangledname));
          cg.a_call_name(exprasmlist,'FPC_CATCHES');
          { allocate eax }
          exprasmList.concat(tai_regalloc.Alloc(R_EAX));
@@ -445,7 +445,7 @@ implementation
 
          { in the case that another exception is risen }
          { we've to destroy the old one                }
-         current_library.getlabel(doobjectdestroyandreraise);
+         objectlibrary.getlabel(doobjectdestroyandreraise);
 
          tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
          tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
@@ -468,15 +468,15 @@ implementation
            begin
               oldaktexitlabel:=aktexitlabel;
               oldaktexit2label:=aktexit2label;
-              current_library.getlabel(exitonlabel);
+              objectlibrary.getlabel(exitonlabel);
               aktexitlabel:=exitonlabel;
               aktexit2label:=exitonlabel;
               if assigned(aktbreaklabel) then
                begin
                  oldaktcontinuelabel:=aktcontinuelabel;
                  oldaktbreaklabel:=aktbreaklabel;
-                 current_library.getlabel(breakonlabel);
-                 current_library.getlabel(continueonlabel);
+                 objectlibrary.getlabel(breakonlabel);
+                 objectlibrary.getlabel(continueonlabel);
                  aktcontinuelabel:=continueonlabel;
                  aktbreaklabel:=breakonlabel;
                end;
@@ -485,7 +485,7 @@ implementation
               cg.g_maybe_loadself(exprasmlist);
               secondpass(right);
            end;
-         current_library.getlabel(doobjectdestroy);
+         objectlibrary.getlabel(doobjectdestroy);
          cg.a_label(exprasmlist,doobjectdestroyandreraise);
          cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
          tg.ungetpersistanttempreference(exprasmlist,tempaddr);
@@ -580,23 +580,23 @@ implementation
          flowcontrol:=[];
          { we modify EAX }
          include(rg.usedinproc,R_EAX);
-         current_library.getlabel(finallylabel);
-         current_library.getlabel(endfinallylabel);
-         current_library.getlabel(reraiselabel);
+         objectlibrary.getlabel(finallylabel);
+         objectlibrary.getlabel(endfinallylabel);
+         objectlibrary.getlabel(reraiselabel);
 
          { the finally block must catch break, continue and exit }
          { statements                                            }
          oldaktexitlabel:=aktexitlabel;
          oldaktexit2label:=aktexit2label;
-         current_library.getlabel(exitfinallylabel);
+         objectlibrary.getlabel(exitfinallylabel);
          aktexitlabel:=exitfinallylabel;
          aktexit2label:=exitfinallylabel;
          if assigned(aktbreaklabel) then
           begin
             oldaktcontinuelabel:=aktcontinuelabel;
             oldaktbreaklabel:=aktbreaklabel;
-            current_library.getlabel(breakfinallylabel);
-            current_library.getlabel(continuefinallylabel);
+            objectlibrary.getlabel(breakfinallylabel);
+            objectlibrary.getlabel(continuefinallylabel);
             aktcontinuelabel:=continuefinallylabel;
             aktbreaklabel:=breakfinallylabel;
           end;
@@ -726,7 +726,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-08-11 13:24:17  peter
+  Revision 1.32  2002-08-11 14:32:30  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.31  2002/08/11 13:24:17  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

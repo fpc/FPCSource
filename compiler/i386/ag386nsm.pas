@@ -738,7 +738,7 @@ interface
     procedure T386NasmAssembler.WriteExternals;
       begin
         currentasmlist:=self;
-        current_library.symbolsearch.foreach_static({$ifdef fpcprocvar}@{$endif}writeexternal,nil);
+        objectlibrary.symbolsearch.foreach_static({$ifdef fpcprocvar}@{$endif}writeexternal,nil);
       end;
 
 
@@ -898,7 +898,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.23  2002-08-11 13:24:16  peter
+  Revision 1.24  2002-08-11 14:32:29  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.23  2002/08/11 13:24:16  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

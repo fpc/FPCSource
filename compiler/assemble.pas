@@ -710,7 +710,7 @@ Implementation
                 { the symbol can be external
                   so we must use newasmsymbol and
                   not getasmsymbol !! PM }
-                ps:=current_library.newasmsymbol(copy(s,1,j-1));
+                ps:=objectlibrary.newasmsymbol(copy(s,1,j-1));
                 if not assigned(ps) then
                   internalerror(33006)
                 else
@@ -718,7 +718,7 @@ Implementation
                     sec:=ps.section;
                     ofs:=ps.address;
                     reloc:=true;
-                    current_library.UsedAsmSymbolListInsert(ps);
+                    objectlibrary.UsedAsmSymbolListInsert(ps);
                   end;
                 if j<256 then
                   begin
@@ -732,7 +732,7 @@ Implementation
                          i:=i+j;
                          s:=strpas(@p[i]);
                       end;
-                    ps:=current_library.getasmsymbol(s);
+                    ps:=objectlibrary.getasmsymbol(s);
                     if not assigned(ps) then
                       internalerror(33007)
                     else
@@ -741,7 +741,7 @@ Implementation
                           internalerror(33008);
                         ofs:=ofs-ps.address;
                         reloc:=false;
-                        current_library.UsedAsmSymbolListInsert(ps);
+                        objectlibrary.UsedAsmSymbolListInsert(ps);
                       end;
                   end;
               end;
@@ -817,11 +817,11 @@ Implementation
            else
             curr_n:=n_includefile;
            { get symbol for this includefile }
-           hp:=current_library.newasmsymboltype('Ltext'+ToStr(IncludeCount),AB_LOCAL,AT_FUNCTION);
+           hp:=objectlibrary.newasmsymboltype('Ltext'+ToStr(IncludeCount),AB_LOCAL,AT_FUNCTION);
            if currpass=1 then
              begin
                 hp.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
-                current_library.UsedAsmSymbolListInsert(hp);
+                objectlibrary.UsedAsmSymbolListInsert(hp);
              end
            else
              objectdata.writesymbol(hp);
@@ -865,11 +865,11 @@ Implementation
            exit;
         store_sec:=objectalloc.currsec;
         objectalloc.seTSection(sec_code);
-        hp:=current_library.newasmsymboltype('Letext',AB_LOCAL,AT_FUNCTION);
+        hp:=objectlibrary.newasmsymboltype('Letext',AB_LOCAL,AT_FUNCTION);
         if currpass=1 then
           begin
             hp.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
-            current_library.UsedAsmSymbolListInsert(hp);
+            objectlibrary.UsedAsmSymbolListInsert(hp);
           end
         else
           objectdata.writesymbol(hp);
@@ -1046,7 +1046,7 @@ Implementation
                      Tai_datablock(hp).sym.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,Tai_datablock(hp).size);
                      objectalloc.sectionalloc(Tai_datablock(hp).size);
                    end;
-                 current_library.UsedAsmSymbolListInsert(Tai_datablock(hp).sym);
+                 objectlibrary.UsedAsmSymbolListInsert(Tai_datablock(hp).sym);
                end;
              ait_const_32bit :
                objectalloc.sectionalloc(4);
@@ -1066,7 +1066,7 @@ Implementation
              ait_const_symbol :
                begin
                  objectalloc.sectionalloc(4);
-                 current_library.UsedAsmSymbolListInsert(Tai_const_symbol(hp).sym);
+                 objectlibrary.UsedAsmSymbolListInsert(Tai_const_symbol(hp).sym);
                end;
              ait_section:
                begin
@@ -1091,8 +1091,8 @@ Implementation
                begin
                  if assigned(Tai_stab_function_name(hp).str) then
                   begin
-                    funcname:=current_library.getasmsymbol(strpas(Tai_stab_function_name(hp).str));
-                    current_library.UsedAsmSymbolListInsert(funcname);
+                    funcname:=objectlibrary.getasmsymbol(strpas(Tai_stab_function_name(hp).str));
+                    objectlibrary.UsedAsmSymbolListInsert(funcname);
                   end
                  else
                   funcname:=nil;
@@ -1103,20 +1103,20 @@ Implementation
              ait_symbol :
                begin
                  Tai_symbol(hp).sym.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
-                 current_library.UsedAsmSymbolListInsert(Tai_symbol(hp).sym);
+                 objectlibrary.UsedAsmSymbolListInsert(Tai_symbol(hp).sym);
                end;
              ait_symbol_end :
                begin
                  if target_info.system in [system_i386_linux,system_i386_beos] then
                   begin
                     Tai_symbol_end(hp).sym.size:=objectalloc.sectionsize-Tai_symbol_end(hp).sym.address;
-                    current_library.UsedAsmSymbolListInsert(Tai_symbol_end(hp).sym);
+                    objectlibrary.UsedAsmSymbolListInsert(Tai_symbol_end(hp).sym);
                   end;
                 end;
              ait_label :
                begin
                  Tai_label(hp).l.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
-                 current_library.UsedAsmSymbolListInsert(Tai_label(hp).l);
+                 objectlibrary.UsedAsmSymbolListInsert(Tai_label(hp).l);
                end;
              ait_string :
                objectalloc.sectionalloc(Tai_string(hp).len);
@@ -1134,11 +1134,11 @@ Implementation
                          top_ref :
                            begin
                              if assigned(ref^.symbol) then
-                              current_library.UsedAsmSymbolListInsert(ref^.symbol);
+                              objectlibrary.UsedAsmSymbolListInsert(ref^.symbol);
                            end;
                          top_symbol :
                            begin
-                             current_library.UsedAsmSymbolListInsert(sym);
+                             objectlibrary.UsedAsmSymbolListInsert(sym);
                            end;
                        end;
                      end;
@@ -1274,7 +1274,7 @@ Implementation
                convertstabs(Tai_stabs(hp).str);
              ait_stab_function_name :
                if assigned(Tai_stab_function_name(hp).str) then
-                 funcname:=current_library.getasmsymbol(strpas(Tai_stab_function_name(hp).str))
+                 funcname:=objectlibrary.getasmsymbol(strpas(Tai_stab_function_name(hp).str))
                else
                  funcname:=nil;
              ait_force_line :
@@ -1302,7 +1302,7 @@ Implementation
         objectdata:=objectoutput.newobjectdata(Objfile);
         objectdata.defaulTSection(sec_code);
         { reset the asmsymbol list }
-        current_library.CreateUsedAsmsymbolList;
+        objectlibrary.CreateUsedAsmsymbolList;
 
 {$ifdef MULTIPASS}
       { Pass 0 }
@@ -1342,7 +1342,7 @@ Implementation
         EndFileLineInfo;
 {$endif GDB}
         { check for undefined labels and reset }
-        current_library.UsedAsmSymbolListCheckUndefined;
+        objectlibrary.UsedAsmSymbolListCheckUndefined;
 
         { set section sizes }
         objectdata.seTSectionsizes(objectalloc.secsize);
@@ -1381,8 +1381,8 @@ Implementation
       doexit:
         { reset the used symbols back, must be after the .o has been
           written }
-        current_library.UsedAsmsymbolListReset;
-        current_library.DestroyUsedAsmsymbolList;
+        objectlibrary.UsedAsmsymbolListReset;
+        objectlibrary.DestroyUsedAsmsymbolList;
       end;
 
 
@@ -1407,7 +1407,7 @@ Implementation
         while assigned(hp) do
          begin
          { reset the asmsymbol list }
-           current_library.CreateUsedAsmSymbolList;
+           objectlibrary.CreateUsedAsmSymbolList;
 
 {$ifdef MULTIPASS}
          { Pass 0 }
@@ -1432,7 +1432,7 @@ Implementation
            EndFileLineInfo;
 {$endif GDB}
            { check for undefined labels }
-           current_Library.UsedAsmSymbolListCheckUndefined;
+           objectlibrary.UsedAsmSymbolListCheckUndefined;
 
            { set section sizes }
            objectdata.seTSectionsizes(objectalloc.secsize);
@@ -1462,8 +1462,8 @@ Implementation
 
            { reset the used symbols back, must be after the .o has been
              written }
-           current_library.UsedAsmsymbolListReset;
-           current_library.DestroyUsedAsmsymbolList;
+           objectlibrary.UsedAsmsymbolListReset;
+           objectlibrary.DestroyUsedAsmsymbolList;
 
            { end of lists? }
            if not MaybeNextList(hp) then
@@ -1598,7 +1598,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.40  2002-08-11 13:24:10  peter
+  Revision 1.41  2002-08-11 14:32:26  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.40  2002/08/11 13:24:10  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

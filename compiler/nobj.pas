@@ -273,7 +273,7 @@ implementation
     procedure tclassheader.writenames(p : pprocdeftree);
 
       begin
-         current_library.getdatalabel(p^.nl);
+         objectlibrary.getdatalabel(p^.nl);
          if assigned(p^.l) then
            writenames(p^.l);
          dataSegment.concat(Tai_label.Create(p^.nl));
@@ -312,7 +312,7 @@ implementation
            writenames(root);
 
          { now start writing of the message string table }
-         current_library.getdatalabel(r);
+         objectlibrary.getdatalabel(r);
          dataSegment.concat(Tai_label.Create(r));
          genstrmsgtab:=r;
          dataSegment.concat(Tai_const.Create_32bit(count));
@@ -348,7 +348,7 @@ implementation
          _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}insertmsgint,nil);
 
          { now start writing of the message string table }
-         current_library.getdatalabel(r);
+         objectlibrary.getdatalabel(r);
          dataSegment.concat(Tai_label.Create(r));
          genintmsgtab:=r;
          dataSegment.concat(Tai_const.Create_32bit(count));
@@ -424,7 +424,7 @@ implementation
 
          if count>0 then
            begin
-              current_library.getdatalabel(r);
+              objectlibrary.getdatalabel(r);
               gendmt:=r;
               dataSegment.concat(Tai_label.Create(r));
               { entries for caching }
@@ -466,7 +466,7 @@ implementation
               if assigned(tprocsym(p).defs^.next) then
                 internalerror(1209992);
               hp:=tprocsym(p).defs^.def;
-              current_library.getdatalabel(l);
+              objectlibrary.getdatalabel(l);
 
               Consts.concat(Tai_label.Create(l));
               Consts.concat(Tai_const.Create_8bit(length(p.name)));
@@ -487,7 +487,7 @@ implementation
          _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}do_count,nil);
          if count>0 then
            begin
-              current_library.getdatalabel(l);
+              objectlibrary.getdatalabel(l);
               dataSegment.concat(Tai_label.Create(l));
               dataSegment.concat(Tai_const.Create_32bit(count));
               _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}genpubmethodtableentry,nil);
@@ -820,7 +820,7 @@ implementation
         if curintf.objecttype in [odt_interfacecom] then
           begin
             { label for GUID }
-            current_library.getdatalabel(tmplabel);
+            objectlibrary.getdatalabel(tmplabel);
             rawdata.concat(Tai_label.Create(tmplabel));
             rawdata.concat(Tai_const.Create_32bit(curintf.iidguid.D1));
             rawdata.concat(Tai_const.Create_16bit(curintf.iidguid.D2));
@@ -839,7 +839,7 @@ implementation
         { IOffset field }
         dataSegment.concat(Tai_const.Create_32bit(implintf.ioffsets(contintfindex)^));
         { IIDStr }
-        current_library.getdatalabel(tmplabel);
+        objectlibrary.getdatalabel(tmplabel);
         rawdata.concat(Tai_label.Create(tmplabel));
         rawdata.concat(Tai_const.Create_8bit(length(curintf.iidstr^)));
         if curintf.objecttype=odt_interfacecom then
@@ -1064,7 +1064,7 @@ implementation
           end;
         { 2. step calc required fieldcount and their offsets in the object memory map
              and write data }
-        current_library.getdatalabel(intftable);
+        objectlibrary.getdatalabel(intftable);
         dataSegment.concat(Tai_label.Create(intftable));
         gintfwritedata;
         _class.implementedinterfaces.clearimplprocs; { release temporary information }
@@ -1177,7 +1177,7 @@ implementation
             methodnametable:=genpublishedmethodstable;
             fieldtablelabel:=_class.generate_field_table;
             { write class name }
-            current_library.getdatalabel(classnamelabel);
+            objectlibrary.getdatalabel(classnamelabel);
             dataSegment.concat(Tai_label.Create(classnamelabel));
             dataSegment.concat(Tai_const.Create_8bit(length(_class.objrealname^)));
             dataSegment.concat(Tai_string.Create(_class.objrealname^));
@@ -1293,7 +1293,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.24  2002-08-11 13:24:12  peter
+  Revision 1.25  2002-08-11 14:32:27  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.24  2002/08/11 13:24:12  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

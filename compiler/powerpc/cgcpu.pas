@@ -252,7 +252,7 @@ const
          { calls or cross TOC calls, but currently done always                      }
          reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
          list.concat(taicpu.op_reg_ref(A_STW,R_TOC,href));
-         list.concat(taicpu.op_sym(A_BL,current_library.newasmsymbol(s)));
+         list.concat(taicpu.op_sym(A_BL,objectlibrary.newasmsymbol(s)));
          reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
          list.concat(taicpu.op_reg_ref(A_LWZ,R_TOC,href));
          procinfo^.flags:=procinfo^.flags or pi_do_call;
@@ -942,11 +942,11 @@ const
              { save floating-point registers }
              if (cs_create_pic in aktmoduleswitches) and not(usesgpr) then
                begin
-                  list.concat(taicpu.op_sym_ofs(A_BL,current_library.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_g'),0));
+                  list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_g'),0));
                   gotgot:=true;
                end
              else
-               list.concat(taicpu.op_sym_ofs(A_BL,current_library.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)),0));
+               list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)),0));
              { compute end of gpr save area }
              list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_11,-(ord(R_F31)-ord(firstregfpu)+1)*8));
           end;
@@ -957,11 +957,11 @@ const
              {
              if cs_create_pic in aktmoduleswitches then
                begin
-                  list.concat(taicpu.op_sym_ofs(A_BL,current_library.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)+'_g'),0));
+                  list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)+'_g'),0));
                   gotgot:=true;
                end
              else
-               list.concat(taicpu.op_sym_ofs(A_BL,current_library.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)),0))
+               list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)),0))
              }
              reference_reset_base(href,R_11,-(ord(R_31)-ord(firstreggpr)+1)*4);
              list.concat(taicpu.op_reg_ref(A_STMW,firstreggpr,href));
@@ -1036,7 +1036,7 @@ const
              { restore gprs }
              { at least for now we use LMW }
              {
-             list.concat(taicpu.op_sym_ofs(A_BL,current_library.newasmsymbol('_restgpr_14'),0));
+             list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_restgpr_14'),0));
              }
              reference_reset_base(href,R_11,-(ord(R_31)-ord(firstreggpr)+1)*4);
              list.concat(taicpu.op_reg_ref(A_LMW,firstreggpr,href));
@@ -1048,11 +1048,11 @@ const
              { address of fpr save area to r11 }
              list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_11,(ord(R_F31)-ord(firstregfpu)+1)*8));
              if (procinfo^.flags and pi_do_call)<>0 then
-               list.concat(taicpu.op_sym_ofs(A_BL,current_library.newasmsymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+
+               list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+
                  '_x'),0))
              else
                { leaf node => lr haven't to be restored }
-               list.concat(taicpu.op_sym_ofs(A_BL,current_library.newasmsymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+
+               list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+
                  '_l'),0));
              genret:=false;
           end;
@@ -1100,7 +1100,7 @@ const
         a_reg_dealloc(list,R_0);
         { save floating-point registers }
         { !!! has to be optimized: only save registers that are used }
-        list.concat(taicpu.op_sym_ofs(A_BL,current_library.newasmsymbol('_savef14'),0));
+        list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_savef14'),0));
         { save gprs in gpr save area }
         { !!! has to be optimized: only save registers that are used }
         reference_reset_base(href,STACK_POINTER_REG,-220);
@@ -1294,7 +1294,7 @@ const
             { explicitely allocate R_0 since it can be used safely here }
             { (for holding date that's being copied)                    }
             a_reg_alloc(list,R_F0);
-            current_library.getlabel(lab);
+            objectlibrary.getlabel(lab);
             a_label(list, lab);
             list.concat(taicpu.op_reg_reg_const(A_SUBIC_,countreg,countreg,1));
             list.concat(taicpu.op_reg_ref(A_LFDU,R_F0,src));
@@ -1366,7 +1366,7 @@ const
       begin
          if not(cs_check_overflow in aktlocalswitches) then
           exit;
-         current_library.getlabel(hl);
+         objectlibrary.getlabel(hl);
          if not ((p.resulttype.def.deftype=pointerdef) or
                 ((p.resulttype.def.deftype=orddef) and
                  (torddef(p.resulttype.def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,
@@ -1405,7 +1405,7 @@ const
         reference_reset_base(href,STACK_POINTER_REG,8);
         list.concat(taicpu.op_reg_ref(A_LWZ,R_0,href));
         { ... and return from _restf14 }
-        list.concat(taicpu.op_sym_ofs(A_B,current_library.newasmsymbol('_restf14'),0));
+        list.concat(taicpu.op_sym_ofs(A_B,objectlibrary.newasmsymbol('_restf14'),0));
       end;
 
 
@@ -1561,7 +1561,7 @@ const
         p: taicpu;
 
       begin
-        p := taicpu.op_sym(op,current_library.newasmsymbol(l.name));
+        p := taicpu.op_sym(op,objectlibrary.newasmsymbol(l.name));
         if op <> A_B then
           create_cond_norm(c,crval,p.condition);
         p.is_jmp := true;
@@ -1674,7 +1674,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2002-08-11 13:24:18  peter
+  Revision 1.40  2002-08-11 14:32:32  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.39  2002/08/11 13:24:18  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

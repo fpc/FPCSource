@@ -255,7 +255,7 @@ implementation
             else
               location.resflags:=F_E;
 
-            current_library.getlabel(l);
+            objectlibrary.getlabel(l);
 
             { how much have we already substracted from the x in the }
             { "x in [y..z]" expression                               }
@@ -438,8 +438,8 @@ implementation
                if right.location.loc=LOC_CONSTANT then
                 begin
                   location.resflags:=F_C;
-                  current_library.getlabel(l);
-                  current_library.getlabel(l2);
+                  objectlibrary.getlabel(l);
+                  objectlibrary.getlabel(l2);
 
                   { Is this treated in firstpass ?? }
                   if left.nodetype=ordconstn then
@@ -614,7 +614,7 @@ implementation
                begin
                   if opsize=S_Q then
                     begin
-                       current_library.getlabel(l1);
+                       objectlibrary.getlabel(l1);
                        emit_const_reg(A_CMP,S_L,longint(hi(int64(t^._low))),hregister2);
                        emitjmp(C_NZ,l1);
                        emit_const_reg(A_CMP,S_L,longint(lo(int64(t^._low))),hregister);
@@ -637,7 +637,7 @@ implementation
                     begin
                        if opsize=S_Q then
                          begin
-                            current_library.getlabel(l1);
+                            objectlibrary.getlabel(l1);
                             emit_const_reg(A_CMP,S_L,longint(hi(int64(t^._low))),hregister2);
                             emitjmp(jmp_le,elselabel);
                             emitjmp(jmp_gt,l1);
@@ -655,7 +655,7 @@ implementation
 
                   if opsize=S_Q then
                     begin
-                       current_library.getlabel(l1);
+                       objectlibrary.getlabel(l1);
                        emit_const_reg(A_CMP,S_L,longint(hi(int64(t^._high))),hregister2);
                        emitjmp(jmp_le,t^.statement);
                        emitjmp(jmp_gt,l1);
@@ -797,7 +797,7 @@ implementation
                 emit_const_reg(A_CMP,opsize,longint(max_),hregister);
                 emitjmp(jmp_gt,elselabel);
              end;
-           current_library.getlabel(table);
+           objectlibrary.getlabel(table);
            { extend with sign }
            if opsize=S_W then
              begin
@@ -850,8 +850,8 @@ implementation
          dist : dword;
 {$endif Delphi}
       begin
-         current_library.getlabel(endlabel);
-         current_library.getlabel(elselabel);
+         objectlibrary.getlabel(endlabel);
+         objectlibrary.getlabel(elselabel);
          if (cs_create_smart in aktmoduleswitches) then
            jumpsegment:=procinfo^.aktlocaldata
          else
@@ -875,9 +875,9 @@ implementation
          if left.location.loc=LOC_JUMP then
           begin
             otl:=truelabel;
-            current_library.getlabel(truelabel);
+            objectlibrary.getlabel(truelabel);
             ofl:=falselabel;
-            current_library.getlabel(falselabel);
+            objectlibrary.getlabel(falselabel);
             isjump:=true;
           end;
          secondpass(left);
@@ -1023,7 +1023,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-08-11 13:24:17  peter
+  Revision 1.38  2002-08-11 14:32:30  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.37  2002/08/11 13:24:17  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

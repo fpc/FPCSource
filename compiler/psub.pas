@@ -233,13 +233,13 @@ implementation
          oldquickexitlabel:=quickexitlabel;
          oldfaillabel:=faillabel;
          { get new labels }
-         current_library.getlabel(aktexitlabel);
-         current_library.getlabel(aktexit2label);
+         objectlibrary.getlabel(aktexitlabel);
+         objectlibrary.getlabel(aktexit2label);
          { exit for fail in constructors }
          if (aktprocdef.proctypeoption=potype_constructor) then
            begin
-             current_library.getlabel(faillabel);
-             current_library.getlabel(quickexitlabel);
+             objectlibrary.getlabel(faillabel);
+             objectlibrary.getlabel(quickexitlabel);
            end;
          { reset break and continue labels }
          block_type:=bt_general;
@@ -814,7 +814,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2002-08-11 13:24:13  peter
+  Revision 1.66  2002-08-11 14:32:27  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.65  2002/08/11 13:24:13  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

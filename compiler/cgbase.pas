@@ -436,7 +436,7 @@ implementation
          { resourcestrings }
          ResourceStrings:=TResourceStrings.Create;
          { use the librarydata from current_module }
-         current_library:=current_module.librarydata;
+         objectlibrary:=current_module.librarydata;
       end;
 
 
@@ -470,7 +470,7 @@ implementation
 {$endif}
          { resource strings }
          ResourceStrings.free;
-         current_library:=nil;
+         objectlibrary:=nil;
       end;
 
 
@@ -582,7 +582,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-08-11 13:24:11  peter
+  Revision 1.24  2002-08-11 14:32:26  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.23  2002/08/11 13:24:11  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

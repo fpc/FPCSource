@@ -2592,7 +2592,7 @@ implementation
       begin
         { the label is always a global label }
         if not assigned(lab) then
-         lab:=current_library.newasmsymboltype(mangledname,AB_GLOBAL,AT_DATA);
+         lab:=objectlibrary.newasmsymboltype(mangledname,AB_GLOBAL,AT_DATA);
         get_label:=lab;
       end;
 
@@ -2672,7 +2672,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2002-08-11 13:24:14  peter
+  Revision 1.48  2002-08-11 14:32:28  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.47  2002/08/11 13:24:14  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

@@ -1254,7 +1254,7 @@ Begin
              if GotStar then
               Message(asmr_e_only_add_relocatable_symbol);
              if not assigned(opr.ref.symbol) then
-              opr.ref.symbol:=current_library.newasmsymbol(tempstr)
+              opr.ref.symbol:=objectlibrary.newasmsymbol(tempstr)
              else
               Message(asmr_e_cant_have_multiple_relocatable_symbols);
            end;
@@ -1310,7 +1310,7 @@ begin
    begin
      opr.typ:=OPR_SYMBOL;
      opr.symofs:=l;
-     opr.symbol:=current_library.newasmsymbol(tempstr);
+     opr.symbol:=objectlibrary.newasmsymbol(tempstr);
    end
   else
    begin
@@ -1959,7 +1959,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.30  2002-08-11 13:24:17  peter
+  Revision 1.31  2002-08-11 14:32:31  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.30  2002/08/11 13:24:17  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

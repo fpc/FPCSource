@@ -170,7 +170,7 @@ implementation
            hcaselabel^.greater:=nil;
            hcaselabel^.statement:=aktcaselabel;
            hcaselabel^.firstlabel:=first;
-           current_library.getlabel(hcaselabel^._at);
+           objectlibrary.getlabel(hcaselabel^._at);
            hcaselabel^._low:=l;
            hcaselabel^._high:=h;
            insertlabel(root);
@@ -205,7 +205,7 @@ implementation
          root:=nil;
          instruc:=nil;
          repeat
-           current_library.getlabel(aktcaselabel);
+           objectlibrary.getlabel(aktcaselabel);
            firstlabel:=true;
 
            { maybe an instruction has more case labels }
@@ -1142,7 +1142,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2002-08-11 13:24:12  peter
+  Revision 1.70  2002-08-11 14:32:27  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.69  2002/08/11 13:24:12  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

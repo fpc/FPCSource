@@ -293,9 +293,9 @@ interface
             if isjump then
               begin
                  otl:=truelabel;
-                 current_library.getlabel(truelabel);
+                 objectlibrary.getlabel(truelabel);
                  ofl:=falselabel;
-                 current_library.getlabel(falselabel);
+                 objectlibrary.getlabel(falselabel);
               end;
             secondpass(left);
             if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
@@ -311,9 +311,9 @@ interface
             if isjump then
               begin
                  otl:=truelabel;
-                 current_library.getlabel(truelabel);
+                 objectlibrary.getlabel(truelabel);
                  ofl:=falselabel;
-                 current_library.getlabel(falselabel);
+                 objectlibrary.getlabel(falselabel);
               end;
             secondpass(right);
             maybe_restore(exprasmlist,left.location,pushedregs);
@@ -388,7 +388,7 @@ interface
                    andn :
                      begin
                         otl:=truelabel;
-                        current_library.getlabel(truelabel);
+                        objectlibrary.getlabel(truelabel);
                         secondpass(left);
                         maketojumpbool(exprasmlist,left,lr_load_regvars);
                         cg.a_label(exprasmlist,truelabel);
@@ -397,7 +397,7 @@ interface
                    orn :
                      begin
                         ofl:=falselabel;
-                        current_library.getlabel(falselabel);
+                        objectlibrary.getlabel(falselabel);
                         secondpass(left);
                         maketojumpbool(exprasmlist,left,lr_load_regvars);
                         cg.a_label(exprasmlist,falselabel);
@@ -1302,7 +1302,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-08-11 13:24:18  peter
+  Revision 1.11  2002-08-11 14:32:32  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.10  2002/08/11 13:24:18  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

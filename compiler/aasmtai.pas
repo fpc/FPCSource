@@ -361,7 +361,7 @@ uses
       begin
          inherited Create;
          typ:=ait_datablock;
-         sym:=current_library.newasmsymboltype(_name,AB_LOCAL,AT_DATA);
+         sym:=objectlibrary.newasmsymboltype(_name,AB_LOCAL,AT_DATA);
          { keep things aligned }
          if _size<=0 then
            _size:=4;
@@ -374,7 +374,7 @@ uses
       begin
          inherited Create;
          typ:=ait_datablock;
-         sym:=current_library.newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
+         sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
          { keep things aligned }
          if _size<=0 then
            _size:=4;
@@ -400,7 +400,7 @@ uses
       begin
          inherited Create;
          typ:=ait_symbol;
-         sym:=current_library.newasmsymboltype(_name,AB_LOCAL,AT_FUNCTION);
+         sym:=objectlibrary.newasmsymboltype(_name,AB_LOCAL,AT_FUNCTION);
          size:=siz;
          is_global:=false;
       end;
@@ -409,7 +409,7 @@ uses
       begin
          inherited Create;
          typ:=ait_symbol;
-         sym:=current_library.newasmsymboltype(_name,AB_GLOBAL,AT_FUNCTION);
+         sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_FUNCTION);
          size:=siz;
          is_global:=true;
       end;
@@ -418,7 +418,7 @@ uses
       begin
          inherited Create;
          typ:=ait_symbol;
-         sym:=current_library.newasmsymboltype(_name,AB_LOCAL,AT_DATA);
+         sym:=objectlibrary.newasmsymboltype(_name,AB_LOCAL,AT_DATA);
          size:=siz;
          is_global:=false;
       end;
@@ -427,7 +427,7 @@ uses
       begin
          inherited Create;
          typ:=ait_symbol;
-         sym:=current_library.newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
+         sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
          size:=siz;
          is_global:=true;
       end;
@@ -448,7 +448,7 @@ uses
       begin
          inherited Create;
          typ:=ait_symbol_end;
-         sym:=current_library.newasmsymboltype(_name,AB_GLOBAL,AT_NONE);
+         sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_NONE);
       end;
 
 
@@ -519,7 +519,7 @@ uses
       begin
          inherited Create;
          typ:=ait_const_symbol;
-         sym:=current_library.newasmsymbol(name);
+         sym:=objectlibrary.newasmsymbol(name);
          offset:=0;
          { update sym info }
          inc(sym.refs);
@@ -529,7 +529,7 @@ uses
       begin
          inherited Create;
          typ:=ait_const_symbol;
-         sym:=current_library.newasmsymbol(name);
+         sym:=objectlibrary.newasmsymbol(name);
          offset:=ofs;
          { update sym info }
          inc(sym.refs);
@@ -539,7 +539,7 @@ uses
       begin
          inherited Create;
          typ:=ait_const_rva;
-         sym:=current_library.newasmsymbol(name);
+         sym:=objectlibrary.newasmsymbol(name);
          offset:=0;
          { update sym info }
          inc(sym.refs);
@@ -983,7 +983,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.3  2002-08-11 13:24:10  peter
+  Revision 1.4  2002-08-11 14:32:25  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.3  2002/08/11 13:24:10  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

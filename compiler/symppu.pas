@@ -401,8 +401,8 @@ implementation
       begin
         if s.ppuidx=-1 then
          begin
-           s.ppuidx:=current_library.asmsymbolppuidx;
-           inc(current_library.asmsymbolppuidx);
+           s.ppuidx:=objectlibrary.asmsymbolppuidx;
+           inc(objectlibrary.asmsymbolppuidx);
          end;
         putlongint(s.ppuidx);
       end;
@@ -411,7 +411,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2002-08-11 13:24:14  peter
+  Revision 1.14  2002-08-11 14:32:28  peter
+    * renamed current_library to objectlibrary
+
+  Revision 1.13  2002/08/11 13:24:14  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which
