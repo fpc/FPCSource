@@ -559,7 +559,7 @@ var
   thedir,dummy : string[255];
   dirstream    : pdir;
   d            : pdirent;
-  mountpoint   : boolean;
+  mountpoint,validdir : boolean;
   predot       : string[255];
 {$endif}
 begin
@@ -594,15 +594,19 @@ begin
       exit;
      repeat
        d:=sys_readdir (dirstream);
+       validdir:=false;
        if (d<>nil) and
-          (not ((d^.name[0]='.') and ((d^.name[1]=#0) or ((d^.name[1]='.') and (d^.name[2]=#0))))) and
+          (not ((d^.name[0]='.') and ((d^.name[1]=#0) or ((d^.name[1]='.') and (
+d^.name[2]=#0))))) and
           (mountpoint or (d^.ino=thisino)) then
         begin
           dummy:=predot+'../'+strpas(@(d^.name[0]))+#0;
-          if sys_stat (@(dummy[1]),thisdir)<0 then
-           d:=nil;
-        end;
-     until (d=nil) or ((thisdir.dev=thisdev) and (thisdir.ino=thisino) );
+          validdir:=not (sys_stat (@(dummy[1]),thisdir)<0);
+        end
+       else
+        validdir:=false;
+     until (d=nil) or
+           ((validdir) and (thisdir.dev=thisdev) and (thisdir.ino=thisino) );
      if (closedir(dirstream)<0) or (d=nil) then
       exit;
    { At this point, d.name contains the name of the current dir}
@@ -720,7 +724,10 @@ End.
 
 {
   $Log$
-  Revision 1.38  2000-03-23 15:24:18  peter
+  Revision 1.39  2000-03-25 12:28:37  peter
+    * patch for getdir from Pierre
+
+  Revision 1.38  2000/03/23 15:24:18  peter
     * remove handle check for do_close
 
   Revision 1.37  2000/02/09 16:59:32  peter
