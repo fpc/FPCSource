@@ -285,29 +285,6 @@ implementation
       end;
 
 
-      (*
-    procedure rename_value_para(p:tnamedindexitem;arg:pointer);
-      var
-        pd : tprocdef;
-      begin
-        if tsym(p).typ<>varsym then
-         exit;
-        with tvarsym(p) do
-         begin
-           pd:=tprocdef(owner.defowner);
-           if pd.deftype<>procdef then
-             internalerror(200304262);
-           { do we need a local copy? Then rename the varsym, do this after the
-             insert so the dup id checking is done correctly.
-             array of const and open array do not need this, the local copy routine
-             will patch the pushed value to point to the local copy }
-           if (varspez=vs_value) and
-              paramanager.push_addr_param(varspez,vartype.def,pd.proccalloption) then
-             include(varoptions,vo_has_local_copy);
-         end;
-      end;
-*)
-
     procedure check_c_para(p:tnamedindexitem;arg:pointer);
       begin
         if (tsym(p).typ<>varsym) then
@@ -1756,12 +1733,6 @@ const
     procedure calc_parast(pd:tabstractprocdef);
       var
         currpara : tparaitem;
-        st : tsymtable;
-{$ifdef i386}
-        orgs : stringid;
-        vs : tvarsym;
-        n : integer;
-{$endif i386}
       begin
         { insert hidden high parameters }
         insert_hidden_para(pd);
@@ -1783,82 +1754,6 @@ const
              include(tvarsym(currpara.parasym).varoptions,vo_has_local_copy);
            currpara:=tparaitem(currpara.next);
          end;
-
-(*
-{$ifdef i386}
-        { Move first 3 register parameters in localst }
-        if (pd.deftype=procdef) and
-           (
-            (pd.proccalloption=pocall_register) or
-            ((pocall_default=pocall_register) and
-             (pd.proccalloption in [pocall_compilerproc,pocall_internproc]))
-           ) and
-           not(po_assembler in pd.procoptions) and
-           assigned(pd.para.first) then
-          begin
-            { insert copy in localst }
-            if not assigned(tprocdef(pd).localst) then
-              tprocdef(pd).insert_localst;
-            n:=0;
-            currpara:=tparaitem(pd.para.first);
-            while assigned(currpara) and (n<3) do
-             begin
-               orgs:=currpara.parasym.realname;
-               if not(assigned(currpara.parasym) and (currpara.parasym.typ=varsym)) then
-                 internalerror(200304232);
-               { rename parameter in parast }
-               pd.parast.rename(currpara.parasym.name,'reg'+currpara.parasym.name);
-               include(tvarsym(currpara.parasym).varoptions,vo_is_reg_para);
-               vs:=tvarsym.create(orgs,currpara.paratyp,currpara.paratype);
-               vs.varoptions:=tvarsym(currpara.parasym).varoptions;
-               include(vs.varoptions,vo_is_reg_para);
-               tprocdef(pd).localst.insert(vs);
-               { update currpara }
-               currpara.parasym:=vs;
-               { next }
-               currpara:=tparaitem(currpara.next);
-               inc(n);
-             end;
-          end;
-{$endif i386}
-
-        if (pd.deftype=procdef) then
-         begin
-           { rename value parameters that need a local copy to valXXX,
-             this is not required for assembler procedures }
-           if not(po_assembler in pd.procoptions) then
-             tprocdef(pd).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}rename_value_para,nil);
-
-           { Calculate symtable addresses }
-           st:=pd.parast;
-           if pd.proccalloption in pushleftright_pocalls then
-            begin
-              { pushed from left to right, so the in reverse order
-                on the stack }
-              currpara:=tparaitem(pd.para.last);
-              while assigned(currpara) do
-               begin
-                 if not(assigned(currpara.parasym) and (currpara.parasym.typ=varsym)) then
-                   internalerror(200304231);
-                 st.insertvardata(currpara.parasym);
-                 currpara:=tparaitem(currpara.previous);
-               end;
-            end
-           else
-            begin
-              { pushed from right to left }
-              currpara:=tparaitem(pd.para.first);
-              while assigned(currpara) do
-               begin
-                 if not(assigned(currpara.parasym) and (currpara.parasym.typ=varsym)) then
-                   internalerror(200304232);
-                 if not(vo_is_reg_para in tvarsym(currpara.parasym).varoptions) then
-                   st.insertvardata(currpara.parasym);
-                 currpara:=tparaitem(currpara.next);
-               end;
-            end;
-         end;
-*)
       end;
 
 
@@ -2217,7 +2112,10 @@ const
 end.
 {
   $Log$
-  Revision 1.135  2003-09-23 17:56:05  peter
+  Revision 1.136  2003-09-23 20:36:47  peter
+    * remove obsolete code
+
+  Revision 1.135  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure
