@@ -2607,10 +2607,10 @@ implementation
             internalerror(99080501);
         If (elesize>0) and
            (
-            (highrange-lowrange = $7fffffff) or
+            (int64(highrange)-int64(lowrange) >= $7fffffff) or
             { () are needed around elesize-1 to avoid a possible
               integer overflow for elesize=1 !! PM }
-            (($7fffffff div elesize + (elesize -1)) < (highrange - lowrange))
+            (($7fffffff div elesize + (elesize -1)) < (int64(highrange) - int64(lowrange)))
            ) Then
           Begin
             Message(sym_e_segment_too_large);
@@ -5420,7 +5420,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2001-09-19 11:04:42  michael
+  Revision 1.52  2001-10-15 13:16:26  jonas
+    * better size checking of data (now an error is returned for
+      "array[longint] of longint") ("merged")
+
+  Revision 1.51  2001/09/19 11:04:42  michael
   * Smartlinking with interfaces fixed
   * Better smartlinking for rtti and init tables
 
