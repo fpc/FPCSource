@@ -594,6 +594,7 @@ Procedure POpen(var F:file;const Prog:String;rw:char);
 Function  mkFifo(pathname:string;mode:longint):boolean;
 
 Procedure AssignStream(Var StreamIn,Streamout:text;Const Prog:String);
+procedure AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String);
 
 {**************************
     General information
@@ -2434,6 +2435,99 @@ begin
    end;
 end;
 
+procedure AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String);
+{
+  Starts the program in 'prog' and makes its input, output and error output the
+  other end of three pipes, which are the stdin, stdout and stderr of a program
+  specified in 'prog'.
+  StreamOut can be used to write to the program, StreamIn can be used to read
+  the output of the program, StreamErr reads the error output of the program.
+  See the following diagram :
+  Parent          Child
+  StreamOut -->  StdIn  (input)
+  StreamIn  <--  StdOut (output)
+  StreamErr <--  StdErr (error output)
+}
+var
+  PipeIn, PipeOut, PipeErr: text;
+  pid: LongInt;
+  pl: ^LongInt;
+begin
+  LinuxError := 0;
+
+  // Assign pipes
+  AssignPipe(StreamIn, PipeOut);
+  if LinuxError <> 0 then exit;
+
+  AssignPipe(StreamErr, PipeErr);
+  if LinuxError <> 0 then begin
+    Close(StreamIn);
+    Close(PipeOut);
+    exit;
+  end;
+
+  AssignPipe(PipeIn, StreamOut);
+  if LinuxError <> 0 then begin
+    Close(StreamIn);
+    Close(PipeOut);
+    Close(StreamErr);
+    Close(PipeErr);
+    exit;
+  end;
+
+  // Fork
+
+  pid := Fork;
+  if LinuxError <> 0 then begin
+    Close(StreamIn);
+    Close(PipeOut);
+    Close(StreamErr);
+    Close(PipeErr);
+    Close(PipeIn);
+    Close(StreamOut);
+    exit;
+  end;
+
+  if pid = 0 then begin
+    // *** We are in the child ***
+    // Close what we don not need
+    Close(StreamOut);
+    Close(StreamIn);
+    Close(StreamErr);
+    // Connect pipes
+    dup2(PipeIn, Input);
+    if LinuxError <> 0 then Halt(127);
+    Close(PipeIn);
+    dup2(PipeOut, Output);
+    if LinuxError <> 0 then Halt(127);
+    Close(PipeOut);
+    dup2(PipeErr, StdErr);
+    if LinuxError <> 0 then Halt(127);
+    Close(PipeErr);
+    // Execute program
+    Execl(Prog);
+    Halt(127);
+  end else begin
+    // *** We are in the parent ***
+    Close(PipeErr);
+    Close(PipeOut);
+    Close(PipeIn);
+    // Save the process ID - needed when closing
+    pl := @(TextRec(StreamIn).userdata[2]);
+    pl^ := pid;
+    TextRec(StreamIn).closefunc := @PCloseText;
+    // Save the process ID - needed when closing
+    pl := @(TextRec(StreamOut).userdata[2]);
+    pl^ := pid;
+    TextRec(StreamOut).closefunc := @PCloseText;
+    // Save the process ID - needed when closing
+    pl := @(TextRec(StreamErr).userdata[2]);
+    pl^ := pid;
+    TextRec(StreamErr).closefunc := @PCloseText;
+    LinuxError := 0;
+  end;
+end;
+
 
 {******************************************************************************
                         General information calls
@@ -3646,7 +3740,10 @@ End.
 
 {
   $Log$
-  Revision 1.40  1999-07-15 20:00:31  michael
+  Revision 1.41  1999-07-29 15:53:55  michael
+  + Added assignstream with rerouting of stderr, by Sebastian Guenther
+
+  Revision 1.40  1999/07/15 20:00:31  michael
   + Added ansistring version of shell()
 
   Revision 1.39  1999/05/30 11:37:27  peter
