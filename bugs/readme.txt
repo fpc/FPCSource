@@ -352,3 +352,5 @@ bug0246.pp   const para can be changed without error
 bug0252.pp   typecasting not possible within typed const
 bug0261.pp   problems for assignment overloading
 bug0262.pp   problems with virtual and overloaded methods
+bug0263.pp   export directive is not necessary in delphi anymore
+bug0264.pp   methodpointer bugs
