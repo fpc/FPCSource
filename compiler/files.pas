@@ -857,6 +857,8 @@ unit files;
         sourcefiles^.init;
         imports^.done;
         imports^.init;
+        _exports^.done;
+        _exports^.init;
         used_units.done;
         used_units.init;
         linkofiles.done;
@@ -945,6 +947,7 @@ unit files;
          islibrary:=false;
          uses_imports:=false;
          imports:=new(plinkedlist,init);
+         _exports:=new(plinkedlist,init);
        { search the PPU file if it is an unit }
          if is_unit then
           begin
@@ -964,6 +967,9 @@ unit files;
         if assigned(imports) then
          dispose(imports,done);
         imports:=nil;
+        if assigned(_exports) then
+         dispose(_exports,done);
+        _exports:=nil;
 {$ifndef VER0_99_8}
         if assigned(scanner) then
           pscannerfile(scanner)^.invalid:=true;
@@ -1036,7 +1042,12 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.72  1998-11-15 16:32:35  florian
+  Revision 1.73  1998-11-16 11:28:58  pierre
+    * stackcheck removed for i386_win32
+    * exportlist does not crash at least !!
+      (was need for tests dir !)z
+
+  Revision 1.72  1998/11/15 16:32:35  florian
     * some stuff of Pavel implement (win32 dll creation)
     * bug with ansistring function results fixed
 

@@ -36,7 +36,7 @@ unit pmodules;
        cobjects,comphook,systems,globals,
        symtable,aasm,files,
        hcodegen,verbose,
-       link,assemble,import,gendef,ppu
+       link,assemble,import,export,gendef,ppu
 {$ifdef i386}
        ,i386
 {$endif}
@@ -926,7 +926,7 @@ unit pmodules;
 
          { generate imports }
          if current_module^.uses_imports then
-          importlib^.generatelib;
+           importlib^.generatelib;
 
          { insert own objectfile, or say that it's in a library
            (no check for an .o when loading) }
@@ -1087,6 +1087,9 @@ unit pmodules;
          if current_module^.uses_imports then
           importlib^.generatelib;
 
+         if islibrary then
+           exportlib^.generatelib;
+           
          { insert heap }
          insertheap;
 
@@ -1119,7 +1122,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.82  1998-11-12 12:55:16  pierre
+  Revision 1.83  1998-11-16 11:29:00  pierre
+    * stackcheck removed for i386_win32
+    * exportlist does not crash at least !!
+      (was need for tests dir !)z
+
+  Revision 1.82  1998/11/12 12:55:16  pierre
    * fix for bug0176 and bug0177
 
   Revision 1.81  1998/11/12 11:34:58  peter

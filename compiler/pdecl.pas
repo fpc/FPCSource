@@ -2050,12 +2050,15 @@ unit pdecl;
                 end;
               _EXPORTS:
                 begin
-                   { here we should be at lexlevel 1, no ? PM }
                    Not_supported_for_inline(token);
-                   if islibrary then
-                     read_exports
-                   else
-                     break;
+                   { here we should be at lexlevel 1, no ? PM }
+                   if (lexlevel<>main_program_level) or not islibrary then
+                     begin
+                        Message(parser_e_syntax_error);
+                        consume_all_until(SEMICOLON);
+                     end
+                   else if islibrary then
+                     read_exports;
                 end
               else break;
            end;
@@ -2086,7 +2089,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.82  1998-11-16 10:18:07  peter
+  Revision 1.83  1998-11-16 11:28:59  pierre
+    * stackcheck removed for i386_win32
+    * exportlist does not crash at least !!
+      (was need for tests dir !)z
+
+  Revision 1.82  1998/11/16 10:18:07  peter
     * fixes for ansistrings
 
   Revision 1.81  1998/11/13 15:40:22  pierre

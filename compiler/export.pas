@@ -106,7 +106,7 @@ end;
 
 procedure texportlib.exportprocedure(hp : pexported_procedure);
 begin
-  current_module^._exports^.concat(hp);
+    current_module^._exports^.concat(hp);
 end;
 
 
@@ -150,7 +150,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1998-10-29 11:35:43  florian
+  Revision 1.3  1998-11-16 11:28:57  pierre
+    * stackcheck removed for i386_win32
+    * exportlist does not crash at least !!
+      (was need for tests dir !)z
+
+  Revision 1.2  1998/10/29 11:35:43  florian
     * some dll support for win32
     * fixed assembler writing for PalmOS
 
