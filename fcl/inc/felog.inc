@@ -64,7 +64,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 20:33:58  peter
+  Revision 1.3  2003-10-09 15:53:21  peter
+    * moved
+
+  Revision 1.1  2003/10/06 20:33:58  peter
     * classes moved to rtl for 1.1
     * classes .inc and classes.pp files moved to fcl/classes for
       backwards 1.0.x compatiblity to have it in the fcl
