@@ -190,7 +190,7 @@ help:
         @$(ECHO)
         @$(ECHO) Packing targets are:
         @$(ECHO)
-        @$(ECHO) go32v2zip,win32zip,linuxzip,freebsdzip,sourcezip,os2zip,beoszip,sunoszip,qnxzip
+        @$(ECHO) go32v2zip,win32zip,linuxzip,freebsdzip,sourcezip,os2zip,beoszip,sunoszip,qnxzip,amigazip
         @$(ECHO)
         @exit
 
@@ -460,6 +460,7 @@ os2: checkfpcdir
 sunos: checkfpcdir
         $(MAKE) install OS_TARGET=sunos
 
+
 go32v2zip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=go32v2
 
@@ -489,8 +490,11 @@ sunoszip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=sunos TARPROG=gtar
 
 qnxzip: checkfpcdir
-		$(MAKE) zipinstall OS_TARGET=qnx
-		
+                $(MAKE) zipinstall OS_TARGET=qnx
+                
+amigazip: checkfpcdir
+                $(MAKE) zipinstall OS_TARGET=amiga
+                
 ##########################################################################
 # Dos, OS/2 Short 8.3 Names
 ##########################################################################
