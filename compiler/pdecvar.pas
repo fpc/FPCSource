@@ -969,14 +969,18 @@ implementation
                        begin
                          { Add calling convention for procvar }
                          handle_calling_convention(tprocvardef(tt.def));
-                       end;
+                         semicoloneaten:=true;
+                       end
+                     else
+                       semicoloneaten:=false;
                      read_default_value(sc,tt,is_threadvar);
                      { for locals we've created typedconstsym with a different name }
                      if symtablestack.symtabletype<>localsymtable then
                        symdone:=true;
                      hasdefaultvalue:=true;
                    end;
-                 consume(_SEMICOLON);
+                 if not(semicoloneaten) then
+                   consume(_SEMICOLON);
                end;
 
              { Support calling convention for procvars after semicolon }
@@ -1317,7 +1321,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2005-02-01 23:18:54  florian
+  Revision 1.95  2005-02-02 19:03:27  florian
+    * fixed proc. vars with calling specifiers in usual var declarations
+
+  Revision 1.94  2005/02/01 23:18:54  florian
     * fixed:
       r1 = record
         p : procedure stdcall;
