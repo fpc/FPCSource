@@ -108,7 +108,7 @@ type
       procedure SetPixel (x,y:integer; Value:integer);
       function GetPixel (x,y:integer) : integer;
       function GetUsePalette : boolean;
-      procedure SetUsePalette (Value:boolean);
+      procedure SetUsePalette (Value:boolean);virtual;
     protected
       // Procedures to store the data. Implemented in descendants
       procedure SetInternalColor (x,y:integer; const Value:TFPColor); virtual;
@@ -160,6 +160,9 @@ type
   TFPMemoryImage = class (TFPCustomImage)
     private
       FData : PFPIntegerArray;
+      function GetInternalColor(x,y:integer):TFPColor;override;
+      procedure SetInternalColor (x,y:integer; const Value:TFPColor);override;
+      procedure SetUsePalette (Value:boolean);override;
     protected
       procedure SetInternalPixel (x,y:integer; Value:integer); override;
       function GetInternalPixel (x,y:integer) : integer; override;
