@@ -50,8 +50,6 @@ package=uregexprgo32.zip[ureggo32.zip],Regular expression units
 # Dos 11
 package=uunzipgo32.zip[uzipgo32.zip],Unzip units
 # Dos 12
-package=uuncgigo32.zip[ucgigo32.zip],Uncgi units
-# Dos 13
 #package=ufvgo32.zip,Free ~V~ision (FV)
 
 
@@ -109,10 +107,8 @@ package=uregexprw32.zip,Regular expression units
 # Win32-2 10
 package=uunzipw32.zip,Unzip units
 # Win32-2 11
-package=uuncgiw32.zip,Uncgi units
-# Win32-2 12
 package=uzlibw32.zip,ZLib interface units
-# Win32-2 13
+# Win32-2 12
 #package=ufvw32.zip,Free ~V~ision (FV)
 
 
@@ -161,26 +157,24 @@ package=urexxemx.zip,REXX SAA interface units
 # OS/2-2 5
 package=uunzipemx.zip[uzipemx.zip],Unzip units
 # OS/2-2 6
-package=uuncgiemx.zip[ucgiemx.zip],Uncgi units
-# OS/2-2 7
 package=uftpapiemx.zip[uftpemx.zip],FTP API interface units
-# OS/2-2 8
+# OS/2-2 7
 package=uhwvideoemx.zip[uhwvemx.zip],HW Video interface units
-# OS/2-2 9
+# OS/2-2 8
 package=ummtkemx.zip,MMOS/2 interface units
-# OS/2-2 10
+# OS/2-2 9
 package=ux11emx.zip,X11 interface units
-# OS/2-2 11
+# OS/2-2 10
 package=ugtkemx.zip,GTK interface units
-# OS/2-2 12
+# OS/2-2 11
 package=ufpgtkemx.zip[ufpgtemx.zip],fpGTK units
-# OS/2-2 13
+# OS/2-2 12
 package=uimlibemx.zip[uimlbemx.zip],ImLib interface units
-# OS/2-2 14
+# OS/2-2 13
 package=ulibpngemx.zip[ulpngemx.zip],LibPNG interface units
-# OS/2-2 15
+# OS/2-2 14
 package=utclemx.zip,TCL interface units
-# OS/2-2 16
+# OS/2-2 15
 package=uzlibemx.zip,ZLib interface units
 
 
@@ -230,28 +224,26 @@ package=uregexprsrc.zip[uregsrc.zip],Regular expression units
 # Source-2 4
 package=uunzipsrc.zip[uzipsrc.zip],Unzip units
 # Source-2 5
-package=uuncgisrc.zip[ucgisrc.zip],Uncgi units
-# Source-2 6
 package=uopenglsrc.zip,OpenGL units
-# Source-2 7
+# Source-2 6
 package=ugtksrc.zip,GTK units
-# Source-2 8
+# Source-2 7
 package=uinetsrc.zip,Internet helper routines units
-# Source-2 9
+# Source-2 8
 package=uibasesrc.zip,Interbase interface units
-# Source-2 10
+# Source-2 9
 package=umysqlsrc.zip,MySQL interface units
-# Source-2 11
+# Source-2 10
 package=ummsystemsrc.zip,MMSystem interface units
-# Source-2 12
+# Source-2 11
 package=uzlibsrc.zip,ZLib interface units
-# Source-2 13
+# Source-2 12
 package=urexxsrc.zip,REXX SAA interface units
-# Source-2 14
+# Source-2 13
 package=uftpapisrc.zip[uftpsrc.zip],FTP API interface units
-# Source-2 15
+# Source-2 14
 package=uhwvideosrc.zip[uhwvsrc.zip],HW Video interface units
-# Source-2 16
+# Source-2 15
 package=ummtksrc.zip,MMOS/2 interface units
 
 
