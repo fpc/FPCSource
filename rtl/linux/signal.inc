@@ -88,7 +88,7 @@ type
            status: cardinal;
   end;
 
-  SigSet  =  array[0..wordsinsigset-1] of Longint;
+  SigSet  =  array[0..wordsinsigset-1] of cint;
   sigset_t= SigSet;
   PSigSet = ^SigSet;
   psigset_t=psigset;
@@ -343,6 +343,13 @@ type
   TSigAction = procedure(Sig: Longint; SigContext: SigContextRec);cdecl;
 
 
+{$ifdef CPUARM}
+{$define NEWSIGNAL}
+{$endif CPUARM}
+
+{$ifdef CPUx86_64}
+{$define NEWSIGNAL}
+{$endif CPUx86_64}
 
   SigActionRec = packed record  // this is temporary for the migration
    {$ifdef posixworkaround}
@@ -354,22 +361,25 @@ type
         1: (Sa: TSigAction);
       end;
    {$endif}
-   {$ifdef CPUARM}
-    Sa_Flags    : Longint;
+   {$ifdef NEWSIGNAL}
+    Sa_Flags    : cuint;
     Sa_restorer : SignalRestorer; { Obsolete - Don't use }
     Sa_Mask     : SigSet;
-   {$else CPUARM}
+   {$else NEWSIGNAL}
     Sa_Mask     : SigSet;
     Sa_Flags    : Longint;
     Sa_restorer : SignalRestorer; { Obsolete - Don't use }
-   {$endif CPUARM}
+   {$endif NEWSIGNAL}
   end;
   TSigActionRec = SigActionRec;
   PSigActionRec = ^SigActionRec;
 
 {
   $Log$
-  Revision 1.17  2004-03-27 14:35:13  florian
+  Revision 1.18  2004-04-27 20:47:00  florian
+    * tried to fix x86-64 signal handling
+
+  Revision 1.17  2004/03/27 14:35:13  florian
     * structs for arm adapted
 
   Revision 1.16  2004/02/05 01:16:12  florian

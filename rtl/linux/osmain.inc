@@ -515,13 +515,13 @@ begin
   FillChar(act, sizeof(SigActionRec),0);
   { initialize handler                    }
   act.sa_handler := signalhandler(@SignalToRunError);
-{$ifdef CPUARM}
+{$ifdef RTSIGACTION}
   act.sa_flags:=4;
-{$endif CPUARM}
-  FpSigAction(SIGFPE,@act,@oldact);
-  FpSigAction(SIGSEGV,@act,@oldact);
-  FpSigAction(SIGBUS,@act,@oldact);
-  FpSigAction(SIGILL,@act,@oldact);
+{$endif RTSIGACTION}
+  FpSigAction(SIGFPE,@act,nil);
+  FpSigAction(SIGSEGV,@act,nil);
+  FpSigAction(SIGBUS,@act,nil);
+  FpSigAction(SIGILL,@act,nil);
 end;
 
 procedure SetupCmdLine;
@@ -584,7 +584,10 @@ end;
 
 {
  $Log$
- Revision 1.15  2004-04-22 21:16:35  peter
+ Revision 1.16  2004-04-27 20:47:00  florian
+   * tried to fix x86-64 signal handling
+
+ Revision 1.15  2004/04/22 21:16:35  peter
    * do_write/do_read fix
 
  Revision 1.14  2004/03/27 14:33:45  florian

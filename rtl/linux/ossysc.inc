@@ -475,7 +475,7 @@ CONST
   MAP_ANONYMOUS =$20;
 
   {Constansts Termios/Ioctl (used in Do_IsDevice) }
-  {$ifdef PowerPc}
+  {$ifdef PowerPC}
   IOCtl_TCGETS=$402c7413;
   {$else}
   IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
@@ -509,7 +509,10 @@ end;
 
 {
  $Log$
- Revision 1.22  2004-04-25 07:18:49  florian
+ Revision 1.23  2004-04-27 20:47:00  florian
+   * tried to fix x86-64 signal handling
+
+ Revision 1.22  2004/04/25 07:18:49  florian
    * mmap for x86-64 fixed
 
  Revision 1.21  2004/04/20 20:27:01  florian
@@ -579,6 +582,4 @@ end;
 
  Revision 1.1  2002/11/12 14:40:18  marco
   * The syscall core of the new system unit.
-
-
 }
