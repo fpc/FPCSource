@@ -404,7 +404,7 @@
                  Begin
                    for j:=0 to 7 do
                       for k:=0 to 7 do
-                        if Fontbitmap[j,k] <> 0 then DirectPutPixel(xpos+k,j+y);
+                        if Fontbitmap[j,k] <> 0 then PutPixel(xpos+k,j+y,CurrentColor);
                  end
                 else
                  { perform scaling of bitmap font }
@@ -424,7 +424,7 @@
                              for cnt1 := 0 to charsize-1 do
                                begin
                                   If FontBitmap[j,k] <> 0 then
-                                      DirectPutPixel(xpos+cnt1+cnt2,y+cnt3+cnt4);
+                                      PutPixel(xpos+cnt1+cnt2,y+cnt3+cnt4,CurrentColor);
                                end;
                                Inc(k);
                                Inc(cnt2,charsize);
@@ -451,7 +451,8 @@
                  Begin
                    for j:=0 to 7 do
                       for k:=0 to 7 do
-                        if Fontbitmap[j,k] <> 0 then DirectPutPixel(xpos+j,ypos-k);
+                        if Fontbitmap[j,k] <> 0 then PutPixel(xpos+j,ypos-k,
+                           CurrentColor);
                  end
                 else
                  { perform scaling of bitmap font }
@@ -471,7 +472,8 @@
                              for cnt1 := 0 to charsize-1 do
                                begin
                                   If FontBitmap[j,k] <> 0 then
-                                      DirectPutPixel(xpos+cnt3-cnt4,ypos+cnt1-cnt2);
+                                      PutPixel(xpos+cnt3-cnt4,ypos+cnt1-cnt2,
+                                        CurrentColor);
                                end;
                                Inc(k);
                                Inc(cnt2,charsize);
