@@ -87,11 +87,8 @@ unit pstatmnt;
          else
            if_a:=nil;
 
-         if token=_ELSE then
-           begin
-              consume(_ELSE);
-              else_a:=statement;
-           end
+         if try_to_consume(_ELSE) then
+            else_a:=statement
          else
            else_a:=nil;
          if_statement:=genloopnode(ifn,ex,if_a,else_a,false);
@@ -117,13 +114,9 @@ unit pstatmnt;
                    last^.left:=gennode(statementn,nil,statement);
                    last:=last^.left;
                 end;
-              if token<>SEMICOLON then
-                break
-              else
-                consume(SEMICOLON);
-              while token=SEMICOLON do
-                consume(SEMICOLON);
-
+              if not try_to_consume(SEMICOLON) then
+                break;
+              emptystats;
            end;
          consume(_END);
          statements_til_end:=gensinglenode(blockn,first);
@@ -263,8 +256,8 @@ unit pstatmnt;
 
          if (token=_ELSE) or (token=_OTHERWISE) then
            begin
-              if token=_ELSE then consume(_ELSE)
-                else consume(_OTHERWISE);
+              if not try_to_consume(_ELSE) then
+                consume(_OTHERWISE);
               elseblock:=statements_til_end;
            end
          else
@@ -304,11 +297,9 @@ unit pstatmnt;
                    last^.left:=gennode(statementn,nil,statement);
                    last:=last^.left;
                 end;
-              if token<>SEMICOLON then
+              if not try_to_consume(SEMICOLON) then
                 break;
-              consume(SEMICOLON);
-              while token=SEMICOLON do
-                consume(SEMICOLON);
+              emptystats;
            end;
          consume(_UNTIL);
          dec(statement_level);
@@ -545,16 +536,14 @@ unit pstatmnt;
                    last^.left:=gennode(statementn,nil,statement);
                    last:=last^.left;
                 end;
-              if token<>SEMICOLON then
+              if not try_to_consume(SEMICOLON) then
                 break;
-              consume(SEMICOLON);
               emptystats;
            end;
          p_try_block:=gensinglenode(blockn,first);
 
-         if token=_FINALLY then
+         if try_to_consume(_FINALLY) then
            begin
-              consume(_FINALLY);
               p_finally_block:=statements_til_end;
               try_statement:=gennode(tryfinallyn,p_try_block,p_finally_block);
               dec(statement_level);
@@ -577,9 +566,8 @@ unit pstatmnt;
                           objname:=pattern;
                           consume(ID);
                           { is a explicit name for the exception given ? }
-                          if token=COLON then
+                          if try_to_consume(COLON) then
                             begin
-                               consume(COLON);
                                getsym(pattern,true);
                                consume(ID);
                                if srsym^.typ=unitsym then
@@ -651,9 +639,8 @@ unit pstatmnt;
                      { remove exception symtable }
                      if assigned(exceptsymtable) then
                        dellexlevel;
-                     if token<>SEMICOLON then
-                       break;
-                     consume(SEMICOLON);
+                     if not try_to_consume(SEMICOLON) then
+                        break;
                      emptystats;
                    until (token=_END) or(token=_ELSE);
                    if token=_ELSE then
@@ -685,9 +672,8 @@ unit pstatmnt;
 
       begin
          consume(_EXIT);
-         if token=LKLAMMER then
+         if try_to_consume(LKLAMMER) then
            begin
-              consume(LKLAMMER);
               p:=comp_expr(true);
               consume(RKLAMMER);
               if procinfo.retdef=pdef(voiddef) then
@@ -746,10 +732,9 @@ unit pstatmnt;
          consume(_ASM);
 
          { END is read }
-         if token=LECKKLAMMER then
+         if try_to_consume(LECKKLAMMER) then
            begin
               { it's possible to specify the modified registers }
-              consume(LECKKLAMMER);
               asmstat^.object_preserved:=true;
               if token<>RECKKLAMMER then
                 repeat
@@ -786,8 +771,8 @@ unit pstatmnt;
 {$endif m68k}
                   else consume(RECKKLAMMER);
                   consume(CSTRING);
-                  if token=COMMA then consume(COMMA)
-                    else break;
+                  if not try_to_consume(COMMA) then
+                    break;
                 until false;
               consume(RECKKLAMMER);
            end
@@ -822,12 +807,13 @@ unit pstatmnt;
           tt : ttreetyp;
         begin
           ht:=token;
-          if token=_NEW then consume(_NEW)
-            else consume(_DISPOSE);
-          if ht=_NEW then
+          if try_to_consume(_NEW) then
             tt:=hnewn
           else
-            tt:=hdisposen;
+            begin
+                consume(_DISPOSE);
+                tt:=hdisposen;
+            end;
           consume(LKLAMMER);
           p:=comp_expr(true);
 
@@ -843,11 +829,10 @@ unit pstatmnt;
                new(o,init);        (*Also a valid new statement*)
            end;}
 
-          if token=COMMA then
+          if try_to_consume(COMMA) then
             begin
                    { extended syntax of new and dispose }
                    { function styled new is handled in factor }
-                   consume(COMMA);
                    { destructors have no parameters }
                    destrukname:=pattern;
                    consume(ID);
@@ -884,18 +869,7 @@ unit pstatmnt;
                             exit;
                          end;
                    { search cons-/destructor, also in parent classes }
-                   sym:=nil;
-                   while assigned(classh) do
-                         begin
-                            store_allow:=allow_only_static;
-                            allow_only_static:=false;
-                            sym:=classh^.publicsyms^.search(pattern);
-                            allow_only_static:=store_allow;
-                            srsymtable:=classh^.publicsyms;
-                            if assigned(sym) then
-                                  break;
-                            classh:=classh^.childof;
-                         end;
+                   sym:=search_class_member(classh,pattern);
                    { the second parameter of new/dispose must be a call }
                    { to a cons-/destructor                                }
                    if (not assigned(sym)) or (sym^.typ<>procsym) then
@@ -1291,7 +1265,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.75  1999-04-14 09:14:53  peter
+  Revision 1.76  1999-04-14 18:41:25  daniel
+  * Better use of routines in pbase and symtable. 4k code removed.
+
+  Revision 1.75  1999/04/14 09:14:53  peter
     * first things to store the symbol/def number in the ppu
 
   Revision 1.74  1999/04/09 12:22:06  pierre

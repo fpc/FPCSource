@@ -68,6 +68,10 @@ unit pbase;
     { a syntax error is written                           }
     procedure consume(i : ttoken);
 
+    {Tries to consume the token i, and returns true if it was consumed:
+     if token=i.}
+    function try_to_consume(i:Ttoken):boolean;
+
     { consumes all tokens til atoken (for error recovering }
     procedure consume_all_until(atoken : ttoken);
 
@@ -112,6 +116,19 @@ unit pbase;
           end;
       end;
 
+    function try_to_consume(i:Ttoken):boolean;
+
+
+    begin
+        try_to_consume:=false;
+        if (token=i) or (idtoken=i) then
+            begin
+                try_to_consume:=true;
+                if token=_END then
+                    last_endtoken_filepos:=tokenpos;
+                current_scanner^.readtoken;
+            end;
+    end;
 
     procedure consume_all_until(atoken : ttoken);
       begin
@@ -130,8 +147,8 @@ unit pbase;
 
     procedure emptystats;
       begin
-         while token=SEMICOLON do
-           consume(SEMICOLON);
+         repeat
+         until not try_to_consume(semicolon);
       end;
 
 
@@ -183,7 +200,10 @@ end.
 
 {
   $Log$
-  Revision 1.19  1999-04-08 20:59:42  florian
+  Revision 1.20  1999-04-14 18:41:24  daniel
+  * Better use of routines in pbase and symtable. 4k code removed.
+
+  Revision 1.19  1999/04/08 20:59:42  florian
     * fixed problem with default properties which are a class
     * case bug (from the mailing list with -O2) fixed, the
       distance of the case labels can be greater than the positive
