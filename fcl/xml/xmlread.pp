@@ -167,7 +167,7 @@ end;
 
 function TXMLReader.GetString(ValidChars: TSetOfChar): String;
 begin
-  Result := '';
+  SetLength(Result, 0);
   while buf[0] in ValidChars do begin
     Result := Result + buf[0];
     Inc(buf);
@@ -208,7 +208,7 @@ end;
 
 function TXMLReader.GetName(var s: String): Boolean;    // [5]
 begin
-  s := '';
+  SetLength(s, 0);
   if not (buf[0] in (Letter + ['_', ':'])) then begin
     Result := False;
     exit;
@@ -240,26 +240,27 @@ begin
   strdel[0] := buf[0];
   strdel[1] := #0;
   Inc(buf);
-  s := '';
+  SetLength(s, 0);
   while not CheckFor(strdel) do
     if not ParseReference(attr) then begin
       s := s + buf[0];
       Inc(buf);
     end else begin
-      if s <> '' then begin
+      if Length(s) > 0 then begin
         attr.AppendChild(doc.CreateTextNode(s));
-        s := '';
+        SetLength(s, 0);
       end;
     end;
 
-  if s <> '' then
-    attr.AppendChild(doc.CreateTextNode(s));
+  if Length(s) > 0 then
+    //attr.AppendChild(doc.CreateTextNode(s));
+    attr.NodeValue := s;
 
 end;
 
 function TXMLReader.ExpectPubidLiteral: String;
 begin
-  Result := '';
+  SetLength(Result, 0);
   if CheckFor('''') then begin
     GetString(PubidChars - ['''']);
     ExpectString('''');
@@ -275,7 +276,7 @@ var
   comment: String;
 begin
   if CheckFor('<!--') then begin
-    comment := '';
+    SetLength(comment, 0);
     while (buf[0] <> #0) and (buf[1] <> #0) and
       ((buf[0] <> '-') or (buf[1] <> '-')) do begin
       comment := comment + buf[0];
@@ -664,12 +665,12 @@ var
     s: String;
     i: Integer;
   begin
-    s := '';
+    SetLength(s, 0);
     while not (buf[0] in [#0, '<', '&']) do begin
       s := s + buf[0];
       Inc(buf);
     end;
-    if s <> '' then begin
+    if Length(s) > 0 then begin
       // Strip whitespace from end of s
       i := Length(s);
       while (i > 0) and (s[i] in [#10, #13, ' ']) do Dec(i);
@@ -684,7 +685,7 @@ var
     cdata: String;
   begin
     if CheckFor('<![CDATA[') then begin
-      cdata := '';
+      SetLength(cdata, 0);
       while not CheckFor(']]>') do begin
         cdata := cdata + buf[0];
         Inc(buf);
@@ -795,9 +796,9 @@ function TXMLReader.ParseExternalID: Boolean;    // [75]
 
   function GetSystemLiteral: String;
   begin
+    SetLength(Result, 0);
     if buf[0] = '''' then begin
       Inc(buf);
-      Result := '';
       while (buf[0] <> '''') and (buf[0] <> #0) do begin
         Result := Result + buf[0];
         Inc(buf);
@@ -805,7 +806,6 @@ function TXMLReader.ParseExternalID: Boolean;    // [75]
       ExpectString('''');
     end else if buf[0] = '"' then begin
       Inc(buf);
-      Result := '';
       while (buf[0] <> '"') and (buf[0] <> #0) do begin
         Result := Result + buf[0];
         Inc(buf);
@@ -847,7 +847,7 @@ function TXMLReader.ParseEncodingDecl: String;    // [80]
   end;
 
 begin
-  Result := '';
+  SetLength(Result, 0);
   SkipWhitespace;
   if CheckFor('encoding') then begin
     ExpectEq;
@@ -985,7 +985,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2000-01-07 01:24:34  peter
+  Revision 1.14  2000-01-30 22:19:13  sg
+  * Made some optimizations and cosmetic changes
+
+  Revision 1.13  2000/01/07 01:24:34  peter
     * updated copyright to 2000
 
   Revision 1.12  2000/01/06 01:20:37  peter
