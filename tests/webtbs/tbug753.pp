@@ -1,7 +1,11 @@
 {$MODE objfpc}
 {$H+}
 program stackcrash;
-uses sysutils;
+uses 
+{$ifdef go32v2}
+  dpmiexcp,
+{$endif go32v2}
+  sysutils;
 type
   TMyClass = class
   public
