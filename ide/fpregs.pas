@@ -138,6 +138,9 @@ uses
   GDBCon,GDBInt,
   App,Menus,
   WViews,WEditor,
+{$ifdef powerpc}
+  wutils, { for inttostr }
+{$endif powerpc}
   FPConst,FPVars,
   FPString,
   FPDebug;
@@ -1055,7 +1058,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-12-16 15:51:13  pierre
+  Revision 1.3  2004-02-06 21:34:43  jonas
+    * fixed ppc compilation error
+
+  Revision 1.2  2002/12/16 15:51:13  pierre
    * added unknown cpu register windows
 
   Revision 1.1  2002/12/12 00:01:59  pierre
