@@ -45,9 +45,6 @@ UNIT Objects;
   {$ASMMODE ATT}
 {$ENDIF}
 
-{$IFDEF CPU68}
-  {$ASMMODE MOT}
-{$ENDIF}
 
 {==== Compiler directives ===========================================}
 {$H-} { No ansistrings }
@@ -149,72 +146,12 @@ TYPE
 {---------------------------------------------------------------------------}
 {                    OS dependent File type / consts                        }
 {---------------------------------------------------------------------------}
-{$IFDEF GO32V2}
 type
    FNameStr = String;
-   THandle = Integer;
-const
-   MaxReadBytes = $fffe;
-   invalidhandle = -1;
-{$ENDIF}
-{$IFDEF Win32}
-type
-   FNameStr = String;
-   THandle = Longint;
-const
-   MaxReadBytes = $fffe;
-   invalidhandle = -1;
-{$ENDIF}
-{$IFDEF OS2}
-type
-   FNameStr = String;
-   THandle = Word;
-const
-   MaxReadBytes = $7fffffff;
-   invalidhandle = $ffff;
-{$ENDIF}
-{$IFDEF UNIX}
-type
-   FNameStr = String;
-   { values are words, though the OS calls return 32-bit values }
-   { to check (CEC)                                             }
-   THandle = Longint;
+   THandle = longint;
 const
    MaxReadBytes = $7fffffff;
    invalidhandle = -1;
-{$ENDIF}
-{$IFDEF AMIGA}
-type
-   FNameStr = String;
-   THandle = Longint;
-const
-   MaxReadBytes = $fffe;
-   invalidhandle = -1;
-{$ENDIF}
-{$IFDEF ATARI}
-type
-   FNameStr = String[79];
-   THandle = Integer;
-const
-   MaxReadBytes = $fffe;
-   invalidhandle = -1;
-{$ENDIF}
-{$IFDEF MAC}
-type
-   FNameStr = String;
-   THandle = Integer;
-const
-   MaxReadBytes = $fffe;
-   invalidhandle = -1;
-{$ENDIF}
-{$IFDEF Netware}
-type
-   FNameStr = String;
-   THandle = Longint;
-const
-   MaxReadBytes = $7fffffff;
-   invalidhandle = -1;
-{$ENDIF}
 
 
 {---------------------------------------------------------------------------}
@@ -2851,7 +2788,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.11  2002-09-07 15:07:45  peter
+  Revision 1.12  2002-09-07 21:15:25  carl
+    - some cleanup (less ifdef)
+
+  Revision 1.11  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
   Revision 1.10  2002/09/01 19:03:19  florian
