@@ -159,12 +159,15 @@ uses
   FpDpAnsi,WConsts,
   Video,Mouse,Keyboard,
   Compiler,Version,
-  Dos,Memory,Menus,Dialogs,StdDlg,ColorSel,
 {$ifdef FVISION}
   FVConsts,
 {$else}
   Commands,HelpCtx,
 {$endif}
+  Dos,Memory,Menus,Dialogs,StdDlg,
+{$ifndef FVISION}
+  ColorSel,
+{$endif FVISION}
   Systems,
   WUtils,WHlpView,WViews,WHTMLHlp,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompil,FPHelp,
@@ -388,8 +391,14 @@ begin
       NewLine(
       NewItem(menu_tools_grep,menu_key_tools_grep, kbShiftF2, cmGrep, hcGrep,
       NewItem(menu_tools_calculator, '', kbNoKey, cmCalculator, hcCalculator,
+{$ifndef FVISION}
       NewItem(menu_tools_asciitable, '', kbNoKey, cmAsciiTable, hcAsciiTable,
-      nil)))))))),
+{$endif}
+      nil))))))
+{$ifndef FVISION}
+      )
+{$endif}
+      ),
     NewSubMenu(menu_options, hcOptionsMenu, NewMenu(
       NewItem(menu_options_mode,'', kbNoKey, cmSwitchesMode, hcSwitchesMode,
       NewItem(menu_options_compiler,'', kbNoKey, cmCompiler, hcCompiler,
@@ -1155,7 +1164,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:47  peter
+  Revision 1.3  2001-08-05 12:23:00  peter
+    * Automatically support for fvision or old fv
+
+  Revision 1.2  2001/08/05 02:01:47  peter
     * FVISION define to compile with fvision units
 
   Revision 1.1  2001/08/04 11:30:23  peter

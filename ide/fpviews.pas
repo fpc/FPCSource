@@ -23,11 +23,13 @@ uses
   Dos,Objects,Drivers,
 {$ifdef FVISION}
   FVConsts,
-{$else}
+{$else FVISION}
   Commands,HelpCtx,
-{$endif}
+{$endif FVISION}
   Views,Menus,Dialogs,App,Gadgets,
+{$ifndef FVISION}
   ASCIITAB,
+{$endif FVISION}
   WEditor,WCEdit,
   WUtils,WHelp,WHlpView,WViews,WANSI,
   Comphook,
@@ -389,6 +391,7 @@ type
       TitleST : PStaticText;
     end;
 
+{$ifndef FVISION}
     PFPASCIIChart = ^TFPASCIIChart;
     TFPASCIIChart = object(TASCIIChart)
       constructor Init;
@@ -397,6 +400,7 @@ type
       procedure   HandleEvent(var Event: TEvent); virtual;
       destructor  Done; virtual;
     end;
+{$endif FVISION}
 
     PVideoModeListBox = ^TVideoModeListBox;
     TVideoModeListBox = object(TDropDownListBox)
@@ -572,12 +576,14 @@ const
      Load:    @TGDBWindow.Load;
      Store:   @TGDBWindow.Store
   );
+{$ifndef FVISION}
   RFPASCIIChart: TStreamRec = (
      ObjType: 1509;
      VmtLink: Ofs(TypeOf(TFPASCIIChart)^);
      Load:    @TFPASCIIChart.Load;
      Store:   @TFPASCIIChart.Store
   );
+{$endif FVISION}
   RProgramInfoWindow: TStreamRec = (
      ObjType: 1510;
      VmtLink: Ofs(TypeOf(TProgramInfoWindow)^);
@@ -3842,6 +3848,7 @@ begin
   inherited HandleEvent(Event);
 end;
 
+{$ifndef FVISION}
 constructor TFPASCIIChart.Init;
 begin
   inherited Init;
@@ -3894,6 +3901,7 @@ begin
   ASCIIChart:=nil;
   inherited Done;
 end;
+{$endif FVISION}
 
 function TVideoModeListBox.GetText(Item: pointer; MaxLen: sw_integer): string;
 var P: PVideoModeList;
@@ -4152,7 +4160,9 @@ begin
   RegisterType(RFPDesktop);
   RegisterType(RGDBSourceEditor);
   RegisterType(RGDBWindow);
+{$ifndef FVISION}
   RegisterType(RFPASCIIChart);
+{$endif FVISION}
   RegisterType(RProgramInfoWindow);
   RegisterType(RFPDlgWindow);
 end;
@@ -4161,7 +4171,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:48  peter
+  Revision 1.3  2001-08-05 12:23:01  peter
+    * Automatically support for fvision or old fv
+
+  Revision 1.2  2001/08/05 02:01:48  peter
     * FVISION define to compile with fvision units
 
   Revision 1.1  2001/08/04 11:30:24  peter

@@ -35,9 +35,13 @@ uses
 {$endif fpc}
   Dos,Objects,
   BrowCol,
-  Drivers,Views,App,Dialogs,ColorSel,Menus,StdDlg,Validate,
+  Drivers,Views,App,Dialogs,
+  Menus,StdDlg,Validate,
   {$ifdef EDITORS}Editors{$else}WEditor,WCEdit{$endif},
-  ASCIITab,Calc,
+{$ifndef FVISION}
+  ColorSel,
+  ASCIITab,
+{$endif FVISION}
   WUtils,WViews,WHTMLScn,WHelp,
   FPIDE,FPCalc,FPCompil,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPHelp,FPSwitch,FPUsrScr,
@@ -152,11 +156,12 @@ end;
 procedure RegisterIDEObjects;
 begin
   RegisterApp;
-  RegisterAsciiTab;
-  RegisterCalc;
   RegisterCodeComplete;
   RegisterCodeTemplates;
+{$ifndef FVISION}
   RegisterColorSel;
+  RegisterAsciiTab;
+{$endif FVISION}
   RegisterDialogs;
 {$ifdef EDITORS}
   RegisterEditors;
@@ -290,7 +295,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:22  peter
+  Revision 1.2  2001-08-05 12:23:00  peter
+    * Automatically support for fvision or old fv
+
+  Revision 1.1  2001/08/04 11:30:22  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.10  2001/03/27 12:39:27  pierre

@@ -415,12 +415,16 @@ begin
        end;
      hcASCIITableWindow:
        begin
+{$ifndef FVISION}
          if ASCIIChart=nil then
            begin
              New(ASCIIChart, Init);
              Desktop^.Insert(ASCIIChart);
            end;
          W:=ASCIIChart;
+{$else FVISION}
+         W:=nil;
+{$endif FVISION}
        end;
   end;
   if W=nil then
@@ -943,7 +947,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
+  Revision 1.2  2001-08-05 12:23:00  peter
+    * Automatically support for fvision or old fv
+
+  Revision 1.1  2001/08/04 11:30:23  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.8  2001/03/22 17:28:03  pierre

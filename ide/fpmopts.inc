@@ -1153,6 +1153,10 @@ begin
 end;
 
 procedure TIDEApp.Colors;
+{$Ifdef FVISION}
+begin
+end;
+{$else FVISION}
 var D: PColorDialog;
 begin
   New(D, Init(AppPalette,
@@ -1228,6 +1232,7 @@ begin
       UpdateScreen(true);
     end;
 end;
+{$endif FVISION}
 
 procedure TIDEApp.OpenINI;
 var D: PFileDialog;
@@ -1280,7 +1285,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
+  Revision 1.2  2001-08-05 12:23:00  peter
+    * Automatically support for fvision or old fv
+
+  Revision 1.1  2001/08/04 11:30:23  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.11  2001/08/02 14:20:40  pierre

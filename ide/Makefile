@@ -145,7 +145,6 @@ ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
 override FPCOPT+=-dUNIX
 endif
 endif
-KL:=$(wildcard compiler/finput.*)
 ifeq ($(wildcard compiler/finput.*),)
 override FPCOPT+=-dCOMPILER_1_0
 endif
@@ -1218,6 +1217,9 @@ endif
 	clean_compiler clean testgdb postgdbinfo
 clean: fpc_cleanall
 distclean: clean compilerclean
+ifneq ($(wildcard $(UNITDIR_FV)/fvconsts$(PPUEXT)),)
+override COMPILER+=-dFVISION
+endif
 fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
 testgdb:
 ifneq ($(GDBFOUND),0)

@@ -80,7 +80,9 @@ const ClipboardWindow  : PClipboardWindow = nil;
       AltMouseAction   : integer = acBrowseSymbol;
       StartupOptions   : longint = 0;
       LastExitCode     : integer = 0;
+{$ifndef FVISION}
       ASCIIChart       : PFPASCIIChart = nil;
+{$endif FVISION}
       BackgroundPath   : string{$ifdef GABOR}[60]{$endif} = BackgroundName;
       DesktopPath      : string{$ifdef GABOR}[60]{$endif} = DesktopName;
       DesktopFileFlags : longint = dfHistoryLists+dfOpenWindows+
@@ -112,7 +114,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:24  peter
+  Revision 1.2  2001-08-05 12:23:01  peter
+    * Automatically support for fvision or old fv
+
+  Revision 1.1  2001/08/04 11:30:24  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.5  2001/03/12 17:34:56  pierre

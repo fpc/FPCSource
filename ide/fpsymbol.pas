@@ -18,7 +18,10 @@ unit FPSymbol;
 
 interface
 
-uses Objects,Drivers,Views,Menus,Dialogs,Outline,
+uses Objects,Drivers,Views,Menus,Dialogs,
+{$ifndef FVISION}
+     Outline,
+{$endif FVISION}
      BrowCol,
      WViews,
      FPViews;
@@ -124,6 +127,7 @@ type
       function    GetPalette: PPalette; virtual;
     end;
 
+{$ifndef FVISION}
     PSymbolInheritanceView = ^TSymbolInheritanceView;
     TSymbolInheritanceView = object(TOutlineViewer)
       constructor  Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar; ARoot: PObjectSymbol);
@@ -142,6 +146,7 @@ type
       Root         : PObjectSymbol;
       MyBW         : PBrowserWindow;
     end;
+{$endif FVISION}
 
     PBrowserTabItem = ^TBrowserTabItem;
     TBrowserTabItem = record
@@ -189,7 +194,9 @@ type
       Sym           : PSymbol;
       ScopeView     : PSymbolScopeView;
       ReferenceView : PSymbolReferenceView;
+{$ifndef FVISION}
       InheritanceView: PSymbolInheritanceView;
+{$endif FVISION}
       MemInfoView   : PSymbolMemInfoView;
       UnitInfoText  : PSymbolMemoView;
       UnitInfoUsed  : PSymbolScopeView;
@@ -240,8 +247,10 @@ procedure CloseAllBrowsers;
        (TypeOf(P^)=TypeOf(TSymbolScopeView)) or
        (TypeOf(P^)=TypeOf(TSymbolReferenceView)) or
        (TypeOf(P^)=TypeOf(TSymbolMemInfoView)) or
-       (TypeOf(P^)=TypeOf(TSymbolMemoView)) or
-       (TypeOf(P^)=TypeOf(TSymbolInheritanceView))) then
+{$ifndef FVISION}
+       (TypeOf(P^)=TypeOf(TSymbolInheritanceView)) or
+{$endif FVISION}
+       (TypeOf(P^)=TypeOf(TSymbolMemoView))) then
       Message(P,evCommand,cmClose,nil);
   end;
 
@@ -1048,6 +1057,7 @@ end;
                           TSymbolInheritanceView
 ****************************************************************************}
 
+{$ifndef FVISION}
 constructor TSymbolInheritanceView.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar; ARoot: PObjectSymbol);
 begin
   inherited Init(Bounds,AHScrollBar,AVScrollBar);
@@ -1162,6 +1172,7 @@ begin
     S^.GetText,S,nil,
     S^.Items,S^.References,Anc,S^.MemInfo);
 end;
+{$endif FVISION}
 
 
 {****************************************************************************
@@ -1397,10 +1408,12 @@ begin
       Insert(HSB);
       VSB:=CreateVSB(R);
       Insert(VSB);
+{$ifndef FVISION}
       New(InheritanceView, Init(R, HSB,VSB, AInheritance));
       InheritanceView^.GrowMode:=gfGrowHiX+gfGrowHiY;
       Insert(InheritanceView);
       InheritanceView^.MyBW:=@Self;
+{$endif FVISION}
     end;
   if assigned(AMemInfo) then
     begin
@@ -1491,11 +1504,16 @@ begin
   New(PageTab, Init(R,
     NewBrowserTabItem(label_browsertab_scope,ScopeView,
     NewBrowserTabItem(label_browsertab_reference,ReferenceView,
+{$ifndef FVISION}
     NewBrowserTabItem(label_browsertab_inheritance,InheritanceView,
+{$endif FVISION}
     NewBrowserTabItem(label_browsertab_memory,MemInfoView,
     NewBrowserTabItem(label_browsertab_unit,UnitInfo,
     nil))
-    )))));
+{$ifndef FVISION}
+    )
+{$endif FVISION}
+    ))));
   PageTab^.GrowMode:=gfGrowHiX;
   Insert(PageTab);
 
@@ -1504,9 +1522,12 @@ begin
   else
    if assigned(ReferenceView) then
     SelectTab(btReferences)
+{$ifndef FVISION}
   else
    if assigned(InheritanceView) then
-    SelectTab(btInheritance);
+    SelectTab(btInheritance)
+{$endif FVISION}
+  ;
 end;
 
 destructor  TBrowserWindow.Done;
@@ -1721,8 +1742,10 @@ begin
     Tabs:=Tabs or (1 shl btScope);
   if assigned(ReferenceView) then
     Tabs:=Tabs or (1 shl btReferences);
+{$ifndef FVISION}
   if assigned(InheritanceView) then
     Tabs:=Tabs or (1 shl btInheritance);
+{$endif FVISION}
   if assigned(MemInfoView) then
     Tabs:=Tabs or (1 shl btMemInfo);
   if Assigned(Sym) then
@@ -1789,7 +1812,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:48  peter
+  Revision 1.3  2001-08-05 12:23:00  peter
+    * Automatically support for fvision or old fv
+
+  Revision 1.2  2001/08/05 02:01:48  peter
     * FVISION define to compile with fvision units
 
   Revision 1.1  2001/08/04 11:30:24  peter

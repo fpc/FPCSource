@@ -51,7 +51,6 @@ endif
 # To detect 1.0.x compilers we look for finput.ppu. If this unit
 # is not found then we include 1.0.x compiler
 #
-KL:=$(wildcard compiler/finput.*)
 ifeq ($(wildcard compiler/finput.*),)
 override FPCOPT+=-dCOMPILER_1_0
 endif
@@ -111,6 +110,13 @@ endif
 clean: fpc_cleanall
 
 distclean: clean compilerclean
+
+#
+# FVision or old FV detection
+#
+ifneq ($(wildcard $(UNITDIR_FV)/fvconsts$(PPUEXT)),)
+override COMPILER+=-dFVISION
+endif
 
 fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
 
