@@ -39,11 +39,11 @@ _start:
 
   /* Load the addresses of the user entry points.  */
         sethi   %hi(PASCALMAIN), %o0
-        sethi   %hi(__libc_csu_init), %o3
-        sethi   %hi(__libc_csu_fini), %o4
+        sethi   %hi(_init), %o3
+        sethi   %hi(_fini), %o4
         or      %o0, %lo(PASCALMAIN), %o0
-        or      %o3, %lo(__libc_csu_init), %o3
-        or      %o4, %lo(__libc_csu_fini), %o4
+        or      %o3, %lo(_init), %o3
+        or      %o4, %lo(_fini), %o4
 
   /* When starting a binary via the dynamic linker, %g1 contains the
      address of the shared library termination function, which will be
@@ -74,8 +74,6 @@ _start:
 
 .data
 
-.bss
-        .type   ___fpc_brk_addr,@object
         .comm   ___fpc_brk_addr,4        /* heap management */
 
         .comm operatingsystem_parameter_envp,4
@@ -84,7 +82,10 @@ _start:
 
 /*
   $Log$
-  Revision 1.4  2004-09-25 12:25:32  florian
+  Revision 1.5  2004-09-25 18:43:45  florian
+    * fixed symbol names
+
+  Revision 1.4  2004/09/25 12:25:32  florian
     * first implementation
 
   Revision 1.3  2003/05/23 21:09:14  florian
