@@ -374,8 +374,9 @@ begin
       start:=getrealtime-start;
       Message2(general_i_abslines_compiled,tostr(status.compiledlines),tostr(trunc(start))+'.'+tostr(trunc(frac(start)*10)));
     end;
-
+{***Obsolete
    clearnodes;
+***}
    done_symtable;
 {$ifdef TP}
    Comment(V_Info,'Memory: '+tostr(MemAvail)+' Bytes Free');
@@ -391,7 +392,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  1998-06-17 14:10:17  peter
+  Revision 1.17  1998-06-23 08:59:22  daniel
+  * Recommitted.
+
+  Revision 1.16  1998/06/17 14:10:17  peter
     * small os2 fixes
     * fixed interdependent units with newppu (remake3 under linux works now)
 
