@@ -135,7 +135,7 @@ type
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   Update; virtual;
       constructor Load(var S: TStream);
-      procedure   Store(var S: TStream);                                                                                                                                                                                                                       
+      procedure   Store(var S: TStream);
       destructor  Done; virtual;
     end;
 
@@ -212,10 +212,37 @@ type
       WLB : PWatchesListBox;
       Constructor Init;
       constructor Load(var S: TStream);
-      procedure   Store(var S: TStream);                                                                                                                                                                                                                       
-      procedure Update; virtual;
+      procedure   Store(var S: TStream);
+      procedure   Update; virtual;
       destructor  Done; virtual;
     end;
+
+    PFramesListBox = ^TFramesListBox;
+    TFramesListBox = object(TMessageListBox)
+      constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
+      procedure   Update;
+      function    GetLocalMenu: PMenu;virtual;
+      procedure   GotoSource; virtual;
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      destructor  Done; virtual;
+    end;
+
+    PStackWindow = ^TStackWindow;
+    TStackWindow = Object(TDlgWindow)
+      FLB : PFramesListBox;
+      Constructor Init;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
+      procedure   Update; virtual;
+      destructor  Done; virtual;
+    end;
+
+const
+  StackWindow : PStackWindow = nil;
+
+  procedure InitStackWindow;
+  procedure DoneStackWindow;
+
 
 const
      BreakpointTypeStr : Array[BreakpointType] of String[9]
@@ -277,6 +304,20 @@ const
      Store:   @TWatchesListBox.Store
   );
 
+  RStackWindow: TStreamRec = (
+     ObjType: 1705;
+     VmtLink: Ofs(TypeOf(TStackWindow)^);
+     Load:    @TStackWindow.Load;
+     Store:   @TStackWindow.Store
+  );
+
+  RFramesListBox: TStreamRec = (
+     ObjType: 1706;
+     VmtLink: Ofs(TypeOf(TFramesListBox)^);
+     Load:    @TFramesListBox.Load;
+     Store:   @TFramesListBox.Store
+  );
+
 {****************************************************************************
                             TDebugController
 ****************************************************************************}
@@ -311,6 +352,8 @@ procedure TDebugController.ReadWatches;
 
 begin
   WatchesCollection^.ForEach(@DoRead);
+  If Assigned(WatchesWindow) then
+    WatchesWindow^.Update;
 end;
 
 
@@ -344,7 +387,9 @@ procedure TDebugController.Run;
 begin
   ResetBreakpointsValues;
   inherited Run;
-  MyApp.SetCmdState([cmResetDebugger],true);
+  MyApp.SetCmdState([cmResetDebugger,cmUntilReturn],true);
+  If assigned(StackWindow) then
+    StackWindow^.Update;
 end;
 
 procedure TDebugController.Continue;
@@ -356,12 +401,16 @@ begin
     Run
   else
     inherited Continue;
+  If assigned(StackWindow) then
+    StackWindow^.Update;
 {$endif NODEBUG}
 end;
 
 procedure TDebugController.UntilReturn;
 begin
   Command('finish');
+  If assigned(StackWindow) then
+    StackWindow^.Update;
   { We could try to get the return value !
     Not done yet }
 end;
@@ -405,12 +454,20 @@ end;
 procedure TDebugController.Reset;
 var
   W : PSourceWindow;
+  procedure ResetDebugerRow(P: PView); {$ifndef FPC}far;{$endif}
+  begin
+    if assigned(P) and
+       (TypeOf(P^)=TypeOf(TSourceWindow)) then
+      Message(P,evCommand,cmResetDebuggerRow,nil);
+  end;
+
 begin
   inherited Reset;
-  MyApp.SetCmdState([cmResetDebugger],false);
+  MyApp.SetCmdState([cmResetDebugger,cmUntilReturn],false);
   W:=PSourceWindow(LastSource);
   if assigned(W) then
      W^.Editor^.SetDebuggerRow(-1);
+  Desktop^.ForEach(@ResetDebugerRow);
 end;
 
 procedure TDebugController.AnnotateError;
@@ -420,6 +477,8 @@ begin
     begin
        errornb:=error_num;
        ReadWatches;
+       If assigned(StackWindow) then
+         StackWindow^.Update;
        ErrorBox(#3'Error within GDB'#13#3'Error code = %d',@errornb);
     end;
 end;
@@ -447,6 +506,9 @@ begin
           W^.Editor^.TrackCursor(true);
           W^.Editor^.SetDebuggerRow(Line);
           ReadWatches;
+          If assigned(StackWindow) then
+            StackWindow^.Update;
+
           if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
             W^.Select;
           InvalidSourceLine:=false;
@@ -461,6 +523,8 @@ begin
         begin
           W^.Editor^.SetDebuggerRow(Line);
           W^.Editor^.TrackCursor(true);
+          If assigned(StackWindow) then
+            StackWindow^.Update;
           ReadWatches;
           if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
             W^.Select;
@@ -485,6 +549,8 @@ begin
               W^.Editor^.SetDebuggerRow(Line);
               W^.Editor^.TrackCursor(true);
               ReadWatches;
+              If assigned(StackWindow) then
+                StackWindow^.Update;
               if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
                 W^.Select;
               LastSource:=W;
@@ -1579,11 +1645,22 @@ constructor TWatchesListBox.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PS
   end;
 
 procedure TWatchesListBox.Update(AMaxWidth : integer);
+var R : TRect;
 begin
+  GetExtent(R);
   MaxWidth:=AMaxWidth;
   if HScrollBar<>nil then
     HScrollBar^.SetRange(0,MaxWidth);
+  if R.B.X-R.A.X>MaxWidth then
+    HScrollBar^.Hide
+  else
+    HScrollBar^.Show;
   SetRange(List^.Count);
+  if R.B.Y-R.A.Y>Range then
+    VScrollBar^.Hide
+  else
+    VScrollBar^.Show;
+
   if Focused=List^.Count-1-1 then
      FocusItem(List^.Count-1);
   DrawView;
@@ -1795,22 +1872,29 @@ end;
       constructor TWatchesListBox.Load(var S: TStream);
         begin
           inherited Load(S);
+          If assigned(List) then
+            dispose(list,done);
+          List:=WatchesCollection;
+          { we must set Range PM }
+          SetRange(List^.count);
         end;
 
       procedure   TWatchesListBox.Store(var S: TStream);
         var OL: PCollection;
-        begin                                                                                                                                                                                                                                                  
-          OL:=List;                                                                                                                                                                                                                                            
-          New(List, Init(1,1));                                                                                                                                                                                                                                
-                                                                                                                                                                                                                                                               
-          inherited Store(S);                                                                                                                                                                                                                                  
-                                                                                                                                                                                                                                                               
-          Dispose(List, Done);                                                                                                                                                                                                                                 
-          List:=OL;                                                                                                                                                                                                                                            
-          { ^^^ nasty trick - has anyone a better idea how to avoid storing the                                                                                                                                                                                
-            collection? Pasting here a modified version of TListBox.Store+                                                                                                                                                                                     
-            TAdvancedListBox.Store isn't a better solution, since by eventually                                                                                                                                                                                
-            changing the obj-hierarchy you'll always have to modify this, too - BG }                                                                                                                                                                           
+            OldRange : Sw_integer;
+        begin
+          OL:=List;
+          OldRange:=Range;
+          Range:=0;
+          New(List, Init(1,1));
+          inherited Store(S);
+          Dispose(List, Done);
+          List:=OL;
+          { ^^^ nasty trick - has anyone a better idea how to avoid storing the
+            collection? Pasting here a modified version of TListBox.Store+
+            TAdvancedListBox.Store isn't a better solution, since by eventually
+            changing the obj-hierarchy you'll always have to modify this, too - BG }
+          SetRange(OldRange);
         end;
 
       destructor  TWatchesListBox.Done;
@@ -1825,7 +1909,8 @@ end;
 
   Constructor TWatchesWindow.Init;
     var
-      R : trect;
+      HSB,VSB: PScrollBar;
+      R,R2 : trect;
     begin
       Desktop^.GetExtent(R);
       R.A.Y:=R.B.Y-5;
@@ -1833,13 +1918,26 @@ end;
       GetExtent(R);
       HelpCtx:=hcWatches;
       R.Grow(-1,-1);
-      New(WLB,Init(R,nil,nil));
+      R2.Copy(R);
+      Inc(R2.B.Y);
+      R2.A.Y:=R2.B.Y-1;
+      New(HSB, Init(R2));
+      HSB^.GrowMode:=gfGrowLoY+gfGrowHiY+gfGrowHiX;
+      Insert(HSB);
+      R2.Copy(R);
+      Inc(R2.B.X);
+      R2.A.X:=R2.B.X-1;
+      New(VSB, Init(R2));
+      VSB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY;
+      Insert(VSB);
+      New(WLB,Init(R,HSB,VSB));
       WLB^.GrowMode:=gfGrowHiX+gfGrowHiY;
       WLB^.Transparent:=true;
       Insert(WLB);
       If assigned(WatchesWindow) then
         dispose(WatchesWindow,done);
       WatchesWindow:=@Self;
+      Update;
     end;
 
   procedure TWatchesWindow.Update;
@@ -1937,12 +2035,132 @@ begin
   if R=cmOK then
   begin
     NameIL^.GetData(S1);
-    If assigned(Watch^.Expr) then
-          DisposeStr(Watch^.Expr);
-    Watch^.expr:=NewStr(S1);
+    Watch^.Rename(S1);
+    If assigned(Debugger) then
+       Debugger^.ReadWatches;
   end;
   Execute:=R;
 end;
+
+
+{****************************************************************************
+                         TStackWindow
+****************************************************************************}
+
+  constructor TFramesListBox.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
+    begin
+      Inherited Init(Bounds,AHScrollBar,AVScrollBar);
+    end;
+
+  procedure TFramesListBox.Update;
+
+    var i : longint;
+    begin
+      { call backtrace command }
+      If not assigned(Debugger) then
+        exit;
+      Clear;
+      { forget all old frames }
+      Debugger^.clear_frames;
+
+      Debugger^.Command('backtrace');
+      { generate list }
+      { all is in tframeentry }
+      for i:=0 to Debugger^.frame_count-1 do
+        begin
+          with Debugger^.frames[i]^ do
+            begin
+              AddItem(new(PMessageItem,init(0,StrPas(function_name)+StrPas(args),
+                AddModuleName(StrPas(file_name)),line_number,1)));
+            end;
+        end;
+      if List^.Count > 0 then
+        FocusItem(0);
+    end;
+
+  function TFramesListBox.GetLocalMenu: PMenu;
+    begin
+      GetLocalMenu:=Inherited GetLocalMenu;
+    end;
+
+  procedure TFramesListBox.GotoSource;
+    begin
+      { select frame for watches }
+      If not assigned(Debugger) then
+        exit;
+      Debugger^.Command('f '+IntToStr(Focused));
+      { for local vars } 
+      Debugger^.ReadWatches;
+      { goto source }
+      inherited GotoSource;
+    end;
+
+  procedure   TFramesListBox.HandleEvent(var Event: TEvent);
+    begin
+      inherited HandleEvent(Event);
+    end;
+
+  destructor  TFramesListBox.Done;
+    begin
+      Inherited Done;
+    end;
+
+  Constructor TStackWindow.Init;
+    var
+      HSB,VSB: PScrollBar;
+      R,R2 : trect;
+    begin
+      Desktop^.GetExtent(R);
+      R.A.Y:=R.B.Y-5;
+      inherited Init(R, 'Call Stack', wnNoNumber);
+      GetExtent(R);
+      HelpCtx:=hcStack;
+      R.Grow(-1,-1);
+      R2.Copy(R);
+      Inc(R2.B.Y);
+      R2.A.Y:=R2.B.Y-1;
+      New(HSB, Init(R2));
+      HSB^.GrowMode:=gfGrowLoY+gfGrowHiY+gfGrowHiX;
+      Insert(HSB);
+      R2.Copy(R);
+      Inc(R2.B.X);
+      R2.A.X:=R2.B.X-1;
+      New(VSB, Init(R2));
+      VSB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY;
+      Insert(VSB);
+      New(FLB,Init(R,HSB,VSB));
+      FLB^.GrowMode:=gfGrowHiX+gfGrowHiY;
+      Insert(FLB);
+      If assigned(StackWindow) then
+        dispose(StackWindow,done);
+      StackWindow:=@Self;
+      Update;
+    end;
+
+  procedure TStackWindow.Update;
+    begin
+      FLB^.Update;
+      DrawView;
+    end;
+
+  constructor TStackWindow.Load(var S: TStream);
+    begin
+      inherited Load(S);
+      GetSubViewPtr(S,FLB);
+    end;
+
+  procedure TStackWindow.Store(var S: TStream);
+    begin
+      inherited Store(S);
+      PutSubViewPtr(S,FLB);
+    end;
+
+  Destructor TStackWindow.Done;
+    begin
+      StackWindow:=nil;
+      Dispose(FLB,done);
+      inherited done;
+    end;
 
 {****************************************************************************
                          Init/Final
@@ -2008,6 +2226,24 @@ begin
     end;
 end;
 
+procedure InitStackWindow;
+begin
+  if StackWindow=nil then
+    begin
+      new(StackWindow,init);
+      DeskTop^.Insert(StackWindow);
+    end;
+end;
+
+procedure DoneStackWindow;
+begin
+  if assigned(StackWindow) then
+    begin
+      DeskTop^.Delete(StackWindow);
+      StackWindow:=nil;
+    end;
+end;
+
 procedure InitBreakpoints;
 begin
   New(BreakpointCollection,init(10,10));
@@ -2036,13 +2272,18 @@ begin
   RegisterType(RBreakpointsWindow);
   RegisterType(RWatchesListBox);
   RegisterType(RBreakpointsListBox);
+  RegisterType(RStackWindow);
+  RegisterType(RFramesListBox);
 end;
 
 end.
 
 {
   $Log$
-  Revision 1.27  1999-08-24 22:04:33  pierre
+  Revision 1.28  1999-09-09 14:20:05  pierre
+   + Stack Window
+
+  Revision 1.27  1999/08/24 22:04:33  pierre
     + TCodeEditor.SetDebuggerRow
       works like SetHighlightRow but is only disposed by a SetDebuggerRow(-1)
       so the current stop point in debugging is not lost if

@@ -43,7 +43,14 @@ end;
 
 procedure TIDEApp.DoShowCallStack;
 begin
-  NotImplemented;
+{$ifdef NODEBUG}
+  NoDebugger;
+{$else}
+  If not assigned(StackWindow) then
+    InitStackWindow
+  else
+    StackWindow^.MakeFirst;
+{$endif NODEBUG}
 end;
 
 procedure TIDEApp.DoShowBreakpointList;
@@ -112,7 +119,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1999-07-28 23:11:19  peter
+  Revision 1.8  1999-09-09 14:20:05  pierre
+   + Stack Window
+
+  Revision 1.7  1999/07/28 23:11:19  peter
     * fixes from gabor
 
   Revision 1.6  1999/07/10 01:24:19  pierre
