@@ -312,7 +312,7 @@ implementation
                                   { it is nonsens, to copy the variable to }
                                   { a register because we need then much   }
                                   { pushes ?                               }
-                                  if reg_pushes[varregs[i]]>=regvars[i]^.refs then
+                                  if tg.reg_pushes[varregs[i]]>=regvars[i]^.refs then
                                     begin
                                        regvars[i]:=nil;
                                        goto nextreg;
@@ -323,7 +323,7 @@ implementation
                                   { search the register which is the most }
                                   { unused                                }
                                   exclude(tg.availabletempregsint,varregs[i]);
-                                  is_reg_var[varregs[i]]:=true;
+                                  tg.is_reg_var[varregs[i]]:=true;
                                   dec(tg.c_countusableregsint);
 
                                   { possibly no 32 bit register are needed }
@@ -423,7 +423,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1999-08-03 00:28:03  florian
+  Revision 1.3  1999-08-03 00:30:36  florian
+    * again a fix for the alpha
+
+  Revision 1.2  1999/08/03 00:28:03  florian
     * some updates to compile for the alpha
 
   Revision 1.1  1999/08/03 00:07:16  florian
