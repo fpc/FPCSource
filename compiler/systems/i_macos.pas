@@ -37,7 +37,7 @@ unit i_macos;
             unit_env     : '';
             extradefines : '';
             sourceext    : '.pp';
-            pasext       : '.pas'; //is normally .p on MacOS, but then the compiler doesnt compile.
+            pasext       : '.p'; {is normally .p for mac pascals}
             exeext       : '';
             defext       : '';
             scriptext    : '';
@@ -102,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2004-02-19 20:40:20  olle
+  Revision 1.14  2004-05-03 09:48:15  olle
+    * changed .pas back to .p
+
+  Revision 1.13  2004/02/19 20:40:20  olle
     + Support for Link on target especially for MacOS
     + TLinkerMPW
     + TAsmScriptMPW
