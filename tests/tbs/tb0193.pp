@@ -14,7 +14,11 @@ end ['EAX'];
         move.l    HEAPSIZE,d0
 end ['D0'];
 {$endif CPU68K}
-
+{$ifdef cpupowerpc}
+       lis r3, heapsize@ha
+       lwz r3, heapsize@l(r3)
+end;
+{$endif cpupowerpc}
 
 begin
   writeln(getheapsize);
