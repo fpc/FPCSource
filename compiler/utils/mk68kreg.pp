@@ -291,3 +291,8 @@ begin
    build_std_regname_index;
    write_inc_files;
 end.
+{
+$Log$
+Revision 1.2  2003-12-10 02:22:59  karoly
+  * fixed logs
+}
