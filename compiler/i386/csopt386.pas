@@ -251,8 +251,9 @@ begin
 
   while (tmpResult = R_NO) and
         stillValid(hp) and
-        not(modifiesConflictingMemLocation(prevFound,reg,
-           ppaiprop(p^.optinfo)^.regs,regsStillValid)) do
+        (ppaiprop(prevFound^.optinfo)^.canBeRemoved or
+         not(modifiesConflictingMemLocation(prevFound,reg,
+           ppaiprop(p^.optinfo)^.regs,regsStillValid))) do
     begin
       { only update the regsread for the instructions we already passed }
       if not(ppaiprop(prevFound^.optinfo)^.canBeRemoved) then
@@ -1672,8 +1673,12 @@ End.
 
 {
   $Log$
-  Revision 1.3  2000-11-01 22:53:30  jonas
+  Revision 1.4  2000-11-03 17:53:24  jonas
+    * some small improvements
+
+  Revision 1.3  2000/11/01 22:53:30  jonas
     * register contents were not cleared if there was only 1 instruction
+
       between de previous sequence and the current one
 
   Revision 1.2  2000/10/24 10:40:53  jonas
