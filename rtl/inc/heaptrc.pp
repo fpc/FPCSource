@@ -344,6 +344,7 @@ end;
 Function TraceGetMem(size:longint):pointer;
 var
   allocsize,i : longint;
+  oldbp,
   bp : pointer;
   pl : pdword;
   p  : pointer;
@@ -396,7 +397,10 @@ begin
   for i:=1 to tracesize do
    begin
      pp^.calls[i]:=get_caller_addr(bp);
+     oldbp:=bp;
      bp:=get_caller_frame(bp);
+     if bp<oldbp then
+       bp:=nil;
    end;
   { insert in the linked list }
   if heap_mem_root<>nil then
@@ -1152,7 +1156,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.23  2003-03-17 14:30:11  peter
+  Revision 1.24  2003-09-11 15:54:27  peter
+    * when retrieving stackdump check if bp is smaller than the previous
+      bp
+
+  Revision 1.23  2003/03/17 14:30:11  peter
     * changed address parameter/return values to pointer instead
       of longint
 
