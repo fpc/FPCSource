@@ -13,10 +13,10 @@ then
   if [[ "$1" == "-V1.1" ]]
   then
     cd "$COMP_DIR"
-    ~/FPC/bin/fpc -XD pp -gl -oppcsparc -dExtDebug -Fu"sparc;systems" -FE"sparc" -dSPARC -dGDB -dNewRA
+    ~/FPC/bin/fpc -XD -gl -oppcsparc -dExtDebug -Fu"sparc;systems" -FE"sparc" -dSPARC -dGDB -dNewRA pp.pas
   else
     cd "$COMP_DIR"
-    fpc -dHaveLinuxRtl10 -XD pp -gl -oppcsparc -dExtDebug -Fu"sparc;systems" -FE"sparc" -dSPARC -dGDB -dNewRA
+    fpc -XD -gl -oppcsparc -dExtDebug -Fu"sparc;systems" -FE"sparc" -dSPARC -dGDB -dNewRA pp.pas
   fi
 fi
 if [[ "$#" -gt "0" ]] && ( [[ "$1" != "-B" ]] || [[ "$#" -gt "1" ]] )

@@ -74,6 +74,10 @@ uses
       first_int_imreg = $20;
       first_fpu_imreg = $20;
 
+      { MM Super register first and last }
+      first_mm_supreg    = 0;
+      first_mm_imreg     = 0;
+
 {$warning TODO Calculate bsstart}
       regnumber_count_bsstart = 128;
 
@@ -563,7 +567,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2004-06-20 08:55:32  florian
+  Revision 1.68  2004-07-26 04:00:35  mazen
+  * fix compile problem
+
+  Revision 1.67  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.66  2004/06/16 20:07:10  florian
