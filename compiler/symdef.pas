@@ -3530,7 +3530,7 @@ implementation
             hp.is_hidden:=boolean(ppufile.getbyte);
             if po_explicitparaloc in procoptions then
               begin
-                ppufile.getdata(hp.paraloc,sizeof(hp.paraloc));
+                ppufile.getdata(hp.paraloc[callerside].add_location^,sizeof(hp.paraloc[callerside].location^));
                 has_paraloc_info:=true;
               end;
             { Parameters are stored left to right in both ppu and memory }
@@ -3577,8 +3577,10 @@ implementation
             ppufile.putderef(hp.parasymderef);
             ppufile.putbyte(byte(hp.is_hidden));
             if po_explicitparaloc in procoptions then
-              ppufile.putdata(hp.paraloc,sizeof(hp.paraloc));
-
+              begin
+                hp.paraloc[callerside].check_simple_location;
+                ppufile.putdata(hp.paraloc[callerside].location^,sizeof(hp.paraloc[callerside].location^));
+              end;
             hp:=TParaItem(hp.next);
           end;
       end;
@@ -6216,7 +6218,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.263  2004-11-01 23:30:11  peter
+  Revision 1.264  2004-11-03 09:46:34  florian
+    * fixed writing of para locations for procedures with explicit locations for parameters
+
+  Revision 1.263  2004/11/01 23:30:11  peter
     * support > 32bit accesses for x86_64
     * rewrote array size checking to support 64bit
 
