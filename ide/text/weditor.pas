@@ -1297,6 +1297,10 @@ begin
     Color:=(Orig and $0f) or (Modifier and $f0)
   else
     Color:=(Orig and $f0) or (Modifier and $0f);
+  { do not allow invisible }
+  { use white as foreground in this case }
+  if (Color and $f) = ((Color div $10) and $7) then
+    Color:=(Color and $F0) or $F;
   CombineColors:=Color;
 end;
 const NulLine : TLine = (Text: nil; Format: nil);
@@ -1511,7 +1515,10 @@ end;
 procedure TCodeEditor.SetLineBreakState(I : integer;b : boolean);
 var PL : PLine;
 begin
-   PL:=Lines^.At(i);
+   if (i>0) and (i<=Lines^.Count) then
+     PL:=Lines^.At(i-1)
+   else
+     exit;
    if assigned(PL) then
      PL^.isbreakpoint:=b;
    DrawView;
@@ -3299,7 +3306,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.14  1999-02-05 13:51:45  peter
+  Revision 1.15  1999-02-09 09:29:59  pierre
+   * avoid invisible characters in CombineColors
+
+  Revision 1.14  1999/02/05 13:51:45  peter
     * unit name of FPSwitches -> FPSwitch which is easier to use
     * some fixes for tp7 compiling
 
