@@ -119,23 +119,11 @@ clean:
 # Install
 ##########################################################################
 
-install.exe: install.pas
-	$(TPC) install.pas
-ifdef UPX
-	-$(UPX) install.exe
-endif
-
-installgo32: install.exe
-	$(MKDIR) $(PACKAGEDIR)
-	$(COPY) install.dos install.dat
-	$(COPY) install.exe install.dat $(PACKAGEDIR)
-	$(COPY) readme.txt whatsnew.txt $(PACKAGEDIR)
-
-installw32: install.exe
-	$(MKDIR) $(PACKAGEDIR)
-	$(COPY) install.w32 install.dat
-	$(COPY) install.exe install.dat $(PACKAGEDIR)
-	$(COPY) readme.txt whatsnew.txt $(PACKAGEDIR)
+installer:
+	$(MAKE) -C $(CVSBASE)/rtl/go32v2 all RELEASE=1
+	$(MAKE) -C $(CVSBASE)/api all RELEASE=1
+	$(MAKE) -C $(CVSBASE)/fv all RELEASE=1
+	$(MAKE) -C fpinst all RELEASE=1
 
 
 ##########################################################################
@@ -166,8 +154,8 @@ basego32:
 	make -C $(CVSBASE)/rtl/go32v2 clean OS_TARGET=go32v2
 	make -C $(CVSBASE)/rtl/go32v2 libinstall OS_TARGET=go32v2 RELEASE=1 PP=$(PPNEW)
 # utils
-	make -C $(CVSBASE)/rtl/utils clean OS_TARGET=go32v2
-	make -C $(CVSBASE)/rtl/utils install OS_TARGET=go32v2 RELEASE=1 PP=$(PPNEW)
+	make -C $(CVSBASE)/utils clean OS_TARGET=go32v2
+	make -C $(CVSBASE)/utils install OS_TARGET=go32v2 RELEASE=1 PP=$(PPNEW)
 
 basego32.zip:
 	make basego32 BASEINSTALLDIR=$(PACKDIR)
@@ -180,12 +168,20 @@ basego32.zip:
 ##########################################################################
 
 basew32:
+# create dirs
+	$(MKDIR) $(BASEINSTALLDIR)
+	$(MKDIR) $(DOCINSTALLDIR)
+	$(MKDIR) $(BININSTALLDIR)
+	$(MKDIR) $(SOURCEINSTALLDIR)
+# readme & whatsnew
+	$(COPY) readme.txt whatsnew.txt $(BASEINSTALLDIR)
+# docs
+	$(COPY) doc/* $(DOCINSTALLDIR)
+# source (base)
+	$(COPY) $(CVSBASE)/base/Makefile $(CVSBASE)/base/makefile.fpc $(SOURCEINSTALLDIR)
 # readme.txt & whatsnew.txt
 	$(MKDIR) $(BASEINSTALLDIR)
 	$(COPY) readme.txt whatsnew.txt $(BASEINSTALLDIR)
-# docs
-	$(MKDIR) $(DOCINSTALLDIR)
-	$(COPY) doc/* $(DOCINSTALLDIR)
 # compiler, the - is necessary because the files sometimes differ
 	-make -C $(CVSBASE)/compiler cycle OS_TARGET=win32 RELEASE=1
 	make -C $(CVSBASE)/compiler install OS_TARGET=win32
@@ -196,22 +192,25 @@ basew32:
 	make -C $(CVSBASE)/rtl/win32 clean OS_TARGET=win32
 	make -C $(CVSBASE)/rtl/win32 libinstall OS_TARGET=win32 RELEASE=1 PP=$(PPNEW)
 # utils
-	make -C $(CVSBASE)/rtl/utils clean OS_TARGET=win32
-	make -C $(CVSBASE)/rtl/utils install OS_TARGET=win32 RELEASE=1 PP=$(PPNEW)
+	make -C $(CVSBASE)/utils clean OS_TARGET=win32
+	make -C $(CVSBASE)/utils install OS_TARGET=win32 RELEASE=1 PP=$(PPNEW)
 
 basew32.zip:
 	make basew32 BASEINSTALLDIR=$(PACKDIR)
 	$(MKDIR) $(PACKAGEDIR)
 # Maybe you need 4dos for it, becuase unix paths with / are used
 	cd $(PACKDIR)
-	$(ZIP) $(PACKAGEDIR)/basew32.zip *
+	$(ZIPPROG) $(PACKAGEDIR)/basew32.zip *
 	cd $(BASEDIR)
 	$(DELTREE) $(PACKDIR)
 
 
 #
 # $Log$
-# Revision 1.2  1999-05-03 18:04:37  peter
+# Revision 1.3  1999-05-30 11:34:33  peter
+#   * updates to generate the installer
+#
+# Revision 1.2	1999/05/03 18:04:37  peter
 #   * updates
 #
 # Revision 1.1	1998/09/16 16:46:36  peter

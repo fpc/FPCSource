@@ -18,9 +18,9 @@
 #####################################################################
 
 # Default place of the makefile.fpc
-DEFAULTFPCDIR=..
+DEFAULTFPCDIR=../..
 
-NEEDUNITDIR=../api ../fv
+NEEDUNITDIR=../../api ../../fv
 
 
 #####################################################################
@@ -39,11 +39,11 @@ EXEOBJECTS=install
 	staticlib sharedlib libsclean \
 	staticinstall sharedinstall libinstall \
 
-all: testfpcmake fpc_all h2pas_all
+all: testfpcmake fpc_all
 
-clean: testfpcmake fpc_clean h2pas_clean
+clean: testfpcmake fpc_clean
 
-install: testfpcmake fpc_install h2pas_install
+install: testfpcmake fpc_install
 
 info: testfpcmake fpc_info
 
@@ -104,7 +104,10 @@ endif
 
 #
 # $Log$
-# Revision 1.3  1999-05-02 14:27:39  peter
+# Revision 1.4  1999-05-30 11:34:34  peter
+#   * updates to generate the installer
+#
+# Revision 1.3	1999/05/02 14:27:39  peter
 #   * update to new standards
 #
 # Revision 1.2	1999/03/09 01:35:53  peter
