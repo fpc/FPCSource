@@ -67,3 +67,7 @@ ex64.pp contains an example of the BCDToInt function.
 ex65.pp contains an example of the CompareStr function.
 ex66.pp contains an example of the CompareText function.
 ex67.pp contains an example of the FloatToStr function.
+ex68.pp contains an example of the FloatToStrF function.
+ex69.pp contains an example of the FloatToText function.
+ex70.pp contains an example of the FmtStr function.
+ex71.pp contains an example of the Format function.
