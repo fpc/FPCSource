@@ -1254,8 +1254,7 @@ uses
       var
         pt : ptree;
         tt2 : ttype;
-        aufdef : penumdef;
-        {aufsym : penumsym;}
+        aktenumdef : penumdef;
         ap : parraydef;
         s : stringid;
         l,v : longint;
@@ -1434,13 +1433,14 @@ uses
                 consume(_LKLAMMER);
                 { allow negativ value_str }
                 l:=-1;
-                {aufsym := Nil;}
-                aufdef:=new(penumdef,init);
+                aktenumdef:=new(penumdef,init);
                 repeat
                   s:=pattern;
                   defpos:=tokenpos;
                   consume(_ID);
-                  if token=_ASSIGNMENT then
+                  { only allow assigning of specific numbers under fpc mode }
+                  if (m_fpc in aktmodeswitches) and
+                     (token=_ASSIGNMENT) then
                     begin
                        consume(_ASSIGNMENT);
                        v:=get_intconst;
@@ -1454,18 +1454,14 @@ uses
                     inc(l);
                   storepos:=tokenpos;
                   tokenpos:=defpos;
-                  constsymtable^.insert(new(penumsym,init(s,aufdef,l)));
+                  constsymtable^.insert(new(penumsym,init(s,aktenumdef,l)));
                   tokenpos:=storepos;
                   if token=_COMMA then
                     consume(_COMMA)
                   else
                     break;
                 until false;
-                {aufdef^.max:=l;
-                if we allow unordered enums
-                this can be wrong
-                min and max are now set in tenumsym.init PM }
-                tt.setdef(aufdef);
+                tt.setdef(aktenumdef);
                 consume(_RKLAMMER);
               end;
             _ARRAY:
@@ -1593,7 +1589,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.26  2000-06-13 17:09:56  kaz
+  Revision 1.27  2000-06-18 18:16:38  peter
+    * don't allow enum assignments in tp/delphi mode
+
+  Revision 1.26  2000/06/13 17:09:56  kaz
     * array type property can have default value, fixed.
 
   Revision 1.25  2000/06/02 18:48:47  florian
