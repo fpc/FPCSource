@@ -212,7 +212,7 @@ interface
                 unsigned := not unsigned;
 
             if (unsigned and
-                (right.location.value) <= high(word)) or
+                ((right.location.value) <= high(word))) or
                (not(unsigned) and
                 (longint(right.location.value) >= low(smallint)) and
                 (longint(right.location.value) <= high(smallint))) then
@@ -1302,7 +1302,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-08-10 17:15:31  jonas
+  Revision 1.8  2002-08-11 06:14:40  florian
+    * fixed powerpc compilation problems
+
+  Revision 1.7  2002/08/10 17:15:31  jonas
     * various fixes and optimizations
 
   Revision 1.6  2002/08/06 20:55:24  florian

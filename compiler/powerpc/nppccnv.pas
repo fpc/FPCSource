@@ -255,7 +255,7 @@ implementation
            cg.free_scratch_reg(exprasmlist,valuereg);
 
          tmpfpureg := rg.getregisterfpu(exprasmlist);
-         a_loadfpu_ref_reg(exprasmlist,OS_F64,tempconst.location.reference,
+         cg.a_loadfpu_ref_reg(exprasmlist,OS_F64,tempconst.location.reference,
            tmpfpureg);
          tempconst.free;
 
@@ -418,7 +418,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-08-10 17:15:31  jonas
+  Revision 1.21  2002-08-11 06:14:41  florian
+    * fixed powerpc compilation problems
+
+  Revision 1.20  2002/08/10 17:15:31  jonas
     * various fixes and optimizations
 
   Revision 1.19  2002/07/29 21:23:44  florian

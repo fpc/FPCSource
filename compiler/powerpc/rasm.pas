@@ -30,10 +30,10 @@ Interface
 uses
   node;
 
-   { 
+   {
      This routine is called to parse the instructions in assembler
      blocks. It returns a complete list of directive and instructions
-   }  
+   }
    function assemble: tnode;
 
 
@@ -52,22 +52,24 @@ Implementation
        { pass 1 }
        nbas,
        { parser }
-       scanner,
-       rautils
+       scanner
+       // ,rautils
        ;
 
     function assemble : tnode;
      begin
      end;
-     
+
 Begin
 end.
 {
   $Log$
-  Revision 1.1  2002-08-10 14:52:52  carl
+  Revision 1.2  2002-08-11 06:14:41  florian
+    * fixed powerpc compilation problems
+
+  Revision 1.1  2002/08/10 14:52:52  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's
     * move from nppcmem.pas -> ncgmem.pas vec. node.
-
-}  
+}

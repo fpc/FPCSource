@@ -82,6 +82,10 @@ implementation
 {$ifdef delphi}
       sysutils,
 {$endif}
+{$ifdef GDB}
+      strings,
+      gdb,
+{$endif GDB}
       globtype,systems,
       cutils,verbose,globals,
       symconst,symtype,symdef,symsym,symtable,defbase,paramgr,
@@ -89,17 +93,9 @@ implementation
       cginfo,cgbase,pass_2,
       pass_1,nld,ncon,nadd,
       cpubase,
-      cgobj,tgobj,rgobj,ncgutil,symbase,
-{$ifdef GDB}
-  {$ifdef delphi}
-      sysutils,
-  {$else}
-      strings,
-  {$endif}
-      gdb
-{$endif GDB}
+      cgobj,tgobj,rgobj,ncgutil,symbase
       ;
-      
+
 
 {*****************************************************************************
                             TCGLOADNODE
@@ -880,7 +876,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-08-10 14:46:29  carl
+  Revision 1.20  2002-08-11 06:14:40  florian
+    * fixed powerpc compilation problems
+
+  Revision 1.19  2002/08/10 14:46:29  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's

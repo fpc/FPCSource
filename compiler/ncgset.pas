@@ -790,7 +790,7 @@ implementation
                 first:=true;
                 scratch_reg := cg.get_scratch_reg_int(exprasmlist);
                 genitem(hp);
-                cg.free_scratch_reg(exprasmlist);
+                cg.free_scratch_reg(exprasmlist,scratch_reg);
                 cg.a_jmp_always(exprasmlist,elselabel);
              end;
         end;
@@ -949,7 +949,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-08-10 17:15:12  jonas
+  Revision 1.13  2002-08-11 06:14:40  florian
+    * fixed powerpc compilation problems
+
+  Revision 1.12  2002/08/10 17:15:12  jonas
     * optimizations and bugfix
 
   Revision 1.11  2002/07/28 09:24:18  carl
