@@ -14,9 +14,9 @@ begin
   openlog(pchar(prefix),LOG_NOWAIT,LOG_DEBUG);
   for i:=1 to 10 do
     syslog(log_info,'This is message number %d'#10,[i]);
-      prefix:='';
+  prefix:='';
 end;
 
 begin
   dotest;
-  end.
+end.
