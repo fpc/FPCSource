@@ -121,7 +121,6 @@ implementation
             begin
               if (varspez<>vs_var) then
                 Message(parser_h_c_arrays_are_references);
-              varspez:=vs_var;
             end;
            if assigned(vartype.def) and
               (is_array_of_const(vartype.def) or
@@ -1569,10 +1568,18 @@ const
                begin
                  if not tprocdef(def).has_mangledname then
                   begin
-                    if assigned(tprocdef(def)._class) then
-                     tprocdef(def).setmangledname(target_info.Cprefix+tprocdef(def)._class.objrealname^+'_'+sym.realname)
+                    if (po_external in def.procoptions) and
+                       target_info.DllScanSupported then
+                     begin
+                       tprocdef(def).setmangledname(sym.realname);
+                     end
                     else
-                     tprocdef(def).setmangledname(target_info.Cprefix+sym.realname);
+                     begin
+                       if assigned(tprocdef(def)._class) then
+                        tprocdef(def).setmangledname(target_info.Cprefix+tprocdef(def)._class.objrealname^+'_'+sym.realname)
+                       else
+                        tprocdef(def).setmangledname(target_info.Cprefix+sym.realname);
+                     end;
                   end;
                  if not assigned(tprocdef(def).parast) then
                   internalerror(200110234);
@@ -2080,7 +2087,10 @@ const
 end.
 {
   $Log$
-  Revision 1.90  2002-12-17 22:19:33  peter
+  Revision 1.91  2002-12-23 20:58:52  peter
+    * cdecl array fix, hack to change it to vs_var is not needed
+
+  Revision 1.90  2002/12/17 22:19:33  peter
     * fixed pushing of records>8 bytes with stdcall
     * simplified hightree loading
 
