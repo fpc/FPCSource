@@ -3039,11 +3039,8 @@ of this function. This has as a consequence that the return type is
 of your program.  This returns zero in the \fpc implementation of the
 system unit, since both code and data are in the same memory space.
 \item [Ptr:] Accepted a segment and offset from an address, and would return
-a pointer to this address. This has been changed in the run-time library.
-Standard it returns now simply the offset. If you want to retain the old
-functionality, you can recompile the run-time library with the
-\var{DoMapping} symbol defined. This will restore the Turbo Pascal
-behaviour.
+a pointer to this address. This has been changed in the run-time library, it
+now simply returns the offset. 
 \item [memw and mem] These arrays gave access to the \dos memory. \fpc
 supports them on the go32v2 platform, they are mapped into \dos memory
 space. You need the \var{GO32} unit for this. On other platforms, they are
