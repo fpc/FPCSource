@@ -1062,12 +1062,12 @@ implementation
                          { used in either the left or the right location, excepts if   }
                          {they are regvars. It DOES contain them if they are used in   }
                          { another location (JM)                                       }
-                         if ((regstopush and ($80 shr byte(R_EAX))) <> 0) then
+                         if not(R_EAX in unused) and ((regstopush and ($80 shr byte(R_EAX))) <> 0) then
                           begin
                            emit_reg(A_PUSH,S_L,R_EAX);
                            popeax:=true;
                           end;
-                         if ((regstopush and ($80 shr byte(R_EDX))) <> 0) then
+                         if not(R_EDX in unused) and ((regstopush and ($80 shr byte(R_EDX))) <> 0) then
                           begin
                            emit_reg(A_PUSH,S_L,R_EDX);
                            popedx:=true;
@@ -2236,7 +2236,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2000-01-23 11:11:36  michael
+  Revision 1.92  2000-01-23 13:57:52  jonas
+    * fixed bug introduced by my regalloc fixed :(
+
+  Revision 1.91  2000/01/23 11:11:36  michael
   + Fixes from Jonas.
 
   Revision 1.90  2000/01/22 16:02:38  jonas
