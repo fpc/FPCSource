@@ -70,9 +70,11 @@ end ['EAX','ESI','EDI'];
 
 function strlcopy(dest,source : pchar;maxlen : longint) : pchar;assembler;
 asm
-        movl    dest,%edi
         movl    source,%esi
         movl    maxlen,%ecx
+        movl    dest,%edi
+        orl     %ecx,%ecx
+        jz      .LSTRLCOPY2 
         cld
 .LSTRLCOPY1:
         lodsb
@@ -335,7 +337,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1999-04-09 07:58:41  michael
+  Revision 1.5  1999-12-18 23:08:33  florian
+    * bug 766 fixed
+
+  Revision 1.4  1999/04/09 07:58:41  michael
   +Added checking for nil on most functions.
 
   Revision 1.3  1999/03/30 16:58:49  peter
