@@ -13,14 +13,14 @@ type
 function x: Integer;
 asm
   mov edx,0
-  add edx, sizeof(Integer)
+  add edx, dword(sizeof(Integer))
   mov Result, edx
 end;
 
 function SignalHandlerNextParam(param: PGValue): PGValue;
 asm
   mov edx, param
-  add edx, sizeof(TGValue)  
+  add edx, dword(sizeof(TGValue))
   mov Result, edx    
 end;
 
