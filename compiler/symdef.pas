@@ -1737,8 +1737,8 @@ implementation
          hp:=tenumsym(firstenum);
          while assigned(hp) do
            begin
-              rttiList.concat(Tai_const.Create_8bit(length(hp.name)));
-              rttiList.concat(Tai_string.Create(hp.name));
+              rttiList.concat(Tai_const.Create_8bit(length(hp.realname)));
+              rttiList.concat(Tai_string.Create(hp.realname));
               hp:=hp.nextenum;
            end;
          rttiList.concat(Tai_const.Create_8bit(0));
@@ -6167,7 +6167,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.200  2004-01-20 12:59:37  florian
+  Revision 1.201  2004-01-22 16:33:22  peter
+    * enum value rtti is now in orginal case
+
+  Revision 1.200  2004/01/20 12:59:37  florian
     * common addnode code for x86-64 and i386
 
   Revision 1.199  2004/01/15 15:16:18  daniel
