@@ -25,8 +25,8 @@ asm
 { load the registers... }
   movl  sysnr,%eax
   int   $0x80
-  testl %eax,%eax
-  jns   .LSyscOK
+  cmpl  $-4095,%eax
+  jb   .LSyscOK
   negl  %eax
 {$ifdef VER1_0}
   movl  %eax,Errno
@@ -116,8 +116,8 @@ asm
   movl param1,%ebx
   movl param2,%ecx
   int $0x80
-  testl %eax,%eax
-  jns   .LSyscOK
+  cmpl  $-4095,%eax
+  jb   .LSyscOK
   negl  %eax
 {$ifdef VER1_0}
   movl  %eax,Errno
@@ -163,8 +163,8 @@ asm
   movl param2,%ecx
   movl param3,%edx
   int $0x80
-  testl %eax,%eax
-  jns   .LSyscOK
+  cmpl  $-4095,%eax
+  jb   .LSyscOK
   negl  %eax
 {$ifdef VER1_0}
   movl  %eax,Errno
@@ -211,8 +211,8 @@ asm
   movl param3,%edx
   movl param4,%esi
   int $0x80
-  testl %eax,%eax
-  jns   .LSyscOK
+  cmpl  $-4095,%eax
+  jb   .LSyscOK
   negl  %eax
 {$ifdef VER1_0}
   movl  %eax,Errno
@@ -260,8 +260,8 @@ asm
   movl param4,%esi
   movl param5,%edi
   int $0x80
-  testl %eax,%eax
-  jns   .LSyscOK
+  cmpl  $-4095,%eax
+  jb   .LSyscOK
   negl  %eax
 {$ifdef VER1_0}
   movl  %eax,Errno
@@ -311,8 +311,8 @@ asm
   movl param4,%esi
   movl param5,%edi
   int $0x80
-  testl %eax,%eax
-  jns   .LSyscOK
+  cmpl  $-4095,%eax
+  jb   .LSyscOK
   negl  %eax
 {$ifdef VER1_0}
   movl  %eax,Errno
@@ -358,7 +358,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2005-02-14 17:13:30  peter
+  Revision 1.18  2005-03-07 08:27:57  florian
+    * applied syscall patch from C Western
+
+  Revision 1.17  2005/02/14 17:13:30  peter
     * truncate log
 
 }
