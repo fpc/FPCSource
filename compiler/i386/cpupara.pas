@@ -51,6 +51,10 @@ unit cpupara;
           function getparaloc(p : tdef) : tcgloc;
           procedure create_paraloc_info(p : tabstractprocdef; side: tcallercallee);override;
           function getselflocation(p : tabstractprocdef) : tparalocation;override;
+       private
+          procedure create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
+          procedure create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee);
+          procedure create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee);
        end;
 
   implementation
@@ -174,29 +178,10 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee);
+    procedure ti386paramanager.create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
       var
-        hp : tparaitem;
         paraloc : tparalocation;
       begin
-        hp:=tparaitem(p.para.first);
-        while assigned(hp) do
-          begin
-            if hp.paratyp in [vs_var,vs_out] then
-              paraloc.size:=OS_ADDR
-            else
-              paraloc.size:=def_cgsize(hp.paratype.def);
-            paraloc.loc:=LOC_REFERENCE;
-            if assigned(current_procinfo) then
-              paraloc.reference.index:=current_procinfo.framepointer
-            else
-              paraloc.reference.index:=NR_FRAME_POINTER_REG;
-            paraloc.reference.offset:=tvarsym(hp.parasym).adjusted_address;
-            hp.paraloc[side]:=paraloc;
-{$warning callerparaloc shall not be the same as calleeparaloc}
-            hp:=tparaitem(hp.next);
-          end;
-
         { Function return }
         fillchar(paraloc,sizeof(tparalocation),0);
         paraloc.size:=def_cgsize(p.rettype.def);
@@ -231,6 +216,89 @@ unit cpupara;
       end;
 
 
+    procedure ti386paramanager.create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee);
+      var
+        hp : tparaitem;
+        paraloc : tparalocation;
+      begin
+        hp:=tparaitem(p.para.first);
+        while assigned(hp) do
+          begin
+            if hp.paratyp in [vs_var,vs_out] then
+              paraloc.size:=OS_ADDR
+            else
+              paraloc.size:=def_cgsize(hp.paratype.def);
+            paraloc.loc:=LOC_REFERENCE;
+            if assigned(current_procinfo) then
+              paraloc.reference.index:=current_procinfo.framepointer
+            else
+              paraloc.reference.index:=NR_FRAME_POINTER_REG;
+            paraloc.reference.offset:=tvarsym(hp.parasym).adjusted_address;
+            hp.paraloc[side]:=paraloc;
+{$warning callerparaloc shall not be the same as calleeparaloc}
+            hp:=tparaitem(hp.next);
+          end;
+      end;
+
+
+    procedure ti386paramanager.create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee);
+      var
+        hp : tparaitem;
+        paraloc : tparalocation;
+        sr : tsuperregister;
+        subreg : tsubregister;
+      begin
+        sr:=RS_EAX;
+        hp:=tparaitem(p.para.first);
+        while assigned(hp) do
+          begin
+            if hp.paratyp in [vs_var,vs_out] then
+              paraloc.size:=OS_ADDR
+            else
+              paraloc.size:=def_cgsize(hp.paratype.def);
+            {
+              EAX
+              EDX
+              ECX
+              Stack
+              Stack
+            }
+            if sr<=NR_ECX then
+              begin
+                paraloc.loc:=LOC_REGISTER;
+                if paraloc.size=OS_NO then
+                  subreg:=R_SUBWHOLE
+                else
+                  subreg:=cgsize2subreg(paraloc.size);
+                paraloc.register:=newreg(R_INTREGISTER,sr,subreg);
+                inc(sr);
+              end
+            else
+              begin
+                paraloc.loc:=LOC_REFERENCE;
+                if assigned(current_procinfo) then
+                  paraloc.reference.index:=current_procinfo.framepointer
+                else
+                  paraloc.reference.index:=NR_FRAME_POINTER_REG;
+                paraloc.reference.offset:=tvarsym(hp.parasym).adjusted_address;
+              end;
+            hp.paraloc[side]:=paraloc;
+{$warning callerparaloc shall not be the same as calleeparaloc}
+            hp:=tparaitem(hp.next);
+          end;
+      end;
+
+
+    procedure ti386paramanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee);
+      begin
+        if p.proccalloption=pocall_register then
+          create_register_paraloc_info(p,side)
+        else
+          create_stdcall_paraloc_info(p,side);
+        create_funcret_paraloc_info(p,side);
+      end;
+
+
     function ti386paramanager.getselflocation(p : tabstractprocdef) : tparalocation;
       var
         hsym : tvarsym;
@@ -250,7 +318,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2003-09-09 15:55:05  peter
+  Revision 1.27  2003-09-09 21:03:17  peter
+    * basics for x86 register calling
+
+  Revision 1.26  2003/09/09 15:55:05  peter
     * winapi doesn't like pushing 8 byte record
 
   Revision 1.25  2003/09/08 18:28:51  peter

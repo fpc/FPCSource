@@ -35,6 +35,7 @@ unit cpupi;
        ti386procinfo = class(tcgprocinfo)
           procedure allocate_interrupt_parameter;override;
           procedure allocate_framepointer_reg;override;
+          procedure handle_body_start;override;
        end;
 
 
@@ -64,12 +65,21 @@ unit cpupi;
       end;
 
 
+    procedure ti386procinfo.handle_body_start;
+      begin
+        inherited handle_body_start;
+      end;
+
+
 begin
    cprocinfo:=ti386procinfo;
 end.
 {
   $Log$
-  Revision 1.10  2003-09-03 15:55:01  peter
+  Revision 1.11  2003-09-09 21:03:17  peter
+    * basics for x86 register calling
+
+  Revision 1.10  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.9.2.1  2003/08/31 15:46:26  peter

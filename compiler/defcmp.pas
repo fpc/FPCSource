@@ -813,7 +813,8 @@ implementation
              begin
                { object pascal objects }
                if (def_from.deftype=objectdef) and
-                 tobjectdef(def_from).is_related(tobjectdef(def_to)) then
+                  (tobjectdef(def_from).is_related(tobjectdef(def_to)) or
+                   tobjectdef(def_to).is_related(tobjectdef(def_from))) then
                 begin
                   doconv:=tc_equal;
                   eq:=te_convert_l1;
@@ -1209,7 +1210,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2003-06-03 21:02:08  peter
+  Revision 1.28  2003-09-09 21:03:17  peter
+    * basics for x86 register calling
+
+  Revision 1.27  2003/06/03 21:02:08  peter
     * allow pointer(int64) in all modes
 
   Revision 1.26  2003/05/26 21:17:17  peter

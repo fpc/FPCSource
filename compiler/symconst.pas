@@ -256,7 +256,8 @@ type
     vo_is_funcret,
     vo_is_self,
     vo_is_vmt,
-    vo_is_result  { special result variable }
+    vo_is_result,  { special result variable }
+    vo_is_reg_para  { register parameter, no space allocation in parast, but in localst }
   );
   tvaroptions=set of tvaroption;
 
@@ -373,7 +374,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2003-09-09 15:54:10  peter
+  Revision 1.63  2003-09-09 21:03:17  peter
+    * basics for x86 register calling
+
+  Revision 1.62  2003/09/09 15:54:10  peter
     * calling convention fix
 
   Revision 1.61  2003/09/07 22:09:35  peter

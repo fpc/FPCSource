@@ -1699,7 +1699,8 @@ const
             end;
           pocall_register :
             begin
-              Message1(parser_w_proc_directive_ignored,'REGISTER');
+              { Adjust alignment to match cdecl or stdcall }
+              pd.parast.dataalignment:=std_param_align;
             end;
           pocall_far16 :
             begin
@@ -1758,6 +1759,11 @@ const
       var
         currpara : tparaitem;
         st : tsymtable;
+{$ifdef i386}
+        orgs : stringid;
+        vs : tvarsym;
+        n : integer;
+{$endif i386}
       begin
         { insert hidden high parameters }
         insert_hidden_para(pd);
@@ -1765,6 +1771,41 @@ const
         insert_self_and_vmt_para(pd);
         { insert funcret parameter if required }
         insert_funcret_para(pd);
+
+{$ifdef i386}
+        { Move first 3 register parameters in localst }
+        if (pd.deftype=procdef) and
+           (pd.proccalloption=pocall_register) and
+           not(po_assembler in pd.procoptions) and
+           assigned(pd.para.first) then
+          begin
+            { insert copy in localst }
+            if not assigned(tprocdef(pd).localst) then
+              tprocdef(pd).insert_localst;
+            n:=0;
+            currpara:=tparaitem(pd.para.first);
+            while assigned(currpara) and (n<3) do
+             begin
+               orgs:=currpara.parasym.realname;
+               if not(assigned(currpara.parasym) and (currpara.parasym.typ=varsym)) then
+                 internalerror(200304232);
+               { rename parameter in parast }
+               pd.parast.rename(currpara.parasym.name,'reg'+currpara.parasym.name);
+               include(tvarsym(currpara.parasym).varoptions,vo_is_reg_para);
+               vs:=tvarsym.create(orgs,currpara.paratyp,currpara.paratype);
+               vs.varoptions:=tvarsym(currpara.parasym).varoptions;
+               include(vs.varoptions,vo_is_reg_para);
+               tprocdef(pd).localst.insert(vs);
+               tprocdef(pd).localst.insertvardata(vs);
+               { update currpara }
+               currpara.parasym:=vs;
+               { next }
+               currpara:=tparaitem(currpara.next);
+               inc(n);
+             end;
+          end;
+
+{$endif i386}
 
         if (pd.deftype=procdef) then
          begin
@@ -1796,7 +1837,8 @@ const
                begin
                  if not(assigned(currpara.parasym) and (currpara.parasym.typ=varsym)) then
                    internalerror(200304232);
-                 st.insertvardata(currpara.parasym);
+                 if not(vo_is_reg_para in tvarsym(currpara.parasym).varoptions) then
+                   st.insertvardata(currpara.parasym);
                  currpara:=tparaitem(currpara.next);
                end;
             end;
@@ -2148,7 +2190,10 @@ const
 end.
 {
   $Log$
-  Revision 1.132  2003-09-09 15:54:10  peter
+  Revision 1.133  2003-09-09 21:03:17  peter
+    * basics for x86 register calling
+
+  Revision 1.132  2003/09/09 15:54:10  peter
     * calling convention fix
 
   Revision 1.131  2003/09/07 22:09:35  peter

@@ -356,24 +356,33 @@ unit cgx86;
     procedure tcgx86.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);
       begin
         check_register_size(size,r);
-        case size of
-          OS_8,OS_S8,
-          OS_16,OS_S16:
+        case locpara.loc of
+          LOC_REGISTER :
+            cg.a_load_reg_reg(list,size,locpara.size,r,locpara.register);
+          LOC_REFERENCE :
             begin
-              if target_info.alignment.paraalign = 2 then
-                r:=rg.makeregsize(r,OS_16)
-              else
-                r:=rg.makeregsize(r,OS_32);
-              list.concat(taicpu.op_reg(A_PUSH,S_L,r));
+              case size of
+                OS_8,OS_S8,
+                OS_16,OS_S16:
+                  begin
+                    if target_info.alignment.paraalign = 2 then
+                      r:=rg.makeregsize(r,OS_16)
+                    else
+                      r:=rg.makeregsize(r,OS_32);
+                    list.concat(taicpu.op_reg(A_PUSH,S_L,r));
+                  end;
+                OS_32,OS_S32:
+                  begin
+                    if getsubreg(r)<>R_SUBD then
+                      internalerror(7843);
+                    list.concat(taicpu.op_reg(A_PUSH,S_L,r));
+                  end
+                else
+                  internalerror(2002032212);
+              end;
             end;
-          OS_32,OS_S32:
-            begin
-              if getsubreg(r)<>R_SUBD then
-                internalerror(7843);
-              list.concat(taicpu.op_reg(A_PUSH,S_L,r));
-            end
           else
-            internalerror(2002032212);
+            internalerror(200309082);
         end;
       end;
 
@@ -381,18 +390,27 @@ unit cgx86;
     procedure tcgx86.a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);
 
       begin
-        case size of
-          OS_8,OS_S8,OS_16,OS_S16:
+        case locpara.loc of
+          LOC_REGISTER :
+            cg.a_load_const_reg(list,locpara.size,a,locpara.register);
+          LOC_REFERENCE :
             begin
-              if target_info.alignment.paraalign = 2 then
-                list.concat(taicpu.op_const(A_PUSH,S_W,a))
-              else
-                list.concat(taicpu.op_const(A_PUSH,S_L,a));
+              case size of
+                OS_8,OS_S8,OS_16,OS_S16:
+                  begin
+                    if target_info.alignment.paraalign = 2 then
+                      list.concat(taicpu.op_const(A_PUSH,S_W,a))
+                    else
+                      list.concat(taicpu.op_const(A_PUSH,S_L,a));
+                  end;
+                OS_32,OS_S32:
+                  list.concat(taicpu.op_const(A_PUSH,S_L,a));
+                else
+                  internalerror(2002032213);
+              end;
             end;
-          OS_32,OS_S32:
-            list.concat(taicpu.op_const(A_PUSH,S_L,a));
           else
-            internalerror(2002032213);
+            internalerror(200309082);
         end;
       end;
 
@@ -404,58 +422,91 @@ unit cgx86;
         tmpreg : tregister;
 
       begin
-        case size of
-          OS_8,OS_S8,
-          OS_16,OS_S16:
+        case locpara.loc of
+          LOC_REGISTER :
+            cg.a_load_ref_reg(list,size,locpara.size,r,locpara.register);
+          LOC_REFERENCE :
             begin
-              if target_info.alignment.paraalign = 2 then
-                pushsize:=OS_16
-              else
-                pushsize:=OS_32;
-              tmpreg:=rg.getregisterint(list,pushsize);
-              a_load_ref_reg(list,size,pushsize,r,tmpreg);
-              list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],tmpreg));
-              rg.ungetregisterint(list,tmpreg);
+              case size of
+                OS_8,OS_S8,
+                OS_16,OS_S16:
+                  begin
+                    if target_info.alignment.paraalign = 2 then
+                      pushsize:=OS_16
+                    else
+                      pushsize:=OS_32;
+                    tmpreg:=rg.getregisterint(list,pushsize);
+                    a_load_ref_reg(list,size,pushsize,r,tmpreg);
+                    list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],tmpreg));
+                    rg.ungetregisterint(list,tmpreg);
+                  end;
+                OS_32,OS_S32:
+                  list.concat(taicpu.op_ref(A_PUSH,S_L,r));
+{$ifdef cpu64bit}
+                OS_64,OS_S64:
+                  list.concat(taicpu.op_ref(A_PUSH,S_Q,r));
+{$endif cpu64bit}
+                else
+                  internalerror(2002032214);
+              end;
             end;
-          OS_32,OS_S32:
-            list.concat(taicpu.op_ref(A_PUSH,S_L,r));
-          OS_64,OS_S64:
-            list.concat(taicpu.op_ref(A_PUSH,S_Q,r));
           else
-            internalerror(2002032214);
+            internalerror(200309083);
         end;
       end;
 
 
     procedure tcgx86.a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
       var
-        tmpreg: tregister;
-        baseno,indexno:boolean;
+        tmpreg : tregister;
       begin
         if (r.segment<>NR_NO) then
           CGMessage(cg_e_cant_use_far_pointer_there);
-        baseno:=(r.base=NR_NO);
-        indexno:=(r.index=NR_NO);
-        if baseno and indexno then
-          begin
-            if assigned(r.symbol) then
-              list.concat(Taicpu.Op_sym_ofs(A_PUSH,S_L,r.symbol,r.offset))
-            else
-              list.concat(Taicpu.Op_const(A_PUSH,S_L,r.offset));
-          end
-        else if baseno and not indexno and
-                (r.offset=0) and (r.scalefactor=0) and (r.symbol=nil) then
-          list.concat(Taicpu.Op_reg(A_PUSH,S_L,r.index))
-        else if not baseno and indexno and
-                (r.offset=0) and (r.symbol=nil) then
-          list.concat(Taicpu.Op_reg(A_PUSH,S_L,r.base))
-        else
-          begin
-            tmpreg:=rg.getaddressregister(list);
-            a_loadaddr_ref_reg(list,r,tmpreg);
-            list.concat(taicpu.op_reg(A_PUSH,S_L,tmpreg));
-            rg.ungetregisterint(list,tmpreg);
-          end;
+        case locpara.loc of
+          LOC_REGISTER :
+            begin
+              if (r.base=NR_NO) and (r.index=NR_NO) then
+                 begin
+                   if assigned(r.symbol) then
+                     list.concat(Taicpu.Op_sym_ofs_reg(A_MOV,S_L,r.symbol,r.offset,locpara.register))
+                   else
+                     a_load_const_reg(list,OS_INT,r.offset,locpara.register);
+                 end
+               else if (r.base=NR_NO) and (r.index<>NR_NO) and
+                       (r.offset=0) and (r.scalefactor=0) and (r.symbol=nil) then
+                 a_load_reg_reg(list,OS_INT,OS_INT,r.index,locpara.register)
+               else if (r.base<>NR_NO) and (r.index=NR_NO) and
+                       (r.offset=0) and (r.symbol=nil) then
+                 a_load_reg_reg(list,OS_INT,OS_INT,r.base,locpara.register)
+               else
+                 a_loadaddr_ref_reg(list,r,locpara.register);
+            end;
+          LOC_REFERENCE :
+            begin
+              if (r.base=NR_NO) and (r.index=NR_NO) then
+                 begin
+                   if assigned(r.symbol) then
+                     list.concat(Taicpu.Op_sym_ofs(A_PUSH,S_L,r.symbol,r.offset))
+                   else
+                     list.concat(Taicpu.Op_const(A_PUSH,S_L,r.offset));
+                 end
+               else if (r.base=NR_NO) and (r.index<>NR_NO) and
+                       (r.offset=0) and (r.scalefactor=0) and (r.symbol=nil) then
+                 list.concat(Taicpu.Op_reg(A_PUSH,S_L,r.index))
+               else if (r.base<>NR_NO) and (r.index=NR_NO) and
+                       (r.offset=0) and (r.symbol=nil) then
+                 list.concat(Taicpu.Op_reg(A_PUSH,S_L,r.base))
+               else
+                 begin
+                   tmpreg:=rg.getaddressregister(list);
+                   a_loadaddr_ref_reg(list,r,tmpreg);
+                   list.concat(taicpu.op_reg(A_PUSH,S_L,tmpreg));
+                   rg.ungetregisterint(list,tmpreg);
+                 end;
+            end;
+          else
+            internalerror(200309084);
+        end;
       end;
 
 
@@ -1572,7 +1623,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.62  2003-09-09 20:59:27  daniel
+  Revision 1.63  2003-09-09 21:03:17  peter
+    * basics for x86 register calling
+
+  Revision 1.62  2003/09/09 20:59:27  daniel
     * Adding register allocation order
 
   Revision 1.61  2003/09/07 22:09:35  peter
