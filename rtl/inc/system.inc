@@ -28,10 +28,10 @@
 type
   FileFunc = Procedure(var t : TextRec);
 
-var
+const
 { For Error Handling.}
-  DoError   : Boolean;
-  ErrorBase : Longint;
+  DoError   : Boolean = FALSE;
+  ErrorBase : Longint = 0;
 
 {****************************************************************************
                     Include processor specific routines
@@ -440,7 +440,11 @@ End;
 
 {
   $Log$
-  Revision 1.17  1998-07-02 12:53:09  carl
+  Revision 1.18  1998-07-02 13:01:55  carl
+    * hmmm... it is luck (BSS zeroed with GAS) that DoError and ErrorBase work.
+      Now they are initilized instead.
+
+  Revision 1.17  1998/07/02 12:53:09  carl
     * DOERROR RESOTRED! DON'T TOUCH :)
 
   Revision 1.16  1998/07/02 12:11:50  carl
