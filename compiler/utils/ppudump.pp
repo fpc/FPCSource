@@ -1932,7 +1932,7 @@ begin
   writeln('                   D - Show interface definitions');
   writeln('                   B - Show browser info');
   writeln('                   A - Show all');
-  writeln('    -?           This helpscreen');
+  writeln('    -h, -?       This helpscreen');
   halt;
 end;
 
@@ -1970,6 +1970,7 @@ begin
                 'A' : verbose:=verbose or v_all;
                end;
             end;
+      'H' : help;
       '?' : help;
      end;
      inc(startpara);
@@ -1982,7 +1983,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2004-09-04 21:11:49  armin
+  Revision 1.56  2004-09-27 18:04:11  olle
+    + added -h option to show help
+
+  Revision 1.55  2004/09/04 21:11:49  armin
   * missing targets added
 
   Revision 1.54  2004/08/27 21:59:27  peter
