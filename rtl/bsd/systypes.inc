@@ -49,17 +49,30 @@ type
   pdirent =^dirent;
   TDirEnt = dirent;
 
-  TDir = packed record
-    fd     : longint;
-    loc    : longint;
-    size   : integer;
-    buf    : pdirent;
-  {The following are used in libc, but NOT in the linux kernel sources ??}
-    nextoff: longint;
-    dd_max : integer; {size of buf. Irrelevant, as buf is of type dirent}
-    lock   : pointer;
-    dummy  : array[0..1023] of char;
-  end;
+    TDir= packed record {BSD libc record.}
+            fd    : longint;    { file descriptor associated with directory }
+            loc,                { offset in current buffer }
+            size  : cardinal;   { amount of data returned by getdirentries}
+            buf   : pdirent;    { data buffer, actually a pchar}
+            len   : longint;    { size of data buffer 	}
+            seek,               { magic cookie returned by getdirentries}
+            rewind: cardinal;   { magic cookie for rewinding}
+            flags : longint;    { flags for readdir }
+            end;
+
+{ Linux kernel record
+    TDir = packed record
+            fd     : longint;
+            loc    : longint;
+            size   : integer;
+            buf    : pdirent;
+   {The following are used in libc, but NOT in the linux kernel sources ??}
+            nextoff: longint;
+            dd_max : integer; {size of buf. Irrelevant, as buf is of type dirent}
+            lock   : pointer;
+            dummy  : array[0..1023] of char;
+            end;}
+
   PDir =^TDir;
 
 {$packrecords C}
@@ -139,7 +152,10 @@ type
 
 {
   $Log$
-  Revision 1.7  2000-04-10 15:46:52  marco
+  Revision 1.8  2000-04-16 16:08:30  marco
+   * Updated PDir to BSD libc layout. (which is totally different from Linux)
+
+  Revision 1.7  2000/04/10 15:46:52  marco
    * worked all day. probably a lot changed
 
   Revision 1.5  2000/03/17 12:58:57  marco
