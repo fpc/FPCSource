@@ -264,13 +264,17 @@ implementation
 
 
     function isunaryoperatoroverloadable(rd,dd : tdef; treetyp : tnodetype) : boolean;
+      var
+        eq : tequaltype;
+        conv : tconverttype;
+        pd : tprocdef;
       begin
         isunaryoperatoroverloadable:=false;
         case treetyp of
           assignn :
             begin
-              if (rd.deftype=orddef) and
-                 (dd.deftype=orddef) then
+              eq:=compare_defs_ext(rd,dd,nothingn,true,false,conv,pd);
+              if eq<>te_incompatible then
                begin
                  isunaryoperatoroverloadable:=false;
                  exit;
@@ -1040,7 +1044,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2003-01-02 22:21:19  peter
+  Revision 1.58  2003-01-03 17:17:26  peter
+    * use compare_def_ext to test if assignn operator is allowed
+
+  Revision 1.57  2003/01/02 22:21:19  peter
     * fixed previous operator change
 
   Revision 1.56  2003/01/02 19:50:21  peter
