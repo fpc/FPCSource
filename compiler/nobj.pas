@@ -704,8 +704,8 @@ implementation
                                            if (procdefcoll^.data.proccalloption<>pd.proccalloption) or
                                                (procdefcoll^.data.proctypeoption<>pd.proctypeoption) or
                                                ((procdefcoll^.data.procoptions-
-                                                   [po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public,po_reintroduce])<>
-                                                (pd.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public,po_reintroduce])) then
+                                                   [po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public,po_haslocalst,po_reintroduce])<>
+                                                (pd.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public,po_haslocalst,po_reintroduce])) then
                                               begin
                                                 MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
                                                 tprocsym(procdefcoll^.data.procsym).write_parameter_lists(pd);
@@ -1382,7 +1382,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.72  2004-06-29 20:58:46  peter
+  Revision 1.73  2004-07-06 20:58:50  peter
+    * ignore po_haslocalst
+
+  Revision 1.72  2004/06/29 20:58:46  peter
     * fix writing of private virtual/overriden methods that aren't
       visibile in the current class, bug 3184
 
