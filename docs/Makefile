@@ -30,7 +30,7 @@ PREFIXINSTALLDIR=/usr
 endif
 
 ifndef DOCINSTALLDIR
-DOCINSTALLDIR=$(PREFIXINSTALLDIR)/doc/fpc-0.99.12
+DOCINSTALLDIR=$(PREFIXINSTALLDIR)/doc/fpc-$(shell ppc386 -iV)
 endif 
 
 #
@@ -441,7 +441,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.30  1999-07-29 21:03:41  peter
+# Revision 1.31  2000-01-11 09:55:36  peter
+#   * docinstalldir is now calculated by asking ppc386 -iV
+#
+# Revision 1.30  1999/07/29 21:03:41  peter
 #   * html 3.2, because 3.1 is buggy !!
 #
 # Revision 1.29  1999/07/16 10:15:31  peter
