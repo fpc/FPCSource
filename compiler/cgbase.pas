@@ -125,7 +125,7 @@ interface
         R_SUBW,    { = 3; 16 bits, Like AX }
         R_SUBD,    { = 4; 32 bits, Like EAX }
         R_SUBQ,    { = 5; 64 bits, Like RAX }
-        R_SUBF64   { = 6; 64 bits float that allocates 2 FPU registers }
+        R_SUBFD    { = 6; Float that allocates 2 FPU registers }
       );
 
       TSuperRegister = type word;
@@ -467,7 +467,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.71  2003-10-17 14:38:32  peter
+  Revision 1.72  2003-10-24 15:21:31  peter
+    * renamed R_SUBF64 to R_SUBFD
+
+  Revision 1.71  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 
