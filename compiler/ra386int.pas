@@ -2650,7 +2650,7 @@ end;
 
 
 
-Procedure BuildReference(var instr: TInstruction);
+Procedure BuildReference(var instr: TInstruction;allow_segreg : boolean);
 {*********************************************************************}
 { EXIT CONDITION:  On exit the routine should point to either the     }
 {       AS_COMMA or AS_SEPARATOR token.                               }
@@ -2678,12 +2678,19 @@ Begin
      if actasmtoken = AS_COLON then
       begin
         segreg := TRUE;
-        Message(assem_e_expression_form_not_supported);
+        if not allow_segreg then
+          Message(assem_e_expression_form_not_supported);
         if instr.operands[operandnum].ref.segment <> R_NO then
           Message(assem_e_defining_seg_more_than_once);
         instr.operands[operandnum].ref.segment := findsegment(reg);
         { Here we should process the syntax of the form   }
         { [reg:reg...]                                    }
+        consume(AS_COLON);
+        if actasmtoken=AS_REGISTER then
+          BuildReference(instr,false)
+        else
+          instr.operands[operandnum].ref.offset:=BuildRefExpression;
+        exit;
       end
      else { SREG:[REG...] where SReg: is optional.    }
       Begin
@@ -2880,7 +2887,7 @@ end;
                    Consume(AS_PLUS);
                    Case actasmtoken of
                      AS_REGISTER: Begin
-                                   BuildReference(instr);
+                                   BuildReference(instr,false);
                                  end;
                      AS_ID: Begin
                              if actasmpattern[1] = '@' then
@@ -2976,7 +2983,7 @@ end;
                           Message(assem_e_invalid_operand_in_bracket_expression);
                    end;
          { Variable reference expression }
-         AS_REGISTER: BuildReference(instr);
+         AS_REGISTER: BuildReference(instr,true);
      else
        Begin
          Message(assem_e_invalid_reference_syntax);
@@ -3622,7 +3629,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  1999-04-18 00:32:23  pierre
+  Revision 1.29  1999-04-19 09:44:26  pierre
+   * accept several previously refused syntax, still uncomplete
+
+  Revision 1.28  1999/04/18 00:32:23  pierre
    * fix for bug0124 and better error position info
 
   Revision 1.27  1999/04/17 22:16:58  pierre
