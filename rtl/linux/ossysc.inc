@@ -152,6 +152,7 @@ begin
   ptr^.dd_fd:=fd;
   ptr^.dd_loc:=0;
   ptr^.dd_size:=0;
+  ptr^.dd_nextoff:=0;
   ptr^.dd_max:=sizeof(ptr^.dd_buf^);
   Fpopendir:=ptr;
 end;
@@ -164,21 +165,29 @@ begin
   dispose(dirp);
 end;
 
-function Fpreaddir(dirp : pdir) : pdirent; [public, alias : 'FPC_SYSC_READDIR'];
-
-{Different from Linux, Readdir on BSD is based on Getdents, due to the
-missing of the readdir syscall.
-Getdents requires the buffer to be larger than the blocksize.
-This usually the sectorsize =512 bytes, but maybe tapedrives and harddisks
-with blockmode have this higher?}
-
+Function Fpreaddir(dirp : pdir) : pdirent; [public, alias: 'FPC_SYSC_READDIR'];
+var bytes : longint;
+    dp    : pdirent;
 begin
-  if do_SysCall(SysCall_nr_readdir,TSysParam(dirp^.dd_fd),TSysParam(dirp^.dd_buf),TSysParam(1))=0 Then
-{ the readdir system call returns the number of bytes written }
-   Fpreaddir:=nil
-  else
-   Fpreaddir:=dirp^.dd_buf
+  repeat
+    if dirp^.dd_nextoff >= dirp^.dd_size then
+      begin
+        bytes := do_SysCall(SysCall_nr_getdents,TSysParam(dirp^.dd_fd),TSysParam(dirp^.dd_buf),TSysParam(dirp^.dd_max));
+        if bytes <= 0 then
+          begin
+            fpreaddir := nil;
+            exit;
+          end;
+        dirp^.dd_size := bytes;
+        dirp^.dd_nextoff := 0;
+      end;
+    dp := pdirent(ptrint(dirp^.dd_buf)+dirp^.dd_nextoff);
+    inc(dirp^.dd_nextoff,dp^.d_reclen);
+    inc(dirp^.dd_loc,dp^.d_reclen);
+  until dp^.d_fileno <> 0; // Don't show deleted files
+  Fpreaddir := dp;
 end;
+
 
 {*****************************************************************************
         --- Process:Process & program handling - related calls ---
@@ -487,7 +496,10 @@ end;
 
 {
  $Log$
- Revision 1.19  2004-03-27 14:34:23  florian
+ Revision 1.20  2004-04-12 16:33:42  peter
+   * readdir now uses getdents, patch from Joost van der Sluis
+
+ Revision 1.19  2004/03/27 14:34:23  florian
    * use rt_sigaction syscall on arm
 
  Revision 1.18  2004/02/21 16:27:29  marco
