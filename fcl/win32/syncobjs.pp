@@ -12,6 +12,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$mode objfpc} 
+{$h+}
 unit syncobjs;
 
   interface
@@ -24,76 +26,95 @@ unit syncobjs;
       TSecurityAttributes = Windows.TSecurityAttributes;
       TEventHandle = THandle;
 
-    {$I syncobh.inc}
+{$I syncobh.inc}
 
-  implementation
+implementation
 
-    {$I syncob.inc}
+{$I syncob.inc}
 
-    procedure TCriticalSection.Acquire;
+procedure TCriticalSection.Acquire;
 
-      begin
-         EnterCriticalSection(CriticalSection);
-      end;
+begin
+   EnterCriticalSection(CriticalSection);
+end;
 
-    procedure TCriticalSection.Release;
+procedure TCriticalSection.Release;
 
-      begin
-         LeaveCriticalSection(CriticalSection);
-      end;
+begin
+   LeaveCriticalSection(CriticalSection);
+end;
 
-    constructor TCriticalSection.Create;
+constructor TCriticalSection.Create;
 
-      begin
-         inherited Create;
-         InitializeCriticalSection(CriticalSection);
-      end;
+begin
+  inherited Create;
+  InitializeCriticalSection(CriticalSection);
+end;
 
-    destructor TCriticalSection.Destroy;
+destructor TCriticalSection.Destroy;
 
-      begin
-         DeleteCriticalSection(CriticalSection);
-         inherited Destroy;
-      end;
+begin
+  DeleteCriticalSection(CriticalSection);
+  inherited Destroy;
+end;
 
-    destructor THandleObject.destroy;
+destructor THandleObject.destroy;
 
-      begin
-         CloseHandle(FHandle);
-         inherited Destroy;
-      end;
+begin
+  CloseHandle(FHandle);
+  inherited Destroy;
+end;
 
-    constructor TEvent.Create(EventAttributes : PSecurityAttributes;
-      ManualReset,InitialState : Boolean;const Name : string);
+constructor TEventObject.Create(EventAttributes : PSecurityAttributes;
+  ManualReset,InitialState : Boolean;const Name : string);
 
-      begin
-      end;
+begin
+  FHandle := CreateEvent(EventAttributes, ManualReset, InitialState, PChar(Name));
+end;
 
-    procedure TEvent.ResetEvent;
+procedure TEventObject.ResetEvent;
 
-      begin
-      end;
+begin
+  Windows.ResetEvent(FHandle)
+end;
 
-    procedure TEvent.SetEvent;
+procedure TEventObject.SetEvent;
 
-      begin
-      end;
+begin
+  Windows.SetEvent(FHandle);
+end;
 
-    function TEvent.WaitFor(Timeout : Cardinal) : TWaitResult;
+function TEventObject.WaitFor(Timeout : Cardinal) : TWaitResult;
 
-      begin
-      end;
+begin
+  case WaitForSingleObject(Handle, Timeout) of
+    WAIT_ABANDONED: Result := wrAbandoned;
+    WAIT_OBJECT_0: Result := wrSignaled;
+    WAIT_TIMEOUT: Result := wrTimeout;
+    WAIT_FAILED:
+        begin
+        Result := wrError;
+        FLastError := GetLastError;
+       end;
+  else
+    Result := wrError;    
+  end;
+end;
 
-    constructor TSimpleEvent.Create;
+constructor TSimpleEvent.Create;
 
-      begin
-      end;
+begin
+  FHandle := CreateEvent(nil, True, False, nil);
+end;
 
 end.
 
 {
   $Log$
-  Revision 1.3  2002-09-07 15:15:29  peter
+  Revision 1.4  2003-06-11 11:59:52  michael
+  + Implemented Win32 of syncobjs
+
+  Revision 1.3  2002/09/07 15:15:29  peter
     * old logs removed and tabs fixed
 
 }

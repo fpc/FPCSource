@@ -53,6 +53,8 @@ type
       procedure SetEvent;
       function WaitFor(Timeout : Cardinal) : TWaitResult;
    end;
+   
+   TEvent = TEventObject;
 
    TSimpleEvent = class(TEventObject)
       constructor Create;
@@ -60,7 +62,10 @@ type
 
 {
   $Log$
-  Revision 1.4  2002-09-07 15:15:26  peter
+  Revision 1.5  2003-06-11 12:00:09  michael
+  + Implemented Win32 of syncobjs
+
+  Revision 1.4  2002/09/07 15:15:26  peter
     * old logs removed and tabs fixed
 
 }
