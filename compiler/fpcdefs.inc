@@ -72,6 +72,7 @@
 
 {$ifdef powerpc}
   {$define cpuflags}
+  {$define cputargethasfixedstack}
   {$define noopt}
   {define oldregvars}
 {$endif powerpc}
@@ -90,7 +91,10 @@
 
 {
   $Log$
-  Revision 1.46  2004-10-31 18:54:24  peter
+  Revision 1.47  2004-11-14 16:26:29  florian
+    * fixed morphos syscall
+
+  Revision 1.46  2004/10/31 18:54:24  peter
     * $fpctarget expands to <cpu>-<os>
     * allow * in middle of the path to support ../*/units/$fpctarget
 

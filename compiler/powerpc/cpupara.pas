@@ -324,6 +324,11 @@ unit cpupara;
         end;
 
       begin
+{$ifdef extdebug}
+         if po_explicitparaloc in p.procoptions then
+           internalerror(200411141);
+{$endif extdebug}
+
          result:=0;
          nextintreg := curintreg;
          nextfloatreg := curfloatreg;
@@ -524,10 +529,11 @@ unit cpupara;
           system_powerpc_morphos:
             begin
               p.paraloc[callerside].alignment:=4;
+              p.paraloc[callerside].size:=def_cgsize(p.paratype.def);
               paraloc:=p.paraloc[callerside].add_location;
               paraloc^.loc:=LOC_REFERENCE;
               paraloc^.size:=def_cgsize(p.paratype.def);
-              paraloc^.reference.index:=NR_R2;
+              paraloc^.reference.index:=newreg(R_INTREGISTER,RS_R2,R_SUBWHOLE);
               { pattern is always uppercase'd }
               if s='D0' then
                 paraloc^.reference.offset:=0
@@ -583,7 +589,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2004-09-25 20:28:20  florian
+  Revision 1.70  2004-11-14 16:26:29  florian
+    * fixed morphos syscall
+
+  Revision 1.69  2004/09/25 20:28:20  florian
     * indention fixed
 
   Revision 1.68  2004/09/21 17:25:13  peter

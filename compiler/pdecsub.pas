@@ -1170,13 +1170,13 @@ begin
     internalerror(2003042614);
   tprocdef(pd).forwarddef:=false;
 {$ifdef powerpc}
-  if target_info.system in [system_powerpc_morphos,system_m68k_amiga] then
+   if target_info.system in [system_powerpc_morphos,system_m68k_amiga] then
     begin
       pd.has_paraloc_info:=true;
       include(pd.procoptions,po_explicitparaloc);
       if consume_sym(sym,symtable) then
         begin
-          if (sym.typ in [localvarsym,paravarsym]) and
+          if (sym.typ in [localvarsym,paravarsym,globalvarsym]) and
             ((tabstractvarsym(sym).vartype.def.deftype=pointerdef) or
               is_32bitint(tabstractvarsym(sym).vartype.def)
             ) then
@@ -1888,24 +1888,27 @@ const
         { insert parentfp parameter if required }
         insert_parentfp_para(pd);
 
-        currpara:=tparaitem(pd.para.first);
-        while assigned(currpara) do
-         begin
-           if not(assigned(currpara.parasym) and (currpara.parasym.typ=paravarsym)) then
-             internalerror(200304232);
-           { connect parasym to paraitem }
-           tparavarsym(currpara.parasym).paraitem:=currpara;
-           { We need a local copy for a value parameter when only the
-             address is pushed. Open arrays and Array of Const are
-             an exception because they are allocated at runtime and the
-             address that is pushed is patched }
-           if (currpara.paratyp=vs_value) and
-              paramanager.push_addr_param(currpara.paratyp,currpara.paratype.def,pd.proccalloption) and
-              not(is_open_array(currpara.paratype.def) or
-                  is_array_of_const(currpara.paratype.def)) then
-             include(tparavarsym(currpara.parasym).varoptions,vo_has_local_copy);
-           currpara:=tparaitem(currpara.next);
-         end;
+        if not(po_explicitparaloc in pd.procoptions) then
+          begin
+            currpara:=tparaitem(pd.para.first);
+            while assigned(currpara) do
+             begin
+               if not(assigned(currpara.parasym) and (currpara.parasym.typ=paravarsym)) then
+                 internalerror(200304232);
+               { connect parasym to paraitem }
+               tparavarsym(currpara.parasym).paraitem:=currpara;
+               { We need a local copy for a value parameter when only the
+                 address is pushed. Open arrays and Array of Const are
+                 an exception because they are allocated at runtime and the
+                 address that is pushed is patched }
+               if (currpara.paratyp=vs_value) and
+                  paramanager.push_addr_param(currpara.paratyp,currpara.paratype.def,pd.proccalloption) and
+                  not(is_open_array(currpara.paratype.def) or
+                      is_array_of_const(currpara.paratype.def)) then
+                 include(tparavarsym(currpara.parasym).varoptions,vo_has_local_copy);
+               currpara:=tparaitem(currpara.next);
+             end;
+          end;
       end;
 
 
@@ -2266,7 +2269,10 @@ const
 end.
 {
   $Log$
-  Revision 1.203  2004-11-11 19:31:33  peter
+  Revision 1.204  2004-11-14 16:26:29  florian
+    * fixed morphos syscall
+
+  Revision 1.203  2004/11/11 19:31:33  peter
     * fixed compile of powerpc,sparc,arm
 
   Revision 1.202  2004/11/09 22:32:59  peter
