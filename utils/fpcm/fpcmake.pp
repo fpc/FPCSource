@@ -20,6 +20,19 @@ program fpcmake;
       dos,sysutils,
       fpcmmain,fpcmwr;
 
+    procedure Verbose(s:string);
+      begin
+        writeln(s);
+      end;
+
+
+    procedure Error(s:string);
+      begin
+        Writeln('Error: ',s);
+        Halt(1);
+      end;
+
+
     procedure ProcessFile(const fn:string);
       var
         CurrFPCMake : TFPCMake;
@@ -28,6 +41,7 @@ program fpcmake;
       begin
         CurrFPCMake:=nil;
 //        try
+          writeln('Processing ',fn);
           CurrFPCMake:=TFPCMake.Create(fn);
           s:=GetEnv('FPCDIR');
           if s<>'' then
@@ -37,27 +51,53 @@ program fpcmake;
           CurrFPCMake.Variables.Add('UNITSDIR','$(FPCDIR)/units');
           CurrFPCMake.Variables.Add('PACKAGESDIR','$(FPCDIR)/packages');
           CurrFPCMake.LoadMakefileFPC;
-          CurrFPCMake.LoadPackageSection;
-          CurrFPCMake.LoadRequires(CurrFPCMake);
 //          CurrFPCMake.Print;
 
-          CurrMakefile:=TMakefileWriter.Create(CurrFPCMake,'Makefile');
+          CurrMakefile:=TMakefileWriter.Create(CurrFPCMake,ExtractFilePath(fn)+'Makefile');
           CurrMakefile.WriteGenericMakefile;
           CurrMakefile.Free;
 
 //        except
 //          on e : exception do
-//           writeln('Error: ',e.message);
+//           Error(e.message);
 //        end;
         CurrFPCMake.Free;
       end;
 
+
+procedure UseMakefilefpc;
+var
+  fn : string;
 begin
-  ProcessFile('Makefile.fpc');
+  if FileExists('Makefile.fpc') then
+   fn:='Makefile.fpc'
+  else
+   fn:='makefile.fpc';
+  ProcessFile(fn);
+end;
+
+
+procedure UseParameters;
+var
+  i : integer;
+begin
+  for i:=1 to ParamCount do
+   ProcessFile(ParamStr(i));
+end;
+
+
+begin
+  if ParamCount=0 then
+   UseMakefilefpc
+  else
+   UseParameters;
 end.
 {
   $Log$
-  Revision 1.1  2001-01-24 21:59:36  peter
+  Revision 1.2  2001-01-29 21:49:10  peter
+    * lot of updates
+
+  Revision 1.1  2001/01/24 21:59:36  peter
     * first commit of new fpcmake
 
 }

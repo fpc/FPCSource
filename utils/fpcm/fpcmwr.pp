@@ -24,17 +24,17 @@ interface
     type
       tsections=(sec_none,
         sec_units,sec_exes,sec_loaders,sec_examples,
-        sec_compile,sec_install,sec_exampleinstall,
+        sec_compile,sec_install,
         sec_zipinstall,sec_clean,sec_libs,
         sec_command,sec_exts,sec_dirs,sec_tools,sec_info
       );
 
-      tRules=(
+      trules=(
         r_all,r_debug,
         r_examples,
         r_smart,r_shared,
-        r_install,r_sourceinstall,r_exampleinstall,
-        r_zipinstall,r_zipsourceinstall,r_zipexampleinstall,
+        r_install,r_sourceinstall,r_exampleinstall,r_distinstall,
+        r_zipinstall,r_zipsourceinstall,r_zipexampleinstall,r_zipdistinstall,
         r_clean,r_distclean,r_cleanall,
         r_info
       );
@@ -45,8 +45,8 @@ interface
         'all','debug',
         'examples',
         'smart','shared',
-        'install','sourceinstall','exampleinstall',
-        'zipinstall','zipsourceinstall','zipexampleinstall',
+        'install','sourceinstall','exampleinstall','distinstall',
+        'zipinstall','zipsourceinstall','zipexampleinstall','zipdistinstall',
         'clean','distclean','cleanall',
         'info'
       );
@@ -55,8 +55,8 @@ interface
         sec_compile,sec_compile,
         sec_examples,
         sec_libs,sec_libs,
-        sec_install,sec_install,sec_exampleinstall,
-        sec_zipinstall,sec_zipinstall,sec_zipinstall,
+        sec_install,sec_install,sec_install,sec_install,
+        sec_zipinstall,sec_zipinstall,sec_zipinstall,sec_zipinstall,
         sec_clean,sec_clean,sec_clean,
         sec_info
       );
@@ -79,7 +79,7 @@ interface
         procedure AddVariable(const inivar:string);
         function  AddTargetDefines(const inivar,prefix:string):string;
         procedure AddRequiredPackages;
-        procedure AddTool(const exename:string);
+        procedure AddTools(const inivar:string);
         procedure AddRules;
         procedure AddPhony(const s:string);
         procedure WritePhony;
@@ -187,6 +187,8 @@ implementation
             s:=s+' '+s2;
          end;
       end;
+
+
     procedure FixTab(sl:TStringList);
       var
         i,j,k : integer;
@@ -368,46 +370,69 @@ implementation
         for t:=low(TTarget) to high(TTarget) do
          begin
            s:=FInput.GetVariable(IniVar+TargetSuffix[t]);
-           while (s<>'') do
+           if s<>'' then
             begin
-              i:=pos(' ',s);
-              if i=0 then
-               i:=length(s)+1;
-              name:=Copy(s,1,i-1);
-              s:=TrimLeft(Copy(s,i+1,Length(s)-i));
-              { Remove (..) }
-              k1:=pos('(',name);
-              if k1>0 then
-               begin
-                 k2:=PosIdx(')',name,k1);
-                 if k2=0 then
-                  k2:=length(name)+1;
-                 Delete(Name,k1,k2);
-               end;
-              FOutput.Add(prefix+VarName(name)+'=1');
-              { add to the list of dirs without duplicates }
-              AddStrNoDup(result,name);
+              if t<>t_all then
+               FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
+              repeat
+                i:=pos(' ',s);
+                if i=0 then
+                 i:=length(s)+1;
+                name:=Copy(s,1,i-1);
+                s:=TrimLeft(Copy(s,i+1,Length(s)-i));
+                { Remove (..) }
+                k1:=pos('(',name);
+                if k1>0 then
+                 begin
+                   k2:=PosIdx(')',name,k1);
+                   if k2=0 then
+                    k2:=length(name)+1;
+                   Delete(Name,k1,k2);
+                 end;
+                FOutput.Add(prefix+VarName(name)+'=1');
+                { add to the list of dirs without duplicates }
+                AddStrNoDup(result,name);
+              until s='';
+              if t<>t_all then
+               FOutput.Add('endif');
             end;
          end;
       end;
 
 
-    procedure TMakefileWriter.AddTool(const exename:string);
+    procedure TMakefileWriter.AddTools(const inivar:string);
+
+        procedure AddTool(const exename:string);
+        var
+          varname : string;
+        begin
+          with FOutput do
+           begin
+             varname:=FixVariable(exename);
+             Add('ifndef '+varname);
+             Add(varname+':=$(strip $(wildcard $(addsuffix /'+exename+'$(SRCEXEEXT),$(SEARCHPATH))))');
+             Add('ifeq ($('+varname+'),)');
+             Add(varname+'=');
+             Add('else');
+             Add(varname+':=$(firstword $('+varname+'))');
+             Add('endif');
+             Add('endif');
+             Add('export '+varname);
+           end;
+        end;
+
       var
-        varname : string;
+        i  : integer;
+        hs : string;
       begin
-        with FOutput do
+        hs:=FInput.GetVariable(inivar);
+        while hs<>'' do
          begin
-           varname:=FixVariable(exename);
-           Add('ifndef '+varname);
-           Add(varname+':=$(strip $(wildcard $(addsuffix /'+exename+'$(SRCEXEEXT),$(SEARCHPATH))))');
-           Add('ifeq ($('+varname+'),)');
-           Add(varname+'=');
-           Add('else');
-           Add(varname+':=$(firstword $('+varname+'))');
-           Add('endif');
-           Add('endif');
-           Add('export '+varname);
+           i:=pos(' ',hs);
+           if i=0 then
+            i:=length(hs)+1;
+           AddTool(Copy(hs,1,i-1));
+           hs:=TrimLeft(Copy(hs,i+1,Length(hs)-i));
          end;
       end;
 
@@ -442,19 +467,20 @@ implementation
           { include target dirs }
           if CheckTargetVariable('target.dirs') then
            begin
-             if not(rule in [r_sourceinstall,r_zipinstall,r_zipsourceinstall]) or
-                not(CheckVariable('package.name')) then
-              hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(TARGET_DIRS))';
+             if CheckVariable('default.dir') then
+              hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(DEFAULT_DIR))'
+             else
+              if not(rule in [r_sourceinstall,r_zipinstall,r_zipsourceinstall]) or
+                 not(CheckVariable('package.name')) then
+               hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(TARGET_DIRS))';
            end;
           { include cleaning of example dirs }
           if (rule=r_clean) and
              CheckTargetVariable('target.exampledirs') then
            hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(TARGET_EXAMPLEDIRS))';
-          if hs<>'' then
-           begin
-             AddPhony(Rule2Str[Rule]);
-             FOutput.Add(rule2str[rule]+':'+hs);
-           end;
+          { Add the rule }
+          AddPhony(Rule2Str[Rule]);
+          FOutput.Add(rule2str[rule]+':'+hs);
         end;
 
       var
@@ -492,8 +518,11 @@ implementation
            begin
              FOutput.Add(s+'_'+rule2str[j]+':');
              FOutput.Add(#9+'$(MAKE) -C '+s+' '+rule2str[j]);
-             AddPhony(rule2str[j]);
+             AddPhony(s+'_'+rule2str[j]);
            end;
+          FOutput.Add(s+':');
+          FOutput.Add(#9+'$(MAKE) -C '+s+' all');
+          AddPhony(s);
           WritePhony;
           FOutput.Add('endif');
         end;
@@ -511,7 +540,7 @@ implementation
            if i=0 then
             i:=length(hs)+1;
            AddTargetDir(Copy(hs,1,i-1),prefix);
-           delete(hs,1,i);
+           hs:=TrimLeft(Copy(hs,i+1,Length(hs)-i));
          end;
       end;
 
@@ -527,34 +556,30 @@ implementation
           packdirvar:='PACKAGEDIR_'+VarName(pack);
           unitdirvar:='UNITDIR_'+VarName(pack);
           { Search packagedir by looking for Makefile.fpc }
-          FOutput.Add(packdirvar+':=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/$(OS_TARGET)/Makefile.fpc,$(PACKAGESDIR)))))');
-          FOutput.Add('ifeq ($('+packdirvar+'),)');
           FOutput.Add(packdirvar+':=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/Makefile.fpc,$(PACKAGESDIR)))))');
-          FOutput.Add('ifeq ($('+packdirvar+'),)');
-          FOutput.Add(packdirvar+'=');
-          FOutput.Add('else');
+          FOutput.Add('ifneq ($('+packdirvar+'),)');
           FOutput.Add(packdirvar+':=$(firstword $('+packdirvar+'))');
-          FOutput.Add('endif');
-          FOutput.Add('else');
-          FOutput.Add(packdirvar+':=$(firstword $('+packdirvar+'))');
-          FOutput.Add('endif');
           { If Packagedir found look for FPCMade }
-          FOutput.Add('ifdef '+packdirvar);
           FOutput.Add('ifeq ($(wildcard $('+packdirvar+')/$(FPCMADE)),)');
           FOutput.Add('override COMPILEPACKAGES+=package_'+pack);
           AddPhony('package_'+pack);
           FOutput.Add('package_'+pack+':');
           FOutput.Add(#9'$(MAKE) -C $('+packdirvar+') all');
           FOutput.Add('endif');
+          { Create unit dir, check if os dependent dir exists }
+          FOutput.Add('ifneq ($(wildcard $('+packdirvar+')/$(OS_TARGET)),)');
+          FOutput.Add(unitdirvar+'=$('+packdirvar+')/$(OS_TARGET)');
+          FOutput.Add('else');
           FOutput.Add(unitdirvar+'=$('+packdirvar+')');
-          { Package dir doesn''t exists, use unit dir }
+          FOutput.Add('endif');
+          { Package dir doesn't exists, check unit dir }
           FOutput.Add('else');
           FOutput.Add(packdirvar+'=');
           FOutput.Add(unitdirvar+':=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/Package.fpc,$(UNITSDIR)))))');
-          FOutput.Add('ifeq ($('+unitdirvar+'),)');
-          FOutput.Add(unitdirvar+'=');
-          FOutput.Add('else');
+          FOutput.Add('ifneq ($('+unitdirvar+'),)');
           FOutput.Add(unitdirvar+':=$(firstword $('+unitdirvar+'))');
+          FOutput.Add('else');
+          FOutput.Add(unitdirvar+'=');
           FOutput.Add('endif');
           FOutput.Add('endif');
           { Add Unit dir to the command line -Fu }
@@ -567,26 +592,39 @@ implementation
 
       var
         i  : integer;
-        hs : string;
         prefix : string;
         t : Ttarget;
-        sl : TStringList;
+        sl,slall : TStringList;
       begin
         prefix:='REQUIRE_PACKAGES_';
+        slall:=FInput.GetTargetRequires(t_all);
         { Add target defines }
         for t:=low(ttarget) to high(ttarget) do
          begin
            sl:=FInput.GetTargetRequires(t);
+           { optimize by removing the requires already in t_all }
+           if t<>t_all then
+            begin
+              i:=0;
+              while (i<sl.Count) do
+               begin
+                 if (slall.IndexOf(sl[i])<>-1) then
+                  sl.Delete(i)
+                 else
+                  inc(i);
+               end;
+            end;
            if sl.count>0 then
             begin
-              writeln(TargetStr[t]+' requires:');
+              write(TargetStr[t]+' requires:');
               if t<>t_all then
                FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
               for i:=0 to sl.count-1 do
                begin
                  FOutput.Add(prefix+VarName(sl[i])+'=1');
-                 writeln(sl[i]);
+                 write(' ',sl[i]);
                end;
+              writeln;
               if t<>t_all then
                FOutput.Add('endif');
             end;
@@ -596,22 +634,34 @@ implementation
         for i:=0 to FInput.RequireList.Count-1 do
          AddPackage(FInput.RequireList[i],prefix);
         WritePhony;
+        slall.Free;
       end;
 
     procedure TMakefileWriter.WriteGenericMakefile;
       var
         i : integer;
-        rule : trules;
       begin
         with FOutput do
          begin
+           { Turn some sections off }
+           if not FInput.IsPackage then
+            FHasSection[sec_zipinstall]:=false;
            { Header }
            Add('#');
            Add('# Don''t edit, this file is generated by '+TitleDate);
            Add('#');
-           Add('default: all');
+           if CheckVariable('default.rule') then
+            Add('default: '+FInput.GetVariable('default.rule'))
+           else
+            Add('default: all');
            { Add automatic detect sections }
            AddIniSection('osdetect');
+           { Forced target }
+           if CheckVariable('default.target') then
+            Add('override OS_TARGET='+FInput.GetVariable('default.target'));
+           if CheckVariable('default.cpu') then
+            Add('override CPU_TARGET='+FInput.GetVariable('default.cpu'));
+           { FPC Detection }
            AddIniSection('fpcdetect');
            AddIniSection('fpcdirdetect');
            { Package }
@@ -620,10 +670,16 @@ implementation
            { First add the required packages sections }
            for i:=0 to FInput.RequireList.Count-1 do
             AddCustomSection(FInput.Requirelist[i]);
+           { prerules section }
+           if assigned(FInput['prerules']) then
+            AddStrings(TFPCMakeSection(FInput['prerules']).List);
+           { Default }
+           AddVariable('default.dir');
            { Targets }
            AddTargetVariable('target.dirs');
            AddTargetVariable('target.programs');
            AddTargetVariable('target.units');
+           AddTargetVariable('target.loaders');
            AddTargetVariable('target.rsts');
            AddTargetVariable('target.examples');
            AddTargetVariable('target.exampledirs');
@@ -640,26 +696,27 @@ implementation
            AddVariable('dist.zipname');
            AddVariable('dist.ziptarget');
            { Compiler }
-           AddVariable('compiler.options');
-           AddVariable('compiler.version');
-           AddVariable('compiler.includedir');
-           AddVariable('compiler.sourcedir');
-           AddVariable('compiler.objectdir');
-           AddVariable('compiler.librarydir');
-           AddVariable('compiler.targetdir');
-           AddVariable('compiler.unittargetdir');
-           { Require packages }
-           AddRequiredPackages;
+           AddTargetVariable('compiler.options');
+           AddTargetVariable('compiler.version');
+           AddTargetVariable('compiler.includedir');
+           AddTargetVariable('compiler.unitdir');
+           AddTargetVariable('compiler.sourcedir');
+           AddTargetVariable('compiler.objectdir');
+           AddTargetVariable('compiler.librarydir');
+           AddTargetVariable('compiler.targetdir');
+           AddTargetVariable('compiler.unittargetdir');
            { default dirs/tools/extensions }
            AddIniSection('shelltools');
            AddIniSection('defaulttools');
            AddIniSection('extensions');
            AddIniSection('defaultdirs');
-           if CheckVariable('require.libc') then
+           if FInput.CheckLibcRequire then
             AddIniSection('dirlibc');
+           { Required packages }
+           AddRequiredPackages;
            { commandline }
            AddIniSection('command_begin');
-           if CheckVariable('require.libc') then
+           if FInput.CheckLibcRequire then
             AddIniSection('command_libc');
            AddIniSection('command_end');
            { compile }
@@ -679,10 +736,7 @@ implementation
             AddIniSection('libraryrules');
            { install }
            AddIniSection('installrules');
-           if CheckTargetVariable('target.examples') or
-              CheckTargetVariable('target.exampledirs') then
-            AddIniSection('exampleinstallrules');
-           if CheckVariable('package.name') then
+           if FHasSection[sec_zipinstall] then
             AddIniSection('zipinstallrules');
            { clean }
            AddIniSection('cleanrules');
@@ -691,6 +745,8 @@ implementation
            { Subdirs }
            AddTargetDirs('target.dirs');
            AddTargetDirs('target.exampledirs');
+           { Tools }
+           AddTools('require.tools');
            { Rules }
            AddRules;
            { Users own rules }
@@ -707,7 +763,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2001-01-24 21:59:36  peter
+  Revision 1.2  2001-01-29 21:49:10  peter
+    * lot of updates
+
+  Revision 1.1  2001/01/24 21:59:36  peter
     * first commit of new fpcmake
 
 }
