@@ -30,5 +30,6 @@ CONST
   m1280x1024x64k    = $11A;
 
 const
-  ForceVesa : boolean = false;
-
+  UseLFB : boolean = false;
+  UseNoSelector : boolean = false;
+  LFBPointer : pointer = nil;

@@ -1178,6 +1178,10 @@ end;
  {*                    256 colors VESA mode routines  Linear mode        *}
  {************************************************************************}
 {$ifdef FPC}
+type
+  pbyte = ^byte;
+  pword = ^word;
+
   procedure DirectPutPixVESA256Linear(x, y : integer); {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
@@ -1187,17 +1191,26 @@ end;
      Case CurrentWriteMode of
        XorPut:
          Begin
-           seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
+           if UseNoSelector then
+             col:=pbyte(LFBPointer+offs+LinearPageOfs)^
+           else
+             seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
            col := col xor byte(CurrentColor);
          End;
        AndPut:
          Begin
-           seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
+           if UseNoSelector then
+             col:=pbyte(LFBPointer+offs+LinearPageOfs)^
+           else
+             seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
            col := col and byte(CurrentColor);
          End;
        OrPut:
          Begin
-           seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
+           if UseNoSelector then
+             col:=pbyte(LFBPointer+offs+LinearPageOfs)^
+           else
+             seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
            col := col or byte(CurrentColor);
          End
        else
@@ -1207,7 +1220,10 @@ end;
            else col := Not(Byte(CurrentColor));
          End
      End;
-     seg_move(get_ds,longint(@col),WinWriteSeg,offs+LinearPageOfs,1);
+     if UseNoSelector then
+       pbyte(LFBPointer+offs+LinearPageOfs)^:=col
+     else
+       seg_move(get_ds,longint(@col),WinWriteSeg,offs+LinearPageOfs,1);
   end;
 
   procedure PutPixVESA256Linear(x, y : integer; color : word); {$ifndef fpc}far;{$endif fpc}
@@ -1225,7 +1241,10 @@ end;
          exit;
      end;
      offs := longint(y) * BytesPerLine + x;
-     seg_move(get_ds,longint(@color),WinWriteSeg,offs+LinearPageOfs,1);
+     if UseNoSelector then
+       pbyte(LFBPointer+offs+LinearPageOfs)^:=color
+     else
+       seg_move(get_ds,longint(@color),WinWriteSeg,offs+LinearPageOfs,1);
   end;
 
   function GetPixVESA256Linear(x, y : integer): word; {$ifndef fpc}far;{$endif fpc}
@@ -1236,7 +1255,10 @@ end;
      X:= X + StartXViewPort;
      Y:= Y + StartYViewPort;
      offs := longint(y) * BytesPerLine + x;
-     seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
+     if UseNoSelector then
+       col:=pbyte(LFBPointer+offs+LinearPageOfs)^
+     else
+       seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),1);
      GetPixVESA256Linear:=col;
   end;
 (*
@@ -1360,7 +1382,10 @@ end;
          exit;
      end;
      offs := longint(y) * BytesPerLine + 2*x;
-     seg_move(get_ds,longint(@color),WinWriteSeg,offs+LinearPageOfs,2);
+     if UseNoSelector then
+       pword(LFBPointer+offs+LinearPageOfs)^:=color
+     else
+       seg_move(get_ds,longint(@color),WinWriteSeg,offs+LinearPageOfs,2);
   end;
 
   function GetPixVESA32kor64kLinear(x, y : integer): word; {$ifndef fpc}far;{$endif fpc}
@@ -1371,7 +1396,10 @@ end;
      X:= X + StartXViewPort;
      Y:= Y + StartYViewPort;
      offs := longint(y) * BytesPerLine + 2*x;
-     seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@color),2);
+     if UseNoSelector then
+       color:=pword(LFBPointer+offs+LinearPageOfs)^
+     else
+       seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@color),2);
      GetPixVESA32kor64kLinear:=color;
   end;
 
@@ -1384,17 +1412,26 @@ end;
      Case CurrentWriteMode of
        XorPut:
          Begin
-           seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),2);
+           if UseNoSelector then
+             col:=pword(LFBPointer+offs+LinearPageOfs)^
+           else
+             seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),2);
            col := col xor currentcolor;
          End;
        AndPut:
          Begin
-           seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),2);
+           if UseNoSelector then
+             col:=pword(LFBPointer+offs+LinearPageOfs)^
+           else
+             seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),2);
            col := col and currentcolor;
          End;
        OrPut:
          Begin
-           seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),2);
+           if UseNoSelector then
+             col:=pword(LFBPointer+offs+LinearPageOfs)^
+           else
+             seg_move(WinReadSeg,offs+LinearPageOfs,get_ds,longint(@col),2);
            col := col or currentcolor;
          End
        else
@@ -1404,7 +1441,10 @@ end;
            Else col := Not(CurrentColor);
          End
      End;
-     seg_move(get_ds,longint(@col),WinWriteSeg,offs+LinearPageOfs,2);
+     if UseNoSelector then
+       pword(LFBPointer+offs+LinearPageOfs)^:=col
+     else
+       seg_move(get_ds,longint(@col),WinWriteSeg,offs+LinearPageOfs,2);
   end;
 
 {$endif FPC}
@@ -1785,7 +1825,47 @@ end;
 
    end;
 {$ENDIF}
+type
+  heaperrorproc=function(size:longint):integer;
 
+Const
+  HeapErrorIsHooked : boolean = false;
+  OldHeapError : HeapErrorProc = nil;
+  DsLimit : dword = 0;
+
+  function NewHeapError(size : longint) : integer;
+  var
+    res : integer;
+    begin
+      set_segment_limit(get_ds,DsLimit);
+      NewHeapError:=OldHeapError(size);
+      DsLimit:=get_segment_limit(get_ds);
+      { The base of ds can be changed
+        we need to compute the address again PM }
+      LFBPointer:=pointer(FrameBufferLinearAddress-get_segment_base_address(get_ds));
+      if dword(LFBPointer)+(VESAInfo.TotalMem shl 16)-1 > DsLimit then
+        set_segment_limit(get_ds,dword(LFBPointer)+(VESAInfo.TotalMem shl 16)-1);
+    end;
+
+  procedure HookHeapError;
+    begin
+      if HeapErrorIsHooked then
+        exit;
+      DsLimit:=get_segment_limit(get_ds);
+      OldHeapError:=HeapErrorProc(HeapError);
+      HeapError:=@NewHeapError;
+      HeapErrorIsHooked:=true;
+    end;
+
+  procedure UnHookHeapError;
+    begin
+      if not HeapErrorIsHooked then
+        exit;
+      LFBPointer:=nil;
+      set_segment_limit(get_ds,DsLimit);
+      HeapError:=OldHeapError;
+      HeapErrorIsHooked:=false;
+    end;
 
   function SetupLinear(var ModeInfo: TVESAModeInfo;mode : word) : boolean;
    begin
@@ -1838,16 +1918,26 @@ end;
          writeln(stderr,'Unable to get linear address for ',hexstr(VESAModeInfo.PhysAddress,8));
          exit;
        end;
-     WinWriteSeg:=allocate_ldt_descriptors(1);
-     WinReadSeg:=allocate_ldt_descriptors(1);
-     set_segment_base_address(WinWriteSeg,FrameBufferLinearAddress);
-     set_segment_limit(WinWriteSeg,(VESAInfo.TotalMem shl 16)-1);
-     set_segment_base_address(WinReadSeg,FrameBufferLinearAddress);
-     set_segment_limit(WinReadSeg,(VESAInfo.TotalMem shl 16)-1);
-     if int31error<>0 then
+     if UseNoSelector then
        begin
-         writeln(stderr,'Error in linear memory selectors creation');
-         exit;
+         HookHeapError;
+         LFBPointer:=pointer(FrameBufferLinearAddress-get_segment_base_address(get_ds));
+         if dword(LFBPointer)+(VESAInfo.TotalMem shl 16)-1 > get_segment_limit(get_ds) then
+           set_segment_limit(get_ds,dword(LFBPointer)+(VESAInfo.TotalMem shl 16)-1);
+       end
+     else
+       begin
+         WinWriteSeg:=allocate_ldt_descriptors(1);
+         WinReadSeg:=allocate_ldt_descriptors(1);
+         set_segment_base_address(WinWriteSeg,FrameBufferLinearAddress);
+         set_segment_limit(WinWriteSeg,(VESAInfo.TotalMem shl 16)-1);
+         set_segment_base_address(WinReadSeg,FrameBufferLinearAddress);
+         set_segment_limit(WinReadSeg,(VESAInfo.TotalMem shl 16)-1);
+         if int31error<>0 then
+           begin
+             writeln(stderr,'Error in linear memory selectors creation');
+             exit;
+           end;
        end;
      InLinear:=true;
      SetUpLinear:=true;
@@ -2020,7 +2110,7 @@ end;
 
      { VBE 2.0 and higher supports >= non VGA linear buffer types...}
      { this is backward compatible.                                 }
-     if (((VESAModeInfo.Attr and ModeNoWindowed) <> 0) or ForceVesa) and
+     if (((VESAModeInfo.Attr and ModeNoWindowed) <> 0) or UseLFB) and
           ((VESAModeInfo.Attr and ModeLinearBuffer) <> 0) then
         begin
           if not SetupLinear(VESAModeInfo,mode) then
@@ -2509,7 +2599,11 @@ end;
 
 (*
 $Log$
-Revision 1.20  2000-03-09 22:32:22  pierre
+Revision 1.21  2000-03-12 22:32:22  pierre
+  + UseLFB and UseNoSelector vars to force LinearFrameBuffer use
+    with or without specific selector.
+
+Revision 1.20  2000/03/09 22:32:22  pierre
  * fixes for LFB mode
 
 Revision 1.19  2000/02/12 13:39:19  jonas
