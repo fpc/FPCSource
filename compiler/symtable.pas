@@ -2778,7 +2778,9 @@ implementation
          while assigned(p) do
            begin
              if (p^.symtabletype=unitsymtable) and
-               assigned(punitsymtable(p)^.unitsym) then
+               assigned(punitsymtable(p)^.unitsym) and
+               ((punitsymtable(p)^.unitsym^.owner=psymtable(current_module^.globalsymtable)) or
+                (punitsymtable(p)^.unitsym^.owner=psymtable(current_module^.localsymtable))) then
                  punitsymtable(p)^.unitsym^.restoreunitsym;
              p:=p^.next;
            end;
@@ -2902,7 +2904,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2000-05-12 05:59:57  pierre
+  Revision 1.92  2000-05-23 14:15:44  pierre
+   * fix for bug 959
+
+  Revision 1.91  2000/05/12 05:59:57  pierre
    * * get it to compile with Delphi by Kovacs Attila Zoltan
 
   Revision 1.90  2000/05/11 09:40:12  pierre
