@@ -865,6 +865,10 @@ end;
 destructor Tnamed_object.done;
 begin
   stringdispose(_name);
+  if assigned(left) then
+    dispose(left,done);
+  if assigned(right) then
+    dispose(right,done);
 end;
 
 function Tnamed_object.name:string;
@@ -1559,7 +1563,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  1999-03-18 20:30:45  peter
+  Revision 1.21  1999-03-19 16:35:29  pierre
+   * Tnamed_object done also removed left and right
+
+  Revision 1.20  1999/03/18 20:30:45  peter
     + .a writer
 
   Revision 1.19  1999/03/01 13:32:00  pierre
