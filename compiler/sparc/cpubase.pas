@@ -81,7 +81,7 @@ uses
         {$i rspnum.inc}
       );
 
-      regstabs_table : array[tregisterindex] of tregister = (
+      regstabs_table : array[tregisterindex] of ShortInt = (
         {$i rspstab.inc}
       );
 
@@ -550,7 +550,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2003-11-10 19:05:50  peter
+  Revision 1.58  2003-12-19 14:38:03  mazen
+  * new TRegister definition applied
+
+  Revision 1.57  2003/11/10 19:05:50  peter
     * fixed alias/colouring > 255
 
   Revision 1.56  2003/11/01 19:27:54  peter

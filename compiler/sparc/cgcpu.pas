@@ -45,11 +45,9 @@ interface
         function  getintregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         function  getaddressregister(list:Taasmoutput):Tregister;override;
         function  getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
-        function  getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
         procedure ungetregister(list:Taasmoutput;r:Tregister);override;
         procedure add_move_instruction(instr:Taicpu);override;
-        procedure do_register_allocation(list:Taasmoutput;headertai:tai);override;
         procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
         procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
         function  uses_registers(rt:Tregistertype):boolean;override;
@@ -276,13 +274,6 @@ implementation
       end;
 
 
-    function tcgsparc.getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;
-      begin
-        internalerror(200310241);
-        result:=RS_INVALID;
-      end;
-
-
     procedure tcgsparc.getexplicitregister(list:Taasmoutput;r:Tregister);
       begin
         case getregtype(r) of
@@ -356,18 +347,6 @@ implementation
     procedure tcgsparc.add_move_instruction(instr:Taicpu);
       begin
         rgint.add_move_instruction(instr);
-      end;
-
-
-    procedure tcgsparc.do_register_allocation(list:Taasmoutput;headertai:tai);
-      begin
-        { Int }
-        rgint.do_register_allocation(list,headertai);
-        rgint.translate_registers(list);
-
-        { FPU }
-        rgfpu.do_register_allocation(list,headertai);
-        rgfpu.translate_registers(list);
       end;
 
 
@@ -1233,7 +1212,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2003-12-09 09:44:22  mazen
+  Revision 1.74  2003-12-19 14:38:03  mazen
+  * new TRegister definition applied
+
+  Revision 1.73  2003/12/09 09:44:22  mazen
   + added uses_registers overloaded method for sparc
 
   Revision 1.72  2003/10/29 15:18:33  mazen

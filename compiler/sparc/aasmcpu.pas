@@ -62,7 +62,6 @@ uses
 
          { register allocation }
          function is_nop:boolean;override;
-         function is_move:boolean;override;
 
          { register spilling code }
          function spilling_get_operation_type(opnr: longint): topertype;override;
@@ -229,15 +228,6 @@ implementation
       end;
 
 
-    function taicpu.is_move:boolean;
-      begin
-        result:=(opcode=A_MOV) and
-                (oper[0]^.typ=top_reg) and
-                (oper[1]^.typ=top_reg);
-      end;
-
-      
-
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
     {$WARNING ******Check taicpu.spilling_get_operation_type******}
       begin
@@ -354,7 +344,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2003-12-10 13:16:35  mazen
+  Revision 1.38  2003-12-19 14:38:03  mazen
+  * new TRegister definition applied
+
+  Revision 1.37  2003/12/10 13:16:35  mazen
   * improve hadlign %hi and %lo operators
 
   Revision 1.36  2003/10/30 15:03:18  mazen
