@@ -908,52 +908,69 @@ procedure swapvectors;
 begin
 end;
 
-type    PPchar=^Pchar;
-
-function envs:PPchar;assembler;
-
-asm
-    movl envp,%eax
-end ['EAX'];
-
-function envcount:longint;assembler;
-asm
-    movl envc,%eax
-end ['EAX'];
-
-function envstr(index : longint) : string;
-
-var hp:Pchar;
-
+function GetEnv (const EnvVar: string): string;
+(* The assembler version is more than three times as fast as Pascal. *)
+var
+ P: PChar;
+ _EnvVar: string;
 begin
-    if (index<=0) or (index>envcount) then
-        begin
-            envstr:='';
-            exit;
-        end;
-    hp:=envs[index-1];
-    envstr:=strpas(hp);
+ _EnvVar := UpCase (EnvVar);
+{$ASMMODE INTEL}
+ asm
+  cld
+  mov ecx, EnvC
+  mov edi, EnvP
+  mov edi, [edi]
+  lea esi, _EnvVar
+  xor eax, eax
+  lodsb
+@NewVar:
+  push ecx
+  push eax
+  push esi
+  mov ecx, -1
+  mov edx, edi
+  mov al, '='
+  repne
+  scasb
+  neg ecx
+  dec ecx
+  dec ecx
+  pop esi
+  pop eax
+  push eax
+  push esi
+  cmp ecx, eax
+  jnz @NotEqual
+  xchg edx, edi
+  repe
+  cmpsb
+  xchg edx, edi
+  jz @Equal
+@NotEqual:
+  xor eax, eax
+  mov ecx, -1
+  repne
+  scasb
+  pop esi
+  pop eax
+  pop ecx
+  dec ecx
+  jecxz @Stop
+  jmp @NewVar
+@Stop:
+  mov P, ecx
+  jmp @End
+@Equal:
+  pop esi
+  pop eax
+  pop ecx  
+  mov P, edi
+@End:
+ end;
+ GetEnv := StrPas (P);
 end;
-
-function getenv(const envvar : string) : string;
-
-var hs,_envvar : string;
-    eqpos,i : longint;
-
-begin
-    _envvar:=upcase(envvar);
-    getenv:='';
-    for i:=1 to envcount do
-        begin
-            hs:=envstr(i);
-            eqpos:=pos('=',hs);
-            if copy(hs,1,eqpos-1)=_envvar then
-                begin
-                    getenv:=copy(hs,eqpos+1,length(hs)-eqpos);
-                    exit;
-                end;
-        end;
-end;
+{$ASMMODE ATT}
 
 procedure fsplit(path:pathstr;var dir:dirstr;var name:namestr;
                  var ext:extstr);
@@ -1066,7 +1083,7 @@ begin
   path:='';
   path := StrPas(filerec(f).Name);
   { Takes care of slash and backslash support }
-  path:=FExPand(path);
+  path:=FExpand(path);
   move(path[1],buffer,length(path));
   buffer[length(path)]:=#0;
  asm
@@ -1176,7 +1193,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-11-23 00:35:02  carl
+  Revision 1.16  2002-03-03 11:19:20  hajny
+    * GetEnv rewritten to assembly - 3x faster now
+
+  Revision 1.15  2001/11/23 00:35:02  carl
   * updated behavior of some routines to conform to docs (completely taken from fixes branch)
 
   Revision 1.1.2.14  2001/11/23 00:33:17  carl
