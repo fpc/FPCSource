@@ -10,10 +10,20 @@
 {\rule{0.5pt}{1ex}%
 \rule{\linewidth}{0.5pt}%
 \rule{0.5pt}{1ex}\end{quote}}
+%\newenvironment{diagram}[2]{}{}
 % Define mysyntdiag for my style of diagrams
+\makeatletter
+% Under Tex4HT, the diagrams are rendered as pictures.
+\@ifpackageloaded{tex4ht}{%
+\newenvironment{mysyntdiag}%
+{\Picture*{}\begin{syntdiag}\setlength{\sdmidskip}{.5em}\sffamily\sloppy}%
+{\end{syntdiag}\EndPicture}%
+}{%
 \newenvironment{mysyntdiag}%
 {\begin{syntdiag}\setlength{\sdmidskip}{.5em}\sffamily\sloppy}%
 {\end{syntdiag}}%
+}% 
+\makeatother
 % Finally, define a combination of the above two.
 \newenvironment{psyntax}[2]{\begin{diagram}{#1}{#2}\begin{mysyntdiag}}%
 {\end{mysyntdiag}\end{diagram}}
@@ -27,3 +37,4 @@
 }
 % Finally, a referencing command.
 \newcommand{\seesy}[1]{see diagram}
+%
