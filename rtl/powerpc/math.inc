@@ -56,10 +56,10 @@ const
     function pi : double;[internproc:fpc_in_pi];
 
     {$define FPC_SYSTEM_HAS_ABS}
-    function abs(d : extended) : extended;[internproc:fpc_in_abs_extended];
+    function abs(d : extended) : extended;[internproc:fpc_in_abs_real];
 
     {$define FPC_SYSTEM_HAS_SQR}
-    function sqr(d : extended) : extended;[internproc:fpc_in_sqr_extended];
+    function sqr(d : extended) : extended;[internproc:fpc_in_sqr_real];
 {$endif ndef INTERNCONSTINTF}
 
       const
@@ -349,7 +349,10 @@ end;
 
 {
   $Log$
-  Revision 1.37  2004-11-21 15:35:23  peter
+  Revision 1.38  2004-11-21 16:14:59  jonas
+    * fixed remaining compilation problems
+
+  Revision 1.37  2004/11/21 15:35:23  peter
     * float routines all use internproc and compilerproc helpers
 
   Revision 1.36  2004/11/20 15:49:21  jonas

@@ -85,10 +85,10 @@
   {$ifdef INTERNCONSTINTF}
     function fpc_sqrt_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
   {$else}    
-    function sqrt(d:Real):Real;[internproc:fpc_in_const_sqrt];[public, alias: 'FPC_SQRT_REAL']; {$ifdef MATHINLINE}inline;{$endif}
     {$ifdef hascompilerproc}
-      function fpc_sqrt_real(d:Real):Real;compilerproc; external name 'FPC_SQRT_REAL';
+    function fpc_sqrt_real(d:Real):Real;compilerproc; external name 'FPC_SQRT_REAL';
     {$endif hascompilerproc}
+    function sqrt(d:Real):Real;[internconst:fpc_in_const_sqrt];[public, alias: 'FPC_SQRT_REAL']; {$ifdef MATHINLINE}inline;{$endif}
   {$endif}  
     begin
       result := c_sqrt(d);
@@ -190,7 +190,7 @@ Not supported on Mac OS X 10.1
     function c_atan(d: double): double; cdecl; external 'c' name 'atan';
 
   {$ifdef INTERNCONSTINTF}
-    function fpc_ArcTan_real(d:Real):Real;compiler; {$ifdef MATHINLINE}inline;{$endif}
+    function fpc_ArcTan_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
   {$else}  
     function ArcTan(d:Real):Real;[internconst:fpc_in_const_arctan];{$ifdef MATHINLINE}inline;{$endif}
   {$endif}  
@@ -203,7 +203,10 @@ Not supported on Mac OS X 10.1
 
 {
   $Log$
-  Revision 1.4  2004-11-21 15:35:23  peter
+  Revision 1.5  2004-11-21 16:14:59  jonas
+    * fixed remaining compilation problems
+
+  Revision 1.4  2004/11/21 15:35:23  peter
     * float routines all use internproc and compilerproc helpers
 
   Revision 1.3  2004/11/20 15:49:21  jonas

@@ -17,17 +17,6 @@
 { as cdecl and external in libc cause problems because the calling         }
 { convention the interface is different                                    }
 
-{$ifndef FPC_UNIT_HAS_STRLEN}
-{$define FPC_UNIT_HAS_STRLEN}
- function libc_strlen(const p: pchar): cardinal; cdecl; external 'c' name 'strlen';
-
- function strlen(P : pchar) : longint;{$ifdef SYSTEMINLINE}inline;{$endif}
-   begin
-     strlen := libc_strlen(p);
-   end;
-{$endif FPC_UNIT_HAS_STRLEN}
-
-
 {$ifndef FPC_UNIT_HAS_STREND}
 {$define FPC_UNIT_HAS_STREND}
 
@@ -142,7 +131,10 @@
 
 {
   $Log$
-  Revision 1.3  2004-08-24 11:49:56  jonas
+  Revision 1.4  2004-11-21 16:14:59  jonas
+    * fixed remaining compilation problems
+
+  Revision 1.3  2004/08/24 11:49:56  jonas
     * made strlen wrapper inline
 
   Revision 1.2  2004/05/01 23:55:18  peter

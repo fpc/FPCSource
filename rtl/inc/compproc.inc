@@ -253,6 +253,8 @@ function fpc_sqr_real(d : ValReal) : ValReal;compilerproc;
 function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
 function fpc_round_real(d : ValReal) : int64;compilerproc;
 function fpc_trunc_real(d : ValReal) : int64;compilerproc;
+{$else INTERNCONSTINTF}
+function fpc_round(d : ValReal) : int64;compilerproc;
 {$endif INTERNCONSTINTF}
 
 function fpc_do_is(aclass : tclass;aobject : tobject) : boolean; compilerproc;
@@ -346,7 +348,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.60  2004-11-21 15:35:23  peter
+  Revision 1.61  2004-11-21 16:14:59  jonas
+    * fixed remaining compilation problems
+
+  Revision 1.60  2004/11/21 15:35:23  peter
     * float routines all use internproc and compilerproc helpers
 
   Revision 1.59  2004/11/09 23:10:22  peter
