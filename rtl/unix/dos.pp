@@ -830,10 +830,29 @@ End;
 
 
 Procedure setftime(var f; time : longint);
-Begin
-  {! No Linux equivalent !}
-End;
 
+Var
+  utim: utimbuf;
+  DT: DateTime;
+  path: pathstr;
+  index: Integer;
+
+Begin
+  doserror:=0;
+  with utim do
+    begin
+    actime:=getepochtime;
+    UnPackTime(Time,DT);
+    modtime:=DTToUnixDate(DT);
+    end;
+  for Index:=0 to FilerecNameLength-1 do
+    path[Index+1]:=filerec(f).name[Index];
+  if not utime(path,utim) then
+    begin
+    Time:=0;
+    doserror:=3;
+    end;
+End;
 
 
 Procedure setfattr (var f;attr : word);
@@ -880,7 +899,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  2001-09-22 11:17:13  peter
+  Revision 1.11  2001-12-26 21:03:57  peter
+    * merged fixes from 1.0.x
+
+  Revision 1.10  2001/09/22 11:17:13  peter
     * Fixed passing of command without parameters to Exec() to not include
       a space after the executable name
 

@@ -17,8 +17,8 @@
 { I think we should use the pascal version, this code isn't     }
 { much faster                                                   }
 
-{ $define FPC_SYSTEM_HAS_FPC_INITIALIZE}
-{
+{ define FPC_SYSTEM_HAS_FPC_INITIALIZE}
+(*
 Procedure fpc_Initialize (Data,TypeInfo : pointer);[Public,Alias:'FPC_INITIALIZE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 assembler;
 asm
@@ -134,10 +134,10 @@ asm
         pop     %ebx
         pop     %eax
 end;
-}
+*)
 
-{$ define FPC_SYSTEM_HAS_FPC_FINALIZE}
-{
+{ define FPC_SYSTEM_HAS_FPC_FINALIZE}
+(*
 Procedure fpc_finalize (Data,TypeInfo: Pointer);[Public,Alias:'FPC_FINALIZE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 assembler;
 asm
@@ -250,7 +250,7 @@ asm
         pop     %ebx
         pop     %eax
 end;
-}
+*)
 
 {$define FPC_SYSTEM_HAS_FPC_ADDREF}
 
@@ -482,7 +482,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2001-11-17 16:56:08  florian
+  Revision 1.13  2001-12-26 21:03:56  peter
+    * merged fixes from 1.0.x
+
+  Revision 1.12  2001/11/17 16:56:08  florian
     * init and final code in genrtti.inc updated
 
   Revision 1.11  2001/11/14 22:59:11  michael

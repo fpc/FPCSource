@@ -983,9 +983,45 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
      end;
 {$endif}
 
+{$ifdef SUPPORT_DOUBLE}
+{****************************************************************************
+                    Helper routines to support old TP styled reals
+ ****************************************************************************}
+
+    function real2double(r : real48) : double;
+
+      var
+         res : array[0..7] of byte;
+         exponent : word;
+
+      begin
+         { copy mantissa }
+         res[0]:=0;
+         res[1]:=r[1] shl 5;
+         res[2]:=(r[1] shr 3) or (r[2] shl 5);
+         res[3]:=(r[2] shr 3) or (r[3] shl 5);
+         res[4]:=(r[3] shr 3) or (r[4] shl 5);
+         res[5]:=(r[4] shr 3) or (r[5] and $7f) shl 5;
+         res[6]:=(r[5] and $7f) shr 3;
+
+         { copy exponent }
+         { correct exponent: }
+         exponent:=(word(r[0])+(1023-129));
+         res[6]:=res[6] or ((exponent and $f) shl 4);
+         res[7]:=exponent shr 4;
+
+         { set sign }
+         res[7]:=res[7] or (r[5] and $80);
+         real2double:=double(res);
+      end;
+{$endif}
+
 {
   $Log$
-  Revision 1.2  2001-07-30 21:38:55  peter
+  Revision 1.3  2001-12-26 21:03:56  peter
+    * merged fixes from 1.0.x
+
+  Revision 1.2  2001/07/30 21:38:55  peter
     * m68k updates merged
 
   Revision 1.1.2.1  2001/07/29 23:58:16  carl

@@ -958,6 +958,9 @@ Begin
            '-','=' : PushExt(FAltKey(ch));
                #10 : PushKey(#10);
                '[' : State:=2;
+{$IFDEF LINUX}
+              'O': State:=7;
+{$ENDIF}
                else
                 begin
                   PushKey(ch);
@@ -1088,6 +1091,16 @@ Begin
               if (Ch<>'~') then
                State:=255;
             end;
+{$ifdef LINUX}
+        7 : begin {Esc[O}
+              case ch of
+               'A' : PushExt(72);
+               'B' : PushExt(80);
+               'C' : PushExt(77);
+               'D' : PushExt(75);
+              end;
+          end;
+{$endif}
       255 : ;
         end;
         if State<>0 then
@@ -1669,7 +1682,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.7  2001-07-30 21:53:53  peter
+  Revision 1.8  2001-12-26 21:03:57  peter
+    * merged fixes from 1.0.x
+
+  Revision 1.7  2001/07/30 21:53:53  peter
     * reset winminx,winminy to 1
 
   Revision 1.6  2001/06/27 20:21:46  peter

@@ -141,12 +141,11 @@
 
       procedure InitInterfacePointers(objclass: tclass;instance : pointer);
 
+{$ifdef HASINTF}
         var
            intftable : pinterfacetable;
            i : longint;
-
         begin
-{$ifdef HASINTF}
           if assigned(objclass.classparent) then
             InitInterfacePointers(objclass.classparent,instance);
           intftable:=objclass.getinterfacetable;
@@ -154,8 +153,11 @@
             for i:=0 to intftable^.EntryCount-1 do
               ppointer(@(PChar(instance)[intftable^.Entries[i].IOffset]))^:=
                 pointer(intftable^.Entries[i].VTable);
-{$endif HASINTF}
         end;
+{$else HASINTF}
+        begin
+        end;
+{$endif HASINTF}
 
       class function TObject.InitInstance(instance : pointer) : tobject;
 
@@ -693,7 +695,10 @@
 
 {
   $Log$
-  Revision 1.17  2001-09-29 21:32:47  jonas
+  Revision 1.18  2001-12-26 21:03:56  peter
+    * merged fixes from 1.0.x
+
+  Revision 1.17  2001/09/29 21:32:47  jonas
     * almost all second pass typeconvnode helpers are now processor independent
     * fixed converting boolean to int64/qword
     * fixed register allocation bugs which could cause internalerror 10

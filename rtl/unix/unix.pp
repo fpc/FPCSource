@@ -210,13 +210,19 @@ function SetDateTime(Year,Month,Day,hour,minute,second:Word) : Boolean;
 
 function  CreateShellArgV(const prog:string):ppchar;
 function  CreateShellArgV(const prog:Ansistring):ppchar;
-Procedure Execve(Path:pathstr;args:ppchar;ep:ppchar);
-Procedure Execve(path:pchar;args:ppchar;ep:ppchar);
+Procedure Execve(Path: pathstr;args:ppchar;ep:ppchar);
+Procedure Execve(Path: AnsiString;args:ppchar;ep:ppchar);
+Procedure Execve(path: pchar;args:ppchar;ep:ppchar);
 Procedure Execv(const path:pathstr;args:ppchar);
-Procedure Execvp(Path:Pathstr;Args:ppchar;Ep:ppchar);
-Procedure Execl(const Todo:string);
-Procedure Execle(Todo:string;Ep:ppchar);
-Procedure Execlp(Todo:string;Ep:ppchar);
+Procedure Execv(const path: AnsiString;args:ppchar);
+Procedure Execvp(Path: Pathstr;Args:ppchar;Ep:ppchar);
+Procedure Execvp(Path: AnsiString; Args:ppchar;Ep:ppchar);
+Procedure Execl(const Todo: String);
+Procedure Execl(const Todo: Ansistring);
+Procedure Execle(Todo: String;Ep:ppchar);
+Procedure Execle(Todo: AnsiString;Ep:ppchar);
+Procedure Execlp(Todo: string;Ep:ppchar);
+Procedure Execlp(Todo: Ansistring;Ep:ppchar);
 Function  Shell(const Command:String):Longint;
 Function  Shell(const Command:AnsiString):Longint;
 Function  Fork:longint;
@@ -467,7 +473,9 @@ Function  Basename(Const path:pathstr;Const suf:pathstr):pathstr;
 Function  FNMatch(const Pattern,Name:string):Boolean;
 Function  Glob(Const path:pathstr):pglob;
 Procedure Globfree(var p:pglob);
-Function  StringToPPChar(Var S:STring):ppchar;
+Function  StringToPPChar(Var S:String):ppchar;
+Function  StringToPPChar(Var S:AnsiString):ppchar;
+Function  StringToPPChar(S : Pchar):ppchar;
 Function  GetFS(var T:Text):longint;
 Function  GetFS(Var F:File):longint;
 {Filedescriptorsets}
@@ -581,6 +589,44 @@ begin
 end;
 
 
+Procedure Execve(Path: AnsiString;args:ppchar;ep:ppchar);
+{
+  overloaded ansistring version.
+}
+begin
+  ExecVE(PChar(Path),args,ep);
+end;
+
+Procedure Execv(const path: AnsiString;args:ppchar);
+{
+  Overloaded ansistring version.
+}
+begin
+  ExecVe(Path,Args,envp)
+end;
+
+Procedure Execvp(Path: AnsiString; Args:ppchar;Ep:ppchar);
+{
+  Overloaded ansistring version
+}
+var
+  thepath : Ansistring;
+begin
+  if path[1]<>'/' then
+   begin
+     Thepath:=strpas(getenv('PATH'));
+     if thepath='' then
+      thepath:='.';
+     Path:=FSearch(path,thepath)
+   end
+  else
+   Path:='';
+  if Path='' then
+   linuxerror:=Sys_enoent
+  else
+   Execve(Path,args,ep);{On error linuxerror will get set there}
+end;
+
 Procedure Execv(const path:pathstr;args:ppchar);
 {
   Replaces the current program by the program specified in path,
@@ -636,6 +682,24 @@ begin
 end;
 
 
+Procedure Execle(Todo:AnsiString;Ep:ppchar);
+{
+  This procedure takes the string 'Todo', parses it for command and
+  command options, and Executes the command with the given options.
+  The string 'Todo' shoud be of the form 'command options', options
+  separated by commas.
+  the PATH environment is not searched for 'command'.
+  The specified environment(in 'ep') is passed on to command
+}
+var
+  p : ppchar;
+begin
+  p:=StringToPPChar(ToDo);
+  if (p=nil) or (p^=nil) then
+   exit;
+  ExecVE(p^,p,EP);
+end;
+
 Procedure Execl(const Todo:string);
 {
   This procedure takes the string 'Todo', parses it for command and
@@ -658,6 +722,20 @@ Procedure Execlp(Todo:string;Ep:ppchar);
   separated by commas.
   the PATH environment is searched for 'command'.
   The specified environment (in 'ep') is passed on to command
+}
+var
+  p : ppchar;
+begin
+  p:=StringToPPchar(todo);
+  if (p=nil) or (p^=nil) then
+   exit;
+  ExecVP(StrPas(p^),p,EP);
+end;
+
+
+Procedure Execlp(Todo: Ansistring;Ep:ppchar);
+{
+  Overloaded ansistring version.
 }
 var
   p : ppchar;
@@ -729,38 +807,38 @@ function WEXITSTATUS(Status: Integer): Integer;
 begin
   WEXITSTATUS:=(Status and $FF00) shr 8;
 end;
-  
+
 function WTERMSIG(Status: Integer): Integer;
 begin
   WTERMSIG:=(Status and $7F);
 end;
-  
+
 function WSTOPSIG(Status: Integer): Integer;
 begin
   WSTOPSIG:=WEXITSTATUS(Status);
 end;
-      
+
 Function WIFEXITED(Status: Integer): Boolean;
 begin
   WIFEXITED:=(WTERMSIG(Status)=0);
 end;
- 
+
 Function WIFSTOPPED(Status: Integer): Boolean;
 begin
   WIFSTOPPED:=((Status and $FF)=$7F);
 end;
-      
+
 Function WIFSIGNALED(Status: Integer): Boolean;
 begin
-  WIFSIGNALED:=(not WIFSTOPPED(Status)) and 
+  WIFSIGNALED:=(not WIFSTOPPED(Status)) and
                (not WIFEXITED(Status));
 end;
-   
+
 Function W_EXITCODE(ReturnCode, Signal: Integer): Integer;
 begin
   W_EXITCODE:=(ReturnCode shl 8) or Signal;
 end;
-          
+
 Function W_STOPCODE(Signal: Integer): Integer;
 
 begin
@@ -977,6 +1055,15 @@ begin
   LinuxError:=Errno;
 end;
 
+Procedure Execl(const Todo:Ansistring);
+
+{
+  Overloaded AnsiString Version of ExecL.
+}
+
+begin
+  ExecLE(ToDo,EnvP);
+end;
 
 
 Function  fdOpen(pathname:pchar;flags:longint):longint;
@@ -2144,7 +2231,7 @@ var
           if ((st.mode and $E000)=$4000) and  { if it is a directory }
              (strpas(@(d^.name))<>'.') and    { but not ., .. and fd subdirs }
              (strpas(@(d^.name))<>'..') and
-	     (strpas(@(d^.name))<>'') and
+             (strpas(@(d^.name))<>'') and
              (strpas(@(d^.name))<>'fd') then
            begin                      {we found a directory, search inside it}
              if mysearch(name) then
@@ -2213,20 +2300,14 @@ begin
   Octal:=oct;
 end;
 
-
-
-Function StringToPPChar(Var S:STring):ppchar;
-{
-  Create a PPChar to structure of pchars which are the arguments specified
-  in the string S. Especially usefull for creating an ArgV for Exec-calls
-}
+Function StringToPPChar(S: PChar):ppchar;
 var
   nr  : longint;
   Buf : ^char;
   p   : ppchar;
+
 begin
-  s:=s+#0;
-  buf:=@s[1];
+  buf:=s;
   nr:=0;
   while(buf^<>#0) do
    begin
@@ -2243,7 +2324,7 @@ begin
      LinuxError:=sys_enomem;
      exit;
    end;
-  buf:=@s[1];
+  buf:=s;
   while (buf^<>#0) do
    begin
      while (buf^ in [' ',#8,#10]) do
@@ -2360,6 +2441,27 @@ begin
   DirName:=Dir;
 end;
 
+Function StringToPPChar(Var S:String):ppchar;
+{
+  Create a PPChar to structure of pchars which are the arguments specified
+  in the string S. Especially usefull for creating an ArgV for Exec-calls
+  Note that the string S is destroyed by this call.
+}
+
+begin
+  S:=S+#0;
+  StringToPPChar:=StringToPPChar(@S[1]);
+end;
+
+Function StringToPPChar(Var S:AnsiString):ppchar;
+{
+  Create a PPChar to structure of pchars which are the arguments specified
+  in the string S. Especially usefull for creating an ArgV for Exec-calls
+}
+
+begin
+  StringToPPChar:=StringToPPChar(PChar(S));
+end;
 
 
 Function Basename(Const path:pathstr;Const suf:pathstr):pathstr;
@@ -2972,7 +3074,10 @@ End.
 
 {
   $Log$
-  Revision 1.19  2001-11-30 07:16:42  marco
+  Revision 1.20  2001-12-26 21:03:57  peter
+    * merged fixes from 1.0.x
+
+  Revision 1.19  2001/11/30 07:16:42  marco
    * TTYname fix from Maarten Beekers. Apparantly accidentally not commited the first time.
 
   Revision 1.18  2001/11/05 21:46:06  michael

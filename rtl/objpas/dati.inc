@@ -553,7 +553,7 @@ var
                end ;
             '/': StoreStr(@DateSeparator, 1);
             ':': StoreStr(@TimeSeparator, 1);
-            ' ', 'C', 'D', 'H', 'M', 'N', 'S', 'T', 'Y': begin
+            ' ', 'C', 'D', 'H', 'M', 'N', 'S', 'T', 'Y','Z' : begin
                while (P < FormatEnd) and (UpCase(P^) = Token) do
                   P := P + 1;
                Count := P - FormatCurrent;
@@ -601,6 +601,10 @@ var
                      'S': begin
                         if Count = 1 then StoreInt(Second, 0)
                         else StoreInt(Second, 2);
+                        end ;
+                     'Z': begin
+                        if Count = 1 then StoreInt(MilliSecond, 0)
+                        else StoreInt(MilliSecond, 2);
                         end ;
                      'T': begin
                         if Count = 1 then StoreFormat(timereformat(ShortTimeFormat))
@@ -673,7 +677,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-01-18 22:09:09  michael
+  Revision 1.5  2001-12-26 21:03:57  peter
+    * merged fixes from 1.0.x
+
+  Revision 1.4  2001/01/18 22:09:09  michael
   + Merged fixes from fixbranch - file modes
 
   Revision 1.3  2000/12/16 15:57:16  jonas

@@ -215,10 +215,15 @@ END;
 
 PROCEDURE Mouse_Trap_NT; ASSEMBLER;
 ASM
+   pushl %eax;
    PUSH %ES;                                          { Save ES register }
    PUSH %DS;                                          { Save DS register }
+   PUSH %FS;                                          { Save FS register }
    PUSHL %EDI;                                        { Save register }
    PUSHL %ESI;                                        { Save register }
+   pushl %ebx;
+   pushl %ecx;
+   pushl %edx;
    { ; caution : ds is not the selector for our data !! }
 {$ifdef DEBUG}
    MOVL  %EDI,%ES:EntryEDI
@@ -253,14 +258,19 @@ ASM
    MOVL 28(%EAX), %EAX;                               { EAX from actionregs }
    CALL *MOUSECALLBACK;                               { Call callback proc }
 .L_NoCallBack:
+   popl %edx;
+   popl %ecx;
+   popl %ebx;
    POPL %ESI;                                         { Recover register }
    POPL %EDI;                                         { Recover register }
+   POP %FS;                                           { Restore FS register }
    POP %DS;                                           { Restore DS register }
    POP %ES;                                           { Restore ES register }
    movzwl %si,%eax
    MOVL %ds:(%Eax), %EAX;
    MOVL %EAX, %ES:42(%EDI);                           { Set as return addr }
    ADDW $4, %ES:46(%EDI);                             { adjust stack }
+   popl %eax;
    IRET;                                              { Interrupt return }
 END;
 
@@ -731,13 +741,16 @@ Const
     PollMouseEvent  : Nil;
     PutMouseEvent  : Nil;
   );
-  
+
 Begin
-  SetMouseDriver(SysMouseDriver);  
+  SetMouseDriver(SysMouseDriver);
 end.
 {
   $Log$
-  Revision 1.2  2001-09-22 00:01:42  michael
+  Revision 1.3  2001-12-26 21:03:56  peter
+    * merged fixes from 1.0.x
+
+  Revision 1.2  2001/09/22 00:01:42  michael
   + Merged driver support for mouse from fixbranch
 
   Revision 1.1.2.2  2001/09/21 23:53:48  michael
