@@ -709,11 +709,7 @@ CONST
 CONST
    RView: TStreamRec = (
      ObjType: 1;                                      { Register id = 1 }
-     {$IFDEF BP_VMTLink}
-     VmtLink: Ofs(TypeOf(TView)^);                    { BP style VMT link }
-     {$ELSE}
      VmtLink: TypeOf(TView);                          { Alt style VMT link }
-     {$ENDIF}
      Load:    @TView.Load;                            { Object load method }
      Store:   @TView.Store                            { Object store method }
    );
@@ -724,11 +720,7 @@ CONST
 CONST
    RFrame: TStreamRec = (
      ObjType: 2;                                      { Register id = 2 }
-     {$IFDEF BP_VMTLink}
-     VmtLink: Ofs(TypeOf(TFrame)^);                   { BP style VMT link }
-     {$ELSE}
      VmtLink: TypeOf(TFrame);                         { Alt style VMT link }
-     {$ENDIF}
      Load:    @TFrame.Load;                           { Frame load method }
      Store:   @TFrame.Store                           { Frame store method }
    );
@@ -739,11 +731,7 @@ CONST
 CONST
    RScrollBar: TStreamRec = (
      ObjType: 3;                                      { Register id = 3 }
-     {$IFDEF BP_VMTLink}
-     VmtLink: Ofs(TypeOf(TScrollBar)^);               { BP style VMT link }
-     {$ELSE}
      VmtLink: TypeOf(TScrollBar);                     { Alt style VMT link }
-     {$ENDIF}
      Load:    @TScrollBar.Load;                       { Object load method }
      Store:   @TScrollBar.Store                       { Object store method }
    );
@@ -754,11 +742,7 @@ CONST
 CONST
    RScroller: TStreamRec = (
      ObjType: 4;                                      { Register id = 4 }
-     {$IFDEF BP_VMTLink}
-     VmtLink: Ofs(TypeOf(TScroller)^);                { BP style VMT link }
-     {$ELSE}
      VmtLink: TypeOf(TScroller);                      { Alt style VMT link }
-     {$ENDIF}
      Load:    @TScroller.Load;                        { Object load method }
      Store:   @TScroller.Store                        { Object store method }
    );
@@ -769,11 +753,7 @@ CONST
 CONST
    RListViewer: TStreamRec = (
      ObjType: 5;                                      { Register id = 5 }
-     {$IFDEF BP_VMTLink}
-     VmtLink: Ofs(TypeOf(TListViewer)^);              { BP style VMT link }
-     {$ELSE}
      VmtLink: TypeOf(TListViewer);                    { Alt style VMT link }
-     {$ENDIF}
      Load:    @TListViewer.Load;                      { Object load method }
      Store:   @TLIstViewer.Store                      { Object store method }
    );
@@ -784,11 +764,7 @@ CONST
 CONST
    RGroup: TStreamRec = (
      ObjType: 6;                                      { Register id = 6 }
-     {$IFDEF BP_VMTLink}
-     VmtLink: Ofs(TypeOf(TGroup)^);                   { BP style VMT link }
-     {$ELSE}
      VmtLink: TypeOf(TGroup);                         { Alt style VMT link }
-     {$ENDIF}
      Load:    @TGroup.Load;                           { Object load method }
      Store:   @TGroup.Store                           { Object store method }
    );
@@ -799,11 +775,7 @@ CONST
 CONST
    RWindow: TStreamRec = (
      ObjType: 7;                                      { Register id = 7 }
-     {$IFDEF BP_VMTLink}
-     VmtLink: Ofs(TypeOf(TWindow)^);                  { BP style VMT link }
-     {$ELSE}
      VmtLink: TypeOf(TWindow);                        { Alt style VMT link }
-     {$ENDIF}
      Load:    @TWindow.Load;                          { Object load method }
      Store:   @TWindow.Store                          { Object store method }
    );
@@ -2145,7 +2117,7 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TGroup.Valid (Command: Word): Boolean;
 
-   FUNCTION IsInvalid (P: PView): Boolean; {$IFNDEF PPC_FPC}FAR;{$ENDIF}
+   FUNCTION IsInvalid (P: PView): Boolean;
    BEGIN
      IsInvalid := NOT P^.Valid(Command);              { Check if valid }
    END;
@@ -2203,7 +2175,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.Awaken;
 
-   PROCEDURE DoAwaken (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
+   PROCEDURE DoAwaken (P: PView);
    BEGIN
      If (P <> Nil) Then P^.Awaken;                    { Awaken view }
    END;
@@ -2366,12 +2338,12 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.SetState (AState: Word; Enable: Boolean);
 
-    PROCEDURE DoSetState (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
+    PROCEDURE DoSetState (P: PView);
     BEGIN
       If (P <> Nil) Then P^.SetState(AState, Enable); { Set subview state }
     END;
 
-    PROCEDURE DoExpose (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
+    PROCEDURE DoExpose (P: PView);
     BEGIN
       If (P <> Nil) Then Begin
         If (P^.State AND sfVisible <> 0) Then         { Check view visible }
@@ -2433,7 +2405,7 @@ END;
 PROCEDURE TGroup.Store (Var S: TStream);
 VAR Count: Word; OwnerSave: PGroup;
 
-   PROCEDURE DoPut (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
+   PROCEDURE DoPut (P: PView);
    BEGIN
      S.Put(P);                                        { Put view on stream }
    END;
@@ -2462,13 +2434,13 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.HandleEvent (Var Event: TEvent);
 
-   FUNCTION ContainsMouse (P: PView): Boolean; {$IFNDEF PPC_FPC}FAR;{$ENDIF}
+   FUNCTION ContainsMouse (P: PView): Boolean;
    BEGIN
      ContainsMouse := (P^.State AND sfVisible <> 0)   { Is view visible }
        AND P^.MouseInView(Event.Where);               { Is point in view }
    END;
 
-   PROCEDURE DoHandleEvent (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
+   PROCEDURE DoHandleEvent (P: PView);
    BEGIN
      If (P = Nil) OR ((P^.State AND sfDisabled <> 0) AND
        (Event.What AND(PositionalEvents OR FocusedEvents) <>0 ))
@@ -2507,7 +2479,7 @@ END;
 PROCEDURE TGroup.ChangeBounds (Var Bounds: TRect);
 VAR D: TPoint;
 
-   PROCEDURE DoCalcChange (P: PView); {$IFNDEF PPC_FPC}FAR;{$ENDIF}
+   PROCEDURE DoCalcChange (P: PView);
    VAR R: TRect;
    BEGIN
      P^.CalcBounds(R, D);                             { Calc view bounds }
@@ -2602,7 +2574,7 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TGroup.FirstMatch (AState: Word; AOptions: Word): PView;
 
-   FUNCTION Matches (P: PView): Boolean; {$IFNDEF PPC_FPC}FAR;{$ENDIF}
+   FUNCTION Matches (P: PView): Boolean;
    BEGIN
      Matches := (P^.State AND AState = AState) AND
        (P^.Options AND AOptions = AOptions);          { Return match state }
@@ -4667,7 +4639,10 @@ END.
 
 {
  $Log$
- Revision 1.48  2004-11-06 22:03:06  peter
+ Revision 1.49  2004-11-06 23:24:37  peter
+   * fixed button click
+
+ Revision 1.48  2004/11/06 22:03:06  peter
    * fixed mouse
 
  Revision 1.47  2004/11/06 17:08:48  peter

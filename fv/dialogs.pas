@@ -1502,28 +1502,27 @@ VAR WasAppending: Boolean; ExtendBlock: Boolean; OldData: String;
 Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
 
    FUNCTION MouseDelta: Sw_Integer;
+   VAR Mouse : TPOint;
    BEGIN
-     If (Event.Where.X <= Origin.X+TextWidth(LeftArr))
-       Then MouseDelta := -1 Else                     { To left of text area }
-       If ((Event.Where.X-Origin.X) >= Size.X -
-       TextWidth(RightArr)) Then MouseDelta := 1      { To right of text area }
-         Else MouseDelta := 0;                        { In area return 0 }
+      MakeLocal(Event.Where, Mouse);
+      if Mouse.X <= 0 then
+        MouseDelta := -1
+      else if Mouse.X >= Size.X - 1 then
+        MouseDelta := 1 
+      else
+        MouseDelta := 0;
    END;
 
    FUNCTION MousePos: Sw_Integer;
-   VAR Mp, Tw, Pos: Sw_Integer; S: String;
+   VAR Pos: Sw_Integer;
+       Mouse : TPoint;
    BEGIN
-     Mp := Event.Where.X - Origin.X;               { Mouse position }
-     If (Data <> Nil) Then S := Copy(Data^, FirstPos+1,
-       Length(Data^)-FirstPos) Else S := '';          { Text area string }
-     Tw := TextWidth(LeftArr);                        { Text width }
-     Pos := 0;                                        { Zero position }
-     While (Mp > Tw) AND (Pos <= Length(S)) Do Begin  { Still text to right }
-       Tw := Tw + TextWidth(S[Pos+1]);                { Add next character }
-       Inc(Pos);                                      { Next character }
-     End;
-     If (Pos > 0) Then Dec(Pos);
-     MousePos := FirstPos + Pos;                      { Return mouse position }
+     MakeLocal(Event.Where, Mouse);
+     if Mouse.X < 1 then Mouse.X := 1;
+     Pos := Mouse.X + FirstPos - 1;
+     if Pos < 0 then Pos := 0;
+     if Pos > Length(Data^) then Pos := Length(Data^);
+     MousePos := Pos;
    END;
 
    PROCEDURE DeleteSelect;
@@ -1929,12 +1928,15 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TButton.HandleEvent (Var Event: TEvent);
 VAR Down: Boolean; C: Char; ButRect: TRect;
+    Mouse : TPoint;
 BEGIN
-   ButRect.A := Origin;                            { Get origin point }
-   ButRect.B.X := Origin.X + Size.X;            { Calc right side }
-   ButRect.B.Y := Origin.Y + Size.Y;            { Calc bottom }
+   ButRect.A.X := 0;                            { Get origin point }
+   ButRect.A.Y := 0;                            { Get origin point }
+   ButRect.B.X := Size.X + 2;            { Calc right side }
+   ButRect.B.Y := Size.Y + 1;            { Calc bottom }
    If (Event.What = evMouseDown) Then Begin           { Mouse down event }
-     If NOT MouseInView(Event.Where) Then Begin       { If point not in view }
+     MakeLocal(Event.Where, Mouse);
+     If NOT ButRect.Contains(Mouse) Then Begin       { If point not in view }
        ClearEvent(Event);                             { Clear the event }
        Exit;                                          { Speed up exit }
      End;
@@ -1947,7 +1949,8 @@ BEGIN
        If (State AND sfDisabled = 0) Then Begin       { Button not disabled }
          Down := False;                               { Clear down flag }
          Repeat
-           If (Down <> ButRect.Contains(Event.Where)) { State has changed }
+           MakeLocal(Event.Where, Mouse);
+           If (Down <> ButRect.Contains(Mouse)) { State has changed }
            Then Begin
              Down := NOT Down;                        { Invert down flag }
              DrawState(Down);                         { Redraw button }
@@ -4155,7 +4158,10 @@ END;
 END.
 {
  $Log$
- Revision 1.27  2004-11-06 17:08:48  peter
+ Revision 1.28  2004-11-06 23:24:36  peter
+   * fixed button click
+
+ Revision 1.27  2004/11/06 17:08:48  peter
    * drawing of tview merged from old fv code
 
 }
