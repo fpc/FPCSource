@@ -700,6 +700,7 @@ unit ag386att;
                s:=#9+att_op2str[op]+cond2str[paicpu(hp)^.condition];
                if (not calljmp) and
                   (att_needsuffix[op]<>AttSufNONE) and
+                  (op<>A_FNSTSW) and
                   not(
                    (paicpu(hp)^.oper[0].typ=top_reg) and
                    (paicpu(hp)^.oper[0].reg in [R_ST..R_ST7])
@@ -871,7 +872,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.24  2000-01-28 09:41:39  peter
+  Revision 1.25  2000-02-07 17:51:20  peter
+    * quick hack for fnstsww which is not supported under linux as
+
+  Revision 1.24  2000/01/28 09:41:39  peter
     * fixed fpu suffix parsing for att reader
 
   Revision 1.23  2000/01/07 01:14:18  peter
