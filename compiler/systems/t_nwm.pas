@@ -265,12 +265,12 @@ begin
   with Info do
    begin
      {$ifndef netware}
-     ExeCmd[1]:= 'ld -Ur -T $RES $STRIP -o $TMPOBJ';
-     ExeCmd[2]:='nlmconv -T$RES';
+     ExeCmd[1]:= FindUtil(utilsprefix+'ld') + ' -Ur -T $RES $STRIP -o $TMPOBJ';
+     ExeCmd[2]:= FindUtil(utilsprefix+'nlmconv') + ' -T$RES';
      {$else}
      {for running on netware we need absolute pathes since ld has another working directory}
-     ExeCmd[1]:= 'ld -Ur -T '+FExpand(outputexedir+Info.ResName)+' $STRIP -o '+Fexpand(outputexedir+tmpLinkFileName);
-     ExeCmd[2]:='nlmconv -T'+FExpand(outputexedir+'n'+Info.ResName);
+     ExeCmd[1]:= FindUtil(utilsprefix+'ld') + ' -Ur -T '+FExpand(outputexedir+Info.ResName)+' $STRIP -o '+Fexpand(outputexedir+tmpLinkFileName);
+     ExeCmd[2]:= FindUtil(utilsprefix+'nlmconv') + ' -T'+FExpand(outputexedir+'n'+Info.ResName);
      {$endif}
    end;
 end;
@@ -564,7 +564,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2004-11-19 16:30:24  peter
+  Revision 1.22  2004-11-25 18:46:11  armin
+  * added utilsprefix for as,ld and nlmconv
+
+  Revision 1.21  2004/11/19 16:30:24  peter
     * fixed setting of mangledname when importing
 
   Revision 1.20  2004/11/08 22:09:59  peter
