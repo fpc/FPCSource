@@ -275,6 +275,31 @@ type
     property Database    : TIBDatabase read FDatabase write SetDatabase;
     { This property holds SQL command, which you want to execute }
     property SQL         : TStrings read FSQL write FSQL;
+    // Publish TDataset properties.
+    property Active;
+    property AutoCalcFields;
+    property BeforeOpen;
+    property AfterOpen;
+    property BeforeClose;
+    property AfterClose;
+    property BeforeInsert;
+    property AfterInsert;
+    property BeforeEdit;
+    property AfterEdit;
+    property BeforePost;
+    property AfterPost;
+    property BeforeCancel;
+    property AfterCancel;
+    property BeforeDelete;
+    property AfterDelete;
+    property BeforeScroll;
+    property AfterScroll;
+    property OnCalcFields;
+    property OnDeleteError;
+    property OnEditError;
+    property OnFilterRecord;
+    property OnNewRecord;
+    property OnPostError;
   end;
 
 { TIBStoredProc - not implemented - yet :-/}
@@ -1175,7 +1200,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2003-12-07 23:13:34  sg
+  Revision 1.12  2004-05-01 23:56:59  michael
+  + Published TDataset properties
+
+  Revision 1.11  2003/12/07 23:13:34  sg
   * Added Log entries to end of file
 
 }
