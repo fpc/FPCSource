@@ -421,7 +421,7 @@ unit files;
     { search source files there is at least one source file }
       do_compile:=false;
       sources_avail:=true;
-      if b=ibsourcefile then
+      if b=ibsourcefiles then
        begin
          while not ppufile^.endofentry do
           begin
@@ -847,7 +847,11 @@ unit files;
         e : extstr;
       begin
          FSplit(s,p,n,e);
-         modulename:=stringdup(Upper(n));
+      { Programs have the name program to don't conflict with dup id's }
+         if _is_unit then
+           modulename:=stringdup(Upper(n))
+         else
+           modulename:=stringdup('PROGRAM');
          mainsource:=stringdup(s);
          objfilename:=nil;
          asmfilename:=nil;
@@ -927,7 +931,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.14  1998-05-27 19:45:02  peter
+  Revision 1.15  1998-05-28 14:37:53  peter
+    * default programname is PROGRAM (like TP7) to avoid dup id's
+
+  Revision 1.14  1998/05/27 19:45:02  peter
     * symtable.pas splitted into includefiles
     * symtable adapted for $ifdef NEWPPU
 
