@@ -816,7 +816,7 @@ begin
         'X' : begin
               Checkarg(vtinteger,true);
               If Prec>32 then
-                ToAdd:=HexStr(Args[Doarg].VInteger,Prec)
+                ToAdd:=HexStr(Args[Doarg].VInteger,32)
               else
                 begin
                 // determine minimum needed number of hex digits.
@@ -1053,6 +1053,8 @@ end ;
 
 function RightStr(const S: string; Count: integer): string;
 begin
+   If Count>Length(S) then 
+     Count:=Length(S);
    result := Copy(S, 1 + Length(S) - Count, Count);
 end;
 
@@ -1128,7 +1130,10 @@ const
 
 {
   $Log$
-  Revision 1.20  1999-05-31 20:50:45  peter
+  Revision 1.21  1999-06-05 20:47:03  michael
+  + Final fixes: RightStr
+
+  Revision 1.20  1999/05/31 20:50:45  peter
     * removed warnings
 
   Revision 1.19  1999/05/30 07:53:15  michael
