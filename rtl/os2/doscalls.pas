@@ -246,11 +246,11 @@ procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
                            var APIB:PProcessInfoBlock);
 
 {Wait a number of microseconds. Cannot fail, so it is defined as procedure.}
-procedure DosSleep(MSec:longint);
+procedure DosSleep(MSec:longint); cdecl;
 
 {Beep the speaker. You do not need to check for an error if you can
  guarantee that the frequency is correct.}
-function DosBeep(Freq,MS:longint):longint;
+function DosBeep(Freq,MS:longint):longint; cdecl;
 
 {****************************************************************************
 
@@ -2519,11 +2519,11 @@ procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
 
 external 'DOSCALLS' index 312;
 
-procedure DosSleep(MSec:longint);
+procedure DosSleep(MSec:longint); cdecl;
 
 external 'DOSCALLS' index 229;
 
-function DosBeep(Freq,MS:longint):longint;
+function DosBeep(Freq,MS:longint):longint; cdecl;
 
 external 'DOSCALLS' index 286;
 
@@ -3823,7 +3823,10 @@ external 'DOSCALLS' index 426;
 end.
 {
   $Log$
-  Revision 1.6  1999-08-10 14:18:40  hajny
+  Revision 1.7  1999-12-18 18:32:38  hajny
+    + Starting cdecl additions
+
+  Revision 1.6  1999/08/10 14:18:40  hajny
     * corrected characters >127 broken by DBCS editor
 
 }
