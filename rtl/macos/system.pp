@@ -58,6 +58,10 @@ var
 {**  MacOS specific functions    **}
 {*********************************}
 
+{To be called at regular intervals, for lenghty tasks.
+ Yield might give time for other tasks to run under the cooperative
+ multitasked macos. For an MPW Tool, it also spinns the cursor.}
+procedure Yield;
 
 {*********************************}
 {**  Available features on macos **}
@@ -430,6 +434,17 @@ begin
 end;
 
 {*****************************************************************************
+                              MacOS specific functions
+*****************************************************************************}
+
+procedure Yield;
+
+begin
+  if StandAlone = 0 then
+    SpinCursor(1);
+end;
+
+{*****************************************************************************
                               ParamStr/Randomize
 *****************************************************************************}
 
@@ -530,19 +545,19 @@ var
   spec: FSSpec;
   err: OSErr;
   res: Integer;
-	
+  
 begin
   res:= PathArgToFSSpec(p, spec);
 
   if (res = 0) then
     begin
       if not IsDirectory(spec) then
-			  begin
+        begin
           err:= FSpDelete(spec);
           OSErr2InOutRes(err);
-			  end
-			else
-			  InOutRes:= 2;
+        end
+      else
+        InOutRes:= 2;
     end
   else
     InOutRes:=res;
@@ -772,7 +787,7 @@ begin
 
 
   fh:= c_open(p, oflags);
-	if (fh = -1) and (errno = Sys_EROFS) and ((oflags and O_RDWR)<>0) then
+  if (fh = -1) and (errno = Sys_EROFS) and ((oflags and O_RDWR)<>0) then
     begin
       oflags:=oflags and not(O_RDWR);
       fh:= c_open(p, oflags);
@@ -865,7 +880,7 @@ var
   spec: FSSpec;
   err: OSErr;
   res: Integer;
-	
+  
 begin
   If (s='') or (InOutRes <> 0) then
     exit;
@@ -875,12 +890,12 @@ begin
   if (res = 0) then
     begin
       if IsDirectory(spec) then
-			  begin
+        begin
           err:= FSpDelete(spec);
           OSErr2InOutRes(err);
-			  end
-			else
-			  InOutRes:= 20;
+        end
+      else
+        InOutRes:= 20;
     end
   else
     InOutRes:=res;
@@ -1202,10 +1217,10 @@ var
   
 begin
   InvestigateSystem; {Must be first}
-	
-	{Check requred features for system.pp to work.}
-	if not macosHasFSSpec then
-	  Halt(3);  //exit code 3 according to MPW
+  
+  {Check requred features for system.pp to work.}
+  if not macosHasFSSpec then
+    Halt(3);  //exit code 3 according to MPW
 
   if FindSysFolder(macosBootVolumeVRefNum, dummySysFolderDirID) <> noErr then
     Halt(3);  //exit code 3 according to MPW
@@ -1273,12 +1288,18 @@ begin
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
+
+  if StandAlone = 0 then
+    InitCursorCtl(nil);
 end.
 
 
 {
   $Log$
-  Revision 1.18  2004-07-14 23:34:07  olle
+  Revision 1.19  2004-08-20 10:18:15  olle
+    + added Yield routine
+
+  Revision 1.18  2004/07/14 23:34:07  olle
     + added qd, the "QuickDraw globals"
 
   Revision 1.17  2004/06/21 19:23:34  olle
