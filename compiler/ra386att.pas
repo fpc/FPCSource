@@ -1054,6 +1054,22 @@ var
    end;
 
 
+  Function CheckAndSetOpsize(var op : toperand;size : topsize) : boolean;
+    Begin
+       CheckAndSetOpsize:=true;
+       { operandtype for constant get a default value for size }
+       if (op.operandtype<>OPR_CONSTANT) and (op.size<>S_NO) and (op.size<>size) then
+         begin
+            CheckAndSetOpsize:=false;
+            if (cs_compilesystem in aktmoduleswitches) or
+               not (cs_check_range in aktlocalswitches) then
+              Message(assem_w_size_suffix_and_dest_dont_match)
+            else
+              Message(assem_e_size_suffix_and_dest_dont_match);
+         end;
+       op.size:=size;
+    End;
+    
   Procedure ConcatOpCode(var instr: TInstruction);
   {*********************************************************************}
   { First Pass:                                                         }
@@ -1154,25 +1170,25 @@ var
               begin
                 if stropsize = S_BL then
                   begin
-                    operands[1].size := S_B;
+                    CheckAndSetOpsize(operands[1],S_B);
                     stropsize := S_NO;
-                    operands[2].size := S_L;
+                    CheckAndSetOpsize(operands[2],S_L);
                     addinstr(A_MOVSBL)
                   end
                 else
                   if stropsize = S_WL then
                     begin
-                      operands[1].size := S_W;
+                      CheckAndSetOpsize(operands[1],S_W);
                       stropsize := S_NO;
-                      operands[2].size := S_L;
+                      CheckAndSetOpsize(operands[2],S_L);
                       addinstr(A_MOVSWL)
                     end
                   else
                     if stropsize = S_BW then
                       begin
-                        operands[1].size := S_B;
+                        CheckAndSetOpsize(operands[1],S_B);
                         stropsize := S_NO;
-                        operands[2].size := S_W;
+                        CheckAndSetOpsize(operands[2],S_W);
                         addinstr(A_MOVSBW)
                       end
                     else
@@ -1206,25 +1222,25 @@ var
               Begin
                 if stropsize = S_BW then
                   begin
-                    operands[1].size := S_B;
+                    CheckAndSetOpsize(operands[1],S_B);
                     stropsize := S_NO;
-                    operands[2].size := S_W;
+                    CheckAndSetOpsize(operands[2],S_W);
                     addinstr(A_MOVZB)
                   end
                 else
                   if stropsize = S_BL then
                     begin
-                      operands[1].size := S_B;
+                      CheckAndSetOpsize(operands[1],S_B);
                       stropsize := S_NO;
-                      operands[2].size := S_L;
+                      CheckAndSetOpsize(operands[2],S_L);
                       addinstr(A_MOVZB)
                     end
                   else
                     if stropsize = S_WL then
                       begin
-                        operands[1].size := S_W;
+                        CheckAndSetOpsize(operands[1],S_W);
                         stropsize := S_NO;
-                        operands[2].size := S_L;
+                        CheckAndSetOpsize(operands[2],S_L);
                         addinstr(A_MOVZWL)
                       end
                     else
@@ -1495,13 +1511,11 @@ var
      { REQUIRED for intasmi3)                                             }
         A_MOV,A_ADD,A_SUB,A_ADC,A_SBB,A_CMP,A_AND,A_OR,A_TEST,A_XOR:
           begin
-            if (instr.stropsize <> S_NO) and
-               (instr.operands[2].size <> S_NO) then
-              if (instr.stropsize <> instr.operands[2].size) then
-                begin
-                  Message(assem_e_size_suffix_and_dest_reg_dont_match);
-                  exit;
-                end;
+            if (instr.stropsize <> S_NO) then
+              Begin
+                 if not CheckAndSetOpsize(operands[1],instr.stropsize) or
+                    not CheckAndSetOpsize(operands[2],instr.stropsize) then
+              End;
           end;
         A_DEC,A_INC,A_NOT,A_NEG:
           begin
@@ -3688,7 +3702,10 @@ end.
 
 {
   $Log$
-  Revision 1.29  1999-01-10 15:37:54  peter
+  Revision 1.30  1999-01-28 14:12:59  pierre
+   * bug0175 solved give error on $R+ and warning otherwise
+
+  Revision 1.29  1999/01/10 15:37:54  peter
     * moved some tables from ra386*.pas -> i386.pas
     + start of coff writer
     * renamed asmutils unit to rautils
