@@ -721,9 +721,25 @@ XDEF RE_BOUNDS_CHECK
 @reboundend:
  end;
 
+Function Random(l : Longint) : Longint
+{
+  the problem Wwth this Function is if l is maxLongint*3/4 then the
+  probability to obtain a number in the range maxlongint*1/4 to maxlongint*1/2
+  is two times smaller than the probability for other numbers !
+}
+Begin
+  Randseed:=Randseed*134775813+1;
+  Random:=abs(Randseed mod l);
+End;
+
+
+
 {
   $Log$
-  Revision 1.2  1998-03-27 23:48:06  carl
+  Revision 1.3  1998-04-08 07:53:32  michael
+  + Changed Random() function. Moved from system to processor dependent files (from Pedro Gimeno)
+
+  Revision 1.2  1998/03/27 23:48:06  carl
     * bugfix of STRCONCAT alignment problem
 
   Revision 1.18  1998/03/02 04:17:24  carl

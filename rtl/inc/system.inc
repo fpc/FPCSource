@@ -198,18 +198,6 @@ End;
 
 {$R-}
 
-Function Random(l : Longint) : Longint;
-{
-  the problem Wwth this Function is if l is maxLongint*3/4 then the
-  probability to obtain a number in the range maxlongint*1/4 to maxlongint*1/2
-  is two times smaller than the probability for other numbers !
-}
-Begin
-  Randseed:=Randseed*134775813+1;
-  Random:=abs(Randseed mod l);
-End;
-
-
 Function Random : real;
 {
   I am not sure about the accuracy of such a value (PM)
@@ -414,7 +402,10 @@ End;
 
 {
   $Log$
-  Revision 1.2  1998-03-25 23:39:17  florian
+  Revision 1.3  1998-04-08 07:53:32  michael
+  + Changed Random() function. Moved from system to processor dependent files (from Pedro Gimeno)
+
+  Revision 1.2  1998/03/25 23:39:17  florian
     * complete Object Pascal support moved to objpas unit
 
   Revision 1.1.1.1  1998/03/25 11:18:43  root
