@@ -23,7 +23,7 @@ unit XHTML;
 
 interface
 
-uses DOM;
+uses DOM, DOM_HTML;
 
 type
 
@@ -42,7 +42,7 @@ type
 
   TXHTMLType = (xhtmlStrict, xhtmlTransitional);
 
-  TXHTMLDocument = class(TXMLDocument)
+  TXHTMLDocument = class(THTMLDocument)
   private
     function GetHeadElement: TXHTMLHeadElement;
     function GetBodyElement: TXHTMLBodyElement;
@@ -132,7 +132,12 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:15:29  peter
+  Revision 1.3  2002-12-11 21:11:58  sg
+  * TXHTMLDocument is now derived from THTMLDocument instead of TXMLDocument.
+    Probably future versions of DOM_HTML will be able to completely replace
+    this unit.
+
+  Revision 1.2  2002/09/07 15:15:29  peter
     * old logs removed and tabs fixed
 
 }
