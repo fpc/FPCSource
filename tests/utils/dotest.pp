@@ -665,7 +665,11 @@ begin
          begin
            if FileExists(ForceExtension(PPFile,'ppu')) or
               FileExists(ForceExtension(PPFile,'ppw')) then
-            Verbose(V_Debug,'Unit found, skipping run test')
+             begin
+               AddLog(ForceExtension(PPFile,'elg'),'Skipping test run because it is a unit '+PPFileInfo);
+               AddLog(ResLogFile,'Skipping test run because it is a unit '+PPFileInfo);
+               Verbose(V_Debug,'Unit found, skipping run test')
+             end
            else
             Res:=RunExecutable;
          end;
@@ -680,7 +684,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-01-29 12:51:08  pierre
+  Revision 1.12  2002-01-29 13:24:16  pierre
+   + also generate .elg file for units
+
+  Revision 1.11  2002/01/29 12:51:08  pierre
     + PPFileInfo to also display time stamp of test file
     * generate .elg file in several cases
       to avoid trying to recompute the same test
