@@ -650,7 +650,7 @@ implementation
         if (a=0) then
           list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],reg,NR_G0,reg))
         else
-          handle_reg_const_reg(list,TOpCG2AsmOp[op],reg,a,reg);
+          a_op_const_reg_reg(list,op,size,a,reg,reg);
       end;
 
 
@@ -689,8 +689,9 @@ implementation
             begin
               if ispowerof2(a,power) then
                 begin
-                  { can be done with a shift }
-                  inherited a_op_const_reg_reg(list,op,size,a,src,dst);
+                  { we can't do this easily in the asm. optimizer; overflow checking code
+                    might depend on a set Y }
+                  a_op_const_reg_reg(list,OP_SHL,size,power,src,dst);
                   exit;
                 end;
             end;
@@ -1315,7 +1316,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.99  2004-12-18 15:48:06  florian
+  Revision 1.100  2005-01-01 13:19:09  florian
+    * improved code generation for OP_MUL/OP_IMUL
+
+  Revision 1.99  2004/12/18 15:48:06  florian
     * fixed some alignment trouble
 
   Revision 1.98  2004/10/31 21:45:03  peter
