@@ -477,12 +477,6 @@ implementation
               oldfilepos:=aktfilepos;
               aktfilepos:=newtype.fileinfo;
 
-              { generate rtti info for classes, but not for forward classes }
-              if (tt.def.deftype=objectdef) and
-                 (oo_can_have_published in tobjectdef(tt.def).objectoptions) and
-                 not(oo_is_forward in tobjectdef(tt.def).objectoptions) then
-                generate_rtti(newtype);
-
               { generate persistent init/final tables when it's declared in the interface so it can
                 be reused in other used }
               if (not current_module.in_implementation) and
@@ -498,6 +492,12 @@ implementation
                  not(oo_is_forward in tobjectdef(tt.def).objectoptions) then
                begin
                  ch:=cclassheader.create(tobjectdef(tt.def));
+                 { generate and check virtual methods, must be done
+                   before RTTI is written }
+                 ch.genvmt;
+                 { generate rtti info if published items are available }
+                 if (oo_can_have_published in tobjectdef(tt.def).objectoptions) then
+                   generate_rtti(newtype);
                  if is_interface(tobjectdef(tt.def)) then
                    ch.writeinterfaceids;
                  if (oo_has_vmt in tobjectdef(tt.def).objectoptions) then
@@ -593,7 +593,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2001-09-19 11:06:03  michael
+  Revision 1.35  2001-10-20 17:20:13  peter
+    * fixed generation of rtti for virtualmethods
+
+  Revision 1.34  2001/09/19 11:06:03  michael
   * realname updated for some hints
   * realname used for consts,labels
 

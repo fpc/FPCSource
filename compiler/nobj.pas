@@ -86,6 +86,7 @@ interface
         has_virtual_method : boolean;
         procedure eachsym(sym : tnamedindexitem);
         procedure disposevmttree;
+        procedure writevirtualmethods(List:TAAsmoutput);
       private
         { interface tables }
         function  gintfgetvtbllabelname(intfindex: integer): string;
@@ -100,19 +101,20 @@ interface
         procedure cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
       public
         constructor create(c:tobjectdef);
+        destructor destroy;override;
         { generates the message tables for a class }
         function  genstrmsgtab : tasmlabel;
         function  genintmsgtab : tasmlabel;
         function  genpublishedmethodstable : tasmlabel;
+        { generates a VMT entries }
+        procedure genvmt;
 {$ifdef WITHDMT}
         { generates a DMT for _class }
         function  gendmt : tasmlabel;
 {$endif WITHDMT}
-        { generates a VMT for _class }
-        procedure genvmt(list : TAAsmoutput);
         { interfaces }
         function  genintftable: tasmlabel;
-
+        { write the VMT to datasegment }
         procedure writevmt;
         procedure writeinterfaceids;
       end;
@@ -149,6 +151,12 @@ implementation
       begin
         inherited Create;
         _Class:=c;
+      end;
+
+
+    destructor tclassheader.destroy;
+      begin
+        disposevmttree;
       end;
 
 
@@ -729,7 +737,7 @@ implementation
        end;
 
 
-    procedure tclassheader.genvmt(list : TAAsmoutput);
+    procedure tclassheader.genvmt;
 
       procedure do_genvmt(p : tobjectdef);
 
@@ -741,11 +749,6 @@ implementation
            { walk through all public syms }
            p.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}eachsym);
         end;
-
-      var
-         symcoll : psymcoll;
-         procdefcoll : pprocdefcoll;
-         i : longint;
 
       begin
          wurzel:=nil;
@@ -759,50 +762,6 @@ implementation
 
          if has_virtual_method and not(has_constructor) then
             Message1(parser_w_virtual_without_constructor,_class.objname^);
-
-
-         { generates the VMT }
-
-         { walk trough all numbers for virtual methods and search }
-         { the method                                             }
-         for i:=0 to nextvirtnumber-1 do
-           begin
-              symcoll:=wurzel;
-
-              { walk trough all symbols }
-              while assigned(symcoll) do
-                begin
-
-                   { walk trough all methods }
-                   procdefcoll:=symcoll^.data;
-                   while assigned(procdefcoll) do
-                     begin
-                        { writes the addresses to the VMT }
-                        { but only this which are declared as virtual }
-                        if procdefcoll^.data.extnumber=i then
-                          begin
-                             if (po_virtualmethod in procdefcoll^.data.procoptions) then
-                               begin
-                                  { if a method is abstract, then is also the }
-                                  { class abstract and it's not allow to      }
-                                  { generates an instance                     }
-                                  if (po_abstractmethod in procdefcoll^.data.procoptions) then
-                                    begin
-                                       include(_class.objectoptions,oo_has_abstract);
-                                       List.concat(Tai_const_symbol.Createname('FPC_ABSTRACTERROR'));
-                                    end
-                                  else
-                                    begin
-                                      List.concat(Tai_const_symbol.createname(procdefcoll^.data.mangledname));
-                                    end;
-                               end;
-                          end;
-                        procdefcoll:=procdefcoll^.next;
-                     end;
-                   symcoll:=symcoll^.next;
-                end;
-           end;
-         disposevmttree;
       end;
 
 
@@ -1135,11 +1094,58 @@ implementation
       dataSegment.concat(Tai_string.Create(_class.iidstr^));
     end;
 
+
+    procedure tclassheader.writevirtualmethods(List:TAAsmoutput);
+      var
+         symcoll : psymcoll;
+         procdefcoll : pprocdefcoll;
+         i : longint;
+      begin
+         { walk trough all numbers for virtual methods and search }
+         { the method                                             }
+         for i:=0 to nextvirtnumber-1 do
+           begin
+              symcoll:=wurzel;
+
+              { walk trough all symbols }
+              while assigned(symcoll) do
+                begin
+
+                   { walk trough all methods }
+                   procdefcoll:=symcoll^.data;
+                   while assigned(procdefcoll) do
+                     begin
+                        { writes the addresses to the VMT }
+                        { but only this which are declared as virtual }
+                        if procdefcoll^.data.extnumber=i then
+                          begin
+                             if (po_virtualmethod in procdefcoll^.data.procoptions) then
+                               begin
+                                  { if a method is abstract, then is also the }
+                                  { class abstract and it's not allow to      }
+                                  { generates an instance                     }
+                                  if (po_abstractmethod in procdefcoll^.data.procoptions) then
+                                    begin
+                                       include(_class.objectoptions,oo_has_abstract);
+                                       List.concat(Tai_const_symbol.Createname('FPC_ABSTRACTERROR'));
+                                    end
+                                  else
+                                    begin
+                                      List.concat(Tai_const_symbol.createname(procdefcoll^.data.mangledname));
+                                    end;
+                               end;
+                          end;
+                        procdefcoll:=procdefcoll^.next;
+                     end;
+                   symcoll:=symcoll^.next;
+                end;
+           end;
+      end;
+
     { generates the vmt for classes as well as for objects }
     procedure tclassheader.writevmt;
 
       var
-         vmtlist : taasmoutput;
          methodnametable,intmessagetable,
          strmessagetable,classnamelabel,
          fieldtablelabel : tasmlabel;
@@ -1151,9 +1157,6 @@ implementation
 {$ifdef WITHDMT}
          dmtlabel:=gendmt;
 {$endif WITHDMT}
-         { this generates the entries }
-         vmtlist:=TAasmoutput.Create;
-         genvmt(vmtlist);
 
          if (cs_create_smart in aktmoduleswitches) then
            dataSegment.concat(Tai_cut.Create);
@@ -1258,8 +1261,8 @@ implementation
             else
               dataSegment.concat(Tai_const.Create_32bit(0));
           end;
-         dataSegment.concatlist(vmtlist);
-         vmtlist.free;
+         { write virtual methods }
+         writevirtualmethods(dataSegment);
          { write the size of the VMT }
          dataSegment.concat(Tai_symbol_end.Createname(_class.vmt_mangledname));
       end;
@@ -1270,7 +1273,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2001-09-19 11:04:42  michael
+  Revision 1.5  2001-10-20 17:20:14  peter
+    * fixed generation of rtti for virtualmethods
+
+  Revision 1.4  2001/09/19 11:04:42  michael
   * Smartlinking with interfaces fixed
   * Better smartlinking for rtti and init tables
 
