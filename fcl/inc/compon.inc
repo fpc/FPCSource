@@ -261,7 +261,7 @@ begin
   else
     Exclude(FComponentSTate,csDesigning);
   if Assigned(FComponents) then
-    For Runner:=0 To FComponents.Count do
+    For Runner:=0 To FComponents.Count - 1 do
       TComponent(FComponents.items[Runner]).SetDesigning(Value);
 end;
 
@@ -488,7 +488,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
+  Revision 1.3  2001-01-08 18:36:01  sg
+  * Applied bugfix for bug #1330 (merged)
+
+  Revision 1.2  2000/07/13 11:32:59  michael
   + removed logs
  
 }
