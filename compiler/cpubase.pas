@@ -194,7 +194,7 @@ type
   TAsmOp=
 {$i i386op.inc}
 
-  op2strtable=array[tasmop] of string[10];
+  op2strtable=array[tasmop] of string[11];
 
 const
   firstop = low(tasmop);
@@ -902,7 +902,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2000-05-09 10:52:08  pierre
+  Revision 1.28  2000-05-10 19:09:07  pierre
+    * op2strtable string length changed to 11
+      Thanks to Kovacs Attila Zoltan
+      this should be set by nasmconv utility !
+
+  Revision 1.27  2000/05/09 10:52:08  pierre
    Use i386nop.inc file
 
   Revision 1.26  2000/04/11 11:21:44  jonas
