@@ -12,7 +12,8 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       sysutils classes math typinfo varutils \
       charset ucomplex getopts matrix \
       variants types rtlconst sysconst dateutil \
-      exec timer doslib utility hardware inputevent graphics layers intuition
+      exec timer doslib utility hardware inputevent graphics layers \
+      intuition clipboard 
 rsts=math rtlconst varutils typinfo variants classes sysconst dateutil
 
 [require]
@@ -188,3 +189,5 @@ layers$(PPUEXT)  : layers.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
 
 intuition$(PPUEXT): intuition.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT) \
                     inputevent$(PPUEXT) timer$(PPUEXT) layers$(PPUEXT)
+
+clipboard$(PPUEXT): clipboard.pas exec$(PPUEXT)
