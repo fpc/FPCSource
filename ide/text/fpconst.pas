@@ -77,6 +77,8 @@ const
      dfBreakpoints        = $00000008;
      dfOpenWindows        = $00000010;
      dfSymbolInformation  = $00000020;
+     dfCodeCompleteWords  = $00000040;
+     dfCodeTemplates      = $00000080;
 
      { Auto Save flag constants }
      asEditorFiles        = $00000001; { Editor files }
@@ -175,6 +177,8 @@ const
      cmSwitchesMode      = 2014;
      cmBrowser           = 2015;
      cmDesktopOptions    = 2016;
+     cmCodeCompleteOptions=2017;
+     cmCodeTemplateOptions=2018;
 
      cmHelpContents      = 2100;
      cmHelpIndex         = 2101;
@@ -250,6 +254,8 @@ const
      hcSwitchesMode      = hcShift+cmSwitchesMode;
      hcBrowser           = hcShift+cmBrowser;
      hcDesktopOptions    = hcShift+cmDesktopOptions;
+     hcCodeCompleteOptions=hcShift+cmCodeCompleteOptions;
+     hcCodeTemplateOptions=hcShift+cmCodeTemplateOptions;
      hcAbout             = hcShift+cmAbout;
      hcCompilerMessages  = hcShift+cmCompilerMessages;
 
@@ -321,6 +327,7 @@ const
      hcOpenAtCursor      = hcShift+cmOpenAtCursor;
      hcBrowseAtCursor    = hcShift+cmBrowseAtCursor;
      hcEditorOptions     = hcShift+cmEditorOptions;
+     hcBrowserOptions    = hcShift+cmBrowserOptions;
 
      { History constants }
      hisChDirDialog      = 2000;
@@ -353,6 +360,8 @@ const
 
      CFPToolTip     = #228;
 
+     CFPCodeMemo    = #26#26#26#28#26#29#26#26#26#27#26#26#26#26#26#26#26;
+
      CIDEAppColor = CAppColor +
          { CIDEHelpDialog }
 {128-143}#$70#$7F#$7A#$13#$13#$70#$70#$7F#$7E#$20#$2B#$2F#$78#$2E#$70#$30 + { 1-16}
@@ -375,7 +384,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.33  2000-01-25 00:26:36  pierre
+  Revision 1.34  2000-02-07 11:51:40  pierre
+   + TFPCodeMemo consts from Gabor
+
+  Revision 1.33  2000/01/25 00:26:36  pierre
    + Browser info saving
 
   Revision 1.32  2000/01/08 18:26:20  florian
