@@ -398,41 +398,43 @@ implementation
             (p.resulttype.def.deftype in [objectdef,recorddef]) then
           begin
             case p.resulttype.def.deftype of
-             objectdef : begin
-                           obj:=tobjectdef(p.resulttype.def);
-                           symtab:=twithsymtable.Create(obj,obj.symtable.symsearch);
-                           withsymtable:=symtab;
-                           if (p.nodetype=loadn) and
-                              (tloadnode(p).symtable=aktprocdef.localst) then
-                             twithsymtable(symtab).direct_with:=true;
-                           twithsymtable(symtab).withrefnode:=p;
-                           levelcount:=1;
-                           obj:=obj.childof;
-                           while assigned(obj) do
-                            begin
-                              symtab.next:=twithsymtable.create(obj,obj.symtable.symsearch);
-                              symtab:=symtab.next;
-                              if (p.nodetype=loadn) and
-                                 (tloadnode(p).symtable=aktprocdef.localst) then
-                                twithsymtable(symtab).direct_with:=true;
-                              twithsymtable(symtab).withrefnode:=p;
-                              obj:=obj.childof;
-                              inc(levelcount);
-                            end;
-                           symtab.next:=symtablestack;
-                           symtablestack:=withsymtable;
-                         end;
-             recorddef : begin
-                           symtab:=trecorddef(p.resulttype.def).symtable;
-                           levelcount:=1;
-                           withsymtable:=twithsymtable.create(trecorddef(p.resulttype.def),symtab.symsearch);
-                           if (p.nodetype=loadn) and
-                              (tloadnode(p).symtable=aktprocdef.localst) then
-                           twithsymtable(withsymtable).direct_with:=true;
-                           twithsymtable(withsymtable).withrefnode:=p;
-                           withsymtable.next:=symtablestack;
-                           symtablestack:=withsymtable;
-                        end;
+              objectdef :
+                begin
+                   obj:=tobjectdef(p.resulttype.def);
+                   symtab:=twithsymtable.Create(obj,obj.symtable.symsearch);
+                   withsymtable:=symtab;
+                   if (p.nodetype=loadn) and
+                      (tloadnode(p).symtable=aktprocdef.localst) then
+                     twithsymtable(symtab).direct_with:=true;
+                   twithsymtable(symtab).withrefnode:=p;
+                   levelcount:=1;
+                   obj:=obj.childof;
+                   while assigned(obj) do
+                    begin
+                      symtab.next:=twithsymtable.create(obj,obj.symtable.symsearch);
+                      symtab:=symtab.next;
+                      if (p.nodetype=loadn) and
+                         (tloadnode(p).symtable=aktprocdef.localst) then
+                        twithsymtable(symtab).direct_with:=true;
+                      twithsymtable(symtab).withrefnode:=p;
+                      obj:=obj.childof;
+                      inc(levelcount);
+                    end;
+                   symtab.next:=symtablestack;
+                   symtablestack:=withsymtable;
+                 end;
+              recorddef :
+                begin
+                   symtab:=trecorddef(p.resulttype.def).symtable;
+                   levelcount:=1;
+                   withsymtable:=twithsymtable.create(trecorddef(p.resulttype.def),symtab.symsearch);
+                   if (p.nodetype=loadn) and
+                      (tloadnode(p).symtable=aktprocdef.localst) then
+                   twithsymtable(withsymtable).direct_with:=true;
+                   twithsymtable(withsymtable).withrefnode:=p;
+                   withsymtable.next:=symtablestack;
+                   symtablestack:=withsymtable;
+                end;
             end;
             if token=_COMMA then
              begin
@@ -1011,9 +1013,6 @@ implementation
         parafixup,
         i : longint;
       begin
-        { we don't need to allocate space for the locals }
-        aktprocdef.localst.datasize:=0;
-        procinfo.firsttemp_offset:=0;
         { replace framepointer with stackpointer }
         procinfo.framepointer.enum:=R_INTREGISTER;
         procinfo.framepointer.number:=NR_STACK_POINTER_REG;
@@ -1095,18 +1094,27 @@ implementation
              (vm, i386, vm only currently)
          }
          if (po_assembler in aktprocdef.procoptions) and
+{$ifndef powerpc}
+            { is this really necessary??? }
             (aktprocdef.parast.datasize=0) and
+{$endif powerpc}
             (aktprocdef.localst.datasize=aktprocdef.rettype.def.size) and
             (aktprocdef.owner.symtabletype<>objectsymtable) and
             (not assigned(aktprocdef.funcretsym) or
              (tvarsym(aktprocdef.funcretsym).refcount<=1)) and
-            not(paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption)) and
-            (target_cpu in [cpu_i386,cpu_m68k,cpu_vm])
+            not(paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption)) then
+            begin
+               { we don't need to allocate space for the locals }
+               aktprocdef.localst.datasize:=0;
+               procinfo.firsttemp_offset:=0;
+               { only for cpus with different frame- and stack pointer the code must be changed }
+               if (NR_STACK_POINTER_REG<>NR_FRAME_POINTER_REG)
 {$ifdef CHECKFORPUSH}
-            and not(UsesPush(tasmnode(p)))
+                 and not(UsesPush(tasmnode(p)))
 {$endif CHECKFORPUSH}
-            then
-           OptimizeFramePointer(tasmnode(p));
+                 then
+                 OptimizeFramePointer(tasmnode(p));
+            end;
 
         { Flag the result as assigned when it is returned in a
           register.
@@ -1125,7 +1133,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2003-04-25 20:59:34  peter
+  Revision 1.92  2003-04-26 11:30:59  florian
+    * fixed the powerpc to work with the new function result handling
+
+  Revision 1.91  2003/04/25 20:59:34  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

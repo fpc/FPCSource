@@ -71,11 +71,8 @@ unit cpupi;
               procinfo.framepointer_offset:=procdef.parast.address_fixup;
               inc(procdef.parast.address_fixup,4);
            end;
-         if paramanager.ret_in_param(procdef.rettype.def,procdef.proccalloption) then
-           begin
-              procinfo.return_offset:=procdef.parast.address_fixup;
-              inc(procdef.parast.address_fixup,4);
-           end;
+         if assigned(procinfo.procdef.funcretsym) then
+           procinfo.return_offset:=tvarsym(procinfo.procdef.funcretsym).address+tvarsym(procinfo.procdef.funcretsym).owner.address_fixup;
          if assigned(_class) then
            begin
               procinfo.selfpointer_offset:=procdef.parast.address_fixup;
@@ -102,7 +99,6 @@ unit cpupi;
            begin
              ofs:=align(maxpushedparasize+LinkageAreaSize,16);
              inc(procdef.parast.address_fixup,ofs);
-             inc(procinfo.return_offset,ofs);
              inc(procinfo.framepointer_offset,ofs);
              inc(procinfo.selfpointer_offset,ofs);
              if cs_asm_source in aktglobalswitches then
@@ -110,6 +106,8 @@ unit cpupi;
 
 //             Already done with an "inc" above now, not sure if it's correct (JM)
              procdef.localst.address_fixup:=procdef.parast.address_fixup+procdef.parast.datasize;
+             if assigned(procinfo.procdef.funcretsym) then
+               procinfo.return_offset:=tvarsym(procinfo.procdef.funcretsym).address+tvarsym(procinfo.procdef.funcretsym).owner.address_fixup;
 
 {
              Already done with an "inc" above, should be correct (JM)
@@ -136,7 +134,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2003-04-24 11:24:00  florian
+  Revision 1.10  2003-04-26 11:31:00  florian
+    * fixed the powerpc to work with the new function result handling
+
+  Revision 1.9  2003/04/24 11:24:00  florian
     * fixed several issues with nested procedures
 
   Revision 1.8  2003/04/06 16:39:11  jonas

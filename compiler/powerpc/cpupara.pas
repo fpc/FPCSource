@@ -157,12 +157,6 @@ unit cpupara;
          nextfloatreg.enum:=R_F1;
          nextmmreg.enum:=R_M1;
          stack_offset:=0;
-         { pointer for structured results ? }
-         if not is_void(p.rettype.def) then
-           begin
-              if not(ret_in_reg(p.rettype.def,p.proccalloption)) then
-                inc(nextintreg.number,NR_R1-NR_R0);
-           end;
 
          { frame pointer for nested procedures? }
          { inc(nextintreg);                     }
@@ -301,7 +295,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2003-04-23 12:35:35  florian
+  Revision 1.27  2003-04-26 11:30:59  florian
+    * fixed the powerpc to work with the new function result handling
+
+  Revision 1.26  2003/04/23 12:35:35  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...
