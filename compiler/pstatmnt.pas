@@ -41,10 +41,10 @@ implementation
 
     uses
        { common }
-       cutils,cclasses,
+       cutils,
        { global }
        globtype,globals,verbose,
-       systems,cpuinfo,
+       systems,
        { aasm }
        cpubase,aasmbase,aasmtai,
        { symtable }
@@ -343,11 +343,82 @@ implementation
       var
          p_e,tovalue,p_a : tnode;
          backward : boolean;
-
+         loopvarsym : tvarsym;
+         hp : tnode;
       begin
          { parse loop header }
          consume(_FOR);
          p_e:=expr;
+
+         { Check loop variable }
+         hp:=nil;
+         loopvarsym:=nil;
+         if (p_e.nodetype=assignn) then
+           begin
+             hp:=tassignmentnode(p_e).left;
+
+             { variable must be an ordinal, int64 is not allowed for 32bit targets }
+             if not(is_ordinal(hp.resulttype.def))
+{$ifndef cpu64bit}
+                or is_64bitint(hp.resulttype.def)
+{$endif cpu64bit}
+                then
+               MessagePos(hp.fileinfo,type_e_ordinal_expr_expected);
+
+             { record fields are also allowed in tp7 }
+             while assigned(hp) and
+                   (
+                    (hp.nodetype=subscriptn) or
+                    ((hp.nodetype=vecn) and
+                     is_constintnode(tvecnode(hp).right)) or
+                    ((hp.nodetype=typeconvn) and
+                     (ttypeconvnode(hp).convtype=tc_equal))
+                   ) do
+               hp:=tunarynode(hp).left;
+           end;
+         if assigned(hp) and
+            (hp.nodetype=loadn) then
+           begin
+             case tloadnode(hp).symtableentry.typ of
+               varsym :
+                 begin
+                   { we need a simple loadn and the load must be in a global symtable or
+                     in the same level as the para of the current proc }
+                   if (
+                       (tloadnode(hp).symtable.symtablelevel=main_program_level) or
+                       (tloadnode(hp).symtable.symtablelevel=current_procinfo.procdef.parast.symtablelevel)
+                      ) and
+                      not(
+                          (tloadnode(hp).symtableentry.typ=varsym) and
+                          ((tvarsym(tloadnode(hp).symtableentry).varspez in [vs_var,vs_out]) or
+                           (vo_is_thread_var in tvarsym(tloadnode(hp).symtableentry).varoptions))
+                         ) then
+                     begin
+                       tvarsym(tloadnode(hp).symtableentry).varstate:=vs_used;
+
+                       { Assigning for-loop variable is only allowed in tp7 }
+                       if not(m_tp7 in aktmodeswitches) then
+                         begin
+                           loopvarsym:=tvarsym(tloadnode(hp).symtableentry);
+                           include(loopvarsym.varoptions,vo_is_loop_counter);
+                         end;
+                     end
+                   else
+                     MessagePos(hp.fileinfo,type_e_illegal_count_var);
+                 end;
+               typedconstsym :
+                 begin
+                   { Bad programming, only allowed in tp7 mode }
+                   if not(m_tp7 in aktmodeswitches) then
+                     MessagePos(hp.fileinfo,type_e_illegal_count_var);
+                 end;
+               else
+                 MessagePos(hp.fileinfo,type_e_illegal_count_var);
+             end;
+           end
+         else
+           Message(parser_e_illegal_expression);
+
          if token=_DOWNTO then
            begin
               consume(_DOWNTO);
@@ -361,8 +432,13 @@ implementation
          tovalue:=comp_expr(true);
          consume(_DO);
 
-         { ... now the instruction }
+         { ... now the instruction block }
          p_a:=statement;
+
+         { variable is not used a loop counter anymore }
+         if assigned(loopvarsym) then
+           exclude(loopvarsym.varoptions,vo_is_loop_counter);
+
          for_statement:=genloopnode(forn,p_e,tovalue,p_a,backward);
       end;
 
@@ -1106,7 +1182,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.136  2004-06-20 08:55:30  florian
+  Revision 1.137  2004-09-13 20:28:27  peter
+    * for loop variable assignment is not allowed anymore
+
+  Revision 1.136  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.135  2004/06/16 20:07:09  florian

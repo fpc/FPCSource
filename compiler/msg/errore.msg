@@ -975,6 +975,9 @@ parser_e_upper_lower_than_lower=03206_E_High range limit < low range limit
 % limit of the range.
 parser_e_macpas_exit_wrong_param=03207_E_Exit's parameter must be the name of the procedure it is used in
 % Non local exit is not allowed. This error occur only in mode MacPas.
+parser_e_illegal_assignment_to_count_var=03208_E_Illegal assignment to for-loop variable "$1"
+% The type of a \var{for} loop variable must be an ordinal type.
+% Loop variables cannot be reals or strings.
 % \end{description}
 #
 # Type Checking

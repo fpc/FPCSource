@@ -1026,6 +1026,11 @@ implementation
                    absolutesym,
                    varsym :
                      begin
+                       { loop counter? }
+                       if not(Valid_Const in opts) and
+                          (vo_is_loop_counter in tvarsym(tloadnode(hp).symtableentry).varoptions) then
+                         CGMessage1(parser_e_illegal_assignment_to_count_var,tloadnode(hp).symtableentry.realname);
+                       { derefed pointer }  
                        if (tvarsym(tloadnode(hp).symtableentry).varspez=vs_const) then
                         begin
                           { allow p^:= constructions with p is const parameter }
@@ -1896,24 +1901,27 @@ implementation
           begin
             { Maybe passing the correct type but passing a const to var parameter }
             if (compare_defs(pt.resulttype.def,hp^.wrongpara.paratype.def,pt.nodetype)<>te_incompatible) and
-               not valid_for_var(pt) then
-              CGMessagePos(pt.fileinfo,type_e_variable_id_expected)
+               not valid_for_var(pt.left) then
+              CGMessagePos(pt.left.fileinfo,type_e_variable_id_expected)
             else
-              CGMessagePos2(pt.fileinfo,parser_e_call_by_ref_without_typeconv,
-                FullTypeName(pt.resulttype.def,hp^.wrongpara.paratype.def),
-                FullTypeName(hp^.wrongpara.paratype.def,pt.resulttype.def))
+              CGMessagePos2(pt.left.fileinfo,parser_e_call_by_ref_without_typeconv,
+                FullTypeName(pt.left.resulttype.def,hp^.wrongpara.paratype.def),
+                FullTypeName(hp^.wrongpara.paratype.def,pt.left.resulttype.def))
           end
         else
-          CGMessagePos3(pt.fileinfo,type_e_wrong_parameter_type,tostr(hp^.wrongparanr),
-            FullTypeName(pt.resulttype.def,hp^.wrongpara.paratype.def),
-            FullTypeName(hp^.wrongpara.paratype.def,pt.resulttype.def));
+          CGMessagePos3(pt.left.fileinfo,type_e_wrong_parameter_type,tostr(hp^.wrongparanr),
+            FullTypeName(pt.left.resulttype.def,hp^.wrongpara.paratype.def),
+            FullTypeName(hp^.wrongpara.paratype.def,pt.left.resulttype.def));
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.96  2004-08-22 11:24:09  peter
+  Revision 1.97  2004-09-13 20:28:27  peter
+    * for loop variable assignment is not allowed anymore
+
+  Revision 1.96  2004/08/22 11:24:09  peter
     * fix error when passing constant to var parameter
 
   Revision 1.95  2004/06/23 16:22:45  peter

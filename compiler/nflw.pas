@@ -692,13 +692,6 @@ implementation
          result:=nil;
          resulttype:=voidtype;
 
-
-         if left.nodetype<>assignn then
-           begin
-              CGMessage(parser_e_illegal_expression);
-              exit;
-           end;
-
          {Can we spare the first comparision?}
          if (right.nodetype=ordconstn) and
             (Tassignmentnode(left).right.nodetype=ordconstn) and
@@ -733,42 +726,6 @@ implementation
          if codegenerror then
            exit;
 
-         { Check count var, record fields are also allowed in tp7 }
-         hp:=t2;
-         while (hp.nodetype=subscriptn) or
-               ((hp.nodetype=vecn) and
-                is_constintnode(tvecnode(hp).right)) or
-               ((hp.nodetype=typeconvn) and
-                (ttypeconvnode(hp).convtype=tc_equal))  do
-           hp:=tunarynode(hp).left;
-         { we need a simple loadn, but the load must be in a global symtable or
-           in the same level as the para of the current proc }
-         if (
-             (hp.nodetype=loadn) and
-             (
-              (tloadnode(hp).symtable.symtablelevel=main_program_level) or
-              (tloadnode(hp).symtable.symtablelevel=current_procinfo.procdef.parast.symtablelevel)
-             ) and
-             not(
-                 (tloadnode(hp).symtableentry.typ=varsym) and
-                 ((tvarsym(tloadnode(hp).symtableentry).varspez in [vs_var,vs_out]) or
-                  (vo_is_thread_var in tvarsym(tloadnode(hp).symtableentry).varoptions))
-                )
-            ) then
-          begin
-            if (hp.nodetype=loadn) and
-               (tloadnode(hp).symtableentry.typ=varsym) then
-              tvarsym(tloadnode(hp).symtableentry).varstate:=vs_used;
-            if not(is_ordinal(t2.resulttype.def))
-{$ifndef cpu64bit}
-            or is_64bitint(t2.resulttype.def)
-{$endif cpu64bit}
-            then
-              CGMessagePos(hp.fileinfo,type_e_ordinal_expr_expected);
-          end
-         else
-           CGMessagePos(hp.fileinfo,type_e_illegal_count_var);
-
          resulttypepass(right);
          set_varstate(right,vs_used,true);
          inserttypeconv(right,t2.resulttype);
@@ -777,10 +734,7 @@ implementation
 
     function tfornode.pass_1 : tnode;
       var
-         old_t_times : longint;
-      {$ifdef loopvar_dont_mind}
-         hp : Tnode;
-      {$endif loopvar_dont_mind}
+         old_t_times : longint; 
      begin
          result:=nil;
          expectloc:=LOC_VOID;
@@ -797,6 +751,7 @@ implementation
             if codegenerror then
              exit;
           end;
+           
          registersint:=t1.registersint;
          registersfpu:=t1.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -1474,7 +1429,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.99  2004-08-30 12:09:45  michael
+  Revision 1.100  2004-09-13 20:28:26  peter
+    * for loop variable assignment is not allowed anymore
+
+  Revision 1.99  2004/08/30 12:09:45  michael
   + Patch from peter to fix bug 3272
 
   Revision 1.98  2004/06/20 08:55:29  florian
