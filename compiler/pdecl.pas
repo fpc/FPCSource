@@ -1212,14 +1212,15 @@ unit pdecl;
                      if assigned(p^.storedsym) then
                        deletepropsymlist(p^.storedsym);
                      p^.storedsym:=nil;
+                     p^.storeddef:=nil;
+                     include(p^.propoptions,ppo_stored);
                      case token of
                         _ID:
-                           if idtoken=_DEFAULT then
-                             begin
-                                include(p^.propoptions,ppo_defaultproperty);
-                                p^.storeddef:=booldef;
-                             end
-                           else
+                           { in the case that idtoken=_DEFAULT }
+                           { we have to do nothing except      }
+                           { setting ppo_stored, it's the same }
+                           { as stored true                    }
+                           if idtoken<>_DEFAULT then
                              begin
                                 sym:=search_class_member(aktclass,pattern);
                                 if not(assigned(sym)) then
@@ -1246,21 +1247,24 @@ unit pdecl;
 
                                 if assigned(sym) then
                                   begin
-                                     if ((sym^.typ=varsym) and
-                                        assigned(propertyparas)) or
+                                     { only non array properties can be stored }
+                                     if assigned(propertyparas) or
                                         not(sym^.typ in [varsym,procsym]) then
                                        Message(parser_e_ill_property_storage_sym);
                                      { search the matching definition }
                                      if sym^.typ=procsym then
                                        begin
-                                          { insert data entry to check access method }
-                                          datacoll^.next:=propertyparas;
-                                          propertyparas:=datacoll;
-                                          pp:=get_procdef;
-                                          { ... and remove it }
-                                          propertyparas:=propertyparas^.next;
-                                          datacoll^.next:=nil;
-                                          if not(assigned(pp)) then
+                                          pp:=pprocsym(sym)^.definition;
+                                          while assigned(pp) do
+                                            begin
+                                               { the stored function shouldn't have any parameters }
+                                               if not(assigned(pp^.para1)) then
+                                                 break;
+                                                pp:=pp^.nextoverloaded;
+                                            end;
+                                          { found we a procedure and does it really return a bool? }
+                                          if not(assigned(pp)) or
+                                             not(is_equal(pp^.retdef,booldef)) then
                                             Message(parser_e_ill_property_storage_sym);
                                           p^.storeddef:=pp;
                                        end
@@ -1275,14 +1279,11 @@ unit pdecl;
                              end;
                         _FALSE:
                           begin
-                             exclude(p^.propoptions,ppo_defaultproperty);
-                             p^.storeddef:=nil;
+                             consume(_FALSE);
+                             exclude(p^.propoptions,ppo_stored);
                           end;
                         _TRUE:
-                          begin
-                             include(p^.propoptions,ppo_defaultproperty);
-                             p^.storeddef:=booldef;
-                          end;
+                          consume(_TRUE);
                      end;
                   end;
                 if (idtoken=_DEFAULT) then
@@ -2524,7 +2525,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.149  1999-09-10 18:48:07  florian
+  Revision 1.150  1999-09-10 20:57:33  florian
+    * some more fixes for stored properties
+
+  Revision 1.149  1999/09/10 18:48:07  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 
