@@ -855,9 +855,9 @@ Implementation
                 objectdata.writesymbol(hp);
               { emit stabs }
               if (infile.path^<>'') then
-                EmitStabs('"'+lower(BsToSlash(FixPath(infile.path^,false)))+'",'+tostr(curr_n)+
+                EmitStabs('"'+BsToSlash(FixPath(infile.path^,false))+'",'+tostr(curr_n)+
                           ',0,0,Ltext'+ToStr(IncludeCount));
-              EmitStabs('"'+lower(FixFileName(infile.name^))+'",'+tostr(curr_n)+
+              EmitStabs('"'+FixFileName(infile.name^)+'",'+tostr(curr_n)+
                         ',0,0,Ltext'+ToStr(IncludeCount));
               inc(includecount);
               { force new line info }
@@ -1629,7 +1629,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.73  2004-08-25 15:55:32  peter
+  Revision 1.74  2004-08-27 20:53:52  peter
+  don't lowercase filenames in stabs
+
+  Revision 1.73  2004/08/25 15:55:32  peter
     * fixed win32 that was broken by previous fix
 
   Revision 1.72  2004/08/24 19:31:44  hajny

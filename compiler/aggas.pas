@@ -231,10 +231,10 @@ var
                  curr_n:=n_includefile;
                 if (infile.path^<>'') then
                  begin
-                   AsmWriteLn(#9'.stabs "'+lower(BsToSlash(FixPath(infile.path^,false)))+'",'+
+                   AsmWriteLn(#9'.stabs "'+BsToSlash(FixPath(infile.path^,false))+'",'+
                      tostr(curr_n)+',0,0,'+target_asm.labelprefix+'text'+ToStr(IncludeCount));
                  end;
-                AsmWriteLn(#9'.stabs "'+lower(FixFileName(infile.name^))+'",'+
+                AsmWriteLn(#9'.stabs "'+FixFileName(infile.name^)+'",'+
                   tostr(curr_n)+',0,0,'+target_asm.labelprefix+'text'+ToStr(IncludeCount));
                 AsmWriteLn(target_asm.labelprefix+'text'+ToStr(IncludeCount)+':');
                 inc(includecount);
@@ -307,7 +307,7 @@ var
         AsmLn;
         case target_info.system of
          system_powerpc_darwin, system_i386_OS2, system_i386_EMX: ;
-         else 
+         else
           AsmWrite('.section ');
         end;
         s:=sectionname(atype,aname);
@@ -969,7 +969,10 @@ var
 end.
 {
   $Log$
-  Revision 1.57  2004-07-18 22:04:55  hajny
+  Revision 1.58  2004-08-27 20:53:52  peter
+  don't lowercase filenames in stabs
+
+  Revision 1.57  2004/07/18 22:04:55  hajny
     * fix for OS/2 and EMX - .section not supported by as.exe
 
   Revision 1.56  2004/07/01 18:16:10  jonas
