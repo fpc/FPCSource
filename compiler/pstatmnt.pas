@@ -574,10 +574,9 @@ unit pstatmnt;
                                if srsym^.typ=unitsym then
                                  begin
                                     consume(POINT);
-                                    getsymonlyin(punitsym(srsym)^.unitsymtable,objname);
+                                    getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
                                     consume(ID);
                                  end;
-                               consume(ID);
                                if (srsym^.typ=typesym) and
                                  (ptypesym(srsym)^.definition^.deftype=objectdef) and
                                  pobjectdef(ptypesym(srsym)^.definition)^.isclass then
@@ -1227,7 +1226,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.39  1998-09-21 10:26:07  peter
+  Revision 1.40  1998-09-23 21:53:04  florian
+    * the following doesn't work: on texception do, was a parser error, fixed
+
+  Revision 1.39  1998/09/21 10:26:07  peter
     * merged fix
 
   Revision 1.38.2.1  1998/09/21 10:24:43  peter
