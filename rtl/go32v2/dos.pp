@@ -114,6 +114,7 @@ Procedure GetFTime(var f; var time: longint);
 Function  FSearch(path: pathstr; dirlist: string): pathstr;
 Function  FExpand(const path: pathstr): pathstr;
 Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
+function  GetShortName(var p : String) : boolean;
 
 {Environment}
 Function  EnvCount: longint;
@@ -133,6 +134,7 @@ Procedure SwapVectors;
 Procedure GetIntVec(intno: byte; var vector: pointer);
 Procedure SetIntVec(intno: byte; vector: pointer);
 Procedure Keep(exitcode: word);
+
 
 implementation
 
@@ -306,33 +308,6 @@ var
      seg_move(get_ds,longint(@c),dosmemselector,current_dos_buffer_pos,length(src)+1);
      current_dos_buffer_pos:=current_dos_buffer_pos+length(src)+1;
      paste_to_dos:=true;
-  end;
-
-{ change to short filename if successful DOS call PM }
-  function GetShortName(var p : String) : boolean;
-  var
-    c : array[0..255] of char;
-  begin
-    move(p[1],c[0],length(p));
-    c[length(p)]:=#0;
-    copytodos(@c,length(p)+1);
-    dosregs.ax:=$7160;
-    dosregs.cx:=1;
-    dosregs.ds:=tb_segment;
-    dosregs.si:=tb_offset;
-    dosregs.es:=tb_segment;
-    dosregs.di:=tb_offset;
-    msdos(dosregs);
-    LoadDosError;
-    if DosError=0 then
-     begin
-       copyfromdos(@c,255);
-       move(c[0],p[1],strlen(c));
-       p[0]:=char(strlen(c));
-       GetShortName:=true;
-     end
-    else
-     GetShortName:=false;
   end;
 
 begin
@@ -761,106 +736,106 @@ begin
 end;
 
 
-    function fexpand(const path : pathstr) : pathstr;
-       var
-         s,pa : pathstr;
-         i,j  : longint;
-       begin
-          getdir(0,s);
-          i:=ioresult;
-          if LFNSupport then
+function fexpand(const path : pathstr) : pathstr;
+var
+  s,pa : pathstr;
+  i,j  : longint;
+begin
+  getdir(0,s);
+  i:=ioresult;
+  if LFNSupport then
+   begin
+     pa:=path;
+   end
+  else
+   if FileNameCaseSensitive then
+    pa:=path
+   else
+    pa:=upcase(path);
+
+  { allow slash as backslash }
+  for i:=1 to length(pa) do
+   if pa[i]='/' then
+    pa[i]:='\';
+
+  if (length(pa)>1) and (pa[2]=':') and (pa[1] in ['A'..'Z','a'..'z']) then
+    begin
+       { Always uppercase driveletter }
+       if (pa[1] in ['a'..'z']) then
+        pa[1]:=Chr(Ord(Pa[1])-32);
+       { we must get the right directory }
+       getdir(ord(pa[1])-ord('A')+1,s);
+       i:=ioresult;
+       if (ord(pa[0])>2) and (pa[3]<>'\') then
+         if pa[1]=s[1] then
            begin
-             pa:=path;
+             { remove ending slash if it already exists }
+             if s[length(s)]='\' then
+              dec(s[0]);
+             pa:=s+'\'+copy (pa,3,length(pa));
            end
-          else
-           if FileNameCaseSensitive then
-            pa:=path
-           else
-            pa:=upcase(path);
+         else
+           pa:=pa[1]+':\'+copy (pa,3,length(pa))
+    end
+  else
+    if pa[1]='\' then
+      pa:=s[1]+':'+pa
+    else if s[0]=#3 then
+      pa:=s+pa
+    else
+      pa:=s+'\'+pa;
 
-          { allow slash as backslash }
-          for i:=1 to length(pa) do
-           if pa[i]='/' then
-            pa[i]:='\';
+{ Turbo Pascal gives current dir on drive if only drive given as parameter! }
+if length(pa) = 2 then
+ begin
+   getdir(byte(pa[1])-64,s);
+   pa := s;
+ end;
 
-          if (length(pa)>1) and (pa[2]=':') and (pa[1] in ['A'..'Z','a'..'z']) then
-            begin
-               { Always uppercase driveletter }
-               if (pa[1] in ['a'..'z']) then
-                pa[1]:=Chr(Ord(Pa[1])-32);
-               { we must get the right directory }
-               getdir(ord(pa[1])-ord('A')+1,s);
-               i:=ioresult;
-               if (ord(pa[0])>2) and (pa[3]<>'\') then
-                 if pa[1]=s[1] then
-                   begin
-                     { remove ending slash if it already exists }
-                     if s[length(s)]='\' then
-                      dec(s[0]);
-                     pa:=s+'\'+copy (pa,3,length(pa));
-                   end
-                 else
-                   pa:=pa[1]+':\'+copy (pa,3,length(pa))
-            end
-          else
-            if pa[1]='\' then
-              pa:=s[1]+':'+pa
-            else if s[0]=#3 then
-              pa:=s+pa
-            else
-              pa:=s+'\'+pa;
+{First remove all references to '\.\'}
+  while pos ('\.\',pa)<>0 do
+   delete (pa,pos('\.\',pa),2);
+{Now remove also all references to '\..\' + of course previous dirs..}
+  repeat
+    i:=pos('\..\',pa);
+    if i<>0 then
+     begin
+       j:=i-1;
+       while (j>1) and (pa[j]<>'\') do
+        dec (j);
+       if pa[j+1] = ':' then j := 3;
+       delete (pa,j,i-j+3);
+     end;
+  until i=0;
 
-        { Turbo Pascal gives current dir on drive if only drive given as parameter! }
-        if length(pa) = 2 then
-         begin
-           getdir(byte(pa[1])-64,s);
-           pa := s;
-         end;
-
-        {First remove all references to '\.\'}
-          while pos ('\.\',pa)<>0 do
-           delete (pa,pos('\.\',pa),2);
-        {Now remove also all references to '\..\' + of course previous dirs..}
-          repeat
-            i:=pos('\..\',pa);
-            if i<>0 then
-             begin
-               j:=i-1;
-               while (j>1) and (pa[j]<>'\') do
-                dec (j);
-               if pa[j+1] = ':' then j := 3;
-               delete (pa,j,i-j+3);
-             end;
-          until i=0;
-
-          { Turbo Pascal gets rid of a \.. at the end of the path }
-          { Now remove also any reference to '\..'  at end of line
-            + of course previous dir.. }
-          i:=pos('\..',pa);
-          if i<>0 then
-           begin
-             if i = length(pa) - 2 then
-              begin
-                j:=i-1;
-                while (j>1) and (pa[j]<>'\') do
-                 dec (j);
-                delete (pa,j,i-j+3);
-              end;
-              pa := pa + '\';
-            end;
-          { Remove End . and \}
-          if (length(pa)>0) and (pa[length(pa)]='.') then
-           dec(byte(pa[0]));
-          { if only the drive + a '\' is left then the '\' should be left to prevtn the program
-            accessing the current directory on the drive rather than the root!}
-          { if the last char of path = '\' then leave it in as this is what TP does! }
-          if ((length(pa)>3) and (pa[length(pa)]='\')) and (path[length(path)] <> '\') then
-           dec(byte(pa[0]));
-          { if only a drive is given in path then there should be a '\' at the
-            end of the string given back }
-          if length(pa) = 2 then pa := pa + '\';
-          fexpand:=pa;
-       end;
+  { Turbo Pascal gets rid of a \.. at the end of the path }
+  { Now remove also any reference to '\..'  at end of line
+    + of course previous dir.. }
+  i:=pos('\..',pa);
+  if i<>0 then
+   begin
+     if i = length(pa) - 2 then
+      begin
+        j:=i-1;
+        while (j>1) and (pa[j]<>'\') do
+         dec (j);
+        delete (pa,j,i-j+3);
+      end;
+      pa := pa + '\';
+    end;
+  { Remove End . and \}
+  if (length(pa)>0) and (pa[length(pa)]='.') then
+   dec(byte(pa[0]));
+  { if only the drive + a '\' is left then the '\' should be left to prevtn the program
+    accessing the current directory on the drive rather than the root!}
+  { if the last char of path = '\' then leave it in as this is what TP does! }
+  if ((length(pa)>3) and (pa[length(pa)]='\')) and (path[length(path)] <> '\') then
+   dec(byte(pa[0]));
+  { if only a drive is given in path then there should be a '\' at the
+    end of the string given back }
+  if length(pa) = 2 then pa := pa + '\';
+  fexpand:=pa;
+end;
 
 
 Function FSearch(path: pathstr; dirlist: string): pathstr;
@@ -908,6 +883,34 @@ begin
        fsearch:=newdir;
     end;
   findclose(s);
+end;
+
+
+{ change to short filename if successful DOS call PM }
+function GetShortName(var p : String) : boolean;
+var
+  c : array[0..255] of char;
+begin
+  move(p[1],c[0],length(p));
+  c[length(p)]:=#0;
+  copytodos(@c,length(p)+1);
+  dosregs.ax:=$7160;
+  dosregs.cx:=1;
+  dosregs.ds:=tb_segment;
+  dosregs.si:=tb_offset;
+  dosregs.es:=tb_segment;
+  dosregs.di:=tb_offset;
+  msdos(dosregs);
+  LoadDosError;
+  if DosError=0 then
+   begin
+     copyfromdos(@c,255);
+     move(c[0],p[1],strlen(c));
+     p[0]:=char(strlen(c));
+     GetShortName:=true;
+   end
+  else
+   GetShortName:=false;
 end;
 
 
@@ -1044,7 +1047,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.14  1999-11-09 11:07:50  pierre
+  Revision 1.15  1999-12-06 18:26:49  peter
+    * fpcmake updated for win32 commandline
+
+  Revision 1.14  1999/11/09 11:07:50  pierre
     * SwapVectors does not reset DosError anymore
     + DosError is set to ax regsiter value if extended doserror function
       retruns zero.
