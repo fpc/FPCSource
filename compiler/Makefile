@@ -155,6 +155,20 @@ endif
 # Message files
 MSGFILES=$(wildcard error*.msg)
 
+# ppcSUFFIX
+ifeq ($(CPU_TARGET),i386)
+CPUSUF=386
+endif
+ifeq ($(CPU_TARGET),alpha)
+CPUSUF=axp
+endif
+ifeq ($(CPU_TARGET),m68k)
+CPUSUF=68k
+endif
+ifeq ($(CPU_TARGET),powerpc)
+CPUSUF=ppc
+endif
+
 # Define Unix also for Linux
 ifeq ($(OS_TARGET),linux)
 ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
@@ -1380,9 +1394,9 @@ endif
 # Setup os-independent filenames
 #####################################################################
 
-FPCEXENAME=pp$(EXEEXT)
-EXENAME=ppc386$(EXEEXT)
-M68KEXENAME=ppc68k$(EXEEXT)
+FPCEXE=fpc$(EXEEXT)
+PPEXENAME=pp$(EXEEXT)
+EXENAME=ppc$(CPUSUF)$(EXEEXT)
 TEMPNAME=ppc$(EXEEXT)
 TEMPNAME1=ppc1$(EXEEXT)
 TEMPNAME2=ppc2$(EXEEXT)
@@ -1392,11 +1406,29 @@ MSG2INC=msg2inc$(EXEEXT)
 
 
 #####################################################################
+# CPU targets
+#####################################################################
+
+alpha:
+	$(MAKE) ALPHA=1 all
+
+i386:
+	$(MAKE) I386=1 all
+
+m68k:
+	$(MAKE) M68K=1 all
+
+powerpc:
+	$(MAKE) POWERPC=1 all
+
+
+#####################################################################
 # Default makefile
 #####################################################################
 
 all: $(EXENAME)
-	$(MAKE) echotime
+
+fpcexe: $(FPCEXE)
 
 ifeq ($(MAKELEVEL),0)
 ifndef STARTTIME
@@ -1427,9 +1459,10 @@ else
 next :
 	$(MAKE) execlean
 	$(MAKE) -C $(UNITDIR_RTL) clean
-	$(MAKE) -C $(UNITDIR_RTL) 'FPC=$(FPC)' 'OPT=$(RTLOPTS)' all
+	$(MAKE) -C $(UNITDIR_RTL) 'FPC=$(FPC)' 'OPT=$(RTLOPTS)'
 	$(MAKE) clean
-	$(MAKE) all
+	$(MAKE) $(EXENAME)
+	$(MAKE) echotime
 endif
 
 clean : execlean fpc_cleanall
@@ -1438,7 +1471,7 @@ ppuclean:
 	-$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
 execlean :
-	-$(DEL) $(EXENAME)
+	-$(DEL) fpc$(EXEEXT) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT)
 
 distclean: clean
 	-$(DEL) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC)
@@ -1482,7 +1515,7 @@ ifndef COMPLETE
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
 	$(COMPILER) pp.pas
 	$(EXECPPAS)
-	$(MOVE) $(FPCEXENAME) $(EXENAME)
+	$(MOVE) $(PPEXENAME) $(EXENAME)
 else
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
 	$(COMPILER) pp.pas
@@ -1491,7 +1524,7 @@ $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
 	$(EXECPPAS)
 	$(COMPILER) pp.pas
 	$(EXECPPAS)
-	$(MOVE) $(FPCEXENAME) $(EXENAME)
+	$(MOVE) $(PPEXENAME) $(EXENAME)
 endif
 
 tokens.dat : $(wildcard *.pas) $(wildcard *.inc)
@@ -1548,14 +1581,15 @@ MSGINSTALLDIR=$(BASEINSTALLDIR)/msg
 
 # This will only install the ppc386.exe, not the message files etc.
 quickinstall:
-ifdef UNIXINSTALLDIR
-	$(MKDIR) $(BASEINSTALLDIR)
-	$(INSTALLEXE) $(EXENAME) $(BASEINSTALLDIR)
-else
 	$(MKDIR) $(BININSTALLDIR)
 ifdef UPXPROG
 	-$(UPXPROG) $(EXENAME)
 endif
+	$(INSTALLEXE) $(FPCEXE) $(BININSTALLDIR)
+ifdef UNIXINSTALLDIR
+	$(MKDIR) $(BASEINSTALLDIR)
+	$(INSTALLEXE) $(EXENAME) $(BASEINSTALLDIR)
+else
 	$(INSTALLEXE) $(EXENAME) $(BININSTALLDIR)
 endif
 
@@ -1589,6 +1623,7 @@ rtlclean:
 rtlinstall:
 	$(MAKE) -C $(UNITDIR_RTL) install
 
+
 #####################################################################
 # local user configurable file
 # in makefile.loc you can add any desired target
@@ -1599,16 +1634,3 @@ localmake:=$(strip $(wildcard makefile.loc))
 ifdef localmake
 include ./$(localmake)
 endif
-
-
-#####################################################################
-# M68k test targets
-#####################################################################
-
-# just a quick way to get ppc68k
-# needs to be after makefile.def for PASFILES INCFILES
-
-$(M68KEXENAME): $(PASFILES) $(INCFILES)
-	$(MAKE) clean
-	$(FPC) -uI386 -uSUPPORT_MMX -dm68k -o$(M68KEXENAME) pp
-	$(MAKE) clean
