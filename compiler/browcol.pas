@@ -395,7 +395,7 @@ begin
   if assigned(ModuleNames) then
    begin
      dispose(ModuleNames,Done);
-     Modules:=nil;
+     ModuleNames:=nil;
    end;
   if assigned(TypeNames) then
    begin
@@ -532,7 +532,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-01-21 11:49:14  peter
+  Revision 1.3  1999-01-22 10:19:43  peter
+    * fixed typo
+
+  Revision 1.2  1999/01/21 11:49:14  peter
     * updates from gabor
 
   Revision 1.1  1999/01/12 14:25:24  peter
