@@ -987,7 +987,6 @@ sym_e_type_id_not_defined=E_Type identifier not defined
 % The type identifier has not been defined yet.
 sym_e_forward_type_not_resolved=E_Forward type not resolved $1
 % A symbol was forward defined, but no declaration was encountered.
- The compiler encountered a reference to an unknown type.
 sym_e_only_static_in_static=E_Only static variables can be used in static methods or outside methods
 % A static method of an object can only access static variables.
 sym_e_invalid_call_tvarsymmangledname=E_Invalid call to tvarsym.mangledname()
