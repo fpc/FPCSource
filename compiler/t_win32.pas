@@ -25,7 +25,8 @@ unit t_win32;
 
   interface
 
-  uses import,export,link;
+  uses
+    import,export,link;
 
   const
      winstackpagesize = 4096;
@@ -612,6 +613,7 @@ unit t_win32;
                               TLINKERWIN32
 ****************************************************************************}
 
+
 Constructor TLinkerWin32.Init;
 begin
   Inherited Init;
@@ -651,8 +653,8 @@ Var
 {$ELSE}
   HPath    : PStringQueueItem;
 {$ENDIF NEWST}
-  s        : string;
-  linklibc : boolean;
+  s,s2        : string;
+  found,linklibc : boolean;
 begin
   WriteResponseFile:=False;
 
@@ -708,6 +710,21 @@ begin
      While not SharedLibFiles.Empty do
       begin
         S:=SharedLibFiles.Get;
+        if pos('.',s)=0 then
+          { we never directly link a DLL
+            its allways through an import library PM }
+          { libraries created by C compilers have .a extensions }
+          s2:=s+'.a'{ target_os.sharedlibext }
+        else
+          s2:=s;
+        s2:=FindLibraryFile(s2,'',found);
+        if found then
+          begin
+            LinkRes.Add(s2);
+            continue;
+          end;
+        if pos(target_os.libprefix,s)=1 then
+          s:=copy(s,length(target_os.libprefix)+1,255);
         if s<>'c' then
          begin
            i:=Pos(target_os.sharedlibext,S);
@@ -976,6 +993,7 @@ type
   end;
 var
   f : file;
+  cmdstr : string;
   dosheader : tdosheader;
   peheader : tpeheader;
   firstsecpos,
@@ -989,6 +1007,15 @@ begin
   { when -s is used or it's a dll then quit }
   if (cs_link_extern in aktglobalswitches) then
    begin
+     if apptype=at_gui then
+       cmdstr:='--subsystem gui'
+     else if apptype=at_cui then
+       cmdstr:='--subsystem console';
+     if dllversion<>'' then
+       cmdstr:=cmdstr+' --version '+dllversion;
+     cmdstr:=cmdstr+' --input '+fn;
+     cmdstr:=cmdstr+' --stack '+tostr(stacksize);
+     DoExec(FindUtil('postw32'),cmdstr,false,false);
      postprocessexecutable:=true;
      exit;
    end;
@@ -1039,7 +1066,7 @@ begin
   maxfillsize:=0;
   firstsecpos:=0;
   secroot:=nil;
-  for l:=1to peheader.NumberOfSections do
+  for l:=1 to peheader.NumberOfSections do
    begin
      blockread(f,coffsec,sizeof(tcoffsechdr));
      if coffsec.datapos>0 then
@@ -1087,7 +1114,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2000-03-10 09:14:40  pierre
+  Revision 1.22  2000-04-14 11:16:10  pierre
+    * partial linklib change
+      I could not use Pavel's code because it broke the current way
+      linklib is used, which is messy :(
+    + add postw32 call if external linking on win32
+
+  Revision 1.21  2000/03/10 09:14:40  pierre
    * dlltool is also needed if we use DefFile
 
   Revision 1.20  2000/02/28 17:23:57  daniel

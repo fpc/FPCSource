@@ -53,7 +53,7 @@ Type
        Destructor Done;
        procedure AddModuleFiles(hp:pmodule);
        function  FindObjectFile(s : string) : string;
-       function  FindLibraryFile(s:string;const ext:string) : string;
+       function  FindLibraryFile(s:string;const ext:string;var found : boolean) : string;
        Procedure AddObject(const S : String);
        Procedure AddStaticLibrary(const S : String);
        Procedure AddSharedLibrary(S : String);
@@ -347,10 +347,9 @@ end;
 
 
 { searches an library file }
-function TLinker.FindLibraryFile(s:string;const ext:string) : string;
-var
-  found : boolean;
+function TLinker.FindLibraryFile(s:string;const ext:string;var found : boolean) : string;
 begin
+  found:=false;
   findlibraryfile:='';
   if s='' then
    exit;
@@ -358,6 +357,7 @@ begin
    s:=s+ext;
   if FileExists(s) then
    begin
+     found:=true;
      FindLibraryFile:=s;
      exit;
    end;
@@ -374,8 +374,6 @@ begin
    findlibraryfile:=librarysearchpath.FindFile(s,found)+s;
   if (not found) then
    findlibraryfile:=FindFile(s,exepath,found)+s;
-  if not(cs_link_extern in aktglobalswitches) and (not found) then
-   Message1(exec_w_libfile_not_found,s);
 end;
 
 
@@ -399,8 +397,14 @@ end;
 
 
 Procedure TLinker.AddStaticLibrary(const S:String);
+var
+  ns : string;
+  found : boolean;
 begin
-  StaticLibFiles.Insert(FindLibraryFile(s,target_os.staticlibext));
+  ns:=FindLibraryFile(s,target_os.staticlibext,found);
+  if not(cs_link_extern in aktglobalswitches) and (not found) then
+   Message1(exec_w_libfile_not_found,s);
+  StaticLibFiles.Insert(ns);
 end;
 
 
@@ -563,7 +567,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.85  2000-02-28 17:23:57  daniel
+  Revision 1.86  2000-04-14 11:16:10  pierre
+    * partial linklib change
+      I could not use Pavel's code because it broke the current way
+      linklib is used, which is messy :(
+    + add postw32 call if external linking on win32
+
+  Revision 1.85  2000/02/28 17:23:57  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new

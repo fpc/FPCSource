@@ -642,7 +642,7 @@ const
             if hs='FPCTARGET' then
              hs:=target_cpu_string
            else
-            hs:=getenv(hs);
+             hs:=getenv(hs);
            if hs='' then
             Message1(scan_w_include_env_not_found,path);
            { make it a stringconst }
@@ -731,7 +731,7 @@ const
                 valint(pattern,minor,error);
                 if error<>0 then
                   begin
-                    Message(scan_w_wrong_version_ignored);
+                    Message1(scan_w_wrong_version_ignored,tostr(major)+'.'+pattern);
                     exit;
                   end;
                 dllmajor:=major;
@@ -783,15 +783,39 @@ const
 
 
     procedure dir_linklib(t:tdirectivetoken);
+      var
+        s : string;
+        quote : char;
       begin
         current_scanner^.skipspace;
-        current_scanner^.readstring;
+        { This way spaces are also allowed in library names
+          if quoted PM }
+        if (c='''') or (c='"') then
+          begin
+            quote:=c;
+            current_scanner^.readchar;
+            s:=current_scanner^.readcomment;
+            if pos(quote,s)>0 then
+              s:=copy(s,1,pos(quote,s)-1);
+          end
+        else
+          begin
+            current_scanner^.readstring;
+            s:=orgpattern;
+            if c='.' then
+              begin
+                s:=s+'.';
+                current_scanner^.readchar;
+                current_scanner^.readstring;
+                s:=s+orgpattern;
+              end;
+          end;
       {$IFDEF NEWST}
         current_module^.linkOtherSharedLibs.
-         insert(new(Plinkitem,init(orgpattern,link_allways)));
+         insert(new(Plinkitem,init(s,link_allways)));
       {$ELSE}
         current_module^.linkOtherSharedLibs.
-         insert(orgpattern,link_allways);
+         insert(s,link_allways);
       {$ENDIF}
       end;
 
@@ -1308,7 +1332,13 @@ const
 
 {
   $Log$
-  Revision 1.77  2000-04-08 20:18:53  michael
+  Revision 1.78  2000-04-14 11:16:10  pierre
+    * partial linklib change
+      I could not use Pavel's code because it broke the current way
+      linklib is used, which is messy :(
+    + add postw32 call if external linking on win32
+
+  Revision 1.77  2000/04/08 20:18:53  michael
   * Fixed bug in readcomment that was dropping * characters
 
   Revision 1.76  2000/02/28 17:23:57  daniel
