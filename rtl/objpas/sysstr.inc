@@ -880,6 +880,17 @@ begin
   Result:=Buffer;
 end;
 
+
+function StrToFloat(Value: string): Extended;
+
+var Error: word;
+
+begin
+  Val(Value, result, Error);
+  if Error <> 0 then raise 
+     EConvertError.createfmt(SInValidFLoat,[Value]);
+end ;
+
 Function FloatToStr(Value: Extended): String;
 Begin
   Result := FloatToStrF(Value, ffGeneral, 15, 0);
@@ -1130,7 +1141,10 @@ const
 
 {
   $Log$
-  Revision 1.21  1999-06-05 20:47:03  michael
+  Revision 1.22  1999-06-19 07:39:44  michael
+  Implemented strtofloat
+
+  Revision 1.21  1999/06/05 20:47:03  michael
   + Final fixes: RightStr
 
   Revision 1.20  1999/05/31 20:50:45  peter

@@ -40,6 +40,7 @@ Const
    SInvalidDrive = 'Invalid drive specified';
    SInvalidFileHandle = 'Invalid file handle';
    SInValidFileName = 'Invalid filename';
+   SInvalidFloat = '"%s" is an invalid float';
    SInvalidFormat = 'Invalid format specifier : "%s"';
    SInvalidInput = 'Invalid input';
    SInvalidInteger = '"%s" is an invalid integer';
@@ -51,7 +52,10 @@ Const
    SUnKnownRunTimeError = 'Unknown Run-Time error : %3.3d';
 {
   $Log$
-  Revision 1.5  1998-10-10 09:53:09  michael
+  Revision 1.6  1999-06-19 07:39:46  michael
+  Implemented strtofloat
+
+  Revision 1.5  1998/10/10 09:53:09  michael
   Added assertion handling
 
   Revision 1.4  1998/10/03 15:08:04  florian

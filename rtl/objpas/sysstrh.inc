@@ -80,6 +80,7 @@ Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Arra
 Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
 Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
 Function FloatToStr(Value: Extended): String;
+Function StrToFloat(Value : String) : Extended;
 Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
 
 {==============================================================================}
@@ -92,7 +93,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.7  1999-05-28 20:08:21  michael
+  Revision 1.8  1999-06-19 07:39:43  michael
+  Implemented strtofloat
+
+  Revision 1.7  1999/05/28 20:08:21  michael
   * too may fixes to list
 
   Revision 1.6  1999/02/28 13:17:36  michael
