@@ -2411,6 +2411,11 @@ Errors returned may be those by \seep{TStream.Put} and \var{TStream.Seek}
 \section{TStringList}
 \label{se:TStringList}
 
+A \var{TStringList} object can be used to read a collection of strings
+stored in a stream. If you register this object with the \seep{RegisterType}
+function, you cannot register the \var{TStrListMaker} object.
+
+This is the public declaration of the \var{TStringList} object:
 \begin{verbatim}
 TYPE
    TStrIndexRec = Packed RECORD
@@ -2428,17 +2433,120 @@ TYPE
    PStringList = ^TStringList;
 \end{verbatim}
 
+\begin{procedure}{TStringList.Load}
+\Declaration
+Constructor TstringList.Load (Var S: TStream);
+\Description
+The \var{Load} constructor reads the \var{TStringList} object from the
+stream \var{S}. It also reads the descriptions of the strings from the
+stream. The string descriptions are stored as an array of 
+\var{TstrIndexrec} records, where each record describes a string on the
+stream. These records are kept in memory.
+\Errors
+If an error occurs, a stream error is triggered.
+\SeeAlso
+\seepl{Done}{TStringList.Done}
+\end{procedure}
+
+\begin{procedure}{TStringList.Done}
+\Declaration
+Destructor TstringList.Done; Virtual;
+\Description
+The \var{Done} destructor frees the memory occupied by the string
+descriptions, and destroys the object.
+\Errors
+None.
+\SeeAlso
+\seepl{Load}{TStringList.Load}, \seep{TObject.Done}
+\end{procedure}
+
+\begin{function}{TStringList.Get}
+\Declaration
+Function TStringList.Get (Key: Sw\_Word): String;
+\Description
+\var{Get} reads the string with key \var{Key} from the list of strings on the
+stream, and returns this string. If there is no string with such a key, an
+empty string is returned.
+\Errors
+If no string with key \var{Key} is found, an empty string is returned.
+A stream error may result if the stream doesn't contain the needed strings.
+\SeeAlso
+\seep{TStrListMaker.Put}
+\end{function}
 \section{TStrListMaker}
 \label{se:TStrListMaker}
 
+The \var{TStrListMaker} object can be used to generate a stream with
+strings, which can be read with the \var{TStringList} object.
+If you register this object with the \seep{RegisterType}
+function, you cannot register the \var{TStringList} object.
+
+This is the public declaration of the \var{TStrListMaker} object:
 \begin{verbatim}
 TYPE
    TStrListMaker = OBJECT (TObject)
       Constructor Init (AStrSize, AIndexSize: Sw_Word);
       Destructor Done; Virtual;
-      Procedure Put (Key: Sw_Word; S: String);
+      Procedure Put (Key: SwWord; S: String);
       Procedure Store (Var S: TStream);
    END;
    PStrListMaker = ^TStrListMaker;
 \end{verbatim}
+
+\begin{procedure}{TStrListMaker.Init}
+\Declaration
+Constructor TStrListMaker.Init (AStrSize, AIndexSize: SwWord);
+\Description
+The \var{Init} constructor creates a new instance of the \var{TstrListMaker}
+object. It allocates \var{AStrSize} bytes on the heap to hold all the
+strings you wish to store. It also allocates enough room for 
+\var{AIndexSize} key description entries (of the type \var{TStrIndexrec}).
+
+\var{AStrSize} must be large enough to contain all the strings you wish to
+store. If not enough memory is allocated, other memory will be overwritten.
+The same is true for \var{AIndexSize} : maximally \var{AIndexSize} strings
+can be written to the stream.
+\Errors
+None.
+\SeeAlso
+\seep{TObject.Init}, \seepl{Done}{TStrListMaker.Done}
+\end{procedure}
+
+\begin{procedure}{TStrListMaker.Done}
+\Declaration
+Destructor TStrListMaker.Done; Virtual;
+\Description
+The \var{Done} destructor de-allocates the memory for the index description
+records and the string data, and then destroys the object. 
+\Errors
+None.
+\SeeAlso
+\seep{TObject.Done}, \seepl{Init}{TStrListMaker.Init}
+\end{procedure}
+
+\begin{procedure}{TStrListMaker.Put}
+\Declaration
+Procedure TStrListMaker.Put (Key: Sw\_Word; S: String);
+\Description
+\var{Put} adds they string \var{S} with key \var{Key} to the collection of
+strings. This action doesn't write the string to a stream. To write the
+strings to the stream, see the \seepl{Store}{TStrListMaker.Store} method.
+\Errors
+None.
+\SeeAlso
+\seepl{Store}{TStrListMaker.Store}.
+\end{procedure}
+
+\begin{procedure}{TStrListMaker.Store}
+\Declaration
+Procedure TStrListMaker.Store (Var S: TStream);
+\Description
+\var{Store} writes the collection of strings to the stream \var{S}.
+The collection can then be read with the \var{TStringList} object.
+\Errors
+A stream error may occur when writing the strings to the stream.
+\SeeAlso
+\seep{TStringList.Load}, \seepl{Put}{TStrListMaker.Put}.
+\end{procedure}
+
 
