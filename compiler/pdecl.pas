@@ -1206,6 +1206,7 @@ unit pdecl;
                           addpropsymlist(p^.writeaccesssym,sym);
                        end;
                   end;
+                include(p^.propoptions,ppo_stored);
                 if (idtoken=_STORED) then
                   begin
                      consume(_STORED);
@@ -1213,7 +1214,6 @@ unit pdecl;
                        deletepropsymlist(p^.storedsym);
                      p^.storedsym:=nil;
                      p^.storeddef:=nil;
-                     include(p^.propoptions,ppo_stored);
                      case token of
                         _ID:
                            { in the case that idtoken=_DEFAULT }
@@ -2532,7 +2532,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.152  1999-09-12 14:50:50  florian
+  Revision 1.153  1999-09-14 11:09:08  florian
+    * per default a property is stored, fixed
+
+  Revision 1.152  1999/09/12 14:50:50  florian
     + implemented creation of methodname/address tables
 
   Revision 1.151  1999/09/12 08:48:09  florian
