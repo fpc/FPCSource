@@ -346,7 +346,7 @@
           procedure  write;virtual;
           procedure deref;virtual;
           procedure concatpara(tt:ttype;vsp : tvarspez);
-          function  para_size : longint;
+          function  para_size(alignsize:longint) : longint;
           function  demangled_paras : string;
           function  proccalloption2str : string;
           procedure test_if_fpu_result;
@@ -528,7 +528,11 @@
 
 {
   $Log$
-  Revision 1.50  2000-01-07 01:14:40  peter
+  Revision 1.51  2000-01-26 12:02:30  peter
+    * abstractprocdef.para_size needs alignment parameter
+    * secondcallparan gets para_alignment size instead of dword_align
+
+  Revision 1.50  2000/01/07 01:14:40  peter
     * updated copyright to 2000
 
   Revision 1.49  2000/01/03 19:26:04  peter

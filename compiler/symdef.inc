@@ -2372,7 +2372,7 @@
       end;
 
 
-    function tabstractprocdef.para_size : longint;
+    function tabstractprocdef.para_size(alignsize:longint) : longint;
       var
          pdc : pparaitem;
          l : longint;
@@ -2387,8 +2387,9 @@
               vs_const : if push_addr_param(pdc^.paratype.def) then
                           inc(l,target_os.size_of_pointer)
                          else
-                          inc(l,align(pdc^.paratype.def^.size,target_os.stackalignment));
+                          inc(l,pdc^.paratype.def^.size);
             end;
+            l:=align(l,alignsize);
             pdc:=pparaitem(pdc^.next);
           end;
          para_size:=l;
@@ -3858,7 +3859,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.188  2000-01-23 16:35:31  peter
+  Revision 1.189  2000-01-26 12:02:29  peter
+    * abstractprocdef.para_size needs alignment parameter
+    * secondcallparan gets para_alignment size instead of dword_align
+
+  Revision 1.188  2000/01/23 16:35:31  peter
     * localbrowser loading of absolute fixed. It needed a symtablestack
       which was not setup correctly
 

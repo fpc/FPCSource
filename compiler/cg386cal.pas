@@ -29,7 +29,7 @@ interface
       symtable,tree;
 
     procedure secondcallparan(var p : ptree;defcoll : pparaitem;
-                push_from_left_to_right,inlined,dword_align : boolean;para_offset : longint);
+                push_from_left_to_right,inlined : boolean;para_alignment,para_offset : longint);
     procedure secondcalln(var p : ptree);
     procedure secondprocinline(var p : ptree);
 
@@ -52,7 +52,7 @@ implementation
 *****************************************************************************}
 
     procedure secondcallparan(var p : ptree;defcoll : pparaitem;
-                push_from_left_to_right,inlined,dword_align : boolean;para_offset : longint);
+                push_from_left_to_right,inlined : boolean;para_alignment,para_offset : longint);
 
       procedure maybe_push_high;
         begin
@@ -74,15 +74,18 @@ implementation
 
       var
          otlabel,oflabel : pasmlabel;
-         align : longint;
          { temporary variables: }
          tempdeftype : tdeftype;
          r : preference;
       begin
+         { set default para_alignment to target_os.stackalignment }
+         if para_alignment=0 then
+          para_alignment:=target_os.stackalignment;
+
          { push from left to right if specified }
          if push_from_left_to_right and assigned(p^.right) then
            secondcallparan(p^.right,pparaitem(defcoll^.next),push_from_left_to_right,
-             inlined,dword_align,para_offset);
+             inlined,para_alignment,para_offset);
          otlabel:=truelabel;
          oflabel:=falselabel;
          getlabel(truelabel);
@@ -194,10 +197,7 @@ implementation
                 end
               else
                 begin
-                   align:=target_os.stackalignment;
-                   if dword_align then
-                     align:=4;
-                   push_value_para(p^.left,inlined,para_offset,align);
+                   push_value_para(p^.left,inlined,para_offset,para_alignment);
                 end;
            end;
          truelabel:=otlabel;
@@ -205,7 +205,7 @@ implementation
          { push from right to left }
          if not push_from_left_to_right and assigned(p^.right) then
            secondcallparan(p^.right,pparaitem(defcoll^.next),push_from_left_to_right,
-             inlined,dword_align,para_offset);
+             inlined,para_alignment,para_offset);
       end;
 
 
@@ -239,6 +239,7 @@ implementation
          pp,params : ptree;
          inlined : boolean;
          inlinecode : ptree;
+         para_alignment,
          para_offset : longint;
          { instruction for alignement correction }
 {        corr : paicpu;}
@@ -260,6 +261,12 @@ implementation
          no_virtual_call:=false;
          unusedregisters:=unused;
          usablecount:=usablereg32;
+
+         if (pocall_cdecl in p^.procdefinition^.proccalloptions) or
+            (pocall_stdcall in p^.procdefinition^.proccalloptions) then
+          para_alignment:=4
+         else
+          para_alignment:=target_os.stackalignment;
 
          if not assigned(p^.procdefinition) then
           exit;
@@ -343,7 +350,7 @@ implementation
             if i>0 then
              inc(pop_size,4-i);
           { This parasize aligned on 4 ? }
-            i:=p^.procdefinition^.para_size and 3;
+            i:=p^.procdefinition^.para_size(para_alignment) and 3;
             if i>0 then
              inc(pop_size,4-i);
           { insert the opcode and update pushedparasize }
@@ -396,17 +403,11 @@ implementation
               if assigned(p^.right) then
                 secondcallparan(p^.left,pparaitem(pabstractprocdef(p^.right^.resulttype)^.para^.first),
                   (pocall_leftright in p^.procdefinition^.proccalloptions),
-                  inlined,
-                  (pocall_cdecl in p^.procdefinition^.proccalloptions) or
-                   (pocall_stdcall in p^.procdefinition^.proccalloptions),
-                  para_offset)
+                  inlined,para_alignment,para_offset)
               else
                 secondcallparan(p^.left,pparaitem(p^.procdefinition^.para^.first),
                   (pocall_leftright in p^.procdefinition^.proccalloptions),
-                  inlined,
-                  (pocall_cdecl in p^.procdefinition^.proccalloptions) or
-                   (pocall_stdcall in p^.procdefinition^.proccalloptions),
-                  para_offset);
+                  inlined,para_alignment,para_offset);
            end;
          params:=p^.left;
          p^.left:=nil;
@@ -1332,7 +1333,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.121  2000-01-23 18:50:07  peter
+  Revision 1.122  2000-01-26 12:02:29  peter
+    * abstractprocdef.para_size needs alignment parameter
+    * secondcallparan gets para_alignment size instead of dword_align
+
+  Revision 1.121  2000/01/23 18:50:07  peter
     * fixed missing push esi for constructor calling
 
   Revision 1.120  2000/01/21 22:06:16  florian

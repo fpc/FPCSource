@@ -1298,7 +1298,7 @@ unit tree;
          p^.inlineprocsym:=callp^.symtableprocentry;
          p^.retoffset:=-4; { less dangerous as zero (PM) }
          p^.para_offset:=0;
-         p^.para_size:=p^.inlineprocsym^.definition^.para_size;
+         p^.para_size:=p^.inlineprocsym^.definition^.para_size(target_os.stackalignment);
          if ret_in_param(p^.inlineprocsym^.definition^.rettype.def) then
            p^.para_size:=p^.para_size+target_os.size_of_pointer;
          { copy args }
@@ -1918,7 +1918,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.109  2000-01-09 23:16:07  peter
+  Revision 1.110  2000-01-26 12:02:30  peter
+    * abstractprocdef.para_size needs alignment parameter
+    * secondcallparan gets para_alignment size instead of dword_align
+
+  Revision 1.109  2000/01/09 23:16:07  peter
     * added st_default stringtype
     * genstringconstnode extended with stringtype parameter using st_default
       will do the old behaviour
