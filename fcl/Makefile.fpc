@@ -19,15 +19,15 @@ packages_win32=netdb
 units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszlib trees zbase zcompres zdeflate zinflate zuncompr zutil
 
 [target]
-dirs=xml db shedit passrc
-units=classes contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls xmlreg registry eventlog
-units_freebsd=process asyncio ssockets http resolve http fpasync
-units_netbsd=process asyncio ssockets http resolve http fpasync
-units_openbsd=process asyncio ssockets http resolve http fpasync
-units_linux=process asyncio resolve ssockets http fpasync
+dirs=xml db shedit passrc net
+units=classes contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls xmlreg registry eventlog custapp
+units_freebsd=process ssockets resolve fpasync
+units_netbsd=process ssockets resolve fpasync
+units_openbsd=process ssockets resolve fpasync
+units_linux=process resolve ssockets fpasync
 units_win32=process fileinfo resolve ssockets
 units_netware=resolve ssockets
-rsts=classes ssockets cachecls resolve
+rsts=classes ssockets cachecls resolve custapp
 exampledirs=tests
 
 [compiler]

@@ -57,3 +57,4 @@ testreg.pp   Test of registry unit. (MVC)
 tstelcmd.pp  Test of eventlog unit, command-line version.
 tstelgtk.pp  Test of eventlog unit, FPGTK version. Not built by default. (MVC)
 testur.pp    Test of TURIParser class
+testapp.pp   Test of TCustomApplication
