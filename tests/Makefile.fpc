@@ -9,6 +9,9 @@ fpcpackage=y
 fpcdir=..
 rule=allexectests
 
+[require]
+packages_win32=mysql
+packages_linux=mysql
 
 [rules]
 # Subdirs available in the test subdir
@@ -72,9 +75,17 @@ ifneq ($(TESTCOMSPECRES),)
 NOCOMSPEC=1
 endif
 
+ifeq ($(USESQL),YES)
+DIGEST=./dbdigest$(EXEEXT)
+DBDIGEST=utils/dbtests.pp
+DIGESTSRC=utils/dbdigest.pp
+else
 DIGEST=./digest$(EXEEXT)
-$(DIGEST) : units utils/digest.pp utils/teststr.pp
-        $(FPC) -n -Fuunits -FE. utils/digest.pp
+DBDIGEST=
+DIGESTSRC=utils/digest.pp
+endif
+$(DIGEST) : units utils/digest.pp utils/teststr.pp utils/testu.pp $(DBDIGEST)
+        $(FPC) -n -Fuunits -FE. $(DIGESTSRC)
 
 testcheck: units allpreps $(DOTEST)
 

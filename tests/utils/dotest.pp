@@ -14,11 +14,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$H+}
 program dotest;
 uses
   dos,
   teststr,
+  testu,
   redir;
 
 const
@@ -28,25 +29,6 @@ const
   ExeExt='exe';
 {$endif UNIX}
 
-type
-  TVerboseLevel=(V_Abort,V_Error,V_Warning,V_Normal,V_Debug);
-
-  TConfig = record
-    NeedOptions,
-    NeedCPU,
-    NeedVersion,
-    KnownRunNote  : string;
-    ResultCode    : longint;
-    KnownRunError : longint;
-    NeedRecompile : boolean;
-    NeedLibrary   : boolean;
-    IsInteractive : boolean;
-    IsKnown       : boolean;
-    NoRun         : boolean;
-    UsesGraph     : boolean;
-    ShouldFail    : boolean;
-    Category      : string;
-  end;
 
 var
   Config : TConfig;
@@ -61,37 +43,12 @@ var
 const
   LongLogfile : string[32] = 'longlog';
   FailLogfile : string[32] = 'faillist';
-  DoVerbose : boolean = false;
   DoGraph : boolean = false;
   DoInteractive : boolean = false;
   DoExecute : boolean = false;
   DoKnown : boolean = false;
   DoAll : boolean = false;
   DoUsual : boolean = true;
-
-procedure Verbose(lvl:TVerboseLevel;const s:string);
-begin
-  case lvl of
-    V_Normal :
-      writeln(s);
-    V_Debug :
-      if DoVerbose then
-       writeln('Debug: ',s);
-    V_Warning :
-      writeln('Warning: ',s);
-    V_Error :
-      begin
-        writeln('Error: ',s);
-        halt(1);
-      end;
-    V_Abort :
-      begin
-        writeln('Abort: ',s);
-        halt(0);
-      end;
-  end;
-end;
-
 
 Function FileExists (Const F : String) : Boolean;
 {
@@ -144,31 +101,6 @@ end;
 
 
 
-procedure TrimB(var s:string);
-begin
-  while (s<>'') and (s[1] in [' ',#9]) do
-   delete(s,1,1);
-end;
-
-
-procedure TrimE(var s:string);
-begin
-  while (s<>'') and (s[length(s)] in [' ',#9]) do
-   delete(s,length(s),1);
-end;
-
-
-function upper(const s : string) : string;
-var
-  i  : longint;
-begin
-  for i:=1 to length(s) do
-   if s[i] in ['a'..'z'] then
-    upper[i]:=char(byte(s[i])-32)
-   else
-    upper[i]:=s[i];
-  upper[0]:=s[0];
-end;
 
 
 function SplitPath(const s:string):string;
@@ -283,7 +215,7 @@ var
   begin
     Getentry:=false;
     Res:='';
-    if Upper(Copy(s,1,length(entry)))=Upper(entry) then
+    if Upcase(Copy(s,1,length(entry)))=Upcase(entry) then
      begin
        Delete(s,1,length(entry));
        TrimB(s);
@@ -814,7 +746,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-12-15 13:30:46  peter
+  Revision 1.23  2002-12-17 15:04:32  michael
+  + Added dbdigest to store results in a database
+
+  Revision 1.22  2002/12/15 13:30:46  peter
     * NEEDLIBRARY option to add -rpath to the linker for unix. This is
       needed to test runtime library tests. The library needs the -FE.
       option to place the .so in the correct directory
