@@ -471,7 +471,7 @@ end;
   Procedure GetScanLineVESA256(x1, x2, y: integer; var data); {$ifndef fpc}far;{$endif}
   var offs: Longint;
       l, amount, bankrest, index, pixels: longint;
-      x, curbank: integer;
+      curbank: integer;
   begin
     inc(x1,StartXViewPort);
     inc(x2,StartXViewPort);
@@ -512,6 +512,9 @@ end;
              bankrest := amount
           else {the rest won't fit anymore in the current window }
             bankrest := $10000 - (Offs and $ffff);
+          { it is possible that by aligning, we ended up in a new }
+          { bank, so set the correct bank again to make sure      }
+          setreadbank(offs shr 16);
           {$ifdef logging}
           LogLn('Rest to be read from this window: '+strf(bankrest));
           {$endif logging}
@@ -538,9 +541,14 @@ end;
           {$ifdef logging}
           LogLn('Leftover: '+strf(amount)+' at offset '+hexstr(offs,8));
           {$endif logging}
-          x := offs mod bytesperline - StartXViewPort;
           For l := 0 to amount - 1 do
-            WordArray(Data)[index+l] := GetPixVESA256(x+l,y);
+            begin
+              { this may cross a bank at any time, so adjust          }
+              { because this loop alwys runs for very little pixels,  }
+              { there's little gained by splitting it up              }
+              setreadbank(offs shr 16);
+              WordArray(Data)[index+l] := mem[WinReadSeg:offs+l];
+            end;
           amount := 0
         End
     Until amount = 0;
@@ -619,6 +627,10 @@ end;
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
                        bankrest := $10000 - (Offs and $ffff);
+                     { it is possible that by aligningm we ended up in a new }
+                     { bank, so set the correct bank again to make sure      }
+                     setwritebank(offs shr 16);
+                     setreadbank(offs shr 16);
                      {$ifdef logging2}
                      LogLn('Rest to be drawn in this window: '+strf(bankrest));
                      {$endif logging}
@@ -636,9 +648,16 @@ end;
                      {$ifdef logging2}
                      LogLn('Drawing leftover: '+strf(HLength)+' at offset '+hexstr(offs,8));
                      {$endif logging}
-                     x := offs mod bytesperline;
                      For l := 0 to HLength - 1 do
-                       DirectPutPixVESA256(x+l,y);
+                       begin
+                         { this may cross a bank at any time, so adjust          }
+                         { becauese this loop alwys runs for very little pixels, }
+                         { there's little gained by splitting it up              }
+                         setreadbank(offs shr 16);
+                         setwritebank(offs shr 16);
+                         Mem[WinWriteSeg:word(offs)+l] :=
+                           Mem[WinReadSeg:word(offs)+l] And byte(currentColor);
+                       end;
                      HLength := 0
                    End
                Until HLength = 0;
@@ -677,6 +696,10 @@ end;
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
                        bankrest := $10000 - (Offs and $ffff);
+                     { it is possible that by aligningm we ended up in a new }
+                     { bank, so set the correct bank again to make sure      }
+                     setwritebank(offs shr 16);
+                     setreadbank(offs shr 16);
                      {$ifdef logging2}
                      LogLn('Rest to be drawn in this window: '+strf(bankrest));
                      {$endif logging}
@@ -694,9 +717,16 @@ end;
                      {$ifdef logging2}
                      LogLn('Drawing leftover: '+strf(HLength)+' at offset '+hexstr(offs,8));
                      {$endif logging}
-                     x := offs mod bytesperline;
                      For l := 0 to HLength - 1 do
-                       DirectPutPixVESA256(x+l,y);
+                       begin
+                         { this may cross a bank at any time, so adjust          }
+                         { because this loop alwys runs for very little pixels,  }
+                         { there's little gained by splitting it up              }
+                         setreadbank(offs shr 16);
+                         setwritebank(offs shr 16);
+                         Mem[WinWriteSeg:word(offs)+l] :=
+                           Mem[WinReadSeg:word(offs)+l] xor byte(currentColor);
+                       end;
                      HLength := 0
                    End
                Until HLength = 0;
@@ -727,6 +757,10 @@ end;
                        End;
                      Dec(HLength, l);
                      inc(offs, l);
+                     { it is possible that by aligningm we ended up in a new }
+                     { bank, so set the correct bank again to make sure      }
+                     setwritebank(offs shr 16);
+                     setreadbank(offs shr 16);
                      {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
@@ -752,9 +786,16 @@ end;
                      {$ifdef logging2}
                      LogLn('Drawing leftover: '+strf(HLength)+' at offset '+hexstr(offs,8));
                      {$endif logging}
-                     x := offs mod bytesperline;
                      For l := 0 to HLength - 1 do
-                       DirectPutPixVESA256(x+l,y);
+                       begin
+                         { this may cross a bank at any time, so adjust          }
+                         { because this loop alwys runs for very little pixels,  }
+                         { there's little gained by splitting it up              }
+                         setreadbank(offs shr 16);
+                         setwritebank(offs shr 16);
+                         Mem[WinWriteSeg:word(offs)+l] :=
+                           Mem[WinReadSeg:word(offs)+l] And byte(currentColor);
+                       end;
                      HLength := 0
                    End
                Until HLength = 0;
@@ -793,6 +834,9 @@ end;
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
                        bankrest := $10000 - (Offs and $ffff);
+                     { it is possible that by aligningm we ended up in a new }
+                     { bank, so set the correct bank again to make sure      }
+                     setwritebank(offs shr 16);
                      {$ifdef logging2}
                      LogLn('Rest to be drawn in this window: '+strf(bankrest)+' -- '+hexstr(bankrest,8));
                      {$endif logging}
@@ -809,9 +853,14 @@ end;
                      {$ifdef logging2}
                      LogLn('Drawing leftover: '+strf(HLength)+' at offset '+hexstr(offs,8));
                      {$endif logging}
-                     x := offs mod bytesperline;
                      For l := 0 to HLength - 1 do
-                       DirectPutPixVESA256(x+l,y);
+                       begin
+                         { this may cross a bank at any time, so adjust          }
+                         { because this loop alwys runs for very little pixels,  }
+                         { there's little gained by splitting it up              }
+                         setwritebank(offs shr 16);
+                         Mem[WinWriteSeg:word(offs)+l] := byte(mask);
+                       end;
                      HLength := 0
                    End
                Until HLength = 0;
@@ -998,7 +1047,6 @@ end;
     i           : smallint;
     j           : smallint;
     OldWriteMode : word;
-    OldCurrentColor : word;
     TmpFillPattern, patternPos : byte;
    begin
      { convert to global coordinates ... }
@@ -1071,6 +1119,9 @@ end;
               bankrest := amount
            else {the rest won't fit anymore in the current window }
              bankrest := $10000 - (Offs and $ffff);
+           { it is possible that by aligningm we ended up in a new }
+           { bank, so set the correct bank again to make sure      }
+           setwritebank(offs shr 16);
            {$ifdef logging}
            LogLn('Rest to be drawn in this window: '+strf(bankrest));
            {$endif logging}
@@ -1090,17 +1141,17 @@ end;
            {$ifdef logging}
            LogLn('Drawing leftover: '+strf(amount)+' at offset '+hexstr(offs,8));
            {$endif logging}
-           i := offs mod bytesperline;
-           patternPos := i and 7;
-           oldCurrentColor := currentColor;
+           patternPos := offs and 7;
            For l := 0 to amount - 1 do
              begin
-               currentColor := fill.pat[patternPos and 7];
-               DirectPutPixVESA256(i+l,y);
+               { this may cross a bank at any time, so adjust          }
+               { because this loop alwys runs for very little pixels,  }
+               { there's little gained by splitting it up              }
+               setwritebank(offs shr 16);
+               Mem[WinWriteSeg:word(offs)+l] := fill.pat[patternPos and 7];
                inc(patternPos);
              end;
            amount := 0;
-           currentColor := oldCurrentColor;
          End
      Until amount = 0;
      currentWriteMode := oldWriteMode;
@@ -2434,7 +2485,11 @@ end;
 
 (*
 $Log$
-Revision 1.13  1999-12-27 12:10:57  jonas
+Revision 1.14  1999-12-29 12:15:41  jonas
+  * fixed small bug in hlinevesa256, getscanlinevesa25 and patternlinevesa256
+  * small speed-up in the above procedures
+
+Revision 1.13  1999/12/27 12:10:57  jonas
   * fixed VESA palrec structure
 
 Revision 1.12  1999/12/26 10:36:00  jonas
