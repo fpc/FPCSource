@@ -2979,10 +2979,10 @@ implementation
          rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
 {$endif cpurequiresproperalignment}
          { size of elements }
-         rttiList.concat(Tai_const.Create_32bit(elesize));
+         rttiList.concat(Tai_const.Create_aint(elesize));
          { count of elements, prevent overflow for 0..maxlongint }
          if not(IsDynamicArray) then
-           rttiList.concat(Tai_const.Create_32bit(min(int64(highrange)-lowrange+1,maxlongint)));
+           rttiList.concat(Tai_const.Create_aint(min(int64(highrange)-lowrange+1,maxlongint)));
          { element type }
          rttiList.concat(Tai_const.Create_sym(tstoreddef(elementtype.def).get_rtti_label(rt)));
          { variant type }
@@ -6200,7 +6200,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.261  2004-10-31 21:45:03  peter
+  Revision 1.262  2004-11-01 15:33:12  florian
+    * fixed type information for dyn. arrays on 64 bit systems
+
+  Revision 1.261  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
