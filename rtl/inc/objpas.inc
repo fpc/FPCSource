@@ -114,18 +114,59 @@
            ClassType:=TClass(Pointer(Self)^)
         end;
 
+      type
+         tmethodnamerec = packed record
+            name : pshortstring;
+            addr : pointer;
+         end;
+
+         tmethodnametable = packed record
+           count : dword;
+           entries : packed array[0..0] of tmethodnamerec;
+         end;
+
+         pmethodnametable =  ^tmethodnametable;
+
       class function TObject.MethodAddress(const name : shortstring) : pointer;
 
+        var
+           methodtable : pmethodnametable;
+           i : dword;
+
         begin
-           methodaddress:=nil;
+           methodtable:=pmethodnametable((Pointer(Self)+vmtMethodTable)^);
+           if assigned(methodtable) then
+             begin
+                for i:=1 to methodtable^.count do
+                  if methodtable^.entries[i].name^=name then
+                    begin
+                       MethodAddress:=methodtable^.entries[i].addr;
+                       exit;
+                    end;                  
+             end;
+           MethodAddress:=nil;
         end;
 
       class function TObject.MethodName(address : pointer) : shortstring;
 
-        begin
-           methodname:='';
-        end;
+        var
+           methodtable : pmethodnametable;
+           i : dword;
 
+        begin
+           methodtable:=pmethodnametable((Pointer(Self)+vmtMethodTable)^);
+           if assigned(methodtable) then
+             begin
+                for i:=1 to methodtable^.count do
+                  if methodtable^.entries[i].addr=address then
+                    begin
+                       MethodName:=methodtable^.entries[i].name^;
+                       exit;
+                    end;                  
+             end;
+           MethodName:='';
+        end;
+           
       function TObject.FieldAddress(const name : shortstring) : pointer;
 
         begin
@@ -185,6 +226,14 @@
            stringmessagetable:=pstringmessagetable((pointer(Self)+vmtMsgStrPtr)^);
         end;
 
+      type
+         tmessagehandler = procedure(var msg) of object;
+         tmessagehandlerrec = packed record
+            proc : pointer;
+            obj : pointer;
+         end;
+
+
       procedure TObject.Dispatch(var message);
 
         type
@@ -203,6 +252,7 @@
            msgtable : pmsgtable;
            p : pointer;
            vmt : tclass;
+           msghandler : tmessagehandler;
 
         begin
            index:=dword(message);
@@ -224,12 +274,18 @@
                      if index=msgtable[i].index then
                        begin
                           p:=msgtable[i].method;
+                          tmessagehandlerrec(msghandler).proc:=p;
+                          tmessagehandlerrec(msghandler).obj:=self;
+                          msghandler(message);
+                          { we don't need any longer the assembler
+                            solution                              
                           asm
                              pushl message
                              pushl %esi
                              movl p,%edi
                              call *%edi
                           end;
+                          }
                           exit;
                        end;
                   end;
@@ -249,6 +305,7 @@
            msgstrtable : pmsgstrtable;
            p : pointer;
            vmt : tclass;
+           msghandler : tmessagehandler;
 
         begin
            name:=pshortstring(@message)^;
@@ -269,12 +326,18 @@
                      if name=msgstrtable[i].name^ then
                        begin
                           p:=msgstrtable[i].method;
+                          tmessagehandlerrec(msghandler).proc:=p;
+                          tmessagehandlerrec(msghandler).obj:=self;
+                          msghandler(message);
+                          { we don't need any longer the assembler
+                            solution                              
                           asm
                              pushl message
                              pushl %esi
                              movl p,%edi
                              call *%edi
                           end;
+                          }
                           exit;
                        end;
                   end;
@@ -330,7 +393,11 @@
 
 {
   $Log$
-  Revision 1.8  1999-09-08 16:14:41  peter
+  Revision 1.9  1999-09-12 08:01:00  florian
+    + implementation of TObject.MethodName and TObject.MethodAddress (not
+      in the compiler yet)
+
+  Revision 1.8  1999/09/08 16:14:41  peter
     * pointer fixes
 
   Revision 1.7  1999/07/11 14:10:48  michael
