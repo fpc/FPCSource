@@ -128,14 +128,13 @@
        startpos,s : longint;
 
     begin
-(* 
 {$ifdef Win16Res}
        { Numeric resource type }
        WriteByte($ff);
        { Application defined data }
        WriteWord($0a);
        { write the name as asciiz }
-       WriteData(ResName[1],length(ResName));
+       WriteBuffer(ResName[1],length(ResName));
        WriteByte(0);
        { Movable, Pure and Discardable }
        WriteWord($1030);
@@ -149,7 +148,6 @@
        SetPosition(startpos-4);
        WriteDWord(s);
 {$endif Win16Res}
-*)
     end;
 
   procedure TStream.WriteDescendent(Instance, Ancestor: TComponent);
@@ -466,7 +464,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-05-04 14:30:12  michael
+  Revision 1.2  1998-05-05 15:25:04  michael
+  + Fix to be able to compile from florian
+
+  Revision 1.1  1998/05/04 14:30:12  michael
   * Split file according to Class; implemented dummys for all methods, so unit compiles.
 
 }
