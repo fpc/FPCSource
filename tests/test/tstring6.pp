@@ -1,12 +1,14 @@
 { %VERSION=1.1 }
 Program widetest;
 
-{$ifndef fpc}
-Function Memavail : Longint;
+Function MemUsed : Longint;
 begin
- Result:=0;
-end;
+{$ifdef fpc}
+ MemUsed:=Heapsize-Memavail;
+{$else}
+ MemUsed:=0;
 {$endif}
+end;
 
 { -------------------------------------------------------------------
     General stuff
@@ -15,8 +17,8 @@ end;
 Procedure DoMem (Var StartMem : Longint);
 
 begin
-  Writeln ('Lost ',StartMem-Memavail,' Bytes.');
-  StartMem:=MemAvail;
+  Writeln ('Lost ',StartMem-MemUsed,' Bytes.');
+  StartMem:=MemUsed;
 end;
 
 Procedure DoRef (P : Pointer);
@@ -27,11 +29,17 @@ begin
   If P=Nil then
     Writeln ('(Ref : Empty string)')
   else
+    begin
 {$ifdef fpc}
-    Writeln (' (Ref: ',Plongint(Longint(P)-4)^,',Len: ',PLongint(Longint(P)-8)^,')');
+  {$if defined(ver1_0) or defined(ver1_9_4)}
+      Writeln (' (Ref: ',Plongint(Longint(P)-4)^,',Len: ',PLongint(Longint(P)-8)^,')');
+  {$else}
+      Writeln (' (Ref: ',Plongint(Longint(P)-8)^,',Len: ',PLongint(Longint(P)-4)^,')');
+  {$endif}
 {$else}
-    Writeln (' (Ref: ',Plongint(Longint(P)-8)^,',Len: ',PLongint(Longint(P)-4)^ div sizeof(WideChar),')');
+      Writeln (' (Ref: ',Plongint(Longint(P)-8)^,',Len: ',PLongint(Longint(P)-4)^ div sizeof(WideChar),')');
 {$endif}
+    end;
 end;
 
 { -------------------------------------------------------------------
@@ -124,7 +132,7 @@ Var S : WideString;
     Mem : Longint;
 
 begin
-  Mem:=MemAvail;
+  Mem:=MemUsed;
   S :='This is another WideString';
   Writeln ('Calling testvalparam with "',s,'"');
   testvalparam (s);
@@ -321,7 +329,7 @@ Var I : Integer;
     mem : Longint;
 
 begin
- mem:=memavail;
+ mem:=MemUsed;
  S3 := 'ABCDEF';
  Write ('S1+S2=S3 :');
  If S1+S2=S3 then writeln (ok) else writeln (nok);
@@ -364,7 +372,7 @@ Var S,T : WideString;
     Co : Comp;
     TempMem:Longint;
 begin
-  TempMem:=Memavail;
+  TempMem:=MemUsed;
   S:='ABCDEF';
   Write ('S = "',S,'"');Doref(Pointer(S));
   T:=Copy(S,1,3);
@@ -451,8 +459,8 @@ end;
 Var GlobalStartMem,StartMem : Longint;
 
 begin
-  GlobalStartMem:=MemAvail;
-  StartMem:=MemAvail;
+  GlobalStartMem:=MemUsed;
+  StartMem:=MemUsed;
   Writeln ('Testing Initialize/Finalize.');
   TestInitFinal;
   Write ('End of Initialize/finalize test : ');DoMem(StartMem);

@@ -33,9 +33,13 @@ begin
         then writeln('Nil string.')
         else
 {$ifdef  fpc}
+  {$if defined(ver1_0) or defined(ver1_9_4)}
          rc:=(p-1)^;
+  {$else}
+         rc:=plongint(pchar(p)-8)^;
+  {$endif}
 {$else}
-         rc:=plongint(pchar(p)-8)^);
+         rc:=plongint(pchar(p)-8)^;
 {$endif}
   writeln('Ref count is ',rc,' expected ',expect);
   if rc<>expect then
