@@ -276,7 +276,7 @@ distclean: clean
 build: build-stamp.$(OS_TARGET)
 build-stamp.$(OS_TARGET):
 # create new compiler
-        $(MAKE) compiler_cycle
+        $(MAKE) compiler_cycle RELEASE=1
 # clean
         $(MAKE) rtl_clean $(CLEANOPTS)
         $(MAKE) packages_clean $(CLEANOPTS)
@@ -306,7 +306,7 @@ installbase: build-stamp.$(OS_TARGET)
         $(MKDIR) $(INSTALL_BINDIR)
 ifndef SNAPSHOT
 # readme & whatsnew and docs
-        $(COPY) $(CVSINSTALL)/doc/*.txt $(CVSINSTALL)/doc/copying* $(CVSINSTALL)/doc/faq.* $(INSTALL_DOCDIR)
+        -$(COPY) $(CVSINSTALL)/doc/*.txt $(CVSINSTALL)/doc/copying* $(CVSINSTALL)/doc/faq.* $(INSTALL_DOCDIR)
 # bingo32 (cwsdpmi,wmemu387.dxe)
 ifeq ($(OS_TARGET),go32v2)
         $(COPY) $(CVSINSTALL)/bingo32/*.dxe $(INSTALL_BINDIR)
@@ -494,10 +494,10 @@ sunoszip: checkfpcdir
 
 qnxzip: checkfpcdir
                 $(MAKE) zipinstall OS_TARGET=qnx
-                
+
 amigazip: checkfpcdir
                 $(MAKE) zipinstall OS_TARGET=amiga
-                
+
 ##########################################################################
 # Dos, OS/2 Short 8.3 Names
 ##########################################################################
