@@ -4,7 +4,7 @@
 
 [package]
 name=fpc
-version=1.0.8
+version=1.1.0-1
 
 [target]
 dirs=compiler rtl utils fcl fv packages ide installer
