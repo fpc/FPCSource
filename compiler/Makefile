@@ -109,6 +109,13 @@ export FPC OS_TARGET OS_SOURCE CPU_TARGET CPU_SOURCE FPC_VERSION
 # Pre Settings
 #####################################################################
 
+# Define Unix also for Linux
+ifeq ($(OS_TARGET),linux)
+ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
+override FPCOPT+=-dUNIX
+endif
+endif
+
 # Don't export OS_SOURCE because it can change after the first compile
 unexport OS_SOURCE FPC_VERSION
 
