@@ -552,7 +552,6 @@ unit pstatmnt;
                                if srsym^.typ=unitsym then
                                  begin
                                     consume(POINT);
-                                    getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
                                     consume(ID);
                                  end;
                                if (srsym^.typ=typesym) and
@@ -1219,7 +1218,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.48  1998-11-05 23:43:24  peter
+  Revision 1.49  1998-11-12 12:55:17  pierre
+   * fix for bug0176 and bug0177
+
+  Revision 1.48  1998/11/05 23:43:24  peter
     * fixed assembler directive and then not an ASM statement
 
   Revision 1.47  1998/10/30 16:20:22  peter

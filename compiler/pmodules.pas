@@ -1039,7 +1039,8 @@ unit pmodules;
 
          {Insert the name of the main program into the symbol table.}
          if current_module^.modulename^<>'' then
-           st^.insert(new(pprogramsym,init(current_module^.modulename^)));
+           {st^.insert(new(pprogramsym,init(current_module^.modulename^)));}
+           st^.insert(new(punitsym,init(current_module^.modulename^,punitsymtable(st))));
 
          { ...is also constsymtable, this is the symtable where }
          { the elements of enumeration types are inserted       }
@@ -1118,7 +1119,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.81  1998-11-12 11:34:58  peter
+  Revision 1.82  1998-11-12 12:55:16  pierre
+   * fix for bug0176 and bug0177
+
+  Revision 1.81  1998/11/12 11:34:58  peter
     * fix for empty .o files and linking of libs
 
   Revision 1.80  1998/11/06 09:48:14  pierre
