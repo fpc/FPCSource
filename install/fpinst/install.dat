@@ -1,38 +1,91 @@
 #
 # $Id$
 #
-# Linux Install file
+# Install file for Go32v2/Win32/OS2
 #
-title=Free Pascal Compiler 0.99.12b for Linux
-version=0.99.12b
+title=Free Pascal Compiler 0.99.14
+version=0.99.14
 
-basepath=/usr/lib/fpc/0.99.12
-binsub=
+basepath=c:\pp
+binsub=\bin\go32v2
 ppc386=ppc386
 
+
 #
-# Binary packages
+# Go32v2 packages
 #
-package=baselin.zip,~B~asic system for Linux (required)
-#package=asldlin.zip,GNU ~L~inker and GNU Assembler for Go32v2 (required)
-#package=gdblin.zip,GNU ~D~ebugger for Go32v2
-#package=utillin.zip,GNU ~U~tilities (required to recompile run time library)
+pack=Dos/~G~o32v2
+filecheck=*go32.zip
+package=basego32.zip,~B~asic system for Go32v2 (required)
+package=asldgo32.zip,GNU ~L~inker and GNU Assembler for Go32v2 (required)
+package=gdbgo32.zip,GNU ~D~ebugger for Go32v2
+package=utilgo32.zip,GNU ~U~tilities (needed by Makefiles)
+package=ufclgo32.zip,~F~ree Component Libary (FCL)
+package=uapigo32.zip,~A~PI units (needed by FV)
+package=ubasgo32.zip,Basic ~u~nits (needed by FCL)
+package=unetgo32.zip,~N~etworking units
+package=umisgo32.zip,~M~iscellaneous units
+#package=ufvgo32.zip,Free ~V~ision (FV)
+
+
+#
+# Win32 packages
+#
+pack=~W~in32
+filecheck=*w32.zip
+package=basew32.zip,~B~asic system for Win32 (required)
+package=asldw32.zip,GNU ~L~inker and GNU Assembler for Win32 (required)
+package=gdbw32.zip,GNU ~D~ebugger for Win32
+package=utilw32.zip,GNU ~U~tilities (for makefiles)
+package=ufclw32.zip,~F~ree Component Libary (FCL)
+package=uapiw32.zip,~A~PI units (needed by FV)
+package=ubasw32.zip,~B~asic units (needed by FCL)
+package=ugtkw32.zip,GT~K~ units
+package=unetw32.zip,~N~etworking units
+package=udbw32.zip,Da~t~abase (interbase,mysql) units
+package=umisw32.zip,~M~iscellaneous units
+#package=ufvw32.zip,Free ~V~ision (FV)
+
+
+#
+# Emx packages
+#
+pack=Os/2 ~E~MX
+filecheck=*emx.zip
+package=baseemx.zip,~B~asic system for EMX (required)
+package=asldemx.zip,GNU ~L~inker and assembler for EMX (required)
+package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
+package=utilemx.zip,GNU ~U~tilities (for makefiles)
+
+
+#
+# Common packages
+#
+pack=~C~ommon
 package=docs-pdf.zip,Documentation (~P~DF)
 package=demo.zip,D~e~mos
+
+
 #
 # Source packages
 #
-source=rl09912s.zip,~R~un time library sources
-source=pp09912s.zip,~C~ompiler sources
-source=fc09912s.zip,~F~ree component library (FCL) sources
-source=fv09912s.zip,Free ~V~ision (FV) and API sources
-source=gt09912s.zip,~G~TK interface sources
-source=doc160s.zip,Documentation sources (La~T~eX)
+pack=~S~ources
+filecheck=*src.zip
+package=basesrc.zip,~B~asic Makefiles for the sources
+package=compsrc.zip,~C~ompiler sources
+package=rtlsrc.zip,~R~un time library sources
+package=fclsrc.zip,~F~ree component library (FCL) sources
+package=apisrc.zip,~A~PI units sources
+package=pkgssrc.zip,~P~ackages units sources
+package=utilssrc.zip,~U~tils sources
+package=instsrc.zip,~I~nstaller sources
+package=docsrc.zip,~D~ocumentation sources (LaTeX)
+
 
 cfgfile=ppc386.cfg
 defaultcfg=
 #
-# Example ppc386.cfg for Free Pascal Compiler Version 0.99.12
+# Example ppc386.cfg for Free Pascal Compiler Version 0.99.14
 #
 
 # ----------------------
@@ -156,78 +209,16 @@ defaultcfg=
 #-Fo$1/source/rtl/inc;$1/source/rtl/i386
 
 # searchpath for units and other system dependent things
-#IFDEF Go32V1
-  -FD$1/bin/go32v1
-  #IFDEF FPC_LINK_STATIC
-    -Fu$1/rtl/go32v1/static
-    -Fu$1/units/go32v1/static
-  #ENDIF
-  -Fu$1/rtl/go32v1
-  -Fu$1/units/go32v1
-  -Fu$1/source/rtl/go32v1
-  -Fi$1/source/rtl/go32v1
-  -Fo$1/source/rtl/go32v1
-#ENDIF
-#IFDEF Go32V2
-  -FD$1/bin/go32v2
-  #IFDEF FPC_LINK_STATIC
-    -Fu$1/rtl/go32v2/static
-    -Fu$1/units/go32v2/static
-  #ENDIF
-  -Fu$1/rtl/go32v2
-  -Fu$1/units/go32v2
-  -Fu$1/source/rtl/go32v2
-  -Fi$1/source/rtl/go32v2
-  -Fo$1/source/rtl/go32v2
-#ENDIF
-#IFDEF Win32
-  -FD$1/bin/win32
-  #IFDEF FPC_LINK_STATIC
-    -Fu$1/rtl/win32/static
-    -Fu$1/units/win32/static
-  #ENDIF
-  -Fu$1/rtl/win32
-  -Fu$1/units/win32
-  -Fu$1/source/rtl/win32
-  -Fi$1/source/rtl/win32
-  -Fo$1/source/rtl/win32
-#ENDIF
-#IFDEF OS2
-  -FD$1/bin/os2
-  #IFDEF FPC_LINK_STATIC
-    -Fu$1/rtl/os2/static
-    -Fu$1/units/os2/static
-  #ENDIF
-  -Fu$1/rtl/os2
-  -Fu$1/units/os2
-  -Fu$1/source/rtl/os2
-  -Fi$1/source/rtl/os2
-  -Fo$1/source/rtl/os2
-#ENDIF
-#IFDEF Linux
-  # For statically, smartlinked units
-  #IFDEF FPC_LINK_STATIC
-    -Fu$1/rtl/static
-    -Fu$1/units/static
-  #ENDIF
-  # For Dynamically linked units
-  #IFDEF FPC_LINK_DYNAMIC
-    -Fu$1/rtl/shared
-    -Fu$1/units/shared
-  #ENDIF
-  -Fu$1/rtl/linux
-  -Fu$1/units/linux
-  -Fu$1/source/rtl/linux
-  -Fi$1/source/rtl/linux
-  -Fo$1/source/rtl/linux
-  #-Fu~/pp/units;~/pp/rtl/linux
-  #-Fu/usr/lib/fpc/0.99.12/units;/usr/lib/fpc/0.99.12/rtl
-#ENDIF
+-Fu$1/units/$TARGET
+-Fu$1/units/$TARGET/*
+-Fu$1/units/$TARGET/rtl
 
 # searchpath for libraries
 #-Fl$1/lib
 #-Fl/lib;/usr/lib
 
+# searchpath for tools
+-FD$1/bin/$TARGET
 
 # -------------
 # Linking

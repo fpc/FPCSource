@@ -80,8 +80,8 @@ program install;
   const
      installerversion='0.99.14';
 
+     maxpacks=10;
      maxpackages=20;
-     maxsources=20;
      maxdefcfgs=1024;
 
      CfgExt = '.dat';
@@ -94,8 +94,16 @@ program install;
 
   type
      tpackage=record
-       name : string[60];
-       zip  : string[12];
+       name  : string[60];
+       zip   : string[12];
+     end;
+
+     tpack=record
+       name     : string[12];
+       include  : boolean;
+       filechk  : string[40];
+       packages : longint;
+       package  : array[1..maxpackages] of tpackage;
      end;
 
      cfgrec=record
@@ -104,10 +112,8 @@ program install;
        basepath : DirStr;
        binsub   : string[12];
        ppc386   : string[12];
-       packages : longint;
-       package  : array[1..maxpackages] of tpackage;
-       sources  : longint;
-       source   : array[1..maxsources] of tpackage;
+       packs    : word;
+       pack     : array[1..maxpacks] of tpack;
        defcfgfile : string[12];
        defcfgs  : longint;
        defcfg   : array[1..maxdefcfgs] of pstring;
@@ -116,15 +122,14 @@ program install;
      datarec=packed record
        basepath : DirStr;
        cfgval   : word;
-       packmask : word;
-       srcmask  : word;
+       packmask : array[1..maxpacks] of word;
      end;
 
      punzipdialog=^tunzipdialog;
      tunzipdialog=object(tdialog)
-         filetext : pstatictext;
-         constructor Init(var Bounds: TRect; ATitle: TTitleStr);
-         procedure do_unzip(s,topath:string);
+        filetext : pstatictext;
+        constructor Init(var Bounds: TRect; ATitle: TTitleStr);
+        procedure do_unzip(s,topath:string);
      end;
 
      penddialog = ^tenddialog;
@@ -142,31 +147,32 @@ program install;
          procedure handleevent(var event : tevent);virtual;
          procedure do_installdialog;
          procedure readcfg(const fn:string);
+         procedure checkavailpack;
      end;
 
 {$IFDEF DOSSTUB}
- PByte = ^byte;
- PRunBlock = ^TRunBlock;
- TRunBlock = record
-  Length: word;
-  Dependent: word;
-  Background: word;
-  TraceLevel: word;
-  PrgTitle: PChar;
-  PrgName: PChar;
-  Args: PChar;
-  TermQ: longint;
-  Environment: pointer;
-  Inheritance: word;
-  SesType: word;
-  Icon: pointer;
-  PgmHandle: longint;
-  PgmControl: word;
-  Column: word;
-  Row: word;
-  Width: word;
-  Height: word;
- end;
+  PByte = ^byte;
+  PRunBlock = ^TRunBlock;
+  TRunBlock = record
+    Length: word;
+    Dependent: word;
+    Background: word;
+    TraceLevel: word;
+    PrgTitle: PChar;
+    PrgName: PChar;
+    Args: PChar;
+    TermQ: longint;
+    Environment: pointer;
+    Inheritance: word;
+    SesType: word;
+    Icon: pointer;
+    PgmHandle: longint;
+    PgmControl: word;
+    Column: word;
+    Row: word;
+    Width: word;
+    Height: word;
+  end;
 {$ENDIF}
 
   var
@@ -189,6 +195,7 @@ program install;
       installapp.done;
       halt(1);
     end;
+
 
   function packagemask(i:longint):longint;
     begin
@@ -229,6 +236,7 @@ program install;
        file_exists:=fsearch(f,path)<>'';
     end;
 
+
   function createdir(s:string):boolean;
     var
       s1,start : string;
@@ -267,6 +275,7 @@ program install;
        {$I+}
        createdir:=err;
     end;
+
 
   function DiskSpaceN(const zipfile : string) : longint;
     var
@@ -411,6 +420,7 @@ program install;
 
   procedure tunzipdialog.do_unzip(s,topath : string);
     var
+      again : boolean;
       fn,dir,wild : string;
     begin
        Disposestr(filetext^.text);
@@ -422,25 +432,26 @@ program install;
                        'Installation doesn''t becomes complete',nil,mferror+mfokbutton);
             errorhalt;
          end;
-       fn:=startpath+DirSep+s+#0;
-       dir:=topath+#0;
-       wild:=AllFiles + #0;
-(* TH - added to clear the previous state of DosError *)
-       DosError := 0;
+       repeat
+         fn:=startpath+DirSep+s+#0;
+         dir:=topath+#0;
+         wild:=AllFiles + #0;
+         DosError := 0;
+         again:=false;
 {$IFDEF DLL}
-       if
-{$ENDIF}
-          FileUnzipEx(@fn[1],@dir[1],@wild[1])
-{$IFDEF DLL}
-                                               = 0 then
+         if FileUnzipEx(@fn[1],@dir[1],@wild[1])=0 then
 {$ELSE}
-                                              ;
-       if doserror<>0 then
+         FileUnzipEx(@fn[1],@dir[1],@wild[1]);
+         if (doserror<>0) then
 {$ENDIF}
-         begin
-            messagebox('Error when extracting. Disk full?',nil,mferror+mfokbutton);
-            errorhalt;
-         end;
+           begin
+              if messagebox('Error when extracting. Disk full?'#13+
+                            #13#3'Try again?',nil,mferror+mfyesbutton+mfnobutton)=cmNo then
+               errorhalt
+              else
+               again:=true;
+           end;
+       until not again;
     end;
 
 
@@ -535,13 +546,15 @@ program install;
        y2 = y1+height;
     var
        tabr,tabir,r : trect;
-       srcmask,
-       mask_components : longint;
-       i,line : integer;
-       srcitems,items : psitem;
+       packmask : array[1..maxpacks] of longint;
+       i,line,j : integer;
+       items : array[1..maxpacks] of psitem;
        f : pview;
+       found : boolean;
        okbut,cancelbut : pbutton;
-       packcbs,sourcecbs : pcheckboxes;
+       firstitem : array[1..maxpacks] of integer;
+       packcbs : array[1..maxpacks] of pcheckboxes;
+       packtd : ptabdef;
        labpath : plabel;
        ilpath : pinputline;
        tab : ptab;
@@ -551,35 +564,31 @@ program install;
     begin
        f:=nil;
      { walk packages reverse and insert a newsitem for each, and set the mask }
-       items:=nil;
-       mask_components:=0;
-       for i:=cfg.packages downto 1 do
-        begin
-          if file_exists(cfg.package[i].zip,startpath) then
-           begin
-             items:=newsitem(cfg.package[i].name+diskspace(startpath+DirSep+cfg.package[i].zip),items);
-             mask_components:=mask_components or packagemask(i);
-           end
-          else
-           items:=newsitem(cfg.package[i].name,items);
-        end;
-
-     { walk source packages reverse and insert a newsitem for each, and set the mask }
-       srcitems:=nil;
-       srcmask:=0;
-       for i:=cfg.sources downto 1 do
-        begin
-          if file_exists(cfg.source[i].zip,startpath) then
-           begin
-             srcitems:=newsitem(cfg.source[i].name+diskspace(startpath+DirSep+cfg.source[i].zip),srcitems);
-             srcmask:=srcmask or packagemask(i);
-           end
-          else
-           srcitems:=newsitem(cfg.source[i].name,srcitems);
-        end;
+       for j:=1to cfg.packs do
+        with cfg.pack[j] do
+         begin
+           firstitem[j]:=0;
+           items[j]:=nil;
+           packmask[j]:=0;
+           for i:=packages downto 1 do
+            begin
+              if file_exists(package[i].zip,startpath) then
+               begin
+                 items[j]:=newsitem(package[i].name+diskspace(startpath+DirSep+package[i].zip),items[j]);
+                 packmask[j]:=packmask[j] or packagemask(i);
+                 firstitem[j]:=i;
+               end
+              else
+               items[j]:=newsitem(package[i].name,items[j]);
+            end;
+         end;
 
      { If no component found abort }
-       if (mask_components=0) and (srcmask=0) then
+       found:=false;
+       for j:=1to cfg.packs do
+        if packmask[j]<>0 then
+         found:=true;
+       if not found then
         begin
           messagebox('No components found to install, aborting.',nil,mferror+mfokbutton);
           errorhalt;
@@ -595,7 +604,7 @@ program install;
        TabIR.Grow(-2,-2);
        TabIR.Move(-2,0);
 
-       {-------- Sheet 1 ----------}
+       {-------- General Sheets ----------}
        R.Copy(TabIR);
        r.move(0,1);
        r.b.x:=r.a.x+40;
@@ -619,19 +628,22 @@ program install;
        new(cfgcb,init(r,newsitem('create ppc386.cfg',nil)));
        data.cfgval:=1;
 
-       {-------- Sheet 2 ----------}
-       R.Copy(TabIR);
-       new(packcbs,init(r,items));
-       data.packmask:=mask_components;
-       pcluster(packcbs)^.enablemask:=mask_components;
-
-       {-------- Sheet 3 ----------}
-       R.Copy(TabIR);
-       new(sourcecbs,init(r,srcitems));
-       data.srcmask:=srcmask;
-       pcluster(sourcecbs)^.enablemask:=srcmask;
+       {-------- Pack Sheets ----------}
+       for j:=1to cfg.packs do
+        begin
+          R.Copy(TabIR);
+          new(packcbs[j],init(r,items[j]));
+          if data.packmask[j]=$ffff then
+           data.packmask[j]:=packmask[j];
+          packcbs[j]^.enablemask:=packmask[j];
+          packcbs[j]^.movedto(firstitem[j]);
+        end;
 
        {--------- Main ---------}
+       packtd:=nil;
+       for j:=cfg.packs downto 1 do
+        packtd:=NewTabDef(cfg.pack[j].name,PackCbs[j],NewTabItem(PackCbs[j],nil),packtd);
+
        New(Tab, Init(TabR,
          NewTabDef('~G~eneral',IlPath,
            NewTabItem(TitleText,
@@ -640,23 +652,18 @@ program install;
            NewTabItem(LabCfg,
            NewTabItem(CfgCB,
            nil))))),
-         NewTabDef('~P~ackages',PackCbs,
-           NewTabItem(PackCbs,
-           nil),
-         NewTabDef('~S~ources',SourceCbs,
-           NewTabItem(SourceCbs,
-           nil),
-         nil)))));
+         packtd)
+       ));
        Tab^.GrowMode:=0;
        Insert(Tab);
 
        line:=tabr.b.y;
-       r.assign((width div 2)-14,line,(width div 2)-4,line+2);
-       new(okbut,init(r,'~O~k',cmok,bfdefault));
+       r.assign((width div 2)-18,line,(width div 2)-4,line+2);
+       new(okbut,init(r,'~C~ontinue',cmok,bfdefault));
        Insert(OkBut);
 
        r.assign((width div 2)+4,line,(width div 2)+14,line+2);
-       new(cancelbut,init(r,'~C~ancel',cmcancel,bfnormal));
+       new(cancelbut,init(r,'~Q~uit',cmcancel,bfnormal));
        Insert(CancelBut);
 
        Tab^.Select;
@@ -678,7 +685,8 @@ program install;
        r    : trect;
        result,
        c    : word;
-       i    : longint;
+       i,j  : longint;
+       found : boolean;
 {$ifndef linux}
        DSize,Space : longint;
        S: DirStr;
@@ -686,8 +694,8 @@ program install;
     begin
       data.basepath:=cfg.basepath;
       data.cfgval:=0;
-      data.srcmask:=0;
-      data.packmask:=0;
+      for j:=1to cfg.packs do
+       data.packmask[j]:=$ffff;
 
       repeat
       { select components }
@@ -699,23 +707,24 @@ program install;
               messagebox('Please, choose the directory for installation first.',nil,mferror+mfokbutton)
             else
              begin
-               if (data.srcmask>0) or (data.packmask>0) then
+               found:=false;
+               for j:=1to cfg.packs do
+                if data.packmask[j]>0 then
+                 found:=true;
+               if found then
                 begin
 {$IFNDEF LINUX}
                 { TH - check the available disk space here }
                   DSize := 0;
-                  for i:=1 to cfg.packages do
-                   begin
-                     if data.packmask and packagemask(i)<>0 then
-                      Inc (DSize, DiskSpaceN(cfg.package[i].zip));
-                   end;
-                  for i:=1 to cfg.sources do
-                   begin
-                     if data.srcmask and packagemask(i)<>0 then
-                      Inc (DSize, DiskSpaceN(cfg.source[i].zip));
-                   end;
-                  if data.packmask and packagemask(i)<>0 then
-                   Inc (DSize, DiskSpaceN(cfg.package[i].zip));
+                  for j:=1to cfg.packs do
+                   with cfg.pack[j] do
+                    begin
+                      for i:=1 to packages do
+                       begin
+                         if data.packmask[j] and packagemask(i)<>0 then
+                          Inc (DSize, DiskSpaceN(package[i].zip));
+                       end;
+                    end;
                   S := FExpand (Data.BasePath);
                   if S [Length (S)] = DirSep then
                    Dec (S [0]);
@@ -724,7 +733,7 @@ program install;
                    S := 'is not'
                   else
                    S := '';
-                  if Space < DSize + 500 then
+                  if true or (Space < DSize + 500) then
                    begin
                      if S = '' then
                       S := 'might not be';
@@ -740,9 +749,20 @@ program install;
                 end
                else
                 begin
-                  result:=messagebox('No components selected.'#13#13'Abort installation?',nil,mferror+mfyesbutton+mfnobutton);
-                  if result=cmYes then
-                   exit;
+                  { maybe only config }
+                  if (data.cfgval and 1)<>0 then
+                   begin
+                     result:=messagebox('No components selected.'#13#13'Create a configfile ?',nil,mfinformation+mfyesbutton+mfnobutton);
+                     if (result=cmYes) and createinstalldir(data.basepath) then
+                      writedefcfg(data.basepath+cfg.binsub+DirSep+cfg.defcfgfile);
+                     exit;
+                   end
+                  else
+                   begin
+                     result:=messagebox('No components selected.'#13#13'Abort installation?',nil,mferror+mfyesbutton+mfnobutton);
+                     if result=cmYes then
+                      exit;
+                   end;
                 end;
              end;
           end
@@ -751,28 +771,20 @@ program install;
       until false;
 
     { extract packages }
-      r.assign(20,7,60,16);
-      p2:=new(punzipdialog,init(r,'Extracting Packages'));
-      desktop^.insert(p2);
-      for i:=1 to cfg.packages do
-       begin
-         if data.packmask and packagemask(i)<>0 then
-          p2^.do_unzip(cfg.package[i].zip,data.basepath);
-       end;
-      desktop^.delete(p2);
-      dispose(p2,done);
-
-    { extract sources }
-      r.assign(20,7,60,16);
-      p2:=new(punzipdialog,init(r,'Extracting Sources'));
-      desktop^.insert(p2);
-      for i:=1 to cfg.sources do
-       begin
-         if data.srcmask and packagemask(i)<>0 then
-          p2^.do_unzip(cfg.source[i].zip,data.basepath);
-       end;
-      desktop^.delete(p2);
-      dispose(p2,done);
+      for j:=1 to cfg.packs do
+       with cfg.pack[j] do
+        begin
+          r.assign(20,7,60,16);
+          p2:=new(punzipdialog,init(r,'Extracting Packages'));
+          desktop^.insert(p2);
+          for i:=1 to packages do
+           begin
+             if data.packmask[j] and packagemask(i)<>0 then
+              p2^.do_unzip(package[i].zip,data.basepath);
+           end;
+          desktop^.delete(p2);
+          dispose(p2,done);
+        end;
 
     { write config }
       if (data.cfgval and 1)<>0 then
@@ -879,32 +891,76 @@ program install;
                    until false;
                  end
                else
-                if item='PACKAGE' then
+                if item='PACK' then
                  begin
-                   j:=pos(',',s);
-                   if (j>0) and (cfg.packages<maxpackages) then
+                   inc(cfg.packs);
+                   if cfg.packs>maxpacks then
                     begin
-                      inc(cfg.packages);
-                      cfg.package[cfg.packages].zip:=copy(s,1,j-1);
-                      cfg.package[cfg.packages].name:=copy(s,j+1,255);
+                      writeln('Too much packs');
+                      halt(1);
                     end;
+                   cfg.pack[cfg.packs].name:=s;
                  end
                else
-                if item='SOURCE' then
+                if item='FILECHECK' then
                  begin
-                   j:=pos(',',s);
-                   if (j>0) and (cfg.sources<maxsources) then
+                   if cfg.packs=0 then
                     begin
-                      inc(cfg.sources);
-                      cfg.source[cfg.sources].zip:=copy(s,1,j-1);
-                      cfg.source[cfg.sources].name:=copy(s,j+1,255);
+                      writeln('No pack set');
+                      halt(1);
                     end;
-                 end;
+                   cfg.pack[cfg.packs].filechk:=s;
+                 end
+               else
+                if item='PACKAGE' then
+                 begin
+                   if cfg.packs=0 then
+                    begin
+                      writeln('No pack set');
+                      halt(1);
+                    end;
+                   with cfg.pack[cfg.packs] do
+                    begin
+                      j:=pos(',',s);
+                      if (j>0) and (packages<maxpackages) then
+                       begin
+                         inc(packages);
+                         package[packages].zip:=copy(s,1,j-1);
+                         package[packages].name:=copy(s,j+1,255);
+                       end;
+                    end;
+                 end
              end;
           end;
        end;
       close(t);
     end;
+
+
+  procedure tapp.checkavailpack;
+    var
+      j : longint;
+      dir : searchrec;
+    begin
+    { check the packages }
+      j:=0;
+      while (j<cfg.packs) do
+       begin
+         inc(j);
+         if cfg.pack[j].filechk<>'' then
+          begin
+            findfirst(cfg.pack[j].filechk,$20,dir);
+            if doserror<>0 then
+             begin
+               { remove the package }
+               move(cfg.pack[j+1],cfg.pack[j],sizeof(tpack)*(cfg.packs-j));
+               dec(cfg.packs);
+               dec(j);
+             end;
+            findclose(dir);
+          end;
+       end;
+     end;
 
 
   procedure tapp.initmenubar;
@@ -914,7 +970,7 @@ program install;
        getextent(r);
        r.b.y:=r.a.y+1;
        menubar:=new(pmenubar,init(r,newmenu(
-          newsubmenu('~F~ree Pascal Installer '+installerversion,hcnocontext,newmenu(nil
+          newsubmenu('Free Pascal Installer',hcnocontext,newmenu(nil
           ),
        nil))));
     end;
@@ -1039,13 +1095,17 @@ begin
    FSplit (FExpand (ParamStr (0)), DStr, CfgName, EStr);
 
    installapp.readcfg(CfgName + CfgExt);
+   installapp.checkavailpack;
 {   installapp.readcfg(startpath+dirsep+cfgfile);}
    installapp.do_installdialog;
    installapp.done;
 end.
 {
   $Log$
-  Revision 1.10  2000-01-18 00:22:48  peter
+  Revision 1.11  2000-01-24 22:21:48  peter
+    * new install version (keys not wrong correct yet)
+
+  Revision 1.10  2000/01/18 00:22:48  peter
     * fixed uninited local var
 
   Revision 1.9  1999/08/03 20:21:53  peter
