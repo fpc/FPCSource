@@ -68,8 +68,8 @@
     Settings and needed files to compile for netware
     ================================================
 
-    Edit your /etc/ppc386.cfg and add the rtl source path for netware. This are my settings,
-    you may paste it to your ppc386.cfg:
+    Edit your /etc/fpc.cfg and add the rtl source path for netware. This are my settings,
+    you may paste it to your fpc.cfg:
 
 #IFDEF Netware
   -Fu/usr/lib/fpc/1.1/units/netware/rtl

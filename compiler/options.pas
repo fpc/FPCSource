@@ -1386,7 +1386,7 @@ begin
   else
    begin
      ppcaltcfg:='ppc386.cfg';
-     ppccfg:='ppc.cfg';
+     ppccfg:='fpc.cfg';
    end;
 
 { Order to read configuration file :
@@ -1394,7 +1394,7 @@ begin
    1 - current dir
    2 - configpath
    3 - compiler path
-  else try reading ppc.cfg in :
+  else try reading fpc.cfg in :
    1 - current dir
    2 - configpath
    3 - compiler path
@@ -1645,7 +1645,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.62  2001-11-23 02:48:46  carl
+  Revision 1.63  2001-11-24 02:09:54  carl
+  * Renamed ppc.cfg -> fpc.cfg
+
+  Revision 1.62  2001/11/23 02:48:46  carl
   + ppc.cfg is now configuration file for compiler.
     (first tries loading ppc386.cfg for backward compatibility)
 

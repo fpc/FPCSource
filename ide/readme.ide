@@ -61,7 +61,7 @@
  configuration changes before it can compile. This is due
  to the fact that the IDE includes its own compiler; it
  does not use ppc386.exe and thus it also does not use the
- configuration in the file ppc.cfg.
+ configuration in the file fpc.cfg.
 
  Select Target from the Compile menu and then check the
  correct default target (this is Go32V2 for DOS).

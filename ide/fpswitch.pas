@@ -162,7 +162,7 @@ var
     BrowserSwitches,
     DirectorySwitches : PSwitches;
 
-{ write/read the Switches to ppc.cfg file }
+{ write/read the Switches to fpc.cfg file }
 procedure WriteSwitches(const fn:string);
 procedure ReadSwitches(const fn:string);
 
@@ -1229,7 +1229,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2001-08-29 23:31:27  pierre
+  Revision 1.4  2001-11-24 02:06:43  carl
+  * Renamed ppc.cfg -> fpc.cfg
+
+  Revision 1.3  2001/08/29 23:31:27  pierre
    * fix some m68k specific options
 
   Revision 1.2  2001/08/07 21:27:34  pierre
