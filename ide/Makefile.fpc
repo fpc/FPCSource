@@ -6,7 +6,7 @@
 
 [package]
 name=ide
-version=1.9.0
+version=1.9.2
 
 [target]
 dirs=compiler fakegdb
@@ -226,7 +226,10 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.18  2003-11-01 22:45:29  marco
+# Revision 1.19  2004-01-05 23:29:35  marco
+#  * fixed a few makefiles version numbers
+#
+# Revision 1.18  2003/11/01 22:45:29  marco
 #  * updated package version
 #
 # Revision 1.17  2003/10/03 17:29:13  florian
