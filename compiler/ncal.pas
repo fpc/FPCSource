@@ -1213,9 +1213,14 @@ type
           overloaded definitions in the class, this only needs to be done once
           for class entries as the tree keeps always the same }
         if (not symtableprocentry.overloadchecked) and
-           ((symtableprocentry.first_procdef.proctypeoption=potype_constructor) or
-            (po_overload in symtableprocentry.first_procdef.procoptions)) and
-           (symtableprocentry.owner.symtabletype=objectsymtable) then
+           (symtableprocentry.owner.symtabletype=objectsymtable) and
+           (
+            (
+             (symtableprocentry.first_procdef.proctypeoption=potype_constructor) and
+             is_class(tdef(symtableprocentry.owner.defowner))
+            ) or
+            (po_overload in symtableprocentry.first_procdef.procoptions)
+           ) then
          search_class_overloads(symtableprocentry);
 
          { when the class passed is defined in this unit we
@@ -2571,7 +2576,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.197  2003-10-21 15:14:55  peter
+  Revision 1.198  2003-10-21 18:17:02  peter
+    * only search for overloaded constructors in classes
+
+  Revision 1.197  2003/10/21 15:14:55  peter
     * also search in parents for overloads when calling a constructor
 
   Revision 1.196  2003/10/13 14:05:12  peter
