@@ -18,9 +18,38 @@ unit WANSI;
 
 interface
 
-uses Objects,Drivers,Crt,Dos,Views,App;
+uses Objects,Drivers,
+{$ifdef WITH_CRT}
+     Crt,
+{$endif WITH_CRT}
+     Dos,Views,App;
 
 const
+{$ifndef WITH_CRT}
+{ Foreground and background color constants }
+  Black         = 0;
+  Blue          = 1;
+  Green         = 2;
+  Cyan          = 3;
+  Red           = 4;
+  Magenta       = 5;
+  Brown         = 6;
+  LightGray     = 7;
+
+{ Foreground color constants }
+  DarkGray      = 8;
+  LightBlue     = 9;
+  LightGreen    = 10;
+  LightCyan     = 11;
+  LightRed      = 12;
+  LightMagenta  = 13;
+  Yellow        = 14;
+  White         = 15;
+
+{ Add-in for blinking }
+  Blink         = 128;
+{$endif not WITH_CRT}
+
       ANSIMaxParamLen     = 30; { max ANSI escape sequence length }
       ANSICurPosStackSize = 20; { max number of cursor positions stored at the same time }
 
@@ -107,6 +136,7 @@ type
        procedure   SetAttr(Color: integer); virtual;
      end;
 
+{$ifdef WITH_CRT}
      PCrtConsole = ^TCrtConsole;
      TCrtConsole = object(TANSIConsole)
        constructor Init(AReplyHook, AKeyHook, AWriteHook: PHookProc);
@@ -121,6 +151,7 @@ type
        procedure   TextBackground(Color: byte); virtual;
        procedure   TextColor(Color: byte); virtual;
      end;
+{$endif WITH_CRT}
 
      PANSIView = ^TANSIView;
 
@@ -385,6 +416,7 @@ begin
   inherited Done;
 end;
 
+{$ifdef WITH_CRT}
 constructor TCrtConsole.Init(AReplyHook, AKeyHook, AWriteHook: PHookProc);
 begin
   inherited Init(AReplyHook, AKeyHook, AWriteHook);
@@ -451,6 +483,7 @@ begin
   inherited TextColor(Color);
   Crt.TextAttr:=TextAttr;
 end;
+{$endif WITH_CRT}
 
 constructor TANSIConsole.Init(AReplyHook, AKeyHook, AWriteHook: PHookProc);
 begin
@@ -464,7 +497,7 @@ var SkipThis : boolean;
     ANSIDone : boolean;
     X,Y,Z    : integer;
 begin
-  SkipThis:=false; 
+  SkipThis:=false;
   if C=Esc then begin ANSILevel:=1; SkipThis:=true; end else
   if (ANSILevel=1) then
      begin
@@ -1006,6 +1039,6 @@ end;
 
 END.
 {
- $Log $ 
- 
+ $Log $
+
 }
