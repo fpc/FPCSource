@@ -1,4 +1,8 @@
-const msgtxt : array[0..00096,1..240] of char=(
+{$ifdef Delphi}
+const msgtxt : array[0..000097] of string[240]=(
+{$else Delphi}
+const msgtxt : array[0..000097,1..240] of char=(
+{$endif Delphi}
   'T_Compiler: $1'#000+
   'D_Compiler OS: $1'#000+
   'I_Target OS: $1'#000+
@@ -113,7 +117,7 @@ const msgtxt : array[0..00096,1..240] of char=(
   'E_Only class methods can be accessed in class methods'#000+
   'E_Constant and CASE types do not match'#000+
   'E_The symbol can'#039't be exported from a library'#000+
-  'W_An inherited method is hidden by $1'#000,+
+  'W_An inherited method is hidden by $1'#000,
   'E_There is no method in an ancestor class to be overridden: $1'#000+
   'E_No member is provided to access property'#000+
   'W_Stored prorperty directive is not yet implemented'#000+
@@ -241,7 +245,7 @@ const msgtxt : array[0..00096,1..240] of char=(
   'E_Unknown identifier $1'#000+
   'E_Forward declaration not solved $1'#000+
   'F_Identifier type already defined as type'#000+
-  'E_Error in type definition'#000,+
+  'E_Error in type definition'#000,
   'E_Type identifier not defined'#000+
   'E_Forward type not resolved $1'#000+
   'E_Only static variables can be used in static methods or outside metho'+
@@ -533,9 +537,10 @@ const msgtxt : array[0..00096,1..240] of char=(
   '*g2gg_use gsym'#000+
   '*g2gd_use dbx'#000+
   '*g2gh_use heap trace unit'#000+
+  '*g2gc_generate checks for pointers'#000+
   '**1i_information'#000+
-  '**2iD_return compiler date'#000+
-  '**2iV_return compiler version'#000,+
+  '**2iD_return compiler ','date'#000+
+  '**2iV_return compiler version'#000+
   '**2iSO_return compiler OS'#000+
   '**2iSP_return compiler processor'#000+
   '**2iTO_return target OS'#000+
@@ -543,85 +548,89 @@ const msgtxt : array[0..00096,1..240] of char=(
   '**1I<x>_adds <x> to include path'#000+
   '**1k<x>_Pass <x> to the linker'#000+
   '**1l_write logo'#000+
-  '**1n_don'#039't read the default config file'#000+
-  '**1o<x','>_change the name of the executable produced to <x>'#000+
+  '**1n_don'#039't ','read the default config file'#000+
+  '**1o<x>_change the name of the executable produced to <x>'#000+
   '**1pg_generate profile code for gprof'#000+
   '*L1P_use pipes instead of creating temporary assembler files'#000+
   '**1S<x>_syntax options:'#000+
-  '**2S2_switch some Delphi 2 extensions on'#000+
-  '**2Sc_supports operators',' like C (*=,+=,/= and -=)'#000+
+  '**2S2_switch some Delphi 2 ext','ensions on'#000+
+  '**2Sc_supports operators like C (*=,+=,/= and -=)'#000+
   '**2Sd_tries to be Delphi compatible'#000+
-  '**2Se_compiler stops after the first error'#000+
+  '**2Se<x>_compiler stops after the <x> errors (default is 1)'#000+
   '**2Sg_allow LABEL and GOTO'#000+
   '**2Sh_Use ansistrings'#000+
   '**2Si_support C++ styled INLINE'#000+
-  '**2Sm_support macros like C (global)'#000+
-  '**2So_tries to be',' TP/BP 7.0 compatible'#000+
+  '**','2Sm_support macros like C (global)'#000+
+  '**2So_tries to be TP/BP 7.0 compatible'#000+
   '**2Sp_tries to be gpc compatible'#000+
   '**2Ss_constructor name must be init (destructor must be done)'#000+
   '**2St_allow static keyword in objects'#000+
-  '**1s_don'#039't call assembler and linker (only with -a)'#000+
-  '**1u<x>_undefines the symbol <x>'#000,+
+  '**1s_don'#039't call assembler and lin','ker (only with -a)'#000+
+  '**1u<x>_undefines the symbol <x>'#000+
   '**1U_unit options:'#000+
   '**2Un_don'#039't check the unit name'#000+
   '**2Us_compile a system unit'#000+
   '**1v<x>_Be verbose. <x> is a combination of the following letters:'#000+
-  '**2*_e : Show errors (default)       d : Show debug info'#000+
-  '**2*_w : Show warnings               ','u : Show unit info'#000+
+  '**2*_e : Show errors (default)       d : S','how debug info'#000+
+  '**2*_w : Show warnings               u : Show unit info'#000+
   '**2*_n : Show notes                  t : Show tried/used files'#000+
   '**2*_h : Show hints                  m : Show defined macros'#000+
-  '**2*_i : Show general info           p : Show compiled procedures'#000+
-  '**2*_l : Show linenumbers      ','      c : Show conditionals'#000+
+  '**2*_i : Show general info           p : Show',' compiled procedures'#000+
+  '**2*_l : Show linenumbers            c : Show conditionals'#000+
   '**2*_a : Show everything             0 : Show nothing (except errors)'#000+
   '**2*_b : Show all procedure          r : Rhide/GCC compatibility mode'#000+
-  '**2*_    declarations if an error    x : Executable info (Win32 only)'#000+
-  '**','2*_    occurs'#000+
+  '**2*_    declaration','s if an error    x : Executable info (Win32 only'+
+  ')'#000+
+  '**2*_    occurs'#000+
   '**1X_executable options:'#000+
   '*L2Xc_link with the c library'#000+
   '**2XD_link with dynamic libraries (defines FPC_LINK_DYNAMIC)'#000+
   '**2Xs_strip all symbols from executable'#000+
-  '**2XS_link with static libraries (defines FPC_LINK_STATIC)'#000+
-  '**0*_Proces','sor specific options:'#000+
+  '**2XS_link with st','atic libraries (defines FPC_LINK_STATIC)'#000+
+  '**0*_Processor specific options:'#000+
   '3*1A<x>_output format:'#000+
-  '3*2Ao_coff file using GNU AS'#000+
-  '3*2Anasmcoff_coff file using Nasm'#000+
-  '3*2Anasmelf_elf32 (Linux) file using Nasm'#000+
+  '3*2Aas_assemble using GNU AS'#000+
+  '3*2Aasaout_assemble using GNU AS for aout (Go32v1)'#000+
+  '3*2Anasmcoff_coff (Go32v2) file using Nasm'#000+
+  '3*2Anasmelf_elf32 (L','inux) file using Nasm'#000+
   '3*2Anasmobj_obj file using Nasm'#000+
   '3*2Amasm_obj file using Masm (Microsoft)'#000+
-  '3*2Atasm_obj file',' using Tasm (Borland)'#000+
-  '3*1R<x>_assembler reading style:'#000+
+  '3*2Atasm_obj file using Tasm (Borland)'#000+
+  '3*2Acoff_coff (Go32v2) using internal writer'#000+
+  '3*2Apecoff_pecoff (Win32) using internal writer'#000+
+  '3*1R<x>_assem','bler reading style:'#000+
   '3*2Ratt_read AT&T style assembler'#000+
   '3*2Rintel_read Intel style assembler'#000+
   '3*2Rdirect_copy assembler text directly to assembler file'#000+
   '3*1O<x>_optimizations:'#000+
   '3*2Og_generate smaller code'#000+
-  '3*2OG','_generate faster code (default)'#000+
-  '3*2Or_keep certain variables in registers (still BUGGY!!!)'#000+
+  '3*2OG_generate faster code (default)'#000+
+  '3*2','Or_keep certain variables in registers (still BUGGY!!!)'#000+
   '3*2Ou_enable uncertain optimizations (see docs)'#000+
   '3*2O1_level 1 optimizations (quick optimizations)'#000+
-  '3*2O2_level 2 optimizations (-O1 + slower optimizat','ions)'#000+
-  '3*2O3_level 3 optimizations (same as -O2u)'#000+
+  '3*2O2_level 2 optimizations (-O1 + slower optimizations)'#000+
+  '3*2O3_level 3 optimizations (','same as -O2u)'#000+
   '3*2Op<x>_target processor:'#000+
   '3*3Op1_set target processor to 386/486'#000+
   '3*3Op2_set target processor to Pentium/PentiumMMX (tm)'#000+
   '3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)'#000+
-  '3*1T<x>_Target o','perating system:'#000+
-  '3*2TGO32V1_version 1 of DJ Delorie DOS extender'#000+
+  '3*1T<x>_Target operating system:'#000+
+  '3*2TGO32V1_version',' 1 of DJ Delorie DOS extender'#000+
   '3*2TGO32V2_version 2 of DJ Delorie DOS extender'#000+
   '3*2TLINUX_Linux'#000+
   '3*2TOS2_OS/2 2.x'#000+
   '3*2TWin32_Windows 32 Bit'#000+
   '6*1A<x>_output format'#000+
-  '6*2Ao_Unix o-file using GNU AS'#000+
-  '6*2Agas_GNU Moto','rola assembler'#000+
-  '6*2Amit_MIT Syntax (old GAS)'#000+
+  '6*2Aas_Unix o-file using GNU AS'#000+
+  '6*2Agas_GNU Motorola assembler'#000+
+  '6*2Amit_MIT Syntax ','(old GAS)'#000+
   '6*2Amot_Standard Motorola assembler'#000+
   '6*1O_optimizations:'#000+
   '6*2Oa_turn on the optimizer'#000+
   '6*2Og_generate smaller code'#000+
   '6*2OG_generate faster code (default)'#000+
   '6*2Ox_optimize maximum (still BUGGY!!!)'#000+
-  '6*2O2_s','et target processor to a MC68020+'#000+
+  '6*2O2_set target processor to a MC68020+'#000,
   '6*1R<x>_assembler reading style:'#000+
   '6*2RMOT_read motorola style assembler'#000+
   '6*1T<x>_Target operating system:'#000+
@@ -629,7 +638,7 @@ const msgtxt : array[0..00096,1..240] of char=(
   '6*2TATARI_Atari ST/STe/TT'#000+
   '6*2TMACOS_Macintosh m68k'#000+
   '6*2TLINUX_Linux-68k'#000+
-  '**1*_',#000+
+  '**1*_'#000+
   '**1?_shows this help'#000+
-  '**1h_shows this help without waiting'#000
+  '**1h_shows t','his help without waiting'#000
 );
