@@ -12,107 +12,131 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{
+  history:
+  29th may 1994: version 1.0
+             unit is completed
+  14th june 1994: version 1.01
+             the address from which startaddr was read wasn't right; fixed
+  18th august 1994: version 1.1
+             the upper left corner of winmin is now 0,0
+  19th september 1994: version 1.11
+             keypressed handles extended keycodes false; fixed
+  27th february 1995: version 1.12
+             * crtinoutfunc didn't the line wrap in the right way;
+               fixed
+  20th january 1996: version 1.13
+             - unused variables removed
+  21th august 1996: version 1.14
+             * adapted to newer FPKPascal versions
+             * make the comments english
+   6th november 1996: version 1.49
+             * some stuff for DPMI adapted
+  15th november 1996: version 1.5
+             * bug in screenrows fixed
+  13th november 1997: removed textrec definition, is now included from 
+               textrec.inc
+}
+
 unit crt;
-interface
 
 {$I os.inc}
 
-{$I386_ATT}
+  interface
+  
+    uses
+       go32;
 
-const
-{ CRT modes }
-  BW40          = 0;            { 40x25 B/W on Color Adapter }
-  CO40          = 1;            { 40x25 Color on Color Adapter }
-  BW80          = 2;            { 80x25 B/W on Color Adapter }
-  CO80          = 3;            { 80x25 Color on Color Adapter }
-  Mono          = 7;            { 80x25 on Monochrome Adapter }
-  Font8x8       = 256;          { Add-in for ROM font }
+    const
+       { screen modes }
+       bw40 = 0;
+       co40 = 1;
+       bw80 = 2;
+       co80 = 3;
+       mono = 7;
+       font8x8 = 256;
 
-{ Mode constants for 3.0 compatibility }
-  C40           = CO40;
-  C80           = CO80;
+       { screen color, fore- and background }
+       black = 0;
+       blue = 1;
+       green = 2;
+       cyan = 3;
+       red = 4;
+       magenta = 5;
+       brown = 6;
+       lightgray = 7;
 
-{ Foreground and background color constants }
-  Black         = 0;
-  Blue          = 1;
-  Green         = 2;
-  Cyan          = 3;
-  Red           = 4;
-  Magenta       = 5;
-  Brown         = 6;
-  LightGray     = 7;
+       { only foreground }
+       darkgray = 8;
+       lightblue = 9;
+       lightgreen = 10;
+       lightcyan = 11;
+       lightred = 12;
+       lightmagenta = 13;
+       yellow = 14;
+       white = 15;
 
-{ Foreground color constants }
-  DarkGray      = 8;
-  LightBlue     = 9;
-  LightGreen    = 10;
-  LightCyan     = 11;
-  LightRed      = 12;
-  LightMagenta  = 13;
-  Yellow        = 14;
-  White         = 15;
+       { blink flag }
+       blink = $80;
 
-{ Add-in for blinking }
-  Blink         = 128;
+    const
+    {$ifndef GO32V2}
+       directvideo:boolean=true;
+    {$else GO32V2}
+       { direct video generates a GPF in DPMI of setcursor }
+       directvideo:boolean=false;
+    {$endif GO32V2}
 
-var
+    var
+       { for compatibility }
+       checkbreak,checkeof,checksnow : boolean;
 
-{ Interface variables }
-  CheckBreak: Boolean;    { Enable Ctrl-Break }
-  CheckEOF: Boolean;      { Enable Ctrl-Z }
-  DirectVideo: Boolean;   { Enable direct video addressing }
-  CheckSnow: Boolean;     { Enable snow filtering }
-  LastMode: Word;         { Current text mode }
-  TextAttr: Byte;         { Current text attribute }
-  WindMin: Word;          { Window upper left coordinates }
-  WindMax: Word;          { Window lower right coordinates }
+       lastmode : word; { screen mode}
+       textattr : byte; { current text attribute }
+       windmin  : word; { upper right corner of the CRT window }
+       windmax  : word; { lower left corner of the CRT window }
 
-{ Interface procedures }
-procedure AssignCrt(var F: Text);
-function KeyPressed: Boolean;
-function ReadKey: Char;
-procedure TextMode(Mode: Integer);
-procedure Window(X1,Y1,X2,Y2: Byte);
-procedure GotoXY(X,Y: Byte);
-function WhereX: Byte;
-function WhereY: Byte;
-procedure ClrScr;
-procedure ClrEol;
-procedure InsLine;
-procedure DelLine;
-procedure TextColor(Color: Byte);
-procedure TextBackground(Color: Byte);
-procedure LowVideo;
-procedure HighVideo;
-procedure NormVideo;
-procedure Delay(MS: Word);
-procedure Sound(Hz: Word);
-procedure NoSound;
+    function keypressed : boolean;
+    function readkey : char;
+    procedure gotoxy(x,y : byte);
+    procedure window(left,top,right,bottom : byte);
+    procedure clrscr;
+    procedure textcolor(color : byte);
+    procedure textbackground(color : byte);
+    procedure assigncrt(var f : text);
+    function wherex : byte;
+    function wherey : byte;
+    procedure delline;
+    procedure delline(line : byte);
+    procedure clreol;
+    procedure insline;
+    procedure cursoron;
+    procedure cursoroff;
+    procedure cursorbig;
+    procedure lowvideo;
+    procedure highvideo;
+    procedure nosound;
+    procedure sound(hz : word);
+    procedure delay(ms : longint);
+    procedure textmode(mode : integer);
+    procedure normvideo;
+    
+  implementation
+  
+    var
+       maxcols,maxrows : longint;
 
-{Extra Functions}
-procedure cursoron;
-procedure cursoroff;
-procedure cursorbig;
+    { definition of textrec is in textrec.inc}
 
+    {$i textrec.inc}
 
-implementation
+    { low level routines }
 
-uses
-  go32;
+    function getscreenmode : byte;
 
-var
-  startattrib     : byte;
-  col,row,
-  maxcols,maxrows : longint;
-
-{
-  definition of textrec is in textrec.inc
-}
-{$i textrec.inc}
-
-{****************************************************************************
-                           Low level Routines
-****************************************************************************}
+      begin
+         dosmemget($40,$49,getscreenmode,1);
+      end;
 
     procedure setscreenmode(mode : byte);
 
@@ -134,37 +158,59 @@ var
       end;
 
     function screenrows : byte;
+
       begin
          dosmemget($40,$84,screenrows,1);
+         { don't forget this: }
          inc(screenrows);
       end;
 
-
     function screencols : byte;
+
       begin
          dosmemget($40,$4a,screencols,1);
       end;
 
-
     function get_addr(row,col : byte) : word;
+
       begin
          get_addr:=((row-1)*maxcols+(col-1))*2;
       end;
 
-
     procedure screensetcursor(row,col : longint);
-{$ifdef GO32V2}
+
       var
+         cols : byte;
+         pos : word;
+
+{$ifdef GO32V2}
          regs : trealregs;
 {$endif GO32V2}
       begin
+         if directvideo then
+           begin
+              { set new position for the BIOS }
+              dosmemput($40,$51,row,1);
+              dosmemput($40,$50,col,1);
+
+              { calculates screen position }
+              dosmemget($40,$4a,cols,1);
+              { FPKPascal calculates with 32 bit }
+              pos:=row*cols+col;
+
+              { direct access to the graphics card registers }
+              outportb($3d4,$0e);
+              outportb($3d5,hi(pos));
+              outportb($3d4,$0f);
+              outportb($3d5,lo(pos));
+           end
+         else
 {$ifndef GO32V2}
             asm
                movb     $0x02,%ah
                movb     $0,%bh
                movb     row,%dh
                movb     col,%dl
-               subw     $0x0101,%dx
                pushl    %ebp
                int      $0x10
                popl     %ebp
@@ -172,21 +218,19 @@ var
 {$else GO32V2}
             regs.realeax:=$0200;
             regs.realebx:=0;
-            regs.realedx:=(row-1)*$100+(col-1);
+            regs.realedx:=row*$100+col;
             realintr($10,regs);
 {$endif GO32V2}
        end;
 
     procedure screengetcursor(var row,col : longint);
+
       begin
          col:=0;
          row:=0;
          dosmemget($40,$50,col,1);
          dosmemget($40,$51,row,1);
-         inc(col);
-         inc(row);
       end;
-
 
     { exported routines }
 
@@ -235,9 +279,9 @@ var
       end;
 
     procedure cursorbig;
+
 {$ifdef GO32V2}
-      var
-        regs : trealregs;
+    var     regs : trealregs;
 {$endif GO32V2}
       begin
 {$ifdef GO32V2}
@@ -258,15 +302,17 @@ var
 
     var
        is_last : boolean;
-       last    : char;
+       last : char;
 
     function readkey : char;
+
       var
          char2 : char;
          char1 : char;
 {$ifdef GO32V2}
-         regs : trealregs;
+    var     regs : trealregs;
 {$endif GO32V2}
+
       begin
          if is_last then
            begin
@@ -279,15 +325,14 @@ var
             regs.realeax:=$0000;
             realintr($16,regs);
             byte(char1):=regs.realeax and $ff;
-            byte(char2):=(regs.realeax and $ff00) shr 8;
+            byte(char2):=(regs.realeax and $ff00) div $100;
 {$else GO32V2}
               asm
                  movb $0,%ah
                  pushl %ebp
                  int $0x16
                  popl %ebp
-                 movb %al,char1
-                 movb %ah,char2
+                 movw %ax,-2(%ebp)
               end;
 {$endif GO32V2}
               if char1=#0 then
@@ -342,7 +387,7 @@ var
           y:=hi(windmax)-hi(windmin)+1;
         if x+lo(windmin)-2>=lo(windmax) then
           x:=lo(windmax)-lo(windmin)+1;
-        screensetcursor(y+hi(windmin),x+lo(windmin));
+        screensetcursor(y+hi(windmin)-1,x+lo(windmin)-1);
      end;
 
    function wherex : byte;
@@ -352,7 +397,7 @@ var
 
      begin
         screengetcursor(row,col);
-        wherex:=col-lo(windmin);
+        wherex:=col-lo(windmin)+1;
      end;
 
    function wherey : byte;
@@ -362,24 +407,29 @@ var
 
      begin
         screengetcursor(row,col);
-        wherey:=row-hi(windmin);
+        wherey:=row-hi(windmin)+1;
      end;
 
-   procedure Window(X1,Y1,X2,Y2: Byte);
+   procedure window(left,top,right,bottom : byte);
+
      begin
-        if (x1<1) or (x2>screencols) or (y2>screenrows) or
-           (x1>x2) or (y1>y2) then
-          exit;
-        windmin:=(x1-1) or ((x1-1) shl 8);
-        windmax:=(x2-1) or ((y2-1) shl 8);
+        if (left<1) or
+           (right>screencols) or
+           (bottom>screenrows) or
+           (left>right) or
+           (top>bottom) then
+           exit;
+        windmin:=(left-1) or ((top-1) shl 8);
+        windmax:=(right-1) or ((bottom-1) shl 8);
         gotoxy(1,1);
      end;
 
-
    procedure clrscr;
+
      var
         fil : word;
         row : longint;
+
      begin
         fil:=32 or (textattr shl 8);
         for row:=hi(windmin) to hi(windmax) do
@@ -387,41 +437,45 @@ var
         gotoxy(1,1);
      end;
 
-
    procedure textcolor(color : Byte);
+
      begin
         textattr:=(textattr and $70) or color;
      end;
 
-
    procedure lowvideo;
+
      begin
         textattr:=textattr and $f7;
      end;
 
-
    procedure highvideo;
+
      begin
         textattr:=textattr or $08;
      end;
 
-
    procedure textbackground(color : Byte);
+
      begin
         textattr:=(textattr and $8f) or ((color and $7) shl 4);
      end;
 
+   var
+      startattrib : byte;
 
    procedure normvideo;
+
      begin
         textattr:=startattrib;
      end;
 
+   procedure delline(line : byte);
 
-   procedure removeline(line : byte);
      var
         row,left,right,bot : longint;
         fil : word;
+
      begin
         row:=line+hi(windmin);
         left:=lo(windmin)+1;
@@ -436,10 +490,10 @@ var
         dosmemfillword($b800,get_addr(bot,left),right-left+1,fil);
      end;
 
-
    procedure delline;
+
      begin
-        removeline(wherey);
+        delline(wherey);
      end;
 
    procedure insline;
@@ -463,19 +517,128 @@ var
         dosmemfillword($b800,get_addr(row,left),right-left+1,fil);
      end;
 
-
    procedure clreol;
+
      var
         row,col : longint;
         fil : word;
+
      begin
         screengetcursor(row,col);
+        inc(row);
+        inc(col);
         fil:=32 or (textattr shl 8);
         dosmemfillword($b800,get_addr(row,col),lo(windmax)-col+2,fil);
      end;
 
 
+   Function CrtWrite(var f : textrec):integer;
+
+      var
+         i,col,row : longint;
+         c : char;
+         va,sa : word;
+
+      begin
+         screengetcursor(row,col);
+         inc(row);
+         inc(col);
+         va:=get_addr(row,col);
+         for i:=0 to f.bufpos-1 do
+           begin
+              c:=f.buffer[i];
+              case ord(c) of
+                 10 : begin
+                         inc(row);
+                         va:=va+maxcols*2;
+                      end;
+                 13 : begin
+                         col:=lo(windmin)+1;
+                         va:=get_addr(row,col);
+                     end;
+                 8 : if col>lo(windmin)+1 then
+                       begin
+                          dec(col);
+                          va:=va-2;
+                       end;
+                 7 : begin
+                         { beep }
+                      end;
+              else
+                 begin
+                    sa:=textattr shl 8 or ord(c);
+                    dosmemput($b800,va,sa,sizeof(sa));
+                    inc(col);
+                    va:=va+2;
+                 end;
+              end;
+              if col>lo(windmax)+1 then
+                begin
+                   col:=lo(windmin)+1;
+                   inc(row);
+                   { it's easier to calculate the new address }
+                   { it don't spend much time                 }
+                   va:=get_addr(row,col);
+                end;
+              while row>hi(windmax)+1 do
+                begin
+                   delline(1);
+                   dec(row);
+                   va:=va-maxcols*2;
+                end;
+           end;
+         f.bufpos:=0;
+         screensetcursor(row-1,col-1);
+         CrtWrite:=0;
+      end;
+
+   Function CrtClose(Var F: TextRec): Integer;
+     Begin
+       F.Mode:=fmClosed;
+       CrtClose:=0;
+     End;
+
+   Function CrtOpen(Var F: TextRec): Integer;
+     Begin
+       If F.Mode = fmOutput Then
+        CrtOpen:=0
+       Else
+        CrtOpen:=5;
+     End;
+
+   Function CrtRead(Var F: TextRec): Integer;
+     Begin
+     {$IFDEF GO32V2}
+       f.bufend:=do_read(f.handle,longint(f.bufptr),f.bufsize);
+     {$ENDIF}
+       f.bufpos:=0;
+       CrtRead:=0;
+     End;
+
+   Function CrtInOut(Var F: TextRec): Integer;
+     Begin
+       Case F.Mode of
+        fmInput: CrtInOut:=CrtRead(F);
+        fmOutput: CrtInOut:=CrtWrite(F);
+       End;
+     End;
+
+   procedure assigncrt(var f : text);
+     begin
+        TextRec(F).Mode:=fmClosed;
+        TextRec(F).BufSize:=SizeOf(TextBuf);
+        TextRec(F).BufPtr:=@TextRec(F).Buffer;
+        TextRec(F).BufPos:=0;
+        TextRec(F).OpenFunc:=@CrtOpen;
+        TextRec(F).InOutFunc:=@CrtInOut;
+        TextRec(F).FlushFunc:=@CrtInOut;
+        TextRec(F).CloseFunc:=@CrtClose;
+        TextRec(F).Name[0]:='.';
+        TextRec(F).Name[1]:=#0;
+     end;
+
    procedure sound(hz : word);
+
      begin
         if hz=0 then
           begin
@@ -485,7 +648,7 @@ var
         asm
            movzwl hz,%ecx
            movl $1193046,%eax
-           cdq
+	   cdq
            divl %ecx
            movl %eax,%ecx
            movb $0xb6,%al
@@ -513,35 +676,42 @@ var
    var
       calibration : longint;
 
-      function get_ticks:longint;
-       begin
-         dosmemget($40,$6c,get_ticks,4);
-       end;
+   procedure delay(ms : longint);
 
-
-   procedure Delay(MS: Word);
       var
          i,j : longint;
+
      begin
         for i:=1 to ms do
-          for j:=1 to calibration do;
+          for j:=1 to calibration do
+             begin
+             end;
      end;
 
+  function get_ticks:longint;
+
+    begin
+       dosmemget($40,$6c,get_ticks,4);
+    end;
 
   procedure initdelay;
-  { From the mailling list,
-    by Jonathan Anderson (sarlok@geocities.com) }
+  
+       { From the mailling list, 
+         by Jonathan Anderson (sarlok@geocities.com) }
+
     const
-       threshold=7;
+       threshold=3;
        { Raise this to increase speed but decrease accuracy        }
        { currently the calibration will be no more than 7 off      }
        { and shave a few ticks off the most accurate setting of 0  }
        { The best values to pick are powers of 2-1 (0,1,3,7,15...) }
        { but any non-negative value will work.                     }
+
     var
        too_small : boolean;
        first,
        incval    : longint;
+
     begin
        calibration:=0;
        { wait for new tick }
@@ -555,11 +725,13 @@ var
        while get_ticks=first do
          inc(calibration);
 
-{$ifdef GO32V2}
-       calibration:=calibration div 55;
-{$else}
+       { calculate this to ms }
+       { calibration:=calibration div 70; }
+       { this is a very bad estimation because }
+       { the loop above calls a function       }
+       { and the dealy loop does not           }
        calibration:=calibration div 3;
-{$endif}
+
        { The ideal guess value is about half of the real value      }
        { although a value lower than that take a large performance  }
        { hit compared to a value higher than that because it has to }
@@ -567,11 +739,12 @@ var
 
        if calibration<(threshold+1)*2 then
           calibration:=(threshold+1)*2;
-
+          
        { If calibration is not at least this value, an }
        { infinite loop will result.                    }
+
        repeat
-          incval:=calibration div 4;
+          incval:=calibration;
           if calibration<0 then
             begin
                calibration:=$7FFFFFFF;
@@ -598,7 +771,9 @@ var
                first:=get_ticks;
                delay(55);
                if first=get_ticks then
-                calibration:=calibration+incval
+                 begin
+                    calibration:=calibration+incval;
+                 end
                else
                  begin
                     calibration:=calibration-incval;
@@ -613,8 +788,10 @@ var
 
 
   procedure textmode(mode : integer);
+
     var
        set_font8x8 : boolean;
+
     begin
        lastmode:=mode;
        set_font8x8:=(mode and font8x8)<>0;
@@ -626,187 +803,8 @@ var
        maxrows:=screenrows;
     end;
 
-
-{*****************************************************************************
-                          Read and Write routines
-*****************************************************************************}
-
-   Procedure WriteChar(c:char);
-     var
-       regs : trealregs;
-       chattr : word;
-     begin
-       case c of
-        #10 : inc(row);
-        #13 : col:=lo(windmin)+1;
-         #8 : begin
-                if col>lo(windmin)+1 then
-                 dec(col);
-              end;
-         #7 : begin { beep }
-{$ifdef GO32V2}
-                regs.dl:=7;
-                regs.ah:=2;
-                realintr($21,regs);
-{$endif}
-              end;
-       else
-        begin
-          chattr:=(textattr shl 8) or byte(c);
-          dosmemput($b800,get_addr(row,col),chattr,2);
-          inc(col);
-        end;
-       end;
-       if col>lo(windmax)+1 then
-        begin
-          col:=lo(windmin)+1;
-          inc(row);
-        end;
-       while row>hi(windmax)+1 do
-        begin
-          removeline(1);
-          dec(row);
-        end;
-     end;
-
-
-   Function CrtWrite(var f : textrec):integer;
-      var
-         i : longint;
-      begin
-         screengetcursor(row,col);
-         for i:=0 to f.bufpos-1 do
-          WriteChar(f.buffer[i]);
-         f.bufpos:=0;
-         screensetcursor(row,col);
-         CrtWrite:=0;
-      end;
-
-
-   Function CrtRead(Var F: TextRec): Integer;
-
-      procedure BackSpace;
-      begin
-        if (f.bufpos>0) and (f.bufpos=f.bufend) then
-         begin
-           WriteChar(#8);
-           WriteChar(' ');
-           WriteChar(#8);
-           dec(f.bufpos);
-           dec(f.bufend);
-         end;
-      end;
-
-     var
-       ch : Char;
-     Begin
-       f.bufpos:=0;
-       f.bufend:=0;
-       repeat
-         if f.bufpos>f.bufend then
-          f.bufend:=f.bufpos;
-         screensetcursor(row,col);
-         ch:=readkey;
-         case ch of
-         #0 : case readkey of
-               #71 : while f.bufpos>0 do
-                      begin
-                        dec(f.bufpos);
-                        WriteChar(#8);
-                      end;
-               #75 : if f.bufpos>0 then
-                      begin
-                        dec(f.bufpos);
-                        WriteChar(#8);
-                      end;
-               #77 : if f.bufpos<f.bufend then
-                      begin
-                        WriteChar(f.bufptr^[f.bufpos]);
-                        inc(f.bufpos);
-                      end;
-               #79 : while f.bufpos<f.bufend do
-                      begin
-                        WriteChar(f.bufptr^[f.bufpos]);
-                        inc(f.bufpos);
-                      end;
-              end;
-         ^S,
-         #8 : BackSpace;
-         ^Y,
-        #27 : begin
-                f.bufpos:=f.bufend;
-                while f.bufend>0 do
-                 BackSpace;
-              end;
-        #13 : begin
-                WriteChar(#13);
-                WriteChar(#10);
-                f.bufptr^[f.bufend]:=#13;
-                f.bufptr^[f.bufend+1]:=#10;
-                inc(f.bufend,2);
-                break;
-              end;
-        #26 : if CheckEOF then
-               begin
-                 f.bufptr^[f.bufend]:=#26;
-                 inc(f.bufend);
-                 break;
-               end;
-         else
-          begin
-            if f.bufpos<f.bufsize-2 then
-             begin
-               f.buffer[f.bufpos]:=ch;
-               inc(f.bufpos);
-               WriteChar(ch);
-             end;
-          end;
-         end;
-       until false;
-       f.bufpos:=0;
-       screensetcursor(row,col);
-       CrtRead:=0;
-     End;
-
-
-   Function CrtReturn:Integer;
-     Begin
-       CrtReturn:=0;
-     end;
-
-
-   Function CrtClose(Var F: TextRec): Integer;
-     Begin
-       F.Mode:=fmClosed;
-       CrtClose:=0;
-     End;
-
-
-   Function CrtOpen(Var F: TextRec): Integer;
-     Begin
-       If F.Mode=fmOutput Then
-        begin
-          TextRec(F).InOutFunc:=@CrtWrite;
-          TextRec(F).FlushFunc:=@CrtWrite;
-        end
-       Else
-        begin
-          F.Mode:=fmInput;
-          TextRec(F).InOutFunc:=@CrtRead;
-          TextRec(F).FlushFunc:=@CrtReturn;
-        end;
-       TextRec(F).CloseFunc:=@CrtClose;
-       CrtOpen:=0;
-     End;
-
-
-   procedure AssignCrt(var F: Text);
-     begin
-       Assign(F,'');
-       TextRec(F).OpenFunc:=@CrtOpen;
-     end;
-
-
+var
+   col,row : longint;
 
 begin
    is_last:=false;
@@ -820,17 +818,17 @@ begin
 
    { save the current settings to restore the old state after the exit }
    screengetcursor(row,col);
-   dosmemget($b800,get_addr(row,col)+1,startattrib,1);
-   dosmemget($40,$49,lastmode,1);
+   dosmemget($b800,get_addr(row+1,col+1)+1,startattrib,1);
+   lastmode:=getscreenmode;
    textattr:=startattrib;
 
    { redirect the standard output }
    assigncrt(Output);
-   Rewrite(Output);
-   TextRec(Output).Handle:=StdOutputHandle;
+   TextRec(Output).mode:=fmOutput;
+{$IFDEF GO32V2}
    assigncrt(Input);
-   Reset(Input);
-   TextRec(Input).Handle:=StdInputHandle;
+   TextRec(Input).mode:=fmInput;
+{$ENDIF GO32V2}
 
    { calculates delay calibration }
    initdelay;
@@ -838,24 +836,59 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-07-07 12:26:42  carl
-    * now compiles under fpc v0.99.5, so don't modify!!!!
+  Revision 1.7  1998-07-29 12:30:40  carl
+    * Restored working version
 
-  Revision 1.5  1998/05/31 14:18:12  peter
-    * force att or direct assembling
-    * cleanup of some files
+  Revision 1.1.1.1  1998/03/25 11:18:41  root
+  * Restored version
 
-  Revision 1.4  1998/05/28 10:21:38  pierre
-    * Handles of input and output restored
+  Revision 1.8  1998/01/26 11:56:39  michael
+  + Added log at the end
 
-  Revision 1.3  1998/05/27 00:19:16  peter
-    * fixed crt input
 
-  Revision 1.2  1998/05/21 19:30:46  peter
-    * objects compiles for linux
-    + assign(pchar), assign(char), rename(pchar), rename(char)
-    * fixed read_text_as_array
-    + read_text_as_pchar which was not yet in the rtl
+  
+  Working file: rtl/dos/crt.pp
+  description:
+  ----------------------------
+  revision 1.7
+  date: 1998/01/07 09:24:18;  author: michael;  state: Exp;  lines: +7 -2
+  * Bug fixed in initdelay, avoiding possible infiniteloop.
+  ----------------------------
+  revision 1.6
+  date: 1998/01/06 00:29:28;  author: michael;  state: Exp;  lines: +2 -2
+  Implemented a system independent sequence of reset/rewrite/append fileopenfunc etc system \n (from Peter Vreman)
+  ----------------------------
+  revision 1.5
+  date: 1998/01/05 16:52:15;  author: michael;  state: Exp;  lines: +7 -3
+  + Minor change making use of new GO32V2 feature (From Peter Vreman)
+  ----------------------------
+  revision 1.4
+  date: 1998/01/05 13:47:01;  author: michael;  state: Exp;  lines: +199 -127
+  * Bug fixes by Peter Vreman (pfv@worldonline.nl), discovered
+    when writing CRT examples.
+    Bug fix from mailing list also applied.
+  ----------------------------
+  revision 1.3
+  date: 1997/12/12 13:14:36;  author: pierre;  state: Exp;  lines: +33 -12
+     + added handling of swap_vectors if under exceptions
+       i.e. swapvector is not dummy under go32v2
+     * bug in output, exceptions where not allways reset correctly
+       now the code in dpmiexcp is called from v2prt0.as exit routine
+     * in crt.pp corrected init_delay calibration loop
+       and added it for go32v2 also (was disabled before due to crashes !!)
+       the previous code did a wrong assumption on the time need to call
+       get_ticks compared to an internal loop without call
+  ----------------------------
+  revision 1.2
+  date: 1997/12/01 12:15:44;  author: michael;  state: Exp;  lines: +11 -5
+  + added copyright reference in header.
+  ----------------------------
+  revision 1.1
+  date: 1997/11/27 08:33:49;  author: michael;  state: Exp;
+  Initial revision
+  ----------------------------
+  revision 1.1.1.1
+  date: 1997/11/27 08:33:49;  author: michael;  state: Exp;  lines: +0 -0
+  FPC RTL CVS start
+  =============================================================================
 }
-
-
