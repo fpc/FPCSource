@@ -19,11 +19,7 @@ unit Scroll;
 interface
 
 uses Objects,
-{$ifdef FVISION}
      FVConsts,
-{$else}
-     Commands,
-{$endif}
      Drivers,Views,App;
 
 const
@@ -257,7 +253,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:40:59  peter
+  Revision 1.4  2004-12-20 18:27:00  peter
+    * win32 fixes
+
+  Revision 1.3  2002/09/07 15:40:59  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/01/29 22:01:17  peter

@@ -52,80 +52,74 @@ package=uunzipgo32.zip[uzipgo32.zip],Unzip units
 # Dos 12
 package=unetdbgo32.zip[undbgo32.zip],NetDB units
 # Dos 13
-package=uuncgigo32.zip[ucgigo32.zip],Uncgi unit
-# Dos 14
 package=upasjpeggo32.zip[upjpgo32.zip],Pas~J~PEG units
-# Dos 15
+# Dos 14
 package=umd5go32.zip,Unit for MD~5~ processing
-# Dos 16
-#package=ufvgo32.zip,Free ~V~ision (FV)
+# Dos 15
+package=ufvgo32.zip,Free ~V~ision (FV)
 
 
 #
 # Win32 packages
 #
 pack=~W~in32
-binsub=\bin\win32
+binsub=\bin\i386-win32
 ppc386=ppc386
 targetname=win32
 cfgfile=fpc.cfg
 idecfgfile=fp.cfg
 ideinifile=fp.ini
 setpathfile=setpath.bat
-filecheck=*w32.zip
+filecheck=*.i386-win32.zip
 # Win32 1
-package=basew32.zip,~B~asic system for Win32 (required)
+package=base.i386-win32.zip,~B~asic system for Win32 (required)
 # Win32 2
-package=asldw32.zip,GNU ~L~inker and GNU Assembler for Win32 (required)
+package=asld.i386-win32.zip,GNU ~L~inker and GNU Assembler for Win32 (required)
 # Win32 3
-package=idew32.zip,~I~DE with integrated debugger/compiler (BETA)
+package=ide.i386-win32.zip,~I~DE with integrated debugger/compiler (BETA)
 # Win32 4
-package=utilw32.zip,~E~xtra Utilities
+package=util.i386-win32.zip,~E~xtra Utilities
 # Win32 5
-package=makew32.zip,GNU ~U~tilities (needed for Makefile usage)
+package=make.i386-win32.zip,GNU ~U~tilities (needed for Makefile usage)
 # Win32 6
-package=gdbw32.zip,GNU ~D~ebugger for Win32
+package=gdb.i386-win32.zip,GNU ~D~ebugger for Win32
 # Win32 7
-package=ufclw32.zip,~F~ree Component Libary (FCL)
+package=units-fcl.i386-win32.zip,~F~ree Component Libary (FCL)
 
 
 #
 # Win32 packages 2nd part
 #
 pack=Win~3~2-2
-filecheck=*w32.zip
+filecheck=*.i386-win32.zip
 # Win32-2 1
-package=uopenglw32.zip,OpenGL units
+package=units-opengl.i386-win32.zip,OpenGL units
 # Win32-2 2
-package=ugtkw32.zip,GTK units
-# Win32-2 3
-package=uinetw32.zip,Internet helper routines units
+package=units-gtk.i386-win32.zip,GTK units
 # Win32-2 4
-package=uibasew32.zip,Interbase interface units
+package=units-ibase.i386-win32.zip,Interbase interface units
 # Win32-2 5
-package=umysqlw32.zip,MySQL interface units
+package=units-mysql.i386-win32.zip,MySQL interface units
 # Win32-2 6
-package=ummsystemw32.zip,MMSystem interface units
+package=units-mmsystem.i386-win32.zip,MMSystem interface units
 # Win32-2 7
-package=ugdbintw32.zip,GDB Interfacing units
+package=units-gdbint.i386-win32.zip,GDB Interfacing units
 # Win32-2 8
-package=upaszlibw32.zip,PasZLib units
+package=units-paszlib.i386-win32.zip,PasZLib units
 # Win32-2 9
-package=uregexprw32.zip,Regular expression units
+package=units-regexpr.i386-win32.zip,Regular expression units
 # Win32-2 10
-package=uunzipw32.zip,Unzip units
+package=units-unzip.i386-win32.zip,Unzip units
 # Win32-2 11
-package=uzlibw32.zip,ZLib interface units
+package=units-zlib.i386-win32.zip,ZLib interface units
 # Win32-2 12
-package=unetdbw32.zip,NetDB units
-# Win32-2 13
-package=uuncgiw32.zip,Uncgi unit
+package=units-netdb.i386-win32.zip,NetDB units
 # Win32-2 14
-package=upasjpegw32.zip,Pas~J~PEG units
+package=units-pasjpeg.i386-win32.zip,Pas~J~PEG units
 # Win32-2 15
-package=umd5w32.zip,Unit for MD~5~ processing
+package=units-md5.i386-win32.zip,Unit for MD~5~ processing
 # Win32-2 16
-#package=ufvw32.zip,Free ~V~ision (FV)
+package=units-fv.i386-win32.zip,Free ~V~ision (FV)
 
 
 #
@@ -153,10 +147,8 @@ package=makeos2.zip,GNU ~U~tilities (needed for Makefile usage)
 #package=gdbos2.zip,GNU ~D~ebugger for EMX and PMGDB front-end
 # OS/2 7
 package=ufclos2.zip,~F~ree Component Library (FCL)
-# OS/2 8
-package=uuncgios2.zip[ucgios2.zip],Uncgi unit
 # OS/2 9
-#package=ufvos2.zip,Free ~V~ision (FV)
+package=ufvos2.zip,Free ~V~ision (FV)
 # OS/2 10
 package=uclkdllos2.zip[uclkos2.zip],CLKDLL interface unit (eCS 1.1+)
 # OS/2 11
@@ -231,10 +223,8 @@ package=makeemx.zip,GNU ~U~tilities (needed for Makefile usage)
 package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
 # EMX 7
 package=ufclemx.zip,~F~ree Component Library (FCL)
-# EMX 8
-package=uuncgiemx.zip[ucgiemx.zip],Uncgi unit
 # EMX 9
-#package=ufvemx.zip,Free ~V~ision (FV)
+package=ufvemx.zip,Free ~V~ision (FV)
 # EMX 10
 package=uclkdllemx.zip[uclkemx.zip],CLKDLL interface unit (eCS 1.1+)
 # EMX 11
@@ -300,72 +290,70 @@ package=demo.zip,D~e~mos
 # Source packages
 #
 pack=~S~ources
-filecheck=*src.zip
+filecheck=*.source.zip[*src.zip]
 # Source 1
-package=basesrc.zip,~B~asic Makefiles for the sources
+package=base.source.zip[basesrc.zip],~B~asic Makefiles for the sources
 # Source 2
-package=compilersrc.zip[compsrc.zip],~C~ompiler sources
+package=compiler.source.zip[compsrc.zip],~C~ompiler sources
 # Source 3
-package=rtlsrc.zip,~R~un time library sources
+package=rtl.source.zip[rtlsrc.zip],~R~un time library sources
 # Source 4
-package=fclsrc.zip,~F~ree component library (FCL) sources
+package=fcl.source.zip[fclsrc.zip],~F~ree component library (FCL) sources
 # Source 5
-package=utilssrc.zip[utilsrc.zip],~U~tils sources
+package=utils.source.zip[utilsrc.zip],~U~tils sources
 # Source 6
-package=installersrc.zip[instsrc.zip],~I~nstaller sources
+package=installer.source.zip[instsrc.zip],~I~nstaller sources
 # Source 7
-package=docsrc.zip,~D~ocumentation sources (LaTeX)
-# Source 8
-package=uuncgisrc.zip[ucgisrc.zip],Uncgi unit source
+package=doc.source.zip[docsrc.zip],~D~ocumentation sources (LaTeX)
 # Source 9
-package=uunzipsrc.zip[uzipsrc.zip],Unzip units
+package=units-unzip.source.zip[uzipsrc.zip],Unzip units
 # Source 10
-package=uregexprsrc.zip[uregsrc.zip],Regular expression units
+package=units-regexpr.source.zip[uregsrc.zip],Regular expression units
 # Source 11
-package=upaszlibsrc.zip[upzlsrc.zip],PasZLib units
+package=units-paszlib.source.zip[upzlsrc.zip],PasZLib units
 # Source 12
-package=urexxsrc.zip,REXX SAA interface units
+package=units-rexx.source.zip,REXX SAA interface units
 # Source 13
-package=uzlibsrc.zip,ZLib interface units
+package=units-zlib.source.zip,ZLib interface units
 # Source 14
-package=unetdbsrc.zip[undbsrc.zip],NetDB units
+package=units-netdb.source.zip[undbsrc.zip],NetDB units
 # Source 15
-package=ummsystemsrc.zip,MMSystem interface units
+package=units-mmsystem.source.zip,MMSystem interface units
 # Source 16
-package=ugdbintsrc.zip[ugdbsrc.zip],GDB Interfacing units
+package=units-gdbint.source.zip[ugdbsrc.zip],GDB Interfacing units
 
 #
 # Source packages 2nd part
 #
 pack=So~u~rces 2
-filecheck=*src.zip
+filecheck=*.source.zip[*src.zip]
 # Source-2 1
-package=uopenglsrc.zip,OpenGL units
+package=units-opengl.source.zip,OpenGL units
 # Source-2 2
-package=ugtksrc.zip,GTK units
-# Source-2 3
-package=uinetsrc.zip,Internet helper routines units
+package=units-gtk.source.zip,GTK units
 # Source-2 4
-package=uibasesrc.zip,Interbase interface units
+package=units-ibase.source.zip,Interbase interface units
 # Source-2 5
-package=umysqlsrc.zip,MySQL interface units
+package=units-mysql.source.zip,MySQL interface units
 # Source-2 6
-package=uftpapisrc.zip[uftpsrc.zip],FTP API interface units
+package=units-ftpapi.source.zip[uftpsrc.zip],FTP API interface units
 # Source-2 7
-package=uhwvideosrc.zip[uhwvsrc.zip],HW Video interface units
+package=units-hwvideo.source.zip[uhwvsrc.zip],HW Video interface units
 # Source-2 8
-package=ummtksrc.zip,MMOS/2 interface units
+package=units-mmtk.source.zip,MMOS/2 interface units
 # Source-2 9
-package=uclkdllsrc.zip[uclksrc.zip],CLKDLL interface unit (eCS 1.1+)
+package=units-clkdll.source.zip[uclksrc.zip],CLKDLL interface unit (eCS 1.1+)
 # Source-2 10
-package=ulvmsrc.zip,LVM interface unit
+package=units-lvm.source.zip,LVM interface unit
 # Source-2 11
-package=upasjpegsrc.zip[upjpsrc.zip],PasJPEG units
+package=units-pasjpeg.source.zip[upjpsrc.zip],PasJPEG units
+# Source-2 12
+package=units-fv.source.zip,Free ~V~ision (FV)
 
 
 defaultcfg=
 #
-# Example fpc.cfg for Free Pascal Compiler Version 1.9.0
+# Example fpc.cfg for Free Pascal Compiler
 #
 
 # ----------------------
@@ -387,7 +375,7 @@ defaultcfg=
 
 # For a release compile with optimizes and strip debuginfo
 #IFDEF RELEASE
-  -OG2p2
+  -OG2p3
   -Xs
   #WRITE Compiling Release Version
 #ENDIF
@@ -490,16 +478,16 @@ defaultcfg=
 #-Fo$1/source/rtl/inc;$1/source/rtl/i386
 
 # searchpath for units and other system dependent things
--Fu$1/units/$TARGET
--Fu$1/units/$TARGET/*
--Fu$1/units/$TARGET/rtl
+-Fu$1/units/$FPCTARGET
+-Fu$1/units/$FPCTARGET/*
+-Fu$1/units/$FPCTARGET/rtl
 
 # searchpath for libraries
 #-Fl$1/lib
 #-Fl/lib;/usr/lib
 
 # searchpath for tools
--FD$1/bin/$TARGET
+-FD$1/bin/$FPCTARGET
 
 # -------------
 # Linking
@@ -533,7 +521,7 @@ defaultcfg=
 # a : Show everything             0 : Show nothing (except errors)
 
 # Display Info, Warnings, Notes and Hints
--viwnh
+-viwn
 # If you don't want so much verbosity use
 #-vw
 
@@ -543,15 +531,15 @@ endcfg
 
 defaultidecfg=
 #IFDEF NORMAL
- -T$target
+ -T$FPCTARGET
  -Sg
  -O1
  -OG
- -Op2
+ -Op3
  -Ratt
- -Fu$1\units\$TARGET
- -Fu$1\units\$TARGET\*
- -Fu$1\units\$TARGET\rtl
+ -Fu$1\units\$FPCTARGET
+ -Fu$1\units\$FPCTARGET\*
+ -Fu$1\units\$FPCTARGET\rtl
  -Cs131072
  -Ch2097152
  -g-
@@ -560,17 +548,17 @@ defaultidecfg=
 #ENDIF
 
 #IFDEF DEBUG
- -T$target
+ -T$FPCTARGET
  -Sg
  -Cr
  -Ci
  -Co
  -OG
- -Op2
+ -Op3
  -Ratt
- -Fu$1\units\$TARGET
- -Fu$1\units\$TARGET\*
- -Fu$1\units\$TARGET\rtl
+ -Fu$1\units\$FPCTARGET
+ -Fu$1\units\$FPCTARGET\*
+ -Fu$1\units\$FPCTARGET\rtl
  -Cs131072
  -Ch2097152
  -g
@@ -579,16 +567,16 @@ defaultidecfg=
 #ENDIF
 
 #IFDEF RELEASE
- -T$target
+ -T$FPCTARGET
  -Sg
  -O1
  -O2
  -OG
- -Op2
+ -Op3
  -Ratt
- -Fu$1\units\$TARGET
- -Fu$1\units\$TARGET\*
- -Fu$1\units\$TARGET\rtl
+ -Fu$1\units\$FPCTARGET
+ -Fu$1\units\$FPCTARGET\*
+ -Fu$1\units\$FPCTARGET\rtl
  -Cs131072
  -Ch2097152
  -g-
@@ -650,8 +638,8 @@ endcfg
 
 defaultsetpath=
 @echo off
-echo Setting PATH for use with $target Free Pascal compiler
-set A=$1\bin\$target;%PATH%
+echo Setting PATH for use with $FPCTARGET Free Pascal compiler
+set A=$1\bin\$FPCTARGET;%PATH%
 set Path=
 set PATH=%A%
 set A=

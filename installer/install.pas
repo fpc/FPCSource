@@ -1123,7 +1123,6 @@ program install;
                       if not(haslfn(zipfile)) then
                         begin
                            items[j]:=newsitem(package[i].name+diskspacestr(package[i].diskspace),items[j]);
-                           {if not AreAllFilesPresent(zipfile) then}
                              packmask[j]:=packmask[j] or packagemask(i);
                            enabmask[j]:=enabmask[j] or packagemask(i);
                            firstitem[j]:=i;
@@ -1133,7 +1132,6 @@ program install;
                       else
                         begin
                            items[j]:=newsitem(package[i].name+' (requires LFN support)',items[j]);
-                           {packmask[j]:=packmask[j] or packagemask(i);}
                            enabmask[j]:=enabmask[j] or packagemask(i);
                            firstitem[j]:=i;
                            if createlog then
@@ -1145,7 +1143,6 @@ program install;
                    begin
                       items[j]:=newsitem(package[i].name+diskspacestr(package[i].diskspace),items[j]);
                       packmask[j]:=packmask[j] or packagemask(i);
-                      {if not AreAllFilesPresent(zipfile) then}
                         enabmask[j]:=enabmask[j] or packagemask(i);
                       firstitem[j]:=i;
                    end;
@@ -1998,7 +1995,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2004-12-18 16:19:57  peter
+  Revision 1.21  2004-12-20 18:27:00  peter
+    * win32 fixes
+
+  Revision 1.20  2004/12/18 16:19:57  peter
   win32 fixes
 
   Revision 1.19  2003/04/06 15:56:25  carl
