@@ -76,7 +76,7 @@ include $(CFG)/makefile.cfg
 # Define Go32v2 Units
 SYSTEMPPU=system$(PPUEXT)
 
-OBJECTS=strings go32 \
+OBJECTS=strings go32 initc \
 	dpmiexcp profile dxeload emu387 \
 	dos crt objects printer \
         objpas sysutils typinfo \
@@ -172,7 +172,10 @@ include $(OBJPASDIR)/makefile.op
 
 # new version need -Sv switch for external variables
 dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) $(SYSTEMPPU)
-	$(COMPILER) -Sg -Sv dpmiexcp.pp $(REDIR)
+	$(COMPILER) -Sg dpmiexcp.pp $(REDIR)
+
+initc$(PPUEXT) : initc.pp $(SYSTEMPPU)
+	$(COMPILER) initc.pp $(REDIR)
 
 profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT)
 	$(COMPILER) profile.pp $(REDIR)
@@ -258,7 +261,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.1  1998-12-21 13:07:02  peter
+# Revision 1.2  1998-12-21 14:20:37  pierre
+#  * initc unit added
+#
+# Revision 1.1  1998/12/21 13:07:02  peter
 #   * use -FE
 #
 # Revision 1.12  1998/11/24 23:06:40  peter
