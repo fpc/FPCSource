@@ -24,7 +24,7 @@
 
 { some dummy types necessary to have generic resulttypes for certain compilerprocs }
 type
-  fpc_big_chararray = array[0..maxlongint] of char;
+  fpc_big_chararray = array[0..maxlongint-1] of char;
   fpc_small_set = longint;
   fpc_normal_set = array[0..7] of longint;
 
@@ -263,7 +263,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.22  2002-09-07 21:12:04  carl
+  Revision 1.23  2002-09-27 21:10:40  carl
+    * fix 2GB limit problem
+
+  Revision 1.22  2002/09/07 21:12:04  carl
     * cardinal -> longword
     - remove some unused routines
 

@@ -25,7 +25,7 @@ type
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:longint);
 type
-  bytearray    = array [0..maxlongint] of byte;
+  bytearray    = array [0..maxlongint-1] of byte;
 var
   i,size : longint;
 begin
@@ -40,7 +40,7 @@ end;
 Procedure FillChar(var x;count:longint;value:byte);
 type
   longintarray = array [0..maxlongint div 4] of longint;
-  bytearray    = array [0..maxlongint] of byte;
+  bytearray    = array [0..maxlongint-1] of byte;
 var
   i,v : longint;
 begin
@@ -113,7 +113,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 function IndexByte(Const buf;len:longint;b:byte):longint;
 type
-  bytearray    = array [0..maxlongint] of byte;
+  bytearray    = array [0..maxlongint-1] of byte;
 var
   I : longint;
 begin
@@ -130,7 +130,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_INDEXWORD}
 function Indexword(Const buf;len:longint;b:word):longint;
 type
-  wordarray    = array [0..maxlongint] of word;
+  wordarray    = array [0..maxlongint div 2] of word;
 var
   I : longint;
 begin
@@ -147,7 +147,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
 function IndexDWord(Const buf;len:longint;b:DWord):longint;
 type
-  longintarray = array [0..maxlongint] of longint;
+  longintarray = array [0..maxlongint div 4] of longint;
 var
   I : longint;
 begin
@@ -171,7 +171,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 function CompareByte(Const buf1,buf2;len:longint):longint;
 type
-  bytearray    = array [0..maxlongint] of byte;
+  bytearray    = array [0..maxlongint-1] of byte;
 var
   I,J : longint;
 begin
@@ -200,7 +200,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
 function CompareWord(Const buf1,buf2;len:longint):longint;
 type
-  wordarray    = array [0..maxlongint] of word;
+  wordarray    = array [0..maxlongint div 2] of word;
 var
   I,J : longint;
 begin
@@ -229,7 +229,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
 function CompareDWord(Const buf1,buf2;len:longint):longint;
 type
-  longintarray    = array [0..maxlongint] of longint;
+  longintarray    = array [0..maxlongint div 4] of longint;
 var
   I,J : longint;
 begin
@@ -289,7 +289,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_COMPARECHAR0}
 function CompareChar0(Const buf1,buf2;len:longint):longint;
 type
-  bytearray    = array [0..maxlongint] of byte;
+  bytearray    = array [0..maxlongint-1] of byte;
 
 Var i : longint;
 
@@ -920,7 +920,10 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {
   $Log$
-  Revision 1.36  2002-09-13 19:13:06  carl
+  Revision 1.37  2002-09-27 21:10:40  carl
+    * fix 2GB limit problem
+
+  Revision 1.36  2002/09/13 19:13:06  carl
     * FPC_HELP_FAIL : reset _self to nil
 
   Revision 1.35  2002/09/10 21:29:44  jonas
