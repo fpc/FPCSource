@@ -1951,7 +1951,7 @@ begin
   Indicator^.GrowMode:=gfGrowLoY+gfGrowHiY;
   Insert(Indicator);
   GetExtent(R); R.Grow(-1,-1);
-  New(Editor, Init(R, HSB, VSB, nil, GDBOutputFile));
+  New(Editor, Init(R, HSB, VSB, Indicator, GDBOutputFile));
   Editor^.GrowMode:=gfGrowHiX+gfGrowHiY;
   Editor^.SetFlags(efInsertMode+efSyntaxHighlight+efNoIndent+efExpandAllTabs);
   if ExistsFile(GDBOutputFile) then
@@ -4210,7 +4210,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.20  2002-06-01 20:08:42  marco
+  Revision 1.21  2002-06-06 08:15:29  pierre
+   * fix GDBwindow indicator bug
+
+  Revision 1.20  2002/06/01 20:08:42  marco
    * Renamefest
 
   Revision 1.19  2002/05/31 12:37:10  pierre
