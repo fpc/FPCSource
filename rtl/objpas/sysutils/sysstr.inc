@@ -1235,7 +1235,7 @@ Begin
 
       Begin
         If Digits = -1 Then Digits := 2
-        Else If Digits > 15 Then Digits := 15;
+        Else If Digits > 18 Then Digits := 18;
         Str(Value:0:Digits, Result);
         If Result[1] = ' ' Then
           System.Delete(Result, 1, 1);
@@ -2171,7 +2171,10 @@ const
 
 {
   $Log$
-  Revision 1.11  2004-06-12 13:23:17  michael
+  Revision 1.12  2004-06-12 13:57:18  michael
+  + Enhanced FloatToStrF to 18 digits (Delphi compatibility, bug 3106
+
+  Revision 1.11  2004/06/12 13:23:17  michael
   + Fixed currency<->string conversion support
 
   Revision 1.10  2004/04/28 20:48:20  peter
