@@ -891,13 +891,16 @@ LIncLockedLoop:
     lwarx   r10,0,r3
     addi    r10,r10,1
     stwcx.  r10,0,r3
-    bne-    LDecLockedLoop
+    bne-    LIncLockedLoop
 end ['R3','R10'];
 
 
 {
   $Log$
-  Revision 1.45  2003-05-14 19:47:35  jonas
+  Revision 1.46  2003-05-17 00:19:51  jonas
+    * fixed inclocked
+
+  Revision 1.45  2003/05/14 19:47:35  jonas
     * fixed stupid bug in filldword
 
   Revision 1.44  2003/05/13 20:39:26  florian
