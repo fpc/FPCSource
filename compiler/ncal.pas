@@ -1093,7 +1093,7 @@ implementation
         The first criterium is the candidate that has the least
         convertlevel 2 parameters. The next criterium is
         the candidate that has the most exact parameters, next
-        criterium is the least ordinal space and 
+        criterium is the least ordinal space and
         the last criterium is the most equal parameters. (DM)}
         if candidates_left>1 then
             begin
@@ -2221,6 +2221,10 @@ implementation
          if assigned(left) then
            tcallparanode(left).det_registers;
 
+         { return node }
+         if assigned(funcretrefnode) then
+           firstpass(funcretrefnode);
+
          if assigned(procdefinition) and
             (procdefinition.proccalloption=pocall_inline) then
            begin
@@ -2583,7 +2587,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2002-08-20 10:31:26  daniel
+  Revision 1.89  2002-08-23 16:13:16  peter
+    * also firstpass funcretrefnode if available. This was breaking the
+      asnode compilerproc code
+
+  Revision 1.88  2002/08/20 10:31:26  daniel
    * Tcallnode.det_resulttype rewritten
 
   Revision 1.87  2002/08/19 19:36:42  peter
