@@ -370,46 +370,50 @@ begin
     if LockUpdateScreen = 0 then
         begin
             if not (Force) then
-                begin
-                    asm
-                        cld
-                        mov esi, VideoBuf
-                        mov edi, OldVideoBuf
-                        mov eax, VideoBufSize
-                        mov ecx, eax
-                        shr ecx
-                        shr ecx
-                        repe
-                        cmpsd
-                        je @no_update
-                        inc cx
-                        mov SOfs, ecx
-                        mov Force, 1
-                        std
-                        mov edi, eax
-                        mov esi, VideoBuf
-                        add eax, esi
-                        sub eax, 4
-                        mov esi, eax
-                        mov eax, OldVideoBuf
-                        add eax, edi
-                        sub eax, 4
-                        mov edi, eax
-                        repe
-                        cmpsd
-                        inc ecx
-                        shl ecx
-                        shl ecx
-                        mov CLen, ecx
-                        cld
+            if not (Force) then
+                asm
+                    cld
+{$IFDEF BIT_32}
+                    mov esi, VideoBuf
+                    mov edi, OldVideoBuf
+                    mov eax, VideoBufSize
+                    mov ecx, eax
+                    shr ecx, 1
+                    shr ecx, 1
+                    repe
+                    cmpsd
+                    je @no_update
+                    inc ecx
+                    mov edx, eax
+                    mov ebx, ecx
+                    shl ebx, 1
+                    shl ebx, 1
+                    sub edx, ebx
+                    mov SOfs, edx
+                    mov Force, 1
+                    std
+                    mov edi, eax
+                    mov esi, VideoBuf
+                    add eax, esi
+                    sub eax, 4
+                    mov esi, eax
+                    mov eax, OldVideoBuf
+                    add eax, edi
+                    sub eax, 4
+                    mov edi, eax
+                    repe
+                    cmpsd
+                    inc ecx
+                    shl ecx, 1
+                    shl ecx, 1
+                    mov CLen, ecx
 @no_update:
-                    end;
-                    SOfs := VideoBufSize - (SOfs shl 2);
-                end else
-                    begin
-                        SOfs := 0;
-                        CLen := VideoBufSize;
-                    end;
+                end
+            else
+                begin
+                    SOfs := 0;
+                    CLen := VideoBufSize;
+                end;
             if Force then
                 begin
                     VioShowBuf (SOfs, CLen, 0);
@@ -426,10 +430,13 @@ initialization
 finalization
   UnRegisterVideoModes;
 end.
+
 {
   $Log$
-  Revision 1.1  2001-01-13 11:03:58  peter
+  Revision 1.2  2001-01-23 20:23:56  hajny
+    * another little optimization of UpdateScreen
+
+  Revision 1.1  2001/01/13 11:03:58  peter
     * API 2 RTL commit
 
 }
-
