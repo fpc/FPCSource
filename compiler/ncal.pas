@@ -1762,6 +1762,16 @@ type
                (methodpointer.resulttype.def.deftype=classrefdef) then
               resulttype:=tclassrefdef(methodpointer.resulttype.def).pointertype
             else
+            { Member call to a (inherited) constructor from the class, the return
+              value is always self, so we change it to voidtype to generate an
+              error and to prevent users from generating non-working code
+              when they expect to clone the current instance, see bug 3662 (PFV) }
+              if (procdefinition.proctypeoption=potype_constructor) and
+		 is_class(tprocdef(procdefinition)._class) and
+                 assigned(methodpointer) and
+                 (nf_is_self in methodpointer.flags) then
+                resulttype:=voidtype
+            else
               resulttype:=procdefinition.rettype;
            end
          else
@@ -2498,7 +2508,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.278  2005-02-14 17:13:06  peter
+  Revision 1.279  2005-02-17 17:50:26  peter
+    * member call to constructor returns void to prevent
+      generating unexpected code. Otherwise the return value is always
+      equal to self, which can also be directly accessed
+
+  Revision 1.278  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.277  2005/02/01 22:50:50  florian
