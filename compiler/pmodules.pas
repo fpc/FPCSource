@@ -1294,6 +1294,12 @@ implementation
             aktprocdef.aliasnames.insert('PASCALMAIN');
             aktprocdef.aliasnames.insert(target_info.cprefix+'main');
           end;
+{$IFDEF SPARC}
+         ProcInfo.After_Header;
+{main function is declared as 
+  PROCEDURE main(ArgC:Integer;ArgV,EnvP:ARRAY OF PChar):Integer;CDECL;
+So, all parameters are passerd into registers in sparc architecture.}
+{$ENDIF SPARC}
          compile_proc_body(true,false);
 
          { should we force unit initialization? }
@@ -1438,7 +1444,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2003-01-30 21:46:20  peter
+  Revision 1.95  2003-02-06 22:36:55  mazen
+  * fixing bug related to errornous program main entry stack frame
+
+  Revision 1.94  2003/01/30 21:46:20  peter
     * tai_const_symbol.createdataname added
 
   Revision 1.93  2003/01/11 11:19:54  hajny

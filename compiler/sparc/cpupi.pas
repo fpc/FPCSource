@@ -50,20 +50,41 @@ stack frame.}
   end;
 implementation
 uses
-	tgobj;
+	tgobj,paramgr,symsym,systems;
 constructor TSparcprocinfo.create;
 	begin
 		inherited create;
 		maxpushedparasize:=0;
-		LocalSize:=0;
-	end;
-procedure TSparcprocinfo.after_header;
-	begin
+		LocalSize:=(16+1)*4;
   	{First 16 words are in the frame are used to save registers in case of a
     register overflow/underflow.The 17th word is used to save the address of
     the variable which will receive the return value of the called function}
     Return_Offset:=16*4;
-    procdef.parast.address_fixup:=(16+1)*4;
+	end;
+procedure TSparcprocinfo.after_header;
+	begin
+{target_info.first_parm_offset should be (16+1)*4 as the return address pointer
+is usually allocated even if return value is in register.}
+    procdef.parast.address_fixup:=target_info.first_parm_offset;
+    if assigned(procdef.localst)and(procdef.localst.symtablelevel>1)
+    then
+      begin
+        framepointer_offset:=procdef.parast.address_fixup;
+        inc(procdef.parast.address_fixup,4);
+      end;
+    if assigned(_class)
+    then
+      begin
+        selfpointer_offset:=procdef.parast.address_fixup;
+        inc(procdef.parast.address_fixup,4);
+      end;
+    { this value is necessary for nested procedures }
+    if assigned(procdef.localst)
+    then
+      procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
+    if assigned(aktprocdef.funcretsym) and not(paramanager.ret_in_param(procdef.rettype.def,procdef.proccalloption))
+    then
+      return_offset:=tg.direction*tfuncretsym(aktprocdef.funcretsym).address+procdef.localst.address_fixup;
 	end;
 procedure TSparcProcInfo.after_pass1;
 	begin
@@ -90,7 +111,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2003-01-05 21:32:35  mazen
+  Revision 1.12  2003-02-06 22:36:55  mazen
+  * fixing bug related to errornous program main entry stack frame
+
+  Revision 1.11  2003/01/05 21:32:35  mazen
   * fixing several bugs compiling the RTL
 
   Revision 1.10  2002/12/24 21:30:20  mazen

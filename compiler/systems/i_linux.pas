@@ -405,7 +405,7 @@ unit i_linux;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
               );
-            first_parm_offset : 8;
+            first_parm_offset : (16+1)*4;
             heapsize     : 256*1024;
             stacksize    : 262144;
             DllScanSupported:false;
@@ -446,7 +446,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-01-11 16:35:15  marco
+  Revision 1.4  2003-02-06 22:36:55  mazen
+  * fixing bug related to errornous program main entry stack frame
+
+  Revision 1.3  2003/01/11 16:35:15  marco
    * HASUNIX defined for now.
 
   Revision 1.2  2002/10/04 21:57:42  mazen
