@@ -19,11 +19,11 @@ begin
     if P[i]<>i Then
       Writeln ('Oh-oh, ',i,'th index differs.');
   FreeMem(P);
-end.  $Log$
-end.  Revision 1.2  2002-09-07 15:42:54  peter
-end.    * old logs removed and tabs fixed
 end.
-end.  Revision 1.1  2002/01/29 17:54:59  peter
-end.    * splitted to base and extra
-end.
+
+{
+  $Log$
+  Revision 1.3  2002-09-08 15:44:40  michael
+  + fixed log entry
+
 }
