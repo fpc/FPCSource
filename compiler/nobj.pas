@@ -495,8 +495,8 @@ implementation
 
                      consts.concat(tai_align.create(const_align(sizeof(aint))));
                      Consts.concat(Tai_label.Create(l));
-                     Consts.concat(Tai_const.Create_8bit(length(p.name)));
-                     Consts.concat(Tai_string.Create(p.name));
+                     Consts.concat(Tai_const.Create_8bit(length(tsym(p).realname)));
+                     Consts.concat(Tai_string.Create(tsym(p).realname));
 
                      dataSegment.concat(Tai_const.Create_sym(l));
                      dataSegment.concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0));
@@ -1414,7 +1414,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.85  2005-01-09 15:05:29  peter
+  Revision 1.86  2005-01-10 20:41:55  peter
+    * write realname for published methods
+
+  Revision 1.85  2005/01/09 15:05:29  peter
     * fix interface vtbl optimization
     * replace ugly pointer construct of ioffset()
 
