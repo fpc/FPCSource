@@ -1334,7 +1334,8 @@ unit pstatmnt;
            { added no parameter also (PM)                       }
            { disable for methods, because self pointer is expected }
            { at -8(%ebp) (JM)                                      }
-           if not(assigned(procinfo^._class)) and
+           { why if se use %esp then self is still at the correct address PM }
+           if {not(assigned(procinfo^._class)) and}
               (po_assembler in aktprocsym^.definition^.procoptions) and
               (aktprocsym^.definition^.localst^.datasize=0) and
               (aktprocsym^.definition^.parast^.datasize=0) and
@@ -1358,7 +1359,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.124  2000-03-14 16:37:25  pierre
+  Revision 1.125  2000-03-16 15:12:06  pierre
+   assembler method code does not need ebp framepointer
+
+  Revision 1.124  2000/03/14 16:37:25  pierre
    * destructor can have args in TP mode only (bug825 and 839)
 
   Revision 1.123  2000/02/29 23:59:47  pierre
