@@ -34,6 +34,7 @@ unit inststr;
        dialog_language_hungarian = 'Hungarian';
        dialog_language_spanish = 'Spanish';
        dialog_language_german = 'German';
+       dialog_language_russian_win = 'Russian (Windows)';
 
        dialog_enddialog_title = 'Installation Successfull';
 
@@ -92,8 +93,10 @@ unit inststr;
 end.
 {
   $Log$
-  Revision 1.2  2000-09-22 11:07:51  florian
+  Revision 1.3  2000-09-22 12:15:49  florian
+    + support of Russian (Windows)
+
+  Revision 1.2  2000/09/22 11:07:51  florian
     + all language dependend strings are now resource strings
     + the -Fr switch is now set in the ppc386.cfg
-
 }

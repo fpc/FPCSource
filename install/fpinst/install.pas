@@ -693,7 +693,9 @@ program install;
           NewSItem(dialog_language_russian,
           NewSItem(dialog_language_hungarian,
           NewSItem(dialog_language_spanish,
-          NewSItem(dialog_language_german,nil)))))))));
+          NewSItem(dialog_language_german,
+          NewSItem(dialog_language_russian_win,
+          nil))))))))));
        insert(rb);
        inc(line,7);
        inc(line,1);
@@ -907,6 +909,11 @@ program install;
                  begin
                     cfg.language:='German';
                     msgfile:='errord.msg';
+                 end;
+               7:
+                 begin
+                    cfg.language:='RussianWin';
+                    msgfile:='errorrw.msg';
                  end;
             end;
          end;
@@ -1435,7 +1442,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-09-22 11:07:51  florian
+  Revision 1.6  2000-09-22 12:15:49  florian
+    + support of Russian (Windows)
+
+  Revision 1.5  2000/09/22 11:07:51  florian
     + all language dependend strings are now resource strings
     + the -Fr switch is now set in the ppc386.cfg
 
