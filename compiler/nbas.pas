@@ -671,7 +671,10 @@ implementation
     constructor ttempcreatenode.create_reg(const _restype: ttype; _size: longint; _temptype: ttemptype);
       begin
         create(_restype,_size,_temptype);
-        may_be_in_reg:=true;
+        may_be_in_reg:=
+          not (_restype.def.needs_inittable) and
+          ((_restype.def.deftype <> pointerdef) or
+           (not tpointerdef(_restype.def).pointertype.def.needs_inittable));
       end;
 
     constructor ttempcreatenode.create(const _restype: ttype; _size: longint; _temptype: ttemptype);
@@ -1002,7 +1005,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2004-02-03 22:32:54  peter
+  Revision 1.80  2004-02-06 20:22:58  jonas
+    * don't put types that need init/fini in register temps
+
+  Revision 1.79  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ
