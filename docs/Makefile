@@ -174,7 +174,7 @@ txt : dvi $(TXT)
 
 ps : dvi $(PS)
 
-pdf : $(PDF)
+pdf : unitex.chk refex.chk $(PDF)
 
 user: user.chk
 
@@ -215,6 +215,7 @@ prog.chk: prog.tex
 	sed -f foot.sed <prog/footnode.html >prog/footnote.html
 	mv prog/footnote.html prog/footnode.html
 	rm -f prog/labels.pl prog/internals.pl prog/.*.pag prog/.*.dir
+	touch prog.chk
 
 html: $(HTML)
 
