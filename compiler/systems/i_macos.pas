@@ -30,7 +30,7 @@ unit i_macos;
        system_powerpc_macos_info : tsysteminfo =
           (
             system       : system_powerpc_MACOS;
-            name         : 'MacOs (PowerPC)';
+            name         : 'MacOS (PowerPC)';
             shortname    : 'MacOS';
             flags        : [];
             cpu          : cpu_powerpc;
@@ -102,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2003-01-13 13:03:56  florian
+  Revision 1.7  2003-01-13 17:16:44  olle
+    * Fixed typo
+
+  Revision 1.6  2003/01/13 13:03:56  florian
     - fixed res entry for MacOS, I don't understand why it worked before :/
 
   Revision 1.5  2002/10/20 17:54:32  olle
