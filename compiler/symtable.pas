@@ -33,7 +33,7 @@ unit symtable;
 {$endif Delphi}
 {$endif}
        strings,cobjects,
-       globtype,globals,tokens,systems,verbose,
+       globtype,globals,tokens,systems,
        symconst,
        aasm
        ,cpubase
@@ -472,7 +472,7 @@ unit symtable;
 implementation
 
   uses
-     version,
+     version,verbose,
      types,ppu,
      gendef,files
      ,tree
@@ -2791,7 +2791,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  1999-12-01 22:32:35  pierre
+  Revision 1.70  1999-12-02 11:28:27  peter
+    * moved verbose to implementation uses
+
+  Revision 1.69  1999/12/01 22:32:35  pierre
    * give info of original duplicated symbol more often
 
   Revision 1.68  1999/11/30 10:40:56  peter
