@@ -35,11 +35,11 @@ ifeq ($(PWD),)
 PWD=$(strip $(wildcard $(addsuffix /pwd,$(subst :, ,$(PATH)))))
 ifeq ($(PWD),)
 nopwd:
-	@echo You need the GNU pwd,cp,mv,rm,install utils to use this makefile!
-	@echo Get ftp://tflily.fys.kuleuven.ac.be/pub/fpc/dist/gnuutils.zip
+	@echo You need the GNU utils package to use this makefile!
+	@echo Get ftp://tflily.fys.kuleuven.ac.be/pub/fpc/dist/go32v2/utilgo32.zip
 	@exit
 else
-inlinux=1
+inlinux=1	
 endif
 else
 PWD:=$(firstword $(PWD))
@@ -50,6 +50,13 @@ ifndef inlinux
 ifeq ($(OS),Windows_NT)
 inWinNT=1
 endif
+endif
+
+# The extension of executables
+ifdef inlinux
+EXEEXT=
+else
+EXEEXT=.exe
 endif
 
 
@@ -70,45 +77,29 @@ endif
 # Targets
 #####################################################################
 
+# What compiler to use ?
+ifndef PP
+PP=ppc386$(EXEEXT)
+endif
+
 # Target OS
 ifndef OS_TARGET
-ifdef inlinux
-OS_TARGET=linux
-else
-ifdef inWinNT
-OS_TARGET=win32
-else
-OS_TARGET=go32v2
-endif
-endif
+OS_TARGET=$(shell $(PP) -iTO)
 endif
 
 # Source OS
 ifndef OS_SOURCE
-ifdef inlinux
-OS_SOURCE=linux
-else
-ifndef inWinNT
-OS_SOURCE=win32
-else
-OS_SOURCE=go32v2
-endif
-endif
+OS_SOURCE=$(shell $(PP) -iSO)
 endif
 
 # CPU
 ifndef CPU
-CPU=i386
+CPU=$(shell $(PP) -TP)
 endif
 
 # Options
 ifndef OPT
 OPT=
-endif
-
-# What compiler to use ?
-ifndef PP
-PP=ppc386
 endif
 
 # assembler, redefine it if cross compiling
@@ -197,13 +188,6 @@ ifdef inlinux
 PPAS=ppas.sh
 else
 PPAS=ppas.bat
-endif
-
-# The extension of executables
-ifdef inlinux
-EXEEXT=
-else
-EXEEXT=.exe
 endif
 
 # The path which is search separated by spaces
@@ -654,7 +638,7 @@ EXECPPAS=@$(PPAS)
 endif
 
 ifdef DATE
-DATESTR=$(shell $(DATE) +%y%m%d)
+DATESTR=$(shell $(DATE) +%Y%m%d)
 else
 DATESTR=
 endif
@@ -1006,7 +990,12 @@ endif
 
 #
 # $Log$
-# Revision 1.19  1999-05-03 18:04:58  peter
+# Revision 1.20  1999-05-03 22:29:04  peter
+#   * os_source,os_target depends now on the compiler
+#   * cpu depends on the compiler
+#   * datestr y2k proof
+#
+# Revision 1.19  1999/05/03 18:04:58  peter
 #   + sourceinstalldir
 #
 # Revision 1.18  1999/04/29 15:52:38  peter
