@@ -549,7 +549,7 @@ end;
 procedure TStringStream.SetSize(NewSize: Longint);
 
 begin
- //!! Setlength(FDataString,NewSize);
+ Setlength(FDataString,NewSize);
  If FPosition>NewSize then FPosition:=NewSize;
 end;
 
@@ -568,7 +568,7 @@ begin
   Result:=Length(FDataString)-FPosition;
   If Result>Count then Result:=Count;
   // This supposes FDataString to be of type AnsiString !
-  //!! Move (Pchar(FDataString)[FPosition],Buffer,Count);
+  Move (Pchar(FDataString)[FPosition],Buffer,Count);
   FPosition:=FPosition+Count;
 end;
 
@@ -580,8 +580,8 @@ Var NewLen : Longint;
 begin
   NewLen:=Length(FDataString)-FPosition;
   If NewLen>Count then NewLen:=Count;
-  //!! SetLength(Result,NewLen);
-  //!! Read (Pointer(Result)^,NewLen);
+  SetLength(Result,NewLen);
+  Read (Pointer(Result)^,NewLen);
   ReadString:='';
 end;
 
@@ -606,7 +606,7 @@ begin
   Result:=Count;
   SetSize(FPosition+Count);
   // This supposes that FDataString is of type AnsiString)
-  //!! Move (Buffer,PCHar(FDataString)[Fposition],Count);
+  Move (Buffer,PCHar(FDataString)[Fposition],Count);
   FPosition:=FPosition+Count;
 end;
 
@@ -614,7 +614,7 @@ end;
 procedure TStringStream.WriteString(const AString: string);
 
 begin
-  //!! Write (PChar(Astring)[0],Length(AString));
+  Write (PChar(Astring)[0],Length(AString));
 end;
 
 
@@ -656,7 +656,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:00  michael
+  Revision 1.3  2001-03-08 19:38:32  michael
+  + Merged changes, fixed stringstream
+
+  Revision 1.2  2000/07/13 11:33:00  michael
   + removed logs
+ }
  
-}
