@@ -14,6 +14,7 @@
 
  **********************************************************************}
 unit strings;
+{$S-}
 interface
 
     { Returns the length of a string }
@@ -139,7 +140,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:45  michael
+  Revision 1.3  2001-11-19 00:31:07  carl
+  - no stack checking possible because used by lineinfo which
+    might get infinite recursion if stack limit reached
+
+  Revision 1.2  2000/07/13 11:33:45  michael
   + removed logs
  
 }
