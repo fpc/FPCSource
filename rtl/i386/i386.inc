@@ -940,46 +940,6 @@ function fpc_pchar_to_shortstr(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_
 function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$include strlen.inc}
 
-{$define FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
-function fpc_chararray_to_shortstr(const arr: array of char):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
-begin
-  asm
-        cld
-        movl    arr,%esi
-        movl    arr+4,%ecx
-{$ifdef hascompilerproc}
-        { previous implementations passed length(arr), with compilerproc }
-        { we only have high(arr), so add one (JM)                        }
-        incl    %ecx
-{$endif hascompilerproc}
-        orl     %esi,%esi
-        jnz     .LStrCharArrayNotNil
-        movl    $0,%ecx
-.LStrCharArrayNotNil:
-        andl    $255,%ecx
-        movl    %ecx,%eax
-        movl    __RESULT,%edi
-        stosb
-        cmpl    $7,%eax
-        jl      .LStrCharArray2
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%eax
-        rep
-        movsb
-        movl    %eax,%ecx
-        andl    $3,%eax
-        shrl    $2,%ecx
-        rep
-        movsl
-.LStrCharArray2:
-        movl    %eax,%ecx
-        rep
-        movsb
-  end ['ECX','EAX','ESI','EDI'];
-end;
-
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1214,7 +1174,12 @@ end;
 
 {
   $Log$
-  Revision 1.38  2003-01-06 23:03:13  mazen
+  Revision 1.39  2003-02-18 17:56:06  jonas
+    - removed buggy i386-specific FPC_CHARARRAY_TO_SHORTSTR
+    * fixed generic FPC_CHARARRAY_TO_SHORTSTR (web bug 2382)
+    * fixed some potential range errors in indexchar/word/dword
+
+  Revision 1.38  2003/01/06 23:03:13  mazen
   + defining FPC_SYSTEM_HAS_DECLOCKED and FPC_SYSTEM_HAS_INCLOCKED to avoid
     compilation error on generic.inc
 

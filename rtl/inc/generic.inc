@@ -115,7 +115,7 @@ var
   I : longint;
 begin
   I:=0;
-  while (bytearray(buf)[I]<>b) and (I<Len) do
+  while (I<Len) and (bytearray(buf)[I]<>b) do
    inc(I);
   if (i=Len) then
    i:=-1;                      {Can't use 0, since it is a possible value}
@@ -132,7 +132,7 @@ var
   I : longint;
 begin
   I:=0;
-  while (wordarray(buf)[I]<>b) and (I<Len) do
+  while (I<Len) and (wordarray(buf)[I]<>b) do
    inc(I);
   if (i=Len) then
    i:=-1;           {Can't use 0, since it is a possible value for index}
@@ -149,7 +149,7 @@ var
   I : longint;
 begin
   I:=0;
-  while (longintarray(buf)[I]<>b) and (I<Len) do inc(I);
+  while (I<Len) and (longintarray(buf)[I]<>b) do inc(I);
   if (i=Len) then
    i:=-1;           {Can't use 0, since it is a possible value for index}
   IndexDWord:=I;
@@ -651,8 +651,11 @@ function fpc_chararray_to_shortstr(const arr: array of char):shortstring;[public
 var
   l: longint;
 {$else hascompilerproc}
-function fpc_chararray_to_shortstr(p:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR'];
+function fpc_chararray_to_shortstr(arr:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR'];
+var
 {$endif hascompilerproc}
+ index: longint;
+ len: byte;
 begin
 {$ifdef hascompilerproc}
   l := high(arr)+1;
@@ -661,8 +664,13 @@ begin
     l:=255
   else if l<0 then
     l:=0;
-  move(arr[0],fpc_chararray_to_shortstr[1],l);
-  fpc_chararray_to_shortstr[0]:=chr(l);
+  index:=IndexByte(arr[0],l,0);
+  if (index < 0) then
+    len := l
+  else
+    len := index;
+  move(arr[0],fpc_chararray_to_shortstr[1],len);
+  fpc_chararray_to_shortstr[0]:=chr(len);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
@@ -965,7 +973,12 @@ end;
 
 {
   $Log$
-  Revision 1.49  2003-01-20 22:21:36  mazen
+  Revision 1.50  2003-02-18 17:56:06  jonas
+    - removed buggy i386-specific FPC_CHARARRAY_TO_SHORTSTR
+    * fixed generic FPC_CHARARRAY_TO_SHORTSTR (web bug 2382)
+    * fixed some potential range errors in indexchar/word/dword
+
+  Revision 1.49  2003/01/20 22:21:36  mazen
   * many stuff related to RTL fixed
 
   Revision 1.48  2003/01/09 20:14:20  florian
