@@ -330,6 +330,9 @@ procedure inclocked(var l : int64);assembler;
 const
   fpucw : word = $1332;
 
+  MM_MaskInvalidOp = %0000000010000000;
+  MM_MaskDenorm    = %0000000100000000;
+  MM_MaskDivZero   = %0000001000000000;
   MM_MaskOverflow  = %0000010000000000;
   MM_MaskUnderflow = %0000100000000000;
   MM_MaskPrecision = %0001000000000000;
@@ -358,7 +361,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2004-12-25 11:50:46  florian
+  Revision 1.17  2005-02-05 16:19:44  florian
+    + completed SSE exception masks
+
+  Revision 1.16  2004/12/25 11:50:46  florian
     * sse instructions should mask overflow by default
 
   Revision 1.15  2004/11/02 15:26:21  florian
