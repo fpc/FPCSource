@@ -451,7 +451,7 @@ begin
 	    begin
 	      {delete pthreads from list, in this case it is in libc_r}
 	      SharedLibFiles.Remove(SharedLibFiles.Find('pthread').str);
-	      LibrarySuffix:='r'; 	
+	      LibrarySuffix:='r'; 
 	    end;
         End;
       prtobj:='prt0';
@@ -570,7 +570,9 @@ begin
          If LibrarySuffix=' ' Then
           LinkRes.Add('-lc')
          else
-          LinkRes.Add('-lc_'+LibrarySuffix)
+          LinkRes.Add('-lc_'+LibrarySuffix);
+         If LibrarySuffix='r' Then
+             LinkRes.Add('-lc');
        end;
      { when we have -static for the linker the we also need libgcc }
      if (cs_link_staticflag in aktglobalswitches) then
@@ -734,7 +736,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2004-03-29 21:19:33  florian
+  Revision 1.14  2004-04-04 10:53:21  marco
+   * small c_r fix, also link plain libc (like for x11)
+
+  Revision 1.13  2004/03/29 21:19:33  florian
     * imported procedures are always made global (in the sense of the
   assembler)
 
