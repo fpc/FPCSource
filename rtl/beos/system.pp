@@ -50,6 +50,7 @@ var
   argc : longint;
   argv : ppchar;
   envp : ppchar;
+  errno : longint;		// MvdV: yuckie
 
   UnusedHandle:longint;
   StdInputHandle:longint;
@@ -534,7 +535,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-01-05 20:22:24  florian
+  Revision 1.8  2003-01-08 22:32:28  marco
+   * Small fixes and quick merge with 1.0.x. At least the compiler builds now,
+      but it could crash hard, since there are lots of unimplemented funcs.
+
+  Revision 1.7  2003/01/05 20:22:24  florian
     - removed stack check, it's system independend in 1.1
 
   Revision 1.6  2003/01/05 20:06:30  florian

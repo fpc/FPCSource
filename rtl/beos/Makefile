@@ -225,7 +225,7 @@ override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
-override TARGET_UNITS+=system objpas strings beos dos sysutils typinfo math varutils cpu mmx getopts heaptrc lineinfo variants types
+override TARGET_UNITS+=system objpas posix strings beos dos sysutils typinfo math varutils cpu mmx getopts heaptrc lineinfo variants types
 override TARGET_LOADERS+=prt0 cprt0 func dllprt
 override TARGET_RSTS+=math varutils typinfo
 override INSTALL_FPCPACKAGE=y
