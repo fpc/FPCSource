@@ -292,7 +292,10 @@ begin
     movl size,%edx
     movw $0x7f00,%eax
     call syscall     { result directly in EAX }
-@Sbrk_End:
+    inc %eax         { Result in EAX, -1 = error (has to be transformed to 0) }
+    jz .LSbrk_End
+    dec %eax         { No error - back to previous value }
+.LSbrk_End:
     mov  %eax,L
   end ['eax', 'edx'];
   WriteLn ('New heap at ', L);
@@ -305,9 +308,9 @@ asm
     movw $0x7f00,%eax
     call syscall
     inc %eax         { Result in EAX, -1 = error (has to be transformed to 0) }
-    jz .Sbrk_End
+    jz .LSbrk_End
     dec %eax         { No error - back to previous value }
-.Sbrk_End:
+.LSbrk_End:
 end ['eax', 'edx'];
 {$ENDIF DUMPGROW}
 
@@ -1243,7 +1246,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2003-10-12 17:59:40  hajny
+  Revision 1.14  2003-10-12 18:07:30  hajny
+    * wrong use of Intel syntax
+
+  Revision 1.13  2003/10/12 17:59:40  hajny
     * wrong use of Intel syntax
 
   Revision 1.12  2003/10/12 17:52:28  hajny
