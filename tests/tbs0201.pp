@@ -7,17 +7,22 @@ type rec = record
          b : Word;
      end;
 
-function x(r1 : rec; r2 : rec; var r3 : rec); assembler;
+{ this is really for tests but 
+  this should be coded with const r1 and r2 !! }
+
+function x(r1 : rec; r2 : rec; var r3 : rec) : integer; assembler;
 asm
    movl r3, %edi
-   
-   movl r1.a, %eax
-   addl r2.a, %eax
+   movl r1, %ebx
+   movl r2, %ecx
+   movl rec.a(%ebx), %eax
+   addl rec.a(%ecx), %eax
    movl %eax, rec.a(%edi)
 
-   movw r1.b, %cx
-   addw r2.b, %cx
-   movw %cx, rec.b(%edi)
+   movw rec.b(%ecx), %ax
+   addw rec.b(%edx), %ax
+   movw %ax, rec.b(%edi)
+   movw $1,%ax
 end;
 
 var r1, r2, r3 : rec;

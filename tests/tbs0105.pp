@@ -3,13 +3,31 @@
 { but an error because the type casting is not considered at all!   }
 { Must be compiled with -Cr                                         }
 
+{$ifdef go32v2}
+ uses dpmiexcp;
+{$endif go32v2}
+{$ifdef linux}
+ uses linux;
+{$endif linux}
 
+  function our_sig(l : longint) : longint;
+    begin
+       { If we land here the program works correctly !! }
+       Writeln('Bound check error signal recieved');
+       Halt(0);
+    end;
+    
 Var
  Sel: Word;
  v: longint;
 Begin
+ Signal(SIGSEGV,our_sig);
  v:=$00ffffff;
  Sel:=word(v);
  writeln(sel);
+ { should trigger Bound check error }
  sel:=v;
+ { we should not go to here }
+ Writeln('Error : signal not called');
+ Halt(1);
 end.

@@ -18,9 +18,11 @@ const
   pc : pchar = @s[1];
 
 begin
-  if (l^<>2) or (pc[1]<>'t') then
+  Writeln(' l^ = ',l^);
+  Writeln('pc[0] = ',pc[0]); 
+  if (l^<>2) or (pc[0]<>'t') then
     Begin
-       Writeln('Wrong code genrated');
+       Writeln('Wrong code generated');
        RunError(1);
     End;
 end.
