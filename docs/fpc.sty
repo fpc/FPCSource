@@ -197,7 +197,13 @@
 % For examples
 %
 \newcommand{\FPCexample}[1]{%
-\latex{\lstinputlisting{\exampledir/#1.pp}}\html{\input{\exampledir/#1.tex}}}
+\latex{\par \file{\textbf{Listing:} \exampledir/#1.pp}%
+\lstinputlisting{\exampledir/#1.pp}}%
+\html{\input{\exampledir/#1.tex}}}
+\newcommand{\Cexample}[1]{%
+\latex{\par \file{\textbf{Listing:} \exampledir/#1.c}%
+\lstinputlisting[language=c]{\exampledir/#1.c}}%
+\html{\input{\exampledir/#1.tex}}}
 \newcommand{\exampledir}{.}
 \newcommand{\FPCexampledir}[1]{\renewcommand{\exampledir}{#1}}
 %
@@ -205,8 +211,10 @@
 %
 \usepackage{listings}%
 \lstset{language=Delphi}%
-\lstset{pre=\sffamily\small}%
+\lstset{basicstyle=\sffamily\small}%
+\lstset{commentstyle=\itshape}%
 \lstset{keywordstyle=\bfseries}%
+\lstset{frame=tb}
 %\lstset{blankstring=true}%
 %
 % Page settings
