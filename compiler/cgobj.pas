@@ -128,6 +128,8 @@ unit cgobj;
           procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual; abstract;
           procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual; abstract;
           procedure a_load_loc_reg(list : taasmoutput;size : tcgsize;const loc: tlocation; reg : tregister);
+          procedure a_load_loc_ref(list : taasmoutput;size : tcgsize;const loc: tlocation; const ref : treference);
+          procedure a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister);virtual; abstract;
 
 
           { basic arithmetic operations }
@@ -1264,6 +1266,43 @@ unit cgobj;
         end;
       end;
 
+    procedure tcg.a_load_loc_ref(list : taasmoutput;size : tcgsize;const loc: tlocation; const ref : treference);
+
+      var
+        tmpreg: tregister;
+
+      begin
+        case loc.loc of
+          LOC_REFERENCE,LOC_MEM:
+            begin
+{$ifdef i386}
+              case size of
+                OS_8,OS_S8:
+                  tmpreg := reg32toreg8(getregister32);
+                OS_16,OS_S16:
+                  tmpreg := reg32toreg16(get_scratch_reg(list));
+                else
+                  tmpreg := get_scratch_reg(list);
+              end;
+{$else i386}
+              tmpreg := get_scratch_reg(list);
+{$endif i386}
+              a_load_ref_reg(list,size,loc.reference,tmpreg);
+              a_load_reg_ref(list,size,tmpreg,ref);
+{$ifdef i386}
+              if not (size in [OS_32,OS_S32]) then
+                ungetregister(tmpreg)
+              else
+{$endif i386}
+              free_scratch_reg(list,tmpreg);
+            end;
+          LOC_REGISTER,LOC_CREGISTER:
+            a_load_reg_ref(list,size,loc.register,ref);
+          else
+            internalerror(200109302);
+        end;
+      end;
+
 
     procedure tcg.a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; const ref: TReference);
 
@@ -1452,7 +1491,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2001-09-28 20:39:32  jonas
+  Revision 1.3  2001-09-30 16:17:17  jonas
+    * made most constant and mem handling processor independent
+
+  Revision 1.2  2001/09/28 20:39:32  jonas
     * changed all flow control structures (except for exception handling
       related things) to processor independent code (in new ncgflw unit)
     + generic cgobj unit which contains lots of code generator helpers with

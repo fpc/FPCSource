@@ -56,6 +56,7 @@ interface
     procedure testregisters32;
 {$endif TEMPREGDEBUG}
     function getregister32 : tregister;
+    function getaddressregister: tregister;
     procedure ungetregister32(r : tregister);
     { tries to allocate the passed register, if possible }
     function getexplicitregister32(r : tregister) : tregister;
@@ -63,6 +64,8 @@ interface
     function getregistermmx : tregister;
     procedure ungetregistermmx(r : tregister);
 {$endif SUPPORT_MMX}
+
+    function isaddressregister(reg: tregister): boolean;
 
     procedure ungetregister(r : tregister);
 
@@ -480,6 +483,12 @@ implementation
       end;
 {$endif SUPPORT_MMX}
 
+    function isaddressregister(reg: tregister): boolean;
+
+      begin
+        isaddressregister := true;
+      end;
+      
     procedure del_reference(const ref : treference);
 
       begin
@@ -589,6 +598,13 @@ implementation
 {$endif TEMPREGDEBUG}
       end;
 
+
+    function getaddressregister: tregister;
+
+      begin
+        getaddressregister := getregister32;
+      end;
+
     function getexplicitregister32(r : tregister) : tregister;
 
       begin
@@ -674,7 +690,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2001-08-26 13:37:03  florian
+  Revision 1.6  2001-09-30 16:17:18  jonas
+    * made most constant and mem handling processor independent
+
+  Revision 1.5  2001/08/26 13:37:03  florian
     * some cg reorganisation
     * some PPC updates
 

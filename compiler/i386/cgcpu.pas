@@ -59,6 +59,7 @@ unit cgcpu;
         procedure a_load_reg_ref(list : taasmoutput; size: tcgsize; reg : tregister;const ref : treference);override;
         procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);override;
+        procedure a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister); override;
 
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
@@ -130,8 +131,25 @@ unit cgcpu;
 
     procedure tcg386.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);
 
+      var
+        tmpreg: tregister;
+
       begin
-        runerror(211);
+        case size of
+          OS_8,OS_S8,OS_16,OS_S16:
+            begin
+              tmpreg := get_scratch_reg(list);
+              a_load_ref_reg(list,size,r,tmpreg);
+              if target_info.alignment.paraalign = 2 then
+                list.concat(taicpu.op_reg(A_PUSH,S_W,makereg16(tmpreg)))
+              else
+                list.concat(taicpu.op_reg(A_PUSH,S_L,tmpreg));
+            end;
+          OS_32,OS_S32:
+            list.concat(taicpu.op_ref(A_PUSH,S_L,newreference(r)));
+          else
+            internalerror(200109301);
+        end;
       end;
 
 
@@ -231,6 +249,12 @@ unit cgcpu;
         list.concat(taicpu.op_reg_reg(op,s,reg1,reg2));
       end;
 
+
+    procedure tcg386.a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister);
+
+      begin
+        list.concat(taicpu.op_sym_ofs_reg(A_MOV,S_L,sym,ofs,reg));
+      end;
 
     procedure tcg386.a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister);
 
@@ -684,7 +708,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2001-09-29 21:32:19  jonas
+  Revision 1.3  2001-09-30 16:17:18  jonas
+    * made most constant and mem handling processor independent
+
+  Revision 1.2  2001/09/29 21:32:19  jonas
     * fixed bug in a_load_reg_reg + implemented a_call
 
   Revision 1.1  2001/09/28 20:39:33  jonas

@@ -29,7 +29,7 @@ unit cpunode;
   implementation
 
     uses
-       ncgbas,ncgflw,ncgcnv,
+       ncgbas,ncgflw,ncgcnv,ncgmem,ncgcon,
        n386ld,n386add,n386cal,n386con,n386flw,n386mat,n386mem,
        n386set,n386inl,n386opt,
        { this not really a node }
@@ -38,7 +38,10 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.6  2001-09-29 21:32:47  jonas
+  Revision 1.7  2001-09-30 16:17:18  jonas
+    * made most constant and mem handling processor independent
+
+  Revision 1.6  2001/09/29 21:32:47  jonas
     * almost all second pass typeconvnode helpers are now processor independent
     * fixed converting boolean to int64/qword
     * fixed register allocation bugs which could cause internalerror 10

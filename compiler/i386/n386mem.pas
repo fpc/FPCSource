@@ -27,22 +27,14 @@ unit n386mem;
 interface
 
     uses
-      node,nmem;
+      node,nmem,ncgmem;
 
     type
-       ti386loadvmtnode = class(tloadvmtnode)
-          procedure pass_2;override;
-       end;
-
-       ti386hnewnode = class(thnewnode)
-          procedure pass_2;override;
-       end;
-
        ti386newnode = class(tnewnode)
           procedure pass_2;override;
        end;
 
-       ti386hdisposenode = class(thdisposenode)
+       ti386addrnode = class(tcgaddrnode)
           procedure pass_2;override;
        end;
 
@@ -50,31 +42,11 @@ interface
           procedure pass_2;override;
        end;
 
-       ti386addrnode = class(taddrnode)
-          procedure pass_2;override;
-       end;
-
-       ti386doubleaddrnode = class(tdoubleaddrnode)
-          procedure pass_2;override;
-       end;
-
-       ti386derefnode = class(tderefnode)
-          procedure pass_2;override;
-       end;
-
-       ti386subscriptnode = class(tsubscriptnode)
+       ti386derefnode = class(tcgderefnode)
           procedure pass_2;override;
        end;
 
        ti386vecnode = class(tvecnode)
-          procedure pass_2;override;
-       end;
-
-       ti386selfnode = class(tselfnode)
-          procedure pass_2;override;
-       end;
-
-       ti386withnode = class(twithnode)
           procedure pass_2;override;
        end;
 
@@ -83,41 +55,14 @@ implementation
     uses
 {$ifdef delphi}
       sysutils,
-{$else}
-      strings,
 {$endif}
-{$ifdef GDB}
-      gdb,
-{$endif GDB}
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symbase,symtype,symdef,symsym,symtable,aasm,types,
+      symconst,symtype,symdef,symsym,symtable,aasm,types,
       cgbase,temp_gen,pass_2,
       pass_1,nld,ncon,nadd,
       cpubase,cpuasm,
       cga,tgcpu,n386util;
-
-{*****************************************************************************
-                            TI386LOADNODE
-*****************************************************************************}
-
-    procedure ti386loadvmtnode.pass_2;
-      begin
-         location.register:=getregister32;
-         emit_sym_ofs_reg(A_MOV,
-            S_L,newasmsymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),0,
-            location.register);
-      end;
-
-
-{*****************************************************************************
-                            TI386HNEWNODE
-*****************************************************************************}
-
-    procedure ti386hnewnode.pass_2;
-      begin
-      end;
-
 
 {*****************************************************************************
                             TI386NEWNODE
@@ -167,35 +112,17 @@ implementation
 
 
 {*****************************************************************************
-                         TI386HDISPOSENODE
+                             TI386ADDRNODE
 *****************************************************************************}
 
-    procedure ti386hdisposenode.pass_2;
-      begin
-         secondpass(left);
-         if codegenerror then
-           exit;
-         reset_reference(location.reference);
-         case left.location.loc of
-            LOC_REGISTER:
-              location.reference.index:=left.location.register;
-            LOC_CREGISTER:
-              begin
-                 location.reference.index:=getregister32;
-                 emit_reg_reg(A_MOV,S_L,
-                   left.location.register,
-                   location.reference.index);
-              end;
-            LOC_MEM,LOC_REFERENCE :
-              begin
-                 del_reference(left.location.reference);
-                 location.reference.index:=getregister32;
-                 emit_ref_reg(A_MOV,S_L,newreference(left.location.reference),
-                   location.reference.index);
-              end;
-         end;
-      end;
+    procedure ti386addrnode.pass_2;
 
+      begin
+        inherited pass_2;
+        { for use of other segments }
+        if left.location.reference.segment<>R_NO then
+          location.segment:=left.location.reference.segment;
+      end;
 
 {*****************************************************************************
                          TI386SIMPLENEWDISPOSENODE
@@ -258,96 +185,13 @@ implementation
 
 
 {*****************************************************************************
-                             TI386ADDRNODE
-*****************************************************************************}
-
-    procedure ti386addrnode.pass_2;
-      begin
-         secondpass(left);
-
-         { when loading procvar we do nothing with this node, so load the
-           location of left }
-         if nf_procvarload in flags then
-          begin
-            set_location(location,left.location);
-            exit;
-          end;
-
-         location.loc:=LOC_REGISTER;
-         del_reference(left.location.reference);
-         location.register:=getregister32;
-         {@ on a procvar means returning an address to the procedure that
-           is stored in it.}
-         { yes but left.symtableentry can be nil
-           for example on self !! }
-         { symtableentry can be also invalid, if left is no tree node }
-         if (m_tp_procvar in aktmodeswitches) and
-           (left.nodetype=loadn) and
-           assigned(tloadnode(left).symtableentry) and
-           (tloadnode(left).symtableentry.typ=varsym) and
-           (tvarsym(tloadnode(left).symtableentry).vartype.def.deftype=procvardef) then
-           emit_ref_reg(A_MOV,S_L,
-             newreference(left.location.reference),
-             location.register)
-         else
-           emit_ref_reg(A_LEA,S_L,
-             newreference(left.location.reference),
-             location.register);
-         { for use of other segments }
-         if left.location.reference.segment<>R_NO then
-           location.segment:=left.location.reference.segment;
-      end;
-
-
-{*****************************************************************************
-                         TI386DOUBLEADDRNODE
-*****************************************************************************}
-
-    procedure ti386doubleaddrnode.pass_2;
-      begin
-         secondpass(left);
-         location.loc:=LOC_REGISTER;
-         del_reference(left.location.reference);
-         location.register:=getregister32;
-         emit_ref_reg(A_LEA,S_L,
-         newreference(left.location.reference),
-           location.register);
-      end;
-
-
-{*****************************************************************************
                            TI386DEREFNODE
 *****************************************************************************}
 
     procedure ti386derefnode.pass_2;
-      var
-         hr : tregister;
-      begin
-         secondpass(left);
-         reset_reference(location.reference);
-         case left.location.loc of
-            LOC_REGISTER:
-              location.reference.base:=left.location.register;
-            LOC_CREGISTER:
-              begin
-                 { ... and reserve one for the pointer }
-                 hr:=getregister32;
-                 emit_reg_reg(A_MOV,S_L,left.location.register,hr);
-                 location.reference.base:=hr;
-              end;
-            else
-              begin
-                 { free register }
-                 del_reference(left.location.reference);
 
-                 { ...and reserve one for the pointer }
-                 hr:=getregister32;
-                 emit_ref_reg(
-                   A_MOV,S_L,newreference(left.location.reference),
-                   hr);
-                 location.reference.base:=hr;
-              end;
-         end;
+      begin
+         inherited pass_2;
          if tpointerdef(left.resulttype.def).is_far then
           location.reference.segment:=R_FS;
          if not tpointerdef(left.resulttype.def).is_far and
@@ -358,57 +202,6 @@ implementation
                    A_PUSH,S_L,location.reference.base);
                  emitcall('FPC_CHECKPOINTER');
               end;
-      end;
-
-
-{*****************************************************************************
-                          TI386SUBSCRIPTNODE
-*****************************************************************************}
-
-    procedure ti386subscriptnode.pass_2;
-      var
-         hr : tregister;
-      begin
-         secondpass(left);
-         if codegenerror then
-           exit;
-         { classes and interfaces must be dereferenced implicit }
-         if is_class_or_interface(left.resulttype.def) then
-           begin
-             reset_reference(location.reference);
-             case left.location.loc of
-                LOC_REGISTER:
-                  location.reference.base:=left.location.register;
-                LOC_CREGISTER:
-                  begin
-                     { ... and reserve one for the pointer }
-                     hr:=getregister32;
-                     emit_reg_reg(A_MOV,S_L,left.location.register,hr);
-                       location.reference.base:=hr;
-                  end;
-                else
-                  begin
-                     { free register }
-                     del_reference(left.location.reference);
-
-                     { ... and reserve one for the pointer }
-                     hr:=getregister32;
-                     emit_ref_reg(
-                       A_MOV,S_L,newreference(left.location.reference),
-                       hr);
-                     location.reference.base:=hr;
-                  end;
-             end;
-           end
-         else if is_interfacecom(left.resulttype.def) then
-           begin
-              gettempintfcomreference(location.reference);
-              emit_mov_loc_ref(left.location,location.reference,S_L,false);
-           end
-         else
-           set_location(location,left.location);
-
-         inc(location.reference.offset,vs.address);
       end;
 
 
@@ -898,164 +691,20 @@ implementation
            end;
       end;
 
-{*****************************************************************************
-                            TI386SELFNODE
-*****************************************************************************}
-
-    procedure ti386selfnode.pass_2;
-      begin
-         reset_reference(location.reference);
-         getexplicitregister32(R_ESI);
-         if (resulttype.def.deftype=classrefdef) or
-           is_class(resulttype.def) then
-           location.register:=R_ESI
-         else
-           location.reference.base:=R_ESI;
-      end;
-
-
-{*****************************************************************************
-                            TI386WITHNODE
-*****************************************************************************}
-
-    procedure ti386withnode.pass_2;
-      var
-        usetemp,with_expr_in_temp : boolean;
-{$ifdef GDB}
-        withstartlabel,withendlabel : tasmlabel;
-        pp : pchar;
-        mangled_length  : longint;
-
-      const
-        withlevel : longint = 0;
-{$endif GDB}
-      begin
-         if assigned(left) then
-            begin
-               secondpass(left);
-               if left.location.reference.segment<>R_NO then
-                 message(parser_e_no_with_for_variable_in_other_segments);
-
-               new(withreference);
-
-               usetemp:=false;
-               if (left.nodetype=loadn) and
-                  (tloadnode(left).symtable=aktprocsym.definition.localst) then
-                 begin
-                    { for locals use the local storage }
-                    withreference^:=left.location.reference;
-                    include(flags,nf_islocal);
-                 end
-               else
-                { call can have happend with a property }
-                if is_class_or_interface(left.resulttype.def) then
-                 begin
-                    getexplicitregister32(R_EDI);
-                    emit_mov_loc_reg(left.location,R_EDI);
-                    usetemp:=true;
-                 end
-               else
-                 begin
-                   getexplicitregister32(R_EDI);
-                   emit_lea_loc_reg(left.location,R_EDI,false);
-                   usetemp:=true;
-                 end;
-
-               release_loc(left.location);
-
-               { if the with expression is stored in a temp    }
-               { area we must make it persistent and shouldn't }
-               { release it (FK)                               }
-               if (left.location.loc in [LOC_MEM,LOC_REFERENCE]) and
-                 istemp(left.location.reference) then
-                 begin
-                    normaltemptopersistant(left.location.reference.offset);
-                    with_expr_in_temp:=true;
-                 end
-               else
-                 with_expr_in_temp:=false;
-
-               { if usetemp is set the value must be in %edi }
-               if usetemp then
-                begin
-                  gettempofsizereference(4,withreference^);
-                  normaltemptopersistant(withreference^.offset);
-                  { move to temp reference }
-                  emit_reg_ref(A_MOV,S_L,R_EDI,newreference(withreference^));
-                  ungetregister32(R_EDI);
-{$ifdef GDB}
-                  if (cs_debuginfo in aktmoduleswitches) then
-                    begin
-                      inc(withlevel);
-                      getaddrlabel(withstartlabel);
-                      getaddrlabel(withendlabel);
-                      emitlab(withstartlabel);
-                      withdebugList.concat(Tai_stabs.Create(strpnew(
-                         '"with'+tostr(withlevel)+':'+tostr(symtablestack.getnewtypecount)+
-                         '=*'+tstoreddef(left.resulttype.def).numberstring+'",'+
-                         tostr(N_LSYM)+',0,0,'+tostr(withreference^.offset))));
-                      mangled_length:=length(aktprocsym.definition.mangledname);
-                      getmem(pp,mangled_length+50);
-                      strpcopy(pp,'192,0,0,'+withstartlabel.name);
-                      if (target_info.use_function_relative_addresses) then
-                        begin
-                          strpcopy(strend(pp),'-');
-                          strpcopy(strend(pp),aktprocsym.definition.mangledname);
-                        end;
-                      withdebugList.concat(Tai_stabn.Create(strnew(pp)));
-                    end;
-{$endif GDB}
-                end;
-
-               { right can be optimize out !!! }
-               if assigned(right) then
-                 secondpass(right);
-
-               if usetemp then
-                 begin
-                   ungetpersistanttemp(withreference^.offset);
-{$ifdef GDB}
-                   if (cs_debuginfo in aktmoduleswitches) then
-                     begin
-                       emitlab(withendlabel);
-                       strpcopy(pp,'224,0,0,'+withendlabel.name);
-                      if (target_info.use_function_relative_addresses) then
-                        begin
-                          strpcopy(strend(pp),'-');
-                          strpcopy(strend(pp),aktprocsym.definition.mangledname);
-                        end;
-                       withdebugList.concat(Tai_stabn.Create(strnew(pp)));
-                       freemem(pp,mangled_length+50);
-                       dec(withlevel);
-                     end;
-{$endif GDB}
-                 end;
-
-               if with_expr_in_temp then
-                 ungetpersistanttemp(left.location.reference.offset);
-
-               dispose(withreference);
-               withreference:=nil;
-            end;
-       end;
 
 begin
-   cloadvmtnode:=ti386loadvmtnode;
-   chnewnode:=ti386hnewnode;
    cnewnode:=ti386newnode;
-   chdisposenode:=ti386hdisposenode;
    csimplenewdisposenode:=ti386simplenewdisposenode;
    caddrnode:=ti386addrnode;
-   cdoubleaddrnode:=ti386doubleaddrnode;
    cderefnode:=ti386derefnode;
-   csubscriptnode:=ti386subscriptnode;
    cvecnode:=ti386vecnode;
-   cselfnode:=ti386selfnode;
-   cwithnode:=ti386withnode;
 end.
 {
   $Log$
-  Revision 1.16  2001-08-30 20:13:57  peter
+  Revision 1.17  2001-09-30 16:17:17  jonas
+    * made most constant and mem handling processor independent
+
+  Revision 1.16  2001/08/30 20:13:57  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces
