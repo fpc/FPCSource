@@ -291,7 +291,7 @@ var
    loop : longint;
    loop2 : longint;
    startIndex : longint;
-   compareVal : longint;
+   compareVal : cardinal;
 begin
    result := -1; {should only occur if none are set}
 
@@ -372,7 +372,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2000-11-17 13:39:49  sg
+  Revision 1.6  2001-02-02 23:51:27  peter
+    * bit field to cardinal instead of longint
+
+  Revision 1.5  2000/11/17 13:39:49  sg
   * Extended Error methods so that exceptions are raised from the caller's
     address instead of the Error method
 

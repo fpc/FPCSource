@@ -190,7 +190,7 @@ const
    MaxBitFlags = MaxBitRec * 32;
 
 type
-   TBitArray = array[0..MaxBitRec - 1] of longint;
+   TBitArray = array[0..MaxBitRec - 1] of cardinal;
 
    TBits = class(TObject)
    private
@@ -1239,7 +1239,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.6  2000-12-03 22:35:09  sg
+  Revision 1.7  2001-02-02 23:51:27  peter
+    * bit field to cardinal instead of longint
+
+  Revision 1.6  2000/12/03 22:35:09  sg
   * Applied patch by Markus Kaemmerer (merged):
     - Added support for TStringList.CustomSort
 
