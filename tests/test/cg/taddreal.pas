@@ -240,6 +240,9 @@ end.
 
 
 {
-  $Log
+  $Log$
+  Revision 1.2  2001-05-16 15:28:40  carl
+  * corrected problem with log
+
 
 }
