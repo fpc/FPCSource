@@ -937,6 +937,7 @@ Var
   ch       : char;
   OldState,
   State    : longint;
+  FDS      : FDSet;
 Begin
 {Check Buffer first}
   if KeySend<>KeyPut then
@@ -945,8 +946,11 @@ Begin
      exit;
    end;
 {Wait for Key}
-  repeat
-  until keypressed;
+
+  FD_Zero (FDS);
+  FD_Set (0,FDS);
+  Select (1,@FDS,nil,nil,nil);
+
   ch:=ttyRecvChar;
 {Esc Found ?}
   CASE ch OF
@@ -1580,7 +1584,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.16  1999-06-09 16:46:10  peter
+  Revision 1.17  1999-09-07 07:38:09  michael
+  + Applied readkey patch from Deekoo L
+
+  Revision 1.16  1999/06/09 16:46:10  peter
     * fixed fullwin,textbackground
 
   Revision 1.15  1999/02/08 10:35:14  peter
