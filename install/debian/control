@@ -7,8 +7,8 @@ Standards-Version: 3.1.1
 
 Package: fp-compiler
 Architecture: i386
-Depends: fp-rtl (= #PACKAGEVERSION#)
-Suggests: fp-utils, fp-docs (>= #FPCVERSION#)
+Depends: fp-rtl (= 0.99.13-19991013-4)
+Suggests: fp-utils, fp-docs (>= 0.99.13)
 Replaces: fpc
 Description: Free Pascal Compiler
  The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit
@@ -21,14 +21,14 @@ Description: Free Pascal Compiler
 
 Package: fp-rtl
 Architecture: i386
-Recommends: fp-compiler (= #PACKAGEVERSION#)
+Recommends: fp-compiler (= 0.99.13-19991013-4)
 Replaces: fpc
 Description: Free Pascal Runtime Library
  Runtime Libraries for the Free Pascal Compiler.
 
 Package: fp-utils
 Architecture: i386
-Recommends: fp-compiler (= #PACKAGEVERSION#)
+Recommends: fp-compiler (= 0.99.13-19991013-4)
 Replaces: fpc
 Description: Free Pascal Utils
  This package contains some handy utils for usage with the Free Pascal
@@ -50,25 +50,25 @@ Description: Free Pascal Documentation
 
 Package: fp-units-fcl
 Architecture: i386
-Depends: fp-compiler (= #PACKAGEVERSION#), fp-rtl (= #PACKAGEVERSION#), fp-units-linux (= #PACKAGEVERSION#)
+Depends: fp-compiler (= 0.99.13-19991013-4), fp-rtl (= 0.99.13-19991013-4), fp-units-linux (= 0.99.13-19991013-4)
 Description: Free Pascal Free Component Library
  Free Component Library for the Free Pascal Compiler.
 
 Package: fp-units-api
 Architecture: i386
-Depends: fp-compiler (= #PACKAGEVERSION#), fp-rtl (= #PACKAGEVERSION#)
+Depends: fp-compiler (= 0.99.13-19991013-4), fp-rtl (= 0.99.13-19991013-4)
 Description: Free Pascal API Units
  Free Pascal units for console keyboard,mouse,video and file handling.
 
 Package: fp-units-gtk
 Architecture: i386
-Depends: fp-compiler (= #PACKAGEVERSION#), fp-rtl (= #PACKAGEVERSION#)
+Depends: fp-compiler (= 0.99.13-19991013-4), fp-rtl (= 0.99.13-19991013-4)
 Description: Free Pascal units for GTK 1.2.x
  Free Pascal units and examples to create programs with GTK 1.2.x
 
 Package: fp-units-db
 Architecture: i386
-Depends: fp-compiler (= #PACKAGEVERSION#), fp-rtl (= #PACKAGEVERSION#)
+Depends: fp-compiler (= 0.99.13-19991013-4), fp-rtl (= 0.99.13-19991013-4)
 Description: Free Pascal units for some database libraries
  Free Pascal units with bindings for:
   - Mysql
@@ -77,7 +77,7 @@ Description: Free Pascal units for some database libraries
 
 Package: fp-units-gfx
 Architecture: i386
-Depends: fp-compiler (= #PACKAGEVERSION#), fp-rtl (= #PACKAGEVERSION#)
+Depends: fp-compiler (= 0.99.13-19991013-4), fp-rtl (= 0.99.13-19991013-4)
 Description: Free Pascal units for some graphics libraries
  Free Pascal units with bindings for:
   - Forms 0.88
@@ -87,7 +87,7 @@ Description: Free Pascal units for some graphics libraries
 
 Package: fp-units-linux
 Architecture: i386
-Depends: fp-compiler (= #PACKAGEVERSION#), fp-rtl (= #PACKAGEVERSION#)
+Depends: fp-compiler (= 0.99.13-19991013-4), fp-rtl (= 0.99.13-19991013-4)
 Description: Free Pascal Bindings for common linux libraries
  Free Pascal units with bindings for:
   - X11 (Xlib, Xutil)
@@ -96,7 +96,7 @@ Description: Free Pascal Bindings for common linux libraries
   
 Package: fp-units-net
 Architecture: i386
-Depends: fp-compiler (= #PACKAGEVERSION#), fp-rtl (= #PACKAGEVERSION#)
+Depends: fp-compiler (= 0.99.13-19991013-4), fp-rtl (= 0.99.13-19991013-4)
 Description: Free Pascal units for networking
  Free Pascal units for creating network tools:
   - Inet unit for easier tcp/ip handling
@@ -104,7 +104,7 @@ Description: Free Pascal units for networking
 
 Package: fp-units-misc
 Architecture: i386
-Depends: fp-compiler (= #PACKAGEVERSION#), fp-rtl (= #PACKAGEVERSION#)
+Depends: fp-compiler (= 0.99.13-19991013-4), fp-rtl (= 0.99.13-19991013-4)
 Description: Free Pascal miscellaneous units
  Free Pascal miscellaneous units for:
   - Utmp

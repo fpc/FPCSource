@@ -32,7 +32,7 @@ clean:
 	@echo "--- Cleaning"
 	dh_testdir
 	dh_testroot
-	rm -f build-arch-stamp install-arch-stamp
+	rm -f build-arch-stamp install-arch-stamp arrange-arch-stamp
 	rm -f build-indep-stamp install-indep-stamp
 
 	rm -f debian-files-stamp
@@ -41,6 +41,7 @@ clean:
 	$(MAKE) compiler_clean
 	$(MAKE) rtl_clean
 	$(MAKE) fcl_clean
+	$(MAKE) api_clean
 	$(MAKE) utils_clean
 	$(MAKE) packages_clean
 
@@ -76,6 +77,7 @@ build-arch-stamp: debian-files-stamp
 # First make a new Compiler and RTL using a make cycle
 	$(MAKE) compiler_cycle
 	$(MAKE) fcl_all $(BUILDOPTS)
+	$(MAKE) api_all $(BUILDOPTS)
 	$(MAKE) packages_all $(BUILDOPTS)
 	$(MAKE) utils_all $(BUILDOPTS)
 
@@ -93,13 +95,25 @@ install-arch-stamp: build-arch-stamp debian-files-stamp
 	$(MAKE) compiler_install $(INSTALLOPTS)
 	$(MAKE) rtl_install $(INSTALLOPTS)
 	$(MAKE) fcl_install $(INSTALLOPTS)
+	$(MAKE) api_install $(INSTALLOPTS)
 	$(MAKE) utils_install $(INSTALLOPTS)
-	$(MAKE) packages install $(INSTALLOPTS)
+	$(MAKE) packages_install $(INSTALLOPTS)
 
 	$(MAKE) man_install $(INSTALLOPTS) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr/share
-	$(MAKE) demo_install $(INSTALLOPTS)
+	$(MAKE) demo_install $(INSTALLOPTS) DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fp-compiler
+	$(MAKE) -C packages/gtk installexamples $(INSTALLOPTS) DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fp-units-gtk
 
 	touch install-arch-stamp
+
+
+arrange-arch: arrange-arch-stamp
+arrange-arch-stamp: install-arch-stamp debian-files-stamp
+	dh_testversion 2
+	dh_testdir
+	dh_testroot
+	dh_movefiles -a
+
+	touch arrange-arch-stamp
 
 
 ###################
@@ -114,6 +128,7 @@ build-indep-stamp: debian-files-stamp
 	$(MAKE) -C docs $(DOCTYPE)
 
 	touch build-indep-stamp
+
 
 install-indep: install-indep-stamp
 install-indep-stamp: debian-files build-indep
@@ -157,16 +172,23 @@ binary-indep: build-indep install-indep debian-files
 	dh_md5sums -i
 	dh_builddeb -i
 
-binary-arch: build-arch install-arch debian-files
+binary-arch: build-arch arrange-arch debian-files
 	@echo "--- Building: arch packages"
 	dh_testversion 2
 	dh_testdir
 	dh_testroot
 	dh_installdocs -a
 	dh_installchangelogs -a
+
+	dh_installchangelogs -pfp-compiler logs/Changes.compiler
+	dh_installchangelogs -pfp-rtl logs/Changes.rtl
+	dh_installchangelogs -pfp-utils logs/Changes.utils
+	dh_installchangelogs -pfp-units-fcl logs/Changes.fcl
+#	dh_installchangelogs -pfp-units-api logs/Changes.api
+#	dh_installchangelogs -pfp-units-fv logs/Changes.fv
+
 	dh_undocumented -a
 	dh_installexamples -a
-	dh_movefiles -a
 	dh_compress -a
 	dh_fixperms -a
 	dh_installdeb -a
