@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit threads;
+unit systhrds;
 interface
 
 {$S-}
@@ -38,6 +38,13 @@ interface
 
 
 implementation
+
+{*****************************************************************************
+                             Generic overloaded
+*****************************************************************************}
+
+{ Include generic overloaded routines }
+{$i thread.inc}
 
 
 {*****************************************************************************
@@ -113,29 +120,12 @@ function GlobalFree(hMem : Pointer):Pointer; external 'kernel32' name 'GlobalFre
 { Include OS independent Threadvar initialization }
 {$i threadvar.inc}
 
-    procedure InitThreadVars;
-      begin
-        { We're still running in single thread mode, setup the TLS }
-        TLSKey:=TlsAlloc;
-        { initialize threadvars }
-        init_all_unit_threadvars;
-        { allocate mem for main thread threadvars }
-        SysAllocateThreadVars;
-        { copy main thread threadvars }
-        copy_all_unit_threadvars;
-        { install threadvar handler }
-        fpc_threadvar_relocate_proc:=@SysRelocateThreadvar;
-      end;
-
 {$endif HASTHREADVAR}
 
 
 {*****************************************************************************
                             Thread starting
 *****************************************************************************}
-
-    const
-      DefaultStackSize = 32768; { including 16384 margin for stackchecking }
 
     type
       pthreadinfo = ^tthreadinfo;
@@ -144,22 +134,6 @@ function GlobalFree(hMem : Pointer):Pointer; external 'kernel32' name 'GlobalFre
         p : pointer;
         stklen : cardinal;
       end;
-
-    procedure InitThread(stklen:cardinal);
-      begin
-        SysResetFPU;
-        { ExceptAddrStack and ExceptObjectStack are threadvars       }
-        { so every thread has its on exception handling capabilities }
-        SysInitExceptions;
-        { Open all stdio fds again }
-        SysInitStdio;
-        InOutRes:=0;
-        // ErrNo:=0;
-        { Stack checking }
-        StackLength:=stklen;
-        StackBottom:=Sptr - StackLength;
-      end;
-
 
     procedure DoneThread;
       begin
@@ -208,7 +182,9 @@ function GlobalFree(hMem : Pointer):Pointer; external 'kernel32' name 'GlobalFre
         if not IsMultiThread then
          begin
 {$ifdef HASTHREADVAR}
-           InitThreadVars;
+           { We're still running in single thread mode, setup the TLS }
+           TLSKey:=TlsAlloc;
+           InitThreadVars(@SysRelocateThreadvar);
 {$endif HASTHREADVAR}
            IsMultiThread:=true;
          end;
@@ -294,19 +270,15 @@ procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
       end;
 
 
-{*****************************************************************************
-                             Generic overloaded
-*****************************************************************************}
-
-{ Include generic overloaded routines }
-{$i thread.inc}
-
 initialization
   InitHeapMutexes;
 end.
 {
   $Log$
-  Revision 1.1  2002-10-14 19:39:18  peter
+  Revision 1.1  2002-10-16 06:27:30  michael
+  + Renamed thread unit to systhrds
+
+  Revision 1.1  2002/10/14 19:39:18  peter
     * threads unit added for thread support
 
 }

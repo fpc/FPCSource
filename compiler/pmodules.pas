@@ -436,7 +436,7 @@ implementation
       { Thread support unit? }
         if (cs_threading in aktmoduleswitches) then
          begin
-           hp:=loadunit('Threads','');
+           hp:=loadunit('systhrds','');
            tsymtable(hp.globalsymtable).next:=symtablestack;
            symtablestack:=hp.globalsymtable;
            { add to the used units }
@@ -1433,7 +1433,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2002-10-14 19:42:34  peter
+  Revision 1.82  2002-10-16 06:32:52  michael
+  + Renamed thread unit to systhrds
+
+  Revision 1.81  2002/10/14 19:42:34  peter
     * only use init tables for threadvars
 
   Revision 1.80  2002/10/06 19:41:30  peter
