@@ -54,7 +54,7 @@ begin
      heaprecord(ptr(ovrheapend,0)^).values:=m shl 12;
      heaporg:=ptr(ovrheapend,0);
      freelist:=heaporg;
-     Writeln('Warning: Overlay buffer shrinked, because of memory shortage');
+     Writeln('Warning: Overlay buffer was shrunk because of memory shortage');
      _heaperror:=2;
    end
   else
@@ -86,7 +86,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1998-08-10 10:18:33  peter
+  Revision 1.3  1999-03-17 22:23:19  florian
+    * a FPC compiled compiler checks now also in debug mode in assigned
+      if a pointer points to the heap
+    * when a symtable is loaded, there is no need to check for duplicate
+      symbols. This leads to crashes because defowner isn't assigned
+      in this case
+
+  Revision 1.2  1998/08/10 10:18:33  peter
     + Compiler,Comphook unit which are the new interface units to the
       compiler
 
