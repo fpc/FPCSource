@@ -625,7 +625,7 @@ END;
 PROCEDURE DoCursor; { Put Cursor in/out insert-mode }
 
 BEGIN
- {$IFNDEF Linux}
+ {$IFNDEF Unix}
 { IF Ins THEN
   SetCursorSize($11E)
  ELSE
@@ -677,7 +677,7 @@ BEGIN
     DoCursor;
     {$ENDIF}
     Key:=GetKey;
-   {$IFNDEF Linux}
+   {$IFNDEF Unix}
     {$IFDEF FPC}
      {$ifndef Win32Graph}
       CursorOff;
@@ -911,7 +911,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.6  2002-06-02 09:49:17  marco
+  Revision 1.7  2002-06-02 17:34:21  marco
+   * Renamefest
+
+  Revision 1.6  2002/06/02 09:49:17  marco
    * Renamefest
 
   Revision 1.5  2002/02/25 12:23:05  marco
