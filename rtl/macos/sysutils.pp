@@ -2,9 +2,13 @@
     $Id$
 
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2004 by Olle Raab
+    Copyright (c) 2004-2005 by Olle Raab
 
-    Sysutils unit for Mac OS
+    Sysutils unit for Mac OS.
+
+    NOTE !!! THIS FILE IS UNDER CONSTRUCTION AND DOES NOT WORK CURRENLY.
+    
+    THUS IT IS NOT BUILT BY THE MAKEFILES
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -21,9 +25,24 @@ interface
 { force ansistrings }
 {$H+}
 
+uses
+  MacOSTP;
+
 //{$DEFINE HAS_SLEEP}     TODO
 //{$DEFINE HAS_OSERROR}   TODO
 //{$DEFINE HAS_OSCONFIG}  TODO 
+
+type
+//TODO Check pad and size
+//TODO unify with Dos.SearchRec
+  PMacOSFindData = ^TMacOSFindData;
+  TMacOSFindData = record
+		{MacOS specific params, private, do not use:}
+		paramBlock: CInfoPBRec;
+		searchFSSpec: FSSpec;
+		searchAttr: Byte;  {attribute we are searching for}
+		exactMatch: Boolean;
+  end;
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -248,14 +267,14 @@ end;
 *)
 
 
-Function DoFind(Var Rslt : TSearchRec) : Longint;
+procedure DoFind (var F: TSearchRec; firstTime: Boolean);
 
   var
     err: OSErr;
     s: Str255;
 
 begin
-  with Rslt, paramBlock do
+  with Rslt, findData, paramBlock do
     begin
       ioVRefNum := searchFSSpec.vRefNum;
       if firstTime then
@@ -699,7 +718,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-12-11 11:32:44  michael
+  Revision 1.5  2005-01-24 18:28:58  olle
+    + a tiny bit of support for macos
+    + warning that this is under construction
+
+  Revision 1.4  2004/12/11 11:32:44  michael
   + Added GetEnvironmentVariableCount and GetEnvironmentString calls
 
   Revision 1.3  2004/10/14 16:27:11  mazen
