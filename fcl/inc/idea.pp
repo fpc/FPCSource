@@ -57,7 +57,7 @@ TYPE IDEAkey = ARRAY[0..keylen-1] OF Word;
 
 PROCEDURE EnKeyIdea(userkey: ideacryptkey; VAR z: ideakey);
 PROCEDURE DeKeyIdea(z: IDEAKey; VAR dk: ideakey);
-PROCEDURE CipherIdea(input: ideacryptdata; VAR output: ideacryptdata; z: IDEAkey);
+PROCEDURE CipherIdea(input: ideacryptdata; VAR outdata: ideacryptdata; z: IDEAkey);
 
 Type
 
@@ -220,7 +220,7 @@ BEGIN
   iz := 0;
 END;
 
-PROCEDURE CipherIdea(input: ideacryptdata; VAR output: ideacryptdata; z:
+PROCEDURE CipherIdea(input: ideacryptdata; VAR outdata: ideacryptdata; z:
 IDEAkey);
 VAR x1, x2, x3, x4, t1, t2: Word;
     r: Integer;
@@ -248,11 +248,11 @@ BEGIN
     x3 := t2;
   END;
   mul(x1, z[zi]);       Inc(zi);
-  output[0] := x1;
-  output[1] := x3 + z[zi]; Inc(zi);
-  output[2] := x2 + z[zi]; Inc(zi);
+  outdata[0] := x1;
+  outdata[1] := x3 + z[zi]; Inc(zi);
+  outdata[2] := x2 + z[zi]; Inc(zi);
   Mul(x4,z[zi]);
-  output[3] := x4;
+  outdata[3] := x4;
   FOR r := 0 TO 3 DO input[r] := 0;
   FOR r := 0 TO 51 DO z[r] := 0;
   x1 := 0;
@@ -425,10 +425,13 @@ END.
 
 {
   $Log$
-  Revision 1.3  2000-07-14 19:47:36  michael
-  + Fixed out parameter
+  Revision 1.1.2.1  2000-07-30 18:11:37  peter
+  *** empty log message ***
 
-  Revision 1.2  2000/07/13 11:32:59  michael
-  + removed logs
- 
+  Revision 1.1  2000/07/13 06:31:30  michael
+  + Initial import
+
+  Revision 1.7  2000/02/15 21:57:51  sg
+  * Added copyright notice and CVS log tags where necessary
+
 }
