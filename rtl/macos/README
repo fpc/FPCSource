@@ -1,0 +1,32 @@
+Wellcome to the MacOS port of FreePascal (FPC)
+==============================================
+
+It is considered under construction, at the moment.
+
+
+Please note that compiling must be done on a platform
+supported by FPC, e g a PC. Then the generated assemble files
+is to be transfered to a Macintosh with MPW installed.
+
+
+For compiling with FPC, use it as for other operating systems 
+and add these options:
+
+-Tmacos # target macos
+-dpowerpc
+-al	# dont delete asm output
+-s	# dont generate executable
+
+
+
+Use MPW to assemble and link the output from FreePascal
+
+For PPCAsm, use options:
+
+-case on
+
+For PPCLink, use options
+
+-dead on
+-tocdataref off
+-m program_init
