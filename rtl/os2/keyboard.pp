@@ -36,11 +36,12 @@ var
 begin
  if KbdGetFocus (IO_Wait, DefaultKeyboard) = No_Error then
  begin
-  if KbdOpen (Handle) <> No_Error then Handle := DefaultKeyboard;
+  if KbdOpen (Handle) <> No_Error then
+   Handle := DefaultKeyboard;
   KbdFlushBuffer (Handle);
   KbdFreeFocus (DefaultKeyboard);
   KbdGetFocus (IO_Wait, Handle);
-  K.cb := 10;
+  K.cb := SizeOf (K);
   KbdGetStatus (K, Handle);
   K.fsMask := $14;
   KbdSetStatus (K, Handle);
@@ -68,8 +69,8 @@ begin
     DosSleep (5);
   with K do
     begin
-    if (byte (chChar) = $E0) and (fbStatus and 2 <> 0) then chChar := #0;
-    SysGetKeyEvent := cardinal ($0300 or fsState and $F) shl 16 or
+      if (byte (chChar) = $E0) and (fbStatus and 2 <> 0) then chChar := #0;
+      SysGetKeyEvent := cardinal ($0300 or fsState and $F) shl 16 or
                       cardinal (byte (chScan)) shl 8 or byte (chChar);
     end;
 end;
@@ -102,10 +103,14 @@ function SysGetShiftState: Byte;
 
 var
  K: TKbdInfo;
+ L: cardinal;
 begin
  KbdGetFocus (IO_NoWait, Handle);
- KbdGetStatus (K, Handle);
- SysGetShiftState:=(K.fsState and $F);
+ K.cb := SizeOf (K);
+ if KbdGetStatus (K, Handle) = No_Error then
+  SysGetShiftState := (K.fsState and $F)
+ else
+  SysGetShiftState := 0;
 end;
 
 Const
@@ -125,7 +130,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-09-07 16:01:24  peter
+  Revision 1.6  2004-12-27 22:26:43  hajny
+    * SysGetShiftState fixed
+
+  Revision 1.5  2002/09/07 16:01:24  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/03/03 21:08:33  hajny
