@@ -295,6 +295,15 @@ function exit_loc_jump : boolean;
   c:=FALSE;
   exit(b and c);
  end;
+ 
+ 
+ function exit_loc_ansi(w: word) : ansistring;
+  var d: ansistring;
+ begin
+   str(w,d);
+   exit(d);
+ end;
+  
 
 
 var
@@ -435,7 +444,7 @@ Begin
  { check for false, since having zero in register is rarer   }
  { then having non-zero (just in case everything is corrupt) }
  if exit_loc_flags then
-   failed := false;
+   failed := true;
  if failed then
    fail
  else
@@ -446,17 +455,29 @@ Begin
  { check for false, since having zero in register is rarer   }
  { then having non-zero (just in case everything is corrupt) }
  if exit_loc_jump then
-   failed := false;
+   failed := true;
  if failed then
    fail
  else
    writeln('Passed!');
- 
+
+ write('Testing secondexitn() ansistring case...');
+ failed := false;
+ if exit_loc_ansi(10) <> '10' then
+   failed := true;
+ if failed then
+   fail
+ else
+   writeln('Passed!');
+
 end.
 
 {
  $Log$
- Revision 1.1  2002-03-25 20:18:46  carl
+ Revision 1.2  2002-07-07 11:16:06  carl
+   + ansistring testing (from mailing list)
+
+ Revision 1.1  2002/03/25 20:18:46  carl
  + exit node testing
 
 }
