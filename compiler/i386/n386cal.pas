@@ -1029,8 +1029,10 @@ implementation
                              ungetregister32(right.location.register);
                          end
                       else
-                         emit_ref(A_CALL,S_NO,newreference(right.location.reference));
-                         del_reference(right.location.reference);
+                         begin
+                           emit_ref(A_CALL,S_NO,newreference(right.location.reference));
+                           del_reference(right.location.reference);
+                         end;
                    end;
                 end;
            end;
@@ -1549,7 +1551,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2001-04-18 22:02:01  peter
+  Revision 1.23  2001-05-16 15:11:42  jonas
+    * added missign begin..end pair (noticed by Carl)
+
+  Revision 1.22  2001/04/18 22:02:01  peter
     * registration of targets and assemblers
 
   Revision 1.21  2001/04/13 01:22:18  peter
