@@ -255,6 +255,7 @@ begin
 end;
 
 
+{$ifndef FPC_SYSTEM_HAS_FPFORK}
 function Fpfork : pid_t;  [public, alias : 'FPC_SYSC_FORK'];
 {
   This function issues the 'fork' System call. the program is duplicated in memory
@@ -268,6 +269,7 @@ function Fpfork : pid_t;  [public, alias : 'FPC_SYSC_FORK'];
 Begin
  Fpfork:=Do_syscall(SysCall_nr_fork);
 End;
+{$endif FPC_SYSTEM_HAS_FPFORK}
 
 // Look at execve variants later, when overloaded is determined.
 {
@@ -543,7 +545,10 @@ end;
 
 {
  $Log$
- Revision 1.29  2004-08-18 21:03:35  florian
+ Revision 1.30  2004-08-22 12:34:11  florian
+   * fixed fork for sparc
+
+ Revision 1.29  2004/08/18 21:03:35  florian
    * sparc uses wait4 as well
 
  Revision 1.28  2004/05/31 20:25:04  peter

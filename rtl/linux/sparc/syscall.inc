@@ -18,6 +18,45 @@
   {$UNDEF SYSCALL_DEBUG}
 {$ENDIF SYS_LINUX}
 
+
+{$define FPC_SYSTEM_HAS_FPFORK}
+{
+  behaviour of result of fork on sparc/linux is different than on other
+  linux flavours
+}
+function Fpfork : pid_t;  [public, alias : 'FPC_SYSC_FORK'];assembler;
+asm
+        mov     2,%g1
+        ta      0x10
+        bcc     .LSyscOK
+        nop
+        sethi   %hi(fpc_threadvar_relocate_proc),%o2
+        or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
+        ld      [%o2],%o3
+        subcc   %o3,%g0,%g0
+        bne     .LThread
+        nop
+        sethi   %hi(Errno+4),%o2
+        ba      .LNoThread
+        or      %o2,%lo(Errno+4),%o2
+.LThread:
+        sethi   %hi(Errno),%o0
+        ld      [%o3],%o4
+        or      %o0,%lo(Errno),%o0
+        call    %o4
+.LNoThread:
+        st      %o0,[%o2]
+        ba      .LReturn
+        mov     -1,%i0
+.LSyscOK:
+        // o1 contains 1 in the parent
+        // and 0 in the child
+        sub     %o1, 1, %o1
+        and     %o0, %o1, %i0
+.LReturn:
+end;
+
+
 {*****************************************************************************
                      --- Main:The System Call Self ---
 *****************************************************************************}
@@ -269,7 +308,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2004-07-02 19:29:19  peter
+  Revision 1.14  2004-08-22 12:34:11  florian
+    * fixed fork for sparc
+
+  Revision 1.13  2004/07/02 19:29:19  peter
     * fixed errno setting
 
   Revision 1.12  2004/06/30 21:15:51  florian
