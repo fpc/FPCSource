@@ -65,7 +65,6 @@ const
 type    Tos=(osDOS,osOS2,osDPMI);
 
 var     os_mode:Tos;
-        first_meg:pointer;
 
 type    TByteArray = array [0..$ffff] of byte;
         PByteArray = ^TByteArray;
@@ -401,38 +400,27 @@ function paramstr(l:longint):string;
 var p:^Pchar;
 
 begin
-    { There seems to be a problem with EMX for DOS when trying to }
-    { access paramstr(0), and to avoid problems between DOS and   }
-    { OS/2 they have been separated.                              }
-    if os_Mode = OsOs2 then
-    begin
-    if L = 0 then
-        begin
-            GetMem (P, 260);
-            p[0] := #0;  { in case of error, initialize to empty string }
+  if L = 0 then
+  begin
+    GetMem (P, 260);
+    p[0] := #0;  { in case of error, initialize to empty string }
 {$ASMMODE INTEL}
-            asm
-                mov edx, P
-                mov ecx, 260
-                mov eax, 7F33h
-                call syscall    { error handle already with empty string }
-            end;
-            ParamStr := StrPas (PChar (P));
-            FreeMem (P, 260);
-        end
-    else
-        if (l>0) and (l<=paramcount) then
-            begin
-                p:=args;
-                paramstr:=strpas(p[l]);
-            end
-        else paramstr:='';
-    end
-   else
+    asm
+      mov edx, P
+      mov ecx, 260
+      mov eax, 7F33h
+      call syscall    { error handle already with empty string }
+    end;
+    ParamStr := StrPas (PChar (P));
+    FreeMem (P, 260);
+  end
+  else
+    if (l>0) and (l<=paramcount) then
     begin
       p:=args;
       paramstr:=strpas(p[l]);
-    end;
+    end
+    else paramstr:='';
 end;
 
 
@@ -517,8 +505,7 @@ procedure do_close(h:longint);
 
 begin
 { Only three standard handles under real OS/2 }
-  if (h > 4) or
-     ((os_MODE = osOS2) and (h > 2)) then
+  if h>2 then
    begin
      asm
         pushl %ebx
@@ -678,42 +665,17 @@ function Increase_File_Handle_Count: boolean;
 var Err: word;
     L1, L2: longint;
 begin
-    if os_mode = osOS2 then
-        begin
-            L1 := 10;
-            if DosSetRelMaxFH (L1, L2) <> 0 then
-                Increase_File_Handle_Count := false
-            else
-                if L2 > FileHandleCount then
-                    begin
-                        FileHandleCount := L2;
-                        Increase_File_Handle_Count := true;
-                    end
-                else
-                    Increase_File_Handle_Count := false;
-        end
+  L1 := 10;
+  if DosSetRelMaxFH (L1, L2) <> 0 then
+    Increase_File_Handle_Count := false
+  else
+    if L2 > FileHandleCount then
+    begin
+      FileHandleCount := L2;
+      Increase_File_Handle_Count := true;
+    end
     else
-        begin
-            Inc (FileHandleCount, 10);
-            Err := 0;
-            asm
-                pushl %ebx
-                movl $0x6700, %eax
-                movl FileHandleCount, %ebx
-                call syscall
-                jnc .LIncFHandles
-                movw %ax, Err
-.LIncFHandles:
-                popl %ebx
-            end;
-            if Err <> 0 then
-                begin
-                    Increase_File_Handle_Count := false;
-                    Dec (FileHandleCount, 10);
-                end
-            else
-                Increase_File_Handle_Count := true;
-        end;
+      Increase_File_Handle_Count := false;
 end;
 
 procedure do_open(var f;p:pchar;flags:longint);
@@ -819,11 +781,7 @@ function do_isdevice (Handle: longint): boolean; assembler;
 (*
 var HT, Attr: longint;
 begin
-    if os_mode = osOS2 then
-        begin
-            if DosQueryHType (Handle, HT, Attr) <> 0 then HT := 1;
-        end
-    else
+  if DosQueryHType (Handle, HT, Attr) <> 0 then HT := 1;
 *)
 asm
     push ebx
@@ -871,26 +829,6 @@ end;
                            Directory Handling
 *****************************************************************************}
 
-
-procedure dosdir(func:byte;const s:string);
-
-var buffer:array[0..255] of char;
-
-begin
-    move(s[1],buffer,length(s));
-    buffer[length(s)]:=#0;
-    allowslash(Pchar(@buffer));
-    asm
-        leal buffer,%edx
-        movb func,%ah
-        call syscall
-        jnc  .LDOS_DIRS1
-        movw %ax,inoutres
-    .LDOS_DIRS1:
-    end;
-end;
-
-
 procedure MkDir (const S: string);[IOCHECK];
 
 var buffer:array[0..255] of char;
@@ -899,8 +837,6 @@ var buffer:array[0..255] of char;
 begin
   If (s='') or (InOutRes <> 0) then
    exit;
- if os_mode = osOs2 then
-    begin
       move(s[1],buffer,length(s));
       buffer[length(s)]:=#0;
       allowslash(Pchar(@buffer));
@@ -910,14 +846,6 @@ begin
          InOutRes := Rc;
          Errno2Inoutres;
        end;
-    end
-  else
-   begin
-     { Under EMX 0.9d DOS this routine call may sometimes fail   }
-     { The syscall documentation indicates clearly that this     }
-     { routine was NOT tested.                                   }
-        DosDir ($39, S);
-end;
 end;
 
 
@@ -929,8 +857,6 @@ begin
     InOutRes := 16;
   If (s='') or (InOutRes <> 0) then
    exit;
-  if os_mode = osOs2 then
-    begin
       move(s[1],buffer,length(s));
       buffer[length(s)]:=#0;
       allowslash(Pchar(@buffer));
@@ -940,14 +866,6 @@ begin
          InOutRes := Rc;
          Errno2Inoutres;
        end;
-    end
-  else
-   begin
-     { Under EMX 0.9d DOS this routine call may sometimes fail   }
-     { The syscall documentation indicates clearly that this     }
-     { routine was NOT tested.                                   }
-        DosDir ($3A, S);
-end;
 end;
 
 {$ASMMODE INTEL}
@@ -958,72 +876,36 @@ var RC: longint;
     Buffer: array [0..255] of char;
 
 begin
-  If (s='') or (InOutRes <> 0) then
-   exit;
-(* According to EMX documentation, EMX has only one current directory
-   for all processes, so we'll use native calls under OS/2. *)
-            if os_Mode = osOS2 then
-                begin
-                    if (Length (S) >= 2) and (S [2] = ':') then
-                        begin
-                            RC := DosSetDefaultDisk ((Ord (S [1]) and
-                                                             not ($20)) - $40);
-                            if RC <> 0 then
-                                InOutRes := RC
-                            else
-                                if Length (S) > 2 then
-                                    begin
-                                        Move (S [1], Buffer, Length (S));
-                                        Buffer [Length (S)] := #0;
-                                        AllowSlash (PChar (@Buffer));
-                                        RC := DosSetCurrentDir (@Buffer);
-                                        if RC <> 0 then
-                                         begin
-                                            InOutRes := RC;
-                                            Errno2InOutRes;
-                                         end;
-                                    end;
-                        end
-                    else
-                        begin
-                            Move (S [1], Buffer, Length (S));
-                            Buffer [Length (S)] := #0;
-                            AllowSlash (PChar (@Buffer));
-                            RC := DosSetCurrentDir (@Buffer);
-                            if RC <> 0 then
-                             begin
-                                  InOutRes:= RC;
-                                  Errno2InOutRes;
-                             end;
-                        end;
-                end
-            else
-                if (Length (S) >= 2) and (S [2] = ':') then
-                    begin
-                        asm
-                            mov esi, S
-                            mov al, [esi + 1]
-                            and al, not (20h)
-                            sub al, 41h
-                            mov edx, eax
-                            mov ah, 0Eh
-                            call syscall
-                            mov ah, 19h
-                            call syscall
-                            cmp al, dl
-                            jz @LCHDIR
-                            mov InOutRes, 15
-@LCHDIR:
-                        end ['eax','edx','esi'];
-                        if (Length (S) > 2) and (InOutRes <> 0) then
-                            { Under EMX 0.9d DOS this routine may sometime }
-                            { fail or crash the system.                    }
-                            DosDir ($3B, S);
-                    end
-                else
-                    { Under EMX 0.9d DOS this routine may sometime }
-                    { fail or crash the system.                    }
-                    DosDir ($3B, S);
+  If (s='') or (InOutRes <> 0) then exit;
+  if (Length (S) >= 2) and (S [2] = ':') then
+  begin
+    RC := DosSetDefaultDisk ((Ord (S [1]) and not ($20)) - $40);
+    if RC <> 0 then
+      InOutRes := RC
+    else
+      if Length (S) > 2 then
+      begin
+        Move (S [1], Buffer, Length (S));
+        Buffer [Length (S)] := #0;
+        AllowSlash (PChar (@Buffer));
+        RC := DosSetCurrentDir (@Buffer);
+        if RC <> 0 then
+        begin
+          InOutRes := RC;
+          Errno2InOutRes;
+        end;
+      end;
+  end else begin
+    Move (S [1], Buffer, Length (S));
+    Buffer [Length (S)] := #0;
+    AllowSlash (PChar (@Buffer));
+    RC := DosSetCurrentDir (@Buffer);
+    if RC <> 0 then
+    begin
+      InOutRes:= RC;
+      Errno2InOutRes;
+    end;
+  end;
 end;
 
 {$ASMMODE ATT}
@@ -1185,71 +1067,6 @@ begin
   Rewrite (T);
 end;
 
-
-procedure DosEnvInit;
-var
- Q: PPChar;
- I: cardinal;
-begin
-(* It's a hack, in fact - DOS stores the environment the same way as OS/2 does,
-   but I don't know how to find Program Segment Prefix and thus the environment
-   address under EMX, so I'm recreating this structure using EnvP pointer. *)
-{$ASMMODE INTEL}
- asm
-  cld
-  mov ecx, EnvC
-  mov esi, EnvP
-  xor eax, eax
-  xor edx, edx
-@L1:
-  xchg eax, edx
-  push ecx
-  mov ecx, -1
-  mov edi, [esi]
-  repne
-  scasb
-  neg ecx
-  dec ecx
-  xchg eax, edx
-  add eax, ecx
-  pop ecx
-  dec ecx
-  jecxz @Stop
-  inc esi
-  inc esi
-  inc esi
-  inc esi
-  jmp @L1
-@Stop:
-  inc eax
-  mov EnvSize, eax
- end ['eax','ecx','edx','esi','edi'];
- Environment := GetMem (EnvSize);
- asm
-  cld
-  mov ecx, EnvC
-  mov edx, EnvP
-  mov edi, Environment
-@L2:
-  mov esi, [edx]
-@Copying:
-  lodsb
-  stosb
-  or al, al
-  jnz @Copying
-  dec ecx
-  jecxz @Stop2
-  inc edx
-  inc edx
-  inc edx
-  inc edx
-  jmp @L2
-@Stop2:
-  stosb
- end ['eax','ecx','edx','esi','edi'];
-end;
-
-
 procedure SysInitStdIO;
 begin
   { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
@@ -1349,56 +1166,15 @@ begin
         pop ebx
     end;
 
-    { in OS/2 this will always be nil, but in DOS mode }
-    { this can be changed.                             }
-    first_meg := nil;
     {Now request, if we are running under DOS,
      read-access to the first meg. of memory.}
-    if os_mode in [osDOS,osDPMI] then
-        asm
-            push ebx
-            mov eax, 7F13h
-            xor ebx, ebx
-            mov ecx, 0FFFh
-            xor edx, edx
-            call syscall
-            jc @endmem
-            mov first_meg, eax
-         @endmem:
-            pop ebx
-        end
-    else
-        begin
     (* Initialize the amount of file handles *)
-            FileHandleCount := GetFileHandleCount;
-        end;
-    {At 0.9.2, case for enumeration does not work.}
-    case os_mode of
-        osDOS:
-            begin
-                stackbottom:=cardinal(heap_brk);    {In DOS mode, heap_brk is
-                                                     also the stack bottom.}
-                ApplicationType := 1;   (* Running under DOS. *)
-                IsConsole := true;
-                DosEnvInit;
-            end;
-        osOS2:
-            begin
-                DosGetInfoBlocks (@TIB, @PIB);
-                StackBottom := cardinal (TIB^.Stack);
-                Environment := pointer (PIB^.Env);
-                ApplicationType := PIB^.ProcType;
-                IsConsole := ApplicationType <> 3;
-            end;
-        osDPMI:
-            begin
-                stackbottom:=0;     {Not sure how to get it, but seems to be
-                                     always zero.}
-                ApplicationType := 1;   (* Running under DOS. *)
-                IsConsole := true;
-                DosEnvInit;
-            end;
-    end;
+     FileHandleCount := GetFileHandleCount;
+    DosGetInfoBlocks (@TIB, @PIB);
+    StackBottom := cardinal (TIB^.Stack);
+    Environment := pointer (PIB^.Env);
+    ApplicationType := PIB^.ProcType;
+    IsConsole := ApplicationType <> 3;
     exitproc:=nil;
 
     {Initialize the heap.}
@@ -1426,7 +1202,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2003-10-04 08:30:59  yuri
+  Revision 1.38  2003-10-06 14:22:40  yuri
+  * Some emx code removed. Now withous so stupid error as with dos ;)
+
+  Revision 1.37  2003/10/04 08:30:59  yuri
   * at&t syntax instead of intel syntax was used
 
   Revision 1.36  2003/10/03 21:46:41  peter
