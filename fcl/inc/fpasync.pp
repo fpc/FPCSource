@@ -147,7 +147,9 @@ type
   protected
     FBuffer: PChar;
     FBytesInBuffer: Integer;
+    FBufferSent: Boolean;
     FOnBufferEmpty: TNotifyEvent;
+    FOnBufferSent: TNotifyEvent;
 
     function  Seek(Offset: LongInt; Origin: Word): LongInt; override;
     function  Write(const ABuffer; Count: LongInt): LongInt; override;
@@ -164,7 +166,9 @@ type
     procedure Run;              // Write as many data as possible
 
     property BytesInBuffer: Integer read FBytesInBuffer;
+    property BufferSent: Boolean read FBufferSent;
     property OnBufferEmpty: TNotifyEvent read FOnBufferEmpty write FOnBufferEmpty;
+    property OnBufferSent: TNotifyEvent read FOnBufferSent write FOnBufferSent;
   end;
 
 
@@ -312,6 +316,7 @@ begin
   UserData^.Sender := ASender;
   UserData^.TimerHandle :=
     asyncAddTimer(Handle, AMSec, APeriodic, @EventHandler, UserData);
+  Result := UserData;
 end;
 
 procedure TEventLoop.RemoveTimerNotify(AHandle: Pointer);
@@ -683,12 +688,16 @@ end;
 
 function TWriteBuffer.Write(const ABuffer; Count: LongInt): LongInt;
 begin
-  ReallocMem(FBuffer, FBytesInBuffer + Count);
-  Move(ABuffer, FBuffer[FBytesInBuffer], Count);
-  Inc(FBytesInBuffer, Count);
-  if Assigned(fpAsyncWriteBufferDebugStream) then
-    fpAsyncWriteBufferDebugStream.Write(ABuffer, Count);
-  WantWrite;
+  if Count > 0 then
+  begin
+    FBufferSent := False;
+    ReallocMem(FBuffer, FBytesInBuffer + Count);
+    Move(ABuffer, FBuffer[FBytesInBuffer], Count);
+    Inc(FBytesInBuffer, Count);
+    if Assigned(fpAsyncWriteBufferDebugStream) then
+      fpAsyncWriteBufferDebugStream.Write(ABuffer, Count);
+    WantWrite;
+  end;
   Result := Count;
 end;
 
@@ -702,29 +711,30 @@ end;
 
 procedure TWriteBuffer.Run;
 var
-  CurStart, Written: Integer;
+  Written: Integer;
   NewBuf: PChar;
   Failed: Boolean;
 begin
-  CurStart := 0;
   Failed := True;
   repeat
     if FBytesInBuffer = 0 then
     begin
       BufferEmpty;
+      if FBufferSent then
+        exit;
+      WantWrite;
       exit;
     end;
 
-    Written := DoRealWrite(FBuffer[CurStart], FBytesInBuffer - CurStart);
+    Written := DoRealWrite(FBuffer[0], FBytesInBuffer);
     if Written > 0 then
     begin
-      Inc(CurStart, Written);
       Failed := False;
-      GetMem(NewBuf, FBytesInBuffer - CurStart);
-      Move(FBuffer[CurStart], NewBuf[0], FBytesInBuffer - CurStart);
+      Dec(FBytesInBuffer, Written);
+      GetMem(NewBuf, FBytesInBuffer);
+      Move(FBuffer[Written], NewBuf[0], FBytesInBuffer);
       FreeMem(FBuffer);
       FBuffer := NewBuf;
-      Dec(FBytesInBuffer, CurStart);
     end;
   until Written <= 0;
 
@@ -760,17 +770,23 @@ end;
 
 procedure TAsyncWriteStream.BufferEmpty;
 begin
-  if Assigned(NotifyHandle) then
-  begin
-    EventLoop.ClearCanWriteNotify(NotifyHandle);
-    NotifyHandle := nil;
-  end;
   inherited BufferEmpty;
 end;
 
 procedure TAsyncWriteStream.CanWrite(UserData: TObject);
 begin
-  Run;
+  if FBytesInBuffer = 0 then
+  begin
+    if Assigned(NotifyHandle) then
+    begin
+      EventLoop.ClearCanWriteNotify(NotifyHandle);
+      NotifyHandle := nil;
+    end;
+    FBufferSent := True;
+    if Assigned(FOnBufferSent) then
+      FOnBufferSent(Self);
+  end else
+    Run;
   if DoStopAndFree then
     Free;
 end;
@@ -815,7 +831,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-06-25 08:41:01  sg
+  Revision 1.4  2003-08-03 21:18:40  sg
+  * Added TWriteBuffer.OnBufferSent and made this and OnBufferEmpty
+    working correctly
+
+  Revision 1.3  2003/06/25 08:41:01  sg
   * Fixed serious bug in TGenericLineReader: When the reader gets killed
     via StopAndFree during an OnLine callback, the reader now will
     immediately stop reading, so that the owner of the reader can process
