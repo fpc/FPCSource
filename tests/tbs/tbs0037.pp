@@ -14,16 +14,32 @@ uses
    crt;
 
 var
-   gd,gm : integer;
+   gd,gm,res : integer;
 {$endif OK}
 
 begin
 {$ifdef OK}
    gd:=detect;
    initgraph(gd,gm,'');
+   res := graphresult;
+   if res <> grOk then
+     begin
+       graphErrorMsg(res);
+       halt(1);
+     end;
+   setviewport(0,0,getmaxx,getmaxy,clipon);
    line(1,1,100,100);
    {readkey;}
-   setgraphmode($107);
+   setgraphmode(m1024x768);
+   setviewport(0,0,getmaxx,getmaxy,clipon);
+   res := graphresult;
+   if res <> grOk then
+     begin
+       closegraph;
+       graphErrorMsg(res);
+       { no error, graph mode is simply not supported }
+       halt(0);
+     end;
    line(100,100,1024,800);
    {readkey;}
    delay(1000);
