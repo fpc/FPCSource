@@ -208,15 +208,15 @@ unit cpupara;
              else
                begin
                  result.loc:=LOC_REFERENCE;
-                 result.reference.index:=NR_EBP;
-                 result.reference.offset:=4*nr;
+                 result.reference.index:=NR_STACK_POINTER_REG;
+                 result.reference.offset:=POINTER_SIZE*nr;
                end;
            end
          else
            begin
              result.loc:=LOC_REFERENCE;
-             result.reference.index:=NR_EBP;
-             result.reference.offset:=4*nr;
+             result.reference.index:=NR_STACK_POINTER_REG;
+             result.reference.offset:=POINTER_SIZE*nr;
            end;
       end;
 
@@ -440,7 +440,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2003-10-05 21:21:52  peter
+  Revision 1.38  2003-10-07 15:17:07  peter
+    * inline supported again, LOC_REFERENCEs are used to pass the
+      parameters
+    * inlineparasymtable,inlinelocalsymtable removed
+    * exitlabel inserting fixed
+
+  Revision 1.37  2003/10/05 21:21:52  peter
     * c style array of const generates callparanodes
     * varargs paraloc fixes
 

@@ -916,9 +916,6 @@ implementation
 {$ifdef GDB}
     procedure tstoredsymtable.concatstabto(asmlist : taasmoutput);
       begin
-        if symtabletype in [inlineparasymtable,inlinelocalsymtable] then
-          foreach({$ifdef FPCPROCVAR}@{$endif}resetstab,nil);
-
         foreach({$ifdef FPCPROCVAR}@{$endif}concatstab,asmlist);
       end;
 {$endif}
@@ -2259,7 +2256,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.113  2003-10-03 14:43:29  peter
+  Revision 1.114  2003-10-07 15:17:07  peter
+    * inline supported again, LOC_REFERENCEs are used to pass the
+      parameters
+    * inlineparasymtable,inlinelocalsymtable removed
+    * exitlabel inserting fixed
+
+  Revision 1.113  2003/10/03 14:43:29  peter
     * don't report unused hidden parameters
 
   Revision 1.112  2003/10/02 21:13:46  peter

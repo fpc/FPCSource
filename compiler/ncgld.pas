@@ -216,9 +216,7 @@ implementation
                          begin
                            case symtabletype of
                               localsymtable,
-                              parasymtable,
-                              inlinelocalsymtable,
-                              inlineparasymtable :
+                              parasymtable :
                                 begin
                                   if tvarsym(symtableentry).localloc.loc<>LOC_REFERENCE then
                                     internalerror(2003091816);
@@ -246,7 +244,7 @@ implementation
                   { handle call by reference variables when they are not
                     alreayd copied to local copies. Also ignore the reference
                     when we need to load the self pointer for objects }
-                  if (symtabletype in [parasymtable,inlineparasymtable]) and
+                  if (symtabletype=parasymtable) and
                      not(vo_has_local_copy in tvarsym(symtableentry).varoptions) and
                      not(nf_load_self_pointer in flags) and
                      paramanager.push_addr_param(tvarsym(symtableentry).varspez,tvarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption) then
@@ -885,7 +883,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2003-10-05 21:21:52  peter
+  Revision 1.91  2003-10-07 15:17:07  peter
+    * inline supported again, LOC_REFERENCEs are used to pass the
+      parameters
+    * inlineparasymtable,inlinelocalsymtable removed
+    * exitlabel inserting fixed
+
+  Revision 1.90  2003/10/05 21:21:52  peter
     * c style array of const generates callparanodes
     * varargs paraloc fixes
 

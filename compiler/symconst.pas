@@ -271,9 +271,7 @@ type
     globalsymtable,staticsymtable,
     objectsymtable,recordsymtable,
     localsymtable,parasymtable,
-    withsymtable,stt_exceptsymtable,
-    { used for inline detection }
-    inlineparasymtable,inlinelocalsymtable
+    withsymtable,stt_exceptsymtable
   );
 
 
@@ -379,7 +377,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2003-10-06 22:23:41  florian
+  Revision 1.67  2003-10-07 15:17:07  peter
+    * inline supported again, LOC_REFERENCEs are used to pass the
+      parameters
+    * inlineparasymtable,inlinelocalsymtable removed
+    * exitlabel inserting fixed
+
+  Revision 1.66  2003/10/06 22:23:41  florian
     + added basic olevariant support
 
   Revision 1.65  2003/09/28 17:55:04  peter

@@ -76,7 +76,7 @@ implementation
     uses
       systems,
       cutils,verbose,globals,
-      symconst,symbase,symsym,symtable,defutil,paramgr,
+      symconst,symsym,symtable,defutil,paramgr,
 {$ifdef GDB}
   {$ifdef delphi}
       sysutils,
@@ -86,18 +86,13 @@ implementation
       gdb,
 {$endif GDB}
       cgbase,pass_2,
-      cpuinfo,aasmbase,aasmtai,aasmcpu,
+      cpuinfo,aasmbase,aasmtai,
       nbas,nmem,nld,ncnv,
 {$ifdef x86}
       cga,
 {$endif x86}
-{$ifdef cpu64bit}
-      cg64f64,
-{$else cpu64bit}
-      cg64f32,
-{$endif cpu64bit}
       ncgutil,cgobj,tgobj,
-      regvars,rgobj,rgcpu,
+      rgobj,rgcpu,
       procinfo;
 
 
@@ -148,82 +143,61 @@ implementation
         { Handle Floating point types differently }
         if left.resulttype.def.deftype=floatdef then
          begin
-(*
-           if calloption=pocall_inline then
-             begin
-               size:=align(tfloatdef(p.resulttype.def).size,alignment);
-               inc(pushedparasize,size);
-               reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-               case left.location.loc of
-                 LOC_FPUREGISTER,
-                 LOC_CFPUREGISTER:
-                   cg.a_loadfpu_reg_ref(exprasmlist,def_cgsize(p.resulttype.def),left.location.register,href);
-                 LOC_REFERENCE,
-                 LOC_CREFERENCE :
-                   cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false);
-                 else
-                   internalerror(200204243);
-               end;
-             end
-           else
-*)
-             begin
-               location_release(exprasmlist,left.location);
-               allocate_tempparaloc;
+           location_release(exprasmlist,left.location);
+           allocate_tempparaloc;
 {$ifdef i386}
-               case left.location.loc of
-                 LOC_FPUREGISTER,
-                 LOC_CFPUREGISTER:
-                   begin
-                      if tempparaloc.loc<>LOC_REFERENCE then
-                        internalerror(200309291);
-                      size:=align(tfloatdef(left.resulttype.def).size,tempparaloc.alignment);
-                      inc(tcgcallnode(aktcallnode).pushedparasize,size);
-                      cg.g_stackpointer_alloc(exprasmlist,size);
-                      reference_reset_base(href,NR_STACK_POINTER_REG,0);
-                      cg.a_loadfpu_reg_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,href);
-                   end;
-                 LOC_REFERENCE,
-                 LOC_CREFERENCE :
-                   begin
-                     sizetopush:=align(left.resulttype.def.size,tempparaloc.alignment);
-                     tempreference:=left.location.reference;
-                     inc(tempreference.offset,sizetopush);
-                     while (sizetopush>0) do
-                      begin
-                        if (sizetopush>=4) or (tempparaloc.alignment>=4) then
-                         begin
-                           cgsize:=OS_32;
-                           inc(tcgcallnode(aktcallnode).pushedparasize,4);
-                           dec(tempreference.offset,4);
-                           dec(sizetopush,4);
-                         end
-                        else
-                         begin
-                           cgsize:=OS_16;
-                           inc(tcgcallnode(aktcallnode).pushedparasize,2);
-                           dec(tempreference.offset,2);
-                           dec(sizetopush,2);
-                         end;
-                        cg.a_param_ref(exprasmlist,cgsize,tempreference,tempparaloc);
-                      end;
-                   end;
-                 else
-                   internalerror(200204243);
+           case left.location.loc of
+             LOC_FPUREGISTER,
+             LOC_CFPUREGISTER:
+               begin
+                  if tempparaloc.loc<>LOC_REFERENCE then
+                    internalerror(200309291);
+                  size:=align(tfloatdef(left.resulttype.def).size,tempparaloc.alignment);
+                  inc(tcgcallnode(aktcallnode).pushedparasize,size);
+                  cg.g_stackpointer_alloc(exprasmlist,size);
+                  reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                  cg.a_loadfpu_reg_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,href);
                end;
+             LOC_REFERENCE,
+             LOC_CREFERENCE :
+               begin
+                 sizetopush:=align(left.resulttype.def.size,tempparaloc.alignment);
+                 tempreference:=left.location.reference;
+                 inc(tempreference.offset,sizetopush);
+                 while (sizetopush>0) do
+                  begin
+                    if (sizetopush>=4) or (tempparaloc.alignment>=4) then
+                     begin
+                       cgsize:=OS_32;
+                       inc(tcgcallnode(aktcallnode).pushedparasize,4);
+                       dec(tempreference.offset,4);
+                       dec(sizetopush,4);
+                     end
+                    else
+                     begin
+                       cgsize:=OS_16;
+                       inc(tcgcallnode(aktcallnode).pushedparasize,2);
+                       dec(tempreference.offset,2);
+                       dec(sizetopush,2);
+                     end;
+                    cg.a_param_ref(exprasmlist,cgsize,tempreference,tempparaloc);
+                  end;
+               end;
+             else
+               internalerror(200204243);
+           end;
 {$else i386}
-               case left.location.loc of
-                 LOC_FPUREGISTER,
-                 LOC_CFPUREGISTER:
-                   cg.a_paramfpu_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc);
-                 LOC_REFERENCE,
-                 LOC_CREFERENCE :
-                   cg.a_paramfpu_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.reference,tempparaloc)
-                 else
-                   internalerror(200204243);
-               end;
+           case left.location.loc of
+             LOC_FPUREGISTER,
+             LOC_CFPUREGISTER:
+               cg.a_paramfpu_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc);
+             LOC_REFERENCE,
+             LOC_CREFERENCE :
+               cg.a_paramfpu_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.reference,tempparaloc)
+             else
+               internalerror(200204243);
+           end;
 {$endif i386}
-             end;
          end
         else
          begin
@@ -263,44 +237,16 @@ implementation
                     if cgsize in [OS_64,OS_S64] then
                      begin
                        inc(tcgcallnode(aktcallnode).pushedparasize,8);
-(*
-                       if calloption=pocall_inline then
-                        begin
-                          reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                          if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-                            begin
-                              size:=align(p.resulttype.def.size,alignment);
-                              cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false)
-                            end
-                          else
-                            cg64.a_load64_loc_ref(exprasmlist,left.location,href);
-                        end
-                       else
-*)
-                        allocate_tempparaloc;
-                        cg64.a_param64_loc(exprasmlist,left.location,tempparaloc);
-                        location_release(exprasmlist,left.location);
+                       allocate_tempparaloc;
+                       cg64.a_param64_loc(exprasmlist,left.location,tempparaloc);
+                       location_release(exprasmlist,left.location);
                      end
                     else
                      begin
                        location_release(exprasmlist,left.location);
                        allocate_tempparaloc;
                        inc(tcgcallnode(aktcallnode).pushedparasize,align(tcgsize2size[tempparaloc.size],tempparaloc.alignment));
-(*
-                       if calloption=pocall_inline then
-                        begin
-                          reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                          if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-                            begin
-                              size:=align(p.resulttype.def.size,alignment);
-                              cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false)
-                            end
-                          else
-                            cg.a_load_loc_ref(exprasmlist,left.location.size,left.location,href);
-                        end
-                       else
-*)
-                        cg.a_param_loc(exprasmlist,left.location,tempparaloc);
+                       cg.a_param_loc(exprasmlist,left.location,tempparaloc);
                      end;
                   end;
 {$ifdef SUPPORT_MMX}
@@ -310,15 +256,7 @@ implementation
                      location_release(exprasmlist,left.location);
                      allocate_tempparaloc;
                      inc(tcgcallnode(aktcallnode).pushedparasize,8);
-(*
-                     if calloption=pocall_inline then
-                       begin
-                          reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                          cg.a_loadmm_reg_ref(exprasmlist,left.location.register,href);
-                       end
-                     else
-*)
-                      cg.a_parammm_reg(exprasmlist,left.location.register);
+                     cg.a_parammm_reg(exprasmlist,left.location.register);
                   end;
 {$endif SUPPORT_MMX}
                 else
@@ -639,12 +577,11 @@ implementation
          pushedother : tpushedsavedother;
          oldpushedparasize : longint;
          { adress returned from an I/O-error }
-         iolabel : tasmlabel;
          { help reference pointer }
          href : treference;
          pop_size : longint;
          pvreg,
-         vmtreg,vmtreg2 : tregister;
+         vmtreg : tregister;
          oldaktcallnode : tcallnode;
 
          procedure pushparas;
@@ -714,7 +651,6 @@ implementation
          if assigned(varargsparas) then
            paramanager.create_varargs_paraloc_info(procdefinition,varargsparas);
 
-         iolabel:=nil;
          rg.saveunusedstate(unusedstate);
 
          if not assigned(funcretnode) then
@@ -805,13 +741,6 @@ implementation
 
                    { release self }
                    rg.ungetaddressregister(exprasmlist,vmtreg);
-(*
-                   vmtreg2:=rg.getabtregisterint(exprasmlist,OS_ADDR);
-                   cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,vmtreg,vmtreg2);
-
-                   { load virtual method (procvar) }
-                   rg.ungetregisterint(exprasmlist,vmtreg2);
-*)
                    pvreg:=rg.getabtregisterint(exprasmlist,OS_ADDR);
                    reference_reset_base(href,vmtreg,
                       tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber));
@@ -988,32 +917,18 @@ implementation
 
     procedure tcgcallnode.inlined_pass_2;
       var
-         regs_to_push_int : Tsuperregisterset;
-         regs_to_push_other : totherregisterset;
          unusedstate: pointer;
-         pushedother : tpushedsavedother;
-         oldpushedparasize : longint;
          oldaktcallnode : tcallnode;
-         i : longint;
          oldprocinfo : tprocinfo;
          oldinlining_procedure : boolean;
          inlineentrycode,inlineexitcode : TAAsmoutput;
-         oldregstate: pointer;
-         old_local_fixup,
-         old_para_fixup : longint;
          usesacc,usesacchi,usesfpu : boolean;
-         pararef,
-         localsref : treference;
 {$ifdef GDB}
          startlabel,endlabel : tasmlabel;
          pp : pchar;
          mangled_length  : longint;
 {$endif GDB}
       begin
-
-{$warning TODO Fix inlining}
-         internalerror(200309211);
-
          if not(assigned(procdefinition) and (procdefinition.deftype=procdef)) then
            internalerror(200305262);
 
@@ -1025,68 +940,9 @@ implementation
          { calculate registers to pass the parameters }
          paramanager.create_inline_paraloc_info(procdefinition);
 
-(*
-         { deallocate the registers used for the current procedure's regvars }
-         if assigned(current_procinfo.procdef.regvarinfo) then
-           begin
-             with pregvarinfo(current_procinfo.procdef.regvarinfo)^ do
-               for i := 1 to maxvarregs do
-                 if assigned(regvars[i]) then
-                   store_regvar(exprasmlist,regvars[i].localloc.register);
-             rg.saveStateForInline(oldregstate);
-             { make sure the register allocator knows what the regvars in the }
-             { inlined code block are (JM)                                    }
-             rg.resetusableregisters;
-             rg.clearregistercount;
-             if assigned(tprocdef(procdefinition).regvarinfo) then
-               with pregvarinfo(tprocdef(procdefinition).regvarinfo)^ do
-                 for i := 1 to maxvarregs do
-                   if assigned(regvars[i]) then
-                     begin
-                       {Fix me!!}
-                       {tmpreg:=rg.makeregsize(regvars[i].reg,OS_INT);
-                       rg.makeregvar(tmpreg);}
-                       internalerror(200301232);
-                     end;
-           end;
-*)
-
          { create temp procinfo }
          current_procinfo:=cprocinfo.create(nil);
          current_procinfo.procdef:=tprocdef(procdefinition);
-
-(*
-         { Localsymtable }
-         current_procinfo.procdef.localst.symtablelevel:=oldprocdef.localst.symtablelevel;
-         if current_procinfo.procdef.localst.datasize>0 then
-           begin
-             old_local_fixup:=current_procinfo.procdef.localst.address_fixup;
-             tg.GetTemp(exprasmlist,current_procinfo.procdef.localst.datasize,tt_persistent,localsref);
-             if tg.direction>0 then
-               current_procinfo.procdef.localst.address_fixup:=localsref.offset
-             else
-               current_procinfo.procdef.localst.address_fixup:=localsref.offset+current_procinfo.procdef.localst.datasize;
-{$ifdef extdebug}
-             Comment(V_debug,'inlined local symtable ('+tostr(current_procinfo.procdef.localst.datasize)+' bytes) is at offset '+tostr(current_procinfo.procdef.localst.address_fixup));
-             exprasmList.concat(tai_comment.Create(strpnew(
-               'inlined local symtable ('+tostr(current_procinfo.procdef.localst.datasize)+' bytes) is at offset '+tostr(current_procinfo.procdef.localst.address_fixup))));
-{$endif extdebug}
-           end;
-
-         { Parasymtable }
-         current_procinfo.procdef.parast.symtablelevel:=oldprocdef.localst.symtablelevel;
-         if current_procinfo.procdef.parast.datasize>0 then
-           begin
-             old_para_fixup:=current_procinfo.procdef.parast.address_fixup;
-             tg.GetTemp(exprasmlist,current_procinfo.procdef.parast.datasize,tt_persistent,pararef);
-             current_procinfo.procdef.parast.address_fixup:=pararef.offset;
-{$ifdef extdebug}
-             Comment(V_debug,'inlined para symtable ('+tostr(current_procinfo.procdef.parast.datasize)+' bytes) is at offset '+tostr(current_procinfo.procdef.parast.address_fixup));
-             exprasmList.concat(tai_comment.Create(strpnew(
-               'inlined para symtable ('+tostr(current_procinfo.procdef.parast.datasize)+' bytes) is at offset '+tostr(current_procinfo.procdef.parast.address_fixup))));
-{$endif extdebug}
-           end;
-*)
 
          { Add inling start }
          exprasmList.concat(Tai_Marker.Create(InlineStart));
@@ -1095,7 +951,7 @@ implementation
 {$endif extdebug}
 
          { Allocate parameters and locals }
-         gen_alloc_parast(exprasmlist,tparasymtable(current_procinfo.procdef.parast));
+         gen_alloc_inline_parast(exprasmlist,tparasymtable(current_procinfo.procdef.parast));
          if current_procinfo.procdef.localst.symtabletype=localsymtable then
            gen_alloc_localst(exprasmlist,tlocalsymtable(current_procinfo.procdef.localst));
 
@@ -1105,15 +961,9 @@ implementation
              objectlibrary.getaddrlabel(startlabel);
              objectlibrary.getaddrlabel(endlabel);
              cg.a_label(exprasmlist,startlabel);
-//             tprocdef(procdefinition).localst.symtabletype:=inlinelocalsymtable;
-//             procdefinition.parast.symtabletype:=inlineparasymtable;
 
              { Here we must include the para and local symtable info }
              procdefinition.concatstabto(withdebuglist);
-
-             { set it back for safety }
-//             tprocdef(procdefinition).localst.symtabletype:=localsymtable;
-//             procdefinition.parast.symtabletype:=parasymtable;
 
              mangled_length:=length(oldprocinfo.procdef.mangledname);
              getmem(pp,mangled_length+50);
@@ -1142,36 +992,6 @@ implementation
              cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
            end;
 
-(*
-         { save all used registers and possible registers
-           used for the return value }
-         regs_to_push_int:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
-         regs_to_push_other:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
-         if (not is_void(resulttype.def)) then
-           begin
-             case procdefinition.funcret_paraloc[callerside].loc of
-               LOC_REGISTER,LOC_CREGISTER:
-                 begin
-{$ifndef cpu64bit}
-                   if procdefinition.funcret_paraloc[callerside].size in [OS_S64,OS_64] then
-                     begin
-                       include(regs_to_push_int,getsupreg(procdefinition.funcret_paraloc[callerside].registerlow));
-                       include(regs_to_push_int,getsupreg(procdefinition.funcret_paraloc[callerside].registerhigh));
-                     end
-                   else
-{$endif cpu64bit}
-                    include(regs_to_push_int,getsupreg(procdefinition.funcret_paraloc[callerside].register));
-                 end;
-             end;
-           end;
-
-         rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
-*)
-
-         { Initialize for pushing the parameters }
-//         oldpushedparasize:=pushedparasize;
-//         pushedparasize:=0;
-
          { Push parameters }
          oldaktcallnode:=aktcallnode;
          aktcallnode:=self;
@@ -1179,12 +999,11 @@ implementation
            tcallparanode(left).secondcallparan;
          aktcallnode:=oldaktcallnode;
 
-//         rg.saveotherregvars(exprasmlist,regs_to_push_other);
-
          { takes care of local data initialization }
          inlineentrycode:=TAAsmoutput.Create;
          inlineexitcode:=TAAsmoutput.Create;
 
+         gen_load_para_value(inlineentrycode);
          gen_initialize_code(inlineentrycode,true);
          if po_assembler in current_procinfo.procdef.procoptions then
            inlineentrycode.insert(Tai_marker.Create(asmblockstart));
@@ -1192,13 +1011,6 @@ implementation
 
          { process the inline code }
          secondpass(inlinecode);
-
-         { Reserve space for storing parameters that will be pushed }
-//         current_procinfo.allocate_push_parasize(pushedparasize);
-
-         { Restore }
-//         pushedparasize:=oldpushedparasize;
-//         rg.restoreunusedstate(unusedstate);
 
          gen_finalize_code(inlineexitcode,true);
          gen_load_return_value(inlineexitcode,usesacc,usesacchi,usesfpu);
@@ -1212,21 +1024,6 @@ implementation
          exprasmList.concat(tai_comment.Create(strpnew('End of inlined proc')));
 {$endif extdebug}
          exprasmList.concat(Tai_Marker.Create(InlineEnd));
-
-(*
-         {we can free the local data now, reset also the fixup address }
-         if current_procinfo.procdef.localst.datasize>0 then
-           begin
-             tg.UnGetTemp(exprasmlist,localsref);
-             current_procinfo.procdef.localst.address_fixup:=old_local_fixup;
-           end;
-         {we can free the para data now, reset also the fixup address }
-         if current_procinfo.procdef.parast.datasize>0 then
-           begin
-             tg.UnGetTemp(exprasmlist,pararef);
-             current_procinfo.procdef.parast.address_fixup:=old_para_fixup;
-           end;
-*)
 
          { handle function results }
          if (not is_void(resulttype.def)) then
@@ -1246,9 +1043,6 @@ implementation
               cg.a_call_name(exprasmlist,'FPC_IOCHECK');
               rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
            end;
-
-         { restore registers }
-//         rg.restoreusedotherregisters(exprasmlist,pushedother);
 
          { release temps of paras }
          release_para_temps;
@@ -1277,6 +1071,11 @@ implementation
 {$endif x86}
                 end;
            end;
+
+         { Release parameters and locals }
+         gen_free_parast(exprasmlist,tparasymtable(current_procinfo.procdef.parast));
+         if current_procinfo.procdef.localst.symtabletype=localsymtable then
+           gen_free_localst(exprasmlist,tlocalsymtable(current_procinfo.procdef.localst));
 
          { release procinfo }
          current_procinfo.free;
@@ -1324,7 +1123,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.125  2003-10-05 21:21:52  peter
+  Revision 1.126  2003-10-07 15:17:07  peter
+    * inline supported again, LOC_REFERENCEs are used to pass the
+      parameters
+    * inlineparasymtable,inlinelocalsymtable removed
+    * exitlabel inserting fixed
+
+  Revision 1.125  2003/10/05 21:21:52  peter
     * c style array of const generates callparanodes
     * varargs paraloc fixes
 

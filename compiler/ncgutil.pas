@@ -44,9 +44,9 @@ interface
     procedure maketojumpbool(list:TAAsmoutput; p : tnode; loadregvars: tloadregvars);
     procedure remove_non_regvars_from_loc(const t: tlocation; var regs:Tsuperregisterset);
 
-    procedure location_force_reg(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
-    procedure location_force_fpureg(list: TAAsmoutput;var l: tlocation;maybeconst:boolean);
-    procedure location_force_mem(list: TAAsmoutput;var l:tlocation);
+    procedure location_force_reg(list:TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
+    procedure location_force_fpureg(list:TAAsmoutput;var l: tlocation;maybeconst:boolean);
+    procedure location_force_mem(list:TAAsmoutput;var l:tlocation);
 
     function  maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
 
@@ -54,16 +54,18 @@ interface
     procedure gen_proc_symbol_end(list:Taasmoutput);
     procedure gen_stackalloc_code(list:Taasmoutput);
     procedure gen_stackfree_code(list:Taasmoutput;usesacc,usesacchi:boolean);
-    procedure gen_save_used_regs(list : TAAsmoutput);
-    procedure gen_restore_used_regs(list : TAAsmoutput;usesacc,usesacchi,usesfpu:boolean);
+    procedure gen_save_used_regs(list:TAAsmoutput);
+    procedure gen_restore_used_regs(list:TAAsmoutput;usesacc,usesacchi,usesfpu:boolean);
     procedure gen_initialize_code(list:TAAsmoutput;inlined:boolean);
-    procedure gen_finalize_code(list : TAAsmoutput;inlined:boolean);
+    procedure gen_finalize_code(list:TAAsmoutput;inlined:boolean);
+    procedure gen_entry_code(list:TAAsmoutput);
+    procedure gen_exit_code(list:TAAsmoutput);
     procedure gen_load_para_value(list:TAAsmoutput);
     procedure gen_load_return_value(list:TAAsmoutput; var uses_acc,uses_acchi,uses_fpu : boolean);
 
 (*
-    procedure geninlineentrycode(list : TAAsmoutput;stackframe:longint);
-    procedure geninlineexitcode(list : TAAsmoutput;inlined:boolean);
+    procedure geninlineentrycode(list:TAAsmoutput;stackframe:longint);
+    procedure geninlineexitcode(list:TAAsmoutput;inlined:boolean);
 *)
 
    {#
@@ -81,18 +83,19 @@ interface
       be modified, all temps should be allocated on the heap instead of the
       stack.
     }
-    procedure new_exception(list : taasmoutput;const jmpbuf,envbuf, href : treference;
+    procedure new_exception(list:TAAsmoutput;const jmpbuf,envbuf, href : treference;
       a : aword; exceptlabel : tasmlabel);
-    procedure free_exception(list : taasmoutput;const jmpbuf, envbuf, href : treference;
+    procedure free_exception(list:TAAsmoutput;const jmpbuf, envbuf, href : treference;
       a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
 
     procedure insertconstdata(sym : ttypedconstsym);
     procedure insertbssdata(sym : tvarsym);
 
-    procedure gen_alloc_localst(list: taasmoutput;st:tlocalsymtable);
-    procedure gen_free_localst(list: taasmoutput;st:tlocalsymtable);
-    procedure gen_alloc_parast(list: taasmoutput;st:tparasymtable);
-    procedure gen_free_parast(list: taasmoutput;st:tparasymtable);
+    procedure gen_alloc_localst(list:TAAsmoutput;st:tlocalsymtable);
+    procedure gen_free_localst(list:TAAsmoutput;st:tlocalsymtable);
+    procedure gen_alloc_parast(list:TAAsmoutput;st:tparasymtable);
+    procedure gen_alloc_inline_parast(list:TAAsmoutput;st:tparasymtable);
+    procedure gen_free_parast(list:TAAsmoutput;st:tparasymtable);
 
 
 implementation
@@ -259,7 +262,7 @@ implementation
                             EXCEPTION MANAGEMENT
 *****************************************************************************}
 
-    procedure new_exception(list : taasmoutput;const jmpbuf,envbuf, href : treference;
+    procedure new_exception(list:TAAsmoutput;const jmpbuf,envbuf, href : treference;
       a : aword; exceptlabel : tasmlabel);
 
       var
@@ -294,7 +297,7 @@ implementation
      end;
 
 
-    procedure free_exception(list : taasmoutput;const jmpbuf, envbuf, href : treference;
+    procedure free_exception(list:TAAsmoutput;const jmpbuf, envbuf, href : treference;
      a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
 
      begin
@@ -316,7 +319,7 @@ implementation
 
 {$ifndef cpu64bit}
     { 32-bit version }
-    procedure location_force_reg(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
+    procedure location_force_reg(list:TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
       var
         hregister,
         hregisterhi : tregister;
@@ -479,7 +482,7 @@ implementation
 {$else cpu64bit}
 
     { 64-bit version }
-    procedure location_force_reg(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
+    procedure location_force_reg(list:TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
       var
         hregister : tregister;
         hl : tasmlabel;
@@ -597,7 +600,7 @@ implementation
 {$endif cpu64bit}
 
 
-    procedure location_force_fpureg(list: TAAsmoutput;var l: tlocation;maybeconst:boolean);
+    procedure location_force_fpureg(list:TAAsmoutput;var l: tlocation;maybeconst:boolean);
       var
         reg : tregister;
       begin
@@ -614,7 +617,7 @@ implementation
       end;
 
 
-    procedure location_force_mem(list: TAAsmoutput;var l:tlocation);
+    procedure location_force_mem(list:TAAsmoutput;var l:tlocation);
       var
         r : treference;
       begin
@@ -678,7 +681,7 @@ implementation
     procedure copyvalueparas(p : tnamedindexitem;arg:pointer);
       var
         href1,href2 : treference;
-        list : taasmoutput;
+        list:TAAsmoutput;
         hsym : tvarsym;
         l    : longint;
         loadref : boolean;
@@ -750,7 +753,7 @@ implementation
     procedure initialize_data(p : tnamedindexitem;arg:pointer);
       var
         href : treference;
-        list : taasmoutput;
+        list:TAAsmoutput;
       begin
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
@@ -761,7 +764,7 @@ implementation
          begin
            if (cs_implicit_exceptions in aktmoduleswitches) then
             include(current_procinfo.flags,pi_needs_implicit_finally);
-           if tvarsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
+           if tvarsym(p).owner.symtabletype=localsymtable then
              begin
                case tvarsym(p).localloc.loc of
                  LOC_REFERENCE :
@@ -781,7 +784,7 @@ implementation
     procedure finalize_data(p : tnamedindexitem;arg:pointer);
       var
         href : treference;
-        list : taasmoutput;
+        list:TAAsmoutput;
       begin
         list:=taasmoutput(arg);
         case tsym(p).typ of
@@ -793,7 +796,7 @@ implementation
                  not(is_class(tvarsym(p).vartype.def)) and
                  tvarsym(p).vartype.def.needs_inittable then
                begin
-                 if tvarsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
+                 if tvarsym(p).owner.symtabletype=localsymtable then
                    begin
                      case tvarsym(p).localloc.loc of
                        LOC_REFERENCE :
@@ -826,7 +829,7 @@ implementation
       var
         href : treference;
         tmpreg : tregister;
-        list : taasmoutput;
+        list:TAAsmoutput;
       begin
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
@@ -866,7 +869,7 @@ implementation
     procedure final_paras(p : tnamedindexitem;arg:pointer);
       var
         href : treference;
-        list : taasmoutput;
+        list:TAAsmoutput;
       begin
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
@@ -1116,6 +1119,28 @@ implementation
                     begin
                       if hp.paraloc[calleeside].loc<>LOC_REFERENCE then
                         begin
+                          if getsupreg(hp.paraloc[calleeside].register)<first_int_imreg then
+                            begin
+{$ifndef cpu64bit}
+                              if (hp.paraloc[calleeside].size in [OS_S64,OS_64]) then
+                                begin
+                                  rg.getexplicitregisterint(list,hp.paraloc[calleeside].registerlow);
+                                  rg.getexplicitregisterint(list,hp.paraloc[calleeside].registerhigh);
+                                end
+                              else
+{$endif cpu64bit}
+                                rg.getexplicitregisterint(list,hp.paraloc[calleeside].register);
+                            end;
+                          { Release parameter register }
+{$ifndef cpu64bit}
+                          if (hp.paraloc[calleeside].size in [OS_S64,OS_64]) then
+                            begin
+                              rg.ungetregisterint(list,hp.paraloc[calleeside].registerlow);
+                              rg.ungetregisterint(list,hp.paraloc[calleeside].registerhigh);
+                            end
+                          else
+{$endif cpu64bit}
+                            rg.ungetregisterint(list,hp.paraloc[calleeside].register);
                           reference_reset_base(href,tvarsym(hp.parasym).localloc.reference.index,tvarsym(hp.parasym).localloc.reference.offset);
                           cg.a_load_param_ref(list,hp.paraloc[calleeside],href);
                         end;
@@ -1147,28 +1172,7 @@ implementation
 
 
     procedure gen_initialize_code(list:TAAsmoutput;inlined:boolean);
-      var
-        href : treference;
-        paraloc1,
-        paraloc2 : tparalocation;
       begin
-        { the actual profile code can clobber some registers,
-          therefore if the context must be saved, do it before
-          the actual call to the profile code
-        }
-        if (cs_profile in aktmoduleswitches) and
-           not(po_assembler in current_procinfo.procdef.procoptions) and
-           not(inlined) then
-          begin
-            { non-win32 can call mcout even in main }
-            if not (target_info.system in [system_i386_win32,system_i386_wdosx])  then
-              cg.g_profilecode(list)
-            else
-            { wdosx, and win32 should not call mcount before monstartup has been called }
-            if not (current_procinfo.procdef.proctypeoption=potype_proginit) then
-              cg.g_profilecode(list);
-          end;
-
         { initialize local data like ansistrings }
         case current_procinfo.procdef.proctypeoption of
            potype_unitinit:
@@ -1193,50 +1197,12 @@ implementation
         { initialize ansi/widesstring para's }
         current_procinfo.procdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
 
-        if (not inlined) then
-         begin
-           { call startup helpers from main program }
-           if (current_procinfo.procdef.proctypeoption=potype_proginit) then
-            begin
-              { initialize profiling for win32 }
-              if (target_info.system in [system_i386_win32,system_i386_wdosx]) and
-                 (cs_profile in aktmoduleswitches) then
-               begin
-                 reference_reset_symbol(href,objectlibrary.newasmsymboldata('etext'),0);
-                 paraloc1:=paramanager.getintparaloc(pocall_default,1);
-                 paraloc2:=paramanager.getintparaloc(pocall_default,2);
-                 paramanager.allocparaloc(list,paraloc2);
-                 cg.a_paramaddr_ref(list,href,paraloc2);
-                 reference_reset_symbol(href,objectlibrary.newasmsymboldata('__image_base__'),0);
-                 paramanager.allocparaloc(list,paraloc1);
-                 cg.a_paramaddr_ref(list,href,paraloc1);
-                 paramanager.freeparaloc(list,paraloc2);
-                 paramanager.freeparaloc(list,paraloc1);
-                 rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_cdecl));
-                 cg.a_call_name(list,'_monstartup');
-                 rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_cdecl));
-               end;
-
-              { initialize units }
-              rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
-              cg.a_call_name(list,'FPC_INITIALIZEUNITS');
-              rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
-            end;
-
-{$ifdef GDB}
-           if (cs_debuginfo in aktmoduleswitches) then
-            list.concat(Tai_force_line.Create);
-{$endif GDB}
-         end;
-
         load_regvars(list,nil);
       end;
 
 
-    procedure gen_finalize_code(list : TAAsmoutput;inlined:boolean);
+    procedure gen_finalize_code(list:TAAsmoutput;inlined:boolean);
       begin
-        cg.a_label(list,current_procinfo.aktexitlabel);
-
         cleanup_regvars(list);
 
         { finalize temporary data }
@@ -1263,14 +1229,74 @@ implementation
         { finalize paras data }
         if assigned(current_procinfo.procdef.parast) then
           current_procinfo.procdef.parast.foreach_static({$ifndef TP}@{$endif}final_paras,list);
+      end;
 
+
+    procedure gen_entry_code(list:TAAsmoutput);
+      var
+        href : treference;
+        paraloc1,
+        paraloc2 : tparalocation;
+      begin
+        { the actual profile code can clobber some registers,
+          therefore if the context must be saved, do it before
+          the actual call to the profile code
+        }
+        if (cs_profile in aktmoduleswitches) and
+           not(po_assembler in current_procinfo.procdef.procoptions) then
+          begin
+            { non-win32 can call mcout even in main }
+            if not (target_info.system in [system_i386_win32,system_i386_wdosx])  then
+              cg.g_profilecode(list)
+            else
+            { wdosx, and win32 should not call mcount before monstartup has been called }
+            if not (current_procinfo.procdef.proctypeoption=potype_proginit) then
+              cg.g_profilecode(list);
+          end;
+
+        { call startup helpers from main program }
+        if (current_procinfo.procdef.proctypeoption=potype_proginit) then
+         begin
+           { initialize profiling for win32 }
+           if (target_info.system in [system_i386_win32,system_i386_wdosx]) and
+              (cs_profile in aktmoduleswitches) then
+            begin
+              reference_reset_symbol(href,objectlibrary.newasmsymboldata('etext'),0);
+              paraloc1:=paramanager.getintparaloc(pocall_default,1);
+              paraloc2:=paramanager.getintparaloc(pocall_default,2);
+              paramanager.allocparaloc(list,paraloc2);
+              cg.a_paramaddr_ref(list,href,paraloc2);
+              reference_reset_symbol(href,objectlibrary.newasmsymboldata('__image_base__'),0);
+              paramanager.allocparaloc(list,paraloc1);
+              cg.a_paramaddr_ref(list,href,paraloc1);
+              paramanager.freeparaloc(list,paraloc2);
+              paramanager.freeparaloc(list,paraloc1);
+              rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_cdecl));
+              cg.a_call_name(list,'_monstartup');
+              rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_cdecl));
+            end;
+
+           { initialize units }
+           rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+           cg.a_call_name(list,'FPC_INITIALIZEUNITS');
+           rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+         end;
+
+{$ifdef GDB}
+        if (cs_debuginfo in aktmoduleswitches) then
+         list.concat(Tai_force_line.Create);
+{$endif GDB}
+
+        load_regvars(list,nil);
+      end;
+
+
+    procedure gen_exit_code(list:TAAsmoutput);
+      begin
         { call __EXIT for main program }
         if (not DLLsource) and
-           (not inlined) and
            (current_procinfo.procdef.proctypeoption=potype_proginit) then
           cg.a_call_name(list,'FPC_DO_EXIT');
-
-        cleanup_regvars(list);
       end;
 
 
@@ -1463,7 +1489,7 @@ implementation
       end;
 
 
-    procedure gen_save_used_regs(list : TAAsmoutput);
+    procedure gen_save_used_regs(list:TAAsmoutput);
       begin
         { Pure assembler routines need to save the registers themselves }
         if (po_assembler in current_procinfo.procdef.procoptions) then
@@ -1479,7 +1505,7 @@ implementation
       end;
 
 
-    procedure gen_restore_used_regs(list : TAAsmoutput;usesacc,usesacchi,usesfpu:boolean);
+    procedure gen_restore_used_regs(list:TAAsmoutput;usesacc,usesacchi,usesfpu:boolean);
       begin
         { Pure assembler routines need to save the registers themselves }
         if (po_assembler in current_procinfo.procdef.procoptions) then
@@ -1581,7 +1607,7 @@ implementation
       end;
 
 
-    procedure geninlineentrycode(list : TAAsmoutput;stackframe:longint);
+    procedure geninlineentrycode(list:TAAsmoutput;stackframe:longint);
       begin
         { initialize return value }
         initretvalue(list);
@@ -1603,7 +1629,7 @@ implementation
       end;
 
 
-   procedure geninlineexitcode(list : TAAsmoutput;inlined:boolean);
+   procedure geninlineexitcode(list:TAAsmoutput;inlined:boolean);
       var
         usesacc,
         usesacchi,
@@ -1714,7 +1740,7 @@ implementation
       end;
 
 
-    procedure gen_alloc_localst(list: taasmoutput;st:tlocalsymtable);
+    procedure gen_alloc_localst(list:TAAsmoutput;st:tlocalsymtable);
       var
         sym : tsym;
       begin
@@ -1730,6 +1756,9 @@ implementation
 {$warning TODO Add support for register variables}
                     localloc.loc:=LOC_REFERENCE;
                     tg.GetLocal(list,getvaluesize,localloc.reference);
+                    if cs_asm_source in aktglobalswitches then
+                      list.concat(Tai_comment.Create(strpnew('Local '+realname+' located at '+
+                          std_regname(localloc.reference.index)+tostr_with_plus(localloc.reference.offset))));
                   end;
               end;
             sym:=tsym(sym.indexnext);
@@ -1737,7 +1766,7 @@ implementation
       end;
 
 
-    procedure gen_free_localst(list: taasmoutput;st:tlocalsymtable);
+    procedure gen_free_localst(list:TAAsmoutput;st:tlocalsymtable);
       var
         sym : tsym;
       begin
@@ -1775,7 +1804,7 @@ implementation
       end;
 
 
-    procedure gen_alloc_parast(list: taasmoutput;st:tparasymtable);
+    procedure gen_alloc_parast(list:TAAsmoutput;st:tparasymtable);
       var
         sym : tsym;
       begin
@@ -1786,12 +1815,24 @@ implementation
               begin
                 with tvarsym(sym) do
                   begin
-                    { Allocate imaginary register for register parameters,
-                      this is not required when the parameter is already an
-                      imaginary register }
-                    if (paraitem.paraloc[calleeside].loc=LOC_REGISTER) and
-                       (getsupreg(paraitem.paraloc[calleeside].register)<first_int_imreg) then
+                    if (paraitem.paraloc[calleeside].loc=LOC_REGISTER) then
                       begin
+                        (*
+                        if paraitem.paraloc[calleeside].register=NR_NO then
+                          begin
+                            paraitem.paraloc[calleeside].loc:=LOC_REGISTER;
+                            paraitem.paraloc[calleeside].size:=paraitem.paraloc[calleeside].size;
+{$ifndef cpu64bit}
+                            if paraitem.paraloc[calleeside].size in [OS_64,OS_S64] then
+                              begin
+                                paraitem.paraloc[calleeside].registerlow:=rg.getregisterint(list,OS_32);
+                                paraitem.paraloc[calleeside].registerhigh:=rg.getregisterint(list,OS_32);
+                              end
+                            else
+{$endif cpu64bit}
+                              paraitem.paraloc[calleeside].register:=rg.getregisterint(list,localloc.size);
+                          end;
+                         *)
                         (*
 {$warning TODO Allocate register paras}
                         localloc.loc:=LOC_REGISTER;
@@ -1812,6 +1853,14 @@ implementation
                       end
                     else
                       localloc:=paraitem.paraloc[calleeside];
+                    if cs_asm_source in aktglobalswitches then
+                      begin
+                        case localloc.loc of
+                          LOC_REFERENCE :
+                            list.concat(Tai_comment.Create(strpnew('Para '+realname+' located at '+
+                                std_regname(localloc.reference.index)+tostr_with_plus(localloc.reference.offset))));
+                        end;
+                      end;
                   end;
               end;
             sym:=tsym(sym.indexnext);
@@ -1819,7 +1868,39 @@ implementation
       end;
 
 
-    procedure gen_free_parast(list: taasmoutput;st:tparasymtable);
+    procedure gen_alloc_inline_parast(list:TAAsmoutput;st:tparasymtable);
+      var
+        sym : tsym;
+      begin
+        sym:=tsym(st.symindex.first);
+        while assigned(sym) do
+          begin
+            if sym.typ=varsym then
+              begin
+                with tvarsym(sym) do
+                  begin
+{$warning TODO Allocate register paras}
+                    localloc.loc:=LOC_REFERENCE;
+                    localloc.size:=int_cgsize(paramanager.push_size(vs_value,vartype.def,pocall_inline));
+                    tg.GetLocal(list,tcgsize2size[localloc.size],localloc.reference);
+                    if cs_asm_source in aktglobalswitches then
+                      begin
+                        case localloc.loc of
+                          LOC_REFERENCE :
+                            list.concat(Tai_comment.Create(strpnew('Para '+realname+' allocated at '+
+                                std_regname(localloc.reference.index)+tostr_with_plus(localloc.reference.offset))));
+                        end;
+                      end;
+                    paraitem.paraloc[callerside]:=localloc;
+                    paraitem.paraloc[calleeside]:=localloc;
+                  end;
+              end;
+            sym:=tsym(sym.indexnext);
+          end;
+      end;
+
+
+    procedure gen_free_parast(list:TAAsmoutput;st:tparasymtable);
       var
         sym : tsym;
       begin
@@ -1859,7 +1940,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.154  2003-10-01 20:34:48  peter
+  Revision 1.155  2003-10-07 15:17:07  peter
+    * inline supported again, LOC_REFERENCEs are used to pass the
+      parameters
+    * inlineparasymtable,inlinelocalsymtable removed
+    * exitlabel inserting fixed
+
+  Revision 1.154  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

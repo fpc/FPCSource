@@ -1852,12 +1852,10 @@ implementation
                    ','+mangledname+threadvaroffset);
            end;
          parasymtable,
-         localsymtable,
-         inlineparasymtable,
-         inlinelocalsymtable :
+         localsymtable :
            begin
              { There is no space allocated for not referenced locals }
-             if (owner.symtabletype in [localsymtable,inlinelocalsymtable]) and
+             if (owner.symtabletype=localsymtable) and
                 (refs=0) then
                begin
                  exit;
@@ -1869,7 +1867,7 @@ implementation
                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
                  exit;
                end;
-             if (owner.symtabletype in [parasymtable,inlineparasymtable]) and
+             if (owner.symtabletype=parasymtable) and
                 paramanager.push_addr_param(varspez,vartype.def,tprocdef(owner.defowner).proccalloption) and
                 not(vo_has_local_copy in varoptions) then
                st := 'v'+st { should be 'i' but 'i' doesn't work }
@@ -1909,7 +1907,7 @@ implementation
         stab_str : pchar;
         c : char;
       begin
-         if (owner.symtabletype in [parasymtable,inlineparasymtable]) and
+         if (owner.symtabletype=parasymtable) and
             (copy(name,1,6)='hidden') then
            exit;
          if (vo_is_self in varoptions) then
@@ -1956,7 +1954,7 @@ implementation
         _vartype := newtype;
          { can we load the value into a register ? }
         if not assigned(owner) or
-           (owner.symtabletype in [localsymtable,parasymtable,inlineparasymtable,inlinelocalsymtable]) then
+           (owner.symtabletype in [localsymtable,parasymtable]) then
           begin
             if tstoreddef(vartype.def).is_intregable then
               include(varoptions,vo_regable)
@@ -2678,7 +2676,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.122  2003-10-01 20:34:49  peter
+  Revision 1.123  2003-10-07 15:17:07  peter
+    * inline supported again, LOC_REFERENCEs are used to pass the
+      parameters
+    * inlineparasymtable,inlinelocalsymtable removed
+    * exitlabel inserting fixed
+
+  Revision 1.122  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

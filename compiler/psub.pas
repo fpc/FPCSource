@@ -38,6 +38,7 @@ interface
         { code for the subroutine as tree }
         code : tnode;
         { positions in the tree for init/final }
+        exitlabelasmnode,
         initasmnode,
         finalasmnode : tnode;
         { list to store the procinfo's of the nested procedures }
@@ -72,7 +73,7 @@ implementation
        globtype,tokens,verbose,comphook,
        systems,
        { aasm }
-       aasmtai,
+       cpubase,aasmtai,
        { symtable }
        symconst,symbase,symsym,symtype,symtable,defutil,
        paramgr,
@@ -364,6 +365,14 @@ implementation
       end;
 
 
+    function generate_exitlabel_block:tnode;
+      begin
+        { exit label will be inserted here }
+        tcgprocinfo(current_procinfo).exitlabelasmnode:=casmnode.create_get_position;
+        result:=tcgprocinfo(current_procinfo).exitlabelasmnode;
+      end;
+
+
     function generate_entry_block:tnode;
       begin
         result:=cnothingnode.create;
@@ -496,6 +505,7 @@ implementation
       var
         initializecode,
         finalizecode,
+        exitlabelcode,
         entrycode,
         exitcode,
         exceptcode  : tnode;
@@ -514,6 +524,7 @@ implementation
         exitcode:=generate_exit_block;
         finalizecode:=generate_finalize_block;
         exceptcode:=generate_except_block;
+        exitlabelcode:=generate_exitlabel_block;
 
         { Generate body of the procedure by combining entry+body+exit }
         codeblock:=internalstatements(codestatement,true);
@@ -535,11 +546,13 @@ implementation
                codeblock,
                finalizecode,
                exceptcode));
+            addstatement(newstatement,exitlabelcode);
           end
         else
           begin
             addstatement(newstatement,initializecode);
             addstatement(newstatement,codeblock);
+            addstatement(newstatement,exitlabelcode);
             addstatement(newstatement,finalizecode);
           end;
         resulttypepass(newblock);
@@ -620,6 +633,9 @@ implementation
         gen_alloc_parast(aktproccode,tparasymtable(current_procinfo.procdef.parast));
         if current_procinfo.procdef.localst.symtabletype=localsymtable then
           gen_alloc_localst(aktproccode,tlocalsymtable(current_procinfo.procdef.localst));
+        if (cs_asm_source in aktglobalswitches) then
+          exprasmlist.concat(Tai_comment.Create(strpnew('Temps start at '+std_regname(current_procinfo.framepointer)+
+              tostr_with_plus(tg.lasttemp))));
 
         { Load register parameters in temps and insert local copies
           for values parameters. This must be done before the body is parsed
@@ -649,6 +665,7 @@ implementation
           position and switches }
         aktfilepos:=entrypos;
         aktlocalswitches:=entryswitches;
+        gen_entry_code(templist);
         gen_initialize_code(templist,false);
         aktproccode.insertlistafter(tasmnode(initasmnode).currenttai,templist);
 
@@ -664,6 +681,15 @@ implementation
           aktproccode.insertlistafter(tasmnode(finalasmnode).currenttai,templist)
         else
           aktproccode.concatlist(templist);
+        { insert exit label at the correct position }
+        cg.a_label(templist,current_procinfo.aktexitlabel);
+        if assigned(tasmnode(exitlabelasmnode).currenttai) then
+          aktproccode.insertlistafter(tasmnode(exitlabelasmnode).currenttai,templist)
+        else
+          aktproccode.concatlist(templist);
+        { exit code }
+        gen_exit_code(templist);
+        aktproccode.concatlist(templist);
 
         { note: this must be done only after as much code as possible has  }
         {   been generated. The result is that when you ungetregister() a  }
@@ -1290,7 +1316,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.158  2003-10-06 22:23:41  florian
+  Revision 1.159  2003-10-07 15:17:07  peter
+    * inline supported again, LOC_REFERENCEs are used to pass the
+      parameters
+    * inlineparasymtable,inlinelocalsymtable removed
+    * exitlabel inserting fixed
+
+  Revision 1.158  2003/10/06 22:23:41  florian
     + added basic olevariant support
 
   Revision 1.157  2003/10/03 14:45:09  peter
