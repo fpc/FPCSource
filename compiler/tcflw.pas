@@ -283,7 +283,7 @@ implementation
          if (hp^.treetype<>loadn) then
           CGMessage(cg_e_illegal_count_var)
          else
-          if (not(is_ordinal(p^.t2^.resulttype))) then
+          if (not(is_ordinal(p^.t2^.resulttype)) or is_64bitint(p^.t2^.resulttype)) then
            CGMessage(type_e_ordinal_expr_expected);
 
          if p^.t2^.registers32>p^.registers32 then
@@ -495,7 +495,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1999-06-13 22:41:07  peter
+  Revision 1.12  1999-06-30 22:16:25  florian
+    * use of is_ordinal checked: often a qword/int64 isn't allowed (case/for ...)
+    * small qword problems fixed
+
+  Revision 1.11  1999/06/13 22:41:07  peter
     * merged from fixes
 
   Revision 1.10.2.1  1999/06/13 22:38:54  peter

@@ -541,7 +541,7 @@ unit pdecl;
                   casedef:=read_type('');
                   symtablestack^.insert(new(pvarsym,init(s,casedef)));
                 end;
-              if not is_ordinal(casedef) then
+              if not(is_ordinal(casedef)) or is_64bitint(casedef)  then
                Message(type_e_ordinal_expr_expected);
               consume(_OF);
               startvarrec:=symtablestack^.datasize;
@@ -1034,6 +1034,7 @@ unit pdecl;
                   begin
                      consume(_DEFAULT);
                      if not(is_ordinal(p^.proptype) or
+                         is_64bitint(p^.proptype) or
                        ((p^.proptype^.deftype=setdef) and
                         (psetdef(p^.proptype)^.settype=smallset)
                        ) or
@@ -2219,7 +2220,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.127  1999-06-02 22:44:10  pierre
+  Revision 1.128  1999-06-30 22:16:19  florian
+    * use of is_ordinal checked: often a qword/int64 isn't allowed (case/for ...)
+    * small qword problems fixed
+
+  Revision 1.127  1999/06/02 22:44:10  pierre
    * previous wrong log corrected
 
   Revision 1.126  1999/06/02 22:25:42  pierre

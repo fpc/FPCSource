@@ -831,7 +831,9 @@ implementation
          end;
 
         { ordinal contants can be directly converted }
-        if (p^.left^.treetype=ordconstn) and is_ordinal(p^.resulttype) then
+        { but not int64/qword                        }
+        if (p^.left^.treetype=ordconstn) and is_ordinal(p^.resulttype) and
+          not(is_64bitint(p^.resulttype)) then
           begin
              { range checking is done in genordinalconstnode (PFV) }
              hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
@@ -924,7 +926,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  1999-06-28 22:29:21  florian
+  Revision 1.41  1999-06-30 22:16:23  florian
+    * use of is_ordinal checked: often a qword/int64 isn't allowed (case/for ...)
+    * small qword problems fixed
+
+  Revision 1.40  1999/06/28 22:29:21  florian
     * qword division fixed
     + code for qword/int64 type casting added:
       range checking isn't implemented yet

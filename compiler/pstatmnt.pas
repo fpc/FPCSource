@@ -188,7 +188,7 @@ unit pstatmnt;
          cleartempgen;
          do_firstpass(caseexpr);
          casedef:=caseexpr^.resulttype;
-         if not(is_ordinal(casedef)) then
+         if not(is_ordinal(casedef) or is_64bitint(casedef)) then
            Message(type_e_ordinal_expr_expected);
 
          consume(_OF);
@@ -1276,7 +1276,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.90  1999-06-22 16:24:43  pierre
+  Revision 1.91  1999-06-30 22:16:22  florian
+    * use of is_ordinal checked: often a qword/int64 isn't allowed (case/for ...)
+    * small qword problems fixed
+
+  Revision 1.90  1999/06/22 16:24:43  pierre
    * local browser stuff corrected
 
   Revision 1.89  1999/06/17 13:19:54  pierre
