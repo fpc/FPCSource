@@ -405,9 +405,11 @@ begin
    begin
      while (InitCount>0) do
       begin
-        if assigned(Procs[InitCount].FinalProc) then
-         Procs[InitCount].FinalProc();
+        // we've to decrement the cound before calling the final. code
+        // else a halt in the final. code leads to a endless loop
         dec(InitCount);
+        if assigned(Procs[InitCount+1].FinalProc) then
+         Procs[InitCount+1].FinalProc();
       end;
    end;
 end;
@@ -615,7 +617,10 @@ end;
 
 {
   $Log$
-  Revision 1.85  2000-03-14 07:31:57  pierre
+  Revision 1.86  2000-04-02 09:39:25  florian
+    * halt in the finalization statement of a unit lead to an endless loop; fixed
+
+  Revision 1.85  2000/03/14 07:31:57  pierre
    + HandleErrorAddrFrame
 
   Revision 1.84  2000/02/26 15:49:40  jonas
