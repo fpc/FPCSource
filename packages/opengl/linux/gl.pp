@@ -1,122 +1,138 @@
 {
   $Id$
-  Translation of the Mesa GL, GLU and GLX headers for Free Pascal, Linux version
-  Copyright (C) 1999-2000 Sebastian Guenther, sg@freepascal.org
+
+  Translation of the Mesa GL headers for FreePascal
+  Copyright (C) 1999 Sebastian Guenther
 
 
   Mesa 3-D graphics library
-  Version:  3.1
+  Version:  3.0
+  Copyright (C) 1995-1998  Brian Paul
 
-  Copyright (C) 1999  Brian Paul   All Rights Reserved.
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Library General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Library General Public License for more details.
 
-  The above copyright notice and this permission notice shall be included
-  in all copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
-  BRIAN PAUL BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
-  AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  You should have received a copy of the GNU Library General Public
+  License along with this library; if not, write to the Free
+  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 }
-
-
-unit GL;
 
 {$MODE delphi}  // objfpc would not work because of direct proc var assignments
 
+{You have to enable Macros (compiler switch "-Sm") for compiling this unit!
+ This is necessary for supporting different platforms with different calling
+ conventions via a single unit.}
+
+unit GL;
+
 interface
 
-uses X, XLib, XUtil;
+{$DEFINE GL1_0}
+{$DEFINE GL1_1}
+{$DEFINE GL1_2}
+{$DEFINE MESA}                 {enable if you want to use some special mesa extensions}
+{$DEFINE EXTENSIONS}           {enable if you need one/all of extensions}
+{$DEFINE SGI_EXTENSIONS}       {enable if you need one/all of extensions}
 
-// ===================================================================
+{$MACRO ON}
+
+{$IFDEF Linux}
+  {$LINKLIB c}
+{$ELSE}
+  {$MESSAGE Unsupported platform.}
+{$ENDIF}
+
+
+// =======================================================
 //   Unit specific extensions
-// ===================================================================
+// =======================================================
 
-function InitGLFromLibrary(const libname: PChar): Boolean;
-function InitGLUFromLibrary(const libname: PChar): Boolean;
-// Requires that the GL library has already been initialized:
-function InitGLX: Boolean;
+function InitGLFromLibrary(libname: PChar): Boolean;
 
 // determines automatically which libraries to use:
 function InitGL: Boolean;
-function InitGLU: Boolean;
 
 
 var
-  GLInitialized, GLUInitialized, GLXInitialized: Boolean;
-
-  { Set the following value to True if you want to have a list of all
-    unresolved GL/GLU/GLX functions dumped to the console }
-  GLDumpUnresolvedFunctions: Boolean;
+  GLDumpUnresolvedFunctions,
+  GLInitialized: Boolean;
 
 
-
-// C types
-type
-  SignedChar = ShortInt;
-  UnsignedChar = Byte;
-  Short = SmallInt;
-  SignedShort = Short;
-  UnsignedShort = Word;
-  Int = LongInt;
-  SignedInt = Int;
-  UnsignedInt = LongWord;
-  Float = Single;
-
-  PInt = ^Int;
-
-
-// ===================================================================
+// =======================================================
 //   GL consts, types and functions
-// ===================================================================
+// =======================================================
 
 
-// -------------------------------------------------------------------
+// -------------------------------------------------------
 //   GL types
-// -------------------------------------------------------------------
+// -------------------------------------------------------
 
 type
+  PSingle   = ^Single;
+  PDouble   = ^Double;
 
-  PGLvoid = Pointer;
-  GLboolean = Boolean;
-  GLbyte = SignedChar;		// 1-byte signed
-  GLshort = Short;		// 2-byte signed
-  GLint = Int;			// 4-byte signed
-  GLubyte = UnsignedChar;	// 1-byte unsigned
-  GLushort = UnsignedShort;	// 2-byte unsigned
-  GLuint = UnsignedInt;		// 4-byte unsigned
-  GLsizei = Int;		// 4-byte signed
-  GLfloat = Float;		// single precision float
-  GLclampf = Float;		// single precision float in [0,1]
-  GLdouble = Double;		// double precision float
-  GLclampd = Double;		// double precision float in [0,1]
+  GLvoid    = Pointer;
+  GLboolean = Byte;
 
-  PGLfloat = ^GLfloat;
+  GLbyte    = ShortInt; // 1-byte signed
+  GLshort   = Integer;  // 2-byte signed
+  GLint     = LongInt;  // 4-byte signed
 
-  GLenum = Integer;
+  GLubyte   = Byte;     // 1-byte unsigned
+  GLushort  = Word;     // 2-byte unsigned
+  GLuint    = DWord;    // 4-byte signed
 
-  GLbitfield = set of (GL_CURRENT_BIT, GL_POINT_BIT, GL_LINE_BIT,
-    GL_POLYGON_BIT, GL_POLYGON_STIPPLE_BIT, GL_PIXEL_MODE_BIT,
-    GL_LIGHTING_BIT, GL_FOG_BIT, GL_DEPTH_BUFFER_BIT, GL_ACCUM_BUFFER_BIT,
-    GL_STENCIL_BUFFER_BIT, GL_VIEWPORT_BIT, GL_TRANSFORM_BIT, GL_ENABLE_BIT,
-    GL_COLOR_BUFFER_BIT, GL_HINT_BIT, GL_EVAL_BIT, GL_LIST_BIT, GL_TEXTURE_BIT,
-    GL_SCISSOR_BIT);
+  GLsizei   = LongInt;  // 4-byte signed
 
+  GLfloat   = Single;   // single precision float
+  GLclampf  = Single;   // single precision float in [0,1]
+  GLdouble  = Double;   // double precision float
+  GLclampd  = Double;   // double precision float in [0,1]
+
+  GLenum    = DWord;
+
+  PGLBoolean = ^GLBoolean;
+  PGLFloat   = ^GLfloat;
+  PGLDouble  = ^GLDouble;
+
+type
+  GLbitfield = DWord;  { was an enum - no corresponding thing in pascal }
 const
-  GL_ALL_ATTRIB_BITS = [Low(GLbitfield)..High(GLbitfield)];
+  GL_CURRENT_BIT        = $00000001;
+  GL_POINT_BIT          = $00000002;
+  GL_LINE_BIT           = $00000004;
+  GL_POLYGON_BIT        = $00000008;
+  GL_POLYGON_STIPPLE_BIT= $00000010;
+  GL_PIXEL_MODE_BIT     = $00000020;
+  GL_LIGHTING_BIT       = $00000040;
+  GL_FOG_BIT            = $00000080;
+  GL_DEPTH_BUFFER_BIT   = $00000100;
+  GL_ACCUM_BUFFER_BIT   = $00000200;
+  GL_STENCIL_BUFFER_BIT = $00000400;
+  GL_VIEWPORT_BIT       = $00000800;
+  GL_TRANSFORM_BIT      = $00001000;
+  GL_ENABLE_BIT         = $00002000;
+  GL_COLOR_BUFFER_BIT   = $00004000;
+  GL_HINT_BIT           = $00008000;
+  GL_EVAL_BIT           = $00010000;
+  GL_LIST_BIT           = $00020000;
+  GL_TEXTURE_BIT        = $00040000;
+  GL_SCISSOR_BIT        = $00080000;
+  GL_ALL_ATTRIB_BITS    = $000fffff;
 
 
-// -------------------------------------------------------------------
+// -------------------------------------------------------
 //   GL constants
-// -------------------------------------------------------------------
+// -------------------------------------------------------
+
+{$IFDEF GL1_0}
 
 const
   GL_NO_ERROR                           = 0;
@@ -638,7 +654,11 @@ const
   GL_Q                                  = $2003;
   GL_TEXTURE_GEN_R                      = $0C62;
   GL_TEXTURE_GEN_Q                      = $0C63;
+{$ENDIF GL1_0}
 
+{$IFDEF GL1_1}
+
+const
   // GL 1.1 texturing
   GL_PROXY_TEXTURE_1D                   = $8063;
   GL_PROXY_TEXTURE_2D                   = $8064;
@@ -647,19 +667,6 @@ const
   GL_TEXTURE_BINDING_1D                 = $8068;
   GL_TEXTURE_BINDING_2D                 = $8069;
   GL_TEXTURE_INTERNAL_FORMAT            = $1003;
-
-
-  // GL 1.2 texturing
-  GL_PACK_SKIP_IMAGES                   = $806B;
-  GL_PACK_IMAGE_HEIGHT                  = $806C;
-  GL_UNPACK_SKIP_IMAGES                 = $806D;
-  GL_UNPACK_IMAGE_HEIGHT                = $806E;
-  GL_TEXTURE_3D                         = $806F;
-  GL_PROXY_TEXTURE_3D                   = $8070;
-  GL_TEXTURE_DEPTH                      = $8071;
-  GL_TEXTURE_WRAP_R                     = $8072;
-  GL_MAX_3D_TEXTURE_SIZE                = $8073;
-  GL_TEXTURE_BINDING_3D                 = $806A;
 
   // Internal texture formats (GL 1.1)
   GL_ALPHA4                             = $803B;
@@ -696,21 +703,24 @@ const
   GL_RGBA12                             = $805A;
   GL_RGBA16                             = $805B;
 
-  // Utility
-  GL_VENDOR                             = $1F00;
-  GL_RENDERER                           = $1F01;
-  GL_VERSION                            = $1F02;
-  GL_EXTENSIONS                         = $1F03;
+{$ENDIF GL1_1}
 
-  // Errors
-  GL_INVALID_VALUE                      = $0501;
-  GL_INVALID_ENUM                       = $0500;
-  GL_INVALID_OPERATION                  = $0502;
-  GL_STACK_OVERFLOW                     = $0503;
-  GL_STACK_UNDERFLOW                    = $0504;
-  GL_OUT_OF_MEMORY                      = $0505;
+{$IFDEF GL1_2}
 
-  // OpenGL 1.2
+const
+  // GL 1.2 texturing
+  GL_PACK_SKIP_IMAGES                   = $806B;
+  GL_PACK_IMAGE_HEIGHT                  = $806C;
+  GL_UNPACK_SKIP_IMAGES                 = $806D;
+  GL_UNPACK_IMAGE_HEIGHT                = $806E;
+  GL_TEXTURE_3D                         = $806F;
+  GL_PROXY_TEXTURE_3D                   = $8070;
+  GL_TEXTURE_DEPTH                      = $8071;
+  GL_TEXTURE_WRAP_R                     = $8072;
+  GL_MAX_3D_TEXTURE_SIZE                = $8073;
+  GL_TEXTURE_BINDING_3D                 = $806A;
+
+const
   GL_RESCALE_NORMAL                     = $803A;
   GL_CLAMP_TO_EDGE                      = $812F;
   GL_MAX_ELEMENTS_VERTICES              = $F0E8;
@@ -737,384 +747,31 @@ const
   GL_TEXTURE_BASE_LEVEL                 = $813C;
   GL_TEXTURE_MAX_LEVEL                  = $813D;
 
-
-// -------------------------------------------------------------------
-//   GL procedures and functions
-// -------------------------------------------------------------------
-
-var
-
-  // Miscellaneous
-  glClearIndex: procedure(c: GLfloat); cdecl;
-  glClearColor: procedure(red, green, blue, alpha: GLclampf); cdecl;
-  glClear: procedure(mask: GLbitfield); cdecl;
-  glIndexMask: procedure(mask: LongWord); cdecl;
-  glColorMask: procedure(red, green, blue, alpha: Boolean); cdecl;
-  glAlphaFunc: procedure(func: GLenum; ref: GLclampf); cdecl;
-  glBlendFunc: procedure(sfactor, dfactor: GLenum); cdecl;
-  glLogicOp: procedure(opcode: GLenum); cdecl;
-  glCullFace: procedure(mode: GLenum); cdecl;
-  glFrontFace: procedure(mode: GLenum); cdecl;
-  glPointSize: procedure(size: GLfloat); cdecl;
-  glLineWidth: procedure(width: GLfloat); cdecl;
-  glLineStipple: procedure(factor: LongInt; pattern: Word); cdecl;
-  glPolygonMode: procedure(face, mode: GLenum); cdecl;
-  glPolygonOffset: procedure(factor, units: GLfloat); cdecl;
-  glPolygonStipple: procedure(var mask: Byte); cdecl;
-  glGetPolygonStipple: procedure(var mask: Byte); cdecl;
-  glEdgeFlag: procedure(flag: Boolean); cdecl;
-  glEdgeFlagv: procedure(var flag: Boolean); cdecl;
-  glScissor: procedure(x, y, width, height: LongInt); cdecl;
-  glClipPlane: procedure(plane: GLenum; var equation: GLdouble); cdecl;
-  glGetClipPlane: procedure(plane: GLenum; var equation: GLdouble); cdecl;
-  glDrawBuffer: procedure(mode: GLenum); cdecl;
-  glReadBuffer: procedure(mode: GLenum); cdecl;
-  glEnable: procedure(cap: LongInt); cdecl;
-  glDisable: procedure(cap: LongInt); cdecl;
-  glIsEnabled: function(cap: GLenum): Boolean; cdecl;
-  glEnableClientState: procedure(cap: GLenum); cdecl; // 1.1
-  glDisableClientState: procedure(cap: GLenum); cdecl; // 1.1
-  glGetBooleanv: procedure(pname: GLenum; var params: Boolean); cdecl;
-  glGetDoublev: procedure(pname: GLenum; var params: GLdouble); cdecl;
-  glGetFloatv: procedure(pname: GLenum; var params: GLfloat); cdecl;
-  glGetIntegerv: procedure(pname: GLenum; var params: LongInt); cdecl;
-  glPushAttrib: procedure(mask: GLbitfield); cdecl;
-  glPopAttrib: procedure; cdecl;
-  glPushClientAttrib: procedure(mask: GLbitfield); cdecl; // 1.1
-  glPopClientAttrib: procedure; cdecl; // 1.1
-  glRenderMode: function(mode: GLenum): LongInt; cdecl;
-  glGetError: function: GLenum; cdecl;
-  glGetString: function(name: GLenum): PChar; cdecl;
-  glFinish: procedure; cdecl;
-  glFlush: procedure; cdecl;
-  glHint: procedure(target, mode: GLenum); cdecl;
-
-
-  // Depth Buffer
-  glClearDepth: procedure(depth: GLclampd); cdecl;
-  glDepthFunc: procedure(func: LongInt); cdecl;
-  glDepthMask: procedure(flag: Boolean); cdecl;
-  glDepthRange: procedure(near_val, far_val: GLclampd); cdecl;
-
-  // Accumulation Buffer
-  glClearAccum: procedure(red, green, blue, alpha: GLfloat); cdecl;
-  glAccum: procedure(op: GLenum; value: GLfloat); cdecl;
-
-  // Tranformation
-  glMatrixMode: procedure(mode: GLenum); cdecl;
-  glOrtho: procedure(left, right, bottom, top, near_val, far_val: GLdouble); cdecl;
-  glFrustum: procedure(left, right, bottom, top, near_val, far_val: GLdouble); cdecl;
-  glViewport: procedure(x, y, width, height: LongInt); cdecl;
-  glPushMatrix: procedure; cdecl;
-  glPopMatrix: procedure; cdecl;
-  glLoadIdentity: procedure; cdecl;
-  glLoadMatrixd: procedure(var m: GLdouble); cdecl;
-  glLoadMatrixf: procedure(var m: PGLfloat); cdecl;
-  glMultMatrixd: procedure(var m: GLdouble); cdecl;
-  glMultMatrixf: procedure(var m: GLfloat); cdecl;
-  glRotated: procedure(angle, x, y, z: GLdouble); cdecl;
-  glRotatef: procedure(angle, x, y, z: GLfloat); cdecl;
-  glScaled: procedure(x, y, z: GLdouble); cdecl;
-  glScalef: procedure(x, y, z: GLfloat); cdecl;
-  glTranslated: procedure(x, y, z: GLdouble); cdecl;
-  glTranslatef: procedure(x, y, z: GLfloat); cdecl;
-
-  // Display Lists
-  glIsList: function(list: LongWord): Boolean; cdecl;
-  glDeleteLists: procedure(list: LongWord; range: LongInt); cdecl;
-  glGenLists: function(range: LongInt): LongWord; cdecl;
-  glNewList: procedure(list: LongWord; mode: GLenum); cdecl;
-  glEndList: procedure; cdecl;
-  glCallList: procedure(list: LongWord); cdecl;
-  glCallLists: procedure(n: LongInt; AType: GLenum; var lists); cdecl;
-  glListBase: procedure(base: LongWord); cdecl;
-
-  // Drawing Functions
-  glBegin: procedure(mode: GLenum); cdecl;
-  glEnd: procedure; cdecl;
-  glVertex2d: procedure(x, y: GLdouble); cdecl;
-  glVertex2f: procedure(x, y: GLfloat); cdecl;
-  glVertex2i: procedure(x, y: LongInt); cdecl;
-  glVertex2s: procedure(x, y: SmallInt); cdecl;
-  glVertex3d: procedure(x, y, z: GLdouble); cdecl;
-  glVertex3f: procedure(x, y, z: GLfloat); cdecl;
-  glVertex3i: procedure(x, y, z: LongInt); cdecl;
-  glVertex3s: procedure(x, y, z: SmallInt); cdecl;
-  glVertex4d: procedure(x, y, z, w: GLdouble); cdecl;
-  glVertex4f: procedure(x, y, z, w: GLfloat); cdecl;
-  glVertex4i: procedure(x, y, z, w: LongInt); cdecl;
-  glVertex4s: procedure(x, y, z, w: SmallInt); cdecl;
-  glVertex2dv: procedure(var v: GLdouble); cdecl;
-  glVertex2fv: procedure(var v: GLfloat); cdecl;
-  glVertex2iv: procedure(var v: LongInt); cdecl;
-  glVertex2sv: procedure(var v: SmallInt); cdecl;
-  glVertex3dv: procedure(var v: GLdouble); cdecl;
-  glVertex3fv: procedure(var v: GLfloat); cdecl;
-  glVertex3iv: procedure(var v: LongInt); cdecl;
-  glVertex3sv: procedure(var v: SmallInt); cdecl;
-  glVertex4dv: procedure(var v: GLdouble); cdecl;
-  glVertex4fv: procedure(var v: GLfloat); cdecl;
-  glVertex4iv: procedure(var v: LongInt); cdecl;
-  glVertex4sv: procedure(var v: SmallInt); cdecl;
-  glNormal3b: procedure(nx, ny, nz: Byte); cdecl;
-  glNormal3d: procedure(nx, ny, nz: GLdouble); cdecl;
-  glNormal3f: procedure(nx, ny, nz: GLfloat); cdecl;
-  glNormal3i: procedure(nx, ny, nz: LongInt); cdecl;
-  glNormal3s: procedure(nx, ny, nz: SmallInt); cdecl;
-  glNormal3bv: procedure(var v: ShortInt); cdecl;
-  glNormal3dv: procedure(var v: GLdouble); cdecl;
-  glNormal3fv: procedure(var v: GLfloat); cdecl;
-  glNormal3iv: procedure(var v: LongInt); cdecl;
-  glNormal3sv: procedure(var v: SmallInt); cdecl;
-  glIndexd: procedure(c: GLdouble); cdecl;
-  glIndexf: procedure(c: GLfloat); cdecl;
-  glIndexi: procedure(c: LongInt); cdecl;
-  glIndexs: procedure(c: SmallInt); cdecl;
-  glIndexub: procedure(c: Byte); cdecl; // 1.1
-  glIndexdv: procedure(var c: GLdouble); cdecl;
-  glIndexfv: procedure(var c: GLfloat); cdecl;
-  glIndexiv: procedure(var c: LongInt); cdecl;
-  glIndexsv: procedure(var c: SmallInt); cdecl;
-  glIndexubv: procedure(var c: Byte); cdecl; // 1.1
-  glColor3b : procedure(red, green, blue: ShortInt); cdecl;
-  glColor3d : procedure(red, green, blue: GLdouble); cdecl;
-  glColor3f : procedure(red, green, blue: GLfloat); cdecl;
-  glColor3i : procedure(red, green, blue: LongInt); cdecl;
-  glColor3s : procedure(red, green, blue: SmallInt); cdecl;
-  glColor3ub: procedure(red, green, blue: Byte); cdecl;
-  glColor3ui: procedure(red, green, blue: LongWord); cdecl;
-  glColor3us: procedure(red, green, blue: Word); cdecl;
-  glColor4b : procedure(red, green, blue, alpha: ShortInt); cdecl;
-  glColor4d : procedure(red, green, blue, alpha: GLdouble); cdecl;
-  glColor4f : procedure(red, green, blue, alpha: GLfloat); cdecl;
-  glColor4i : procedure(red, green, blue, alpha: LongInt); cdecl;
-  glColor4s : procedure(red, green, blue, alpha: SmallInt); cdecl;
-  glColor4ub: procedure(red, green, blue, alpha: Byte); cdecl;
-  glColor4ui: procedure(red, green, blue, alpha: LongWord); cdecl;
-  glColor4us: procedure(red, green, blue, alpha: Word); cdecl;
-  glColor3bv : procedure(var v: ShortInt); cdecl;
-  glColor3dv : procedure(var v: GLdouble); cdecl;
-  glColor3fv : procedure(var v: GLfloat); cdecl;
-  glColor3iv : procedure(var v: LongInt); cdecl;
-  glColor3sv : procedure(var v: SmallInt); cdecl;
-  glColor3ubv: procedure(var v: Byte); cdecl;
-  glColor3uiv: procedure(var v: LongWord); cdecl;
-  glColor3usv: procedure(var v: Word); cdecl;
-  glColor4bv : procedure(var v: ShortInt); cdecl;
-  glColor4dv : procedure(var v: GLdouble); cdecl;
-  glColor4fv : procedure(var v: GLfloat); cdecl;
-  glColor4iv : procedure(var v: LongInt); cdecl;
-  glColor4sv : procedure(var v: SmallInt); cdecl;
-  glColor4ubv: procedure(var v: Byte); cdecl;
-  glColor4uiv: procedure(var v: LongWord); cdecl;
-  glColor4usv: procedure(var v: Word); cdecl;
-  glTexCoord1d: procedure(s: GLdouble); cdecl;
-  glTexCoord1f: procedure(s: GLfloat); cdecl;
-  glTexCoord1i: procedure(s: LongInt); cdecl;
-  glTexCoord1s: procedure(s: SmallInt); cdecl;
-  glTexCoord2d: procedure(s, t: GLdouble); cdecl;
-  glTexCoord2f: procedure(s, t: GLfloat); cdecl;
-  glTexCoord2i: procedure(s, t: LongInt); cdecl;
-  glTexCoord2s: procedure(s, t: SmallInt); cdecl;
-  glTexCoord3d: procedure(s, t, r: GLdouble); cdecl;
-  glTexCoord3f: procedure(s, t, r: GLfloat); cdecl;
-  glTexCoord3i: procedure(s, t, r: LongInt); cdecl;
-  glTexCoord3s: procedure(s, t, r: SmallInt); cdecl;
-  glTexCoord4d: procedure(s, t, r, q: GLdouble); cdecl;
-  glTexCoord4f: procedure(s, t, r, q: GLfloat); cdecl;
-  glTexCoord4i: procedure(s, t, r, q: LongInt); cdecl;
-  glTexCoord4s: procedure(s, t, r, q: SmallInt); cdecl;
-  glTexCoord1dv: procedure(var v: GLdouble); cdecl;
-  glTexCoord1fv: procedure(var v: GLfloat); cdecl;
-  glTexCoord1iv: procedure(var v: LongInt); cdecl;
-  glTexCoord1sv: procedure(var v: SmallInt); cdecl;
-  glTexCoord2dv: procedure(var v: GLdouble); cdecl;
-  glTexCoord2fv: procedure(var v: GLfloat); cdecl;
-  glTexCoord2iv: procedure(var v: LongInt); cdecl;
-  glTexCoord2sv: procedure(var v: SmallInt); cdecl;
-  glTexCoord3dv: procedure(var v: GLdouble); cdecl;
-  glTexCoord3fv: procedure(var v: GLfloat); cdecl;
-  glTexCoord3iv: procedure(var v: LongInt); cdecl;
-  glTexCoord3sv: procedure(var v: SmallInt); cdecl;
-  glTexCoord4dv: procedure(var v: GLdouble); cdecl;
-  glTexCoord4fv: procedure(var v: GLfloat); cdecl;
-  glTexCoord4iv: procedure(var v: LongInt); cdecl;
-  glTexCoord4sv: procedure(var v: SmallInt); cdecl;
-  glRasterPos2d: procedure(x, y: GLdouble); cdecl;
-  glRasterPos2f: procedure(x, y: GLfloat); cdecl;
-  glRasterPos2i: procedure(x, y: LongInt); cdecl;
-  glRasterPos2s: procedure(x, y: SmallInt); cdecl;
-  glRasterPos3d: procedure(x, y, z: GLdouble); cdecl;
-  glRasterPos3f: procedure(x, y, z: GLfloat); cdecl;
-  glRasterPos3i: procedure(x, y, z: LongInt); cdecl;
-  glRasterPos3s: procedure(x, y, z: SmallInt); cdecl;
-  glRasterPos4d: procedure(x, y, z, w: GLdouble); cdecl;
-  glRasterPos4f: procedure(x, y, z, w: GLfloat); cdecl;
-  glRasterPos4i: procedure(x, y, z, w: LongInt); cdecl;
-  glRasterPos4s: procedure(x, y, z, w: SmallInt); cdecl;
-  glRasterPos2dv: procedure(var v: GLdouble); cdecl;
-  glRasterPos2fv: procedure(var v: GLfloat); cdecl;
-  glRasterPos2iv: procedure(var v: LongInt); cdecl;
-  glRasterPos2sv: procedure(var v: SmallInt); cdecl;
-  glRasterPos3dv: procedure(var v: GLdouble); cdecl;
-  glRasterPos3fv: procedure(var v: GLfloat); cdecl;
-  glRasterPos3iv: procedure(var v: LongInt); cdecl;
-  glRasterPos3sv: procedure(var v: SmallInt); cdecl;
-  glRasterPos4dv: procedure(var v: GLdouble); cdecl;
-  glRasterPos4fv: procedure(var v: GLfloat); cdecl;
-  glRasterPos4iv: procedure(var v: LongInt); cdecl;
-  glRasterPos4sv: procedure(var v: SmallInt); cdecl;
-  glRectd: procedure(x1, y1, x2, y2: GLdouble); cdecl;
-  glRectf: procedure(x1, y1, x2, y2: GLfloat); cdecl;
-  glRecti: procedure(x1, y1, x2, y2: LongInt); cdecl;
-  glRects: procedure(x1, y1, x2, y2: SmallInt); cdecl;
-  glRectdv: procedure(var v1, v2: GLdouble); cdecl;
-  glRectfv: procedure(var v1, v2: GLfloat); cdecl;
-  glRectiv: procedure(var v1, v2: LongInt); cdecl;
-  glRectsv: procedure(var v1, v2: SmallInt); cdecl;
-
-  // Vertex Arrays (1.1)
-  glVertexPointer: procedure(size: LongInt; AType: GLenum; stride: LongInt; var ptr); cdecl;
-  glNormalPointer: procedure(AType: GLenum; stride: LongInt; var ptr); cdecl;
-  glColorPointer: procedure(size: LongInt; AType: GLenum; stride: LongInt; var ptr); cdecl;
-  glIndexPointer: procedure(AType: GLenum; stride: LongInt; var ptr); cdecl;
-  glTexCoordPointer: procedure(size: LongInt; AType: GLenum; stride: LongInt; var ptr); cdecl;
-  glEdgeFlagPointer: procedure(stride: LongInt; var ptr); cdecl;
-  glGetPointerv: procedure(pname: GLenum; var params: Pointer); cdecl;
-  glArrayElement: procedure(i: LongInt); cdecl;
-  glDrawArrays: procedure(mode: GLenum; first, count: LongInt); cdecl;
-  glDrawElements: procedure(mode: GLenum; count: Integer; AType: GLenum; var indices); cdecl;
-  glInterleavedArrays: procedure(format: GLenum; stride: LongInt; var pointer); cdecl;
-
-  // Lighting
-  glShadeModel: procedure(mode: GLenum); cdecl;
-  glLightf: procedure(light, pname: GLenum; param: GLfloat); cdecl;
-  glLighti: procedure(light, pname: GLenum; param: LongInt); cdecl;
-  glLightfv: procedure(light, pname: GLenum; var params: GLfloat); cdecl;
-  glLightiv: procedure(light, pname: GLenum; var params: LongInt); cdecl;
-  glGetLightfv: procedure(light, pname: GLenum; var params: GLfloat); cdecl;
-  glGetLightiv: procedure(light, pname: GLenum; var params: LongInt); cdecl;
-  glLightModelf: procedure(pname: GLenum; param: GLfloat); cdecl;
-  glLightModeli: procedure(pname: GLenum; param: LongInt); cdecl;
-  glLightModelfv: procedure(pname: GLenum; var params: GLfloat); cdecl;
-  glLightModeliv: procedure(pname: GLenum; var param: LongInt); cdecl;
-  glMaterialf: procedure(face, pname: GLenum; param: GLfloat); cdecl;
-  glMateriali: procedure(face, pname: GLenum; param: LongInt); cdecl;
-  glMaterialfv: procedure(face, pname: GLenum; var params: GLfloat); cdecl;
-  glMaterialiv: procedure(face, pname: GLenum; var params: LongInt); cdecl;
-  glGetMaterialfv: procedure(face, pname: GLenum; var params: GLfloat); cdecl;
-  glGetMaterialiv: procedure(face, pname: GLenum; var params: LongInt); cdecl;
-  glColorMaterial: procedure(face, mode: GLenum); cdecl;
-
-  // Raster Functions
-  glPixelZoom: procedure(xfactor, yfactor: GLfloat); cdecl;
-  glPixelStoref: procedure(pname: GLenum; param: GLfloat); cdecl;
-  glPixelStorei: procedure(pname: GLenum; param: LongInt); cdecl;
-  glPixelTransferf: procedure(pname: GLenum; param: GLfloat); cdecl;
-  glPixelTransferi: procedure(pname: GLenum; param: LongInt); cdecl;
-  glPixelMapfv: procedure(map: GLenum; mapsize: LongInt; var values: GLfloat); cdecl;
-  glPixelMapuiv: procedure(map: GLenum; mapsize: LongInt; var values: LongWord); cdecl;
-  glPixelMapusv: procedure(map: GLenum; mapsize: LongInt; var values: Word); cdecl;
-  glGetPixelMapfv: procedure(map: GLenum; var values: GLfloat); cdecl;
-  glGetPixelMapuiv: procedure(map: GLenum; var values: LongWord); cdecl;
-  glGetPixelMapusv: procedure(map: GLenum; var values: Word); cdecl;
-  glBitmap: procedure(width, height: LongInt; xorig, yorig, xmove, ymove: GLfloat; var bitmap); cdecl;
-  glReadPixels: procedure(x, y, width, height: LongInt; format, AType: GLenum; var pixels); cdecl;
-  glDrawPixels: procedure(width, height: LongInt; format, AType: GLenum; var pixels); cdecl;
-  glCopyPixels: procedure(x, y, width, height: LongInt; AType: GLenum); cdecl;
-
-  // Stenciling
-  glStencilFunc: procedure(func: GLenum; ref: LongInt; mask: LongWord); cdecl;
-  glStencilMask: procedure(mask: LongWord); cdecl;
-  glStencilOp: procedure(fail, zfail, zpass: GLenum); cdecl;
-  glClearStencil: procedure(s: LongInt); cdecl;
-
-  // Texture Mapping
-  glTexGend: procedure(cord, pname: GLenum; param: GLdouble); cdecl;
-  glTexGenf: procedure(cord, pname: GLenum; param: GLfloat); cdecl;
-  glTexGeni: procedure(cord, pname: GLenum; param: LongInt); cdecl;
-  glTexGendv: procedure(cord, pname: GLenum; var params: GLdouble); cdecl;
-  glTexGenfv: procedure(cord, pname: GLenum; var params: GLfloat); cdecl;
-  glTexGeniv: procedure(cord, pname: GLenum; var params: LongInt); cdecl;
-  glGetTexGendv: procedure(cord, pname: GLenum; var params: GLdouble); cdecl;
-  glGetTexGenfv: procedure(cord, pname: GLenum; var params: GLfloat); cdecl;
-  glGetTexGeniv: procedure(cord, pname: GLenum; var params: LongInt); cdecl;
-  glTexEnvf: procedure(target, pname: GLenum; param: GLfloat); cdecl;
-  glTexEnvi: procedure(target, pname: GLenum; param: LongInt); cdecl;
-  glTexEnvfv: procedure(target, pname: GLenum; var params: GLfloat); cdecl;
-  glTexEnviv: procedure(target, pname: GLenum; var params: LongInt); cdecl;
-  glGetTexEnvfv: procedure(target, pname: GLenum; var params: GLfloat); cdecl;
-  glGetTexEnviv: procedure(target, pname: GLenum; var params: LongInt); cdecl;
-  glTexParameterf: procedure(target, pname: GLenum; param: GLfloat); cdecl;
-  glTexParameteri: procedure(target, pname: GLenum; param: LongInt); cdecl;
-  glTexParameterfv: procedure(target, pname: GLenum; var params: GLfloat); cdecl;
-  glTexParameteriv: procedure(target, pname: GLenum; var params: LongInt); cdecl;
-  glGetTexParameterfv: procedure(target, pname: GLenum; var params: GLfloat); cdecl;
-  glGetTexParameteriv: procedure(target, pname: GLenum; var params: LongInt); cdecl;
-  glGetTexLevelParameterfv: procedure(target: GLenum; level: LongInt; pname: GLenum; var params: GLfloat); cdecl;
-  glGetTexLevelParameteriv: procedure(target: GLenum; level: LongInt; pname: GLenum; var params: LongInt); cdecl;
-  glTexImage1D: procedure(target: GLenum; level, internalFormat, width, border: LongInt; format, AType: GLenum; var pixels); cdecl;
-  glTexImage2D: procedure(target: GLenum; level, internalFormat, width, height, border: LongInt; format, AType: GLenum; var pixels); cdecl;
-  glGetTexImage: procedure(target: GLenum; level: LongInt; format, AType: GLenum; var pixels); cdecl;
-  // 1.1 functions:
-  glGenTextures: procedure(n: LongInt; var textures: LongWord); cdecl;
-  glDeleteTextures: procedure(n: LongInt; var textures: LongWord); cdecl;
-  glBindTexture: procedure(target: GLenum; texture: LongWord); cdecl;
-  glPrioritizeTextures: procedure(n: LongInt; var textures: LongWord; var priorities: GLclampf); cdecl;
-  glAreTexturesResident: function(n: LongInt; var textures: LongWord; var residences: Boolean): Boolean; cdecl;
-  glIsTexture: function(texture: LongWord): Boolean; cdecl;
-  glTexSubImage1D: procedure(target: GLenum; level, xoffset, width: LongInt; format, AType: GLenum; var pixels); cdecl;
-  glTexSubImage2D: procedure(target: GLenum; level, xoffset, yoffset, width, height: LongInt; format, AType: GLenum; var pixels); cdecl;
-  glCopyTexImage1D: procedure(target: GLenum; level: LongInt; format: GLenum; x, y, width, border: LongInt); cdecl;
-  glCopyTexImage2D: procedure(target: GLenum; level: LongInt; format: GLenum; x, y, width, height, border: LongInt); cdecl;
-  glCopyTexSubImage1D: procedure(target: GLenum; level, xoffset, x, y, width: LongInt); cdecl;
-  glCopyTexSubImage2D: procedure(target: GLenum; level, xoffset, yoffset, x, y, width, height: LongInt); cdecl;
-
-  // Evaluators
-  glMap1d: procedure(target: GLenum; u1, u2: GLdouble; stride, order: LongInt; var points: GLdouble); cdecl;
-  glMap1f: procedure(target: GLenum; u1, u2: GLfloat; stride, order: LongInt; var points: GLfloat); cdecl;
-  glMap2d: procedure(target: GLenum; u1, u2: GLdouble; ustride, uorder: LongInt; v1, v2: GLdouble; vstride, vorder: LongInt; var points: GLdouble); cdecl;
-  glMap2f: procedure(target: GLenum; u1, u2: GLfloat; ustride, uorder: LongInt; v1, v2: GLfloat; vstride, vorder: LongInt; var points: GLfloat); cdecl;
-  glGetMapdv: procedure(target, query: GLenum; var v: GLdouble); cdecl;
-  glGetMapfv: procedure(target, query: GLenum; var v: GLfloat); cdecl;
-  glGetMapiv: procedure(target, query: GLenum; var v: LongInt); cdecl;
-  glEvalCoord1d: procedure(u: GLdouble); cdecl;
-  glEvalCoord1f: procedure(u: GLfloat); cdecl;
-  glEvalCoord1dv: procedure(var u: GLdouble); cdecl;
-  glEvalCoord1fv: procedure(var u: GLfloat); cdecl;
-  glEvalCoord2d: procedure(u, v: GLdouble); cdecl;
-  glEvalCoord2f: procedure(u, v: GLfloat); cdecl;
-  glEvalCoord2dv: procedure(var u, v: GLdouble); cdecl;
-  glEvalCoord2fv: procedure(var u, v: GLfloat); cdecl;
-  glMapGrid1d: procedure(un: LongInt; u1, u2: GLdouble); cdecl;
-  glMapGrid1f: procedure(un: LongInt; u1, u2: GLfloat); cdecl;
-  glMapGrid2d: procedure(un: LongInt; u1, u2: GLdouble; vn: LongInt; v1, v2: GLdouble); cdecl;
-  glMapGrid2f: procedure(un: LongInt; u1, u2: GLfloat; vn: LongInt; v1, v2: GLfloat); cdecl;
-  glEvalPoint1: procedure(i: LongInt); cdecl;
-  glEvalPoint2: procedure(i, j: LongInt); cdecl;
-  glEvalMesh1: procedure(mode: GLenum; i1, i2: LongInt); cdecl;
-  glEvalMesh2: procedure(mode: GLenum; i1, i2, j1, j2: LongInt); cdecl;
-
-  // Fog
-  glFogf: procedure(pname: GLenum; param: GLfloat); cdecl;
-  glFogi: procedure(pname: GLenum; param: LongInt); cdecl;
-  glFogfv: procedure(pname: GLenum; var params: GLfloat); cdecl;
-  glFogiv: procedure(pname: GLenum; var params: LongInt); cdecl;
-
-  // Selection and Feedback
-  glFeedbackBuffer: procedure(size: LongInt; AType: GLenum; var buffer: GLfloat); cdecl;
-  glPassThrough: procedure(token: GLfloat); cdecl;
-  glSelectBuffer: procedure(size: LongInt; var buffer: LongWord); cdecl;
-  glInitNames: procedure; cdecl;
-  glLoadName: procedure(name: LongWord); cdecl;
-  glPushName: procedure(name: LongWord); cdecl;
-  glPopName: procedure; cdecl;
+{$ENDIF GL1_2}
 
 const
+  // Utility
+  GL_VENDOR                             = $1F00;
+  GL_RENDERER                           = $1F01;
+  GL_VERSION                            = $1F02;
+  GL_EXTENSIONS                         = $1F03;
+
+  // Errors
+  GL_INVALID_VALUE                      = $0501;
+  GL_INVALID_ENUM                       = $0500;
+  GL_INVALID_OPERATION                  = $0502;
+  GL_STACK_OVERFLOW                     = $0503;
+  GL_STACK_UNDERFLOW                    = $0504;
+  GL_OUT_OF_MEMORY                      = $0505;
+
+
 // -------------------------------------------------------
 //   GL extensions constants
 // -------------------------------------------------------
 
+{$IFDEF EXTENSIONS}
+
+const
   // GL_EXT_blend_minmax and GL_EXT_blend_color
   GL_CONSTANT_COLOR_EXT                 = $8001;
   GL_ONE_MINUS_CONSTANT_COLOR_EXT       = $8002;
@@ -1218,16 +875,7 @@ const
   // GL_EXT_abgr
   GL_ABGR_EXT                           = $8000;
 
-  // GL_SGIS_multitexture
-  GL_SELECTED_TEXTURE_SGIS              = $835C;
-  GL_SELECTED_TEXTURE_COORD_SET_SGIS    = $835D;
-  GL_MAX_TEXTURES_SGIS                  = $835E;
-  GL_TEXTURE0_SGIS                      = $835F;
-  GL_TEXTURE1_SGIS                      = $8360;
-  GL_TEXTURE2_SGIS                      = $8361;
-  GL_TEXTURE3_SGIS                      = $8362;
-  GL_TEXTURE_COORD_SET_SOURCE_SGIS      = $8363;
-
+const
   // GL_EXT_multitexture
   GL_SELECTED_TEXTURE_EXT               = $83C0;
   GL_SELECTED_TEXTURE_COORD_SET_EXT     = $83C1;
@@ -1240,505 +888,598 @@ const
   GL_TEXTURE2_EXT                       = $83C8;
   GL_TEXTURE3_EXT                       = $83C9;
 
+{$ENDIF EXTENSIONS}
+
+{$IFDEF SGI_EXTENSIONS}
+
+const
+  // GL_SGIS_multitexture
+  GL_SELECTED_TEXTURE_SGIS              = $835C;
+  GL_SELECTED_TEXTURE_COORD_SET_SGIS    = $835D;
+  GL_MAX_TEXTURES_SGIS                  = $835E;
+  GL_TEXTURE0_SGIS                      = $835F;
+  GL_TEXTURE1_SGIS                      = $8360;
+  GL_TEXTURE2_SGIS                      = $8361;
+  GL_TEXTURE3_SGIS                      = $8362;
+  GL_TEXTURE_COORD_SET_SOURCE_SGIS      = $8363;
+
+const
   // GL_SGIS_texture_edge_clamp
   GL_CLAMP_TO_EDGE_SGIS                 = $812F;
 
+{$ENDIF SGI_EXTENSIONS}
+
+{$IFDEF MESA}
+{$ENDIF MESA}
+
 
 // -------------------------------------------------------
-//   GL Extension Procedures
+//   GL procedures and functions
 // -------------------------------------------------------
 
+{$IFDEF GL1_0}
+var
+// Miscellaneous
+glClearIndex: procedure(c: Single); cdecl;
+glClearColor: procedure(red, green, blue, alpha: GLclampf); cdecl;
+glClear: procedure(mask: GLbitfield); cdecl;
+glIndexMask: procedure(mask: LongWord); cdecl;
+glColorMask: procedure(red, green, blue, alpha: GLboolean); cdecl;
+glAlphaFunc: procedure(func: GLenum; ref: GLclampf); cdecl;
+glBlendFunc: procedure(sfactor, dfactor: GLenum); cdecl;
+glLogicOp: procedure(opcode: GLenum); cdecl;
+glCullFace: procedure(mode: GLenum); cdecl;
+glFrontFace: procedure(mode: GLenum); cdecl;
+glPointSize: procedure(size: Single); cdecl;
+glLineWidth: procedure(width: Single); cdecl;
+glLineStipple: procedure(factor: LongInt; pattern: Word); cdecl;
+glPolygonMode: procedure(face, mode: GLenum); cdecl;
+glPolygonOffset: procedure(factor, units: Single); cdecl;
+glPolygonStipple: procedure(var mask: Byte); cdecl;
+glGetPolygonStipple: procedure(var mask: Byte); cdecl;
+glEdgeFlag: procedure(flag: GLBoolean); cdecl;
+glEdgeFlagv: procedure(var flag: GLBoolean); cdecl;
+glScissor: procedure(x, y, width, height: LongInt); cdecl;
+glClipPlane: procedure(plane: GLenum; var equation: Double); cdecl;
+glGetClipPlane: procedure(plane: GLenum; var equation: Double); cdecl;
+glDrawBuffer: procedure(mode: GLenum); cdecl;
+glReadBuffer: procedure(mode: GLenum); cdecl;
+glEnable: procedure(cap: LongInt); cdecl;
+glDisable: procedure(cap: LongInt); cdecl;
+glIsEnabled: function(cap: GLenum): GLBoolean; cdecl;
+glGetBooleanv: procedure(pname: GLenum; params : PGLBoolean); cdecl;
+glGetDoublev: procedure(pname: GLenum; params : PDouble); cdecl;
+glGetFloatv: procedure(pname: GLenum; params : PSingle); cdecl;
+glGetIntegerv: procedure(pname: GLenum; params : PLongInt); cdecl;
+glPushAttrib: procedure(mask: GLbitfield); cdecl;
+glPopAttrib: procedure; cdecl;
+glRenderMode: function(mode: GLenum): LongInt; cdecl;
+glGetError: function: GLenum; cdecl;
+glGetString: function(name: GLenum): PChar; cdecl;
+glFinish: procedure; cdecl;
+glFlush: procedure; cdecl;
+glHint: procedure(target, mode: GLenum); cdecl;
+
+// Depth Buffer
+glClearDepth: procedure(depth: GLclampd); cdecl;
+glDepthFunc: procedure(func: LongInt); cdecl;
+glDepthMask: procedure(flag: GLBoolean); cdecl;
+glDepthRange: procedure(near_val, far_val: GLclampd); cdecl;
+
+// Accumulation Buffer
+glClearAccum: procedure(red, green, blue, alpha: Single); cdecl;
+glAccum: procedure(op: GLenum; value: Single); cdecl;
+
+// Tranformation
+glMatrixMode: procedure(mode: GLenum); cdecl;
+glOrtho: procedure(left, right, bottom, top, near_val, far_val: Double); cdecl;
+glFrustum: procedure(left, right, bottom, top, near_val, far_val: Double); cdecl;
+glViewport: procedure(x, y, width, height: LongInt); cdecl;
+glPushMatrix: procedure; cdecl;
+glPopMatrix: procedure; cdecl;
+glLoadIdentity: procedure; cdecl;
+glLoadMatrixd: procedure(var m: Double); cdecl;
+glLoadMatrixf: procedure(var m: PSingle); cdecl;
+glMultMatrixd: procedure(var m: Double); cdecl;
+glMultMatrixf: procedure(var m: Single); cdecl;
+glRotated: procedure(angle, x, y, z: Double); cdecl;
+glRotatef: procedure(angle, x, y, z: Single); cdecl;
+glScaled: procedure(x, y, z: Double); cdecl;
+glScalef: procedure(x, y, z: Single); cdecl;
+glTranslated: procedure(x, y, z: Double); cdecl;
+glTranslatef: procedure(x, y, z: Single); cdecl;
+
+// Display Lists
+glIsList: function(list: LongWord): GLBoolean; cdecl;
+glDeleteLists: procedure(list: LongWord; range: LongInt); cdecl;
+glGenLists: function(range: LongInt): LongWord; cdecl;
+glNewList: procedure(list: LongWord; mode: GLenum); cdecl;
+glEndList: procedure; cdecl;
+glCallList: procedure(list: LongWord); cdecl;
+glCallLists: procedure(n: LongInt; AType: GLenum; var lists); cdecl;
+glListBase: procedure(base: LongWord); cdecl;
+
+// Drawing Functions
+glBegin: procedure(mode: GLenum); cdecl;
+glEnd: procedure; cdecl;
+glVertex2d: procedure(x, y: Double); cdecl;
+glVertex2f: procedure(x, y: Single); cdecl;
+glVertex2i: procedure(x, y: LongInt); cdecl;
+glVertex2s: procedure(x, y: SmallInt); cdecl;
+glVertex3d: procedure(x, y, z: Double); cdecl;
+glVertex3f: procedure(x, y, z: Single); cdecl;
+glVertex3i: procedure(x, y, z: LongInt); cdecl;
+glVertex3s: procedure(x, y, z: SmallInt); cdecl;
+glVertex4d: procedure(x, y, z, w: Double); cdecl;
+glVertex4f: procedure(x, y, z, w: Single); cdecl;
+glVertex4i: procedure(x, y, z, w: LongInt); cdecl;
+glVertex4s: procedure(x, y, z, w: SmallInt); cdecl;
+glVertex2dv: procedure(var v: Double); cdecl;
+glVertex2fv: procedure(var v: Single); cdecl;
+glVertex2iv: procedure(var v: LongInt); cdecl;
+glVertex2sv: procedure(var v: SmallInt); cdecl;
+glVertex3dv: procedure(var v: Double); cdecl;
+glVertex3fv: procedure(var v: Single); cdecl;
+glVertex3iv: procedure(var v: LongInt); cdecl;
+glVertex3sv: procedure(var v: SmallInt); cdecl;
+glVertex4dv: procedure(var v: Double); cdecl;
+glVertex4fv: procedure(var v: Single); cdecl;
+glVertex4iv: procedure(var v: LongInt); cdecl;
+glVertex4sv: procedure(var v: SmallInt); cdecl;
+glNormal3b: procedure(nx, ny, nz: Byte); cdecl;
+glNormal3d: procedure(nx, ny, nz: Double); cdecl;
+glNormal3f: procedure(nx, ny, nz: Single); cdecl;
+glNormal3i: procedure(nx, ny, nz: LongInt); cdecl;
+glNormal3s: procedure(nx, ny, nz: SmallInt); cdecl;
+glNormal3bv: procedure(var v: ShortInt); cdecl;
+glNormal3dv: procedure(var v: Double); cdecl;
+glNormal3fv: procedure(var v: Single); cdecl;
+glNormal3iv: procedure(var v: LongInt); cdecl;
+glNormal3sv: procedure(var v: SmallInt); cdecl;
+glIndexd: procedure(c: Double); cdecl;
+glIndexf: procedure(c: Single); cdecl;
+glIndexi: procedure(c: LongInt); cdecl;
+glIndexs: procedure(c: SmallInt); cdecl;
+glIndexdv: procedure(var c: Double); cdecl;
+glIndexfv: procedure(var c: Single); cdecl;
+glIndexiv: procedure(var c: LongInt); cdecl;
+glIndexsv: procedure(var c: SmallInt); cdecl;
+glColor3b: procedure (red, green, blue: ShortInt); cdecl;
+glColor3d: procedure (red, green, blue: Double); cdecl;
+glColor3f: procedure (red, green, blue: Single); cdecl;
+glColor3i: procedure (red, green, blue: LongInt); cdecl;
+glColor3s: procedure (red, green, blue: SmallInt); cdecl;
+glColor3ub: procedure(red, green, blue: Byte); cdecl;
+glColor3ui: procedure(red, green, blue: LongWord); cdecl;
+glColor3us: procedure(red, green, blue: Word); cdecl;
+glColor4b: procedure (red, green, blue, alpha: ShortInt); cdecl;
+glColor4d: procedure (red, green, blue, alpha: Double); cdecl;
+glColor4f: procedure (red, green, blue, alpha: Single); cdecl;
+glColor4i: procedure (red, green, blue, alpha: LongInt); cdecl;
+glColor4s: procedure (red, green, blue, alpha: SmallInt); cdecl;
+glColor4ub: procedure(red, green, blue, alpha: Byte); cdecl;
+glColor4ui: procedure(red, green, blue, alpha: LongWord); cdecl;
+glColor4us: procedure(red, green, blue, alpha: Word); cdecl;
+glColor3bv: procedure (var v: ShortInt); cdecl;
+glColor3dv: procedure (var v: Double); cdecl;
+glColor3fv: procedure (var v: Single); cdecl;
+glColor3iv: procedure (var v: LongInt); cdecl;
+glColor3sv: procedure (var v: SmallInt); cdecl;
+glColor3ubv: procedure(var v: Byte); cdecl;
+glColor3uiv: procedure(var v: LongWord); cdecl;
+glColor3usv: procedure(var v: Word); cdecl;
+glColor4bv: procedure (var v: ShortInt); cdecl;
+glColor4dv: procedure (var v: Double); cdecl;
+glColor4fv: procedure (var v: Single); cdecl;
+glColor4iv: procedure (var v: LongInt); cdecl;
+glColor4sv: procedure (var v: SmallInt); cdecl;
+glColor4ubv: procedure(var v: Byte); cdecl;
+glColor4uiv: procedure(var v: LongWord); cdecl;
+glColor4usv: procedure(var v: Word); cdecl;
+glTexCoord1d: procedure(s: Double); cdecl;
+glTexCoord1f: procedure(s: Single); cdecl;
+glTexCoord1i: procedure(s: LongInt); cdecl;
+glTexCoord1s: procedure(s: SmallInt); cdecl;
+glTexCoord2d: procedure(s, t: Double); cdecl;
+glTexCoord2f: procedure(s, t: Single); cdecl;
+glTexCoord2i: procedure(s, t: LongInt); cdecl;
+glTexCoord2s: procedure(s, t: SmallInt); cdecl;
+glTexCoord3d: procedure(s, t, r: Double); cdecl;
+glTexCoord3f: procedure(s, t, r: Single); cdecl;
+glTexCoord3i: procedure(s, t, r: LongInt); cdecl;
+glTexCoord3s: procedure(s, t, r: SmallInt); cdecl;
+glTexCoord4d: procedure(s, t, r, q: Double); cdecl;
+glTexCoord4f: procedure(s, t, r, q: Single); cdecl;
+glTexCoord4i: procedure(s, t, r, q: LongInt); cdecl;
+glTexCoord4s: procedure(s, t, r, q: SmallInt); cdecl;
+glTexCoord1dv: procedure(var v: Double); cdecl;
+glTexCoord1fv: procedure(var v: Single); cdecl;
+glTexCoord1iv: procedure(var v: LongInt); cdecl;
+glTexCoord1sv: procedure(var v: SmallInt); cdecl;
+glTexCoord2dv: procedure(var v: Double); cdecl;
+glTexCoord2fv: procedure(var v: Single); cdecl;
+glTexCoord2iv: procedure(var v: LongInt); cdecl;
+glTexCoord2sv: procedure(var v: SmallInt); cdecl;
+glTexCoord3dv: procedure(var v: Double); cdecl;
+glTexCoord3fv: procedure(var v: Single); cdecl;
+glTexCoord3iv: procedure(var v: LongInt); cdecl;
+glTexCoord3sv: procedure(var v: SmallInt); cdecl;
+glTexCoord4dv: procedure(var v: Double); cdecl;
+glTexCoord4fv: procedure(var v: Single); cdecl;
+glTexCoord4iv: procedure(var v: LongInt); cdecl;
+glTexCoord4sv: procedure(var v: SmallInt); cdecl;
+glRasterPos2d: procedure(x, y: Double); cdecl;
+glRasterPos2f: procedure(x, y: Single); cdecl;
+glRasterPos2i: procedure(x, y: LongInt); cdecl;
+glRasterPos2s: procedure(x, y: SmallInt); cdecl;
+glRasterPos3d: procedure(x, y, z: Double); cdecl;
+glRasterPos3f: procedure(x, y, z: Single); cdecl;
+glRasterPos3i: procedure(x, y, z: LongInt); cdecl;
+glRasterPos3s: procedure(x, y, z: SmallInt); cdecl;
+glRasterPos4d: procedure(x, y, z, w: Double); cdecl;
+glRasterPos4f: procedure(x, y, z, w: Single); cdecl;
+glRasterPos4i: procedure(x, y, z, w: LongInt); cdecl;
+glRasterPos4s: procedure(x, y, z, w: SmallInt); cdecl;
+glRasterPos2dv: procedure(var v: Double); cdecl;
+glRasterPos2fv: procedure(var v: Single); cdecl;
+glRasterPos2iv: procedure(var v: LongInt); cdecl;
+glRasterPos2sv: procedure(var v: SmallInt); cdecl;
+glRasterPos3dv: procedure(var v: Double); cdecl;
+glRasterPos3fv: procedure(var v: Single); cdecl;
+glRasterPos3iv: procedure(var v: LongInt); cdecl;
+glRasterPos3sv: procedure(var v: SmallInt); cdecl;
+glRasterPos4dv: procedure(var v: Double); cdecl;
+glRasterPos4fv: procedure(var v: Single); cdecl;
+glRasterPos4iv: procedure(var v: LongInt); cdecl;
+glRasterPos4sv: procedure(var v: SmallInt); cdecl;
+glRectd: procedure(x1, y1, x2, y2: Double); cdecl;
+glRectf: procedure(x1, y1, x2, y2: Single); cdecl;
+glRecti: procedure(x1, y1, x2, y2: LongInt); cdecl;
+glRects: procedure(x1, y1, x2, y2: SmallInt); cdecl;
+glRectdv: procedure(var v1, v2: Double); cdecl;
+glRectfv: procedure(var v1, v2: Single); cdecl;
+glRectiv: procedure(var v1, v2: LongInt); cdecl;
+glRectsv: procedure(var v1, v2: SmallInt); cdecl;
+
+// Lighting
+glShadeModel: procedure(mode: GLenum); cdecl;
+glLightf: procedure(light, pname: GLenum; param: Single); cdecl;
+glLighti: procedure(light, pname: GLenum; param: LongInt); cdecl;
+glLightfv: procedure(light, pname: GLenum; params : PSingle); cdecl;
+glLightiv: procedure(light, pname: GLenum; params : PLongInt); cdecl;
+glGetLightfv: procedure(light, pname: GLenum; params : PSingle); cdecl;
+glGetLightiv: procedure(light, pname: GLenum; params : PLongInt); cdecl;
+glLightModelf: procedure(pname: GLenum; param: Single); cdecl;
+glLightModeli: procedure(pname: GLenum; param: LongInt); cdecl;
+glLightModelfv: procedure(pname: GLenum; params : PSingle); cdecl;
+glLightModeliv: procedure(pname: GLenum; params : PLongInt); cdecl;
+glMaterialf: procedure(face, pname: GLenum; param: Single); cdecl;
+glMateriali: procedure(face, pname: GLenum; param: LongInt); cdecl;
+glMaterialfv: procedure(face, pname: GLenum; params : PSingle); cdecl;
+glMaterialiv: procedure(face, pname: GLenum; params : PLongInt); cdecl;
+glGetMaterialfv: procedure(face, pname: GLenum; params : PSingle); cdecl;
+glGetMaterialiv: procedure(face, pname: GLenum; params : PLongInt); cdecl;
+glColorMaterial: procedure(face, mode: GLenum); cdecl;
+
+// Raster Functions
+glPixelZoom: procedure(xfactor, yfactor: Single); cdecl;
+glPixelStoref: procedure(pname: GLenum; param: Single); cdecl;
+glPixelStorei: procedure(pname: GLenum; param: LongInt); cdecl;
+glPixelTransferf: procedure(pname: GLenum; param: Single); cdecl;
+glPixelTransferi: procedure(pname: GLenum; param: LongInt); cdecl;
+glPixelMapfv: procedure(map: GLenum; mapsize: LongInt; var values: Single); cdecl;
+glPixelMapuiv: procedure(map: GLenum; mapsize: LongInt; var values: LongWord); cdecl;
+glPixelMapusv: procedure(map: GLenum; mapsize: LongInt; var values: Word); cdecl;
+glGetPixelMapfv: procedure(map: GLenum; var values: Single); cdecl;
+glGetPixelMapuiv: procedure(map: GLenum; var values: LongWord); cdecl;
+glGetPixelMapusv: procedure(map: GLenum; var values: Word); cdecl;
+glBitmap: procedure(width, height: LongInt; xorig, yorig, xmove, ymove: Single; var bitmap); cdecl;
+glReadPixels: procedure(x, y, width, height: LongInt; format, AType: GLenum; var pixels); cdecl;
+glDrawPixels: procedure(width, height: LongInt; format, AType: GLenum; var pixels); cdecl;
+glCopyPixels: procedure(x, y, width, height: LongInt; AType: GLenum); cdecl;
+
+// Stenciling
+glStencilFunc: procedure(func: GLenum; ref: LongInt; mask: LongWord); cdecl;
+glStencilMask: procedure(mask: LongWord); cdecl;
+glStencilOp: procedure(fail, zfail, zpass: GLenum); cdecl;
+glClearStencil: procedure(s: LongInt); cdecl;
+
+// Texture Mapping
+glTexGend: procedure(cord, pname: GLenum; param: Double); cdecl;
+glTexGenf: procedure(cord, pname: GLenum; param: Single); cdecl;
+glTexGeni: procedure(cord, pname: GLenum; param: LongInt); cdecl;
+glTexGendv: procedure(cord, pname: GLenum; params : PDouble); cdecl;
+glTexGenfv: procedure(cord, pname: GLenum; params : PSingle); cdecl;
+glTexGeniv: procedure(cord, pname: GLenum; params : PLongInt); cdecl;
+glGetTexGendv: procedure(cord, pname: GLenum; params : PDouble); cdecl;
+glGetTexGenfv: procedure(cord, pname: GLenum; params : PSingle); cdecl;
+glGetTexGeniv: procedure(cord, pname: GLenum; params : PLongInt); cdecl;
+glTexEnvf: procedure(target, pname: GLenum; param: Single); cdecl;
+glTexEnvi: procedure(target, pname: GLenum; param: LongInt); cdecl;
+glTexEnvfv: procedure(target, pname: GLenum; params : PSingle); cdecl;
+glTexEnviv: procedure(target, pname: GLenum; params : PLongInt); cdecl;
+glGetTexEnvfv: procedure(target, pname: GLenum; params : PSingle); cdecl;
+glGetTexEnviv: procedure(target, pname: GLenum; params : PLongInt); cdecl;
+glTexParameterf: procedure(target, pname: GLenum; param: Single); cdecl;
+glTexParameteri: procedure(target, pname: GLenum; param: LongInt); cdecl;
+glTexParameterfv: procedure(target, pname: GLenum; params : PSingle); cdecl;
+glTexParameteriv: procedure(target, pname: GLenum; params : PLongInt); cdecl;
+glGetTexParameterfv: procedure(target, pname: GLenum; params : PSingle); cdecl;
+glGetTexParameteriv: procedure(target, pname: GLenum; params : PLongInt); cdecl;
+glGetTexLevelParameterfv: procedure(target: GLenum; level: LongInt; pname: GLenum; params : PSingle); cdecl;
+glGetTexLevelParameteriv: procedure(target: GLenum; level: LongInt; pname: GLenum; params : PLongInt); cdecl;
+glTexImage1D: procedure(target: GLenum; level, internalFormat, width, border: LongInt; format, AType: GLenum; var pixels); cdecl;
+glTexImage2D: procedure(target: GLenum; level, internalFormat, width, height, border: LongInt; format, AType: GLenum; var pixels); cdecl;
+glGetTexImage: procedure(target: GLenum; level: LongInt; format, AType: GLenum; var pixels); cdecl;
+
+// Evaluators
+glMap1d: procedure(target: GLenum; u1, u2: Double; stride, order: LongInt; var points: Double); cdecl;
+glMap1f: procedure(target: GLenum; u1, u2: Single; stride, order: LongInt; var points: Single); cdecl;
+glMap2d: procedure(target: GLenum; u1, u2: Double; ustride, uorder: LongInt; v1, v2: Double; vstride, vorder: LongInt; var points: Double); cdecl;
+glMap2f: procedure(target: GLenum; u1, u2: Single; ustride, uorder: LongInt; v1, v2: Single; vstride, vorder: LongInt; var points: Single); cdecl;
+glGetMapdv: procedure(target, query: GLenum; var v: Double); cdecl;
+glGetMapfv: procedure(target, query: GLenum; var v: Single); cdecl;
+glGetMapiv: procedure(target, query: GLenum; var v: LongInt); cdecl;
+glEvalCoord1d: procedure(u: Double); cdecl;
+glEvalCoord1f: procedure(u: Single); cdecl;
+glEvalCoord1dv: procedure(var u: Double); cdecl;
+glEvalCoord1fv: procedure(var u: Single); cdecl;
+glEvalCoord2d: procedure(u, v: Double); cdecl;
+glEvalCoord2f: procedure(u, v: Single); cdecl;
+glEvalCoord2dv: procedure(var u, v: Double); cdecl;
+glEvalCoord2fv: procedure(var u, v: Single); cdecl;
+glMapGrid1d: procedure(un: LongInt; u1, u2: Double); cdecl;
+glMapGrid1f: procedure(un: LongInt; u1, u2: Single); cdecl;
+glMapGrid2d: procedure(un: LongInt; u1, u2: Double; vn: LongInt; v1, v2: Double); cdecl;
+glMapGrid2f: procedure(un: LongInt; u1, u2: Single; vn: LongInt; v1, v2: Single); cdecl;
+glEvalPoint1: procedure(i: LongInt); cdecl;
+glEvalPoint2: procedure(i, j: LongInt); cdecl;
+glEvalMesh1: procedure(mode: GLenum; i1, i2: LongInt); cdecl;
+glEvalMesh2: procedure(mode: GLenum; i1, i2, j1, j2: LongInt); cdecl;
+
+// Fog
+glFogf: procedure(pname: GLenum; param: Single); cdecl;
+glFogi: procedure(pname: GLenum; param: LongInt); cdecl;
+glFogfv: procedure(pname: GLenum; params : PSingle); cdecl;
+glFogiv: procedure(pname: GLenum; params : PLongInt); cdecl;
+
+// Selection and Feedback
+glFeedbackBuffer: procedure(size: LongInt; AType: GLenum; var buffer: Single); cdecl;
+glPassThrough: procedure(token: Single); cdecl;
+glSelectBuffer: procedure(size: LongInt; var buffer: LongWord); cdecl;
+glInitNames: procedure; cdecl;
+glLoadName: procedure(name: LongWord); cdecl;
+glPushName: procedure(name: LongWord); cdecl;
+glPopName: procedure; cdecl;
+
+{$ENDIF GL1_0}
+
+{$IFDEF GL1_1}
 var
 
-  // === 1.0 Extensions ===
+// Miscellaneous
+glEnableClientState: procedure(cap: GLenum); cdecl;
+glDisableClientState: procedure(cap: GLenum); cdecl;
+glPushClientAttrib: procedure(mask: GLbitfield); cdecl;
+glPopClientAttrib: procedure; cdecl;
 
-  // GL_EXT_blend_minmax
-  glBlendEquationEXT: procedure(mode: GLenum); cdecl;
+// Drawing Functions
+glIndexub: procedure(c: Byte); cdecl;
+glIndexubv: procedure(var c: Byte); cdecl;
 
-  // GL_EXT_blend_color
-  glBlendColorEXT: procedure(red, green, blue, alpha: GLclampf); cdecl;
+// Vertex Arrays
+glVertexPointer: procedure(size: LongInt; AType: GLenum; stride: LongInt; var ptr); cdecl;
+glNormalPointer: procedure(AType: GLenum; stride: LongInt; var ptr); cdecl;
+glColorPointer: procedure(size: LongInt; AType: GLenum; stride: LongInt; var ptr); cdecl;
+glIndexPointer: procedure(AType: GLenum; stride: LongInt; var ptr); cdecl;
+glTexCoordPointer: procedure(size: LongInt; AType: GLenum; stride: LongInt; var ptr); cdecl;
+glEdgeFlagPointer: procedure(stride: LongInt; var ptr); cdecl;
+glGetPointerv: procedure(pname: GLenum; var params: Pointer); cdecl;
+glArrayElement: procedure(i: LongInt); cdecl;
+glDrawArrays: procedure(mode: GLenum; first, count: LongInt); cdecl;
+glDrawElements: procedure(mode: GLenum; count: Integer; AType: GLenum; var indices); cdecl;
+glInterleavedArrays: procedure(format: GLenum; stride: LongInt; var pointer); cdecl;
 
-  // GL_EXT_polygon_offset
-  glPolygonOffsetEXT: procedure(factor, bias: GLfloat); cdecl;
+// Texture Mapping
+glGenTextures: procedure(n: LongInt; var textures: LongWord); cdecl;
+glDeleteTextures: procedure(n: LongInt; var textures: LongWord); cdecl;
+glBindTexture: procedure(target: GLenum; texture: LongWord); cdecl;
+glPrioritizeTextures: procedure(n: LongInt; var textures: LongWord; var priorities: GLclampf); cdecl;
+glAreTexturesResident: function(n: LongInt; var textures: LongWord; var residences: Boolean): Boolean; cdecl;
+glIsTexture: function(texture: LongWord): Boolean; cdecl;
+glTexSubImage1D: procedure(target: GLenum; level, xoffset, width: LongInt; format, AType: GLenum; var pixels); cdecl;
+glTexSubImage2D: procedure(target: GLenum; level, xoffset, yoffset, width, height: LongInt; format, AType: GLenum; var pixels); cdecl;
+glCopyTexImage1D: procedure(target: GLenum; level: LongInt; format: GLenum; x, y, width, border: LongInt); cdecl;
+glCopyTexImage2D: procedure(target: GLenum; level: LongInt; format: GLenum; x, y, width, height, border: LongInt); cdecl;
+glCopyTexSubImage1D: procedure(target: GLenum; level, xoffset, x, y, width: LongInt); cdecl;
+glCopyTexSubImage2D: procedure(target: GLenum; level, xoffset, yoffset, x, y, width, height: LongInt); cdecl;
 
-  // GL_EXT_vertex_array
-  glVertexPointerEXT: procedure(size: LongInt; AType: GLenum; stride, count: LongInt; var ptr); cdecl;
-  glNormalPointerEXT: procedure(AType: GLenum; stride, count: LongInt; var ptr); cdecl;
-  glColorPointerEXT: procedure(size: LongInt; AType: GLenum; stride, count: LongInt; var ptr); cdecl;
-  glIndexPointerEXT: procedure(AType: GLenum; stride, count: LongInt; var ptr); cdecl;
-  glTexCoordPointerEXT: procedure(size: LongInt; AType: GLenum; stride, count: LongInt; var ptr); cdecl;
-  glEdgeFlagPointerEXT: procedure(stride, count: LongInt; var ptr: Boolean); cdecl;
-  glGetPointervEXT: procedure(pname: GLenum; var params: Pointer); cdecl;
-  glArrayElementEXT: procedure(i: LongInt); cdecl;
-  glDrawArraysEXT: procedure(mode: GLEnum; first, count: LongInt); cdecl;
+{$ENDIF GL1_1}
 
-  // GL_EXT_texture_object
-  glGenTexturesEXT: procedure(n: LongInt; var textures: LongWord); cdecl;
-  glDeleteTexturesEXT: procedure(n: LongInt; var textures: LongWord); cdecl;
-  glBindTextureEXT: procedure(target: GLenum; texture: LongWord); cdecl;
-  glPrioritizeTexturesEXT: procedure(n: LongInt; var textures: LongWord; var priorities: GLClampf); cdecl;
-  glAreTexturesResidentEXT: function(n: LongInt; var textures: LongWord; var residences: Boolean): Boolean; cdecl;
-  glIsTextureEXT: function(texture: LongWord): Boolean; cdecl;
-
-  // GL_EXT_texture3D
-  glTexImage3DEXT: procedure(target: GLenum; level: LongInt; internalFormat: GLenum; width, height, depth, border: LongInt; format, AType: GLenum; var pixels); cdecl;
-  glTexSubImage3DEXT: procedure(target: GLenum; level, xoffset, yoffset, zoffset, width, height, depth: LongInt; format, AType: GLenum; var pixels); cdecl;
-  glCopyTexSubImage3DEXT: procedure(target: GLenum; level, xoffset, yoffset, zoffset, x, y, width, height: LongInt); cdecl;
-
-  // GL_EXT_color_table
-  glColorTableEXT: procedure(target, internalformat: GLenum; width: LongInt; format, AType: GLenum; var table); cdecl;
-  glColorSubTableEXT: procedure(target: GLenum; start, count: LongInt; format, AType: GLEnum; var data); cdecl;
-  glGetColorTableEXT: procedure(target, format, AType: GLenum; var table); cdecl;
-  glGetColorTableParameterfvEXT: procedure(target, pname: GLenum; var params: GLfloat); cdecl;
-  glGetColorTableParameterivEXT: procedure(target, pname: GLenum; var params: LongInt); cdecl;
-
-  // GL_SGIS_multitexture
-  glMultiTexCoord1dSGIS: procedure(target: GLenum; s: GLdouble); cdecl;
-  glMultiTexCoord1dvSGIS: procedure(target: GLenum; var v: GLdouble); cdecl;
-  glMultiTexCoord1fSGIS: procedure(target: GLenum; s: GLfloat); cdecl;
-  glMultiTexCoord1fvSGIS: procedure(target: GLenum; var v: GLfloat); cdecl;
-  glMultiTexCoord1iSGIS: procedure(target: GLenum; s: LongInt); cdecl;
-  glMultiTexCoord1ivSGIS: procedure(target: GLenum; var v: LongInt); cdecl;
-  glMultiTexCoord1sSGIS: procedure(target: GLenum; s: ShortInt); cdecl;
-  glMultiTexCoord1svSGIS: procedure(target: GLenum; var v: ShortInt); cdecl;
-  glMultiTexCoord2dSGIS: procedure(target: GLenum; s, t: GLdouble); cdecl;
-  glMultiTexCoord2dvSGIS: procedure(target: GLenum; var v: GLdouble); cdecl;
-  glMultiTexCoord2fSGIS: procedure(target: GLenum; s, t: GLfloat); cdecl;
-  glMultiTexCoord2fvSGIS: procedure(target: GLenum; var v: GLfloat); cdecl;
-  glMultiTexCoord2iSGIS: procedure(target: GLenum; s, t: LongInt); cdecl;
-  glMultiTexCoord2ivSGIS: procedure(target: GLenum; var v: LongInt); cdecl;
-  glMultiTexCoord2sSGIS: procedure(target: GLenum; s, t: ShortInt); cdecl;
-  glMultiTexCoord2svSGIS: procedure(target: GLenum; var v: ShortInt); cdecl;
-  glMultiTexCoord3dSGIS: procedure(target: GLenum; s, t, r: GLdouble); cdecl;
-  glMultiTexCoord3dvSGIS: procedure(target: GLenum; var v: GLdouble); cdecl;
-  glMultiTexCoord3fSGIS: procedure(target: GLenum; s, t, r: GLfloat); cdecl;
-  glMultiTexCoord3fvSGIS: procedure(target: GLenum; var v: GLfloat); cdecl;
-  glMultiTexCoord3iSGIS: procedure(target: GLenum; s, t, r: LongInt); cdecl;
-  glMultiTexCoord3ivSGIS: procedure(target: GLenum; var v: LongInt); cdecl;
-  glMultiTexCoord3sSGIS: procedure(target: GLenum; s, t, r: ShortInt); cdecl;
-  glMultiTexCoord3svSGIS: procedure(target: GLenum; var v: ShortInt); cdecl;
-  glMultiTexCoord4dSGIS: procedure(target: GLenum; s, t, r, q: GLdouble); cdecl;
-  glMultiTexCoord4dvSGIS: procedure(target: GLenum; var v: GLdouble); cdecl;
-  glMultiTexCoord4fSGIS: procedure(target: GLenum; s, t, r, q: GLfloat); cdecl;
-  glMultiTexCoord4fvSGIS: procedure(target: GLenum; var v: GLfloat); cdecl;
-  glMultiTexCoord4iSGIS: procedure(target: GLenum; s, t, r, q: LongInt); cdecl;
-  glMultiTexCoord4ivSGIS: procedure(target: GLenum; var v: LongInt); cdecl;
-  glMultiTexCoord4sSGIS: procedure(target: GLenum; s, t, r, q: ShortInt); cdecl;
-  glMultiTexCoord4svSGIS: procedure(target: GLenum; var v: ShortInt); cdecl;
-  glMultiTexCoordPointerSGIS: procedure(target: GLenum; size: LongInt; AType: GLEnum; stride: LongInt; var APointer); cdecl;
-  glSelectTextureSGIS: procedure(target: GLenum); cdecl;
-  glSelectTextureCoordSetSGIS: procedure(target: GLenum); cdecl;
-
-  // GL_EXT_multitexture
-  glMultiTexCoord1dEXT: procedure(target: GLenum; s: GLdouble); cdecl;
-  glMultiTexCoord1dvEXT: procedure(target: GLenum; var v: GLdouble); cdecl;
-  glMultiTexCoord1fEXT: procedure(target: GLenum; s: GLfloat); cdecl;
-  glMultiTexCoord1fvEXT: procedure(target: GLenum; var v: GLfloat); cdecl;
-  glMultiTexCoord1iEXT: procedure(target: GLenum; s: LongInt); cdecl;
-  glMultiTexCoord1ivEXT: procedure(target: GLenum; var v: LongInt); cdecl;
-  glMultiTexCoord1sEXT: procedure(target: GLenum; s: ShortInt); cdecl;
-  glMultiTexCoord1svEXT: procedure(target: GLenum; var v: ShortInt); cdecl;
-  glMultiTexCoord2dEXT: procedure(target: GLenum; s, t: GLdouble); cdecl;
-  glMultiTexCoord2dvEXT: procedure(target: GLenum; var v: GLdouble); cdecl;
-  glMultiTexCoord2fEXT: procedure(target: GLenum; s, t: GLfloat); cdecl;
-  glMultiTexCoord2fvEXT: procedure(target: GLenum; var v: GLfloat); cdecl;
-  glMultiTexCoord2iEXT: procedure(target: GLenum; s, t: LongInt); cdecl;
-  glMultiTexCoord2ivEXT: procedure(target: GLenum; var v: LongInt); cdecl;
-  glMultiTexCoord2sEXT: procedure(target: GLenum; s, t: ShortInt); cdecl;
-  glMultiTexCoord2svEXT: procedure(target: GLenum; var v: ShortInt); cdecl;
-  glMultiTexCoord3dEXT: procedure(target: GLenum; s, t, r: GLdouble); cdecl;
-  glMultiTexCoord3dvEXT: procedure(target: GLenum; var v: GLdouble); cdecl;
-  glMultiTexCoord3fEXT: procedure(target: GLenum; s, t, r: GLfloat); cdecl;
-  glMultiTexCoord3fvEXT: procedure(target: GLenum; var v: GLfloat); cdecl;
-  glMultiTexCoord3iEXT: procedure(target: GLenum; s, t, r: LongInt); cdecl;
-  glMultiTexCoord3ivEXT: procedure(target: GLenum; var v: LongInt); cdecl;
-  glMultiTexCoord3sEXT: procedure(target: GLenum; s, t, r: ShortInt); cdecl;
-  glMultiTexCoord3svEXT: procedure(target: GLenum; var v: ShortInt); cdecl;
-  glMultiTexCoord4dEXT: procedure(target: GLenum; s, t, r, q: GLdouble); cdecl;
-  glMultiTexCoord4dvEXT: procedure(target: GLenum; var v: GLdouble); cdecl;
-  glMultiTexCoord4fEXT: procedure(target: GLenum; s, t, r, q: GLfloat); cdecl;
-  glMultiTexCoord4fvEXT: procedure(target: GLenum; var v: GLfloat); cdecl;
-  glMultiTexCoord4iEXT: procedure(target: GLenum; s, t, r, q: LongInt); cdecl;
-  glMultiTexCoord4ivEXT: procedure(target: GLenum; var v: LongInt); cdecl;
-  glMultiTexCoord4sEXT: procedure(target: GLenum; s, t, r, q: ShortInt); cdecl;
-  glMultiTexCoord4svEXT: procedure(target: GLenum; var v: ShortInt); cdecl;
-  glInterleavedTextureCoordSetsEXT: procedure(factor: LongInt); cdecl;
-  glSelectTextureEXT: procedure(target: GLenum); cdecl;
-  glSelectTextureCoordSetEXT: procedure(target: GLenum); cdecl;
-  glSelectTextureTransformEXT: procedure(target: GLenum); cdecl;
-
-  // GL_EXT_point_parameters
-  glPointParameterfEXT: procedure(pname: GLenum; param: GLfloat); cdecl;
-  glPointParameterfvEXT: procedure(pname: GLenum; var params: GLfloat); cdecl;
-
-  // GL_MESA_window_pos
-  glWindowPos2iMESA: procedure(x, y: LongInt); cdecl;
-  glWindowPos2sMESA: procedure(x, y: ShortInt); cdecl;
-  glWindowPos2fMESA: procedure(x, y: GLfloat); cdecl;
-  glWindowPos2dMESA: procedure(x, y: GLdouble); cdecl;
-  glWindowPos2ivMESA: procedure(var p: LongInt); cdecl;
-  glWindowPos2svMESA: procedure(var p: ShortInt); cdecl;
-  glWindowPos2fvMESA: procedure(var p: GLfloat); cdecl;
-  glWindowPos2dvMESA: procedure(var p: GLdouble); cdecl;
-  glWindowPos3iMESA: procedure(x, y, z: LongInt); cdecl;
-  glWindowPos3sMESA: procedure(x, y, z: ShortInt); cdecl;
-  glWindowPos3fMESA: procedure(x, y, z: GLfloat); cdecl;
-  glWindowPos3dMESA: procedure(x, y, z: GLdouble); cdecl;
-  glWindowPos3ivMESA: procedure(var p: LongInt); cdecl;
-  glWindowPos3svMESA: procedure(var p: ShortInt); cdecl;
-  glWindowPos3fvMESA: procedure(var p: GLfloat); cdecl;
-  glWindowPos3dvMESA: procedure(var p: GLdouble); cdecl;
-  glWindowPos4iMESA: procedure(x, y, z, w: LongInt); cdecl;
-  glWindowPos4sMESA: procedure(x, y, z, w: ShortInt); cdecl;
-  glWindowPos4fMESA: procedure(x, y, z, w: GLfloat); cdecl;
-  glWindowPos4dMESA: procedure(x, y, z, w: GLdouble); cdecl;
-  glWindowPos4ivMESA: procedure(var p: LongInt); cdecl;
-  glWindowPos4svMESA: procedure(var p: ShortInt); cdecl;
-  glWindowPos4fvMESA: procedure(var p: GLfloat); cdecl;
-  glWindowPos4dvMESA: procedure(var p: GLdouble); cdecl;
-
-  // GL_MESA_resize_buffers
-  glResizeBuffersMESA: procedure; cdecl;
-
-
-// ===================================================================
-//   GLU consts, types and functions
-// ===================================================================
-
-const
-  GLU_TRUE                              = GL_TRUE;
-  GLU_FALSE                             = GL_FALSE;
-
-  // Normal vectors
-  GLU_SMOOTH                            = 100000;
-  GLU_FLAT                              = 100001;
-  GLU_NONE                              = 100002;
-
-  // Quadric draw styles
-  GLU_POINT                             = 100010;
-  GLU_LINE                              = 100011;
-  GLU_FILL                              = 100012;
-  GLU_SILHOUETTE                        = 100013;
-
-  // Quadric orientation
-  GLU_OUTSIDE                           = 100020;
-  GLU_INSIDE                            = 100021;
-
-  // Tesselator
-  GLU_TESS_BEGIN                        = 100100;
-  GLU_TESS_VERTEX                       = 100101;
-  GLU_TESS_END                          = 100102;
-  GLU_TESS_ERROR                        = 100103;
-  GLU_TESS_EDGE_FLAG                    = 100104;
-  GLU_TESS_COMBINE			= 100105;
-  GLU_TESS_BEGIN_DATA			= 100106;
-  GLU_TESS_VERTEX_DATA			= 100107;
-  GLU_TESS_END_DATA			= 100108;
-  GLU_TESS_ERROR_DATA			= 100109;
-  GLU_TESS_EDGE_FLAG_DATA		= 100110;
-  GLU_TESS_COMBINE_DATA			= 100111;
-
-  // Winding rules
-  GLU_TESS_WINDING_ODD			= 100130;
-  GLU_TESS_WINDING_NONZERO		= 100131;
-  GLU_TESS_WINDING_POSITIVE		= 100132;
-  GLU_TESS_WINDING_NEGATIVE		= 100133;
-  GLU_TESS_WINDING_ABS_GEQ_TWO		= 100134;
-
-  // Tessellation properties
-  GLU_TESS_WINDING_RULE			= 100140;
-  GLU_TESS_BOUNDARY_ONLY		= 100141;
-  GLU_TESS_TOLERANCE			= 100142;
-
-  // Tessellation errors
-  GLU_TESS_ERROR1			= 100151;   // Missing gluBeginPolygon
-  GLU_TESS_ERROR2			= 100152;   // Missing gluBeginContour
-  GLU_TESS_ERROR3			= 100153;   // Missing gluEndPolygon
-  GLU_TESS_ERROR4			= 100154;   // Missing gluEndContour
-  GLU_TESS_ERROR5			= 100155;
-  GLU_TESS_ERROR6			= 100156;
-  GLU_TESS_ERROR7			= 100157;
-  GLU_TESS_ERROR8			= 100158;
-
-  // NURBS
-  GLU_AUTO_LOAD_MATRIX                  = 100200;
-  GLU_CULLING                           = 100201;
-  GLU_PARAMETRIC_TOLERANCE              = 100202;
-  GLU_SAMPLING_TOLERANCE                = 100203;
-  GLU_DISPLAY_MODE                      = 100204;
-  GLU_SAMPLING_METHOD                   = 100205;
-  GLU_U_STEP                            = 100206;
-  GLU_V_STEP                            = 100207;
-
-  GLU_PATH_LENGTH                       = 100215;
-  GLU_PARAMETRIC_ERROR                  = 100216;
-  GLU_DOMAIN_DISTANCE                   = 100217;
-
-  GLU_MAP1_TRIM_2                       = 100210;
-  GLU_MAP1_TRIM_3                       = 100211;
-
-  GLU_OUTLINE_POLYGON                   = 100240;
-  GLU_OUTLINE_PATCH                     = 100241;
-
-  GLU_NURBS_ERROR1                      = 100251;   // spline order un-supported
-  GLU_NURBS_ERROR2                      = 100252;   // too few knots
-  GLU_NURBS_ERROR3                      = 100253;   // valid knot range is empty
-  GLU_NURBS_ERROR4                      = 100254;   // decreasing knot sequence
-  GLU_NURBS_ERROR5                      = 100255;   // knot multiplicity > spline order
-  GLU_NURBS_ERROR6                      = 100256;   // endcurve() must follow bgncurve()
-  GLU_NURBS_ERROR7                      = 100257;   // bgncurve() must precede endcurve()
-  GLU_NURBS_ERROR8                      = 100258;   // ctrlarray or knot vector is NULL
-  GLU_NURBS_ERROR9                      = 100259;   // cannot draw pwlcurves
-  GLU_NURBS_ERROR10                     = 100260;   // missing gluNurbsCurve()
-  GLU_NURBS_ERROR11                     = 100261;   // missing gluNurbsSurface()
-  GLU_NURBS_ERROR12                     = 100262;   // endtrim() must precede endsurface()
-  GLU_NURBS_ERROR13                     = 100263;   // bgnsurface() must precede endsurface()
-  GLU_NURBS_ERROR14                     = 100264;   // curve of improper type passed as trim curve
-  GLU_NURBS_ERROR15                     = 100265;   // bgnsurface() must precede bgntrim()
-  GLU_NURBS_ERROR16                     = 100266;   // endtrim() must follow bgntrim()
-  GLU_NURBS_ERROR17                     = 100267;   // bgntrim() must precede endtrim()*/
-  GLU_NURBS_ERROR18                     = 100268;   // invalid or missing trim curve*/
-  GLU_NURBS_ERROR19                     = 100269;   // bgntrim() must precede pwlcurve()
-  GLU_NURBS_ERROR20                     = 100270;   // pwlcurve referenced twice*/
-  GLU_NURBS_ERROR21                     = 100271;   // pwlcurve and nurbscurve mixed
-  GLU_NURBS_ERROR22                     = 100272;   // improper usage of trim data type
-  GLU_NURBS_ERROR23                     = 100273;   // nurbscurve referenced twice
-  GLU_NURBS_ERROR24                     = 100274;   // nurbscurve and pwlcurve mixed
-  GLU_NURBS_ERROR25                     = 100275;   // nurbssurface referenced twice
-  GLU_NURBS_ERROR26                     = 100276;   // invalid property
-  GLU_NURBS_ERROR27                     = 100277;   // endsurface() must follow bgnsurface()
-  GLU_NURBS_ERROR28                     = 100278;   // intersecting or misoriented trim curves
-  GLU_NURBS_ERROR29                     = 100279;   // intersecting trim curves
-  GLU_NURBS_ERROR30                     = 100280;   // UNUSED
-  GLU_NURBS_ERROR31                     = 100281;   // unconnected trim curves
-  GLU_NURBS_ERROR32                     = 100282;   // unknown knot error
-  GLU_NURBS_ERROR33                     = 100283;   // negative vertex count encountered
-  GLU_NURBS_ERROR34                     = 100284;   // negative byte-stride
-  GLU_NURBS_ERROR35                     = 100285;   // unknown type descriptor
-  GLU_NURBS_ERROR36                     = 100286;   // null control point reference
-  GLU_NURBS_ERROR37                     = 100287;   // duplicate point on pwlcurve
-
-  // Errors
-  GLU_INVALID_ENUM                      = 100900;
-  GLU_INVALID_VALUE                     = 100901;
-  GLU_OUT_OF_MEMORY                     = 100902;
-  GLU_INCOMPATIBLE_GL_VERSION           = 100903;
-
-  // New in GLU 1.1
-  GLU_VERSION                           = 100800;
-  GLU_EXTENSIONS                        = 100801;
-
-
-  // === GLU 1.0 tessellation - obsolete! ===
-
-  // Contour types
-  GLU_CW                                = 100120;
-  GLU_CCW                               = 100121;
-  GLU_INTERIOR                          = 100122;
-  GLU_EXTERIOR                          = 100123;
-  GLU_UNKNOWN                           = 100124;
-
-  // Tessellator
-  GLU_BEGIN				= GLU_TESS_BEGIN;
-  GLU_VERTEX				= GLU_TESS_VERTEX;
-  GLU_END				= GLU_TESS_END;
-  GLU_ERROR				= GLU_TESS_ERROR;
-  GLU_EDGE_FLAG				= GLU_TESS_EDGE_FLAG;
-
-
-type
-  PGLUquadricObj = ^TGLUquadricObj;
-  TGLUquadricObj = record end;
-  PGLUnurbsObj = ^TGLUnurbsObj;
-  TGLUnurbsObj = record end;
-  PGLUtesselator = ^TGLUtesselator;
-  TGLUtesselator = record end;
-  PGLUtriangulatorObj = PGLUtesselator;
-
-  // Callback function declarations
-  TGLUQuadricCallback = procedure; cdecl;
-  TGLUNurbsCallback = procedure; cdecl;
-  TGLUTessCallback = procedure; cdecl;
-
-  // We need some private array types
-  TGLUViewport = array[0..3] of LongInt;
-  TGLUMatrixd = array[0..15] of GLdouble;
-  TGLUMatrixf = array[0..15] of GLfloat;
-  TGLUVectord = array[0..2] of GLdouble;
-
+{$IFDEF GL1_2}
 var
-  // Miscellaneous functions
-  gluLookAt: procedure(eye, eyey, eyez, centerx, centery, centerz, upx, upy, upz: GLdouble); cdecl;
-  gluOrtho2D: procedure(left, right, bottom, top: GLdouble); cdecl;
-  gluPerspective: procedure(fovy, aspect, zNear, zFar: GLdouble); cdecl;
-  gluPickMatrix: procedure(x, y, width, height: GLdouble; const viewport: TGLUViewport); cdecl;
-  gluProject: function(objx, objy, objz: GLdouble; const modelMatrix, projMatrix: TGLUMatrixd; const viewport: TGLUViewport; winx, winy, winz: GLdouble): LongInt; cdecl;
-  gluUnProject: function(winx, winy, winz: GLdouble; const modelMatrix, projMatrix: TGLUMatrixd; const viewport: TGLUViewport; objx, objy, objz: GLdouble): LongInt; cdecl;
-  gluErrorString: function(errorCode: GLenum): PChar; cdecl;
-
-  // Mipmapping and image scaling
-  gluScaleImage: procedure(format: GLenum; within, heightin: LongInt; typein: GLenum; const datain; widthout, heightout: LongInt; typeout: GLenum; var dataout); cdecl;
-  gluBuild1DMipmaps: procedure(target: GLenum; components, width: LongInt; format, AType: GLEnum; const data); cdecl;
-  gluBuild2DMipmaps: procedure(target: GLenum; components, width, height: LongInt; format, AType: GLEnum; const data); cdecl;
-
-  // Quadrics
-  gluNewQuadric: function: PGLUquadricObj; cdecl;
-  gluDeleteQuadric: procedure(state: PGLUquadricObj); cdecl;
-  gluQuadricDrawStyle: procedure(quadObject: PGLUquadricObj; drawStyle: GLenum); cdecl;
-  gluQuadricOrientation: procedure(quadObject: PGLUquadricObj; orientation: GLenum); cdecl;
-  gluQuadricNormals: procedure(quadObject: PGLUquadricObj; normals: GLenum); cdecl;
-  gluQuadricTexture: procedure(quadObject: PGLUquadricObj; textureCoords: Boolean); cdecl;
-  gluQuadricCallback: procedure(quadObject: PGLUquadricObj; which: GLenum; fn: TGLUQuadricCallback); cdecl;
-  gluCylinder: procedure(qobj: PGLUquadricObj; baseRadius, topRadius, height: GLdouble; slices, stacks: LongInt); cdecl;
-  gluSphere: procedure(qobj: PGLUquadricObj; radius: GLdouble; slices, stacks: LongInt); cdecl;
-  gluDisk: procedure(qobj: PGLUquadricObj; innerRadius, outerRadius: GLdouble; slices, loops: LongInt); cdecl;
-  gluPartialDisk: procedure(qobj: PGLUquadricObj; innerRadius, outerRadius: GLdouble; slices, loops: LongInt; startAngle, sweepAngle: GLdouble); cdecl;
-
-  // Nurbs
-  gluNewNurbsRenderer: function: PGLUnurbsObj; cdecl;
-  gluDeleteNurbsRenderer: procedure(nobj: PGLUnurbsObj); cdecl;
-  gluLoadSamplingMatrices: procedure(nobj: PGLUnurbsObj; const modelMatrix, projMatrix: TGLUMatrixf; const viewport: TGLUViewport); cdecl;
-  gluNurbsProperty: procedure(nobj: PGLUnurbsObj; AProperty: GLenum; value: GLfloat); cdecl;
-  gluGetNurbsProperty: procedure(nobj: PGLUnurbsObj; AProperty: GLEnum; var value: GLfloat); cdecl;
-  gluBeginCurve: procedure(nobj: PGLUnurbsObj); cdecl;
-  gluEndCurve: procedure(nobj: PGLUnurbsObj); cdecl;
-  gluNurbsCurve: procedure(nobj: PGLUnurbsObj; nknots: LongInt; var know: GLfloat; stride: LongInt; var ctlarray: GLfloat; order: LongInt; AType: GLenum); cdecl;
-  gluBeginSurface: procedure(nobj: PGLUnurbsObj); cdecl;
-  gluEndSurface: procedure(nobj: PGLUnurbsObj); cdecl;
-  gluNurbsSurface: procedure(nobj: PGLUnurbsObj; sknot_count: LongInt; var sknot: GLfloat; tknot_count: LongInt; var tknot: GLfloat; s_stride, t_stride: LongInt; var ctlarray: GLfloat; sorder, torder: LongInt; AType: GLenum); cdecl;
-  gluBeginTrim: procedure(nobj: PGLUnurbsObj); cdecl;
-  gluEndTrim: procedure(nobj: PGLUnurbsObj); cdecl;
-  gluPwlCurve: procedure(nobj: PGLUnurbsObj; count: LongInt; var AArray: GLfloat; stride: LongInt; AType: GLenum); cdecl;
-  gluNurbsCallback: procedure(nobj: PGLUnurbsObj; which: GLenum; fn: TGLUNurbsCallback); cdecl;
-
-  // Polygon tesselation
-  gluNewTess: function: PGLUtesselator; cdecl;
-  gluDeleteTess: procedure(tobj: PGLUtesselator); cdecl;
-  gluTessBeginPolygon: procedure(tobj: PGLUtesselator; var polygon_data); cdecl;
-  gluTessBeginContour: procedure(tobj: PGLUtesselator); cdecl;
-  gluTessVertex: procedure(tobj: PGLUtesselator; v: TGLUVectord; var data); cdecl;
-  gluTessEndContour: procedure(tobj: PGLUtesselator); cdecl;
-  gluTessEndPolygon: procedure(tobj: PGLUtesselator); cdecl;
-  gluTessProperty: procedure(tobj: PGLUtesselator; which: GLenum; value: GLdouble); cdecl;
-  gluTessNormal: procedure(tobj: PGLUtesselator; x, y, z: GLdouble); cdecl;
-  gluTessCallback: procedure(tobj: PGLUtesselator; which: GLenum; fn: TGLUTessCallback); cdecl;
-  gluGetTessProperty: procedure(tobj: PGLUtesselator; which: GLenum; var value: GLdouble); cdecl;
-
-  // Obsolete 1.0 tessellation functions
-  gluBeginPolygon: procedure(tobj: PGLUtesselator); cdecl;
-  gluNextContour: procedure(tobj: PGLUtesselator; AType: GLenum); cdecl;
-  gluEndPolygon: procedure(tobj: PGLUtesselator); cdecl;
-
-  // New functions in GLU 1.1
-  gluGetString: function(name: GLenum): PChar; cdecl;
+glDrawRangeElements: procedure(mode: GLenum; AStart, AEnd: LongWord; count: LongInt; AType: GLenum; var indices); cdecl;
+glTexImage3D: procedure(target: GLenum; level: LongInt; internalFormat: GLenum; width, height, depth, border: LongInt; format, AType: GLEnum; var pixels); cdecl;
+glTexSubImage3D: procedure(target: GLenum; level: LongInt; xoffset, yoffset, zoffset, width, height, depth: LongInt; format, AType: GLEnum; var pixels); cdecl;
+glCopyTexSubImage3D: procedure(target: GLenum; level: LongInt; xoffset, yoffset, zoffset, x, y, width, height: LongInt); cdecl;
+{$ENDIF GL1_2}
 
 
-// ===================================================================
-//   GLX consts, types and functions
-// ===================================================================
+// -------------------------------------------------------
+//   GL Extensions
+// -------------------------------------------------------
 
-// Tokens for glXChooseVisual and glXGetConfig:
-const
-  GLX_USE_GL                            = 1;
-  GLX_BUFFER_SIZE                       = 2;
-  GLX_LEVEL                             = 3;
-  GLX_RGBA                              = 4;
-  GLX_DOUBLEBUFFER                      = 5;
-  GLX_STEREO                            = 6;
-  GLX_AUX_BUFFERS                       = 7;
-  GLX_RED_SIZE                          = 8;
-  GLX_GREEN_SIZE                        = 9;
-  GLX_BLUE_SIZE                         = 10;
-  GLX_ALPHA_SIZE                        = 11;
-  GLX_DEPTH_SIZE                        = 12;
-  GLX_STENCIL_SIZE                      = 13;
-  GLX_ACCUM_RED_SIZE                    = 14;
-  GLX_ACCUM_GREEN_SIZE                  = 15;
-  GLX_ACCUM_BLUE_SIZE                   = 16;
-  GLX_ACCUM_ALPHA_SIZE                  = 17;
-
-  // GLX_EXT_visual_info extension
-  GLX_X_VISUAL_TYPE_EXT                 = $22;
-  GLX_TRANSPARENT_TYPE_EXT              = $23;
-  GLX_TRANSPARENT_INDEX_VALUE_EXT       = $24;
-  GLX_TRANSPARENT_RED_VALUE_EXT         = $25;
-  GLX_TRANSPARENT_GREEN_VALUE_EXT       = $26;
-  GLX_TRANSPARENT_BLUE_VALUE_EXT        = $27;
-  GLX_TRANSPARENT_ALPHA_VALUE_EXT       = $28;
-
-
-  // Error codes returned by glXGetConfig:
-  GLX_BAD_SCREEN                        = 1;
-  GLX_BAD_ATTRIBUTE                     = 2;
-  GLX_NO_EXTENSION                      = 3;
-  GLX_BAD_VISUAL                        = 4;
-  GLX_BAD_CONTEXT                       = 5;
-  GLX_BAD_VALUE                         = 6;
-  GLX_BAD_ENUM                          = 7;
-
-  // GLX 1.1 and later:
-  GLX_VENDOR                            = 1;
-  GLX_VERSION                           = 2;
-  GLX_EXTENSIONS                        = 3;
-
-  // GLX_visual_info extension
-  GLX_TRUE_COLOR_EXT                    = $8002;
-  GLX_DIRECT_COLOR_EXT                  = $8003;
-  GLX_PSEUDO_COLOR_EXT                  = $8004;
-  GLX_STATIC_COLOR_EXT                  = $8005;
-  GLX_GRAY_SCALE_EXT                    = $8006;
-  GLX_STATIC_GRAY_EXT                   = $8007;
-  GLX_NONE_EXT                          = $8000;
-  GLX_TRANSPARENT_RGB_EXT               = $8008;
-  GLX_TRANSPARENT_INDEX_EXT             = $8009;
-
-type
-  // From XLib:
-  XPixmap = TXID;
-  XFont = TXID;
-  XColormap = TXID;
-
-  GLXContext = Pointer;
-  GLXPixmap = TXID;
-  GLXDrawable = TXID;
-  GLXContextID = TXID;
-
+{$IFDEF EXTENSIONS}
 var
-  glXChooseVisual: function(dpy: PDisplay; screen: Integer; var attribList: Integer): PXVisualInfo; cdecl; cdecl;
-  glXCreateContext: function(dpy: PDisplay; vis: PXVisualInfo; shareList: GLXContext; direct: Boolean): GLXContext; cdecl; cdecl;
-  glXDestroyContext: procedure(dpy: PDisplay; ctx: GLXContext); cdecl; cdecl;
-  glXMakeCurrent: function(dpy: PDisplay; drawable: GLXDrawable; ctx: GLXContext): Boolean; cdecl; cdecl;
-  glXCopyContext: procedure(dpy: PDisplay; src, dst: GLXContext; mask: LongWord); cdecl; cdecl;
-  glXSwapBuffers: procedure(dpy: PDisplay; drawable: GLXDrawable); cdecl; cdecl;
-  glXCreateGLXPixmap: function(dpy: PDisplay; visual: PXVisualInfo; pixmap: XPixmap): GLXPixmap; cdecl; cdecl;
-  glXDestroyGLXPixmap: procedure(dpy: PDisplay; pixmap: GLXPixmap); cdecl; cdecl;
-  glXQueryExtension: function(dpy: PDisplay; var errorb, event: Integer): Boolean; cdecl; cdecl;
-  glXQueryVersion: function(dpy: PDisplay; var maj, min: Integer): Boolean; cdecl; cdecl;
-  glXIsDirect: function(dpy: PDisplay; ctx: GLXContext): Boolean; cdecl; cdecl;
-  glXGetConfig: function(dpy: PDisplay; visual: PXVisualInfo; attrib: Integer; var value: Integer): Integer; cdecl; cdecl;
-  glXGetCurrentContext: function: GLXContext; cdecl; cdecl;
-  glXGetCurrentDrawable: function: GLXDrawable; cdecl; cdecl;
-  glXWaitGL: procedure; cdecl; cdecl;
-  glXWaitX: procedure; cdecl; cdecl;
-  glXUseXFont: procedure(font: XFont; first, count, list: Integer); cdecl; cdecl;
 
-  // GLX 1.1 and later
-  glXQueryExtensionsString: function(dpy: PDisplay; screen: Integer): PChar; cdecl; cdecl;
-  glXQueryServerString: function(dpy: PDisplay; screen, name: Integer): PChar; cdecl; cdecl;
-  glXGetClientString: function(dpy: PDisplay; name: Integer): PChar; cdecl; cdecl;
+// === 1.0 Extensions ===
 
-  // Mesa GLX Extensions
-  glXCreateGLXPixmapMESA: function(dpy: PDisplay; visual: PXVisualInfo; pixmap: XPixmap; cmap: XColormap): GLXPixmap; cdecl; cdecl;
-  glXReleaseBufferMESA: function(dpy: PDisplay; d: GLXDrawable): Boolean; cdecl; cdecl;
-  glXCopySubBufferMESA: procedure(dpy: PDisplay; drawbale: GLXDrawable; x, y, width, height: Integer); cdecl; cdecl;
-  glXGetVideoSyncSGI: function(var counter: LongWord): Integer; cdecl; cdecl;
-  glXWaitVideoSyncSGI: function(divisor, remainder: Integer; var count: LongWord): Integer; cdecl; cdecl;
+// GL_EXT_blend_minmax
+glBlendEquationEXT: procedure(mode: GLenum); cdecl;
+
+// GL_EXT_blend_color
+glBlendColorEXT: procedure(red, green, blue, alpha: GLclampf); cdecl;
+
+// GL_EXT_polygon_offset
+glPolygonOffsetEXT: procedure(factor, bias: Single); cdecl;
+
+// GL_EXT_vertex_array
+glVertexPointerEXT: procedure(size: LongInt; AType: GLenum; stride, count: LongInt; var ptr); cdecl;
+glNormalPointerEXT: procedure(AType: GLenum; stride, count: LongInt; var ptr); cdecl;
+glColorPointerEXT: procedure(size: LongInt; AType: GLenum; stride, count: LongInt; var ptr); cdecl;
+glIndexPointerEXT: procedure(AType: GLenum; stride, count: LongInt; var ptr); cdecl;
+glTexCoordPointerEXT: procedure(size: LongInt; AType: GLenum; stride, count: LongInt; var ptr); cdecl;
+glEdgeFlagPointerEXT: procedure(stride, count: LongInt; var ptr: Boolean); cdecl;
+glGetPointervEXT: procedure(pname: GLenum; var params: Pointer); cdecl;
+glArrayElementEXT: procedure(i: LongInt); cdecl;
+glDrawArraysEXT: procedure(mode: GLEnum; first, count: LongInt); cdecl;
+
+// GL_EXT_texture_object
+glGenTexturesEXT: procedure(n: LongInt; var textures: LongWord); cdecl;
+glDeleteTexturesEXT: procedure(n: LongInt; var textures: LongWord); cdecl;
+glBindTextureEXT: procedure(target: GLenum; texture: LongWord); cdecl;
+glPrioritizeTexturesEXT: procedure(n: LongInt; var textures: LongWord; var priorities: GLClampf); cdecl;
+glAreTexturesResidentEXT: function(n: LongInt; var textures: LongWord; var residences: Boolean): Boolean; cdecl;
+glIsTextureEXT: function(texture: LongWord): Boolean; cdecl;
+
+// GL_EXT_texture3D
+glTexImage3DEXT: procedure(target: GLenum; level: LongInt; internalFormat: GLenum; width, height, depth, border: LongInt; format, AType: GLenum; var pixels); cdecl;
+glTexSubImage3DEXT: procedure(target: GLenum; level, xoffset, yoffset, zoffset, width, height, depth: LongInt; format, AType: GLenum; var pixels); cdecl;
+glCopyTexSubImage3DEXT: procedure(target: GLenum; level, xoffset, yoffset, zoffset, x, y, width, height: LongInt); cdecl;
+
+// GL_EXT_color_table
+glColorTableEXT: procedure(target, internalformat: GLenum; width: LongInt; format, AType: GLenum; var table); cdecl;
+glColorSubTableEXT: procedure(target: GLenum; start, count: LongInt; format, AType: GLEnum; var data); cdecl;
+glGetColorTableEXT: procedure(target, format, AType: GLenum; var table); cdecl;
+glGetColorTableParameterfvEXT: procedure(target, pname: GLenum; var params: Single); cdecl;
+glGetColorTableParameterivEXT: procedure(target, pname: GLenum; var params: LongInt); cdecl;
+
+{$ENDIF EXTENSIONS}
+
+// library dependent extensions
+
+{$IFDEF SGI_EXTENSIONS}
+var
+
+// GL_SGIS_multitexture
+glMultiTexCoord1dSGIS: procedure(target: GLenum; s: Double); cdecl;
+glMultiTexCoord1dvSGIS: procedure(target: GLenum; var v: Double); cdecl;
+glMultiTexCoord1fSGIS: procedure(target: GLenum; s: Single); cdecl;
+glMultiTexCoord1fvSGIS: procedure(target: GLenum; var v: Single); cdecl;
+glMultiTexCoord1iSGIS: procedure(target: GLenum; s: LongInt); cdecl;
+glMultiTexCoord1ivSGIS: procedure(target: GLenum; var v: LongInt); cdecl;
+glMultiTexCoord1sSGIS: procedure(target: GLenum; s: ShortInt); cdecl;
+glMultiTexCoord1svSGIS: procedure(target: GLenum; var v: ShortInt); cdecl;
+glMultiTexCoord2dSGIS: procedure(target: GLenum; s, t: Double); cdecl;
+glMultiTexCoord2dvSGIS: procedure(target: GLenum; var v: Double); cdecl;
+glMultiTexCoord2fSGIS: procedure(target: GLenum; s, t: Single); cdecl;
+glMultiTexCoord2fvSGIS: procedure(target: GLenum; var v: Single); cdecl;
+glMultiTexCoord2iSGIS: procedure(target: GLenum; s, t: LongInt); cdecl;
+glMultiTexCoord2ivSGIS: procedure(target: GLenum; var v: LongInt); cdecl;
+glMultiTexCoord2sSGIS: procedure(target: GLenum; s, t: ShortInt); cdecl;
+glMultiTexCoord2svSGIS: procedure(target: GLenum; var v: ShortInt); cdecl;
+glMultiTexCoord3dSGIS: procedure(target: GLenum; s, t, r: Double); cdecl;
+glMultiTexCoord3dvSGIS: procedure(target: GLenum; var v: Double); cdecl;
+glMultiTexCoord3fSGIS: procedure(target: GLenum; s, t, r: Single); cdecl;
+glMultiTexCoord3fvSGIS: procedure(target: GLenum; var v: Single); cdecl;
+glMultiTexCoord3iSGIS: procedure(target: GLenum; s, t, r: LongInt); cdecl;
+glMultiTexCoord3ivSGIS: procedure(target: GLenum; var v: LongInt); cdecl;
+glMultiTexCoord3sSGIS: procedure(target: GLenum; s, t, r: ShortInt); cdecl;
+glMultiTexCoord3svSGIS: procedure(target: GLenum; var v: ShortInt); cdecl;
+glMultiTexCoord4dSGIS: procedure(target: GLenum; s, t, r, q: Double); cdecl;
+glMultiTexCoord4dvSGIS: procedure(target: GLenum; var v: Double); cdecl;
+glMultiTexCoord4fSGIS: procedure(target: GLenum; s, t, r, q: Single); cdecl;
+glMultiTexCoord4fvSGIS: procedure(target: GLenum; var v: Single); cdecl;
+glMultiTexCoord4iSGIS: procedure(target: GLenum; s, t, r, q: LongInt); cdecl;
+glMultiTexCoord4ivSGIS: procedure(target: GLenum; var v: LongInt); cdecl;
+glMultiTexCoord4sSGIS: procedure(target: GLenum; s, t, r, q: ShortInt); cdecl;
+glMultiTexCoord4svSGIS: procedure(target: GLenum; var v: ShortInt); cdecl;
+glMultiTexCoordPointerSGIS: procedure(target: GLenum; size: LongInt; AType: GLEnum; stride: LongInt; var APointer); cdecl;
+glSelectTextureSGIS: procedure(target: GLenum); cdecl;
+glSelectTextureCoordSetSGIS: procedure(target: GLenum); cdecl;
+
+// GL_EXT_multitexture
+glMultiTexCoord1dEXT: procedure(target: GLenum; s: Double); cdecl;
+glMultiTexCoord1dvEXT: procedure(target: GLenum; var v: Double); cdecl;
+glMultiTexCoord1fEXT: procedure(target: GLenum; s: Single); cdecl;
+glMultiTexCoord1fvEXT: procedure(target: GLenum; var v: Single); cdecl;
+glMultiTexCoord1iEXT: procedure(target: GLenum; s: LongInt); cdecl;
+glMultiTexCoord1ivEXT: procedure(target: GLenum; var v: LongInt); cdecl;
+glMultiTexCoord1sEXT: procedure(target: GLenum; s: ShortInt); cdecl;
+glMultiTexCoord1svEXT: procedure(target: GLenum; var v: ShortInt); cdecl;
+glMultiTexCoord2dEXT: procedure(target: GLenum; s, t: Double); cdecl;
+glMultiTexCoord2dvEXT: procedure(target: GLenum; var v: Double); cdecl;
+glMultiTexCoord2fEXT: procedure(target: GLenum; s, t: Single); cdecl;
+glMultiTexCoord2fvEXT: procedure(target: GLenum; var v: Single); cdecl;
+glMultiTexCoord2iEXT: procedure(target: GLenum; s, t: LongInt); cdecl;
+glMultiTexCoord2ivEXT: procedure(target: GLenum; var v: LongInt); cdecl;
+glMultiTexCoord2sEXT: procedure(target: GLenum; s, t: ShortInt); cdecl;
+glMultiTexCoord2svEXT: procedure(target: GLenum; var v: ShortInt); cdecl;
+glMultiTexCoord3dEXT: procedure(target: GLenum; s, t, r: Double); cdecl;
+glMultiTexCoord3dvEXT: procedure(target: GLenum; var v: Double); cdecl;
+glMultiTexCoord3fEXT: procedure(target: GLenum; s, t, r: Single); cdecl;
+glMultiTexCoord3fvEXT: procedure(target: GLenum; var v: Single); cdecl;
+glMultiTexCoord3iEXT: procedure(target: GLenum; s, t, r: LongInt); cdecl;
+glMultiTexCoord3ivEXT: procedure(target: GLenum; var v: LongInt); cdecl;
+glMultiTexCoord3sEXT: procedure(target: GLenum; s, t, r: ShortInt); cdecl;
+glMultiTexCoord3svEXT: procedure(target: GLenum; var v: ShortInt); cdecl;
+glMultiTexCoord4dEXT: procedure(target: GLenum; s, t, r, q: Double); cdecl;
+glMultiTexCoord4dvEXT: procedure(target: GLenum; var v: Double); cdecl;
+glMultiTexCoord4fEXT: procedure(target: GLenum; s, t, r, q: Single); cdecl;
+glMultiTexCoord4fvEXT: procedure(target: GLenum; var v: Single); cdecl;
+glMultiTexCoord4iEXT: procedure(target: GLenum; s, t, r, q: LongInt); cdecl;
+glMultiTexCoord4ivEXT: procedure(target: GLenum; var v: LongInt); cdecl;
+glMultiTexCoord4sEXT: procedure(target: GLenum; s, t, r, q: ShortInt); cdecl;
+glMultiTexCoord4svEXT: procedure(target: GLenum; var v: ShortInt); cdecl;
+glInterleavedTextureCoordSetsEXT: procedure(factor: LongInt); cdecl;
+glSelectTextureEXT: procedure(target: GLenum); cdecl;
+glSelectTextureCoordSetEXT: procedure(target: GLenum); cdecl;
+glSelectTextureTransformEXT: procedure(target: GLenum); cdecl;
+
+// GL_EXT_point_parameters
+glPointParameterfEXT: procedure(pname: GLenum; param: Single); cdecl;
+glPointParameterfvEXT: procedure(pname: GLenum; var params: Single); cdecl;
+
+{$ENDIF SGI_EXTENSIONS}
+
+{$ifdef MESA}
+var
+// GL_MESA_window_pos
+glWindowPos2iMESA: procedure(x, y: LongInt); cdecl;
+glWindowPos2sMESA: procedure(x, y: ShortInt); cdecl;
+glWindowPos2fMESA: procedure(x, y: Single); cdecl;
+glWindowPos2dMESA: procedure(x, y: Double); cdecl;
+glWindowPos2ivMESA: procedure(var p: LongInt); cdecl;
+glWindowPos2svMESA: procedure(var p: ShortInt); cdecl;
+glWindowPos2fvMESA: procedure(var p: Single); cdecl;
+glWindowPos2dvMESA: procedure(var p: Double); cdecl;
+glWindowPos3iMESA: procedure(x, y, z: LongInt); cdecl;
+glWindowPos3sMESA: procedure(x, y, z: ShortInt); cdecl;
+glWindowPos3fMESA: procedure(x, y, z: Single); cdecl;
+glWindowPos3dMESA: procedure(x, y, z: Double); cdecl;
+glWindowPos3ivMESA: procedure(var p: LongInt); cdecl;
+glWindowPos3svMESA: procedure(var p: ShortInt); cdecl;
+glWindowPos3fvMESA: procedure(var p: Single); cdecl;
+glWindowPos3dvMESA: procedure(var p: Double); cdecl;
+glWindowPos4iMESA: procedure(x, y, z, w: LongInt); cdecl;
+glWindowPos4sMESA: procedure(x, y, z, w: ShortInt); cdecl;
+glWindowPos4fMESA: procedure(x, y, z, w: Single); cdecl;
+glWindowPos4dMESA: procedure(x, y, z, w: Double); cdecl;
+glWindowPos4ivMESA: procedure(var p: LongInt); cdecl;
+glWindowPos4svMESA: procedure(var p: ShortInt); cdecl;
+glWindowPos4fvMESA: procedure(var p: Single); cdecl;
+glWindowPos4dvMESA: procedure(var p: Double); cdecl;
+
+// GL_MESA_resize_buffers
+glResizeBuffersMESA: procedure; cdecl;
+{$endif MESA}
 
 
-// ===================================================================
-// ===================================================================
+// =======================================================
+// =======================================================
 
 implementation
+
 
 {$LINKLIB m}
 
@@ -1746,28 +1487,29 @@ function dlopen(AFile: PChar; mode: LongInt): Pointer; external 'dl';
 function dlclose(handle: Pointer): LongInt; external 'dl';
 function dlsym(handle: Pointer; name: PChar): Pointer; external 'dl';
 
-function LoadLibrary(const name: PChar): Pointer;
+function LoadLibrary(name: PChar): Pointer;
 begin
   Result := dlopen(name, $101 {RTLD_GLOBAL or RTLD_LAZY});
 end;
 
-function GetProc(handle: Pointer; const name: PChar): Pointer;
+function GetProc(handle: Pointer; name: PChar): Pointer;
 begin
   Result := dlsym(handle, name);
-  if not Assigned(Result) and GLDumpUnresolvedFunctions then
+  if (Result = nil) and  GLDumpUnresolvedFunctions then
     WriteLn('Unresolved: ', name);
 end;
 
 var
-  libGL, libGLU, libGLX: Pointer;
+  libGL : Pointer;
 
-function InitGLFromLibrary(const libname: PChar): Boolean;
+function InitGLFromLibrary(libname: PChar): Boolean;
 begin
   Result := False;
   libGL := LoadLibrary(libname);
-  if not Assigned(libGL) then
-    exit;
+  if not Assigned(libGL) then exit;
 
+{$ifdef GL1_0}
+// Miscellaneous
   glClearIndex := GetProc(libgl, 'glClearIndex');
   glClearColor := GetProc(libgl, 'glClearColor');
   glClear := GetProc(libgl, 'glClear');
@@ -1795,28 +1537,27 @@ begin
   glEnable := GetProc(libgl, 'glEnable');
   glDisable := GetProc(libgl, 'glDisable');
   glIsEnabled := GetProc(libgl, 'glIsEnabled');
-  glEnableClientState := GetProc(libgl, 'glEnableClientState');
-  glDisableClientState := GetProc(libgl, 'glDisableClientState');
   glGetBooleanv := GetProc(libgl, 'glGetBooleanv');
   glGetDoublev := GetProc(libgl, 'glGetDoublev');
   glGetFloatv := GetProc(libgl, 'glGetFloatv');
   glGetIntegerv := GetProc(libgl, 'glGetIntegerv');
   glPushAttrib := GetProc(libgl, 'glPushAttrib');
   glPopAttrib := GetProc(libgl, 'glPopAttrib');
-  glPushClientAttrib := GetProc(libgl, 'glPushClientAttrib');
-  glPopClientAttrib := GetProc(libgl, 'glPopClientAttrib');
   glRenderMode := GetProc(libgl, 'glRenderMode');
   glGetError := GetProc(libgl, 'glGetError');
   glGetString := GetProc(libgl, 'glGetString');
   glFinish := GetProc(libgl, 'glFinish');
   glFlush := GetProc(libgl, 'glFlush');
   glHint := GetProc(libgl, 'glHint');
+// Depth Buffer
   glClearDepth := GetProc(libgl, 'glClearDepth');
   glDepthFunc := GetProc(libgl, 'glDepthFunc');
   glDepthMask := GetProc(libgl, 'glDepthMask');
   glDepthRange := GetProc(libgl, 'glDepthRange');
+// Accumulation Buffer
   glClearAccum := GetProc(libgl, 'glClearAccum');
   glAccum := GetProc(libgl, 'glAccum');
+// Tranformation
   glMatrixMode := GetProc(libgl, 'glMatrixMode');
   glOrtho := GetProc(libgl, 'glOrtho');
   glFrustum := GetProc(libgl, 'glFrustum');
@@ -1834,6 +1575,7 @@ begin
   glScalef := GetProc(libgl, 'glScalef');
   glTranslated := GetProc(libgl, 'glTranslated');
   glTranslatef := GetProc(libgl, 'glTranslatef');
+// Display Lists
   glIsList := GetProc(libgl, 'glIsList');
   glDeleteLists := GetProc(libgl, 'glDeleteLists');
   glGenLists := GetProc(libgl, 'glGenLists');
@@ -1842,6 +1584,7 @@ begin
   glCallList := GetProc(libgl, 'glCallList');
   glCallLists := GetProc(libgl, 'glCallLists');
   glListBase := GetProc(libgl, 'glListBase');
+// Drawing Functions
   glBegin := GetProc(libgl, 'glBegin');
   glEnd := GetProc(libgl, 'glEnd');
   glVertex2d := GetProc(libgl, 'glVertex2d');
@@ -1882,12 +1625,10 @@ begin
   glIndexf := GetProc(libgl, 'glIndexf');
   glIndexi := GetProc(libgl, 'glIndexi');
   glIndexs := GetProc(libgl, 'glIndexs');
-  glIndexub := GetProc(libgl, 'glIndexub');
   glIndexdv := GetProc(libgl, 'glIndexdv');
   glIndexfv := GetProc(libgl, 'glIndexfv');
   glIndexiv := GetProc(libgl, 'glIndexiv');
   glIndexsv := GetProc(libgl, 'glIndexsv');
-  glIndexubv := GetProc(libgl, 'glIndexubv');
   glColor3b := GetProc(libgl, 'glColor3b');
   glColor3d := GetProc(libgl, 'glColor3d');
   glColor3f := GetProc(libgl, 'glColor3f');
@@ -1984,17 +1725,7 @@ begin
   glRectfv := GetProc(libgl, 'glRectfv');
   glRectiv := GetProc(libgl, 'glRectiv');
   glRectsv := GetProc(libgl, 'glRectsv');
-  glVertexPointer := GetProc(libgl, 'glVertexPointer');
-  glNormalPointer := GetProc(libgl, 'glNormalPointer');
-  glColorPointer := GetProc(libgl, 'glColorPointer');
-  glIndexPointer := GetProc(libgl, 'glIndexPointer');
-  glTexCoordPointer := GetProc(libgl, 'glTexCoordPointer');
-  glEdgeFlagPointer := GetProc(libgl, 'glEdgeFlagPointer');
-  glGetPointerv := GetProc(libgl, 'glGetPointerv');
-  glArrayElement := GetProc(libgl, 'glArrayElement');
-  glDrawArrays := GetProc(libgl, 'glDrawArrays');
-  glDrawElements := GetProc(libgl, 'glDrawElements');
-  glInterleavedArrays := GetProc(libgl, 'glInterleavedArrays');
+// Lighting
   glShadeModel := GetProc(libgl, 'glShadeModel');
   glLightf := GetProc(libgl, 'glLightf');
   glLighti := GetProc(libgl, 'glLighti');
@@ -2013,6 +1744,7 @@ begin
   glGetMaterialfv := GetProc(libgl, 'glGetMaterialfv');
   glGetMaterialiv := GetProc(libgl, 'glGetMaterialiv');
   glColorMaterial := GetProc(libgl, 'glColorMaterial');
+// Raster Functions
   glPixelZoom := GetProc(libgl, 'glPixelZoom');
   glPixelStoref := GetProc(libgl, 'glPixelStoref');
   glPixelStorei := GetProc(libgl, 'glPixelStorei');
@@ -2028,10 +1760,12 @@ begin
   glReadPixels := GetProc(libgl, 'glReadPixels');
   glDrawPixels := GetProc(libgl, 'glDrawPixels');
   glCopyPixels := GetProc(libgl, 'glCopyPixels');
+// Stenciling
   glStencilFunc := GetProc(libgl, 'glStencilFunc');
   glStencilMask := GetProc(libgl, 'glStencilMask');
   glStencilOp := GetProc(libgl, 'glStencilOp');
   glClearStencil := GetProc(libgl, 'glClearStencil');
+// Texture Mapping
   glTexGend := GetProc(libgl, 'glTexGend');
   glTexGenf := GetProc(libgl, 'glTexGenf');
   glTexGeni := GetProc(libgl, 'glTexGeni');
@@ -2058,18 +1792,7 @@ begin
   glTexImage1D := GetProc(libgl, 'glTexImage1D');
   glTexImage2D := GetProc(libgl, 'glTexImage2D');
   glGetTexImage := GetProc(libgl, 'glGetTexImage');
-  glGenTextures := GetProc(libgl, 'glGenTextures');
-  glDeleteTextures := GetProc(libgl, 'glDeleteTextures');
-  glBindTexture := GetProc(libgl, 'glBindTexture');
-  glPrioritizeTextures := GetProc(libgl, 'glPrioritizeTextures');
-  glAreTexturesResident := GetProc(libgl, 'glAreTexturesResident');
-  glIsTexture := GetProc(libgl, 'glIsTexture');
-  glTexSubImage1D := GetProc(libgl, 'glTexSubImage1D');
-  glTexSubImage2D := GetProc(libgl, 'glTexSubImage2D');
-  glCopyTexImage1D := GetProc(libgl, 'glCopyTexImage1D');
-  glCopyTexImage2D := GetProc(libgl, 'glCopyTexImage2D');
-  glCopyTexSubImage1D := GetProc(libgl, 'glCopyTexSubImage1D');
-  glCopyTexSubImage2D := GetProc(libgl, 'glCopyTexSubImage2D');
+// Evaluators
   glMap1d := GetProc(libgl, 'glMap1d');
   glMap1f := GetProc(libgl, 'glMap1f');
   glMap2d := GetProc(libgl, 'glMap2d');
@@ -2093,10 +1816,12 @@ begin
   glEvalPoint2 := GetProc(libgl, 'glEvalPoint2');
   glEvalMesh1 := GetProc(libgl, 'glEvalMesh1');
   glEvalMesh2 := GetProc(libgl, 'glEvalMesh2');
+// Fog
   glFogf := GetProc(libgl, 'glFogf');
   glFogi := GetProc(libgl, 'glFogi');
   glFogfv := GetProc(libgl, 'glFogfv');
   glFogiv := GetProc(libgl, 'glFogiv');
+// Selection and Feedback
   glFeedbackBuffer := GetProc(libgl, 'glFeedbackBuffer');
   glPassThrough := GetProc(libgl, 'glPassThrough');
   glSelectBuffer := GetProc(libgl, 'glSelectBuffer');
@@ -2104,137 +1829,231 @@ begin
   glLoadName := GetProc(libgl, 'glLoadName');
   glPushName := GetProc(libgl, 'glPushName');
   glPopName := GetProc(libgl, 'glPopName');
+{$endif GL1_0}
+
+{$ifdef GL1_1}
+// Miscellaneous
+  glEnableClientState := GetProc(libgl, 'glEnableClientState');
+  glDisableClientState := GetProc(libgl, 'glDisableClientState');
+  glPushClientAttrib := GetProc(libgl, 'glPushClientAttrib');
+  glPopClientAttrib := GetProc(libgl, 'glPopClientAttrib');
+// Drawing Functions
+  glIndexub := GetProc(libgl, 'glIndexub');
+  glIndexubv := GetProc(libgl, 'glIndexubv');
+// Vertex Arrays
+  glVertexPointer := GetProc(libgl, 'glVertexPointer');
+  glNormalPointer := GetProc(libgl, 'glNormalPointer');
+  glColorPointer := GetProc(libgl, 'glColorPointer');
+  glIndexPointer := GetProc(libgl, 'glIndexPointer');
+  glTexCoordPointer := GetProc(libgl, 'glTexCoordPointer');
+  glEdgeFlagPointer := GetProc(libgl, 'glEdgeFlagPointer');
+  glGetPointerv := GetProc(libgl, 'glGetPointerv');
+  glArrayElement := GetProc(libgl, 'glArrayElement');
+  glDrawArrays := GetProc(libgl, 'glDrawArrays');
+  glDrawElements := GetProc(libgl, 'glDrawElements');
+  glInterleavedArrays := GetProc(libgl, 'glInterleavedArrays');
+// Texture Mapping
+  glGenTextures := GetProc(libgl, 'glGenTextures');
+  glDeleteTextures := GetProc(libgl, 'glDeleteTextures');
+  glBindTexture := GetProc(libgl, 'glBindTexture');
+  glPrioritizeTextures := GetProc(libgl, 'glPrioritizeTextures');
+  glAreTexturesResident := GetProc(libgl, 'glAreTexturesResident');
+  glIsTexture := GetProc(libgl, 'glIsTexture');
+  glTexSubImage1D := GetProc(libgl, 'glTexSubImage1D');
+  glTexSubImage2D := GetProc(libgl, 'glTexSubImage2D');
+  glCopyTexImage1D := GetProc(libgl, 'glCopyTexImage1D');
+  glCopyTexImage2D := GetProc(libgl, 'glCopyTexImage2D');
+  glCopyTexSubImage1D := GetProc(libgl, 'glCopyTexSubImage1D');
+  glCopyTexSubImage2D := GetProc(libgl, 'glCopyTexSubImage2D');
+{$endif GL1_1}
+
+{$ifdef GL1_2}
+  glDrawRangeElements := GetProc(libgl, 'glDrawRangeElements');
+  glTexImage3D := GetProc(libgl, 'glTexImage3D');
+  glTexSubImage3D := GetProc(libgl, 'glTexSubImage3D');
+  glCopyTexSubImage3D := GetProc(libgl, 'glCopyTexSubImage3D');
+{$endif GL1_2}
+
+{$ifdef EXTENSIONS}
+// === 1.0 Extensions ===
+// GL_EXT_blend_minmax
+  glBlendEquationEXT := GetProc(libgl, 'glBlendEquationEXT');
+// GL_EXT_blend_color
+  glBlendColorEXT := GetProc(libgl, 'glBlendColorEXT');
+// GL_EXT_polygon_offset
+  glPolygonOffsetEXT := GetProc(libgl, 'glPolygonOffsetEXT');
+// GL_EXT_vertex_array
+  glVertexPointerEXT := GetProc(libgl, 'glVertexPointerEXT');
+  glNormalPointerEXT := GetProc(libgl, 'glNormalPointerEXT');
+  glColorPointerEXT := GetProc(libgl, 'glColorPointerEXT');
+  glIndexPointerEXT := GetProc(libgl, 'glIndexPointerEXT');
+  glTexCoordPointerEXT := GetProc(libgl, 'glTexCoordPointerEXT');
+  glEdgeFlagPointerEXT := GetProc(libgl, 'glEdgeFlagPointerEXT');
+  glGetPointervEXT := GetProc(libgl, 'glGetPointervEXT');
+  glArrayElementEXT := GetProc(libgl, 'glArrayElementEXT');
+  glDrawArraysEXT := GetProc(libgl, 'glDrawArraysEXT');
+// GL_EXT_texture_object
+  glGenTexturesEXT := GetProc(libgl, 'glGenTexturesEXT');
+  glDeleteTexturesEXT := GetProc(libgl, 'glDeleteTexturesEXT');
+  glBindTextureEXT := GetProc(libgl, 'glBindTextureEXT');
+  glPrioritizeTexturesEXT := GetProc(libgl, 'glPrioritizeTexturesEXT');
+  glAreTexturesResidentEXT := GetProc(libgl, 'glAreTexturesResidentEXT');
+  glIsTextureEXT := GetProc(libgl, 'glIsTextureEXT');
+// GL_EXT_texture3D
+  glTexImage3DEXT := GetProc(libgl, 'glTexImage3DEXT');
+  glTexSubImage3DEXT := GetProc(libgl, 'glTexSubImage3DEXT');
+  glCopyTexSubImage3DEXT := GetProc(libgl, 'glCopyTexSubImage3DEXT');
+// GL_EXT_color_table
+  glColorTableEXT := GetProc(libgl, 'glColorTableEXT');
+  glColorSubTableEXT := GetProc(libgl, 'glColorSubTableEXT');
+  glGetColorTableEXT := GetProc(libgl, 'glGetColorTableEXT');
+  glGetColorTableParameterfvEXT := GetProc(libgl, 'glGetColorTableParameterfvEXT');
+  glGetColorTableParameterivEXT := GetProc(libgl, 'glGetColorTableParameterivEXT');
+{$endif EXTENSIONS}
+
+{$ifdef SGI_EXTENSIONS}
+// GL_SGIS_multitexture
+  glMultiTexCoord1dSGIS := GetProc(libgl, 'glMultiTexCoord1dSGIS');
+  glMultiTexCoord1dvSGIS := GetProc(libgl, 'glMultiTexCoord1dvSGIS');
+  glMultiTexCoord1fSGIS := GetProc(libgl, 'glMultiTexCoord1fSGIS');
+  glMultiTexCoord1fvSGIS := GetProc(libgl, 'glMultiTexCoord1fvSGIS');
+  glMultiTexCoord1iSGIS := GetProc(libgl, 'glMultiTexCoord1iSGIS');
+  glMultiTexCoord1ivSGIS := GetProc(libgl, 'glMultiTexCoord1ivSGIS');
+  glMultiTexCoord1sSGIS := GetProc(libgl, 'glMultiTexCoord1sSGIS');
+  glMultiTexCoord1svSGIS := GetProc(libgl, 'glMultiTexCoord1svSGIS');
+  glMultiTexCoord2dSGIS := GetProc(libgl, 'glMultiTexCoord2dSGIS');
+  glMultiTexCoord2dvSGIS := GetProc(libgl, 'glMultiTexCoord2dvSGIS');
+  glMultiTexCoord2fSGIS := GetProc(libgl, 'glMultiTexCoord2fSGIS');
+  glMultiTexCoord2fvSGIS := GetProc(libgl, 'glMultiTexCoord2fvSGIS');
+  glMultiTexCoord2iSGIS := GetProc(libgl, 'glMultiTexCoord2iSGIS');
+  glMultiTexCoord2ivSGIS := GetProc(libgl, 'glMultiTexCoord2ivSGIS');
+  glMultiTexCoord2sSGIS := GetProc(libgl, 'glMultiTexCoord2sSGIS');
+  glMultiTexCoord2svSGIS := GetProc(libgl, 'glMultiTexCoord2svSGIS');
+  glMultiTexCoord3dSGIS := GetProc(libgl, 'glMultiTexCoord3dSGIS');
+  glMultiTexCoord3dvSGIS := GetProc(libgl, 'glMultiTexCoord3dvSGIS');
+  glMultiTexCoord3fSGIS := GetProc(libgl, 'glMultiTexCoord3fSGIS');
+  glMultiTexCoord3fvSGIS := GetProc(libgl, 'glMultiTexCoord3fvSGIS');
+  glMultiTexCoord3iSGIS := GetProc(libgl, 'glMultiTexCoord3iSGIS');
+  glMultiTexCoord3ivSGIS := GetProc(libgl, 'glMultiTexCoord3ivSGIS');
+  glMultiTexCoord3sSGIS := GetProc(libgl, 'glMultiTexCoord3sSGIS');
+  glMultiTexCoord3svSGIS := GetProc(libgl, 'glMultiTexCoord3svSGIS');
+  glMultiTexCoord4dSGIS := GetProc(libgl, 'glMultiTexCoord4dSGIS');
+  glMultiTexCoord4dvSGIS := GetProc(libgl, 'glMultiTexCoord4dvSGIS');
+  glMultiTexCoord4fSGIS := GetProc(libgl, 'glMultiTexCoord4fSGIS');
+  glMultiTexCoord4fvSGIS := GetProc(libgl, 'glMultiTexCoord4fvSGIS');
+  glMultiTexCoord4iSGIS := GetProc(libgl, 'glMultiTexCoord4iSGIS');
+  glMultiTexCoord4ivSGIS := GetProc(libgl, 'glMultiTexCoord4ivSGIS');
+  glMultiTexCoord4sSGIS := GetProc(libgl, 'glMultiTexCoord4sSGIS');
+  glMultiTexCoord4svSGIS := GetProc(libgl, 'glMultiTexCoord4svSGIS');
+  glMultiTexCoordPointerSGIS := GetProc(libgl, 'glMultiTexCoordPointerSGIS');
+  glSelectTextureSGIS := GetProc(libgl, 'glSelectTextureSGIS');
+  glSelectTextureCoordSetSGIS := GetProc(libgl, 'glSelectTextureCoordSetSGIS');
+// GL_EXT_multitexture
+  glMultiTexCoord1dEXT := GetProc(libgl, 'glMultiTexCoord1dEXT');
+  glMultiTexCoord1dvEXT := GetProc(libgl, 'glMultiTexCoord1dvEXT');
+  glMultiTexCoord1fEXT := GetProc(libgl, 'glMultiTexCoord1fEXT');
+  glMultiTexCoord1fvEXT := GetProc(libgl, 'glMultiTexCoord1fvEXT');
+  glMultiTexCoord1iEXT := GetProc(libgl, 'glMultiTexCoord1iEXT');
+  glMultiTexCoord1ivEXT := GetProc(libgl, 'glMultiTexCoord1ivEXT');
+  glMultiTexCoord1sEXT := GetProc(libgl, 'glMultiTexCoord1sEXT');
+  glMultiTexCoord1svEXT := GetProc(libgl, 'glMultiTexCoord1svEXT');
+  glMultiTexCoord2dEXT := GetProc(libgl, 'glMultiTexCoord2dEXT');
+  glMultiTexCoord2dvEXT := GetProc(libgl, 'glMultiTexCoord2dvEXT');
+  glMultiTexCoord2fEXT := GetProc(libgl, 'glMultiTexCoord2fEXT');
+  glMultiTexCoord2fvEXT := GetProc(libgl, 'glMultiTexCoord2fvEXT');
+  glMultiTexCoord2iEXT := GetProc(libgl, 'glMultiTexCoord2iEXT');
+  glMultiTexCoord2ivEXT := GetProc(libgl, 'glMultiTexCoord2ivEXT');
+  glMultiTexCoord2sEXT := GetProc(libgl, 'glMultiTexCoord2sEXT');
+  glMultiTexCoord2svEXT := GetProc(libgl, 'glMultiTexCoord2svEXT');
+  glMultiTexCoord3dEXT := GetProc(libgl, 'glMultiTexCoord3dEXT');
+  glMultiTexCoord3dvEXT := GetProc(libgl, 'glMultiTexCoord3dvEXT');
+  glMultiTexCoord3fEXT := GetProc(libgl, 'glMultiTexCoord3fEXT');
+  glMultiTexCoord3fvEXT := GetProc(libgl, 'glMultiTexCoord3fvEXT');
+  glMultiTexCoord3iEXT := GetProc(libgl, 'glMultiTexCoord3iEXT');
+  glMultiTexCoord3ivEXT := GetProc(libgl, 'glMultiTexCoord3ivEXT');
+  glMultiTexCoord3sEXT := GetProc(libgl, 'glMultiTexCoord3sEXT');
+  glMultiTexCoord3svEXT := GetProc(libgl, 'glMultiTexCoord3svEXT');
+  glMultiTexCoord4dEXT := GetProc(libgl, 'glMultiTexCoord4dEXT');
+  glMultiTexCoord4dvEXT := GetProc(libgl, 'glMultiTexCoord4dvEXT');
+  glMultiTexCoord4fEXT := GetProc(libgl, 'glMultiTexCoord4fEXT');
+  glMultiTexCoord4fvEXT := GetProc(libgl, 'glMultiTexCoord4fvEXT');
+  glMultiTexCoord4iEXT := GetProc(libgl, 'glMultiTexCoord4iEXT');
+  glMultiTexCoord4ivEXT := GetProc(libgl, 'glMultiTexCoord4ivEXT');
+  glMultiTexCoord4sEXT := GetProc(libgl, 'glMultiTexCoord4sEXT');
+  glMultiTexCoord4svEXT := GetProc(libgl, 'glMultiTexCoord4svEXT');
+  glInterleavedTextureCoordSetsEXT := GetProc(libgl, 'glInterleavedTextureCoordSetsEXT');
+  glSelectTextureEXT := GetProc(libgl, 'glSelectTextureEXT');
+  glSelectTextureCoordSetEXT := GetProc(libgl, 'glSelectTextureCoordSetEXT');
+  glSelectTextureTransformEXT := GetProc(libgl, 'glSelectTextureTransformEXT');
+// GL_EXT_point_parameters
+  glPointParameterfEXT := GetProc(libgl, 'glPointParameterfEXT');
+  glPointParameterfvEXT := GetProc(libgl, 'glPointParameterfvEXT');
+{$endif SGI_EXTENSIONS}
+
+{$ifdef MESA}
+// GL_MESA_window_pos
+  glWindowPos2iMESA := GetProc(libgl, 'glWindowPos2iMESA');
+  glWindowPos2sMESA := GetProc(libgl, 'glWindowPos2sMESA');
+  glWindowPos2fMESA := GetProc(libgl, 'glWindowPos2fMESA');
+  glWindowPos2dMESA := GetProc(libgl, 'glWindowPos2dMESA');
+  glWindowPos2ivMESA := GetProc(libgl, 'glWindowPos2ivMESA');
+  glWindowPos2svMESA := GetProc(libgl, 'glWindowPos2svMESA');
+  glWindowPos2fvMESA := GetProc(libgl, 'glWindowPos2fvMESA');
+  glWindowPos2dvMESA := GetProc(libgl, 'glWindowPos2dvMESA');
+  glWindowPos3iMESA := GetProc(libgl, 'glWindowPos3iMESA');
+  glWindowPos3sMESA := GetProc(libgl, 'glWindowPos3sMESA');
+  glWindowPos3fMESA := GetProc(libgl, 'glWindowPos3fMESA');
+  glWindowPos3dMESA := GetProc(libgl, 'glWindowPos3dMESA');
+  glWindowPos3ivMESA := GetProc(libgl, 'glWindowPos3ivMESA');
+  glWindowPos3svMESA := GetProc(libgl, 'glWindowPos3svMESA');
+  glWindowPos3fvMESA := GetProc(libgl, 'glWindowPos3fvMESA');
+  glWindowPos3dvMESA := GetProc(libgl, 'glWindowPos3dvMESA');
+  glWindowPos4iMESA := GetProc(libgl, 'glWindowPos4iMESA');
+  glWindowPos4sMESA := GetProc(libgl, 'glWindowPos4sMESA');
+  glWindowPos4fMESA := GetProc(libgl, 'glWindowPos4fMESA');
+  glWindowPos4dMESA := GetProc(libgl, 'glWindowPos4dMESA');
+  glWindowPos4ivMESA := GetProc(libgl, 'glWindowPos4ivMESA');
+  glWindowPos4svMESA := GetProc(libgl, 'glWindowPos4svMESA');
+  glWindowPos4fvMESA := GetProc(libgl, 'glWindowPos4fvMESA');
+  glWindowPos4dvMESA := GetProc(libgl, 'glWindowPos4dvMESA');
+// GL_MESA_resize_buffers
+  glResizeBuffersMESA := GetProc(libgl, 'glResizeBuffersMESA');
+{$endif MESA}
 
   GLInitialized := True;
   Result := True;
 end;
 
-function InitGLUFromLibrary(const libname: PChar): Boolean;
-begin
-  Result := False;
-  libGLU := LoadLibrary(libname);
-  if not Assigned(libGLU) then
-    exit;
-
-  gluLookAt := GetProc(libglu, 'gluLookAt');
-  gluOrtho2D := GetProc(libglu, 'gluOrtho2D');
-  gluPerspective := GetProc(libglu, 'gluPerspective');
-  gluPickMatrix := GetProc(libglu, 'gluPickMatrix');
-  gluProject := GetProc(libglu, 'gluProject');
-  gluUnProject := GetProc(libglu, 'gluUnProject');
-  gluErrorString := GetProc(libglu, 'gluErrorString');
-  gluScaleImage := GetProc(libglu, 'gluScaleImage');
-  gluBuild1DMipmaps := GetProc(libglu, 'gluBuild1DMipmaps');
-  gluBuild2DMipmaps := GetProc(libglu, 'gluBuild2DMipmaps');
-  gluNewQuadric := GetProc(libglu, 'gluNewQuadric');
-  gluDeleteQuadric := GetProc(libglu, 'gluDeleteQuadric');
-  gluQuadricDrawStyle := GetProc(libglu, 'gluQuadricDrawStyle');
-  gluQuadricOrientation := GetProc(libglu, 'gluQuadricOrientation');
-  gluQuadricNormals := GetProc(libglu, 'gluQuadricNormals');
-  gluQuadricTexture := GetProc(libglu, 'gluQuadricTexture');
-  gluQuadricCallback := GetProc(libglu, 'gluQuadricCallback');
-  gluCylinder := GetProc(libglu, 'gluCylinder');
-  gluSphere := GetProc(libglu, 'gluSphere');
-  gluDisk := GetProc(libglu, 'gluDisk');
-  gluPartialDisk := GetProc(libglu, 'gluPartialDisk');
-  gluNewNurbsRenderer := GetProc(libglu, 'gluNewNurbsRenderer');
-  gluDeleteNurbsRenderer := GetProc(libglu, 'gluDeleteNurbsRenderer');
-  gluLoadSamplingMatrices := GetProc(libglu, 'gluLoadSamplingMatrices');
-  gluNurbsProperty := GetProc(libglu, 'gluNurbsProperty');
-  gluGetNurbsProperty := GetProc(libglu, 'gluGetNurbsProperty');
-  gluBeginCurve := GetProc(libglu, 'gluBeginCurve');
-  gluEndCurve := GetProc(libglu, 'gluEndCurve');
-  gluNurbsCurve := GetProc(libglu, 'gluNurbsCurve');
-  gluBeginSurface := GetProc(libglu, 'gluBeginSurface');
-  gluEndSurface := GetProc(libglu, 'gluEndSurface');
-  gluNurbsSurface := GetProc(libglu, 'gluNurbsSurface');
-  gluBeginTrim := GetProc(libglu, 'gluBeginTrim');
-  gluEndTrim := GetProc(libglu, 'gluEndTrim');
-  gluPwlCurve := GetProc(libglu, 'gluPwlCurve');
-  gluNurbsCallback := GetProc(libglu, 'gluNurbsCallback');
-  gluNewTess := GetProc(libglu, 'gluNewTess');
-  gluDeleteTess := GetProc(libglu, 'gluDeleteTess');
-  gluTessBeginPolygon := GetProc(libglu, 'gluTessBeginPolygon');
-  gluTessBeginContour := GetProc(libglu, 'gluTessBeginContour');
-  gluTessVertex := GetProc(libglu, 'gluTessVertex');
-  gluTessEndContour := GetProc(libglu, 'gluTessEndContour');
-  gluTessEndPolygon := GetProc(libglu, 'gluTessEndPolygon');
-  gluTessProperty := GetProc(libglu, 'gluTessProperty');
-  gluTessNormal := GetProc(libglu, 'gluTessNormal');
-  gluTessCallback := GetProc(libglu, 'gluTessCallback');
-  gluGetTessProperty := GetProc(libglu, 'gluGetTessProperty');
-  gluBeginPolygon := GetProc(libglu, 'gluBeginPolygon');
-  gluNextContour := GetProc(libglu, 'gluNextContour');
-  gluEndPolygon := GetProc(libglu, 'gluEndPolygon');
-  gluGetString := GetProc(libglu, 'gluGetString');
-
-  GLUInitialized := True;
-  Result := True;
-end;
-
-function InitGLX: Boolean;
-begin
-  Result := False;
-  if not Assigned(libGL) then
-    exit;
-
-  glXChooseVisual := GetProc(libglx, 'glXChooseVisual');
-  glXCreateContext := GetProc(libglx, 'glXCreateContext');
-  glXDestroyContext := GetProc(libglx, 'glXDestroyContext');
-  glXMakeCurrent := GetProc(libglx, 'glXMakeCurrent');
-  glXCopyContext := GetProc(libglx, 'glXCopyContext');
-  glXSwapBuffers := GetProc(libglx, 'glXSwapBuffers');
-  glXCreateGLXPixmap := GetProc(libglx, 'glXCreateGLXPixmap');
-  glXDestroyGLXPixmap := GetProc(libglx, 'glXDestroyGLXPixmap');
-  glXQueryExtension := GetProc(libglx, 'glXQueryExtension');
-  glXQueryVersion := GetProc(libglx, 'glXQueryVersion');
-  glXIsDirect := GetProc(libglx, 'glXIsDirect');
-  glXGetConfig := GetProc(libglx, 'glXGetConfig');
-  glXGetCurrentContext := GetProc(libglx, 'glXGetCurrentContext');
-  glXGetCurrentDrawable := GetProc(libglx, 'glXGetCurrentDrawable');
-  glXWaitGL := GetProc(libglx, 'glXWaitGL');
-  glXWaitX := GetProc(libglx, 'glXWaitX');
-  glXUseXFont := GetProc(libglx, 'glXUseXFont');
-  glXQueryExtensionsString := GetProc(libglx, 'glXQueryExtensionsString');
-  glXQueryServerString := GetProc(libglx, 'glXQueryServerString');
-  glXGetClientString := GetProc(libglx, 'glXGetClientString');
-  glXCreateGLXPixmapMESA := GetProc(libglx, 'glXCreateGLXPixmapMESA');
-  glXReleaseBufferMESA := GetProc(libglx, 'glXReleaseBufferMESA');
-  glXCopySubBufferMESA := GetProc(libglx, 'glXCopySubBufferMESA');
-  glXGetVideoSyncSGI := GetProc(libglx, 'glXGetVideoSyncSGI');
-  glXWaitVideoSyncSGI := GetProc(libglx, 'glXWaitVideoSyncSGI');
-
-  GLXInitialized := True;
-  Result := True;
-end;
-
 function InitGL: Boolean;
 begin
-  Result := InitGLFromLibrary('libGL.so') or InitGLFromLibrary('libGL.so.1') or
-    InitGLFromLibrary('libMesaGL.so.3');
+  Result := InitGLFromLibrary('libGL.so') or
+            InitGLFromLibrary('libGL.so.1') or
+            InitGLFromLibrary('libMesaGL.so') or
+            InitGLFromLibrary('libMesaGL.so.3');
 end;
 
-function InitGLU: Boolean;
-begin
-  Result := InitGLUFromLibrary('libGLU.so') or
-    InitGLUFromLibrary('libGLU.so.1') or InitGLUFromLibrary('libMesaGLU.so.3');
-end;
-
-
+initialization
+  InitGL;
 finalization
-  // Free all loaded libraries
-  if Assigned(libGLX) then
-    dlclose(libGLX);
-  if Assigned(libGLU) then
-    dlclose(libGLU);
-  if Assigned(libGL) then
-    dlclose(libGL);
+  if Assigned(libGL)  then dlclose(libGL);
 end.
+{
+  $Log$
+  Revision 1.4.2.1  2000-10-01 22:12:27  peter
+    * new demo
+
+  Revision 1.1  2000/07/13 06:34:17  michael
+  + Initial import
+
+  Revision 1.2  2000/05/31 00:34:28  alex
+  made templates work
+
+}
 
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:29  michael
-  + removed logs
- 
+  Revision 1.4.2.1  2000-10-01 22:12:27  peter
+    * new demo
+
 }

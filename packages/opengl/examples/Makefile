@@ -176,7 +176,7 @@ endif
 
 # Targets
 
-override EXEOBJECTS+=glutdemo morph3d
+override EXEOBJECTS+=glutdemo morph3d bounce
 
 # Clean
 

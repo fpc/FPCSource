@@ -36,10 +36,10 @@ interface
 
 {$MACRO ON}
 
-{$IFDEF Win32}
-  {$DEFINE glx_dll := external 'unknown.dll'}
-  uses Windows;
-  {x$DEFINE HasGLX}  // Activate GLX stuff
+{$IFDEF Linux}
+  uses
+    X, XLib, XUtil;
+  {$DEFINE HasGLX}  // Activate GLX stuff
 {$ELSE}
   {$MESSAGE Unsupported platform.}
 {$ENDIF}
@@ -132,35 +132,35 @@ type
   GLXContextID = TXID;
 
 var
-  glXChooseVisual: function(dpy: PDisplay; screen: Integer; var attribList: Integer): PXVisualInfo; cdecl; glx_dll
-  glXCreateContext: function(dpy: PDisplay; vis: PXVisualInfo; shareList: GLXContext; direct: Boolean): GLXContext; cdecl; glx_dll
-  glXDestroyContext: procedure(dpy: PDisplay; ctx: GLXContext); cdecl; glx_dll
-  glXMakeCurrent: function(dpy: PDisplay; drawable: GLXDrawable; ctx: GLXContext): Boolean; cdecl; glx_dll
-  glXCopyContext: procedure(dpy: PDisplay; src, dst: GLXContext; mask: LongWord); cdecl; glx_dll
-  glXSwapBuffers: procedure(dpy: PDisplay; drawable: GLXDrawable); cdecl; glx_dll
-  glXCreateGLXPixmap: function(dpy: PDisplay; visual: PXVisualInfo; pixmap: XPixmap): GLXPixmap; cdecl; glx_dll
-  glXDestroyGLXPixmap: procedure(dpy: PDisplay; pixmap: GLXPixmap); cdecl; glx_dll
-  glXQueryExtension: function(dpy: PDisplay; var errorb, event: Integer): Boolean; cdecl; glx_dll
-  glXQueryVersion: function(dpy: PDisplay; var maj, min: Integer): Boolean; cdecl; glx_dll
-  glXIsDirect: function(dpy: PDisplay; ctx: GLXContext): Boolean; cdecl; glx_dll
-  glXGetConfig: function(dpy: PDisplay; visual: PXVisualInfo; attrib: Integer; var value: Integer): Integer; cdecl; glx_dll
-  glXGetCurrentContext: function: GLXContext; cdecl; glx_dll
-  glXGetCurrentDrawable: function: GLXDrawable; cdecl; glx_dll
-  glXWaitGL: procedure; cdecl; glx_dll
-  glXWaitX: procedure; cdecl; glx_dll
-  glXUseXFont: procedure(font: XFont; first, count, list: Integer); cdecl; glx_dll
+  glXChooseVisual: function(dpy: PDisplay; screen: Integer; var attribList: Integer): PXVisualInfo; cdecl; cdecl;
+  glXCreateContext: function(dpy: PDisplay; vis: PXVisualInfo; shareList: GLXContext; direct: Boolean): GLXContext; cdecl; cdecl;
+  glXDestroyContext: procedure(dpy: PDisplay; ctx: GLXContext); cdecl; cdecl;
+  glXMakeCurrent: function(dpy: PDisplay; drawable: GLXDrawable; ctx: GLXContext): Boolean; cdecl; cdecl;
+  glXCopyContext: procedure(dpy: PDisplay; src, dst: GLXContext; mask: LongWord); cdecl; cdecl;
+  glXSwapBuffers: procedure(dpy: PDisplay; drawable: GLXDrawable); cdecl; cdecl;
+  glXCreateGLXPixmap: function(dpy: PDisplay; visual: PXVisualInfo; pixmap: XPixmap): GLXPixmap; cdecl; cdecl;
+  glXDestroyGLXPixmap: procedure(dpy: PDisplay; pixmap: GLXPixmap); cdecl; cdecl;
+  glXQueryExtension: function(dpy: PDisplay; var errorb, event: Integer): Boolean; cdecl; cdecl;
+  glXQueryVersion: function(dpy: PDisplay; var maj, min: Integer): Boolean; cdecl; cdecl;
+  glXIsDirect: function(dpy: PDisplay; ctx: GLXContext): Boolean; cdecl; cdecl;
+  glXGetConfig: function(dpy: PDisplay; visual: PXVisualInfo; attrib: Integer; var value: Integer): Integer; cdecl; cdecl;
+  glXGetCurrentContext: function: GLXContext; cdecl; cdecl;
+  glXGetCurrentDrawable: function: GLXDrawable; cdecl; cdecl;
+  glXWaitGL: procedure; cdecl; cdecl;
+  glXWaitX: procedure; cdecl; cdecl;
+  glXUseXFont: procedure(font: XFont; first, count, list: Integer); cdecl; cdecl;
 
   // GLX 1.1 and later
-  glXQueryExtensionsString: function(dpy: PDisplay; screen: Integer): PChar; cdecl; glx_dll
-  glXQueryServerString: function(dpy: PDisplay; screen, name: Integer): PChar; cdecl; glx_dll
-  glXGetClientString: function(dpy: PDisplay; name: Integer): PChar; cdecl; glx_dll
+  glXQueryExtensionsString: function(dpy: PDisplay; screen: Integer): PChar; cdecl; cdecl;
+  glXQueryServerString: function(dpy: PDisplay; screen, name: Integer): PChar; cdecl; cdecl;
+  glXGetClientString: function(dpy: PDisplay; name: Integer): PChar; cdecl; cdecl;
 
   // Mesa GLX Extensions
-  glXCreateGLXPixmapMESA: function(dpy: PDisplay; visual: PXVisualInfo; pixmap: XPixmap; cmap: XColormap): GLXPixmap; cdecl; glx_dll
-  glXReleaseBufferMESA: function(dpy: PDisplay; d: GLXDrawable): Boolean; cdecl; glx_dll
-  glXCopySubBufferMESA: procedure(dpy: PDisplay; drawbale: GLXDrawable; x, y, width, height: Integer); cdecl; glx_dll
-  glXGetVideoSyncSGI: function(var counter: LongWord): Integer; cdecl; glx_dll
-  glXWaitVideoSyncSGI: function(divisor, remainder: Integer; var count: LongWord): Integer; cdecl; glx_dll
+  glXCreateGLXPixmapMESA: function(dpy: PDisplay; visual: PXVisualInfo; pixmap: XPixmap; cmap: XColormap): GLXPixmap; cdecl; cdecl;
+  glXReleaseBufferMESA: function(dpy: PDisplay; d: GLXDrawable): Boolean; cdecl; cdecl;
+  glXCopySubBufferMESA: procedure(dpy: PDisplay; drawbale: GLXDrawable; x, y, width, height: Integer); cdecl; cdecl;
+  glXGetVideoSyncSGI: function(var counter: LongWord): Integer; cdecl; cdecl;
+  glXWaitVideoSyncSGI: function(divisor, remainder: Integer; var count: LongWord): Integer; cdecl; cdecl;
 
 
 // =======================================================
@@ -169,75 +169,84 @@ var
 
 implementation
 
-type
-  HInstance = LongWord;
+{$LINKLIB m}
 
-{$IFDEF HasGLX}
+function dlopen(AFile: PChar; mode: LongInt): Pointer; external 'dl';
+function dlclose(handle: Pointer): LongInt; external 'dl';
+function dlsym(handle: Pointer; name: PChar): Pointer; external 'dl';
 
-var
-  libGLX : HInstance;
-
-function GetProc(handle: HInstance; name: PChar): Pointer;
+function LoadLibrary(name: PChar): Pointer;
 begin
-  Result := GetProcAddress(handle, name);
+  Result := dlopen(name, $101 {RTLD_GLOBAL or RTLD_LAZY});
+end;
+
+function GetProc(handle: Pointer; name: PChar): Pointer;
+begin
+  Result := dlsym(handle, name);
   if (Result = nil) and GLXDumpUnresolvedFunctions then
     WriteLn('Unresolved: ', name);
 end;
 
-function InitGLX: Boolean;
+var
+  libGLX: Pointer;
+
+function InitGLXFromLibrary(libname:pchar): Boolean;
 begin
   Result := False;
-  { Unix GLX is implemented as special subset of the GL interface }
-  if libGL = 0 then exit;
+  libGLX := LoadLibrary(libname);
+  if not Assigned(libGLX) then exit;
 
-  glXQueryVersion := GetProcAddress(libGL, 'glXQueryVersion');
-  if @glXQueryVersion = nil then exit;
-
-  glXChooseVisual := GetProc(libGLX, 'glXChooseVisual');
-  glXCreateContext := GetProc(libGLX, 'glXCreateContext');
-  glXDestroyContext := GetProc(libGLX, 'glXDestroyContext');
-  glXMakeCurrent := GetProc(libGLX, 'glXMakeCurrent');
-  glXCopyContext := GetProc(libGLX, 'glXCopyContext');
-  glXSwapBuffers := GetProc(libGLX, 'glXSwapBuffers');
-  glXCreateGLXPixmap := GetProc(libGLX, 'glXCreateGLXPixmap');
-  glXDestroyGLXPixmap := GetProc(libGLX, 'glXDestroyGLXPixmap');
-  glXQueryExtension := GetProc(libGLX, 'glXQueryExtension');
-  glXQueryVersion := GetProc(libGLX, 'glXQueryVersion');
-  glXIsDirect := GetProc(libGLX, 'glXIsDirect');
-  glXGetConfig := GetProc(libGLX, 'glXGetConfig');
-  glXGetCurrentContext := GetProc(libGLX, 'glXGetCurrentContext');
-  glXGetCurrentDrawable := GetProc(libGLX, 'glXGetCurrentDrawable');
-  glXWaitGL := GetProc(libGLX, 'glXWaitGL');
-  glXWaitX := GetProc(libGLX, 'glXWaitX');
-  glXUseXFont := GetProc(libGLX, 'glXUseXFont');
+  glXChooseVisual := GetProc(libglx, 'glXChooseVisual');
+  glXCreateContext := GetProc(libglx, 'glXCreateContext');
+  glXDestroyContext := GetProc(libglx, 'glXDestroyContext');
+  glXMakeCurrent := GetProc(libglx, 'glXMakeCurrent');
+  glXCopyContext := GetProc(libglx, 'glXCopyContext');
+  glXSwapBuffers := GetProc(libglx, 'glXSwapBuffers');
+  glXCreateGLXPixmap := GetProc(libglx, 'glXCreateGLXPixmap');
+  glXDestroyGLXPixmap := GetProc(libglx, 'glXDestroyGLXPixmap');
+  glXQueryExtension := GetProc(libglx, 'glXQueryExtension');
+  glXQueryVersion := GetProc(libglx, 'glXQueryVersion');
+  glXIsDirect := GetProc(libglx, 'glXIsDirect');
+  glXGetConfig := GetProc(libglx, 'glXGetConfig');
+  glXGetCurrentContext := GetProc(libglx, 'glXGetCurrentContext');
+  glXGetCurrentDrawable := GetProc(libglx, 'glXGetCurrentDrawable');
+  glXWaitGL := GetProc(libglx, 'glXWaitGL');
+  glXWaitX := GetProc(libglx, 'glXWaitX');
+  glXUseXFont := GetProc(libglx, 'glXUseXFont');
   // GLX 1.1 and later
-  glXQueryExtensionsString := GetProc(libGLX, 'glXQueryExtensionsString');
-  glXQueryServerString := GetProc(libGLX, 'glXQueryServerString');
-  glXGetClientString := GetProc(libGLX, 'glXGetClientString');
+  glXQueryExtensionsString := GetProc(libglx, 'glXQueryExtensionsString');
+  glXQueryServerString := GetProc(libglx, 'glXQueryServerString');
+  glXGetClientString := GetProc(libglx, 'glXGetClientString');
   // Mesa GLX Extensions
-  glXCreateGLXPixmapMESA := GetProc(libGLX, 'glXCreateGLXPixmapMESA');
-  glXReleaseBufferMESA := GetProc(libGLX, 'glXReleaseBufferMESA');
-  glXCopySubBufferMESA := GetProc(libGLX, 'glXCopySubBufferMESA');
-  glXGetVideoSyncSGI := GetProc(libGLX, 'glXGetVideoSyncSGI');
-  glXWaitVideoSyncSGI := GetProc(libGLX, 'glXWaitVideoSyncSGI');
+  glXCreateGLXPixmapMESA := GetProc(libglx, 'glXCreateGLXPixmapMESA');
+  glXReleaseBufferMESA := GetProc(libglx, 'glXReleaseBufferMESA');
+  glXCopySubBufferMESA := GetProc(libglx, 'glXCopySubBufferMESA');
+  glXGetVideoSyncSGI := GetProc(libglx, 'glXGetVideoSyncSGI');
+  glXWaitVideoSyncSGI := GetProc(libglx, 'glXWaitVideoSyncSGI');
 
   GLXInitialized := True;
   Result := True;
 end;
 
-{$ENDIF  IFDEF HasGLX}
+function InitGLX: Boolean;
+begin
+  Result := InitGLXFromLibrary('libGL.so') or
+            InitGLXFromLibrary('libGL.so.1') or
+            InitGLXFromLibrary('libMesaGL.so') or
+            InitGLXFromLibrary('libMesaGL.so.3');
+end;
 
 
 initialization
   InitGLX;
 finalization
-  if libGLX <> 0 then FreeLibrary(libGLX);
+  if Assigned(libGLX) then dlclose(libGLX);
 end.
 
 
 {
   $Log$
-  Revision 1.1.2.2  2000-10-01 22:12:28  peter
+  Revision 1.1.2.1  2000-10-01 22:12:28  peter
     * new demo
 
   Revision 1.1  2000/07/13 06:34:18  michael
@@ -251,7 +260,7 @@ end.
 
 {
   $Log$
-  Revision 1.1.2.2  2000-10-01 22:12:28  peter
+  Revision 1.1.2.1  2000-10-01 22:12:28  peter
     * new demo
 
 }

@@ -3,13 +3,15 @@
 #
 
 [targets]
-programs=glutdemo
+programs=glutdemo morph3d bounce
 
 [require]
-packages=opengl x11
+packages=opengl
+packages_linux=x11
 
 [dirs]
 fpcdir=../../..
 
 [libs]
 libother=1
+libgcc=1
