@@ -32,34 +32,34 @@ type
    THandle = System.THandle;
 {$ENDIF VER1_0}
 
-   tprocedure = procedure;
+   TProcedure = procedure;
 
-   tfilename = string;
+   TFilename = String;
 
-   tintegerset = set of 0..sizeof(integer)*8-1;
+   TIntegerSet = Set of 0..SizeOf(Integer)*8-1;
 
-   longrec = packed record
+   LongRec = packed record
+      case Integer of
+        0 : (Lo,Hi : Word);
+        1 : (Bytes : Array[0..3] of Byte);
+   end;
+
+   WordRec = packed record
+     Lo,Hi : Byte;
+   end;
+
+   Int64Rec = packed record
       case integer of
-        0 : (lo,hi : word);
-        1 : (bytes : array[0..3] of byte);
+        0 : (Lo,Hi : Cardinal);
+        1 : (Words : Array[0..3] of Word);
+        2 : (Bytes : Array[0..7] of Byte);
    end;
 
-   wordrec = packed record
-      lo,hi : byte;
-   end;
+   PByteArray = ^TByteArray;
+   TByteArray = Array[0..32767] of Byte;
 
-   int64rec = packed record
-      case integer of
-        0 : (lo,hi : cardinal);
-        1 : (words : array[0..3] of word);
-        2 : (bytes : array[0..7] of byte);
-   end;
-
-   pbytearray = ^tbytearray;
-   tbytearray = array[0..32767] of byte;
-
-   pwordarray = ^twordarray;
-   twordarray = array[0..16383] of word;
+   PWordarray = ^TWordArray;
+   TWordArray = array[0..16383] of Word;
 
    TMethod = packed record
      Code, Data: Pointer;
@@ -171,7 +171,7 @@ type
    function SysErrorMessage(ErrorCode: Integer): String;
 
 type
-  TTerminateProc = function: Boolean;
+  TTerminateProc = Function: Boolean;
 
   procedure AddTerminateProc(TermProc: TTerminateProc);
   function CallTerminateProcs: Boolean;
@@ -231,7 +231,10 @@ Type
 
 {
   $Log$
-  Revision 1.7  2004-01-28 22:09:52  peter
+  Revision 1.8  2004-08-31 10:34:11  michael
+  + Some capitalization added for documentation purposes
+
+  Revision 1.7  2004/01/28 22:09:52  peter
     * EOSError.errorcode change to Longint which is more compatible
       with unix platforms
 
