@@ -121,7 +121,8 @@ implementation
                     { present label then the lower limit can be checked    }
                     { immediately. else check the range in between:       }
                     gensub(longint(t^._low-last));
-                    tcgppc(cg).a_jmp_cond(exprasmlist,jmp_lt,elselabel);
+                    if (t^._low-last) <> 1 then
+                      tcgppc(cg).a_jmp_cond(exprasmlist,jmp_lt,elselabel);
                   end;
                 gensub(longint(t^._high-t^._low));
                 tcgppc(cg).a_jmp_cond(exprasmlist,jmp_le,t^.statement);
@@ -154,7 +155,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-09-08 20:14:33  jonas
+  Revision 1.3  2002-09-09 13:57:45  jonas
+    * small optimization to case genlist() case statements
+
+  Revision 1.2  2002/09/08 20:14:33  jonas
     * use genlinearcmplist() for unsigned 32bit case statements instead
       of genlinearlist(), because the addic. instruction always sets the
       flags as if the arguments are signed 32bits (for smaller unsigned

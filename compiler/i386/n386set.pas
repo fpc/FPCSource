@@ -736,10 +736,11 @@ implementation
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
 
-                      { note: you can't use gensub() here because dec doesn't }
-                      { change the carry flag (needed for jmp_lxx) (JM)       }
-                      emit_const_reg(A_SUB,opsize,longint(t^._low-last),hregister);
-                      emitjmp(jmp_le,elselabel);
+                      gensub(longint(t^._low-last));
+                      { no jump necessary here if the new range starts at }
+                      { at the value following the previous one           }
+                      if (t^._low-last) <> 1 then
+                        emitjmp(jmp_le,elselabel);
                     end;
                   emit_const_reg(A_SUB,opsize,longint(t^._high-t^._low),hregister);
                   emitjmp(jmp_lee,t^.statement);
@@ -1023,7 +1024,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2002-08-17 09:23:46  florian
+  Revision 1.41  2002-09-09 13:57:45  jonas
+    * small optimization to case genlist() case statements
+
+  Revision 1.40  2002/08/17 09:23:46  florian
     * first part of procinfo rewrite
 
   Revision 1.39  2002/08/12 15:08:42  carl
