@@ -8,6 +8,8 @@
 %%% Contains all comments from errord.msg
 %%% Reordering of errord.msg respective to errore.msg
 %%% Contains all comments from errord.msg
+%%% Reordering of errord.msg respective to errore.msg
+%%% Contains all comments from errord.msg
 #
 #   $Id$
 #   This file is part of the Free Pascal Compiler
@@ -314,9 +316,12 @@ parser_w_proc_interrupt_ignored=W_Ignoriere Prozedurtyp INTERRUPT
 % and is igonred for other processors.
 parser_e_dont_nest_interrupt=E_INTERRUPT-Prozeduren dÅrfen nicht verschachtelt sein
 % An \VAR{INTERRUPT} procedure must be global.
-parser_w_proc_register_ignored=W_SchlÅsselwort REGISTER wurde ignoriert
-% This is a warning. \var{REGISTER} is ignored by FPC programs for now.
+parser_w_proc_directive_ignored=W_Prozedurtyp $1 wird ignoriert
+% This is a warning. \var{REGISTER},\var{REINTRODUCE} is ignored by FPC programs for now.
 % This is introduced first for Delphi compatibility.
+parser_e_no_overload_for_all_procs=E_Nicht alle Deklarationen von "$1" sind mit OVERLOAD deklariert
+% When you want to use overloading using the \var{OVERLOAD} directive, then
+% all declarations need to have \var{OVERLOAD} specified.
 parser_e_no_dll_file_specified=E_Keine DLL-Datei angegeben
 % No longer in use.
 parser_e_export_name_double=E_Doppelter Name fÅr exportierte Funktion $1
