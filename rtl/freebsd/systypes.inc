@@ -132,7 +132,7 @@ type
   TFDSet=fdset;
 
   timeval = packed record
-    sec,usec:int64;
+    sec,usec:longint;
   end;
   ptimeval=^timeval;
   TTimeVal=timeval;
@@ -160,7 +160,10 @@ type
 
 {
   $Log$
-  Revision 1.3  2000-10-26 23:00:12  peter
+  Revision 1.4  2001-01-20 16:42:49  marco
+   * Fixed the timeval
+
+  Revision 1.3  2000/10/26 23:00:12  peter
     * fixes merges
 
   Revision 1.2  2000/09/18 13:42:35  marco
