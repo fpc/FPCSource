@@ -1454,6 +1454,7 @@ unit cgobj;
          paramanager.allocparaloc(list,paraloc1);
          a_param_const(list,OS_32,stackframesize,paraloc1);
          paramanager.freeparaloc(list,paraloc1);
+         { No register saving needed, saveregisters is used }
          a_call_name(list,'FPC_STACKCHECK');
       end;
 
@@ -1506,9 +1507,8 @@ unit cgobj;
            a_param_reg(list,OS_ADDR,reg,paraloc1);
            paramanager.freeparaloc(list,paraloc1);
            paramanager.freeparaloc(list,paraloc2);
-           rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+           { No register saving needed, saveregisters is used }
            a_call_name(list,'FPC_CHECK_OBJECT_EXT');
-           rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
          end
         else
          if (cs_check_range in aktlocalswitches) then
@@ -1516,9 +1516,8 @@ unit cgobj;
             paramanager.allocparaloc(list,paraloc1);
             a_param_reg(list,OS_ADDR,reg,paraloc1);
             paramanager.freeparaloc(list,paraloc1);
-            rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+            { No register saving needed, saveregisters is used }
             a_call_name(list,'FPC_CHECK_OBJECT');
-            rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
           end;
       end;
 
@@ -1582,7 +1581,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.121  2003-09-10 08:31:47  marco
+  Revision 1.122  2003-09-23 20:37:16  peter
+    * fpc_check_object(_ext) has saveregisters and doesn't need
+      saving of registers
+
+  Revision 1.121  2003/09/10 08:31:47  marco
    * Patch from Peter for paraloc
 
   Revision 1.120  2003/09/09 20:59:27  daniel
