@@ -35,7 +35,7 @@ const
 // OS dependent defines
 {$ifdef win32}
   {$DEFINE GDK_WINDOWING_WIN32}
-  gdklib = 'libgdk-win32-2.0-0';
+  gdklib = 'libgdk-win32-2.0-0.dll';
   {$IFDEF FPC}
   {$smartlink on}
   {$ENDIF}

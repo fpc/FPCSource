@@ -41,7 +41,7 @@ const
 // !!!!! Maybe wrong for platforms other than linux !!!!!
 {$ifdef win32}
   {$DEFINE GTK_WINDOWING_WIN32}
-  gtkhtmllib = 'libgtkhtml-win32-2.0-0';
+  gtkhtmllib = 'libgtkhtml-win32-2.0-0.dll';
   {$IFDEF FPC}
   {$smartlink on}
   {$ENDIF}

@@ -38,7 +38,7 @@ uses glib2;
 const
 {$ifdef win32}
   {$define gdkpixbufwin}
-  gdkpixbuflib = 'libgdk_pixbuf-2.0-0';
+  gdkpixbuflib = 'libgdk_pixbuf-2.0-0.dll';
   {$IFDEF FPC}
   {$smartlink on}
   {$ENDIF}

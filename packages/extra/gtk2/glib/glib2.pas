@@ -40,10 +40,10 @@ uses
 const
 {$ifdef win32}
   {$define gtkwin}
-  gliblib    = 'libglib-2.0-0';
-  gthreadlib = 'libgthread-2.0-0';
-  gmodulelib = 'libgmodule-2.0-0';
-  gobjectlib = 'libgobject-2.0-0';
+  gliblib    = 'libglib-2.0-0.dll';
+  gthreadlib = 'libgthread-2.0-0.dll';
+  gmodulelib = 'libgmodule-2.0-0.dll';
+  gobjectlib = 'libgobject-2.0-0.dll';
   {$IFDEF FPC}
   {$smartlink on}
   {$ENDIF}

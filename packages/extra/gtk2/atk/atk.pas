@@ -32,7 +32,7 @@ uses glib2;
 const
 {$ifdef win32}
   {$define atkwin}
-  atklib = 'libatk-1.0-0';
+  atklib = 'libatk-1.0-0.dll';
   {$IFDEF FPC}
   {$smartlink on}
   {$ENDIF}

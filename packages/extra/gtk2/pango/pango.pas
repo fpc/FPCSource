@@ -38,7 +38,7 @@ uses glib2;
 const
 {$ifdef win32}
   {$define pangowin}
-  pangolib = 'libpango-1.0-0';
+  pangolib = 'libpango-1.0-0.dll';
   {$IFDEF FPC}
   {$smartlink on}
   {$ENDIF}
