@@ -69,21 +69,17 @@ type
     tkas,
     tkasm,
     tkbegin,
-    tkbreak,
     tkcase,
     tkclass,
     tkconst,
     tkconstructor,
-    tkcontinue,
     tkdestructor,
-    tkdispose,
     tkdiv,
     tkdo,
     tkdownto,
     tkelse,
     tkend,
     tkexcept,
-    tkexit,
     tkexports,
     tkfalse,
     tkfinalization,
@@ -102,7 +98,6 @@ type
     tklabel,
     tklibrary,
     tkmod,
-    tknew,
     tknil,
     tknot,
     tkobject,
@@ -251,21 +246,17 @@ const
     'as',
     'asm',
     'begin',
-    'break',
     'case',
     'class',
     'const',
     'constructor',
-    'continue',
     'destructor',
-    'dispose',
     'div',
     'do',
     'downto',
     'else',
     'end',
     'except',
-    'exit',
     'exports',
     'false',
     'finalization',
@@ -284,7 +275,6 @@ const
     'label',
     'library',
     'mod',
-    'new',
     'nil',
     'not',
     'object',
@@ -1035,7 +1025,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-09-05 08:56:56  michael
+  Revision 1.10  2004-12-06 19:16:38  michael
+  + Some cleanup, removed some keywords which are not keywords
+
+  Revision 1.9  2004/09/05 08:56:56  michael
   + Fixed line 404 - missing brackets
 
   Revision 1.8  2004/08/25 09:32:39  michael
