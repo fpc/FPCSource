@@ -1641,7 +1641,7 @@ implementation
 
       begin
          first_class_to_intf:=nil;
-         expectloc:=LOC_REFERENCE;
+         expectloc:=LOC_REGISTER;
          if registers32<1 then
            registers32:=1;
       end;
@@ -2102,7 +2102,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.118  2003-09-06 22:27:08  florian
+  Revision 1.119  2003-09-25 14:57:51  peter
+    * fix different expectloc
+
+  Revision 1.118  2003/09/06 22:27:08  florian
     * fixed web bug 2669
     * cosmetic fix in printnode
     * tobjectdef.gettypename implemented
