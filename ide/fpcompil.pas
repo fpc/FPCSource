@@ -893,10 +893,6 @@ begin
     WriteSymbolsFile(BrowserName);
 {  MainFile:=FixFileName(FExpand(FileName));}
   SetStatus('Preparing to compile...'+NameOf(MainFile));
-  If GetEXEPath<>'' then
-    EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+GetTargetExeExt)
-  else
-    EXEFile:=DirOf(MainFile)+NameOf(MainFile)+GetTargetExeExt;
 { Reset }
   CtrlBreakHit:=false;
 { Create Compiler Status Dialog }
@@ -911,22 +907,14 @@ begin
       CompilerStatusDialog^.Update;
     end;
 { hook compiler output }
-{$ifdef TP}
-  do_status:=CompilerStatus;
-  do_stop:=CompilerStop;
-  do_comment:=CompilerComment;
-  {$ifndef GABOR}do_openinputfile:=CompilerOpenInputFile;{$endif}
-  do_getnamedfiletime:=CompilerGetNamedFileTime;
-{$else not TP}
   do_status:=@CompilerStatus;
   do_stop:=@CompilerStop;
   do_comment:=@CompilerComment;
   do_openinputfile:=@CompilerOpenInputFile;
   do_getnamedfiletime:=@CompilerGetNamedFileTime;
-{$endif TP}
-  do_initsymbolinfo:={$ifdef fpc}@{$endif}InitBrowserCol;
-  do_donesymbolinfo:={$ifdef fpc}@{$endif}DoneBrowserCol;
-  do_extractsymbolinfo:={$ifdef fpc}@{$endif}CreateBrowserCol;
+  do_initsymbolinfo:=@InitBrowserCol;
+  do_donesymbolinfo:=@DoneBrowserCol;
+  do_extractsymbolinfo:=@CreateBrowserCol;
 { Compile ! }
 {$ifdef redircompiler}
   ChangeRedirOut(FPOutFileName,false);
@@ -1004,6 +992,11 @@ begin
   StopJmp:=StoreStopJmp;
 {$endif HasSignal}
 {$endif}
+  { Retrieve created exefile }
+  If GetEXEPath<>'' then
+    EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+GetTargetExeExt)
+  else
+    EXEFile:=DirOf(MainFile)+NameOf(MainFile)+GetTargetExeExt;
   { tokens are created and distroyed by compiler.compile !! PM }
   InitTokens;
   if LinkAfter and
@@ -1027,7 +1020,7 @@ begin
        Error:=LinuxError;
        {$else}
        error:=0;
-       If Shell(GetExePath+PpasFile)=-1 Then 
+       If Shell(GetExePath+PpasFile)=-1 Then
         Error:=fpgeterrno;
        {$endif}
 {$else}
@@ -1313,7 +1306,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2004-11-02 23:53:19  peter
+  Revision 1.26  2004-11-05 00:00:33  peter
+  set exefile after compilation, before the target_info is not filled
+
+  Revision 1.25  2004/11/02 23:53:19  peter
     * fixed crashes with ide and 1.9.x
 
   Revision 1.24  2004/09/09 20:33:00  jonas
