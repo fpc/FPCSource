@@ -367,25 +367,9 @@ Procedure getdir(drivenr:byte;Var dir:string);
 Function IOResult:Word;
 Function Sptr:Longint;
 
-
-{*****************************************************************************
-                       Delpi-Type Object is declared in objpash.inc
+{****************************************************************************
+                The whole Delphi stuff is in the unit objpas
 *****************************************************************************}
-
-{$IFDEF VER_ABOVE0_9_7}
-{$ifdef DELPHI_EXTENSIONS}
-Type
-  ShortSTring = string;
-{$i objpash.inc}
-{$else}
-Type
-  tobject = class
-    constructor create;
-    destructor destroy;virtual;
-    procedure free;
-  End;
-{$ENDIF}
-{$ENDIF}
 
 {*****************************************************************************
                           Init / Exit / ExitProc
@@ -403,8 +387,11 @@ Procedure AddExitProc(Proc:TProcedure);
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-03-25 23:39:17  florian
+    * complete Object Pascal support moved to objpas unit
+
+  Revision 1.1.1.1  1998/03/25 11:18:43  root
+  * Restored version
 
   Revision 1.22  1998/03/24 15:50:25  peter
     + dword,longword=cardinal (for > 0.9.2 unlike Florian did with longword)

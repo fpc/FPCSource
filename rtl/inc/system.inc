@@ -276,36 +276,6 @@ End;
 
 {$i sstrings.inc}
 
-{****************************************************************************
-                Subroutines for delphi-Style object handling are in objpas.inc
-****************************************************************************}
-
-{$IFDEF VER_ABOVE0_9_7}
-{ Old versions don't like this }
-
-{$ifdef DELPHI_EXTENSIONS}
-
-{$i objpas.inc}
-
-{$else }
-constructor tobject.create;
-Begin
-End;
-
-destructor tobject.destroy;
-Begin
-End;
-
-procedure tobject.free;
-Begin
-   if pointer(self)<>nil then
-     destroy;
-End;
-{$ENDIF DELPHI_Extensions}
-
-{$ENDIF VER_ABOVE0_9_7}
-
-
 {*****************************************************************************
                              Miscellaneous
 *****************************************************************************}
@@ -444,8 +414,11 @@ End;
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-03-25 23:39:17  florian
+    * complete Object Pascal support moved to objpas unit
+
+  Revision 1.1.1.1  1998/03/25 11:18:43  root
+  * Restored version
 
   Revision 1.29  1998/02/07 05:31:22  carl
     * bugfix of Swap with cardinal (no return value was set)
