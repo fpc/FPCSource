@@ -60,7 +60,8 @@ begin
           subver_str:=subver_str+version[i];
           inc(i);
         end;
-      val(subver_str,subsubversion_number,error);
+      if subver_str<>'' then
+        val(subver_str,subsubversion_number,error);
       { 5.02.90 is a pretest of 5.03.. PM }
       if subsubversion_number>=90 then
         inc(subversion_number);
@@ -89,7 +90,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-12-02 13:59:16  pierre
+  Revision 1.5  2002-12-12 14:17:59  pierre
+   * 5.3 was not correctly parsed
+
+  Revision 1.4  2002/12/02 13:59:16  pierre
    convert 5.02.90 into 5.03
 
   Revision 1.3  2002/09/10 12:17:15  pierre
