@@ -2402,7 +2402,7 @@ implementation
 
     procedure tpointerdef.concatstabto(asmlist : taasmoutput);
       var st,nb : string;
-          sym_line_no : longint;
+
       begin
       if assigned(pointertype.def) and
          (pointertype.def.deftype=forwarddef) then
@@ -2425,19 +2425,13 @@ implementation
                 if assigned(pointertype.def.typesym) then
                   begin
                     if assigned(typesym) then
-                      begin
-                         st := ttypesym(typesym).name;
-                         sym_line_no:=ttypesym(typesym).fileinfo.line;
-                      end
+                      st := ttypesym(typesym).name;
                     else
-                      begin
-                         st := ' ';
-                         sym_line_no:=0;
-                      end;
-                    st := '"'+st+':t'+numberstring+'=*'+nb
-                          +'=xs'+pointertype.def.typesym.name+':",'+tostr(N_LSYM)+',0,'+tostr(sym_line_no)+',0';
-                    asmList.concat(Tai_stabs.Create(strpnew(st)));
-                    end;
+                      st := ' ';
+                    asmlist.concat(Tai_stabs.create(stabstr_evaluate(
+                            '"$1:t${numberstring}=*$2=xs$3:",${N_LSYM},0,${sym_line},0',
+                            [st,nb,pointertype.def.typesym.name])));
+                  end;
               end
             else
               begin
@@ -6191,7 +6185,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.207  2004-01-26 16:12:28  daniel
+  Revision 1.208  2004-01-26 19:43:49  daniel
+    * Try to recude stack usage of Tpointerdef.concatstabsto
+
+  Revision 1.207  2004/01/26 16:12:28  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 
