@@ -1319,6 +1319,8 @@ implementation
                                   { do a very dirty trick to bootstrap this code }
                                   if (pconstsym(srsym)^.value>=-(int64(2147483647)+int64(1))) and (pconstsym(srsym)^.value<=2147483647) then
                                     p1:=genordinalconstnode(pconstsym(srsym)^.value,s32bitdef)
+                                  else if (pconstsym(srsym)^.value > maxlongint) and (pconstsym(srsym)^.value <= int64(maxlongint)+int64(maxlongint)+1) then
+                                    p1:=genordinalconstnode(pconstsym(srsym)^.value,u32bitdef)
                                   else
                                     p1:=genordinalconstnode(pconstsym(srsym)^.value,cs64bitdef);
                                 conststring :
@@ -2418,7 +2420,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.22  2000-12-17 14:00:18  peter
+  Revision 1.23  2000-12-19 20:36:03  peter
+    * cardinal const expr fix from jonas
+
+  Revision 1.22  2000/12/17 14:00:18  peter
     * fixed static variables
 
   Revision 1.21  2000/12/15 13:26:01  jonas
