@@ -1180,15 +1180,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-08-10 14:49:47  peter
+  Revision 1.11  1998-08-10 23:59:59  peter
+    * fixed dup log
+
+  Revision 1.10  1998/08/10 14:49:47  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.9  1998/08/05 16:00:09  florian
     * some fixes for ansi strings
-    * $log$ to $Log$
-    * $log$ to Revision 1.10  1998-08-10 14:49:47  peter
-    * $log$ to   + localswitches, moduleswitches, globalswitches splitting
-    * $log$ to changed
 
   Revision 1.8  1998/07/18 22:54:24  florian
     * some ansi/wide/longstring support fixed:

@@ -238,7 +238,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  1998-08-10 15:49:40  peter
+  Revision 1.27  1998-08-11 00:00:00  peter
+    * fixed dup log
+
+  Revision 1.26  1998/08/10 15:49:40  peter
     * small fixes for 0.99.5
 
   Revision 1.25  1998/08/10 14:50:16  peter
@@ -250,17 +253,6 @@ end.
 
   Revision 1.23  1998/08/05 16:00:16  florian
     * some fixes for ansi strings
-    * $log$ to $Log$
-    * $log$ to Revision 1.26  1998-08-10 15:49:40  peter
-    * $log$ to   * small fixes for 0.99.5
-    * $log$ to
-    * $log$ to Revision 1.25  1998/08/10 14:50:16  peter
-    * $log$ to   + localswitches, moduleswitches, globalswitches splitting
-    * $log$ to
-    * $log$ to Revision 1.24  1998/08/10 10:18:32  peter
-    * $log$ to   + Compiler,Comphook unit which are the new interface units to the
-    * $log$ to     compiler
-    * $log$ to changed
 
   Revision 1.22  1998/08/04 16:28:40  jonas
   * added support for NoRa386* in the $O ... section
