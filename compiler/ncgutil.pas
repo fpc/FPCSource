@@ -1669,6 +1669,7 @@ implementation
          if (po_savestdregs in current_procdef.procoptions) then
            cg.g_restore_standard_registers(list,current_procdef.usedintregisters);
 
+{$ifndef powerpc}
         { remove stackframe }
         if not inlined then
          begin
@@ -1679,7 +1680,9 @@ implementation
             end
            else
             cg.g_restore_frame_pointer(list);
+             if not (po_assembler in current_procdef.procoptions) then
          end;
+{$endif}
 
         { at last, the return is generated }
         if not inlined then
@@ -1901,7 +1904,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.108  2003-05-27 14:28:14  jonas
+  Revision 1.109  2003-05-27 21:19:08  jonas
+    * fixed ppc cycle
+
+  Revision 1.108  2003/05/27 14:28:14  jonas
     * patch from Peter for nested procedures
 
   Revision 1.107  2003/05/26 21:17:17  peter
