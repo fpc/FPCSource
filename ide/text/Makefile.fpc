@@ -19,7 +19,7 @@ libgcc=1
 # when making a full version include the compiler
 ifeq ($(FULL),1)
 override COMPUNITDIR+=../../compiler
-override COMPUNITOPT+=-dBrowserCol -dGDB -Sg
+override NEEDOPT+=-dBrowserCol -dGDB -Sg
 else
 override COMPUNITDIR+=../fake/compiler
 endif

@@ -121,7 +121,7 @@ endif
 # when making a full version include the compiler
 ifeq ($(FULL),1)
 override COMPUNITDIR+=../../compiler
-override COMPUNITOPT+=-dBrowserCol -dGDB -Sg
+override NEEDOPT+=-Sg -dGDB -dBROWSERCOL
 else
 override COMPUNITDIR+=../fake/compiler
 endif
@@ -969,10 +969,10 @@ gdb:
 	$(MAKE) all GDB=1
 
 full:
-	$(MAKE) all FULL=1 "NEEDOPT+=-Sg -dGDB -dBROWSERCOL"
+	$(MAKE) all FULL=1 
 
 fullgdb:
-	$(MAKE) all FULL=1 GDB=1 "NEEDOPT+=-Sg -dGDB -dBROWSERCOL"
+	$(MAKE) all FULL=1 GDB=1 
 
 # This is necessary because we don't have all units separate in the
 # units targets
