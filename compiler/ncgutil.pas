@@ -1029,14 +1029,14 @@ implementation
           begin
 {$ifdef OLDREGVARS}
             case ressym.localloc.loc of
-              LOC_CFPUREGISTER:
+              LOC_CFPUREGISTER,
               LOC_FPUREGISTER:
                 begin
                   location_reset(restmploc,LOC_CFPUREGISTER,funcretloc^.size);
                   restmploc.register:=ressym.localloc.register;
                 end;
 
-              LOC_CREGISTER:
+              LOC_CREGISTER,
               LOC_REGISTER:
                 begin
                   location_reset(restmploc,LOC_CREGISTER,funcretloc^.size);
@@ -1090,10 +1090,10 @@ implementation
                               inc(href.offset,4);
                             cg.a_load_ref_reg(list,OS_32,OS_32,href,resloc.registerlow);
                           end;
-                        LOC_REGISTER :
+                        LOC_CREGISTER :
                           cg.a_load_reg_reg(list,OS_32,OS_32,restmploc.registerlow,resloc.registerlow);
                         else
-                          internalerror(200409201);
+                          internalerror(200409203);
                       end;
                       if getsupreg(resloc.registerhigh)<first_int_imreg then
                         begin
@@ -1110,10 +1110,10 @@ implementation
                               inc(href.offset,4);
                             cg.a_load_ref_reg(list,OS_32,OS_32,href,resloc.registerhigh);
                           end;
-                        LOC_REGISTER :
+                        LOC_CREGISTER :
                           cg.a_load_reg_reg(list,OS_32,OS_32,restmploc.registerhigh,resloc.registerhigh);
                         else
-                          internalerror(200409201);
+                          internalerror(200409204);
                       end;
                     end
                   else
@@ -1722,6 +1722,7 @@ implementation
                     { When there is assembler code we can't use regvars }
                     if (cs_regvars in aktglobalswitches) and
                        not(pi_has_assembler_block in current_procinfo.flags) and
+                       not(pi_uses_exceptions in current_procinfo.flags) and
                        (vo_regable in varoptions) then
                       begin
                         localloc.loc:=LOC_CREGISTER;
@@ -2093,7 +2094,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.218  2004-09-26 17:45:30  peter
+  Revision 1.219  2004-09-27 15:14:08  peter
+    * fix compile for oldregvars
+
+  Revision 1.218  2004/09/26 17:45:30  peter
     * simple regvar support, not yet finished
 
   Revision 1.217  2004/09/25 14:23:54  peter
