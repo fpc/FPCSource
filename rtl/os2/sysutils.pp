@@ -23,7 +23,7 @@ interface
 {$H+}
 
 uses
- Dos;
+ Dos, Strings;
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -210,6 +210,21 @@ function DosQueryCtryInfo (Size: cardinal; var Country: TCountryCode;
 function DosMapCase (Size: cardinal; var Country: TCountryCode;
                       AString: PChar): cardinal; cdecl; external 'NLS' index 7;
 
+function DosDelete(FileName:PChar): Longint; cdecl;
+    external 'DOSCALLS' index 259;
+
+function DosMove(OldFile, NewFile:PChar): Longint; cdecl;
+    external 'DOSCALLS' index 271;
+
+function DosQueryPathInfo(FileName:PChar;InfoLevel:cardinal;
+                 AFileStatus:PFileStatus;FileStatusLen:cardinal): Longint; cdecl;
+    external 'DOSCALLS' index 223;
+
+function DosSetPathInfo(FileName:PChar;InfoLevel:longint;
+                        AFileStatus:PFileStatus;FileStatusLen,
+                        Options:longint):longint; cdecl;
+    external 'DOSCALLS' index 219;
+
 
 {****************************************************************************
                               File Functions
@@ -362,19 +377,14 @@ begin
 end;
 
 
-function FileExists (const FileName: string): boolean; assembler;
-asm
- mov ax, 4300h
- mov edx, FileName
- call syscall
- mov eax, 0
- jc @FExistsEnd
- test cx, 18h
- jnz @FExistsEnd
- inc eax
-@FExistsEnd:
-end {['eax', 'ecx', 'edx']};
-
+function FileExists (const FileName: string): boolean;
+var
+  SR: TSearchRec;
+begin
+  FileExists:=False;
+  if FindFirst(FileName, faAnyFile, SR)=0 then FileExists:=True;
+  FindClose(SR);
+end;
 
 type    TRec = record
             T, D: word;
@@ -488,56 +498,58 @@ begin
 end;
 
 
-function FileGetAttr (const FileName: string): longint; assembler;
-asm
- mov ax, 4300h
- mov edx, FileName
- call syscall
- jnc @FGetAttrEnd
- mov eax, -1
-@FGetAttrEnd:
-end {['eax', 'edx']};
+function FileGetAttr (const FileName: string): longint;
+var
+  FS: PFileStatus3;
+  S: PChar;
+begin
+  New(FS);
+  S:=StrAlloc(length(FileName)+1);
+  StrPCopy(S, FileName);
+  Result:=-DosQueryPathInfo(S, ilStandard, FS, SizeOf(FS^));
+  StrDispose(S);
+  If Result=0 Then Result:=FS^.attrFile;
+  Dispose(FS);
+end;
+
+function FileSetAttr (const Filename: string; Attr: longint): longint;
+Var
+  FS: PFileStatus3;
+  S: PChar;
+Begin
+  New(FS);
+  FillChar(FS, SizeOf(FS^), 0);
+  FS^.attrFile:=Attr;
+  S:=StrAlloc(length(FileName)+1);
+  StrPCopy(S, FileName);
+  Result:=-DosSetPathInfo(S, ilStandard, FS, SizeOf(FS^), 0);
+  StrDispose(S);
+  Dispose(FS);
+end;
 
 
-function FileSetAttr (const Filename: string; Attr: longint): longint; assembler;
-asm
- mov ax, 4301h
- mov ecx, Attr
- mov edx, FileName
- call syscall
- mov eax, 0
- jnc @FSetAttrEnd
- mov eax, -1
-@FSetAttrEnd:
-end {['eax', 'ecx', 'edx']};
+function DeleteFile (const FileName: string): boolean;
+Var
+  S: PChar;
+Begin
+  S:=StrAlloc(length(FileName)+1);
+  StrPCopy(S, FileName);
+  Result:=(DosDelete(S)=0);
+  StrDispose(S);
+End;
 
-
-function DeleteFile (const FileName: string): boolean; assembler;
-asm
- mov ax, 4100h
- mov edx, FileName
- call syscall
- mov eax, 0
- jc @FDeleteEnd
- inc eax
-@FDeleteEnd:
-end {['eax', 'edx']};
-
-
-function RenameFile (const OldName, NewName: string): boolean; assembler;
-asm
- push edi
- mov ax, 5600h
- mov edx, OldName
- mov edi, NewName
- call syscall
- mov eax, 0
- jc @FRenameEnd
- inc eax
-@FRenameEnd:
- pop edi
-end {['eax', 'edx', 'edi']};
-
+function RenameFile (const OldName, NewName: string): boolean;
+Var
+  S1, S2: PChar;
+Begin
+  S1:=StrAlloc(length(OldName)+1);
+  StrPCopy(S1, OldName);
+  S2:=StrAlloc(length(NewName)+1);
+  StrPCopy(S2, NewName);
+  Result:=(DosMove(S1, S2)=0);
+  StrDispose(S1);
+  StrDispose(S2);
+End;
 
 {****************************************************************************
                               Disk Functions
@@ -755,7 +767,10 @@ end.
 
 {
   $Log$
-  Revision 1.34  2003-10-18 16:58:39  hajny
+  Revision 1.35  2003-10-27 11:43:40  yuri
+  * New set of native functions
+
+  Revision 1.34  2003/10/18 16:58:39  hajny
     * stdcall fixes again
 
   Revision 1.33  2003/10/13 21:17:31  hajny
