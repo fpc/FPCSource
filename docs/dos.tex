@@ -506,7 +506,7 @@ It is recommended to use the \linux call \var{Glob} when looking for files
 on \linux.
 
 \Errors
-None.
+Errors are reported in DosError.
 \SeeAlso
 \seef{Glob}.
 \end{procedure}
@@ -817,8 +817,10 @@ Procedure Keep (ExitCode: word);
 \var{Keep} terminates the program, but stays in memory. This is used for TSR
 (Terminate Stay Resident) programs which catch some interrupt.
 \var{ExitCode} is the same parameter as the \var{Halt} function takes.
-\Errors
+\Portability
 Under non-\dos operating systems, this call does nothing.
+\Errors
+None.
 \SeeAlso
 \seem{Halt}{}
 \end{procedure}
@@ -971,7 +973,6 @@ Under non-\dos operating systems (excluding \ostwo applications running
 under vanilla dos), Verify is always \var{True}.
 \Errors
 None.
-\var{True}.
 \SeeAlso
 \seep{SetVerify}
 \end{procedure}
@@ -984,9 +985,11 @@ Procedure SwapVectors ;
 vectors with the current contents of the interrupt vectors.
 This is called typically in before and after an \var{Exec} call.
 
-\Errors
+\Portability
 Under certain operating systems, this routine may be implemented
 as an empty stub.
+\Errors
+None.
 \SeeAlso
 \seep{Exec}, \seep{SetIntVec}
 \end{procedure}
