@@ -4203,6 +4203,8 @@ do_jmp:
 
       begin
          exprasmlist^.concatlist(p^.p_asm);
+         if not p^.object_preserved then
+           maybe_loadesi;
        end;
 
     procedure secondcase(var p : ptree);
@@ -5059,7 +5061,12 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.31  1998-06-03 22:48:52  peter
+  Revision 1.32  1998-06-04 09:55:35  pierre
+    * demangled name of procsym reworked to become independant of the mangling scheme
+
+  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
+
+  Revision 1.31  1998/06/03 22:48:52  peter
     + wordbool,longbool
     * rename bis,von -> high,low
     * moved some systemunit loading/creating to psystem.pas

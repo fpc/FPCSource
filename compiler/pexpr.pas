@@ -599,9 +599,11 @@ unit pexpr;
               if ((sym^.properties and sp_private)<>0) and
                  (pobjectdef(sym^.owner^.defowner)^.owner^.symtabletype=unitsymtable) then
                 Message(parser_e_cant_access_private_member);
+              { this is wrong protected should not be overwritten but
+              can be called !! PM
               if ((sym^.properties and sp_protected)<>0) and
                 (pobjectdef(pd)^.owner^.symtabletype=unitsymtable) then
-               Message(parser_e_cant_access_protected_member);
+               Message(parser_e_cant_access_protected_member); }
               { we assume, that only procsyms and varsyms are in an object }
               { symbol table, for classes, properties are allowed          }
               case sym^.typ of
@@ -616,6 +618,11 @@ unit pexpr;
                    end;
                  varsym:
                    begin
+                      if ((sym^.properties and sp_protected)<>0) and
+                         (pobjectdef(pd)^.owner^.symtabletype=unitsymtable) and
+                         not(afterassignment) and
+                         not(in_args) then
+                         Message(parser_e_cant_access_protected_member);
                       if isclassref then
                         Message(parser_e_only_class_methods_via_class_ref);
                       if (sym^.properties and sp_static)<>0 then
@@ -918,6 +925,39 @@ unit pexpr;
          p^[l]:=p^[l] or (1 shl (pos mod 8));
       end;
 
+{$ifdef TEST_FUNCRET}
+    function is_func_ret(sym : psym) : boolean;
+    var
+       p : pprocinfo;
+       
+      begin
+         p:=@procinfo;
+         is_func_ret:=false;
+         while assigned(p) do
+           begin
+              { is this an access to a function result ? }
+              if assigned(aktprocsym) and
+                 ((sym^.name=aktprocsym^.name) or
+                 ((pvarsym(srsym)=opsym) and
+                 ((p^.flags and pi_operator)<>0))) and
+                 (p^.retdef<>pdef(voiddef)) and
+                 (token<>LKLAMMER) and
+                 (not ((cs_tp_compatible in aktswitches) and
+                 (afterassignment or in_args))) then
+                begin
+                   p1:=genzeronode(funcretn);
+                   pd:=p^.retdef;
+                   p1^.funcretprocinfo:=p;
+                   p1^.retdef:=pd;
+                   is_func_ret:=true;
+                   exit;
+                end;
+              p:=p^.parent;
+           end;
+      end;
+{$endif TEST_FUNCRET}
+           
+
       var
          possible_error : boolean;
 
@@ -953,6 +993,7 @@ unit pexpr;
                       else
                         getsym(pattern,true);
                       consume(ID);
+{$ifndef TEST_FUNCRET}
                       { is this an access to a function result ? }
                        if assigned(aktprocsym) and
                         ((srsym^.name=aktprocsym^.name) or
@@ -965,12 +1006,11 @@ unit pexpr;
                         begin
                            p1:=genzeronode(funcretn);
                            pd:=procinfo.retdef;
-{$ifdef TEST_FUNCRET}
-                           p1^.funcretprocinfo:=pointer(@procinfo);
-                           p1^.retdef:=pd;
-{$endif TEST_FUNCRET}
                         end
                       else
+{$else TEST_FUNCRET}
+                    if not is_func_ret(srsym) then
+{$endif TEST_FUNCRET}
                         { else it's a normal symbol }
                         begin
                            if srsym^.typ=unitsym then
@@ -1752,7 +1792,12 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.22  1998-06-02 17:03:03  pierre
+  Revision 1.23  1998-06-04 09:55:40  pierre
+    * demangled name of procsym reworked to become independant of the mangling scheme
+
+  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
+
+  Revision 1.22  1998/06/02 17:03:03  pierre
     *  with node corrected for objects
     * small bugs for SUPPORT_MMX fixed
 

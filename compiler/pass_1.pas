@@ -500,7 +500,7 @@ unit pass_1;
               putnode(p);
               p:=genzeronode(funcretn);
               p^.funcretprocinfo:=pprocinfo(pfuncretsym(p^.symtableentry)^.funcretprocinfo);
-              p^.retdef:=pfuncretsym(p^.symtableentry)^.retdef;
+              p^.retdef:=pfuncretsym(p^.symtableentry)^.funcretdef;
               firstpass(p);
               exit;
            end;
@@ -2568,6 +2568,48 @@ unit pass_1;
 
     { *************** subroutine handling **************** }
 
+    { protected field handling
+      protected field can not appear in
+      var parameters of function !!
+      this can only be done after we have determined the
+      overloaded function
+      this is the reason why it is not in the parser
+       PM }
+      
+    procedure test_protected_sym(sym : psym);
+
+      begin
+         if ((sym^.properties and sp_protected)<>0) and
+           ((sym^.owner^.symtabletype=unitsymtable) or
+            ((sym^.owner^.symtabletype=objectsymtable) and
+           (pobjectdef(sym^.owner^.defowner)^.owner^.symtabletype=unitsymtable))) then
+          Message(parser_e_cant_access_protected_member);
+      end;
+      
+    procedure test_protected(p : ptree);
+
+      begin
+         if p^.treetype=loadn then
+           begin
+              test_protected_sym(p^.symtableentry);
+           end
+         else if p^.treetype=typeconvn then
+           begin
+              test_protected(p^.left);
+           end
+         else if p^.treetype=derefn then
+           begin
+              test_protected(p^.left);
+           end
+         else if p^.treetype=subscriptn then
+           begin
+              { test_protected(p^.left);
+               Is a field of a protected var
+                also protected ???  PM }
+              test_protected_sym(p^.vs);
+           end;
+      end;
+      
     procedure firstcallparan(var p : ptree;defcoll : pdefcoll);
 
       var store_valid : boolean;
@@ -2612,6 +2654,8 @@ unit pass_1;
                if count_ref then
                  begin
                     store_valid:=must_be_valid;
+                    if (defcoll^.paratyp=vs_var) then
+                      test_protected(p^.left);
                     if (defcoll^.paratyp<>vs_var) then
                       must_be_valid:=true
                     else
@@ -3356,14 +3400,17 @@ unit pass_1;
 
     procedure firstfuncret(var p : ptree);
 
-          begin
+      begin
 {$ifdef TEST_FUNCRET}
-             p^.resulttype:=p^.retdef;
-             p^.location.loc:=LOC_REFERENCE;
-             if ret_in_param(p^.retdef) or
-                (@procinfo<>pprocinfo(p^.funcretprocinfo)) then
-               p^.registers32:=1;
-         if must_be_valid and not pprocinfo(p^.funcretprocinfo)^.funcret_is_valid then
+         p^.resulttype:=p^.retdef;
+         p^.location.loc:=LOC_REFERENCE;
+         if ret_in_param(p^.retdef) or
+            (@procinfo<>pprocinfo(p^.funcretprocinfo)) then
+           p^.registers32:=1;
+         { no claim if setting higher return values }
+         if must_be_valid and
+            (@procinfo=pprocinfo(p^.funcretprocinfo)) and
+            not procinfo.funcret_is_valid then
            note(uninitialized_function_return);
          if count_ref then pprocinfo(p^.funcretprocinfo)^.funcret_is_valid:=true;
 {$else TEST_FUNCRET}
@@ -4949,7 +4996,12 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.25  1998-06-03 22:48:57  peter
+  Revision 1.26  1998-06-04 09:55:39  pierre
+    * demangled name of procsym reworked to become independant of the mangling scheme
+
+  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
+
+  Revision 1.25  1998/06/03 22:48:57  peter
     + wordbool,longbool
     * rename bis,von -> high,low
     * moved some systemunit loading/creating to psystem.pas
@@ -4992,7 +5044,6 @@ end.
     * UseBrower updated gives a global list of all position of all used symbols
       with switch -gb
 
->>>>>>> h:/cvs/compiler/PASS_1.pas
   Revision 1.18  1998/05/11 13:07:55  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required

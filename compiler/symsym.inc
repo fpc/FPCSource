@@ -533,7 +533,7 @@
 
     function tprocsym.demangledname:string;
       begin
-        demangledname:=name+'('+demangledparas(definition^.mangledname)+')';
+        demangledname:=name+definition^.demangled_paras;
       end;
 
 
@@ -550,10 +550,10 @@
                 begin
 {$ifdef GDB}
                    if assigned(pd^._class) then
-                    Message1(sym_e_forward_not_resolved,pd^._class^.name^+'.'+name+'('+demangledparas(pd^.mangledname)+')')
-                     else
+                     Message1(sym_e_forward_not_resolved,pd^._class^.name^+'.'+name+demangledparas(pd^.demangled_paras))
+                   else
 {$endif GDB}
-                    Message1(sym_e_forward_not_resolved,demangledname)
+                     Message1(sym_e_forward_not_resolved,name+pd^.demangled_paras)
                 end;
               pd:=pd^.nextoverloaded;
            end;
@@ -758,15 +758,15 @@
 ****************************************************************************}
 
 {$ifdef TEST_FUNCRET}
-    constructor tfuncretsym.init(const n : string;approcinfo : pprocinfo);
+    constructor tfuncretsym.init(const n : string;approcinfo : pointer{pprocinfo});
 
       begin
          tsym.init(n);
          funcretprocinfo:=approcinfo;
-         funcretdef:=approcinfo^.retdef;
+         funcretdef:=pprocinfo(approcinfo)^.retdef;
          { address valid for ret in param only }
          { otherwise set by insert             }
-         address:=approcinfo^.retoffset;
+         address:=pprocinfo(approcinfo)^.retoffset;
       end;
 {$endif TEST_FUNCRET}
 
@@ -1690,7 +1690,12 @@
 
 {
   $Log$
-  Revision 1.3  1998-06-03 22:14:20  florian
+  Revision 1.4  1998-06-04 09:55:46  pierre
+    * demangled name of procsym reworked to become independant of the mangling scheme
+
+  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
+
+  Revision 1.3  1998/06/03 22:14:20  florian
     * problem with sizes of classes fixed (if the anchestor was declared
       forward, the compiler doesn't update the child classes size)
 

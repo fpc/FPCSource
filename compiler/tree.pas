@@ -228,7 +228,7 @@ unit tree;
                             retoffset,para_offset,para_size : longint);
              setconstrn : (constset : pconstset);
              loopn : (t1,t2 : ptree;backward : boolean);
-             asmn : (p_asm : paasmoutput);
+             asmn : (p_asm : paasmoutput;object_preserved : boolean);
              casen : (nodes : pcaserecord;elseblock : ptree);
              labeln,goton : (labelnr : plabel);
              withn : (withsymtable : psymtable;tablecount : longint);
@@ -294,6 +294,9 @@ unit tree;
   implementation
 
     uses
+{$ifdef extdebug}
+       types,
+{$endif extdebug}
        verbose,files;
 
 {****************************************************************************
@@ -887,6 +890,7 @@ unit tree;
          p^.treetype:=asmn;
          p^.registers32:=4;
          p^.p_asm:=p_asm;
+         p^.object_preserved:=false;
 {         p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=8;
@@ -1534,7 +1538,12 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.12  1998-06-03 22:49:06  peter
+  Revision 1.13  1998-06-04 09:55:49  pierre
+    * demangled name of procsym reworked to become independant of the mangling scheme
+
+  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
+
+  Revision 1.12  1998/06/03 22:49:06  peter
     + wordbool,longbool
     * rename bis,von -> high,low
     * moved some systemunit loading/creating to psystem.pas

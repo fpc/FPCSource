@@ -312,8 +312,8 @@ unit pmodules;
               { but for the implementation part          }
               { the written crc is false, because        }
               { not defined when writing the ppufile !!  }
-              (* if {(loaded_unit^.crc<>checksum) or}
-                (do_build and loaded_unit^.sources_avail) then
+{$ifdef TEST_IMPL}
+              if (loaded_unit^.crc<>0) and (loaded_unit^.crc<>checksum) then
                 begin
                    { we have to compile the current unit }
                    { remove stuff which isn't needed     }
@@ -324,7 +324,7 @@ unit pmodules;
                    dispose(hp^.ppufile,done);
                    hp^.ppufile:=nil;
                    if not(hp^.sources_avail) then
-                    Message1(unit_f_cant_compile_unit,hp^.unitname^)
+                    Message1(unit_f_cant_compile_unit,hp^.modulename^)
                    else
                      begin
                         oldhp^.current_inputfile^.tempclose;
@@ -332,7 +332,8 @@ unit pmodules;
                         oldhp^.current_inputfile^.tempclose;
                      end;
                    exit;
-                end; *)
+                end;
+{$endif TEST_IMPL}
               { read until ibend }
               hp^.ppufile^.read_data(b,1,count);
            end;
@@ -516,7 +517,7 @@ unit pmodules;
          consume(SEMICOLON);
 
          { now insert the units in the symtablestack }
-         hp:=pused_unit(current_module^.used_units.first);
+          hp:=pused_unit(current_module^.used_units.first);
          { set the symtable to systemunit so it gets reorderd correctly }
          symtablestack:=systemunit;
          while assigned(hp) do
@@ -981,7 +982,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.19  1998-06-03 23:40:38  peter
+  Revision 1.20  1998-06-04 09:55:42  pierre
+    * demangled name of procsym reworked to become independant of the mangling scheme
+
+  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
+
+  Revision 1.19  1998/06/03 23:40:38  peter
     + unlimited file support, release tempclose
 
   Revision 1.18  1998/06/03 22:49:00  peter

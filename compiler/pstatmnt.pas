@@ -584,6 +584,8 @@ unit pstatmnt;
 {$ifdef i386}
     function _asm_statement : ptree;
 
+      var asm_stat : ptree;
+      
       begin
          if (aktprocsym^.definition^.options and poinline)<>0 then
            Begin
@@ -592,9 +594,9 @@ unit pstatmnt;
               aktprocsym^.definition^.options:= aktprocsym^.definition^.options and not poinline;
            End;
          case aktasmmode of
-            I386_ATT : _asm_statement:=ratti386.assemble;
-            I386_INTEL : _asm_statement:=rai386.assemble;
-            I386_DIRECT : _asm_statement:=radi386.assemble;
+            I386_ATT : asm_stat:=ratti386.assemble;
+            I386_INTEL : asm_stat:=rai386.assemble;
+            I386_DIRECT : asm_stat:=radi386.assemble;
             else internalerror(30004);
          end;
 
@@ -607,6 +609,7 @@ unit pstatmnt;
            begin
               { it's possible to specify the modified registers }
               consume(LECKKLAMMER);
+              asm_stat^.object_preserved:=true;
               if token<>RECKKLAMMER then
                 repeat
                   pattern:=upper(pattern);
@@ -619,7 +622,10 @@ unit pstatmnt;
                   else if pattern='EDX' then
                     usedinproc:=usedinproc or ($80 shr byte(R_EDX))
                   else if pattern='ESI' then
-                    usedinproc:=usedinproc or ($80 shr byte(R_ESI))
+                    begin
+                       usedinproc:=usedinproc or ($80 shr byte(R_ESI));
+                       asm_stat^.object_preserved:=false;
+                    end
                   else if pattern='EDI' then
                     usedinproc:=usedinproc or ($80 shr byte(R_EDI))
                   else consume(RECKKLAMMER);
@@ -630,6 +636,7 @@ unit pstatmnt;
               consume(RECKKLAMMER);
            end
          else usedinproc:=$ff;
+         _asm_statement:=asm_stat;
       end;
 {$endif}
 
@@ -1138,34 +1145,15 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.16  1998-06-02 17:03:04  pierre
+  Revision 1.17  1998-06-04 09:55:43  pierre
+    * demangled name of procsym reworked to become independant of the mangling scheme
+
+  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
+
+  Revision 1.16  1998/06/02 17:03:04  pierre
     *  with node corrected for objects
     * small bugs for SUPPORT_MMX fixed
 
-<<<<<<< PSTATMNT.pas
-  Revision 1.14  1998/05/29 09:58:14  pierre
-    * OPR_REGISTER for 1 arg was missing in ratti386.pas
-      (probably a merging problem)
-    * errors at start of line were lost
-
-  Revision 1.13  1998/05/28 17:26:50  peter
-    * fixed -R switch, it didn't work after my previous akt/init patch
-    * fixed bugs 110,130,136
-
-  Revision 1.12  1998/05/21 19:33:33  peter
-    + better procedure directive handling and only one table
-
-  Revision 1.11  1998/05/20 09:42:35  pierre
-    + UseTokenInfo now default
-    * unit in interface uses and implementation uses gives error now
-    * only one error for unknown symbol (uses lastsymknown boolean)
-      the problem came from the label code !
-    + first inlined procedures and function work
-      (warning there might be allowed cases were the result is still wrong !!)
-    * UseBrower updated gives a global list of all position of all used symbols
-      with switch -gb
-
-=======
   Revision 1.15  1998/05/30 14:31:06  peter
     + $ASMMODE
 
@@ -1191,7 +1179,6 @@ end.
     * UseBrower updated gives a global list of all position of all used symbols
       with switch -gb
 
->>>>>>> h:/cvs/compiler/PSTATMNT.pas
   Revision 1.10  1998/05/11 13:07:56  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
@@ -1240,3 +1227,4 @@ end.
       and creates wrong assembler files !!)
       procsym types sym in tdef removed !!
 }
+

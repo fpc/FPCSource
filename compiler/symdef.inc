@@ -1556,6 +1556,33 @@
            end;
       end;
 
+    function tabstractprocdef.demangled_paras : string;
+      var s : string;
+          p : pdefcoll;
+      begin
+        s:='';
+        p:=para1;
+        if assigned(p) then
+          begin
+             s:=s+'(';
+             while assigned(p) do
+               begin
+                  if assigned(p^.data^.sym) then
+                    s:=s+p^.data^.sym^.name
+                  else if p^.paratyp=vs_var then
+                    s:=s+'var'
+                  else if p^.paratyp=vs_const then
+                    s:=s+'const';
+                  p:=p^.next;
+                  if assigned(p) then
+                    s:=s+','
+                  else
+                    s:=s+')';
+               end;
+          end;
+        demangled_paras:=s;
+      end;
+
 {$ifdef GDB}
     function tabstractprocdef.stabstring : pchar;
       begin
@@ -2263,8 +2290,13 @@
                  while assigned(para) do
                    begin
                    if para^.data^.deftype = formaldef then
-                     argnames := argnames+'3var'
-                     else
+                     begin
+                        if para^.paratyp=vs_var then
+                          argnames := argnames+'3var'
+                        else if para^.paratyp=vs_const then
+                          argnames:=argnames+'5const';
+                     end
+                   else
                      begin
                      { if the arg definition is like (v: ^byte;..
                      there is no sym attached to data !!! }
@@ -2375,7 +2407,12 @@
 
 {
   $Log$
-  Revision 1.3  1998-06-03 22:49:03  peter
+  Revision 1.4  1998-06-04 09:55:45  pierre
+    * demangled name of procsym reworked to become independant of the mangling scheme
+
+  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
+
+  Revision 1.3  1998/06/03 22:49:03  peter
     + wordbool,longbool
     * rename bis,von -> high,low
     * moved some systemunit loading/creating to psystem.pas

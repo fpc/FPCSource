@@ -50,6 +50,8 @@ unit hcodegen;
           _class : pobjectdef;
           { return type }
           retdef : pdef;
+          { return type }
+          sym : pprocsym;
           { the definition of the proc itself }
           def : pdef;
           { frame pointer offset }
@@ -392,7 +394,12 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-05-23 01:21:08  peter
+  Revision 1.7  1998-06-04 09:55:38  pierre
+    * demangled name of procsym reworked to become independant of the mangling scheme
+
+  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
+
+  Revision 1.6  1998/05/23 01:21:08  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in
