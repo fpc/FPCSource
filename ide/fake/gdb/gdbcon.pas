@@ -100,10 +100,11 @@ type
     destructor  Done;
     procedure Command(const s:string);
     procedure Reset;virtual;
-    procedure StartTrace;virtual;
-    procedure TraceStep;
-    procedure TraceNext;
-    procedure Continue;
+    procedure StartTrace;
+    procedure Run;virtual;
+    procedure TraceStep;virtual;
+    procedure TraceNext;virtual;
+    procedure Continue;virtual;
     { needed for dos because newlines are only #10 (PM) }
     procedure WriteErrorBuf;
     procedure WriteOutputBuf;
@@ -173,10 +174,14 @@ var
   stepline : longint;
 procedure TGDBController.StartTrace;
 begin
+  Run;
+end;
+
+procedure TGDBController.Run;
+begin
   stepline:=1;
   DoSelectSourceLine('test.pas',stepline);
 end;
-
 
 procedure TGDBController.TraceStep;
 begin
@@ -361,7 +366,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-02-08 13:59:58  pierre
+  Revision 1.6  1999-02-08 17:35:07  pierre
+    + added Run made TraceStep TraceNext Continue virtual
+
+  Revision 1.5  1999/02/08 13:59:58  pierre
     - removed second debugger_started in TGDBController
     + StartTrace and Reset made virtual to be able to
       change CmResetDebugger state in IDE
