@@ -19,31 +19,19 @@
 {****************************************************************************
                                Primitives
 ****************************************************************************}
+type
+  pstring = ^shortstring;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:longint);
 type
-  longintarray = array [0..maxlongint] of longint;
   bytearray    = array [0..maxlongint] of byte;
 var
   i,size : longint;
 begin
-  size:=count div sizeof(longint);
-  if (@dest)<@source) or
-     (@dest>@source+count) then
-    begin
-       for i:=0 to size-1 do
-         longintarray(dest)[i]:=longintarray(source)[i];
-       for i:=size*sizeof(longint) to count-1 do
+  Dec(count);
+  for i:=0 to count do
          bytearray(dest)[i]:=bytearray(source)[i];
-    end
-  else
-    begin
-       for i:=count-1 downto size*sizeof(longint) do
-         bytearray(dest)[i]:=bytearray(source)[i];
-       for i:=size-1 downto 0 do
-         longintarray(dest)[i]:=longintarray(source)[i];
-    end;
 end;
 {$endif ndef FPC_SYSTEM_HAS_MOVE}
 
@@ -56,8 +44,10 @@ type
 var
   i,v : longint;
 begin
-  v:=value*256+value;
-  v:=v*$10000+v;
+  if count = 0 then exit;
+  v := 0;
+  v:=(value shl 8) or (value and $FF);
+  v:=(v shl 16) or (v and $ffff);
   for i:=0 to (count div 4) -1 do
     longintarray(x)[i]:=v;
   for i:=(count div 4)*4 to count-1 do
@@ -93,6 +83,8 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLDWORD}
 procedure FillDWord(var x;count : longint;value : DWord);
+type
+  longintarray = array [0..maxlongint] of longint;
 var
   I : longint;
 begin
@@ -101,7 +93,7 @@ begin
      I:=Count;
      while I<>0 do
       begin
-        PDWord(@X)[I-1]:=Value;
+        longintarray(X)[I-1]:=Value;
         Dec(I);
       end;
    end;
@@ -119,11 +111,13 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 function IndexByte(var buf;len:longint;b:byte):longint;
+type
+  bytearray    = array [0..maxlongint] of byte;
 var
   I : longint;
 begin
   I:=0;
-  while (pbyte(@buf)[I]<>b) and (I<Len) do
+  while (bytearray(buf)[I]<>b) and (I<Len) do
    inc(I);
   if (i=Len) then
    i:=-1;                                {Can't use 0, since it is a possible value}
@@ -134,11 +128,13 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXWORD}
 function Indexword(var buf;len:longint;b:word):longint;
+type
+  wordarray    = array [0..maxlongint] of word;
 var
   I : longint;
 begin
   I:=0;
-  while (pword(@buf)[I]<>b) and (I<Len) do
+  while (wordarray(buf)[I]<>b) and (I<Len) do
    inc(I);
   if (i=Len) then
    i:=-1;           {Can't use 0, since it is a possible value for index}
@@ -149,11 +145,13 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
 function IndexDWord(var buf;len:longint;b:DWord):longint;
+type
+  longintarray = array [0..maxlongint] of longint;
 var
   I : longint;
 begin
   I:=0;
-  while (PDWord(@buf)[I]<>b) and (I<Len) do inc(I);
+  while (longintarray(buf)[I]<>b) and (I<Len) do inc(I);
   if (i=Len) then
    i:=-1;           {Can't use 0, since it is a possible value for index}
   IndexDWord:=I;
@@ -171,19 +169,21 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 function CompareByte(var buf1,buf2;len:longint):longint;
+type
+  bytearray    = array [0..maxlongint] of byte;
 var
   I,J : longint;
 begin
   I:=0;
   if (Len<>0) and (@Buf1<>@Buf2) then
    begin
-     while (pbyte(@Buf1)[I]=pbyte(@Buf2)[I]) and (I<Len) do
+     while (bytearray(Buf1)[I]=bytearray(Buf2)[I]) and (I<Len) do
       inc(I);
      if I=Len then  {No difference}
       I:=0
      else
       begin
-        I:=pbyte(@Buf1)[I]-pbyte(@Buf2)[I];
+        I:=bytearray(Buf1)[I]-bytearray(Buf2)[I];
         if I>0 then
          I:=1
         else
@@ -198,19 +198,21 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
 function CompareWord(var buf1,buf2;len:longint):longint;
+type
+  wordarray    = array [0..maxlongint] of word;
 var
   I,J : longint;
 begin
   I:=0;
   if (Len<>0) and (@Buf1<>@Buf2) then
    begin
-     while (pword(@Buf1)[I]=pword(@Buf2)[I]) and (I<Len) do
+     while (wordarray(Buf1)[I]=wordarray(Buf2)[I]) and (I<Len) do
       inc(I);
      if I=Len then  {No difference}
       I:=0
      else
       begin
-        I:=pword(@Buf1)[I]-pword(@Buf2)[I];
+        I:=wordarray(Buf1)[I]-wordarray(Buf2)[I];
         if I>0 then
          I:=1
         else
@@ -225,19 +227,21 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
 function CompareDWord(var buf1,buf2;len:longint):longint;
+type
+  longintarray    = array [0..maxlongint] of longint;
 var
   I,J : longint;
 begin
   I:=0;
   if (Len<>0) and (@Buf1<>@Buf2) then
    begin
-     while (PDWord(@Buf1)[I]=PDWord(@Buf2)[I]) and (I<Len) do
+     while (longintarray(Buf1)[I]=longintarray(Buf2)[I]) and (I<Len) do
       inc(I);
      if I=Len then  {No difference}
       I:=0
      else
       begin
-        I:=PDWord(@Buf1)[I]-PDWord(@Buf2)[I];
+        I:=longintarray(Buf1)[I]-longintarray(Buf2)[I];
         if I>0 then
          I:=1
         else
@@ -283,6 +287,8 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPARECHAR0}
 function CompareChar0(var buf1,buf2;len:longint):longint;
+type
+  bytearray    = array [0..maxlongint] of byte;
 
 Var i : longint;
 
@@ -300,7 +306,7 @@ begin
       I:=0
      else
       begin
-        I:=pbyte(@Buf1)[I]-pbyte(@Buf2)[I];
+        I:=bytearray(Buf1)[I]-bytearray(Buf2)[I];
         if I>0 then
          I:=1
         else
@@ -326,7 +332,7 @@ procedure int_help_constructor(var _self : pointer; vmt : pointer; vmt_pos : car
    type
      ppointer = ^pointer;
      pvmt = ^tvmt;
-     tvmt = record
+     tvmt = packed record
         size,msize : longint;
         parent : pointer;
         end;
@@ -347,7 +353,7 @@ procedure int_help_destructor(var _self : pointer; vmt : pointer; vmt_pos : card
    type
      ppointer = ^pointer;
      pvmt = ^tvmt;
-     tvmt = record
+     tvmt = packed record
         size,msize : longint;
         parent : pointer;
         end;
@@ -439,7 +445,7 @@ end; *)
 procedure int_check_object(vmt : pointer);[public,alias:'FPC_CHECK_OBJECT'];
    type
      pvmt = ^tvmt;
-     tvmt = record
+     tvmt = packed record
         size,msize : longint;
         parent : pointer;
         end;
@@ -461,7 +467,7 @@ end;
 procedure int_check_object_ext(vmt, expvmt : pointer);[public,alias:'FPC_CHECK_OBJECT_EXT'];
    type
      pvmt = ^tvmt;
-     tvmt = record
+     tvmt = packed record
         size,msize : longint;
         parent : pointer;
         end;
@@ -502,7 +508,9 @@ begin
   slen:=length(pstring(sstr)^);
   if slen<len then
     len:=slen;
-  move(sstr^,dstr^,len);
+  { don't forget the length character }
+  if len <> 0 then
+      move(sstr^,dstr^,len+1);
   pstring(dstr)^[0]:=chr(len);
 end;
 
@@ -520,7 +528,7 @@ begin
   s2l:=length(pstring(s2)^);
   if s1l+s2l>255 then
     s1l:=255-s2l;
-  move(@(pstring(s1)^[1]),@(pstring(s2)^[s2l+1]),s1l);
+  move(pstring(s1)^[1],pstring(s2)^[s2l+1],s1l);
   pstring(s2)^[0]:=chr(s1l+s2l);
 end;
 
@@ -559,10 +567,10 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
-function strpas(p:pchar):string;[public,alias:'FPC_PCHAR_TO_SHORTSTR'];
+function strpas(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR'];
 var
   l : longint;
-
+  s: shortstring;
 begin
   if p=nil then
     l:=0
@@ -571,8 +579,9 @@ begin
   if l>255 then
     l:=255;
   if l>0 then
-    move(p^,@(strpas[1]),l);
-  strpas[0]:=chr(l);
+    move(p^,s[1],l);
+  s[0]:=chr(l);
+  strpas := s;
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
@@ -580,13 +589,16 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
 function strchararray(p:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR'];
+var
+ s: shortstring;
 begin
   if l>=256 then
     l:=255
   else if l<0 then
     l:=0;
-  move(p^,@(strchararray[1]),l);
-  strchararray[0]:=chr(l);
+  move(p^,s[1],l);
+  s[0]:=chr(l);
+  strchararray := s;
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
@@ -676,12 +688,40 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_ODD_LONGINT}
 
-function odd(l:longint):boolean;[internconst:in_const_odd];
+function odd(l:longint):boolean;
 begin
-   odd:=((l and 1)<>0);
+   odd:=boolean(l and 1);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_ODD_LONGINT}
+
+{$ifndef FPC_SYSTEM_HAS_ODD_CARDINAL}
+
+function odd(l:cardinal):boolean;
+begin
+   odd:=boolean(l and 1);
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_ODD_CARDINAL}
+
+
+{$ifndef FPC_SYSTEM_HAS_ODD_INT64}
+
+function odd(l:int64):boolean;[internconst:in_const_odd];
+begin
+   odd:=boolean(longint(l) and 1);
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_ODD_INT64}
+
+{$ifndef FPC_SYSTEM_HAS_ODD_QWORD}
+
+function odd(l:qword):boolean;
+begin
+   odd:=boolean(longint(l) and 1);
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_ODD_QWORD}
 
 {$ifndef FPC_SYSTEM_HAS_SQR_LONGINT}
 
@@ -771,7 +811,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2001-05-09 19:57:07  peter
+  Revision 1.11  2001-05-16 17:44:25  jonas
+    + odd() for cardinal, int64 and qword (merged)
+
+  Revision 1.10  2001/05/09 19:57:07  peter
   *** empty log message ***
 
   Revision 1.9  2001/04/21 12:16:28  peter

@@ -260,6 +260,9 @@ Procedure Randomize;
 Function abs(l:Longint):Longint;
 Function sqr(l:Longint):Longint;
 Function odd(l:Longint):Boolean;
+Function odd(l:Cardinal):Boolean;
+Function odd(l:Int64):Boolean;
+Function odd(l:QWord):Boolean;
 
 { float math routines }
 {$I mathh.inc}
@@ -491,7 +494,10 @@ const
 
 {
   $Log$
-  Revision 1.21  2001-05-09 19:57:07  peter
+  Revision 1.22  2001-05-16 17:44:25  jonas
+    + odd() for cardinal, int64 and qword (merged)
+
+  Revision 1.21  2001/05/09 19:57:07  peter
   *** empty log message ***
 
   Revision 1.20  2001/04/23 18:25:45  peter
