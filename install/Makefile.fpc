@@ -68,11 +68,18 @@ BASEPACKDIR=$(BASEDIR)/basepack
 
 # Use new ppc386
 PPNEW=$(BASEDIR)/$(CVSBASE)/compiler/ppc386$(EXEEXT)
+
+# Don't use ppufiles for win32 becuase of commandline length problems
+ifneq ($(OS_TARGET),win32)
 PPUFILESNEW=$(BASEDIR)/$(CVSBASE)/utils/ppufiles$(EXEEXT)
+endif
 
 # Build/install options
 BUILDOPTS=FPC=$(PPNEW) RELEASE=1
-INSTALLOPTS=FPC=$(PPNEW) PPUFILES=$(PPUFILESNEW) ZIPDESTDIR=$(BASEDIR)
+INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR)
+ifdef PPUFILESNEW
+override INSTALLOPT+=PPUFILES=$(PPUFILESNEW)
+endif
 
 
 [rules]
