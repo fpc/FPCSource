@@ -362,12 +362,12 @@ const
   PMB2D = ^TMB2D;
 
   MB2Info = record
-    cb: cardinal;               (* size of data              *)
-    hIcon: cardinal;            (* icon handle               *)
-    cButtons: cardinal;         (* number of buttons         *)
-    flStyle: cardinal;          (* icon style flags          *)
-    hwndNotify: cardinal;       (* owner notification handle *)
-    MB2D: array [0..0] TMB2D;   (* button definitions        *)
+    cb: cardinal;                   (* size of data              *)
+    hIcon: cardinal;                (* icon handle               *)
+    cButtons: cardinal;             (* number of buttons         *)
+    flStyle: cardinal;              (* icon style flags          *)
+    hwndNotify: cardinal;           (* owner notification handle *)
+    MB2D: array [0..0] of TMB2D;    (* button definitions        *)
   end;
   TMB2Info = MB2Info;
   PMB2Info = ^TMB2Info;
@@ -3001,7 +3001,10 @@ const
 end.
 {
   $Log$
-  Revision 1.8  2002-12-07 17:50:17  hajny
+  Revision 1.9  2002-12-07 20:21:38  hajny
+    * mistyping fixed
+
+  Revision 1.8  2002/12/07 17:50:17  hajny
     + (Commented) WinMessageBox2 added
 
   Revision 1.7  2002/11/11 20:55:22  hajny
