@@ -740,10 +740,11 @@ implementation
         if not current_module.in_global then
          Message(scan_w_switch_is_global)
         else
-          begin
-            current_scanner.skipspace;
-            current_module.localunitsearchpath.AddPath(current_scanner.readcomment,false);
-          end;
+          with current_scanner,current_module,localunitsearchpath do
+            begin
+              skipspace;
+              AddPath(path^,readcomment,false);
+            end;
       end;
 
     procedure dir_varstringchecks;
@@ -966,7 +967,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2002-10-16 19:01:43  peter
+  Revision 1.22  2002-11-20 11:12:46  mazen
+  + module path is now passed to AddPath to fix relative unit path
+
+  Revision 1.21  2002/10/16 19:01:43  peter
     + $IMPLICITEXCEPTIONS switch to turn on/off generation of the
       implicit exception frames for procedures with initialized variables
       and for constructors. The default is on for compatibility
