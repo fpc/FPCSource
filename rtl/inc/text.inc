@@ -712,6 +712,7 @@ end;
 
 
 Procedure ReadLn_End(var f : TextRec);[Public,Alias:'FPC_READLN_END'];
+var prev: char;
 Begin
 { Check error and if file is open and load buf if empty }
   If (InOutRes<>0) then
@@ -724,20 +725,40 @@ Begin
       InOutRes:=104;
      exit;
    end;
+   If f.BufPos>=f.BufEnd Then
+    begin
+       FileFunc(f.InOutFunc)(f);
+       if (f.BufPos>=f.BufEnd) and
+          { Flush if set }
+          (f.FlushFunc<>nil) then
+         FileFunc(f.FlushFunc)(f);
+       exit;
+    end;
   repeat
-    If f.BufPos>=f.BufEnd Then
+    prev := f.BufPtr^[f.BufPos];
+    inc(f.BufPos);
+{ no system uses #10#13 as line seperator (#10 = *nix, #13 = Mac, }
+{ #13#10 = Dos), so if we've got #10, we can safely exit          }
+    if prev = #10 then
+      exit;
+   If f.BufPos>=f.BufEnd Then
      begin
        FileFunc(f.InOutFunc)(f);
-       if f.BufPos>=f.BufEnd then
-        break;
+       if (f.BufPos>=f.BufEnd) and
+          { Flush if set }
+          (f.FlushFunc<>nil) then
+         FileFunc(f.FlushFunc)(f);
+       exit;
      end;
-    inc(f.BufPos);
-    if (f.BufPtr^[f.BufPos-1]=#10) then
-     exit;
+   if (prev=#13) then
+     { is there also a #10 after it? }
+     begin
+       if (f.BufPtr^[f.BufPos]=#10) then
+         { yes, skip that one as well }
+         inc(f.BufPos);
+       exit;
+     end;
   until false;
-{ Flush if set }
-  if f.FlushFunc<>nil then
-   FileFunc(f.FlushFunc)(f);
 End;
 
 
@@ -774,21 +795,17 @@ Begin
      maxp:=@f.Bufptr^[f.BufEnd];
     startp:=p;
   { search linefeed }
-    while (p<maxp) and (P^<>#10) do
+    while (p<maxp) and not(P^ in [#10,#13]) do
      inc(p);
   { calculate read bytes }
     len:=p-startp;
     inc(f.BufPos,Len);
     Move(startp^,s[sPos],Len);
     inc(sPos,Len);
-  { was it a LF? then leave }
+  { was it a LF or CR? then leave }
     if (spos=MaxLen) or
-       ((p<maxp) and (p^=#10)) then
-     begin
-       if (p^=#10) and (spos>0) and (s[spos-1]=#13) then
-        dec(sPos);
-       break;
-     end;
+       ((p<maxp) and (p^ in [#10,#13])) then
+      break;
   until false;
   ReadPCharLen:=spos;
 End;
@@ -999,7 +1016,10 @@ end;
 
 {
   $Log$
-  Revision 1.63  2000-01-07 16:41:36  daniel
+  Revision 1.64  2000-01-08 17:08:36  jonas
+    + Mac linebreak (#13) support for readln
+
+  Revision 1.63  2000/01/07 16:41:36  daniel
     * copyright 2000
 
   Revision 1.62  2000/01/07 16:32:25  daniel
