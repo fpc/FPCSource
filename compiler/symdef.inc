@@ -232,7 +232,6 @@
          inc(PglobalTypeCount^);
      end;
 
-
     function tdef.stabstring : pchar;
       begin
       stabstring := strpnew('t'+numberstring+';');
@@ -2175,12 +2174,12 @@
            spec:='/0'
          else
            spec:='';
-         { class fields are pointers PM }
          if not assigned(pvarsym(p)^.vartype.def) then
           writeln(pvarsym(p)^.name);
-         if (pvarsym(p)^.vartype.def^.deftype=objectdef) and
+         { class fields are pointers PM, obsolete now PM }
+         {if (pvarsym(p)^.vartype.def^.deftype=objectdef) and
             pobjectdef(pvarsym(p)^.vartype.def)^.is_class then
-            spec:=spec+'*';
+            spec:=spec+'*'; }
          size:=pvarsym(p)^.vartype.def^.size;
          { open arrays made overflows !! }
          if size>$fffffff then
@@ -3393,6 +3392,9 @@ Const local_symtable_index : longint = $8001;
         symtable^.dataalignment:=packrecordalignment[aktpackrecords];
         set_parent(c);
         objname:=stringdup(n);
+{$ifdef GDB}
+        writing_stabs:=false;
+{$endif GDB}
      end;
 
 
@@ -3424,6 +3426,9 @@ Const local_symtable_index : longint = $8001;
             is_class and
             (upper(objname^)='TOBJECT') then
            class_tobject:=@self;
+{$ifdef GDB}
+         writing_stabs:=false;
+{$endif GDB}
        end;
 
 
@@ -3786,39 +3791,115 @@ Const local_symtable_index : longint = $8001;
           oldrecsize : longint;
           str_end : string;
       begin
-        oldrec := stabrecstring;
-        oldrecsize:=stabrecsize;
-        stabrecsize:=memsizeinc;
-        GetMem(stabrecstring,stabrecsize);
-        strpcopy(stabRecString,'s'+tostr(symtable^.datasize));
-        if assigned(childof) then
-          {only one ancestor not virtual, public, at base offset 0 }
-          {       !1           ,    0       2         0    ,       }
-          strpcopy(strend(stabrecstring),'!1,020,'+childof^.numberstring+';');
-        {virtual table to implement yet}
-        RecOffset := 0;
-        symtable^.foreach({$ifndef TP}@{$endif}addname);
-      if (oo_has_vmt in objectoptions) then
-        if not assigned(childof) or not(oo_has_vmt in childof^.objectoptions) then
-           begin
-              strpcopy(strend(stabrecstring),'$vf'+numberstring+':'+typeglobalnumber('vtblarray')
-                +','+tostr(vmt_offset*8)+';');
-           end;
-        symtable^.foreach({$ifndef TP}@{$endif}addprocname);
-        if (oo_has_vmt in objectoptions) then
+        if not (is_class) or writing_stabs then
           begin
-             anc := @self;
-             while assigned(anc^.childof) and (oo_has_vmt in anc^.childof^.objectoptions) do
-               anc := anc^.childof;
-             str_end:=';~%'+anc^.numberstring+';';
+            oldrec := stabrecstring;
+            oldrecsize:=stabrecsize;
+            stabrecsize:=memsizeinc;
+            GetMem(stabrecstring,stabrecsize);
+            strpcopy(stabRecString,'s'+tostr(symtable^.datasize));
+            if assigned(childof) then
+              begin
+                {only one ancestor not virtual, public, at base offset 0 }
+                {       !1           ,    0       2         0    ,       }
+                strpcopy(strend(stabrecstring),'!1,020,'+childof^.classnumberstring+';');
+              end;
+            {virtual table to implement yet}
+            RecOffset := 0;
+            inc(globalnb);
+            symtable^.foreach({$ifndef TP}@{$endif}addname);
+            dec(globalnb);
+            if (oo_has_vmt in objectoptions) then
+              if not assigned(childof) or not(oo_has_vmt in childof^.objectoptions) then
+                 begin
+                    strpcopy(strend(stabrecstring),'$vf'+numberstring+':'+typeglobalnumber('vtblarray')
+                      +','+tostr(vmt_offset*8)+';');
+                 end;
+            symtable^.foreach({$ifndef TP}@{$endif}addprocname);
+            if (oo_has_vmt in objectoptions) then
+              begin
+                 anc := @self;
+                 while assigned(anc^.childof) and (oo_has_vmt in anc^.childof^.objectoptions) do
+                   anc := anc^.childof;
+                 { just in case anc = self }
+                 inc(globalnb);
+                 str_end:=';~%'+anc^.classnumberstring+';';
+                 dec(globalnb);
+              end
+            else
+              str_end:=';';
+            strpcopy(strend(stabrecstring),str_end);
+            stabstring := strnew(StabRecString);
+            freemem(stabrecstring,stabrecsize);
+            stabrecstring := oldrec;
+            stabrecsize:=oldrecsize;
           end
         else
-          str_end:=';';
-        strpcopy(strend(stabrecstring),str_end);
-        stabstring := strnew(StabRecString);
-        freemem(stabrecstring,stabrecsize);
-        stabrecstring := oldrec;
-        stabrecsize:=oldrecsize;
+          begin
+            stabstring:=strpnew('*'+classnumberstring);
+          end;
+      end;
+
+   procedure tobjectdef.set_globalnb;
+     begin
+         globalnb :=PGlobalTypeCount^;
+         inc(PglobalTypeCount^);
+         { classes need two type numbers }
+         if is_class then
+           begin
+             globalnb :=PGlobalTypeCount^;
+             inc(PglobalTypeCount^);
+           end;
+     end;
+
+   function tobjectdef.classnumberstring : string;
+     begin
+       if globalnb=0 then
+         begin
+           numberstring;
+         end;
+       if is_class then
+         begin
+           dec(globalnb);
+           classnumberstring:=numberstring;
+           inc(globalnb);
+         end
+       else
+         classnumberstring:=numberstring;
+     end;
+
+    procedure tobjectdef.concatstabto(asmlist : paasmoutput);
+      var st : pstring;
+      begin
+        if not(is_class) then
+          begin
+            inherited concatstabto(asmlist);
+            exit;
+          end;
+
+      if ((typesym=nil) or typesym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
+         (is_def_stab_written = not_written) then
+        begin
+          if globalnb=0 then
+            set_globalnb;
+          writing_stabs:=true;
+          dec(globalnb);
+          inherited concatstabto(asmlist);
+          inc(globalnb);
+          writing_stabs:=false;
+          is_def_stab_written:=not_written;
+          if assigned(typesym) then
+            begin
+              st:=typesym^._name;
+              typesym^._name:=stringdup(' ');
+            end;
+          inherited concatstabto(asmlist);
+          if assigned(typesym) then
+            begin
+              stringdispose(typesym^._name);
+              typesym^._name:=st;
+            end;
+        end;
       end;
 {$endif GDB}
 
@@ -4260,7 +4341,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.16  2000-09-10 20:13:37  peter
+  Revision 1.17  2000-09-19 23:08:02  pierre
+   * fixes for local class debuggging problem (merged)
+
+  Revision 1.16  2000/09/10 20:13:37  peter
     * fixed array of const writing instead of array of tvarrec (merged)
 
   Revision 1.15  2000/09/09 18:36:40  peter

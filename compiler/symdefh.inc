@@ -60,7 +60,7 @@
           function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
           function  NumberString:string;
-          procedure set_globalnb;
+          procedure set_globalnb;virtual;
           function  allstabstring : pchar;
 {$endif GDB}
           { init. tables }
@@ -193,6 +193,9 @@
           { to be able to have a variable vmt position }
           { and no vmt field for objects without virtuals }
           vmt_offset : longint;
+{$ifdef GDB}
+          writing_stabs : boolean;
+{$endif GDB}
           constructor init(const n : string;c : pobjectdef);
           constructor load;
           destructor  done;virtual;
@@ -217,6 +220,9 @@
           { debug }
 {$ifdef GDB}
           function stabstring : pchar;virtual;
+          procedure set_globalnb;virtual;
+          function  classnumberstring : string;
+          procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
           { init/final }
           function  needs_inittable : boolean;virtual;
@@ -548,7 +554,10 @@
 
 {
   $Log$
-  Revision 1.8  2000-08-21 11:27:44  pierre
+  Revision 1.9  2000-09-19 23:08:03  pierre
+   * fixes for local class debuggging problem (merged)
+
+  Revision 1.8  2000/08/21 11:27:44  pierre
    * fix the stabs problems
 
   Revision 1.7  2000/08/06 19:39:28  peter

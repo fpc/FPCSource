@@ -1424,20 +1424,16 @@
 {$ifdef GDB}
     function tvarsym.stabstring : pchar;
      var
-       st : string[2];
+       st : string;
      begin
-       if (vartype.def^.deftype=objectdef) and
-          pobjectdef(vartype.def)^.is_class then
-         st:='*'
-       else
-         st:='';
+       st:=vartype.def^.numberstring;
        if (owner^.symtabletype = objectsymtable) and
           (sp_static in symoptions) then
          begin
             if (cs_gdb_gsym in aktglobalswitches) then st := 'G'+st else st := 'S'+st;
 {$ifndef Delphi}
             stabstring := strpnew('"'+owner^.name^+'__'+name+':'+st+
-                     +vartype.def^.numberstring+'",'+
+                     '",'+
                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
 {$endif}
          end
@@ -1449,14 +1445,12 @@
               but searches the same name or with a leading underscore
               but these names don't exist in pascal !}
             if (cs_gdb_gsym in aktglobalswitches) then st := 'G'+st else st := 'S'+st;
-            stabstring := strpnew('"'+name+':'+st
-                     +vartype.def^.numberstring+'",'+
+            stabstring := strpnew('"'+name+':'+st+'",'+
                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
          end
        else if owner^.symtabletype = staticsymtable then
          begin
-            stabstring := strpnew('"'+name+':S'+st
-                  +vartype.def^.numberstring+'",'+
+            stabstring := strpnew('"'+name+':S'+st+'",'+
                   tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
          end
        else if (owner^.symtabletype in [parasymtable,inlineparasymtable]) then
@@ -1470,8 +1464,7 @@
                           else
                             st := 'p'+st;
               end;
-            stabstring := strpnew('"'+name+':'+st
-                  +vartype.def^.numberstring+'",'+
+            stabstring := strpnew('"'+name+':'+st+'",'+
                   tostr(N_PSYM)+',0,'+tostr(fileinfo.line)+','+
                   tostr(address+owner^.address_fixup));
                   {offset to ebp => will not work if the framepointer is esp
@@ -1483,8 +1476,7 @@
            begin
               { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
               { this is the register order for GDB}
-              stabstring:=strpnew('"'+name+':r'+st
-                        +vartype.def^.numberstring+'",'+
+              stabstring:=strpnew('"'+name+':r'+st+'",'+
                         tostr(N_RSYM)+',0,'+
                         tostr(fileinfo.line)+','+tostr(GDB_i386index[reg]));
            end
@@ -1492,12 +1484,10 @@
    {$endif i386}
            { I don't know if this will work (PM) }
            if (vo_is_C_var in varoptions) then
-            stabstring := strpnew('"'+name+':S'+st
-                  +vartype.def^.numberstring+'",'+
+            stabstring := strpnew('"'+name+':S'+st+'",'+
                   tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname)
            else
-           stabstring := strpnew('"'+name+':'+st
-                  +vartype.def^.numberstring+'",'+
+           stabstring := strpnew('"'+name+':'+st+'",'+
                   tostr(N_LSYM)+',0,'+tostr(fileinfo.line)+',-'+tostr(address-owner^.address_fixup))
        else
          stabstring := inherited stabstring;
@@ -2226,7 +2216,10 @@
 
 {
   $Log$
-  Revision 1.7  2000-08-27 20:19:39  peter
+  Revision 1.8  2000-09-19 23:08:03  pierre
+   * fixes for local class debuggging problem (merged)
+
+  Revision 1.7  2000/08/27 20:19:39  peter
     * store strings with case in ppu, when an internal symbol is created
       a '$' is prefixed so it's not automatic uppercased
 
