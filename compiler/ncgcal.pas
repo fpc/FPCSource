@@ -406,8 +406,16 @@ implementation
               else
                 iolabel:=nil;
 
-              { save all used registers }
+              { save all used registers and possible registers
+                used for the return value }
               regs_to_push := tprocdef(procdefinition).usedregisters;
+              if (not is_void(resulttype.def)) and
+                 (not paramanager.ret_in_param(resulttype.def)) then
+               begin
+                 include(regs_to_push,accumulator);
+                 if resulttype.def.size>sizeof(aword) then
+                   include(regs_to_push,accumulatorhigh);
+               end;
               rg.saveusedregisters(exprasmlist,pushed,regs_to_push);
 
               { give used registers through }
@@ -1014,10 +1022,9 @@ implementation
 
                    rg.saveregvars(exprasmlist,ALL_REGISTERS);
                    if hregister<>R_NO then
-                     reference_reset_base(href,hregister,0)
+                     cg.a_call_reg(exprasmlist,hregister)
                    else
-                     href:=right.location.reference;
-                   cg.a_call_ref(exprasmlist,href);
+                     cg.a_call_ref(exprasmlist,right.location.reference);
 
                    if hregister<>R_NO then
                      cg.free_scratch_reg(exprasmlist,hregister);
@@ -1469,7 +1476,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2002-09-01 12:13:00  peter
+  Revision 1.18  2002-09-01 18:43:27  peter
+    * include accumulator in regs_to_push list
+
+  Revision 1.17  2002/09/01 12:13:00  peter
     * use a_call_reg
     * ungetiftemp for procvar of object temp
 
