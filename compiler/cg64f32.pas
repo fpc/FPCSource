@@ -173,8 +173,6 @@ unit cg64f32;
     procedure tcg64f32.a_load64_const_reg(list : taasmoutput;value : qword;reg : tregister64);
 
       begin
-        if target_info.endian = endian_big then
-          swap_qword(value);
         cg.a_load_const_reg(list,OS_32,lo(value),reg.reglo);
         cg.a_load_const_reg(list,OS_32,hi(value),reg.reghi);
       end;
@@ -391,7 +389,6 @@ unit cg64f32;
         cg.free_scratch_reg(list,tempreg.reglo);
         cg.free_scratch_reg(list,tempreg.reghi);
       end;
-
 
     procedure tcg64f32.a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);
       begin
@@ -620,7 +617,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-07-20 11:57:52  florian
+  Revision 1.22  2002-07-28 15:57:15  jonas
+    * fixed a_load64_const_reg() for big endian systems
+
+  Revision 1.21  2002/07/20 11:57:52  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
