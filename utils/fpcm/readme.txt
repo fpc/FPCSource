@@ -7,4 +7,4 @@ Some tips:
   targets, simply do : fpcmake -Tall
 - To regenerate the complete makefile tree
   for all targets (under UNIX): 
-    fpcmake -Tall `find -name Makefile.fpc`
+    fpcmake -Tall -w `find -name Makefile.fpc`
