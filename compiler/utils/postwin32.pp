@@ -167,12 +167,12 @@ p:=pos('.',dllversion);
 if p=0 then
   begin
     dllminor:=0;
-    val(dllversion,ddlmajor,code);
+    val(dllversion,dllmajor,code);
   end
 else
   begin
-    val(copy(dllversion,1,p-1),ddlmajor,code);
-    val(copy(dllversion,p+1,255),ddlminor,code);
+    val(copy(dllversion,1,p-1),dllmajor,code);
+    val(copy(dllversion,p+1,255),dllminor,code);
   end;
 
 isDll:=GetSwitchValue('--type','-t','exe',['exe','dll'])='dll';
