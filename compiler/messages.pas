@@ -36,6 +36,7 @@ type
     constructor Init(p:pointer;n:longint);
     constructor InitExtern(const fn:string;n:longint);
     destructor Done;
+    procedure CreateIdx;
     function Get(nr:longint):string;
     function Get3(nr:longint;const s1,s2,s3:string):string;
     function Get2(nr:longint;const s1,s2:string):string;
@@ -48,88 +49,78 @@ uses
   strings;
 
 constructor TMessage.Init(p:pointer;n:longint);
-var
-  hp  : pchar;
-  hpl : ppchar;
 begin
-  hp:=pchar(p);
-  msgtxt:=hp;
+  msgtxt:=pchar(p);
   msgsize:=0;
   msgs:=n;
-  getmem(msgidx,msgs shl 2);
-  hpl:=msgidx;
-  n:=0;
-  while (n<msgs) do
-   begin
-     hpl^:=hp;
-     hpl:=pointer(longint(hpl)+4);
-     inc(n);
-     hp:=pchar(@hp[strlen(hp)+1]);
-   end;
+  CreateIdx;
 end;
 
 
 constructor TMessage.InitExtern(const fn:string;n:longint);
+const
+  bufsize=8192;
 var
-  f       : file;
-  bufread : word;
-  i,j     : longint;
-  p       : pchar;
-  hpl     : ppchar;
+  f       : text;
+  line,i  : longint;
+  ptxt    : pchar;
+  s       : string;
+  buf     : pointer;
 begin
-  msgs:=0;
-  msgsize:=0;
-  msgidx:=nil;
+  getmem(buf,bufsize);
 {Read the message file}
-  msgfilename:=fn;
   assign(f,fn);
   {$I-}
-   reset(f,1);
+   reset(f);
   {$I+}
   if ioresult<>0 then
    begin
-     WriteLn('*** message file '+msgfilename+' not found ***');
+     WriteLn('*** message file '+fn+' not found ***');
      exit;
    end;
-  msgsize:=filesize(f);
-  getmem(msgtxt,msgsize+1);
-  blockread(f,msgtxt^,msgsize,bufread);
-  msgtxt[msgsize]:=#10;
-  close(f);
-  inc(msgsize);
-{Parse buffer in msgtxt and create indexs}
+  settextbuf(f,buf^,bufsize);
+{ First parse the file and count bytes needed }
+  line:=0;
   msgs:=n;
-  getmem(msgidx,msgs shl 2);
-  hpl:=msgidx;
-  p:=msgtxt;
-  i:=0;
-  n:=0;
-  while (i<bufread) and (n<msgs) do
+  msgsize:=0;
+  while not eof(f) do
    begin
-     j:=0;
-     while (i<bufread) and (not (p[j] in [#10,#13])) and (j<255) do
+     readln(f,s);
+     inc(line);
+     if (s<>'') and not(s[1] in ['#',';','%']) then
       begin
-        inc(i);
-        inc(j);
-      end;
-     if (i>=bufread) then
-      break;
-     if not (p[0] in [';','#']) then
-      begin
-        hpl^:=p;
-        hpl:=pointer(longint(hpl)+4);
-        inc(n);
-        if (p[0]='<') and (p[1]='l') and (p[2]='f') and (p[3]='>') then
-         p[0]:=#0
+        i:=pos('=',s);
+        if i>0 then
+         inc(msgsize,length(s)-i+1)
         else
-         p[j]:=#0;
+         writeln('error in line: ',line,' skipping');
       end;
-     repeat
-       inc(i);
-       inc(j);
-     until (i>=bufread) or not(p[j] in [#10,#13]);
-     p:=pchar(@p[j]);
    end;
+{ now read the buffer in mem }
+  getmem(msgtxt,msgsize);
+  ptxt:=msgtxt;
+  reset(f);
+  while not eof(f) do
+   begin
+     readln(f,s);
+     inc(line);
+     if (s<>'') and not(s[1] in ['#',';']) then
+      begin
+        i:=pos('=',s);
+        if i>0 then
+         begin
+           {txt}
+           move(s[i+1],ptxt^,length(s)-i);
+           inc(ptxt,length(s)-i);
+           ptxt^:=#0;
+           inc(ptxt);
+         end;
+      end;
+   end;
+  close(f);
+  freemem(buf,bufsize);
+{ now we can create the index }
+  CreateIdx;
 end;
 
 
@@ -140,6 +131,26 @@ begin
    freemem(msgidx,msgs shl 2);
   if msgsize>0 then
    freemem(msgtxt,msgsize);
+end;
+
+
+procedure TMessage.CreateIdx;
+var
+  hp  : pchar;
+  hpl : ppchar;
+  n   : longint;
+begin
+  getmem(msgidx,msgs shl 2);
+  hpl:=msgidx;
+  hp:=msgtxt;
+  n:=0;
+  while (n<msgs) do
+   begin
+     hpl^:=hp;
+     hpl:=pointer(longint(hpl)+4);
+     inc(n);
+     hp:=pchar(@hp[strlen(hp)+1]);
+   end;
 end;
 
 
@@ -214,7 +225,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1998-08-18 09:05:00  peter
+  Revision 1.3  1998-08-29 13:52:31  peter
+    + new messagefile
+    * merged optione.msg into errore.msg
+
+  Revision 1.2  1998/08/18 09:05:00  peter
     * fixed range errror
 
 }

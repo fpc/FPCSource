@@ -56,6 +56,10 @@ CPU= i386
 # CPU= m68k
 endif
 
+ifndef LANGUAGE
+LANGUAGE=e
+endif
+
 #####################################################################
 # Setup Files Directories
 #####################################################################
@@ -70,6 +74,8 @@ endif
 REPLACE=mv -f
 REMOVE=rm
 CP=cp -f
+
+MSGFILE=error$(LANGUAGE).msg
 
 COMPILERDIR=$(BASEDIR)
 RTLDIR:=$(BASEDIR)/../rtl
@@ -282,13 +288,10 @@ endif
 # Make targets
 #####################################################################
 
-msgtxt.inc: errore.msg
-	msg2inc errore.msg msgtxt.inc msgtxt
+msgtxt.inc: $(MSGFILE)
+	msg2inc $(MSGFILE) msg msg
 
-optmsg.inc: optione.msg
-	msg2inc optione.msg optmsg.inc optiontxt
-
-msg: msgtxt.inc optmsg.inc
+msg: msgtxt.inc
 
 # Make only the compiler
 ifdef inlinux
@@ -335,7 +338,7 @@ cycle:
 ansirtl:
 	$(MAKE) -C $(UNITDIR) clean
 	$(MAKE) -C $(UNITDIR) PP=$(COMPILERDIR)/ppc386 \
-         OPT='-g -dUSeAnsiStrings' all 
+	 OPT='-g -dUSeAnsiStrings' all
 
 #####################################################################
 # Installation
@@ -456,7 +459,11 @@ $(M68KEXENAME):
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.27  1998-08-21 15:16:56  peter
+# Revision 1.28  1998-08-29 13:52:30  peter
+#   + new messagefile
+#   * merged optione.msg into errore.msg
+#
+# Revision 1.27  1998/08/21 15:16:56  peter
 #   * win32 compiles a bit better, no growheap crash
 #
 # Revision 1.26  1998/08/21 14:08:46  pierre

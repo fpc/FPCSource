@@ -23,16 +23,19 @@
 unit verbose;
 interface
 
-uses messages;
+uses
+  messages;
 
-{$ifndef TP}
-  {$ifndef EXTERN_MSG}
-    {$i msgtxt.inc}
-  {$endif}
+{$ifdef TP}
+  {$define EXTERN_MSG}
 {$endif}
 
+{$ifndef EXTERN_MSG}
+  {$i msgtxt.inc}
+{$endif}
 
 {$i msgidx.inc}
+
 
 Const
 { <$10000 will show file and line }
@@ -56,17 +59,18 @@ Const
   V_Default     = V_Fatal + V_Error + V_Normal;
 
 var
-  msg         : pmessage;
+  msg : pmessage;
 
 procedure SetRedirectFile(const fn:string);
 function  SetVerbosity(const s:string):boolean;
 
 procedure LoadMsgFile(const fn:string);
+procedure UpdateReplacement(var s:string);
 
 procedure Stop;
 procedure ShowStatus;
 procedure Internalerror(i:longint);
-procedure Comment(l:longint;const s:string);
+procedure Comment(l:longint;s:string);
 procedure Message(w:tmsgconst);
 procedure Message1(w:tmsgconst;const s1:string);
 procedure Message2(w:tmsgconst;const s1,s2:string);
@@ -209,9 +213,17 @@ end;
 
 procedure LoadMsgFile(const fn:string);
 begin
-  if not (msg=nil) then
+  if not(msg=nil) then
    dispose(msg,Done);
   msg:=new(pmessage,InitExtern(fn,ord(endmsgconst)));
+end;
+
+
+procedure UpdateReplacement(var s:string);
+begin
+  Replace(s,'$FPCVER',version_string);
+  Replace(s,'$FPCDATE',date_string);
+  Replace(s,'$FPCTARGET',target_string);
 end;
 
 
@@ -268,7 +280,7 @@ begin
 end;
 
 
-procedure Comment(l:longint;const s:string);
+procedure Comment(l:longint;s:string);
 var
   dostop : boolean;
 begin
@@ -277,6 +289,8 @@ begin
    inc(status.errorcount);
 { Create status info }
   UpdateStatus;
+{ Fix replacements }
+  UpdateReplacement(s);
 { show comment }
   if do_comment(l,s) or dostop or (status.errorcount>=status.maxerrorcount) then
    stop
@@ -294,7 +308,7 @@ begin
 {Parse options}
   idx:=pos('_',s);
   if idx=0 then
-   v:=V_Default
+   v:=V_Normal
   else
    if (idx in [1..5]) then
     begin
@@ -328,10 +342,10 @@ begin
        end;
     end;
   Delete(s,1,idx);
-  Replace(s,'$VER',version_string);
-  Replace(s,'$TARGET',target_string);
 { fix status }
   UpdateStatus;
+{ Fix replacements }
+  UpdateReplacement(s);
 { show comment }
   if do_comment(v,s) or dostop or (status.errorcount>=status.maxerrorcount) then
    stop;
@@ -371,16 +385,20 @@ begin
 end;
 
 begin
-{$ifndef TP}
-  {$ifndef EXTERN_MSG}
-    msg:=new(pmessage,Init(@msgtxt,ord(endmsgconst)));
-  {$endif}
+{$ifndef EXTERN_MSG}
+  msg:=new(pmessage,Init(@msgtxt,ord(endmsgconst)));
+{$else}
+  LoadMsgFile(exepath+'errore.msg');
 {$endif}
 end.
 
 {
   $Log$
-  Revision 1.17  1998-08-19 14:57:52  peter
+  Revision 1.18  1998-08-29 13:52:40  peter
+    + new messagefile
+    * merged optione.msg into errore.msg
+
+  Revision 1.17  1998/08/19 14:57:52  peter
     * small fix for aktfilepos
 
   Revision 1.16  1998/08/18 14:17:15  pierre
