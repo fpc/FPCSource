@@ -261,8 +261,9 @@ implementation
           LOC_REFERENCE:
             begin
               { Code conventions need the parameters being allocated in %o6+92 }
-//              if locpara.reference.offset<92 then
-//                InternalError(2002081104);
+              with LocPara.Reference do
+                if(Index=NR_SP)and(Offset<Target_info.first_parm_offset) then
+                InternalError(2002081104);
               reference_reset_base(ref,locpara.reference.index,locpara.reference.offset);
               a_load_const_ref(list,size,a,ref);
             end;
@@ -284,8 +285,9 @@ implementation
             LOC_REFERENCE:
               begin
                 { Code conventions need the parameters being allocated in %o6+92 }
-//                if locpara.reference.offset<92 then
-//                  InternalError(2002081104);
+                with LocPara.Reference do
+                  if(Index=NR_SP)and(Offset<Target_info.first_parm_offset) then
+                  InternalError(2002081104);
                 reference_reset_base(ref,locpara.reference.index,locpara.reference.offset);
                 tmpreg:=GetIntRegister(list,OS_INT);
                 a_load_ref_reg(list,sz,sz,r,tmpreg);
@@ -340,12 +342,12 @@ implementation
         { floats are pushed in the int registers }
         templocpara:=locpara;
         case locpara.size of
-          OS_F32 :
+          OS_F32,OS_32 :
             begin
               templocpara.size:=OS_32;
               a_param_ref(list,OS_32,ref,templocpara);
             end;
-          OS_F64 :
+          OS_F64,OS_64 :
             begin
               templocpara.size:=OS_64;
               cg64.a_param64_ref(list,ref,templocpara);
@@ -488,6 +490,9 @@ implementation
           OS_S32,
           OS_32:
             Op:=A_LD;{Load Word}
+          OS_S64,
+          OS_64:
+            Op:=A_LDD;{Load a Long Word}
           else
             InternalError(2002122101);
         end;
@@ -1107,7 +1112,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  2004-03-12 08:18:11  mazen
+  Revision 1.82  2004-03-12 15:42:18  mazen
+  * fixed conditions upon IEs for inlined function call stack frames
+
+  Revision 1.81  2004/03/12 08:18:11  mazen
   - revert '../' from include path
 
   Revision 1.80  2004/03/02 00:36:33  olle
