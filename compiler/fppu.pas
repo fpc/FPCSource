@@ -75,6 +75,7 @@ interface
           procedure readasmsymbols;
        end;
 
+    procedure reload_flagged_units;
     function registerunit(callermodule:tmodule;const s : stringid;const fn:string) : tppumodule;
 
 
@@ -86,6 +87,24 @@ uses
   scanner,
   aasmbase,
   parser;
+
+{****************************************************************************
+                                 Helpers
+ ****************************************************************************}
+
+    procedure reload_flagged_units;
+      var
+        hp : tmodule;
+      begin
+        { now reload all dependent units }
+        hp:=tmodule(loaded_units.first);
+        while assigned(hp) do
+         begin
+           if hp.do_reload then
+             tppumodule(hp).loadppu;
+           hp:=tmodule(hp.next);
+         end;
+      end;
 
 
 {****************************************************************************
@@ -1149,16 +1168,12 @@ uses
       var
         do_load,
         second_time : boolean;
-        hp,
         old_current_module : tmodule;
       begin
         old_current_module:=current_module;
         Message3(unit_u_load_unit,old_current_module.modulename^,
                  ImplIntf[old_current_module.in_interface],
                  modulename^);
-
-if modulename^='NCGUTIL' then
- do_load:=do_load;
 
         { check if the globalsymtable is already available, but
           we must reload when the do_reload flag is set }
@@ -1306,16 +1321,7 @@ if modulename^='NCGUTIL' then
            { for a second_time recompile reload all dependent units,
              for a first time compile register the unit _once_ }
            if second_time then
-            begin
-              { now reload all dependent units }
-              hp:=tmodule(loaded_units.first);
-              while assigned(hp) do
-               begin
-                 if hp.do_reload then
-                   tppumodule(hp).loadppu;
-                 hp:=tmodule(hp.next);
-               end;
-            end
+            reload_flagged_units
            else
             usedunits.concat(tused_unit.create(self,true,false));
 
@@ -1412,7 +1418,10 @@ if modulename^='NCGUTIL' then
 end.
 {
   $Log$
-  Revision 1.37  2003-06-08 11:40:14  peter
+  Revision 1.38  2003-08-23 22:29:24  peter
+    * reload flagged units when interface is loaded
+
+  Revision 1.37  2003/06/08 11:40:14  peter
     * moved message to msg file
 
   Revision 1.36  2003/06/07 20:26:32  peter

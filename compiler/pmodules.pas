@@ -943,16 +943,17 @@ implementation
             status.skip_error:=true;
             exit;
           end;
-         {else  in inteface its somatimes necessary even if unused
-          st^.allunitsused; }
 
 {$ifdef New_GDB}
          write_gdb_info;
 {$endIf Def New_GDB}
 
-         if not(cs_compilesystem in aktmoduleswitches) then
-           if (Errorcount=0) then
-             tppumodule(current_module).getppucrc;
+         if not(cs_compilesystem in aktmoduleswitches) and
+            (Errorcount=0) then
+           tppumodule(current_module).getppucrc;
+
+         { we have a new interface loaded, reload all flagged units }
+         reload_flagged_units;
 
          { Parse the implementation section }
          consume(_IMPLEMENTATION);
@@ -1464,7 +1465,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.119  2003-08-21 14:47:41  peter
+  Revision 1.120  2003-08-23 22:29:24  peter
+    * reload flagged units when interface is loaded
+
+  Revision 1.119  2003/08/21 14:47:41  peter
     * remove convert_registers
 
   Revision 1.118  2003/08/20 17:48:49  peter
