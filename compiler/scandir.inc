@@ -652,7 +652,9 @@ const
             2. local includepath
             3. global includepath }
            found:=false;
-           path:=FindFile(name+ext,path+';'+current_scanner^.inputfile^.path^+';.',found);
+           if path<>'' then
+             path:=path+';';
+           path:=FindFile(name+ext,path+current_scanner^.inputfile^.path^+';.'+DirSep,found);
            if (not found) then
             path:=current_module^.localincludesearchpath.FindFile(name+ext,found);
            if (not found) then
@@ -1250,7 +1252,10 @@ const
 
 {
   $Log$
-  Revision 1.72  2000-01-07 01:14:37  peter
+  Revision 1.73  2000-01-14 14:28:40  pierre
+   * avoid searching of include file in start dir first
+
+  Revision 1.72  2000/01/07 01:14:37  peter
     * updated copyright to 2000
 
   Revision 1.71  2000/01/04 15:15:53  florian
