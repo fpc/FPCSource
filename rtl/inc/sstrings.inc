@@ -21,7 +21,7 @@
 {$ifndef INTERNSETLENGTH}
 procedure SetLength(var s:shortstring;len:StrLenInt);
 {$else INTERNSETLENGTH}
-procedure Shortstr_SetLength(var s:shortstring;len:StrLenInt);[Public,Alias : 'FPC_SHORTSTR_SETLENGTH'];
+procedure fpc_Shortstr_SetLength(var s:shortstring;len:StrLenInt);[Public,Alias : 'FPC_SHORTSTR_SETLENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif} 
 {$endif INTERNSETLENGTH}
 begin
   if Len>255 then
@@ -311,13 +311,13 @@ end;
                               Str() Helpers
 *****************************************************************************}
 
-procedure ShortStr_Float(d : ValReal;len,fr,rt : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT'];
+procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT']; {$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
 begin
   str_real(len,fr,d,treal_type(rt),s);
 end;
 
 
-procedure int_str_longint(v : longint;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_LONGINT'];
+procedure fpc_shortstr_longint(v : longint;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_LONGINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   int_str(v,s);
   if length(s)<len then
@@ -325,7 +325,7 @@ begin
 end;
 
 
-procedure int_str_cardinal(v : cardinal;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_CARDINAL'];
+procedure fpc_shortstr_cardinal(v : cardinal;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_CARDINAL']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   int_str(v,s);
   if length(s)<len then
@@ -374,14 +374,13 @@ begin
   InitVal:=code;
 end;
 
-
-Function ValSignedInt(DestSize: longint; Const S: ShortString; var Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR'];
+Function fpc_Val_SInt_ShortStr(DestSize: longint; Const S: ShortString; var Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   u, temp, prev, maxValue: ValUInt;
   base : byte;
   negative : boolean;
 begin
-  ValSignedInt := 0;
+  fpc_Val_SInt_ShortStr := 0;
   Temp:=0;
   Code:=InitVal(s,negative,base);
   if Code>length(s) then
@@ -405,34 +404,40 @@ begin
          (ValUInt(MaxUIntValue-Temp) < u)) or
         (prev > maxValue) Then
        Begin
-         ValSignedInt := 0;
+         fpc_Val_SInt_ShortStr := 0;
          Exit
        End;
      Temp:=Temp+u;
      inc(code);
    end;
   code := 0;
-  ValSignedInt := ValSInt(Temp);
+  fpc_Val_SInt_ShortStr := ValSInt(Temp);
   If Negative Then
-    ValSignedInt := -ValSignedInt;
+    fpc_Val_SInt_ShortStr := -fpc_Val_SInt_ShortStr;
   If Not(Negative) and (base <> 10) Then
    {sign extend the result to allow proper range checking}
     Case DestSize of
-      1: ValSignedInt := shortint(ValSignedInt);
-      2: ValSignedInt := smallint(ValSignedInt);
+      1: fpc_Val_SInt_ShortStr := shortint(fpc_Val_SInt_ShortStr);
+      2: fpc_Val_SInt_ShortStr := smallint(fpc_Val_SInt_ShortStr);
 {     Uncomment the folling once full 64bit support is in place
-      4: ValSignedInt := longint(ValSignedInt);}
+      4: fpc_Val_SInt_ShortStr := longint(fpc_Val_SInt_ShortStr);}
     End;
 end;
 
+{$ifdef hascompilerproc}
+{ we need this for fpc_Val_SInt_Ansistr and fpc_Val_SInt_WideStr because }
+{ we have to pass the DestSize parameter on (JM)                         }
+Function fpc_Val_SInt_ShortStr(DestSize: longint; Const S: ShortString; var Code: ValSInt): ValSInt; [external name 'FPC_VAL_SINT_SHORTSTR'];
+{$endif hascompilerproc}
 
-Function ValUnsignedInt(Const S: ShortString; var Code: ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR'];
+
+Function fpc_Val_UInt_Shortstr(Const S: ShortString; var Code: ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   u, prev : ValUInt;
   base : byte;
   negative : boolean;
 begin
-  ValUnSignedInt:=0;
+  fpc_Val_UInt_Shortstr:=0;
   Code:=InitVal(s,negative,base);
   If Negative or (Code>length(s)) Then
     Exit;
@@ -445,28 +450,28 @@ begin
      else
       u:=16;
      end;
-     prev := ValUnsignedInt;
+     prev := fpc_Val_UInt_Shortstr;
      If (u>=base) or
         (ValUInt(MaxUIntValue-u) div ValUInt(Base)<prev) then
       begin
-        ValUnsignedInt:=0;
+        fpc_Val_UInt_Shortstr:=0;
         exit;
       end;
-     ValUnsignedInt:=ValUnsignedInt*ValUInt(base) + u;
+     fpc_Val_UInt_Shortstr:=fpc_Val_UInt_Shortstr*ValUInt(base) + u;
      inc(code);
    end;
   code := 0;
 end;
 
 
-Function ValFloat(const s : shortstring; var code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR'];
+Function fpc_Val_Real_ShortStr(const s : shortstring; var code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   hd,
   esign,sign : valreal;
   exponent,i : longint;
   flags      : byte;
 begin
-  ValFloat:=0.0;
+  fpc_Val_Real_ShortStr:=0.0;
   code:=1;
   exponent:=0;
   esign:=1;
@@ -485,7 +490,8 @@ begin
    begin
    { Read integer part }
       flags:=flags or 1;
-      valfloat:=valfloat*10+(ord(s[code])-ord('0'));
+
+fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
       inc(code);
    end;
 { Decimal ? }
@@ -497,16 +503,16 @@ begin
         begin
            { Read fractional part. }
            flags:=flags or 2;
-           valfloat:=valfloat*10+(ord(s[code])-ord('0'));
+           fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
            hd:=hd*10.0;
            inc(code);
         end;
-      valfloat:=valfloat/hd;
+      fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr/hd;
    end;
  { Again, read integer and fractional part}
   if flags=0 then
    begin
-      valfloat:=0.0;
+      fpc_Val_Real_ShortStr:=0.0;
       exit;
    end;
  { Exponent ? }
@@ -523,7 +529,7 @@ begin
          end;
       if not(s[code] in ['0'..'9']) or (length(s)<code) then
         begin
-           valfloat:=0.0;
+           fpc_Val_Real_ShortStr:=0.0;
            exit;
         end;
       while (s[code] in ['0'..'9']) and (length(s)>=code) do
@@ -537,25 +543,25 @@ begin
 {
   if esign>0 then
     for i:=1 to exponent do
-      valfloat:=valfloat*10
+      fpc_Val_Real_ShortStr:=Val_Real_ShortStr*10
     else
       for i:=1 to exponent do
-        valfloat:=valfloat/10; }
+        fpc_Val_Real_ShortStr:=Val_Real_ShortStr/10; }
   hd:=1.0;
   for i:=1 to exponent do
     hd:=hd*10.0;
   if esign>0 then
-    valfloat:=valfloat*hd
+    fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*hd
   else
-    valfloat:=valfloat/hd;
+    fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr/hd;
 { Not all characters are read ? }
   if length(s)>=code then
    begin
-     valfloat:=0.0;
+     fpc_Val_Real_ShortStr:=0.0;
      exit;
    end;
 { evaluate sign }
-  valfloat:=valfloat*sign;
+  fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*sign;
 { success ! }
   code:=0;
 end;
@@ -569,7 +575,18 @@ end;
 
 {
   $Log$
-  Revision 1.14  2001-07-08 21:00:18  peter
+  Revision 1.15  2001-08-01 15:00:10  jonas
+    + "compproc" helpers
+    * renamed several helpers so that their name is the same as their
+      "public alias", which should facilitate the conversion of processor
+      specific code in the code generator to processor independent code
+    * some small fixes to the val_ansistring and val_widestring helpers
+      (always immediately exit if the source string is longer than 255
+       chars)
+    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
+      still nil (used to crash, now return resp -1 and 0)
+
+  Revision 1.14  2001/07/08 21:00:18  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

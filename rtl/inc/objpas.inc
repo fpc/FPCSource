@@ -19,15 +19,15 @@
 ****************************************************************************}
 
     { the reverse order of the parameters make code generation easier }
-    function int_do_is(aclass : tclass;aobject : tobject) : boolean;[public,alias: 'FPC_DO_IS'];
+    function fpc_do_is(aclass : tclass;aobject : tobject) : boolean;[public,alias: 'FPC_DO_IS']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
-         int_do_is:=assigned(aobject) and assigned(aclass) and
+         fpc_do_is:=assigned(aobject) and assigned(aclass) and
            aobject.inheritsfrom(aclass);
       end;
 
 
     { the reverse order of the parameters make code generation easier }
-    procedure int_do_as(aclass : tclass;aobject : tobject);[public,alias: 'FPC_DO_AS'];
+    procedure fpc_do_as(aclass : tclass;aobject : tobject);[public,alias: 'FPC_DO_AS']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
          if assigned(aobject) and not(aobject.inheritsfrom(aclass)) then
            handleerror(219);
@@ -35,38 +35,49 @@
 
 {$ifndef HASINTF}
     { dummies for make cycle with 1.0.x }
-    procedure int_intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF'];
+    procedure intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF'];
       begin
       end;
 
-    procedure int_intf_incr_ref(const i: pointer);[public,alias: 'FPC_INTF_INCR_REF'];
+    procedure intf_incr_ref(const i: pointer);[public,alias: 'FPC_INTF_INCR_REF'];
       begin
       end;
 
-    procedure int_intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN'];
+    procedure intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN'];
       begin
       end;
 
-    procedure int_intf_as(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_AS'];
+    procedure intf_as(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_AS'];
       begin
       end;
 
 {$else HASINTF}
     { interface helpers }
-    procedure int_intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF'];
+    procedure fpc_intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
         if assigned(i) then
           IUnknown(i)._Release;
         i:=nil;
       end;
 
-    procedure int_intf_incr_ref(const i: pointer);[public,alias: 'FPC_INTF_INCR_REF'];
+    {$ifdef hascompilerproc}
+    { local declaration for intf_decr_ref for local access }
+    procedure intf_decr_ref(var i: pointer); [external name 'FPC_INTF_DECR_REF'];
+    {$endif hascompilerproc}
+
+
+    procedure fpc_intf_incr_ref(const i: pointer);[public,alias: 'FPC_INTF_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
          if assigned(i) then
            IUnknown(i)._AddRef;
       end;
 
-    procedure int_intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN'];
+    {$ifdef hascompilerproc}
+    { local declaration of intf_incr_ref for local access }
+    procedure intf_incr_ref(const i: pointer); [external name 'FPC_INTF_INCR_REF'];
+    {$endif hascompilerproc}
+
+    procedure fpc_intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
          if assigned(S) then
            IUnknown(S)._AddRef;
@@ -75,7 +86,7 @@
          D:=S;
       end;
 
-    procedure int_intf_as(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_AS'];
+    procedure fpc_intf_as(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_AS']; {$ifdef hascompilerproc} compilerproc; {$endif}
       const
         S_OK = 0;
       var
@@ -89,7 +100,7 @@
              D:=tmpi;
           end
         else
-          int_intf_decr_ref(D);
+          intf_decr_ref(D);
       end;
 {$endif HASINTF}
 
@@ -540,7 +551,7 @@
           IEntry:=getinterfaceentry(iid);
           if Assigned(IEntry) then begin
             PDWORD(@obj)^:=DWORD(PDWORD(Self))+IEntry^.IOffset;
-            int_intf_incr_ref(pointer(obj)); { it must be an com interface }
+            intf_incr_ref(pointer(obj)); { it must be an com interface }
             getinterface:=True;
           end
           else begin
@@ -557,7 +568,7 @@
           if Assigned(IEntry) then begin
             PDWORD(@obj)^:=DWORD(PDWORD(Self))+IEntry^.IOffset;
             if Assigned(IEntry^.iid) then { for Com interfaces }
-              int_intf_incr_ref(pointer(obj));
+              intf_incr_ref(pointer(obj));
             getinterfacebystr:=True;
           end
           else begin
@@ -681,7 +692,18 @@
 
 {
   $Log$
-  Revision 1.15  2001-05-27 14:28:44  florian
+  Revision 1.16  2001-08-01 15:00:10  jonas
+    + "compproc" helpers
+    * renamed several helpers so that their name is the same as their
+      "public alias", which should facilitate the conversion of processor
+      specific code in the code generator to processor independent code
+    * some small fixes to the val_ansistring and val_widestring helpers
+      (always immediately exit if the source string is longer than 255
+       chars)
+    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
+      still nil (used to crash, now return resp -1 and 0)
+
+  Revision 1.15  2001/05/27 14:28:44  florian
     + made the ref. couting MT safe
 
   Revision 1.14  2001/04/13 22:30:04  peter

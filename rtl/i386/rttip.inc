@@ -18,7 +18,9 @@
 { much faster                                                   }
 
 {$define FPC_SYSTEM_HAS_FPC_INITIALIZE}
-Procedure Initialize (Data,TypeInfo : pointer);[Public,Alias:'FPC_INITIALIZE'];assembler;
+
+Procedure fpc_Initialize (Data,TypeInfo : pointer);[Public,Alias:'FPC_INITIALIZE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+assembler;
 asm
 // Save registers
         push    %eax
@@ -90,7 +92,7 @@ asm
         addl     $4,%ebx
 // push data
         pushl    %eax
-        call    Initialize
+        call    INT_INITIALIZE
         jmp     .LMyRecordInitLoop
 // Array handling
 .LDoArrayInit:
@@ -118,7 +120,7 @@ asm
         addl    Data,%eax
 // push data
         pushl   %eax
-        call    Initialize
+        call    INT_INITIALIZE
         jmp     .LMyArrayInitLoop
 // AnsiString handling :
 .LDoAnsiStringInit:
@@ -133,7 +135,9 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_FINALIZE}
-Procedure int_finalize (Data,TypeInfo: Pointer);[Public,Alias:'FPC_FINALIZE'];assembler;
+
+Procedure fpc_finalize (Data,TypeInfo: Pointer);[Public,Alias:'FPC_FINALIZE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+assembler;
 asm
         push    %eax
         push    %ebx
@@ -167,7 +171,7 @@ asm
         // Interfaces
 .LDoInterfaceFinal:
         pushl   Data
-        call    Int_Intf_Decr_Ref
+        call    Intf_Decr_Ref
         jmp     .LExitFinalize
         // Variants
 .LDoVariantFinal:
@@ -176,7 +180,7 @@ asm
 .LDoDynArrayFinal:
         pushl   TypeInfo
         pushl   Data
-        call    DYNARRAY_DECR_REF
+        call    FPC_DYNARRAY_DECR_REF
         jmp     .LExitFinalize
 .LDoClassFinal:
 .LDoObjectFinal:
@@ -237,7 +241,7 @@ asm
 // AnsiString handling :
 .LDoAnsiStringFinal:
         pushl   Data
-        call    ANSISTR_DECR_REF
+        call    FPC_ANSISTR_DECR_REF
 .LExitFinalize:
         pop     %edx
         pop     %ecx
@@ -247,7 +251,9 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_ADDREF}
-Procedure Addref (Data,TypeInfo : Pointer); [Public,alias : 'FPC_ADDREF'];Assembler;
+
+Procedure fpc_Addref (Data,TypeInfo : Pointer); [Public,alias : 'FPC_ADDREF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Assembler;
 asm
 // Save registers
         push    %eax
@@ -282,7 +288,7 @@ asm
         // Interfaces
 .LDoInterfaceAddRef:
         pushl   Data
-        call    INT_INTF_INCR_REF
+        call    INTF_INCR_REF
         jmp     .LExitAddRef
         // Variants
 .LDoVariantAddRef:
@@ -316,7 +322,7 @@ asm
         addl     $4,%ebx
 // push data
         pushl    %eax
-        call    ADDREF
+        call    INT_ADDREF
         jmp     .LMyRecordAddRefLoop
 // Array handling
 .LDoArrayAddRef:
@@ -344,12 +350,12 @@ asm
         addl    Data,%eax
 // push data
         pushl   %eax
-        call    ADDREF
+        call    INT_ADDREF
         jmp     .LMyArrayAddRefLoop
 // AnsiString handling :
 .LDoAnsiStringAddRef:
         pushl   Data
-        call    ANSISTR_INCR_REF
+        call    FPC_ANSISTR_INCR_REF
 .LExitAddRef:
         pop     %edx
         pop     %ecx
@@ -359,7 +365,8 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_DECREF}
-Procedure DecRef (Data,TypeInfo : Pointer); [Public,alias : 'FPC_DECREF'];Assembler;
+Procedure fpc_DecRef (Data,TypeInfo : Pointer); [Public,alias : 'FPC_DECREF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Assembler;
 asm
 // Save registers
         push    %eax
@@ -394,7 +401,7 @@ asm
         // Interfaces
 .LDoInterfaceDecRef:
         pushl   Data
-        call    INT_INTF_DECR_REF
+        call    INTF_DECR_REF
         jmp     .LExitDecRef
         // Variants
 .LDoVariantDecRef:
@@ -429,7 +436,7 @@ asm
         addl     $4,%ebx
 // push data
         pushl    %eax
-        call    DECREF
+        call    INT_DECREF
         jmp     .LMyRecordDecRefLoop
 // Array handling
 .LDoArrayDecRef:
@@ -457,13 +464,13 @@ asm
         addl    Data,%eax
 // push data
         pushl   %eax
-        call    DECREF
+        call    INT_DECREF
         jmp     .LMyArrayDecRefLoop
 // AnsiString handling :
 .LDoAnsiStringDecRef:
         movl    Data,%eax
         pushl   %eax
-        call    ANSISTR_DECR_REF
+        call    FPC_ANSISTR_DECR_REF
 .LExitDecRef:
         pop     %edx
         pop     %ecx
@@ -473,7 +480,18 @@ end;
 
 {
   $Log$
-  Revision 1.9  2001-05-31 22:42:56  florian
+  Revision 1.10  2001-08-01 15:00:10  jonas
+    + "compproc" helpers
+    * renamed several helpers so that their name is the same as their
+      "public alias", which should facilitate the conversion of processor
+      specific code in the code generator to processor independent code
+    * some small fixes to the val_ansistring and val_widestring helpers
+      (always immediately exit if the source string is longer than 255
+       chars)
+    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
+      still nil (used to crash, now return resp -1 and 0)
+
+  Revision 1.9  2001/05/31 22:42:56  florian
     * some fixes for widestrings and variants
 
   Revision 1.8  2001/04/23 18:25:44  peter

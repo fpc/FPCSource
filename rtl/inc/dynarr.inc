@@ -16,15 +16,7 @@
  **********************************************************************
 }
 
-procedure FinalizeArray(data,typeinfo : pointer;count,size : longint);forward;
-Procedure Addref (Data,TypeInfo : Pointer);forward;
-Procedure int_finalize (Data,TypeInfo: Pointer);forward;
-
 type
-   tdynarrayindex = longint;
-   pdynarrayindex = ^tdynarrayindex;
-   t_size = dword;
-
    { don't add new fields, the size is used }
    { to calculate memory requirements       }
    pdynarray = ^tdynarray;
@@ -43,17 +35,20 @@ type
    end;
 
 
-function dynarray_length(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNARRAY_LENGTH'];
+function fpc_dynarray_length(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNARRAY_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
   begin
-     dynarray_length:=pdynarray(p-sizeof(tdynarray))^.high+1;
+     fpc_dynarray_length := 0;
+     if assigned(p) then
+       fpc_dynarray_length:=pdynarray(p-sizeof(tdynarray))^.high+1;
   end;
 
 
-function dynarray_high(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNARRAY_HIGH'];
+function fpc_dynarray_high(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNARRAY_HIGH']; {$ifdef hascompilerproc} compilerproc; {$endif}
   begin
-     dynarray_high:=pdynarray(p-sizeof(tdynarray))^.high;
+     fpc_dynarray_high := -1;
+     if assigned(p) then
+       fpc_dynarray_high:=pdynarray(p-sizeof(tdynarray))^.high;
   end;
-
 
 { releases and finalizes the data of a dyn. array and sets p to nil }
 procedure dynarray_clear(var p : pdynarray;ti : pdynarraytypeinfo);
@@ -62,7 +57,7 @@ procedure dynarray_clear(var p : pdynarray;ti : pdynarraytypeinfo);
      inc(pointer(ti),ord(ti^.namelen));
 
      { finalize all data }
-     finalizearray(p,ti^.eletype,p^.high+1,ti^.elesize);
+     int_finalizearray(p,ti^.eletype,p^.high+1,ti^.elesize);
 
      { release the data }
      freemem(p,sizeof(tdynarray)+(p^.high+1)*ti^.elesize);
@@ -70,7 +65,7 @@ procedure dynarray_clear(var p : pdynarray;ti : pdynarraytypeinfo);
   end;
 
 
-procedure dynarray_decr_ref(var p : pointer;ti : pdynarraytypeinfo);[Public,Alias:'FPC_DYNARRAY_DECR_REF'];
+procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);[Public,Alias:'FPC_DYNARRAY_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
   var
      realp : pdynarray;
   begin
@@ -84,12 +79,16 @@ procedure dynarray_decr_ref(var p : pointer;ti : pdynarraytypeinfo);[Public,Alia
      { decr. ref. count }
      { should we remove the array? }
      if declocked(realp^.refcount) then
-       dynarray_clear(realp,ti);
+       dynarray_clear(realp,pdynarraytypeinfo(ti));
      p:=nil;
   end;
 
+{$ifdef hascompilerproc}
+{ provide local access to dynarr_decr_ref for dynarr_setlength }
+procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); [external name 'FPC_DYNARRAY_DECR_REF'];
+{$endif}
 
-procedure dynarray_incr_ref(var p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_REF'];
+procedure fpc_dynarray_incr_ref(var p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
   var
      realp : pdynarray;
   begin
@@ -103,9 +102,17 @@ procedure dynarray_incr_ref(var p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_RE
      inclocked(realp^.refcount);
   end;
 
+{$ifdef hascompilerproc}
+{ provide local access to dynarr_decr_ref for dynarr_setlength }
+procedure fpc_dynarray_incr_ref(var p : pointer;ti : pointer); [external name 'FPC_DYNARRAY_INCR_REF'];
+{$endif}
 
-procedure dynarray_setlength(var p : pointer;pti : pdynarraytypeinfo;
-  dimcount : dword;dims : pdynarrayindex);[Public,Alias:'FPC_DYNARR_SETLENGTH'];
+{ provide local access to dynarr_setlength }
+procedure int_dynarray_setlength(var p : pointer;pti : pointer;
+  dimcount : dword;dims : pdynarrayindex);[external name 'FPC_DYNARR_SETLENGTH'];
+
+procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
+  dimcount : dword;dims : pdynarrayindex);[Public,Alias:'FPC_DYNARR_SETLENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
   var
      i : tdynarrayindex;
@@ -116,7 +123,7 @@ procedure dynarray_setlength(var p : pointer;pti : pdynarraytypeinfo;
      ti : pdynarraytypeinfo;
 
   begin
-     ti:=pti;
+     ti:=pdynarraytypeinfo(pti);
      { skip kind and name }
      inc(pointer(ti),ord(ti^.namelen));
 
@@ -139,7 +146,7 @@ procedure dynarray_setlength(var p : pointer;pti : pdynarraytypeinfo;
           { if the new dimension is 0, we've to release all data }
           if dims[0]=0 then
             begin
-               dynarray_clear(realp,pti);
+               dynarray_clear(realp,pdynarraytypeinfo(pti));
                p:=nil;
                exit;
             end;
@@ -152,7 +159,7 @@ procedure dynarray_setlength(var p : pointer;pti : pdynarraytypeinfo;
 
                { increment ref. count of members }
                for i:=0 to dims[0]-1 do
-                 addref(pointer(newp)+sizeof(tdynarray)+ti^.elesize*i,ti^.eletype);
+                 int_addref(pointer(newp)+sizeof(tdynarray)+ti^.elesize*i,ti^.eletype);
 
                { a declock(ref. count) isn't enough here }
                { it could be that the in MT enviroments  }
@@ -161,7 +168,7 @@ procedure dynarray_setlength(var p : pointer;pti : pdynarraytypeinfo;
 
                { it is, because it doesn't really matter }
                { if the array is now removed             }
-               dynarray_decr_ref(p,ti);
+               fpc_dynarray_decr_ref(p,ti);
             end
           else if dims[0]<>realp^.high+1 then
             begin
@@ -179,7 +186,7 @@ procedure dynarray_setlength(var p : pointer;pti : pdynarraytypeinfo;
                     { shrink the array? }
                     if dims[0]<realp^.high+1 then
                       begin
-                          finalizearray(pointer(realp)+sizeof(tdynarray)+ti^.elesize*dims[0],
+                          int_finalizearray(pointer(realp)+sizeof(tdynarray)+ti^.elesize*dims[0],
                             ti^.eletype,realp^.high-dims[0]+1,ti^.elesize);
                          reallocmem(realp,size);
                       end
@@ -198,7 +205,7 @@ procedure dynarray_setlength(var p : pointer;pti : pdynarraytypeinfo;
           if dimcount>1 then
             begin
                for i:=0 to dims[0]-1 do
-                 dynarray_setlength(pointer(plongint(pointer(newp)+sizeof(tdynarray))[i*ti^.elesize]),
+                 int_dynarray_setlength(pointer(plongint(pointer(newp)+sizeof(tdynarray))[i*ti^.elesize]),
                    ti^.eletype,dimcount-1,@dims[1]);
             end;
        end;
@@ -207,17 +214,32 @@ procedure dynarray_setlength(var p : pointer;pti : pdynarraytypeinfo;
      newp^.high:=dims[0]-1;
   end;
 
-function dynarray_copy(var p : pointer;ti : pdynarraytypeinfo;
-  dimcount : dword;dims : pdynarrayindex) : pointer;[Public,Alias:'FPC_DYNARRAY_COPY'];
+
+function fpc_dynarray_copy(var p : pointer;ti : pointer;
+  dimcount : dword;dims : pdynarrayindex) : pointer;[Public,Alias:'FPC_DYNARRAY_COPY']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
   begin
+     { note: ti is of type pdynarrayinfo, but it can't be declared       }
+     { that way because this procedure is also declared in the interface }
+     { (as compilerproc) and the pdynarraytypeinfo isn't available there }
      {!!!!!!!!!!}
   end;
 
 
 {
   $Log$
-  Revision 1.7  2001-05-27 14:28:44  florian
+  Revision 1.8  2001-08-01 15:00:10  jonas
+    + "compproc" helpers
+    * renamed several helpers so that their name is the same as their
+      "public alias", which should facilitate the conversion of processor
+      specific code in the code generator to processor independent code
+    * some small fixes to the val_ansistring and val_widestring helpers
+      (always immediately exit if the source string is longer than 255
+       chars)
+    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
+      still nil (used to crash, now return resp -1 and 0)
+
+  Revision 1.7  2001/05/27 14:28:44  florian
     + made the ref. couting MT safe
 
   Revision 1.6  2001/04/13 23:49:48  peter

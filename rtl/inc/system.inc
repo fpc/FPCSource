@@ -186,6 +186,8 @@ End;
 {$i wstrings.inc}
 {$endif HASWIDESTRING}
 
+{$i aliases.inc}
+
 {*****************************************************************************
                         Dynamic Array support
 *****************************************************************************}
@@ -343,19 +345,19 @@ end;
                              Miscellaneous
 *****************************************************************************}
 
-procedure int_rangeerror;[public,alias:'FPC_RANGEERROR'];
+procedure fpc_rangeerror;[public,alias:'FPC_RANGEERROR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   HandleErrorFrame(201,get_frame);
 end;
 
 
-procedure int_overflow;[public,alias:'FPC_OVERFLOW'];
+procedure fpc_overflow;[public,alias:'FPC_OVERFLOW']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   HandleErrorFrame(215,get_frame);
 end;
 
 
-procedure int_iocheck(addr : longint);[saveregisters,public,alias:'FPC_IOCHECK'];
+procedure fpc_iocheck(addr : longint);[saveregisters,public,alias:'FPC_IOCHECK']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   l : longint;
 begin
@@ -406,7 +408,7 @@ type
 var
   InitFinalTable : TInitFinalTable;external name 'INITFINAL';
 
-procedure InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS'];
+procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   i : longint;
 begin
@@ -436,7 +438,6 @@ begin
       end;
    end;
 end;
-
 
 {*****************************************************************************
                           Error / Exit / ExitProc
@@ -619,8 +620,12 @@ begin
   HandleErrorFrame(211,get_frame);
 end;
 
+{$ifdef hascompilerproc}
+{ alias for internal usage in the compiler }
+procedure fpc_AbstractErrorIntern;  compilerproc; external name 'FPC_ABSTRACTERROR';
+{$endif hascompilerproc}
 
-Procedure int_assert(Const Msg,FName:Shortstring;LineNo,ErrorAddr:Longint); [SaveRegisters,Public,Alias : 'FPC_ASSERT'];
+Procedure fpc_assert(Const Msg,FName:Shortstring;LineNo,ErrorAddr:Longint); [SaveRegisters,Public,Alias : 'FPC_ASSERT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   if pointer(AssertErrorProc)<>nil then
     AssertErrorProc(Msg,FName,LineNo,ErrorAddr)
@@ -661,7 +666,18 @@ end;
 
 {
   $Log$
-  Revision 1.20  2001-07-30 21:38:55  peter
+  Revision 1.21  2001-08-01 15:00:10  jonas
+    + "compproc" helpers
+    * renamed several helpers so that their name is the same as their
+      "public alias", which should facilitate the conversion of processor
+      specific code in the code generator to processor independent code
+    * some small fixes to the val_ansistring and val_widestring helpers
+      (always immediately exit if the source string is longer than 255
+       chars)
+    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
+      still nil (used to crash, now return resp -1 and 0)
+
+  Revision 1.20  2001/07/30 21:38:55  peter
     * m68k updates merged
 
   Revision 1.19  2001/07/29 14:05:55  peter

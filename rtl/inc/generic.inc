@@ -330,7 +330,7 @@ end;
   FPC_HELP_CONSTRUCTOR : generic allways means aa little less efficient (PM) }
 { I don't think we really need to save any registers here      }
 { since this is called at the start of the constructor (CEC)   }
-function int_help_constructor(var _self : pointer; var vmt : pointer; vmt_pos : cardinal) : pointer; [public,alias:'FPC_HELP_CONSTRUCTOR'];
+function fpc_help_constructor(var _self : pointer; var vmt : pointer; vmt_pos : cardinal) : pointer; [public,alias:'FPC_HELP_CONSTRUCTOR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
    type
      ppointer = ^pointer;
      pvmt = ^tvmt;
@@ -363,7 +363,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 
-procedure int_help_destructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal);saveregisters;[public,alias:'FPC_HELP_DESTRUCTOR'];
+procedure fpc_help_destructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal);saveregisters;[public,alias:'FPC_HELP_DESTRUCTOR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
    type
      ppointer = ^pointer;
      pvmt = ^tvmt;
@@ -431,7 +431,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
 
-procedure int_check_object(vmt : pointer);saveregisters;[public,alias:'FPC_CHECK_OBJECT'];
+procedure fpc_check_object(vmt : pointer);saveregisters;[public,alias:'FPC_CHECK_OBJECT'];  {$ifdef hascompilerproc} compilerproc; {$endif}
    type
      pvmt = ^tvmt;
      tvmt = packed record
@@ -453,7 +453,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
 
-procedure int_check_object_ext(vmt, expvmt : pointer);saveregisters;[public,alias:'FPC_CHECK_OBJECT_EXT'];
+procedure fpc_check_object_ext(vmt, expvmt : pointer);saveregisters;[public,alias:'FPC_CHECK_OBJECT_EXT']; {$ifdef hascompilerproc} compilerproc; {$endif}
    type
      pvmt = ^tvmt;
      tvmt = packed record
@@ -482,7 +482,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
 
-procedure int_strcopy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY'];
+procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   slen : byte;
 type
@@ -509,7 +509,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
-procedure int_strconcat(s1,s2:pointer);[public,alias:'FPC_SHORTSTR_CONCAT'];
+procedure fpc_shortstr_concat(s1,s2:pointer);[public,alias:'FPC_SHORTSTR_CONCAT'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   s1l, s2l : byte;
 type
@@ -529,7 +529,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
-function int_strcmp(rightstr,leftstr:pointer) : longint;[public,alias:'FPC_SHORTSTR_COMPARE'];
+function fpc_shortstr_compare(rightstr,leftstr:pointer) : longint;[public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
    s1,s2,max,i : byte;
    d : longint;
@@ -562,7 +562,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
-function strpas(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR'];
+function fpc_pchar_to_shortstr(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   l : longint;
   s: shortstring;
@@ -581,9 +581,12 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
+{ also add a strpas alias for internal use in the system unit (JM) }
+function strpas(p:pchar):shortstring; [external name 'FPC_PCHAR_TO_SHORTSTR'];
+
 {$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
-function strchararray(p:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR'];
+function fpc_chararray_to_shortstr(p:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
  s: shortstring;
 begin
@@ -604,7 +607,7 @@ end;
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_STR_TO_CHARARRAY}
-procedure str_to_chararray(strtyp, arraysize: longint; src,dest: pchar);[public,alias:'FPC_STR_TO_CHARARRAY'];
+procedure fpc_str_to_chararray(strtyp, arraysize: longint; src,dest: pchar);[public,alias:'FPC_STR_TO_CHARARRAY'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 type
   plongint = ^longint;
 var
@@ -826,7 +829,18 @@ end;
 
 {
   $Log$
-  Revision 1.16  2001-07-31 19:36:51  peter
+  Revision 1.17  2001-08-01 15:00:10  jonas
+    + "compproc" helpers
+    * renamed several helpers so that their name is the same as their
+      "public alias", which should facilitate the conversion of processor
+      specific code in the code generator to processor independent code
+    * some small fixes to the val_ansistring and val_widestring helpers
+      (always immediately exit if the source string is longer than 255
+       chars)
+    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
+      still nil (used to crash, now return resp -1 and 0)
+
+  Revision 1.16  2001/07/31 19:36:51  peter
     * small cleanup of commented code (merged)
 
   Revision 1.15  2001/07/29 13:49:15  peter

@@ -15,7 +15,7 @@
  **********************************************************************}
 
 {$define FPC_SYSTEM_HAS_FPC_SET_LOAD_SMALL}
-procedure do_load_small(p : pointer;l:longint);assembler;[public,alias:'FPC_SET_LOAD_SMALL'];
+procedure fpc_set_load_small(p : pointer;l:longint);assembler;[public,alias:'FPC_SET_LOAD_SMALL']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   load a normal set p from a smallset l
 }
@@ -31,7 +31,7 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_FPC_SET_CREATE_ELEMENT}
-procedure do_create_element(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_CREATE_ELEMENT'];
+procedure fpc_set_create_element(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_CREATE_ELEMENT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   create a new set in p from an element b
 }
@@ -56,7 +56,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_SET_BYTE}
-procedure do_set_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_SET_BYTE'];
+procedure fpc_set_set_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_SET_BYTE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   add the element b to the set pointed by p
 }
@@ -75,7 +75,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_UNSET_BYTE}
-procedure do_unset_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_UNSET_BYTE'];
+procedure fpc_set_unset_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_UNSET_BYTE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   suppresses the element b to the set pointed by p
   used for exclude(set,element)
@@ -95,7 +95,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_SET_RANGE}
-procedure do_set_range(p : pointer;l,h : byte);assembler;[public,alias:'FPC_SET_SET_RANGE'];
+procedure fpc_set_set_range(p : pointer;l,h : byte);assembler;[public,alias:'FPC_SET_SET_RANGE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   adds the range [l..h] to the set pointed to by p
 }
@@ -142,7 +142,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_IN_BYTE}
-procedure do_in_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_IN_BYTE'];
+procedure fpc_set_in_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_IN_BYTE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   tests if the element b is in the set p the carryflag is set if it present
 }
@@ -161,7 +161,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_ADD_SETS}
-procedure do_add_sets(set1,set2,dest : pointer);assembler;[public,alias:'FPC_SET_ADD_SETS'];
+procedure fpc_set_add_sets(set1,set2,dest : pointer);assembler;[public,alias:'FPC_SET_ADD_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   adds set1 and set2 into set dest
 }
@@ -181,7 +181,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_MUL_SETS}
-procedure do_mul_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_MUL_SETS'];
+procedure fpc_set_mul_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_MUL_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   multiplies (takes common elements of) set1 and set2 result put in dest
 }
@@ -201,7 +201,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_SUB_SETS}
-procedure do_sub_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_SUB_SETS'];
+procedure fpc_set_sub_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_SUB_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   computes the diff from set1 to set2 result in dest
 }
@@ -223,7 +223,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_SYMDIF_SETS}
-procedure do_symdif_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_SYMDIF_SETS'];
+procedure fpc_set_symdif_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_SYMDIF_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
    computes the symetric diff from set1 to set2 result in dest
 }
@@ -244,7 +244,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_COMP_SETS}
-procedure do_comp_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_COMP_SETS'];
+procedure fpc_set_comp_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_COMP_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   compares set1 and set2 zeroflag is set if they are equal
 }
@@ -268,9 +268,8 @@ end;
 
 
 
-{$IfNDef NoSetInclusion}
 {$define FPC_SYSTEM_HAS_FPC_SET_CONTAINS_SET}
-procedure do_contains_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_CONTAINS_SETS'];
+procedure fpc_set_contains_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_CONTAINS_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   on exit, zero flag is set if set1 <= set2 (set2 contains set1)
 }
@@ -292,11 +291,10 @@ asm
           we have zero flag set, and that what is expected }
     .LMCONTAINSSETEND:
 end;
-{$EndIf SetInclusion}
 
 {$ifdef LARGESETS}
 
-procedure do_set(p : pointer;b : word);assembler;[public,alias:'FPC_SET_SET_WORD'];
+procedure fpc_largeset_set_wor(p : pointer;b : word);assembler;[public,alias:'FPC_LARGESET_SET_WORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   sets the element b in set p works for sets larger than 256 elements
   not yet use by the compiler so
@@ -315,7 +313,7 @@ asm
 end;
 
 
-procedure do_in(p : pointer;b : word);assembler;[public,alias:'FPC_SET_IN_WORD'];
+procedure fpc_largeset_in_word(p : pointer;b : word);assembler;[public,alias:'FPC_LARGESET_IN_WORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   tests if the element b is in the set p the carryflag is set if it present
   works for sets larger than 256 elements
@@ -334,7 +332,7 @@ asm
 end;
 
 
-procedure add_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias:'FPC_SET_ADD_SETS_SIZE'];
+procedure fpc_largeset_add_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias:'FPC_LARGESET_ADD_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   adds set1 and set2 into set dest size is the number of bytes in the set
 }
@@ -353,7 +351,7 @@ asm
 end;
 
 
-procedure mul_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias:'FPC_SET_MUL_SETS_SIZE'];
+procedure fpc_largeset_mul_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias:'FPC_LARGESET_MUL_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   multiplies (i.E. takes common elements of) set1 and set2 result put in
   dest size is the number of bytes in the set
@@ -373,7 +371,7 @@ asm
 end;
 
 
-procedure sub_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias:'FPC_SET_SUB_SETS_SIZE'];
+procedure fpc_largeset_sub_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias:'FPC_LARGESET_SUB_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 asm
          movl set1,%esi
          movl set2,%ebx
@@ -391,7 +389,7 @@ asm
 end;
 
 
-procedure sym_sub_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias:'FPC_SET_SYMDIF_SETS_SIZE'];
+procedure fpc_largeset_symdif_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias:'FPC_LARGESET_SYMDIF_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
    computes the symetric diff from set1 to set2 result in dest
 }
@@ -411,7 +409,7 @@ asm
 end;
 
 
-procedure comp_sets(set1,set2 : pointer;size : longint);assembler;[public,alias:'FPC_SET_COMP_SETS_SIZE'];
+procedure fpc_largeset_comp_sets(set1,set2 : pointer;size : longint);assembler;[public,alias:'FPC_LARGESET_COMP_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 asm
       movl set1,%esi
       movl set2,%edi
@@ -429,8 +427,7 @@ asm
   .LMCOMPSETSIZEEND:
 end;
 
-{$IfNDef NoSetInclusion}
-procedure contains_sets(set1,set2 : pointer; size: longint);assembler;[public,alias:'FPC_SET_CONTAINS_SETS'];
+procedure fpc_largeset_contains_sets(set1,set2 : pointer; size: longint);assembler;[public,alias:'FPC_LARGESET_CONTAINS_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   on exit, zero flag is set if set1 <= set2 (set2 contains set1)
 }
@@ -452,14 +449,24 @@ asm
           we have zero flag set, and that what is expected }
     .LMCONTAINSSETEND2:
 end;
-{$EndIf NoSetInclusion}
 
 
 {$endif LARGESET}
 
 {
   $Log$
-  Revision 1.4  2001-05-09 19:57:07  peter
+  Revision 1.5  2001-08-01 15:00:10  jonas
+    + "compproc" helpers
+    * renamed several helpers so that their name is the same as their
+      "public alias", which should facilitate the conversion of processor
+      specific code in the code generator to processor independent code
+    * some small fixes to the val_ansistring and val_widestring helpers
+      (always immediately exit if the source string is longer than 255
+       chars)
+    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
+      still nil (used to crash, now return resp -1 and 0)
+
+  Revision 1.4  2001/05/09 19:57:07  peter
   *** empty log message ***
 
   Revision 1.3  2000/09/21 16:09:19  jonas

@@ -35,7 +35,7 @@ Type
   end;
 
 
-  TExceptObjectClass = Class of TObject;
+  TExceptObjectClass = Class of TObject; 
 
 Const
   CatchAllExceptions = -1;
@@ -54,11 +54,11 @@ begin
 end;
 
 {$ifndef HAS_ADDR_STACK_ON_STACK}
-Function PushExceptAddr (Ft: Longint): PJmp_buf ;
+Function fpc_PushExceptAddr (Ft: Longint): PJmp_buf ;
   [Public, Alias : 'FPC_PUSHEXCEPTADDR'];saveregisters;
 {$else HAS_ADDR_STACK_ON_HEAP}
-Function PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ;
-  [Public, Alias : 'FPC_PUSHEXCEPTADDR'];saveregisters;
+Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ;
+  [Public, Alias : 'FPC_PUSHEXCEPTADDR'];saveregisters; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif HAS_ADDR_STACK_ON_STACK}
 
 var
@@ -94,12 +94,12 @@ begin
 {$endif HAS_ADDR_STACK_ON_STACK}
   ExceptAddrStack^.Buf:=Buf;
   ExceptAddrStack^.FrameType:=ft;
-  PushExceptAddr:=Buf;
+  fpc_PushExceptAddr:=Buf;
 end;
 
 
-Procedure PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer);
-  [Public, Alias : 'FPC_PUSHEXCEPTOBJECT'];saveregisters;
+Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer);
+  [Public, Alias : 'FPC_PUSHEXCEPTOBJECT'];saveregisters; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   Newobj : PExceptObject;
 begin
@@ -122,6 +122,11 @@ begin
   ExceptObjectStack^.Frame:=AFrame;
 end;
 
+{$ifdef hascompilerproc}
+{ make it avalable for local use }
+Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer); [external name 'FPC_PUSHEXCEPTOBJECT'];
+{$endif}
+
 
 Procedure DoUnHandledException;
 begin
@@ -132,13 +137,13 @@ begin
 end;
 
 
-Function Raiseexcept (Obj : TObject; AnAddr,AFrame : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION'];
+Function fpc_Raiseexception (Obj : TObject; AnAddr,AFrame : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
 {$ifdef excdebug}
   writeln ('In RaiseException');
 {$endif}
-  Raiseexcept:=nil;
-  PushExceptObj(Obj,AnAddr,AFrame);
+  fpc_Raiseexception:=nil;
+  fpc_PushExceptObj(Obj,AnAddr,AFrame);
   If ExceptAddrStack=Nil then
     DoUnhandledException;
   if (RaiseProc <> nil) and (ExceptObjectStack <> nil) then
@@ -147,7 +152,7 @@ begin
 end;
 
 
-Procedure PopAddrStack;[Public, Alias : 'FPC_POPADDRSTACK'];
+Procedure fpc_PopAddrStack;[Public, Alias : 'FPC_POPADDRSTACK']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$ifndef HAS_ADDR_STACK_ON_STACK}
 var
   hp : PExceptAddr;
@@ -175,7 +180,7 @@ begin
 end;
 
 
-function PopObjectStack : TObject;[Public, Alias : 'FPC_POPOBJECTSTACK'];
+function fpc_PopObjectStack : TObject;[Public, Alias : 'FPC_POPOBJECTSTACK']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   hp : PExceptObject;
 begin
@@ -190,7 +195,7 @@ begin
   else
     begin
        { we need to return the exception object to dispose it }
-       PopObjectStack:=ExceptObjectStack^.FObject;
+       fpc_PopObjectStack:=ExceptObjectStack^.FObject;
        hp:=ExceptObjectStack;
        ExceptObjectStack:=ExceptObjectStack^.next;
        dispose(hp);
@@ -199,7 +204,7 @@ end;
 
 { this is for popping exception objects when a second exception is risen }
 { in an except/on                                                        }
-function PopSecondObjectStack : TObject;[Public, Alias : 'FPC_POPSECONDOBJECTSTACK'];
+function fpc_PopSecondObjectStack : TObject;[Public, Alias : 'FPC_POPSECONDOBJECTSTACK']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   hp : PExceptObject;
 begin
@@ -215,14 +220,14 @@ begin
   else
     begin
        { we need to return the exception object to dispose it }
-       PopSecondObjectStack:=ExceptObjectStack^.next^.FObject;
+       fpc_PopSecondObjectStack:=ExceptObjectStack^.next^.FObject;
        hp:=ExceptObjectStack^.next;
        ExceptObjectStack^.next:=hp^.next;
        dispose(hp);
     end;
 end;
 
-Procedure ReRaise;[Public, Alias : 'FPC_RERAISE'];
+Procedure fpc_ReRaise;[Public, Alias : 'FPC_RERAISE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
 {$ifdef excdebug}
   writeln ('In reraise');
@@ -233,20 +238,23 @@ begin
 end;
 
 
-Function Catches(Objtype : TExceptObjectClass) : TObject;[Public, Alias : 'FPC_CATCHES'];
+Function fpc_Catches(Objtype : TClass) : TObject;[Public, Alias : 'FPC_CATCHES']; {$ifdef hascompilerproc} compilerproc; {$endif}
+var
+  _Objtype : TExceptObjectClass;
 begin
   If ExceptObjectStack=Nil then
    begin
      Writeln ('Internal error.');
      halt (255);
    end;
-  if Not ((Objtype = TExceptObjectClass(CatchAllExceptions)) or
-         (ExceptObjectStack^.FObject is ObjType)) then
-    Catches:=Nil
+  _Objtype := TExceptObjectClass(Objtype);
+  if Not ((_Objtype = TExceptObjectClass(CatchAllExceptions)) or
+         (ExceptObjectStack^.FObject is _ObjType)) then
+    fpc_Catches:=Nil
   else
     begin
       // catch !
-      Catches:=ExceptObjectStack^.FObject;
+      fpc_Catches:=ExceptObjectStack^.FObject;
       { this can't be done, because there could be a reraise (PFV)
        PopObjectStack;
 
@@ -256,7 +264,7 @@ begin
     end;
 end;
 
-Procedure DestroyException(o : TObject);[Public, Alias : 'FPC_DESTROYEXCEPTION'];
+Procedure fpc_DestroyException(o : TObject);[Public, Alias : 'FPC_DESTROYEXCEPTION']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   { with free we're on the really save side }
   o.Free;
@@ -273,7 +281,18 @@ begin
 end;
 {
   $Log$
-  Revision 1.6  2001-04-13 22:30:04  peter
+  Revision 1.7  2001-08-01 15:00:10  jonas
+    + "compproc" helpers
+    * renamed several helpers so that their name is the same as their
+      "public alias", which should facilitate the conversion of processor
+      specific code in the code generator to processor independent code
+    * some small fixes to the val_ansistring and val_widestring helpers
+      (always immediately exit if the source string is longer than 255
+       chars)
+    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
+      still nil (used to crash, now return resp -1 and 0)
+
+  Revision 1.6  2001/04/13 22:30:04  peter
     * remove warnings
 
   Revision 1.5  2001/01/24 21:47:18  florian

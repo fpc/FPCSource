@@ -17,7 +17,7 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_INITIALIZE}
-Procedure Initialize (Data,TypeInfo : pointer);saveregisters;[Public,Alias : 'FPC_INITIALIZE'];
+Procedure fpc_Initialize (Data,TypeInfo : pointer);saveregisters;[Public,Alias : 'FPC_INITIALIZE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
@@ -41,7 +41,7 @@ begin
       Count:=PArrayRec(Temp)^.Count;  // get element Count
       TInfo:=PArrayRec(Temp)^.Info;   // Get element info
       For I:=0 to Count-1 do
-        Initialize (Data+(I*size),TInfo);
+        int_Initialize (Data+(I*size),TInfo);
       end;
     tkrecord :
       begin
@@ -52,14 +52,15 @@ begin
       Count:=PRecRec(Temp)^.Count;  // get element Count
       For I:=1 to count Do
         With PRecRec(Temp)^.elements[I] do
-          Initialize (Data+Offset,Info);
+          int_Initialize (Data+Offset,Info);
       end;
   end;
 end;
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_FINALIZE}
-Procedure Finalize (Data,TypeInfo: Pointer);saveregisters;[Public,Alias : 'FPC_FINALIZE'];
+
+Procedure fpc_Finalize (Data,TypeInfo: Pointer);saveregisters;[Public,Alias : 'FPC_FINALIZE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
@@ -83,7 +84,7 @@ begin
       Count:=PArrayRec(Temp)^.Count;  // get element Count
       TInfo:=PArrayRec(Temp)^.Info;   // Get element info
       For I:=0 to Count-1 do
-        Finalize (Data+(I*size),TInfo);
+        int_Finalize (Data+(I*size),TInfo);
       end;
     tkrecord :
       begin
@@ -94,14 +95,15 @@ begin
       Count:=PRecRec(Temp)^.Count;  // get element Count
       For I:=1 to count do
         With PRecRec(Temp)^.elements[I] do
-          Finalize (Data+Offset,Info);
+          int_Finalize (Data+Offset,Info);
       end;
   end;
 end;
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_ADDREF}
-Procedure Addref (Data,TypeInfo : Pointer);saveregisters; [Public,alias : 'FPC_ADDREF'];
+
+Procedure fpc_Addref (Data,TypeInfo : Pointer);saveregisters; [Public,alias : 'FPC_ADDREF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
@@ -112,7 +114,6 @@ Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
     TInfo : Pointer;
-
 begin
   Temp:=PByte(TypeInfo);
   case temp^ of
@@ -122,7 +123,7 @@ begin
     { expects a var parameter, so to pass the address of the         }
     { ansistring and not that of the data parameter on the stack,    }
     { you have to dereference data (JM)                              }
-    tkAstring,tkWstring : AnsiStr_Incr_Ref(PPointer(Data)^);
+    tkAstring,tkWstring : fpc_AnsiStr_Incr_Ref(PPointer(Data)^);
     tkArray :
       begin
       Temp:=Temp+1;
@@ -132,7 +133,7 @@ begin
       Count:=PArrayRec(Temp)^.Count;  // get element Count
       TInfo:=PArrayRec(Temp)^.Info;   // Get element info
       For I:=0 to Count-1 do
-        AddRef (Data+(I*size),TInfo);
+        int_AddRef (Data+(I*size),TInfo);
       end;
     tkrecord :
       begin
@@ -143,14 +144,16 @@ begin
       Count:=PRecRec(Temp)^.Count;  // get element Count
       For I:=1 to count do
         With PRecRec(Temp)^.elements[I] do
-          AddRef (Data+Offset,Info);
+          int_AddRef (Data+Offset,Info);
       end;
   end;
 end;
 {$endif}
 
+
 {$ifndef FPC_SYSTEM_HAS_FPC_DECREF}
-Procedure DecRef (Data, TypeInfo : Pointer);saveregisters;[Public,alias : 'FPC_DECREF'];
+
+Procedure fpc_DecRef (Data, TypeInfo : Pointer);saveregisters;[Public,alias : 'FPC_DECREF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
 Type
@@ -165,7 +168,7 @@ begin
   Temp:=PByte(TypeInfo);
   case temp^ of
     { see AddRef for comment about below construct (JM) }
-    tkAstring,tkWstring : AnsiStr_Decr_Ref(PPointer(Data)^);
+    tkAstring,tkWstring : fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
     tkArray :
       begin
       Temp:=Temp+1;
@@ -175,7 +178,7 @@ begin
       Count:=PArrayRec(Temp)^.Count;  // get element Count
       TInfo:=PArrayRec(Temp)^.Info;   // Get element info
       For I:=0 to Count-1 do
-        DecRef (Data+(I*size),TInfo);
+        fpc_DecRef (Data+(I*size),TInfo);
       end;
     tkrecord :
       begin
@@ -186,14 +189,14 @@ begin
       Count:=PRecRec(Temp)^.Count;  // get element Count
       For I:=1 to count do
         With PRecRec(Temp)^.elements[I] do
-          DecRef (Data+Offset,Info);
+          fpc_DecRef (Data+Offset,Info);
       end;
   end;
 end;
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_FINALIZEARRAY}
-procedure FinalizeArray(data,typeinfo : pointer;count,size : longint); [Public,Alias:'FPC_FINALIZEARRAY'];
+procedure fpc_FinalizeArray(data,typeinfo : pointer;count,size : longint); [Public,Alias:'FPC_FINALIZEARRAY'];  {$ifdef hascompilerproc} compilerproc; {$endif}
   var
      i : longint;
   begin
@@ -204,7 +207,18 @@ procedure FinalizeArray(data,typeinfo : pointer;count,size : longint); [Public,A
 
 {
  $Log$
- Revision 1.4  2001-06-28 19:18:57  peter
+ Revision 1.5  2001-08-01 15:00:10  jonas
+   + "compproc" helpers
+   * renamed several helpers so that their name is the same as their
+     "public alias", which should facilitate the conversion of processor
+     specific code in the code generator to processor independent code
+   * some small fixes to the val_ansistring and val_widestring helpers
+     (always immediately exit if the source string is longer than 255
+      chars)
+   * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
+     still nil (used to crash, now return resp -1 and 0)
+
+ Revision 1.4  2001/06/28 19:18:57  peter
    * ansistr fix merged
 
  Revision 1.3  2001/05/28 20:43:17  peter

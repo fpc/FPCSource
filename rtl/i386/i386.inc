@@ -91,7 +91,9 @@ end ['EAX','EBX','ECX','ESI','EDI'];
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:longint;value:byte);
-  [public,alias: 'FPC_FILLCHAR'];assembler;
+{ alias seems to be nowhere used? (JM)
+   [public,alias: 'FPC_FILLCHAR']; }
+assembler;
 asm
         cld
         movl    x,%edi
@@ -403,7 +405,7 @@ end['EAX','EBX','ECX','EDX','ESI'];
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
-procedure int_help_constructor;assembler; [public,alias:'FPC_HELP_CONSTRUCTOR'];
+procedure fpc_help_constructor; assembler; [public,alias:'FPC_HELP_CONSTRUCTOR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 asm
 { Entry without preamble, since we need the ESP of the constructor
   Stack (relative to %ebp):
@@ -481,7 +483,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_FAIL}
-procedure int_help_fail;assembler;[public,alias:'FPC_HELP_FAIL'];
+procedure fpc_help_fail;assembler;[public,alias:'FPC_HELP_FAIL']; {$ifdef hascompilerproc} compilerproc; {$endif}
 { should be called with a object that needs to be
   freed if VMT field is at -1
   %edi contains VMT offset in object again }
@@ -515,7 +517,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
-procedure int_help_destructor;assembler;[public,alias:'FPC_HELP_DESTRUCTOR'];
+procedure fpc_help_destructor;assembler;[public,alias:'FPC_HELP_DESTRUCTOR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 asm
 { Stack (relative to %ebp):
     12 Self
@@ -553,7 +555,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_NEW_CLASS}
-procedure int_new_class;assembler;[public,alias:'FPC_NEW_CLASS'];
+procedure fpc_new_class;assembler;[public,alias:'FPC_NEW_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 asm
         { to be sure in the future, we save also edit }
         pushl   %edi
@@ -587,7 +589,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
-procedure int_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS'];
+procedure fpc_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 asm
         { to be sure in the future, we save also edit }
         pushl   %edi
@@ -615,13 +617,13 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_FAIL_CLASS}
-procedure int_help_fail_class;assembler;[public,alias:'FPC_HELP_FAIL_CLASS'];
+procedure fpc_help_fail_class;assembler;[public,alias:'FPC_HELP_FAIL_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 { a non zero class must allways be disposed
   VMT is allways at pos 0 }
 asm
         testl  %esi,%esi
         je     .LHFC_1
-        call   INT_DISPOSE_CLASS
+        call   FPC_DISPOSE_CLASS
         { set both object places to zero }
         xorl    %esi,%esi
         movl    %esi,8(%ebp)
@@ -632,20 +634,12 @@ end;
 
 {$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
 
-{$ifdef SYSTEMDEBUG}
 { we want the stack for debugging !! PM }
-procedure int_check_object(obj : pointer);[public,alias:'FPC_CHECK_OBJECT'];
+procedure fpc_check_object(obj : pointer);[public,alias:'FPC_CHECK_OBJECT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
-{$else not SYSTEMDEBUG}
-procedure int_check_object;assembler;[public,alias:'FPC_CHECK_OBJECT'];
-{$endif not SYSTEMDEBUG}
 asm
         pushl   %edi
-{$ifdef SYSTEMDEBUG}
         movl    obj,%edi
-{$else not SYSTEMDEBUG}
-        movl    8(%esp),%edi
-{$endif not SYSTEMDEBUG}
         pushl   %eax
         { Here we must check if the VMT pointer is nil before  }
         { accessing it...                                      }
@@ -661,17 +655,12 @@ asm
         popl    %eax
         popl    %edi
         { the adress is pushed : it needs to be removed from stack !! PM }
-{$ifdef SYSTEMDEBUG}
 end;{ of asm }
 end;
-{$else SYSTEMDEBUG}
-        ret     $4
-end;
-{$endif not SYSTEMDEBUG}
 
 
 {$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
-procedure int_check_object_ext;assembler;[public,alias:'FPC_CHECK_OBJECT_EXT'];
+procedure fpc_check_object_ext;assembler;[public,alias:'FPC_CHECK_OBJECT_EXT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 { checks for a correct vmt pointer }
 { deeper check to see if the current object is }
 { really related to the true }
@@ -717,7 +706,7 @@ end;
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
-procedure int_strcopy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY'];
+procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   this procedure must save all modified registers except EDI and ESI !!!
 }
@@ -760,8 +749,8 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
-procedure int_strconcat(s1,s2:pointer);
-  [public,alias:'FPC_SHORTSTR_CONCAT'];
+procedure fpc_shortstr_concat(s1,s2:pointer);
+  [public,alias:'FPC_SHORTSTR_CONCAT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   asm
         movl    s2,%edi
@@ -800,7 +789,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
-procedure int_strcmp(dstr,sstr:pointer);[public,alias:'FPC_SHORTSTR_COMPARE'];
+function fpc_shortstr_compare(dstr,sstr:pointer): longint; [public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   asm
         cld
@@ -850,7 +839,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
-function strpas(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR'];
+function fpc_pchar_to_shortstr(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$include strpas.inc}
 
 {$define FPC_SYSTEM_HAS_STRLEN}
@@ -858,7 +847,7 @@ function strlen(p:pchar):longint;assembler;
 {$include strlen.inc}
 
 {$define FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
-function strchararray(p:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR'];
+function fpc_chararray_to_shortstr(p:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   asm
         cld
@@ -1115,7 +1104,18 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.13  2001-07-08 21:00:18  peter
+  Revision 1.14  2001-08-01 15:00:09  jonas
+    + "compproc" helpers
+    * renamed several helpers so that their name is the same as their
+      "public alias", which should facilitate the conversion of processor
+      specific code in the code generator to processor independent code
+    * some small fixes to the val_ansistring and val_widestring helpers
+      (always immediately exit if the source string is longer than 255
+       chars)
+    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
+      still nil (used to crash, now return resp -1 and 0)
+
+  Revision 1.13  2001/07/08 21:00:18  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

@@ -527,9 +527,29 @@ const
 
 {$i objpash.inc}
 
+
+{*****************************************************************************
+                   Internal helper routines support
+*****************************************************************************}
+
+{$i dynarrh.inc}
+
+{$i compproc.inc}
+
 {
   $Log$
-  Revision 1.32  2001-07-31 08:57:22  marco
+  Revision 1.33  2001-08-01 15:00:11  jonas
+    + "compproc" helpers
+    * renamed several helpers so that their name is the same as their
+      "public alias", which should facilitate the conversion of processor
+      specific code in the code generator to processor independent code
+    * some small fixes to the val_ansistring and val_widestring helpers
+      (always immediately exit if the source string is longer than 255
+       chars)
+    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
+      still nil (used to crash, now return resp -1 and 0)
+
+  Revision 1.32  2001/07/31 08:57:22  marco
    * Either I did something wrong, or Peter's merge killed wchar decl. Fixed.
 
   Revision 1.31  2001/07/30 21:38:55  peter

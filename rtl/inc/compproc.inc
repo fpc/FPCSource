@@ -1,0 +1,195 @@
+{
+    $Id$
+    This file is part of the Free Pascal Run time library.
+    Copyright (c) 1999-2000 by the Free Pascal development team
+
+    This file contains the declarations of internal compiler helper
+    routines. That means you can *NOT* call these directly, as they may
+    be changed or even removed at any time. The only reason they are
+    included in the interface of the system unit, is so that the
+    compiler doesn't need special code to access their parameter
+    list information etc.
+
+    Note that due to the "compilerproc" directive, it isn't even possible
+    to use these routines in your programs.
+
+    See the File COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+{$ifdef hascompilerproc}
+
+procedure fpc_Shortstr_SetLength(var s:shortstring;len:StrLenInt); compilerproc;
+procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer); compilerproc;
+procedure fpc_shortstr_concat(s1,s2:pointer); compilerproc;
+function fpc_shortstr_compare(dstr,sstr:pointer) : longint; compilerproc;
+
+function fpc_chararray_to_shortstr(p:pchar; l : longint):shortstring; compilerproc;
+procedure fpc_str_to_chararray(strtyp, arraysize: longint; src,dest: pchar);compilerproc;
+
+function fpc_dynarray_length(p : pointer) : tdynarrayindex; compilerproc;
+function fpc_dynarray_high(p : pointer) : tdynarrayindex; compilerproc;
+procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); compilerproc;
+procedure fpc_dynarray_incr_ref(var p : pointer); compilerproc;
+procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
+  dimcount : dword;dims : pdynarrayindex); compilerproc;
+function fpc_dynarray_copy(var p : pointer;ti : pointer;
+  dimcount : dword;dims : pdynarrayindex) : pointer; compilerproc;
+
+procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : longint;var s : shortstring); compilerproc;
+procedure fpc_ShortStr_Longint(v : longint;len : longint;var s : shortstring); compilerproc;
+procedure fpc_shortstr_cardinal(v : cardinal;len : longint;var s : shortstring); compilerproc;
+Function fpc_Val_SInt_ShortStr(DestSize: longint; Const S: ShortString; var Code: ValSInt): ValSInt; compilerproc;
+Function fpc_Val_UInt_Shortstr(Const S: ShortString; var Code: ValSInt): ValUInt; compilerproc;
+Function fpc_Val_Real_ShortStr(const s : shortstring; var code : ValSInt): ValReal; compilerproc;
+
+Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); compilerproc;
+Procedure fpc_AnsiStr_Incr_Ref (Var S : Pointer); compilerproc;
+Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer); compilerproc;
+Procedure fpc_AnsiStr_Concat (S1,S2 : Pointer;var S3 : Pointer); compilerproc;
+{$ifdef EXTRAANSISHORT}
+Procedure fpc_AnsiStr_ShortStr_Concat (Var S1: AnsiString; Var S2 : ShortString); compilerproc;
+{$endif EXTRAANSISHORT}
+Procedure fpc_AnsiStr_To_ShortStr (Var S1 : ShortString;S2 : Pointer); compilerproc;
+Procedure fpc_ShortStr_To_AnsiStr (Var S1 : Pointer; Const S2 : ShortString); compilerproc;
+Procedure fpc_Char_To_AnsiStr(var S1 : Pointer; c : Char); compilerproc;
+Procedure fpc_PChar_To_AnsiStr(var a : ansistring;p : pchar); compilerproc;
+Procedure fpc_CharArray_To_AnsiStr(var a : ansistring;p : pchar;l:longint); compilerproc;
+Function fpc_AnsiStr_Compare(S1,S2 : Pointer): Longint; compilerproc;
+Procedure fpc_AnsiStr_CheckZero(p : pointer); compilerproc;
+Procedure fpc_AnsiStr_CheckRange(len,index : longint); compilerproc;
+{$ifdef EXTRAANSISHORT}
+Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): Longint; compilerproc;
+{$endif EXTRAANSISHORT}
+Procedure fpc_ansistr_Unique(Var S : AnsiString); compilerproc;
+
+Procedure fpc_WideStr_Decr_Ref (Var S : Pointer); compilerproc;
+Procedure fpc_WideStr_Incr_Ref (Var S : Pointer); compilerproc;
+Procedure fpc_WideStr_To_ShortStr (Var S1 : ShortString;S2 : Pointer); compilerproc;
+Procedure fpc_ShortStr_To_WideStr (Var S1 : Pointer; Const S2 : ShortString); compilerproc;
+Procedure fpc_WideStr_To_AnsiStr (Var S1 : Pointer;S2 : Pointer); compilerproc;
+Procedure fpc_AnsiStr_To_WideStr (Var S1 : Pointer; Const S2 : Pointer); compilerproc;
+Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer); compilerproc;
+Procedure fpc_WideStr_Concat (S1,S2 : Pointer;var S3 : Pointer); compilerproc;
+Procedure fpc_Char_To_WideStr(var S1 : Pointer; c : Char); compilerproc;
+Procedure fpc_PChar_To_WideStr(var a : widestring;p : pchar); compilerproc;
+Procedure fpc_CharArray_To_WideStr(var a : widestring;p : pchar;l:longint); compilerproc;
+Function fpc_WideStr_Compare(S1,S2 : Pointer): Longint; compilerproc;
+Procedure fpc_WideStr_CheckZero(p : pointer); compilerproc;
+Procedure fpc_WideStr_CheckRange(len,index : longint); compilerproc;
+Procedure fpc_WideStr_SetLength (Var S : WideString; l : Longint); compilerproc;
+Procedure fpc_widestr_Unique(Var S : WideString); compilerproc;
+
+Function fpc_Val_Real_AnsiStr(Const S : AnsiString; Var Code : ValSInt): ValReal; compilerproc;
+Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; Var Code : ValSInt): ValUInt; compilerproc;
+Function fpc_Val_SInt_AnsiStr (DestSize: longint; Const S : AnsiString; Var Code : ValSInt): ValSInt; compilerproc;
+Function fpc_Val_UInt64_AnsiStr (Const S : AnsiString; Var Code : ValSInt): qword;compilerproc; 
+Function fpc_Val_SInt64_AnsiStr (Const S : AnsiString; Var Code : ValSInt): Int64; compilerproc;
+procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : longint;var s : ansistring); compilerproc;
+Procedure fpc_AnsiStr_UInt(C : Cardinal;Len : Longint; Var S : AnsiString); compilerproc;
+Procedure fpc_AnsiStr_SInt(L : Longint; Len : Longint; Var S : AnsiString); compilerproc;
+
+Function fpc_Val_Real_WideStr(Const S : WideString; Var Code : ValSInt): ValReal; compilerproc;
+Function fpc_Val_UInt_WideStr (Const S : WideString; Var Code : ValSInt): ValUInt; compilerproc;
+Function fpc_Val_SInt_WideStr (DestSize: longint; Const S : WideString; Var Code : ValSInt): ValSInt; compilerproc;
+Function fpc_Val_UInt64_WideStr (Const S : WideString; Var Code : ValSInt): qword; compilerproc;
+Function fpc_Val_SInt64_WideStr (Const S : WideString; Var Code : ValSInt): Int64; compilerproc;
+procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : longint;var s : WideString); compilerproc;
+Procedure fpc_WideStr_Cardinal(C : Cardinal;Len : Longint; Var S : WideString); compilerproc;
+Procedure fpc_WideStr_Longint(L : Longint; Len : Longint; Var S : WideString); compilerproc;
+
+function fpc_do_is(aclass : tclass;aobject : tobject) : boolean; compilerproc;
+procedure fpc_do_as(aclass : tclass;aobject : tobject); compilerproc;
+procedure fpc_intf_decr_ref(var i: pointer); compilerproc;
+procedure fpc_intf_incr_ref(const i: pointer); compilerproc;
+procedure fpc_intf_assign(var D: pointer; const S: pointer); compilerproc;
+procedure fpc_intf_as(var D: pointer; const S: pointer; const iid: TGUID); compilerproc;
+
+Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ; compilerproc;
+Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer); compilerproc;
+Function fpc_Raiseexception (Obj : TObject; AnAddr,AFrame : Pointer) : TObject; compilerproc;
+Procedure fpc_PopAddrStack; compilerproc;
+function fpc_PopObjectStack : TObject; compilerproc;
+function fpc_PopSecondObjectStack : TObject; compilerproc;
+Procedure fpc_ReRaise; compilerproc;
+Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
+Procedure fpc_DestroyException(o : TObject); compilerproc;
+
+procedure fpc_help_constructor; compilerproc;
+procedure fpc_help_fail; compilerproc;
+procedure fpc_help_destructor; compilerproc;
+procedure fpc_new_class; compilerproc;
+procedure fpc_dispose_class; compilerproc;
+procedure fpc_help_fail_class; compilerproc;
+procedure fpc_check_object(obj : pointer); compilerproc;
+procedure fpc_check_object_ext; compilerproc;
+
+Procedure fpc_Initialize (Data,TypeInfo : pointer); compilerproc;
+Procedure fpc_Finalize (Data,TypeInfo: Pointer); compilerproc;
+Procedure fpc_Addref (Data,TypeInfo : Pointer); compilerproc;
+Procedure fpc_DecRef (Data,TypeInfo : Pointer);  compilerproc;
+procedure fpc_FinalizeArray(data,typeinfo : pointer;count,size : longint); compilerproc;
+
+procedure fpc_set_load_small(p : pointer;l:longint); compilerproc;
+procedure fpc_set_create_element(p : pointer;b : byte); compilerproc;
+procedure fpc_set_set_byte(p : pointer;b : byte); compilerproc;
+procedure fpc_set_unset_byte(p : pointer;b : byte); compilerproc;
+procedure fpc_set_set_range(p : pointer;l,h : byte); compilerproc;
+procedure fpc_set_in_byte(p : pointer;b : byte); compilerproc;
+procedure fpc_set_add_sets(set1,set2,dest : pointer); compilerproc;
+procedure fpc_set_mul_sets(set1,set2,dest:pointer); compilerproc;
+procedure fpc_set_sub_sets(set1,set2,dest:pointer); compilerproc;
+procedure fpc_set_symdif_sets(set1,set2,dest:pointer); compilerproc;
+procedure fpc_set_comp_sets(set1,set2 : pointer); compilerproc;
+procedure fpc_set_contains_sets(set1,set2 : pointer); compilerproc;
+
+{$ifdef LARGESETS}
+procedure fpc_largeset_set_word(p : pointer;b : word); compilerproc;
+procedure fpc_largeset_in_word(p : pointer;b : word); compilerproc;
+procedure fpc_largeset_add_sets(set1,set2,dest : pointer;size : longint); compilerproc;
+procedure fpc_largeset_sets(set1,set2,dest : pointer;size : longint); compilerproc;
+procedure fpc_largeset_sub_sets(set1,set2,dest : pointer;size : longint); compilerproc;
+procedure fpc_largeset_symdif_sets(set1,set2,dest : pointer;size : longint); compilerproc;
+procedure fpc_largeset_comp_sets(set1,set2 : pointer;size : longint); compilerproc;
+procedure fpc_largeset_contains_sets(set1,set2 : pointer; size: longint); compilerproc;
+{$endif LARGESETS}
+
+procedure fpc_rangeerror; compilerproc;
+procedure fpc_overflow; compilerproc;
+procedure fpc_iocheck(addr : longint); compilerproc;
+
+procedure fpc_InitializeUnits; compilerproc;
+// not generated by compiler, called directly in system unit
+// procedure fpc_FinalizeUnits; compilerproc;
+
+{
+Procedure fpc_do_exit; compilerproc;
+Procedure fpc_lib_exit; compilerproc;
+Procedure fpc_HandleErrorAddrFrame (Errno : longint;addr,frame : longint); compilerproc;
+Procedure fpc_HandleError (Errno : longint); compilerproc;
+}
+
+procedure fpc_AbstractErrorIntern;compilerproc;
+procedure fpc_assert(Const Msg,FName:Shortstring;LineNo,ErrorAddr:Longint); compilerproc;
+
+{$endif hascompilerproc}
+
+{
+  $Log$
+  Revision 1.1  2001-08-01 15:00:10  jonas
+    + "compproc" helpers
+    * renamed several helpers so that their name is the same as their
+      "public alias", which should facilitate the conversion of processor
+      specific code in the code generator to processor independent code
+    * some small fixes to the val_ansistring and val_widestring helpers
+      (always immediately exit if the source string is longer than 255
+       chars)
+    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
+      still nil (used to crash, now return resp -1 and 0)
+
+}
