@@ -11,7 +11,14 @@ var
   TtyFd: Longint;
   Console: Boolean;
   OldVideoBuf: PVideoBuf;
+{$ifdef logging}
+  f: file;
 
+const
+  logstart: string = '';
+  nl: char = #10;
+  logend: string = #10#10;
+{$endif logging}
 {$ASMMODE ATT}
 
 procedure SendEscapeSeqNdx(Ndx: Word);
@@ -177,8 +184,16 @@ var
      end;
     move(hstr[1],outbuf[outptr],length(hstr));
     inc(outptr,length(hstr));
-    if outptr>1024 then
+    if outptr>=1024 then
      begin
+{$ifdef logging}
+       blockwrite(f,logstart[1],length(logstart));
+       blockwrite(f,nl,1);
+       blockwrite(f,outptr,sizeof(outptr));
+       blockwrite(f,nl,1);
+       blockwrite(f,outbuf,outptr);
+       blockwrite(f,nl,1);
+{$endif logging}
        fdWrite(TTYFd,outbuf,outptr);
        outptr:=0;
      end;
@@ -273,9 +288,81 @@ begin
    end;
   eol:=0;
   OutData(XY2Ansi(CursorX,CursorY,LastX,LastY));
+{$ifdef logging}
+  blockwrite(f,logstart[1],length(logstart));
+  blockwrite(f,nl,1);
+  blockwrite(f,outptr,sizeof(outptr));
+  blockwrite(f,nl,1);
+  blockwrite(f,outbuf,outptr);
+  blockwrite(f,nl,1);
+{$endif logging}
   fdWrite(TTYFd,outbuf,outptr);
 end;
 
+var
+  preInitVideoTio, postInitVideoTio: linux.termios;
+  inputRaw, outputRaw: boolean;
+
+procedure saveRawSettings(const tio: linux.termios);
+Begin
+  with tio do
+   begin
+     inputRaw :=
+       ((c_iflag and (IGNBRK or BRKINT or PARMRK or ISTRIP or
+                                INLCR or IGNCR or ICRNL or IXON)) = 0) and
+       ((c_lflag and (ECHO or ECHONL or ICANON or ISIG or IEXTEN)) = 0);
+     outPutRaw :=
+       ((c_oflag and OPOST) = 0) and
+       ((c_cflag and (CSIZE or PARENB)) = 0) and
+       ((c_cflag and CS8) <> 0);
+   end;
+end;
+
+procedure restoreRawSettings(tio: linux.termios);
+begin
+  with tio do
+    begin
+      if inputRaw then
+        begin
+          c_iflag := c_iflag and (not (IGNBRK or BRKINT or PARMRK or ISTRIP or
+            INLCR or IGNCR or ICRNL or IXON));
+          c_lflag := c_lflag and
+            (not (ECHO or ECHONL or ICANON or ISIG or IEXTEN));
+       end;
+     if outPutRaw then
+       begin
+         c_oflag := c_oflag and not(OPOST);
+         c_cflag := c_cflag and not(CSIZE or PARENB) or CS8;
+       end;
+   end;
+  TCSetAttr(1,TCSANOW,tio);
+end;
+
+procedure prepareInitVideo;
+begin
+  TCGetAttr(1,preInitVideoTio);
+  saveRawSettings(preInitVideoTio);
+end;
+
+procedure videoInitDone;
+begin
+  TCGetAttr(1,postInitVideoTio);
+  restoreRawSettings(postInitVideoTio);
+end;
+
+procedure prepareDoneVideo;
+var
+  tio: linux.termios;
+begin
+  TCGetAttr(1,tio);
+  saveRawSettings(tio);
+  TCSetAttr(1,TCSANOW,postInitVideoTio);
+end;
+
+procedure doneVideoDone;
+begin
+  restoreRawSettings(preInitVideoTio);
+end;
 
 procedure InitVideo;
 const
@@ -290,11 +377,23 @@ var
 begin
   LowAscii:=false;
   if VideoBufSize<>0 then
-   DoneVideo;
+   begin
+     clearscreen;
+     if Console then
+      SetCursorPos(1,1)
+     else
+      begin
+        SendEscapeSeqNdx(cursor_home);
+        SendEscapeSeq(#27'[H');
+      end;
+     exit;
+   end;
   { check for tty }
   ThisTTY:=TTYName(stdin);
   if IsATTY(stdin) then
    begin
+     { save current terminal characteristics and remove rawness }
+     prepareInitVideo;
      { write code to set a correct font }
      fdWrite(stdout,fontstr[1],length(fontstr));
      { running on a tty, find out whether locally or remotely }
@@ -340,6 +439,12 @@ begin
         SetCursorType(crUnderLine);
       end;
      ClearScreen;
+{$ifdef logging}
+     assign(f,'video.log');
+     rewrite(f,1);
+{$endif logging}
+     { save new terminal characteristics and possible restore rawness }
+     videoInitDone;
    end
   else
    ErrorCode:=errVioInit; { not a TTY }
@@ -349,6 +454,7 @@ procedure DoneVideo;
 begin
   if VideoBufSize=0 then
    exit;
+  prepareDoneVideo;
   ClearScreen;
   if Console then
    SetCursorPos(1,1)
@@ -364,6 +470,11 @@ begin
   FreeMem(VideoBuf,VideoBufSize);
   FreeMem(OldVideoBuf,VideoBufSize);
   VideoBufSize:=0;
+  doneVideoDone;
+  del_curterm(cur_term);
+{$ifdef logging}
+  close(f);
+{$endif logging}
 end;
 
 
@@ -478,7 +589,16 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-08-02 12:39:22  jonas
+  Revision 1.4  2000-09-26 08:18:29  jonas
+    + added preserving of rawness of terminal when going though
+      init/donevideo
+    * del_term() is now called in donevideo
+    * if initvideo is called while the video is already initialized, the
+      screen is cleared and the cursor is set home, instead of going
+      through the whole donevideo and then initvideo
+    (merged from fixes branch)
+
+  Revision 1.3  2000/08/02 12:39:22  jonas
     * fixed crashes under ncurses 4 by adding auto-detection for ncurses 4/5
     * cur_term is not directly usable anymore for the largest part because
       of a different record layout in ncurses 4/5, therefore the pointers
