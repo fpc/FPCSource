@@ -54,10 +54,11 @@ SYSTEMUNIT=syswin32
 LOADEROBJECTS=wprt0 wdllprt0
 
 # Unit Objects
-UNITOBJECTS=$(SYSTEMUNIT) strings windows \
+UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
+	    windows ole2 \
 	    dos crt objects \
-	    objpas sysutils typinfo math \
-            cpu mmx getopts heaptrc ole2
+	    sysutils typinfo math \
+	    cpu mmx getopts heaptrc
 
 # Files used by windows.pp
 WINDOWS_FILES=base errors defines \
@@ -72,9 +73,9 @@ WINDOWS_SOURCE_FILES=$(addsuffix .pp,$(WINDOWS_FILES))
 #####################################################################
 
 .PHONY: all clean install info \
-        staticlib sharedlib libsclean \
-        staticinstall sharedinstall libinstall \
-        
+	staticlib sharedlib libsclean \
+	staticinstall sharedinstall libinstall \
+
 all: testfpcmake fpc_all
 
 clean: testfpcmake fpc_clean
@@ -176,32 +177,22 @@ wdllprt0$(OEXT) : wdllprt0.as
 
 
 #
-# Base Units (System, strings, os-dependent-base-unit)
+# System Units (System, Objpas, Strings)
 #
 
 $(SYSTEMPPU) : syswin32.pp win32.inc $(SYSDEPS)
 	$(COMPILER) -Us -Sg syswin32.pp $(REDIR)
+
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMPPU)
+	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
 		   $(SYSTEMPPU)
 
 #
-# Delphi Object Model
-#
-
-include $(OBJPASDIR)/makefile.op
-
-
-#
 # System Dependent Units
 #
-
-base$(PPUEXT) : base.pp $(SYSTEMPPU)
-
-messages$(PPUEXT) : messages.pp $(SYSTEMPPU)
-
-defines$(PPUEXT) : defines.pp $(SYSTEMPPU)
 
 windows$(PPUEXT) : windows.pp redef.inc $(WINDOWS_SOURCE_FILES) $(SYSTEMPPU)
 
@@ -218,7 +209,21 @@ crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(SYSTEMPPU) objpas$(PPUEXT)
 objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 
 #
-# Other RTL Units
+# Delphi Compatible Units
+#
+
+sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
+                    filutil.inc disk.inc objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
+	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/sysutils.pp $(REDIR)
+
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
+	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
+
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
+
+#
+# Other system-independent RTL Units
 #
 
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
@@ -228,6 +233,10 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
+
+#
+# Other system-dependent RTL Units
+#
 
 
 #####################################################################
@@ -362,7 +371,11 @@ endif
 
 #
 # $Log$
-# Revision 1.25  1999-04-20 11:34:11  peter
+# Revision 1.26  1999-04-22 10:56:33  peter
+#   * fixed sysutils dependencys
+#   * objpas files are agian in the main Makefile, makefile.op is obsolete
+#
+# Revision 1.25  1999/04/20 11:34:11  peter
 #   + crt unit that compiles
 #
 # Revision 1.24  1999/03/22 22:12:50  florian

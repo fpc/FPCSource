@@ -55,12 +55,12 @@ SYSTEMUNIT=system
 LOADEROBJECTS=prt0 exceptn fpu
 
 # Unit Objects
-UNITOBJECTS=$(SYSTEMUNIT) strings go32 initc \
-	  dpmiexcp profile dxeload emu387 \
-	  dos crt objects printer \
-	  objpas sysutils math typinfo \
+UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
+	  go32 initc dpmiexcp profile dxeload emu387 \
+          dos crt objects printer graph \
+	  sysutils math typinfo \
 	  cpu mmx getopts heaptrc \
-	  msmouse graph
+          msmouse
 
 
 #####################################################################
@@ -68,9 +68,9 @@ UNITOBJECTS=$(SYSTEMUNIT) strings go32 initc \
 #####################################################################
 
 .PHONY: all clean install info \
-        staticlib sharedlib libsclean \
-        staticinstall sharedinstall libinstall \
-        
+	staticlib sharedlib libsclean \
+	staticinstall sharedinstall libinstall \
+
 all: testfpcmake fpc_all
 
 clean: testfpcmake fpc_clean
@@ -166,28 +166,24 @@ prt0$(OEXT) : v2prt0.as
 	$(AS) -o prt0$(OEXT) v2prt0.as
 
 #
-# Base Units (System, strings, os-dependent-base-unit)
+# System Units (System, Objpas, Strings)
 #
 
 $(SYSTEMPPU) : system.pp $(SYSDEPS)
 	$(COMPILER) -Us -Sg system.pp $(REDIR)
 
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMPPU)
+	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
+
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
 		   $(SYSTEMPPU)
 
-go32$(PPUEXT) : go32.pp $(SYSTEMPPU)
-
-#
-# Delphi Object Model
-#
-
-include $(OBJPASDIR)/makefile.op
-
-
 #
 # System Dependent Units
 #
+
+go32$(PPUEXT) : go32.pp $(SYSTEMPPU)
 
 dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) $(SYSTEMPPU)
 	$(COMPILER) -Sg dpmiexcp.pp $(REDIR)
@@ -214,34 +210,56 @@ objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 
 printer$(PPUEXT) : printer.pp $(SYSTEMPPU)
 
+graph$(PPUEXT) : graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) \
+		 $(wildcard $(PPI)/*.ppi)
+	$(COMPILER) -I$(PPI) graph.pp $(REDIR)
+
 #
-# Other RTL Units
+# Delphi Compatible Units
+#
+
+sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
+		    filutil.inc disk.inc objpas$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT)
+	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/sysutils.pp $(REDIR)
+
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
+	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
+
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
+
+#
+# Other system-independent RTL Units
 #
 
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
 
-msmouse$(PPUEXT) : msmouse.pp $(SYSTEMPPU)
-
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
 
-graph$(PPUEXT) : graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) \
-		 $(wildcard $(PPI)/*.ppi)
-	$(COMPILER) -I$(PPI) graph.pp $(REDIR)
+#
+# Other system-dependent RTL Units
+#
+
+msmouse$(PPUEXT) : msmouse.pp $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.11  1999-03-16 00:47:08  peter
+# Revision 1.12  1999-04-22 10:56:31  peter
+#   * fixed sysutils dependencys
+#   * objpas files are agian in the main Makefile, makefile.op is obsolete
+#
+# Revision 1.11  1999/03/16 00:47:08  peter
 #   * makefile.fpc targets start with fpc_
 #   * small updates for install scripts
 #
 # Revision 1.10  1999/03/12 21:04:45  michael
 # +  clean and libsclean added
 #
-# Revision 1.9  1999/03/09 01:35:54  peter
+# Revision 1.9	1999/03/09 01:35:54  peter
 #   * makefile.fpc updates and defaultfpcdir var
 #
 #

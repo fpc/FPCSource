@@ -65,11 +65,12 @@ GLOADERAS=$(CPU)/g$(PRT).as
 LOADEROBJECTS=prt0 cprt0 gprt0
 
 # Unit Objects
-UNITOBJECTS=$(SYSTEMUNIT) strings linux \
-            dos crt objects printer ports \
-            objpas sysutils typinfo math \
-            cpu mmx getopts heaptrc \
-            errors sockets graph
+UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
+            linux ports \
+            dos crt objects printer graph \
+	    sysutils typinfo math \
+	    cpu mmx getopts heaptrc \
+	    errors sockets graph
 
 
 #####################################################################
@@ -77,9 +78,9 @@ UNITOBJECTS=$(SYSTEMUNIT) strings linux \
 #####################################################################
 
 .PHONY: all clean install info \
-        staticlib sharedlib libsclean \
-        staticinstall sharedinstall libinstall \
-        
+	staticlib sharedlib libsclean \
+	staticinstall sharedinstall libinstall \
+
 all: testfpcmake fpc_all
 
 clean: testfpcmake fpc_clean
@@ -181,42 +182,34 @@ gprt0$(OEXT) : $(GLOADERAS)
 	$(AS) -o gprt0$(OEXT) $(GLOADERAS)
 
 #
-# Base Units (System, strings, os-dependent-base-unit)
+# System Units (System, Objpas, Strings)
 #
 
 $(SYSTEMPPU) : syslinux.pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
 	$(COMPILER) -Us -Sg syslinux.pp $(REDIR)
 
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMPPU)
+	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
+
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
-                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
-                   $(SYSTEMPPU)
-
-linux$(PPUEXT) : linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
-                 syscalls.inc systypes.inc sysconst.inc $(SYSTEMPPU)
-
-#
-# Delphi Object Model
-#
-
-include $(OBJPASDIR)/makefile.op
+		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
+		   $(SYSTEMPPU)
 
 #
 # System Dependent Units
 #
 
-sockets$(PPUEXT) : sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
-                   linux$(PPUEXT) $(SYSTEMPPU)
+linux$(PPUEXT) : linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
+		 syscalls.inc systypes.inc sysconst.inc $(SYSTEMPPU)
 
-errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMPPU)
-
-ipc$(PPUEXT) : ipc.pp linux$(PPUEXT) $(SYSTEMPPU)
+ports$(PPUEXT) : ports.pp linux$(PPUEXT) objpas$(PPUEXT)
 
 #
 # TP7 Compatible RTL Units
 #
 
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
-               linux$(PPUEXT) $(SYSTEMPPU)
+	       linux$(PPUEXT) $(SYSTEMPPU)
 
 crt$(PPUEXT) : crt.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
 
@@ -224,12 +217,24 @@ objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 
 printer$(PPUEXT) : printer.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
 
-ports$(PPUEXT) : ports.pp linux$(PPUEXT) objpas$(PPUEXT)
-
 graph$(PPUEXT) : graph.pp linux$(PPUEXT) objects$(PPUEXT)
 
 #
-# Other RTL Units
+# Delphi Compatible Units
+#
+
+sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
+                    filutil.inc disk.inc objpas$(PPUEXT) linux$(PPUEXT)
+	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/sysutils.pp $(REDIR)
+
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
+	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
+
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
+
+#
+# Other system-independent RTL Units
 #
 
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
@@ -240,18 +245,25 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
 
-#######################################################################
-# clean
-#######################################################################
+#
+# Other system-dependent RTL Units
+#
 
-clean: fpc_clean
+sockets$(PPUEXT) : sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
+		   linux$(PPUEXT) $(SYSTEMPPU)
 
-libsclean: fpc_libsclean
+errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMPPU)
+
+ipc$(PPUEXT) : ipc.pp linux$(PPUEXT) $(SYSTEMPPU)
 
 
 #
 # $Log$
-# Revision 1.19  1999-04-14 09:07:17  peter
+# Revision 1.20  1999-04-22 10:56:32  peter
+#   * fixed sysutils dependencys
+#   * objpas files are agian in the main Makefile, makefile.op is obsolete
+#
+# Revision 1.19  1999/04/14 09:07:17  peter
 #   * fixed strings dependency
 #
 # Revision 1.18  1999/03/22 13:09:10  peter
