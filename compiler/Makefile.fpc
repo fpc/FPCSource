@@ -123,6 +123,16 @@ MSGFILE=msg/error$(FPCLANG).msg
 # set correct defines (-d$(CPU_TARGET) is automaticly added in makefile.fpc)
 override LOCALDEF+=-d$(PPC_TARGET) -dGDB -dBROWSERLOG
 
+PASDOC:=$(strip $(wildcard $(addsuffix /pasdoc.exe,$(SEARCHPATH))))
+ifeq ($(PASDOC),)
+PASDOC:=$(strip $(wildcard $(addsuffix /pasdoc,$(SEARCHPATH))))
+endif
+ifeq ($(PASDOC),)
+PASDOC:=../projects/pasdoc/bin/pasdoc
+else
+PASDOC:=$(firstword $(PASDOC))
+endif
+
 # i386 specific
 ifeq ($(PPC_TARGET),i386)
 override LOCALDEF+=-dSUPPORT_MMX
@@ -421,6 +431,12 @@ cycledep:
 cvstest:
         $(MAKE) cycle 'LOCALOPT=-n -Se' 'RTLOPTS=-n -Se'
 
+
+#####################################################################
+# Docs
+#####################################################################
+htmldocs:
+        $(PASDOC) -p -h -o html$(PATHSEP)$(PPC_TARGET) -d fpc -d gdb -d $(PPC_TARGET) -u $(PPC_TARGET) $(PPC_TARGET)$(PATHSEP)*.pas targets$(PATHSEP)*.pas *.pas
 
 #####################################################################
 # Installation
