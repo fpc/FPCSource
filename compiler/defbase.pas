@@ -1947,7 +1947,7 @@ implementation
                     b:=2;
                 end;
              end;
-
+           { a variant isn't compatible to nil (FK)
            variantdef :
              begin
                if (fromtreetype=niln) then
@@ -1956,7 +1956,7 @@ implementation
                    b:=1;
                  end;
              end;
-
+           }
            formaldef :
              begin
                { Just about everything can be converted to a formaldef...}
@@ -2012,7 +2012,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2002-10-07 09:49:42  florian
+  Revision 1.21  2002-10-09 21:01:41  florian
+    * variants aren't compatible with nil
+
+  Revision 1.20  2002/10/07 09:49:42  florian
     * overloaded :=-operator is now searched when looking for possible
       variant type conversions
 
