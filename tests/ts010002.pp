@@ -20,7 +20,7 @@
     TComponent
 }
 
-Unit Classes;
+Unit ts010002;
 
 {$M+}
 
