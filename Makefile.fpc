@@ -293,7 +293,7 @@ endif
         $(MAKE) packages_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) utils_all $(BUILDOPTS)
 ifdef IDE
-        -$(MAKE) ide_full $(BUILDOPTS)
+        $(MAKE) ide_full $(BUILDOPTS)
 endif
         $(ECHO) Build > build-stamp.$(OS_TARGET)
 

@@ -56,6 +56,9 @@ endif
 
 ifeq ($(FULL),1)
 override OPT+=-dBrowserCol -dGDB
+ifeq ($(CPU_TARGET),i386)
+override OPT+=-dSUPPORT_MMX
+endif
 endif
 
 
