@@ -44,8 +44,8 @@ _start:
 	popq     %rsi		      /* Pop the argument count.  */
         movq     %rsi,U_SYSTEM_ARGC
 	movq     %rsp,U_SYSTEM_ARGV   /* argv starts just at the current stack top.  */
-        leaq     8(%rsi,,8),%rax
-        addq     %esp,%rax
+        leaq     8(,%rsi,8),%rax
+        addq     %rsp,%rax
         movq     %rax,U_SYSTEM_ENVP
         andq     $~15,%rsp            /* Align the stack to a 16 byte boundary to follow the ABI.  */
 
@@ -67,7 +67,10 @@ __data_start:
         data_start = __data_start
 #
 # $Log$
-# Revision 1.1  2003-01-06 19:33:10  florian
+# Revision 1.2  2004-02-02 21:02:38  peter
+#   * fixed syntax errors
+#
+# Revision 1.1  2003/01/06 19:33:10  florian
 #   + initial revision
 #
 #
