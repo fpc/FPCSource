@@ -75,11 +75,45 @@ implementation
 *****************************************************************************}
 
     procedure secondnewn(var p : ptree);
+      var
+         pushed : tpushed;
+         r : preference;
       begin
-         secondpass(p^.left);
+         if assigned(p^.left) then
+           begin
+              secondpass(p^.left);
+              p^.location.register:=p^.left^.location.register;
+           end
+         else
+           begin
+              pushusedregisters(pushed,$ff);
+
+              { code copied from simplenewdispose PM }
+              { determines the size of the mem block }
+              push_int(ppointerdef(p^.resulttype)^.definition^.size);
+
+              gettempofsizereference(target_os.size_of_pointer,p^.location.reference);
+              emitpushreferenceaddr(exprasmlist,p^.location.reference);
+              
+              emitcall('FPC_GETMEM',true);
+              if ppointerdef(p^.resulttype)^.definition^.needs_inittable then
+                begin
+                   new(r);
+                   reset_reference(r^);
+                   r^.symbol:=stringdup(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label));
+                   emitpushreferenceaddr(exprasmlist,r^);
+                   { push pointer adress }
+                   emitpushreferenceaddr(exprasmlist,p^.location.reference);
+                   stringdispose(r^.symbol);
+                   dispose(r);
+                   emitcall('FPC_INITIALIZE',true);
+                end;
+              popusedregisters(pushed);
+              { may be load ESI }
+              maybe_loadesi;
+           end;
          if codegenerror then
            exit;
-         p^.location.register:=p^.left^.location.register;
       end;
 
 
@@ -157,6 +191,8 @@ implementation
                         LOC_REFERENCE:
                           emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                      end;
+                     stringdispose(r^.symbol);
+                     dispose(r);
                      emitcall('FPC_FINALIZE',true);
                   end;
                 emitcall('FPC_FREEMEM',true);
@@ -177,6 +213,8 @@ implementation
                         LOC_REFERENCE:
                           emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                      end;
+                     stringdispose(r^.symbol);
+                     dispose(r);
                      emitcall('FPC_INITIALIZE',true);
                   end;
              end;
@@ -702,7 +740,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1998-11-20 15:35:55  florian
+  Revision 1.20  1998-11-25 19:12:54  pierre
+    * var:=new(pointer_type) support added
+
+  Revision 1.19  1998/11/20 15:35:55  florian
     * problems with rtti fixed, hope it works
 
   Revision 1.18  1998/11/17 00:36:40  peter

@@ -81,18 +81,25 @@ implementation
     procedure firstnew(var p : ptree);
       begin
          { Standardeinleitung }
-         firstpass(p^.left);
+         if assigned(p^.left) then
+           firstpass(p^.left);
 
          if codegenerror then
            exit;
-         p^.registers32:=p^.left^.registers32;
-         p^.registersfpu:=p^.left^.registersfpu;
+         if assigned(p^.left) then
+           begin
+              p^.registers32:=p^.left^.registers32;
+              p^.registersfpu:=p^.left^.registersfpu;
 {$ifdef SUPPORT_MMX}
-         p^.registersmmx:=p^.left^.registersmmx;
+              p^.registersmmx:=p^.left^.registersmmx;
 {$endif SUPPORT_MMX}
+           end;
          { result type is already set }
          procinfo.flags:=procinfo.flags or pi_do_call;
-         p^.location.loc:=LOC_REGISTER;
+         if assigned(p^.left) then
+           p^.location.loc:=LOC_REGISTER
+         else
+           p^.location.loc:=LOC_REFERENCE;
       end;
 
 
@@ -500,7 +507,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-09-26 15:03:05  florian
+  Revision 1.4  1998-11-25 19:12:53  pierre
+    * var:=new(pointer_type) support added
+
+  Revision 1.3  1998/09/26 15:03:05  florian
     * small problems with DOM and excpetions fixed (code generation
       of raise was wrong and self was sometimes destroyed :()
 

@@ -1420,10 +1420,14 @@ unit pexpr;
                   pd:=p1^.typenodetype;
                  pd2:=pd;
 
-                 if (pd^.deftype<>pointerdef) or
-                    (ppointerdef(pd)^.definition^.deftype<>objectdef) then
+                 if (pd^.deftype<>pointerdef) then
+                   Message(type_e_pointer_type_expected)
+                 else if (ppointerdef(pd)^.definition^.deftype<>objectdef) then
                   begin
-                    Message(parser_e_pointer_to_class_expected);
+                    p1:=gensinglenode(newn,nil);
+                    p1^.resulttype:=pd2;
+                    consume(RKLAMMER);
+                    (*Message(parser_e_pointer_to_class_expected);
                     { if an error occurs, read til the end of
                       the new statement }
                     p1:=genzeronode(errorn);
@@ -1437,7 +1441,7 @@ unit pexpr;
                        consume(token);
                        if l=0 then
                         break;
-                     end;
+                     end;*)
                   end
                  else
                   begin
@@ -1904,7 +1908,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.74  1998-11-13 10:18:11  peter
+  Revision 1.75  1998-11-25 19:12:51  pierre
+    * var:=new(pointer_type) support added
+
+  Revision 1.74  1998/11/13 10:18:11  peter
     + nil constants
 
   Revision 1.73  1998/11/05 12:02:52  peter

@@ -77,11 +77,46 @@ implementation
 *****************************************************************************}
 
     procedure secondnewn(var p : ptree);
+      var
+         pushed : tpushed;
+         r : preference;
       begin
-         secondpass(p^.left);
+         if assigned(p^.left) then
+           begin
+              secondpass(p^.left);
+              p^.location.register:=p^.left^.location.register;
+           end
+         else
+           begin
+              pushusedregisters(pushed,$ff);
+
+              { code copied from simplenewdispose PM }
+              { determines the size of the mem block }
+              push_int(ppointerdef(p^.resulttype)^.definition^.size);
+
+              gettempofsizereference(target_os.size_of_pointer,p^.location.reference);
+              emitpushreferenceaddr(exprasmlist,p^.location.reference);
+              
+              emitcall('FPC_GETMEM',true);
+{!!!!!!!}
+(*              if ppointerdef(p^.resulttype)^.definition^.needs_inittable then
+                begin
+                   new(r);
+                   reset_reference(r^);
+                   r^.symbol:=stringdup(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label));
+                   emitpushreferenceaddr(exprasmlist,r^);
+                   { push pointer adress }
+                   emitpushreferenceaddr(exprasmlist,p^.location.reference);
+                   stringdispose(r^.symbol);
+                   dispose(r);
+                   emitcall('FPC_INITIALIZE',true);
+                end; *)
+              popusedregisters(pushed);
+              { may be load ESI }
+              maybe_loada5;
+           end;
          if codegenerror then
            exit;
-         p^.location.register:=p^.left^.location.register;
       end;
 
 
@@ -689,7 +724,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-10-14 11:28:21  florian
+  Revision 1.9  1998-11-25 19:12:55  pierre
+    * var:=new(pointer_type) support added
+
+  Revision 1.8  1998/10/14 11:28:21  florian
     * emitpushreferenceaddress gets now the asmlist as parameter
     * m68k version compiles with -duseansistrings
 
