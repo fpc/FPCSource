@@ -22,7 +22,7 @@ function fpc_set_load_small(l: fpc_small_set): fpc_normal_set;assembler;[public,
   on entry: p in r3, l in r4
 }
 asm
-        stw     r4,(r3)
+        stw     r4,0(r3)
         li      r0,0
         stw     r0,4(r3)
         stw     r0,8(r3)
@@ -34,6 +34,7 @@ asm
 end ['r0'];
 
 
+{ checked 2001/09/28 (JM) }
 function fpc_set_create_element(b : byte): fpc_normal_set;assembler;[public,alias:'FPC_SET_CREATE_ELEMENT']; compilerproc;
 {
   create a new set in p from an element b
@@ -42,7 +43,7 @@ function fpc_set_create_element(b : byte): fpc_normal_set;assembler;[public,alia
 }
 asm
         li      r0,0
-        stw     r0,(r3)
+        stw     r0,0(r3)
         stw     r0,4(r3)
         stw     r0,8(r3)
         stw     r0,12(r3)
@@ -51,15 +52,15 @@ asm
         stw     r0,24(r3)
         stw     r0,28(r3)
 
-        // r0 := 1 shl r4[27-31] -> bit index in dword (shift instructions
+        // r0 := 1 shl r4[27-31] -> bit index in dword (rotate instructions
         // with count in register only consider lower 5 bits of this register)
         li      r0,1
-        slw     r0,r0,r4
+        rlwnm   r0,r0,r4,0,31
 
         // get the index of the correct *dword* in the set
         // (((b div 8) div 4)*4= (b div 8) and not(3))
-        // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
-        rlwinm  r4,r4,29,0,31-2
+        // r5 := (r4 rotl(32-3)) and (0x01ffffff8)
+        rlwinm  r4,r4,31-3+1,3,31-2
 
         // store the result
         stwx    r0,r3,r4
@@ -84,12 +85,13 @@ Lset_set_byte_copy:
        subi     r3,r3,32
        // get the index of the correct *dword* in the set
        // r0 := (r5 rotl(32-3)) and (0x0fffffff8)
-       rlwinm   r0,r5,29,0,31-2
+       rlwinm   r0,r5,31-3+1,3,31-2
        // load dword in which the bit has to be set (and update r3 to this address)
        lwzxu    r4,r3,r0
        li       r0,1
        // generate bit which has to be inserted
-       slw      r5,r0,r5
+       // (can't use rlwimi, since that one only works for constants)
+       rlwnm    r5,r0,r5
        // insert it
        or       r5,r4,r5
        // store result
@@ -117,12 +119,12 @@ Lset_unset_byte_copy:
        subi     r3,r3,32
        // get the index of the correct *dword* in the set
        // r0 := (r4 rotl(32-3)) and (0x0fffffff8)
-       rlwinm   r0,r5,29,0,31-2
+       rlwinm   r0,r5,31-3+1,3,31-2
        // load dword in which the bit has to be set (and update r3 to this address)
        lwzxu    r4,r3,r0
        li       r0,1
        // generate bit which has to be removed
-       slw      r5,r0,r5
+       rlwnm    r5,r0,r5,0,31
        // remove it
        andc     r5,r4,r5
        // store result
@@ -149,16 +151,16 @@ Lset_set_range_copy:
   subi     r3,r3,32
 
   cmplw  cr0,r5,r6
-  bg     cr0,LSET_RANGE_EXIT
-  rlwinm r4,r5,32-3,0,31-2    // divide by 8 to get starting and ending byte-
+  bg     cr0,Lset_range_exit
+  rlwinm r4,r5,31-3+1,3,31-2  // divide by 8 to get starting and ending byte-
   { load the set the data cache }
   dcbst  r3,r4
-  rlwinm r9,r5,32-3,0,31-2    // address and clear two lowest bits to get
+  rlwinm r9,r6,31-3+1,3,31-2  // address and clear two lowest bits to get
                               //  start/end longint address
   sub.   r9,r4,r9             // are bit lo and hi in the same longint?
-  rlwinm r6,r6,0,31-4,31      // hi := hi mod 32 (= "hi and 31", but the andi
+  rlwinm r6,r6,0,31-5+1,31    // hi := hi mod 32 (= "hi and 31", but the andi
                               //  instr. only exists in flags modifying form)
-  li     r10,$ffff            // r10 = $0x0ffffffff = bitmask to be inserted
+  li     r10,-1               // r10 = $0x0ffffffff = bitmask to be inserted
   subfic r6,r6,31             // hi := 31 - (hi mod 32) = shift count for later
   srw    r10,r10,r4           // shift bitmask to clear bits below lo
                               // note: shift right = opposite little endian!!
@@ -169,7 +171,7 @@ Lset_set_range_copy:
   subic. r9,r9,4              // bit hi in next longint?
   or     r5,r5,r10            // merge and
   stw    r5,(r3)              // store current mask
-  li     r10,$ffff            // new mask
+  li     r10,-1               // new mask
   lwzu   r5,4(r3)             // load next longint of set
   beq    Lset_range_hi        // bit hi in this longint -> go to adjust for hi
 Lset_range_loop:
@@ -200,12 +202,12 @@ function fpc_set_in_byte(const p: fpc_normal_set; b : byte): boolean;assembler;[
 asm
        // get the index of the correct *dword* in the set
        // r0 := (r4 rotl(32-3)) and (0x0fffffff8)
-       rlwinm   r0,r4,29,0,31-2
+       rlwinm   r0,r4,31-3+1,3,31-2
        // load dword in which the bit has to be tested
        lwzx     r3,r3,r0
        li       r0,1
        // generate bit which has to be tested
-       slw      r4,r0,r4
+       rwlwnm   r4,r0,r4,0,31
        // test it
        and.     r3,r3,r4
 end ['r0','r3','r4','cr0'];
@@ -507,7 +509,14 @@ end;
 
 {
   $Log$
-  Revision 1.9  2001-09-27 15:30:29  jonas
+  Revision 1.10  2001-09-28 13:27:02  jonas
+    * use rlwnm instead of slw, because, although the programming
+      environments manual states otherwise, slw uses the whole contents of
+      the register instead of bits 27-31 as shift count (rlwnm doesn't)
+    * fixed generation of offset inside normal sets where bits have to be
+      inserted
+
+  Revision 1.9  2001/09/27 15:30:29  jonas
     * conversion to compilerproc and to structure used by i386 rtl
     * some bugfixes
     * powerpc.inc is almost complete (only fillchar/word/dword, get_frame etc
