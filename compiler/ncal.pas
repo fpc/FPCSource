@@ -1244,8 +1244,15 @@ type
           hp^.firstpara:=tparaitem(pd.Para.last);
           if not(po_varargs in pd.procoptions) then
            begin
+             { ignore hidden parameters }
+             while assigned(hp^.firstpara) and (hp^.firstpara.is_hidden) do
+               hp^.firstpara:=tparaitem(hp^.firstpara.previous);
              for i:=1 to pd.maxparacount-paralength do
-              hp^.firstpara:=tparaitem(hp^.firstPara.previous);
+               begin
+                 if not assigned(hp^.firstpara) then
+                   internalerror(200401141);
+                 hp^.firstpara:=tparaitem(hp^.firstPara.previous);
+               end;
            end;
         end;
 
@@ -2176,15 +2183,17 @@ type
                   inc(i);
                 currpara:=tparaitem(currpara.next);
               end;
-             while assigned(currpara) and
-                   currpara.is_hidden do
+             while assigned(currpara) and currpara.is_hidden do
                currpara:=tparaitem(currpara.next);
              while assigned(currpara) do
               begin
                 if not assigned(currpara.defaultvalue) then
                  internalerror(200212142);
                 left:=ccallparanode.create(genconstsymtree(tconstsym(currpara.defaultvalue)),left);
-                currpara:=tparaitem(currpara.next);
+                { Ignore vs_hidden parameters }
+                repeat
+                  currpara:=tparaitem(currpara.next);
+                until (not assigned(currpara)) or (not currpara.is_hidden);
               end;
            end;
 
@@ -2706,7 +2715,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.218  2004-01-11 23:56:19  daniel
+  Revision 1.219  2004-01-14 17:53:58  peter
+    * ignore hidden parameters when default parameters are used
+
+  Revision 1.218  2004/01/11 23:56:19  daniel
     * Experiment: Compress strings to save memory
       Did not save a single byte of mem; clearly the core size is boosted by
       temporary memory usage...
