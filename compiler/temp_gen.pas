@@ -176,6 +176,7 @@ unit temp_gen;
       begin
          bestprev:=nil;
          bestslot:=nil;
+         tl:=nil;
          bestsize:=0;
          { Align needed size on 4 bytes }
          if (size mod 4)<>0 then
@@ -302,6 +303,9 @@ unit temp_gen;
             if tl^.temptype=tt_freeansistring then
              begin
                foundslot:=tl;
+{$ifdef EXTDEBUG}
+               tl^.posinfo:=aktfilepos;
+{$endif}
                break;
              end;
             tl:=tl^.next;
@@ -314,6 +318,9 @@ unit temp_gen;
          else
           begin
             ofs:=newtempofsize(target_os.size_of_pointer);
+{$ifdef EXTDEBUG}
+            templist^.posinfo:=aktfilepos;
+{$endif}
             templist^.temptype:=tt_ansistring;
           end;
          exprasmlist^.concat(new(paitempalloc,alloc(ofs,target_os.size_of_pointer)));
@@ -522,7 +529,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  1999-05-17 23:51:47  peter
+  Revision 1.26  1999-05-19 11:51:00  pierre
+   * posinfo was not set for ansitemps !
+
+  Revision 1.25  1999/05/17 23:51:47  peter
     * with temp vars now use a reference with a persistant temp instead
       of setting datasize
 
