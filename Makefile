@@ -2116,7 +2116,7 @@ docsrcinstall:
 docsrc:
 	$(MAKE) fpc_zipinstall ZIPTARGET=docsrcinstall ZIPNAME=docsrc
 .PHONY: demozip
-ifdef UNIXINSTALLDIR
+ifdef UNIXHier
 DEMOSOURCEDIR=$(INSTALL_DOCDIR)/../demo
 else
 DEMOSOURCEDIR=$(INSTALL_PREFIX)/demo

@@ -360,7 +360,7 @@ docsrc:
 .PHONY: demozip
 
 # We don't want the package name fpc in the path
-ifdef UNIXINSTALLDIR
+ifdef UNIXHier
 DEMOSOURCEDIR=$(INSTALL_DOCDIR)/../demo
 else
 DEMOSOURCEDIR=$(INSTALL_PREFIX)/demo
