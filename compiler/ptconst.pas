@@ -55,8 +55,9 @@ unit ptconst;
          j : longint;
 {$endif m68k}
          p         : ptree;
-         i,l,
+         i,l,offset,
          strlength : longint;
+         lsym      : pvarsym;
          ll        : plabel;
          s         : string;
          ca        : pchar;
@@ -184,8 +185,30 @@ unit ptconst;
                        (is_equal(ppointerdef(def)^.definition,voiddef))) and
                        (p^.left^.treetype = loadn) then
                       begin
-                        datasegment^.concat(new(pai_const,init_symbol(
-                          strpnew(p^.left^.symtableentry^.mangledname))));
+                        if token=POINT then
+                          begin
+                             offset:=0;
+                             while token=POINT do
+                               begin
+                                  consume(POINT);
+                                  lsym:=pvarsym(precdef(
+                                        ppointerdef(p^.resulttype)^.definition)^.symtable^.search(pattern));
+                                  if assigned(sym) then
+                                    offset:=offset+lsym^.address
+                                  else
+                                    begin
+                                       Message1(sym_e_illegal_field,pattern);
+                                    end;
+                                  consume(ID);
+                               end;
+                             datasegment^.concat(new(pai_const_symbol_offset,init(
+                               strpnew(p^.left^.symtableentry^.mangledname),offset)));
+                          end
+                        else
+                          begin
+                             datasegment^.concat(new(pai_const,init_symbol(
+                               strpnew(p^.left^.symtableentry^.mangledname))));
+                          end;
                         maybe_concat_external(p^.left^.symtableentry^.owner,
                           p^.left^.symtableentry^.mangledname);
                       end
@@ -517,7 +540,13 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.18  1998-10-12 09:50:05  florian
+  Revision 1.19  1998-10-12 12:20:58  pierre
+    + added tai_const_symbol_offset
+      for r : pointer = @var.field;
+    * better message for different arg names on implementation
+      of function
+
+  Revision 1.18  1998/10/12 09:50:05  florian
     + support of <procedure var type>:=<pointer> in delphi mode added
 
   Revision 1.17  1998/10/09 08:56:29  pierre

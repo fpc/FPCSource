@@ -294,12 +294,6 @@ rtl :
 rtlclean :
 	make -C $(UNITDIR) libsclean
 
-# just a quick way to get ppc68k
-$(M68KEXENAME):
-	make clean
-	$(PP) -uI386 -uSUPPORT_MMX -dm68k -o$(M68KEXENAME) pp
-	make clean
-
 ansirtl:
 	make -C $(UNITDIR) libsclean
 	make -C $(UNITDIR) PP=$(COMPILERDIR)/ppc386 OPT='-g -dUSeAnsiStrings' all
@@ -325,9 +319,23 @@ endif
 
 include $(CFG)/makefile.def
 
+# just a quick way to get ppc68k
+# needs to be after makefile.def for PASFILES INCFILES
+
+$(M68KEXENAME): $(PASFILES) $(INCFILES)
+	make clean
+	$(PP) -uI386 -uSUPPORT_MMX -dm68k -o$(M68KEXENAME) pp
+	make clean
+
 #
 # $Log$
-# Revision 1.10  1998-10-09 12:59:07  pierre
+# Revision 1.11  1998-10-12 12:20:37  pierre
+#   + added tai_const_symbol_offset
+#     for r : pointer = @var.field;
+#   * better message for different arg names on implementation
+#     of function
+#
+# Revision 1.10  1998/10/09 12:59:07  pierre
 #   * MMX_SUPPORT used by default
 #
 # Revision 1.9  1998/10/09 11:07:44  peter

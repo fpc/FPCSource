@@ -304,6 +304,16 @@ unit ag68kmpw;
   ait_const_symbol : Begin
                        AsmWriteLn(#9#9+'DC.L '#9+StrPas(pchar(pai_const(hp)^.value)));
                      end;
+  ait_const_symbol_offset :
+                     Begin
+                       AsmWrite(#9#9+'DC.L '#9);
+                       AsmWritePChar(pai_const_symbol_offset(hp)^.name);
+                       if pai_const_symbol_offset(hp)^.offset>0 then
+                         AsmWrite('+'+tostr(pai_const_symbol_offset(hp)^.offset))
+                       else if pai_const_symbol_offset(hp)^.offset<0 then
+                         AsmWrite(tostr(pai_const_symbol_offset(hp)^.offset));
+                       AsmLn;
+                     end;
     ait_real_64bit : Begin
                        AsmWriteLn(#9#9'DC.D'#9+double2str(pai_double(hp)^.value));
                      end;
@@ -387,7 +397,8 @@ unit ag68kmpw;
                       end;
           ait_label : begin
                        if assigned(hp^.next) and (pai(hp^.next)^.typ in
-                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_const_symbol,
+                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,
+                           ait_const_symbol,ait_const_symbol_offset,
                            ait_real_64bit,ait_real_32bit,ait_string]) then
                         begin
                           if not(cs_littlesize in aktglobalswitches) then
@@ -397,7 +408,8 @@ unit ag68kmpw;
                         end;
                         AsmWrite(lab2str(pai_label(hp)^.l));
                         if assigned(hp^.next) and not(pai(hp^.next)^.typ in
-                           [ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_const_symbol,
+                           [ait_const_32bit,ait_const_16bit,ait_const_8bit,
+                            ait_const_symbol,ait_const_symbol_offset,
                             ait_real_64bit,ait_string]) then
                          AsmWriteLn(':');
                       end;
@@ -423,7 +435,8 @@ ait_labeled_instruction :
                        { ------------- REQUIREMENT FOR 680x0 ------------------- }
                        { ------------------------------------------------------- }
                        if assigned(hp^.next) and (pai(hp^.next)^.typ in
-                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_const_symbol,
+                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,
+                           ait_const_symbol,ait_const_symbol_offset,
                            ait_real_64bit,ait_real_32bit,ait_string]) then
                         begin
                           if not(cs_littlesize in aktglobalswitches) then
@@ -432,7 +445,8 @@ ait_labeled_instruction :
                            AsmWriteLn(#9'ALIGN 2');
                         end;
                        if assigned(hp^.next) and not(pai(hp^.next)^.typ in
-                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_const_symbol,
+                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,
+                           ait_const_symbol,ait_const_symbol_offset,
                            ait_real_64bit,ait_string,ait_real_32bit]) then
                         { this is a subroutine }
                         Begin
@@ -539,10 +553,11 @@ ait_labeled_instruction :
       AsmWriteLn(#9'_DATA'#9'RECORD');
     { write a signature to the file }
       AsmWriteLn(#9'ALIGN 4');
+(* now in pmodules
 {$ifdef EXTDEBUG}
       AsmWriteLn(#9'DC.B'#9'''compiled by FPC '+version_string+'\0''');
-      AsmWriteLn(#9'DC.B'#9'''target: '+target_info.target_name+'\0''');
-{$endif EXTDEBUG}
+      AsmWriteLn(#9'DC.B'#9'''target: '+target_info.short_name+'\0''');
+{$endif EXTDEBUG} *)
       WriteTree(datasegment);
       WriteTree(consts);
       WriteTree(bsssegment);
@@ -563,7 +578,13 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.2  1998-10-07 04:26:31  carl
+  Revision 1.3  1998-10-12 12:20:47  pierre
+    + added tai_const_symbol_offset
+      for r : pointer = @var.field;
+    * better message for different arg names on implementation
+      of function
+
+  Revision 1.2  1998/10/07 04:26:31  carl
     + initial rev of MPW asm writer
 
   Revision 1.1.2.1  1998/10/07 01:48:59  carl

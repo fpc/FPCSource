@@ -244,7 +244,7 @@ unit ag386int;
 
     const
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
-        (#9'DD'#9,'',#9'DW'#9,#9'DB'#9);
+        (#9'DD'#9,#9'DW'#9,#9'DB'#9);
 
       ait_section2masmstr : array[tsection] of string[6]=
        ('','CODE','DATA','BSS','');
@@ -347,6 +347,15 @@ unit ag386int;
                        AsmWritePChar(pchar(pai_const(hp)^.value));
                        AsmLn;
                      end;
+  ait_const_symbol_offset : begin
+                       AsmWrite(#9#9+'DD '#9'offset ');
+                       AsmWritePChar(pai_const_symbol_offset(hp)^.name);
+                       if pai_const_symbol_offset(hp)^.offset>0 then
+                         AsmWrite('+'+tostr(pai_const_symbol_offset(hp)^.offset))
+                       else if pai_const_symbol_offset(hp)^.offset<0 then
+                         AsmWrite(tostr(pai_const_symbol_offset(hp)^.offset));
+                       AsmLn;
+                     end;
     ait_real_32bit : AsmWriteLn(#9#9'DD'#9+double2str(pai_single(hp)^.value));
     ait_real_64bit : AsmWriteLn(#9#9'DQ'#9+double2str(pai_double(hp)^.value));
  ait_real_extended : AsmWriteLn(#9#9'DT'#9+extended2str(pai_extended(hp)^.value));
@@ -430,7 +439,8 @@ unit ag386int;
                         begin
                           AsmWrite(lab2str(pai_label(hp)^.l));
                           if (assigned(hp^.next) and not(pai(hp^.next)^.typ in
-                             [ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_const_symbol,
+                             [ait_const_32bit,ait_const_16bit,ait_const_8bit,
+                              ait_const_symbol,ait_const_symbol_offset,
                               ait_real_32bit,ait_real_64bit,ait_real_extended,ait_string])) then
                            AsmWriteLn(':');
                         end;
@@ -445,7 +455,8 @@ ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai_labeled(hp)^._operator]
                          AsmWriteLn(#9'PUBLIC'#9+StrPas(pai_symbol(hp)^.name));
                        AsmWritePChar(pai_symbol(hp)^.name);
                        if assigned(hp^.next) and not(pai(hp^.next)^.typ in
-                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_const_symbol,
+                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,
+                           ait_const_symbol,ait_const_symbol_offset,
                            ait_real_64bit,ait_real_extended,ait_string]) then
                         AsmWriteLn(':')
                      end;
@@ -582,7 +593,13 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.16  1998-10-06 17:16:33  pierre
+  Revision 1.17  1998-10-12 12:20:40  pierre
+    + added tai_const_symbol_offset
+      for r : pointer = @var.field;
+    * better message for different arg names on implementation
+      of function
+
+  Revision 1.16  1998/10/06 17:16:33  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.15  1998/10/01 20:19:06  jonas

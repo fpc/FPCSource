@@ -50,9 +50,10 @@ unit aasm;
           ait_datablock,
           ait_symbol,
           ait_const_32bit,
-          ait_const_symbol,
           ait_const_16bit,
           ait_const_8bit,
+          ait_const_symbol,
+          ait_const_symbol_offset,
           ait_real_64bit,
           ait_real_32bit,
           ait_real_extended,
@@ -202,6 +203,13 @@ unit aasm;
           destructor done;virtual;
        end;
 
+       pai_const_symbol_offset = ^tai_const_symbol_offset;
+       tai_const_symbol_offset= object(tai)
+          name : pchar;
+          offset : longint;
+          constructor init(p : pchar; l : longint);
+          destructor done;virtual;
+       end;
 
        { generates a double (64 bit real) }
        pai_double = ^tai_double;
@@ -486,6 +494,27 @@ uses
       begin
          if typ=ait_const_symbol then
            strdispose(pchar(value));
+         inherited done;
+      end;
+
+
+{****************************************************************************
+                               TAI_CONST_SYMBOL_OFFSET
+ ****************************************************************************}
+
+    constructor tai_const_symbol_offset.init(p : pchar; l : longint);
+
+      begin
+         inherited init;
+         typ:=ait_const_symbol_offset;
+         name:=p;
+         offset:=l;
+      end;
+
+    destructor tai_const_symbol_offset.done;
+
+      begin
+         strdispose(name);
          inherited done;
       end;
 
@@ -878,7 +907,13 @@ uses
 end.
 {
   $Log$
-  Revision 1.21  1998-10-08 17:17:07  pierre
+  Revision 1.22  1998-10-12 12:20:38  pierre
+    + added tai_const_symbol_offset
+      for r : pointer = @var.field;
+    * better message for different arg names on implementation
+      of function
+
+  Revision 1.21  1998/10/08 17:17:07  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)

@@ -1230,10 +1230,9 @@ unit pexpr;
                        recorddef:
                          begin
                             sym:=pvarsym(precdef(pd)^.symtable^.search(pattern));
-                            consume(ID);
                             if sym=nil then
                               begin
-                                Message(sym_e_illegal_field);
+                                Message1(sym_e_illegal_field,pattern);
                                 disposetree(p1);
                                 p1:=genzeronode(errorn);
                               end
@@ -1242,6 +1241,7 @@ unit pexpr;
                                 p1:=gensubscriptnode(sym,p1);
                                 pd:=sym^.definition;
                               end;
+                            consume(ID);
                           end;
 
                         classrefdef:
@@ -1865,7 +1865,13 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.63  1998-10-12 10:28:30  florian
+  Revision 1.64  1998-10-12 12:20:55  pierre
+    + added tai_const_symbol_offset
+      for r : pointer = @var.field;
+    * better message for different arg names on implementation
+      of function
+
+  Revision 1.63  1998/10/12 10:28:30  florian
     + auto dereferencing of pointers to structured types in delphi mode
 
   Revision 1.62  1998/10/12 10:05:41  peter

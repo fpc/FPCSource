@@ -220,7 +220,7 @@ unit ag68kgas;
 
     const
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
-        (#9'.long'#9,'',#9'.short'#9,#9'.byte'#9);
+        (#9'.long'#9,#9'.short'#9,#9'.byte'#9);
 
     function ait_section2str(s:tsection):string;
     begin
@@ -398,6 +398,16 @@ unit ag68kgas;
   ait_const_symbol : Begin
                        AsmWriteLn(#9'.long'#9+StrPas(pchar(pai_const(hp)^.value)));
                      end;
+  ait_const_symbol_offset :
+                     Begin
+                       AsmWrite(#9'.long'#9);
+                       AsmWritePChar(pai_const_symbol_offset(hp)^.name);
+                       if pai_const_symbol_offset(hp)^.offset>0 then
+                         AsmWrite('+'+tostr(pai_const_symbol_offset(hp)^.offset)
+                       else if pai_const_symbol_offset(hp)^.offset<0 then
+                         AsmWrite(tostr(pai_const_symbol_offset(hp)^.offset)
+                       AsmLn;
+                     end;
     ait_real_64bit : Begin
                       AsmWriteLn(#9'.double'#9+double2str(pai_double(hp)^.value));
                      end;
@@ -453,7 +463,8 @@ unit ag68kgas;
                      end;
          ait_label : begin
                        if assigned(hp^.next) and (pai(hp^.next)^.typ in
-                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_const_symbol,
+                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,
+                           ait_const_symbol,ait_const_symbol_offset,
                            ait_real_64bit,ait_real_32bit,ait_string]) then
                         begin
                           if not(cs_littlesize in aktglobalswitches) then
@@ -479,7 +490,8 @@ ait_labeled_instruction : begin
                        { ------------- REQUIREMENT FOR 680x0 ------------------- }
                        { ------------------------------------------------------- }
                        if assigned(hp^.next) and (pai(hp^.next)^.typ in
-                          [ait_const_32bit,ait_const_16bit,ait_const_symbol,ait_const_8bit,
+                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,
+                           ait_const_symbol,ait_const_symbol_offset,
                            ait_real_64bit,ait_real_32bit,ait_string]) then
                         begin
                           if not(cs_littlesize in aktglobalswitches) then
@@ -666,7 +678,13 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.14  1998-10-06 17:16:36  pierre
+  Revision 1.15  1998-10-12 12:20:43  pierre
+    + added tai_const_symbol_offset
+      for r : pointer = @var.field;
+    * better message for different arg names on implementation
+      of function
+
+  Revision 1.14  1998/10/06 17:16:36  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.13  1998/10/01 20:19:08  jonas

@@ -249,7 +249,7 @@ unit ag386nsm;
 
     const
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
-        (#9'DD'#9,'',#9'DW'#9,#9'DB'#9);
+        (#9'DD'#9,#9'DW'#9,#9'DB'#9);
 
       ait_section2nasmstr : array[tsection] of string[6]=
        ('','.text','.data','.bss','.idata');
@@ -340,6 +340,15 @@ unit ag386nsm;
   ait_const_symbol : begin
                        AsmWrite(#9#9+'DD '#9);
                        AsmWritePChar(pchar(pai_const(hp)^.value));
+                       AsmLn;
+                     end;
+  ait_const_symbol_offset : begin
+                       AsmWrite(#9#9+'DD '#9);
+                       AsmWritePChar(pai_const_symbol_offset(hp)^.name);
+                       if pai_const_symbol_offset(hp)^.offset>0 then
+                         AsmWrite('+'+tostr(pai_const_symbol_offset(hp)^.offset))
+                       else if pai_const_symbol_offset(hp)^.offset<0 then
+                         AsmWrite(tostr(pai_const_symbol_offset(hp)^.offset));
                        AsmLn;
                      end;
     ait_real_32bit : AsmWriteLn(#9#9'DD'#9+double2str(pai_single(hp)^.value));
@@ -441,7 +450,8 @@ ait_labeled_instruction :
                         AsmWriteLn(#9'GLOBAL '+StrPas(pai_symbol(hp)^.name));
                        AsmWritePChar(pai_symbol(hp)^.name);
                        if assigned(hp^.next) and not(pai(hp^.next)^.typ in
-                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_const_symbol,
+                          [ait_const_32bit,ait_const_16bit,ait_const_8bit,
+                           ait_const_symbol,ait_const_symbol_offset,
                            ait_real_64bit,ait_string]) then
                         AsmWriteLn(':')
                      end;
@@ -573,7 +583,13 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.10  1998-10-06 17:16:34  pierre
+  Revision 1.11  1998-10-12 12:20:42  pierre
+    + added tai_const_symbol_offset
+      for r : pointer = @var.field;
+    * better message for different arg names on implementation
+      of function
+
+  Revision 1.10  1998/10/06 17:16:34  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.9  1998/10/01 20:19:07  jonas

@@ -76,6 +76,7 @@ type tmsgconst=(
   parser_e_overloaded_no_procedure,
   parser_e_overloaded_have_same_parameters,
   parser_e_header_dont_match_forward,
+  parser_e_header_different_var_names,
   parser_n_duplicate_enum,
   parser_n_interface_name_diff_implementation_name,
   parser_e_too_much_lexlevel,
