@@ -56,8 +56,8 @@ end;
 Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint;
 begin
   // Dubious construct, this should be checked.
-  Send:=WinSock.SendTo(Sock,Buf,BufLen,Flags,Winsock.TSockAddr(Addr),AddrLen);
-  if Send<0 then
+  SendTo:=WinSock.SendTo(Sock,pchar(@Buf),BufLen,Flags,Winsock.TSockAddr(Addr),AddrLen);
+  if SendTo<0 then
     SocketError:=WSAGetLastError
   else
     SocketError:=0;
@@ -76,8 +76,8 @@ end;
 Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr; AddrLen : Integer) : longint;
 
 begin
-  Recv:=WinSock.RecvFrom(Sock,Buf,BufLen,Flags,Winsock.TSockAddr(Addr),AddrLen);
-  if Recv<0 then
+  RecvFrom:=WinSock.RecvFrom(Sock,Buf,BufLen,Flags,Winsock.TSockAddr(Addr),AddrLen);
+  if RecvFrom<0 then
     SocketError:=WSAGetLastError
   else
     SocketError:=0;
@@ -245,11 +245,17 @@ finalization
 end.
 {
   $Log$
-  Revision 1.6  2002-02-04 21:29:34  michael
+  Revision 1.7  2002-02-04 21:41:15  michael
+  + merged ixed syntax
+
+  Revision 1.6  2002/02/04 21:29:34  michael
   + merged missing sendto/rcvfrom functions
 
   Revision 1.5  2001/06/06 21:58:24  peter
     * Win32 fixes for Makefile so it doesn't require sh.exe
+
+  Revision 1.1.2.5  2002/02/04 21:39:31  michael
+  + Fixed syntax
 
   Revision 1.1.2.4  2002/02/04 21:25:28  michael
   + Added missing sendto/rcvfrom functions
