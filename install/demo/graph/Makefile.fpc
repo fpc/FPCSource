@@ -4,21 +4,13 @@
 
 [targets]
 units=gameunit
-programs=fpctris
-programs_win32=mandel samegame quad maze gravwars              
-programs_linux=mandel samegame quad maze gravwars
-programs_go32v2=mandel samegame quad maze gravwars
-# anyone who wants to port this sampels on OS/2 ???
+programs=fpctris mandel samegame quad maze gravwars
 
 [require]
-# Not always necessary, but saves a lot of trouble
 packages=api
 
 [install]
 packagename=demo
-
-[defaults]
-defaultrule=both
 
 [dirs]
 fpcdir=../..
@@ -30,46 +22,26 @@ override FPCOPT+=-dUSEGRAPHICS
 endif
 
 [rules]
-ifeq ($(OS_TARGET),win32)
-vpath %$(PASEXT) win32
-endif
 .PHONY: text gfx both
+
+all: both
 
 clean : execlean fpc_cleanall
 
 execlean :
-        $(DEL) text/*
         $(DELTREE) text
-        $(DEL) graph/*
         $(DELTREE) graph
 
 # below projects will call ourselves recursive
 
 text:
         $(MKDIR) text
-        $(MAKE) all TARGETDIR=text
+        $(MAKE) fpc_all TARGETDIR=text
 
 graph:
         $(MKDIR) graph
-        $(MAKE) all TARGETDIR=graph GRAPHICS=1
+        $(MAKE) fpc_all TARGETDIR=graph GRAPHICS=1
 
 both:
         $(MAKE) text
         $(MAKE) graph
-
-#################################
-# Demo installation for linux
-#
-
-# possibly wont work
-
-.PHONY: installexamples
-
-ifndef EXAMPLESINSTALLDIR
-EXAMPLESINSTALLDIR=$(DOCINSTALLDIR)/examples
-endif
-
-installexamples:
-        $(MKDIR) $(EXAMPLESINSTALLDIR)
-        $(COPYTREE) * $(EXAMPLESINSTALLDIR)
-

@@ -203,10 +203,6 @@ endif
 # Libraries
 
 
-# Info
-
-INFOTARGET=fpc_infocfg fpc_infoobjects fpc_infoinstall 
-
 #####################################################################
 # Shell tools
 #####################################################################
@@ -714,7 +710,7 @@ showinstall: fpc_showinstall $(addsuffix _showinstall,$(DIROBJECTS))
 
 install: fpc_install $(addsuffix _install,$(DIROBJECTS))
 
-sourceinstall: fpc_sourceinstall $(addsuffix _sourceinstall,$(DIROBJECTS))
+sourceinstall: fpc_sourceinstall
 
 exampleinstall: fpc_exampleinstall $(addsuffix _exampleinstall,$(DIROBJECTS))
 
@@ -986,68 +982,6 @@ endif
 	-$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 	-$(DELTREE) *$(SMARTEXT)
 	-$(DEL) $(FPCMADE) $(PPAS) link.res $(FPCEXTFILE) $(REDIRFILE)
-
-#####################################################################
-# Info rules
-#####################################################################
-
-.PHONY: fpc_info fpc_cfginfo fpc_objectinfo fpc_toolsinfo fpc_installinfo \
-	fpc_dirinfo
-
-fpc_info: $(INFOTARGET)
-
-fpc_infocfg:
-	@$(ECHO)
-	@$(ECHO)  == Configuration info ==
-	@$(ECHO)
-	@$(ECHO)  FPC....... $(FPC)
-	@$(ECHO)  Version... $(FPC_VERSION)
-	@$(ECHO)  CPU....... $(CPU_TARGET)
-	@$(ECHO)  Source.... $(OS_SOURCE)
-	@$(ECHO)  Target.... $(OS_TARGET)
-	@$(ECHO)
-
-fpc_infoobjects:
-	@$(ECHO)
-	@$(ECHO)  == Object info ==
-	@$(ECHO)
-	@$(ECHO)  LoaderObjects..... $(LOADEROBJECTS)
-	@$(ECHO)  UnitObjects....... $(UNITOBJECTS)
-	@$(ECHO)  ExeObjects........ $(EXEOBJECTS)
-	@$(ECHO)
-	@$(ECHO)  ExtraCleanUnits... $(EXTRACLEANUNITS)
-	@$(ECHO)  ExtraCleanFiles... $(EXTRACLEANFILES)
-	@$(ECHO)
-	@$(ECHO)  ExtraInstallUnits. $(EXTRAINSTALLUNITS)
-	@$(ECHO)  ExtraInstallFiles. $(EXTRAINSTALLFILES)
-	@$(ECHO)
-
-fpc_infoinstall:
-	@$(ECHO)
-	@$(ECHO)  == Install info ==
-	@$(ECHO)
-ifdef DATE
-	@$(ECHO)  DateStr.............. $(DATESTR)
-endif
-ifdef PACKAGEPREFIX
-	@$(ECHO)  PackagePrefix........ $(PACKAGEPREFIX)
-endif
-ifdef PACKAGENAME
-	@$(ECHO)  PackageName.......... $(PACKAGENAME)
-endif
-	@$(ECHO)  PackageSuffix........ $(PACKAGESUFFIX)
-	@$(ECHO)
-	@$(ECHO)  BaseInstallDir....... $(BASEINSTALLDIR)
-	@$(ECHO)  BinInstallDir........ $(BININSTALLDIR)
-	@$(ECHO)  LibInstallDir........ $(LIBINSTALLDIR)
-	@$(ECHO)  UnitInstallDir....... $(UNITINSTALLDIR)
-	@$(ECHO)  SourceInstallDir..... $(SOURCEINSTALLDIR)
-	@$(ECHO)  DocInstallDir........ $(DOCINSTALLDIR)
-	@$(ECHO)  DataInstallDir....... $(DATAINSTALLDIR)
-	@$(ECHO)
-	@$(ECHO)  DestZipDir........... $(DESTZIPDIR)
-	@$(ECHO)  ZipName.............. $(ZIPNAME)
-	@$(ECHO)
 
 #####################################################################
 # Directories
@@ -1362,6 +1296,8 @@ endif
 # Users rules
 #####################################################################
 
+.PHONY: info
+
 info:
 	@echo Makefile targets are
 	@echo - all
@@ -1369,3 +1305,18 @@ info:
 	@echo - graph
 	@echo - modex
 	@echo - win32
+	@echo
+	@echo - installexamples
+
+#################################
+# Demo installation for linux
+#
+
+.PHONY: installexamples
+
+ifndef EXAMPLESINSTALLDIR
+EXAMPLESINSTALLDIR=$(DOCINSTALLDIR)/examples
+endif
+
+installexamples:
+	$(MAKE) sourceinstall SOURCEINSTALLDIR=$(EXAMPLESINSTALLDIR)

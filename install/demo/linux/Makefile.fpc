@@ -3,22 +3,8 @@
 #
 
 [targets]
-programs_linux=deamon
-
-[install]
-
-[defaults]
-defaultrule=all
+programs_linux=daemon
 
 [dirs]
 fpcdir=../..
 targetdir=.
-
-[postsettings]
-
-[rules]
-clean : execlean fpc_cleanall
-
-execlean :
-
-

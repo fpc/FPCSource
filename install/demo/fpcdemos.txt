@@ -7,6 +7,7 @@ This packages contains the following subdirs:
          includes gameunit (text&graph), outputs to another subdir level
 - modex  demos that make extensive use of modeX (runs with go32v2 only)
 - win32  demos that are win32 specific
+- linux  demos that are linux specific
 
 To build the programs simply type 'make' in the base dir.
 

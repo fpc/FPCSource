@@ -39,16 +39,17 @@ NEWPP=`pwd`/compiler/ppc386
 export FPCDIR=
 NEWPP=`pwd`/compiler/ppc386
 NEWPPUFILES=`pwd`/utils/ppufiles
-	make compiler_install PP=${NEWPP} PPUFILES=${NEWPPUFILES}
-	make rtl_install PP=${NEWPP} PPUFILES=${NEWPPUFILES}
-	make fcl_install PP=${NEWPP} PPUFILES=${NEWPPUFILES}
-	make api_install PP=${NEWPP} PPUFILES=${NEWPPUFILES}
-	make packages_install PP=${NEWPP} PPUFILES=${NEWPPUFILES}
-	make utils_install PP=${NEWPP} PPUFILES=${NEWPPUFILES}
+INSTALLOPTS=PP=${NEWPP} PPUFILES=${NEWPPUFILES} PREFIXINSTALLDIR=/usr
+	make compiler_install ${INSTALLOPTS}
+	make rtl_install ${INSTALLOPTS}
+	make fcl_install ${INSTALLOPTS}
+	make api_install ${INSTALLOPTS}
+	make packages_install ${INSTALLOPTS}
+	make utils_install ${INSTALLOPTS}
 
-	make demo_install PP=${NEWPP} DOCINSTALLDIR=%{docdir}
-	make doc_install PP=${NEWPP} DOCINSTALLDIR=%{docdir}
-	make man_install PP=${NEWPP}
+	make demo_install ${INSTALLOPTS} DOCINSTALLDIR=%{docdir}
+	make doc_install ${INSTALLOPTS} DOCINSTALLDIR=%{docdir}
+	make man_install ${INSTALLOPTS}
 	
 %clean
 	make compiler_clean

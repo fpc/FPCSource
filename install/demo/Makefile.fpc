@@ -10,7 +10,7 @@ dirs_linux=linux
 
 [install]
 packagename=demo
-sourcesubdir=0
+sourcesubdirs=0
 
 [defaults]
 defaultrule=all
@@ -19,7 +19,12 @@ defaultrule=all
 fpcdir=..
 targetdir=.
 
+[sections]
+info=0
+
 [rules]
+.PHONY: info
+
 info:
         @echo Makefile targets are
         @echo - all
@@ -27,3 +32,18 @@ info:
         @echo - graph
         @echo - modex
         @echo - win32
+        @echo
+        @echo - installexamples
+
+#################################
+# Demo installation for linux
+#
+
+.PHONY: installexamples
+
+ifndef EXAMPLESINSTALLDIR
+EXAMPLESINSTALLDIR=$(DOCINSTALLDIR)/examples
+endif
+
+installexamples:
+        $(MAKE) sourceinstall SOURCEINSTALLDIR=$(EXAMPLESINSTALLDIR)

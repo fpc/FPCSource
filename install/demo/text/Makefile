@@ -204,7 +204,7 @@ endif
 
 # Packages
 
-override PACKAGES+=rtl api
+override PACKAGES+=rtl
 
 # Libraries
 
@@ -499,7 +499,6 @@ endif
 # PACKAGESDIR packages
 
 PACKAGERTL=1
-PACKAGEAPI=1
 
 ifdef PACKAGERTL
 ifneq ($(wildcard $(FPCDIR)/rtl),)
@@ -528,35 +527,6 @@ endif
 endif
 ifdef UNITDIR_RTL
 override NEEDUNITDIR+=$(UNITDIR_RTL)
-endif
-endif
-ifdef PACKAGEAPI
-ifneq ($(wildcard $(FPCDIR)/api),)
-ifneq ($(wildcard $(FPCDIR)/api/$(OS_TARGET)),)
-PACKAGEDIR_API=$(FPCDIR)/api/$(OS_TARGET)
-else
-PACKAGEDIR_API=$(FPCDIR)/api
-endif
-ifeq ($(wildcard $(PACKAGEDIR_API)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_api
-package_api:
-	$(MAKE) -C $(PACKAGEDIR_API) all
-endif
-UNITDIR_API=$(PACKAGEDIR_API)
-else
-PACKAGEDIR_API=
-ifneq ($(wildcard $(UNITSDIR)/api),)
-ifneq ($(wildcard $(UNITSDIR)/api/$(OS_TARGET)),)
-UNITDIR_API=$(UNITSDIR)/api/$(OS_TARGET)
-else
-UNITDIR_API=$(UNITSDIR)/api
-endif
-else
-UNITDIR_API=
-endif
-endif
-ifdef UNITDIR_API
-override NEEDUNITDIR+=$(UNITDIR_API)
 endif
 endif
 
@@ -630,6 +600,11 @@ endif
 ifdef SOURCESUBDIR
 SOURCEINSTALLDIR:=$(SOURCEINSTALLDIR)/$(SOURCESUBDIR)
 endif
+endif
+
+# Where the example files will be stored
+ifndef EXAMPLEINSTALLDIR
+EXAMPLEINSTALLDIR=$(SOURCEINSTALLDIR)
 endif
 
 # Where the doc files will be stored
@@ -796,9 +771,13 @@ install: fpc_install
 
 sourceinstall: fpc_sourceinstall
 
+exampleinstall: fpc_exampleinstall
+
 zipinstall: fpc_zipinstall
 
 zipsourceinstall: fpc_zipsourceinstall
+
+clean: fpc_clean
 
 distclean: fpc_distclean
 
@@ -806,7 +785,7 @@ cleanall: fpc_cleanall
 
 info: fpc_info
 
-.PHONY:  all debug smart shared showinstall install sourceinstall zipinstall zipsourceinstall distclean cleanall info
+.PHONY:  all debug smart shared showinstall install sourceinstall exampleinstall zipinstall zipsourceinstall clean distclean cleanall info
 
 #####################################################################
 # Exes
@@ -956,7 +935,7 @@ endif
 # SourceInstall rules
 #####################################################################
 
-.PHONY: fpc_sourceinstall
+.PHONY: fpc_sourceinstall fpc_exampleinstall
 
 ifndef SOURCETOPDIR
 SOURCETOPDIR=$(BASEDIR)
@@ -965,6 +944,10 @@ endif
 fpc_sourceinstall: clean
 	$(MKDIR) $(SOURCEINSTALLDIR)
 	$(COPYTREE) $(SOURCETOPDIR) $(SOURCEINSTALLDIR)
+
+fpc_exampleinstall: clean
+	$(MKDIR) $(EXAMPLEINSTALLDIR)
+	$(COPYTREE) $(EXAMPLESRC) $(EXAMPLEINSTALLDIR)
 
 #####################################################################
 # Zip
@@ -1022,10 +1005,13 @@ endif
 	$(DELTREE) $(PACKDIR)
 endif
 
-.PHONY:  fpc_zipsourceinstall
+.PHONY:  fpc_zipexampleinstall
 
 fpc_zipsourceinstall:
 	$(MAKE) fpc_zipinstall ZIPTARGET=sourceinstall PACKAGESUFFIX=src
+
+fpc_zipexampleinstall:
+	$(MAKE) fpc_zipinstall ZIPTARGET=exampleinstall PACKAGESUFFIX=exm
 
 #####################################################################
 # Clean rules
@@ -1143,28 +1129,3 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 
-#####################################################################
-# Users rules
-#####################################################################
-
-ifeq ($(OS_TARGET),win32)
-vpath %$(PASEXT) win32
-endif
-
-clean : execlean fpc_cleanall
-
-execlean:
-
-#################################
-# Demo installation for linux
-#
-
-.PHONY: installexamples
-
-ifndef EXAMPLESINSTALLDIR
-EXAMPLESINSTALLDIR=$(DOCINSTALLDIR)/examples
-endif
-
-installexamples:
-	$(MKDIR) $(EXAMPLESINSTALLDIR)
-	$(COPYTREE) * $(EXAMPLESINSTALLDIR)
