@@ -52,7 +52,7 @@ asm
 {$endif}
         orq     %rax,%rax
         jz      .Lg_a_null
-        movq    4(%rax),%rax
+        movq    8(%rax),%rax
 .Lg_a_null:
 end ['RAX'];
 
@@ -306,7 +306,10 @@ const
 
 {
   $Log$
-  Revision 1.8  2004-04-21 21:26:51  florian
+  Revision 1.9  2004-04-22 20:20:16  peter
+    * get_caller_addr fixed
+
+  Revision 1.8  2004/04/21 21:26:51  florian
     * commented out broken fillchar and move
 
   Revision 1.7  2004/02/23 15:52:15  peter
