@@ -110,9 +110,9 @@ const
     (Name: 'table';	Flags: [efSubelementContent]),
     (Name: 'textarea';	Flags: [efPCDATAContent]),
     (Name: 'tbody';	Flags: [efSubelementContent]),
-    (Name: 'td';	Flags: [efSubelementContent]),
+    (Name: 'td';	Flags: [efSubelementContent, efPCDATAContent]),
     (Name: 'tfoot';	Flags: [efSubelementContent]),
-    (Name: 'th';	Flags: [efSubelementContent]),
+    (Name: 'th';	Flags: [efSubelementContent, efPCDATAContent]),
     (Name: 'thead';	Flags: [efSubelementContent]),
     (Name: 'tr';	Flags: [efSubelementContent]),
     (Name: 'tt';	Flags: [efSubelementContent, efPCDATAContent]),
@@ -351,7 +351,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-11-29 18:04:25  sg
+  Revision 1.2  2003-03-16 22:32:44  sg
+  * Fixed td and th attributes
+
+  Revision 1.1  2002/11/29 18:04:25  sg
   * Improved HTML writing, now uses the HTML definition unit
     (moved from FPDoc into FCL)
 
