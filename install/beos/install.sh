@@ -147,9 +147,8 @@ if yesno "Install sources"; then
   echo Unpacking ...
   unzip sources.zip
   echo Installing sources in $SRCDIR ...
-  unztar basesrc.zip $PREFIX
   if yesno "Install compiler source"; then
-    unztar fpcompilersrc.zip $PREFIX
+    unztar compilersrc.zip $PREFIX
   fi    
   if yesno "Install RTL source"; then
     unztar rtlsrc.zip $PREFIX
@@ -158,14 +157,15 @@ if yesno "Install sources"; then
     unztar fclsrc.zip $PREFIX
   fi    
   if yesno "Install paszlib source"; then
-    unztar paszlibsrc.zip $PREFIX
+    unztar upaszlibsrc.zip $PREFIX
   fi    
   if yesno "Install regexpr source"; then
-    unztar regexprsrc.zip $PREFIX
+    unztar uregexprsrc.zip $PREFIX
   fi   
   if yesno "Install Utils source"; then
-    unztar fputilsrc.zip $PREFIX
-  fi    
+    unztar utilssrc.zip $PREFIX
+  fi
+  unzip -o $HERE/basesrc.zip -d $PREFIX      
   rm -f *src.zip
   echo Done.
 fi
@@ -202,6 +202,9 @@ fi
 # The End
 echo
 echo End of installation. 
-echo 
-echo Read the documentation for further information.
+echo Make sure you have the GNU assembler and linker in
+echo your PATH before using Free Pascal.
+echo
+echo Read the documentation for further information
+echo on Free Pascal.
 echo
