@@ -293,6 +293,9 @@ implementation
 
          cleartempgen;
          firstpass(p^.right);
+         if codegenerror then
+          exit;
+
          if p^.right^.treetype<>ordconstn then
            begin
               p^.right:=gentypeconvnode(p^.right,p^.t2^.resulttype);
@@ -495,7 +498,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1999-09-27 23:45:01  peter
+  Revision 1.21  1999-10-03 19:39:40  peter
+    * error check after pass1 of second for argument
+
+  Revision 1.20  1999/09/27 23:45:01  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
