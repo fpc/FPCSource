@@ -2,7 +2,7 @@
 { Returns this error under Delphi :
   Error: Types of actual and formal var parameters must be identical }
 {$ifdef fpc}
-{$mode objfpc}
+{$mode delphi}
 {$endif}
 type
   tsymbol = class
