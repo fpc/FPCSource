@@ -1,5 +1,6 @@
 {
     $Id$
+
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -735,6 +736,12 @@ begin
     InitAnsi;
 end;
 
+function SysErrorMessage(ErrorCode: Integer): String;
+
+begin
+  Result:=Format(SUnknownErrorCode,[ErrorCode]);
+end;
+
 
 {****************************************************************************
                               Initialization code
@@ -749,10 +756,22 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.3  2000-08-25 17:23:56  hajny
+  Revision 1.4  2000-08-30 06:30:55  michael
+  + Merged syserrormsg fix
+
+  Revision 1.3  2000/08/25 17:23:56  hajny
     * Sharing mode error fixed
 
   Revision 1.2  2000/08/20 15:46:46  peter
     * sysutils.pp moved to target and merged with disk.inc, filutil.inc
+  Revision 1.1.2.3  2000/08/25 17:20:57  hajny
+    * Sharing mode error fixed
+
+  Revision 1.1.2.2  2000/08/22 19:21:48  michael
+  + Implemented syserrormessage. Made dummies for go32v2 and OS/2
+  * Changed linux/errors.pp so it uses pchars for storage.
+
+  Revision 1.1.2.1  2000/08/20 15:08:32  peter
+    * forgot the add command :(
 
 }

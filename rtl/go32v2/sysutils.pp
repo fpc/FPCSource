@@ -621,6 +621,11 @@ begin
   InitAnsi;
 end;
 
+function SysErrorMessage(ErrorCode: Integer): String;
+
+begin
+  Result:=Format(SUnknownErrorCode,[ErrorCode]);
+end;
 
 {****************************************************************************
                               Initialization code
@@ -635,7 +640,18 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.2  2000-08-20 15:46:46  peter
+  Revision 1.3  2000-08-30 06:29:19  michael
+  + Merged syserrormsg fix
+
+  
+    Revision 1.2  2000/08/20 15:46:46  peter
     * sysutils.pp moved to target and merged with disk.inc, filutil.inc
+
+    Revision 1.1.2.2  2000/08/22 19:21:48  michael
+    + Implemented syserrormessage. Made dummies for go32v2 and OS/2
+    * Changed linux/errors.pp so it uses pchars for storage.
+
+    Revision 1.1.2.1  2000/08/20 15:08:32  peter
+      * forgot the add command :(
 
 }
