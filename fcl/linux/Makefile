@@ -51,7 +51,7 @@ INCFILENAMES=$(addprefix $(INCDIR)/,$(INCNAMES))
 # If nothing special needs doing, then just fill in the names here.
 # The rest should be automatic.
 UNITNAMES=classes
-PROGNAMES=tests
+PROGNAMES=
 UNITOBJECTS=$(addsuffix .o, $(UNITNAMES))
 UNITFILES=$(addsuffix .ppu, $(UNITNAMES))
 PROGSOURCES=$(addsiffix .pp, $(PROGNAMES))
@@ -80,8 +80,12 @@ progs: $(PROGNAMES)
 $(PROGNAMES): %:%.pp
 	$(PP) $(OPT) $<
 
-classes.ppu: classes.pp $(INCFILENAMES) $(PROCFILENAMES) \
+classes.ppu: classes.pp $(INCFILENAMES) $(PROCFILENAMES)
+	$(PP) $(OPT) $<
 
+classes.pp:
+	cp $(INCDIR)/classes.pp .
+	
 #
 # Generic install and clean targets
 #
