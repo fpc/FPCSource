@@ -1,6 +1,21 @@
 program TestPutP;
 
+{$ifdef go32v2}
+  {$define has_colors_equal}
+{$endif go32v2}
+
 uses  crt,graph;
+
+{$ifndef has_colors_equal}
+  function ColorsEqual(c1, c2 : longint) : boolean;
+    begin
+       ColorsEqual:=((GetMaxColor=$FF) and ((c1 and $FF)=(c2 and $FF))) or
+         ((GetMaxColor=$7FFF) and ((c1 and $F8F8F8)=(c2 and $F8F8F8))) or
+         ((GetMaxColor=$FFFF) and ((c1 and $F8FCF8)=(c2 and $F8FCF8))) or
+         ((GetMaxColor>$10000) and ((c1 and $FFFFFF)=(c2 and $FFFFFF)));
+    end;
+
+{$endif not has_colors_equal}
 
 var   gd,gm,gError,yi,i : integer;
       col: longint;
