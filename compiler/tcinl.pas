@@ -558,6 +558,7 @@ implementation
                   file_is_typed:=false;
                   if assigned(p^.left) then
                     begin
+                       dowrite:=(p^.inlinenumber in [in_write_x,in_writeln_x]);
                        firstcallparan(p^.left,nil);
                        { now we can check }
                        hp:=p^.left;
@@ -579,6 +580,11 @@ implementation
                                    CGMessage(type_e_cant_read_write_type);
                                  if not is_equal(hpp^.resulttype,pfiledef(hp^.resulttype)^.typed_as) then
                                    CGMessage(type_e_mismatch);
+                                 if hpp^.resulttype^.deftype=stringdef then
+                                 { generate the high() value for the shortstring }
+                                   if (not dowrite) and
+                                      is_shortstring(hpp^.left^.resulttype) then
+                                     gen_high_tree(hpp,true);
                                  hpp:=hpp^.right;
                                end;
                             end;
@@ -587,7 +593,6 @@ implementation
                        { insert type conversions for write(ln) }
                        if (not file_is_typed) then
                          begin
-                            dowrite:=(p^.inlinenumber in [in_write_x,in_writeln_x]);
                             hp:=p^.left;
                             while assigned(hp) do
                               begin
@@ -1073,7 +1078,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1999-04-15 10:00:35  peter
+  Revision 1.26  1999-04-15 14:10:51  pierre
+   * fix for bug0238.pp
+
+  Revision 1.25  1999/04/15 10:00:35  peter
     * writeln(procvar) support for tp7 mode
 
   Revision 1.24  1999/04/14 09:15:07  peter
