@@ -239,6 +239,7 @@ unit ag386nsm;
 
     var
       LastSec : tsection;
+      lastsecidx : longint;
 
     const
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
@@ -539,6 +540,32 @@ ait_labeled_instruction :
         ait_force_line,
 ait_stab_function_name : ;
 {$endif GDB}
+           ait_cut : begin
+                     { only reset buffer if nothing has changed }
+                       if AsmSize=AsmStartSize then
+                        AsmClear
+                       else
+                        begin
+                          AsmClose;
+                          DoAssemble;
+                          if pai_cut(hp)^.EndName then
+                           IsEndFile:=true;
+                          AsmCreate;
+                        end;
+                     { avoid empty files }
+                       while assigned(hp^.next) and (pai(hp^.next)^.typ in [ait_cut,ait_section,ait_comment]) do
+                        begin
+                          if pai(hp^.next)^.typ=ait_section then
+                           begin
+                             lastsec:=pai_section(hp^.next)^.sec;
+                             lastsecidx:=pai_section(hp^.next)^.idataidx;
+                           end;
+                          hp:=pai(hp^.next);
+                        end;
+                       if lastsec<>sec_none then
+                         AsmWriteLn('SECTION '+ait_section2nasmstr[lastsec]);
+                       AsmStartSize:=AsmSize;
+                     end;
         ait_marker : ;
          else
           internalerror(10000);
@@ -580,7 +607,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.16  1998-12-16 00:27:18  peter
+  Revision 1.17  1998-12-20 16:21:23  peter
+    * smartlinking doesn't crash anymore
+
+  Revision 1.16  1998/12/16 00:27:18  peter
     * removed some obsolete version checks
 
   Revision 1.15  1998/12/01 11:19:39  peter

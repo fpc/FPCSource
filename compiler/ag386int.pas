@@ -544,6 +544,39 @@ ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai_labeled(hp)^._operator]
         ait_force_line,
 ait_stab_function_name : ;
 {$endif GDB}
+           ait_cut : begin
+                     { only reset buffer if nothing has changed }
+                       if AsmSize=AsmStartSize then
+                        AsmClear
+                       else
+                        begin
+                          if LastSec<>sec_none then
+                           AsmWriteLn('_'+ait_section2masmstr[LastSec]+#9#9'ENDS');
+                          AsmLn;
+                          AsmWriteLn(#9'END');
+                          AsmClose;
+                          DoAssemble;
+                          if pai_cut(hp)^.EndName then
+                           IsEndFile:=true;
+                          AsmCreate;
+                        end;
+                     { avoid empty files }
+                       while assigned(hp^.next) and (pai(hp^.next)^.typ in [ait_cut,ait_section,ait_comment]) do
+                        begin
+                          if pai(hp^.next)^.typ=ait_section then
+                           begin
+                             lastsec:=pai_section(hp^.next)^.sec;
+                           end;
+                          hp:=pai(hp^.next);
+                        end;
+                       AsmWriteLn(#9'.386p');
+                       AsmWriteLn(#9'LOCALS '+target_asm.labelprefix);
+                       if lastsec<>sec_none then
+                          AsmWriteLn('_'+ait_section2masmstr[lastsec]+#9#9+
+                                     'SEGMENT'#9'PARA PUBLIC USE32 '''+
+                                     ait_section2masmstr[lastsec]+'''');
+                       AsmStartSize:=AsmSize;
+                     end;
              ait_marker: ;
          else
           internalerror(10000);
@@ -591,7 +624,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.23  1998-12-16 00:27:17  peter
+  Revision 1.24  1998-12-20 16:21:22  peter
+    * smartlinking doesn't crash anymore
+
+  Revision 1.23  1998/12/16 00:27:17  peter
     * removed some obsolete version checks
 
   Revision 1.22  1998/12/01 11:19:38  peter

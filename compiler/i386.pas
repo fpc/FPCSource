@@ -26,9 +26,9 @@ unit i386;
 
   { We Don't need the intel style opcodes if we don't have a intel
     reader or generator (PFV) }
-  {$ifndef NORA386INT}
-    {$ifndef NOAG386NSM}
-      {$ifndef NOAG386INT}
+  {$ifdef NORA386INT}
+    {$ifdef NOAG386NSM}
+      {$ifdef NOAG386INT}
         {$define NOINTOP}
       {$endif}
     {$endif}
@@ -1010,7 +1010,7 @@ unit i386;
         '%mm0','%mm1','%mm2','%mm3',
         '%mm4','%mm5','%mm6','%mm7');
 
-{$ifdef NOINTOP}
+{$ifndef NOINTOP}
       int_op2str : array[firstop..lastop] of string[9] =
        ('mov','movzx','movsx','','add',
         'call','idiv','imul','jmp','lea','mul','neg','not',
@@ -1769,7 +1769,10 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.23  1998-12-19 00:23:49  florian
+  Revision 1.24  1998-12-20 16:21:24  peter
+    * smartlinking doesn't crash anymore
+
+  Revision 1.23  1998/12/19 00:23:49  florian
     * ansistring memory leaks fixed
 
   Revision 1.22  1998/12/18 17:24:51  peter
