@@ -1772,6 +1772,8 @@ Begin
           instr.BuildOpcode;
           { We need AT&T style operands }
           instr.SwapOperands;
+          { Must be done with args in ATT order }
+          instr.CheckNonCommutativeOpcodes;
           instr.AddReferenceSizes;
           instr.SetInstructionOpsize;
           instr.CheckOperandSizes;
@@ -1826,7 +1828,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2000-05-11 09:56:21  pierre
+  Revision 1.68  2000-05-12 21:26:23  pierre
+    * fix the FDIV FDIVR FSUB FSUBR and popping equivalent
+      simply by swapping from reverse to normal and vice-versa
+      when passing from one syntax to the other !
+
+  Revision 1.67  2000/05/11 09:56:21  pierre
     * fixed several compare problems between longints and
       const > $80000000 that are treated as int64 constanst
       by Delphi reported by Kovacs Attila Zoltan

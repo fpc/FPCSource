@@ -114,6 +114,7 @@ type
      function  getcopy:plinkedlist_item;virtual;
      function  GetString:string;
      procedure SwapOperands;
+     procedure CheckNonCommutativeOpcodes;
   private
      segprefix : tregister;
      procedure init(op : tasmop;_size : topsize); { this need to be called by all constructor }
@@ -677,6 +678,39 @@ uses
               end;
         end;
       end;
+
+{ This check must be done with the operand in ATT order
+  i.e.after swapping in the intel reader
+  but before swapping in the NASM and TASM writers PM }
+procedure taicpu.CheckNonCommutativeOpcodes;
+begin
+  if ((ops=2) and
+     (oper[0].typ=top_reg) and
+     (oper[1].typ=top_reg) and
+     { if the first is ST and the second is also a register
+       it is necessarily ST1 .. ST7 }
+     (oper[0].reg=R_ST)) or
+     ((ops=1) and
+      (oper[0].typ=top_reg) and
+      (oper[0].reg in [R_ST1..R_ST7])) or
+     (ops=0) then
+      if opcode=A_FSUBR then
+        opcode:=A_FSUB
+      else if opcode=A_FSUB then
+        opcode:=A_FSUBR
+      else if opcode=A_FDIVR then
+        opcode:=A_FDIV
+      else if opcode=A_FDIV then
+        opcode:=A_FDIVR
+      else if opcode=A_FSUBRP then
+        opcode:=A_FSUBP
+      else if opcode=A_FSUBP then
+        opcode:=A_FSUBRP
+      else if opcode=A_FDIVRP then
+        opcode:=A_FDIVP
+      else if opcode=A_FDIVP then
+        opcode:=A_FDIVRP;
+end;
 
 
 {*****************************************************************************
@@ -1613,7 +1647,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2000-05-09 14:12:35  pierre
+  Revision 1.14  2000-05-12 21:26:22  pierre
+    * fix the FDIV FDIVR FSUB FSUBR and popping equivalent
+      simply by swapping from reverse to normal and vice-versa
+      when passing from one syntax to the other !
+
+  Revision 1.13  2000/05/09 14:12:35  pierre
    * fix for test/testpusw problem
 
   Revision 1.12  2000/02/09 13:22:51  peter

@@ -45,6 +45,7 @@ type
     procedure AddReferenceSizes;
     procedure SetInstructionOpsize;
     procedure CheckOperandSizes;
+    procedure CheckNonCommutativeOpcodes;
     { opcode adding }
     procedure ConcatInstruction(p : paasmoutput);virtual;
   end;
@@ -329,6 +330,39 @@ begin
 end;
 
 
+{ This check must be done with the operand in ATT order
+  i.e.after swapping in the intel reader
+  but before swapping in the NASM and TASM writers PM }
+procedure T386Instruction.CheckNonCommutativeOpcodes;
+begin
+  if ((ops=2) and
+     (operands[1]^.opr.typ=OPR_REGISTER) and
+     (operands[2]^.opr.typ=OPR_REGISTER) and
+     { if the first is ST and the second is also a register
+       it is necessarily ST1 .. ST7 }
+     (operands[1]^.opr.reg=R_ST)) or
+     ((ops=1) and
+      (operands[1]^.opr.typ=OPR_REGISTER) and
+      (operands[1]^.opr.reg in [R_ST1..R_ST7])) or
+      (ops=0)  then
+      if opcode=A_FSUBR then
+        opcode:=A_FSUB
+      else if opcode=A_FSUB then
+        opcode:=A_FSUBR
+      else if opcode=A_FDIVR then
+        opcode:=A_FDIV
+      else if opcode=A_FDIV then
+        opcode:=A_FDIVR
+      else if opcode=A_FSUBRP then
+        opcode:=A_FSUBP
+      else if opcode=A_FSUBP then
+        opcode:=A_FSUBRP
+      else if opcode=A_FDIVRP then
+        opcode:=A_FDIVP
+      else if opcode=A_FDIVP then
+        opcode:=A_FDIVRP;
+end;
+
 {*****************************************************************************
                               opcode Adding
 *****************************************************************************}
@@ -380,7 +414,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2000-05-10 08:55:08  pierre
+  Revision 1.17  2000-05-12 21:26:22  pierre
+    * fix the FDIV FDIVR FSUB FSUBR and popping equivalent
+      simply by swapping from reverse to normal and vice-versa
+      when passing from one syntax to the other !
+
+  Revision 1.16  2000/05/10 08:55:08  pierre
    * no warning nor error for pushl of segment register
 
   Revision 1.15  2000/05/09 21:44:28  pierre

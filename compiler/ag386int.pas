@@ -482,6 +482,8 @@ unit ag386int;
     ait_symbol_end : begin
                      end;
    ait_instruction : begin
+                     { Must be done with args in ATT order }
+                       paicpu(hp)^.CheckNonCommutativeOpcodes;
                      { We need intel order, no At&t }
                        paicpu(hp)^.SwapOperands;
                      { Reset }
@@ -643,7 +645,12 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.61  2000-05-09 21:44:27  pierre
+  Revision 1.62  2000-05-12 21:26:22  pierre
+    * fix the FDIV FDIVR FSUB FSUBR and popping equivalent
+      simply by swapping from reverse to normal and vice-versa
+      when passing from one syntax to the other !
+
+  Revision 1.61  2000/05/09 21:44:27  pierre
     * add .byte 066h to force correct pushw %es
     * handle push es as a pushl %es
 
