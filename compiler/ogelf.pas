@@ -871,6 +871,7 @@ implementation
             asmbin : '';
             asmcmd : '';
             supported_target : target_any;  //target_i386_linux;
+            outputbinary : true;
             allowdirect : false;
             externals : true;
             needar : false;
@@ -888,7 +889,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2001-04-18 22:01:54  peter
+  Revision 1.9  2001-05-04 19:50:58  peter
+    * finally added the missing outputbinary field that was missing
+
+  Revision 1.8  2001/04/18 22:01:54  peter
     * registration of targets and assemblers
 
   Revision 1.7  2001/04/13 01:22:10  peter

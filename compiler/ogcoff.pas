@@ -1126,6 +1126,7 @@ implementation
             asmbin : '';
             asmcmd : '';
             supported_target : target_i386_go32v2;
+            outputbinary : true;
             allowdirect : false;
             externals : true;
             needar : false;
@@ -1145,6 +1146,7 @@ implementation
             asmbin : '';
             asmcmd : '';
             supported_target : target_i386_win32;
+            outputbinary : true;
             allowdirect : false;
             externals : true;
             needar : false;
@@ -1163,7 +1165,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2001-04-18 22:01:54  peter
+  Revision 1.14  2001-05-04 19:50:58  peter
+    * finally added the missing outputbinary field that was missing
+
+  Revision 1.13  2001/04/18 22:01:54  peter
     * registration of targets and assemblers
 
   Revision 1.12  2001/04/13 01:22:10  peter
