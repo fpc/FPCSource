@@ -400,6 +400,7 @@ unit symtable;
 
 {*** Misc ***}
     function  globaldef(const s : string) : pdef;
+    procedure duplicatesym(sym:psym);
 
 {*** Search ***}
     function  search_a_symtable(const symbol:string;symtabletype:tsymtabletype):Psym;
@@ -558,6 +559,14 @@ implementation
 {$endif TP}
         p:=strpnew(s);
      end;
+
+
+     procedure duplicatesym(sym:psym);
+       begin
+         Message1(sym_e_duplicate_id,sym^.name);
+         with sym^.fileinfo do
+          Message2(sym_h_duplicate_id_where,current_module^.sourcefiles^.get_file_name(fileindex),tostr(line));
+       end;
 
 
 {****************************************************************************
@@ -1761,7 +1770,7 @@ const localsymtablestack : psymtable = nil;
                        hsym:=hp^.search(sym^.name);
                        if (assigned(hsym)) and
                           (hsym^.properties and sp_forwarddef=0) then
-                             Message1(sym_e_duplicate_id,sym^.name);
+                         DuplicateSym(hsym);
                     end;
                   hp:=hp^.next;
                 end;
@@ -1776,7 +1785,7 @@ const localsymtablestack : psymtable = nil;
                 begin
                    hsym:=next^.search(sym^.name);
                    if assigned(hsym) then
-                     Message1(sym_e_duplicate_id,sym^.name);
+                     DuplicateSym(hsym);
                 end
               else if (current_module^.flags and uf_local_browser)=0 then
                 internalerror(43789);
@@ -1795,7 +1804,7 @@ const localsymtablestack : psymtable = nil;
               if assigned(hsym) and
                 ((hsym^.properties<>sp_private) or
                  (hsym^.owner^.defowner^.owner^.symtabletype<>unitsymtable)) then
-                Message1(sym_e_duplicate_id,sym^.name);
+                DuplicateSym(hsym);
            end;
          { check for duplicate field id in inherited classes }
          if (sym^.typ=varsym) and
@@ -1807,7 +1816,7 @@ const localsymtablestack : psymtable = nil;
               if assigned(hsym) and
                 ((hsym^.properties<>sp_private) or
                  (hsym^.owner^.defowner^.owner^.symtabletype<>unitsymtable)) then
-                Message1(sym_e_duplicate_id,sym^.name);
+                DuplicateSym(hsym);
            end;
 
          if sym^.typ = typesym then
@@ -2020,7 +2029,7 @@ const localsymtablestack : psymtable = nil;
                        end
                      else
                        begin
-                         Message1(sym_e_duplicate_id,sym^.name);
+                         DuplicateSym(sym);
                          _insert:=osym;
                        end;
                   end;
@@ -2052,7 +2061,7 @@ const localsymtablestack : psymtable = nil;
                        hsym:=hp^.search(sym^.name);
                        if (assigned(hsym)) and
                           (hsym^.properties and sp_forwarddef=0) then
-                             Message1(sym_e_duplicate_id,sym^.name);
+                         DuplicateSym(hsym);
                     end;
                   hp:=hp^.next;
                 end;
@@ -2067,7 +2076,7 @@ const localsymtablestack : psymtable = nil;
                 begin
                    hsym:=next^.search(sym^.name);
                    if assigned(hsym) then
-                     Message1(sym_e_duplicate_id,sym^.name);
+                     DuplicateSym(hsym);
                 end
               else if (current_module^.flags and uf_local_browser)=0 then
                 internalerror(43789);
@@ -2086,7 +2095,7 @@ const localsymtablestack : psymtable = nil;
               if assigned(hsym) and
                 ((hsym^.properties<>sp_private) or
                  (hsym^.owner^.defowner^.owner^.symtabletype<>unitsymtable)) then
-                Message1(sym_e_duplicate_id,sym^.name);
+                DuplicateSym(hsym);
            end;
          { check for duplicate field id in inherited classes }
          if (sym^.typ=varsym) and
@@ -2098,7 +2107,7 @@ const localsymtablestack : psymtable = nil;
               if assigned(hsym) and
                 ((hsym^.properties<>sp_private) or
                  (hsym^.owner^.defowner^.owner^.symtabletype<>unitsymtable)) then
-                Message1(sym_e_duplicate_id,sym^.name);
+                DuplicateSym(hsym);
            end;
 
          if sym^.typ = typesym then
@@ -3208,7 +3217,10 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.9  1999-05-08 19:52:40  peter
+  Revision 1.10  1999-05-09 12:46:26  peter
+    + hint where a duplicate sym is already defined
+
+  Revision 1.9  1999/05/08 19:52:40  peter
     + MessagePos() which is enhanced Message() function but also gets the
       position info
     * Removed comp warnings

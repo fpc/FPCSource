@@ -223,6 +223,7 @@ type tmsgconst=(
   sym_e_id_not_found,
   sym_f_internal_error_in_symtablestack,
   sym_e_duplicate_id,
+  sym_h_duplicate_id_where,
   sym_e_unknown_id,
   sym_e_forward_not_resolved,
   sym_f_id_already_typed,
