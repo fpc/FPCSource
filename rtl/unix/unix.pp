@@ -1548,7 +1548,7 @@ Var
   Info   : Stat;
 Begin
 {Replace ':' with ';'}
-  for p1:=1to length(dirlist) do
+  for p1:=1 to length(dirlist) do
    if dirlist[p1]=':' then
     dirlist[p1]:=';';
 {Check for WildCards}
@@ -1740,7 +1740,10 @@ End.
 
 {
   $Log$
-  Revision 1.66  2004-02-16 13:21:18  marco
+  Revision 1.67  2004-03-03 17:23:06  olle
+    * tiny tiny flaw fix
+
+  Revision 1.66  2004/02/16 13:21:18  marco
    * fpexec for popen
 
   Revision 1.65  2004/02/14 21:12:14  marco
