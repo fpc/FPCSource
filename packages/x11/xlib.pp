@@ -178,7 +178,6 @@ uses X;
             ext_data : PXExtData;
             visualid : TVisualID;
             c_class : longint;
-            classes : longint; { Renamed class to classes. MVC}
             red_mask : cardinal;
             green_mask : cardinal;
             blue_mask : cardinal;
@@ -1724,7 +1723,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:34  michael
+  Revision 1.3  2000-10-26 16:40:27  sg
+  * Fixed declaration of TVisual
+
+  Revision 1.2  2000/07/13 11:33:34  michael
   + removed logs
  
 }
