@@ -287,39 +287,6 @@ begin
   Attr2Ansi:=#27'['+hstr+'m';
 end;
 
-procedure TransformUsingACS(var st : string);
-var
-  res : string;
-  i : longint;
-  ch,ACSch : char;
-begin
-  res:='';
-  for i:=1 to length(st) do
-    begin
-      ch:=st[i];
-      if IsACS(ch,ACSch) then
-        begin
-          if not InACS then
-            begin
-              res:=res+ACSIn;
-              InACS:=true;
-            end;
-          res:=res+ACSch;
-        end
-      else
-        begin
-          if InACS then
-            begin
-              res:=res+ACSOut;
-              InACS:=false;
-            end;
-          res:=res+ch;
-        end;
-    end;
-  st:=res;
-end;
-
-
 procedure UpdateTTY(Force:boolean);
 type
   tchattr=packed record
@@ -343,6 +310,41 @@ var
   SpaceAttr,
   LastAttr : longint;
   p,pold   : pvideocell;
+
+
+procedure TransformUsingACS(var st : string);
+var
+  res : string;
+  i : longint;
+  ch,ACSch : char;
+begin
+  res:='';
+  for i:=1 to length(st) do
+    begin
+      ch:=st[i];
+      if IsACS(ch,ACSch) then
+        begin
+          if not InACS then
+            begin
+              res:=res+ACSIn;
+              InACS:=true;
+            end;
+          res:=res+ACSch;
+        end
+      else
+        begin
+          if InACS then
+            begin
+              res:=res+ACSOut+Attr2Ansi(LastAttr,0);                    
+              InACS:=false;
+            end;
+          res:=res+ch;
+        end;
+    end;
+  st:=res;
+end;
+
+
 
   procedure outdata(hstr:string);
   begin
@@ -822,7 +824,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2001-10-13 13:00:31  michael
+  Revision 1.11  2002-07-06 16:50:17  marco
+   * Fix for corrupt color-attr after some ACS-mode changes. (Pierre, Strassbourg
+      meeting)
+
+  Revision 1.10  2001/10/13 13:00:31  michael
   + Removed defaultmode field from driver
 
   Revision 1.9  2001/10/06 22:28:25  michael
