@@ -990,118 +990,17 @@ begin
     name:=path;
 end;
 
-function fexpand(const path:pathstr):pathstr;
+function FExpand (const Path: PathStr): PathStr;
 
-{    function get_current_drive:byte;assembler;
+{$DEFINE FEXPAND_UNC} (* UNC paths are supported *)
+{$DEFINE FEXPAND_DRIVES} (* Full paths begin with drive specification *)
 
-    asm
-        movb $0x19,%ah
-        call syscall
-    end;
-}
+const
+    LFNSupport = true;
 
-var s,pa:PathStr;
-    i,j:longint;
-
-begin
-    if FileNameCaseSensitive then
-        pa := path
-    else
-        pa:=upcase(path);
-    {Allow slash as backslash}
-    for i:=1 to length(pa) do
-        if pa[i]='/' then
-            pa[i]:='\';
-    if (length(pa)>1) and (pa[1] in ['A'..'Z','a'..'z']) and (pa[2]=':') then
-        begin
-            { Always uppercase driveletter }
-            if (pa[1] in ['a'..'z']) then
-                pa[1]:=Chr(Ord(Pa[1])-32);
-            {We must get the right directory}
-            getdir (Ord (Pa [1]) - Ord ('A') + 1, S);
-            i:=ioresult;
-            case Length (Pa) of
-                2: Pa := S;
-            else
-                if Pa [3] <> '\' then
-                    if pa[1]=s[1] then
-                        begin
-                            { remove ending slash if it already exists }
-                            if s[length(s)]='\' then
-                                dec(s[0]);
-                            pa:=s+'\'+copy (pa,3,length(pa))
-                        end
-                    else
-                        pa:=pa[1]+':\'+copy (pa,3,length(pa))
-            end;
-        end
-    else
-        begin
-            getdir(0,s);
-            i:=ioresult;
-            if (Length (Pa) > 0) and (Pa [1] = '\') then
-            begin
-                { Do not touch Network drive names }
-                if not ((Length(pa)>1) and (pa[2]='\')) then
-                    pa:=s[1]+':'+pa
-            end
-            else
-                if Length (S) = 3 then
-            pa:=s+pa
-        else
-                    if Length (Pa) = 0 then
-                        Pa := S + '\'
-                    else
-            pa:=s+'\'+pa;
-        end;
-    {First remove all references to '\.\'}
-    i:=pos('\.\',pa);
-    while i<>0 do
-        begin
-            delete(pa,i,2);
-            i:=pos('\.\',pa);
-        end;
-    {Now remove also all references to '\..\' + of course previous dirs..}
-    repeat
-        i:=pos('\..\',pa);
-        if i<>0 then
-            begin
-                J := Pred (I);
-                while (J > 0) and (Pa [J] <> '\') do
-                    Dec (J);
-                if (J = 0) or (J = 1) and (I = 2) then
-                    Delete (Pa, Succ (I), 3)
-                else
-                    Delete (Pa, Succ (J), I - J + 3);
-            end;
-    until i=0;
-    {Now remove also any reference to '\..' at the end of line
-    + of course previous dir..}
-    i:=pos('\..',pa);
-    if (I <> 0) and (I = Length (Pa) - 2) then
-        begin
-            J := Pred (I);
-            while (J >= 1) and (Pa [J] <> '\') do
-                Dec (J);
-            if (J = 0) or (J = 1) and (I = 2) then
-                Delete (Pa, Succ (I), 2)
-            else
-                Delete (Pa, Succ (J), I - J + 2);
-        end;
-    {Now remove also any reference to '\.' at the end of line}
-    I := Pos ('\.', Pa);
-    if (I <> 0) and (I = Pred (Length (Pa))) then
-        if (I = 3) and (Pa [2] = ':') or (I = 2) and (Pa [1] = '\') then
-            Dec (Pa [0])
-        else
-            Delete (Pa, I, 2);
-    {Remove ending \ if not supplied originally and original string
-    wasn't empty (to stay compatible) and if not really needed}
-    if (Length (Pa) > 3) and (Pa [Length (Pa)] = '\')
-                and (Length (Path) <> 0) and (Path [Length (Path)] <> '\') then
-        Dec (Pa [0]);
-    fexpand:=pa;
-end;
+{$I fexpand.inc}
+{$UNDEF FEXPAND_DRIVES}
+{$UNDEF FEXPAND_UNC}
 
 procedure packtime(var d:datetime;var time:longint);
 
@@ -1169,7 +1068,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-11-05 22:21:47  hajny
+  Revision 1.6  2000-11-06 20:35:05  hajny
+    * common FExpand introduced
+
+  Revision 1.5  2000/11/05 22:21:47  hajny
     * more FExpand fixes
 
   Revision 1.4  2000/10/28 16:58:34  hajny
