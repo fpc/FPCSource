@@ -17,7 +17,9 @@ var
 
 begin
   w := 0;
-  p := pchar(w); // should fail, because sizeof(w)<>sizeof(p) on this platform.
-  //a := T4Bytes(w); // should fail, and it does
+  // The next line should compile, delphi compatible
+  p := pchar(w);
+  // should fail, and it does
+  a := T4Bytes(w);
 end.
 
