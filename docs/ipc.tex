@@ -39,7 +39,8 @@ Var
 \end{verbatim}
 The \var{IPCerror} variable is used to report errors, by all calls.
 \subsection{Constants}
-
+Many constants here are provided for completeness only, and should under
+normal circumstances not be used by the programmer.
 \begin{verbatim}
 Const 
   IPC_CREAT  =  1 shl 9;  { create if key is nonexistent }
@@ -98,6 +99,13 @@ const
 These constants are used in the \seef{shmctl} call.
 
 \subsection{Types}
+The following two types are provided because they are needed. One they they
+should be defined in the system unit, however.
+\begin{verbatim}
+Type
+  PULong = ^Cardinal;
+  PWord  = ^Word;
+\end{verbatim}
 
 \begin{verbatim}
 Type 
@@ -257,7 +265,7 @@ Type
   end;
 \end{verbatim}
 The \var{TSEMinfo} record is used internally by the semaphore system, and
-should not be used diirectly.
+should not be used directly.
 \begin{verbatim}
 Type
   PSEMun = ^TSEMun;
