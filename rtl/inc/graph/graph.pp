@@ -2868,8 +2868,6 @@ begin
 end.
 
 
-PieSlice
-Sector
 SetGraphBufSize
 SetBkColor
 DetectGraph
@@ -2879,7 +2877,13 @@ DetectGraph
 
 {
   $Log$
-  Revision 1.23  1999-09-17 13:58:31  jonas
+  Revision 1.24  1999-09-18 16:03:37  jonas
+    * graph.pp: removed pieslice and sector from ToDo list
+    * closegraph: exits now immidiately if isgraphmode = false (caused
+      RTE 204 with VESA enabled if you set exitproc to call closegraph
+      and also called closegraph explicitely before exit, like bgidemo)
+
+  Revision 1.23  1999/09/17 13:58:31  jonas
   * another fix for a case where internalellipsedefault went haywire
   * sector() and pieslice() fully implemented!
   * small change to prevent buffer overflow with floodfill

@@ -1630,6 +1630,11 @@ const CrtAddress: word = 0;
  {************************************************************************}
  procedure CloseGraph;
  Begin
+    If not isgraphmode then
+      begin
+        _graphresult := grnoinitgraph;
+        exit
+      end;
     if not assigned(RestoreVideoState) then
       RunError(216);
     RestoreVideoState;
@@ -2583,7 +2588,13 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.12  1999-09-15 13:37:50  jonas
+Revision 1.13  1999-09-18 16:03:36  jonas
+  * graph.pp: removed pieslice and sector from ToDo list
+  * closegraph: exits now immidiately if isgraphmode = false (caused
+    RTE 204 with VESA enabled if you set exitproc to call closegraph
+    and also called closegraph explicitely before exit, like bgidemo)
+
+Revision 1.12  1999/09/15 13:37:50  jonas
   * small change to internalellipsedef to be TP compatible
   * fixed directputpixel for vga 320*200*256
 
