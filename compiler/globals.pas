@@ -72,7 +72,7 @@ unit globals;
          [m_objfpc,m_fpc,m_all,m_class,m_objpas,m_result,m_string_pchar,m_nested_comment,
           m_repeat_forward,m_cvar_support,m_initfinal,m_add_pointer];
        tpmodeswitches     : tmodeswitches=
-         [m_tp,m_all,m_tp_procvar];
+         [m_tp7,m_tp,m_all,m_tp_procvar];
        gpcmodeswitches    : tmodeswitches=
          [m_gpc,m_all];
 
@@ -1568,7 +1568,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2000-05-12 08:58:51  pierre
+  Revision 1.64  2000-06-11 07:00:21  peter
+    * fixed pchar->string conversion for delphi mode
+
+  Revision 1.63  2000/05/12 08:58:51  pierre
    * adapted to Delphi 3
 
   Revision 1.62  2000/05/12 05:55:04  pierre

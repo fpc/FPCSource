@@ -113,7 +113,7 @@ interface
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
        tmodeswitch = (m_none,m_all, { needed for keyword }
          { generic }
-         m_fpc,m_objfpc,m_delphi,m_tp,m_gpc,
+         m_fpc,m_objfpc,m_delphi,m_tp,m_tp7,m_gpc,
          { more specific }
          m_class,               { delphi class model }
          m_objpas,              { load objpas unit }
@@ -199,7 +199,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2000-05-31 06:57:11  florian
+  Revision 1.32  2000-06-11 07:00:21  peter
+    * fixed pchar->string conversion for delphi mode
+
+  Revision 1.31  2000/05/31 06:57:11  florian
     * first implementation of -Oa switch
 
   Revision 1.30  2000/05/16 20:19:05  pierre

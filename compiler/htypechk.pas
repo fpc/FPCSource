@@ -238,8 +238,9 @@ implementation
                    end;
                  pointerdef :
                    begin
-                   { pchar can be assigned to short/ansistrings }
-                     if is_pchar(def_from) and not(m_tp in aktmodeswitches) then
+                   { pchar can be assigned to short/ansistrings,
+                     but not in tp7 compatible mode }
+                     if is_pchar(def_from) and not(m_tp7 in aktmodeswitches) then
                       begin
                         doconv:=tc_pchar_2_string;
                         b:=1;
@@ -1120,7 +1121,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2000-06-06 20:25:43  pierre
+  Revision 1.69  2000-06-11 07:00:21  peter
+    * fixed pchar->string conversion for delphi mode
+
+  Revision 1.68  2000/06/06 20:25:43  pierre
     * unary minus operator overloading was broken
     + accept pointer args in binary operator
 
