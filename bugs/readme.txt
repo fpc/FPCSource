@@ -190,6 +190,7 @@ Fixed bugs:
   bug0160.pp   Incompatibility with BP: Self shouldn't be a reserved word. OK 0.99.9 (PM)
   bug0161.pp   internal error when trying to create a set with another OK 0.99.9 (PFV)
   bug0162.pp   continue in repeat ... until loop doesn't work correct OK 0.99.8 (PFV)
+  bug0163.pp   missing <= and >= operators for sets.                 OK 0.99.11 (JM)
   bug0164.pp   crash when using undeclared array index in with statement OK 0.99.8 (PFV)
   bug0165.pp   missing range check code for enumerated types.            OK 0.99.9 (PFV)
   bug0166.pp   forward type used in declaration crashes instead of error OK 0.99.9 (PFV)
@@ -257,7 +258,6 @@ bug0175.pp   Asm, mov word,%eax should not be allowed without casting
 
 bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
-bug0163.pp   missing <= and >= operators for sets.
 bug0185.pp   missing range checking for Val and subrange types
 bug0187.pp   constructor in a WIth statement isn't called correct.
 bug0190.pp   can't have typecast for var params ??
