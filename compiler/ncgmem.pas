@@ -75,6 +75,12 @@ interface
          procedure rangecheck_array;
        protected
          function get_mul_size : aword;
+         {# This routine is used to calculate the address of the reference.
+            On entry reg contains the index in the array,
+           and l contains the size of each element in the array.
+           This routine should update location.reference correctly,
+           so it points to the correct address.
+         }
          procedure update_reference_reg_mul(reg:tregister;l:aword);virtual;
          procedure second_wideansistring;virtual;
          procedure second_dynamicarray;virtual;
@@ -915,7 +921,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2002-12-07 14:14:19  carl
+  Revision 1.37  2002-12-08 13:39:03  carl
+    + some documentation added
+
+  Revision 1.36  2002/12/07 14:14:19  carl
     * bugfix on invalid typecast
 
   Revision 1.35  2002/11/25 17:43:18  peter
