@@ -24,10 +24,6 @@
 
 {$Define OptimizeMovs}
 
-Type    TwoWords = Record
-            Word1, Word2: Word
-        End;
-
 Procedure ReloadOpt(AsmL: PaasmOutput);
 
 Const MaxCh = 3;
@@ -589,11 +585,13 @@ Function InstructionsEqual(p1, p2: Pai): Boolean;
 Begin {checks whether two Pai386 instructions are equal}
   InstructionsEqual :=
     Assigned(p1) And Assigned(p2) And
+{$ifdef regalloc}
     ((((Pai(p1)^.typ = ait_regalloc) And
        (Pai(p2)^.typ = ait_regalloc)) Or
       ((Pai(p1)^.typ = ait_regdealloc) And
        (Pai(p2)^.typ = ait_regdealloc))) And
      (PaiRegAlloc(p1)^.reg = PaiRegAlloc(p2)^.reg)) Or
+{$endif regalloc}
     ((Pai(p1)^.typ = ait_instruction) And
      (Pai(p1)^.typ = ait_instruction) And
      (Pai386(p1)^._operator = Pai386(p2)^._operator) And
@@ -833,7 +831,9 @@ Begin
         ait_label: DestroyAllRegs(p);
         ait_labeled_instruction, ait_stabs, ait_stabn,
         ait_stab_function_name:; {nothing changes}
+{$ifdef regalloc}
         ait_regalloc, ait_regdealloc:;
+{$endif regalloc}
         ait_instruction:
           Begin
             InstrProp := AsmInstr[Pai386(p)^._operator];
@@ -1191,7 +1191,10 @@ End;
 
 {
  $Log$
- Revision 1.3  1998-04-16 16:53:56  jonas
+ Revision 1.4  1998-04-21 11:30:14  peter
+   * fixed $ifdef regalloc
+
+ Revision 1.3  1998/04/16 16:53:56  jonas
  *** empty log message ***
 
  Revision 1.2  1998/04/06 22:42:32  jonas

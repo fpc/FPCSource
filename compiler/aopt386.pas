@@ -42,8 +42,11 @@ Unit aopt386;
 
         {ait_* types which don't result in executable code or which don't
          influence the way the program runs/behaves}
-  Const SkipInstr = [ait_comment,ait_stabs, ait_stabn, ait_stab_function_name,
-                     ait_regalloc, ait_regdealloc];
+  Const SkipInstr = [ait_comment,ait_stabs, ait_stabn, ait_stab_function_name
+{$ifdef regalloc}
+                     ,ait_regalloc, ait_regdealloc
+{$endif regalloc}
+                     ];
 
   Type
 {$ifdef tp}
@@ -1523,8 +1526,10 @@ End;
                      Continue
                    End;
              End;
+{$ifdef regalloc}
            ait_regalloc: UsedRegs := UsedRegs + [PaiAlloc(p)^.Reg];
            ait_regdealloc: UsedRegs := UsedRegs - [PaiAlloc(p)^.Reg];
+{$endif regalloc}
          End;
          p:=pai(p^.next);
        end;
@@ -1609,7 +1614,10 @@ end;
 End.
 {
   $Log$
-  Revision 1.5  1998-04-16 16:53:56  jonas
+  Revision 1.6  1998-04-21 11:30:14  peter
+    * fixed $ifdef regalloc
+
+  Revision 1.5  1998/04/16 16:53:56  jonas
   *** empty log message ***
 
   Revision 1.4  1998/04/08 19:12:28  jonas
