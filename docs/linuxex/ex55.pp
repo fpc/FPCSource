@@ -1,6 +1,6 @@
 Program Example55;
 
-uses Linux;
+uses TermIO;
 
 { Program to demonstrate the TCGetAttr/TCSetAttr/CFMakeRaw functions. }
 

@@ -1,6 +1,6 @@
 program example56;
 
-uses linux;
+uses Unix;
 
 { Program to demonstrate the Shell function }
 
