@@ -16,7 +16,7 @@ fpcdir=../..
 [rules]
 
 # Only 1.1 has Classes in the RTL
-ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
+ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
 FCL=fcl
 endif
 
