@@ -427,7 +427,7 @@ implementation
                               maxreg:Tsuperregister);{$ifdef USEINLINE}inline;{$endif}
 
     begin
-      fillchar(regs,(maxreg or 7) shr 3,-byte(setall));
+      fillchar(regs,(maxreg+7) shr 3,-byte(setall));
     end;
 
 
@@ -607,7 +607,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.94  2004-08-24 21:02:32  florian
+  Revision 1.95  2004-10-14 10:59:58  michael
+  * fix clearing of superregset (from Peter)
+
+  Revision 1.94  2004/08/24 21:02:32  florian
     * fixed longbool(<int64>) on sparc
 
   Revision 1.93  2004/07/19 19:21:02  florian
