@@ -506,7 +506,7 @@ implementation
          if is_equal(def1.rettype.def,def2.rettype.def) and
             (def1.para_size(target_info.alignment.paraalign)=def2.para_size(target_info.alignment.paraalign)) and
             (equal_paras(def1.para,def2.para,cp_procvar,false) or
-             ((not exact) and convertable_paras(def1.para,def2.para,cp_all))) and
+             ((not exact) and convertable_paras(def1.para,def2.para,cp_procvar))) and
             ((po_comp * def1.procoptions)= (po_comp * def2.procoptions)) then
            proc_to_procvar_equal:=true
          else
@@ -2040,7 +2040,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2002-11-15 01:58:46  peter
+  Revision 1.25  2002-11-16 18:00:53  peter
+    * fix merged proc-procvar check
+
+  Revision 1.24  2002/11/15 01:58:46  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
