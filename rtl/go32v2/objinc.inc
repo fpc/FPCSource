@@ -161,7 +161,7 @@ BEGIN
    SetFilePos(Handle,FileSize,0,Actual);
    If (Actual = FileSize) Then
     Begin
-      Actual := FileWrite(Handle, Pointer(@Buf), 0,Actual);   { Truncate the file }
+      Actual := FileWrite(Handle, Buf, 0,Actual);   { Truncate the file }
       If (Actual <> -1) Then
        SetFileSize := 0
       Else
@@ -173,7 +173,10 @@ END;
 
 {
   $Log$
-  Revision 1.5  2000-03-20 19:19:44  pierre
+  Revision 1.6  2000-05-30 06:45:53  marco
+   * fixed in line 164 pointer(@buf) to buf
+
+  Revision 1.5  2000/03/20 19:19:44  pierre
    * LFN support in streams
 
   Revision 1.4  2000/02/09 16:59:29  peter
