@@ -38,13 +38,13 @@ Const
   V_Procedure    = $200;
   V_Conditional  = $400;
   V_Assem        = $800;
+  V_Declarations = $1000;
   V_Info         = $10000;
   V_Status       = $20000;
   V_Used         = $40000;
   V_Tried        = $80000;
   V_Debug        = $100000;
-  V_Declarations = $200000;
-  V_Executable   = $400000;
+  V_Executable   = $200000;
   V_ShowFile     = $ffff;
   V_All          = $ffffffff;
   V_Default      = V_Fatal + V_Error + V_Normal;
@@ -370,7 +370,10 @@ Function def_GetNamedFileTime (Const F : String) : Longint;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-12 15:30:45  peter
+  Revision 1.4  2000-08-13 13:04:15  peter
+    * -vb update
+
+  Revision 1.3  2000/08/12 15:30:45  peter
     * IDE patch for stream reading (merged)
 
   Revision 1.2  2000/07/13 11:32:38  michael
