@@ -404,10 +404,16 @@ end ;
     if S does not represent a valid integer value EConvertError is raised  }
 
 function StrToInt(const S: string): integer;
+
 var Error: word;
+
 begin
  Val(S, result, Error);
- if Error <> 0 then raise EConvertError.create(s + ' is not a valid integer');
+{$ifdef autoobjpas}
+  if Error <> 0 then raise EConvertError.createfmt(SInValidInteger,[S]);
+{$else}
+  if Error <> 0 then raise EConvertError.create(s + ' is not a valid integer');
+{$endif}
 end ;
 
 {   StrToIntDef converts the string S to an integer value,
@@ -450,9 +456,20 @@ end;
    
 Procedure DoFormatError (ErrCode : Longint);
 
+Var S : String;
+
 begin
-  Writeln ('Error in format : ',Errcode);
-  Halt(1);
+  //!! must be changed to contain format string...
+  S:='';
+{$ifdef autoobjpas}
+  Case ErrCode of
+   feInvalidFormat : EConvertError.Createfmt(SInvalidFormat,[s]);
+   feMissingArgument : EConvertError.Createfmt(SArgumentMissing,[s]);
+   feInvalidArgIndex : EConvertError.Createfmt(SInvalidArgIndex,[s]);
+ end;
+{$else}
+  EConvertError.Create('Invalid format encountered : '+S);
+{$endif}
 end;
 
 {$ifdef AUTOOBJPAS}
@@ -889,7 +906,10 @@ end ;
 
 {
   $Log$
-  Revision 1.7  1998-10-02 12:17:17  michael
+  Revision 1.8  1998-10-02 13:57:38  michael
+  Format error now causes exception
+
+  Revision 1.7  1998/10/02 12:17:17  michael
   + Made sure it compiles with official 0.99.8
 
   Revision 1.6  1998/10/02 10:42:17  michael
@@ -909,7 +929,10 @@ end ;
   Update from gertjan Schouten, plus small fix for linux
 
   $Log$
-  Revision 1.7  1998-10-02 12:17:17  michael
+  Revision 1.8  1998-10-02 13:57:38  michael
+  Format error now causes exception
+
+  Revision 1.7  1998/10/02 12:17:17  michael
   + Made sure it compiles with official 0.99.8
 
   Revision 1.6  1998/10/02 10:42:17  michael

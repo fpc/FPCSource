@@ -26,6 +26,7 @@ Const
    SAbstractError = 'Abstract method called';
    SAccessDenied = 'Access denied';
    SAccessViolation = 'Access violation';
+   SArgumentMissing = 'Missing argument in format "%s"';
    SDiskFull = 'Disk Full';
    SDivByZero = 'Division by zero';
    SEndOfFile = 'Read past end of file'; 
@@ -33,10 +34,13 @@ Const
    SFileNotOpen = 'File not open';
    SFileNotOpenForInput = 'File not open for input';
    SFileNotOpenForOutput = 'File not open for output';
+   SInvalidArgIndex = 'Invalid argument index in format "%s"';
    SInvalidDrive = 'Invalid drive specified';
    SInvalidFileHandle = 'Invalid file handle';
    SInValidFileName = 'Invalid filename';
+   SInvalidFormat = 'Invalid format specifier : "%s"';
    SInvalidInput = 'Invalid input';
+   SInvalidInteger = '"%s" is an invalid integer';
    SInvalidPointer = 'Invalid pointer operation';
    SOutOfMemory = 'Out of memory';
    SRangeError = 'Range check error';
@@ -44,7 +48,10 @@ Const
    SUnKnownRunTimeError = 'Unknown Run-Time error : %3.3d';
 {
   $Log$
-  Revision 1.2  1998-10-02 13:00:09  michael
+  Revision 1.3  1998-10-02 13:57:37  michael
+  Format error now causes exception
+
+  Revision 1.2  1998/10/02 13:00:09  michael
   + More RTL error handling
 
   Revision 1.1  1998/10/01 16:04:59  michael
