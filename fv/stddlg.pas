@@ -824,9 +824,11 @@ function MatchesMask(What, Mask: string): boolean;
       end;
     found:=true;
     repeat
-      inc(i2);
       inc(i1);
-      if (i1>length(hstr1)) or (i2>length(hstr2)) then
+      if (i1>length(hstr1)) then
+        break;
+      inc(i2);
+      if (i2>length(hstr2)) then
         break;
       case hstr1[i1] of
         '?' :
@@ -849,9 +851,16 @@ function MatchesMask(What, Mask: string): boolean;
         else
           found:=(hstr1[i1]=hstr2[i2]) or (hstr2[i2]='?');
       end;
-    until (not found);
+    until not found;
     if found then
-      found:=(i1>=length(hstr1)) and (i2>=length(hstr2));
+      begin
+        found:=(i2>=length(hstr2)) and
+               (
+                (i1>length(hstr1)) or
+                ((i1=length(hstr1)) and
+                 (hstr1[i1]='*'))
+               );
+      end;
     CmpStr:=found;
   end;
 
@@ -2722,7 +2731,10 @@ end.
 
 {
  $Log$
- Revision 1.19  2005-02-14 17:13:18  peter
+ Revision 1.20  2005-03-07 16:59:42  peter
+   * fix matchmask
+
+ Revision 1.19  2005/02/14 17:13:18  peter
    * truncate log
 
 }
