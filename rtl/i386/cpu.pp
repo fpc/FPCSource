@@ -56,21 +56,29 @@ unit cpu;
     function cr0 : longint;assembler;
 
       asm
-         { mov eax,cr0 }
+         DB 0Fh,20h,0C0h
+         { mov eax,cr0
+           special registers are not allowed in the assembler
+  	        parsers }
       end;
 
     function floating_point_emulation : boolean;
 
       begin
          {!!!! I don't know currently the position of the EM flag }
-         floating_point_emulation:=(cr0 and $0)<>0;
+         { $4 after Ralf Brown's list }
+         floating_point_emulation:=(cr0 and $4)<>0;
       end;
 
 end.
 
 {
   $Log$
-  Revision 1.2  1998-05-12 10:42:41  peter
+  Revision 1.3  1998-05-25 10:51:27  pierre
+    * CR0 works now (written using DB to allow to use it we INTEL and ATT output)
+    * floating_emulation bit set correctly
+
+  Revision 1.2  1998/05/12 10:42:41  peter
     * moved getopts to inc/, all supported OS's need argc,argv exported
     + strpas, strlen are now exported in the systemunit
     * removed logs
