@@ -85,6 +85,8 @@ Type
                        Misc. System Dependent Functions
 *****************************************************************************}
 
+{$ASMMODE DIRECT}
+
 Procedure Halt(ErrNum: Byte);
 Begin
   ExitCode:=Errnum;
@@ -172,6 +174,7 @@ asm
 end ['EAX'];
 {$endif}
 
+{$ASMMODE ATT}
 
 Function brk(Location : longint) : Longint;
 { set end of data segment to location }
@@ -658,7 +661,10 @@ End.
 
 {
   $Log$
-  Revision 1.3  1998-05-12 10:42:48  peter
+  Revision 1.4  1998-05-30 14:18:43  peter
+    * fixed to remake with -Rintel in the ppc386.cfg
+
+  Revision 1.3  1998/05/12 10:42:48  peter
     * moved getopts to inc/, all supported OS's need argc,argv exported
     + strpas, strlen are now exported in the systemunit
     * removed logs

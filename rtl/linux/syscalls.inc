@@ -31,19 +31,20 @@ Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );assembler;
   copies back the registers as they are after the SysCall.
 }
 {$ifdef i386}
+{$ASMMODE ATT}
 asm
-# load the registers...
+{ load the registers... }
   movl 12(%ebp),%eax
   movl 4(%eax),%ebx
   movl 8(%eax),%ecx
   movl 12(%eax),%edx
   movl 16(%eax),%esi
   movl 20(%eax),%edi
-# set the call number
+{ set the call number }
   movl 8(%ebp),%eax
-# Go !
+{ Go ! }
   int $0x80
-# Put back the registers...
+{ Put back the registers... }
   pushl %eax
   movl 12(%ebp),%eax
   movl %edi,20(%eax)
@@ -54,6 +55,7 @@ asm
   popl %ebx
   movl %ebx,(%eax)
 end;
+{$ASMMODE DEFAULT}
 {$else}
 {$ifdef m68k}
 asm
@@ -366,7 +368,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-05-06 12:38:22  michael
+  Revision 1.3  1998-05-30 14:18:42  peter
+    * fixed to remake with -Rintel in the ppc386.cfg
+
+  Revision 1.2  1998/05/06 12:38:22  michael
   + Removed log from before restored version.
 
   Revision 1.1.1.1  1998/03/25 11:18:43  root
