@@ -1935,9 +1935,10 @@ begin
    begin
      if FileExists(inputdir+inputfile+target_info.sourceext) then
       inputextension:=target_info.sourceext
-     else
-      if FileExists(inputdir+inputfile+target_info.pasext) then
-       inputextension:=target_info.pasext;
+     else if FileExists(inputdir+inputfile+target_info.pasext) then
+       inputextension:=target_info.pasext
+     else if (m_mac in aktmodeswitches) and FileExists(inputdir+inputfile+'.p') then
+       inputextension:='.p';
    end;
 
   { Add paths specified with parameters to the searchpaths }
@@ -2076,7 +2077,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.137  2004-07-04 12:24:04  jonas
+  Revision 1.138  2004-07-05 21:26:28  olle
+    + allow fileextension .p, in mode macpas
+
+  Revision 1.137  2004/07/04 12:24:04  jonas
     * fixed "-g-l" (and other "-g-*" combinations)
 
   Revision 1.136  2004/06/20 08:55:30  florian

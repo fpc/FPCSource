@@ -37,7 +37,7 @@ unit i_macos;
             unit_env     : '';
             extradefines : '';
             sourceext    : '.pp';
-            pasext       : '.p'; {is normally .p for mac pascals}
+            pasext       : '.pas';
             exeext       : '';
             defext       : '';
             scriptext    : '';
@@ -102,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2004-06-20 08:55:32  florian
+  Revision 1.16  2004-07-05 21:26:35  olle
+    + allow fileextension .p, in mode macpas
+
+  Revision 1.15  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.14  2004/05/03 09:48:15  olle

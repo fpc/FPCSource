@@ -269,6 +269,11 @@ uses
               { Check for .pas }
               Found:=UnitExists(target_info.pasext,hs);
             end;
+           if not Found and (m_mac in aktmodeswitches) then
+            begin
+              { Check for .p, if mode is macpas}
+              Found:=UnitExists('.p',hs);
+            end;
            stringdispose(mainsource);
            if Found then
             begin
@@ -345,6 +350,11 @@ uses
              begin
                Message1(unit_t_unitsearch,AddExtension(sourcefn^,target_info.pasext));
                fnd:=FindFile(AddExtension(sourcefn^,target_info.pasext),'',hs);
+             end;
+            if not fnd and (m_mac in aktmodeswitches) then
+             begin
+               Message1(unit_t_unitsearch,AddExtension(sourcefn^,'.p'));
+               fnd:=FindFile(AddExtension(sourcefn^,'.p'),'',hs);
              end;
             if fnd then
              begin
@@ -1514,7 +1524,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.55  2004-06-20 08:55:29  florian
+  Revision 1.56  2004-07-05 21:26:28  olle
+    + allow fileextension .p, in mode macpas
+
+  Revision 1.55  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.54  2004/03/17 12:12:59  olle
