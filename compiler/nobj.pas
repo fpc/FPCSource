@@ -31,8 +31,7 @@ interface
        cutils,cclasses,
        globtype,
        symdef,symsym,
-       aasmbase,aasmtai,
-       cpuinfo
+       aasmbase,aasmtai
        ;
 
     type
@@ -148,7 +147,7 @@ implementation
        gdb,
 {$endif GDB}
        aasmcpu,
-       cpubase,cgbase,parabase,
+       cgbase,parabase,
        cgutils,cgobj
        ;
 
@@ -1070,6 +1069,9 @@ implementation
 
 
     function tclassheader.gintfgetcprocdef(proc: tprocdef;const name: string): tprocdef;
+      const
+        po_comp = [po_classmethod,po_staticmethod,po_interrupt,po_iocheck,po_msgstr,po_msgint,
+                   po_exports,po_varargs,po_explicitparaloc,po_nostackframe];
       var
         sym: tsym;
         implprocdef : Tprocdef;
@@ -1093,7 +1095,9 @@ implementation
               begin
                 implprocdef:=tprocsym(sym).procdef[i];
                 if (compare_paras(proc.paras,implprocdef.paras,cp_none,[])>=te_equal) and
-                   (proc.proccalloption=implprocdef.proccalloption) then
+                   (proc.proccalloption=implprocdef.proccalloption) and
+                   (proc.proctypeoption=implprocdef.proctypeoption) and
+                   ((proc.procoptions*po_comp)=(implprocdef.procoptions*po_comp)) then
                   begin
                     gintfgetcprocdef:=implprocdef;
                     exit;
@@ -1401,7 +1405,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.83  2004-11-20 14:39:27  florian
+  Revision 1.84  2004-12-26 20:16:44  peter
+    * also compare procoptions and proctype when searching interface
+      implementations
+
+  Revision 1.83  2004/11/20 14:39:27  florian
     * write nil entry after last entry to vmt table so the size of the vmt can be determined
 
   Revision 1.82  2004/11/17 22:21:35  peter
