@@ -1691,14 +1691,16 @@ begin
   Indicator^.GrowMode:=gfGrowLoY+gfGrowHiY;
   Insert(Indicator);
   GetExtent(R); R.Grow(-1,-1);
-  LoadFile:=AFileName<>'';
-  if not LoadFile then
+  LoadFile:=(AFileName<>'') and (AFileName<>'*');
+  if (AFileName='') then
     begin
       Inc(GlobalNoNameCount);
       NoNameCount:=GlobalNoNameCount;
     end
   else
-    NoNameCount:=0;
+    NoNameCount:=-1;
+  if AFileName='*' then
+    AFileName:='';
   New(Editor, Init(R, HSB, VSB, Indicator,AFileName));
   Editor^.GrowMode:=gfGrowHiX+gfGrowHiY;
   if LoadFile then
@@ -1734,7 +1736,7 @@ begin
       end;
       SetTitle(Name);
     end
-  else if NoNameCount>0 then
+  else if NoNameCount>=0 then
     begin
       SetTitle('noname'+IntToStrZ(NonameCount,2)+'.pas');
     end;
@@ -2402,9 +2404,7 @@ var R: TRect;
     HSB,VSB: PScrollBar;
 begin
   Desktop^.GetExtent(R);
-  inherited Init(R, '');
-  NoNameCount:=0;
-  Dec(GlobalNoNameCount);
+  inherited Init(R, '*');
   SetTitle(dialog_clipboard);
   HelpCtx:=hcClipboardWindow;
   Number:=wnNoNumber;
@@ -4230,7 +4230,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.25  2002-09-04 08:50:59  pierre
+  Revision 1.26  2002-09-05 05:58:58  pierre
+   + use '*' as special name for noload and also no 'nonamexx.pas title
+
+  Revision 1.25  2002/09/04 08:50:59  pierre
    * TranslateCodeTemplate Shortcut is now a var parameter
 
   Revision 1.24  2002/08/26 13:00:08  pierre
