@@ -330,7 +330,11 @@ begin
         VarInteger : Result:=VInteger;
         VarSingle  : Result:=Trunc(VSingle);
         VarDouble  : Result:=Trunc(VDouble);
+{$ifdef HASCURRENCY}
+        VarCurrency: Result:=Trunc(VCurrency);
+{$else}
         VarCurrency: Result:=VCurrency;
+{$endif}
         VarDate    : Result:=Trunc(VDate);
         VarOleStr  : NoWideStrings;
         VarBoolean : Result:=Longint(VBoolean);
@@ -361,7 +365,11 @@ begin
         VarInteger : Result:=VInteger;
         VarSingle  : Result:=Trunc(VSingle);
         VarDouble  : Result:=Trunc(VDouble);
+{$ifdef HASCURRENCY}
+        VarCurrency: Result:=Trunc(VCurrency);
+{$else}
         VarCurrency: Result:=VCurrency;
+{$endif}
         VarDate    : Result:=Trunc(VDate);
         VarOleStr  : NoWideStrings;
         VarBoolean : Result:=Longint(VBoolean);
@@ -395,7 +403,7 @@ begin
         VarInteger  : Result:=IntToStr(VInteger);
         VarSingle   : Result:=FloatToStr(VSingle);
         VarDouble   : Result:=FloatToStr(VDouble);
-        VarCurrency : Result:=IntToStr(VCurrency);
+        VarCurrency : Result:=FloatToStr(VCurrency);
         VarDate     : Result:=DateTimeToStr(VDate);
         VarOleStr   : Result:=WideString(Pointer(VOleStr));
         VarBoolean  : Result:=BS[VBoolean];
@@ -539,7 +547,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-11-17 10:29:48  florian
+  Revision 1.6  2002-07-01 16:25:10  peter
+    * currency updates
+
+  Revision 1.5  2001/11/17 10:29:48  florian
     * make cycle for win32 fixed
 
   Revision 1.4  2001/11/15 22:33:14  michael
