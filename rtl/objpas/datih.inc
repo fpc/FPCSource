@@ -64,10 +64,13 @@ const
    }
 
 type
+{$ifndef win32}
+   { Win32 reuses the struct from the Windows unit }
    TSystemTime = record
       Year, Month, Day: word;
       Hour, Minute, Second, MilliSecond: word;
    end ;
+{$endif win32}
 
    TTimeStamp = record
       Time: integer;   { Number of milliseconds since midnight }
@@ -106,7 +109,11 @@ Procedure GetLocalTime(var SystemTime: TSystemTime);
 
 {
   $Log$
-  Revision 1.5  2002-09-07 16:01:22  peter
+  Revision 1.6  2002-10-02 21:04:06  peter
+    * For win32 use the tsystemtime from the windows unit, that is changed
+      to a variant record with compatibile field names
+
+  Revision 1.5  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed
 
 }
