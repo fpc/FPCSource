@@ -1,3 +1,5 @@
+{ %version=1.1 }
+
 { Source provided for Free Pascal Bug Report 2911 }
 { Submitted by "Chris Hilder" on  2004-01-19 }
 { e-mail: cj.hilder@astronomyinyourhands.com }
@@ -51,9 +53,6 @@ begin
         twostring := 'two';
         ARecordWithStrings.one := onestring + twostring;
         twostring := onestring + twostring;
-        RefCount(ARecordWithStrings.one,1);
-        ARecordWithStrings := FunctionResultIsRecord(ARecordWithStrings);
-        twostring := onestring + twostring;
         RefCount(ARecordWithStrings.one,2);
         ARecordWithStrings := FunctionResultIsRecord(ARecordWithStrings);
         twostring := onestring + twostring;
@@ -61,4 +60,7 @@ begin
         ARecordWithStrings := FunctionResultIsRecord(ARecordWithStrings);
         twostring := onestring + twostring;
         RefCount(ARecordWithStrings.one,4);
+        ARecordWithStrings := FunctionResultIsRecord(ARecordWithStrings);
+        twostring := onestring + twostring;
+        RefCount(ARecordWithStrings.one,5);
 end.
