@@ -62,7 +62,6 @@ var
 
   MOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
   MOS_origDir  : LongInt; { original directory on startup }
-  MOS_currDir  : LongInt; { current directory handle }
   MOS_ambMsg   : Pointer;
   MOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   MOS_ConHandle: LongInt;
@@ -534,7 +533,6 @@ begin
   { Changing the directory is a pretty complicated affair }
   {   1) Obtain a lock on the directory                   }
   {   2) CurrentDir the lock                              }
-  writeln('locking: >>',tmpStr,'<<');
   tmpLock:=Lock(@tmpStr,SHARED_LOCK);
   if tmpLock=0 then begin
     dosError2InOut(IoErr);
@@ -871,7 +869,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  2004-12-07 09:55:46  karoly
+  Revision 1.26  2004-12-07 10:07:50  karoly
+    * removed debug code accidentally left in
+
+  Revision 1.25  2004/12/07 09:55:46  karoly
     * previous change broke PathConv, fixed
 
   Revision 1.24  2004/12/06 20:09:55  karoly
