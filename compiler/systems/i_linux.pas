@@ -71,13 +71,13 @@ unit i_linux;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 4;
+                procalign       : 16;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 4;
+                constalignmax   : 8;
                 varalignmin     : 0;
-                varalignmax     : 4;
+                varalignmax     : 8;
                 localalignmin   : 4;
                 localalignmax   : 4;
                 recordalignmin  : 0;
@@ -513,7 +513,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.33  2005-01-25 18:48:15  peter
+  Revision 1.34  2005-01-30 17:45:38  florian
+    * better alignment on linux
+
+  Revision 1.33  2005/01/25 18:48:15  peter
     * tf_pic_uses_got added
 
   Revision 1.32  2004/12/11 14:39:03  florian
