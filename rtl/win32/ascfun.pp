@@ -1003,622 +1003,622 @@ unit ascfun;
 
 {$ifdef read_implementation}
 
-  function GetBinaryTypeA(lpApplicationName:LPCSTR; lpBinaryType:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetBinaryTypeA';
+  function GetBinaryTypeA(lpApplicationName:LPCSTR; lpBinaryType:LPDWORD):WINBOOL; external 'kernel32' name 'GetBinaryTypeA';
 
-  function GetShortPathNameA(lpszLongPath:LPCSTR; lpszShortPath:LPSTR; cchBuffer:DWORD):DWORD; external 'kernel32.dll' name 'GetShortPathNameA';
+  function GetShortPathNameA(lpszLongPath:LPCSTR; lpszShortPath:LPSTR; cchBuffer:DWORD):DWORD; external 'kernel32' name 'GetShortPathNameA';
 
-  function GetEnvironmentStringsA:LPSTR; external 'kernel32.dll' name 'GetEnvironmentStringsA';
+  function GetEnvironmentStringsA:LPSTR; external 'kernel32' name 'GetEnvironmentStringsA';
 
-  function FreeEnvironmentStringsA(_para1:LPSTR):WINBOOL; external 'kernel32.dll' name 'FreeEnvironmentStringsA';
+  function FreeEnvironmentStringsA(_para1:LPSTR):WINBOOL; external 'kernel32' name 'FreeEnvironmentStringsA';
 
   function FormatMessageA(dwFlags:DWORD; lpSource:LPCVOID; dwMessageId:DWORD; dwLanguageId:DWORD; lpBuffer:LPSTR; 
-             nSize:DWORD; var Arguments:va_list):DWORD; external 'kernel32.dll' name 'FormatMessageA';
+             nSize:DWORD; var Arguments:va_list):DWORD; external 'kernel32' name 'FormatMessageA';
 
-  function CreateMailslotA(lpName:LPCSTR; nMaxMessageSize:DWORD; lReadTimeout:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):HANDLE; external 'kernel32.dll' name 'CreateMailslotA';
+  function CreateMailslotA(lpName:LPCSTR; nMaxMessageSize:DWORD; lReadTimeout:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):HANDLE; external 'kernel32' name 'CreateMailslotA';
 
-  function lstrcmpA(lpString1:LPCSTR; lpString2:LPCSTR):longint; external 'kernel32.dll' name 'lstrcmpA';
+  function lstrcmpA(lpString1:LPCSTR; lpString2:LPCSTR):longint; external 'kernel32' name 'lstrcmpA';
 
-  function lstrcmpiA(lpString1:LPCSTR; lpString2:LPCSTR):longint; external 'kernel32.dll' name 'lstrcmpiA';
+  function lstrcmpiA(lpString1:LPCSTR; lpString2:LPCSTR):longint; external 'kernel32' name 'lstrcmpiA';
 
-  function lstrcpynA(lpString1:LPSTR; lpString2:LPCSTR; iMaxLength:longint):LPSTR; external 'kernel32.dll' name 'lstrcpynA';
+  function lstrcpynA(lpString1:LPSTR; lpString2:LPCSTR; iMaxLength:longint):LPSTR; external 'kernel32' name 'lstrcpynA';
 
-  function lstrcpyA(lpString1:LPSTR; lpString2:LPCSTR):LPSTR; external 'kernel32.dll' name 'lstrcpyA';
+  function lstrcpyA(lpString1:LPSTR; lpString2:LPCSTR):LPSTR; external 'kernel32' name 'lstrcpyA';
 
-  function lstrcatA(lpString1:LPSTR; lpString2:LPCSTR):LPSTR; external 'kernel32.dll' name 'lstrcatA';
+  function lstrcatA(lpString1:LPSTR; lpString2:LPCSTR):LPSTR; external 'kernel32' name 'lstrcatA';
 
-  function lstrlenA(lpString:LPCSTR):longint; external 'kernel32.dll' name 'lstrlenA';
+  function lstrlenA(lpString:LPCSTR):longint; external 'kernel32' name 'lstrlenA';
 
-  function CreateMutexA(lpMutexAttributes:LPSECURITY_ATTRIBUTES; bInitialOwner:WINBOOL; lpName:LPCSTR):HANDLE; external 'kernel32.dll' name 'CreateMutexA';
+  function CreateMutexA(lpMutexAttributes:LPSECURITY_ATTRIBUTES; bInitialOwner:WINBOOL; lpName:LPCSTR):HANDLE; external 'kernel32' name 'CreateMutexA';
 
-  function OpenMutexA(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; lpName:LPCSTR):HANDLE; external 'kernel32.dll' name 'OpenMutexA';
+  function OpenMutexA(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; lpName:LPCSTR):HANDLE; external 'kernel32' name 'OpenMutexA';
 
-  function CreateEventA(lpEventAttributes:LPSECURITY_ATTRIBUTES; bManualReset:WINBOOL; bInitialState:WINBOOL; lpName:LPCSTR):HANDLE; external 'kernel32.dll' name 'CreateEventA';
+  function CreateEventA(lpEventAttributes:LPSECURITY_ATTRIBUTES; bManualReset:WINBOOL; bInitialState:WINBOOL; lpName:LPCSTR):HANDLE; external 'kernel32' name 'CreateEventA';
 
-  function OpenEventA(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; lpName:LPCSTR):HANDLE; external 'kernel32.dll' name 'OpenEventA';
+  function OpenEventA(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; lpName:LPCSTR):HANDLE; external 'kernel32' name 'OpenEventA';
 
-  function CreateSemaphoreA(lpSemaphoreAttributes:LPSECURITY_ATTRIBUTES; lInitialCount:LONG; lMaximumCount:LONG; lpName:LPCSTR):HANDLE; external 'kernel32.dll' name 'CreateSemaphoreA';
+  function CreateSemaphoreA(lpSemaphoreAttributes:LPSECURITY_ATTRIBUTES; lInitialCount:LONG; lMaximumCount:LONG; lpName:LPCSTR):HANDLE; external 'kernel32' name 'CreateSemaphoreA';
 
-  function OpenSemaphoreA(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; lpName:LPCSTR):HANDLE; external 'kernel32.dll' name 'OpenSemaphoreA';
+  function OpenSemaphoreA(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; lpName:LPCSTR):HANDLE; external 'kernel32' name 'OpenSemaphoreA';
 
   function CreateFileMappingA(hFile:HANDLE; lpFileMappingAttributes:LPSECURITY_ATTRIBUTES; flProtect:DWORD; dwMaximumSizeHigh:DWORD; dwMaximumSizeLow:DWORD; 
-             lpName:LPCSTR):HANDLE; external 'kernel32.dll' name 'CreateFileMappingA';
+             lpName:LPCSTR):HANDLE; external 'kernel32' name 'CreateFileMappingA';
 
-  function OpenFileMappingA(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; lpName:LPCSTR):HANDLE; external 'kernel32.dll' name 'OpenFileMappingA';
+  function OpenFileMappingA(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; lpName:LPCSTR):HANDLE; external 'kernel32' name 'OpenFileMappingA';
 
-  function GetLogicalDriveStringsA(nBufferLength:DWORD; lpBuffer:LPSTR):DWORD; external 'kernel32.dll' name 'GetLogicalDriveStringsA';
+  function GetLogicalDriveStringsA(nBufferLength:DWORD; lpBuffer:LPSTR):DWORD; external 'kernel32' name 'GetLogicalDriveStringsA';
 
-  function LoadLibraryA(lpLibFileName:LPCSTR):HINSTANCE; external 'kernel32.dll' name 'LoadLibraryA';
+  function LoadLibraryA(lpLibFileName:LPCSTR):HINSTANCE; external 'kernel32' name 'LoadLibraryA';
 
-  function LoadLibraryExA(lpLibFileName:LPCSTR; hFile:HANDLE; dwFlags:DWORD):HINSTANCE; external 'kernel32.dll' name 'LoadLibraryExA';
+  function LoadLibraryExA(lpLibFileName:LPCSTR; hFile:HANDLE; dwFlags:DWORD):HINSTANCE; external 'kernel32' name 'LoadLibraryExA';
 
-  function GetModuleFileNameA(hModule:HINSTANCE; lpFilename:LPSTR; nSize:DWORD):DWORD; external 'kernel32.dll' name 'GetModuleFileNameA';
+  function GetModuleFileNameA(hModule:HINSTANCE; lpFilename:LPSTR; nSize:DWORD):DWORD; external 'kernel32' name 'GetModuleFileNameA';
 
-  function GetModuleHandleA(lpModuleName:LPCSTR):HMODULE; external 'kernel32.dll' name 'GetModuleHandleA';
+  function GetModuleHandleA(lpModuleName:LPCSTR):HMODULE; external 'kernel32' name 'GetModuleHandleA';
 
-  procedure FatalAppExitA(uAction:UINT; lpMessageText:LPCSTR); external 'kernel32.dll' name 'FatalAppExitA';
+  procedure FatalAppExitA(uAction:UINT; lpMessageText:LPCSTR); external 'kernel32' name 'FatalAppExitA';
 
-  function GetCommandLineA:LPSTR; external 'kernel32.dll' name 'GetCommandLineA';
+  function GetCommandLineA:LPSTR; external 'kernel32' name 'GetCommandLineA';
 
-  function GetEnvironmentVariableA(lpName:LPCSTR; lpBuffer:LPSTR; nSize:DWORD):DWORD; external 'kernel32.dll' name 'GetEnvironmentVariableA';
+  function GetEnvironmentVariableA(lpName:LPCSTR; lpBuffer:LPSTR; nSize:DWORD):DWORD; external 'kernel32' name 'GetEnvironmentVariableA';
 
-  function SetEnvironmentVariableA(lpName:LPCSTR; lpValue:LPCSTR):WINBOOL; external 'kernel32.dll' name 'SetEnvironmentVariableA';
+  function SetEnvironmentVariableA(lpName:LPCSTR; lpValue:LPCSTR):WINBOOL; external 'kernel32' name 'SetEnvironmentVariableA';
 
-  function ExpandEnvironmentStringsA(lpSrc:LPCSTR; lpDst:LPSTR; nSize:DWORD):DWORD; external 'kernel32.dll' name 'ExpandEnvironmentStringsA';
+  function ExpandEnvironmentStringsA(lpSrc:LPCSTR; lpDst:LPSTR; nSize:DWORD):DWORD; external 'kernel32' name 'ExpandEnvironmentStringsA';
 
-  procedure OutputDebugStringA(lpOutputString:LPCSTR); external 'kernel32.dll' name 'OutputDebugStringA';
+  procedure OutputDebugStringA(lpOutputString:LPCSTR); external 'kernel32' name 'OutputDebugStringA';
 
-  function FindResourceA(hModule:HINSTANCE; lpName:LPCSTR; lpType:LPCSTR):HRSRC; external 'kernel32.dll' name 'FindResourceA';
+  function FindResourceA(hModule:HINSTANCE; lpName:LPCSTR; lpType:LPCSTR):HRSRC; external 'kernel32' name 'FindResourceA';
 
-  function FindResourceExA(hModule:HINSTANCE; lpType:LPCSTR; lpName:LPCSTR; wLanguage:WORD):HRSRC; external 'kernel32.dll' name 'FindResourceExA';
+  function FindResourceExA(hModule:HINSTANCE; lpType:LPCSTR; lpName:LPCSTR; wLanguage:WORD):HRSRC; external 'kernel32' name 'FindResourceExA';
 
-  function EnumResourceTypesA(hModule:HINSTANCE; lpEnumFunc:ENUMRESTYPEPROC; lParam:LONG):WINBOOL; external 'kernel32.dll' name 'EnumResourceTypesA';
+  function EnumResourceTypesA(hModule:HINSTANCE; lpEnumFunc:ENUMRESTYPEPROC; lParam:LONG):WINBOOL; external 'kernel32' name 'EnumResourceTypesA';
 
-  function EnumResourceNamesA(hModule:HINSTANCE; lpType:LPCSTR; lpEnumFunc:ENUMRESNAMEPROC; lParam:LONG):WINBOOL; external 'kernel32.dll' name 'EnumResourceNamesA';
+  function EnumResourceNamesA(hModule:HINSTANCE; lpType:LPCSTR; lpEnumFunc:ENUMRESNAMEPROC; lParam:LONG):WINBOOL; external 'kernel32' name 'EnumResourceNamesA';
 
-  function EnumResourceLanguagesA(hModule:HINSTANCE; lpType:LPCSTR; lpName:LPCSTR; lpEnumFunc:ENUMRESLANGPROC; lParam:LONG):WINBOOL; external 'kernel32.dll' name 'EnumResourceLanguagesA';
+  function EnumResourceLanguagesA(hModule:HINSTANCE; lpType:LPCSTR; lpName:LPCSTR; lpEnumFunc:ENUMRESLANGPROC; lParam:LONG):WINBOOL; external 'kernel32' name 'EnumResourceLanguagesA';
 
-  function BeginUpdateResourceA(pFileName:LPCSTR; bDeleteExistingResources:WINBOOL):HANDLE; external 'kernel32.dll' name 'BeginUpdateResourceA';
+  function BeginUpdateResourceA(pFileName:LPCSTR; bDeleteExistingResources:WINBOOL):HANDLE; external 'kernel32' name 'BeginUpdateResourceA';
 
   function UpdateResourceA(hUpdate:HANDLE; lpType:LPCSTR; lpName:LPCSTR; wLanguage:WORD; lpData:LPVOID; 
-             cbData:DWORD):WINBOOL; external 'kernel32.dll' name 'UpdateResourceA';
+             cbData:DWORD):WINBOOL; external 'kernel32' name 'UpdateResourceA';
 
-  function EndUpdateResourceA(hUpdate:HANDLE; fDiscard:WINBOOL):WINBOOL; external 'kernel32.dll' name 'EndUpdateResourceA';
+  function EndUpdateResourceA(hUpdate:HANDLE; fDiscard:WINBOOL):WINBOOL; external 'kernel32' name 'EndUpdateResourceA';
 
-  function GlobalAddAtomA(lpString:LPCSTR):ATOM; external 'kernel32.dll' name 'GlobalAddAtomA';
+  function GlobalAddAtomA(lpString:LPCSTR):ATOM; external 'kernel32' name 'GlobalAddAtomA';
 
-  function GlobalFindAtomA(lpString:LPCSTR):ATOM; external 'kernel32.dll' name 'GlobalFindAtomA';
+  function GlobalFindAtomA(lpString:LPCSTR):ATOM; external 'kernel32' name 'GlobalFindAtomA';
 
-  function GlobalGetAtomNameA(nAtom:ATOM; lpBuffer:LPSTR; nSize:longint):UINT; external 'kernel32.dll' name 'GlobalGetAtomNameA';
+  function GlobalGetAtomNameA(nAtom:ATOM; lpBuffer:LPSTR; nSize:longint):UINT; external 'kernel32' name 'GlobalGetAtomNameA';
 
-  function AddAtomA(lpString:LPCSTR):ATOM; external 'kernel32.dll' name 'AddAtomA';
+  function AddAtomA(lpString:LPCSTR):ATOM; external 'kernel32' name 'AddAtomA';
 
-  function FindAtomA(lpString:LPCSTR):ATOM; external 'kernel32.dll' name 'FindAtomA';
+  function FindAtomA(lpString:LPCSTR):ATOM; external 'kernel32' name 'FindAtomA';
 
-  function GetAtomNameA(nAtom:ATOM; lpBuffer:LPSTR; nSize:longint):UINT; external 'kernel32.dll' name 'GetAtomNameA';
+  function GetAtomNameA(nAtom:ATOM; lpBuffer:LPSTR; nSize:longint):UINT; external 'kernel32' name 'GetAtomNameA';
 
-  function GetProfileIntA(lpAppName:LPCSTR; lpKeyName:LPCSTR; nDefault:INT):UINT; external 'kernel32.dll' name 'GetProfileIntA';
+  function GetProfileIntA(lpAppName:LPCSTR; lpKeyName:LPCSTR; nDefault:INT):UINT; external 'kernel32' name 'GetProfileIntA';
 
-  function GetProfileStringA(lpAppName:LPCSTR; lpKeyName:LPCSTR; lpDefault:LPCSTR; lpReturnedString:LPSTR; nSize:DWORD):DWORD; external 'kernel32.dll' name 'GetProfileStringA';
+  function GetProfileStringA(lpAppName:LPCSTR; lpKeyName:LPCSTR; lpDefault:LPCSTR; lpReturnedString:LPSTR; nSize:DWORD):DWORD; external 'kernel32' name 'GetProfileStringA';
 
-  function WriteProfileStringA(lpAppName:LPCSTR; lpKeyName:LPCSTR; lpString:LPCSTR):WINBOOL; external 'kernel32.dll' name 'WriteProfileStringA';
+  function WriteProfileStringA(lpAppName:LPCSTR; lpKeyName:LPCSTR; lpString:LPCSTR):WINBOOL; external 'kernel32' name 'WriteProfileStringA';
 
-  function GetProfileSectionA(lpAppName:LPCSTR; lpReturnedString:LPSTR; nSize:DWORD):DWORD; external 'kernel32.dll' name 'GetProfileSectionA';
+  function GetProfileSectionA(lpAppName:LPCSTR; lpReturnedString:LPSTR; nSize:DWORD):DWORD; external 'kernel32' name 'GetProfileSectionA';
 
-  function WriteProfileSectionA(lpAppName:LPCSTR; lpString:LPCSTR):WINBOOL; external 'kernel32.dll' name 'WriteProfileSectionA';
+  function WriteProfileSectionA(lpAppName:LPCSTR; lpString:LPCSTR):WINBOOL; external 'kernel32' name 'WriteProfileSectionA';
 
-  function GetPrivateProfileIntA(lpAppName:LPCSTR; lpKeyName:LPCSTR; nDefault:INT; lpFileName:LPCSTR):UINT; external 'kernel32.dll' name 'GetPrivateProfileIntA';
+  function GetPrivateProfileIntA(lpAppName:LPCSTR; lpKeyName:LPCSTR; nDefault:INT; lpFileName:LPCSTR):UINT; external 'kernel32' name 'GetPrivateProfileIntA';
 
   function GetPrivateProfileStringA(lpAppName:LPCSTR; lpKeyName:LPCSTR; lpDefault:LPCSTR; lpReturnedString:LPSTR; nSize:DWORD; 
-             lpFileName:LPCSTR):DWORD; external 'kernel32.dll' name 'GetPrivateProfileStringA';
+             lpFileName:LPCSTR):DWORD; external 'kernel32' name 'GetPrivateProfileStringA';
 
-  function WritePrivateProfileStringA(lpAppName:LPCSTR; lpKeyName:LPCSTR; lpString:LPCSTR; lpFileName:LPCSTR):WINBOOL; external 'kernel32.dll' name 'WritePrivateProfileStringA';
+  function WritePrivateProfileStringA(lpAppName:LPCSTR; lpKeyName:LPCSTR; lpString:LPCSTR; lpFileName:LPCSTR):WINBOOL; external 'kernel32' name 'WritePrivateProfileStringA';
 
-  function GetPrivateProfileSectionA(lpAppName:LPCSTR; lpReturnedString:LPSTR; nSize:DWORD; lpFileName:LPCSTR):DWORD; external 'kernel32.dll' name 'GetPrivateProfileSectionA';
+  function GetPrivateProfileSectionA(lpAppName:LPCSTR; lpReturnedString:LPSTR; nSize:DWORD; lpFileName:LPCSTR):DWORD; external 'kernel32' name 'GetPrivateProfileSectionA';
 
-  function WritePrivateProfileSectionA(lpAppName:LPCSTR; lpString:LPCSTR; lpFileName:LPCSTR):WINBOOL; external 'kernel32.dll' name 'WritePrivateProfileSectionA';
+  function WritePrivateProfileSectionA(lpAppName:LPCSTR; lpString:LPCSTR; lpFileName:LPCSTR):WINBOOL; external 'kernel32' name 'WritePrivateProfileSectionA';
 
-  function GetDriveTypeA(lpRootPathName:LPCSTR):UINT; external 'kernel32.dll' name 'GetDriveTypeA';
+  function GetDriveTypeA(lpRootPathName:LPCSTR):UINT; external 'kernel32' name 'GetDriveTypeA';
 
-  function GetSystemDirectoryA(lpBuffer:LPSTR; uSize:UINT):UINT; external 'kernel32.dll' name 'GetSystemDirectoryA';
+  function GetSystemDirectoryA(lpBuffer:LPSTR; uSize:UINT):UINT; external 'kernel32' name 'GetSystemDirectoryA';
 
-  function GetTempPathA(nBufferLength:DWORD; lpBuffer:LPSTR):DWORD; external 'kernel32.dll' name 'GetTempPathA';
+  function GetTempPathA(nBufferLength:DWORD; lpBuffer:LPSTR):DWORD; external 'kernel32' name 'GetTempPathA';
 
-  function GetTempFileNameA(lpPathName:LPCSTR; lpPrefixString:LPCSTR; uUnique:UINT; lpTempFileName:LPSTR):UINT; external 'kernel32.dll' name 'GetTempFileNameA';
+  function GetTempFileNameA(lpPathName:LPCSTR; lpPrefixString:LPCSTR; uUnique:UINT; lpTempFileName:LPSTR):UINT; external 'kernel32' name 'GetTempFileNameA';
 
-  function GetWindowsDirectoryA(lpBuffer:LPSTR; uSize:UINT):UINT; external 'kernel32.dll' name 'GetWindowsDirectoryA';
+  function GetWindowsDirectoryA(lpBuffer:LPSTR; uSize:UINT):UINT; external 'kernel32' name 'GetWindowsDirectoryA';
 
-  function SetCurrentDirectoryA(lpPathName:LPCSTR):WINBOOL; external 'kernel32.dll' name 'SetCurrentDirectoryA';
+  function SetCurrentDirectoryA(lpPathName:LPCSTR):WINBOOL; external 'kernel32' name 'SetCurrentDirectoryA';
 
-  function GetCurrentDirectoryA(nBufferLength:DWORD; lpBuffer:LPSTR):DWORD; external 'kernel32.dll' name 'GetCurrentDirectoryA';
+  function GetCurrentDirectoryA(nBufferLength:DWORD; lpBuffer:LPSTR):DWORD; external 'kernel32' name 'GetCurrentDirectoryA';
 
-  function GetDiskFreeSpaceA(lpRootPathName:LPCSTR; lpSectorsPerCluster:LPDWORD; lpBytesPerSector:LPDWORD; lpNumberOfFreeClusters:LPDWORD; lpTotalNumberOfClusters:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetDiskFreeSpaceA';
+  function GetDiskFreeSpaceA(lpRootPathName:LPCSTR; lpSectorsPerCluster:LPDWORD; lpBytesPerSector:LPDWORD; lpNumberOfFreeClusters:LPDWORD; lpTotalNumberOfClusters:LPDWORD):WINBOOL; external 'kernel32' name 'GetDiskFreeSpaceA';
 
-  function CreateDirectoryA(lpPathName:LPCSTR; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):WINBOOL; external 'kernel32.dll' name 'CreateDirectoryA';
+  function CreateDirectoryA(lpPathName:LPCSTR; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):WINBOOL; external 'kernel32' name 'CreateDirectoryA';
 
-  function CreateDirectoryExA(lpTemplateDirectory:LPCSTR; lpNewDirectory:LPCSTR; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):WINBOOL; external 'kernel32.dll' name 'CreateDirectoryExA';
+  function CreateDirectoryExA(lpTemplateDirectory:LPCSTR; lpNewDirectory:LPCSTR; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):WINBOOL; external 'kernel32' name 'CreateDirectoryExA';
 
-  function RemoveDirectoryA(lpPathName:LPCSTR):WINBOOL; external 'kernel32.dll' name 'RemoveDirectoryA';
+  function RemoveDirectoryA(lpPathName:LPCSTR):WINBOOL; external 'kernel32' name 'RemoveDirectoryA';
 
-  function GetFullPathNameA(lpFileName:LPCSTR; nBufferLength:DWORD; lpBuffer:LPSTR; var lpFilePart:LPSTR):DWORD; external 'kernel32.dll' name 'GetFullPathNameA';
+  function GetFullPathNameA(lpFileName:LPCSTR; nBufferLength:DWORD; lpBuffer:LPSTR; var lpFilePart:LPSTR):DWORD; external 'kernel32' name 'GetFullPathNameA';
 
-  function DefineDosDeviceA(dwFlags:DWORD; lpDeviceName:LPCSTR; lpTargetPath:LPCSTR):WINBOOL; external 'kernel32.dll' name 'DefineDosDeviceA';
+  function DefineDosDeviceA(dwFlags:DWORD; lpDeviceName:LPCSTR; lpTargetPath:LPCSTR):WINBOOL; external 'kernel32' name 'DefineDosDeviceA';
 
-  function QueryDosDeviceA(lpDeviceName:LPCSTR; lpTargetPath:LPSTR; ucchMax:DWORD):DWORD; external 'kernel32.dll' name 'QueryDosDeviceA';
+  function QueryDosDeviceA(lpDeviceName:LPCSTR; lpTargetPath:LPSTR; ucchMax:DWORD):DWORD; external 'kernel32' name 'QueryDosDeviceA';
 
   function CreateFileA(lpFileName:LPCSTR; dwDesiredAccess:DWORD; dwShareMode:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; dwCreationDisposition:DWORD; 
-             dwFlagsAndAttributes:DWORD; hTemplateFile:HANDLE):HANDLE; external 'kernel32.dll' name 'CreateFileA';
+             dwFlagsAndAttributes:DWORD; hTemplateFile:HANDLE):HANDLE; external 'kernel32' name 'CreateFileA';
 
-  function SetFileAttributesA(lpFileName:LPCSTR; dwFileAttributes:DWORD):WINBOOL; external 'kernel32.dll' name 'SetFileAttributesA';
+  function SetFileAttributesA(lpFileName:LPCSTR; dwFileAttributes:DWORD):WINBOOL; external 'kernel32' name 'SetFileAttributesA';
 
-  function GetFileAttributesA(lpFileName:LPCSTR):DWORD; external 'kernel32.dll' name 'GetFileAttributesA';
+  function GetFileAttributesA(lpFileName:LPCSTR):DWORD; external 'kernel32' name 'GetFileAttributesA';
 
-  function GetCompressedFileSizeA(lpFileName:LPCSTR; lpFileSizeHigh:LPDWORD):DWORD; external 'kernel32.dll' name 'GetCompressedFileSizeA';
+  function GetCompressedFileSizeA(lpFileName:LPCSTR; lpFileSizeHigh:LPDWORD):DWORD; external 'kernel32' name 'GetCompressedFileSizeA';
 
-  function DeleteFileA(lpFileName:LPCSTR):WINBOOL; external 'kernel32.dll' name 'DeleteFileA';
+  function DeleteFileA(lpFileName:LPCSTR):WINBOOL; external 'kernel32' name 'DeleteFileA';
 
   function SearchPathA(lpPath:LPCSTR; lpFileName:LPCSTR; lpExtension:LPCSTR; nBufferLength:DWORD; lpBuffer:LPSTR; 
-             var lpFilePart:LPSTR):DWORD; external 'kernel32.dll' name 'SearchPathA';
+             var lpFilePart:LPSTR):DWORD; external 'kernel32' name 'SearchPathA';
 
-  function CopyFileA(lpExistingFileName:LPCSTR; lpNewFileName:LPCSTR; bFailIfExists:WINBOOL):WINBOOL; external 'kernel32.dll' name 'CopyFileA';
+  function CopyFileA(lpExistingFileName:LPCSTR; lpNewFileName:LPCSTR; bFailIfExists:WINBOOL):WINBOOL; external 'kernel32' name 'CopyFileA';
 
-  function MoveFileA(lpExistingFileName:LPCSTR; lpNewFileName:LPCSTR):WINBOOL; external 'kernel32.dll' name 'MoveFileA';
+  function MoveFileA(lpExistingFileName:LPCSTR; lpNewFileName:LPCSTR):WINBOOL; external 'kernel32' name 'MoveFileA';
 
-  function MoveFileExA(lpExistingFileName:LPCSTR; lpNewFileName:LPCSTR; dwFlags:DWORD):WINBOOL; external 'kernel32.dll' name 'MoveFileExA';
+  function MoveFileExA(lpExistingFileName:LPCSTR; lpNewFileName:LPCSTR; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'MoveFileExA';
 
   function CreateNamedPipeA(lpName:LPCSTR; dwOpenMode:DWORD; dwPipeMode:DWORD; nMaxInstances:DWORD; nOutBufferSize:DWORD; 
-             nInBufferSize:DWORD; nDefaultTimeOut:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):HANDLE; external 'kernel32.dll' name 'CreateNamedPipeA';
+             nInBufferSize:DWORD; nDefaultTimeOut:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):HANDLE; external 'kernel32' name 'CreateNamedPipeA';
 
   function GetNamedPipeHandleStateA(hNamedPipe:HANDLE; lpState:LPDWORD; lpCurInstances:LPDWORD; lpMaxCollectionCount:LPDWORD; lpCollectDataTimeout:LPDWORD; 
-             lpUserName:LPSTR; nMaxUserNameSize:DWORD):WINBOOL; external 'kernel32.dll' name 'GetNamedPipeHandleStateA';
+             lpUserName:LPSTR; nMaxUserNameSize:DWORD):WINBOOL; external 'kernel32' name 'GetNamedPipeHandleStateA';
 
   function CallNamedPipeA(lpNamedPipeName:LPCSTR; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID; nOutBufferSize:DWORD; 
-             lpBytesRead:LPDWORD; nTimeOut:DWORD):WINBOOL; external 'kernel32.dll' name 'CallNamedPipeA';
+             lpBytesRead:LPDWORD; nTimeOut:DWORD):WINBOOL; external 'kernel32' name 'CallNamedPipeA';
 
-  function WaitNamedPipeA(lpNamedPipeName:LPCSTR; nTimeOut:DWORD):WINBOOL; external 'kernel32.dll' name 'WaitNamedPipeA';
+  function WaitNamedPipeA(lpNamedPipeName:LPCSTR; nTimeOut:DWORD):WINBOOL; external 'kernel32' name 'WaitNamedPipeA';
 
-  function SetVolumeLabelA(lpRootPathName:LPCSTR; lpVolumeName:LPCSTR):WINBOOL; external 'kernel32.dll' name 'SetVolumeLabelA';
+  function SetVolumeLabelA(lpRootPathName:LPCSTR; lpVolumeName:LPCSTR):WINBOOL; external 'kernel32' name 'SetVolumeLabelA';
 
   function GetVolumeInformationA(lpRootPathName:LPCSTR; lpVolumeNameBuffer:LPSTR; nVolumeNameSize:DWORD; lpVolumeSerialNumber:LPDWORD; lpMaximumComponentLength:LPDWORD; 
-             lpFileSystemFlags:LPDWORD; lpFileSystemNameBuffer:LPSTR; nFileSystemNameSize:DWORD):WINBOOL; external 'kernel32.dll' name 'GetVolumeInformationA';
+             lpFileSystemFlags:LPDWORD; lpFileSystemNameBuffer:LPSTR; nFileSystemNameSize:DWORD):WINBOOL; external 'kernel32' name 'GetVolumeInformationA';
 
-  function ClearEventLogA(hEventLog:HANDLE; lpBackupFileName:LPCSTR):WINBOOL; external 'advapi32.dll' name 'ClearEventLogA';
+  function ClearEventLogA(hEventLog:HANDLE; lpBackupFileName:LPCSTR):WINBOOL; external 'advapi32' name 'ClearEventLogA';
 
-  function BackupEventLogA(hEventLog:HANDLE; lpBackupFileName:LPCSTR):WINBOOL; external 'advapi32.dll' name 'BackupEventLogA';
+  function BackupEventLogA(hEventLog:HANDLE; lpBackupFileName:LPCSTR):WINBOOL; external 'advapi32' name 'BackupEventLogA';
 
-  function OpenEventLogA(lpUNCServerName:LPCSTR; lpSourceName:LPCSTR):HANDLE; external 'advapi32.dll' name 'OpenEventLogA';
+  function OpenEventLogA(lpUNCServerName:LPCSTR; lpSourceName:LPCSTR):HANDLE; external 'advapi32' name 'OpenEventLogA';
 
-  function RegisterEventSourceA(lpUNCServerName:LPCSTR; lpSourceName:LPCSTR):HANDLE; external 'advapi32.dll' name 'RegisterEventSourceA';
+  function RegisterEventSourceA(lpUNCServerName:LPCSTR; lpSourceName:LPCSTR):HANDLE; external 'advapi32' name 'RegisterEventSourceA';
 
-  function OpenBackupEventLogA(lpUNCServerName:LPCSTR; lpFileName:LPCSTR):HANDLE; external 'advapi32.dll' name 'OpenBackupEventLogA';
+  function OpenBackupEventLogA(lpUNCServerName:LPCSTR; lpFileName:LPCSTR):HANDLE; external 'advapi32' name 'OpenBackupEventLogA';
 
   function ReadEventLogA(hEventLog:HANDLE; dwReadFlags:DWORD; dwRecordOffset:DWORD; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD; 
-             var pnBytesRead:DWORD; var pnMinNumberOfBytesNeeded:DWORD):WINBOOL; external 'advapi32.dll' name 'ReadEventLogA';
+             var pnBytesRead:DWORD; var pnMinNumberOfBytesNeeded:DWORD):WINBOOL; external 'advapi32' name 'ReadEventLogA';
 
   function ReportEventA(hEventLog:HANDLE; wType:WORD; wCategory:WORD; dwEventID:DWORD; lpUserSid:PSID; 
-             wNumStrings:WORD; dwDataSize:DWORD; var lpStrings:LPCSTR; lpRawData:LPVOID):WINBOOL; external 'advapi32.dll' name 'ReportEventA';
+             wNumStrings:WORD; dwDataSize:DWORD; var lpStrings:LPCSTR; lpRawData:LPVOID):WINBOOL; external 'advapi32' name 'ReportEventA';
 
   function AccessCheckAndAuditAlarmA(SubsystemName:LPCSTR; HandleId:LPVOID; ObjectTypeName:LPSTR; ObjectName:LPSTR; SecurityDescriptor:PSECURITY_DESCRIPTOR; 
              DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; ObjectCreation:WINBOOL; GrantedAccess:LPDWORD; AccessStatus:LPBOOL; 
-             pfGenerateOnClose:LPBOOL):WINBOOL; external 'advapi32.dll' name 'AccessCheckAndAuditAlarmA';
+             pfGenerateOnClose:LPBOOL):WINBOOL; external 'advapi32' name 'AccessCheckAndAuditAlarmA';
 
   function ObjectOpenAuditAlarmA(SubsystemName:LPCSTR; HandleId:LPVOID; ObjectTypeName:LPSTR; ObjectName:LPSTR; pSecurityDescriptor:PSECURITY_DESCRIPTOR; 
              ClientToken:HANDLE; DesiredAccess:DWORD; GrantedAccess:DWORD; Privileges:PPRIVILEGE_SET; ObjectCreation:WINBOOL; 
-             AccessGranted:WINBOOL; GenerateOnClose:LPBOOL):WINBOOL; external 'advapi32.dll' name 'ObjectOpenAuditAlarmA';
+             AccessGranted:WINBOOL; GenerateOnClose:LPBOOL):WINBOOL; external 'advapi32' name 'ObjectOpenAuditAlarmA';
 
   function ObjectPrivilegeAuditAlarmA(SubsystemName:LPCSTR; HandleId:LPVOID; ClientToken:HANDLE; DesiredAccess:DWORD; Privileges:PPRIVILEGE_SET; 
-             AccessGranted:WINBOOL):WINBOOL; external 'advapi32.dll' name 'ObjectPrivilegeAuditAlarmA';
+             AccessGranted:WINBOOL):WINBOOL; external 'advapi32' name 'ObjectPrivilegeAuditAlarmA';
 
-  function ObjectCloseAuditAlarmA(SubsystemName:LPCSTR; HandleId:LPVOID; GenerateOnClose:WINBOOL):WINBOOL; external 'advapi32.dll' name 'ObjectCloseAuditAlarmA';
+  function ObjectCloseAuditAlarmA(SubsystemName:LPCSTR; HandleId:LPVOID; GenerateOnClose:WINBOOL):WINBOOL; external 'advapi32' name 'ObjectCloseAuditAlarmA';
 
-  function PrivilegedServiceAuditAlarmA(SubsystemName:LPCSTR; ServiceName:LPCSTR; ClientToken:HANDLE; Privileges:PPRIVILEGE_SET; AccessGranted:WINBOOL):WINBOOL; external 'advapi32.dll' name 'PrivilegedServiceAuditAlarmA';
+  function PrivilegedServiceAuditAlarmA(SubsystemName:LPCSTR; ServiceName:LPCSTR; ClientToken:HANDLE; Privileges:PPRIVILEGE_SET; AccessGranted:WINBOOL):WINBOOL; external 'advapi32' name 'PrivilegedServiceAuditAlarmA';
 
-  function SetFileSecurityA(lpFileName:LPCSTR; SecurityInformation:SECURITY_INFORMATION; pSecurityDescriptor:PSECURITY_DESCRIPTOR):WINBOOL; external 'advapi32.dll' name 'SetFileSecurityA';
+  function SetFileSecurityA(lpFileName:LPCSTR; SecurityInformation:SECURITY_INFORMATION; pSecurityDescriptor:PSECURITY_DESCRIPTOR):WINBOOL; external 'advapi32' name 'SetFileSecurityA';
 
-  function GetFileSecurityA(lpFileName:LPCSTR; RequestedInformation:SECURITY_INFORMATION; pSecurityDescriptor:PSECURITY_DESCRIPTOR; nLength:DWORD; lpnLengthNeeded:LPDWORD):WINBOOL; external 'advapi32.dll' name 'GetFileSecurityA';
+  function GetFileSecurityA(lpFileName:LPCSTR; RequestedInformation:SECURITY_INFORMATION; pSecurityDescriptor:PSECURITY_DESCRIPTOR; nLength:DWORD; lpnLengthNeeded:LPDWORD):WINBOOL; external 'advapi32' name 'GetFileSecurityA';
 
-  function FindFirstChangeNotificationA(lpPathName:LPCSTR; bWatchSubtree:WINBOOL; dwNotifyFilter:DWORD):HANDLE; external 'kernel32.dll' name 'FindFirstChangeNotificationA';
+  function FindFirstChangeNotificationA(lpPathName:LPCSTR; bWatchSubtree:WINBOOL; dwNotifyFilter:DWORD):HANDLE; external 'kernel32' name 'FindFirstChangeNotificationA';
 
-  function IsBadStringPtrA(lpsz:LPCSTR; ucchMax:UINT):WINBOOL; external 'kernel32.dll' name 'IsBadStringPtrA';
+  function IsBadStringPtrA(lpsz:LPCSTR; ucchMax:UINT):WINBOOL; external 'kernel32' name 'IsBadStringPtrA';
 
   function LookupAccountSidA(lpSystemName:LPCSTR; Sid:PSID; Name:LPSTR; cbName:LPDWORD; ReferencedDomainName:LPSTR; 
-             cbReferencedDomainName:LPDWORD; peUse:PSID_NAME_USE):WINBOOL; external 'advapi32.dll' name 'LookupAccountSidA';
+             cbReferencedDomainName:LPDWORD; peUse:PSID_NAME_USE):WINBOOL; external 'advapi32' name 'LookupAccountSidA';
 
   function LookupAccountNameA(lpSystemName:LPCSTR; lpAccountName:LPCSTR; Sid:PSID; cbSid:LPDWORD; ReferencedDomainName:LPSTR; 
-             cbReferencedDomainName:LPDWORD; peUse:PSID_NAME_USE):WINBOOL; external 'advapi32.dll' name 'LookupAccountNameA';
+             cbReferencedDomainName:LPDWORD; peUse:PSID_NAME_USE):WINBOOL; external 'advapi32' name 'LookupAccountNameA';
 
-  function LookupPrivilegeValueA(lpSystemName:LPCSTR; lpName:LPCSTR; lpLuid:PLUID):WINBOOL; external 'advapi32.dll' name 'LookupPrivilegeValueA';
+  function LookupPrivilegeValueA(lpSystemName:LPCSTR; lpName:LPCSTR; lpLuid:PLUID):WINBOOL; external 'advapi32' name 'LookupPrivilegeValueA';
 
-  function LookupPrivilegeNameA(lpSystemName:LPCSTR; lpLuid:PLUID; lpName:LPSTR; cbName:LPDWORD):WINBOOL; external 'advapi32.dll' name 'LookupPrivilegeNameA';
+  function LookupPrivilegeNameA(lpSystemName:LPCSTR; lpLuid:PLUID; lpName:LPSTR; cbName:LPDWORD):WINBOOL; external 'advapi32' name 'LookupPrivilegeNameA';
 
-  function LookupPrivilegeDisplayNameA(lpSystemName:LPCSTR; lpName:LPCSTR; lpDisplayName:LPSTR; cbDisplayName:LPDWORD; lpLanguageId:LPDWORD):WINBOOL; external 'advapi32.dll' name 'LookupPrivilegeDisplayNameA';
+  function LookupPrivilegeDisplayNameA(lpSystemName:LPCSTR; lpName:LPCSTR; lpDisplayName:LPSTR; cbDisplayName:LPDWORD; lpLanguageId:LPDWORD):WINBOOL; external 'advapi32' name 'LookupPrivilegeDisplayNameA';
 
-  function BuildCommDCBA(lpDef:LPCSTR; lpDCB:LPDCB):WINBOOL; external 'kernel32.dll' name 'BuildCommDCBA';
+  function BuildCommDCBA(lpDef:LPCSTR; lpDCB:LPDCB):WINBOOL; external 'kernel32' name 'BuildCommDCBA';
 
-  function BuildCommDCBAndTimeoutsA(lpDef:LPCSTR; lpDCB:LPDCB; lpCommTimeouts:LPCOMMTIMEOUTS):WINBOOL; external 'kernel32.dll' name 'BuildCommDCBAndTimeoutsA';
+  function BuildCommDCBAndTimeoutsA(lpDef:LPCSTR; lpDCB:LPDCB; lpCommTimeouts:LPCOMMTIMEOUTS):WINBOOL; external 'kernel32' name 'BuildCommDCBAndTimeoutsA';
 
-  function CommConfigDialogA(lpszName:LPCSTR; hWnd:HWND; lpCC:LPCOMMCONFIG):WINBOOL; external 'kernel32.dll' name 'CommConfigDialogA';
+  function CommConfigDialogA(lpszName:LPCSTR; hWnd:HWND; lpCC:LPCOMMCONFIG):WINBOOL; external 'kernel32' name 'CommConfigDialogA';
 
-  function GetDefaultCommConfigA(lpszName:LPCSTR; lpCC:LPCOMMCONFIG; lpdwSize:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetDefaultCommConfigA';
+  function GetDefaultCommConfigA(lpszName:LPCSTR; lpCC:LPCOMMCONFIG; lpdwSize:LPDWORD):WINBOOL; external 'kernel32' name 'GetDefaultCommConfigA';
 
-  function SetDefaultCommConfigA(lpszName:LPCSTR; lpCC:LPCOMMCONFIG; dwSize:DWORD):WINBOOL; external 'kernel32.dll' name 'SetDefaultCommConfigA';
+  function SetDefaultCommConfigA(lpszName:LPCSTR; lpCC:LPCOMMCONFIG; dwSize:DWORD):WINBOOL; external 'kernel32' name 'SetDefaultCommConfigA';
 
-  function GetComputerNameA(lpBuffer:LPSTR; nSize:LPDWORD):WINBOOL; external 'kernel32.dll' name 'GetComputerNameA';
+  function GetComputerNameA(lpBuffer:LPSTR; nSize:LPDWORD):WINBOOL; external 'kernel32' name 'GetComputerNameA';
 
-  function SetComputerNameA(lpComputerName:LPCSTR):WINBOOL; external 'kernel32.dll' name 'SetComputerNameA';
+  function SetComputerNameA(lpComputerName:LPCSTR):WINBOOL; external 'kernel32' name 'SetComputerNameA';
 
-  function GetUserNameA(lpBuffer:LPSTR; nSize:LPDWORD):WINBOOL; external 'advapi32.dll' name 'GetUserNameA';
+  function GetUserNameA(lpBuffer:LPSTR; nSize:LPDWORD):WINBOOL; external 'advapi32' name 'GetUserNameA';
 
-  function wvsprintfA(_para1:LPSTR; _para2:LPCSTR; arglist:va_list):longint; external 'user32.dll' name 'wvsprintfA';
+  function wvsprintfA(_para1:LPSTR; _para2:LPCSTR; arglist:va_list):longint; external 'user32' name 'wvsprintfA';
 
-(*  function wsprintfA(_para1:LPSTR; _para2:LPCSTR; ...):longint;CDECL; external 'user32.dll' name 'wsprintfA';
+(*  function wsprintfA(_para1:LPSTR; _para2:LPCSTR; ...):longint;CDECL; external 'user32' name 'wsprintfA';
   not implemented *)
   
-  function LoadKeyboardLayoutA(pwszKLID:LPCSTR; Flags:UINT):HKL; external 'user32.dll' name 'LoadKeyboardLayoutA';
+  function LoadKeyboardLayoutA(pwszKLID:LPCSTR; Flags:UINT):HKL; external 'user32' name 'LoadKeyboardLayoutA';
 
-  function GetKeyboardLayoutNameA(pwszKLID:LPSTR):WINBOOL; external 'user32.dll' name 'GetKeyboardLayoutNameA';
+  function GetKeyboardLayoutNameA(pwszKLID:LPSTR):WINBOOL; external 'user32' name 'GetKeyboardLayoutNameA';
 
   function CreateDesktopA(lpszDesktop:LPSTR; lpszDevice:LPSTR; pDevmode:LPDEVMODE; dwFlags:DWORD; dwDesiredAccess:DWORD; 
-             lpsa:LPSECURITY_ATTRIBUTES):HDESK; external 'user32.dll' name 'CreateDesktopA';
+             lpsa:LPSECURITY_ATTRIBUTES):HDESK; external 'user32' name 'CreateDesktopA';
 
-  function OpenDesktopA(lpszDesktop:LPSTR; dwFlags:DWORD; fInherit:WINBOOL; dwDesiredAccess:DWORD):HDESK; external 'user32.dll' name 'OpenDesktopA';
+  function OpenDesktopA(lpszDesktop:LPSTR; dwFlags:DWORD; fInherit:WINBOOL; dwDesiredAccess:DWORD):HDESK; external 'user32' name 'OpenDesktopA';
 
-  function EnumDesktopsA(hwinsta:HWINSTA; lpEnumFunc:DESKTOPENUMPROC; lParam:LPARAM):WINBOOL; external 'user32.dll' name 'EnumDesktopsA';
+  function EnumDesktopsA(hwinsta:HWINSTA; lpEnumFunc:DESKTOPENUMPROC; lParam:LPARAM):WINBOOL; external 'user32' name 'EnumDesktopsA';
 
-  function CreateWindowStationA(lpwinsta:LPSTR; dwReserved:DWORD; dwDesiredAccess:DWORD; lpsa:LPSECURITY_ATTRIBUTES):HWINSTA; external 'user32.dll' name 'CreateWindowStationA';
+  function CreateWindowStationA(lpwinsta:LPSTR; dwReserved:DWORD; dwDesiredAccess:DWORD; lpsa:LPSECURITY_ATTRIBUTES):HWINSTA; external 'user32' name 'CreateWindowStationA';
 
-  function OpenWindowStationA(lpszWinSta:LPSTR; fInherit:WINBOOL; dwDesiredAccess:DWORD):HWINSTA; external 'user32.dll' name 'OpenWindowStationA';
+  function OpenWindowStationA(lpszWinSta:LPSTR; fInherit:WINBOOL; dwDesiredAccess:DWORD):HWINSTA; external 'user32' name 'OpenWindowStationA';
 
-  function EnumWindowStationsA(lpEnumFunc:ENUMWINDOWSTATIONPROC; lParam:LPARAM):WINBOOL; external 'user32.dll' name 'EnumWindowStationsA';
+  function EnumWindowStationsA(lpEnumFunc:ENUMWINDOWSTATIONPROC; lParam:LPARAM):WINBOOL; external 'user32' name 'EnumWindowStationsA';
 
-  function GetUserObjectInformationA(hObj:HANDLE; nIndex:longint; pvInfo:PVOID; nLength:DWORD; lpnLengthNeeded:LPDWORD):WINBOOL; external 'user32.dll' name 'GetUserObjectInformationA';
+  function GetUserObjectInformationA(hObj:HANDLE; nIndex:longint; pvInfo:PVOID; nLength:DWORD; lpnLengthNeeded:LPDWORD):WINBOOL; external 'user32' name 'GetUserObjectInformationA';
 
-  function SetUserObjectInformationA(hObj:HANDLE; nIndex:longint; pvInfo:PVOID; nLength:DWORD):WINBOOL; external 'user32.dll' name 'SetUserObjectInformationA';
+  function SetUserObjectInformationA(hObj:HANDLE; nIndex:longint; pvInfo:PVOID; nLength:DWORD):WINBOOL; external 'user32' name 'SetUserObjectInformationA';
 
-  function RegisterWindowMessageA(lpString:LPCSTR):UINT; external 'user32.dll' name 'RegisterWindowMessageA';
+  function RegisterWindowMessageA(lpString:LPCSTR):UINT; external 'user32' name 'RegisterWindowMessageA';
 
-  function GetMessageA(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT):WINBOOL; external 'user32.dll' name 'GetMessageA';
+  function GetMessageA(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT):WINBOOL; external 'user32' name 'GetMessageA';
 
-  function DispatchMessageA(var lpMsg:MSG):LONG; external 'user32.dll' name 'DispatchMessageA';
+  function DispatchMessageA(var lpMsg:MSG):LONG; external 'user32' name 'DispatchMessageA';
 
-  function PeekMessageA(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT; wRemoveMsg:UINT):WINBOOL; external 'user32.dll' name 'PeekMessageA';
+  function PeekMessageA(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT; wRemoveMsg:UINT):WINBOOL; external 'user32' name 'PeekMessageA';
 
-  function SendMessageA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32.dll' name 'SendMessageA';
+  function SendMessageA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'SendMessageA';
 
   function SendMessageTimeoutA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; fuFlags:UINT; 
-             uTimeout:UINT; lpdwResult:LPDWORD):LRESULT; external 'user32.dll' name 'SendMessageTimeoutA';
+             uTimeout:UINT; lpdwResult:LPDWORD):LRESULT; external 'user32' name 'SendMessageTimeoutA';
 
-  function SendNotifyMessageA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external 'user32.dll' name 'SendNotifyMessageA';
+  function SendNotifyMessageA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external 'user32' name 'SendNotifyMessageA';
 
   function SendMessageCallbackA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; lpResultCallBack:SENDASYNCPROC; 
-             dwData:DWORD):WINBOOL; external 'user32.dll' name 'SendMessageCallbackA';
+             dwData:DWORD):WINBOOL; external 'user32' name 'SendMessageCallbackA';
 
-  function PostMessageA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external 'user32.dll' name 'PostMessageA';
+  function PostMessageA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external 'user32' name 'PostMessageA';
 
-  function PostThreadMessageA(idThread:DWORD; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external 'user32.dll' name 'PostThreadMessageA';
+  function PostThreadMessageA(idThread:DWORD; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external 'user32' name 'PostThreadMessageA';
 
-  function DefWindowProcA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32.dll' name 'DefWindowProcA';
+  function DefWindowProcA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'DefWindowProcA';
 
-  function CallWindowProcA(lpPrevWndFunc:WNDPROC; hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32.dll' name 'CallWindowProcA';
+  function CallWindowProcA(lpPrevWndFunc:WNDPROC; hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'CallWindowProcA';
 
-  function RegisterClassA(var lpWndClass:WNDCLASS):ATOM; external 'user32.dll' name 'RegisterClassA';
+  function RegisterClassA(var lpWndClass:WNDCLASS):ATOM; external 'user32' name 'RegisterClassA';
 
-  function UnregisterClassA(lpClassName:LPCSTR; hInstance:HINSTANCE):WINBOOL; external 'user32.dll' name 'UnregisterClassA';
+  function UnregisterClassA(lpClassName:LPCSTR; hInstance:HINSTANCE):WINBOOL; external 'user32' name 'UnregisterClassA';
 
-  function GetClassInfoA(hInstance:HINSTANCE; lpClassName:LPCSTR; lpWndClass:LPWNDCLASS):WINBOOL; external 'user32.dll' name 'GetClassInfoA';
+  function GetClassInfoA(hInstance:HINSTANCE; lpClassName:LPCSTR; lpWndClass:LPWNDCLASS):WINBOOL; external 'user32' name 'GetClassInfoA';
 
-  function RegisterClassExA(var _para1:WNDCLASSEX):ATOM; external 'user32.dll' name 'RegisterClassExA';
+  function RegisterClassExA(var _para1:WNDCLASSEX):ATOM; external 'user32' name 'RegisterClassExA';
 
-  function GetClassInfoExA(_para1:HINSTANCE; _para2:LPCSTR; _para3:LPWNDCLASSEX):WINBOOL; external 'user32.dll' name 'GetClassInfoExA';
+  function GetClassInfoExA(_para1:HINSTANCE; _para2:LPCSTR; _para3:LPWNDCLASSEX):WINBOOL; external 'user32' name 'GetClassInfoExA';
 
   function CreateWindowExA(dwExStyle:DWORD; lpClassName:LPCSTR; lpWindowName:LPCSTR; dwStyle:DWORD; X:longint; 
              Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU; 
-             hInstance:HINSTANCE; lpParam:LPVOID):HWND; external 'user32.dll' name 'CreateWindowExA';
+             hInstance:HINSTANCE; lpParam:LPVOID):HWND; external 'user32' name 'CreateWindowExA';
 
-  function CreateDialogParamA(hInstance:HINSTANCE; lpTemplateName:LPCSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND; external 'user32.dll' name 'CreateDialogParamA';
+  function CreateDialogParamA(hInstance:HINSTANCE; lpTemplateName:LPCSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND; external 'user32' name 'CreateDialogParamA';
 
-  function CreateDialogIndirectParamA(hInstance:HINSTANCE; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND; external 'user32.dll' name 'CreateDialogIndirectParamA';
+  function CreateDialogIndirectParamA(hInstance:HINSTANCE; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND; external 'user32' name 'CreateDialogIndirectParamA';
 
-  function DialogBoxParamA(hInstance:HINSTANCE; lpTemplateName:LPCSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint; external 'user32.dll' name 'DialogBoxParamA';
+  function DialogBoxParamA(hInstance:HINSTANCE; lpTemplateName:LPCSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint; external 'user32' name 'DialogBoxParamA';
 
-  function DialogBoxIndirectParamA(hInstance:HINSTANCE; hDialogTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint; external 'user32.dll' name 'DialogBoxIndirectParamA';
+  function DialogBoxIndirectParamA(hInstance:HINSTANCE; hDialogTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint; external 'user32' name 'DialogBoxIndirectParamA';
 
-  function SetDlgItemTextA(hDlg:HWND; nIDDlgItem:longint; lpString:LPCSTR):WINBOOL; external 'user32.dll' name 'SetDlgItemTextA';
+  function SetDlgItemTextA(hDlg:HWND; nIDDlgItem:longint; lpString:LPCSTR):WINBOOL; external 'user32' name 'SetDlgItemTextA';
 
-  function GetDlgItemTextA(hDlg:HWND; nIDDlgItem:longint; lpString:LPSTR; nMaxCount:longint):UINT; external 'user32.dll' name 'GetDlgItemTextA';
+  function GetDlgItemTextA(hDlg:HWND; nIDDlgItem:longint; lpString:LPSTR; nMaxCount:longint):UINT; external 'user32' name 'GetDlgItemTextA';
 
-  function SendDlgItemMessageA(hDlg:HWND; nIDDlgItem:longint; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LONG; external 'user32.dll' name 'SendDlgItemMessageA';
+  function SendDlgItemMessageA(hDlg:HWND; nIDDlgItem:longint; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LONG; external 'user32' name 'SendDlgItemMessageA';
 
-  function DefDlgProcA(hDlg:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32.dll' name 'DefDlgProcA';
+  function DefDlgProcA(hDlg:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'DefDlgProcA';
 
-  function CallMsgFilterA(lpMsg:LPMSG; nCode:longint):WINBOOL; external 'user32.dll' name 'CallMsgFilterA';
+  function CallMsgFilterA(lpMsg:LPMSG; nCode:longint):WINBOOL; external 'user32' name 'CallMsgFilterA';
 
-  function RegisterClipboardFormatA(lpszFormat:LPCSTR):UINT; external 'user32.dll' name 'RegisterClipboardFormatA';
+  function RegisterClipboardFormatA(lpszFormat:LPCSTR):UINT; external 'user32' name 'RegisterClipboardFormatA';
 
-  function GetClipboardFormatNameA(format:UINT; lpszFormatName:LPSTR; cchMaxCount:longint):longint; external 'user32.dll' name 'GetClipboardFormatNameA';
+  function GetClipboardFormatNameA(format:UINT; lpszFormatName:LPSTR; cchMaxCount:longint):longint; external 'user32' name 'GetClipboardFormatNameA';
 
-  function CharToOemA(lpszSrc:LPCSTR; lpszDst:LPSTR):WINBOOL; external 'user32.dll' name 'CharToOemA';
+  function CharToOemA(lpszSrc:LPCSTR; lpszDst:LPSTR):WINBOOL; external 'user32' name 'CharToOemA';
 
-  function OemToCharA(lpszSrc:LPCSTR; lpszDst:LPSTR):WINBOOL; external 'user32.dll' name 'OemToCharA';
+  function OemToCharA(lpszSrc:LPCSTR; lpszDst:LPSTR):WINBOOL; external 'user32' name 'OemToCharA';
 
-  function CharToOemBuffA(lpszSrc:LPCSTR; lpszDst:LPSTR; cchDstLength:DWORD):WINBOOL; external 'user32.dll' name 'CharToOemBuffA';
+  function CharToOemBuffA(lpszSrc:LPCSTR; lpszDst:LPSTR; cchDstLength:DWORD):WINBOOL; external 'user32' name 'CharToOemBuffA';
 
-  function OemToCharBuffA(lpszSrc:LPCSTR; lpszDst:LPSTR; cchDstLength:DWORD):WINBOOL; external 'user32.dll' name 'OemToCharBuffA';
+  function OemToCharBuffA(lpszSrc:LPCSTR; lpszDst:LPSTR; cchDstLength:DWORD):WINBOOL; external 'user32' name 'OemToCharBuffA';
 
-  function CharUpperA(lpsz:LPSTR):LPSTR; external 'user32.dll' name 'CharUpperA';
+  function CharUpperA(lpsz:LPSTR):LPSTR; external 'user32' name 'CharUpperA';
 
-  function CharUpperBuffA(lpsz:LPSTR; cchLength:DWORD):DWORD; external 'user32.dll' name 'CharUpperBuffA';
+  function CharUpperBuffA(lpsz:LPSTR; cchLength:DWORD):DWORD; external 'user32' name 'CharUpperBuffA';
 
-  function CharLowerA(lpsz:LPSTR):LPSTR; external 'user32.dll' name 'CharLowerA';
+  function CharLowerA(lpsz:LPSTR):LPSTR; external 'user32' name 'CharLowerA';
 
-  function CharLowerBuffA(lpsz:LPSTR; cchLength:DWORD):DWORD; external 'user32.dll' name 'CharLowerBuffA';
+  function CharLowerBuffA(lpsz:LPSTR; cchLength:DWORD):DWORD; external 'user32' name 'CharLowerBuffA';
 
-  function CharNextA(lpsz:LPCSTR):LPSTR; external 'user32.dll' name 'CharNextA';
+  function CharNextA(lpsz:LPCSTR):LPSTR; external 'user32' name 'CharNextA';
 
-  function CharPrevA(lpszStart:LPCSTR; lpszCurrent:LPCSTR):LPSTR; external 'user32.dll' name 'CharPrevA';
+  function CharPrevA(lpszStart:LPCSTR; lpszCurrent:LPCSTR):LPSTR; external 'user32' name 'CharPrevA';
 
-  function IsCharAlphaA(ch:CHAR):WINBOOL; external 'user32.dll' name 'IsCharAlphaA';
+  function IsCharAlphaA(ch:CHAR):WINBOOL; external 'user32' name 'IsCharAlphaA';
 
-  function IsCharAlphaNumericA(ch:CHAR):WINBOOL; external 'user32.dll' name 'IsCharAlphaNumericA';
+  function IsCharAlphaNumericA(ch:CHAR):WINBOOL; external 'user32' name 'IsCharAlphaNumericA';
 
-  function IsCharUpperA(ch:CHAR):WINBOOL; external 'user32.dll' name 'IsCharUpperA';
+  function IsCharUpperA(ch:CHAR):WINBOOL; external 'user32' name 'IsCharUpperA';
 
-  function IsCharLowerA(ch:CHAR):WINBOOL; external 'user32.dll' name 'IsCharLowerA';
+  function IsCharLowerA(ch:CHAR):WINBOOL; external 'user32' name 'IsCharLowerA';
 
-  function GetKeyNameTextA(lParam:LONG; lpString:LPSTR; nSize:longint):longint; external 'user32.dll' name 'GetKeyNameTextA';
+  function GetKeyNameTextA(lParam:LONG; lpString:LPSTR; nSize:longint):longint; external 'user32' name 'GetKeyNameTextA';
 
-  function VkKeyScanA(ch:CHAR):SHORT; external 'user32.dll' name 'VkKeyScanA';
+  function VkKeyScanA(ch:CHAR):SHORT; external 'user32' name 'VkKeyScanA';
 
-  function VkKeyScanExA(ch:CHAR; dwhkl:HKL):SHORT; external 'user32.dll' name 'VkKeyScanExA';
+  function VkKeyScanExA(ch:CHAR; dwhkl:HKL):SHORT; external 'user32' name 'VkKeyScanExA';
 
-  function MapVirtualKeyA(uCode:UINT; uMapType:UINT):UINT; external 'user32.dll' name 'MapVirtualKeyA';
+  function MapVirtualKeyA(uCode:UINT; uMapType:UINT):UINT; external 'user32' name 'MapVirtualKeyA';
 
-  function MapVirtualKeyExA(uCode:UINT; uMapType:UINT; dwhkl:HKL):UINT; external 'user32.dll' name 'MapVirtualKeyExA';
+  function MapVirtualKeyExA(uCode:UINT; uMapType:UINT; dwhkl:HKL):UINT; external 'user32' name 'MapVirtualKeyExA';
 
-  function LoadAcceleratorsA(hInstance:HINSTANCE; lpTableName:LPCSTR):HACCEL; external 'user32.dll' name 'LoadAcceleratorsA';
+  function LoadAcceleratorsA(hInstance:HINSTANCE; lpTableName:LPCSTR):HACCEL; external 'user32' name 'LoadAcceleratorsA';
 
-  function CreateAcceleratorTableA(_para1:LPACCEL; _para2:longint):HACCEL; external 'user32.dll' name 'CreateAcceleratorTableA';
+  function CreateAcceleratorTableA(_para1:LPACCEL; _para2:longint):HACCEL; external 'user32' name 'CreateAcceleratorTableA';
 
-  function CopyAcceleratorTableA(hAccelSrc:HACCEL; lpAccelDst:LPACCEL; cAccelEntries:longint):longint; external 'user32.dll' name 'CopyAcceleratorTableA';
+  function CopyAcceleratorTableA(hAccelSrc:HACCEL; lpAccelDst:LPACCEL; cAccelEntries:longint):longint; external 'user32' name 'CopyAcceleratorTableA';
 
-  function TranslateAcceleratorA(hWnd:HWND; hAccTable:HACCEL; lpMsg:LPMSG):longint; external 'user32.dll' name 'TranslateAcceleratorA';
+  function TranslateAcceleratorA(hWnd:HWND; hAccTable:HACCEL; lpMsg:LPMSG):longint; external 'user32' name 'TranslateAcceleratorA';
 
-  function LoadMenuA(hInstance:HINSTANCE; lpMenuName:LPCSTR):HMENU; external 'user32.dll' name 'LoadMenuA';
+  function LoadMenuA(hInstance:HINSTANCE; lpMenuName:LPCSTR):HMENU; external 'user32' name 'LoadMenuA';
 
-  function LoadMenuIndirectA(var lpMenuTemplate:MENUTEMPLATE):HMENU; external 'user32.dll' name 'LoadMenuIndirectA';
+  function LoadMenuIndirectA(var lpMenuTemplate:MENUTEMPLATE):HMENU; external 'user32' name 'LoadMenuIndirectA';
 
-  function ChangeMenuA(hMenu:HMENU; cmd:UINT; lpszNewItem:LPCSTR; cmdInsert:UINT; flags:UINT):WINBOOL; external 'user32.dll' name 'ChangeMenuA';
+  function ChangeMenuA(hMenu:HMENU; cmd:UINT; lpszNewItem:LPCSTR; cmdInsert:UINT; flags:UINT):WINBOOL; external 'user32' name 'ChangeMenuA';
 
-  function GetMenuStringA(hMenu:HMENU; uIDItem:UINT; lpString:LPSTR; nMaxCount:longint; uFlag:UINT):longint; external 'user32.dll' name 'GetMenuStringA';
+  function GetMenuStringA(hMenu:HMENU; uIDItem:UINT; lpString:LPSTR; nMaxCount:longint; uFlag:UINT):longint; external 'user32' name 'GetMenuStringA';
 
-  function InsertMenuA(hMenu:HMENU; uPosition:UINT; uFlags:UINT; uIDNewItem:UINT; lpNewItem:LPCSTR):WINBOOL; external 'user32.dll' name 'InsertMenuA';
+  function InsertMenuA(hMenu:HMENU; uPosition:UINT; uFlags:UINT; uIDNewItem:UINT; lpNewItem:LPCSTR):WINBOOL; external 'user32' name 'InsertMenuA';
 
-  function AppendMenuA(hMenu:HMENU; uFlags:UINT; uIDNewItem:UINT; lpNewItem:LPCSTR):WINBOOL; external 'user32.dll' name 'AppendMenuA';
+  function AppendMenuA(hMenu:HMENU; uFlags:UINT; uIDNewItem:UINT; lpNewItem:LPCSTR):WINBOOL; external 'user32' name 'AppendMenuA';
 
-  function ModifyMenuA(hMnu:HMENU; uPosition:UINT; uFlags:UINT; uIDNewItem:UINT; lpNewItem:LPCSTR):WINBOOL; external 'user32.dll' name 'ModifyMenuA';
+  function ModifyMenuA(hMnu:HMENU; uPosition:UINT; uFlags:UINT; uIDNewItem:UINT; lpNewItem:LPCSTR):WINBOOL; external 'user32' name 'ModifyMenuA';
 
-  function InsertMenuItemA(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPCMENUITEMINFO):WINBOOL; external 'user32.dll' name 'InsertMenuItemA';
+  function InsertMenuItemA(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPCMENUITEMINFO):WINBOOL; external 'user32' name 'InsertMenuItemA';
 
-  function GetMenuItemInfoA(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPMENUITEMINFO):WINBOOL; external 'user32.dll' name 'GetMenuItemInfoA';
+  function GetMenuItemInfoA(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPMENUITEMINFO):WINBOOL; external 'user32' name 'GetMenuItemInfoA';
 
-  function SetMenuItemInfoA(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPCMENUITEMINFO):WINBOOL; external 'user32.dll' name 'SetMenuItemInfoA';
+  function SetMenuItemInfoA(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPCMENUITEMINFO):WINBOOL; external 'user32' name 'SetMenuItemInfoA';
 
-  function DrawTextA(hDC:HDC; lpString:LPCSTR; nCount:longint; lpRect:LPRECT; uFormat:UINT):longint; external 'user32.dll' name 'DrawTextA';
+  function DrawTextA(hDC:HDC; lpString:LPCSTR; nCount:longint; lpRect:LPRECT; uFormat:UINT):longint; external 'user32' name 'DrawTextA';
 
   function DrawTextExA(_para1:HDC; _para2:LPSTR; _para3:longint; _para4:LPRECT; _para5:UINT; 
-             _para6:LPDRAWTEXTPARAMS):longint; external 'user32.dll' name 'DrawTextExA';
+             _para6:LPDRAWTEXTPARAMS):longint; external 'user32' name 'DrawTextExA';
 
   function GrayStringA(hDC:HDC; hBrush:HBRUSH; lpOutputFunc:GRAYSTRINGPROC; lpData:LPARAM; nCount:longint; 
-             X:longint; Y:longint; nWidth:longint; nHeight:longint):WINBOOL; external 'user32.dll' name 'GrayStringA';
+             X:longint; Y:longint; nWidth:longint; nHeight:longint):WINBOOL; external 'user32' name 'GrayStringA';
 
   function DrawStateA(_para1:HDC; _para2:HBRUSH; _para3:DRAWSTATEPROC; _para4:LPARAM; _para5:WPARAM; 
-             _para6:longint; _para7:longint; _para8:longint; _para9:longint; _para10:UINT):WINBOOL; external 'user32.dll' name 'DrawStateA';
+             _para6:longint; _para7:longint; _para8:longint; _para9:longint; _para10:UINT):WINBOOL; external 'user32' name 'DrawStateA';
 
   function TabbedTextOutA(hDC:HDC; X:longint; Y:longint; lpString:LPCSTR; nCount:longint; 
-             nTabPositions:longint; lpnTabStopPositions:LPINT; nTabOrigin:longint):LONG; external 'user32.dll' name 'TabbedTextOutA';
+             nTabPositions:longint; lpnTabStopPositions:LPINT; nTabOrigin:longint):LONG; external 'user32' name 'TabbedTextOutA';
 
-  function GetTabbedTextExtentA(hDC:HDC; lpString:LPCSTR; nCount:longint; nTabPositions:longint; lpnTabStopPositions:LPINT):DWORD; external 'user32.dll' name 'GetTabbedTextExtentA';
+  function GetTabbedTextExtentA(hDC:HDC; lpString:LPCSTR; nCount:longint; nTabPositions:longint; lpnTabStopPositions:LPINT):DWORD; external 'user32' name 'GetTabbedTextExtentA';
 
-  function SetPropA(hWnd:HWND; lpString:LPCSTR; hData:HANDLE):WINBOOL; external 'user32.dll' name 'SetPropA';
+  function SetPropA(hWnd:HWND; lpString:LPCSTR; hData:HANDLE):WINBOOL; external 'user32' name 'SetPropA';
 
-  function GetPropA(hWnd:HWND; lpString:LPCSTR):HANDLE; external 'user32.dll' name 'GetPropA';
+  function GetPropA(hWnd:HWND; lpString:LPCSTR):HANDLE; external 'user32' name 'GetPropA';
 
-  function RemovePropA(hWnd:HWND; lpString:LPCSTR):HANDLE; external 'user32.dll' name 'RemovePropA';
+  function RemovePropA(hWnd:HWND; lpString:LPCSTR):HANDLE; external 'user32' name 'RemovePropA';
 
-  function EnumPropsExA(hWnd:HWND; lpEnumFunc:PROPENUMPROCEX; lParam:LPARAM):longint; external 'user32.dll' name 'EnumPropsExA';
+  function EnumPropsExA(hWnd:HWND; lpEnumFunc:PROPENUMPROCEX; lParam:LPARAM):longint; external 'user32' name 'EnumPropsExA';
 
-  function EnumPropsA(hWnd:HWND; lpEnumFunc:PROPENUMPROC):longint; external 'user32.dll' name 'EnumPropsA';
+  function EnumPropsA(hWnd:HWND; lpEnumFunc:PROPENUMPROC):longint; external 'user32' name 'EnumPropsA';
 
-  function SetWindowTextA(hWnd:HWND; lpString:LPCSTR):WINBOOL; external 'user32.dll' name 'SetWindowTextA';
+  function SetWindowTextA(hWnd:HWND; lpString:LPCSTR):WINBOOL; external 'user32' name 'SetWindowTextA';
 
-  function GetWindowTextA(hWnd:HWND; lpString:LPSTR; nMaxCount:longint):longint; external 'user32.dll' name 'GetWindowTextA';
+  function GetWindowTextA(hWnd:HWND; lpString:LPSTR; nMaxCount:longint):longint; external 'user32' name 'GetWindowTextA';
 
-  function GetWindowTextLengthA(hWnd:HWND):longint; external 'user32.dll' name 'GetWindowTextLengthA';
+  function GetWindowTextLengthA(hWnd:HWND):longint; external 'user32' name 'GetWindowTextLengthA';
 
-  function MessageBoxA(hWnd:HWND; lpText:LPCSTR; lpCaption:LPCSTR; uType:UINT):longint; external 'user32.dll' name 'MessageBoxA';
+  function MessageBoxA(hWnd:HWND; lpText:LPCSTR; lpCaption:LPCSTR; uType:UINT):longint; external 'user32' name 'MessageBoxA';
 
-  function MessageBoxExA(hWnd:HWND; lpText:LPCSTR; lpCaption:LPCSTR; uType:UINT; wLanguageId:WORD):longint; external 'user32.dll' name 'MessageBoxExA';
+  function MessageBoxExA(hWnd:HWND; lpText:LPCSTR; lpCaption:LPCSTR; uType:UINT; wLanguageId:WORD):longint; external 'user32' name 'MessageBoxExA';
 
-  function MessageBoxIndirectA(_para1:LPMSGBOXPARAMS):longint; external 'user32.dll' name 'MessageBoxIndirectA';
+  function MessageBoxIndirectA(_para1:LPMSGBOXPARAMS):longint; external 'user32' name 'MessageBoxIndirectA';
 
-  function GetWindowLongA(hWnd:HWND; nIndex:longint):LONG; external 'user32.dll' name 'GetWindowLongA';
+  function GetWindowLongA(hWnd:HWND; nIndex:longint):LONG; external 'user32' name 'GetWindowLongA';
 
-  function SetWindowLongA(hWnd:HWND; nIndex:longint; dwNewLong:LONG):LONG; external 'user32.dll' name 'SetWindowLongA';
+  function SetWindowLongA(hWnd:HWND; nIndex:longint; dwNewLong:LONG):LONG; external 'user32' name 'SetWindowLongA';
 
-  function GetClassLongA(hWnd:HWND; nIndex:longint):DWORD; external 'user32.dll' name 'GetClassLongA';
+  function GetClassLongA(hWnd:HWND; nIndex:longint):DWORD; external 'user32' name 'GetClassLongA';
 
-  function SetClassLongA(hWnd:HWND; nIndex:longint; dwNewLong:LONG):DWORD; external 'user32.dll' name 'SetClassLongA';
+  function SetClassLongA(hWnd:HWND; nIndex:longint; dwNewLong:LONG):DWORD; external 'user32' name 'SetClassLongA';
 
-  function FindWindowA(lpClassName:LPCSTR; lpWindowName:LPCSTR):HWND; external 'user32.dll' name 'FindWindowA';
+  function FindWindowA(lpClassName:LPCSTR; lpWindowName:LPCSTR):HWND; external 'user32' name 'FindWindowA';
 
-  function FindWindowExA(_para1:HWND; _para2:HWND; _para3:LPCSTR; _para4:LPCSTR):HWND; external 'user32.dll' name 'FindWindowExA';
+  function FindWindowExA(_para1:HWND; _para2:HWND; _para3:LPCSTR; _para4:LPCSTR):HWND; external 'user32' name 'FindWindowExA';
 
-  function GetClassNameA(hWnd:HWND; lpClassName:LPSTR; nMaxCount:longint):longint; external 'user32.dll' name 'GetClassNameA';
+  function GetClassNameA(hWnd:HWND; lpClassName:LPSTR; nMaxCount:longint):longint; external 'user32' name 'GetClassNameA';
 
-  function SetWindowsHookExA(idHook:longint; lpfn:HOOKPROC; hmod:HINSTANCE; dwThreadId:DWORD):HHOOK; external 'user32.dll' name 'SetWindowsHookExA';
+  function SetWindowsHookExA(idHook:longint; lpfn:HOOKPROC; hmod:HINSTANCE; dwThreadId:DWORD):HHOOK; external 'user32' name 'SetWindowsHookExA';
 
-  function LoadBitmapA(hInstance:HINSTANCE; lpBitmapName:LPCSTR):HBITMAP; external 'user32.dll' name 'LoadBitmapA';
+  function LoadBitmapA(hInstance:HINSTANCE; lpBitmapName:LPCSTR):HBITMAP; external 'user32' name 'LoadBitmapA';
 
-  function LoadCursorA(hInstance:HINSTANCE; lpCursorName:LPCSTR):HCURSOR; external 'user32.dll' name 'LoadCursorA';
+  function LoadCursorA(hInstance:HINSTANCE; lpCursorName:LPCSTR):HCURSOR; external 'user32' name 'LoadCursorA';
 
-  function LoadCursorFromFileA(lpFileName:LPCSTR):HCURSOR; external 'user32.dll' name 'LoadCursorFromFileA';
+  function LoadCursorFromFileA(lpFileName:LPCSTR):HCURSOR; external 'user32' name 'LoadCursorFromFileA';
 
-  function LoadIconA(hInstance:HINSTANCE; lpIconName:LPCSTR):HICON; external 'user32.dll' name 'LoadIconA';
+  function LoadIconA(hInstance:HINSTANCE; lpIconName:LPCSTR):HICON; external 'user32' name 'LoadIconA';
 
   function LoadImageA(_para1:HINSTANCE; _para2:LPCSTR; _para3:UINT; _para4:longint; _para5:longint; 
-             _para6:UINT):HANDLE; external 'user32.dll' name 'LoadImageA';
+             _para6:UINT):HANDLE; external 'user32' name 'LoadImageA';
 
-  function LoadStringA(hInstance:HINSTANCE; uID:UINT; lpBuffer:LPSTR; nBufferMax:longint):longint; external 'user32.dll' name 'LoadStringA';
+  function LoadStringA(hInstance:HINSTANCE; uID:UINT; lpBuffer:LPSTR; nBufferMax:longint):longint; external 'user32' name 'LoadStringA';
 
-  function IsDialogMessageA(hDlg:HWND; lpMsg:LPMSG):WINBOOL; external 'user32.dll' name 'IsDialogMessageA';
+  function IsDialogMessageA(hDlg:HWND; lpMsg:LPMSG):WINBOOL; external 'user32' name 'IsDialogMessageA';
 
-  function DlgDirListA(hDlg:HWND; lpPathSpec:LPSTR; nIDListBox:longint; nIDStaticPath:longint; uFileType:UINT):longint; external 'user32.dll' name 'DlgDirListA';
+  function DlgDirListA(hDlg:HWND; lpPathSpec:LPSTR; nIDListBox:longint; nIDStaticPath:longint; uFileType:UINT):longint; external 'user32' name 'DlgDirListA';
 
-  function DlgDirSelectExA(hDlg:HWND; lpString:LPSTR; nCount:longint; nIDListBox:longint):WINBOOL; external 'user32.dll' name 'DlgDirSelectExA';
+  function DlgDirSelectExA(hDlg:HWND; lpString:LPSTR; nCount:longint; nIDListBox:longint):WINBOOL; external 'user32' name 'DlgDirSelectExA';
 
-  function DlgDirListComboBoxA(hDlg:HWND; lpPathSpec:LPSTR; nIDComboBox:longint; nIDStaticPath:longint; uFiletype:UINT):longint; external 'user32.dll' name 'DlgDirListComboBoxA';
+  function DlgDirListComboBoxA(hDlg:HWND; lpPathSpec:LPSTR; nIDComboBox:longint; nIDStaticPath:longint; uFiletype:UINT):longint; external 'user32' name 'DlgDirListComboBoxA';
 
-  function DlgDirSelectComboBoxExA(hDlg:HWND; lpString:LPSTR; nCount:longint; nIDComboBox:longint):WINBOOL; external 'user32.dll' name 'DlgDirSelectComboBoxExA';
+  function DlgDirSelectComboBoxExA(hDlg:HWND; lpString:LPSTR; nCount:longint; nIDComboBox:longint):WINBOOL; external 'user32' name 'DlgDirSelectComboBoxExA';
 
-  function DefFrameProcA(hWnd:HWND; hWndMDIClient:HWND; uMsg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32.dll' name 'DefFrameProcA';
+  function DefFrameProcA(hWnd:HWND; hWndMDIClient:HWND; uMsg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'DefFrameProcA';
 
-  function DefMDIChildProcA(hWnd:HWND; uMsg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32.dll' name 'DefMDIChildProcA';
+  function DefMDIChildProcA(hWnd:HWND; uMsg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'DefMDIChildProcA';
 
   function CreateMDIWindowA(lpClassName:LPSTR; lpWindowName:LPSTR; dwStyle:DWORD; X:longint; Y:longint; 
-             nWidth:longint; nHeight:longint; hWndParent:HWND; hInstance:HINSTANCE; lParam:LPARAM):HWND; external 'user32.dll' name 'CreateMDIWindowA';
+             nWidth:longint; nHeight:longint; hWndParent:HWND; hInstance:HINSTANCE; lParam:LPARAM):HWND; external 'user32' name 'CreateMDIWindowA';
 
-  function WinHelpA(hWndMain:HWND; lpszHelp:LPCSTR; uCommand:UINT; dwData:DWORD):WINBOOL; external 'user32.dll' name 'WinHelpA';
+  function WinHelpA(hWndMain:HWND; lpszHelp:LPCSTR; uCommand:UINT; dwData:DWORD):WINBOOL; external 'user32' name 'WinHelpA';
 
-  function ChangeDisplaySettingsA(lpDevMode:LPDEVMODE; dwFlags:DWORD):LONG; external 'user32.dll' name 'ChangeDisplaySettingsA';
+  function ChangeDisplaySettingsA(lpDevMode:LPDEVMODE; dwFlags:DWORD):LONG; external 'user32' name 'ChangeDisplaySettingsA';
 
-  function EnumDisplaySettingsA(lpszDeviceName:LPCSTR; iModeNum:DWORD; lpDevMode:LPDEVMODE):WINBOOL; external 'user32.dll' name 'EnumDisplaySettingsA';
+  function EnumDisplaySettingsA(lpszDeviceName:LPCSTR; iModeNum:DWORD; lpDevMode:LPDEVMODE):WINBOOL; external 'user32' name 'EnumDisplaySettingsA';
 
-  function SystemParametersInfoA(uiAction:UINT; uiParam:UINT; pvParam:PVOID; fWinIni:UINT):WINBOOL; external 'user32.dll' name 'SystemParametersInfoA';
+  function SystemParametersInfoA(uiAction:UINT; uiParam:UINT; pvParam:PVOID; fWinIni:UINT):WINBOOL; external 'user32' name 'SystemParametersInfoA';
 
-  function AddFontResourceA(_para1:LPCSTR):longint; external 'gdi32.dll' name 'AddFontResourceA';
+  function AddFontResourceA(_para1:LPCSTR):longint; external 'gdi32' name 'AddFontResourceA';
 
-  function CopyMetaFileA(_para1:HMETAFILE; _para2:LPCSTR):HMETAFILE; external 'gdi32.dll' name 'CopyMetaFileA';
+  function CopyMetaFileA(_para1:HMETAFILE; _para2:LPCSTR):HMETAFILE; external 'gdi32' name 'CopyMetaFileA';
 
-  function CreateFontIndirectA(var _para1:LOGFONT):HFONT; external 'gdi32.dll' name 'CreateFontIndirectA';
+  function CreateFontIndirectA(var _para1:LOGFONT):HFONT; external 'gdi32' name 'CreateFontIndirectA';
 
-  function CreateICA(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; var _para4:DEVMODE):HDC; external 'gdi32.dll' name 'CreateICA';
+  function CreateICA(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; var _para4:DEVMODE):HDC; external 'gdi32' name 'CreateICA';
 
-  function CreateMetaFileA(_para1:LPCSTR):HDC; external 'gdi32.dll' name 'CreateMetaFileA';
+  function CreateMetaFileA(_para1:LPCSTR):HDC; external 'gdi32' name 'CreateMetaFileA';
 
-  function CreateScalableFontResourceA(_para1:DWORD; _para2:LPCSTR; _para3:LPCSTR; _para4:LPCSTR):WINBOOL; external 'gdi32.dll' name 'CreateScalableFontResourceA';
+  function CreateScalableFontResourceA(_para1:DWORD; _para2:LPCSTR; _para3:LPCSTR; _para4:LPCSTR):WINBOOL; external 'gdi32' name 'CreateScalableFontResourceA';
 
-  function DeviceCapabilitiesA(_para1:LPCSTR; _para2:LPCSTR; _para3:WORD; _para4:LPSTR; var _para5:DEVMODE):longint; external 'winspool.drv' name 'DeviceCapabilitiesA';
+  function DeviceCapabilitiesA(_para1:LPCSTR; _para2:LPCSTR; _para3:WORD; _para4:LPSTR; var _para5:DEVMODE):longint; external 'winspool' name 'DeviceCapabilitiesA';
 
-  function EnumFontFamiliesExA(_para1:HDC; _para2:LPLOGFONT; _para3:FONTENUMEXPROC; _para4:LPARAM; _para5:DWORD):longint; external 'gdi32.dll' name 'EnumFontFamiliesExA';
+  function EnumFontFamiliesExA(_para1:HDC; _para2:LPLOGFONT; _para3:FONTENUMEXPROC; _para4:LPARAM; _para5:DWORD):longint; external 'gdi32' name 'EnumFontFamiliesExA';
 
-  function EnumFontFamiliesA(_para1:HDC; _para2:LPCSTR; _para3:FONTENUMPROC; _para4:LPARAM):longint; external 'gdi32.dll' name 'EnumFontFamiliesA';
+  function EnumFontFamiliesA(_para1:HDC; _para2:LPCSTR; _para3:FONTENUMPROC; _para4:LPARAM):longint; external 'gdi32' name 'EnumFontFamiliesA';
 
-  function EnumFontsA(_para1:HDC; _para2:LPCSTR; _para3:ENUMFONTSPROC; _para4:LPARAM):longint; external 'gdi32.dll' name 'EnumFontsA';
+  function EnumFontsA(_para1:HDC; _para2:LPCSTR; _para3:ENUMFONTSPROC; _para4:LPARAM):longint; external 'gdi32' name 'EnumFontsA';
 
-  function GetCharWidthA(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPINT):WINBOOL; external 'gdi32.dll' name 'GetCharWidthA';
+  function GetCharWidthA(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPINT):WINBOOL; external 'gdi32' name 'GetCharWidthA';
 
-  function GetCharWidth32A(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPINT):WINBOOL; external 'gdi32.dll' name 'GetCharWidth32A';
+  function GetCharWidth32A(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPINT):WINBOOL; external 'gdi32' name 'GetCharWidth32A';
 
-  function GetCharWidthFloatA(_para1:HDC; _para2:UINT; _para3:UINT; _para4:PFLOAT):WINBOOL; external 'gdi32.dll' name 'GetCharWidthFloatA';
+  function GetCharWidthFloatA(_para1:HDC; _para2:UINT; _para3:UINT; _para4:PFLOAT):WINBOOL; external 'gdi32' name 'GetCharWidthFloatA';
 
-  function GetCharABCWidthsA(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPABC):WINBOOL; external 'gdi32.dll' name 'GetCharABCWidthsA';
+  function GetCharABCWidthsA(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPABC):WINBOOL; external 'gdi32' name 'GetCharABCWidthsA';
 
-  function GetCharABCWidthsFloatA(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPABCFLOAT):WINBOOL; external 'gdi32.dll' name 'GetCharABCWidthsFloatA';
+  function GetCharABCWidthsFloatA(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPABCFLOAT):WINBOOL; external 'gdi32' name 'GetCharABCWidthsFloatA';
 
   function GetGlyphOutlineA(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPGLYPHMETRICS; _para5:DWORD; 
-             _para6:LPVOID; var _para7:MAT2):DWORD; external 'gdi32.dll' name 'GetGlyphOutlineA';
+             _para6:LPVOID; var _para7:MAT2):DWORD; external 'gdi32' name 'GetGlyphOutlineA';
 
-  function GetMetaFileA(_para1:LPCSTR):HMETAFILE; external 'gdi32.dll' name 'GetMetaFileA';
+  function GetMetaFileA(_para1:LPCSTR):HMETAFILE; external 'gdi32' name 'GetMetaFileA';
 
-  function GetOutlineTextMetricsA(_para1:HDC; _para2:UINT; _para3:LPOUTLINETEXTMETRIC):UINT; external 'gdi32.dll' name 'GetOutlineTextMetricsA';
+  function GetOutlineTextMetricsA(_para1:HDC; _para2:UINT; _para3:LPOUTLINETEXTMETRIC):UINT; external 'gdi32' name 'GetOutlineTextMetricsA';
 
-  function GetTextExtentPointA(_para1:HDC; _para2:LPCSTR; _para3:longint; _para4:LPSIZE):WINBOOL; external 'gdi32.dll' name 'GetTextExtentPointA';
+  function GetTextExtentPointA(_para1:HDC; _para2:LPCSTR; _para3:longint; _para4:LPSIZE):WINBOOL; external 'gdi32' name 'GetTextExtentPointA';
 
-  function GetTextExtentPoint32A(_para1:HDC; _para2:LPCSTR; _para3:longint; _para4:LPSIZE):WINBOOL; external 'gdi32.dll' name 'GetTextExtentPoint32A';
+  function GetTextExtentPoint32A(_para1:HDC; _para2:LPCSTR; _para3:longint; _para4:LPSIZE):WINBOOL; external 'gdi32' name 'GetTextExtentPoint32A';
 
   function GetTextExtentExPointA(_para1:HDC; _para2:LPCSTR; _para3:longint; _para4:longint; _para5:LPINT; 
-             _para6:LPINT; _para7:LPSIZE):WINBOOL; external 'gdi32.dll' name 'GetTextExtentExPointA';
+             _para6:LPINT; _para7:LPSIZE):WINBOOL; external 'gdi32' name 'GetTextExtentExPointA';
 
   function GetCharacterPlacementA(_para1:HDC; _para2:LPCSTR; _para3:longint; _para4:longint; _para5:LPGCP_RESULTS; 
-             _para6:DWORD):DWORD; external 'gdi32.dll' name 'GetCharacterPlacementA';
+             _para6:DWORD):DWORD; external 'gdi32' name 'GetCharacterPlacementA';
 
-  function ResetDCA(_para1:HDC; var _para2:DEVMODE):HDC; external 'gdi32.dll' name 'ResetDCA';
+  function ResetDCA(_para1:HDC; var _para2:DEVMODE):HDC; external 'gdi32' name 'ResetDCA';
 
-  function RemoveFontResourceA(_para1:LPCSTR):WINBOOL; external 'gdi32.dll' name 'RemoveFontResourceA';
+  function RemoveFontResourceA(_para1:LPCSTR):WINBOOL; external 'gdi32' name 'RemoveFontResourceA';
 
-  function CopyEnhMetaFileA(_para1:HENHMETAFILE; _para2:LPCSTR):HENHMETAFILE; external 'gdi32.dll' name 'CopyEnhMetaFileA';
+  function CopyEnhMetaFileA(_para1:HENHMETAFILE; _para2:LPCSTR):HENHMETAFILE; external 'gdi32' name 'CopyEnhMetaFileA';
 
-  function CreateEnhMetaFileA(_para1:HDC; _para2:LPCSTR; var _para3:RECT; _para4:LPCSTR):HDC; external 'gdi32.dll' name 'CreateEnhMetaFileA';
+  function CreateEnhMetaFileA(_para1:HDC; _para2:LPCSTR; var _para3:RECT; _para4:LPCSTR):HDC; external 'gdi32' name 'CreateEnhMetaFileA';
 
-  function GetEnhMetaFileA(_para1:LPCSTR):HENHMETAFILE; external 'gdi32.dll' name 'GetEnhMetaFileA';
+  function GetEnhMetaFileA(_para1:LPCSTR):HENHMETAFILE; external 'gdi32' name 'GetEnhMetaFileA';
 
-  function GetEnhMetaFileDescriptionA(_para1:HENHMETAFILE; _para2:UINT; _para3:LPSTR):UINT; external 'gdi32.dll' name 'GetEnhMetaFileDescriptionA';
+  function GetEnhMetaFileDescriptionA(_para1:HENHMETAFILE; _para2:UINT; _para3:LPSTR):UINT; external 'gdi32' name 'GetEnhMetaFileDescriptionA';
 
-  function GetTextMetricsA(_para1:HDC; _para2:LPTEXTMETRIC):WINBOOL; external 'gdi32.dll' name 'GetTextMetricsA';
+  function GetTextMetricsA(_para1:HDC; _para2:LPTEXTMETRIC):WINBOOL; external 'gdi32' name 'GetTextMetricsA';
 
-  function StartDocA(_para1:HDC; var _para2:DOCINFO):longint; external 'gdi32.dll' name 'StartDocA';
+  function StartDocA(_para1:HDC; var _para2:DOCINFO):longint; external 'gdi32' name 'StartDocA';
 
-  function GetObjectA(_para1:HGDIOBJ; _para2:longint; _para3:LPVOID):longint; external 'gdi32.dll' name 'GetObjectA';
+  function GetObjectA(_para1:HGDIOBJ; _para2:longint; _para3:LPVOID):longint; external 'gdi32' name 'GetObjectA';
 
-  function TextOutA(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCSTR; _para5:longint):WINBOOL; external 'gdi32.dll' name 'TextOutA';
+  function TextOutA(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCSTR; _para5:longint):WINBOOL; external 'gdi32' name 'TextOutA';
 
   function ExtTextOutA(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; var _para5:RECT; 
-             _para6:LPCSTR; _para7:UINT; var _para8:INT):WINBOOL; external 'gdi32.dll' name 'ExtTextOutA';
+             _para6:LPCSTR; _para7:UINT; var _para8:INT):WINBOOL; external 'gdi32' name 'ExtTextOutA';
 
-  function PolyTextOutA(_para1:HDC; var _para2:POLYTEXT; _para3:longint):WINBOOL; external 'gdi32.dll' name 'PolyTextOutA';
+  function PolyTextOutA(_para1:HDC; var _para2:POLYTEXT; _para3:longint):WINBOOL; external 'gdi32' name 'PolyTextOutA';
 
-  function GetTextFaceA(_para1:HDC; _para2:longint; _para3:LPSTR):longint; external 'gdi32.dll' name 'GetTextFaceA';
+  function GetTextFaceA(_para1:HDC; _para2:longint; _para3:LPSTR):longint; external 'gdi32' name 'GetTextFaceA';
 
-  function GetKerningPairsA(_para1:HDC; _para2:DWORD; _para3:LPKERNINGPAIR):DWORD; external 'gdi32.dll' name 'GetKerningPairsA';
+  function GetKerningPairsA(_para1:HDC; _para2:DWORD; _para3:LPKERNINGPAIR):DWORD; external 'gdi32' name 'GetKerningPairsA';
 
-  function CreateColorSpaceA(_para1:LPLOGCOLORSPACE):HCOLORSPACE; external 'gdi32.dll' name 'CreateColorSpaceA';
+  function CreateColorSpaceA(_para1:LPLOGCOLORSPACE):HCOLORSPACE; external 'gdi32' name 'CreateColorSpaceA';
 
-  function GetLogColorSpaceA(_para1:HCOLORSPACE; _para2:LPLOGCOLORSPACE; _para3:DWORD):WINBOOL; external 'gdi32.dll' name 'GetLogColorSpaceA';
+  function GetLogColorSpaceA(_para1:HCOLORSPACE; _para2:LPLOGCOLORSPACE; _para3:DWORD):WINBOOL; external 'gdi32' name 'GetLogColorSpaceA';
 
-  function GetICMProfileA(_para1:HDC; _para2:DWORD; _para3:LPSTR):WINBOOL; external 'gdi32.dll' name 'GetICMProfileA';
+  function GetICMProfileA(_para1:HDC; _para2:DWORD; _para3:LPSTR):WINBOOL; external 'gdi32' name 'GetICMProfileA';
 
-  function SetICMProfileA(_para1:HDC; _para2:LPSTR):WINBOOL; external 'gdi32.dll' name 'SetICMProfileA';
+  function SetICMProfileA(_para1:HDC; _para2:LPSTR):WINBOOL; external 'gdi32' name 'SetICMProfileA';
 
-  function UpdateICMRegKeyA(_para1:DWORD; _para2:DWORD; _para3:LPSTR; _para4:UINT):WINBOOL; external 'gdi32.dll' name 'UpdateICMRegKeyA';
+  function UpdateICMRegKeyA(_para1:DWORD; _para2:DWORD; _para3:LPSTR; _para4:UINT):WINBOOL; external 'gdi32' name 'UpdateICMRegKeyA';
 
-  function EnumICMProfilesA(_para1:HDC; _para2:ICMENUMPROC; _para3:LPARAM):longint; external 'gdi32.dll' name 'EnumICMProfilesA';
+  function EnumICMProfilesA(_para1:HDC; _para2:ICMENUMPROC; _para3:LPARAM):longint; external 'gdi32' name 'EnumICMProfilesA';
 
-  function PropertySheetA(lppsph:LPCPROPSHEETHEADER):longint; external 'comctl32.dll' name 'PropertySheetA';
+  function PropertySheetA(lppsph:LPCPROPSHEETHEADER):longint; external 'comctl32' name 'PropertySheetA';
 
   function ImageList_LoadImageA(hi:HINSTANCE; lpbmp:LPCSTR; cx:longint; cGrow:longint; crMask:COLORREF; 
-             uType:UINT; uFlags:UINT):HIMAGELIST; external 'comctl32.dll' name 'ImageList_LoadImageA';
+             uType:UINT; uFlags:UINT):HIMAGELIST; external 'comctl32' name 'ImageList_LoadImageA';
 
-  function CreateStatusWindowA(style:LONG; lpszText:LPCSTR; hwndParent:HWND; wID:UINT):HWND; external 'comctl32.dll' name 'CreateStatusWindowA';
+  function CreateStatusWindowA(style:LONG; lpszText:LPCSTR; hwndParent:HWND; wID:UINT):HWND; external 'comctl32' name 'CreateStatusWindowA';
 
-  procedure DrawStatusTextA(hDC:HDC; lprc:LPRECT; pszText:LPCSTR; uFlags:UINT); external 'comctl32.dll' name 'DrawStatusTextA';
+  procedure DrawStatusTextA(hDC:HDC; lprc:LPRECT; pszText:LPCSTR; uFlags:UINT); external 'comctl32' name 'DrawStatusTextA';
 
-  function GetOpenFileNameA(_para1:LPOPENFILENAME):WINBOOL; external 'comdlg32.dll' name 'GetOpenFileNameA';
+  function GetOpenFileNameA(_para1:LPOPENFILENAME):WINBOOL; external 'comdlg32' name 'GetOpenFileNameA';
 
-  function GetSaveFileNameA(_para1:LPOPENFILENAME):WINBOOL; external 'comdlg32.dll' name 'GetSaveFileNameA';
+  function GetSaveFileNameA(_para1:LPOPENFILENAME):WINBOOL; external 'comdlg32' name 'GetSaveFileNameA';
 
-  function GetFileTitleA(_para1:LPCSTR; _para2:LPSTR; _para3:WORD):integer; external 'comdlg32.dll' name 'GetFileTitleA';
+  function GetFileTitleA(_para1:LPCSTR; _para2:LPSTR; _para3:WORD):integer; external 'comdlg32' name 'GetFileTitleA';
 
-  function ChooseColorA(_para1:LPCHOOSECOLOR):WINBOOL; external 'comdlg32.dll' name 'ChooseColorA';
+  function ChooseColorA(_para1:LPCHOOSECOLOR):WINBOOL; external 'comdlg32' name 'ChooseColorA';
 
-  function FindTextA(_para1:LPFINDREPLACE):HWND; external 'comdlg32.dll' name 'FindTextA';
+  function FindTextA(_para1:LPFINDREPLACE):HWND; external 'comdlg32' name 'FindTextA';
 
-  function ReplaceTextA(_para1:LPFINDREPLACE):HWND; external 'comdlg32.dll' name 'ReplaceTextA';
+  function ReplaceTextA(_para1:LPFINDREPLACE):HWND; external 'comdlg32' name 'ReplaceTextA';
 
-  function ChooseFontA(_para1:LPCHOOSEFONT):WINBOOL; external 'comdlg32.dll' name 'ChooseFontA';
+  function ChooseFontA(_para1:LPCHOOSEFONT):WINBOOL; external 'comdlg32' name 'ChooseFontA';
 
-  function PrintDlgA(_para1:LPPRINTDLG):WINBOOL; external 'comdlg32.dll' name 'PrintDlgA';
+  function PrintDlgA(_para1:LPPRINTDLG):WINBOOL; external 'comdlg32' name 'PrintDlgA';
 
-  function PageSetupDlgA(_para1:LPPAGESETUPDLG):WINBOOL; external 'comdlg32.dll' name 'PageSetupDlgA';
+  function PageSetupDlgA(_para1:LPPAGESETUPDLG):WINBOOL; external 'comdlg32' name 'PageSetupDlgA';
 
   function CreateProcessA(lpApplicationName:LPCSTR; lpCommandLine:LPSTR; lpProcessAttributes:LPSECURITY_ATTRIBUTES; lpThreadAttributes:LPSECURITY_ATTRIBUTES; bInheritHandles:WINBOOL; 
-             dwCreationFlags:DWORD; lpEnvironment:LPVOID; lpCurrentDirectory:LPCSTR; lpStartupInfo:LPSTARTUPINFO; lpProcessInformation:LPPROCESS_INFORMATION):WINBOOL; external 'kernel32.dll' name 'CreateProcessA';
+             dwCreationFlags:DWORD; lpEnvironment:LPVOID; lpCurrentDirectory:LPCSTR; lpStartupInfo:LPSTARTUPINFO; lpProcessInformation:LPPROCESS_INFORMATION):WINBOOL; external 'kernel32' name 'CreateProcessA';
 
-  procedure GetStartupInfoA(lpStartupInfo:LPSTARTUPINFO); external 'kernel32.dll' name 'GetStartupInfoA';
+  procedure GetStartupInfoA(lpStartupInfo:LPSTARTUPINFO); external 'kernel32' name 'GetStartupInfoA';
 
-  function FindFirstFileA(lpFileName:LPCSTR; lpFindFileData:LPWIN32_FIND_DATA):HANDLE; external 'kernel32.dll' name 'FindFirstFileA';
+  function FindFirstFileA(lpFileName:LPCSTR; lpFindFileData:LPWIN32_FIND_DATA):HANDLE; external 'kernel32' name 'FindFirstFileA';
 
-  function FindNextFileA(hFindFile:HANDLE; lpFindFileData:LPWIN32_FIND_DATA):WINBOOL; external 'kernel32.dll' name 'FindNextFileA';
+  function FindNextFileA(hFindFile:HANDLE; lpFindFileData:LPWIN32_FIND_DATA):WINBOOL; external 'kernel32' name 'FindNextFileA';
 
-  function GetVersionExA(lpVersionInformation:LPOSVERSIONINFO):WINBOOL; external 'kernel32.dll' name 'GetVersionExA';
+  function GetVersionExA(lpVersionInformation:LPOSVERSIONINFO):WINBOOL; external 'kernel32' name 'GetVersionExA';
 
   { was #define dname(params) def_expr }
   function CreateWindowA(lpClassName:LPCSTR; lpWindowName:LPCSTR; dwStyle:DWORD; X:longint;
@@ -1652,238 +1652,238 @@ unit ascfun;
        DialogBoxIndirectA:=DialogBoxIndirectParamA(hInstance,hDialogTemplate,hWndParent,lpDialogFunc,0);
     end;
 
-  function CreateDCA(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; var _para4:DEVMODE):HDC; external 'gdi32.dll' name 'CreateDCA';
+  function CreateDCA(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; var _para4:DEVMODE):HDC; external 'gdi32' name 'CreateDCA';
 
   function VerInstallFileA(uFlags:DWORD; szSrcFileName:LPSTR; szDestFileName:LPSTR; szSrcDir:LPSTR; szDestDir:LPSTR; 
-             szCurDir:LPSTR; szTmpFile:LPSTR; lpuTmpFileLen:PUINT):DWORD; external 'version.dll' name 'VerInstallFileA';
+             szCurDir:LPSTR; szTmpFile:LPSTR; lpuTmpFileLen:PUINT):DWORD; external 'version' name 'VerInstallFileA';
 
-  function GetFileVersionInfoSizeA(lptstrFilename:LPSTR; lpdwHandle:LPDWORD):DWORD; external 'version.dll' name 'GetFileVersionInfoSizeA';
+  function GetFileVersionInfoSizeA(lptstrFilename:LPSTR; lpdwHandle:LPDWORD):DWORD; external 'version' name 'GetFileVersionInfoSizeA';
 
-  function GetFileVersionInfoA(lptstrFilename:LPSTR; dwHandle:DWORD; dwLen:DWORD; lpData:LPVOID):WINBOOL; external 'version.dll' name 'GetFileVersionInfoA';
+  function GetFileVersionInfoA(lptstrFilename:LPSTR; dwHandle:DWORD; dwLen:DWORD; lpData:LPVOID):WINBOOL; external 'version' name 'GetFileVersionInfoA';
 
-  function VerLanguageNameA(wLang:DWORD; szLang:LPSTR; nSize:DWORD):DWORD; external 'kernel32.dll' name 'VerLanguageNameA';
+  function VerLanguageNameA(wLang:DWORD; szLang:LPSTR; nSize:DWORD):DWORD; external 'kernel32' name 'VerLanguageNameA';
 
-  function VerQueryValueA(pBlock:LPVOID; lpSubBlock:LPSTR; var lplpBuffer:LPVOID; puLen:PUINT):WINBOOL; external 'version.dll' name 'VerQueryValueA';
+  function VerQueryValueA(pBlock:LPVOID; lpSubBlock:LPSTR; var lplpBuffer:LPVOID; puLen:PUINT):WINBOOL; external 'version' name 'VerQueryValueA';
 
   function VerFindFileA(uFlags:DWORD; szFileName:LPSTR; szWinDir:LPSTR; szAppDir:LPSTR; szCurDir:LPSTR; 
-             lpuCurDirLen:PUINT; szDestDir:LPSTR; lpuDestDirLen:PUINT):DWORD; external 'version.dll' name 'VerFindFileA';
+             lpuCurDirLen:PUINT; szDestDir:LPSTR; lpuDestDirLen:PUINT):DWORD; external 'version' name 'VerFindFileA';
 
-  function RegConnectRegistryA(lpMachineName:LPSTR; hKey:HKEY; phkResult:PHKEY):LONG; external 'advapi32.dll' name 'RegConnectRegistryA';
+  function RegConnectRegistryA(lpMachineName:LPSTR; hKey:HKEY; phkResult:PHKEY):LONG; external 'advapi32' name 'RegConnectRegistryA';
 
-  function RegCreateKeyA(hKey:HKEY; lpSubKey:LPCSTR; phkResult:PHKEY):LONG; external 'advapi32.dll' name 'RegCreateKeyA';
+  function RegCreateKeyA(hKey:HKEY; lpSubKey:LPCSTR; phkResult:PHKEY):LONG; external 'advapi32' name 'RegCreateKeyA';
 
   function RegCreateKeyExA(hKey:HKEY; lpSubKey:LPCSTR; Reserved:DWORD; lpClass:LPSTR; dwOptions:DWORD; 
-             samDesired:REGSAM; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; phkResult:PHKEY; lpdwDisposition:LPDWORD):LONG; external 'advapi32.dll' name 'RegCreateKeyExA';
+             samDesired:REGSAM; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; phkResult:PHKEY; lpdwDisposition:LPDWORD):LONG; external 'advapi32' name 'RegCreateKeyExA';
 
-  function RegDeleteKeyA(hKey:HKEY; lpSubKey:LPCSTR):LONG; external 'advapi32.dll' name 'RegDeleteKeyA';
+  function RegDeleteKeyA(hKey:HKEY; lpSubKey:LPCSTR):LONG; external 'advapi32' name 'RegDeleteKeyA';
 
-  function RegDeleteValueA(hKey:HKEY; lpValueName:LPCSTR):LONG; external 'advapi32.dll' name 'RegDeleteValueA';
+  function RegDeleteValueA(hKey:HKEY; lpValueName:LPCSTR):LONG; external 'advapi32' name 'RegDeleteValueA';
 
-  function RegEnumKeyA(hKey:HKEY; dwIndex:DWORD; lpName:LPSTR; cbName:DWORD):LONG; external 'advapi32.dll' name 'RegEnumKeyA';
+  function RegEnumKeyA(hKey:HKEY; dwIndex:DWORD; lpName:LPSTR; cbName:DWORD):LONG; external 'advapi32' name 'RegEnumKeyA';
 
   function RegEnumKeyExA(hKey:HKEY; dwIndex:DWORD; lpName:LPSTR; lpcbName:LPDWORD; lpReserved:LPDWORD; 
-             lpClass:LPSTR; lpcbClass:LPDWORD; lpftLastWriteTime:PFILETIME):LONG; external 'advapi32.dll' name 'RegEnumKeyExA';
+             lpClass:LPSTR; lpcbClass:LPDWORD; lpftLastWriteTime:PFILETIME):LONG; external 'advapi32' name 'RegEnumKeyExA';
 
   function RegEnumValueA(hKey:HKEY; dwIndex:DWORD; lpValueName:LPSTR; lpcbValueName:LPDWORD; lpReserved:LPDWORD; 
-             lpType:LPDWORD; lpData:LPBYTE; lpcbData:LPDWORD):LONG; external 'advapi32.dll' name 'RegEnumValueA';
+             lpType:LPDWORD; lpData:LPBYTE; lpcbData:LPDWORD):LONG; external 'advapi32' name 'RegEnumValueA';
 
-  function RegLoadKeyA(hKey:HKEY; lpSubKey:LPCSTR; lpFile:LPCSTR):LONG; external 'advapi32.dll' name 'RegLoadKeyA';
+  function RegLoadKeyA(hKey:HKEY; lpSubKey:LPCSTR; lpFile:LPCSTR):LONG; external 'advapi32' name 'RegLoadKeyA';
 
-  function RegOpenKeyA(hKey:HKEY; lpSubKey:LPCSTR; phkResult:PHKEY):LONG; external 'advapi32.dll' name 'RegOpenKeyA';
+  function RegOpenKeyA(hKey:HKEY; lpSubKey:LPCSTR; phkResult:PHKEY):LONG; external 'advapi32' name 'RegOpenKeyA';
 
-  function RegOpenKeyExA(hKey:HKEY; lpSubKey:LPCSTR; ulOptions:DWORD; samDesired:REGSAM; phkResult:PHKEY):LONG; external 'advapi32.dll' name 'RegOpenKeyExA';
+  function RegOpenKeyExA(hKey:HKEY; lpSubKey:LPCSTR; ulOptions:DWORD; samDesired:REGSAM; phkResult:PHKEY):LONG; external 'advapi32' name 'RegOpenKeyExA';
 
   function RegQueryInfoKeyA(hKey:HKEY; lpClass:LPSTR; lpcbClass:LPDWORD; lpReserved:LPDWORD; lpcSubKeys:LPDWORD; 
              lpcbMaxSubKeyLen:LPDWORD; lpcbMaxClassLen:LPDWORD; lpcValues:LPDWORD; lpcbMaxValueNameLen:LPDWORD; lpcbMaxValueLen:LPDWORD; 
-             lpcbSecurityDescriptor:LPDWORD; lpftLastWriteTime:PFILETIME):LONG; external 'advapi32.dll' name 'RegQueryInfoKeyA';
+             lpcbSecurityDescriptor:LPDWORD; lpftLastWriteTime:PFILETIME):LONG; external 'advapi32' name 'RegQueryInfoKeyA';
 
-  function RegQueryValueA(hKey:HKEY; lpSubKey:LPCSTR; lpValue:LPSTR; lpcbValue:PLONG):LONG; external 'advapi32.dll' name 'RegQueryValueA';
+  function RegQueryValueA(hKey:HKEY; lpSubKey:LPCSTR; lpValue:LPSTR; lpcbValue:PLONG):LONG; external 'advapi32' name 'RegQueryValueA';
 
-  function RegQueryMultipleValuesA(hKey:HKEY; val_list:PVALENT; num_vals:DWORD; lpValueBuf:LPSTR; ldwTotsize:LPDWORD):LONG; external 'advapi32.dll' name 'RegQueryMultipleValuesA';
+  function RegQueryMultipleValuesA(hKey:HKEY; val_list:PVALENT; num_vals:DWORD; lpValueBuf:LPSTR; ldwTotsize:LPDWORD):LONG; external 'advapi32' name 'RegQueryMultipleValuesA';
 
   function RegQueryValueExA(hKey:HKEY; lpValueName:LPCSTR; lpReserved:LPDWORD; lpType:LPDWORD; lpData:LPBYTE; 
-             lpcbData:LPDWORD):LONG; external 'advapi32.dll' name 'RegQueryValueExA';
+             lpcbData:LPDWORD):LONG; external 'advapi32' name 'RegQueryValueExA';
 
-  function RegReplaceKeyA(hKey:HKEY; lpSubKey:LPCSTR; lpNewFile:LPCSTR; lpOldFile:LPCSTR):LONG; external 'advapi32.dll' name 'RegReplaceKeyA';
+  function RegReplaceKeyA(hKey:HKEY; lpSubKey:LPCSTR; lpNewFile:LPCSTR; lpOldFile:LPCSTR):LONG; external 'advapi32' name 'RegReplaceKeyA';
 
-  function RegRestoreKeyA(hKey:HKEY; lpFile:LPCSTR; dwFlags:DWORD):LONG; external 'advapi32.dll' name 'RegRestoreKeyA';
+  function RegRestoreKeyA(hKey:HKEY; lpFile:LPCSTR; dwFlags:DWORD):LONG; external 'advapi32' name 'RegRestoreKeyA';
 
-  function RegSaveKeyA(hKey:HKEY; lpFile:LPCSTR; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):LONG; external 'advapi32.dll' name 'RegSaveKeyA';
+  function RegSaveKeyA(hKey:HKEY; lpFile:LPCSTR; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):LONG; external 'advapi32' name 'RegSaveKeyA';
 
-  function RegSetValueA(hKey:HKEY; lpSubKey:LPCSTR; dwType:DWORD; lpData:LPCSTR; cbData:DWORD):LONG; external 'advapi32.dll' name 'RegSetValueA';
+  function RegSetValueA(hKey:HKEY; lpSubKey:LPCSTR; dwType:DWORD; lpData:LPCSTR; cbData:DWORD):LONG; external 'advapi32' name 'RegSetValueA';
 
   function RegSetValueExA(hKey:HKEY; lpValueName:LPCSTR; Reserved:DWORD; dwType:DWORD; var lpData:BYTE; 
-             cbData:DWORD):LONG; external 'advapi32.dll' name 'RegSetValueExA';
+             cbData:DWORD):LONG; external 'advapi32' name 'RegSetValueExA';
 
-  function RegUnLoadKeyA(hKey:HKEY; lpSubKey:LPCSTR):LONG; external 'advapi32.dll' name 'RegUnLoadKeyA';
+  function RegUnLoadKeyA(hKey:HKEY; lpSubKey:LPCSTR):LONG; external 'advapi32' name 'RegUnLoadKeyA';
 
-  function InitiateSystemShutdownA(lpMachineName:LPSTR; lpMessage:LPSTR; dwTimeout:DWORD; bForceAppsClosed:WINBOOL; bRebootAfterShutdown:WINBOOL):WINBOOL; external 'advapi32.dll' name 'InitiateSystemShutdownA';
+  function InitiateSystemShutdownA(lpMachineName:LPSTR; lpMessage:LPSTR; dwTimeout:DWORD; bForceAppsClosed:WINBOOL; bRebootAfterShutdown:WINBOOL):WINBOOL; external 'advapi32' name 'InitiateSystemShutdownA';
 
-  function AbortSystemShutdownA(lpMachineName:LPSTR):WINBOOL; external 'advapi32.dll' name 'AbortSystemShutdownA';
+  function AbortSystemShutdownA(lpMachineName:LPSTR):WINBOOL; external 'advapi32' name 'AbortSystemShutdownA';
 
   function CompareStringA(Locale:LCID; dwCmpFlags:DWORD; lpString1:LPCSTR; cchCount1:longint; lpString2:LPCSTR; 
-             cchCount2:longint):longint; external 'kernel32.dll' name 'CompareStringA';
+             cchCount2:longint):longint; external 'kernel32' name 'CompareStringA';
 
   function LCMapStringA(Locale:LCID; dwMapFlags:DWORD; lpSrcStr:LPCSTR; cchSrc:longint; lpDestStr:LPSTR; 
-             cchDest:longint):longint; external 'kernel32.dll' name 'LCMapStringA';
+             cchDest:longint):longint; external 'kernel32' name 'LCMapStringA';
 
-  function GetLocaleInfoA(Locale:LCID; LCType:LCTYPE; lpLCData:LPSTR; cchData:longint):longint; external 'kernel32.dll' name 'GetLocaleInfoA';
+  function GetLocaleInfoA(Locale:LCID; LCType:LCTYPE; lpLCData:LPSTR; cchData:longint):longint; external 'kernel32' name 'GetLocaleInfoA';
 
-  function SetLocaleInfoA(Locale:LCID; LCType:LCTYPE; lpLCData:LPCSTR):WINBOOL; external 'kernel32.dll' name 'SetLocaleInfoA';
+  function SetLocaleInfoA(Locale:LCID; LCType:LCTYPE; lpLCData:LPCSTR):WINBOOL; external 'kernel32' name 'SetLocaleInfoA';
 
   function GetTimeFormatA(Locale:LCID; dwFlags:DWORD; var lpTime:SYSTEMTIME; lpFormat:LPCSTR; lpTimeStr:LPSTR; 
-             cchTime:longint):longint; external 'kernel32.dll' name 'GetTimeFormatA';
+             cchTime:longint):longint; external 'kernel32' name 'GetTimeFormatA';
 
   function GetDateFormatA(Locale:LCID; dwFlags:DWORD; var lpDate:SYSTEMTIME; lpFormat:LPCSTR; lpDateStr:LPSTR; 
-             cchDate:longint):longint; external 'kernel32.dll' name 'GetDateFormatA';
+             cchDate:longint):longint; external 'kernel32' name 'GetDateFormatA';
 
   function GetNumberFormatA(Locale:LCID; dwFlags:DWORD; lpValue:LPCSTR; var lpFormat:NUMBERFMT; lpNumberStr:LPSTR; 
-             cchNumber:longint):longint; external 'kernel32.dll' name 'GetNumberFormatA';
+             cchNumber:longint):longint; external 'kernel32' name 'GetNumberFormatA';
 
   function GetCurrencyFormatA(Locale:LCID; dwFlags:DWORD; lpValue:LPCSTR; var lpFormat:CURRENCYFMT; lpCurrencyStr:LPSTR; 
-             cchCurrency:longint):longint; external 'kernel32.dll' name 'GetCurrencyFormatA';
+             cchCurrency:longint):longint; external 'kernel32' name 'GetCurrencyFormatA';
 
-  function EnumCalendarInfoA(lpCalInfoEnumProc:CALINFO_ENUMPROC; Locale:LCID; Calendar:CALID; CalType:CALTYPE):WINBOOL; external 'kernel32.dll' name 'EnumCalendarInfoA';
+  function EnumCalendarInfoA(lpCalInfoEnumProc:CALINFO_ENUMPROC; Locale:LCID; Calendar:CALID; CalType:CALTYPE):WINBOOL; external 'kernel32' name 'EnumCalendarInfoA';
 
-  function EnumTimeFormatsA(lpTimeFmtEnumProc:TIMEFMT_ENUMPROC; Locale:LCID; dwFlags:DWORD):WINBOOL; external 'kernel32.dll' name 'EnumTimeFormatsA';
+  function EnumTimeFormatsA(lpTimeFmtEnumProc:TIMEFMT_ENUMPROC; Locale:LCID; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'EnumTimeFormatsA';
 
-  function EnumDateFormatsA(lpDateFmtEnumProc:DATEFMT_ENUMPROC; Locale:LCID; dwFlags:DWORD):WINBOOL; external 'kernel32.dll' name 'EnumDateFormatsA';
+  function EnumDateFormatsA(lpDateFmtEnumProc:DATEFMT_ENUMPROC; Locale:LCID; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'EnumDateFormatsA';
 
-  function GetStringTypeExA(Locale:LCID; dwInfoType:DWORD; lpSrcStr:LPCSTR; cchSrc:longint; lpCharType:LPWORD):WINBOOL; external 'kernel32.dll' name 'GetStringTypeExA';
+  function GetStringTypeExA(Locale:LCID; dwInfoType:DWORD; lpSrcStr:LPCSTR; cchSrc:longint; lpCharType:LPWORD):WINBOOL; external 'kernel32' name 'GetStringTypeExA';
 
-  function GetStringTypeA(Locale:LCID; dwInfoType:DWORD; lpSrcStr:LPCSTR; cchSrc:longint; lpCharType:LPWORD):WINBOOL; external 'kernel32.dll' name 'GetStringTypeA';
+  function GetStringTypeA(Locale:LCID; dwInfoType:DWORD; lpSrcStr:LPCSTR; cchSrc:longint; lpCharType:LPWORD):WINBOOL; external 'kernel32' name 'GetStringTypeA';
 
-  function FoldStringA(dwMapFlags:DWORD; lpSrcStr:LPCSTR; cchSrc:longint; lpDestStr:LPSTR; cchDest:longint):longint; external 'kernel32.dll' name 'FoldStringA';
+  function FoldStringA(dwMapFlags:DWORD; lpSrcStr:LPCSTR; cchSrc:longint; lpDestStr:LPSTR; cchDest:longint):longint; external 'kernel32' name 'FoldStringA';
 
-  function EnumSystemLocalesA(lpLocaleEnumProc:LOCALE_ENUMPROC; dwFlags:DWORD):WINBOOL; external 'kernel32.dll' name 'EnumSystemLocalesA';
+  function EnumSystemLocalesA(lpLocaleEnumProc:LOCALE_ENUMPROC; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'EnumSystemLocalesA';
 
-  function EnumSystemCodePagesA(lpCodePageEnumProc:CODEPAGE_ENUMPROC; dwFlags:DWORD):WINBOOL; external 'kernel32.dll' name 'EnumSystemCodePagesA';
+  function EnumSystemCodePagesA(lpCodePageEnumProc:CODEPAGE_ENUMPROC; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'EnumSystemCodePagesA';
 
-  function PeekConsoleInputA(hConsoleInput:HANDLE; lpBuffer:PINPUT_RECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):WINBOOL; external 'kernel32.dll' name 'PeekConsoleInputA';
+  function PeekConsoleInputA(hConsoleInput:HANDLE; lpBuffer:PINPUT_RECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):WINBOOL; external 'kernel32' name 'PeekConsoleInputA';
 
-  function ReadConsoleInputA(hConsoleInput:HANDLE; lpBuffer:PINPUT_RECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):WINBOOL; external 'kernel32.dll' name 'ReadConsoleInputA';
+  function ReadConsoleInputA(hConsoleInput:HANDLE; lpBuffer:PINPUT_RECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):WINBOOL; external 'kernel32' name 'ReadConsoleInputA';
 
-  function WriteConsoleInputA(hConsoleInput:HANDLE; var lpBuffer:INPUT_RECORD; nLength:DWORD; lpNumberOfEventsWritten:LPDWORD):WINBOOL; external 'kernel32.dll' name 'WriteConsoleInputA';
+  function WriteConsoleInputA(hConsoleInput:HANDLE; var lpBuffer:INPUT_RECORD; nLength:DWORD; lpNumberOfEventsWritten:LPDWORD):WINBOOL; external 'kernel32' name 'WriteConsoleInputA';
 
-  function ReadConsoleOutputA(hConsoleOutput:HANDLE; lpBuffer:PCHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpReadRegion:PSMALL_RECT):WINBOOL; external 'kernel32.dll' name 'ReadConsoleOutputA';
+  function ReadConsoleOutputA(hConsoleOutput:HANDLE; lpBuffer:PCHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpReadRegion:PSMALL_RECT):WINBOOL; external 'kernel32' name 'ReadConsoleOutputA';
 
-  function WriteConsoleOutputA(hConsoleOutput:HANDLE; var lpBuffer:CHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpWriteRegion:PSMALL_RECT):WINBOOL; external 'kernel32.dll' name 'WriteConsoleOutputA';
+  function WriteConsoleOutputA(hConsoleOutput:HANDLE; var lpBuffer:CHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpWriteRegion:PSMALL_RECT):WINBOOL; external 'kernel32' name 'WriteConsoleOutputA';
 
-  function ReadConsoleOutputCharacterA(hConsoleOutput:HANDLE; lpCharacter:LPSTR; nLength:DWORD; dwReadCoord:COORD; lpNumberOfCharsRead:LPDWORD):WINBOOL; external 'kernel32.dll' name 'ReadConsoleOutputCharacterA';
+  function ReadConsoleOutputCharacterA(hConsoleOutput:HANDLE; lpCharacter:LPSTR; nLength:DWORD; dwReadCoord:COORD; lpNumberOfCharsRead:LPDWORD):WINBOOL; external 'kernel32' name 'ReadConsoleOutputCharacterA';
 
-  function WriteConsoleOutputCharacterA(hConsoleOutput:HANDLE; lpCharacter:LPCSTR; nLength:DWORD; dwWriteCoord:COORD; lpNumberOfCharsWritten:LPDWORD):WINBOOL; external 'kernel32.dll' name 'WriteConsoleOutputCharacterA';
+  function WriteConsoleOutputCharacterA(hConsoleOutput:HANDLE; lpCharacter:LPCSTR; nLength:DWORD; dwWriteCoord:COORD; lpNumberOfCharsWritten:LPDWORD):WINBOOL; external 'kernel32' name 'WriteConsoleOutputCharacterA';
 
-  function FillConsoleOutputCharacterA(hConsoleOutput:HANDLE; cCharacter:CHAR; nLength:DWORD; dwWriteCoord:COORD; lpNumberOfCharsWritten:LPDWORD):WINBOOL; external 'kernel32.dll' name 'FillConsoleOutputCharacterA';
+  function FillConsoleOutputCharacterA(hConsoleOutput:HANDLE; cCharacter:CHAR; nLength:DWORD; dwWriteCoord:COORD; lpNumberOfCharsWritten:LPDWORD):WINBOOL; external 'kernel32' name 'FillConsoleOutputCharacterA';
 
-  function ScrollConsoleScreenBufferA(hConsoleOutput:HANDLE; var lpScrollRectangle:SMALL_RECT; var lpClipRectangle:SMALL_RECT; dwDestinationOrigin:COORD; var lpFill:CHAR_INFO):WINBOOL; external 'kernel32.dll' name 'ScrollConsoleScreenBufferA';
+  function ScrollConsoleScreenBufferA(hConsoleOutput:HANDLE; var lpScrollRectangle:SMALL_RECT; var lpClipRectangle:SMALL_RECT; dwDestinationOrigin:COORD; var lpFill:CHAR_INFO):WINBOOL; external 'kernel32' name 'ScrollConsoleScreenBufferA';
 
-  function GetConsoleTitleA(lpConsoleTitle:LPSTR; nSize:DWORD):DWORD; external 'kernel32.dll' name 'GetConsoleTitleA';
+  function GetConsoleTitleA(lpConsoleTitle:LPSTR; nSize:DWORD):DWORD; external 'kernel32' name 'GetConsoleTitleA';
 
-  function SetConsoleTitleA(lpConsoleTitle:LPCSTR):WINBOOL; external 'kernel32.dll' name 'SetConsoleTitleA';
+  function SetConsoleTitleA(lpConsoleTitle:LPCSTR):WINBOOL; external 'kernel32' name 'SetConsoleTitleA';
 
-  function ReadConsoleA(hConsoleInput:HANDLE; lpBuffer:LPVOID; nNumberOfCharsToRead:DWORD; lpNumberOfCharsRead:LPDWORD; lpReserved:LPVOID):WINBOOL; external 'kernel32.dll' name 'ReadConsoleA';
+  function ReadConsoleA(hConsoleInput:HANDLE; lpBuffer:LPVOID; nNumberOfCharsToRead:DWORD; lpNumberOfCharsRead:LPDWORD; lpReserved:LPVOID):WINBOOL; external 'kernel32' name 'ReadConsoleA';
 
-  function WriteConsoleA(hConsoleOutput:HANDLE;lpBuffer:pointer; nNumberOfCharsToWrite:DWORD; lpNumberOfCharsWritten:LPDWORD; lpReserved:LPVOID):WINBOOL; external 'kernel32.dll' name 'WriteConsoleA';
+  function WriteConsoleA(hConsoleOutput:HANDLE;lpBuffer:pointer; nNumberOfCharsToWrite:DWORD; lpNumberOfCharsWritten:LPDWORD; lpReserved:LPVOID):WINBOOL; external 'kernel32' name 'WriteConsoleA';
 
-  function WNetAddConnectionA(lpRemoteName:LPCSTR; lpPassword:LPCSTR; lpLocalName:LPCSTR):DWORD; external 'mpr.dll' name 'WNetAddConnectionA';
+  function WNetAddConnectionA(lpRemoteName:LPCSTR; lpPassword:LPCSTR; lpLocalName:LPCSTR):DWORD; external 'mpr' name 'WNetAddConnectionA';
 
-  function WNetAddConnection2A(lpNetResource:LPNETRESOURCE; lpPassword:LPCSTR; lpUserName:LPCSTR; dwFlags:DWORD):DWORD; external 'mpr.dll' name 'WNetAddConnection2A';
+  function WNetAddConnection2A(lpNetResource:LPNETRESOURCE; lpPassword:LPCSTR; lpUserName:LPCSTR; dwFlags:DWORD):DWORD; external 'mpr' name 'WNetAddConnection2A';
 
-  function WNetAddConnection3A(hwndOwner:HWND; lpNetResource:LPNETRESOURCE; lpPassword:LPCSTR; lpUserName:LPCSTR; dwFlags:DWORD):DWORD; external 'mpr.dll' name 'WNetAddConnection3A';
+  function WNetAddConnection3A(hwndOwner:HWND; lpNetResource:LPNETRESOURCE; lpPassword:LPCSTR; lpUserName:LPCSTR; dwFlags:DWORD):DWORD; external 'mpr' name 'WNetAddConnection3A';
 
-  function WNetCancelConnectionA(lpName:LPCSTR; fForce:WINBOOL):DWORD; external 'mpr.dll' name 'WNetCancelConnectionA';
+  function WNetCancelConnectionA(lpName:LPCSTR; fForce:WINBOOL):DWORD; external 'mpr' name 'WNetCancelConnectionA';
 
-  function WNetCancelConnection2A(lpName:LPCSTR; dwFlags:DWORD; fForce:WINBOOL):DWORD; external 'mpr.dll' name 'WNetCancelConnection2A';
+  function WNetCancelConnection2A(lpName:LPCSTR; dwFlags:DWORD; fForce:WINBOOL):DWORD; external 'mpr' name 'WNetCancelConnection2A';
 
-  function WNetGetConnectionA(lpLocalName:LPCSTR; lpRemoteName:LPSTR; lpnLength:LPDWORD):DWORD; external 'mpr.dll' name 'WNetGetConnectionA';
+  function WNetGetConnectionA(lpLocalName:LPCSTR; lpRemoteName:LPSTR; lpnLength:LPDWORD):DWORD; external 'mpr' name 'WNetGetConnectionA';
 
   function WNetUseConnectionA(hwndOwner:HWND; lpNetResource:LPNETRESOURCE; lpUserID:LPCSTR; lpPassword:LPCSTR; dwFlags:DWORD; 
-             lpAccessName:LPSTR; lpBufferSize:LPDWORD; lpResult:LPDWORD):DWORD; external 'mpr.dll' name 'WNetUseConnectionA';
+             lpAccessName:LPSTR; lpBufferSize:LPDWORD; lpResult:LPDWORD):DWORD; external 'mpr' name 'WNetUseConnectionA';
 
-  function WNetSetConnectionA(lpName:LPCSTR; dwProperties:DWORD; pvValues:LPVOID):DWORD; external 'mpr.dll' name 'WNetSetConnectionA';
+  function WNetSetConnectionA(lpName:LPCSTR; dwProperties:DWORD; pvValues:LPVOID):DWORD; external 'mpr' name 'WNetSetConnectionA';
 
-  function WNetConnectionDialog1A(lpConnDlgStruct:LPCONNECTDLGSTRUCT):DWORD; external 'mpr.dll' name 'WNetConnectionDialog1A';
+  function WNetConnectionDialog1A(lpConnDlgStruct:LPCONNECTDLGSTRUCT):DWORD; external 'mpr' name 'WNetConnectionDialog1A';
 
-  function WNetDisconnectDialog1A(lpConnDlgStruct:LPDISCDLGSTRUCT):DWORD; external 'mpr.dll' name 'WNetDisconnectDialog1A';
+  function WNetDisconnectDialog1A(lpConnDlgStruct:LPDISCDLGSTRUCT):DWORD; external 'mpr' name 'WNetDisconnectDialog1A';
 
-  function WNetOpenEnumA(dwScope:DWORD; dwType:DWORD; dwUsage:DWORD; lpNetResource:LPNETRESOURCE; lphEnum:LPHANDLE):DWORD; external 'mpr.dll' name 'WNetOpenEnumA';
+  function WNetOpenEnumA(dwScope:DWORD; dwType:DWORD; dwUsage:DWORD; lpNetResource:LPNETRESOURCE; lphEnum:LPHANDLE):DWORD; external 'mpr' name 'WNetOpenEnumA';
 
-  function WNetEnumResourceA(hEnum:HANDLE; lpcCount:LPDWORD; lpBuffer:LPVOID; lpBufferSize:LPDWORD):DWORD; external 'mpr.dll' name 'WNetEnumResourceA';
+  function WNetEnumResourceA(hEnum:HANDLE; lpcCount:LPDWORD; lpBuffer:LPVOID; lpBufferSize:LPDWORD):DWORD; external 'mpr' name 'WNetEnumResourceA';
 
-  function WNetGetUniversalNameA(lpLocalPath:LPCSTR; dwInfoLevel:DWORD; lpBuffer:LPVOID; lpBufferSize:LPDWORD):DWORD; external 'mpr.dll' name 'WNetGetUniversalNameA';
+  function WNetGetUniversalNameA(lpLocalPath:LPCSTR; dwInfoLevel:DWORD; lpBuffer:LPVOID; lpBufferSize:LPDWORD):DWORD; external 'mpr' name 'WNetGetUniversalNameA';
 
-  function WNetGetUserA(lpName:LPCSTR; lpUserName:LPSTR; lpnLength:LPDWORD):DWORD; external 'mpr.dll' name 'WNetGetUserA';
+  function WNetGetUserA(lpName:LPCSTR; lpUserName:LPSTR; lpnLength:LPDWORD):DWORD; external 'mpr' name 'WNetGetUserA';
 
-  function WNetGetProviderNameA(dwNetType:DWORD; lpProviderName:LPSTR; lpBufferSize:LPDWORD):DWORD; external 'mpr.dll' name 'WNetGetProviderNameA';
+  function WNetGetProviderNameA(dwNetType:DWORD; lpProviderName:LPSTR; lpBufferSize:LPDWORD):DWORD; external 'mpr' name 'WNetGetProviderNameA';
 
-  function WNetGetNetworkInformationA(lpProvider:LPCSTR; lpNetInfoStruct:LPNETINFOSTRUCT):DWORD; external 'mpr.dll' name 'WNetGetNetworkInformationA';
+  function WNetGetNetworkInformationA(lpProvider:LPCSTR; lpNetInfoStruct:LPNETINFOSTRUCT):DWORD; external 'mpr' name 'WNetGetNetworkInformationA';
 
-  function WNetGetLastErrorA(lpError:LPDWORD; lpErrorBuf:LPSTR; nErrorBufSize:DWORD; lpNameBuf:LPSTR; nNameBufSize:DWORD):DWORD; external 'mpr.dll' name 'WNetGetLastErrorA';
+  function WNetGetLastErrorA(lpError:LPDWORD; lpErrorBuf:LPSTR; nErrorBufSize:DWORD; lpNameBuf:LPSTR; nNameBufSize:DWORD):DWORD; external 'mpr' name 'WNetGetLastErrorA';
 
-  function MultinetGetConnectionPerformanceA(lpNetResource:LPNETRESOURCE; lpNetConnectInfoStruct:LPNETCONNECTINFOSTRUCT):DWORD; external 'mpr.dll' name 'MultinetGetConnectionPerformanceA';
+  function MultinetGetConnectionPerformanceA(lpNetResource:LPNETRESOURCE; lpNetConnectInfoStruct:LPNETCONNECTINFOSTRUCT):DWORD; external 'mpr' name 'MultinetGetConnectionPerformanceA';
 
   function ChangeServiceConfigA(hService:SC_HANDLE; dwServiceType:DWORD; dwStartType:DWORD; dwErrorControl:DWORD; lpBinaryPathName:LPCSTR; 
              lpLoadOrderGroup:LPCSTR; lpdwTagId:LPDWORD; lpDependencies:LPCSTR; lpServiceStartName:LPCSTR; lpPassword:LPCSTR; 
-             lpDisplayName:LPCSTR):WINBOOL; external 'advapi32.dll' name 'ChangeServiceConfigA';
+             lpDisplayName:LPCSTR):WINBOOL; external 'advapi32' name 'ChangeServiceConfigA';
 
   function CreateServiceA(hSCManager:SC_HANDLE; lpServiceName:LPCSTR; lpDisplayName:LPCSTR; dwDesiredAccess:DWORD; dwServiceType:DWORD; 
              dwStartType:DWORD; dwErrorControl:DWORD; lpBinaryPathName:LPCSTR; lpLoadOrderGroup:LPCSTR; lpdwTagId:LPDWORD; 
-             lpDependencies:LPCSTR; lpServiceStartName:LPCSTR; lpPassword:LPCSTR):SC_HANDLE; external 'advapi32.dll' name 'CreateServiceA';
+             lpDependencies:LPCSTR; lpServiceStartName:LPCSTR; lpPassword:LPCSTR):SC_HANDLE; external 'advapi32' name 'CreateServiceA';
 
   function EnumDependentServicesA(hService:SC_HANDLE; dwServiceState:DWORD; lpServices:LPENUM_SERVICE_STATUS; cbBufSize:DWORD; pcbBytesNeeded:LPDWORD; 
-             lpServicesReturned:LPDWORD):WINBOOL; external 'advapi32.dll' name 'EnumDependentServicesA';
+             lpServicesReturned:LPDWORD):WINBOOL; external 'advapi32' name 'EnumDependentServicesA';
 
   function EnumServicesStatusA(hSCManager:SC_HANDLE; dwServiceType:DWORD; dwServiceState:DWORD; lpServices:LPENUM_SERVICE_STATUS; cbBufSize:DWORD; 
-             pcbBytesNeeded:LPDWORD; lpServicesReturned:LPDWORD; lpResumeHandle:LPDWORD):WINBOOL; external 'advapi32.dll' name 'EnumServicesStatusA';
+             pcbBytesNeeded:LPDWORD; lpServicesReturned:LPDWORD; lpResumeHandle:LPDWORD):WINBOOL; external 'advapi32' name 'EnumServicesStatusA';
 
-  function GetServiceKeyNameA(hSCManager:SC_HANDLE; lpDisplayName:LPCSTR; lpServiceName:LPSTR; lpcchBuffer:LPDWORD):WINBOOL; external 'advapi32.dll' name 'GetServiceKeyNameA';
+  function GetServiceKeyNameA(hSCManager:SC_HANDLE; lpDisplayName:LPCSTR; lpServiceName:LPSTR; lpcchBuffer:LPDWORD):WINBOOL; external 'advapi32' name 'GetServiceKeyNameA';
 
-  function GetServiceDisplayNameA(hSCManager:SC_HANDLE; lpServiceName:LPCSTR; lpDisplayName:LPSTR; lpcchBuffer:LPDWORD):WINBOOL; external 'advapi32.dll' name 'GetServiceDisplayNameA';
+  function GetServiceDisplayNameA(hSCManager:SC_HANDLE; lpServiceName:LPCSTR; lpDisplayName:LPSTR; lpcchBuffer:LPDWORD):WINBOOL; external 'advapi32' name 'GetServiceDisplayNameA';
 
-  function OpenSCManagerA(lpMachineName:LPCSTR; lpDatabaseName:LPCSTR; dwDesiredAccess:DWORD):SC_HANDLE; external 'advapi32.dll' name 'OpenSCManagerA';
+  function OpenSCManagerA(lpMachineName:LPCSTR; lpDatabaseName:LPCSTR; dwDesiredAccess:DWORD):SC_HANDLE; external 'advapi32' name 'OpenSCManagerA';
 
-  function OpenServiceA(hSCManager:SC_HANDLE; lpServiceName:LPCSTR; dwDesiredAccess:DWORD):SC_HANDLE; external 'advapi32.dll' name 'OpenServiceA';
+  function OpenServiceA(hSCManager:SC_HANDLE; lpServiceName:LPCSTR; dwDesiredAccess:DWORD):SC_HANDLE; external 'advapi32' name 'OpenServiceA';
 
-  function QueryServiceConfigA(hService:SC_HANDLE; lpServiceConfig:LPQUERY_SERVICE_CONFIG; cbBufSize:DWORD; pcbBytesNeeded:LPDWORD):WINBOOL; external 'advapi32.dll' name 'QueryServiceConfigA';
+  function QueryServiceConfigA(hService:SC_HANDLE; lpServiceConfig:LPQUERY_SERVICE_CONFIG; cbBufSize:DWORD; pcbBytesNeeded:LPDWORD):WINBOOL; external 'advapi32' name 'QueryServiceConfigA';
 
-  function QueryServiceLockStatusA(hSCManager:SC_HANDLE; lpLockStatus:LPQUERY_SERVICE_LOCK_STATUS; cbBufSize:DWORD; pcbBytesNeeded:LPDWORD):WINBOOL; external 'advapi32.dll' name 'QueryServiceLockStatusA';
+  function QueryServiceLockStatusA(hSCManager:SC_HANDLE; lpLockStatus:LPQUERY_SERVICE_LOCK_STATUS; cbBufSize:DWORD; pcbBytesNeeded:LPDWORD):WINBOOL; external 'advapi32' name 'QueryServiceLockStatusA';
 
-  function RegisterServiceCtrlHandlerA(lpServiceName:LPCSTR; lpHandlerProc:LPHANDLER_FUNCTION):SERVICE_STATUS_HANDLE; external 'advapi32.dll' name 'RegisterServiceCtrlHandlerA';
+  function RegisterServiceCtrlHandlerA(lpServiceName:LPCSTR; lpHandlerProc:LPHANDLER_FUNCTION):SERVICE_STATUS_HANDLE; external 'advapi32' name 'RegisterServiceCtrlHandlerA';
 
-  function StartServiceCtrlDispatcherA(lpServiceStartTable:LPSERVICE_TABLE_ENTRY):WINBOOL; external 'advapi32.dll' name 'StartServiceCtrlDispatcherA';
+  function StartServiceCtrlDispatcherA(lpServiceStartTable:LPSERVICE_TABLE_ENTRY):WINBOOL; external 'advapi32' name 'StartServiceCtrlDispatcherA';
 
-  function StartServiceA(hService:SC_HANDLE; dwNumServiceArgs:DWORD; var lpServiceArgVectors:LPCSTR):WINBOOL; external 'advapi32.dll' name 'StartServiceA';
+  function StartServiceA(hService:SC_HANDLE; dwNumServiceArgs:DWORD; var lpServiceArgVectors:LPCSTR):WINBOOL; external 'advapi32' name 'StartServiceA';
 
-  function wglUseFontBitmapsA(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL; external 'opengl32.dll' name 'wglUseFontBitmapsA';
+  function wglUseFontBitmapsA(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL; external 'opengl32' name 'wglUseFontBitmapsA';
 
   function wglUseFontOutlinesA(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:FLOAT; 
-             _para6:FLOAT; _para7:longint; _para8:LPGLYPHMETRICSFLOAT):WINBOOL; external 'opengl32.dll' name 'wglUseFontOutlinesA';
+             _para6:FLOAT; _para7:longint; _para8:LPGLYPHMETRICSFLOAT):WINBOOL; external 'opengl32' name 'wglUseFontOutlinesA';
 
-  function DragQueryFileA(_para1:HDROP; _para2:cardinal; var _para3:char; _para4:cardinal):cardinal; external 'shell32.dll' name 'DragQueryFileA';
+  function DragQueryFileA(_para1:HDROP; _para2:cardinal; var _para3:char; _para4:cardinal):cardinal; external 'shell32' name 'DragQueryFileA';
 
-  function ExtractAssociatedIconA(_para1:HINSTANCE; var _para2:char; var _para3:WORD):HICON; external 'shell32.dll' name 'ExtractAssociatedIconA';
+  function ExtractAssociatedIconA(_para1:HINSTANCE; var _para2:char; var _para3:WORD):HICON; external 'shell32' name 'ExtractAssociatedIconA';
 
-  function ExtractIconA(_para1:HINSTANCE; var _para2:char; _para3:cardinal):HICON; external 'shell32.dll' name 'ExtractIconA';
+  function ExtractIconA(_para1:HINSTANCE; var _para2:char; _para3:cardinal):HICON; external 'shell32' name 'ExtractIconA';
 
-  function FindExecutableA(var _para1:char; var _para2:char; var _para3:char):HINSTANCE; external 'shell32.dll' name 'FindExecutableA';
+  function FindExecutableA(var _para1:char; var _para2:char; var _para3:char):HINSTANCE; external 'shell32' name 'FindExecutableA';
 
-  function ShellAboutA(_para1:HWND; var _para2:char; var _para3:char; _para4:HICON):longint; external 'shell32.dll' name 'ShellAboutA';
+  function ShellAboutA(_para1:HWND; var _para2:char; var _para3:char; _para4:HICON):longint; external 'shell32' name 'ShellAboutA';
 
   function ShellExecuteA(_para1:HWND; var _para2:char; var _para3:char; var _para4:char; var _para5:char; 
-             _para6:longint):HINSTANCE; external 'shell32.dll' name 'ShellExecuteA';
+             _para6:longint):HINSTANCE; external 'shell32' name 'ShellExecuteA';
 
-  function DdeCreateStringHandleA(_para1:DWORD; var _para2:char; _para3:longint):HSZ; external 'user32.dll' name 'DdeCreateStringHandleA';
+  function DdeCreateStringHandleA(_para1:DWORD; var _para2:char; _para3:longint):HSZ; external 'user32' name 'DdeCreateStringHandleA';
 
-  function DdeInitializeA(var _para1:DWORD; _para2:CALLB; _para3:DWORD; _para4:DWORD):UINT; external 'user32.dll' name 'DdeInitializeA';
+  function DdeInitializeA(var _para1:DWORD; _para2:CALLB; _para3:DWORD; _para4:DWORD):UINT; external 'user32' name 'DdeInitializeA';
 
-  function DdeQueryStringA(_para1:DWORD; _para2:HSZ; var _para3:char; _para4:DWORD; _para5:longint):DWORD; external 'user32.dll' name 'DdeQueryStringA';
+  function DdeQueryStringA(_para1:DWORD; _para2:HSZ; var _para3:char; _para4:DWORD; _para5:longint):DWORD; external 'user32' name 'DdeQueryStringA';
 
   function LogonUserA(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR; _para4:DWORD; _para5:DWORD; 
-             var _para6:HANDLE):WINBOOL; external 'advapi32.dll' name 'LogonUserA';
+             var _para6:HANDLE):WINBOOL; external 'advapi32' name 'LogonUserA';
 
   function CreateProcessAsUserA(_para1:HANDLE; _para2:LPCTSTR; _para3:LPTSTR; var _para4:SECURITY_ATTRIBUTES; var _para5:SECURITY_ATTRIBUTES; 
              _para6:WINBOOL; _para7:DWORD; _para8:LPVOID; _para9:LPCTSTR; var _para10:STARTUPINFO; 
-             var _para11:PROCESS_INFORMATION):WINBOOL; external 'advapi32.dll' name 'CreateProcessAsUserA';
+             var _para11:PROCESS_INFORMATION):WINBOOL; external 'advapi32' name 'CreateProcessAsUserA';
 
 {$endif read_implementation}
 
@@ -1892,7 +1892,12 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.3  1998-09-03 18:17:31  pierre
+  Revision 1.4  1998-09-04 17:17:31  pierre
+    + all unknown function ifdef with
+      conditionnal unknown_functions
+      testwin works now, but windowcreate still fails !!
+
+  Revision 1.3  1998/09/03 18:17:31  pierre
     * small improvements in number of found functions
       all remaining are in func.pp
 

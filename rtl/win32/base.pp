@@ -156,7 +156,10 @@ unit base;
      FLOAT = real;
   { typedef GLOBALHANDLE;  }
 
-     HANDLE = pointer;
+  {   HANDLE = pointer;
+    need to be compatible 
+    with longint for Delphi !! }
+     HANDLE = longint;{ or should it be cardinal ?? PM }
 
      HACCEL = HANDLE;
 
@@ -1210,7 +1213,12 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-08-31 11:53:53  pierre
+  Revision 1.6  1998-09-04 17:17:32  pierre
+    + all unknown function ifdef with
+      conditionnal unknown_functions
+      testwin works now, but windowcreate still fails !!
+
+  Revision 1.5  1998/08/31 11:53:53  pierre
     * compilable windows.pp file
       still to do :
        - findout problems

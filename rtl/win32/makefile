@@ -360,10 +360,10 @@ test:
 # only if sed is present 
 ifdef SED
 ascdef.pp : ascfun.pp ascdef.sed
-	$(SED) -f ascdef.sed ascfun.pp > ascdef.pp
+	sed -f ascdef.sed ascfun.pp > ascdef.pp
 
 unidef.pp : unifun.pp unidef.sed
-	$(SED) -f unidef.sed unifun.pp > unidef.pp
+	sed -f unidef.sed unifun.pp > unidef.pp
 endif
 
 
@@ -375,7 +375,12 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.11  1998-09-04 12:33:12  pierre
+# Revision 1.12  1998-09-04 17:17:36  pierre
+#   + all unknown function ifdef with
+#     conditionnal unknown_functions
+#     testwin works now, but windowcreate still fails !!
+#
+# Revision 1.11  1998/09/04 12:33:12  pierre
 #   + added SED testing for ascdef.pp and unidef.pp
 #   * func.pp ready
 #     still some functions missing (commented out for now)
