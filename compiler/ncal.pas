@@ -55,6 +55,8 @@ interface
 
        tcallnode = class(tbinarynode)
        private
+          { number of parameters passed from the source, this does not include the hidden parameters }
+          paralength   : smallint;
           paravisible  : boolean;
           function  candidates_find:pcandidate;
           procedure candidates_free(procs:pcandidate);
@@ -88,8 +90,6 @@ interface
           procdefinitionderef : tderef;
           { tree that contains the pointer to the object for this method }
           methodpointer  : tnode;
-          { number of parameters passed from the source, this does not include the hidden parameters }
-          paralength   : smallint;
           { inline function body }
           inlinecode : tnode;
           { varargs tparaitems }
@@ -2698,7 +2698,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.211  2003-12-08 16:34:23  peter
+  Revision 1.212  2003-12-08 22:37:28  peter
+    * paralength is private again
+
+  Revision 1.211  2003/12/08 16:34:23  peter
     * varargspara is left-right, so adding paraitems needs insert
       instead of concat
 
