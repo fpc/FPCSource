@@ -836,9 +836,11 @@ begin
 {$endif}
       Case FChar of
         'D' : begin
-              Checkarg(vtinteger,true);
+              if Checkarg(vtinteger,false) then
+                Str(Args[Doarg].VInteger,ToAdd)
+              else if CheckArg(vtInt64,true) then
+                Str(Args[DoArg].VInt64^,toadd);
               Width:=Abs(width);
-              Str(Args[Doarg].VInteger,ToAdd);
               While Length(ToAdd)<Prec do
                 begin
                 Index:=Prec-Length(ToAdd);
@@ -1265,8 +1267,14 @@ const
 
 {
   $Log$
-  Revision 1.4  2000-08-13 17:55:38  michael
-  + Added some missing functions needed for variant support
+  Revision 1.5  2000-09-30 15:51:41  michael
+  + Merged int64 fix from fixbranch
+
+  Revision 1.1.2.2  2000/09/30 15:07:41  michael
+  + Fixed format to handle int64 in case of "d"
+
+  Revision 1.1.2.1  2000/08/09 19:31:03  peter
+    * int64 updates from Marco
 
   Revision 1.3  2000/08/09 07:48:05  marco
    * Uncommented some int64 functions, now that int64 support is ok
