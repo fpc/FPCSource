@@ -54,7 +54,7 @@ function TSparcParaManager.GetIntParaLoc(nr:longint):TParaLocation;
       then{The six first parameters are passed into registers}
         begin
           loc:=LOC_REGISTER;
-          register:=TRegister(LongInt(R_i0)+nr);
+          register.enum:=ToldRegister(LongInt(R_i0)+nr);
         end
       else{The other parameters are passed into the frame}
         begin
@@ -281,7 +281,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-04-23 12:35:35  florian
+  Revision 1.16  2003-04-23 13:35:39  peter
+    * fix sparc compile
+
+  Revision 1.15  2003/04/23 12:35:35  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...

@@ -278,6 +278,9 @@ const
   first_supreg = $01;
   last_supreg = $18;
 
+  first_imreg = $19;
+  last_imreg = $ff;
+
   {Subregisters; nothing known about.}
   R_SUBWHOLE=$00;
   R_SUBL=$00;
@@ -660,7 +663,10 @@ END.
 
 {
   $Log$
-  Revision 1.26  2003-04-23 12:35:35  florian
+  Revision 1.27  2003-04-23 13:35:39  peter
+    * fix sparc compile
+
+  Revision 1.26  2003/04/23 12:35:35  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...

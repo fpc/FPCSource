@@ -30,7 +30,7 @@ interface
     type
        TSparcTypeConvNode = class(TCgTypeConvNode)
          protected
-          procedure second_int_to_int;override;
+         { procedure second_int_to_int;override; }
          { procedure second_string_to_string;override; }
          { procedure second_cstring_to_pchar;override; }
          { procedure second_string_to_chararray;override; }
@@ -107,35 +107,7 @@ implementation
 {*****************************************************************************
                              SecondTypeConv
 *****************************************************************************}
-procedure TSparctypeconvnode.second_int_to_int;
-  var
-    newsize:tcgsize;
-    size,leftsize:cardinal;
-  begin
-    newsize:=def_cgsize(resulttype.def);
-    { insert range check if not explicit conversion }
-    if not(nf_explizit in flags)
-    then
-      cg.g_rangecheck(exprasmlist,left,resulttype.def);
-    { is the result size smaller ? }
-    size := resulttype.def.size;
-    leftsize := left.resulttype.def.size;
-    if(size < leftsize)or
-      (((newsize in [OS_64,OS_S64])or
-      (left.location.loc <> LOC_REGISTER))and(size > leftsize))
-    then
-      begin
-        { reuse the left location by default }
-        location_copy(location,left.location);
-        location_force_reg(exprasmlist,location,newsize,false);
-      end
-    else
-      begin
-        { no special loading is required, reuse current location }
-        location_copy(location,left.location);
-        location.size:=newsize;
-      end;
-  end;
+
 procedure TSparctypeconvnode.second_int_to_real;
   type
     tdummyarray = packed array[0..7] of byte;
@@ -275,7 +247,7 @@ procedure TSparctypeconvnode.second_int_to_bool;
   begin
     { byte(boolean) or word(wordbool) or longint(longbool) must }
     { be accepted for var parameters                            }
-    if(nf_explizit in flags)and
+    if(nf_explicit in flags)and
       (left.resulttype.def.size=resulttype.def.size)and
       (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER])
     then
@@ -388,7 +360,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2003-03-10 21:59:54  mazen
+  Revision 1.14  2003-04-23 13:35:39  peter
+    * fix sparc compile
+
+  Revision 1.13  2003/03/10 21:59:54  mazen
   * fixing index overflow in handling new registers arrays.
 
   Revision 1.12  2003/02/19 22:00:17  daniel
