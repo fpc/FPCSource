@@ -46,7 +46,6 @@ interface
        private
           { number of parameters passed from the source, this does not include the hidden parameters }
           paralength   : smallint;
-          paravisible  : boolean;
           function  gen_self_tree_methodpointer:tnode;
           function  gen_self_tree:tnode;
           function  gen_vmt_tree:tnode;
@@ -1421,13 +1420,8 @@ type
                             begin
                               if assigned(left) then
                                aktfilepos:=left.fileinfo;
-                              if paravisible then
-                                begin
-                                  CGMessage(parser_e_wrong_parameter_size);
-                                  symtableprocentry.write_parameter_lists(nil);
-                                end
-                              else
-                                CGMessage(parser_e_cant_access_private_member);
+                              CGMessage(parser_e_wrong_parameter_size);
+                              symtableprocentry.write_parameter_lists(nil);
                             end;
                         end;
                       goto errorexit;
@@ -2046,7 +2040,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.230  2004-03-04 17:25:16  peter
+  Revision 1.231  2004-03-14 20:07:13  peter
+    * removed unused paravisible
+
+  Revision 1.230  2004/03/04 17:25:16  peter
     * fix check for parameter length when calling procvar, broken by the
       previous default parameter for procvar fix
 
