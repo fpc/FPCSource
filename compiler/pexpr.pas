@@ -802,15 +802,21 @@ unit pexpr;
                    syssym : p1:=statement_syssym(psyssym(srsym)^.number,pd);
                   typesym : begin
                               pd:=ptypesym(srsym)^.definition;
+                              if not assigned(pd) then
+                               begin
+                                 pd:=generrordef;
+                                 again:=false;
+                               end
+                              else
                               { if we read a type declaration  }
                               { we have to return the type and }
                               { nothing else                   }
-                              if block_type=bt_type then
-                               begin
-                                 p1:=genzeronode(typen);
-                                 p1^.resulttype:=pd;
-                                 pd:=voiddef;
-                               end
+                               if block_type=bt_type then
+                                begin
+                                  p1:=genzeronode(typen);
+                                  p1^.resulttype:=pd;
+                                  pd:=voiddef;
+                                end
                               else
                                begin
                                  if token=LKLAMMER then
@@ -1043,6 +1049,9 @@ unit pexpr;
           check_tokenpos;
           while again do
            begin
+             { prevent crashes with unknown types }
+             if not assigned(pd) then
+              exit;
              case token of
           CARET : begin
                     consume(CARET);
@@ -1263,6 +1272,7 @@ unit pexpr;
 
       begin
         oldp1:=nil;
+        p1:=nil;
         filepos:=tokenpos;
         if token=ID then
          begin
@@ -1538,6 +1548,9 @@ unit pexpr;
             Message(cg_e_illegal_expression);
           end;
         end;
+        { generate error node if no node is created }
+        if not assigned(p1) then
+          p1:=genzeronode(errorn);
         factor:=p1;
         check_tokenpos;
       end;
@@ -1770,7 +1783,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.58  1998-09-30 07:40:35  florian
+  Revision 1.59  1998-10-01 14:56:24  peter
+    * crash preventions
+
+  Revision 1.58  1998/09/30 07:40:35  florian
     * better error recovering
 
   Revision 1.57  1998/09/28 16:18:16  florian
