@@ -206,7 +206,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_DAA} (Ch: (C_MEAX, C_None, C_None)),
   {A_DAS} (Ch: (C_MEAX, C_None, C_None)),
   {A_DEC} (Ch: (C_Mop1, C_WFlags, C_None)),
-  {A_DIV} (Ch: (C_RWEAX, C_WEDX, C_WFlags)),
+  {A_DIV} (Ch: (C_RWEAX, C_WEDX, C_WFlags)), {handled separately, because modifies more than three things}
   {A_EMMS} (Ch: (C_FPU, C_None, C_None)), { new }
   {A_ENTER} (Ch: (C_RWESP, C_None, C_None)),
   {A_EQU} (Ch: (C_ALL, C_None, C_None)), { new }
@@ -543,7 +543,7 @@ Begin
   Flags[f] : =F_Clear
 End;
 
-Function GetFlag(f: TFlag): TFlagContents;
+Function TCondRegs.GetFlag(f: TFlag): TFlagContents;
 Begin
   GetFlag := Flags[f]
 End;
@@ -552,7 +552,10 @@ End.
 
 {
  $Log$
- Revision 1.1  1999-08-09 14:07:28  jonas
+ Revision 1.2  1999-08-11 14:24:38  jonas
+   - removed RefsHaveSymbol define (I think references on all processors can have a symbol)
+
+ Revision 1.1  1999/08/09 14:07:28  jonas
  commit.msg
 
 }
