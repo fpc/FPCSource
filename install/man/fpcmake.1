@@ -4,7 +4,7 @@ fpcmake \- The Free Pascal makefile constuctor program.
 
 .SH SYNOPSIS
 
-.B fpcmake
+.B fpcmake [filename [filename [filename]]]
 
 .SH DESCRIPTION
 
@@ -24,7 +24,13 @@ for making X projects.
 .SH USAGE
 
 .B fpcmake
-takes no options at this time. It just attempts to read the file 
+accepts filenames of makefile description files as it's command-line
+arguments. For each of these files it will create a 
+.I Makefile 
+in the same directory where the file is located, overwriting any other 
+existing file.
+
+If no options are given, it just attempts to read the file 
 .I Makefile.fpc
 in the current directory and tries to construct a Makefile from it.
 any previously existing 
