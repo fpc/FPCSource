@@ -525,6 +525,13 @@ unit pass_1;
                      p^.registers32:=1;
                    if p^.symtable^.symtabletype=withsymtable then
                      p^.registers32:=1;
+                   { check semantics of private }
+                   if p^.symtable^.symtabletype=objectsymtable then
+                     begin
+                        if (pobjectdef(pvarsym(p^.symtableentry)^.owner^.defowner)^.owner^.symtabletype=unitsymtable) and
+                          ((p^.vs^.properties and sp_private)<>0) then
+                          Message(parser_e_cant_access_private_member);
+                     end;
 
                    { a class variable is a pointer !!!
                      yes, but we have to resolve the reference in an
@@ -3839,14 +3846,26 @@ unit pass_1;
            exit;
 
          p^.resulttype:=p^.vs^.definition;
+         { this must be done in the parser
          if count_ref and not must_be_valid then
            if (p^.vs^.properties and sp_protected)<>0 then
              Message(parser_e_cant_write_protected_member);
+         }
          p^.registers32:=p^.left^.registers32;
          p^.registersfpu:=p^.left^.registersfpu;
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=p^.left^.registersmmx;
 {$endif SUPPORT_MMX}
+        { check protected and private members }
+        if (p^.left^.resulttype^.deftype=objectdef) then
+          begin
+             if (pobjectdef(p^.vs^.owner^.defowner)^.owner^.symtabletype=unitsymtable) and
+               ((p^.vs^.properties and sp_private)<>0) then
+               Message(parser_e_cant_access_private_member);
+             if (pobjectdef(p^.left^.resulttype)^.owner^.symtabletype=unitsymtable) and
+               ((p^.vs^.properties and sp_protected)<>0) then
+               Message(parser_e_cant_access_protected_member);
+          end;
          { classes must be dereferenced implicit }
          if (p^.left^.resulttype^.deftype=objectdef) and
            pobjectdef(p^.left^.resulttype)^.isclass then
@@ -4827,7 +4846,13 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.14  1998-04-30 15:59:41  pierre
+  Revision 1.15  1998-05-01 09:01:23  florian
+    + correct semantics of private and protected
+    * small fix in variable scope:
+       a id can be used in a parameter list of a method, even it is used in
+       an anchestor class as field id
+
+  Revision 1.14  1998/04/30 15:59:41  pierre
     * GDB works again better :
       correct type info in one pass
     + UseTokenInfo for better source position

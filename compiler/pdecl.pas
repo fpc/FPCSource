@@ -645,6 +645,11 @@ unit pdecl;
 
         begin
            repeat
+             if actmembertype=sp_private then
+               aktclass^.options:=aktclass^.options or oo_hasprivate;
+             if actmembertype=sp_protected then
+               aktclass^.options:=aktclass^.options or oo_hasprotected;
+
              case token of
                 ID:
                   begin
@@ -713,7 +718,7 @@ unit pdecl;
                 _CONSTRUCTOR:
                   begin
                      if actmembertype<>sp_public then
-                       Message(parser_e_constructor_cannot_be_private);
+                       Message(parser_w_constructor_should_be_public);
                      oldparse_only:=parse_only;
                      parse_only:=true;
                      constructor_head;
@@ -752,7 +757,7 @@ unit pdecl;
                      there_is_a_destructor:=true;
 
                      if actmembertype<>sp_public then
-                      Message(parser_e_destructor_cannot_be_private);
+                      Message(parser_w_destructor_should_be_public);
                      oldparse_only:=parse_only;
                      parse_only:=true;
                      destructor_head;
@@ -831,7 +836,7 @@ unit pdecl;
                      (pobjectdef(hp1)^.options and oois_class)<>0)) then
                      begin
                         pcrd:=new(pclassrefdef,init(hp1));
-                    object_dec:=pcrd;
+                        object_dec:=pcrd;
                         {I add big troubles here
                         with var p : ^byte in graph.putimage
                         because a save_forward was called and
@@ -1787,7 +1792,13 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.14  1998-05-01 07:43:56  florian
+  Revision 1.15  1998-05-01 09:01:23  florian
+    + correct semantics of private and protected
+    * small fix in variable scope:
+       a id can be used in a parameter list of a method, even it is used in
+       an anchestor class as field id
+
+  Revision 1.14  1998/05/01 07:43:56  florian
     + basics for rtti implemented
     + switch $m (generate rtti for published sections)
 
