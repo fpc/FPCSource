@@ -1189,7 +1189,7 @@ implementation
 {$endif extdebug}
             end;
 {$ifdef extdebug}
-          exprasmlist^.concat(new(pai_asm_comment,init('Start of inlined proc')));
+          exprasmlist^.concat(new(pai_asm_comment,init(strpnew('Start of inlined proc'))));
 {$endif extdebug}
           { takes care of local data initialization }
           inlineentrycode:=new(paasmoutput,init);
@@ -1203,7 +1203,7 @@ implementation
           genexitcode(inlineexitcode,0,false,true);
           exprasmlist^.concatlist(inlineexitcode);
 {$ifdef extdebug}
-          exprasmlist^.concat(new(pai_asm_comment,init('End of inlined proc')));
+          exprasmlist^.concat(new(pai_asm_comment,init(strpnew('End of inlined proc'))));
 {$endif extdebug}
           {we can free the local data now, reset also the fixup address }
           if st^.datasize>0 then
@@ -1225,7 +1225,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.111  1999-11-30 10:40:42  peter
+  Revision 1.112  1999-12-13 21:49:54  pierre
+   * bug in extdebugg code for inlined procedures
+
+  Revision 1.111  1999/11/30 10:40:42  peter
     + ttype, tsymlist
 
   Revision 1.110  1999/11/06 14:34:17  peter
