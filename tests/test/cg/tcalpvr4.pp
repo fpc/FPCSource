@@ -30,25 +30,25 @@ const
 
 type
 
-  troutine = procedure (x: longint;  y: byte);oldfpcall;
-  troutineresult = function (x: longint; y: byte): int64;oldfpcall;
+  troutine = procedure (x: longint;  y: byte);oldfpccall;
+  troutineresult = function (x: longint; y: byte): int64;oldfpccall;
 
   tsimpleobject = object
     constructor init;
-    procedure test_normal(x: byte);oldfpcall;
-    procedure test_static(x: byte);static;oldfpcall;
-    procedure test_virtual(x: byte);virtual;oldfpcall;
+    procedure test_normal(x: byte);oldfpccall;
+    procedure test_static(x: byte);static;oldfpccall;
+    procedure test_virtual(x: byte);virtual;oldfpccall;
   end;
 
   tsimpleclass = class
     constructor create;
-    procedure test_normal(x: byte);oldfpcall;
-    class procedure test_static(x: byte);oldfpcall;
-    procedure test_virtual(x: byte);virtual;oldfpcall;
+    procedure test_normal(x: byte);oldfpccall;
+    class procedure test_static(x: byte);oldfpccall;
+    procedure test_virtual(x: byte);virtual;oldfpccall;
   end;
 
-  tobjectmethod = procedure (x: byte) of object ;oldfpcall;
-  tclassmethod = procedure (x: byte) of object;oldfpcall;
+  tobjectmethod = procedure (x: byte) of object ;oldfpccall;
+  tclassmethod = procedure (x: byte) of object;oldfpccall;
 
 var
   proc : troutine;
@@ -86,13 +86,13 @@ var
     end;
 
 
-  procedure testroutine(x: longint; y: byte);oldfpcall;
+  procedure testroutine(x: longint; y: byte);oldfpccall;
    begin
      global_s32bit := x;
      global_u8bit := y;
    end;
 
-  function testroutineresult(x: longint; y: byte): int64;oldfpcall;
+  function testroutineresult(x: longint; y: byte): int64;oldfpccall;
    begin
      global_s32bit := x;
      global_u8bit := y;
@@ -162,17 +162,17 @@ var
    begin
    end;
 
-  procedure tsimpleobject.test_normal(x: byte);oldfpcall;
+  procedure tsimpleobject.test_normal(x: byte);oldfpccall;
    begin
      global_u8bit := x;
    end;
 
-  procedure tsimpleobject.test_static(x: byte);oldfpcall;
+  procedure tsimpleobject.test_static(x: byte);oldfpccall;
    begin
      global_u8bit := x;
    end;
 
-  procedure tsimpleobject.test_virtual(x: byte);oldfpcall;
+  procedure tsimpleobject.test_virtual(x: byte);oldfpccall;
    begin
      global_u8bit := x;
    end;
@@ -183,17 +183,17 @@ var
     inherited create;
    end;
 
-  procedure tsimpleclass. test_normal(x: byte);oldfpcall;
+  procedure tsimpleclass. test_normal(x: byte);oldfpccall;
    begin
      global_u8bit := x;
    end;
 
-  class procedure tsimpleclass.test_static(x: byte);oldfpcall;
+  class procedure tsimpleclass.test_static(x: byte);oldfpccall;
    begin
      global_u8bit := x;
    end;
 
-  procedure tsimpleclass.test_virtual(x: byte);oldfpcall;
+  procedure tsimpleclass.test_virtual(x: byte);oldfpccall;
    begin
      global_u8bit := x;
    end;
@@ -529,7 +529,10 @@ end.
 
 {
    $Log$
-   Revision 1.6  2003-10-03 14:46:37  peter
+   Revision 1.7  2003-10-05 14:39:31  florian
+     * fixed oldfpcall directives; was oldfpcall
+
+   Revision 1.6  2003/10/03 14:46:37  peter
      * popstack to oldfpccall
 
    Revision 1.5  2003/05/15 20:34:29  peter
