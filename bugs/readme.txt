@@ -169,6 +169,7 @@ Fixed bugs:
   bug0141.pp   Wrong Class sizes when using forwardly defined classes. OK 0.99.6
   bug0143.pp   cannot concat string and array of char in $X+ mode    OK 0.99.7 (PFV)
   bug0144.pp   problem with 'with object do'                         OK 0.99.7 (PFV)
+  bug0145.pp   typed files with huges records (needs filerec.size:longint) OK 0.99.7 (PFV)
   bug0146.pp   no sizeof() for var arrays and the size is pushed incorrect OK 0.99.7 (PFV)
   bug0147.pp   function b; is not allowed in implementation          OK 0.99.7 (PFV)
   bug0148.pp   crash when setting function result of a declared but not yet OK 0.99.7 (PFV)
@@ -207,7 +208,6 @@ bug0153.pp   Asm, indexing a local/para var should produce an error like tp7
              because it's doomed to crash
 bug0155.pp   Asm, Missing string return for asm functions
 
-bug0145.pp   typed files with huges records (needs filerec.size:longint)
 bug0150.pp   Shows that the assert() macro is missing under Delphi.
 bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
