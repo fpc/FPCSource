@@ -13,7 +13,7 @@ Const TypeNames : Array [TTYpeKind] of string[15] =
                     ('Unknown','Integer','Char','Enumeration',
                      'Float','Set','Method','ShortString','LongString',
                      'AnsiString','WideString','Variant','Array','Record',
-                     'Interface','Class','Object','WideChar','Bool');
+                     'Interface','Class','Object','WideChar','Bool','Int64','QWord');
 
 Const OrdinalTypes = [tkInteger,tkChar,tkENumeration,tkbool];
 
@@ -423,7 +423,7 @@ Procedure DumpTypeInfo (O : TMyTestObject);
 Var
     PT : PTypeData;
     PI : PTypeInfo;
-    I,J : Longint;
+    I  : Longint;
     PP : PPropList;
 
 begin
