@@ -138,7 +138,7 @@ implementation
                         begin
                           { a jump, but less operations }
                           emit_reg_reg(A_TEST,S_L,hreg1,hreg1);
-                          getlabel(hl);
+                          current_library.getlabel(hl);
                           emitjmp(C_NS,hl);
                           if power=1 then
                             emit_reg(A_INC,S_L,hreg1)
@@ -396,9 +396,9 @@ implementation
                    { so we've to do some tricks here                           }
                    if nodetype=shln then
                      begin
-                        getlabel(l1);
-                        getlabel(l2);
-                        getlabel(l3);
+                        current_library.getlabel(l1);
+                        current_library.getlabel(l2);
+                        current_library.getlabel(l3);
                         emit_const_reg(A_CMP,S_L,64,R_ECX);
                         emitjmp(C_L,l1);
                         emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
@@ -422,9 +422,9 @@ implementation
                      end
                    else
                      begin
-                        getlabel(l1);
-                        getlabel(l2);
-                        getlabel(l3);
+                        current_library.getlabel(l1);
+                        current_library.getlabel(l2);
+                        current_library.getlabel(l3);
                         emit_const_reg(A_CMP,S_L,64,R_ECX);
                         emitjmp(C_L,l1);
                         emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
@@ -830,7 +830,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-08-02 07:44:31  jonas
+  Revision 1.35  2002-08-11 13:24:17  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.34  2002/08/02 07:44:31  jonas
     * made assigned() handling generic
     * add nodes now can also evaluate constant expressions at compile time
       that contain nil nodes

@@ -289,7 +289,7 @@ interface
          begin
            if cs_check_overflow in aktlocalswitches  then
             begin
-              getlabel(hl4);
+              current_library.getlabel(hl4);
               if unsigned then
                emitjmp(C_NB,hl4)
               else
@@ -457,9 +457,9 @@ interface
             if isjump then
               begin
                  otl:=truelabel;
-                 getlabel(truelabel);
+                 current_library.getlabel(truelabel);
                  ofl:=falselabel;
-                 getlabel(falselabel);
+                 current_library.getlabel(falselabel);
               end;
             secondpass(left);
             if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
@@ -475,9 +475,9 @@ interface
             if isjump then
               begin
                  otl:=truelabel;
-                 getlabel(truelabel);
+                 current_library.getlabel(truelabel);
                  ofl:=falselabel;
-                 getlabel(falselabel);
+                 current_library.getlabel(falselabel);
               end;
             secondpass(right);
             maybe_restore(exprasmlist,left.location,pushedregs);
@@ -529,7 +529,7 @@ interface
                    andn :
                      begin
                         otl:=truelabel;
-                        getlabel(truelabel);
+                        current_library.getlabel(truelabel);
                         secondpass(left);
                         maketojumpbool(exprasmlist,left,lr_load_regvars);
                         cg.a_label(exprasmlist,truelabel);
@@ -538,7 +538,7 @@ interface
                    orn :
                      begin
                         ofl:=falselabel;
-                        getlabel(falselabel);
+                        current_library.getlabel(falselabel);
                         secondpass(left);
                         maketojumpbool(exprasmlist,left,lr_load_regvars);
                         cg.a_label(exprasmlist,falselabel);
@@ -1086,7 +1086,7 @@ interface
          begin
            if cs_check_overflow in aktlocalswitches  then
             begin
-              getlabel(hl4);
+              current_library.getlabel(hl4);
               if unsigned then
                emitjmp(C_NB,hl4)
               else
@@ -1551,7 +1551,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2002-07-26 11:17:52  jonas
+  Revision 1.46  2002-08-11 13:24:16  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.45  2002/07/26 11:17:52  jonas
     * the optimization of converting a multiplication with a power of two to
       a shl is moved from n386add/secondpass to nadd/resulttypepass
 

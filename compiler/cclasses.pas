@@ -87,7 +87,7 @@ interface
           procedure insertList(p : TLinkedList);
           { concats another List at the end and make this List empty }
           procedure concatList(p : TLinkedList);
-          { concats another List at the start and makes a copy 
+          { concats another List at the start and makes a copy
             the list is ordered in reverse.
           }
           procedure insertListcopy(p : TLinkedList);
@@ -188,7 +188,7 @@ interface
        private
          FRoot      : TNamedIndexItem;
          FHashArray : Pdictionaryhasharray;
-         procedure cleartree(obj:TNamedIndexItem);
+         procedure cleartree(var obj:TNamedIndexItem);
          function  insertNode(NewNode:TNamedIndexItem;var currNode:TNamedIndexItem):TNamedIndexItem;
          procedure inserttree(currtree,currroot:TNamedIndexItem);
        public
@@ -890,7 +890,7 @@ end;
       end;
 
 
-    procedure Tdictionary.cleartree(obj:TNamedIndexItem);
+    procedure Tdictionary.cleartree(var obj:TNamedIndexItem);
       begin
         if assigned(obj.Fleft) then
           cleartree(obj.FLeft);
@@ -1735,7 +1735,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2002-08-09 19:08:53  carl
+  Revision 1.17  2002-08-11 13:24:11  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.16  2002/08/09 19:08:53  carl
     + fix incorrect comment in insertlistcopy
 
   Revision 1.15  2002/07/01 18:46:21  peter

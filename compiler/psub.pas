@@ -233,13 +233,13 @@ implementation
          oldquickexitlabel:=quickexitlabel;
          oldfaillabel:=faillabel;
          { get new labels }
-         getlabel(aktexitlabel);
-         getlabel(aktexit2label);
+         current_library.getlabel(aktexitlabel);
+         current_library.getlabel(aktexit2label);
          { exit for fail in constructors }
          if (aktprocdef.proctypeoption=potype_constructor) then
            begin
-             getlabel(faillabel);
-             getlabel(quickexitlabel);
+             current_library.getlabel(faillabel);
+             current_library.getlabel(quickexitlabel);
            end;
          { reset break and continue labels }
          block_type:=bt_general;
@@ -814,7 +814,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2002-08-09 19:14:28  carl
+  Revision 1.65  2002-08-11 13:24:13  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.64  2002/08/09 19:14:28  carl
     * fixed stackframe parameter (should only contain local size),
       set to zero currently
 

@@ -111,8 +111,8 @@ implementation
 
          otlabel:=truelabel;
          oflabel:=falselabel;
-         getlabel(truelabel);
-         getlabel(falselabel);
+         current_library.getlabel(truelabel);
+         current_library.getlabel(falselabel);
          secondpass(left);
          { handle varargs first, because defcoll is not valid }
          if (nf_varargs_para in flags) then
@@ -395,7 +395,7 @@ implementation
                  (po_iocheck in procdefinition.procoptions) and
                  not(po_iocheck in aktprocdef.procoptions) then
                 begin
-                   getaddrlabel(iolabel);
+                   current_library.getaddrlabel(iolabel);
                    cg.a_label(exprasmlist,iolabel);
                 end
               else
@@ -626,7 +626,7 @@ implementation
                                            cg.a_load_const_reg(exprasmlist,OS_ADDR,0,self_pointer_reg)
                                          else
                                            begin
-                                             reference_reset_symbol(href,newasmsymbol(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
+                                             reference_reset_symbol(href,current_library.newasmsymbol(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
                                              cg.a_loadaddr_ref_reg(exprasmlist,href,self_pointer_reg);
                                            end;
                                          { emit_reg(A_PUSH,S_L,R_ESI);
@@ -683,7 +683,7 @@ implementation
                                     cg.a_load_const_reg(exprasmlist,OS_ADDR,0,self_pointer_reg);
                                     cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(2));
                                     { insert the vmt }
-                                    reference_reset_symbol(href,newasmsymbol(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
+                                    reference_reset_symbol(href,current_library.newasmsymbol(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
                                     cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(1));
                                     extended_new:=true;
                                  end;
@@ -697,7 +697,7 @@ implementation
                                     emit_ref_reg(A_LEA,S_L,methodpointer.location.reference,R_ESI);
                                     reference_release(exprasmlist,methodpointer.location.reference);
                                     cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(2));
-                                    reference_reset_symbol(href,newasmsymbol(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
+                                    reference_reset_symbol(href,current_library.newasmsymbol(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
                                     cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(1));
                                  end;
                                else
@@ -769,7 +769,7 @@ implementation
                                               if (procdefinition.proctypeoption=potype_constructor) then
                                                 begin
                                                   { it's no bad idea, to insert the VMT }
-                                                  reference_reset_symbol(href,newasmsymbol(
+                                                  reference_reset_symbol(href,current_library.newasmsymbol(
                                                      tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
                                                   cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(1));
                                                 end
@@ -825,7 +825,7 @@ implementation
                                   if (procdefinition.proctypeoption=potype_constructor) then
                                     begin
                                       { it's no bad idea, to insert the VMT }
-                                      reference_reset_symbol(href,newasmsymbol(procinfo^._class.vmt_mangledname),0);
+                                      reference_reset_symbol(href,current_library.newasmsymbol(procinfo^._class.vmt_mangledname),0);
                                       cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(1));
                                     end
                                   { destructors haven't to dispose the instance, if this is }
@@ -956,7 +956,7 @@ implementation
                      begin
                         if (cs_check_object in aktlocalswitches) then
                           begin
-                             reference_reset_symbol(hrefvmt,newasmsymbol(tprocdef(procdefinition)._class.vmt_mangledname),0);
+                             reference_reset_symbol(hrefvmt,current_library.newasmsymbol(tprocdef(procdefinition)._class.vmt_mangledname),0);
                              cg.a_paramaddr_ref(exprasmlist,hrefvmt,paramanager.getintparaloc(2));
                              cg.a_param_reg(exprasmlist,OS_ADDR,href.base,paramanager.getintparaloc(1));
                              cg.a_call_name(exprasmlist,'FPC_CHECK_OBJECT_EXT');
@@ -1126,7 +1126,7 @@ implementation
            assigned(methodpointer) and
            (methodpointer.nodetype<>typen) then
            begin
-              getlabel(constructorfailed);
+              current_library.getlabel(constructorfailed);
               emitjmp(C_Z,constructorfailed);
               cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(1));
               reference_reset_base(href,self_pointer_reg,0);
@@ -1355,8 +1355,8 @@ implementation
           oldexitlabel:=aktexitlabel;
           oldexit2label:=aktexit2label;
           oldquickexitlabel:=quickexitlabel;
-          getlabel(aktexitlabel);
-          getlabel(aktexit2label);
+          current_library.getlabel(aktexitlabel);
+          current_library.getlabel(aktexit2label);
           { we're inlining a procedure }
           inlining_procedure:=true;
           { save old procinfo }
@@ -1388,8 +1388,8 @@ implementation
 {$ifdef GDB}
           if (cs_debuginfo in aktmoduleswitches) then
             begin
-              getaddrlabel(startlabel);
-              getaddrlabel(endlabel);
+              current_library.getaddrlabel(startlabel);
+              current_library.getaddrlabel(endlabel);
               cg.a_label(exprasmlist,startlabel);
               inlineprocdef.localst.symtabletype:=inlinelocalsymtable;
               inlineprocdef.parast.symtabletype:=inlineparasymtable;
@@ -1481,7 +1481,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2002-07-20 11:58:01  florian
+  Revision 1.61  2002-08-11 13:24:16  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.60  2002/07/20 11:58:01  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

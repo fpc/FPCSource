@@ -142,7 +142,7 @@ begin
   if checklength then
     begin
       { is it already maximal? }
-      getlabel(l);
+      current_library.getlabel(l);
       if tg.istemp(left.location.reference) then
         len:=255
       else
@@ -248,7 +248,16 @@ end.
 
 {
   $Log$
-  Revision 1.21  2002-07-20 11:58:04  florian
+  Revision 1.22  2002-08-11 13:24:17  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.21  2002/07/20 11:58:04  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

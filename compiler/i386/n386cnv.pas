@@ -164,8 +164,8 @@ implementation
                 rg.ungetregisterint(exprasmlist,R_EDI);
                 reference_reset_base(href,R_ESP,0);
                 emit_ref(A_FILD,S_IQ,href);
-                getdatalabel(l1);
-                getlabel(l2);
+                current_library.getdatalabel(l1);
+                current_library.getlabel(l2);
                 emitjmp(C_Z,l2);
                 Consts.concat(Tai_label.Create(l1));
                 { I got this constant from a test progtram (FK) }
@@ -198,8 +198,8 @@ implementation
       begin
          oldtruelabel:=truelabel;
          oldfalselabel:=falselabel;
-         getlabel(truelabel);
-         getlabel(falselabel);
+         current_library.getlabel(truelabel);
+         current_library.getlabel(falselabel);
          secondpass(left);
          if codegenerror then
           exit;
@@ -255,7 +255,7 @@ implementation
             LOC_JUMP :
               begin
                 hregister:=rg.getregisterint(exprasmlist);
-                getlabel(hlabel);
+                current_library.getlabel(hlabel);
                 cg.a_label(exprasmlist,truelabel);
                 cg.a_load_const_reg(exprasmlist,OS_INT,1,hregister);
                 cg.a_jmp_always(exprasmlist,hlabel);
@@ -294,14 +294,14 @@ implementation
          { NIL must be accepted !! }
          emit_reg_reg(A_OR,S_L,r^.base,r^.base);
          rg.ungetregisterint(exprasmlist,R_EDI);
-         getlabel(nillabel);
+         current_library.getlabel(nillabel);
          emitjmp(C_E,nillabel);
          { this is one point where we need vmt_offset (PM) }
          r^.offset:= tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_offset;
          rg.getexplicitregisterint(exprasmlist,R_EDI);
          emit_ref_reg(A_MOV,S_L,r,R_EDI);
          emit_sym(A_PUSH,S_L,
-           newasmsymbol(tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_mangledname));
+           current_library.newasmsymbol(tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_mangledname));
          emit_reg(A_PUSH,S_L,R_EDI);
          rg.ungetregister32(exprasmlist,R_EDI);
          emitcall('FPC_CHECK_OBJECT_EXT');
@@ -365,7 +365,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2002-07-27 19:53:51  jonas
+  Revision 1.46  2002-08-11 13:24:16  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.45  2002/07/27 19:53:51  jonas
     + generic implementation of tcg.g_flags2ref()
     * tcg.flags2xxx() now also needs a size parameter
 

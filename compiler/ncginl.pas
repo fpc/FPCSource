@@ -39,7 +39,7 @@ interface
           procedure second_predsucc;virtual;
           procedure second_incdec;virtual;
           procedure second_typeinfo;virtual;
-          procedure second_includeexclude;virtual; 
+          procedure second_includeexclude;virtual;
           procedure second_pi; virtual;
           procedure second_arctan_real; virtual;
           procedure second_abs_real; virtual;
@@ -184,8 +184,8 @@ implementation
           internalerror(7123458);
        otlabel:=truelabel;
        oflabel:=falselabel;
-       getlabel(truelabel);
-       getlabel(falselabel);
+       current_library.getlabel(truelabel);
+       current_library.getlabel(falselabel);
        secondpass(tcallparanode(left).left);
        maketojumpbool(exprasmlist,tcallparanode(left).left,lr_load_regvars);
        cg.a_label(exprasmlist,falselabel);
@@ -227,7 +227,7 @@ implementation
         if left.nodetype=typen then
           begin
             hregister:=rg.getaddressregister(exprasmlist);
-            reference_reset_symbol(href,newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),0);
+            reference_reset_symbol(href,current_library.newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),0);
             cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
           end
         else
@@ -269,7 +269,7 @@ implementation
             begin
               location_force_reg(exprasmlist,left.location,OS_ADDR,false);
               hregister:=left.location.register;
-              getlabel(lengthlab);
+              current_library.getlabel(lengthlab);
               cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,hregister,lengthlab);
               reference_reset_base(href,hregister,-8);
               cg.a_load_ref_reg(exprasmlist,OS_32,href,hregister);
@@ -429,7 +429,7 @@ implementation
             end
           else
             begin
-              getlabel(ptrvalidlabel);
+              current_library.getlabel(ptrvalidlabel);
               cg.a_load_const_reg(exprasmlist, OS_INT, 1, hreg);
               cg.a_cmp_const_ref_label(exprasmlist, OS_ADDR, OC_NE, 0,
                   tcallparanode(left).left.location.reference, ptrvalidlabel);
@@ -490,24 +490,24 @@ implementation
             begin
              use_small:=
                  { set type }
-                 (tsetdef(tcallparanode(left).left.resulttype.def).settype=smallset) 
+                 (tsetdef(tcallparanode(left).left.resulttype.def).settype=smallset)
                   and
-                   { elemenut number between 1 and 32 } 
-                  ((tcallparanode(tcallparanode(left).right).left.resulttype.def.deftype=orddef) and 
+                   { elemenut number between 1 and 32 }
+                  ((tcallparanode(tcallparanode(left).right).left.resulttype.def.deftype=orddef) and
                    (torddef(tcallparanode(tcallparanode(left).right).left.resulttype.def).high<=32) or
-                   (tcallparanode(tcallparanode(left).right).left.resulttype.def.deftype=enumdef) and 
+                   (tcallparanode(tcallparanode(left).right).left.resulttype.def.deftype=enumdef) and
                    (tenumdef(tcallparanode(tcallparanode(left).right).left.resulttype.def).max<=32));
-            
+
               { generate code for the element to set }
               maybe_save(exprasmlist,tcallparanode(tcallparanode(left).right).left.registers32,
                         tcallparanode(left).left.location,pushedregs);
               secondpass(tcallparanode(tcallparanode(left).right).left);
               maybe_restore(exprasmlist,tcallparanode(left).left.location,pushedregs);
-              
+
               { bitnumber - which must be loaded into register }
               hregister := cg.get_scratch_reg_int(exprasmlist);
               hregister2 := rg.getregisterint(exprasmlist);
-              
+
               case tcallparanode(tcallparanode(left).right).left.location.loc of
                  LOC_CREGISTER,
                  LOC_REGISTER:
@@ -527,11 +527,11 @@ implementation
                { hregister contains the bitnumber to add }
                cg.a_load_const_reg(exprasmlist, OS_INT, 1, hregister2);
                cg.a_op_reg_reg(exprasmlist, OP_SHL, OS_INT, hregister, hregister2);
-              
-              
+
+
               if use_small then
                 begin
-                  { possiblities : 
+                  { possiblities :
                        bitnumber : LOC_REFERENCE, LOC_REGISTER, LOC_CREGISTER
                        set value : LOC_REFERENCE, LOC_REGISTER
                   }
@@ -540,24 +540,24 @@ implementation
                     begin
                      if inlinenumber=in_include_x_y then
                        begin
-                         cg.a_op_reg_ref(exprasmlist, OP_OR, OS_32, hregister2, 
+                         cg.a_op_reg_ref(exprasmlist, OP_OR, OS_32, hregister2,
                          tcallparanode(left).left.location.reference);
                        end
                      else
                        begin
-                         cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, 
+                         cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2,
                          hregister2);
-                         cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2, 
+                         cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2,
                          tcallparanode(left).left.location.reference);
                        end;
-                      
+
                     end
                   else
                     internalerror(20020728);
                 end
               else
                 begin
-                  { possiblities : 
+                  { possiblities :
                        bitnumber : LOC_REFERENCE, LOC_REGISTER, LOC_CREGISTER
                        set value : LOC_REFERENCE
                   }
@@ -568,7 +568,7 @@ implementation
                   cg.a_loadaddr_ref_reg(exprasmlist, tcallparanode(left).left.location.reference,addrreg);
                   cg.a_op_reg_reg(exprasmlist, OP_ADD, OS_INT, hregister, addrreg);
                   reference_reset_base(href,addrreg,0);
-                  
+
                   if inlinenumber=in_include_x_y then
                        begin
                          cg.a_op_reg_ref(exprasmlist, OP_OR, OS_32, hregister2, href);
@@ -578,11 +578,11 @@ implementation
                          cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, hregister2);
                          cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2, href);
                        end;
-                       
+
                   cg.free_scratch_reg(exprasmlist, addrreg);
                 end;
                 cg.free_scratch_reg(exprasmlist,hregister);
-                rg.ungetregisterint(exprasmlist,hregister2); 
+                rg.ungetregisterint(exprasmlist,hregister2);
             end;
         end;
 
@@ -641,7 +641,16 @@ end.
 
 {
   $Log$
-  Revision 1.10  2002-08-05 18:27:48  carl
+  Revision 1.11  2002-08-11 13:24:11  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.10  2002/08/05 18:27:48  carl
     + more more more documentation
     + first version include/exclude (can't test though, not enough scratch for i386 :()...
 

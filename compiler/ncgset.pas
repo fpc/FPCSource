@@ -283,7 +283,7 @@ implementation
          if genjumps then
           begin
             { Get a label to jump to the end }
-            getlabel(l);
+            current_library.getlabel(l);
 
             { clear the register value, indicating result is FALSE }
             cg.a_load_const_reg(exprasmlist,OS_INT,0,location.register);
@@ -378,7 +378,7 @@ implementation
               end;
              { To compensate for not doing a second pass }
              right.location.reference.symbol:=nil;
-             getlabel(l3);
+             current_library.getlabel(l3);
              cg.a_jmp_always(exprasmlist,l3);
              { Now place the end label if IN success }
              cg.a_label(exprasmlist,l);
@@ -507,8 +507,8 @@ implementation
                   { this section has not been tested!    }
                   { can it actually occur currently? CEC }
                   { yes: "if bytevar in [1,3,5,7,9,11,13,15]" (JM) }
-                  getlabel(l);
-                  getlabel(l2);
+                  current_library.getlabel(l);
+                  current_library.getlabel(l2);
 
                   case left.location.loc of
                      LOC_REGISTER,
@@ -691,7 +691,7 @@ implementation
              begin
                 if opsize in [OS_S64,OS_64] then
                   begin
-                     getlabel(l1);
+                     objectlibrary.getlabel(l1);
                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_NE, longint(hi(int64(t^._low))),hregister2,l1);
                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ, longint(lo(int64(t^._low))),hregister, t^.statement);
                      cg.a_label(exprasmlist,l1);
@@ -711,7 +711,7 @@ implementation
                   begin
                      if opsize in [OS_64,OS_S64] then
                        begin
-                          getlabel(l1);
+                          objectlibrary.getlabel(l1);
                           cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, longint(hi(int64(t^._low))),
                                hregister2, elselabel);
                           cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, longint(hi(int64(t^._low))),
@@ -729,7 +729,7 @@ implementation
 
                 if opsize in [OS_S64,OS_64] then
                   begin
-                     getlabel(l1);
+                     objectlibrary.getlabel(l1);
                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, longint(hi(int64(t^._high))), hregister2,
                            t^.statement);
                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, longint(hi(int64(t^._high))), hregister2,
@@ -802,7 +802,6 @@ implementation
            gentreejmp(p^.greater);
       end;
 
-
       var
          lv,hv,
          max_label: tconstexprint;
@@ -813,8 +812,8 @@ implementation
          dist : cardinal;
          hp : tnode;
       begin
-         getlabel(endlabel);
-         getlabel(elselabel);
+         current_library.getlabel(endlabel);
+         current_library.getlabel(elselabel);
          with_sign:=is_signed(left.resulttype.def);
          if with_sign then
            begin
@@ -834,9 +833,9 @@ implementation
          if left.location.loc=LOC_JUMP then
           begin
             otl:=truelabel;
-            getlabel(truelabel);
+            current_library.getlabel(truelabel);
             ofl:=falselabel;
-            getlabel(falselabel);
+            current_library.getlabel(falselabel);
             isjump:=true;
           end;
          secondpass(left);
@@ -957,7 +956,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2002-08-11 11:37:42  jonas
+  Revision 1.15  2002-08-11 13:24:12  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.14  2002/08/11 11:37:42  jonas
     * genlinear(cmp)list can now be overridden by descendents
 
   Revision 1.13  2002/08/11 06:14:40  florian

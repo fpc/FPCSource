@@ -39,7 +39,7 @@ interface
     uses
        cutils,cclasses,
        globals,finput,
-       symbase;
+       symbase,aasmbase;
 
     const
        maxunits = 1024;
@@ -124,6 +124,7 @@ interface
           locallibrarysearchpath : TSearchPathList;
 
           asmprefix     : pstring;  { prefix for the smartlink asmfiles }
+          librarydata   : tasmlibrarydata;   { librarydata for this module }
           constructor create(const s:string;_is_unit:boolean);
           destructor destroy;override;
           procedure reset;virtual;
@@ -411,6 +412,7 @@ uses
         imports:=TLinkedList.Create;
         _exports:=TLinkedList.Create;
         externals:=TLinkedList.Create;
+        librarydata:=tasmlibrarydata.create(realmodulename^);
       end;
 
 
@@ -470,6 +472,13 @@ uses
 {$ifdef MEMDEBUG}
         d.free;
 {$endif}
+{$ifdef MEMDEBUG}
+        d:=tmemdebug.create('librarydata');
+{$endif}
+        librarydata.free;
+{$ifdef MEMDEBUG}
+        d.free;
+{$endif}
         inherited Destroy;
       end;
 
@@ -497,6 +506,8 @@ uses
          end;
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
+        librarydata.free;
+        librarydata:=tasmlibrarydata.create(realmodulename^);
         imports.free;
         imports:=tlinkedlist.create;
         _exports.free;
@@ -584,7 +595,16 @@ uses
 end.
 {
   $Log$
-  Revision 1.23  2002-05-16 19:46:36  carl
+  Revision 1.24  2002-08-11 13:24:11  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.23  2002/05/16 19:46:36  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls

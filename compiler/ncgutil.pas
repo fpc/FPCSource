@@ -64,17 +64,17 @@ interface
    procedure genexitcode(list : TAAsmoutput;parasize:longint;nostackframe,inlined:boolean);
    procedure genimplicitunitinit(list : TAAsmoutput);
    procedure genimplicitunitfinal(list : TAAsmoutput);
-   
+
           {#
               Allocate the buffers for exception management and setjmp environment.
               Return a pointer to these buffers, send them to the utility routine
               so they are registered, and then call setjmp.
-  
+
               Then compare the result of setjmp with 0, and if not equal
               to zero, then jump to exceptlabel.
-       
+
               Also store the result of setjmp to a temporary space by calling g_save_exception_reason
-              
+
               It is to note that this routine may be called *after* the stackframe of a
               routine has been called, therefore on machines where the stack cannot
               be modified, all temps should be allocated on the heap instead of the
@@ -84,7 +84,7 @@ interface
               a : aword; exceptlabel : tasmlabel);
           procedure free_exception(list : taasmoutput;const jmpbuf, envbuf, href : treference;
            a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
-   
+
 
 
 implementation
@@ -243,17 +243,17 @@ implementation
 
        cg.a_param_reg(list,OS_ADDR,accumulator,paramanager.getintparaloc(1));
        cg.a_call_name(list,'FPC_SETJMP');
-         
+
        cg.g_exception_reason_save(list, href);
        cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,accumulator,exceptlabel);
      end;
-     
-     
+
+
     procedure free_exception(list : taasmoutput;const jmpbuf, envbuf, href : treference;
      a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
      begin
          cg.a_call_name(list,'FPC_POPADDRSTACK');
-         
+
          if not onlyfree then
           begin
             cg.g_exception_reason_load(list, href);
@@ -295,7 +295,7 @@ implementation
                   begin
                     cg.a_label(list,truelabel);
                     cg.a_load_const_reg(list,OS_INT,1,hregister);
-                    getlabel(hl);
+                    current_library.getlabel(hl);
                     cg.a_jmp_always(list,hl);
                     cg.a_label(list,falselabel);
                     cg.a_load_const_reg(list,OS_INT,0,hregister);
@@ -383,7 +383,7 @@ implementation
                begin
                  cg.a_label(list,truelabel);
                  cg.a_load_const_reg(list,dst_size,1,hregister);
-                 getlabel(hl);
+                 current_library.getlabel(hl);
                  cg.a_jmp_always(list,hl);
                  cg.a_label(list,falselabel);
                  cg.a_load_const_reg(list,dst_size,0,hregister);
@@ -437,7 +437,7 @@ implementation
                   begin
                     cg.a_label(list,truelabel);
                     cg.a_load_const_reg(list,OS_INT,1,hregister);
-                    getlabel(hl);
+                    current_library.getlabel(hl);
                     cg.a_jmp_always(list,hl);
                     cg.a_label(list,falselabel);
                     cg.a_load_const_reg(list,OS_INT,0,hregister);
@@ -475,7 +475,7 @@ implementation
                begin
                  cg.a_label(list,truelabel);
                  cg.a_load_const_reg(list,dst_size,1,hregister);
-                 getlabel(hl);
+                 current_library.getlabel(hl);
                  cg.a_jmp_always(list,hl);
                  cg.a_label(list,falselabel);
                  cg.a_load_const_reg(list,dst_size,0,hregister);
@@ -869,7 +869,7 @@ implementation
            (vo_is_thread_var in tvarsym(p).varoptions) then
          begin
            cg.a_param_const(list,OS_INT,tvarsym(p).getsize,paramanager.getintparaloc(2));
-           reference_reset_symbol(href,newasmsymbol(tvarsym(p).mangledname),0);
+           reference_reset_symbol(href,current_library.newasmsymbol(tvarsym(p).mangledname),0);
            cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
            rg.saveregvars(list,all_registers);
            cg.a_call_name(list,'FPC_INIT_THREADVAR');
@@ -894,7 +894,7 @@ implementation
            if tsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
             reference_reset_base(href,procinfo^.framepointer,-tvarsym(p).address+tvarsym(p).owner.address_fixup)
            else
-            reference_reset_symbol(href,newasmsymbol(tvarsym(p).mangledname),0);
+            reference_reset_symbol(href,current_library.newasmsymbol(tvarsym(p).mangledname),0);
            cg.g_initialize(list,tvarsym(p).vartype.def,href,false);
          end;
       end;
@@ -915,7 +915,7 @@ implementation
            if tsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
             reference_reset_base(href,procinfo^.framepointer,-tvarsym(p).address+tvarsym(p).owner.address_fixup)
            else
-            reference_reset_symbol(href,newasmsymbol(tvarsym(p).mangledname),0);
+            reference_reset_symbol(href,current_library.newasmsymbol(tvarsym(p).mangledname),0);
            cg.g_finalize(list,tvarsym(p).vartype.def,href,false);
          end;
       end;
@@ -1139,12 +1139,12 @@ implementation
         stackalloclist : taasmoutput;
       begin
         stackalloclist:=taasmoutput.Create;
-        
+
         { the actual stack allocation code, symbol entry point and
           gdb stabs information is generated AFTER the rest of this
           code, since temp. allocation might occur before - carl
-        }  
-        
+        }
+
         if (cs_profile in aktmoduleswitches) and
               not(po_assembler in aktprocdef.procoptions) and not(inlined) then
             cg.g_profilecode(list);
@@ -1265,7 +1265,7 @@ implementation
 
         if inlined then
          load_regvars(list,nil);
-         
+
         {************************* Stack allocation **************************}
         { and symbol entry point as well as debug information                 }
         { will be inserted in front of the rest of this list.                 }
@@ -1308,7 +1308,7 @@ implementation
              else
               stackalloclist.concat(Tai_symbol.Createname(hs,0));
            until false;
-        
+
         stackframe:=stackframe+tg.gettempsize;
 {$ifndef powerpc}
            { at least for the ppc this applies always, so this code isn't usable (FK) }
@@ -1413,7 +1413,7 @@ implementation
           begin
              { the exception helper routines modify all registers }
              aktprocdef.usedregisters:=all_registers;
-             getlabel(noreraiselabel);
+             current_library.getlabel(noreraiselabel);
              free_exception(list,
                   procinfo^.exception_jmp_ref,
                   procinfo^.exception_env_ref,
@@ -1427,7 +1427,7 @@ implementation
                        pd:=procinfo^._class.searchdestructor;
                        if assigned(pd) then
                          begin
-                            getlabel(nodestroycall);
+                            current_library.getlabel(nodestroycall);
                             reference_reset_base(href,procinfo^.framepointer,procinfo^.selfpointer_offset);
                             cg.a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nodestroycall);
                             if is_class(procinfo^._class) then
@@ -1438,7 +1438,7 @@ implementation
                             else if is_object(procinfo^._class) then
                              begin
                                cg.a_param_reg(list,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(2));
-                               reference_reset_symbol(href,newasmsymbol(procinfo^._class.vmt_mangledname),0);
+                               reference_reset_symbol(href,current_library.newasmsymbol(procinfo^._class.vmt_mangledname),0);
                                cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
                              end
                             else
@@ -1500,7 +1500,7 @@ implementation
                 { successful constructor deletes the zero flag }
                 { and returns self in eax                   }
                 { eax must be set to zero if the allocation failed !!! }
-                getlabel(okexitlabel);
+                current_library.getlabel(okexitlabel);
                 cg.a_jmp_always(list,okexitlabel);
                 cg.a_label(list,faillabel);
                 cg.g_call_fail_helper(list);
@@ -1529,7 +1529,7 @@ implementation
 {$ifdef GDB}
         if ((cs_debuginfo in aktmoduleswitches) and not inlined) then
           begin
-            getlabel(stabsendlabel);
+            current_library.getlabel(stabsendlabel);
             cg.a_label(list,stabsendlabel);
           end;
 {$endif GDB}
@@ -1598,9 +1598,13 @@ implementation
                     st:='*'
                   else
                     st:='';
+{$ifdef i386}
                   list.concat(Tai_stabs.Create(strpnew(
                    '"$t:r'+st+procinfo^._class.numberstring+'",'+
                    tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[SELF_POINTER_REG]))));
+{$else}
+{$warning Missing stabs for classes!}
+{$endif}
                 end;
 
             { define calling EBP as pseudo local var PM }
@@ -1701,7 +1705,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2002-08-09 19:16:57  carl
+  Revision 1.32  2002-08-11 13:24:12  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.31  2002/08/09 19:16:57  carl
     * stack allocation is now done separately (at the end) of genentrycode
       so temps. can be allocated before.
     * fix generic exception handling

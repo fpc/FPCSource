@@ -401,7 +401,7 @@ unit cgx86;
     procedure tcgx86.a_call_name(list : taasmoutput;const s : string);
 
       begin
-        list.concat(taicpu.op_sym(A_CALL,S_NO,newasmsymbol(s)));
+        list.concat(taicpu.op_sym(A_CALL,S_NO,current_library.newasmsymbol(s)));
       end;
 
     procedure tcgx86.a_call_ref(list : taasmoutput;const ref : treference);
@@ -1268,8 +1268,8 @@ unit cgx86;
         { so we have to access every page first              }
         if target_info.system=system_i386_win32 then
           begin
-             getlabel(again);
-             getlabel(ok);
+             current_library.getlabel(again);
+             current_library.getlabel(ok);
              a_label(list,again);
              list.concat(Taicpu.op_const_reg(A_CMP,S_L,winstackpagesize,R_EDI));
              a_jmp_cond(list,OC_B,ok);
@@ -1401,7 +1401,7 @@ unit cgx86;
            system_i386_wdosx,
            system_i386_linux:
              begin
-                getaddrlabel(pl);
+                current_library.getaddrlabel(pl);
                 list.concat(Tai_section.Create(sec_data));
                 list.concat(Tai_align.Create(4));
                 list.concat(Tai_label.Create(pl));
@@ -1448,7 +1448,7 @@ unit cgx86;
                  end
                else
                  begin
-                    getlabel(again);
+                    current_library.getlabel(again);
                     rg.getexplicitregisterint(list,R_EDI);
                     list.concat(Taicpu.op_const_reg(A_MOV,S_L,localsize div winstackpagesize,R_EDI));
                     a_label(list,again);
@@ -1531,7 +1531,7 @@ unit cgx86;
            { must the object be finalized ? }
            if procinfo^._class.needs_inittable then
             begin
-              getlabel(nofinal);
+              current_library.getlabel(nofinal);
               reference_reset_base(href,R_EBP,8);
               a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nofinal);
               reference_reset_base(href,R_ESI,0);
@@ -1630,7 +1630,7 @@ unit cgx86;
       begin
          if not(cs_check_overflow in aktlocalswitches) then
           exit;
-         getlabel(hl);
+         current_library.getlabel(hl);
          if not ((p.resulttype.def.deftype=pointerdef) or
                 ((p.resulttype.def.deftype=orddef) and
                  (torddef(p.resulttype.def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,
@@ -1651,7 +1651,16 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.7  2002-08-10 10:06:04  jonas
+  Revision 1.8  2002-08-11 13:24:20  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.7  2002/08/10 10:06:04  jonas
     * fixed stupid bug of mine in g_flags2reg() when optimizations are on
 
   Revision 1.6  2002/08/09 19:18:27  carl

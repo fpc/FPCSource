@@ -298,6 +298,50 @@ begin
 end;
 
 
+Procedure ReadAsmSymbols;
+type
+  { Copied from aasmbase.pas }
+  TAsmsymbind=(AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL);
+  TAsmsymtype=(AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION);
+var
+  s,
+  bindstr,
+  typestr  : string;
+  i : longint;
+begin
+  writeln(space,'Number of AsmSymbols: ',ppufile.getlongint);
+  i:=0;
+  while (not ppufile.endofentry) and (not ppufile.error) do
+   begin
+     s:=ppufile.getstring;
+     case tasmsymbind(ppufile.getbyte) of
+       AB_EXTERNAL :
+         bindstr:='External';
+       AB_COMMON :
+         bindstr:='Common';
+       AB_LOCAL :
+         bindstr:='Local';
+       AB_GLOBAL :
+         bindstr:='Global';
+       else
+         bindstr:='<Error !!>'
+     end;
+     case tasmsymtype(ppufile.getbyte) of
+       AT_FUNCTION :
+         typestr:='Function';
+       AT_DATA :
+         typestr:='Data';
+       AT_SECTION :
+         typestr:='Section';
+       else
+         typestr:='<Error !!>'
+     end;
+     Writeln(space,'  ',i,' : ',s,' [',bindstr,',',typestr,']');
+     inc(i);
+   end;
+end;
+
+
 Procedure ReadPosInfo;
 var
   info : byte;
@@ -579,6 +623,7 @@ var
   procoptions     : tprocoptions;
   i,params : longint;
   first    : boolean;
+  paraloc  : array[0..9] of byte;
 begin
   write(space,'      Return type : ');
   readtype;
@@ -629,6 +674,7 @@ begin
        readsymref;
        write(space,'    Symbol  : ');
        readsymref;
+       ppufile.getdata(paraloc,sizeof(paraloc));
        dec(params);
      until params=0;
    end;
@@ -883,7 +929,6 @@ begin
              readcommonsym('Typed constant ');
              write  (space,' Constant Type: ');
              readtype;
-             writeln(space,'         Label: ',getstring);
              writeln(space,'   ReallyConst: ',(getbyte<>0));
            end;
 
@@ -1473,6 +1518,9 @@ begin
      repeat
        b:=readentry;
        case b of
+         ibasmsymbols :
+           ReadAsmSymbols;
+
          iberror :
            begin
              Writeln('Error in PPU');
@@ -1593,7 +1641,9 @@ begin
      Writeln('-------');
      with ppufile.header do
       begin
-        Writeln('Compiler version        : ',hi(ppufile.header.compiler and $ff),'.',lo(ppufile.header.compiler));
+        Writeln('Compiler version        : ',ppufile.header.compiler shr 14,'.',
+                                             (ppufile.header.compiler shr 7) and $7f,'.',
+                                             ppufile.header.compiler and $7f);
         WriteLn('Target processor        : ',Cpu2Str(cpu));
         WriteLn('Target operating system : ',Target2Str(target));
         Writeln('Unit flags              : ',PPUFlags2Str(flags));
@@ -1633,7 +1683,6 @@ begin
   else
    ppufile.skipuntilentry(ibendsyms);
 {read the implementation stuff}
-{ Not used at the moment (PFV)
   if (verbose and v_implementation)<>0 then
    begin
      Writeln;
@@ -1641,7 +1690,7 @@ begin
      Writeln('-----------------------');
      readimplementation;
    end
-  else}
+  else
    ppufile.skipuntilentry(ibendimplementation);
 {read the static browser units stuff}
   if (ppufile.header.flags and uf_local_browser)<>0 then
@@ -1774,7 +1823,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-05-18 13:34:27  peter
+  Revision 1.26  2002-08-11 13:24:20  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.25  2002/05/18 13:34:27  peter
     * readded missing revisions
 
   Revision 1.24  2002/05/16 19:46:54  carl

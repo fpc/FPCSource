@@ -248,16 +248,16 @@ uses
         if is_macro then
          begin
            if assigned(buf) then
-             Freemem(buf,maxbufsize);
-           buf:=nil;
-           {is_macro:=false;
-           still needed for dispose in scanner PM }
+            begin
+              Freemem(buf,maxbufsize);
+              buf:=nil;
+            end;
            closed:=true;
            exit;
          end;
         if not closed then
          begin
-           if fileclose then;
+           fileclose;
            closed:=true;
          end;
         if assigned(buf) then
@@ -275,12 +275,16 @@ uses
          exit;
         if not closed then
          begin
-           if fileclose then;
-           Freemem(buf,maxbufsize);
-           buf:=nil;
+           fileclose;
+           if assigned(buf) then
+            begin
+              Freemem(buf,maxbufsize);
+              buf:=nil;
+            end;
            closed:=true;
          end;
       end;
+
 
     function tinputfile.tempopen:boolean;
       begin
@@ -698,7 +702,16 @@ uses
 end.
 {
   $Log$
-  Revision 1.17  2002-07-26 21:15:37  florian
+  Revision 1.18  2002-08-11 13:24:11  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.17  2002/07/26 21:15:37  florian
     * rewrote the system handling
 
   Revision 1.16  2002/07/01 18:46:22  peter

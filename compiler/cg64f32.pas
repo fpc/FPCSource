@@ -486,7 +486,7 @@ unit cg64f32;
                  got_scratch := true;
                  a_load64high_ref_reg(list,p.location.reference,hreg);
                end;
-             getlabel(poslabel);
+             current_library.getlabel(poslabel);
 
              { check high dword, must be 0 (for positive numbers) }
              cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,0,hreg,poslabel);
@@ -494,7 +494,7 @@ unit cg64f32;
              { It can also be $ffffffff, but only for negative numbers }
              if from_signed and to_signed then
                begin
-                 getlabel(neglabel);
+                 current_library.getlabel(neglabel);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,aword(-1),hreg,neglabel);
                end;
              { !!! freeing of register should happen directly after compare! (JM) }
@@ -518,7 +518,7 @@ unit cg64f32;
 
              if from_signed and to_signed then
                begin
-                 getlabel(endlabel);
+                 current_library.getlabel(endlabel);
                  cg.a_jmp_always(list,endlabel);
                  { if the high dword = $ffffffff, then the low dword (when }
                  { considered as a longint) must be < 0                    }
@@ -535,7 +535,7 @@ unit cg64f32;
                      a_load64low_ref_reg(list,p.location.reference,hreg);
                    end;
                  { get a new neglabel (JM) }
-                 getlabel(neglabel);
+                 current_library.getlabel(neglabel);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_LT,0,hreg,neglabel);
                  { !!! freeing of register should happen directly after compare! (JM) }
                  if got_scratch then
@@ -593,7 +593,7 @@ unit cg64f32;
                    else
                      cg.a_load_ref_reg(list,opsize,p.location.reference,hreg);
                  end;
-               getlabel(poslabel);
+               current_library.getlabel(poslabel);
                cg.a_cmp_const_reg_label(list,opsize,OC_GTE,0,hreg,poslabel);
 
                { !!! freeing of register should happen directly after compare! (JM) }
@@ -617,7 +617,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-07-28 15:57:15  jonas
+  Revision 1.23  2002-08-11 13:24:11  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.22  2002/07/28 15:57:15  jonas
     * fixed a_load64_const_reg() for big endian systems
 
   Revision 1.21  2002/07/20 11:57:52  florian

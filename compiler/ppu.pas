@@ -77,6 +77,8 @@ const
   ibendsymtablebrowser   = 14;
   ibbeginsymtablebrowser = 15;
   ibusedmacros           = 16;
+  {implementation/objectdata}
+  ibasmsymbols    = 100;
   {syms}
   ibtypesym       = 20;
   ibprocsym       = 21;
@@ -111,7 +113,6 @@ const
   ibansistringdef  = 55;
   ibwidestringdef  = 56;
   ibvariantdef     = 57;
-
 { unit flags }
   uf_init          = $1;
   uf_finalize      = $2;
@@ -981,7 +982,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2002-08-09 07:33:02  florian
+  Revision 1.22  2002-08-11 13:24:12  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.21  2002/08/09 07:33:02  florian
     * a couple of interface related fixes
 
   Revision 1.20  2002/05/18 13:34:13  peter

@@ -216,7 +216,7 @@ begin
   { case 0 }
   else
     begin
-      lab:=newasmsymbol(procdef.mangledname);
+      lab:=current_library.newasmsymbol(procdef.mangledname);
       emit_sym(A_JMP,S_NO,lab);
     end;
   exprasmlist:=oldexprasmlist;
@@ -228,7 +228,16 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2002-08-09 07:33:04  florian
+  Revision 1.14  2002-08-11 13:24:17  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.13  2002/08/09 07:33:04  florian
     * a couple of interface related fixes
 
   Revision 1.12  2002/07/16 15:34:21  florian

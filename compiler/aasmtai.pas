@@ -121,7 +121,7 @@ interface
           constructor Create;
        end;
 
-       {# Generates an assembler string } 
+       {# Generates an assembler string }
        tai_string = class(tai)
           str : pchar;
           { extra len so the string can contain an \0 }
@@ -150,7 +150,7 @@ interface
           constructor Createname(const _name : string);
        end;
 
-       {# Generates an assembler label } 
+       {# Generates an assembler label }
        tai_label = class(tai)
           is_global : boolean;
           l : tasmlabel;
@@ -226,8 +226,8 @@ interface
           constructor Create(_value : ts80real);
        end;
 
-       {# Generates a comp int (integer over 64 bits) 
-         
+       {# Generates a comp int (integer over 64 bits)
+
           This is Intel 80x86 specific, and is not
           really supported on other processors.
        }
@@ -361,7 +361,7 @@ uses
       begin
          inherited Create;
          typ:=ait_datablock;
-         sym:=newasmsymboltype(_name,AB_LOCAL,AT_DATA);
+         sym:=current_library.newasmsymboltype(_name,AB_LOCAL,AT_DATA);
          { keep things aligned }
          if _size<=0 then
            _size:=4;
@@ -374,7 +374,7 @@ uses
       begin
          inherited Create;
          typ:=ait_datablock;
-         sym:=newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
+         sym:=current_library.newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
          { keep things aligned }
          if _size<=0 then
            _size:=4;
@@ -400,7 +400,7 @@ uses
       begin
          inherited Create;
          typ:=ait_symbol;
-         sym:=newasmsymboltype(_name,AB_LOCAL,AT_FUNCTION);
+         sym:=current_library.newasmsymboltype(_name,AB_LOCAL,AT_FUNCTION);
          size:=siz;
          is_global:=false;
       end;
@@ -409,7 +409,7 @@ uses
       begin
          inherited Create;
          typ:=ait_symbol;
-         sym:=newasmsymboltype(_name,AB_GLOBAL,AT_FUNCTION);
+         sym:=current_library.newasmsymboltype(_name,AB_GLOBAL,AT_FUNCTION);
          size:=siz;
          is_global:=true;
       end;
@@ -418,7 +418,7 @@ uses
       begin
          inherited Create;
          typ:=ait_symbol;
-         sym:=newasmsymboltype(_name,AB_LOCAL,AT_DATA);
+         sym:=current_library.newasmsymboltype(_name,AB_LOCAL,AT_DATA);
          size:=siz;
          is_global:=false;
       end;
@@ -427,7 +427,7 @@ uses
       begin
          inherited Create;
          typ:=ait_symbol;
-         sym:=newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
+         sym:=current_library.newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
          size:=siz;
          is_global:=true;
       end;
@@ -448,7 +448,7 @@ uses
       begin
          inherited Create;
          typ:=ait_symbol_end;
-         sym:=newasmsymboltype(_name,AB_GLOBAL,AT_NONE);
+         sym:=current_library.newasmsymboltype(_name,AB_GLOBAL,AT_NONE);
       end;
 
 
@@ -519,7 +519,7 @@ uses
       begin
          inherited Create;
          typ:=ait_const_symbol;
-         sym:=newasmsymbol(name);
+         sym:=current_library.newasmsymbol(name);
          offset:=0;
          { update sym info }
          inc(sym.refs);
@@ -529,7 +529,7 @@ uses
       begin
          inherited Create;
          typ:=ait_const_symbol;
-         sym:=newasmsymbol(name);
+         sym:=current_library.newasmsymbol(name);
          offset:=ofs;
          { update sym info }
          inc(sym.refs);
@@ -539,7 +539,7 @@ uses
       begin
          inherited Create;
          typ:=ait_const_rva;
-         sym:=newasmsymbol(name);
+         sym:=current_library.newasmsymbol(name);
          offset:=0;
          { update sym info }
          inc(sym.refs);
@@ -983,7 +983,16 @@ uses
 end.
 {
   $Log$
-  Revision 1.2  2002-08-05 18:27:48  carl
+  Revision 1.3  2002-08-11 13:24:10  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.2  2002/08/05 18:27:48  carl
     + more more more documentation
     + first version include/exclude (can't test though, not enough scratch for i386 :()...
 

@@ -26,23 +26,28 @@ unit symppu;
 interface
 
     uses
+       cclasses,
        globtype,globals,
+       aasmbase,
        symbase,symtype,
        ppu;
 
     type
        tcompilerppufile=class(tppufile)
+       public
          procedure checkerror;
          procedure getguid(var g: tguid);
          procedure getposinfo(var p:tfileposinfo);
          function  getderef : pointer;
          function  getsymlist:tsymlist;
          procedure gettype(var t:ttype);
+         function  getasmsymbol:tasmsymbol;
          procedure putguid(const g: tguid);
          procedure putposinfo(const p:tfileposinfo);
          procedure putderef(p : tsymtableentry);
          procedure putsymlist(p:tsymlist);
          procedure puttype(const t:ttype);
+         procedure putasmsymbol(s:tasmsymbol);
        end;
 
 
@@ -174,6 +179,12 @@ implementation
       begin
         t.def:=tdef(getderef);
         t.sym:=tsym(getderef);
+      end;
+
+
+    function  tcompilerppufile.getasmsymbol:tasmsymbol;
+      begin
+        getasmsymbol:=tasmsymbol(pointer(getlongint));
       end;
 
 
@@ -385,10 +396,31 @@ implementation
          end;
       end;
 
+
+    procedure tcompilerppufile.putasmsymbol(s:tasmsymbol);
+      begin
+        if s.ppuidx=-1 then
+         begin
+           s.ppuidx:=current_library.asmsymbolppuidx;
+           inc(current_library.asmsymbolppuidx);
+         end;
+        putlongint(s.ppuidx);
+      end;
+
+
 end.
 {
   $Log$
-  Revision 1.12  2002-05-18 13:34:18  peter
+  Revision 1.13  2002-08-11 13:24:14  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.12  2002/05/18 13:34:18  peter
     * readded missing revisions
 
   Revision 1.11  2002/05/16 19:46:45  carl

@@ -80,10 +80,10 @@ implementation
          strval    : pchar;
          pw        : pcompilerwidestring;
          error     : boolean;
-	 
+
       type
          setbytes = array[0..31] of byte;
-	 Psetbytes = ^setbytes;
+         Psetbytes = ^setbytes;
 
       procedure check_range(def:torddef);
         begin
@@ -240,7 +240,7 @@ implementation
                       if not(tobjectdef(tclassrefdef(p.resulttype.def).pointertype.def).is_related(
                         tobjectdef(tclassrefdef(t.def).pointertype.def))) then
                         Message(cg_e_illegal_expression);
-                      curconstSegment.concat(Tai_const_symbol.Create(newasmsymbol(tobjectdef(
+                      curconstSegment.concat(Tai_const_symbol.Create(current_library.newasmsymbol(tobjectdef(
                         tclassrefdef(p.resulttype.def).pointertype.def).vmt_mangledname)));
                    end;
                  niln:
@@ -282,7 +282,7 @@ implementation
                 if is_char(tpointerdef(t.def).pointertype.def) and
                    (p.nodetype<>addrn) then
                   begin
-                    getdatalabel(ll);
+                    current_library.getdatalabel(ll);
                     curconstSegment.concat(Tai_const_symbol.Create(ll));
                     if p.nodetype=stringconstn then
                      varalign:=size_2_align(tstringconstnode(p).len)
@@ -313,7 +313,7 @@ implementation
                 if is_widechar(tpointerdef(t.def).pointertype.def) and
                    (p.nodetype<>addrn) then
                   begin
-                    getdatalabel(ll);
+                    current_library.getdatalabel(ll);
                     curconstSegment.concat(Tai_const_symbol.Create(ll));
                     Consts.concat(Tai_label.Create(ll));
                     if (p.nodetype in [stringconstn,ordconstn]) then
@@ -445,11 +445,11 @@ implementation
                         if source_info.endian = target_info.endian then
                           begin
                             for l:=0 to p.resulttype.def.size-1 do
-			    {$ifdef oldset}
-			       curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[l]));
-			    {$else}
+                            {$ifdef oldset}
+                               curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[l]));
+                            {$else}
                                curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[l]));
-			    {$endif}
+                            {$endif}
                           end
                         else
                           begin
@@ -457,17 +457,17 @@ implementation
                             j:=0;
                             for l:=0 to ((p.resulttype.def.size-1) div 4) do
                               begin
-			{$ifdef oldset}
-                		curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+3]));
-                		curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+2]));
-                		curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+1]));
-                		curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j]));
-			{$else}
+                        {$ifdef oldset}
+                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+3]));
+                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+2]));
+                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+1]));
+                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j]));
+                        {$else}
                                 curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+3]));
                                 curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+2]));
                                 curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+1]));
                                 curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j]));
-			{$endif}
+                        {$endif}
                                 Inc(j,4);
                               end;
                           end;
@@ -563,7 +563,7 @@ implementation
                           curconstSegment.concat(Tai_const.Create_32bit(0))
                         else
                           begin
-                            getdatalabel(ll);
+                            current_library.getdatalabel(ll);
                             curconstSegment.concat(Tai_const_symbol.Create(ll));
                             { first write the maximum size }
                             Consts.concat(Tai_const.Create_32bit(strlength));
@@ -590,7 +590,7 @@ implementation
                           curconstSegment.concat(Tai_const.Create_32bit(0))
                         else
                           begin
-                            getdatalabel(ll);
+                            current_library.getdatalabel(ll);
                             curconstSegment.concat(Tai_const_symbol.Create(ll));
                             Consts.concat(Tai_const.Create_32bit(strlength));
                             Consts.concat(Tai_const.Create_32bit(strlength));
@@ -986,7 +986,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2002-07-23 12:34:30  daniel
+  Revision 1.54  2002-08-11 13:24:13  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.53  2002/07/23 12:34:30  daniel
   * Readded old set code. To use it define 'oldset'. Activated by default
     for ppc.
 

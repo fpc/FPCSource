@@ -63,7 +63,7 @@ implementation
   {$ifndef NoRa386Att}
        ,ra386att
   {$endif NoRa386Att}
-{$else}  
+{$else}
        ,rasm
 {$endif i386}
        ;
@@ -170,7 +170,7 @@ implementation
            hcaselabel^.greater:=nil;
            hcaselabel^.statement:=aktcaselabel;
            hcaselabel^.firstlabel:=first;
-           getlabel(hcaselabel^._at);
+           current_library.getlabel(hcaselabel^._at);
            hcaselabel^._low:=l;
            hcaselabel^._high:=h;
            insertlabel(root);
@@ -205,7 +205,7 @@ implementation
          root:=nil;
          instruc:=nil;
          repeat
-           getlabel(aktcaselabel);
+           current_library.getlabel(aktcaselabel);
            firstlabel:=true;
 
            { maybe an instruction has more case labels }
@@ -725,7 +725,7 @@ implementation
            asmmode_i386_intel:
              asmstat:=tasmnode(ra386int.assemble);
   {$endif NoRA386Int}
-{$else}  
+{$else}
            asmmode_direct:
              begin
                if not target_asm.allowdirect then
@@ -741,8 +741,8 @@ implementation
 
            asmmode_standard:
              asmstat:=tasmnode(rasm.assemble);
-{$endif}  
-             
+{$endif}
+
          else
            Message(parser_f_assembler_reader_not_supported);
          end;
@@ -1142,7 +1142,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2002-08-10 14:46:30  carl
+  Revision 1.69  2002-08-11 13:24:12  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.68  2002/08/10 14:46:30  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's

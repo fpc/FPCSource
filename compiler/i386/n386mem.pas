@@ -380,9 +380,9 @@ implementation
               if isjump then
                begin
                  otl:=truelabel;
-                 getlabel(truelabel);
+                 current_library.getlabel(truelabel);
                  ofl:=falselabel;
-                 getlabel(falselabel);
+                 current_library.getlabel(falselabel);
                end;
               maybe_save(exprasmlist,right.registers32,location,pushedregs);
               secondpass(right);
@@ -406,7 +406,7 @@ implementation
                         firstpass(hightree);
                         secondpass(hightree);
                         location_release(exprasmlist,hightree.location);
-                        reference_reset_symbol(href,newasmsymbol(tarraydef(left.resulttype.def).getrangecheckstring),4);
+                        reference_reset_symbol(href,current_library.newasmsymbol(tarraydef(left.resulttype.def).getrangecheckstring),4);
                         cg.a_load_loc_ref(exprasmlist,hightree.location,href);
                         hightree.free;
                         hightree:=nil;
@@ -507,7 +507,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2002-07-28 21:34:31  florian
+  Revision 1.40  2002-08-11 13:24:17  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.39  2002/07/28 21:34:31  florian
     * more powerpc fixes
     + dummy tcgvecnode
 

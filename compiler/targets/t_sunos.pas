@@ -188,7 +188,7 @@ begin
            { place jump in codesegment }
            codesegment.concat(Tai_align.Create_op(4,$90));
            codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,0));
-           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,newasmsymbol(tprocsym(hp2.sym).defs^.def.mangledname)));
+           codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,current_library.newasmsymbol(tprocsym(hp2.sym).defs^.def.mangledname)));
            codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
          end;
@@ -486,7 +486,16 @@ initialization
 end.
 {
   $Log$
-  Revision 1.25  2002-07-26 21:15:46  florian
+  Revision 1.26  2002-08-11 13:24:20  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.25  2002/07/26 21:15:46  florian
     * rewrote the system handling
 
   Revision 1.24  2002/07/01 18:46:35  peter

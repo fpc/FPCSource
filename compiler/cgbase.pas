@@ -232,7 +232,8 @@ implementation
         systems,
         cresstr,
         rgobj,
-        defbase
+        defbase,
+        fmodule
 {$ifdef fixLeaksOnError}
         ,comphook
 {$endif fixLeaksOnError}
@@ -432,13 +433,11 @@ implementation
          importssection:=nil;
          exportssection:=nil;
          resourcesection:=nil;
-         { assembler symbols }
-         asmsymbollist:=tdictionary.create;
-         asmsymbollist.usehash;
          { resourcestrings }
          ResourceStrings:=TResourceStrings.Create;
+         { use the librarydata from current_module }
+         current_library:=current_module.librarydata;
       end;
-
 
 
     procedure codegen_donemodule;
@@ -469,16 +468,9 @@ implementation
 {$ifdef MEMDEBUG}
          d.free;
 {$endif}
-         { assembler symbols }
-{$ifdef MEMDEBUG}
-         d:=tmemdebug.create('asmsymbol');
-{$endif}
-         asmsymbollist.free;
-{$ifdef MEMDEBUG}
-         d.free;
-{$endif}
          { resource strings }
          ResourceStrings.free;
+         current_library:=nil;
       end;
 
 
@@ -590,7 +582,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-08-06 20:55:20  florian
+  Revision 1.23  2002-08-11 13:24:11  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.22  2002/08/06 20:55:20  florian
     * first part of ppc calling conventions fix
 
   Revision 1.21  2002/08/05 18:27:48  carl

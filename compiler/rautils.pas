@@ -835,7 +835,7 @@ Begin
             end;
           globalsymtable,
           staticsymtable :
-            opr.ref.symbol:=newasmsymbol(tvarsym(sym).mangledname);
+            opr.ref.symbol:=current_library.newasmsymbol(tvarsym(sym).mangledname);
           parasymtable :
             begin
               { if we only want the offset we don't have to care
@@ -880,7 +880,7 @@ Begin
           localsymtable :
             begin
               if (vo_is_external in tvarsym(sym).varoptions) then
-                opr.ref.symbol:=newasmsymbol(tvarsym(sym).mangledname)
+                opr.ref.symbol:=current_library.newasmsymbol(tvarsym(sym).mangledname)
               else
                 begin
                   { if we only want the offset we don't have to care
@@ -941,7 +941,7 @@ Begin
       end;
     typedconstsym :
       begin
-        opr.ref.symbol:=newasmsymbol(ttypedconstsym(sym).mangledname);
+        opr.ref.symbol:=current_library.newasmsymbol(ttypedconstsym(sym).mangledname);
         case ttypedconstsym(sym).typedconsttype.def.deftype of
           orddef,
           enumdef,
@@ -989,7 +989,7 @@ Begin
           Message(asmr_w_calling_overload_func);
         l:=opr.ref.offset;
         opr.typ:=OPR_SYMBOL;
-        opr.symbol:=newasmsymbol(tprocsym(sym).defs^.def.mangledname);
+        opr.symbol:=current_library.newasmsymbol(tprocsym(sym).defs^.def.mangledname);
         opr.symofs:=l;
         hasvar:=true;
         SetupVar:=TRUE;
@@ -1010,7 +1010,7 @@ var
   p : tasmsymbol;
 begin
   SetupDirectVar:=false;
-  p:=getasmsymbol(hs);
+  p:=current_library.getasmsymbol(hs);
   if assigned(p) then
    begin
      opr.ref.symbol:=p;
@@ -1129,7 +1129,7 @@ function TLocalLabel.Gettasmlabel:tasmlabel;
 begin
   if not assigned(lab) then
    begin
-     getlabel(lab);
+     current_library.getlabel(lab);
      { this label is forced to be used so it's always written }
      inc(lab.refs);
    end;
@@ -1592,7 +1592,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.38  2002-07-20 11:57:57  florian
+  Revision 1.39  2002-08-11 13:24:13  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.38  2002/07/20 11:57:57  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

@@ -67,11 +67,11 @@ interface
          inusedlist : boolean;
          { assembler pass label is set, used for detecting multiple labels }
          pass : byte;
+         ppuidx : longint;
          constructor create(const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
          procedure reset;
          function  is_used:boolean;
          procedure setaddress(_pass:byte;sec:TSection;offset,len:longint);
-         procedure GenerateAltSymbol;
        end;
 
        TAsmLabel = class(TAsmSymbol)
@@ -81,9 +81,9 @@ interface
          { checks -> true) or is it a jump target (false)               }
          is_addr : boolean;
          labelnr : longint;
-         constructor create;
-         constructor createdata;
-         constructor createaddr;
+         constructor create(nr:longint);
+         constructor createdata(nr:longint);
+         constructor createaddr(nr:longint);
          function getname:string;override;
        end;
 
@@ -125,28 +125,6 @@ interface
          procedure addsectionreloc(ofs:longint;sec:TSection;relative:TAsmRelocationType);
        end;
 
-       TAsmObjectData = class(TLinkedListItem)
-         name      : string[80];
-         currsec   : TSection;
-         sects     : array[TSection] of TAsmSection;
-         symbols   : tindexarray;
-         constructor create(const n:string);
-         destructor  destroy;override;
-         procedure createsection(sec:TSection);virtual;
-         procedure defaulTSection(sec:TSection);
-         function  sectionsize(s:TSection):longint;
-         function  currsectionsize:longint;
-         procedure seTSectionsizes(var s:TAsmSectionSizes);virtual;
-         procedure alloc(len:longint);
-         procedure allocalign(len:longint);
-         procedure writebytes(var data;len:longint);
-         procedure writereloc(data,len:longint;p:tasmsymbol;relative:TAsmRelocationType);virtual;abstract;
-         procedure writesymbol(p:tasmsymbol);virtual;abstract;
-         procedure writestabs(section:TSection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
-         procedure writesymstabs(section:TSection;offset:longint;p:pchar;ps:tasmsymbol;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
-         procedure fixuprelocs;virtual;
-       end;
-
        TAsmObjectAlloc = class
          currsec : TSection;
          secsize : TAsmSectionSizes;
@@ -157,42 +135,77 @@ interface
          procedure sectionalloc(l:longint);
          procedure sectionalign(l:longint);
          procedure staballoc(p:pchar);
-         procedure reseTSections;
+         procedure resetSections;
        end;
-       TAsmObjectDataclass = class of TAsmObjectAlloc;
+
+       TAsmObjectData = class(TLinkedListItem)
+       public
+         name      : string[80];
+         currsec   : TSection;
+         sects     : array[TSection] of TAsmSection;
+         symbols   : tindexarray; { contains symbols that will be defined in object file }
+         constructor create(const n:string);
+         destructor  destroy;override;
+         procedure createsection(sec:TSection);virtual;
+         procedure defaulTSection(sec:TSection);
+         function  sectionsize(s:TSection):longint;
+         function  currsectionsize:longint;
+         procedure setsectionsizes(var s:TAsmSectionSizes);virtual;
+         procedure alloc(len:longint);
+         procedure allocalign(len:longint);
+         procedure writebytes(var data;len:longint);
+         procedure writereloc(data,len:longint;p:tasmsymbol;relative:TAsmRelocationType);virtual;abstract;
+         procedure writesymbol(p:tasmsymbol);virtual;abstract;
+         procedure writestabs(section:TSection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
+         procedure writesymstabs(section:TSection;offset:longint;p:pchar;ps:tasmsymbol;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
+         procedure fixuprelocs;virtual;
+       end;
+
+       tasmsymbolidxarr = array[0..$7fffffff div sizeof(pointer)] of tasmsymbol;
+       pasmsymbolidxarr = ^tasmsymbolidxarr;
+
+       TAsmLibraryData = class(TLinkedListItem)
+       private
+         nextaltnr   : longint;
+         nextlabelnr : longint;
+       public
+         name      : string[80];
+         symbolsearch : tdictionary; { contains ALL assembler symbols }
+         usedasmsymbollist : tsinglelist;
+         { ppu }
+         asmsymbolppuidx : longint;
+         asmsymbolidx : pasmsymbolidxarr; { used for translating ppu index->asmsymbol }
+         constructor create(const n:string);
+         destructor  destroy;override;
+         procedure Freeasmsymbolidx;
+         procedure DerefAsmsymbol(var s:tasmsymbol);
+         { asmsymbol }
+         function  newasmsymbol(const s : string) : tasmsymbol;
+         function  newasmsymboltype(const s : string;_bind:TAsmSymBind;_typ:TAsmsymtype) : tasmsymbol;
+         function  getasmsymbol(const s : string) : tasmsymbol;
+         function  renameasmsymbol(const sold, snew : string):tasmsymbol;
+         {# create a new assembler label }
+         procedure getlabel(var l : tasmlabel);
+         { make l as a new label and flag is_addr }
+         procedure getaddrlabel(var l : tasmlabel);
+         { make l as a new label and flag is_data }
+         procedure getdatalabel(var l : tasmlabel);
+         {# return a label number }
+         procedure getlabelnr(var l : longint);
+         procedure CreateUsedAsmSymbolList;
+         procedure DestroyUsedAsmSymbolList;
+         procedure UsedAsmSymbolListInsert(p:tasmsymbol);
+         { generate an alternative (duplicate) symbol }
+         procedure GenerateAltSymbol(p:tasmsymbol);
+         { reset alternative symbol information }
+         procedure UsedAsmSymbolListResetAltSym;
+         procedure UsedAsmSymbolListReset;
+         procedure UsedAsmSymbolListCheckUndefined;
+       end;
 
 
     var
-      { asm symbol list }
-      asmsymbollist : tdictionary;
-      usedasmsymbollist : tsinglelist;
-
-      objectdata : TAsmObjectData;
-
-    const
-      nextaltnr   : longint = 1;
-      nextlabelnr : longint = 1;
-
-    {# create a new assembler label }
-    procedure getlabel(var l : tasmlabel);
-    { make l as a new label and flag is_addr }
-    procedure getaddrlabel(var l : tasmlabel);
-    { make l as a new label and flag is_data }
-    procedure getdatalabel(var l : tasmlabel);
-    {# return a label number }
-    procedure getlabelnr(var l : longint);
-
-    function  newasmsymbol(const s : string) : tasmsymbol;
-    function  newasmsymboltype(const s : string;_bind:TAsmSymBind;_typ:TAsmsymtype) : tasmsymbol;
-    function  getasmsymbol(const s : string) : tasmsymbol;
-    function  renameasmsymbol(const sold, snew : string):tasmsymbol;
-
-    procedure CreateUsedAsmSymbolList;
-    procedure DestroyUsedAsmSymbolList;
-    procedure UsedAsmSymbolListInsert(p:tasmsymbol);
-    procedure UsedAsmSymbolListReset;
-    procedure UsedAsmSymbolListResetAltSym;
-    procedure UsedAsmSymbolListCheckUndefined;
+      current_library : tasmlibrarydata;
 
 
 implementation
@@ -221,19 +234,9 @@ implementation
         typ:=_typ;
         inusedlist:=false;
         pass:=255;
+        ppuidx:=-1;
         { mainly used to remove unused labels from the codesegment }
         refs:=0;
-      end;
-
-    procedure tasmsymbol.GenerateAltSymbol;
-      begin
-        if not assigned(altsymbol) then
-         begin
-           altsymbol:=tasmsymbol.create(name+'_'+tostr(nextaltnr),defbind,typ);
-           { also copy the amount of references }
-           altsymbol.refs:=refs;
-           inc(nextaltnr);
-         end;
       end;
 
     procedure tasmsymbol.reset;
@@ -275,10 +278,9 @@ implementation
                                  TAsmLabel
 *****************************************************************************}
 
-    constructor tasmlabel.create;
+    constructor tasmlabel.create(nr:longint);
       begin;
-        labelnr:=nextlabelnr;
-        inc(nextlabelnr);
+        labelnr:=nr;
         inherited create(target_asm.labelprefix+tostr(labelnr),AB_LOCAL,AT_FUNCTION);
         proclocal:=true;
         is_set:=false;
@@ -286,10 +288,9 @@ implementation
       end;
 
 
-    constructor tasmlabel.createdata;
+    constructor tasmlabel.createdata(nr:longint);
       begin;
-        labelnr:=nextlabelnr;
-        inc(nextlabelnr);
+        labelnr:=nr;
         if (cs_create_smart in aktmoduleswitches) or
            target_asm.labelprefix_only_inside_procedure then
           inherited create('_$'+current_module.modulename^+'$_L'+tostr(labelnr),AB_GLOBAL,AT_DATA)
@@ -301,9 +302,9 @@ implementation
         refs:=1;
       end;
 
-    constructor tasmlabel.createaddr;
+    constructor tasmlabel.createaddr(nr:longint);
       begin;
-        create;
+        create(nr);
         is_addr := true;
       end;
 
@@ -620,60 +621,98 @@ implementation
       end;
 
 
-{*****************************************************************************
-                              AsmSymbolList helpers
-*****************************************************************************}
+{****************************************************************************
+                                TAsmLibraryData
+****************************************************************************}
 
-    function newasmsymbol(const s : string) : tasmsymbol;
+    constructor TAsmLibraryData.create(const n:string);
+      begin
+        inherited create;
+        name:=n;
+        { symbols }
+        symbolsearch:=tdictionary.create;
+        symbolsearch.usehash;
+        { labels }
+        nextaltnr:=1;
+        nextlabelnr:=1;
+        { ppu }
+        asmsymbolppuidx:=0;
+        asmsymbolidx:=nil;
+      end;
+
+
+    destructor TAsmLibraryData.destroy;
+      begin
+        symbolsearch.free;
+        Freeasmsymbolidx;
+      end;
+
+
+    procedure TAsmLibraryData.Freeasmsymbolidx;
+      begin
+        if assigned(asmsymbolidx) then
+         begin
+           Freemem(asmsymbolidx);
+           asmsymbolidx:=nil;
+         end;
+      end;
+
+
+    procedure TAsmLibraryData.DerefAsmsymbol(var s:tasmsymbol);
+      begin
+        if not assigned(asmsymbolidx) then
+          internalerror(200208072);
+        if longint(pointer(s))>=asmsymbolppuidx then
+          internalerror(200208073);
+        s:=asmsymbolidx^[longint(pointer(s))];
+      end;
+
+
+    function TAsmLibraryData.newasmsymbol(const s : string) : tasmsymbol;
       var
         hp : tasmsymbol;
       begin
-        hp:=tasmsymbol(asmsymbollist.search(s));
+        hp:=tasmsymbol(symbolsearch.search(s));
         if not assigned(hp) then
          begin
            { Not found, insert it as an External }
            hp:=tasmsymbol.create(s,AB_EXTERNAL,AT_FUNCTION);
-           asmsymbollist.insert(hp);
+           symbolsearch.insert(hp);
          end;
         newasmsymbol:=hp;
       end;
 
 
-    function newasmsymboltype(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : tasmsymbol;
+    function TAsmLibraryData.newasmsymboltype(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : tasmsymbol;
       var
         hp : tasmsymbol;
       begin
-        hp:=tasmsymbol(asmsymbollist.search(s));
+        hp:=tasmsymbol(symbolsearch.search(s));
         if assigned(hp) then
          hp.defbind:=_bind
         else
          begin
            { Not found, insert it as an External }
            hp:=tasmsymbol.create(s,_bind,_typ);
-           asmsymbollist.insert(hp);
+           symbolsearch.insert(hp);
          end;
         newasmsymboltype:=hp;
       end;
 
 
-    function getasmsymbol(const s : string) : tasmsymbol;
+    function TAsmLibraryData.getasmsymbol(const s : string) : tasmsymbol;
       begin
-        getasmsymbol:=tasmsymbol(asmsymbollist.search(s));
+        getasmsymbol:=tasmsymbol(symbolsearch.search(s));
       end;
 
 
-    { renames an asmsymbol }
-    function renameasmsymbol(const sold, snew : string):tasmsymbol;
+    function TAsmLibraryData.renameasmsymbol(const sold, snew : string):tasmsymbol;
       begin
-        renameasmsymbol:=tasmsymbol(asmsymbollist.rename(sold,snew));
+        renameasmsymbol:=tasmsymbol(symbolsearch.rename(sold,snew));
       end;
 
 
-{*****************************************************************************
-                              Used AsmSymbolList
-*****************************************************************************}
-
-    procedure CreateUsedAsmSymbolList;
+    procedure TAsmLibraryData.CreateUsedAsmSymbolList;
       begin
         if assigned(usedasmsymbollist) then
          internalerror(78455782);
@@ -681,14 +720,14 @@ implementation
       end;
 
 
-    procedure DestroyUsedAsmSymbolList;
+    procedure TAsmLibraryData.DestroyUsedAsmSymbolList;
       begin
         usedasmsymbollist.destroy;
         usedasmsymbollist:=nil;
       end;
 
 
-    procedure UsedAsmSymbolListInsert(p:tasmsymbol);
+    procedure TAsmLibraryData.UsedAsmSymbolListInsert(p:tasmsymbol);
       begin
         if not p.inusedlist then
          usedasmsymbollist.insert(p);
@@ -696,7 +735,24 @@ implementation
       end;
 
 
-    procedure UsedAsmSymbolListReset;
+    procedure TAsmLibraryData.GenerateAltSymbol(p:tasmsymbol);
+      begin
+        if not assigned(p.altsymbol) then
+         begin
+           p.altsymbol:=tasmsymbol.create(name+'_'+tostr(nextaltnr),p.defbind,p.typ);
+           { also copy the amount of references }
+           p.altsymbol.refs:=p.refs;
+           inc(nextaltnr);
+           { add to the usedasmsymbollist, that list is used to reset the
+             altsymbol }
+           if not p.inusedlist then
+            usedasmsymbollist.insert(p);
+           p.inusedlist:=true;
+         end;
+      end;
+
+
+    procedure TAsmLibraryData.UsedAsmSymbolListReset;
       var
         hp : tasmsymbol;
       begin
@@ -713,7 +769,7 @@ implementation
       end;
 
 
-    procedure UsedAsmSymbolListResetAltSym;
+    procedure TAsmLibraryData.UsedAsmSymbolListResetAltSym;
       var
         hp : tasmsymbol;
       begin
@@ -730,7 +786,7 @@ implementation
       end;
 
 
-    procedure UsedAsmSymbolListCheckUndefined;
+    procedure TAsmLibraryData.UsedAsmSymbolListCheckUndefined;
       var
         hp : tasmsymbol;
       begin
@@ -749,30 +805,31 @@ implementation
       end;
 
 
-{*****************************************************************************
-                              Label Helpers
-*****************************************************************************}
-
-    procedure getlabel(var l : tasmlabel);
+    procedure TAsmLibraryData.getlabel(var l : tasmlabel);
       begin
-        l:=tasmlabel.create;
-        asmsymbollist.insert(l);
+        l:=tasmlabel.create(nextlabelnr);
+        inc(nextlabelnr);
+        symbolsearch.insert(l);
       end;
 
 
-    procedure getdatalabel(var l : tasmlabel);
+    procedure TAsmLibraryData.getdatalabel(var l : tasmlabel);
       begin
-        l:=tasmlabel.createdata;
-        asmsymbollist.insert(l);
+        l:=tasmlabel.createdata(nextlabelnr);
+        inc(nextlabelnr);
+        symbolsearch.insert(l);
       end;
 
-    procedure getaddrlabel(var l : tasmlabel);
+
+    procedure TAsmLibraryData.getaddrlabel(var l : tasmlabel);
       begin
-        l:=tasmlabel.createaddr;
-        asmsymbollist.insert(l);
+        l:=tasmlabel.createaddr(nextlabelnr);
+        inc(nextlabelnr);
+        symbolsearch.insert(l);
       end;
 
-    procedure getlabelnr(var l : longint);
+
+    procedure TAsmLibraryData.getlabelnr(var l : longint);
       begin
          l:=nextlabelnr;
          inc(nextlabelnr);
@@ -782,7 +839,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-07-10 07:24:40  jonas
+  Revision 1.4  2002-08-11 13:24:10  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.3  2002/07/10 07:24:40  jonas
     * memory leak fixes from Sergey Korshunoff
 
   Revision 1.2  2002/07/07 09:52:32  florian

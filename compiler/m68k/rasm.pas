@@ -1618,7 +1618,7 @@ var
                           l:=instr.operands[operandnum]^.opr.val;
                           instr.operands[operandnum]^.opr.typ := OPR_SYMBOL;
                           instr.operands[operandnum]^.opr.symofs := l;
-                          instr.operands[operandnum]^.opr.symbol := newasmsymbol(tempstr);
+                          instr.operands[operandnum]^.opr.symbol := current_library.newasmsymbol(tempstr);
                         end;
                  end;
    { // Constant memory offset .              // }
@@ -1715,7 +1715,7 @@ var
                             Begin
                              if getasmsymbol(actasmpattern) =nil then
                                Message1(asmr_w_id_supposed_external,actasmpattern);
-                             instr.operands[operandnum]^.opr.ref.symbol:=newasmsymbol(actasmpattern);
+                             instr.operands[operandnum]^.opr.ref.symbol:=current_library.newasmsymbol(actasmpattern);
                             end
                            else
                              Message(asmr_e_syntax_error);
@@ -2218,7 +2218,16 @@ Begin
 end.
 {
   $Log$
-  Revision 1.1  2002-08-06 15:15:42  carl
+  Revision 1.2  2002-08-11 13:24:18  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.1  2002/08/06 15:15:42  carl
     + more m68k fixes
 
   Revision 1.1.2.7  2001/08/09 11:41:08  pierre

@@ -71,6 +71,7 @@ implementation
          aktprocsym:=nil;
          aktprocdef:=nil;
 
+         current_library:=nil;
          current_module:=nil;
          compiled_module:=nil;
          procinfo:=nil;
@@ -247,7 +248,6 @@ implementation
          oldaktprocdef    : tprocdef;
          oldoverloaded_operators : toverloaded_operators;
        { cg }
-         oldnextlabelnr : longint;
          oldparse_only  : boolean;
        { asmlists }
          oldimports,
@@ -262,7 +262,7 @@ implementation
          olddebuglist,
          oldwithdebuglist,
          oldconsts     : taasmoutput;
-         oldasmsymbollist : tdictionary;
+         oldcurrent_library : tasmlibrarydata;
        { resourcestrings }
          OldResourceStrings : tResourceStrings;
        { akt.. things }
@@ -317,7 +317,6 @@ implementation
          oldcurrent_scanner:=current_scanner;
          oldsourcecodepage:=aktsourcecodepage;
        { save cg }
-         oldnextlabelnr:=nextlabelnr;
          oldparse_only:=parse_only;
        { save assembler lists }
          olddatasegment:=datasegment;
@@ -332,7 +331,7 @@ implementation
          oldexports:=exportssection;
          oldresource:=resourcesection;
          oldresourcestringlist:=resourcestringlist;
-         oldasmsymbollist:=asmsymbollist;
+         oldcurrent_library:=current_library;
          OldResourceStrings:=ResourceStrings;
        { save akt... state }
        { handle the postponed case first }
@@ -467,10 +466,6 @@ implementation
          it's the default to release the trees }
          codegen_donemodule;
 
-{$ifdef newcg}
-         dispose(cg,done);
-{$endif newcg}
-
        { free ppu }
          if assigned(tppumodule(current_module).ppufile) then
           begin
@@ -487,9 +482,6 @@ implementation
 
          if (compile_level>1) then
            begin
-{$ifdef newcg}
-              cg:=oldcg;
-{$endif newcg}
 {$ifdef GDB}
               dbx_counter:=store_dbx;
 {$endif GDB}
@@ -502,9 +494,9 @@ implementation
               akttokenpos:=oldtokenpos;
               block_type:=old_block_type;
               current_scanner:=oldcurrent_scanner;
-              parser_current_file:=current_scanner.inputfile.name^;
+              if not current_scanner.invalid then
+                parser_current_file:=current_scanner.inputfile.name^;
               { restore cg }
-              nextlabelnr:=oldnextlabelnr;
               parse_only:=oldparse_only;
               { restore asmlists }
               exprasmlist:=oldexprasmlist;
@@ -519,8 +511,9 @@ implementation
               resourcesection:=oldresource;
               rttilist:=oldrttilist;
               resourcestringlist:=oldresourcestringlist;
-              asmsymbollist:=oldasmsymbollist;
+              { object data }
               ResourceStrings:=OldResourceStrings;
+              current_library:=oldcurrent_library;
               { restore symtable state }
               refsymtable:=oldrefsymtable;
               symtablestack:=oldsymtablestack;
@@ -618,7 +611,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2002-08-09 19:15:41  carl
+  Revision 1.37  2002-08-11 13:24:12  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.36  2002/08/09 19:15:41  carl
      - removed newcg define
 
   Revision 1.35  2002/07/20 17:16:03  florian

@@ -249,10 +249,10 @@ const
          while assigned(hp1) do
            begin
            { Get labels for the sections }
-             getdatalabel(lhead);
-             getdatalabel(lname);
-             getaddrlabel(lidata4);
-             getaddrlabel(lidata5);
+             current_library.getdatalabel(lhead);
+             current_library.getdatalabel(lname);
+             current_library.getaddrlabel(lidata4);
+             current_library.getaddrlabel(lidata5);
            { create header for this importmodule }
              importsSection.concat(Tai_cut.Create_begin);
              importsSection.concat(Tai_section.Create(sec_idata2));
@@ -284,7 +284,7 @@ const
                  { create indirect jump }
                  if not hp2.is_var then
                   begin
-                    getlabel(lcode);
+                    current_library.getlabel(lcode);
                     reference_reset_symbol(href,lcode,0);
                     { place jump in codesegment, insert a code section in the
                       imporTSection to reduce the amount of .s files (PFV) }
@@ -301,7 +301,7 @@ const
                  importsSection.concat(Tai_section.Create(sec_idata7));
                  importsSection.concat(Tai_const_symbol.Create_rva(lhead));
                  { fixup }
-                 getlabel(tasmlabel(hp2.lab));
+                 current_library.getlabel(tasmlabel(hp2.lab));
                  importsSection.concat(Tai_section.Create(sec_idata4));
                  importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab));
                  { add jump field to imporTSection }
@@ -317,7 +317,7 @@ const
                       begin
                         importname:='__imp_'+hp2.name^;
                         suffix:=0;
-                        while assigned(getasmsymbol(importname)) do
+                        while assigned(current_library.getasmsymbol(importname)) do
                          begin
                            inc(suffix);
                            importname:='__imp_'+hp2.name^+'_'+tostr(suffix);
@@ -328,7 +328,7 @@ const
                       begin
                         importname:='__imp_by_ordinal'+tostr(hp2.ordnr);
                         suffix:=0;
-                        while assigned(getasmsymbol(importname)) do
+                        while assigned(current_library.getasmsymbol(importname)) do
                          begin
                            inc(suffix);
                            importname:='__imp_by_ordinal'+tostr(hp2.ordnr)+'_'+tostr(suffix);
@@ -391,9 +391,9 @@ const
               importsSection.concat(Tai_section.Create(sec_code));
               importsSection.concat(Tai_align.Create_op(4,$90));
               { Get labels for the sections }
-              getlabel(l1);
-              getlabel(l2);
-              getlabel(l3);
+              current_library.getlabel(l1);
+              current_library.getlabel(l2);
+              current_library.getlabel(l3);
               importsSection.concat(Tai_section.Create(sec_idata2));
               { pointer to procedure names }
               importsSection.concat(Tai_const_symbol.Create_rva(l2));
@@ -415,7 +415,7 @@ const
               hp2:=timported_item(hp1.imported_items.first);
               while assigned(hp2) do
                 begin
-                   getlabel(tasmlabel(hp2.lab));
+                   current_library.getlabel(tasmlabel(hp2.lab));
                    if hp2.name^<>'' then
                      importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab))
                    else
@@ -433,7 +433,7 @@ const
                 begin
                    if not hp2.is_var then
                     begin
-                      getlabel(l4);
+                      current_library.getlabel(l4);
                       { create indirect jump }
                       reference_reset_symbol(href,l4,0);
                       { place jump in codesegment }
@@ -450,7 +450,7 @@ const
                           begin
                             importname:='__imp_'+hp2.name^;
                             suffix:=0;
-                            while assigned(getasmsymbol(importname)) do
+                            while assigned(current_library.getasmsymbol(importname)) do
                              begin
                                inc(suffix);
                                importname:='__imp_'+hp2.name^+'_'+tostr(suffix);
@@ -461,7 +461,7 @@ const
                           begin
                             importname:='__imp_by_ordinal'+tostr(hp2.ordnr);
                             suffix:=0;
-                            while assigned(getasmsymbol(importname)) do
+                            while assigned(current_library.getasmsymbol(importname)) do
                              begin
                                inc(suffix);
                                importname:='__imp_by_ordinal'+tostr(hp2.ordnr)+'_'+tostr(suffix);
@@ -513,7 +513,7 @@ const
          if not(assigned(exportssection)) then
            exportssection:=TAAsmoutput.create;
          last_index:=0;
-         getdatalabel(edatalabel);
+         current_library.getdatalabel(edatalabel);
       end;
 
 
@@ -609,10 +609,10 @@ const
          ordinal_min:=$7FFFFFFF;
          entries:=0;
          named_entries:=0;
-         getlabel(dll_name_label);
-         getlabel(export_address_table);
-         getlabel(export_name_table_pointers);
-         getlabel(export_ordinal_table);
+         current_library.getlabel(dll_name_label);
+         current_library.getlabel(export_address_table);
+         current_library.getlabel(export_name_table_pointers);
+         current_library.getlabel(export_ordinal_table);
 
          { count entries }
          while assigned(hp) do
@@ -684,7 +684,7 @@ const
            begin
               if (hp.options and eo_name)<>0 then
                 begin
-                   getlabel(name_label);
+                   current_library.getlabel(name_label);
                    name_table_pointers.concat(Tai_const_symbol.Create_rva(name_label));
                    ordinal_table.concat(Tai_const.Create_16bit(hp.index-ordinal_base));
                    name_table.concat(Tai_align.Create_op(2,0));
@@ -1553,7 +1553,16 @@ initialization
 end.
 {
   $Log$
-  Revision 1.36  2002-07-26 21:15:46  florian
+  Revision 1.37  2002-08-11 13:24:20  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.36  2002/07/26 21:15:46  florian
     * rewrote the system handling
 
   Revision 1.35  2002/07/01 18:46:35  peter

@@ -293,9 +293,9 @@ interface
             if isjump then
               begin
                  otl:=truelabel;
-                 getlabel(truelabel);
+                 current_library.getlabel(truelabel);
                  ofl:=falselabel;
-                 getlabel(falselabel);
+                 current_library.getlabel(falselabel);
               end;
             secondpass(left);
             if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
@@ -311,9 +311,9 @@ interface
             if isjump then
               begin
                  otl:=truelabel;
-                 getlabel(truelabel);
+                 current_library.getlabel(truelabel);
                  ofl:=falselabel;
-                 getlabel(falselabel);
+                 current_library.getlabel(falselabel);
               end;
             secondpass(right);
             maybe_restore(exprasmlist,left.location,pushedregs);
@@ -388,7 +388,7 @@ interface
                    andn :
                      begin
                         otl:=truelabel;
-                        getlabel(truelabel);
+                        current_library.getlabel(truelabel);
                         secondpass(left);
                         maketojumpbool(exprasmlist,left,lr_load_regvars);
                         cg.a_label(exprasmlist,truelabel);
@@ -397,7 +397,7 @@ interface
                    orn :
                      begin
                         ofl:=falselabel;
-                        getlabel(falselabel);
+                        current_library.getlabel(falselabel);
                         secondpass(left);
                         maketojumpbool(exprasmlist,left,lr_load_regvars);
                         cg.a_label(exprasmlist,falselabel);
@@ -1302,7 +1302,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-08-11 11:40:16  jonas
+  Revision 1.10  2002-08-11 13:24:18  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.9  2002/08/11 11:40:16  jonas
     * some overflow checking fixes
 
   Revision 1.8  2002/08/11 06:14:40  florian

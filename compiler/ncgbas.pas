@@ -115,8 +115,7 @@ interface
              if not assigned(p.altsymbol) then
               begin
                 { generatealtsymbol will also increase the refs }
-                p.GenerateAltSymbol;
-                UsedAsmSymbolListInsert(p);
+                current_library.GenerateAltSymbol(p);
               end
              else
               begin
@@ -136,7 +135,7 @@ interface
       begin
          if inlining_procedure then
            begin
-             CreateUsedAsmSymbolList;
+             current_library.CreateUsedAsmSymbolList;
              localfixup:=aktprocdef.localst.address_fixup;
              parafixup:=aktprocdef.parast.address_fixup;
              hp:=tai(p_asm.first);
@@ -204,8 +203,8 @@ interface
                 hp:=tai(hp.next);
               end;
              { restore used symbols }
-             UsedAsmSymbolListResetAltSym;
-             DestroyUsedAsmSymbolList;
+             current_library.UsedAsmSymbolListResetAltSym;
+             current_library.DestroyUsedAsmSymbolList;
            end
          else
            begin
@@ -294,7 +293,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-07-01 18:46:22  peter
+  Revision 1.21  2002-08-11 13:24:11  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.20  2002/07/01 18:46:22  peter
     * internal linker
     * reorganized aasm layer
 

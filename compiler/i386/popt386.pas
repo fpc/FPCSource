@@ -509,7 +509,7 @@ Var
                   insertllitem(asml,p1,p1.next,Tai_asm_comment.Create(
                     strpnew('previous label inserted'))));
   {$endif finaldestdebug}
-                  getlabel(l);
+                  current_library.getlabel(l);
                   insertllitem(asml,p1,p1.next,Tai_label.Create(l));
                   dec(tasmlabel(Taicpu(hp).oper[0].sym).refs);
                   hp.oper[0].sym := l;
@@ -2044,7 +2044,16 @@ End.
 
 {
   $Log$
-  Revision 1.30  2002-07-26 21:15:43  florian
+  Revision 1.31  2002-08-11 13:24:17  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.30  2002/07/26 21:15:43  florian
     * rewrote the system handling
 
   Revision 1.29  2002/07/01 18:46:34  peter

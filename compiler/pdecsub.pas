@@ -1840,7 +1840,7 @@ const
                    if aprocdef.has_mangledname then
                     begin
                       { rename also asmsymbol first, because the name can already be used }
-                      renameasmsymbol(hd.mangledname,aprocdef.mangledname);
+                      current_library.renameasmsymbol(hd.mangledname,aprocdef.mangledname);
                       { update the mangledname }
                       hd.has_mangledname:=true;
                       hd.setmangledname(aprocdef.mangledname);
@@ -1957,7 +1957,16 @@ const
 end.
 {
   $Log$
-  Revision 1.61  2002-07-26 21:15:40  florian
+  Revision 1.62  2002-08-11 13:24:12  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.61  2002/07/26 21:15:40  florian
     * rewrote the system handling
 
   Revision 1.60  2002/07/20 11:57:55  florian

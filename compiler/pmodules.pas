@@ -696,7 +696,7 @@ implementation
            (vo_is_thread_var in tvarsym(p).varoptions) then
          begin
            { address of threadvar }
-           ltvTable.concat(tai_const_symbol.create(newasmsymbol(tvarsym(p).mangledname)));
+           ltvTable.concat(tai_const_symbol.createname(tvarsym(p).mangledname));
            { size of threadvar }
            ltvTable.concat(tai_const.create_32bit(tvarsym(p).getsize));
          end;
@@ -1388,7 +1388,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2002-08-10 14:46:29  carl
+  Revision 1.71  2002-08-11 13:24:12  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.70  2002/08/10 14:46:29  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's

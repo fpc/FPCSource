@@ -124,13 +124,13 @@ interface
           procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure addprocdef(p:tprocdef);
-	  procedure concat_procdefs_to(s:Tprocsym);
-	  function first_procdef:Tprocdef;
-	  function last_procdef:Tprocdef;
-	  function search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
-	  function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
-	  function search_procdef_byretdef_by1paradef(retdef,firstpara:Tdef;
-						      matchtype:Tdefmatch):Tprocdef;
+          procedure concat_procdefs_to(s:Tprocsym);
+          function first_procdef:Tprocdef;
+          function last_procdef:Tprocdef;
+          function search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
+          function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
+          function search_procdef_byretdef_by1paradef(retdef,firstpara:Tdef;
+                                                      matchtype:Tdefmatch):Tprocdef;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -870,24 +870,24 @@ implementation
         pd^.next:=defs;
         defs:=pd;
       end;
-    
+
     procedure Tprocsym.concat_procdefs_to(s:Tprocsym);
-    
+
     var pd:Pprocdeflist;
-    
+
     begin
-	pd:=defs;
-	while assigned(defs) do
-	    begin
-		s.addprocdef(pd^.def);
-		pd:=pd^.next;
-	    end;
+        pd:=defs;
+        while assigned(defs) do
+            begin
+                s.addprocdef(pd^.def);
+                pd:=pd^.next;
+            end;
     end;
 
     function Tprocsym.first_procdef:Tprocdef;
 
     begin
-	first_procdef:=defs^.def;
+        first_procdef:=defs^.def;
     end;
 
     function Tprocsym.last_procdef:Tprocdef;
@@ -895,36 +895,36 @@ implementation
     var pd:Pprocdeflist;
 
     begin
-	pd:=defs;
-	while assigned(pd) do
-	    begin
-		last_procdef:=pd^.def;
-		pd:=pd^.next;
-	    end;
+        pd:=defs;
+        while assigned(pd) do
+            begin
+                last_procdef:=pd^.def;
+                pd:=pd^.next;
+            end;
     end;
 
     function Tprocsym.search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
-    
+
     var p:Pprocdeflist;
-    
+
     begin
-	search_procdef_bytype:=nil;
-	p:=defs;
-	while p<>nil do
-	    begin
-		if p^.def.proctypeoption=pt then
-		    begin
-			search_procdef_bytype:=p^.def;
-			break;
-		    end;
-		p:=p^.next;
-	    end;
+        search_procdef_bytype:=nil;
+        p:=defs;
+        while p<>nil do
+            begin
+                if p^.def.proctypeoption=pt then
+                    begin
+                        search_procdef_bytype:=p^.def;
+                        break;
+                    end;
+                p:=p^.next;
+            end;
     end;
-    
+
     function Tprocsym.search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
 
     var pd:Pprocdeflist;
-    
+
     begin
         {This function will return the pprocdef of pprocsym that
          is the best match for procvardef. When there are multiple
@@ -933,76 +933,76 @@ implementation
         search_procdef_byprocvardef:=nil;
         pd:=defs;
         while assigned(pd) do
-	    begin
-		if proc_to_procvar_equal(pd^.def,d,true) then
-		    begin
-			{ already found a match ? Then stop and return nil }
-            		if assigned(search_procdef_byprocvardef) then
-            		    begin
-                		search_procdef_byprocvardef:=nil;
-                		break;
-            		    end;
-        		search_procdef_byprocvardef:=pd^.def;
-		    end;
-		pd:=pd^.next;
-	    end;
+            begin
+                if proc_to_procvar_equal(pd^.def,d,true) then
+                    begin
+                        { already found a match ? Then stop and return nil }
+                        if assigned(search_procdef_byprocvardef) then
+                            begin
+                                search_procdef_byprocvardef:=nil;
+                                break;
+                            end;
+                        search_procdef_byprocvardef:=pd^.def;
+                    end;
+                pd:=pd^.next;
+            end;
         {Try a convertable match, if no exact match was found.}
         if not assigned(search_procdef_byprocvardef) and not assigned(pd) then
-    	    begin
-    		pd:=defs;
-    	        while assigned(pd) do
-        	    begin
-            		if proc_to_procvar_equal(pd^.def,d,false) then
-            		    begin
-                		{ already found a match ? Then stop and return nil }
-                		if assigned(search_procdef_byprocvardef) then
-                		    begin
-                			search_procdef_byprocvardef:=nil;
-                			break;
-                		    end;
-                		search_procdef_byprocvardef:=pd^.def;
-            		    end;
-            		pd:=pd^.next;
-        	    end;
-	    end;
+            begin
+                pd:=defs;
+                while assigned(pd) do
+                    begin
+                        if proc_to_procvar_equal(pd^.def,d,false) then
+                            begin
+                                { already found a match ? Then stop and return nil }
+                                if assigned(search_procdef_byprocvardef) then
+                                    begin
+                                        search_procdef_byprocvardef:=nil;
+                                        break;
+                                    end;
+                                search_procdef_byprocvardef:=pd^.def;
+                            end;
+                        pd:=pd^.next;
+                    end;
+            end;
     end;
 
     function Tprocsym.search_procdef_byretdef_by1paradef(retdef,firstpara:Tdef;
-		      matchtype:Tdefmatch):Tprocdef;
+                      matchtype:Tdefmatch):Tprocdef;
 
     var pd:Pprocdeflist;
-	convtyp:Tconverttype;
-	a,b:boolean;
+        convtyp:Tconverttype;
+        a,b:boolean;
 
     begin
-	search_procdef_byretdef_by1paradef:=nil;
-	pd:=defs;
-	while assigned(pd) do
-	    begin
-		a:=is_equal(retdef,pd^.def.rettype.def);
-		{Alert alert alert alert alert alert alert!!!
+        search_procdef_byretdef_by1paradef:=nil;
+        pd:=defs;
+        while assigned(pd) do
+            begin
+                a:=is_equal(retdef,pd^.def.rettype.def);
+                {Alert alert alert alert alert alert alert!!!
 
-		 Make sure you never call isconvertable when a=false. You get
-		 endless recursion then.  Originally a and b were placed in a
-		 single if statement. There was only one reason that it worked:
-		 short circuit boolean eval.}
-		if a then
-		    case matchtype of
-			dm_exact:
-			    b:=TParaItem(pd^.def.para.first).paratype.def=firstpara;
-			dm_equal:
-			    b:=is_equal(Tparaitem(pd^.def.para.first).paratype.def,firstpara);
-			dm_convertl1:
-			    b:=isconvertable(firstpara,Tparaitem(pd^.def.para.first).paratype.def,
-				convtyp,ordconstn,false)=1;
-		    end;
-		if a and b then
-		    begin
-			search_procdef_byretdef_by1paradef:=pd^.def;
-			break;
-		    end;
-		pd:=pd^.next;
-	    end;
+                 Make sure you never call isconvertable when a=false. You get
+                 endless recursion then.  Originally a and b were placed in a
+                 single if statement. There was only one reason that it worked:
+                 short circuit boolean eval.}
+                if a then
+                    case matchtype of
+                        dm_exact:
+                            b:=TParaItem(pd^.def.para.first).paratype.def=firstpara;
+                        dm_equal:
+                            b:=is_equal(Tparaitem(pd^.def.para.first).paratype.def,firstpara);
+                        dm_convertl1:
+                            b:=isconvertable(firstpara,Tparaitem(pd^.def.para.first).paratype.def,
+                                convtyp,ordconstn,false)=1;
+                    end;
+                if a and b then
+                    begin
+                        search_procdef_byretdef_by1paradef:=pd^.def;
+                        break;
+                    end;
+                pd:=pd^.next;
+            end;
     end;
 
     procedure tprocsym.write(ppufile:tcompilerppufile);
@@ -1659,17 +1659,17 @@ implementation
                    else
                      bssSegment.concat(Tai_datablock.Create(mangledname,l));
                    {Global variables (in implementation part of course)
-		    *can* be loaded into registers, they just may not be
-		    accessed from procedures. The lexlevel  test in nld.pas,
-		    Tloadnode.pass_1, should take care of this.
-		    
-		    If for some reason you think it isn't safe, try isolating
-		    and disabling those specific cases, because small programs
-		    without procedures can be very speed critical. For example,
-		    think of benchmarks and programming contests. Also, new
-		    users often test the quality of the code the compiler
-		    generates and they do that with small programs, we should
-		    show them the full optimizing power. (DM)}
+                    *can* be loaded into registers, they just may not be
+                    accessed from procedures. The lexlevel  test in nld.pas,
+                    Tloadnode.pass_1, should take care of this.
+
+                    If for some reason you think it isn't safe, try isolating
+                    and disabling those specific cases, because small programs
+                    without procedures can be very speed critical. For example,
+                    think of benchmarks and programming contests. Also, new
+                    users often test the quality of the code the compiler
+                    generates and they do that with small programs, we should
+                    show them the full optimizing power. (DM)}
                    {exclude(varoptions,vo_regable);
                    exclude(varoptions,vo_fpuregable);}
                  end;
@@ -2592,7 +2592,7 @@ implementation
       begin
         { the label is always a global label }
         if not assigned(lab) then
-         lab:=newasmsymboltype(mangledname,AB_GLOBAL,AT_DATA);
+         lab:=current_library.newasmsymboltype(mangledname,AB_GLOBAL,AT_DATA);
         get_label:=lab;
       end;
 
@@ -2672,7 +2672,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2002-07-23 10:13:23  daniel
+  Revision 1.47  2002-08-11 13:24:14  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.46  2002/07/23 10:13:23  daniel
   * Added important comment
 
   Revision 1.45  2002/07/23 09:51:26  daniel

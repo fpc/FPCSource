@@ -120,7 +120,7 @@ interface
                   (str_length(left)=0) then
                 begin
                   reference_reset(hr);
-                  hr.symbol:=newasmsymbol('FPC_EMPTYCHAR');
+                  hr.symbol:=current_library.newasmsymbol('FPC_EMPTYCHAR');
                   location.register:=rg.getregisterint(exprasmlist);
                   cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
                 end
@@ -141,7 +141,7 @@ interface
                   (str_length(left)=0) then
                 begin
                   reference_reset(hr);
-                  hr.symbol:=newasmsymbol('FPC_EMPTYCHAR');
+                  hr.symbol:=current_library.newasmsymbol('FPC_EMPTYCHAR');
                   location.register:=rg.getregisterint(exprasmlist);
                   cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
                 end
@@ -291,8 +291,8 @@ interface
       begin
          oldtruelabel:=truelabel;
          oldfalselabel:=falselabel;
-         getlabel(truelabel);
-         getlabel(falselabel);
+         current_library.getlabel(truelabel);
+         current_library.getlabel(falselabel);
          secondpass(left);
          location_copy(location,left.location);
          { byte(boolean) or word(wordbool) or longint(longbool) must }
@@ -328,7 +328,7 @@ interface
          hr : treference;
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
-         getlabel(l1);
+         current_library.getlabel(l1);
          case left.location.loc of
             LOC_CREGISTER,LOC_REGISTER:
               location.register:=left.location.register;
@@ -343,7 +343,7 @@ interface
          end;
          cg.a_cmp_const_reg_label(exprasmlist,OS_32,OC_NE,0,location.register,l1);
          reference_reset(hr);
-         hr.symbol:=newasmsymbol('FPC_EMPTYCHAR');
+         hr.symbol:=current_library.newasmsymbol('FPC_EMPTYCHAR');
          cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
          cg.a_label(exprasmlist,l1);
       end;
@@ -372,7 +372,7 @@ interface
             else
               internalerror(121120001);
          end;
-         getlabel(l1);
+         current_library.getlabel(l1);
          cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,location.register,l1);
          cg.a_op_const_reg(exprasmlist,OP_ADD,aword(
            tobjectdef(left.resulttype.def).implementedinterfaces.ioffsets(
@@ -490,7 +490,16 @@ end.
 
 {
   $Log$
-  Revision 1.21  2002-07-20 11:57:53  florian
+  Revision 1.22  2002-08-11 13:24:11  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.21  2002/07/20 11:57:53  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

@@ -69,6 +69,7 @@ interface
           procedure write(ppufile:tcompilerppufile);virtual;abstract;
           procedure deref;override;
           procedure derefimpl;override;
+          procedure derefobjectdata;override;
           function  size:longint;override;
           function  alignment:longint;override;
           function  is_publishable : boolean;override;
@@ -512,6 +513,7 @@ interface
           procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure derefimpl;override;
+          procedure derefobjectdata;override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
           function  haspara:boolean;
           function  mangledname : string;
@@ -922,6 +924,11 @@ implementation
       end;
 
 
+    procedure tstoreddef.derefobjectdata;
+      begin
+      end;
+
+
     function tstoreddef.size : longint;
       begin
          size:=savesize;
@@ -1096,7 +1103,7 @@ implementation
           begin
             if not assigned(localrttilab[rt]) then
              begin
-               getdatalabel(localrttilab[rt]);
+               current_library.getdatalabel(localrttilab[rt]);
                write_child_rtti_data(rt);
                if (cs_create_smart in aktmoduleswitches) then
                 rttiList.concat(Tai_cut.Create);
@@ -1516,7 +1523,7 @@ implementation
          if rangenr=0 then
            begin
               { generate two constant for bounds }
-              getlabelnr(rangenr);
+              current_library.getlabelnr(rangenr);
               if (cs_create_smart in aktmoduleswitches) then
                 dataSegment.concat(Tai_symbol.Createname_global(getrangecheckstring,8))
               else
@@ -1736,7 +1743,7 @@ implementation
               else
                rangechecksize:=16;
               { generate two constant for bounds }
-              getlabelnr(rangenr);
+              current_library.getlabelnr(rangenr);
               if (cs_create_smart in aktmoduleswitches) then
                 dataSegment.concat(Tai_symbol.Createname_global(getrangecheckstring,rangechecksize))
               else
@@ -2615,7 +2622,7 @@ implementation
          if rangenr=0 then
            begin
               { generates the data for range checking }
-              getlabelnr(rangenr);
+              current_library.getlabelnr(rangenr);
               if (cs_create_smart in aktmoduleswitches) then
                 dataSegment.concat(Tai_symbol.Createname_global(getrangecheckstring,8))
               else
@@ -3792,6 +3799,11 @@ implementation
       end;
 
 
+    procedure tprocdef.derefobjectdata;
+      begin
+      end;
+
+
     function tprocdef.mangledname : string;
       var
         s  : string;
@@ -4364,7 +4376,7 @@ implementation
     begin
         { if we found already a destructor, then we exit }
         if (sd=nil) and (Tsym(sym).typ=procsym) then
-    	    sd:=Tprocsym(sym).search_procdef_bytype(potype_destructor);
+            sd:=Tprocsym(sym).search_procdef_bytype(potype_destructor);
     end;
 
    function tobjectdef.searchdestructor : tprocdef;
@@ -4444,14 +4456,13 @@ implementation
           para : TParaItem;
           arglength : byte;
           sp : char;
-          pdl : pprocdeflist;
       begin
         If tsym(p).typ = procsym then
          begin
            pd := tprocsym(p).first_procdef;
            { this will be used for full implementation of object stabs
            not yet done }
-	   ipd := Tprocsym(p).last_procdef;
+           ipd := Tprocsym(p).last_procdef;
            if (po_virtualmethod in pd.procoptions) then
              begin
                lindex := pd.extnumber;
@@ -4911,8 +4922,8 @@ implementation
 
       begin
          classtablelist:=TLinkedList.Create;
-         getdatalabel(fieldtable);
-         getdatalabel(classtable);
+         current_library.getdatalabel(fieldtable);
+         current_library.getdatalabel(classtable);
          count:=0;
          tablecount:=0;
          symtable.foreach({$ifdef FPC}@{$endif}count_published_fields,nil);
@@ -5490,7 +5501,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  2002-08-09 07:33:03  florian
+  Revision 1.87  2002-08-11 13:24:13  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.86  2002/08/09 07:33:03  florian
     * a couple of interface related fixes
 
   Revision 1.85  2002/07/23 09:51:24  daniel

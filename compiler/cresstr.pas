@@ -154,7 +154,7 @@ procedure TResourceStrings.CreateResourceStringList;
          resourcestringlist.concat(tai_const.create_32bit(0))
        else
          begin
-            getdatalabel(l1);
+            current_library.getdatalabel(l1);
             resourcestringlist.concat(tai_const_symbol.create(l1));
             consts.concat(tai_const.create_32bit(len));
             consts.concat(tai_const.create_32bit(len));
@@ -170,7 +170,7 @@ procedure TResourceStrings.CreateResourceStringList;
        resourcestringlist.concat(tai_const.create_32bit(0));
        resourcestringlist.concat(tai_const.create_32bit(hash));
        { Append the name as a ansistring. }
-       getdatalabel(l1);
+       current_library.getdatalabel(l1);
        L:=Length(Name);
        resourcestringlist.concat(tai_const_symbol.create(l1));
        consts.concat(tai_const.create_32bit(l));
@@ -294,7 +294,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2002-07-01 18:46:22  peter
+  Revision 1.15  2002-08-11 13:24:11  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.14  2002/07/01 18:46:22  peter
     * internal linker
     * reorganized aasm layer
 

@@ -73,6 +73,7 @@ interface
           procedure write_references(ppufile:tcompilerppufile;locals:boolean);virtual;
           procedure deref;virtual;
           procedure derefimpl;virtual;
+          procedure derefobjectdata;virtual;
           procedure insert(sym : tsymentry);override;
           function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;override;
           procedure allsymbolsused;
@@ -535,6 +536,19 @@ implementation
       end;
 
 
+    procedure tstoredsymtable.derefobjectdata;
+      var
+        hp : tdef;
+      begin
+        hp:=tdef(defindex.first);
+        while assigned(hp) do
+         begin
+           hp.derefobjectdata;
+           hp:=tdef(hp.indexnext);
+         end;
+      end;
+
+
     procedure tstoredsymtable.insert(sym:tsymentry);
       var
          hsym : tsym;
@@ -863,7 +877,7 @@ implementation
                           overloaded_operators[t]:=tprocsym(srsym)
                        else
                           { already got a procsym, only add defs of the current procsym }
-			  Tprocsym(srsym).concat_procdefs_to(overloaded_operators[t]);
+                          Tprocsym(srsym).concat_procdefs_to(overloaded_operators[t]);
                        symtablestack:=srsym.owner.next;
                     end
                   else
@@ -2058,7 +2072,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2002-07-23 09:51:27  daniel
+  Revision 1.66  2002-08-11 13:24:15  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.65  2002/07/23 09:51:27  daniel
   * Tried to make Tprocsym.defs protected. I didn't succeed but the cleanups
     are worth comitting.
 

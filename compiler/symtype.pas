@@ -68,6 +68,7 @@ interface
          constructor create;
          procedure deref;virtual;abstract;
          procedure derefimpl;virtual;abstract;
+         procedure derefobjectdata;virtual;abstract;
          function  typename:string;
          function  gettypename:string;virtual;
          function  mangledparaname:string;
@@ -528,7 +529,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2002-07-01 18:46:29  peter
+  Revision 1.20  2002-08-11 13:24:16  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.19  2002/07/01 18:46:29  peter
     * internal linker
     * reorganized aasm layer
 

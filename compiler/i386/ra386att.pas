@@ -1275,7 +1275,7 @@ begin
    begin
      opr.typ:=OPR_SYMBOL;
      opr.symofs:=l;
-     opr.symbol:=newasmsymbol(tempstr);
+     opr.symbol:=current_library.newasmsymbol(tempstr);
    end
   else
    begin
@@ -1543,7 +1543,7 @@ Begin
                           Begin
                             { not found, finally ... add it anyways ... }
                             Message1(asmr_w_id_supposed_external,expr);
-                            opr.ref.symbol:=newasmsymbol(expr);
+                            opr.ref.symbol:=current_library.newasmsymbol(expr);
                           end;
                        end
                     else
@@ -2129,7 +2129,16 @@ finalization
 end.
 {
   $Log$
-  Revision 1.26  2002-07-26 21:15:44  florian
+  Revision 1.27  2002-08-11 13:24:17  peter
+    * saving of asmsymbols in ppu supported
+    * asmsymbollist global is removed and moved into a new class
+      tasmlibrarydata that will hold the info of a .a file which
+      corresponds with a single module. Added librarydata to tmodule
+      to keep the library info stored for the module. In the future the
+      objectfiles will also be stored to the tasmlibrarydata class
+    * all getlabel/newasmsymbol and friends are moved to the new class
+
+  Revision 1.26  2002/07/26 21:15:44  florian
     * rewrote the system handling
 
   Revision 1.25  2002/07/01 18:46:34  peter
