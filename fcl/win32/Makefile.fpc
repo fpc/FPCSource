@@ -48,3 +48,5 @@ ezcgi$(PPUEXT): $(INC)/ezcgi$(PASEXT)
 
 shedit$(PPUEXT): $(SHEDIT)/shedit$(PASEXT)
         $(COMPILER) $(SHEDIT)/shedit$(PASEXT) -I$(SHEDIT) $(REDIR)
+
+process$(PPUEXT): process$(PASEXT) process.inc

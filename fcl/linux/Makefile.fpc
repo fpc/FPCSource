@@ -3,7 +3,7 @@
 #
 
 [targets]
-units=classes $(INCUNITS) $(XMLUNITS) $(SHEDITUNITS)
+units=classes $(INCUNITS) $(XMLUNITS) $(SHEDITUNITS) process
 
 [defaults]
 defaulttarget=linux
@@ -48,3 +48,5 @@ ezcgi$(PPUEXT): $(INC)/ezcgi$(PASEXT)
 
 shedit$(PPUEXT): $(SHEDIT)/shedit$(PASEXT)
         $(COMPILER) $(SHEDIT)/shedit$(PASEXT) -I$(SHEDIT) $(REDIR)
+
+process$(PPUEXT): process$(PASEXT) process.inc
