@@ -54,6 +54,7 @@ implementation
       var
         old_array_constructor : boolean;
         store_valid : boolean;
+        oldtype     : pdef;
         convtyp     : tconverttype;
       begin
          inc(parsing_para_level);
@@ -99,10 +100,10 @@ implementation
                       must_be_valid:=false;
                     { here we must add something for the implicit type }
                     { conversion from array of char to pchar }
-                    if isconvertable(p^.left^.resulttype,defcoll^.data,convtyp,
+{                    if isconvertable(p^.left^.resulttype,defcoll^.data,convtyp,
                       p^.left^.treetype,false) then
                       if convtyp=tc_array_to_pointer then
-                        must_be_valid:=false;
+                        must_be_valid:=false; }
                     { only process typeconvn, else it will break other trees }
                     old_array_constructor:=allow_array_constructor;
                     allow_array_constructor:=true;
@@ -151,11 +152,18 @@ implementation
                        CGMessage(parser_e_call_by_ref_without_typeconv);
                    { don't generate an type conversion for open arrays   }
                    { else we loss the ranges                             }
-                   if not(is_open_array(defcoll^.data)) then
-                     begin
-                        p^.left:=gentypeconvnode(p^.left,defcoll^.data);
-                        firstpass(p^.left);
-                     end;
+                   if is_open_array(defcoll^.data) then
+                    begin
+                      oldtype:=p^.left^.resulttype;
+                      p^.left:=gentypeconvnode(p^.left,defcoll^.data);
+                      firstpass(p^.left);
+                      p^.left^.resulttype:=oldtype;
+                    end
+                   else
+                    begin
+                      p^.left:=gentypeconvnode(p^.left,defcoll^.data);
+                      firstpass(p^.left);
+                    end;
                    if codegenerror then
                      begin
                         dec(parsing_para_level);
@@ -899,7 +907,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-09-24 09:02:16  peter
+  Revision 1.3  1998-09-24 14:27:40  peter
+    * some better support for openarray
+
+  Revision 1.2  1998/09/24 09:02:16  peter
     * rewritten isconvertable to use case
     * array of .. and single variable are compatible
 

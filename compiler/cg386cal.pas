@@ -54,42 +54,81 @@ implementation
 
       procedure maybe_push_open_array_high;
         var
-           r : preference;
-           len : longint;
+           r    : preference;
+           hreg : tregister;
+           href : treference;
+           len  : longint;
         begin
            { open array ? }
            { defcoll^.data can be nil for read/write }
            if assigned(defcoll^.data) and
               is_open_array(defcoll^.data) then
              begin
-                inc(pushedparasize,4);
-                { push high }
-                if is_open_array(p^.left^.resulttype) then
-                  begin
-                     r:=new_reference(highframepointer,highoffset+4);
-                     if inlined then
-                       begin
-                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
-                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
-                       end
-                     else
-                     exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,r)));
-                  end
-                else
-                  begin
-                    if p^.left^.resulttype^.deftype=arraydef then
-                     len:=parraydef(p^.left^.resulttype)^.highrange-parraydef(p^.left^.resulttype)^.lowrange
-                    else
-                     len:=0;
-                    if inlined then
-                      begin
-                         r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                         exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,len,r)));
-                      end
-                    else
-                      push_int(len);
-                  end;
+              { push high }
+               case p^.left^.resulttype^.deftype of
+                arraydef : begin
+                             if is_open_array(p^.left^.resulttype) then
+                              begin
+                                r:=new_reference(highframepointer,highoffset+4);
+                                len:=-1;
+                              end
+                             else
+                              len:=parraydef(p^.left^.resulttype)^.highrange-
+                                   parraydef(p^.left^.resulttype)^.lowrange
+                           end;
+               stringdef : begin
+                             if p^.left^.treetype=stringconstn then
+                              len:=length(p^.left^.value_str^)
+                             else
+                              begin
+                                href:=p^.left^.location.reference;
+                                dec(href.offset);
+                                hreg:=reg32toreg8(getregister32);
+                                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_B,newreference(href),hreg)));
+                                emit_to_reg32(hreg);
+                                len:=-2;
+                              end;
+                           end;
+               else
+                len:=0;
+               end;
+             { Push from the reference? }
+               if len=-1 then
+                begin
+                  if inlined then
+                   begin
+                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
+                     r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                     exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+                   end
+                  else
+                   exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,r)));
+                end
+               else
+               { Push from a register? }
+                if len=-2 then
+                 begin
+                   if inlined then
+                    begin
+                      r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                      exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,hreg,r)));
+                    end
+                   else
+                    exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,hreg)));
+                   ungetregister32(hreg);
+                 end
+               else
+               { Push direct value }
+                begin
+                  if inlined then
+                    begin
+                       r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                       exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,len,r)));
+                    end
+                  else
+                    push_int(len);
+                end;
+               inc(pushedparasize,4);
              end;
         end;
 
@@ -1396,7 +1435,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1998-09-24 09:02:13  peter
+  Revision 1.28  1998-09-24 14:27:37  peter
+    * some better support for openarray
+
+  Revision 1.27  1998/09/24 09:02:13  peter
     * rewritten isconvertable to use case
     * array of .. and single variable are compatible
 
