@@ -29,7 +29,7 @@ uses
   Objects,
   finput,
   Drivers,Views,Dialogs,
-  WUtils,WViews,WCEdit,
+  WViews,WCEdit,
   FPSymbol,
   FPViews;
 
@@ -110,8 +110,8 @@ uses
 {$endif}
   Dos,Video,
   App,Commands,tokens,
-  CompHook, Compiler, systems, browcol,
-  WEditor,
+  Globals, CompHook, Compiler, systems, browcol,
+  WUtils,WEditor,
   FPString,FPRedir,FPDesk,FPUsrScr,FPHelp,
   FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
 
@@ -778,18 +778,21 @@ begin
     FileName:='-B '+FileName;
   { tokens are created and distroed by compiler.compile !! PM }
   DoneTokens;
+  { it doesn't matter if ppas does not exist
+    DeleteFile will just retrun the errorcode }
+  DeleteFile(GetExePath+PpasFile+source_os.scriptext);
   SetStatus('Compiling...');
   FpIntF.Compile(FileName,SwitchesPath);
   SetStatus('Finished compiling...');
   { tokens are created and distroed by compiler.compile !! PM }
   InitTokens;
-  if LinkAfter and IsExe and
+  if LinkAfter and ExistsFile(GetExePath+PpasFile+source_os.scriptext) and
      (CompilationPhase<>cpAborted) and
      (status.errorCount=0) then
     begin
        CompilationPhase:=cpLinking;
        CompilerStatusDialog^.Update;
-       SetStatus('Linking...');
+       SetStatus('Assembling and/or linking...');
 {$ifndef redircompiler}
        { At least here we want to catch output
         of batch file PM }
@@ -810,7 +813,7 @@ begin
 {$endif}
        if Error<>0 then
          Inc(status.errorCount);
-       if not ExistsFile(EXEFile) then
+       if IsExe and not ExistsFile(EXEFile) then
          begin
            Inc(status.errorCount);
            ClearFormatParams; AddFormatParamStr(ExeFile);
@@ -1051,7 +1054,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-09-01 21:33:25  peter
+  Revision 1.4  2000-10-04 15:01:11  pierre
+   * fix IsExe problem
+
+  Revision 1.3  2000/09/01 21:33:25  peter
     * files to finput
 
   Revision 1.2  2000/08/22 09:41:39  pierre
