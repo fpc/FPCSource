@@ -22,8 +22,8 @@ asm
         movl    source,%edi
         testl   %edi,%edi
         jz      .LStrCopyDone
-        movl    %edi,%ecx
-        andl    $0x0fffffff8,%edi
+        leal    3(%edi),%ecx
+        andl    $-4,%ecx
         movl    source,%esi
         subl    %edi,%ecx
         movl    dest,%edi
@@ -40,7 +40,17 @@ asm
         .balign  16
 .LStrCopyAligned:
         movl    (%esi),%eax
+        movl    %eax,%edx
+        leal    0x0fefefeff(%eax),%ecx
+        notl    %edx
         addl    $4,%esi
+        andl    %edx,%ecx
+        andl    $0x080808080,%ecx
+        jnz     .LStrCopyEndFound
+        movl    %eax,(%edi)
+        addl    $4,%edi
+        jmp     .LStrCopyAligned
+.LStrCopyEndFound:
         testl   $0x0ff,%eax
         jz      .LStrCopyByte
         testl   $0x0ff00,%eax
@@ -48,15 +58,12 @@ asm
         testl   $0x0ff0000,%eax
         jz      .LStrCopy3Bytes
         movl    %eax,(%edi)
-        testl   $0x0ff000000,%eax
-        jz      .LStrCopyDone
-        addl    $4,%edi
-        jmp     .LStrCopyAligned
+        jmp     .LStrCopyDone
 .LStrCopy3Bytes:
+        xorb     %dl,%dl
         movw     %ax,(%edi)
-        xorl     %eax,%eax
-        addl     $2,%edi
-        jmp     .LStrCopyByte
+        movb     %dl,2(%edi)
+        jmp     .LStrCopyDone
 .LStrCopyWord:
         movw    %ax,(%edi)
         jmp     .LStrCopyDone
@@ -64,7 +71,7 @@ asm
         movb    %al,(%edi)
 .LStrCopyDone:
         movl    dest,%eax
-end ['EAX','ECX','ESI','EDI'];
+end ['EAX','EDX','ECX','ESI','EDI'];
 
 
 function strecopy(dest,source : pchar) : pchar;assembler;
@@ -273,9 +280,9 @@ asm
         jz      .LSTRSCAN
 // align
         movb    c,%cl
-        movl    %eax,%esi
-        andl    $0xfffffff8,%eax
+        leal    3(%eax),%esi
         movl    $0xff,%edx
+        andl    $-4,%esi
         movl    p,%edi
         subl    %eax,%esi
         jz      .LSTRSCANLOOP
@@ -415,10 +422,13 @@ end ['EAX','ESI','EDI'];
 
 {
   $Log$
-  Revision 1.3  2001-01-21 10:12:32  marco
+  Revision 1.4  2001-02-10 16:08:46  jonas
+    * fixed non-working alignment code
+
+  Revision 1.3  2001/01/21 10:12:32  marco
    * Some register allocation fixes. for stricomp and strilcomp
 
   Revision 1.2  2000/07/13 11:33:42  michael
   + removed logs
- 
+
 }

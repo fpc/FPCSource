@@ -20,9 +20,9 @@ begin
 asm
         movl    p,%esi
         movl    __RESULT,%edi
-        movl    %esi,%edx
+        leal    3(%esi),%edx
         movl    $1,%ecx
-        andl    $0x0fffffff8,%esi
+        andl    $-4,%edx
         // skip length byte
         incl    %edi
         subl    %esi,%edx
@@ -98,7 +98,10 @@ end ['EDI','EAX','ECX'];
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:42  michael
+  Revision 1.3  2001-02-10 16:08:46  jonas
+    * fixed non-working alignment code
+
+  Revision 1.2  2000/07/13 11:33:42  michael
   + removed logs
- 
+
 }
