@@ -475,8 +475,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1999-04-21 16:31:47  pierre
-  ra386att.pas
+  Revision 1.23  1999-04-21 21:57:33  pierre
+   * previous log corrected
+
+  Revision 1.22  1999/04/21 16:31:47  pierre
+  * some wrong code in firstfuncret corrected
 
   Revision 1.21  1999/04/01 21:59:57  peter
     * type error for array constructor with array,record as argument
