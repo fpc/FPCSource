@@ -66,11 +66,11 @@ interface
 implementation
 
     uses
-      verbose,globtype,globals,systems,
+      verbose,globals,systems,
       symconst,symdef,symsym,aasm,types,
       cgbase,temp_gen,pass_2,
       cpubase,cpuasm,
-      pass_1,nld,ncon,
+      nld,ncon,
       cga,tgcpu,
 {$ifdef i386}
       n386util,
@@ -581,7 +581,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2001-09-28 20:39:33  jonas
+  Revision 1.2  2001-09-30 16:19:58  jonas
+    - removed unused units
+
+  Revision 1.1  2001/09/28 20:39:33  jonas
     * changed all flow control structures (except for exception handling
       related things) to processor independent code (in new ncgflw unit)
     + generic cgobj unit which contains lots of code generator helpers with
