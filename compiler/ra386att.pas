@@ -735,7 +735,10 @@ const
                         exit;
                      end
                      else
+                     begin
                        Message(assem_w_modulo_not_supported);
+                       gettoken := AS_NONE;
+                     end;
                  end;
            { integer number }
            '1'..'9': begin
@@ -809,7 +812,10 @@ const
                              exit;
                           end
                         else
+                        begin
                             Message1(assem_e_invalid_float_const,actasmpattern+c);
+                            gettoken:=AS_NONE;
+                        end;
                         end;
                    { hexadecimal }
                    'X': Begin
@@ -1323,6 +1329,11 @@ const
                     (instruc = A_IN) then
                     Begin
                        operands[2].opinfo := ao_acc;
+                       case operands[2].reg of
+                         R_EAX: operands[2].size := S_L;
+                         R_AX:  operands[2].size := S_W;
+                         R_AL:  operands[2].size := S_B;
+                       end;
                     end
                end
               else
@@ -1807,8 +1818,16 @@ const
                                opsize,operands[1].reg,operands[2].reg)));
                             end
                             else
+                            if  instruc = A_IN then
+                               p^.concat(new(pai386,op_reg_reg(instruc,
+                               operands[2].size,operands[1].reg,operands[2].reg)))
+                            else
+                            if  instruc = A_OUT then
+                               p^.concat(new(pai386,op_reg_reg(instruc,
+                               operands[1].size,operands[1].reg,operands[2].reg)))
+                            else
                             { these do not require any size specification. }
-                            if (instruc in [A_IN,A_OUT,A_SAL,A_SAR,A_SHL,A_SHR,A_ROL,
+                            if (instruc in [A_SAL,A_SAR,A_SHL,A_SHR,A_ROL,
                                A_ROR,A_RCR,A_RCL])  then
                                { outs and ins are already taken care by }
                                { the first pass.                        }
@@ -2172,7 +2191,7 @@ const
         concatopcode(instr);
        end
        else
-         Message(assem_e_invalid_operand);
+         Message1(assem_e_invalid_operand,'');
     end;
 
 
@@ -3824,7 +3843,12 @@ end.
 
 {
   $Log$
-  Revision 1.13  1998-09-24 17:52:31  carl
+  Revision 1.14  1998-10-07 04:28:52  carl
+    * bugfix of in/out with gas (ins/outs still left though)
+    * bugfix of wrong error output with concatlabel
+    * gettoken always returns something valid now
+
+  Revision 1.13  1998/09/24 17:52:31  carl
     * bugfix from fix branch
 
   Revision 1.12.2.1  1998/09/24 17:47:16  carl
