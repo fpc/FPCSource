@@ -267,7 +267,7 @@ implementation
                  (right.location.loc=LOC_CREGISTER) then
                 begin
                    cgcpu.a_load_reg_ref(exprasmlist,opsize,
-                     right.location.register,newreference(temp1));
+                     right.location.register,temp1);
                  end
               else
                  cgcpu.g_concatcopy(exprasmlist,right.location.reference,temp1,
@@ -297,7 +297,7 @@ implementation
          if temptovalue then
            begin
              cgcpu.a_cmp_ref_loc_label(exprasmlist,opsize,hcond,
-               newreference(temp1),t2.location,aktbreaklabel);
+               temp1,t2.location,aktbreaklabel);
            end
          else
            begin
@@ -341,7 +341,7 @@ implementation
          { jump                              }
          if temptovalue then
            begin
-             cgcpu.a_cmp_ref_loc(exprasmlist,opsize,hcond,newreference(temp1),
+             cgcpu.a_cmp_ref_loc(exprasmlist,opsize,hcond,temp1,
                t2.location,aktbreaklabel);
            end
          else
@@ -383,7 +383,7 @@ implementation
          {op : tasmop;
          s : topsize;}
          otlabel,oflabel : tasmlabel;
-         r : preference;
+         r : treference;
          is_mem,
          allocated_acc,
          allocated_acchigh: boolean;
@@ -431,7 +431,7 @@ implementation
            LOC_CREGISTER,
             LOC_REGISTER : is_mem:=false;
                LOC_FLAGS : begin
-                             exprasmlist.concat(tairegalloc.alloc(accumulator));
+                             cgcpu.a_reg_alloc(exprasmlist,accumulator);
                              allocated_acc := true;
                              cgcpu.g_flag2reg(left.location.resflags,accumulator);
                              goto do_jmp;
@@ -453,13 +453,13 @@ implementation
            pointerdef,
            procvardef : begin
                           cleanleft;
-                          exprasmlist.concat(tairegalloc.alloc(accumulator));
+                          cgcpu.a_reg_alloc(exprasmlist,accumulator);
                           allocated_acc := true;
                           if is_mem then
                             cgcpu.a_load_ref_reg(exprasmlist,OS_ADDR,
                               left.location.reference,accumulator)
                           else
-                            gcpu.a_load_reg_reg(exprasmlist,A_MOV,OS_ADDR,
+                            cgcpu.a_load_reg_reg(exprasmlist,OS_ADDR,
                               left.location.register,accumulator);
                         end;
              floatdef : begin
@@ -472,61 +472,56 @@ implementation
               else
               { it can be anything shorter than 4 bytes PM
               this caused form bug 711 }
-                       begin
-                          cleanleft;
-                          exprasmlist.concat(tairegalloc.alloc(R_EAX));
-                          allocated_eax := true;
-                          case aktprocsym.definition.rettype.def.size of
-                           { it can be a qword/int64 too ... }
-                           8 : if is_mem then
-                                 begin
-                                    emit_ref_reg(A_MOV,S_L,
-                                      newreference(left.location.reference),R_EAX);
-                                    r:=newreference(left.location.reference);
-                                    inc(r^.offset,4);
-                                    exprasmlist.concat(tairegalloc.alloc(R_EDX));
-                                    allocated_edx := true;
-                                    emit_ref_reg(A_MOV,S_L,r,R_EDX);
-                                 end
-                               else
-                                 begin
-                                    emit_reg_reg(A_MOV,S_L,left.location.registerlow,R_EAX);
-                                    exprasmlist.concat(tairegalloc.alloc(R_EDX));
-                                    allocated_edx := true;
-                                    emit_reg_reg(A_MOV,S_L,left.location.registerhigh,R_EDX);
-                                 end;
-                          { if its 3 bytes only we can still
-                            copy one of garbage ! PM }
-                           4,3 : if is_mem then
-                                 emit_ref_reg(A_MOV,S_L,
-                                   newreference(left.location.reference),R_EAX)
-                               else
-                                 emit_reg_reg(A_MOV,S_L,left.location.register,R_EAX);
-                           2 : if is_mem then
-                                 emit_ref_reg(A_MOV,S_W,
-                                   newreference(left.location.reference),R_AX)
-                               else
-                                 emit_reg_reg(A_MOV,S_W,makereg16(left.location.register),R_AX);
-                           1 : if is_mem then
-                                 emit_ref_reg(A_MOV,S_B,
-                                   newreference(left.location.reference),R_AL)
-                               else
-                                 emit_reg_reg(A_MOV,S_B,makereg8(left.location.register),R_AL);
-                           else internalerror(605001);
-                          end;
+                begin
+                   cleanleft;
+                   cgcpu.a_reg_alloc(exprasmlist,accumulator);
+                   allocated_acc := true;
+                   case aktprocsym.definition.rettype.def.size of
+                    { it can be a qword/int64 too ... }
+                    8 :
+                      if is_mem then
+                        begin
+                           cgcpu.load_ref_reg(exprasmlist,OS_32,
+                             left.location.reference,accumulator);
+                           r:=left.location.reference;
+                           inc(r.offset,4);
+                           cgcpu.a_reg_alloc(exprasmlist,accumulatorhigh);
+                           allocated_acchigh := true;
+                           cgcpu.load_ref_reg(exprasmlist,OS_32,r,accumulatorhigh);
+                        end
+                      else
+                        begin
+                           cgcpu.load_reg_reg(exprasmlist,OS_32,left.location.registerlow,accumulator);
+                           cgcpu.a_reg_alloc(exprasmlist,accumulatorhigh);
+                           allocated_acchigh := true;
+                           cgcpu.load_reg_reg(exprasmlist,OS_32,left.location.registerhigh,accumulatorhigh);
                         end;
+                   { if its 3 bytes only we can still
+                     copy one of garbage ! PM }
+                    4,3 :
+                      cgcpu.load_loc_reg(exprasmlist,OS_32,left.location.reference,
+                        accumulator);
+                    2 :
+                      cgcpu.load_loc_reg(exprasmlist,OS_16,left.location.reference,
+                        makereg16(accumulator));
+                    1 :
+                      cgcpu.load_loc_reg(exprasmlist,OS_8,left.location.reference,
+                        makereg8(accumulator));
+                    else internalerror(605001);
+                   end;
+                 end;
               end;
 do_jmp:
               truelabel:=otlabel;
               falselabel:=oflabel;
-              emitjmp(C_None,aktexit2label);
-              if allocated_eax then
-                exprasmlist.concat(tairegalloc.dealloc(R_EAX));
-              if allocated_edx then
-                exprasmlist.concat(tairegalloc.dealloc(R_EDX));
+              cgcpu.a_jmp_cond(exprasmlist,OC_None,aktexit2label);
+              if allocated_acc then
+                cgcpu.a_reg_dealloc(exprasmlist,accumulator);
+              if allocated_acchigh then
+                cgcpu.a_reg_dealloc(exprasmlist,accumulator);
            end
          else
-            emitjmp(C_None,aktexitlabel);
+            cgcpu.a_jmp_cond(exprasmlist,OC_None,aktexitlabel);
        end;
 
 
@@ -540,7 +535,7 @@ do_jmp:
          if aktbreaklabel<>nil then
            begin
              load_all_regvars(exprasmlist);
-             emitjmp(C_None,aktbreaklabel)
+             cgcpu.a_jmp_cond(expraslist,OC_None,aktbreaklabel)
            end
          else
            CGMessage(cg_e_break_not_allowed);
@@ -557,7 +552,7 @@ do_jmp:
          if aktcontinuelabel<>nil then
            begin
              load_all_regvars(exprasmlist);
-             emitjmp(C_None,aktcontinuelabel)
+             cgcpu.a_jmp_cond(expraslist,OC_None,aktcontinuelabel)
            end
          else
            CGMessage(cg_e_continue_not_allowed);
@@ -572,7 +567,7 @@ do_jmp:
 
        begin
          load_all_regvars(exprasmlist);
-         emitjmp(C_None,labelnr);
+         cgcpu.a_jmp_cond(expraslist,OC_None,labelnr)
        end;
 
 
@@ -583,7 +578,7 @@ do_jmp:
     procedure ti386labelnode.pass_2;
       begin
          load_all_regvars(exprasmlist);
-         emitlab(labelnr);
+         cgcpu.a_label(exprasmlist,labelnr);
          cleartempgen;
          secondpass(left);
       end;
@@ -1273,7 +1268,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2001-09-06 15:25:55  jonas
+  Revision 1.4  2001-09-09 17:10:25  jonas
+    * some more things implemented
+
+  Revision 1.3  2001/09/06 15:25:55  jonas
     * changed type of tcg from object to class ->  abstract methods are now
       a lot cleaner :)
     + more updates: load_*_loc methods, op_*_* methods, g_flags2reg method

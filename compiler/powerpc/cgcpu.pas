@@ -28,84 +28,89 @@ unit cgcpu;
        cgbase,cgobj,aasm,cpuasm,cpubase,cpuinfo;
 
     type
-       pcgppc = ^tcgppc;
-
-       tcgppc = object(tcg)
-          { passing parameters, per default the parameter is pushed }
-          { nr gives the number of the parameter (enumerated from   }
-          { left to right), this allows to move the parameter to    }
-          { register, if the cpu supports register calling          }
-          { conventions                                             }
-          procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;nr : longint);virtual;
-          procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);virtual;
-          procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);virtual;
-          procedure a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);virtual;
+      tcgppc = class(tcg)
+        { passing parameters, per default the parameter is pushed }
+        { nr gives the number of the parameter (enumerated from   }
+        { left to right), this allows to move the parameter to    }
+        { register, if the cpu supports register calling          }
+        { conventions                                             }
+        procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;nr : longint);virtual;
+        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);virtual;
+        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);virtual;
+        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);virtual;
 
 
-          procedure a_call_name(list : taasmoutput;const s : string;
-            offset : longint);virtual;
+        procedure a_call_name(list : taasmoutput;const s : string;
+          offset : longint);virtual;
 
-          procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister); virtual;
-          procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); virtual;
+        procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister); virtual;
+        procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); virtual;
 
-          { move instructions }
-          procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aword;reg : tregister);virtual;
-          procedure a_load_reg_ref(list : taasmoutput; size: tcgsize; reg : tregister;const ref2 : treference);virtual;
-          procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const Ref2 : treference;reg : tregister);virtual;
-          procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual;
+        { move instructions }
+        procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aword;reg : tregister);virtual;
+        procedure a_load_reg_ref(list : taasmoutput; size: tcgsize; reg : tregister;const ref2 : treference);virtual;
+        procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const Ref2 : treference;reg : tregister);virtual;
+        procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual;
 
-          {  comparison operations }
-          procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
-            l : pasmlabel);virtual;
-          procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
+        {  comparison operations }
+        procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+          l : pasmlabel);virtual;
+        procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
 
-          procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: pasmlabel);
-          procedure g_flags2reg(const f: TAsmCond; reg: TRegister); abstract;
-
-
-          procedure g_stackframe_entry_sysv(list : taasmoutput;localsize : longint);
-          procedure g_stackframe_entry_mac(list : taasmoutput;localsize : longint);
-          procedure g_stackframe_entry(list : taasmoutput;localsize : longint);virtual;
-          procedure g_restore_frame_pointer(list : taasmoutput);virtual;
-          procedure g_return_from_proc(list : taasmoutput;parasize : aword); virtual;
-          procedure g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
-          procedure g_return_from_proc_mac(list : taasmoutput;parasize : aword);
-
-          procedure a_loadaddress_ref_reg(list : taasmoutput;const ref2 : treference;r : tregister);virtual;
-
-          procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);virtual;
+        procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: pasmlabel);
+        procedure g_flags2reg(const f: TAsmCond; reg: TRegister); abstract;
 
 
-          private
+        procedure g_stackframe_entry_sysv(list : taasmoutput;localsize : longint);
+        procedure g_stackframe_entry_mac(list : taasmoutput;localsize : longint);
+        procedure g_stackframe_entry(list : taasmoutput;localsize : longint);virtual;
+        procedure g_restore_frame_pointer(list : taasmoutput);virtual;
+        procedure g_return_from_proc(list : taasmoutput;parasize : aword); virtual;
+        procedure g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
+        procedure g_return_from_proc_mac(list : taasmoutput;parasize : aword);
 
-          { Generates                                                                }
-          {   OpLo reg1, reg2, (a and $ffff) and/or }
-          {   OpHi reg1, reg2, (a shr 16)           }
-          { depending on the value of a             }
-          procedure a_op_reg_reg_const32(list: taasmoutput; oplo, ophi: tasmop;
-                                          reg1, reg2: tregister; a: aword);
-          { Make sure ref is a valid reference for the PowerPC and sets the }
-          { base to the value of the index if (base = R_NO).                }
-          procedure fixref(var ref: treference);
+        procedure a_loadaddress_ref_reg(list : taasmoutput;const ref2 : treference;r : tregister);virtual;
 
-          { contains the common code of a_load_reg_ref and a_load_ref_reg }
-          procedure a_load_store(list:taasmoutput;op: tasmop;reg:tregister;
-                      var ref: treference);
+        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);virtual;
 
-          { creates the correct branch instruction for a given combination }
-          { of asmcondflags and destination addressing mode                }
-          procedure a_jmp(list: taasmoutput; op: tasmop;
-                          c: tasmcondflags; l: pasmlabel);
 
-       end;
+        private
+
+        { tries to one immediate instruction to pperform the operation, }
+        { returns false otherwise (then you have to laod the constant   }
+        procedure a_op_reg_reg_const32(list: taasmoutput; op: TOpCg;
+          dst, src: tregister; a: aword);
+
+        procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg; dst, src1,
+          src2: tregister);
+        { Make sure ref is a valid reference for the PowerPC and sets the }
+        { base to the value of the index if (base = R_NO).                }
+        procedure fixref(var ref: treference);
+
+        { contains the common code of a_load_reg_ref and a_load_ref_reg }
+        procedure a_load_store(list:taasmoutput;op: tasmop;reg:tregister;
+                    var ref: treference);
+
+        { creates the correct branch instruction for a given combination }
+        { of asmcondflags and destination addressing mode                }
+        procedure a_jmp(list: taasmoutput; op: tasmop;
+                        c: tasmcondflags; l: pasmlabel);
+
+     end;
 
 const
-  TOpCG2AsmOpLo: Array[topcg] of TAsmOp = (A_ADDI,A_ANDI_,A_DIVWU,
-                      A_DIVW,A_MULLW, A_MULLW, A_NONE,A_NONE,A_ORI,
-                      A_SRAWI,A_SLWI,A_SRWI,A_SUBI,A_XORI);
-  TOpCG2AsmOpHi: Array[topcg] of TAsmOp = (A_ADDIS,A_ANDIS_,
-                      A_DIVWU,A_DIVW, A_MULLW,A_MULLW,A_NONE,A_NONE,
-                      A_ORIS,A_NONE, A_NONE,A_NONE,A_SUBIS,A_XORIS);
+{
+  TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_ADD,A_AND,A_DIVWU,
+                 A_DIVW,A_MULLW, A_MULLW, A_NEG,A_NOT,A_OR,
+                 A_SRAW,A_SLW,A_SRW,A_SUB,A_XOR);
+}
+
+  TOpCG2AsmOpConstLo: Array[topcg] of TAsmOp = (A_ADDI,A_ANDI_,A_DIVWU,
+                        A_DIVW,A_MULLW, A_MULLW, A_NONE,A_NONE,A_ORI,
+                        A_SRAWI,A_SLWI,A_SRWI,A_SUBI,A_XORI);
+  TOpCG2AsmOpConstHi: Array[topcg] of TAsmOp = (A_ADDIS,A_ANDIS_,
+                        A_DIVWU,A_DIVW, A_MULLW,A_MULLW,A_NONE,A_NONE,
+                        A_ORIS,A_NONE, A_NONE,A_NONE,A_SUBIS,A_XORIS);
 
   TOpCmp2AsmCond: Array[topcmp] of TAsmCondFlags = (CF_NONE,CF_EQ,CF_GT,
                        CF_LT,CF_GE,CF_LE,CF_NE,CF_LE,CF_NG,CF_GE,CF_NL);
@@ -126,93 +131,97 @@ const
   implementation
 
     uses
-       globtype,globals,verbose,systems;
+       globtype,globals,verbose,systems,cutils;
 
 { parameter passing... Still needs extra support from the processor }
 { independent code generator                                        }
 
     procedure tcgppc.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;nr : longint);
 
-    var ref: treference;
+      var
+        ref: treference;
 
-    begin
-{$ifdef para_sizes_known}
-      if (nr <= max_param_regs_int) then
-        a_load_reg_reg(list,size,r,param_regs_int[nr])
-      else
-        begin
-          reset_reference(ref);
-          ref.base := stack_pointer;
-          ref.offset := LinkageAreaSize+para_size_till_now;
-          a_load_reg_ref(list,size,reg,ref);
-        end;
-{$endif para_sizes_known}
-    end;
+      begin
+  {$ifdef para_sizes_known}
+        if (nr <= max_param_regs_int) then
+          a_load_reg_reg(list,size,r,param_regs_int[nr])
+        else
+          begin
+            reset_reference(ref);
+            ref.base := stack_pointer;
+            ref.offset := LinkageAreaSize+para_size_till_now;
+            a_load_reg_ref(list,size,reg,ref);
+          end;
+  {$endif para_sizes_known}
+      end;
 
 
     procedure tcgppc.a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);
 
-    var ref: treference;
+      var
+        ref: treference;
 
-    begin
-{$ifdef para_sizes_known}
-      if (nr <= max_param_regs_int) then
-        a_load_const_reg(list,size,a,param_regs_int[nr])
-      else
-        begin
-          reset_reference(ref);
-          ref.base := stack_pointer;
-          ref.offset := LinkageAreaSize+para_size_till_now;
-          a_load_const_ref(list,size,a,ref);
-        end;
-{$endif para_sizes_known}
-    end;
+      begin
+  {$ifdef para_sizes_known}
+        if (nr <= max_param_regs_int) then
+          a_load_const_reg(list,size,a,param_regs_int[nr])
+        else
+          begin
+            reset_reference(ref);
+            ref.base := stack_pointer;
+            ref.offset := LinkageAreaSize+para_size_till_now;
+            a_load_const_ref(list,size,a,ref);
+          end;
+  {$endif para_sizes_known}
+      end;
 
 
     procedure tcgppc.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);
 
-    var ref: treference;
+      var
+        ref: treference;
         tmpreg: tregister;
 
-    begin
-{$ifdef para_sizes_known}
-      if (nr <= max_param_regs_int) then
-        a_load_ref_reg(list,size,r,param_regs_int[nr])
-      else
-        begin
-          reset_reference(ref);
-          ref.base := stack_pointer;
-          ref.offset := LinkageAreaSize+para_size_till_now;
-          tmpreg := get_scratch_reg(list);
-          a_load_ref_reg(list,size,r,tmpreg);
-          a_load_reg_ref(list,size,tmpreg,ref);
-          free_scratch_reg(list,tmpreg);
-        end;
-{$endif para_sizes_known}
-    end;
+      begin
+  {$ifdef para_sizes_known}
+        if (nr <= max_param_regs_int) then
+          a_load_ref_reg(list,size,r,param_regs_int[nr])
+        else
+          begin
+            reset_reference(ref);
+            ref.base := stack_pointer;
+            ref.offset := LinkageAreaSize+para_size_till_now;
+            tmpreg := get_scratch_reg(list);
+            a_load_ref_reg(list,size,r,tmpreg);
+            a_load_reg_ref(list,size,tmpreg,ref);
+            free_scratch_reg(list,tmpreg);
+          end;
+  {$endif para_sizes_known}
+      end;
 
 
     procedure tcgppc.a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);
 
-    var ref: treference;
+      var
+        ref: treference;
         tmpreg: tregister;
 
-    begin
-{$ifdef para_sizes_known}
-      if (nr <= max_param_regs_int) then
-        a_loadaddress_ref_reg(list,size,r,param_regs_int[nr])
-      else
-        begin
-          reset_reference(ref);
-          ref.base := stack_pointer;
-          ref.offset := LinkageAreaSize+para_size_till_now;
-          tmpreg := get_scratch_reg(list);
-          a_loadaddress_ref_reg(list,size,r,tmpreg);
-          a_load_reg_ref(list,size,tmpreg,ref);
-          free_scratch_reg(list,tmpreg);
-        end;
-{$endif para_sizes_known}
-    end;
+      begin
+  {$ifdef para_sizes_known}
+        if (nr <= max_param_regs_int) then
+          a_loadaddress_ref_reg(list,size,r,param_regs_int[nr])
+        else
+          begin
+            reset_reference(ref);
+            ref.base := stack_pointer;
+            ref.offset := LinkageAreaSize+para_size_till_now;
+            tmpreg := get_scratch_reg(list);
+            a_loadaddress_ref_reg(list,size,r,tmpreg);
+            a_load_reg_ref(list,size,tmpreg,ref);
+            free_scratch_reg(list,tmpreg);
+          end;
+  {$endif para_sizes_known}
+      end;
 
 { calling a code fragment by name }
 
@@ -247,9 +256,9 @@ const
 
      procedure tcgppc.a_load_reg_ref(list : taasmoutput; size: TCGSize; reg : tregister;const ref2 : treference);
 
-     Var
-       op: TAsmOp;
-       ref: TReference;
+       var
+         op: TAsmOp;
+         ref: TReference;
 
        begin
          ref := ref2;
@@ -260,10 +269,10 @@ const
 
      procedure tcgppc.a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref2: treference;reg : tregister);
 
-     Var
-       op: TAsmOp;
-       tmpreg: tregister;
-       ref, tmpref: TReference;
+       var
+         op: TAsmOp;
+         tmpreg: tregister;
+         ref, tmpref: TReference;
 
        begin
          ref := ref2;
@@ -280,7 +289,8 @@ const
 
      procedure tcgppc.a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister);
 
-     var scratch_register: TRegister;
+       var
+         scratch_register: TRegister;
 
        begin
          Case Op of
@@ -291,19 +301,18 @@ const
              Else
                Begin
                  scratch_register := get_scratch_reg(list);
-                 a_load_const_reg(list, OS_32, a, scratch_register);
-                 list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOpLo[Op],
-                   reg,reg,scratch_register));
+                 a_load_const_reg(list,OS_32,a,scratch_register);
+                 list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOpConstLo[Op],
+                   reg,scratch_register,reg));
                  free_scratch_reg(list,scratch_register);
                End;
            OP_ADD, OP_AND, OP_OR, OP_SUB,OP_XOR:
-             a_op_reg_reg_const32(list,TOpCG2AsmOpLo[Op],
-               TOpCG2AsmOpHi[Op],reg,reg,a);
+             a_op_reg_reg_const32(list,op,reg,reg,a)
            OP_SHL,OP_SHR,OP_SAR:
              Begin
                if (a and 31) <> 0 Then
                  list.concat(taicpu.op_reg_reg_const(
-                   TOpCG2AsmOpLo[Op],reg,reg,a and 31));
+                   TOpCG2AsmOpConstLo[Op],reg,reg,a and 31));
                If (a shr 5) <> 0 Then
                  InternalError(68991);
              End
@@ -313,67 +322,59 @@ const
 
       procedure tcgppc.a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister);
 
-      const
-        op_reg_reg_opcg2asmop: array[TOpCG] of tasmop =
-          (A_ADD,A_AND,A_DIVWU,A_DIVW,A_MULLW,A_MULLW,A_NEG,A_NOT,A_OR,
-           A_SRAW,A_SLW,A_SRW,A_SUB,A_XOR)
-
-       begin
-         Case Op of
-           OP_NEG,OP_NOT:
-             list.concat(taicpu.op_reg_reg(op_reg_reg_opcg2asmop[op],size,reg2,reg2));
-           else
-             list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],size,reg2,reg1,reg2));
-       end;
+         begin
+           a_op_reg_reg_reg(list,op,reg2,reg1,reg2);
+         end;
 
 {*************** compare instructructions ****************}
 
       procedure tcgppc.a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
         l : pasmlabel);
 
-      var p: paicpu;
+        var
+          p: taicpu;
           scratch_register: TRegister;
           signed: boolean;
 
         begin
           signed := cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE];
           If signed Then
-            If (longint(a) >= -32768) and (longint(a) <= 32767) Then
-              list.concat(taicpu.op_const_reg_const(A_CMPI,0,reg,a))
+            If (longint(a) >= low(smallint)) and (longint(a) <= high(smallint)) Then
+              list.concat(taicpu.op_reg_reg_const(A_CMPI,R_CR0,reg,a))
             else
               begin
                 scratch_register := get_scratch_reg(list);
                 a_load_const_reg(list,OS_32,a,scratch_register);
-                list.concat(taicpu.op_const_reg_reg(A_CMP,0,reg,scratch_register));
+                list.concat(taicpu.op_reg_reg_reg(A_CMP,R_CR0,reg,scratch_register));
                 free_scratch_reg(list,scratch_register);
-             end
+              end
           else
             if (a <= $ffff) then
-              list.concat(taicpu.op_const_reg_const(A_CMPLI,0,reg,a))
+              list.concat(taicpu.op_reg_reg_const(A_CMPLI,R_CR0,reg,a))
             else
               begin
                 scratch_register := get_scratch_reg(list);
                 a_load_const_reg(list,OS_32,a,scratch_register);
-                list.concat(taicpu.op_const_reg_reg(A_CMPL,0,reg,scratch_register));
+                list.concat(taicpu.op_reg_reg_reg(A_CMPL,R_CR0,reg,scratch_register));
                 free_scratch_reg(list,scratch_register);
-             end;
-           a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],l);
+              end;
+          a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],l);
         end;
 
 
       procedure tcgppc.a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;
         reg1,reg2 : tregister;l : pasmlabel);
 
-      var p: paicpu;
-          op: tasmop;
+        var p: paicpu;
+            op: tasmop;
 
-      begin
-        if cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE] then
-          op := A_CMP
-        else op := A_CMPL;
-        list.concat(taicpu.op_const_reg_reg(op,0,reg1,reg2));
-        a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],l);
-      end;
+        begin
+          if cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE] then
+            op := A_CMP
+          else op := A_CMPL;
+          list.concat(taicpu.op_reg_reg_reg(op,R_CR0,reg1,reg2));
+          a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],l);
+        end;
 
      procedure tcgppc.a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: pasmlabel);
 
@@ -383,10 +384,11 @@ const
 
 
      procedure tcgppc.g_flags2reg(list: taasmoutput; const f: TAsmCond; reg: TRegister);
-     
+
        var
          testbit: byte;
          bitvalue: boolean;
+
        begin
          { get the bit to extract from the conditional register + its }
          { requested value (0 or 1)                                   }
@@ -430,21 +432,22 @@ const
          if not bitvalue then
            list.concat(taicpu.create(op_reg_reg_const(A_XORI,reg,reg,1)));
        end;
-      
+
 
 { *********** entry/exit code and address loading ************ }
 
     procedure tcgppc.g_stackframe_entry(list : taasmoutput;localsize : longint);
-    begin
-      case target_os.id of
-        os_powerpc_macos:
-          g_stackframe_entry_mac(list,localsize);
-        os_powerpc_linux:
-          g_stackframe_entry_sysv(list,localsize)
-        else
-          internalerror(2204001);
+
+      begin
+        case target_os.id of
+          os_powerpc_macos:
+            g_stackframe_entry_mac(list,localsize);
+          os_powerpc_linux:
+            g_stackframe_entry_sysv(list,localsize)
+          else
+            internalerror(2204001);
+        end;
       end;
-    end;
 
 
     procedure tcgppc.g_stackframe_entry_sysv(list : taasmoutput;localsize : longint);
@@ -504,7 +507,7 @@ const
         { save pointer to incoming arguments }
         list.concat(taicpu.op_reg_reg_const(A_ADDI,R_30,R_11,144));
         { now comes the AltiVec context save, not yet implemented !!! }
-       end;
+      end;
 
     procedure tcgppc.g_stackframe_entry_mac(list : taasmoutput;localsize : longint);
  { generated the entry code of a procedure/function. Note: localsize is the }
@@ -554,7 +557,7 @@ const
         list.concat(taicpu.op_reg_reg_reg(A_STWUX,STACK_POINTER,STACK_POINTER,R_12));
         a_reg_dealloc(list,R_12);
         { now comes the AltiVec context save, not yet implemented !!! }
-       end;
+      end;
 
 
     procedure tcgppc.g_restore_frame_pointer(list : taasmoutput);
@@ -564,62 +567,63 @@ const
       end;
 
     procedure tcgppc.g_return_from_proc(list : taasmoutput;parasize : aword);
-    begin
-      case target_os.id of
-        os_powerpc_macos:
-          g_return_from_proc_mac(list,parasize);
-        os_powerpc_linux:
-          g_return_from_proc_sysv(list,parasize)
-        else
-          internalerror(2204001);
+
+      begin
+        case target_os.id of
+          os_powerpc_macos:
+            g_return_from_proc_mac(list,parasize);
+          os_powerpc_linux:
+            g_return_from_proc_sysv(list,parasize)
+          else
+            internalerror(2204001);
+        end;
       end;
-    end;
 
 
      procedure tcgppc.g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
 
-     var regcounter: TRegister;
+       var regcounter: TRegister;
 
-     begin
-       { release parameter registers }
-       for regcounter := R_3 to R_10 do
-         a_reg_dealloc(list,regcounter);
-       { AltiVec context restore, not yet implemented !!! }
+       begin
+         { release parameter registers }
+         for regcounter := R_3 to R_10 do
+           a_reg_dealloc(list,regcounter);
+         { AltiVec context restore, not yet implemented !!! }
 
-       { address of gpr save area to r11 }
-       list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_31,-144));
-       { restore gprs }
-       list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_restgpr_14'),0));
-       { address of fpr save area to r11 }
-       list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_11,144));
-       { restore fprs and return }
-       list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_restfpr_14_x'),0));
-     end;
+         { address of gpr save area to r11 }
+         list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_31,-144));
+         { restore gprs }
+         list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_restgpr_14'),0));
+         { address of fpr save area to r11 }
+         list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_11,144));
+         { restore fprs and return }
+         list.concat(taicpu.op_sym_ofs(A_BL,newasmsymbol('_restfpr_14_x'),0));
+       end;
 
      procedure tcgppc.g_return_from_proc_mac(list : taasmoutput;parasize : aword);
 
-     var regcounter: TRegister;
+       var regcounter: TRegister;
 
-     begin
-       { release parameter registers }
-       for regcounter := R_3 to R_10 do
-         a_reg_dealloc(list,regcounter);
-       { AltiVec context restore, not yet implemented !!! }
+       begin
+         { release parameter registers }
+         for regcounter := R_3 to R_10 do
+           a_reg_dealloc(list,regcounter);
+         { AltiVec context restore, not yet implemented !!! }
 
-       { restore SP }
-       list.concat(taicpu.op_reg_reg_const(A_ORI,STACK_POINTER,R_31,0));
-       { restore gprs }
-       list.concat(taicpu.op_reg_ref(A_LMW,R_13,new_reference(STACK_POINTER,-220)));
-       { restore return address ... }
-       list.concat(taicpu.op_reg_ref(A_LWZ,R_0,new_reference(STACK_POINTER,8)));
-       { ... and return from _restf14 }
-       list.concat(taicpu.op_sym_ofs(A_B,newasmsymbol('_restf14'),0));
-     end;
+         { restore SP }
+         list.concat(taicpu.op_reg_reg_const(A_ORI,STACK_POINTER,R_31,0));
+         { restore gprs }
+         list.concat(taicpu.op_reg_ref(A_LMW,R_13,new_reference(STACK_POINTER,-220)));
+         { restore return address ... }
+         list.concat(taicpu.op_reg_ref(A_LWZ,R_0,new_reference(STACK_POINTER,8)));
+         { ... and return from _restf14 }
+         list.concat(taicpu.op_sym_ofs(A_B,newasmsymbol('_restf14'),0));
+       end;
 
      procedure tcgppc.a_loadaddress_ref_reg(list : taasmoutput;const ref2 : treference;r : tregister);
 
-     var tmpreg: tregister;
-         ref, tmpref: treference;
+       var tmpreg: tregister;
+           ref, tmpref: treference;
 
        begin
          ref := ref2;
@@ -648,7 +652,7 @@ const
            end;
          if ref.offset <> 0 Then
            if ref.base <> R_NO then
-             a_op_reg_reg_const32(list,A_ADDI,A_ADDIS,r,r,ref.offset)
+             a_op_reg_reg_const32(list,OP_ADD,r,ref.base,ref.offset)
   { FixRef makes sure that "(ref.index <> R_NO) and (ref.offset <> 0)" never}
   { occurs, so now only ref.offset has to be loaded                         }
            else a_load_const_reg(list, OS_32, ref.offset, r)
@@ -660,17 +664,17 @@ const
            free_scratch_reg(list,tmpreg);
        end;
 
-
 { ************* concatcopy ************ }
 
     procedure tcgppc.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);
 
-    var
-      p: paicpu;
-      countreg, tempreg: TRegister;
-      src, dst: TReference;
-      lab: PAsmLabel;
-      count, count2: aword;
+      var
+        p: paicpu;
+        countreg, tempreg: TRegister;
+        src, dst: TReference;
+        lab: PAsmLabel;
+        count, count2: aword;
+
       begin
         { make sure source and dest are valid }
         src := source;
@@ -699,8 +703,8 @@ const
             { easy to notice in the genreated assembler                     }
             Inc(dst.offset,4);
             Inc(src.offset,4);
-            a_op_reg_reg_const32(list,A_SUBI,A_NONE,src.base,src.base,4);
-            a_op_reg_reg_const32(list,A_SUBI,A_NONE,dst.base,dst.base,4);
+            list.concat(taicpu.op_reg_reg_const(A_SUBI,src.base,src.base,4));
+            list.concat(taicpu.op_reg_reg_const(A_SUBI,dst.base,dst.base,4));
             countreg := get_scratch_reg(list);
             a_load_const_reg(list,OS_32,count-1,countreg);
             { explicitely allocate R_0 since it can be used safely here }
@@ -711,10 +715,10 @@ const
             a_label(list, lab);
             list.concat(taicpu.op_reg_ref(A_LWZU,tempreg,
               newreference(src)));
-            a_op_reg_reg_const32(list,A_CMPI,A_NONE,R_CR0,countreg,0);
+            list.concat(taicpu.op_reg_reg_const(A_CMPI,R_CR0,countreg,0));
             list.concat(taicpu.op_reg_ref(A_STWU,tempreg,
               newreference(dst)));
-            a_op_reg_reg_const32(list,A_SUBI,A_NONE,countreg,countreg,1);
+            list.concat(taicpu.op_reg_reg_const(A_SUBI,countreg,countreg,1));
             a_jmp(list,A_BC,CF_NE,lab);
             free_scratch_reg(list,countreg);
           end
@@ -766,20 +770,144 @@ const
            end
        end;
 
-    procedure tcgppc.a_op_reg_reg_const32(list: taasmoutput; oplo, ophi:
-                       tasmop; reg1, reg2: tregister; a: aword);
+
+    procedure tcgppc.a_op_reg_reg_const32(list: taasmoutput; op: TOpCg;
+                       dst, src: tregister; a: aword): boolean;
+      var
+        l1,l2: longint;
+
+      { find out whether a is of the form 11..00..11b or 00..11...00. If }
+      { that's the case, we can use rlwinm to do an AND operation        }
+      function get_rlwinm_const: boolean;
+
+        var
+          temp, testbit, compare: longint;
+
+        begin
+          get_rlwinm_const := false;
+          { start with the lowest bit }
+          testbit := 1;
+          { check its value }
+          compare := a and testbit;
+          { find out how long the run of bits with this value is }
+          l1 := 31;
+          while (a and testbit) = compare do
+            begin
+              testbit := testbit shl 1;
+              dec(l1);
+            end;
+
+          { check the length of the run of bits that come next }
+          compare := compare xor 1;
+          testbit := testbit shl 1;
+          l2 := l1 - 1;
+          while (a and testbit) = compare) and
+                 (l2 > 0) do
+            begin
+              testbit := testbit shl 1;
+              dec(l2);
+            end;
+
+          { and finally the check whether the rest of the bits all have the }
+          { same value                                                      }
+          compare := compare xor 1;
+          temp := l2 - 1;
+          if temp > 0 then
+            if (a shr (31-temp)) <> ((-compare) shr (31-temp)) then
+              exit;
+
+          { we have done "compare xor 1 xor 1", so compare is back to its }
+          { initial value. If the lowest bit was 0, a is of the form      }
+          { 00..11..00 and we need "rlwinm reg,reg,0,l2,l1-1", (-1        }
+          { because l1 then contains the position of the first zero of    }
+          { the second run instead of that of the last 1) so switch l1    }
+          { and l2 in that case (we will generate                         }
+          { "rlwinm reg,reg,0,l1,l2")                                     }
+          if compare = 0 then
+            begin
+              temp := l1-1;
+              l1 := l2;
+              l2 := temp;
+            end
+          else
+            { a is of the form 11..00.11 -> l2 contains the position of }
+            { the first zero instead of of the last 1 of the first run  }
+            dec(l2);
+          get_rlwinm_const := true;
+        end;
+
+      var
+        oplo, ophi: tasmop;
+        scratchreg: tregister;
+        useReg: boolean;
 
       begin
-        if (a and $ffff) <> 0 Then
-          list.concat(taicpu.op_reg_reg_const(OpLo,reg1,reg2,a and $ffff));
-        If (a shr 16) <> 0 Then
-          list.concat(taicpu.op_reg_reg_const(OpHi,reg1,reg1,a shr 16))
+        useReg := true;
+        ophi := TOpCG2AsmOpConstHi[op];
+        if (low(a) = 0) then
+          begin
+            list.concat(taicpu.op_reg_reg(ophi,reg1,reg2,high(a)));
+            exit;
+          end;
+        oplo := TOpCG2AsmOpConstLo[op];
+        case op of
+          OP_ADD,OP_SUB:
+            if (longint(a) >= low(smallint)) and (longint(a) <= high(smallint)) then
+              list.concat(taicpu.op_reg_reg_const(oplo,reg1,reg2,a))
+            else
+              begin
+                list.concat(taicpu.op_reg_reg_const(oplo,reg1,reg2,low(a)));
+                list.concat(taicpu.op_reg_reg_const(ophi,reg1,reg1,
+                  high(a) + ord(smallint(a) < 0)));
+              end;
+          OP_OR,OP_XOR:
+            if (longint(a) >= 0) and (longint(a) <= high(smallint)) then
+              list.concat(taicpu.op_reg_reg_const(oplo,reg1,reg2,a))
+            else
+              useReg := false;
+          OP_AND:
+            if (longint(a) >= low(smallint)) and (longint(a) <= 0) then
+              list.concat(taicpu.op_reg_reg_const(oplo,reg1,reg2,a))
+            else if get_rlwinm_const then
+              list.concat(taicpu.op_reg_reg_const_const_const(
+                a_rlwinm,reg1,reg2,0,l1,l2))
+            else
+              useReg := false;
+          else
+            internalerror(200109091);
+        end;
+        if useReg then
+          begin
+            scratchreg := get_scratch_reg(list);
+            a_load_const_reg(list,OS_32,a,scratchreg);
+            a_op_reg_reg_reg(list,op,reg1,scratchreg,reg2);
+            free_scratch_reg(list,scratchreg);
+          end;
       end;
 
-    procedure tcgppc.a_load_store(list:taasmoutput;op: tasmop;reg:tregister;
-                       var ref: treference);
 
-    var tmpreg: tregister;
+    procedure tcgppc.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
+      dest, src1, src2: tregister);
+
+      const
+        op_reg_reg_opcg2asmop: array[TOpCG] of tasmop =
+          (A_ADD,A_AND,A_DIVWU,A_DIVW,A_MULLW,A_MULLW,A_NEG,A_NOT,A_OR,
+           A_SRAW,A_SLW,A_SRW,A_SUB,A_XOR)
+
+       begin
+         Case Op of
+           OP_NEG,OP_NOT:
+             list.concat(taicpu.op_reg_reg(op_reg_reg_opcg2asmop[op],size,dst,dst));
+           else
+             list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],size,dst,src1,src2));
+       end;
+
+
+    procedure tcgppc.a_load_store(list:taasmoutput;op: tasmop;reg:tregister;
+       var ref: treference);
+
+      var
+        tmpreg: tregister;
         tmpref: treference;
 
       begin
@@ -804,19 +932,25 @@ const
           free_scratch_reg(list,tmpreg);
       end;
 
+
     procedure tcgppc.a_jmp(list: taasmoutput; op: tasmop; c: tasmcondflags;
                 l: pasmlabel);
-    var p: paicpu;
-    begin
-      p := taicpu.op_sym(op,newasmsymbol(l^.name));
-      create_cond_norm(c,0,p^.condition);
-      list.concat(p)
-    end;
+      var
+        p: paicpu;
+
+      begin
+        p := taicpu.op_sym(op,newasmsymbol(l^.name));
+        create_cond_norm(c,0,p^.condition);
+        list.concat(p)
+      end;
 
 end.
 {
   $Log$
-  Revision 1.3  2001-09-06 15:25:55  jonas
+  Revision 1.4  2001-09-09 17:10:25  jonas
+    * some more things implemented
+
+  Revision 1.3  2001/09/06 15:25:55  jonas
     * changed type of tcg from object to class ->  abstract methods are now
       a lot cleaner :)
     + more updates: load_*_loc methods, op_*_* methods, g_flags2reg method

@@ -125,6 +125,8 @@ unit cgobj;
           procedure a_load_reg_ref(list : taasmoutput;size : tcgsize;register : tregister;const ref : treference);virtual; abstract;
           procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual; abstract;
           procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual; abstract;
+          procedure a_load_loc_reg(list : taasmoutput;size : tcgsize;const loc: tlocation; reg : tregister);
+
 
           { basic arithmetic operations }
           { note: for operators which require only one argument (not, neg), use }
@@ -133,11 +135,11 @@ unit cgobj;
           { destination (JM)                                                    }
           procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister); virtual; abstract;
           procedure a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; const ref: TReference); virtual;
-          procedure a_op_const_loc(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; const loc: tloocation); virtual;
+          procedure a_op_const_loc(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; const loc: tloocation);
           procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); virtual; abstract;
           procedure a_op_reg_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; reg: TRegister; const ref: TReference); virtual;
           procedure a_op_ref_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); virtual;
-          procedure a_op_reg_loc(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; const loc: tloocation); virtual;
+          procedure a_op_reg_loc(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; const loc: tloocation);
           procedure a_op_ref_loc(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; const loc: tloocation); virtual;
 
           {  comparison operations }
@@ -317,7 +319,7 @@ unit cgobj;
          free_scratch_reg(list,hr);
       end;
 
-    procedure tcg.a_param_ref_addr(list : taasmoutput;r : treference;nr : longint);
+    procedure tcg.a_param_ref_addr(list : taasmoutput;const r : treference;nr : longint);
 
       var
          hr : tregister;
@@ -335,20 +337,6 @@ unit cgobj;
          a_param_const(list,OS_32,stackframesize,1);
          a_call_name(list,'FPC_STACKCHECK',0);
       end;
-
-    procedure tcg.a_load_const_ref(list : taasmoutput;size : tcgsize;a : aword;const ref : treference);
-
-      var
-         hr : tregister;
-
-      begin
-         hr:=get_scratch_reg(list);
-         a_load_const_reg(list,size,a,hr);
-         a_load_reg_ref(list,size,hr,ref);
-         free_scratch_reg(list,hr);
-      end;
-
-
 
 {*****************************************************************************
                          String helper routines
@@ -1203,10 +1191,10 @@ unit cgobj;
 
 
     procedure tcg.a_load_const_ref(list : taasmoutput;size : tcgsize;a : aword;const ref : treference);
-    
+
     var
       tmpreg: tregister;
-      
+
       begin
         tmpreg := get_scratch_reg(list);
         a_load_const_reg(list,size,a,tmpreg);
@@ -1214,9 +1202,22 @@ unit cgobj;
         free_scratch_reg(list,tmpreg);
       end;
 
-    
+    procedure tcg.a_load_loc_reg(list : taasmoutput;size : tcgsize;const loc: tlocation; reg : tregister);
+
+      begin
+        case loc.loc of
+          LOC_REFERENCE,LOC_MEM:
+            a_load_ref_reg(list,size,loc.reference,reg);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_load_reg_reg(lost,size,loc.register,reg);
+          else
+            internalerror(200109092);
+        end;
+      end;
+
+
     procedure tcg.a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; const ref: TReference);
-    
+
       var
         tmpreg: tregister;
 
@@ -1230,7 +1231,7 @@ unit cgobj;
 
 
     procedure tcg.a_op_const_loc(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; const loc: tloocation);
-    
+
       begin
         case loc.loc of
           LOC_REGISTER, LOC_CREGISTER:
@@ -1368,7 +1369,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.4  2001-09-06 15:25:55  jonas
+  Revision 1.5  2001-09-09 17:10:26  jonas
+    * some more things implemented
+
+  Revision 1.4  2001/09/06 15:25:55  jonas
     * changed type of tcg from object to class ->  abstract methods are now
       a lot cleaner :)
     + more updates: load_*_loc methods, op_*_* methods, g_flags2reg method
