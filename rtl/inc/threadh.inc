@@ -85,10 +85,12 @@ function BeginThread(sa : Pointer;stacksize : dword;
   ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
   var ThreadId : THandle) : DWord;
 {$ifndef CPU64}
+{$ifndef unix}
 { Delphi uses a longint for threadid }
 function BeginThread(sa : Pointer;stacksize : dword;
   ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
   var ThreadId : Longint) : DWord;
+{$endif unix}
 {$endif CPU64}
 
 { add some simplfied forms which make lifer easier and porting }
@@ -97,7 +99,9 @@ function BeginThread(ThreadFunction : tthreadfunc) : DWord;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : DWord;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : THandle) : DWord;
 {$ifndef CPU64}
+{$ifndef unix}
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : Longint) : DWord;
+{$endif unix}
 {$endif CPU64}
 
 procedure EndThread(ExitCode : DWord);
@@ -124,7 +128,10 @@ procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
 
 {
   $Log$
-  Revision 1.15  2004-02-22 16:48:39  florian
+  Revision 1.16  2004-02-22 23:22:49  florian
+    * fixed BeginThread on unix
+
+  Revision 1.15  2004/02/22 16:48:39  florian
     * several 64 bit issues fixed
 
   Revision 1.14  2003/11/29 17:29:32  michael

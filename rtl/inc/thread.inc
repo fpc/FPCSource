@@ -42,12 +42,14 @@ Var
                             Overloaded functions
 *****************************************************************************}
 {$ifndef CPU64}
+{$ifndef unix}
     function BeginThread(sa : Pointer;stacksize : dword;
                          ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
                          var ThreadId : Longint) : DWord;
       begin
         BeginThread:=BeginThread(nil,StackSize,ThreadFunction,p,creationFlags,THandle(THreadId));
       end;
+{$endif unix}
 {$endif CPU64}
 
     function BeginThread(ThreadFunction : tthreadfunc) : DWord;
@@ -73,10 +75,12 @@ Var
 
 
 {$ifndef CPU64}
+{$ifndef unix}
     function BeginThread(ThreadFunction : tthreadfunc;p : pointer;var ThreadId : Longint) : DWord;
       begin
         BeginThread:=BeginThread(nil,DefaultStackSize,ThreadFunction,p,0,THandle(ThreadId));
       end;
+{$endif unix}
 {$endif CPU64}
 
     procedure EndThread;
@@ -323,7 +327,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2004-02-22 16:48:39  florian
+  Revision 1.10  2004-02-22 23:22:49  florian
+    * fixed BeginThread on unix
+
+  Revision 1.9  2004/02/22 16:48:39  florian
     * several 64 bit issues fixed
 
   Revision 1.8  2004/01/21 20:11:06  peter
