@@ -476,6 +476,11 @@ implementation
              tt:=cformaltype;
            end;
 
+          { File types are only allowed for var parameters }
+          if (tt.def.deftype=filedef) and
+             (varspez<>vs_var) then
+            CGMessage(cg_e_file_must_call_by_reference);
+
           vs:=tvarsym(sc.first);
           while assigned(vs) do
            begin
@@ -2141,7 +2146,10 @@ const
 end.
 {
   $Log$
-  Revision 1.138  2003-09-28 17:55:04  peter
+  Revision 1.139  2003-09-28 21:44:55  peter
+    * fix check that filedef needs var para
+
+  Revision 1.138  2003/09/28 17:55:04  peter
     * parent framepointer changed to hidden parameter
     * tloadparentfpnode added
 

@@ -733,11 +733,6 @@ type
                  CGMessage(type_e_strict_var_string_violation);
                end;
 
-             { File types are only allowed for var parameters }
-             if (paraitem.paratype.def.deftype=filedef) and
-                (paraitem.paratyp<>vs_var) then
-               CGMessage(cg_e_file_must_call_by_reference);
-
              { Handle formal parameters separate }
              if (paraitem.paratype.def.deftype=formaldef) then
                begin
@@ -2520,7 +2515,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.183  2003-09-28 17:55:03  peter
+  Revision 1.184  2003-09-28 21:44:55  peter
+    * fix check that filedef needs var para
+
+  Revision 1.183  2003/09/28 17:55:03  peter
     * parent framepointer changed to hidden parameter
     * tloadparentfpnode added
 
