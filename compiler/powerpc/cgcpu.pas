@@ -859,7 +859,10 @@ const
       var
         p : taicpu;
       begin
-        p := taicpu.op_sym(A_B,objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION));
+         if (target_info.system = system_powerpc_darwin) then
+           p := taicpu.op_sym(A_B,get_darwin_call_stub(s))
+        else
+          p := taicpu.op_sym(A_B,objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION));
         p.is_jmp := true;
         list.concat(p)
       end;
@@ -2296,7 +2299,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.188  2004-12-11 12:42:28  jonas
+  Revision 1.189  2004-12-24 11:51:55  jonas
+    * fixed a_jmp_name() for darwin
+
+  Revision 1.188  2004/12/11 12:42:28  jonas
     * fixed synchronising 64bit regvars on 32bit systems at the start and
       end of procedures
     * hack for ppc for loading of paras from their callee location to local
