@@ -200,12 +200,12 @@ implementation
 {$ifdef i386}
           (
             name         : 'GO32 V1 DOS extender';
-            sharedlibext : '.DLL';
-            staticlibext : '.A';
-            sourceext    : '.PP';
-            pasext       : '.PAS';
+            sharedlibext : '.dll';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
             exeext       : '';      { No .exe, the linker only output a.out ! }
-            scriptext    : '.BAT';
+            scriptext    : '.bat';
             libprefix    : '';
             Cprefix      : '_';
             newline      : #13#10;
@@ -214,12 +214,12 @@ implementation
                   ),
           (
             name         : 'GO32 V2 DOS extender';
-            sharedlibext : '.DLL';
-            staticlibext : '.A';
-            sourceext    : '.PP';
-            pasext       : '.PAS';
-            exeext       : '.EXE';
-            scriptext    : '.BAT';
+            sharedlibext : '.dll';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '.exe';
+            scriptext    : '.bat';
             libprefix    : '';
             Cprefix      : '_';
             newline      : #13#10;
@@ -876,7 +876,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  1998-08-21 15:16:57  peter
+  Revision 1.28  1998-08-25 12:42:47  pierre
+    * CDECL changed to CVAR for variables
+      specifications are read in structures also
+    + started adding GPC compatibility mode ( option  -Sp)
+    * names changed to lowercase
+
+  Revision 1.27  1998/08/21 15:16:57  peter
     * win32 compiles a bit better, no growheap crash
 
   Revision 1.26  1998/08/19 16:07:55  jonas

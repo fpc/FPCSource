@@ -672,7 +672,7 @@
               { generate two constant for bounds }
               getlabelnr(rangenr);
               if (cs_smartlink in aktmoduleswitches) then
-                datasegment^.concat(new(pai_symbol,init_global('R_'+current_module^.mainsource^+tostr(rangenr))))
+                datasegment^.concat(new(pai_symbol,init_global('R_'+current_module^.modulename^+tostr(rangenr))))
               else
                 datasegment^.concat(new(pai_symbol,init('R_'+tostr(rangenr))));
               if low<=high then
@@ -687,7 +687,7 @@
                    datasegment^.concat(new(pai_const,init_32bit($7fffffff)));
                    inc(nextlabelnr);
                    if (cs_smartlink in aktmoduleswitches) then
-                     datasegment^.concat(new(pai_symbol,init_global('R_'+current_module^.mainsource^+tostr(rangenr+1))))
+                     datasegment^.concat(new(pai_symbol,init_global('R_'+current_module^.modulename^+tostr(rangenr+1))))
                    else
                      datasegment^.concat(new(pai_symbol,init('R_'+tostr(rangenr+1))));
                    datasegment^.concat(new(pai_const,init_32bit($80000000)));
@@ -2535,7 +2535,13 @@
 
 {
   $Log$
-  Revision 1.25  1998-08-23 21:04:38  florian
+  Revision 1.26  1998-08-25 12:42:44  pierre
+    * CDECL changed to CVAR for variables
+      specifications are read in structures also
+    + started adding GPC compatibility mode ( option  -Sp)
+    * names changed to lowercase
+
+  Revision 1.25  1998/08/23 21:04:38  florian
     + rtti generation for classes added
     + new/dispose do now also a call to INITIALIZE/FINALIZE, if necessaray
 

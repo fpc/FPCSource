@@ -1351,6 +1351,10 @@
          typ:=enumsym;
          definition:=def;
          value:=v;
+         if def^.min>v then
+           def^.min:=v;
+         if def^.max<v then
+           def^.max:=v;
 {$ifdef GDB}
          order;
 {$endif GDB}
@@ -1552,7 +1556,13 @@
 
 {
   $Log$
-  Revision 1.34  1998-08-21 14:08:53  pierre
+  Revision 1.35  1998-08-25 12:42:46  pierre
+    * CDECL changed to CVAR for variables
+      specifications are read in structures also
+    + started adding GPC compatibility mode ( option  -Sp)
+    * names changed to lowercase
+
+  Revision 1.34  1998/08/21 14:08:53  pierre
     + TEST_FUNCRET now default (old code removed)
       works also for m68k (at least compiles)
 

@@ -205,7 +205,8 @@ unit pdecl;
 {$endif i386}
          { c var }
          Csym : pvarsym;
-         is_cdecl,extern_Csym,export_Csym : boolean;
+         newtype : ptypesym;
+         is_gpc_name,is_cdecl,extern_Csym,export_Csym : boolean;
          C_name : string;
          { case }
          p,casedef : pdef;
@@ -216,6 +217,7 @@ unit pdecl;
       begin
          old_block_type:=block_type;
          block_type:=bt_type;
+         is_gpc_name:=false;
        { Force an expected ID error message }
          if not (token in [ID,_CASE,_END]) then
           consume(ID);
@@ -228,10 +230,32 @@ unit pdecl;
              C_name:=orgpattern;
              sc:=idlist;
              consume(COLON);
+             if (cs_gpc_compatible in aktmoduleswitches) and
+               not(is_record or is_object) and
+               (token=ID) and (orgpattern='__asmname__') then
+                 begin
+                    consume(ID);
+                    C_name:=get_stringconst;
+                    Is_gpc_name:=true;
+                 end;
              p:=read_type('');
              symdone:=false;
+             if is_gpc_name then
+               begin
+                  s:=sc^.get_with_tokeninfo(filepos);
+                  if not sc^.empty then
+                   Message(parser_e_absolute_only_one_var);
+                  dispose(sc,done);
+                  Csym:=new(pvarsym,init_C(s,C_name,p));
+                  Csym^.fileinfo:=filepos;
+                  Csym^.var_options:=Csym^.var_options or vo_is_external;
+                  externals^.concat(new(pai_external,init(Csym^.mangledname,EXT_NEAR)));
+                  symtablestack^.insert(Csym);
+                  symdone:=true;
+               end;
            { check for absolute }
-             if (token=ID) and (pattern='ABSOLUTE') and not(is_record or is_object) then
+             if not symdone and (token=ID) and
+                (pattern='ABSOLUTE') and not(is_record or is_object) then
               begin
                 consume(ID);
               { only allowed for one var }
@@ -303,8 +327,16 @@ unit pdecl;
              { for a record there doesn't need to be a ; before the END or ) }
              if not((is_record or is_object) and (token in [_END,RKLAMMER])) then
                consume(SEMICOLON);
+             if (p^.deftype=procvardef) and (p^.sym=nil) then
+               begin
+                  newtype:=new(ptypesym,init('unnamed',p));
+                  parse_var_proc_directives(newtype);
+                  newtype^.definition:=nil;
+                  p^.sym:=nil;
+                  dispose(newtype,done);
+               end;
              { Check for variable directives }
-             if (token=ID) then
+             if not symdone and (token=ID) then
               begin
                 { Check for C Variable declarations }
                 if (cs_support_c_var in aktmoduleswitches) and
@@ -312,7 +344,7 @@ unit pdecl;
                    ((pattern='EXPORT') or
                     (pattern='EXTERNAL') or
                     (pattern='PUBLIC') or
-                    (pattern='CDECL')) then
+                    (pattern='CVAR')) then
                  begin
                    { only allowed for one var }
                    s:=sc^.get_with_tokeninfo(filepos);
@@ -324,7 +356,7 @@ unit pdecl;
                    extern_csym:=false;
                    export_Csym:=false;
                    { cdecl }
-                   if pattern='CDECL' then
+                   if pattern='CVAR' then
                     begin
                       consume(ID);
                       consume(SEMICOLON);
@@ -365,12 +397,6 @@ unit pdecl;
                    { insert in the symtable }
                    Csym:=new(pvarsym,init_C(s,C_name,p));
                    Csym^.fileinfo:=filepos;
-                   { locally defined procvar type with
-                     CDECL need to use C calling convention }
-                   if (p^.deftype=procvardef) and
-                      (p^.sym=nil) then
-                     pprocvardef(p)^.options:=
-                       pprocvardef(p)^.options or (pocdecl+poclearstack);
                    if export_Csym then
                     inc(Csym^.refs);
                    if extern_Csym then
@@ -393,7 +419,7 @@ unit pdecl;
                     symdone:=true;
                   end;
               end;
-           { insert it in the symtable, if not done yet }
+             { insert it in the symtable, if not done yet }
              if not symdone then
               insert_syms(symtablestack,sc,p);
            end;
@@ -1643,6 +1669,7 @@ unit pdecl;
             LKLAMMER:
               begin
                  consume(LKLAMMER);
+                 { allow negativ values }
                  l:=-1;
                  aufsym := Nil;
                  aufdef:=new(penumdef,init);
@@ -1667,7 +1694,10 @@ unit pdecl;
                    else
                      break;
                  until false;
-                 aufdef^.max:=l;
+                 {aufdef^.max:=l;
+                 if we allow unordered enums
+                 this can be wrong
+                 min and max are now set in tenumsym.init PM }
                  p:=aufdef;
                  consume(RKLAMMER);
               end;
@@ -1679,7 +1709,11 @@ unit pdecl;
                  consume(_OF);
                  hp1:=read_type('');
                  case hp1^.deftype of
-                    enumdef : p:=new(psetdef,init(hp1,penumdef(hp1)^.max));
+                    { don't forget that min can be negativ  PM }
+                    enumdef : if penumdef(hp1)^.min>=0 then
+                                p:=new(psetdef,init(hp1,penumdef(hp1)^.max))
+                              else
+                                Message(sym_e_ill_type_decl_set);
                     orddef : begin
                                   case porddef(hp1)^.typ of
                                      uchar : p:=new(psetdef,init(hp1,255));
@@ -1935,7 +1969,13 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.41  1998-08-23 21:04:36  florian
+  Revision 1.42  1998-08-25 12:42:41  pierre
+    * CDECL changed to CVAR for variables
+      specifications are read in structures also
+    + started adding GPC compatibility mode ( option  -Sp)
+    * names changed to lowercase
+
+  Revision 1.41  1998/08/23 21:04:36  florian
     + rtti generation for classes added
     + new/dispose do now also a call to INITIALIZE/FINALIZE, if necessaray
 

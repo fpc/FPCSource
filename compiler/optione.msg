@@ -5,6 +5,7 @@ nested response files are not supported
 No source file name in command line
 Illegal parameter: $1
 -? writes help pages
+Too many config files nested
 Unable to open file $1
 Reading further options from $1
 Target is already set to: $1
