@@ -21,6 +21,8 @@ interface
   {$R-}
 {$endif}
 
+{$goto on}
+
 Procedure DumpHeap;
 Procedure MarkHeap;
 
@@ -1146,7 +1148,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.14  2001-06-06 17:20:22  jonas
+  Revision 1.15  2001-07-29 13:43:57  peter
+    * m68k updates merged
+
+  Revision 1.14  2001/06/06 17:20:22  jonas
     * fixed wrong typed constant procvars in preparation of my fix which will
       disallow them in FPC mode (plus some other unmerged changes since
       LAST_MERGE)

@@ -26,7 +26,7 @@ interface
   {$S-}
 {$endif}
 
-procedure GetLineInfo(addr:longint;var func,source:string;var line:longint);
+procedure GetLineInfo(addr:dword;var func,source:string;var line:longint);
 
 
 implementation
@@ -54,7 +54,7 @@ type
     ntype   : byte;
     nother  : byte;
     ndesc   : word;
-    nvalue  : longint;
+    nvalue  : dword;
   end;
 
 { We use static variable so almost no stack is required, and is thus
@@ -394,8 +394,18 @@ begin
   if filesize(f)<sizeof(telf32header) then
    exit;
   blockread(f,elfheader,sizeof(telf32header));
-  if elfheader.magic0123<>$464c457f then
+{$ifdef ENDIAN_LITTLE}
+ if elfheader.magic0123<>$464c457f then
    exit;
+{$endif ENDIAN_LITTLE}
+{$ifdef ENDIAN_BIG}
+ if elfheader.magic0123<>$7f454c46 then
+   exit;
+ { this seems to be at least the case for m68k cpu PM }
+{$ifdef m68k}
+ {StabsFunctionRelative:=false;}
+{$endif m68k}
+{$endif ENDIAN_BIG}
   if elfheader.e_shentsize<>sizeof(telf32sechdr) then
    exit;
   { read section names }
@@ -486,7 +496,7 @@ begin
 end;
 
 
-procedure GetLineInfo(addr:longint;var func,source:string;var line:longint);
+procedure GetLineInfo(addr:dword;var func,source:string;var line:longint);
 var
   res : {$ifdef tp}integer{$else}longint{$endif};
   stabsleft,
@@ -608,11 +618,12 @@ var
   source : string;
   hs     : string[32];
   line   : longint;
+  Store  : function (addr : longint) : string;
 begin
-  GetLineInfo(addr,func,source,line);
-{ if there was an error with opening reset the hook to the system default }
-  if not Opened then
-   BackTraceStrFunc:=@SysBackTraceStr;
+  { reset to prevent infinite recursion if problems inside the code PM }
+  Store:=BackTraceStrFunc;
+  BackTraceStrFunc:=@SysBackTraceStr;
+  GetLineInfo(dword(addr),func,source,line);
 { create string }
   StabBackTraceStr:='  0x'+HexStr(addr,8);
   if func<>'' then
@@ -628,6 +639,8 @@ begin
       end;
      StabBackTraceStr:=StabBackTraceStr+' of '+source;
    end;
+  if Opened then
+    BackTraceStrFunc:=Store;
 end;
 
 
@@ -641,7 +654,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2000-12-18 14:01:11  jonas
+  Revision 1.6  2001-07-29 13:43:57  peter
+    * m68k updates merged
+
+  Revision 1.5  2000/12/18 14:01:11  jonas
     * added cardinal typecast to avoid signed evaluation
 
   Revision 1.4  2000/11/13 13:40:04  marco
