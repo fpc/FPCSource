@@ -105,7 +105,6 @@ begin
         end
     else
 {$ELSE FPC_FEXPAND_DRIVES}
-            Delete (Path, 1, 2);
             Delete (Pa, 1, 2);
         end;
 {$ENDIF FPC_FEXPAND_DRIVES}
@@ -200,7 +199,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2001-03-19 21:05:42  hajny
+  Revision 1.4  2001-03-19 21:09:30  hajny
+    * one more problem in the Unix part
+
+  Revision 1.3  2001/03/19 21:05:42  hajny
     * mistyping in the Unix part fixed
 
   Revision 1.2  2001/03/10 09:57:51  hajny
