@@ -932,7 +932,7 @@ unit pstatmnt;
                 not((cs_delphi2_compatible in aktswitches) and
                 (pattern='RESULT'))) then
                 begin
-                   getsym(pattern,false);
+                   getsym(pattern,true);
                    lastsymknown:=true;
                    lastsrsym:=srsym;
                    { it is NOT necessarily the owner
@@ -1121,7 +1121,12 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.13  1998-05-28 17:26:50  peter
+  Revision 1.14  1998-05-29 09:58:14  pierre
+    * OPR_REGISTER for 1 arg was missing in ratti386.pas
+      (probably a merging problem)
+    * errors at start of line were lost
+
+  Revision 1.13  1998/05/28 17:26:50  peter
     * fixed -R switch, it didn't work after my previous akt/init patch
     * fixed bugs 110,130,136
 

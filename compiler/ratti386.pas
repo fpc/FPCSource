@@ -1639,65 +1639,49 @@ const
           case instr.operands[1].operandtype of
                { all one operand opcodes with constant have no defined sizes }
                { at least that is what it seems in the tasm 2.0 manual.      }
-           OPR_CONSTANT:  p^.concat(new(pai386,op_const(instruc,
-                             S_NO, instr.operands[1].val)));
+           OPR_CONSTANT:
+             p^.concat(new(pai386,op_const(instruc,
+               S_NO, instr.operands[1].val)));
+           { was missing !!! }
+           OPR_REGISTER:
+             Begin
+                p^.concat(new(pai386,op_reg(instruc,
+                  instr.stropsize, instr.operands[1].reg)));
+             End;
            OPR_REFERENCE:
-               { now first check suffix ... }
-                          if instr.stropsize <> S_NO then
-                          Begin
-                                p^.concat(new(pai386,op_ref(instruc,
-                                  instr.stropsize,newreference(instr.operands[1].ref))));
-                          end
+             { now first check suffix ... }
+             if instr.stropsize <> S_NO then
+               Begin
+                  p^.concat(new(pai386,op_ref(instruc,
+                    instr.stropsize,newreference(instr.operands[1].ref))));
+               end
                { no suffix... therefore resort using intel styled checking .. }
-                          else
-                          if (instr.operands[1].size <> S_NO) and NOT (instruc in [A_CALL,A_JMP]) then
-                          Begin
-                           p^.concat(new(pai386,op_ref(instruc,
-                            instr.operands[1].size,newreference(instr.operands[1].ref))));
-                          end
-                          else
-                          Begin
-                              { special jmp and call case with }
-                              { symbolic references.           }
-                              if (instruc in [A_CALL,A_JMP]) or
-                                 (instruc = A_FNSTCW) or
-                                 (instruc = A_FSTCW) or
-                                 (instruc = A_FLDCW) or
-                                 (instruc = A_FNSTSW) or
-                                 (instruc = A_FSTSW) or
-                                 (instruc = A_FLDENV) or
-                                 (instruc = A_FSTENV) or
-                                 (instruc = A_FNSAVE) or
-                                 (instruc = A_FSAVE) then
-                              Begin
-                                p^.concat(new(pai386,op_ref(instruc,
-                                  S_NO,newreference(instr.operands[1].ref))));
-                              end
-                              else
-                                Message(assem_e_invalid_opcode_and_operand);
-                          end;
-                          end
-                          else
-                          Begin
-                              { special jmp and call case with }
-                              { symbolic references.           }
-                              if (instruc in [A_CALL,A_JMP]) or
-                                 (instruc = A_FNSTCW) or
-                                 (instruc = A_FSTCW) or
-                                 (instruc = A_FLDCW) or
-                                 (instruc = A_FNSTSW) or
-                                 (instruc = A_FSTSW) or
-                                 (instruc = A_FLDENV) or
-                                 (instruc = A_FSTENV) or
-                                 (instruc = A_FNSAVE) or
-                                 (instruc = A_FSAVE) then
-                              Begin
-                                p^.concat(new(pai386,op_ref(instruc,
-                                  S_NO,newreference(instr.operands[1].ref))));
-                              end
-                              else
-                                Message(assem_e_invalid_opcode_and_operand);
-                          end;
+             else if (instr.operands[1].size <> S_NO) and NOT (instruc in [A_CALL,A_JMP]) then
+               Begin
+                  p^.concat(new(pai386,op_ref(instruc,
+                    instr.operands[1].size,newreference(instr.operands[1].ref))));
+               end
+             else
+               Begin
+                  { special jmp and call case with }
+                  { symbolic references.           }
+                  if (instruc in [A_CALL,A_JMP]) or
+                     (instruc = A_FNSTCW) or
+                     (instruc = A_FSTCW) or
+                     (instruc = A_FLDCW) or
+                     (instruc = A_FNSTSW) or
+                     (instruc = A_FSTSW) or
+                     (instruc = A_FLDENV) or
+                     (instruc = A_FSTENV) or
+                     (instruc = A_FNSAVE) or
+                     (instruc = A_FSAVE) then
+                    Begin
+                       p^.concat(new(pai386,op_ref(instruc,
+                         S_NO,newreference(instr.operands[1].ref))));
+                    end
+                  else
+                    Message(assem_e_invalid_opcode_and_operand);
+               end;
 { This either crashed the compiler or the symbol would always be nil! }
 { The problem is here is I didn't see any way of adding the labeled   }
 { symbol in the internal list, since i think from what i see in aasm  }
@@ -3699,7 +3683,12 @@ end.
 
 {
   $Log$
-  Revision 1.8  1998-05-28 16:34:36  carl
+  Revision 1.9  1998-05-29 09:58:16  pierre
+    * OPR_REGISTER for 1 arg was missing in ratti386.pas
+      (probably a merging problem)
+    * errors at start of line were lost
+
+  Revision 1.8  1998/05/28 16:34:36  carl
      * call bugfix
      * operand with regs bugfix (manual patch in both cases)
 
