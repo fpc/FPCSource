@@ -277,6 +277,16 @@ implementation
               { into a register }
               { is this usefull here ? }
               { this was missing in formal parameter list   }
+              if (defcoll^.data=cformaldef) then
+                begin
+                  if defcoll^.paratyp=vs_var then
+                    if not valid_for_formal_var(p^.left) then
+                      CGMessage(parser_e_illegal_parameter_list);
+                  if defcoll^.paratyp=vs_const then
+                    if not valid_for_formal_const(p^.left) then
+                      CGMessage(parser_e_illegal_parameter_list);
+                end;
+                
               if defcoll^.paratyp=vs_var then
                 begin
                    set_unique(p^.left);
@@ -1139,7 +1149,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1999-04-21 09:44:00  peter
+  Revision 1.34  1999-04-21 16:31:46  pierre
+  ra386att.pas
+
+  Revision 1.33  1999/04/21 09:44:00  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)

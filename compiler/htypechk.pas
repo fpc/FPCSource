@@ -46,6 +46,8 @@ interface
     { subroutine handling }
     procedure test_protected_sym(sym : psym);
     procedure test_protected(p : ptree);
+    function  valid_for_formal_var(p : ptree) : boolean;
+    function  valid_for_formal_const(p : ptree) : boolean;
     function  is_procsym_load(p:Ptree):boolean;
     function  is_procsym_call(p:Ptree):boolean;
     function  is_assignment_overloaded(from_def,to_def : pdef) : boolean;
@@ -607,7 +609,38 @@ implementation
         end;
       end;
 
-
+   function  valid_for_formal_var(p : ptree) : boolean;
+     var
+        v : boolean;
+     begin
+        case p^.treetype of
+         loadn : v:=(p^.symtableentry^.typ in [typedconstsym,varsym]);
+     typeconvn : v:=valid_for_formal_var(p^.left);
+         typen : v:=false;
+     derefn,subscriptn,vecn,
+     funcretn,selfn : v:=true;
+        { procvars are callnodes first }
+         calln : v:=assigned(p^.right) and not assigned(p^.left);
+        { should this depend on mode ? }
+         addrn : v:=true;
+        { no other node accepted (PM) }
+        else v:=false;
+        end;
+        valid_for_formal_var:=v;
+     end;
+     
+   function  valid_for_formal_const(p : ptree) : boolean;
+     var
+        v : boolean;
+     begin
+        { p must have been firstpass'd before }
+        { accept about anything but not a statement ! }
+        v:=true;
+        if not assigned(p^.resulttype) or (p^.resulttype=voiddef) then
+          v:=false;
+        valid_for_formal_const:=v;
+     end;
+     
     function is_procsym_load(p:Ptree):boolean;
       begin
          is_procsym_load:=((p^.treetype=loadn) and (p^.symtableentry^.typ=procsym)) or
@@ -650,7 +683,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1999-04-15 08:56:27  peter
+  Revision 1.21  1999-04-21 16:31:40  pierre
+  ra386att.pas
+
+  Revision 1.20  1999/04/15 08:56:27  peter
     * fixed bool-bool conversion
 
   Revision 1.19  1999/03/24 23:17:02  peter

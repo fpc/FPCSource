@@ -209,6 +209,9 @@ unit tree;
 {$ifdef extdebug}
           firstpasscount : longint;
 {$endif extdebug}
+{$ifdef TEMPS_NOT_PUSH}
+          temp_offset : longint;
+{$endif TEMPS_NOT_PUSH}
           case treetype : ttreetyp of
              addn : (use_strconcat : boolean;string_typ : tstringtype);
              callparan : (is_colon_para : boolean;exact_match_found,
@@ -1714,7 +1717,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.72  1999-04-15 09:01:35  peter
+  Revision 1.73  1999-04-21 16:31:49  pierre
+  ra386att.pas
+
+  Revision 1.72  1999/04/15 09:01:35  peter
     * fixed set loading
     * object inheritance support for browser
 

@@ -185,7 +185,7 @@ implementation
       begin
          if r in [R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI] then
            ungetregister32(r)
-         else if r in [R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI] then
+          else if r in [R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI] then
            ungetregister32(reg16toreg32(r))
          else if r in [R_AL,R_BL,R_CL,R_DL] then
            ungetregister32(reg8toreg32(r))
@@ -373,7 +373,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  1999-04-16 11:49:47  peter
+  Revision 1.22  1999-04-21 16:31:48  pierre
+  ra386att.pas
+
+  Revision 1.21  1999/04/16 11:49:47  peter
     + tempalloc
     + -at to show temp alloc info in .s file
 

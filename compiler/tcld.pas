@@ -85,11 +85,12 @@ implementation
          clear_reference(p^.location.reference);
          if p^.symtableentry^.typ=funcretsym then
            begin
+              p1:=genzeronode(funcretn);
+              p1^.funcretprocinfo:=pprocinfo(pfuncretsym(p^.symtableentry)^.funcretprocinfo);
+              p1^.retdef:=pfuncretsym(p^.symtableentry)^.funcretdef;
+              firstpass(p1);
               putnode(p);
-              p:=genzeronode(funcretn);
-              p^.funcretprocinfo:=pprocinfo(pfuncretsym(p^.symtableentry)^.funcretprocinfo);
-              p^.retdef:=pfuncretsym(p^.symtableentry)^.funcretdef;
-              firstpass(p);
+              p:=p1;
               exit;
            end;
          if p^.symtableentry^.typ=absolutesym then
@@ -474,7 +475,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1999-04-01 21:59:57  peter
+  Revision 1.22  1999-04-21 16:31:47  pierre
+  ra386att.pas
+
+  Revision 1.21  1999/04/01 21:59:57  peter
     * type error for array constructor with array,record as argument
 
   Revision 1.20  1999/03/24 23:17:39  peter

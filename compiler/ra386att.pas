@@ -2960,6 +2960,21 @@ end;
     Until actasmtoken=AS_SEPARATOR;
   end;
 
+Procedure Check_arg(const op : toperand);
+  var
+     sym : pvarsym;
+begin
+  if (op.ref.base=procinfo.framepointer) and
+     (op.ref.offset>=procinfo.call_offset) and
+     assigned(aktprocsym^.definition^.parast) then
+    begin
+      sym:=aktprocsym^.definition^.parast^.find_at_offset(op.ref.offset);
+      if assigned(sym) then
+        Message2(assem_d_arg_offset,tostr(op.ref.offset)+'('+att_reg2str[procinfo.framepointer]+')',sym^.name)
+      else
+        Message1(assem_d_arg_unfound_offset,tostr(op.ref.offset)+'('+att_reg2str[procinfo.framepointer]+')');
+    end;
+end;
 
 
 Procedure BuildReference(var Instr: TInstruction);
@@ -3034,6 +3049,7 @@ Begin
          if actasmtoken=AS_RPAREN then
           Begin
             Consume_RParen;
+            Check_arg(instr.operands[operandnum]);
             exit;
           end;
          { (reg,reg ..  }
@@ -3150,6 +3166,7 @@ var
   tempstr: string;
   expr: string;
   lab: Pasmlabel;
+  is_var : boolean;
   hl: plabel;
   tsize,l,
   toffset : longint;
@@ -3190,7 +3207,20 @@ Begin
       Begin
         Consume(AS_STAR);
         InitAsmRef(instr);
-        if not CreateVarInstr(instr,actasmpattern,operandnum) then
+        { allow call *%edi or jmp *%eax }
+        { which is the correct ATT syntax !!! (PM) }
+        if actasmtoken=AS_REGISTER then
+          begin
+             if (instr.getinstruction=A_CALL) or (instr.getinstruction=A_JMP) and (operandnum=1) then
+               begin
+                 instr.operands[operandnum].operandtype:=OPR_REGISTER;
+                 instr.operands[operandnum].reg:=FindRegister(actasmpattern);
+                 consume(AS_REGISTER);
+               end
+             else
+               Message(assem_e_invalid_opcode_and_operand);
+          end
+        else if not CreateVarInstr(instr,actasmpattern,operandnum) then
           Message(assem_e_syn_opcode_operand);
       end;
 
@@ -3252,7 +3282,10 @@ Begin
              Begin
                { context for scanner }
                initAsmRef(instr);
-               if not CreateVarInstr(instr,actasmpattern,operandnum) then
+               is_var:=false;
+               if CreateVarInstr(instr,actasmpattern,operandnum) then
+                is_var:=true
+               else
                 Begin
                   { look for special symbols ... }
                   if actasmpattern = '__RESULT' then
@@ -3323,6 +3356,16 @@ Begin
                    end;
                   if actasmtoken=AS_LPAREN then
                     BuildReference(instr);
+                  { allow leal l+2,%eax }
+
+                  if is_var and (actasmtoken in [AS_PLUS,AS_MINUS]) and
+                     (instr.operands[operandnum].ref.base=R_NO) and
+                     (instr.operands[operandnum].ref.index=R_NO) then
+                    Begin
+                      Instr.Operands[OperandNum].Ref.Offset :=
+                        Instr.Operands[OperandNum].Ref.Offset
+                        +BuildConstExpression(false,false);
+                    End;
                 end;
              end; { end if }
           end; { end if }
@@ -3924,7 +3967,10 @@ end.
 
 {
   $Log$
-  Revision 1.36  1999-04-18 00:32:22  pierre
+  Revision 1.37  1999-04-21 16:31:41  pierre
+  ra386att.pas
+
+  Revision 1.36  1999/04/18 00:32:22  pierre
    * fix for bug0124 and better error position info
 
   Revision 1.35  1999/04/17 22:16:55  pierre
