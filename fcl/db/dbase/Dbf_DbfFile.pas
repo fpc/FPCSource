@@ -2432,8 +2432,10 @@ end;
 
 procedure TDbfGlobals.InitUserName;
 {$ifdef FPC}
+{$ifndef win32}
 var
   TempName: UTSName;
+{$endif}
 {$endif}
 begin
 {$ifdef WIN32}
