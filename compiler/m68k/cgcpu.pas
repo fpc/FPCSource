@@ -176,6 +176,12 @@ Implementation
          tmpreg: tregister;
        begin
          result := false;
+         { The Coldfire and MC68020+ have extended
+           addressing capabilities with a 32-bit
+           displacement.
+         }
+         if (aktoptprocessor <> MC68000) then
+           exit;
          if (ref.base <> R_NO) then
            begin
              if (ref.index <> R_NO) and assigned(ref.symbol) then
@@ -227,7 +233,7 @@ Implementation
        href : treference; 
      begin
        reference_reset_base(href, reg, 0);
-       a_call_ref(href);
+       a_call_ref(list,href);
      end;
       
 
@@ -1244,7 +1250,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2002-09-17 18:54:05  jonas
+  Revision 1.10  2002-09-22 14:15:31  carl
+    + a_call_reg
+
+  Revision 1.9  2002/09/17 18:54:05  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This
       allows some optimizations on architectures that don't encode the
       register size in the register name.
