@@ -210,6 +210,7 @@ Fixed bugs:
                units                                                 OK 0.99.9 (PM) 
   bug0181.pp   shows a problem with name mangling                    OK 0.99.9 (PM)
   bug0182.pp   @record.field doesn't work in constant expr           OK 0.99.9 (PM)
+  bug0183.pp   internal error 10 in secondnot	                     OK 0.99.11 (PM)	
   bug0184.pp   multiple copies of the same constant set are stored in executable OK 0.99.9 (PFV)
   bug0186.pp   Erroneous array syntax is accepted.                   OK 0.99.9 (PFV)
   bug0188.pp   can't print function result of procedural var that returns a
@@ -218,9 +219,12 @@ Fixed bugs:
                As bug0188 FPC syntax problem see source (PM)
   bug0192.pp   can't compare boolean result with true/false, because the
                boolean result is already in the flags             OK 0.99.11 (PFV)
+  bug0194.pp   @procedure var returns value in it instead of address !! OK 0.99.11 (PM)
   bug0195.pp   Problem with Getimage, crash of DOS box, even with dpmiexcp!! (PFV)
                Not a bug, you must use p^.
 	       
+  bug0197.pp   should produce an error: problem with c1:=c2<c3 where c? is OK 0.99.11 (PM)
+               a comp type
   bug0199.pp   bug in mul code                                OK 0.99.11  (FK)
 
 Unproducable bugs:
@@ -253,16 +257,12 @@ bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
 bug0163.pp   missing <= and >= operators for sets.
 bug0171.pp   missing typecasting in constant expressions
-bug0183.pp   internal error 10
 bug0185.pp   missing range checking for Val and subrange types
 bug0187.pp   constructor in a WIth statement isn't called correct.
 bug0190.pp   can't have typecast for var params ??
 bug0191.pp   missing vecn constant evaluation
 bug0193.pp   overflow checking for 8 and 16 bit operations wrong
-bug0194.pp   @procedure var returns value in it instead of address !!
 bug0196.pp   "function a;" is accepted (should require result type)
-bug0197.pp   should produce an error: problem with c1:=c2<c3 where c? is
-             a comp type
 bug0198.pp   calling specifications aren't allowed in class declarations,
              this should be allowed
 bug0200.pp   problem with constant strings which exceed length of pascal
