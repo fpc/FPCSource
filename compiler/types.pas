@@ -672,7 +672,9 @@ implementation
     function is_pchar(p : pdef) : boolean;
       begin
         is_pchar:=(p^.deftype=pointerdef) and
-                  is_equal(Ppointerdef(p)^.pointertype.def,cchardef);
+                  (is_equal(ppointerdef(p)^.pointertype.def,cchardef) or
+                   (is_zero_based_array(ppointerdef(p)^.pointertype.def) and
+                    is_chararray(ppointerdef(p)^.pointertype.def)));
       end;
 
 
@@ -1316,10 +1318,10 @@ implementation
                      if is_chararray(def_from) then
                       begin
                         doconv:=tc_chararray_2_string;
-                        if (not(cs_ansistrings in aktlocalswitches) and
-                            is_shortstring(def_to)) or
-                           ((cs_ansistrings in aktlocalswitches) and
-                            is_ansistring(def_to)) then
+                        if (is_shortstring(def_to) and
+                            (def_from^.size <= 255)) or
+                           (is_ansistring(def_to) and
+                            (def_from^.size > 255)) then
                          b:=1
                         else
                          b:=2;
@@ -1332,7 +1334,15 @@ implementation
                      if is_pchar(def_from) and not(m_tp7 in aktmodeswitches) then
                       begin
                         doconv:=tc_pchar_2_string;
-                        b:=1;
+                        { prefer ansistrings because pchars can overflow shortstrings, }
+                        { but only if ansistrings are the default (JM)                 }
+                        if (is_shortstring(def_to) and
+                            not(cs_ansistrings in aktlocalswitches)) or
+                           (is_ansistring(def_to) and
+                            (cs_ansistrings in aktlocalswitches)) then
+                          b:=1
+                        else
+                          b:=2;
                       end;
                    end;
                end;
@@ -1727,7 +1737,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2000-11-20 15:52:47  jonas
+  Revision 1.25  2000-12-08 14:06:11  jonas
+    * fix for web bug 1245: arrays of char with size >255 are now passed to
+      overloaded procedures which expect ansistrings instead of shortstrings
+      if possible
+    * pointer to array of chars (when using $t+) are now also considered
+      pchars
+
+  Revision 1.24  2000/11/20 15:52:47  jonas
     * testrange now always cuts a constant to the size of the destination
       if a rangeerror occurred
     * changed an "and $ffffffff" to "and (int64($fffffff) shl 4 + $f" to
