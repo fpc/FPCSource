@@ -1,22 +1,15 @@
 {
-  $Id$
+    $Id$
 
-  "shedit" - Text editor with syntax highlighting
-  Copyright (C) 1999  Sebastian Guenther (sguenther@gmx.de)
+    "SHEdit" - Text editor with syntax highlighting
+    Copyright (C) 1999  Sebastian Guenther (sg@freepascal.org)
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
 
@@ -45,14 +38,14 @@ procedure TSHTextEdit.HideCursor;
 begin
   Dec(CursorVisible);
   if CursorVisible >= 0 then
-    Renderer.HideCursor(CursorX, CursorY);
+    FWidget.HideCursor(CursorX, CursorY);
 end;
 
 procedure TSHTextEdit.ShowCursor;
 begin
   Inc(CursorVisible);
   if CursorVisible = 1 then
-    Renderer.ShowCursor(CursorX, CursorY);
+    FWidget.ShowCursor(CursorX, CursorY);
 end;
 
 
@@ -78,7 +71,7 @@ begin
   end;
 
   // Redraw all lines with changed SH flags
-  Renderer.InvalidateLines(line, CurLine);
+  FWidget.InvalidateLines(line, CurLine);
 end;
 
 
@@ -88,7 +81,7 @@ procedure TSHTextEdit.DrawContent(x1, y1, x2, y2: Integer);
   begin
     // Erase free space below the text area
     if py < y2 then
-      Renderer.ClearRect(0, py, x2, y2);
+      FWidget.ClearRect(0, py, x2, y2);
 
     if (FCursorX >= x1) and (FCursorY >= y1) and
       (FCursorX <= x2) and (FCursorY <= y2) then
@@ -229,7 +222,7 @@ begin
         StrDispose(s2);
       end;
 
-    Renderer.DrawTextLine(x1, x2, LineNumber, s);
+    FWidget.DrawTextLine(x1, x2, LineNumber, s);
 
     FreeMem(sh);
     Inc(LineNumber);
@@ -241,9 +234,8 @@ end;
 
 {
   $Log$
-  Revision 1.4  1999-12-12 17:50:50  sg
-  * Fixed drawing of selection
-  * Several small corrections (removed superfluous local variables etc.)
+  Revision 1.5  1999-12-30 21:02:49  sg
+  * Name change: Renderer -> FWidget
 
   Revision 1.3  1999/12/10 15:01:02  peter
     * first things for selection
