@@ -31,7 +31,7 @@ interface
        version_nr = '0';
        release_nr = '99';
        patch_nr   = '12';
-       minorpatch = 'a';
+       minorpatch = 'b';
        
        version_string = version_nr+'.'+release_nr+'.'+patch_nr;
        full_version_string = version_nr+'.'+release_nr+'.'+patch_nr+minorpatch;
@@ -70,7 +70,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6.2.2  1999-06-18 10:55:34  peter
+  Revision 1.6.2.3  1999-07-01 21:31:32  peter
+    * 0.99.12b
+
+  Revision 1.6.2.2  1999/06/18 10:55:34  peter
     * version fixes
     * EXTRAUNITS to set extra units that are build and needs to be cleaned
 
