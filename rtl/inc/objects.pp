@@ -299,6 +299,7 @@ TYPE
    TObject = OBJECT
       CONSTRUCTOR Init;
       PROCEDURE Free;
+      FUNCTION Is_Object(P:Pointer):Boolean;
       DESTRUCTOR Done;                                               Virtual;
    END;
    PObject = ^TObject;
@@ -952,6 +953,30 @@ END;
 PROCEDURE TObject.Free;
 BEGIN
    Dispose(PObject(@Self), Done);                     { Dispose of self }
+END;
+
+{--TObject------------------------------------------------------------------}
+{  Is_Object -> Platforms DOS/DPMI/WIN/OS2 - Checked 5Mar00 DM              }
+{---------------------------------------------------------------------------}
+FUNCTION TObject.Is_Object(P:Pointer):Boolean;
+TYPE
+   PVMT=^VMT;
+   VMT=RECORD
+     Size,NegSize:Longint;
+     ParentLink:PVMT;
+   END;
+VAR SP:^PVMT; Q:PVMT;
+BEGIN
+   SP:=@SELF;
+   Q:=SP^;
+   Is_Object:=False;
+   While Q<>Nil Do Begin
+     IF Q=P THEN Begin
+       Is_Object:=True;
+       Break;
+     End;
+     Q:=Q^.Parentlink;
+   End;
 END;
 
 {--TObject------------------------------------------------------------------}
@@ -2761,7 +2786,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.35  2000-02-09 16:59:30  peter
+  Revision 1.36  2000-03-06 20:15:32  daniel
+    + Added is_object method to Tobject. It is similar to the is operator.
+
+  Revision 1.35  2000/02/09 16:59:30  peter
     * truncated log
 
   Revision 1.34  2000/01/07 16:41:34  daniel
