@@ -1389,6 +1389,8 @@ Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const;
 
 implementation
 
+uses dbconst;
+
 { ---------------------------------------------------------------------
     Auxiliary functions
   ---------------------------------------------------------------------}
@@ -1419,8 +1421,6 @@ begin
   Raise EDatabaseError.CreateFmt(Format('%s : %s',[Comp.Name,Fmt]),Args);
 end;
 
-
-{$i dbs.inc}
 
 { TIndexDef }
 
@@ -1572,7 +1572,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  2004-10-10 14:25:21  michael
+  Revision 1.26  2004-10-10 14:45:51  michael
+  + Use of dbconst for resource strings
+
+  Revision 1.25  2004/10/10 14:25:21  michael
   + Small fix for close so it does not check browsemode
 
   Revision 1.24  2004/09/26 16:55:24  michael

@@ -14,9 +14,9 @@ dirs_darwin=mysql interbase sqlite
 dirs_netbsd=mysql interbase sqlite
 dirs_openbsd=mysql interbase sqlite
 dirs_win32=mysql interbase sqlite dbase
-units=db ddg_ds ddg_rec dbwhtml
+units=dbconst db ddg_ds ddg_rec dbwhtml
 exampledirs=tests
-rsts=dbwhtml
+rsts=dbwhtml dbconst
 
 [compiler]
 options=-S2

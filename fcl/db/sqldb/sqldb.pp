@@ -215,13 +215,8 @@ type
 
 implementation
 
-ResourceString
-  SErrAssTransaction = 'Cannot assign transaction while old transaction active!';
-  SErrDatabasenAssigned = 'Database not assigned!';
-  SErrTransactionnSet = 'Transaction not set';
-  SErrNoStatement = 'SQL statement not set';
-  SErrNoSelectStatement = 'Cannot open a non-select statement';
-  
+uses dbconst;
+
 { TSQLConnection }
 
 procedure TSQLConnection.SetTransaction(Value : TSQLTransaction);
@@ -654,7 +649,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-10-10 14:24:22  michael
+  Revision 1.5  2004-10-10 14:45:52  michael
+  + Use of dbconst for resource strings
+
+  Revision 1.4  2004/10/10 14:24:22  michael
   * Large patch from Joost Van der Sluis.
   * Float fix in interbase
   + Commit and commitretaining for pqconnection
