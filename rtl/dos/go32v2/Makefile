@@ -178,8 +178,9 @@ sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSUTILINC) filutil.inc disk.inc
 # System Dependent Units
 #
 
+# new version need -Sv switch for external variables
 dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) $(SYSTEMPPU)
-	$(COMPILER) -Sg dpmiexcp.pp $(REDIR)
+	$(COMPILER) -Sg -Sv dpmiexcp.pp $(REDIR)
 
 profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT) $(SYSTEMPPU)
 	$(COMPILER) profile.pp $(REDIR)
@@ -285,7 +286,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.8  1998-10-12 08:36:31  pierre
+# Revision 1.9  1998-10-14 07:56:02  pierre
+#  * -Sv now necessary for dpmiexcp unit
+#
+# Revision 1.8  1998/10/12 08:36:31  pierre
 #  * wrong 'objpas' target in all removed
 #
 # Revision 1.7  1998/10/11 13:45:05  michael
