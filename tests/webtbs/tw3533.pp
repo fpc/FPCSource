@@ -16,13 +16,13 @@ begin
 end;
 begin
   tc:=0;t0:=20;
-  str(theta(20),s1);
-  str(theta(2),s2);
-  str(theta(20)-theta(2),s3);
+  str(theta(20):0:6,s1);
+  str(theta(2):0:6,s2);
+  str((theta(20)-theta(2)):0:6,s3);
   writeln(s1,' ',s2,' ',s3);
-  if (s1<>' 1.000000000000000E+000') or
-     (s2<>' 1.000000000000000E-001') or
-     (s3<>' 9.000000000000000E-001') then
+  if (s1<>'1.000000') or
+     (s2<>'0.100000') or
+     (s3<>'0.900000') then
     halt(1);
 end;
 begin
