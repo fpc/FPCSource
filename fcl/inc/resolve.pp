@@ -5,11 +5,11 @@ Unit resolve;
 {$ifndef win32}
 // Here till BSD supports the netbsd unit. 
 // MvdV: NetBSD unit? Where?
-{$ifdef linux}
+{$ifdef Unix}
 // Undefine this to use the C library resolve routines. 
 // Don't use under win32, netdb does not work on Win32 (yet) !!
 {$define usenetdb}
-{$endif linux}
+{$endif Unix}
 {$endif}
 { --------------------------------------------------------------------
   Unit for internet domain calls.
@@ -952,7 +952,10 @@ Finalization
 end.
 {
    $Log$
-   Revision 1.7  2004-01-31 19:02:50  sg
+   Revision 1.8  2004-02-02 14:42:00  marco
+    * more small fixes
+
+   Revision 1.7  2004/01/31 19:02:50  sg
    * Tries to first resolve names locally before contacting the DNS server
 
    Revision 1.6  2003/12/11 09:23:50  marco
