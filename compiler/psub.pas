@@ -800,9 +800,14 @@ implementation
                         Message(parser_e_syntax_error);
                         consume_all_until(_SEMICOLON);
                      end
-                   else if islibrary or (target_info.system in [system_i386_WIN32,system_i386_wdosx,system_i386_Netware])
-                   then  // AD
-                     read_exports;
+                   else if islibrary or
+                           (target_info.system in [system_i386_WIN32,system_i386_wdosx,system_i386_Netware]) then
+                     read_exports
+                   else
+                     begin
+                        Message(parser_w_unsupported_feature);
+                        consume(_BEGIN);
+                     end;
                 end
               else break;
            end;
@@ -849,7 +854,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2003-03-12 22:43:38  jonas
+  Revision 1.95  2003-04-02 16:11:34  peter
+    * give error when exports is not supported
+
+  Revision 1.94  2003/03/12 22:43:38  jonas
     * more powerpc and generic fixes related to the new register allocator
 
   Revision 1.93  2003/03/08 08:59:07  daniel
