@@ -813,7 +813,7 @@ begin
             envstr:='';
             exit;
         end;
-    hp:=envs+4*(index-1);
+    hp:=PPchar(cardinal(envs)+4*(index-1));
     envstr:=strpas(hp^);
 end;
 
@@ -1001,7 +1001,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1999-09-13 18:21:02  hajny
+  Revision 1.17  1999-10-13 12:21:56  daniel
+  * OS/2 compiler works again.
+
+  Revision 1.16  1999/09/13 18:21:02  hajny
     * again didn't manage to read docu for DosFindFirst properly :-(
 
   Revision 1.15  1999/09/13 17:56:26  hajny
