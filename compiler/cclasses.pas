@@ -190,6 +190,8 @@ type
           function  GetFirst:string;
           { Gets last Item }
           function  GetLast:string;
+          { true if string is in the container, compare case sensitive }
+          function FindCase(const s:string):TStringListItem;
           { true if string is in the container }
           function Find(const s:string):TStringListItem;
           { inserts an item }
@@ -1154,11 +1156,11 @@ end;
       end;
 
 
-    function tstringList.find(const s:string):TstringListItem;
+    function tstringList.FindCase(const s:string):TstringListItem;
       var
         NewNode : tstringListItem;
       begin
-        find:=nil;
+        result:=nil;
         if s='' then
          exit;
         NewNode:=tstringListItem(FFirst);
@@ -1166,7 +1168,29 @@ end;
          begin
            if NewNode.FPStr^=s then
             begin
-              find:=NewNode;
+              result:=NewNode;
+              exit;
+            end;
+           NewNode:=tstringListItem(NewNode.Next);
+         end;
+      end;
+
+
+    function tstringList.Find(const s:string):TstringListItem;
+      var
+        NewNode : tstringListItem;
+        ups     : string;
+      begin
+        result:=nil;
+        if s='' then
+         exit;
+        ups:=upper(s);
+        NewNode:=tstringListItem(FFirst);
+        while assigned(NewNode) do
+         begin
+           if upper(NewNode.FPStr^)=ups then
+            begin
+              result:=NewNode;
               exit;
             end;
            NewNode:=tstringListItem(NewNode.Next);
@@ -2301,7 +2325,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  2004-06-20 08:55:28  florian
+  Revision 1.36  2004-09-13 20:26:26  peter
+    * stringlist.find case insensitive
+
+  Revision 1.35  2004/06/20 08:55:28  florian
     * logs truncated
 
   Revision 1.34  2004/06/16 20:07:07  florian
