@@ -104,22 +104,43 @@ cat <<EOFCFG > $thefile
 # Parsing switches
 # ----------------
 
-# All assembler blocks are intel styled by default
-#-Rintel
+# Pascal language mode
+#      -Mfpc      free pascal dialect (default)
+#      -Mobjfpc   switch some Delphi 2 extensions on
+#      -Mdelphi   tries to be Delphi compatible
+#      -Mtp       tries to be TP/BP 7.0 compatible
+#      -Mgpc      tries to be gpc compatible
+#      -Mmacpas   tries to be compatible to the macintosh pascal dialects
+#
+# Turn on Object Pascal extensions by default
+#-Mobjfpc
 
+# Assembler reader mode
+#      -Rdefault  use default assembler
+#      -Ratt      read AT&T style assembler
+#      -Rintel    read Intel style assembler
+#
 # All assembler blocks are AT&T styled by default
 #-Ratt
 
 # Semantic checking
-# -S2   switch some Delphi 2 extension on
-# -Sc   supports operators like C (*=,+=,/= and -=)
-# -Sg   allows LABEL and GOTO
-# -Si   support C++ stlyed INLINE
-# -Sm   support macros like C (global)
-# -So   tries to be TP/BP 7.0 compatible
-# -Ss   constructor name must be init (destructor must be done)
-# -St   allows static keyword in objects
-
+#      -S2        same as -Mobjfpc
+#      -Sc        supports operators like C (*=,+=,/= and -=)
+#      -Sa        include assertion code.
+#      -Sd        same as -Mdelphi
+#      -Se<x>     compiler stops after the <x> errors (default is 1)
+#      -Sg        allow LABEL and GOTO
+#      -Sh        Use ansistrings
+#      -Si        support C++ styled INLINE
+#      -SI<x>     set interface style to <x>
+#         -SIcomCOM compatible interface (default)
+#         -SIcorbaCORBA compatible interface
+#      -Sm        support macros like C (global)
+#      -So        same as -Mtp
+#      -Sp        same as -Mgpc
+#      -Ss        constructor name must be init (destructor must be done)
+#      -St        allow static keyword in objects
+#
 # Allow goto, inline, C-operators, C-vars
 -Sgic
 
@@ -190,7 +211,16 @@ $GCCDIR
 
 # generate always debugging information for GDB (slows down the compiling
 # process)
-#-g
+#      -gc        generate checks for pointers
+#      -gd        use dbx
+#      -gg        use gsym
+#      -gh        use heap trace unit (for memory leak debugging)
+#      -gl        use line info unit to show more info for backtraces
+#      -gv        generates programs tracable with valgrind
+#      -gw        generate dwarf debugging info
+#
+# Enable debuginfo and use the line info unit by default
+#-gl
 
 # always pass an option to the linker
 #-k-s
@@ -207,14 +237,17 @@ $GCCDIR
 -l
 
 # Verbosity
-# e : Show errors (default)       d : Show debug info
-# w : Show warnings               u : Show used files
-# n : Show notes                  t : Show tried files
-# h : Show hints                  m : Show defined macros
-# i : Show general info           p : Show compiled procedures
-# l : Show linenumbers            c : Show conditionals
-# a : Show everything             0 : Show nothing (except errors)
-
+#      e : Show errors (default)       d : Show debug info
+#      w : Show warnings               u : Show unit info
+#      n : Show notes                  t : Show tried/used files
+#      h : Show hints                  m : Show defined macros
+#      i : Show general info           p : Show compiled procedures
+#      l : Show linenumbers            c : Show conditionals
+#      a : Show everything             0 : Show nothing (except errors)
+#      b : Show all procedure          r : Rhide/GCC compatibility mode
+#          declarations if an error    x : Executable info (Win32 only)
+#          occurs
+#
 # Display Info, Warnings, Notes and Hints
 -viwn
 # If you don't want so much verbosity use
