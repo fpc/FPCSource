@@ -1739,6 +1739,7 @@ const
               exit;
             end;
 
+        count := len div 8;
         reference_reset(src);
         reference_reset(dst);
         { load the address of source into src.base }
@@ -1748,7 +1749,8 @@ const
             a_load_ref_reg(list,OS_32,source,src.base);
             orgsrc := false;
           end
-        else if not issimpleref(source) or
+        else if (count > 4) or
+                not issimpleref(source) or
                 ((source.index.number <> NR_NO) and
                  ((source.offset + longint(len)) > high(smallint))) then
           begin
@@ -1764,7 +1766,8 @@ const
         if not orgsrc and delsource then
           reference_release(list,source);
         { load the address of dest into dst.base }
-        if not issimpleref(dest) or
+        if (count > 4) or
+           not issimpleref(dest) or
            ((dest.index.number <> NR_NO) and
             ((dest.offset + longint(len)) > high(smallint))) then
           begin
@@ -1778,7 +1781,6 @@ const
             orgdst := true;
           end;
 
-        count := len div 8;
         if count > 4 then
           { generate a loop }
           begin
@@ -2390,7 +2392,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2003-05-11 20:59:23  jonas
+  Revision 1.90  2003-05-12 18:43:50  jonas
+    * fixed g_concatcopy
+
+  Revision 1.89  2003/05/11 20:59:23  jonas
     * fixed bug with large offsets in entrycode
 
   Revision 1.88  2003/05/11 11:45:08  jonas
