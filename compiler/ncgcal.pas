@@ -737,7 +737,7 @@ implementation
          oldaktcallnode:=aktcallnode;
          aktcallnode:=self;
 
-{$ifndef newra}
+{$ifndef i386}
          { process procvar. Done here already, because otherwise it may }
          { destroy registers containing a parameter for the actual      }
          { function call (e.g. if it's a function, its result will      }
@@ -763,7 +763,7 @@ implementation
                 not(is_cppclass(tprocdef(procdefinition)._class)) then
                cg.g_maybe_testvmt(exprasmlist,methodpointer.location.register,tprocdef(procdefinition)._class);
            end;
-{$endif newra}
+{$endif not i386}
 
          if assigned(left) then
            begin
@@ -805,7 +805,7 @@ implementation
               if (po_virtualmethod in procdefinition.procoptions) and
                  assigned(methodpointer) then
                 begin
-{$ifdef newra}
+{$ifdef i386}
                    secondpass(methodpointer);
                    location_force_reg(exprasmlist,methodpointer.location,OS_ADDR,false);
                    vmtreg:=methodpointer.location.register;
@@ -830,6 +830,11 @@ implementation
                    vmtreg2:=rg.getabtregisterint(exprasmlist,OS_ADDR);
                    rg.ungetregisterint(exprasmlist,vmtreg2);
                    cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,vmtreg,vmtreg2);
+{$endif newra}
+                   { free the resources allocated for the parameters }
+                   paramanager.freeparalocs(exprasmlist,tparaitem(procdefinition.para.first));
+
+{$ifdef newra}
                    for i:=first_supreg to last_supreg do
                     if i in regs_to_alloc then
                       begin
@@ -848,6 +853,9 @@ implementation
                 end
               else
                 begin
+                 { free the resources allocated for the parameters }
+                  paramanager.freeparalocs(exprasmlist,tparaitem(procdefinition.para.first));
+
 {$ifdef newra}
                   for i:=first_supreg to last_supreg do
                     if i in regs_to_alloc then
@@ -866,9 +874,10 @@ implementation
          else
            { now procedure variable case }
            begin
-{$ifdef newra}
+{$ifdef i386}
               secondpass(right);
-
+{$endif i386}
+{$ifdef newra}
               if right.location.loc in  [LOC_REFERENCE,LOC_CREFERENCE] then
                 begin
                   helpref:=right.location.reference;
@@ -892,6 +901,12 @@ implementation
 
               reference_release(exprasmlist,helpref);
               location_freetemp(exprasmlist,right.location);
+{$endif newra}
+
+              { free the resources allocated for the parameters }
+              paramanager.freeparalocs(exprasmlist,tparaitem(procdefinition.para.first));
+
+{$ifdef newra}
               for i:=first_supreg to last_supreg do
                 if i in regs_to_alloc then
                   begin
@@ -919,9 +934,6 @@ implementation
                location_freetemp(exprasmlist,right.location);
             {$endif newra}
            end;
-
-         { free the resources allocated for the parameters }
-         paramanager.freeparalocs(exprasmlist,tparaitem(procdefinition.para.first));
 
          { Need to remove the parameters from the stack? }
          if (po_clearstack in procdefinition.procoptions) then
@@ -1412,7 +1424,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2003-06-09 14:54:26  jonas
+  Revision 1.91  2003-06-12 18:38:45  jonas
+    * deallocate parameter registers in time for newra
+    * for non-i386, procvars and methodpointers always have to be processed
+      in advance, whether or not newra is defined
+
+  Revision 1.90  2003/06/09 14:54:26  jonas
     * (de)allocation of registers for parameters is now performed properly
       (and checked on the ppc)
     - removed obsolete allocation of all parameter registers at the start
