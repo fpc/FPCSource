@@ -527,8 +527,6 @@ unit cgobj;
               a_load_reg_reg(list,size,locpara.size,r,locpara.register);
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
-                 if locpara.sp_fixup<>0 then
-                   a_op_const_reg(list,OP_ADD,OS_ADDR,locpara.sp_fixup,NR_STACK_POINTER_REG);
                  reference_reset(ref);
                  ref.base:=locpara.reference.index;
                  ref.offset:=locpara.reference.offset;
@@ -596,8 +594,6 @@ unit cgobj;
       begin
          if not(locpara.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
            internalerror(2003010901);
-         if locpara.sp_fixup<>0 then
-           cg.g_stackpointer_alloc(list,locpara.sp_fixup);
          reference_reset_base(ref,locpara.reference.index,locpara.reference.offset);
          cg.g_concatcopy(list,r,ref,size,false,false);
       end;
@@ -869,8 +865,6 @@ unit cgobj;
               a_loadfpu_reg_reg(list,size,r,locpara.register);
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
-                 if locpara.sp_fixup<>0 then
-                   a_op_const_reg(list,OP_ADD,OS_ADDR,locpara.sp_fixup,NR_STACK_POINTER_REG);
                  reference_reset(ref);
                  ref.base:=locpara.reference.index;
                  ref.offset:=locpara.reference.offset;
@@ -1581,7 +1575,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.122  2003-09-23 20:37:16  peter
+  Revision 1.123  2003-09-25 21:26:24  peter
+    * remove obsolete tparalocation.sp_fixup
+
+  Revision 1.122  2003/09/23 20:37:16  peter
     * fpc_check_object(_ext) has saveregisters and doesn't need
       saving of registers
 
