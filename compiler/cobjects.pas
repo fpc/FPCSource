@@ -2136,7 +2136,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  1999-06-23 11:07:23  daniel
+  Revision 1.36  1999-06-23 11:13:20  peter
+    * fixed linebreak
+
+  Revision 1.35  1999/06/23 11:07:23  daniel
   * Tdictionary.delete
 
   Revision 1.33.2.1  1999/06/15 10:12:22  peter
