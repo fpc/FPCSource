@@ -40,7 +40,7 @@ end;
 
 var     base            : Tbaseclass;
         other           : Totherclass;
-        asmrec          : Tasmrec;
+        // asmrec          : Tasmrec;
         testfield       : longint;
 
 begin
