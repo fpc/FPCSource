@@ -285,7 +285,7 @@ begin
 {$ELSE}
       current_module^.linkotherstaticlibs.insert(s,link_allways);
 {$ENDIF NEWST}
-    assign(out_file,current_module^.path^+s+'.ao2');
+    assign(out_file,current_module^.outputpath^+s+'.ao2');
     rewrite(out_file,1);
     blockwrite(out_file,ar_magic,sizeof(ar_magic));
 end;
@@ -495,7 +495,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2000-02-28 17:23:57  daniel
+  Revision 1.11  2000-04-01 10:45:14  hajny
+    * .ao2 bug fixed
+
+  Revision 1.10  2000/02/28 17:23:57  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new
