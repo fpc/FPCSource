@@ -247,48 +247,120 @@ begin
 end;
 *)
 
+
 Function DoFind(Var Rslt : TSearchRec) : Longint;
 
-  (*
-Var
-  GlobSearchRec : PGlobSearchRec;
-  *)
+  var
+    err: OSErr;
+    s: Str255;
 
 begin
-  (* TODO fix
-  Result:=-1;
-  GlobSearchRec:=PGlobSearchRec(Rslt.FindHandle);
-  If (GlobSearchRec^.GlobHandle<>Nil) then
-    While (GlobSearchRec^.GlobHandle<>Nil) and not (Result=0) do
-      If GlobToTSearchRec(Rslt) Then Result:=0;
-  *)
+  with Rslt, paramBlock do
+    begin
+      ioVRefNum := searchFSSpec.vRefNum;
+      if firstTime then
+        ioFDirIndex := 0;
+
+      while true do
+        begin
+          s := '';
+          ioDirID := searchFSSpec.parID;
+          ioFDirIndex := ioFDirIndex + 1;
+          ioNamePtr := @s;
+
+          err := PBGetCatInfoSync(@paramBlock);
+
+          if err <> noErr then
+            begin
+              if err = fnfErr then
+                DosError := 18
+              else
+                DosError := MacOSErr2RTEerr(err);
+              break;
+            end;
+
+          attr := GetFileAttrFromPB(Rslt.paramBlock);
+          if ((Attr and not(searchAttr)) = 0) then
+            begin
+              name := s;
+              UpperString(s, true);
+
+              if FNMatch(Rslt.searchFSSpec.name, s) then
+                begin
+                  size := GetFileSizeFromPB(paramBlock);
+                  time := MacTimeToDosPackedTime(ioFlMdDat);
+                  Result := 0;
+                  break;
+                end;
+            end;
+        end;
+    end;
 end;
 
 
-
 Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
-
-  (*
-Var
-  GlobSearchRec : PGlobSearchRec;
-  *)
+  var
+    s: Str255;
 
 begin
-  (* TODO fix
-  New(GlobSearchRec);
-  GlobSearchRec^.Path:=ExpandFileName(ExtractFilePath(Path));
-  GlobSearchRec^.GlobHandle:=Glob(Path);
-  Rslt.ExcludeAttr:=Not Attr; //!! Not correct !!
-  Rslt.FindHandle:=Longint(GlobSearchRec);
-  Result:=DoFind (Rslt);
-  *)
+  fillchar(Rslt, sizeof(Rslt), 0);
+
+  if path = '' then
+    begin
+      Result := 3;
+      Exit;
+    end;
+
+  {We always also search for readonly and archive, regardless of Attr.}
+  Rslt.searchAttr := (Attr or (archive or readonly));
+
+  Result := PathArgToFSSpec(path, Rslt.searchFSSpec);
+  with Rslt do
+    if (Result = 0) or (Result = 2) then
+      begin
+        SearchSpec := path;
+        NamePos := Length(path) - Length(searchFSSpec.name);
+
+        if (Pos('?', searchFSSpec.name) = 0) and (Pos('*', searchFSSpec.name) = 0) then  {No wildcards}
+          begin  {If exact match, we don't have to scan the directory}
+            exactMatch := true;
+            Result := DoFindOne(searchFSSpec, paramBlock);
+            if Result = 0 then
+              begin
+                Attr := GetFileAttrFromPB(paramBlock);
+                if ((Attr and not(searchAttr)) = 0) then
+                  begin
+                    name := searchFSSpec.name;
+                    size := GetFileSizeFromPB(paramBlock);
+                    time := MacTimeToDosPackedTime(paramBlock.ioFlMdDat);
+                  end
+                else
+                  Result := 18;
+              end
+            else if Result = 2 then
+              Result := 18;
+          end
+        else
+          begin
+            exactMatch := false;
+
+            s := searchFSSpec.name;
+            UpperString(s, true);
+            Rslt.searchFSSpec.name := s;
+
+            DoFind(Rslt, true);
+          end;
+      end;
 end;
 
 
 Function FindNext (Var Rslt : TSearchRec) : Longint;
 
 begin
-  Result:=DoFind (Rslt);
+  if F.exactMatch then
+    Result := 18
+  else
+    Result:=DoFind (Rslt);
 end;
 
 
@@ -582,7 +654,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-09-28 15:39:29  olle
+  Revision 1.2  2004-09-30 10:42:05  mazen
+  * implement Find{First,Next,Close} according to Dos unit code
+
+  Revision 1.1  2004/09/28 15:39:29  olle
     + added skeleton version
 
 }
