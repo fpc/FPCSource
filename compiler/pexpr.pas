@@ -203,26 +203,41 @@ implementation
 
     procedure check_tp_procvar(var p : tnode);
       var
+         hp,
          p1 : tnode;
       begin
          if (m_tp_procvar in aktmodeswitches) and
             (not got_addrn) and
-            (not in_args) and
-            (p.nodetype=loadn) then
-            begin
-               { support if procvar then for tp7 and many other expression like this }
-               do_resulttypepass(p);
-               set_varstate(p,false);
-               { reset varstateset to maybe set used state later web bug769 PM }
-               unset_varstate(p);
-               if (getprocvardef=nil) and (p.resulttype.def.deftype=procvardef) then
-                 begin
-                    p1:=ccallnode.create(nil,nil,nil,nil);
-                    tcallnode(p1).set_procvar(p);
-                    resulttypepass(p1);
-                    p:=p1;
-                 end;
-            end;
+            (not in_args) then
+          begin
+            { ignore vecn,subscriptn }
+            hp:=p;
+            repeat
+              case hp.nodetype of
+                vecn :
+                  hp:=tvecnode(hp).left;
+                subscriptn :
+                  hp:=tsubscriptnode(hp).left;
+                else
+                  break;
+              end;
+            until false;
+            if (hp.nodetype=loadn) then
+               begin
+                  { support if procvar then for tp7 and many other expression like this }
+                  do_resulttypepass(p);
+                  set_varstate(p,false);
+                  { reset varstateset to maybe set used state later web bug769 PM }
+                  unset_varstate(p);
+                  if (getprocvardef=nil) and (p.resulttype.def.deftype=procvardef) then
+                    begin
+                       p1:=ccallnode.create(nil,nil,nil,nil);
+                       tcallnode(p1).set_procvar(p);
+                       resulttypepass(p1);
+                       p:=p1;
+                    end;
+               end;
+          end;
       end;
 
 
@@ -2246,7 +2261,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2002-10-02 20:51:22  peter
+  Revision 1.85  2002-10-04 21:13:59  peter
+    * ignore vecn,subscriptn when checking for a procvar loadn
+
+  Revision 1.84  2002/10/02 20:51:22  peter
     * don't check interfaces for class methods
 
   Revision 1.83  2002/10/02 18:20:52  peter

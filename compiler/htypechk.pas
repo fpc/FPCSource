@@ -470,6 +470,17 @@ implementation
 
     function is_procsym_load(p:tnode):boolean;
       begin
+         { ignore vecn,subscriptn }
+         repeat
+           case p.nodetype of
+             vecn :
+               p:=tvecnode(p).left;
+             subscriptn :
+               p:=tsubscriptnode(p).left;
+             else
+               break;
+           end;
+         until false;
          is_procsym_load:=((p.nodetype=loadn) and (tloadnode(p).symtableentry.typ=procsym)) or
                           ((p.nodetype=addrn) and (taddrnode(p).left.nodetype=loadn)
                           and (tloadnode(taddrnode(p).left).symtableentry.typ=procsym)) ;
@@ -939,7 +950,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2002-09-16 18:09:34  peter
+  Revision 1.48  2002-10-04 21:13:59  peter
+    * ignore vecn,subscriptn when checking for a procvar loadn
+
+  Revision 1.47  2002/09/16 18:09:34  peter
     * set_funcret_valid fixed when result was already used in a nested
       procedure
 
