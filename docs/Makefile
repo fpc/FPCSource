@@ -199,6 +199,7 @@ endif
 	$(DVIPS) $<
 
 .tex.dvi:
+	-rm $(basename $<).aux
 	$(LATEX) $*
 	-$(MAKEINDEX) $*
 	$(LATEX) $*
@@ -209,6 +210,7 @@ endif
 	$(DVITXT) -o $*.txt  $*.dvi
 
 .tex.pdf:
+	-rm $(basename $<).aux
 	$(PDFLATEX) $*
 	-$(MAKEINDEX) $*
 	$(PDFLATEX) $*
@@ -652,7 +654,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.32  2004-12-14 21:44:54  michael
+# Revision 1.33  2004-12-14 21:50:02  michael
+# + Delete aux file before running (pdf)latex.
+#
+# Revision 1.32  2004/12/14 21:44:54  michael
 # + Converted makehtm to pascal program. Argument line too long
 #
 # Revision 1.31  2004/12/06 22:43:41  michael
