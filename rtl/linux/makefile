@@ -73,6 +73,7 @@ LIBTYPE=shared
 # Where are the include files ?
 INC=../inc
 PROCINC=../$(CPU)
+OBJPASDIR=../objpas
 
 # add required options...
 override OPT:= $(OPT) -d$(CPU)
@@ -162,7 +163,8 @@ PPUEXT=.ppu
 PPLEXT=.ppl
 OEXT=.o
 
-OBJECTS=syslinux strings linux objpas dos crt objects printer getopts errors sockets
+OBJECTS=syslinux strings dos objects linux crt printer getopts errors sockets\
+        objpas
         
 PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
 
@@ -266,8 +268,8 @@ prt0$(OEXT) : $(PRT)
 gprt0$(OEXT) : gprt1.as
 	-as gprt1.as -o gprt0$(OEXT)
 
-objpas$(PPUEXT) : ../objpas/objpas.pp syslinux$(PPUEXT)
-	$(COPY) ../objpas/objpas.pp .
+objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp syslinux$(PPUEXT)
+	$(COPY) $(OBJPASDIR)/objpas.pp .
 	$(PP) $(OPT) objpas $(REDIR)
 	$(DEL) objpas.pp
 
