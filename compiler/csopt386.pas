@@ -735,7 +735,7 @@ begin
         begin
           { if the newReg gets stored back to the oldReg, we can change }
           { "mov %oldReg,%newReg; <operations on %newReg>; mov %newReg, }
-          { %oldReg" to "<operations on %oldReg>"                       } 
+          { %oldReg" to "<operations on %oldReg>"                       }
           removeLast := storeBack(endP);
           sequenceEnd :=
             removeLast or
@@ -752,7 +752,7 @@ begin
               FindRegDealloc(newReg,hp)));
           newRegModified :=
             newRegModified or
-            (not(sequenceEnd) and
+            (not(regLoadedWithNewValue(newReg,true,paicpu(endP))) and
              RegModifiedByInstruction(newReg,endP));
           orgRegRead := newRegModified and RegReadByInstruction(orgReg,endP);
           sequenceEnd := SequenceEnd and
@@ -1234,7 +1234,11 @@ End.
 
 {
  $Log$
- Revision 1.52  2000-02-17 07:46:49  jonas
+ Revision 1.53  2000-02-19 13:50:29  jonas
+   * fixed bug in -dnewoptizations (showed itself  only if -Or was
+     used as well I think)
+
+ Revision 1.52  2000/02/17 07:46:49  jonas
    * -dreplacereg no logner tries to optimize "movl %reg1,%reg1" (which are
      always marked as CanBeRemoved)
    + some comments in -dreplacereg code
