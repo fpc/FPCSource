@@ -39,3 +39,8 @@ Inline ................ inline01.pp    tests recursive inlining, inlining
 Finalize .............. testfi1.pp     tests the procedure system.finalize
 TypeInfo .............. testti1.pp     test the function system.typeinfo
 Resourcestrings ....... testrstr.pp    tests a simple resource string
+Range checking ........ range.pp       range checking when converting int64/
+                                       qword to longint/cardinal
+                        range2.pp      range checking when converting
+                                       between longint and cardinal
+                        range3.pp      range checking for arrays
