@@ -193,7 +193,8 @@ implementation
          secondpass(p^.left);
          pushed:=maybe_push(p^.right^.registers32,p);
          secondpass(p^.right);
-         if pushed then restore(p);
+         if pushed then
+           restore(p);
 
          { load left operators in a register }
          if p^.left^.location.loc<>LOC_REGISTER then
@@ -212,7 +213,8 @@ implementation
                      hregister1)));
                 end;
            end
-           else hregister1:=p^.left^.location.register;
+         else
+           hregister1:=p^.left^.location.register;
 
          { determine operator }
          if p^.treetype=shln then
@@ -223,7 +225,7 @@ implementation
          { shifting by a constant directly decode: }
          if (p^.right^.treetype=ordconstn) then
            begin
-                 exprasmlist^.concat(new(pai386,op_const_reg(op,S_L,p^.right^.location.reference.offset and 31,
+              exprasmlist^.concat(new(pai386,op_const_reg(op,S_L,p^.right^.location.reference.offset and 31,
                 hregister1)));
               p^.location.loc:=LOC_REGISTER;
               p^.location.register:=hregister1;
@@ -233,9 +235,9 @@ implementation
               { load right operators in a register }
               if p^.right^.location.loc<>LOC_REGISTER then
                 begin
-                       if p^.right^.location.loc=LOC_CREGISTER then
+                  if p^.right^.location.loc=LOC_CREGISTER then
                      begin
-                              hregister2:=getregister32;
+                        hregister2:=getregister32;
                         emit_reg_reg(A_MOV,S_L,p^.right^.location.register,
                           hregister2);
                      end
@@ -247,17 +249,16 @@ implementation
                           hregister2)));
                      end;
                 end
-              else hregister2:=p^.right^.location.register;
+              else
+                hregister2:=p^.right^.location.register;
 
-                 { left operator is already in a register }
+              { left operator is already in a register }
               { hence are both in a register }
               { is it in the case ECX ? }
               if (hregister1=R_ECX) then
                 begin
                    { then only swap }
-                   emit_reg_reg(A_XCHG,S_L,hregister1,
-                     hregister2);
-
+                   emit_reg_reg(A_XCHG,S_L,hregister1,hregister2);
                    hregister3:=hregister1;
                    hregister1:=hregister2;
                    hregister2:=hregister3;
@@ -265,20 +266,14 @@ implementation
               { if second operator not in ECX ? }
               else if (hregister2<>R_ECX) then
                 begin
-                   { ECX not occupied then swap with right register }
-                   if R_ECX in unused then
-                     begin
-                        emit_reg_reg(A_MOV,S_L,hregister2,R_ECX);
-                        ungetregister32(hregister2);
-                          end
-                       else
-                     begin
-                        { else save ECX and then copy it }
-                        popecx:=true;
-                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ECX)));
-                        emit_reg_reg(A_MOV,S_L,hregister2,R_ECX);
-                        ungetregister32(hregister2);
-                     end;
+                   { ECX occupied then push it }
+                   if not (R_ECX in unused) then
+                    begin
+                      popecx:=true;
+                      exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ECX)));
+                    end;
+                   emit_reg_reg(A_MOV,S_L,hregister2,R_ECX);
+                   ungetregister32(hregister2);
                 end;
               { right operand is in ECX }
               emit_reg_reg(op,S_L,R_CL,hregister1);
@@ -286,9 +281,7 @@ implementation
               if popecx then
                 exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_ECX)));
               p^.location.register:=hregister1;
-             end;
-         { this register is always used when shl/shr are present }
-         usedinproc:=usedinproc or ($80 shr byte(R_ECX));
+           end;
       end;
 
 
@@ -541,7 +534,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-10-20 13:12:38  peter
+  Revision 1.11  1998-11-05 14:26:02  peter
+    * fixed shlshr which would push ecx when not needed
+
+  Revision 1.10  1998/10/20 13:12:38  peter
     * fixed 'not not boolean', the location was not set to register
 
   Revision 1.9  1998/10/20 08:06:42  pierre

@@ -113,6 +113,7 @@ implementation
     procedure firstshlshr(var p : ptree);
       var
          t : ptree;
+         regs : longint;
       begin
          firstpass(p^.left);
          firstpass(p^.right);
@@ -138,7 +139,11 @@ implementation
          if codegenerror then
            exit;
 
-         calcregisters(p,2,0,0);
+         regs:=1;
+         if (p^.right^.treetype<>ordconstn) then
+          inc(regs);
+         calcregisters(p,regs,0,0);
+
          p^.resulttype:=s32bitdef;
          p^.location.loc:=LOC_REGISTER;
       end;
@@ -323,7 +328,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-10-20 13:12:39  peter
+  Revision 1.6  1998-11-05 14:26:01  peter
+    * fixed shlshr which would push ecx when not needed
+
+  Revision 1.5  1998/10/20 13:12:39  peter
     * fixed 'not not boolean', the location was not set to register
 
   Revision 1.4  1998/10/13 16:50:25  pierre
