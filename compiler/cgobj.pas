@@ -198,7 +198,7 @@ unit cgobj;
           procedure a_load_reg_loc(list : taasmoutput;size : tcgsize;reg : tregister;const loc: tlocation);
           procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual; abstract;
           procedure a_load_ref_ref(list : taasmoutput;size : tcgsize;const sref : treference;const dref : treference);virtual;
-          procedure a_load_loc_reg(list : taasmoutput;const loc: tlocation; reg : tregister);
+          procedure a_load_loc_reg(list : taasmoutput; dstsize: tcgsize; const loc: tlocation; reg : tregister);
           procedure a_load_loc_ref(list : taasmoutput;const loc: tlocation; const ref : treference);
           procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);virtual; abstract;
 
@@ -832,14 +832,14 @@ unit cgobj;
       end;
 
 
-    procedure tcg.a_load_loc_reg(list : taasmoutput;const loc: tlocation; reg : tregister);
+    procedure tcg.a_load_loc_reg(list : taasmoutput; dstsize: tcgsize; const loc: tlocation; reg : tregister);
 
       begin
         case loc.loc of
           LOC_REFERENCE,LOC_CREFERENCE:
             a_load_ref_reg(list,loc.size,loc.reference,reg);
           LOC_REGISTER,LOC_CREGISTER:
-            a_load_reg_reg(list,loc.size,loc.size,loc.register,reg);
+            a_load_reg_reg(list,loc.size,dstsize,loc.register,reg);
           LOC_CONSTANT:
             a_load_const_reg(list,loc.size,loc.value,reg);
           else
@@ -1691,7 +1691,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.101  2003-05-30 21:40:00  jonas
+  Revision 1.102  2003-05-30 23:49:18  jonas
+    * a_load_loc_reg now has an extra size parameter for the destination
+      register (properly fixes what I worked around in revision 1.106 of
+      ncgutil.pas)
+
+  Revision 1.101  2003/05/30 21:40:00  jonas
     * fixed bug in a_load_loc_ref (the source instead of dest size was passed
       to a_load_reg_ref in case of a register)
 

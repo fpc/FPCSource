@@ -610,7 +610,7 @@ implementation
                     pleftreg:=rg.makeregsize(left.location.register,OS_INT)
                   else
                     pleftreg:=rg.getregisterint(exprasmlist,OS_INT);
-                  cg.a_load_loc_reg(exprasmlist,left.location,pleftreg);
+                  cg.a_load_loc_reg(exprasmlist,OS_INT,left.location,pleftreg);
                   location_freetemp(exprasmlist,left.location);
                   location_release(exprasmlist,left.location);
                   cg.a_param_reg(exprasmlist,OS_8,pleftreg,paramanager.getintparaloc(2));
@@ -1121,7 +1121,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2003-05-24 19:48:49  jonas
+  Revision 1.37  2003-05-30 23:49:18  jonas
+    * a_load_loc_reg now has an extra size parameter for the destination
+      register (properly fixes what I worked around in revision 1.106 of
+      ncgutil.pas)
+
+  Revision 1.36  2003/05/24 19:48:49  jonas
     * fixed tcginnode endian bug again, but correcty this time :)
 
   Revision 1.35  2003/05/23 21:10:50  florian

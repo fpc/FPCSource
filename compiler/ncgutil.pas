@@ -338,7 +338,7 @@ implementation
                     cg.a_label(list,hl);
                   end;
                 else
-                  cg.a_load_loc_reg(list,l,hregister);
+                  cg.a_load_loc_reg(list,OS_INT,l,hregister);
               end;
               { reset hi part, take care of the signed bit of the current value }
               hregisterhi:=rg.getregisterint(list,OS_INT);
@@ -451,16 +451,7 @@ implementation
                  if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
                   begin
                     if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                     begin
-{$ifndef i386}
-                       hregisterhi := l.register;
-{$endif not i386}
-                       l.register.number:=(l.register.number and not $ff) or cgsize2subreg(dst_size);
-{$ifndef i386}
-                       { necessary for all processors that do not have subregisters (JM) }
-                       cg.a_load_reg_reg(list,l.size,dst_size,hregisterhi,l.register);
-{$endif not i386}
-                     end;
+                      l.register.number:=(l.register.number and not $ff) or cgsize2subreg(dst_size);
                     { for big endian systems, the reference's offset must }
                     { be increased in this case, since they have the      }
                     { MSB first in memory and e.g. byte(word_var) should  }
@@ -470,7 +461,7 @@ implementation
                       inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
                     l.size:=dst_size;
                   end;
-                 cg.a_load_loc_reg(list,l,hregister);
+                 cg.a_load_loc_reg(list,dst_size,l,hregister);
                  { Release old register when the superregister is changed }
                  if (l.loc=LOC_REGISTER) and
                     (l.register.number shr 8<>hregister.number shr 8) then
@@ -482,7 +473,11 @@ implementation
                    end;
                end;
            end;
-           location_reset(l,LOC_REGISTER,dst_size);
+           if (l.loc <> LOC_CREGISTER) or
+              not maybeconst then
+             location_reset(l,LOC_REGISTER,dst_size)
+           else
+             location_reset(l,LOC_CREGISTER,dst_size);
            l.register:=hregister;
          end;
      end;
@@ -521,7 +516,7 @@ implementation
                     cg.a_label(list,hl);
                   end;
                 else
-                  cg.a_load_loc_reg(list,l,hregister);
+                  cg.a_load_loc_reg(list,OS_INT,l,hregister);
               end;
               location_reset(l,LOC_REGISTER,dst_size);
               l.register:=hregister;
@@ -579,7 +574,7 @@ implementation
                     l.size:=dst_size;
                   end;
 
-                 cg.a_load_loc_reg(list,l,hregister);
+                 cg.a_load_loc_reg(list,dst_size,l,hregister);
                end;
            end;
            location_reset(l,LOC_REGISTER,dst_size);
@@ -1348,13 +1343,22 @@ implementation
                        case hp.paraloc.loc of
                          LOC_CREGISTER,
                          LOC_REGISTER:
-//                         if not(hp.paraloc.size in [OS_S64,OS_64]) then
-                             cg.a_load_reg_reg(list,hp.paraloc.size,OS_32,hp.paraloc.register,tvarsym(hp.parasym).reg);
-//                         else
+                         if not(hp.paraloc.size in [OS_S64,OS_64]) then
+                           cg.a_load_reg_reg(list,hp.paraloc.size,hp.paraloc.size,hp.paraloc.register,tvarsym(hp.parasym).reg)
+                         else
+                           internalerror(2003053011);                
 //                           cg64.a_load64_reg_reg(list,hp.paraloc.register64,tvarsym(hp.parasym).reg);
                          LOC_CFPUREGISTER,
                          LOC_FPUREGISTER:
                            cg.a_loadfpu_reg_reg(list,hp.paraloc.register,tvarsym(hp.parasym).reg);
+                         LOC_REFERENCE,
+                         LOC_CREFERENCE:
+                           begin
+                             reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).adjusted_address);
+                             cg.a_load_ref_reg(list,hp.paraloc.size,href,tvarsym(hp.parasym).reg);
+                           end;
+                         else
+                           internalerror(2003053010);
                        end
                      else if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER,
                                                  LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER]) and
@@ -1904,7 +1908,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.110  2003-05-30 18:52:10  jonas
+  Revision 1.111  2003-05-30 23:49:18  jonas
+    * a_load_loc_reg now has an extra size parameter for the destination
+      register (properly fixes what I worked around in revision 1.106 of
+      ncgutil.pas)
+
+  Revision 1.110  2003/05/30 18:52:10  jonas
     * fixed bug with intregvars
     * locapara.loc can also be LOC_CFPUREGISTER -> also fixed
       rcgppc.a_param_ref, which previously got bogus size values

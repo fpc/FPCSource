@@ -110,7 +110,7 @@ unit cg64f64;
 
     procedure tcg64f64.a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64);
       begin
-         cg.a_load_loc_reg(list,l,reg);
+         cg.a_load_loc_reg(list,l.size,l,reg);
       end;
 
     procedure tcg64f64.a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);
@@ -225,7 +225,12 @@ unit cg64f64;
 end.
 {
   $Log$
-  Revision 1.6  2003-01-05 13:36:53  florian
+  Revision 1.7  2003-05-30 23:49:18  jonas
+    * a_load_loc_reg now has an extra size parameter for the destination
+      register (properly fixes what I worked around in revision 1.106 of
+      ncgutil.pas)
+
+  Revision 1.6  2003/01/05 13:36:53  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 

@@ -319,7 +319,7 @@ implementation
                   hdenom := rg.getregisterint(exprasmlist,OS_INT);
                   if right.location.loc<>LOC_CREGISTER then
                    location_release(exprasmlist,right.location);
-                  cg.a_load_loc_reg(exprasmlist,right.location,hdenom);
+                  cg.a_load_loc_reg(exprasmlist,right.location.size,right.location,hdenom);
                   { verify if the divisor is zero, if so return an error
                     immediately
                   }
@@ -395,7 +395,7 @@ implementation
                        if right.location.loc<>LOC_CREGISTER then
                         location_release(exprasmlist,right.location);
                        hcountreg:=cg.get_scratch_reg_int(exprasmlist);
-                       cg.a_load_loc_reg(exprasmlist,right.location,hcountreg);
+                       cg.a_load_loc_reg(exprasmlist,right.location.size,right.location,hcountreg);
                        freescratch := true;
                      end
                    else
@@ -442,7 +442,7 @@ implementation
                        hcountreg:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
                      {$endif}
                        freescratch := true;
-                       cg.a_load_loc_reg(exprasmlist,right.location,hcountreg);
+                       cg.a_load_loc_reg(exprasmlist,right.location.size,right.location,hcountreg);
                      end
                    else
                      hcountreg:=right.location.register;
@@ -467,7 +467,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2003-05-23 14:27:35  peter
+  Revision 1.11  2003-05-30 23:49:18  jonas
+    * a_load_loc_reg now has an extra size parameter for the destination
+      register (properly fixes what I worked around in revision 1.106 of
+      ncgutil.pas)
+
+  Revision 1.10  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 

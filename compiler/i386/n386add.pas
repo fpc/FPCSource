@@ -235,7 +235,7 @@ interface
               r.number:=NR_EDI;
               rg.getexplicitregisterint(exprasmlist,NR_EDI);
             {$endif}
-              cg.a_load_loc_reg(exprasmlist,right.location,r);
+              cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,r);
               emit_reg_reg(op,opsize,left.location.register,r);
               emit_reg_reg(A_MOV,opsize,r,left.location.register);
               rg.ungetregisterint(exprasmlist,r);
@@ -285,7 +285,7 @@ interface
                         r.enum:=R_INTREGISTER;
                         r.number:=NR_EDI;
                      {$endif}
-                        cg.a_load_loc_reg(exprasmlist,right.location,r);
+                        cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,r);
                         emit_reg(A_NOT,S_L,r);
                         emit_reg_reg(A_AND,S_L,r,left.location.register);
                         rg.ungetregisterint(exprasmlist,r);
@@ -1298,14 +1298,14 @@ interface
       {Get a temp register and load the left value into it
        and free the location.}
       r:=rg.getregisterint(exprasmlist,OS_INT);
-      cg.a_load_loc_reg(exprasmlist,left.location,r);
+      cg.a_load_loc_reg(exprasmlist,OS_INT,left.location,r);
       location_release(exprasmlist,left.location);
       {Allocate EAX.}
       rg.getexplicitregisterint(exprasmlist,NR_EAX);
       r_eax.enum:=R_INTREGISTER;
       r_eax.number:=NR_EAX;
       {Load the right value.}
-      cg.a_load_loc_reg(exprasmlist,right.location,r_eax);
+      cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,r_eax);
       location_release(exprasmlist,right.location);
       {The mul instruction frees register r.}
       rg.ungetregisterint(exprasmlist,r);
@@ -1369,14 +1369,14 @@ interface
       rg.getexplicitregisterint(exprasmlist,NR_EDI);
       { load the left value }
       r.number:=NR_EDI;
-      cg.a_load_loc_reg(exprasmlist,left.location,r);
+      cg.a_load_loc_reg(exprasmlist,OS_INT,left.location,r);
       location_release(exprasmlist,left.location);
       { allocate EAX }
       r.number:=NR_EAX;
       if RS_EAX in rg.unusedregsint then
         exprasmList.concat(tai_regalloc.Alloc(r));
       { load he right value }
-      cg.a_load_loc_reg(exprasmlist,right.location,r);
+      cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,r);
       location_release(exprasmlist,right.location);
       { allocate EAX if it isn't yet allocated (JM) }
       if (RS_EAX in rg.unusedregsint) then
@@ -1607,7 +1607,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2003-05-26 19:38:28  peter
+  Revision 1.69  2003-05-30 23:49:18  jonas
+    * a_load_loc_reg now has an extra size parameter for the destination
+      register (properly fixes what I worked around in revision 1.106 of
+      ncgutil.pas)
+
+  Revision 1.68  2003/05/26 19:38:28  peter
     * generic fpc_shorstr_concat
     + fpc_shortstr_append_shortstr optimization
 

@@ -324,7 +324,7 @@ implementation
                   hregister:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
                 {$endif newra}
                 end;
-              cg.a_load_loc_reg(exprasmlist,tcallparanode(tcallparanode(left).right).left.location,hregister);
+              cg.a_load_loc_reg(exprasmlist,OS_INT,tcallparanode(tcallparanode(left).right).left.location,hregister);
               if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
                 emit_reg_ref(asmop,S_L,hregister,tcallparanode(left).left.location.reference)
               else
@@ -345,7 +345,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2003-04-23 09:50:31  peter
+  Revision 1.61  2003-05-30 23:49:18  jonas
+    * a_load_loc_reg now has an extra size parameter for the destination
+      register (properly fixes what I worked around in revision 1.106 of
+      ncgutil.pas)
+
+  Revision 1.60  2003/04/23 09:50:31  peter
     * wrong location_copy for include/exclude
 
   Revision 1.59  2003/04/22 23:50:23  peter

@@ -145,7 +145,7 @@ implementation
                     begin
                        location_release(exprasmlist,left.location);
                        reference_reset_base(href,rg.getaddressregister(exprasmlist),tobjectdef(left.resulttype.def).vmt_offset);
-                       cg.a_load_loc_reg(exprasmlist,left.location,href.base);
+                       cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,href.base);
                     end;
                   else
                     internalerror(200305057);
@@ -250,7 +250,7 @@ implementation
               begin
                  location_release(exprasmlist,left.location);
                  location.reference.base:=rg.getaddressregister(exprasmlist);
-                 cg.a_load_loc_reg(exprasmlist,left.location,location.reference.base);
+                 cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,location.reference.base);
               end;
          end;
          if (cs_gdb_heaptrc in aktglobalswitches) and
@@ -297,7 +297,7 @@ implementation
                   begin
                      location_release(exprasmlist,left.location);
                      location.reference.base:=rg.getaddressregister(exprasmlist);
-                     cg.a_load_loc_reg(exprasmlist,left.location,location.reference.base);
+                     cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,location.reference.base);
                   end;
              end;
              { implicit deferencing }
@@ -482,7 +482,7 @@ implementation
                    hreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
                  {$endif}
                    freereg:=true;
-                   cg.a_load_loc_reg(exprasmlist,right.location,hreg);
+                   cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,hreg);
                  end;
                objectlibrary.getlabel(neglabel);
                objectlibrary.getlabel(poslabel);
@@ -824,7 +824,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-05-15 16:10:37  florian
+  Revision 1.55  2003-05-30 23:49:18  jonas
+    * a_load_loc_reg now has an extra size parameter for the destination
+      register (properly fixes what I worked around in revision 1.106 of
+      ncgutil.pas)
+
+  Revision 1.54  2003/05/15 16:10:37  florian
     * fixed getintparaloc call for ansi- and widestring range checking
 
   Revision 1.53  2003/05/11 21:37:03  peter
