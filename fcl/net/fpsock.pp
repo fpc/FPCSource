@@ -546,7 +546,7 @@ end;
 
 procedure TCustomTCPServer.SetActive(Value: Boolean);
 var
-  Socket: Integer;
+  Socket, TrueValue: Integer;
   Addr: TInetSockAddr;
 begin
   if Active <> Value then
@@ -558,6 +558,9 @@ begin
       if Socket = -1 then
         raise ESocketError.CreateFmt(SSocketCreationError,
 	  [StrError(SocketError)]);
+      TrueValue := 1;
+      Sockets.SetSocketOptions(Socket, SOL_SOCKET, SO_REUSEADDR,
+        TrueValue, SizeOf(TrueValue));
       FStream := TSocketStream.Create(Socket);
       Addr.Family := AF_INET;
       Addr.Port := ShortHostToNet(Port);
@@ -585,7 +588,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-02-20 20:46:21  michael
+  Revision 1.5  2004-08-14 20:31:54  sg
+  * Sockets now use REUSE_ADDR by default, to enable fast restarts of server
+    applications
+
+  Revision 1.4  2004/02/20 20:46:21  michael
   + Fixes for 1.1 - revised from Marcos stuff
 
   Revision 1.3  2004/02/02 14:39:48  marco
