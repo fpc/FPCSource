@@ -795,7 +795,7 @@ Begin
             begin
               { for arrays try to get the element size, take care of
                 multiple indexes }
-              harrdef:=Parraydef(PVarsym(sym)^.definition);
+              harrdef:=Parraydef(PTypedConstSym(sym)^.definition);
               while assigned(harrdef^.definition) and
                     (harrdef^.definition^.deftype=arraydef) do
                harrdef:=parraydef(harrdef^.definition);
@@ -1404,7 +1404,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  1999-08-13 21:28:38  peter
+  Revision 1.24  1999-08-27 14:37:50  peter
+    * fixed crash with typedconst array
+
+  Revision 1.23  1999/08/13 21:28:38  peter
     * more reference types support
     * arraydef size returns elementsize, also for multiple indexing array
 
