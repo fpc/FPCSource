@@ -178,33 +178,16 @@ Procedure AssignAnsiString (Var S1 : Pointer;S2 : Pointer);
 
 {
  Assigns S2 to S1 (S1:=S2), taking in account reference counts.
- If S2 is a constant string, a new S1 is allocated on the heap.
 }
-Var Temp : Pointer;
 
 begin
   If S2<>nil then
-    begin
-    If PAnsiRec(S2-FirstOff)^.Ref<0 then
-      begin
-      // We remove the copy. If a string is a constant string,
-      // Then assigning shouldn't make a copy. Only when writing !!
-      { S2 is a constant string, Create new string with copy. 
-      Temp:=Pointer(NewAnsiString(PansiRec(S2-FirstOff)^.Len));
-      Move (S2^,Temp^,PAnsiRec(S2-FirstOff)^.len+1);
-      PAnsiRec(Temp-FirstOff)^.Len:=PAnsiRec(S2-FirstOff)^.len;}
-      temp:=S2;
-      end
-    else
-      begin
+    If PAnsiRec(S2-FirstOff)^.Ref>0 then
       Inc(PAnsiRec(S2-FirstOff)^.ref);
-      Temp:=S2;
-      end;
-    end;
   { Decrease the reference count on the old S1 }
   Decr_Ansi_Ref (S1);
   { And finally, have S1 pointing to S2 (or its copy) }
-  S1:=Temp;
+  S1:=S2;
 end;
 
 function Ansi_String_Concat (S1,S2 : Pointer) : pointer;
@@ -721,7 +704,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  1998-10-22 11:32:23  michael
+  Revision 1.25  1998-10-30 21:42:48  michael
+  Fixed assignment of NIL string.
+
+  Revision 1.24  1998/10/22 11:32:23  michael
   + AssignAnsistring no longer copies constant ansistrings;
   + CompareAnsiString is now faster (1 call to length less)
   + UniqueAnsiString is fixed.
