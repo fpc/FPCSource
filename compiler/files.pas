@@ -151,6 +151,7 @@ unit files;
           resourcefiles,
           linksharedlibs,
           linkstaticlibs,
+          linkunitfiles,
           linkofiles    : tstringcontainer;
           used_units    : tlinkedlist;
 
@@ -911,6 +912,8 @@ uses
         used_units.init;
         resourcefiles.done;
         resourcefiles.init_no_double;
+        linkunitfiles.done;
+        linkunitfiles.init_no_double;
         linkofiles.done;
         linkofiles.init_no_double;
         linkstaticlibs.done;
@@ -974,6 +977,7 @@ uses
          used_units.init;
          new(sourcefiles,init);
          resourcefiles.init_no_double;
+         linkunitfiles.init_no_double;
          linkofiles.init_no_double;
          linkstaticlibs.init_no_double;
          linksharedlibs.init_no_double;
@@ -1029,6 +1033,7 @@ uses
         sourcefiles:=nil;
         used_units.done;
         resourcefiles.done;
+        linkunitfiles.done;
         linkofiles.done;
         linkstaticlibs.done;
         linksharedlibs.done;
@@ -1092,7 +1097,13 @@ uses
 end.
 {
   $Log$
-  Revision 1.85  1999-01-14 21:47:11  peter
+  Revision 1.86  1999-02-05 08:54:24  pierre
+    + linkofiles splitted inot linkofiles and linkunitfiles
+      because linkofiles must be stored with directory
+      to enabled linking of different objects with same name
+      in a different directory
+
+  Revision 1.85  1999/01/14 21:47:11  peter
     * status.currentmodule is now also updated
     + status.currentsourcepath
 

@@ -126,6 +126,8 @@ procedure TLinker.AddModuleFiles(hp:pmodule);
 begin
   with hp^ do
    begin
+     while not linkunitfiles.empty do
+      AddObject(linkunitfiles.Get);
      while not linkofiles.empty do
       AddObject(linkofiles.Get);
      while not linksharedlibs.empty do
@@ -550,7 +552,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.45  1999-01-29 10:33:07  peter
+  Revision 1.46  1999-02-05 08:54:26  pierre
+    + linkofiles splitted inot linkofiles and linkunitfiles
+      because linkofiles must be stored with directory
+      to enabled linking of different objects with same name
+      in a different directory
+
+  Revision 1.45  1999/01/29 10:33:07  peter
     * objectsearchpath is now also searched if an object is not found
 
   Revision 1.44  1999/01/27 13:07:58  pierre

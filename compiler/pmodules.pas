@@ -79,7 +79,7 @@ unit pmodules;
               (cs_smartlink in aktmoduleswitches) then
              current_module^.linkstaticlibs.insert(current_module^.staticlibfilename^)
            else
-             current_module^.linkofiles.insert(current_module^.objfilename^);
+             current_module^.linkunitfiles.insert(current_module^.objfilename^);
          end;
       end;
 
@@ -1234,7 +1234,13 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.95  1999-02-03 09:44:36  pierre
+  Revision 1.96  1999-02-05 08:54:27  pierre
+    + linkofiles splitted inot linkofiles and linkunitfiles
+      because linkofiles must be stored with directory
+      to enabled linking of different objects with same name
+      in a different directory
+
+  Revision 1.95  1999/02/03 09:44:36  pierre
     * symbol nubering begins with 1 in number_symbols
     * program tmodule has globalsymtable for its staticsymtable
       (to get it displayed in IDE globals list)

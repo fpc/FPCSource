@@ -94,6 +94,8 @@ const
   ibwidestringdef = 56;
   ibfarpointerdef = 57;
 
+  iblinkunitfiles     = 58;
+
 { unit flags }
   uf_init          = $1;
   uf_finalize      = $2;
@@ -793,7 +795,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  1998-12-30 22:15:50  peter
+  Revision 1.22  1999-02-05 08:54:29  pierre
+    + linkofiles splitted inot linkofiles and linkunitfiles
+      because linkofiles must be stored with directory
+      to enabled linking of different objects with same name
+      in a different directory
+
+  Revision 1.21  1998/12/30 22:15:50  peter
     + farpointer type
     * absolutesym now also stores if its far
 

@@ -434,6 +434,7 @@
           ibloadunit_int : readloadunit;
         iblinksharedlibs : readcontainer(current_module^.LinkSharedLibs);
         iblinkstaticlibs : readcontainer(current_module^.LinkStaticLibs);
+         iblinkunitfiles : readcontainer(current_module^.LinkUnitFiles);
             iblinkofiles : readcontainer(current_module^.LinkOFiles);
           ibendinterface : break;
            else
@@ -444,7 +445,13 @@
 
 {
   $Log$
-  Revision 1.29  1999-01-20 10:16:46  peter
+  Revision 1.30  1999-02-05 08:54:30  pierre
+    + linkofiles splitted inot linkofiles and linkunitfiles
+      because linkofiles must be stored with directory
+      to enabled linking of different objects with same name
+      in a different directory
+
+  Revision 1.29  1999/01/20 10:16:46  peter
     * don't update crc when writing objs,libs and sources
 
   Revision 1.28  1999/01/12 14:25:35  peter
