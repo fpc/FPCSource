@@ -2189,8 +2189,7 @@ implementation
                      hpp := cordconstnode.create(1,tcallparanode(left).left.resulttype,false);
                    { make sure we don't call functions part of the left node twice (and generally }
                    { optimize the code generation)                                                }
-                   if (tcallparanode(left).left.nodetype <> loadn) or
-                      (vo_is_thread_var in tvarsym(tloadnode(tcallparanode(left).left).symtableentry).varoptions) then
+                   if node_complexity(tcallparanode(left).left) > 1 then
                      begin
                        tempnode := ctempcreatenode.create_reg(voidpointertype,voidpointertype.def.size,tt_persistent);
                        addstatement(newstatement,tempnode);
@@ -2434,7 +2433,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.140  2004-07-14 21:40:52  olle
+  Revision 1.141  2004-07-15 19:55:39  jonas
+    + (incomplete) node_complexity function to assess the complexity of a
+      tree
+    + support for inlining value and const parameters at the node level
+      (all procedures without local variables and without formal parameters
+       can now be inlined at the node level)
+
+  Revision 1.140  2004/07/14 21:40:52  olle
     + added Ord(pointer) for macpas
 
   Revision 1.139  2004/07/14 14:38:35  jonas

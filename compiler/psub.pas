@@ -969,7 +969,11 @@ implementation
       begin
         result := false;
         if not assigned(procdef.inlininginfo^.code) or
-           (po_assembler in procdef.procoptions) then
+           (po_assembler in procdef.procoptions) or
+            { no locals }
+            (tprocdef(procdef).localst.symsearch.count <> 0) or
+            { procedure, not function }
+            (not is_void(procdef.rettype.def)) then
           exit;
         paraitem:=tparaitem(procdef.para.first);
 
@@ -983,10 +987,7 @@ implementation
           begin
             { we can't handle formaldefs, nor valuepara's which get a new value }
             if ((paraitem.paratyp in [vs_out,vs_var]) and
-                (paraitem.paratype.def.deftype=formaldef)) or
-              { in this case we may have to create a temp for the para, }
-              { not yet handled                                         }
-               (paraitem.paratyp = vs_value) then 
+                (paraitem.paratype.def.deftype=formaldef)) then
               exit;
             paraitem := tparaitem(paraitem.next);
           end;
@@ -1426,7 +1427,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.200  2004-07-12 09:14:04  jonas
+  Revision 1.201  2004-07-15 19:55:40  jonas
+    + (incomplete) node_complexity function to assess the complexity of a
+      tree
+    + support for inlining value and const parameters at the node level
+      (all procedures without local variables and without formal parameters
+       can now be inlined at the node level)
+
+  Revision 1.200  2004/07/12 09:14:04  jonas
     * inline procedures at the node tree level, but only under some very
       limited circumstances for now (only procedures, and only if they have
       no or only vs_out/vs_var parameters).

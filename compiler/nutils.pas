@@ -29,6 +29,9 @@ interface
   uses
     symsym,node;
 
+  const
+    NODE_COMPLEXITY_INF = 255;
+
   type
     { resulttype of functions that process on all nodes in a (sub)tree }
     foreachnoderesult = (
@@ -43,9 +46,8 @@ interface
     );
 
 
-  foreachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult of object;
-  staticforeachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult;
-
+    foreachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult of object;
+    staticforeachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult;
 
     function foreachnode(var n: tnode; f: foreachnodefunction; arg: pointer): boolean;
     function foreachnodestatic(var n: tnode; f: staticforeachnodefunction; arg: pointer): boolean;
@@ -63,6 +65,7 @@ interface
     function initialize_data_node(p:tnode):tnode;
     function finalize_data_node(p:tnode):tnode;
 
+    function node_complexity(p: tnode): cardinal;
 
 implementation
 
@@ -434,11 +437,72 @@ implementation
       end;
 
 
+    { this function must return a very high value ("infinity") for   }
+    { trees containing a call, the rest can be balanced more or less }
+    { at will, probably best mainly in terms of required memory      }
+    { accesses                                                       }
+    function node_complexity(p: tnode): cardinal;
+      begin
+        result := 0;
+        while true do
+          begin
+            case p.nodetype of
+              loadn:
+                begin
+                  if not(vo_is_thread_var in tvarsym(tloadnode(p).symtableentry).varoptions) then
+                    inc(result)
+                  else
+                    inc(result,5);
+                  if (result >= NODE_COMPLEXITY_INF) then
+                    begin
+                      result := NODE_COMPLEXITY_INF;
+                      exit;
+                    end;
+                end;
+              subscriptn:
+                p := tunarynode(p).left;
+              derefn:
+                begin
+                  inc(result);
+                  if (result = NODE_COMPLEXITY_INF) then
+                    exit;
+                  p := tunarynode(p).left;
+                end;
+              vecn:
+                begin
+                  inc(result,node_complexity(tbinarynode(p).left));
+                  if (result >= NODE_COMPLEXITY_INF) then
+                    begin
+                      result := NODE_COMPLEXITY_INF;
+                      exit;
+                    end;
+                  p := tbinarynode(p).right;
+                end;
+              ordconstn,
+              pointerconstn:
+                exit;
+              else
+                begin
+                  result := NODE_COMPLEXITY_INF;
+                  exit;
+                end;
+            end;
+        end;
+      end;
+
+
 end.
 
 {
   $Log$
-  Revision 1.15  2004-07-12 09:14:04  jonas
+  Revision 1.16  2004-07-15 19:55:40  jonas
+    + (incomplete) node_complexity function to assess the complexity of a
+      tree
+    + support for inlining value and const parameters at the node level
+      (all procedures without local variables and without formal parameters
+       can now be inlined at the node level)
+
+  Revision 1.15  2004/07/12 09:14:04  jonas
     * inline procedures at the node tree level, but only under some very
       limited circumstances for now (only procedures, and only if they have
       no or only vs_out/vs_var parameters).

@@ -64,6 +64,7 @@ interface
           procedure convert_carg_array_of_const;
           procedure order_parameters;
 
+          procedure createinlineparas(var createstatement, deletestatement: tstatementnode);
           function replaceparaload(var n: tnode; arg: pointer): foreachnoderesult;
        protected
           pushedparasize : longint;
@@ -744,7 +745,8 @@ type
                  para := tcallparanode(para.right);
               end;
             { no hidden resultpara found, error! }
-            internalerror(200306087);
+            if not(procdefinition.proccalloption = pocall_inline) then
+              internalerror(200306087);
           end;
       end;
 
@@ -1864,23 +1866,66 @@ type
       end;
 
 
-    function tcallnode.pass_1 : tnode;
-{$ifdef m68k}
+    procedure tcallnode.createinlineparas(var createstatement, deletestatement: tstatementnode);
       var
-         regi : tregister;
-{$endif}
+        para: tcallparanode;
+        tempnode: ttempcreatenode;
+        hp: tnode;
+      begin
+        { parameters }
+        para := tcallparanode(left);
+        while assigned(para) do
+          begin
+            { create temps for value parameters, and also for const parameters }
+            { which are passed by value instead of by reference                }
+            if (para.paraitem.paratyp = vs_value) or
+               ((para.paraitem.paratyp = vs_const) and
+                not paramanager.push_addr_param(vs_const,para.left.resulttype.def,procdefinition.proccalloption)) then
+              begin
+                if (cs_regvars in aktglobalswitches) and
+                   (vo_regable in tvarsym(para.paraitem.parasym).varoptions) and
+                   (not tvarsym(para.paraitem.parasym).vartype.def.needs_inittable) then
+                  tempnode := ctempcreatenode.create_reg(para.left.resulttype,para.left.resulttype.def.size,tt_persistent)
+                else
+                  tempnode := ctempcreatenode.create(para.left.resulttype,para.left.resulttype.def.size,tt_persistent);
+                addstatement(createstatement,tempnode);
+                addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
+                  para.left));
+                para.left := ctemprefnode.create(tempnode);
+                addstatement(deletestatement,ctempdeletenode.create(tempnode));
+              end
+            else if not node_complexity(para.left) > 1 then
+              begin
+                if (cs_regvars in aktglobalswitches) and
+                   not tvarsym(para.paraitem.parasym).vartype.def.needs_inittable then
+                  tempnode := ctempcreatenode.create_reg(voidpointertype,voidpointertype.def.size,tt_persistent)
+                else
+                  tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent);
+                addstatement(createstatement,tempnode);
+                addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
+                  caddrnode.create(para.left)));
+                hp := cderefnode.create(ctemprefnode.create(tempnode));
+                inserttypeconv_explicit(hp,para.left.resulttype);
+                para.left := hp;
+                addstatement(deletestatement,ctempdeletenode.create(tempnode));
+              end;
+            para := tcallparanode(para.right);
+          end;
+      end;
+
+
+    function tcallnode.pass_1 : tnode;
+      var
+        createstatement,deletestatement: tstatementnode;
+        createblock,deleteblock: tblocknode;
       label
         errorexit;
       begin
          result:=nil;
 
          if (procdefinition.proccalloption=pocall_inline) and
-            { can we inline this kind of parameters? }
-            (tprocdef(procdefinition).inlininginfo^.inlinenode) and
-            { no locals }
-            (tprocdef(procdefinition).localst.symsearch.count = 0) and
-            { procedure, not function }
-            is_void(resulttype.def) then
+            { can we inline this procedure at the node level? }
+            (tprocdef(procdefinition).inlininginfo^.inlinenode) then
            begin
               { inherit flags }
               current_procinfo.flags := current_procinfo.flags + ((procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
@@ -1898,10 +1943,17 @@ type
                 CGMessage(cg_e_no_code_for_inline_stored);
               if assigned(result) then
                 begin
+                  createblock := internalstatements(createstatement);
+                  deleteblock := internalstatements(deletestatement);
+                  { replace complex parameters with temps }
+                  createinlineparas(createstatement,deletestatement);
                   { replace the parameter loads with the parameter values }
-                  foreachnode(result,{$ifdef FPCPROCVAR}@{$endif}replaceparaload,nil);
-                  { consider it has not inlined if called
-                    again inside the args }
+                  foreachnode(result,{$ifdef FPCPROCVAR}@{$endif}replaceparaload,pointer(funcretnode));
+                  addstatement(createstatement,result);
+                  addstatement(createstatement,deleteblock);
+                  result := createblock;
+                  { consider it must not be inlined if called
+                    again inside the args or itself }
                   procdefinition.proccalloption:=pocall_default;
                   firstpass(result);
                   procdefinition.proccalloption:=pocall_inline;
@@ -2206,7 +2258,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.240  2004-07-12 09:14:04  jonas
+  Revision 1.241  2004-07-15 19:55:39  jonas
+    + (incomplete) node_complexity function to assess the complexity of a
+      tree
+    + support for inlining value and const parameters at the node level
+      (all procedures without local variables and without formal parameters
+       can now be inlined at the node level)
+
+  Revision 1.240  2004/07/12 09:14:04  jonas
     * inline procedures at the node tree level, but only under some very
       limited circumstances for now (only procedures, and only if they have
       no or only vs_out/vs_var parameters).
