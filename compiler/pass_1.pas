@@ -500,8 +500,8 @@ unit pass_1;
                 doconv:=tc_equal;
                 b:=true;
              end
-
          else
+           }
            { ansi- and wide strings can be assigned to void pointers }
            { no, (FK)
            if (def_from^.deftype=stringdef) and
@@ -513,7 +513,6 @@ unit pass_1;
                 doconv:=tc_equal;
                 b:=true;
              end
-
          else
            }
            { ansistrings can be assigned to pchar
@@ -5515,7 +5514,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.86  1998-09-20 17:46:50  florian
+  Revision 1.87  1998-09-20 18:00:21  florian
+    * small compiling problems fixed
+
+  Revision 1.86  1998/09/20 17:46:50  florian
     * some things regarding ansistrings fixed
 
   Revision 1.85  1998/09/17 09:42:38  peter

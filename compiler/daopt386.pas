@@ -197,7 +197,7 @@ Implementation
 
 Uses globals, systems, strings, verbose, hcodegen,
    {$ifdef i386}
-     cgi386;
+     pass_2;
    {$endif i386}
 
 Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
@@ -1614,7 +1614,10 @@ End.
 
 {
  $Log$
- Revision 1.14  1998-09-20 17:12:36  jonas
+ Revision 1.15  1998-09-20 18:00:20  florian
+   * small compiling problems fixed
+
+ Revision 1.14  1998/09/20 17:12:36  jonas
  * small fix for uncertain optimizations & more cleaning up
 
  Revision 1.12  1998/09/16 18:00:01  jonas
