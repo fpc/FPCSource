@@ -829,12 +829,20 @@ begin
   InitEvents;
   InitSysError;
   CurDirChanged;
+{$ifndef win32}
   Message(Application,evBroadcast,cmUpdate,nil);
+{$endif win32}
 {$ifdef win32}
   Win32ShowMouse;
 {$endif win32}
+
   if Assigned(UserScreen) then
     UserScreen^.SwitchBackToIDEScreen;
+{$ifdef win32}
+  { This message was sent when the VideoBuffer was smaller
+    than was the IdeApp thought => writes to random memory and random crashes... PM }
+  Message(Application,evBroadcast,cmUpdate,nil);
+{$endif win32}
 {$ifdef Unix}
   SetKnownKeys;
 {$endif Unix}
@@ -1207,7 +1215,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.14  2002-06-10 08:12:17  pierre
+  Revision 1.15  2002-07-12 14:17:39  pierre
+   * try to avoid memory corruption if UserScreen is smaller than IDE screen on win32
+
+  Revision 1.14  2002/06/10 08:12:17  pierre
    * System messages must be handled by the application directly
 
   Revision 1.13  2002/05/30 15:03:23  pierre
