@@ -1534,7 +1534,7 @@ end;
                       if ObjDef<>nil then
                         Symbol^.RelatedTypeID:=longint(ObjDef);{TypeNames^.Add(S);}
                       Symbol^.Flags:=(Symbol^.Flags or sfObject);
-                      if is_class then
+                      if is_class(restype.def) then
                         Symbol^.Flags:=(Symbol^.Flags or sfClass);
                       ProcessSymTable(Symbol,Symbol^.Items,pobjectdef(restype.def)^.symtable);
                     end;
@@ -2095,7 +2095,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2000-11-02 15:01:22  pierre
+  Revision 1.13  2000-11-08 09:27:45  pierre
+   * fix for new is_class function
+
+  Revision 1.12  2000/11/02 15:01:22  pierre
    * get it to compile again
 
   Revision 1.11  2000/10/31 22:02:46  peter
