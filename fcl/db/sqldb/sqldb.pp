@@ -130,7 +130,6 @@ type
   TSQLQuery = class (Tbufdataset)
   private
     FCursor              : TSQLHandle;
-    FOpen                : Boolean;
     FSQL                 : TStrings;
     FIsEOF               : boolean;
     FLoadingFieldDefs    : boolean;
@@ -154,8 +153,7 @@ type
     procedure InternalInitFieldDefs; override;
     procedure InternalOpen; override;
     procedure InternalPost; override;
-    function IsCursorOpen: Boolean; override;
-    procedure SetFieldData(Field: TField; Buffer: Pointer); override;
+    function  GetCanModify: Boolean; override;
     Function GetSQLStatementType(SQL : String) : TStatementType; virtual;
   public
     procedure ExecSQL; virtual;
@@ -415,7 +413,6 @@ begin
     DestroyFields;
   FIsEOF := False;
 //  FRecordSize := 0;
-  FOpen:=False;
   inherited internalclose;
 end;
 
@@ -451,7 +448,6 @@ begin
     if Fcursor.StatementType in [stSelect] then
       begin
       Execute;
-      FOpen:=True;
       InternalInitFieldDefs;
       if DefaultFields then
         CreateFields;
@@ -468,15 +464,6 @@ end;
 procedure TSQLQuery.InternalPost;
 begin
   // not implemented - sql dataset
-end;
-
-function TSQLQuery.IsCursorOpen: Boolean;
-begin
-  Result := FOpen;
-end;
-
-procedure TSQLQuery.SetFieldData(Field: TField; Buffer: Pointer);
-begin
 end;
 
 // public part
@@ -554,11 +541,23 @@ begin
       Exit(t);
 end;
 
+Function TSQLQuery.GetCanModify: Boolean;
+
+begin
+  Result:= False;
+end;
+
 end.
 
 {
   $Log$
-  Revision 1.8  2004-12-04 22:43:38  michael
+  Revision 1.9  2004-12-13 19:22:16  michael
+    * Ptahc from Joost van der Sluis
+    - moved IsCursorOpen from TSQLQuery to tbufdataset
+    - moved SetFieldData from TSQLQuery to TBufDataset
+    - very first start for support of cached updates
+
+  Revision 1.8  2004/12/04 22:43:38  michael
     * Patch from Joost van der Sluis
     - replaced checkactive in commit and rollback for 'if active'
     - fixed a warning
