@@ -46,7 +46,7 @@ DEFAULTUNITS=1
 # They are default units for all platforms.
 include $(INC)/Makefile.inc
 
-UNITOBJECTS=$(INCUNITS)
+UNITOBJECTS=classes $(INCUNITS)
 EXEOBJECTS=
 
 
@@ -134,7 +134,10 @@ ezcgi$(PPUEXT): ezcgi$(PASEXT) ezcgi.inc
 
 #
 # $Log$
-# Revision 1.8  1999-04-27 19:13:45  michael
+# Revision 1.9  1999-05-31 12:48:01  peter
+#   * classes unit to unitobjects
+#
+# Revision 1.8  1999/04/27 19:13:45  michael
 # + Added ezcgi from Michael Hess
 #
 # Revision 1.7  1999/04/22 10:50:46  peter

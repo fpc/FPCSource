@@ -21,18 +21,12 @@ var
   ThreadRoot : PThreadRec;
   ThreadsInited : boolean;
 
-function StackPointer:longint;assembler;
-asm
-        movl    %esp,%eax
-end;
-
-
 function ThreadSelf:TThread;
 var
   hp : PThreadRec;
   sp : longint;
 begin
-  sp:=StackPointer;
+  sp:=SPtr;
   hp:=ThreadRoot;
   while assigned(hp) do
    begin
@@ -264,7 +258,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1999-05-30 10:46:42  peter
+  Revision 1.2  1999-05-31 12:47:59  peter
+    * classes unit to unitobjects
+
+  Revision 1.1  1999/05/30 10:46:42  peter
     * start of tthread for linux,win32
 
 }

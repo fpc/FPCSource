@@ -42,7 +42,7 @@ DEFAULTUNITS=1
 # They are default units for all platforms.
 include $(INC)/Makefile.inc
 
-UNITOBJECTS=$(INCUNITS)
+UNITOBJECTS=classes $(INCUNITS)
 EXEOBJECTS=
 
 
@@ -126,7 +126,10 @@ classes$(PPUEXT): $(INCFILES) classes$(PASEXT)
 
 #
 # $Log$
-# Revision 1.5  1999-04-08 15:59:54  michael
+# Revision 1.6  1999-05-31 12:48:00  peter
+#   * classes unit to unitobjects
+#
+# Revision 1.5  1999/04/08 15:59:54  michael
 # + INCUNITS added
 #
 # Revision 1.8  1999/04/08 15:58:44  michael
