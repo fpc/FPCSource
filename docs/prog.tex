@@ -3411,7 +3411,7 @@ is stored as a smallint (signed 16-bit quantity).
 \item If both bounds are within the range 0..65535, the variable
 is stored as a word (unsigned 16-bit quantity)
 \item If both bounds are within the range 0..4294967295, the
-variable is stored as a cardinal (unsigned 32-bit quantity).
+variable is stored as a longword (unsigned 32-bit quantity).
 \item Otherwise the variable is stored as a longint (signed
 32-bit quantity).
 \end{itemize}
@@ -3433,7 +3433,7 @@ as a longint.
 \subsection{enumeration types}
 
 By default all enumerations are stored as a
-cardinal (4 bytes), which is equivalent to specifying
+longword (4 bytes), which is equivalent to specifying
 the \var{\{\$Z4\}}, \var{\{\$PACKENUM 4\}} or
 \var{\{\$PACKENUM DEFAULT\}} switches.
 
@@ -3448,7 +3448,7 @@ space used is shown in \seet{enumstoragetp}.
 \# Of Elements in Enum. & Storage space used\\ \hline
 0..255  & byte (1 byte) \\
 256..65535 & word (2 bytes) \\
-> 65535 & cardinal (4 bytes) \\
+> 65535 & longword (4 bytes) \\
 \hline
 \end{FPCltable}
 
@@ -3456,7 +3456,7 @@ When the \var{\{\$Z2\}} or \var{\{\$PACKENUM 2\}}
 switches are in effect, the value is stored on 2
 bytes (word), if the enumeration has less or equal
 then 65535 elements, otherwise, the enumeration
-value is stored as a 4 byte value (cardinal).
+value is stored as a 4 byte value (longword).
 
 \subsection{floating point types}
 
@@ -3572,7 +3572,7 @@ on this.
 
 \subsection{pointer types}
 
-A \var{pointer} type is stored as a cardinal (unsigned 32-bit value) on
+A \var{pointer} type is stored as a longword (unsigned 32-bit value) on
 32-bit processors, and is stored as a 64-bit unsigned value\footnote{this
 is actually the \var{qword} type, which is not supported in \fpc v1.0}
 on 64-bit processors.
@@ -3621,12 +3621,12 @@ number of elements in a set is 256.
 
 If a set has less than 32 elements, it is coded as an unsigned
 32-bit value. Otherwise it is coded as a 8 element array of
-32-bit unsigned values (cardinal) (hence a size of 256 bytes).
+32-bit unsigned values (longword) (hence a size of 256 bytes).
 
-The cardinal number of a specific element \var{E} is given by :
+The longword number of a specific element \var{E} is given by :
 
 \begin{verbatim}
- CardinalNumber = (E div 32);
+ LongwordNumber = (E div 32);
 \end{verbatim}
 
 and the bit number within that 32-bit value is given by:
@@ -4822,7 +4822,7 @@ sort, for example.
 
 \item Use variables of the native size of the processor you're writing
 for. This is currently 32-bit or 64-bit for \fpc, so you are best to
-use longint and cardinal variables.
+use longword and longint variables.
 
 \item Turn on the optimizer.
 
