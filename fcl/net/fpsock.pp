@@ -190,7 +190,7 @@ uses
 {$IFDEF VER1_0}
   Linux;
 {$ELSE}
-  Baseunix,Unix;
+  baseunix,Unix;
 {$ENDIF}
 
 resourcestring
@@ -202,7 +202,11 @@ resourcestring
   SSocketAcceptError = 'Connection accept failed: %s';
   SSocketIsActive = 'Cannot change parameters while active';
 
-
+{$ifndef VER1_0}
+Const
+  Sys_EAGAIN = ESYSEAGAIN;
+  Sys_EINPROGRESS = ESYSEINPROGRESS;
+{$endif}
 
 
 // TSocketStream
@@ -219,7 +223,7 @@ begin
   if Result = -1 then
   begin
     Result := 0;
-    if SocketError <> {$ifdef ver1_0}Sys_EAGAIN{$else}ESysEAgain{$endif} then
+    if SocketError <> Sys_EAGAIN then
       Disconnected;
   end;
 end;
@@ -230,7 +234,7 @@ begin
   if Result = -1 then
   begin
     Result := 0;
-    if SocketError <> {$ifdef ver1_0}Sys_EAGAIN{$else}ESysEAgain{$endif} then
+    if SocketError <> Sys_EAGAIN then
       Disconnected;
   end;
 end;
@@ -516,7 +520,7 @@ begin
   SockAddr.Port := ShortHostToNet(Port);
   SockAddr.Addr := Cardinal(HostAddr);
   Sockets.Connect(Stream.Handle, SockAddr, SizeOf(SockAddr));
-  if (SocketError <> {$ifdef ver1_0}sys_EINPROGRESS{$else}ESysEInProgress{$endif}) and (SocketError <> 0) then
+  if (SocketError <> sys_EINPROGRESS) and (SocketError <> 0) then
     raise ESocketError.CreateFmt(SSocketConnectFailed,
       [GetPeerName, StrError(SocketError)]);
 end;
@@ -581,7 +585,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-02-02 14:39:48  marco
+  Revision 1.4  2004-02-20 20:46:21  michael
+  + Fixes for 1.1 - revised from Marcos stuff
+
+  Revision 1.3  2004/02/02 14:39:48  marco
    * 1.0.x problems fixed
 
   Revision 1.2  2004/01/31 19:13:14  sg
