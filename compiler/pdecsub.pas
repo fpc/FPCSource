@@ -1932,18 +1932,32 @@ const
                    { Check calling convention }
                    if (hd.proccalloption<>aprocdef.proccalloption) then
                     begin
-                      { For delphi check if the current implementation has no proccalloption, then
-                        take the options from the interface }
-                      if not(m_delphi in aktmodeswitches) or
-                         (aprocdef.proccalloption<>pocall_none) then
+                      { In delphi it is possible to specify the calling
+                        convention in the interface or implementation if
+                        there was no convention specified in the other
+                        part }
+                      if (m_delphi in aktmodeswitches) then
+                       begin
+                         if (aprocdef.proccalloption=pocall_none) then
+                          aprocdef.proccalloption:=hd.proccalloption
+                         else
+                          if (hd.proccalloption=pocall_none) then
+                           hd.proccalloption:=aprocdef.proccalloption
+                         else
+                          begin
+                            MessagePos(aprocdef.fileinfo,parser_e_call_convention_dont_match_forward);
+                            aprocsym.write_parameter_lists(aprocdef);
+                            { restore interface settings }
+                            aprocdef.proccalloption:=hd.proccalloption;
+                          end;
+                       end
+                      else
                        begin
                          MessagePos(aprocdef.fileinfo,parser_e_call_convention_dont_match_forward);
                          aprocsym.write_parameter_lists(aprocdef);
+                         { restore interface settings }
+                         aprocdef.proccalloption:=hd.proccalloption;
                        end;
-                      { restore interface settings }
-                      aprocdef.proccalloption:=hd.proccalloption;
-                      if hd.has_mangledname then
-                        aprocdef.setmangledname(hd.mangledname);
                     end;
 
                    { Check procedure options, Delphi requires that class is
@@ -2115,7 +2129,11 @@ const
 end.
 {
   $Log$
-  Revision 1.96  2002-12-29 14:55:44  peter
+  Revision 1.97  2002-12-29 18:16:06  peter
+    * delphi allows setting calling convention in interface or
+      implementation
+
+  Revision 1.96  2002/12/29 14:55:44  peter
     * fix static method check
     * don't require class for class methods in the implementation for
       non delphi modes
