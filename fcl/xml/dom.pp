@@ -3,7 +3,7 @@
     This file is part of the Free Component Library
 
     Implementation of DOM interfaces
-    Copyright (c) 1999-2000 by Sebastian Guenther, sg@freepascal.org
+    Copyright (c) 1999-2003 by Sebastian Guenther, sg@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -38,25 +38,6 @@ uses SysUtils, Classes;
 
 type
 
-  TDOMImplementation = class;
-  TDOMDocumentFragment = class;
-  TDOMDocument = class;
-  TDOMNode = class;
-  TDOMNodeList = class;
-  TDOMNamedNodeMap = class;
-  TDOMCharacterData = class;
-  TDOMAttr = class;
-  TDOMElement = class;
-  TDOMText = class;
-  TDOMComment = class;
-  TDOMCDATASection = class;
-  TDOMDocumentType = class;
-  TDOMNotation = class;
-  TDOMEntity = class;
-  TDOMEntityReference = class;
-  TDOMProcessingInstruction = class;
-
-
 // -------------------------------------------------------
 //   DOMString
 // -------------------------------------------------------
@@ -71,7 +52,6 @@ type
 // -------------------------------------------------------
 //   DOMException
 // -------------------------------------------------------
-
 
 const
 
@@ -184,6 +164,24 @@ const
 
 type
 
+  TDOMImplementation = class;
+  TDOMDocumentFragment = class;
+  TDOMDocument = class;
+  TDOMNode = class;
+  TDOMNodeList = class;
+  TDOMNamedNodeMap = class;
+  TDOMCharacterData = class;
+  TDOMAttr = class;
+  TDOMElement = class;
+  TDOMText = class;
+  TDOMComment = class;
+  TDOMCDATASection = class;
+  TDOMDocumentType = class;
+  TDOMNotation = class;
+  TDOMEntity = class;
+  TDOMEntityReference = class;
+  TDOMProcessingInstruction = class;
+
   TRefClass = class
   protected
     RefCounter: LongInt;
@@ -229,10 +227,11 @@ type
     function RemoveChild(OldChild: TDOMNode): TDOMNode; virtual;
     function AppendChild(NewChild: TDOMNode): TDOMNode; virtual;
     function HasChildNodes: Boolean; virtual;
-    function CloneNode(deep: Boolean): TDOMNode;
+    function CloneNode(deep: Boolean): TDOMNode; overload;
 
     // Extensions to DOM interface:
-    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; virtual;
+    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
+      overload; virtual;
     function FindNode(const ANodeName: DOMString): TDOMNode;
   end;
 
@@ -376,13 +375,13 @@ type
 
   TXMLDocument = class(TDOMDocument)
   public
+    // These fields are extensions to the DOM interface:
+    XMLVersion, Encoding, StylesheetType, StylesheetHRef: DOMString;
+
     function CreateCDATASection(const data: DOMString): TDOMCDATASection; override;
     function CreateProcessingInstruction(const target, data: DOMString):
       TDOMProcessingInstruction; override;
     function CreateEntityReference(const name: DOMString): TDOMEntityReference; override;
-
-    // Extensions to DOM interface:
-    XMLVersion, Encoding, StylesheetType, StylesheetHRef: DOMString;
   end;
 
 
@@ -399,7 +398,8 @@ type
 
     constructor Create(AOwner: TDOMDocument);
   public
-    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; override;
+    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
+      overload; override;
     property Name: DOMString read FNodeName;
     property Specified: Boolean read FSpecified;
     property Value: DOMString read GetNodeValue write SetNodeValue;
@@ -418,7 +418,8 @@ type
     constructor Create(AOwner: TDOMDocument); virtual;
   public
     destructor Destroy; override;
-    function  CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; override;
+    function  CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
+      overload; override;
     property  TagName: DOMString read FNodeName;
     function  GetAttribute(const name: DOMString): DOMString;
     procedure SetAttribute(const name, value: DOMString);
@@ -443,7 +444,8 @@ type
   protected
     constructor Create(AOwner: TDOMDocument);
   public
-    function  CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; override;
+    function  CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
+      overload; override;
     function SplitText(offset: LongWord): TDOMText;
   end;
 
@@ -456,7 +458,8 @@ type
   protected
     constructor Create(AOwner: TDOMDocument);
   public
-    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; override;
+    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
+      overload; override;
   end;
 
 
@@ -468,7 +471,8 @@ type
   protected
     constructor Create(AOwner: TDOMDocument);
   public
-    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; override;
+    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
+      overload; override;
   end;
 
 
@@ -482,7 +486,8 @@ type
 
     constructor Create(AOwner: TDOMDocument);
   public
-    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; override;
+    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
+      overload; override;
     property Name: DOMString read FNodeName;
     property Entities: TDOMNamedNodeMap read FEntities;
     property Notations: TDOMNamedNodeMap read FEntities;
@@ -499,7 +504,8 @@ type
 
     constructor Create(AOwner: TDOMDocument);
   public
-    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; override;
+    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
+      overload; override;
     property PublicID: DOMString read FPublicID;
     property SystemID: DOMString read FSystemID;
   end;
@@ -936,8 +942,11 @@ var
   i: Integer;
 begin
   for i := 0 to Count - 1 do
-    if Item[i].NodeName = name then
-      exit(Item[i]);
+  begin
+    Result := Item[i];
+    if Result.NodeName = name then
+      exit;
+  end;
   Result := nil;
 end;
 
@@ -1501,7 +1510,11 @@ end.
 
 {
   $Log$
-  Revision 1.11  2002-12-11 21:06:07  sg
+  Revision 1.12  2003-01-15 21:59:55  sg
+  * the units DOM, XMLRead and XMLWrite now compile with Delphi without
+    modifications as well
+
+  Revision 1.11  2002/12/11 21:06:07  sg
   * Small cleanups
   * Replaced htmldoc unit with dom_html unit
   * Added SAX parser framework and SAX HTML parser

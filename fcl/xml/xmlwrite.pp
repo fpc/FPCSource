@@ -3,7 +3,7 @@
     This file is part of the Free Component Library
 
     XML writing routines
-    Copyright (c) 1999-2002 by Sebastian Guenther, sg@freepascal.org
+    Copyright (c) 1999-2003 by Sebastian Guenther, sg@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -17,20 +17,17 @@
 
 unit XMLWrite;
 
-{$MODE objfpc}
-{$H+}
-
 interface
 
 uses Classes, DOM;
 
-procedure WriteXMLFile(doc: TXMLDocument; const AFileName: String);
-procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text);
-procedure WriteXMLFile(doc: TXMLDocument; AStream: TStream);
+procedure WriteXMLFile(doc: TXMLDocument; const AFileName: String); overload;
+procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text); overload;
+procedure WriteXMLFile(doc: TXMLDocument; AStream: TStream); overload;
 
-procedure WriteXML(Node: TDOMNode; const AFileName: String);
-procedure WriteXML(Node: TDOMNode; var AFile: Text);
-procedure WriteXML(Node: TDOMNode; AStream: TStream);
+procedure WriteXML(Node: TDOMNode; const AFileName: String); overload;
+procedure WriteXML(Node: TDOMNode; var AFile: Text); overload;
+procedure WriteXML(Node: TDOMNode; AStream: TStream); overload;
 
 
 // ===================================================================
@@ -62,9 +59,15 @@ type
 
 const
   WriteProcs: array[ELEMENT_NODE..NOTATION_NODE] of TWriteNodeProc =
+{$IFDEF FPC}
     (@WriteElement, @WriteAttribute, @WriteText, @WriteCDATA, @WriteEntityRef,
      @WriteEntity, @WritePI, @WriteComment, @WriteDocument, @WriteDocumentType,
      @WriteDocumentFragment, @WriteNotation);
+{$ELSE}
+    (WriteElement, WriteAttribute, WriteText, WriteCDATA, WriteEntityRef,
+     WriteEntity, WritePI, WriteComment, WriteDocument, WriteDocumentType,
+     WriteDocumentFragment, WriteNotation);
+{$ENDIF}
 
 procedure WriteNode(node: TDOMNode);
 begin
@@ -99,14 +102,16 @@ end;
 procedure Stream_Write(s: String);
 begin
   if Length(s) > 0 then
-    stream.Write(s[1], Length(s));
+    Stream.Write(s[1], Length(s));
 end;
 
 procedure Stream_WriteLn(s: String);
+const
+  LF: Char = #10;
 begin
   if Length(s) > 0 then
-    stream.Write(s[1], Length(s));
-  stream.WriteByte(10);
+    Stream.Write(s[1], Length(s));
+  Stream.Write(LF, 1);
 end;
 
 
@@ -420,7 +425,11 @@ end.
 
 {
   $Log$
-  Revision 1.10  2002-11-30 16:04:34  sg
+  Revision 1.11  2003-01-15 21:59:55  sg
+  * the units DOM, XMLRead and XMLWrite now compile with Delphi without
+    modifications as well
+
+  Revision 1.10  2002/11/30 16:04:34  sg
   * Stream parameters are not "var" anymore (stupid copy&paste bug)
 
   Revision 1.9  2002/09/20 11:36:51  sg

@@ -3,7 +3,7 @@
     This file is part of the Free Component Library
 
     XML reading routines.
-    Copyright (c) 1999-2002 by Sebastian Guenther, sg@freepascal.org
+    Copyright (c) 1999-2003 by Sebastian Guenther, sg@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,8 +14,6 @@
 
  **********************************************************************}
 
-{$MODE objfpc}
-{$H+}
 
 unit XMLRead;
 
@@ -29,22 +27,25 @@ type
 
 
 procedure ReadXMLFile(var ADoc: TXMLDocument; const AFilename: String);
-procedure ReadXMLFile(var ADoc: TXMLDocument; var f: File);
-procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream);
+  overload;
+procedure ReadXMLFile(var ADoc: TXMLDocument; var f: File); overload;
+procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream); overload;
 procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream;
-  const AFilename: String);
+  const AFilename: String); overload;
 
 procedure ReadXMLFragment(AParentNode: TDOMNode; const AFilename: String);
-procedure ReadXMLFragment(AParentNode: TDOMNode; var f: File);
-procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream);
+  overload;
+procedure ReadXMLFragment(AParentNode: TDOMNode; var f: File); overload;
+procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream); overload;
 procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream;
-  const AFilename: String);
+  const AFilename: String); overload;
 
 procedure ReadDTDFile(var ADoc: TXMLDocument; const AFilename: String);
-procedure ReadDTDFile(var ADoc: TXMLDocument; var f: File);
-procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream);
+  overload;
+procedure ReadDTDFile(var ADoc: TXMLDocument; var f: File); overload;
+procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream); overload;
 procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream;
-  const AFilename: String);
+  const AFilename: String); overload;
 
 
 // =======================================================
@@ -184,7 +185,7 @@ begin
       GetMem(s2, Length(s) + 1);
       StrLCopy(s2, buf, Length(s));
       s3 := StrPas(s2);
-      FreeMem(s2, Length(s) + 1);
+      FreeMem(s2);
       RaiseExc('Expected "' + s + '", found "' + s3 + '"');
     end;
   Inc(buf, Length(s));
@@ -213,8 +214,6 @@ begin
 end;
 
 procedure TXMLReader.ProcessXML(ABuf: PChar; AFilename: String);    // [1]
-var
-  LastNodeBeforeDoc: TDOMNode;
 begin
   buf := ABuf;
   BufStart := ABuf;
@@ -222,20 +221,11 @@ begin
 
   doc := TXMLReaderDocument.Create;
   ExpectProlog;
-  LastNodeBeforeDoc := doc.LastChild;
   ExpectElement(doc);
   ParseMisc(doc);
 
   if buf[0] <> #0 then
     RaiseExc('Text after end of document element found');
-
-  {
-  if buf[0] <> #0 then begin
-    WriteLn('=== Unparsed: ===');
-    //WriteLn(buf);
-    WriteLn(StrLen(buf), ' chars');
-  end;
-  }
 end;
 
 procedure TXMLReader.ProcessFragment(AOwner: TDOMNode; ABuf: PChar;
@@ -350,7 +340,7 @@ var
 begin
   if CheckFor('<?') then begin
     StrLCopy(checkbuf, buf, 3);
-    if UpCase(StrPas(checkbuf)) = 'XML' then
+    if UpperCase(StrPas(checkbuf)) = 'XML' then
       RaiseExc('"<?xml" processing instruction not allowed here');
     ExpectName;
     if SkipWhitespace then
@@ -1030,13 +1020,19 @@ begin
     exit;
 
   GetMem(buf, BufSize);
-  BlockRead(f, buf^, BufSize - 1);
-  buf[BufSize - 1] := #0;
-  Reader := TXMLReader.Create;
-  Reader.ProcessXML(buf, Filerec(f).name);
-  FreeMem(buf, BufSize);
-  ADoc := TXMLDocument(Reader.doc);
-  Reader.Free;
+  try
+    BlockRead(f, buf^, BufSize - 1);
+    buf[BufSize - 1] := #0;
+    Reader := TXMLReader.Create;
+    try
+      Reader.ProcessXML(buf, TFileRec(f).name);
+      ADoc := TXMLDocument(Reader.doc);
+    finally
+      Reader.Free;
+    end;
+  finally
+    FreeMem(buf);
+  end;
 end;
 
 procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream;
@@ -1050,13 +1046,19 @@ begin
     exit;
 
   GetMem(buf, f.Size + 1);
-  f.Read(buf^, f.Size);
-  buf[f.Size] := #0;
-  Reader := TXMLReader.Create;
-  Reader.ProcessXML(buf, AFilename);
-  FreeMem(buf, f.Size + 1);
-  ADoc := TXMLDocument(Reader.doc);
-  Reader.Free;
+  try
+    f.Read(buf^, f.Size);
+    buf[f.Size] := #0;
+    Reader := TXMLReader.Create;
+    try
+      Reader.ProcessXML(buf, AFilename);
+      ADoc := TXMLDocument(Reader.doc);
+    finally
+      Reader.Free;
+    end;
+  finally
+    FreeMem(buf);
+  end;
 end;
 
 procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream);
@@ -1066,7 +1068,7 @@ end;
 
 procedure ReadXMLFile(var ADoc: TXMLDocument; const AFilename: String);
 var
-  Stream: TFileStream;
+  Stream: TStream;
 begin
   ADoc := nil;
   Stream := TFileStream.Create(AFilename, fmOpenRead);
@@ -1089,13 +1091,19 @@ begin
     exit;
 
   GetMem(buf, BufSize);
-  BlockRead(f, buf^, BufSize - 1);
-  buf[BufSize - 1] := #0;
-  Reader := TXMLReader.Create;
-  Reader.Doc := AParentNode.OwnerDocument;
-  Reader.ProcessFragment(AParentNode, buf, Filerec(f).name);
-  FreeMem(buf, BufSize);
-  Reader.Free;
+  try
+    BlockRead(f, buf^, BufSize - 1);
+    buf[BufSize - 1] := #0;
+    Reader := TXMLReader.Create;
+    try
+      Reader.Doc := AParentNode.OwnerDocument;
+      Reader.ProcessFragment(AParentNode, buf, TFileRec(f).name);
+    finally
+      Reader.Free;
+    end;
+  finally
+    FreeMem(buf);
+  end;
 end;
 
 procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream;
@@ -1108,13 +1116,19 @@ begin
     exit;
 
   GetMem(buf, f.Size + 1);
-  f.Read(buf^, f.Size);
-  buf[f.Size] := #0;
-  Reader := TXMLReader.Create;
-  Reader.Doc := AParentNode.OwnerDocument;
-  Reader.ProcessFragment(AParentNode, buf, AFilename);
-  FreeMem(buf, f.Size + 1);
-  Reader.Free;
+  try
+    f.Read(buf^, f.Size);
+    buf[f.Size] := #0;
+    Reader := TXMLReader.Create;
+    Reader.Doc := AParentNode.OwnerDocument;
+    try
+      Reader.ProcessFragment(AParentNode, buf, AFilename);
+    finally
+      Reader.Free;
+    end;
+  finally
+    FreeMem(buf);
+  end;
 end;
 
 procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream);
@@ -1124,7 +1138,7 @@ end;
 
 procedure ReadXMLFragment(AParentNode: TDOMNode; const AFilename: String);
 var
-  Stream: TFileStream;
+  Stream: TStream;
 begin
   Stream := TFileStream.Create(AFilename, fmOpenRead);
   try
@@ -1143,16 +1157,23 @@ var
 begin
   ADoc := nil;
   BufSize := FileSize(f) + 1;
-  if BufSize <= 1 then exit;
+  if BufSize <= 1 then
+    exit;
 
-  GetMem(buf, BufSize + 1);
-  BlockRead(f, buf^, BufSize - 1);
-  buf[BufSize - 1] := #0;
-  Reader := TXMLReader.Create;
-  Reader.ProcessDTD(buf, Filerec(f).name);
-  FreeMem(buf, BufSize);
-  ADoc := TXMLDocument(Reader.doc);
-  Reader.Free;
+  GetMem(buf, BufSize);
+  try
+    BlockRead(f, buf^, BufSize - 1);
+    buf[BufSize - 1] := #0;
+    Reader := TXMLReader.Create;
+    try
+      Reader.ProcessDTD(buf, TFileRec(f).name);
+      ADoc := TXMLDocument(Reader.doc);
+    finally
+      Reader.Free;
+    end;
+  finally
+    FreeMem(buf);
+  end;
 end;
 
 procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream;
@@ -1162,16 +1183,23 @@ var
   buf: PChar;
 begin
   ADoc := nil;
-  if f.Size = 0 then exit;
+  if f.Size = 0 then
+    exit;
 
   GetMem(buf, f.Size + 1);
-  f.Read(buf^, f.Size);
-  buf[f.Size] := #0;
-  Reader := TXMLReader.Create;
-  Reader.ProcessDTD(buf, AFilename);
-  FreeMem(buf, f.Size + 1);
-  ADoc := TXMLDocument(Reader.doc);
-  Reader.Free;
+  try
+    f.Read(buf^, f.Size);
+    buf[f.Size] := #0;
+    Reader := TXMLReader.Create;
+    try
+      Reader.ProcessDTD(buf, AFilename);
+      ADoc := TXMLDocument(Reader.doc);
+    finally
+      Reader.Free;
+    end;
+  finally
+    FreeMem(buf);
+  end;
 end;
 
 procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream);
@@ -1181,14 +1209,14 @@ end;
 
 procedure ReadDTDFile(var ADoc: TXMLDocument; const AFilename: String);
 var
-  stream: TFileStream;
+  Stream: TStream;
 begin
   ADoc := nil;
-  stream := TFileStream.Create(AFilename, fmOpenRead);
+  Stream := TFileStream.Create(AFilename, fmOpenRead);
   try
-    ReadDTDFile(ADoc, stream, AFilename);
+    ReadDTDFile(ADoc, Stream, AFilename);
   finally
-    stream.Free;
+    Stream.Free;
   end;
 end;
 
@@ -1198,7 +1226,11 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-09-21 19:22:38  sg
+  Revision 1.8  2003-01-15 21:59:55  sg
+  * the units DOM, XMLRead and XMLWrite now compile with Delphi without
+    modifications as well
+
+  Revision 1.7  2002/09/21 19:22:38  sg
   * Added procedures to process XML fragments only (e.g. for merging them
     into an existing DOM document)
 
