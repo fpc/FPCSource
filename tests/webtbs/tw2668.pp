@@ -30,5 +30,5 @@ const
 asm
         MOVZX   EAX, TFloatingPointClass(FPClasses[EDX])
         MOVZX   EAX, TFloatingPointClass([ECX].FPClasses[EDX])
-        MOVZX   EAX, TFloatingPointClass([ECX].1[EDX])
+        MOVZX   EAX, TFloatingPointClass([ECX].1+2[EDX])
 end.
