@@ -37,6 +37,7 @@ interface
       pd_object    = $10;   { directive can be used object declaration }
       pd_procvar   = $20;   { directive can be used procvar declaration }
       pd_notobject = $40;   { directive can not be used object declaration }
+      pd_notobjintf= $80;   { directive can not be used interface declaration }
 
     function  is_proc_directive(tok:ttoken):boolean;
     function  check_identical_proc(var p : pprocdef) : boolean;
@@ -130,7 +131,7 @@ implementation
           { self is only allowed in procvars and class methods }
           if (idtoken=_SELF) and
              (is_procvar or
-              (assigned(procinfo^._class) and procinfo^._class^.is_class)) then
+              (assigned(procinfo^._class) and is_class(procinfo^._class))) then
             begin
               if not is_procvar then
                begin
@@ -318,6 +319,7 @@ var orgsp,sp:stringid;
     st : psymtable;
     overloaded_level:word;
     storepos,procstartfilepos : tfileposinfo;
+    i: longint;
 begin
 { Save the position where this procedure really starts and set col to 1 which
   looks nicer }
@@ -337,7 +339,44 @@ begin
       consume(_ID);
     end;
 
-{ method ? }
+    { examine interface map: function/procedure iname.functionname=locfuncname }
+    if parse_only and assigned(procinfo^._class) and
+       assigned(procinfo^._class^.implementedinterfaces) and
+       (procinfo^._class^.implementedinterfaces^.count>0) and
+       try_to_consume(_POINT) then
+      begin
+         storepos:=akttokenpos;
+         akttokenpos:=procstartfilepos;
+         { get interface syms}
+         getsym(sp,true);
+         sym:=srsym;
+         akttokenpos:=storepos;
+         { load proc name }
+         sp:=pattern;
+         if sym^.typ=typesym then
+           i:=procinfo^._class^.implementedinterfaces^.searchintf(ptypesym(sym)^.restype.def);
+         { qualifier is interface name? }
+         if (sym^.typ<>typesym) or (ptypesym(sym)^.restype.def^.deftype<>objectdef) or
+            (i=-1) then
+           begin
+              Message(parser_e_interface_id_expected);
+              aktprocsym:=nil;
+           end
+         else
+           begin
+              aktprocsym:=pprocsym(procinfo^._class^.implementedinterfaces^.interfaces(i)^.symtable^.search(sp));
+              if not(assigned(aktprocsym)) then
+                Message(parser_e_methode_id_expected);
+           end;
+         consume(_ID);
+         consume(_EQUAL);
+         if (token=_ID) and assigned(aktprocsym) then
+           procinfo^._class^.implementedinterfaces^.addmappings(i,sp,pattern);
+         consume(_ID);
+         exit;
+    end;
+
+  { method  ? }
   if not(parse_only) and
      (lexlevel=normal_function_level) and
      try_to_consume(_POINT) then
@@ -508,7 +547,7 @@ begin
     end;
 
   if assigned (procinfo^._Class)  and
-     not(procinfo^._Class^.is_class) and
+     is_object(procinfo^._Class) and
      (pd^.proctypeoption in [potype_constructor,potype_destructor]) then
     inc(paramoffset,target_os.size_of_pointer);
 
@@ -524,7 +563,7 @@ begin
 
   { con/-destructor flag ? }
   if assigned (procinfo^._Class) and
-     procinfo^._class^.is_class and
+     is_class(procinfo^._class) and
      (pd^.proctypeoption in [potype_destructor,potype_constructor]) then
     inc(paramoffset,target_os.size_of_pointer);
 
@@ -592,7 +631,8 @@ begin
                    parse_proc_head(potype_none);
                    if token<>_COLON then
                     begin
-                       if not(aktprocsym^.definition^.forwarddef) or
+                       if not(is_interface(aktprocsym^.definition^._class)) and
+                          not(aktprocsym^.definition^.forwarddef) or
                          (m_repeat_forward in aktmodeswitches) then
                        begin
                          consume(_COLON);
@@ -617,7 +657,7 @@ begin
                    consume(_CONSTRUCTOR);
                    parse_proc_head(potype_constructor);
                    if assigned(procinfo^._class) and
-                      procinfo^._class^.is_class then
+                      is_class(procinfo^._class) then
                     begin
                       { CLASS constructors return the created instance }
                       aktprocsym^.definition^.rettype.def:=procinfo^._class;
@@ -804,10 +844,10 @@ var
 {$endif WITHDMT}
 begin
   if (aktprocsym^.definition^.proctypeoption=potype_constructor) and
-     not(aktprocsym^.definition^._class^.is_class) then
+     is_object(aktprocsym^.definition^._class) then
     Message(parser_e_constructor_cannot_be_not_virtual);
 {$ifdef WITHDMT}
-  if not(aktprocsym^.definition^._class^.is_class) and
+  if is_object(aktprocsym^.definition^._class) and
     (token<>_SEMICOLON) then
     begin
        { any type of parameter is allowed here! }
@@ -837,7 +877,7 @@ end;
 
 procedure pd_override(const procnames:Tstringcontainer);
 begin
-  if not(aktprocsym^.definition^._class^.is_class) then
+  if not(is_class_or_interface(aktprocsym^.definition^._class)) then
     Message(parser_e_no_object_override);
 end;
 
@@ -1043,7 +1083,7 @@ const
    (
     (
       idtok:_ABSTRACT;
-      pd_flags : pd_interface+pd_object;
+      pd_flags : pd_interface+pd_object+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_abstract;
       pocall   : [];
       pooption : [po_abstractmethod];
@@ -1052,7 +1092,7 @@ const
       mutexclpo     : [po_exports,po_interrupt,po_external]
     ),(
       idtok:_ALIAS;
-      pd_flags : pd_implemen+pd_body;
+      pd_flags : pd_implemen+pd_body+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_alias;
       pocall   : [];
       pooption : [];
@@ -1061,7 +1101,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_ASMNAME;
-      pd_flags : pd_interface+pd_implemen;
+      pd_flags : pd_interface+pd_implemen+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_asmname;
       pocall   : [pocall_cdecl,pocall_clearstack];
       pooption : [po_external];
@@ -1070,7 +1110,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_ASSEMBLER;
-      pd_flags : pd_implemen+pd_body;
+      pd_flags : pd_implemen+pd_body+pd_notobjintf;
       handler  : nil;
       pocall   : [];
       pooption : [po_assembler];
@@ -1088,7 +1128,7 @@ const
       mutexclpo     : [po_assembler,po_external]
     ),(
       idtok:_DYNAMIC;
-      pd_flags : pd_interface+pd_object;
+      pd_flags : pd_interface+pd_object+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_virtual;
       pocall   : [];
       pooption : [po_virtualmethod];
@@ -1097,7 +1137,7 @@ const
       mutexclpo     : [po_exports,po_interrupt,po_external]
     ),(
       idtok:_EXPORT;
-      pd_flags : pd_body+pd_global+pd_interface+pd_implemen{??};
+      pd_flags : pd_body+pd_global+pd_interface+pd_implemen{??}+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_export;
       pocall   : [];
       pooption : [po_exports];
@@ -1106,7 +1146,7 @@ const
       mutexclpo     : [po_external,po_interrupt]
     ),(
       idtok:_EXTERNAL;
-      pd_flags : pd_implemen+pd_interface;
+      pd_flags : pd_implemen+pd_interface+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_external;
       pocall   : [];
       pooption : [po_external];
@@ -1115,7 +1155,7 @@ const
       mutexclpo     : [po_exports,po_interrupt,po_assembler]
     ),(
       idtok:_FAR;
-      pd_flags : pd_implemen+pd_body+pd_interface+pd_procvar;
+      pd_flags : pd_implemen+pd_body+pd_interface+pd_procvar+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_far;
       pocall   : [];
       pooption : [];
@@ -1124,7 +1164,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_FORWARD;
-      pd_flags : pd_implemen;
+      pd_flags : pd_implemen+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_forward;
       pocall   : [];
       pooption : [];
@@ -1133,7 +1173,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_INLINE;
-      pd_flags : pd_implemen+pd_body;
+      pd_flags : pd_implemen+pd_body+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_inline;
       pocall   : [pocall_inline];
       pooption : [];
@@ -1142,7 +1182,7 @@ const
       mutexclpo     : [po_exports,po_external,po_interrupt]
     ),(
       idtok:_INTERNCONST;
-      pd_flags : pd_implemen+pd_body;
+      pd_flags : pd_implemen+pd_body+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_intern;
       pocall   : [pocall_internconst];
       pooption : [];
@@ -1151,7 +1191,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_INTERNPROC;
-      pd_flags : pd_implemen;
+      pd_flags : pd_implemen+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_intern;
       pocall   : [pocall_internproc];
       pooption : [];
@@ -1160,7 +1200,7 @@ const
       mutexclpo     : [po_exports,po_external,po_interrupt,po_assembler,po_iocheck]
     ),(
       idtok:_INTERRUPT;
-      pd_flags : pd_implemen+pd_body;
+      pd_flags : pd_implemen+pd_body+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_interrupt;
       pocall   : [];
       pooption : [po_interrupt];
@@ -1169,7 +1209,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_IOCHECK;
-      pd_flags : pd_implemen+pd_body;
+      pd_flags : pd_implemen+pd_body+pd_notobjintf;
       handler  : nil;
       pocall   : [];
       pooption : [po_iocheck];
@@ -1178,7 +1218,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_MESSAGE;
-      pd_flags : pd_interface+pd_object;
+      pd_flags : pd_interface+pd_object+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_message;
       pocall   : [];
       pooption : []; { can be po_msgstr or po_msgint }
@@ -1187,7 +1227,7 @@ const
       mutexclpo     : [po_interrupt,po_external]
     ),(
       idtok:_NEAR;
-      pd_flags : pd_implemen+pd_body+pd_procvar;
+      pd_flags : pd_implemen+pd_body+pd_procvar+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_near;
       pocall   : [];
       pooption : [];
@@ -1205,7 +1245,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_OVERRIDE;
-      pd_flags : pd_interface+pd_object;
+      pd_flags : pd_interface+pd_object+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_override;
       pocall   : [];
       pooption : [po_overridingmethod,po_virtualmethod];
@@ -1232,7 +1272,7 @@ const
       mutexclpo     : [po_assembler,po_external]
     ),(
       idtok:_PUBLIC;
-      pd_flags : pd_implemen+pd_body+pd_global+pd_notobject;
+      pd_flags : pd_implemen+pd_body+pd_global+pd_notobject+pd_notobjintf;
       handler  : nil;
       pocall   : [];
       pooption : [];
@@ -1268,7 +1308,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_SAVEREGISTERS;
-      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
+      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar+pd_notobjintf;
       handler  : nil;
       pocall   : [];
       pooption : [po_saveregisters];
@@ -1277,7 +1317,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_STATIC;
-      pd_flags : pd_interface+pd_object;
+      pd_flags : pd_interface+pd_object+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_static;
       pocall   : [];
       pooption : [po_staticmethod];
@@ -1295,7 +1335,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_SYSCALL;
-      pd_flags : pd_interface;
+      pd_flags : pd_interface+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_syscall;
       pocall   : [pocall_palmossyscall];
       pooption : [];
@@ -1304,7 +1344,7 @@ const
       mutexclpo     : [po_external,po_assembler,po_interrupt,po_exports]
     ),(
       idtok:_SYSTEM;
-      pd_flags : pd_implemen;
+      pd_flags : pd_implemen+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_system;
       pocall   : [pocall_clearstack];
       pooption : [];
@@ -1313,7 +1353,7 @@ const
       mutexclpo     : [po_external,po_assembler,po_interrupt]
     ),(
       idtok:_VIRTUAL;
-      pd_flags : pd_interface+pd_object;
+      pd_flags : pd_interface+pd_object+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_virtual;
       pocall   : [];
       pooption : [po_virtualmethod];
@@ -1398,6 +1438,13 @@ begin
 { check if method and directive not for object public }
   if ((proc_direcdata[p].pd_flags and pd_notobject)<>0) and
      assigned(aktprocsym^.definition^._class) then
+    begin
+      exit;
+    end;
+
+{ check if method and directive not for interface }
+  if ((proc_direcdata[p].pd_flags and pd_notobjintf)<>0) and
+     is_interface(aktprocsym^.definition^._class) then
     begin
       exit;
     end;
@@ -1815,7 +1862,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-11-01 23:04:37  peter
+  Revision 1.6  2000-11-04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.5  2000/11/01 23:04:37  peter
     * tprocdef.fullprocname added for better casesensitve writing of
       procedures
 
@@ -1834,5 +1884,4 @@ end.
 
   Revision 1.1  2000/10/14 10:14:51  peter
     * moehrendorf oct 2000 rewrite
-
 }

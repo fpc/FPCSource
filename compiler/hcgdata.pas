@@ -44,11 +44,8 @@ interface
     function gendmt(_class : pobjectdef) : pasmlabel;
 {$endif WITHDMT}
 
-{ define INTERFACE_SUPPORT}
-
-{$ifdef INTERFACE_SUPPORT}
     function genintftable(_class: pobjectdef): pasmlabel;
-{$endif INTERFACE_SUPPORT}
+    procedure writeinterfaceids(c : pobjectdef);
 
 implementation
 
@@ -60,13 +57,11 @@ implementation
 {$endif}
        cutils,cobjects,
        globtype,globals,verbose,
-       symconst,symtype,symsym,types,
+       symtable,symconst,symtype,symsym,types,
        hcodegen, systems,fmodule
-{$ifdef INTERFACE_SUPPORT}
 {$ifdef i386}
-       ,cg386ic
+       ,n386ic
 {$endif}
-{$endif INTERFACE_SUPPORT}
        ;
 
 
@@ -550,7 +545,7 @@ implementation
                                           (po_virtualmethod in hp^.procoptions) then
                                          begin
                                             { in classes, we hide the old method }
-                                            if _c^.is_class then
+                                            if is_class(_c) then
                                               begin
                                                  { warn only if it is the first time,
                                                    we hide the method }
@@ -586,7 +581,7 @@ implementation
                                        { (povirtualmethod is set! }
 
                                        { class ? }
-                                       if _c^.is_class and
+                                       if is_class(_c) and
                                           not(po_overridingmethod in hp^.procoptions) then
                                          begin
                                             { warn only if it is the first time,
@@ -602,8 +597,8 @@ implementation
                                        if not(is_equal(procdefcoll^.data^.rettype.def,hp^.rettype.def)) and
                                          not((procdefcoll^.data^.rettype.def^.deftype=objectdef) and
                                            (hp^.rettype.def^.deftype=objectdef) and
-                                           (pobjectdef(procdefcoll^.data^.rettype.def)^.is_class) and
-                                           (pobjectdef(hp^.rettype.def)^.is_class) and
+                                           is_class(procdefcoll^.data^.rettype.def) and
+                                           is_class(hp^.rettype.def) and
                                            (pobjectdef(hp^.rettype.def)^.is_related(
                                                pobjectdef(procdefcoll^.data^.rettype.def)))) then
                                          Message1(parser_e_overloaded_methodes_not_same_ret,hp^.fullprocname);
@@ -758,15 +753,13 @@ implementation
          disposevmttree;
       end;
 
-{$ifdef SUPPORT_INTERFACES}
-
     function  gintfgetvtbllabelname(_class: pobjectdef; intfindex: integer): string;
       begin
         gintfgetvtbllabelname:='_$$_'+_class^.objname^+'_$$_'+
           _class^.implementedinterfaces^.interfaces(intfindex)^.objname^+'_$$_VTBL';
       end;
 
-    procedure gintfcreatevtbl(_class: pobjectdef; intfindex: integer; rawdata: paasmoutput);
+    procedure gintfcreatevtbl(_class: pobjectdef; intfindex: integer; rawdata,rawcode: paasmoutput);
       var
         implintf: pimplementedinterfaces;
         curintf: pobjectdef;
@@ -782,7 +775,7 @@ implementation
           begin
             tmps:=implintf^.implprocs(intfindex,i)^.mangledname+'_$$_'+curintf^.objname^;
             { create wrapper code }
-            cgintfwrapper(implintf^.implprocs(intfindex,i),tmps,implintf^.ioffsets(intfindex)^);
+            cgintfwrapper(rawcode,implintf^.implprocs(intfindex,i),tmps,implintf^.ioffsets(intfindex)^);
             { create reference }
             rawdata^.concat(new(pai_const_symbol,initname(tmps)));
           end;
@@ -829,6 +822,10 @@ implementation
           rawdata^.concat(new(pai_string,init(curintf^.iidstr^)));
         datasegment^.concat(new(pai_const_symbol,init(tmplabel)));
       end;
+
+    type
+       tlongintarr = array[0..0] of longint;
+       plongintarr = ^tlongintarr;
 
     procedure gintfoptimizevtbls(_class: pobjectdef; var implvtbl: tlongintarr);
       type
@@ -911,7 +908,7 @@ implementation
 
     procedure gintfwritedata(_class: pobjectdef);
       var
-        rawdata: taasmoutput;
+        rawdata,rawcode: taasmoutput;
         impintfindexes: plongintarr;
         max: longint;
         i: longint;
@@ -922,6 +919,7 @@ implementation
         gintfoptimizevtbls(_class,impintfindexes^);
 
         rawdata.init;
+        rawcode.init;
         datasegment^.concat(new(pai_const,init_16bit(max)));
         { Two pass, one for allocation and vtbl creation }
         for i:=1 to max do
@@ -929,17 +927,17 @@ implementation
             if impintfindexes^[i]=i then { if implement itself }
               begin
                 { allocate a pointer in the object memory }
-                with _class^.symtable^ do
+                with pstoredsymtable(_class^.symtable)^ do
                   begin
-                    if (alignment>=target_os.size_of_pointer) then
-                      datasize:=align(datasize,alignment)
+                    if (dataalignment>=target_os.size_of_pointer) then
+                      datasize:=align(datasize,dataalignment)
                     else
                       datasize:=align(datasize,target_os.size_of_pointer);
                     _class^.implementedinterfaces^.ioffsets(i)^:=datasize;
                     datasize:=datasize+target_os.size_of_pointer;
                   end;
                 { write vtbl }
-                gintfcreatevtbl(_class,i,@rawdata);
+                gintfcreatevtbl(_class,i,@rawdata,@rawcode);
               end;
           end;
         { second pass: for fill interfacetable and remained ioffsets }
@@ -951,6 +949,10 @@ implementation
           end;
         datasegment^.insertlist(@rawdata);
         rawdata.done;
+        if (cs_create_smart in aktmoduleswitches) then
+          rawcode.insert(new(pai_cut,init));
+        codesegment^.insertlist(@rawcode);
+        rawcode.done;
         freemem(impintfindexes,(max+1)*sizeof(longint));
       end;
 
@@ -964,7 +966,7 @@ implementation
         if assigned(sym) and (sym^.typ=procsym) and not (sp_private in sym^.symoptions) then
           begin
             implprocdef:=sym^.definition;
-            while assigned(implprocdef) and not equal_paras(proc^.para,implprocdef^.para,false) and
+            while assigned(implprocdef) and not equal_paras(proc^.para,implprocdef^.para,cp_none) and
                   (proc^.proccalloptions<>implprocdef^.proccalloptions) do
               implprocdef:=implprocdef^.nextoverloaded;
           end;
@@ -1035,12 +1037,36 @@ implementation
         genintftable:=intftable;
       end;
 
-{$endif SUPPORT_INTERFACES}
+  { Write interface identifiers to the data section }
+  procedure writeinterfaceids(c : pobjectdef);
+    var
+      i: longint;
+    begin
+      if c^.isiidguidvalid then
+        begin
+          if (cs_create_smart in aktmoduleswitches) then
+            datasegment^.concat(new(pai_cut,init));
+          datasegment^.concat(new(pai_symbol,initname_global(c^.vmt_mangledname+'$_IID',0)));
+          datasegment^.concat(new(pai_const,init_32bit(c^.iidguid.D1)));
+          datasegment^.concat(new(pai_const,init_16bit(c^.iidguid.D2)));
+          datasegment^.concat(new(pai_const,init_16bit(c^.iidguid.D3)));
+          for i:=Low(c^.iidguid.D4) to High(c^.iidguid.D4) do
+            datasegment^.concat(new(pai_const,init_8bit(c^.iidguid.D4[i])));
+        end;
+      if (cs_create_smart in aktmoduleswitches) then
+        datasegment^.concat(new(pai_cut,init));
+      datasegment^.concat(new(pai_symbol,initname_global(c^.vmt_mangledname+'$_IIDSTR',0)));
+      datasegment^.concat(new(pai_const,init_8bit(length(c^.iidstr^))));
+      datasegment^.concat(new(pai_string,init(c^.iidstr^)));
+    end;
 
 end.
 {
   $Log$
-  Revision 1.9  2000-11-01 23:04:37  peter
+  Revision 1.10  2000-11-04 14:25:19  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.9  2000/11/01 23:04:37  peter
     * tprocdef.fullprocname added for better casesensitve writing of
       procedures
 

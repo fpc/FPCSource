@@ -906,6 +906,10 @@ Begin
                       opr.ref.options:=ref_none;
                     end;
                 end;
+              if (pvarsym(sym)^.varspez in [vs_var,vs_out]) or
+                 ((pvarsym(sym)^.varspez=vs_const) and
+                  push_addr_param(pvarsym(sym)^.vartype.def)) then
+                SetSize(target_os.size_of_pointer,false);
             end;
         end;
         case pvarsym(sym)^.vartype.def^.deftype of
@@ -1548,7 +1552,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-10-31 22:30:13  peter
+  Revision 1.10  2000-11-04 14:25:21  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.9  2000/10/31 22:30:13  peter
     * merged asm result patch part 2
 
   Revision 1.8  2000/10/31 22:02:51  peter

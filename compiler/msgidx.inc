@@ -74,6 +74,7 @@ const
   scan_e_invalid_maxfpureg_value=02055;
   scan_w_only_one_resourcefile_supported=02056;
   scan_w_macro_support_turned_off=02057;
+  scan_e_invalid_interface_type=02058;
   parser_e_syntax_error=03000;
   parser_w_proc_far_ignored=03001;
   parser_w_proc_near_ignored=03002;
@@ -239,6 +240,11 @@ const
   parser_f_need_objfpc_or_delphi_mode=03162;
   parser_e_no_export_with_index_for_target=03163;
   parser_e_no_export_of_variables_for_target=03164;
+  parser_e_improper_guid_syntax=03165;
+  parser_f_interface_cant_have_variables=03166;
+  parser_f_interface_cant_have_constr_or_destr=03167;
+  parser_w_interface_mapping_notfound=03168;
+  parser_e_interface_id_expected=03169;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -273,6 +279,7 @@ const
   type_e_no_assign_to_addr=04031;
   type_e_no_assign_to_const=04032;
   type_e_array_required=04033;
+  type_e_interface_type_expected=04034;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -557,9 +564,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 31225;
+  MsgTxtSize = 31647;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,58,165,34,41,41,86,14,35,40,
+    17,59,170,35,41,41,86,14,35,40,
     26,1,1,1,1,1,1,1,1,1
   );

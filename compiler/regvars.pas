@@ -192,7 +192,7 @@ implementation
 
                       { possibly no 32 bit register are needed }
                       { call by reference/const ? }
-                      if (regvarinfo^.regvars[i]^.varspez=vs_var) or
+                      if (regvarinfo^.regvars[i]^.varspez in [vs_var,vs_out]) or
                          ((regvarinfo^.regvars[i]^.varspez=vs_const) and
                            push_addr_param(regvarinfo^.regvars[i]^.vartype.def)) then
                         begin
@@ -464,7 +464,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2000-10-31 22:02:51  peter
+  Revision 1.12  2000-11-04 14:25:21  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.11  2000/10/31 22:02:51  peter
     * symtable splitted, no real code changes
 
   Revision 1.10  2000/10/14 10:14:52  peter

@@ -703,28 +703,38 @@ begin
 {$endif}
               's' : initglobalswitches:=initglobalswitches+[cs_asm_extern,cs_link_extern];
               'S' : begin
-                      for j:=1 to length(more) do
-                       case more[j] of
-                        '2' : SetCompileMode('OBJFPC',true);
-                        'a' : initlocalswitches:=InitLocalswitches+[cs_do_assertion];
-                        'c' : initmoduleswitches:=initmoduleswitches+[cs_support_c_operators];
-                        'd' : SetCompileMode('DELPHI',true);
-                        'e' : begin
-                                SetErrorFlags(more);
-                                break;
-                              end;
-                        'g' : initmoduleswitches:=initmoduleswitches+[cs_support_goto];
-                        'h' : initlocalswitches:=initlocalswitches+[cs_ansistrings];
-                        'i' : initmoduleswitches:=initmoduleswitches+[cs_support_inline];
-                        'm' : initmoduleswitches:=initmoduleswitches+[cs_support_macro];
-                        'o' : SetCompileMode('TP',true);
-                        'p' : SetCompileMode('GPC',true);
-                        's' : initglobalswitches:=initglobalswitches+[cs_constructor_name];
-                        't' : initmoduleswitches:=initmoduleswitches+[cs_static_keyword];
-                        'v' : Message1(option_obsolete_switch,'-Sv');
-                       else
-                        IllegalPara(opt);
-                       end;
+                      if more[1]='I' then
+                        begin
+                          if upper(more)='ICOM' then
+                            initinterfacetype:=it_interfacecom
+                          else if upper(more)='ICORBA' then
+                            initinterfacetype:=it_interfacecorba
+                          else
+                            IllegalPara(opt);
+                        end
+                      else
+                        for j:=1 to length(more) do
+                         case more[j] of
+                          '2' : SetCompileMode('OBJFPC',true);
+                          'a' : initlocalswitches:=InitLocalswitches+[cs_do_assertion];
+                          'c' : initmoduleswitches:=initmoduleswitches+[cs_support_c_operators];
+                          'd' : SetCompileMode('DELPHI',true);
+                          'e' : begin
+                                  SetErrorFlags(more);
+                                  break;
+                                end;
+                          'g' : initmoduleswitches:=initmoduleswitches+[cs_support_goto];
+                          'h' : initlocalswitches:=initlocalswitches+[cs_ansistrings];
+                          'i' : initmoduleswitches:=initmoduleswitches+[cs_support_inline];
+                          'm' : initmoduleswitches:=initmoduleswitches+[cs_support_macro];
+                          'o' : SetCompileMode('TP',true);
+                          'p' : SetCompileMode('GPC',true);
+                          's' : initglobalswitches:=initglobalswitches+[cs_constructor_name];
+                          't' : initmoduleswitches:=initmoduleswitches+[cs_static_keyword];
+                          'v' : Message1(option_obsolete_switch,'-Sv');
+                         else
+                          IllegalPara(opt);
+                         end;
                     end;
               'T' : begin
                       more:=Upper(More);
@@ -1181,9 +1191,6 @@ procedure read_arguments(cmd:string);
 var
   configpath : pathstr;
 begin
-{$ifdef Delphi}
-  option:=new(poption386,Init);
-{$endif Delphi}
 {$ifdef i386}
   option:=new(poption386,Init);
 {$endif}
@@ -1490,7 +1497,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2000-09-26 10:50:41  jonas
+  Revision 1.12  2000-11-04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.11  2000/09/26 10:50:41  jonas
     * initmodeswitches is changed is you change the compiler mode from the
       command line (the -S<x> switches didn't work anymore for changing the
       compiler mode) (merged from fixes branch)

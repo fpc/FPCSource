@@ -76,6 +76,7 @@ implementation
          ll        : pasmlabel;
          s         : string;
          ca        : pchar;
+         tmpguid   : tguid;
          aktpos    : longint;
          obj       : pobjectdef;
          symt      : psymtable;
@@ -600,7 +601,7 @@ implementation
               if p.nodetype=calln then
                begin
                  if (tcallnode(p).symtableprocentry^.owner^.symtabletype=objectsymtable) and
-                    (pobjectdef(tcallnode(p).symtableprocentry^.owner^.defowner)^.is_class) then
+                    is_class(pdef(tcallnode(p).symtableprocentry^.owner^.defowner)) then
                   hp:=genloadmethodcallnode(pprocsym(tcallnode(p).symtableprocentry),tcallnode(p).symtableproc,
                         tcallnode(p).methodpointer.getcopy)
                  else
@@ -618,9 +619,9 @@ implementation
                 (taddrnode(p).left.nodetype=calln) then
                 begin
                    if (tcallnode(taddrnode(p).left).symtableprocentry^.owner^.symtabletype=objectsymtable) and
-                      (pobjectdef(tcallnode(taddrnode(p).left).symtableprocentry^.owner^.defowner)^.is_class) then
+                      is_class(pdef(tcallnode(taddrnode(p).left).symtableprocentry^.owner^.defowner)) then
                     hp:=genloadmethodcallnode(pprocsym(tcallnode(taddrnode(p).left).symtableprocentry),
-                    tcallnode(taddrnode(p).left).symtableproc,tcallnode(taddrnode(p).left).methodpointer.getcopy)
+                      tcallnode(taddrnode(p).left).symtableproc,tcallnode(taddrnode(p).left).methodpointer.getcopy)
                    else
                     hp:=genloadcallnode(pprocsym(tcallnode(taddrnode(p).left).symtableprocentry),
                       tcallnode(taddrnode(p).left).symtableproc);
@@ -672,62 +673,95 @@ implementation
          { reads a typed constant record }
          recorddef:
            begin
-              consume(_LKLAMMER);
-              aktpos:=0;
-              while token<>_RKLAMMER do
+              { KAZ }
+              if (precorddef(def)=rec_tguid) and
+                 ((token=_CSTRING) or (token=_CCHAR) or (token=_ID)) then
                 begin
-                   s:=pattern;
-                   consume(_ID);
-                   consume(_COLON);
-                   srsym:=psym(precorddef(def)^.symtable^.search(s));
-                   if srsym=nil then
+                  p:=comp_expr(true);
+                  p:=gentypeconvnode(p,cshortstringdef);
+                  do_firstpass(p);
+                  if p.nodetype=stringconstn then
+                    begin
+                      s:=strpas(tstringconstnode(p).value_str);
+                      p.free;
+                      if string2guid(s,tmpguid) then
+                        begin
+                          curconstsegment^.concat(new(pai_const,init_32bit(tmpguid.D1)));
+                          curconstsegment^.concat(new(pai_const,init_16bit(tmpguid.D2)));
+                          curconstsegment^.concat(new(pai_const,init_16bit(tmpguid.D3)));
+                          for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
+                            curconstsegment^.concat(new(pai_const,init_8bit(tmpguid.D4[i])));
+                        end
+                      else
+                        Message(parser_e_improper_guid_syntax);
+                    end
+                  else
+                    begin
+                      p.free;
+                      Message(cg_e_illegal_expression);
+                      exit;
+                    end;
+                end
+              else
+                begin
+                   consume(_LKLAMMER);
+                   aktpos:=0;
+                   while token<>_RKLAMMER do
                      begin
-                        Message1(sym_e_id_not_found,s);
-                        consume_all_until(_SEMICOLON);
-                     end
-                   else
-                     begin
-                        { check position }
-                        if pvarsym(srsym)^.address<aktpos then
-                          Message(parser_e_invalid_record_const);
+                        s:=pattern;
+                        consume(_ID);
+                        consume(_COLON);
+                        srsym:=psym(precorddef(def)^.symtable^.search(s));
+                        if srsym=nil then
+                          begin
+                             Message1(sym_e_id_not_found,s);
+                             consume_all_until(_SEMICOLON);
+                          end
+                        else
+                          begin
+                             { check position }
+                             if pvarsym(srsym)^.address<aktpos then
+                               Message(parser_e_invalid_record_const);
 
-                        { if needed fill }
-                        if pvarsym(srsym)^.address>aktpos then
-                          for i:=1 to pvarsym(srsym)^.address-aktpos do
-                            curconstsegment^.concat(new(pai_const,init_8bit(0)));
+                             { if needed fill }
+                             if pvarsym(srsym)^.address>aktpos then
+                               for i:=1 to pvarsym(srsym)^.address-aktpos do
+                                 curconstsegment^.concat(new(pai_const,init_8bit(0)));
 
-                        { new position }
-                        aktpos:=pvarsym(srsym)^.address+pvarsym(srsym)^.vartype.def^.size;
+                             { new position }
+                             aktpos:=pvarsym(srsym)^.address+pvarsym(srsym)^.vartype.def^.size;
 
-                        { read the data }
-                        readtypedconst(pvarsym(srsym)^.vartype.def,nil,no_change_allowed);
+                             { read the data }
+                             readtypedconst(pvarsym(srsym)^.vartype.def,nil,no_change_allowed);
 
-                        if token=_SEMICOLON then
-                          consume(_SEMICOLON)
-                        else break;
-                     end;
+                             if token=_SEMICOLON then
+                               consume(_SEMICOLON)
+                             else break;
+                          end;
+                   end;
                 end;
-              for i:=1 to def^.size-aktpos do
-                curconstsegment^.concat(new(pai_const,init_8bit(0)));
-              consume(_RKLAMMER);
            end;
          { reads a typed object }
          objectdef:
            begin
-              if ([oo_has_vmt,oo_is_class]*pobjectdef(def)^.objectoptions)<>[] then
+              if is_class_or_interface(def) then
                 begin
-                   { support nil assignment for classes }
-                   if pobjectdef(def)^.is_class and
-                      try_to_consume(_NIL) then
-                    begin
-                      curconstsegment^.concat(new(pai_const,init_32bit(0)));
-                    end
-                   else
+                  p:=comp_expr(true);
+                  do_firstpass(p);
+                  if p.nodetype<>niln then
                     begin
                       Message(parser_e_type_const_not_possible);
                       consume_all_until(_RKLAMMER);
+                    end
+                  else
+                    begin
+                      curconstsegment^.concat(new(pai_const,init_32bit(0)));
                     end;
+                  p.free;
                 end
+              { for objects we allow it only if it doesn't contain a vmt }
+              else if (oo_has_vmt in pobjectdef(def)^.objectoptions) then
+                 Message(parser_e_type_const_not_possible)
               else
                 begin
                    consume(_LKLAMMER);
@@ -801,7 +835,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-10-31 22:02:51  peter
+  Revision 1.11  2000-11-04 14:25:21  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.10  2000/10/31 22:02:51  peter
     * symtable splitted, no real code changes
 
   Revision 1.9  2000/10/14 10:14:52  peter

@@ -726,7 +726,9 @@ implementation
            @ttypeconvnode.first_proc_to_procvar,
            @ttypeconvnode.first_arrayconstructor_to_set,
            @ttypeconvnode.first_load_smallset,
-           @ttypeconvnode.first_cord_to_pointer
+           @ttypeconvnode.first_cord_to_pointer,
+           @ttypeconvnode.first_nothing,
+           @ttypeconvnode.first_nothing
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -823,7 +825,7 @@ implementation
             exit;
          end;
 
-       if isconvertable(left.resulttype,resulttype,convtype,left.nodetype,nf_explizit in flags)=0 then
+       if isconvertable(left.resulttype,resulttype,convtype,left,left.nodetype,nf_explizit in flags)=0 then
          begin
            {Procedures have a resulttype of voiddef and functions of their
            own resulttype. They will therefore always be incompatible with
@@ -935,7 +937,7 @@ implementation
                   end
                  else
                   begin
-                    if isconvertable(s32bitdef,resulttype,convtype,ordconstn,false)=0 then
+                    if isconvertable(s32bitdef,resulttype,convtype,nil,ordconstn,false)=0 then
                       CGMessage2(type_e_incompatible_types,left.resulttype^.typename,resulttype^.typename);
                   end;
                end
@@ -954,7 +956,7 @@ implementation
                    end
                   else
                    begin
-                     if IsConvertable(left.resulttype,s32bitdef,convtype,ordconstn,false)=0 then
+                     if IsConvertable(left.resulttype,s32bitdef,convtype,nil,ordconstn,false)=0 then
                        CGMessage2(type_e_incompatible_types,left.resulttype^.typename,resulttype^.typename);
                    end;
                 end
@@ -983,7 +985,7 @@ implementation
                     end
                    else
                     begin
-                      if IsConvertable(left.resulttype,u8bitdef,convtype,ordconstn,false)=0 then
+                      if IsConvertable(left.resulttype,u8bitdef,convtype,nil,ordconstn,false)=0 then
                         CGMessage2(type_e_incompatible_types,left.resulttype^.typename,resulttype^.typename);
                     end;
                  end
@@ -1002,7 +1004,7 @@ implementation
                     end
                    else
                     begin
-                      if IsConvertable(u8bitdef,resulttype,convtype,ordconstn,false)=0 then
+                      if IsConvertable(u8bitdef,resulttype,convtype,nil,ordconstn,false)=0 then
                         CGMessage2(type_e_incompatible_types,left.resulttype^.typename,resulttype^.typename);
                     end;
                  end
@@ -1029,7 +1031,7 @@ implementation
                { the conversion into a strutured type is only }
                { possible, if the source is no register    }
                if ((resulttype^.deftype in [recorddef,stringdef,arraydef]) or
-                   ((resulttype^.deftype=objectdef) and not(pobjectdef(resulttype)^.is_class))
+                   ((resulttype^.deftype=objectdef) and not(is_class(resulttype)))
                   ) and (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) { and
                    it also works if the assignment is overloaded
                    YES but this code is not executed if assignment is overloaded (PM)
@@ -1099,7 +1101,7 @@ implementation
 
          { left must be a class }
          if (left.resulttype^.deftype<>objectdef) or
-            not(pobjectdef(left.resulttype)^.is_class) then
+            not(is_class(left.resulttype)) then
            CGMessage(type_e_mismatch);
 
          { the operands must be related }
@@ -1141,7 +1143,7 @@ implementation
 
          { left must be a class }
          if (left.resulttype^.deftype<>objectdef) or
-           not(pobjectdef(left.resulttype)^.is_class) then
+           not(is_class(left.resulttype)) then
            CGMessage(type_e_mismatch);
 
          { the operands must be related }
@@ -1163,7 +1165,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-10-31 22:02:48  peter
+  Revision 1.10  2000-11-04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.9  2000/10/31 22:02:48  peter
     * symtable splitted, no real code changes
 
   Revision 1.8  2000/10/14 21:52:55  peter

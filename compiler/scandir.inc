@@ -36,6 +36,7 @@ type
      _DIR_I,_DIR_I386_ATT,_DIR_I386_DIRECT,_DIR_I386_INTEL,_DIR_IOCHECKS,
        _DIR_IF,_DIR_IFDEF,_DIR_IFNDEF,_DIR_IFOPT,_DIR_INCLUDE,_DIR_INCLUDEPATH,
        _DIR_INFO,_DIR_INLINE,
+       _DIR_INTERFACES,
      _DIR_L,_DIR_LIBRARYPATH,_DIR_LINK,_DIR_LINKLIB,_DIR_LOCALSYMBOLS,
        _DIR_LONGSTRINGS,
      _DIR_M,_DIR_MACRO,_DIR_MAXFPUREGISTERS,_DIR_MEMORY,_DIR_MESSAGE,_DIR_MINENUMSIZE,_DIR_MMX,_DIR_MODE,
@@ -90,6 +91,7 @@ const
      'INCLUDEPATH',
      'INFO',
      'INLINE',
+     'INTERFACES',
      'L',
      'LIBRARYPATH',
      'LINK',
@@ -575,6 +577,22 @@ const
          end;
       end;
 
+    procedure dir_interfacesswitch(t:tdirectivetoken);
+      var
+        hs : string;
+      begin
+        {corba/com/default}
+        current_scanner^.skipspace;
+        hs:=current_scanner^.readid;
+        if (hs='CORBA') then
+          aktinterfacetype:=it_interfacecorba
+        else if (hs='COM') then
+          aktinterfacetype:=it_interfacecom
+        else if (hs='DEFAULT') then
+          aktinterfacetype:=initinterfacetype
+        else
+          Message(scan_e_invalid_interface_type);
+      end;
 
     procedure dir_localswitch(t:tdirectivetoken);
       var
@@ -1302,6 +1320,7 @@ const
          {_DIR_INCLUDEPATH} dir_includepath,
          {_DIR_INFO} dir_message,
          {_DIR_INLINE} dir_moduleswitch,
+         {_DIR_INTERFACES} dir_interfacesswitch,
          {_DIR_L} dir_linkobject,
          {_DIR_LIBRARYPATH} dir_librarypath,
          {_DIR_LINK} dir_linkobject,
@@ -1436,7 +1455,10 @@ const
 
 {
   $Log$
-  Revision 1.10  2000-10-31 22:02:51  peter
+  Revision 1.11  2000-11-04 14:25:21  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.10  2000/10/31 22:02:51  peter
     * symtable splitted, no real code changes
 
   Revision 1.9  2000/09/26 10:50:41  jonas

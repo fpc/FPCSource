@@ -295,6 +295,7 @@ scan_w_macro_support_turned_off=02057_W_Macro support has been turned off
 % A macro declaration has been found, but macro support is currently off,
 % so the declaration will be ignored. To turn macro support on compile with
 % -Sm on the commandline or add {$MACRO ON} in the source
+scan_e_invalid_interface_type=02058_E_Illegal interface type specified. Valids are COM, CORBA or DEFAULT.
 % \end{description}
 #
 # Parser
@@ -624,8 +625,8 @@ parser_e_only_virtual_methods_abstract=03091_E_Only virtual methods can be abstr
 % virtual.
 parser_f_unsupported_feature=03092_F_Use of unsupported feature!
 % You're trying to force the compiler into doing something it cannot do yet.
-parser_e_mix_of_classes_and_objects=03093_E_The mix of CLASSES and OBJECTS isn't allowed
-% You cannot derive \var{objects} and \var{classes} intertwined . That is,
+parser_e_mix_of_classes_and_objects=03093_E_The mix of different kind of objects (class, object, interface, raw interface etc) isn't allowed
+% You cannot derive \var{objects}, \var{classes}, \var{cppclasses} and \var{interfaces} intertwined . E.g.
 % a class cannot have an object as parent and vice versa.
 parser_w_unknown_proc_directive_ignored=03094_W_Unknown procedure directive had to be ignored: "$1"
 % The procedure direcive you secified is unknown. Recognised procedure
@@ -875,6 +876,20 @@ parser_e_no_export_with_index_for_target=03163_E_Can't export with index under $
 parser_e_no_export_of_variables_for_target=03164_E_Exporting of variables is not supported under $1
 % Exporting of variables is not support on all targets. The only platform
 % currently supporting export of variables is Win32.
+parser_e_improper_guid_syntax=03165_E_Improper GUID syntax
+parser_f_interface_cant_have_variables=03166_F_An interface can't have variables
+parser_f_interface_cant_have_constr_or_destr=03167_F_An interface can't have constructor or destructor
+parser_w_interface_mapping_notfound=03168_W_Procedure named $1 not found that is suitable for implementing the $2.$3
+parser_e_interface_id_expected=03169_E_interface identifier expected
+% This happens when the compiler scans a \var{class} declaration that contains
+% \var{interface} function name mapping code like this:
+% \begin{verbatim}
+% type
+%   TMyObject = class(TObject, IDispatch)
+%     function IUnknown.QueryInterface=MyQueryInterface;
+%     ....
+% \end{verbatim}
+% and the \var{interface} before the dot not listed in the inheritance list.
 % \end{description}
 #
 # Type Checking
@@ -1016,6 +1031,7 @@ type_e_no_assign_to_const=04032_E_Can't assign values to const variable
 type_e_array_required=04033_E_Array type required
 % If you are accessing a variable using an index '[<x>]' then
 % the type must be an array. In FPC mode also a pointer is allowed.
+type_e_interface_type_expected=04034_E_interface type expected, but got "$1"
 % \end{description}
 #
 # Symtable

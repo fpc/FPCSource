@@ -368,7 +368,7 @@ implementation
                    procvardef,
                    classrefdef : ;
                    objectdef :
-                     if not(pobjectdef(p1.resulttype)^.is_class) then
+                     if not is_class_or_interface(p1.resulttype) then
                        Message(parser_e_illegal_parameter_list);
                    else
                      Message(parser_e_illegal_parameter_list);
@@ -1191,10 +1191,9 @@ implementation
                                        p1:=gentypeconvnode(p1,pd);
                                        include(p1.flags,nf_explizit);
                                      end
-                                    else { not LKLAMMER}
+                                    else { not LKLAMMER }
                                      if (token=_POINT) and
-                                        (pd^.deftype=objectdef) and
-                                        not(pobjectdef(pd)^.is_class) then
+                                        is_object(pd) then
                                        begin
                                          consume(_POINT);
                                          if assigned(procinfo) and
@@ -1246,8 +1245,7 @@ implementation
                                      else
                                        begin
                                           { class reference ? }
-                                          if (pd^.deftype=objectdef)
-                                            and pobjectdef(pd)^.is_class then
+                                          if is_object(pd) then
                                             begin
                                                if getaddr and (token=_POINT) then
                                                  begin
@@ -1540,7 +1538,7 @@ implementation
 
                _LECKKLAMMER:
                   begin
-                    if (pd^.deftype=objectdef) and pobjectdef(pd)^.is_class then
+                    if is_class_or_interface(pd) then
                       begin
                         { default property }
                         propsym:=search_default_property(pobjectdef(pd));
@@ -2374,7 +2372,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.14  2000-10-31 22:02:49  peter
+  Revision 1.15  2000-11-04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.14  2000/10/31 22:02:49  peter
     * symtable splitted, no real code changes
 
   Revision 1.13  2000/10/26 23:40:54  peter

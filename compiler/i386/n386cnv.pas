@@ -1234,7 +1234,9 @@ implementation
            @ti386typeconvnode.second_proc_to_procvar,
            @ti386typeconvnode.second_nothing, {arrayconstructor_to_set}
            @ti386typeconvnode.second_load_smallset,
-           @ti386typeconvnode.second_cord_to_pointer
+           @ti386typeconvnode.second_cord_to_pointer,
+           @ti386typeconvnode.second_nothing, { interface 2 string }
+           @ti386typeconvnode.second_nothing  { interface 2 guid   }
          );
       type
          tprocedureofobject = procedure of object;
@@ -1434,7 +1436,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-10-31 22:02:56  peter
+  Revision 1.3  2000-11-04 14:25:23  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.2  2000/10/31 22:02:56  peter
     * symtable splitted, no real code changes
 
   Revision 1.1  2000/10/15 09:33:31  peter

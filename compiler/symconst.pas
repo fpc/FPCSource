@@ -54,6 +54,7 @@ const
   tkInt64    = 19;
   tkQWord    = 20;
   tkDynArray = 21;
+  tkInterfaceCorba = 22;
 
   otSByte    = 0;
   otUByte    = 1;
@@ -197,8 +198,16 @@ type
   tprocoptions=set of tprocoption;
 
   { options for objects and classes }
+  tobjectdeftype = (
+    odt_class,
+    odt_object,
+    odt_interfacecom,
+    odt_interfacecorba,
+    odt_cppclass
+  );
+
+  { options for objects and classes }
   tobjectoption=(oo_none,
-    oo_is_class,
     oo_is_forward,         { the class is only a forward declared yet }
     oo_has_virtual,        { the object/class has virtual methods }
     oo_has_private,
@@ -209,10 +218,7 @@ type
     oo_has_msgstr,
     oo_has_msgint,
     oo_has_abstract,       { the object/class has an abstract method => no instances can be created }
-    oo_can_have_published, { the class has rtti, i.e. you can publish properties }
-    oo_is_cppclass,        { the object/class uses an C++ compatible }
-                           { class layout }
-    oo_is_interface        { delphi styled interface }
+    oo_can_have_published { the class has rtti, i.e. you can publish properties }
   );
 
   tobjectoptions=set of tobjectoption;
@@ -322,7 +328,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-10-31 22:02:51  peter
+  Revision 1.12  2000-11-04 14:25:21  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.11  2000/10/31 22:02:51  peter
     * symtable splitted, no real code changes
 
   Revision 1.9  2000/10/15 07:47:52  peter

@@ -143,6 +143,12 @@ interface
          at_gui,at_cui
        );
 
+       { interface types }
+       tinterfacetypes = (
+         it_interfacecom,
+         it_interfacecorba
+       );
+
        { currently parsed block type }
        tblock_type = (bt_none,
          bt_general,bt_type,bt_const,bt_except
@@ -179,6 +185,18 @@ interface
                     (values:longint);
        end;
 
+{$ifndef Delphi}
+  {$ifndef xFPC}
+    type
+      tguid = packed record
+        D1: LongWord;
+        D2: Word;
+        D3: Word;
+        D4: array[0..7] of Byte;
+      end;
+  {$endif}
+{$endif}
+
     const
        { link options }
        link_none    = $0;
@@ -192,7 +210,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-09-24 15:06:16  peter
+  Revision 1.8  2000-11-04 14:25:19  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.7  2000/09/24 15:06:16  peter
     * use defines.inc
 
   Revision 1.6  2000/09/21 11:30:49  jonas

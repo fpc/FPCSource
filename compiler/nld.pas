@@ -287,15 +287,6 @@ implementation
 
                    if ([vo_is_thread_var,vo_is_dll_var]*pvarsym(symtableentry)^.varoptions)<>[] then
                      registers32:=1;
-                   { a class variable is a pointer !!!
-                     yes, but we have to resolve the reference in an
-                     appropriate tree node (FK)
-
-                   if (pvarsym(symtableentry)^.definition^.deftype=objectdef) and
-                      ((pobjectdef(pvarsym(symtableentry)^.definition)^.options and oo_is_class)<>0) then
-                     registers32:=1;
-                   }
-
                    { count variable references }
 
                      { this will create problem with local var set by
@@ -752,7 +743,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-10-31 22:02:49  peter
+  Revision 1.8  2000-11-04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.7  2000/10/31 22:02:49  peter
     * symtable splitted, no real code changes
 
   Revision 1.6  2000/10/14 10:14:50  peter

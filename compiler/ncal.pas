@@ -261,11 +261,11 @@ interface
               if do_count then
                begin
                  { not completly proper, but avoids some warnings }
-                 if (defcoll^.paratyp=vs_var) then
+                 if (defcoll^.paratyp in [vs_var,vs_out]) then
                    set_funcret_is_valid(left);
 
                  { protected has nothing to do with read/write
-                 if (defcoll^.paratyp=vs_var) then
+                 if (defcoll^.paratyp in [vs_var,vs_out]) then
                    test_protected(left);
                  }
                  { set_varstate(left,defcoll^.paratyp<>vs_var);
@@ -367,13 +367,13 @@ interface
                     CGMessage(type_e_strict_var_string_violation);
                  end;
 
-              { Variablen for call by reference may not be copied }
+              { variabls for call by reference may not be copied }
               { into a register }
               { is this usefull here ? }
               { this was missing in formal parameter list   }
               if (defcoll^.paratype.def=pdef(cformaldef)) then
                 begin
-                  if defcoll^.paratyp=vs_var then
+                  if defcoll^.paratyp in [vs_var,vs_out] then
                     begin
                       if not valid_for_formal_var(left) then
                         begin
@@ -406,7 +406,7 @@ interface
                 make_not_regable(left);
 
               if do_count then
-                set_varstate(left,defcoll^.paratyp <> vs_var);
+                set_varstate(left,defcoll^.paratyp in [vs_var,vs_out]);
                 { must only be done after typeconv PM }
               resulttype:=defcoll^.paratype.def;
            end;
@@ -802,7 +802,7 @@ interface
                          (m_tp_procvar in aktmodeswitches) then
                         begin
                           if (symtableprocentry^.owner^.symtabletype=objectsymtable) and
-                             (pobjectdef(symtableprocentry^.owner^.defowner)^.is_class) then
+                             is_class(pdef(symtableprocentry^.owner^.defowner)) then
                            hpt:=genloadmethodcallnode(pprocsym(symtableprocentry),symtableproc,
                                  methodpointer.getcopy)
                           else
@@ -856,7 +856,7 @@ interface
                                begin
                                  hp^.nextpara^.argconvtyp:=act_convertable;
                                  hp^.nextpara^.convertlevel:=isconvertable(pt.resulttype,hp^.nextpara^.paratype.def,
-                                     hcvt,pt.left.nodetype,false);
+                                     hcvt,pt.left,pt.left.nodetype,false);
                                  case hp^.nextpara^.convertlevel of
                                   1 : include(pt.callparaflags,cpf_convlevel1found);
                                   2 : include(pt.callparaflags,cpf_convlevel2found);
@@ -1545,7 +1545,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2000-10-31 22:02:47  peter
+  Revision 1.14  2000-11-04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.13  2000/10/31 22:02:47  peter
     * symtable splitted, no real code changes
 
   Revision 1.12  2000/10/21 18:16:11  florian

@@ -38,6 +38,7 @@ interface
     procedure writestring(const s:string);
     procedure writenormalset(var s); {You cannot pass an array[0..31] of byte!}
     procedure writesmallset(var s);
+    procedure writeguid(var g: tguid);
     procedure writeposinfo(const p:tfileposinfo);
     procedure writederef(p : psymtableentry);
 
@@ -48,6 +49,7 @@ interface
     function readstring : string;
     procedure readnormalset(var s);   {You cannot pass an array [0..31] of byte.}
     procedure readsmallset(var s);
+    procedure readguid(var g: tguid);
     procedure readposinfo(var p:tfileposinfo);
     function readderef : psymtableentry;
 
@@ -57,6 +59,7 @@ interface
 implementation
 
     uses
+       globals,
        symconst,
        verbose,
        finput,scanner,
@@ -121,6 +124,11 @@ implementation
         current_ppu^.do_crc:=oldcrc;
       end;
 
+
+    procedure writeguid(var g: tguid);
+      begin
+        current_ppu^.putdata(g,sizeof(g));
+      end;
 
     procedure writederef(p : psymtableentry);
       begin
@@ -277,6 +285,13 @@ implementation
       end;
 
 
+    procedure readguid(var g: tguid);
+      begin
+        current_ppu^.getdata(g,sizeof(g));
+        if current_ppu^.error then
+         Message(unit_f_ppu_read_error);
+      end;
+
     procedure readposinfo(var p:tfileposinfo);
       begin
         p.fileindex:=current_ppu^.getword;
@@ -322,7 +337,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-10-31 22:02:52  peter
+  Revision 1.2  2000-11-04 14:25:22  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.1  2000/10/31 22:02:52  peter
     * symtable splitted, no real code changes
 
 }

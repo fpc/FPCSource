@@ -258,12 +258,15 @@ implementation
          oldaktspecificoptprocessor,
          oldaktoptprocessor : tprocessors;
          oldaktasmmode      : tasmmode;
+         oldaktinterfacetype: tinterfacetypes;
          oldaktmodeswitches : tmodeswitches;
          old_compiled_module : pmodule;
          prev_name          : pstring;
 {$ifdef USEEXCEPT}
+{$ifndef Delphi}
          recoverpos    : jmp_buf;
          oldrecoverpos : pjmp_buf;
+{$endif Delphi}         
 {$endif useexcept}
 {$ifdef newcg}
          oldcg         : pcg;
@@ -327,6 +330,7 @@ implementation
          oldaktoptprocessor:=aktoptprocessor;
          oldaktspecificoptprocessor:=aktspecificoptprocessor;
          oldaktasmmode:=aktasmmode;
+         oldaktinterfacetype:=aktinterfacetype;
          oldaktfilepos:=aktfilepos;
          oldaktmodeswitches:=aktmodeswitches;
 {$ifdef newcg}
@@ -381,6 +385,7 @@ implementation
          aktoptprocessor:=initoptprocessor;
          aktspecificoptprocessor:=initspecificoptprocessor;
          aktasmmode:=initasmmode;
+         aktinterfacetype:=initinterfacetype;
          { we need this to make the system unit }
          if compile_system then
           aktmoduleswitches:=aktmoduleswitches+[cs_compilesystem];
@@ -516,6 +521,7 @@ implementation
               aktoptprocessor:=oldaktoptprocessor;
               aktspecificoptprocessor:=oldaktspecificoptprocessor;
               aktasmmode:=oldaktasmmode;
+              aktinterfacetype:=oldaktinterfacetype;
               aktfilepos:=oldaktfilepos;
               aktmodeswitches:=oldaktmodeswitches;
            end;
@@ -587,7 +593,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-10-31 22:02:49  peter
+  Revision 1.9  2000-11-04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.8  2000/10/31 22:02:49  peter
     * symtable splitted, no real code changes
 
   Revision 1.7  2000/10/14 10:14:51  peter

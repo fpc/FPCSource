@@ -111,6 +111,9 @@ interface
     procedure emit_push_mem(const ref : treference);
     procedure emitpushreferenceaddr(const ref : treference);
 
+    procedure incrcomintfref(t: pdef; const ref: treference);
+    procedure decrcomintfref(t: pdef; const ref: treference);
+
     procedure floatload(t : tfloattype;const ref : treference);
     procedure floatstore(t : tfloattype;const ref : treference);
     procedure floatloadops(t : tfloattype;var op : tasmop;var s : topsize);
@@ -970,6 +973,41 @@ implementation
                            Emit String Functions
 *****************************************************************************}
 
+    procedure incrcomintfref(t: pdef; const ref: treference);
+
+      var
+         pushedregs : tpushed;
+
+      begin
+         pushusedregisters(pushedregs,$ff);
+         emitpushreferenceaddr(ref);
+         if is_interfacecom(t) then
+           begin
+              emitcall('FPC_INTF_INCR_REF');
+           end
+         else internalerror(1859);
+         popusedregisters(pushedregs);
+      end;
+
+
+    procedure decrcomintfref(t: pdef; const ref: treference);
+
+      var
+         pushedregs : tpushed;
+
+      begin
+         pushusedregisters(pushedregs,$ff);
+         emitpushreferenceaddr(ref);
+         if is_interfacecom(t) then
+           begin
+              emitcall('FPC_INTF_DECR_REF');
+           end
+         else internalerror(1859);
+         popusedregisters(pushedregs);
+      end;
+
+
+
     procedure copyshortstring(const dref,sref : treference;len : byte;
                 loadref, del_sref: boolean);
       begin
@@ -1040,7 +1078,6 @@ implementation
          else internalerror(1859);
          popusedregisters(pushedregs);
       end;
-
 
 {*****************************************************************************
                            Emit Push Functions
@@ -1585,7 +1622,8 @@ implementation
 
       begin
          if is_ansistring(t) or
-           is_widestring(t) then
+           is_widestring(t) or
+           is_interfacecom(t) then
            begin
               emit_const_ref(A_MOV,S_L,0,
                 newreference(ref));
@@ -1618,6 +1656,10 @@ implementation
            begin
               decrstringref(t,ref);
            end
+         else if is_interfacecom(t) then
+           begin
+              decrcomintfref(t,ref);
+           end
          else
            begin
               reset_reference(r);
@@ -1642,8 +1684,7 @@ implementation
     begin
        if (psym(p)^.typ=varsym) and
           assigned(pvarsym(p)^.vartype.def) and
-          not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
-            pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
+          not(is_class(pvarsym(p)^.vartype.def)) and
           pvarsym(p)^.vartype.def^.needs_inittable then
          begin
             if assigned(procinfo) then
@@ -1662,36 +1703,102 @@ implementation
          end;
     end;
 
-  { generates the code for incrementing the reference count of parameters }
-  procedure incr_data(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
+  { generates the code for incrementing the reference count of parameters and
+    initialize out parameters }
+  procedure init_paras(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
 
     var
-       hr : treference;
+       hrv : treference;
+       hr: treference;
 
     begin
        if (psym(p)^.typ=varsym) and
-          not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
-            pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
-          pvarsym(p)^.vartype.def^.needs_inittable and
-          (not assigned(pvarsym(p)^.localvarsym)) and
-          ((pvarsym(p)^.varspez=vs_value) {or
-           (pvarsym(p)^.varspez=vs_const) and
-           not(dont_copy_const_param(pvarsym(p)^.definition))}) then
+          not is_class(pvarsym(p)^.vartype.def) and
+          pvarsym(p)^.vartype.def^.needs_inittable then
          begin
-            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
-            reset_reference(hr);
-            hr.symbol:=pstoreddef(pvarsym(p)^.vartype.def)^.get_inittable_label;
-            emitpushreferenceaddr(hr);
-            reset_reference(hr);
-            hr.base:=procinfo^.framepointer;
-            hr.offset:=pvarsym(p)^.address+procinfo^.para_offset;
+           if (pvarsym(p)^.varspez=vs_value) then
+             begin
+               procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
 
-            emitpushreferenceaddr(hr);
-            reset_reference(hr);
+               reset_reference(hrv);
+               hrv.base:=procinfo^.framepointer;
+               hrv.offset:=pvarsym(p)^.address+procinfo^.para_offset;
 
-            emitcall('FPC_ADDREF');
+               if is_ansistring(pvarsym(p)^.vartype.def) or
+                  is_widestring(pvarsym(p)^.vartype.def) then
+                 begin
+                   incrstringref(pvarsym(p)^.vartype.def,hrv)
+                 end
+               else if is_interfacecom(pvarsym(p)^.vartype.def) then
+                 begin
+                   incrcomintfref(pvarsym(p)^.vartype.def,hrv)
+                 end
+               else
+                 begin
+                   reset_reference(hr);
+                   hr.symbol:=pstoreddef(pvarsym(p)^.vartype.def)^.get_inittable_label;
+                   emitpushreferenceaddr(hr);
+                   emitpushreferenceaddr(hrv);
+                   emitcall('FPC_ADDREF');
+                 end;
+             end
+           else if (pvarsym(p)^.varspez=vs_out) then
+             begin
+               reset_reference(hrv);
+               hrv.base:=procinfo^.framepointer;
+               hrv.offset:=pvarsym(p)^.address+procinfo^.para_offset;
+               {$ifndef noAllocEdi}
+               getexplicitregister32(R_EDI);
+               {$endif noAllocEdi}
+               exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,S_L,newreference(hrv),R_EDI)));
+               reset_reference(hr);
+               hr.base:=R_EDI;
+               initialize(pvarsym(p)^.vartype.def,hr,false);
+             end;
          end;
     end;
+
+  { generates the code for decrementing the reference count of parameters }
+  procedure final_paras(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
+
+    var
+       hrv : treference;
+       hr: treference;
+
+    begin
+       if (psym(p)^.typ=varsym) and
+          not is_class(pvarsym(p)^.vartype.def) and
+          pvarsym(p)^.vartype.def^.needs_inittable then
+         begin
+           if (pvarsym(p)^.varspez=vs_value) then
+             begin
+               procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
+
+               reset_reference(hrv);
+               hrv.base:=procinfo^.framepointer;
+               hrv.offset:=pvarsym(p)^.address+procinfo^.para_offset;
+
+               if is_ansistring(pvarsym(p)^.vartype.def) or
+                  is_widestring(pvarsym(p)^.vartype.def) then
+                 begin
+                   decrstringref(pvarsym(p)^.vartype.def,hrv)
+                 end
+               else if is_interfacecom(pvarsym(p)^.vartype.def) then
+                 begin
+                   decrcomintfref(pvarsym(p)^.vartype.def,hrv)
+                 end
+               else
+                 begin
+                   reset_reference(hr);
+                   hr.symbol:=pstoreddef(pvarsym(p)^.vartype.def)^.get_inittable_label;
+                   emitpushreferenceaddr(hr);
+                   emitpushreferenceaddr(hrv);
+                   emitcall('FPC_DECREF');
+                 end;
+             end;
+         end;
+    end;
+
 
   { generates the code for finalisation of local data }
   procedure finalize_data(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
@@ -1702,15 +1809,9 @@ implementation
     begin
        if (psym(p)^.typ=varsym) and
           assigned(pvarsym(p)^.vartype.def) and
-          not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
-          pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
-          (not assigned(pvarsym(p)^.localvarsym)) and
+          not(is_class(pvarsym(p)^.vartype.def)) and
           pvarsym(p)^.vartype.def^.needs_inittable then
          begin
-            { not all kind of parameters need to be finalized  }
-            if (psym(p)^.owner^.symtabletype=parasymtable) and
-              (pvarsym(p)^.varspez in [vs_out,vs_var,vs_const]) then
-              exit;
             if assigned(procinfo) then
               procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
             reset_reference(hr);
@@ -1719,11 +1820,6 @@ implementation
                  begin
                     hr.base:=procinfo^.framepointer;
                     hr.offset:=-pvarsym(p)^.address+pvarsym(p)^.owner^.address_fixup;
-                 end;
-               parasymtable,inlineparasymtable:
-                 begin
-                    hr.base:=procinfo^.framepointer;
-                    hr.offset:=pvarsym(p)^.address+procinfo^.para_offset;
                  end;
                else
                  hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
@@ -1920,7 +2016,7 @@ implementation
         end;
     end;
 
-  procedure inittempansistrings;
+  procedure inittempvariables;
 
     var
        hp : ptemprecord;
@@ -1930,20 +2026,20 @@ implementation
        hp:=templist;
        while assigned(hp) do
          begin
-           if hp^.temptype in [tt_ansistring,tt_freeansistring] then
-            begin
-              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
-              new(r);
-              reset_reference(r^);
-              r^.base:=procinfo^.framepointer;
-              r^.offset:=hp^.pos;
-              emit_const_ref(A_MOV,S_L,0,r);
-            end;
-            hp:=hp^.next;
+           if hp^.temptype in [tt_ansistring,tt_freeansistring,tt_interfacecom] then
+             begin
+               procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
+               new(r);
+               reset_reference(r^);
+               r^.base:=procinfo^.framepointer;
+               r^.offset:=hp^.pos;
+               emit_const_ref(A_MOV,S_L,0,r);
+             end;
+           hp:=hp^.next;
          end;
    end;
 
-  procedure finalizetempansistrings;
+  procedure finalizetempvariables;
 
     var
        hp : ptemprecord;
@@ -1954,12 +2050,21 @@ implementation
          begin
             if hp^.temptype in [tt_ansistring,tt_freeansistring] then
               begin
-                 procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
-                 reset_reference(hr);
-                 hr.base:=procinfo^.framepointer;
-                 hr.offset:=hp^.pos;
-                 emitpushreferenceaddr(hr);
-                 emitcall('FPC_ANSISTR_DECR_REF');
+                procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
+                reset_reference(hr);
+                hr.base:=procinfo^.framepointer;
+                hr.offset:=hp^.pos;
+                emitpushreferenceaddr(hr);
+                emitcall('FPC_ANSISTR_DECR_REF');
+              end
+            else if hp^.temptype=tt_interfacecom then
+              begin
+                procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
+                reset_reference(hr);
+                hr.base:=procinfo^.framepointer;
+                hr.offset:=hp^.pos;
+                emitpushreferenceaddr(hr);
+                emitcall('FPC_INTF_DECR_REF');
               end;
             hp:=hp^.next;
          end;
@@ -2038,19 +2143,21 @@ implementation
       { a constructor needs a help procedure }
       if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
         begin
-          if procinfo^._class^.is_class then
+          if is_class(procinfo^._class) then
             begin
               procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
               exprasmlist^.insert(new(paicpu,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
               emitinsertcall('FPC_NEW_CLASS');
             end
-          else
+          else if is_object(procinfo^._class) then
             begin
               exprasmlist^.insert(new(paicpu,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
               emitinsertcall('FPC_HELP_CONSTRUCTOR');
               getexplicitregister32(R_EDI);
               exprasmlist^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI)));
-            end;
+            end
+          else
+            Internalerror(200006161);
         end;
 
       { don't load ESI, does the caller }
@@ -2058,7 +2165,7 @@ implementation
       { that can be called from a foreach }
       { of another object than self !! PM }
 
-         if assigned(procinfo^._class) and
+         if assigned(procinfo^._class) and  { !!!!! shouldn't we load ESI always? }
             (lexlevel>normal_function_level) then
            maybe_loadesi;
 
@@ -2090,8 +2197,7 @@ implementation
         end;
 
       { omit stack frame ? }
-      if not inlined then
-      if procinfo^.framepointer=stack_pointer then
+      if (not inlined) and (procinfo^.framepointer=stack_pointer) then
           begin
               CGMessage(cg_d_stackframe_omited);
               nostackframe:=true;
@@ -2204,8 +2310,7 @@ implementation
       { initialize return value }
       if (procinfo^.returntype.def<>pdef(voiddef)) and
         (procinfo^.returntype.def^.needs_inittable) and
-        ((procinfo^.returntype.def^.deftype<>objectdef) or
-        not(pobjectdef(procinfo^.returntype.def)^.is_class)) then
+        not(is_class(procinfo^.returntype.def)) then
         begin
            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
            reset_reference(r);
@@ -2228,7 +2333,7 @@ implementation
          else
            aktprocsym^.definition^.localst^.foreach({$ifndef TP}@{$endif}initialize_data);
       end;
-
+      {
       { generate copies of call by value parameters }
       if not(po_assembler in aktprocsym^.definition^.procoptions) and
          (([pocall_cdecl,pocall_cppdecl]*aktprocsym^.definition^.proccalloptions)=[]) then
@@ -2236,11 +2341,11 @@ implementation
 
       { add a reference to all call by value/const parameters }
       aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}incr_data);
-
+      }
       { initialisizes temp. ansi/wide string data }
-      inittempansistrings;
+      inittempvariables;
 
-      { do we need an exception frame because of ansi/widestrings ? }
+      { do we need an exception frame because of ansi/widestrings/interfaces ? }
       if not inlined and
          ((procinfo^.flags and pi_needs_implicit_finally)<>0) and
       { but it's useless in init/final code of units }
@@ -2406,11 +2511,11 @@ implementation
       if (aktprocsym^.definition^.proctypeoption=potype_destructor) and
          assigned(procinfo^._class) then
         begin
-          if procinfo^._class^.is_class then
+          if is_class(procinfo^._class) then
             begin
               emitinsertcall('FPC_DISPOSE_CLASS');
             end
-          else
+          else if is_object(procinfo^._class) then
             begin
               emitinsertcall('FPC_HELP_DESTRUCTOR');
               getexplicitregister32(R_EDI);
@@ -2432,11 +2537,15 @@ implementation
                    hr.offset:=8;
                    exprasmlist^.insert(new(paicpu,op_const_ref(A_CMP,S_L,0,newreference(hr))));
                 end;
+            end
+          else
+            begin
+              Internalerror(200006161);
             end;
         end;
 
       { finalize temporary data }
-      finalizetempansistrings;
+      finalizetempvariables;
 
       { finalize local data like ansistrings}
       case aktprocsym^.definition^.proctypeoption of
@@ -2455,7 +2564,7 @@ implementation
 
       { finalize paras data }
       if assigned(aktprocsym^.definition^.parast) then
-        aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}finalize_data);
+        aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}final_paras);
 
       { do we need to handle exceptions because of ansi/widestrings ? }
       if not inlined and
@@ -2486,15 +2595,19 @@ implementation
                           emit_const_ref(A_CMP,S_L,0,new_reference(procinfo^.framepointer,
                             procinfo^.selfpointer_offset));
                           emitjmp(C_E,nodestroycall);
-                          if procinfo^._class^.is_class then
+                          if is_class(procinfo^._class) then
                             begin
                                emit_const(A_PUSH,S_L,1);
                                emit_reg(A_PUSH,S_L,R_ESI);
                             end
-                          else
+                          else if is_object(procinfo^._class) then
                             begin
                                emit_reg(A_PUSH,S_L,R_ESI);
                                emit_sym(A_PUSH,S_L,newasmsymbol(procinfo^._class^.vmt_mangledname));
+                            end
+                          else
+                            begin
+                              Internalerror(200006161);
                             end;
                           if (po_virtualmethod in pd^.procoptions) then
                             begin
@@ -2517,7 +2630,7 @@ implementation
            if (procinfo^.returntype.def<>pdef(voiddef)) and
              (procinfo^.returntype.def^.needs_inittable) and
              ((procinfo^.returntype.def^.deftype<>objectdef) or
-             not(pobjectdef(procinfo^.returntype.def)^.is_class)) then
+              not is_class(procinfo^.returntype.def)) then
              begin
                 reset_reference(hr);
                 hr.offset:=procinfo^.return_offset;
@@ -2550,19 +2663,22 @@ implementation
                   getlabel(okexitlabel);
                   emitjmp(C_NONE,okexitlabel);
                   emitlab(faillabel);
-                  if procinfo^._class^.is_class then
+                  if is_class(procinfo^._class) then
                     begin
                       emit_ref_reg(A_MOV,S_L,new_reference(procinfo^.framepointer,8),R_ESI);
                       emitcall('FPC_HELP_FAIL_CLASS');
                     end
-                  else
+                  else if is_object(procinfo^._class) then
                     begin
                       emit_ref_reg(A_MOV,S_L,new_reference(procinfo^.framepointer,12),R_ESI);
                        getexplicitregister32(R_EDI);
                       emit_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI);
                       emitcall('FPC_HELP_FAIL');
                       ungetregister32(R_EDI);
-                    end;
+                    end
+                  else
+                    Internalerror(200006161);
+
                   emitlab(okexitlabel);
 
                   exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
@@ -2675,7 +2791,7 @@ implementation
                 if (not assigned(procinfo^.parent) or
                    not assigned(procinfo^.parent^._class)) then
                   begin
-                    if not  procinfo^._class^.is_class then
+                    if not(is_class(procinfo^._class)) then
                       st:='v'
                     else
                       st:='p';
@@ -2685,7 +2801,7 @@ implementation
                   end
                 else
                   begin
-                    if not  procinfo^._class^.is_class then
+                    if not is_class(procinfo^._class) then
                       st:='*'
                     else
                       st:='';
@@ -2816,7 +2932,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-10-31 22:02:55  peter
+  Revision 1.7  2000-11-04 14:25:23  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.6  2000/10/31 22:02:55  peter
     * symtable splitted, no real code changes
 
   Revision 1.5  2000/10/24 22:23:04  peter

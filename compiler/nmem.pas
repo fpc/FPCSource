@@ -403,7 +403,7 @@ implementation
 
                      { method ? then set the methodpointer flag }
                        if (hp3^.owner^.symtabletype=objectsymtable) and
-                          (pobjectdef(hp3^.owner^.defowner)^.is_class) then
+                          is_class(pdef(hp3^.owner^.defowner)) then
                          include(pprocvardef(resulttype)^.procoptions,po_methodpointer);
                        { we need to process the parameters reverse so they are inserted
                          in the correct right2left order (PFV) }
@@ -596,8 +596,7 @@ implementation
          registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
          { classes must be dereferenced implicit }
-         if (left.resulttype^.deftype=objectdef) and
-           pobjectdef(left.resulttype)^.is_class then
+         if is_class_or_interface(left.resulttype) then
            begin
               if registers32=0 then
                 registers32:=1;
@@ -641,7 +640,7 @@ implementation
          if (left.resulttype^.deftype=arraydef) then
            begin
               if (isconvertable(right.resulttype,parraydef(left.resulttype)^.rangetype.def,
-                    ct,ordconstn,false)=0) and
+                    ct,nil,ordconstn,false)=0) and
                  not(is_equal(right.resulttype,parraydef(left.resulttype)^.rangetype.def)) then
                 CGMessage(type_e_mismatch);
            end;
@@ -778,9 +777,7 @@ implementation
       begin
          pass_1:=nil;
          if (resulttype^.deftype=classrefdef) or
-           ((resulttype^.deftype=objectdef)
-             and pobjectdef(resulttype)^.is_class
-           ) then
+           is_class(resulttype) then
            location.loc:=LOC_CREGISTER
          else
            location.loc:=LOC_REFERENCE;
@@ -872,7 +869,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-10-31 22:02:49  peter
+  Revision 1.10  2000-11-04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.9  2000/10/31 22:02:49  peter
     * symtable splitted, no real code changes
 
   Revision 1.8  2000/10/21 18:16:11  florian

@@ -187,16 +187,15 @@ implementation
                  is_chararray(ld)))
            ) or
            { <> and = are defined for classes }
-           ((ld^.deftype=objectdef) and
-            (not(pobjectdef(ld)^.is_class) or
-             not(treetyp in [equaln,unequaln])
-            )
+           (
+            (ld^.deftype=objectdef) and
+            not((treetyp in [equaln,unequaln]) and (is_class(ld) or is_interface(ld)))
            ) or
-           ((rd^.deftype=objectdef) and
-            (not(pobjectdef(rd)^.is_class) or
-             not(treetyp in [equaln,unequaln])
-            )
-             or
+           (
+            (rd^.deftype=objectdef) and
+            not((treetyp in [equaln,unequaln]) and (is_class(rd) or is_interface(rd)))
+           )
+           or
            { allow other operators that + on strings }
            (
             (is_char(rd) or
@@ -213,8 +212,7 @@ implementation
                  (is_integer(rd) or (rd^.deftype=pointerdef)) and
                  (treetyp=subn)
                 )
-            )
-           );
+            );
       end;
 
 
@@ -593,7 +591,7 @@ implementation
                    pointerdef :
                      gotpointer:=true;
                    objectdef :
-                     gotclass:=pobjectdef(hp.resulttype)^.is_class;
+                     gotclass:=is_class_or_interface(hp.resulttype);
                    classrefdef :
                      gotclass:=true;
                    arraydef :
@@ -646,7 +644,7 @@ implementation
                    pointerdef :
                      gotpointer:=true;
                    objectdef :
-                     gotclass:=pobjectdef(hp.resulttype)^.is_class;
+                     gotclass:=is_class_or_interface(hp.resulttype);
                    recorddef, { handle record like class it needs a subscription }
                    classrefdef :
                      gotclass:=true;
@@ -889,7 +887,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2000-10-31 22:02:47  peter
+  Revision 1.14  2000-11-04 14:25:19  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.13  2000/10/31 22:02:47  peter
     * symtable splitted, no real code changes
 
   Revision 1.12  2000/10/14 10:14:47  peter

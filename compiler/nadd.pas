@@ -891,8 +891,7 @@ implementation
            end
          else
 
-           if (rd^.deftype=objectdef) and (ld^.deftype=objectdef) and
-              pobjectdef(rd)^.is_class and pobjectdef(ld)^.is_class then
+           if is_class_or_interface(rd) and is_class_or_interface(ld) then
             begin
               location.loc:=LOC_REGISTER;
               if pobjectdef(rd)^.is_related(pobjectdef(ld)) then
@@ -930,8 +929,7 @@ implementation
          else
 
          { allows comperasion with nil pointer }
-           if (rd^.deftype=objectdef) and
-              pobjectdef(rd)^.is_class then
+           if is_class_or_interface(rd) then
             begin
               location.loc:=LOC_REGISTER;
               left:=gentypeconvnode(left,rd);
@@ -945,8 +943,7 @@ implementation
             end
          else
 
-           if (ld^.deftype=objectdef) and
-              pobjectdef(ld)^.is_class then
+           if is_class_or_interface(ld) then
             begin
               location.loc:=LOC_REGISTER;
               right:=gentypeconvnode(right,ld);
@@ -1232,7 +1229,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2000-10-31 22:02:47  peter
+  Revision 1.15  2000-11-04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.14  2000/10/31 22:02:47  peter
     * symtable splitted, no real code changes
 
   Revision 1.13  2000/10/14 10:14:50  peter

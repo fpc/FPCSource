@@ -370,9 +370,8 @@ implementation
          secondpass(left);
          if codegenerror then
            exit;
-         { classes must be dereferenced implicit }
-         if (left.resulttype^.deftype=objectdef) and
-           pobjectdef(left.resulttype)^.is_class then
+         { classes and interfaces must be dereferenced implicit }
+         if is_class_or_interface(left.resulttype) then
            begin
              reset_reference(location.reference);
              case left.location.loc of
@@ -398,6 +397,11 @@ implementation
                      location.reference.base:=hr;
                   end;
              end;
+           end
+         else if is_interfacecom(left.resulttype) then
+           begin
+              gettempintfcomreference(location.reference);
+              emit_mov_loc_ref(left.location,location.reference,S_L,false);
            end
          else
            set_location(location,left.location);
@@ -895,9 +899,7 @@ implementation
          reset_reference(location.reference);
          getexplicitregister32(R_ESI);
          if (resulttype^.deftype=classrefdef) or
-           ((resulttype^.deftype=objectdef)
-             and pobjectdef(resulttype)^.is_class
-           ) then
+           is_class(resulttype) then
            location.register:=R_ESI
          else
            location.reference.base:=R_ESI;
@@ -938,8 +940,7 @@ implementation
                  end
                else
                 { call can have happend with a property }
-                if (left.resulttype^.deftype=objectdef) and
-                   pobjectdef(left.resulttype)^.is_class then
+                if is_class_or_interface(left.resulttype) then
                  begin
 {$ifndef noAllocEdi}
                     getexplicitregister32(R_EDI);
@@ -1052,7 +1053,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-10-31 22:02:57  peter
+  Revision 1.5  2000-11-04 14:25:24  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.4  2000/10/31 22:02:57  peter
     * symtable splitted, no real code changes
 
   Revision 1.3  2000/10/31 14:18:53  jonas

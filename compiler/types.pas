@@ -174,7 +174,9 @@ interface
           tc_proc_2_procvar,
           tc_arrayconstructor_2_set,
           tc_load_smallset,
-          tc_cord_2_pointer
+          tc_cord_2_pointer,
+          tc_intf_2_string,
+          tc_intf_2_guid
        );
 
     function assignment_overloaded(from_def,to_def : pdef) : pprocdef;
@@ -184,7 +186,8 @@ interface
        1 - Convertable
        2 - Convertable, but not first choice }
     function isconvertable(def_from,def_to : pdef;
-             var doconv : tconverttype;fromtreetype : tnodetype;
+             var doconv : tconverttype;
+             fromtree: tnode; fromtreetype : tnodetype;
              explicit : boolean) : byte;
 
     { same as is_equal, but with error message if failed }
@@ -234,7 +237,7 @@ implementation
 
     uses
        globtype,globals,tokens,verbose,
-       symconst,symtable;
+       symconst,symtable,nld;
 
     var
        b_needs_init_final : boolean;
@@ -243,8 +246,7 @@ implementation
       begin
          if (psym(p)^.typ=varsym) and
            assigned(pvarsym(p)^.vartype.def) and
-           not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
-           pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
+           not is_class(pvarsym(p)^.vartype.def) and
            pstoreddef(pvarsym(p)^.vartype.def)^.needs_inittable then
            b_needs_init_final:=true;
       end;
@@ -380,7 +382,7 @@ implementation
               case acp of
               cp_value_equal_const :
                 begin
-                   if (isconvertable(def1^.paratype.def,def2^.paratype.def,doconv,callparan,false)=0) or
+                   if (isconvertable(def1^.paratype.def,def2^.paratype.def,doconv,nil,callparan,false)=0) or
                      ((def1^.paratyp<>def2^.paratyp) and
                       ((def1^.paratyp in [vs_out,vs_var]) or
                        (def2^.paratyp in [vs_out,vs_var])
@@ -393,7 +395,7 @@ implementation
                 end;
               cp_all :
                 begin
-                   if (isconvertable(def1^.paratype.def,def2^.paratype.def,doconv,callparan,false)=0) or
+                   if (isconvertable(def1^.paratype.def,def2^.paratype.def,doconv,nil,callparan,false)=0) or
                      (def1^.paratyp<>def2^.paratyp) then
                      begin
                         convertable_paras:=false;
@@ -402,7 +404,7 @@ implementation
                 end;
               cp_none :
                 begin
-                   if (isconvertable(def1^.paratype.def,def2^.paratype.def,doconv,callparan,false)=0) then
+                   if (isconvertable(def1^.paratype.def,def2^.paratype.def,doconv,nil,callparan,false)=0) then
                      begin
                         convertable_paras:=false;
                         exit;
@@ -695,7 +697,7 @@ implementation
          ret_in_acc:=(def^.deftype in [orddef,pointerdef,enumdef,classrefdef]) or
                      ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_ansistring,st_widestring])) or
                      ((def^.deftype=procvardef) and not(po_methodpointer in pprocvardef(def)^.procoptions)) or
-                     ((def^.deftype=objectdef) and pobjectdef(def)^.is_class) or
+                     not is_object(def) or
                      ((def^.deftype=setdef) and (psetdef(def)^.settype=smallset)) or
                      ((def^.deftype=floatdef) and (pfloatdef(def)^.typ=f32bit));
       end;
@@ -714,7 +716,7 @@ implementation
          ret_in_param:=(def^.deftype in [arraydef,recorddef]) or
            ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
            ((def^.deftype=procvardef) and (po_methodpointer in pprocvardef(def)^.procoptions)) or
-           ((def^.deftype=objectdef) and not(pobjectdef(def)^.is_class)) or
+           is_object(def) or
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
 
@@ -746,7 +748,7 @@ implementation
                                 is_array_of_const(def) or
                                 is_array_constructor(def);
              objectdef :
-               push_addr_param:=not(pobjectdef(def)^.is_class);
+               push_addr_param:=is_object(def);
              stringdef :
                push_addr_param:=pstringdef(def)^.string_typ in [st_shortstring,st_longstring];
              procvardef :
@@ -1184,7 +1186,7 @@ implementation
             begin
               if is_equal(passproc^.rettype.def,to_def) and
                  (is_equal(pparaitem(passproc^.para^.first)^.paratype.def,from_def) or
-                 (isconvertable(from_def,pparaitem(passproc^.para^.first)^.paratype.def,convtyp,ordconstn,false)=1)) then
+                 (isconvertable(from_def,pparaitem(passproc^.para^.first)^.paratype.def,convtyp,nil,ordconstn,false)=1)) then
                 begin
                    assignment_overloaded:=passproc;
                    break;
@@ -1199,7 +1201,8 @@ implementation
        1 - Convertable
        2 - Convertable, but not first choice }
     function isconvertable(def_from,def_to : pdef;
-             var doconv : tconverttype;fromtreetype : tnodetype;
+             var doconv : tconverttype;
+             fromtree: tnode; fromtreetype : tnodetype;
              explicit : boolean) : byte;
 
       { Tbasetype:  uauto,uvoid,uchar,
@@ -1398,7 +1401,7 @@ implementation
                             end
                            else
                             if isconvertable(parraydef(def_from)^.elementtype.def,
-                                             parraydef(def_to)^.elementtype.def,hct,arrayconstructorn,false)<>0 then
+                                             parraydef(def_to)^.elementtype.def,hct,nil,arrayconstructorn,false)<>0 then
                              begin
                                doconv:=hct;
                                b:=2;
@@ -1508,7 +1511,7 @@ implementation
                      { class types and class reference type
                        can be assigned to void pointers      }
                      if (
-                         ((def_from^.deftype=objectdef) and pobjectdef(def_from)^.is_class) or
+                         is_class_or_interface(def_from) or
                          (def_from^.deftype=classrefdef)
                         ) and
                         (ppointerdef(def_to)^.pointertype.def^.deftype=orddef) and
@@ -1572,7 +1575,7 @@ implementation
                 end
                else
                { Class specific }
-                if (pobjectdef(def_to)^.is_class) then
+                if is_class_or_interface(def_to) then
                  begin
                    { void pointer also for delphi mode }
                    if (m_delphi in aktmodeswitches) and
@@ -1583,7 +1586,7 @@ implementation
                     end
                    else
                    { nil is compatible with class instances }
-                    if (fromtreetype=niln) and (pobjectdef(def_to)^.is_class) then
+                    if (fromtreetype=niln) and is_class(def_to) then
                      begin
                        doconv:=tc_equal;
                        b:=1;
@@ -1648,9 +1651,20 @@ implementation
 
            else
              begin
-             { assignment overwritten ?? }
-               if assignment_overloaded(def_from,def_to)<>nil then
-                b:=2;
+                { Interface 2 GUID handling }
+                if (def_from^.deftype=errordef) and (def_to=pdef(rec_tguid)) and
+                   assigned(fromtree) and (fromtree.nodetype=typen) and
+                   assigned(ttypenode(fromtree).typenodetype) and
+                   is_interface(ttypenode(fromtree).typenodetype) and
+                   pobjectdef(ttypenode(fromtree).typenodetype)^.isiidguidvalid then
+                  begin
+                    b:=1;
+                    doconv:=tc_equal;
+                  end
+                else
+                  { assignment overwritten ?? }
+                  if assignment_overloaded(def_from,def_to)<>nil then
+                    b:=2;
              end;
          end;
         isconvertable:=b;
@@ -1686,7 +1700,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2000-10-31 22:30:13  peter
+  Revision 1.18  2000-11-04 14:25:22  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.17  2000/10/31 22:30:13  peter
     * merged asm result patch part 2
 
   Revision 1.16  2000/10/31 22:02:55  peter

@@ -43,6 +43,7 @@ interface
     procedure loadshortstring(source,dest : tnode);
     procedure loadlongstring(p:tbinarynode);
     procedure loadansi2short(source,dest : tnode);
+    procedure loadinterfacecom(p: tbinarynode);
 
     procedure maketojumpbool(p : tnode);
     procedure emitoverflowcheck(p:tnode);
@@ -696,8 +697,8 @@ implementation
                            ) and
                            (p.resulttype^.size<=4)
                           ) or
-                          ((p.resulttype^.deftype=objectdef) and
-                           pobjectdef(p.resulttype)^.is_class) then
+                          is_class(p.resulttype) or
+                          is_interface(p.resulttype) then
                          begin
                             if (p.resulttype^.size>2) or
                                ((alignment=4) and (p.resulttype^.size>0)) then
@@ -1311,11 +1312,61 @@ implementation
          maybe_loadesi;
       end;
 
+    procedure loadinterfacecom(p: tbinarynode);
+    {
+      copies an com interface from n.right to n.left, we
+      assume, that both sides are com interface, firstassignement have
+      to take care of that, an com interface can't be a register variable
+    }
+      var
+         pushed : tpushed;
+         ungettemp : boolean;
+      begin
+         { before pushing any parameter, we have to save all used      }
+         { registers, but before that we have to release the       }
+         { registers of that node to save uneccessary pushed       }
+         { so be careful, if you think you can optimize that code (FK) }
+
+         { nevertheless, this has to be changed, because otherwise the }
+         { register is released before it's contents are pushed ->     }
+         { problems with the optimizer (JM)                         }
+         del_reference(p.left.location.reference);
+         ungettemp:=false;
+         case p.right.location.loc of
+            LOC_REGISTER,LOC_CREGISTER:
+              begin
+                 pushusedregisters(pushed, $ff xor ($80 shr byte(p.right.location.register)));
+                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,p.right.location.register)));
+                 ungetregister32(p.right.location.register);
+              end;
+            LOC_REFERENCE,LOC_MEM:
+              begin
+                 pushusedregisters(pushed,$ff
+                   xor ($80 shr byte(p.right.location.reference.base))
+                   xor ($80 shr byte(p.right.location.reference.index)));
+                 emit_push_mem(p.right.location.reference);
+                 del_reference(p.right.location.reference);
+                 ungettemp:=true;
+              end;
+         end;
+         emitpushreferenceaddr(p.left.location.reference);
+         del_reference(p.left.location.reference);
+         emitcall('FPC_INTF_ASSIGN');
+         maybe_loadesi;
+         popusedregisters(pushed);
+         if ungettemp then
+           ungetiftemp(p.right.location.reference);
+      end;
+
+
 
 end.
 {
   $Log$
-  Revision 1.2  2000-10-31 22:02:57  peter
+  Revision 1.3  2000-11-04 14:25:25  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.2  2000/10/31 22:02:57  peter
     * symtable splitted, no real code changes
 
   Revision 1.1  2000/10/15 09:33:32  peter

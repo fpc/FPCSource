@@ -148,6 +148,7 @@ interface
        initoptprocessor,
        initspecificoptprocessor : tprocessors;
        initasmmode        : tasmmode;
+       initinterfacetype  : tinterfacetypes;
      { current state values }
        aktglobalswitches : tglobalswitches;
        aktmoduleswitches : tmoduleswitches;
@@ -165,6 +166,7 @@ interface
        aktoptprocessor,
        aktspecificoptprocessor : tprocessors;
        aktasmmode        : tasmmode;
+       aktinterfacetype  : tinterfacetypes;
 
      { Memory sizes }
        heapsize,
@@ -249,6 +251,9 @@ interface
 
     procedure InitGlobals;
     procedure DoneGlobals;
+
+    function  string2guid(const s: string; var GUID: TGUID): boolean;
+    function  guid2string(const GUID: TGUID): string;
 
 
 implementation
@@ -1043,6 +1048,84 @@ implementation
         SetCompileMode:=b;
       end;
 
+    { '('D1:'00000000-'D2:'0000-'D3:'0000-'D4:'0000-000000000000)' }
+    function string2guid(const s: string; var GUID: TGUID): boolean;
+        function ishexstr(const hs: string): boolean;
+          var
+            i: integer;
+          begin
+            ishexstr:=false;
+            for i:=1 to Length(hs) do begin
+              if not (hs[i] in ['0'..'9','A'..'F','a'..'f']) then
+                exit;
+            end;
+            ishexstr:=true;
+          end;
+        function hexstr2longint(const hexs: string): longint;
+          var
+            i: integer;
+            rl: longint;
+          begin
+            rl:=0;
+            for i:=1 to length(hexs) do begin
+              rl:=rl shl 4;
+              case hexs[i] of
+                '0'..'9' : inc(rl,ord(hexs[i])-ord('0'));
+                'A'..'F' : inc(rl,ord(hexs[i])-ord('A')+10);
+                'a'..'f' : inc(rl,ord(hexs[i])-ord('a')+10);
+              end
+            end;
+            hexstr2longint:=rl;
+          end;
+      var
+        i: integer;
+      begin
+        if (Length(s)=38) and (s[1]='{') and (s[38]='}') and
+           (s[10]='-') and (s[15]='-') and (s[20]='-') and (s[25]='-') and
+           ishexstr(copy(s,2,8)) and ishexstr(copy(s,11,4)) and
+           ishexstr(copy(s,16,4)) and ishexstr(copy(s,21,4)) and
+           ishexstr(copy(s,26,12)) then begin
+          GUID.D1:=hexstr2longint(copy(s,2,8));
+          GUID.D2:=hexstr2longint(copy(s,11,4));
+          GUID.D3:=hexstr2longint(copy(s,16,4));
+          for i:=0 to 1 do
+            GUID.D4[i]:=hexstr2longint(copy(s,21+i*2,2));
+          for i:=2 to 7 do
+            GUID.D4[i]:=hexstr2longint(copy(s,22+i*2,2));
+          string2guid:=true;
+        end
+        else
+          string2guid:=false;
+      end;
+
+    function guid2string(const GUID: TGUID): string;
+        function long2hex(l, len: longint): string;
+          const
+            hextbl: array[0..15] of char = '0123456789ABCDEF';
+          var
+            rs: string;
+            i: integer;
+          begin
+            rs[0]:=chr(len);
+            for i:=len downto 1 do begin
+              rs[i]:=hextbl[l and $F];
+              l:=l shr 4;
+            end;
+            long2hex:=rs;
+          end;
+      begin
+        guid2string:=
+          '{'+long2hex(GUID.D1,8)+
+          '-'+long2hex(GUID.D2,4)+
+          '-'+long2hex(GUID.D3,4)+
+          '-'+long2hex(GUID.D4[0],2)+long2hex(GUID.D4[1],2)+
+          '-'+long2hex(GUID.D4[2],2)+long2hex(GUID.D4[3],2)+
+              long2hex(GUID.D4[4],2)+long2hex(GUID.D4[5],2)+
+              long2hex(GUID.D4[6],2)+long2hex(GUID.D4[7],2)+
+          '}';
+      end;
+
+
 
 {****************************************************************************
                                     Init
@@ -1160,6 +1243,7 @@ implementation
         initasmmode:=asmmode_m68k_mot;
   {$endif m68k}
 {$endif i386}
+        initinterfacetype:=it_interfacecom;
         initdefines.init;
 
       { memory sizes, will be overriden by parameter or default for target
@@ -1186,7 +1270,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2000-10-31 22:02:46  peter
+  Revision 1.18  2000-11-04 14:25:19  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.17  2000/10/31 22:02:46  peter
     * symtable splitted, no real code changes
 
   Revision 1.16  2000/10/04 14:51:08  pierre

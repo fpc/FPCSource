@@ -746,8 +746,7 @@ implementation
               { first para must be a _class_ }
               firstpass(left);
               if assigned(left.resulttype) and
-                 ((left.resulttype^.deftype<>objectdef) or
-                  not(pobjectdef(left.resulttype)^.is_class)) then
+                 not(is_class(left.resulttype)) then
                 CGMessage(type_e_mismatch);
               set_varstate(left,true);
               if codegenerror then
@@ -919,8 +918,7 @@ implementation
       begin
          pass_1:=nil;
          { that's really an example procedure for a firstpass :) }
-         if (excepttype^.deftype<>objectdef) or
-           not(pobjectdef(excepttype)^.is_class) then
+         if not(is_class(excepttype)) then
            CGMessage(type_e_mismatch);
 {$ifdef newcg}
          tg.cleartempgen;
@@ -994,7 +992,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-10-31 22:02:48  peter
+  Revision 1.10  2000-11-04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.9  2000/10/31 22:02:48  peter
     * symtable splitted, no real code changes
 
   Revision 1.8  2000/10/21 18:16:11  florian

@@ -51,7 +51,7 @@ implementation
       var
          actmembertype : tsymoptions;
          there_is_a_destructor : boolean;
-         classtype : (ct_object,ct_class,ct_interfacecom,ct_interfaceraw,ct_cppclass);
+         classtype : tobjectdeftype;
          childof : pobjectdef;
          aktclass : pobjectdef;
 
@@ -70,7 +70,7 @@ implementation
            include(aktclass^.objectoptions,oo_has_constructor);
            consume(_SEMICOLON);
              begin
-                if (aktclass^.is_class) then
+                if is_class(aktclass) then
                   begin
                      { CLASS constructors return the created instance }
                      aktprocsym^.definition^.rettype.def:=aktclass;
@@ -124,7 +124,7 @@ implementation
 
         begin
            { check for a class }
-           if not(aktclass^.is_class) then
+           if not(is_class(aktclass)) then
             Message(parser_e_syntax_error);
            consume(_PROPERTY);
            new(propertyparas,init);
@@ -544,9 +544,9 @@ implementation
       procedure setclassattributes;
 
         begin
-           if classtype=ct_class then
+           if classtype=odt_class then
              begin
-                include(aktclass^.objectoptions,oo_is_class);
+                aktclass^.objecttype:=odt_class;
                 if (cs_generate_rtti in aktlocalswitches) or
                     (assigned(aktclass^.childof) and
                      (oo_can_have_published in aktclass^.childof^.objectoptions)) then
@@ -563,35 +563,27 @@ implementation
      procedure setclassparent;
 
         begin
+           if assigned(fd) then
+             aktclass:=fd
+           else
+             aktclass:=new(pobjectdef,init(classtype,n,nil));
            { is the current class tobject?   }
            { so you could define your own tobject }
-           if (cs_compilesystem in aktmoduleswitches) and
-              (upper(n)='TOBJECT') then
-             begin
-                if assigned(fd) then
-                  aktclass:=fd
-                else
-                  aktclass:=new(pobjectdef,init(n,nil));
-                class_tobject:=aktclass;
-             end
+           if (cs_compilesystem in aktmoduleswitches) and (classtype=odt_class) and (n='TOBJECT') then
+             class_tobject:=aktclass
+           else if (cs_compilesystem in aktmoduleswitches) and (classtype=odt_interfacecom) and (n='IUNKNOWN') then
+             interface_iunknown:=aktclass
            else
              begin
-                childof:=class_tobject;
-                if assigned(fd) then
-                  begin
-                     { the forward of the child must be resolved to get
-                       correct field addresses
-                     }
-                     if (oo_is_forward in childof^.objectoptions) then
-                       Message1(parser_e_forward_declaration_must_be_resolved,childof^.objname^);
-                     aktclass:=fd;
-                     aktclass^.set_parent(childof);
-                  end
-                else
-                  begin
-                     aktclass:=new(pobjectdef,init(n,childof));
-                     aktclass^.set_parent(childof);
-                  end;
+                case classtype of
+                  odt_class:
+                    childof:=class_tobject;
+                  odt_interfacecom:
+                    childof:=interface_iunknown;
+                end;
+                if (oo_is_forward in childof^.objectoptions) then
+                  Message1(parser_e_forward_declaration_must_be_resolved,childof^.objname^);
+                aktclass^.set_parent(childof);
              end;
          end;
 
@@ -603,6 +595,7 @@ implementation
 {$ifdef WITHDMT}
            dmtlabel : pasmlabel;
 {$endif WITHDMT}
+           interfacetable : pasmlabel;
 
         begin
 {$ifdef WITHDMT}
@@ -614,7 +607,7 @@ implementation
 
            { write tables for classes, this must be done before the actual
              class is written, because we need the labels defined }
-           if classtype=ct_class then
+           if classtype=odt_class then
             begin
               methodnametable:=genpublishedmethodstable(aktclass);
               fieldtablelabel:=aktclass^.generate_field_table;
@@ -633,6 +626,8 @@ implementation
                 intmessagetable:=genintmsgtab(aktclass)
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
+              if aktclass^.implementedinterfaces^.count>0 then
+                interfacetable:=genintftable(aktclass);
             end;
 
           { write debug info }
@@ -671,7 +666,7 @@ implementation
              datasegment^.concat(new(pai_const,init_32bit(0)));
 
            { write extended info for classes, for the order see rtl/inc/objpash.inc }
-           if classtype=ct_class then
+           if classtype=odt_class then
             begin
               { pointer to class name string }
               datasegment^.concat(new(pai_const_symbol,init(classnamelabel)));
@@ -706,7 +701,10 @@ implementation
               { auto table }
               datasegment^.concat(new(pai_const,init_32bit(0)));
               { interface table }
-              datasegment^.concat(new(pai_const,init_32bit(0)));
+              if aktclass^.implementedinterfaces^.count>0 then
+                datasegment^.concat(new(pai_const_symbol,init(interfacetable)))
+              else
+                datasegment^.concat(new(pai_const,init_32bit(0)));
               { table for string messages }
               if (oo_has_msgstr in aktclass^.objectoptions) then
                 datasegment^.concat(new(pai_const_symbol,init(strmessagetable)))
@@ -719,6 +717,28 @@ implementation
            datasegment^.concat(new(pai_symbol_end,initname(aktclass^.vmt_mangledname)));
         end;
 
+      procedure setinterfacemethodoptions;
+
+        var
+          i: longint;
+          defs: pindexarray;
+          pd: pprocdef;
+        begin
+          include(aktclass^.objectoptions,oo_has_virtual);
+          defs:=aktclass^.symtable^.defindex;
+          for i:=1 to defs^.count do
+            begin
+              pd:=pprocdef(defs^.search(i));
+              if pd^.deftype=procdef then
+                begin
+                  pd^.extnumber:=aktclass^.lastvtableindex;
+                  aktclass^.lastvtableindex:=aktclass^.lastvtableindex+1;
+                  include(pd^.procoptions,po_virtualmethod);
+                  pd^.forwarddef:=false;
+                end;
+            end;
+        end;
+
       function readobjecttype : boolean;
 
         begin
@@ -727,21 +747,21 @@ implementation
            case token of
               _OBJECT:
                 begin
-                   classtype:=ct_object;
+                   classtype:=odt_object;
                    consume(_OBJECT)
                 end;
               _CPPCLASS:
                 begin
-                   classtype:=ct_cppclass;
+                   classtype:=odt_cppclass;
                    consume(_CPPCLASS);
                 end;
 {$ifdef SUPPORT_INTERFACE}
               _INTERFACE:
                 begin
                    if aktinterfacetype=it_interfacecom then
-                     objecttype:=ct_interfacecom
-                   else {it_interfaceraw}
-                     objecttype:=ct_interfaceraw;
+                     objecttype:=odt_interfacecom
+                   else {it_interfacecorba}
+                     objecttype:=odt_interfacecorba;
                    consume(_INTERFACE);
                    { forward declaration }
                    if not(assigned(fd)) and (token=_SEMICOLON) then
@@ -753,13 +773,13 @@ implementation
                        if (cs_compilesystem in aktmoduleswitches) and
                           (objecttype=odt_interfacecom) and (n='IUNKNOWN') then
                          interface_iunknown:=aktclass;
-                       include(aktclass^.objectoptions,[oo_is_forward]);
+                       aktclass^.objectoptions:=aktclass^.objectoptions+[oo_is_forward];
                      end;
                 end;
 {$endif SUPPORT_INTERFACE}
               _CLASS:
                 begin
-                   classtype:=ct_class;
+                   classtype:=odt_class;
                    consume(_CLASS);
                    if not(assigned(fd)) and (token=_OF) then
                      begin
@@ -770,7 +790,7 @@ implementation
 
                         { accept hp1, if is a forward def or a class }
                         if (tt.def^.deftype=forwarddef) or
-                           ((tt.def^.deftype=objectdef) and pobjectdef(tt.def)^.is_class) then
+                           is_class(tt.def) then
                           begin
                              pcrd:=new(pclassrefdef,init(tt.def));
                              object_dec:=pcrd;
@@ -790,10 +810,11 @@ implementation
                         { also anonym objects aren't allow (o : object a : longint; end;) }
                         if n='' then
                           Message(parser_f_no_anonym_objects);
-                        aktclass:=new(pobjectdef,init(n,nil));
+                        aktclass:=new(pobjectdef,init(odt_class,n,nil));
                         if (cs_compilesystem in aktmoduleswitches) and (n='TOBJECT') then
                           class_tobject:=aktclass;
-                        aktclass^.objectoptions:=aktclass^.objectoptions+[oo_is_class,oo_is_forward];
+                        aktclass^.objecttype:=odt_class;
+                        include(aktclass^.objectoptions,oo_is_forward);
                         { all classes must have a vmt !!  at offset zero }
                         if not(oo_has_vmt in aktclass^.objectoptions) then
                           aktclass^.insertvmt;
@@ -806,10 +827,33 @@ implementation
                 end;
               else
                 begin
-                   classtype:=ct_class; { this is error but try to recover }
+                   classtype:=odt_class; { this is error but try to recover }
                    consume(_OBJECT);
                 end;
            end;
+        end;
+
+      procedure readimplementedinterfaces;
+        var
+          implintf: pobjectdef;
+          tt      : ttype;
+        begin
+          while try_to_consume(_COMMA) do begin
+            id_type(tt,pattern,false);
+            implintf:=pobjectdef(tt.def);
+            if (tt.def^.deftype<>objectdef) then begin
+              Message1(type_e_interface_type_expected,tt.def^.typename);
+              Continue; { omit }
+            end;
+            if not is_interface(implintf) then begin
+              Message1(type_e_interface_type_expected,implintf^.typename);
+              Continue; { omit }
+            end;
+            if aktclass^.implementedinterfaces^.searchintf(tt.def)<>-1 then
+              Message1(sym_e_duplicate_id,tt.def^.name)
+            else
+              aktclass^.implementedinterfaces^.addintf(tt.def);
+          end;
         end;
 
       procedure readparentclasses;
@@ -828,26 +872,26 @@ implementation
                    if assigned(childof) then
                     Message1(type_e_class_type_expected,childof^.typename);
                    childof:=nil;
-                   aktclass:=new(pobjectdef,init(n,nil));
+                   aktclass:=new(pobjectdef,init(classtype,n,nil));
                  end
                 else
                  begin
                    { a mix of class, interfaces, objects and cppclasses
                      isn't allowed }
                    case classtype of
-                      ct_class:
-                        if not(childof^.is_class) and
-                          not(childof^.is_interface) then
+                      odt_class:
+                        if not(is_class(childof)) and
+                          not(is_interface(childof)) then
                           Message(parser_e_mix_of_classes_and_objects);
-                      ct_interfaceraw,
-                      ct_interfacecom:
-                        if not(childof^.is_interface) then
+                      odt_interfacecorba,
+                      odt_interfacecom:
+                        if not(is_interface(childof)) then
                           Message(parser_e_mix_of_classes_and_objects);
-                      ct_cppclass:
-                        if not(childof^.is_cppclass) then
+                      odt_cppclass:
+                        if not(is_cppclass(childof)) then
                           Message(parser_e_mix_of_classes_and_objects);
-                      ct_object:
-                        if not(childof^.is_object) then
+                      odt_object:
+                        if not(is_object(childof)) then
                           Message(parser_e_mix_of_classes_and_objects);
                    end;
                    { the forward of the child must be resolved to get
@@ -864,26 +908,52 @@ implementation
                       fd^.set_parent(childof);
                     end
                    else
-                    aktclass:=new(pobjectdef,init(n,childof));
+                    aktclass:=new(pobjectdef,init(classtype,n,childof));
+                   if aktclass^.objecttype=odt_class then
+                    readimplementedinterfaces;
                  end;
                 consume(_RKLAMMER);
              end
            { if no parent class, then a class get tobject as parent }
-           else if classtype=ct_class then
+           else if classtype=odt_class then
              setclassparent
            else
-             aktclass:=new(pobjectdef,init(n,nil));
+             aktclass:=new(pobjectdef,init(classtype,n,nil));
         end;
 
       procedure chkcpp;
 
         begin
-           if aktclass^.is_cppclass then
+           if is_cppclass(aktclass) then
              begin
                 include(aktprocsym^.definition^.proccalloptions,pocall_cppdecl);
                 aktprocsym^.definition^.setmangledname(
                   target_os.Cprefix+aktprocsym^.definition^.cplusplusmangledname);
              end;
+        end;
+
+      procedure readinterfaceiid;
+        var
+          tt: ttype;
+          p : tnode;
+          isiidguidvalid: boolean;
+
+        begin
+          p:=comp_expr(true);
+          do_firstpass(p);
+          if p.nodetype=stringconstn then
+            begin
+              aktclass^.iidstr:=stringdup(strpas(tstringconstnode(p).value_str)); { or upper? }
+              p.free;
+              aktclass^.isiidguidvalid:=string2guid(aktclass^.iidstr^,aktclass^.iidguid);
+              if (classtype=odt_interfacecom) and not aktclass^.isiidguidvalid then
+                Message(parser_e_improper_guid_syntax);
+            end
+          else
+            begin
+              p.free;
+              Message(cg_e_illegal_expression);
+            end;
         end;
 
       var
@@ -938,7 +1008,7 @@ implementation
 
 
        { short class declaration ? }
-         if (classtype<>ct_class) or (token<>_SEMICOLON) then
+         if (classtype<>odt_class) or (token<>_SEMICOLON) then
           begin
           { Parse componenten }
             repeat
@@ -1051,13 +1121,21 @@ implementation
 
          { generate vmt space if needed }
          if not(oo_has_vmt in aktclass^.objectoptions) and
-            ([oo_has_virtual,oo_has_constructor,oo_has_destructor,oo_is_class]*aktclass^.objectoptions<>[]) then
+            (([oo_has_virtual,oo_has_constructor,oo_has_destructor]*aktclass^.objectoptions<>[]) or
+             (classtype=odt_class)
+            ) then
            aktclass^.insertvmt;
          if (cs_create_smart in aktmoduleswitches) then
            datasegment^.concat(new(pai_cut,init));
 
+         if is_interface(aktclass) then
+           writeinterfaceids(aktclass);
+
          if (oo_has_vmt in aktclass^.objectoptions) then
            writevmt;
+
+         if is_interface(aktclass) then
+           setinterfacemethodoptions;
 
          { restore old state }
          symtablestack:=symtablestack^.next;
@@ -1074,7 +1152,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-10-31 22:02:49  peter
+  Revision 1.5  2000-11-04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.4  2000/10/31 22:02:49  peter
     * symtable splitted, no real code changes
 
   Revision 1.3  2000/10/26 21:54:03  peter

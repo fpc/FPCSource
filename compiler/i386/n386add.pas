@@ -923,11 +923,7 @@ interface
 
                  (right.resulttype^.deftype=pointerdef) or
 
-                 ((right.resulttype^.deftype=objectdef) and
-                  pobjectdef(right.resulttype)^.is_class and
-                 (left.resulttype^.deftype=objectdef) and
-                  pobjectdef(left.resulttype)^.is_class
-                 ) or
+                 (is_class(right.resulttype) and is_class(left.resulttype)) or
 
                  (left.resulttype^.deftype=classrefdef) or
 
@@ -2292,7 +2288,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-10-31 22:02:56  peter
+  Revision 1.3  2000-11-04 14:25:23  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.2  2000/10/31 22:02:56  peter
     * symtable splitted, no real code changes
 
   Revision 1.1  2000/10/15 09:33:31  peter

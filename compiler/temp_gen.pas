@@ -31,7 +31,9 @@ interface
       hcodegen,verbose,fmodule,aasm;
 
     type
-      ttemptype = (tt_none,tt_free,tt_normal,tt_persistant,tt_ansistring,tt_freeansistring,tt_widestring,tt_freewidestring);
+      ttemptype = (tt_none,tt_free,tt_normal,tt_persistant,
+                   tt_ansistring,tt_freeansistring,tt_widestring,tt_freewidestring,
+                   tt_interfacecom,tt_freeinterfacecom);
       ttemptypeset = set of ttemptype;
 
       ptemprecord = ^ttemprecord;
@@ -72,9 +74,12 @@ interface
     procedure gettempofsizereference(l : longint;var ref : treference);
     function istemp(const ref : treference) : boolean;
     procedure ungetiftemp(const ref : treference);
+
     function ungetiftempansi(const ref : treference) : boolean;
     procedure gettempansistringreference(var ref : treference);
 
+    function ungetiftempintfcom(const ref : treference) : boolean;
+    procedure gettempintfcomreference(var ref : treference);
 
   implementation
 
@@ -293,19 +298,19 @@ const
       end;
 
 
-    procedure gettempansistringreference(var ref : treference);
+    procedure gettemppointerreferencefortype(var ref : treference; const usedtype, freetype: ttemptype);
       var
          foundslot,tl : ptemprecord;
       begin
          { do a reset, because the reference isn't used }
          reset_reference(ref);
          ref.base:=procinfo^.framepointer;
-         { Reuse old ansi slot ? }
+         { Reuse old slot ? }
          foundslot:=nil;
          tl:=templist;
          while assigned(tl) do
           begin
-            if tl^.temptype=tt_freeansistring then
+            if tl^.temptype=freetype then
              begin
                foundslot:=tl;
 {$ifdef EXTDEBUG}
@@ -317,16 +322,8 @@ const
           end;
          if assigned(foundslot) then
           begin
-            foundslot^.temptype:=tt_ansistring;
+            foundslot^.temptype:=usedtype;
             ref.offset:=foundslot^.pos;
-            { we're reusing an old slot then set the function result to true
-              so that we can call a decr_ansistr }
-
-            { we never know if a slot was used previously:
-              imagine a loop: in the first run the slot wasn't used
-              while in later runs it is reused (FK)
-            gettempansistringreference:=true;
-            }
           end
          else
           begin
@@ -334,43 +331,61 @@ const
 {$ifdef EXTDEBUG}
             templist^.posinfo:=aktfilepos;
 {$endif}
-            templist^.temptype:=tt_ansistring;
-            { set result to false, we don't need an decr_ansistr
-              gettempansistringreference:=true;
-              Not necessary, the above (FK)
-            }
+            templist^.temptype:=usedtype;
           end;
          exprasmlist^.concat(new(paitempalloc,alloc(ref.offset,target_os.size_of_pointer)));
       end;
 
-
-    function ungetiftempansi(const ref : treference) : boolean;
+    function ungettemppointeriftype(const ref : treference; const usedtype, freetype: ttemptype) : boolean;
       var
          tl : ptemprecord;
       begin
-        ungetiftempansi:=false;
+        ungettemppointeriftype:=false;
         tl:=templist;
         while assigned(tl) do
          begin
            if tl^.pos=ref.offset then
             begin
-              if tl^.temptype=tt_ansistring then
+              if tl^.temptype=usedtype then
                begin
-                 tl^.temptype:=tt_freeansistring;
-                 ungetiftempansi:=true;
+                 tl^.temptype:=freetype;
+                 ungettemppointeriftype:=true;
                  exprasmlist^.concat(new(paitempalloc,dealloc(tl^.pos,tl^.size)));
                  exit;
 {$ifdef EXTDEBUG}
                end
-              else if (tl^.temptype=tt_freeansistring) then
+              else if (tl^.temptype=freetype) then
                begin
-                 Comment(V_Debug,'temp ansi managment problem : ungetiftempansi()'+
+                 Comment(V_Debug,'temp managment problem : ungettemppointeriftype()'+
                      ' at pos '+tostr(ref.offset)+ ' already free !');
 {$endif}
                end;
             end;
            tl:=tl^.next;
          end;
+      end;
+
+
+    procedure gettempansistringreference(var ref : treference);
+      begin
+        gettemppointerreferencefortype(ref,tt_ansistring,tt_freeansistring);
+      end;
+
+    function ungetiftempansi(const ref : treference) : boolean;
+      begin
+        ungetiftempansi:=ungettemppointeriftype(ref,tt_ansistring,tt_freeansistring);
+      end;
+
+
+    procedure gettempintfcomreference(var ref : treference);
+      begin
+        gettemppointerreferencefortype(ref,tt_interfacecom,tt_freeinterfacecom);
+      end;
+
+
+    function ungetiftempintfcom(const ref : treference) : boolean;
+      begin
+        ungetiftempintfcom:=ungettemppointeriftype(ref,tt_ansistring,tt_freeansistring);
       end;
 
     function istemp(const ref : treference) : boolean;
@@ -542,7 +557,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-09-30 16:08:45  peter
+  Revision 1.6  2000-11-04 14:25:22  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.5  2000/09/30 16:08:45  peter
     * more cg11 updates
 
   Revision 1.4  2000/09/24 15:06:31  peter

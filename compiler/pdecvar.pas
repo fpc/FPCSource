@@ -422,7 +422,7 @@ implementation
                begin
                   { save object option, because we can turn of the sp_published }
                   if (sp_published in current_object_option) and
-                    (not((tt.def^.deftype=objectdef) and (pobjectdef(tt.def)^.is_class))) then
+                    not(is_class(tt.def)) then
                    begin
                      Message(parser_e_cant_publish_that);
                      exclude(current_object_option,sp_published);
@@ -527,7 +527,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-10-31 22:02:49  peter
+  Revision 1.3  2000-11-04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.2  2000/10/31 22:02:49  peter
     * symtable splitted, no real code changes
 
   Revision 1.1  2000/10/14 10:14:51  peter

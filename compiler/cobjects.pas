@@ -281,7 +281,7 @@ interface
         procedure clear;
         procedure foreach(proc2call : Tnamedindexcallback);
         procedure deleteindex(p:Pnamedindexobject);
-        procedure delete(p:Pnamedindexobject);
+        procedure delete(var p:Pnamedindexobject);
         procedure insert(p:Pnamedindexobject);
         function  search(nr:longint):Pnamedindexobject;
       private
@@ -1790,7 +1790,7 @@ end;
       end;
 
 
-    procedure tindexarray.delete(p:Pnamedindexobject);
+    procedure tindexarray.delete(var p:Pnamedindexobject);
       begin
         deleteindex(p);
         dispose(p,done);
@@ -1811,6 +1811,9 @@ end;
          count:=p^.indexnr;
         if count>size then
          grow(((count div growsize)+1)*growsize);
+        {$ifdef Delphi}
+        Assert(not assigned(data^[p^.indexnr]) or (p=data^[p^.indexnr]));
+        {$endif}
         data^[p^.indexnr]:=p;
         { update linked list backward }
         i:=p^.indexnr;
@@ -1843,7 +1846,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2000-11-03 19:41:06  jonas
+  Revision 1.18  2000-11-04 14:25:19  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.17  2000/11/03 19:41:06  jonas
     * fixed bug in tdynamicarray.align (merged)
 
   Revision 1.16  2000/10/31 22:02:46  peter

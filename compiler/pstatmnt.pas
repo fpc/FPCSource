@@ -596,8 +596,7 @@ implementation
                                     consume(_ID);
                                  end;
                                if (srsym^.typ=typesym) and
-                                 (ptypesym(srsym)^.restype.def^.deftype=objectdef) and
-                                 pobjectdef(ptypesym(srsym)^.restype.def)^.is_class then
+                                  is_class(ptypesym(srsym)^.restype.def) then
                                  begin
                                     ot:=pobjectdef(ptypesym(srsym)^.restype.def);
                                     sym:=new(pvarsym,initdef(objname,ot));
@@ -633,8 +632,7 @@ implementation
                                     consume(_ID);
                                  end;
                                if (srsym^.typ=typesym) and
-                                 (ptypesym(srsym)^.restype.def^.deftype=objectdef) and
-                                 pobjectdef(ptypesym(srsym)^.restype.def)^.is_class then
+                                  is_class(ptypesym(srsym)^.restype.def) then
                                  ot:=pobjectdef(ptypesym(srsym)^.restype.def)
                                else
                                  begin
@@ -893,7 +891,7 @@ implementation
               end;
             { check, if the first parameter is a pointer to a _class_ }
             classh:=pobjectdef(ppointerdef(pd)^.pointertype.def);
-            if classh^.is_class then
+            if is_class(classh) then
               begin
                  Message(parser_e_no_new_or_dispose_for_classes);
                  new_dispose_statement:=factor(false);
@@ -1258,7 +1256,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-10-31 22:02:50  peter
+  Revision 1.13  2000-11-04 14:25:21  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.12  2000/10/31 22:02:50  peter
     * symtable splitted, no real code changes
 
   Revision 1.11  2000/10/14 21:52:56  peter

@@ -305,7 +305,7 @@ implementation
            exit;
          { both types must be compatible }
          if not(is_equal(left.resulttype,right.resulttype)) and
-            (isconvertable(left.resulttype,right.resulttype,ct,ordconstn,false)=0) then
+            (isconvertable(left.resulttype,right.resulttype,ct,nil,ordconstn,false)=0) then
            CGMessage(type_e_mismatch);
          { Check if only when its a constant set }
          if (left.nodetype=ordconstn) and (right.nodetype=ordconstn) then
@@ -525,7 +525,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-10-31 22:02:49  peter
+  Revision 1.8  2000-11-04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.7  2000/10/31 22:02:49  peter
     * symtable splitted, no real code changes
 
   Revision 1.6  2000/10/21 18:16:11  florian

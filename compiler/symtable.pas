@@ -120,12 +120,23 @@ interface
        lastsrsym      : psym;           { last sym found in statement }
        lastsrsymtable : psymtable;
        lastsymknown   : boolean;
-
        constsymtable  : psymtable;      { symtable were the constants can be inserted }
-
        systemunit     : punitsymtable;  { pointer to the system unit }
-
        read_member : boolean;      { reading members of an symtable }
+
+       aktprocsym : pprocsym;      { pointer to the symbol for the
+                                     currently be parsed procedure }
+
+       aktcallprocsym : pprocsym;  { pointer to the symbol for the
+                                     currently be called procedure,
+                                     only set/unset in firstcall }
+
+       aktvarsym : pvarsym;     { pointer to the symbol for the
+                                     currently read var, only used
+                                     for variable directives }
+
+       procprefix : string;     { eindeutige Namen bei geschachtel- }
+                                   { ten Unterprogrammen erzeugen      }
 
        lexlevel : longint;       { level of code                     }
                                    { 1 for main procedure             }
@@ -218,6 +229,8 @@ implementation
 {$ifdef GDB}
       gdb,
 {$endif GDB}
+      { type helpers }
+      types,
       { scanner }
       scanner,
       { codegen }
@@ -309,12 +322,12 @@ implementation
              begin
                 if (psym(p)^.owner^.symtabletype=parasymtable) then
                   begin
-                    if (pvarsym(p)^.varspez<>vs_var)  then
+                    if not(pvarsym(p)^.varspez in [vs_var,vs_out])  then
                       MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_only_set,p^.name)
                   end
                 else if (vo_is_local_copy in pvarsym(p)^.varoptions) then
                   begin
-                    if (pvarsym(p)^.varspez<>vs_var) then
+                    if not(pvarsym(p)^.varspez in [vs_var,vs_out]) then
                       MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_only_set,p^.name);
                   end
                 else if (psym(p)^.owner^.symtabletype=objectsymtable) then
@@ -1038,7 +1051,7 @@ implementation
                    { delphi allows to reuse the names in a class, but not
                      in object (tp7 compatible) }
                    if not((m_delphi in aktmodeswitches) and
-                          (pobjectdef(next^.next^.defowner)^.is_class)) then
+                          is_class(pdef(next^.next^.defowner))) then
                     begin
                       DuplicateSym(hsym);
                       exit;
@@ -1065,7 +1078,7 @@ implementation
                    { delphi allows to reuse the names in a class, but not
                      in object (tp7 compatible) }
                    if not((m_delphi in aktmodeswitches) and
-                          (procinfo^._class^.is_class)) then
+                          is_class(procinfo^._class)) then
                     begin
                       DuplicateSym(hsym);
                       exit;
@@ -2353,11 +2366,47 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2000-11-01 23:04:38  peter
+  Revision 1.14  2000-11-04 14:25:22  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.13  2000/11/01 23:04:38  peter
     * tprocdef.fullprocname added for better casesensitve writing of
       procedures
 
   Revision 1.12  2000/10/31 22:02:52  peter
     * symtable splitted, no real code changes
 
+  Revision 1.11  2000/10/15 07:47:53  peter
+    * unit names and procedure names are stored mixed case
+
+  Revision 1.10  2000/10/14 10:14:53  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.9  2000/10/01 19:48:25  peter
+    * lot of compile updates for cg11
+
+  Revision 1.8  2000/09/24 15:06:29  peter
+    * use defines.inc
+
+  Revision 1.7  2000/08/27 16:11:54  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.6  2000/08/21 11:27:45  pierre
+   * fix the stabs problems
+
+  Revision 1.5  2000/08/20 14:58:41  peter
+    * give fatal if objfpc/delphi mode things are found (merged)
+
+  Revision 1.4  2000/08/16 18:33:54  peter
+    * splitted namedobjectitem.next into indexnext and listnext so it
+      can be used in both lists
+    * don't allow "word = word" type definitions (merged)
+
+  Revision 1.3  2000/08/08 19:28:57  peter
+    * memdebug/memory patches (merged)
+    * only once illegal directive (merged)
+
+  Revision 1.2  2000/07/13 11:32:50  michael
+  + removed logs
 }

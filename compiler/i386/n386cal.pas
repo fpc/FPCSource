@@ -90,44 +90,6 @@ implementation
              end;
         end;
 
-      procedure prepareout(const r : treference);
-
-        var
-           hr : treference;
-           pushed : tpushed;
-
-        begin
-           { out parameters needs to be finalized }
-           if (defcoll^.paratype.def^.needs_inittable) then
-             begin
-                reset_reference(hr);
-                hr.symbol:=pstoreddef(defcoll^.paratype.def)^.get_inittable_label;
-                emitpushreferenceaddr(hr);
-                emitpushreferenceaddr(r);
-                emitcall('FPC_FINALIZE');
-             end
-           else
-           { or at least it zeroed out }
-             begin
-                case defcoll^.paratype.def^.size of
-                   1:
-                     emit_const_ref(A_MOV,S_B,0,newreference(r));
-                   2:
-                     emit_const_ref(A_MOV,S_W,0,newreference(r));
-                   4:
-                     emit_const_ref(A_MOV,S_L,0,newreference(r));
-                   else
-                     begin
-                        pushusedregisters(pushed,$ff);
-                        emit_const(A_PUSH,S_W,0);
-                        push_int(defcoll^.paratype.def^.size);
-                        emitpushreferenceaddr(r);
-                        emitcall('FPC_FILLCHAR');
-                        popusedregisters(pushed);
-                     end
-                end;
-             end;
-        end;
       var
          otlabel,oflabel : pasmlabel;
          { temporary variables: }
@@ -200,6 +162,11 @@ implementation
               if (left.location.loc<>LOC_REFERENCE) then
                 CGMessage(cg_e_var_must_be_reference);
               maybe_push_high;
+              if (defcoll^.paratyp=vs_out) and
+                 assigned(defcoll^.paratype.def) and
+                 not is_class(defcoll^.paratype.def) and
+                 defcoll^.paratype.def^.needs_inittable then
+                finalize(defcoll^.paratype.def,left.location.reference,false);
               inc(pushedparasize,4);
               if inlined then
                 begin
@@ -212,8 +179,6 @@ implementation
                 end
               else
                 emitpushreferenceaddr(left.location.reference);
-              if defcoll^.paratyp=vs_out then
-                prepareout(left.location.reference);
               del_reference(left.location.reference);
            end
          else
@@ -562,7 +527,7 @@ implementation
                    r^:=twithnode(pwithsymtable(symtableproc)^.withnode).withreference^;
                    if ((not(nf_islocal in twithnode(pwithsymtable(symtableproc)^.withnode).flags)) and
                        (not pwithsymtable(symtableproc)^.direct_with)) or
-                      pobjectdef(methodpointer.resulttype)^.is_class then
+                      is_class_or_interface(methodpointer.resulttype) then
                      emit_ref_reg(A_MOV,S_L,r,R_ESI)
                    else
                      emit_ref_reg(A_LEA,S_L,r,R_ESI);
@@ -623,7 +588,7 @@ implementation
                                       loadesi:=false;
 
                                     { a class destructor needs a flag }
-                                    if pobjectdef(methodpointer.resulttype)^.is_class and
+                                    if is_class(pobjectdef(methodpointer.resulttype)) and
                                        {assigned(aktprocsym) and
                                        (aktprocsym^.definition^.proctypeoption=potype_destructor)}
                                        (procdefinition^.proctypeoption=potype_destructor) then
@@ -633,7 +598,7 @@ implementation
                                       end;
 
                                     if not(is_con_or_destructor and
-                                           pobjectdef(methodpointer.resulttype)^.is_class and
+                                           is_class(methodpointer.resulttype) and
                                            {assigned(aktprocsym) and
                                           (aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor])}
                                            (procdefinition^.proctypeoption in [potype_constructor,potype_destructor])
@@ -644,8 +609,8 @@ implementation
                                     { will be made                                  }
                                     { con- and destructors need a pointer to the vmt }
                                     if is_con_or_destructor and
-                                    not(pobjectdef(methodpointer.resulttype)^.is_class) and
-                                    assigned(aktprocsym) then
+                                      is_object(methodpointer.resulttype) and
+                                      assigned(aktprocsym) then
                                       begin
                                          if not(aktprocsym^.definition^.proctypeoption in
                                                 [potype_constructor,potype_destructor]) then
@@ -654,12 +619,13 @@ implementation
                                     { class destructors get there flag above }
                                     { constructor flags ?                    }
                                     if is_con_or_destructor and
-                                        not(pobjectdef(methodpointer.resulttype)^.is_class and
+                                      not(
+                                        is_class(methodpointer.resulttype) and
                                         assigned(aktprocsym) and
                                         (aktprocsym^.definition^.proctypeoption=potype_destructor)) then
                                       begin
                                          { a constructor needs also a flag }
-                                         if pobjectdef(methodpointer.resulttype)^.is_class then
+                                         if is_class(methodpointer.resulttype) then
                                            push_int(0);
                                          push_int(0);
                                       end;
@@ -713,8 +679,7 @@ implementation
                                             else
                                               begin
                                                  if (methodpointer.resulttype^.deftype=classrefdef) or
-                                                    ((methodpointer.resulttype^.deftype=objectdef) and
-                                                   pobjectdef(methodpointer.resulttype)^.is_class) then
+                                                    is_class_or_interface(methodpointer.resulttype) then
                                                    emit_ref_reg(A_MOV,S_L,
                                                      newreference(methodpointer.location.reference),R_ESI)
                                                  else
@@ -742,14 +707,12 @@ implementation
 
                                         { direct call to destructor: remove data }
                                         if (procdefinition^.proctypeoption=potype_destructor) and
-                                           (methodpointer.resulttype^.deftype=objectdef) and
-                                           (pobjectdef(methodpointer.resulttype)^.is_class) then
+                                           is_class(methodpointer.resulttype) then
                                           emit_const(A_PUSH,S_L,1);
 
                                         { direct call to class constructor, don't allocate memory }
                                         if (procdefinition^.proctypeoption=potype_constructor) and
-                                           (methodpointer.resulttype^.deftype=objectdef) and
-                                           (pobjectdef(methodpointer.resulttype)^.is_class) then
+                                           is_class(methodpointer.resulttype) then
                                           begin
                                              emit_const(A_PUSH,S_L,0);
                                              emit_const(A_PUSH,S_L,0);
@@ -759,8 +722,7 @@ implementation
                                              { constructor call via classreference => allocate memory }
                                              if (procdefinition^.proctypeoption=potype_constructor) and
                                                 (methodpointer.resulttype^.deftype=classrefdef) and
-                                                (pobjectdef(pclassrefdef(methodpointer.resulttype)^.
-                                                   pointertype.def)^.is_class) then
+                                                is_class(pclassrefdef(methodpointer.resulttype)^.pointertype.def) then
                                                 emit_const(A_PUSH,S_L,1);
                                              emit_reg(A_PUSH,S_L,R_ESI);
                                           end;
@@ -769,8 +731,7 @@ implementation
                                     if is_con_or_destructor then
                                       begin
                                          { classes don't get a VMT pointer pushed }
-                                         if (methodpointer.resulttype^.deftype=objectdef) and
-                                           not(pobjectdef(methodpointer.resulttype)^.is_class) then
+                                         if is_object(methodpointer.resulttype) then
                                            begin
                                               if (procdefinition^.proctypeoption=potype_constructor) then
                                                 begin
@@ -810,7 +771,7 @@ implementation
                              loadesi:=false;
                           end;
                         { direct call to destructor: don't remove data! }
-                        if procinfo^._class^.is_class then
+                        if is_class(procinfo^._class) then
                           begin
                              if (procdefinition^.proctypeoption=potype_destructor) then
                                begin
@@ -825,7 +786,7 @@ implementation
                              else
                                emit_reg(A_PUSH,S_L,R_ESI);
                           end
-                        else
+                        else if is_object(procinfo^._class) then
                           begin
                              emit_reg(A_PUSH,S_L,R_ESI);
                              if is_con_or_destructor then
@@ -841,7 +802,9 @@ implementation
                                   else
                                     push_int(0);
                                end;
-                          end;
+                          end
+                        else
+                          Internalerror(200006165);
                      end;
                 end;
 
@@ -1356,8 +1319,7 @@ implementation
                 begin
                    { data which must be finalized ? }
                    if (resulttype^.needs_inittable) and
-                     ( (resulttype^.deftype<>objectdef) or
-                       not(pobjectdef(resulttype)^.is_class)) then
+                     not(is_class(resulttype)) then
                       finalize(resulttype,location.reference,false);
                    { release unused temp }
                    ungetiftemp(location.reference)
@@ -1595,7 +1557,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-11-04 13:12:14  jonas
+  Revision 1.4  2000-11-04 14:25:23  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.3  2000/11/04 13:12:14  jonas
     * check for nil pointers before calling getcopy
 
   Revision 1.2  2000/10/31 22:02:56  peter

@@ -312,6 +312,7 @@ implementation
                     akttokenpos:=stpos;
                     { we don't need the forwarddef anymore, dispose it }
                     dispose(hpd,done);
+                    ppointerdef(pd)^.pointertype.def:=nil; { if error occurs }
                     { was a type sym found ? }
                     if assigned(srsym) and
                        (srsym^.typ=typesym) then
@@ -329,8 +330,7 @@ implementation
 {$endif GDB}
                        { we need a class type for classrefdef }
                        if (pd^.deftype=classrefdef) and
-                          not((ptypesym(srsym)^.restype.def^.deftype=objectdef) and
-                              pobjectdef(ptypesym(srsym)^.restype.def)^.is_class) then
+                          not(is_class(ptypesym(srsym)^.restype.def)) then
                          Message1(type_e_class_type_expected,ptypesym(srsym)^.restype.def^.typename);
                      end
                     else
@@ -400,8 +400,7 @@ implementation
                begin
                  if (token=_CLASS) and
                     (assigned(ptypesym(sym)^.restype.def)) and
-                    (ptypesym(sym)^.restype.def^.deftype=objectdef) and
-                    pobjectdef(ptypesym(sym)^.restype.def)^.is_class and
+                    is_class(ptypesym(sym)^.restype.def) and
                     (oo_is_forward in pobjectdef(ptypesym(sym)^.restype.def)^.objectoptions) then
                   begin
                     { we can ignore the result   }
@@ -431,6 +430,11 @@ implementation
                 tt.sym:=newtype;
               if assigned(tt.def) and not assigned(tt.def^.typesym) then
                 tt.def^.typesym:=newtype;
+              { KAZ: handle TGUID declaration in system unit }
+              if (cs_compilesystem in aktmoduleswitches) and not assigned(rec_tguid) and
+                 (typename='TGUID') and { name: TGUID and size=16 bytes that is 128 bits }
+                 assigned(tt.def) and (tt.def^.deftype=recorddef) and (tt.def^.size=16) then
+                rec_tguid:=precorddef(tt.def);
             end;
            if assigned(newtype^.restype.def) and
               (newtype^.restype.def^.deftype=procvardef) then
@@ -528,7 +532,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2000-10-31 22:02:49  peter
+  Revision 1.19  2000-11-04 14:25:20  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.18  2000/10/31 22:02:49  peter
     * symtable splitted, no real code changes
 
   Revision 1.17  2000/10/14 10:14:51  peter

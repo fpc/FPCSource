@@ -93,7 +93,7 @@ implementation
          s:=pattern;
          pos:=akttokenpos;
          { classes can be used also in classes }
-         if (curobjectname=pattern) and aktobjectdef^.is_class then
+         if (curobjectname=pattern) and is_class_or_interface(aktobjectdef) then
            begin
               tt.setdef(aktobjectdef);
               consume(_ID);
@@ -254,7 +254,7 @@ implementation
                 exit;
              end;
            { classes can be used also in classes }
-           if (curobjectname=pattern) and aktobjectdef^.is_class then
+           if (curobjectname=pattern) and is_class_or_interface(aktobjectdef) then
              begin
                 tt.setdef(aktobjectdef);
                 consume(_ID);
@@ -538,9 +538,7 @@ implementation
               end;
             _CLASS,
             _CPPCLASS,
-{$ifdef SUPPORTINTERFACES}
             _INTERFACE,
-{$endif SUPPORTINTERFACES}
             _OBJECT:
               begin
                 tt.setdef(object_dec(name,nil));
@@ -583,7 +581,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2000-10-31 22:02:51  peter
+  Revision 1.14  2000-11-04 14:25:21  florian
+    + merged Attila's changes for interfaces, not tested yet
+
+  Revision 1.13  2000/10/31 22:02:51  peter
     * symtable splitted, no real code changes
 
   Revision 1.12  2000/10/26 21:54:03  peter
