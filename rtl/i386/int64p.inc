@@ -168,17 +168,19 @@
       the longbool for checkoverflow avoids a misaligned stack
     }
     function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
-
       var
-         _f1 : qword;
-         r : qword;
+        r : qword;
+        overflowed : boolean;
       begin
-        _f1:=f1;
+        overflowed:=false;
         { the following piece of code is taken from the
           AMD Athlon Processor x86 Code Optimization manual }
         asm
            movl f1+4,%edx
            movl f2+4,%ecx
+           cmpl $0,checkoverflow
+           jnz .Loverflowchecked
+
            orl %ecx,%edx
            movl f2,%edx
            movl f1,%eax
@@ -194,18 +196,70 @@
         .Lqwordmulready:
            movl %eax,r
            movl %edx,r+4
-        end [ 'eax','edx','ecx' ];
+           jmp .Lend
+
+        .Loverflowchecked:
+           { if both upper dwords are <>0 then it overflows always }
+           or %ecx,%ecx
+           jz .Loverok1
+           or %edx,%edx
+           jnz .Loverflowed
+        .Loverok1:
+           { overflow checked code }
+           orl %ecx,%edx
+           movl f2,%edi
+           movl f1,%esi
+           jnz .Lqwordmultwomul2
+           movl %edi,%eax
+           mull %esi
+           movl %eax,%esi
+           movl %edx,%edi
+           jmp .Lqwordmulready2
+
+        .Lqwordmultwomul2:
+           movl f1+4,%eax
+           mull %edi
+           movl %eax,%edi
+           jc  .Loverflowed
+
+           movl %esi,%eax
+           mull %ecx
+           movl %eax,%ecx
+           jc  .Loverflowed
+
+           addl %edi,%ecx
+           jc  .Loverflowed
+
+           movl f2,%eax
+           mull %esi
+           movl %eax,%esi
+           movl %edx,%edi
+
+           addl %ecx,%edi
+           jc  .Loverflowed
+
+        .Lqwordmulready2:
+           movl %esi,r
+           movl %edi,r+4
+           jmp .Lend
+
+        .Loverflowed:
+           movb $1,overflowed
+
+        .Lend:
+        end [ 'eax','edx','ecx','edi','esi' ];
         fpc_mul_qword:=r;
-        { if one of the operands is greater than the result an
-          overflow occurs                                      }
-        if checkoverflow and (_f1<>0) and (f2<>0) and
-           ((_f1>fpc_mul_qword) or (f2>fpc_mul_qword)) then
+
+        if overflowed then
           HandleErrorFrame(215,get_frame);
       end;
 
 {
   $Log$
-  Revision 1.4  2004-07-25 11:50:39  florian
+  Revision 1.5  2004-09-26 08:52:51  florian
+    * fixed overflow checking in qword multiplication
+
+  Revision 1.4  2004/07/25 11:50:39  florian
     * assembler version of mod_qword_word reactivated
 
   Revision 1.3  2004/05/10 20:58:20  florian
