@@ -64,6 +64,130 @@ implementation
                              TI386MODDIVNODE
 *****************************************************************************}
 
+{$ifdef newra}
+    procedure ti386moddivnode.pass_2;
+
+    var  r,r2,hreg1,hreg2:Tregister;
+         power:longint;
+         hl:Tasmlabel;
+         pushedregs:Tmaybesave;
+
+    begin
+      secondpass(left);
+      if codegenerror then
+        exit;
+      maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+      secondpass(right);
+      maybe_restore(exprasmlist,left.location,pushedregs);
+      if codegenerror then
+        exit;
+      location_copy(location,left.location);
+
+      if is_64bitint(resulttype.def) then
+        begin
+          { should be handled in pass_1 (JM) }
+          internalerror(200109052);
+        end
+      else
+        begin
+          { put numerator in register }
+          location_reset(location,LOC_REGISTER,OS_INT);
+          location_force_reg(exprasmlist,left.location,OS_INT,false);
+          hreg1:=left.location.register;
+
+          if (nodetype=divn) and (right.nodetype=ordconstn) and
+            ispowerof2(tordconstnode(right).value,power) then
+            begin
+              { for signed numbers, the numerator must be adjusted before the
+                shift instruction, but not wih unsigned numbers! Otherwise,
+                "Cardinal($ffffffff) div 16" overflows! (JM) }
+              if is_signed(left.resulttype.def) Then
+                begin
+                  if (aktOptProcessor <> class386) and
+                     not(CS_LittleSize in aktglobalswitches) then
+                    { use a sequence without jumps, saw this in
+                      comp.compilers (JM) }
+                    begin
+                      { no jumps, but more operations }
+                      hreg2:=rg.getregisterint(exprasmlist,OS_INT);
+                      emit_reg_reg(A_MOV,S_L,hreg1,hreg2);
+                      { if the left value is signed, hreg2 := $ffffffff,
+                        otherwise 0 }
+                      emit_const_reg(A_SAR,S_L,31,hreg2);
+                      { if signed, hreg2 := right value-1, otherwise 0 }
+                      emit_const_reg(A_AND,S_L,tordconstnode(right).value-1,hreg2);
+                      { add to the left value }
+                      emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
+                      { release EDX if we used it }
+                      { also releas EDI }
+                      rg.ungetregisterint(exprasmlist,hreg2);
+                      { do the shift }
+                      emit_const_reg(A_SAR,S_L,power,hreg1);
+                    end
+                  else
+                    begin
+                      { a jump, but less operations }
+                      emit_reg_reg(A_TEST,S_L,hreg1,hreg1);
+                      objectlibrary.getlabel(hl);
+                      emitjmp(C_NS,hl);
+                      if power=1 then
+                        emit_reg(A_INC,S_L,hreg1)
+                      else
+                        emit_const_reg(A_ADD,S_L,tordconstnode(right).value-1,hreg1);
+                      cg.a_label(exprasmlist,hl);
+                      emit_const_reg(A_SAR,S_L,power,hreg1);
+                    end
+                end
+              else
+                emit_const_reg(A_SHR,S_L,power,hreg1);
+              location.register:=hreg1;
+            end
+          else
+            begin
+              {Bring denominator to a register.}
+              hreg2:=rg.getregisterint(exprasmlist,OS_INT);
+              if right.location.loc<>LOC_CREGISTER then
+                location_release(exprasmlist,right.location);
+              cg.a_load_loc_reg(exprasmlist,right.location,hreg2);
+              rg.getexplicitregisterint(exprasmlist,NR_EAX);
+              rg.getexplicitregisterint(exprasmlist,NR_EDX);
+              r.enum:=R_INTREGISTER;
+              r.number:=NR_EAX;
+              r2.enum:=R_INTREGISTER;
+              r2.number:=NR_EDX;
+              emit_reg_reg(A_MOV,S_L,hreg1,r);
+              rg.ungetregisterint(exprasmlist,hreg1);
+              {Sign extension depends on the left type.}
+              if torddef(left.resulttype.def).typ=u32bit then
+                emit_reg_reg(A_XOR,S_L,r2,r2)
+              else
+                emit_none(A_CDQ,S_NO);
+
+              {Division depends on the right type.}
+              if torddef(right.resulttype.def).typ=u32bit then
+                emit_reg(A_DIV,S_L,hreg2)
+              else
+                emit_reg(A_IDIV,S_L,hreg2);
+
+              rg.ungetregisterint(exprasmlist,hreg2);
+              if nodetype=divn then
+                begin
+                  rg.ungetregisterint(exprasmlist,r2);
+                  location.register:=rg.getregisterint(exprasmlist,OS_INT);
+                  emit_reg_reg(A_MOV,S_L,r,location.register);
+                  rg.ungetregisterint(exprasmlist,r);
+                end
+              else
+                begin
+                  rg.ungetregisterint(exprasmlist,r);
+                  location.register:=rg.getregisterint(exprasmlist,OS_INT);
+                  emit_reg_reg(A_MOV,S_L,r2,location.register);
+                  rg.ungetregisterint(exprasmlist,r2);
+                end;
+            end;
+       end;
+    end;
+{$else}
     procedure ti386moddivnode.pass_2;
       var
          hreg1 : tregister;
@@ -281,6 +405,7 @@ implementation
               location.register:=hreg1;
            end;
       end;
+{$endif}
 
 
 {*****************************************************************************
@@ -883,7 +1008,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2003-02-19 22:00:15  daniel
+  Revision 1.46  2003-03-08 13:59:17  daniel
+    * Work to handle new register notation in ag386nsm
+    + Added newra version of Ti386moddivnode
+
+  Revision 1.45  2003/02/19 22:00:15  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

@@ -453,8 +453,10 @@ unit rgobj;
         internalerror(2003010803);
       supreg:=r.number shr 8;
       { takes much time }
+{$ifndef newra}
       if not(supreg in usableregs) then
         exit;
+{$endif}
 {$ifdef TEMPREGDEBUG}
          if (supreg in unusedregs) then
 {$ifdef EXTTEMPREGDEBUG}
@@ -1226,7 +1228,11 @@ end.
 
 {
   $Log$
-  Revision 1.27  2003-03-08 10:53:48  daniel
+  Revision 1.28  2003-03-08 13:59:16  daniel
+    * Work to handle new register notation in ag386nsm
+    + Added newra version of Ti386moddivnode
+
+  Revision 1.27  2003/03/08 10:53:48  daniel
     * Created newra version of secondmul in n386add.pas
 
   Revision 1.26  2003/03/08 08:59:07  daniel

@@ -1344,10 +1344,11 @@ interface
       r.enum:=R_INTREGISTER;
       r.number:=NR_EDX;
       rg.ungetregisterint(exprasmlist,r);
-      {Free EAX}
-      rg.ungetregisterint(exprasmlist,r_eax);
+      {Allocate a new register and store the result in EAX in it.}
       location.register:=rg.getregisterint(exprasmlist,OS_INT);
       emit_reg_reg(A_MOV,S_L,r_eax,location.register);
+      {Free EAX}
+      rg.ungetregisterint(exprasmlist,r_eax);
       location_freetemp(exprasmlist,left.location);
       location_freetemp(exprasmlist,right.location);
     end;
@@ -1635,7 +1636,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2003-03-08 10:53:48  daniel
+  Revision 1.57  2003-03-08 13:59:17  daniel
+    * Work to handle new register notation in ag386nsm
+    + Added newra version of Ti386moddivnode
+
+  Revision 1.56  2003/03/08 10:53:48  daniel
     * Created newra version of secondmul in n386add.pas
 
   Revision 1.55  2003/02/19 22:00:15  daniel

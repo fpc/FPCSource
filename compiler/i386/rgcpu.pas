@@ -288,8 +288,10 @@ unit rgcpu;
     procedure trgcpu.ungetreference(list: taasmoutput; const ref : treference);
 
       begin
-         ungetregisterint(list,ref.base);
-         ungetregisterint(list,ref.index);
+         if ref.base.number<>NR_NO then
+           ungetregisterint(list,ref.base);
+         if ref.index.number<>NR_NO then
+           ungetregisterint(list,ref.index);
       end;
 
 
@@ -515,7 +517,11 @@ end.
 
 {
   $Log$
-  Revision 1.14  2003-03-08 08:59:07  daniel
+  Revision 1.15  2003-03-08 13:59:17  daniel
+    * Work to handle new register notation in ag386nsm
+    + Added newra version of Ti386moddivnode
+
+  Revision 1.14  2003/03/08 08:59:07  daniel
     + $define newra will enable new register allocator
     + getregisterint will return imaginary registers with $newra
     + -sr switch added, will skip register allocation so you can see

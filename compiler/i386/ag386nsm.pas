@@ -384,6 +384,7 @@ interface
       found,
       do_line,
       quoted   : boolean;
+      regstr:string[5];
     begin
       if not assigned(p) then
        exit;
@@ -454,8 +455,12 @@ interface
 
            ait_regalloc :
              begin
+               if tai_regalloc(hp).reg.enum=R_INTREGISTER then
+                regstr:=intel_regname(tai_regalloc(hp).reg.number)
+               else
+                regstr:=std_reg2str[tai_regalloc(hp).reg.enum];
                if (cs_asm_regalloc in aktglobalswitches) then
-                 AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tai_regalloc(hp).reg.enum]+
+                 AsmWriteLn(target_asm.comment+'Register '+regstr+
                    allocstr[tai_regalloc(hp).allocation]);
              end;
 
@@ -916,7 +921,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.31  2003-03-08 08:59:07  daniel
+  Revision 1.32  2003-03-08 13:59:17  daniel
+    * Work to handle new register notation in ag386nsm
+    + Added newra version of Ti386moddivnode
+
+  Revision 1.31  2003/03/08 08:59:07  daniel
     + $define newra will enable new register allocator
     + getregisterint will return imaginary registers with $newra
     + -sr switch added, will skip register allocation so you can see
