@@ -40,14 +40,14 @@ begin
   DoneMouse;
   DoneVideo;
 
-{  if Assigned(UserScreen) then
-    UserScreen^.SwitchTo; }
+  if Assigned(UserScreen) then
+    UserScreen^.SwitchTo;
 
   Exec(ExeFile,GetRunParameters);
   LastExitCode:=DosExitCode;
 
-{  if Assigned(UserScreen) then
-    UserScreen^.SwitchBack; }
+  if Assigned(UserScreen) then
+    UserScreen^.SwitchBack;
 
   InitVideo;
   InitMouse;
@@ -83,7 +83,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1999-01-12 14:29:36  peter
+  Revision 1.4  1999-01-14 21:42:22  peter
+    * source tracking from Gabor
+
+  Revision 1.3  1999/01/12 14:29:36  peter
     + Implemented still missing 'switch' entries in Options menu
     + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
       ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as

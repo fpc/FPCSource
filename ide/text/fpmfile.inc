@@ -14,36 +14,6 @@
 
  **********************************************************************}
 
-function TIDEApp.OpenEditorWindow(FileName: string; CurX,CurY: integer): PSourceWindow;
-var P: PView;
-    R: TRect;
-    W: PSourceWindow;
-begin
-  P:=Message(Desktop,evBroadcast,cmSearchWindow,nil);
-  if P=nil then Desktop^.GetExtent(R) else
-     begin
-       P^.GetBounds(R);
-       Inc(R.A.X); Inc(R.A.Y);
-     end;
-  PushStatus('Opening source file... ('+SmartPath(FileName)+')');
-  New(W, Init(R, FileName));
-  if W<>nil then
-  begin
-    if (CurX<>0) or (CurY<>0) then
-       with W^.Editor^ do
-       begin
-         SetCurPtr(CurX,CurY);
-         TrackCursor(true);
-       end;
-    W^.HelpCtx:=hcSourceWindow;
-    Desktop^.Insert(W);
-    Message(Application,evBroadcast,cmUpdate,nil);
-  end;
-  PopStatus;
-  OpenEditorWindow:=W;
-end;
-
-
 procedure TIDEApp.NewEditor;
 begin
   OpenEditorWindow('',0,0);
@@ -150,7 +120,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1999-01-04 11:49:46  peter
+  Revision 1.4  1999-01-14 21:42:21  peter
+    * source tracking from Gabor
+
+  Revision 1.3  1999/01/04 11:49:46  peter
    * 'Use tab characters' now works correctly
    + Syntax highlight now acts on File|Save As...
    + Added a new class to syntax highlight: 'hex numbers'.

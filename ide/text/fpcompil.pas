@@ -34,6 +34,8 @@ type
 
 procedure DoCompile(Mode: TCompileMode);
 
+const SD: PCompileStatusDialog = nil;
+
 implementation
 
 uses
@@ -41,8 +43,6 @@ uses
   Objects,Drivers,Views,App,
   CompHook,
   FPConst,FPVars,FPUtils,FPIntf,FPSwitches;
-
-const SD: PCompileStatusDialog = nil;
 
 constructor TCompileStatusDialog.Init;
 var R: TRect;
@@ -185,6 +185,7 @@ begin
        end;
       FileName:=P^.Editor^.FileName;
     end;
+  WriteSwitches(SwitchesPath);
   MainFile:=FExpand(FileName);
   EXEFile:=GetEXEPath+NameAndExtOf(MainFile);
 { Reset }
@@ -231,7 +232,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-01-12 14:29:32  peter
+  Revision 1.5  1999-01-14 21:42:19  peter
+    * source tracking from Gabor
+
+  Revision 1.4  1999/01/12 14:29:32  peter
     + Implemented still missing 'switch' entries in Options menu
     + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
       ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as

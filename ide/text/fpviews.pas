@@ -173,6 +173,7 @@ type
       constructor Init(AClass: longint; AText, AModule: string; AID: longint);
       function    GetText(MaxLen: integer): string; virtual;
       procedure   Selected; virtual;
+      function    GetModuleName: string; virtual;
       destructor  Done; virtual;
     end;
 
@@ -297,6 +298,9 @@ procedure InitReservedWords;
 
 procedure TranslateMouseClick(View: PView; var Event: TEvent);
 
+function OpenEditorWindow(FileName: string; CurX,CurY: integer): PSourceWindow;
+function TryToOpenFile(FileName: string; CurX,CurY: integer): PSourceWindow;
+
 const
       SourceCmds  : TCommandSet =
         ([cmSave,cmSaveAs,cmCompile]);
@@ -321,7 +325,7 @@ implementation
 uses
   Keyboard,Memory,MsgBox,Validate,
   Tokens,
-  FPVars,FPUtils,FPHelp;
+  FPVars,FPUtils,FPHelp,FPCompile;
 
 const
   NoNameCount    : integer = 0;
@@ -540,7 +544,7 @@ end;
                                SearchWindow
 *****************************************************************************}
 
-function SearchWindowWithNo(No: integer): PSourceWindow;
+function SearchWindowWithNo(No: integer): PWindow;
 var P: PSourceWindow;
 begin
   P:=Message(Desktop,evBroadcast,cmSearchWindow+No,nil);
@@ -2063,12 +2067,21 @@ procedure TMessageListBox.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
 begin
   case Event.What of
+    evKeyDown :
+      begin
+        DontClear:=false;
+        case Event.KeyCode of
+          kbEnter :
+            if Owner<>pointer(SD) then
+              Message(@Self,evCommand,cmMsgGotoSource,nil);
+        else DontClear:=true;
+        end;
+        if DontClear=false then ClearEvent(Event);
+      end;
     evCommand :
       begin
         DontClear:=false;
-        case Event.What of
-          cmDefault :
-            Message(@Self,evCommand,cmMsgGotoSource,nil);
+        case Event.Command of
           cmMsgGotoSource :
             if Range>0 then
             GotoSource;
@@ -2119,12 +2132,40 @@ begin
 end;
 
 procedure TMessageListBox.TrackSource;
+var W: PSourceWindow;
+    P: PMessageItem;
+    R: TRect;
 begin
+  if Range=0 then Exit;
+  P:=List^.At(Focused);
+  if P^.ID=0 then Exit;
+  Desktop^.Lock;
+  W:=TryToOpenFile(P^.GetModuleName,0,P^.ID-1);
+  if W<>nil then
+    begin
+      Desktop^.GetExtent(R);
+      W^.Locate(R);
+    end;
+  Desktop^.UnLock;
 end;
 
 procedure TMessageListBox.GotoSource;
+var W: PSourceWindow;
+    P: PMessageItem;
+    R: TRect;
 begin
-{  if TryToOpenSource(}
+  if Range=0 then Exit;
+  P:=List^.At(Focused);
+  if P^.ID=0 then Exit;
+  Desktop^.Lock;
+  W:=TryToOpenFile(P^.GetModuleName,0,P^.ID-1);
+  if W<>nil then
+    begin
+      Desktop^.GetExtent(R);
+      W^.Locate(R);
+    end;
+  Message(Owner,evCommand,cmClose,nil);
+  Desktop^.UnLock;
 end;
 
 procedure TMessageListBox.Draw;
@@ -2220,6 +2261,11 @@ end;
 
 procedure TMessageItem.Selected;
 begin
+end;
+
+function TMessageItem.GetModuleName: string;
+begin
+  GetModuleName:=GetStr(Module);
 end;
 
 destructor TMessageItem.Done;
@@ -2840,10 +2886,128 @@ begin
   InTranslate:=false;
 end;
 
+function OpenEditorWindow(FileName: string; CurX,CurY: integer): PSourceWindow;
+var P: PView;
+    R: TRect;
+    W: PSourceWindow;
+begin
+{  P:=Message(Desktop,evBroadcast,cmSearchWindow,nil);}
+  P:=Desktop^.First;
+  while P<>nil do
+  begin
+    if P^.HelpCtx=hcSourceWindow then Break;
+    P:=P^.NextView;
+  end;
+  if P=nil then Desktop^.GetExtent(R) else
+     begin
+       P^.GetBounds(R);
+       Inc(R.A.X); Inc(R.A.Y);
+     end;
+  PushStatus('Opening source file... ('+SmartPath(FileName)+')');
+  New(W, Init(R, FileName));
+  if W<>nil then
+  begin
+    if (CurX<>0) or (CurY<>0) then
+       with W^.Editor^ do
+       begin
+         SetCurPtr(CurX,CurY);
+         TrackCursor(true);
+       end;
+    W^.HelpCtx:=hcSourceWindow;
+    Desktop^.Insert(W);
+    Message(Application,evBroadcast,cmUpdate,nil);
+  end;
+  PopStatus;
+  OpenEditorWindow:=W;
+end;
+
+function TryToOpenFile(FileName: string; CurX,CurY: integer): PSourceWindow;
+var D : DirStr;
+    N : NameStr;
+    E : ExtStr;
+function CheckDir(NewDir: DirStr; NewName: NameStr; NewExt: ExtStr): boolean;
+var OK: boolean;
+begin
+  NewDir:=CompleteDir(NewDir);
+  OK:=ExistsFile(NewDir+NewName+NewExt);
+  if OK then begin D:=NewDir; N:=NewName; E:=NewExt; end;
+  CheckDir:=OK;
+end;
+function CheckExt(NewExt: ExtStr): boolean;
+var OK: boolean;
+begin
+  OK:=false;
+  if D<>'' then OK:=CheckDir(D,N,NewExt) else
+    if CheckDir('.\',N,NewExt) then OK:=true;
+  CheckExt:=OK;
+end;
+function TryToOpen: PSourceWindow;
+var Found: boolean;
+    W : PSourceWindow;
+begin
+  Found:=true;
+  if E='' then
+    if CheckExt('.pp') then Found:=true else
+      if CheckExt('.pas') then Found:=true else
+        if CheckExt('.inc')=false then
+          Found:=false;
+  if Found=false then W:=nil else
+    begin
+      FileName:=FExpand(D+N+E);
+      W:=OpenEditorWindow(FileName,CurX,CurY);
+    end;
+  TryToOpen:=W;
+end;
+function SearchOnDesktop: PSourceWindow;
+var W: PWindow;
+    I: integer;
+    Found: boolean;
+    SName: string;
+begin
+  for I:=1 to 100 do
+  begin
+    W:=SearchWindowWithNo(I);
+    if (W<>nil) and (W^.HelpCtx=hcSourceWindow) then
+      begin
+        if (D='') then
+          SName:=NameAndExtOf(PSourceWindow(W)^.Editor^.FileName)
+        else
+          SName:=PSourceWindow(W)^.Editor^.FileName;
+        SName:=UpcaseStr(SName);
+
+        if E<>'' then Found:=SName=UpcaseStr(N+E) else
+          begin
+            Found:=SName=UpcaseStr(N+'.pp');
+            if Found=false then
+              Found:=SName=UpcaseStr(N+'.pas');
+          end;
+        if Found then Break;
+      end;
+  end;
+  if Found=false then W:=nil;
+  SearchOnDesktop:=PSourceWindow(W);
+end;
+var W: PSourceWindow;
+begin
+  FSplit(FileName,D,N,E);
+  W:=SearchOnDesktop;
+  if W<>nil then
+    begin
+      W^.Editor^.SetCurPtr(CurX,CurY);
+    end
+  else
+    W:=TryToOpen;
+  TryToOpenFile:=W;
+end;
+
+
 END.
 {
   $Log$
-  Revision 1.4  1999-01-12 14:29:42  peter
+  Revision 1.5  1999-01-14 21:42:25  peter
+    * source tracking from Gabor
+
+  Revision 1.4  1999/01/12 14:29:42  peter
     + Implemented still missing 'switch' entries in Options menu
     + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
       ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as

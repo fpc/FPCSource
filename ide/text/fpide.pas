@@ -32,7 +32,6 @@ type
       procedure   DosShell; virtual;
       destructor  Done; virtual;
     private
-      function  OpenEditorWindow(FileName: string; CurX,CurY: integer): PSourceWindow;
       procedure NewEditor;
       procedure NewFromTemplate;
       procedure OpenRecentFile(RecentIndex: integer);
@@ -101,7 +100,7 @@ uses
 
 function IDEUseSyntaxHighlight(Editor: PFileEditor): boolean; {$ifndef FPC}far;{$endif}
 begin
-  IDEUseSyntaxHighlight:=MatchesFileList(NameAndExtOf(Editor^.FileName),HighlightExts);
+  IDEUseSyntaxHighlight:=(Editor^.FileName='') or MatchesFileList(NameAndExtOf(Editor^.FileName),HighlightExts);
 end;
 
 constructor TIDEApp.Init;
@@ -530,7 +529,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  1999-01-12 14:29:34  peter
+  Revision 1.2  1999-01-14 21:42:20  peter
+    * source tracking from Gabor
+
+  Revision 1.1  1999/01/12 14:29:34  peter
     + Implemented still missing 'switch' entries in Options menu
     + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
       ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as

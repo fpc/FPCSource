@@ -50,7 +50,7 @@ begin
     WarningBox('Too many symbols. Can''t display all of them.',nil);
   Desktop^.GetExtent(R); R.A.X:=R.B.X-35;
   Desktop^.Insert(New(PBrowserWindow, Init(R,
-    'Browse: Globals',0,'Global scope',S,nil)));
+    'Browse: Globals',SearchFreeWindowNo,'Global scope',S,nil)));
 end;
 
 procedure TIDEApp.Modules;
@@ -70,7 +70,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1999-01-12 14:29:37  peter
+  Revision 1.2  1999-01-14 21:42:23  peter
+    * source tracking from Gabor
+
+  Revision 1.1  1999/01/12 14:29:37  peter
     + Implemented still missing 'switch' entries in Options menu
     + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
       ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as

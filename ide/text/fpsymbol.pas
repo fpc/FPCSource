@@ -32,6 +32,7 @@ type
     TSymbolView = object(TListBox)
       constructor  Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
       procedure    HandleEvent(var Event: TEvent); virtual;
+      procedure    GotoItem(Item: sw_integer); virtual;
       function     GetPalette: PPalette; virtual;
     end;
 
@@ -48,6 +49,9 @@ type
       constructor Init(var Bounds: TRect; AReferences: PReferenceCollection; AHScrollBar, AVScrollBar: PScrollBar);
       function    GetText(Item,MaxLen: Sw_Integer): String; virtual;
       procedure   SelectItem(Item: Sw_Integer); virtual;
+      procedure   GotoItem(Item: sw_integer); virtual;
+      procedure   GotoSource; virtual;
+      procedure   TrackSource; virtual;
     private
       References: PReferenceCollection;
     end;
@@ -218,7 +222,7 @@ begin
         DontClear:=false;
         case Event.KeyCode of
           kbEnter :
-            SelectItem(Focused);
+            GotoItem(Focused);
           kbRight,kbLeft :
             if HScrollBar<>nil then
               HScrollBar^.HandleEvent(Event);
@@ -237,6 +241,11 @@ begin
   GetPalette:=@P;
 end;
 
+
+procedure TSymbolView.GotoItem(Item: sw_integer);
+begin
+  SelectItem(Item);
+end;
 
 {****************************************************************************
                                TSymbolScopeView
@@ -280,8 +289,30 @@ begin
   GetText:=copy(S,1,MaxLen);
 end;
 
+procedure TSymbolReferenceView.GotoSource;
+var R: PReference;
+    W: PSourceWindow;
+begin
+  if Range=0 then Exit;
+  R:=References^.At(Focused);
+  Desktop^.Lock;
+  W:=TryToOpenFile(R^.GetFileName,R^.Position.X-1,R^.Position.Y-1);
+  if W<>nil then W^.Select;
+  Desktop^.UnLock;
+end;
+
+procedure TSymbolReferenceView.TrackSource;
+begin
+end;
+
+procedure TSymbolReferenceView.GotoItem(Item: sw_integer);
+begin
+  GotoSource;
+end;
+
 procedure TSymbolReferenceView.SelectItem(Item: Sw_Integer);
 begin
+  TrackSource;
 end;
 
 
@@ -411,13 +442,11 @@ begin
               MakeGlobal(ScopeView^.Origin,P);
               Desktop^.MakeLocal(P,P); Inc(P.Y,ScopeView^.Focused-ScopeView^.TopItem);
               Inc(P.Y);
+              if (S^.GetReferenceCount>0) or (S^.GetItemCount>0) then
               OpenSymbolBrowser(Origin.X-1,P.Y,
                 S^.GetName,
                 ScopeView^.GetText(ScopeView^.Focused,255),
                 S^.Items,S^.References);
-            end else
-          if Event.InfoPtr=ReferenceView then
-            begin
             end;
       end;
     evKeyDown :
@@ -483,7 +512,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  1999-01-12 14:29:40  peter
+  Revision 1.2  1999-01-14 21:42:24  peter
+    * source tracking from Gabor
+
+  Revision 1.1  1999/01/12 14:29:40  peter
     + Implemented still missing 'switch' entries in Options menu
     + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
       ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as
