@@ -6,7 +6,7 @@ Program Example26;
 Uses sysutils;
 
 Begin
-  If Not FileExists('NewDir') then
+  If Not DirectoryExists('NewDir') then
     If Not CreateDir ('NewDir') Then
       Writeln ('Failed to create directory !')
     else
