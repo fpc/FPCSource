@@ -326,14 +326,12 @@ implementation
                 aktprocdef.usedregisters:=rg.usedinproc;
                 procinfo.aktproccode.insertlist(procinfo.aktentrycode);
                 procinfo.aktproccode.concatlist(procinfo.aktexitcode);
-{$ifdef i386}
-   {$ifndef NoOpt}
+{$ifndef NoOpt}
                 if (cs_optimize in aktglobalswitches) and
                 { do not optimize pure assembler procedures }
                    ((procinfo.flags and pi_is_assembler)=0)  then
                   Optimize(procinfo.aktproccode);
-   {$endif NoOpt}
-{$endif i386}
+{$endif NoOpt}
                 { save local data (casetable) also in the same file }
                 if assigned(procinfo.aktlocaldata) and
                    (not procinfo.aktlocaldata.empty) then
@@ -788,7 +786,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2002-09-10 20:31:48  florian
+  Revision 1.73  2002-11-09 15:32:30  carl
+    * noopt for non-i386 targets
+
+  Revision 1.72  2002/09/10 20:31:48  florian
     * call to procinfo.after_header added
 
   Revision 1.71  2002/09/07 15:25:07  peter
