@@ -1,13 +1,13 @@
 Name: fpc
 Version: 0.99.5
-Release: 1
+Release: 2
 ExclusiveArch: i386
 Copyright: GPL
 Group: Development/Languages
 Source: fpc-0.99.5-src.tar.gz
 Summary: Free Pascal Compiler
 Packager: Peter Vreman (pfv@worldonline.nl)
-URL: http://www.brain.uni-freiburg.de/~klaus/fpk-pas/
+URL: http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/
 %description
 The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi II compatible
 32bit Pascal Compiler. It comes with fully TP 7.0 compatible run-time library.
