@@ -1150,9 +1150,26 @@ unit cgobj;
 
     procedure tcg.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
         size: tcgsize; src1, src2, dst: tregister);
+      var
+        tmpreg: tregister;
       begin
-        a_load_reg_reg(list,size,size,src2,dst);
-        a_op_reg_reg(list,op,size,src1,dst);
+        if (dst.number <> src1.number) then
+          begin
+            a_load_reg_reg(list,size,size,src2,dst);
+            a_op_reg_reg(list,op,size,src1,dst);
+          end
+        else
+          begin
+{$ifdef newra}
+            tmpreg := rg.getregisterint(list);
+            a_load_reg_reg(list,size,src2,tmpreg);
+            a_op_reg_reg(list,op,size,src1,tmpreg);
+            a_load_reg_reg,tmpreg,dst);
+            rg.ungetregisterint(list,tmpreg);
+{$else newra}
+            internalerror(200305011);
+{$endif newra}
+          end;
       end;
 
 
@@ -1865,7 +1882,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.93  2003-04-29 07:28:52  michael
+  Revision 1.94  2003-05-01 12:23:46  jonas
+    * fix for op_reg_reg_reg in case the destination is the same as the first
+      source register
+
+  Revision 1.93  2003/04/29 07:28:52  michael
   + Patch from peter to fix wrong pushing of ansistring function results in open array
 
   Revision 1.92  2003/04/27 11:21:32  peter
