@@ -95,7 +95,6 @@ implementation
          lt,rt   : tnodetype;
          rv,lv   : tconstexprint;
          rvd,lvd : bestreal;
-         resdef,
          rd,ld   : pdef;
          tempdef : pdef;
          concatstrings : boolean;
@@ -104,6 +103,7 @@ implementation
          resultset : pconstset;
          i : longint;
          b : boolean;
+         boolres,
          convdone : boolean;
          s1,s2 : pchar;
          l1,l2 : longint;
@@ -159,8 +159,7 @@ implementation
               rt:=realconstn;
            end;
 
-       { both are int constants, also allow operations on two equal enums
-         in fpc mode (Needed for conversion of C code) }
+       { both are int constants }
          if ((lt=ordconstn) and (rt=ordconstn)) and
             ((is_constintnode(left) and is_constintnode(right)) or
              (is_constboolnode(left) and is_constboolnode(right) and
@@ -169,21 +168,25 @@ implementation
               { xor, and, or are handled different from arithmetic }
               { operations regarding the result type               }
               { return a boolean for boolean operations (and,xor,or) }
-              if is_constboolnode(left) then
-               resdef:=booldef
-              else if is_64bitint(rd) or is_64bitint(ld) then
-                resdef:=cs64bitdef
-              else
-                resdef:=s32bitdef;
+              boolres:=is_constboolnode(left);
               lv:=tordconstnode(left).value;
               rv:=tordconstnode(right).value;
               case nodetype of
                 addn : t:=genintconstnode(lv+rv);
                 subn : t:=genintconstnode(lv-rv);
                 muln : t:=genintconstnode(lv*rv);
-                xorn : t:=genordinalconstnode(lv xor rv,resdef);
-                 orn: t:=genordinalconstnode(lv or rv,resdef);
-                andn: t:=genordinalconstnode(lv and rv,resdef);
+                xorn : if boolres then
+                        t:=genordinalconstnode(lv xor rv,booldef)
+                       else
+                        t:=genintconstnode(lv xor rv);
+                 orn : if boolres then
+                        t:=genordinalconstnode(lv or rv,booldef)
+                       else
+                        t:=genintconstnode(lv or rv);
+                andn : if boolres then
+                        t:=genordinalconstnode(lv and rv,booldef)
+                       else
+                        t:=genintconstnode(lv and rv);
                  ltn : t:=genordinalconstnode(ord(lv<rv),booldef);
                 lten : t:=genordinalconstnode(ord(lv<=rv),booldef);
                  gtn : t:=genordinalconstnode(ord(lv>rv),booldef);
@@ -1209,7 +1212,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2000-12-31 11:14:10  jonas
+  Revision 1.21  2001-01-14 22:13:13  peter
+    * constant calculation fixed. The type of the new constant is now
+      defined after the calculation is done. This should remove a lot
+      of wrong warnings (and errors with -Cr).
+
+  Revision 1.20  2000/12/31 11:14:10  jonas
     + implemented/fixed docompare() mathods for all nodes (not tested)
     + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
       and constant strings/chars together
