@@ -1159,7 +1159,8 @@ end;
 {$define FPC_SYSTEM_HAS_INT_STR_LONGINT}
 procedure int_str(l : longint;var s : string);
 var
-  buffer : array[0..11] of byte;
+  buffer : array[0..15] of byte;
+  isneg  : byte;
 begin
   { Workaround: }
   if l=$80000000 then
@@ -1169,31 +1170,39 @@ begin
    end;
   asm
         movl    l,%eax          // load Integer
-        movl    s,%edi          // Load String address
         xorl    %ecx,%ecx       // String length=0
-        xorl    %ebx,%ebx       // Buffer length=0
+        leal    buffer,%ebx
         movl    $0x0a,%esi      // load 10 as dividing constant.
+        movb    $0,isneg
         orl     %eax,%eax       // Sign ?
         jns     .LM2
+        movb    $1,isneg
         neg     %eax
-        movb    $0x2d,1(%edi)   // put '-' in String
-        incl    %ecx
 .LM2:
         cltd
         idivl   %esi
         addb    $0x30,%dl       // convert Rest to ASCII.
-        movb    %dl,-12(%ebp,%ebx)
+        movb    %dl,(%ebx)
+        incl    %ecx
         incl    %ebx
         cmpl    $0,%eax
         jnz     .LM2
-        { copy String }
-.LM3:
-        movb    -13(%ebp,%ebx),%al    // -13 because EBX is decreased only later
-        movb    %al,1(%edi,%ecx)
+        { now copy the string }
+        movl    s,%edi          // Load String address
+        cmpb    $0,isneg
+        je      .LM3
+        movb    $0x2d,(%ebx)
         incl    %ecx
-        decl    %ebx
-        jnz     .LM3
+        incl    %ebx
+.LM3:
         movb    %cl,(%edi)      // Copy String length
+        incl    %edi
+.LM4:
+        decl    %ebx
+        movb    (%ebx),%al
+        stosb
+        decl    %ecx
+        jnz     .LM4
   end ['eax','ecx','edx','ebx','esi','edi'];
 end;
 
@@ -1201,30 +1210,32 @@ end;
 {$define FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 procedure int_str(c : longword;var s : string);
 var
-  buffer : array[0..14] of byte;
+  buffer : array[0..15] of byte;
 begin
   asm
         movl    c,%eax          // load CARDINAL
-        movl    s,%edi          // Load String address
         xorl    %ecx,%ecx       // String length=0
-        xorl    %ebx,%ebx       // Buffer length=0
+        leal    buffer,%ebx
         movl    $0x0a,%esi      // load 10 as dividing constant.
 .LM4:
         xorl    %edx,%edx
         divl    %esi
         addb    $0x30,%dl       // convert Rest to ASCII.
-        movb    %dl,-12(%ebp,%ebx)
+        movb    %dl,(%ebx)
+        incl    %ecx
         incl    %ebx
         cmpl    $0,%eax
         jnz     .LM4
         { now copy the string }
-.LM5:
-        movb    -13(%ebp,%ebx),%al    // -13 because EBX is decreased only later
-        movb    %al,1(%edi,%ecx)
-        incl    %ecx
-        decl    %ebx
-        jnz     .LM5
+        movl    s,%edi          // Load String address
         movb    %cl,(%edi)      // Copy String length
+        incl    %edi
+.LM5:
+        decl    %ebx
+        movb    (%ebx),%al
+        stosb
+        decl    %ecx
+        jnz     .LM5
   end ['eax','ecx','edx','ebx','esi','edi'];
 end;
 
@@ -1319,7 +1330,10 @@ end;
 
 {
   $Log$
-  Revision 1.50  2003-10-23 17:01:27  peter
+  Revision 1.51  2003-10-27 09:16:57  marco
+   * fix from peter i386.inc to circumvent ebx destroying
+
+  Revision 1.50  2003/10/23 17:01:27  peter
     * save edi,ebx,esi in int_str
 
   Revision 1.49  2003/10/16 21:28:40  peter
