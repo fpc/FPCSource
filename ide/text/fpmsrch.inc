@@ -56,7 +56,7 @@ begin
     WarningBox('Too many symbols. Can''t display all of them.',nil);
   Desktop^.GetExtent(R); R.A.X:=R.B.X-35;
   Desktop^.Insert(New(PBrowserWindow, Init(R,
-    'Browse: Globals',SearchFreeWindowNo,'Global scope',S,nil)));
+    'Browse: Globals',SearchFreeWindowNo,nil,'Global scope',S,nil)));
 end;
 
 procedure TIDEApp.Modules;
@@ -71,12 +71,15 @@ begin
      begin ErrorBox('No debug info available.',nil); Exit; end;
   New(S, Init(500,500));
   BrowCol.Modules^.ForEach(@InsertInS);
-  OpenSymbolBrowser(0,0,'Units','Global scope',S,nil);
+  OpenSymbolBrowser(0,0,'Units','Global scope',nil,S,nil);
 end;
 
 {
   $Log$
-  Revision 1.3  1999-02-04 13:32:08  pierre
+  Revision 1.4  1999-02-10 09:51:03  pierre
+   * Adapted to TBrowserWindow changes
+
+  Revision 1.3  1999/02/04 13:32:08  pierre
     * Several things added (I cannot commit them independently !)
     + added TBreakpoint and TBreakpointCollection
     + added cmResetDebugger,cmGrep,CmToggleBreakpoint
