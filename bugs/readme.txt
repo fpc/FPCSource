@@ -182,6 +182,8 @@ Fixed bugs:
   bug0157.pp   Invalid compilation and also crashes                  OK 0.99.7 (PFV)
   bug0158.pp   Invalid boolean typecast                              OK 0.99.7 (PFV)
   bug0159.pp   Invalid virtual functions - should compile            OK 0.99.7 (FK)
+  bug0160.pp   Incompatibility with BP: Self shouldn't be a
+               reserved word.
 
 Unproducable bugs:
 ------------------
