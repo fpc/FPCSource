@@ -126,7 +126,9 @@ type
     { init data has been generated }
     df_has_inittable,
     { rtti data has been generated }
-    df_has_rttitable
+    df_has_rttitable,
+    { type is unique, i.e. declared with type = type <tdef>; }
+    df_unique
   );
   tdefoptions=set of tdefoption;
 
@@ -340,7 +342,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2003-01-05 13:36:53  florian
+  Revision 1.43  2003-01-05 15:54:15  florian
+    + added proper support of type = type <type>; for simple types
+
+  Revision 1.42  2003/01/05 13:36:53  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 

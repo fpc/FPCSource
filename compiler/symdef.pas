@@ -68,6 +68,7 @@ interface
           constructor create;
           constructor ppuloaddef(ppufile:tcompilerppufile);
           destructor  destroy;override;
+          function getcopy : tstoreddef;virtual;
           procedure ppuwritedef(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;abstract;
           procedure deref;override;
@@ -384,6 +385,7 @@ interface
           typ      : tbasetype;
           constructor create(t : tbasetype;v,b : TConstExprInt);
           constructor ppuload(ppufile:tcompilerppufile);
+          function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  is_publishable : boolean;override;
           function  gettypename:string;override;
@@ -400,6 +402,7 @@ interface
           typ : tfloattype;
           constructor create(t : tfloattype);
           constructor ppuload(ppufile:tcompilerppufile);
+          function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  gettypename:string;override;
           function  is_publishable : boolean;override;
@@ -557,6 +560,7 @@ interface
           constructor loadansi(ppufile:tcompilerppufile);
           constructor createwide(l : longint);
           constructor loadwide(ppufile:tcompilerppufile);
+          function getcopy : tstoreddef;override;
           function  stringtypname:string;
           function  size : longint;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -895,6 +899,10 @@ implementation
          nextglobal:=nil;
       end;
 
+    function tstoreddef.getcopy : tstoreddef;
+      begin
+         Message(sym_e_cant_create_unique_type);
+      end;
 
     procedure tstoreddef.ppuwritedef(ppufile:tcompilerppufile);
       begin
@@ -1260,6 +1268,16 @@ implementation
          string_typ:=st_widestring;
          len:=ppufile.getlongint;
          savesize:=POINTER_SIZE;
+      end;
+
+
+    function tstringdef.getcopy : tstoreddef;
+      begin
+         result:=tstringdef.create;
+         result.deftype:=stringdef;
+         tstringdef(result).string_typ:=string_typ;
+         tstringdef(result).len:=len;
+         tstringdef(result).savesize:=savesize;
       end;
 
 
@@ -1684,6 +1702,17 @@ implementation
       end;
 
 
+    function torddef.getcopy : tstoreddef;
+      begin
+         result:=torddef.create(typ,low,high);
+         result.deftype:=orddef;
+         torddef(result).low:=low;
+         torddef(result).high:=high;
+         torddef(result).typ:=typ;
+         torddef(result).savesize:=savesize;
+      end;
+
+
     procedure torddef.setsize;
       begin
          case typ of
@@ -1869,6 +1898,14 @@ implementation
          deftype:=floatdef;
          typ:=tfloattype(ppufile.getbyte);
          setsize;
+      end;
+
+
+    function tfloatdef.getcopy : tstoreddef;
+      begin
+         result:=tfloatdef.create(typ);
+         result.deftype:=floatdef;
+         tfloatdef(result).savesize:=savesize;
       end;
 
 
@@ -5560,7 +5597,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.121  2003-01-05 13:36:53  florian
+  Revision 1.122  2003-01-05 15:54:15  florian
+    + added proper support of type = type <type>; for simple types
+
+  Revision 1.121  2003/01/05 13:36:53  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 

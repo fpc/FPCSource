@@ -1243,6 +1243,9 @@ sym_w_non_implemented_symbol=05055_W_Symbol "$1" is not implemented
 % This means that a symbol (a variable, routine, etc...) which is
 % declared as \var{unimplemented} is used. This symbol is defined,
 % but is not yet implemented on this specific platform.
+sym_e_cant_create_unique_type=05056_E_Can't create unique type from this type
+% Only simple types like ordinal, float and string types are supported when
+% redefining a type with \var{type newtype = type oldtype;}.
 % \end{description}
 #
 # Codegenerator

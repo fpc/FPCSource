@@ -342,6 +342,7 @@ const
   sym_w_deprecated_symbol=05043;
   sym_w_non_portable_symbol=05044;
   sym_w_non_implemented_symbol=05055;
+  sym_e_cant_create_unique_type=05056;
   cg_e_break_not_allowed=06000;
   cg_e_continue_not_allowed=06001;
   cg_e_too_complex_expr=06002;
@@ -606,9 +607,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 34204;
+  MsgTxtSize = 34252;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,62,194,50,56,44,98,19,35,43,
+    17,62,194,50,57,44,98,19,35,43,
     40,1,1,1,1,1,1,1,1,1
   );

@@ -455,6 +455,12 @@ implementation
                 istyperenaming:=true
               else
                 tt.sym:=newtype;
+              if unique and assigned(tt.def) then
+                begin
+                   tt.setdef(tstoreddef(tt.def).getcopy);
+                   include(tt.def.defoptions,df_unique);
+                   newtype.restype.def:=tt.def;
+                end;
               if assigned(tt.def) and not assigned(tt.def.typesym) then
                 tt.def.typesym:=newtype;
               { KAZ: handle TGUID declaration in system unit }
@@ -627,7 +633,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2002-12-29 14:57:50  peter
+  Revision 1.64  2003-01-05 15:54:15  florian
+    + added proper support of type = type <type>; for simple types
+
+  Revision 1.63  2002/12/29 14:57:50  peter
     * unit loading changed to first register units and load them
       afterwards. This is needed to support uses xxx in yyy correctly
     * unit dependency check fixed

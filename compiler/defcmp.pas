@@ -1055,6 +1055,9 @@ implementation
          while (assigned(def1)) and (assigned(def2)) do
            begin
              eq:=te_incompatible;
+             if (df_unique in def1.paratype.def.defoptions) or (df_unique in def2.paratype.def.defoptions) then
+               exit;
+
              case acp of
                cp_value_equal_const :
                  begin
@@ -1178,7 +1181,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2003-01-03 17:16:04  peter
+  Revision 1.15  2003-01-05 15:54:15  florian
+    + added proper support of type = type <type>; for simple types
+
+  Revision 1.14  2003/01/03 17:16:04  peter
     * fixed assignment operator checking for typecast
 
   Revision 1.13  2002/12/29 18:15:19  peter

@@ -158,7 +158,7 @@ implementation
             tt:=generrortype;
             exit;
           end;
-         { Use the definitions for current unit, becuase
+         { Use the definitions for current unit, because
            they can be refered from the parameters and symbols are not
            loaded at that time. Only write the definition when the
            symbol is the real owner of the definition (not a redefine) }
@@ -629,7 +629,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2003-01-03 23:50:41  peter
+  Revision 1.50  2003-01-05 15:54:15  florian
+    + added proper support of type = type <type>; for simple types
+
+  Revision 1.49  2003/01/03 23:50:41  peter
     * also allow = in fpc mode to assign enums
 
   Revision 1.48  2003/01/02 19:49:00  peter
