@@ -563,7 +563,11 @@ begin
 {$ifdef DEBUG}
   if (Event.What=evKeyDown) and (Event.KeyCode=kbAltF11) then
     begin
+{$ifdef HasSignal}
       Generate_SIGSEGV;
+{$else}
+      Halt(1);
+{$endif}
     end;
   if (Event.What=evKeyDown) and (Event.KeyCode=kbCtrlF11) then
     begin
@@ -871,7 +875,9 @@ begin
       { destory all help & browser windows - we don't want to store them }
       { UserScreenWindow is also not registered PM }
       DoCloseUserScreenWindow;
+      {$IFNDEF NODEBUG}
       DoneDisassemblyWindow;
+      {$ENDIF}
       CloseHelpWindows;
       CloseAllBrowsers;
       DOK:=SaveDesktop;
@@ -1217,7 +1223,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.21  2002-09-13 07:16:56  pierre
+  Revision 1.22  2002-10-12 19:43:07  hajny
+    * missing HasSignal conditionals added (needed for FPC/2)
+
+  Revision 1.21  2002/09/13 07:16:56  pierre
    * avoid RTE 201 if closing file with position outside integer bounds
 
   Revision 1.20  2002/09/09 06:58:51  pierre

@@ -266,6 +266,7 @@ const
 
 procedure InterceptExit;
 begin
+{$IFDEF HasSignal}  
   if StopJmpValid then
     begin
       ExitIntercepted:=true;
@@ -273,6 +274,7 @@ begin
       SeenErrorAddr:=ErrorAddr;
       LongJmp(StopJmp,1);
     end;
+{$ENDIF}
 end;
 
 BEGIN
@@ -339,7 +341,9 @@ BEGIN
     from command line PM }
   ParseUserScreen;
 
+{$IFDEF HasSignal}
   EnableCatchSignals;
+{$ENDIF}
   { Update IDE }
   IDEApp.Update;
   IDEApp.UpdateMode;
@@ -357,8 +361,10 @@ BEGIN
   ExitProc:=@InterceptExit;
 
   repeat
-    SetJmpRes:=setjmp(StopJmp);
-    StopJmpValid:=true;
+{$IFDEF HasSignal}  
+     SetJmpRes:=setjmp(StopJmp);
+     StopJmpValid:=true;
+{$ENDIF}    
     UserWantsToGoOn:=false;
 
     if SetJmpRes=0 then
@@ -404,7 +410,9 @@ BEGIN
       CanExit:=IDEApp.AskSaveAll
     else
       CanExit:=IDEApp.SaveAll;
-    StopJmpValid:=false;
+{$IFDEF HasSignal}      
+     StopJmpValid:=false;
+{$ENDIF}    
     if (SetJmpRes<>0) then
       begin
         if (not CanExit) or UserWantsToGoOn then
@@ -431,7 +439,9 @@ BEGIN
   IDEApp.Done;
   WriteSwitches(SwitchesPath);
 
-  DisableCatchSignals;
+{$IFDEF HasSignal}
+   DisableCatchSignals;
+{$ENDIF}  
 
   DoneCodeComplete;
   DoneCodeTemplates;
@@ -470,7 +480,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.13  2002-09-10 12:19:14  pierre
+  Revision 1.14  2002-10-12 19:43:07  hajny
+    * missing HasSignal conditionals added (needed for FPC/2)
+
+  Revision 1.13  2002/09/10 12:19:14  pierre
    * use faster method for loading files by default
 
   Revision 1.12  2002/09/09 06:59:16  pierre

@@ -49,12 +49,14 @@ begin
    begin
      if (MessageBox(#3+'You''ve edited a file, recompile the project?',nil,mfinformation+mfyesbutton+mfnobutton)=cmYes) then
       begin
+        {$IFNDEF NODEBUG}
         if Assigned(Debugger) then
           begin
             if Debugger^.IsRunning then
               RestartingDebugger:=true;
           end;
         DoResetDebugger;
+        {$ENDIF}
         DoRun;
         AskRecompileIfModified:=true;
       end
@@ -483,7 +485,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2002-09-07 15:40:44  peter
+  Revision 1.6  2002-10-12 19:43:07  hajny
+    * missing HasSignal conditionals added (needed for FPC/2)
+
+  Revision 1.5  2002/09/07 15:40:44  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/09/05 08:45:59  pierre

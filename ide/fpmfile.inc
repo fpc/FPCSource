@@ -170,8 +170,10 @@ begin
        if ConfirmBox(msg_confirmsourcediradd,@P,false)=cmYes then
          begin
            SourceDirs:=SourceDirs+';'+Dir;
+           {$IFNDEF NODEBUG}
            if assigned(Debugger) then
              Debugger^.SetDirectories;
+           {$ENDIF}
          end;
      OpenEditorWindow(nil,FileName,0,0);
    end;
@@ -221,7 +223,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:40:43  peter
+  Revision 1.7  2002-10-12 19:43:07  hajny
+    * missing HasSignal conditionals added (needed for FPC/2)
+
+  Revision 1.6  2002/09/07 15:40:43  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/08/29 09:58:04  pierre
