@@ -129,13 +129,14 @@ unit rgcpu;
       end;
 *)
 
-initialization
-  rg := trgcpu.create(last_int_supreg-first_int_supreg+1);
 end.
 
 {
   $Log$
-  Revision 1.14  2003-09-03 19:35:24  peter
+  Revision 1.15  2003-09-14 17:27:56  jonas
+    - removed initialization code
+
+  Revision 1.14  2003/09/03 19:35:24  peter
     * powerpc compiles again
 
   Revision 1.13  2003/07/06 15:27:44  jonas
