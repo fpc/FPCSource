@@ -1085,7 +1085,8 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
   begin
   // need to scroll up al buffers after current one,
   // but copy current bookmark to insert buffer.
-  If FRecordcount > 0 then BookBeforeInsert:=Bookmark;
+  If FRecordcount > 0 then
+    BookBeforeInsert:=Bookmark;
 
   if FActiveRecord < FRecordCount-1 then
     begin
@@ -1095,8 +1096,10 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
     end
   else if FRecordcount=FBuffercount then
     shiftbuffersbackward
-  else
+  else begin
+    if FRecordCount>0 then
     inc(FActiveRecord);
+  end;
 
   // Active buffer is now edit buffer. Initialize.
   InitRecord(FBuffers[FActiveRecord]);
@@ -1113,7 +1116,8 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
     fBOF := false;
     // 29:01:05, JvdS: Why is this here?!? It can result in records with the same bookmark-data?
     // I would say that the 'internalinsert' should do this. But I don't know how Tdbf handles it
-    if FRecordcount > 0 then SetBookMarkData(ActiveBuffer,pointer(BookBeforeInsert));
+    if FRecordcount > 0 then
+      SetBookMarkData(ActiveBuffer,pointer(BookBeforeInsert));
     end;
 
   InternalInsert;
@@ -1145,9 +1149,11 @@ begin
     ClearBuffers;
     InternalLast;
     GetPriorRecords;
-    FActiveRecord:=FRecordCount-1;
+    if FRecordCount>0 then
+      FActiveRecord:=FRecordCount-1;
     DoInsert;
     SetBookmarkFlag(ActiveBuffer,bfEOF);
+    FBOF :=False;
     FEOF := true;
     end;
   SetState(dsInsert);
@@ -1381,7 +1387,8 @@ begin
   try
     InternalLast;
     GetPriorRecords;
-    FActiveRecord:=FRecordCount-1;
+    if FRecordCount>0 then
+      FActiveRecord:=FRecordCount-1
   finally
     FEOF:=true;
     DataEvent(deDataSetChange, 0);
@@ -1758,7 +1765,10 @@ end;
 
 {
   $Log$
-  Revision 1.32  2005-02-14 17:13:12  peter
+  Revision 1.33  2005-03-29 10:07:34  michael
+  + fix for activerecord, bof false after append.
+
+  Revision 1.32  2005/02/14 17:13:12  peter
     * truncate log
 
   Revision 1.31  2005/02/07 11:19:27  joost

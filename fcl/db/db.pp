@@ -1148,6 +1148,7 @@ type
     procedure SetBufferCount(Value: Integer); virtual;
     procedure UpdateData; virtual;
     property VisualControl: Boolean read FVisualControl write FVisualControl;
+    property FirstRecord: Integer read FFirstRecord write FFirstRecord;
   public
     constructor Create;
     destructor Destroy; override;
@@ -1895,7 +1896,10 @@ end.
 
 {
   $Log$
-  Revision 1.42  2005-03-25 11:38:01  michael
+  Revision 1.43  2005-03-29 10:07:34  michael
+  + fix for activerecord, bof false after append.
+
+  Revision 1.42  2005/03/25 11:38:01  michael
   + Implementation of IndexForFields from   Alexandrov Alexandru
 
   Revision 1.41  2005/03/18 11:54:56  michael
