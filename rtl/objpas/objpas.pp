@@ -178,7 +178,30 @@ interface
            vtWideString : (VWideString: Pointer);
 //           vtInt64      : (VInt64: PInt64);
        end;
+     
+{****************************************************************************
+                             Compatibiity routines.
+****************************************************************************}
 
+{ Untyped file support }
+
+Procedure AssignFile(Var f:File;const Name:string);
+Procedure AssignFile(Var f:File;p:pchar);
+Procedure AssignFile(Var f:File;c:char);
+Procedure CloseFile(Var f:File);
+
+{ Text file support }
+
+Procedure AssignFile(Var t:Text;const s:string);
+Procedure AssignFile(Var t:Text;p:pchar);
+Procedure AssignFile(Var t:Text;c:char);
+Procedure CloseFile(Var t:Text);
+
+{ Typed file supoort }
+
+Procedure AssignFile(Var f:TypedFile;const Name:string);
+Procedure AssignFile(Var f:TypedFile;p:pchar);
+Procedure AssignFile(Var f:TypedFile;c:char);
 
   implementation
 
@@ -384,6 +407,81 @@ interface
         begin
         end;
 
+{****************************************************************************
+                             Compatibiity routines.
+****************************************************************************}
+
+{ Untyped file support }
+
+Procedure AssignFile(Var f:File;const Name:string);
+
+begin
+  System.Assign (F,Name);
+end;
+
+Procedure AssignFile(Var f:File;p:pchar);
+
+begin
+  System.Assign (F,P);
+end;
+
+Procedure AssignFile(Var f:File;c:char);
+
+begin
+  System.Assign (F,C);
+end;
+
+Procedure CloseFile(Var f:File);
+
+begin
+  System.Close(f);
+end;
+
+{ Text file support }
+
+Procedure AssignFile(Var t:Text;const s:string);
+
+begin
+  System.Assign (T,S);
+end;
+
+Procedure AssignFile(Var t:Text;p:pchar);
+
+begin
+  System.Assign (T,P);
+end;
+
+Procedure AssignFile(Var t:Text;c:char);
+
+begin
+  System.Assign (T,C);
+end;
+
+Procedure CloseFile(Var t:Text);
+
+begin
+  Close(T);
+end;
+
+{ Typed file supoort }
+
+Procedure AssignFile(Var f:TypedFile;const Name:string);
+
+begin
+  system.Assign(F,Name);
+end;
+
+Procedure AssignFile(Var f:TypedFile;p:pchar);
+
+begin
+  system.Assign (F,p);
+end;
+
+Procedure AssignFile(Var f:TypedFile;c:char);
+
+begin
+  system.Assign (F,C);
+end;
 
 {****************************************************************************
                              Exception Support
@@ -401,7 +499,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  1998-10-12 12:42:58  florian
+  Revision 1.19  1998-12-24 10:12:03  michael
+  Implemented AssignFile and CloseFile compatibility
+
+  Revision 1.18  1998/10/12 12:42:58  florian
     * as operator runtime error can be now caught by an errorproc
 
   Revision 1.17  1998/10/05 12:32:53  peter
