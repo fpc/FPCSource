@@ -1167,72 +1167,9 @@ const
 }
           end;
 
-        if assigned(current_procinfo.procdef.parast) then
-          begin
-            if not (po_assembler in current_procinfo.procdef.procoptions) then
-              begin
-                { copy memory parameters to local parast }
-                for i:=0 to current_procinfo.procdef.paras.count-1 do
-                  begin
-                    hp:=tparavarsym(current_procinfo.procdef.paras[i]);
-                    if (hp.paraloc[calleeside].location^.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-                      begin
-                        if assigned(hp.paraloc[callerside].location^.next) then
-                          internalerror(2004091210);
-                        case hp.localloc.loc of
-                          LOC_REFERENCE:
-                            begin
-                              reference_reset_base(href,hp.localloc.reference.base,hp.localloc.reference.offset);
-                              reference_reset_base(href2,NR_R12,hp.paraloc[callerside].location^.reference.offset);
-                              { we can't use functions here which allocate registers (FK)
-                               cg.a_load_ref_ref(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,href);
-                              }
-                              case hp.paraloc[calleeside].size of
-                                OS_F32:
-                                  size := OS_32;
-                                OS_64,OS_S64:
-                                  size := OS_F64;
-                                else
-                                  size := hp.paraloc[calleeside].size;
-                              end;
-                              case size of
-                                OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32:
-                                  begin
-                                    cg.a_load_ref_reg(list,size,size,href2,NR_R0);
-                                    cg.a_load_reg_ref(list,size,size,NR_R0,href);
-                                  end;
-                                OS_F64:
-                                  begin
-                                    cg.a_loadfpu_ref_reg(list,size,href2,NR_F0);
-                                    cg.a_loadfpu_reg_ref(list,size,NR_F0,href);
-                                  end;
-                                else
-                                  internalerror(2004070910);
-                              end;
-                            end;
-{
-{$ifdef oldregvars}
-                          LOC_CREGISTER:
-                            begin
-                              reference_reset_base(href2,NR_R12,hp.paraloc[callerside].location^.reference.offset);
-                              cg.a_load_ref_reg(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,tvarsym(hp.parasym).localloc.register);
-                            end;
-                          LOC_CFPUREGISTER:
-                            begin
-                              reference_reset_base(href2,NR_R12,hp.paraloc[callerside].location^.reference.offset);
-                              cg.a_loadfpu_ref_reg(list,hp.paraloc[calleeside].size,href2,tvarsym(hp.parasym).localloc.register);
-                            end;
-{$endif oldregvars}
-                          else
-                            internalerror(2004070911);
-}
-                        end;
-                      end;
-                  end;
-              end;
-          end;
+{ see "!!! always allocate space for all registers for now !!!" above }
 
-        if usesfpr or usesgpr then
+{        if usesfpr or usesgpr then }
           a_reg_dealloc(list,NR_R12);
 
         { if we didn't get the GOT pointer till now, we've to calculate it now }
@@ -2356,7 +2293,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.186  2004-11-15 23:35:31  peter
+  Revision 1.187  2004-12-04 21:47:46  jonas
+    * modifications to work with the generic code to copy LOC_REFERENCE
+      parameters to local temps (fixes tests/test/cg/tmanypara)
+
+  Revision 1.186  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

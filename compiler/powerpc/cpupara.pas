@@ -102,7 +102,7 @@ unit cpupara;
            else
              begin
                loc:=LOC_REFERENCE;
-               reference.index:=NR_STACK_POINTER_REG;
+               paraloc^.reference.index:=NR_STACK_POINTER_REG;
                reference.offset:=sizeof(aint)*(nr-8);
              end;
           end;
@@ -316,7 +316,10 @@ unit cpupara;
           else
              begin
                 paraloc^.loc:=LOC_REFERENCE;
-                paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                if (side = callerside) then
+                  paraloc^.reference.index:=NR_STACK_POINTER_REG
+                else
+                  paraloc^.reference.index:=NR_R12;
                 paraloc^.reference.offset:=stack_offset;
                 inc(stack_offset,4);
             end;
@@ -413,7 +416,10 @@ unit cpupara;
                          begin
                             nextintreg:=RS_R11;
                             paraloc^.loc:=LOC_REFERENCE;
-                            paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                            if (side = callerside) then
+                              paraloc^.reference.index:=NR_STACK_POINTER_REG
+                            else
+                              paraloc^.reference.index:=NR_R12;
                             paraloc^.reference.offset:=stack_offset;
                             if not is_64bit then
                               inc(stack_offset,4)
@@ -432,7 +438,10 @@ unit cpupara;
                       else
                          begin
                             paraloc^.loc:=LOC_REFERENCE;
-                            paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                            if (side = callerside) then
+                              paraloc^.reference.index:=NR_STACK_POINTER_REG
+                            else
+                              paraloc^.reference.index:=NR_R12;
                             paraloc^.reference.offset:=stack_offset;
                         end;
                       if target_info.abi=abi_powerpc_aix then
@@ -463,7 +472,10 @@ unit cpupara;
                       else
                         begin
                            paraloc^.loc:=LOC_REFERENCE;
-                           paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                           if (side = callerside) then
+                             paraloc^.reference.index:=NR_STACK_POINTER_REG
+                           else
+                             paraloc^.reference.index:=NR_R12;
                            paraloc^.reference.offset:=stack_offset;
                            inc(stack_offset,hp.vartype.def.size);
                         end;
@@ -587,7 +599,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2004-11-22 22:01:19  peter
+  Revision 1.75  2004-12-04 21:47:46  jonas
+    * modifications to work with the generic code to copy LOC_REFERENCE
+      parameters to local temps (fixes tests/test/cg/tmanypara)
+
+  Revision 1.74  2004/11/22 22:01:19  peter
     * fixed varargs
     * replaced dynarray with tlist
 
