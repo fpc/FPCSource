@@ -1062,6 +1062,7 @@ Begin
         case pvarsym(sym)^.definition^.deftype of
           orddef,
           enumdef,
+          pointerdef,
           floatdef :
             SetOperandSize(instr,operandnum,pvarsym(sym)^.getsize);
           arraydef :
@@ -1077,6 +1078,7 @@ Begin
         case ptypedconstsym(sym)^.definition^.deftype of
           orddef,
           enumdef,
+          pointerdef,
           floatdef :
             SetOperandSize(instr,operandnum,ptypedconstsym(sym)^.getsize);
           arraydef :
@@ -1400,7 +1402,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1999-05-06 09:05:27  peter
+  Revision 1.14  1999-05-11 16:27:23  peter
+    * support for pointerdef
+
+  Revision 1.13  1999/05/06 09:05:27  peter
     * generic write_float and str_float
     * fixed constant float conversions
 
