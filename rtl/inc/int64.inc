@@ -36,7 +36,20 @@
 {$ifndef FPC_SYSTEM_HAS_SHL_QWORD}
     function fpc_shl_qword(value,shift : qword) : qword; [public,alias: 'FPC_SHL_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
-        {!!!!}
+        if shift=0 then
+          result:=value
+        else if shift>63 then
+          result:=0
+        else if shift>31 then
+          begin
+            tqwordrec(result).low:=0;
+            tqwordrec(result).high:=tqwordrec(value).low shl (shift-32);
+          end
+        else
+          begin
+            tqwordrec(result).low:=tqwordrec(value).low shl shift;
+            tqwordrec(result).high:=(tqwordrec(value).high shl shift) or (tqwordrec(value).low shr (32-shift));
+          end;
       end;
 {$endif FPC_SYSTEM_HAS_SHL_QWORD}
 
@@ -44,7 +57,20 @@
 {$ifndef FPC_SYSTEM_HAS_SHR_QWORD}
    function fpc_shr_qword(value,shift : qword) : qword; [public,alias: 'FPC_SHR_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
-        {!!!!}
+        if shift=0 then
+          result:=value
+        else if shift>63 then
+          result:=0
+        else if shift>31 then
+          begin
+            tqwordrec(result).high:=0;
+            tqwordrec(result).low:=tqwordrec(value).high shr (shift-32);
+          end
+        else
+          begin
+            tqwordrec(result).high:=tqwordrec(value).high shr shift;
+            tqwordrec(result).low:=(tqwordrec(value).low shr shift) or (tqwordrec(value).high shl (32-shift));
+          end;
       end;
 {$endif FPC_SYSTEM_HAS_SHR_QWORD}
 
@@ -52,7 +78,20 @@
 {$ifndef FPC_SYSTEM_HAS_SHL_INT64}
     function fpc_shl_int64(value,shift : int64) : int64; [public,alias: 'FPC_SHL_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
-        {!!!!}
+        if shift=0 then
+          result:=value
+        else if shift>63 then
+          result:=0
+        else if shift>31 then
+          begin
+            tqwordrec(result).low:=0;
+            tqwordrec(result).high:=tqwordrec(value).low shl (shift-32);
+          end
+        else
+          begin
+            tqwordrec(result).low:=tqwordrec(value).low shl shift;
+            tqwordrec(result).high:=(tqwordrec(value).high shl shift) or (tqwordrec(value).low shr (32-shift));
+          end;
       end;
 {$endif FPC_SYSTEM_HAS_SHL_INT64}
 
@@ -60,7 +99,20 @@
 {$ifndef FPC_SYSTEM_HAS_SHR_INT64}
     function fpc_shr_int64(value,shift : int64) : int64; [public,alias: 'FPC_SHR_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
-        {!!!!}
+        if shift=0 then
+          result:=value
+        else if shift>63 then
+          result:=0
+        else if shift>31 then
+          begin
+            tqwordrec(result).high:=0;
+            tqwordrec(result).low:=tqwordrec(value).high shr (shift-32);
+          end
+        else
+          begin
+            tqwordrec(result).high:=tqwordrec(value).high shr shift;
+            tqwordrec(result).low:=(tqwordrec(value).low shr shift) or (tqwordrec(value).high shl (32-shift));
+          end;
       end;
 {$endif FPC_SYSTEM_HAS_SHR_INT64}
 
@@ -510,7 +562,10 @@
 
 {
   $Log$
-  Revision 1.22  2003-09-14 11:34:13  peter
+  Revision 1.23  2004-01-23 15:14:04  florian
+    + implemented software shl/shr for 64 bit ints
+
+  Revision 1.22  2003/09/14 11:34:13  peter
     * moved int64 asm code to int64p.inc
     * save ebx,esi
 
