@@ -128,10 +128,15 @@ procedure tcgSPARC.a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;CONST L
   end;
 procedure tcgSPARC.a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST LocPara:TParaLocation);
   BEGIN
-    IF(Size<>OS_32)AND(Size<>OS_S32)
-    THEN
-      InternalError(2002032213);
-    List.Concat(taicpu.op_const(A_LD,S_L,a));
+    with List do
+      case Size of
+        OS_32,OS_S32:
+          Concat(taicpu.op_const(A_LD,a));
+        OS_64,OS_S64:
+          Concat(taicpu.op_const(A_LDD,a));
+        else
+          InternalError(2002032213);
+      end;
   END;
 procedure tcgSPARC.a_param_ref(list:TAasmOutput;size:tcgsize;const r:TReference;const LocPara:TParaLocation);
   var
@@ -183,16 +188,16 @@ procedure tcgSPARC.a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST Loc
     ELSE IF(r.base=R_NO)AND(r.index<>R_NO)AND
            (r.offset=0)AND(r.scalefactor=0)AND(r.symbol=nil)
     THEN
-      list.concat(Taicpu.Op_reg(A_LD,S_L,r.index))
+      list.concat(Taicpu.Op_reg(A_LD,r.index))
     ELSE IF(r.base<>R_NO)AND(r.index=R_NO)AND
            (r.offset=0)AND(r.symbol=nil)
     THEN
-      list.concat(Taicpu.Op_reg(A_LD,S_L,r.base))
+      list.concat(Taicpu.Op_reg(A_LD,r.base))
     ELSE
       BEGIN
         tmpreg:=get_scratch_reg_address(list);
         a_loadaddr_ref_reg(list,r,tmpreg);
-        list.concat(taicpu.op_reg(A_LD,S_L,tmpreg));
+        list.concat(taicpu.op_reg(A_LD,tmpreg));
         free_scratch_reg(list,tmpreg);
       END;
   END;
@@ -200,14 +205,14 @@ procedure tcgSPARC.a_call_name(list:TAasmOutput;CONST s:string);
   BEGIN
     WITH List,objectlibrary DO
       BEGIN
-        concat(taicpu.op_sym(A_CALL,S_NO,newasmsymbol(s)));
-        concat(taicpu.op_none(A_NOP,S_NO));
+        concat(taicpu.op_sym(A_CALL,S_L,newasmsymbol(s)));
+        concat(taicpu.op_none(A_NOP));
       END;
   END;
 procedure tcgSPARC.a_call_ref(list:TAasmOutput;CONST ref:TReference);
   BEGIN
-    list.concat(taicpu.op_ref(A_CALL,S_NO,ref));
-    list.concat(taicpu.op_none(A_NOP,S_NO));
+    list.concat(taicpu.op_ref(A_CALL,ref));
+    list.concat(taicpu.op_none(A_NOP));
   END;
 {********************** load instructions ********************}
 procedure tcgSPARC.a_load_const_reg(list:TAasmOutput;size:TCGSize;a:aword;reg:TRegister);
@@ -224,16 +229,23 @@ procedure tcgSPARC.a_load_const_ref(list:TAasmOutput;size:tcgsize;a:aword;CONST 
     WITH List DO
       IF a=0
       THEN
-        Concat(taicpu.op_reg_ref(A_ST,TCGSize2OpSize[size],R_G0,ref))
+        Concat(taicpu.op_reg_ref(A_ST,R_G0,ref))
       ELSE
         BEGIN
           a_load_const_reg(list,size,a,R_G1);
-          list.concat(taicpu.op_reg_ref(A_ST,TCGSize2OpSize[size],R_G1,ref));
+          case size of
+            OS_32,OS_S32:
+              Concat(taicpu.op_reg_ref(A_ST,R_G1,ref));
+            OS_64,OS_S64:
+              Concat(taicpu.op_reg_ref(A_STD,R_G1,ref));
+            else
+              InternalError(2002102100);
+          end;
         END;
   END;
 procedure tcgSPARC.a_load_reg_ref(list:TAasmOutput;size:TCGSize;reg:tregister;CONST ref:TReference);
   BEGIN
-    list.concat(taicpu.op_reg_ref(A_LD,TCGSize2OpSize[size],reg,ref));
+    list.concat(taicpu.op_reg_ref(A_LD,reg,ref));
   END;
 procedure tcgSPARC.a_load_ref_reg(list:TAasmOutput;size:tcgsize;const ref:TReference;reg:tregister);
   var
@@ -241,7 +253,7 @@ procedure tcgSPARC.a_load_ref_reg(list:TAasmOutput;size:tcgsize;const ref:TRefer
     s:topsize;
   begin
     sizes2load(size,S_L,op,s);
-    list.concat(taicpu.op_ref_reg(op,s,ref,reg));
+    list.concat(taicpu.op_ref_reg(op,ref,reg));
   end;
 procedure tcgSPARC.a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,reg2:tregister);
   var
@@ -676,7 +688,7 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
                 tmpref.offset := LongInt(a);
                 if op = OP_SUB then
                   tmpref.offset := -tmpref.offset;
-                list.concat(taicpu.op_ref_reg(A_NONE,S_L,tmpref,dst));
+                list.concat(taicpu.op_ref_reg(A_NONE,tmpref,dst));
               end
           else internalerror(200112302);
         end;
@@ -710,7 +722,7 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
               tmpref.base := src1;
               tmpref.index := src2;
               tmpref.scalefactor := 1;
-              list.concat(taicpu.op_ref_reg(A_NONE,S_L,tmpref,dst));
+              list.concat(taicpu.op_ref_reg(A_NONE,tmpref,dst));
             end
           else internalerror(200112303);
         end;
@@ -723,19 +735,21 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
 
         begin
           if (a = 0) then
-            list.concat(taicpu.op_reg_reg(A_CMP,S_L,reg,reg))
+            list.concat(taicpu.op_reg_reg(A_CMP,reg,reg))
           else
-            list.concat(taicpu.op_const_reg(A_CMP,S_L,a,reg));
+            list.concat(taicpu.op_const_reg(A_CMP,a,reg));
           a_jmp_cond(list,cmp_op,l);
         end;
 
-      procedure tcgSPARC.a_cmp_const_ref_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;a:aword;CONST ref:TReference;
-        l:tasmlabel);
-
-        begin
-          list.concat(taicpu.op_const_ref(A_CMP,TCgSize2OpSize[size],a,ref));
-          a_jmp_cond(list,cmp_op,l);
-        end;
+procedure tcgSPARC.a_cmp_const_ref_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;a:aword;const ref:TReference;l:tasmlabel);
+  begin
+    with List do
+      begin
+        Concat(taicpu.op_const(A_LD,a));
+        Concat(taicpu.op_ref(A_CMP,ref));
+      end;
+    a_jmp_cond(list,cmp_op,l);
+  end;
 
       procedure tcgSPARC.a_cmp_reg_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;
         reg1,reg2:tregister;l:tasmlabel);
@@ -754,7 +768,7 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
 
         begin
           opsize := S_Q{makeregsize(reg,size)};
-          list.concat(taicpu.op_ref_reg(A_CMP,opsize,ref,reg));
+          list.concat(taicpu.op_ref_reg(A_CMP,ref,reg));
           a_jmp_cond(list,cmp_op,l);
         end;
 
@@ -902,10 +916,10 @@ procedure tcgSPARC.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tr
         tempref:TReference;
       begin
         get_64bit_ops(op,op1,op2);
-        list.concat(taicpu.op_ref_reg(op1,S_L,ref,reg.reglo));
+        list.concat(taicpu.op_ref_reg(op1,ref,reg.reglo));
         tempref:=ref;
         inc(tempref.offset,4);
-        list.concat(taicpu.op_ref_reg(op2,S_L,tempref,reg.reghi));
+        list.concat(taicpu.op_ref_reg(op2,tempref,reg.reghi));
       end;
 
 
@@ -914,8 +928,8 @@ procedure tcgSPARC.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tr
         op1,op2:TAsmOp;
       begin
         get_64bit_ops(op,op1,op2);
-        list.concat(taicpu.op_reg_reg(op1,S_L,regsrc.reglo,regdst.reglo));
-        list.concat(taicpu.op_reg_reg(op2,S_L,regsrc.reghi,regdst.reghi));
+        list.concat(taicpu.op_reg_reg(op1,regsrc.reglo,regdst.reglo));
+        list.concat(taicpu.op_reg_reg(op2,regsrc.reghi,regdst.reghi));
       end;
 
 
@@ -934,8 +948,8 @@ procedure tcgSPARC.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tr
             begin
               // can't use a_op_const_ref because this may use dec/inc
               get_64bit_ops(op,op1,op2);
-              list.concat(taicpu.op_const_reg(op1,S_L,Lo(Value),regdst.reglo));
-              list.concat(taicpu.op_const_reg(op2,S_L,Hi(Value),regdst.reghi));
+              list.concat(taicpu.op_const_reg(op1,Lo(Value),regdst.reglo));
+              list.concat(taicpu.op_const_reg(op2,Hi(Value),regdst.reghi));
             end;
           else
             internalerror(200204021);
@@ -943,28 +957,29 @@ procedure tcgSPARC.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tr
       end;
 
 
-    procedure TCg64fSPARC.a_op64_const_ref(list:TAasmOutput;op:TOpCG;value:qWord;CONST ref:TReference);
-      var
-        op1,op2:TAsmOp;
-        tempref:TReference;
-      begin
-        case op of
-          OP_AND,OP_OR,OP_XOR:
-            WITH cg DO
-            begin
-              a_op_const_ref(list,op,OS_32,Lo(Value),ref);
-              tempref:=ref;
-              inc(tempref.offset,4);
-              a_op_const_ref(list,op,OS_32,Hi(Value),tempref);
-            end;
-          OP_ADD, OP_SUB:
+procedure TCg64fSPARC.a_op64_const_ref(list:TAasmOutput;op:TOpCG;value:qWord;const ref:TReference);
+  var
+    op1,op2:TAsmOp;
+    tempref:TReference;
+  begin
+    case op of
+      OP_AND,OP_OR,OP_XOR:
+      with cg do
+        begin
+          a_op_const_ref(list,op,OS_32,Lo(Value),ref);
+          tempref:=ref;
+          inc(tempref.offset,4);
+          a_op_const_ref(list,op,OS_32,Hi(Value),tempref);
+        end;
+      OP_ADD, OP_SUB:
             begin
               get_64bit_ops(op,op1,op2);
               // can't use a_op_const_ref because this may use dec/inc
-              list.concat(taicpu.op_const_ref(op1,S_L,Lo(Value),ref));
+{              list.concat(taicpu.op_const_ref(op1,Lo(Value),ref));
               tempref:=ref;
               inc(tempref.offset,4);
-              list.concat(taicpu.op_const_ref(op2,S_L,Hi(Value),tempref));
+              list.concat(taicpu.op_const_ref(op2,S_L,Hi(Value),tempref));}
+              InternalError(2002102101);
             end;
           else
             internalerror(200204022);
@@ -1068,8 +1083,8 @@ procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;le
             objectlibrary.getlabel(lab);
             a_label(list, lab);
             list.concat(taicpu.op_reg_const_reg(A_SUB,S_L,countreg,1,countreg));
-            list.concat(taicpu.op_reg_ref(A_LDF,S_L,R_F0,src));
-            list.concat(taicpu.op_reg_ref(A_STD,S_L,R_F0,dst));
+            list.concat(taicpu.op_reg_ref(A_LDF,R_F0,src));
+            list.concat(taicpu.op_reg_ref(A_STD,R_F0,dst));
             //a_jmp(list,A_BC,C_NE,0,lab);
             free_scratch_reg(list,countreg);
             a_reg_dealloc(list,R_F0);
@@ -1221,7 +1236,7 @@ procedure tcgSPARC.floatload(list:TAasmOutput;t:tcgsize;CONST ref:TReference);
     s:topsize;
   BEGIN
     floatloadops(t,op,s);
-    list.concat(Taicpu.Op_ref(op,s,ref));
+    list.concat(Taicpu.Op_ref(op,ref));
 {    inc(trgcpu(rg).fpuvaroffset);}
   END;
 procedure tcgSPARC.floatstoreops(t:tcgsize;var op:tasmop;var s:topsize);
@@ -1253,7 +1268,7 @@ procedure tcgSPARC.floatstore(list:TAasmOutput;t:tcgsize;CONST ref:TReference);
     s:topsize;
   BEGIN
     floatstoreops(t,op,s);
-    list.concat(Taicpu.Op_ref(op,s,ref));
+    list.concat(Taicpu.Op_ref(op,ref));
 {    dec(trgcpu(rg).fpuvaroffset);}
   END;
 BEGIN
@@ -1261,7 +1276,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.17  2002-10-20 19:01:38  mazen
+  Revision 1.18  2002-10-22 13:43:01  mazen
+  - cga.pas redueced to an empty unit
+
+  Revision 1.17  2002/10/20 19:01:38  mazen
   + op_raddr_reg and op_caddr_reg added to fix functions prologue
 
   Revision 1.16  2002/10/13 21:46:07  mazen

@@ -83,49 +83,50 @@ procedure emitjmp(c:tasmcond;var l:tasmlabel);
   end;
 procedure emit_none(i:tasmop;s:topsize);
   begin
-    exprasmList.concat(Taicpu.Op_none(i,s));
+    exprasmList.concat(Taicpu.Op_none(i));
   end;
 procedure emit_reg(i:tasmop;s:topsize;reg:tregister);
   begin
-    exprasmList.concat(Taicpu.Op_reg(i,s,reg));
+    exprasmList.concat(Taicpu.Op_reg(i,reg));
   end;
 procedure emit_ref(i:tasmop;s:topsize;const ref:treference);
   begin
-    exprasmList.concat(Taicpu.Op_ref(i,s,ref));
+    exprasmList.concat(Taicpu.Op_ref(i,ref));
   end;
 procedure emit_const(i:tasmop;s:topsize;c:longint);
   begin
-    exprasmList.concat(Taicpu.Op_const(i,s,aword(c)));
+    exprasmList.concat(Taicpu.Op_const(i,aword(c)));
   end;
 procedure emit_const_reg(i:tasmop;s:topsize;c:longint;reg:tregister);
   begin
-    exprasmList.concat(Taicpu.Op_const_reg(i,s,aword(c),reg));
+    exprasmList.concat(Taicpu.Op_const_reg(i,aword(c),reg));
   end;
 procedure emit_const_ref(i:tasmop;s:topsize;c:longint;const ref:treference);
   begin
-    exprasmList.concat(Taicpu.Op_const_ref(i,s,aword(c),ref));
+    //exprasmList.concat(Taicpu.Op_const_ref(i,s,aword(c),ref));
+		InternalError(2002102102);
   end;
 procedure emit_ref_reg(i:tasmop;s:topsize;const ref:treference;reg:tregister);
   begin
-    exprasmList.concat(Taicpu.Op_ref_reg(i,s,ref,reg));
+    exprasmList.concat(Taicpu.Op_ref_reg(i,ref,reg));
   end;
 procedure emit_reg_ref(i:tasmop;s:topsize;reg:tregister;const ref:treference);
   begin
-    exprasmList.concat(Taicpu.Op_reg_ref(i,s,reg,ref));
+    exprasmList.concat(Taicpu.Op_reg_ref(i,reg,ref));
   end;
 procedure emit_reg_reg(i:tasmop;s:topsize;reg1,reg2:tregister);
   begin
     if reg1<>reg2
     then
-      exprasmList.concat(Taicpu.Op_reg_reg(i,s,reg1,reg2));
+      exprasmList.concat(Taicpu.Op_reg_reg(i,reg1,reg2));
   end;
 procedure emit_const_reg_reg(i:tasmop;s:topsize;c:longint;reg1,reg2:tregister);
   begin
-    exprasmList.concat(Taicpu.Op_reg_const_reg(i,s,reg1,c,reg2));
+    exprasmList.concat(Taicpu.Op_reg_const_reg(i,S_L,reg1,c,reg2));
   end;
 procedure emit_reg_reg_reg(i:tasmop;s:topsize;reg1,reg2,reg3:tregister);
   begin
-    exprasmList.concat(Taicpu.Op_reg_reg_reg(i,s,reg1,reg2,reg3));
+    exprasmList.concat(Taicpu.Op_reg_reg_reg(i,S_L,reg1,reg2,reg3));
   end;
 procedure emit_sym(i:tasmop;s:topsize;op:tasmsymbol);
   begin
@@ -134,7 +135,10 @@ procedure emit_sym(i:tasmop;s:topsize;op:tasmsymbol);
 end.
 {
   $Log$
-  Revision 1.2  2002-10-13 19:47:34  mazen
+  Revision 1.3  2002-10-22 13:43:01  mazen
+  - cga.pas redueced to an empty unit
+
+  Revision 1.2  2002/10/13 19:47:34  mazen
   - logs removed
 
   Revision 1.1  2002/08/22 08:30:50  mazen

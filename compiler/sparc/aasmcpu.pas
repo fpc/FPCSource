@@ -40,18 +40,16 @@ type
  function getfillbuf:pchar;override;
   end;
   taicpu = class(taicpu_abstract)
- opsize:topsize;
- constructor op_none(op:tasmop;_size:topsize);
- constructor op_reg(op:tasmop;_size:topsize;_op1:tregister);
- constructor op_const(op:tasmop;_size:topsize;_op1:aword);
- constructor op_ref(op:tasmop;_size:topsize;const _op1:treference);
- constructor op_reg_reg(op:tasmop;_size:topsize;_op1,_op2:tregister);
- constructor op_reg_ref(op:tasmop;_size:topsize;_op1:tregister;const _op2:treference);
- constructor op_reg_const(op:tasmop; _size:topsize; _op1:tregister; _op2:aword);
- constructor op_const_reg(op:tasmop;_size:topsize;_op1:aword;_op2:tregister);
- constructor op_const_const(op:tasmop;_size:topsize;_op1,_op2:aword);
- constructor op_const_ref(op:tasmop;_size:topsize;_op1:aword;const _op2:treference);
- constructor op_ref_reg(op:tasmop;_size:topsize;const _op1:treference;_op2:tregister);
+    opsize:topsize;
+    constructor op_none(op:tasmop);
+    constructor op_reg(op:tasmop;reg:tregister);
+    constructor op_const(op:tasmop;_op1:aword);
+    constructor op_ref(op:tasmop;const _op1:treference);
+    constructor op_reg_reg(op:tasmop;_op1,_op2:tregister);
+    constructor op_reg_ref(op:tasmop;_op1:tregister;const _op2:treference);
+    constructor op_reg_const(op:tasmop;_op1:tregister;_op2:aword);
+    constructor op_const_reg(op:tasmop;_op1:aword;_op2:tregister);
+    constructor op_ref_reg(op:tasmop;const _op1:treference;_op2:tregister);
  { this is only allowed if _op1 is an int value (_op1^.isintvalue=true) }
  constructor op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference);
  constructor op_reg_reg_reg(op:tasmop;_size:topsize;_op1,_op2,_op3:tregister);
@@ -102,6 +100,8 @@ implementation
 uses
   cutils,
   CpuGas;
+const
+  _size=S_L;{To be removed soon}
 {****************************************************************************
                           TAI_ALIGN
  ****************************************************************************}
@@ -158,33 +158,33 @@ procedure taicpu.init(_size:topsize);
      {segprefix:=R_NONE;}{This may be only for I386 architecture!}
      opsize:=_size;
   end;
-constructor taicpu.op_none(op:tasmop;_size:topsize);
+constructor taicpu.op_none(op:tasmop);
   begin
      inherited create(op);
      init(_size);
   end;
-constructor taicpu.op_reg(op:tasmop;_size:topsize;_op1:tregister);
+constructor taicpu.op_reg(op:tasmop;reg:tregister);
   begin
      inherited create(op);
      init(_size);
      ops:=1;
-     loadreg(0,_op1);
+     loadreg(0,reg);
   end;
-constructor taicpu.op_const(op:tasmop;_size:topsize;_op1:aword);
+constructor taicpu.op_const(op:tasmop;_op1:aword);
   begin
      inherited create(op);
      init(_size);
      ops:=1;
      loadconst(0,_op1);
   end;
-constructor taicpu.op_ref(op:tasmop;_size:topsize;const _op1:treference);
+constructor taicpu.op_ref(op:tasmop;const _op1:treference);
   begin
      inherited create(op);
      init(_size);
      ops:=1;
      loadref(0,_op1);
   end;
-constructor taicpu.op_reg_reg(op:tasmop;_size:topsize;_op1,_op2:tregister);
+constructor taicpu.op_reg_reg(op:tasmop;_op1,_op2:tregister);
   begin
      inherited create(op);
      init(_size);
@@ -192,7 +192,7 @@ constructor taicpu.op_reg_reg(op:tasmop;_size:topsize;_op1,_op2:tregister);
      loadreg(0,_op1);
      loadreg(1,_op2);
   end;
-constructor taicpu.op_reg_const(op:tasmop; _size:topsize; _op1:tregister; _op2:aword);
+constructor taicpu.op_reg_const(op:tasmop;_op1:tregister; _op2:aword);
   begin
      inherited create(op);
      init(_size);
@@ -200,7 +200,7 @@ constructor taicpu.op_reg_const(op:tasmop; _size:topsize; _op1:tregister; _op2:a
      loadreg(0,_op1);
      loadconst(1,_op2);
   end;
-constructor taicpu.op_reg_ref(op:tasmop;_size:topsize;_op1:tregister;const _op2:treference);
+constructor taicpu.op_reg_ref(op:tasmop;_op1:tregister;const _op2:treference);
   begin
      inherited create(op);
      init(_size);
@@ -208,7 +208,7 @@ constructor taicpu.op_reg_ref(op:tasmop;_size:topsize;_op1:tregister;const _op2:
      loadreg(0,_op1);
      loadref(1,_op2);
   end;
-constructor taicpu.op_const_reg(op:tasmop;_size:topsize;_op1:aword;_op2:tregister);
+constructor taicpu.op_const_reg(op:tasmop;_op1:aword;_op2:tregister);
   begin
      inherited create(op);
      init(_size);
@@ -216,26 +216,10 @@ constructor taicpu.op_const_reg(op:tasmop;_size:topsize;_op1:aword;_op2:tregiste
      loadconst(0,_op1);
      loadreg(1,_op2);
   end;
-constructor taicpu.op_const_const(op:tasmop;_size:topsize;_op1,_op2:aword);
-  begin
-     inherited create(op);
-     init(_size);
-     ops:=2;
-     loadconst(0,_op1);
-     loadconst(1,_op2);
-  end;
-constructor taicpu.op_const_ref(op:tasmop;_size:topsize;_op1:aword;const _op2:treference);
-  begin
-     inherited create(op);
-     init(_size);
-     ops:=2;
-     loadconst(0,_op1);
-     loadref(1,_op2);
-  end;
-constructor taicpu.op_ref_reg(op:tasmop;_size:topsize;const _op1:treference;_op2:tregister);
+constructor taicpu.op_ref_reg(op:tasmop;const _op1:treference;_op2:tregister);
 	begin
 		inherited create(op);
-		init(_size);
+		init(S_L);
 		ops:=2;
 		loadref(0,_op1);
 		loadreg(1,_op2);
@@ -1154,7 +1138,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.7  2002-10-20 19:01:38  mazen
+    Revision 1.8  2002-10-22 13:43:01  mazen
+    - cga.pas redueced to an empty unit
+
+    Revision 1.7  2002/10/20 19:01:38  mazen
     + op_raddr_reg and op_caddr_reg added to fix functions prologue
 
     Revision 1.6  2002/10/19 20:35:07  mazen

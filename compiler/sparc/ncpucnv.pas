@@ -263,7 +263,7 @@ implementation
 
          location.register := rg.getregisterfpu(exprasmlist);
          {$WARNING FIXME what reallty should be done?}
-         exprasmlist.concat(taicpu.op_reg_ref(A_LD,S_L,location.register,ref));
+         exprasmlist.concat(taicpu.op_reg_ref(A_LD,location.register,ref));
 
          tg.ungetiftemp(exprasmlist,ref);
 
@@ -274,8 +274,7 @@ implementation
          { work around bug in some PowerPC processors }
          if (tfloatdef(resulttype.def).typ = s32real) then
          {$WARNING FIXME what reallty should be done?}
-           exprasmlist.concat(taicpu.op_reg_reg(A_ADD,S_L,location.register,
-             location.register));
+           exprasmlist.concat(taicpu.op_reg_reg(A_ADD,location.register,location.register));
        end;
 
 
@@ -287,7 +286,7 @@ implementation
           if (tfloatdef(left.resulttype.def).typ = s64real) and
              (tfloatdef(resulttype.def).typ = s32real) then
          {$WARNING FIXME what reallty should be done?}
-            exprasmlist.concat(taicpu.op_reg_reg(A_ADD,S_L,location.register,location.register));
+            exprasmlist.concat(taicpu.op_reg_reg(A_ADD,location.register,location.register));
        end;
 
 
@@ -422,7 +421,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-10-10 19:57:52  mazen
+  Revision 1.5  2002-10-22 13:43:01  mazen
+  - cga.pas redueced to an empty unit
+
+  Revision 1.4  2002/10/10 19:57:52  mazen
   * Just to update repsitory
 
   Revision 1.3  2002/09/07 15:25:14  peter

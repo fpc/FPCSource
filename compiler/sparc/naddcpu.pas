@@ -238,11 +238,11 @@ procedure TSparcAddNode.emit_op_right_left(op:TAsmOp;OpSize:TOpsize);
     with exprasmlist do
       case right.location.loc of
         LOC_REGISTER,LOC_CREGISTER:
-          concat(taicpu.op_reg_reg(op,opsize,right.location.register,left.location.register));
+          concat(taicpu.op_reg_reg(op,right.location.register,left.location.register));
         LOC_REFERENCE,LOC_CREFERENCE :
-          concat(taicpu.op_ref_reg(op,opsize,right.location.reference,left.location.register));
+          concat(taicpu.op_ref_reg(op,right.location.reference,left.location.register));
         LOC_CONSTANT:
-          concat(taicpu.op_const_reg(op,opsize,right.location.value,left.location.register));
+          concat(taicpu.op_const_reg(op,right.location.value,left.location.register));
         else
           InternalError(200203232);
       end;
@@ -526,7 +526,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.4  2002-10-10 20:23:57  mazen
+    Revision 1.5  2002-10-22 13:43:01  mazen
+    - cga.pas redueced to an empty unit
+
+    Revision 1.4  2002/10/10 20:23:57  mazen
     * tabs replaces by spaces
 
 }
