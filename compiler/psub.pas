@@ -30,7 +30,7 @@ interface
 
     uses
       cclasses,globals,
-      node,
+      node,nbas,
       symdef,procinfo;
 
     type
@@ -38,9 +38,11 @@ interface
         { code for the subroutine as tree }
         code : tnode;
         { positions in the tree for init/final }
-        exitlabelasmnode,
-        initasmnode,
-        finalasmnode : tnode;
+        entry_asmnode,
+        loadpara_asmnode,
+        exitlabel_asmnode,
+        init_asmnode,
+        final_asmnode : tasmnode;
         { list to store the procinfo's of the nested procedures }
         nestedprocs : tlinkedlist;
         constructor create(aparent:tprocinfo);override;
@@ -50,6 +52,7 @@ interface
         procedure add_to_symtablestack;
         procedure remove_from_symtablestack;
         procedure parse_body;
+        procedure add_entry_exit_code;
       end;
 
 
@@ -61,7 +64,6 @@ interface
     { reads declarations in the interface part of a unit }
     procedure read_interface_declarations;
 
-    procedure add_entry_exit_code(var code:tnode;const entrypos,exitpos:tfileposinfo);
 
 
 implementation
@@ -79,7 +81,7 @@ implementation
        paramgr,
        ppu,fmodule,
        { pass 1 }
-       nutils,nbas,nld,ncal,ncon,nflw,nadd,ncnv,nmem,
+       nutils,nld,ncal,ncon,nflw,nadd,ncnv,nmem,
        pass_1,
     {$ifdef state_tracking}
        nstate,
@@ -253,7 +255,7 @@ implementation
       end;
 
 
-    function generate_initialize_block:tnode;
+    function generate_bodyentry_block:tnode;
       var
         srsym        : tsym;
         para         : tcallparanode;
@@ -261,10 +263,6 @@ implementation
         htype        : ttype;
       begin
         result:=internalstatements(newstatement,true);
-
-        { temp/para/locals initialize code will be inserted here }
-        tcgprocinfo(current_procinfo).initasmnode:=casmnode.create_get_position;
-        addstatement(newstatement,tcgprocinfo(current_procinfo).initasmnode);
 
         if assigned(current_procinfo.procdef._class) then
           begin
@@ -357,35 +355,13 @@ implementation
       end;
 
 
-    function generate_finalize_block:tnode;
-      begin
-        { temp/para/locals finalize code will be inserted here }
-        tcgprocinfo(current_procinfo).finalasmnode:=casmnode.create_get_position;
-        result:=tcgprocinfo(current_procinfo).finalasmnode;
-      end;
-
-
-    function generate_exitlabel_block:tnode;
-      begin
-        { exit label will be inserted here }
-        tcgprocinfo(current_procinfo).exitlabelasmnode:=casmnode.create_get_position;
-        result:=tcgprocinfo(current_procinfo).exitlabelasmnode;
-      end;
-
-
-    function generate_entry_block:tnode;
-      begin
-        result:=cnothingnode.create;
-      end;
-
-
-    function generate_exit_block:tnode;
+    function generate_bodyexit_block:tnode;
       var
         srsym : tsym;
         para : tcallparanode;
         newstatement : tstatementnode;
       begin
-        generate_exit_block:=internalstatements(newstatement,true);
+        result:=internalstatements(newstatement,true);
 
         if assigned(current_procinfo.procdef._class) then
           begin
@@ -501,70 +477,6 @@ implementation
       end;
 
 
-    procedure add_entry_exit_code(var code:tnode;const entrypos,exitpos:tfileposinfo);
-      var
-        initializecode,
-        finalizecode,
-        exitlabelcode,
-        entrycode,
-        exitcode,
-        exceptcode  : tnode;
-        codeblock,
-        newblock     : tblocknode;
-        codestatement,
-        newstatement : tstatementnode;
-        oldfilepos   : tfileposinfo;
-      begin
-        oldfilepos:=aktfilepos;
-        { Generate entry,exit and init,final blocks }
-        aktfilepos:=entrypos;
-        initializecode:=generate_initialize_block;
-        entrycode:=generate_entry_block;
-        aktfilepos:=exitpos;
-        exitcode:=generate_exit_block;
-        finalizecode:=generate_finalize_block;
-        exitlabelcode:=generate_exitlabel_block;
-
-        { Generate body of the procedure by combining entry+body+exit }
-        codeblock:=internalstatements(codestatement,true);
-        addstatement(codestatement,entrycode);
-        addstatement(codestatement,code);
-        addstatement(codestatement,exitcode);
-
-        { Generate procedure by combining init+body+final,
-          depending on the implicit finally we need to add
-          an try...finally...end wrapper }
-        newblock:=internalstatements(newstatement,true);
-        if (pi_needs_implicit_finally in current_procinfo.flags) and
-           { but it's useless in init/final code of units }
-           not(current_procinfo.procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
-          begin
-            { Generate special exception block only needed when
-              implicit finaly is used }
-            aktfilepos:=exitpos;
-            exceptcode:=generate_except_block;
-            { Initialize before try...finally...end frame }
-            addstatement(newstatement,initializecode);
-            aktfilepos:=entrypos;
-            addstatement(newstatement,ctryfinallynode.create_implicit(
-               codeblock,
-               finalizecode,
-               exceptcode));
-            addstatement(newstatement,exitlabelcode);
-          end
-        else
-          begin
-            addstatement(newstatement,initializecode);
-            addstatement(newstatement,codeblock);
-            addstatement(newstatement,exitlabelcode);
-            addstatement(newstatement,finalizecode);
-          end;
-        resulttypepass(newblock);
-        code:=newblock;
-        aktfilepos:=oldfilepos;
-      end;
-
-
 {****************************************************************************
                                   TCGProcInfo
 ****************************************************************************}
@@ -583,6 +495,75 @@ implementation
            code.free;
          inherited destroy;
        end;
+
+
+    procedure tcgprocinfo.add_entry_exit_code;
+      var
+        trycode,
+        bodyentrycode,
+        bodyexitcode,
+        exceptcode   : tnode;
+        newblock     : tblocknode;
+        codestatement,
+        newstatement : tstatementnode;
+        oldfilepos   : tfileposinfo;
+      begin
+        oldfilepos:=aktfilepos;
+        { Generate code/locations used at start of proc }
+        aktfilepos:=entrypos;
+        entry_asmnode:=casmnode.create_get_position;
+        loadpara_asmnode:=casmnode.create_get_position;
+        init_asmnode:=casmnode.create_get_position;
+        bodyentrycode:=generate_bodyentry_block;
+        { Generate code/locations used at end of proc }
+        aktfilepos:=exitpos;
+        exitlabel_asmnode:=casmnode.create_get_position;
+        final_asmnode:=casmnode.create_get_position;
+        bodyexitcode:=generate_bodyexit_block;
+
+        { Generate procedure by combining init+body+final,
+          depending on the implicit finally we need to add
+          an try...finally...end wrapper }
+        newblock:=internalstatements(newstatement,true);
+        if (pi_needs_implicit_finally in current_procinfo.flags) and
+           { but it's useless in init/final code of units }
+           not(current_procinfo.procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
+          begin
+            { Generate special exception block only needed when
+              implicit finaly is used }
+            aktfilepos:=exitpos;
+            exceptcode:=generate_except_block;
+            { Generate code that will be in the try...finally }
+            trycode:=internalstatements(codestatement,true);
+            addstatement(codestatement,code);
+            addstatement(codestatement,bodyexitcode);
+            { Initialize before try...finally...end frame }
+            addstatement(newstatement,entry_asmnode);
+            addstatement(newstatement,loadpara_asmnode);
+            addstatement(newstatement,init_asmnode);
+            addstatement(newstatement,bodyentrycode);
+            aktfilepos:=entrypos;
+            addstatement(newstatement,ctryfinallynode.create_implicit(
+               trycode,
+               final_asmnode,
+               exceptcode));
+            addstatement(newstatement,exitlabel_asmnode);
+          end
+        else
+          begin
+            addstatement(newstatement,entry_asmnode);
+            addstatement(newstatement,loadpara_asmnode);
+            addstatement(newstatement,init_asmnode);
+            addstatement(newstatement,bodyentrycode);
+            addstatement(newstatement,code);
+            addstatement(newstatement,bodyexitcode);
+            addstatement(newstatement,exitlabel_asmnode);
+            addstatement(newstatement,final_asmnode);
+          end;
+        resulttypepass(newblock);
+        code:=newblock;
+        aktfilepos:=oldfilepos;
+      end;
 
 
     procedure tcgprocinfo.generate_code;
@@ -639,25 +620,31 @@ implementation
         if current_procinfo.procdef.localst.symtabletype=localsymtable then
           gen_alloc_localst(aktproccode,tlocalsymtable(current_procinfo.procdef.localst));
         if (cs_asm_source in aktglobalswitches) then
-          exprasmlist.concat(Tai_comment.Create(strpnew('Temps start at '+std_regname(current_procinfo.framepointer)+
+          aktproccode.concat(Tai_comment.Create(strpnew('Temps start at '+std_regname(current_procinfo.framepointer)+
               tostr_with_plus(tg.lasttemp))));
 
-        { Load register parameters in temps and insert local copies
-          for values parameters. This must be done before the body is parsed
-          because the localloc is updated }
+        { Generate code to load register parameters in temps and insert local
+          copies for values parameters. This must be done before the code for the
+          body is generated because the localloc is updated.
+          Note: The generated code will be inserted after the code generation of
+          the body is finished, because only then the position is known }
         aktfilepos:=entrypos;
-        gen_load_para_value(aktproccode);
+        gen_load_para_value(templist);
 
         { generate code for the body }
         generatecode(code);
+
+        { The position of the loadpara_asmnode is now known }
+        aktproccode.insertlistafter(loadpara_asmnode.currenttai,templist);
 
         { first generate entry and initialize code with the correct
           position and switches }
         aktfilepos:=entrypos;
         aktlocalswitches:=entryswitches;
         gen_entry_code(templist);
+        aktproccode.insertlistafter(entry_asmnode.currenttai,templist);
         gen_initialize_code(templist,false);
-        aktproccode.insertlistafter(tasmnode(initasmnode).currenttai,templist);
+        aktproccode.insertlistafter(init_asmnode.currenttai,templist);
 
         { now generate finalize and exit code with the correct position
           and switches }
@@ -667,14 +654,14 @@ implementation
         { the finalcode must be concated if there was no position available,
           using insertlistafter will result in an insert at the start
           when currentai=nil }
-        if assigned(tasmnode(finalasmnode).currenttai) then
-          aktproccode.insertlistafter(tasmnode(finalasmnode).currenttai,templist)
+        if assigned(final_asmnode.currenttai) then
+          aktproccode.insertlistafter(final_asmnode.currenttai,templist)
         else
           aktproccode.concatlist(templist);
         { insert exit label at the correct position }
         cg.a_label(templist,current_procinfo.aktexitlabel);
-        if assigned(tasmnode(exitlabelasmnode).currenttai) then
-          aktproccode.insertlistafter(tasmnode(exitlabelasmnode).currenttai,templist)
+        if assigned(exitlabel_asmnode.currenttai) then
+          aktproccode.insertlistafter(exitlabel_asmnode.currenttai,templist)
         else
           aktproccode.concatlist(templist);
         { exit code }
@@ -927,7 +914,7 @@ implementation
              if (Errorcount=0) then
                begin
                  { add implicit entry and exit code }
-                 add_entry_exit_code(code,entrypos,exitpos);
+                 add_entry_exit_code;
                  { check if forwards are resolved }
                  tstoredsymtable(procdef.localst).check_forwards;
                  { check if all labels are used }
@@ -1279,7 +1266,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.166  2003-10-21 15:14:33  peter
+  Revision 1.167  2003-10-24 17:40:23  peter
+    * cleanup of the entry and exit code insertion
+
+  Revision 1.166  2003/10/21 15:14:33  peter
     * fixed memleak for initfinalcode
     * exit from generatecode when there are already errors
 

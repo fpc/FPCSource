@@ -775,7 +775,7 @@ implementation
             internalerror(200304253);
         end;
         tcgprocinfo(current_procinfo).code:=cnothingnode.create;
-        add_entry_exit_code(tcgprocinfo(current_procinfo).code,aktfilepos,aktfilepos);
+        tcgprocinfo(current_procinfo).add_entry_exit_code;
         tcgprocinfo(current_procinfo).generate_code;
         release_main_proc(pd);
       end;
@@ -1418,7 +1418,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.130  2003-10-22 15:22:33  peter
+  Revision 1.131  2003-10-24 17:40:23  peter
+    * cleanup of the entry and exit code insertion
+
+  Revision 1.130  2003/10/22 15:22:33  peter
     * fixed unitsym-globalsymtable relation so the uses of a unit
       is counted correctly
 
