@@ -816,11 +816,11 @@ unit ascfun;
 
   function EnumSystemCodePagesA(lpCodePageEnumProc:CODEPAGE_ENUMPROC; dwFlags:DWORD):WINBOOL;
 
-  function PeekConsoleInputA(hConsoleInput:HANDLE; lpBuffer:PINPUT_RECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):WINBOOL;
+  function PeekConsoleInputA(hConsoleInput:HANDLE; var lpBuffer:TINPUTRECORD; nLength:DWORD; var lpNumberOfEventsRead:DWORD):WINBOOL;
 
-  function ReadConsoleInputA(hConsoleInput:HANDLE; lpBuffer:PINPUT_RECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):WINBOOL;
+  function ReadConsoleInputA(hConsoleInput:HANDLE; var lpBuffer:TINPUTRECORD; nLength:DWORD; var lpNumberOfEventsRead:DWORD):WINBOOL;
 
-  function WriteConsoleInputA(hConsoleInput:HANDLE; var lpBuffer:INPUT_RECORD; nLength:DWORD; lpNumberOfEventsWritten:LPDWORD):WINBOOL;
+  function WriteConsoleInputA(hConsoleInput:HANDLE; var lpBuffer:TINPUTRECORD; nLength:DWORD; var lpNumberOfEventsWritten:DWORD):WINBOOL;
 
   function ReadConsoleOutputA(hConsoleOutput:HANDLE; lpBuffer:PCHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpReadRegion:PSMALL_RECT):WINBOOL;
 
@@ -1717,11 +1717,11 @@ unit ascfun;
 
   function EnumSystemCodePagesA(lpCodePageEnumProc:CODEPAGE_ENUMPROC; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'EnumSystemCodePagesA';
 
-  function PeekConsoleInputA(hConsoleInput:HANDLE; lpBuffer:PINPUT_RECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):WINBOOL; external 'kernel32' name 'PeekConsoleInputA';
+  function PeekConsoleInputA(hConsoleInput:HANDLE; var lpBuffer:TINPUTRECORD; nLength:DWORD; var lpNumberOfEventsRead:DWORD):WINBOOL; external 'kernel32' name 'PeekConsoleInputA';
 
-  function ReadConsoleInputA(hConsoleInput:HANDLE; lpBuffer:PINPUT_RECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):WINBOOL; external 'kernel32' name 'ReadConsoleInputA';
+  function ReadConsoleInputA(hConsoleInput:HANDLE; var lpBuffer:TINPUTRECORD; nLength:DWORD; var lpNumberOfEventsRead:DWORD):WINBOOL; external 'kernel32' name 'ReadConsoleInputA';
 
-  function WriteConsoleInputA(hConsoleInput:HANDLE; var lpBuffer:INPUT_RECORD; nLength:DWORD; lpNumberOfEventsWritten:LPDWORD):WINBOOL; external 'kernel32' name 'WriteConsoleInputA';
+  function WriteConsoleInputA(hConsoleInput:HANDLE; var lpBuffer:TINPUTRECORD; nLength:DWORD; var lpNumberOfEventsWritten:DWORD):WINBOOL; external 'kernel32' name 'WriteConsoleInputA';
 
   function ReadConsoleOutputA(hConsoleOutput:HANDLE; lpBuffer:PCHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpReadRegion:PSMALL_RECT):WINBOOL; external 'kernel32' name 'ReadConsoleOutputA';
 
@@ -1850,7 +1850,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.6  1999-01-07 15:52:23  peter
+  Revision 1.7  1999-04-20 11:36:08  peter
+    * compatibility fixes
+
+  Revision 1.6  1999/01/07 15:52:23  peter
     * removed winspool requirement
 
   Revision 1.5  1998/10/27 11:17:09  peter

@@ -4,7 +4,7 @@
     Copyright (c) 1998 by the Free Pascal development team
 
     This file defines type names as they are used by Delphi
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -21,10 +21,17 @@ type
    TIID = TGUID;
    THANDLE = HANDLE;
 
+   PSmallRect = ^TSmallRect;
+   TSmallRect = SMALL_RECT;
+
+   PCharInfo = ^TCharInfo;
+   TCharInfo = _CHAR_INFO;
+
   procedure InitializeCriticalSection(var CriticalSection : TRTLCriticalSection);
   procedure EnterCriticalSection(var CriticalSection : TRTLCriticalSection);
   procedure LeaveCriticalSection(var CriticalSection : TRTLCriticalSection);
   procedure DeleteCriticalSection(var CriticalSection : TRTLCriticalSection);
+
 
   const
      { HRESULT codes, delphilike }
@@ -93,7 +100,10 @@ type
 
 {
   $Log$
-  Revision 1.2  1999-03-22 22:12:51  florian
+  Revision 1.3  1999-04-20 11:36:16  peter
+    * compatibility fixes
+
+  Revision 1.2  1999/03/22 22:12:51  florian
     + addition and changes to compile the direct draw unit
       of Erik Ungerer (with -dv2com and indirect disabled)
 

@@ -575,14 +575,13 @@ unit struct;
      TCBTACTIVATESTRUCT = CBTACTIVATESTRUCT;
      PCBTACTIVATESTRUCT = ^CBTACTIVATESTRUCT;
 
+
      CHAR_INFO = record
-          Char : record
               case longint of
-                 0 : ( UnicodeChar : WCHAR );
+                 0 : ( UnicodeChar : WCHAR;
+                       Attributes  : Word);
                  1 : ( AsciiChar : CHAR );
               end;
-          Attributes : WORD;
-       end;
      _CHAR_INFO = CHAR_INFO;
      TCHAR_INFO = CHAR_INFO;
      PCHAR_INFO = ^CHAR_INFO;
@@ -3493,14 +3492,12 @@ unit struct;
 
      INPUT_RECORD = record
           EventType : WORD;
-          Event : record
               case longint of
                  0 : ( KeyEvent : KEY_EVENT_RECORD );
                  1 : ( MouseEvent : MOUSE_EVENT_RECORD );
                  2 : ( WindowBufferSizeEvent : WINDOW_BUFFER_SIZE_RECORD );
                  3 : ( MenuEvent : MENU_EVENT_RECORD );
                  4 : ( FocusEvent : FOCUS_EVENT_RECORD );
-              end;
        end;
      PINPUT_RECORD = ^INPUT_RECORD;
      _INPUT_RECORD = INPUT_RECORD;
@@ -6934,7 +6931,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.7  1999-03-22 22:12:52  florian
+  Revision 1.8  1999-04-20 11:36:17  peter
+    * compatibility fixes
+
+  Revision 1.7  1999/03/22 22:12:52  florian
     + addition and changes to compile the direct draw unit
       of Erik Ungerer (with -dv2com and indirect disabled)
 

@@ -523,7 +523,7 @@ interface
 
      LPCFHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;
 
-     PTHREAD_START_ROUTINE = function (_para1:LPVOID):DWORD;
+     PTHREAD_START_ROUTINE = Pointer;
 
      LPTHREAD_START_ROUTINE = PTHREAD_START_ROUTINE;
 
@@ -962,7 +962,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  1999-03-30 17:00:22  peter
+  Revision 1.12  1999-04-20 11:36:10  peter
+    * compatibility fixes
+
+  Revision 1.11  1999/03/30 17:00:22  peter
     * fixes for 0.99.10
 
   Revision 1.10  1999/01/09 07:29:47  florian

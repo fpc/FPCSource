@@ -4749,7 +4749,7 @@ unit defines;
      MOUSE_MOVED = 1;
   { INPUT_RECORD structure  }
      KEY_EVENT = 1;
-     {MOUSE_EVENT = 2; conflict with function mouse_event }
+     _MOUSE_EVENT = 2; {conflict with function mouse_event}
      cMOUSE_EVENT = 2;
      WINDOW_BUFFER_SIZE_EVENT = 4;
      MENU_EVENT = 8;
@@ -5718,7 +5718,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.8  1999-01-28 18:24:29  pierre
+  Revision 1.9  1999-04-20 11:36:11  peter
+    * compatibility fixes
+
+  Revision 1.8  1999/01/28 18:24:29  pierre
    * conversion from boolean to longint must be explicit
 
   Revision 1.7  1998/11/12 11:41:05  peter

@@ -816,24 +816,24 @@ unit ascdef;
 
   function EnumSystemCodePages(lpCodePageEnumProc:CODEPAGE_ENUMPROC; dwFlags:DWORD):WINBOOL;
 
-  function PeekConsoleInput(hConsoleInput:HANDLE; lpBuffer:PINPUT_RECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):WINBOOL;
+  function PeekConsoleInput(hConsoleInput:HANDLE; var lpBuffer:TINPUTRECORD; nLength:DWORD; var lpNumberOfEventsRead: DWORD):WINBOOL;
 
-  function ReadConsoleInput(hConsoleInput:HANDLE; lpBuffer:PINPUT_RECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):WINBOOL;
+  function ReadConsoleInput(hConsoleInput:HANDLE; var lpBuffer:TINPUTRECORD; nLength:DWORD; var lpNumberOfEventsRead:DWORD):WINBOOL;
 
-  function WriteConsoleInput(hConsoleInput:HANDLE; var lpBuffer:INPUT_RECORD; nLength:DWORD; lpNumberOfEventsWritten:LPDWORD):WINBOOL;
+  function WriteConsoleInput(hConsoleInput:HANDLE; var lpBuffer:TINPUTRECORD; nLength:DWORD; var lpNumberOfEventsWritten:DWORD):WINBOOL;
 
   function ReadConsoleOutput(hConsoleOutput:HANDLE; lpBuffer:PCHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpReadRegion:PSMALL_RECT):WINBOOL;
 
   function WriteConsoleOutput(hConsoleOutput:HANDLE; var lpBuffer:CHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpWriteRegion:PSMALL_RECT):WINBOOL;
   function WriteConsoleOutput(hConsoleOutput:HANDLE; lpBuffer : pointer; dwBufferSize:COORD; dwBufferCoord:COORD; var lpWriteRegion : SMALL_RECT):WINBOOL;
 
-  function ReadConsoleOutputCharacter(hConsoleOutput:HANDLE; lpCharacter:LPSTR; nLength:DWORD; dwReadCoord:COORD; lpNumberOfCharsRead:LPDWORD):WINBOOL;
+  function ReadConsoleOutputCharacter(hConsoleOutput:HANDLE; lpCharacter:LPSTR; nLength:DWORD; dwReadCoord:COORD; var lpNumberOfCharsRead:DWORD):WINBOOL;
 
-  function WriteConsoleOutputCharacter(hConsoleOutput:HANDLE; lpCharacter:LPCSTR; nLength:DWORD; dwWriteCoord:COORD; lpNumberOfCharsWritten:LPDWORD):WINBOOL;
+  function WriteConsoleOutputCharacter(hConsoleOutput:HANDLE; lpCharacter:LPCSTR; nLength:DWORD; dwWriteCoord:COORD; var lpNumberOfCharsWritten:DWORD):WINBOOL;
 
-  function FillConsoleOutputCharacter(hConsoleOutput:HANDLE; cCharacter:CHAR; nLength:DWORD; dwWriteCoord:COORD; lpNumberOfCharsWritten:LPDWORD):WINBOOL;
+  function FillConsoleOutputCharacter(hConsoleOutput:HANDLE; cCharacter:CHAR; nLength:DWORD; dwWriteCoord:COORD; var lpNumberOfCharsWritten:DWORD):WINBOOL;
 
-  function ScrollConsoleScreenBuffer(hConsoleOutput:HANDLE; var lpScrollRectangle:SMALL_RECT; var lpClipRectangle:SMALL_RECT; dwDestinationOrigin:COORD; var lpFill:CHAR_INFO):WINBOOL;
+  function ScrollConsoleScreenBuffer(hConsoleOutput:HANDLE; var lpScrollRectangle:SMALL_RECT; lpClipRectangle:PSMALL_RECT; dwDestinationOrigin:COORD; var lpFill:CHAR_INFO):WINBOOL;
 
   function GetConsoleTitle(lpConsoleTitle:LPSTR; nSize:DWORD):DWORD;
 
@@ -1718,24 +1718,24 @@ unit ascdef;
 
   function EnumSystemCodePages(lpCodePageEnumProc:CODEPAGE_ENUMPROC; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'EnumSystemCodePagesA';
 
-  function PeekConsoleInput(hConsoleInput:HANDLE; lpBuffer:PINPUT_RECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):WINBOOL; external 'kernel32' name 'PeekConsoleInputA';
+  function PeekConsoleInput(hConsoleInput:HANDLE; var lpBuffer:TINPUTRECORD; nLength:DWORD; var lpNumberOfEventsRead:DWORD):WINBOOL; external 'kernel32' name 'PeekConsoleInputA';
 
-  function ReadConsoleInput(hConsoleInput:HANDLE; lpBuffer:PINPUT_RECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):WINBOOL; external 'kernel32' name 'ReadConsoleInputA';
+  function ReadConsoleInput(hConsoleInput:HANDLE; var lpBuffer:TINPUTRECORD; nLength:DWORD; var lpNumberOfEventsRead:DWORD):WINBOOL; external 'kernel32' name 'ReadConsoleInputA';
 
-  function WriteConsoleInput(hConsoleInput:HANDLE; var lpBuffer:INPUT_RECORD; nLength:DWORD; lpNumberOfEventsWritten:LPDWORD):WINBOOL; external 'kernel32' name 'WriteConsoleInputA';
+  function WriteConsoleInput(hConsoleInput:HANDLE; var lpBuffer:TINPUTRECORD; nLength:DWORD; var lpNumberOfEventsWritten:DWORD):WINBOOL; external 'kernel32' name 'WriteConsoleInputA';
 
   function ReadConsoleOutput(hConsoleOutput:HANDLE; lpBuffer:PCHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpReadRegion:PSMALL_RECT):WINBOOL; external 'kernel32' name 'ReadConsoleOutputA';
 
   function WriteConsoleOutput(hConsoleOutput:HANDLE; var lpBuffer:CHAR_INFO; dwBufferSize:COORD; dwBufferCoord:COORD; lpWriteRegion:PSMALL_RECT):WINBOOL; external 'kernel32' name 'WriteConsoleOutputA';
   function WriteConsoleOutput(hConsoleOutput:HANDLE; lpBuffer : pointer; dwBufferSize:COORD; dwBufferCoord:COORD; var lpWriteRegion : SMALL_RECT):WINBOOL; external 'kernel32' name 'WriteConsoleOutputA';
 
-  function ReadConsoleOutputCharacter(hConsoleOutput:HANDLE; lpCharacter:LPSTR; nLength:DWORD; dwReadCoord:COORD; lpNumberOfCharsRead:LPDWORD):WINBOOL; external 'kernel32' name 'ReadConsoleOutputCharacterA';
+  function ReadConsoleOutputCharacter(hConsoleOutput:HANDLE; lpCharacter:LPSTR; nLength:DWORD; dwReadCoord:COORD; var lpNumberOfCharsRead:DWORD):WINBOOL; external 'kernel32' name 'ReadConsoleOutputCharacterA';
 
-  function WriteConsoleOutputCharacter(hConsoleOutput:HANDLE; lpCharacter:LPCSTR; nLength:DWORD; dwWriteCoord:COORD; lpNumberOfCharsWritten:LPDWORD):WINBOOL; external 'kernel32' name 'WriteConsoleOutputCharacterA';
+  function WriteConsoleOutputCharacter(hConsoleOutput:HANDLE; lpCharacter:LPCSTR; nLength:DWORD; dwWriteCoord:COORD; var lpNumberOfCharsWritten:DWORD):WINBOOL; external 'kernel32' name 'WriteConsoleOutputCharacterA';
 
-  function FillConsoleOutputCharacter(hConsoleOutput:HANDLE; cCharacter:CHAR; nLength:DWORD; dwWriteCoord:COORD; lpNumberOfCharsWritten:LPDWORD):WINBOOL; external 'kernel32' name 'FillConsoleOutputCharacterA';
+  function FillConsoleOutputCharacter(hConsoleOutput:HANDLE; cCharacter:CHAR; nLength:DWORD; dwWriteCoord:COORD; var lpNumberOfCharsWritten:DWORD):WINBOOL; external 'kernel32' name 'FillConsoleOutputCharacterA';
 
-  function ScrollConsoleScreenBuffer(hConsoleOutput:HANDLE; var lpScrollRectangle:SMALL_RECT; var lpClipRectangle:SMALL_RECT; dwDestinationOrigin:COORD; var lpFill:CHAR_INFO):WINBOOL; external 'kernel32' name 'ScrollConsoleScreenBufferA';
+  function ScrollConsoleScreenBuffer(hConsoleOutput:HANDLE; var lpScrollRectangle:SMALL_RECT; lpClipRectangle: PSMALL_RECT; dwDestinationOrigin:COORD; var lpFill:CHAR_INFO):WINBOOL; external 'kernel32' name 'ScrollConsoleScreenBufferA';
 
   function GetConsoleTitle(lpConsoleTitle:LPSTR; nSize:DWORD):DWORD; external 'kernel32' name 'GetConsoleTitleA';
 
@@ -1852,7 +1852,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.7  1999-01-09 07:29:46  florian
+  Revision 1.8  1999-04-20 11:36:07  peter
+    * compatibility fixes
+
+  Revision 1.7  1999/01/09 07:29:46  florian
     * some updates to compile API units for win32
 
   Revision 1.6  1999/01/07 15:52:22  peter

@@ -55,7 +55,7 @@ Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
 Var res : Longint;
 
 begin
-  if not ReadFile(Handle, @Buffer, Count, @res, nil) then res := -1;
+  if not ReadFile(Handle, Buffer, Count, res, nil) then res := -1;
   FileRead:=Res;
 end;
 
@@ -65,7 +65,7 @@ Function FileWrite (Handle : Longint; Var Buffer; Count : Longint) : Longint;
 Var Res : longint;
 
 begin
-  if not WriteFile(Handle, @Buffer, Count, @Res, nil) then Res:= -1;
+  if not WriteFile(Handle, Buffer, Count, Res, nil) then Res:= -1;
   FileWrite:=Res;
 end;
 
@@ -426,7 +426,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  1999-04-08 12:23:09  peter
+  Revision 1.10  1999-04-20 11:36:13  peter
+    * compatibility fixes
+
+  Revision 1.9  1999/04/08 12:23:09  peter
     * removed os.inc
 
   Revision 1.8  1999/03/18 16:15:59  michael

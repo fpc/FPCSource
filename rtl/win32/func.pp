@@ -1093,7 +1093,7 @@ ExitProcess(
       );
    }
   function CreateThread(lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID; dwCreationFlags:DWORD;
-             lpThreadId:LPDWORD):HANDLE;
+                var lpThreadId:DWORD):HANDLE;
 
   function CreateRemoteThread(hProcess:HANDLE; lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID;
              dwCreationFlags:DWORD; lpThreadId:LPDWORD):HANDLE;
@@ -1122,7 +1122,7 @@ ExitProcess(
 
   procedure SetLastError(dwErrCode:DWORD);
 
-  function GetOverlappedResult(hFile:HANDLE; lpOverlapped:LPOVERLAPPED; lpNumberOfBytesTransferred:LPDWORD; bWait:WINBOOL):WINBOOL;
+  function GetOverlappedResult(hFile:HANDLE; const lpOverlapped:TOVERLAPPED; var lpNumberOfBytesTransferred:DWORD; bWait:WINBOOL):WINBOOL;
 
   function CreateIoCompletionPort(FileHandle:HANDLE; ExistingCompletionPort:HANDLE; CompletionKey:DWORD; NumberOfConcurrentThreads:DWORD):HANDLE;
 
@@ -1209,9 +1209,9 @@ ExitProcess(
 
   function SetStdHandle(nStdHandle:DWORD; hHandle:HANDLE):WINBOOL;
 
-  function WriteFile(hFile:HANDLE; lpBuffer:LPCVOID; nNumberOfBytesToWrite:DWORD; lpNumberOfBytesWritten:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL;
+  function WriteFile(hFile:HANDLE; var lpBuffer; nNumberOfBytesToWrite:DWORD; var lpNumberOfBytesWritten:DWORD; lpOverlapped:LPOVERLAPPED):WINBOOL;
 
-  function ReadFile(hFile:HANDLE; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD; lpNumberOfBytesRead:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL;
+  function ReadFile(hFile:HANDLE; var lpBuffer; nNumberOfBytesToRead:DWORD; var lpNumberOfBytesRead:DWORD; lpOverlapped:LPOVERLAPPED):WINBOOL;
 
   function FlushFileBuffers(hFile:HANDLE):WINBOOL;
 
@@ -1254,15 +1254,15 @@ ExitProcess(
 
   function GetCommConfig(hCommDev:HANDLE; lpCC:LPCOMMCONFIG; lpdwSize:LPDWORD):WINBOOL;
 
-  function GetCommMask(hFile:HANDLE; lpEvtMask:LPDWORD):WINBOOL;
+  function GetCommMask(hFile:HANDLE; var lpEvtMask: DWORD):WINBOOL;
 
-  function GetCommProperties(hFile:HANDLE; lpCommProp:LPCOMMPROP):WINBOOL;
+  function GetCommProperties(hFile:HANDLE; var lpCommProp:TCOMMPROP):WINBOOL;
 
-  function GetCommModemStatus(hFile:HANDLE; lpModemStat:LPDWORD):WINBOOL;
+  function GetCommModemStatus(hFile:HANDLE; var lpModemStat:DWORD):WINBOOL;
 
-  function GetCommState(hFile:HANDLE; lpDCB:LPDCB):WINBOOL;
+  function GetCommState(hFile:HANDLE; var lpDCB:TDCB):WINBOOL;
 
-  function GetCommTimeouts(hFile:HANDLE; lpCommTimeouts:LPCOMMTIMEOUTS):WINBOOL;
+  function GetCommTimeouts(hFile:HANDLE; var lpCommTimeouts:TCOMMTIMEOUTS):WINBOOL;
 
   function PurgeComm(hFile:HANDLE; dwFlags:DWORD):WINBOOL;
 
@@ -1272,13 +1272,13 @@ ExitProcess(
 
   function SetCommMask(hFile:HANDLE; dwEvtMask:DWORD):WINBOOL;
 
-  function SetCommState(hFile:HANDLE; lpDCB:LPDCB):WINBOOL;
+  function SetCommState(hFile:HANDLE; var lpDCB: TDCB):WINBOOL;
 
-  function SetCommTimeouts(hFile:HANDLE; lpCommTimeouts:LPCOMMTIMEOUTS):WINBOOL;
+  function SetCommTimeouts(hFile:HANDLE; var lpCommTimeouts:TCOMMTIMEOUTS):WINBOOL;
 
   function TransmitCommChar(hFile:HANDLE; cChar:char):WINBOOL;
 
-  function WaitCommEvent(hFile:HANDLE; lpEvtMask:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL;
+  function WaitCommEvent(hFile:HANDLE; var lpEvtMask:DWORD; lpOverlapped:LPOVERLAPPED):WINBOOL;
 
   function SetTapePosition(hDevice:HANDLE; dwPositionMethod:DWORD; dwPartition:DWORD; dwOffsetLow:DWORD; dwOffsetHigh:DWORD;
              bImmediate:WINBOOL):DWORD;
@@ -3454,7 +3454,7 @@ in define line 6852 *)
 
     function GetConsoleMode(hConsoleHandle:HANDLE; lpMode:LPDWORD):WINBOOL;
 
-    function GetNumberOfConsoleInputEvents(hConsoleInput:HANDLE; lpNumberOfEvents:LPDWORD):WINBOOL;
+    function GetNumberOfConsoleInputEvents(hConsoleInput:HANDLE; var lpNumberOfEvents:DWORD):WINBOOL;
 
     function GetConsoleScreenBufferInfo(hConsoleOutput:HANDLE; lpConsoleScreenBufferInfo:PCONSOLE_SCREEN_BUFFER_INFO):WINBOOL;
     function GetConsoleScreenBufferInfo(hConsoleOutput:HANDLE; var lpConsoleScreenBufferInfo:CONSOLE_SCREEN_BUFFER_INFO):WINBOOL;
@@ -3885,7 +3885,7 @@ in define line 6852 *)
   function UnhandledExceptionFilter(var ExceptionInfo:emptyrecord):LONG; external 'kernel32' name 'UnhandledExceptionFilter';
 
   function CreateThread(lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID; dwCreationFlags:DWORD;
-             lpThreadId:LPDWORD):HANDLE; external 'kernel32' name 'CreateThread';
+             var lpThreadId:DWORD):HANDLE; external 'kernel32' name 'CreateThread';
 
   function CreateRemoteThread(hProcess:HANDLE; lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID;
              dwCreationFlags:DWORD; lpThreadId:LPDWORD):HANDLE; external 'kernel32' name 'CreateRemoteThread';
@@ -3914,7 +3914,7 @@ in define line 6852 *)
 
   procedure SetLastError(dwErrCode:DWORD); external 'kernel32' name 'SetLastError';
 
-  function GetOverlappedResult(hFile:HANDLE; lpOverlapped:LPOVERLAPPED; lpNumberOfBytesTransferred:LPDWORD; bWait:WINBOOL):WINBOOL; external 'kernel32' name 'GetOverlappedResult';
+  function GetOverlappedResult(hFile:HANDLE; const lpOverlapped:TOVERLAPPED; var lpNumberOfBytesTransferred:DWORD; bWait:WINBOOL):WINBOOL; external 'kernel32' name 'GetOverlappedResult';
 
   function CreateIoCompletionPort(FileHandle:HANDLE; ExistingCompletionPort:HANDLE; CompletionKey:DWORD; NumberOfConcurrentThreads:DWORD):HANDLE; external 'kernel32' name 'CreateIoCompletionPort';
 
@@ -3999,9 +3999,9 @@ in define line 6852 *)
 
   function SetStdHandle(nStdHandle:DWORD; hHandle:HANDLE):WINBOOL; external 'kernel32' name 'SetStdHandle';
 
-  function WriteFile(hFile:HANDLE; lpBuffer:LPCVOID; nNumberOfBytesToWrite:DWORD; lpNumberOfBytesWritten:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32' name 'WriteFile';
+  function WriteFile(hFile:HANDLE; var lpBuffer; nNumberOfBytesToWrite:DWORD; var lpNumberOfBytesWritten:DWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32' name 'WriteFile';
 
-  function ReadFile(hFile:HANDLE; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD; lpNumberOfBytesRead:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32' name 'ReadFile';
+  function ReadFile(hFile:HANDLE; var lpBuffer; nNumberOfBytesToRead:DWORD; var lpNumberOfBytesRead:DWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32' name 'ReadFile';
 
   function FlushFileBuffers(hFile:HANDLE):WINBOOL; external 'kernel32' name 'FlushFileBuffers';
 
@@ -4041,15 +4041,15 @@ in define line 6852 *)
 
   function GetCommConfig(hCommDev:HANDLE; lpCC:LPCOMMCONFIG; lpdwSize:LPDWORD):WINBOOL; external 'kernel32' name 'GetCommConfig';
 
-  function GetCommMask(hFile:HANDLE; lpEvtMask:LPDWORD):WINBOOL; external 'kernel32' name 'GetCommMask';
+  function GetCommMask(hFile:HANDLE; var lpEvtMask:DWORD):WINBOOL; external 'kernel32' name 'GetCommMask';
 
-  function GetCommProperties(hFile:HANDLE; lpCommProp:LPCOMMPROP):WINBOOL; external 'kernel32' name 'GetCommProperties';
+  function GetCommProperties(hFile:HANDLE; var lpCommProp:TCOMMPROP):WINBOOL; external 'kernel32' name 'GetCommProperties';
 
-  function GetCommModemStatus(hFile:HANDLE; lpModemStat:LPDWORD):WINBOOL; external 'kernel32' name 'GetCommModemStatus';
+  function GetCommModemStatus(hFile:HANDLE; var lpModemStat:DWORD):WINBOOL; external 'kernel32' name 'GetCommModemStatus';
 
-  function GetCommState(hFile:HANDLE; lpDCB:LPDCB):WINBOOL; external 'kernel32' name 'GetCommState';
+  function GetCommState(hFile:HANDLE; var lpDCB:TDCB):WINBOOL; external 'kernel32' name 'GetCommState';
 
-  function GetCommTimeouts(hFile:HANDLE; lpCommTimeouts:LPCOMMTIMEOUTS):WINBOOL; external 'kernel32' name 'GetCommTimeouts';
+  function GetCommTimeouts(hFile:HANDLE; var lpCommTimeouts:TCOMMTIMEOUTS):WINBOOL; external 'kernel32' name 'GetCommTimeouts';
 
   function PurgeComm(hFile:HANDLE; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'PurgeComm';
 
@@ -4059,13 +4059,13 @@ in define line 6852 *)
 
   function SetCommMask(hFile:HANDLE; dwEvtMask:DWORD):WINBOOL; external 'kernel32' name 'SetCommMask';
 
-  function SetCommState(hFile:HANDLE; lpDCB:LPDCB):WINBOOL; external 'kernel32' name 'SetCommState';
+  function SetCommState(hFile:HANDLE; var lpDCB:TDCB):WINBOOL; external 'kernel32' name 'SetCommState';
 
-  function SetCommTimeouts(hFile:HANDLE; lpCommTimeouts:LPCOMMTIMEOUTS):WINBOOL; external 'kernel32' name 'SetCommTimeouts';
+  function SetCommTimeouts(hFile:HANDLE; var lpCommTimeouts:TCOMMTIMEOUTS):WINBOOL; external 'kernel32' name 'SetCommTimeouts';
 
   function TransmitCommChar(hFile:HANDLE; cChar:char):WINBOOL; external 'kernel32' name 'TransmitCommChar';
 
-  function WaitCommEvent(hFile:HANDLE; lpEvtMask:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32' name 'WaitCommEvent';
+  function WaitCommEvent(hFile:HANDLE; var lpEvtMask:DWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32' name 'WaitCommEvent';
 
   function SetTapePosition(hDevice:HANDLE; dwPositionMethod:DWORD; dwPartition:DWORD; dwOffsetLow:DWORD; dwOffsetHigh:DWORD;
              bImmediate:WINBOOL):DWORD; external 'kernel32' name 'SetTapePosition';
@@ -6591,7 +6591,7 @@ in define line 6826 *)
 
     function GetConsoleMode(hConsoleHandle:HANDLE; lpMode:LPDWORD):WINBOOL; external 'kernel32' name 'GetConsoleMode';
 
-    function GetNumberOfConsoleInputEvents(hConsoleInput:HANDLE; lpNumberOfEvents:LPDWORD):WINBOOL; external 'kernel32' name 'GetNumberOfConsoleInputEvents';
+    function GetNumberOfConsoleInputEvents(hConsoleInput:HANDLE; var lpNumberOfEvents:DWORD):WINBOOL; external 'kernel32' name 'GetNumberOfConsoleInputEvents';
 
     function GetConsoleScreenBufferInfo(hConsoleOutput:HANDLE; lpConsoleScreenBufferInfo:PCONSOLE_SCREEN_BUFFER_INFO):WINBOOL; external 'kernel32' name 'GetConsoleScreenBufferInfo';
     function GetConsoleScreenBufferInfo(hConsoleOutput:HANDLE; var lpConsoleScreenBufferInfo: CONSOLE_SCREEN_BUFFER_INFO):WINBOOL; external 'kernel32' name 'GetConsoleScreenBufferInfo';
@@ -6779,7 +6779,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.9  1999-03-30 17:00:23  peter
+  Revision 1.10  1999-04-20 11:36:14  peter
+    * compatibility fixes
+
+  Revision 1.9  1999/03/30 17:00:23  peter
     * fixes for 0.99.10
 
   Revision 1.8  1999/01/09 07:29:48  florian
