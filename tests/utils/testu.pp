@@ -15,6 +15,9 @@ type
   TConfig = record
     NeedOptions,
     NeedCPU,
+    SkipCPU,
+    NeedTarget,
+    SkipTarget,
     NeedVersion,
     KnownRunNote  : string;
     ResultCode    : longint;
@@ -32,7 +35,7 @@ type
 
 Const
   DoVerbose : boolean = false;
-  
+
 procedure TrimB(var s:string);
 procedure TrimE(var s:string);
 function upper(const s : string) : string;
@@ -82,7 +85,7 @@ end;
 function upper(const s : string) : string;
 var
   i,l  : longint;
-  
+
 begin
   L:=Length(S);
   SetLength(upper,l);
@@ -229,7 +232,7 @@ Function GetFileContents (FN : String) : String;
 Var
   F : Text;
   S : String;
-  
+
 begin
   Result:='';
   Assign(F,FN);
@@ -243,7 +246,7 @@ begin
     ReadLn(F,S);
     Result:=Result+S+LineEnding;
     end;
-  Close(F);  
+  Close(F);
 end;
 
-end. 
+end.

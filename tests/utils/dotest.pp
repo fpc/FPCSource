@@ -22,6 +22,9 @@ uses
   testu,
   redir;
 
+type
+  tcompinfo = (compver,comptarget,compcpu);
+
 const
 {$ifdef UNIX}
   ExeExt='';
@@ -29,11 +32,11 @@ const
   ExeExt='exe';
 {$endif UNIX}
 
-
 var
   Config : TConfig;
   CompilerBin : string;
   CompilerCPU : string;
+  CompilerTarget : string;
   CompilerVersion : string;
   PPFile : string;
   PPFileInfo : string;
@@ -71,6 +74,7 @@ begin
   ToStr:=s;
 end;
 
+
 function ToStrZero(l:longint;nbzero : byte):string;
 var
   s : string;
@@ -79,6 +83,44 @@ begin
   while length(s)<nbzero do
     s:='0'+s;
   ToStrZero:=s;
+end;
+
+
+function trimspace(const s:string):string;
+var
+  i,j : longint;
+begin
+  i:=length(s);
+  while (i>0) and (s[i] in [#9,' ']) do
+   dec(i);
+  j:=1;
+  while (j<i) and (s[j] in [#9,' ']) do
+   inc(j);
+  trimspace:=Copy(s,j,i-j+1);
+end;
+
+
+function IsInList(const entry,list:string):boolean;
+var
+  i,istart : longint;
+begin
+  IsInList:=false;
+  i:=0;
+  while (i<length(list)) do
+   begin
+     { Find list item }
+     istart:=i+1;
+     while (i<length(list)) and
+           (list[i+1]<>',') do
+      inc(i);
+     if Upcase(entry)=Upcase(TrimSpace(Copy(list,istart,i-istart+1))) then
+      begin
+        IsInList:=true;
+        exit;
+      end;
+     { skip , }
+     inc(i);
+   end;
 end;
 
 
@@ -98,9 +140,6 @@ begin
     PPFileInfo:=PPfile;
   FindClose (Info);
 end;
-
-
-
 
 
 function SplitPath(const s:string):string;
@@ -268,8 +307,17 @@ begin
               if GetEntry('OPT') then
                r.NeedOptions:=res
               else
+               if GetEntry('TARGET') then
+                r.NeedTarget:=res
+              else
+               if GetEntry('SKIPTARGET') then
+                r.SkipTarget:=res
+              else
                if GetEntry('CPU') then
                 r.NeedCPU:=res
+              else
+               if GetEntry('SKIPCPU') then
+                r.SkipCPU:=res
               else
                if GetEntry('VERSION') then
                 r.NeedVersion:=res
@@ -334,49 +382,97 @@ begin
 end;
 
 
-function GetCompilerVersion:boolean;
+function GetCompilerInfo(c:tcompinfo):boolean;
+
+  function GetToken(var s:string):string;
+  var
+    i : longint;
+  begin
+    i:=pos(' ',s);
+    if i=0 then
+     i:=length(s)+1;
+    GetToken:=Copy(s,1,i-1);
+    Delete(s,1,i);
+  end;
+
 var
-  t : text;
+  t  : text;
+  hs : string;
 begin
-  GetCompilerVersion:=false;
-  ExecuteRedir(CompilerBin,'-iV','','out','');
+  GetCompilerInfo:=false;
+  { Try to get all information in one call, this is
+    supported in 1.1. Older compilers 1.0.x will only
+    return the first info }
+  case c of
+    compver :
+      hs:='-iVTPTO';
+    compcpu :
+      hs:='-iTPTOV';
+    comptarget :
+      hs:='-iTOTPV';
+  end;
+  ExecuteRedir(CompilerBin,hs,'','out','');
   assign(t,'out');
   {$I-}
    reset(t);
-   readln(t,CompilerVersion);
+   readln(t,hs);
    close(t);
    erase(t);
   {$I+}
   if ioresult<>0 then
-   Verbose(V_Error,'Can''t get Compiler Version')
+   Verbose(V_Error,'Can''t get Compiler Info')
   else
    begin
-     Verbose(V_Debug,'Current Compiler Version: '+CompilerVersion);
-     GetCompilerVersion:=true;
+     Verbose(V_Debug,'Current Compiler Info: "'+hs+'"');
+     case c of
+       compver :
+         begin
+           CompilerVersion:=GetToken(hs);
+           CompilerCPU:=GetToken(hs);
+           CompilerTarget:=GetToken(hs);
+         end;
+       compcpu :
+         begin
+           CompilerCPU:=GetToken(hs);
+           CompilerTarget:=GetToken(hs);
+           CompilerVersion:=GetToken(hs);
+         end;
+       comptarget :
+         begin
+           CompilerTarget:=GetToken(hs);
+           CompilerCPU:=GetToken(hs);
+           CompilerVersion:=GetToken(hs);
+         end;
+     end;
+     GetCompilerInfo:=true;
    end;
 end;
 
 
-function GetCompilerCPU:boolean;
-var
-  t : text;
+function GetCompilerVersion:boolean;
 begin
-  GetCompilerCPU:=false;
-  ExecuteRedir(CompilerBin,'-iTP','','out','');
-  assign(t,'out');
-  {$I-}
-   reset(t);
-   readln(t,CompilerCPU);
-   close(t);
-   erase(t);
-  {$I+}
-  if ioresult<>0 then
-   Verbose(V_Error,'Can''t get Compiler CPU Target')
+  if CompilerVersion='' then
+    GetCompilerVersion:=GetCompilerInfo(compver)
   else
-   begin
-     Verbose(V_Debug,'Current Compiler CPU Target: '+CompilerCPU);
-     GetCompilerCPU:=true;
-   end;
+    GetCompilerVersion:=true;
+end;
+
+
+function GetCompilerCPU:boolean;
+begin
+  if CompilerCPU='' then
+    GetCompilerCPU:=GetCompilerInfo(compcpu)
+  else
+    GetCompilerCPU:=true;
+end;
+
+
+function GetCompilerTarget:boolean;
+begin
+  if CompilerTarget='' then
+    GetCompilerTarget:=GetCompilerInfo(comptarget)
+  else
+    GetCompilerTarget:=true;
 end;
 
 
@@ -693,12 +789,63 @@ begin
       begin
         Verbose(V_Debug,'Required compiler cpu: '+Config.NeedCPU);
         Res:=GetCompilerCPU;
-        if Upper(Config.NeedCPU)<>Upper(CompilerCPU) then
+        if not IsInList(CompilerCPU,Config.NeedCPU) then
          begin
            { avoid a second attempt by writing to elg file }
            AddLog(OutName,skipping_other_cpu+PPFileInfo);
            AddLog(ResLogFile,skipping_other_cpu+PPFileInfo);
            Verbose(V_Abort,'Compiler cpu wrong '+CompilerCPU+' <> '+Config.NeedCPU);
+           Res:=false;
+         end;
+      end;
+   end;
+
+  if Res then
+   begin
+     if Config.SkipCPU<>'' then
+      begin
+        Verbose(V_Debug,'Skip compiler cpu: '+Config.NeedCPU);
+        Res:=GetCompilerCPU;
+        if IsInList(CompilerCPU,Config.SkipCPU) then
+         begin
+           { avoid a second attempt by writing to elg file }
+           AddLog(OutName,skipping_other_cpu+PPFileInfo);
+           AddLog(ResLogFile,skipping_other_cpu+PPFileInfo);
+           Verbose(V_Abort,'Compiler cpu in skipcpu '+CompilerCPU+' = '+Config.SkipCPU);
+           Res:=false;
+         end;
+      end;
+   end;
+
+  if Res then
+   begin
+     if Config.NeedTarget<>'' then
+      begin
+        Verbose(V_Debug,'Required compiler target: '+Config.NeedTarget);
+        Res:=GetCompilerTarget;
+        if not IsInList(CompilerTarget,Config.NeedTarget) then
+         begin
+           { avoid a second attempt by writing to elg file }
+           AddLog(OutName,skipping_other_target+PPFileInfo);
+           AddLog(ResLogFile,skipping_other_target+PPFileInfo);
+           Verbose(V_Abort,'Compiler target wrong '+CompilerTarget+' <> '+Config.NeedTarget);
+           Res:=false;
+         end;
+      end;
+   end;
+
+  if Res then
+   begin
+     if Config.SkipTarget<>'' then
+      begin
+        Verbose(V_Debug,'Skip compiler target: '+Config.NeedTarget);
+        Res:=GetCompilerTarget;
+        if IsInList(CompilerTarget,Config.SkipTarget) then
+         begin
+           { avoid a second attempt by writing to elg file }
+           AddLog(OutName,skipping_other_target+PPFileInfo);
+           AddLog(ResLogFile,skipping_other_target+PPFileInfo);
+           Verbose(V_Abort,'Compiler target in skiptarget '+CompilerTarget+' = '+Config.SkipTarget);
            Res:=false;
          end;
       end;
@@ -746,7 +893,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-12-17 15:04:32  michael
+  Revision 1.24  2002-12-24 21:47:49  peter
+    * NeedTarget, SkipTarget, SkipCPU added
+    * Retrieve compiler info in a single call for 1.1 compiler
+
+  Revision 1.23  2002/12/17 15:04:32  michael
   + Added dbdigest to store results in a database
 
   Revision 1.22  2002/12/15 13:30:46  peter

@@ -32,6 +32,7 @@ const
   skipping_known_bug = 'Skipping test because it is a known bug ';
   skipping_compiler_version_too_low = 'Skipping test because compiler version too low ';
   skipping_other_cpu = 'Skipping test because for other cpu ';
+  skipping_other_target = 'Skipping test because for other target ';
   skipping_run_unit = 'Skipping test run because it is a unit ';
   skipping_run_test = 'Skipping run test ';
   known_problem = ' known problem: ';
@@ -45,7 +46,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-11-18 16:42:43  pierre
+  Revision 1.4  2002-12-24 21:47:49  peter
+    * NeedTarget, SkipTarget, SkipCPU added
+    * Retrieve compiler info in a single call for 1.1 compiler
+
+  Revision 1.3  2002/11/18 16:42:43  pierre
    + KNOWNRUNERROR added
 
   Revision 1.2  2002/11/13 15:26:24  pierre

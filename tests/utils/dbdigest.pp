@@ -38,6 +38,7 @@ Type
   stSkippingKnownBug,
   stSkippingCompilerVersionTooLow,
   stSkippingOtherCpu,
+  stSkippingOtherTarget,
   stskippingRunUnit,
   stskippingRunTest
   );
@@ -45,8 +46,8 @@ Type
 
 Const
   FirstStatus = stFailedToCompile;
-  LastStatus = stskippingRunTest; 
-  
+  LastStatus = stskippingRunTest;
+
   TestOK : Array[TTestStatus] of Boolean = (
     False, // stFailedToCompile,
     True,  // stSuccessCompilationFailed,
@@ -60,6 +61,7 @@ Const
     False, // stSkippingKnownBug,
     False, // stSkippingCompilerVersionTooLow,
     False, // stSkippingOtherCpu,
+    False, // stSkippingOtherTarget,
     False, // stskippingRunUnit,
     False  // stskippingRunTest
   );
@@ -77,6 +79,7 @@ Const
     True,   // stSkippingKnownBug,
     True,   // stSkippingCompilerVersionTooLow,
     True,   // stSkippingOtherCpu,
+    True,   // stSkippingOtherTarget,
     True,   // stskippingRunUnit,
     True    // stskippingRunTest
   );
@@ -94,6 +97,7 @@ Const
     False,  // stSkippingKnownBug,
     False,  // stSkippingCompilerVersionTooLow,
     False,  // stSkippingOtherCpu,
+    False,  // stSkippingOtherTarget,
     False,  // stskippingRunUnit,
     False   // stskippingRunTest
    );
@@ -111,6 +115,7 @@ Const
     skipping_known_bug ,
     skipping_compiler_version_too_low ,
     skipping_other_cpu ,
+    skipping_other_target ,
     skipping_run_unit ,
     skipping_run_test
   );
@@ -120,26 +125,26 @@ Var
   UnknownLines,
   unexpected_run : Integer;
   next_should_be_run : boolean;
- 
+
 var
   prevline : string;
-  
+
 Procedure ExtractTestFileName(Var Line : string);
 
 Var I : integer;
 
 begin
   I:=Pos(' ',Line);
-  If (I<>0) then 
-    Line:=Copy(Line,1,I-1);  
-end;  
+  If (I<>0) then
+    Line:=Copy(Line,1,I-1);
+end;
 
 Function Analyse(Var Line : string; Var Status : TTestStatus) : Boolean;
 
 Var
   TS : TTestStatus;
   Found : Boolean;
-  
+
 begin
   TS:=FirstStatus;
   Result:=False;
@@ -185,7 +190,7 @@ ConfigStrings : Array [TConfigOpt] of string = (
   'date'
 );
 
-ConfigOpts : Array[TConfigOpt] of char 
+ConfigOpts : Array[TConfigOpt] of char
            = ('d','h','u','p','l','o','c','v','t');
 
 Var
@@ -198,7 +203,7 @@ Var
   Password,
   LogFileName  : String;
   TestDate : TDateTime;
-  
+
 Procedure SetOpt (O : TConfigOpt; Value : string);
 
 begin
@@ -209,7 +214,7 @@ begin
     coPassword     : Password:=Value;
     coLogFile      : LogFileName:=Value;
     coOS           : TestOS:=Value;
-    coCPU          : TestCPU:=Value; 
+    coCPU          : TestCPU:=Value;
     coVersion      : TestVersion:=Value;
     coDate         : TestDate:=StrToDate(Value);
   end;
@@ -221,8 +226,8 @@ Var
   N : String;
   I : Integer;
   Found : Boolean;
-  co,o : TConfigOpt;  
-    
+  co,o : TConfigOpt;
+
 begin
   Verbose(V_DEBUG,'Processing option: '+S);
   I:=Pos('=',S);
@@ -230,7 +235,7 @@ begin
   If Result then
     begin
     N:=Copy(S,1,I-1);
-    Delete(S,1,I);  
+    Delete(S,1,I);
     For co:=coDatabaseName to coDate do
       begin
       Result:=CompareText(ConfigStrings[co],N)=0;
@@ -240,10 +245,10 @@ begin
         Break;
         end;
       end;
-    end;  
- If Result then   
+    end;
+ If Result then
    SetOpt(co,S)
- else  
+ else
    Verbose(V_ERROR,'Unknown option : '+S);
 end;
 
@@ -253,7 +258,7 @@ Var
   F : Text;
   S : String;
   I : Integer;
-  
+
 begin
   If Not FileExists(FN) Then
     Exit;
@@ -271,10 +276,10 @@ begin
     I:=Pos('#',S);
     If I<>0 then
       S:=Copy(S,1,I-1);
-    If (S<>'') then 
+    If (S<>'') then
       ProcessOption(S);
     end;
-  Close(F);  
+  Close(F);
 end;
 
 Procedure ProcessCommandLine;
@@ -284,7 +289,7 @@ Var
   O,V : String;
   c,co : TConfigOpt;
   Found : Boolean;
-  
+
 begin
   I:=1;
   While I<=ParamCount do
@@ -314,10 +319,10 @@ begin
         O:=Paramstr(I);
         SetOpt(c,o);
         end;
-      end;  
+      end;
     Inc(I);
     end;
-end;      
+end;
 
 Var
   TestCPUID : Integer;
@@ -336,7 +341,7 @@ begin
   TestVersionID  := GetVersionID(TestVersion);
   If TestVersionID=-1 then
     Verbose(V_Error,'NO ID for version "'+TestVersion+'" found.');
-  If (Round(TestDate)=0) then 
+  If (Round(TestDate)=0) then
     Testdate:=Date;
 end;
 
@@ -347,7 +352,7 @@ begin
   If FileExists(FN) then
     Result:=GetFileContents(FN)
   else
-    Result:='';  
+    Result:='';
 end;
 
 Procedure Processfile (FN: String);
@@ -358,7 +363,7 @@ var
   TS : TTestStatus;
   ID : integer;
   Testlog : string;
-  
+
 begin
   Assign(logfile,FN);
 {$i-}
@@ -381,16 +386,16 @@ begin
           If Not (TestOK[TS] or TestSkipped[TS]) then
             TestLog:=GetLog(Line)
           else
-            TestLog:='';  
+            TestLog:='';
           AddTestResult(ID,TestOSID,TestCPUID,TestVersionID,Ord(TS),
                         TestOK[TS],TestSkipped[TS],
                         TestLog,
                         TestDate);
-          end;              
+          end;
         end
-      end  
+      end
     else
-      Inc(UnknownLines);  
+      Inc(UnknownLines);
     end;
   close(logfile);
 end;
@@ -405,13 +410,17 @@ begin
     GetIDs;
     ProcessFile(LogFileName)
     end
-  else  
+  else
     Verbose(V_ERROR,'Missing log file name');
 end.
 
 {
   $Log$
-  Revision 1.3  2002-12-21 15:39:11  michael
+  Revision 1.4  2002-12-24 21:47:49  peter
+    * NeedTarget, SkipTarget, SkipCPU added
+    * Retrieve compiler info in a single call for 1.1 compiler
+
+  Revision 1.3  2002/12/21 15:39:11  michael
   * Some verbosity changes
 
   Revision 1.2  2002/12/21 15:31:16  michael

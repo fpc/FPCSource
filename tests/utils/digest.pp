@@ -34,6 +34,7 @@ const
   skipping_known_bug_count : longint = 0;
   skipping_compiler_version_too_low_count : longint = 0;
   skipping_other_cpu_count : longint = 0;
+  skipping_other_target_count : longint = 0;
   skipping_run_unit_count : longint = 0;
   skipping_run_test_count : longint = 0;
   unknown_lines : longint = 0;
@@ -111,6 +112,10 @@ begin
     begin
       inc(skipping_other_cpu_count);
     end
+  else if pos(skipping_other_target,st)=1 then
+    begin
+      inc(skipping_other_target_count);
+    end
   else if pos(skipping_run_unit,st)=1 then
     begin
       inc(skipping_run_unit_count);
@@ -180,7 +185,8 @@ begin
     +skipping_interactive_test_count
     +skipping_known_bug_count
     +skipping_compiler_version_too_low_count
-    +skipping_other_cpu_count;
+    +skipping_other_cpu_count
+    +skipping_other_target_count;
   { don't count these ones ...
     skipping_run_unit_count
     skipping_run_test_count }
@@ -190,6 +196,7 @@ begin
   Writeln('Number of skipped known bug tests = ',skipping_known_bug_count);
   Writeln('Number of skipped compiler version too low tests = ',skipping_compiler_version_too_low_count);
   Writeln('Number of skipped tests for other cpus = ',skipping_other_cpu_count);
+  Writeln('Number of skipped tests for other targets = ',skipping_other_target_count);
   if unknown_lines>0 then
     Writeln('Number of unrecognized lines = ',unknown_lines);
 
@@ -228,7 +235,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-11-18 16:42:43  pierre
+  Revision 1.3  2002-12-24 21:47:49  peter
+    * NeedTarget, SkipTarget, SkipCPU added
+    * Retrieve compiler info in a single call for 1.1 compiler
+
+  Revision 1.2  2002/11/18 16:42:43  pierre
    + KNOWNRUNERROR added
 
   Revision 1.1  2002/11/13 15:26:24  pierre
