@@ -188,6 +188,10 @@ type
       end;
 
 
+{$ifopt S+}
+{$define STACKCHECK_WAS_ON}
+{$S-}
+{$endif OPT S }
 Procedure CatchUnhandledException (Obj : TObject; Addr: Pointer);
 Var
   Message : String;
@@ -268,6 +272,9 @@ begin
   Raise EAssertionFailed.Createfmt(SAssertError,[S,Fn,LineNo]); // at Pointer(theAddr);
 end;
 
+{$ifdef STACKCHECK_WAS_ON}
+{$S+}
+{$endif}
 
 Procedure InitExceptions;
 {
@@ -296,7 +303,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.42  2000-02-10 22:56:43  florian
+    Revision 1.43  2000-03-30 13:54:15  pierre
+     No stack check inside CatchUnhandledException
+
+    Revision 1.42  2000/02/10 22:56:43  florian
       * quick hack for stack trace in the case of an unhandled exception
 
     Revision 1.41  2000/02/09 16:59:33  peter
