@@ -184,6 +184,7 @@ interface
          function  newasmsymboltype(const s : string;_bind:TAsmSymBind;_typ:TAsmsymtype) : tasmsymbol;
          function  getasmsymbol(const s : string) : tasmsymbol;
          function  renameasmsymbol(const sold, snew : string):tasmsymbol;
+         function  newasmlabel(nr:longint;is_addr,is_data:boolean) : tasmlabel;
          {# create a new assembler label }
          procedure getlabel(var l : tasmlabel);
          { make l as a new label and flag is_addr }
@@ -665,9 +666,9 @@ implementation
          begin
            if not assigned(asmsymbolidx) then
              internalerror(200208072);
-           if longint(pointer(s))>=asmsymbolppuidx then
+           if (longint(pointer(s))<1) or (longint(pointer(s))>asmsymbolppuidx) then
              internalerror(200208073);
-           s:=asmsymbolidx^[longint(pointer(s))];
+           s:=asmsymbolidx^[longint(pointer(s))-1];
          end;
       end;
 
@@ -809,6 +810,21 @@ implementation
       end;
 
 
+    function  TAsmLibraryData.newasmlabel(nr:longint;is_addr,is_data:boolean) : tasmlabel;
+      var
+        hp : tasmlabel;
+      begin
+        if is_addr then
+         hp:=tasmlabel.createaddr(nr)
+        else if is_data then
+         hp:=tasmlabel.createdata(nr)
+        else
+         hp:=tasmlabel.create(nr);
+        symbolsearch.insert(hp);
+        newasmlabel:=hp;
+      end;
+
+
     procedure TAsmLibraryData.getlabel(var l : tasmlabel);
       begin
         l:=tasmlabel.create(nextlabelnr);
@@ -843,7 +859,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2002-08-18 20:06:23  peter
+  Revision 1.8  2002-08-19 19:36:42  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.7  2002/08/18 20:06:23  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

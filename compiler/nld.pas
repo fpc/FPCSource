@@ -696,6 +696,7 @@ implementation
 
     procedure tfuncretnode.derefimpl;
       begin
+        inherited derefimpl;
         resolvesym(pointer(funcretsym));
       end;
 
@@ -996,6 +997,7 @@ implementation
 
     procedure ttypenode.derefimpl;
       begin
+        inherited derefimpl;
         restype.resolve;
       end;
 
@@ -1060,6 +1062,7 @@ implementation
 
     procedure trttinode.derefimpl;
       begin
+        inherited derefimpl;
         resolvedef(pointer(rttidef));
       end;
 
@@ -1117,7 +1120,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2002-08-18 20:06:23  peter
+  Revision 1.53  2002-08-19 19:36:43  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.52  2002/08/18 20:06:23  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

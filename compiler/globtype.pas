@@ -134,7 +134,6 @@ interface
          pocall_far16,         { Far16 for OS/2 }
          pocall_fpccall,       { FPC default calling }
          pocall_inline,        { Procedure is an assembler macro }
-         pocall_internconst,   { procedure has constant evaluator intern }
          pocall_internproc,    { Procedure has compiler magic}
          pocall_palmossyscall, { procedure is a PalmOS system call }
          pocall_pascal,        { pascal standard left to right }
@@ -153,7 +152,6 @@ interface
            'Far16',
            'FPCCall',
            'Inline',
-           'InternConst',
            'InternProc',
            'PalmOSSysCall',
            'Pascal',
@@ -209,7 +207,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2002-08-12 15:08:39  carl
+  Revision 1.31  2002-08-19 19:36:42  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.30  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

@@ -27,7 +27,7 @@ unit ninl;
 interface
 
     uses
-       node,htypechk,cpuinfo;
+       node,htypechk,cpuinfo,symppu;
 
     {$i compinnr.inc}
 
@@ -35,6 +35,8 @@ interface
        tinlinenode = class(tunarynode)
           inlinenumber : byte;
           constructor create(number : byte;is_const:boolean;l : tnode);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -93,6 +95,20 @@ implementation
          if is_const then
            include(flags,nf_inlineconst);
          inlinenumber:=number;
+      end;
+
+
+    constructor tinlinenode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        inlinenumber:=ppufile.getbyte;
+      end;
+
+
+    procedure tinlinenode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putbyte(inlinenumber);
       end;
 
 
@@ -2346,7 +2362,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2002-08-02 07:44:31  jonas
+  Revision 1.84  2002-08-19 19:36:43  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.83  2002/08/02 07:44:31  jonas
     * made assigned() handling generic
     * add nodes now can also evaluate constant expressions at compile time
       that contain nil nodes

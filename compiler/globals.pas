@@ -1169,7 +1169,6 @@ implementation
          'FAR16',
          'FPCCALL',
          'INLINE',
-         '', { internconst }
          '', { internproc }
          '', { palmossyscall }
          'PASCAL',
@@ -1480,7 +1479,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2002-08-12 15:08:39  carl
+  Revision 1.65  2002-08-19 19:36:42  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.64  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

@@ -32,7 +32,7 @@ interface
        {$ifdef state_tracking}
        nstate,
        {$endif state_tracking}
-       symbase,symtype,symsym,symdef,symtable;
+       symbase,symtype,symppu,symsym,symdef,symtable;
 
     type
        tcallnode = class(tbinarynode)
@@ -62,6 +62,9 @@ interface
           constructor createinternres(const name: string; params: tnode; const res: ttype);
           constructor createinternreturn(const name: string; params: tnode; returnnode : tnode);
           destructor destroy;override;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function  getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           function  pass_1 : tnode;override;
@@ -89,6 +92,9 @@ interface
           { constructor                                             }
           constructor create(expr,next : tnode);virtual;
           destructor destroy;override;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           procedure gen_high_tree(openstring:boolean);
@@ -107,9 +113,13 @@ interface
           inlinetree : tnode;
           inlineprocdef : tprocdef;
           retoffset,para_offset,para_size : longint;
-          constructor create(callp,code : tnode);virtual;
+          constructor create(p:tprocdef);virtual;
           destructor destroy;override;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function getcopy : tnode;override;
+          function det_resulttype : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
@@ -239,6 +249,31 @@ implementation
          hightree.free;
          inherited destroy;
       end;
+
+
+    constructor tcallparanode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        ppufile.getsmallset(callparaflags);
+        hightree:=ppuloadnode(ppufile);
+      end;
+
+
+    procedure tcallparanode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putsmallset(callparaflags);
+        ppuwritenode(ppufile,hightree);
+      end;
+
+
+    procedure tcallparanode.derefimpl;
+      begin
+        inherited derefimpl;
+        if assigned(hightree) then
+          hightree.derefimpl;
+      end;
+
 
     function tcallparanode.getcopy : tnode;
 
@@ -701,6 +736,43 @@ implementation
          methodpointer.free;
          funcretrefnode.free;
          inherited destroy;
+      end;
+
+
+    constructor tcallnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        symtableprocentry:=tprocsym(ppufile.getderef);
+{$warning FIXME: No withsymtable support}
+        symtableproc:=nil;
+        procdefinition:=tprocdef(ppufile.getderef);
+        restypeset:=boolean(ppufile.getbyte);
+        methodpointer:=ppuloadnode(ppufile);
+        funcretrefnode:=ppuloadnode(ppufile);
+      end;
+
+
+    procedure tcallnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putderef(symtableprocentry);
+        ppufile.putderef(procdefinition);
+        ppufile.putbyte(byte(restypeset));
+        ppuwritenode(ppufile,methodpointer);
+        ppuwritenode(ppufile,funcretrefnode);
+      end;
+
+
+    procedure tcallnode.derefimpl;
+      begin
+        inherited derefimpl;
+        resolvesym(pointer(symtableprocentry));
+        symtableproc:=symtableprocentry.owner;
+        resolvedef(pointer(procdefinition));
+        if assigned(methodpointer) then
+          methodpointer.derefimpl;
+        if assigned(funcretrefnode) then
+          funcretrefnode.derefimpl;
       end;
 
 
@@ -1470,7 +1542,7 @@ implementation
            end;
 
           { handle predefined procedures }
-          is_const:=(procdefinition.proccalloption=pocall_internconst) and
+          is_const:=(po_internconst in procdefinition.procoptions) and
                     ((block_type in [bt_const,bt_type]) or
                      (assigned(left) and (tcallparanode(left).left.nodetype in [realconstn,ordconstn])));
           if (procdefinition.proccalloption=pocall_internproc) or is_const then
@@ -1617,7 +1689,7 @@ implementation
                    if not assigned(right) then
                      begin
                         if assigned(tprocdef(procdefinition).code) then
-                          inlinecode:=cprocinlinenode.create(self,tnode(tprocdef(procdefinition).code))
+                          inlinecode:=cprocinlinenode.create(tprocdef(procdefinition))
                         else
                           CGMessage(cg_e_no_code_for_inline_stored);
                         if assigned(inlinecode) then
@@ -1830,27 +1902,21 @@ implementation
                             TPROCINLINENODE
  ****************************************************************************}
 
-    constructor tprocinlinenode.create(callp,code : tnode);
+    constructor tprocinlinenode.create(p:tprocdef);
 
       begin
          inherited create(procinlinen);
-         inlineprocdef:=tcallnode(callp).symtableprocentry.defs^.def;
+         inlineprocdef:=p;
          retoffset:=-POINTER_SIZE; { less dangerous as zero (PM) }
          para_offset:=0;
-         para_size:=inlineprocdef.para_size(target_info.alignment.paraalign);
-         if paramanager.ret_in_param(inlineprocdef.rettype.def) then
-           inc(para_size,POINTER_SIZE);
-         { copy args }
-         if assigned(code) then
-           inlinetree:=code.getcopy
-         else inlinetree := nil;
-         registers32:=code.registers32;
-         registersfpu:=code.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=code.registersmmx;
-{$endif SUPPORT_MMX}
-         resulttype:=inlineprocdef.rettype;
+         para_size:=0;
+         { copy inlinetree }
+         if assigned(p.code) then
+           inlinetree:=p.code.getcopy
+         else
+           inlinetree:=nil;
       end;
+
 
     destructor tprocinlinenode.destroy;
       begin
@@ -1859,6 +1925,35 @@ implementation
         inherited destroy;
       end;
 
+
+    constructor tprocinlinenode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        inlineprocdef:=tprocdef(ppufile.getderef);
+        inlinetree:=ppuloadnode(ppufile);
+        retoffset:=-POINTER_SIZE; { less dangerous as zero (PM) }
+        para_offset:=0;
+        para_size:=0;
+      end;
+
+
+    procedure tprocinlinenode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putderef(inlineprocdef);
+        ppuwritenode(ppufile,inlinetree);
+      end;
+
+
+    procedure tprocinlinenode.derefimpl;
+      begin
+        inherited derefimpl;
+        if assigned(inlinetree) then
+          inlinetree.derefimpl;
+        resolvedef(pointer(inlineprocdef));
+      end;
+
+
     function tprocinlinenode.getcopy : tnode;
 
       var
@@ -1866,11 +1961,11 @@ implementation
 
       begin
          n:=tprocinlinenode(inherited getcopy);
+         n.inlineprocdef:=inlineprocdef;
          if assigned(inlinetree) then
            n.inlinetree:=inlinetree.getcopy
          else
            n.inlinetree:=nil;
-         n.inlineprocdef:=inlineprocdef;
          n.retoffset:=retoffset;
          n.para_offset:=para_offset;
          n.para_size:=para_size;
@@ -1882,13 +1977,29 @@ implementation
       begin
       end;
 
+
+    function tprocinlinenode.det_resulttype : tnode;
+      begin
+         resulttype:=inlineprocdef.rettype;
+         { retrieve info from inlineprocdef }
+         retoffset:=-POINTER_SIZE; { less dangerous as zero (PM) }
+         para_offset:=0;
+         para_size:=inlineprocdef.para_size(target_info.alignment.paraalign);
+         if paramanager.ret_in_param(inlineprocdef.rettype.def) then
+           inc(para_size,POINTER_SIZE);
+         result:=nil;
+      end;
+
+
     function tprocinlinenode.pass_1 : tnode;
       begin
+        firstpass(inlinetree);
+        registers32:=inlinetree.registers32;
+        registersfpu:=inlinetree.registersfpu;
+{$ifdef SUPPORT_MMX}
+        registersmmx:=inlinetree.registersmmx;
+{$endif SUPPORT_MMX}
         result:=nil;
-        { left contains the code in tree form }
-        { but it has already been firstpassed }
-        { so firstpass(left); does not seem required }
-        { might be required later if we change the arg handling !! }
       end;
 
     function tprocinlinenode.docompare(p: tnode): boolean;
@@ -1906,7 +2017,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  2002-08-17 22:09:44  florian
+  Revision 1.87  2002-08-19 19:36:42  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.86  2002/08/17 22:09:44  florian
     * result type handling in tcgcal.pass_2 overhauled
     * better tnode.dowrite
     * some ppc stuff fixed

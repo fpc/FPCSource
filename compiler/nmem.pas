@@ -28,7 +28,7 @@ interface
 
     uses
        node,
-       symtype,symdef,symsym,symtable,
+       symtype,symppu,symdef,symsym,symtable,
        cpubase;
 
     type
@@ -42,6 +42,9 @@ interface
        thnewnode = class(tnode)
           objtype : ttype;
           constructor create(t:ttype);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
@@ -57,6 +60,10 @@ interface
        taddrnode = class(tunarynode)
           getprocvardef : tprocvardef;
           constructor create(l : tnode);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
+          function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
@@ -79,6 +86,9 @@ interface
        tsubscriptnode = class(tunarynode)
           vs : tvarsym;
           constructor create(varsym : tsym;l : tnode);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
@@ -96,6 +106,9 @@ interface
        tselfnode = class(tnode)
           classdef : tdef; { objectdef or classrefdef }
           constructor create(_class : tdef);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
@@ -107,6 +120,8 @@ interface
           withreference : treference;
           constructor create(symtable : twithsymtable;l,r : tnode;count : longint);virtual;
           destructor destroy;override;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
@@ -170,6 +185,27 @@ implementation
       begin
          inherited create(hnewn);
          objtype:=t;
+      end;
+
+
+    constructor thnewnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        ppufile.gettype(objtype);
+      end;
+
+
+    procedure thnewnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.puttype(objtype);
+      end;
+
+
+    procedure thnewnode.derefimpl;
+      begin
+        inherited derefimpl;
+        objtype.resolve;
       end;
 
 
@@ -242,6 +278,40 @@ implementation
 
       begin
          inherited create(addrn,l);
+         getprocvardef:=nil;
+      end;
+
+
+    constructor taddrnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        getprocvardef:=tprocvardef(ppufile.getderef);
+      end;
+
+
+    procedure taddrnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putderef(getprocvardef);
+      end;
+
+
+    procedure taddrnode.derefimpl;
+      begin
+        inherited derefimpl;
+        resolvedef(pointer(getprocvardef));
+      end;
+
+
+    function taddrnode.getcopy : tnode;
+
+      var
+         p : taddrnode;
+
+      begin
+         p:=taddrnode(inherited getcopy);
+         p.getprocvardef:=getprocvardef;
+         getcopy:=p;
       end;
 
 
@@ -528,6 +598,27 @@ implementation
          vs:=tvarsym(varsym);
       end;
 
+    constructor tsubscriptnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        vs:=tvarsym(ppufile.getderef);
+      end;
+
+
+    procedure tsubscriptnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putderef(vs);
+      end;
+
+
+    procedure tsubscriptnode.derefimpl;
+      begin
+        inherited derefimpl;
+        resolvesym(pointer(vs));
+      end;
+
+
     function tsubscriptnode.getcopy : tnode;
 
       var
@@ -755,6 +846,27 @@ implementation
          classdef:=_class;
       end;
 
+    constructor tselfnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        classdef:=tdef(ppufile.getderef);
+      end;
+
+
+    procedure tselfnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putderef(classdef);
+      end;
+
+
+    procedure tselfnode.derefimpl;
+      begin
+        inherited derefimpl;
+        resolvedef(pointer(classdef));
+      end;
+
+
     function tselfnode.det_resulttype:tnode;
       begin
         result:=nil;
@@ -804,6 +916,20 @@ implementation
             end;
          end;
         inherited destroy;
+      end;
+
+
+    constructor twithnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        internalerror(200208192);
+      end;
+
+
+    procedure twithnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        internalerror(200208193);
       end;
 
 
@@ -894,7 +1020,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2002-07-23 09:51:23  daniel
+  Revision 1.36  2002-08-19 19:36:43  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.35  2002/07/23 09:51:23  daniel
   * Tried to make Tprocsym.defs protected. I didn't succeed but the cleanups
     are worth comitting.
 

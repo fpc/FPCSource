@@ -1114,8 +1114,8 @@ const
       idtok:_INTERNCONST;
       pd_flags : pd_implemen+pd_body+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_intern;
-      pocall   : pocall_internconst;
-      pooption : [];
+      pocall   : pocall_none;
+      pooption : [po_internconst];
       mutexclpocall : [];
       mutexclpotype : [potype_operator];
       mutexclpo     : []
@@ -1774,11 +1774,15 @@ const
                     end;
 
                    { internconst or internproc only need to be defined once }
-                   if (hd.proccalloption in [pocall_internconst,pocall_internproc]) then
+                   if (hd.proccalloption=pocall_internproc) then
                     aprocdef.proccalloption:=hd.proccalloption
                    else
-                    if (aprocdef.proccalloption in [pocall_internconst,pocall_internproc]) then
+                    if (aprocdef.proccalloption=pocall_internproc) then
                      hd.proccalloption:=aprocdef.proccalloption;
+                   if (po_internconst in hd.procoptions) then
+                    include(aprocdef.procoptions,po_internconst)
+                   else if (po_internconst in aprocdef.procoptions) then
+                    include(hd.procoptions,po_internconst);
 
                    { Check calling convention }
                    if (hd.proccalloption<>aprocdef.proccalloption) then
@@ -1957,7 +1961,13 @@ const
 end.
 {
   $Log$
-  Revision 1.65  2002-08-18 20:06:24  peter
+  Revision 1.66  2002-08-19 19:36:44  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.65  2002/08/18 20:06:24  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

@@ -602,7 +602,7 @@ do_jmp:
 
        begin
          load_all_regvars(exprasmlist);
-         cg.a_jmp_always(exprasmlist,labelnr)
+         cg.a_jmp_always(exprasmlist,labsym.lab)
        end;
 
 
@@ -1225,7 +1225,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2002-08-15 15:15:55  carl
+  Revision 1.37  2002-08-19 19:36:43  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.36  2002/08/15 15:15:55  carl
     * jmpbuf size allocation for exceptions is now cpu specific (as it should)
     * more generic nodes for maths
     * several fixes for better m68k support

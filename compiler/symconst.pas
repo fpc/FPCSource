@@ -191,7 +191,8 @@ type
     po_overload,          { procedure is declared with overload directive }
     po_varargs,           { printf like arguments }
     po_leftright,         { push arguments from left to right }
-    po_clearstack         { caller clears the stack }
+    po_clearstack,        { caller clears the stack }
+    po_internconst        { procedure has constant evaluator intern }
   );
   tprocoptions=set of tprocoption;
 
@@ -334,7 +335,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2002-07-01 16:23:54  peter
+  Revision 1.34  2002-08-19 19:36:44  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.33  2002/07/01 16:23:54  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

@@ -28,7 +28,7 @@ interface
 
     uses
        node,
-       symtype,defbase,
+       symtype,symppu,defbase,
        nld;
 
     type
@@ -37,6 +37,9 @@ interface
           convtype : tconverttype;
           constructor create(node : tnode;const t : ttype);virtual;
           constructor create_explicit(node : tnode;const t : ttype);
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -480,6 +483,29 @@ implementation
       begin
          self.create(node,t);
          toggleflag(nf_explizit);
+      end;
+
+
+    constructor ttypeconvnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        ppufile.gettype(totype);
+        convtype:=tconverttype(ppufile.getbyte);
+      end;
+
+
+    procedure ttypeconvnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.puttype(totype);
+        ppufile.putbyte(byte(convtype));
+      end;
+
+
+    procedure ttypeconvnode.derefimpl;
+      begin
+        inherited derefimpl;
+        totype.resolve;
       end;
 
 
@@ -1357,13 +1383,13 @@ implementation
     function ttypeconvnode.first_int_to_real: tnode;
       var
         fname: string[19];
-        typname : string[12];  
+        typname : string[12];
       begin
         { Get the type name  }
         {  Normally the typename should be one of the following:
             single, double - carl
-        }    
-        typname := lower(pbestrealtype^.def.gettypename);   
+        }
+        typname := lower(pbestrealtype^.def.gettypename);
         { converting a 64bit integer to a float requires a helper }
         if is_64bitint(left.resulttype.def) then
           begin
@@ -1939,7 +1965,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2002-08-17 09:23:36  florian
+  Revision 1.71  2002-08-19 19:36:43  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.70  2002/08/17 09:23:36  florian
     * first part of procinfo rewrite
 
   Revision 1.69  2002/08/14 19:26:55  carl

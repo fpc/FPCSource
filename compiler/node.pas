@@ -468,7 +468,7 @@ implementation
          begin
            if not assigned(nodeclass[t]) then
              internalerror(200208153);
-writeln('load: ',nodetype2str[t]);
+           //writeln('load: ',nodetype2str[t]);
            { generate node of the correct class }
            ppuloadnode:=nodeclass[t].ppuload(t,ppufile);
          end
@@ -485,7 +485,7 @@ writeln('load: ',nodetype2str[t]);
         if assigned(n) then
          begin
            ppufile.putbyte(byte(n.nodetype));
-writeln('write: ',nodetype2str[n.nodetype]);
+           //writeln('write: ',nodetype2str[n.nodetype]);
            n.ppuwrite(ppufile);
          end
         else
@@ -972,7 +972,13 @@ writeln('write: ',nodetype2str[n.nodetype]);
 end.
 {
   $Log$
-  Revision 1.37  2002-08-18 20:06:24  peter
+  Revision 1.38  2002-08-19 19:36:44  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.37  2002/08/18 20:06:24  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

@@ -516,7 +516,6 @@ type
     pocall_far16,         { Far16 for OS/2 }
     pocall_fpccall,       { FPC default calling }
     pocall_inline,        { Procedure is an assembler macro }
-    pocall_internconst,   { procedure has constant evaluator intern }
     pocall_internproc,    { Procedure has compiler magic}
     pocall_palmossyscall, { procedure is a PalmOS system call }
     pocall_pascal,        { pascal standard left to right }
@@ -553,7 +552,10 @@ type
     po_savestdregs,       { save std regs cdecl and stdcall need that ! }
     po_saveregisters,     { save all registers }
     po_overload,          { procedure is declared with overload directive }
-    po_varargs            { printf like arguments }
+    po_varargs,           { printf like arguments }
+    po_leftright,         { push arguments from left to right }
+    po_clearstack,        { caller clears the stack }
+    po_internconst        { procedure has constant evaluator intern }
   );
   tprocoptions=set of tprocoption;
 function read_abstract_proc_def:tproccalloption;
@@ -578,7 +580,6 @@ const
      'Far16',
      'FPCCall',
      'Inline',
-     'InternConst',
      'InternProc',
      'PalmOSSysCall',
      'Pascal',
@@ -596,7 +597,7 @@ const
      (mask:potype_destructor;  str:'Destructor'),
      (mask:potype_operator;    str:'Operator')
   );
-  procopts=18;
+  procopts=21;
   procopt : array[1..procopts] of tprocopt=(
      (mask:po_classmethod;     str:'ClassMethod'),
      (mask:po_virtualmethod;   str:'VirtualMethod'),
@@ -615,7 +616,10 @@ const
      (mask:po_savestdregs;     str:'SaveStdRegs'),
      (mask:po_saveregisters;   str:'SaveRegisters'),
      (mask:po_overload;        str:'Overload'),
-     (mask:po_varargs;         str:'VarArgs')
+     (mask:po_varargs;         str:'VarArgs'),
+     (mask:po_leftright;       str:'LeftRight'),
+     (mask:po_clearstack;      str:'ClearStack'),
+     (mask:po_internconst;     str:'InternConst')
   );
   tvarspez : array[0..3] of string[5]=('Value','Const','Var  ','Out  ');
 var
@@ -1824,7 +1828,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-08-15 15:15:56  carl
+  Revision 1.28  2002-08-19 19:36:44  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.27  2002/08/15 15:15:56  carl
     * jmpbuf size allocation for exceptions is now cpu specific (as it should)
     * more generic nodes for maths
     * several fixes for better m68k support

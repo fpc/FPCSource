@@ -27,7 +27,9 @@ unit nset;
 interface
 
     uses
-       node,globals,aasmbase,aasmtai;
+       node,globals,
+       aasmbase,aasmtai,
+       symppu;
 
     type
       pcaserecord = ^tcaserecord;
@@ -75,6 +77,9 @@ interface
           elseblock : tnode;
           constructor create(l,r : tnode;n : pcaserecord);virtual;
           destructor destroy;override;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           function det_resulttype:tnode;override;
@@ -198,22 +203,22 @@ implementation
                 pes:=tenumsym(tenumdef(psd.elementtype.def).firstenum);
                 while assigned(pes) do
                   begin
-		{$ifdef oldset}
-		    pcs^[pes.value div 8]:=pcs^[pes.value div 8] or (1 shl (pes.value mod 8));
-		{$else}
-		    include(pcs^,pes.value);
-		{$endif}
+                {$ifdef oldset}
+                    pcs^[pes.value div 8]:=pcs^[pes.value div 8] or (1 shl (pes.value mod 8));
+                {$else}
+                    include(pcs^,pes.value);
+                {$endif}
                     pes:=pes.nextenum;
                   end;
               end;
             orddef :
               begin
                 for i:=torddef(psd.elementtype.def).low to torddef(psd.elementtype.def).high do
-		{$ifdef oldset}
+                {$ifdef oldset}
                     pcs^[i div 8]:=pcs^[i div 8] or (1 shl (i mod 8));
-		{$else}
-		    include(pcs^,i);
-		{$endif}
+                {$else}
+                    include(pcs^,i);
+                {$endif}
               end;
           end;
           createsetconst:=pcs;
@@ -276,11 +281,11 @@ implementation
          { constant evaluation }
          if (left.nodetype=ordconstn) and (right.nodetype=setconstn) then
           begin
-	{$ifdef oldset}
-	    t:=cordconstnode.create(byte(tordconstnode(left).value in byteset(tsetconstnode(right).value_set^)),booltype);
-	{$else}
+        {$ifdef oldset}
+            t:=cordconstnode.create(byte(tordconstnode(left).value in byteset(tsetconstnode(right).value_set^)),booltype);
+        {$else}
             t:=cordconstnode.create(byte(tordconstnode(left).value in Tsetconstnode(right).value_set^),booltype);
-	{$endif}
+        {$endif}
             resulttypepass(t);
             result:=t;
             exit;
@@ -446,6 +451,65 @@ implementation
          copycaserecord:=n;
       end;
 
+
+    procedure ppuwritecaserecord(ppufile:tcompilerppufile;p : pcaserecord);
+      var
+        b : byte;
+      begin
+        ppufile.putexprint(p^._low);
+        ppufile.putexprint(p^._high);
+        ppufile.putasmsymbol(p^._at);
+        ppufile.putasmsymbol(p^.statement);
+        ppufile.putbyte(byte(p^.firstlabel));
+        b:=0;
+        if assigned(p^.greater) then
+         b:=b or 1;
+        if assigned(p^.less) then
+         b:=b or 2;
+        ppufile.putbyte(b);
+        if assigned(p^.greater) then
+          ppuwritecaserecord(ppufile,p^.greater);
+        if assigned(p^.less) then
+          ppuwritecaserecord(ppufile,p^.less);
+      end;
+
+
+    function ppuloadcaserecord(ppufile:tcompilerppufile):pcaserecord;
+      var
+        b : byte;
+        p : pcaserecord;
+      begin
+        new(p);
+        p^._low:=ppufile.getexprint;
+        p^._high:=ppufile.getexprint;
+        p^._at:=tasmlabel(ppufile.getasmsymbol);
+        p^.statement:=tasmlabel(ppufile.getasmsymbol);
+        p^.firstlabel:=boolean(ppufile.getbyte);
+        b:=ppufile.getbyte;
+        if (b and 1)=1 then
+         p^.greater:=ppuloadcaserecord(ppufile)
+        else
+         p^.greater:=nil;
+        if (b and 2)=2 then
+         p^.less:=ppuloadcaserecord(ppufile)
+        else
+         p^.less:=nil;
+        ppuloadcaserecord:=p;
+      end;
+
+
+    procedure ppuderefcaserecord(p : pcaserecord);
+      begin
+         objectlibrary.derefasmsymbol(p^._at);
+         objectlibrary.derefasmsymbol(p^.statement);
+         if assigned(p^.greater) then
+           ppuderefcaserecord(p^.greater);
+         if assigned(p^.less) then
+           ppuderefcaserecord(p^.less);
+      end;
+
+
+
 {*****************************************************************************
                               TCASENODE
 *****************************************************************************}
@@ -464,6 +528,31 @@ implementation
          elseblock.free;
          deletecaselabels(nodes);
          inherited destroy;
+      end;
+
+
+    constructor tcasenode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        elseblock:=ppuloadnode(ppufile);
+        nodes:=ppuloadcaserecord(ppufile);
+      end;
+
+
+    procedure tcasenode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppuwritenode(ppufile,elseblock);
+        ppuwritecaserecord(ppufile,nodes);
+      end;
+
+
+    procedure tcasenode.derefimpl;
+      begin
+        inherited derefimpl;
+        if assigned(elseblock) then
+          elseblock.derefimpl;
+        ppuderefcaserecord(nodes);
       end;
 
 
@@ -559,7 +648,10 @@ implementation
            p.elseblock:=elseblock.getcopy
          else
            p.elseblock:=nil;
-         p.nodes:=copycaserecord(nodes);
+         if assigned(nodes) then
+           p.nodes:=copycaserecord(nodes)
+         else
+           p.nodes:=nil;
          getcopy:=p;
       end;
 
@@ -597,7 +689,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-08-17 09:23:38  florian
+  Revision 1.32  2002-08-19 19:36:44  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.31  2002/08/17 09:23:38  florian
     * first part of procinfo rewrite
 
   Revision 1.30  2002/07/23 13:19:40  jonas

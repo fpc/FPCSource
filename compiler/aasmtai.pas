@@ -467,7 +467,7 @@ uses
              internalerror(200208182);
            if not assigned(aiclass[t]) then
              internalerror(200208183);
-writeln('taiload: ',taitypestr[t]);
+           //writeln('taiload: ',taitypestr[t]);
            { generate tai of the correct class }
            ppuloadai:=aiclass[t].ppuload(t,ppufile);
          end
@@ -484,7 +484,7 @@ writeln('taiload: ',taitypestr[t]);
          begin
            { type, read by ppuloadnode }
            ppufile.putbyte(byte(n.typ));
-writeln('taiwrite: ',taitypestr[n.typ]);
+           //writeln('taiwrite: ',taitypestr[n.typ]);
            n.ppuwrite(ppufile);
          end
         else
@@ -513,11 +513,6 @@ writeln('taiwrite: ',taitypestr[n.typ]);
 
     procedure tai.ppuwrite(ppufile:tcompilerppufile);
       begin
-        { marker, read by tailoadnode }
-        ppufile.putbyte(pputaimarker);
-        { type, read by tailoadnode }
-        ppufile.putbyte(byte(typ));
-        { read by tai.ppuload }
         ppufile.putposinfo(fileinfo);
       end;
 
@@ -1036,7 +1031,6 @@ writeln('taiwrite: ',taitypestr[n.typ]);
       begin
         inherited ppuload(t,ppufile);
         l:=tasmlabel(ppufile.getasmsymbol);
-        l.is_set:=true;
         is_global:=boolean(ppufile.getbyte);
       end;
 
@@ -1052,6 +1046,7 @@ writeln('taiwrite: ',taitypestr[n.typ]);
     procedure tai_label.derefimpl;
       begin
         objectlibrary.DerefAsmsymbol(l);
+        l.is_set:=true;
       end;
 
 
@@ -1467,6 +1462,7 @@ writeln('taiwrite: ',taitypestr[n.typ]);
 {$ifdef i386}
         ppufile.putbyte(byte(segprefix));
 {$endif i386}
+        ppufile.putbyte(byte(is_jmp));
       end;
 
 
@@ -1552,7 +1548,13 @@ writeln('taiwrite: ',taitypestr[n.typ]);
 end.
 {
   $Log$
-  Revision 1.7  2002-08-18 20:06:23  peter
+  Revision 1.8  2002-08-19 19:36:42  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.7  2002/08/18 20:06:23  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

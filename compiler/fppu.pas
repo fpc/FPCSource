@@ -461,7 +461,7 @@ uses
     procedure tppumodule.putasmsymbol_in_idx(s:tnamedindexitem;arg:pointer);
       begin
         if tasmsymbol(s).ppuidx<>-1 then
-         librarydata.asmsymbolidx^[tasmsymbol(s).ppuidx]:=tasmsymbol(s);
+         librarydata.asmsymbolidx^[tasmsymbol(s).ppuidx-1]:=tasmsymbol(s);
       end;
 
 
@@ -469,9 +469,11 @@ uses
       var
         s : tasmsymbol;
         i : longint;
+        asmsymtype : byte;
       begin
         { get an ordered list of all symbols to put in the ppu }
         getmem(librarydata.asmsymbolidx,librarydata.asmsymbolppuidx*sizeof(pointer));
+        fillchar(librarydata.asmsymbolidx^,librarydata.asmsymbolppuidx*sizeof(pointer),0);
         librarydata.symbolsearch.foreach({$ifdef FPCPROCVAR}@{$endif}putasmsymbol_in_idx,nil);
         { write the number of symbols }
         ppufile.putlongint(librarydata.asmsymbolppuidx);
@@ -481,7 +483,23 @@ uses
            s:=librarydata.asmsymbolidx^[i-1];
            if not assigned(s) then
             internalerror(200208071);
-           ppufile.putstring(s.name);
+           asmsymtype:=1;
+           if s.Classtype=tasmlabel then
+            begin
+              if tasmlabel(s).is_addr then
+               asmsymtype:=4
+              else if tasmlabel(s).typ=AT_DATA then
+               asmsymtype:=3
+              else
+               asmsymtype:=2;
+            end;
+           ppufile.putbyte(asmsymtype);
+           case asmsymtype of
+             1 :
+               ppufile.putstring(s.name);
+             2 :
+               ppufile.putlongint(tasmlabel(s).labelnr);
+           end;
            ppufile.putbyte(byte(s.defbind));
            ppufile.putbyte(byte(s.typ));
          end;
@@ -670,21 +688,41 @@ uses
 
     procedure tppumodule.readasmsymbols;
       var
+        labelnr,
         i     : longint;
         name  : string;
         bind  : TAsmSymBind;
         typ   : TAsmSymType;
+        asmsymtype : byte;
       begin
         librarydata.asmsymbolppuidx:=ppufile.getlongint;
         if librarydata.asmsymbolppuidx>0 then
          begin
            getmem(librarydata.asmsymbolidx,librarydata.asmsymbolppuidx*sizeof(pointer));
+           fillchar(librarydata.asmsymbolidx^,librarydata.asmsymbolppuidx*sizeof(pointer),0);
            for i:=1 to librarydata.asmsymbolppuidx do
             begin
-              name:=ppufile.getstring;
+              asmsymtype:=ppufile.getbyte;
+              case asmsymtype of
+                1 :
+                  name:=ppufile.getstring;
+                2..4 :
+                  labelnr:=ppufile.getlongint;
+                else
+                  internalerror(200208192);
+              end;
               bind:=tasmsymbind(ppufile.getbyte);
               typ:=tasmsymtype(ppufile.getbyte);
-              librarydata.asmsymbolidx^[i-1]:=librarydata.newasmsymboltype(name,bind,typ);
+              case asmsymtype of
+                1 :
+                 librarydata.asmsymbolidx^[i-1]:=librarydata.newasmsymboltype(name,bind,typ);
+                2 :
+                 librarydata.asmsymbolidx^[i-1]:=librarydata.newasmlabel(labelnr,false,false);
+                3 :
+                 librarydata.asmsymbolidx^[i-1]:=librarydata.newasmlabel(labelnr,true,false);
+                4 :
+                 librarydata.asmsymbolidx^[i-1]:=librarydata.newasmlabel(labelnr,false,true);
+              end;
             end;
          end;
       end;
@@ -740,6 +778,7 @@ uses
     procedure tppumodule.load_implementation;
       var
         b : byte;
+        oldobjectlibrary : tasmlibrarydata;
       begin
          { read implementation part }
          repeat
@@ -755,9 +794,12 @@ uses
          until false;
 
          { we can now derefence all pointers to the implementation parts }
+         oldobjectlibrary:=objectlibrary;
+         objectlibrary:=librarydata;
          tstoredsymtable(globalsymtable).derefimpl;
          if assigned(localsymtable) then
            tstoredsymtable(localsymtable).derefimpl;
+         objectlibrary:=oldobjectlibrary;
       end;
 
 
@@ -1275,7 +1317,13 @@ uses
 end.
 {
   $Log$
-  Revision 1.22  2002-08-18 19:58:28  peter
+  Revision 1.23  2002-08-19 19:36:42  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.22  2002/08/18 19:58:28  peter
     * more current_scanner fixes
 
   Revision 1.21  2002/08/15 15:09:41  carl

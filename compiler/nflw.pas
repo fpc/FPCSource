@@ -28,8 +28,9 @@ unit nflw;
 interface
 
     uses
-       node,aasmbase,aasmtai,aasmcpu,cpubase,
-       symbase,symdef,symsym;
+       node,cpubase,
+       aasmbase,aasmtai,aasmcpu,
+       symppu,symtype,symbase,symdef,symsym;
 
     type
        tloopnode = class(tbinarynode)
@@ -37,6 +38,9 @@ interface
           constructor create(tt : tnodetype;l,r,_t1,_t2 : tnode);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           procedure insertintolist(l : tnodelist);override;
 {$ifdef extdebug}
           procedure _dowrite;override;
@@ -49,7 +53,7 @@ interface
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
 {$ifdef state_tracking}
-	  function track_state_pass(exec_known:boolean):boolean;override;
+          function track_state_pass(exec_known:boolean):boolean;override;
 {$endif}
        end;
        twhilerepeatnodeclass = class of twhilerepeatnode;
@@ -90,10 +94,12 @@ interface
        tcontinuenodeclass = class of tcontinuenode;
 
        tgotonode = class(tnode)
-          labelnr : tasmlabel;
           labsym : tlabelsym;
           exceptionblock : integer;
           constructor create(p : tlabelsym);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function getcopy : tnode;override;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
@@ -107,6 +113,9 @@ interface
           exceptionblock : integer;
           constructor createcase(p : tasmlabel;l:tnode);virtual;
           constructor create(p : tlabelsym;l:tnode);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function getcopy : tnode;override;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
@@ -117,6 +126,9 @@ interface
        traisenode = class(tbinarynode)
           frametree : tnode;
           constructor create(l,taddr,tframe:tnode);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           function det_resulttype:tnode;override;
@@ -144,6 +156,7 @@ interface
           excepttype : tobjectdef;
           constructor create(l,r:tnode);virtual;
           destructor destroy;override;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
           function getcopy : tnode;override;
@@ -199,12 +212,12 @@ implementation
          case t of
             ifn:
                p:=cifnode.create(l,r,n1);
-	    whilerepeatn:
-    	       if back then
-	          {Repeat until.}	
-        	  p:=cwhilerepeatnode.create(l,r,n1,false,true)
-	       else
-	          {While do.}
+            whilerepeatn:
+               if back then
+                  {Repeat until.}
+                  p:=cwhilerepeatnode.create(l,r,n1,false,true)
+               else
+                  {While do.}
                   p:=cwhilerepeatnode.create(l,r,n1,true,false);
             forn:
                p:=cfornode.create(l,r,n1,nil,back);
@@ -232,6 +245,33 @@ implementation
          t2.free;
          inherited destroy;
       end;
+
+
+    constructor tloopnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        t1:=ppuloadnode(ppufile);
+        t2:=ppuloadnode(ppufile);
+      end;
+
+
+    procedure tloopnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppuwritenode(ppufile,t1);
+        ppuwritenode(ppufile,t2);
+      end;
+
+
+    procedure tloopnode.derefimpl;
+      begin
+        inherited derefimpl;
+        if assigned(t1) then
+          t1.derefimpl;
+        if assigned(t2) then
+          t2.derefimpl;
+      end;
+
 
     function tloopnode.getcopy : tnode;
 
@@ -281,11 +321,11 @@ implementation
     constructor Twhilerepeatnode.create(l,r,_t1:Tnode;tab,cn:boolean);
 
     begin
-	inherited create(whilerepeatn,l,r,_t1,nil);
-	if tab then
-	    include(flags,nf_testatbegin);
-	if cn then
-	    include(flags,nf_checknegate);
+        inherited create(whilerepeatn,l,r,_t1,nil);
+        if tab then
+            include(flags,nf_testatbegin);
+        if cn then
+            include(flags,nf_checknegate);
     end;
 
     function twhilerepeatnode.det_resulttype:tnode;
@@ -296,16 +336,16 @@ implementation
          resulttype:=voidtype;
 
          resulttypepass(left);
-	 {A not node can be removed.}
-	 if left.nodetype=notn then
-	    begin
-		t:=Tunarynode(left);
-		left:=Tunarynode(left).left;
-		t.left:=nil;
-		t.destroy;
-		{Symdif operator, in case you are wondering:}
-		flags:=flags >< [nf_checknegate];
-	    end;
+         {A not node can be removed.}
+         if left.nodetype=notn then
+            begin
+                t:=Tunarynode(left);
+                left:=Tunarynode(left).left;
+                t.left:=nil;
+                t.destroy;
+                {Symdif operator, in case you are wondering:}
+                flags:=flags >< [nf_checknegate];
+            end;
          { loop instruction }
          if assigned(right) then
            resulttypepass(right);
@@ -366,88 +406,88 @@ implementation
     function Twhilerepeatnode.track_state_pass(exec_known:boolean):boolean;
 
     var condition:Tnode;
-	code:Tnode;
-	done:boolean;
-	value:boolean;
-	change:boolean;
-	firsttest:boolean;
-	factval:Tnode;
+        code:Tnode;
+        done:boolean;
+        value:boolean;
+        change:boolean;
+        firsttest:boolean;
+        factval:Tnode;
 
     begin
-	track_state_pass:=false;
-	done:=false;
-	firsttest:=true;
-	{For repeat until statements, first do a pass through the code.}
-	if not(nf_testatbegin in flags) then
-	    begin
-		code:=right.getcopy;
-		if code.track_state_pass(exec_known) then
-		    track_state_pass:=true;
-		code.destroy;
-	    end;
-	repeat
-	    condition:=left.getcopy;
-	    code:=right.getcopy;
-	    change:=condition.track_state_pass(exec_known);
-	    factval:=aktstate.find_fact(left);
-	    if factval<>nil then
-		begin
-		    condition.destroy;
-		    condition:=factval.getcopy;
-		    change:=true;
-		end;
-	    if change then
-		begin
-		    track_state_pass:=true;
-		    {Force new resulttype pass.}
-		    condition.resulttype.def:=nil;
-		    do_resulttypepass(condition);
-		end;
-	    if is_constboolnode(condition) then
-		begin
-		    {Try to turn a while loop into a repeat loop.}
-		    if firsttest then
-			exclude(flags,testatbegin);
-		    value:=(Tordconstnode(condition).value<>0) xor checknegate;
-		    if value then
-			begin
-			    if code.track_state_pass(exec_known) then
-				track_state_pass:=true;
-			end
-		    else
-		        done:=true;
-		end
-	    else
-		begin
-		    {Remove any modified variables from the state.}
-		    code.track_state_pass(false);
-		    done:=true;
-		end;
-	    code.destroy;
-	    condition.destroy;
-	    firsttest:=false;
-	until done;
-	{The loop condition is also known, for example:
-	 while i<10 do
-	    begin
-	        ...
-	    end;
-	
-	 When the loop is done, we do know that i<10 = false.
-	}
-	condition:=left.getcopy;
+        track_state_pass:=false;
+        done:=false;
+        firsttest:=true;
+        {For repeat until statements, first do a pass through the code.}
+        if not(nf_testatbegin in flags) then
+            begin
+                code:=right.getcopy;
+                if code.track_state_pass(exec_known) then
+                    track_state_pass:=true;
+                code.destroy;
+            end;
+        repeat
+            condition:=left.getcopy;
+            code:=right.getcopy;
+            change:=condition.track_state_pass(exec_known);
+            factval:=aktstate.find_fact(left);
+            if factval<>nil then
+                begin
+                    condition.destroy;
+                    condition:=factval.getcopy;
+                    change:=true;
+                end;
+            if change then
+                begin
+                    track_state_pass:=true;
+                    {Force new resulttype pass.}
+                    condition.resulttype.def:=nil;
+                    do_resulttypepass(condition);
+                end;
+            if is_constboolnode(condition) then
+                begin
+                    {Try to turn a while loop into a repeat loop.}
+                    if firsttest then
+                        exclude(flags,testatbegin);
+                    value:=(Tordconstnode(condition).value<>0) xor checknegate;
+                    if value then
+                        begin
+                            if code.track_state_pass(exec_known) then
+                                track_state_pass:=true;
+                        end
+                    else
+                        done:=true;
+                end
+            else
+                begin
+                    {Remove any modified variables from the state.}
+                    code.track_state_pass(false);
+                    done:=true;
+                end;
+            code.destroy;
+            condition.destroy;
+            firsttest:=false;
+        until done;
+        {The loop condition is also known, for example:
+         while i<10 do
+            begin
+                ...
+            end;
+
+         When the loop is done, we do know that i<10 = false.
+        }
+        condition:=left.getcopy;
         if condition.track_state_pass(exec_known) then
-	    begin
-		track_state_pass:=true;
-		{Force new resulttype pass.}
-    		condition.resulttype.def:=nil;
-		do_resulttypepass(condition);
-	    end;
-	if not is_constboolnode(condition) then
-	    aktstate.store_fact(condition,
-	     cordconstnode.create(byte(checknegate),booltype))
-	else
-	    condition.destroy;
+            begin
+                track_state_pass:=true;
+                {Force new resulttype pass.}
+                condition.resulttype.def:=nil;
+                do_resulttypepass(condition);
+            end;
+        if not is_constboolnode(condition) then
+            aktstate.store_fact(condition,
+             cordconstnode.create(byte(checknegate),booltype))
+        else
+            condition.destroy;
     end;
 {$endif}
 
@@ -579,7 +619,7 @@ implementation
          inherited create(forn,l,r,_t1,_t2);
          if back then
            include(flags,nf_backward);
-	 include(flags,nf_testatbegin);
+         include(flags,nf_testatbegin);
       end;
 
 
@@ -590,20 +630,20 @@ implementation
          result:=nil;
          resulttype:=voidtype;
 
-											  											
+
          if left.nodetype<>assignn then
            begin
               CGMessage(cg_e_illegal_expression);
               exit;
            end;
 
-	 {Can we spare the first comparision?}
+         {Can we spare the first comparision?}
          if (right.nodetype=ordconstn) and (Tassignmentnode(left).right.nodetype=ordconstn) then
-    	    if not(((nf_backward in flags) and
+            if not(((nf_backward in flags) and
              (Tordconstnode(Tassignmentnode(left).right).value>=Tordconstnode(right).value))
              or (not(nf_backward in flags) and
              (Tordconstnode(Tassignmentnode(left).right).value<=Tordconstnode(right).value))) then
-	        exclude(flags,nf_testatbegin);
+                exclude(flags,nf_testatbegin);
 
          { save counter var }
          t2:=tassignmentnode(left).left.getcopy;
@@ -829,7 +869,29 @@ implementation
         inherited create(goton);
         exceptionblock:=aktexceptblock;
         labsym:=p;
-        labelnr:=p.lab;
+      end;
+
+
+    constructor tgotonode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        labsym:=tlabelsym(ppufile.getderef);
+        exceptionblock:=ppufile.getbyte;
+      end;
+
+
+    procedure tgotonode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putderef(labsym);
+        ppufile.putbyte(exceptionblock);
+      end;
+
+
+    procedure tgotonode.derefimpl;
+      begin
+        inherited derefimpl;
+        resolvesym(pointer(labsym));
       end;
 
 
@@ -860,7 +922,6 @@ implementation
         p : tgotonode;
      begin
         p:=tgotonode(inherited getcopy);
-        p.labelnr:=labelnr;
         p.labsym:=labsym;
         p.exceptionblock:=exceptionblock;
         result:=p;
@@ -895,6 +956,32 @@ implementation
         labelnr:=p.lab;
         { save the current labelnode in the labelsym }
         p.code:=self;
+      end;
+
+
+    constructor tlabelnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        labsym:=tlabelsym(ppufile.getderef);
+        labelnr:=tasmlabel(ppufile.getasmsymbol);
+        exceptionblock:=ppufile.getbyte;
+      end;
+
+
+    procedure tlabelnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putderef(labsym);
+        ppufile.putasmsymbol(labelnr);
+        ppufile.putbyte(exceptionblock);
+      end;
+
+
+    procedure tlabelnode.derefimpl;
+      begin
+        inherited derefimpl;
+        resolvesym(pointer(labsym));
+        objectlibrary.derefasmsymbol(labelnr);
       end;
 
 
@@ -950,6 +1037,28 @@ implementation
       begin
          inherited create(raisen,l,taddr);
          frametree:=tframe;
+      end;
+
+
+    constructor traisenode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        frametree:=ppuloadnode(ppufile);
+      end;
+
+
+    procedure traisenode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppuwritenode(ppufile,frametree);
+      end;
+
+
+    procedure traisenode.derefimpl;
+      begin
+        inherited derefimpl;
+        if assigned(frametree) then
+          frametree.derefimpl;
       end;
 
 
@@ -1136,6 +1245,14 @@ implementation
       end;
 
 
+    constructor tonnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        exceptsymtable:=nil;
+        excepttype:=nil;
+      end;
+
+
     function tonnode.getcopy : tnode;
       var
          n : tonnode;
@@ -1244,7 +1361,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2002-08-17 22:09:46  florian
+  Revision 1.47  2002-08-19 19:36:43  peter
+    * More fixes for cross unit inlining, all tnodes are now implemented
+    * Moved pocall_internconst to po_internconst because it is not a
+      calling type at all and it conflicted when inlining of these small
+      functions was requested
+
+  Revision 1.46  2002/08/17 22:09:46  florian
     * result type handling in tcgcal.pass_2 overhauled
     * better tnode.dowrite
     * some ppc stuff fixed
