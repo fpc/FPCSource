@@ -851,9 +851,9 @@ unit typinfo;
         PS:=@PT^.NameList;
         While (Result=-1) and (PByte(PS)^<>0) do
           begin
-          If PS^=Name then
+          If CompareText(PS^, Name) = 0 then
             Result:=Count;
-          PS:=PShortString(pointer(PS)+PByte(PS)^);
+          PS:=PShortString(pointer(PS)+PByte(PS)^+1);
           Inc(Count);
           end;
       end;
@@ -862,7 +862,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:52  michael
+  Revision 1.3  2000-07-17 08:37:58  sg
+  * Fixed GetEnumValue (bug #1049, reported by Neil Graham)
+
+  Revision 1.2  2000/07/13 11:33:52  michael
   + removed logs
  
 }
