@@ -434,11 +434,12 @@ function fpc_new_class(_vmt: pointer; _self : pointer):pointer;saveregisters;[pu
  begin
    if _vmt <> nil then
      begin
-       fpc_new_class := TObject.NewInstance;
+        fpc_new_class := tclass(_vmt).NewInstance;
      end
    else
      begin
-       { calling when class already instanciated }
+       { calling when class already instanciated  }
+       { then simply returna a boolean value <> 0 }
        fpc_new_class := _self;
      end;
  end;
@@ -462,10 +463,10 @@ procedure fpc_check_object(vmt : pointer);saveregisters;[public,alias:'FPC_CHECK
         parent : pointer;
         end;
 begin
-   if (vmt=nil) or
+(*   if (vmt=nil) or
       (pvmt(vmt)^.size=0) or
       (pvmt(vmt)^.size+pvmt(vmt)^.msize<>0) then
-        RunError(210);
+        RunError(210);*)
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
@@ -946,10 +947,9 @@ end;
 
 {
   $Log$
-  Revision 1.26  2002-05-22 18:48:29  carl
-  + generic FPC_HELP_FAIL
-  + generic FPC_HELP_DESTRUCTOR instated (original from Pierre)
-  + generic FPC_DISPOSE_CLASS
+  Revision 1.27  2002-06-16 08:19:03  carl
+  * bugfix of FPC_NEW_CLASS (was not creating correct instance)
+  + FPC_HELP_FAIL_CLASS now tested (no longer required)
 
   Revision 1.25  2002/05/16 19:58:05  carl
   * generic constructor implemented
