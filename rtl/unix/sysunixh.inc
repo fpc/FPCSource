@@ -19,7 +19,7 @@
 
 {$I systemh.inc}
 
-{$ifdef linux}
+{$ifdef Unix}
 type
    { the fields of this record are os dependent  }
    { and they shouldn't be used in a program     }
@@ -35,7 +35,7 @@ type
 
 { include threading stuff }
 {$i threadh.inc}
-{$endif linux}
+{$endif unix}
 
 {$I heaph.inc}
 
@@ -73,7 +73,10 @@ var
 
 {
   $Log$
-  Revision 1.12  2001-10-23 21:51:03  peter
+  Revision 1.13  2001-11-08 13:56:35  marco
+   * Fixed a ifdef linux to ifdef unix (related to TRTL change)
+
+  Revision 1.12  2001/10/23 21:51:03  peter
     * criticalsection renamed to rtlcriticalsection for kylix compatibility
 
   Revision 1.11  2001/10/14 13:33:21  peter
