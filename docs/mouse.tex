@@ -34,6 +34,22 @@ parameters while only the lower 16 bits are used. This is because FPC is
 a 32 bit compiler and consequently 32 bit parameters result in faster code.
 \end{itemize}
 
+\section{Constants, types and variables}
+
+The following constants are defined (to be used in e.g. the
+\seef{GetLastButtonPress} call).
+\begin{verbatim}
+ LButton = 1; {left button}
+ RButton = 2; {right button}
+ MButton = 4; {middle button}
+\end{verbatim}
+
+The following variable exist: 
+\begin{verbatim}
+  MouseFound: Boolean;
+\end{verbatim}
+it is set to \var{True} or \var{False} in the unit's initialization code.
+
 \section{Functions and procedures}
 
 \function{GetLastButtonPress}{(Button: Longint; Var x,y:Longint)}{Longint}{ 
