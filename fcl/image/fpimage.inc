@@ -488,7 +488,7 @@ begin
     else
       begin
       GetMem (NewData, r);
-      Fillchar (Newdata^[0], r, 0);
+      FillWord (Newdata^[0], r div sizeof(word), 0);
       end;
     // MG: missing "and (NewData<>nil)"
     if (old <> 0) and assigned(FData) and (NewData<>nil) then
