@@ -217,7 +217,7 @@ compiler_sharedinstall:
 # Utils
 #######################################
 
-utils_all: rtl_all
+utils_all: rtl_all fcl_all
 	$(MAKE) -C $(UTILSDIR) all
 
 utils_clean:
@@ -456,7 +456,10 @@ utilszip: utils_clean rtl_clean
 
 #
 # $Log$
-# Revision 1.19  1999-07-05 17:48:58  peter
+# Revision 1.20  1999-07-29 11:40:01  peter
+#   * utils need fcl
+#
+# Revision 1.19  1999/07/05 17:48:58  peter
 #   * merged
 #
 # Revision 1.18.2.1  1999/07/05 17:03:20  peter
