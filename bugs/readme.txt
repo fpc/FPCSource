@@ -267,6 +267,7 @@ Fixed bugs:
   bug0214.pp   bug for static methods                               OK 0.99.11 (PM)
   bug0215.pp   more bugs with static methods                        OK 0.99.11 (PM)
   bug0216.pp   problem with with fields as function args            OK 0.99.11 (PM)
+  bug0217.pp   in tp mode can't use the procvar in writeln          OK 0.99.11 (PFV)
   bug0218.pp   rounding errors with write/str (the bug is fixed,    OK 0.99.11 (FK)
                but there is still some rounding error left when
                writing the extended value PFV;
@@ -314,7 +315,6 @@ bug0124.pp   Asm, problem with -Rintel switch and indexing (whatever the order)
 bug0226.pp   Asm, offset of var is not allowed as constant
 bug0228.pp   Asm, wrong warning for size
 
-bug0217.pp   in tp mode can't use the procvar in writeln
 bug0230.pp   several strange happen on the ln function: ln(0): no
              FPE and writeln can't write non numeric values
 bug0232.pp   const. procedure variables need a special syntax
