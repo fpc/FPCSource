@@ -396,12 +396,12 @@ begin
   if (not execres) and (ExecuteResult=0) then
     begin
       AddLog(FailLogFile,TestName);
-      AddLog(ResLogFile,failed_to_execute_compiler+PPFileInfo);
+      AddLog(ResLogFile,failed_to_compile+PPFileInfo);
       AddLog(LongLogFile,line_separation);
-      AddLog(LongLogFile,failed_to_execute_compiler+PPFileInfo);
+      AddLog(LongLogFile,failed_to_compile+PPFileInfo);
       CopyFile(OutName,LongLogFile,true);
       { avoid to try again }
-      AddLog(ForceExtension(PPFile,'elg'),failed_to_execute_compiler+PPFileInfo);
+      AddLog(ForceExtension(PPFile,'elg'),failed_to_compile+PPFileInfo);
       Verbose(V_Abort,'IOStatus: '+ToStr(IOStatus));
       exit;
     end;
@@ -494,7 +494,7 @@ var
   execres  : boolean;
 begin
   RunExecutable:=false;
-  execres:=true;	
+  execres:=true;
   TestExe:=ForceExtension(PPFile,ExeExt);
   OutName:=ForceExtension(PPFile,'elg');
   Verbose(V_Debug,'Executing '+TestExe);
@@ -519,17 +519,17 @@ begin
         execres:=ExecuteRedir(TestExe,'','',OutName,'');
     end;
   Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
-  
+
   { Error during execution? }
   if (not execres) and (ExecuteResult=0) then
     begin
       AddLog(FailLogFile,TestName);
-      AddLog(ResLogFile,failed_to_execute_test+PPFileInfo);
+      AddLog(ResLogFile,failed_to_run+PPFileInfo);
       AddLog(LongLogFile,line_separation);
-      AddLog(LongLogFile,failed_to_execute_test+PPFileInfo);
+      AddLog(LongLogFile,failed_to_run+PPFileInfo);
       CopyFile(OutName,LongLogFile,true);
       { avoid to try again }
-      AddLog(ForceExtension(PPFile,'elg'),failed_to_execute_test+PPFileInfo);
+      AddLog(ForceExtension(PPFile,'elg'),failed_to_run+PPFileInfo);
       Verbose(V_Abort,'IOStatus: '+ToStr(IOStatus));
       exit;
     end;
@@ -857,7 +857,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2004-04-29 21:41:44  peter
+  Revision 1.33  2004-05-02 09:31:52  peter
+    * remove failed_to_execute_ strings, use the failed_to_run
+
+  Revision 1.32  2004/04/29 21:41:44  peter
     * test result of execution and report as failure with iostatus displayed
 
   Revision 1.31  2004/04/01 12:51:32  olle
