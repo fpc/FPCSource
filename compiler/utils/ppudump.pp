@@ -104,7 +104,7 @@ type
     str  : string[30];
   end;
 const
-  flagopts=11;
+  flagopts=14;
   flagopt : array[1..flagopts] of tflagopt=(
     (mask: $1    ;str:'init'),
     (mask: $2    ;str:'final'),
@@ -116,7 +116,10 @@ const
     (mask: $80   ;str:'static_linked'),
     (mask: $100  ;str:'shared_linked'),
     (mask: $200  ;str:'local_browser'),
-    (mask: $400  ;str:'no_link')
+    (mask: $400  ;str:'no_link'),
+    (mask: $800  ;str:'has_resources'),
+    (mask: $1000  ;str:'little_endian'),
+    (mask: $2000  ;str:'release')
   );
 var
   i : longint;
@@ -1184,7 +1187,7 @@ begin
                 write('Uses unit: ',getstring,' (Number: ',unitnumber,')');
                 ucrc:=getlongint;
                 uintfcrc:=getlongint;
-                write(' (Crc: ',ucrc,', IntfcCrc: ',uintfcrc,')');
+                write(' (Crc: ',hexstr(ucrc,8),', IntfcCrc: ',hexstr(uintfcrc,8),')');
                 if getbyte<>0 then
                  writeln(' (interface)')
                 else
@@ -1547,7 +1550,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2001-06-04 11:53:15  peter
+  Revision 1.5  2001-06-29 19:42:18  peter
+    * new flags added
+
+  Revision 1.4  2001/06/04 11:53:15  peter
     + varargs directive
 
   Revision 1.3  2001/05/09 14:11:10  jonas
