@@ -279,7 +279,7 @@ procedure setftime(var f;time : longint);
 begin
     if os_mode = osOS2 then
         begin
-{!!! Must be done differently for OS/2 !!!}
+{TODO!!! Must be done differently for OS/2 !!!}
         end
     else
         asm
@@ -545,19 +545,23 @@ begin
     end;
 end;
 
-procedure setdate(year,month,day : word);
-
+procedure SetDate (Year, Month, Day: word);
+var DT: TDateTime;
 begin
     if os_mode = osOS2 then
         begin
-{TODO: !!! Must be done differently for OS/2 !!!}
+            DosGetDateTime (DT);
+            DT.Year := Year;
+            DT.Month := Month;
+            DT.Day := Day;
+            DosSetDateTime (DT);
         end
     else
         asm
-            movw 8(%ebp),%cx
-            movb 10(%ebp),%dh
-            movb 12(%ebp),%dl
-            movb $0x2b,%ah
+            movw Year, %cx
+            movb Month, %dh
+            movb Day, %dl
+            movb $0x2b, %ah
             call syscall
 (* SetDate isn't supposed to change DosError!!!
             xorb %ah,%ah
@@ -566,43 +570,50 @@ begin
         end;
 end;
 
-procedure gettime(var hour,minute,second,sec100:word);
-
-begin
-    asm
-        movb $0x2c,%ah
-        call syscall
-        xorb %ah,%ah
-        movl 20(%ebp),%edi
-        movb %dl,%al
-        stosw
-        movl 16(%ebp),%edi
-        movb %dh,%al
-        stosw
-        movl 12(%ebp),%edi
-        movb %cl,%al
-        stosw
-        movl 8(%ebp),%edi
-        movb %ch,%al
-        stosw
-    end;
+procedure GetTime (var Hour, Minute, Second, Sec100: word); assembler;
+asm
+    movb $0x2c, %ah
+    call syscall
+    xorb %ah, %ah
+    movl Sec100, %edi
+    movb %dl, %al
+    stosw
+    movl Second, %edi
+    movb %dh,%al
+    stosw
+    movl Minute, %edi
+    movb %cl,%al
+    stosw
+    movl Hour, %edi
+    movb %ch,%al
+    stosw
 end;
 
-procedure settime(hour,minute,second,sec100:word);
-(* TODO: Syscall 58h (__settime) should be used instead!!! *)
+procedure SetTime (Hour, Minute, Second, Sec100: word);
+var DT: TDateTime;
 begin
-    asm
-        movb 8(%ebp),%ch
-        movb 10(%ebp),%cl
-        movb 12(%ebp),%dh
-        movb 14(%ebp),%dl
-        movb $0x2d,%ah
-        call syscall
+    if os_mode = osOS2 then
+        begin
+            DosGetDateTime (DT);
+            DT.Hour := Hour;
+            DT.Minute := Minute;
+            DT.Second := Second;
+            DT.Sec100 := Sec100;
+            DosSetDateTime (DT);
+        end
+    else
+        asm
+            movb Hour, %ch
+            movb Minute ,%cl
+            movb Second, %dh
+            movb Sec100, %dl
+            movb $0x2d, %ah
+            call syscall
 (* SetTime isn't supposed to change DosError!!!
-        xorb %ah,%ah
-        movw %ax,doserror
+            xorb %ah, %ah
+            movw %ax, DosError
 *)
-    end;
+        end;
 end;
 
 procedure getcbreak(var breakvalue:boolean);
@@ -1183,7 +1194,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2000-06-01 18:38:46  hajny
+  Revision 1.27  2000-06-05 18:50:55  hajny
+    * SetDate, SetTime corrected
+
+  Revision 1.26  2000/06/01 18:38:46  hajny
     * warning about SetDate added (TODO)
 
   Revision 1.25  2000/05/28 18:20:16  hajny
