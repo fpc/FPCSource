@@ -697,11 +697,11 @@ asm
         {  load the begin of the dest buffer in the data cache }
         dcbtst  0,r3
 
-        { put min(length(sstr),len) in r3 }
-        subc    r0,r4,r10     { r0 := r3 - r10                               }
-        subfme  r4,r4         { if r3 >= r4 then r3' := 0 else r3' := -1     }
-        and     r4,r0,r4      { if r3 >= r4 then r3' := 0 else r3' := r3-r10 }
-        add     r4,r4,r10     { if r3 >= r4 then r3' := r10 else r3' := r3   }
+        { put min(length(sstr),len) in r4 }
+        subfc   r7,r10,r4     { r0 := r4 - r10                               }
+        subfe   r6,r4,r4      { if r3 >= r4 then r3' := 0 else r3' := -1     }
+        and     r7,r7,r6      { if r3 >= r4 then r3' := 0 else r3' := r3-r10 }
+        add     r4,r10,r7     { if r3 >= r4 then r3' := r10 else r3' := r3   }
 
         cmplwi  r4,0
         { put length in ctr }
@@ -713,7 +713,7 @@ LShortStrCopyLoop:
         stbu    r0,1(r3)
         bdnz    LShortStrCopyLoop
 LShortStrCopyDone:
-end ['R0','R3','R4','R5','R10','CR0','CTR'];
+end ['R0','R3','R4','R5','R6','R7','R10','CR0','CTR'];
 
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
@@ -751,7 +751,7 @@ end ['R0','R3','R4','R5','R10','CR0','CTR'];
 {define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 (*
 
-BUGGY!!
+BUGGY!! Probably the min is wrong, see fpc_shortstr_to_shortstr above
 
 function fpc_shortstr_concat(const s1,s2: shortstring): shortstring; compilerproc;
 { expects that results (r3) contains a pointer to the current string and s1 }
@@ -863,6 +863,7 @@ end ['R3'];
 function get_caller_addr(framebp:pointer):pointer;assembler;
 asm
    {$warning FIX ME!}
+   mr r3,r1
     //     !!!!!!! depends on ABI !!!!!!!!
 end ['R3'];
 
@@ -871,6 +872,7 @@ end ['R3'];
 function get_caller_frame(framebp:pointer):pointer;assembler;
 asm
     {$warning FIX ME!}
+    mr	r3,r1
    //     !!!!!!! depends on ABI !!!!!!!!
 end ['R3'];
 
@@ -948,7 +950,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.31  2003-03-17 14:30:11  peter
+  Revision 1.32  2003-04-23 21:04:48  florian
+    * fixed fpc_shortstr_to_shortstr
+
+  Revision 1.31  2003/03/17 14:30:11  peter
     * changed address parameter/return values to pointer instead
       of longint
 
