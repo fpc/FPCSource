@@ -1117,16 +1117,10 @@ implementation
         tempn: tnode;
         paras: tcallparanode;
         srsym: ttypesym;
-        symowner: tsymtable;
         createset: boolean;
       begin
         { get the sym that represents the fpc_normal_set type }
-        if not(cs_compilesystem in aktmoduleswitches) then
-          srsym := ttypesym(searchsymonlyin(systemunit,'FPC_NORMAL_SET'))
-        else
-          searchsym('FPC_NORMAL_SET',tsym(srsym),symowner);
-        if not assigned(srsym) or
-           (srsym.typ <> typesym) then
+        if not searchsystype('FPC_NORMAL_SET',srsym) then
           internalerror(200108313);
 
         case nodetype of
@@ -1137,7 +1131,7 @@ implementation
                   procname := 'fpc_set_comp_sets';
                 lten,gten:
                   begin
-                    procname := 'fpc_set_contains_set';
+                    procname := 'fpc_set_contains_sets';
                     { (left >= right) = (right <= left) }
                     if nodetype = gten then
                       begin
@@ -1149,7 +1143,9 @@ implementation
                end;
                { convert the arguments (explicitely) to fpc_normal_set's }
                left := ctypeconvnode.create(left,srsym.restype);
+               left.toggleflag(nf_explizit);
                right := ctypeconvnode.create(right,srsym.restype);
+               right.toggleflag(nf_explizit);
                result := ccallnode.createintern(procname,ccallparanode.create(right,
                  ccallparanode.create(left,nil)));
                { left and right are reused as parameters }
@@ -1189,12 +1185,12 @@ implementation
                        ctypeconvnode.create(tsetelementnode(right).left,
                        u8bittype);
                      tsetelementnode(right).left.toggleflag(nf_explizit);
-                    
+
                      { convert the original set (explicitely) to an   }
                      { fpc_normal_set so we can pass it to the helper }
                      left := ctypeconvnode.create(left,srsym.restype);
                      left.toggleflag(nf_explizit);
-                     
+
                      { add a range or a single element? }
                      if assigned(tsetelementnode(right).right) then
                        begin
@@ -1202,7 +1198,7 @@ implementation
                            ctypeconvnode.create(tsetelementnode(right).right,
                            u8bittype);
                          tsetelementnode(right).right.toggleflag(nf_explizit);
-                         
+
                          { create the call }
                          result := ccallnode.createinternres('fpc_set_set_range',
                            ccallparanode.create(tsetelementnode(right).right,
@@ -1223,7 +1219,7 @@ implementation
                   else
                    begin
                      { add two sets }
-                     
+
                      { convert the sets to fpc_normal_set's }
                      left := ctypeconvnode.create(left,srsym.restype);
                      left.toggleflag(nf_explizit);
@@ -1531,7 +1527,20 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2001-09-03 13:27:42  jonas
+  Revision 1.38  2001-09-04 11:38:54  jonas
+    + searchsystype() and searchsystype() functions in symtable
+    * changed ninl and nadd to use these functions
+    * i386 set comparison functions now return their results in al instead
+      of in the flags so that they can be sued as compilerprocs
+    - removed all processor specific code from n386add.pas that has to do
+      with set handling, it's now all done in nadd.pas
+    * fixed fpc_set_contains_sets in genset.inc
+    * fpc_set_in_byte is now coded inline in n386set.pas and doesn't use a
+      helper anymore
+    * some small fixes in compproc.inc/set.inc regarding the declaration of
+      internal helper types (fpc_small_set and fpc_normal_set)
+
+  Revision 1.37  2001/09/03 13:27:42  jonas
     * compilerproc implementation of set addition/substraction/...
     * changed the declaration of some set helpers somewhat to accomodate the
       above change

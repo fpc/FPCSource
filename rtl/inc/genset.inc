@@ -162,6 +162,7 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
    dest: fpc_normal_set absolute fpc_set_add_sets;
 {$else hascompilerproc}
  procedure do_add_sets(const set1,set2: fpc_normal_Set; var dest : fpc_normal_set);[public,alias:'FPC_SET_ADD_SETS'];
+{$endif hascompilerproc}
  {
    adds set1 and set2 into set dest
  }
@@ -171,7 +172,6 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
      for i:=0 to 7 do
        dest[i] := set1[i] or set2[i];
    end;
-{$endif hascompilerproc}
 {$endif}
 
 
@@ -262,7 +262,7 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
  begin
    fpc_set_contains_sets:= false;
    for i:=0 to 7 do
-     if (set2[i] and not set1[i]) <> 0 then
+     if (set1[i] and not set2[i]) <> 0 then
        exit;
    fpc_set_contains_sets:= true;
  end;
@@ -270,7 +270,20 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
 
 {
   $Log$
-  Revision 1.5  2001-09-03 13:27:43  jonas
+  Revision 1.6  2001-09-04 11:38:56  jonas
+    + searchsystype() and searchsystype() functions in symtable
+    * changed ninl and nadd to use these functions
+    * i386 set comparison functions now return their results in al instead
+      of in the flags so that they can be sued as compilerprocs
+    - removed all processor specific code from n386add.pas that has to do
+      with set handling, it's now all done in nadd.pas
+    * fixed fpc_set_contains_sets in genset.inc
+    * fpc_set_in_byte is now coded inline in n386set.pas and doesn't use a
+      helper anymore
+    * some small fixes in compproc.inc/set.inc regarding the declaration of
+      internal helper types (fpc_small_set and fpc_normal_set)
+
+  Revision 1.5  2001/09/03 13:27:43  jonas
     * compilerproc implementation of set addition/substraction/...
     * changed the declaration of some set helpers somewhat to accomodate the
       above change

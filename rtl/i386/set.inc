@@ -14,11 +14,6 @@
 
  **********************************************************************}
 
-{$ifndef hascompilerproc}
-type
-  fpc_small_set = set of 0..31;
-  fpc_normal_set = set of byte;
-{$endif hascompilerproc}
 
 {$define FPC_SYSTEM_HAS_FPC_SET_LOAD_SMALL}
 function fpc_set_load_small(l: fpc_small_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_LOAD_SMALL']; {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -52,16 +47,10 @@ asm
         movl    $8,%ecx
         rep
         stosl
-        movb    b,%al
-        movl    __RESULT,%edi
-        movl    %eax,%ecx
-        shrl    $3,%eax
-        andl    $7,%ecx
-        addl    %eax,%edi
-        btsl    %ecx,(%edi)
-{$ifdef hascompilerproc}
-        movl    __RESULT,%edi
-{$else hascompilerproc}
+        leal    -32(%edi),%eax
+        movzbl  b,%edi
+        btsl    %edi,(%eax)
+{$ifndef hascompilerproc}
         popl    %ecx
         popl    %eax
 {$endif hascompilerproc}
@@ -78,17 +67,12 @@ asm
        movl $8,%ecx
        movl source,%esi
        movl __RESULT,%edi
-       movb b,%al
        rep
        movsl
-       andl $0xf8,%eax
-       subl $32,%edi
-       shrl $3,%eax
-       addl %eax,%edi
-       movb b,%al
-       andl $7,%eax
-       btsl %eax,(%edi)
-end ['EAX','ECX','EDI'];
+       leal    -32(%edi),%eax
+       movzbl  b,%edi
+       btsl    %edi,(%eax)
+end ['EAX','ECX','ESI','EDI'];
 {$else hascompilerproc}
 function fpc_set_set_byte(b : byte): fpc_normal_set;assembler;[public,alias:'FPC_SET_SET_BYTE'];
 {
@@ -119,17 +103,12 @@ asm
        movl $8,%ecx
        movl source,%esi
        movl __RESULT,%edi
-       movb b,%al
        rep
        movsl
-       andl $0xf8,%eax
-       subl $32,%edi
-       shrl $3,%eax
-       addl %eax,%edi
-       movb b,%al
-       andl $7,%eax
-       btrl %eax,(%edi)
-end ['EAX','ECX','EDI'];
+       leal    -32(%edi),%eax
+       movzbl  b,%edi
+       btrl    %edi,(%eax)
+end ['EAX','ECX','ESI','EDI'];
 {$else hascompilerproc}
 function fpc_set_unset_byte(b : byte): fpc_normal_set;assembler;[public,alias:'FPC_SET_UNSET_BYTE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
@@ -249,13 +228,14 @@ asm
 end;
 {$endif hascompilerproc}
 
+
 {$define FPC_SYSTEM_HAS_FPC_SET_IN_BYTE}
 
+
 {$ifdef hascompilerproc}
-{ can't use as compilerproc, it returns its results in the flags :/ }
+{ it's inlined in the code generator }
 function fpc_set_in_byte(const p: fpc_normal_set; b: byte): boolean; compilerproc;
 begin
-  fpc_set_in_byte := false;
   { make sure we won't accidentally call it }
   runerror(216);
 end;
@@ -266,16 +246,14 @@ function fpc_set_in_byte_i386(p: pointer; b : byte): boolean;assembler;[public,a
   tests if the element b is in the set p the carryflag is set if it present
 }
 asm
+{ it's inlined in the code generator }
+{$ifndef hascompilerproc}
        pushl %eax
-       movl p,%edi
-       movb b,%al
-       andl $0xf8,%eax
-       shrl $3,%eax
-       addl %eax,%edi
-       movb b,%al
-       andl $7,%eax
+       movl   p,%edi
+       movzbl b,%eax
        btl %eax,(%edi)
        popl %eax
+{$endif not hascompilerproc}
 end;
 
 
@@ -400,17 +378,7 @@ end;
 
 {$define FPC_SYSTEM_HAS_FPC_SET_COMP_SETS}
 
-{$ifdef hascompilerproc}
-{ can't use as compilerproc, it returns its results in the flags :/ }
-function fpc_set_comp_sets(const set1,set2: fpc_normal_set): boolean; compilerproc;
-begin
-  fpc_set_comp_sets := false;
-  { make sure we won't accidentally call it }
-  runerror(216);
-end;
-{$endif hascompilerproc}
-
-procedure fpc_set_comp_sets_i386(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_COMP_SETS'];
+function fpc_set_comp_sets(const set1,set2: fpc_normal_set): boolean;assembler;[public,alias:'FPC_SET_COMP_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   compares set1 and set2 zeroflag is set if they are equal
 }
@@ -430,22 +398,15 @@ asm
         { we are here only if the two sets are equal
           we have zero flag set, and that what is expected }
     .LMCOMPSETEND:
+{$ifdef hascompilerproc}
+        seteb %al
+{$endif hascompilerproc}
 end;
-
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_CONTAINS_SET}
-{$ifdef hascompilerproc}
-{ can't use as compilerproc, it returns its results in the flags :/ }
-function fpc_set_contains_sets(const set1,set2: fpc_normal_set): boolean; compilerproc;
-begin
-  fpc_set_contains_sets := false;
-  { make sure we won't accidentally call it }
-  runerror(216);
-end;
-{$endif hascompilerproc}
 
-procedure fpc_set_contains_sets_i386(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_CONTAINS_SETS'];
+function fpc_set_contains_sets(const set1,set2: fpc_normal_set): boolean;assembler;[public,alias:'FPC_SET_CONTAINS_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   on exit, zero flag is set if set1 <= set2 (set2 contains set1)
 }
@@ -466,11 +427,15 @@ asm
         { we are here only if set2 contains set1
           we have zero flag set, and that what is expected }
     .LMCONTAINSSETEND:
+{$ifdef hascompilerproc}
+        seteb %al
+{$endif hascompilerproc}
 end;
+
 
 {$ifdef LARGESETS}
 
-procedure fpc_largeset_set_wor(p : pointer;b : word);assembler;[public,alias:'FPC_LARGESET_SET_WORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_largeset_set_word(p : pointer;b : word);assembler;[public,alias:'FPC_LARGESET_SET_WORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   sets the element b in set p works for sets larger than 256 elements
   not yet use by the compiler so
@@ -631,7 +596,20 @@ end;
 
 {
   $Log$
-  Revision 1.6  2001-09-03 13:27:43  jonas
+  Revision 1.7  2001-09-04 11:38:55  jonas
+    + searchsystype() and searchsystype() functions in symtable
+    * changed ninl and nadd to use these functions
+    * i386 set comparison functions now return their results in al instead
+      of in the flags so that they can be sued as compilerprocs
+    - removed all processor specific code from n386add.pas that has to do
+      with set handling, it's now all done in nadd.pas
+    * fixed fpc_set_contains_sets in genset.inc
+    * fpc_set_in_byte is now coded inline in n386set.pas and doesn't use a
+      helper anymore
+    * some small fixes in compproc.inc/set.inc regarding the declaration of
+      internal helper types (fpc_small_set and fpc_normal_set)
+
+  Revision 1.6  2001/09/03 13:27:43  jonas
     * compilerproc implementation of set addition/substraction/...
     * changed the declaration of some set helpers somewhat to accomodate the
       above change

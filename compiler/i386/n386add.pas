@@ -36,10 +36,8 @@ interface
           procedure SetResultLocation(cmpop,unsigned : boolean);
          protected
           function first_addstring : tnode; override;
-          function first_addset : tnode; override;
          private
           procedure second_addstring;
-          procedure second_addset;
        end;
 
   implementation
@@ -255,94 +253,6 @@ interface
 
 
 {*****************************************************************************
-                                Addset
-*****************************************************************************}
-
-    { we have to disable the compilerproc handling for all set helpers that }
-    { return booleans, because they return their results in the flags       }
-    function ti386addnode.first_addset : tnode;
-      begin
-        if is_boolean(resulttype.def) then
-          begin
-            result := nil;
-            exit;
-          end;
-        result := inherited first_addset;
-      end;
-
-
-    procedure ti386addnode.second_addset;
-      var
-        cmpop,
-        pushed : boolean;
-        href   : treference;
-        pushedregs : tpushed;
-        regstopush: byte;
-      begin
-        cmpop:=false;
-
-        { not commutative }
-        if nf_swaped in flags then
-         swapleftright;
-
-         secondpass(left);
-
-        { are too few registers free? }
-        pushed:=maybe_push(right.registers32,left,false);
-        secondpass(right);
-        if codegenerror then
-          exit;
-        if pushed then
-          restore(left,false);
-
-        set_location(location,left.location);
-
-        { handle operations }
-        { (the rest is handled by compilerprocs in pass 1) (JM) }
-
-        case nodetype of
-          equaln,
-        unequaln
-        ,lten, gten :
-          begin
-            cmpop:=true;
-            del_location(left.location);
-            del_location(right.location);
-            pushusedregisters(pushedregs,$ff);
-            If (nodetype in [equaln, unequaln, lten]) Then
-              Begin
-                emitpushreferenceaddr(right.location.reference);
-                emitpushreferenceaddr(left.location.reference);
-              End
-            Else  {gten = lten, if the arguments are reversed}
-              Begin
-                emitpushreferenceaddr(left.location.reference);
-                emitpushreferenceaddr(right.location.reference);
-              End;
-            saveregvars($ff);
-            Case nodetype of
-              equaln, unequaln:
-                emitcall('FPC_SET_COMP_SETS');
-              lten, gten:
-                Begin
-                  emitcall('FPC_SET_CONTAINS_SETS');
-                  { we need a jne afterwards, not a jnbe/jnae }
-                  nodetype := equaln;
-               End;
-            End;
-            maybe_loadself;
-            popusedregisters(pushedregs);
-            ungetiftemp(left.location.reference);
-            ungetiftemp(right.location.reference);
-          end;
-        else
-          internalerror(200108314);
-        end;
-        SetResultLocation(cmpop,true);
-      end;
-
-
-{*****************************************************************************
                                 pass_2
 *****************************************************************************}
 
@@ -458,8 +368,8 @@ interface
                      { normalsets are handled separate }
                        if not(tsetdef(left.resulttype.def).settype=smallset) then
                         begin
-                          second_addset;
-                          exit;
+                          { should be handled in pass 1 (JM) }
+                          internalerror(200109041);
                         end;
                      end;
          end;
@@ -1980,7 +1890,20 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2001-09-03 13:27:42  jonas
+  Revision 1.22  2001-09-04 11:38:55  jonas
+    + searchsystype() and searchsystype() functions in symtable
+    * changed ninl and nadd to use these functions
+    * i386 set comparison functions now return their results in al instead
+      of in the flags so that they can be sued as compilerprocs
+    - removed all processor specific code from n386add.pas that has to do
+      with set handling, it's now all done in nadd.pas
+    * fixed fpc_set_contains_sets in genset.inc
+    * fpc_set_in_byte is now coded inline in n386set.pas and doesn't use a
+      helper anymore
+    * some small fixes in compproc.inc/set.inc regarding the declaration of
+      internal helper types (fpc_small_set and fpc_normal_set)
+
+  Revision 1.21  2001/09/03 13:27:42  jonas
     * compilerproc implementation of set addition/substraction/...
     * changed the declaration of some set helpers somewhat to accomodate the
       above change

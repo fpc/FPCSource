@@ -509,13 +509,32 @@ implementation
                 end
                else
                 begin
-                  pushsetelement(left);
-                  emitpushreferenceaddr(right.location.reference);
+                  if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                    begin
+                      pleftreg := getexplicitregister32(R_EDI);
+                      opsize := def2def_opsize(left.resulttype.def,u32bittype.def);
+                      if opsize = S_L then
+                        emit_ref_reg(A_MOV,opsize,newreference(left.location.reference),pleftreg)
+                      else
+                        emit_ref_reg(A_MOVZX,opsize,newreference(left.location.reference),pleftreg);
+                      ungetiftemp(left.location.reference);
+                      del_reference(left.location.reference);
+                    end
+                  else
+                    begin
+                      pleftreg := left.location.register;
+                      opsize := def2def_opsize(left.resulttype.def,u32bittype.def);
+                      if opsize <> S_L then
+                         { this will change left, even if it's a LOC_CREGISTER, but }
+                         { that doesn't matter: if left is an 8 bit def, then the   }
+                         { upper 24 bits are undefined, so we can zero them without }
+                         { any problem (JM)                                         }
+                         emit_to_reg32(pleftreg)
+                    end;
+                  emit_reg_ref(A_BT,S_L,pleftreg,newreference(right.location.reference));
+                  ungetregister(pleftreg);
                   del_reference(right.location.reference);
-                  { registers need not be save. that happens in SET_IN_BYTE }
-                  { (EDI is changed) }
-                  emitcall('FPC_SET_IN_BYTE');
-                  { ungetiftemp(right.location.reference); }
+                  { ungetiftemp(right.location.reference) happens below }
                   location.loc:=LOC_FLAGS;
                   location.resflags:=F_C;
                 end;
@@ -1072,7 +1091,20 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2001-08-26 13:37:00  florian
+  Revision 1.17  2001-09-04 11:38:55  jonas
+    + searchsystype() and searchsystype() functions in symtable
+    * changed ninl and nadd to use these functions
+    * i386 set comparison functions now return their results in al instead
+      of in the flags so that they can be sued as compilerprocs
+    - removed all processor specific code from n386add.pas that has to do
+      with set handling, it's now all done in nadd.pas
+    * fixed fpc_set_contains_sets in genset.inc
+    * fpc_set_in_byte is now coded inline in n386set.pas and doesn't use a
+      helper anymore
+    * some small fixes in compproc.inc/set.inc regarding the declaration of
+      internal helper types (fpc_small_set and fpc_normal_set)
+
+  Revision 1.16  2001/08/26 13:37:00  florian
     * some cg reorganisation
     * some PPC updates
 

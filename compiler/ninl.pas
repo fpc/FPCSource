@@ -272,7 +272,7 @@ implementation
         tempref       : ttemprefnode;
         procprefix,
         name          : string[31];
-        srsym         : tsym;
+        srsym         : tvarsym;
         tempowner     : tsymtable;
         restype       : ^ttype;
         is_typed,
@@ -344,15 +344,7 @@ implementation
             { however, if we aren't compiling the system unit, another unit could  }
             { also have defined the INPUT or OUTPUT symbols. Therefore we need the }
             { separate cases (JM)                                                  }
-            if not (cs_compilesystem in aktmoduleswitches) then
-              begin
-                srsym := searchsymonlyin(systemunit,name);
-                tempowner := systemunit;
-              end
-            else
-              searchsym(name,srsym,tempowner);
-
-            if not assigned(srsym) then
+            if not searchsysvar(name,srsym,tempowner) then
               internalerror(200108141);
 
             { create the file parameter }
@@ -2277,7 +2269,20 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2001-09-02 21:12:07  peter
+  Revision 1.56  2001-09-04 11:38:55  jonas
+    + searchsystype() and searchsystype() functions in symtable
+    * changed ninl and nadd to use these functions
+    * i386 set comparison functions now return their results in al instead
+      of in the flags so that they can be sued as compilerprocs
+    - removed all processor specific code from n386add.pas that has to do
+      with set handling, it's now all done in nadd.pas
+    * fixed fpc_set_contains_sets in genset.inc
+    * fpc_set_in_byte is now coded inline in n386set.pas and doesn't use a
+      helper anymore
+    * some small fixes in compproc.inc/set.inc regarding the declaration of
+      internal helper types (fpc_small_set and fpc_normal_set)
+
+  Revision 1.55  2001/09/02 21:12:07  peter
     * move class of definitions into type section for delphi
 
   Revision 1.54  2001/08/28 13:24:46  jonas

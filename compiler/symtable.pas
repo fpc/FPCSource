@@ -215,6 +215,8 @@ interface
 {*** Search ***}
     function  searchsym(const s : stringid;var srsym:tsym;var srsymtable:tsymtable):boolean;
     function  searchsymonlyin(p : tsymtable;const s : stringid):tsym;
+    function searchsystype(const s: stringid; var srsym: ttypesym): boolean;
+    function  searchsysvar(const s: stringid; var srsym: tvarsym; var symowner: tsymtable): boolean;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
 
 {*** Object Helpers ***}
@@ -1827,6 +1829,35 @@ implementation
        end;
 
 
+    function searchsystype(const s: stringid; var srsym: ttypesym): boolean;
+      var
+        symowner: tsymtable;
+      begin
+        if not(cs_compilesystem in aktmoduleswitches) then
+          srsym := ttypesym(searchsymonlyin(systemunit,s))
+        else
+          searchsym(s,srsym,symowner);
+        searchsystype :=
+          assigned(srsym) and
+          (srsym.typ = typesym);
+      end;
+
+
+    function searchsysvar(const s: stringid; var srsym: tvarsym; var symowner: tsymtable): boolean;
+      begin
+        if not(cs_compilesystem in aktmoduleswitches) then
+          begin
+            srsym := tvarsym(searchsymonlyin(systemunit,s));
+            symowner := systemunit;
+          end
+        else
+          searchsym(s,srsym,symowner);
+        searchsysvar :=
+          assigned(srsym) and
+          (srsym.typ = varsym);
+      end;
+
+
     function search_class_member(pd : tobjectdef;const s : string):tsym;
     { searches n in symtable of pd and all anchestors }
       var
@@ -2072,7 +2103,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2001-08-30 20:13:56  peter
+  Revision 1.44  2001-09-04 11:38:55  jonas
+    + searchsystype() and searchsystype() functions in symtable
+    * changed ninl and nadd to use these functions
+    * i386 set comparison functions now return their results in al instead
+      of in the flags so that they can be sued as compilerprocs
+    - removed all processor specific code from n386add.pas that has to do
+      with set handling, it's now all done in nadd.pas
+    * fixed fpc_set_contains_sets in genset.inc
+    * fpc_set_in_byte is now coded inline in n386set.pas and doesn't use a
+      helper anymore
+    * some small fixes in compproc.inc/set.inc regarding the declaration of
+      internal helper types (fpc_small_set and fpc_normal_set)
+
+  Revision 1.43  2001/08/30 20:13:56  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces

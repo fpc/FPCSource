@@ -22,13 +22,13 @@
 
  **********************************************************************}
 
-{$ifdef hascompilerproc}
-
 { some dummy types necessary to have generic resulttypes for certain compilerprocs }
 type
   fpc_big_chararray = array[0..maxlongint] of char;
-  fpc_small_set = set of 0..31;
-  fpc_normal_set = set of byte;
+  fpc_small_set = longint;
+  fpc_normal_set = array[0..7] of longint;
+
+{$ifdef hascompilerproc}
 
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:StrLenInt); compilerproc;
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; compilerproc;
@@ -240,7 +240,20 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compiler
 
 {
   $Log$
-  Revision 1.8  2001-09-03 13:27:43  jonas
+  Revision 1.9  2001-09-04 11:38:55  jonas
+    + searchsystype() and searchsystype() functions in symtable
+    * changed ninl and nadd to use these functions
+    * i386 set comparison functions now return their results in al instead
+      of in the flags so that they can be sued as compilerprocs
+    - removed all processor specific code from n386add.pas that has to do
+      with set handling, it's now all done in nadd.pas
+    * fixed fpc_set_contains_sets in genset.inc
+    * fpc_set_in_byte is now coded inline in n386set.pas and doesn't use a
+      helper anymore
+    * some small fixes in compproc.inc/set.inc regarding the declaration of
+      internal helper types (fpc_small_set and fpc_normal_set)
+
+  Revision 1.8  2001/09/03 13:27:43  jonas
     * compilerproc implementation of set addition/substraction/...
     * changed the declaration of some set helpers somewhat to accomodate the
       above change
