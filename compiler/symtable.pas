@@ -1781,7 +1781,8 @@ implementation
             if (def2.owner.symtabletype in [globalsymtable,staticsymtable]) then
               s2:=def2.owner.realname^+'.'+s2;
           end;
-        CGMessage2(type_e_incompatible_types,s1,s2);
+        if def2.deftype<>errordef then
+          CGMessage2(type_e_incompatible_types,s1,s2);
       end;
 
 
@@ -2297,7 +2298,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.121  2003-10-30 16:23:13  peter
+  Revision 1.122  2003-11-08 17:08:44  florian
+    * fixed strange error message about expecting erroneous types,
+      usually this is caused by other errors so it isn't important
+
+  Revision 1.121  2003/10/30 16:23:13  peter
     * don't search for overloads in parents for constructors
 
   Revision 1.120  2003/10/23 14:44:07  peter
