@@ -838,6 +838,9 @@ unit pexpr;
                   (not ((m_tp in aktmodeswitches) and
                   (afterassignment or in_args))) then
                  begin
+                    if ((pvarsym(sym)=opsym) and
+                       ((p^.flags and pi_operator)<>0)) then
+                       inc(opsym^.refs);
                     p1:=genzeronode(funcretn);
                     pd:=p^.retdef;
                     p1^.funcretprocinfo:=p;
@@ -2024,7 +2027,12 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.112.2.2  1999-06-15 18:54:52  peter
+  Revision 1.112.2.3  1999-06-17 12:51:44  pierre
+   * changed is_assignment_overloaded into
+      function assignment_overloaded : pprocdef
+      to allow overloading of assignment with only different result type
+
+  Revision 1.112.2.2  1999/06/15 18:54:52  peter
     * more procvar fixes
 
   Revision 1.112.2.1  1999/06/13 22:38:09  peter

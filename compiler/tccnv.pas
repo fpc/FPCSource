@@ -625,11 +625,13 @@ implementation
               exit;
             end;
          end;
-
-       if is_assignment_overloaded(p^.left^.resulttype,p^.resulttype) then
+       aprocdef:=assignment_overloaded(p^.left^.resulttype,p^.resulttype);
+       if assigned(aprocdef) then
          begin
             procinfo.flags:=procinfo.flags or pi_do_call;
             hp:=gencallnode(overloaded_operators[assignment],nil);
+            { tell explicitly which def we must use !! (PM) }
+            hp^.procdefinition:=aprocdef;
             hp^.left:=gencallparanode(p^.left,nil);
             putnode(p);
             p:=hp;
@@ -809,9 +811,10 @@ implementation
                { possible, if the source is no register    }
                if ((p^.resulttype^.deftype in [recorddef,stringdef,arraydef]) or
                    ((p^.resulttype^.deftype=objectdef) and not(pobjectdef(p^.resulttype)^.isclass))
-                  ) and (p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
-                  {it also works if the assignment is overloaded }
-                  not is_assignment_overloaded(p^.left^.resulttype,p^.resulttype) then
+                  ) and (p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) { and
+                   it also works if the assignment is overloaded
+                   YES but this code is not executed if assignment is overloaded (PM)
+                  not assigned(assignment_overloaded(p^.left^.resulttype,p^.resulttype))} then
                  CGMessage(cg_e_illegal_type_conversion);
             end
            else
@@ -912,7 +915,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35.2.2  1999-06-15 18:54:53  peter
+  Revision 1.35.2.3  1999-06-17 12:51:48  pierre
+   * changed is_assignment_overloaded into
+      function assignment_overloaded : pprocdef
+      to allow overloading of assignment with only different result type
+
+  Revision 1.35.2.2  1999/06/15 18:54:53  peter
     * more procvar fixes
 
   Revision 1.35.2.1  1999/06/13 22:39:19  peter

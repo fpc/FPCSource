@@ -50,7 +50,7 @@ interface
     function  valid_for_formal_const(p : ptree) : boolean;
     function  is_procsym_load(p:Ptree):boolean;
     function  is_procsym_call(p:Ptree):boolean;
-    function  is_assignment_overloaded(from_def,to_def : pdef) : boolean;
+    function  assignment_overloaded(from_def,to_def : pdef) : pprocdef;
 
 
 implementation
@@ -460,7 +460,7 @@ implementation
            else
              begin
              { assignment overwritten ?? }
-               if is_assignment_overloaded(def_from,def_to) then
+               if assigned(assignment_overloaded(def_from,def_to)) then
                 b:=2;
              end;
          end;
@@ -636,12 +636,12 @@ implementation
       end;
 
 
-    function is_assignment_overloaded(from_def,to_def : pdef) : boolean;
+    function assignment_overloaded(from_def,to_def : pdef) : pprocdef;
        var
           passproc : pprocdef;
           convtyp : tconverttype;
        begin
-          is_assignment_overloaded:=false;
+          assignment_overloaded:=nil;
           if assigned(overloaded_operators[assignment]) then
             passproc:=overloaded_operators[assignment]^.definition
           else
@@ -649,9 +649,10 @@ implementation
           while passproc<>nil do
             begin
               if is_equal(passproc^.retdef,to_def) and
-                 (isconvertable(from_def,passproc^.para1^.data,convtyp,ordconstn,false)=1) then
+                 (is_equal(passproc^.para1^.data,from_def) or
+                 (isconvertable(from_def,passproc^.para1^.data,convtyp,ordconstn,false)=1)) then
                 begin
-                   is_assignment_overloaded:=true;
+                   assignment_overloaded:=passproc;
                    break;
                 end;
               passproc:=passproc^.nextoverloaded;
@@ -661,7 +662,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1999-06-01 19:27:47  peter
+  Revision 1.27.2.1  1999-06-17 12:51:42  pierre
+   * changed is_assignment_overloaded into
+      function assignment_overloaded : pprocdef
+      to allow overloading of assignment with only different result type
+
+  Revision 1.27  1999/06/01 19:27:47  peter
     * better checks for procvar and methodpointer
 
   Revision 1.26  1999/05/20 14:58:26  peter

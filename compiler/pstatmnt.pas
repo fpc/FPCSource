@@ -808,12 +808,18 @@ unit pstatmnt;
                 tt:=hdisposen;
             end;
           consume(LKLAMMER);
+
+          { displaced here to avoid warnings in BP mode (PM) }
+          Store_valid := Must_be_valid;
+          if tt=hnewn then
+            Must_be_valid := False
+          else
+            Must_be_valid:=true;
+
           p:=comp_expr(true);
 
           { calc return type }
           cleartempgen;
-          Store_valid := Must_be_valid;
-          Must_be_valid := False;
           do_firstpass(p);
           Must_be_valid := Store_valid;
 
@@ -1152,7 +1158,8 @@ unit pstatmnt;
                 begin
                    { the space has been set in the local symtable }
                    procinfo.retoffset:=-funcretsym^.address;
-                   if (procinfo.flags and pi_operator)<>0 then
+                   if ((procinfo.flags and pi_operator)<>0) and
+                     assigned(opsym) then
                      {opsym^.address:=procinfo.call_offset; is wrong PM }
                      opsym^.address:=-procinfo.retoffset;
                    { eax is modified by a function }
@@ -1265,7 +1272,15 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.87  1999-05-27 19:44:50  peter
+  Revision 1.88.2.1  1999-06-17 12:51:46  pierre
+   * changed is_assignment_overloaded into
+      function assignment_overloaded : pprocdef
+      to allow overloading of assignment with only different result type
+
+  Revision 1.88  1999/06/15 13:19:46  pierre
+   * better uninitialized var tests for TP mode
+
+  Revision 1.87  1999/05/27 19:44:50  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
