@@ -9,11 +9,16 @@ program Tst_FExp;
 uses
  Dos;
 
+{$IFDEF OS2}
+function _DosError (Error: longint): longint; cdecl;
+                                                 external 'DOSCALLS' index 212;
+{$ENDIF OS2}
+
 {$IFDEF LINUX}
  {$IFNDEF UNIX}
   {$DEFINE UNIX}
- {$ENDIF}
-{$ENDIF}
+ {$ENDIF UNIX}
+{$ENDIF LINUX}
 
 const
 {$IFNDEF FPC}
@@ -67,6 +72,10 @@ begin
 end;
 
 begin
+{$IFDEF OS2}
+(* Avoid OS/2 error messages. *)
+ _DosError (0);
+{$ENDIF OS2}
  if ParamCount <> 1 then
  begin
   WriteLn ('Warning: Parameter missing!');
@@ -81,13 +90,11 @@ begin
  if TestDir [Length (TestDir)] <> DirSep then TestDir := TestDir + DirSep;
  GetDir (0, OrigDir);
 {$IFDEF UNIX}
- CDir := CurDir;
  TestDrive := '';
-{$ELSE}
- GetDir (3, CDir);
+{$ELSE UNIX}
  TestDrive := Copy (TestDir, 1, 2);
  GetDir ((Ord (TestDir [1]) and not ($20)) - 64, OrigTstDir);
-{$ENDIF}
+{$ENDIF UNIX}
 {$I-}
  MkDir (TestDir + 'TESTDIR1');
  if IOResult <> 0 then ;
@@ -96,6 +103,11 @@ begin
 {$I+}
  ChDir (TestDir + 'TESTDIR1' + DirSep + 'TESTDIR2');
  GetDir (0, CurDir);
+{$IFDEF UNIX}
+ CDir := CurDir;
+{$ELSE UNIX}
+ GetDir (3, CDir);
+{$ENDIF UNIX}
  Check (' ', CurDir + DirSep + ' ');
  Check ('', CurDir + DirSep);
  Check ('.', CurDir);
