@@ -555,10 +555,10 @@ begin
   Result:=False;
   If P^=#0 then exit;
   PS:=P;
-  While (P^<>#10) do P:=P+1;
+  While not (P^ in [#10,#13]) do P:=P+1;
   SetLength (S,P-PS);
   System.Move (PS^,Pointer(S)^,P-PS);
-  If P[1]=#13 then P:=P+1;
+  If P^=#13 then P:=P+1;
   P:=P+1; // Point to character after #10(#13)
   Result:=True;
 end;
@@ -938,7 +938,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1999-04-13 08:52:28  michael
+  Revision 1.2  1999-04-15 07:51:45  michael
+  + Bugfix in strings.Loadfromstream
+
+  Revision 1.1  1999/04/13 08:52:28  michael
   + Moved strings.inc to stringl.inc, to avoid conflict with strings unit
 
   Revision 1.15  1999/04/08 10:18:56  peter
