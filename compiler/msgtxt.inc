@@ -868,6 +868,7 @@ const msgtxt : array[0..000149,1..240] of char=(
   '6*2Tmacos_Macintosh m68k'#010+
   '6*2Tpalmos_Pal','mOS'#010+
   'P*1T<x>_Target operating system:'#010+
+  'P*2Tdarwin_Darwin and MacOS X on PowerPC'#010+
   'P*2Tlinux_Linux on PowerPC'#010+
   'P*2Tmacos_MacOS (classic) on PowerPC'#010+
   '**1*_'#010+

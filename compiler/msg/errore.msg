@@ -1730,7 +1730,7 @@ execinfo_x_stackcommit=09034_X_Stack space commited: $1 bytes
 # BeginOfTeX
 % \section{Unit loading messages.}
 % This section lists all messages that can occur when the compiler is
-% loading a unit from disk into memory. Many of these mesages are
+% loading a unit from disk into memory. Many of these messages are
 % informational messages.
 % \begin{description}
 unit_t_unitsearch=10000_T_Unitsearch: $1
@@ -2233,6 +2233,7 @@ option_help_pages=11025_[
 6*2Tmacos_Macintosh m68k
 6*2Tpalmos_PalmOS
 P*1T<x>_Target operating system:
+P*2Tdarwin_Darwin and MacOS X on PowerPC
 P*2Tlinux_Linux on PowerPC
 P*2Tmacos_MacOS (classic) on PowerPC
 **1*_
