@@ -113,7 +113,7 @@ type
     a_srwi, a_srwi_, a_clrlwi, a_clrlwi_, a_clrrwi, a_clrrwi_, a_clrslwi,
     a_clrslwi_, a_blr, a_bctr, a_blrl, a_bctrl, a_crset, a_crclr, a_crmove,
     a_crnot, a_mt {move to special prupose reg}, a_mf {move from special purpose reg},
-    nop, a_li, a_lis, a_la, a_mr, a_not, a_mtcr);
+    a_nop, a_li, a_lis, a_la, a_mr, a_not, a_mtcr);
 
   op2strtable=array[tasmop] of string[8];
 
@@ -567,7 +567,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2000-04-29 09:01:06  jonas
+  Revision 1.15  2000-05-01 11:04:49  jonas
+    * changed NOT to A_NOP
+
+  Revision 1.14  2000/04/29 09:01:06  jonas
     * nmem compiles again (at least for powerpc)
 
   Revision 1.13  2000/03/26 16:38:06  jonas
