@@ -8,6 +8,7 @@ programs=stringl dparser fstream mstream list threads testrtf \
          b64test b64test2 b64enc b64dec restest testz testz2 \
          istream doecho testproc
 programs_win32=showver
+programs_linux=sockcli isockcli dsockcli socksvr isocksvr dsocksvr
 
 rst=restest
 
