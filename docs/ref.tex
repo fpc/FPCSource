@@ -405,9 +405,9 @@ Delphi implementation.
 The compiler must be able to evaluate the expression in a constant
 declaration at compile time.  This means that most of the functions
 in the Run-Time library cannot be used in a constant declaration.
-Operators such as \var{+, -, *, /, not, and, or, div(), mod(), ord(), chr(),
-sizeof} can be used, however. For more information on expressions, see
-\seec{Expressions}.
+Operators such as \var{+, -, *, /, not, and, or, div, mod, ord, chr,
+sizeof, pi, int, trunc, round, frac, odd} can be used, however. For more 
+information on expressions, see \seec{Expressions}.
 Only constants of the following types can be declared: \var{Ordinal types},
 \var{Real types}, \var{Char}, and \var{String}.
 The following are all valid constant declarations:
@@ -526,8 +526,9 @@ The base or simple types of \fpc are the Delphi types.
 We will discuss each separate.
 \input{syntax/typesim.syn}
 \subsection{Ordinal types}
-With the exception of Real types, all base types are ordinal types.
-Ordinal types have the following characteristics:
+With the exception of \var{int64}, \var{qword} and Real types, 
+all base types are ordinal types. Ordinal types have the following 
+characteristics:
 \begin{enumerate}
 \item Ordinal types are countable and ordered, i.e. it is, in principle,
 possible to start counting them one bye one, in a specified order.
@@ -542,8 +543,8 @@ check error if range checking is enabled.
 check error if range checking is enabled.
 \end{enumerate}
 \subsubsection{Integers}
-A list of pre-defined ordinal types is presented in \seet{ordinals}
-\begin{FPCltable}{l}{Predefined ordinal types}{ordinals}
+A list of pre-defined integer types is presented in \seet{integerstyp}
+\begin{FPCltable}{l}{Predefined integer types}{integerstyp}
 Name\\ \hline
 Integer \\
 Shortint \\
@@ -561,8 +562,10 @@ LongBool \\
 Char \\ \hline
 \end{FPCltable}
 The integer types, and their ranges and sizes, that are predefined in
-\fpc are listed in \seet{integers}.
-\begin{FPCltable}{lcr}{Predefined integer types}{integers}
+\fpc are listed in \seet{integersranges}. It is to note that
+the \var{qword} and \var{int64} types are not true ordinals, so
+some pascal constructs will not work with these two integer types.
+\begin{FPCltable}{lcr}{Predefined integer types}{integersranges}
 Type & Range & Size in bytes \\ \hline
 Byte & 0 .. 255 & 1 \\
 Shortint & -128 .. 127 & 1\\
@@ -4984,6 +4987,7 @@ Functions that are connected to the operating system.
 \subsection{Miscellaneous functions}
 Functions that do not belong in one of the other categories.
 \begin{funclist}
+\procref{Assert}{Conditionally abort program with error}
 \procref{Break}{Abort current loop}
 \procref{Continue}{Next cycle in current loop}
 \procref{Exclude}{Exclude an element from a set}
@@ -5070,6 +5074,36 @@ None
 \end{function}
 
 \FPCexample{ex4}
+
+\begin{procedure}{Assert}
+\Declaration
+Procedure Assert(expr : Boolean [; const msg: string]);
+
+\Description
+With assertions on, \var{Assert} tests if \var{expr} is 
+false, and if so, aborts the application with a Runtime error 
+227 and an optional error message in \var{msg}.
+If \var{expr} is true, program execution continues normally. 
+
+If assertions are not enabled at compile time, this routine does 
+nothing, and no code is generated for the \var{Assert} call. 
+
+Enabling and disabling assertions at compile time is done via
+the \var{\$C} or \var{\$ASSERTIONS} compiler switches. These are
+global switches.
+
+The default behavior of the assert call can be changed by 
+setting a new handler in the \var{AssertErrorProc} variable.
+Sysutils overrides the default handler to raise a \var{EAssertionFailed} 
+exception.
+
+
+\Errors
+None.
+\SeeAlso
+\seep{Halt}, \seep{Runerror}
+\end{procedure}
+
 
 \begin{procedure}{Assign}
 \Declaration
