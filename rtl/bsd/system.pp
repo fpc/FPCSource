@@ -113,6 +113,13 @@ end;
       OS Memory allocation / deallocation 
  ****************************************************************************}
 
+{ OS dependant parts  }
+
+{$I errno.inc}
+{$I bunxtype.inc}
+{$I ossysc.inc}
+{$I osmain.inc}
+
 function SysOSAlloc(size: ptrint): pointer;
 begin
   result := sbrk(size);
@@ -125,14 +132,10 @@ begin
   fpmunmap(p, size);
 end;
 
-{ OS dependant parts  }
 
-{$I errno.inc}
-{$I bunxtype.inc}
-{$I ossysc.inc}
-{$I osmain.inc}
 {$I text.inc}
 {$I heap.inc}
+
 
 {*****************************************************************************
                            UnTyped File Handling
@@ -202,7 +205,11 @@ End.
 
 {
   $Log$
-  Revision 1.15  2004-06-17 16:16:13  peter
+  Revision 1.16  2004-06-19 08:06:04  marco
+   * moved heap.inc and text.inc before sysalloc as suggested. Why wasn't this
+  	done directly?
+
+  Revision 1.15  2004/06/17 16:16:13  peter
     * New heapmanager that releases memory back to the OS, donated
       by Micha Nelissen
 
