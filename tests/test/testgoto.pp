@@ -1,3 +1,6 @@
+program testgoto;
+
+{$goto on}
 
 function test : longint;
 
