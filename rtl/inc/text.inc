@@ -466,7 +466,7 @@ Procedure Write_PChar(Len : Longint;var f : TextRec;p : PChar);[Public,Alias: {$
 var
   PCharLen : longint;
 Begin
-  If (InOutRes<>0) then
+  If (p=nil) or (InOutRes<>0) then
    exit;
   if (f.mode<>fmOutput) Then
    begin
@@ -1199,7 +1199,10 @@ end;
 
 {
   $Log$
-  Revision 1.32  1998-10-20 14:37:45  peter
+  Revision 1.33  1998-10-23 00:03:29  peter
+    * write(pchar) has check for nil
+
+  Revision 1.32  1998/10/20 14:37:45  peter
     * fixed maxlen which was not correct after my read_string update
 
   Revision 1.31  1998/10/10 15:28:48  peter
