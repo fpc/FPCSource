@@ -34,7 +34,7 @@ PASEXT=.pas
 EXEOBJECTS=h2pas
 UNITOBJECTS=
 
-EXTRAUNITS=options lexlib scan yacclib converu
+EXTRACLEANUNITS=options lexlib scan yacclib converu
 
 
 #####################################################################
@@ -149,7 +149,10 @@ endif
 
 #
 # $Log$
-# Revision 1.1.2.1  1999-06-18 10:55:37  peter
+# Revision 1.1.2.2  1999-07-16 13:40:59  peter
+#   + extrainstallunits,extracleanunits
+#
+# Revision 1.1.2.1  1999/06/18 10:55:37  peter
 #   * version fixes
 #   * EXTRAUNITS to set extra units that are build and needs to be cleaned
 #

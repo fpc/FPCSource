@@ -109,7 +109,7 @@ endif
 
 # Release ? Then force OPT and don't use extra opts via commandline
 ifdef RELEASE
-override OPT:=-Xs -OG2p2 -n
+override OPT:=-Xs -OG2p3 -n
 endif
 
 # Verbose settings (warning,note,info)
@@ -608,7 +608,7 @@ endif
 
 ifdef DATE
 DATESTR=$(shell $(DATE) +%Y%m%d)
-else
+else	
 DATESTR=
 endif
 
@@ -639,7 +639,7 @@ export GCCLIBDIR OTHERLIBDIR
 LOADEROFILES=$(addsuffix $(OEXT),$(LOADEROBJECTS))
 EXEFILES=$(addsuffix $(EXEEXT),$(EXEOBJECTS))
 EXEOFILES=$(addsuffix $(OEXT),$(EXEOBJECTS))
-UNITFILES=$(addsuffix $(PPUEXT),$(UNITOBJECTS))
+UNITPPUFILES=$(addsuffix $(PPUEXT),$(UNITOBJECTS))
 UNITOFILES=$(addsuffix $(OEXT),$(UNITOBJECTS))
 UNITAFILES=$(addsuffix $(STATICLIBEXT),$(UNITOBJECTS))
 
@@ -665,7 +665,7 @@ endif
 
 fpc_loaders: $(LOADEROFILES)
 
-fpc_units: $(UNITFILES)
+fpc_units: $(UNITPPUFILES)
 
 fpc_exes: $(EXEFILES)
 
@@ -721,6 +721,15 @@ endif
 # Install rules
 #####################################################################
 
+# Create UnitInstallFiles
+override UNITINSTALLFILES=$(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES))
+ifdef EXTRAINSTALLUNITS
+override EXTRAINSTALLFILES+=$(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS)))
+ifneq ($(EXTRAINSTALLFILES),)
+override UNITINSTALLFILES+=$(EXTRAINSTALLFILES)
+endif
+endif
+
 fpc_showinstallfiles : all
 ifndef DEFAULTUNITS
 ifdef EXEOBJECTS
@@ -730,10 +739,10 @@ endif
 ifdef LOADEROBJECTS
 	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(LOADEROFILES))
 endif
-ifdef UNITOBJECTS
-	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(UNITFILES))
-	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(UNITOFILES))
-endif
+# Show Units if unitobjects or extrainstallunits is set
+ifneq ($(UNITINSTALLFILES),)
+	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(UNITINSTALLFILES))
+endif	
 
 fpc_install : all
 ifndef DEFAULTUNITS
@@ -750,15 +759,11 @@ ifdef LOADEROBJECTS
 	$(MKDIR) $(UNITINSTALLDIR)
 	$(INSTALL) $(LOADEROFILES) $(UNITINSTALLDIR)
 endif
-ifdef UNITOBJECTS
+# Install Units if unitobjects or extrainstallunits is set
+ifneq ($(UNITINSTALLFILES),)
 	$(MKDIR) $(UNITINSTALLDIR)
-	$(INSTALL) $(UNITFILES) $(UNITINSTALLDIR)
-ifeq ($(SMARTLINK),YES)
-	$(INSTALL) $(LIBPREFIX)$(LIBNAME)$(LIBEXT) $(UNITINSTALLDIR)
-else
-	-$(INSTALL) $(UNITOFILES) $(UNITINSTALLDIR)
-endif
-endif
+	$(INSTALL) $(UNITINSTALLFILES) $(UNITINSTALLDIR)
+endif	
 
 # Target for the sharedlib install which is not avail for all targets
 ifdef inlinux
@@ -769,13 +774,13 @@ endif
 
 fpc_staticinstall: staticlib
 	$(MKDIR) $(STATIC_UNITINSTALLDIR)
-	$(INSTALL) $(UNITFILES) $(STATIC_UNITINSTALLDIR)
+	$(INSTALL) $(UNITINSTALLFILES) $(STATIC_UNITINSTALLDIR)
 	$(MKDIR) $(STATIC_LIBINSTALLDIR)
 	$(INSTALLEXE) *$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
 
 fpc_sharedinstall: sharedlib
 	$(MKDIR) $(SHARED_UNITINSTALLDIR)
-	$(INSTALL) $(UNITFILES) $(SHARED_UNITINSTALLDIR)
+	$(INSTALL) $(UNITINSTALLFILES) $(SHARED_UNITINSTALLDIR)
 	$(MKDIR) $(SHARED_LIBINSTALLDIR)
 	$(INSTALLEXE) *$(SHAREDLIBEXT) $(SHARED_LIBINSTALLDIR)
 
@@ -851,18 +856,25 @@ endif
 # Clean rules
 #####################################################################
 
+# Create UnitCleanFiles
+override UNITCLEANFILES=$(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES))
+ifdef EXTRACLEANUNITS
+override EXTRACLEANFILES=$(wildcard $(addsuffix $(OEXT),$(EXTRACLEANUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRACLEANUNITS)) $(addsuffix $(PPUEXT),$(EXTRACLEANUNITS)))
+ifneq ($(EXTRACLEANFILES),)
+override UNITCLEANFILES+=$(EXTRACLEANFILES)
+endif
+endif
+
 fpc_clean:
-ifdef UNITOBJECTS
-	-$(DEL) $(UNITOFILES) $(UNITAFILES) $(UNITFILES)
-endif	
 ifdef EXEOBJECTS
 	-$(DEL) $(EXEFILES) $(EXEOFILES)
 endif
 ifdef LOADEROBJECTS
 	-$(DEL) $(LOADEROFILES)
 endif
-ifdef EXTRAUNITS
-	-$(DEL) $(addsuffix $(OEXT),$(EXTRAUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAUNITS)) $(addsuffix $(PPUEXT),$(EXTRAUNITS)) 
+# Clean Units if unitobjects or extrainstallunits is set
+ifneq ($(UNITCLEANFILES),)
+	-$(DEL) $(UNITCLEANFILES)
 endif	
 	-$(DEL) $(PPAS) link.res log
 
@@ -954,9 +966,17 @@ fpc_objectinfo:
 	@$(ECHO)
 	@$(ECHO)  == Object info ==
 	@$(ECHO)
-	@$(ECHO)  LoaderObjects. $(LOADEROBJECTS)
-	@$(ECHO)  UnitObjects... $(UNITOBJECTS)
-	@$(ECHO)  ExeObjects.... $(EXEOBJECTS)
+	@$(ECHO)  LoaderObjects..... $(LOADEROBJECTS)
+	@$(ECHO)  UnitObjects....... $(UNITOBJECTS)
+	@$(ECHO)  ExeObjects........ $(EXEOBJECTS)
+	@$(ECHO)
+	@$(ECHO)  ExtraCleanUnits... $(EXTRACLEANUNITS)
+	@$(ECHO)  ExtraInstallUnits. $(EXTRAINSTALLUNITS)
+	@$(ECHO)
+	@$(ECHO)  == Unit info ==
+	@$(ECHO)
+	@$(ECHO)  UnitInstallFiles. $(UNITINSTALLFILES)
+	@$(ECHO)  UnitCleanFiles... $(UNITCLEANFILES)
 	@$(ECHO)
 
 fpc_installinfo:
@@ -977,7 +997,7 @@ fpc_installinfo:
 	@$(ECHO)  MsgInstallDir........ $(MSGINSTALLDIR)
 	@$(ECHO)  DocInstallDir........ $(DOCINSTALLDIR)
 	@$(ECHO)
-
+	
 # try to get the files in the currentdir
 PASFILES:=$(wildcard *.pas)
 PPFILES:=$(wildcard *.pp)
@@ -1007,7 +1027,10 @@ endif
 
 #
 # $Log$
-# Revision 1.31.2.3  1999-06-18 10:55:31  peter
+# Revision 1.31.2.4  1999-07-16 13:40:56  peter
+#   + extrainstallunits,extracleanunits
+#
+# Revision 1.31.2.3  1999/06/18 10:55:31  peter
 #   * version fixes
 #   * EXTRAUNITS to set extra units that are build and needs to be cleaned
 #

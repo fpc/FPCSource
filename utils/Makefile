@@ -28,7 +28,7 @@ DEFAULTFPCDIR=..
 EXEOBJECTS=ppudump ppumove ppdep ptop
 UNITOBJECTS=
 
-EXTRAUNITS=ppu ptopu
+EXTRACLEANUNITS=ppu ptopu
 
 #####################################################################
 # Common targets
@@ -134,7 +134,10 @@ h2pas_install:
 
 #
 # $Log$
-# Revision 1.1.2.1  1999-06-18 10:55:36  peter
+# Revision 1.1.2.2  1999-07-16 13:40:58  peter
+#   + extrainstallunits,extracleanunits
+#
+# Revision 1.1.2.1  1999/06/18 10:55:36  peter
 #   * version fixes
 #   * EXTRAUNITS to set extra units that are build and needs to be cleaned
 #
