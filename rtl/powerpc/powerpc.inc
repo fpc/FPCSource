@@ -349,7 +349,7 @@ end;
 Procedure FillChar(var x;count:longint;value:byte);assembler;
 { input: x in r3, count in r4, value in r5 }
 
-{$ifndef ABI_AIX}
+{$ifndef FPC_ABI_AIX}
 { in the AIX ABI, we can use te red zone for temp storage, otherwise we have }
 { to explicitely allocate room                                               }
 var
@@ -358,7 +358,7 @@ var
       0: (l1,l2: longint);
       1: (d: double);
     end;
-{$endif ABI_AIX}
+{$endif FPC_ABI_AIX}
 asm
         { no bytes? }
         cmpwi     cr6,r4,0
@@ -429,15 +429,15 @@ LFillCharDCBZLoop:
         beq       LFillCharDone
         b         LFillCharVerySmall
 LFillCharNoZero:
-{$ifdef ABI_AIX}
+{$ifdef FPC_ABI_AIX}
         stw       r5,0(sp)
         stw       r5,4(sp)
         lfd       f0,0(sp)
-{$else ABI_AIX}
+{$else FPC_ABI_AIX}
         stw       r5,temp
         stw       r5,4+temp
         lfd       f0,temp
-{$endif ABI_AIX}
+{$endif FPC_ABI_AIX}
         { make r3 point to address-8, so we're able to use fp double stores }
         { with update (it's already -4 now)                                 }
         subi      r3,r3,4
@@ -874,11 +874,11 @@ asm
    lwz r3,0(r3)
    cmplwi  r3,0
    beq     Lcaller_addr_frame_null
-{$ifdef ABI_AIX}
+{$ifdef FPC_ABI_AIX}
    lwz r3,8(r3)
-{$else}
+{$else FPC_ABI_AIX}
    lwz r3,4(r3)
-{$endif}
+{$endif FPC_ABI_AIX}
 Lcaller_addr_frame_null:
 end;
 
@@ -966,7 +966,10 @@ end;
 
 {
   $Log$
-  Revision 1.52  2003-08-24 20:47:49  olle
+  Revision 1.53  2003-09-06 10:44:41  olle
+    + Used macros ABI_AIX and ABI_SYSV exchanged to FPC_ABI_AIX and FPC_ABI_SYSV.
+
+  Revision 1.52  2003/08/24 20:47:49  olle
     + added support for ABI_AIX in get_caller_addr
 
   Revision 1.51  2003/06/14 12:41:08  jonas
