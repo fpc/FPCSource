@@ -1386,7 +1386,7 @@ begin
   WriteLn (x);
 end;
 ...
-P := @printit;
+Proc := @printit;
 Func := @Pi;
 \end{verbatim}
 From this example, the difference with Turbo Pascal is clear: In Turbo
@@ -1405,7 +1405,7 @@ begin
   WriteLn (x);
 end;
 begin
-P := @printit;
+Proc := @printit;
 end.
 \end{verbatim}
 Because the \var{TOneArgCcall} type is a procedure that uses the cdecl
