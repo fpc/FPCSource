@@ -444,7 +444,9 @@ begin
         RemoveFile(s+dirsep+dir.name);
         findnext(dir);
       end;
+{$ifdef fpc}
      findclose(dir);
+{$endif}
      { .s files }
      findfirst(s+dirsep+'*'+target_info.asmext,anyfile,dir);
      while (doserror=0) do
@@ -452,7 +454,9 @@ begin
         RemoveFile(s+dirsep+dir.name);
         findnext(dir);
       end;
+{$ifdef fpc}
      findclose(dir);
+{$endif}
    end
   else
    begin
@@ -599,7 +603,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.64  2000-06-01 13:02:45  peter
+  Revision 1.65  2000-06-01 19:11:19  peter
+    * added ifdef fpc around findclose
+
+  Revision 1.64  2000/06/01 13:02:45  peter
     * clean .o and .s from smartlinkpath when starting the writer
 
   Revision 1.63  2000/04/04 15:05:03  pierre
