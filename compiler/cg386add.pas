@@ -154,22 +154,24 @@ implementation
                      begin
                         cmpop:=false;
                         secondpass(p^.left);
-
                         { to avoid problem with maybe_push and restore }
                         set_location(p^.location,p^.left^.location);
                         pushed:=maybe_push(p^.right^.registers32,p,false);
                         secondpass(p^.right);
                         if pushed then restore(p,false);
+                        { get the temp location, must be done before regs are
+                          released/pushed because after the release the regs are
+                          still used for the push (PFV) }
+                        clear_location(p^.location);
+                        p^.location.loc:=LOC_MEM;
+                        if gettempansistringreference(p^.location.reference) then
+                          decrstringref(cansistringdef,p^.location.reference);
                         { release used registers }
                         del_location(p^.right^.location);
                         del_location(p^.left^.location);
                         { push the still used registers }
                         pushusedregisters(pushedregs,$ff);
                         { push data }
-                        clear_location(p^.location);
-                        p^.location.loc:=LOC_MEM;
-                        if gettempansistringreference(p^.location.reference) then
-                          decrstringref(cansistringdef,p^.location.reference);
                         emitpushreferenceaddr(p^.location.reference);
                         emit_push_loc(p^.right^.location);
                         emit_push_loc(p^.left^.location);
@@ -2089,7 +2091,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  1999-06-09 23:22:37  peter
+  Revision 1.66.2.1  1999-06-14 17:24:40  peter
+    * fixed saving of registers with decr_ansistr
+
+  Revision 1.66  1999/06/09 23:22:37  peter
     + del_location
 
   Revision 1.65  1999/06/09 23:00:11  peter
