@@ -2176,42 +2176,88 @@ implementation
                         new(oper[1].ref);
                         oper[1].ref^:=spilltemplist[supreg];
                       end;
-                    { The i386 instruction set never gets boring...
-                      some opcodes do not support a memory location as destination }
-                    case opcode of
-                      A_IMUL,
-                      A_BT,A_BTS,
-                      A_BTC,A_BTR :
-                        begin
-                          {Yikes! We just changed the destination register into
-                           a memory location above here.
-
-                           Situation example:
-
-                           imul [ebp-12],r21d   ; We need a help register
-
-                           Change into:
-
-                           mov r22d,[ebp-12]    ; Use a help instruction (only for IMUL)
-                           imul r22d,r21d       ; Replace reference by helpregister
-                           mov [ebp-12],r22d    ; Use another help instruction}
-                          rgget(list,Tai(previous),subreg,helpreg);
-                          spill_registers:=true;
-                          {First help instruction.}
-                          helpins:=Taicpu.op_ref_reg(A_MOV,opsize,oper[1].ref^,helpreg);
-                          if previous=nil then
-                            list.insert(helpins)
-                          else
-                            list.insertafter(helpins,previous);
-                          {Second help instruction.}
-                          helpins:=Taicpu.op_reg_ref(A_MOV,opsize,helpreg,oper[1].ref^);
-                          dispose(oper[1].ref);
-                          oper[1].typ:=top_reg;
-                          oper[1].reg:=helpreg;
-                          list.insertafter(helpins,self);
-                        end;
-                    end;
                   end;
+              end;
+
+            { The i386 instruction set never gets boring...
+              some opcodes do not support a memory location as destination }
+            if (oper[1].typ=top_ref) and
+               (
+                (oper[0].typ=top_const) or
+                ((oper[0].typ=top_reg) and
+                 (getregtype(oper[0].reg)=R_INTREGISTER))
+               ) then
+              begin
+                case opcode of
+                  A_IMUL :
+                    begin
+                      {Yikes! We just changed the destination register into
+                       a memory location above here.
+
+                       Situation examples:
+
+                       imul [ebp-12],r21d    ; We need a help register
+                       imul [ebp-12],<const> ; We need a help register
+
+                       Change into:
+
+                       mov r22d,[ebp-12]    ; Use a help instruction (only for IMUL)
+                       imul r22d,r21d       ; Replace reference by helpregister
+                       mov [ebp-12],r22d    ; Use another help instruction}
+                      rgget(list,Tai(previous),subreg,helpreg);
+                      spill_registers:=true;
+                      {First help instruction.}
+                      helpins:=Taicpu.op_ref_reg(A_MOV,opsize,oper[1].ref^,helpreg);
+                      if previous=nil then
+                        list.insert(helpins)
+                      else
+                        list.insertafter(helpins,previous);
+                      {Second help instruction.}
+                      helpins:=Taicpu.op_reg_ref(A_MOV,opsize,helpreg,oper[1].ref^);
+                      dispose(oper[1].ref);
+                      oper[1].typ:=top_reg;
+                      oper[1].reg:=helpreg;
+                      list.insertafter(helpins,self);
+                      rgunget(list,helpins,helpreg);
+                    end;
+                end;
+              end;
+
+            { The i386 instruction set never gets boring...
+              some opcodes do not support a memory location as source }
+            if (oper[0].typ=top_ref) and
+               (oper[1].typ=top_reg) and
+               (getregtype(oper[1].reg)=R_INTREGISTER) then
+              begin
+                case opcode of
+                  A_BT,A_BTS,
+                  A_BTC,A_BTR :
+                    begin
+                      {Yikes! We just changed the destination register into
+                       a memory location above here.
+
+                       Situation example:
+
+                       bt  r21d,[ebp-12]   ; We need a help register
+
+                       Change into:
+
+                       mov r22d,[ebp-12]    ; Use a help instruction (only for IMUL)
+                       bt  r21d,r22d        ; Replace reference by helpregister}
+                      rgget(list,Tai(previous),subreg,helpreg);
+                      spill_registers:=true;
+                      {First help instruction.}
+                      helpins:=Taicpu.op_ref_reg(A_MOV,opsize,oper[0].ref^,helpreg);
+                      if previous=nil then
+                        list.insert(helpins)
+                      else
+                        list.insertafter(helpins,previous);
+                      dispose(oper[0].ref);
+                      oper[0].typ:=top_reg;
+                      oper[0].reg:=helpreg;
+                      rgunget(list,self,helpreg);
+                    end;
+                end;
               end;
           end;
         3:
@@ -2271,7 +2317,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2003-09-28 13:37:07  peter
+  Revision 1.28  2003-09-28 21:49:30  peter
+    * fixed invalid opcode handling in spill registers
+
+  Revision 1.27  2003/09/28 13:37:07  peter
     * give error for wrong register number
 
   Revision 1.26  2003/09/24 21:15:49  florian
