@@ -1006,7 +1006,7 @@ begin
   AppTypeStr:='';
   ImageBaseStr:='';
   StripStr:='';
-  FindExe('asw',AsBinStr);
+  AsBinStr:=FindUtil('asw');
   if RelocSection then
    { Using short form to avoid problems with 128 char limitation under Dos. }
    RelocStr:='-b base.$$$';
@@ -1086,7 +1086,7 @@ begin
   AppTypeStr:='';
   ImageBaseStr:='';
   StripStr:='';
-  FindExe('asw',AsBinStr);
+  AsBinStr:=FindUtil('asw');
   if RelocSection then
    { Using short form to avoid problems with 128 char limitation under Dos. }
    RelocStr:='-b base.$$$';
@@ -1249,7 +1249,7 @@ begin
      end;
      if dllversion<>'' then
        cmdstr:=cmdstr+' --version '+dllversion;
-     cmdstr:=cmdstr+' --input '+fn;
+     cmdstr:=cmdstr+' --input '+maybequoted(fn);
      cmdstr:=cmdstr+' --stack '+tostr(stacksize);
      DoExec(FindUtil('postw32'),cmdstr,false,false);
      postprocessexecutable:=true;
@@ -1626,7 +1626,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2003-01-05 13:36:53  florian
+  Revision 1.11  2003-01-06 20:19:52  peter
+    * use findutil
+
+  Revision 1.10  2003/01/05 13:36:53  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 
