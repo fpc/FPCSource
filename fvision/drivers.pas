@@ -259,7 +259,7 @@ TYPE
 {$ifdef ENDIAN_BIG}
 	        ScanCode: Byte;
 	        CharCode: Char;
-{$else not ENDIAN_BIG}	  
+{$else not ENDIAN_BIG}	
 	        CharCode: Char;                       { Char code }
                 ScanCode: Byte;                       { Scan code }
 {$endif not ENDIAN_BIG}
@@ -1126,7 +1126,7 @@ begin
 {$ifdef ENDIAN_LITTLE}
      Event.CharCode:=chr(keycode and $ff);
      Event.ScanCode:=keycode shr 8;
-{$endif ENDIAN_LITTLE}     
+{$endif ENDIAN_LITTLE}
      Event.KeyShift:=keyshift;
    end
   else
@@ -1332,10 +1332,22 @@ VAR
 {$ENDIF}
 {$ifdef USE_VIDEO_API}
     StoreScreenMode : TVideoMode;
+
 {$endif USE_VIDEO_API}
 BEGIN
 if VideoInitialized then
-  DoneVideo;
+  begin
+{$ifdef USE_VIDEO_API}
+    StoreScreenMode:=ScreenMode;
+{$endif USE_VIDEO_API}
+    DoneVideo;
+{$ifdef USE_VIDEO_API}
+  end
+else
+  begin
+    StoreScreenMode.Col:=0;
+{$endif USE_VIDEO_API}
+  end;
 {$ifdef GRAPH_API}
 if Not TextmodeGFV then
   begin
@@ -1398,15 +1410,14 @@ if Not TextmodeGFV then
 else
 {$endif GRAPH_API}
   begin
-{$ifdef USE_VIDEO_API}
-    StoreScreenMode:=ScreenMode;
-{$endif USE_VIDEO_API}
     Video.InitVideo;
 {$ifdef USE_VIDEO_API}
     GetVideoMode(ScreenMode);
-    If (StoreScreenMode.color<>ScreenMode.color) or
+
+    If (StoreScreenMode.Col<>0) and
+       ((StoreScreenMode.color<>ScreenMode.color) or
        (StoreScreenMode.row<>ScreenMode.row) or
-       (StoreScreenMode.col<>ScreenMode.col) then
+       (StoreScreenMode.col<>ScreenMode.col)) then
       begin
         Video.SetVideoMode(StoreScreenMode);
         GetVideoMode(ScreenMode);
@@ -1692,7 +1703,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.36  2002-10-07 15:44:43  pierre
+ Revision 1.37  2002-10-17 11:22:46  pierre
+  * fix a problem in InitVideo with StoreVideoMode
+
+ Revision 1.36  2002/10/07 15:44:43  pierre
   * consider endianess for KeyCode/CharCode-ScanCode pairs
 
  Revision 1.35  2002/09/22 19:42:22  hajny
