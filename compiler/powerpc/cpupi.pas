@@ -68,6 +68,7 @@ unit cpupi;
          { this value is necessary for nested procedures }
          if assigned(procdef.localst) then
            procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
+         inherited after_header;
      end;
 
     procedure tppcprocinfo.after_pass1;
@@ -113,7 +114,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2003-04-27 11:21:36  peter
+  Revision 1.13  2003-05-09 19:00:30  jonas
+    * call inherited after_header as well
+
+  Revision 1.12  2003/04/27 11:21:36  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
