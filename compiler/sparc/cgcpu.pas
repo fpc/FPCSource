@@ -52,8 +52,6 @@ interface
         procedure a_paramaddr_ref(list:TAasmOutput;const r:TReference;const paraloc:TCGPara);override;
         procedure a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const paraloc : TCGPara);override;
         procedure a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const paraloc : TCGPara);override;
-//        procedure a_loadany_param_ref(list : taasmoutput;const paraloc : TCGPara;const ref:treference;shuffle : pmmshuffle);override;
-        procedure a_loadany_param_reg(list : taasmoutput;const paraloc : TCGPara;const reg:tregister;shuffle : pmmshuffle);override;
         procedure a_call_name(list:TAasmOutput;const s:string);override;
         procedure a_call_reg(list:TAasmOutput;Reg:TRegister);override;
         { General purpose instructions }
@@ -91,6 +89,7 @@ interface
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_save_standard_registers(list : taasmoutput);override;
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint;loadref : boolean);override;
+        procedure g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint;loadref : boolean);override;
       end;
 
       TCg64Sparc=class(tcg64f32)
@@ -385,76 +384,6 @@ implementation
         a_loadfpu_reg_ref(list,size,r,href);
         a_paramfpu_ref(list,size,href,paraloc);
         tg.Ungettemp(list,href);
-      end;
-
-
-      (*
-    procedure tcgsparc.a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const paraloc : TCGPara);
-      var
-        tempparaloc : TCGPara;
-      begin
-        { floats are pushed in the int registers }
-        tempparaloc:=paraloc;
-        case paraloc.size of
-          OS_F32,OS_32 :
-            begin
-              tempparaloc.size:=OS_32;
-              a_param_ref(list,OS_32,ref,tempparaloc);
-            end;
-          OS_F64,OS_64 :
-            begin
-              tempparaloc.size:=OS_64;
-              cg64.a_param64_ref(list,ref,tempparaloc);
-            end;
-          else
-            internalerror(200307021);
-        end;
-      end;
-
-    procedure tcgsparc.a_loadany_param_ref(list : taasmoutput;const paraloc : TCGPara;const ref:treference;shuffle : pmmshuffle);
-      var
-        href,
-        tempref : treference;
-        tempparaloc : TCGPara;
-      begin
-        { Load floats like ints }
-        tempparaloc:=paraloc;
-        case paraloc.size of
-          OS_F32 :
-            tempparaloc.size:=OS_32;
-          OS_F64 :
-            tempparaloc.size:=OS_64;
-        end;
-        { Word 0 is in register, word 1 is in reference }
-        if (tempparaloc.loc=LOC_REFERENCE) and (tempparaloc.low_in_reg) then
-          begin
-            tempref:=ref;
-            cg.a_load_reg_ref(list,OS_INT,OS_INT,tempparaloc.register,tempref);
-            inc(tempref.offset,4);
-            reference_reset_base(href,tempparaloc.reference.index,tempparaloc.reference.offset);
-            cg.a_load_ref_ref(list,OS_INT,OS_INT,href,tempref);
-          end
-        else
-          inherited a_loadany_param_ref(list,tempparaloc,ref,shuffle);
-      end;
-*)
-
-
-    procedure tcgsparc.a_loadany_param_reg(list : taasmoutput;const paraloc : TCGPara;const reg:tregister;shuffle : pmmshuffle);
-      var
-        href : treference;
-      begin
-        paraloc.check_simple_location;
-        { Float load use a temp reference }
-        if getregtype(reg)=R_FPUREGISTER then
-          begin
-            tg.GetTemp(list,TCGSize2Size[paraloc.size],tt_normal,href);
-            a_loadany_param_ref(list,paraloc,href,shuffle);
-            a_loadfpu_ref_reg(list,paraloc.size,href,reg);
-            tg.Ungettemp(list,href);
-          end
-        else
-          inherited a_loadany_param_reg(list,paraloc,reg,shuffle);
       end;
 
 
@@ -1155,6 +1084,39 @@ implementation
           end;
       end;
 
+
+    procedure tcgsparc.g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint;loadref : boolean);
+      var
+        paraloc1,paraloc2,paraloc3 : TCGPara;
+      begin
+        paraloc1.init;
+        paraloc2.init;
+        paraloc3.init;
+        paramanager.getintparaloc(pocall_default,1,paraloc1);
+        paramanager.getintparaloc(pocall_default,2,paraloc2);
+        paramanager.getintparaloc(pocall_default,3,paraloc3);
+        paramanager.allocparaloc(list,paraloc3);
+        a_param_const(list,OS_INT,len,paraloc3);
+        paramanager.allocparaloc(list,paraloc2);
+        a_paramaddr_ref(list,dest,paraloc2);
+        paramanager.allocparaloc(list,paraloc2);
+        if loadref then
+          a_param_ref(list,OS_ADDR,source,paraloc1)
+        else
+          a_paramaddr_ref(list,source,paraloc1);
+        paramanager.freeparaloc(list,paraloc3);
+        paramanager.freeparaloc(list,paraloc2);
+        paramanager.freeparaloc(list,paraloc1);
+        alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
+        a_call_name(list,'FPC_MOVE');
+        dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
+        dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        paraloc3.done;
+        paraloc2.done;
+        paraloc1.done;
+      end;
+
 {****************************************************************************
                                TCG64Sparc
 ****************************************************************************}
@@ -1309,7 +1271,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.93  2004-09-29 18:55:40  florian
+  Revision 1.94  2004-10-10 20:31:48  peter
+    * concatcopy_unaligned maps by default to concatcopy, sparc will
+      override it with call to fpc_move
+
+  Revision 1.93  2004/09/29 18:55:40  florian
     * fixed more sparc overflow stuff
     * fixed some op64 stuff for sparc
 

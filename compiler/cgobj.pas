@@ -1384,35 +1384,8 @@ implementation
 
 
     procedure tcg.g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint;loadref : boolean);
-      var
-        paraloc1,paraloc2,paraloc3 : TCGPara;
       begin
-        paraloc1.init;
-        paraloc2.init;
-        paraloc3.init;
-        paramanager.getintparaloc(pocall_default,1,paraloc1);
-        paramanager.getintparaloc(pocall_default,2,paraloc2);
-        paramanager.getintparaloc(pocall_default,3,paraloc3);
-        paramanager.allocparaloc(list,paraloc3);
-        a_param_const(list,OS_INT,len,paraloc3);
-        paramanager.allocparaloc(list,paraloc2);
-        a_paramaddr_ref(list,dest,paraloc2);
-        paramanager.allocparaloc(list,paraloc2);
-        if loadref then
-          a_param_ref(list,OS_ADDR,source,paraloc1)
-        else
-          a_paramaddr_ref(list,source,paraloc1);
-        paramanager.freeparaloc(list,paraloc3);
-        paramanager.freeparaloc(list,paraloc2);
-        paramanager.freeparaloc(list,paraloc1);
-        alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-        alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
-        a_call_name(list,'FPC_MOVE');
-        dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
-        dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-        paraloc3.done;
-        paraloc2.done;
-        paraloc1.done;
+        g_concatcopy(list,source,dest,len,loadref);
       end;
 
 
@@ -2111,7 +2084,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.175  2004-10-10 20:22:53  peter
+  Revision 1.176  2004-10-10 20:31:48  peter
+    * concatcopy_unaligned maps by default to concatcopy, sparc will
+      override it with call to fpc_move
+
+  Revision 1.175  2004/10/10 20:22:53  peter
     * symtable allocation rewritten
     * loading of parameters to local temps/regs cleanup
     * regvar support for parameters
