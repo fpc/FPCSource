@@ -16,7 +16,8 @@ fpcdir=../..
 [rules]
 .PHONY: rtl fcl clean
 
-INSTALLOPT=INSTALL_UNITDIR=$(BASEDIR)
+DUMMYINSTALLDIR=$(BASEDIR)/tmp
+INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)
 
 ifndef USEUNITDIR
 
@@ -32,6 +33,7 @@ fcl:
 clean : cleanall
 #        $(MAKE) -C ../../rtl clean
 #        $(MAKE) -C ../../fcl clean
+	$(DELTREE) $(DUMMYINSTALLDIR)
 
 else
 
@@ -42,6 +44,7 @@ rtl:
 fcl: rtl
 
 clean : cleanall
+	$(DELTREE) $(DUMMYINSTALLDIR)
 
 endif
 
