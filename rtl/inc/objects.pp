@@ -114,7 +114,7 @@ CONST
    MaxWords = MaxBytes DIV SizeOf(Word);              { Max word data size }
    MaxPtrs = MaxBytes DIV SizeOf(Pointer);            { Max ptr data size }
    MaxCollectionSize = MaxBytes DIV SizeOf(Pointer);  { Max collection size }
-
+   MaxTPCompatibleCollectionSize = 65520 div 4;
 
 {***************************************************************************}
 {                          PUBLIC TYPE DEFINITIONS                          }
@@ -321,6 +321,8 @@ TYPE
          ErrorInfo : Integer;                         { Stream error info }
          StreamSize: LongInt;                         { Stream current size }
          Position  : LongInt;                         { Current position }
+         TPCompatible : Boolean;
+      CONSTRUCTOR Init;
       FUNCTION Get: PObject;
       FUNCTION StrRead: PChar;
       FUNCTION GetPos: Longint;                                      Virtual;
@@ -683,6 +685,7 @@ CONST
 {---------------------------------------------------------------------------}
    StreamError: Pointer = Nil;                        { Stream error ptr }
    DosStreamError: Word = $0;                      { Dos stream error }
+   DefaultTPCompatible: Boolean = false;
 
 {---------------------------------------------------------------------------}
 {                        STREAM REGISTRATION RECORDS                        }
@@ -959,13 +962,24 @@ END;
 {                           TStream OBJECT METHODS                          }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
+CONSTRUCTOR TStream.Init;
+BEGIN
+  TPCompatible := DefaultTPCompatible;
+END;
+
 {--TStream------------------------------------------------------------------}
 {  Get -> Platforms DOS/DPMI/WIN/OS2 - Checked 02Sep97 LdB                  }
 {---------------------------------------------------------------------------}
 FUNCTION TStream.Get: PObject;
-VAR ObjType: Sw_Word; P: PStreamRec;
+VAR ObjType: Sw_Word; P: PStreamRec; ObjTypeWord: Word;
 BEGIN
-   Read(ObjType, SizeOf(ObjType));                    { Read object type }
+   If TPCompatible Then Begin
+     { Read 16-bit word for TP compatibility. }
+     Read(ObjTypeWord, SizeOf(ObjTypeWord));
+     ObjType := ObjTypeWord
+   End
+   else
+     Read(ObjType, SizeOf(ObjType));                  { Read object type }
    If (ObjType<>0) Then Begin                         { Object registered }
      P := StreamTypes;                                { Current reg list }
      While (P <> Nil) AND (P^.ObjType <> ObjType)     { Find object type OR }
@@ -1063,10 +1077,11 @@ BEGIN
 END;
 
 {--TStream------------------------------------------------------------------}
-{  Get -> Platforms DOS/DPMI/WIN/OS2 - Checked 02Sep97 LdB                  }
+{  Put -> Platforms DOS/DPMI/WIN/OS2 - Checked 02Sep97 LdB                  }
 {---------------------------------------------------------------------------}
 PROCEDURE TStream.Put (P: PObject);
 VAR ObjType: Sw_Word; Link: pointer; Q: PStreamRec; VmtPtr: ^pointer;
+    ObjTypeWord: Word;
 BEGIN
    VmtPtr := Pointer(P);                              { Xfer object to ptr }
    Link := VmtPtr^;                                   { VMT link }
@@ -1080,7 +1095,12 @@ BEGIN
        Exit;                                          { Now exit }
      End Else ObjType := Q^.ObjType;                  { Update object type }
    End;
-   Write(ObjType, SizeOf(ObjType));                   { Write object type }
+   If TPCompatible Then Begin
+     ObjTypeWord := ObjType;
+     Write(ObjTypeWord, SizeOf(ObjTypeWord))
+   end
+   else
+     Write(ObjType, SizeOf(ObjType));                 { Write object type }
    If (ObjType<>0) Then                               { Registered object }
      CallPointerMethod(Q^.Store, P, @Self);
 END;
@@ -1649,9 +1669,18 @@ END;
 CONSTRUCTOR TCollection.Load (Var S: TStream);
 VAR C, I: Sw_Integer;
 BEGIN
-   S.Read(Count, Sizeof(Count));                      { Read count }
-   S.Read(Limit, Sizeof(Limit));                      { Read limit }
-   S.Read(Delta, Sizeof(Delta));                      { Read delta }
+   If S.TPCompatible Then Begin
+     { I ignore endianness issues here. If endianness is different,
+       you can't expect binary compatible resources anyway. }
+     Count := 0; S.Read(Count, Sizeof(Word));
+     Limit := 0; S.Read(Limit, Sizeof(Word));
+     Delta := 0; S.Read(Delta, Sizeof(Word))
+   End
+   Else Begin
+     S.Read(Count, Sizeof(Count));                    { Read count }
+     S.Read(Limit, Sizeof(Limit));                    { Read limit }
+     S.Read(Delta, Sizeof(Delta));                    { Read delta }
+   End;
    Items := Nil;                                      { Clear item pointer }
    C := Count;                                        { Hold count }
    I := Limit;                                        { Hold limit }
@@ -1921,6 +1950,8 @@ END;
 {  Store -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB                }
 {---------------------------------------------------------------------------}
 PROCEDURE TCollection.Store (Var S: TStream);
+var
+  LimitWord, DeltaWord: Word;
 
    PROCEDURE DoPutItem (P: Pointer);{$IFNDEF FPC}FAR;{$ENDIF}
    BEGIN
@@ -1928,9 +1959,29 @@ PROCEDURE TCollection.Store (Var S: TStream);
    END;
 
 BEGIN
-   S.Write(Count, Sizeof(Count));                     { Write count }
-   S.Write(Limit, Sizeof(Limit));                     { Write limit }
-   S.Write(Delta, Sizeof(Delta));                     { Write delta }
+   If S.TPCompatible Then Begin
+    { Check if it is safe to write in TP-compatible stream.
+      If Count is too big, signal an error.
+      If Limit or Delta are too big, write smaller values. }
+     If (Count > MaxTPCompatibleCollectionSize)
+       Then S.Error(stWriteError, 0)
+     Else Begin
+       S.Write(Count, Sizeof(Word));
+       if Limit > MaxTPCompatibleCollectionSize
+       then LimitWord := MaxTPCompatibleCollectionSize
+       else LimitWord := Limit;
+       S.Write(LimitWord, Sizeof(Word));
+       if Delta > MaxTPCompatibleCollectionSize
+       then DeltaWord := MaxTPCompatibleCollectionSize
+       else DeltaWord := Delta;
+       S.Write(DeltaWord, Sizeof(Word));
+     End
+   End
+   Else Begin
+     S.Write(Count, Sizeof(Count));                   { Write count }
+     S.Write(Limit, Sizeof(Limit));                   { Write limit }
+     S.Write(Delta, Sizeof(Delta));                   { Write delta }
+   End;
    ForEach(@DoPutItem);                               { Each item to stream }
 END;
 
@@ -2693,7 +2744,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.25  1999-01-22 10:21:55  peter
+  Revision 1.26  1999-02-21 23:13:01  florian
+    * tpcompatible flags for tstream introduced, thanks to Matthias Koeppe
+
+  Revision 1.25  1999/01/22 10:21:55  peter
     + prect=^trect
 
   Revision 1.24  1999/01/12 14:21:50  peter
