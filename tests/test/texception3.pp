@@ -769,8 +769,11 @@ begin
    if i<>2 then
      do_error(1119);
 
-   if memavail<>startmemavail then
-     do_error(99999);
+   if memavail<startmemavail then
+     begin
+       writeln('exception generates memory holes');
+       do_error(99999);
+     end;
    writeln('Test successfully passed');
    halt(0);
 end.
