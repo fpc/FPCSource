@@ -555,7 +555,7 @@ var
     writeln('  -R<remote>    run the tests remotely with the given ssh address');
     writeln('  -P<path>      path to the tests tree on the remote machine');
     writeln('  -T            remove executables after execution (applies only for remote tests)');
-    writeln('  -Y<opts>      extra options passed to the compiler');
+    writeln('  -Y<opts>      extra options passed to the compiler. Several -Y<opt> can be given.');
     halt(1);
   end;
 
@@ -603,7 +603,7 @@ begin
 
          'P' : RemotePath:=Para;
 
-         'Y' : ExtraCompilerOpts:=Para;
+         'Y' : ExtraCompilerOpts:= ExtraCompilerOpts +' '+ Para;
 
          'R' : RemoteAddr:=Para;
 
@@ -825,7 +825,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2004-03-21 19:15:18  florian
+  Revision 1.31  2004-04-01 12:51:32  olle
+    + Several -Y<opt> is now allowed
+
+  Revision 1.30  2004/03/21 19:15:18  florian
     * explanation for running the testsuite remotely
     + dotest supports remote execution using scp/ssh
 
