@@ -116,12 +116,38 @@ implementation
               pass_1:=t;
               exit;
            end;
+         { if one operand is a cardinal and the other is a positive constant, convert the }
+         { constant to a cardinal as well so we don't have to do a 64bit division (JM)    }
+         if (left.resulttype^.deftype=orddef) and (right.resulttype^.deftype=orddef) then
+           if (porddef(right.resulttype)^.typ = u32bit) and
+              is_constintnode(left) and
+              (tordconstnode(left).value >= 0) then
+             begin
+               left := gentypeconvnode(left,u32bitdef);
+               firstpass(left);
+             end
+           else if (porddef(left.resulttype)^.typ = u32bit) and
+              is_constintnode(right) and
+              (tordconstnode(right).value >= 0) then
+             begin
+               right := gentypeconvnode(right,u32bitdef);
+               firstpass(right);
+             end;
+
          if (left.resulttype^.deftype=orddef) and (right.resulttype^.deftype=orddef) and
-            (is_64bitint(left.resulttype) or is_64bitint(right.resulttype)) then
+            (is_64bitint(left.resulttype) or is_64bitint(right.resulttype) or
+             { when mixing cardinals and signed numbers, convert everythign to 64bit (JM) }
+             ((porddef(right.resulttype)^.typ = u32bit) and
+              is_signed(left.resulttype)) or
+             ((porddef(left.resulttype)^.typ = u32bit) and
+              is_signed(right.resulttype))) then
            begin
               rd:=right.resulttype;
               ld:=left.resulttype;
-              if (porddef(rd)^.typ=s64bit) or (porddef(ld)^.typ=s64bit) then
+              { issue warning if necessary }
+              if not (is_64bitint(left.resulttype) or is_64bitint(right.resulttype)) then
+                CGMessage(type_w_mixed_signed_unsigned);
+              if is_signed(rd) or is_signed(ld) then
                 begin
                    if (porddef(ld)^.typ<>s64bit) then
                      begin
@@ -135,7 +161,7 @@ implementation
                      end;
                    calcregisters(self,2,0,0);
                 end
-              else if (porddef(rd)^.typ=u64bit) or (porddef(ld)^.typ=u64bit) then
+              else
                 begin
                    if (porddef(ld)^.typ<>u64bit) then
                      begin
@@ -163,31 +189,6 @@ implementation
 
               firstpass(left);
               firstpass(right);
-
-{$ifdef cardinalmulfix}
-{ if we divide a u32bit by a positive constant, the result is also u32bit (JM) }
-              if (left.resulttype^.deftype = orddef) and
-                 (left.resulttype^.deftype = orddef) then
-                begin
-                  if (porddef(left.resulttype)^.typ = u32bit) and
-                     is_constintnode(right) and
-{                     (porddef(right.resulttype)^.typ <> u32bit) and}
-                     (right.value > 0) then
-                    begin
-                      right := gentypeconvnode(right,u32bitdef);
-                      firstpass(right);
-                    end;
-{ adjust also the left resulttype if necessary }
-                  if (porddef(right.resulttype)^.typ = u32bit) and
-                     is_constintnode(left) and
-    {                 (porddef(left.resulttype)^.typ <> u32bit) and}
-                     (left.value > 0) then
-                    begin
-                      left := gentypeconvnode(left,u32bitdef);
-                      firstpass(left);
-                    end;
-                end;
-{$endif cardinalmulfix}
 
               { the resulttype depends on the right side, because the left becomes }
               { always 64 bit                                                      }
@@ -244,10 +245,11 @@ implementation
          { 64 bit ints have their own shift handling }
          if not(is_64bitint(left.resulttype)) then
            begin
-              left:=gentypeconvnode(left,s32bitdef);
+              if porddef(left.resulttype)^.typ <> u32bit then
+                left:=gentypeconvnode(left,s32bitdef);
               firstpass(left);
               regs:=1;
-              resulttype:=s32bitdef;
+              resulttype:=left.resulttype;
            end
          else
            begin
@@ -527,7 +529,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-11-29 00:30:34  florian
+  Revision 1.10  2000-12-16 15:54:01  jonas
+    * 'resulttype of cardinal shl/shr x' is cardinal instead of longint
+
+  Revision 1.9  2000/11/29 00:30:34  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
