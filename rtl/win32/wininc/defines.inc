@@ -5434,11 +5434,12 @@ const
       end;
 
     { was #define dname def_expr }
+{
     function INVALID_HANDLE_VALUE : HANDLE;
       begin
          INVALID_HANDLE_VALUE:=HANDLE(-(1));
       end;
-
+}
     { was #define dname def_expr }
     function TIME_ZONE_ID_INVALID : DWORD;
       begin
@@ -5747,7 +5748,10 @@ const
 
 {
   $Log$
-  Revision 1.10  2003-06-15 14:33:22  michael
+  Revision 1.11  2003-06-15 14:34:35  michael
+  + forgot to comment INVALID_HANDLE_VALUE function
+
+  Revision 1.10  2003/06/15 14:33:22  michael
   + INVALID_HANDLE_VALUE is a constant, not a function
 
   Revision 1.9  2002/10/11 09:20:31  michael
