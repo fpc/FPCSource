@@ -731,7 +731,7 @@ program install;
   constructor tinstalldialog.init;
     const
        width = 76;
-       height = 21;
+       height = 20;
        x1 = (79-width) div 2;
        y1 = (23-height) div 2;
        x2 = x1+width;
@@ -1490,7 +1490,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-09-22 23:13:37  pierre
+  Revision 1.8  2000-09-24 10:52:36  peter
+    * smaller window
+
+  Revision 1.7  2000/09/22 23:13:37  pierre
      * add emulation for go32v2 and display currently extraced file
      and changes by Gabor for scrolling support (merged)
 
