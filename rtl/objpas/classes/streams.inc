@@ -784,10 +784,28 @@ begin
   Write:=0;
 end;
 
+{****************************************************************************}
+{*                             TOwnerStream                                 *}
+{****************************************************************************}
+
+constructor TOwnerStream.Create(ASource: TStream);
+begin
+  FSource:=ASource;
+end;
+
+destructor TOwnerStream.Destroy;
+begin
+  If FOwner then
+    FreeAndNil(FSource);
+  inherited Destroy;
+end;
 
 {
   $Log$
-  Revision 1.2  2003-10-30 16:30:53  peter
+  Revision 1.3  2005-01-09 13:15:37  michael
+  + Added TOwnerStream
+
+  Revision 1.2  2003/10/30 16:30:53  peter
     * merged copyfrom with 0
 
   Revision 1.3  2003/10/28 22:04:29  michael
