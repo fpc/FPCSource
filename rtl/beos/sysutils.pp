@@ -44,7 +44,11 @@ BEGIN
 end;
 
 
-Function FileCreate (Const FileName : String) : Longint;
+Function FileCreate (Const FileName : String) : longint;
+begin
+end;
+
+Function FileCreate (Const FileName : String;Mode:longint) : longint;
 begin
 end;
 
@@ -59,7 +63,11 @@ begin
 end;
 
 
-Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
+Function FileSeek (Handle,FOffset,Origin : longint) : longint;
+begin
+end;
+
+Function FileSeek (Handle:longint;FOffset,Origin : int64) : int64;
 begin
 end;
 
@@ -127,12 +135,6 @@ end;
 Function RenameFile (Const OldName, NewName : String) : Boolean;
 begin
 end;
-
-
-Function FileSearch (Const Name, DirList : String) : String;
-begin
-end;
-
 
 {****************************************************************************
                               Disk Functions
@@ -258,7 +260,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:17  peter
+  Revision 1.4  2003-01-08 21:56:54  marco
+   * small fixes to prototypes to compile it
+
+  Revision 1.3  2002/09/07 16:01:17  peter
     * old logs removed and tabs fixed
 
 }
