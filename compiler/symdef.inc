@@ -1524,7 +1524,7 @@
 {$ifdef GDB}
     function tclassrefdef.stabstring : pchar;
       begin
-         stabstring:=strpnew('t'+pvmtdef^.numberstring+';');
+         stabstring:=strpnew(pvmtdef^.numberstring+';');
       end;
 
 
@@ -3715,7 +3715,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.154  1999-08-14 00:38:58  peter
+  Revision 1.155  1999-08-16 16:26:04  pierre
+   * error in stabs for tclassrefdef corrected
+
+  Revision 1.154  1999/08/14 00:38:58  peter
     * hack to support property with record fields
 
   Revision 1.153  1999/08/13 21:33:11  peter
