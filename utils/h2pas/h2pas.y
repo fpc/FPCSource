@@ -483,7 +483,7 @@ program h2pas;
                          begin
                          write(outfile,'_para',para);
                          length:=length+6;
-                         end;  
+                         end;
                      end;
                    write(outfile,':');
                    if varpara then
@@ -946,7 +946,6 @@ error_info : {
                 begin
                   writeln(outfile,'(* error ');
                   writeln(outfile,yyline);
-                  writeln(outfile,'*)');
                 end;
              };
 
@@ -1190,6 +1189,57 @@ declaration :
         dispose($3,done);
        if assigned($4) then
         dispose($4,done);
+     } |
+     TYPEDEF type_specifier LKLAMMER dec_modifier declarator RKLAMMER LKLAMMER argument_declaration_list RKLAMMER
+     {
+       if block_type<>bt_type then
+         begin
+            writeln(outfile);
+            writeln(outfile,aktspace,'type');
+            block_type:=bt_type;
+         end;
+       no_pop:=assigned($4) and ($4^.str='no_pop');
+       shift(3);
+       (* walk through all declarations *)
+       hp:=$5;
+       ph:=nil;
+       if assigned(hp) then
+        begin
+          hp:=$8;
+          while assigned(hp^.p1) do
+           hp:=hp^.p1;
+          hp^.p1:=new(presobject,init_two(t_procdef,nil,$8));
+          hp:=$5;
+          if assigned(hp^.p1) and assigned(hp^.p1^.p2) then
+           begin
+             writeln(outfile);
+             (* write new type name *)
+             write(outfile,aktspace,hp^.p1^.p2^.p);
+             write(outfile,' = ');
+             shift(2);
+             if assigned(ph) then
+               write_p_a_def(outfile,hp^.p1^.p1,ph)
+             else
+               write_p_a_def(outfile,hp^.p1^.p1,$2);
+             (* simple def ? keep the name for the other defs *)
+             if (ph=nil) and (hp^.p1^.p1=nil) then
+               ph:=hp^.p1^.p2;
+             popshift;
+             (* if no_pop it is normal fpc calling convention *)
+             if is_procvar and
+                (not no_pop) then
+               write(outfile,';cdecl');
+             writeln(outfile,';');
+             flush(outfile);
+           end;
+        end;
+       popshift;
+       if assigned($2)then
+       dispose($2,done);
+       if assigned($4)then
+       dispose($4,done);
+       if assigned($5)then (* disposes also $8 *)
+       dispose($5,done);
      } |
      TYPEDEF type_specifier dec_modifier declarator_list SEMICOLON
      {
@@ -2125,7 +2175,10 @@ end.
 
 (*
  $Log$
- Revision 1.5  2000-03-28 06:56:31  michael
+ Revision 1.6  2000-04-01 14:16:32  peter
+   * addition for another procvar style decl (not working correct yet)
+
+ Revision 1.5  2000/03/28 06:56:31  michael
  + RemoveUNderscore now also does not add underscores to generated parameter names
 
  Revision 1.4  2000/03/27 21:39:20  peter
