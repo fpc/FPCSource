@@ -34,7 +34,7 @@ type
 
 { Needed to solve overloading problem with call from assembler (PFV) }
 {$ifdef valuegetmem}
-Function  fpc_getmem(size:Longint):pointer;compilerproc;
+Function  fpc_getmem(size:ptrint):pointer;compilerproc;
 {$endif}
 {$ifdef valuefreemem}
 Procedure fpc_freemem(p:pointer);compilerproc;
@@ -310,7 +310,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.51  2004-01-01 17:58:16  jonas
+  Revision 1.52  2004-04-12 18:51:02  florian
+    * fixed getmem prototype for 64 bit systems
+
+  Revision 1.51  2004/01/01 17:58:16  jonas
     + integer division-by-zero detection support for ppc
     + compilerproc FPC_DIVBYZERO
 
