@@ -47,7 +47,7 @@ ex41.pp contains an example of the MemAvail function.
 ex42.pp contains an example of the Move function.
 ex43.pp contains an example of the Odd function.
 ex44.pp contains an example of the Ofs function.
-ex45.pp contains an example of the Ord function.
+ex45.pp contains an example of the Ord, Pred and Succ functions.
 ex46.pp contains an example of the ParamCount and ParamStr functions.
 ex47.pp contains an example of the Pi function.
 ex48.pp contains an example of the Pos function.
@@ -82,3 +82,4 @@ ex76.pp contains an example of the FillWord function.
 ex77.pp contains an example of the Rename function.
 ex78.pp contains an example of the Power function.
 ex79.pp contains an example of the SetJmp/LongJmp functions.
+ex80.pp contains an example of the High/Low functions.
