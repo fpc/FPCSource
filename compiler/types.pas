@@ -374,7 +374,7 @@ unit types;
          ret_in_param:=(def^.deftype in [arraydef,recorddef]) or
            ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
            ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
-           ((def^.deftype=objectdef) and ((pobjectdef(def)^.options and oo_is_class)=0)) or
+           ((def^.deftype=objectdef) and not(pobjectdef(def)^.isclass)) or
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
 
@@ -389,7 +389,8 @@ unit types;
     function push_addr_param(def : pdef) : boolean;
       begin
          push_addr_param:=never_copy_const_param or
-           (def^.deftype in [arraydef,objectdef,formaldef,recorddef]) or
+           (def^.deftype in [arraydef,formaldef,recorddef]) or
+           ((def^.deftype=objectdef) and not(pobjectdef(def)^.isclass)) or
            ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
            ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
@@ -1060,7 +1061,12 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.47  1999-01-27 00:14:01  florian
+  Revision 1.48  1999-02-09 23:03:08  florian
+    * check for duplicate field names in inherited classes/objects
+    * bug with self from the mailing list solved (the problem
+      was that classes were sometimes pushed wrong)
+
+  Revision 1.47  1999/01/27 00:14:01  florian
     * "procedure of object"-stuff fixed
 
   Revision 1.46  1999/01/21 22:10:54  peter
