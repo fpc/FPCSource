@@ -2666,6 +2666,10 @@ ifeq ($(wildcard docs-pdf.zip),)
 	@exit 1
 endif
 endif
+ifeq ($(wildcard libgdb/win32/libgdb.a),)
+	@$(ECHO) "Libgdb not available. Please get and unzip libgdb-<version>.i386-win32.zip in this directory."
+	@exit 1
+endif
 	$(DELTREE) $(INNODIR)
 	$(MKDIR) $(INNODIR)
 ifndef NODOCS
