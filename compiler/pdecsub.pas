@@ -99,7 +99,8 @@ implementation
         storepos : tfileposinfo;
         vs       : tvarsym;
       begin
-        if not is_void(pd.rettype.def) and
+        if not(pd.proctypeoption in [potype_constructor,potype_destructor]) and
+           not is_void(pd.rettype.def) and
            paramanager.ret_in_param(pd.rettype.def,pd.proccalloption) then
          begin
            storepos:=akttokenpos;
@@ -222,7 +223,9 @@ implementation
         vs       : tvarsym;
         sl       : tsymlist;
       begin
-        if not is_void(pd.rettype.def) then
+        { The result from constructors and destructors can't be accessed directly }
+        if not(pd.proctypeoption in [potype_constructor,potype_destructor]) and
+           not is_void(pd.rettype.def) then
          begin
            storepos:=akttokenpos;
            akttokenpos:=pd.fileinfo;
@@ -1154,9 +1157,11 @@ end;
 
 
 procedure pd_syscall(pd:tabstractprocdef);
+{$ifdef powerpc}
 var
   sym : tsym;
   symtable : tsymtable;
+{$endif powerpc}
 begin
   if pd.deftype<>procdef then
     internalerror(2003042614);
@@ -2269,7 +2274,10 @@ const
 end.
 {
   $Log$
-  Revision 1.186  2004-08-13 17:53:37  jonas
+  Revision 1.187  2004-08-22 11:24:27  peter
+    * don't insert result variables for constructor/destructors
+
+  Revision 1.186  2004/08/13 17:53:37  jonas
     * only set the mangled name immediately for external procedures in macpas
       mode if the procedure isn't cdecl (so that the c-prefix is taken into
       account, necessary for Mac OS X)
