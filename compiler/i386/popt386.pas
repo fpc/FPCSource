@@ -73,7 +73,9 @@ begin
      (taicpu(hp1).opsize = taicpu(p).opsize) and
      refsEqual(taicpu(p).oper[0]^.ref^, taicpu(hp1).oper[0]^.ref^) then
     begin
-      if getNextInstruction(hp1, hp2) and
+      { replacing fstp f;fld f by fst f is only valid for extended because of rounding }
+      if (taicpu(p).opsize=S_FX) and
+         getNextInstruction(hp1, hp2) and
          (hp2.typ = ait_instruction) and
          ((taicpu(hp2).opcode = A_LEAVE) or
           (taicpu(hp2).opcode = A_RET)) and
@@ -90,6 +92,7 @@ begin
           removeLastDeallocForFuncRes(asmL, p);
           doFPULoadStoreOpt := true;
         end
+      { can't be done because the store operation rounds
       else
         { fst can't store an extended value! }
         if (taicpu(p).opsize <> S_FX) and
@@ -101,6 +104,7 @@ begin
             asml.remove(hp1);
             hp1.free;
           end
+      }
     end;
 end;
 
@@ -1999,7 +2003,10 @@ end.
 
 {
   $Log$
-  Revision 1.65  2004-11-08 22:09:59  peter
+  Revision 1.66  2004-12-18 15:21:56  florian
+    * the optimization fstp f;fld f to fst f disabled; leads to rounding problems
+
+  Revision 1.65  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.64  2004/10/10 15:01:19  jonas
