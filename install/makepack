@@ -58,12 +58,17 @@ FULLSOURCE=$SOURCECPU-$SOURCEOS
 echo "FPC Source: $FULLSOURCE"
 echo "FPC Target: $FULLTARGET"
 
+# Cross building
+#  - add prefix
+#  - no IDE
 if [ "$FULLTARGET" != "$FULLSOURCE" ]; then
    CROSS="cross"
    CROSSPREFIX=$FULLTARGET-
+   IDE=
 else
    CROSS=
    CROSSPREFIX=
+   IDE=ide
 fi
 
 # Build everything using the makefiles
@@ -107,7 +112,7 @@ fi
 # binary.*.tar
 BINARYTAR=${CROSSPREFIX}binary.$FULLTARGET.tar
 echo "Creating $BINARYTAR"
-BINPACKAGES="base ide units utils"
+BINPACKAGES="base $IDE units utils"
 BINFILES=
 for p in $BINPACKAGES; do
   BINFILES="$BINFILES ${CROSSPREFIX}$p*.$FULLSOURCE.tar.gz"
