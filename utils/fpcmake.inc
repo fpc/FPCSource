@@ -1372,14 +1372,14 @@ const fpcmakeini : array[0..132,1..240] of char=(
   '# Also run clean first if targetdir is set. Unitt','argetdir is always'#010+
   '# set if targetdir or unittargetdir is specified'#010+
   'ifdef UNITTARGETDIR'#010+
-  'TARGETDIRCLEAN=clean'#010+
+  'TARGETDIRCLEAN=fpc_clean'#010+
   'endif'#010+
   #010+
   'fpc_cleanall: $(CLEANTARGET) $(TARGETDIRCLEAN)'#010+
   'ifdef CLEANEXEFILES'#010+
   '        -$(DEL) $(CLEANEXEFILES)'#010+
   'endif'#010+
-  '        -$(DEL) *$','(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICL'+
+  '        -$(DEL',') *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICL'+
   'IBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)'#010+
   '        -$(DELTREE) *$(SMARTEXT)'#010+
   '        -$(DEL) $(FPCMADE) $(PPAS) link.res $(FPCEXTFILE) $(REDIRFILE)'+
@@ -1387,7 +1387,7 @@ const fpcmakeini : array[0..132,1..240] of char=(
   #010+
   #010+
   '[dependrules]'#010+
-  '###################################','#################################'+
+  '###############################','#####################################'+
   '#'#010+
   '# Depend rules'#010+
   '#####################################################################'#010+
@@ -1399,7 +1399,7 @@ const fpcmakeini : array[0..132,1..240] of char=(
   #010+
   #010+
   '[inforules]'#010+
-  '#########################################','###########################'+
+  '#####################################','###############################'+
   '#'#010+
   '# Info rules'#010+
   '#####################################################################'#010+
@@ -1410,7 +1410,7 @@ const fpcmakeini : array[0..132,1..240] of char=(
   #010+
   'fpc_info: $(INFOTARGET)'#010+
   #010+
-  '[info','_cfg]'#010+
+  '[','info_cfg]'#010+
   'fpc_infocfg:'#010+
   '        @$(ECHO)'#010+
   '        @$(ECHO)  == Configuration info =='#010+
@@ -1418,7 +1418,7 @@ const fpcmakeini : array[0..132,1..240] of char=(
   '        @$(ECHO)  FPC....... $(FPC)'#010+
   '        @$(ECHO)  Version... $(FPC_VERSION)'#010+
   '        @$(ECHO)  CPU....... $(CPU_TARGET)'#010+
-  '        @$(ECHO)  Sou','rce.... $(OS_SOURCE)'#010+
+  '        @$(ECHO) ',' Source.... $(OS_SOURCE)'#010+
   '        @$(ECHO)  Target.... $(OS_TARGET)'#010+
   '        @$(ECHO)'#010+
   #010+
@@ -1429,7 +1429,7 @@ const fpcmakeini : array[0..132,1..240] of char=(
   '        @$(ECHO)  == Directory info =='#010+
   '        @$(ECHO)'#010+
   'ifdef NEEDGCCLIB'#010+
-  '        @$(ECHO)  GCC library',' is needed.'#010+
+  '        @$(ECHO)  GCC lib','rary is needed.'#010+
   'endif'#010+
   'ifdef NEEDOTHERLIB'#010+
   '        @$(ECHO)  Other library is needed.'#010+
@@ -1437,7 +1437,7 @@ const fpcmakeini : array[0..132,1..240] of char=(
   '        @$(ECHO)  Basedir......... $(BASEDIR)'#010+
   '        @$(ECHO)'#010+
   '        @$(ECHO)  GCC library..... $(GCCLIBDIR)'#010+
-  '        @$(ECHO)  Other library... $(OTHERL','IBDIR)'#010+
+  '        @$(ECHO)  Other library... $(OT','HERLIBDIR)'#010+
   '        @$(ECHO)'#010+
   'endif'#010+
   #010+
@@ -1449,7 +1449,7 @@ const fpcmakeini : array[0..132,1..240] of char=(
   '        @$(ECHO)  Pwd....... $(PWD)'#010+
   '        @$(ECHO)  Echo...... $(ECHO)'#010+
   'ifdef PPDEP'#010+
-  '        @$(ECHO)  PPDep....','. $(PPDEP)'#010+
+  '        @$(ECHO)  PPDep','..... $(PPDEP)'#010+
   'endif'#010+
   'ifdef PPUMOVE'#010+
   '        @$(ECHO)  PPUMove... $(PPUMOVE)'#010+
@@ -1461,7 +1461,7 @@ const fpcmakeini : array[0..132,1..240] of char=(
   '        @$(ECHO)  Data2Inc.. $(DATA2INC)'#010+
   'endif'#010+
   'ifdef SED'#010+
-  '        @$(ECHO)  Sed....... ','$(SED)'#010+
+  '        @$(ECHO)  Sed....','... $(SED)'#010+
   'endif'#010+
   'ifdef DATE'#010+
   '        @$(ECHO)  Date...... $(DATE)'#010+
@@ -1475,7 +1475,7 @@ const fpcmakeini : array[0..132,1..240] of char=(
   'ifdef UPXPROG'#010+
   '        @$(ECHO)  Upx....... $(UPXPROG)'#010+
   'endif'#010+
-  'ifdef Z','IPPROG'#010+
+  'ifd','ef ZIPPROG'#010+
   '        @$(ECHO)  Zip....... $(ZIPPROG)'#010+
   'endif'#010+
   '        @$(ECHO)'#010+
@@ -1486,13 +1486,13 @@ const fpcmakeini : array[0..132,1..240] of char=(
   '        @$(ECHO)  == Object info =='#010+
   '        @$(ECHO)'#010+
   '        @$(ECHO)  LoaderObjects..... $(LOADEROBJECTS)'#010+
-  '        @$(EC','HO)  UnitObjects....... $(UNITOBJECTS)'#010+
+  '        @','$(ECHO)  UnitObjects....... $(UNITOBJECTS)'#010+
   '        @$(ECHO)  ExeObjects........ $(EXEOBJECTS)'#010+
   '        @$(ECHO)'#010+
   '        @$(ECHO)  ExtraCleanUnits... $(EXTRACLEANUNITS)'#010+
   '        @$(ECHO)  ExtraCleanFiles... $(EXTRACLEANFILES)'#010+
-  '        @$(ECHO)'#010+
-  '    ','    @$(ECHO)  ExtraInstallUnits. $(EXTRAINSTALLUNITS)'#010+
+  '        @$(ECHO)'#010,
+  '        @$(ECHO)  ExtraInstallUnits. $(EXTRAINSTALLUNITS)'#010+
   '        @$(ECHO)  ExtraInstallFiles. $(EXTRAINSTALLFILES)'#010+
   '        @$(ECHO)'#010+
   #010+
@@ -1501,7 +1501,7 @@ const fpcmakeini : array[0..132,1..240] of char=(
   '        @$(ECHO)'#010+
   '        @$(ECHO)  == Install info =='#010+
   '        @$(ECHO)'#010+
-  'ifdef D','ATE'#010+
+  'ifd','ef DATE'#010+
   '        @$(ECHO)  DateStr.............. $(DATESTR)'#010+
   'endif'#010+
   'ifdef PACKAGEPREFIX'#010+
@@ -1510,24 +1510,24 @@ const fpcmakeini : array[0..132,1..240] of char=(
   'ifdef PACKAGENAME'#010+
   '        @$(ECHO)  PackageName.......... $(PACKAGENAME)'#010+
   'endif'#010+
-  '        @$(ECHO) ',' PackageSuffix........ $(PACKAGESUFFIX)'#010+
+  '        @$(EC','HO)  PackageSuffix........ $(PACKAGESUFFIX)'#010+
   '        @$(ECHO)'#010+
   '        @$(ECHO)  BaseInstallDir....... $(BASEINSTALLDIR)'#010+
   '        @$(ECHO)  BinInstallDir........ $(BININSTALLDIR)'#010+
   '        @$(ECHO)  LibInstallDir........ $(LIBINSTALLDIR)'#010+
-  '        @$(','ECHO)  UnitInstallDir....... $(UNITINSTALLDIR)'#010+
+  '       ',' @$(ECHO)  UnitInstallDir....... $(UNITINSTALLDIR)'#010+
   '        @$(ECHO)  SourceInstallDir..... $(SOURCEINSTALLDIR)'#010+
   '        @$(ECHO)  DocInstallDir........ $(DOCINSTALLDIR)'#010+
   '        @$(ECHO)  DataInstallDir....... $(DATAINSTALLDIR)'#010+
-  '        @$(ECHO)'#010+
-  ' ','       @$(ECHO)  DestZipDir........... $(DESTZIPDIR)'#010+
+  '        @$(ECH','O)'#010+
+  '        @$(ECHO)  DestZipDir........... $(DESTZIPDIR)'#010+
   '        @$(ECHO)  ZipName.............. $(ZIPNAME)'#010+
   '        @$(ECHO)'#010+
   #010+
   '[directorytargets]'#010+
   '#####################################################################'#010+
   '# Directories'#010+
-  '###############','#####################################################'+
+  '###########','#########################################################'+
   '#'#010+
   #010+
   '[localmakefile]'#010+
@@ -1535,7 +1535,7 @@ const fpcmakeini : array[0..132,1..240] of char=(
   '# Local Makefile'#010+
   '#####################################################################'#010+
   #010+
-  'ifneq ($(w','ildcard fpcmake.loc),)'#010+
+  'ifneq ','($(wildcard fpcmake.loc),)'#010+
   'include fpcmake.loc'#010+
   'endif'#010+
   #010+
