@@ -248,7 +248,29 @@ begin
 {$endif VER1_0}
 end;
 
+{$IFDEF HAS_OSERROR}
+Procedure RaiseLastOSError;
 
+var
+  ECode: Cardinal;
+  E : EOSError;
+  
+begin
+  ECode := GetLastOSError;
+  If (ECode<>0) then
+    E:=EOSError.CreateFmt(SOSError, [ECode, SysErrorMessage(ECode)])
+  else
+    E:=EOSError.Create(SUnkOSError);
+  E.ErrorCode:=ECode;
+  Raise E;
+end;
+{$else}
+Procedure RaiseLastOSError;
+
+begin
+  Raise Exception.Create('RaiseLastOSError not implemented on this platform.');
+end;
+{$endif}
 Procedure AssertErrorHandler (Const Msg,FN : ShortString;LineNo:longint; TheAddr : pointer);
 Var
   S : String;

@@ -15,6 +15,10 @@
 
 { OS handling utilities }
 
+{$ifdef HAS_OSERROR}
+Function GetLastOSError : Integer; 
+{$endif}
+Procedure RaiseLastOSError;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 {$IFDEF HAS_SLEEP}
 procedure Sleep(milliseconds: Cardinal);
@@ -23,7 +27,10 @@ function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integ
 
 {
   $Log$
-  Revision 1.4  2004-01-10 17:34:36  michael
+  Revision 1.5  2004-02-08 11:02:40  michael
+  + Implemented RaiseLastOSError
+
+  Revision 1.4  2004/01/10 17:34:36  michael
   + Implemented sleep() on Unix.
 
   Revision 1.3  2004/01/05 22:37:24  florian
