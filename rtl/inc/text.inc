@@ -134,7 +134,10 @@ Begin
   TextRec(t).mode:=mode;
   TextRec(t).bufpos:=0;
   TextRec(t).bufend:=0;
-  FileFunc(TextRec(t).OpenFunc)(TextRec(t))
+  FileFunc(TextRec(t).OpenFunc)(TextRec(t));
+  { reset the mode to closed when an error has occured }
+  if InOutRes<>0 then
+   TextRec(t).mode:=fmClosed;
 End;
 
 
@@ -1198,7 +1201,10 @@ end;
 
 {
   $Log$
-  Revision 1.38  1999-01-28 19:38:19  peter
+  Revision 1.39  1999-02-17 10:13:29  peter
+    * when error when opening a file, then reset the mode to fmclosed
+
+  Revision 1.38  1999/01/28 19:38:19  peter
     * fixed readln(ansistring)
 
   Revision 1.37  1998/12/15 22:43:06  peter
