@@ -57,18 +57,20 @@ unit tgobj;
       end;
 
       ttgobj = object
-          unusedregsint,availabletempregsint : tregisterset;
-          unusedregsfpu,availabletempregsfpu : tregisterset;
-          unusedregsmm,availabletempregsmm : tregisterset;
-          countusableregsint,
-	  countusableregsfpu,
-	  countusableregsmm : byte;
-          c_countusableregsint,
-          c_countusableregsfpu,
-          c_countusableregsmm : byte;
+         unusedregsint,availabletempregsint : tregisterset;
+         unusedregsfpu,availabletempregsfpu : tregisterset;
+         unusedregsmm,availabletempregsmm : tregisterset;
+         countusableregsint,
+	 countusableregsfpu,
+	 countusableregsmm : byte;
+         c_countusableregsint,
+         c_countusableregsfpu,
+         c_countusableregsmm : byte;
 
-          usedinproc : tregisterset;
+         usedinproc : tregisterset;
 
+         reg_pushes : array[firstreg..lastreg] of longint;
+         is_reg_var : array[firstreg..lastreg] of boolean;
          { contains all temps }
          templist      : ptemprecord;
          { contains all free temps using nextfree links }
@@ -692,7 +694,10 @@ unit tgobj;
 end.
 {
   $Log$
-  Revision 1.2  1999-08-02 23:13:22  florian
+  Revision 1.3  1999-08-03 00:32:13  florian
+    * reg_vars and reg_pushes is now in tgobj
+
+  Revision 1.2  1999/08/02 23:13:22  florian
     * more changes to compile for the Alpha
 
   Revision 1.1  1999/08/02 17:14:12  florian
