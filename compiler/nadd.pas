@@ -30,6 +30,7 @@ interface
        taddnode = class(tbinopnode)
           procedure make_bool_equal_size;
           function firstpass : tnode;override;
+          procedure make_bool_equal_size;
        end;
        tcaddnode : class of taddnode;
 
@@ -40,7 +41,7 @@ interface
        { specific node types can be created               }
        caddnode : tcaddnode;
 
-    function isbinaryoverloaded(var p : ptree) : boolean;
+    function isbinaryoverloaded(var p : pnode) : boolean;
 
 implementation
 
@@ -55,89 +56,8 @@ implementation
       hcodegen,
 {$endif newcg}
       htypechk,pass_1,
-      cpubase,tccnv
+      cpubase,ncnv,ncal,
       ;
-
-    function isbinaryoverloaded(var p : ptree) : boolean;
-
-     var
-         rd,ld   : pdef;
-         t : ptree;
-         optoken : ttoken;
-
-      begin
-        isbinaryoverloaded:=false;
-        { overloaded operator ? }
-        { load easier access variables }
-        rd:=p^.right^.resulttype;
-        ld:=p^.left^.resulttype;
-        if isbinaryoperatoroverloadable(ld,rd,voiddef,p^.treetype) then
-          begin
-             isbinaryoverloaded:=true;
-             {!!!!!!!!! handle paras }
-             case p^.treetype of
-                { the nil as symtable signs firstcalln that this is
-                  an overloaded operator }
-                addn:
-                  optoken:=_PLUS;
-                subn:
-                  optoken:=_MINUS;
-                muln:
-                  optoken:=_STAR;
-                starstarn:
-                  optoken:=_STARSTAR;
-                slashn:
-                  optoken:=_SLASH;
-                ltn:
-                  optoken:=tokens._lt;
-                gtn:
-                  optoken:=tokens._gt;
-                lten:
-                  optoken:=_lte;
-                gten:
-                  optoken:=_gte;
-                equaln,unequaln :
-                  optoken:=_EQUAL;
-                symdifn :
-                  optoken:=_SYMDIF;
-                modn :
-                  optoken:=_OP_MOD;
-                orn :
-                  optoken:=_OP_OR;
-                xorn :
-                  optoken:=_OP_XOR;
-                andn :
-                  optoken:=_OP_AND;
-                divn :
-                  optoken:=_OP_DIV;
-                shln :
-                  optoken:=_OP_SHL;
-                shrn :
-                  optoken:=_OP_SHR;
-                else
-                  exit;
-             end;
-             t:=gencallnode(overloaded_operators[optoken],nil);
-             { we have to convert p^.left and p^.right into
-              callparanodes }
-             if t^.symtableprocentry=nil then
-               begin
-                  CGMessage(parser_e_operator_not_overloaded);
-                  putnode(t);
-               end
-             else
-               begin
-                  inc(t^.symtableprocentry^.refs);
-                  t^.left:=gencallparanode(p^.left,nil);
-                  t^.left:=gencallparanode(p^.right,t^.left);
-                  if p^.treetype=unequaln then
-                   t:=gensinglenode(notn,t);
-                  firstpass(t);
-                  putnode(p);
-                  p:=t;
-               end;
-          end;
-      end;
 
 {*****************************************************************************
                                 FirstAdd
@@ -150,19 +70,19 @@ implementation
     procedure taddnode.make_bool_equal_size;
 
       begin
-        if porddef(left^.resulttype)^.typ>porddef(right^.resulttype)^.typ then
+        if porddef(left.resulttype)^.typ>porddef(right.resulttype)^.typ then
          begin
-           right:=gentypeconvnode(right,porddef(left^.resulttype));
-           right^.convtyp:=tc_bool_2_int;
-           right^.explizit:=true;
+           right:=gentypeconvnode(right,porddef(left.resulttype));
+           right.convtyp:=tc_bool_2_int;
+           right.explizit:=true;
            firstpass(right);
          end
         else
-         if porddef(left^.resulttype)^.typ<porddef(right^.resulttype)^.typ then
+         if porddef(left.resulttype)^.typ<porddef(right.resulttype)^.typ then
           begin
-            left:=gentypeconvnode(left,porddef(right^.resulttype));
-            left^.convtyp:=tc_bool_2_int;
-            left^.explizit:=true;
+            left:=gentypeconvnode(left,porddef(right.resulttype));
+            left.convtyp:=tc_bool_2_int;
+            left.explizit:=true;
             firstpass(left);
           end;
       end;
@@ -170,10 +90,10 @@ implementation
     function taddnode.pass_1 : tnode;
 
       var
-         t,hp    : ptree;
+         t,hp    : tnode;
          ot,
          lt,rt   : ttreetyp;
-         rv,lv   : TConstExprInt;
+         rv,lv   : longint;
          rvd,lvd : bestreal;
          resdef,
          rd,ld   : pdef;
@@ -198,9 +118,9 @@ implementation
 
          { convert array constructors to sets, because there is no other operator
            possible for array constructors }
-         if is_array_constructor(left^.resulttype) then
+         if is_array_constructor(left.resulttype) then
            arrayconstructor_to_set(left);
-         if is_array_constructor(right^.resulttype) then
+         if is_array_constructor(right.resulttype) then
            arrayconstructor_to_set(right);
 
          { both left and right need to be valid }
@@ -208,28 +128,31 @@ implementation
          set_varstate(right,true);
 
          { load easier access variables }
-         lt:=left^.treetype;
-         rt:=right^.treetype;
-         rd:=right^.resulttype;
-         ld:=left^.resulttype;
+         lt:=left.treetype;
+         rt:=right.treetype;
+         rd:=right.resulttype;
+         ld:=left.resulttype;
          convdone:=false;
 
-         if isbinaryoverloaded(p) then
-           exit;
+         if isbinaryoverloaded(hp) then
+           begin
+              pass_1:=hp;
+              exit;
+           end
          { compact consts }
 
          { convert int consts to real consts, if the }
          { other operand is a real const             }
          if (rt=realconstn) and is_constintnode(left) then
            begin
-              t:=genrealconstnode(left^.value,right^.resulttype);
+              t:=genrealconstnode(left.value,right.resulttype);
               disposetree(left);
               left:=t;
               lt:=realconstn;
            end;
          if (lt=realconstn) and is_constintnode(right) then
            begin
-              t:=genrealconstnode(right^.value,left^.resulttype);
+              t:=genrealconstnode(right.value,left.resulttype);
               disposetree(right);
               right:=t;
               rt:=realconstn;
@@ -242,20 +165,24 @@ implementation
              (is_constboolnode(left) and is_constboolnode(right) and
               (treetype in [ltn,lten,gtn,gten,equaln,unequaln,andn,xorn,orn]))) then
            begin
+              { xor, and, or are handled different from arithmetic }
+              { operations regarding the result type               }
               { return a boolean for boolean operations (and,xor,or) }
               if is_constboolnode(left) then
                resdef:=booldef
+              else if is_64bitint(rd) or is_64bitint(ld) then
+                resdef:=cs64bitdef
               else
-               resdef:=s32bitdef;
-              lv:=left^.value;
-              rv:=right^.value;
+                resdef:=s32bitdef;
+              lv:=left.value;
+              rv:=right.value;
               case treetype of
-                addn : t:=genordinalconstnode(lv+rv,resdef);
-                subn : t:=genordinalconstnode(lv-rv,resdef);
-                muln : t:=genordinalconstnode(lv*rv,resdef);
+                addn : t:=genintconstnode(lv+rv);
+                subn : t:=genintconstnode(lv-rv);
+                muln : t:=genintconstnode(lv*rv);
                 xorn : t:=genordinalconstnode(lv xor rv,resdef);
-                 orn : t:=genordinalconstnode(lv or rv,resdef);
-                andn : t:=genordinalconstnode(lv and rv,resdef);
+                 orn: t:=genordinalconstnode(lv or rv,resdef);
+                andn: t:=genordinalconstnode(lv and rv,resdef);
                  ltn : t:=genordinalconstnode(ord(lv<rv),booldef);
                 lten : t:=genordinalconstnode(ord(lv<=rv),booldef);
                  gtn : t:=genordinalconstnode(ord(lv>rv),booldef);
@@ -276,17 +203,15 @@ implementation
               else
                 CGMessage(type_e_mismatch);
               end;
-              firstpass(t);
-              { the caller disposes the old tree }
-              pass_1:=t;
+              pass_1:=t
               exit;
            end;
 
        { both real constants ? }
          if (lt=realconstn) and (rt=realconstn) then
            begin
-              lvd:=left^.value_real;
-              rvd:=right^.value_real;
+              lvd:=left.value_real;
+              rvd:=right.value_real;
               case treetype of
                  addn : t:=genrealconstnode(lvd+rvd,bestrealdef^);
                  subn : t:=genrealconstnode(lvd-rvd,bestrealdef^);
@@ -322,7 +247,6 @@ implementation
               else
                 CGMessage(type_e_mismatch);
               end;
-              firstpass(t);
               pass_1:=t;
               exit;
            end;
@@ -334,8 +258,8 @@ implementation
          if (lt=ordconstn) and (rt=ordconstn) and
             is_char(ld) and is_char(rd) then
            begin
-              s1:=strpnew(char(byte(left^.value)));
-              s2:=strpnew(char(byte(right^.value)));
+              s1:=strpnew(char(byte(left.value)));
+              s2:=strpnew(char(byte(right.value)));
               l1:=1;
               l2:=1;
               concatstrings:=true;
@@ -344,26 +268,26 @@ implementation
            if (lt=stringconstn) and (rt=ordconstn) and is_char(rd) then
            begin
               s1:=getpcharcopy(left);
-              l1:=left^.length;
-              s2:=strpnew(char(byte(right^.value)));
+              l1:=left.length;
+              s2:=strpnew(char(byte(right.value)));
               l2:=1;
               concatstrings:=true;
            end
          else
            if (lt=ordconstn) and (rt=stringconstn) and is_char(ld) then
            begin
-              s1:=strpnew(char(byte(left^.value)));
+              s1:=strpnew(char(byte(left.value)));
               l1:=1;
               s2:=getpcharcopy(right);
-              l2:=right^.length;
+              l2:=right.length;
               concatstrings:=true;
            end
          else if (lt=stringconstn) and (rt=stringconstn) then
            begin
               s1:=getpcharcopy(left);
-              l1:=left^.length;
+              l1:=left.length;
               s2:=getpcharcopy(right);
-              l2:=right^.length;
+              l2:=right.length;
               concatstrings:=true;
            end;
 
@@ -388,7 +312,6 @@ implementation
               end;
               ansistringdispose(s1,l1);
               ansistringdispose(s2,l2);
-              firstpass(t);
               pass_1:=t;
               exit;
            end;
@@ -410,8 +333,8 @@ implementation
                   xorn,ltn,lten,gtn,gten:
                     begin
                       make_bool_equal_size(p);
-                      if (left^.location.loc in [LOC_JUMP,LOC_FLAGS]) and
-                        (left^.location.loc in [LOC_JUMP,LOC_FLAGS]) then
+                      if (left.location.loc in [LOC_JUMP,LOC_FLAGS]) and
+                        (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
                         calcregisters(p,2,0,0)
                       else
                         calcregisters(p,1,0,0);
@@ -421,10 +344,10 @@ implementation
                     begin
                       make_bool_equal_size(p);
                       { Remove any compares with constants }
-                      if (left^.treetype=ordconstn) then
+                      if (left.treetype=ordconstn) then
                        begin
                          hp:=right;
-                         b:=(left^.value<>0);
+                         b:=(left.value<>0);
                          ot:=treetype;
                          disposetree(left);
                          putnode(p);
@@ -432,15 +355,15 @@ implementation
                          if (not(b) and (ot=equaln)) or
                             (b and (ot=unequaln)) then
                           begin
-                            p:=gensinglenode(notn,p);
-                            firstpass(p);
+                            p:=gensinglenode(notn,hp);
+                            firstpass(hp);
                           end;
                          exit;
                        end;
-                      if (right^.treetype=ordconstn) then
+                      if (right.treetype=ordconstn) then
                        begin
                          hp:=left;
-                         b:=(right^.value<>0);
+                         b:=(right.value<>0);
                          ot:=treetype;
                          disposetree(right);
                          putnode(p);
@@ -453,8 +376,8 @@ implementation
                           end;
                          exit;
                        end;
-                      if (left^.location.loc in [LOC_JUMP,LOC_FLAGS]) and
-                        (left^.location.loc in [LOC_JUMP,LOC_FLAGS]) then
+                      if (left.location.loc in [LOC_JUMP,LOC_FLAGS]) and
+                        (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
                         calcregisters(p,2,0,0)
                       else
                         calcregisters(p,1,0,0);
@@ -462,27 +385,34 @@ implementation
                 else
                   CGMessage(type_e_mismatch);
                 end;
-
+(*
                 { these one can't be in flags! }
+
+                Yes they can, secondadd converts the loc_flags to a register.
+                The typeconversions below are simply removed by firsttypeconv()
+                because the resulttype of left = left.resulttype
+                (surprise! :) (JM)
+
                 if treetype in [xorn,unequaln,equaln] then
                   begin
-                     if left^.location.loc=LOC_FLAGS then
+                     if left.location.loc=LOC_FLAGS then
                        begin
-                          left:=gentypeconvnode(left,porddef(left^.resulttype));
-                          left^.convtyp:=tc_bool_2_int;
-                          left^.explizit:=true;
+                          left:=gentypeconvnode(left,porddef(left.resulttype));
+                          left.convtyp:=tc_bool_2_int;
+                          left.explizit:=true;
                           firstpass(left);
                        end;
-                     if right^.location.loc=LOC_FLAGS then
+                     if right.location.loc=LOC_FLAGS then
                        begin
-                          right:=gentypeconvnode(right,porddef(right^.resulttype));
-                          right^.convtyp:=tc_bool_2_int;
-                          right^.explizit:=true;
+                          right:=gentypeconvnode(right,porddef(right.resulttype));
+                          right.convtyp:=tc_bool_2_int;
+                          right.explizit:=true;
                           firstpass(right);
                        end;
                      { readjust registers }
                      calcregisters(p,1,0,0);
                   end;
+*)
                 convdone:=true;
               end
              else
@@ -579,29 +509,29 @@ implementation
                      begin
                      { can we make them both unsigned? }
                        if (porddef(ld)^.typ in [u8bit,u16bit]) or
-                          (is_constintnode(p^.left) and
-                           (p^.treetype <> subn) and
-                           (p^.left^.value > 0)) then
-                         p^.left:=gentypeconvnode(p^.left,u32bitdef)
+                          (is_constintnode(left) and
+                           (treetype <> subn) and
+                           (left.value > 0)) then
+                         left:=gentypeconvnode(left,u32bitdef)
                        else
-                         p^.left:=gentypeconvnode(p^.left,s32bitdef);
-                       firstpass(p^.left);
+                         left:=gentypeconvnode(left,s32bitdef);
+                       firstpass(left);
                      end
                    else {if (porddef(ld)^.typ=u32bit) then}
                      begin
                      { can we make them both unsigned? }
                        if (porddef(rd)^.typ in [u8bit,u16bit]) or
-                          (is_constintnode(p^.right) and
-                           (p^.right^.value > 0)) then
-                         p^.right:=gentypeconvnode(p^.right,u32bitdef)
+                          (is_constintnode(right) and
+                           (right.value > 0)) then
+                         right:=gentypeconvnode(right,u32bitdef)
                        else
-                         p^.right:=gentypeconvnode(p^.right,s32bitdef);
-                       firstpass(p^.right);
+                         right:=gentypeconvnode(right,s32bitdef);
+                       firstpass(right);
                      end;
 {$endif cardinalmulfix}
                  calcregisters(p,1,0,0);
                  { for unsigned mul we need an extra register }
-{                 registers32:=left^.registers32+right^.registers32; }
+{                 registers32:=left.registers32+right.registers32; }
                  if treetype=muln then
                   inc(registers32);
                  convdone:=true;
@@ -640,14 +570,14 @@ implementation
                 { ranges require normsets }
                 if (psetdef(ld)^.settype=smallset) and
                    (rt=setelementn) and
-                   assigned(right^.right) then
+                   assigned(right.right) then
                  begin
-                   { generate a temporary normset def }
+                   { generate a temporary normset def, it'll be destroyed
+                     when the symtable is unloaded }
                    tempdef:=new(psetdef,init(psetdef(ld)^.elementtype.def,255));
                    left:=gentypeconvnode(left,tempdef);
                    firstpass(left);
-                   dispose(tempdef,done);
-                   ld:=left^.resulttype;
+                   ld:=left.resulttype;
                  end;
 
                 { if the destination is not a smallset then insert a typeconv
@@ -655,54 +585,54 @@ implementation
                 if (psetdef(ld)^.settype<>smallset) and
                    (psetdef(rd)^.settype=smallset) then
                  begin
-                   if (right^.treetype=setconstn) then
+                   if (right.treetype=setconstn) then
                      begin
-                        t:=gensetconstnode(right^.value_set,psetdef(left^.resulttype));
-                        t^.left:=right^.left;
+                        t:=gensetconstnode(right.value_set,psetdef(left.resulttype));
+                        t^.left:=right.left;
                         putnode(right);
                         right:=t;
                      end
                    else
-                     right:=gentypeconvnode(right,psetdef(left^.resulttype));
+                     right:=gentypeconvnode(right,psetdef(left.resulttype));
                    firstpass(right);
                  end;
 
                 { do constant evaluation }
-                if (right^.treetype=setconstn) and
-                   not assigned(right^.left) and
-                   (left^.treetype=setconstn) and
-                   not assigned(left^.left) then
+                if (right.treetype=setconstn) and
+                   not assigned(right.left) and
+                   (left.treetype=setconstn) and
+                   not assigned(left.left) then
                   begin
                      new(resultset);
                      case treetype of
                         addn : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
-                                      right^.value_set^[i] or left^.value_set^[i];
+                                      right.value_set^[i] or left.value_set^[i];
                                   t:=gensetconstnode(resultset,psetdef(ld));
                                end;
                         muln : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
-                                      right^.value_set^[i] and left^.value_set^[i];
+                                      right.value_set^[i] and left.value_set^[i];
                                   t:=gensetconstnode(resultset,psetdef(ld));
                                end;
                         subn : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
-                                      left^.value_set^[i] and not(right^.value_set^[i]);
+                                      left.value_set^[i] and not(right.value_set^[i]);
                                   t:=gensetconstnode(resultset,psetdef(ld));
                                end;
                      symdifn : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
-                                      left^.value_set^[i] xor right^.value_set^[i];
+                                      left.value_set^[i] xor right.value_set^[i];
                                   t:=gensetconstnode(resultset,psetdef(ld));
                                end;
                     unequaln : begin
                                  b:=true;
                                  for i:=0 to 31 do
-                                  if right^.value_set^[i]=left^.value_set^[i] then
+                                  if right.value_set^[i]=left.value_set^[i] then
                                    begin
                                      b:=false;
                                      break;
@@ -712,7 +642,7 @@ implementation
                       equaln : begin
                                  b:=true;
                                  for i:=0 to 31 do
-                                  if right^.value_set^[i]<>left^.value_set^[i] then
+                                  if right.value_set^[i]<>left.value_set^[i] then
                                    begin
                                      b:=false;
                                      break;
@@ -723,8 +653,8 @@ implementation
                        lten : Begin
                                 b := true;
                                 For i := 0 to 31 Do
-                                  If (right^.value_set^[i] And left^.value_set^[i]) <>
-                                      left^.value_set^[i] Then
+                                  If (right.value_set^[i] And left.value_set^[i]) <>
+                                      left.value_set^[i] Then
                                     Begin
                                       b := false;
                                       Break
@@ -734,8 +664,8 @@ implementation
                        gten : Begin
                                 b := true;
                                 For i := 0 to 31 Do
-                                  If (left^.value_set^[i] And right^.value_set^[i]) <>
-                                      right^.value_set^[i] Then
+                                  If (left.value_set^[i] And right.value_set^[i]) <>
+                                      right.value_set^[i] Then
                                     Begin
                                       b := false;
                                       Break
@@ -754,7 +684,7 @@ implementation
                  if psetdef(ld)^.settype=smallset then
                   begin
                      { are we adding set elements ? }
-                     if right^.treetype=setelementn then
+                     if right.treetype=setelementn then
                        calcregisters(p,2,0,0)
                      else
                        calcregisters(p,1,0,0);
@@ -848,9 +778,9 @@ implementation
                 end;
               { only if there is a type cast we need to do again }
               { the first pass                             }
-              if left^.treetype=typeconvn then
+              if left.treetype=typeconvn then
                 firstpass(left);
-              if right^.treetype=typeconvn then
+              if right.treetype=typeconvn then
                 firstpass(right);
               { here we call STRCONCAT or STRCMP or STRCOPY }
               procinfo^.flags:=procinfo^.flags or pi_do_call;
@@ -908,12 +838,12 @@ implementation
               case treetype of
                  equaln,unequaln :
                    begin
-                      if is_equal(right^.resulttype,voidpointerdef) then
+                      if is_equal(right.resulttype,voidpointerdef) then
                         begin
                            right:=gentypeconvnode(right,ld);
                            firstpass(right);
                         end
-                      else if is_equal(left^.resulttype,voidpointerdef) then
+                      else if is_equal(left.resulttype,voidpointerdef) then
                         begin
                            left:=gentypeconvnode(left,rd);
                            firstpass(left);
@@ -923,12 +853,12 @@ implementation
                    end;
                  ltn,lten,gtn,gten:
                    begin
-                      if is_equal(right^.resulttype,voidpointerdef) then
+                      if is_equal(right.resulttype,voidpointerdef) then
                         begin
                            right:=gentypeconvnode(right,ld);
                            firstpass(right);
                         end
-                      else if is_equal(left^.resulttype,voidpointerdef) then
+                      else if is_equal(left.resulttype,voidpointerdef) then
                         begin
                            left:=gentypeconvnode(left,rd);
                            firstpass(left);
@@ -1075,7 +1005,7 @@ implementation
                   ;
                 { mul is a little bit restricted }
                 muln:
-                  if not(mmx_type(left^.resulttype) in
+                  if not(mmx_type(left.resulttype) in
                     [mmxu16bit,mmxs16bit,mmxfixed16]) then
                     CGMessage(type_e_mismatch);
                 else
@@ -1200,9 +1130,9 @@ implementation
                    firstpass(right);
                    { maybe we need an integer register to save }
                    { a reference                               }
-                   if ((left^.location.loc<>LOC_FPU) or
-                       (right^.location.loc<>LOC_FPU)) and
-                       (left^.registers32=right^.registers32) then
+                   if ((left.location.loc<>LOC_FPU) or
+                       (right.location.loc<>LOC_FPU)) and
+                       (left.registers32=right.registers32) then
                      calcregisters(p,1,1,0)
                    else
                      calcregisters(p,0,1,0);
@@ -1233,7 +1163,7 @@ implementation
                  if (not assigned(resulttype)) or
                    (resulttype^.deftype=stringdef) then
                    resulttype:=booldef;
-                 if is_64bitint(left^.resulttype) then
+                 if is_64bitint(left.resulttype) then
                    location.loc:=LOC_JUMP
                  else
                    location.loc:=LOC_FLAGS;
@@ -1241,7 +1171,7 @@ implementation
             xorn:
               begin
                 if not assigned(resulttype) then
-                  resulttype:=left^.resulttype;
+                  resulttype:=left.resulttype;
                  location.loc:=LOC_REGISTER;
               end;
             addn:
@@ -1249,10 +1179,10 @@ implementation
                 if not assigned(resulttype) then
                  begin
                  { for strings, return is always a 255 char string }
-                   if is_shortstring(left^.resulttype) then
+                   if is_shortstring(left.resulttype) then
                      resulttype:=cshortstringdef
                    else
-                    resulttype:=left^.resulttype;
+                    resulttype:=left.resulttype;
                  end;
               end;
 {$ifdef cardinalmulfix}
@@ -1260,32 +1190,32 @@ implementation
   { if we multiply an unsigned with a signed number, the result is signed  }
   { in the other cases, the result remains signed or unsigned depending on }
   { the multiplication factors (JM)                                        }
-              if (left^.resulttype^.deftype = orddef) and
-                 (right^.resulttype^.deftype = orddef) and
-                 is_signed(right^.resulttype) then
-                resulttype := right^.resulttype
-              else resulttype := left^.resulttype;
+              if (left.resulttype^.deftype = orddef) and
+                 (right.resulttype^.deftype = orddef) and
+                 is_signed(right.resulttype) then
+                resulttype := right.resulttype
+              else resulttype := left.resulttype;
 (*
             subn:
  { if we substract a u32bit from a positive constant, the result becomes }
  { s32bit as well (JM)                                                   }
               begin
-                if (right^.resulttype^.deftype = orddef) and
-                   (left^.resulttype^.deftype = orddef) and
-                   (porddef(right^.resulttype)^.typ = u32bit) and
+                if (right.resulttype^.deftype = orddef) and
+                   (left.resulttype^.deftype = orddef) and
+                   (porddef(right.resulttype)^.typ = u32bit) and
                    is_constintnode(left) and
-{                   (porddef(left^.resulttype)^.typ <> u32bit) and}
-                   (left^.value > 0) then
+{                   (porddef(left.resulttype)^.typ <> u32bit) and}
+                   (left.value > 0) then
                   begin
                     left := gentypeconvnode(left,u32bitdef);
                     firstpass(left);
                   end;
-                resulttype:=left^.resulttype;
+                resulttype:=left.resulttype;
               end;
 *)
 {$endif cardinalmulfix}
             else
-              resulttype:=left^.resulttype;
+              resulttype:=left.resulttype;
          end;
       end;
 
@@ -1294,10 +1224,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-08-29 08:24:45  jonas
+  Revision 1.3  2000-09-20 21:50:59  florian
+    * updated
+
+  Revision 1.2  2000/08/29 08:24:45  jonas
     * some modifications to -dcardinalmulfix code
 
   Revision 1.1  2000/08/26 12:24:20  florian
     * initial release
-
 }
