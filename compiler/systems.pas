@@ -1118,7 +1118,7 @@ implementation
             resobjext   : '.or';
             exeext      : '';
             os          : os_i386_Freebsd;
-            assem       : as_i386_as;
+            assem       : as_i386_elf;
             assemsrc    : as_i386_as;
             ar          : ar_i386_ar;
             res         : res_none;
@@ -1761,7 +1761,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-09-16 12:22:52  peter
+  Revision 1.8  2000-09-20 10:49:39  marco
+   * Set writer to elf. (Only a prob for smart with -OG3p3r)
+
+  Revision 1.7  2000/09/16 12:22:52  peter
     * freebsd support merged
 
   Revision 1.6  2000/09/11 17:00:23  florian
