@@ -1,3 +1,4 @@
+{ %version=1.1 }
 { %fail }
 { Old file: tbs0293.pp }
 { no error with variable name = type name }
