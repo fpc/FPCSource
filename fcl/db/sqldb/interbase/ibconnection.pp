@@ -19,7 +19,7 @@ type
     protected
     Status               : array [0..19] of ISC_STATUS;
     Statement            : pointer;
-    FFieldFlag           : array [0..1023] of shortint;
+    FFieldFlag           : array of shortint;
     SQLDA                : PXSQLDA;
   end;
 
@@ -325,9 +325,15 @@ begin
         TrType := ftDateTime;
     SQL_ARRAY :
       begin
+        TrType := ftArray;
+        LensSet := true;
+        TrLen := SQLLen;
       end;
     SQL_BLOB :
       begin
+          TrType := ftBlob;
+          LensSet := True;
+          TrLen := SQLLen;
       end;
     SQL_SHORT :
         TrType := ftInteger;
@@ -338,7 +344,7 @@ begin
         TrType := ftInteger;
       end;
     SQL_INT64 :
-        {TrType := ftInt64};
+        TrType := ftLargeInt;
     SQL_DOUBLE :
       begin
         LensSet := True;
@@ -350,6 +356,12 @@ begin
         LensSet := True;
         TrLen := 0;
         TrType := ftFloat;
+      end
+    else
+      begin
+        LensSet := True;
+        TrLen := 0;
+        TrType := ftUnknown;
       end;
   end;
 end;
@@ -362,7 +374,7 @@ begin
   curs := TIBCursor.create;
   curs.sqlda := nil;
   curs.statement := nil;
-  AllocSQLDA(curs,10);
+  AllocSQLDA(curs,1);
   result := curs;
 end;
 
@@ -408,10 +420,14 @@ begin
           CheckError('PrepareSelect', Status);
         end;
       {$R-}
-      for x := 0 to SQLDA^.SQLD - 1 do
+      SetLength(FFieldFlag,SQLDA^.SQLD);
+      for x := 0 to SQLDA^.SQLD - 1 do with SQLDA^.SQLVar[x] do
         begin
-        SQLDA^.SQLVar[x].SQLData := AllocMem(SQLDA^.SQLVar[x].SQLLen);
-        SQLDA^.SQLVar[x].SQLInd  := @FFieldFlag[x];
+        if ((SQLType and not 1) = SQL_VARYING) then
+          SQLData := AllocMem(SQLDA^.SQLVar[x].SQLLen+2)
+        else
+          SQLData := AllocMem(SQLDA^.SQLVar[x].SQLLen);
+        SQLInd  := @FFieldFlag[x];
         end;
       {$R+}
       end;
@@ -425,7 +441,7 @@ begin
   {$R-}
   with cursor as TIBCursor do
     for x := 0 to SQLDA^.SQLD - 1 do
-      if SQLDA^.SQLVar[x].SQLData <> nil then reAllocMem(SQLDA^.SQLVar[x].SQLData,0);
+      reAllocMem(SQLDA^.SQLVar[x].SQLData,0);
   {$R+}
 end;
 
@@ -454,26 +470,16 @@ begin
       begin
       TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].SQLLen, SQLDA^.SQLVar[x].SQLScale,
        lenset, TransType, TransLen);
-      TFieldDef.Create(FieldDefs, SQLDA^.SQLVar[x].SQLName, TransType,
-        TransLen, False, (x + 1)).precision := SQLDA^.SQLVar[x].SQLLen
+      if TransType = ftBCD then
+        TFieldDef.Create(FieldDefs, SQLDA^.SQLVar[x].SQLName, TransType,
+          TransLen, False, (x + 1)).precision := SQLDA^.SQLVar[x].SQLLen
+      else
+        TFieldDef.Create(FieldDefs, SQLDA^.SQLVar[x].SQLName, TransType,
+          TransLen, False, (x + 1));
       end;
     end;
   {$R+}
 end;
-
-{function TIBConnection.GetFieldSizes(cursor : TSQLHandle) : integer;
-var
-  x,recsize : integer;
-begin
-  recsize := sizeof(longint); // size of the NullMask
-  with cursor as TIBCursor do
-    for x := 0 to SQLDA^.SQLD - 1 do
-      if (SQLDA^.SQLVar[x].SQLType and not 1) in [SQL_VARYING,SQL_TEXT] then
-        Inc(recsize, SQLDA^.SQLVar[x].SQLLen+1)
-      else
-        Inc(recsize, SQLDA^.SQLVar[x].SQLLen);
-  result := recsize;
-end;}
 
 function TIBConnection.GetHandle: pointer;
 begin
@@ -500,6 +506,7 @@ var
   VarcharLen : word;
   CurrBuff     : pchar;
   b            : longint;
+  li           : largeint;
   c            : currency;
 
 begin
@@ -522,9 +529,12 @@ begin
           begin
           Move(SQLData^, VarcharLen, 2);
           CurrBuff := SQLData + 2;
-          PChar(CurrBuff + Varcharlen)^ := #0;
           end
-        else CurrBuff := SQLData;
+        else
+          begin
+          CurrBuff := SQLData;
+          VarCharLen := SQLDA^.SQLVar[x].SQLLen;
+          end;
 
       Result := true;
       case FieldDef.DataType of
@@ -538,7 +548,13 @@ begin
         ftInteger :
           begin
             b := 0;
-            Move(b, Buffer^, 4);
+            Move(b, Buffer^, sizeof(longint));
+            Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
+          end;
+        ftLargeint :
+          begin
+            li := 0;
+            Move(li, Buffer^, sizeof(largeint));
             Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
           end;
         ftDate, ftTime, ftDateTime:
@@ -546,7 +562,7 @@ begin
         ftString  :
           begin
             Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
-            PChar(Buffer + SQLDA^.SQLVar[x].SQLLen)^ := #0;
+            PChar(Buffer + VarCharLen)^ := #0;
           end;
         ftFloat   :
           GetFloat(CurrBuff, Buffer, FieldDef)
