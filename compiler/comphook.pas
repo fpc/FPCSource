@@ -142,11 +142,11 @@ const
 implementation
 
   uses
-{$ifdef delphi}
-   dmisc,
-{$else}
+{$IFDEF USE_SYSUTILS}
+    SysUtils,
+{$ELSE USE_SYSUTILS}
    dos,
-{$endif}
+{$ENDIF USE_SYSUTILS}
    cutils
    ;
 
@@ -364,12 +364,13 @@ var
   info : SearchRec;
 begin
   l:=-1;
-  {$ifdef delphi}
-    dmisc.FindFirst (F,archive+readonly+hidden,info);
-  {$else delphi}
+{$IFDEF USE_SYSUTILS}
+  if FindFirst (F,faArchive+faReadOnly+faHidden,info) = 0
+  then
+{$ELSE USE_SYSUTILS}
     FindFirst (F,archive+readonly+hidden,info);
-  {$endif delphi}
   if DosError=0 then
+{$ENDIF USE_SYSUTILS}
    l:=info.time;
   FindClose(info);
   def_GetNamedFileTime:=l;
@@ -378,7 +379,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  2004-09-08 11:23:30  michael
+  Revision 1.29  2004-10-14 17:10:15  mazen
+  * use SysUtils unit instead of Dos Unit
+  + overload Replace to use AnsiString
+
+  Revision 1.28  2004/09/08 11:23:30  michael
   + Check if outputdir exists,  Fix exitcode when displaying help pages
 
   Revision 1.27  2004/06/20 08:55:29  florian
