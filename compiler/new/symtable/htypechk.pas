@@ -122,7 +122,7 @@ implementation
        { tp7 procvar def support, in tp7 a procvar is always called, if the
          procvar is passed explicit a addrn would be there }
          if (m_tp_procvar in aktmodeswitches) and
-            (typeof(def_from^)=typeof(Tprocvardef)) and
+            (def_from^.is_object(typeof(Tprocvardef))) and
             (fromtreetype=loadn) then
           begin
             def_from:=pprocvardef(def_from)^.retdef;
@@ -131,9 +131,9 @@ implementation
        { we walk the wanted (def_to) types and check then the def_from
          types if there is a conversion possible }
          b:=0;
-         if typeof(def_to^)=typeof(Torddef) then
+         if def_to^.is_object(typeof(Torddef)) then
             begin
-              if typeof(def_from^)=typeof(Torddef) then
+              if def_from^.is_object(typeof(Torddef)) then
                  begin
                    doconv:=basedefconverts[basedeftbl[Tbasetype(porddef(def_from)^.typ)],basedeftbl[porddef(def_to)^.typ]];
                    b:=1;
@@ -146,7 +146,7 @@ implementation
                        (not is_boolean(def_to))) then
                      b:=0;
                  end
-              else if typeof(def_from^)=typeof(Torddef) then
+              else if def_from^.is_object(typeof(Tenumdef)) then
                  begin
                    { needed for char(enum) }
                    if explicit then
@@ -156,14 +156,14 @@ implementation
                     end;
                  end;
             end
-         else if typeof(def_to^)=typeof(Tstringdef) then
+         else if def_to^.is_object(typeof(Tstringdef)) then
              begin
-               if typeof(def_from^)=typeof(Tstringdef) then
+               if def_from^.is_object(typeof(Tstringdef)) then
                    begin
                      doconv:=tc_string_2_string;
                      b:=1;
                    end
-               else if typeof(def_from^)=typeof(Torddef) then
+               else if def_from^.is_object(typeof(Torddef)) then
                    begin
                    { char to string}
                      if is_char(def_from) then
@@ -172,7 +172,7 @@ implementation
                         b:=1;
                       end;
                    end
-               else if typeof(def_from^)=typeof(Tarraydef) then
+               else if def_from^.is_object(typeof(Tarraydef)) then
                    begin
                    { array of char to string, the length check is done by the firstpass of this node }
                      if is_chararray(def_from) then
@@ -187,7 +187,7 @@ implementation
                          b:=2;
                       end;
                    end
-               else if typeof(def_from^)=typeof(Tpointerdef) then
+               else if def_from^.is_object(typeof(Tpointerdef)) then
                    begin
                    { pchar can be assigned to short/ansistrings }
                      if is_pchar(def_from) and not(m_tp in aktmodeswitches) then
@@ -197,9 +197,9 @@ implementation
                       end;
                    end;
              end
-         else if typeof(def_to^)=typeof(Tfloatdef) then
+         else if def_to^.is_object(typeof(Tfloatdef)) then
              begin
-               if typeof(def_from^)=typeof(Torddef) then
+               if def_from^.is_object(typeof(Torddef)) then
                    begin { ordinal to real }
                      if is_integer(def_from) then
                        begin
@@ -210,7 +210,7 @@ implementation
                           b:=1;
                        end;
                    end
-               else if typeof(def_from^)=typeof(Tfloatdef) then
+               else if def_from^.is_object(typeof(Tfloatdef)) then
                    begin { 2 float types ? }
                      if pfloatdef(def_from)^.typ=pfloatdef(def_to)^.typ then
                        doconv:=tc_equal
@@ -227,9 +227,9 @@ implementation
                      b:=1;
                    end;
              end
-         else if typeof(def_to^)=typeof(Tenumdef) then
+         else if def_to^.is_object(typeof(Tenumdef)) then
              begin
-               if typeof(def_from^)=typeof(Tenumdef) then
+               if def_from^.is_object(typeof(Tenumdef)) then
                 begin
                   if assigned(penumdef(def_from)^.basedef) then
                    hd1:=penumdef(def_from)^.basedef
@@ -243,7 +243,7 @@ implementation
                    b:=1;
                 end;
              end
-         else if typeof(def_to^)=typeof(Tarraydef) then
+         else if def_to^.is_object(typeof(Tarraydef)) then
              begin
              { open array is also compatible with a single element of its base type }
                if is_open_array(def_to) and
@@ -254,7 +254,7 @@ implementation
                 end
                else
                 begin
-                  if typeof(def_from^)=typeof(Tarraydef) then
+                  if def_from^.is_object(typeof(Tarraydef)) then
                       begin
                         { array constructor -> open array }
                         if is_open_array(def_to) and
@@ -275,7 +275,7 @@ implementation
                              end;
                          end;
                       end
-                  else if typeof(def_from^)=typeof(Tpointerdef) then
+                  else if def_from^.is_object(typeof(Tpointerdef)) then
                       begin
                         if is_zero_based_array(def_to) and
                            is_equal(ppointerdef(def_from)^.definition,parraydef(def_to)^.definition) then
@@ -284,7 +284,7 @@ implementation
                            b:=1;
                          end;
                       end
-                  else if typeof(def_from^)=typeof(Tstringdef) then
+                  else if def_from^.is_object(typeof(Tstringdef)) then
                       begin
                         { string to array of char}
                         if (not(is_special_array(def_to)) or is_open_array(def_to)) and
@@ -296,9 +296,9 @@ implementation
                       end;
                 end;
              end
-         else if typeof(def_to^)=typeof(Tpointerdef) then
+         else if def_to^.is_object(typeof(Tpointerdef)) then
              begin
-               if typeof(def_from^)=typeof(Tstringdef) then
+               if def_from^.is_object(typeof(Tstringdef)) then
                    begin
                      { string constant to zero terminated string constant }
                      if (fromtreetype=stringconstn) and
@@ -308,7 +308,7 @@ implementation
                         b:=1;
                       end;
                    end
-               else if typeof(def_from^)=typeof(Torddef) then
+               else if def_from^.is_object(typeof(Torddef)) then
                    begin
                      { char constant to zero terminated string constant }
                      if (fromtreetype=ordconstn) then
@@ -327,7 +327,7 @@ implementation
                           end;
                       end;
                    end
-               else if typeof(def_from^)=typeof(Tarraydef) then
+               else if def_from^.is_object(typeof(Tarraydef)) then
                    begin
                      { chararray to pointer }
                      if is_zero_based_array(def_from) and
@@ -337,13 +337,12 @@ implementation
                         b:=1;
                       end;
                    end
-               else if typeof(def_from^)=typeof(Tpointerdef) then
+               else if def_from^.is_object(typeof(Tpointerdef)) then
                    begin
                      { child class pointer can be assigned to anchestor pointers }
                      if (
-                            {Bug in TP: typeof(( )) required when typecasting.}
-                         (typeof((Ppointerdef(def_from)^.definition^))=typeof(Tobjectdef)) and
-                         (typeof((Ppointerdef(def_to)^.definition^))=typeof(Tobjectdef)) and
+                         (Ppointerdef(def_from)^.definition^.is_object(typeof(Tobjectdef))) and
+                         (Ppointerdef(def_to)^.definition^.is_object(typeof(Tobjectdef))) and
                          pobjectdef(ppointerdef(def_from)^.definition)^.is_related(
                            pobjectdef(ppointerdef(def_to)^.definition))
                         ) or
@@ -357,7 +356,7 @@ implementation
                          b:=1;
                        end;
                    end
-               else if typeof(def_from^)=typeof(Tprocvardef) then
+               else if def_from^.is_object(typeof(Tprocvardef)) then
                    begin
                      { procedure variable can be assigned to an void pointer }
                      { Not anymore. Use the @ operator now.}
@@ -369,17 +368,17 @@ implementation
                         b:=1;
                       end;
                    end
-               else if (typeof(def_from^)=typeof(Tclassrefdef)) or
-                (typeof(def_from^)=typeof(Tobjectdef)) then
+               else if def_from^.is_object(typeof(Tclassrefdef)) or
+                def_from^.is_object(typeof(Tobjectdef)) then
                    begin
                      { class types and class reference type
                        can be assigned to void pointers      }
                      if (
-                         ((typeof(def_from^)=typeof(Tobjectdef)) and
-                         (oo_is_class in pobjectdef(def_from)^.options)) or
-                         (typeof(def_from^)=typeof(Tclassrefdef))
+                         (def_from^.is_object(typeof(Tobjectdef)) and
+                         (oo_is_class in pobjectdef(def_from)^.options))) or
+                         (def_from^.is_object(typeof(Tclassrefdef))
                         ) and
-                        (typeof((ppointerdef(def_to)^.definition^))=typeof(Torddef)) and
+                         ppointerdef(def_to)^.definition^.is_object(typeof(Torddef)) and
                         (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
                        begin
                          doconv:=tc_equal;
@@ -387,7 +386,7 @@ implementation
                        end;
                    end;
              end
-         else if typeof(def_to^)=typeof(Tsetdef) then
+         else if def_to^.is_object(typeof(Tsetdef)) then
              begin
                { automatic arrayconstructor -> set conversion }
                if is_array_constructor(def_from) then
@@ -396,10 +395,10 @@ implementation
                   b:=1;
                 end;
              end
-         else if typeof(def_to^)=typeof(Tprocvardef) then
+         else if def_to^.is_object(typeof(Tprocvardef)) then
              begin
                { proc -> procvar }
-               if (typeof(def_from^)=typeof(Tprocdef)) then
+               if def_from^.is_object(typeof(Tprocdef)) then
                 begin
                   doconv:=tc_proc_2_procvar;
                   if proc_to_procvar_equal(pprocdef(def_from),pprocvardef(def_to)) then
@@ -409,8 +408,8 @@ implementation
                 { for example delphi allows the assignement from pointers }
                 { to procedure variables                                  }
                 if (m_pointer_2_procedure in aktmodeswitches) and
-                  (typeof(def_from^)=typeof(Tpointerdef)) and
-                  (typeof((ppointerdef(def_from)^.definition^))=typeof(Torddef)) and
+                  def_from^.is_object(typeof(Tpointerdef)) and
+                  ppointerdef(def_from)^.definition^.is_object(typeof(Torddef)) and
                   (porddef(ppointerdef(def_from)^.definition)^.typ=uvoid) then
                 begin
                    doconv:=tc_equal;
@@ -424,10 +423,10 @@ implementation
                    b:=1;
                  end;
              end
-         else if typeof(def_to^)=typeof(Tobjectdef) then
+         else if def_to^.is_object(typeof(Tobjectdef)) then
              begin
                { object pascal objects }
-               if typeof(def_from^)=typeof(Tobjectdef) then
+               if def_from^.is_object(typeof(Tobjectdef)) then
                 begin
                   doconv:=tc_equal;
                   if pobjectdef(def_from)^.is_related(pobjectdef(def_to)) then
@@ -453,10 +452,10 @@ implementation
                      end;
                  end;
              end
-         else if typeof(def_to^)=typeof(Tclassrefdef) then
+         else if def_to^.is_object(typeof(Tclassrefdef)) then
              begin
                { class reference types }
-               if typeof(def_from^)=typeof(Tclassrefdef) then
+               if def_from^.is_object(typeof(Tclassrefdef)) then
                 begin
                   doconv:=tc_equal;
                   if pobjectdef(pclassrefdef(def_from)^.definition)^.is_related(
@@ -471,7 +470,7 @@ implementation
                    b:=1;
                  end;
              end
-         else if typeof(def_to^)=typeof(Tfiledef) then
+         else if def_to^.is_object(typeof(Tfiledef)) then
              begin
                { typed files are all equal to the abstract file type
                name TYPEDFILE in system.pp in is_equal in types.pas
@@ -886,7 +885,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-02-28 17:23:58  daniel
+  Revision 1.2  2000-03-11 21:11:25  daniel
+    * Ported hcgdata to new symtable.
+    * Alignment code changed as suggested by Peter
+    + Usage of my is operator replacement, is_object
+
+  Revision 1.1  2000/02/28 17:23:58  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new

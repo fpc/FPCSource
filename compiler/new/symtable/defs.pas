@@ -29,7 +29,8 @@ unit defs;
 
 interface
 
-uses    symtable,objects,cobjects,symtablt,globtype
+uses    symtable,objects,{$IFDEF TP}xobjects,{$ENDIF}
+        cobjects,symtablt,globtype
 {$ifdef i386}
         ,cpubase
 {$endif}
@@ -47,7 +48,7 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
         Tobjprop=(sp_public,sp_private,sp_protected,sp_published,sp_static);
         Tobjpropset=set of Tobjprop;
 
-        Tobjoption=(oo_is_abstract,         {The object/class has
+        Tobjoption=(oo_has_abstract,         {The object/class has
                                              an abstract method => no
                                              instances can be created.}
                     oo_is_class,            {The object is a class.}
@@ -64,6 +65,7 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
                                              constructor.}
                     oo_has_destructor,      {The object/class has a
                                              destructor.}
+
                     oo_has_vmt,             {The object/class has a vmt.}
                     oo_has_msgstr,
                     oo_has_msgint,
@@ -173,6 +175,9 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
 
         Perrordef=^Terrordef;
         Terrordef=object(Tdef)
+{$IFDEF TP}
+            constructor init(Aowner:Pcontainingsymtable);
+{$ENDIF}
 {$ifdef GDB}
             function stabstring:Pchar;virtual;
 {$endif GDB}
@@ -204,6 +209,9 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
 
         Pclassrefdef=^Tclassrefdef;
         Tclassrefdef=object(Tpointerdef)
+{$IFDEF TP}
+            constructor init(Aowner:Pcontainingsymtable;def:Pdef);
+{$ENDIF TP}
 {$ifdef GDB}
             function stabstring : pchar;virtual;
             procedure concatstabto(asmlist : paasmoutput);virtual;
@@ -465,29 +473,48 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
             function para_size:longint;
             procedure store(var s:Tstream);virtual;
             procedure test_if_fpu_result;
- {$ifdef GDB}
+{$ifdef GDB}
             function stabstring : pchar;virtual;
             procedure concatstabto(asmlist : paasmoutput);virtual;
- {$endif GDB}
+{$endif GDB}
         end;
 
         Pprocvardef=^Tprocvardef;
         Tprocvardef=object(Tabstractprocdef)
+{$IFDEF TP}
+            constructor init(Aowner:Pcontainingsymtable);
+{$ENDIF TP}
             function size:longint;virtual;
- {$ifdef GDB}
+{$ifdef GDB}
             function stabstring:Pchar;virtual;
             procedure concatstabto(asmlist:Paasmoutput); virtual;
- {$endif GDB}
+{$endif GDB}
             procedure write_child_rtti_data;virtual;
             function is_publishable:boolean;virtual;
             procedure write_rtti_data;virtual;
             function gettypename:string;virtual;
         end;
 
+        {This datastructure is used to store the message information
+         when a procedure is declared as:
+          ;message 'str';
+          ;message int;
+          ;virtual int;
+        }
+        Tmessageinf=record
+            case integer of
+                0:(str:Pchar);
+                1:(i:longint);
+        end;
+
+        {This object can be splitted into a Tprocdef, for normal procedures,
+         a Tmethoddef for methods, and a Tinlinedprocdef and a
+         Tinlinedmethoddef for inlined procedures.}
         Pprocdef = ^Tprocdef;
         Tprocdef = object(tabstractprocdef)
            objprop:Tobjpropset;
            extnumber:longint;
+           messageinf:Tmessageinf;
            { where is this function defined, needed here because there
              is only one symbol for all overloaded functions }
            fileinfo:Tfileposinfo;
@@ -579,7 +606,7 @@ var     cformaldef:Pformaldef;      {Unique formal definition.}
 
 implementation
 
-uses    systems,symbols,verbose,globals,aasm,files;
+uses    systems,symbols,verbose,globals,aasm,files,strings;
 
 const   {If you change one of the following contants,
          you have also to change the typinfo unit
@@ -628,6 +655,7 @@ constructor Tfiledef.init(Aowner:Pcontainingsymtable;ft:Tfiletype;tas:Pdef);
 
 begin
     inherited init(Aowner);
+    {$IFDEF TP}setparent(typeof(Tdef));{$ENDIF}
     filetype:=ft;
     definition:=tas;
     setsize;
@@ -700,6 +728,7 @@ constructor Tformaldef.init(Aowner:Pcontainingsymtable);
 
 begin
     inherited init(Aowner);
+    {$IFDEF TP}setparent(typeof(Tdef));{$ENDIF}
     savesize:=target_os.size_of_pointer;
 end;
 
@@ -729,6 +758,15 @@ end;
                                   Terrordef
 ****************************************************************************}
 
+{$IFDEF TP}
+constructor Terrordef.init(Aowner:Pcontainingsymtable);
+
+begin
+    inherited init(Aowner);
+    setparent(typeof(Tdef));
+end;
+{$ENDIF TP}
+
 function Terrordef.gettypename:string;
 
 begin
@@ -743,6 +781,7 @@ constructor Tabstractpointerdef.init(Aowner:Pcontainingsymtable;def:Pdef);
 
 begin
     inherited init(Aowner);
+    {$IFDEF TP}setparent(typeof(Tdef));{$ENDIF}
     include(properties,dp_ret_in_acc);
     definition:=def;
     savesize:=target_os.size_of_pointer;
@@ -782,6 +821,7 @@ constructor Tpointerdef.initfar(Aowner:Pcontainingsymtable;def:Pdef);
 
 begin
    inherited init(Aowner,def);
+    {$IFDEF TP}setparent(typeof(Tabstractpointerdef));{$ENDIF}
    is_far:=true;
 end;
 
@@ -809,6 +849,15 @@ end;
                               Tclassrefdef
 ****************************************************************************}
 
+{$IFDEF TP}
+constructor Tclassrefdef.init(Aowner:Pcontainingsymtable;def:Pdef);
+
+begin
+    inherited init(Aowner,def);
+    setparent(typeof(Tpointerdef));
+end;
+{$ENDIF TP}
+
 function Tclassrefdef.gettypename:string;
 
 begin
@@ -824,6 +873,7 @@ constructor Tobjectdef.init(const n:string;Aowner:Pcontainingsymtable;
 
 begin
     inherited init(Aowner);
+    {$IFDEF TP}setparent(typeof(Tdef));{$ENDIF}
     new(publicsyms,init);
     publicsyms^.name:=stringdup(n);
     publicsyms^.defowner:=@self;
@@ -1301,6 +1351,7 @@ constructor Tarraydef.init(const l,h:Tconstant;rd:Pdef;
 
 begin
     inherited init(Aowner);
+    {$IFDEF TP}setparent(typeof(Tdef));{$ENDIF}
     lowrange:=l;
     highrange:=h;
     rangedef:=rd;
@@ -1487,6 +1538,7 @@ constructor Tenumdef.init(Aowner:Pcontainingsymtable);
 
 begin
     inherited init(Aowner);
+    {$IFDEF TP}setparent(typeof(Tdef));{$ENDIF}
     include(properties,dp_ret_in_acc);
     new(symbols,init(8,8));
     calcsavesize;
@@ -1663,6 +1715,7 @@ constructor Torddef.init(t:Tbasetype;l,h:Tconstant;
 
 begin
     inherited init(Aowner);
+    {$IFDEF TP}setparent(typeof(Tdef));{$ENDIF}
     include(properties,dp_ret_in_acc);
     low:=l;
     high:=h;
@@ -1805,6 +1858,7 @@ constructor Tfloatdef.init(t:Tfloattype;Aowner:Pcontainingsymtable);
 
 begin
     inherited init(Aowner);
+    {$IFDEF TP}setparent(typeof(Tdef));{$ENDIF}
     if t=f32bit then
         include(properties,dp_ret_in_acc);
     typ:=t;
@@ -1891,6 +1945,7 @@ constructor Tsetdef.init(s:Pdef;high:longint;Aowner:Pcontainingsymtable);
 
 begin
     inherited init(Aowner);
+    {$IFDEF TP}setparent(typeof(Tdef));{$ENDIF}
     definition:=s;
     if high<32 then
         begin
@@ -1987,6 +2042,7 @@ constructor Trecorddef.init(s:Precordsymtable;Aowner:Pcontainingsymtable);
 
 begin
     inherited init(Aowner);
+    {$IFDEF TP}setparent(typeof(Tdef));{$ENDIF}
     symtable:=s;
     savesize:=symtable^.datasize;
 end;
@@ -2185,6 +2241,7 @@ constructor Tstringdef.shortinit(l:byte;Aowner:Pcontainingsymtable);
 
 begin
     inherited init(Aowner);
+    {$IFDEF TP}setparent(typeof(Tdef));{$ENDIF}
     string_typ:=st_shortstring;
     len:=l;
     savesize:=len+1;
@@ -2413,6 +2470,7 @@ constructor Tabstractprocdef.init(Aowner:Pcontainingsymtable);
 
 begin
     inherited init(Aowner);
+    {$IFDEF TP}setparent(typeof(Tdef));{$ENDIF}
     include(properties,dp_ret_in_acc);
     retdef:=voiddef;
     savesize:=target_os.size_of_pointer;
@@ -2525,6 +2583,7 @@ constructor Tprocdef.init(Aowner:Pcontainingsymtable);
 
 begin
     inherited init(Aowner);
+    {$IFDEF TP}setparent(typeof(Tabstractprocdef));{$ENDIF}
     fileinfo:=aktfilepos;
     extnumber:=-1;
     new(localst,init);
@@ -2677,6 +2736,8 @@ end;
 destructor Tprocdef.done;
 
 begin
+    if pomsgstr in options then
+        strdispose(messageinf.str);
     if references<>nil then
         dispose(references,done);
     if (localst<>nil) and (typeof(localst^)<>typeof(Timplsymtable)) then
@@ -2785,10 +2846,17 @@ begin
         end;
 end;
 
-
 {***************************************************************************
                                  Tprocvardef
 ***************************************************************************}
+
+{$IFDEF TP}
+constructor Tprocvardef.init(Aowner:Pcontainingsymtable);
+
+begin
+    setparent(typeof(Tabstractprocdef));
+end;
+{$ENDIF TP}
 
 
 function Tprocvardef.size:longint;
@@ -2893,6 +2961,7 @@ begin
 {   oldregisterdef:=registerdef;
     registerdef:=false;}
     inherited init(Aowner);
+    {$IFDEF TP}setparent(typeof(Tdef));{$ENDIF}
 {   registerdef:=oldregisterdef;}
     tosymname:=s;
     forwardpos:=pos;
@@ -2909,7 +2978,12 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-03-01 11:43:55  daniel
+  Revision 1.5  2000-03-11 21:11:24  daniel
+    * Ported hcgdata to new symtable.
+    * Alignment code changed as suggested by Peter
+    + Usage of my is operator replacement, is_object
+
+  Revision 1.4  2000/03/01 11:43:55  daniel
   * Some more work on the new symtable.
   + Symtable stack unit 'symstack' added.
 

@@ -26,7 +26,11 @@ unit cgobj;
   interface
 
     uses
-       cobjects,aasm,symtable,symconst,cpuasm,cpubase,cgbase,cpuinfo,tainst;
+       cobjects,aasm,symtable,cpuasm,cpubase,cgbase,cpuinfo,tainst
+       {$IFDEF NEWST}
+       {$ELSE}
+       ,symconst
+       {$ENDIF NEWST};
 
     type
        talignment = (AM_NATURAL,AM_NONE,AM_2BYTE,AM_4BYTE,AM_8BYTE);
@@ -181,7 +185,10 @@ unit cgobj;
 
     uses
        strings,globals,globtype,options,files,gdb,systems,
-       ppu,verbose,types,tgobj,tgcpu;
+       ppu,verbose,types,tgobj,tgcpu
+       {$IFDEF NEWST}
+       ,symbols,defs,symtablt
+       {$ENDIF NEWST};
 
 {*****************************************************************************
                             basic functionallity
@@ -442,6 +449,27 @@ unit cgobj;
          hr : treference;
 
       begin
+      {$IFDEF NEWST}
+         if (typeof(p^)=typeof(Tvarsym)) and
+            assigned(pvarsym(p)^.definition) and
+            not((typeof((pvarsym(p)^.definition^))=typeof(Tobjectdef)) and
+              (oo_is_class in pobjectdef(pvarsym(p)^.definition)^.options)) and
+            pvarsym(p)^.definition^.needs_inittable then
+           begin
+              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
+              reset_reference(hr);
+              if typeof((psym(p)^.owner^))=typeof(Tprocsymtable) then
+                begin
+                   hr.base:=procinfo^.framepointer;
+                   hr.offset:=-pvarsym(p)^.address;
+                end
+              else
+                begin
+                   hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
+                end;
+              g_initialize(list,pvarsym(p)^.definition,hr,false);
+           end;
+      {$ELSE}
          if (psym(p)^.typ=varsym) and
             assigned(pvarsym(p)^.vartype.def) and
             not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
@@ -461,6 +489,7 @@ unit cgobj;
                 end;
               g_initialize(list,pvarsym(p)^.vartype.def,hr,false);
            end;
+      {$ENDIF NEWST}
       end;
 
 
@@ -471,6 +500,25 @@ unit cgobj;
          hr : treference;
 
       begin
+      {$IFDEF NEWST}
+         if (typeof((psym(p)^))=typeof(Tparamsym)) and
+            not((typeof((Pparamsym(p)^.definition^))=typeof(Tobjectdef)) and
+              (oo_is_class in pobjectdef(pvarsym(p)^.definition)^.options)) and
+            Pparamsym(p)^.definition^.needs_inittable and
+            ((Pparamsym(p)^.varspez=vs_value)) then
+           begin
+              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
+              reset_reference(hr);
+              hr.symbol:=pvarsym(p)^.definition^.get_inittable_label;
+              a_param_ref_addr(list,hr,2);
+              reset_reference(hr);
+              hr.base:=procinfo^.framepointer;
+              hr.offset:=pvarsym(p)^.address+procinfo^.para_offset;
+              a_param_ref_addr(list,hr,1);
+              reset_reference(hr);
+              a_call_name(list,'FPC_ADDREF',0);
+           end;
+      {$ELSE}
          if (psym(p)^.typ=varsym) and
             not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
               pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
@@ -488,6 +536,7 @@ unit cgobj;
               reset_reference(hr);
               a_call_name(list,'FPC_ADDREF',0);
            end;
+      {$ENDIF NEWST}
       end;
 
 
@@ -498,6 +547,36 @@ unit cgobj;
          hr : treference;
 
       begin
+      {$IFDEF NEWST}
+         if (typeof((psym(p)^))=typeof(Tvarsym)) and
+            assigned(pvarsym(p)^.definition) and
+            not((typeof((pvarsym(p)^.definition^))=typeof(Tobjectdef)) and
+            (oo_is_class in pobjectdef(pvarsym(p)^.definition)^.options)) and
+            pvarsym(p)^.definition^.needs_inittable then
+           begin
+              { not all kind of parameters need to be finalized  }
+              if (typeof((psym(p)^.owner^))=typeof(Tprocsymtable)) and
+                ((pparamsym(p)^.varspez=vs_var)  or
+                 (Pparamsym(p)^.varspez=vs_const) { and
+                 (dont_copy_const_param(pvarsym(p)^.definition)) } ) then
+                exit;
+              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
+              reset_reference(hr);
+              if typeof((Psym(p)^.owner^))=typeof(Tprocsymtable) then
+                 begin
+                    hr.base:=procinfo^.framepointer;
+                    hr.offset:=-pvarsym(p)^.address;
+                 end
+              else if typeof((Psym(p)^.owner^))=typeof(Tprocsymtable) then
+                 begin
+                    hr.base:=procinfo^.framepointer;
+                    hr.offset:=pvarsym(p)^.address+procinfo^.para_offset;
+                 end
+               else
+                 hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
+              g_finalize(list,pvarsym(p)^.definition,hr,false);
+           end;
+      {$ELSE}
          if (psym(p)^.typ=varsym) and
             assigned(pvarsym(p)^.vartype.def) and
             not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
@@ -528,6 +607,7 @@ unit cgobj;
               end;
               g_finalize(list,pvarsym(p)^.vartype.def,hr,false);
            end;
+      {$ENDIF NEWST}
       end;
 
 
@@ -543,11 +623,13 @@ unit cgobj;
     { wrappers for the methods, because TP doesn't know procedures }
     { of objects                                                   }
 
+    {$IFNDEF NEWST}
     procedure _copyvalueparas(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
 
       begin
          cg^.g_copyvalueparas(_list,s);
       end;
+    {$ENDIF NEWST}
 
     procedure tcg.g_finalizetempansistrings(list : paasmoutput);
 
@@ -572,6 +654,24 @@ unit cgobj;
            end;
      end;
 
+ {$IFDEF NEWST}
+    procedure _initialize_local(s:Pnamedindexobject);{$IFNDEF FPC}far;{$ENDIF}
+
+    begin
+        if typeof(s^)=typeof(Tparamsym) then
+            cg^.g_incr_data(_list,Psym(s))
+        else
+            cg^.g_initialize_data(_list,Psym(s));
+    end;
+
+    procedure _finalize_data(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
+
+    begin
+        if typeof(s^)=typeof(Tvarsym) then
+            cg^.g_finalize_data(_list,s);
+    end;
+
+ {$ELSE}
     procedure _finalize_data(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
 
       begin
@@ -589,11 +689,21 @@ unit cgobj;
       begin
          cg^.g_initialize_data(_list,psym(s));
       end;
+ {$ENDIF NEWST}
 
     { generates the entry code for a procedure }
     procedure tcg.g_entrycode(list : paasmoutput;const proc_names:Tstringcontainer;make_global:boolean;
        stackframe:longint;var parasize:longint;var nostackframe:boolean;
        inlined : boolean);
+
+
+    {$IFDEF NEWST}
+        procedure _copyvalueparas(s:Pparamsym);{$ifndef FPC}far;{$endif}
+
+        begin
+            cg^.g_copyvalueparas(_list,s);
+        end;
+    {$ENDIF NEWST}
 
       var
          hs : string;
@@ -617,7 +727,11 @@ unit cgobj;
                   list^.insert(new(pai_align,init(4)));
           end;
          { save registers on cdecl }
+         {$IFDEF NEWST}
+         if (posavestdregs in aktprocdef^.options) then
+         {$ELSE}
          if (po_savestdregs in aktprocsym^.definition^.procoptions) then
+         {$ENDIF NEWST}
            begin
               for r:=firstreg to lastreg do
                 begin
@@ -639,21 +753,39 @@ unit cgobj;
             begin
                CGMessage(cg_d_stackframe_omited);
                nostackframe:=true;
-               if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
+            {$IFDEF NEWST}
+               if (aktprocdef^.proctype in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
+                 parasize:=0
+               else
+                 parasize:=aktprocdef^.localst^.paramdatasize+procinfo^.para_offset-pointersize;
+            {$ELSE}
+               if (aktproc^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                  parasize:=0
                else
                  parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.para_offset-pointersize;
+            {$ENDIF NEWST}
             end
           else
             begin
-               if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
+            {$IFDEF NEWST}
+               if (aktprocdef^.proctype in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
+                 parasize:=0
+               else
+                 parasize:=aktprocdef^.localst^.paramdatasize+procinfo^.para_offset-pointersize*2;
+            {$ELSE}
+               if (aktprocdef^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                  parasize:=0
                else
                  parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.para_offset-pointersize*2;
+            {$ENDIF}
                nostackframe:=false;
-
-               if (po_interrupt in aktprocsym^.definition^.procoptions) then
+            {$IFDEF NEWST}
+               if (pointerrupt in aktprocdef^.options) then
                  g_interrupt_stackframe_entry(list);
+            {$ELSE}
+               if (po_interrupt in aktprocdef^.procoptions) then
+                 g_interrupt_stackframe_entry(list);
+            {$ENDIF NEWST}
 
                g_stackframe_entry(list,stackframe);
 
@@ -664,7 +796,11 @@ unit cgobj;
 
          if cs_profile in aktmoduleswitches then
            g_profilecode(@initcode);
+         {$IFDEF NEWST}
+          if (not inlined) and (aktprocdef^.proctype in [potype_unitinit]) then
+         {$ELSE}
           if (not inlined) and (aktprocsym^.definition^.proctypeoption in [potype_unitinit]) then
+         {$ENDIF NEWST}
             begin
 
               { needs the target a console flags ? }
@@ -715,6 +851,18 @@ unit cgobj;
            list^.insert(new(pai_force_line,init));
   {$endif GDB}
 
+        {$IFDEF NEWST}
+         { initialize return value }
+         if assigned(procinfo^.retdef) and
+           is_ansistring(procinfo^.retdef) or
+           is_widestring(procinfo^.retdef) then
+           begin
+              reset_reference(hr);
+              hr.offset:=procinfo^.return_offset;
+              hr.base:=procinfo^.framepointer;
+              a_load_const_ref(list,OS_32,0,hr);
+           end;
+        {$ELSE}
          { initialize return value }
          if assigned(procinfo^.returntype.def) and
            is_ansistring(procinfo^.returntype.def) or
@@ -725,21 +873,42 @@ unit cgobj;
               hr.base:=procinfo^.framepointer;
               a_load_const_ref(list,OS_32,0,hr);
            end;
+        {$ENDIF}
 
          _list:=list;
          { generate copies of call by value parameters }
+        {$IFDEF NEWST}
+         if (poassembler in aktprocdef^.options) then
+            aktprocdef^.parameters^.foreach(@_copyvalueparas);
+        {$ELSE}
          if (po_assembler in aktprocsym^.definition^.procoptions) then
             aktprocsym^.definition^.parast^.foreach({$ifdef FPC}@{$endif FPC}_copyvalueparas);
+        {$ENDIF NEWST}
 
+        {$IFDEF NEWST}
+         { initialisizes local data }
+         aktprocdef^.localst^.foreach({$ifdef FPC}@{$endif FPC}_initialize_local);
+        {$ELSE}
          { initialisizes local data }
          aktprocsym^.definition^.localst^.foreach({$ifdef FPC}@{$endif FPC}_initialize_data);
          { add a reference to all call by value/const parameters }
          aktprocsym^.definition^.parast^.foreach({$ifdef FPC}@{$endif FPC}_incr_data);
+        {$ENDIF NEWST}
 
+        {$IFDEF NEWST}
+         if (cs_profile in aktmoduleswitches) or
+           (typeof(aktprocdef^.owner^)=typeof(Tglobalsymtable)) or
+           (typeof(aktprocdef^.owner^)=typeof(Timplsymtable)) or
+           (assigned(procinfo^._class) and
+           (typeof(procinfo^._class^.owner^)=typeof(Tglobalsymtable)) or
+           (typeof(procinfo^._class^.owner^)=typeof(Timplsymtable))) then
+           make_global:=true;
+        {$ELSE}
          if (cs_profile in aktmoduleswitches) or
            (aktprocsym^.definition^.owner^.symtabletype=globalsymtable) or
            (assigned(procinfo^._class) and (procinfo^._class^.owner^.symtabletype=globalsymtable)) then
            make_global:=true;
+        {$ENDIF NEWST}
          if not inlined then
            begin
               hs:=proc_names.get;
@@ -798,9 +967,17 @@ unit cgobj;
            list^.insert(new(pai_label,init(aktexitlabel)));
 
          { call the destructor help procedure }
+         {$IFDEF NEWST}
+         if (aktprocdef^.proctype=potype_destructor) then
+         {$ELSE}
          if (aktprocsym^.definition^.proctypeoption=potype_destructor) then
+         {$ENDIF}
            begin
+           {$IFDEF NEWST}
+             if oo_is_class in procinfo^._class^.options then
+           {$ELSE NEWST}
              if procinfo^._class^.is_class then
+           {$ENDIF}
                a_call_name(list,'FPC_DISPOSE_CLASS',0)
              else
                begin
@@ -835,11 +1012,17 @@ unit cgobj;
          _list:=list;
 
          { finalize local data }
+         {$IFDEF NEWST}
+         aktprocdef^.localst^.foreach({$ifndef TP}@{$endif}_finalize_data);
+         {$ELSE}
          aktprocsym^.definition^.localst^.foreach({$ifndef TP}@{$endif}_finalize_data);
+         {$ENDIF}
 
+         {$IFNDEF NEWST}
          { finalize paras data }
-         if assigned(aktprocsym^.definition^.parast) then
+         if assigned(aktprocdef^.parast) then
            aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}_finalize_data);
+         {$ENDIF NEWST}
 
          { do we need to handle exceptions because of ansi/widestrings ? }
          if (procinfo^.flags and pi_needs_implicit_finally)<>0 then
@@ -852,6 +1035,19 @@ unit cgobj;
               a_cmp_reg_const_label(list,OS_32,OC_EQ,0,accumulator,noreraiselabel);
               a_reg_dealloc(list,accumulator);
 
+           {$IFDEF NEWST}
+              { must be the return value finalized before reraising the exception? }
+              if (procinfo^.retdef<>pdef(voiddef)) and
+                (procinfo^.retdef^.needs_inittable) and
+                ((typeof(procinfo^.retdef^)<>typeof(Tobjectdef)) or
+                not(oo_is_class in pobjectdef(procinfo^.retdef)^.options)) then
+                begin
+                   reset_reference(hr);
+                   hr.offset:=procinfo^.return_offset;
+                   hr.base:=procinfo^.framepointer;
+                   g_finalize(list,procinfo^.retdef,hr,not (dp_ret_in_acc in procinfo^.retdef^.properties));
+                end;
+           {$ELSE}
               { must be the return value finalized before reraising the exception? }
               if (procinfo^.returntype.def<>pdef(voiddef)) and
                 (procinfo^.returntype.def^.needs_inittable) and
@@ -863,18 +1059,29 @@ unit cgobj;
                    hr.base:=procinfo^.framepointer;
                    g_finalize(list,procinfo^.returntype.def,hr,ret_in_param(procinfo^.returntype.def));
                 end;
+           {$ENDIF}
 
               a_call_name(list,'FPC_RERAISE',0);
               a_label(list,noreraiselabel);
            end;
 
          { call __EXIT for main program }
+      {$IFDEF NEWST}
+         if (not DLLsource) and (not inlined) and (aktprocdef^.proctype=potype_proginit) then
+           a_call_name(list,'FPC_DO_EXIT',0);
+      {$ELSE}
          if (not DLLsource) and (not inlined) and (aktprocsym^.definition^.proctypeoption=potype_proginit) then
            a_call_name(list,'FPC_DO_EXIT',0);
+      {$ENDIF NEWST}
 
          { handle return value }
+      {$IFDEF NEWST}
+         if not(poassembler in aktprocdef^.options) then
+             if (aktprocdef^.proctype<>potype_constructor) then
+      {$ELSE}
          if not(po_assembler in aktprocsym^.definition^.procoptions) then
              if (aktprocsym^.definition^.proctypeoption<>potype_constructor) then
+      {$ENDIF NEWST}
                { handle_return_value(inlined) }
              else
                begin
@@ -918,11 +1125,19 @@ unit cgobj;
          { at last, the return is generated }
 
          if not inlined then
+         {$IFDEF NEWST}
+           if pointerrupt in aktprocdef^.options then
+         {$ELSE}
            if po_interrupt in aktprocsym^.definition^.procoptions then
+         {$ENDIF NEWST}
              g_interrupt_stackframe_exit(list)
          else
            g_return_from_proc(list,parasize);
+    {$IFDEF NEWST}
+         list^.concat(new(pai_symbol_end,initname(aktprocdef^.mangledname)));
+    {$ELSE NEWST}
          list^.concat(new(pai_symbol_end,initname(aktprocsym^.definition^.mangledname)));
+    {$ENDIF NEWST}
 
     {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) and not inlined  then
@@ -1114,7 +1329,12 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.35  2000-03-01 15:36:13  florian
+  Revision 1.36  2000-03-11 21:11:24  daniel
+    * Ported hcgdata to new symtable.
+    * Alignment code changed as suggested by Peter
+    + Usage of my is operator replacement, is_object
+
+  Revision 1.35  2000/03/01 15:36:13  florian
     * some new stuff for the new cg
 
   Revision 1.34  2000/02/20 20:49:46  florian

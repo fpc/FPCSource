@@ -50,24 +50,39 @@ type    Pglobalsymtable=^Tglobalsymtable;
 
         Tinterfacesymtable=object(Tglobalsymtable)
             unitid:word;
+        {$IFDEF TP}
+            constructor init;
+        {$ENDIF TP}
             function varsymprefix:string;virtual;
         end;
 
         Timplsymtable=object(Tglobalsymtable)
             unitid:word;
+        {$IFDEF TP}
+            constructor init;
+        {$ENDIF TP}
             function varsymprefix:string;virtual;
         end;
 
         Tabstractrecordsymtable=object(Tcontainingsymtable)
+        {$IFDEF TP}
+            constructor init;
+        {$ENDIF TP}
             function varsymtodata(sym:Psym;len:longint):longint;virtual;
         end;
 
         Precordsymtable=^Trecordsymtable;
         Trecordsymtable=object(Tabstractrecordsymtable)
+        {$IFDEF TP}
+            constructor init;
+        {$ENDIF TP}
         end;
 
         Tobjectsymtable=object(Tabstractrecordsymtable)
             defowner:Pobjectsymtable;
+        {$IFDEF TP}
+            constructor init;
+        {$ENDIF TP}
 {           function speedsearch(const s:stringid;
                                  speedvalue:longint):Psym;virtual;}
         end;
@@ -80,6 +95,9 @@ type    Pglobalsymtable=^Tglobalsymtable;
              possible to make another Tmethodsymtable and move this field
              to it, but I think the advantage is not worth it. (DM)}
             method:Pdef;
+        {$IFDEF TP}
+            constructor init;
+        {$ENDIF TP}
             function insert(sym:Psym):boolean;virtual;
             function speedsearch(const s:stringid;
                                  speedvalue:longint):Psym;virtual;
@@ -113,17 +131,6 @@ implementation
 
 uses    symbols,files,globals,aasm,systems,defs,verbose;
 
-function data_align(length:longint):longint;
-
-begin
-    if length>2 then
-        data_align:=4
-    else if length>1 then
-        data_align:=2
-    else
-        data_align:=1;
-end;
-
 {****************************************************************************
                               Tglobalsymtable
 ****************************************************************************}
@@ -132,6 +139,7 @@ constructor Tglobalsymtable.init;
 
 begin
     inherited init;
+    {$IFDEF TP}setparent(typeof(Tcontainingsymtable));{$ENDIF}
     index_growsize:=128;
 end;
 
@@ -152,8 +160,7 @@ begin
         segment:=datasegment;
     if (cs_create_smart in aktmoduleswitches) then
         segment^.concat(new(Pai_cut,init));
-    ali:=data_align(len);
-    align(datasize,ali);
+    align_from_size(datasize,len);
 {$ifdef GDB}
     if cs_debuginfo in aktmoduleswitches then
         concatstabto(segment);
@@ -168,8 +175,7 @@ var ali:longint;
 begin
     if (cs_create_smart in aktmoduleswitches) then
         bsssegment^.concat(new(Pai_cut,init));
-    ali:=data_align(len);
-    align(datasize,ali);
+    align_from_size(datasize,len);
 {$ifdef GDB}
     if cs_debuginfo in aktmoduleswitches then
         concatstabto(bsssegment);
@@ -185,6 +191,14 @@ end;
                                Timplsymtable
 ****************************************************************************}
 
+{$IFDEF TP}
+constructor Timplsymtable.init;
+
+begin
+    inherited init;
+    setparent(typeof(Tglobalsymtable));
+end;
+{$ENDIF TP}
 
 function Timplsymtable.varsymprefix:string;
 
@@ -196,6 +210,15 @@ end;
                             Tinterfacesymtable
 ****************************************************************************}
 
+{$IFDEF TP}
+constructor Tinterfacesymtable.init;
+
+begin
+    inherited init;
+    setparent(typeof(Tglobalsymtable));
+end;
+{$ENDIF TP}
+
 function Tinterfacesymtable.varsymprefix:string;
 
 begin
@@ -205,6 +228,15 @@ end;
 {****************************************************************************
                         Tabstractrecordsymtable
 ****************************************************************************}
+
+{$IFDEF TP}
+constructor Tabstractrecordsymtable.init;
+
+begin
+    inherited init;
+    setparent(typeof(Tcontainingsymtable));
+end;
+{$ENDIF TP}
 
 function Tabstractrecordsymtable.varsymtodata(sym:Psym;
                                              len:longint):longint;
@@ -219,9 +251,27 @@ end;
                              Trecordsymtable
 ****************************************************************************}
 
+{$IFDEF TP}
+constructor Trecordsymtable.init;
+
+begin
+    inherited init;
+    setparent(typeof(Tabstractrecordsymtable));
+end;
+{$ENDIF TP}
+
 {****************************************************************************
                              Tobjectsymtable
 ****************************************************************************}
+
+{$IFDEF TP}
+constructor Tobjectsymtable.init;
+
+begin
+    inherited init;
+    setparent(typeof(Tabstractrecordsymtable));
+end;
+{$ENDIF TP}
 
 {This is not going to work this way, because the definition isn't known yet
  when the symbol hasn't been found. For procsyms the object properties
@@ -247,6 +297,14 @@ end;}
 {****************************************************************************
                              Tprocsymsymtable
 ****************************************************************************}
+{$IFDEF TP}
+constructor Tprocsymtable.init;
+
+begin
+    inherited init;
+    setparent(typeof(Tcontainingsymtable));
+end;
+{$ENDIF TP}
 
 function Tprocsymtable.insert(sym:Psym):boolean;
 
@@ -279,17 +337,7 @@ begin
         begin
             {Sym must be a varsym.}
             {Align datastructures >=4 on a dword.}
-            if len>=4 then
-                align(len,4)
-            else
-{$ifdef m68k}
-                {Align datastructures with size 1,2,3 on a word.}
-                align(len,2);
-{$else}
-                {Align datastructures with size 2 or 3 on a word.}
-                if len>=2 then
-                    align(len,2);
-{$endif}
+            align_from_size(len,len);
             varsymtodata:=inherited varsymtodata(sym,len);
         end;
 end;
@@ -302,6 +350,7 @@ constructor Tunitsymtable.init(const n:string);
 
 begin
     inherited init;
+    {$IFDEF TP}setparent(typeof(Tcontainingsymtable));{$ENDIF}
     name:=stringdup(n);
     index_growsize:=128;
 end;
@@ -338,8 +387,7 @@ begin
         segment:=datasegment;
     if (cs_create_smart in aktmoduleswitches) then
         segment^.concat(new(Pai_cut,init));
-    ali:=data_align(len);
-    align(datasize,ali);
+    align_from_size(datasize,len);
 {$ifdef GDB}
     if cs_debuginfo in aktmoduleswitches then
         concatstabto(segment);
@@ -373,6 +421,7 @@ constructor Twithsymtable.init(Alink:Pcontainingsymtable);
 
 begin
     inherited init;
+    {$IFDEF TP}setparent(typeof(Tsymtable));{$ENDIF}
     link:=Alink;
 end;
 

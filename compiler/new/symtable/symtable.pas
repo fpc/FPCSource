@@ -27,7 +27,8 @@ unit symtable;
 
 interface
 
-uses    objects,cobjects,aasm,globtype,cpubase;
+uses    objects{$IFDEF TP},xobjects{$ENDIF}
+        ,cobjects,aasm,globtype,cpubase;
 
 
 type    Tdefprop=(dp_regable,           {Can be stored into a register.}
@@ -49,6 +50,9 @@ type    Tdefprop=(dp_regable,           {Can be stored into a register.}
         Tsymtable=object(Tobject)
             name:Pstring;
             datasize:longint;
+        {$IFDEF TP}
+            constructor init;
+        {$ENDIF TP}
             procedure foreach(proc2call:Tnamedindexcallback);virtual;
             function insert(sym:Psym):boolean;virtual;
             function search(const s:stringid):Psym;
@@ -93,6 +97,9 @@ type    Tdefprop=(dp_regable,           {Can be stored into a register.}
 
         Tsymtableentry=object(Tnamedindexobject)
             owner:Pcontainingsymtable;
+        {$IFDEF TP}
+            constructor init(const n:string);
+        {$ENDIF TP}
         end;
 
         Tsymprop=byte;
@@ -188,6 +195,13 @@ uses    symtablt,files,verbose,globals;
                                 Tsymtable
 ****************************************************************************}
 
+{$IFDEF TP}
+constructor Tsymtable.init;
+
+begin
+    setparent(typeof(Tobject));
+end;
+{$ENDIF TP}
 
 procedure Tsymtable.foreach(proc2call:Tnamedindexcallback);
 
@@ -242,6 +256,8 @@ constructor Tcontainingsymtable.init;
 var indexgrow:word;
 
 begin
+    inherited init;
+    {$IFDEF TP}setparent(typeof(Tsymtable));{$ENDIF}
     indexgrow:=index_growsize;
     new(defindex,init(2*indexgrow,indexgrow));
     new(symsearch,init);
@@ -350,6 +366,7 @@ constructor Tref.init(const pos:Tfileposinfo);
 
 begin
     inherited init;
+    {$IFDEF TP}setparent(typeof(Tobject));{$ENDIF}
     posinfo:=pos;
     moduleindex:=current_module^.unit_index;
 end;
@@ -374,6 +391,19 @@ begin
 end;
 
 {****************************************************************************
+                                Tsymtableentry
+****************************************************************************}
+
+{$IFDEF TP}
+constructor Tsymtableentry.init(const n:string);
+
+begin
+    inherited init(n);
+    setparent(typeof(Tnamedindexobject));
+end;
+{$ENDIF TP}
+
+{****************************************************************************
                                     Tsym
 ****************************************************************************}
 
@@ -381,6 +411,7 @@ constructor Tsym.init(const n:string);
 
 begin
     inherited init(n);
+    {$IFDEF TP}setparent(typeof(Tsymtableentry));{$ENDIF}
     fileinfo:=tokenpos;
     if cs_browser in aktmoduleswitches then
         new(references,init(32,16));
@@ -454,6 +485,7 @@ constructor Tdef.init(Aowner:Pcontainingsymtable);
 
 begin
     inherited init;
+    {$IFDEF TP}setparent(typeof(Tobject));{$ENDIF}
     Aowner^.registerdef(@self);
     owner:=Aowner;
 end;

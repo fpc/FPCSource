@@ -29,6 +29,9 @@ unit pbase;
 {$ifdef fixLeaksOnError}
        ,comphook
 {$endif fixLeaksOnError}
+{$IFDEF NEWST}
+       ,symbols,defs
+{$ENDIF NEWST}
        ;
 
     const
@@ -194,7 +197,12 @@ end.
 
 {
   $Log$
-  Revision 1.30  2000-02-09 13:22:56  peter
+  Revision 1.31  2000-03-11 21:11:24  daniel
+    * Ported hcgdata to new symtable.
+    * Alignment code changed as suggested by Peter
+    + Usage of my is operator replacement, is_object
+
+  Revision 1.30  2000/02/09 13:22:56  peter
     * log truncated
 
   Revision 1.29  2000/01/11 17:16:04  jonas

@@ -24,7 +24,10 @@ unit ptype;
 interface
 
 uses
-  globtype,symtable;
+  globtype,symtable
+  {$IFDEF NEWST}
+  ,symbols,defs
+  {$ENDIF NEWST};
 
 
     const
@@ -45,10 +48,16 @@ uses
 
 
     { reads a string, file type or a type id and returns a name and }
-    { pdef                                                        }
+    { pdef }
+{$IFDEF NEWST}
+    procedure single_type(var tt:Tdef;var s : string;isforwarddef:boolean);
+
+    procedure read_type(var tt:Tdef;const name : stringid);
+{$ELSE}
     procedure single_type(var tt:ttype;var s : string;isforwarddef:boolean);
 
     procedure read_type(var tt:ttype;const name : stringid);
+{$ENDIF NEWST}
 
 
 implementation
@@ -1539,7 +1548,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.20  2000-02-24 18:41:39  peter
+  Revision 1.21  2000-03-11 21:11:24  daniel
+    * Ported hcgdata to new symtable.
+    * Alignment code changed as suggested by Peter
+    + Usage of my is operator replacement, is_object
+
+  Revision 1.20  2000/02/24 18:41:39  peter
     * removed warnings/notes
 
   Revision 1.19  2000/02/21 22:17:49  florian

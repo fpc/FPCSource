@@ -33,12 +33,14 @@ unit cobjects;
 interface
 
 uses    strings,objects
+{$IFDEF TP}
+        ,xobjects
+{$ENDIF}
 {$ifndef linux}
-       ,dos
+        ,dos
 {$else}
-       ,linux
-{$endif}
-      ;
+        ,linux
+{$endif};
 
     const
        { the real size will be [-hasharray..hasharray] ! }
@@ -75,6 +77,9 @@ type   pfileposinfo = ^tfileposinfo;
        plinkedlist_item = ^tlinkedlist_item;
        tlinkedlist_item = object(Tobject)
           next,previous : plinkedlist_item;
+       {$IFDEF TP}
+          constructor init;
+       {$ENDIF TP}
           function getcopy:plinkedlist_item;virtual;
        end;
 
@@ -90,6 +95,9 @@ type   pfileposinfo = ^tfileposinfo;
        plinkedlist = ^tlinkedlist;
        tlinkedlist = object(Tobject)
           first,last : plinkedlist_item;
+       {$IFDEF TP}
+          constructor init;
+       {$ENDIF TP}
           destructor done;virtual;
 
           { disposes the items of the list }
@@ -122,6 +130,9 @@ type   pfileposinfo = ^tfileposinfo;
        PStringQueue=^TStringQueue;
        TStringQueue=object(Tobject)
          first,last : PStringItem;
+       {$IFDEF TP}
+         constructor init;
+       {$ENDIF TP}
          destructor Done;virtual;
          function Empty:boolean;
          function Get:string;
@@ -189,7 +200,6 @@ type   pfileposinfo = ^tfileposinfo;
          procedure usehash;
          procedure clear;
          function  empty:boolean;
-         function contains(obj:Pnamedindexobject):boolean;
          procedure foreach(proc2call:Tnamedindexcallback);
          function  insert(obj:Pnamedindexobject):Pnamedindexobject;
          function  rename(const olds,news : string):Pnamedindexobject;
@@ -535,6 +545,14 @@ end;
                                   TStringQueue
 ****************************************************************************}
 
+{$IFDEF TP}
+constructor Tstringqueue.init;
+
+begin
+    setparent(typeof(Tobject));
+end;
+{$ENDIF TP}
+
 function TStringQueue.Empty:boolean;
 begin
   Empty:=(first=nil);
@@ -652,6 +670,7 @@ end;
     constructor tstringcontainer.init;
       begin
          inherited init;
+         {$IFDEF TP}setparent(typeof(Tobject));{$ENDIF}
          doubles:=true;
       end;
 
@@ -659,6 +678,7 @@ end;
     constructor tstringcontainer.init_no_double;
       begin
          doubles:=false;
+         {$IFDEF TP}setparent(typeof(Tobject));{$ENDIF}
       end;
 
 
@@ -799,6 +819,14 @@ end;
  ****************************************************************************}
 
 
+    {$IFDEF TP}
+    constructor Tlinkedlist_item.init;
+
+    begin
+        setparent(typeof(Tobject));
+    end;
+    {$ENDIF TP}
+
     function tlinkedlist_item.getcopy:plinkedlist_item;
       var
         l : longint;
@@ -818,6 +846,7 @@ end;
     constructor tstring_item.init(const s : string);
       begin
          inherited init;
+         {$IFDEF TP}setparent(typeof(Tobject));{$ENDIF}
          str:=stringdup(s);
       end;
 
@@ -833,6 +862,14 @@ end;
                                TLINKEDLIST
  ****************************************************************************}
 
+
+    {$IFDEF TP}
+    constructor Tlinkedlist.init;
+
+    begin
+        setparent(typeof(Tobject));
+    end;
+    {$ENDIF TP}
 
     destructor tlinkedlist.done;
       begin
@@ -1006,6 +1043,7 @@ end;
 constructor Tnamedindexobject.init(const n:string);
 begin
   inherited init;
+  {$IFDEF TP}setparent(typeof(Tobject));{$ENDIF}
   { index }
   indexnr:=-1;
   { dictionary }
@@ -1034,6 +1072,7 @@ end;
     constructor Tdictionary.init;
       begin
         inherited init;
+        {$IFDEF TP}setparent(typeof(Tobject));{$ENDIF}
         replace_existing:=false;
       end;
 
@@ -1450,6 +1489,7 @@ end;
     constructor tdynamicarray.init(Aelemlen,Agrow:longint);
       begin
         inherited init;
+        {$IFDEF TP}setparent(typeof(Tobject));{$ENDIF}
         elemlen:=Aelemlen;
         growcount:=Agrow;
         grow;
@@ -1609,6 +1649,7 @@ end;
 
       begin
          inherited init;
+         {$IFDEF TP}setparent(typeof(Tobject));{$ENDIF}
          assign(f,filename);
          bufsize:=_bufsize;
          clear_crc;
@@ -1930,7 +1971,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-03-01 11:43:55  daniel
+  Revision 1.3  2000-03-11 21:11:24  daniel
+    * Ported hcgdata to new symtable.
+    * Alignment code changed as suggested by Peter
+    + Usage of my is operator replacement, is_object
+
+  Revision 1.2  2000/03/01 11:43:55  daniel
   * Some more work on the new symtable.
   + Symtable stack unit 'symstack' added.
 

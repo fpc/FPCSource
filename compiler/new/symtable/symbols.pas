@@ -90,6 +90,7 @@ type    Ttypeprop=(sp_primary_typesym);
             _class:Pobjectdef;
             constructor init(const n:string;Asub_of:Pprocsym);
             constructor load(var s:Tstream);
+            function count:word;
             function firstthat(action:pointer):Pprocdef;
             procedure foreach(action:pointer);
             procedure insert(def:Pdef);
@@ -244,7 +245,7 @@ type    Ttypeprop=(sp_primary_typesym);
 
         Pfuncretsym=^Tfuncretsym;
         Tfuncretsym=object(tsym)
-            funcretprocinfo : pointer{ should be pprocinfo};
+            funcretprocinfo:pointer{Pprocinfo};
             funcretdef:Pdef;
             address:longint;
             constructor init(const n:string;approcinfo:pointer{pprocinfo});
@@ -307,6 +308,7 @@ constructor Tlabelsym.init(const n:string;l:Pasmlabel);
 
 begin
     inherited init(n);
+    {$IFDEF TP}setparent(typeof(Tsym));{$ENDIF}
     lab:=l;
     defined:=false;
 end;
@@ -339,6 +341,7 @@ constructor terrorsym.init;
 
 begin
     inherited init('');
+    {$IFDEF TP}setparent(typeof(Tsym));{$ENDIF}
 end;
 {****************************************************************************
                                   Tprocsym
@@ -348,6 +351,7 @@ constructor Tprocsym.init(const n:string;Asub_of:Pprocsym);
 
 begin
     inherited init(n);
+    {$IFDEF TP}setparent(typeof(Tsym));{$ENDIF}
     sub_of:=Asub_of;
 end;
 
@@ -356,6 +360,15 @@ constructor Tprocsym.load(var s:Tstream);
 begin
     inherited load(s);
 {   definition:=Pprocdef(readdefref);}
+end;
+
+function Tprocsym.count:word;
+
+begin
+    if typeof(definitions^)=typeof(Tcollection) then
+        count:=Pcollection(definitions)^.count
+    else
+        count:=1;
 end;
 
 function Tprocsym.firstthat(action:pointer):Pprocdef;
@@ -522,6 +535,7 @@ constructor Ttypesym.init(const n:string;d:Pdef);
 
 begin
     inherited init(n);
+    {$IFDEF TP}setparent(typeof(Tsym));{$ENDIF}
     definition:=d;
     if assigned(definition) then
         begin
@@ -679,6 +693,7 @@ constructor Tsyssym.init(const n:string;l:longint);
 
 begin
     inherited init(n);
+    {$IFDEF TP}setparent(typeof(Tsym));{$ENDIF}
     number:=l;
 end;
 
@@ -704,6 +719,7 @@ constructor Tenumsym.init(const n:string;def:Penumdef;v:longint);
 
 begin
     inherited init(n);
+    {$IFDEF TP}setparent(typeof(Tsym));{$ENDIF}
     definition:=def;
     value:=v;
     if def^.minval>v then
@@ -796,6 +812,7 @@ constructor Tvarsym.init(const n:string;p:Pdef);
 
 begin
     inherited init(n);
+    {$IFDEF TP}setparent(typeof(Tsym));{$ENDIF}
     definition:=p;
     {Can we load the value into a register ? }
     if dp_regable in p^.properties then
@@ -937,6 +954,7 @@ constructor Tparamsym.init(const n:string;p:Pdef;vs:Tvarspez);
 
 begin
     inherited init(n,p);
+    {$IFDEF TP}setparent(typeof(Tsym));{$ENDIF}
     varspez:=vs;
 end;
 
@@ -1004,6 +1022,7 @@ constructor Ttypedconstsym.init(const n:string;p:Pdef;really_const:boolean);
 
 begin
    inherited init(n);
+    {$IFDEF TP}setparent(typeof(Tsym));{$ENDIF}
    definition:=p;
    is_really_const:=really_const;
    prefix:=stringdup(procprefix);
@@ -1085,6 +1104,7 @@ constructor Tconstsym.init(const n : string;t : tconsttype;v : longint);
 
 begin
     inherited init(n);
+    {$IFDEF TP}setparent(typeof(Tsym));{$ENDIF}
     consttype:=t;
     value:=v;
 end;
@@ -1301,6 +1321,7 @@ constructor Tfuncretsym.init(const n:string;approcinfo:pointer{pprocinfo});
 
 begin
     inherited init(n);
+    {$IFDEF TP}setparent(typeof(Tsym));{$ENDIF}
     funcretprocinfo:=approcinfo;
 {   funcretdef:=Pprocinfo(approcinfo)^.retdef;}
     { address valid for ret in param only }
@@ -1351,6 +1372,10 @@ begin
             procinfo.retoffset:=-owner^.datasize;
         end;}
 end;
+
+{****************************************************************************
+                                Tpropertysym
+****************************************************************************}
 
 constructor tpropertysym.load(var s:Tstream);
 
@@ -1448,7 +1473,12 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-03-01 11:43:56  daniel
+  Revision 1.5  2000-03-11 21:11:25  daniel
+    * Ported hcgdata to new symtable.
+    * Alignment code changed as suggested by Peter
+    + Usage of my is operator replacement, is_object
+
+  Revision 1.4  2000/03/01 11:43:56  daniel
   * Some more work on the new symtable.
   + Symtable stack unit 'symstack' added.
 

@@ -60,7 +60,9 @@ unit cgbase;
           { current class, if we are in a method }
           _class : pobjectdef;
           { return type }
-       {$IFNDEF NEWST}
+       {$IFDEF NEWST}
+          retdef:Pdef;
+       {$ELSE}
           returntype : ttype;
        {$ENDIF NEWST}
           { symbol of the function, and the sym for result variable }
@@ -523,7 +525,12 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.18  2000-02-28 17:23:58  daniel
+  Revision 1.19  2000-03-11 21:11:24  daniel
+    * Ported hcgdata to new symtable.
+    * Alignment code changed as suggested by Peter
+    + Usage of my is operator replacement, is_object
+
+  Revision 1.18  2000/02/28 17:23:58  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new
