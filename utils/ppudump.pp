@@ -594,8 +594,9 @@ begin
      if readentry=ibstartsyms then
       begin
         totalsyms:=getlongint;
-        Writeln(space,'Number of symbols: ',totalsyms);
-        Writeln(space,'Symtable datasize: ',getlongint);
+        Writeln(space,'Number of symbols : ',totalsyms);
+        Writeln(space,'Symtable datasize : ',getlongint);
+        Writeln(space,'Symtable alignment: ',getlongint);
       end
      else
       begin
@@ -698,9 +699,9 @@ begin
              write  (space,'    Var Type: ');
              readtype;
              i:=getlongint;
-             writeln(space,'       Options: ',i);
+             writeln(space,'     Options: ',i);
              if (i and vo_is_C_var)<>0 then
-              writeln(space,'   Mangledname: ',getstring);
+               writeln(space,' Mangledname: ',getstring);
            end;
 
          ibenumsym :
@@ -1463,7 +1464,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-08-13 12:58:06  peter
+  Revision 1.3  2000-09-09 19:46:40  peter
+    * show dataalignment
+
+  Revision 1.2  2000/08/13 12:58:06  peter
     * updated for ppu additions
 
   Revision 1.1  2000/07/13 10:16:22  michael
