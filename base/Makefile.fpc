@@ -219,11 +219,12 @@ ide_fullgdbzip:
         $(MAKE) -C ide/text zipinstall ZIPNAME=ide-full-$(PACKAGESUFFIX)
 
 optcompinstall:
-	$(MAKE) compiler_cycle OPT=-dNEWOPTIMIZATIONS
-	$(MAKE) compiler_install
+        $(MAKE) compiler_cycle OPT=-dNEWOPTIMIZATIONS
+        $(MAKE) compiler_install
+        $(MAKE) rtl_install
 
 optcompzip:
-	$(MAKE) fpc_zipinstall PACKAGENAME=optcomp ZIPTARGET=optcompinstall
+        $(MAKE) fpc_zipinstall PACKAGENAME=optcomp ZIPTARGET=optcompinstall
 
 
 ##########################################################################
@@ -270,7 +271,7 @@ build: build-stamp
 build-stamp:
 # create new compiler
 ifeq ($(OS_TARGET),win32)
-	-$(MAKE) compiler_cycle
+        -$(MAKE) compiler_cycle
 else
         $(MAKE) compiler_cycle
 endif
