@@ -77,17 +77,11 @@ const
   ieBreakpointTyp    = 'Type';
   ieBreakpointCount  = 'Count';
   ieBreakpointState  = 'State';
-  ieBreakpointFunc   = 'Function';
+  ieBreakpointName   = 'Name';
   ieBreakpointFile   = 'FileName';
   ieBreakpointLine   = 'LineNumber';
   ieBreakpointCond   = 'Condition';
   ieSourceList       = 'SourceList';
-
-const
-     BreakpointTypeStr : Array[BreakpointType] of String[9]
-       = ( 'function','file-line','watch','awatch','rwatch','invalid' );
-     BreakpointStateStr : Array[BreakpointState] of String[8]
-       = ( 'enabled','disabled','invalid' );
 
 procedure InitINIFile;
 var S: string;
@@ -150,15 +144,13 @@ begin
     Begin
       INIFile^.SetEntry(secBreakpoint,ieBreakpointTyp+S,BreakpointTypeStr[typ]);
       INIFile^.SetEntry(secBreakpoint,ieBreakpointState+S,BreakpointStateStr[state]);
-      case typ of
-        bt_function :
-          INIFile^.SetEntry(secBreakpoint,ieBreakpointFunc+S,Name^);
-        bt_file_line :
-          begin
-            INIFile^.SetEntry(secBreakpoint,ieBreakpointFile+S,Name^);
-            INIFile^.SetIntEntry(secBreakpoint,ieBreakpointLine+S,Line);
-          end;
-      end;
+      if typ=bt_file_line then
+        begin
+          INIFile^.SetEntry(secBreakpoint,ieBreakpointFile+S,FileName^);
+          INIFile^.SetIntEntry(secBreakpoint,ieBreakpointLine+S,Line);
+        end
+      else
+        INIFile^.SetEntry(secBreakpoint,ieBreakpointName+S,Name^);
       if assigned(Conditions) then
         INIFile^.SetEntry(secBreakpoint,ieBreakpointCond+S,Conditions^);
     end;
@@ -183,21 +175,23 @@ begin
     If pos(BreakpointStateStr[state],S)>0 then break;
   case typ of
      bt_invalid :;
-     bt_function :
-       begin
-         S:=INIFile^.GetEntry(secBreakpoint,ieBreakpointFunc+S2,'');
-       end;
      bt_file_line :
        begin
          S:=INIFile^.GetEntry(secBreakpoint,ieBreakpointFile+S2,'');
          Line:=INIFile^.GetIntEntry(secBreakpoint,ieBreakpointLine+S2,0);
+       end;
+     else
+       begin
+         S:=INIFile^.GetEntry(secBreakpoint,ieBreakpointName+S2,'');
        end;
      end;
    SC:=INIFile^.GetEntry(secBreakpoint,ieBreakpointCond+S,'');
    if (typ=bt_function) and (S<>'') then
      new(PB,init_function(S))
    else if (typ=bt_file_line) and (S<>'') then
-     new(PB,init_file_line(S,Line));
+     new(PB,init_file_line(S,Line))
+   else
+     new(PB,init_type(typ,S));
    If assigned(PB) then
      begin
        PB^.state:=state;
@@ -374,7 +368,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1999-02-05 13:08:42  pierre
+  Revision 1.11  1999-02-10 09:53:14  pierre
+  * better storing of breakpoints
+
+  Revision 1.10  1999/02/05 13:08:42  pierre
    + new breakpoint types added
 
   Revision 1.9  1999/02/05 12:11:55  pierre
