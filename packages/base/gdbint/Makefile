@@ -234,7 +234,6 @@ override GDBLIBDIR=$(wildcard libgdb/$(OS_TARGET)/$(CPU_TARGET))
 ifeq ($(GDBLIBDIR),)
 override GDBLIBDIR=libgdb/$(OS_TARGET)
 endif
-endif
 override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
 endif
 ifeq ($(LIBGDBFILE),)

@@ -76,12 +76,10 @@ endif
 
 # Use default dirs if not available
 ifeq ($(LIBGDBFILE),)
-# Find gdbint package
-GDBINTDIR=$(wildcard $(addsuffix /$(GDBINT),$(PACKAGESDIR)))
 # Default locations <target>/<cpu> (linux) or <target> (win32,go32v2) only
-override GDBLIBDIR=$(wildcard $(GDBINTDIR)/libgdb/$(OS_TARGET)/$(CPU_TARGET))
+override GDBLIBDIR=$(wildcard $(FPCDIR)/libgdb/$(OS_TARGET)/$(CPU_TARGET))
 ifeq ($(GDBLIBDIR),)
-override GDBLIBDIR=$(GDBINTDIR)/libgdb/$(OS_TARGET)
+override GDBLIBDIR=$(FPCDIR)/libgdb/$(OS_TARGET)
 endif
 # Detect if libgdb.a is available
 override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
@@ -224,7 +222,10 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.24  2004-11-05 12:48:45  peter
+# Revision 1.25  2004-11-05 13:25:10  peter
+# libgdb now will be search in fpcdir
+#
+# Revision 1.24  2004/11/05 12:48:45  peter
 # finding of libgdb.a updated
 #
 # Revision 1.23  2004/11/02 09:14:09  peter

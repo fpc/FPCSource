@@ -242,10 +242,9 @@ ifdef GDBLIBDIR
 override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
 endif
 ifeq ($(LIBGDBFILE),)
-GDBINTDIR=$(wildcard $(addsuffix /$(GDBINT),$(PACKAGESDIR)))
-override GDBLIBDIR=$(wildcard $(GDBINTDIR)/libgdb/$(OS_TARGET)/$(CPU_TARGET))
+override GDBLIBDIR=$(wildcard $(FPCDIR)/libgdb/$(OS_TARGET)/$(CPU_TARGET))
 ifeq ($(GDBLIBDIR),)
-override GDBLIBDIR=$(GDBINTDIR)/libgdb/$(OS_TARGET)
+override GDBLIBDIR=$(FPCDIR)/libgdb/$(OS_TARGET)
 endif
 override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
 endif
