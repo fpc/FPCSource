@@ -289,7 +289,9 @@ type
 
     PRegistersView = ^TRegistersView;
     TRegistersView = object(TView)
-      OldReg : TIntRegs;
+      NewReg,OldReg : TIntRegs;
+      InDraw : boolean;
+      GDBCount : longint;
       constructor Init(var Bounds: TRect);
       procedure   Draw;virtual;
       destructor  Done; virtual;
@@ -319,7 +321,9 @@ type
 
     PFPUView = ^TFPUView;
     TFPUView = object(TView)
-      OldReg : TFPURegs;
+      NewReg,OldReg : TFPURegs;
+      InDraw : boolean;
+      GDBCount : longint;
       constructor Init(var Bounds: TRect);
       procedure   Draw;virtual;
       destructor  Done; virtual;
@@ -865,7 +869,7 @@ end;
 
 procedure TDebugController.CommandEnd(const s:string);
 begin
-  if assigned(GDBWindow) and (in_command=0) then
+  if assigned(GDBWindow) and (in_command<=1) then
     begin
       { We should do something special for errors !! }
       If StrLen(GetError)>0 then
@@ -3239,12 +3243,17 @@ end;
 
     begin
        inherited init(Bounds);
+       InDraw:=false;
+       FillChar(OldReg,Sizeof(OldReg),#0);
+       FillChar(NewReg,Sizeof(NewReg),#0);
+       GDBCount:=-1;
     end;
 
   procedure TRegistersView.Draw;
 
     var
        rs : tintregs;
+       OK : boolean;
        color :byte;
 
     procedure SetColor(x,y : longint);
@@ -3262,7 +3271,21 @@ end;
             WriteStr(1,0,'<no values available>',7);
             exit;
          end;
-       if GetIntRegs(rs) then
+       if InDraw then exit;
+       InDraw:=true;
+       if GDBCount<>Debugger^.RunCount then
+         begin
+           OldReg:=NewReg;
+           OK:=GetIntRegs(rs);
+           NewReg:=rs;
+           GDBCount:=Debugger^.RunCount;
+         end
+       else
+         begin
+           rs:=NewReg;
+           OK:=true;
+         end;
+       if  OK then
          begin
 {$ifdef i386}
             SetColor(rs.eax,OldReg.eax);
@@ -3356,10 +3379,10 @@ end;
             SetColor(rs.ps and $8,OldReg.ps and $8);
             WriteStr(14,8,'x'+chr(byte((rs.ps and $8)<>0)+48),color);
 {$endif i386}
-            OldReg:=rs;
          end
        else
          WriteStr(0,0,'<debugger error>',7);
+       InDraw:=false;
     end;
 
   destructor TRegistersView.Done;
@@ -3556,6 +3579,8 @@ end;
 
     begin
        inherited init(Bounds);
+       InDraw:=false;
+       FillChar(OldReg,Sizeof(oldreg),#0);
     end;
 
   procedure TFPUView.Draw;
@@ -3591,6 +3616,9 @@ end;
             WriteStr(1,0,'<no values available>',7);
             exit;
          end;
+       if InDraw then
+         exit;
+       InDraw:=true;
        if GetFPURegs(rs) then
          begin
 {$ifdef i386}
@@ -3661,6 +3689,7 @@ end;
          end
        else
          WriteStr(0,0,'<debugger error>',7);
+       InDraw:=false;
     end;
 
   destructor TFPUView.Done;
@@ -4170,7 +4199,10 @@ end.
 
 {
   $Log$
-  Revision 1.29  2002-09-13 22:30:50  pierre
+  Revision 1.30  2002-09-17 21:20:07  pierre
+   * fix infinite recursion if GDB window and register window open
+
+  Revision 1.29  2002/09/13 22:30:50  pierre
    * only fpc uses video unit
 
   Revision 1.28  2002/09/13 08:13:07  pierre
