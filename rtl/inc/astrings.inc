@@ -544,6 +544,8 @@ Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;Str : ShortString); 
 var
    ofs : SizeInt;
 begin
+   if Str='' then
+     exit;
    ofs:=Length(S);
    SetLength(S,ofs+length(Str));
    move(Str[1],S[ofs+1],length(Str));
@@ -554,12 +556,11 @@ Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;Str : AnsiString); [P
 var
    ofs : SizeInt;
 begin
-   if Str<>'' then
-     begin
-        ofs:=Length(S);
-        SetLength(S,ofs+length(Str));
-        move(Str[1],S[ofs+1],length(Str)+1);
-     end;
+   if Str='' then
+     exit;
+   ofs:=Length(S);
+   SetLength(S,ofs+length(Str));
+   move(Str[1],S[ofs+1],length(Str)+1);
 end;
 
 {$ifdef interncopy}
@@ -867,7 +868,10 @@ end;
 
 {
   $Log$
-  Revision 1.50  2004-11-17 22:19:04  peter
+  Revision 1.51  2004-12-02 17:56:01  peter
+    * prevent crash when appending empty string
+
+  Revision 1.50  2004/11/17 22:19:04  peter
   internconst, internproc and some external declarations moved to interface
 
   Revision 1.49  2004/10/31 16:21:30  peter
