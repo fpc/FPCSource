@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       rtlconst math varutils freebidi utf8bidi \
       mouse video keyboard cmem sockets ctypes
 
-rsts=math varutils variants convutils typinfo classes dateutils sysconst rtlconst
+rsts=math varutils variants convutils typinfo classes dateutils sysconst rtlconst system
 
 [require]
 nortl=y
@@ -106,7 +106,7 @@ copyimpfiles:
 
 # for now use the gcc pre
 nwplibc$(OEXT) :
-        cp pre/libcpre.gcc.o nwplibc.o
+        cp pre/libcpre.gcc.o $(UNITTARGETDIRPREFIX)nwplibc.$(OEXT)
 
 nwl_main$(OEXT) : nwl_main.as
         $(AS) -o $(UNITTARGETDIRPREFIX)nwl_main$(OEXT) nwl_main.as
