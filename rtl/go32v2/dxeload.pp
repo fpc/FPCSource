@@ -20,19 +20,12 @@
 Unit dxeload;
 interface
 
-const
-   DXE_MAGIC  = $31455844;
-type
-  dxe_header = record
-     magic,
-     symbol_offset,
-     element_size,
-     nrelocs       : cardinal;
-  end;
-
 function dxe_load(filename : string) : pointer;
 
 implementation
+
+uses
+ dxetype;
 
 function dxe_load(filename : string) : pointer;
 {
@@ -43,9 +36,6 @@ type
   { to avoid range check problems }
   pointer_array = array[0..maxlongint div sizeof(pointer)] of pointer;
   tpa = ^pointer_array;
-  plongint = ^longint;
-  pcardinal = ^cardinal;
-  ppointer = ^pointer;
 var
   dh     : dxe_header;
   data   : pchar;
@@ -98,7 +88,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:18  peter
+  Revision 1.7  2004-09-15 19:20:51  hajny
+    * dxegen compilable for any target now
+
+  Revision 1.6  2002/09/07 16:01:18  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/04/27 07:58:23  peter

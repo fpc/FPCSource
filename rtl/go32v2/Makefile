@@ -231,7 +231,7 @@ endif
 ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
-override TARGET_UNITS+=system objpas macpas strings go32 dpmiexcp initc ports profile dxeload emu387 dos crt objects printer graph sysutils classes math typinfo matrix cpu mmx ucomplex getopts heaptrc lineinfo msmouse charset varutils video mouse keyboard variants vesamode types sysconst rtlconst dateutil convutil strutils
+override TARGET_UNITS+=system objpas macpas strings go32 dpmiexcp initc ports profile dxetype dxeload emu387 dos crt objects printer graph sysutils classes math typinfo matrix cpu mmx ucomplex getopts heaptrc lineinfo msmouse charset varutils video mouse keyboard variants vesamode types sysconst rtlconst dateutil convutil strutils
 override TARGET_LOADERS+=prt0 exceptn fpu
 override TARGET_RSTS+=math varutils typinfo classes variants dateutil sysconst
 override INSTALL_FPCPACKAGE=y
@@ -1414,7 +1414,8 @@ dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) system$(PPUEXT)
 	$(COMPILER) -Sg dpmiexcp.pp
 initc$(PPUEXT) : initc.pp system$(PPUEXT)
 profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT)
-dxeload$(PPUEXT) : dxeload.pp system$(PPUEXT)
+dxetype$(PPUEXT) : dxetype.pp system$(PPUEXT)
+dxeload$(PPUEXT) : dxeload.pp dxetype$(PPUEXT) system$(PPUEXT)
 emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
 		  dpmiexcp$(PPUEXT)
 ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)

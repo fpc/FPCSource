@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=prt0 exceptn fpu
 units=system objpas macpas strings \
-      go32 dpmiexcp initc ports profile dxeload emu387 \
+      go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
       dos crt objects printer graph \
       sysutils classes math typinfo matrix \
       cpu mmx ucomplex getopts heaptrc lineinfo \
@@ -114,7 +114,9 @@ initc$(PPUEXT) : initc.pp system$(PPUEXT)
 
 profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT)
 
-dxeload$(PPUEXT) : dxeload.pp system$(PPUEXT)
+dxetype$(PPUEXT) : dxetype.pp system$(PPUEXT)
+
+dxeload$(PPUEXT) : dxeload.pp dxetype$(PPUEXT) system$(PPUEXT)
 
 emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
                   dpmiexcp$(PPUEXT)

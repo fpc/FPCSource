@@ -12,7 +12,7 @@
 
 }
 
-Uses Strings,DxeLoad,Coff,Dos;
+Uses strings,dxetype,coff,dos;
 
 {$inline on}
 
@@ -36,15 +36,15 @@ isn't interpretive. Until generics, this is the only reusable way.
 
 }
 
-{$ifdef BigEndian}
+{$ifdef FPC_BIG_ENDIAN}
 Var data : pbyte;
     c    : byte;
     i,j  : longint;
-{$endif}
+{$endif FPC_BIG_ENDIAN}
 
 Begin
 
- {$ifdef BigEndian}
+ {$ifdef FPC_BIG_ENDIAN}
   I := 1;
   j := length(pattern);
   data := pbyte(vdata);
@@ -75,7 +75,7 @@ Begin
                End;
                inc(i);
              End;
- {$endif}
+ {$endif FPC_BIG_ENDIAN}
 End;
 
 Var blaat : pointer;
@@ -211,7 +211,7 @@ Begin
   BlockRead(input_f,sc,SCNHSZ);
   dosswap(@sc, '8llllllssl');
   dh.magic         := DXE_MAGIC;
-  dh.symbol_offset := -1;
+  dh.symbol_offset := cardinal (-1);
   dh.element_size  := sc.s_size;
   dh.nrelocs       := sc.s_nreloc;
   Getmem(Data,sc.s_size);
@@ -249,7 +249,7 @@ Begin
         End;
       If (strlcomp(name, argv[2], strlen(argv[2])) = 0) Then
         Begin
-          If (dh.symbol_offset <> -1) Then
+          If (dh.symbol_offset <> cardinal (-1)) Then
             Begin
               Writeln('Error: multiple symbols that start with ',paramstr(2),' (',name,
               ')!');
@@ -266,7 +266,7 @@ Begin
                                         (* plus increment for found value. *)
     End;
 
-  If (dh.symbol_offset = -1) Then
+  If (dh.symbol_offset = cardinal (-1)) Then
     Begin
       Writeln('Error: symbol ',argv[2],' not found!');
       Inc(Errors);
@@ -312,7 +312,10 @@ Begin
 End.
 {
  $Log$
- Revision 1.7  2004-09-15 08:35:39  michael
+ Revision 1.8  2004-09-15 19:20:51  hajny
+   * dxegen compilable for any target now
+
+ Revision 1.7  2004/09/15 08:35:39  michael
  + Fix for wrong for loop variable from Tomas Hajny
 
  Revision 1.6  2002/09/07 15:40:31  peter
@@ -325,4 +328,3 @@ End.
   * Renamefest
 
 }
-
