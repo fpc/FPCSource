@@ -740,15 +740,7 @@ Begin
          Message(asmr_e_cannot_use_RESULT_here);
          exit;
        end;
-     opr.ref.offset:=current_procinfo.return_offset;
-     opr.ref.base:=current_procinfo.framepointer;
-     opr.ref.options:=ref_parafixup;
-     { always assume that the result is valid. }
-     tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
-     { increase reference count, this is also used to check
-       if the result variable is actually used or not }
-     inc(tvarsym(current_procdef.funcretsym).refcount);
-     SetupResult:=true;
+     SetupResult:=setupvar('result',false)
    end
   else
    Message(asmr_e_void_function);
@@ -1562,7 +1554,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.60  2003-05-15 18:58:53  peter
+  Revision 1.61  2003-05-25 08:55:49  peter
+    * load result using hidden parameter
+
+  Revision 1.60  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction
