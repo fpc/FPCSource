@@ -183,7 +183,11 @@ end;
 
 Function XY2Ansi(x,y,ox,oy:longint):String;
 {
-  Returns a string with the escape sequences to go to X,Y on the screen
+  Returns a string with the escape sequences to go to X,Y on the screen.
+
+  Note that x, y, ox, oy are 1-based (i.e. top-left corner of the screen
+  is (1, 1)), while SetCursorPos parameters and CursorX and CursorY
+  are 0-based (top-left corner of the screen is (0, 0)).
 }
 Begin
   if y=oy then
@@ -517,7 +521,7 @@ begin
     OutData(chattr.ch);
     inc(LastX);
    end;
-  OutData(XY2Ansi(CursorX,CursorY,LastX,LastY));
+  OutData(XY2Ansi(CursorX+1,CursorY+1,LastX,LastY));
 {$ifdef logging}
   blockwrite(f,logstart[1],length(logstart));
   blockwrite(f,nl,1);
@@ -534,7 +538,7 @@ begin
 end;
 
 var
-  InitialVideoTio, preInitVideoTio, postInitVideoTio: termio.termios;
+  preInitVideoTio, postInitVideoTio: termio.termios;
   inputRaw, outputRaw: boolean;
 
 procedure saveRawSettings(const tio: termio.termios);
@@ -572,15 +576,6 @@ begin
   TCSetAttr(1,TCSANOW,tio);
 end;
 
-procedure TargetEntry;
-begin
-  TCGetAttr(1,InitialVideoTio);
-end;
-
-procedure TargetExit;
-begin
-  TCSetAttr(1,TCSANOW,InitialVideoTio);
-end;
 
 procedure prepareInitVideo;
 begin
@@ -635,13 +630,13 @@ begin
      TTyfd:=-1;
      Console:=TTyNetwork;  {Default: Network or other vtxxx tty}
      if (Copy(ThisTTY, 1, 8) = '/dev/tty') and
-        not (ThisTTY[9] IN ['p'..'u','P']) then			// FreeBSD has these
+        not (ThisTTY[9] IN ['p'..'u','P']) then                 // FreeBSD has these
       begin
         { running on the console }
         Case ThisTTY[9] of
          '0'..'9' : begin { running Linux on native console or native-emulation }
                      FName:='/dev/vcsa' + ThisTTY[9];
-		     { open console, $1b6=rw-rw-rw- }
+                     { open console, $1b6=rw-rw-rw- }
                      TTYFd:=fpOpen(FName, $1b6, O_RdWr);
                      IF TTYFd <>-1 Then
                        Console:=ttyLinux;
@@ -651,7 +646,7 @@ begin
                  Console:=ttyFreeBSD;   {TTYFd ?}
          end;
        end;
-     If (Copy(fpGetEnv('TERM'),1,4)='cons') Then		// cons<lines>
+     If (Copy(fpGetEnv('TERM'),1,4)='cons') Then                // cons<lines>
        Console:=ttyFreeBSD;
      If Console<>ttylinux Then
       begin
@@ -670,8 +665,8 @@ begin
      if ScreenWidth> FVMaxWidth then
        ScreenWidth:=FVMaxWidth;
      ScreenHeight:=WS.ws_Row;
-     CursorX:=1;
-     CursorY:=1;
+     CursorX:=0;
+     CursorY:=0;
      LastCursorType:=$ff;
      ScreenColor:=True;
      { Start with a clear screen }
@@ -686,7 +681,7 @@ begin
         SendEscapeSeqNdx(enter_ca_mode);
         SetCursorType(crUnderLine);
         If Console=ttyFreeBSD Then
-	  SendEscapeSeqNdx(exit_am_mode);
+          SendEscapeSeqNdx(exit_am_mode);
       end
      else if not assigned(cur_term) then
        begin
@@ -726,7 +721,7 @@ procedure SysDoneVideo;
 begin
   prepareDoneVideo;
   if Console=ttylinux then
-   SetCursorPos(1,1)
+   SetCursorPos(0,0)
   else
    begin
      SendEscapeSeqNdx(exit_ca_mode);
@@ -743,7 +738,7 @@ begin
    According to Pierre this could be more a NCurses version thing that
    a FreeBSD one. FreeBSD 4.4 has ncurses 5.
    MvdV102003: Since I ran 1.1 with newer FreeBSD without problem, I let it be for now}
-  if can_delete_term then		
+  if can_delete_term then
     begin
       del_curterm(cur_term);
       can_delete_term:=false;
@@ -776,8 +771,8 @@ begin
    begin
 {$ifdef cpui386}
      asm
-	  pushl   %esi
-	  pushl   %edi
+          pushl   %esi
+          pushl   %edi
           movl    VideoBuf,%esi
           movl    OldVideoBuf,%edi
           movl    VideoBufSize,%ecx
@@ -785,7 +780,7 @@ begin
           repe
           cmpsl
           setne   DoUpdate
-	  popl    %edi
+          popl    %edi
           popl    %esi
      end;
 {$else not cpui386}
@@ -833,7 +828,7 @@ procedure SysSetCursorPos(NewCursorX, NewCursorY: Word);
 var
   Pos : array [1..2] of Byte;
 begin
- if (CursorX=NewCursorX+1) and (CursorY=NewCursorY+1) then
+ if (CursorX=NewCursorX) and (CursorY=NewCursorY) then
     exit;
   if Console=ttylinux then
    begin
@@ -844,11 +839,11 @@ begin
    end
   else
    begin
-     { newcursorx,y is 0 based ! }
-     SendEscapeSeq(XY2Ansi(NewCursorX+1,NewCursorY+1,CursorX,CursorY));
+     { newcursorx,y and CursorX,Y are 0 based ! }
+     SendEscapeSeq(XY2Ansi(NewCursorX+1,NewCursorY+1,CursorX+1,CursorY+1));
    end;
-  CursorX:=NewCursorX+1;
-  CursorY:=NewCursorY+1;
+  CursorX:=NewCursorX;
+  CursorY:=NewCursorY;
 end;
 
 
@@ -867,7 +862,7 @@ begin
    crBlock :
      Begin
        If not SendEscapeSeqNdx(cursor_visible) then
-        If Console<>ttyFreeBSD Then	// should be done only for linux?
+        If Console<>ttyFreeBSD Then     // should be done only for linux?
          SendEscapeSeq(#27'[?17;0;64c');
      End;
    crHidden :
@@ -905,7 +900,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.25  2004-10-05 17:16:24  armin
+  Revision 1.26  2004-12-26 12:22:05  peter
+    * cursorx,cursory 0 based, fixes 3468
+
+  Revision 1.25  2004/10/05 17:16:24  armin
   * enable acs on xterm by default
 
   Revision 1.24  2004/10/03 20:16:43  armin
