@@ -80,6 +80,7 @@ procedure TFPWriterBMP.InternalWrite (Stream:TStream; Img:TFPCustomImage);
       BFH:TBitMapFileHeader;
       BFI:TBitMapInfoHeader;
     begin
+      writeln ('SaveHeader');
       SaveHeader := false;
       with BFI do
         begin
@@ -111,6 +112,7 @@ procedure TFPWriterBMP.InternalWrite (Stream:TStream; Img:TFPCustomImage);
 //          stream.Write(Palet, bfh.bfOffset - 54);
         end;
       SaveHeader := true;
+      writeln ('End header save');
     end;
   type
     TPixel=packed record
@@ -133,15 +135,16 @@ procedure TFPWriterBMP.InternalWrite (Stream:TStream; Img:TFPCustomImage);
 {$ELSE UseDynArray}
     GetMem(aLine,(Img.Width+1)*SizeOf(TPixel));//3 extra byte for BMP 4Bytes alignement.
 {$ENDIF UseDynArray}
+    writeln ('Start colordata');
     for Row:=img.Height-1 downto 0 do
       begin
         for Coulumn:=0 to img.Width-1 do
           with aLine[Coulumn],aColor do
             begin
               aColor:=img.Palette.Color[img.Pixels[Coulumn,Row]];
-              R:=Red;
-              G:=Green;
-              B:=Blue;
+              R:=(Red and $FF00) shr 8;
+              G:=(Green and $FF00) shr 8;
+              B:=(Blue and $FF00) shr 8;
             end;
         Stream.Write(aLine{$IFNDEF UseDynArray}^{$ENDIF UseDynArray},WriteSize);
       end;
@@ -155,7 +158,10 @@ initialization
 end.
 {
 $Log$
-Revision 1.1  2003-09-04 12:02:21  mazen
+Revision 1.2  2003-09-04 22:29:43  luk
+* correct color conversion (prevent range check errors)
+
+Revision 1.1  2003/09/04 12:02:21  mazen
 + fpwritebmp.pas renamed to fpwritebmp.pp
 
 Revision 1.1  2003/09/04 08:44:32  mazen
