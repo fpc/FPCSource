@@ -50,6 +50,12 @@ type
       Reserved : DWord;
    end;
 
+   PEXCEPTION_FRAME = ^TEXCEPTION_FRAME;
+   TEXCEPTION_FRAME = record
+     next : PEXCEPTION_FRAME;
+     handler : pointer;
+   end;
+
 
 { include threading stuff }
 {$i threadh.inc}
@@ -93,12 +99,6 @@ type
     hStdInput : longint;
     hStdOutput : longint;
     hStdError : longint;
-  end;
-
-  PEXCEPTION_FRAME = ^TEXCEPTION_FRAME;
-  TEXCEPTION_FRAME = record
-    next : PEXCEPTION_FRAME;
-    handler : pointer;
   end;
 
 var
@@ -1583,7 +1583,10 @@ end.
 
 {
   $Log$
-  Revision 1.23  2002-01-25 16:23:03  peter
+  Revision 1.24  2002-01-30 14:57:11  pierre
+   * fix compilation failure
+
+  Revision 1.23  2002/01/25 16:23:03  peter
     * merged filesearch() fix
 
   Revision 1.22  2001/12/02 17:21:25  peter
