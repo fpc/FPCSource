@@ -490,9 +490,16 @@ implementation
                 result := tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
             end;
           classrefdef,
-          pointerdef,
-          procvardef:
+          pointerdef:
             result := OS_ADDR;
+          procvardef:
+            begin
+              if tprocvardef(def).is_methodpointer and
+                 (not tprocvardef(def).is_addressonly) then
+                result := OS_64
+              else
+                result := OS_ADDR;
+            end;
           stringdef :
             begin
               if is_ansistring(def) or is_widestring(def) then
@@ -574,7 +581,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2003-08-20 17:48:49  peter
+  Revision 1.60  2003-08-26 12:43:02  peter
+    * methodpointer fixes
+
+  Revision 1.59  2003/08/20 17:48:49  peter
     * fixed stackalloc to not allocate localst.datasize twice
     * order of stackalloc code fixed for implicit init/final
 

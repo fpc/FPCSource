@@ -302,7 +302,8 @@ interface
 
       begin
         { method pointer ? }
-        if assigned(tunarynode(left).left) then
+        if tabstractprocdef(left.resulttype.def).is_methodpointer and
+           not(tabstractprocdef(left.resulttype.def).is_addressonly) then
           begin
              location_copy(location,left.location);
           end
@@ -510,7 +511,10 @@ end.
 
 {
   $Log$
-  Revision 1.44  2003-06-03 21:11:09  peter
+  Revision 1.45  2003-08-26 12:43:02  peter
+    * methodpointer fixes
+
+  Revision 1.44  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus
