@@ -276,6 +276,9 @@ asm
         pushl   %edi
         { create class ? }
         movl    8(%ebp),%edi
+        { if we test eax later without calling newinstance }
+        { it must have a value <>0                         }
+        movl    $1,%eax
         orl     %edi,%edi
         jz      .LNEW_CLASS1
         { save registers !! }
@@ -837,7 +840,11 @@ end;
 
 {
   $Log$
-  Revision 1.47  1999-05-31 22:03:37  pierre
+  Revision 1.48  1999-07-03 09:03:47  florian
+    * int_new_class returned with zero flag=1, if at the entrance eax was zero
+      and newinstance wasn't called, fixed
+
+  Revision 1.47  1999/05/31 22:03:37  pierre
    * added $define FPC_SYSTEM_HAS_... for use with generic.inc
 
   Revision 1.46  1999/05/31 12:49:19  peter
