@@ -24,9 +24,9 @@ type libcint   = longint;
 function fpgetCerrno:libcint; 
 procedure fpsetCerrno(err:libcint); 
 
-{$ifndef ver1_0}
+{$ifdef HASGLOBALPROPERTY}
 property cerrno:libcint read fpgetCerrno write fpsetcerrno;
-{$endif}
+{$endif HASGLOBALPROPERTY}
 
 implementation
 // hasn't been divided up in .inc's, because I first want to see hoe
@@ -79,7 +79,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2003-12-10 17:14:27  marco
+  Revision 1.8  2003-12-11 18:20:50  florian
+    * replaced VER1_0 by HASGLOBALPROPERTY
+
+  Revision 1.7  2003/12/10 17:14:27  marco
    * property support under ifndef ver1_0
 
   Revision 1.6  2003/12/10 17:06:19  marco

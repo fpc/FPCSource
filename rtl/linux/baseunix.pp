@@ -30,7 +30,7 @@ Interface
 function fpgeterrno:longint;
 procedure fpseterrno(err:longint);
 
-{$ifndef ver1_0}
+{$ifdef HASGLOBALPROPERTY}
 property errno : cint read fpgeterrno write fpseterrno;
 {$endif}
 
@@ -46,7 +46,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-12-10 17:14:06  marco
+  Revision 1.5  2003-12-11 18:20:50  florian
+    * replaced VER1_0 by HASGLOBALPROPERTY
+
+  Revision 1.4  2003/12/10 17:14:06  marco
    * property support under ifndef ver1_0
 
   Revision 1.3  2003/12/10 17:08:28  marco
