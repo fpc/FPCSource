@@ -223,7 +223,7 @@ begin
      If Size>high_of_res then
       Size:=high_of_res;
      Wide2AnsiMoveProc(PWideChar(S2),PChar(@fpc_WideStr_To_ShortStr[1]),Size);
-     byte(fpc_WideStr_To_ShortStr[0]):=Size;
+     byte(fpc_WideStr_To_ShortStr[0]):=byte(Size);
    end;
 end;
 
@@ -913,7 +913,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  2002-10-10 16:08:50  florian
+  Revision 1.25  2002-12-07 14:35:34  carl
+    - avoid warnings (add typecast)
+
+  Revision 1.24  2002/10/10 16:08:50  florian
     + several widestring/pwidechar related helpers added
 
   Revision 1.23  2002/10/02 18:21:52  peter

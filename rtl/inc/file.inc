@@ -150,7 +150,7 @@ var
   l : longint;
 Begin
   BlockWrite(f,Buf,Count,l);
-  Result:=l;
+  Result:=word(l);
 End;
 
 
@@ -174,7 +174,7 @@ var
   l : longint;
 Begin
   BlockWrite(f,Buf,Count,l);
-  Result:=l;
+  Result:=integer(l);
 End;
 
 
@@ -220,7 +220,7 @@ var
   l : longint;
 Begin
   BlockRead(f,Buf,Count,l);
-  Result:=l;
+  Result:=word(l);
 End;
 
 
@@ -246,7 +246,7 @@ var
   l : longint;
 Begin
   BlockRead(f,Buf,Count,l);
-  Result:=l;
+  Result:=integer(l);
 End;
 
 
@@ -412,7 +412,10 @@ End;
 
 {
   $Log$
-  Revision 1.5  2002-09-07 15:07:45  peter
+  Revision 1.6  2002-12-07 14:36:14  carl
+    - avoid warnings (add typecast)
+
+  Revision 1.5  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
 }

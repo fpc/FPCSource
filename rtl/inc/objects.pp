@@ -1119,7 +1119,7 @@ BEGIN
      End Else ObjType := Q^.ObjType;                  { Update object type }
    End;
    If TPCompatible Then Begin
-     ObjTypeWord := ObjType;
+     ObjTypeWord := word(ObjType);
      Write(ObjTypeWord, SizeOf(ObjTypeWord))
    end
    else
@@ -2901,7 +2901,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.16  2002-10-31 13:08:04  carl
+  Revision 1.17  2002-12-07 14:37:15  carl
+    - avoid warnings (add typecast)
+
+  Revision 1.16  2002/10/31 13:08:04  carl
     * forgot to init P buffer variable = crash
 
   Revision 1.15  2002/10/31 12:47:30  carl

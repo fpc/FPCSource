@@ -235,7 +235,7 @@ begin
      If Size>high_of_res then
       Size:=high_of_res;
      Move (S2[1],fpc_AnsiStr_To_ShortStr[1],Size);
-     byte(fpc_AnsiStr_To_ShortStr[0]):=Size;
+     byte(fpc_AnsiStr_To_ShortStr[0]):=byte(Size);
    end;
 end;
 
@@ -841,7 +841,10 @@ end;
 
 {
   $Log$
-  Revision 1.33  2002-10-21 19:52:47  jonas
+  Revision 1.34  2002-12-07 14:34:30  carl
+    - avoid warnings (add typecast)
+
+  Revision 1.33  2002/10/21 19:52:47  jonas
     * fixed some buffer overflow errors in SetString (both short and
       ansistring versions) (merged)
 

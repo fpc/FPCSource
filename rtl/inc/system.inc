@@ -587,8 +587,8 @@ Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : longint);[public,al
 begin
   If pointer(ErrorProc)<>Nil then
     ErrorProc(Errno,pointer(addr),pointer(frame));
-  errorcode:=Errno;
-  exitcode:=Errno;
+  errorcode:=word(Errno);
+  exitcode:=word(Errno);
   erroraddr:=pointer(addr);
   errorbase:=frame;
   halt(errorcode);
@@ -757,7 +757,10 @@ end;
 
 {
   $Log$
-  Revision 1.37  2002-11-18 18:33:51  peter
+  Revision 1.38  2002-12-07 14:36:33  carl
+    - avoid warnings (add typecast)
+
+  Revision 1.37  2002/11/18 18:33:51  peter
     * Swap(QWord) constant support
 
   Revision 1.36  2002/10/14 19:39:17  peter
