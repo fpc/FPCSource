@@ -74,6 +74,10 @@ Type
     { returns whether P is a store instruction (store contents from a }
     { register to a memory location or to a (register) variable)      }
     Function IsStoreRegMem(p: pai): Boolean; Virtual;
+
+    { create a PInstr Object that loads the contents of reg1 into reg2 }
+    Function a_load_reg_reg(reg1, reg2: TRegister): PInstr; Virtual;
+
 end;
 
 Implementation
@@ -236,11 +240,19 @@ Begin
   Abstract
 End;
 
+Function TAoptBase.a_load_reg_reg(reg1, reg2: TRegister): PInstr;
+Begin
+  Abstract
+End;
+
 End.
 
 {
   $Log$
-  Revision 1.1  1999-08-18 14:32:21  jonas
+  Revision 1.2  1999-08-23 14:41:12  jonas
+    + checksequence (processor independent)\n  + processor independent part of docse
+
+  Revision 1.1  1999/08/18 14:32:21  jonas
     + compilable!
     + dataflow analyzer finished
     + start of CSE units

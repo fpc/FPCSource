@@ -111,6 +111,8 @@ Type
     Function IsLoadMemReg(p: pai): Boolean; Virtual;
     Function IsLoadConstReg(p: pai): Boolean; Virtual;
     Function IsStoreRegMem(p: pai): Boolean; Virtual;
+
+    Function a_load_reg_reg(reg1, reg2: TRegister);
   End;
 
 { ************************************************************************* }
@@ -727,12 +729,20 @@ Begin
     (PInstr(p)^.oper[StoreDst].typ = top_ref);
 End;
 
+Function TAOptBaseCpu.a_load_reg_reg(reg1, reg2: TRegister): PInstr;
+Begin
+  a_load_reg_Reg := New(PInstr,Op_Reg_Reg(A_MOV, S_L, reg1, reg2)
+End;
+
 
 End.
 
 {
  $Log$
- Revision 1.3  1999-08-18 14:32:25  jonas
+ Revision 1.4  1999-08-23 14:41:14  jonas
+   + checksequence (processor independent)\n  + processor independent part of docse
+
+ Revision 1.3  1999/08/18 14:32:25  jonas
    + compilable!
    + dataflow analyzer finished
    + start of CSE units
