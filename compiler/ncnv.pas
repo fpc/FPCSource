@@ -921,7 +921,7 @@ implementation
                begin
                  if is_procsym_call(left) then
                   begin
-                    currprocdef:=get_proc_2_procvar_def(tprocsym(tcallnode(left).symtableprocentry),tprocvardef(resulttype.def));
+		    currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
                     hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
                         currprocdef,tcallnode(left).symtableproc);
                     if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) and
@@ -935,7 +935,7 @@ implementation
                  else
                   begin
                     if (left.nodetype<>addrn) then
-                      aprocdef:=tprocsym(tloadnode(left).symtableentry).defs^.def;
+                      aprocdef:=tprocsym(tloadnode(left).symtableentry).first_procdef;
                   end;
                  convtype:=tc_proc_2_procvar;
                  { Now check if the procedure we are going to assign to
@@ -1751,7 +1751,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2002-07-22 11:48:04  daniel
+  Revision 1.63  2002-07-23 09:51:22  daniel
+  * Tried to make Tprocsym.defs protected. I didn't succeed but the cleanups
+    are worth comitting.
+
+  Revision 1.62  2002/07/22 11:48:04  daniel
   * Sets are now internally sets.
 
   Revision 1.61  2002/07/20 17:16:02  florian

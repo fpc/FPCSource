@@ -106,7 +106,9 @@ interface
        end;
 
        tprocsym = class(tstoredsym)
+{       protected}
           defs      : pprocdeflist; { linked list of overloaded procdefs }
+       public
           is_global : boolean;
           overloadchecked : boolean;
           overloadcount   : longint; { amount of overloaded functions in this module }
@@ -122,6 +124,13 @@ interface
           procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure addprocdef(p:tprocdef);
+	  procedure concat_procdefs_to(s:Tprocsym);
+	  function first_procdef:Tprocdef;
+	  function last_procdef:Tprocdef;
+	  function search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
+	  function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
+	  function search_procdef_byretdef_by1paradef(retdef,firstpara:Tdef;
+						      matchtype:Tdefmatch):Tprocdef;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -361,6 +370,8 @@ implementation
 {$ifdef GDB}
        gdb,
 {$endif GDB}
+       { tree }
+       node,
        { aasm }
        aasmcpu,
        { module }
@@ -859,7 +870,134 @@ implementation
         pd^.next:=defs;
         defs:=pd;
       end;
+    
+    procedure Tprocsym.concat_procdefs_to(s:Tprocsym);
+    
+    var pd:Pprocdeflist;
+    
+    begin
+	pd:=defs;
+	while assigned(defs) do
+	    begin
+		s.addprocdef(pd^.def);
+		pd:=pd^.next;
+	    end;
+    end;
 
+    function Tprocsym.first_procdef:Tprocdef;
+
+    begin
+	first_procdef:=defs^.def;
+    end;
+
+    function Tprocsym.last_procdef:Tprocdef;
+
+    var pd:Pprocdeflist;
+
+    begin
+	pd:=defs;
+	while assigned(pd) do
+	    begin
+		last_procdef:=pd^.def;
+		pd:=pd^.next;
+	    end;
+    end;
+
+    function Tprocsym.search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
+    
+    var p:Pprocdeflist;
+    
+    begin
+	search_procdef_bytype:=nil;
+	p:=defs;
+	while p<>nil do
+	    begin
+		if p^.def.proctypeoption=pt then
+		    begin
+			search_procdef_bytype:=p^.def;
+			break;
+		    end;
+		p:=p^.next;
+	    end;
+    end;
+    
+    function Tprocsym.search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
+
+    var pd:Pprocdeflist;
+    
+    begin
+        {This function will return the pprocdef of pprocsym that
+         is the best match for procvardef. When there are multiple
+         matches it returns nil.}
+        {Try to find an exact match first.}
+        search_procdef_byprocvardef:=nil;
+        pd:=defs;
+        while assigned(pd) do
+	    begin
+		if proc_to_procvar_equal(pd^.def,d,true) then
+		    begin
+			{ already found a match ? Then stop and return nil }
+            		if assigned(search_procdef_byprocvardef) then
+            		    begin
+                		search_procdef_byprocvardef:=nil;
+                		break;
+            		    end;
+        		search_procdef_byprocvardef:=pd^.def;
+		    end;
+		pd:=pd^.next;
+	    end;
+        {Try a convertable match, if no exact match was found.}
+        if not assigned(search_procdef_byprocvardef) and not assigned(pd) then
+    	    begin
+    		pd:=defs;
+    	        while assigned(pd) do
+        	    begin
+            		if proc_to_procvar_equal(pd^.def,d,false) then
+            		    begin
+                		{ already found a match ? Then stop and return nil }
+                		if assigned(search_procdef_byprocvardef) then
+                		    begin
+                			search_procdef_byprocvardef:=nil;
+                			break;
+                		    end;
+                		search_procdef_byprocvardef:=pd^.def;
+            		    end;
+            		pd:=pd^.next;
+        	    end;
+	    end;
+    end;
+
+    function Tprocsym.search_procdef_byretdef_by1paradef(retdef,firstpara:Tdef;
+		      matchtype:Tdefmatch):Tprocdef;
+
+    var pd:Pprocdeflist;
+	convtyp:Tconverttype;
+	a,b:boolean;
+
+    begin
+	search_procdef_byretdef_by1paradef:=nil;
+	pd:=defs;
+	while assigned(pd) do
+	    begin
+		a:=is_equal(retdef,pd^.def.rettype.def);
+		if a then
+		    case matchtype of
+			dm_exact:
+			    b:=TParaItem(pd^.def.para.first).paratype.def=firstpara;
+			dm_equal:
+			    b:=is_equal(Tparaitem(pd^.def.para.first).paratype.def,firstpara);
+			dm_convertl1:
+			    b:=isconvertable(firstpara,Tparaitem(pd^.def.para.first).paratype.def,
+				convtyp,ordconstn,false)=1;
+		    end;
+		if a and b then
+		    begin
+			search_procdef_byretdef_by1paradef:=pd^.def;
+			break;
+		    end;
+		pd:=pd^.next;
+	    end;
+    end;
 
     procedure tprocsym.write(ppufile:tcompilerppufile);
       var
@@ -2528,7 +2666,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2002-07-20 17:45:29  daniel
+  Revision 1.45  2002-07-23 09:51:26  daniel
+  * Tried to make Tprocsym.defs protected. I didn't succeed but the cleanups
+    are worth comitting.
+
+  Revision 1.44  2002/07/20 17:45:29  daniel
   * Register variables are now possible for global variables too. This is
     important for small programs without procedures.
 

@@ -237,7 +237,7 @@ interface
     { used to test compatibility between two pprocvardefs (JM)               }
     function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;exact:boolean) : boolean;
 
-    function get_proc_2_procvar_def(p:tprocsym;d:tprocvardef):tprocdef;
+{    function get_proc_2_procvar_def(p:tprocsym;d:tprocvardef):tprocdef;}
 
     {# If @var(l) isn't in the range of def a range check error (if not explicit) is generated and
       the value is placed within the range
@@ -467,56 +467,6 @@ implementation
          else
            proc_to_procvar_equal:=false;
       end;
-
-
-    function get_proc_2_procvar_def(p:tprocsym;d:tprocvardef):tprocdef;
-      var
-        matchprocdef : tprocdef;
-        pd : pprocdeflist;
-      begin
-        { This function will return the pprocdef of pprocsym that
-          is the best match for procvardef. When there are multiple
-          matches it returns nil }
-        { exact match }
-        matchprocdef:=nil;
-        pd:=p.defs;
-        while assigned(pd) do
-         begin
-           if proc_to_procvar_equal(pd^.def,d,true) then
-            begin
-              { already found a match ? Then stop and return nil }
-              if assigned(matchprocdef) then
-               begin
-                 matchprocdef:=nil;
-                 break;
-               end;
-              matchprocdef:=pd^.def;
-            end;
-           pd:=pd^.next;
-         end;
-        { convertable match, if no exact match was found }
-        if not assigned(matchprocdef) and
-           not assigned(pd) then
-         begin
-           pd:=p.defs;
-           while assigned(pd) do
-            begin
-              if proc_to_procvar_equal(pd^.def,d,false) then
-               begin
-                 { already found a match ? Then stop and return nil }
-                 if assigned(matchprocdef) then
-                  begin
-                    matchprocdef:=nil;
-                    break;
-                  end;
-                 matchprocdef:=pd^.def;
-               end;
-              pd:=pd^.next;
-            end;
-         end;
-        get_proc_2_procvar_def:=matchprocdef;
-      end;
-
 
     { returns true, if def uses FPU }
     function is_fpu(def : tdef) : boolean;
@@ -1262,7 +1212,7 @@ implementation
         end; { endif assigned ... }
       end;
 
-    function assignment_overloaded(from_def,to_def : tdef) : tprocdef;
+(*    function assignment_overloaded(from_def,to_def : tdef) : tprocdef;
        var
           passprocs : pprocdeflist;
           convtyp : tconverttype;
@@ -1309,6 +1259,31 @@ implementation
                 end;
               passprocs:=passprocs^.next;
             end;
+       end;
+*)
+
+    function assignment_overloaded(from_def,to_def : tdef) : tprocdef;
+
+       begin
+          assignment_overloaded:=nil;
+          if not assigned(overloaded_operators[_ASSIGNMENT]) then
+            exit;
+	
+          { look for an exact match first }
+	  assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
+	   search_procdef_byretdef_by1paradef(to_def,from_def,dm_exact);
+	  if assigned(assignment_overloaded) then
+	    exit;
+
+          { .... then look for an equal match }
+	  assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
+	   search_procdef_byretdef_by1paradef(to_def,from_def,dm_equal);
+	  if assigned(assignment_overloaded) then
+	    exit;
+
+          {  .... then for convert level 1 }
+	  assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
+	   search_procdef_byretdef_by1paradef(to_def,from_def,dm_convertl1);
        end;
 
 
@@ -1906,7 +1881,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-07-20 11:57:53  florian
+  Revision 1.2  2002-07-23 09:51:22  daniel
+  * Tried to make Tprocsym.defs protected. I didn't succeed but the cleanups
+    are worth comitting.
+
+  Revision 1.1  2002/07/20 11:57:53  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

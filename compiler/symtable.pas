@@ -860,17 +860,10 @@ implementation
                          internalerror(12344321);
                        { use this procsym as start ? }
                        if not assigned(overloaded_operators[t]) then
-                        overloaded_operators[t]:=tprocsym(srsym)
+                          overloaded_operators[t]:=tprocsym(srsym)
                        else
-                        begin
                           { already got a procsym, only add defs of the current procsym }
-                          pd:=tprocsym(srsym).defs;
-                          while assigned(pd) do
-                           begin
-                             overloaded_operators[t].addprocdef(pd^.def);
-                             pd:=pd^.next;
-                           end;
-                        end;
+			  Tprocsym(srsym).concat_procdefs_to(overloaded_operators[t]);
                        symtablestack:=srsym.owner.next;
                     end
                   else
@@ -2065,7 +2058,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2002-07-16 15:34:21  florian
+  Revision 1.65  2002-07-23 09:51:27  daniel
+  * Tried to make Tprocsym.defs protected. I didn't succeed but the cleanups
+    are worth comitting.
+
+  Revision 1.64  2002/07/16 15:34:21  florian
     * exit is now a syssym instead of a keyword
 
   Revision 1.63  2002/07/15 19:44:53  florian

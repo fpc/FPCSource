@@ -326,7 +326,7 @@ implementation
                  if assigned(getprocvardef) then
                   hp3:=getprocvardef
                  else
-                  hp3:=tabstractprocdef(tprocsym(tloadnode(left).symtableentry).defs^.def);
+                  hp3:=tabstractprocdef(tprocsym(tloadnode(left).symtableentry).first_procdef);
 
                  { create procvardef }
                  resulttype.setdef(tprocvardef.create);
@@ -894,7 +894,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-07-20 11:57:54  florian
+  Revision 1.35  2002-07-23 09:51:23  daniel
+  * Tried to make Tprocsym.defs protected. I didn't succeed but the cleanups
+    are worth comitting.
+
+  Revision 1.34  2002/07/20 11:57:54  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

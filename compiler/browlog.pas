@@ -369,13 +369,13 @@ implementation
                   end;
                 procsym :
                   begin
-                     symt:=tprocsym(sym).defs^.def.parast;
+                     symt:=tprocsym(sym).first_procdef.parast;
                      symb:=tstoredsym(symt.search(ss));
                      if symb=nil then
                        symb:=tstoredsym(symt.search(upper(ss)));
                      if not assigned(symb) then
                        begin
-                          symt:=tprocsym(sym).defs^.def.localst;
+                          symt:=tprocsym(sym).first_procdef.localst;
                           sym:=tstoredsym(symt.search(ss));
                           if symb=nil then
                             symb:=tstoredsym(symt.search(upper(ss)));
@@ -514,7 +514,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2002-05-18 13:34:05  peter
+  Revision 1.14  2002-07-23 09:51:22  daniel
+  * Tried to make Tprocsym.defs protected. I didn't succeed but the cleanups
+    are worth comitting.
+
+  Revision 1.13  2002/05/18 13:34:05  peter
     * readded missing revisions
 
   Revision 1.12  2002/05/16 19:46:35  carl

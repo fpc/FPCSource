@@ -617,6 +617,7 @@ interface
           procedure write_child_rtti_data(rt:trttitype);override;
        end;
 
+       Tdefmatch=(dm_exact,dm_equal,dm_convertl1);
 
     var
        aktobjectdef : tobjectdef;  { used for private functions check !! }
@@ -4330,7 +4331,7 @@ implementation
      end;
 
 
-   procedure tobjectdef._searchdestructor(sym : tnamedindexitem;arg:pointer);
+(*   procedure tobjectdef._searchdestructor(sym : tnamedindexitem;arg:pointer);
 
      var
         p : pprocdeflist;
@@ -4352,7 +4353,15 @@ implementation
                   p:=p^.next;
                end;
           end;
-     end;
+     end;*)
+
+    procedure Tobjectdef._searchdestructor(sym:Tnamedindexitem;arg:pointer);
+    
+    begin
+        { if we found already a destructor, then we exit }
+        if (sd=nil) and (Tsym(sym).typ=procsym) then
+    	    sd:=Tprocsym(sym).search_procdef_bytype(potype_destructor);
+    end;
 
    function tobjectdef.searchdestructor : tprocdef;
 
@@ -4435,15 +4444,10 @@ implementation
       begin
         If tsym(p).typ = procsym then
          begin
-           pd := tprocsym(p).defs^.def;
+           pd := tprocsym(p).first_procdef;
            { this will be used for full implementation of object stabs
            not yet done }
-           pdl:=tprocsym(p).defs;
-           while assigned(pdl) do
-            begin
-              ipd:=pdl^.def;
-              pdl:=pdl^.next;
-            end;
+	   ipd := Tprocsym(p).last_procdef;
            if (po_virtualmethod in pd.procoptions) then
              begin
                lindex := pd.extnumber;
@@ -5482,7 +5486,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2002-07-20 11:57:57  florian
+  Revision 1.85  2002-07-23 09:51:24  daniel
+  * Tried to make Tprocsym.defs protected. I didn't succeed but the cleanups
+    are worth comitting.
+
+  Revision 1.84  2002/07/20 11:57:57  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
