@@ -270,7 +270,7 @@ implementation
              firstadd,         {starstarn}
              firstprocinline,  {procinlinen}
              firstarrayconstruct, {arrayconstructn}
-             firstnothing,     {arrayconstructrangen}
+             firstarrayconstructrange, {arrayconstructrangen}
              firstnothing,     {nothingn}
              firstloadvmt      {loadvmtn}
              );
@@ -350,7 +350,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  1998-10-06 20:49:07  peter
+  Revision 1.97  1998-11-05 14:26:47  peter
+    * fixed variant warning with was sometimes said with sets
+
+  Revision 1.96  1998/10/06 20:49:07  peter
     * m68k compiler compiles again
 
   Revision 1.95  1998/09/24 15:13:44  peter

@@ -29,6 +29,7 @@ interface
     procedure firstload(var p : ptree);
     procedure firstassignment(var p : ptree);
     procedure firstfuncret(var p : ptree);
+    procedure firstarrayconstructrange(var p:ptree);
     procedure firstarrayconstruct(var p : ptree);
     procedure firsttype(var p : ptree);
 
@@ -320,6 +321,19 @@ implementation
 
 
 {*****************************************************************************
+                           FirstArrayConstructRange
+*****************************************************************************}
+
+    procedure firstarrayconstructrange(var p:ptree);
+      begin
+        firstpass(p^.left);
+        firstpass(p^.right);
+        calcregisters(p,0,0,0);
+        p^.resulttype:=p^.left^.resulttype;
+      end;
+
+
+{*****************************************************************************
                            FirstArrayConstruct
 *****************************************************************************}
 
@@ -357,10 +371,7 @@ implementation
                pd:=hp^.left^.resulttype
               else
                if (not varia) and (not is_equal(pd,hp^.left^.resulttype)) then
-                begin
-                  varia:=true;
-                  Comment(V_Warning,'Variant type found !!');
-                end;
+                varia:=true;
               inc(len);
               hp:=hp^.right;
             end;
@@ -370,18 +381,6 @@ implementation
         parraydef(p^.resulttype)^.IsConstructor:=true;
         parraydef(p^.resulttype)^.IsVariant:=varia;
         p^.location.loc:=LOC_REFERENCE;
-      end;
-
-
-{*****************************************************************************
-                         FirstArrayConstructRange
-*****************************************************************************}
-
-    procedure firstarrayconstructrange(var p : ptree);
-      begin
-      { This is not allowed, it's only to support sets when parsing the [a..b] }
-        Internalerror(4236);
-        Codegenerror:=true;
       end;
 
 
@@ -399,7 +398,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-10-19 08:55:12  pierre
+  Revision 1.7  1998-11-05 14:26:48  peter
+    * fixed variant warning with was sometimes said with sets
+
+  Revision 1.6  1998/10/19 08:55:12  pierre
     * wrong stabs info corrected once again !!
     + variable vmt offset with vmt field only if required
       implemented now !!!
