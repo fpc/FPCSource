@@ -869,10 +869,14 @@ type
           hightree:=cordconstnode.create(len,s32bittype,true)
         else
           hightree:=ctypeconvnode.create(hightree,s32bittype);
-        firstpass(hightree);
         temp:=ccallparanode.create(hightree,right);
 
         right:=temp;
+        if (tparaitem(paraitem.next).paratyp <> vs_hidden) then
+          internalerror(200304071);
+        tcallparanode(right).paraitem := tparaitem(paraitem.next);
+        tcallparanode(right).firstcallparan(false);
+
         include(flags,nf_hightree_generated);
       end;
 {$else VS_HIDDEN}
@@ -2407,7 +2411,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.132  2003-04-04 15:38:56  peter
+  Revision 1.133  2003-04-07 10:40:21  jonas
+    * fixed VS_HIDDEN for high parameter so it works again
+
+  Revision 1.132  2003/04/04 15:38:56  peter
     * moved generic code from n386cal to ncgcal, i386 now also
       uses the generic ncgcal
 
