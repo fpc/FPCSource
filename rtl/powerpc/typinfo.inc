@@ -40,7 +40,7 @@ Function CallIntegerFunc(s: Pointer; Address: Pointer; Index, IValue: LongInt): 
      mtlr      r30
   end;
 
-Function CallIntegerProc(s : Pointer;Address : Pointer;Value : Integer; INdex,IValue : Longint) : Integer;assembler;
+Function CallIntegerProc(s : Pointer;Address : Pointer;Value : Integer; Index,IValue : Longint) : Integer;assembler;
   { input:             }
   {     r3: s          }
   {     r4: address    }
@@ -132,11 +132,7 @@ Function CallExtendedProc(s : Pointer;Address : Pointer;Value : Extended; Index,
   asm
      { save current return address }
      mflr      r30
-     cmpli     r7,0
      mtctr     r4
-     beq       LNoIndex
-     fmr       fr2,fr3
-LNoIndex:
      { always pass ivalue as second parameter, it doesn't matter if it }
      { isn't used                                                      }
      mr        r4,r8
@@ -211,7 +207,10 @@ Procedure CallSStringProc(s : Pointer;Address : Pointer;Const Value : ShortStrin
 
 {
   $Log$
-  Revision 1.5  2003-04-24 11:47:21  florian
+  Revision 1.6  2003-04-24 11:50:50  florian
+    * fixed assembling
+
+  Revision 1.5  2003/04/24 11:47:21  florian
     * fixed wrong newlines
 
   Revision 1.4  2003/04/23 22:47:13  florian
