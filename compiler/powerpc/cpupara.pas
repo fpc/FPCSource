@@ -42,7 +42,7 @@ unit cpupara;
 
     uses
        verbose,
-       cpuinfo,
+       cpuinfo,cginfo,
        symtype,defbase;
 
     function tppcparamanager.getintparaloc(nr : longint) : tparalocation;
@@ -139,6 +139,7 @@ unit cpupara;
               case loc of
                  LOC_REGISTER:
                    begin
+                      hp.paraloc.size:=OS_32;
                       if nextintreg<=R_8 then
                         begin
                            hp.paraloc.loc:=LOC_REGISTER;
@@ -155,6 +156,7 @@ unit cpupara;
                    end;
                  LOC_FPUREGISTER:
                    begin
+                      hp.paraloc.size:=OS_F32;
                       if hp.paratyp in [vs_var,vs_out] then
                         begin
                            if nextintreg<=R_8 then
@@ -224,7 +226,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-07-30 20:50:44  florian
+  Revision 1.6  2002-08-13 21:40:58  florian
+    * more fixes for ppc calling conventions
+
+  Revision 1.5  2002/07/30 20:50:44  florian
     * the code generator knows now if parameters are in registers
 
   Revision 1.4  2002/07/28 20:45:22  florian

@@ -184,6 +184,7 @@ implementation
                                    location.reference.offset:=
                                      tvarsym(symtableentry).address+symtable.address_fixup;
 
+{$ifndef powerpc}
                                  if (symtabletype in [localsymtable,inlinelocalsymtable]) then
                                    begin
                                       if use_esp_stackframe then
@@ -192,6 +193,7 @@ implementation
                                       else
                                         location.reference.offset:=-location.reference.offset;
                                    end;
+{$endif powerpc}
                                  if (lexlevel>symtable.symtablelevel) then
                                    begin
                                       hregister:=rg.getaddressregister(exprasmlist);
@@ -929,7 +931,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-08-11 14:32:26  peter
+  Revision 1.21  2002-08-13 21:40:56  florian
+    * more fixes for ppc calling conventions
+
+  Revision 1.20  2002/08/11 14:32:26  peter
     * renamed current_library to objectlibrary
 
   Revision 1.19  2002/08/11 13:24:12  peter

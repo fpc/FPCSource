@@ -40,6 +40,7 @@ interface
 
        tcgcallnode = class(tcallnode)
           procedure pass_2;override;
+          procedure load_framepointer;virtual;abstract;
        end;
 
        tcgprocinlinenode = class(tprocinlinenode)
@@ -839,6 +840,7 @@ implementation
                           Internalerror(200006165);
                      end;
                 end;
+{$endif dummy}
 
                 { call to BeforeDestruction? }
                 if (procdefinition.proctypeoption=potype_destructor) and
@@ -848,7 +850,7 @@ implementation
                    (inlined or
                    (right=nil)) then
                   begin
-                     cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,1);
+                     cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,paramanager.getintparaloc(1));
                      reference_reset_base(href,self_pointer_reg,0);
                      tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                      cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,tmpreg);
@@ -864,47 +866,8 @@ implementation
               if not inlined then
                 if (lexlevel>=normal_function_level) and assigned(tprocdef(procdefinition).parast) and
                   ((tprocdef(procdefinition).parast.symtablelevel)>normal_function_level) then
-                  begin
-                     { if we call a nested function in a method, we must      }
-                     { push also SELF!                                    }
-                     { THAT'S NOT TRUE, we have to load ESI via frame pointer }
-                     { access                                              }
-                     {
-                       begin
-                          loadesi:=false;
-                          emit_reg(A_PUSH,S_L,R_ESI);
-                       end;
-                     }
-                     if lexlevel=(tprocdef(procdefinition).parast.symtablelevel) then
-                       begin
-                          reference_reset_base(href,procinfo^.framepointer,procinfo^.framepointer_offset);
-                          cg.a_param_ref(exprasmlist,OS_ADDR,href,-1);
-                       end
-                       { this is only true if the difference is one !!
-                         but it cannot be more !! }
-                     else if (lexlevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
-                       begin
-                          cg.a_param_reg(exprasmlist,OS_ADDR,procinfo^.framepointer,-1);
-                       end
-                     else if (lexlevel>(tprocdef(procdefinition).parast.symtablelevel)) then
-                       begin
-                          hregister:=rg.getregisterint(exprasmlist);
-                          reference_reset_base(href,procinfo^.framepointer,procinfo^.framepointer_offset);
-                          cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
-                          for i:=(tprocdef(procdefinition).parast.symtablelevel) to lexlevel-1 do
-                            begin
-                               {we should get the correct frame_pointer_offset at each level
-                               how can we do this !!! }
-                               reference_reset_base(href,hregister,procinfo^.framepointer_offset);
-                               cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
-                            end;
-                          cg.a_param_reg(exprasmlist,OS_ADDR,hregister,-1);
-                          rg.ungetregisterint(exprasmlist,hregister);
-                       end
-                     else
-                       internalerror(25000);
-                  end;
-{$endif dummy}
+                  load_framepointer;
+
               rg.saveregvars(exprasmlist,regs_to_push);
 
 {$ifdef dummy}
@@ -1086,9 +1049,9 @@ implementation
                 { but the registers must be different!        }
                 else if (pushedparasize=8) and
                   not(cs_littlesize in aktglobalswitches) and
-{$ifdef i386}                  
+{$ifdef i386}
                   (aktoptprocessor=ClassP5) and
-{$endif}                  
+{$endif}
                   (procinfo^._class=nil) then
                     begin
                        rg.getexplicitregisterint(exprasmlist,R_EDI);
@@ -1502,7 +1465,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-08-13 18:01:51  carl
+  Revision 1.9  2002-08-13 21:40:55  florian
+    * more fixes for ppc calling conventions
+
+  Revision 1.8  2002/08/13 18:01:51  carl
     * rename swatoperands to swapoperands
     + m68k first compilable version (still needs a lot of testing):
         assembler generator, system information , inline

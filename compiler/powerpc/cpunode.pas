@@ -36,7 +36,7 @@ unit cpunode;
          after the generic one (FK)
        }
        nppcadd,
-//       nppccal,
+       nppccal,
 //       nppccon,
 //       nppcflw,
 //       nppcmem,
@@ -52,7 +52,10 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.14  2002-08-11 11:39:12  jonas
+  Revision 1.15  2002-08-13 21:40:58  florian
+    * more fixes for ppc calling conventions
+
+  Revision 1.14  2002/08/11 11:39:12  jonas
     + powerpc-specific genlinearlist
 
   Revision 1.13  2002/08/10 17:15:00  jonas

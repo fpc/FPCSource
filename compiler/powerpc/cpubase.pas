@@ -348,6 +348,7 @@ uses
         TLocation isn't used, because contains a lot of unnessary fields.
       }
       tparalocation = packed record
+         size : TCGSize;
          { The location type where the parameter is passed, usually
            LOC_REFERENCE,LOC_REGISTER or LOC_FPUREGISTER
          }
@@ -504,20 +505,20 @@ uses
 
       {# Register indexes for stabs information, when some
          parameters or variables are stored in registers.
-         
+
          Taken from rs6000.h (DBX_REGISTER_NUMBER)
          from GCC 3.x source code. PowerPC has 1:1 mapping
          according to the order of the registers defined
          in GCC
-         
-      }   
-      
+
+      }
+
           stab_regindex : array[tregister] of shortint =
           (
            { R_NO }
            -1,
            { R0..R7 }
-           0,1,2,3,4,5,6,7, 
+           0,1,2,3,4,5,6,7,
            { R8..R15 }
            8,9,10,11,12,13,14,15,
            { R16..R23 }
@@ -569,10 +570,10 @@ uses
       {# Register for addressing absolute data in a position independant way,
          such as in PIC code. The exact meaning is ABI specific. For
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
-         
+
          Taken from GCC rs6000.h
       }
-{$warning As indicated in rs6000.h, but can't find it anywhere else!}      
+{$warning As indicated in rs6000.h, but can't find it anywhere else!}
       pic_offset_reg = R_30;
       {# Results are returned in this register (32-bit values) }
       accumulator   = R_3;
@@ -706,7 +707,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2002-08-12 15:08:44  carl
+  Revision 1.27  2002-08-13 21:40:58  florian
+    * more fixes for ppc calling conventions
+
+  Revision 1.26  2002/08/12 15:08:44  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

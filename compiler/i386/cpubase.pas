@@ -261,6 +261,7 @@ uses
         TLocation isn't used, because contains a lot of unnessary fields.
       }
       tparalocation = packed record
+         size : TCGSize;
          loc  : TLoc;
          sp_fixup : longint;
          case TLoc of
@@ -388,11 +389,11 @@ uses
 
       {# Register indexes for stabs information, when some
          parameters or variables are stored in registers.
-         
+
          Taken from i386.c (dbx_register_map) and i386.h
           (FIXED_REGISTERS) from GCC 3.x source code
-         
-      }   
+
+      }
           stab_regindex : array[tregister] of shortint =
           (-1,
           0,1,2,3,4,5,6,7,
@@ -518,7 +519,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2002-08-12 15:08:41  carl
+  Revision 1.30  2002-08-13 21:40:58  florian
+    * more fixes for ppc calling conventions
+
+  Revision 1.29  2002/08/12 15:08:41  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

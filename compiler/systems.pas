@@ -104,7 +104,8 @@ interface
              system_i386_wdosx,         { 21 }
              system_sparc_sunos,        { 22 }
              system_sparc_linux,        { 23 }
-             system_x86_64_linux        { 24 }
+             system_x86_64_linux,       { 24 }
+             system_powerpc_macosx      { 25 }
        );
 
        tasm = (as_none
@@ -147,19 +148,19 @@ interface
        { Abstract linker class which is implemented in link module }
        TAbstractLinker = class
        end;
-     
-     
+
+
        TAbstractLinkerClass = class of TABstractLinker;
-       
-       
+
+
        { Abstract assembler class which is implemented in assemble module }
        TAbstractAssembler = class
        end;
-       
+
        TAbstractAssemblerClass = class of TAbstractAssembler;
-       
-       
-       
+
+
+
        palignmentinfo = ^talignmentinfo;
        talignmentinfo = packed record
          procalign,
@@ -312,15 +313,15 @@ interface
     { Register the external linker. This routine is called to setup the
       class to use for the linker. It returns the tsysteminfo structure
       updated with the correct linker class for external linking.
-    }  
+    }
     procedure RegisterExternalLinker(var system_info: tsysteminfo; c:TAbstractLinkerClass);
     { Register the internal linker. This routine is called to setup the
       class to use for the linker. It returns the tsysteminfo structure
       updated with the correct linker class for internal linking.
-      
+
       If internal linking is not supported, this class can be set
       to nil.
-    }  
+    }
     procedure RegisterInternalLinker(var system_info : tsysteminfo; c:TAbstractLinkerClass);
 
     procedure InitSystems;
@@ -331,7 +332,7 @@ implementation
     uses
       cutils;
 
-      
+
 
 {****************************************************************************
                               Target setting
@@ -670,7 +671,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.51  2002-08-12 15:08:40  carl
+  Revision 1.52  2002-08-13 21:40:57  florian
+    * more fixes for ppc calling conventions
+
+  Revision 1.51  2002/08/12 15:08:40  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

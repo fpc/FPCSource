@@ -1631,8 +1631,14 @@ implementation
                    varstate:=vs_declared;
                    varalign:=size_2_align(l);
                    varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
+{$ifdef powerpc}
+                   { on the powerpc, the local variables are accessed with a positiv offset }
+                   address:=align(owner.datasize,varalign);
+                   owner.datasize:=address+l;
+{$else powerpc}
                    address:=align(owner.datasize+l,varalign);
                    owner.datasize:=address;
+{$endif powerpc}
                  end;
                staticsymtable :
                  begin
@@ -2666,7 +2672,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2002-08-12 15:08:40  carl
+  Revision 1.50  2002-08-13 21:40:57  florian
+    * more fixes for ppc calling conventions
+
+  Revision 1.49  2002/08/12 15:08:40  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

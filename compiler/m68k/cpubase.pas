@@ -138,7 +138,7 @@ uses
        'ccr','fp0','fp1','fp2','fp3','fp4','fp5',
        'fp6','fp7','fpcr','sr','ssp','dfc',
        'sfc','vbr','fpsr');
-       
+
 {*****************************************************************************
                                 Conditions
 *****************************************************************************}
@@ -151,8 +151,8 @@ uses
       TAsmCond=(C_None,
          C_CC,C_LS,C_CS,C_LT,C_EQ,C_MI,C_F,C_NE,
          C_GE,C_PL,C_GT,C_T,C_HI,C_VC,C_LE,C_VS
-      );   
-        
+      );
+
 
     const
       cond2str:array[TAsmCond] of string[3]=('',
@@ -176,11 +176,11 @@ uses
 
     type
       trefoptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
-      
+
       { direction of address register :      }
       {              (An)     (An)+   -(An)  }
       tdirection = (dir_none,dir_inc,dir_dec);
-      
+
       { reference record }
       preference = ^treference;
       treference = packed record
@@ -202,9 +202,9 @@ uses
          index       : tregister;
          offset      : longint;
       end;
-      
 
-      
+
+
 {*****************************************************************************
                                 Operands
 *****************************************************************************}
@@ -249,6 +249,7 @@ uses
         TLocation isn't used, because contains a lot of unnessary fields.
       }
       tparalocation = packed record
+         size : TCGSize;
          loc  : TLoc;
          sp_fixup : longint;
          case TLoc of
@@ -333,14 +334,14 @@ uses
 
       { Table of registers which can be allocated by the code generator
          internally, when generating the code.
-      
-       legend:                                                                
-        xxxregs = set of all possibly used registers of that type in the code  
-                 generator                                                    
-        usableregsxxx = set of all 32bit components of registers that can be   
-                 possible allocated to a regvar or using getregisterxxx (this 
-                 excludes registers which can be only used for parameter      
-                 passing on ABI's that define this)                           
+
+       legend:
+        xxxregs = set of all possibly used registers of that type in the code
+                 generator
+        usableregsxxx = set of all 32bit components of registers that can be
+                 possible allocated to a regvar or using getregisterxxx (this
+                 excludes registers which can be only used for parameter
+                 passing on ABI's that define this)
        c_countusableregsxxx = amount of registers in the usableregsxxx set    }
 
       maxintregs = 8;
@@ -356,12 +357,12 @@ uses
       mmregs     = [];
       usableregsmm  = [];
       c_countusableregsmm  = 0;
-      
+
       maxaddrregs = 8;
       addrregs    = [R_A0..R_SP];
       usableregsaddr = [R_A2..R_A4];
       c_countusableregsaddr = 3;
-      
+
 
       { The first register in the usableregsint array }
       firstsaveintreg = R_D2;
@@ -377,46 +378,46 @@ uses
       firstsaveaddrreg = R_A2;
       { The last  register in the usableregsaddr array }
       lastsaveaddrreg  = R_A4;
-      
+
       firstsavemmreg  = R_NO;
       lastsavemmreg   = R_NO;
 
-      { 
-       Defines the maxinum number of integer registers which can be used as variable registers 
+      {
+       Defines the maxinum number of integer registers which can be used as variable registers
       }
       maxvarregs = 6;
       { Array of integer registers which can be used as variable registers }
       varregs : Array [1..maxvarregs] of Tregister =
                 (R_D2,R_D3,R_D4,R_D5,R_D6,R_D7);
 
-      { 
-       Defines the maxinum number of float registers which can be used as variable registers 
+      {
+       Defines the maxinum number of float registers which can be used as variable registers
       }
       maxfpuvarregs = 6;
       { Array of float registers which can be used as variable registers }
       fpuvarregs : Array [1..maxfpuvarregs] of Tregister =
                 (R_FP2,R_FP3,R_FP4,R_FP5,R_FP6,R_FP7);
 
-      { 
+      {
        Defines the number of integer registers which are used in the ABI to pass parameters
        (might be empty on systems which use the stack to pass parameters)
-      }  
+      }
       max_param_regs_int = 0;
       {param_regs_int: Array[1..max_param_regs_int] of tregister =
         (R_3,R_4,R_5,R_6,R_7,R_8,R_9,R_10);}
 
-      { 
+      {
        Defines the number of float registers which are used in the ABI to pass parameters
        (might be empty on systems which use the stack to pass parameters)
-      }  
+      }
       max_param_regs_fpu = 0;
       {param_regs_fpu: Array[1..max_param_regs_fpu] of tregister =
         (R_F1,R_F2,R_F3,R_F4,R_F5,R_F6,R_F7,R_F8,R_F9,R_F10,R_F11,R_F12,R_F13);}
 
-      { 
+      {
        Defines the number of mmx registers which are used in the ABI to pass parameters
        (might be empty on systems which use the stack to pass parameters)
-      }  
+      }
       max_param_regs_mm = 0;
       {param_regs_mm: Array[1..max_param_regs_mm] of tregister =
         (R_M1,R_M2,R_M3,R_M4,R_M5,R_M6,R_M7,R_M8,R_M9,R_M10,R_M11,R_M12,R_M13);}
@@ -447,13 +448,13 @@ uses
 
       {# Register indexes for stabs information, when some
          parameters or variables are stored in registers.
-         
+
          Taken from m68kelf.h (DBX_REGISTER_NUMBER)
-         from GCC 3.x source code. 
-         
-         This is not compatible with the m68k-sun 
+         from GCC 3.x source code.
+
+         This is not compatible with the m68k-sun
          implementation.
-      }   
+      }
           stab_regindex : array[tregister] of shortint =
         (-1,                 { R_NO }
           0,1,2,3,4,5,6,7,   { R_D0..R_D7 }
@@ -552,7 +553,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2002-08-13 18:58:54  carl
+  Revision 1.7  2002-08-13 21:40:58  florian
+    * more fixes for ppc calling conventions
+
+  Revision 1.6  2002/08/13 18:58:54  carl
     + m68k problems with cvs fixed?()!
 
   Revision 1.4  2002/08/12 15:08:44  carl

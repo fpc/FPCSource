@@ -41,7 +41,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=28;
+  CurrentPPUVersion=29;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -982,7 +982,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2002-08-11 13:24:12  peter
+  Revision 1.23  2002-08-13 21:40:56  florian
+    * more fixes for ppc calling conventions
+
+  Revision 1.22  2002/08/11 13:24:12  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

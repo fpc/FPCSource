@@ -958,7 +958,6 @@ implementation
          end;
       end;
 
-
     { generates the code for decrementing the reference count of parameters }
     procedure final_paras(p : tnamedindexitem;arg:pointer);
       var
@@ -1137,6 +1136,8 @@ implementation
         p : tsymtable;
         tmpreg : tregister;
         stackalloclist : taasmoutput;
+        hp : tparaitem;
+
       begin
         stackalloclist:=taasmoutput.Create;
 
@@ -1211,8 +1212,36 @@ implementation
            not(aktprocdef.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_palmossyscall,pocall_system]) then
           aktprocdef.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas,list);
 
-        if assigned( aktprocdef.parast) then
-          aktprocdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
+        if assigned(aktprocdef.parast) then
+          begin
+             aktprocdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
+
+             { move register parameters which aren't regable into memory                                          }
+             { we do this after init_paras because it saves some code in init_paras if parameters are in register }
+             { instead in memory                                                                                  }
+             hp:=tparaitem(procinfo^.procdef.para.first);
+             while assigned(hp) do
+               begin
+                  if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and (([vo_regable,vo_fpuregable]*tvarsym(hp.parasym).varoptions)=[]) then
+                    begin
+                       case hp.paraloc.loc of
+                          LOC_REGISTER:
+                            begin
+                               reference_reset_base(href,procinfo^.framepointer,tvarsym(hp.parasym).address);
+                               cg.a_load_reg_ref(list,hp.paraloc.size,hp.paraloc.register,href);
+                            end;
+                          LOC_FPUREGISTER:
+                            begin
+                               reference_reset_base(href,procinfo^.framepointer,tvarsym(hp.parasym).address);
+                               cg.a_loadfpu_reg_ref(list,hp.paraloc.size,hp.paraloc.register,href);
+                            end;
+                          else
+                            internalerror(2002081302);
+                       end;
+                    end;
+                  hp:=tparaitem(hp.next);
+               end;
+          end;
 
         if (not inlined) then
          begin
@@ -1701,7 +1730,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2002-08-12 15:08:39  carl
+  Revision 1.35  2002-08-13 21:40:56  florian
+    * more fixes for ppc calling conventions
+
+  Revision 1.34  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class
