@@ -35,4 +35,5 @@ examplesubdirs=1
 [sections]
 none=1
 zipsourceinstall=1
+zipexampleinstall=1
 

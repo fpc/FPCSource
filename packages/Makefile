@@ -869,11 +869,13 @@ install: $(addsuffix _install,$(DIROBJECTS))
 
 sourceinstall: fpc_sourceinstall
 
-exampleinstall: $(addsuffix _exampleinstall,$(DIROBJECTS))
+exampleinstall: fpc_exampleinstall $(addsuffix _exampleinstall,$(DIROBJECTS))
 
 zipinstall: $(addsuffix _zipinstall,$(PKGOBJECTS))
 
 zipsourceinstall: fpc_zipsourceinstall
+
+zipexampleinstall: fpc_zipexampleinstall
 
 clean: $(addsuffix _clean,$(DIROBJECTS))
 
@@ -883,7 +885,7 @@ cleanall: $(addsuffix _cleanall,$(DIROBJECTS))
 
 require: $(addsuffix _require,$(DIROBJECTS))
 
-.PHONY:  all debug examples test smart shared showinstall install sourceinstall exampleinstall zipinstall zipsourceinstall clean distclean cleanall require
+.PHONY:  all debug examples test smart shared showinstall install sourceinstall exampleinstall zipinstall zipsourceinstall zipexampleinstall clean distclean cleanall require
 
 #####################################################################
 # SourceInstall rules
@@ -898,6 +900,24 @@ endif
 fpc_sourceinstall: clean
 	$(MKDIR) $(SOURCEINSTALLDIR)
 	$(COPYTREE) $(SOURCETOPDIR) $(SOURCEINSTALLDIR)
+
+#####################################################################
+# exampleinstall rules
+#####################################################################
+
+.PHONY: fpc_exampleinstall
+
+fpc_exampleinstall: $(addsuffix _clean,$(EXAMPLEDIROBJECTS))
+ifdef EXAMPLESOURCEFILES
+	$(MKDIR) $(EXAMPLEINSTALLDIR)
+	$(COPY) $(EXAMPLESOURCEFILES) $(EXAMPLEINSTALLDIR)
+endif
+ifdef EXAMPLEDIROBJECTS
+ifndef EXAMPLESOURCEFILES
+	$(MKDIR) $(EXAMPLEINSTALLDIR)
+endif
+	$(COPYTREE) $(addsuffix /*,$(EXAMPLEDIROBJECTS)) $(EXAMPLEINSTALLDIR)
+endif
 
 #####################################################################
 # Zip
@@ -959,6 +979,11 @@ endif
 
 fpc_zipsourceinstall:
 	$(MAKE) fpc_zipinstall ZIPTARGET=sourceinstall PACKAGESUFFIX=src
+
+.PHONY:  fpc_zipexampleinstall
+
+fpc_zipexampleinstall:
+	$(MAKE) fpc_zipinstall ZIPTARGET=exampleinstall PACKAGESUFFIX=exm
 
 #####################################################################
 # Directories

@@ -1441,13 +1441,13 @@ export RELEASE DESTZIPDIR
 all: build
 
 clean: $(addsuffix _distclean,$(DIROBJECTS))
-	$(DEL) build-stamp
+	$(DEL) build-stamp.$(OS_TARGET)
 
 distclean: clean
 
 
-build: build-stamp
-build-stamp:
+build: build-stamp.$(OS_TARGET)
+build-stamp.$(OS_TARGET):
 # create new compiler
 ifeq ($(OS_TARGET),win32)
 	-$(MAKE) compiler_cycle
@@ -1473,9 +1473,9 @@ endif
 ifdef IDE
 	-$(MAKE) ide_full $(BUILDOPTS)
 endif
-	$(ECHO) Build > build-stamp
+	$(ECHO) Build > build-stamp.$(OS_TARGET)
 
-installbase: build-stamp
+installbase: build-stamp.$(OS_TARGET)
 # create dirs
 	$(MKDIR) $(BASEINSTALLDIR)
 	$(MKDIR) $(DOCINSTALLDIR)
@@ -1500,7 +1500,7 @@ endif
 	$(MAKE) compiler_install $(INSTALLOPTS)
 	$(MAKE) rtl_install $(INSTALLOPTS)
 
-install: build-stamp
+install: build-stamp.$(OS_TARGET)
 	$(MAKE) installbase $(INSTALLOPTS)
 	$(MAKE) utils_install $(INSTALLOPTS)
 	$(MAKE) api_install $(INSTALLOPTS)
@@ -1516,7 +1516,7 @@ ifndef SNAPSHOT
 	$(MAKE) packages_exampleinstall $(INSTALLOPTS)
 endif
 
-zipinstall: build-stamp
+zipinstall: build-stamp.$(OS_TARGET)
 	$(MAKE) fpc_zipinstall ZIPTARGET=installbase PACKAGENAME=base $(INSTALLOPTS)
 	$(MAKE) utils_zipinstall $(INSTALLOPTS)
 	$(MAKE) api_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
