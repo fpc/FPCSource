@@ -355,7 +355,8 @@ Fixed bugs:
   bug0298.pp   l1+l2:=l1+l2 gives no error                          OK 0.99.13 (PFV)
   bug0300.pp   crash if method on non existing object is parsed (form bug 651) OK 0.99.13 (PFV)
   bug0301.pp   crash if destructor without object name is parsed    OK 0.99.13 (PFV)
-
+  bug0302.pp   inherited property generates wrong assembler         OK 0.99.13 (PFV)
+  
 
 Unproducable bugs:
 ------------------
