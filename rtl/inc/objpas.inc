@@ -224,7 +224,7 @@
 		     fieldaddress := Pointer(Self) + FieldInfo^.FieldOffset;
 	             exit;
 		   end;
-		   Inc(FieldInfo, 7 + Length(FieldInfo^.Name));
+		   Inc(Pointer(FieldInfo), 7 + Length(FieldInfo^.Name));
 	         end;
 	       end;
 	       { Try again with the parent class type }
@@ -455,7 +455,10 @@
 
 {
   $Log$
-  Revision 1.17  2000-07-08 07:24:24  sg
+  Revision 1.18  2000-07-08 21:27:42  sg
+  * Fixed TObject.FieldAddress
+
+  Revision 1.17  2000/07/08 07:24:24  sg
   * FieldAddress now returns immediately if name=''
 
   Revision 1.16  2000/06/29 16:32:50  sg
