@@ -753,7 +753,8 @@ procedure readcommondef(const s:string);
 type
   tdefoption=(df_none,
     df_has_inittable,           { init data has been generated }
-    df_has_rttitable            { rtti data has been generated }
+    df_has_rttitable,           { rtti data has been generated }
+    df_unique
   );
   tdefoptions=set of tdefoption;
 var
@@ -764,6 +765,10 @@ begin
   write  (space,'      Type symbol : ');
   readsymref;
   ppufile.getsmallset(defopts);
+
+  if df_unique in defopts then
+    writeln  (space,'      Unique type symbol');
+
   if df_has_rttitable in defopts then
    begin
      write  (space,'      RTTI symbol : ');
@@ -1860,7 +1865,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-09-27 21:22:04  carl
+  Revision 1.32  2002-10-06 12:25:53  florian
+    + dump of tdefoptions.df_unique
+
+  Revision 1.31  2002/09/27 21:22:04  carl
     * update system information
 
   Revision 1.30  2002/09/26 12:03:54  florian
