@@ -372,13 +372,21 @@ implementation
               end
              else
              { Both are chars? only convert to strings for addn }
-              if (porddef(rd)^.typ=uchar) and (porddef(ld)^.typ=uchar) then
+              if is_char(rd) and is_char(ld) then
                begin
                  if p^.treetype=addn then
                    begin
-                      p^.left:=gentypeconvnode(p^.left,cshortstringdef);
+                      if (cs_ansistrings in aktlocalswitches) then
+                       begin
+                         p^.left:=gentypeconvnode(p^.left,cansistringdef);
+                         p^.right:=gentypeconvnode(p^.right,cansistringdef);
+                       end
+                      else
+                       begin
+                         p^.left:=gentypeconvnode(p^.left,cshortstringdef);
+                         p^.right:=gentypeconvnode(p^.right,cshortstringdef);
+                       end;
                       firstpass(p^.left);
-                      p^.right:=gentypeconvnode(p^.right,cshortstringdef);
                       firstpass(p^.right);
                       { here we call STRCOPY }
                       procinfo.flags:=procinfo.flags or pi_do_call;
@@ -897,17 +905,21 @@ implementation
               end;
             addn:
               begin
-                 { the result of a string addition is a string of length 255 }
-                 if (p^.left^.resulttype^.deftype=stringdef) or
-                    (p^.right^.resulttype^.deftype=stringdef) then
-                   begin
-                      if not assigned(p^.resulttype) then
-                        p^.resulttype:=cshortstringdef
-                      { the rest is done before }
-                   end
-                 else
-                   if not assigned(p^.resulttype) then
-                     p^.resulttype:=p^.left^.resulttype;
+                if not assigned(p^.resulttype) then
+                 begin
+                   { the result of a string addition is a string of length 255 }
+                   if (p^.left^.resulttype^.deftype=stringdef) or
+                      (p^.right^.resulttype^.deftype=stringdef) then
+                    begin
+                      if is_ansistring(p^.left^.resulttype) or
+                         is_ansistring(p^.right^.resulttype) then
+                       p^.resulttype:=cansistringdef
+                      else
+                       p^.resulttype:=cshortstringdef;
+                    end
+                   else
+                    p^.resulttype:=p^.left^.resulttype;
+                 end;
               end;
             else if not assigned(p^.resulttype) then
               p^.resulttype:=p^.left^.resulttype;
@@ -918,7 +930,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-11-05 14:28:16  peter
+  Revision 1.13  1998-11-16 15:33:05  peter
+    * fixed return for ansistrings
+
+  Revision 1.12  1998/11/05 14:28:16  peter
     * fixed unknown set operation msg
 
   Revision 1.11  1998/11/05 12:03:02  peter
