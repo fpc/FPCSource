@@ -167,6 +167,11 @@ begin
     wrt(c);
 end;
 
+function IsTextNode(Node: TDOMNode): Boolean;
+begin
+  Result := Node.NodeType in [TEXT_NODE, ENTITY_REFERENCE_NODE];
+end;
+
 
 // -------------------------------------------------------------------
 //   Node writers implementations
@@ -199,12 +204,12 @@ begin
   else
   begin
     SavedInsideTextNode := InsideTextNode;
-    if InsideTextNode or Child.InheritsFrom(TDOMText) then
+    if InsideTextNode or IsTextNode(Child) then
       wrt('>')
     else
       wrtln('>');
     repeat
-      if Child.InheritsFrom(TDOMText) then
+      if IsTextNode(Child) then
         InsideTextNode := True;
       WriteNode(Child);
       Child := Child.NextSibling;
@@ -370,7 +375,12 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-10-03 20:33:22  sg
+  Revision 1.2  2000-10-15 15:31:26  sg
+  * Improved whitespace handling (entity references as first child of an
+    element is now handled as indicator to stop the insertion of automatic
+    linefeeds. Until now this was only the case with text nodes.)
+
+  Revision 1.1  2000/10/03 20:33:22  sg
   * Added new Units "htmwrite" and "xhtml"
 
 }
