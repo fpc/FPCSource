@@ -152,7 +152,7 @@ begin
   ExceptObjectStack^.refcount:=0;
   { Backtrace }
   curr_frame:=AFrame;
-  prev_frame:=AFrame-1;
+  prev_frame:=get_frame;
   frames:=nil;
   framebufsize:=0;
   framecount:=0;
@@ -346,7 +346,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.17  2005-01-26 17:07:10  peter
+  Revision 1.18  2005-01-29 17:01:18  peter
+    * fix crash with backtrace if invalid frame is passed
+
+  Revision 1.17  2005/01/26 17:07:10  peter
     * retrieve backtrace when exception is raised
     * RaiseMaxFrameCount added to limit the number of backtraces, setting
       it to 0 disables backtraces. Default is 16
