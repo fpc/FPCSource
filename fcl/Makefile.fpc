@@ -1,0 +1,70 @@
+#
+#   Makefile.fpc for Free Component Library
+#
+
+[sections]
+tools=0
+info=0
+
+[rules]
+all:
+        $(MAKE) -C $(OS_TARGET) all
+
+clean:
+        $(MAKE) -C go32v2 clean
+        $(MAKE) -C linux clean
+        $(MAKE) -C win32 clean
+        $(MAKE) -C os2 clean
+        $(MAKE) -C tests clean
+
+install:
+        $(MAKE) -C $(OS_TARGET) install
+
+staticlib:
+        $(MAKE) -C $(OS_TARGET) staticlib
+
+sharedlib:
+        $(MAKE) -C $(OS_TARGET) sharedlib
+
+libsclean:
+        $(MAKE) -C $(OS_TARGET) libsclean
+
+staticinstall:
+        $(MAKE) -C $(OS_TARGET) staticinstall
+
+sharedinstall:
+        $(MAKE) -C $(OS_TARGET) sharedinstall
+
+libinstall:
+        $(MAKE) -C $(OS_TARGET) libinstall
+
+
+#####################################################################
+# Dependencies
+#####################################################################
+
+.PHONY: tests examples go32v2 linux os win32
+
+#
+# Examples
+#
+examples: tests
+
+tests: all
+        $(MAKE) -C tests all
+
+
+#
+# Specific OS
+#
+go32v2:
+        $(MAKE) -C go32v2
+
+linux:
+        $(MAKE) -C linux
+
+os2:
+        $(MAKE) -C os2
+
+win32:
+        $(MAKE) -C win32
