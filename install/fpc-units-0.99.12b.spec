@@ -1,11 +1,11 @@
 Name: fpc-units
-Version: 0.99.12a
+Version: 0.99.12b
 Release: 1
 ExclusiveArch: i386
 Copyright: GPL
 Group: Development/Languages
-Source: fpc-units-0.99.12a-src.tar.gz
-Requires: fpc = 0.99.12a
+Source: fpc-units-0.99.12b-src.tar.gz
+Requires: fpc = 0.99.12b
 Summary: Free Pascal Compiler Extra Units
 Packager: Michael Van Canneyt (michael@tfdec1.fys.kuleuven.ac.be)
 URL: http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/fpc.html
@@ -98,6 +98,7 @@ NEWPP=/usr/bin/ppc386
 %{unitdir}/calendar.ppu 
 %{unitdir}/helpfile.ppu 
 %{unitdir}/editors.ppu
+%{unitdir}/tabs.ppu
 
 %{unitdir}/validate.o 
 %{unitdir}/drivers.o 
@@ -123,20 +124,29 @@ NEWPP=/usr/bin/ppc386
 %{unitdir}/calendar.o 
 %{unitdir}/helpfile.o 
 %{unitdir}/editors.o
+%{unitdir}/tabs.o
 
-%{unitdir}/classes.ppu 
-%{unitdir}/inifiles.ppu 
-%{unitdir}/ezcgi.ppu
-
-%{unitdir}/classes.o 
-%{unitdir}/inifiles.o 
+%{unitdir}/classes.o
+%{unitdir}/classes.ppu
+%{unitdir}/dom.o
+%{unitdir}/dom.ppu
 %{unitdir}/ezcgi.o
+%{unitdir}/ezcgi.ppu
+%{unitdir}/inifiles.o
+%{unitdir}/inifiles.ppu
+%{unitdir}/pipes.o
+%{unitdir}/pipes.ppu
+%{unitdir}/xmlcfg.o
+%{unitdir}/xmlcfg.ppu
+%{unitdir}/xmlread.o
+%{unitdir}/xmlread.ppu
+%{unitdir}/xmlwrite.o
+%{unitdir}/xmlwrite.ppu
 
 %{unitdir}/glib.ppu 
 %{unitdir}/gmodule.ppu 
 %{unitdir}/gdk.ppu 
 %{unitdir}/gtk.ppu
-
 %{unitdir}/glib.o 
 %{unitdir}/gdk.o 
 %{unitdir}/gtk.o

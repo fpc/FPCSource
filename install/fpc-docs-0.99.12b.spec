@@ -1,10 +1,10 @@
 Name: fpc-docs
-Version: 0.99.12a
+Version: 0.99.12b
 Release: 1
 ExclusiveArch: i386
 Copyright: GPL
 Group: Development/Languages
-Source: fpc-docs-0.99.12a-src.tar.gz
+Source: fpc-docs-0.99.12b-src.tar.gz
 Summary: Free Pascal Compiler Documentation
 Packager: Michael Van Canneyt (michael@tfdec1.fys.kuleuven.ac.be)
 URL: http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/fpc.html
@@ -23,20 +23,14 @@ the documentation in HTML format
 %setup -c
 
 %build
-	make -C docs html
+	make -C docs pdf
 
 %install
-	make -C docs install
+	make -C docs pdfinstall
 
 %clean
 	make -C docs clean
 
 %files
-%{docdir}/prog
-%{docdir}/user
-%{docdir}/ref
-%{docdir}/units
-%{docdir}/buttons
-%{docdir}/search
-%{docdir}/fpctoc.html
+%{docdir}/*.pdf
 

@@ -1,11 +1,11 @@
 Name: fpc-extra
-Version: 0.99.12a
+Version: 0.99.12b
 Release: 1
 ExclusiveArch: i386
 Copyright: GPL
 Group: Development/Languages
-Source: fpc-extra-0.99.12a-src.tar.gz
-Requires: fpc = 0.99.12a
+Source: fpc-extra-0.99.12b-src.tar.gz
+Requires: fpc = 0.99.12b
 Summary: Free Pascal Compiler Extra Packages
 Packager: Michael Van Canneyt (michael@tfdec1.fys.kuleuven.ac.be)
 URL: http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/fpc.html
@@ -29,14 +29,14 @@ extra units: ncurses,inet,mysql,ibase,postgres,uncgi
 export FPCMAKE=
 export FPCDIR=
 NEWPP=/usr/bin/ppc386
-	make -C packages all PP=${NEWPP} RELEASE=1 UNITDIR=%{rtldir}
+	make -C packages all PP=${NEWPP} RELEASE=1 RTLDIR=%{rtldir}
 
 %install
 # Don't load the system makefile.fpc
 export FPCMAKE=
 export FPCDIR=
 NEWPP=/usr/bin/ppc386
-	make -C packages install PP=${NEWPP}
+	make -C packages install PP=${NEWPP} RELEASE=1 RTLDIR=%{rtldir}
 
 %clean
 	make -C packages clean
