@@ -637,20 +637,12 @@ unit cgx86;
       var
         op: tasmop;
         s: topsize;
-        eq:boolean;
         instr:Taicpu;
 
       begin
         check_register_size(fromsize,reg1);
         check_register_size(tosize,reg2);
         sizes2load(fromsize,tosize,op,s);
-        eq:=getsupreg(reg1)=getsupreg(reg2);
-        if eq then
-         begin
-           { "mov reg1, reg1" doesn't make sense }
-           if op = A_MOV then
-             exit;
-         end;
         instr:=taicpu.op_reg_reg(op,s,reg1,reg2);
         {Notify the register allocator that we have written a move instruction so
          it can try to eliminate it.}
@@ -1896,7 +1888,12 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.103  2004-01-15 23:16:33  daniel
+  Revision 1.104  2004-02-03 19:46:48  jonas
+    - removed "mov reg,reg" optimization (those instructions are removed by
+      the register allocator, and may be necessary to indicate a register
+      may not be released before some point)
+
+  Revision 1.103  2004/01/15 23:16:33  daniel
     + Cleanup of stabstring generation code. Cleaner, faster, and compiler
       executable reduced by 50 kb,
 
