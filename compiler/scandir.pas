@@ -445,6 +445,7 @@ implementation
       var
         s : string;
         quote : char;
+        libext,
         libname,
         linkmodestr : string;
         p : longint;
@@ -466,24 +467,14 @@ implementation
             else
               libname:=TrimSpace(copy(s,1,p-1));
           end;
-
         if p=0 then
           linkmodeStr:=''
         else
           linkmodeStr:=Upper(TrimSpace(copy(s,p+1,255)));
 
+
         if (libname='') or (libname='''''') or (libname='""') then
          exit;
-        { get linkmode, default is shared linking }
-        if linkModeStr='STATIC' then
-         linkmode:=lm_static
-        else if (LinkModeStr='SHARED') or (LinkModeStr='') then
-         linkmode:=lm_shared
-        else
-         begin
-           Comment(V_Error,'Wrong link mode specified: "'+Linkmodestr+'"');
-           exit;
-         end;
         { create library name }
         if libname[1] in ['''','"'] then
          begin
@@ -493,11 +484,29 @@ implementation
            if p>0 then
             Delete(libname,p,1);
          end;
-        { add to the list of libraries to link }
-        if linkMode=lm_static then
-         current_module.linkOtherStaticLibs.add(FixFileName(libname),link_allways)
+        libname:=FixFileName(libname);
+
+        { get linkmode, default is to check the extension for
+          the static library, otherwise shared linking is assumed }
+        linkmode:=lm_shared;
+        if linkModeStr='' then
+         begin
+           libext:=SplitExtension(libname);
+           if libext=target_info.staticClibext then
+             linkMode:=lm_static;
+         end
+        else if linkModeStr='STATIC' then
+         linkmode:=lm_static
+        else if (LinkModeStr='SHARED') or (LinkModeStr='') then
+         linkmode:=lm_shared
         else
-         current_module.linkOtherSharedLibs.add(FixFileName(libname),link_allways);
+         Comment(V_Error,'Wrong link mode specified: "'+Linkmodestr+'"');
+
+        { add to the list of other libraries }
+        if linkMode=lm_static then
+         current_module.linkOtherStaticLibs.add(libname,link_allways)
+        else
+         current_module.linkOtherSharedLibs.add(libname,link_allways);
       end;
 
     procedure dir_localsymbols;
@@ -1138,7 +1147,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2004-10-26 15:11:01  peter
+  Revision 1.47  2004-11-06 17:58:10  peter
+    * check extension of library if it needs to be linked static
+
+  Revision 1.46  2004/10/26 15:11:01  peter
     * -Ch for heapsize added again
     * __heapsize contains the heapsize
 
