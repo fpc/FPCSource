@@ -727,9 +727,7 @@ end;
 {$define FPC_PreviousFramePointer_Implemented}
 {$warning FIX ME !!!! }
 asm
-    (* getting the previous stack frame is quite hard for the standard powerpc calling conventions
-      because we don't know the size of the locals, it seems that we need some compiler magic for this
-    *)
+    lwz  r3,0(r1)
 end;
 {$endif cpupowerpc}
 {$ifdef cpuarm}
@@ -2942,7 +2940,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.26  2003-11-30 19:48:20  florian
+  Revision 1.27  2004-01-01 15:30:04  jonas
+    * fixed PreviousFramePointer() for ppc
+
+  Revision 1.26  2003/11/30 19:48:20  florian
     * fixed some arm stuff
 
   Revision 1.25  2003/11/03 17:46:37  peter
