@@ -1686,7 +1686,7 @@ Procedure THTMLWriter.AppendSeeAlsoSection(AElement : TPasElement;DocNode : TDoc
 var
   Node: TDOMNode;
   TableEl, El, TREl, TDEl, ParaEl, NewEl, DescrEl: TDOMElement;
-  s: String;
+  l,s: String;
   f: Text;
   IsFirstSeeAlso : Boolean;
   
@@ -1708,16 +1708,18 @@ begin
        El:=TDOMElement(Node);
        TREl:=CreateTR(TableEl);
        ParaEl:=CreatePara(CreateTD_vtop(TREl));
-       s:= ResolveLinkID(El['id']);
+       l:=El['id'];
+       s:= ResolveLinkID(l);
        if Length(s)=0 then
          begin
-         WriteLn(Format(SErrUnknownLinkID, [El['id']]));
+         WriteLn(Format(SErrUnknownLinkID, [l]));
          NewEl := CreateEl(ParaEl,'b')
          end 
        else
          NewEl := CreateLink(ParaEl,s);
        AppendText(NewEl,El['id']);
-       DescrEl := Engine.FindShortDescr(AElement.GetModule, El['id']);
+       l:=El['id'];
+       DescrEl := Engine.FindShortDescr(AElement.GetModule,L);
        if Assigned(DescrEl) then
          begin
          AppendNbSp(CreatePara(CreateTD(TREl)), 2);
@@ -2802,7 +2804,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-08-28 18:04:49  michael
+  Revision 1.9  2004-08-31 09:40:05  michael
+  + Lookup using string, not widestring
+
+  Revision 1.8  2004/08/28 18:04:49  michael
   + Added context to topic pages
 
   Revision 1.7  2004/07/25 22:40:13  michael
