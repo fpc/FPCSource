@@ -52,15 +52,18 @@ uses
               A_SBC,A_SMLAL.A_SMLA,A_SMLAL,A_SMLAW,A_SMULL,A_SMUL,
               A_SMULW,A_STC,A_STC2,A_STM,A_STR,A_STRB,A_STRBT,A_STRD,
               A_STRH,A_STRT,A_SUB,A_SWI,A_SWP,A_SWPB,A_TEQ,A_TST.
-              A_UMLAL,A_UMULL);
+              A_UMLAL,A_UMULL
+              { FPU coprocessor codes }
+              { Vec unit coprocessor codes }
+              );
 
-      {# This should define the array of instructions as string }
+      { This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];
 
     Const
-      {# First value of opcode enumeration }
+      { First value of opcode enumeration }
       firstop = low(tasmop);
-      {# Last value of opcode enumeration  }
+      { Last value of opcode enumeration  }
       lastop  = high(tasmop);
 
 {*****************************************************************************
@@ -87,18 +90,25 @@ uses
       }
       { don't change the order }
       { it's used by the register size conversions        }
-      tregister = (R_NO,
-        R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
-        R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
-        R_AL,R_CL,R_DL,R_BL,R_AH,R_CH,R_BH,R_DH,
-        R_CS,R_DS,R_ES,R_SS,R_FS,R_GS,
-        R_ST,R_ST0,R_ST1,R_ST2,R_ST3,R_ST4,R_ST5,R_ST6,R_ST7,
-        R_DR0,R_DR1,R_DR2,R_DR3,R_DR6,R_DR7,
-        R_CR0,R_CR2,R_CR3,R_CR4,
-        R_TR3,R_TR4,R_TR5,R_TR6,R_TR7,
-        R_MM0,R_MM1,R_MM2,R_MM3,R_MM4,R_MM5,R_MM6,R_MM7,
-        R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7
+      toldregister = (R_NO,
+        R_RAX,R_RCX,R_RDX,R_RBX,R_RSP,R_RBP,R_RSI,R_RDI,
+        R_R0,R_R1,R_R2,R_R3,R_R4,R_R5,R_R6,R_R7,
+        R_R8,R_R9,R_R10,R_R11,R_R12,R_R13,R_R14,R_PC,
+        R_CPSR
       );
+
+   type
+      tnewregister=word;
+
+      Tregister = packed record
+        enum : Toldregister;
+        { This is a word for now, change to cardinal
+          when the old register coding is away.}
+        number : Tnewregister;
+      end;
+
+      Tsuperregister = byte;
+      Tsubregister = byte;
 
       { A type to store register locations for 64 Bit values. }
       tregister64 = packed record
@@ -108,10 +118,11 @@ uses
       { alias for compact code }
       treg64 = tregister64;
 
-      {# Set type definition for registers }
+      { Set type definition for registers }
       tregisterset = set of tregister;
+      tsupregset = set of tsuperregister;
 
-      {# Type definition for the array of string of register names }
+      { Type definition for the array of string of register names }
       reg2strtable = array[tregister] of string[6];
 
     const
@@ -170,22 +181,18 @@ uses
 
     type
       TAsmCond=(C_None,
-        C_A,C_AE,C_B,C_BE,C_C,C_E,C_G,C_GE,C_L,C_LE,C_NA,C_NAE,
-        C_NB,C_NBE,C_NC,C_NE,C_NG,C_NGE,C_NL,C_NLE,C_NO,C_NP,
-        C_NS,C_NZ,C_O,C_P,C_PE,C_PO,C_S,C_Z
+        C_EQ,C_NE,C_CS,C_CC,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
+        C_GE,C_LT,C_GT,C_LE,C_AL,C_NV
       );
 
     const
-      cond2str:array[TAsmCond] of string[3]=('',
-        'a','ae','b','be','c','e','g','ge','l','le','na','nae',
-        'nb','nbe','nc','ne','ng','nge','nl','nle','no','np',
-        'ns','nz','o','p','pe','po','s','z'
+      cond2str:array[TAsmCond] of string[2]=('',
+        'eq','ne','cs','cc','mi','pl','vs','vc','hi','ls',
+        'ge','lt','gt','le','al','nv'
       );
 
       inverse_cond:array[TAsmCond] of TAsmCond=(C_None,
-        C_NA,C_NAE,C_NB,C_NBE,C_NC,C_NE,C_NG,C_NGE,C_NL,C_NLE,C_A,C_AE,
-        C_B,C_BE,C_C,C_E,C_G,C_GE,C_L,C_LE,C_O,C_P,
-        C_S,C_Z,C_NO,C_NP,C_NP,C_P,C_NS,C_NZ
+
       );
 
 {*****************************************************************************
@@ -526,6 +533,9 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2003-07-21 16:35:30  florian
+  Revision 1.2  2003-07-26 00:55:57  florian
+    * basic stuff fixed
+
+  Revision 1.1  2003/07/21 16:35:30  florian
     * very basic stuff for the arm
 }
