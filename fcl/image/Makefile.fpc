@@ -9,7 +9,8 @@ main=fcl
 packages=paszlib
 
 [target]
-units=fpimgcmn fpimage pngcomn fpreadpng  fpreadxpm  fpwritexpm 
+units=fpimgcmn fpimage pngcomn fpreadpng  fpreadxpm fpwritexpm clipping \
+      fpcanvas pixtools fppixlcanv fpimgcanv  
 examples=imgconv
 
 [compiler]
