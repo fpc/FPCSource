@@ -488,6 +488,16 @@ unit pmodules;
          end
         else
          objpasunit:=nil;
+      { Profile unit? Needed for go32v2 only }
+        if (cs_profile in aktmoduleswitches) and (target_info.target=target_i386_go32v2) then
+         begin
+           hp:=loadunit('PROFILE',false);
+           psymtable(hp^.globalsymtable)^.next:=symtablestack;
+           symtablestack:=hp^.globalsymtable;
+           { add to the used units }
+           current_module^.used_units.concat(new(pused_unit,init(hp,true)));
+           refsymtable^.insert(new(punitsym,init('PROFILE',hp^.globalsymtable)));
+         end;
       { save default symtablestack }
         defaultsymtablestack:=symtablestack;
       end;
@@ -1024,7 +1034,7 @@ unit pmodules;
          { necessary for browser }
          loaded_units.insert(current_module);
 
-         { load standard units (system,objpas unit) }
+         { load standard units (system,objpas,profile unit) }
          loaddefaultunits;
 
          { reset }
@@ -1122,7 +1132,13 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.83  1998-11-16 11:29:00  pierre
+  Revision 1.84  1998-11-18 09:18:03  pierre
+    + automatic loading of profile unit with -pg option
+      in go32v2 mode (also defines FPC_PROFILE)
+    * some memory leaks removed
+    * unreleased temp problem with sets solved
+
+  Revision 1.83  1998/11/16 11:29:00  pierre
     * stackcheck removed for i386_win32
     * exportlist does not crash at least !!
       (was need for tests dir !)z

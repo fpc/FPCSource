@@ -156,6 +156,7 @@ implementation
                         emit_push_loc(p^.left^.location);
                         emitcall('FPC_ANSISTR_CONCAT',true);
                         unused:=savedunused;
+                        clear_location(p^.location);
                         p^.location.register:=getexplicitregister32(R_EAX);
                         p^.location.loc:=LOC_REGISTER;
                         emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.register);
@@ -731,6 +732,8 @@ implementation
                      begin
                        popeax:=false;
                        popedx:=false;
+                       { here you need to free the symbol first }
+                       clear_location(p^.location);
                        p^.location.register:=getregister32;
                        p^.location.loc:=LOC_REGISTER;
                        if not(R_EAX in unused) and (p^.location.register<>R_EAX) then
@@ -788,6 +791,7 @@ implementation
                           end
                         else
                           begin
+                             ungetiftemp(p^.left^.location.reference);
                              del_reference(p^.left^.location.reference);
                              if is_in_dest then
                                begin
@@ -846,6 +850,7 @@ implementation
                                     newreference(p^.right^.location.reference),R_EDI)));
                                   exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,p^.location.register,R_EDI)));
                                   exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,R_EDI,p^.location.register)));
+                                  ungetiftemp(p^.right^.location.reference);
                                   del_reference(p^.right^.location.reference);
                                end;
                           end
@@ -911,6 +916,7 @@ implementation
                                             exprasmlist^.concat(new(pai386,op_ref_reg(op,opsize,newreference(
                                               p^.right^.location.reference),p^.location.register)));
                                          end;
+                                       ungetiftemp(p^.right^.location.reference);
                                        del_reference(p^.right^.location.reference);
                                     end;
                                end;
@@ -1358,7 +1364,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1998-11-17 00:36:38  peter
+  Revision 1.28  1998-11-18 09:18:01  pierre
+    + automatic loading of profile unit with -pg option
+      in go32v2 mode (also defines FPC_PROFILE)
+    * some memory leaks removed
+    * unreleased temp problem with sets solved
+
+  Revision 1.27  1998/11/17 00:36:38  peter
     * more ansistring fixes
 
   Revision 1.26  1998/11/16 16:17:16  peter
