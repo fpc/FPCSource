@@ -622,7 +622,8 @@ implementation
                begin
                  if p^.left^.resulttype^.deftype=arraydef then
                    begin
-                     if is_open_array(p^.left^.resulttype) then
+                     if is_open_array(p^.left^.resulttype) or
+                        is_array_of_const(p^.left^.resulttype) then
                       begin
                         reset_reference(href);
                         parraydef(p^.left^.resulttype)^.genrangecheck;
@@ -849,7 +850,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  1999-08-14 00:36:05  peter
+  Revision 1.51  1999-08-16 23:20:28  peter
+    * range check for array of const
+
+  Revision 1.50  1999/08/14 00:36:05  peter
     * array constructor support
 
   Revision 1.49  1999/08/04 00:22:53  florian
