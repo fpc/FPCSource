@@ -1,0 +1,53 @@
+{
+    $Id$
+    This file is part of the Free Pascal Run time library.
+    Copyright (c) 1999-2000 by the Free Pascal development team
+
+    This File contains extra, phony declarations used in fpdoc.
+
+    See the File COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+Function Addr (X : TAnytype) : Pointer;
+Procedure Assert(Expr : Boolean); 
+Procedure Assert(Expr : Boolean; const Msg : string);
+Function Assigned (P : Pointer) : Boolean;
+Procedure Break;
+Function Concat (Const S1,S2,S3,Sn  : String) : String;
+Procedure Continue;
+Procedure Dec(Var X : TOrdinal);
+Procedure Dec(Var X : TOrdinal; Decrement : TOrdinal);
+Procedure Dispose (P : Pointer);
+Procedure Dispose (P : TypedPointer; Des : TProcedure);
+Procedure Exclude (Var S : TSetType; E : TSetElement);
+Procedure Exit(Const X : TAnyType);
+Procedure Exit;
+Function High (Arg: TypeOrVariable) : TOrdinal;
+Procedure Inc (Var X : TOrdinal);
+Procedure Inc (Var X : TOrdinal; Increment : TOrdinal);
+Procedure Include (Var S : TSetType; E : TSetElement);
+Function Low (Arg: TypeOrVariable) : TOrdinal;
+Procedure New (Var P : Pointer);
+Procedure New (Var P : Pointer; Cons : TProcedure);
+Function Ofs (Var X) : Longint;
+Function Ord (X : TOrdinal) : Longint;
+Function Pred (X : TOrdinal) : TOrdinal;
+Procedure Read (Var F : Text; Args : Arguments);
+Procedure ReadLn (Var F : Text; Args : Arguments);
+Procedure Read (Args : Arguments);
+Procedure ReadLn (Args : Arguments);
+Function Seg (Var X) : Longint;
+Function SizeOf (X : TAnyType) : Longint;
+Procedure Str (Var X : TNumericType; Var S : String);
+Function Succ (X : TOrdinal) : TOrdinal;
+Procedure Val (const S : string;Var V;var Code : word);
+Procedure Write (Args : Arguments);
+Procedure Writeln (Args : Arguments);
+Procedure Write (Var F : Text; Args : Arguments);
+Procedure WriteLn (Var F : Text; Args : Arguments);

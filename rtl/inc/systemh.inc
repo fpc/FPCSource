@@ -785,9 +785,20 @@ const
 
 {$i compproc.inc}
 
+{*****************************************************************************
+                   FPDoc phony declarations.
+*****************************************************************************}
+
+{$ifdef fpdocsystem}
+{$i system.fpd}
+{$endif}
+
 {
   $Log$
-  Revision 1.108  2004-11-17 22:19:04  peter
+  Revision 1.109  2004-11-22 22:48:10  michael
+  + Added phony documentation declarations
+
+  Revision 1.108  2004/11/17 22:19:04  peter
   internconst, internproc and some external declarations moved to interface
 
   Revision 1.107  2004/11/09 23:10:22  peter
