@@ -12,7 +12,6 @@ SYSINCNAMES=$(addsuffix .inc,$(SYSNAMES))
 
 # Other unit names which can be used for all systems
 #
-UNITNAMES=os_types
 #UNITNAMES=getops
 #UNITPPNAMES=$(addsuffix .pp,$(UNITNAMES))
 
