@@ -48,19 +48,21 @@ begin
 end;
 
 begin
-        writeln('All reference counts should be 1 for the following...');
         onestring := 'one';
         twostring := 'two';
         ARecordWithStrings.one := onestring + twostring;
         twostring := onestring + twostring;
+        RefCount(ARecordWithStrings.one,1);
+        { Here we allocate a temp so refcount will be 2 }
+        ARecordWithStrings := FunctionResultIsRecord(ARecordWithStrings);
+        twostring := onestring + twostring;
         RefCount(ARecordWithStrings.one,2);
+        { Temp is reused, refcount should stay 2 }
         ARecordWithStrings := FunctionResultIsRecord(ARecordWithStrings);
         twostring := onestring + twostring;
-        RefCount(ARecordWithStrings.one,3);
+        RefCount(ARecordWithStrings.one,2);
+        { Temp is reused, refcount should stay 2 }
         ARecordWithStrings := FunctionResultIsRecord(ARecordWithStrings);
         twostring := onestring + twostring;
-        RefCount(ARecordWithStrings.one,4);
-        ARecordWithStrings := FunctionResultIsRecord(ARecordWithStrings);
-        twostring := onestring + twostring;
-        RefCount(ARecordWithStrings.one,5);
+        RefCount(ARecordWithStrings.one,2);
 end.
