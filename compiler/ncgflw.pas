@@ -807,9 +807,21 @@ implementation
 
          if assigned(left) then
            begin
+{$ifdef callparatemp}
+              { process object (may contain a call) }
+              secondpass(left);
+              if codegenerror then
+                exit;
+{$endif callparatemp}
               { multiple parameters? }
               if assigned(right) then
                 begin
+{$ifdef callparatemp}
+                  { process address (in case it contains a call) }
+                  secondpass(right);
+                  if codegenerror then
+                   exit;
+{$endif callparatemp}
                   { push frame }
                   if assigned(frametree) then
                     begin
@@ -820,10 +832,12 @@ implementation
                     end
                   else
                     cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(exprasmlist,3));
+{$ifndef callparatemp}
                   { push address }
                   secondpass(right);
                   if codegenerror then
                    exit;
+{$endif not callparatemp}
                   cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(exprasmlist,2));
                 end
               else
@@ -839,10 +853,12 @@ implementation
                    { push current address }
                    cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(exprasmlist,2));
                 end;
+{$ifndef callparatemp}
               { push object }
               secondpass(left);
               if codegenerror then
                 exit;
+{$endif not callparatemp}
               cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(exprasmlist,1));
               cg.a_call_name(exprasmlist,'FPC_RAISEEXCEPTION');
               paramanager.freeintparaloc(exprasmlist,3);
@@ -1427,7 +1443,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2003-06-09 12:23:30  peter
+  Revision 1.71  2003-06-09 14:38:52  jonas
+    * fixed for callparatemp
+
+  Revision 1.70  2003/06/09 12:23:30  peter
     * init/final of procedure data splitted from genentrycode
     * use asmnode getposition to insert final at the correct position
       als for the implicit try...finally
