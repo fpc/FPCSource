@@ -1386,7 +1386,7 @@ function returns in a register and the caller receives it in an other one}
                  cg.a_paramaddr_ref(list,href,paraloc);
                  reference_reset_symbol(href,objectlibrary.newasmsymbol('__image_base__'),0);
                  cg.a_paramaddr_ref(list,href,paraloc);
-                 cg.a_call_name(list,'monstartup');
+                 cg.a_call_name(list,'_monstartup');
                end;
 
               { initialize units }
@@ -1876,7 +1876,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.65  2002-11-28 23:28:14  florian
+  Revision 1.66  2002-11-30 14:39:15  carl
+    * try to fix profiling for win32
+
+  Revision 1.65  2002/11/28 23:28:14  florian
     * push_value_para didn't release floatdef locations, fixes tw2045
 
   Revision 1.64  2002/11/27 02:33:19  peter
