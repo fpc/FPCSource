@@ -69,7 +69,7 @@ include $(CFG)/makefile.cfg
 # Define Win32 Units
 SYSTEMPPU=syswin32$(PPUEXT)
 OBJECTS=strings dos \
-	windows \
+	windows objects \
 	cpu mmx getopts heaptrc objpas sysutils
 
 # Files used by windows.pp
@@ -181,10 +181,10 @@ windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMPPU)
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc $(SYSTEMPPU)
 	$(COMPILER) dos $(REDIR)
 
-#objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
-#	 $(COPY) $(INC)/objects.pp .
-#	 $(COMPILER) objects $(REDIR)
-#	 $(DEL) objects.pp
+objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
+	 $(COPY) $(INC)/objects.pp .
+	 $(COMPILER) objects $(REDIR)
+	 $(DEL) objects.pp
 
 #
 # Other RTL Units
@@ -382,7 +382,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.10  1998-10-14 12:49:42  peter
+# Revision 1.11  1998-11-18 09:28:07  pierre
+#  + added objects unit
+#
+# Revision 1.10  1998/10/14 12:49:42  peter
 #   * fixed dos dependency
 #
 # Revision 1.9  1998/10/12 08:36:32  pierre
