@@ -695,7 +695,7 @@ asm
         { load length source }
         lbz     r10,0(r5)
         {  load the begin of the dest buffer in the data cache }
-        dcbtst  r0,r3
+        dcbtst  0,r3
 
         { put min(length(sstr),len) in r3 }
         subc    r0,r4,r10     { r0 := r3 - r10                               }
@@ -728,7 +728,7 @@ asm
         { load length source }
         lbz     r10,0(r4)
         {  load the begin of the dest buffer in the data cache }
-        dcbtst  r0,r5
+        dcbtst  0,r5
 
         { put min(length(sstr),len) in r3 }
         subc    r0,r3,r10    { r0 := r3 - r10                               }
@@ -958,7 +958,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.25  2002-10-23 15:26:00  olle
+  Revision 1.26  2002-11-01 13:27:55  jonas
+    * changed "dcbtst r0,x" to "dcbtst 0,x"
+
+  Revision 1.25  2002/10/23 15:26:00  olle
     * excluded saverestorereg for target macos
 
   Revision 1.24  2002/10/20 13:40:55  jonas
