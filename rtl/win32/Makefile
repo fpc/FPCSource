@@ -34,9 +34,11 @@ INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU)
 
 # Needed options
+ifneq ("$(FPC_VERSION)","0.99.10")
 ifndef BROWSER
 NEEDOPT=-b-
 endif
+endif 
 
 # Where to place the result files
 TARGETDIR=.
@@ -376,7 +378,10 @@ endif
 
 #
 # $Log$
-# Revision 1.28  1999-05-04 11:59:52  peter
+# Revision 1.29  1999-05-05 22:24:09  peter
+#   * 0.99.10 check for browser
+#
+# Revision 1.28  1999/05/04 11:59:52  peter
 #   * browser off by default
 #
 # Revision 1.27  1999/04/28 11:42:50  peter
