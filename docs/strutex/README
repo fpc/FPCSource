@@ -1,0 +1,4 @@
+This directory contains the examples for the strutils unit.
+
+ex1.pp contains an example of the SearchBuf function.
+ex2.pp contains an example of the WordCount,ExtractWordPos,WordPosition functions.
