@@ -2558,9 +2558,9 @@ implementation
          lowrange:=ppufile.getlongint;
          highrange:=ppufile.getlongint;
          IsArrayOfConst:=boolean(ppufile.getbyte);
+         IsDynamicArray:=boolean(ppufile.getbyte);
          IsVariant:=false;
          IsConstructor:=false;
-         IsDynamicArray:=false;
          rangenr:=0;
       end;
 
@@ -2617,6 +2617,7 @@ implementation
          ppufile.putlongint(lowrange);
          ppufile.putlongint(highrange);
          ppufile.putbyte(byte(IsArrayOfConst));
+         ppufile.putbyte(byte(IsDynamicArray));
          ppufile.writeentry(ibarraydef);
       end;
 
@@ -5545,7 +5546,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.41  2001-08-12 20:04:33  peter
+  Revision 1.42  2001-08-12 22:09:40  peter
+    * write also dynamicarray flag to ppu
+
+  Revision 1.41  2001/08/12 20:04:33  peter
     * fpu_used=0 when simplify_ppu is used
     * small crc updating fixes for tprocdef
 
