@@ -256,16 +256,18 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
 
 { provide local access to dynarr_copy }
 procedure int_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
-    lowidx,highidx:longint);[external name 'FPC_DYNARR_COPY'];
+    lowidx,count:tdynarrayindex);[external name 'FPC_DYNARR_COPY'];
 
 procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
-    lowidx,highidx:longint);[Public,Alias:'FPC_DYNARR_COPY'];{$ifdef hascompilerproc} compilerproc; {$endif}
+    lowidx,count:tdynarrayindex);[Public,Alias:'FPC_DYNARR_COPY'];{$ifdef hascompilerproc} compilerproc; {$endif}
   var
     realpdest,
     realpsrc : pdynarray;
     cnt,
     i,size : longint;
+    highidx : tdynarrayindex;
   begin
+     highidx:=lowidx+count-1;
      pdest:=nil;
      if psrc=nil then
        exit;
@@ -300,7 +302,10 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.21  2002-11-26 23:02:07  peter
+  Revision 1.22  2003-10-25 22:52:07  florian
+    * fixed copy(<dynarray>, ...)
+
+  Revision 1.21  2002/11/26 23:02:07  peter
     * fixed dynarray copy
 
   Revision 1.20  2002/10/09 20:24:30  florian
