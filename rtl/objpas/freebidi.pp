@@ -41,6 +41,10 @@ function VCharOf(Src:TString; vp:Integer; dir:TDirection):TCharacter;
 procedure VInsert(const Src:TString; var Dest:TString; vp:Integer; pDir:TDirection);
 {Deletes a string into an other paying attention of RTL/LTR direction}
 procedure VDelete(var str:TString; vp, len:Integer; pDir:TDirection);
+{Resturns a sub string of source string}
+//function VCopy(const Src:TString; vStart, vWidth:Integer):TString;
+{Resturns the visual image of current string}
+function VStr(const Src:TString; pDir:TDirection):TString;
 {****************************Helper routines***********************************}
 {Returns direction of a character}
 function DirectionOf(Character:TCharacter):TDirection;
@@ -265,7 +269,7 @@ begin
       vp := Result[0];
     end;
     Insert(lp, Result, vp);
-    Inc(lp, Length(Character));
+    lp += 1;
   end;
 end;
 
@@ -313,16 +317,6 @@ begin
 end;
 
 procedure VInsert(const Src:TString;var Dest:TString; vp:Integer; pDir:TDirection);
-  function VStr(const Src:TString; pDir:TDirection):TString;
-  var
-    v2lSrc:TVisualToLogical;
-    i:Integer;
-  begin
-    v2lSrc := VisualToLogical(Src,pDir);
-    Result := '';
-    for i := 1 to v2lSrc[0] do
-      Result := Result + Src[v2lSrc[i]];
-  end;
 var
   vSrc,vDest:TString;
 begin
@@ -342,6 +336,17 @@ begin
     if(v2l[i] < vp) and (v2l[i] > vp + len)
     then
       Delete(str, v2l[i], 1);
+end;
+
+function VStr(const Src:TString; pDir:TDirection):TString;
+var
+  v2lSrc:TVisualToLogical;
+  vp:Integer;
+begin
+  v2lSrc := VisualToLogical(Src,pDir);
+  SetLength(Result, v2lSrc[0]);
+  for vp := 1 to v2lSrc[0] do
+    Result[vp] := Src[v2lSrc[vp]];
 end;
 
 end.
