@@ -149,7 +149,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  2003-10-17 20:56:24  olle
+  Revision 1.1  2003-10-30 16:43:38  marco
+   * i386 specific due to clone and old syscall conv
+
+  Revision 1.19  2003/10/17 20:56:24  olle
     * Changed m68k to cpum68k, i386 to cpui386
 
   Revision 1.18  2003/09/14 20:15:01  marco
