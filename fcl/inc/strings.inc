@@ -78,7 +78,7 @@ Var L : longint;
 
 begin
   Result:='';
-  L:=IndexOf(Name);
+  L:=IndexOfName(Name);
   If L<>-1 then
     begin
     Result:=Strings[L];
@@ -900,7 +900,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  1999-02-02 23:49:23  florian
+  Revision 1.12  1999-02-04 17:19:14  michael
+  + fixed getvalue
+
+  Revision 1.11  1999/02/02 23:49:23  florian
     * new lines for non linux system fixed (tstrings class)
 
   Revision 1.10  1999/02/02 12:54:06  florian
