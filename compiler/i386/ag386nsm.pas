@@ -186,6 +186,8 @@ interface
            s:=s+tostr(offset)
          else if (offset>0) then
            s:=s+'+'+tostr(offset);
+         if s[length(s)]='[' then
+           s:=s+'0';
          s:=s+']';
         end;
        getreferencestring:=s;
@@ -857,7 +859,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.8  2001-04-18 22:02:00  peter
+  Revision 1.9  2001-04-21 12:09:00  peter
+    * fixed bug 1472 (merged)
+
+  Revision 1.8  2001/04/18 22:02:00  peter
     * registration of targets and assemblers
 
   Revision 1.7  2001/04/13 01:22:17  peter

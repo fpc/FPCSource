@@ -178,9 +178,11 @@ interface
                  s:=s+'+'+tostr(offset)
                 else
                  s:=s+tostr(offset);
-              end;
+              end
+            else if (index=R_NO) and (base=R_NO) and not assigned(symbol) then
+              s:=s+'0';
             if (index<>R_NO) and (base=R_NO) then
-             Begin
+             begin
                s:=s+'(,'+att_reg2str[index];
                if scalefactor<>0 then
                 s:=s+','+tostr(scalefactor)+')'
@@ -192,7 +194,7 @@ interface
               s:=s+'('+att_reg2str[base]+')'
              else
               if (index<>R_NO) and (base<>R_NO) then
-               Begin
+               begin
                  s:=s+'('+att_reg2str[base]+','+att_reg2str[index];
                  if scalefactor<>0 then
                   s:=s+','+tostr(scalefactor)+')'
@@ -957,7 +959,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.6  2001-04-18 22:02:00  peter
+  Revision 1.7  2001-04-21 12:09:00  peter
+    * fixed bug 1472 (merged)
+
+  Revision 1.6  2001/04/18 22:02:00  peter
     * registration of targets and assemblers
 
   Revision 1.5  2001/04/13 01:22:17  peter
