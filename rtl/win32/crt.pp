@@ -100,7 +100,8 @@ uses
   windows;
 
 
-var OutHandle     : THandle;
+var
+    OutHandle     : THandle;
     InputHandle   : THandle;
 
     CursorSaveX   : Longint;
@@ -108,8 +109,11 @@ var OutHandle     : THandle;
 
     ScreenWidth   : Longint;
     ScreenHeight  : Longint;
+    IsWindowsNT   : Boolean;
 
     SaveCursorSize: Longint;
+
+
 
 {
   definition of textrec is in textrec.inc
@@ -120,23 +124,44 @@ var OutHandle     : THandle;
                            Low level Routines
 ****************************************************************************}
 
+function GetPlatformID: Longint;
+var OsVersion: TOSVersionInfo;
+begin
+  OsVersion.dwOsVersionInfoSize := SizeOf(OsVersion);
+
+  GetVersionEx(@OsVersion);
+
+  Result := OsVersion.dwPlatformID;
+end; { func. GetPlatformID }
+
+
+procedure TurnMouseOff;
+var Mode: DWORD;
+begin
+  if GetConsoleMode(InputHandle, @Mode) then      { Turn the mouse-cursor off }
+    begin
+      Mode := Mode AND NOT enable_processed_input
+                   AND NOT enable_mouse_input;
+
+      SetConsoleMode(InputHandle, Mode);
+    end; { if }
+end; { proc. TurnMouseOff }
+
+
 function GetScreenHeight : longint;
 var ConsoleInfo: TConsoleScreenBufferinfo;
 begin
-  FillChar(ConsoleInfo, SizeOf(ConsoleInfo), 0);
   GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo);
-  Result := ConsoleInfo.SrWindow.Bottom + 1;
-end;
+  Result := ConsoleInfo.dwSize.Y;
+end; { func. GetScreenHeight }
 
 
 function GetScreenWidth : longint;
 var ConsoleInfo: TConsoleScreenBufferInfo;
 begin
-  FillChar(ConsoleInfo, SizeOf(ConsoleInfo), 0);
   GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo);
-
-  Result := ConsoleInfo.SrWindow.Right + 1;
-end;
+  Result := ConsoleInfo.dwSize.X;
+end; { func. GetScreenWidth }
 
 
 procedure SetScreenCursor(x,y : longint);
@@ -305,21 +330,52 @@ End;
 
 
 procedure ClrScr;
-var Temp    : Dword;
-    CharInfo: Char;
-    Coord   : TCoord;
+var
+  ClipRect: TSmallRect;
+  SrcRect: TSmallRect;
+  DestCoor: TCoord;
+  CharInfo: TCharInfo;
 begin
-  Coord.X := 0;
-  Coord.Y := 0;
+  CharInfo.UnicodeChar := 32;
+  CharInfo.Attributes := TextAttr;
 
-  Temp := 00;
-  Charinfo := #32;
+  SrcRect.Left := WinMinX - 1;
+  SrcRect.Top := WinMinY - 1;
+  SrcRect.Right := WinMaxX - 1;
+  SrcRect.Bottom := WinMaxY - 1;
+  ClipRect := SrcRect;
 
-  FillConsoleOutputCharacter(OutHandle, CharInfo, WinMaxX * WinMaxY, Coord, @Temp);
+  if IsWindowsNT then
+    begin
+      DestCoor.X := -WinMaxX;
+      DestCoor.Y := -WinMaxY;
 
-  Temp := 07;   { We don't use black because that will disable the cursor under NT4 }
-  FillConsoleOutputAttribute(OutHandle, Temp, WinMaxX * WinMaxY, Coord, @Temp);
-  Gotoxy(1,1);
+      ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect,
+                                DestCoor, CharInfo);
+    end
+      else begin      { Win95 seems to have a bug in scrolling, unfortunately }
+             { This routine 3 times copies the bottom 12 lines to the }
+             { top part of the screen. This eventually will clear the }
+             { screen. }
+
+             DestCoor.X := WinMinX - 1;
+             DestCoor.Y := WinMinY - (Succ((WinMaxY - WinMinY) div 2));
+
+             {-------- Scroll 1st part }
+             ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect,
+                                       DestCoor, CharInfo);
+
+
+             {-------- Scroll 2nd part }
+             ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect,
+                                       DestCoor, CharInfo);
+
+             {-------- Scroll 3rd part (last line) }
+             ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect,
+                                       DestCoor, CharInfo);
+           end; { if in Windows95 }
+
+  GotoXY(1,1);
 end; { proc. ClrScr }
 
 
@@ -335,8 +391,8 @@ begin
   GetScreenCursor(x,y);
 
   CharInfo := #32;
-  Coord.X := X;
-  Coord.Y := Y;
+  Coord.X := X - 1;
+  Coord.Y := Y - 1;
 
   FillConsoleOutputCharacter(OutHandle, CharInfo, WinMaxX - (X + 01), Coord, @Temp);
 end;
@@ -490,7 +546,10 @@ end;
 
 function ReadKey: char;
 begin
-  repeat until KeyPressed;
+  repeat
+    Sleep(1);
+  until KeyPressed;
+
   if SpecialKey then begin
     ReadKey := #0;
     SpecialKey := FALSE;
@@ -844,6 +903,9 @@ begin
   { Load startup values }
   ScreenWidth := GetScreenWidth;
   ScreenHeight := GetScreenHeight;
+  IsWindowsNT := (GetPlatformID = VER_PLATFORM_WIN32_NT);
+  TurnMouseOff;
+
   WindMax := (ScreenWidth - 1) OR ((ScreenHeight - 1) SHL 8);
 
   { Redirect the standard output }
@@ -857,7 +919,10 @@ begin
 end. { unit Crt }
 {
   $Log$
-  Revision 1.6  1999-05-19 16:22:02  peter
+  Revision 1.7  1999-05-22 14:01:01  peter
+    * more fixed from Maarten Bekkers
+
+  Revision 1.6  1999/05/19 16:22:02  peter
     * fixed left crt bugs
 
   Revision 1.5  1999/05/01 13:18:26  peter
