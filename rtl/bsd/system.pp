@@ -21,7 +21,12 @@
 { If you use an aout system, set the conditional AOUT}
 { $Define AOUT}
 
+{$ifdef BSD}
 Unit {$ifdef VER1_0}SysBSD{$else}System{$endif};
+{$else}
+Unit {$ifdef VER1_0}Syslinux{$else}System{$endif};
+{$endif}
+
 Interface
 
 {$I sysunixh.inc}
@@ -49,7 +54,11 @@ end;
 
 {$I errno.inc}
 {$I osposixh.inc}
+{$ifdef BSD}
 {$I bsdsysc.inc}
+{$else}
+{$I linsysc.inc}
+{$endif}
 {$I sysposix.inc}
 {$I text.inc}
 {$I heap.inc}
@@ -99,7 +108,10 @@ End.
 
 {
   $Log$
-  Revision 1.6  2002-10-27 11:58:30  marco
+  Revision 1.7  2002-11-12 14:57:48  marco
+   * Ugly hack to temporarily be able to use system.pp for Linux too
+
+  Revision 1.6  2002/10/27 11:58:30  marco
    * Modifications from Saturday.
 
   Revision 1.5  2002/10/26 18:27:51  marco
