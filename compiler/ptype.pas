@@ -721,7 +721,8 @@ uses
          oldprocsym : pprocsym;
          oldparse_only : boolean;
          methodnametable,intmessagetable,
-         strmessagetable,classnamelabel : pasmlabel;
+         strmessagetable,classnamelabel,
+         fieldtablelabel : pasmlabel;
          storetypecanbeforward : boolean;
 
       procedure setclassattributes;
@@ -804,6 +805,7 @@ uses
            if is_a_class then
             begin
               methodnametable:=genpublishedmethodstable(aktclass);
+              fieldtablelabel:=aktclass^.generate_field_table;
               { rtti }
               if (oo_can_have_published in aktclass^.objectoptions) then
                aktclass^.generate_rtti;
@@ -872,7 +874,7 @@ uses
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
               { pointer to field table }
-              datasegment^.concat(new(pai_const,init_32bit(0)));
+              datasegment^.concat(new(pai_const_symbol,init(fieldtablelabel)));
               { pointer to type info of published section }
               if (oo_can_have_published in aktclass^.objectoptions) then
                 datasegment^.concat(new(pai_const_symbol,initname(aktclass^.rtti_name)))
@@ -1592,7 +1594,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.24  2000-03-27 21:51:19  pierre
+  Revision 1.25  2000-06-02 18:48:47  florian
+    + fieldtable support for classes
+
+  Revision 1.24  2000/03/27 21:51:19  pierre
    * fix for bug 739
 
   Revision 1.23  2000/03/19 14:56:38  florian

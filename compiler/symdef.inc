@@ -3333,11 +3333,7 @@ Const local_symtable_index : longint = $8001;
                end;
              vmt_offset:=symtable^.datasize;
              inc(symtable^.datasize,target_os.size_of_pointer);
-{$ifdef INCLUDEOK}
              include(objectoptions,oo_has_vmt);
-{$else}
-             objectoptions:=objectoptions+[oo_has_vmt];
-{$endif}
           end;
      end;
 
@@ -3677,7 +3673,8 @@ Const local_symtable_index : longint = $8001;
     procedure count_published_properties(sym:pnamedindexobject);
       {$ifndef fpc}far;{$endif}
       begin
-         if needs_prop_entry(psym(sym)) then
+         if needs_prop_entry(psym(sym)) and
+          (psym(sym)^.typ<>varsym) then
            inc(count);
       end;
 
@@ -3734,6 +3731,7 @@ Const local_symtable_index : longint = $8001;
            case psym(sym)^.typ of
               varsym:
                 begin
+{$ifdef dummy}
                    if not(pvarsym(sym)^.vartype.def^.deftype=objectdef) or
                      not(pobjectdef(pvarsym(sym)^.vartype.def)^.is_class) then
                      internalerror(1509992);
@@ -3753,6 +3751,7 @@ Const local_symtable_index : longint = $8001;
                    rttilist^.concat(new(pai_const,init_8bit(proctypesinfo)));
                    rttilist^.concat(new(pai_const,init_8bit(length(pvarsym(sym)^.name))));
                    rttilist^.concat(new(pai_string,init(pvarsym(sym)^.name)));
+{$endif dummy}
                 end;
               propertysym:
                 begin
@@ -3789,7 +3788,10 @@ Const local_symtable_index : longint = $8001;
          if needs_prop_entry(psym(sym)) then
            case psym(sym)^.typ of
               varsym:
+                ;
+                { now ignored:
                 pvarsym(sym)^.vartype.def^.get_rtti_label;
+                }
               propertysym:
                 ppropertysym(sym)^.proptype.def^.get_rtti_label;
               else
@@ -3818,6 +3820,112 @@ Const local_symtable_index : longint = $8001;
           end;
       end;
 
+    type
+       tclasslistitem = object(tlinkedlist_item)
+          index : longint;
+          p : pobjectdef;
+       end;
+       pclasslistitem = ^tclasslistitem;
+
+    var
+       classtablelist : tlinkedlist;
+       tablecount : longint;
+
+    function searchclasstablelist(p : pobjectdef) : pclasslistitem;
+
+      var
+         hp : pclasslistitem;
+
+      begin
+         hp:=pclasslistitem(classtablelist.first);
+         while assigned(hp) do
+           if hp^.p=p then
+             begin
+                searchclasstablelist:=hp;
+                exit;
+             end
+           else
+             hp:=pclasslistitem(hp^.next);
+         searchclasstablelist:=nil;
+      end;
+
+    procedure count_published_fields(sym:pnamedindexobject);
+      {$ifndef fpc}far;{$endif}
+
+      var
+         hp : pclasslistitem;
+
+      begin
+         if needs_prop_entry(psym(sym)) and
+          (psym(sym)^.typ=varsym) then
+          begin
+             if pvarsym(sym)^.vartype.def^.deftype<>objectdef then
+               internalerror(0206001);
+             hp:=searchclasstablelist(pobjectdef(pvarsym(sym)^.vartype.def));
+             if not(assigned(hp)) then
+               begin
+                  hp:=new(pclasslistitem,init);
+                  hp^.p:=pobjectdef(pvarsym(sym)^.vartype.def);
+                  hp^.index:=tablecount;
+                  classtablelist.concat(hp);
+                  inc(tablecount);
+               end;
+             inc(count);
+          end;
+      end;
+
+    procedure writefields(sym:pnamedindexobject);
+      {$ifndef fpc}far;{$endif}
+
+      var
+         hp : pclasslistitem;
+
+      begin
+         if needs_prop_entry(psym(sym)) and
+          (psym(sym)^.typ=varsym) then
+          begin
+             rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
+             hp:=searchclasstablelist(pobjectdef(pvarsym(sym)^.vartype.def));
+             if not(assigned(hp)) then
+               internalerror(0206002);
+             rttilist^.concat(new(pai_const,init_32bit(hp^.index)));
+             rttilist^.concat(new(pai_const,init_8bit(length(pvarsym(sym)^.name))));
+             rttilist^.concat(new(pai_string,init(pvarsym(sym)^.name)));
+          end;
+      end;
+
+    function tobjectdef.generate_field_table : pasmlabel;
+
+      var
+         fieldtable,
+         classtable : pasmlabel;
+         hp : pclasslistitem;
+
+      begin
+         classtablelist.init;
+         getlabel(fieldtable);
+         getlabel(classtable);
+         count:=0;
+         tablecount:=0;
+         symtable^.foreach({$ifdef FPC}@{$endif}count_published_fields);
+         rttilist^.concat(new(pai_label,init(fieldtable)));
+         rttilist^.concat(new(pai_const,init_16bit(count)));
+         rttilist^.concat(new(pai_const_symbol,init(classtable)));
+         symtable^.foreach({$ifdef FPC}@{$endif}writefields);
+
+         { generate the class table }
+         rttilist^.concat(new(pai_label,init(classtable)));
+         rttilist^.concat(new(pai_const,init_16bit(tablecount)));
+         hp:=pclasslistitem(classtablelist.first);
+         while assigned(hp) do
+           begin
+              rttilist^.concat(new(pai_const_symbol,initname(pobjectdef(hp^.p)^.vmt_mangledname)));
+              hp:=pclasslistitem(hp^.next);
+           end;
+
+         generate_field_table:=fieldtable;
+         classtablelist.done;
+      end;
 
     function tobjectdef.next_free_name_index : longint;
       var
@@ -3901,7 +4009,6 @@ Const local_symtable_index : longint = $8001;
          get_rtti_label:=rtti_name;
       end;
 
-
 {****************************************************************************
                                 TFORWARDDEF
 ****************************************************************************}
@@ -3954,7 +4061,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.199  2000-04-01 14:17:08  peter
+  Revision 1.200  2000-06-02 18:48:47  florian
+    + fieldtable support for classes
+
+  Revision 1.199  2000/04/01 14:17:08  peter
     * arraydef.elesize returns 4 when strings are found in an openarray,
       arrayconstructor. Since only the pointers to the strings are stored
 

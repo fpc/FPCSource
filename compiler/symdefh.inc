@@ -216,6 +216,7 @@
           procedure generate_rtti;virtual;
           procedure write_rtti_data;virtual;
           procedure write_child_rtti_data;virtual;
+          function generate_field_table : pasmlabel;
        end;
 
        pclassrefdef = ^tclassrefdef;
@@ -530,7 +531,10 @@
 
 {
   $Log$
-  Revision 1.53  2000-02-09 13:23:04  peter
+  Revision 1.54  2000-06-02 18:48:48  florian
+    + fieldtable support for classes
+
+  Revision 1.53  2000/02/09 13:23:04  peter
     * log truncated
 
   Revision 1.52  2000/02/04 20:00:22  florian

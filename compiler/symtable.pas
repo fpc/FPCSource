@@ -71,6 +71,7 @@ unit symtable;
        ptypesym = ^ttypesym;
        penumsym = ^tenumsym;
        pprocsym = ^tprocsym;
+       tcallback = procedure(p : psym);
 
        pref = ^tref;
        tref = object
@@ -161,8 +162,6 @@ unit symtable;
                         { only used for PPU reading of static part
                           of a unit }
                         staticppusymtable);
-
-       tcallback = procedure(p : psym);
 
        tsearchhasharray = array[0..hasharraysize-1] of psym;
        psearchhasharray = ^tsearchhasharray;
@@ -2925,7 +2924,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2000-06-01 19:07:52  peter
+  Revision 1.94  2000-06-02 18:48:48  florian
+    + fieldtable support for classes
+
+  Revision 1.93  2000/06/01 19:07:52  peter
     * delphi/tp mode fixes for dup id checking (tbs319,tbf320)
 
   Revision 1.92  2000/05/23 14:15:44  pierre
