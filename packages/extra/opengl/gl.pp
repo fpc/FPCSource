@@ -1539,6 +1539,10 @@ procedure FreeOpenGL;
 
 implementation
 
+{$ifdef win32}
+function WinChoosePixelFormat(DC: HDC; p2: PPixelFormatDescriptor): Integer; extdecl; external 'gdi32' name 'ChoosePixelFormat';
+{$endif}
+
 procedure FreeOpenGL;
 begin
 
@@ -2234,7 +2238,7 @@ begin
   {$IFDEF Win32}
   @ChoosePixelFormat := GetProcAddress(LibGL, 'ChoosePixelFormat');
   if not Assigned(ChoosePixelFormat) then
-    @ChoosePixelFormat := @Windows.ChoosePixelFormat;
+    @ChoosePixelFormat := @WinChoosePixelFormat;
   {$ENDIF}
 
 end;
