@@ -19,7 +19,7 @@
 
  **********************************************************************}
 
-{$asmmode DIRECT}
+{$asmmode GAS}
 
 {****************************************************************************
                                Primitives
@@ -38,14 +38,14 @@ procedure Move(const source;var dest;count:longint);assembler;
 
      movl %edi,%ecx
      andl $7,%ecx
-     jnz  bad_alignment
-after_bad_alignment:
+     jnz  .Lbad_alignment
+.Lafter_bad_alignment:
      movq %rdx,%rcx
      movl $64,%ebx
      shrq $6,%rcx
-     jz handle_tail
+     jz .Lhandle_tail
 
-loop_64:
+.Lloop_64:
      { no prefetch because we assume the hw prefetcher does it already
        and we have no specific temporal hint to give. XXX or give a nta
        hint for the source? }
@@ -69,57 +69,57 @@ loop_64:
 
      addq %rbx,%rsi
      addq %rbx,%rdi
-     loop loop_64
+     loop .Lloop_64
 
-handle_tail:
+.Lhandle_tail:
      movl %edx,%ecx
      andl $63,%ecx
      shrl $3,%ecx
-     jz   handle_7
+     jz   .Lhandle_7
      movl $8,%ebx
-loop_8:
+.Lloop_8:
      movq (%rsi),%r8
      movnti %r8,(%rdi)
      addq %rbx,%rdi
      addq %rbx,%rsi
-     loop loop_8
+     loop .Lloop_8
 
-handle_7:
+.Lhandle_7:
      movl %edx,%ecx
      andl $7,%ecx
-     jz ende
-loop_1:
+     jz .Lende
+.Lloop_1:
      movb (%rsi),%r8b
      movb %r8b,(%rdi)
      incq %rdi
      incq %rsi
-     loop loop_1
+     loop .Lloop_1
 
-ende:
+.Lende:
      sfence
      popq %rbx
      ret
 
-     /* align destination */
-     /* This is simpleminded. For bigger blocks it may make sense to align
-        src and dst to their aligned subset and handle the rest separately */
-bad_alignment:
+     { align destination }
+     { This is simpleminded. For bigger blocks it may make sense to align
+        src and dst to their aligned subset and handle the rest separately }
+.Lbad_alignment:
      movl $8,%r9d
      subl %ecx,%r9d
      movl %r9d,%ecx
      subq %r9,%rdx
-     js   small_alignment
-     jz   small_alignment
-align_1:
+     js   .Lsmall_alignment
+     jz   .Lsmall_alignment
+.Lalign_1:
      movb (%rsi),%r8b
      movb %r8b,(%rdi)
      incq %rdi
      incq %rsi
-     loop align_1
-     jmp after_bad_alignment
-small_alignment:
+     loop .Lalign_1
+     jmp .Lafter_bad_alignment
+.Lsmall_alignment:
      addq %r9,%rdx
-     jmp handle_7
+     jmp .Lhandle_7
   end;
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
@@ -140,15 +140,15 @@ Procedure FillChar(var x;count:longint;value:byte);assembler;
     { align dst }
     movl  %edi,%r9d
     andl  $7,%r9d
-    jnz  bad_alignment
-after_bad_alignment:
+    jnz  .Lbad_alignment
+.Lafter_bad_alignment:
 
      movq %r11,%rcx
      movl $64,%r8d
      shrq $6,%rcx
-     jz	 handle_tail
+     jz	 .Lhandle_tail
 
-loop_64:
+.Lloop_64:
      movnti  %rax,(%rdi)
      movnti  %rax,8(%rdi)
      movnti  %rax,16(%rdi)
@@ -158,40 +158,40 @@ loop_64:
      movnti  %rax,48(%rdi)
      movnti  %rax,56(%rdi)
      addq    %r8,%rdi
-     loop	loop_64
+     loop    .Lloop_64
 
      { Handle tail in loops. The loops should be faster than hard
         to predict jump tables. }
-handle_tail:
+.Lhandle_tail:
      movl	%r11d,%ecx
-     andl    $63&(~7),%ecx
-     jz 		handle_7
+     andl    $56,%ecx
+     jz     .Lhandle_7
      shrl	$3,%ecx
-loop_8:
+.Lloop_8:
      movnti  %rax,(%rdi)
      addq    $8,%rdi
-     loop 	loop_8
-handle_7:
+     loop    .Lloop_8
+.Lhandle_7:
      movl	%r11d,%ecx
      andl	$7,%ecx
-     jz      ende
-loop_1:
+     jz      .Lende
+.Lloop_1:
      movb 	%al,(%rdi)
      addq	$1,%rdi
-     loop	loop_1
+     loop	.Lloop_1
 
-ende:
+.Lende:
      movq	%r10,%rax
      ret
-bad_alignment:
+.Lbad_alignment:
      cmpq $7,%r11
-     jbe handle_7
-     movnti %rax,(%rdi)	/* unaligned store */
+     jbe .Lhandle_7
+     movnti %rax,(%rdi)	(* unaligned store *)
      movq $8,%r8
      subq %r9,%r8
      addq %r8,%rdi
      subq %r8,%r11
-     jmp after_bad_alignment
+     jmp .Lafter_bad_alignment
   end;
 
 {$define FPC_SYSTEM_HAS_DECLOCKED}
@@ -239,7 +239,10 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.3  2003-05-01 08:05:23  florian
+  Revision 1.4  2004-01-20 12:52:18  florian
+    * some problems with x86-64 inline assembler fixed
+
+  Revision 1.3  2003/05/01 08:05:23  florian
     * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
 
   Revision 1.2  2003/04/30 22:11:06  florian
