@@ -34,7 +34,7 @@ end;
 Function FileCreate (Const FileName : String) : Longint;
 
 begin
-  FileCreate:=fdOpen(FileName,Open_RdWr or Open_Creat);
+  FileCreate:=fdOpen(FileName,Open_RdWr or Open_Creat or Open_Trunc);
 end;
 
 
@@ -236,7 +236,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1999-02-02 21:20:34  michael
+  Revision 1.6  1999-02-04 21:43:08  michael
+  FileCreate must truncate the file
+
+  Revision 1.5  1999/02/02 21:20:34  michael
   + Added filetruncate, corrected FileCreate
 
   Revision 1.4  1998/12/15 22:43:07  peter
