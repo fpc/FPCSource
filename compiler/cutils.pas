@@ -333,7 +333,7 @@ uses
       const
         HexTbl : array[0..15] of char='0123456789ABCDEF';
       var
-        i,j : longint;
+        i,j : cardinal;
       begin
         { calculate required length }
         i:=0;
@@ -803,7 +803,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.19  2002-07-07 09:52:32  florian
+  Revision 1.20  2002-07-07 11:13:34  carl
+    * range check error fix (patch from Sergey)
+
+  Revision 1.19  2002/07/07 09:52:32  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 
