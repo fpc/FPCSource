@@ -23,4 +23,5 @@ Changes in the syntax or semantic of FPC:
              self pointer (FK)
   22/02/99:  PROTECTED and PRIVATE have now the same behavior
              as in TP
-
+  09/03/99   small records and arrays passed by value to a function are now directly copied
+             into a 4 bytes parameter (needed for C and DLL calls) (PM)
