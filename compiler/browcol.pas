@@ -1461,7 +1461,8 @@ end;
                  end
                else
                  MemInfo.Size:=getsize;
-               MemInfo.PushSize:=getpushsize(false);
+               { this is not completely correct... }
+               MemInfo.PushSize:=getpushsize(pocall_none);
                Symbol^.SetMemInfo(MemInfo);
              end;
           constsym :
@@ -2125,7 +2126,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-09-07 14:13:40  peter
+  Revision 1.29  2002-11-20 22:48:42  pierre
+   * fix compilation failure for IDE
+
+  Revision 1.28  2002/09/07 14:13:40  peter
     * fixed procdef access
 
   Revision 1.27  2002/08/25 19:25:18  peter
