@@ -5019,7 +5019,10 @@ Procedure Append (Var F : Text);
 \Description
 \var{Append} opens an existing file in append mode. Any data written to
 \var{F} will be appended to the file. Only text files can be opened in
-append mode.
+append mode. After a call to \var{Append}, the file \var{F} becomes
+write-only.
+
+File sharing is not taken into account when calling \var{Append}.
 
 \Errors
 If the file doesn't exist when appending, a run-time error will be generated.
@@ -6528,8 +6531,10 @@ or doesn't exist.
 Procedure Reset (Var F : Any File Type[; L : Longint]);
 \Description
 \var{Reset} opens a file \var{F} for reading. \var{F} can be any file type.
-If \var{F} is not a text file, then it is opened according to
-the mode specified in \var{filemode}.
+If \var{F} is a text file, or refers to standard I/O (e.g : '') then it is 
+opened read-only, otherwise it is opened using the mode specified in 
+\var{filemode}.
+
 If \var{F} is an untyped file, the record size can be specified in
 the optional parameter \var{L}. A default value of 128 is used.
 
@@ -6557,6 +6562,8 @@ created.
 
 Contrary to \tp, \fpc opens the file with mode \var{fmoutput}. If it should
 be opened in \var{fminout} mode, an extra call to \seep{Reset} is needed.
+
+File sharing is not taken into account when calling \var{Rewrite}.
 
 \Errors
 If the file cannot be opened for writing, then a run-time error is
