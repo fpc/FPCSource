@@ -196,6 +196,7 @@ implementation
                          end;
                      end;
                    loadn,
+                   subscriptn,
                    vecn,
                    derefn :
                      begin
@@ -630,7 +631,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1999-09-27 23:45:02  peter
+  Revision 1.30  1999-10-13 10:40:55  peter
+    * subscript support for tp_procvar
+
+  Revision 1.29  1999/09/27 23:45:02  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
