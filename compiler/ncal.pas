@@ -168,7 +168,7 @@ type
        objinfo : tobjectdef;
        constructor create(def : tobjectdef);
      end;
-      
+
 
 {****************************************************************************
                              HELPERS
@@ -865,8 +865,8 @@ type
                   { If this is an abstract method insert into the list }
                   if (po_abstractmethod in hp.procoptions) then
                      AbstractMethodsList.Insert(hp.procsym.name)
-                  else 
-                    { If this symbol is already in the list, and it is 
+                  else
+                    { If this symbol is already in the list, and it is
                       an overriding method or dynamic, then remove it from the list
                     }
                     begin
@@ -876,7 +876,7 @@ type
                             if po_overridingmethod in hp.procoptions then
                               AbstractMethodsList.Remove(hp.procsym.name);
                          end;
-                 
+
                   end;
                end;
            end;
@@ -894,30 +894,30 @@ type
        objectdf := nil;
        { verify if trying to create an instance of a class which contains
          non-implemented abstract methods }
-     
+
        { first verify this class type, no class than exit  }
-       { also, this checking can only be done if the constructor is directly 
-         called, indirect constructor calls cannot be checked. 
+       { also, this checking can only be done if the constructor is directly
+         called, indirect constructor calls cannot be checked.
        }
        if assigned(methodpointer) and assigned(methodpointer.resulttype.def) then
-           if (methodpointer.resulttype.def.deftype = classrefdef) and 
+           if (methodpointer.resulttype.def.deftype = classrefdef) and
              (methodpointer.nodetype in [typen,loadvmtn]) then
              begin
                if (tclassrefdef(methodpointer.resulttype.def).pointertype.def.deftype = objectdef) then
                    objectdf := tobjectdef(tclassrefdef(methodpointer.resulttype.def).pointertype.def);
-                   
+
              end;
        if not assigned(objectdf) then exit;
-       if assigned(objectdf.symtable.name) then 
+       if assigned(objectdf.symtable.name) then
          _classname := objectdf.symtable.name^
        else
          _classname := '';
-   
+
        parents := tlinkedlist.create;
        AbstractMethodsList := tstringlist.create;
 
-       { insert all parents in this class : the first item in the  
-         list will be the base parent of the class . 
+       { insert all parents in this class : the first item in the
+         list will be the base parent of the class .
        }
        while assigned(objectdf) do
          begin
@@ -925,7 +925,7 @@ type
            parents.insert(objectinfo);
            objectdf := objectdf.childof;
        end;
-       { now all parents are in the correct order 
+       { now all parents are in the correct order
          insert all abstract methods in the list, and remove
          those which are overriden by parent classes.
        }
@@ -944,9 +944,9 @@ type
        while assigned(stritem) do
         begin
           if assigned(stritem.fpstr) then
-             Message2(type_w_instance_with_abstract,lower(_classname),lower(stritem.fpstr^)); 
+             Message2(type_w_instance_with_abstract,lower(_classname),lower(stritem.fpstr^));
           stritem := tstringlistitem(stritem.next);
-        end;        
+        end;
        if assigned(AbstractMethodsList) then
          AbstractMethodsList.Free;
    end;
@@ -2756,15 +2756,64 @@ type
 
 
     function tprocinlinenode.det_resulttype : tnode;
+      var
+        storesymtablelevel : longint;
+        storeparasymtable,
+        storelocalsymtable : tsymtabletype;
+        oldprocdef : tprocdef;
+        oldprocinfo : tprocinfo;
+        oldinlining_procedure : boolean;
       begin
+         result:=nil;
+         oldinlining_procedure:=inlining_procedure;
+         oldprocdef:=aktprocdef;
+         oldprocinfo:=procinfo;
+         { we're inlining a procedure }
+         inlining_procedure:=true;
+         aktprocdef:=inlineprocdef;
+
+         { clone procinfo, but not the asmlists }
+         procinfo:=tprocinfo(cprocinfo.newinstance);
+         move(pointer(oldprocinfo)^,pointer(procinfo)^,cprocinfo.InstanceSize);
+         procinfo.aktentrycode:=nil;
+         procinfo.aktexitcode:=nil;
+         procinfo.aktproccode:=nil;
+         procinfo.aktlocaldata:=nil;
+
+         { set new procinfo }
+         procinfo.return_offset:=retoffset;
+         procinfo.para_offset:=para_offset;
+         procinfo.no_fast_exit:=false;
+
+        { set it to the same lexical level }
+        storesymtablelevel:=aktprocdef.localst.symtablelevel;
+        storelocalsymtable:=aktprocdef.localst.symtabletype;
+        storeparasymtable:=aktprocdef.parast.symtabletype;
+        aktprocdef.localst.symtablelevel:=oldprocdef.localst.symtablelevel;
+        aktprocdef.localst.symtabletype:=inlinelocalsymtable;
+        aktprocdef.parast.symtabletype:=inlineparasymtable;
+
+                                                { pass inlinetree }
+         resulttypepass(inlinetree);
          resulttype:=inlineprocdef.rettype;
+
          { retrieve info from inlineprocdef }
          retoffset:=-POINTER_SIZE; { less dangerous as zero (PM) }
          para_offset:=0;
          para_size:=inlineprocdef.para_size(target_info.alignment.paraalign);
          if paramanager.ret_in_param(inlineprocdef.rettype.def,inlineprocdef.proccalloption) then
            inc(para_size,POINTER_SIZE);
-         result:=nil;
+
+         { restore procinfo }
+         procinfo.free;
+         procinfo:=oldprocinfo;
+         { restore symtable }
+         aktprocdef.localst.symtablelevel:=storesymtablelevel;
+         aktprocdef.localst.symtabletype:=storelocalsymtable;
+         aktprocdef.parast.symtabletype:=storeparasymtable;
+         { restore }
+         aktprocdef:=oldprocdef;
+         inlining_procedure:=oldinlining_procedure;
       end;
 
 
@@ -2795,7 +2844,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.110  2002-11-25 18:43:32  carl
+  Revision 1.111  2002-11-27 02:31:17  peter
+    * fixed inlinetree parsing in det_resulttype
+
+  Revision 1.110  2002/11/25 18:43:32  carl
    - removed the invalid if <> checking (Delphi is strange on this)
    + implemented abstract warning on instance creation of class with
       abstract methods.
