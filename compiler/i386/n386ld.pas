@@ -479,7 +479,8 @@ implementation
 {$endif test_dest_loc}
          if left.resulttype.def.deftype=stringdef then
            begin
-              if is_ansistring(left.resulttype.def) then
+              if is_ansistring(left.resulttype.def) or
+                is_widestring(left.resulttype.def) then
                 begin
                   { before pushing any parameter, we have to save all used      }
                   { registers, but before that we have to release the       }
@@ -516,7 +517,10 @@ implementation
                   emitpushreferenceaddr(left.location.reference);
                   del_reference(left.location.reference);
                   saveregvars($ff);
-                  emitcall('FPC_ANSISTR_ASSIGN');
+                  if is_ansistring(left.resulttype.def) then
+                    emitcall('FPC_ANSISTR_ASSIGN')
+                  else
+                    emitcall('FPC_WIDESTR_ASSIGN');
                   maybe_loadself;
                   popusedregisters(regspushed);
                   if ungettemp then
@@ -550,6 +554,7 @@ implementation
                 end
               else if is_longstring(left.resulttype.def) then
                 begin
+                   internalerror(200105261);
                 end
               else
                 begin
@@ -1068,7 +1073,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2001-04-13 01:22:19  peter
+  Revision 1.14  2001-05-27 14:30:56  florian
+    + some widestring stuff added
+
+  Revision 1.13  2001/04/13 01:22:19  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

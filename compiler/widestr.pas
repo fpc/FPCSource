@@ -51,8 +51,9 @@ unit widestr;
     procedure setlengthwidestring(var r : tcompilerwidestring;l : longint);
     function getlengthwidestring(const r : tcompilerwidestring) : longint;
     procedure concatwidestringchar(var r : tcompilerwidestring;c : tcompilerwidechar);
-    procedure concatwidestringwidestring(const s1,s2 : tcompilerwidestring;
+    procedure concatwidestrings(const s1,s2 : tcompilerwidestring;
       var r : tcompilerwidestring);
+    function comparewidestrings(const s1,s2 : tcompilerwidestring) : shortint;
     procedure copywidestring(const s : tcompilerwidestring;var d : tcompilerwidestring);
     function asciichar2unicode(c : char) : tcompilerwidechar;
     function unicode2asciichar(c : tcompilerwidechar) : char;
@@ -118,14 +119,14 @@ unit widestr;
          inc(r.len);
       end;
 
-    procedure concatwidestringwidestring(const s1,s2 : tcompilerwidestring;
+    procedure concatwidestrings(const s1,s2 : tcompilerwidestring;
       var r : tcompilerwidestring);
 
       begin
          setlengthwidestring(r,s1.len+s2.len);
          r.len:=s1.len+s2.len;
-         move(s1.data^,r.data^,s1.len);
-         move(s2.data^,r.data[s1.len],s2.len);
+         move(s1.data^,r.data^,s1.len*2);
+         move(s2.data^,r.data[s1.len],s2.len*2);
       end;
 
     function comparewidestringwidestring(const s1,s2 : tcompilerwidestring) : longint;
@@ -141,6 +142,13 @@ unit widestr;
          setlengthwidestring(d,s.len);
          d.len:=s.len;
          move(s.data^,d.data^,s.len);
+      end;
+
+    function comparewidestrings(const s1,s2 : tcompilerwidestring) : shortint;
+
+      begin
+         {!!!!!! FIXME }
+         comparewidestrings:=0;
       end;
 
     function asciichar2unicode(c : char) : tcompilerwidechar;
@@ -196,7 +204,10 @@ unit widestr;
 end.
 {
   $Log$
-  Revision 1.4  2001-05-08 21:06:33  florian
+  Revision 1.5  2001-05-27 14:30:55  florian
+    + some widestring stuff added
+
+  Revision 1.4  2001/05/08 21:06:33  florian
     * some more support for widechars commited especially
       regarding type casting and constants
 

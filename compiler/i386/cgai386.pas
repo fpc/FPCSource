@@ -2001,7 +2001,9 @@ implementation
        hp:=templist;
        while assigned(hp) do
          begin
-           if hp^.temptype in [tt_ansistring,tt_freeansistring,tt_interfacecom] then
+           if hp^.temptype in [tt_ansistring,tt_freeansistring,
+             tt_widestring,tt_freewidestring,
+             tt_interfacecom] then
              begin
                procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
                new(r);
@@ -2031,6 +2033,15 @@ implementation
                 hr.offset:=hp^.pos;
                 emitpushreferenceaddr(hr);
                 emitcall('FPC_ANSISTR_DECR_REF');
+              end
+            else if hp^.temptype in [tt_widestring,tt_freewidestring] then
+              begin
+                procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
+                reset_reference(hr);
+                hr.base:=procinfo^.framepointer;
+                hr.offset:=hp^.pos;
+                emitpushreferenceaddr(hr);
+                emitcall('FPC_WIDESTR_DECR_REF');
               end
             else if hp^.temptype=tt_interfacecom then
               begin
@@ -2986,7 +2997,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2001-04-21 13:33:16  peter
+  Revision 1.24  2001-05-27 14:30:55  florian
+    + some widestring stuff added
+
+  Revision 1.23  2001/04/21 13:33:16  peter
     * move winstackpagesize const to cgai386 to remove uses t_win32
 
   Revision 1.22  2001/04/21 12:05:32  peter

@@ -44,6 +44,7 @@ interface
 
        pmacrobuffer = ^tmacrobuffer;
        tmacrobuffer = array[0..maxmacrolen-1] of char;
+       tscannerfile = class;
 
        tmacro = class(TNamedIndexItem)
           defined,
@@ -63,6 +64,7 @@ interface
           next    : tpreprocstack;
           name    : stringid;
           line_nb : longint;
+          owner   : tscannerfile;
           constructor Create(atyp:preproctyp;a:boolean;n:tpreprocstack);
        end;
 
@@ -1198,7 +1200,8 @@ implementation
       { check for missing ifdefs }
         while assigned(preprocstack) do
          begin
-           Message3(scan_e_endif_expected,preprocstring[preprocstack.typ],preprocstack.name,tostr(preprocstack.line_nb));
+           Message4(scan_e_endif_expected,preprocstring[preprocstack.typ],preprocstack.name,
+             preprocstack.owner.inputfile.name^,tostr(preprocstack.line_nb));
            poppreprocstack;
          end;
       end;
@@ -1225,6 +1228,7 @@ implementation
         preprocstack:=tpreprocstack.create(atyp,((preprocstack=nil) or preprocstack.accept) and a,preprocstack);
         preprocstack.name:=s;
         preprocstack.line_nb:=line_no;
+        preprocstack.owner:=self;
         if preprocstack.accept then
          Message2(w,preprocstack.name,'accepted')
         else
@@ -2589,7 +2593,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.16  2001-04-13 22:12:34  peter
+  Revision 1.17  2001-05-27 14:30:55  florian
+    + some widestring stuff added
+
+  Revision 1.16  2001/04/13 22:12:34  peter
     * fixed comment after comment parsing in assembler blocks
 
   Revision 1.15  2001/04/13 18:00:36  peter

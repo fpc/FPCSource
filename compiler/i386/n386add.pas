@@ -42,7 +42,7 @@ interface
 
     uses
       globtype,systems,
-      cutils,verbose,globals,
+      cutils,verbose,globals,widestr,
       symconst,symdef,aasm,types,
       hcodegen,temp_gen,pass_2,
       cpuasm,
@@ -143,6 +143,7 @@ interface
         if nf_swaped in flags then
           swapleftright;
         case tstringdef(left.resulttype.def).string_typ of
+           st_widestring,
            st_ansistring:
              begin
                 case nodetype of
@@ -176,11 +177,12 @@ interface
                         emit_push_loc(right.location);
                         emit_push_loc(left.location);
                         saveregvars($ff);
-                        emitcall('FPC_ANSISTR_CONCAT');
+                        if tstringdef(left.resulttype.def).string_typ=st_widestring then
+                          emitcall('FPC_WIDESTR_CONCAT')
+                        else
+                          emitcall('FPC_ANSISTR_CONCAT');
                         popusedregisters(pushedregs);
                         maybe_loadself;
-                        ungetiftempansi(left.location.reference);
-                        ungetiftempansi(right.location.reference);
                      end;
                    ltn,lten,gtn,gten,
                    equaln,unequaln:
@@ -200,8 +202,6 @@ interface
                                LOC_REGISTER,LOC_CREGISTER:
                                  emit_const_reg(A_CMP,S_L,0,right.location.register);
                              end;
-                             ungetiftempansi(left.location.reference);
-                             ungetiftempansi(right.location.reference);
                           end
                         else if (nodetype in [equaln,unequaln]) and
                           (right.nodetype=stringconstn) and
@@ -217,8 +217,6 @@ interface
                                LOC_REGISTER,LOC_CREGISTER:
                                  emit_const_reg(A_CMP,S_L,0,left.location.register);
                              end;
-                             ungetiftempansi(left.location.reference);
-                             ungetiftempansi(right.location.reference);
                           end
                         else
                           begin
@@ -246,16 +244,27 @@ interface
                                  emit_reg(A_PUSH,S_L,left.location.register);
                              end;
                              saveregvars($ff);
-                             emitcall('FPC_ANSISTR_COMPARE');
+                             if tstringdef(left.resulttype.def).string_typ=st_widestring then
+                               emitcall('FPC_WIDESTR_COMPARE')
+                             else
+                               emitcall('FPC_ANSISTR_COMPARE');
                              emit_reg_reg(A_OR,S_L,R_EAX,R_EAX);
                              popusedregisters(pushedregs);
                              maybe_loadself;
-                             ungetiftempansi(left.location.reference);
-                             ungetiftempansi(right.location.reference);
                           end;
                      end;
                 end;
-               { the result of ansicompare is signed }
+               if tstringdef(left.resulttype.def).string_typ=st_widestring then
+                 begin
+                    ungetiftempwidestr(left.location.reference);
+                    ungetiftempwidestr(right.location.reference);
+                 end
+               else
+                 begin
+                    ungetiftempansi(left.location.reference);
+                    ungetiftempansi(right.location.reference);
+                 end;
+               { the result of wide/ansicompare is signed :/ }
                SetResultLocation(cmpop,false);
              end;
            st_shortstring:
@@ -2276,7 +2285,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2001-05-06 17:12:14  jonas
+  Revision 1.13  2001-05-27 14:30:56  florian
+    + some widestring stuff added
+
+  Revision 1.12  2001/05/06 17:12:14  jonas
     * fixed an IE10 and another bug with [var1..var2] construct
 
   Revision 1.11  2001/04/13 01:22:18  peter

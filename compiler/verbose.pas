@@ -86,10 +86,12 @@ procedure Message(w:longint);
 procedure Message1(w:longint;const s1:string);
 procedure Message2(w:longint;const s1,s2:string);
 procedure Message3(w:longint;const s1,s2,s3:string);
+procedure Message4(w:longint;const s1,s2,s3,s4:string);
 procedure MessagePos(const pos:tfileposinfo;w:longint);
 procedure MessagePos1(const pos:tfileposinfo;w:longint;const s1:string);
 procedure MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:string);
 procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:string);
+procedure MessagePos4(const pos:tfileposinfo;w:longint;const s1,s2,s3,s4:string);
 
 procedure InitVerbose;
 procedure DoneVerbose;
@@ -568,6 +570,13 @@ var
       end;
 
 
+    procedure Message4(w:longint;const s1,s2,s3,s4:string);
+      begin
+        MaybeLoadMessageFile;
+        Msg2Comment(msg^.Get4(w,s1,s2,s3,s4));
+      end;
+
+
     procedure MessagePos(const pos:tfileposinfo;w:longint);
       var
         oldpos : tfileposinfo;
@@ -616,6 +625,18 @@ var
       end;
 
 
+    procedure MessagePos4(const pos:tfileposinfo;w:longint;const s1,s2,s3,s4:string);
+      var
+        oldpos : tfileposinfo;
+      begin
+        oldpos:=aktfilepos;
+        aktfilepos:=pos;
+        MaybeLoadMessageFile;
+        Msg2Comment(msg^.Get4(w,s1,s2,s3,s4));
+        aktfilepos:=oldpos;
+      end;
+
+
     procedure InitVerbose;
       begin
       { Init }
@@ -651,7 +672,10 @@ var
 end.
 {
   $Log$
-  Revision 1.13  2001-04-13 01:22:17  peter
+  Revision 1.14  2001-05-27 14:30:55  florian
+    + some widestring stuff added
+
+  Revision 1.13  2001/04/13 01:22:17  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

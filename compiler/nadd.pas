@@ -47,7 +47,7 @@ implementation
 
     uses
       globtype,systems,
-      cutils,verbose,globals,
+      cutils,verbose,globals,widestr,
       symconst,symtype,symdef,types,
       cpuinfo,
 {$ifdef newcg}
@@ -86,6 +86,8 @@ implementation
          i       : longint;
          b       : boolean;
          s1,s2   : pchar;
+         ws1,ws2,
+         ws3     : tcompilerwidestring;
          l1,l2   : longint;
          rv,lv   : tconstexprint;
          rvd,lvd : bestreal;
@@ -132,6 +134,18 @@ implementation
             inserttypeconv(right,pbestrealtype^);
             inserttypeconv(left,pbestrealtype^);
           end;
+
+         { if one operand is a widechar or a widestring, both operands    }
+         { are converted to widestring. This must be done before constant }
+         { folding to allow char+widechar etc.                            }
+         if is_widestring(right.resulttype.def) or
+           is_widestring(left.resulttype.def) or
+           is_widechar(right.resulttype.def) or
+           is_widechar(left.resulttype.def) then
+           begin
+              inserttypeconv(right,cwidestringtype);
+              inserttypeconv(left,cwidestringtype);
+           end;
 
          { load easier access variables }
          rd:=right.resulttype.def;
@@ -294,10 +308,53 @@ implementation
               exit;
            end;
 
-       { concating strings ? }
+         { first, we handle widestrings, so we can check later for }
+         { stringconstn only                                       }
+
+         { widechars are converted above to widestrings too }
+         { this isn't veryy efficient, but I don't think    }
+         { that it does matter that much (FK)               }
+         if (lt=stringconstn) and (rt=stringconstn) and
+           (tstringconstnode(left).st_type=st_widestring) and
+           (tstringconstnode(right).st_type=st_widestring) then
+           begin
+              initwidestring(ws1);
+              initwidestring(ws2);
+              copywidestring(pcompilerwidestring(tstringconstnode(left).value_str)^,ws1);
+              copywidestring(pcompilerwidestring(tstringconstnode(right).value_str)^,ws2);
+              case nodetype of
+                 addn :
+                   begin
+                      initwidestring(ws3);
+                      concatwidestrings(ws1,ws2,ws3);
+                      t:=cstringconstnode.createwstr(ws3);
+                      donewidestring(ws3);
+                   end;
+                 ltn :
+                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<0),booltype);
+                 lten :
+                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<=0),booltype);
+                 gtn :
+                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>0),booltype);
+                 gten :
+                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>=0),booltype);
+                 equaln :
+                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)=0),booltype);
+                 unequaln :
+                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<>0),booltype);
+              end;
+              donewidestring(ws1);
+              donewidestring(ws2);
+              resulttypepass(t);
+              result:=t;
+              exit;
+           end;
+
+         { concating strings ? }
          concatstrings:=false;
          s1:=nil;
          s2:=nil;
+
          if (lt=ordconstn) and (rt=ordconstn) and
             is_char(ld) and is_char(rd) then
            begin
@@ -1217,7 +1274,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2001-05-19 21:11:50  peter
+  Revision 1.28  2001-05-27 14:30:55  florian
+    + some widestring stuff added
+
+  Revision 1.27  2001/05/19 21:11:50  peter
     * first check for overloaded operator before doing inserting any
       typeconvs
 

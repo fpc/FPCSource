@@ -41,6 +41,7 @@ interface
       ttemptype = (tt_none,tt_free,tt_normal,tt_persistant,
                    tt_ansistring,tt_freeansistring,tt_widestring,tt_freewidestring,
                    tt_interfacecom,tt_freeinterfacecom);
+
       ttemptypeset = set of ttemptype;
 
       ptemprecord = ^ttemprecord;
@@ -90,6 +91,9 @@ interface
 
     function ungetiftempansi(const ref : treference) : boolean;
     procedure gettempansistringreference(var ref : treference);
+
+    function ungetiftempwidestr(const ref : treference) : boolean;
+    procedure gettempwidestringreference(var ref : treference);
 
     function ungetiftempintfcom(const ref : treference) : boolean;
     procedure gettempintfcomreference(var ref : treference);
@@ -384,9 +388,19 @@ const
         gettemppointerreferencefortype(ref,tt_ansistring,tt_freeansistring);
       end;
 
+    procedure gettempwidestringreference(var ref : treference);
+      begin
+        gettemppointerreferencefortype(ref,tt_widestring,tt_freewidestring);
+      end;
+
     function ungetiftempansi(const ref : treference) : boolean;
       begin
         ungetiftempansi:=ungettemppointeriftype(ref,tt_ansistring,tt_freeansistring);
+      end;
+
+    function ungetiftempwidestr(const ref : treference) : boolean;
+      begin
+        ungetiftempwidestr:=ungettemppointeriftype(ref,tt_widestring,tt_widestring);
       end;
 
 
@@ -591,7 +605,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2001-04-18 22:02:00  peter
+  Revision 1.14  2001-05-27 14:30:55  florian
+    + some widestring stuff added
+
+  Revision 1.13  2001/04/18 22:02:00  peter
     * registration of targets and assemblers
 
   Revision 1.12  2001/04/13 01:22:17  peter

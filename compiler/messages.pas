@@ -54,6 +54,7 @@ type
     procedure CreateIdx;
     function  GetPChar(nr:longint):pchar;
     function  Get(nr:longint):string;
+    function  Get4(nr:longint;const s1,s2,s3,s4:string):string;
     function  Get3(nr:longint;const s1,s2,s3:string):string;
     function  Get2(nr:longint;const s1,s2:string):string;
     function  Get1(nr:longint;const s1:string):string;
@@ -405,6 +406,19 @@ begin
 end;
 
 
+function TMessage.Get4(nr:longint;const s1,s2,s3,s4:string):string;
+var
+  s : string;
+begin
+  s:=Get(nr);
+  Replace(s,'$1',s1);
+  Replace(s,'$2',s2);
+  Replace(s,'$3',s3);
+  Replace(s,'$4',s3);
+  Get4:=s;
+end;
+
+
 function TMessage.Get2(nr:longint;const s1,s2:string):string;
 var
   s : string;
@@ -429,7 +443,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2001-04-21 13:32:07  peter
+  Revision 1.9  2001-05-27 14:30:55  florian
+    + some widestring stuff added
+
+  Revision 1.8  2001/04/21 13:32:07  peter
     * remove endless loop with replacements (merged)
 
   Revision 1.7  2001/04/14 16:05:41  jonas
