@@ -2219,8 +2219,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.126  1999-06-02 22:25:42  pierre
-  types.pas
+  Revision 1.127  1999-06-02 22:44:10  pierre
+   * previous wrong log corrected
+
+  Revision 1.126  1999/06/02 22:25:42  pierre
+  * changed $ifdef FPC @ into $ifndef TP
 
   Revision 1.125  1999/06/01 19:27:53  peter
     * better checks for procvar and methodpointer

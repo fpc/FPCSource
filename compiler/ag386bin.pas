@@ -812,8 +812,11 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.14  1999-06-02 22:25:25  pierre
-  types.pas
+  Revision 1.15  1999-06-02 22:43:59  pierre
+   * previous wrong log corrected
+
+  Revision 1.14  1999/06/02 22:25:25  pierre
+  * changed $ifdef FPC @ into $ifndef TP
 
   Revision 1.13  1999/06/01 10:24:09  pierre
    * ts010021.pp problem solved for ag386bin !

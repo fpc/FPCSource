@@ -1087,8 +1087,11 @@ const
 
 {
   $Log$
-  Revision 1.52  1999-06-02 22:25:48  pierre
-  types.pas
+  Revision 1.53  1999-06-02 22:44:18  pierre
+   * previous wrong log corrected
+
+  Revision 1.52  1999/06/02 22:25:48  pierre
+  * changed $ifdef FPC @ into $ifndef TP
 
   Revision 1.51  1999/04/07 14:36:45  pierre
    + better preproc stack checking and report

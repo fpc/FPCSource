@@ -627,8 +627,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.46  1999-06-02 22:25:26  pierre
-  types.pas
+  Revision 1.47  1999-06-02 22:44:01  pierre
+   * previous wrong log corrected
+
+  Revision 1.46  1999/06/02 22:25:26  pierre
+  * changed $ifdef FPC @ into $ifndef TP
 
   Revision 1.45  1999/06/01 14:45:43  peter
     * @procvar is now always needed for FPC

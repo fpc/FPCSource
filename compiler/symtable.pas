@@ -2301,8 +2301,11 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.19  1999-06-02 22:25:53  pierre
-  types.pas
+  Revision 1.20  1999-06-02 22:44:23  pierre
+   * previous wrong log corrected
+
+  Revision 1.19  1999/06/02 22:25:53  pierre
+  * changed $ifdef FPC @ into $ifndef TP
 
   Revision 1.18  1999/06/01 14:45:58  peter
     * @procvar is now always needed for FPC

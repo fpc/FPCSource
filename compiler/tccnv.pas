@@ -935,9 +935,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  1999-06-02 22:25:54  pierre
-  types.pas
+  Revision 1.35  1999-06-02 22:44:24  pierre
+   * previous wrong log corrected
 
+  Revision 1.34  1999/06/02 22:25:54  pierre
+  * changed $ifdef FPC @ into $ifndef TP
+  + debug note about longint to pointer conversion
+  
   Revision 1.33  1999/05/27 19:45:15  peter
     * removed oldasm
     * plabel -> pasmlabel

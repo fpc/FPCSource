@@ -1670,8 +1670,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  1999-06-02 22:25:49  pierre
-  types.pas
+  Revision 1.86  1999-06-02 22:44:19  pierre
+   * previous wrong log corrected
+
+  Revision 1.85  1999/06/02 22:25:49  pierre
+  * changed $ifdef FPC @ into $ifndef TP
 
   Revision 1.84  1999/05/31 23:28:42  pierre
    * problem with main file end without newline

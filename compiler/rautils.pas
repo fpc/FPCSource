@@ -1383,8 +1383,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  1999-06-02 22:25:47  pierre
-  types.pas
+  Revision 1.19  1999-06-02 22:44:17  pierre
+   * previous wrong log corrected
+
+  Revision 1.18  1999/06/02 22:25:47  pierre
+  * changed $ifdef FPC @ into $ifndef TP
 
   Revision 1.17  1999/05/27 19:45:01  peter
     * removed oldasm

@@ -896,8 +896,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.50  1999-06-02 22:25:24  pierre
-  types.pas
+  Revision 1.51  1999-06-02 22:43:57  pierre
+   * previous wrong log corrected
+
+  Revision 1.50  1999/06/02 22:25:24  pierre
+  * changed $ifdef FPC @ into $ifndef TP
 
   Revision 1.49  1999/06/01 14:45:41  peter
     * @procvar is now always needed for FPC

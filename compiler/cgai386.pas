@@ -3086,8 +3086,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.3  1999-06-02 22:25:29  pierre
-  types.pas
+  Revision 1.4  1999-06-02 22:44:06  pierre
+   * previous wrong log corrected
+
+  Revision 1.3  1999/06/02 22:25:29  pierre
+  * changed $ifdef FPC @ into $ifndef TP
 
   Revision 1.2  1999/06/02 10:11:49  florian
     * make cycle fixed i.e. compilation with 0.99.10

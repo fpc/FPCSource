@@ -91,8 +91,11 @@ end.
 
 {
   $Log$
-  Revision 1.5  1999-06-02 22:25:28  pierre
-  types.pas
+  Revision 1.6  1999-06-02 22:44:05  pierre
+   * previous wrong log corrected
+
+  Revision 1.5  1999/06/02 22:25:28  pierre
+  * added SIGFPE
 
   Revision 1.4  1999/01/28 19:42:03  peter
     * mssing endif added

@@ -2016,9 +2016,13 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.111  1999-06-02 22:25:43  pierre
-  types.pas
+  Revision 1.112  1999-06-02 22:44:11  pierre
+   * previous wrong log corrected
 
+  Revision 1.111  1999/06/02 22:25:43  pierre
+  * changed $ifdef FPC @ into $ifndef TP
+  * changes for correct procvar handling under tp mode
+  
   Revision 1.110  1999/06/01 19:27:55  peter
     * better checks for procvar and methodpointer
 

@@ -3494,8 +3494,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.128  1999-06-02 22:25:52  pierre
-  types.pas
+  Revision 1.129  1999-06-02 22:44:21  pierre
+   * previous wrong log corrected
+
+  Revision 1.128  1999/06/02 22:25:52  pierre
+  * changed $ifdef FPC @ into $ifndef TP
 
   Revision 1.127  1999/06/02 10:26:50  florian
     * corrected order of parameter type for -vb

@@ -558,8 +558,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1999-06-02 22:25:33  pierre
-  types.pas
+  Revision 1.10  1999-06-02 22:44:07  pierre
+   * previous wrong log corrected
+
+  Revision 1.9  1999/06/02 22:25:33  pierre
+  * changed $ifdef FPC @ into $ifndef TP
 
   Revision 1.8  1999/06/01 14:45:49  peter
     * @procvar is now always needed for FPC

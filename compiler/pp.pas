@@ -271,9 +271,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  1999-06-02 22:25:44  pierre
-  types.pas
+  Revision 1.44  1999-06-02 22:44:13  pierre
+   * previous wrong log corrected
 
+  Revision 1.43  1999/06/02 22:25:44  pierre
+  * catch is used for go32v2 also
+  
   Revision 1.42  1999/05/12 22:36:11  florian
     * override isn't allowed in objects!
 
