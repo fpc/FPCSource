@@ -356,6 +356,7 @@ function GetShortName(const n:string):string;
 {$ifdef win32}
       var
         hs,hs2 : string;
+        i : longint;
 {$endif}
 {$ifdef go32v2}
       var
@@ -365,9 +366,12 @@ function GetShortName(const n:string):string;
         GetShortName:=n;
 {$ifdef win32}
         hs:=n+#0;
-        Windows.GetShortPathName(@hs[1],@hs2[1],high(hs2));
-        hs2[0]:=chr(strlen(@hs2[1]));
-        GetShortName:=hs2;
+        i:=Windows.GetShortPathName(@hs[1],@hs2[1],high(hs2));
+        if (i>0) and (i<=high(hs2)) then
+          begin
+            hs2[0]:=chr(strlen(@hs2[1]));
+            GetShortName:=hs2;
+          end;
 {$endif}
 {$ifdef go32v2}
         hs:=n;
@@ -564,7 +568,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.13  2000-01-17 12:20:03  pierre
+  Revision 1.14  2000-01-20 00:30:32  pierre
+   * Result of GetShortPathName is checked
+
+  Revision 1.13  2000/01/17 12:20:03  pierre
    * uses windows needed for GetShortName
 
   Revision 1.12  2000/01/14 15:36:43  pierre
