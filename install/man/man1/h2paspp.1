@@ -1,0 +1,80 @@
+.TH h2paspp 1 "12 November 2004" "Free Pascal" "h2pas preprocessor"
+.SH NAME 
+h2paspp \- Free Pascal h2pas preprocessor program.
+
+.SH SYNOPSIS
+
+.B h2paspp [-doih] file1 ... filen
+
+.SH DESCRIPTION
+
+.B h2paspp
+reads one or more C header files and preprocesses them, writing the result 
+to files with the same name as the originals as it goes along. 
+It does not accept all preprocesser tokens of C, but takes care of the following 
+preprocessor directives:
+.TP
+.I #define symbol
+Defines the new symbol
+.I symbol
+. Note that macros are not supported.
+.TP
+.I #if symbol
+The text following this directive is included if
+.I symbol 
+is defined.
+.TP
+.I #ifdef symbol
+The text following this directive is included if
+.I symbol 
+is defined.
+.TP
+.I #ifndef symbol
+The text following this directive is included if
+.I symbol 
+is not defined.
+.TP
+.I #include filename
+Include directives are removed, unless the 
+.B \-I
+option was given, in which case the include file is included and written to
+the output file.
+.TP
+.I #undef symbol
+The symbol
+.I symbol
+is undefined.
+
+.SH USAGE
+
+.B h2paspp
+accepts one or more filenames and preprocesses them. It will read the
+input, and write output to a file with the same name unless the 
+.B \-o
+option is given, in which case the file is written to the specified file.
+Note that only one output filename can be given.
+
+
+.SH OPTIONS
+h2paspp has a small number of options to control its behaviour:
+
+.TP
+.B \-dsymbol
+Define the symbol 
+.I symbol
+before processing is started.
+.TP
+.B \-h
+emit a small helptext.
+.TP
+.B \-ooutfile
+If this option is given, the output will be written to a file named
+.I outfile
+. Note that only one output file can be given.
+
+.SH SEE ALSO
+.IP 
+.BR  ppc386 (1)
+.BR  h2pas (1)
+.BR  cpp (1)
+
