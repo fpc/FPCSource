@@ -394,12 +394,12 @@ function paramcount:longint;assembler;
 asm
     movl argc,%eax
     decl %eax
-end ['EAX'];
+end {['EAX']};
 
 function args:pointer;assembler;
 asm
   movl argv,%eax
-end ['EAX'];
+end {['EAX']};
 
 
 function paramstr(l:longint):string;
@@ -437,7 +437,7 @@ asm
     call syscall
     mov word ptr [randseed], cx
     mov word ptr [randseed + 2], dx
-end ['eax', 'ecx', 'edx'];
+end {['eax', 'ecx', 'edx']};
 
 {$ASMMODE ATT}
 
@@ -483,19 +483,19 @@ asm
     jz .LSbrk_End
     dec %eax         { No error - back to previous value }
 .LSbrk_End:
-end ['eax', 'edx'];
+end {['eax', 'edx']};
 {$ENDIF DUMPGROW}
 
 function getheapstart:pointer;assembler;
 
 asm
     movl heap_base,%eax
-end ['EAX'];
+end {['EAX']};
 
 function getheapsize:longint;assembler;
 asm
     movl heap_brk,%eax
-end ['EAX'];
+end {['EAX']};
 
 {$i heap.inc}
 
@@ -550,6 +550,7 @@ end;
 
 function do_read(h,addr,len:longint):longint; assembler;
 asm
+    pushl %ebx
     movl len,%ecx
     movl addr,%edx
     movl h,%ebx
@@ -559,10 +560,12 @@ asm
     movw %ax,inoutres;
     xorl %eax,%eax
 .LDOSREAD1:
-end ['eax', 'ebx', 'ecx', 'edx'];
+    popl %ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 function do_write(h,addr,len:longint) : longint; assembler;
 asm
+    pushl %ebx
     xorl %eax,%eax
     cmpl $0,len    { 0 bytes to write is undefined behavior }
     jz   .LDOSWRITE1
@@ -574,10 +577,12 @@ asm
     jnc .LDOSWRITE1
     movw %ax,inoutres;
 .LDOSWRITE1:
-end ['eax', 'ebx', 'ecx', 'edx'];
+    popl %ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 function do_filepos(handle:longint): longint; assembler;
 asm
+    pushl %ebx
     movw $0x4201,%ax
     movl handle,%ebx
     xorl %edx,%edx
@@ -586,10 +591,12 @@ asm
     movw %ax,inoutres;
     xorl %eax,%eax
 .LDOSFILEPOS:
-end ['eax', 'ebx', 'ecx', 'edx'];
+    popl %ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 procedure do_seek(handle,pos:longint); assembler;
 asm
+    pushl %ebx
     movw $0x4200,%ax
     movl handle,%ebx
     movl pos,%edx
@@ -597,10 +604,12 @@ asm
     jnc .LDOSSEEK1
     movw %ax,inoutres;
 .LDOSSEEK1:
-end ['eax', 'ebx', 'ecx', 'edx'];
+    popl %ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 function do_seekend(handle:longint):longint; assembler;
 asm
+    pushl %ebx
     movw $0x4202,%ax
     movl handle,%ebx
     xorl %edx,%edx
@@ -609,7 +618,8 @@ asm
     movw %ax,inoutres;
     xorl %eax,%eax
 .Lset_at_end1:
-end ['eax', 'ebx', 'ecx', 'edx'];
+    popl %ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 function do_filesize(handle:longint):longint;
 
@@ -775,6 +785,7 @@ begin
     else
 *)
 asm
+    push ebx
     mov ebx, Handle
     mov eax, 4400h
     call syscall
@@ -784,7 +795,8 @@ asm
     jnz @IsDevEnd
     dec eax                 { nope, so result is zero }
 @IsDevEnd:
-end ['eax', 'ebx', 'edx'];
+    pop ebx
+end {['eax', 'ebx', 'edx']};
 {$ASMMODE ATT}
 
 
@@ -1165,7 +1177,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-10-16 15:43:13  peter
+  Revision 1.48  2003-10-18 16:58:39  hajny
+    * stdcall fixes again
+
+  Revision 1.47  2003/10/16 15:43:13  peter
     * THandle is platform dependent
 
   Revision 1.46  2003/10/14 21:10:06  hajny
