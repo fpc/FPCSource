@@ -377,6 +377,96 @@ begin
 {$endif}
 end;
 
+type
+     TPthreadMutex = ppthread_mutex_t;
+     Tbasiceventstate=record
+         FSem: Pointer;
+         FManualReset: Boolean;
+         FEventSection: TPthreadMutex;
+	end;
+     plocaleventstate = ^tbasiceventstate;  
+//     peventstate=pointer;
+
+Const 
+	wrSignaled = 0;
+	wrTimeout  = 1;
+	wrAbandoned= 2;
+	wrError	   = 3;
+
+function IntBasicEventCreate(EventAttributes : Pointer; AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
+
+var
+  MAttr : pthread_mutex_attr_t;
+  res   : cint;
+
+
+begin
+  new(plocaleventstate(result));
+  plocaleventstate(result)^.FManualReset:=AManualReset;
+  plocaleventstate(result)^.FSem:=New(PSemaphore);  //sem_t.
+//  plocaleventstate(result)^.feventsection:=nil;
+  res:=pthread_mutexattr_init(@MAttr);
+  if Res=0 then
+    try
+      Res:=pthread_mutexattr_settype(@MAttr,longint(PTHREAD_MUTEX_RECURSIVE));
+      if Res=0 then
+        Res:=pthread_mutex_init(@plocaleventstate(result)^.feventsection,@MAttr);
+    finally
+      pthread_mutexattr_destroy(@MAttr);
+    end;
+  sem_init(psem_t(plocaleventstate(result)^.FSem),ord(False),Ord(InitialState));
+end;
+
+procedure Intbasiceventdestroy(state:peventstate);
+
+begin
+  sem_destroy(psem_t(  plocaleventstate(state)^.FSem));
+end;
+
+procedure IntbasiceventResetEvent(state:peventstate);
+
+begin
+  While sem_trywait(psem_t( plocaleventstate(state)^.FSem))=0 do
+    ;
+end;
+
+procedure IntbasiceventSetEvent(state:peventstate);
+
+Var
+  Value : Longint;
+
+begin
+  pthread_mutex_lock(@plocaleventstate(state)^.feventsection);
+  Try
+    sem_getvalue(plocaleventstate(state)^.FSem,@value);
+    if Value=0 then
+      sem_post(psem_t( plocaleventstate(state)^.FSem));
+  finally
+    pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
+  end;
+end;
+
+function IntbasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+
+begin
+  If TimeOut<>Cardinal($FFFFFFFF) then
+    result:=wrError
+  else
+    begin
+    sem_wait(psem_t(plocaleventstate(state)^.FSem));
+    result:=wrSignaled;
+    if plocaleventstate(state)^.FManualReset then
+      begin
+        pthread_mutex_lock(@plocaleventstate(state)^.feventsection);
+        Try
+            intbasiceventresetevent(State);
+            sem_post(psem_t( plocaleventstate(state)^.FSem));
+          Finally
+        pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
+      end;
+    end;
+    end;
+end;
 
 Var
   CThreadManager : TThreadManager;
@@ -408,6 +498,11 @@ begin
     AllocateThreadVars     :=@CAllocateThreadVars;
     ReleaseThreadVars      :=@CReleaseThreadVars;
 {$endif}
+    BasicEventCreate       :=@intBasicEventCreate;       
+    BasicEventDestroy      :=@intBasicEventDestroy;
+    BasicEventResetEvent   :=@intBasicEventResetEvent;
+    BasicEventSetEvent     :=@intBasicEventSetEvent;
+    BasiceventWaitFor      :=@intBasiceventWaitFor;
     end;
   SetThreadManager(CThreadManager);
   InitHeapMutexes;
@@ -418,7 +513,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2004-03-03 22:00:28  peter
+  Revision 1.11  2004-05-23 15:30:42  marco
+   * basicevent, still untested.
+
+  Revision 1.10  2004/03/03 22:00:28  peter
     * $ifdef debug code
 
   Revision 1.9  2004/02/22 16:48:39  florian
