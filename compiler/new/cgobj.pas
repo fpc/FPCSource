@@ -120,7 +120,7 @@ unit cgobj;
           procedure a_load_reg_reg(list : paasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual;
 
           {  comparison operations }
-          procedure a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;b : byte;reg : tregister;
+          procedure a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
 	    l : pasmlabel);virtual;
           procedure a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
           procedure a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : pasmlabel);
@@ -977,7 +977,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.16  1999-08-06 16:04:05  michael
+  Revision 1.17  1999-08-06 16:27:26  florian
+    * for Jonas: else he will get conflicts
+
+  Revision 1.16  1999/08/06 16:04:05  michael
   + introduced tainstruction
 
   Revision 1.15  1999/08/06 15:53:50  florian
