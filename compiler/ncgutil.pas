@@ -27,10 +27,15 @@ unit ncgutil;
 interface
 
     uses
-      node;
+      node,
+      cginfo,
+      cpubase;
 
     type
       tloadregvars = (lr_dont_load_regvars, lr_load_regvars);
+
+    procedure location_force_reg(var l:tlocation;size:TCGSize;maybeconst:boolean);
+    procedure location_force_mem(var l:tlocation);
 
 {$ifdef TEMPS_NOT_PUSH}
     function maybe_savetotemp(needed : byte;p : tnode;isint64 : boolean) : boolean;
@@ -46,8 +51,194 @@ implementation
     types,
     aasm,cgbase,regvars,
     ncon,
-    cpubase,tgobj,cpuinfo,cginfo,cgobj,cgcpu,rgobj,cg64f32;
+    tgobj,cpuinfo,cgobj,cgcpu,rgobj,cg64f32;
 
+
+{*****************************************************************************
+                                     TLocation
+*****************************************************************************}
+
+    procedure location_force_reg(var l:tlocation;size:TCGSize;maybeconst:boolean);
+      var
+        hregister,
+        hregisterhi : tregister;
+        hl : tasmlabel;
+      begin
+        { release previous location before demanding a new register }
+        if (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+         begin
+           location_freetemp(exprasmlist,l);
+           location_release(exprasmlist,l);
+         end;
+        { handle transformations to 64bit separate }
+        if size in [OS_64,OS_S64] then
+         begin
+           if not (l.size in [OS_64,OS_S64]) then
+            begin
+              { load a smaller size to OS_64 }
+              if l.loc=LOC_REGISTER then
+               hregister:=Changeregsize(l.registerlow,S_L)
+              else
+               hregister:=rg.getregisterint(exprasmlist);
+              { load value in low register }
+              case l.loc of
+                LOC_FLAGS :
+                  cg.g_flags2reg(exprasmlist,l.resflags,hregister);
+                LOC_JUMP :
+                  begin
+                    cg.a_label(exprasmlist,truelabel);
+                    cg.a_load_const_reg(exprasmlist,OS_32,1,hregister);
+                    getlabel(hl);
+                    cg.a_jmp_cond(exprasmlist,OC_NONE,hl);
+                    cg.a_label(exprasmlist,falselabel);
+                    cg.a_load_const_reg(exprasmlist,OS_32,0,hregister);
+                    cg.a_label(exprasmlist,hl);
+                  end;
+                else
+                  cg.a_load_loc_reg(exprasmlist,l,hregister);
+              end;
+              { reset hi part, take care of the signed bit of the current value }
+              hregisterhi:=rg.getregisterint(exprasmlist);
+              if (size=OS_S64) and
+                 (l.size in [OS_S8,OS_S16,OS_S32]) then
+               begin
+                 if l.loc=LOC_CONSTANT then
+                  begin
+                    if (longint(l.value)<0) then
+                     cg.a_load_const_reg(exprasmlist,OS_32,$ffffffff,hregisterhi)
+                    else
+                     cg.a_load_const_reg(exprasmlist,OS_32,0,hregisterhi);
+                  end
+                 else
+                  begin
+                    cg.a_load_reg_reg(exprasmlist,OS_32,hregister,hregisterhi);
+                    cg.a_op_const_reg(exprasmlist,OP_SAR,31,hregisterhi);
+                  end;
+               end
+              else
+               cg.a_load_const_reg(exprasmlist,OS_32,0,hregisterhi);
+              location_reset(l,LOC_REGISTER,size);
+              l.registerlow:=hregister;
+              l.registerhigh:=hregisterhi;
+            end
+           else
+            begin
+              { 64bit to 64bit }
+              if (l.loc=LOC_REGISTER) or
+                 ((l.loc=LOC_CREGISTER) and maybeconst) then
+               begin
+                 hregister:=l.registerlow;
+                 hregisterhi:=l.registerhigh;
+               end
+              else
+               begin
+                 hregister:=rg.getregisterint(exprasmlist);
+                 hregisterhi:=rg.getregisterint(exprasmlist);
+               end;
+              { load value in new register }
+              tcg64f32(cg).a_load64_loc_reg(exprasmlist,l,hregister,hregisterhi);
+              location_reset(l,LOC_REGISTER,size);
+              l.registerlow:=hregister;
+              l.registerhigh:=hregisterhi;
+            end;
+         end
+        else
+         begin
+           { transformations to 32bit or smaller }
+           if l.loc=LOC_REGISTER then
+            begin
+              { if the previous was 64bit release the high register }
+              if l.size in [OS_64,OS_S64] then
+               begin
+                 rg.ungetregisterint(exprasmlist,l.registerhigh);
+                 l.registerhigh:=R_NO;
+               end;
+              hregister:=l.register;
+            end
+           else
+            begin
+              { get new register }
+              if (l.loc=LOC_CREGISTER) and
+                 maybeconst and
+                 (TCGSize2Size[size]=TCGSize2Size[l.size]) then
+               hregister:=l.register
+              else
+               hregister:=rg.getregisterint(exprasmlist);
+            end;
+{$ifdef i386}
+           hregister:=Changeregsize(hregister,TCGSize2Opsize[size]);
+{$endif i386}
+           { load value in new register }
+           case l.loc of
+             LOC_FLAGS :
+               cg.g_flags2reg(exprasmlist,l.resflags,hregister);
+             LOC_JUMP :
+               begin
+                 cg.a_label(exprasmlist,truelabel);
+                 cg.a_load_const_reg(exprasmlist,size,1,hregister);
+                 getlabel(hl);
+                 cg.a_jmp_cond(exprasmlist,OC_NONE,hl);
+                 cg.a_label(exprasmlist,falselabel);
+                 cg.a_load_const_reg(exprasmlist,size,0,hregister);
+                 cg.a_label(exprasmlist,hl);
+               end;
+             else
+               begin
+                 { load_loc_reg can only handle size >= l.size, when the
+                   new size is smaller then we need to adjust the size
+                   of the orignal and maybe recalculate l.register for i386 }
+                 if (TCGSize2Size[size]<TCGSize2Size[l.size]) then
+                  begin
+{$ifdef i386}
+                    if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                     l.register:=Changeregsize(l.register,TCGSize2Opsize[size]);
+{$endif i386}
+                    l.size:=size;
+                  end;
+                 cg.a_load_loc_reg(exprasmlist,l,hregister);
+               end;
+           end;
+           location_reset(l,LOC_REGISTER,size);
+           l.register:=hregister;
+         end;
+      end;
+
+
+    procedure location_force_mem(var l:tlocation);
+      var
+        r : treference;
+      begin
+        case l.loc of
+          LOC_FPUREGISTER,
+          LOC_CFPUREGISTER :
+            begin
+              cg.a_loadfpu_reg_ref(exprasmlist,l.size,l.register,r);
+              location_reset(l,LOC_REFERENCE,l.size);
+              l.reference:=r;
+            end;
+          LOC_CONSTANT,
+          LOC_REGISTER,
+          LOC_CREGISTER :
+            begin
+              tg.gettempofsizereference(exprasmlist,TCGSize2Size[l.size],r);
+              if l.size in [OS_64,OS_S64] then
+               tcg64f32(cg).a_load64_loc_ref(exprasmlist,l,r)
+              else
+               cg.a_load_loc_ref(exprasmlist,l,r);
+              location_reset(l,LOC_REFERENCE,l.size);
+              l.reference:=r;
+            end;
+          LOC_CREFERENCE,
+          LOC_REFERENCE : ;
+          else
+            internalerror(200203219);
+        end;
+      end;
+
+
+{*****************************************************************************
+                                 SaveToTemp
+*****************************************************************************}
 
 {$ifdef TEMPS_NOT_PUSH}
     function maybe_savetotemp(needed : byte;p : tnode;isint64 : boolean) : boolean;
@@ -213,7 +404,12 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-04-15 18:58:47  carl
+  Revision 1.8  2002-04-19 15:39:34  peter
+    * removed some more routines from cga
+    * moved location_force_reg/mem to ncgutil
+    * moved arrayconstructnode secondpass to ncgld
+
+  Revision 1.7  2002/04/15 18:58:47  carl
   + target_info.size_of_pointer -> pointer_Size
 
   Revision 1.6  2002/04/06 18:10:42  jonas

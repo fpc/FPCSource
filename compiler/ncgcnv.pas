@@ -28,10 +28,11 @@ unit ncgcnv;
 interface
 
     uses
-       node,ncnv;
+       node,ncnv,types;
 
     type
        tcgtypeconvnode = class(ttypeconvnode)
+         procedure second_int_to_int;override;
          procedure second_cstring_to_pchar;override;
          procedure second_string_to_chararray;override;
          procedure second_array_to_pointer;override;
@@ -46,6 +47,11 @@ interface
          procedure second_class_to_intf;override;
          procedure second_char_to_char;override;
          procedure second_nothing;override;
+{$ifdef TESTOBJEXT2}
+         procedure checkobject;virtual;
+{$endif TESTOBJEXT2}
+         procedure second_call_helper(c : tconverttype);virtual;abstract;
+         procedure pass_2;override;
        end;
 
   implementation
@@ -58,11 +64,35 @@ interface
       pass_2,
       cginfo,cgbase,
       cga,cgobj,cgcpu,
-{$ifdef i386}
-      n386util,
-{$endif i386}
+      ncgutil,
       tgobj,rgobj
       ;
+
+
+    procedure tcgtypeconvnode.second_int_to_int;
+      var
+        newsize : tcgsize;
+      begin
+        newsize:=def_cgsize(resulttype.def);
+
+        { insert range check if not explicit conversion }
+        if not(nf_explizit in flags) then
+          cg.g_rangecheck(exprasmlist,left,resulttype.def);
+
+        { is the result size smaller ? }
+        if resulttype.def.size<>left.resulttype.def.size then
+          begin
+            { reuse the left location by default }
+            location_copy(location,left.location);
+            location_force_reg(location,newsize,false);
+          end
+        else
+          begin
+            { no special loading is required, reuse current location }
+            location_copy(location,left.location);
+            location.size:=newsize;
+          end;
+      end;
 
 
     procedure tcgtypeconvnode.second_cstring_to_pchar;
@@ -365,13 +395,51 @@ interface
       end;
 
 
+{$ifdef TESTOBJEXT2}
+    procedure tcgtypeconvnode.checkobject;
+      begin
+        { no checking by default }
+      end;
+{$endif TESTOBJEXT2}
+
+
+    procedure tcgtypeconvnode.pass_2;
+      begin
+        { the boolean routines can be called with LOC_JUMP and
+          call secondpass themselves in the helper }
+        if not(convtype in [tc_bool_2_int,tc_bool_2_bool,tc_int_2_bool]) then
+         begin
+           secondpass(left);
+           if codegenerror then
+            exit;
+         end;
+
+        second_call_helper(convtype);
+
+{$ifdef TESTOBJEXT2}
+         { Check explicit conversions to objects pointers !! }
+         if p^.explizit and
+            (p^.resulttype.def.deftype=pointerdef) and
+            (tpointerdef(p^.resulttype.def).definition.deftype=objectdef) and not
+            (tobjectdef(tpointerdef(p^.resulttype.def).definition).isclass) and
+            ((tobjectdef(tpointerdef(p^.resulttype.def).definition).options and oo_hasvmt)<>0) and
+            (cs_check_range in aktlocalswitches) then
+           checkobject;
+{$endif TESTOBJEXT2}
+      end;
+
 begin
   ctypeconvnode := tcgtypeconvnode;
 end.
 
 {
   $Log$
-  Revision 1.9  2002-04-15 19:44:19  peter
+  Revision 1.10  2002-04-19 15:39:34  peter
+    * removed some more routines from cga
+    * moved location_force_reg/mem to ncgutil
+    * moved arrayconstructnode secondpass to ncgld
+
+  Revision 1.9  2002/04/15 19:44:19  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

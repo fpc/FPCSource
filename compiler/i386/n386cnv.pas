@@ -27,12 +27,12 @@ unit n386cnv;
 interface
 
     uses
-      node,ncnv,ncgcnv,types;
+      node,ncgcnv,types;
 
     type
        ti386typeconvnode = class(tcgtypeconvnode)
          protected
-          procedure second_int_to_int;override;
+         { procedure second_int_to_int;override; }
          { procedure second_string_to_string;override; }
          { procedure second_cstring_to_pchar;override; }
          { procedure second_string_to_chararray;override; }
@@ -51,9 +51,12 @@ interface
          { procedure second_pchar_to_string;override; }
          { procedure second_class_to_intf;override;  }
          { procedure second_char_to_char;override; }
-          procedure pass_2;override;
-          procedure second_call_helper(c : tconverttype);
+{$ifdef TESTOBJEXT2}
+          procedure checkobject;override;
+{$endif TESTOBJEXT2}
+          procedure second_call_helper(c : tconverttype);override;
        end;
+
 
 implementation
 
@@ -61,40 +64,14 @@ implementation
       verbose,systems,
       symconst,symdef,aasm,
       cginfo,cgbase,pass_2,
-      ncon,ncal,
+      ncon,ncal,ncnv,
       cpubase,
-      cgobj,cga,tgobj,rgobj,rgcpu,n386util;
+      cgobj,cga,tgobj,rgobj,rgcpu,ncgutil;
 
 
 {*****************************************************************************
                              SecondTypeConv
 *****************************************************************************}
-
-    procedure ti386typeconvnode.second_int_to_int;
-      var
-        newsize : tcgsize;
-      begin
-        newsize:=def_cgsize(resulttype.def);
-
-        { insert range check if not explicit conversion }
-        if not(nf_explizit in flags) then
-          cg.g_rangecheck(exprasmlist,left,resulttype.def);
-
-        { is the result size smaller ? }
-        if resulttype.def.size<>left.resulttype.def.size then
-          begin
-            { reuse the left location by default }
-            location_copy(location,left.location);
-            location_force_reg(location,newsize,false);
-          end
-        else
-          begin
-            { no special loading is required, reuse current location }
-            location_copy(location,left.location);
-            location.size:=newsize;
-          end;
-      end;
-
 
     procedure ti386typeconvnode.second_int_to_real;
 
@@ -297,13 +274,42 @@ implementation
          falselabel:=oldfalselabel;
        end;
 
+{$ifdef TESTOBJEXT2}
+    procedure ti386typeconvnode.checkobject;
+      var
+         r : preference;
+         nillabel : plabel;
+       begin
+         new(r);
+         reset_reference(r^);
+         if p^.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+          r^.base:=p^.location.register
+         else
+           begin
+              rg.getexplicitregisterint(exprasmlist,R_EDI);
+              emit_mov_loc_reg(p^.location,R_EDI);
+              r^.base:=R_EDI;
+           end;
+         { NIL must be accepted !! }
+         emit_reg_reg(A_OR,S_L,r^.base,r^.base);
+         rg.ungetregisterint(exprasmlist,R_EDI);
+         getlabel(nillabel);
+         emitjmp(C_E,nillabel);
+         { this is one point where we need vmt_offset (PM) }
+         r^.offset:= tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_offset;
+         rg.getexplicitregisterint(exprasmlist,R_EDI);
+         emit_ref_reg(A_MOV,S_L,r,R_EDI);
+         emit_sym(A_PUSH,S_L,
+           newasmsymbol(tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_mangledname));
+         emit_reg(A_PUSH,S_L,R_EDI);
+         rg.ungetregister32(exprasmlist,R_EDI);
+         emitcall('FPC_CHECK_OBJECT_EXT');
+         emitlab(nillabel);
+       end;
+{$endif TESTOBJEXT2}
 
-{****************************************************************************
-                           TI386TYPECONVNODE
-****************************************************************************}
 
     procedure ti386typeconvnode.second_call_helper(c : tconverttype);
-
       const
          secondconvert : array[tconverttype] of pointer = (
            @second_nothing, {equal}
@@ -353,69 +359,17 @@ implementation
          tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
       end;
 
-    procedure ti386typeconvnode.pass_2;
-{$ifdef TESTOBJEXT2}
-      var
-         r : preference;
-         nillabel : plabel;
-{$endif TESTOBJEXT2}
-      begin
-        { the boolean routines can be called with LOC_JUMP and
-          call secondpass themselves in the helper }
-        if not(convtype in [tc_bool_2_int,tc_bool_2_bool,tc_int_2_bool]) then
-         begin
-           secondpass(left);
-           if codegenerror then
-            exit;
-         end;
-
-        second_call_helper(convtype);
-
-{$ifdef TESTOBJEXT2}
-                  { Check explicit conversions to objects pointers !! }
-                     if p^.explizit and
-                        (p^.resulttype.def.deftype=pointerdef) and
-                        (tpointerdef(p^.resulttype.def).definition.deftype=objectdef) and not
-                        (tobjectdef(tpointerdef(p^.resulttype.def).definition).isclass) and
-                        ((tobjectdef(tpointerdef(p^.resulttype.def).definition).options and oo_hasvmt)<>0) and
-                        (cs_check_range in aktlocalswitches) then
-                       begin
-                          new(r);
-                          reset_reference(r^);
-                          if p^.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                           r^.base:=p^.location.register
-                          else
-                            begin
-                               rg.getexplicitregisterint(exprasmlist,R_EDI);
-                               emit_mov_loc_reg(p^.location,R_EDI);
-                               r^.base:=R_EDI;
-                            end;
-                          { NIL must be accepted !! }
-                          emit_reg_reg(A_OR,S_L,r^.base,r^.base);
-                          rg.ungetregisterint(exprasmlist,R_EDI);
-                          getlabel(nillabel);
-                          emitjmp(C_E,nillabel);
-                          { this is one point where we need vmt_offset (PM) }
-                          r^.offset:= tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_offset;
-                          rg.getexplicitregisterint(exprasmlist,R_EDI);
-                          emit_ref_reg(A_MOV,S_L,r,R_EDI);
-                          emit_sym(A_PUSH,S_L,
-                            newasmsymbol(tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_mangledname));
-                          emit_reg(A_PUSH,S_L,R_EDI);
-                          rg.ungetregister32(exprasmlist,R_EDI);
-                          emitcall('FPC_CHECK_OBJECT_EXT');
-                          emitlab(nillabel);
-                       end;
-{$endif TESTOBJEXT2}
-      end;
-
-
 begin
    ctypeconvnode:=ti386typeconvnode;
 end.
 {
   $Log$
-  Revision 1.34  2002-04-15 19:44:21  peter
+  Revision 1.35  2002-04-19 15:39:35  peter
+    * removed some more routines from cga
+    * moved location_force_reg/mem to ncgutil
+    * moved arrayconstructnode secondpass to ncgld
+
+  Revision 1.34  2002/04/15 19:44:21  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

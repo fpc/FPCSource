@@ -42,9 +42,6 @@ interface
           procedure pass_2;override;
        end;
 
-       ti386arrayconstructornode = class(tarrayconstructornode)
-          procedure pass_2;override;
-       end;
 
 implementation
 
@@ -55,7 +52,7 @@ implementation
       cginfo,cgbase,pass_2,
       nmem,ncon,ncnv,
       cpubase,cpuasm,
-      cga,tgobj,n386cnv,n386util,regvars,cgobj,cg64f32,rgobj,rgcpu;
+      cga,tgobj,n386util,ncgutil,regvars,cgobj,cg64f32,rgobj,rgcpu;
 
 {*****************************************************************************
                              SecondLoad
@@ -773,223 +770,19 @@ implementation
            end;
       end;
 
-
-{*****************************************************************************
-                           SecondArrayConstruct
-*****************************************************************************}
-
-      const
-        vtInteger    = 0;
-        vtBoolean    = 1;
-        vtChar       = 2;
-        vtExtended   = 3;
-        vtString     = 4;
-        vtPointer    = 5;
-        vtPChar      = 6;
-        vtObject     = 7;
-        vtClass      = 8;
-        vtWideChar   = 9;
-        vtPWideChar  = 10;
-        vtAnsiString = 11;
-        vtCurrency   = 12;
-        vtVariant    = 13;
-        vtInterface  = 14;
-        vtWideString = 15;
-        vtInt64      = 16;
-        vtQWord      = 17;
-
-    procedure ti386arrayconstructornode.pass_2;
-      var
-        hp    : tarrayconstructornode;
-        href  : treference;
-        lt    : tdef;
-        vaddr : boolean;
-        vtype : longint;
-        freetemp,
-        dovariant : boolean;
-        elesize : longint;
-      begin
-        dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
-        if dovariant then
-         elesize:=8
-        else
-         elesize:=tarraydef(resulttype.def).elesize;
-        if not(nf_cargs in flags) then
-         begin
-           location_reset(location,LOC_REFERENCE,OS_NO);
-           { Allocate always a temp, also if no elements are required, to
-             be sure that location is valid (PFV) }
-            if tarraydef(resulttype.def).highrange=-1 then
-              tg.gettempofsizereference(exprasmlist,elesize,location.reference)
-            else
-              tg.gettempofsizereference(exprasmlist,(tarraydef(resulttype.def).highrange+1)*elesize,location.reference);
-            href:=location.reference;
-         end;
-        hp:=self;
-        while assigned(hp) do
-         begin
-           if assigned(hp.left) then
-            begin
-              freetemp:=true;
-              secondpass(hp.left);
-              if codegenerror then
-               exit;
-              if dovariant then
-               begin
-                 { find the correct vtype value }
-                 vtype:=$ff;
-                 vaddr:=false;
-                 lt:=hp.left.resulttype.def;
-                 case lt.deftype of
-                   enumdef,
-                   orddef :
-                     begin
-                       if is_64bitint(lt) then
-                         begin
-                            case torddef(lt).typ of
-                               s64bit:
-                                 vtype:=vtInt64;
-                               u64bit:
-                                 vtype:=vtQWord;
-                            end;
-                            freetemp:=false;
-                            vaddr:=true;
-                         end
-                       else if (lt.deftype=enumdef) or
-                         is_integer(lt) then
-                         vtype:=vtInteger
-                       else
-                         if is_boolean(lt) then
-                           vtype:=vtBoolean
-                         else
-                           if (lt.deftype=orddef) and (torddef(lt).typ=uchar) then
-                             vtype:=vtChar;
-                     end;
-                   floatdef :
-                     begin
-                       vtype:=vtExtended;
-                       vaddr:=true;
-                       freetemp:=false;
-                     end;
-                   procvardef,
-                   pointerdef :
-                     begin
-                       if is_pchar(lt) then
-                         vtype:=vtPChar
-                       else
-                         vtype:=vtPointer;
-                     end;
-                   classrefdef :
-                     vtype:=vtClass;
-                   objectdef :
-                     begin
-                       vtype:=vtObject;
-                     end;
-                   stringdef :
-                     begin
-                       if is_shortstring(lt) then
-                        begin
-                          vtype:=vtString;
-                          vaddr:=true;
-                          freetemp:=false;
-                        end
-                       else
-                        if is_ansistring(lt) then
-                         begin
-                           vtype:=vtAnsiString;
-                           freetemp:=false;
-                         end
-                       else
-                        if is_widestring(lt) then
-                         begin
-                           vtype:=vtWideString;
-                           freetemp:=false;
-                         end;
-                     end;
-                 end;
-                 if vtype=$ff then
-                   internalerror(14357);
-                 { write C style pushes or an pascal array }
-                 if nf_cargs in flags then
-                  begin
-                    if vaddr then
-                     begin
-                       emit_to_mem(hp.left.location,hp.left.resulttype.def);
-                       emit_push_lea_loc(hp.left.location,freetemp);
-                       location_release(exprasmlist,hp.left.location);
-                     end
-                    else
-                     cg.a_param_loc(exprasmlist,hp.left.location,-1);
-                    inc(pushedparasize,4);
-                  end
-                 else
-                  begin
-                    { write changing field update href to the next element }
-                    inc(href.offset,4);
-                    if vaddr then
-                     begin
-                       emit_to_mem(hp.left.location,hp.left.resulttype.def);
-                       emit_lea_loc_ref(hp.left.location,href,freetemp);
-                     end
-                    else
-                     begin
-                       location_release(exprasmlist,left.location);
-                       cg.a_load_loc_ref(exprasmlist,hp.left.location,href);
-                     end;
-                    { update href to the vtype field and write it }
-                    dec(href.offset,4);
-                    emit_const_ref(A_MOV,S_L,vtype,href);
-                    { goto next array element }
-                    inc(href.offset,8);
-                  end;
-               end
-              else
-              { normal array constructor of the same type }
-               begin
-                 case elesize of
-                   1,2,4 :
-                     begin
-                       location_release(exprasmlist,left.location);
-                       cg.a_load_loc_ref(exprasmlist,hp.left.location,href);
-                     end;
-                   8 :
-                     begin
-                       if hp.left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                        begin
-                          emit_reg_ref(A_MOV,S_L,hp.left.location.registerlow,href);
-                          { update href to the high bytes and write it }
-                          inc(href.offset,4);
-                          emit_reg_ref(A_MOV,S_L,hp.left.location.registerhigh,href);
-                          dec(href.offset,4)
-                        end
-                       else
-                        concatcopy(hp.left.location.reference,href,elesize,freetemp,false);
-                     end;
-                   else
-                     begin
-                       { concatcopy only supports reference }
-                       if not(hp.left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-                        internalerror(200108012);
-                       concatcopy(hp.left.location.reference,href,elesize,freetemp,false);
-                     end;
-                 end;
-                 inc(href.offset,elesize);
-               end;
-            end;
-           { load next entry }
-           hp:=tarrayconstructornode(hp.right);
-         end;
-      end;
-
 begin
    cloadnode:=ti386loadnode;
    cassignmentnode:=ti386assignmentnode;
    cfuncretnode:=ti386funcretnode;
-   carrayconstructornode:=ti386arrayconstructornode;
 end.
 {
   $Log$
-  Revision 1.35  2002-04-15 19:44:21  peter
+  Revision 1.36  2002-04-19 15:39:35  peter
+    * removed some more routines from cga
+    * moved location_force_reg/mem to ncgutil
+    * moved arrayconstructnode secondpass to ncgld
+
+  Revision 1.35  2002/04/15 19:44:21  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

@@ -50,7 +50,7 @@ implementation
       cginfo,cgbase,pass_2,
       ncon,
       cpubase,
-      cga,cgobj,tgobj,n386util,regvars,rgobj;
+      cga,cgobj,tgobj,ncgutil,n386util,regvars,rgobj;
 
      const
        bytes2Sxx:array[1..8] of Topsize=(S_B,S_W,S_NO,S_L,S_NO,S_NO,S_NO,S_Q);
@@ -898,7 +898,7 @@ implementation
          { determines the size of the operand }
          opsize:=bytes2Sxx[left.resulttype.def.size];
          { copy the case expression to a register }
-         location_force_reg(left.location,left.location.size,false);
+         location_force_reg(left.location,def_cgsize(left.resulttype.def),false);
          hregister:=left.location.register;
          if isjump then
           begin
@@ -1030,7 +1030,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-04-15 19:44:21  peter
+  Revision 1.23  2002-04-19 15:39:35  peter
+    * removed some more routines from cga
+    * moved location_force_reg/mem to ncgutil
+    * moved arrayconstructnode secondpass to ncgld
+
+  Revision 1.22  2002/04/15 19:44:21  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

@@ -29,8 +29,8 @@ unit cpunode;
   implementation
 
     uses
-       ncgbas,ncgflw,ncgcnv,ncgmem,ncgcon,
-       n386ld,n386add,n386cal,n386con,n386flw,n386mat,n386mem,
+       ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,
+       n386ld,n386add,n386cal,n386con,n386cnv,n386flw,n386mat,n386mem,
        n386set,n386inl,n386opt,
        { this not really a node }
        n386obj, rgcpu;
@@ -38,7 +38,12 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.8  2002-03-31 20:26:38  jonas
+  Revision 1.9  2002-04-19 15:39:35  peter
+    * removed some more routines from cga
+    * moved location_force_reg/mem to ncgutil
+    * moved arrayconstructnode secondpass to ncgld
+
+  Revision 1.8  2002/03/31 20:26:38  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

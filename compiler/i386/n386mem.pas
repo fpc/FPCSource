@@ -62,7 +62,7 @@ implementation
       cginfo,cgbase,pass_2,
       pass_1,nld,ncon,nadd,
       cpubase,
-      cgobj,cga,tgobj,n386util,rgobj;
+      cgobj,cga,tgobj,rgobj,ncgutil,n386util;
 
 {*****************************************************************************
                             TI386NEWNODE
@@ -663,7 +663,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-04-15 19:12:09  carl
+  Revision 1.26  2002-04-19 15:39:35  peter
+    * removed some more routines from cga
+    * moved location_force_reg/mem to ncgutil
+    * moved arrayconstructnode secondpass to ncgld
+
+  Revision 1.25  2002/04/15 19:12:09  carl
   + target_info.size_of_pointer -> pointer_size
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units

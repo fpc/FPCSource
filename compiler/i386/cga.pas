@@ -64,9 +64,6 @@ interface
 
     procedure emitcall(const routine:string);
 
-    procedure emit_mov_ref_reg64(r : treference;rl,rh : tregister);
-    procedure emit_lea_loc_ref(const t:tlocation;const ref:treference;freetemp:boolean);
-    procedure emit_lea_loc_reg(const t:tlocation;reg:tregister;freetemp:boolean);
     procedure emit_push_mem_size(const t: treference; size: longint);
 
     { remove non regvar registers in loc from regs (in the format }
@@ -75,7 +72,6 @@ interface
 
     procedure emit_pushw_loc(const t:tlocation);
     procedure emit_push_lea_loc(const t:tlocation;freetemp:boolean);
-    procedure emit_to_mem(var t:tlocation;def:tdef);
 
     procedure copyshortstring(const dref,sref : treference;len : byte;
                         loadref, del_sref: boolean);
@@ -331,20 +327,6 @@ implementation
       end;
 
 
-    procedure emit_lea_loc_reg(const t:tlocation;reg:tregister;freetemp:boolean);
-      begin
-        case t.loc of
-               LOC_CREFERENCE,
-         LOC_REFERENCE : begin
-                               emit_ref_reg(A_LEA,S_L,t.reference,reg);
-                           if freetemp then
-                            tg.ungetiftemp(exprasmlist,t.reference);
-                         end;
-        else
-          internalerror(200203211);
-        end;
-      end;
-
     procedure remove_non_regvars_from_loc(const t: tlocation; var regs: tregisterset);
     begin
       case t.loc of
@@ -402,25 +384,6 @@ implementation
       end;
 
 
-    procedure emit_lea_loc_ref(const t:tlocation;const ref:treference;freetemp:boolean);
-      begin
-        case t.loc of
-               LOC_CREFERENCE,
-         LOC_REFERENCE : begin
-                               rg.getexplicitregisterint(exprasmlist,R_EDI);
-                               emit_ref_reg(A_LEA,S_L,t.reference,R_EDI);
-                               exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,ref));
-                               rg.ungetregisterint(exprasmlist,R_EDI);
-                         end;
-        else
-         internalerror(200203212);
-        end;
-                   location_release(exprasmlist,t);
-                   if freetemp then
-                    location_freetemp(exprasmlist,t);
-      end;
-
-
     procedure emit_push_lea_loc(const t:tlocation;freetemp:boolean);
       begin
         case t.loc of
@@ -462,70 +425,6 @@ implementation
             end
       end;
 
-
-    procedure emit_to_mem(var t:tlocation;def:tdef);
-
-      var
-         r : treference;
-
-      begin
-        case t.loc of
-               LOC_FPUREGISTER, LOC_CFPUREGISTER :
-                 begin
-                   tg.gettempofsizereference(exprasmlist,10,r);
-                   cg.a_loadfpu_reg_ref(exprasmlist,
-                     def_cgsize(def),t.register,r);
-                   t.reference := r;
-                 end;
-               LOC_REGISTER:
-                 begin
-                    if is_64bitint(def) then
-                      begin
-                         tg.gettempofsizereference(exprasmlist,8,r);
-                         emit_reg_ref(A_MOV,S_L,t.registerlow,r);
-                         inc(r.offset,4);
-                         emit_reg_ref(A_MOV,S_L,t.registerhigh,r);
-                         dec(r.offset,4);
-                         t.reference:=r;
-                      end
-                    else
-                      internalerror(1405001);
-                 end;
-               LOC_CREFERENCE,
-         LOC_REFERENCE : ;
-         else
-         internalerror(200203219);
-        end;
-        t.loc:=LOC_CREFERENCE;
-      end;
-
-
-    procedure emit_mov_ref_reg64(r : treference;rl,rh : tregister);
-
-      var
-         hr : treference;
-
-      begin
-         { if we load a 64 bit reference, we must be careful because }
-         { we could overwrite the registers of the reference by      }
-         { accident                                                  }
-         rg.getexplicitregisterint(exprasmlist,R_EDI);
-         if r.base=rl then
-           begin
-              emit_reg_reg(A_MOV,S_L,r.base, R_EDI);
-              r.base:=R_EDI;
-           end
-         else if r.index=rl then
-           begin
-              emit_reg_reg(A_MOV,S_L,r.index,R_EDI);
-              r.index:=R_EDI;
-           end;
-         emit_ref_reg(A_MOV,S_L,r,rl);
-         hr:=r;
-         inc(hr.offset,4);
-         emit_ref_reg(A_MOV,S_L, hr,rh);
-         rg.ungetregisterint(exprasmlist,R_EDI);
-      end;
 
 {*****************************************************************************
                            Emit String Functions
@@ -2402,7 +2301,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2002-04-15 19:44:20  peter
+  Revision 1.24  2002-04-19 15:39:34  peter
+    * removed some more routines from cga
+    * moved location_force_reg/mem to ncgutil
+    * moved arrayconstructnode secondpass to ncgld
+
+  Revision 1.23  2002/04/15 19:44:20  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

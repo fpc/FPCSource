@@ -58,8 +58,6 @@ implementation
            ('S32REAL','S64REAL','S80REAL','S64BIT','F16BIT','F32BIT'); }
          addsubop:array[in_inc_x..in_dec_x] of TOpCG=(OP_ADD,OP_SUB);
        var
-         opsize : topsize;
-         op,
          asmop : tasmop;
          pushed : tpushedsaved;
          {inc/dec}
@@ -593,7 +591,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2002-04-15 19:44:21  peter
+  Revision 1.37  2002-04-19 15:39:35  peter
+    * removed some more routines from cga
+    * moved location_force_reg/mem to ncgutil
+    * moved arrayconstructnode secondpass to ncgld
+
+  Revision 1.36  2002/04/15 19:44:21  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing
