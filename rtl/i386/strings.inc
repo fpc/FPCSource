@@ -281,11 +281,10 @@ asm
 // align
         movb    c,%cl
         leal    3(%eax),%esi
-        movl    $0xff,%edx
         andl    $-4,%esi
         movl    p,%edi
         subl    %eax,%esi
-        jz      .LSTRSCANLOOP
+        jz      .LSTRSCANALIGNED
         xorl    %eax,%eax
 .LSTRSCANALIGNLOOP:
         movb    (%edi),%al
@@ -299,52 +298,94 @@ asm
         je      .LSTRSCANFOUND
         decl    %esi
         jnz     .LSTRSCANALIGNLOOP
-        jmp     .LSTRSCANLOOP
+.LSTRSCANALIGNED:
+// fill ecx with cccc
+        movl     %ecx,%eax
+        shll     $8,%eax
+        orl      %eax,%ecx
+        movl     %ecx,%eax
+        shll     $16,%eax
+        orl      %eax,%ecx
         .balign  16
 .LSTRSCANLOOP:
-        movl    (%edi),%eax
-        movl    %eax,%esi
+// load new 4 bytes
+        movl     (%edi),%edx
+// in eax, we will check if "c" appear in the loaded dword
+        movl     %edx,%eax
+// esi will be used to calculate the mask
+        movl     %edx,%esi
+        notl     %esi
+// in edx we will check for the end of the string
+        addl     $0x0fefefeff,%edx
+        xorl     %ecx,%eax
+        andl     $0x080808080,%esi
+        addl     $4,%edi
+        andl     %esi,%edx
+        movl     %eax,%esi
+        notl     %esi
+        jnz      .LSTRSCANLONGCHECK
+        addl     $0x0fefefeff,%eax
+        andl     $0x080808080,%esi
+        andl     %esi,%eax
+        jz       .LSTRSCANLOOP
+
+// the position in %eax where the char was found is now $80, so keep on
+// shifting 8 bits out of %eax until we find a non-zero bit.
 // first char
-        andl    %edx,%eax
-// end of string -> stop
-        jz      .LSTRSCAN
-        shrl    $8,%esi
-        cmpl    %ecx,%eax
-        movl    %esi,%eax
-        je      .LSTRSCANFOUND1
+        shrl    $8,%eax
+        jc      .LSTRSCANFOUND1
 // second char
-        andl    %edx,%eax
-        jz      .LSTRSCAN
-        shrl    $8,%esi
-        cmpl    %ecx,%eax
-        movl    %esi,%eax
-        je      .LSTRSCANFOUND2
+        shrl    $8,%eax
+        jc      .LSTRSCANFOUND2
 // third char
-        andl    %edx,%eax
-        jz      .LSTRSCAN
-        shrl    $8,%esi
-        cmpl    %ecx,%eax
-        movl    %esi,%eax
-        je      .LSTRSCANFOUND3
+        shrl    $8,%eax
+        jc      .LSTRSCANFOUND3
 // fourth char
-// all upper bits have already been cleared
-        testl   %eax,%eax
-        jz      .LSTRSCAN
-        addl    $4,%edi
-        cmpl    %ecx,%eax
-        je      .LSTRSCANFOUND
-        jmp     .LSTRSCANLOOP
+        jmp     .LSTRSCANFOUND
+.LSTRSCANLONGCHECK:
+// there's a null somewhere, but we still have to check whether there isn't
+// a 'c' before it.
+        addl     $0x0fefefeff,%eax
+        andl     $0x080808080,%esi
+        andl     %esi,%eax
+// Now, in eax we have $80 on the positions where there were c-chars and in
+// edx we have $80 on the positions where there were #0's. On all other
+// positions, there is now #0
+// first char
+        shrl    $8,%eax
+        jc      .LSTRSCANFOUND1
+        shrl    $8,%edx
+        jc      .LSTRSCANNOTFOUND
+// second char
+        shrl    $8,%eax
+        jc      .LSTRSCANFOUND2
+        shrl    $8,%edx
+        jc      .LSTRSCANNOTFOUND
+// third char
+        shrl    $8,%eax
+        jc      .LSTRSCANFOUND3
+        shrl    $8,%edx
+        jc      .LSTRSCANNOTFOUND
+// we know the fourth char is now #0 (since we only jump to the long check if
+// there is a #0 char somewhere), but it's possible c = #0, and than we have
+// to return the end of the string and not nil!
+        shrl    $8,%eax
+        jc      .LSTRSCANFOUND
+        jmp     .LSTRSCANNOTFOUND
 .LSTRSCANFOUND3:
-        leal    2(%edi),%eax
+        leal   -2(%edi),%eax
         jmp     .LSTRSCAN
 .LSTRSCANFOUND2:
-        leal    1(%edi),%eax
+        leal   -3(%edi),%eax
         jmp     .LSTRSCAN
 .LSTRSCANFOUND1:
-        movl    %edi,%eax
+        leal    -4(%edi),%eax
         jmp     .LSTRSCAN
 .LSTRSCANFOUND:
         leal    -1(%edi),%eax
+        jmp     .LSTRSCAN
+.LSTRSCANNOTFOUND:
+        xorl    %eax,%eax
 .LSTRSCAN:
 end ['EAX','ECX','ESI','EDI','EDX'];
 
@@ -422,7 +463,10 @@ end ['EAX','ESI','EDI'];
 
 {
   $Log$
-  Revision 1.4  2001-02-10 16:08:46  jonas
+  Revision 1.5  2001-02-17 11:34:00  jonas
+    * fixed bug in strscan (returned nil instead of strend for #0) and made it 40% faster
+
+  Revision 1.4  2001/02/10 16:08:46  jonas
     * fixed non-working alignment code
 
   Revision 1.3  2001/01/21 10:12:32  marco
