@@ -771,25 +771,32 @@ end;
 
 {$ASMMODE ATT}
 
-procedure getdir(drivenr : byte;var dir : shortstring);
+function GetDirIO (DriveNr: byte; var Dir: ShortString): word;
+                                               [public, alias: 'FPC_GETDIRIO'];
 
 {Written by Michael Van Canneyt.}
 
-var temp:array[0..255] of char;
-    sof:Pchar;
+var sof:Pchar;
     i:byte;
+    IOR: word;
 
 begin
+    Dir [4] := #0;
+    { Used in case the specified drive isn't available }
     sof:=pchar(@dir[4]);
     { dir[1..3] will contain '[drivenr]:\', but is not }
     { supplied by DOS, so we let dos string start at   }
     { dir[4]                                           }
     { Get dir from drivenr : 0=default, 1=A etc... }
+    IOR := 0;
     asm
         movb drivenr,%dl
         movl sof,%esi
         mov  $0x47,%ah
         call syscall
+        jnc .LGetDir
+        movw %ax, IOR
+.LGetDir:
     end;
     { Now Dir should be filled with directory in ASCIIZ, }
     { starting from dir[4]                               }
@@ -807,9 +814,8 @@ begin
             inc(i);
         end;
     { upcase the string (FPC function) }
-    if not (FileNameCaseSensitive) then dir:=upcase(dir);
     if drivenr<>0 then   { Drive was supplied. We know it }
-        dir[1]:=char(65+drivenr-1)
+        dir[1]:=chr(64+drivenr)
     else
         begin
             { We need to get the current drive from DOS function 19H  }
@@ -822,13 +828,21 @@ begin
             end;
             dir[1]:=char(i);
         end;
+    if not (FileNameCaseSensitive) then dir:=upcase(dir);
+    GetDirIO := IOR;
 end;
 
+procedure GetDir (DriveNr: byte; var Dir: ShortString);
+
+begin
+    InOutRes := GetDirIO (DriveNr, Dir);
+end;
 
 
 {****************************************************************************
 
                              Thread Handling
+
 *****************************************************************************}
 
 const
@@ -845,6 +859,7 @@ end;
 {$I thread.inc}
 
 {*****************************************************************************
+
                         System unit initialization.
 
 ****************************************************************************}
@@ -949,7 +964,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2001-02-20 21:31:12  peter
+  Revision 1.9  2001-03-10 09:57:51  hajny
+    * FExpand without IOResult change, remaining direct asm removed
+
+  Revision 1.8  2001/02/20 21:31:12  peter
     * chdir,mkdir,rmdir with empty string fixed
 
   Revision 1.7  2001/02/04 01:57:52  hajny

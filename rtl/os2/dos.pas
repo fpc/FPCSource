@@ -182,6 +182,7 @@ uses    DosCalls;
 
 var     LastSR: SearchRec;
         envc: longint; external name '_envc';
+        EnvP: ppchar; external name '_environ';
 
 type    TBA = array [1..SizeOf (SearchRec)] of byte;
         PBA = ^TBA;
@@ -460,30 +461,26 @@ begin
      Oh boy, I always had the opinion that executing a program under Dos
      was a hard job!}
 
-    {$ASMMODE DIRECT}
-
     asm
         movl env,%edi       {Setup destination pointer.}
-        movl _envc,%ecx     {Load number of arguments in edx.}
-        movl _environ,%esi  {Load env. strings.}
+        movl envc,%ecx      {Load number of arguments in edx.}
+        movl envp,%esi      {Load env. strings.}
         xorl %edx,%edx      {Count environment size.}
-    exa1:
+.Lexa1:
         lodsl               {Load a Pchar.}
         xchgl %eax,%ebx
-    exa2:
+.Lexa2:
         movb (%ebx),%al     {Load a byte.}
         incl %ebx           {Point to next byte.}
         stosb               {Store it.}
         incl %edx           {Increase counter.}
         cmpb $0,%al         {Ready ?.}
-        jne exa2
-        loop exa1           {Next argument.}
+        jne .Lexa2
+        loop .Lexa1           {Next argument.}
         stosb               {Store an extra 0 to finish. (AL is now 0).}
         incl %edx
-        movl %edx,(24)es    {Store environment size.}
+        movw %dx,ES.SizeEnv    {Store environment size.}
     end;
-
-    {$ASMMODE ATT}
 
     {Environment ready, now set-up exec structure.}
     es.argofs:=args;
@@ -988,17 +985,21 @@ begin
     name:=path;
 end;
 
+(*
 function FExpand (const Path: PathStr): PathStr;
+- declared in fexpand.inc
+*)
 
-{$DEFINE FEXPAND_UNC} (* UNC paths are supported *)
-{$DEFINE FEXPAND_DRIVES} (* Full paths begin with drive specification *)
+{$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
+{$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
 
 const
     LFNSupport = true;
 
 {$I fexpand.inc}
-{$UNDEF FEXPAND_DRIVES}
-{$UNDEF FEXPAND_UNC}
+
+{$UNDEF FPC_FEXPAND_DRIVES}
+{$UNDEF FPC_FEXPAND_UNC}
 
 procedure packtime(var d:datetime;var time:longint);
 
@@ -1066,7 +1067,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2001-02-04 01:57:52  hajny
+  Revision 1.8  2001-03-10 09:57:51  hajny
+    * FExpand without IOResult change, remaining direct asm removed
+
+  Revision 1.7  2001/02/04 01:57:52  hajny
     * direct asm removing
 
   Revision 1.6  2000/11/06 20:35:05  hajny

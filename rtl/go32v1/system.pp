@@ -532,21 +532,27 @@ begin
 end;
 
 
-procedure getdir(drivenr : byte;var dir : shortstring);
+function GetDirIO (DriveNr: byte; var Dir: ShortString): word;
+                                               [public, alias: 'FPC_GETDIRIO'];
 var
   temp : array[0..255] of char;
   sof  : pchar;
   i    : byte;
+  IOR: word;
 begin
   sof:=pchar(@dir[4]);
 { dir[1..3] will contain '[drivenr]:\', but is not supplied by DOS,
   so we let dos string start at dir[4]
   Get dir from drivenr : 0=default, 1=A etc }
+  IOR := 0;
   asm
         movb    drivenr,%dl
         movl    sof,%esi
         mov     $0x47,%ah
         int     $0x21
+        jnc .LGetDir
+        movw %ax, IOR
+.LGetDir:
   end;
 { Now Dir should be filled with directory in ASCIIZ starting from dir[4] }
   dir[0]:=#3;
@@ -563,7 +569,6 @@ begin
      inc(i);
    end;
 { upcase the string }
-  dir:=upcase(dir);
   if drivenr<>0 then   { Drive was supplied. We know it }
    dir[1]:=chr(65+drivenr-1)
   else
@@ -578,6 +583,14 @@ begin
      end;
      dir[1]:=chr(i);
    end;
+  dir:=upcase(dir);
+  GetDirIO := IOR;
+end;
+
+procedure GetDir (DriveNr: byte; var Dir: ShortString);
+
+begin
+    InOutRes := GetDirIO (DriveNr, Dir);
 end;
 
 {*****************************************************************************
@@ -615,7 +628,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:38  michael
+  Revision 1.3  2001-03-10 09:57:51  hajny
+    * FExpand without IOResult change, remaining direct asm removed
+
+  Revision 1.2  2000/07/13 11:33:38  michael
   + removed logs
  
 }
