@@ -1,4 +1,7 @@
 { %version=1.1 }
+
+{$mode objfpc}
+
 type
 	TCheck=class(TObject);
 
