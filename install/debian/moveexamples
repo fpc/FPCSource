@@ -27,7 +27,7 @@ BASE_PACKAGES="paszlib pasjpeg regexpr ncurses md5"
 GFX_PACKAGES="forms ggi libgd svgalib opengl"
 DB_PACKAGES="ibase mysql oracle postgres gdbm odbc"
 MISC_PACKAGES="gdbint utmp syslog cdrom tcl"
-NET_PACKAGES="inet netdb"
+NET_PACKAGES="netdb"
 
 move_examples fcl "$FCL_PACKAGES"
 move_examples gtk "$GTK_PACKAGES"
