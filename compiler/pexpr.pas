@@ -201,16 +201,14 @@ unit pexpr;
                                begin
                                   Must_be_valid:=false;
                                   do_firstpass(p1);
-                                  if p1^.resulttype^.deftype<>objectdef then
-                                    begin
-                                       statement_syssym:=genordinalconstnode(
-                                         p1^.resulttype^.size,pd);
-                                       { p1 not needed !}
-                                       disposetree(p1);
-                                    end
+                                  if (p1^.resulttype^.deftype=objectdef) or
+                                     is_open_array(p1^.resulttype) then
+                                    statement_syssym:=geninlinenode(in_sizeof_x,p1)
                                   else
                                     begin
-                                       statement_syssym:=geninlinenode(in_sizeof_x,p1);
+                                      statement_syssym:=genordinalconstnode(p1^.resulttype^.size,pd);
+                                      { p1 not needed !}
+                                      disposetree(p1);
                                     end;
                                end;
                           end;
@@ -1788,7 +1786,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.31  1998-08-10 14:50:11  peter
+  Revision 1.32  1998-08-11 14:05:32  peter
+    * fixed sizeof(array of char)
+
+  Revision 1.31  1998/08/10 14:50:11  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.30  1998/07/28 21:52:54  florian

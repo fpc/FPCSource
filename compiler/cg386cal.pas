@@ -1873,34 +1873,54 @@ implementation
             in_sizeof_x,
             in_typeof_x :
               begin
-                 { for both cases load vmt }
-                 if p^.left^.treetype=typen then
-                   begin
-                      p^.location.register:=getregister32;
-                      exprasmlist^.concat(new(pai386,op_csymbol_reg(A_MOV,
-                        S_L,newcsymbol(pobjectdef(p^.left^.resulttype)^.vmt_mangledname,0),
-                        p^.location.register)));
-                   end
+               { sizeof(openarray) handling }
+                 if (p^.inlinenumber=in_sizeof_x) and
+                    is_open_array(p^.left^.resulttype) then
+                  begin
+                  { sizeof(openarray)=high(openarray)+1 }
+                    secondpass(p^.left);
+                    del_reference(p^.left^.location.reference);
+                    p^.location.register:=getregister32;
+                    new(r);
+                    reset_reference(r^);
+                    r^.base:=highframepointer;
+                    r^.offset:=highoffset+4;
+                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                      r,p^.location.register)));
+                    exprasmlist^.concat(new(pai386,op_reg(A_INC,S_L,
+                      p^.location.register)));
+                  end
                  else
-                   begin
-                      secondpass(p^.left);
-                      del_reference(p^.left^.location.reference);
-                      p^.location.loc:=LOC_REGISTER;
-                      p^.location.register:=getregister32;
-                      { load VMT pointer }
-                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                      newreference(p^.left^.location.reference),
-                        p^.location.register)));
-                   end;
-                 { in sizeof load size }
-                 if p^.inlinenumber=in_sizeof_x then
-                   begin
-                      new(r);
-                      reset_reference(r^);
-                      r^.base:=p^.location.register;
-                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,
-                        p^.location.register)));
-                   end;
+                  begin
+                    { for both cases load vmt }
+                    if p^.left^.treetype=typen then
+                      begin
+                         p^.location.register:=getregister32;
+                         exprasmlist^.concat(new(pai386,op_csymbol_reg(A_MOV,
+                           S_L,newcsymbol(pobjectdef(p^.left^.resulttype)^.vmt_mangledname,0),
+                           p^.location.register)));
+                      end
+                    else
+                      begin
+                         secondpass(p^.left);
+                         del_reference(p^.left^.location.reference);
+                         p^.location.loc:=LOC_REGISTER;
+                         p^.location.register:=getregister32;
+                         { load VMT pointer }
+                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                         newreference(p^.left^.location.reference),
+                           p^.location.register)));
+                      end;
+                    { in sizeof load size }
+                    if p^.inlinenumber=in_sizeof_x then
+                      begin
+                         new(r);
+                         reset_reference(r^);
+                         r^.base:=p^.location.register;
+                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,
+                           p^.location.register)));
+                      end;
+                  end;
               end;
             in_lo_long,
             in_hi_long :
@@ -2291,7 +2311,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1998-08-10 14:49:45  peter
+  Revision 1.14  1998-08-11 14:05:33  peter
+    * fixed sizeof(array of char)
+
+  Revision 1.13  1998/08/10 14:49:45  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.12  1998/07/30 13:30:31  florian
