@@ -27,13 +27,27 @@ procedure Zero;
   end;
 
   procedure One (Thing: PObject);
+
+    procedure LocalTwo (Thing: PObject);
+    begin
+      Line1 := 'BBB';
+      Line2 := 'BBB';
+
+      WriteLn('2: ', Line1, ' * ', Line2);                 {*** Output line 2 ***}
+      if Line2<>'BBB' then
+       begin
+         writeln('ERROR!');
+         halt(1);
+       end;
+    end;
+
   begin
     Line1 := 'AAA';
     Line2 := 'AAA';
 
     WriteLn('1: ', Line1, ' * ', Line2);                 {*** Output line 1 ***}
 
-    Coll^.ForEach(@Two);
+    Coll^.ForEach(@LocalTwo);
 
     WriteLn('3: ', Line1, ' * ', Line2);                 {*** Output line 3 ***}
     if Line2<>'BBB' then
