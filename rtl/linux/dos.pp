@@ -528,7 +528,7 @@ Var
 Begin
   if f.SearchType=0 then
    begin
-     i:=0;
+     i:=1;
      repeat
        if (RtlFindRecs[i].SearchNum=f.SearchNum) then
         break;
@@ -1042,7 +1042,10 @@ End.
 
 {
   $Log$
-  Revision 1.5  1998-11-05 14:24:08  peter
+  Revision 1.6  1998-11-23 12:32:31  peter
+    * fix for findclose from the mailinglist
+
+  Revision 1.5  1998/11/05 14:24:08  peter
     * findfirst fix from the mailinglist
 
   Revision 1.4  1998/11/04 10:15:54  peter
