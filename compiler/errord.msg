@@ -1,5 +1,3 @@
-%%% Reordering of new2.msg respective to errore.msg
-%%% Contains all comments from new2.msg
 #
 #   $Id$
 #   This file is part of the Free Pascal Compiler
@@ -58,26 +56,26 @@
 general_t_compilername=T_Compiler: $1
 % When the \var{-vt} switch is used, this line tells you what compiler
 % is used.
-general_d_sourceos=D_Compiler OS: $1
+general_d_sourceos=D_Hostbetriebssystem: $1
 % When the \var{-vd} switch is used, this line tells you what the source
 % operating system is.
-general_i_targetos=I_Target OS: $1
+general_i_targetos=I_Zielbetriebssystem: $1
 % When the \var{-vd} switch is used, this line tells you what the target
 % operating system is.
-general_t_exepath=T_Benutze Pfad fÅr ausfÅhrbare Datei: $1
+general_t_exepath=T_Der Pfad der ausfÅhrbaren Datei ist: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for it's binaries.
-general_t_unitpath=T_Benutze Unit Pfad: $1
+general_t_unitpath=T_Der Unitpfad ist: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for compiled units. You can set this path with the \var{-Fu}
-general_t_includepath=T_Benutze Include Pfad: $1
+general_t_includepath=T_Der Includepfad ist: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for it's include files (files used in \var{\{\$I xxx\}} statements).
 % You can set this path with the \var{-I} option.
-general_t_librarypath=T_Benutze Bibliotheks Pfad: $1
+general_t_librarypath=T_Der Bibliothekspfad ist: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for the libraries. You can set this path with the \var{-Fl} option.
-general_t_objectpath=T_Benutze Object Pfad: $1
+general_t_objectpath=T_Der Objectdateienpfad: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for object files you link in (files used in \var{\{\$L xxx\}} statements).
 % You can set this path with the \var{-Fo} option.
@@ -85,7 +83,7 @@ general_i_abslines_compiled=I_$1 Zeilen compiliert, $2 sec
 % When the \var{-vi} switch is used, the compiler reports the number
 % of lines compiled, and the time it took to compile them (real time,
 % not program time).
-general_f_no_memory_left=F_Kein Speicher mehr Åbrig
+general_f_no_memory_left=F_Speicher voll
 % The compiler doesn't have enough memory to compile your program. There are
 % several remedies for this:
 % \begin{itemize}
@@ -96,10 +94,10 @@ general_f_no_memory_left=F_Kein Speicher mehr Åbrig
 % \item If the previous two don't work, recompile the compiler with a bigger
 % heap (you can use the \var{-Ch} option for this, \seeo{Ch})
 % \end{itemize}
-general_i_writingresourcefile=I_Schreibe Resource Stringtabellen Datei: $1
+general_i_writingresourcefile=I_Resourcestringtabellendatei $1 wird geschrieben
 % This message is shown when the compiler writes the Resource String Table
 % file containing all the resource strings for a program.
-general_e_errorwritingresourcefile=E_Schreibe Resource Stringtabellen Datei: $1
+general_e_errorwritingresourcefile=E_Fehler beim Schreiben der Resourcestringtabellendatei: $1
 % This message is shown when the compiler encountered an error when writing
 % the Resource String Table file
 % \end{description}
@@ -124,16 +122,16 @@ scan_f_end_of_file=F_Unerwartetes Dateiende
 scan_f_string_exceeds_line=F_Zeichenkette geht Åber Zeilenende hinaus
 % You forgot probably to include the closing ' in a string, so it occupies
 % multiple lines.
-scan_f_illegal_char=F_unzulÑssiges Zeichen
+scan_f_illegal_char=F_UnzulÑssiges Zeichen
 % An illegal character was encountered in the input file.
 scan_f_syn_expected=F_Syntax Fehler, $1 erwartet aber $2 vorgefunden
 % This indicates that the compiler expected a different token than
 % the one you typed. It can occur almost everywhere where you make a
 % mistake against the pascal language.
-scan_t_start_include_file=T_Beginne mit Lesen der Include-Datei $1
+scan_t_start_include_file=T_Die Include-Datei $1 wird jetzt gelesen
 % When you provide the \var{-vt} switch, the compiler tells you
 % when it starts reading an included file.
-scan_w_comment_level=W_Kommentarstufe $1 gefunden
+scan_w_comment_level=W_Kommentarschachtelungstiefe $1 gefunden
 % When the \var{-vw} switch is used, then the compiler warns you if
 % it finds nested comments. Nested comments are not allowed in Turbo Pascal
 % and can be a possible source of errors.
@@ -154,10 +152,10 @@ scan_e_illegal_char_const=E_UngÅltige char Konstantante
 % This happens when you specify a character with its ASCII code, as in
 % \var{\#96}, but the number is either illegal, or out of range. The range
 % is 1-255.
-scan_f_cannot_open_input=F_Kann Datei $1 nicht îffnen
+scan_f_cannot_open_input=F_Datei $1 kann nicht geîffnet werden
 % \fpc cannot find the program or unit source file you specified on the
 % command line.
-scan_f_cannot_open_includefile=F_Kann Include-Datei $1 nicht îffnen
+scan_f_cannot_open_includefile=F_Includedatei $1 kann nicht geîffnet werden
 % \fpc cannot find the source file you specified in a \var{\{\$include ..\}}
 % statement.
 scan_e_too_much_endifs=E_Zu viele $ENDIF oder $ELSE Direktiven
@@ -165,7 +163,7 @@ scan_e_too_much_endifs=E_Zu viele $ENDIF oder $ELSE Direktiven
 scan_w_only_pack_records=W_Record Elemente kînnen nur im Raster 1,2,4 oder 16 Bytes ausgerichtet werden
 % You are specifying the \var{\{\$PACKRECORDS n\} } with an illegal value for
 % \var{n}. Only 1,2,4 or 16 are valid in this case.
-scan_w_only_pack_enum=W_AufzÑhlungen kînnen nur im Raster 1,2 or 4 bytes aufgeteilt werden.
+scan_w_only_pack_enum=W_FÅr AufzÑhlungen kînnen nur die Grî·en 1,2 or 4 Bytes angegeben werden
 % You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
 % \var{n}. Only 1,2 or 4 are valid in this case.
 scan_e_endif_expected=E_$1 erwartet fÅr $2 definiert in Zeile $3
@@ -176,7 +174,7 @@ scan_e_preproc_syntax_error=E_Syntaxfehler im Argument einer $if Direktive
 scan_e_error_in_preproc_expr=E_Syntaxfehler im Context einer $if Direktive
 % There is an error in the expression following the \var{\{\$if ..\}} compiler
 % directive.
-scan_w_marco_cut_after_255_chars=W_Inhalt des Makros wurde nach der Auswertung von 255 Zeichen abgeschnitten
+scan_w_marco_cut_after_255_chars=W_Inhalt des Makros wurde nach der Auswertung bei 255 Zeichen abgeschnitten
 % The contents of macros canno be longer than 255 characters. This is a
 % safety in the compiler, to prevent buffer overflows. This is shown as a
 % warning, i.e. when the \var{-vw} switch is used.
@@ -184,52 +182,52 @@ scan_e_endif_without_if=E_ENDIF ohne IF(N)DEF
 % Your \var{\{\$IFDEF ..\}} and {\{\$ENDIF\}} statements aren't balanced.
 scan_f_user_defined=F_Benutzer definiert: $1
 % A user defined fatal error occurred. see also the \progref
-scan_e_user_defined=E_Benutzer definiert: $1
+scan_e_user_defined=E_Benutzerdefiniert: $1
 % A user defined error occurred. see also the \progref
-scan_w_user_defined=W_Benutzer definiert: $1
+scan_w_user_defined=W_Benutzerdefiniert: $1
 % A user defined warning occurred. see also the \progref
-scan_n_user_defined=N_Benutzer definiert: $1
+scan_n_user_defined=N_Benutzerdefiniert: $1
 % A user defined note was encountered. see also the \progref
-scan_h_user_defined=H_Benutzer definiert: $1
+scan_h_user_defined=H_Benutzerdefiniert: $1
 % A user defined hint was encountered. see also the \progref
-scan_i_user_defined=I_Benutzer definiert: $1
+scan_i_user_defined=I_Benutzerdefiniert: $1
 % User defined information was encountered. see also the \progref
-scan_e_keyword_cant_be_a_macro=E_Ein Makro, das als SchlÅsselwort definiert ist, bleibt wirkungslos
+scan_e_keyword_cant_be_a_macro=E_Ein Makro, dass denselben Namen wie ein SchlÅsselwort hat, wird ignoriert
 % You cannot redefine keywords with macros.
-scan_f_macro_buffer_overflow=F_Makro PufferÅberlauf wÑhrend Lesen oder EinfÅgen
+scan_f_macro_buffer_overflow=F_MakropufferÅberlauf wÑhrend  Lesen oder EinfÅgen
 % Your macro or it's result  was too long for the compiler.
-scan_w_macro_deep_ten=W_Expandirung des Makros Åberschreitet Tiefe von 16.
+scan_w_macro_deep_ten=W_Expandierung des Makros Åberschreitet eine Macroschachtelungstiefe von 16
 % When expanding a macro macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
-scan_e_wrong_styled_switch=E_Compiler Schalter in (* ... *) Kommentaren sind nicht erlaubt
+scan_e_wrong_styled_switch=E_Compilerschalter in (* ... *)-Kommentaren sind nicht erlaubt
 % Compiler switches should always be between \var{\{ \}} comment delimiters.
 scan_d_handling_switch=D_Bearbeite Schalter "$1"
 % When you set debugging info on (\var{-vd}) the compiler tells you when it
 % is evaluating conditional compile statements.
-scan_c_endif_found=C_ENDIF $1 entdeckt
+scan_c_endif_found=C_ENDIF $1 bearbeitet
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_ifdef_found=C_IFDEF $1 entdeckt, $2
+scan_c_ifdef_found=C_IFDEF $1 bearbeitet, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_ifopt_found=C_IFOPT $1 entdeckt, $2
+scan_c_ifopt_found=C_IFOPT $1 bearbeitet, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_if_found=C_IF $1 entdeckt, $2
+scan_c_if_found=C_IF $1 bearbeitet, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_ifndef_found=C_IFNDEF $1 entdeckt, $2
+scan_c_ifndef_found=C_IFNDEF $1 bearbeitet, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_else_found=C_ELSE $1 entdeckt, $2
+scan_c_else_found=C_ELSE $1 bearbeitet, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_skipping_until=C_öbergehe bis...
+scan_c_skipping_until=C_Quelltext wird ignoriert bis...
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements, and whether it is skipping or
 % compiling parts.
-scan_i_press_enter=I_DrÅcken Sie <return> um fortzusetzen
+scan_i_press_enter=I_DrÅcken Sie <Return> um fortzusetzen
 % When the \var{-vi} switch is used, the compiler stops compilation
 % and waits for the \var{Enter} key to be pressed when it encounters
 % a \var{\{\$STOP\}} directive.
@@ -237,18 +235,27 @@ scan_w_unsupported_switch=W_Nicht unterstÅtzter Schalter $1
 % When warings are turned on (\var{-vw}) the compiler warns you about
 % unsupported switches. This means that the switch is used in Delphi or
 % Turbo Pascal, but not in \fpc
-scan_w_illegal_directive=W_UngÅltige Compiler Direktive $1
+scan_w_illegal_directive=W_UngÅltiges Compilerdirektive $1
 % When warings are turned on (\var{-vw}) the compiler warns you about
 % unrecognised switches. For a list of recognised switches, \progref
 scan_t_back_in=T_Wieder zurÅck in $1
 % When you use (\var{-vt}) the compiler tells you when it has finished
 % reading an include file.
-scan_w_unsupported_app_type=W_Nicht unterstÅtzter Anwendungs-Typ: $1
+scan_w_unsupported_app_type=W_Nicht unterstÅtzter Anwendungstyp: $1
 % You get this warning, ff you specify an unknown application type
 % with the directive \var{\{\$APPTYPE\}}
-scan_w_app_type_not_support=W_APPTYPE wird nicht vom Ziel OS unterstÅtzt
+scan_w_app_type_not_support=W_APPTYPE wird vom Zielbetriebssystem nicht unterstÅtzt
 % The \var{\{\$APPTYPE\}} directive is supported by win32 applications only.
-scan_w_unsupported_asmmode_specifier=W_Nicht unterstÅtzte Assembler Varainte angegeben $1
+scan_w_decription_not_support=W_DESCRIPTION kann nur bei OS/2-und Windowsprogrammen verwendet werden
+% The \var{\{\$DESCRIPTION\}} directive is only supported for OS2 and Win32 targets.
+scan_n_version_not_support=N_VERSION wird vom Zielbetriebssystem nicht unterstÅtzt
+% The \var{\{\$VERSION\}} directive is only supported by win32 target.
+scan_n_only_exe_version=N_VERSION kann nicht in Units verwendet werden
+% The \var{\{\$VERSION\}} directive is only used for executable or DLL sources.
+scan_w_wrong_version_ignored=W_Falsches Format fÅr VERSION-Directive $1
+% The \var{\{\$VERSION\}} directive format is major_version.minor_version
+% where major_version and minor_version are words.
+scan_w_unsupported_asmmode_specifier=W_Nicht unterstÅtzter Assemblermodus angegeben $1
 % When you specify an assembler mode with the \var{\{\$ASMMODE xxx\}}
 % the compiler didn't recognize the mode you specified.
 scan_w_no_asm_reader_switch_inside_asm=W_ASM-Leser Schalter ist nicht mîglich innerhalb einer asm Sequenz, $1 wird erst in der nÑchsten Sequenz wirksam
@@ -257,12 +264,23 @@ scan_w_no_asm_reader_switch_inside_asm=W_ASM-Leser Schalter ist nicht mîglich in
 % assembler statement only.
 scan_e_wrong_switch_toggle=E_Parameter fÅr Schalter falsch, verwenden Sie ON/OFF oder +/-
 % You need to use ON or OFF or a + or - to toggle the switch
-scan_e_resourcefiles_not_supported=E_Resource Dateien werden vom aktuellen Zielsystem nicht unterstÅtzt
+scan_e_resourcefiles_not_supported=E_Resourcedateien werden vom aktuellen Zielbetriebssystem nicht unterstÅtzt
 % The target you are compiling for doesn't support Resource files. The
 % only target which can use resource files is Win32
-scan_w_include_env_not_found=W_Include Umgebung $1 nicht in Environment gefunden
+scan_w_include_env_not_found=W_$1 ist keine Umgebungsvariable
 % The included environment variable can't be found in the environment, it'll
 % be replaced by an empty string instead.
+% \end{description}
+#
+# Parser
+#
+% \section{Parser messages}
+% This section lists all parser messages. The parser takes care of the
+% semantics of you language, i.e. it determines if your pascal constructs
+% are correct.
+% \begin{description}
+scan_e_invalid_maxfpureg_value=E_Nicht erlaubter Wert fÅr MAXFPUREGISTER-Directive
+% Valid values for this directive are 0..8 and NORMAL/DEFAULT
 % \end{description}
 #
 # Parser
@@ -812,7 +830,8 @@ parser_e_procname_to_short_for_export=E_Prozedurename zu kurz um exportiert zu w
 % The length of the procedure/function name must be at least 2 characters
 % long. This is because of a bug in dlltool which doesn't parse the .def
 % file correct with a name of length 1.
-% \end{description}
+parser_e_dlltool_unit_var_problem=E_Es kann kei
+parser_e_dlltool_unit_var_problem2=E_Option -WD darf nicht verwendet werden
 #
 # Type Checking
 #
@@ -820,7 +839,7 @@ parser_e_procname_to_short_for_export=E_Prozedurename zu kurz um exportiert zu w
 % This section lists all errors that can occur when type checking is
 % performed.
 % \begin{description}
-type_e_mismatch=E_Typ passt nicht
+type_e_mismatch=E_Typen passen nicht zusammen
 % This can happen in many cases:
 % \begin{itemize}
 % \item The variable you're assigning to is of a different type than the
@@ -1199,6 +1218,24 @@ cg_e_cannot_call_message_direct=E_Kann Messagehandler Methode nicht direkt aufru
 #
 # Assembler reader
 #
+cg_e_goto_inout_of_exception_block=E_Sprung in- oder aus Exceptionblock heraus
+% It isn't allowed to jump in or outside of an exception block like \var{try..finally..end;}:
+% \begin{verbatim}
+% label 1;
+%
+% ...
+%
+% try
+%    if not(final) then
+%      goto 1;   // this line will cause an error
+% finally
+%   ...
+% end;
+% 1:
+% ...
+% \end{verbatim}
+% \end{description}
+# EndOfTeX
 asmr_d_start_reading=D_Starte $1 Stil Assembler Parsen
 % This informs you that an assembler block is being parsed
 asmr_d_finish_reading=D_Beende $1 Stil Assembler Parsen
@@ -1328,6 +1365,8 @@ asmw_e_invalid_effective_address=E_Asm: UngÅltige effektive Adresse
 asmw_e_immediate_or_reference_expected=E_Asm: Konstanter Ausdruck oder Referenz erwartet
 asmw_e_value_exceeds_bounds=E_Asm: $1 Wert Åberschreitet Grenzen $2
 asmw_e_short_jmp_out_of_range=E_Asm: "Short jump" ist ausserhalb der Bereichs $1
+asmw_e_undefined_label=E_Asm: Undefiniertes Label: $1
+
 #
 # Executing linker/assembler
 #
@@ -1421,7 +1460,7 @@ unit_f_too_much_units=F_Zu viele Units
 % \fpc has a limit of 1024 units in a program. You can change this behavior
 % by changing the \var{maxunits} constant in the \file{files.pas} file of the
 % compiler, and recompiling the compiler.
-unit_f_circular_unit_reference=F_Gegenseitige Unit Referenz zwischen $1 und $2
+unit_f_circular_unit_reference=F_Gegenseitige AbhÑngigkeit von Units zwischen $1 und $2
 % Two units are using each other in the interface part. This is only allowed
 % in the \var{implementation} part. At least one unit must contain the other one
 % in the \var{implementation} section.
@@ -1495,6 +1534,8 @@ option_no_nested_response_file=E_Verschachtelte Response-Dateien werden nicht un
 % you cannot nest response files with the \var{@file} command-line option.
 option_no_source_found=F_Kein Name fÅr Quelldatei auf der Kommandzeile
 % The compiler expects a source file name on the command line.
+option_no_option_found=N_Keine Angeben in Konfigurationsdatei $1 gefunden
+% The compiler didn't find any option in that config file.
 option_illegal_para=E_UngÅltiger Parameter: $1
 % You specified an unknown option.
 option_help_pages_para=H_-? zeigt Hilfetext an
@@ -1546,7 +1587,7 @@ option_switch_bin_to_src_assembler=N_Schalte Assembler auf den Standard Assemble
 # Logo (option -l)
 #
 option_logo_start=Free Pascal Compiler Version $FPCVER [$FPCDATE] fÅr $FPCTARGET
-option_logo_end=Copyright (c) 1998-2000 by Florian Klaempfl
+option_logo_end=Copyright (c) 1993-2000 Florian KlÑmpfl
 #
 # Info (option -i)
 #
@@ -1556,10 +1597,10 @@ option_info2=Compiler Datum:      $FPCDATE
 option_info3=Compiler Zielsystem: $FPCTARGET
 option_info4=<lf>
 option_info5=Dieses Programm unterliegt der GNU General Public Licence
-option_info6=FÅr weitere Information lesen Sie bitte COPYING.FPC
+option_info6=Weitere Informationen sind in COPYING.FPC zu finden
 option_info7=<lf>
-option_info8=Senden Sie Fehlerberichte, VorschlÑge usw. bitte an:
-option_info_end=                 fpc-devel@vekoll.saturnus.vein.hu
+option_info8=Fehlerberichte, VorschlÑge usw. bitte senden an:
+option_info_end=             bugrep@freepascal.org
 #
 # Help pages (option -? and -h)
 #
@@ -1568,8 +1609,8 @@ option_info_end=                 fpc-devel@vekoll.saturnus.vein.hu
 ol_begin=**0*_nach boolschen Optionen geben Sie + zum Ein- bzw. - zum Ausschalten an
 ol001=**1a_lîsche die erzeugte Assembler-Datei nicht
 ol002=**2al_liste Quellcode-Zeilen in der Assembler-Datei
-ol003=**2ar_liste Register-Belegung/Freigabe-Information in Assembler-Datei
-ol004=**2at_liste Temp-Belegung/Freigabe-Information in Assembler-Datei
+ol003=**2ar_liste RegisterbelegungsInformation in Assembler-Datei
+ol004=**2at_liste Temp. Variablenbelegungsinfo. in Assembler-Datei
 ol005=**1b_erzeuge Browser-Info
 ol006=**2bl_erzeuge Info zu lokalen Symbolen
 ol007=**1B_erzeuge alle Module (Build)
@@ -1600,12 +1641,12 @@ ol031=*L2FL<x>_benutze <x> als dynamischen Linker
 ol032=**2Fo<x>_ergÑnze <x> zum Object-Pfad
 ol033=**2Fr<x>_lade die Fehler-Meldungs Datei <x>
 ol034=**2Fu<x>_ergÑnze <x> zum Unit-Pfad
-ol035=**2FU<x>_setze den Unit Ausgabe Pfad auf <x>, hat Vorrang vor -FE
-ol036=*g1g<x>_erzeuge Debugger Information:
-ol037=*g2gg_benutze gsym
-ol038=*g2gd_benutze dbx
-ol039=*g2gh_benutze Heap Trace Unit
-ol040=*g2gc_erzeuge Prufung fur pointer
+ol035=**2FU<x>_Units werden nach <x> ausgegen, hat Vorrang vor -FE
+ol036=*g1g<x>_erzeuge Debuggerinformation:
+ol037=*g2gg_gsym
+ol038=*g2gd_dbx
+ol039=*g2gh_Heap Trace Unit einbinden
+ol040=*g2gc_PointerÅberprÅfung
 ol041=**1i_zeige alle Information Åber den Compiler
 ol042=**2iD_zeige Compiler Datum
 ol043=**2iV_zeige Compiler Version
@@ -1616,8 +1657,8 @@ ol047=**2iTP_zeige Zielsystem Processor
 ol048=**1I<x>_ergÑnze <x> zum Include-Pfad
 ol049=**1k<x>_Åbergebe <x> an den Linker
 ol050=**1l_zeige Logo
-ol051=**1n_Standard Parameter-Datei ignorieren
-ol052=**1o<x>_Ñndere den Namen der erzeugten ausfÅhrbaren Datei in <x>
+ol051=**1n_Standard-Konfigurationsdatei ignorieren
+ol052=**1o<x>_die erzeugte, ausfÅhrbaren Datei bekommt den Namen <x>
 ol053=**1pg_erzeuge Profiler-Code fÅr gprof
 ol054=*L1P_benutze Pipes anstelle von temporÑren Assembler Dateien
 ol055=**1S<x>_Syntax Optionen:
@@ -1631,30 +1672,30 @@ ol062=**2Si_benutze C++ artige INLINE
 ol063=**2Sm_unterstÅtze Macros wie in C (global)
 ol064=**2So_sei TP/BP 7.0 kompatibel
 ol065=**2Sp_sei gpc kompatibel
-ol066=**2Ss_bestimme dass Constructor Name: "Init" und Destructor: "Done" ist
+ol066=**2Ss_Con-und Desstructorname muessen "Init" und "Done" sein
 ol067=**2St_erlaube SchlÅsselwort static in Objekten
 ol068=**1s_rufe weder Assembler noch Linker auf (nur mit -a)
 ol069=**1u<x>_entferne die Definition fÅr das Symbol <x>
 ol070=**1U<x>_Unit Optionen:
 ol071=**2Un_prÅfe den Unit Namen nicht
 ol072=**2Us_erzeuge eine System Unit
-ol073=**1v<x>_sei mitteilsam, <x> ist eine Kombination der folgenden Zeichen:
-ol074=**2*_e : zeige Fehler (Standard)     d : zeige Debug Info
-ol075=**2*_w : zeige Warnungen             u : zeige Unit Info
-ol076=**2*_n : zeige Anmerkungen           t : zeige angesprochene/benutzte Dateien
-ol077=**2*_h : zeige Hinweise              m : zeige definierte Macros
-ol078=**2*_i : zeige allgemeine Info       p : zeige compilierte Prozeduren
-ol079=**2*_l : zeige Zeilennummern         c : zeige conditionals
-ol080=**2*_a : zeige alles                 0 : zeige nichts (ausser Fehlern)
-ol081=**2*_b : zeige alle Prozedurdekla-   r : Rhide/GCC kompatibler Modus
+ol073=**1v<x>_Meldungen, <x> ist eine Kombination der folgenden Zeichen:
+ol074=**2*_e : Fehler (Standard)      d : Debug Info
+ol075=**2*_w : Warnungen              u : Unit Info
+ol076=**2*_n : Anmerkungen            t : angesprochene/benutzte Dateien
+ol077=**2*_h : Hinweise               m : definierte Macros
+ol078=**2*_i : allgemeine Info        p : compilierte Prozeduren
+ol079=**2*_l : Zeilennummern          c : Preprozessordirective
+ol080=**2*_a : alles                  0 : nichts (ausser Fehlern)
+ol081=**2*_b : alle Prozedurdekla-    r : Rhide/GCC kompatibler Modus
 ol082=**2*_    rationen im Fehlerfall      x : Exe-Datei Info (nur Win32)
 ol083=**2*_
 ol084=**1X<x>_Optionen fÅr ausfÅhrbare Dateien:
-ol085=*L2Xc_linke mit der c library
-ol086=**2Xs_entferne alle symbole von ausfuehrbarer Datei
-ol087=**2XD_versuche dynamisch zu linken          (definiert FPC_LINK_DYNAMIC)
-ol088=**2XS_versuche statisch zu linken (default) (definiert FPC_LINK_STATIC)
-ol089=**2XX_versuche smart zu linken              (definiert FPC_LINK_SMART)
+ol085=*L2Xc_es wird mit der C-Library gelinkt
+ol086=**2Xs_entferne alle Symbole von ausfuehrbarer Datei
+ol087=**2XD_dynamisch linken          (definiert FPC_LINK_DYNAMIC)
+ol088=**2XS_statisch linken (default) (definiert FPC_LINK_STATIC)
+ol089=**2XX_smartlinken               (definiert FPC_LINK_SMART)
 ol090=**0*_Optionen fÅr den Prozessor:
 ol091=3*1A<x>_Ausgabeformat:
 ol092=3*2Aas_Datei mit Hilfe von GNU AS
@@ -1673,21 +1714,27 @@ ol104=3*2Rdirect_kopiere Assembler-Text direkt in die Assembler-Datei
 ol105=3*1O<x>_Optimierungen:
 ol106=3*2Og_erzeuge kleineren Code
 ol107=3*2OG_erzeuge schnelleren Code (Standard)
-ol108=3*2Or_behalte bestimmte Variablen in Registern (noch BUGGY!!!)
+ol108=3*2Or_Registervariablen (enthÑlt eventuell noch Fehler)
 ol109=3*2Ou_aktiviere unsichere Optimierungen (siehe Dokumentation)
 ol110=3*2O1_Stufe 1 Optimierungen (schnelle Optimierungen)
 ol111=3*2O2_Stufe 2 Optimierungen (-O1 + langsamere Optimierungen)
 ol112=3*2O3_Stufe 3 Optimierungen (gleich wie -O2u)
 ol113=3*2Op<x>_Ziel Prozessor:
-ol114=3*3Op1_setze Ziel-Prozessor auf 386/486
-ol115=3*3Op2_setze Ziel-Prozessor auf Pentium/PentiumMMX (R)
-ol116=3*3Op3_setze Ziel-Prozessor auf PPro/PII/c6x86/K6 (R)
+ol114=3*3Op1_Optimierungen fÅr386/486
+ol115=3*3Op2_Optimierungen fÅr Pentium/PentiumMMX (R)
+ol116=3*3Op3_Optimierungen fÅr PPro/PII/c6x86/K6 (R)
 ol117=3*1T<x>_Ziel Betriebssystem
-ol118=3*2TGO32V1_Version 1 von DJ Delorie's DOS extender
+ol118=3*2TGO32V1_Version 1 von DJ Delorie's DOS extender ()
 ol119=3*2TGO32V2_Version 2 von DJ Delorie's DOS extender
 ol120=3*2TLINUX_Linux
 ol121=3*2TOS2_OS/2 2.x
 ol122=3*2TWin32_Windows 32 Bit
+ol001W=3*1WB<x>_Image base address wird auf den hexadezimalen werden <x> gesetzt
+ol002W=3*1WC_ Eine Konsolenanwendung wird erzeugt
+ol003W=3*1WD_ EXPORT-Abschnitt einer Win32 DLL/EXE wird mit DEFFILE erzeugt
+ol004W=3*1WG_ Eine GUI-Anwendung wird erzeugt
+ol005W=3*1WN_ Es wird nicht relozierbarer Code erzeugt (notwendig beim Debugging)
+ol006W=3*1WR_ Es wird relozierbarer Code erzeugt
 ol123=6*1A<x>_Ausgabe Format:
 ol124=6*2Aas_Unix o-Datei mit Hilfe von GNU AS
 ol125=6*2Agas_GNU Motorola Assembler
@@ -1696,8 +1743,8 @@ ol127=6*2Amot_Standard Motorola Assembler
 ol128=6*1O<x>_Optimierungen:
 ol129=6*2Oa_schalte Optimierer ein
 ol130=6*2Og_erzeuge kleineren Code
-ol131=6*2OG_erzeuge schnelleren Code (standard)
-ol132=6*2Ox_optimiere Maximal (noch BUGGY!!!)
+ol131=6*2OG_erzeuge schnelleren Code (Standard)
+ol132=6*2Ox_optimiere Maximal (enthÑlt eventuell noch Fehler)
 ol133=6*2O2_setze Ziel-Prozessor auf MC68020+
 ol134=6*1R<x>_Assembler-Leser Format:
 ol135=6*2RMOT_lies Motorola Assembler Variante
