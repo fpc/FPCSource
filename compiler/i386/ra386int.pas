@@ -1258,6 +1258,7 @@ Begin
 
       AS_TYPE,
       AS_NOT,
+      AS_STRING,
       AS_INTNUM,
       AS_LPAREN : { Constant reference expression }
         begin
@@ -1982,7 +1983,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.41  2003-02-26 22:57:44  daniel
+  Revision 1.42  2003-03-17 21:32:52  peter
+    * allow character constants in reference declaration
+
+  Revision 1.41  2003/02/26 22:57:44  daniel
     * Changed no longer correct fillchar of reference into location_reset
 
   Revision 1.40  2003/02/19 22:00:16  daniel
