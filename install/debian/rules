@@ -5,13 +5,15 @@
 export FPCMAKE=
 export FPCDIR=
 
-# Get current dir
-PWD=$(shell pwd)
-
 # Documentation type to use pdf/html
 DOCTYPE=pdf
 
-INSTALL_VERSION=$(shell cat base/VERSION)
+# Get Package version and FPC version out of changelog file
+PACKAGEVERSION=$(shell head -n 1 debian/changelog | awk '{ print $$2 }' | tr -d '[()]')
+FPCVERSION=$(shell echo $(PACKAGEVERSION) | awk -F '-' '{ print $$1 }')
+
+# Get directories	
+PWD=$(shell pwd)
 BUILD_DIR=$(PWD)/debian/build
 INSTALL_DIR=$(PWD)/debian/tmp
 NEWPP=$(PWD)/compiler/ppc386
@@ -127,7 +129,7 @@ install-indep-stamp: debian-files build-indep
 	dh_testroot
 	dh_clean
 
-	$(MAKE) -C docs $(DOCTYPE)install DOCINSTALLDIR=$(INSTALL_DIR)/usr/doc/fpc/$(INSTALL_VERSION)/
+	$(MAKE) -C docs $(DOCTYPE)install DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fpc/$(FPCVERSION)/
 
 	touch install-indep-stamp
 

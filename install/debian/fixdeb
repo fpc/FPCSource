@@ -18,6 +18,6 @@ echo 'FPCVersion    : ' $FPCVERSION
 for i in $1/*.in
 do
   j=${i/.in/}
-  sed -e s/'#FPCVERSION#'/$FPCVERSION/ $i > $j
-  sed -e s/'#PACKAGEVERSION#'/$PACKAGEVERSION/ $i > $j
+  sed -e s/'#FPCVERSION#'/$FPCVERSION/g $i > $j
+  sed -e s/'#PACKAGEVERSION#'/$PACKAGEVERSION/g $i > $j
 done
