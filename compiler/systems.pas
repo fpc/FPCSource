@@ -5,7 +5,7 @@
     This unit contains information about the target systems supported
     (these are not processor specific)
 
-    This progsam is free software; you can redistribute it and/or modify
+    This program is free software; you can redistribute it and/or modify
     iu under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
@@ -583,8 +583,8 @@ begin
     {$else}
       {$ifdef OS2}
         set_source(target_i386_OS2);
-        if (target_Mode = osDOS) or (target_Mode = osDPMI) then
-         source_info.scriptext := '.bat';
+        if (OS_Mode = osDOS) or (OS_Mode = osDPMI) then
+          source_os.scriptext := '.bat';
         { OS/2 via EMX can be run under DOS as well }
       {$else}
         {$ifdef WIN32}
@@ -676,7 +676,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.30  2001-09-30 21:27:59  peter
+  Revision 1.31  2001-11-15 20:48:43  hajny
+    * Target_Mode corrected back to OS_Mode
+
+  Revision 1.30  2001/09/30 21:27:59  peter
     * much cleaner default source and target setting
 
   Revision 1.29  2001/09/24 10:57:22  jonas
