@@ -260,7 +260,11 @@ procedure RegisterSymbols;
 implementation
 
 uses
+{$IFDEF USE_SYSUTILS}
+  SysUtils,
+{$ELSE USE_SYSUTILS}
   Dos,{$ifndef FPC}strings,{$endif}
+{$ENDIF USE_SYSUTILS}
 {$ifdef DEBUG}
   verbose,
 {$endif DEBUG}
@@ -2118,7 +2122,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2004-06-20 08:55:28  florian
+  Revision 1.40  2004-10-14 16:53:26  mazen
+  * use SysUtils unit instead of Dos Unit
+  + overload Replace to use AnsiString
+
+  Revision 1.39  2004/06/20 08:55:28  florian
     * logs truncated
 
   Revision 1.38  2004/06/16 20:07:07  florian
