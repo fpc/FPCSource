@@ -80,6 +80,16 @@ const
   {$endif}
 {$endif}
 
+{ We need the AT&T suffix table for both asm readers and AT&T writer }
+{$define ATTSUF}
+{$ifdef NORA386INT}
+  {$ifdef NORA386ATT}
+    {$ifdef NOAG386ATT}
+      {$undef ATTSUF}
+    {$endif}
+  {$endif}
+{$endif}
+
 const
 { Operand types }
   OT_NONE      = $00000000;
@@ -224,10 +234,12 @@ const
 {$ifdef ATTOP}
   att_op2str:op2strtable=
 {$i i386att.inc}
+{$endif ATTOP}
 
+{$ifdef ATTSUF}
   att_needsuffix:array[tasmop] of TAttSuffix=
 {$i i386atts.inc}
-{$endif ATTOP}
+{$endif ATTSUF}
 
 
 {*****************************************************************************
@@ -907,7 +919,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2000-05-12 21:57:02  pierre
+  Revision 1.30  2000-05-23 20:33:37  peter
+    * attsuffix table is also needed for ra386int
+
+  Revision 1.29  2000/05/12 21:57:02  pierre
     + use of a dictionary object
       for faster opcode searching in assembler readers
       implemented by Kovacs Attila Zoltan
