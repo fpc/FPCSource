@@ -170,6 +170,7 @@ const
   DigitChars = ['0'..'9'];
   Brackets = ['(',')','[',']','{','}'];
   StdWordDelims = [#0..' ',',','.',';','/','\',':','''','"','`'] + Brackets;
+  StdSwitchChars = ['-','/'];
 
 implementation
 
@@ -1134,7 +1135,7 @@ begin
         begin
         inc(l);
         SetLength(Result,l);
-        Result[Len]:=S[i];
+        Result[L]:=S[i];
         end;
       end;
     inc(i);
@@ -1529,7 +1530,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-07-21 20:37:03  michael
+  Revision 1.10  2004-12-30 18:12:43  michael
+  + Fix for extractdelimited
+
+  Revision 1.9  2004/07/21 20:37:03  michael
   + Implemented all functions
 
   Revision 1.8  2004/07/13 18:42:39  michael
