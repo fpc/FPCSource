@@ -64,7 +64,7 @@ interface
       cutils,verbose,
       aasmbase,aasmtai,aasmcpu,symconst,symdef,paramgr,
       ncon,ncal,
-      cpubase,cpuinfo,cpupara,
+      cpubase,cpuinfo,cpupara,systems,
       pass_2,
       cginfo,cgbase,
       cgobj,cgcpu,
@@ -76,6 +76,7 @@ interface
     procedure tcgtypeconvnode.second_int_to_int;
       var
         newsize : tcgsize;
+        ressize, leftsize: cardinal;
       begin
         newsize:=def_cgsize(resulttype.def);
 
@@ -84,14 +85,20 @@ interface
           cg.g_rangecheck(exprasmlist,left,resulttype.def);
 
         { is the result size smaller ? }
-        if resulttype.def.size<>left.resulttype.def.size then
+        ressize := resulttype.def.size;
+        leftsize := left.resulttype.def.size;
+        if ressize<>leftsize then
           begin
             location_copy(location,left.location);
             { reuse a loc_reference when the newsize is smaller than
               than the original, else load it to a register }
             if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
-               (resulttype.def.size<left.resulttype.def.size) then
-             location.size:=newsize
+               (ressize<leftsize) then
+             begin
+               location.size:=newsize;
+               if (target_info.endian = ENDIAN_BIG) then
+                 inc(location.reference.offset,leftsize-ressize);
+             end
             else
              location_force_reg(exprasmlist,location,newsize,false);
           end
@@ -496,7 +503,10 @@ end.
 
 {
   $Log$
-  Revision 1.30  2002-09-07 15:25:02  peter
+  Revision 1.31  2002-09-16 13:08:44  jonas
+    * big endian fix for second_int_to_int
+
+  Revision 1.30  2002/09/07 15:25:02  peter
     * old logs removed and tabs fixed
 
   Revision 1.29  2002/09/02 18:46:00  peter
