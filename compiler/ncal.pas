@@ -1911,7 +1911,7 @@ type
                 { local? }
                 if (tloadnode(n).symtableentry.typ <> localvarsym) then
                   exit;
-                if (tloadnode(n).symtableentry.indexnr >= inlinelocals.count) or
+                if (tloadnode(n).symtableentry.indexnr >= inlinelocals.capacity) or
                    not assigned(inlinelocals[tloadnode(n).symtableentry.indexnr]) then
                   internalerror(20040720);
                 temp := tnode(inlinelocals[tloadnode(n).symtableentry.indexnr]).getcopy;
@@ -1937,8 +1937,8 @@ type
       begin
         if (tsymentry(p).typ <> localvarsym) then
           exit;
-        if (p.indexnr >= inlinelocals.count) then
-          inlinelocals.capacity:=p.indexnr+10;
+        if (p.indexnr >= inlinelocals.capacity) then
+          inlinelocals.count:=p.indexnr+10;
         if (vo_is_funcret in tabstractvarsym(p).varoptions) and
            assigned(funcretnode) then
           begin
@@ -1954,7 +1954,7 @@ type
           end
         else
           begin
-            tempnode := ctempcreatenode.create(tabstractvarsym(p).vartype,tabstractvarsym(p).vartype.def.size,tt_persistent,true);
+            tempnode := ctempcreatenode.create(tabstractvarsym(p).vartype,tabstractvarsym(p).vartype.def.size,tt_persistent,tparavarsym(p).varregable<>vr_none);
             addstatement(tempinfo^.createstatement,tempnode);
             if assigned(tlocalvarsym(p).defaultconstsym) then
               begin
@@ -2000,7 +2000,9 @@ type
                     { the problem is that we can't take the address of a function result :( }
                      (node_complexity(para.left) >= NODE_COMPLEXITY_INF))) then
                   begin
-                    tempnode := ctempcreatenode.create(para.left.resulttype,para.left.resulttype.def.size,tt_persistent,true);
+                    { in theory, this is always regable, but ncgcall can't }
+                    { handle it yet in all situations (JM)                 }
+                    tempnode := ctempcreatenode.create(para.left.resulttype,para.left.resulttype.def.size,tt_persistent,tparavarsym(para.parasym).varregable <> vr_none);
                     addstatement(createstatement,tempnode);
                     { assign the value of the parameter to the temp, except in case of the function result }
                     { (in that case, para.left is a block containing the creation of a new temp, while we  }
@@ -2021,9 +2023,9 @@ type
                         addstatement(deletestatement,ctempdeletenode.create_normal_temp(tempnode));
                       end
                   end
-                else if node_complexity(para.left) > 1 then
+                else if (node_complexity(para.left) > 1) then
                   begin
-                    tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,true);
+                    tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,tparavarsym(para.parasym).varregable<>vr_none);
                     addstatement(createstatement,tempnode);
                     addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                       caddrnode.create(para.left)));
@@ -2039,7 +2041,7 @@ type
           exit;
         tempnodes.createstatement := createstatement;
         tempnodes.deletestatement := deletestatement;
-        inlinelocals.capacity:=tprocdef(procdefinition).localst.symindex.count;
+        inlinelocals.count:=tprocdef(procdefinition).localst.symindex.count;
         tprocdef(procdefinition).localst.foreach(@createlocaltemps,@tempnodes);
         createstatement := tempnodes.createstatement;
         deletestatement := tempnodes.deletestatement;
@@ -2406,7 +2408,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.263  2004-11-22 22:19:00  peter
+  Revision 1.264  2004-11-27 22:43:01  jonas
+    * fixed some bugs in the node inlining code due to the transition from
+      dynamic array to tlist
+    * fixed some register temp bugs (node inlining still does not work again
+      though)
+
+  Revision 1.263  2004/11/22 22:19:00  peter
     * enabled pass1 inlining from Jonas
 
   Revision 1.262  2004/11/22 22:01:19  peter
