@@ -1,4 +1,19 @@
-{ $Id$ }
+{  
+   $Id$
+   This file is part of the Free Pascal run time library.
+   (c) 2000-2003 by Marco van de Voort
+   member of the Free Pascal development team.
+
+   See the file COPYING.FPC, included in this distribution,
+   for details about the copyright.
+   
+   socket call implementations for FreeBSD
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY;without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+}
+
 
 {******************************************************************************
                           Basic Socket Functions
@@ -11,7 +26,7 @@ end;
 
 Function CloseSocket (Sock:Longint):Longint;
 begin
-  if fdClose (Sock) then
+  if fpclose(Sock)=0 then
     CloseSocket := 0 else
     CloseSocket := -1;
 end;
@@ -197,20 +212,22 @@ end;
 
 {
  $Log$
- Revision 1.3  2003-03-23 17:47:15  armin
+ Revision 1.4  2004-01-04 01:11:28  marco
+  * a new qod port of the freebsd rtl. To be refined in the coming days.
+
+ Revision 1.9  2004/01/03 12:18:29  marco
+  * a lot of copyright notices and CVS logs added and fixed
+
+ Revision 1.8  2003/09/15 07:09:58  marco
+  * small fixes, round 1
+
+ Revision 1.7  2003/03/23 17:47:15  armin
  * CloseSocket added
 
- Revision 1.2  2003/01/21 15:39:45  marco
-  * NetBSD first rtl. Still not 100%, but close
+ Revision 1.6  2002/09/07 16:01:18  peter
+   * old logs removed and tabs fixed
 
- Revision 1.1.2.3  2002/09/20 07:06:15  pierre
-  *avoid $Id to be treated as a directive
-
- Revision 1.1.2.2  2002/03/04 07:13:49  marco
-  * Something that was forgotten.
-
- Revision 1.1.2.4  2002/02/05 07:47:46  marco
+ Revision 1.5  2002/02/05 07:54:34  marco
   * Fixed typo
-
 
 }

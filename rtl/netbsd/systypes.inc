@@ -14,97 +14,6 @@
  **********************************************************************}
 type
 
-{
- Linux system calls take arguments as follows :
-
-   i386/m68k:
-
-   %eax/%d0 : System call number
-   %ebx/%d1 : first argument
-   %ecx/%d2 : second argument
-   %edx/%d3 : third argumens
-   %esi/%d3 : fourth argument
-   %edi/%d4 : fifth argument
-
-  That is why we define a special type, with only these arguments
-  To make it processor independent, we don't give any system dependent
-  names, but the rather abstract reg1,reg2 etc;
-
-  SysCallRegs=record
-    reg1,reg2,reg3,reg4,reg5,reg6 : longint;
-  end;
-  PSysCallRegs=^SysCallRegs;
-  TSysCallRegs=SysCallRegs;
-}
-{ The following are records for system calls BSD updated }
-  dirent = packed record
-    ino    : cardinal;		{ This is not inode number, but "a number
-				  unique for each file on a filesystem"}
-    reclen : word;
-    d_type,
-    namlen : byte;
-    name   : array [0..255] of char;
-  end;
-
-  pdirent =^dirent;
-  TDirEnt = dirent;
-
-    TDir= packed record {BSD libc record.}
-            fd    : longint;    { file descriptor associated with directory }
-            loc,                { offset in current buffer }
-            size  : cardinal;   { amount of data returned by getdirentries}
-            buf   : pdirent;    { data buffer, actually a pchar}
-            len   : longint;    { size of data buffer 	}
-            seek,               { magic cookie returned by getdirentries}
-            rewind: cardinal;   { magic cookie for rewinding}
-            flags : longint;    { flags for readdir }
-            end;
-
-(* Linux kernel record
-    TDir = packed record
-            fd     : longint;
-            loc    : longint;
-            size   : integer;
-            buf    : pdirent;
-   {The following are used in libc, but NOT in the linux kernel sources ??}
-            nextoff: longint;
-            dd_max : integer; {size of buf. Irrelevant, as buf is of type dirent}
-            lock   : pointer;
-            dummy  : array[0..1023] of char;
-            end; *)
-
-  PDir =^TDir;
-
-{$packrecords C}
-type
- dev_t	= cardinal; // taken from sysunix.getdir to avoid ifdef's.
-
- Stat =record {BSD version}
-        dev,                            { inode's device }
-        ino        :  cardinal;         { inode's number }
-        mode, 				{ inode protection mode }
-        nlink	   :  longint;             { number of hard links }
-        uid,				{ user ID of the file's owner }
-        gid,				{ group ID of the file's group }
-        dev_t	   :  cardinal;		{ device type }
-	atime,                          { time of last access }
-	atime_nsec,         		{ nsec of last access }
-	mtime,	           		{ time of last data modification }
-	mtime_nsec,         		{ nsec of last data modification }
-	ctime,            		{ time of last file status change }
-	ctime_nsec : longint;      	{ nsec of last file status change }
-	size,           		{ file size, in bytes }
-	blocks     : Int64;		{ blocks allocated for file }
-	blksze,         		{ optimal blocksize for I/O }
-	flags,          		{ user defined flags for file }
-	filegen    : cardinal;		{ file generation number }
-//	lspare	   : longint;
-	qspare     : array[0..1] of int64;
-       end;
-
-  PStat=^Stat;
-  TStat=Stat;
-
   TStatfs = packed record
     spare2,	       { place holder}
     bsize,	       { fundamental block size}
@@ -125,40 +34,13 @@ type
   end;
   PStatFS=^TStatFS;
 
-  fdSet=array[0..7] of longint;{=256 bits}
-  pfdset=^fdset;
-  TFDSet=fdset;
-
-  timeval = packed record
-    sec,usec:longint;
-  end;
-  ptimeval=^timeval;
-  TTimeVal=timeval;
-
-  timespec = packed record
-    tv_sec,tv_nsec:longint;
-  end;
-
-  timezone = packed record
-    minuteswest,dsttime:longint;
-  end;
-  ptimezone =^timezone;
-  TTimeZone = timezone;
-
-  utsname = packed record
-    sysname,
-    nodename,
-    release,
-    version,
-    machine,
-    domainname : Array[0..64] of char;
-  end;
-  PUTSName=^UTSName;
-  TUTSName=UTSName;
 
 {
   $Log$
-  Revision 1.3  2003-01-21 15:39:45  marco
+  Revision 1.4  2004-01-04 01:11:28  marco
+   * a new qod port of the freebsd rtl. To be refined in the coming days.
+
+  Revision 1.3  2003/01/21 15:39:45  marco
    * NetBSD first rtl. Still not 100%, but close
 
   Revision 1.2  2003/01/17 22:13:47  marco

@@ -10,8 +10,8 @@ fpcpackage=y
 
 [target]
 loaders=prt0 cprt0
-units=$(SYSTEMUNIT) objpas strings baseunix \
-      $(LINUXUNIT) unix initc \
+units=$(SYSTEMUNIT) objpas strings syscall baseunix \
+      $(LINUXUNIT) unix initc systhrds \
       dos crt objects printer \
       sysutils classes typinfo math varutils \
        charset ucomplex getopts heaptrc lineinfo \
@@ -60,7 +60,7 @@ LINUXUNIT=
 PRT0=prt0
 else
 SYSTEMUNIT=sysbsd
-LINUXUNIT=linux
+LINUXUNIT=
 override FPCOPT+=-dUNIX
 PRT0=prt0_10
 endif
@@ -142,7 +142,6 @@ unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/fi
                  syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc \
                  unixsysc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-linux$(PPUEXT) : baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # TP7 Compatible RTL Units
@@ -224,3 +223,10 @@ terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
 sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT)
+
+syscall$(PPUEXT) : $(UNIXINC)/syscall.pp
+
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/sysconst.pp
+
+cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp systhrds$(PPUEXT)

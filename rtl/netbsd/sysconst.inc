@@ -15,7 +15,12 @@
 
 {BSD version, only the blocks with BSD in the comment are updated}
 
-Const
+const
+  { For getting/setting priority }
+  Prio_Process = 0;
+  Prio_PGrp    = 1;
+  Prio_User    = 2;
+
   { Things for LSEEK call, same in linux and BSD }
   Seek_set = 0;
   Seek_Cur = 1;
@@ -99,7 +104,10 @@ type
 
 {
   $Log$
-  Revision 1.3  2003-01-21 15:39:45  marco
+  Revision 1.4  2004-01-04 01:11:28  marco
+   * a new qod port of the freebsd rtl. To be refined in the coming days.
+
+  Revision 1.3  2003/01/21 15:39:45  marco
    * NetBSD first rtl. Still not 100%, but close
 
   Revision 1.2  2003/01/17 22:13:47  marco

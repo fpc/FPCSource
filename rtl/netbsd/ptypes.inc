@@ -71,10 +71,25 @@ type
     time_t   = clong;           { used for returning the time  }
     TTime    = time_t; 
     pTime    = ^time_t;
+    ptime_t  = ^time_t;
 
     socklen_t= cuint32;
     TSocklen = socklen_t;
     pSocklen = ^socklen_t;
+
+    timeval = packed record
+		tv_sec,
+		tv_usec : clong;
+		end;
+    ptimeval= ^timeval;
+    TTimeval= timeval;
+
+    timespec = packed record
+      tv_sec   : time_t;
+      tv_nsec  : clong;
+    end;
+  ptimespec= ^timespec;
+  Ttimespec= timespec;
 
 CONST
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }
@@ -86,7 +101,10 @@ CONST
 
 {
   $Log$
-  Revision 1.3  2003-01-17 22:13:47  marco
+  Revision 1.4  2004-01-04 01:11:28  marco
+   * a new qod port of the freebsd rtl. To be refined in the coming days.
+
+  Revision 1.3  2003/01/17 22:13:47  marco
    * some updates
 
   Revision 1.5  2003/01/03 13:11:32  marco

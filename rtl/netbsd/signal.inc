@@ -125,7 +125,14 @@ type sigset_t = array[0..3] of cardinal;
   PSignalHandler  = ^SignalHandler;
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
-  TSigAction = procedure(Sig: Longint; SigContext: SigContextRec;someptr:pointer);cdecl;
+
+{$define BSDHandler}
+
+{$ifdef BSDHandler}
+  TSigAction = procedure(Sig: Longint; code:longint;var SigContext: SigContextRec);cdecl;
+{$else}
+  TSigAction = procedure(Sig: Longint; var sininfo:tsiginfo_t;var SigContext: SigContextRec);cdecl;
+{$endif}
 
   Sigset=sigset_t;
   TSigset=sigset_t;
@@ -133,7 +140,7 @@ type sigset_t = array[0..3] of cardinal;
 
   SigActionRec = packed record
 //    Handler  : record
-    sa_handler : SignalHandler;
+    sa_handler : TSigAction;
 //      case byte of
 //        0: (Sh: SignalHandler);
 //        1: (Sa: TSigAction);
@@ -154,7 +161,10 @@ type sigset_t = array[0..3] of cardinal;
 
 {
   $Log$
-  Revision 1.2  2003-01-21 15:39:45  marco
+  Revision 1.3  2004-01-04 01:11:28  marco
+   * a new qod port of the freebsd rtl. To be refined in the coming days.
+
+  Revision 1.2  2003/01/21 15:39:45  marco
    * NetBSD first rtl. Still not 100%, but close
 
   Revision 1.1.2.1  2001/08/10 11:07:17  pierre
