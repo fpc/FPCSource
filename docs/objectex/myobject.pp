@@ -43,7 +43,7 @@ begin
   GetField:=Field;
 end;
 
-Function TMyObject.SetField (Value : Longint);
+Procedure TMyObject.SetField (Value : Longint);
 
 begin
   Field:=Value;
