@@ -32,8 +32,10 @@ begin
     end;
   Writeln ('Done.');
   Writeln ('Connection data:');
+{$ifdef linux}  
   writeln ('Mysql_port      : ',mysql_port);
   writeln ('Mysql_unix_port : ',mysql_unix_port);
+{$endif}  
   writeln ('Host info       : ',mysql_get_host_info(sock));
   writeln ('Server info     : ',mysql_stat(sock)); 
   writeln ('Client info     : ',mysql_get_client_info);
