@@ -195,7 +195,7 @@ interface
 
        { Maximum number of cpu registers per register type,
          this must fit in tcpuregisterset }
-       maxcpuregister = 31;
+       maxcpuregister = 32;
 
        tcgsize2size : Array[tcgsize] of integer =
          { integer values }
@@ -467,7 +467,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.72  2003-10-24 15:21:31  peter
+  Revision 1.73  2003-10-29 15:07:01  mazen
+  * 32 registers are available
+
+  Revision 1.72  2003/10/24 15:21:31  peter
     * renamed R_SUBF64 to R_SUBFD
 
   Revision 1.71  2003/10/17 14:38:32  peter
