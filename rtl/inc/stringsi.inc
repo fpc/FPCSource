@@ -1,3 +1,19 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999 by the Free Pascal development team
+
+    Processor independent part for strings and sysutils units
+    
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
     function strcat(dest,source : pchar) : pchar;
 
       begin
@@ -61,3 +77,9 @@
          if strnew<>nil then
            strmove(strnew,p,len);
       end;
+{
+  $Log$
+  Revision 1.2  1999-02-25 10:05:07  michael
+  + Added header and log
+
+}

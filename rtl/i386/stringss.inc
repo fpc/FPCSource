@@ -75,3 +75,9 @@
          end ['EDI','ESI','EBX','EAX','ECX'];
       end;
 
+{
+  $Log$
+  Revision 1.2  1999-02-25 10:07:02  michael
+  + Added header and log
+
+}
