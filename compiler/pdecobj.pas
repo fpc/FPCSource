@@ -385,6 +385,7 @@ implementation
                        { read is function returning the type of the property }
                        readprocdef.rettype:=p.proptype;
                        { Insert hidden parameters }
+                       handle_calling_convention(readprocdef);
                        calc_parast(readprocdef);
                        { search procdefs matching readprocdef }
                        p.readaccess.procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.para,p.proptype.def,[cpo_allowdefaults]);
@@ -429,6 +430,7 @@ implementation
                        writeprocdef.parast.insert(hvs);
                        writeprocdef.concatpara(nil,p.proptype,hvs,nil,false);
                        { Insert hidden parameters }
+                       handle_calling_convention(writeprocdef);
                        calc_parast(writeprocdef);
                        { search procdefs matching writeprocdef }
                        p.writeaccess.procdef:=Tprocsym(sym).search_procdef_bypara(writeprocdef.para,writeprocdef.rettype.def,[cpo_allowdefaults]);
@@ -1160,7 +1162,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2003-11-10 18:06:25  florian
+  Revision 1.74  2003-12-04 23:27:49  peter
+    * missing handle_calling_convention()
+
+  Revision 1.73  2003/11/10 18:06:25  florian
     + published single properties can have a default value now
 
   Revision 1.72  2003/10/30 16:23:13  peter
