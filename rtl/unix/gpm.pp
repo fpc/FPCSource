@@ -637,7 +637,7 @@ var count:longint;
 
 begin
   gpm_getevent:=0;
-  if not gpm_flag then
+  if gpm_fd=-1 then
     exit;
 
   count:=fpread(gpm_fd,event,sizeof(Tgpm_event));
@@ -954,7 +954,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2004-11-03 16:51:05  peter
+  Revision 1.13  2004-11-06 20:06:19  peter
+    * mouse works again
+
+  Revision 1.12  2004/11/03 16:51:05  peter
     * fixed valgrind issues
 
   Revision 1.11  2004/11/02 09:37:35  peter

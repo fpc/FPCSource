@@ -189,7 +189,6 @@ end;
 function SysDetectMouse:byte;
 {$ifndef NOGPM}
 var
-  x : longint;
   connect : TGPMConnect;
 {$endif ndef NOGPM}
 begin
@@ -216,105 +215,6 @@ begin
   if (fpgetenv('TERM')='xterm') then
     SysDetectMouse:=2;
 {$endif NOGPM}
-end;
-
-
-function SysGetMouseX:word;
-{$ifndef NOGPM}
-var
-  me : TMouseEvent;
-{$endif ndef NOGPM}
-begin
-  if gpm_fs<0 then
-   exit(0);
-{$ifndef NOGPM}
-  if PollMouseEvent(ME) then
-   begin
-     GetMouseEvent(ME);
-     SysGetMouseX:=ME.X
-   end
-  else
-    begin
-      SysGetMouseX:=SysLastMouseEvent.x;
-    end;
-{$endif ndef NOGPM}
-end;
-
-
-function SysGetMouseY:word;
-{$ifndef NOGPM}
-var
-  me : TMouseEvent;
-{$endif ndef NOGPM}
-begin
-  if gpm_fs<0 then
-   exit(0);
-{$ifndef NOGPM}
-  if PollMouseEvent(ME) then
-   begin
-     GetMouseEvent(ME);
-     SysGetMouseY:=ME.Y
-   end
-  else
-    begin
-      SysGetMouseY:=SysLastMouseEvent.y;
-    end;
-{$endif ndef NOGPM}
-end;
-
-
-procedure SysShowMouse;
-var
-  x,y : word;
-begin
-  PrintMouseCur:=true;
-  { Wait with showing the cursor until the mouse has moved. Else the
-    cursor updates will be to quickly }
-  if WaitMouseMove then
-   exit;
-  if (MouseCurOfs>=0) or (gpm_fs=-1) then
-    PlaceMouseCur(MouseCurOfs)
-  else
-    begin
-      x:=SysGetMouseX;
-      y:=SysGetMouseY;
-      if (x<=ScreenWidth) and (y<=ScreenHeight) then
-        PlaceMouseCur(Y*ScreenWidth+X)
-      else
-        PlaceMouseCur(MouseCurOfs);
-    end;
-end;
-
-
-procedure SysHideMouse;
-begin
-  if (MouseCurOfs>=0) then
-    PlaceMouseCur(-1);
-  WaitMouseMove:=true;
-  PrintMouseCur:=false;
-end;
-
-
-function SysGetMouseButtons:word;
-{$ifndef NOGPM}
-var
-  me : TMouseEvent;
-{$endif ndef NOGPM}
-begin
-  if gpm_fs<0 then
-   exit(0);
-{$ifndef NOGPM}
-  if PollMouseEvent(ME) then
-    begin
-      // why should we remove that event ?? PM
-      // GetMouseEvent(ME);
-      SysGetMouseButtons:=ME.buttons
-    end
-  else
-    begin
-      SysGetMouseButtons:=SysLastMouseEvent.Buttons;
-    end;
-{$endif ndef NOGPM}
 end;
 
 
@@ -381,6 +281,109 @@ begin
    SysPollMouseEvent:=false;
 end;
 
+function SysGetMouseX:word;
+{$ifndef NOGPM}
+var
+  me : TMouseEvent;
+{$endif ndef NOGPM}
+begin
+  if gpm_fs<0 then
+   exit(0);
+{$ifndef NOGPM}
+  if PollMouseEvent(ME) then
+   begin
+     { Remove mouse event, we are only interrested in
+       the X,Y so all other events can be thrown away }
+     GetMouseEvent(ME);
+     SysGetMouseX:=ME.X
+   end
+  else
+    begin
+      SysGetMouseX:=SysLastMouseEvent.x;
+    end;
+{$endif ndef NOGPM}
+end;
+
+
+function SysGetMouseY:word;
+{$ifndef NOGPM}
+var
+  me : TMouseEvent;
+{$endif ndef NOGPM}
+begin
+  if gpm_fs<0 then
+   exit(0);
+{$ifndef NOGPM}
+  if PollMouseEvent(ME) then
+   begin
+     { Remove mouse event, we are only interrested in
+       the X,Y so all other events can be thrown away }
+     GetMouseEvent(ME);
+     SysGetMouseY:=ME.Y
+   end
+  else
+    begin
+      SysGetMouseY:=SysLastMouseEvent.y;
+    end;
+{$endif ndef NOGPM}
+end;
+
+
+procedure SysShowMouse;
+var
+  x,y : word;
+begin
+  PrintMouseCur:=true;
+  { Wait with showing the cursor until the mouse has moved. Else the
+    cursor updates will be to quickly }
+  if WaitMouseMove then
+   exit;
+  if (MouseCurOfs>=0) or (gpm_fs=-1) then
+    PlaceMouseCur(MouseCurOfs)
+  else
+    begin
+      x:=SysGetMouseX;
+      y:=SysGetMouseY;
+      if (x<=ScreenWidth) and (y<=ScreenHeight) then
+        PlaceMouseCur(Y*ScreenWidth+X)
+      else
+        PlaceMouseCur(MouseCurOfs);
+    end;
+end;
+
+
+procedure SysHideMouse;
+begin
+  if (MouseCurOfs>=0) then
+    PlaceMouseCur(-1);
+  WaitMouseMove:=true;
+  PrintMouseCur:=false;
+end;
+
+
+function SysGetMouseButtons:word;
+{$ifndef NOGPM}
+var
+  me : TMouseEvent;
+{$endif ndef NOGPM}
+begin
+  if gpm_fs<0 then
+   exit(0);
+{$ifndef NOGPM}
+  if PollMouseEvent(ME) then
+   begin
+     { Remove mouse event, we are only interrested in
+       the buttons so all other events can be thrown away }
+     GetMouseEvent(ME);
+     SysGetMouseButtons:=ME.Buttons;
+   end
+  else
+    begin
+      SysGetMouseButtons:=SysLastMouseEvent.buttons;
+    end;
+{$endif ndef NOGPM}
+end;
+
 
 Const
   SysMouseDriver : TMouseDriver = (
@@ -426,7 +429,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2004-11-03 16:51:05  peter
+  Revision 1.14  2004-11-06 20:06:19  peter
+    * mouse works again
+
+  Revision 1.13  2004/11/03 16:51:05  peter
     * fixed valgrind issues
 
   Revision 1.12  2003/10/24 18:09:56  marco
