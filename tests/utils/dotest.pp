@@ -615,6 +615,7 @@ var
     writeln('  -C<compiler>  set compiler to use');
     writeln('  -V            verbose');
     writeln('  -E            execute test also');
+    writeln('  -X            don''t use COMSPEC');
     writeln('  -A            include ALL tests');
     writeln('  -G            include graph tests');
     writeln('  -K            include known bug tests');
@@ -655,12 +656,13 @@ begin
                  if para='-' then
                    DoUsual:=false;
                end;
-         'V' : DoVerbose:=true;
          'K' : begin
                  DoKnown:=true;
                  if para='-' then
                    DoUsual:=false;
                end;
+         'V' : DoVerbose:=true;
+         'X' : UseComSpec:=false;
         end;
      end
     else
@@ -803,7 +805,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-11-18 16:42:43  pierre
+  Revision 1.21  2002-12-05 16:03:34  pierre
+   + -X option to disable UseComSpec
+
+  Revision 1.20  2002/11/18 16:42:43  pierre
    + KNOWNRUNERROR added
 
   Revision 1.19  2002/11/18 01:31:07  pierre
