@@ -1295,14 +1295,17 @@ implementation
                var_dec;
              _THREADVAR :
                threadvar_dec;
-             _RESOURCESTRING:
-               resourcestring_dec;
              _FUNCTION,
              _PROCEDURE,
              _OPERATOR :
                read_proc;
              else
-               break;
+               begin
+                 if idtoken=_RESOURCESTRING then
+                   resourcestring_dec
+                 else
+                   break;
+               end;
            end;
          until false;
          { check for incomplete class definitions, this is only required
@@ -1315,7 +1318,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.173  2003-11-23 17:05:16  peter
+  Revision 1.174  2003-11-27 09:08:01  florian
+    * resourcestring is allowed in the interface
+
+  Revision 1.173  2003/11/23 17:05:16  peter
     * register calling is left-right
     * parameter ordering
     * left-right calling inserts result parameter last
