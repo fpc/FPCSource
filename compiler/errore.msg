@@ -292,6 +292,11 @@ parser_w_proc_far_ignored=W_Procedure type FAR ignored
 parser_w_proc_near_ignored=W_Procedure type NEAR ignored
 % This is a warning. \var{NEAR} is a construct for 8 or 16 bit programs. Since
 % the compile generates 32 bit programs, it ignores this directive.
+parser_w_proc_interrupt_ignored=W_Procedure type INTERRUPT ignored
+% This is a warning. \var{INTERRUPT} is a i386 specific construct
+% and is igonred for other processors.
+parser_e_dont_nest_interrupt=E_INTERRUPT procedure can't be nested
+% An \VAR{INTERRUPT} procedure must be global.
 parser_w_proc_register_ignored=W_Procedure type REGISTER ignored
 % This is a warning. \var{REGISTER} is ignored by FPC programs for now.
 % This is introduced first for Delphi compatibility.
@@ -1351,6 +1356,7 @@ asmr_e_syn_operand=E_Assemler syntax error in operand
 asmr_e_syn_constant=E_Assemler syntax error in constant
 asmr_e_invalid_string_expression=E_Invalid String expression
 asmr_w_const32bit_for_address=32bit constant created for address
+asmr_e_unknown_opcode=E_Unrecognized opcode $1
 asmr_e_invalid_or_missing_opcode=E_Invalid or missing opcode
 asmr_e_invalid_prefix_and_opcode=E_Invalid combination of prefix and opcode: $1
 asmr_e_invalid_override_and_opcode=E_Invalid combination of override and opcode: $1
