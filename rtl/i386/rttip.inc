@@ -173,7 +173,7 @@ asm
         // Interfaces
 .LDoInterfaceFinal:
         pushl   Data
-        call    Intf_Decr_Ref
+        call    fpc_Intf_Decr_Ref
         jmp     .LExitFinalize
         // Variants
 .LDoVariantFinal:
@@ -290,7 +290,7 @@ asm
         // Interfaces
 .LDoInterfaceAddRef:
         pushl   Data
-        call    INTF_INCR_REF
+        call    FPC_INTF_INCR_REF
         jmp     .LExitAddRef
         // Variants
 .LDoVariantAddRef:
@@ -403,7 +403,7 @@ asm
         // Interfaces
 .LDoInterfaceDecRef:
         pushl   Data
-        call    INTF_DECR_REF
+        call    FPC_INTF_DECR_REF
         jmp     .LExitDecRef
         // Variants
 .LDoVariantDecRef:
@@ -482,7 +482,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2001-12-26 21:03:56  peter
+  Revision 1.14  2002-07-31 11:52:57  jonas
+    * fixed compilation errors with 1.0
+
+  Revision 1.13  2001/12/26 21:03:56  peter
     * merged fixes from 1.0.x
 
   Revision 1.12  2001/11/17 16:56:08  florian
