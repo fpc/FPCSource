@@ -1,6 +1,10 @@
 { %CPU=i386 }
 { testfdiv variant with GNU AS output forced }
+{$ifdef win32}
+{$output_format asw}
+{$else}
 {$output_format as}
+{$endif win32}
 { This test program deals with the
   the delicate problem of
   non commutative FPU instruction
