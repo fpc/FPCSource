@@ -477,7 +477,7 @@ unit ptconst;
                           datasegment^.concat(new(pai_const,init_8bit(0)));
                      end;
                    if length(s)>0 then
-                     Message(parser_e_string_too_long);
+                     Message(parser_e_invalid_string_size);
                  end;
            end;
          procvardef:
@@ -647,7 +647,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.29  1998-11-23 18:26:44  pierre
+  Revision 1.30  1998-11-27 14:34:42  peter
+    * give error when string[0] decl is found
+
+  Revision 1.29  1998/11/23 18:26:44  pierre
    * fix for bug0182
 
   Revision 1.28  1998/11/17 10:40:16  peter

@@ -559,9 +559,9 @@ unit pdecl;
               do_firstpass(p);
               if not is_constintnode(p) then
                 Message(cg_e_illegal_expression);
-              if (p^.value<0) then
+              if (p^.value<=0) then
                 begin
-                   Message(parser_e_string_too_long);
+                   Message(parser_e_invalid_string_size);
                    p^.value:=255;
                 end;
               consume(RECKKLAMMER);
@@ -2097,7 +2097,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.84  1998-11-17 10:40:15  peter
+  Revision 1.85  1998-11-27 14:34:43  peter
+    * give error when string[0] decl is found
+
+  Revision 1.84  1998/11/17 10:40:15  peter
     * H+ fixes
 
   Revision 1.83  1998/11/16 11:28:59  pierre
