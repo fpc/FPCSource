@@ -48,7 +48,7 @@ function dosSeek(fileh   : LongInt location 'd1';
                  posmode : LongInt location 'd3'): LongInt; 
 SysCall MOS_DOSBase 66;
 
-function DeleteFile(fname: PChar location 'd1'): Boolean; 
+function dosDeleteFile(fname: PChar location 'd1'): Boolean; 
 SysCall MOS_DOSBase 72;
 
 function dosRename(oldName: PChar location 'd1';
@@ -77,7 +77,7 @@ function Info(lock          : LongInt   location 'd1';
               parameterBlock: PInfoData location 'd2'): Boolean; 
 SysCall MOS_DOSBase 114;
 
-function CreateDir(dname: PChar location 'd1'): LongInt; 
+function dosCreateDir(dname: PChar location 'd1'): LongInt; 
 SysCall MOS_DOSBase 120;
 
 function CurrentDir(lock: LongInt location 'd1'): LongInt; 
@@ -687,7 +687,10 @@ SysCall MOS_DOSBase 1008;
 
 {
   $Log$
-  Revision 1.2  2004-08-09 00:10:19  karoly
+  Revision 1.3  2005-01-11 17:44:52  karoly
+    * some updates for sysutils
+
+  Revision 1.2  2004/08/09 00:10:19  karoly
     + added most of missing stuff
 
   Revision 1.1  2004/06/26 20:46:17  karoly
