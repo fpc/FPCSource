@@ -775,7 +775,7 @@ implementation
             minor:=0;
             revision:=0;
             valint(pattern,major,error);
-            if error<>0 then
+            if (error<>0) or (major > high(word)) or (major < 0) then
               begin
                 Message1(scan_w_wrong_version_ignored,pattern);
                 exit;
@@ -785,7 +785,7 @@ implementation
                 current_scanner.readchar;
                 current_scanner.readnumber;
                 valint(pattern,minor,error);
-                if error<>0 then
+                if (error<>0) or (minor > high(word)) or (minor < 0) then
                   begin
                     Message1(scan_w_wrong_version_ignored,tostr(major)+'.'+pattern);
                     exit;
@@ -796,20 +796,20 @@ implementation
                      current_scanner.readchar;
                      current_scanner.readnumber;
                      valint(pattern,revision,error);
-                     if error<>0 then
+                     if (error<>0) or (revision > high(word)) or (revision < 0) then
                        begin
                           Message1(scan_w_wrong_version_ignored,tostr(revision)+'.'+pattern);
                           exit;
                        end;
-                     dllmajor:=major;
-                     dllminor:=minor;
-                     dllrevision:=revision;
+                     dllmajor:=word(major);
+                     dllminor:=word(minor);
+                     dllrevision:=word(revision);
                      dllversion:=tostr(major)+','+tostr(minor)+','+tostr(revision);
                   end
                 else
                   begin
-                     dllmajor:=major;
-                     dllminor:=minor;
+                     dllmajor:=word(major);
+                     dllminor:=word(minor);
                      dllversion:=tostr(major)+'.'+tostr(minor);
                   end;
               end
@@ -967,7 +967,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2002-11-20 11:12:46  mazen
+  Revision 1.23  2002-12-07 14:06:20  carl
+    * stricter version / revision checking (also remove some warnings)
+
+  Revision 1.22  2002/11/20 11:12:46  mazen
   + module path is now passed to AddPath to fix relative unit path
 
   Revision 1.21  2002/10/16 19:01:43  peter
