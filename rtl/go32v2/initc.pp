@@ -32,10 +32,10 @@ implementation
      simple_proc = procedure;
   var
      first_ctor : longint;external name 'djgpp_first_ctor';
-     ctor       : array [0..maxlongint] of simple_proc;external name 'djgpp_first_ctor';
+     ctor       : array [0..maxlongint div sizeof(simple_proc)] of simple_proc;external name 'djgpp_first_ctor';
      last_ctor  : longint;external name 'djgpp_last_ctor';
      first_dtor : longint;external name 'djgpp_first_dtor';
-     dtor 	: array [0..maxlongint] of simple_proc;external name 'djgpp_first_dtor';
+     dtor       : array [0..maxlongint div sizeof(simple_proc)] of simple_proc;external name 'djgpp_first_dtor';
      last_dtor  : longint;external name 'djgpp_last_dtor';
      bss_count : longint;external name '___bss_count';
   const
@@ -60,7 +60,7 @@ procedure run_c_constructors;
           f:=ctor[i];
        end;
   end;
-  
+
 procedure run_c_destructors;
   const
      already_done : longint = -1;
@@ -80,7 +80,7 @@ procedure run_c_destructors;
           f:=dtor[i];
        end;
   end;
-  
+
 begin
    run_c_constructors;
    If cardinal(@first_dtor)<>cardinal(@last_dtor) then
@@ -95,7 +95,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:40  michael
+  Revision 1.3  2002-04-26 13:19:56  peter
+    * fixed too large arrays
+
+  Revision 1.2  2000/07/13 11:33:40  michael
   + removed logs
- 
+
 }
