@@ -13,10 +13,9 @@
 
  **********************************************************************}
 unit GdbInt;
+interface
 
 {$smartlink off}
-
-interface
 
 { this is not needed (PM) $output_format as}
 
@@ -24,55 +23,90 @@ interface
 {.$define DebugCommand}
 {$define NotImplemented}
 
+
+{ V4.18 is default for now }
+{ set when starting v5 support PM }
+{$ifndef GDB_V5}
+  {$ifndef GDB_V416}
+    {$define GDB_V418}
+  {$endif GDB_V416}
+{$endif GDB_V5}
+
 {$ifdef go32v2}
- {$undef NotImplemented}
- { ifdef GDB_V418 changed to ifndef GDB_V416}
-{$ifdef USE_GDB_OBJS}
-  {$include gdbobjs.inc}
-{$else USE_GDB_OBJS}
-  {$LINKLIB gdb}
-{$endif ndef USE_GDB_OBJS}
+  {$undef NotImplemented}
+  { ifdef GDB_V418 changed to ifndef GDB_V416}
+  {$ifdef USE_GDB_OBJS}
+    {$include gdbobjs.inc}
+  {$else USE_GDB_OBJS}
+    {$LINKLIB gdb}
+    {$ifdef GDB_V5}
+      {$LINKLIB bfd}
+      {$LINKLIB readline}
+      {$LINKLIB opcodes}
+      {$LINKLIB history}
+      {$LINKLIB iberty}
+    {$endif GDB_V5}
+  {$endif ndef USE_GDB_OBJS}
   {$LINKLIB dbg}
   {$LINKLIB c}
 {$endif go32v2}
 
 {$ifdef linux}
- {$undef NotImplemented}
- {$LINKLIB ncurses}
- {$LINKLIB gdb}
- {$LINKLIB c}
- {$LINKLIB gcc}
+  {$undef NotImplemented}
+  {$LINKLIB ncurses}
+  {$LINKLIB gdb}
+  {$LINKLIB c}
+  {$LINKLIB gcc}
 {$endif linux}
 
 {$ifdef win32}
- {$undef NotImplemented}
- {$LINKLIB cygwin}
- {$LINKLIB gdb}
- {$ifdef USE_TERMCAP}
-   {$LINKLIB termcap}
- {$else not USE_TERMCAP}
-   {$LINKLIB ncurses}
- {$endif not USE_TERMCAP}
- {$LINKLIB gcc}
- {$LINKLIB c}
- {$LINKLIB cygwin}
- { all those are maybe not necessary
-   but at least user32 is required
-   because of clipboard handling PM }
- {$LINKLIB kernel32}
- {$LINKLIB user32}
+  {$undef NotImplemented}
+{$ifndef GDB_V5}
+  {$LINKLIB cygwin}
+  {$LINKLIB gdb}
+  {$ifdef USE_TERMCAP}
+    {$LINKLIB termcap}
+  {$else not USE_TERMCAP}
+    {$LINKLIB ncurses}
+  {$endif not USE_TERMCAP}
+  {$LINKLIB gcc}
+  {$LINKLIB c}
+  {$LINKLIB cygwin}
+  { all those are maybe not necessary
+    but at least user32 is required
+    because of clipboard handling PM }
+  {$LINKLIB kernel32}
+  {$LINKLIB user32}
+{$else GDB_V5}
+  {$LINKLIB gdb}
+  {$LINKLIB bfd}
+  {$LINKLIB readline}
+  {$LINKLIB opcodes}
+  {$LINKLIB intl}
+  {$LINKLIB iberty}
+  {$LINKLIB termcap}
+  {$LINKLIB gcc}
+  {$LINKLIB cygwin} { alias of libm.a and libc.a }
+  {$LINKLIB iberty}
+  {$LINKLIB imagehlp}
+  {$LINKLIB kernel32}
+  {$LINKLIB user32}
+{$endif GDB_V5}
+
 {$endif win32}
 
 {$ifdef go32v2}
- {$define supportexceptions}
+  {$define supportexceptions}
 {$endif go32v2}
 {$ifdef linux}
- {$define supportexceptions}
+  {$define supportexceptions}
 {$endif linux}
 
 {$ifdef NotImplemented}
-{$fatal This OS is not yet supported !!!}
+  {$fatal This OS is not yet supported !!!}
 {$endif NotImplemented}
+
+{$packrecords C}
 
 type
   psyminfo=^tsyminfo;
@@ -103,12 +137,15 @@ type
 { needed for handles }
 {not anymore I textrec.inc}
 
-{ GDB_FILE type }
+
 type
   streamtype = (afile,astring);
   C_FILE     = longint; { at least under DJGPP }
   P_C_FILE   = ^C_FILE;
 
+{$ifdef GDB_V418}
+{ GDB_FILE type }
+type
   PGDB_FILE = ^TGDB_FILE;
   TGDB_FILE = record
               ts_streamtype : streamtype;
@@ -116,7 +153,53 @@ type
               ts_strbuf : pchar;
               ts_buflen : longint;
               end;
+{$endif GDB_V418}
+
+{$ifdef GDB_V5}
+type
+
+  pui_file = ^ui_file;
+
+  ui_file_flush_ftype = procedure(stream : pui_file);cdecl;
+  ui_file_write_ftype = procedure(stream : pui_file;buf : pchar;len : longint);cdecl;
+  ui_file_fputs_ftype = procedure(buf : pchar; stream : pui_file);cdecl;
+  ui_file_delete_ftype = procedure(stream : pui_file);cdecl;
+  ui_file_isatty_ftype = function(stream : pui_file) : longbool;cdecl;
+  ui_file_rewind_ftype = procedure(stream : pui_file);cdecl;
+  ui_file_put_method_ftype = procedure(var _object; buffer : pchar;length_buffer : longint);cdecl;
+  ui_file_put_ftype = procedure(stream : pui_file;method : ui_file_put_method_ftype;var context);cdecl;
+
+  plongint = ^longint;
+
+  ui_file = record
+      magic : plongint;
+      to_flush  : ui_file_flush_ftype;
+      to_write  : ui_file_write_ftype;
+      to_fputs  : ui_file_fputs_ftype;
+      to_delete : ui_file_delete_ftype;
+      to_isatty : ui_file_isatty_ftype;
+      to_rewind : ui_file_rewind_ftype;
+      to_put    : ui_file_put_ftype;
+      to_data   : pointer;
+    end;
+
+  { used to delete stdio_ui_file  gdb_stdout and gdb_stderr }
+  procedure ui_file_delete(stream : pui_file);cdecl;external;
+
+  { used to recreate gdb_stdout and gdb_stderr as memory streams }
+  function mem_fileopen : pui_file;cdecl;external;
+
+  { used to change the write procvar to ours }
+
+  procedure set_ui_file_write(stream : pui_file;write : ui_file_write_ftype);cdecl;external;
+
+
+{$endif GDB_V5}
+
+
 {$ifdef win32}
+
+type
   { from sys/reent.h
     real structure is bigger but only std.. are wanted here PM }
   REENT = record
@@ -128,20 +211,26 @@ type
 var _impure_ptr : PREENT;cvar;external;
 
 {$endif win32}
+
 {$endif not GDB_V416}
+
 type
   tgdbbuffer=object
     buf   : pchar;
     size,
     idx   : longint;
-{$ifndef GDB_V416}
+{$ifdef GDB_V418}
     link  : pgdb_file;
-{$endif not GDB_V416}
+{$endif not GDB_V418}
+{$ifdef GDB_V5}
+    gdb_file  : pui_file;
+{$endif not GDB_V5}
     constructor Init;
     destructor  Done;
     procedure Reset;
     procedure Resize(nsize : longint);
     procedure Append(p:pchar);
+    procedure lappend(p:pchar;len : longint);
   end;
 
   pgdbinterface=^tgdbinterface;
@@ -271,6 +360,19 @@ type
 
 {$endif}
 {$ifdef win32}
+type
+  jmp_buf = record
+  case byte of
+    0 :
+    { greatest value found in cygwin machine/setjmp.h for i386 }
+    (unknown_field : array [1..13] of longint;);
+    1 :
+    (eax,ebx,ecx,edx : longint;
+    esi,edi,ebp,esp,eip : longint;);
+  end;
+
+  pjmp_buf = ^jmp_buf;
+
   function setjmp(var rec : jmp_buf) : longint;cdecl;external;
 
   procedure longjmp(var rec : jmp_buf;return_value : longint);cdecl;external;
@@ -827,8 +929,8 @@ type
 
 var
 { external variables }
-  error_return : jmp_buf;cvar;external;
-  quit_return  : jmp_buf;cvar;external;
+  error_return : jmp_buf;cvar;{$ifndef GDB_V5}external;{$endif}
+  quit_return  : jmp_buf;cvar;{$ifndef GDB_V5}external;{$endif}
   create_breakpoint_hook : pointer;cvar;external;
   current_target : target_ops;cvar;external;
   stop_pc      : CORE_ADDR;cvar;external;
@@ -851,9 +953,18 @@ var
 { Whether dbx commands will be handled }
   dbx_commands : longint;cvar;public;
 
+{$ifndef GDB_V5}
 var
   gdb_stdout : PGDB_FILE;cvar;public;
   gdb_stderr : PGDB_FILE;cvar;public;
+{$else GDB_V5}
+var
+  gdb_stdout : pui_file;cvar;public;
+  gdb_stderr : pui_file;cvar;public;
+  gdb_stdlog : pui_file;cvar;public;
+  gdb_stdtarg : pui_file;cvar;public;
+  event_loop_p : longint;cvar;public;
+{$endif GDB_V5}
 
 { used for gdb_stdout and gdb_stderr }
 function xmalloc(size : longint) : pointer;cdecl;external;
@@ -927,9 +1038,12 @@ const
 constructor tgdbbuffer.init;
 begin
   Buf:=nil;
-{$ifndef GDB_V416}
+{$ifdef GDB_V418}
   link:=nil;
-{$endif not GDB_V416}
+{$endif GDB_V418}
+{$ifdef GDB_V5}
+  gdb_file:=nil;
+{$endif GDB_V5}
   Size:=0;
   Resize(blocksize);
   Reset;
@@ -940,14 +1054,14 @@ destructor tgdbbuffer.done;
 begin
   if assigned(buf) then
     freemem(buf,size);
-{$ifndef GDB_V416}
+{$ifdef GDB_V418}
   if assigned(link) then
     begin
       link^.ts_streamtype:=afile;
       link^.ts_strbuf:=nil;
       link^.ts_buflen:=0;
     end;
-{$endif not GDB_V416}
+{$endif GDB_V418}
 end;
 
 
@@ -974,6 +1088,18 @@ begin
 end;
 
 
+procedure tgdbbuffer.lappend(p:pchar;len : longint);
+begin
+  if not assigned(p) then
+   exit;
+  if len+idx>size then
+   Resize(len+idx);
+  Move(p^,buf[idx],len);
+  inc(idx,len);
+  buf[idx]:=#0;
+end;
+
+
 procedure tgdbbuffer.resize(nsize : longint);
 var
   np    : pchar;
@@ -987,13 +1113,13 @@ begin
     end;
   buf:=np;
   size:=nsize;
-{$ifndef GDB_V416}
+{$ifdef GDB_V418}
   if assigned(link) then
     begin
       link^.ts_strbuf:=buf;
       link^.ts_buflen:=size;
     end;
-{$endif not GDB_V416}
+{$endif GDB_V418}
 end;
 
 
@@ -1176,6 +1302,14 @@ procedure breakpoints_changed;cdecl;public;
 begin
 {$ifdef Debug}
   Debug('|breakpoints_changed|');
+{$endif}
+end;
+
+{ only from version 5.0 }
+procedure annotate_ignore_count_change;cdecl;public;
+begin
+{$ifdef Debug}
+  Debug('|annotate_ignore_count_change()|');
 {$endif}
 end;
 
@@ -1661,17 +1795,33 @@ procedure _initialize_annotate;cdecl;public;
 begin
 end;
 
-
+{$ifndef GDB_V5}
 procedure fputs_unfiltered(linebuffer:pchar;stream:pointer);cdecl;public;
 begin
   with curr_gdb^ do
-{$ifndef gdb_v416}
+{$ifdef gdb_v418}
   if stream = gdb_stderr then
      gdberrorbuf.append(linebuffer)
   else
-{$endif not gdb_v416}
+{$endif gdb_v418}
      gdboutputbuf.append(linebuffer);
 end;
+{$else GDB_V5}
+
+procedure gdbint_ui_file_write(stream : pui_file; p : pchar; len : longint);cdecl;
+begin
+  with curr_gdb^ do
+    if stream = gdb_stderr then
+       gdberrorbuf.lappend(p,len)
+    else if stream = gdb_stdout then
+       gdboutputbuf.lappend(p,len)
+    else
+      begin
+       gdberrorbuf.append('Unknown gdb ui_file');
+       gdberrorbuf.lappend(p,len);
+      end;
+end;
+{$endif GDB_V5}
 
 
 procedure CreateBreakPointHook(var b:breakpoint);cdecl;
@@ -1704,7 +1854,7 @@ begin
   gdboutputbuf.init;
   gdberrorbuf.init;
   record_frames:=true;
-{$ifndef GDB_V416}
+{$ifdef GDB_V418}
 (* GDB_FILE *
   gdb_file_init_astring (n)
     int n;
@@ -1720,7 +1870,11 @@ begin
   gdb_stderr^.ts_strbuf := gdberrorbuf.buf;
   gdb_stderr^.ts_buflen := gdberrorbuf.size;
   gdberrorbuf.link:=gdb_stderr;
-{$endif not GDB_V416}
+{$endif GDB_V418}
+
+{$ifdef GDB_V5}
+
+{$endif GDB_V5}
 
   gdb__init;
   curr_gdb:=@self;
@@ -1782,9 +1936,23 @@ end;
 var
    top_level_val : longint;
 
+{$ifdef GDB_V5}
+function catch_errors(func : pointer; command : pchar; from_tty,mask : longint) : longint;cdecl;external;
+
+function gdbint_execute_command(command : pchar; from_tty,mask : longint) : longint;cdecl;
+begin
+  gdbint_execute_command:=1;
+  execute_command(command,from_tty);
+  gdbint_execute_command:=0;
+end;
+{$endif GDB_V5}
+
 procedure tgdbinterface.gdb_command(const s:string);
 var
   command          : array[0..256] of char;
+{$ifdef GDB_V5}
+  mask : longint;
+{$endif GDB_V5}
   s2 : string;
   old_quit_return,
   old_error_return : jmp_buf;
@@ -1826,7 +1994,12 @@ begin
   if top_level_val=0 then
    begin
      quit_return:=error_return;
+{$ifdef GDB_V5}
+     mask:=$ffffffff;
+     catch_errors(@gdbint_execute_command,@command,0,mask);
+{$else not  GDB_V5}
      execute_command(@command,0);
+{$endif not  GDB_V5}
 {$ifdef go32v2}
      reload_fs;
 {$endif go32v2}
@@ -2042,8 +2215,16 @@ begin
   AllowQuit:=true;
 end;
 
+{$ifdef GDB_V5}
+var
+  version : array[0..0] of char;cvar;external;
+
+procedure error_init;cdecl;external;
+
+{$else}
 var
   version : pchar;cvar;
+{$endif}
 
 function  GDBVersion : string;
 begin
@@ -2055,17 +2236,24 @@ const next_exit : pointer = nil;
 procedure DoneLibGDB;
 begin
   exitproc:=next_exit;
-{$ifndef GDB_V416}
+{$ifdef GDB_V418}
   if assigned(gdb_stdout) then
     dispose(gdb_stdout);
   gdb_stdout:=nil;
   if assigned(gdb_stderr) then
     dispose(gdb_stderr);
   gdb_stderr:=nil;
-{$endif not GDB_V416}
+{$endif GDB_V418}
 end;
 
-{$ifndef GDB_V416}
+{$ifdef go32v2}
+var
+  c_environ : ppchar;external name '_environ';
+  c_argc : longint;external name '___crt0_argc';
+  c_argv : ppchar;external name '___crt0_argv';
+{$endif def go32v2}
+
+{$ifdef GDB_V418}
 {$ifndef go32v2}
 {$ifndef win32}
 var
@@ -2081,7 +2269,7 @@ var
    __dj_stdout : c_file;cvar;external;
    __dj_stderr : c_file;cvar;external;
 {$endif go32v2}
-{$endif not GDB_V416}
+{$endif not GDB_V418}
 
 procedure InitLibGDB;
 {$ifdef supportexceptions}
@@ -2089,6 +2277,11 @@ var
   OldSigInt : SignalHandler;
 {$endif supportexceptions}
 begin
+{$ifdef go32v2}
+  c_environ:=system.envp;
+  c_argc:=system.argc;
+  c_argv:=system.argv;
+{$endif def go32v2}
 {$ifdef supportexceptions}
 {$ifdef go32v2}
   OldSigInt:=Signal(SIGINT,SignalHandler(@SIG_DFL));
@@ -2097,7 +2290,7 @@ begin
 {$endif}
 {$endif supportexceptions}
 
-{$ifndef GDB_V416}
+{$ifdef GDB_V418}
   new(gdb_stdout);
 
   gdb_stdout^.ts_streamtype := afile;
@@ -2126,7 +2319,21 @@ begin
 {$endif go32v2}
   gdb_stderr^.ts_strbuf := nil;
   gdb_stderr^.ts_buflen := 0;
-{$endif not GDB_V416}
+{$endif  GDB_V418}
+
+{$ifdef GDB_V5}
+  if assigned(gdb_stderr) then
+    ui_file_delete(gdb_stderr);
+  if assigned(gdb_stdout) then
+    ui_file_delete(gdb_stdout);
+  gdb_stderr:=mem_fileopen;
+  gdb_stdout:=mem_fileopen;
+  gdb_stdlog:=gdb_stderr;
+  gdb_stdtarg:=gdb_stderr;
+  set_ui_file_write(gdb_stdout,@gdbint_ui_file_write);
+  set_ui_file_write(gdb_stderr,@gdbint_ui_file_write);
+  error_init;
+{$endif GDB_V5}
 
   next_exit:=exitproc;
   exitproc:=@DoneLibGDB;
@@ -2157,7 +2364,136 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:15  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-09-15 23:51:37  pierre
+   * fix bug 1120 and start of gdb 5 support
+
+  Revision 1.6  2000/04/14 05:37:33  pierre
+   * call DoSelectSourceLine even if fn is empty
+
+  Revision 1.5  2000/03/07 10:39:59  pierre
+   + inferior_pid moved to interface
+
+  Revision 1.4  2000/02/06 22:32:45  pierre
+   + Get_current_frame and Set_current_frame
+
+  Revision 1.3  2000/01/10 11:14:42  peter
+    * fixed crash in getaddrsyminfo with symfync=nil
+
+  Revision 1.2  1999/11/26 14:50:40  pierre
+   * shell32 lib is not needed in gdbint unit
+
+  Revision 1.1  1999/11/24 23:36:32  peter
+    * moved to packages dir
+
+  Revision 1.16  1999/11/09 22:58:08  pierre
+   + symbol structure for function name
+
+  Revision 1.15  1999/11/03 09:35:06  peter
+    * linux updates
+
+  Revision 1.14  1999/10/08 15:22:53  pierre
+    * library order fixes
+    + GDB 4.18 default now
+
+  Revision 1.13  1999/10/04 21:26:05  pierre
+   * Conditional stuff clarified
+
+  Revision 1.12  1999/09/28 23:42:06  pierre
+   + win32 support changes
+
+  Revision 1.11  1999/09/07 09:17:52  pierre
+    * frames better recorded
+    * some v4.18 specific suff changed
+
+  Revision 1.10  1999/08/31 16:16:14  pierre
+   * setting height and width to unlimited was wrong
+
+  Revision 1.9  1999/08/24 21:29:29  pierre
+   + reload_fs after C code calling
+
+  Revision 1.8  1999/08/23 09:17:22  pierre
+   + Errors to gdberrorbuf
+
+  Revision 1.7  1999/07/12 14:52:57  peter
+    * ifdef 418 added
+
+  Revision 1.6  1999/07/12 13:08:18  pierre
+    + added GDBVersion function
+    * tries to intercept quit command from GDB Window
+    + AllowQuit method
+
+  Revision 1.5  1999/07/11 00:16:29  pierre
+   + stuff for v4.18 for DJGPP
+
+  Revision 1.4  1999/07/07 13:12:59  peter
+    * @sig_fdl for go32v2
+
+  Revision 1.3  1999/07/05 13:05:49  michael
+  + Fixed default handler
+
+  Revision 1.2  1999/06/29 12:18:34  pierre
+   * new procvar syntax fix
+
+  Revision 1.1  1999/05/22 13:43:00  peter
+    * moved
+
+  Revision 1.16  1999/02/11 13:03:26  pierre
+      Problem with last commit
+    + added virtuals CommandBegin and CommandEnd
+    + added command_level for TGDBInterface
+
+  Revision 1.15  1999/02/10 09:00:41  pierre
+     * duplicate call_reset removed
+     * frames allocation and freeing corrected
+     + GetError and GetOutput pchar function added
+     + stop_breakpoint_number to know why the program stopped
+       (used for watches)
+
+  Revision 1.14  1999/02/08 17:35:08  pierre
+    + added Run made TraceStep TraceNext Continue virtual
+
+  Revision 1.13  1999/02/08 13:59:59  pierre
+    - removed second debugger_started in TGDBController
+    + StartTrace and Reset made virtual to be able to
+      change CmResetDebugger state in IDE
+
+  Revision 1.12  1999/02/08 11:37:11  pierre
+   + added procargs var and SetArgs method
+
+  Revision 1.11  1999/02/05 17:17:45  pierre
+   * invalid_line renamed invalid_breakpoint_line
+
+  Revision 1.10  1999/02/05 08:35:38  pierre
+   * removed libgdb for cond USE_GDB_OBJS
+
+  Revision 1.9  1999/02/04 16:33:35  pierre
+   + gdb_file and use_gdb_file added for debug writing
+
+  Revision 1.8  1999/02/04 14:35:00  pierre
+    * small go32v2 fixes
+
+  Revision 1.7  1999/02/03 15:57:38  pierre
+   * typo error
+
+  Revision 1.6  1999/02/03 15:03:07  pierre
+   + added error_num function
+
+  Revision 1.5  1999/02/03 15:01:00  pierre
+   * a symtab_and_line record changes from v4.16 to v4.17
+
+  Revision 1.4  1999/01/22 18:05:41  pierre
+   * change dir sep from  to / for dos
+
+  Revision 1.3  1999/01/22 10:23:50  peter
+    * small update to get it working with the IDE
+
+  Revision 1.2  1999/01/18 11:00:34  pierre
+   * frames was not initialized
+
+  Revision 1.1  1998/10/07 15:57:38  peter
+    * initial version
+
+  Revision 1.1  1998/10/07 15:48:20  peter
+    * initial version
+
 }
