@@ -700,6 +700,17 @@ implementation
          { Push parameters }
          oldaktcallnode:=aktcallnode;
          aktcallnode:=self;
+
+{$ifdef powerpc}
+         { process procvar. Done here already, because otherwise it may }
+         { destroy registers containing a parameter for the actual      }
+         { function call (e.g. if it's a function, its result will      }
+         { overwrite r3, which contains the first parameter) (JM)       }
+         if not(inlined) and
+            assigned(right) then
+           secondpass(right);
+{$endif powerpc}
+
          if assigned(left) then
            begin
               { be found elsewhere }
@@ -796,7 +807,9 @@ implementation
          else
            { now procedure variable case }
            begin
+{$ifndef powerpc}
               secondpass(right);
+{$endif not powerpc}
 
               { Calling interrupt from the same code requires some
                 extra code }
@@ -1145,7 +1158,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2003-05-09 17:47:02  peter
+  Revision 1.60  2003-05-11 21:48:38  jonas
+    * fixed procvar bug on the ppc (load procvar before loading para's,
+      because the procvar may otherwise destroy the already loaded paras)
+
+  Revision 1.59  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 
