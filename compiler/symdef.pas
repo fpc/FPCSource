@@ -86,6 +86,8 @@ interface
           function  needs_inittable : boolean;override;
           { debug }
 {$ifdef GDB}
+          function get_var_value(const s:string):string;
+          function stabstr_evaluate(const s:string;vars:array of string):Pchar;
           function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : taasmoutput);virtual;
           function  NumberString:string;
@@ -1068,17 +1070,44 @@ implementation
 
 
 {$ifdef GDB}
-   procedure tstoreddef.set_globalnb;
+     procedure tstoreddef.set_globalnb;
      begin
          globalnb :=PGlobalTypeCount^;
          inc(PglobalTypeCount^);
      end;
 
-    function tstoreddef.stabstring : pchar;
-      begin
-      stabstring := strpnew('t'+numberstring+';');
-      end;
+    function Tstoreddef.get_var_value(const s:string):string;
 
+    begin
+      if s='numberstring' then
+        get_var_value:=numberstring
+      else if s='sym_line' then
+        if assigned(typesym) then
+           get_var_value:=tostr(Ttypesym(typesym).fileinfo.line)
+        else
+           get_var_value:='0'
+      else if s='sym_name' then
+        if assigned(typesym) then
+           get_var_value:=Ttypesym(typesym).name
+        else
+           get_var_value:=' '
+      else if s='N_LSYM' then
+        get_var_value:=tostr(N_LSYM)
+      else if s='savesize' then
+        get_var_value:=tostr(savesize);
+    end;
+
+    function Tstoreddef.stabstr_evaluate(const s:string;vars:array of string):Pchar;
+
+    begin
+      stabstr_evaluate:=string_evaluate(s,@get_var_value,vars);
+    end;
+
+    function tstoreddef.stabstring : pchar;
+
+    begin
+      stabstring:=stabstr_evaluate('t${numberstring};',[]);
+    end;
 
     function tstoreddef.numberstring : string;
       var table : tsymtable;
@@ -1128,35 +1157,25 @@ implementation
         end;
       end;
 
-
     function tstoreddef.allstabstring : pchar;
     var stabchar : string[2];
-        ss,st : pchar;
+        ss,st,su : pchar;
         sname : string;
         sym_line_no : longint;
-      begin
+    begin
       ss := stabstring;
-      getmem(st,strlen(ss)+512);
       stabchar := 't';
       if deftype in tagtypes then
         stabchar := 'Tt';
-      if assigned(typesym) then
-        begin
-           sname := ttypesym(typesym).name;
-           sym_line_no:=ttypesym(typesym).fileinfo.line;
-        end
-      else
-        begin
-           sname := ' ';
-           sym_line_no:=0;
-        end;
-      strpcopy(st,'"'+sname+':'+stabchar+numberstring+'=');
-      strpcopy(strecopy(strend(st),ss),'",'+tostr(N_LSYM)+',0,'+tostr(sym_line_no)+',0');
-      allstabstring := strnew(st);
-      freemem(st,strlen(ss)+512);
+      st:=stabstr_evaluate('"${sym_name}:$1$2=',[stabchar,numberstring]);
+      reallocmem(st,strlen(ss)+512);
+      su:=stabstr_evaluate('",${N_LSYM},0,${sym_line},0',[]);
+      strcopy(strecopy(strend(st),ss),su);
+      reallocmem(st,strlen(st)+1);
+      allstabstring:=st;
       strdispose(ss);
-      end;
-
+      strdispose(su);
+    end;
 
     procedure tstoreddef.concatstabto(asmlist : taasmoutput);
      var stab_str : pchar;
@@ -1435,12 +1454,11 @@ implementation
                { this is what I found in stabs.texinfo but
                  gdb 4.12 for go32 doesn't understand that !! }
              {$IfDef GDBknowsstrings}
-               stabstring := strpnew('n'+charst+';'+tostr(len));
+                stabstring:=stabstr_evaluate('n$1;$2',[charst,tostr(len)]);
              {$else}
                bytest := typeglobalnumber('byte');
-               stabstring := strpnew('s'+tostr(len+1)+'length:'+bytest
-                  +',0,8;st:ar'+bytest
-                  +';1;'+tostr(len)+';'+charst+',8,'+tostr(len*8)+';;');
+               stabstring:=stabstr_evaluate('s$1;length:$2,0,8;st:ar$2;1;$3;$4,8,$5;;',
+                           [tostr(len+1),bytest,tostr(len),charst,tostr(len*8)]);
              {$EndIf}
              end;
            st_longstring:
@@ -1449,14 +1467,13 @@ implementation
                { this is what I found in stabs.texinfo but
                  gdb 4.12 for go32 doesn't understand that !! }
              {$IfDef GDBknowsstrings}
-               stabstring := strpnew('n'+charst+';'+tostr(len));
+               stabstring:=stabstr_evaluate('n$1;$2',[charst,tostr(len)]);
              {$else}
                bytest := typeglobalnumber('byte');
                longst := typeglobalnumber('longint');
-               stabstring := strpnew('s'+tostr(len+5)+'length:'+longst
-                  +',0,32;dummy:'+bytest+',32,8;st:ar'+bytest
-                  +';1;'+tostr(len)+';'+charst+',40,'+tostr(len*8)+';;');
-             {$EndIf}
+               stabstring:=stabstr_evaluate('s$1;length:$2,0,32;dummy:$6,32,8;st:ar$2;1;$3;$4,40,$5;;',
+                            [tostr(len+5),longst,tostr(len),charst,tostr(len*8),bytest]);
+              {$EndIf}
              end;
            st_ansistring:
              begin
@@ -1670,40 +1687,40 @@ implementation
 
 {$ifdef GDB}
     function tenumdef.stabstring : pchar;
-      var st,st2 : pchar;
-          p : tenumsym;
-          s : string;
-          memsize : word;
-      begin
-        memsize := memsizeinc;
-        getmem(st,memsize);
-        { we can specify the size with @s<size>; prefix PM }
-        if savesize <> std_param_align then
-          strpcopy(st,'@s'+tostr(savesize*8)+';e')
-        else
-          strpcopy(st,'e');
-        p := tenumsym(firstenum);
-        while assigned(p) do
-          begin
-            s :=p.name+':'+tostr(p.value)+',';
-            { place for the ending ';' also }
-            if (strlen(st)+length(s)+1<memsize) then
-              strpcopy(strend(st),s)
-            else
-              begin
-                getmem(st2,memsize+memsizeinc);
-                strcopy(st2,st);
-                freemem(st,memsize);
-                st := st2;
-                memsize := memsize+memsizeinc;
-                strpcopy(strend(st),s);
-              end;
-            p := p.nextenum;
-          end;
-        strpcopy(strend(st),';');
-        stabstring := strnew(st);
-        freemem(st,memsize);
-      end;
+
+    var st:Pchar;
+        p:Tenumsym;
+        s:string;
+        memsize,stl:cardinal;
+
+    begin
+      memsize:=memsizeinc;
+      getmem(st,memsize);
+      { we can specify the size with @s<size>; prefix PM }
+      if savesize <> std_param_align then
+        strpcopy(st,'@s'+tostr(savesize*8)+';e')
+      else
+        strpcopy(st,'e');
+      p := tenumsym(firstenum);
+      stl:=strlen(st);
+      while assigned(p) do
+        begin
+          s :=p.name+':'+tostr(p.value)+',';
+          { place for the ending ';' also }
+          if (stl+length(s)+1>=memsize) then
+            begin
+              inc(memsize,memsizeinc);
+              reallocmem(st,memsize);
+            end;
+          strpcopy(st+stl,s);
+          inc(stl,length(s));
+          p:=p.nextenum;
+        end;
+      st[stl]:=';';
+      st[stl+1]:=#0;
+      reallocmem(st,stl+1);
+      stabstring:=st;
+    end;
 {$endif GDB}
 
 
@@ -1870,7 +1887,7 @@ implementation
 {$ifdef Use_integer_types_for_boolean}
          bool8bit,
         bool16bit,
-        bool32bit : stabstring := strpnew('r'+numberstring+';0;255;');
+        bool32bit : stabstring := stabstr_evaluate('r${numberstring};0;255;',[]);
 {$else : not Use_integer_types_for_boolean}
            uchar  : stabstring := strpnew('-20;');
        uwidechar  : stabstring := strpnew('-30;');
@@ -1882,7 +1899,7 @@ implementation
 {$endif not Use_integer_types_for_boolean}
          {u32bit : stabstring := tstoreddef(s32bittype.def).numberstring+';0;-1;'); }
         else
-          stabstring := strpnew('r'+tstoreddef(s32bittype.def).numberstring+';'+tostr(longint(low))+';'+tostr(longint(high))+';');
+          stabstring:=stabstr_evaluate('r$1;$2;$3;',[Tstoreddef(s32bittype.def).numberstring,tostr(longint(low)),tostr(longint(high))]);
         end;
       end;
 {$endif GDB}
@@ -2038,23 +2055,23 @@ implementation
 
 
 {$ifdef GDB}
-    function tfloatdef.stabstring : pchar;
-      begin
-         case typ of
-            s32real,
-            s64real : stabstring := strpnew('r'+
-               tstoreddef(s32bittype.def).numberstring+';'+tostr(savesize)+';0;');
-            { found this solution in stabsread.c from GDB v4.16 }
-            s64currency,
-            s64comp : stabstring := strpnew('r'+
-               tstoreddef(s32bittype.def).numberstring+';-'+tostr(savesize)+';0;');
-            { under dos at least you must give a size of twelve instead of 10 !! }
-            { this is probably do to the fact that in gcc all is pushed in 4 bytes size }
-            s80real : stabstring := strpnew('r'+tstoreddef(s32bittype.def).numberstring+';12;0;');
-            else
-              internalerror(10005);
-         end;
+    function Tfloatdef.stabstring:Pchar;
+
+    begin
+      case typ of
+        s32real,s64real:
+          { found this solution in stabsread.c from GDB v4.16 }
+          stabstring:=stabstr_evaluate('r$1;${savesize};0;',[tstoreddef(s32bittype.def).numberstring]);
+        s64currency,s64comp:
+          stabstring:=stabstr_evaluate('r$1;-${savesize};0;',[tstoreddef(s32bittype.def).numberstring]);
+        s80real:
+         { under dos at least you must give a size of twelve instead of 10 !! }
+         { this is probably do to the fact that in gcc all is pushed in 4 bytes size }
+          stabstring:=stabstr_evaluate('r$1;12;0;',[tstoreddef(s32bittype.def).numberstring]);
+        else
+          internalerror(10005);
       end;
+    end;
 {$endif GDB}
 
 
@@ -2204,16 +2221,11 @@ implementation
         End; }
       { the buffer part is still missing !! (PM) }
       { but the string could become too long !! }
-      stabstring := strpnew('s'+tostr(savesize)+
-                     'HANDLE:'+typeglobalnumber('longint')+',0,32;'+
-                     'MODE:'+typeglobalnumber('longint')+',32,32;'+
-                     'RECSIZE:'+typeglobalnumber('longint')+',64,32;'+
-                     '_PRIVATE:ar'+typeglobalnumber('word')+';1;32;'+typeglobalnumber('byte')
-                        +',96,256;'+
-                     'USERDATA:ar'+typeglobalnumber('word')+';1;16;'+typeglobalnumber('byte')
-                        +',352,128;'+
-                     'NAME:ar'+typeglobalnumber('word')+';0;255;'+typeglobalnumber('char')
-                        +',480,2048;;');
+      stabstring:=stabstr_evaluate('s${savesize}HANDLE:$1,0,32;MODE:$1,32,32;RECSIZE:$1,64,32;'+
+                                   '_PRIVATE:ar$2;1;32;$3,96,256;USERDATA:ar$2;1;16+$3,352,128;'+
+                                   'NAME:ar$2;0;255;$4,480,2048',[typeglobalnumber('longint'),
+                                   typeglobalnumber('word'),typeglobalnumber('byte'),
+                                   typeglobalnumber('char')]);
    {$EndIf}
       end;
 
@@ -2586,7 +2598,7 @@ implementation
          if settype=smallset then
            stabstring := strpnew('r'+s32bittype^.numberstring+';0;0xffffffff;')
          else }
-           stabstring := strpnew('@s'+tostr(savesize*8)+';S'+tstoreddef(elementtype.def).numberstring);
+         stabstring:=stabstr_evaluate('@s$1;S$2',[tostr(savesize*8),tstoreddef(elementtype.def).numberstring]);
       end;
 
 
@@ -2687,9 +2699,10 @@ implementation
 
 {$ifdef GDB}
     function tformaldef.stabstring : pchar;
-      begin
-      stabstring := strpnew('formal'+numberstring+';');
-      end;
+
+    begin
+      stabstring:=stabstr_evaluate('formal${numberstring};',[]);
+    end;
 
 
     procedure tformaldef.concatstabto(asmlist : taasmoutput);
@@ -2780,8 +2793,8 @@ implementation
 {$ifdef GDB}
     function tarraydef.stabstring : pchar;
       begin
-      stabstring := strpnew('ar'+tstoreddef(rangetype.def).numberstring+';'
-                    +tostr(lowrange)+';'+tostr(highrange)+';'+tstoreddef(_elementtype.def).numberstring);
+        stabstring:=stabstr_evaluate('ar$1;$2;$3;$4',[Tstoreddef(rangetype.def).numberstring,
+                    tostr(lowrange),tostr(highrange),Tstoreddef(_elementtype.def).numberstring]);
       end;
 
 
@@ -2978,16 +2991,13 @@ implementation
            { open arrays made overflows !! }
            if varsize>$fffffff then
              varsize:=$fffffff;
-           newrec := strpnew(p.name+':'+spec+tstoreddef(tvarsym(p).vartype.def).numberstring
-                         +','+tostr(tvarsym(p).fieldoffset*8)+','
-                         +tostr(varsize*8)+';');
+           newrec:=stabstr_evaluate('$1:$2,$3,$4;',[p.name,
+                                    spec+tstoreddef(tvarsym(p).vartype.def).numberstring,
+                                    tostr(tvarsym(p).fieldoffset*8),tostr(varsize*8)]);
            if strlen(StabRecString) + strlen(newrec) >= StabRecSize-256 then
              begin
-                getmem(news,stabrecsize+memsizeinc);
-                strcopy(news,stabrecstring);
-                freemem(stabrecstring,stabrecsize);
-                stabrecsize:=stabrecsize+memsizeinc;
-                stabrecstring:=news;
+                inc(stabrecsize,memsizeinc);
+                reallocmem(stabrecstring,stabrecsize);
              end;
            strcat(StabRecstring,newrec);
            strdispose(newrec);
@@ -3169,9 +3179,8 @@ implementation
         strpcopy(stabRecString,'s'+tostr(size));
         RecOffset := 0;
         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addname,nil);
-        strpcopy(strend(StabRecString),';');
-        stabstring := strnew(StabRecString);
-        Freemem(stabrecstring,stabrecsize);
+        reallocmem(stabrecstring,strlen(stabrecstring));
+        stabstring:=stabrecstring;
       end;
 
 
@@ -5139,20 +5148,16 @@ implementation
            if (sp_private in tsym(p).symoptions) then sp:='0'
            else if (sp_protected in tsym(p).symoptions) then sp:='1'
            else sp:='2';
-           newrec := strpnew(p.name+'::'+ipd.numberstring
-                +'=##'+tstoreddef(pd.rettype.def).numberstring+';:'+argnames+';'+sp+'A'
-                +virtualind+';');
+          newrec:=stabstr_evaluate('$1::$2=##$3;:$4;$5A$6;',[p.name,ipd.numberstring,
+                                   Tstoreddef(pd.rettype.def).numberstring,argnames,sp,
+                                   virtualind]);
           { get spare place for a string at the end }
           if strlen(StabRecString) + strlen(newrec) >= StabRecSize-256 then
             begin
-               getmem(news,stabrecsize+memsizeinc);
-               strcopy(news,stabrecstring);
-               freemem(stabrecstring,stabrecsize);
-               stabrecsize:=stabrecsize+memsizeinc;
-               stabrecstring:=news;
+               inc(stabrecsize,memsizeinc);
+               reallocmem(stabrecstring,stabrecsize);
             end;
           strcat(StabRecstring,newrec);
-          {freemem(newrec,memsizeinc);    }
           strdispose(newrec);
           {This should be used for case !!
           RecOffset := RecOffset + pd.size;}
@@ -6176,7 +6181,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.202  2004-01-22 21:33:54  peter
+  Revision 1.203  2004-01-25 11:33:48  daniel
+    * 2nd round of gdb cleanup
+
+  Revision 1.202  2004/01/22 21:33:54  peter
     * procvardef rtti fixed
 
   Revision 1.201  2004/01/22 16:33:22  peter

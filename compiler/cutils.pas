@@ -33,6 +33,8 @@ interface
 
     type
        pstring = ^string;
+       get_var_value_proc=function(const s:string):string of object;
+
 
     {# Returns the minimal value between @var(a) and @var(b) }
     function min(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
@@ -90,6 +92,8 @@ interface
     function  strpnew(const s : string) : pchar;
     procedure strdispose(var p : pchar);
 
+    function string_evaluate(s:string;get_var_value:get_var_value_proc;
+                             vars:array of string):Pchar;
     {# makes the character @var(c) lowercase, with spanish, french and german
        character set
     }
@@ -732,6 +736,124 @@ uses
          CompareText:=0;
       end;
 
+    function string_evaluate(s:string;get_var_value:get_var_value_proc;
+                             vars:array of string):Pchar;
+
+    {S contains a prototype of a stabstring. Stabstr_evaluate will expand
+     variables and parameters.
+
+     Output is s in ASCIIZ format, with the following expanded:
+
+     ${varname}   - The variable name is expanded.
+     $n           - The parameter n is expanded.
+     $$           - Is expanded to $
+    }
+
+    const maxvalue=9;
+          maxdata=1023;
+
+    var i,j:byte;
+        varname:string[63];
+        varno,varcounter:byte;
+        varvalues:array[0..9] of Pstring;
+        {1 kb of parameters is the limit. 256 extra bytes are allocated to
+         ensure buffer integrity.}
+        varvaluedata:array[0..maxdata+256] of char;
+        varptr:Pchar;
+        len:cardinal;
+        r:Pchar;
+
+    begin
+      {Two pass approach, first, calculate the length and receive variables.}
+      i:=1;
+      len:=0;
+      varcounter:=0;
+      varptr:=@varvaluedata;
+      while i<=length(s) do
+        begin
+          if (s[i]='$') and (i<length(s)) then
+            begin
+             if s[i+1]='$' then
+               begin
+                 inc(len);
+                 inc(i);
+               end
+             else if (s[i+1]='{') and (length(s)>2) and (i<length(s)-2) then
+               begin
+                 varname:='';
+                 inc(i,2);
+                 repeat
+                   inc(varname[0]);
+                   varname[length(varname)]:=s[i];
+                   s[i]:=char(varcounter);
+                   inc(i);
+                 until s[i]='}';
+                 varvalues[varcounter]:=Pstring(varptr);
+                 if varptr>@varvaluedata+maxdata then
+                   runerror($8001); {No internalerror available}
+                 Pstring(varptr)^:=get_var_value(varname);
+                 inc(len,length(Pstring(varptr)^));
+                 inc(varptr,length(Pstring(varptr)^)+1);
+                 inc(varcounter);
+               end
+             else if s[i+1] in ['0'..'9'] then
+               begin
+                 inc(len,length(vars[byte(s[i+1])-byte('1')]));
+                 inc(i);
+               end;
+            end
+          else
+            inc(len);
+          inc(i);
+        end;
+      
+      {Second pass, writeout stabstring.}
+      getmem(r,len+1);
+      string_evaluate:=r;
+      i:=1;
+      while i<=length(s) do
+        begin
+          if (s[i]='$') and (i<length(s)) then
+            begin
+             if s[i+1]='$' then
+               begin
+                 r^:='$';
+                 inc(r);
+                 inc(i);
+               end
+             else if (s[i+1]='{') and (length(s)>2) and (i<length(s)-2) then
+               begin
+                 varname:='';
+                 inc(i,2);
+                 varno:=byte(s[i]);
+                 repeat
+                   inc(i);
+                 until s[i]='}';
+                 for j:=1 to length(varvalues[varno]^) do
+                   begin
+                     r^:=varvalues[varno]^[j];
+                     inc(r);
+                   end;
+               end
+             else if s[i+1] in ['0'..'9'] then
+               begin
+                 for j:=1 to length(vars[byte(s[i+1])-byte('1')]) do
+                   begin
+                     r^:=vars[byte(s[i+1])-byte('1')][j];
+                     inc(r);
+                   end;
+                 inc(i);
+               end
+            end
+          else
+            begin
+              r^:=s[i];
+              inc(r);
+            end;
+          inc(i);
+        end;
+      r^:=#0;
+    end;
 
 {*****************************************************************************
                                GetSpeedValue
@@ -982,7 +1104,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.31  2004-01-15 15:16:18  daniel
+  Revision 1.32  2004-01-25 11:33:48  daniel
+    * 2nd round of gdb cleanup
+
+  Revision 1.31  2004/01/15 15:16:18  daniel
     * Some minor stuff
     * Managed to eliminate speed effects of string compression
 
