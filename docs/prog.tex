@@ -405,7 +405,7 @@ will display an info message when the compiler encounters it.
 This is useful in conjunction with the \var{\{\$IFDEF\}} directive, to show
 information about which part of the code is being compiled.
 
-\subsection{\var{\{\$INLINE\}} : Allow inline code.}
+\subsection{\var{\$INLINE} : Allow inline code.}
 
 The \var{\{\$INLINE ON\}} directive tells the compiler that the \var{Inline}
 procedure modifier should be allowed. Procedures that are declared inline
@@ -2007,12 +2007,7 @@ unit:
 \item Types and variables from the interface section of the unit.
 \item Function declarations from the interface section of the unit.
 \item Some debugging information, when compiled with debugging.
-\item A date and time stamp.
 \end{enumerate}
-Macros, symbols and compiler directives are {\em not} saved to the unit
-description file. Aliases for functions are also not written to this file,
-which is logical, since they cannot appear in the interface section of a
-unit.
 
 The detailed contents and structure of this file are described in the first
 appendix. You can examine a unit description file using the \file{ppudump}
@@ -2764,7 +2759,7 @@ find it.
 The following sections attempt to explain how to do this.
 
 
-\subsection{Declaring external function or procedures}
+\subsection{Declaring external functions or procedures}
 \label{se:ExternalFunction}
 
 The first step in using external code blocks is declaring the function you
@@ -3370,7 +3365,7 @@ In the \var{tp} compiler mode, or while the \var{\{\$Z1\}} or
 \var{\{\$PACKENUM 1\}} switches are in effect, the storage
 space used is shown in \seet{enumstoragetp}.
 
-\begin{FPCltable}{ll}{Enumeration storage}{enumstoragetp}
+\begin{FPCltable}{ll}{Enumeration storage for \var{tp} mode}{enumstoragetp}
 \# Of Elements in Enum. & Storage space used\\ \hline
 0..255  & byte (1 byte) \\
 256..65535 & word (2 bytes) \\
@@ -3403,12 +3398,12 @@ Motorola 680x0 (with \{\$E+\} switch) & \var{single}\\
 Floating point types have a storage binary format divided
 into three distinct fields : the mantissa, the exponent
 and the sign bit which stores the sign of the floating
-pointer value.
+point value.
 
 \subsubsection{single}
 
 The \var{single} type occupies 4 bytes of storage space,
-and its memory structures is the same as the IEEE-754 single
+and its memory structure is the same as the IEEE-754 single
 type.
 
 The memory format of the \var{single} format looks like
@@ -3417,17 +3412,15 @@ this:
 \fpcaddimg{./single.png}
 \end{htmlonly}
 \begin{latexonly}
-\seefig{singleformat}.
+what is shown in \seefig{singleformat}.
 \begin{figure}
-\begin{center}
 \caption{The single format}
 \label{fig:singleformat}
 \ifpdf
-\epsfig{file=single.png}
+\centering \epsfig{file=single.png}
 \else
-\epsfig{file=single.eps}
+\centering \epsfig{file=single.eps}
 \fi
-\end{center}
 \end{figure}
 \end{latexonly}
 
@@ -3435,7 +3428,7 @@ this:
 \subsubsection{double}
 
 The \var{double} type occupies 8 bytes of storage space,
-and its memory structures is the same as the IEEE-754 double
+and its memory structure is the same as the IEEE-754 double
 type.
 
 The memory format of the \var{double} format looks like
@@ -3444,7 +3437,7 @@ this:
 \fpcaddimg{./double.png}
 \end{htmlonly}
 \begin{latexonly}
-\seefig{doubleformat}.
+like what is shown in \seefig{doubleformat}.
 \begin{figure}
 \begin{center}
 \caption{The double format}
@@ -3460,29 +3453,28 @@ this:
 
 
 On processors which do not support co-processor operations (and which have
-the \$\{E-\} switch), the \var{double} type does not exist.
+the \{\$E-\} switch), the \var{double} type does not exist.
 
 
 
 \subsubsection{extended}
 
 For Intel 80x86 processors, the \var{extended} type has
-the format shown in figure XXX, and takes up 10 bytes of
-storage.
+takes up 10 bytes of memory space. For more information
+on the extended type consult the Intel Programmer's reference.
 
 For all other processors which support floating point operations,
 the \var{extended} type is a nickname for the \var{double} type. 
 It has the same format and size as the \var{double} type. On
 processors which do not support co-processor operations (and which have
-the \$\{E-\} switch), the
+the \{\$E-\} switch), the
 \var{extended} type does not exist.
 
 \subsubsection{comp}
 
-For Intel 80x86 processors, the \var{comp} type has
-the format shown in figure XXX, and can contain
-integer values only. The \var{comp} type takes up
-8 bytes of storage space. 
+For Intel 80x86 processors, the \var{comp} type contains
+a 63-bit integral value, and a sign bit (in the MSB position).
+The \var{comp} type takes up 8 bytes of storage space.
 
 On other processors, the \var{comp} type is not supported.
 
@@ -3547,7 +3539,7 @@ if the element is in the set or excluded from the set. The maximum
 number of elements in a set is 256.
 
 If a set has less than 32 elements, it is coded as an unsigned
-32-bit value. Otherwise it is coded as a 32 element array of
+32-bit value. Otherwise it is coded as a 8 element array of
 32-bit unsigned values (cardinal) (hence a size of 256 bytes).
 
 The cardinal number of a specific element \var{E} is given by :
@@ -3588,7 +3580,7 @@ consult \sees{StructuredAlignment}.
 Objects are stored in memory just as ordinary records with an extra field:
 a pointer to the Virtual Method Table (VMT). This field is stored first, and
 all fields in the object are stored in the order they are declared (with possible
-alignment of field addresses, uness the object was declared as being \var{packed}).
+alignment of field addresses, unless the object was declared as being \var{packed}).
 
 This field is initialized by the call to the object's \var{Constructor} method.
 If the \var{new} operator was used to call the constructor, the data fields
@@ -3631,8 +3623,8 @@ with an extra field: a pointer to the Virtual Method Table (VMT).
 This field is stored first, and all fields in the class are stored in
 the order they are declared.
 
-Contrary to objects, all data fields of a class are always stored in
-heap memory.
+Contrary to objects, all data fields of a class are always stored
+in heap memory.
 
 The memory allocated looks as in \seet{ClassMem}.
 \begin{FPCltable}{ll}{Class memory layout (32-bit model)}{ClassMem} \hline
@@ -3768,8 +3760,8 @@ Data size (bytes) & Alignment (small size) & Alignment (fast)\\
 The alignment columns indicates the address alignment of the variable,
 i.e the start address of the variable will be aligned on that boundary.
 The small size alignment is valid when the code generated should be
-optimized for size and not speed, otherwise and by default, the
-fast alignment is used to align the data.
+optimized for size (\var{-Og} compiler option) and not speed, otherwise and
+by default, the fast alignment is used to align the data.
 
 \subsection{Structured types alignment}
 \label{se:StructuredAlignment}
@@ -3841,9 +3833,10 @@ The algorithm for allocating memory is as follows:
 or of bigger size, if so it is allocated and the routine exits.
 \item If not found in the \var{freelist} the heap is grown to allocate the
 specified memory, and the routine exits.
-\item If the heap cannot be grown anymore, a call to the operating system
-is made to grow the heap further. If the block to allocate < 256Kb, then
-the heap is grown by 256Kb, otherwise it is grown by 1024Kb.
+\item If the heap cannot be grown anymore (and if \var{heaperror} is set
+accordingly), a call to the operating system is made to grow the heap further.
+If the block to allocate < 256Kb, then the heap is grown by 256Kb, otherwise
+it is grown by 1024Kb.
 \end{enumerate}
 
 % The heap grows
@@ -4492,12 +4485,6 @@ final executable: \var{Lo}, \var{Hi}, \var{High}, \var{Sizeof},
 \var{TypeOf}, \var{Length}, \var{Pred}, \var{Succ}, \var{Inc},
 \var{Dec} and \var{Assigned}.
 
-\subsection{Case optimization}
-
-When using the \var{-O1} (or higher) switch, case statements will be
-generated using a jump table if appropriate, to make them execute
-faster.
-
 \subsection{Stack frame omission}
 
 Under specific conditions, the stack frame (entry and exit code for
@@ -4508,11 +4495,8 @@ Conditions for omission of the stack frame:
 
 \begin{itemize}
 \item The function has no parameters nor local variables.
-\item Routine does not call other routines.
-\item Routine does not contain assembler statements. However,
-a \var{assembler} routine may omit it's stack frame.
-\item Routine is not declared using the \var{Interrupt} directive.
-\item Routine is not a constructor or destructor.
+\item Routine is declared with the \var{assembler} modifier.
+\item Routine is not a class.
 \end{itemize}
 
 \subsection{Register variables}
@@ -4542,8 +4526,8 @@ or a sequence of conditional jumps should be used for optimal performance.
 \item When optimizing for speed (\var{-OG}, the default) or size (\var{-Og}), a choice is
 made between using shorter instructions (for size) such as \var{enter \$4},
 or longer instructions \var{subl \$4,\%esp} for speed. When smaller size is
-requested, things aren't aligned on 4-byte boundaries.  When speed is
-requested, things are aligned on 4-byte boundaries as much as possible.
+requested, data is aligned to minimal boundaries.  When speed is
+requested, data is aligned on most efficient boundaries as much as possible.
 \item Fast optimizations (\var{-O1}): activate the peephole optimizer
 \item Slower optimizations (\var{-O2}): also activate the common subexpression
 elimination (formerly called the "reloading optimizer")
@@ -4781,7 +4765,7 @@ NetBSD  & .so & lib \\
 
 The library prefix column indicates how the names of the libraries are
 resolved and created. For example, under \linux, the library name will
-alwauys have \var{lib} prefix when it is created. So if you create a
+alwaus have the \var{lib} prefix when it is created. So if you create a
 library called \file{mylib}, under \linux, this will result in the
 \file{libmylib.so}. Furthermore, when importing routines from shared
 libraries, it is not necessary to give the library prefix or the
@@ -5131,9 +5115,33 @@ names (the constants) instead of using a numeric index.
 % Basics
 \section{Basics}
 
-The best and most updated documentation about the ppu files can be
-found in \file{ppu.pas} and \file{ppudump.pp} which can be found in
-\file{rtl/utils/}.
+As described in \seec{GenCode}, unit description files (thereafter
+called PPU files for short), are used to determine if the unit
+code must be recompiled or not. In other words, the PPU files act
+as mini-makefiles, which is used to check dependencies of the
+different code modules, as well as verify if the modules are up
+to date or not. Furthermore, it contains all public symbols defined
+for a module.
+
+The general format of the \var{ppu} file format is shown
+\begin{htmlonly}
+here:
+\fpcaddimg{./ppu.png}
+\end{htmlonly}
+\begin{latexonly}
+in \seefig{ppuformat}.
+\begin{figure}
+\caption{The PPU file format}
+\label{fig:ppuformat}
+\ifpdf
+\centering \epsfig{file=ppu.png}
+\else
+\centering \epsfig{file=ppu.eps}
+\fi
+\end{figure}
+\end{latexonly}
+
+
 
 To read or write the ppufile, you can use the ppu unit \file{ppu.pas}
 which has an object called tppufile which holds all routines that deal
@@ -5143,7 +5151,7 @@ methods which can be used for it are presented as well.
 A unit file consists of basically five or six parts:
 \begin{enumerate}
 \item A unit header.
-\item A file interface part.
+\item A general information part (wrongly named interface section in the code)
 \item A definition part. Contains all type and procedure definitions.
 \item A symbol part. Contains all symbol names and references to their
 definitions.
@@ -5165,13 +5173,13 @@ begin
 { Initialize object }
   ppufile:=new(pppufile,init('test.ppu');
 { open the unit and read the header, returns false when it fails }
-  if not ppufile.open then
+  if not ppufile.openfile then
     error('error opening unit test.ppu');
 
 { here we can read the unit }
 
 { close unit }
-  ppufile.close;
+  ppufile.closefile;
 { release object }
   dispose(ppufile,done);
 end;
@@ -5184,98 +5192,89 @@ entry) it sets the \var{ppufile.error} variable.
 % The Header
 \section{The Header}
 
-The header consists of a record containing 24 bytes:
+The header consists of a record (\var{tppuheader}) containing
+several pieces of information for recompilation. This is shown
+in \seet{PPUHeader}. The header is always stored in little-endian
+format.
 
-\begin{verbatim}
-tppuheader=packed record
-    id       : array[1..3] of char; { = 'PPU' }
-    ver      : array[1..3] of char;
-    compiler : word;
-    cpu      : word;
-    target   : word;
-    flags    : longint;
-    size     : longint; { size of the ppufile without header }
-    checksum : longint; { checksum for this ppufile }
-  end;
-\end{verbatim}
+\begin{FPCltable}{|l|c|l|}{PPU Header}{PPUHeader}
+\hline
+offset & size (bytes) & description \\
+\hline
+00h   &   3          &  Magic : 'PPU' in ASCII \\
+03h   &   3          &  PPU File format version (e.g : '021' in ASCII) \\
+06h   &   2          &  Compiler version used to compile this module (major,minor)\\
+08h   &   2          &  Code module target processor  \\
+0Ah   &   2          &  Code module target operating system \\
+0Ch   &   4          &  Flags for PPU file  \\
+10h   &   4          &  Size of PPU file (without header) \\
+14h   &   4          &  CRC-32 of the entire PPU file \\
+18h   &   4          &  CRC-32 of partial data of PPU file (public data mostly) \\
+1Ch   &   8          &  Reserved \\
+\hline
+\end{FPCltable}
 
-The header is already read by the \var{ppufile.open} command.
+The header is already read by the \var{ppufile.openfile} command.
 You can access all fields using \var{ppufile.header} which holds
 the current header record.
 
-\begin{tabular}{lp{10cm}}
-\raggedright
-field & description \\ \hline
-\var{id} &
-this is allways 'PPU', can be checked with
-\mbox{\var{function ppufile.CheckPPUId:boolean;}} \\
-\var{ver} & ppu version, currently '015', can be checked with
-\mbox{\var{function ppufile.GetPPUVersion:longint;}} (returns 15) \\
-\var{compiler}
- & compiler version used to create the unit. Doesn't contain the
-         patchlevel. Currently 0.99 where 0 is the high byte and 99 the
-         low byte \\
-\var{cpu} & cpu for which this unit is created.
-          0 = i386
-          1 = m68k \\
-\var{target} & target for which this unit is created, this depends also on the
-         cpu!
+\begin{FPCltable}{|ll|}{PPU CPU Field values}{PPUHeaderCPU}
+\hline
+value & description \\
+\hline
+0     & unknown \\
+1     & Intel 80x86 or compatible \\
+2     & Motorola 680x0 or compatible \\
+3     & Alpha AXP or compatible \\
+4     & PowerPC or compatible \\
+\hline
+\end{FPCltable}
 
-         For i386:
-\begin{tabular}[t]{ll}
-0 & Go32v1 \\
-1 & Go32V2 \\
-2 & Linux-i386 \\
-3 & OS/2 \\
-4 & Win32
-\end{tabular}
+Some of the possible flags in the header, are described in \seet{PPUHeaderFlags}.
+Not all the flags are described, for more information, read the source code of
+\file{ppu.pas}.
 
-For m68k:
-\begin{tabular}[t]{ll}
-0 & Amiga \\
-1 & Mac68k \\
-2 & Atari \\
-3 & Linux-m68k
-\end{tabular} \\
-\var{flag} &
-the unit flags, contains a combination of the uf\_ constants which
-are definied in \file{ppu.pas} \\
-\var{size} & size of this unit without this header \\
-\var{checksum} &
-  checksum of the interface parts of this unit, which determine if
-         a unit is changed or not, so other units can see if they need to
-         be recompiled
-\\ \hline
-\end{tabular}
+\begin{FPCltable}{|ll|}{PPU Header Flag values}{PPUHeaderFlags}
+\hline
+Symbolic bit flag name & Description\\
+uf\_init & Module has an initialization (either Delphi or TP style) section. \\
+uf\_finalize & Module has a finalization section. \\
+uf\_big\_endian & All the data stored in the chunks is in big-endian format.\\
+uf\_has\_browser & Unit contains symbol browser information. \\
+uf\_smart\_linked & The code module has been smartlinked.\\
+uf\_static\_linked & The code is statically linked. \\
+uf\_has\_resources & Unit has resource section. \\
+\hline
+\end{FPCltable}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
 % The sections
 \section{The sections}
 
-After this header follow the sections. All sections work the same!
-A section consists of entries and ends also with an entry, but
-containing the specific \var{ibend} constant (see \file{ppu.pas} for a list
-of constants).
+Apart from the header section, all the data in the PPU file is separated
+into data blocks, which permit easily adding additional data blocks,
+without compromising backward compatibility. This is similar to both
+Electronic Arts IFF chunk format and Microsoft's RIFF chunk format.
 
-Each entry starts with an entryheader.
-\begin{verbatim}
-  tppuentry=packed record
-    id   : byte;
-    nr   : byte;
-    size : longint;
-  end;
-\end{verbatim}
+Each 'chunk' (\var{tppuentry}) has the following format, and can be
+nested:
 
-\begin{tabular}{lp{10cm}}
-field & Description \\ \hline
-id & this is 1 or 2 and can be checked to see whether the entry is correctly
-found. 1 means its a main entry, which says that it is part of the
-basic layout as explained before. 2 means that it it a sub entry
-of a record or object. \\
-nr & contains the ib constant number which determines what kind of
-entry it is. \\
-size & size of this entry without the header, can be used to skip entries
-very easily. \\ \hline
-\end{tabular}
+\begin{FPCltable}{|l|c|l|}{chunk data format}{ChunkFormats}
+\hline
+offset & size (bytes) & description \\
+\hline
+00h   &   1          &  Block type (nested (2) or main (1)) \\
+01h   &   1          &  Block identifier \\
+02h   &   4          &  Size of this data block \\
+06h+  &   <variable> &  Data for this block \\
+\hline
+\end{FPCltable}
+
+
+Each main section chunk must end with an end chunk. Nested chunks
+are used for record, class or object fields.
+
 
 To read an entry you can simply call \var{ppufile.readentry:byte},
 it returns the
@@ -5292,6 +5291,31 @@ A common way how this works is (example is for the symbols):
     end;
   until false;
 \end{verbatim}
+
+The possible entry types are found in \file{ppu.pas}, but a short
+description of the most common ones are shown in \seet{PPUEntryTypes}.
+
+\begin{FPCltable}{|lll|}{Possible PPU Entry types}{PPUEntryTypes}
+\hline
+Symbolic name & Location & Description\\
+ibmodulename  & General & Name of this unit.\\
+ibsourcefiles & General & Name of source files.\\
+ibusedmacros & General & Name and state of macros used.\\
+ibloadunit  & General & Modules used by this units. \\
+inlinkunitofiles & General & Object files associated with this unit. \\
+iblinkunitstaticlibs & General & Static libraries associated with this unit. \\
+iblinkunitsharedlibs & General & Shared libraries associated with this unit. \\
+ibendinterface & General & End of General information section. \\
+ibstartdefs & Interface & Start of definitions. \\
+ibenddefs & Interface & End of definitions. \\
+ibstartsyms  & Interface & Start of symbol data. \\
+ibendsyms & Interface  & End of symbol data. \\
+ibendimplementation & Implementation & End of implementation data. \\
+ibendbrowser & Browser & End of browser section. \\
+ibend & General & End of Unit file. \\
+\hline
+\end{FPCltable}
+
 
 Then you can parse each entry type yourself. \var{ppufile.readentry} will take
 care of skipping unread bytes in the entry and reads the next entry
@@ -5334,7 +5358,7 @@ Creating a new ppufile works almost the same as reading one.
 First you need to init the object and call create:
 \begin{verbatim}
   ppufile:=new(pppufile,init('output.ppu'));
-  ppufile.create;
+  ppufile.createfile;
 \end{verbatim}
 
 After that you can simply write all needed entries. You'll have to take
@@ -5365,7 +5389,7 @@ you're writing.
 
 At the end of the file you need to call \var{ppufile.writeheader} to write the
 new header to the file. This takes automatically care of the new size of the
-ppufile. When that is also done you can call \var{ppufile.close} and dispose the
+ppufile. When that is also done you can call \var{ppufile.closefile} and dispose the
 object.
 
 Extra functions/variables available for writing are:
@@ -5616,7 +5640,7 @@ testdb$(EXEEXT): testdb$(PASEXT) mysql$(PPUEXT)
 
 The following sections are recognized (in alphabetical order):
 
-\subsection{Clean}
+\subsection{clean}
 Specifies rules for cleaning the directory of units and programs.
 The following entries are recognized:
 \begin{description}
@@ -5625,120 +5649,54 @@ Don't specify extensions, the makefile will append these by itself.
 \item[files] names of files that should be removed. Specify full filenames.
 \end{description}
 
-\subsection{Defaults}
-The \var{defaults} section contains some default settings. The following keywords
+\subsection{default}
+The \var{default} section contains some default settings. The following keywords
 are recognized:
 \begin{description}
-\item[defaultdir]
-\item[defaultbuilddir]
-\item[defaultinstalldir]
-\item[defaultzipinstalldir]
-\item[defaultcleandir]
-\item[defaultrule] Specifies the default rule to execute. \file{fpcmake}
+\item[fpcdir] Specifies the directory where all the \fpc source trees reside. Below this
+directory the \file{Makefile} expects to find the \file{rtl}, \file{fcl} and
+\file{packages} directory trees.
+\item[rule] Specifies the default rule to execute. \file{fpcmake}
 will make sure that this rule is executed if make is executed without
 arguments, i.e., without an explicit target.
-\item[defaulttarget]
+\item[target]
 Specifies the default operating system target for which the \file{Makefile}
 should compile the units and programs. By default this is determined from
 the default compiler target.
-\item[defaultcpu]
+\item[cpu]
 Specifies the default target processor for which the \file{Makefile}
 should compile the units and programs. By default this is determined from
 the default compiler processor.
 \end{description}
 
-\subsection{Dirs}
-In this section you can specify the location of several directories
-which the \file{Makefile} could need for compiling other packages or for finding
-the units.
-
-The following keywords are recognised:
-\begin{description}
-\item[fpcdir]
-Specifies the directory where all the \fpc source trees reside. Below this
-directory the \file{Makefile} expects to find the \file{rtl}, \file{fcl} and
-\file{packages} directory trees.
-\item[packagedir]
-Specifies the directory where all the package source directories are. By
-default this equals \mvar{FPCDIR}\var{/packages}.
-\item[toolkitdir]
-Specifies the directory where toolkit source directories are.
-\item[componentdir]
-Specifies the directory where component source directories are.
-\item[unitdir]
-A colon-separated list of directories that must be added to the unit
-search path of the compiler.
-\item[libdir]
-A colon-separated list of directories that must be added to the library
-search path of the compiler.
-\item[objdir]
-A colon-separated list of directories that must be added to the object file
-search path of the compiler.
-\item[targetdir]
-Specifies the directory where the compiled programs should go.
-\item[sourcesdir]
-A space separated list of directories where sources can reside.
-This will be used for the \var{vpath} setting of \gnu \file{make}.
-\item[unittargetdir]
-Specifies the directory where the compiled units should go.
-\item[incdir]
-A colon-separated list of directories that must be added to the include file
-search path of the compiler.
-\end{description}
-
-\subsection{Info}
-This section can be used to customize the information generating
-targets that \file{fpcmake} generates. It is simply a series of boolean
-values that specify whether a certain part of the \var{info} target will be
-generated. The following keywords are recognised:
-\begin{description}
-\item[infoconfig]
-Specifies whether configuration info should be shown. By default this is
-\var{True}.
-\item[infodirs]
-Specifies whether a list of subdirectories to be treated will be shown. By
-degault this is \var{False}.
-\item[infotools]
-Specifies whether a list of tools that are used by the makefile will be
-shown. By default this is \var{False}.
-\item[infoinstall]
-Specifies whether the installation rules will be shown. By default this is
-\var{True}.
-\item[infoobjects]
-Specifies whether the \file{Makefile} objects will be shown, i.e. a list of
-all units and programs that will be built by \file{make}.
-\end{description}
-
-\subsection{Install}
+\subsection{install}
 Contains instructions for installation of your units and programs. The
 following keywords are recognized:
 \begin{description}
-\item[dirprefix] is the directory below wchich all installs are done.
-This corresponds to the \var{--prefix} argument to \gnu \file{configure}.
-It is used for the installation of programs and units. By default, this is
-\file{/usr} on \linux, and \file{/pp} on all other platforms.
-\item[dirbase]
-The directory that is used as the base directory for the installation of
-units. Default this is \var{dirprefix} appended with \var{/lib/fpc/FPC\_VERSION}
-for \linux or simply the \var{dirprefix} on other platforms.
+\item[dirprefix]
 \end{description}
-Units will be installed in the subdirectory  \file{units/\$(OS\_TARGET)}
-of the \var{dirbase} entry.
 
-\subsection{Libs}
+\subsection{compiler}
+Contains instructions for the building of the units and programs
+using the compiler. The
+following keywords are recognized:
+\begin{description}
+\item[options] Compiler options to compile with
+\item[targetdir] Directory where the compiled data will be stored
+\item[includedi] Additional include directories for compilation
+\item[sourcedir] Additional source directories for compilation
+\item[unitdir]  List of additional directories where to look for units
+\end{description}
+
+
+\subsection{libs}
 This section specifies what units should be merged into a library, and what
 external libraries are needed. It can contain the following keywords:
 \begin{description}
 \item[libname] the name of the library that should be created.
 \item[libunits] a comma-separated list of units that should be moved into
 one library.
-\item[needgcclib] a boolean value that specifies whether the \file{gcc}
-library is needed. This will make sure that the path to the GCC library
-is inserted in the library search path.
-\item[needotherlib]
-(\linux only) a boolean value that tells the makefile that it should add
-all library directories from the \file{ld.so.conf} file to the compiler
-command-line.
+\item[libversion] The library version to create.
 \end{description}
 
 \subsection{Packages}
@@ -5747,8 +5705,8 @@ Which packages must be used. This section can contain the following keywords:
 \item[packages]
 A comma-separated list of packages that are needed to compile the targets.
 Valid for all platforms. In order to differentiate between platforms, you
-can prepend the keyword \var{packages} with the OS you are compiling for,
-e.g.  \var{linuxpackages} if you want the makefile to use the listed
+can prepend the keyword \var{packages\_} with the OS you are compiling for,
+e.g.  \var{packages\_linux} if you want the makefile to use the listed
 packages on \linux only.
 \item[fcl] This is a boolean value (0 or 1) that indicates whether the FCL is used.
 \item[rtl]
@@ -5821,12 +5779,16 @@ If set to \var{False}, \file{fpcmake} omits the rules for running some tools as 
 If set to \var{False}, \file{fpcmake} omits the rules for generating information.
 \end{description}
 
-\subsection{Targets}
+\subsection{target}
 In this section you can define the various targets. The following keywords
 can be used there:
 \begin{description}
 \item[dirs]
 A space separated list of directories where make should also be run.
+Valid for all platforms. In order to differentiate between platforms, you
+can prepend the keyword \var{dirs\_} with the OS you are compiling for,
+e.g.  \var{dirs\_linux} if you want the makefile to use the listed
+packages on \linux only.
 \item[examples]
 A space separated list of example programs that need to be compiled when
 the user asks to compile the examples. Do not specify an extension,
@@ -6639,12 +6601,12 @@ used instead, otherwise the default stack size is used.
 Under \linux, stack size is only limited by the available memory of
 the system.
 
-\section{netbsd}
+\section{Netbsd}
 
 Under \netbsd, stack size is only limited by the available memory of
 the system.
 
-\section{freebsd}
+\section{Freebsd}
 
 Under \freebsd, stack size is only limited by the available memory of
 the system.
