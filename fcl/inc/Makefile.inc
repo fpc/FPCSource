@@ -3,6 +3,6 @@
 
 INCNAMES=classes.inc classesh.inc bits.inc collect.inc compon.inc filer.inc\
          lists.inc parser.inc persist.inc reader.inc streams.inc stringl.inc\
-         writer.inc
+         writer.inc cregist.inc
 
 INCUNITS=inifiles ezcgi pipes rtfpars idea base64 gettext
