@@ -675,7 +675,7 @@ implementation
           begin
             if assigned(map[i].unitsym) and
                (map[i].unitsym.refs=0) then
-              MessagePos2(map[i].unitsym.fileinfo,sym_n_unit_not_used,map[i].u.modulename^,modulename^);
+              MessagePos2(map[i].unitsym.fileinfo,sym_n_unit_not_used,map[i].u.realmodulename^,realmodulename^);
           end;
       end;
 
@@ -694,7 +694,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2004-06-20 08:55:29  florian
+  Revision 1.46  2004-08-30 20:23:33  peter
+    * use realmodulename in unit not used msg
+
+  Revision 1.45  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.44  2004/03/08 22:07:46  peter
