@@ -2124,7 +2124,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.132  1999-07-11 21:24:31  michael
+  Revision 1.133  1999-07-16 10:04:34  peter
+    * merged
+
+  Revision 1.132  1999/07/11 21:24:31  michael
   + Fixed integer message table
 
   Revision 1.131  1999/07/06 21:48:23  florian
@@ -2145,6 +2148,12 @@ end.
   Revision 1.128  1999/06/30 22:16:19  florian
     * use of is_ordinal checked: often a qword/int64 isn't allowed (case/for ...)
     * small qword problems fixed
+
+  Revision 1.127.2.4  1999/07/11 21:48:01  michael
+  + merged dispatch fix
+
+  Revision 1.127.2.3  1999/07/07 07:53:22  michael
+  + Merged patches from florian
 
   Revision 1.127.2.2  1999/07/05 20:03:27  peter
     * removed warning/notes

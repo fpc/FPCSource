@@ -60,7 +60,9 @@ unit pexpr;
 {$endif}
        ;
 
-    const allow_type : boolean = true;
+    const
+      allow_type : boolean = true;
+      got_addrn  : boolean = false;
 
     function parse_paras(_colon,in_prop_paras : boolean) : ptree;
 
@@ -116,9 +118,9 @@ unit pexpr;
 
       begin
          if (m_tp_procvar in aktmodeswitches) and
-{            (not afterassignment) and }
+            (not got_addrn) and
             (not in_args) and
-            (p^.treetype in [loadn]) then
+            (p^.treetype=loadn) then
             begin
                { support if procvar then for tp7 and many other expression like this }
                Store_valid:=Must_be_valid;
@@ -1741,7 +1743,9 @@ unit pexpr;
                end;
  KLAMMERAFFE : begin
                  consume(KLAMMERAFFE);
+                 got_addrn:=true;
                  p1:=factor(true);
+                 got_addrn:=false;
                  p1:=gensinglenode(addrn,p1);
                end;
     LKLAMMER : begin
@@ -2042,7 +2046,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.120  1999-07-06 22:38:11  florian
+  Revision 1.121  1999-07-16 10:04:35  peter
+    * merged
+
+  Revision 1.120  1999/07/06 22:38:11  florian
     * another fix for TP/Delphi styled procedure variables
 
   Revision 1.119  1999/07/05 20:13:16  peter
@@ -2060,6 +2067,12 @@ end.
 
   Revision 1.116  1999/06/26 00:24:53  pierre
    * mereg from fixes-0_99_12 branch
+
+  Revision 1.112.2.8  1999/07/16 09:54:57  peter
+    * @procvar support in tp7 mode works again
+
+  Revision 1.112.2.7  1999/07/07 07:53:10  michael
+  + Merged patches from florian
 
   Revision 1.112.2.6  1999/07/01 21:31:59  peter
     * procvar fixes again

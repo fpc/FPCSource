@@ -124,11 +124,15 @@ implementation
                          (not is_boolean(def_to))) then
                        b:=0;
                    end;
-{                 enumdef :
+                 enumdef :
                    begin
-                     doconv:=tc_int_2_int;
-                     b:=1;
-                   end;}
+                     { needed for char(enum) }
+                     if explicit then
+                      begin
+                        doconv:=tc_int_2_int;
+                        b:=1;
+                      end;
+                   end;
                end;
              end;
 
@@ -662,8 +666,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  1999-06-28 16:02:30  peter
+  Revision 1.31  1999-07-16 10:04:32  peter
     * merged
+
+  Revision 1.30  1999/06/28 16:02:30  peter
+    * merged
+
+  Revision 1.27.2.4  1999/07/16 09:52:18  peter
+    * allow char(enum)
 
   Revision 1.27.2.3  1999/06/28 15:51:27  peter
     * tp7 fix

@@ -918,11 +918,9 @@ const
            current_scanner^.readchar;
            current_scanner^.skipspace;
            l:=current_scanner^.readval;
-           if l>1024 then
-            maxheapsize:=l;
+           { Ignore this value, because the limit is set by the OS
+             info and shouldn't be changed by the user (PFV) }
          end;
-        if heapsize>maxheapsize then
-          message(scan_w_illegal_switch);
       end;
 
 
@@ -1087,9 +1085,15 @@ const
 
 {
   $Log$
-  Revision 1.54  1999-07-03 00:29:58  peter
+  Revision 1.55  1999-07-16 10:04:36  peter
+    * merged
+
+  Revision 1.54  1999/07/03 00:29:58  peter
     * new link writing to the ppu, one .ppu is needed for all link types,
       static (.o) is now always created also when smartlinking is used
+
+  Revision 1.53.2.1  1999/07/16 09:53:06  peter
+    * ignore maxheapsize
 
   Revision 1.53  1999/06/02 22:44:18  pierre
    * previous wrong log corrected
