@@ -40,7 +40,7 @@ implementation
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,symdef,
     import,export,link,i_bsd,
-    cgutils,cgbase,cgobj;
+    cgutils,cgbase,cgobj,cpuinfo;
 
   type
     tdarwinimported_item = class(timported_item)
@@ -333,7 +333,7 @@ begin
 	    begin
 	      {delete pthreads from list, in this case it is in libc_r}
 	      SharedLibFiles.Remove(SharedLibFiles.Find('pthread').str);
-	      LibrarySuffix:='r'; 
+	      LibrarySuffix:='r';
 	    end;
         End;
       prtobj:='prt0';
@@ -586,6 +586,12 @@ end;
 *****************************************************************************}
 
 initialization
+{$ifdef x86_64}
+  RegisterExternalLinker(system_x86_64_FreeBSD_info,TLinkerBSD);
+  RegisterImport(system_x86_64_freebsd,timportlibbsd);
+  RegisterExport(system_x86_64_freebsd,texportlibbsd);
+  RegisterTarget(system_x86_64_freebsd_info);
+{$endif}
 {$ifdef i386}
   RegisterExternalLinker(system_i386_FreeBSD_info,TLinkerBSD);
   RegisterExternalLinker(system_i386_NetBSD_info,TLinkerBSD);
@@ -621,7 +627,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2004-06-08 17:14:49  jonas
+  Revision 1.18  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.17  2004/06/08 17:14:49  jonas
     * use -x instead of -s for stripping under Mac OS X (-s strips too much
       sometimes)
 
@@ -636,6 +645,28 @@ end.
       -> side effect: no need anymore to use special declarations for
          external C functions under Darwin compared to other platforms
          (it's still necessary for variables though)
+
+  Revision 1.14.2.7  2004/05/18 19:30:28  marco
+   * duplicate entry removed
+
+  Revision 1.14.2.6  2004/05/17 19:58:45  marco
+   * x86_64
+
+  Revision 1.14.2.5  2004/05/11 17:07:55  marco
+   * x86_64 freebsd target support
+
+  Revision 1.14.2.4  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.14.2.3  2004/04/12 14:45:11  peter
+    * tai_const_symbol and tai_const merged
+
+  Revision 1.14.2.2  2004/04/10 12:36:41  peter
+    * fixed alignment issues
+
+  Revision 1.14.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.14  2004/04/04 10:53:21  marco
    * small c_r fix, also link plain libc (like for x11)

@@ -448,7 +448,7 @@ interface
           proctypeoption  : tproctypeoption;
           proccalloption  : tproccalloption;
           procoptions     : tprocoptions;
-          requiredargarea : aword;
+          requiredargarea : aint;
           maxparacount,
           minparacount    : byte;
 {$ifdef i386}
@@ -1207,13 +1207,9 @@ implementation
              begin
                objectlibrary.getdatalabel(localrttilab[rt]);
                write_child_rtti_data(rt);
-               if (cs_create_smart in aktmoduleswitches) then
-                rttiList.concat(Tai_cut.Create);
-               rttiList.concat(Tai_align.create(const_align(pointer_size)));
-               if (cs_create_smart in aktmoduleswitches) then
-                 rttiList.concat(Tai_symbol.Create_global(localrttilab[rt],0))
-               else
-                 rttiList.concat(Tai_symbol.Create(localrttilab[rt],0));
+               maybe_new_object_file(rttiList);
+               new_section(rttiList,sec_rodata,localrttilab[rt].name,const_align(sizeof(aint)));
+               rttiList.concat(Tai_symbol.Create_global(localrttilab[rt],0));
                write_rtti_data(rt);
                rttiList.concat(Tai_symbol_end.Create(localrttilab[rt]));
              end;
@@ -1298,7 +1294,7 @@ implementation
          string_typ:=st_longstring;
          deftype:=stringdef;
          len:=l;
-         savesize:=POINTER_SIZE;
+         savesize:=sizeof(aint);
       end;
 
 
@@ -1308,7 +1304,7 @@ implementation
          deftype:=stringdef;
          string_typ:=st_longstring;
          len:=ppufile.getlongint;
-         savesize:=POINTER_SIZE;
+         savesize:=sizeof(aint);
       end;
 
 {$ifdef ansistring_bits}
@@ -1350,7 +1346,7 @@ implementation
          string_typ:=st_ansistring;
          deftype:=stringdef;
          len:=l;
-         savesize:=POINTER_SIZE;
+         savesize:=sizeof(aint);
       end;
 
     constructor tstringdef.loadansi(ppufile:tcompilerppufile);
@@ -1360,7 +1356,7 @@ implementation
          deftype:=stringdef;
          string_typ:=st_ansistring;
          len:=ppufile.getlongint;
-         savesize:=POINTER_SIZE;
+         savesize:=sizeof(aint);
       end;
 {$endif}
 
@@ -1370,7 +1366,7 @@ implementation
          string_typ:=st_widestring;
          deftype:=stringdef;
          len:=l;
-         savesize:=POINTER_SIZE;
+         savesize:=sizeof(aint);
       end;
 
 
@@ -1380,7 +1376,7 @@ implementation
          deftype:=stringdef;
          string_typ:=st_widestring;
          len:=ppufile.getlongint;
-         savesize:=POINTER_SIZE;
+         savesize:=sizeof(aint);
       end;
 
 
@@ -1448,6 +1444,7 @@ implementation
     function tstringdef.stabstring : pchar;
       var
         bytest,charst,longst : string;
+        slen : longint;
       begin
         case string_typ of
            st_shortstring:
@@ -1458,9 +1455,13 @@ implementation
              {$IfDef GDBknowsstrings}
                 stabstring:=stabstr_evaluate('n$1;$2',[charst,tostr(len)]);
              {$else}
+               { fix length of openshortstring }
+               slen:=len;
+               if slen=0 then
+                 slen:=255;
                bytest:=tstoreddef(u8inttype.def).numberstring;
                stabstring:=stabstr_evaluate('s$1length:$2,0,8;st:ar$2;1;$3;$4,8,$5;;',
-                           [tostr(len+1),bytest,tostr(len),charst,tostr(len*8)]);
+                           [tostr(slen+1),bytest,tostr(slen),charst,tostr(slen*8)]);
              {$EndIf}
              end;
            st_longstring:
@@ -1808,12 +1809,12 @@ implementation
             4:
               rttiList.concat(Tai_const.Create_8bit(otULong));
          end;
-         rttiList.concat(Tai_const.Create_32bit(Cardinal(min)));
-         rttiList.concat(Tai_const.Create_32bit(Cardinal(max)));
+         rttiList.concat(Tai_const.Create_32bit(min));
+         rttiList.concat(Tai_const.Create_32bit(max));
          if assigned(basedef) then
-           rttiList.concat(Tai_const_symbol.Create(basedef.get_rtti_label(rt)))
+           rttiList.concat(Tai_const.Create_sym(basedef.get_rtti_label(rt)))
          else
-           rttiList.concat(Tai_const.Create_ptr(0));
+           rttiList.concat(Tai_const.create_sym(nil));
          hp:=tenumsym(firstenum);
          while assigned(hp) do
            begin
@@ -1974,8 +1975,8 @@ implementation
         begin
           write_rtti_name;
           rttiList.concat(Tai_const.Create_8bit(byte(trans[typ])));
-          rttiList.concat(Tai_const.Create_32bit(Cardinal(low)));
-          rttiList.concat(Tai_const.Create_32bit(Cardinal(high)));
+          rttiList.concat(Tai_const.Create_32bit(longint(low)));
+          rttiList.concat(Tai_const.Create_32bit(longint(high)));
         end;
 
       begin
@@ -1984,36 +1985,19 @@ implementation
             begin
               rttiList.concat(Tai_const.Create_8bit(tkInt64));
               write_rtti_name;
-{$warning maybe change to create_64bit}
-              if target_info.endian=endian_little then
-                begin
-                  { low }
-                  rttiList.concat(Tai_const.Create_32bit($0));
-                  rttiList.concat(Tai_const.Create_32bit(cardinal($80000000)));
-                  { high }
-                  rttiList.concat(Tai_const.Create_32bit(cardinal($ffffffff)));
-                  rttiList.concat(Tai_const.Create_32bit(cardinal($7fffffff)));
-                end
-              else
-                begin
-                  { low }
-                  rttiList.concat(Tai_const.Create_32bit(cardinal($80000000)));
-                  rttiList.concat(Tai_const.Create_32bit($0));
-                  { high }
-                  rttiList.concat(Tai_const.Create_32bit(cardinal($7fffffff)));
-                  rttiList.concat(Tai_const.Create_32bit(cardinal($ffffffff)));
-                end;
+              { low }
+              rttiList.concat(Tai_const.Create_64bit(int64($80000000) shl 32));
+              { high }
+              rttiList.concat(Tai_const.Create_64bit((int64($7fffffff) shl 32) or int64($ffffffff)));
             end;
           u64bit :
             begin
               rttiList.concat(Tai_const.Create_8bit(tkQWord));
               write_rtti_name;
               { low }
-              rttiList.concat(Tai_const.Create_32bit($0));
-              rttiList.concat(Tai_const.Create_32bit($0));
+              rttiList.concat(Tai_const.Create_64bit(0));
               { high }
-              rttiList.concat(Tai_const.Create_32bit(cardinal($ffffffff)));
-              rttiList.concat(Tai_const.Create_32bit(cardinal($ffffffff)));
+              rttiList.concat(Tai_const.Create_64bit(int64((int64($ffffffff) shl 32) or int64($ffffffff))));
             end;
           bool8bit:
             begin
@@ -2235,10 +2219,10 @@ implementation
 {$ifdef cpu64bit}
         case filetyp of
           ft_text :
-            savesize:=616;
+            savesize:=608;
           ft_typed,
           ft_untyped :
-            savesize:=324;
+            savesize:=320;
         end;
 {$else cpu64bit}
         case filetyp of
@@ -2275,22 +2259,20 @@ implementation
           stabstring := strpnew('d'+cchartype^.numberstring{+';'});
       end;
    {$Else}
-      {based on
-        FileRec = Packed Record
-          Handle,
-          Mode,
-          RecSize   : longint;
-          _private  : array[1..32] of byte;
-          UserData  : array[1..16] of byte;
-          name      : array[0..255] of char;
-        End; }
-      { the buffer part is still missing !! (PM) }
-      { but the string could become too long !! }
-      stabstring:=stabstr_evaluate('s${savesize}HANDLE:$1,0,32;MODE:$1,32,32;RECSIZE:$1,64,32;'+
-                                   '_PRIVATE:ar$2;1;32;$3,96,256;USERDATA:ar$2;1;16;$3,352,128;'+
-                                   'NAME:ar$2;0;255;$4,480,2048;;',[tstoreddef(u32inttype.def).numberstring,
-                                   tstoreddef(u16inttype.def).numberstring,tstoreddef(u8inttype.def).numberstring,
+{$ifdef cpu64bit}
+      stabstring:=stabstr_evaluate('s${savesize}HANDLE:$1,0,32;MODE:$1,32,32;RECSIZE:$2,64,64;'+
+                                   '_PRIVATE:ar$1;1;64;$3,128,256;USERDATA:ar$1;1;16;$3,384,128;'+
+                                   'NAME:ar$1;0;255;$4,512,2048;;',[tstoreddef(s32inttype.def).numberstring,
+                                   tstoreddef(s64inttype.def).numberstring,
+                                   tstoreddef(u8inttype.def).numberstring,
                                    tstoreddef(cchartype.def).numberstring]);
+{$else cpu64bit}
+      stabstring:=stabstr_evaluate('s${savesize}HANDLE:$1,0,32;MODE:$1,32,32;RECSIZE:$1,64,32;'+
+                                   '_PRIVATE:ar$1;1;32;$3,96,256;USERDATA:ar$1;1;16;$2,352,128;'+
+                                   'NAME:ar$1;0;255;$3,480,2048;;',[tstoreddef(s32inttype.def).numberstring,
+                                   tstoreddef(u8inttype.def).numberstring,
+                                   tstoreddef(cchartype.def).numberstring]);
+{$endif cpu64bit}
    {$EndIf}
       end;
 
@@ -2309,8 +2291,10 @@ implementation
             tstoreddef(cchartype.def).concatstabto(asmlist);
         end;
   {$Else}
-        tstoreddef(u32inttype.def).concatstabto(asmlist);
-        tstoreddef(u16inttype.def).concatstabto(asmlist);
+        tstoreddef(s32inttype.def).concatstabto(asmlist);
+{$ifdef cpu64bit}
+        tstoreddef(s64inttype.def).concatstabto(asmlist);
+{$endif cpu64bit}
         tstoreddef(u8inttype.def).concatstabto(asmlist);
         tstoreddef(cchartype.def).concatstabto(asmlist);
   {$EndIf}
@@ -2432,7 +2416,7 @@ implementation
         deftype:=pointerdef;
         pointertype:=tt;
         is_far:=false;
-        savesize:=POINTER_SIZE;
+        savesize:=sizeof(aint);
       end;
 
 
@@ -2442,7 +2426,7 @@ implementation
         deftype:=pointerdef;
         pointertype:=tt;
         is_far:=true;
-        savesize:=POINTER_SIZE;
+        savesize:=sizeof(aint);
       end;
 
 
@@ -2452,7 +2436,7 @@ implementation
          deftype:=pointerdef;
          ppufile.gettype(pointertype);
          is_far:=(ppufile.getbyte<>0);
-         savesize:=POINTER_SIZE;
+         savesize:=sizeof(aint);
       end;
 
 
@@ -2559,7 +2543,7 @@ implementation
          deftype:=classrefdef;
          ppufile.gettype(pointertype);
          is_far:=false;
-         savesize:=POINTER_SIZE;
+         savesize:=sizeof(aint);
       end;
 
 
@@ -2700,7 +2684,7 @@ implementation
          rttiList.concat(Tai_const.Create_8bit(tkSet));
          write_rtti_name;
          rttiList.concat(Tai_const.Create_8bit(otULong));
-         rttiList.concat(Tai_const_symbol.Create(tstoreddef(elementtype.def).get_rtti_label(rt)));
+         rttiList.concat(Tai_const.Create_sym(tstoreddef(elementtype.def).get_rtti_label(rt)));
       end;
 
 
@@ -2887,7 +2871,7 @@ implementation
       begin
         if IsDynamicArray then
           begin
-            size:=POINTER_SIZE;
+            size:=sizeof(aint);
             exit;
           end;
         {Tarraydef.size may never be called for an open array!}
@@ -2974,7 +2958,7 @@ implementation
          if not(IsDynamicArray) then
            rttiList.concat(Tai_const.Create_32bit(min(int64(highrange)-lowrange+1,maxlongint)));
          { element type }
-         rttiList.concat(Tai_const_symbol.Create(tstoreddef(elementtype.def).get_rtti_label(rt)));
+         rttiList.concat(Tai_const.Create_sym(tstoreddef(elementtype.def).get_rtti_label(rt)));
          { variant type }
          // !!!!!!!!!!!!!!!!
       end;
@@ -3100,7 +3084,7 @@ implementation
             ((tsym(sym).typ=varsym) and
              tvarsym(sym).vartype.def.needs_inittable) then
           begin
-            rttiList.concat(Tai_const_symbol.Create(tstoreddef(tvarsym(sym).vartype.def).get_rtti_label(FRTTIType)));
+            rttiList.concat(Tai_const.Create_sym(tstoreddef(tvarsym(sym).vartype.def).get_rtti_label(FRTTIType)));
             rttiList.concat(Tai_const.Create_32bit(tvarsym(sym).fieldoffset));
           end;
       end;
@@ -3281,7 +3265,8 @@ implementation
 {$ifdef i386}
          fpu_used:=0;
 {$endif i386}
-         savesize:=POINTER_SIZE;
+         savesize:=sizeof(aint);
+         requiredargarea:=0;
          has_paraloc_info:=false;
       end;
 
@@ -3473,7 +3458,7 @@ implementation
          ppufile.getsmallset(procoptions);
          { get the number of parameters }
          count:=ppufile.getbyte;
-         savesize:=POINTER_SIZE;
+         savesize:=sizeof(aint);
          has_paraloc_info:=false;
          for i:=1 to count do
           begin
@@ -4219,13 +4204,14 @@ implementation
 
          inherited buildderefimpl;
 
-         { locals }
-         if assigned(localst) then
-          begin
-            tlocalsymtable(localst).buildderef;
-            tlocalsymtable(localst).buildderefimpl;
-            funcretsymderef.build(funcretsym);
-          end;
+         { Locals }
+         if (proccalloption=pocall_inline) or
+            ((current_module.flags and uf_local_browser)<>0) then
+           begin
+             tlocalsymtable(localst).buildderef;
+             tlocalsymtable(localst).buildderefimpl;
+             funcretsymderef.build(funcretsym);
+           end;
 
          { inline tree }
          if (proccalloption=pocall_inline) then
@@ -4275,10 +4261,10 @@ implementation
          aktparasymtable:=parast;
          aktlocalsymtable:=localst;
 
-         { locals }
-         if assigned(localst) then
+         { Locals }
+         if (proccalloption=pocall_inline) or
+            ((current_module.flags and uf_local_browser)<>0) then
           begin
-            { localst }
             { we can deref both interface and implementation parts }
             tlocalsymtable(localst).deref;
             tlocalsymtable(localst).derefimpl;
@@ -4526,9 +4512,9 @@ implementation
       begin
          if (po_methodpointer in procoptions) and
             not(po_addressonly in procoptions) then
-           size:=2*POINTER_SIZE
+           size:=2*sizeof(aint)
          else
-           size:=POINTER_SIZE;
+           size:=sizeof(aint);
       end;
 
 
@@ -4922,7 +4908,7 @@ implementation
                   inc(tobjectsymtable(symtable).datasize,tobjectsymtable(c.symtable).datasize);
                   if (oo_has_vmt in objectoptions) and
                      (oo_has_vmt in c.objectoptions) then
-                    dec(tobjectsymtable(symtable).datasize,POINTER_SIZE);
+                    dec(tobjectsymtable(symtable).datasize,sizeof(aint));
                   { if parent has a vmt field then
                     the offset is the same for the child PM }
                   if (oo_has_vmt in c.objectoptions) or is_class(self) then
@@ -4947,7 +4933,7 @@ implementation
              tobjectsymtable(symtable).datasize:=align(tobjectsymtable(symtable).datasize,
                  tobjectsymtable(symtable).fieldalignment);
              vmt_offset:=tobjectsymtable(symtable).datasize;
-             inc(tobjectsymtable(symtable).datasize,POINTER_SIZE);
+             inc(tobjectsymtable(symtable).datasize,sizeof(aint));
              include(objectoptions,oo_has_vmt);
           end;
      end;
@@ -5044,7 +5030,7 @@ implementation
     function tobjectdef.size : longint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba] then
-          result:=POINTER_SIZE
+          result:=sizeof(aint)
         else
           result:=tobjectsymtable(symtable).datasize;
       end;
@@ -5053,7 +5039,7 @@ implementation
     function tobjectdef.alignment:longint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba] then
-          alignment:=POINTER_SIZE
+          alignment:=sizeof(aint)
         else
           alignment:=tobjectsymtable(symtable).recordalignment;
       end;
@@ -5064,31 +5050,32 @@ implementation
         { for offset of methods for classes, see rtl/inc/objpash.inc }
         case objecttype of
         odt_class:
-          vmtmethodoffset:=(index+12)*POINTER_SIZE;
+          { the +2*sizeof(Aint) is size and -size }
+          vmtmethodoffset:=(index+10)*sizeof(aint)+2*sizeof(AInt);
         odt_interfacecom,odt_interfacecorba:
-          vmtmethodoffset:=index*POINTER_SIZE;
+          vmtmethodoffset:=index*sizeof(aint);
         else
 {$ifdef WITHDMT}
-          vmtmethodoffset:=(index+4)*POINTER_SIZE;
+          vmtmethodoffset:=(index+4)*sizeof(aint);
 {$else WITHDMT}
-          vmtmethodoffset:=(index+3)*POINTER_SIZE;
+          vmtmethodoffset:=(index+3)*sizeof(aint);
 {$endif WITHDMT}
         end;
       end;
 
 
     function tobjectdef.vmt_mangledname : string;
-    begin
-      if not(oo_has_vmt in objectoptions) then
-        Message1(parser_n_object_has_no_vmt,objrealname^);
-      vmt_mangledname:=make_mangledname('VMT',owner,objname^);
-    end;
+      begin
+        if not(oo_has_vmt in objectoptions) then
+          Message1(parser_n_object_has_no_vmt,objrealname^);
+        vmt_mangledname:=make_mangledname('VMT',owner,objname^);
+      end;
 
 
     function tobjectdef.rtti_name : string;
-    begin
-      rtti_name:=make_mangledname('RTTI',owner,objname^);
-    end;
+      begin
+        rtti_name:=make_mangledname('RTTI',owner,objname^);
+      end;
 
 
 {$ifdef GDB}
@@ -5381,7 +5368,7 @@ implementation
         begin
            if not(assigned(proc) and assigned(proc.firstsym))  then
              begin
-                rttiList.concat(Tai_const.Create_32bit(1));
+                rttiList.concat(Tai_const.create(ait_const_ptr,1));
                 typvalue:=3;
              end
            else if proc.firstsym^.sym.typ=varsym then
@@ -5414,7 +5401,7 @@ implementation
                      end;
                      hp:=hp^.next;
                   end;
-                rttiList.concat(Tai_const.Create_32bit(address));
+                rttiList.concat(Tai_const.create(ait_const_ptr,address));
                 typvalue:=0;
              end
            else
@@ -5424,13 +5411,13 @@ implementation
                   exit;
                 if not(po_virtualmethod in tprocdef(proc.procdef).procoptions) then
                   begin
-                     rttiList.concat(Tai_const_symbol.Createname(tprocdef(proc.procdef).mangledname,AT_FUNCTION,0));
+                     rttiList.concat(Tai_const.createname(tprocdef(proc.procdef).mangledname,AT_FUNCTION,0));
                      typvalue:=1;
                   end
                 else
                   begin
                      { virtual method, write vmt offset }
-                     rttiList.concat(Tai_const.Create_32bit(
+                     rttiList.concat(Tai_const.create(ait_const_ptr,
                        tprocdef(proc.procdef)._class.vmtmethodoffset(tprocdef(proc.procdef).extnumber)));
                      typvalue:=2;
                   end;
@@ -5450,9 +5437,9 @@ implementation
                    { access to implicit class property as field }
                    proctypesinfo:=(0 shl 0) or (0 shl 2) or (0 shl 4);
                    rttiList.concat(Tai_const_symbol.Createname(tvarsym(sym.vartype.def.get_rtti_label),AT_DATA,0));
-                   rttiList.concat(Tai_const.Create_32bit(tvarsym(sym.address)));
-                   rttiList.concat(Tai_const.Create_32bit(tvarsym(sym.address)));
-                   { per default stored }
+                   rttiList.concat(Tai_const.create(ait_const_ptr,tvarsym(sym.address)));
+                   rttiList.concat(Tai_const.create(ait_const_ptr,tvarsym(sym.address)));
+                   { by default stored }
                    rttiList.concat(Tai_const.Create_32bit(1));
                    { index as well as ... }
                    rttiList.concat(Tai_const.Create_32bit(0));
@@ -5471,13 +5458,13 @@ implementation
                      proctypesinfo:=$40
                    else
                      proctypesinfo:=0;
-                   rttiList.concat(Tai_const_symbol.Create(tstoreddef(tpropertysym(sym).proptype.def).get_rtti_label(fullrtti)));
+                   rttiList.concat(Tai_const.Create_sym(tstoreddef(tpropertysym(sym).proptype.def).get_rtti_label(fullrtti)));
                    writeproc(tpropertysym(sym).readaccess,0);
                    writeproc(tpropertysym(sym).writeaccess,2);
                    { isn't it stored ? }
                    if not(ppo_stored in tpropertysym(sym).propoptions) then
                      begin
-                        rttiList.concat(Tai_const.Create_ptr(0));
+                        rttiList.concat(Tai_const.create_sym(nil));
                         proctypesinfo:=proctypesinfo or (3 shl 4);
                      end
                    else
@@ -5607,23 +5594,23 @@ implementation
          objectlibrary.getdatalabel(classtable);
          count:=0;
          tablecount:=0;
+         maybe_new_object_file(rttiList);
+         new_section(rttiList,sec_rodata,classtable.name,const_align(sizeof(aint)));
+         { fields }
          symtable.foreach({$ifdef FPC}@{$endif}count_published_fields,nil);
-         if (cs_create_smart in aktmoduleswitches) then
-          rttiList.concat(Tai_cut.Create);
-         rttilist.concat(tai_align.create(const_align(pointer_size)));
          rttiList.concat(Tai_label.Create(fieldtable));
          rttiList.concat(Tai_const.Create_16bit(count));
-         rttiList.concat(Tai_const_symbol.Create(classtable));
+         rttiList.concat(Tai_const.Create_sym(classtable));
          symtable.foreach({$ifdef FPC}@{$endif}writefields,nil);
 
          { generate the class table }
-         rttilist.concat(tai_align.create(const_align(pointer_size)));
+         rttilist.concat(tai_align.create(const_align(sizeof(aint))));
          rttiList.concat(Tai_label.Create(classtable));
          rttiList.concat(Tai_const.Create_16bit(tablecount));
          hp:=tclasslistitem(classtablelist.first);
          while assigned(hp) do
            begin
-              rttiList.concat(Tai_const_symbol.Createname(tobjectdef(hp.p).vmt_mangledname,AT_DATA,0));
+              rttiList.concat(Tai_const.Createname(tobjectdef(hp.p).vmt_mangledname,AT_DATA,0));
               hp:=tclasslistitem(hp.next);
            end;
 
@@ -5682,15 +5669,15 @@ implementation
              begin
                if (oo_has_vmt in objectoptions) and
                   not(objecttype in [odt_interfacecom,odt_interfacecorba]) then
-                 rttiList.concat(Tai_const_symbol.Createname(vmt_mangledname,AT_DATA,0))
+                 rttiList.concat(Tai_const.Createname(vmt_mangledname,AT_DATA,0))
                else
-                 rttiList.concat(Tai_const.Create_ptr(0));
+                 rttiList.concat(Tai_const.create_sym(nil));
 
                { write owner typeinfo }
                if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
-                 rttiList.concat(Tai_const_symbol.Create(childof.get_rtti_label(fullrtti)))
+                 rttiList.concat(Tai_const.Create_sym(childof.get_rtti_label(fullrtti)))
                else
-                 rttiList.concat(Tai_const.Create_ptr(0));
+                 rttiList.concat(Tai_const.create_sym(nil));
 
                { count total number of properties }
                if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
@@ -6150,7 +6137,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.240  2004-05-25 18:51:14  peter
+  Revision 1.241  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.240  2004/05/25 18:51:14  peter
     * range check error
 
   Revision 1.239  2004/05/23 20:57:10  peter
@@ -6172,6 +6162,46 @@ end.
 
   Revision 1.234  2004/04/18 15:22:24  florian
     + location support for arguments, currently PowerPC/MorphOS only
+
+  Revision 1.233.2.13  2004/05/18 20:13:52  peter
+    * fix filedef stabs for 64bit
+
+  Revision 1.233.2.12  2004/05/03 20:18:52  peter
+    * fixes for tprintf
+
+  Revision 1.233.2.11  2004/05/02 20:53:36  peter
+    * use ppu.get/putint64
+
+  Revision 1.233.2.10  2004/05/01 23:36:47  peter
+    * assembler reader 64bit fixes
+
+  Revision 1.233.2.9  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.233.2.8  2004/04/28 19:44:26  florian
+    * writing of property rtti fixed
+
+  Revision 1.233.2.7  2004/04/27 18:18:26  peter
+    * aword -> aint
+
+  Revision 1.233.2.6  2004/04/26 21:02:34  peter
+    * 64bit fixes
+
+  Revision 1.233.2.5  2004/04/25 16:32:31  florian
+    * fixed vmt issues on 64 bit systems
+
+  Revision 1.233.2.4  2004/04/22 19:44:05  peter
+    * fix openstring stabs
+
+  Revision 1.233.2.3  2004/04/12 14:45:11  peter
+    * tai_const_symbol and tai_const merged
+
+  Revision 1.233.2.2  2004/04/10 12:36:41  peter
+    * fixed alignment issues
+
+  Revision 1.233.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.233  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned

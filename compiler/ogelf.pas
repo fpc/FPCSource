@@ -32,11 +32,11 @@ interface
 
     uses
        { common }
-       cclasses,
+       cclasses,globtype,
        { target }
        systems,
        { assembler }
-       cpubase,aasmbase,assemble,
+       cpuinfo,cpubase,aasmbase,aasmtai,assemble,
        { output }
        ogbase;
 
@@ -52,8 +52,8 @@ interface
           entsize   : longint;
           { relocation }
           relocsect : telf32Section;
-          constructor createsec(sec:TSection);
-          constructor createname(const Aname:string;Atype,Aflags,Alink,Ainfo,Aalign,Aentsize:longint);
+          constructor create(const Aname:string;Atype:TAsmSectionType;Aalign:longint;Aoptions:TAsmSectionOptions);override;
+          constructor create_ext(const Aname:string;Atype:TAsmSectionType;Ashtype,Ashflags,Ashlink,Ashinfo,Aalign,Aentsize:longint);
           destructor  destroy;override;
        end;
 
@@ -70,13 +70,13 @@ interface
          syms     : Tdynamicarray;
          constructor create(const n:string);
          destructor  destroy;override;
-         procedure createsection(sec:TSection);override;
-         procedure seTSectionsizes(var s:TAsmSectionSizes);override;
-         procedure writereloc(data,len:longint;p:tasmsymbol;relative:TAsmRelocationType);override;
+         function  sectionname(atype:tasmsectiontype;const aname:string):string;override;
+         procedure writereloc(data,len:aint;p:tasmsymbol;relative:TAsmRelocationType);override;
          procedure writesymbol(p:tasmsymbol);override;
-         procedure writestabs(section:TSection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);override;
-         procedure writesymstabs(section:TSection;offset:longint;p:pchar;ps:tasmsymbol;
-                                 nidx,nother,line:longint;reloc:boolean);override;
+         procedure writestabs(offset:aint;p:pchar;nidx,nother,line:longint;reloc:boolean);override;
+         procedure writesymstabs(offset:aint;p:pchar;ps:tasmsymbol;nidx,nother,line:longint;reloc:boolean);override;
+         procedure beforealloc;override;
+         procedure beforewrite;override;
        end;
 
        telf32objectoutput = class(tobjectoutput)
@@ -87,6 +87,17 @@ interface
          procedure createshstrtab;
          procedure createsymtab;
          procedure writesectionheader(s:telf32section);
+         procedure writesectiondata(s:telf32section);
+         procedure section_write_symbol(p:tnamedindexitem;arg:pointer);
+         procedure section_write_sh_string(p:tnamedindexitem;arg:pointer);
+         procedure section_number_symbol(p:tnamedindexitem;arg:pointer);
+         procedure section_count_sects(p:tnamedindexitem;arg:pointer);
+         procedure section_create_relocsec(p:tnamedindexitem;arg:pointer);
+         procedure section_set_datapos(p:tnamedindexitem;arg:pointer);
+         procedure section_relocsec_set_datapos(p:tnamedindexitem;arg:pointer);
+         procedure section_write_data(p:tnamedindexitem;arg:pointer);
+         procedure section_write_sechdr(p:tnamedindexitem;arg:pointer);
+         procedure section_write_relocsec(p:tnamedindexitem;arg:pointer);
        protected
          function writedata(data:TAsmObjectData):boolean;override;
        public
@@ -107,7 +118,7 @@ implementation
         strings,
 {$endif}
         verbose,
-        globtype,cutils,globals,fmodule;
+        cutils,globals,fmodule;
 
     const
       symbolresize = 200*18;
@@ -210,58 +221,62 @@ implementation
                                TSection
 ****************************************************************************}
 
-    constructor telf32section.createsec(sec:TSection);
+    constructor telf32section.create(const Aname:string;Atype:TAsmSectionType;Aalign:longint;Aoptions:TAsmSectionOptions);
       var
-        Aflags,Atype,Aalign,Aentsize : longint;
+        Ashflags,Ashtype,Aentsize : longint;
       begin
-        Aflags:=0;
-        Atype:=0;
-        Aalign:=0;
+        Ashflags:=0;
+        Ashtype:=0;
         Aentsize:=0;
-        case sec of
+        case Atype of
           sec_code :
             begin
-              Aflags:=SHF_ALLOC or SHF_EXECINSTR;
-              AType:=SHT_PROGBITS;
-              AAlign:=16;
+              Ashflags:=SHF_ALLOC or SHF_EXECINSTR;
+              AshType:=SHT_PROGBITS;
+              AAlign:=max(sizeof(aint),AAlign);
             end;
           sec_data :
             begin
-              Aflags:=SHF_ALLOC or SHF_WRITE;
-              AType:=SHT_PROGBITS;
-              AAlign:=4;
+              Ashflags:=SHF_ALLOC or SHF_WRITE;
+              AshType:=SHT_PROGBITS;
+              AAlign:=max(sizeof(aint),AAlign);
             end;
           sec_bss :
             begin
-              Aflags:=SHF_ALLOC or SHF_WRITE;
-              AType:=SHT_NOBITS;
-              AAlign:=4;
+              Ashflags:=SHF_ALLOC or SHF_WRITE;
+              AshType:=SHT_NOBITS;
+              AAlign:=max(sizeof(aint),AAlign);
             end;
           sec_stab :
             begin
-              AType:=SHT_PROGBITS;
-              AAlign:=4;
+              AshType:=SHT_PROGBITS;
+              AAlign:=max(sizeof(aint),AAlign);
               Aentsize:=sizeof(telf32stab);
             end;
           sec_stabstr :
             begin
-              AType:=SHT_STRTAB;
+              AshType:=SHT_STRTAB;
               AAlign:=1;
             end;
         end;
-        createname(target_asm.secnames[sec],Atype,Aflags,0,0,Aalign,Aentsize);
+        create_ext(Aname,Atype,Ashtype,Ashflags,0,0,Aalign,Aentsize);
       end;
 
 
-    constructor telf32section.createname(const Aname:string;Atype,Aflags,Alink,Ainfo,Aalign,Aentsize:longint);
+    constructor telf32section.create_ext(const Aname:string;Atype:TAsmSectionType;Ashtype,Ashflags,Ashlink,Ashinfo,Aalign,Aentsize:longint);
+      var
+        aoptions : TAsmSectionOptions;
       begin
-        inherited create(Aname,Aalign,(AType=SHT_NOBITS));
+        aoptions:=[];
+        if (AshType=SHT_NOBITS) then
+          include(aoptions,aso_alloconly);
+        inherited create(Aname,Atype,Aalign,aoptions);
         secshidx:=0;
         shstridx:=0;
-        shtype:=AType;
-        shflags:=AFlags;
-        shlink:=Alink;
-        shinfo:=Ainfo;
+        shtype:=AshType;
+        shflags:=AshFlags;
+        shlink:=Ashlink;
+        shinfo:=Ashinfo;
         entsize:=Aentsize;
         relocsect:=nil;
       end;
@@ -284,28 +299,25 @@ implementation
         s : string;
       begin
         inherited create(n);
+        CAsmSection:=TElf32Section;
         { reset }
         Syms:=TDynamicArray.Create(symbolresize);
         { default sections }
-        symtabsect:=telf32section.createname('.symtab',2,0,0,0,4,16);
-        strtabsect:=telf32section.createname('.strtab',3,0,0,0,1,0);
-        shstrtabsect:=telf32section.createname('.shstrtab',3,0,0,0,1,0);
+        symtabsect:=telf32section.create_ext('.symtab',sec_custom,2,0,0,0,4,16);
+        strtabsect:=telf32section.create_ext('.strtab',sec_custom,3,0,0,0,1,0);
+        shstrtabsect:=telf32section.create_ext('.shstrtab',sec_custom,3,0,0,0,1,0);
         { insert the empty and filename as first in strtab }
         strtabsect.writestr(#0);
         strtabsect.writestr(SplitFileName(current_module.mainsource^)+#0);
         { we need at least the following sections }
-        createsection(sec_code);
-        createsection(sec_data);
-        createsection(sec_bss);
+        createsection(sec_code,'',0,[]);
+        createsection(sec_data,'',0,[]);
+        createsection(sec_bss,'',0,[]);
         { create stabs sections if debugging }
         if (cs_debuginfo in aktmoduleswitches) then
          begin
-           createsection(sec_stab);
-           createsection(sec_stabstr);
-           writestabs(sec_none,0,nil,0,0,0,false);
-           { write zero pchar and name together (PM) }
-           s:=#0+SplitFileName(current_module.mainsource^)+#0;
-           sects[sec_stabstr].write(s[1],length(s));
+           stabssec:=createsection(sec_stab,'',0,[]);
+           stabstrsec:=createsection(sec_stabstr,'',0,[]);
          end;
       end;
 
@@ -320,20 +332,35 @@ implementation
       end;
 
 
-    procedure telf32objectdata.createsection(sec:TSection);
+    function telf32objectdata.sectionname(atype:tasmsectiontype;const aname:string):string;
+      const
+        secnames : array[tasmsectiontype] of string[12] = ('',
+{$warning TODO .rodata not yet working}
+          '.text','.data','.data','.bss',
+          'common',
+          '.note',
+          '.stab','.stabstr',
+          '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+          '.eh_frame',
+          '.debug_frame'
+        );
       begin
-        sects[sec]:=telf32Section.createsec(Sec);
+        if use_smartlink_section and
+           (atype<>sec_bss) and
+           (aname<>'') then
+          result:='.gnu.linkonce'+copy(secnames[atype],1,2)+'.'+aname
+        else
+          result:=secnames[atype];
       end;
 
 
     procedure telf32objectdata.writesymbol(p:tasmsymbol);
       begin
+        if currsec=nil then
+          internalerror(200403291);
         { already written ? }
         if p.indexnr<>-1 then
          exit;
-        { be sure that the section will exists }
-        if (p.section<>sec_none) and not(assigned(sects[p.section])) then
-          createsection(p.section);
         { calculate symbol index }
         if (p.currbind<>AB_LOCAL) then
          begin
@@ -346,12 +373,12 @@ implementation
       end;
 
 
-    procedure telf32objectdata.writereloc(data,len:longint;p:tasmsymbol;relative:TAsmRelocationType);
+    procedure telf32objectdata.writereloc(data,len:aint;p:tasmsymbol;relative:TAsmRelocationType);
       var
         symaddr : longint;
       begin
-        if not assigned(sects[currsec]) then
-         createsection(currsec);
+        if currsec=nil then
+          internalerror(200403292);
         if assigned(p) then
          begin
            { real address of the symbol }
@@ -362,12 +389,12 @@ implementation
                case relative of
                  RELOC_ABSOLUTE :
                    begin
-                     sects[currsec].addsectionreloc(sects[currsec].datasize,currsec,RELOC_ABSOLUTE);
+                     currsec.addsectionreloc(currsec.datasize,currsec,RELOC_ABSOLUTE);
                      inc(data,symaddr);
                    end;
                  RELOC_RELATIVE :
                    begin
-                     inc(data,symaddr-len-sects[currsec].datasize);
+                     inc(data,symaddr-len-currsec.datasize);
                    end;
                  RELOC_RVA :
                    internalerror(3219583);
@@ -376,27 +403,30 @@ implementation
            else
              begin
                writesymbol(p);
-               if (p.section<>sec_none) and (relative<>RELOC_RELATIVE) then
+               { For common (global .bss) symbols a reloc by sym is required }
+               if assigned(p.section) and
+                  (p.currbind<>AB_COMMON) and
+                  (relative<>RELOC_RELATIVE) then
                 begin
-                  sects[currsec].addsectionreloc(sects[currsec].datasize,p.section,relative);
+                  currsec.addsectionreloc(currsec.datasize,p.section,relative);
                   inc(data,symaddr);
                 end
                else
-                sects[currsec].addsymreloc(sects[currsec].datasize,p,relative);
+                currsec.addsymreloc(currsec.datasize,p,relative);
                if relative=RELOC_RELATIVE then
                 begin
                   if p.currbind=AB_EXTERNAL then
                    dec(data,len)
                   else
-                   dec(data,len+sects[currsec].datasize);
+                   dec(data,len+currsec.datasize);
                 end;
             end;
          end;
-        sects[currsec].write(data,len);
+        currsec.write(data,len);
       end;
 
 
-    procedure telf32objectdata.writestabs(section:TSection;offset:longint;p:pchar;nidx,nother,line:longint;reloc : boolean);
+    procedure telf32objectdata.writestabs(offset:aint;p:pchar;nidx,nother,line:longint;reloc : boolean);
       var
         stab : telf32stab;
       begin
@@ -404,55 +434,75 @@ implementation
          begin
            if (offset=-1) then
             begin
-              if section=sec_none then
+              if currsec=nil then
                offset:=0
               else
-               offset:=sects[section].datasize;
+               offset:=currsec.datasize;
             end;
          end;
         fillchar(stab,sizeof(telf32stab),0);
         if assigned(p) and (p[0]<>#0) then
          begin
-           stab.strpos:=sects[sec_stabstr].datasize;
-           sects[sec_stabstr].write(p^,strlen(p)+1);
+           stab.strpos:=stabstrsec.datasize;
+           stabstrsec.write(p^,strlen(p)+1);
          end;
         stab.ntype:=nidx;
         stab.ndesc:=line;
         stab.nother:=nother;
         stab.nvalue:=offset;
-        sects[sec_stab].write(stab,sizeof(stab));
+        stabssec.write(stab,sizeof(stab));
         { when the offset is not 0 then write a relocation, take also the
           hdrstab into account with the offset }
         if reloc then
-         sects[sec_stab].addsectionreloc(sects[sec_stab].datasize-4,section,RELOC_ABSOLUTE);
+         stabssec.addsectionreloc(stabssec.datasize-4,currsec,RELOC_ABSOLUTE);
       end;
 
 
-    procedure telf32objectdata.writesymstabs(section:TSection;offset:longint;p:pchar;ps:tasmsymbol;
-                                             nidx,nother,line:longint;reloc:boolean);
+    procedure telf32objectdata.writesymstabs(offset:aint;p:pchar;ps:tasmsymbol;nidx,nother,line:longint;reloc:boolean);
       var
         stab : telf32stab;
       begin
         fillchar(stab,sizeof(telf32stab),0);
         if assigned(p) and (p[0]<>#0) then
          begin
-           stab.strpos:=sects[sec_stabstr].datasize;
-           sects[sec_stabstr].write(p^,strlen(p)+1);
+           stab.strpos:=stabstrsec.datasize;
+           stabstrsec.write(p^,strlen(p)+1);
          end;
         stab.ntype:=nidx;
         stab.ndesc:=line;
         stab.nother:=nother;
         stab.nvalue:=0;
-        sects[sec_stab].write(stab,sizeof(stab));
+        stabssec.write(stab,sizeof(stab));
         { when the offset is not 0 then write a relocation, take also the
           hdrstab into account with the offset }
         if reloc then
-         sects[sec_stab].addsymreloc(sects[sec_stab].datasize-4,ps,RELOC_ABSOLUTE);
+         stabssec.addsymreloc(stabssec.datasize-4,ps,RELOC_ABSOLUTE);
       end;
 
 
-    procedure telf32objectdata.seTSectionsizes(var s:TAsmSectionSizes);
+    procedure telf32objectdata.beforealloc;
       begin
+        { create stabs sections if debugging }
+        if (cs_debuginfo in aktmoduleswitches) then
+          begin
+            StabsSec.Alloc(sizeof(telf32stab));
+            StabStrSec.Alloc(length(SplitFileName(current_module.mainsource^))+2);
+          end;
+      end;
+
+
+    procedure telf32objectdata.beforewrite;
+      var
+        s : string;
+      begin
+        { create stabs sections if debugging }
+        if (cs_debuginfo in aktmoduleswitches) then
+         begin
+           writestabs(0,nil,0,0,0,false);
+           { write zero pchar and name together (PM) }
+           s:=#0+SplitFileName(current_module.mainsource^)+#0;
+           stabstrsec.write(s[1],length(s));
+         end;
       end;
 
 
@@ -475,7 +525,7 @@ implementation
         with elf32data do
          begin
            { create the reloc section }
-           s.relocsect:=telf32section.createname('.rel'+s.name,9,0,symtabsect.secshidx,s.secshidx,4,8);
+           s.relocsect:=telf32section.create_ext('.rel'+s.name,sec_custom,9,0,symtabsect.secshidx,s.secshidx,4,8);
            { add the relocations }
            r:=TasmRelocation(s.relocations.first);
            while assigned(r) do
@@ -484,7 +534,7 @@ implementation
               if assigned(r.symbol) then
                begin
                  if (r.symbol.currbind=AB_LOCAL) then
-                  relsym:=sects[r.symbol.section].secsymidx
+                  relsym:=r.symbol.section.secsymidx
                  else
                   begin
                     if r.symbol.indexnr=-1 then
@@ -494,8 +544,8 @@ implementation
                   end;
                end
               else
-               if r.section<>sec_none then
-                relsym:=sects[r.section].secsymidx
+               if r.section<>nil then
+                relsym:=r.section.secsymidx
                else
                 relsym:=SHN_UNDEF;
               case r.typ of
@@ -513,10 +563,23 @@ implementation
       end;
 
 
+    procedure telf32objectoutput.section_write_symbol(p:tnamedindexitem;arg:pointer);
+      var
+        elfsym : telf32symbol;
+      begin
+        fillchar(elfsym,sizeof(elfsym),0);
+        elfsym.st_name:=telf32section(p).shstridx;
+        elfsym.st_info:=STT_SECTION;
+        elfsym.st_shndx:=telf32section(p).secshidx;
+        elf32data.symtabsect.write(elfsym,sizeof(elfsym));
+        { increase locals count }
+        inc(plongint(arg)^);
+      end;
+
+
     procedure telf32objectoutput.createsymtab;
       var
         elfsym : telf32symbol;
-        sec : TSection;
         locals : longint;
         sym : tasmsymbol;
       begin
@@ -532,16 +595,7 @@ implementation
            elfsym.st_shndx:=SHN_ABS;
            symtabsect.write(elfsym,sizeof(elfsym));
            { section }
-           for sec:=low(TSection) to high(TSection) do
-            if assigned(sects[sec]) then
-             begin
-               fillchar(elfsym,sizeof(elfsym),0);
-               elfsym.st_name:=telf32section(sects[sec]).shstridx;
-               elfsym.st_info:=STT_SECTION;
-               elfsym.st_shndx:=telf32section(sects[sec]).secshidx;
-               symtabsect.write(elfsym,sizeof(elfsym));
-               inc(locals);
-             end;
+           sects.foreach(@section_write_symbol,@locals);
            { symbols }
            sym:=Tasmsymbol(symbols.First);
            while assigned(sym) do
@@ -582,8 +636,8 @@ implementation
               if sym.currbind=AB_COMMON then
                elfsym.st_shndx:=SHN_COMMON
               else
-               if assigned(sects[sym.section]) then
-                elfsym.st_shndx:=telf32section(sects[sym.section]).secshidx
+               if assigned(sym.section) then
+                elfsym.st_shndx:=telf32section(sym.section).secshidx
                else
                 elfsym.st_shndx:=SHN_UNDEF;
               symtabsect.write(elfsym,sizeof(elfsym));
@@ -596,9 +650,15 @@ implementation
       end;
 
 
+    procedure telf32objectoutput.section_write_sh_string(p:tnamedindexitem;arg:pointer);
+      begin
+        telf32section(p).shstridx:=elf32data.shstrtabsect.writestr(tasmsection(p).name+#0);
+        if assigned(telf32section(p).relocsect) then
+          telf32section(p).relocsect.shstridx:=elf32data.shstrtabsect.writestr(telf32section(p).relocsect.name+#0);
+      end;
+
+
     procedure telf32objectoutput.createshstrtab;
-      var
-        sec : TSection;
       begin
         with elf32data do
          begin
@@ -608,13 +668,7 @@ implementation
               symtabsect.shstridx:=writestr('.symtab'#0);
               strtabsect.shstridx:=writestr('.strtab'#0);
               shstrtabsect.shstridx:=writestr('.shstrtab'#0);
-              for sec:=low(TSection) to high(TSection) do
-               if assigned(sects[sec]) then
-                begin
-                  telf32section(sects[sec]).shstridx:=writestr(sects[sec].name+#0);
-                  if assigned(telf32section(sects[sec]).relocsect) then
-                   telf32section(sects[sec]).relocsect.shstridx:=writestr(telf32section(sects[sec]).relocsect.name+#0);
-                end;
+              sects.foreach(@section_write_sh_string,nil);
             end;
          end;
       end;
@@ -638,37 +692,108 @@ implementation
       end;
 
 
+
+    procedure telf32objectoutput.writesectiondata(s:telf32section);
+      var
+        hp : pdynamicblock;
+      begin
+        FWriter.writezeros(s.dataalignbytes);
+        s.alignsection;
+        hp:=s.data.firstblock;
+        while assigned(hp) do
+          begin
+            FWriter.write(hp^.data,hp^.used);
+            hp:=hp^.next;
+          end;
+      end;
+
+
+    procedure telf32objectoutput.section_number_symbol(p:tnamedindexitem;arg:pointer);
+      begin
+        tasmsection(p).secsymidx:=plongint(arg)^;
+        inc(plongint(arg)^);
+      end;
+
+
+    procedure telf32objectoutput.section_count_sects(p:tnamedindexitem;arg:pointer);
+      begin
+        telf32section(p).secshidx:=plongint(arg)^;
+        inc(plongint(arg)^);
+        if telf32section(p).relocations.count>0 then
+          inc(plongint(arg)^);
+      end;
+
+
+    procedure telf32objectoutput.section_create_relocsec(p:tnamedindexitem;arg:pointer);
+      begin
+        if (telf32section(p).relocations.count>0) then
+          createrelocsection(telf32section(p));
+      end;
+
+
+    procedure telf32objectoutput.section_set_datapos(p:tnamedindexitem;arg:pointer);
+      begin
+        if (aso_alloconly in tasmsection(p).secoptions) then
+          tasmsection(p).datapos:=paint(arg)^
+        else
+          tasmsection(p).setdatapos(paint(arg)^);
+      end;
+
+
+    procedure telf32objectoutput.section_relocsec_set_datapos(p:tnamedindexitem;arg:pointer);
+      begin
+        if assigned(telf32section(p).relocsect) then
+          telf32section(p).relocsect.setdatapos(paint(arg)^);
+      end;
+
+
+    procedure telf32objectoutput.section_write_data(p:tnamedindexitem;arg:pointer);
+      begin
+        if (aso_alloconly in tasmsection(p).secoptions) then
+          exit;
+        if tasmsection(p).data=nil then
+          internalerror(200403073);
+        writesectiondata(telf32section(p));
+      end;
+
+
+    procedure telf32objectoutput.section_write_sechdr(p:tnamedindexitem;arg:pointer);
+      begin
+        writesectionheader(telf32section(p));
+        if assigned(telf32section(p).relocsect) then
+          writesectionheader(telf32section(p).relocsect);
+      end;
+
+
+    procedure telf32objectoutput.section_write_relocsec(p:tnamedindexitem;arg:pointer);
+      begin
+        if assigned(telf32section(p).relocsect) then
+          writesectiondata(telf32section(p).relocsect);
+      end;
+
+
+
     function telf32objectoutput.writedata(data:TAsmObjectData):boolean;
       var
         header : telf32header;
-        datapos,
+        datapos : aint;
         shoffset,
         nsects : longint;
         hstab  : telf32stab;
-        sec    : TSection;
         empty  : array[0..63] of byte;
-        hp     : pdynamicblock;
       begin
         result:=false;
         elf32data:=telf32objectdata(data);
         with elf32data do
          begin
-         { calc amount of sections we have }
-           fillchar(empty,sizeof(empty),0);
-           nsects:=1;
+           { calc amount of sections we have }
            initsym:=2;
-           for sec:=low(TSection) to high(TSection) do
-            if assigned(sects[sec]) then
-             begin
-               { each section requires a symbol for relocation }
-               sects[sec].secsymidx:=initsym;
-               inc(initsym);
-               { also create the index in the section header table }
-               telf32section(sects[sec]).secshidx:=nsects;
-               inc(nsects);
-               if sects[sec].relocations.count>0 then
-                inc(nsects);
-             end;
+           nsects:=1;
+           fillchar(empty,sizeof(empty),0);
+           { each section requires a symbol for relocation }
+           sects.foreach(@section_number_symbol,@initsym);
+           { also create the index in the section header table }
+           sects.foreach(@section_count_sects,@nsects);
            { add default sections follows }
            shstrtabsect.secshidx:=nsects;
            inc(nsects);
@@ -678,21 +803,18 @@ implementation
            inc(nsects);
          { For the stab section we need an HdrSym which can now be
            calculated more easily }
-           if assigned(sects[sec_stab]) then
+           if assigned(stabssec) then
             begin
               hstab.strpos:=1;
               hstab.ntype:=0;
               hstab.nother:=0;
-              hstab.ndesc:=(sects[sec_stab].datasize div sizeof(telf32stab))-1{+1 according to gas output PM};
-              hstab.nvalue:=sects[sec_stabstr].datasize;
-              sects[sec_stab].Data.seek(0);
-              sects[sec_stab].Data.write(hstab,sizeof(hstab));
+              hstab.ndesc:=(stabssec.datasize div sizeof(telf32stab))-1{+1 according to gas output PM};
+              hstab.nvalue:=stabstrsec.datasize;
+              stabssec.Data.seek(0);
+              stabssec.Data.write(hstab,sizeof(hstab));
             end;
          { Create the relocation sections }
-           for sec:=low(TSection) to high(TSection) do
-            if assigned(sects[sec]) and
-               (sects[sec].relocations.count>0) then
-              createrelocsection(telf32section(sects[sec]));
+           sects.foreach(@section_create_relocsec,nil);
          { create .symtab and .strtab }
            createsymtab;
          { create .shstrtab }
@@ -700,33 +822,18 @@ implementation
          { Calculate the filepositions }
            datapos:=$40; { elfheader + alignment }
            { sections first }
-           for sec:=low(TSection) to high(TSection) do
-            if assigned(sects[sec]) then
-             begin
-               sects[sec].datapos:=datapos;
-               if assigned(sects[sec].data) then
-                 inc(datapos,sects[sec].aligneddatasize);
-             end;
+           sects.foreach(@section_set_datapos,@datapos);
            { shstrtab }
-           shstrtabsect.datapos:=datapos;
-           inc(datapos,shstrtabsect.aligneddatasize);
+           shstrtabsect.setdatapos(datapos);
            { section headers }
            shoffset:=datapos;
            inc(datapos,nsects*sizeof(telf32sechdr));
            { symtab }
-           symtabsect.datapos:=datapos;
-           inc(datapos,symtabsect.aligneddatasize);
+           symtabsect.setdatapos(datapos);
            { strtab }
-           strtabsect.datapos:=datapos;
-           inc(datapos,align(strtabsect.datasize,4));
+           strtabsect.setdatapos(datapos);
            { .rel sections }
-           for sec:=low(TSection) to high(TSection) do
-            if assigned(sects[sec]) and
-               assigned(telf32section(sects[sec]).relocsect) then
-             begin
-               telf32section(sects[sec]).relocsect.datapos:=datapos;
-               inc(datapos,telf32section(sects[sec]).relocsect.aligneddatasize);
-             end;
+           sects.foreach(@section_relocsec_set_datapos,@datapos);
          { Write ELF Header }
            fillchar(header,sizeof(header),0);
            header.magic0123:=$464c457f; { = #127'ELF' }
@@ -744,67 +851,21 @@ implementation
            writer.write(header,sizeof(header));
            writer.write(empty,$40-sizeof(header)); { align }
          { Sections }
-           for sec:=low(TSection) to high(TSection) do
-            if assigned(sects[sec]) and
-               assigned(sects[sec].data) then
-             begin
-               sects[sec].alignsection;
-               hp:=sects[sec].Data.firstblock;
-               while assigned(hp) do
-                begin
-                  writer.write(hp^.data,hp^.used);
-                  hp:=hp^.next;
-                end;
-             end;
+           sects.foreach(@section_write_data,nil);
          { .shstrtab }
-           shstrtabsect.alignsection;
-           hp:=shstrtabsect.Data.firstblock;
-           while assigned(hp) do
-            begin
-              writer.write(hp^.data,hp^.used);
-              hp:=hp^.next;
-            end;
+           writesectiondata(shstrtabsect);
          { section headers, start with an empty header for sh_undef }
            writer.write(empty,sizeof(telf32sechdr));
-           for sec:=low(TSection) to high(TSection) do
-            if assigned(sects[sec]) then
-             begin
-               writesectionheader(telf32section(sects[sec]));
-               if assigned(telf32section(sects[sec]).relocsect) then
-                writesectionheader(telf32section(sects[sec]).relocsect);
-             end;
+           sects.foreach(@section_write_sechdr,nil);
            writesectionheader(shstrtabsect);
            writesectionheader(symtabsect);
            writesectionheader(strtabsect);
          { .symtab }
-           symtabsect.alignsection;
-           hp:=symtabsect.Data.firstblock;
-           while assigned(hp) do
-            begin
-              writer.write(hp^.data,hp^.used);
-              hp:=hp^.next;
-            end;
+           writesectiondata(symtabsect);
          { .strtab }
-           strtabsect.writealign(4);
-           hp:=strtabsect.Data.firstblock;
-           while assigned(hp) do
-            begin
-              writer.write(hp^.data,hp^.used);
-              hp:=hp^.next;
-            end;
+           writesectiondata(strtabsect);
          { .rel sections }
-           for sec:=low(TSection) to high(TSection) do
-            if assigned(sects[sec]) and
-               assigned(telf32section(sects[sec]).relocsect) then
-             begin
-               telf32section(sects[sec]).relocsect.alignsection;
-               hp:=telf32section(sects[sec]).relocsect.Data.firstblock;
-               while assigned(hp) do
-                begin
-                  writer.write(hp^.data,hp^.used);
-                  hp:=hp^.next;
-                end;
-             end;
+           sects.foreach(@section_write_relocsec,nil);
          end;
         result:=true;
       end;
@@ -833,16 +894,10 @@ implementation
             asmbin : '';
             asmcmd : '';
             supported_target : system_any;  //target_i386_linux;
-            outputbinary : true;
-            allowdirect : false;
-            needar : false;
-            labelprefix_only_inside_procedure: false;
+//            flags : [af_outputbinary,af_smartlink_sections];
+            flags : [af_outputbinary];
             labelprefix : '.L';
             comment : '';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.stab','.stabstr','')
           );
 
 
@@ -851,7 +906,29 @@ initialization
 end.
 {
   $Log$
-  Revision 1.19  2003-04-22 14:33:38  peter
+  Revision 1.20  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.19.2.6  2004/05/18 20:14:18  peter
+    * no section smartlink when using debuginfo
+
+  Revision 1.19.2.5  2004/05/10 21:28:34  peter
+    * section_smartlink enabled for gas under linux
+
+  Revision 1.19.2.4  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.19.2.3  2004/04/26 21:01:36  peter
+    * aint fixes
+
+  Revision 1.19.2.2  2004/04/12 19:34:46  peter
+    * basic framework for dwarf CFI
+
+  Revision 1.19.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
+
+  Revision 1.19  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.18  2002/08/12 15:08:39  carl

@@ -1328,10 +1328,28 @@ implementation
 
 {$ifdef GDB}
       procedure tabstractunitsymtable.concattypestabto(asmlist : taasmoutput);
+
+         procedure dowritestabs(asmlist:taasmoutput;st:tsymtable);
+           var
+             p : tstoreddef;
+           begin
+             p:=tstoreddef(st.defindex.first);
+             while assigned(p) do
+               begin
+                 { also insert local types for the current unit }
+                 if (unitid=0) and
+                    (p.deftype=procdef) and
+                    assigned(tprocdef(p).localst) then
+                   dowritestabs(asmlist,tprocdef(p).localst);
+                 if (p.stab_state=stab_state_used) then
+                   p.concatstabto(asmlist);
+                 p:=tstoreddef(p.indexnext);
+               end;
+           end;
+
         var
           old_writing_def_stabs : boolean;
           prev_dbx_count : plongint;
-          p : tstoreddef;
         begin
            if not assigned(name) then
              name := stringdup('Main_program');
@@ -1361,13 +1379,7 @@ implementation
 
            old_writing_def_stabs:=writing_def_stabs;
            writing_def_stabs:=true;
-           p:=tstoreddef(defindex.first);
-           while assigned(p) do
-             begin
-               if (p.stab_state=stab_state_used) then
-                 p.concatstabto(asmlist);
-               p:=tstoreddef(p.indexnext);
-             end;
+           dowritestabs(asmlist,self);
            writing_def_stabs:=old_writing_def_stabs;
 
            if cs_gdb_dbx in aktglobalswitches then
@@ -2313,7 +2325,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.148  2004-05-25 18:50:50  peter
+  Revision 1.149  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.148  2004/05/25 18:50:50  peter
     * check for 2gb limit when inserting record fields
 
   Revision 1.147  2004/05/23 20:56:14  peter
@@ -2324,6 +2339,10 @@ end.
 
   Revision 1.145  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.144.2.1  2004/05/01 23:35:11  peter
+    * keep localst in memory to be able to generate debuginfo for
+      local types
 
   Revision 1.144  2004/03/14 20:08:37  peter
     * packrecords fixed for settings from $PACKRECORDS

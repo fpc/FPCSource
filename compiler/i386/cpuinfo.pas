@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2004 by Florian Klaempfl
 
     Basic Processor information
 
@@ -30,18 +30,6 @@ Interface
     globtype;
 
 Type
-   { Natural integer register type and size for the target machine }
-   AWord = longword;
-   AInt = longint;
-   PAWord = ^AWord;
-
-   { This must be an ordinal type with the same size as a pointer
-     Note: Must be unsigned! Otherwise, ugly code like
-     pointer(-1) will result in a pointer with the value
-     $fffffffffffffff on a 32bit machine if the compiler uses
-     int64 constants internally (JM)                              }
-   TConstPtrUInt = longword;
-
    bestreal = extended;
    ts32real = single;
    ts64real = double;
@@ -73,8 +61,6 @@ Type
 Const
    {# Size of native extended floating point type }
    extended_size = 10;
-   {# Size of a pointer                           }
-   pointer_size  = 4;
    {# Size of a multimedia register               }
    mmreg_size = 8;
 
@@ -124,8 +110,18 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.24  2004-04-28 15:19:03  florian
+  Revision 1.25  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.24  2004/04/28 15:19:03  florian
     + syscall directive support for MorphOS added
+
+  Revision 1.23.2.2  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.23.2.1  2004/04/26 21:00:37  peter
+    * AInt fixed, PAInt added
 
   Revision 1.23  2004/02/27 10:21:05  florian
     * top_symbol killed

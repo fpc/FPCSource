@@ -254,7 +254,7 @@ procedure Tx86Instruction.AddReferenceSizes;
 var
   operand2,i : longint;
   s : tasmsymbol;
-  so : longint;
+  so : aint;
 begin
   for i:=1 to ops do
     begin
@@ -671,7 +671,7 @@ begin
    begin
      case operands[i].opr.typ of
        OPR_CONSTANT :
-         ai.loadconst(i-1,aword(operands[i].opr.val));
+         ai.loadconst(i-1,operands[i].opr.val);
        OPR_REGISTER:
          ai.loadreg(i-1,operands[i].opr.reg);
        OPR_SYMBOL:
@@ -742,7 +742,20 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2004-01-22 16:29:11  peter
+  Revision 1.18  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.17.2.3  2004/05/01 23:36:47  peter
+    * assembler reader 64bit fixes
+
+  Revision 1.17.2.2  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.17.2.1  2004/04/27 18:18:26  peter
+    * aword -> aint
+
+  Revision 1.17  2004/01/22 16:29:11  peter
     * give warning that DWORD is used as size in delphi mode when no
       size was specified
 
@@ -880,7 +893,7 @@ end.
       the parast, detected by tcalcst3 test
 
   Revision 1.17  2002/04/15 19:12:09  carl
-  + target_info.size_of_pointer -> pointer_size
+  + target_info.size_of_pointer -> sizeof(aint)
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units
     (where they are used)

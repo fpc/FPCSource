@@ -214,9 +214,9 @@ interface
     procedure tx86notnode.second_boolean;
       var
          hl : tasmlabel;
-         opsize : topsize;
+         opsize : tcgsize;
       begin
-        opsize:=def_opsize(resulttype.def);
+        opsize:=def_cgsize(resulttype.def);
 
         if left.expectloc=LOC_JUMP then
          begin
@@ -250,9 +250,9 @@ interface
              LOC_REFERENCE,
              LOC_CREFERENCE :
                begin
-                 location_force_reg(exprasmlist,left.location,def_cgsize(resulttype.def),true);
+                 location_force_reg(exprasmlist,left.location,opsize,true);
                  location_release(exprasmlist,left.location);
-                 emit_reg_reg(A_TEST,opsize,left.location.register,left.location.register);
+                 emit_reg_reg(A_TEST,TCGSize2Opsize[opsize],left.location.register,left.location.register);
                  location_reset(location,LOC_FLAGS,OS_NO);
                  location.resflags:=F_E;
                end;
@@ -308,7 +308,13 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-02-03 22:32:54  peter
+  Revision 1.4  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.3.2.1  2004/04/27 18:18:26  peter
+    * aword -> aint
+
+  Revision 1.3  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

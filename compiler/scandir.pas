@@ -256,6 +256,7 @@ implementation
         { it not used but in win32, os2 and netware }
         current_scanner.skipspace;
         description:=current_scanner.readcomment;
+        DescriptionSetExplicity:=true;
       end;
 
     procedure dir_screenname; {ad}
@@ -1044,7 +1045,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2004-05-19 23:29:56  peter
+  Revision 1.36  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.35  2004/05/19 23:29:56  peter
     * $message directive compatible with delphi
 
   Revision 1.34  2004/05/11 22:51:34  olle
@@ -1052,6 +1056,9 @@ end.
 
   Revision 1.33  2004/05/11 18:30:50  olle
     + mode macpas: support for Apples align directives
+
+  Revision 1.32.2.1  2004/05/03 14:59:57  peter
+    * no dlltool needed for win32 linking executables
 
   Revision 1.32  2004/04/04 18:46:09  olle
     + added $APPTYPE TOOL for MPW tools on MacOS

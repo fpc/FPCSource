@@ -28,7 +28,7 @@ interface
 
 uses
   cclasses,aasmtai,
-  aasmbase,globals,verbose,
+  aasmbase,globtype,globals,verbose,
   cpubase,cpuinfo,cgbase;
 
     const
@@ -38,7 +38,7 @@ uses
       O_MOV_DEST = 0;
 
     type
-      taicpu = class(taicpu_abstract)
+      taicpu = class(tai_cpu_abstract)
          oppostfix : TOpPostfix;
          roundingmode : troundingmode;
          procedure loadshifterop(opidx:longint;const so:tshifterop);
@@ -72,15 +72,14 @@ uses
 
          function is_same_reg_move(regtype: Tregistertype):boolean; override;
 
-         { register spilling code }
-         function spilling_create_load(const ref:treference;r:tregister): tai;override;
-         function spilling_create_store(r:tregister; const ref:treference): tai;override;
-
          function spilling_get_operation_type(opnr: longint): topertype;override;
       end;
       tai_align = class(tai_align_abstract)
         { nothing to add }
       end;
+
+    function spilling_create_load(const ref:treference;r:tregister): tai;
+    function spilling_create_store(r:tregister; const ref:treference): tai;
 
     function setoppostfix(i : taicpu;pf : toppostfix) : taicpu;
     function setroundingmode(i : taicpu;rm : troundingmode) : taicpu;
@@ -319,15 +318,29 @@ implementation
       end;
 
 
-    function taicpu.spilling_create_load(const ref:treference;r:tregister): tai;
+    function spilling_create_load(const ref:treference;r:tregister): tai;
       begin
-        internalerror(200401261);
+        case getregtype(r) of
+          R_INTREGISTER :
+            result:=taicpu.op_reg_ref(A_LDR,r,ref);
+          R_FPUREGISTER :
+            result:=taicpu.op_reg_ref(A_LDF,r,ref);
+          else
+            internalerror(200401041);
+        end;
       end;
 
 
-    function taicpu.spilling_create_store(r:tregister; const ref:treference): tai;
+    function spilling_create_store(r:tregister; const ref:treference): tai;
       begin
-        internalerror(200401262);
+        case getregtype(r) of
+          R_INTREGISTER :
+            result:=taicpu.op_reg_ref(A_STR,r,ref);
+          R_FPUREGISTER :
+            result:=taicpu.op_reg_ref(A_STF,r,ref);
+          else
+            internalerror(200401041);
+        end;
       end;
 
 
@@ -473,7 +486,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2004-03-29 19:19:35  florian
+  Revision 1.32  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.31.2.2  2004/06/13 10:51:17  florian
+    * fixed several register allocator problems (sparc/arm)
+
+  Revision 1.31.2.1  2004/06/12 17:01:01  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.31  2004/03/29 19:19:35  florian
     + arm floating point register saving implemented
     * hopefully stabs generation for MacOSX fixed
     + some defines for arm added

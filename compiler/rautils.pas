@@ -70,11 +70,11 @@ type
 
   TOprRec = record
     case typ:TOprType of
-      OPR_NONE   : ();
-      OPR_CONSTANT  : (val:longint);
-      OPR_SYMBOL    : (symbol:tasmsymbol;symofs:longint);
+      OPR_NONE      : ();
+      OPR_CONSTANT  : (val:aint);
+      OPR_SYMBOL    : (symbol:tasmsymbol;symofs:aint);
       OPR_REFERENCE : (ref:treference);
-      OPR_LOCAL     : (localsym:tvarsym;localsymofs:longint;localindexreg:tregister;localscale:byte;localgetoffset:boolean);
+      OPR_LOCAL     : (localsym:tvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset:boolean);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
       OPR_REGLIST   : (regset : tcpuregisterset);
@@ -83,7 +83,7 @@ type
       OPR_COND      : (cond : tasmcond);
 {$endif powerpc}
 {$ifdef arm}
-      OPR_REGSET      : (regset : tcpuregisterset);
+      OPR_REGSET    : (regset : tcpuregisterset);
 {$endif arm}
   end;
 
@@ -133,7 +133,6 @@ type
     is_prefix: boolean; { was it a prefix, possible prefixes are +,- and not }
    end;
 
-  String15 = String[15];
   {**********************************************************************}
   { The following operators are supported:                              }
   {  '+' : addition                                                     }
@@ -155,32 +154,32 @@ type
     public
      Constructor create;
      Destructor Destroy;override;
-     Function Evaluate(Expr:  String): longint;
-     Function Priority(_Operator: Char): longint;
+     Function Evaluate(Expr:  String): aint;
+     Function Priority(_Operator: Char): aint;
     private
-     RPNStack   : Array[1..RPNMax] of longint;        { Stack For RPN calculator }
-     RPNTop     : longint;
+     RPNStack   : Array[1..RPNMax] of aint;        { Stack For RPN calculator }
+     RPNTop     : aint;
      OpStack    : Array[1..OpMax] of TExprOperator;    { Operator stack For conversion }
-     OpTop      : longint;
-     Procedure RPNPush(Num: Longint);
-     Function RPNPop: Longint;
-     Procedure RPNCalc(token: String15; prefix: boolean);
+     OpTop      : aint;
+     Procedure RPNPush(Num: aint);
+     Function RPNPop: aint;
+     Procedure RPNCalc(const token: String; prefix: boolean);
      Procedure OpPush(_Operator: char; prefix: boolean);
      { In reality returns TExprOperaotr }
      Procedure OpPop(var _Operator:TExprOperator);
   end;
 
-  { Evaluate an expression string to a longint }
-  Function CalculateExpression(const expression: string): longint;
+  { Evaluate an expression string to a aint }
+  Function CalculateExpression(const expression: string): aint;
 
   {---------------------------------------------------------------------}
   {                     String routines                                 }
   {---------------------------------------------------------------------}
 
-Function ValDecimal(const S:String):longint;
-Function ValOctal(const S:String):longint;
-Function ValBinary(const S:String):longint;
-Function ValHexaDecimal(const S:String):longint;
+Function ValDecimal(const S:String):aint;
+Function ValOctal(const S:String):aint;
+Function ValBinary(const S:String):aint;
+Function ValHexaDecimal(const S:String):aint;
 Function PadZero(Var s: String; n: byte): Boolean;
 Function EscapeToPascal(const s:string): string;
 
@@ -189,10 +188,10 @@ Function EscapeToPascal(const s:string): string;
 ---------------------------------------------------------------------}
 
 procedure AsmSearchSym(const s:string;var srsym:tsym;var srsymtable:tsymtable);
-Function GetRecordOffsetSize(s:string;Var Offset: longint;var Size:longint):boolean;
-Function SearchType(const hs:string;var size:longint): Boolean;
+Function GetRecordOffsetSize(s:string;Var Offset: aint;var Size:aint):boolean;
+Function SearchType(const hs:string;var size:aint): Boolean;
 Function SearchRecordType(const s:string): boolean;
-Function SearchIConstant(const s:string; var l:longint): boolean;
+Function SearchIConstant(const s:string; var l:aint): boolean;
 
 
 {---------------------------------------------------------------------
@@ -202,15 +201,15 @@ Function SearchIConstant(const s:string; var l:longint): boolean;
   Procedure ConcatPasString(p : TAAsmoutput;s:string);
   Procedure ConcatDirect(p : TAAsmoutput;s:string);
   Procedure ConcatLabel(p: TAAsmoutput;var l : tasmlabel);
-  Procedure ConcatConstant(p : TAAsmoutput;value: longint; maxvalue: longint);
-  Procedure ConcatConstSymbol(p : TAAsmoutput;const sym:string;l:longint);
+  Procedure ConcatConstant(p : TAAsmoutput;value: aint; constsize:byte);
+  Procedure ConcatConstSymbol(p : TAAsmoutput;const sym:string;l:aint);
   Procedure ConcatRealConstant(p : TAAsmoutput;value: bestreal; real_typ : tfloattype);
   Procedure ConcatString(p : TAAsmoutput;s:string);
-  procedure ConcatAlign(p:TAAsmoutput;l:longint);
+  procedure ConcatAlign(p:TAAsmoutput;l:aint);
   Procedure ConcatPublic(p:TAAsmoutput;const s : string);
   Procedure ConcatLocal(p:TAAsmoutput;const s : string);
-  Procedure ConcatGlobalBss(const s : string;size : longint);
-  Procedure ConcatLocalBss(const s : string;size : longint);
+  Procedure ConcatGlobalBss(const s : string;size : aint);
+  Procedure ConcatLocalBss(const s : string;size : aint);
 
 
 Implementation
@@ -235,7 +234,7 @@ Begin
 end;
 
 
-Procedure TExprParse.RPNPush(Num : longint);
+Procedure TExprParse.RPNPush(Num : aint);
 { Add an operand to the top of the RPN stack }
 begin
   if RPNTop < RPNMax then
@@ -248,7 +247,7 @@ begin
 end;
 
 
-Function TExprParse.RPNPop : longint;
+Function TExprParse.RPNPop : aint;
 { Get the operand at the top of the RPN stack }
 begin
   if RPNTop > 0 then
@@ -261,10 +260,10 @@ begin
 end;
 
 
-Procedure TExprParse.RPNCalc(Token : String15; prefix:boolean);                       { RPN Calculator }
+Procedure TExprParse.RPNCalc(const Token : String; prefix:boolean);                       { RPN Calculator }
 Var
-  Temp  : longint;
-  n1,n2 : longint;
+  Temp  : aint;
+  n1,n2 : aint;
   LocalError : Integer;
 begin
   { Handle operators }
@@ -381,7 +380,7 @@ begin
 end;
 
 
-Function TExprParse.Priority(_Operator : Char) : longint;
+Function TExprParse.Priority(_Operator : Char) : aint;
 { Return priority of operator }
 { The greater the priority, the higher the precedence }
 begin
@@ -400,10 +399,10 @@ begin
 end;
 
 
-Function TExprParse.Evaluate(Expr : String):longint;
+Function TExprParse.Evaluate(Expr : String):aint;
 Var
-  I     : LongInt;
-  Token : String15;
+  I     : longint;
+  Token : String;
   opr   : TExprOperator;
 begin
   Evaluate:=0;
@@ -496,7 +495,7 @@ Begin
 end;
 
 
-Function CalculateExpression(const expression: string): longint;
+Function CalculateExpression(const expression: string): aint;
 var
   expr: TExprParse;
 Begin
@@ -514,7 +513,7 @@ Function EscapeToPascal(const s:string): string;
 { converts a C styled string - which contains escape }
 { characters to a pascal style string.               }
 var
-  i,len : longint;
+  i,len : aint;
   hs    : string;
   temp  : string;
   c     : char;
@@ -575,10 +574,11 @@ Begin
 end;
 
 
-Function ValDecimal(const S:String):longint;
-{ Converts a decimal string to longint }
+Function ValDecimal(const S:String):aint;
+{ Converts a decimal string to aint }
 var
-  vs,c : longint;
+  vs : aint;
+  c : longint;
 Begin
   vs:=0;
   for c:=1 to length(s) do
@@ -597,10 +597,11 @@ Begin
 end;
 
 
-Function ValOctal(const S:String):longint;
-{ Converts an octal string to longint }
+Function ValOctal(const S:String):aint;
+{ Converts an octal string to aint }
 var
-  vs,c : longint;
+  vs : aint;
+  c : longint;
 Begin
   vs:=0;
   for c:=1 to length(s) do
@@ -619,10 +620,11 @@ Begin
 end;
 
 
-Function ValBinary(const S:String):longint;
-{ Converts a binary string to longint }
+Function ValBinary(const S:String):aint;
+{ Converts a binary string to aint }
 var
-  vs,c : longint;
+  vs : aint;
+  c : longint;
 Begin
   vs:=0;
   for c:=1 to length(s) do
@@ -641,10 +643,11 @@ Begin
 end;
 
 
-Function ValHexadecimal(const S:String):longint;
-{ Converts a binary string to longint }
+Function ValHexadecimal(const S:String):aint;
+{ Converts a binary string to aint }
 var
-  vs,c : longint;
+  vs : aint;
+  c : longint;
 Begin
   vs:=0;
   for c:=1 to length(s) do
@@ -795,7 +798,7 @@ Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
       end;
   end;
 
-  procedure setconst(l:longint);
+  procedure setconst(l:aint);
   begin
     { We return the address of the field, just like Delphi/TP }
     case opr.typ of
@@ -824,7 +827,7 @@ var
   srsymtable : tsymtable;
   harrdef : tarraydef;
   indexreg : tregister;
-  l : longint;
+  l : aint;
   plist : psymlistitem;
 Begin
   SetupVar:=false;
@@ -911,7 +914,7 @@ Begin
                   opr.localgetoffset:=GetOffset;
                 end;
               if paramanager.push_addr_param(tvarsym(sym).varspez,tvarsym(sym).vartype.def,current_procinfo.procdef.proccalloption) then
-                SetSize(pointer_size,false);
+                SetSize(sizeof(aint),false);
             end;
         end;
         case tvarsym(sym).vartype.def.deftype of
@@ -1027,7 +1030,8 @@ procedure TOperand.InitRef;
 {  to point to the default segment.                                   }
 {*********************************************************************}
 var
-  l : longint;
+  l : aint;
+  reg : tregister;
 Begin
   case opr.typ of
     OPR_REFERENCE :
@@ -1043,6 +1047,13 @@ Begin
       begin
         opr.typ:=OPR_REFERENCE;
         Fillchar(opr.ref,sizeof(treference),0);
+      end;
+    OPR_REGISTER :
+      begin
+        reg:=opr.reg;
+        opr.typ:=OPR_REFERENCE;
+        Fillchar(opr.ref,sizeof(treference),0);
+        opr.Ref.base:=reg;
       end;
     else
       begin
@@ -1117,7 +1128,7 @@ end;
           begin
             case typ of
               OPR_CONSTANT :
-                ai.loadconst(i-1,aword(val));
+                ai.loadconst(i-1,val);
               OPR_REGISTER:
                 ai.loadreg(i-1,reg);
               OPR_SYMBOL:
@@ -1236,7 +1247,7 @@ begin
 end;
 
 
-Function SearchType(const hs:string;var size:longint): Boolean;
+Function SearchType(const hs:string;var size:aint): Boolean;
 var
   srsym : tsym;
   srsymtable : tsymtable;
@@ -1278,7 +1289,7 @@ Begin
 end;
 
 
-Function SearchIConstant(const s:string; var l:longint): boolean;
+Function SearchIConstant(const s:string; var l:aint): boolean;
 {**********************************************************************}
 {  Description: Searches for a CONSTANT of name s in either the local  }
 {  symbol list, then in the global symbol list, and returns the value  }
@@ -1330,7 +1341,7 @@ Begin
 end;
 
 
-Function GetRecordOffsetSize(s:string;Var Offset: longint;var Size:longint):boolean;
+Function GetRecordOffsetSize(s:string;Var Offset: aint;var Size:aint):boolean;
 { search and returns the offset and size of records/objects of the base }
 { with field name setup in field.                              }
 { returns FALSE if not found.                                  }
@@ -1358,32 +1369,35 @@ Begin
      asmsearchsym(base,sym,srsymtable);
      st:=nil;
      { we can start with a var,type,typedconst }
-     case sym.typ of
-       varsym :
-         with Tvarsym(sym).vartype do
-           case def.deftype of
-             recorddef :
-               st:=trecorddef(def).symtable;
-             objectdef :
-               st:=tobjectdef(def).symtable;
-           end;
-       typesym :
-                 with Ttypesym(sym).restype do
-           case def.deftype of
-             recorddef :
-               st:=trecorddef(def).symtable;
-             objectdef :
-               st:=tobjectdef(def).symtable;
-           end;
-       typedconstsym :
-         with Ttypedconstsym(sym).typedconsttype do
-           case def.deftype of
-             recorddef :
-               st:=trecorddef(def).symtable;
-             objectdef :
-               st:=tobjectdef(def).symtable;
-           end;
-     end;
+     if assigned(sym) then
+       case sym.typ of
+         varsym :
+           with Tvarsym(sym).vartype do
+             case def.deftype of
+               recorddef :
+                 st:=trecorddef(def).symtable;
+               objectdef :
+                 st:=tobjectdef(def).symtable;
+             end;
+         typesym :
+           with Ttypesym(sym).restype do
+             case def.deftype of
+               recorddef :
+                 st:=trecorddef(def).symtable;
+               objectdef :
+                 st:=tobjectdef(def).symtable;
+             end;
+         typedconstsym :
+           with Ttypedconstsym(sym).typedconsttype do
+             case def.deftype of
+               recorddef :
+                 st:=trecorddef(def).symtable;
+               objectdef :
+                 st:=tobjectdef(def).symtable;
+             end;
+       end
+     else
+       s:='';
    end;
   { now walk all recordsymtables }
   while assigned(st) and (s<>'') do
@@ -1508,9 +1522,9 @@ end;
 
 
 
-Procedure ConcatConstant(p: TAAsmoutput; value: longint; maxvalue: longint);
+Procedure ConcatConstant(p: TAAsmoutput; value: aint; constsize:byte);
 {*********************************************************************}
-{ PROCEDURE ConcatConstant(value: longint; maxvalue: longint);        }
+{ PROCEDURE ConcatConstant(value: aint; maxvalue: aint);        }
 {  Description: This routine adds the value constant to the current   }
 {  instruction linked list.                                           }
 {   maxvalue -> indicates the size of the data to initialize:         }
@@ -1518,27 +1532,47 @@ Procedure ConcatConstant(p: TAAsmoutput; value: longint; maxvalue: longint);
 {                  $ffff -> create a word node.                       }
 {                  $ffffffff -> create a dword node.                  }
 {*********************************************************************}
+var
+  rangelo,rangehi : int64;
 Begin
-  if (maxvalue <> longint($ffffffff)) and (value > maxvalue) then
-   Begin
-     Message(asmr_e_constant_out_of_bounds);
-     { assuming a value of maxvalue }
-     value:=maxvalue;
-   end;
-  if maxvalue = $ff then
-   p.concat(Tai_const.Create_8bit(byte(value)))
-  else
-   if maxvalue = $ffff then
-    p.concat(Tai_const.Create_16bit(word(value)))
-  else
-   if maxvalue = longint($ffffffff) then
-    p.concat(Tai_const.Create_32bit(longint(value)));
+  case constsize of
+    1 :
+      begin
+        p.concat(Tai_const.Create_8bit(byte(value)));
+        rangelo:=low(shortint);
+        rangehi:=high(byte);
+      end;
+    2 :
+      begin
+        p.concat(Tai_const.Create_16bit(word(value)));
+        rangelo:=low(smallint);
+        rangehi:=high(word);
+      end;
+    4 :
+      begin
+        p.concat(Tai_const.Create_32bit(longint(value)));
+        rangelo:=low(longint);
+        rangehi:=high(cardinal);
+      end;
+    8 :
+      begin
+        p.concat(Tai_const.Create_64bit(int64(value)));
+        rangelo:=0;
+        rangehi:=0;
+      end;
+    else
+      internalerror(200405011);
+  end;
+  { check for out of bounds }
+  if (rangelo<>0) and
+     ((value>rangehi) or (value<rangelo)) then
+    Message(asmr_e_constant_out_of_bounds);
 end;
 
 
-  Procedure ConcatConstSymbol(p : TAAsmoutput;const sym:string;l:longint);
+  Procedure ConcatConstSymbol(p : TAAsmoutput;const sym:string;l:aint);
   begin
-    p.concat(Tai_const_symbol.Createname(sym,AT_DATA,l));
+    p.concat(Tai_const.Createname(sym,AT_DATA,l));
   end;
 
 
@@ -1579,7 +1613,7 @@ end;
      p.concat(Tai_label.Create(l));
    end;
 
-   procedure ConcatAlign(p:TAAsmoutput;l:longint);
+   procedure ConcatAlign(p:TAAsmoutput;l:aint);
   {*********************************************************************}
   { PROCEDURE ConcatPublic                                              }
   {  Description: This routine emits an global   definition to the      }
@@ -1609,7 +1643,7 @@ end;
        p.concat(Tai_symbol.Createname(s,AT_FUNCTION,0));
    end;
 
-  Procedure ConcatGlobalBss(const s : string;size : longint);
+  Procedure ConcatGlobalBss(const s : string;size : aint);
   {*********************************************************************}
   { PROCEDURE ConcatGlobalBss                                           }
   {  Description: This routine emits an global  datablock   to the      }
@@ -1619,7 +1653,7 @@ end;
        bssSegment.concat(Tai_datablock.Create_global(s,size));
    end;
 
-  Procedure ConcatLocalBss(const s : string;size : longint);
+  Procedure ConcatLocalBss(const s : string;size : aint);
   {*********************************************************************}
   { PROCEDURE ConcatLocalBss                                            }
   {  Description: This routine emits a local datablcok      to the      }
@@ -1632,8 +1666,33 @@ end;
 end.
 {
   $Log$
-  Revision 1.86  2004-05-06 20:30:51  florian
+  Revision 1.87  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.86  2004/05/06 20:30:51  florian
     * m68k compiler compilation fixed
+
+  Revision 1.85.2.7  2004/05/25 21:38:53  peter
+    * assembler reader/writer updates
+
+  Revision 1.85.2.6  2004/05/18 20:24:03  florian
+    * fixed crash with unknown symbols
+
+  Revision 1.85.2.5  2004/05/02 00:13:16  peter
+    * remove limit of 15 digits
+
+  Revision 1.85.2.4  2004/05/01 23:36:47  peter
+    * assembler reader 64bit fixes
+
+  Revision 1.85.2.3  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.85.2.2  2004/04/27 18:18:26  peter
+    * aword -> aint
+
+  Revision 1.85.2.1  2004/04/12 14:45:11  peter
+    * tai_const_symbol and tai_const merged
 
   Revision 1.85  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
@@ -1894,7 +1953,7 @@ end.
   * fix generic size problems which depend now on EXTEND_SIZE constant
 
   Revision 1.29  2002/04/15 19:02:35  carl
-  + target_info.size_of_pointer -> pointer_Size
+  + target_info.size_of_pointer -> sizeof(aint)
 
   Revision 1.28  2002/04/02 17:11:29  peter
     * tlocation,treference update

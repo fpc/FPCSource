@@ -62,7 +62,7 @@ implementation
       ncon,ncal,
       ncgutil,
       cpubase,aasmcpu,
-      rgobj,tgobj,cgobj;
+      tgobj,cgobj;
 
 
 {*****************************************************************************
@@ -98,7 +98,7 @@ implementation
         result := nil;
         if registersfpu<1 then
           registersfpu:=1;
-        location.loc:=LOC_FPUREGISTER;
+        expectloc:=LOC_FPUREGISTER;
       end;
 
 
@@ -113,6 +113,7 @@ implementation
         location.register:=cg.getfpuregister(exprasmlist,location.size);
         { Load memory in fpu register }
         cg.a_loadfpu_ref_reg(exprasmlist,location.size,left.location.reference,location.register);
+        tg.ungetiftemp(exprasmlist,left.location.reference);
 {$warning TODO Handle also double}
         { Convert value in fpu register from integer to float }
         exprasmlist.concat(taicpu.op_reg_reg(A_FiTOs,location.register,location.register));
@@ -225,7 +226,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2004-03-15 14:37:06  mazen
+  Revision 1.25  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.24.2.1  2004/05/31 16:39:42  peter
+    * add ungetiftemp in a few locations
+
+  Revision 1.24  2004/03/15 14:37:06  mazen
   + support for LongBool(Int64) type cast
 
   Revision 1.23  2004/02/03 22:32:54  peter

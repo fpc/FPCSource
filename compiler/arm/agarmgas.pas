@@ -63,16 +63,9 @@ unit agarmgas;
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_target : system_any;
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure : false;
+            flags : [af_allowdirect,af_needar,af_smartlink_sections];
             labelprefix : '.L';
             comment : '# ';
-            secnames : ('',
-              '.text','.data','.text',
-              '','','','','','',
-              '.stab','.stabstr','COMMON')
           );
 
     function getreferencestring(var ref : treference) : string;
@@ -245,7 +238,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2004-03-29 19:19:35  florian
+  Revision 1.20  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.19.2.1  2004/06/12 17:01:01  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.19  2004/03/29 19:19:35  florian
     + arm floating point register saving implemented
     * hopefully stabs generation for MacOSX fixed
     + some defines for arm added

@@ -161,22 +161,20 @@ interface
                         if indexreg=NR_NO then
                           begin
                             op.typ:=top_const;
-                            op.val:=aword(sym.localloc.reference.offset+sofs);
+                            op.val:=sym.localloc.reference.offset+sofs;
                           end
                         else
                           begin
                             op.typ:=top_ref;
                             new(op.ref);
-                            reference_reset_base(op.ref^,indexreg,
-                                sym.localloc.reference.offset+sofs);
+                            reference_reset_base(op.ref^,indexreg,sym.localloc.reference.offset+sofs);
                           end;
                       end
                     else
                       begin
                         op.typ:=top_ref;
                         new(op.ref);
-                        reference_reset_base(op.ref^,sym.localloc.reference.index,
-                            sym.localloc.reference.offset+sofs);
+                        reference_reset_base(op.ref^,sym.localloc.reference.index,sym.localloc.reference.offset+sofs);
                         op.ref^.index:=indexreg;
 {$ifdef x86}
                         op.ref^.scalefactor:=scale;
@@ -233,10 +231,18 @@ interface
                 case hp2.typ of
                   ait_label :
                      ReLabel(tasmsymbol(tai_label(hp2).l));
-                  ait_indirect_symbol,
-                  ait_const_rva,
-                  ait_const_symbol :
-                     ReLabel(tai_const_symbol(hp2).sym);
+                  ait_const_64bit,
+                  ait_const_32bit,
+                  ait_const_16bit,
+                  ait_const_8bit,
+                  ait_const_rva_symbol,
+                  ait_const_indirect_symbol :
+                     begin
+                       if assigned(tai_const(hp2).sym) then
+                         ReLabel(tai_const(hp2).sym);
+                       if assigned(tai_const(hp2).endsym) then
+                         ReLabel(tai_const(hp2).endsym);
+                     end;
                   ait_instruction :
                      begin
                        { remove cached insentry, because the new code can
@@ -477,12 +483,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2004-05-23 18:28:41  peter
+  Revision 1.63  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.62  2004/05/23 18:28:41  peter
     * methodpointer is loaded into a temp when it was a calln
 
   Revision 1.61  2004/05/23 15:06:20  peter
     * implicit_finally flag must be set in pass1
     * add check whether the implicit frame is generated when expected
+
+  Revision 1.60.2.3  2004/04/27 18:18:25  peter
+    * aword -> aint
+
+  Revision 1.60.2.2  2004/04/12 19:34:45  peter
+    * basic framework for dwarf CFI
+
+  Revision 1.60.2.1  2004/04/12 14:45:11  peter
+    * tai_const_symbol and tai_const merged
 
   Revision 1.60  2004/03/15 08:44:51  michael
   + Fix from peter: fixes crash when inlining assembler code referencing local vars

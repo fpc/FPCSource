@@ -48,14 +48,14 @@ unit cg64f32;
       tcg64f32 = class(tcg64)
         procedure a_reg_alloc(list : taasmoutput;r : tregister64);override;
         procedure a_reg_dealloc(list : taasmoutput;r : tregister64);override;
-        procedure a_load64_const_ref(list : taasmoutput;value : qword;const ref : treference);override;
+        procedure a_load64_const_ref(list : taasmoutput;value : int64;const ref : treference);override;
         procedure a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);override;
         procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);override;
         procedure a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64);override;
-        procedure a_load64_const_reg(list : taasmoutput;value: qword;reg : tregister64);override;
+        procedure a_load64_const_reg(list : taasmoutput;value: int64;reg : tregister64);override;
         procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64);override;
         procedure a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);override;
-        procedure a_load64_const_loc(list : taasmoutput;value : qword;const l : tlocation);override;
+        procedure a_load64_const_loc(list : taasmoutput;value : int64;const l : tlocation);override;
         procedure a_load64_reg_loc(list : taasmoutput;reg : tregister64;const l : tlocation);override;
 
         procedure a_load64high_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);override;
@@ -67,13 +67,13 @@ unit cg64f32;
 
         procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);override;
         procedure a_op64_reg_ref(list : taasmoutput;op:TOpCG;reg : tregister64; const ref: treference);override;
-        procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;value : qword;const l: tlocation);override;
+        procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;value : int64;const l: tlocation);override;
         procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;reg : tregister64;const l : tlocation);override;
         procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg : tregister64);override;
-        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : qword;const ref : treference);override;
+        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : int64;const ref : treference);override;
 
         procedure a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);override;
-        procedure a_param64_const(list : taasmoutput;value : qword;const locpara : tparalocation);override;
+        procedure a_param64_const(list : taasmoutput;value : int64;const locpara : tparalocation);override;
         procedure a_param64_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
         procedure a_param64_loc(list : taasmoutput;const l : tlocation;const locpara : tparalocation);override;
 
@@ -82,7 +82,7 @@ unit cg64f32;
            must continue in op64_const_reg, otherwise, everything is processed
            entirely in this routine, by emitting the appropriate 32-bit opcodes.
         }
-        function optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : qword; var reg: tregister64): boolean;override;
+        function optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : int64; var reg: tregister64): boolean;override;
 
         procedure g_rangecheck64(list: taasmoutput; const l:tlocation;fromdef,todef: tdef); override;
       end;
@@ -93,7 +93,7 @@ unit cg64f32;
   implementation
 
     uses
-       globals,systems,
+       globtype,globals,systems,
        verbose,
        symbase,symconst,symdef,defutil,tgobj,paramgr;
 
@@ -105,6 +105,12 @@ unit cg64f32;
       begin
          result.reglo:=reglo;
          result.reghi:=reghi;
+      end;
+
+
+    procedure swap64(var q : int64);
+      begin
+         q:=(int64(lo(q)) shl 32) or hi(q);
       end;
 
 
@@ -144,16 +150,16 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64_const_ref(list : taasmoutput;value : qword;const ref : treference);
+    procedure tcg64f32.a_load64_const_ref(list : taasmoutput;value : int64;const ref : treference);
       var
         tmpref: treference;
       begin
         if target_info.endian = endian_big then
-          swap_qword(value);
-        cg.a_load_const_ref(list,OS_32,lo(value),ref);
+          swap64(value);
+        cg.a_load_const_ref(list,OS_32,aint(lo(value)),ref);
         tmpref := ref;
         inc(tmpref.offset,4);
-        cg.a_load_const_ref(list,OS_32,hi(value),tmpref);
+        cg.a_load_const_ref(list,OS_32,aint(hi(value)),tmpref);
       end;
 
 
@@ -205,11 +211,11 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64_const_reg(list : taasmoutput;value : qword;reg : tregister64);
+    procedure tcg64f32.a_load64_const_reg(list : taasmoutput;value : int64;reg : tregister64);
 
       begin
-        cg.a_load_const_reg(list,OS_32,lo(value),reg.reglo);
-        cg.a_load_const_reg(list,OS_32,hi(value),reg.reghi);
+        cg.a_load_const_reg(list,OS_32,aint(lo(value)),reg.reglo);
+        cg.a_load_const_reg(list,OS_32,aint(hi(value)),reg.reghi);
       end;
 
 
@@ -222,7 +228,7 @@ unit cg64f32;
           LOC_REGISTER,LOC_CREGISTER:
             a_load64_reg_reg(list,l.register64,reg);
           LOC_CONSTANT :
-            a_load64_const_reg(list,l.valueqword,reg);
+            a_load64_const_reg(list,l.value64,reg);
           else
             internalerror(200112292);
         end;
@@ -235,14 +241,14 @@ unit cg64f32;
           LOC_REGISTER,LOC_CREGISTER:
             a_load64_reg_ref(list,l.reg64,ref);
           LOC_CONSTANT :
-            a_load64_const_ref(list,l.valueqword,ref);
+            a_load64_const_ref(list,l.value64,ref);
           else
             internalerror(200203288);
         end;
       end;
 
 
-    procedure tcg64f32.a_load64_const_loc(list : taasmoutput;value : qword;const l : tlocation);
+    procedure tcg64f32.a_load64_const_loc(list : taasmoutput;value : int64;const l : tlocation);
 
       begin
         case l.loc of
@@ -338,11 +344,12 @@ unit cg64f32;
           LOC_REGISTER :
             cg.a_load_reg_reg(list,OS_32,OS_32,l.registerlow,reg);
           LOC_CONSTANT :
-            cg.a_load_const_reg(list,OS_32,lo(l.valueqword),reg);
+            cg.a_load_const_reg(list,OS_32,aint(lo(l.value64)),reg);
           else
             internalerror(200203244);
         end;
       end;
+
 
     procedure tcg64f32.a_load64high_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);
       begin
@@ -353,14 +360,14 @@ unit cg64f32;
           LOC_REGISTER :
             cg.a_load_reg_reg(list,OS_32,OS_32,l.registerhigh,reg);
           LOC_CONSTANT :
-            cg.a_load_const_reg(list,OS_32,hi(l.valueqword),reg);
+            cg.a_load_const_reg(list,OS_32,hi(l.value64),reg);
           else
             internalerror(200203244);
         end;
       end;
 
 
-    procedure tcg64f32.a_op64_const_loc(list : taasmoutput;op:TOpCG;value : qword;const l: tlocation);
+    procedure tcg64f32.a_op64_const_loc(list : taasmoutput;op:TOpCG;value : int64;const l: tlocation);
       begin
         case l.loc of
           LOC_REFERENCE, LOC_CREFERENCE:
@@ -395,7 +402,7 @@ unit cg64f32;
           LOC_REGISTER,LOC_CREGISTER:
             a_op64_reg_reg(list,op,l.register64,reg);
           LOC_CONSTANT :
-            a_op64_const_reg(list,op,l.valueqword,reg);
+            a_op64_const_reg(list,op,l.value64,reg);
           else
             internalerror(200203242);
         end;
@@ -406,8 +413,8 @@ unit cg64f32;
       var
         tempreg: tregister64;
       begin
-        tempreg.reghi:=cg.getintregister(list,OS_INT);
-        tempreg.reglo:=cg.getintregister(list,OS_INT);
+        tempreg.reghi:=cg.getintregister(list,OS_32);
+        tempreg.reglo:=cg.getintregister(list,OS_32);
         a_load64_ref_reg(list,ref,tempreg);
         a_op64_reg_reg(list,op,tempreg,reg);
         cg.ungetregister(list,tempreg.reglo);
@@ -419,8 +426,8 @@ unit cg64f32;
       var
         tempreg: tregister64;
       begin
-        tempreg.reghi:=cg.getintregister(list,OS_INT);
-        tempreg.reglo:=cg.getintregister(list,OS_INT);
+        tempreg.reghi:=cg.getintregister(list,OS_32);
+        tempreg.reglo:=cg.getintregister(list,OS_32);
         a_load64_ref_reg(list,ref,tempreg);
         a_op64_reg_reg(list,op,reg,tempreg);
         a_load64_reg_ref(list,tempreg,ref);
@@ -429,12 +436,12 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_op64_const_ref(list : taasmoutput;op:TOpCG;value : qword;const ref : treference);
+    procedure tcg64f32.a_op64_const_ref(list : taasmoutput;op:TOpCG;value : int64;const ref : treference);
       var
         tempreg: tregister64;
       begin
-        tempreg.reghi:=cg.getintregister(list,OS_INT);
-        tempreg.reglo:=cg.getintregister(list,OS_INT);
+        tempreg.reghi:=cg.getintregister(list,OS_32);
+        tempreg.reglo:=cg.getintregister(list,OS_32);
         a_load64_ref_reg(list,ref,tempreg);
         a_op64_const_reg(list,op,value,tempreg);
         a_load64_reg_ref(list,tempreg,ref);
@@ -453,13 +460,13 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_param64_const(list : taasmoutput;value : qword;const locpara : tparalocation);
+    procedure tcg64f32.a_param64_const(list : taasmoutput;value : int64;const locpara : tparalocation);
       var
         tmplochi,tmploclo: tparalocation;
       begin
         paramanager.splitparaloc64(locpara,tmploclo,tmplochi);
-        cg.a_param_const(list,OS_32,hi(value),tmplochi);
-        cg.a_param_const(list,OS_32,lo(value),tmploclo);
+        cg.a_param_const(list,OS_32,aint(hi(value)),tmplochi);
+        cg.a_param_const(list,OS_32,aint(lo(value)),tmploclo);
       end;
 
 
@@ -487,7 +494,7 @@ unit cg64f32;
           LOC_CREGISTER :
             a_param64_reg(list,l.register64,locpara);
           LOC_CONSTANT :
-            a_param64_const(list,l.valueqword,locpara);
+            a_param64_const(list,l.value64,locpara);
           LOC_CREFERENCE,
           LOC_REFERENCE :
             a_param64_ref(list,l.reference,locpara);
@@ -528,7 +535,7 @@ unit cg64f32;
                end
              else
                begin
-                 hreg:=cg.getintregister(list,OS_INT);
+                 hreg:=cg.getintregister(list,OS_32);
                  got_scratch := true;
                  a_load64high_ref_reg(list,l.reference,hreg);
                end;
@@ -541,7 +548,7 @@ unit cg64f32;
              if from_signed and to_signed then
                begin
                  objectlibrary.getlabel(neglabel);
-                 cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,aword(-1),hreg,neglabel);
+                 cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,-1,hreg,neglabel);
                end;
              { !!! freeing of register should happen directly after compare! (JM) }
              if got_scratch then
@@ -552,7 +559,7 @@ unit cg64f32;
              { if the high dword = 0, the low dword can be considered a }
              { simple cardinal                                          }
              cg.a_label(list,poslabel);
-             hdef:=torddef.create(u32bit,0,cardinal($ffffffff));
+             hdef:=torddef.create(u32bit,0,$ffffffff);
 
              location_copy(temploc,l);
              temploc.size:=OS_32;
@@ -578,7 +585,7 @@ unit cg64f32;
                    end
                  else
                    begin
-                     hreg:=cg.getintregister(list,OS_INT);
+                     hreg:=cg.getintregister(list,OS_32);
                      got_scratch := true;
                      a_load64low_ref_reg(list,l.reference,hreg);
                    end;
@@ -631,14 +638,14 @@ unit cg64f32;
                  end
                else
                  begin
-                   hreg:=cg.getintregister(list,OS_INT);
+                   hreg:=cg.getintregister(list,OS_32);
                    got_scratch := true;
 
                    opsize := def_cgsize(fromdef);
                    if opsize in [OS_64,OS_S64] then
                      a_load64high_ref_reg(list,l.reference,hreg)
                    else
-                     cg.a_load_ref_reg(list,opsize,OS_INT,l.reference,hreg);
+                     cg.a_load_ref_reg(list,opsize,OS_32,l.reference,hreg);
                  end;
                objectlibrary.getlabel(poslabel);
                cg.a_cmp_const_reg_label(list,opsize,OC_GTE,0,hreg,poslabel);
@@ -651,7 +658,7 @@ unit cg64f32;
              end;
       end;
 
-    function tcg64f32.optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : qword; var reg: tregister64): boolean;
+    function tcg64f32.optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : int64; var reg: tregister64): boolean;
       var
         lowvalue, highvalue : cardinal;
         hreg: tregister;
@@ -746,7 +753,26 @@ unit cg64f32;
 end.
 {
   $Log$
-  Revision 1.57  2004-01-22 02:22:47  florian
+  Revision 1.58  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.57.2.5  2004/06/13 10:51:16  florian
+    * fixed several register allocator problems (sparc/arm)
+
+  Revision 1.57.2.4  2004/06/12 17:01:01  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.57.2.3  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.57.2.2  2004/04/29 19:07:22  peter
+    * compile fixes
+
+  Revision 1.57.2.1  2004/04/27 18:18:25  peter
+    * aword -> aint
+
+  Revision 1.57  2004/01/22 02:22:47  florian
     * op_const_reg_reg with OP_SAR fixed
 
   Revision 1.56  2003/12/24 00:10:02  florian
@@ -882,8 +908,8 @@ end.
   Revision 1.25  2002/08/14 18:41:47  jonas
     - remove valuelow/valuehigh fields from tlocation, because they depend
       on the endianess of the host operating system -> difficult to get
-      right. Use lo/hi(location.valueqword) instead (remember to use
-      valueqword and not value!!)
+      right. Use lo/hi(location.valueint64) instead (remember to use
+      valueint64 and not value!!)
 
   Revision 1.24  2002/08/11 14:32:26  peter
     * renamed current_library to objectlibrary

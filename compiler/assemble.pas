@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Peter Vreman
+    Copyright (c) 1998-2004 by Peter Vreman
 
     This unit handles the assemblerfile write and assembler calls of FPC
 
@@ -134,8 +134,6 @@ interface
         destructor  destroy;override;
         procedure MakeObject;override;
       protected
-        { object alloc and output }
-        objectalloc  : TAsmObjectAlloc;
         objectdata   : TAsmObjectData;
         objectoutput : tobjectoutput;
       private
@@ -156,7 +154,7 @@ interface
         procedure emitlineinfostabs(nidx,line : longint);
         procedure emitstabs(s:string);
         procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
-        procedure StartFileLineInfo(sec:tsection);
+        procedure StartFileLineInfo;
         procedure EndFileLineInfo;
 {$endif}
         function  MaybeNextList(var hp:Tai):boolean;
@@ -188,6 +186,7 @@ Implementation
   {$endif}
 {$endif}
       cutils,script,fmodule,verbose,
+      cpuinfo,
 {$ifdef memdebug}
       cclasses,
 {$endif memdebug}
@@ -617,7 +616,6 @@ Implementation
         inherited create(smart);
         objectoutput:=nil;
         objectdata:=nil;
-        objectalloc:=TAsmObjectAlloc.create;
         SmartAsm:=smart;
         currpass:=0;
       end;
@@ -634,7 +632,6 @@ Implementation
 {$endif}
         objectdata.free;
         objectoutput.free;
-        objectalloc.free;
 {$ifdef MEMDEBUG}
         d.free;
 {$endif}
@@ -649,14 +646,12 @@ Implementation
         code : integer;
         hp : pchar;
         reloc : boolean;
-        sec : TSection;
         ps : tasmsymbol;
         s : string;
       begin
         ofs:=0;
         reloc:=true;
         ps:=nil;
-        sec:=sec_none;
         if p[0]='"' then
          begin
            i:=1;
@@ -677,7 +672,7 @@ Implementation
       { When in pass 1 then only alloc and leave }
         if currpass=1 then
          begin
-           objectalloc.staballoc(hp);
+           objectdata.allocstabs(hp);
            if assigned(hp) then
             p[i]:='"';
            exit;
@@ -755,7 +750,6 @@ Implementation
                   internalerror(33006)
                 else
                   begin
-                    sec:=ps.section;
                     ofs:=ofs+ps.address;
                     reloc:=true;
                     objectlibrary.UsedAsmSymbolListInsert(ps);
@@ -777,7 +771,7 @@ Implementation
                       internalerror(33007)
                     else
                       begin
-                        if ps.section<>sec then
+                        if ps.section<>objectdata.currsec then
                           internalerror(33008);
                         ofs:=ofs-ps.address;
                         reloc:=false;
@@ -787,47 +781,35 @@ Implementation
               end;
           end;
         { external bss need speical handling (PM) }
-        if assigned(ps) and (ps.section=sec_none) then
+        if assigned(ps) and (ps.section=nil) then
           begin
             if currpass=2 then
               begin
                 objectdata.writesymbol(ps);
                 objectoutput.exportsymbol(ps);
               end;
-            objectdata.writeSymStabs(sec,ofs,hp,ps,nidx,nother,line,reloc)
+            objectdata.writeSymStabs(ofs,hp,ps,nidx,nother,line,reloc)
           end
         else
-          objectdata.writeStabs(sec,ofs,hp,nidx,nother,line,reloc);
+          objectdata.writeStabs(ofs,hp,nidx,nother,line,reloc);
         if assigned(hp) then
          p[ii]:='"';
       end;
 
 
     procedure TInternalAssembler.emitlineinfostabs(nidx,line : longint);
-      var
-         sec : TSection;
       begin
         if currpass=1 then
           begin
-            objectalloc.staballoc(nil);
+            objectdata.allocstabs(nil);
             exit;
           end;
 
         if (nidx=n_textline) and assigned(funcname) and
            (target_info.use_function_relative_addresses) then
-          objectdata.writeStabs(sec_code,objectdata.sectionsize(sec_code)-funcname.address,
-              nil,nidx,0,line,false)
+          objectdata.writeStabs(objectdata.currsec.datasize-funcname.address,nil,nidx,0,line,false)
         else
-          begin
-            if nidx=n_textline then
-              sec:=sec_code
-            else if nidx=n_dataline then
-              sec:=sec_data
-            else
-              sec:=sec_bss;
-            objectdata.writeStabs(sec,objectdata.sectionsize(sec),
-              nil,nidx,0,line,true);
-          end;
+          objectdata.writeStabs(objectdata.currsec.datasize,nil,nidx,0,line,true);
       end;
 
 
@@ -863,7 +845,7 @@ Implementation
               hp:=objectlibrary.newasmsymbol('Ltext'+ToStr(IncludeCount),AB_LOCAL,AT_FUNCTION);
               if currpass=1 then
                 begin
-                  hp.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
+                  objectdata.allocsymbol(currpass,hp,0);
                   objectlibrary.UsedAsmSymbolListInsert(hp);
                 end
               else
@@ -887,18 +869,12 @@ Implementation
       end;
 
 
-    procedure TInternalAssembler.StartFileLineInfo(sec:tsection);
+    procedure TInternalAssembler.StartFileLineInfo;
       var
         fileinfo : tfileposinfo;
       begin
         FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
-        case sec of
-         sec_code : n_line:=n_textline;
-         sec_data : n_line:=n_dataline;
-          sec_bss : n_line:=n_bssline;
-        else
-         n_line:=n_bssline;
-        end;
+        n_line:=n_bssline;
         funcname:=nil;
         linecount:=1;
         includecount:=0;
@@ -911,23 +887,20 @@ Implementation
     procedure TInternalAssembler.EndFileLineInfo;
       var
         hp : tasmsymbol;
-        store_sec : TSection;
       begin
           if not ((cs_debuginfo in aktmoduleswitches) or
              (cs_gdb_lineinfo in aktglobalswitches)) then
            exit;
-        store_sec:=objectalloc.currsec;
-        objectalloc.seTSection(sec_code);
+        objectdata.createsection(sec_code,'',0,[]);
         hp:=objectlibrary.newasmsymbol('Letext',AB_LOCAL,AT_FUNCTION);
         if currpass=1 then
           begin
-            hp.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
+            objectdata.allocsymbol(currpass,hp,0);
             objectlibrary.UsedAsmSymbolListInsert(hp);
           end
         else
           objectdata.writesymbol(hp);
         EmitStabs('"",'+tostr(n_sourcefile)+',0,0,Letext');
-        objectalloc.seTSection(store_sec);
       end;
 {$endif GDB}
 
@@ -965,68 +938,62 @@ Implementation
                  { always use the maximum fillsize in this pass to avoid possible
                    short jumps to become out of range }
                  Tai_align(hp).fillsize:=Tai_align(hp).aligntype;
-                 objectalloc.sectionalloc(Tai_align(hp).fillsize);
+                 objectdata.alloc(Tai_align(hp).fillsize);
                end;
              ait_datablock :
                begin
+                 l:=used_align(size_2_align(Tai_datablock(hp).size),0,objectdata.currsec.addralign);
                  if not SmartAsm then
                   begin
                     if not Tai_datablock(hp).is_global then
                      begin
-                        l:=Tai_datablock(hp).size;
-                        if l>2 then
-                          objectalloc.sectionalign(4)
-                        else if l>1 then
-                          objectalloc.sectionalign(2);
-                        objectalloc.sectionalloc(Tai_datablock(hp).size);
+                        objectdata.allocalign(l);
+                        objectdata.alloc(Tai_datablock(hp).size);
                      end;
                   end
                  else
                   begin
-                    l:=Tai_datablock(hp).size;
-                    if l>2 then
-                      objectalloc.sectionalign(4)
-                    else if l>1 then
-                      objectalloc.sectionalign(2);
-                    objectalloc.sectionalloc(Tai_datablock(hp).size);
+                    objectdata.allocalign(l);
+                    objectdata.alloc(Tai_datablock(hp).size);
                   end;
                end;
-             ait_const_32bit :
-               objectalloc.sectionalloc(4);
-             ait_const_16bit :
-               objectalloc.sectionalloc(2);
-             ait_const_8bit :
-               objectalloc.sectionalloc(1);
              ait_real_80bit :
-               objectalloc.sectionalloc(10);
+               objectdata.alloc(10);
              ait_real_64bit :
-               objectalloc.sectionalloc(8);
+               objectdata.alloc(8);
              ait_real_32bit :
-               objectalloc.sectionalloc(4);
+               objectdata.alloc(4);
              ait_comp_64bit :
-               objectalloc.sectionalloc(8);
-             ait_const_rva,
-             ait_const_symbol :
-               objectalloc.sectionalloc(4);
+               objectdata.alloc(8);
+             ait_const_64bit,
+             ait_const_32bit,
+             ait_const_16bit,
+             ait_const_8bit,
+             ait_const_rva_symbol,
+             ait_const_indirect_symbol :
+               objectdata.alloc(tai_const(hp).size);
              ait_section:
-               objectalloc.seTSection(Tai_section(hp).sec);
+               begin
+                 objectdata.CreateSection(Tai_section(hp).sectype,Tai_section(hp).name^,Tai_section(hp).secalign,[]);
+                 Tai_section(hp).sec:=objectdata.CurrSec;
+               end;
              ait_symbol :
-               Tai_symbol(hp).sym.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
+               objectdata.allocsymbol(currpass,Tai_symbol(hp).sym,0);
              ait_label :
-               Tai_label(hp).l.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
+               objectdata.allocsymbol(currpass,Tai_label(hp).l,0);
              ait_string :
-               objectalloc.sectionalloc(Tai_string(hp).len);
+               objectdata.alloc(Tai_string(hp).len);
              ait_instruction :
                begin
 {$ifdef i386}
 {$ifndef NOAG386BIN}
                  { reset instructions which could change in pass 2 }
                  Taicpu(hp).resetpass2;
-                 objectalloc.sectionalloc(Taicpu(hp).Pass1(objectalloc.sectionsize));
+                 objectdata.alloc(Taicpu(hp).Pass1(objectdata.currsec.datasize));
 {$endif NOAG386BIN}
 {$endif i386}
                end;
-             ait_cut :
+             ait_cutobject :
                if SmartAsm then
                 break;
            end;
@@ -1055,7 +1022,7 @@ Implementation
               ((cs_debuginfo in aktmoduleswitches) or
                (cs_gdb_lineinfo in aktglobalswitches)) then
             begin
-              if (objectalloc.currsec<>sec_none) and
+              if (objectdata.currsec<>nil) and
                  not(hp.typ in SkipLineInfo) then
                WriteFileLineInfo(tailineinfo(hp).fileinfo);
             end;
@@ -1064,77 +1031,74 @@ Implementation
              ait_align :
                begin
                  { here we must determine the fillsize which is used in pass2 }
-                 Tai_align(hp).fillsize:=align(objectalloc.sectionsize,Tai_align(hp).aligntype)-
-                   objectalloc.sectionsize;
-                 objectalloc.sectionalloc(Tai_align(hp).fillsize);
+                 Tai_align(hp).fillsize:=align(objectdata.currsec.datasize,Tai_align(hp).aligntype)-
+                   objectdata.currsec.datasize;
+                 objectdata.alloc(Tai_align(hp).fillsize);
                end;
              ait_datablock :
                begin
-                 if objectalloc.currsec<>sec_bss then
-                  Message(asmw_e_alloc_data_only_in_bss);
+                 if objectdata.currsec.sectype<>sec_bss then
+                   Message(asmw_e_alloc_data_only_in_bss);
+                 l:=used_align(size_2_align(Tai_datablock(hp).size),0,objectdata.currsec.addralign);
                  if not SmartAsm then
                   begin
                     if Tai_datablock(hp).is_global then
                      begin
-                       Tai_datablock(hp).sym.setaddress(currpass,sec_none,Tai_datablock(hp).size,Tai_datablock(hp).size);
+                       objectdata.allocsymbol(currpass,Tai_datablock(hp).sym,Tai_datablock(hp).size);
                        { force to be common/external, must be after setaddress as that would
-                         set it to AS_GLOBAL }
+                         set it to AB_GLOBAL }
                        Tai_datablock(hp).sym.currbind:=AB_COMMON;
                      end
                     else
                      begin
-                       l:=Tai_datablock(hp).size;
-                       if l>2 then
-                         objectalloc.sectionalign(4)
-                       else if l>1 then
-                         objectalloc.sectionalign(2);
-                       Tai_datablock(hp).sym.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,
-                         Tai_datablock(hp).size);
-                       objectalloc.sectionalloc(Tai_datablock(hp).size);
+                       objectdata.allocalign(l);
+                       objectdata.allocsymbol(currpass,Tai_datablock(hp).sym,Tai_datablock(hp).size);
+                       objectdata.alloc(Tai_datablock(hp).size);
                      end;
                    end
                   else
                    begin
-                     l:=Tai_datablock(hp).size;
-                     if l>2 then
-                       objectalloc.sectionalign(4)
-                     else if l>1 then
-                       objectalloc.sectionalign(2);
-                     Tai_datablock(hp).sym.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,Tai_datablock(hp).size);
-                     objectalloc.sectionalloc(Tai_datablock(hp).size);
+                     objectdata.allocalign(l);
+                     objectdata.allocsymbol(currpass,Tai_datablock(hp).sym,Tai_datablock(hp).size);
+                     objectdata.alloc(Tai_datablock(hp).size);
                    end;
                  objectlibrary.UsedAsmSymbolListInsert(Tai_datablock(hp).sym);
                end;
-             ait_const_32bit :
-               objectalloc.sectionalloc(4);
-             ait_const_16bit :
-               objectalloc.sectionalloc(2);
-             ait_const_8bit :
-               objectalloc.sectionalloc(1);
              ait_real_80bit :
-               objectalloc.sectionalloc(10);
+               objectdata.alloc(10);
              ait_real_64bit :
-               objectalloc.sectionalloc(8);
+               objectdata.alloc(8);
              ait_real_32bit :
-               objectalloc.sectionalloc(4);
+               objectdata.alloc(4);
              ait_comp_64bit :
-               objectalloc.sectionalloc(8);
-             ait_const_rva,
-             ait_const_symbol :
+               objectdata.alloc(8);
+             ait_const_64bit,
+             ait_const_32bit,
+             ait_const_16bit,
+             ait_const_8bit,
+             ait_const_rva_symbol,
+             ait_const_indirect_symbol :
                begin
-                 objectalloc.sectionalloc(4);
-                 objectlibrary.UsedAsmSymbolListInsert(Tai_const_symbol(hp).sym);
+                 objectdata.alloc(tai_const(hp).size);
+                 if assigned(Tai_const(hp).sym) then
+                   objectlibrary.UsedAsmSymbolListInsert(Tai_const(hp).sym);
+                 if assigned(Tai_const(hp).endsym) then
+                   objectlibrary.UsedAsmSymbolListInsert(Tai_const(hp).endsym);
                end;
              ait_section:
                begin
-                 objectalloc.seTSection(Tai_section(hp).sec);
+                 { use cached value }
+                 objectdata.setsection(Tai_section(hp).sec);
 {$ifdef GDB}
-                 case Tai_section(hp).sec of
-                  sec_code : n_line:=n_textline;
-                  sec_data : n_line:=n_dataline;
-                   sec_bss : n_line:=n_bssline;
-                 else
-                  n_line:=n_dataline;
+                 case Tai_section(hp).sectype of
+                   sec_code :
+                     n_line:=n_textline;
+                   sec_data :
+                     n_line:=n_dataline;
+                   sec_bss :
+                     n_line:=n_bssline;
+                   else
+                     n_line:=n_dataline;
                  end;
                  stabslastfileinfo.line:=-1;
 {$endif GDB}
@@ -1165,29 +1129,29 @@ Implementation
 {$endif}
              ait_symbol :
                begin
-                 Tai_symbol(hp).sym.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
+                 objectdata.allocsymbol(currpass,Tai_symbol(hp).sym,0);
                  objectlibrary.UsedAsmSymbolListInsert(Tai_symbol(hp).sym);
                end;
              ait_symbol_end :
                begin
                  if target_info.system in [system_i386_linux,system_i386_beos] then
                   begin
-                    Tai_symbol_end(hp).sym.size:=objectalloc.sectionsize-Tai_symbol_end(hp).sym.address;
+                    Tai_symbol_end(hp).sym.size:=objectdata.currsec.datasize-Tai_symbol_end(hp).sym.address;
                     objectlibrary.UsedAsmSymbolListInsert(Tai_symbol_end(hp).sym);
                   end;
                 end;
              ait_label :
                begin
-                 Tai_label(hp).l.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
+                 objectdata.allocsymbol(currpass,Tai_label(hp).l,0);
                  objectlibrary.UsedAsmSymbolListInsert(Tai_label(hp).l);
                end;
              ait_string :
-               objectalloc.sectionalloc(Tai_string(hp).len);
+               objectdata.alloc(Tai_string(hp).len);
              ait_instruction :
                begin
 {$ifdef i386}
 {$ifndef NOAG386BIN}
-                 objectalloc.sectionalloc(Taicpu(hp).Pass1(objectalloc.sectionsize));
+                 objectdata.alloc(Taicpu(hp).Pass1(objectdata.currsec.datasize));
                  { fixup the references }
                  for i:=1 to Taicpu(hp).ops do
                   begin
@@ -1209,7 +1173,7 @@ Implementation
                end;
              ait_direct :
                Message(asmw_f_direct_not_supported);
-             ait_cut :
+             ait_cutobject :
                if SmartAsm then
                 break;
              ait_marker :
@@ -1229,6 +1193,7 @@ Implementation
         fillbuffer : tfillbuffer;
         InlineLevel,
         l  : longint;
+        v  : int64;
 {$ifdef x86}
         co : comp;
 {$endif x86}
@@ -1243,7 +1208,7 @@ Implementation
               ((cs_debuginfo in aktmoduleswitches) or
                (cs_gdb_lineinfo in aktglobalswitches)) then
             begin
-              if (objectdata.currsec<>sec_none) and
+              if (objectdata.currsec<>nil) and
                  not(hp.typ in SkipLineInfo) then
                WriteFileLineInfo(tailineinfo(hp).fileinfo);
             end;
@@ -1251,16 +1216,17 @@ Implementation
            case hp.typ of
              ait_align :
                begin
-                 if objectdata.currsec=sec_bss then
+                 if objectdata.currsec.sectype=sec_bss then
                    objectdata.alloc(Tai_align(hp).fillsize)
                  else
                    objectdata.writebytes(Tai_align(hp).calculatefillbuf(fillbuffer)^,Tai_align(hp).fillsize);
                end;
              ait_section :
                begin
-                 objectdata.defaulTSection(Tai_section(hp).sec);
+                 { use cached value }
+                 objectdata.setsection(Tai_section(hp).sec);
 {$ifdef GDB}
-                 case Tai_section(hp).sec of
+                 case Tai_section(hp).sectype of
                   sec_code : n_line:=n_textline;
                   sec_data : n_line:=n_dataline;
                    sec_bss : n_line:=n_bssline;
@@ -1289,12 +1255,6 @@ Implementation
                      objectdata.alloc(Tai_datablock(hp).size);
                    end;
                end;
-             ait_const_32bit :
-               objectdata.writebytes(Tai_const(hp).value,4);
-             ait_const_16bit :
-               objectdata.writebytes(Tai_const(hp).value,2);
-             ait_const_8bit :
-               objectdata.writebytes(Tai_const(hp).value,1);
              ait_real_80bit :
                objectdata.writebytes(Tai_real_80bit(hp).value,10);
              ait_real_64bit :
@@ -1314,12 +1274,28 @@ Implementation
                end;
              ait_string :
                objectdata.writebytes(Tai_string(hp).str^,Tai_string(hp).len);
-             ait_const_rva :
-               objectdata.writereloc(Tai_const_symbol(hp).offset,4,
-                 Tai_const_symbol(hp).sym,RELOC_RVA);
-             ait_const_symbol :
-               objectdata.writereloc(Tai_const_symbol(hp).offset,4,
-                 Tai_const_symbol(hp).sym,RELOC_ABSOLUTE);
+             ait_const_64bit,
+             ait_const_32bit,
+             ait_const_16bit,
+             ait_const_8bit :
+               begin
+                 if assigned(tai_const(hp).sym) then
+                   begin
+                     if assigned(tai_const(hp).endsym) then
+                       begin
+                         if tai_const(hp).endsym.section<>tai_const(hp).sym.section then
+                           internalerror(200404124);
+                         v:=tai_const(hp).endsym.address-tai_const(hp).sym.address+Tai_const(hp).value;
+                         objectdata.writebytes(v,tai_const(hp).size);
+                       end
+                     else
+                       objectdata.writereloc(Tai_const(hp).value,Tai_const(hp).size,Tai_const(hp).sym,RELOC_ABSOLUTE);
+                   end
+                 else
+                   objectdata.writebytes(Tai_const(hp).value,tai_const(hp).size);
+               end;
+             ait_const_rva_symbol :
+               objectdata.writereloc(Tai_const(hp).value,sizeof(aint),Tai_const(hp).sym,RELOC_RVA);
              ait_label :
                begin
                  objectdata.writesymbol(Tai_label(hp).l);
@@ -1346,7 +1322,7 @@ Implementation
              ait_force_line :
                stabslastfileinfo.line:=0;
 {$endif}
-             ait_cut :
+             ait_cutobject :
                if SmartAsm then
                 break;
              ait_marker :
@@ -1367,17 +1343,14 @@ Implementation
       label
         doexit;
       begin
-        objectalloc.reseTSections;
-        objectalloc.seTSection(sec_code);
-
         objectdata:=objectoutput.newobjectdata(Objfile);
-        objectdata.defaulTSection(sec_code);
         { reset the asmsymbol list }
         objectlibrary.CreateUsedAsmsymbolList;
 
       { Pass 0 }
         currpass:=0;
-        objectalloc.seTSection(sec_code);
+        objectdata.createsection(sec_code,'',0,[]);
+        objectdata.beforealloc;
         { start with list 1 }
         currlistidx:=1;
         currlist:=list[currlistidx];
@@ -1387,16 +1360,18 @@ Implementation
            hp:=TreePass0(hp);
            MaybeNextList(hp);
          end;
+        objectdata.afteralloc;
         { leave if errors have occured }
         if errorcount>0 then
          goto doexit;
 
       { Pass 1 }
         currpass:=1;
-        objectalloc.reseTSections;
-        objectalloc.seTSection(sec_code);
+        objectdata.resetsections;
+        objectdata.beforealloc;
+        objectdata.createsection(sec_code,'',0,[]);
 {$ifdef GDB}
-        StartFileLineInfo(sec_code);
+        StartFileLineInfo;
 {$endif GDB}
         { start with list 1 }
         currlistidx:=1;
@@ -1410,19 +1385,21 @@ Implementation
 {$ifdef GDB}
         EndFileLineInfo;
 {$endif GDB}
+        objectdata.afteralloc;
         { check for undefined labels and reset }
         objectlibrary.UsedAsmSymbolListCheckUndefined;
 
-        { set section sizes }
-        objectdata.seTSectionsizes(objectalloc.secsize);
         { leave if errors have occured }
         if errorcount>0 then
          goto doexit;
 
       { Pass 2 }
         currpass:=2;
+        objectdata.resetsections;
+        objectdata.beforewrite;
+        objectdata.createsection(sec_code,'',0,[]);
 {$ifdef GDB}
-        StartFileLineInfo(sec_code);
+        StartFileLineInfo;
 {$endif GDB}
         { start with list 1 }
         currlistidx:=1;
@@ -1436,6 +1413,7 @@ Implementation
 {$ifdef GDB}
         EndFileLineInfo;
 {$endif GDB}
+        objectdata.afterwrite;
 
         { don't write the .o file if errors have occured }
         if errorcount=0 then
@@ -1458,16 +1436,12 @@ Implementation
     procedure TInternalAssembler.writetreesmart;
       var
         hp : Tai;
-        starTSec : TSection;
+        startsectype : TAsmSectionType;
         place: tcutplace;
       begin
-        objectalloc.reseTSections;
-        objectalloc.seTSection(sec_code);
-
         NextSmartName(cut_normal);
         objectdata:=objectoutput.newobjectdata(Objfile);
-        objectdata.defaulTSection(sec_code);
-        starTSec:=sec_code;
+        startsectype:=sec_code;
 
         { start with list 1 }
         currlistidx:=1;
@@ -1480,29 +1454,31 @@ Implementation
 
          { Pass 0 }
            currpass:=0;
-           objectalloc.reseTSections;
-           objectalloc.seTSection(starTSec);
+           objectdata.resetsections;
+           objectdata.beforealloc;
+           objectdata.createsection(startsectype,'',0,[]);
            TreePass0(hp);
+           objectdata.afteralloc;
            { leave if errors have occured }
            if errorcount>0 then
             exit;
 
          { Pass 1 }
            currpass:=1;
-           objectalloc.reseTSections;
-           objectalloc.seTSection(starTSec);
+           objectdata.resetsections;
+           objectdata.beforealloc;
+           objectdata.createsection(startsectype,'',0,[]);
 {$ifdef GDB}
-           StartFileLineInfo(startsec);
+           StartFileLineInfo;
 {$endif GDB}
            TreePass1(hp);
 {$ifdef GDB}
            EndFileLineInfo;
 {$endif GDB}
+           objectdata.afteralloc;
            { check for undefined labels }
            objectlibrary.UsedAsmSymbolListCheckUndefined;
 
-           { set section sizes }
-           objectdata.seTSectionsizes(objectalloc.secsize);
            { leave if errors have occured }
            if errorcount>0 then
             exit;
@@ -1510,14 +1486,20 @@ Implementation
          { Pass 2 }
            currpass:=2;
            objectoutput.startobjectfile(Objfile);
-           objectdata.defaulTSection(starTSec);
+           objectdata.resetsections;
+           objectdata.beforewrite;
+           objectdata.createsection(startsectype,'',0,[]);
 {$ifdef GDB}
-           StartFileLineInfo(startsec);
+           StartFileLineInfo;
 {$endif GDB}
            hp:=TreePass2(hp);
+           { save section type for next loop, must be done before EndFileLineInfo
+             because that changes the section to sec_code }
+           startsectype:=objectdata.currsec.sectype;
 {$ifdef GDB}
            EndFileLineInfo;
 {$endif GDB}
+           objectdata.afterwrite;
            { leave if errors have occured }
            if errorcount>0 then
             exit;
@@ -1536,28 +1518,27 @@ Implementation
            if not MaybeNextList(hp) then
             break;
 
-           { save section for next loop }
-           { this leads to a problem if starTSec is sec_none !! PM }
-           starTSec:=objectalloc.currsec;
-
            { we will start a new objectfile so reset everything }
            { The place can still change in the next while loop, so don't init }
            { the writer yet (JM)                                              }
-           if (hp.typ=ait_cut) then
-            place := Tai_cut(hp).place
+           if (hp.typ=ait_cutobject) then
+            place := Tai_cutobject(hp).place
            else
             place := cut_normal;
 
            { avoid empty files }
            while assigned(hp) and
-                 (Tai(hp).typ in [ait_marker,ait_comment,ait_section,ait_cut]) do
+                 (Tai(hp).typ in [ait_marker,ait_comment,ait_section,ait_cutobject]) do
             begin
               if Tai(hp).typ=ait_section then
-               starTSec:=Tai_section(hp).sec
-              else if (Tai(hp).typ=ait_cut) then
-               place := Tai_cut(hp).place;
+               startsectype:=Tai_section(hp).sectype
+              else if (Tai(hp).typ=ait_cutobject) then
+               place:=Tai_cutobject(hp).place;
               hp:=Tai(hp.next);
             end;
+           { there is a problem if startsectype is sec_none !! PM }
+           if startsectype=sec_none then
+             startsectype:=sec_code;
 
            if not MaybeNextList(hp) then
              break;
@@ -1565,11 +1546,6 @@ Implementation
            { start next objectfile }
            NextSmartName(place);
            objectdata:=objectoutput.newobjectdata(Objfile);
-
-           { there is a problem if starTSec is sec_none !! PM }
-           if starTSec=sec_none then
-             starTSec:=sec_code;
-
          end;
       end;
 
@@ -1595,10 +1571,13 @@ Implementation
         addlist(bsssegment);
         if assigned(importssection) then
           addlist(importssection);
-        if assigned(exportssection) and not UseDeffileForExport then
+        if assigned(exportssection) and not UseDeffileForExports then
           addlist(exportssection);
         if assigned(resourcesection) then
           addlist(resourcesection);
+{$warning TODO internal writer support for dwarf}
+        {if assigned(dwarflist) then
+          addlist(dwarflist);}
 
         if SmartAsm then
           writetreesmart
@@ -1666,9 +1645,34 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.67  2004-05-21 22:43:36  peter
+  Revision 1.68  2004-06-16 20:07:06  florian
+    * dwarf branch merged
+
+  Revision 1.67  2004/05/21 22:43:36  peter
     * set correct n_line type when starting new .o file by passing
       the current section type
+
+  Revision 1.66.2.7  2004/05/03 14:59:57  peter
+    * no dlltool needed for win32 linking executables
+
+  Revision 1.66.2.6  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.66.2.5  2004/04/29 23:30:28  peter
+    * fix i386 compiler
+
+  Revision 1.66.2.4  2004/04/12 19:34:45  peter
+    * basic framework for dwarf CFI
+
+  Revision 1.66.2.3  2004/04/12 14:45:10  peter
+    * tai_const_symbol and tai_const merged
+
+  Revision 1.66.2.2  2004/04/10 12:36:41  peter
+    * fixed alignment issues
+
+  Revision 1.66.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.66  2004/03/22 09:28:34  michael
   + Patch from peter for stack overflow

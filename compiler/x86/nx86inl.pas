@@ -63,7 +63,7 @@ implementation
 
     uses
       systems,
-      globals,
+      globtype,globals,
       cutils,verbose,
       defutil,
       aasmtai,aasmcpu,
@@ -281,14 +281,17 @@ implementation
         var
          hregister : tregister;
          asmop : tasmop;
-         L : cardinal;
+         bitsperop,l : longint;
          cgop : topcg;
+         opsize : tcgsize;
         begin
+          opsize:=OS_32;
+          bitsperop:=(8*tcgsize2size[opsize]);
           secondpass(tcallparanode(left).left);
           if tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn then
             begin
               { calculate bit position }
-              l:=cardinal(1 shl (tordconstnode(tcallparanode(tcallparanode(left).right).left).value mod 32));
+              l:=1 shl (tordconstnode(tcallparanode(tcallparanode(left).right).left).value mod bitsperop);
 
               { determine operator }
               if inlinenumber=in_include_x_y then
@@ -298,19 +301,19 @@ implementation
                   cgop:=OP_AND;
                   l:=not(l);
                 end;
-              if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
-                begin
-                  inc(tcallparanode(left).left.location.reference.offset,
-                    (tordconstnode(tcallparanode(tcallparanode(left).right).left).value div 32)*4);
-                  cg.a_op_const_ref(exprasmlist,cgop,OS_INT,l,tcallparanode(left).left.location.reference);
-                  location_release(exprasmlist,tcallparanode(left).left.location);
-                end
-              else
-                { LOC_CREGISTER }
-                begin
-                  cg.a_op_const_reg(exprasmlist,cgop,tcallparanode(left).left.location.size,
-                     l,tcallparanode(left).left.location.register);
-                end;
+              case tcallparanode(left).left.location.loc of
+                LOC_REFERENCE :
+                  begin
+                    inc(tcallparanode(left).left.location.reference.offset,
+                      (tordconstnode(tcallparanode(tcallparanode(left).right).left).value div bitsperop)*tcgsize2size[opsize]);
+                    cg.a_op_const_ref(exprasmlist,cgop,opsize,l,tcallparanode(left).left.location.reference);
+                    location_release(exprasmlist,tcallparanode(left).left.location);
+                  end;
+                LOC_CREGISTER :
+                  cg.a_op_const_reg(exprasmlist,cgop,tcallparanode(left).left.location.size,l,tcallparanode(left).left.location.register);
+                else
+                  internalerror(200405022);
+              end;
             end
           else
             begin
@@ -331,19 +334,15 @@ implementation
 
                 { need a cmp and jmp, but this should be done by the         }
                 { type cast code which does range checking if necessary (FK) }
-                begin
-                  hregister:=cg.makeregsize(exprasmlist,Tcallparanode(Tcallparanode(left).right).left.location.register,OS_INT);
-                end
+                hregister:=cg.makeregsize(exprasmlist,Tcallparanode(Tcallparanode(left).right).left.location.register,opsize)
               else
-                begin
-                  hregister:=cg.getintregister(exprasmlist,OS_INT);
-                end;
+                hregister:=cg.getintregister(exprasmlist,opsize);
               location_release(exprasmlist,tcallparanode(tcallparanode(left).right).left.location);
-              cg.a_load_loc_reg(exprasmlist,OS_INT,tcallparanode(tcallparanode(left).right).left.location,hregister);
+              cg.a_load_loc_reg(exprasmlist,opsize,tcallparanode(tcallparanode(left).right).left.location,hregister);
               if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
-                emit_reg_ref(asmop,S_L,hregister,tcallparanode(left).left.location.reference)
+                emit_reg_ref(asmop,tcgsize2opsize[opsize],hregister,tcallparanode(left).left.location.reference)
               else
-                emit_reg_reg(asmop,S_L,hregister,tcallparanode(left).left.location.register);
+                emit_reg_reg(asmop,tcgsize2opsize[opsize],hregister,tcallparanode(left).left.location.register);
               cg.ungetregister(exprasmlist,hregister);
               location_release(exprasmlist,Tcallparanode(left).left.location);
             end;
@@ -353,8 +352,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2004-05-22 23:34:28  peter
+  Revision 1.4  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.3  2004/05/22 23:34:28  peter
   tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.2.2.4  2004/05/02 16:49:12  peter
+    * 64 bit fixes
+
+  Revision 1.2.2.3  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.2.2.2  2004/04/29 19:07:22  peter
+    * compile fixes
+
+  Revision 1.2.2.1  2004/04/26 15:54:33  peter
+    * small x86-64 fixes
 
   Revision 1.2  2004/02/27 10:21:06  florian
     * top_symbol killed

@@ -34,7 +34,6 @@ interface
     type
        ti386callnode = class(tcgcallnode)
        protected
-          function  align_parasize:longint;override;
           procedure pop_parasize(pop_size:longint);override;
           procedure extra_interrupt_code;override;
        end;
@@ -67,62 +66,6 @@ implementation
       end;
 
 
-    function ti386callnode.align_parasize:longint;
-      var
-         pop_size : longint;
-{$ifdef OPTALIGN}
-         pop_esp : boolean;
-         push_size : longint;
-{$endif OPTALIGN}
-         i : integer;
-      begin
-        pop_size:=0;
-        { This parasize aligned on 4 ? }
-        i:=pushedparasize and 3;
-        if i>0 then
-         inc(pop_size,4-i);
-        { insert the opcode and update pushedparasize }
-        { never push 4 or more !! }
-        pop_size:=pop_size mod 4;
-        if pop_size>0 then
-         begin
-           inc(pushedparasize,pop_size);
-           exprasmlist.concat(taicpu.op_const_reg(A_SUB,S_L,pop_size,NR_ESP));
-{$ifdef GDB}
-           if (cs_debuginfo in aktmoduleswitches) and
-              (exprasmList.first=exprasmList.last) then
-             exprasmList.concat(Tai_force_line.Create);
-{$endif GDB}
-         end;
-{$ifdef OPTALIGN}
-         if pop_allowed and (cs_align in aktglobalswitches) then
-           begin
-              pop_esp:=true;
-              push_size:=pushedparasize;
-              { !!!! here we have to take care of return type, self
-                and nested procedures
-              }
-              inc(push_size,12);
-              emit_reg_reg(A_MOV,S_L,rsp,R_EDI);
-              if (push_size mod 8)=0 then
-                emit_const_reg(A_AND,S_L,$fffffff8,rsp)
-              else
-                begin
-                   emit_const_reg(A_SUB,S_L,push_size,rsp);
-                   emit_const_reg(A_AND,S_L,$fffffff8,rsp);
-                   emit_const_reg(A_SUB,S_L,push_size,rsp);
-                end;
-              r.enum:=R_INTREGISTER;
-              r.number:=R_EDI;
-              emit_reg(A_PUSH,S_L,r);
-           end
-         else
-           pop_esp:=false;
-{$endif OPTALIGN}
-        align_parasize:=pop_size;
-      end;
-
-
     procedure ti386callnode.pop_parasize(pop_size:longint);
       var
         hreg : tregister;
@@ -151,11 +94,6 @@ implementation
         else
           if pop_size<>0 then
             exprasmlist.concat(taicpu.op_const_reg(A_ADD,S_L,pop_size,NR_ESP));
-
-{$ifdef OPTALIGN}
-        if pop_esp then
-          emit_reg(A_POP,S_L,NR_ESP);
-{$endif OPTALIGN}
       end;
 
 
@@ -164,7 +102,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.99  2003-11-07 15:58:32  florian
+  Revision 1.100  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.99.2.1  2004/05/02 12:45:32  peter
+    * enabled cpuhasfixedstack for x86-64 again
+    * fixed size of temp allocation for parameters
+
+  Revision 1.99  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

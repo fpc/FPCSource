@@ -95,7 +95,7 @@ unit procinfo;
           aktlocaldata : taasmoutput;
 
           { max. of space need for parameters }
-          maxpushedparasize : aword;
+          maxpushedparasize : aint;
 
           constructor create(aparent:tprocinfo);virtual;
           destructor destroy;override;
@@ -139,6 +139,7 @@ implementation
         para_stack_size:=0;
         flags:=[];
         framepointer:=NR_FRAME_POINTER_REG;
+        maxpushedparasize:=0;
         { asmlists }
         aktproccode:=Taasmoutput.Create;
         aktlocaldata:=Taasmoutput.Create;
@@ -183,7 +184,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2004-03-02 17:32:12  florian
+  Revision 1.15  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.14.2.2  2004/05/03 20:18:52  peter
+    * fixes for tprintf
+
+  Revision 1.14.2.1  2004/04/27 18:18:26  peter
+    * aword -> aint
+
+  Revision 1.14  2004/03/02 17:32:12  florian
     * make cycle fixed
     + pic support for darwin
     + support of importing vars from shared libs on darwin implemented

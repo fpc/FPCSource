@@ -32,11 +32,11 @@ interface
 
     uses
        { common }
-       cclasses,
+       cclasses,globtype,
        { target }
        systems,
        { assembler }
-       cpubase,aasmbase,assemble,link,
+       cpuinfo,cpubase,aasmbase,assemble,link,
        { output }
        ogbase,ogmap;
 
@@ -47,25 +47,43 @@ interface
          coffrelocs,
          coffrelocpos : longint;
        public
-         constructor createsec(sec:TSection;AAlign,AFlags:cardinal);
+         flags    : cardinal;
+         constructor create(const Aname:string;Atype:TAsmSectionType;Aalign:longint;Aoptions:TAsmSectionOptions);override;
          procedure addsymsizereloc(ofs:longint;p:tasmsymbol;size:longint;relative:TAsmRelocationType);
+         procedure fixuprelocs;override;
+       end;
+
+       TDjCoffObjectSection = class(TCoffObjectSection)
+         constructor create(const Aname:string;Atype:TAsmSectionType;Aalign:longint;Aoptions:TAsmSectionOptions);override;
+       end;
+
+       TPECoffObjectSection = class(TCoffObjectSection)
+         constructor create(const Aname:string;Atype:TAsmSectionType;Aalign:longint;Aoptions:TAsmSectionOptions);override;
        end;
 
        tcoffobjectdata = class(TAsmObjectData)
        private
          win32      : boolean;
-         procedure reset;
+         procedure section_mempos(p:tnamedindexitem;arg:pointer);
        public
-         constructor createdjgpp(const n:string);
-         constructor createwin32(const n:string);
+         constructor createcoff(const n:string;awin32:boolean;acasmsection:TAsmSectionClass);
          destructor  destroy;override;
-         procedure seTSectionsizes(var s:TAsmSectionSizes);override;
-         procedure createsection(sec:TSection);override;
-         procedure writereloc(data,len:longint;p:tasmsymbol;relative:TAsmRelocationType);override;
+         function  sectionname(atype:tasmsectiontype;const aname:string):string;override;
+         procedure writereloc(data,len:aint;p:tasmsymbol;relative:TAsmRelocationType);override;
          procedure writesymbol(p:tasmsymbol);override;
-         procedure writestabs(section:TSection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);override;
-         procedure writesymstabs(section:TSection;offset:longint;p:pchar;ps:tasmsymbol;nidx,nother,line:longint;reloc:boolean);override;
-         procedure fixuprelocs;override;
+         procedure writestabs(offset:aint;p:pchar;nidx,nother,line:longint;reloc:boolean);override;
+         procedure writesymstabs(offset:aint;p:pchar;ps:tasmsymbol;nidx,nother,line:longint;reloc:boolean);override;
+         procedure beforealloc;override;
+         procedure beforewrite;override;
+         procedure afteralloc;override;
+       end;
+
+       tdjcoffobjectdata = class(TCoffObjectData)
+         constructor create(const n:string);override;
+       end;
+
+       tpecoffobjectdata = class(TCoffObjectData)
+         constructor create(const n:string);override;
        end;
 
        tcoffobjectoutput = class(tobjectoutput)
@@ -73,9 +91,15 @@ interface
          win32   : boolean;
          initsym : longint;
          FCoffStrs : tdynamicarray;
-         procedure write_symbol(const name:string;strpos,value,section,typ,aux:longint);
+         procedure write_symbol(const name:string;value,section,typ,aux:longint);
+         procedure section_write_symbol(p:tnamedindexitem;arg:pointer);
+         procedure section_write_relocs(p:tnamedindexitem;arg:pointer);
          procedure write_symbols(data:TAsmObjectData);
-         procedure write_relocs(data:TAsmObjectData);
+         procedure section_set_secsymidx(p:tnamedindexitem;arg:pointer);
+         procedure section_set_datapos(p:tnamedindexitem;arg:pointer);
+         procedure section_set_reloc_datapos(p:tnamedindexitem;arg:pointer);
+         procedure section_write_header(p:tnamedindexitem;arg:pointer);
+         procedure section_write_data(p:tnamedindexitem;arg:pointer);
        protected
          function writedata(data:TAsmObjectData):boolean;override;
        public
@@ -92,7 +116,7 @@ interface
          nsects,
          nsyms,
          sympos : longint;
-         procedure write_symbol(const name:string;strpos,value,section,typ,aux:longint);
+         procedure write_symbol(const name:string;value,section,typ,aux:longint);
          procedure write_symbols;
        protected
          function writedata:boolean;override;
@@ -112,7 +136,7 @@ interface
 
        tcoffobjectinput = class(tobjectinput)
        private
-         Fidx2sec  : array[0..255] of TSection;
+         Fidx2sec  : array[0..255] of TAsmSection;
          FCoffsyms,
          FCoffStrs : tdynamicarray;
          FSymTbl   : ^ttasmsymbolarray;
@@ -149,7 +173,7 @@ implementation
        strings,
 {$endif}
        cutils,verbose,
-       globtype,globals,fmodule;
+       globals,fmodule;
 
     const
        COFF_FLAG_NORELOCS = $0001;
@@ -377,10 +401,10 @@ const go32v2stub : array[0..2047] of byte=(
                                TCoffObjectSection
 ****************************************************************************}
 
-    constructor TCoffObjectSection.createsec(sec:TSection;AAlign,AFlags:cardinal);
+    constructor tcoffobjectsection.create(const aname:string;atype:tasmsectiontype;aalign:longint;aoptions:TAsmSectionOptions);
       begin
-        inherited create(target_asm.secnames[sec],AAlign,(sec=sec_bss));
-        Flags:=AFlags;
+        inherited create(aname,atype,aalign,aoptions);
+        Flags:=0;
       end;
 
 
@@ -390,23 +414,139 @@ const go32v2stub : array[0..2047] of byte=(
       end;
 
 
+    procedure TCoffObjectSection.fixuprelocs;
+      var
+        r : TAsmRelocation;
+        address,
+        relocval : longint;
+      begin
+        r:=TAsmRelocation(relocations.first);
+        if assigned(r) and
+           (not assigned(data)) then
+          internalerror(200205183);
+        while assigned(r) do
+          begin
+            if assigned(r.symbol) then
+              relocval:=r.symbol.address
+            else
+              internalerror(200205183);
+            data.Seek(r.address);
+            data.Read(address,4);
+            case r.typ of
+              RELOC_RELATIVE  :
+                begin
+                  dec(address,mempos);
+                  inc(address,relocval);
+                end;
+              RELOC_RVA,
+              RELOC_ABSOLUTE :
+                begin
+                  if r.symbol.section.sectype=sec_common then
+                   dec(address,r.orgsize)
+                  else
+                   begin
+                     { fixup address when the symbol was known in defined object }
+                     if (r.symbol.section<>nil) and
+                        (r.symbol.owner=owner) then
+                       dec(address,TCoffObjectSection(r.symbol.section).orgmempos);
+                   end;
+                  inc(address,relocval);
+                end;
+            end;
+            data.Seek(r.address);
+            data.Write(address,4);
+            { goto next reloc }
+            r:=TAsmRelocation(r.next);
+          end;
+      end;
+
+
+
+{****************************************************************************
+                               TDjCoffObjectSection
+****************************************************************************}
+
+    constructor tdjcoffobjectsection.create(const aname:string;atype:tasmsectiontype;aalign:longint;aoptions:TAsmSectionOptions);
+      begin
+        inherited create(aname,atype,aalign,aoptions);
+        case atype of
+          sec_code :
+            begin
+              Flags:=$20;
+              addralign:=16;
+            end;
+          sec_data :
+            begin
+              Flags:=$40;
+              addralign:=16;
+            end;
+          sec_bss :
+            begin
+              Flags:=$80;
+              addralign:=16;
+            end;
+        end;
+      end;
+
+
+{****************************************************************************
+                               TPECoffObjectSection
+****************************************************************************}
+
+    constructor tpecoffobjectsection.create(const aname:string;atype:tasmsectiontype;aalign:longint;aoptions:TAsmSectionOptions);
+      begin
+        inherited create(aname,atype,aalign,aoptions);
+        case atype of
+          sec_code :
+            begin
+              Flags:=$60000020;
+              addralign:=16;
+            end;
+          sec_data :
+            begin
+              Flags:=$c0300040;
+              addralign:=16;
+            end;
+          sec_bss :
+            begin
+              Flags:=$c0300080;
+              addralign:=16;
+            end;
+          sec_idata2,
+          sec_idata4,
+          sec_idata5,
+          sec_idata6,
+          sec_idata7 :
+            begin
+              Flags:=$40000000;
+            end;
+          sec_edata :
+            begin
+              Flags:=$c0300040;
+            end;
+        end;
+      end;
+
+
 {****************************************************************************
                                 tcoffobjectdata
 ****************************************************************************}
 
-    constructor tcoffobjectdata.createdjgpp(const n:string);
+    constructor tcoffobjectdata.createcoff(const n:string;awin32:boolean;acasmsection:TAsmSectionClass);
       begin
         inherited create(n);
-        win32:=false;
-        reset;
-      end;
-
-
-    constructor tcoffobjectdata.createwin32(const n:string);
-      begin
-        inherited create(n);
-        win32:=true;
-        reset;
+        CAsmSection:=ACAsmSection;
+        win32:=awin32;
+        { we need at least the following 3 sections }
+        createsection(sec_code,'',0,[]);
+        createsection(sec_data,'',0,[]);
+        createsection(sec_bss,'',0,[]);
+        if (cs_gdb_lineinfo in aktglobalswitches) or
+           (cs_debuginfo in aktmoduleswitches) then
+         begin
+           stabssec:=createsection(sec_stab,'',0,[]);
+           stabstrsec:=createsection(sec_stabstr,'',0,[]);
+         end;
       end;
 
 
@@ -416,88 +556,30 @@ const go32v2stub : array[0..2047] of byte=(
       end;
 
 
-    procedure tcoffobjectdata.reset;
-      var
-        s : string;
+    function TCoffObjectData.sectionname(atype:tasmsectiontype;const aname:string):string;
+      const
+        secnames : array[tasmsectiontype] of string[16] = ('',
+          '.text','.data','.data','.bss',
+          'common',
+          '.note',
+          '.stab','.stabstr',
+          '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+          '.eh_frame',
+          '.debug_frame'
+        );
       begin
-        { we need at least the following 3 sections }
-        createsection(sec_code);
-        createsection(sec_data);
-        createsection(sec_bss);
-        if (cs_gdb_lineinfo in aktglobalswitches) or
-           (cs_debuginfo in aktmoduleswitches) then
-         begin
-           createsection(sec_stab);
-           createsection(sec_stabstr);
-           writestabs(sec_none,0,nil,0,0,0,false);
-           { write zero pchar and name together (PM) }
-           s:=#0+SplitFileName(current_module.mainsource^)+#0;
-           sects[sec_stabstr].write(s[1],length(s));
-         end;
-      end;
-
-
-    procedure tcoffobjectdata.createsection(sec:TSection);
-      var
-        Flags,
-        AAlign : cardinal;
-      begin
-        { defaults }
-        Flags:=0;
-        Aalign:=1;
-        { alignment after section }
-        case sec of
-          sec_code :
-            begin
-              if win32 then
-               Flags:=$60000020
-              else
-               Flags:=$20;
-              Aalign:=16;
-            end;
-          sec_data :
-            begin
-              if win32 then
-               Flags:=$c0300040
-              else
-               Flags:=$40;
-              Aalign:=16;
-            end;
-          sec_bss :
-            begin
-              if win32 then
-               Flags:=$c0300080
-              else
-               Flags:=$80;
-              Aalign:=16;
-            end;
-          sec_idata2,
-          sec_idata4,
-          sec_idata5,
-          sec_idata6,
-          sec_idata7 :
-            begin
-              if win32 then
-               Flags:=$40000000;
-            end;
-          sec_edata :
-            begin
-              if win32 then
-               Flags:=$c0300040;
-            end;
-        end;
-        sects[sec]:=TCoffObjectSection.createsec(Sec,AAlign,Flags);
+        { No support for named sections, because section names are limited to 8 chars }
+        result:=secnames[atype];
       end;
 
 
     procedure tcoffobjectdata.writesymbol(p:tasmsymbol);
       begin
+        if currsec=nil then
+          internalerror(200403071);
         { already written ? }
         if p.indexnr<>-1 then
          exit;
-        { be sure that the section will exists }
-        if (p.section<>sec_none) and not(assigned(sects[p.section])) then
-          createsection(p.section);
         { calculate symbol index }
         if (p.currbind<>AB_LOCAL) then
          begin
@@ -510,37 +592,38 @@ const go32v2stub : array[0..2047] of byte=(
       end;
 
 
-    procedure tcoffobjectdata.writereloc(data,len:longint;p:tasmsymbol;relative:TAsmRelocationType);
+    procedure tcoffobjectdata.writereloc(data,len:aint;p:tasmsymbol;relative:TAsmRelocationType);
       var
         curraddr,
         symaddr : longint;
       begin
-        if not assigned(sects[currsec]) then
-         createsection(currsec);
+        if currsec=nil then
+          internalerror(200403072);
         if assigned(p) then
          begin
            { current address }
-           curraddr:=sects[currsec].mempos+sects[currsec].datasize;
+           curraddr:=currsec.mempos+currsec.datasize;
            { real address of the symbol }
            symaddr:=p.address;
-           if p.section<>sec_none then
-            inc(symaddr,sects[p.section].mempos);
+           if p.section<>nil then
+            inc(symaddr,p.section.mempos);
            { no symbol relocation need inside a section }
-           if p.section=currsec then
+           if (p.section=currsec) and
+              (p.currbind<>AB_COMMON) then
              begin
                case relative of
                  RELOC_ABSOLUTE :
                    begin
-                     sects[currsec].addsectionreloc(curraddr,currsec,RELOC_ABSOLUTE);
+                     currsec.addsectionreloc(curraddr,currsec,RELOC_ABSOLUTE);
                      inc(data,symaddr);
                    end;
                  RELOC_RELATIVE :
                    begin
-                     inc(data,symaddr-len-sects[currsec].datasize);
+                     inc(data,symaddr-len-currsec.datasize);
                    end;
                  RELOC_RVA :
                    begin
-                     sects[currsec].addsectionreloc(curraddr,currsec,RELOC_RVA);
+                     currsec.addsectionreloc(curraddr,currsec,RELOC_RVA);
                      inc(data,symaddr);
                    end;
                end;
@@ -548,52 +631,52 @@ const go32v2stub : array[0..2047] of byte=(
            else
              begin
                writesymbol(p);
-               if (p.section<>sec_none) and (relative<>RELOC_RELATIVE) then
-                 sects[currsec].addsectionreloc(curraddr,p.section,relative)
+               if (p.section<>nil) and
+                  (p.currbind<>AB_COMMON) and
+                  (relative<>RELOC_RELATIVE) then
+                 currsec.addsectionreloc(curraddr,p.section,relative)
                else
-                 sects[currsec].addsymreloc(curraddr,p,relative);
+                 currsec.addsymreloc(curraddr,p,relative);
                if not win32 then {seems wrong to me (PM) }
                 inc(data,symaddr)
                else
-                if (relative<>RELOC_RELATIVE) and (p.section<>sec_none) then
+                if (relative<>RELOC_RELATIVE) and (p.section<>nil) then
                  inc(data,symaddr);
                if relative=RELOC_RELATIVE then
                 begin
                   if win32 then
                     dec(data,len-4)
                   else
-                    dec(data,len+sects[currsec].datasize);
+                    dec(data,len+currsec.datasize);
                 end;
             end;
          end;
-        sects[currsec].write(data,len);
+        currsec.write(data,len);
       end;
 
 
-    procedure tcoffobjectdata.writestabs(section:TSection;offset:longint;p:pchar;nidx,nother,line:longint;reloc : boolean);
+    procedure tcoffobjectdata.writestabs(offset:aint;p:pchar;nidx,nother,line:longint;reloc : boolean);
       var
         stab : coffstab;
-        s : TSection;
         curraddr : longint;
       begin
-        s:=section;
         { local var can be at offset -1 !! PM }
         if reloc then
          begin
            if (offset=-1) then
             begin
-              if s=sec_none then
+              if currsec=nil then
                offset:=0
               else
-               offset:=sects[s].datasize;
+               offset:=currsec.datasize;
             end;
-           if (s<>sec_none) then
-            inc(offset,sects[s].datapos);
+           if (currsec<>nil) then
+            inc(offset,currsec.datapos);
          end;
         if assigned(p) and (p[0]<>#0) then
          begin
-           stab.strpos:=sects[sec_stabstr].datasize;
-           sects[sec_stabstr].write(p^,strlen(p)+1);
+           stab.strpos:=stabstrsec.datasize;
+           stabstrsec.write(p^,strlen(p)+1);
          end
         else
          stab.strpos:=0;
@@ -601,25 +684,24 @@ const go32v2stub : array[0..2047] of byte=(
         stab.ndesc:=line;
         stab.nother:=nother;
         stab.nvalue:=offset;
-        sects[sec_stab].write(stab,sizeof(stab));
+        StabsSec.write(stab,sizeof(stab));
         { when the offset is not 0 then write a relocation, take also the
           hdrstab into account with the offset }
         if reloc then
          begin
            { current address }
-           curraddr:=sects[sec_stab].mempos+sects[sec_stab].datasize;
+           curraddr:=StabsSec.mempos+StabsSec.datasize;
            if DLLSource and RelocSection then
            { avoid relocation in the .stab section
              because it ends up in the .reloc section instead }
-             sects[sec_stab].addsectionreloc(curraddr-4,s,RELOC_RVA)
+             StabsSec.addsectionreloc(curraddr-4,currsec,RELOC_RVA)
            else
-             sects[sec_stab].addsectionreloc(curraddr-4,s,RELOC_ABSOLUTE);
+             StabsSec.addsectionreloc(curraddr-4,currsec,RELOC_ABSOLUTE);
          end;
       end;
 
 
-    procedure tcoffobjectdata.writesymstabs(section:TSection;offset:longint;p:pchar;ps:tasmsymbol;
-                                                 nidx,nother,line:longint;reloc:boolean);
+    procedure tcoffobjectdata.writesymstabs(offset:aint;p:pchar;ps:tasmsymbol;nidx,nother,line:longint;reloc:boolean);
       var
         stab : coffstab;
         curraddr : longint;
@@ -633,18 +715,18 @@ const go32v2stub : array[0..2047] of byte=(
          begin
            if (offset=-1) then
             begin
-              if section=sec_none then
+              if currsec=nil then
                offset:=0
               else
-               offset:=sects[section].datasize;
+               offset:=currsec.datasize;
             end;
-           if (section<>sec_none) then
-            inc(offset,sects[section].mempos);
+           if (currsec<>nil) then
+            inc(offset,currsec.mempos);
          end;
         if assigned(p) and (p[0]<>#0) then
          begin
-           stab.strpos:=sects[sec_stabstr].datasize;
-           sects[sec_stabstr].write(p^,strlen(p)+1);
+           stab.strpos:=StabStrSec.datasize;
+           StabStrSec.write(p^,strlen(p)+1);
          end
         else
          stab.strpos:=0;
@@ -652,106 +734,94 @@ const go32v2stub : array[0..2047] of byte=(
         stab.ndesc:=line;
         stab.nother:=nother;
         stab.nvalue:=offset;
-        sects[sec_stab].write(stab,sizeof(stab));
+        StabsSec.write(stab,sizeof(stab));
         { when the offset is not 0 then write a relocation, take also the
           hdrstab into account with the offset }
         if reloc then
          begin
            { current address }
-           curraddr:=sects[sec_stab].mempos+sects[sec_stab].datasize;
+           curraddr:=StabsSec.mempos+StabsSec.datasize;
            if DLLSource and RelocSection then
             { avoid relocation in the .stab section
               because it ends up in the .reloc section instead }
-            sects[sec_stab].addsymreloc(curraddr-4,ps,RELOC_RVA)
+            StabsSec.addsymreloc(curraddr-4,ps,RELOC_RVA)
            else
-            sects[sec_stab].addsymreloc(curraddr-4,ps,RELOC_ABSOLUTE);
+            StabsSec.addsymreloc(curraddr-4,ps,RELOC_ABSOLUTE);
          end;
       end;
 
 
-    procedure tcoffobjectdata.seTSectionsizes(var s:TAsmSectionSizes);
-      var
-        mempos : longint;
-        sec    : TSection;
+    procedure tcoffobjectdata.section_mempos(p:tnamedindexitem;arg:pointer);
       begin
-        { multiply stab with real size }
-        s[sec_stab]:=s[sec_stab]*sizeof(coffstab);
-        { if debug then also count header stab }
+        tcoffobjectsection(p).memsize:=tcoffobjectsection(p).datasize;
+        { memory position is in arg }
+        if not win32 then
+         begin
+           tcoffobjectsection(p).mempos:=plongint(arg)^;
+           inc(plongint(arg)^,align(tcoffobjectsection(p).memsize,tcoffobjectsection(p).addralign));
+         end;
+      end;
+
+
+    procedure tcoffobjectdata.beforealloc;
+      begin
+        { create stabs sections if debugging }
+        if (cs_debuginfo in aktmoduleswitches) then
+          begin
+            StabsSec.Alloc(sizeof(coffstab));
+            StabStrSec.Alloc(length(SplitFileName(current_module.mainsource^))+2);
+          end;
+      end;
+
+
+    procedure tcoffobjectdata.beforewrite;
+      var
+        s : string;
+      begin
+        { create stabs sections if debugging }
         if (cs_debuginfo in aktmoduleswitches) then
          begin
-           inc(s[sec_stab],sizeof(coffstab));
-           inc(s[sec_stabstr],length(SplitFileName(current_module.mainsource^))+2);
-         end;
-        { calc mempos }
-        mempos:=0;
-        for sec:=low(TSection) to high(TSection) do
-         begin
-           if (s[sec]>0) and
-              (not assigned(sects[sec])) then
-             createsection(sec);
-           if assigned(sects[sec]) then
-            begin
-              sects[sec].memsize:=s[sec];
-              { memory position }
-              if not win32 then
-               begin
-                 sects[sec].mempos:=mempos;
-                 inc(mempos,align(sects[sec].memsize,sects[sec].addralign));
-               end;
-            end;
+           writestabs(0,nil,0,0,0,false);
+           { write zero pchar and name together (PM) }
+           s:=#0+SplitFileName(current_module.mainsource^)+#0;
+           stabstrsec.write(s[1],length(s));
          end;
       end;
 
 
-    procedure tcoffobjectdata.fixuprelocs;
+    procedure tcoffobjectdata.afteralloc;
       var
-        r : TAsmRelocation;
-        address,
-        relocval : longint;
-        sec : TSection;
+        mempos : longint;
       begin
-        for sec:=low(TSection) to high(TSection) do
-         if assigned(sects[sec]) then
+        { if debug then also count header stab }
+        if (cs_debuginfo in aktmoduleswitches) then
           begin
-            r:=TAsmRelocation(sects[sec].relocations.first);
-            if assigned(r) and
-               (not assigned(sects[sec].data)) then
-             internalerror(200205183);
-            while assigned(r) do
-             begin
-               if assigned(r.symbol) then
-                relocval:=r.symbol.address
-               else
-                internalerror(200205183);
-               sects[sec].data.Seek(r.address);
-               sects[sec].data.Read(address,4);
-               case r.typ of
-                 RELOC_RELATIVE  :
-                   begin
-                     dec(address,sects[sec].mempos);
-                     inc(address,relocval);
-                   end;
-                 RELOC_RVA,
-                 RELOC_ABSOLUTE :
-                   begin
-                     if r.symbol.section=sec_common then
-                      dec(address,r.orgsize)
-                     else
-                      begin
-                        { fixup address when the symbol was known in defined object }
-                        if (r.symbol.section<>sec_none) and
-                           (r.symbol.objectdata=pointer(self)) then
-                          dec(address,TCoffObjectSection(sects[r.symbol.section]).orgmempos);
-                      end;
-                     inc(address,relocval);
-                   end;
-               end;
-               sects[sec].data.Seek(r.address);
-               sects[sec].data.Write(address,4);
-               { goto next reloc }
-               r:=TAsmRelocation(r.next);
-             end;
+            StabsSec.Alloc(sizeof(coffstab));
+            StabStrSec.Alloc(length(SplitFileName(current_module.mainsource^))+2);
           end;
+        { calc mempos }
+        mempos:=0;
+        sects.foreach(@section_mempos,@mempos);
+      end;
+
+
+{****************************************************************************
+                                tdjcoffobjectdata
+****************************************************************************}
+
+    constructor tdjcoffobjectdata.create(const n:string);
+      begin
+        inherited createcoff(n,false,tdjcoffobjectsection);
+      end;
+
+
+{****************************************************************************
+                                tpecoffobjectdata
+****************************************************************************}
+
+    constructor tpecoffobjectdata.create(const n:string);
+      begin
+        inherited createcoff(n,true,tpecoffobjectsection);
       end;
 
 
@@ -776,21 +846,26 @@ const go32v2stub : array[0..2047] of byte=(
     function tcoffobjectoutput.newobjectdata(const n:string):TAsmObjectData;
       begin
         if win32 then
-         result:=tcoffobjectdata.createwin32(n)
+         result:=tpecoffobjectdata.create(n)
         else
-         result:=tcoffobjectdata.createdjgpp(n);
+         result:=tdjcoffobjectdata.create(n);
       end;
 
 
-    procedure tcoffobjectoutput.write_symbol(const name:string;strpos,value,section,typ,aux:longint);
+    procedure tcoffobjectoutput.write_symbol(const name:string;value,section,typ,aux:longint);
       var
         sym : coffsymbol;
       begin
         FillChar(sym,sizeof(sym),0);
-        if strpos=-1 then
-         move(name[1],sym.name,length(name))
+        { symbolname }
+        if length(name)>8 then
+         begin
+           sym.strpos:=FCoffStrs.size+4;
+           FCoffStrs.writestr(name);
+           FCoffStrs.writestr(#0);
+         end
         else
-         sym.strpos:=strpos;
+         move(name[1],sym.name,length(name));
         sym.value:=value;
         sym.section:=section;
         sym.typ:=typ;
@@ -799,43 +874,85 @@ const go32v2stub : array[0..2047] of byte=(
       end;
 
 
+    procedure tcoffobjectoutput.section_write_symbol(p:tnamedindexitem;arg:pointer);
+      var
+        secrec : coffsectionrec;
+      begin
+        write_symbol(tasmsection(p).name,tasmsection(p).mempos,tasmsection(p).secsymidx,3,1);
+        fillchar(secrec,sizeof(secrec),0);
+        secrec.len:=tasmsection(p).aligneddatasize;
+        secrec.nrelocs:=tasmsection(p).relocations.count;
+        FWriter.write(secrec,sizeof(secrec));
+      end;
+
+
+    procedure tcoffobjectoutput.section_write_relocs(p:tnamedindexitem;arg:pointer);
+      var
+        rel  : coffreloc;
+        r    : TAsmRelocation;
+      begin
+        r:=TasmRelocation(tasmsection(p).relocations.first);
+        while assigned(r) do
+         begin
+           rel.address:=r.address;
+           if assigned(r.symbol) then
+            begin
+              if (r.symbol.currbind=AB_LOCAL) then
+               rel.sym:=2*r.symbol.section.secsymidx
+              else
+               begin
+                 if r.symbol.indexnr=-1 then
+                   internalerror(4321);
+                 { indexnr starts with 1, coff starts with 0 }
+                 rel.sym:=r.symbol.indexnr+initsym-1;
+               end;
+            end
+           else
+            begin
+              if r.section<>nil then
+               rel.sym:=2*r.section.secsymidx
+              else
+               rel.sym:=0;
+            end;
+           case r.typ of
+             RELOC_RELATIVE :
+               rel.relative:=$14;
+             RELOC_ABSOLUTE :
+               rel.relative:=$6;
+             RELOC_RVA :
+               rel.relative:=$7;
+           end;
+           FWriter.write(rel,sizeof(rel));
+           r:=TAsmRelocation(r.next);
+         end;
+      end;
+
+
     procedure tcoffobjectoutput.write_symbols(data:TAsmObjectData);
       var
         filename  : string[18];
-        sec       : TSection;
-        namestr   : string[8];
-        value,
-        nameidx   : longint;
+        value     : longint;
         sectionval,
         globalval : byte;
-        secrec    : coffsectionrec;
         p         : tasmsymbol;
-        s         : string;
       begin
         with tcoffobjectdata(data) do
          begin
            { The `.file' record, and the file name auxiliary record }
-           write_symbol('.file', -1, 0, -2, $67, 1);
+           write_symbol('.file', 0, -2, $67, 1);
            fillchar(filename,sizeof(filename),0);
            filename:=SplitFileName(current_module.mainsource^);
            FWriter.write(filename[1],sizeof(filename)-1);
            { The section records, with their auxiliaries, also store the
              symbol index }
-           for sec:=low(TSection) to high(TSection) do
-            if assigned(sects[sec]) then
-             begin
-               write_symbol(target_asm.secnames[sec],-1,sects[sec].mempos,sects[sec].secsymidx,3,1);
-               fillchar(secrec,sizeof(secrec),0);
-               secrec.len:=sects[sec].aligneddatasize;
-               secrec.nrelocs:=sects[sec].relocations.count;
-               FWriter.write(secrec,sizeof(secrec));
-             end;
+           Sects.foreach(@section_write_symbol,nil);
            { The symbols used }
            p:=Tasmsymbol(symbols.First);
            while assigned(p) do
             begin
-              if assigned(sects[p.section]) then
-               sectionval:=sects[p.section].secsymidx
+              if assigned(p.section) and
+                 (p.currbind<>AB_COMMON) then
+               sectionval:=p.section.secsymidx
               else
                sectionval:=0;
               if p.currbind=AB_LOCAL then
@@ -845,89 +962,101 @@ const go32v2stub : array[0..2047] of byte=(
               { if local of global then set the section value to the address
                 of the symbol }
               if p.currbind in [AB_LOCAL,AB_GLOBAL] then
-               value:=p.address+sects[p.section].mempos
+               value:=p.address+p.section.mempos
               else
                value:=p.size;
               { symbolname }
-              s:=p.name;
-              if length(s)>8 then
-               begin
-                 nameidx:=FCoffStrs.size+4;
-                 FCoffStrs.writestr(s);
-                 FCoffStrs.writestr(#0);
-               end
-              else
-               begin
-                 nameidx:=-1;
-                 namestr:=s;
-               end;
-              write_symbol(namestr,nameidx,value,sectionval,globalval,0);
+              write_symbol(p.name,value,sectionval,globalval,0);
               p:=tasmsymbol(p.indexnext);
             end;
          end;
       end;
 
 
-    procedure tcoffobjectoutput.write_relocs(data:TAsmObjectData);
-      var
-        rel  : coffreloc;
-        r    : TAsmRelocation;
-        sec  : TSection;
+    procedure tcoffobjectoutput.section_set_secsymidx(p:tnamedindexitem;arg:pointer);
       begin
-        with data do
-         begin
-           for sec:=low(TSection) to high(TSection) do
-            if assigned(sects[sec]) then
-             begin
-               r:=TasmRelocation(sects[sec].relocations.first);
-               while assigned(r) do
-                begin
-                  rel.address:=r.address;
-                  if assigned(r.symbol) then
-                   begin
-                     if (r.symbol.currbind=AB_LOCAL) then
-                      rel.sym:=2*sects[r.symbol.section].secsymidx
-                     else
-                      begin
-                        if r.symbol.indexnr=-1 then
-                          internalerror(4321);
-                        { indexnr starts with 1, coff starts with 0 }
-                        rel.sym:=r.symbol.indexnr+initsym-1;
-                      end;
-                   end
-                  else
-                   begin
-                     if r.section<>sec_none then
-                      rel.sym:=2*sects[r.section].secsymidx
-                     else
-                      rel.sym:=0;
-                   end;
-                  case r.typ of
-                    RELOC_RELATIVE : rel.relative:=$14;
-                    RELOC_ABSOLUTE : rel.relative:=$6;
-                    RELOC_RVA : rel.relative:=$7;
-                  end;
-                  FWriter.write(rel,sizeof(rel));
-                  r:=TAsmRelocation(r.next);
-                end;
-             end;
-         end;
+        inc(plongint(arg)^);
+        tasmsection(p).secsymidx:=plongint(arg)^;
+      end;
+
+
+    procedure tcoffobjectoutput.section_set_datapos(p:tnamedindexitem;arg:pointer);
+      begin
+        tasmsection(p).datapos:=plongint(arg)^;
+        if not(aso_alloconly in tasmsection(p).secoptions) then
+          inc(plongint(arg)^,tasmsection(p).aligneddatasize);
+      end;
+
+
+    procedure tcoffobjectoutput.section_set_reloc_datapos(p:tnamedindexitem;arg:pointer);
+      begin
+        TCoffObjectSection(p).coffrelocpos:=plongint(arg)^;
+        inc(plongint(arg)^,sizeof(coffreloc)*tasmsection(p).relocations.count);
+      end;
+
+
+    procedure tcoffobjectoutput.section_write_header(p:tnamedindexitem;arg:pointer);
+      var
+        sechdr   : coffsechdr;
+        s        : string;
+      begin
+        fillchar(sechdr,sizeof(sechdr),0);
+        s:=tasmsection(p).name;
+        { section names are limited to 8 chars }
+        if length(s)>8 then
+          internalerror(200403312);
+        move(s[1],sechdr.name,length(s));
+        if not win32 then
+          begin
+            sechdr.rvaofs:=tasmsection(p).mempos;
+            sechdr.vsize:=tasmsection(p).mempos;
+          end
+        else
+          begin
+            if tasmsection(p).sectype=sec_bss then
+              sechdr.vsize:=tasmsection(p).aligneddatasize;
+          end;
+        sechdr.datasize:=tasmsection(p).aligneddatasize;
+        if (tasmsection(p).datasize>0) and
+           not(aso_alloconly in tasmsection(p).secoptions) then
+          sechdr.datapos:=tasmsection(p).datapos;
+        sechdr.nrelocs:=tasmsection(p).relocations.count;
+        sechdr.relocpos:=TCoffObjectSection(p).coffrelocpos;
+        sechdr.flags:=TCoffObjectSection(p).flags;
+        FWriter.write(sechdr,sizeof(sechdr));
+      end;
+
+
+    procedure tcoffobjectoutput.section_write_data(p:tnamedindexitem;arg:pointer);
+      var
+        hp       : pdynamicblock;
+      begin
+        if (aso_alloconly in tasmsection(p).secoptions) then
+          exit;
+        if tasmsection(p).data=nil then
+          internalerror(200403073);
+        tasmsection(p).alignsection;
+        hp:=tasmsection(p).data.firstblock;
+        while assigned(hp) do
+          begin
+            FWriter.write(hp^.data,hp^.used);
+            hp:=hp^.next;
+          end;
       end;
 
 
     function tcoffobjectoutput.writedata(data:TAsmObjectData):boolean;
       var
+        orgdatapos,
         datapos,
-        secsymidx,
         nsects,
         sympos,i : longint;
         hstab    : coffstab;
         gotreloc : boolean;
-        sec      : TSection;
         header   : coffheader;
-        sechdr   : coffsechdr;
         empty    : array[0..15] of byte;
         hp       : pdynamicblock;
+        s        : string;
       begin
         result:=false;
         FCoffStrs:=TDynamicArray.Create(strsresize);
@@ -936,48 +1065,33 @@ const go32v2stub : array[0..2047] of byte=(
          { calc amount of sections we have }
            fillchar(empty,sizeof(empty),0);
            nsects:=0;
-           initsym:=2;   { 2 for the file }
-           secsymidx:=0;
-           for sec:=low(TSection) to high(TSection) do
-            if assigned(sects[sec]) then
-             begin
-               inc(nsects);
-               inc(secsymidx);
-               sects[sec].secsymidx:=secsymidx;
-               inc(initsym,2); { 2 for each section }
-             end;
+           Sects.foreach(@section_set_secsymidx,@nsects);
+           initsym:=2+nsects*2;   { 2 for the file }
          { For the stab section we need an HdrSym which can now be
            calculated more easily }
-           if assigned(sects[sec_stab]) then
+           if StabsSec<>nil then
             begin
+              { first stabs for main source }
+              writestabs(0,nil,0,0,0,false);
+              s:=#0+SplitFileName(current_module.mainsource^)+#0;
+              stabstrsec.write(s[1],length(s));
+              { header stab }
               hstab.strpos:=1;
               hstab.ntype:=0;
               hstab.nother:=0;
-              hstab.ndesc:=(sects[sec_stab].datasize div sizeof(coffstab))-1{+1 according to gas output PM};
-              hstab.nvalue:=sects[sec_stabstr].datasize;
-              sects[sec_stab].data.seek(0);
-              sects[sec_stab].data.write(hstab,sizeof(hstab));
+              hstab.ndesc:=(StabsSec.datasize div sizeof(coffstab))-1{+1 according to gas output PM};
+              hstab.nvalue:=StabStrSec.datasize;
+              StabsSec.data.seek(0);
+              StabsSec.data.write(hstab,sizeof(hstab));
             end;
          { Calculate the filepositions }
            datapos:=sizeof(coffheader)+sizeof(coffsechdr)*nsects;
            { sections first }
-           for sec:=low(TSection) to high(TSection) do
-            if assigned(sects[sec]) then
-             begin
-               sects[sec].datapos:=datapos;
-               if assigned(sects[sec].data) then
-                 inc(datapos,sects[sec].aligneddatasize);
-             end;
+           Sects.foreach(@section_set_datapos,@datapos);
            { relocs }
-           gotreloc:=false;
-           for sec:=low(TSection) to high(TSection) do
-            if assigned(sects[sec]) then
-             begin
-               TCoffObjectSection(sects[sec]).coffrelocpos:=datapos;
-               inc(datapos,10*sects[sec].relocations.count);
-               if (not gotreloc) and (sects[sec].relocations.count>0) then
-                gotreloc:=true;
-             end;
+           orgdatapos:=datapos;
+           Sects.foreach(@section_set_reloc_datapos,@datapos);
+           gotreloc:=(orgdatapos<>datapos);
            { symbols }
            sympos:=datapos;
          { COFF header }
@@ -991,44 +1105,11 @@ const go32v2stub : array[0..2047] of byte=(
             header.flag:=header.flag or COFF_FLAG_NORELOCS;
            FWriter.write(header,sizeof(header));
          { Section headers }
-           for sec:=low(TSection) to high(TSection) do
-            if assigned(sects[sec]) then
-             begin
-               fillchar(sechdr,sizeof(sechdr),0);
-               move(target_asm.secnames[sec][1],sechdr.name,length(target_asm.secnames[sec]));
-               if not win32 then
-                 begin
-                   sechdr.rvaofs:=sects[sec].mempos;
-                   sechdr.vsize:=sects[sec].mempos;
-                 end
-               else
-                 begin
-                   if sec=sec_bss then
-                     sechdr.vsize:=sects[sec].aligneddatasize;
-                 end;
-               sechdr.datasize:=sects[sec].aligneddatasize;
-               if (sects[sec].datasize>0) and assigned(sects[sec].data) then
-                 sechdr.datapos:=sects[sec].datapos;
-               sechdr.nrelocs:=sects[sec].relocations.count;
-               sechdr.relocpos:=TCoffObjectSection(sects[sec]).coffrelocpos;
-               sechdr.flags:=TCoffObjectSection(sects[sec]).flags;
-               FWriter.write(sechdr,sizeof(sechdr));
-             end;
+           Sects.foreach(@section_write_header,nil);
          { Sections }
-           for sec:=low(TSection) to high(TSection) do
-            if assigned(sects[sec]) and
-               assigned(sects[sec].data) then
-             begin
-               sects[sec].alignsection;
-               hp:=sects[sec].data.firstblock;
-               while assigned(hp) do
-                begin
-                  FWriter.write(hp^.data,hp^.used);
-                  hp:=hp^.next;
-                end;
-             end;
+           Sects.foreach(@section_write_data,nil);
            { Relocs }
-           write_relocs(data);
+           Sects.foreach(@section_write_relocs,nil);
            { Symbols }
            write_symbols(data);
            { Strings }
@@ -1072,15 +1153,19 @@ const go32v2stub : array[0..2047] of byte=(
       end;
 
 
-    procedure tcoffexeoutput.write_symbol(const name:string;strpos,value,section,typ,aux:longint);
+    procedure tcoffexeoutput.write_symbol(const name:string;value,section,typ,aux:longint);
       var
         sym : coffsymbol;
       begin
         FillChar(sym,sizeof(sym),0);
-        if strpos=-1 then
-         move(name[1],sym.name,length(name))
+        if length(name)>8 then
+         begin
+           sym.strpos:=FCoffStrs.size+4;
+           FCoffStrs.writestr(name);
+           FCoffStrs.writestr(#0);
+         end
         else
-         sym.strpos:=strpos;
+         move(name[1],sym.name,length(name));
         sym.value:=value;
         sym.section:=section;
         sym.typ:=typ;
@@ -1091,15 +1176,13 @@ const go32v2stub : array[0..2047] of byte=(
 
     procedure tcoffexeoutput.write_symbols;
       var
-        namestr   : string[8];
-        nameidx   : longint;
         value,
         sectionval,
         globalval : byte;
         objdata   : TAsmObjectData;
         p         : tasmsymbol;
-        s         : string;
       begin
+{$ifdef internallinker}
         objdata:=TAsmObjectData(objdatalist.first);
         while assigned(objdata) do
          begin
@@ -1112,7 +1195,7 @@ const go32v2stub : array[0..2047] of byte=(
                  if p.section=sec_common then
                   sectionval:=sections[sec_bss].secsymidx
                  else
-                  sectionval:=sections[p.section].secsymidx;
+                  sectionval:=sections[p.section.name].secsymidx;
                  if p.currbind=AB_LOCAL then
                   globalval:=3
                  else
@@ -1142,6 +1225,7 @@ const go32v2stub : array[0..2047] of byte=(
             end;
            objdata:=TAsmObjectData(objdata.next);
          end;
+{$endif internallinker}
       end;
 
 
@@ -1151,8 +1235,8 @@ const go32v2stub : array[0..2047] of byte=(
         secsymidx,
         mempos,
         datapos : longint;
-        sec     : TSection;
       begin
+{$ifdef internallinker}
         { retrieve amount of sections }
         nsects:=0;
         secsymidx:=0;
@@ -1189,13 +1273,13 @@ const go32v2stub : array[0..2047] of byte=(
               objdata:=TAsmObjectData(objdata.next);
             end;
          end;
+{$endif internallinker}
       end;
 
 
     function tcoffexeoutput.writedata:boolean;
       var
         i         : longint;
-        sec       : TSection;
         header    : coffheader;
         optheader : coffoptheader;
         sechdr    : coffsechdr;
@@ -1204,6 +1288,7 @@ const go32v2stub : array[0..2047] of byte=(
         hsym      : tasmsymbol;
       begin
         result:=false;
+{$ifdef internallinker}
         FCoffSyms:=TDynamicArray.Create(symbolresize);
         FCoffStrs:=TDynamicArray.Create(strsresize);
         { Stub }
@@ -1273,7 +1358,7 @@ const go32v2stub : array[0..2047] of byte=(
                if assigned(objdata.sects[sec]) and
                   assigned(objdata.sects[sec].data) then
                 begin
-                  WriteZeros(objdata.sects[sec].dataalignbytes);
+                  FWriter.WriteZeros(objdata.sects[sec].dataalignbytes);
                   hp:=objdata.sects[sec].data.firstblock;
                   while assigned(hp) do
                    begin
@@ -1303,6 +1388,7 @@ const go32v2stub : array[0..2047] of byte=(
         FCoffStrs.Free;
         FCoffSyms.Free;
         result:=true;
+{$endif internallinker}
       end;
 
 
@@ -1341,9 +1427,9 @@ const go32v2stub : array[0..2047] of byte=(
     function tcoffobjectinput.newobjectdata(const n:string):TAsmObjectData;
       begin
         if win32 then
-         result:=tcoffobjectdata.createwin32(n)
+         result:=tpecoffobjectdata.create(n)
         else
-         result:=tcoffobjectdata.createdjgpp(n);
+         result:=tdjcoffobjectdata.create(n);
       end;
 
 
@@ -1384,7 +1470,6 @@ const go32v2stub : array[0..2047] of byte=(
 
     procedure tcoffobjectinput.handle_symbols(data:TAsmObjectData);
       var
-        sec       : TSection;
         size,
         address,
         i,nsyms,
@@ -1395,6 +1480,7 @@ const go32v2stub : array[0..2047] of byte=(
         bind      : Tasmsymbind;
         auxrec    : array[0..17] of byte;
       begin
+{$ifdef internallinker}
         with tcoffobjectdata(data) do
          begin
            nsyms:=FCoffSyms.Size div sizeof(CoffSymbol);
@@ -1498,6 +1584,7 @@ const go32v2stub : array[0..2047] of byte=(
               inc(symidx);
             end;
          end;
+{$endif internallinker}
       end;
 
 
@@ -1505,12 +1592,12 @@ const go32v2stub : array[0..2047] of byte=(
       var
         strsize,
         i        : longint;
-        sec      : TSection;
         header   : coffheader;
         sechdr   : coffsechdr;
         secname  : array[0..15] of char;
       begin
         result:=false;
+{$ifdef internallinker}
         FCoffSyms:=TDynamicArray.Create(symbolresize);
         FCoffStrs:=TDynamicArray.Create(strsresize);
         with tcoffobjectdata(data) do
@@ -1610,6 +1697,7 @@ const go32v2stub : array[0..2047] of byte=(
         FCoffStrs.Free;
         FCoffSyms.Free;
         result:=true;
+{$endif internallinker}
       end;
 
 
@@ -1658,16 +1746,9 @@ const go32v2stub : array[0..2047] of byte=(
             asmbin : '';
             asmcmd : '';
             supported_target : system_i386_go32v2;
-            outputbinary : true;
-            allowdirect : false;
-            needar : false;
-            labelprefix_only_inside_procedure: false;
+            flags : [af_outputbinary];
             labelprefix : '.L';
             comment : '';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.stab','.stabstr','COMMON')
           );
 
     const
@@ -1678,16 +1759,9 @@ const go32v2stub : array[0..2047] of byte=(
             asmbin : '';
             asmcmd : '';
             supported_target : system_i386_win32;
-            outputbinary : true;
-            allowdirect : false;
-            needar : false;
-            labelprefix_only_inside_procedure: false;
+            flags : [af_outputbinary];
             labelprefix : '.L';
             comment : '';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.stab','.stabstr','COMMON')
           );
 
        as_i386_pecoffwdosx_info : tasminfo =
@@ -1697,16 +1771,9 @@ const go32v2stub : array[0..2047] of byte=(
             asmbin : '';
             asmcmd : '';
             supported_target : system_i386_wdosx;
-            outputbinary : true;
-            allowdirect : false;
-            needar : false;
-            labelprefix_only_inside_procedure: false;
+            flags : [af_outputbinary];
             labelprefix : '.L';
             comment : '';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.stab','.stabstr','COMMON')
           );
 
 
@@ -1717,7 +1784,26 @@ initialization
 end.
 {
   $Log$
-  Revision 1.27  2003-04-23 11:37:15  peter
+  Revision 1.28  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.27.2.5  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.27.2.4  2004/04/26 21:01:36  peter
+    * aint fixes
+
+  Revision 1.27.2.3  2004/04/12 19:34:45  peter
+    * basic framework for dwarf CFI
+
+  Revision 1.27.2.2  2004/04/09 14:34:53  peter
+    * fixed compilation for win32
+
+  Revision 1.27.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
+
+  Revision 1.27  2003/04/23 11:37:15  peter
     * fix range check error after previous commit
 
   Revision 1.26  2003/04/22 14:33:38  peter

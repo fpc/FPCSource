@@ -89,9 +89,6 @@ interface
 
 
     type
-{$ifdef ver1_0}
-       PtrInt = DWord;
-{$endif ver1_0}
        TFPUException = (exInvalidOp, exDenormalized, exZeroDivide,
                         exOverflow, exUnderflow, exPrecision);
        TFPUExceptionMask = set of TFPUException;
@@ -112,11 +109,6 @@ interface
        end;
 
        tcodepagestring = string[20];
-
-       { the ordinal type used when evaluating constant integer expressions }
-       TConstExprInt = int64;
-       { ... the same unsigned }
-       TConstExprUInt = {$ifdef fpc}qword{$else}int64{$endif};
 
     var
        { specified inputfile }
@@ -157,11 +149,19 @@ interface
        objectsearchpath,
        includesearchpath  : TSearchPathList;
 
-       { deffile }
+       { linking }
        usewindowapi  : boolean;
        description   : string;
+       DescriptionSetExplicity : boolean;
        dllversion    : string;
-       dllmajor,dllminor,dllrevision : word;  { revision only for netware }
+       dllmajor,
+       dllminor,
+       dllrevision   : word;  { revision only for netware }
+       UseDeffileForExports    : boolean;
+       UseDeffileForExportsSetExplicitly : boolean;
+       RelocSection : boolean;
+       RelocSectionSetExplicitly : boolean;
+       LinkTypeSetExplicitly : boolean;
 
        akttokenpos,                  { position of the last token }
        aktfilepos : tfileposinfo;    { current position }
@@ -244,14 +244,8 @@ interface
        apptype : tapptype;
 
     const
-       RelocSection : boolean = true;
-       RelocSectionSetExplicitly : boolean = false;
-       LinkTypeSetExplicitly : boolean = false;
-
        DLLsource : boolean = false;
        DLLImageBase : pstring = nil;
-       UseDeffileForExport : boolean = true;
-       ForceDeffileForExport : boolean = false;
 
        { used to set all registers used for each global function
          this should dramatically decrease the number of
@@ -325,7 +319,6 @@ interface
 
     function  string2guid(const s: string; var GUID: TGUID): boolean;
     function  guid2string(const GUID: TGUID): string;
-    procedure swap_qword(var q : qword);
 
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
 
@@ -1377,7 +1370,7 @@ implementation
         begin
           CtlWord:=Get8087CW;
           Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
-          Result:=TFPUExceptionMask(CtlWord and $3F);
+          Result:=TFPUExceptionMask(Longint(CtlWord and $3F));
         end;
 {$else CPUI386}
 {$ifdef CPUPOWERPC}
@@ -1666,11 +1659,6 @@ implementation
       end;
 
 
-    procedure swap_qword(var q : qword);
-      begin
-         q:=(qword(lo(q)) shl 32) or hi(q);
-      end;
-
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
       var
         tok  : string;
@@ -1777,9 +1765,6 @@ implementation
        initdefines.free;
        if assigned(DLLImageBase) then
          StringDispose(DLLImageBase);
-       RelocSection:=true;
-       RelocSectionSetExplicitly:=false;
-       UseDeffileForExport:=true;
        librarysearchpath.Free;
        unitsearchpath.Free;
        objectsearchpath.Free;
@@ -1799,6 +1784,7 @@ implementation
         inlining_procedure:=false;
         resolving_forward:=false;
         make_ref:=false;
+        LinkTypeSetExplicitly:=false;
 
       { Output }
         OutputFile:='';
@@ -1820,10 +1806,19 @@ implementation
       { Def file }
         usewindowapi:=false;
         description:='Compiled by FPC '+version_string+' - '+target_cpu_string;
+        DescriptionSetExplicity:=false;
         dllversion:='';
+        dllmajor:=1;
+        dllminor:=0;
+        dllrevision:=0;
         nwscreenname := '';
         nwthreadname := '';
         nwcopyright  := '';
+        UseDeffileForExports:=false;
+        UseDeffileForExportsSetExplicitly:=false;
+        RelocSection:=false;
+        RelocSectionSetExplicitly:=false;
+        LinkTypeSetExplicitly:=false;
 
       { Init values }
         initmodeswitches:=fpcmodeswitches;
@@ -1903,7 +1898,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.129  2004-05-11 18:20:52  olle
+  Revision 1.130  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.129  2004/05/11 18:20:52  olle
     * changed $mode mac to $mode macpas
     * changed macmodeswitches to be more faithful to the mac dialect
 
@@ -1912,6 +1910,19 @@ end.
 
   Revision 1.127  2004/04/28 15:19:03  florian
     + syscall directive support for MorphOS added
+
+  Revision 1.126.2.4  2004/05/09 15:47:21  peter
+    * fix typecast from word->set
+
+  Revision 1.126.2.3  2004/05/03 14:59:57  peter
+    * no dlltool needed for win32 linking executables
+
+  Revision 1.126.2.2  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.126.2.1  2004/04/27 18:18:25  peter
+    * aword -> aint
 
   Revision 1.126  2004/03/14 20:08:37  peter
     * packrecords fixed for settings from $PACKRECORDS

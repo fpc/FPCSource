@@ -452,9 +452,9 @@ interface
            begin
               if hd.implementedinterfaces.searchintf(resulttype.def)<>-1 then
                 begin
-                   cg.a_op_const_reg(exprasmlist,OP_ADD,OS_ADDR,aword(
+                   cg.a_op_const_reg(exprasmlist,OP_ADD,OS_ADDR,
                      hd.implementedinterfaces.ioffsets(
-                       hd.implementedinterfaces.searchintf(resulttype.def))^),location.register);
+                       hd.implementedinterfaces.searchintf(resulttype.def))^,location.register);
                    break;
                 end;
               hd:=hd.childof;
@@ -539,8 +539,14 @@ end.
 
 {
   $Log$
-  Revision 1.57  2004-04-29 19:56:37  daniel
+  Revision 1.58  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.57  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.56.2.1  2004/04/27 18:18:25  peter
+    * aword -> aint
 
   Revision 1.56  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*

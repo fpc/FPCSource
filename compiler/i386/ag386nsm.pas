@@ -37,6 +37,7 @@ interface
         procedure WriteReference(var ref : treference);
         procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
         procedure WriteOper_jmp(const o:toper; op : tasmop);
+        procedure WriteSection(atype:tasmsectiontype;const aname:string);
       public
         procedure WriteTree(p:taasmoutput);override;
         procedure WriteAsmList;override;
@@ -346,11 +347,38 @@ interface
 
 
     var
-      LasTSec : TSection;
+      LastSecType : TAsmSectionType;
 
     const
-      ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
-        (#9'DD'#9,#9'DW'#9,#9'DB'#9);
+      ait_const2str : array[ait_const_128bit..ait_const_indirect_symbol] of string[20]=(
+        #9'FIXME128',#9'FIXME64',#9'DD'#9,#9'DW'#9,#9'DB'#9,
+        #9'FIXMESLEB',#9'FIXEMEULEB',
+        #9'RVA'#9,#9'FIXMEINDIRECT'#9
+      );
+
+    procedure T386NasmAssembler.WriteSection(atype:tasmsectiontype;const aname:string);
+      const
+        secnames : array[tasmsectiontype] of string[12] = ('',
+          '.text','.data','.rodata','.bss',
+          'common',
+          '.note',
+          '.stab','.stabstr',
+          '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
+          '.eh_frame',
+          '.debug_frame'
+        );
+      begin
+        AsmLn;
+        AsmWrite('SECTION ');
+        AsmWrite(secnames[atype]);
+        if (atype<>sec_bss) and (aname<>'') then
+          begin
+            AsmWrite('.');
+            AsmWrite(aname);
+          end;
+        AsmLn;
+        LasTSecType:=atype;
+      end;
 
     procedure T386NasmAssembler.WriteTree(p:taasmoutput);
     const
@@ -460,19 +488,17 @@ interface
 
            ait_section :
              begin
-               if tai_section(hp).sec<>sec_none then
-                begin
-                  AsmLn;
-                  AsmWriteLn('SECTION '+target_asm.secnames[tai_section(hp).sec]);
-                end;
-               LasTSec:=tai_section(hp).sec;
+               if tai_section(hp).sectype<>sec_none then
+                 WriteSection(tai_section(hp).sectype,tai_section(hp).name^);
+               LasTSecType:=tai_section(hp).sectype;
              end;
 
            ait_align :
              begin
                { nasm gives warnings when it finds align in bss as it
                  wants to store data }
-               if lastsec<>sec_bss then
+               if (lastsectype<>sec_bss) and
+                  (tai_align(hp).aligntype>1) then
                  AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype));
              end;
 
@@ -487,41 +513,41 @@ interface
                AsmWriteLn('RESB'#9+tostr(tai_datablock(hp).size));
              end;
 
+           ait_const_uleb128bit,
+           ait_const_sleb128bit,
+           ait_const_128bit,
+           ait_const_64bit,
            ait_const_32bit,
            ait_const_16bit,
-           ait_const_8bit :
+           ait_const_8bit,
+           ait_const_rva_symbol,
+           ait_const_indirect_symbol :
              begin
-               AsmWrite(ait_const2str[hp.typ]+tostru(tai_const(hp).value));
+               AsmWrite(ait_const2str[hp.typ]);
                consttyp:=hp.typ;
                l:=0;
                repeat
-                 found:=(not (tai(hp.next)=nil)) and (tai(hp.next).typ=consttyp);
-                 if found then
-                  begin
-                    hp:=tai(hp.next);
-                    s:=','+tostru(tai_const(hp).value);
-                    AsmWrite(s);
-                    inc(l,length(s));
-                  end;
-               until (not found) or (l>line_length);
+                 if assigned(tai_const(hp).sym) then
+                   begin
+                     if assigned(tai_const(hp).endsym) then
+                       s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
+                     else
+                       s:=tai_const(hp).sym.name;
+                     if tai_const(hp).value<>0 then
+                       s:=s+tostr_with_plus(tai_const(hp).value);
+                   end
+                 else
+                   s:=tostr(tai_const(hp).value);
+                 AsmWrite(s);
+                 inc(l,length(s));
+                 if (l>line_length) or
+                    (hp.next=nil) or
+                    (tai(hp.next).typ<>consttyp) then
+                   break;
+                 hp:=tai(hp.next);
+                 AsmWrite(',');
+               until false;
                AsmLn;
-             end;
-
-           ait_const_symbol :
-             begin
-               AsmWrite(#9#9'DD'#9);
-               AsmWrite(tai_const_symbol(hp).sym.name);
-               if tai_const_symbol(hp).offset>0 then
-                 AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
-               else if tai_const_symbol(hp).offset<0 then
-                 AsmWrite(tostr(tai_const_symbol(hp).offset));
-               AsmLn;
-             end;
-
-           ait_const_rva :
-             begin
-               AsmWrite(#9#9'RVA'#9);
-               AsmWriteLn(tai_const_symbol(hp).sym.name);
              end;
 
            ait_real_32bit :
@@ -635,7 +661,7 @@ interface
                AsmWrite(tai_symbol(hp).sym.name);
                if assigned(hp.next) and not(tai(hp.next).typ in
                   [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                   ait_const_symbol,ait_const_rva,
+                   ait_const_rva_symbol,
                    ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
                 AsmWriteLn(':')
              end;
@@ -701,7 +727,7 @@ interface
            ait_stab_function_name : ;
 {$endif GDB}
 
-           ait_cut :
+           ait_cutobject :
              begin
              { only reset buffer if nothing has changed }
                if AsmSize=AsmStartSize then
@@ -710,17 +736,17 @@ interface
                 begin
                   AsmClose;
                   DoAssemble;
-                  AsmCreate(tai_cut(hp).place);
+                  AsmCreate(tai_cutobject(hp).place);
                 end;
              { avoid empty files }
-               while assigned(hp.next) and (tai(hp.next).typ in [ait_cut,ait_section,ait_comment]) do
+               while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
                 begin
                   if tai(hp.next).typ=ait_section then
-                    lasTSec:=tai_section(hp.next).sec;
+                    lasTSectype:=tai_section(hp.next).sectype;
                   hp:=tai(hp.next);
                 end;
-               if lasTSec<>sec_none then
-                 AsmWriteLn('SECTION '+target_asm.secnames[lasTSec]);
+               if lasTSectype<>sec_none then
+                 WriteSection(tai_section(hp).sectype,tai_section(hp).name^);
                AsmStartSize:=AsmSize;
              end;
 
@@ -760,7 +786,7 @@ interface
       if assigned(current_module.mainsource) then
        comment(v_info,'Start writing nasm-styled assembler output for '+current_module.mainsource^);
 {$endif}
-      LasTSec:=sec_none;
+      LasTSecType:=sec_none;
       AsmWriteLn('BITS 32');
       AsmLn;
 
@@ -782,7 +808,7 @@ interface
       Writetree(importssection);
       { exports are written by DLLTOOL
         if we use it so don't insert it twice (PM) }
-      if not UseDeffileForExport and assigned(exportssection) then
+      if not UseDeffileForExports and assigned(exportssection) then
         Writetree(exportssection);
       Writetree(resourcesection);
 
@@ -806,16 +832,9 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f coff -o $OBJ $ASM';
             supported_target : system_i386_go32v2;
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure: false;
+            flags : [af_allowdirect,af_needar];
             labelprefix : '..@';
             comment : '; ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '.stab','.stabstr','')
           );
 
        as_i386_nasmwin32_info : tasminfo =
@@ -825,16 +844,9 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f win32 -o $OBJ $ASM';
             supported_target : system_i386_win32;
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure: false;
+            flags : [af_allowdirect,af_needar];
             labelprefix : '..@';
             comment : '; ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '.stab','.stabstr','')
           );
 
        as_i386_nasmobj_info : tasminfo =
@@ -844,16 +856,9 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f obj -o $OBJ $ASM';
             supported_target : system_any; { what should I write here ?? }
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure: false;
+            flags : [af_allowdirect,af_needar];
             labelprefix : '..@';
             comment : '; ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '.stab','.stabstr','')
           );
 
        as_i386_nasmwdosx_info : tasminfo =
@@ -863,16 +868,9 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f win32 -o $OBJ $ASM';
             supported_target : system_i386_wdosx;
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure: false;
+            flags : [af_allowdirect,af_needar];
             labelprefix : '..@';
             comment : '; ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '.stab','.stabstr','')
           );
 
 
@@ -883,16 +881,9 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
             supported_target : system_i386_linux;
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure: false;
+            flags : [af_allowdirect,af_needar];
             labelprefix : '..@';
             comment : '; ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '.stab','.stabstr','')
           );
 
        as_i386_nasmbeos_info : tasminfo =
@@ -902,16 +893,9 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
             supported_target : system_i386_beos;
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure: false;
+            flags : [af_allowdirect,af_needar];
             labelprefix : '..@';
             comment : '; ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '.stab','.stabstr','')
           );
 
 
@@ -925,8 +909,33 @@ initialization
 end.
 {
   $Log$
-  Revision 1.45  2004-05-22 23:34:28  peter
+  Revision 1.46  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.45  2004/05/22 23:34:28  peter
   tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.44.2.7  2004/05/03 14:59:58  peter
+    * no dlltool needed for win32 linking executables
+
+  Revision 1.44.2.6  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.44.2.5  2004/04/29 19:07:22  peter
+    * compile fixes
+
+  Revision 1.44.2.4  2004/04/12 19:34:46  peter
+    * basic framework for dwarf CFI
+
+  Revision 1.44.2.3  2004/04/12 14:45:11  peter
+    * tai_const_symbol and tai_const merged
+
+  Revision 1.44.2.2  2004/04/10 12:36:41  peter
+    * fixed alignment issues
+
+  Revision 1.44.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.44  2004/02/27 10:21:05  florian
     * top_symbol killed
@@ -1072,7 +1081,7 @@ end.
       the parast, detected by tcalcst3 test
 
   Revision 1.16  2002/04/15 19:12:09  carl
-  + target_info.size_of_pointer -> pointer_size
+  + target_info.size_of_pointer -> sizeof(aint)
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units
     (where they are used)

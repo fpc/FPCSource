@@ -206,11 +206,11 @@ implementation
                { use the register as base in a reference (JM)                }
                if ranges then
                  begin
-                   pleftreg:=cg.makeregsize(exprasmlist,left.location.register,OS_ADDR);
-                   cg.a_load_reg_reg(exprasmlist,left.location.size,OS_ADDR,left.location.register,pleftreg);
-                   if opsize<>OS_ADDR then
-                     cg.a_op_const_reg(exprasmlist,OP_AND,OS_ADDR,255,pleftreg);
-                   opsize:=OS_ADDR;
+                   pleftreg:=cg.makeregsize(exprasmlist,left.location.register,OS_INT);
+                   cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,pleftreg);
+                   if opsize<>OS_INT then
+                     cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,255,pleftreg);
+                   opsize:=OS_INT;
                  end
                else
                  { otherwise simply use the lower 8 bits (no "and" }
@@ -495,8 +495,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2004-05-22 23:34:28  peter
+  Revision 1.4  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.3  2004/05/22 23:34:28  peter
   tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.2.2.1  2004/04/28 18:35:42  peter
+    * cardinal fixes for x86-64
 
   Revision 1.2  2004/02/27 10:21:06  florian
     * top_symbol killed

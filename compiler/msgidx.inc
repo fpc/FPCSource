@@ -260,6 +260,11 @@ const
   parser_e_illegal_explicit_paraloc=03199;
   parser_e_32bitint_or_pointer_variable_expected=03200;
   parser_e_goto_outside_proc=03201;
+  parser_e_too_complex_expr=03202;
+  parser_e_illegal_expression=03203;
+  parser_e_invalid_integer=03204;
+  parser_e_invalid_qualifier=03205;
+  parser_e_upper_lower_than_lower=03206;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -313,6 +318,11 @@ const
   type_e_operator_not_allowed=04051;
   type_e_constant_expr_expected=04052;
   type_e_operator_not_supported_for_types=04053;
+  type_e_illegal_type_conversion=04054;
+  type_h_pointer_to_longint_conv_not_portable=04055;
+  type_w_pointer_to_longint_conv_not_portable=04056;
+  type_e_cant_choose_overload_function=04057;
+  type_e_illegal_count_var=04058;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -356,21 +366,9 @@ const
   sym_w_non_portable_symbol=05044;
   sym_w_non_implemented_symbol=05055;
   sym_e_cant_create_unique_type=05056;
-  cg_e_break_not_allowed=06000;
-  cg_e_continue_not_allowed=06001;
-  cg_e_too_complex_expr=06002;
-  cg_e_illegal_expression=06003;
-  cg_e_invalid_integer=06004;
-  cg_e_invalid_qualifier=06005;
-  cg_e_upper_lower_than_lower=06006;
-  cg_e_illegal_count_var=06007;
-  cg_e_cant_choose_overload_function=06008;
   cg_e_parasize_too_big=06009;
-  cg_e_illegal_type_conversion=06010;
-  cg_h_pointer_to_longint_conv_not_portable=06011;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
-  cg_e_var_must_be_reference=06014;
   cg_e_dont_call_exported_direct=06015;
   cg_w_member_cd_call_from_method=06016;
   cg_n_inefficient_code=06017;
@@ -389,6 +387,8 @@ const
   cg_w_parasize_too_big=06041;
   cg_w_localsize_too_big=06042;
   cg_e_localsize_too_big=06043;
+  cg_e_break_not_allowed=06044;
+  cg_e_continue_not_allowed=06045;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
   asmr_e_none_label_contain_at=07002;
@@ -639,9 +639,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 36547;
+  MsgTxtSize = 36707;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,63,202,54,57,44,99,20,35,60,
+    17,63,207,59,57,46,99,20,35,60,
     40,1,1,1,1,1,1,1,1,1
   );

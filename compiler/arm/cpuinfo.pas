@@ -21,21 +21,6 @@ Interface
     globtype;
 
 Type
-   { Architecture word - Native unsigned type }
-   AWord  = Longword;
-   AInt = longint;
-   PAWord = ^AWord;
-   PAInt = ^AInt;
-
-   { this must be an ordinal type with the same size as a pointer }
-   { to allow some dirty type casts for example when using        }
-   { tconstsym.value                                              }
-   { Note: must be unsigned!! Otherwise, ugly code like           }
-   { pointer(-1) will result in a pointer with the value          }
-   { $fffffffffffffff on a 32bit machine if the compiler uses     }
-   { int64 constants internally (JM)                              }
-   TConstPtrUInt = Longword;
-
    bestreal = double;
    ts32real = single;
    ts64real = double;
@@ -66,8 +51,6 @@ Type
 Const
    {# Size of native extended floating point type }
    extended_size = 8;
-   {# Size of a pointer                           }
-   pointer_size  = 4;
    {# Size of a multimedia register               }
    mmreg_size = 16;
    { target cpu string (used by compiler options) }
@@ -114,8 +97,15 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.7  2004-04-28 15:19:03  florian
+  Revision 1.8  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.7  2004/04/28 15:19:03  florian
     + syscall directive support for MorphOS added
+
+  Revision 1.6.2.1  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
 
   Revision 1.6  2004/03/06 20:35:19  florian
     * fixed arm compilation

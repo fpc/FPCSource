@@ -499,8 +499,8 @@ implementation
         aiclass[ait_const_32bit]:=tai_const;
         aiclass[ait_const_16bit]:=tai_const;
         aiclass[ait_const_8bit]:=tai_const;
-        aiclass[ait_const_symbol]:=tai_const_symbol;
-        aiclass[ait_const_rva]:=tai_const_symbol;
+        aiclass[ait_const_indirect_symbol]:=tai_const;
+        aiclass[ait_const_rva_symbol]:=tai_const;
         aiclass[ait_real_32bit]:=tai_real_32bit;
         aiclass[ait_real_64bit]:=tai_real_64bit;
         aiclass[ait_real_80bit]:=tai_real_80bit;
@@ -527,7 +527,7 @@ implementation
 {$ifdef SPARC}
 //        aiclass[ait_labeled_instruction]:=tai_labeled_instruction;
 {$endif SPARC}
-        aiclass[ait_cut]:=tai_cut;
+        aiclass[ait_cutobject]:=tai_cutobject;
         aiclass[ait_regalloc]:=tai_regalloc;
         aiclass[ait_tempalloc]:=tai_tempalloc;
         aiclass[ait_marker]:=tai_marker;
@@ -536,8 +536,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2004-04-29 19:56:37  daniel
+  Revision 1.69  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.68  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.67.2.3  2004/04/12 19:34:46  peter
+    * basic framework for dwarf CFI
+
+  Revision 1.67.2.2  2004/04/12 14:45:11  peter
+    * tai_const_symbol and tai_const merged
+
+  Revision 1.67.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.67  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned

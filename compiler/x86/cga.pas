@@ -28,22 +28,17 @@ unit cga;
 interface
 
     uses
+       globtype,
        cpuinfo,cpubase,cgbase,
        symconst,symtype,symdef,aasmbase,aasmtai,aasmcpu;
 
-{$define TESTGETTEMP to store const that
- are written into temps for later release PM }
-
-    function def_opsize(p1:tdef):topsize;
-
     procedure emit_none(i : tasmop;s : topsize);
 
-    procedure emit_const(i : tasmop;s : topsize;c : longint);
     procedure emit_reg(i : tasmop;s : topsize;reg : tregister);
     procedure emit_ref(i : tasmop;s : topsize;const ref : treference);
 
-    procedure emit_const_reg(i : tasmop;s : topsize;c : longint;reg : tregister);
-    procedure emit_const_ref(i : tasmop;s : topsize;c : longint;const ref : treference);
+    procedure emit_const_reg(i : tasmop;s : topsize;c : aint;reg : tregister);
+    procedure emit_const_ref(i : tasmop;s : topsize;c : aint;const ref : treference);
     procedure emit_ref_reg(i : tasmop;s : topsize;const ref : treference;reg : tregister);
     procedure emit_reg_ref(i : tasmop;s : topsize;reg : tregister;const ref : treference);
     procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
@@ -61,28 +56,6 @@ implementation
        cutils,
        systems,verbose,
        cgobj;
-
-
-{*****************************************************************************
-                                Helpers
-*****************************************************************************}
-
-    function def_opsize(p1:tdef):topsize;
-      begin
-        case p1.size of
-         1 : def_opsize:=S_B;
-         2 : def_opsize:=S_W;
-         4 : def_opsize:=S_L;
-{$ifdef x86_64}
-         8 : def_opsize:=S_Q;
-{$else x86_64}
-         { I don't know if we need it (FK) }
-         8 : def_opsize:=S_L;
-{$endif x86_64}
-        else
-         internalerror(130820001);
-        end;
-      end;
 
 
 {*****************************************************************************
@@ -104,19 +77,14 @@ implementation
          exprasmList.concat(Taicpu.Op_ref(i,s,ref));
       end;
 
-    procedure emit_const(i : tasmop;s : topsize;c : longint);
+    procedure emit_const_reg(i : tasmop;s : topsize;c : aint;reg : tregister);
       begin
-         exprasmList.concat(Taicpu.Op_const(i,s,aword(c)));
+         exprasmList.concat(Taicpu.Op_const_reg(i,s,c,reg));
       end;
 
-    procedure emit_const_reg(i : tasmop;s : topsize;c : longint;reg : tregister);
+    procedure emit_const_ref(i : tasmop;s : topsize;c : aint;const ref : treference);
       begin
-         exprasmList.concat(Taicpu.Op_const_reg(i,s,aword(c),reg));
-      end;
-
-    procedure emit_const_ref(i : tasmop;s : topsize;c : longint;const ref : treference);
-      begin
-         exprasmList.concat(Taicpu.Op_const_ref(i,s,aword(c),ref));
+         exprasmList.concat(Taicpu.Op_const_ref(i,s,c,ref));
       end;
 
     procedure emit_ref_reg(i : tasmop;s : topsize;const ref : treference;reg : tregister);
@@ -161,7 +129,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2003-10-10 17:48:14  peter
+  Revision 1.8  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.7.2.3  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.7.2.2  2004/04/29 23:30:28  peter
+    * fix i386 compiler
+
+  Revision 1.7.2.1  2004/04/27 18:18:26  peter
+    * aword -> aint
+
+  Revision 1.7  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

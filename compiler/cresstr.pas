@@ -60,11 +60,11 @@ var
 implementation
 
 uses
-   cutils,globals,
+   cutils,globtype,globals,
    symdef,
    verbose,fmodule,
    aasmbase,aasmtai,
-   aasmcpu,cpuinfo;
+   aasmcpu;
 
 
 { ---------------------------------------------------------------------
@@ -149,15 +149,15 @@ procedure TResourceStrings.CreateResourceStringList;
     With P Do
      begin
        if (Value=nil) or (len=0) then
-         resourcestringlist.concat(tai_const.create_ptr(0))
+         resourcestringlist.concat(tai_const.create_sym(nil))
        else
          begin
             objectlibrary.getdatalabel(l1);
-            resourcestringlist.concat(tai_const_symbol.create(l1));
-            consts.concat(tai_align.Create(const_align(pointer_size)));
+            resourcestringlist.concat(tai_const.create_sym(l1));
+            consts.concat(tai_align.Create(const_align(sizeof(aint))));
             consts.concat(tai_const.create_32bit(len));
             consts.concat(tai_const.create_32bit(len));
-            consts.concat(tai_const.create_32bit(cardinal(-1)));
+            consts.concat(tai_const.create_32bit(-1));
             consts.concat(tai_label.create(l1));
             getmem(s,len+1);
             move(Value^,s^,len);
@@ -166,16 +166,16 @@ procedure TResourceStrings.CreateResourceStringList;
             consts.concat(tai_const.create_8bit(0));
          end;
        { append Current value (nil) and hash...}
-       resourcestringlist.concat(tai_const.create_ptr(0));
-       resourcestringlist.concat(tai_const.create_32bit(hash));
+       resourcestringlist.concat(tai_const.create_sym(nil));
+       resourcestringlist.concat(tai_const.create_32bit(longint(hash)));
        { Append the name as a ansistring. }
        objectlibrary.getdatalabel(l1);
        L:=Length(Name);
-       resourcestringlist.concat(tai_const_symbol.create(l1));
-       consts.concat(tai_align.Create(const_align(pointer_size)));
+       resourcestringlist.concat(tai_const.create_sym(l1));
+       consts.concat(tai_align.Create(const_align(sizeof(aint))));
        consts.concat(tai_const.create_32bit(l));
        consts.concat(tai_const.create_32bit(l));
-       consts.concat(tai_const.create_32bit(cardinal(-1)));
+       consts.concat(tai_const.create_32bit(-1));
        consts.concat(tai_label.create(l1));
        getmem(s,l+1);
        move(Name[1],s^,l);
@@ -192,7 +192,7 @@ begin
     resourcestringlist:=taasmoutput.create;
   resourcestringlist.insert(tai_const.create_32bit(resstrcount));
   resourcestringlist.insert(tai_symbol.createname_global(make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,''),AT_DATA,0));
-  resourcestringlist.insert(tai_align.Create(const_align(pointer_size)));
+  resourcestringlist.insert(tai_align.Create(const_align(sizeof(aint))));
   R:=TResourceStringItem(List.First);
   While assigned(R) do
    begin
@@ -295,10 +295,23 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2004-05-23 15:23:30  peter
+  Revision 1.24  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.23  2004/05/23 15:23:30  peter
     * fixed qword(longint) that removed sign from the number
     * removed code in the compiler that relied on wrong qword(longint)
       code generation
+
+  Revision 1.22.2.3  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.22.2.2  2004/04/27 18:18:25  peter
+    * aword -> aint
+
+  Revision 1.22.2.1  2004/04/12 14:45:11  peter
+    * tai_const_symbol and tai_const merged
 
   Revision 1.22  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*

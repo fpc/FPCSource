@@ -29,6 +29,7 @@ unit cgcpu;
   interface
 
     uses
+       globtype,
        cgbase,cgobj,cg64f32,cgx86,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,
@@ -41,17 +42,27 @@ unit cgcpu;
     type
       tcg386 = class(tcgx86)
         procedure init_register_allocators;override;
-        class function reg_cgsize(const reg: tregister): tcgsize; override;
+        { passing parameter using push instead of mov }
+        procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);override;
+        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aint;const locpara : tparalocation);override;
+        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);override;
+        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
+
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);override;
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);override;
+        procedure g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);override;
+        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aint);override;
+
+        procedure g_exception_reason_save(list : taasmoutput; const href : treference);override;
+        procedure g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aint);override;
+        procedure g_exception_reason_load(list : taasmoutput; const href : treference);override;
      end;
 
       tcg64f386 = class(tcg64f32)
         procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);override;
         procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);override;
-        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);override;
-        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : qword;const ref : treference);override;
+        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;reg : tregister64);override;
+        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : int64;const ref : treference);override;
       private
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
@@ -59,7 +70,7 @@ unit cgcpu;
   implementation
 
     uses
-       globtype,globals,verbose,systems,cutils,
+       globals,verbose,systems,cutils,
        symdef,symsym,defutil,paramgr,procinfo,
        rgcpu,rgx86,tgobj,
        cgutils;
@@ -77,47 +88,109 @@ unit cgcpu;
       end;
 
 
-    class function tcg386.reg_cgsize(const reg: tregister): tcgsize;
+    procedure tcg386.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);
+      var
+        pushsize : tcgsize;
+      begin
+        check_register_size(size,r);
+        with locpara do
+          if (loc=LOC_REFERENCE) and
+             (reference.index=NR_STACK_POINTER_REG) then
+            begin
+              pushsize:=int_cgsize(alignment);
+              list.concat(taicpu.op_reg(A_PUSH,tcgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
+            end
+          else
+            inherited a_param_reg(list,size,r,locpara);
+      end;
 
-    const subreg2cgsize:array[Tsubregister] of Tcgsize =
-          (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO);
 
-    begin
-      case getregtype(reg) of
-        R_INTREGISTER :
-          reg_cgsize:=subreg2cgsize[getsubreg(reg)];
-        R_FPUREGISTER :
-          reg_cgsize:=OS_F80;
-        R_MMXREGISTER,
-        R_MMREGISTER :
-          reg_cgsize:=OS_M64;
-        R_SPECIALREGISTER :
-          case reg of
-            NR_CS,NR_DS,NR_ES,NR_SS,NR_FS,NR_GS:
-              reg_cgsize:=OS_16
-            else
-              reg_cgsize:=OS_32
-          end
-        else
-            internalerror(200303181);
+    procedure tcg386.a_param_const(list : taasmoutput;size : tcgsize;a : aint;const locpara : tparalocation);
+      var
+        pushsize : tcgsize;
+      begin
+        with locpara do
+          if (loc=LOC_REFERENCE) and
+             (reference.index=NR_STACK_POINTER_REG) then
+            begin
+              pushsize:=int_cgsize(alignment);
+              list.concat(taicpu.op_const(A_PUSH,tcgsize2opsize[pushsize],a));
+            end
+          else
+            inherited a_param_const(list,size,a,locpara);
+      end;
+
+
+    procedure tcg386.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);
+      var
+        pushsize : tcgsize;
+        tmpreg : tregister;
+      begin
+        with locpara do
+          if (loc=LOC_REFERENCE) and
+             (reference.index=NR_STACK_POINTER_REG) then
+            begin
+              pushsize:=int_cgsize(alignment);
+              if tcgsize2size[size]<alignment then
+                begin
+                  tmpreg:=getintregister(list,pushsize);
+                  a_load_ref_reg(list,size,pushsize,r,tmpreg);
+                  list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],tmpreg));
+                  ungetregister(list,tmpreg);
+                end
+              else
+                list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[pushsize],r));
+            end
+          else
+            inherited a_param_ref(list,size,r,locpara);
+      end;
+
+
+    procedure tcg386.a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
+      var
+        tmpreg : tregister;
+        opsize : topsize;
+      begin
+        with r do
+          begin
+            if (segment<>NR_NO) then
+              cgmessage(cg_e_cant_use_far_pointer_there);
+            with locpara do
+              if (locpara.loc=LOC_REFERENCE) and
+                 (locpara.reference.index=NR_STACK_POINTER_REG) then
+                begin
+                  opsize:=tcgsize2opsize[OS_ADDR];
+                  if (base=NR_NO) and (index=NR_NO) then
+                    begin
+                      if assigned(symbol) then
+                        list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset))
+                      else
+                        list.concat(Taicpu.Op_const(A_PUSH,opsize,offset));
+                    end
+                  else if (base=NR_NO) and (index<>NR_NO) and
+                          (offset=0) and (scalefactor=0) and (symbol=nil) then
+                    list.concat(Taicpu.Op_reg(A_PUSH,opsize,index))
+                  else if (base<>NR_NO) and (index=NR_NO) and
+                          (offset=0) and (symbol=nil) then
+                    list.concat(Taicpu.Op_reg(A_PUSH,opsize,base))
+                  else
+                    begin
+                      tmpreg:=getaddressregister(list);
+                      a_loadaddr_ref_reg(list,r,tmpreg);
+                      ungetregister(list,tmpreg);
+                      list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
+                    end;
+                end
+              else
+                inherited a_paramaddr_ref(list,r,locpara);
         end;
       end;
 
-{      const
-        opsize_2_cgsize: array[topsize] of tcgsize = (OS_NO,
-          OS_8,OS_16,OS_32,OS_NO,OS_NO,OS_NO,
-          OS_32,OS_64,OS_64,
-          OS_F32,OS_F64,OS_F80,OS_F32,OS_F64,OS_M64,OS_NO,
-          OS_NO,OS_NO,OS_NO
-        );
-      begin
-        result := opsize_2_cgsize[reg2opsize(reg)];
-      end;}
 
     procedure tcg386.g_save_all_registers(list : taasmoutput);
       begin
         list.concat(Taicpu.Op_none(A_PUSHA,S_L));
-        tg.GetTemp(list,POINTER_SIZE,tt_noreuse,current_procinfo.save_regs_ref);
+        tg.GetTemp(list,sizeof(aint),tt_noreuse,current_procinfo.save_regs_ref);
         a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_STACK_POINTER_REG,current_procinfo.save_regs_ref);
       end;
 
@@ -148,7 +221,81 @@ unit cgcpu;
         list.concat(taicpu.op_none(A_NOP,S_L));
       end;
 
-    procedure tcg386.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);
+
+    procedure tcg386.g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);
+      var
+        stacksize : longint;
+      begin
+        { Release PIC register }
+        if cs_create_pic in aktmoduleswitches then
+          list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG));
+
+        { MMX needs to call EMMS }
+        if assigned(rg[R_MMXREGISTER]) and
+           (rg[R_MMXREGISTER].uses_registers) then
+          list.concat(Taicpu.op_none(A_EMMS,S_NO));
+
+        { remove stackframe }
+        if not nostackframe then
+          begin
+            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+              begin
+                stacksize:=current_procinfo.calc_stackframe_size;
+                if (stacksize<>0) then
+                  cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
+              end
+            else
+              list.concat(Taicpu.op_none(A_LEAVE,S_NO));
+            list.concat(tai_regalloc.dealloc(NR_FRAME_POINTER_REG));
+          end;
+
+        { return from proc }
+        if (po_interrupt in current_procinfo.procdef.procoptions) then
+          begin
+            if current_procinfo.procdef.funcret_paraloc[calleeside].loc=LOC_REGISTER then
+              list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
+            else
+              list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EAX));
+            list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EBX));
+            list.concat(Taicpu.Op_reg(A_POP,S_L,NR_ECX));
+            if current_procinfo.procdef.funcret_paraloc[calleeside].lochigh=LOC_REGISTER then
+              list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
+            else
+              list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EDX));
+            list.concat(Taicpu.Op_reg(A_POP,S_L,NR_ESI));
+            list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EDI));
+            { .... also the segment registers }
+            list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DS));
+            list.concat(Taicpu.Op_reg(A_POP,S_W,NR_ES));
+            list.concat(Taicpu.Op_reg(A_POP,S_W,NR_FS));
+            list.concat(Taicpu.Op_reg(A_POP,S_W,NR_GS));
+            { this restores the flags }
+            list.concat(Taicpu.Op_none(A_IRET,S_NO));
+          end
+        { Routines with the poclearstack flag set use only a ret }
+        else if current_procinfo.procdef.proccalloption in clearstack_pocalls then
+         begin
+           { complex return values are removed from stack in C code PM }
+           if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,
+                                       current_procinfo.procdef.proccalloption) then
+             list.concat(Taicpu.Op_const(A_RET,S_NO,sizeof(aint)))
+           else
+             list.concat(Taicpu.Op_none(A_RET,S_NO));
+         end
+        { ... also routines with parasize=0 }
+        else if (parasize=0) then
+         list.concat(Taicpu.Op_none(A_RET,S_NO))
+        else
+         begin
+           { parameters are limited to 65535 bytes because ret allows only imm16 }
+           if (parasize>65535) then
+             CGMessage(cg_e_parasize_too_big);
+           list.concat(Taicpu.Op_const(A_RET,S_NO,parasize));
+         end;
+      end;
+
+
+    procedure tcg386.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aint);
       var
         power,len  : longint;
         opsize : topsize;
@@ -202,7 +349,7 @@ unit cgcpu;
 {$endif __NOWINPECOFF__}
           list.concat(Taicpu.op_reg_reg(A_SUB,S_L,NR_EDI,NR_ESP));
         { align stack on 4 bytes }
-        list.concat(Taicpu.op_const_reg(A_AND,S_L,$fffffff4,NR_ESP));
+        list.concat(Taicpu.op_const_reg(A_AND,S_L,aint($fffffff4),NR_ESP));
         { load destination }
         a_load_reg_reg(list,OS_INT,OS_INT,NR_ESP,NR_EDI);
 
@@ -253,6 +400,22 @@ unit cgcpu;
       end;
 
 
+    procedure tcg386.g_exception_reason_save(list : taasmoutput; const href : treference);
+      begin
+        list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG));
+      end;
+
+
+    procedure tcg386.g_exception_reason_save_const(list : taasmoutput;const href : treference; a: aint);
+      begin
+        list.concat(Taicpu.op_const(A_PUSH,tcgsize2opsize[OS_INT],a));
+      end;
+
+
+    procedure tcg386.g_exception_reason_load(list : taasmoutput; const href : treference);
+      begin
+        list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG));
+      end;
 
 
 { ************* 64bit operations ************ }
@@ -315,7 +478,7 @@ unit cgcpu;
                 a_load64_reg_reg(list,regsrc,regdst);
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
               list.concat(taicpu.op_reg(A_NEG,S_L,regdst.reglo));
-              list.concat(taicpu.op_const_reg(A_SBB,S_L,aword(-1),regdst.reghi));
+              list.concat(taicpu.op_const_reg(A_SBB,S_L,-1,regdst.reghi));
               exit;
             end;
           OP_NOT :
@@ -333,22 +496,22 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64f386.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);
+    procedure tcg64f386.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;reg : tregister64);
       var
         op1,op2 : TAsmOp;
       begin
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_const_reg(list,op,OS_32,lo(value),reg.reglo);
-              cg.a_op_const_reg(list,op,OS_32,hi(value),reg.reghi);
+              cg.a_op_const_reg(list,op,OS_32,aint(lo(value)),reg.reglo);
+              cg.a_op_const_reg(list,op,OS_32,aint(hi(value)),reg.reghi);
             end;
           OP_ADD, OP_SUB:
             begin
               // can't use a_op_const_ref because this may use dec/inc
               get_64bit_ops(op,op1,op2);
-              list.concat(taicpu.op_const_reg(op1,S_L,lo(value),reg.reglo));
-              list.concat(taicpu.op_const_reg(op2,S_L,hi(value),reg.reghi));
+              list.concat(taicpu.op_const_reg(op1,S_L,aint(lo(value)),reg.reglo));
+              list.concat(taicpu.op_const_reg(op2,S_L,aint(hi(value)),reg.reghi));
             end;
           else
             internalerror(200204021);
@@ -356,7 +519,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64f386.a_op64_const_ref(list : taasmoutput;op:TOpCG;value : qword;const ref : treference);
+    procedure tcg64f386.a_op64_const_ref(list : taasmoutput;op:TOpCG;value : int64;const ref : treference);
       var
         op1,op2 : TAsmOp;
         tempref : treference;
@@ -389,8 +552,40 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2004-04-09 14:36:05  peter
+  Revision 1.49  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.48  2004/04/09 14:36:05  peter
     * A_MOVSL renamed to A_MOVSD
+
+  Revision 1.47.2.9  2004/05/30 10:45:50  peter
+    * merged fixes from main branch
+
+  Revision 1.47.2.8  2004/05/02 21:34:01  florian
+    * i386 compilation fixed
+
+  Revision 1.47.2.7  2004/05/02 12:45:32  peter
+    * enabled cpuhasfixedstack for x86-64 again
+    * fixed size of temp allocation for parameters
+
+  Revision 1.47.2.6  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.47.2.5  2004/04/29 23:30:28  peter
+    * fix i386 compiler
+
+  Revision 1.47.2.4  2004/04/29 19:07:22  peter
+    * compile fixes
+
+  Revision 1.47.2.3  2004/04/24 20:13:24  florian
+    * fixed x86-64 exception handling
+
+  Revision 1.47.2.2  2004/04/24 18:30:11  florian
+    * extended parameters shouldn't be poped by the callee on x86-64 either
+
+  Revision 1.47.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.47  2004/02/27 10:21:05  florian
     * top_symbol killed

@@ -31,7 +31,7 @@ unit aasmcpu;
 interface
 
     uses
-      cclasses,globals,verbose,
+      cclasses,globtype,globals,verbose,
       cpuinfo,cpubase,
       cgbase,
       symtype,symsym,
@@ -146,35 +146,35 @@ interface
       { alignment for operator }
       tai_align = class(tai_align_abstract)
          reg       : tregister;
-         constructor create(b:byte);
-         constructor create_op(b: byte; _op: byte);
+         constructor create(b:byte);override;
+         constructor create_op(b: byte; _op: byte);override;
          function calculatefillbuf(var buf : tfillbuffer):pchar;override;
       end;
 
-      taicpu = class(taicpu_abstract)
+      taicpu = class(tai_cpu_abstract)
          opsize    : topsize;
          constructor op_none(op : tasmop);
          constructor op_none(op : tasmop;_size : topsize);
 
          constructor op_reg(op : tasmop;_size : topsize;_op1 : tregister);
-         constructor op_const(op : tasmop;_size : topsize;_op1 : aword);
+         constructor op_const(op : tasmop;_size : topsize;_op1 : aint);
          constructor op_ref(op : tasmop;_size : topsize;const _op1 : treference);
 
          constructor op_reg_reg(op : tasmop;_size : topsize;_op1,_op2 : tregister);
          constructor op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;const _op2 : treference);
-         constructor op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: aword);
+         constructor op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: aint);
 
-         constructor op_const_reg(op : tasmop;_size : topsize;_op1 : aword;_op2 : tregister);
-         constructor op_const_const(op : tasmop;_size : topsize;_op1,_op2 : aword);
-         constructor op_const_ref(op : tasmop;_size : topsize;_op1 : aword;const _op2 : treference);
+         constructor op_const_reg(op : tasmop;_size : topsize;_op1 : aint;_op2 : tregister);
+         constructor op_const_const(op : tasmop;_size : topsize;_op1,_op2 : aint);
+         constructor op_const_ref(op : tasmop;_size : topsize;_op1 : aint;const _op2 : treference);
 
          constructor op_ref_reg(op : tasmop;_size : topsize;const _op1 : treference;_op2 : tregister);
 
          constructor op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
-         constructor op_const_reg_reg(op : tasmop;_size : topsize;_op1 : aword;_op2 : tregister;_op3 : tregister);
-         constructor op_const_ref_reg(op : tasmop;_size : topsize;_op1 : aword;const _op2 : treference;_op3 : tregister);
+         constructor op_const_reg_reg(op : tasmop;_size : topsize;_op1 : aint;_op2 : tregister;_op3 : tregister);
+         constructor op_const_ref_reg(op : tasmop;_size : topsize;_op1 : aint;const _op2 : treference;_op3 : tregister);
          constructor op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister; const _op3 : treference);
-         constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : aword;_op2 : tregister;const _op3 : treference);
+         constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : aint;_op2 : tregister;const _op3 : treference);
 
          { this is for Jmp instructions }
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : tasmsymbol);
@@ -198,7 +198,7 @@ interface
          procedure ResetPass2;
          function  CheckIfValid:boolean;
          function  Pass1(offset:longint):longint;virtual;
-         procedure Pass2(sec:TAsmObjectdata);virtual;
+         procedure Pass2(objdata:TAsmObjectdata);virtual;
          procedure SetOperandOrder(order:TOperandOrder);
          function is_same_reg_move(regtype: Tregistertype):boolean;override;
       protected
@@ -216,12 +216,15 @@ interface
          procedure create_ot;
          function  Matches(p:PInsEntry):longint;
          function  calcsize(p:PInsEntry):longint;
-         procedure gencode(sec:TAsmObjectData);
+         procedure gencode(objdata:TAsmObjectData);
          function  NeedAddrPrefix(opidx:byte):boolean;
          procedure Swapoperands;
          function  FindInsentry:boolean;
     {$endif NOAG386BIN}
       end;
+
+    function spilling_create_load(const ref:treference;r:tregister): tai;
+    function spilling_create_store(r:tregister; const ref:treference): tai;
 
     procedure InitAsm;
     procedure DoneAsm;
@@ -462,7 +465,7 @@ implementation
       end;
 
 
-    constructor taicpu.op_const(op : tasmop;_size : topsize;_op1 : aword);
+    constructor taicpu.op_const(op : tasmop;_size : topsize;_op1 : aint);
       begin
          inherited create(op);
          init(_size);
@@ -490,7 +493,7 @@ implementation
       end;
 
 
-    constructor taicpu.op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: aword);
+    constructor taicpu.op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: aint);
       begin
          inherited create(op);
          init(_size);
@@ -510,7 +513,7 @@ implementation
       end;
 
 
-    constructor taicpu.op_const_reg(op : tasmop;_size : topsize;_op1 : aword;_op2 : tregister);
+    constructor taicpu.op_const_reg(op : tasmop;_size : topsize;_op1 : aint;_op2 : tregister);
       begin
          inherited create(op);
          init(_size);
@@ -520,7 +523,7 @@ implementation
       end;
 
 
-    constructor taicpu.op_const_const(op : tasmop;_size : topsize;_op1,_op2 : aword);
+    constructor taicpu.op_const_const(op : tasmop;_size : topsize;_op1,_op2 : aint);
       begin
          inherited create(op);
          init(_size);
@@ -530,7 +533,7 @@ implementation
       end;
 
 
-    constructor taicpu.op_const_ref(op : tasmop;_size : topsize;_op1 : aword;const _op2 : treference);
+    constructor taicpu.op_const_ref(op : tasmop;_size : topsize;_op1 : aint;const _op2 : treference);
       begin
          inherited create(op);
          init(_size);
@@ -561,7 +564,7 @@ implementation
       end;
 
 
-    constructor taicpu.op_const_reg_reg(op : tasmop;_size : topsize;_op1 : aword;_op2 : tregister;_op3 : tregister);
+    constructor taicpu.op_const_reg_reg(op : tasmop;_size : topsize;_op1 : aint;_op2 : tregister;_op3 : tregister);
       begin
          inherited create(op);
          init(_size);
@@ -583,7 +586,7 @@ implementation
       end;
 
 
-    constructor taicpu.op_const_ref_reg(op : tasmop;_size : topsize;_op1 : aword;const _op2 : treference;_op3 : tregister);
+    constructor taicpu.op_const_ref_reg(op : tasmop;_size : topsize;_op1 : aint;const _op2 : treference;_op3 : tregister);
       begin
          inherited create(op);
          init(_size);
@@ -594,7 +597,7 @@ implementation
       end;
 
 
-    constructor taicpu.op_const_reg_ref(op : tasmop;_size : topsize;_op1 : aword;_op2 : tregister;const _op3 : treference);
+    constructor taicpu.op_const_reg_ref(op : tasmop;_size : topsize;_op1 : aint;_op2 : tregister;const _op3 : treference);
       begin
          inherited create(op);
          init(_size);
@@ -772,7 +775,7 @@ implementation
               o.ref^.relsymbol:=ppufile.getasmsymbol;
             end;
           top_const :
-            o.val:=aword(ppufile.getaint);
+            o.val:=ppufile.getaint;
           top_local :
             begin
               new(o.localoper);
@@ -807,13 +810,13 @@ implementation
               ppufile.putasmsymbol(o.ref^.relsymbol);
             end;
           top_const :
-            ppufile.putaint(aint(o.val));
+            ppufile.putaint(o.val);
           top_local :
             begin
               with o.localoper^ do
                 begin
                   ppufile.putderef(localsymderef);
-                  ppufile.putaint(aint(localsymofs));
+                  ppufile.putaint(localsymofs);
                   ppufile.putlongint(longint(localindexreg));
                   ppufile.putbyte(localscale);
                   ppufile.putbyte(byte(localgetoffset));
@@ -1261,7 +1264,7 @@ implementation
       end;
 
 
-    procedure taicpu.Pass2(sec:TAsmObjectData);
+    procedure taicpu.Pass2(objdata:TAsmObjectData);
       var
         c : longint;
       begin
@@ -1280,12 +1283,12 @@ implementation
              NR_GS : c:=$65;
              NR_SS : c:=$36;
            end;
-           sec.writebytes(c,1);
+           objdata.writebytes(c,1);
            { fix the offset for GenNode }
            inc(InsOffset);
          end;
         { Generate the instruction }
-        GenCode(sec);
+        GenCode(objdata);
       end;
 
 
@@ -1560,7 +1563,7 @@ implementation
       end;
 
 
-    procedure taicpu.GenCode(sec:TAsmObjectData);
+    procedure taicpu.GenCode(objdata:TAsmObjectData);
       {
        * the actual codes (C syntax, i.e. octal):
        * \0            - terminates the code. (Unless it's a literal of course.)
@@ -1646,7 +1649,7 @@ implementation
       begin
 {$ifdef EXTDEBUG}
         { safety check }
-        if sec.sects[sec.currsec].datasize<>insoffset then
+        if objdata.currsec.datasize<>insoffset then
          internalerror(200130121);
 {$endif EXTDEBUG}
         { load data to write }
@@ -1656,7 +1659,7 @@ implementation
             ((codes[0]=#1) and ((codes[2]=#5) or (codes[2]=#7)))) then
           begin
             bytes[0]:=$66;
-            sec.writebytes(bytes,1);
+            objdata.writebytes(bytes,1);
           end;
         repeat
           c:=ord(codes^);
@@ -1666,7 +1669,7 @@ implementation
               break;
             1,2,3 :
               begin
-                sec.writebytes(codes^,c);
+                objdata.writebytes(codes^,c);
                 inc(codes,c);
               end;
             4,6 :
@@ -1686,7 +1689,7 @@ implementation
                 end;
                 if c=4 then
                   inc(bytes[0]);
-                sec.writebytes(bytes,1);
+                objdata.writebytes(bytes,1);
               end;
             5,7 :
               begin
@@ -1700,18 +1703,18 @@ implementation
                 end;
                 if c=5 then
                   inc(bytes[0]);
-                sec.writebytes(bytes,1);
+                objdata.writebytes(bytes,1);
               end;
             8,9,10 :
               begin
                 bytes[0]:=ord(codes^)+regval(oper[c-8]^.reg);
                 inc(codes);
-                sec.writebytes(bytes,1);
+                objdata.writebytes(bytes,1);
               end;
             15 :
               begin
                 bytes[0]:=0;
-                sec.writebytes(bytes,1);
+                objdata.writebytes(bytes,1);
               end;
             12,13,14 :
               begin
@@ -1719,9 +1722,9 @@ implementation
                 if (currval<-128) or (currval>127) then
                  Message2(asmw_e_value_exceeds_bounds,'signed byte',tostr(currval));
                 if assigned(currsym) then
-                  sec.writereloc(currval,1,currsym,RELOC_ABSOLUTE)
+                  objdata.writereloc(currval,1,currsym,RELOC_ABSOLUTE)
                 else
-                  sec.writebytes(currval,1);
+                  objdata.writebytes(currval,1);
               end;
             16,17,18 :
               begin
@@ -1729,9 +1732,9 @@ implementation
                 if (currval<-256) or (currval>255) then
                  Message2(asmw_e_value_exceeds_bounds,'byte',tostr(currval));
                 if assigned(currsym) then
-                 sec.writereloc(currval,1,currsym,RELOC_ABSOLUTE)
+                 objdata.writereloc(currval,1,currsym,RELOC_ABSOLUTE)
                 else
-                 sec.writebytes(currval,1);
+                 objdata.writebytes(currval,1);
               end;
             20,21,22 :
               begin
@@ -1739,9 +1742,9 @@ implementation
                 if (currval<0) or (currval>255) then
                  Message2(asmw_e_value_exceeds_bounds,'unsigned byte',tostr(currval));
                 if assigned(currsym) then
-                 sec.writereloc(currval,1,currsym,RELOC_ABSOLUTE)
+                 objdata.writereloc(currval,1,currsym,RELOC_ABSOLUTE)
                 else
-                 sec.writebytes(currval,1);
+                 objdata.writebytes(currval,1);
               end;
             24,25,26 :
               begin
@@ -1749,25 +1752,25 @@ implementation
                 if (currval<-65536) or (currval>65535) then
                  Message2(asmw_e_value_exceeds_bounds,'word',tostr(currval));
                 if assigned(currsym) then
-                 sec.writereloc(currval,2,currsym,RELOC_ABSOLUTE)
+                 objdata.writereloc(currval,2,currsym,RELOC_ABSOLUTE)
                 else
-                 sec.writebytes(currval,2);
+                 objdata.writebytes(currval,2);
               end;
             28,29,30 :
               begin
                 getvalsym(c-28);
                 if assigned(currsym) then
-                 sec.writereloc(currval,4,currsym,RELOC_ABSOLUTE)
+                 objdata.writereloc(currval,4,currsym,RELOC_ABSOLUTE)
                 else
-                 sec.writebytes(currval,4);
+                 objdata.writebytes(currval,4);
               end;
             32,33,34 :
               begin
                 getvalsym(c-32);
                 if assigned(currsym) then
-                 sec.writereloc(currval,4,currsym,RELOC_ABSOLUTE)
+                 objdata.writereloc(currval,4,currsym,RELOC_ABSOLUTE)
                 else
-                 sec.writebytes(currval,4);
+                 objdata.writebytes(currval,4);
               end;
             40,41,42 :
               begin
@@ -1777,52 +1780,52 @@ implementation
                  inc(data,currsym.address);
                 if (data>127) or (data<-128) then
                  Message1(asmw_e_short_jmp_out_of_range,tostr(data));
-                sec.writebytes(data,1);
+                objdata.writebytes(data,1);
               end;
             52,53,54 :
               begin
                 getvalsym(c-52);
                 if assigned(currsym) then
-                 sec.writereloc(currval,4,currsym,RELOC_RELATIVE)
+                 objdata.writereloc(currval,4,currsym,RELOC_RELATIVE)
                 else
-                 sec.writereloc(currval-insend,4,nil,RELOC_ABSOLUTE)
+                 objdata.writereloc(currval-insend,4,nil,RELOC_ABSOLUTE)
               end;
             56,57,58 :
               begin
                 getvalsym(c-56);
                 if assigned(currsym) then
-                 sec.writereloc(currval,4,currsym,RELOC_RELATIVE)
+                 objdata.writereloc(currval,4,currsym,RELOC_RELATIVE)
                 else
-                 sec.writereloc(currval-insend,4,nil,RELOC_ABSOLUTE)
+                 objdata.writereloc(currval-insend,4,nil,RELOC_ABSOLUTE)
               end;
             192,193,194 :
               begin
                 if NeedAddrPrefix(c-192) then
                  begin
                    bytes[0]:=$67;
-                   sec.writebytes(bytes,1);
+                   objdata.writebytes(bytes,1);
                  end;
               end;
             200 :
               begin
                 bytes[0]:=$67;
-                sec.writebytes(bytes,1);
+                objdata.writebytes(bytes,1);
               end;
             208 :
               begin
                 bytes[0]:=$66;
-                sec.writebytes(bytes,1);
+                objdata.writebytes(bytes,1);
               end;
             210 :
               begin
                 bytes[0]:=$48;
-                sec.writebytes(bytes,1);
+                objdata.writebytes(bytes,1);
               end;
             216 :
               begin
                 bytes[0]:=ord(codes^)+condval[condition];
                 inc(codes);
-                sec.writebytes(bytes,1);
+                objdata.writebytes(bytes,1);
               end;
             201,
             202,
@@ -1836,12 +1839,12 @@ implementation
             219 :
               begin
                 bytes[0]:=$f3;
-                sec.writebytes(bytes,1);
+                objdata.writebytes(bytes,1);
               end;
             220 :
               begin
                 bytes[0]:=$f2;
-                sec.writebytes(bytes,1);
+                objdata.writebytes(bytes,1);
               end;
             31,
             48,49,50,
@@ -1876,24 +1879,24 @@ implementation
                     end;
 
                    s:=pb-pchar(@bytes);
-                   sec.writebytes(bytes,s);
+                   objdata.writebytes(bytes,s);
 
                    case ea_data.bytes of
                      0 : ;
                      1 :
                        begin
                          if (oper[opidx]^.ot and OT_MEMORY)=OT_MEMORY then
-                          sec.writereloc(oper[opidx]^.ref^.offset,1,oper[opidx]^.ref^.symbol,RELOC_ABSOLUTE)
+                          objdata.writereloc(oper[opidx]^.ref^.offset,1,oper[opidx]^.ref^.symbol,RELOC_ABSOLUTE)
                          else
                           begin
                             bytes[0]:=oper[opidx]^.ref^.offset;
-                            sec.writebytes(bytes,1);
+                            objdata.writebytes(bytes,1);
                           end;
                          inc(s);
                        end;
                      2,4 :
                        begin
-                         sec.writereloc(oper[opidx]^.ref^.offset,ea_data.bytes,
+                         objdata.writereloc(oper[opidx]^.ref^.offset,ea_data.bytes,
                            oper[opidx]^.ref^.symbol,RELOC_ABSOLUTE);
                          inc(s,ea_data.bytes);
                        end;
@@ -1910,12 +1913,32 @@ implementation
 
     function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
-        result:=(regtype = R_INTREGISTER) and
-                (ops=2) and
-                (oper[0]^.typ=top_reg) and
-                (oper[1]^.typ=top_reg) and
-                (oper[0]^.reg=oper[1]^.reg) and
-                ((opcode=A_MOV) or (opcode=A_XCHG));
+        result:=(((opcode=A_MOV) or (opcode=A_XCHG)) and
+                 (regtype = R_INTREGISTER) and
+                 (ops=2) and
+                 (oper[0]^.typ=top_reg) and
+                 (oper[1]^.typ=top_reg) and
+                 (oper[0]^.reg=oper[1]^.reg)
+                ) or
+                (((opcode=A_MOVSS) or (opcode=A_MOVSD)) and
+                 (regtype = R_MMREGISTER) and
+                 (ops=2) and
+                 (oper[0]^.typ=top_reg) and
+                 (oper[1]^.typ=top_reg) and
+                 (oper[0]^.reg=oper[1]^.reg)
+                );
+      end;
+
+
+    function spilling_create_load(const ref:treference;r:tregister): tai;
+      begin
+        internalerror(200406131);
+      end;
+
+
+    function spilling_create_store(r:tregister; const ref:treference): tai;
+      begin
+        internalerror(200406132);
       end;
 
 
@@ -1964,11 +1987,35 @@ implementation
       end;
 
 
-
+begin
+  cai_align:=tai_align;
+  cai_cpu:=taicpu;
 end.
 {
   $Log$
-  Revision 1.55  2004-03-16 16:19:19  peter
+  Revision 1.56  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.55.2.6  2004/06/13 10:51:17  florian
+    * fixed several register allocator problems (sparc/arm)
+
+  Revision 1.55.2.5  2004/05/02 19:08:01  florian
+    * rewrote tcgcallnode.handle_return_value
+
+  Revision 1.55.2.4  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.55.2.3  2004/04/27 18:18:26  peter
+    * aword -> aint
+
+  Revision 1.55.2.2  2004/04/10 12:36:42  peter
+    * fixed alignment issues
+
+  Revision 1.55.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
+
+  Revision 1.55  2004/03/16 16:19:19  peter
     * check for top_ref instead of OT_MEMORY in needaddrprefix
 
   Revision 1.54  2004/03/15 08:44:51  michael

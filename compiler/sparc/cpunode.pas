@@ -29,13 +29,19 @@ implementation
 uses
   ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,
   ncpuadd,ncpucall,ncpumat,
-  ncgset,ncpuinln,ncpucnv,
+  ncgset,ncpuinln,ncpucnv,ncpuobj,
   { this not really a node }
   rgcpu;
 end.
 {
     $Log$
-    Revision 1.8  2003-08-11 09:05:09  mazen
+    Revision 1.9  2004-06-16 20:07:10  florian
+      * dwarf branch merged
+
+    Revision 1.8.2.1  2004/05/13 20:10:38  florian
+      * released variant and interface support
+
+    Revision 1.8  2003/08/11 09:05:09  mazen
     - Code cleaning : removed unused commentd units which equivalent were already added.
 
     Revision 1.7  2003/01/22 20:45:15  mazen

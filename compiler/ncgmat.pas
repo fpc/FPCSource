@@ -82,6 +82,7 @@ interface
            been done and emitted, so this should really a do a modulo.
          }
          procedure emit_mod_reg_reg(signed: boolean;denum,num : tregister);virtual;abstract;
+{$ifndef cpu64bit}
          { This routine must do an actual 64-bit division, be it
            signed or unsigned. The result must set into the the
            @var(num) register.
@@ -96,6 +97,7 @@ interface
            64-bit systems, otherwise a helper is called in 1st pass.
          }
          procedure emit64_div_reg_reg(signed: boolean;denum,num : tregister64);virtual;
+{$endif cpu64bit}
       end;
 
       tcgshlshrnode = class(tshlshrnode)
@@ -126,10 +128,9 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symdef,aasmbase,aasmtai,aasmcpu,defutil,
-      pass_1,pass_2,
+      symconst,aasmbase,aasmtai,aasmcpu,defutil,
+      pass_2,
       ncon,
-      cpuinfo,
       tgobj,ncgutil,cgobj,paramgr
 {$ifndef cpu64bit}
       ,cg64f32
@@ -142,8 +143,8 @@ implementation
 
     procedure tcgunaryminusnode.emit_float_sign_change(r: tregister; _size : tcgsize);
       var
-        href : treference;
-        hreg : tregister;
+        href,
+        href2 : treference;
       begin
         { get a temporary memory reference to store the floating
           point value
@@ -151,38 +152,22 @@ implementation
         tg.gettemp(exprasmlist,tcgsize2size[_size],tt_normal,href);
         { store the floating point value in the temporary memory area }
         cg.a_loadfpu_reg_ref(exprasmlist,_size,r,href);
-        { only single and double ieee are supported }
-        if _size = OS_F64 then
-          begin
-            { on little-endian machine the most significant
-              32-bit value is stored at the highest address
-            }
+        { only single and double ieee are supported, for little endian
+          the signed bit is in the second dword }
+        href2:=href;
+        case _size of
+          OS_F64 :
             if target_info.endian = endian_little then
-              inc(href.offset,4);
-          end
-        else
-        if _size <> OS_F32 then
-           internalerror(20020814);
-        hreg := cg.getintregister(exprasmlist,OS_32);
-        { load value }
-        cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,hreg);
-        { bitwise complement copied value }
-        cg.a_op_reg_reg(exprasmlist,OP_NOT,OS_32,hreg,hreg);
-        { sign-bit is bit 31/63 of single/double }
-        cg.a_op_const_reg(exprasmlist,OP_AND,OS_32,aword($80000000),hreg);
-        { or with value in reference memory }
-        cg.a_op_reg_ref(exprasmlist,OP_OR,OS_32,hreg,href);
-        cg.ungetregister(exprasmlist,hreg);
-        { store the floating point value in the temporary memory area }
-        if _size = OS_F64 then
-          begin
-            { on little-endian machine the most significant
-              32-bit value is stored at the highest address
-            }
-            if target_info.endian = endian_little then
-              dec(href.offset,4);
-          end;
+              inc(href2.offset,4);
+          OS_F32 :
+            ;
+          else
+            internalerror(200406021);
+        end;
+        { flip sign-bit (bit 31/63) of single/double }
+        cg.a_op_const_ref(exprasmlist,OP_XOR,OS_32,aint($80000000),href2);
         cg.a_loadfpu_ref_reg(exprasmlist,_size,href,r);
+        tg.ungetiftemp(exprasmlist,href);
       end;
 
 
@@ -263,6 +248,7 @@ implementation
                              TCGMODDIVNODE
 *****************************************************************************}
 
+{$ifndef cpu64bit}
     procedure tcgmoddivnode.emit64_div_reg_reg(signed: boolean; denum,num:tregister64);
       begin
         { handled in pass_1 already, unless pass_1 is
@@ -271,6 +257,7 @@ implementation
         { should be handled in pass_1 (JM) }
         internalerror(200109052);
       end;
+{$endif cpu64bit}
 
 
     procedure tcgmoddivnode.pass_2;
@@ -370,40 +357,9 @@ implementation
 
 {$ifndef cpu64bit}
     procedure tcgshlshrnode.second_64bit;
-      var
-         freescratch : boolean;
-         op : topcg;
       begin
-{$ifdef cpu64bit}
-         freescratch:=false;
-         secondpass(left);
-         secondpass(right);
-         { determine operator }
-         case nodetype of
-           shln: op:=OP_SHL;
-           shrn: op:=OP_SHR;
-         end;
-         freescratch:=false;
-         location_reset(location,LOC_REGISTER,OS_64);
-
-         { load left operator in a register }
-         location_force_reg(exprasmlist,left.location,OS_64,false);
-         location_copy(location,left.location);
-
-         if (right.nodetype=ordconstn) then
-           begin
-              cg64.a_op64_const_reg(exprasmlist,op,tordconstnode(right).value,
-                joinreg64(location.registerlow,location.registerhigh));
-           end
-         else
-           begin
-             { this should be handled in pass_1 }
-             internalerror(2002081501);
-           end;
-{$else cpu64bit}
          { already hanled in 1st pass }
          internalerror(2002081501);
-{$endif cpu64bit}
       end;
 {$endif cpu64bit}
 
@@ -524,7 +480,22 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2004-01-23 15:12:49  florian
+  Revision 1.26  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.25.2.4  2004/06/02 19:04:51  peter
+    * fixed minusunary for float
+
+  Revision 1.25.2.3  2004/05/31 16:39:42  peter
+    * add ungetiftemp in a few locations
+
+  Revision 1.25.2.2  2004/05/30 17:07:07  peter
+    * fix shl shr for sparc
+
+  Revision 1.25.2.1  2004/04/27 18:18:25  peter
+    * aword -> aint
+
+  Revision 1.25  2004/01/23 15:12:49  florian
     * fixed generic shl/shr operations
     + added register allocation hook calls for arm specific operand types:
       register set and shifter op

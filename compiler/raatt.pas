@@ -83,13 +83,13 @@ unit raatt;
          actasmtoken    : tasmtoken;
          prevasmtoken   : tasmtoken;
          procedure SetupTables;
-         procedure BuildConstant(maxvalue: longint);
+         procedure BuildConstant(constsize: longint);
          procedure BuildConstantOperand(oper : toperand);
          procedure BuildRealConstant(typ : tfloattype);
          procedure BuildStringConstant(asciiz: boolean);
-         procedure BuildRecordOffsetSize(const expr: string;var offset:longint;var size:longint);
-         procedure BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:longint;var asmsym:string);
-         function BuildConstExpression(allowref,betweenbracket:boolean): longint;
+         procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint);
+         procedure BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:aint;var asmsym:string);
+         function BuildConstExpression(allowref,betweenbracket:boolean): aint;
          function Assemble: tlinkedlist;override;
          procedure handleopcode;virtual;abstract;
          function is_asmopcode(const s: string) : boolean;virtual;abstract;
@@ -118,7 +118,8 @@ unit raatt;
 {$ifdef x86}
       rax86,
 {$endif x86}
-      itcpugas;
+      itcpugas,
+      procinfo;
 
 
     procedure tattreader.SetupTables;
@@ -755,11 +756,11 @@ unit raatt;
       end;
 
 
-    Procedure tattreader.BuildConstant(maxvalue: longint);
+    Procedure tattreader.BuildConstant(constsize: longint);
       var
        asmsym,
        expr: string;
-       value : longint;
+       value : aint;
       Begin
         Repeat
           Case actasmtoken of
@@ -788,12 +789,12 @@ unit raatt;
                 BuildConstSymbolExpression(false,false,false,value,asmsym);
                 if asmsym<>'' then
                  begin
-                   if maxvalue<>longint($ffffffff) then
+                   if constsize<>sizeof(aint) then
                     Message(asmr_w_32bit_const_for_address);
                    ConcatConstSymbol(curlist,asmsym,value)
                  end
                 else
-                 ConcatConstant(curlist,value,maxvalue);
+                 ConcatConstant(curlist,value,constsize);
               end;
             AS_COMMA:
               Consume(AS_COMMA);
@@ -926,7 +927,7 @@ unit raatt;
      Var
        hl         : tasmlabel;
        commname   : string;
-       lasTSec    : TSection;
+       lasTSec    : TAsmSectionType;
        l1,l2      : longint;
      Begin
        Message1(asmr_d_start_reading,'GNU AS');
@@ -966,19 +967,19 @@ unit raatt;
            AS_DW:
              Begin
                Consume(AS_DW);
-               BuildConstant($ffff);
+               BuildConstant(2);
              end;
 
            AS_DATA:
              Begin
-               curList.Concat(Tai_section.Create(sec_data));
+               new_section(curList,sec_data,lower(current_procinfo.procdef.mangledname),0);
                lasTSec:=sec_data;
                Consume(AS_DATA);
              end;
 
            AS_TEXT:
              Begin
-               curList.Concat(Tai_section.Create(sec_code));
+               new_section(curList,sec_code,lower(current_procinfo.procdef.mangledname),0);
                lasTSec:=sec_code;
                Consume(AS_TEXT);
              end;
@@ -986,19 +987,23 @@ unit raatt;
            AS_DB:
              Begin
                Consume(AS_DB);
-               BuildConstant($ff);
+               BuildConstant(1);
              end;
 
            AS_DD:
              Begin
                Consume(AS_DD);
-               BuildConstant(longint($ffffffff));
+               BuildConstant(4);
              end;
 
            AS_DQ:
              Begin
                Consume(AS_DQ);
+{$ifdef cpu64bit}
+               BuildConstant(8);
+{$else cpu64bit}
                BuildRealConstant(s64comp);
+{$endif cpu64bit}
              end;
 
            AS_SINGLE:
@@ -1138,7 +1143,7 @@ unit raatt;
        if lasTSec<>sec_code then
         begin
           Message(asmr_w_assembler_code_not_returned_to_text);
-          curList.Concat(Tai_section.Create(sec_code));
+          new_section(curList,sec_code,lower(current_procinfo.procdef.mangledname),0);
         end;
        { Return the list in an asmnode }
        assemble:=curlist;
@@ -1150,7 +1155,7 @@ unit raatt;
                                Parsing Helpers
 *****************************************************************************}
 
-    Procedure tattreader.BuildRecordOffsetSize(const expr: string;var offset:longint;var size:longint);
+    Procedure tattreader.BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint);
       { Description: This routine builds up a record offset after a AS_DOT }
       { token is encountered.                                              }
       { On entry actasmtoken should be equal to AS_DOT                     }
@@ -1176,10 +1181,11 @@ unit raatt;
       end;
 
 
-    procedure tattreader.BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:longint;var asmsym:string);
+    procedure tattreader.BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:aint;var asmsym:string);
       var
         hs,tempstr,expr : string;
-        parenlevel,l,k : longint;
+        parenlevel : longint;
+        l,k : aint;
         errorflag : boolean;
         prevtok : tasmtoken;
         sym : tsym;
@@ -1459,9 +1465,9 @@ unit raatt;
       end;
 
 
-    function tattreader.BuildConstExpression(allowref,betweenbracket:boolean): longint;
+    function tattreader.BuildConstExpression(allowref,betweenbracket:boolean): aint;
       var
-        l : longint;
+        l : aint;
         hs : string;
       begin
         BuildConstSymbolExpression(allowref,betweenbracket,false,l,hs);
@@ -1473,7 +1479,7 @@ unit raatt;
 
     Procedure tattreader.BuildConstantOperand(oper : toperand);
       var
-        l : longint;
+        l : aint;
         tempstr : string;
       begin
         BuildConstSymbolExpression(false,false,true,l,tempstr);
@@ -1494,7 +1500,19 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-03-02 00:36:33  olle
+  Revision 1.11  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.10.2.3  2004/05/01 23:36:47  peter
+    * assembler reader 64bit fixes
+
+  Revision 1.10.2.2  2004/04/10 12:36:41  peter
+    * fixed alignment issues
+
+  Revision 1.10.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
+
+  Revision 1.10  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.9  2004/02/07 23:28:34  daniel

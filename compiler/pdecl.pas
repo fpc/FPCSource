@@ -136,10 +136,10 @@ implementation
                    Message1(parser_e_interface_has_no_guid,tobjectdef(p.resulttype.def).objrealname^);
                 end
                else
-                Message(cg_e_illegal_expression);
+                Message(parser_e_illegal_expression);
              end;
            else
-             Message(cg_e_illegal_expression);
+             Message(parser_e_illegal_expression);
         end;
         akttokenpos:=storetokenpos;
         p.free;
@@ -634,7 +634,7 @@ implementation
                                 symtablestack.insert(tconstsym.create_string(orgname,constresourcestring,sp,1));
                              end
                            else
-                             Message(cg_e_illegal_expression);
+                             Message(parser_e_illegal_expression);
                         end;
                       stringconstn:
                         with Tstringconstnode(p) do
@@ -644,7 +644,7 @@ implementation
                              symtablestack.insert(tconstsym.create_string(orgname,constresourcestring,sp,len));
                           end;
                       else
-                        Message(cg_e_illegal_expression);
+                        Message(parser_e_illegal_expression);
                    end;
                    akttokenpos:=storetokenpos;
                    consume(_SEMICOLON);
@@ -659,7 +659,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2004-03-23 22:34:49  peter
+  Revision 1.86  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.85.2.1  2004/04/28 19:55:52  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
+
+  Revision 1.85  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed

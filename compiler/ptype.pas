@@ -303,7 +303,7 @@ implementation
                    hv:=tordconstnode(pt2).value;
                    { Check bounds }
                    if hv<lv then
-                     Message(cg_e_upper_lower_than_lower)
+                     Message(parser_e_upper_lower_than_lower)
                    else
                      begin
                        { All checks passed, create the new def }
@@ -514,7 +514,7 @@ implementation
                            IncompatibleTypes(p.resulttype.def,s32inttype.def);
                         end
                        else
-                        Message(cg_e_illegal_expression);
+                        Message(parser_e_illegal_expression);
                        p.free;
                        { please leave that a note, allows type save }
                        { declarations in the win32 units ! }
@@ -656,7 +656,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2004-03-29 14:44:10  peter
+  Revision 1.67  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.66.2.1  2004/04/28 19:55:52  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
+
+  Revision 1.66  2004/03/29 14:44:10  peter
     * fixes to previous constant integer commit
 
   Revision 1.65  2004/03/23 22:34:49  peter

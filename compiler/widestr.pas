@@ -38,7 +38,7 @@ unit widestr;
        tcompilerwidechar = word;
        tcompilerwidecharptr = ^tcompilerwidechar;
 {$ifdef delphi}
-       sizeint = integer;
+       SizeInt = integer;
        { delphi doesn't allow pointer accessing as array }
        tcompilerwidechararray = array[0..0] of tcompilerwidechar;
        pcompilerwidechar = ^tcompilerwidechararray;
@@ -49,22 +49,22 @@ unit widestr;
        pcompilerwidestring = ^_tcompilerwidestring;
        _tcompilerwidestring = record
           data : pcompilerwidechar;
-          maxlen,len : sizeint;
+          maxlen,len : SizeInt;
        end;
 
     procedure initwidestring(var r : pcompilerwidestring);
     procedure donewidestring(var r : pcompilerwidestring);
-    procedure setlengthwidestring(r : pcompilerwidestring;l : sizeint);
-    function getlengthwidestring(r : pcompilerwidestring) : sizeint;
+    procedure setlengthwidestring(r : pcompilerwidestring;l : SizeInt);
+    function getlengthwidestring(r : pcompilerwidestring) : SizeInt;
     procedure concatwidestringchar(r : pcompilerwidestring;c : tcompilerwidechar);
     procedure concatwidestrings(s1,s2 : pcompilerwidestring);
-    function comparewidestrings(s1,s2 : pcompilerwidestring) : sizeint;
+    function comparewidestrings(s1,s2 : pcompilerwidestring) : SizeInt;
     procedure copywidestring(s,d : pcompilerwidestring);
     function asciichar2unicode(c : char) : tcompilerwidechar;
     function unicode2asciichar(c : tcompilerwidechar) : char;
-    procedure ascii2unicode(p : pchar;l : sizeint;r : pcompilerwidestring);
+    procedure ascii2unicode(p : pchar;l : SizeInt;r : pcompilerwidestring);
     procedure unicode2ascii(r : pcompilerwidestring;p : pchar);
-    function getcharwidestring(r : pcompilerwidestring;l : sizeint) : tcompilerwidechar;
+    function getcharwidestring(r : pcompilerwidestring;l : SizeInt) : tcompilerwidechar;
     function cpavailable(const s : string) : boolean;
 
   implementation
@@ -92,19 +92,19 @@ unit widestr;
          r:=nil;
       end;
 
-    function getcharwidestring(r : pcompilerwidestring;l : sizeint) : tcompilerwidechar;
+    function getcharwidestring(r : pcompilerwidestring;l : SizeInt) : tcompilerwidechar;
 
       begin
          getcharwidestring:=r^.data[l];
       end;
 
-    function getlengthwidestring(r : pcompilerwidestring) : sizeint;
+    function getlengthwidestring(r : pcompilerwidestring) : SizeInt;
 
       begin
          getlengthwidestring:=r^.len;
       end;
 
-    procedure setlengthwidestring(r : pcompilerwidestring;l : sizeint);
+    procedure setlengthwidestring(r : pcompilerwidestring;l : SizeInt);
 
       begin
          if r^.maxlen>=l then
@@ -139,9 +139,9 @@ unit widestr;
          move(s^.data^,d^.data^,s^.len*sizeof(tcompilerwidechar));
       end;
 
-    function comparewidestrings(s1,s2 : pcompilerwidestring) : sizeint;
+    function comparewidestrings(s1,s2 : pcompilerwidestring) : SizeInt;
       var
-         maxi,temp : sizeint;
+         maxi,temp : SizeInt;
       begin
          if pointer(s1)=pointer(s2) then
            begin
@@ -153,7 +153,7 @@ unit widestr;
          if maxi>temp then
            maxi:=Temp;
 {$ifdef Delphi}
-         temp:=sizeint(comparemem(@s1^.data,@s2^.data,maxi));
+         temp:=SizeInt(comparemem(@s1^.data,@s2^.data,maxi));
 {$else}
          temp:=compareword(s1^.data^,s2^.data^,maxi);
 {$endif}
@@ -177,11 +177,11 @@ unit widestr;
         unicode2asciichar:=#0;
       end;
 
-    procedure ascii2unicode(p : pchar;l : sizeint;r : pcompilerwidestring);
+    procedure ascii2unicode(p : pchar;l : SizeInt;r : pcompilerwidestring);
       var
          source : pchar;
          dest   : tcompilerwidecharptr;
-         i      : sizeint;
+         i      : SizeInt;
          m      : punicodemap;
       begin
          m:=getmap(aktsourcecodepage);
@@ -240,8 +240,17 @@ unit widestr;
 end.
 {
   $Log$
-  Revision 1.13  2004-05-02 11:48:46  peter
+  Revision 1.14  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.13  2004/05/02 11:48:46  peter
     * strlenint is replaced with sizeint
+
+  Revision 1.12.2.2  2004/05/02 00:45:51  peter
+    * define sizeint for 1.0.x
+
+  Revision 1.12.2.1  2004/05/02 00:31:33  peter
+    * fixedi i386 compile
 
   Revision 1.12  2002/10/05 12:43:29  carl
     * fixes for Delphi 6 compilation

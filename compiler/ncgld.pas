@@ -56,7 +56,7 @@ implementation
       aasmbase,aasmtai,aasmcpu,
       cgbase,pass_2,
       procinfo,
-      cpubase,cpuinfo,
+      cpubase,
       tgobj,ncgutil,
       cgutils,cgobj,
       ncgbas;
@@ -110,7 +110,7 @@ implementation
                    begin
                       location_reset(location,LOC_CREFERENCE,OS_ADDR);
                       location.reference.symbol:=objectlibrary.newasmsymbol(make_mangledname('RESOURCESTRINGLIST',tconstsym(symtableentry).owner,''),AB_EXTERNAL,AT_DATA);
-                      location.reference.offset:=tconstsym(symtableentry).resstrindex*16+8;
+                      location.reference.offset:=tconstsym(symtableentry).resstrindex*(4+sizeof(aint)*3)+4+sizeof(aint);
                    end
                  else
                    internalerror(22798);
@@ -188,7 +188,7 @@ implementation
                          layout of a threadvar is (4 bytes pointer):
                            0 - Threadvar index
                            4 - Threadvar value in single threading }
-                       reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),POINTER_SIZE);
+                       reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),sizeof(aint));
                        cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
                        cg.a_label(exprasmlist,endrelocatelab);
                        location.reference.base:=hregister;
@@ -296,13 +296,13 @@ implementation
                         to OS_64 - how to solve?? Carl
                         Solved. Florian
                       }
-                      if (sizeof(aword) = 4) then
+                      if (sizeof(aint) = 4) then
                          location_reset(location,LOC_CREFERENCE,OS_64)
-                      else if (sizeof(aword) = 8) then
+                      else if (sizeof(aint) = 8) then
                          location_reset(location,LOC_CREFERENCE,OS_128)
                       else
                          internalerror(20020520);
-                      tg.GetTemp(exprasmlist,2*POINTER_SIZE,tt_normal,location.reference);
+                      tg.GetTemp(exprasmlist,2*sizeof(aint),tt_normal,location.reference);
                       secondpass(left);
 
                       { load class instance address }
@@ -332,7 +332,7 @@ implementation
 
                       { store the class instance address }
                       href:=location.reference;
-                      inc(href.offset,POINTER_SIZE);
+                      inc(href.offset,sizeof(aint));
                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,href);
 
                       { virtual method ? }
@@ -552,10 +552,11 @@ implementation
             case right.location.loc of
               LOC_CONSTANT :
                 begin
+{$ifndef cpu64bit}
                   if right.location.size in [OS_64,OS_S64] then
-                   cg64.a_load64_const_loc(exprasmlist,
-                       right.location.valueqword,left.location)
+                   cg64.a_load64_const_loc(exprasmlist,right.location.value64,left.location)
                   else
+{$endif cpu64bit}
                    cg.a_load_const_loc(exprasmlist,right.location.value,left.location);
                 end;
               LOC_REFERENCE,
@@ -565,6 +566,7 @@ implementation
                     LOC_CREGISTER :
                       begin
                         cgsize:=def_cgsize(left.resulttype.def);
+{$ifndef cpu64bit}
                         if cgsize in [OS_64,OS_S64] then
                           begin
                             cg64.a_load64_ref_reg(exprasmlist,
@@ -572,6 +574,7 @@ implementation
                             location_release(exprasmlist,right.location);
                           end
                         else
+{$endif cpu64bit}
                           begin
                             location_release(exprasmlist,right.location);
                             cg.a_load_ref_reg(exprasmlist,cgsize,cgsize,
@@ -626,10 +629,12 @@ implementation
               LOC_CREGISTER :
                 begin
                   cgsize:=def_cgsize(left.resulttype.def);
+{$ifndef cpu64bit}
                   if cgsize in [OS_64,OS_S64] then
                     cg64.a_load64_reg_loc(exprasmlist,
                       right.location.register64,left.location)
                   else
+{$endif cpu64bit}
                     cg.a_load_reg_loc(exprasmlist,right.location.size,right.location.register,left.location);
                 end;
               LOC_FPUREGISTER,LOC_CFPUREGISTER :
@@ -692,6 +697,7 @@ implementation
 
         if releaseright then
           location_release(exprasmlist,right.location);
+        location_freetemp(exprasmlist,right.location);
         location_release(exprasmlist,left.location);
 
         truelabel:=otlabel;
@@ -740,9 +746,9 @@ implementation
       begin
         dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
         if dovariant then
-         elesize:=8
+          elesize:=sizeof(aint)+sizeof(aint)
         else
-         elesize:=tarraydef(resulttype.def).elesize;
+          elesize:=tarraydef(resulttype.def).elesize;
         location_reset(location,LOC_CREFERENCE,OS_NO);
         fillchar(paraloc,sizeof(paraloc),0);
         { Allocate always a temp, also if no elements are required, to
@@ -866,7 +872,7 @@ implementation
                  if vtype=$ff then
                    internalerror(14357);
                  { write changing field update href to the next element }
-                 inc(href.offset,4);
+                 inc(href.offset,sizeof(aint));
                  if vaddr then
                   begin
                     location_force_mem(exprasmlist,hp.left.location);
@@ -884,10 +890,10 @@ implementation
                     cg.a_load_loc_ref(exprasmlist,OS_ADDR,hp.left.location,href);
                   end;
                  { update href to the vtype field and write it }
-                 dec(href.offset,4);
+                 dec(href.offset,sizeof(aint));
                  cg.a_load_const_ref(exprasmlist, OS_INT,vtype,href);
                  { goto next array element }
-                 inc(href.offset,8);
+                 inc(href.offset,sizeof(aint)*2);
                end
               else
               { normal array constructor of the same type }
@@ -915,12 +921,14 @@ implementation
                      end;
                    else
                      begin
+{$ifndef cpu64bit}
                        if hp.left.location.size in [OS_64,OS_S64] then
                          begin
                            cg64.a_load64_loc_ref(exprasmlist,hp.left.location,href);
                            location_release(exprasmlist,hp.left.location);
                          end
                        else
+{$endif cpu64bit}
                          begin
                            location_release(exprasmlist,hp.left.location);
                            cg.a_load_loc_ref(exprasmlist,hp.left.location.size,hp.left.location,href);
@@ -942,11 +950,39 @@ begin
 end.
 {
   $Log$
-  Revision 1.116  2004-05-22 23:34:28  peter
+  Revision 1.117  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.116  2004/05/22 23:34:28  peter
   tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
 
   Revision 1.115  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.114.2.8  2004/06/13 10:51:16  florian
+    * fixed several register allocator problems (sparc/arm)
+
+  Revision 1.114.2.7  2004/06/12 17:01:01  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.114.2.6  2004/05/31 16:39:42  peter
+    * add ungetiftemp in a few locations
+
+  Revision 1.114.2.5  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.114.2.4  2004/04/29 20:51:25  florian
+    * tvarrec generation fixed
+
+  Revision 1.114.2.3  2004/04/29 19:07:22  peter
+    * compile fixes
+
+  Revision 1.114.2.2  2004/04/28 19:23:00  florian
+    * resource string offset calculation for 64 bit fixed
+
+  Revision 1.114.2.1  2004/04/27 18:18:25  peter
+    * aword -> aint
 
   Revision 1.114  2004/03/02 17:32:12  florian
     * make cycle fixed

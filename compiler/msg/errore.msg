@@ -933,7 +933,7 @@ parser_e_goto_outside_proc=03201_E_Goto statements aren't allowed between differ
 %   procedure p1;
 %   label
 %     l1;
-%    
+%
 %     procedure p2;
 %     begin
 %       goto l1; // This goto ISN'T allowed
@@ -946,6 +946,25 @@ parser_e_goto_outside_proc=03201_E_Goto statements aren't allowed between differ
 % ...
 %
 % \end{verbatim}
+parser_e_too_complex_expr=03202_E_Expression too complicated - FPU stack overflow
+% Your expression is too long for the compiler. You should try dividing the
+% construct over multiple assignments.
+parser_e_illegal_expression=03203_E_Illegal expression
+% This can occur under many circumstances. Mostly when trying to evaluate
+% constant expressions.
+parser_e_invalid_integer=03204_E_Invalid integer expression
+% You made an expression which isn't an integer, and the compiler expects the
+% result to be an integer.
+parser_e_invalid_qualifier=03205_E_Illegal qualifier
+% One of the following is happening :
+% \begin{itemize}
+% \item You're trying to access a field of a variable that is not a record.
+% \item You're indexing a variable that is not an array.
+% \item You're dereferencing a variable that is not a pointer.
+% \end{itemize}
+parser_e_upper_lower_than_lower=03206_E_High range limit < low range limit
+% You are declaring a subrange, and the lower limit is higher than the high
+% limit of the range.
 % \end{description}
 #
 # Type Checking
@@ -1157,6 +1176,24 @@ type_e_constant_expr_expected=04052_E_Constant Expression expected
 % The compiler expects an constant expression, but gets a variable expression.
 type_e_operator_not_supported_for_types=04053_E_Operation "$1" not supported types "$2" and "$3"
 % The operation is not allowed for the supplied types
+type_e_illegal_type_conversion=04054_E_Illegal type conversion: "$1" to "$2"
+% When doing a type-cast, you must take care that the sizes of the variable and
+% the destination type are the same.
+type_h_pointer_to_longint_conv_not_portable=04055_H_Conversion between ordinals and pointers is not portable
+% If you typecast a pointer to a longint (or vice-versa), this code will not compile
+% on a machine using 64-bit for pointer storage.
+type_w_pointer_to_longint_conv_not_portable=04056_W_Conversion between ordinals and pointers is not portable
+% If you typecast a pointer to a ordinal type of a different size (or vice-versa), this can
+% cause problems. This is a warning to help finding the 32bit specific code where cardinal/longint is used
+% to typecast pointers to ordinals. A solution is to use the ptrint/ptruint types instead.
+type_e_cant_choose_overload_function=04057_E_Can't determine which overloaded function to call
+% You're calling overloaded functions with a parameter that doesn't correspond
+% to any of the declared function parameter lists. e.g. when you have declared
+% a function with parameters \var{word} and \var{longint}, and then you call
+% it with a parameter which is of type \var{integer}.
+type_e_illegal_count_var=04058_E_Illegal counter variable
+% The type of a \var{for} loop variable must be an ordinal type.
+% Loop variables cannot be reals or strings.
 % \end{description}
 #
 # Symtable
@@ -1305,46 +1342,9 @@ sym_e_cant_create_unique_type=05056_E_Can't create unique type from this type
 % This section lists all messages that can be displayed if the code
 % generator encounters an error condition.
 % \begin{description}
-cg_e_break_not_allowed=06000_E_BREAK not allowed
-% You're trying to use \var{break} outside a loop construction.
-cg_e_continue_not_allowed=06001_E_CONTINUE not allowed
-% You're trying to use \var{continue} outside a loop construction.
-cg_e_too_complex_expr=06002_E_Expression too complicated - FPU stack overflow
-% Your expression is too long for the compiler. You should try dividing the
-% construct over multiple assignments.
-cg_e_illegal_expression=06003_E_Illegal expression
-% This can occur under many circumstances. Mostly when trying to evaluate
-% constant expressions.
-cg_e_invalid_integer=06004_E_Invalid integer expression
-% You made an expression which isn't an integer, and the compiler expects the
-% result to be an integer.
-cg_e_invalid_qualifier=06005_E_Illegal qualifier
-% One of the following is happening :
-% \begin{itemize}
-% \item You're trying to access a field of a variable that is not a record.
-% \item You're indexing a variable that is not an array.
-% \item You're dereferencing a variable that is not a pointer.
-% \end{itemize}
-cg_e_upper_lower_than_lower=06006_E_High range limit < low range limit
-% You are declaring a subrange, and the lower limit is higher than the high
-% limit of the range.
-cg_e_illegal_count_var=06007_E_Illegal counter variable
-% The type of a \var{for} loop variable must be an ordinal type.
-% Loop variables cannot be reals or strings.
-cg_e_cant_choose_overload_function=06008_E_Can't determine which overloaded function to call
-% You're calling overloaded functions with a parameter that doesn't correspond
-% to any of the declared function parameter lists. e.g. when you have declared
-% a function with parameters \var{word} and \var{longint}, and then you call
-% it with a parameter which is of type \var{integer}.
 cg_e_parasize_too_big=06009_E_Parameter list size exceeds 65535 bytes
 % The I386 processor limits the parameter list to 65535 bytes (the \var{RET}
 % instruction causes this)
-cg_e_illegal_type_conversion=06010_E_Illegal type conversion: "$1" to "$2"
-% When doing a type-cast, you must take care that the sizes of the variable and
-% the destination type are the same.
-cg_h_pointer_to_longint_conv_not_portable=06011_H_Conversion between ordinals and pointers are not portable
-% If you typecast a pointer to a longint (or vice-versa), this code will not compile
-% on a machine using 64-bit for pointer storage.
 cg_e_file_must_call_by_reference=06012_E_File types must be var parameters
 % You cannot specify files as value parameters, i.e. they must always be
 % declared \var{var} parameters.
@@ -1358,10 +1358,6 @@ cg_e_cant_use_far_pointer_there=06013_E_The use of a far pointer isn't allowed t
 % ...
 % p:=@mem[a000:000];
 % \end{verbatim}
-cg_e_var_must_be_reference=06014_E_illegal call by reference parameters
-% You are trying to pass a constant or an expression to a procedure that
-% requires a \var{var} parameter. Only variables can be passed as a \var{var}
-% parameter.
 cg_e_dont_call_exported_direct=06015_E_EXPORT declared functions can't be called
 % No longer in use.
 cg_w_member_cd_call_from_method=06016_W_Possible illegal call of constructor or destructor
@@ -1446,6 +1442,10 @@ cg_w_localsize_too_big=06042_W_Local variable size exceed limit for certain cpu'
 cg_e_localsize_too_big=06043_E_Local variables size exceeds supported limit
 % This indicates that you are declaring more than 32K of lcoal variables, which
 % is not supported by this processor.
+cg_e_break_not_allowed=06044_E_BREAK not allowed
+% You're trying to use \var{break} outside a loop construction.
+cg_e_continue_not_allowed=06045_E_CONTINUE not allowed
+% You're trying to use \var{continue} outside a loop construction.
 # EndOfTeX
 
 #
@@ -2141,6 +2141,8 @@ option_help_pages=11025_[
 *g2gh_use heap trace unit (for memory leak debugging)
 *g2gl_use line info unit to show more info for backtraces
 *g2gc_generate checks for pointers
+*g2gv_generates programs tracable with valygrind
+*g2gw_generate dwarf debugging info
 **1i_information
 **2iD_return compiler date
 **2iV_return compiler version
@@ -2201,6 +2203,7 @@ option_help_pages=11025_[
 *L2Xc_link with the c library
 **2Xs_strip all symbols from executable
 **2XD_try to link dynamic          (defines FPC_LINK_DYNAMIC)
+**2XP<x>_prepend the binutils names with the prefix <x>
 **2XS_try to link static (default) (defines FPC_LINK_STATIC)
 **2XX_try to link smart            (defines FPC_LINK_SMART)
 **0*_Processor specific options:

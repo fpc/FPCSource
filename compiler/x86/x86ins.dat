@@ -1274,6 +1274,7 @@ reg16,mem             \320\301\2\x0F\xBE\110          386,SB
 reg16,reg8            \320\301\2\x0F\xBE\110          386
 reg32,rm8             \321\301\2\x0F\xBE\110          386
 reg32,rm16            \321\301\2\x0F\xBF\110          386
+reg64,rm16            \321\301\2\x0F\xBF\110          X86_64
 
 [MOVZX,movzX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
@@ -3410,9 +3411,33 @@ xmmreg,xmmreg           \3\xF3\x0F\x12\110              PRESCOTT,SSE3
 (Ch_Wop2, Ch_Rop1, Ch_None)
 reg32,imm               \321\10\xB8\41                  X86_64
 
+[MOVSXD,movslq]
+(Ch_Wop2, Ch_Rop1, Ch_None)
+reg64,mem             \321\301\1\x63\110              X86_64
+reg64,reg32           \321\301\1\x63\110              X86_64
+
+[CDO,cqto]
+(Ch_MRAX, Ch_WRDX, Ch_None)
+void                  \321\1\x99                      X86_64
+
 ;
 ; $Log$
-; Revision 1.10  2004-04-08 16:49:42  peter
+; Revision 1.11  2004-06-16 20:07:11  florian
+;   * dwarf branch merged
+;
+; Revision 1.10.2.4  2004/04/24 21:18:33  florian
+;   * integer -> int64 and shortint -> int64 type cast for x86-64 fixed
+;
+; Revision 1.10.2.3  2004/04/24 16:28:23  florian
+;   * fixed cqto opcode
+;
+; Revision 1.10.2.2  2004/04/24 16:02:19  florian
+;   * sign extension for int div int fixed
+;
+; Revision 1.10.2.1  2004/04/22 19:59:48  florian
+;   * longint loading fixed
+;
+; Revision 1.10  2004/04/08 16:49:42  peter
 ;   * MOVSL fixed
 ;
 ; Revision 1.9  2004/02/09 22:14:17  peter

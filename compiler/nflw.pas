@@ -695,7 +695,7 @@ implementation
 
          if left.nodetype<>assignn then
            begin
-              CGMessage(cg_e_illegal_expression);
+              CGMessage(parser_e_illegal_expression);
               exit;
            end;
 
@@ -764,7 +764,7 @@ implementation
               CGMessagePos(hp.fileinfo,type_e_ordinal_expr_expected);
           end
          else
-           CGMessagePos(hp.fileinfo,cg_e_illegal_count_var);
+           CGMessagePos(hp.fileinfo,type_e_illegal_count_var);
 
          resulttypepass(right);
          set_varstate(right,vs_used,true);
@@ -1471,8 +1471,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.96  2004-05-23 15:04:13  peter
+  Revision 1.97  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.96  2004/05/23 15:04:13  peter
     * remvoe writeln
+
+  Revision 1.95.2.1  2004/04/28 19:55:51  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
 
   Revision 1.95  2004/03/18 16:19:03  peter
     * fixed operator overload allowing for pointer-string

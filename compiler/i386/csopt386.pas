@@ -1386,7 +1386,7 @@ begin
 end;
 
 
-function FindRegWithConst(p: tai; size: topsize; l: aword; var Res: TRegister): Boolean;
+function FindRegWithConst(p: tai; size: topsize; l: aint; var Res: TRegister): Boolean;
 {Finds a register which contains the constant l}
 var
   Counter: tsuperregister;
@@ -2115,7 +2115,17 @@ end.
 
 {
   $Log$
-  Revision 1.61  2004-02-27 10:21:05  florian
+  Revision 1.62  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.61.2.2  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.61.2.1  2004/04/29 23:30:28  peter
+    * fix i386 compiler
+
+  Revision 1.61  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
@@ -2261,7 +2271,7 @@ end.
     * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
 
   Revision 1.29  2002/04/15 19:12:09  carl
-  + target_info.size_of_pointer -> pointer_size
+  + target_info.size_of_pointer -> sizeof(aint)
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units
     (where they are used)

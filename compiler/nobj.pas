@@ -110,7 +110,7 @@ interface
         { adjusts the self value with ioffset when casting a interface
           to a class
         }
-        procedure adjustselfvalue(procdef: tprocdef;ioffset: aword);virtual;
+        procedure adjustselfvalue(procdef: tprocdef;ioffset: aint);virtual;
         { generates the wrapper for a call to a method via an interface }
         procedure cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
       public
@@ -147,7 +147,7 @@ implementation
 {$else}
        strings,
 {$endif}
-       globals,verbose,
+       globals,verbose,systems,
        symtable,symconst,symtype,symsym,defcmp,paramgr,
 {$ifdef GDB}
        gdb,
@@ -285,7 +285,7 @@ implementation
          objectlibrary.getdatalabel(p^.nl);
          if assigned(p^.l) then
            writenames(p^.l);
-         datasegment.concat(tai_align.create(const_align(POINTER_SIZE)));
+         datasegment.concat(tai_align.create(const_align(sizeof(aint))));
          dataSegment.concat(Tai_label.Create(p^.nl));
          len:=strlen(p^.data.messageinf.str);
          datasegment.concat(tai_const.create_8bit(len));
@@ -303,8 +303,8 @@ implementation
            writestrentry(p^.l);
 
          { write name label }
-         dataSegment.concat(Tai_const_symbol.Create(p^.nl));
-         dataSegment.concat(Tai_const_symbol.Createname(p^.data.mangledname,AT_FUNCTION,0));
+         dataSegment.concat(Tai_const.Create_sym(p^.nl));
+         dataSegment.concat(Tai_const.Createname(p^.data.mangledname,AT_FUNCTION,0));
 
          if assigned(p^.r) then
            writestrentry(p^.r);
@@ -326,7 +326,7 @@ implementation
 
          { now start writing of the message string table }
          objectlibrary.getdatalabel(r);
-         datasegment.concat(tai_align.create(const_align(POINTER_SIZE)));
+         datasegment.concat(tai_align.create(const_align(sizeof(aint))));
          dataSegment.concat(Tai_label.Create(r));
          genstrmsgtab:=r;
          dataSegment.concat(Tai_const.Create_32bit(count));
@@ -345,7 +345,7 @@ implementation
 
          { write name label }
          dataSegment.concat(Tai_const.Create_32bit(p^.data.messageinf.i));
-         dataSegment.concat(Tai_const_symbol.Createname(p^.data.mangledname,AT_FUNCTION,0));
+         dataSegment.concat(Tai_const.Createname(p^.data.mangledname,AT_FUNCTION,0));
 
          if assigned(p^.r) then
            writeintentry(p^.r);
@@ -363,7 +363,7 @@ implementation
 
          { now start writing of the message string table }
          objectlibrary.getdatalabel(r);
-         datasegment.concat(tai_align.create(const_align(POINTER_SIZE)));
+         datasegment.concat(tai_align.create(const_align(sizeof(aint))));
          dataSegment.concat(Tai_label.Create(r));
          genintmsgtab:=r;
          dataSegment.concat(Tai_const.Create_32bit(count));
@@ -441,7 +441,7 @@ implementation
            begin
               objectlibrary.getdatalabel(r);
               gendmt:=r;
-              datasegment.concat(tai_align.create(const_align(POINTER_SIZE)));
+              datasegment.concat(tai_align.create(const_align(sizeof(aint))));
               dataSegment.concat(Tai_label.Create(r));
               { entries for caching }
               dataSegment.concat(Tai_const.Create_ptr(0));
@@ -484,13 +484,13 @@ implementation
               hp:=tprocsym(p).first_procdef;
               objectlibrary.getdatalabel(l);
 
-              consts.concat(tai_align.create(const_align(POINTER_SIZE)));
+              consts.concat(tai_align.create(const_align(sizeof(aint))));
               Consts.concat(Tai_label.Create(l));
               Consts.concat(Tai_const.Create_8bit(length(p.name)));
               Consts.concat(Tai_string.Create(p.name));
 
-              dataSegment.concat(Tai_const_symbol.Create(l));
-              dataSegment.concat(Tai_const_symbol.Createname(hp.mangledname,AT_FUNCTION,0));
+              dataSegment.concat(Tai_const.Create_sym(l));
+              dataSegment.concat(Tai_const.Createname(hp.mangledname,AT_FUNCTION,0));
            end;
       end;
 
@@ -505,7 +505,7 @@ implementation
          if count>0 then
            begin
               objectlibrary.getdatalabel(l);
-              datasegment.concat(tai_align.create(const_align(POINTER_SIZE)));
+              datasegment.concat(tai_align.create(const_align(sizeof(aint))));
               dataSegment.concat(Tai_label.Create(l));
               dataSegment.concat(Tai_const.Create_32bit(count));
               _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}genpubmethodtableentry,nil);
@@ -853,8 +853,8 @@ implementation
       begin
         implintf:=_class.implementedinterfaces;
         curintf:=implintf.interfaces(intfindex);
-        rawdata.concat(tai_align.create(const_align(POINTER_SIZE)));
-        if (cs_create_smart in aktmoduleswitches) then
+        rawdata.concat(tai_align.create(const_align(sizeof(aint))));
+        if maybe_smartlink_symbol then
          rawdata.concat(Tai_symbol.Createname_global(gintfgetvtbllabelname(intfindex),AT_DATA ,0))
         else
          rawdata.concat(Tai_symbol.Createname(gintfgetvtbllabelname(intfindex),AT_DATA,0));
@@ -867,7 +867,7 @@ implementation
             { create wrapper code }
             cgintfwrapper(rawcode,implintf.implprocs(intfindex,i),tmps,implintf.ioffsets(intfindex)^);
             { create reference }
-            rawdata.concat(Tai_const_symbol.Createname(tmps,AT_FUNCTION,0));
+            rawdata.concat(Tai_const.Createname(tmps,AT_FUNCTION,0));
           end;
       end;
 
@@ -886,34 +886,34 @@ implementation
           begin
             { label for GUID }
             objectlibrary.getdatalabel(tmplabel);
-            rawdata.concat(tai_align.create(const_align(pointer_size)));
+            rawdata.concat(tai_align.create(const_align(sizeof(aint))));
             rawdata.concat(Tai_label.Create(tmplabel));
             rawdata.concat(Tai_const.Create_32bit(longint(curintf.iidguid^.D1)));
             rawdata.concat(Tai_const.Create_16bit(curintf.iidguid^.D2));
             rawdata.concat(Tai_const.Create_16bit(curintf.iidguid^.D3));
             for i:=Low(curintf.iidguid^.D4) to High(curintf.iidguid^.D4) do
               rawdata.concat(Tai_const.Create_8bit(curintf.iidguid^.D4[i]));
-            dataSegment.concat(Tai_const_symbol.Create(tmplabel));
+            dataSegment.concat(Tai_const.Create_sym(tmplabel));
           end
         else
           begin
             { nil for Corba interfaces }
-            dataSegment.concat(Tai_const.Create_ptr(0)); { nil }
+            dataSegment.concat(Tai_const.Create_sym(nil));
           end;
         { VTable }
-        dataSegment.concat(Tai_const_symbol.Createname(gintfgetvtbllabelname(contintfindex),AT_DATA,0));
+        dataSegment.concat(Tai_const.Createname(gintfgetvtbllabelname(contintfindex),AT_DATA,0));
         { IOffset field }
         dataSegment.concat(Tai_const.Create_32bit(implintf.ioffsets(contintfindex)^));
         { IIDStr }
         objectlibrary.getdatalabel(tmplabel);
-        rawdata.concat(tai_align.create(const_align(pointer_size)));
+        rawdata.concat(tai_align.create(const_align(sizeof(aint))));
         rawdata.concat(Tai_label.Create(tmplabel));
         rawdata.concat(Tai_const.Create_8bit(length(curintf.iidstr^)));
         if curintf.objecttype=odt_interfacecom then
           rawdata.concat(Tai_string.Create(upper(curintf.iidstr^)))
         else
           rawdata.concat(Tai_string.Create(curintf.iidstr^));
-        dataSegment.concat(Tai_const_symbol.Create(tmplabel));
+        dataSegment.concat(Tai_const.Create_sym(tmplabel));
       end;
 
 
@@ -1020,9 +1020,9 @@ implementation
                 { allocate a pointer in the object memory }
                 with tobjectsymtable(_class.symtable) do
                   begin
-                    datasize:=align(datasize,min(POINTER_SIZE,fieldalignment));
+                    datasize:=align(datasize,min(sizeof(aint),fieldalignment));
                     _class.implementedinterfaces.ioffsets(i)^:=datasize;
-                    inc(datasize,POINTER_SIZE);
+                    inc(datasize,sizeof(aint));
                   end;
                 { write vtbl }
                 gintfcreatevtbl(i,rawdata,rawcode);
@@ -1139,7 +1139,7 @@ implementation
         { 2. step calc required fieldcount and their offsets in the object memory map
              and write data }
         objectlibrary.getdatalabel(intftable);
-        dataSegment.concat(tai_align.create(const_align(POINTER_SIZE)));
+        dataSegment.concat(tai_align.create(const_align(sizeof(aint))));
         dataSegment.concat(Tai_label.Create(intftable));
         gintfwritedata;
         _class.implementedinterfaces.clearimplprocs; { release temporary information }
@@ -1150,22 +1150,25 @@ implementation
   { Write interface identifiers to the data section }
   procedure tclassheader.writeinterfaceids;
     var
-      i: longint;
+      i : longint;
+      s : string;
     begin
       if assigned(_class.iidguid) then
         begin
-          if (cs_create_smart in aktmoduleswitches) then
-            dataSegment.concat(Tai_cut.Create);
-          dataSegment.concat(Tai_symbol.Createname_global(make_mangledname('IID',_class.owner,_class.objname^),AT_DATA,0));
-          dataSegment.concat(Tai_const.Create_32bit(_class.iidguid^.D1));
+          s:=make_mangledname('IID',_class.owner,_class.objname^);
+          maybe_new_object_file(dataSegment);
+          new_section(dataSegment,sec_rodata,s,const_align(sizeof(aint)));
+          dataSegment.concat(Tai_symbol.Createname_global(s,AT_DATA,0));
+          dataSegment.concat(Tai_const.Create_32bit(longint(_class.iidguid^.D1)));
           dataSegment.concat(Tai_const.Create_16bit(_class.iidguid^.D2));
           dataSegment.concat(Tai_const.Create_16bit(_class.iidguid^.D3));
           for i:=Low(_class.iidguid^.D4) to High(_class.iidguid^.D4) do
             dataSegment.concat(Tai_const.Create_8bit(_class.iidguid^.D4[i]));
         end;
-      if (cs_create_smart in aktmoduleswitches) then
-        dataSegment.concat(Tai_cut.Create);
-      dataSegment.concat(Tai_symbol.Createname_global(make_mangledname('IIDSTR',_class.owner,_class.objname^),AT_DATA,0));
+      maybe_new_object_file(dataSegment);
+      s:=make_mangledname('IIDSTR',_class.owner,_class.objname^);
+      new_section(dataSegment,sec_rodata,s,0);
+      dataSegment.concat(Tai_symbol.Createname_global(s,AT_DATA,0));
       dataSegment.concat(Tai_const.Create_8bit(length(_class.iidstr^)));
       dataSegment.concat(Tai_string.Create(_class.iidstr^));
     end;
@@ -1201,9 +1204,9 @@ implementation
                                   { class abstract and it's not allow to      }
                                   { generates an instance                     }
                                   if (po_abstractmethod in procdefcoll^.data.procoptions) then
-                                    List.concat(Tai_const_symbol.Createname('FPC_ABSTRACTERROR',AT_FUNCTION,0))
+                                    List.concat(Tai_const.Createname('FPC_ABSTRACTERROR',AT_FUNCTION,0))
                                   else
-                                    List.concat(Tai_const_symbol.createname(procdefcoll^.data.mangledname,AT_FUNCTION,0));
+                                    List.concat(Tai_const.createname(procdefcoll^.data.mangledname,AT_FUNCTION,0));
                                end;
                           end;
                         procdefcoll:=procdefcoll^.next;
@@ -1229,26 +1232,21 @@ implementation
          dmtlabel:=gendmt;
 {$endif WITHDMT}
 
-         if (cs_create_smart in aktmoduleswitches) then
-           dataSegment.concat(Tai_cut.Create);
-
          { write tables for classes, this must be done before the actual
            class is written, because we need the labels defined }
          if is_class(_class) then
           begin
+            objectlibrary.getdatalabel(classnamelabel);
+            maybe_new_object_file(dataSegment);
+            new_section(dataSegment,sec_rodata,classnamelabel.name,const_align(sizeof(aint)));
+
             { interface table }
             if _class.implementedinterfaces.count>0 then
-             begin
-               if (cs_create_smart in aktmoduleswitches) then
-                codeSegment.concat(Tai_cut.Create);
-               interfacetable:=genintftable;
-             end;
+              interfacetable:=genintftable;
 
             methodnametable:=genpublishedmethodstable;
             fieldtablelabel:=_class.generate_field_table;
             { write class name }
-            objectlibrary.getdatalabel(classnamelabel);
-            dataSegment.concat(tai_align.create(const_align(POINTER_SIZE)));
             dataSegment.concat(Tai_label.Create(classnamelabel));
             dataSegment.concat(Tai_const.Create_8bit(length(_class.objrealname^)));
             dataSegment.concat(Tai_string.Create(_class.objrealname^));
@@ -1261,6 +1259,8 @@ implementation
           end;
 
         { write debug info }
+        maybe_new_object_file(dataSegment);
+        new_section(dataSegment,sec_rodata,_class.vmt_mangledname,const_align(sizeof(aint)));
 {$ifdef GDB}
         if (cs_debuginfo in aktmoduleswitches) then
          begin
@@ -1270,13 +1270,12 @@ implementation
                tstoreddef(vmttype.def).numberstring+'",'+tostr(N_STSYM)+',0,0,'+_class.vmt_mangledname)));
          end;
 {$endif GDB}
-         dataSegment.concat(tai_align.create(const_align(POINTER_SIZE)));
          dataSegment.concat(Tai_symbol.Createname_global(_class.vmt_mangledname,AT_DATA,0));
 
          { determine the size with symtable.datasize, because }
          { size gives back 4 for classes                    }
-         dataSegment.concat(Tai_const.Create_32bit(tobjectsymtable(_class.symtable).datasize));
-         dataSegment.concat(Tai_const.Create_32bit(Cardinal(-tobjectsymtable(_class.symtable).datasize)));
+         dataSegment.concat(Tai_const.Create(ait_const_ptr,tobjectsymtable(_class.symtable).datasize));
+         dataSegment.concat(Tai_const.Create(ait_const_ptr,-int64(tobjectsymtable(_class.symtable).datasize)));
 {$ifdef WITHDMT}
          if _class.classtype=ct_object then
            begin
@@ -1292,49 +1291,46 @@ implementation
          { it is not written for parents that don't have any vmt !! }
          if assigned(_class.childof) and
             (oo_has_vmt in _class.childof.objectoptions) then
-           dataSegment.concat(Tai_const_symbol.Createname(_class.childof.vmt_mangledname,AT_DATA,0))
+           dataSegment.concat(Tai_const.Createname(_class.childof.vmt_mangledname,AT_DATA,0))
          else
-           dataSegment.concat(Tai_const.Create_ptr(0));
+           dataSegment.concat(Tai_const.Create_sym(nil));
 
          { write extended info for classes, for the order see rtl/inc/objpash.inc }
          if is_class(_class) then
           begin
             { pointer to class name string }
-            dataSegment.concat(Tai_const_symbol.Create(classnamelabel));
-            { pointer to dynamic table }
+            dataSegment.concat(Tai_const.Create_sym(classnamelabel));
+            { pointer to dynamic table or nil }
             if (oo_has_msgint in _class.objectoptions) then
-              dataSegment.concat(Tai_const_symbol.Create(intmessagetable))
+              dataSegment.concat(Tai_const.Create_sym(intmessagetable))
             else
-              dataSegment.concat(Tai_const.Create_ptr(0));
-            { pointer to method table }
-            if assigned(methodnametable) then
-              dataSegment.concat(Tai_const_symbol.Create(methodnametable))
-            else
-              dataSegment.concat(Tai_const.Create_ptr(0));
+              dataSegment.concat(Tai_const.Create_sym(nil));
+            { pointer to method table or nil }
+            dataSegment.concat(Tai_const.Create_sym(methodnametable));
             { pointer to field table }
-            dataSegment.concat(Tai_const_symbol.Create(fieldtablelabel));
+            dataSegment.concat(Tai_const.Create_sym(fieldtablelabel));
             { pointer to type info of published section }
             if (oo_can_have_published in _class.objectoptions) then
-              dataSegment.concat(Tai_const_symbol.Create(_class.get_rtti_label(fullrtti)))
+              dataSegment.concat(Tai_const.Create_sym(_class.get_rtti_label(fullrtti)))
             else
-              dataSegment.concat(Tai_const.Create_ptr(0));
+              dataSegment.concat(Tai_const.Create_sym(nil));
             { inittable for con-/destruction }
             if _class.members_need_inittable then
-              dataSegment.concat(Tai_const_symbol.Create(_class.get_rtti_label(initrtti)))
+              dataSegment.concat(Tai_const.Create_sym(_class.get_rtti_label(initrtti)))
             else
-              dataSegment.concat(Tai_const.Create_ptr(0));
+              dataSegment.concat(Tai_const.Create_sym(nil));
             { auto table }
-            dataSegment.concat(Tai_const.Create_ptr(0));
+            dataSegment.concat(Tai_const.Create_sym(nil));
             { interface table }
             if _class.implementedinterfaces.count>0 then
-              dataSegment.concat(Tai_const_symbol.Create(interfacetable))
+              dataSegment.concat(Tai_const.Create_sym(interfacetable))
             else
-              dataSegment.concat(Tai_const.Create_ptr(0));
+              dataSegment.concat(Tai_const.Create_sym(nil));
             { table for string messages }
             if (oo_has_msgstr in _class.objectoptions) then
-              dataSegment.concat(Tai_const_symbol.Create(strmessagetable))
+              dataSegment.concat(Tai_const.Create_sym(strmessagetable))
             else
-              dataSegment.concat(Tai_const.Create_ptr(0));
+              dataSegment.concat(Tai_const.Create_sym(nil));
           end;
          { write virtual methods }
          writevirtualmethods(dataSegment);
@@ -1343,7 +1339,7 @@ implementation
       end;
 
 
-  procedure tclassheader.adjustselfvalue(procdef: tprocdef;ioffset: aword);
+  procedure tclassheader.adjustselfvalue(procdef: tprocdef;ioffset: aint);
     var
       hsym : tsym;
       href : treference;
@@ -1368,7 +1364,7 @@ implementation
           begin
              { offset in the wrapper needs to be adjusted for the stored
                return address }
-             reference_reset_base(href,locpara.reference.index,locpara.reference.offset+POINTER_SIZE);
+             reference_reset_base(href,locpara.reference.index,locpara.reference.offset+sizeof(aint));
              cg.a_op_const_ref(exprasmlist,OP_SUB,locpara.size,ioffset,href);
           end
         else
@@ -1382,7 +1378,35 @@ initialization
 end.
 {
   $Log$
-  Revision 1.69  2004-03-31 21:01:01  florian
+  Revision 1.70  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.69.2.8  2004/05/10 21:28:34  peter
+    * section_smartlink enabled for gas under linux
+
+  Revision 1.69.2.7  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.69.2.6  2004/04/28 20:36:13  florian
+    * fixed writing of sizes in classes/object vmts
+
+  Revision 1.69.2.5  2004/04/27 18:18:26  peter
+    * aword -> aint
+
+  Revision 1.69.2.4  2004/04/26 21:02:34  peter
+    * 64bit fixes
+
+  Revision 1.69.2.3  2004/04/12 14:45:11  peter
+    * tai_const_symbol and tai_const merged
+
+  Revision 1.69.2.2  2004/04/10 12:36:41  peter
+    * fixed alignment issues
+
+  Revision 1.69.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
+
+  Revision 1.69  2004/03/31 21:01:01  florian
     * vtbls are now properly aligned
 
   Revision 1.68  2004/03/18 11:43:57  olle
@@ -1642,7 +1666,7 @@ end.
       on demand from tprocdef.mangledname
 
   Revision 1.14  2002/04/15 18:59:07  carl
-  + target_info.size_of_pointer -> pointer_Size
+  + target_info.size_of_pointer -> sizeof(aint)
 
   Revision 1.13  2002/02/11 18:51:35  peter
     * fixed vmt generation for private procedures that were skipped after

@@ -310,7 +310,7 @@ implementation
                 (assigned(tcallnode(left).funcretnode) or
                  (tcallnode(left).procdefinition.proctypeoption=potype_constructor))) and
             not(is_void(left.resulttype.def)) then
-           CGMessage(cg_e_illegal_expression);
+           CGMessage(parser_e_illegal_expression);
          if codegenerror then
            exit;
 
@@ -397,7 +397,7 @@ implementation
                       not((tcallnode(hp.left).procdefinition.proctypeoption=potype_constructor) and
                           assigned(tprocdef(tcallnode(hp.left).procdefinition)._class) and
                           is_object(tprocdef(tcallnode(hp.left).procdefinition)._class)) then
-                     CGMessagePos(hp.left.fileinfo,cg_e_illegal_expression);
+                     CGMessagePos(hp.left.fileinfo,parser_e_illegal_expression);
                    { the resulttype of the block is the last type that is
                      returned. Normally this is a voidtype. But when the
                      compiler inserts a block of multiple statements then the
@@ -1017,12 +1017,19 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2004-05-23 18:28:41  peter
+  Revision 1.84  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.83  2004/05/23 18:28:41  peter
     * methodpointer is loaded into a temp when it was a calln
 
   Revision 1.82  2004/05/23 15:06:20  peter
     * implicit_finally flag must be set in pass1
     * add check whether the implicit frame is generated when expected
+
+  Revision 1.81.2.1  2004/04/28 19:55:51  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
 
   Revision 1.81  2004/03/10 20:41:17  peter
     * maybe_in_reg moved to tempinfo

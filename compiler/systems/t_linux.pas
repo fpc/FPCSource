@@ -196,7 +196,7 @@ end;
 Constructor TLinkerLinux.Create;
 begin
   Inherited Create;
-  if NOT Dontlinkstdlibpath Then
+  if not Dontlinkstdlibpath Then
    LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true);
 end;
 
@@ -214,7 +214,7 @@ begin
   Glibc21:=false;
   with Info do
    begin
-     ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $RES';
+     ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP --gc-sections -L. -o $EXE $RES';
      DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
 {$ifdef m68k}
@@ -247,8 +247,13 @@ begin
      else
       DynamicLinker:='/lib/ld-linux.so.1';
 {$else i386}
-     Glibc2 := true;
+{$ifdef x86_64}
+     DynamicLinker:='/lib/ld-linux-x86-64.so.2';
+     Glibc2:=true;
+{$else x86_64}
+     Glibc2:=true;
      DynamicLinker:='/lib/ld.so.1';
+{$endif x86_64}
 {$endif i386}
 {$endif m68k}
    end;
@@ -558,7 +563,19 @@ end.
 
 {
   $Log$
-  Revision 1.17  2004-03-06 20:35:20  florian
+  Revision 1.18  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.17.2.3  2004/05/10 21:28:35  peter
+    * section_smartlink enabled for gas under linux
+
+  Revision 1.17.2.2  2004/05/03 20:18:52  peter
+    * fixes for tprintf
+
+  Revision 1.17.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
+
+  Revision 1.17  2004/03/06 20:35:20  florian
     * fixed arm compilation
     * cleaned up code generation for exported linux procedures
 

@@ -28,6 +28,10 @@ unit cpubase;
 
   interface
 
+  uses
+    globtype,
+    strings,cutils,cclasses,aasmbase,cpuinfo,cgbase;
+
     uses
       strings,cutils,cclasses,aasmbase,cpuinfo,cgbase;
 
@@ -244,12 +248,12 @@ unit cpubase;
             LOC_FLAGS : (resflags : tresflags);
             LOC_CONSTANT : (
               case longint of
-                1 : (value : AWord);
+                1 : (value : aint);
                 { can't do this, this layout depends on the host cpu. Use }
                 { lo(valueqword)/hi(valueqword) instead (JM)              }
                 { 2 : (valuelow, valuehigh:AWord);                        }
                 { overlay a complete 64 Bit value }
-                3 : (valueqword : qword);
+                3 : (value64 : qword);
               );
             LOC_CREFERENCE,
             LOC_REFERENCE : (reference : treference);
@@ -514,7 +518,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2004-05-06 22:01:54  florian
+  Revision 1.29  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.28  2004/05/06 22:01:54  florian
     * register numbers for address registers fixed
 
   Revision 1.27  2004/05/06 20:30:51  florian
@@ -525,6 +532,9 @@ end.
 
   Revision 1.25  2004/04/18 21:13:59  florian
     * more adaptions for m68k
+
+  Revision 1.24.2.1  2004/06/13 20:38:38  florian
+    * fixed floating point register spilling on sparc
 
   Revision 1.24  2004/01/30 12:17:18  florian
     * fixed some m68k compilation problems

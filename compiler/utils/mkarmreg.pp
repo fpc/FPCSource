@@ -28,7 +28,7 @@ var s : string;
     supregs,
     numbers,
     stdnames,
-    stabs : array[0..max_regcount-1] of string[63];
+    stabs,dwarf : array[0..max_regcount-1] of string[63];
     regnumber_index,
     std_regname_index : array[0..max_regcount-1] of byte;
 
@@ -202,6 +202,8 @@ begin
         stdnames[regcount]:=readstr;
         readcomma;
         stabs[regcount]:=readstr;
+        readcomma;
+        dwarf[regcount]:=readstr;
         { Create register number }
         if supregs[regcount][1]<>'$' then
           begin
@@ -230,7 +232,7 @@ procedure write_inc_files;
 
 var
     norfile,stdfile,supfile,
-    numfile,stabfile,confile,
+    numfile,stabfile,dwarffile,confile,
     rnifile,srifile:text;
     first:boolean;
 
@@ -241,6 +243,7 @@ begin
   openinc(numfile,'rarmnum.inc');
   openinc(stdfile,'rarmstd.inc');
   openinc(stabfile,'rarmsta.inc');
+  openinc(dwarffile,'rarmdwa.inc');
   openinc(norfile,'rarmnor.inc');
   openinc(rnifile,'rarmrni.inc');
   openinc(srifile,'rarmsri.inc');
@@ -252,6 +255,7 @@ begin
           writeln(numfile,',');
           writeln(stdfile,',');
           writeln(stabfile,',');
+          writeln(dwarffile,',');
           writeln(rnifile,',');
           writeln(srifile,',');
         end
@@ -262,6 +266,7 @@ begin
       write(numfile,'tregister(',numbers[i],')');
       write(stdfile,'''',stdnames[i],'''');
       write(stabfile,stabs[i]);
+      write(dwarffile,dwarf[i]);
       write(rnifile,regnumber_index[i]);
       write(srifile,std_regname_index[i]);
     end;
@@ -271,6 +276,7 @@ begin
   closeinc(numfile);
   closeinc(stdfile);
   closeinc(stabfile);
+  closeinc(dwarffile);
   closeinc(norfile);
   closeinc(rnifile);
   closeinc(srifile);
@@ -293,7 +299,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2003-12-18 17:06:21  florian
+  Revision 1.4  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.3.2.1  2004/06/12 17:01:01  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.3  2003/12/18 17:06:21  florian
     * arm compiler compilation fixed
 
   Revision 1.2  2003/09/03 20:35:06  peter

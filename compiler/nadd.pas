@@ -765,6 +765,15 @@ implementation
                   if (torddef(rd).typ<>scurrency) then
                    inserttypeconv(right,s64currencytype);
                end
+             { and,or,xor work on bit patterns and don't care
+               about the sign }
+             else if nodetype in [andn,orn,xorn] then
+               begin
+                 if rd.size>ld.size then
+                   inserttypeconv_explicit(left,right.resulttype)
+                 else
+                   inserttypeconv_explicit(right,left.resulttype);
+               end
              { is there a signed 64 bit type ? }
              else if ((torddef(rd).typ=s64bit) or (torddef(ld).typ=s64bit)) then
                begin
@@ -786,12 +795,23 @@ implementation
              { is there a cardinal? }
              else if ((torddef(rd).typ=u32bit) or (torddef(ld).typ=u32bit)) then
                begin
-                 { and,or,xor work on bit patterns and don't care
-                   about the sign }
-                 if nodetype in [andn,orn,xorn] then
+                 { convert positive constants to u32bit }
+                 if (torddef(ld).typ<>u32bit) and
+                    is_constintnode(left) and
+                    (tordconstnode(left).value >= 0) then
+                   inserttypeconv(left,u32inttype);
+                 if (torddef(rd).typ<>u32bit) and
+                    is_constintnode(right) and
+                    (tordconstnode(right).value >= 0) then
+                   inserttypeconv(right,u32inttype);
+                 { when one of the operand is signed perform
+                   the operation in 64bit, can't use rd/ld here because there
+                   could be already typeconvs inserted }
+                 if is_signed(left.resulttype.def) or is_signed(right.resulttype.def) then
                    begin
-                     inserttypeconv_explicit(left,u32inttype);
-                     inserttypeconv_explicit(right,u32inttype);
+                     CGMessage(type_w_mixed_signed_unsigned);
+                     inserttypeconv(left,s64inttype);
+                     inserttypeconv(right,s64inttype);
                    end
                  else
                    begin
@@ -1679,12 +1699,20 @@ implementation
                  end
                 else
                  begin
-                   expectloc:=LOC_FLAGS;
-                   if (left.expectloc in [LOC_JUMP,LOC_FLAGS]) and
-                      (left.expectloc in [LOC_JUMP,LOC_FLAGS]) then
-                     calcregisters(self,2,0,0)
+                   if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
+                     begin
+                       expectloc:=LOC_FLAGS;
+                       if (left.expectloc in [LOC_JUMP,LOC_FLAGS]) and
+                          (left.expectloc in [LOC_JUMP,LOC_FLAGS]) then
+                         calcregisters(self,2,0,0)
+                       else
+                         calcregisters(self,1,0,0);
+                     end
                    else
-                     calcregisters(self,1,0,0);
+                     begin
+                       expectloc:=LOC_REGISTER;
+                       calcregisters(self,0,0,0);
+                     end;
                  end;
               end
              else
@@ -1706,7 +1734,11 @@ implementation
                   if nodetype in [addn,subn,muln,andn,orn,xorn] then
                     expectloc:=LOC_REGISTER
                   else
+{$ifdef sparc}
+                    expectloc:=LOC_FLAGS;
+{$else sparc}
                     expectloc:=LOC_JUMP;
+{$endif sparc}
                   calcregisters(self,2,0,0)
                end
 {$endif cpu64bit}
@@ -1978,7 +2010,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.123  2004-05-28 21:13:44  peter
+  Revision 1.124  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.123  2004/05/28 21:13:44  peter
     * fix cardinal+constint
 
   Revision 1.122  2004/05/23 14:14:18  florian
@@ -2005,6 +2040,43 @@ end.
 
   Revision 1.116  2004/04/18 07:52:43  florian
     * fixed web bug 3048: comparision of dyn. arrays
+
+  Revision 1.115.2.3  2004/05/31 16:39:42  peter
+    * add ungetiftemp in a few locations
+
+  Revision 1.115.2.2  2004/05/30 10:45:50  peter
+    * merged fixes from main branch
+
+  Revision 1.123  2004/05/28 21:13:44  peter
+    * fix cardinal+constint
+
+  Revision 1.122  2004/05/23 14:14:18  florian
+    + added set of widechar support (limited to 256 chars, is delphi compatible)
+
+  Revision 1.121  2004/05/23 14:08:39  peter
+    * only convert widechar to widestring when both operands are
+      constant
+    * support widechar-widechar operations in orddef part
+
+  Revision 1.120  2004/05/21 13:08:14  florian
+    * fixed <ordinal>+<pointer>
+
+  Revision 1.119  2004/05/20 21:54:33  florian
+    + <pointer> - <pointer> result is divided by the pointer element size now
+      this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
+
+  Revision 1.118  2004/05/19 23:29:26  peter
+    * don't change sign for unsigned shl/shr operations
+    * cleanup for u32bit
+
+  Revision 1.117  2004/04/29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.116  2004/04/18 07:52:43  florian
+    * fixed web bug 3048: comparision of dyn. arrays
+
+  Revision 1.115.2.1  2004/05/02 21:26:28  peter
+    * for xor,or,and only typecast to the biggest size
 
   Revision 1.115  2004/03/29 14:44:10  peter
     * fixes to previous constant integer commit

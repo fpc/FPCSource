@@ -417,7 +417,7 @@ uses
               break;
              inc(i);
              getlinestr[i]:=c;
-             inc(longint(p));
+             inc(p);
            until (i=255);
            getlinestr[0]:=chr(i);
          end;
@@ -712,7 +712,13 @@ uses
 end.
 {
   $Log$
-  Revision 1.23  2003-12-27 22:27:24  peter
+  Revision 1.24  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.23.2.1  2004/04/28 21:46:56  peter
+    * compile fixes for x86-64
+
+  Revision 1.23  2003/12/27 22:27:24  peter
     * check with fileexists() before opening a file
 
   Revision 1.22  2003/04/28 16:18:16  peter

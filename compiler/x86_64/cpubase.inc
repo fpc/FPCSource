@@ -92,6 +92,8 @@ const
       {# Frame pointer register }
       RS_FRAME_POINTER_REG = RS_RBP;
       NR_FRAME_POINTER_REG = NR_RBP;
+      { Return address for DWARF }
+      NR_RETURN_ADDRESS_REG = NR_EIP;
       { Register for addressing absolute data in a position independant way,
         such as in PIC code. The exact meaning is ABI specific. For
         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
@@ -107,7 +109,7 @@ const
       { WARNING: don't change to R_ST0!! See comments above implementation of }
       { a_loadfpu* methods in rgcpu (JM)                                      }
       NR_FPU_RESULT_REG = NR_ST;
-      NR_MM_RESULT_REG = NR_MM0;
+      NR_MM_RESULT_REG = NR_XMM0;
 
       { Offset where the parent framepointer is pushed }
       PARENT_FRAMEPOINTER_OFFSET = 16;
@@ -125,6 +127,14 @@ const
         GCC source.
       }
       saved_standard_registers : array[0..4] of tsuperregister = (RS_EBX,RS_R12,RS_R13,RS_R14,RS_R15);
+      { Registers which must be saved when calling a routine declared as
+        cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
+        saved should be the ones as defined in the target ABI and / or GCC.
+
+        This value can be deduced from the CALLED_USED_REGISTERS array in the
+        GCC source.
+      }
+      saved_xmm_registers : array[0..4] of tsuperregister = (RS_EBX,RS_R12,RS_R13,RS_R14,RS_R15);
       { Required parameter alignment when calling a routine declared as
         stdcall and cdecl. The alignment value should be the one defined
         by GCC or the target ABI.
@@ -136,7 +146,19 @@ const
 
 {
   $Log$
-  Revision 1.13  2004-02-09 22:14:17  peter
+  Revision 1.14  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.13.2.3  2004/05/02 19:08:01  florian
+    * rewrote tcgcallnode.handle_return_value
+
+  Revision 1.13.2.2  2004/04/24 18:30:12  florian
+    * extended parameters shouldn't be poped by the callee on x86-64 either
+
+  Revision 1.13.2.1  2004/04/20 17:39:52  peter
+    * return_address_reg added
+
+  Revision 1.13  2004/02/09 22:14:17  peter
     * more x86_64 parameter fixes
     * tparalocation.lochigh is now used to indicate if registerhigh
       is used and what the type is

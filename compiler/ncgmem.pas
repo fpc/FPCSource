@@ -30,7 +30,7 @@ unit ncgmem;
 interface
 
     uses
-      cgbase,cpuinfo,cpubase,
+      globtype,cgbase,cpuinfo,cpubase,
       node,nmem;
 
     type
@@ -69,7 +69,7 @@ interface
            This routine should update location.reference correctly,
            so it points to the correct address.
          }
-         procedure update_reference_reg_mul(reg:tregister;l:aword);virtual;
+         procedure update_reference_reg_mul(reg:tregister;l:aint);virtual;
          procedure second_wideansistring;virtual;
          procedure second_dynamicarray;virtual;
        public
@@ -88,7 +88,7 @@ implementation
 {$ifdef GDB}
       gdb,
 {$endif GDB}
-      globtype,systems,
+      systems,
       cutils,verbose,globals,
       symconst,symdef,symsym,defutil,paramgr,
       aasmbase,aasmtai,
@@ -296,8 +296,9 @@ implementation
             paramanager.allocparaloc(exprasmlist,paraloc1);
             cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
             paramanager.freeparaloc(exprasmlist,paraloc1);
-            { FPC_CHECKPOINTER uses saveregisters }
+            cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
+            cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
           end;
       end;
 
@@ -350,8 +351,9 @@ implementation
                 paramanager.allocparaloc(exprasmlist,paraloc1);
                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
                 paramanager.freeparaloc(exprasmlist,paraloc1);
-                { FPC_CHECKPOINTER uses saveregisters }
+                cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
+                cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               end;
            end
          else if is_interfacecom(left.resulttype.def) then
@@ -367,8 +369,9 @@ implementation
                 paramanager.allocparaloc(exprasmlist,paraloc1);
                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
                 paramanager.freeparaloc(exprasmlist,paraloc1);
-                { FPC_CHECKPOINTER uses saveregisters }
+                cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
+                cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               end;
            end
          else
@@ -471,7 +474,7 @@ implementation
        end;
 
 
-     procedure tcgvecnode.update_reference_reg_mul(reg:tregister;l:aword);
+     procedure tcgvecnode.update_reference_reg_mul(reg:tregister;l:aint);
        var
          hreg: tregister;
        begin
@@ -535,7 +538,7 @@ implementation
                { generate compares }
                freereg:=false;
                if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                 hreg:=right.location.register
+                 hreg:=cg.makeregsize(exprasmlist,right.location.register,OS_INT)
                else
                  begin
                    hreg:=cg.getintregister(exprasmlist,OS_INT);
@@ -891,13 +894,29 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2004-04-29 19:56:37  daniel
+  Revision 1.92  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.91  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
 
   Revision 1.90  2004/04/21 17:39:40  jonas
     - disabled with-symtable debugging code since it was broken and
       at the same time confused the register allocator and therefore also
       the optimizer. May be fixed in the future using dwarf support
+
+  Revision 1.89.2.4  2004/05/10 21:28:34  peter
+    * section_smartlink enabled for gas under linux
+
+  Revision 1.89.2.3  2004/05/02 13:04:28  peter
+    * ofs fixed
+
+  Revision 1.89.2.2  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.89.2.1  2004/04/27 18:18:25  peter
+    * aword -> aint
 
   Revision 1.89  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
@@ -1264,7 +1283,7 @@ end.
   * fix generic size problems which depend now on EXTEND_SIZE constant
 
   Revision 1.7  2002/04/15 18:58:47  carl
-  + target_info.size_of_pointer -> pointer_Size
+  + target_info.size_of_pointer -> sizeof(aint)
 
   Revision 1.6  2002/04/04 19:05:57  peter
     * removed unused units

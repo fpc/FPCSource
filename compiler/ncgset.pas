@@ -27,7 +27,8 @@ unit ncgset;
 interface
 
     uses
-       node,nset,cpubase,cgbase,cgobj,aasmbase,aasmtai,globals;
+       globtype,globals,
+       node,nset,cpubase,cgbase,cgobj,aasmbase,aasmtai;
 
     type
        tcgsetelementnode = class(tsetelementnode)
@@ -72,9 +73,9 @@ interface
           { has the implementation jumptable support }
           min_label : tconstexprint;
 
-          procedure optimizevalues(var max_linear_list:longint;var max_dist:cardinal);virtual;
+          procedure optimizevalues(var max_linear_list:aint;var max_dist:aword);virtual;
           function  has_jumptable : boolean;virtual;
-          procedure genjumptable(hp : pcaserecord;min_,max_ : longint); virtual;
+          procedure genjumptable(hp : pcaserecord;min_,max_ : aint); virtual;
           procedure genlinearlist(hp : pcaserecord); virtual;
           procedure genlinearcmplist(hp : pcaserecord); virtual;
           procedure gentreejmp(p : pcaserecord);
@@ -84,7 +85,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      systems,
       verbose,
       symconst,symdef,defutil,
       paramgr,
@@ -143,14 +144,23 @@ implementation
       { be caught when range checking is on! (JM)                        }
       { cg.a_op_const_reg(list,OP_AND,31,bitnumber);                     }
 
-      if (bitsize <> OS_32) then
-        internalerror(2004053010);
-      newres := cg.makeregsize(list,res,OS_32);
-      { rotate value register "bitnumber" bits to the right }
-      cg.a_op_reg_reg_reg(list,OP_SHR,OS_32,bitnumber,value,newres);
-      { extract the bit we want }
-      cg.a_op_const_reg(list,OP_AND,OS_32,1,newres);
-      cg.a_load_reg_reg(list,OS_32,ressize,newres,res);
+      if bitsize<>ressize then
+        begin
+          { FIX ME! We're not allowed to modify the value register here! }
+
+          { shift value register "bitnumber" bits to the right }
+          cg.a_op_reg_reg(list,OP_SHR,bitsize,bitnumber,value);
+          { extract the bit we want }
+          cg.a_op_const_reg(list,OP_AND,bitsize,1,value);
+          cg.a_load_reg_reg(list,bitsize,ressize,value,res);
+        end
+      else
+        begin
+          { rotate value register "bitnumber" bits to the right }
+          cg.a_op_reg_reg_reg(list,OP_SHR,bitsize,bitnumber,value,res);
+          { extract the bit we want }
+          cg.a_op_const_reg(list,OP_AND,bitsize,1,res);
+        end;
     end;
 
 
@@ -161,16 +171,15 @@ implementation
            start,stop : byte;    {Start/stop when range; Stop=element when an element.}
          end;
        var
-         l,l2,l3       : tasmlabel;
-         adjustment : longint;
+         l,l3       : tasmlabel;
+         adjustment : aint;
          href : treference;
-         hr,hr2,hr3,
+         hr,hr2,
          pleftreg   : tregister;
          setparts   : array[1..8] of Tsetpart;
          opsize     : tcgsize;
          genjumps,
-         use_small,
-         ranges     : boolean;
+         use_small  : boolean;
          i,numparts : byte;
 
          function analizeset(const Aset:Tconstset;is_small:boolean):boolean;
@@ -179,7 +188,6 @@ implementation
              i:byte;
            begin
              analizeset:=false;
-             ranges:=false;
              numparts:=0;
              compares:=0;
              { Lots of comparisions take a lot of time, so do not allow
@@ -214,7 +222,6 @@ implementation
                      setparts[numparts].range:=true;
                      setparts[numparts].start:=setparts[numparts].stop;
                      setparts[numparts].stop:=i;
-                     ranges := true;
                      { there's only one compare per range anymore. Only a }
                      { sub is added, but that's much faster than a        }
                      { cmp/jcc combo so neglect its effect                }
@@ -245,6 +252,8 @@ implementation
          genjumps:=(right.nodetype=setconstn) and
                    analizeset(Tsetconstnode(right).value_set^,use_small);
 
+         opsize:=OS_32;
+
          { calculate both operators }
          { the complex one first }
          firstcomplex(self);
@@ -272,9 +281,8 @@ implementation
             { clear the register value, indicating result is FALSE }
             cg.a_load_const_reg(exprasmlist,location.size,0,location.register);
             { If register is used, use only lower 8 bits }
-            location_force_reg(exprasmlist,left.location,OS_INT,false);
+            location_force_reg(exprasmlist,left.location,opsize,false);
             pleftreg := left.location.register;
-            opsize := OS_INT;
 
             { how much have we already substracted from the x in the }
             { "x in [y..z]" expression                               }
@@ -283,7 +291,7 @@ implementation
 
             for i:=1 to numparts do
              if setparts[i].range then
-              { use fact that a <= x <= b <=> cardinal(x-a) <= cardinal(b-a) }
+              { use fact that a <= x <= b <=> aword(x-a) <= aword(b-a) }
               begin
                 { is the range different from all legal values? }
                 if (setparts[i].stop-setparts[i].start <> 255) then
@@ -298,10 +306,9 @@ implementation
                          (hr<>pleftreg) then
                         begin
                           cg.a_op_const_reg(exprasmlist,OP_SUB,opsize,setparts[i].start,pleftreg);
-                          hr:=cg.getintregister(exprasmlist,OS_INT);
-                          cg.a_load_reg_reg(exprasmlist,opsize,OS_INT,pleftreg,hr);
+                          hr:=cg.getintregister(exprasmlist,opsize);
+                          cg.a_load_reg_reg(exprasmlist,opsize,opsize,pleftreg,hr);
                           pleftreg:=hr;
-                          opsize := OS_INT;
                         end
                       else
                         begin
@@ -368,18 +375,18 @@ implementation
                {****************************  SMALL SET **********************}
                if left.nodetype=ordconstn then
                 begin
-                  location_force_reg(exprasmlist,right.location,OS_32,false);
+                  location_force_reg(exprasmlist,right.location,opsize,true);
                   { first SHR the register }
-                  cg.a_op_const_reg(exprasmlist,OP_SHR,OS_32,tordconstnode(left).value and 31,right.location.register);
+                  cg.a_op_const_reg(exprasmlist,OP_SHR,opsize,tordconstnode(left).value and 31,right.location.register);
                   { then extract the lowest bit }
-                  cg.a_op_const_reg(exprasmlist,OP_AND,OS_32,1,right.location.register);
+                  cg.a_op_const_reg(exprasmlist,OP_AND,opsize,1,right.location.register);
                   location.register:=cg.getintregister(exprasmlist,location.size);
-                  cg.a_load_reg_reg(exprasmlist,OS_32,location.size,right.location.register,location.register);
+                  cg.a_load_reg_reg(exprasmlist,opsize,location.size,right.location.register,location.register);
                 end
                else
                 begin
-                  location_force_reg(exprasmlist,left.location,OS_32,false);
-                  location_force_reg(exprasmlist,right.location,OS_32,true);
+                  location_force_reg(exprasmlist,left.location,opsize,false);
+                  location_force_reg(exprasmlist,right.location,opsize,true);
                   { allocate a register for the result }
                   location.register:=cg.getintregister(exprasmlist,location.size);
                   { emit bit test operation }
@@ -401,21 +408,21 @@ implementation
                   { assumption (other cases will be caught by range checking) (JM)  }
 
                   { load left in register }
-                  location_force_reg(exprasmlist,left.location,OS_32,true);
+                  location_force_reg(exprasmlist,left.location,opsize,true);
                   if left.location.loc = LOC_CREGISTER then
-                    hr := cg.getintregister(exprasmlist,OS_32)
+                    hr := cg.getintregister(exprasmlist,opsize)
                   else
                     hr := left.location.register;
                   { load right in register }
-                  hr2:=cg.getintregister(exprasmlist,OS_32);
-                  cg.a_load_const_reg(exprasmlist,OS_32,right.location.value,hr2);
+                  hr2:=cg.getintregister(exprasmlist,opsize);
+                  cg.a_load_const_reg(exprasmlist,opsize,right.location.value,hr2);
 
                   { emit bit test operation }
-                  emit_bit_test_reg_reg(exprasmlist,OS_32,left.location.register,hr2,OS_32,hr2);
+                  emit_bit_test_reg_reg(exprasmlist,left.location.size,left.location.register,hr2,opsize,hr2);
 
                   { if left > 31 then hr := 0 else hr := $ffffffff }
-                  cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_32,32,left.location.register,hr);
-                  cg.a_op_const_reg(exprasmlist,OP_SAR,OS_32,31,hr);
+                  cg.a_op_const_reg_reg(exprasmlist,OP_SUB,opsize,32,left.location.register,hr);
+                  cg.a_op_const_reg(exprasmlist,OP_SAR,opsize,31,hr);
 
                   { free registers }
                   cg.ungetregister(exprasmlist,hr2);
@@ -425,10 +432,10 @@ implementation
                     cg.ungetregister(exprasmlist,left.location.register);
 
                   { if left > 31, then result := 0 else result := result of bit test }
-                  cg.a_op_reg_reg(exprasmlist,OP_AND,OS_32,hr,hr2);
+                  cg.a_op_reg_reg(exprasmlist,OP_AND,opsize,hr,hr2);
                   { allocate a register for the result }
                   location.register := cg.getintregister(exprasmlist,location.size);
-                  cg.a_load_reg_reg(exprasmlist,OS_32,location.size,hr2,location.register);
+                  cg.a_load_reg_reg(exprasmlist,opsize,location.size,hr2,location.register);
                 end { of right.location.loc=LOC_CONSTANT }
                { do search in a normal set which could have >32 elementsm
                  but also used if the left side contains higher values > 32 }
@@ -455,8 +462,8 @@ implementation
 
                   location_freetemp(exprasmlist,left.location);
                   hr := cg.getaddressregister(exprasmlist);
-                  cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_ADDR,5,pleftreg,hr);
-                  cg.a_op_const_reg(exprasmlist,OP_SHL,OS_ADDR,2,hr);
+                  cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_INT,5,pleftreg,hr);
+                  cg.a_op_const_reg(exprasmlist,OP_SHL,OS_INT,2,hr);
 
                   href := right.location.reference;
                   if (href.base = NR_NO) then
@@ -473,15 +480,15 @@ implementation
                     end;
                   reference_release(exprasmlist,href);
                   { allocate a register for the result }
-                  location.register := cg.getintregister(exprasmlist,OS_INT);
-                  cg.a_load_ref_reg(exprasmlist,OS_32,OS_INT,href,location.register);
+                  location.register := cg.getintregister(exprasmlist,opsize);
+                  cg.a_load_ref_reg(exprasmlist,opsize,opsize,href,location.register);
 
                   cg.ungetregister(exprasmlist,pleftreg);
-                  hr := cg.getintregister(exprasmlist,OS_INT);
-                  cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_INT,31,pleftreg,hr);
-                  cg.a_op_reg_reg(exprasmlist,OP_SHR,OS_INT,hr,location.register);
+                  hr := cg.getintregister(exprasmlist,opsize);
+                  cg.a_op_const_reg_reg(exprasmlist,OP_AND,opsize,31,pleftreg,hr);
+                  cg.a_op_reg_reg(exprasmlist,OP_SHR,opsize,hr,location.register);
                   cg.ungetregister(exprasmlist,hr);
-                  cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,1,location.register);
+                  cg.a_op_const_reg(exprasmlist,OP_AND,opsize,1,location.register);
                 end;
              end;
           end;
@@ -492,7 +499,7 @@ implementation
                             TCGCASENODE
 *****************************************************************************}
 
-    procedure tcgcasenode.optimizevalues(var max_linear_list:longint;var max_dist:cardinal);
+    procedure tcgcasenode.optimizevalues(var max_linear_list:aint;var max_dist:aword);
       begin
         { no changes by default }
       end;
@@ -505,7 +512,7 @@ implementation
       end;
 
 
-    procedure tcgcasenode.genjumptable(hp : pcaserecord;min_,max_ : longint);
+    procedure tcgcasenode.genjumptable(hp : pcaserecord;min_,max_ : aint);
       begin
         internalerror(200209161);
       end;
@@ -520,7 +527,7 @@ implementation
 
       procedure genitem(t : pcaserecord);
 
-          procedure gensub(value:longint);
+          procedure gensub(value:aint);
           begin
             { here, since the sub and cmp are separate we need
               to move the result before subtract to a help
@@ -536,7 +543,7 @@ implementation
            { need we to test the first value }
            if first and (t^._low>get_min_value(left.resulttype.def)) then
              begin
-                cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,aword(t^._low),hregister,elselabel);
+                cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,t^._low,hregister,elselabel);
              end;
            if t^._low=t^._high then
              begin
@@ -544,8 +551,8 @@ implementation
                   cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,0,hregister,t^.statement)
                 else
                   begin
-                      gensub(longint(t^._low-last));
-                      cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,aword(t^._low-last),scratch_reg,t^.statement);
+                      gensub(aint(t^._low-last));
+                      cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,aint(t^._low-last),scratch_reg,t^.statement);
                   end;
                 last:=t^._low;
              end
@@ -558,18 +565,18 @@ implementation
                   begin
                      { have we to ajust the first value ? }
                      if (t^._low>get_min_value(left.resulttype.def)) then
-                       gensub(longint(t^._low));
+                       gensub(aint(t^._low));
                   end
                 else
                   begin
                     { if there is no unused label between the last and the }
                     { present label then the lower limit can be checked    }
                     { immediately. else check the range in between:       }
-                    gensub(longint(t^._low-last));
-                    cg.a_cmp_const_reg_label(exprasmlist, opsize,jmp_lt,aword(t^._low-last),scratch_reg,elselabel);
+                    gensub(aint(t^._low-last));
+                    cg.a_cmp_const_reg_label(exprasmlist, opsize,jmp_lt,aint(t^._low-last),scratch_reg,elselabel);
                   end;
-                gensub(longint(t^._high-t^._low));
-                cg.a_cmp_const_reg_label(exprasmlist, opsize,jmp_le,aword(t^._high-t^._low),scratch_reg,t^.statement);
+                gensub(aint(t^._high-t^._low));
+                cg.a_cmp_const_reg_label(exprasmlist, opsize,jmp_le,aint(t^._high-t^._low),scratch_reg,t^.statement);
                 last:=t^._high;
              end;
            first:=false;
@@ -601,8 +608,10 @@ implementation
 
       procedure genitem(t : pcaserecord);
 
+{$ifndef cpu64bit}
         var
            l1 : tasmlabel;
+{$endif cpu64bit}
 
         begin
            if assigned(t^.less) then
@@ -613,19 +622,14 @@ implementation
                 if opsize in [OS_S64,OS_64] then
                   begin
                      objectlibrary.getlabel(l1);
-{$ifdef Delphi}
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_NE, hi((t^._low)),hregister2,l1);
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_EQ, lo((t^._low)),hregister, t^.statement);
-{$else}
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_NE, aword(hi(int64(t^._low))),hregister2,l1);
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_EQ, aword(lo(int64(t^._low))),hregister, t^.statement);
-{$endif}
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_NE, aint(hi(int64(t^._low))),hregister2,l1);
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_EQ, aint(lo(int64(t^._low))),hregister, t^.statement);
                      cg.a_label(exprasmlist,l1);
                   end
                 else
 {$endif cpu64bit}
                   begin
-                     cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ, aword(t^._low),hregister, t^.statement);
+                     cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ, aint(t^._low),hregister, t^.statement);
                   end;
                 { Reset last here, because we've only checked for one value and need to compare
                   for the next range both the lower and upper bound }
@@ -642,27 +646,18 @@ implementation
                      if opsize in [OS_64,OS_S64] then
                        begin
                           objectlibrary.getlabel(l1);
-{$ifdef Delphi}
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_lt, aword(hi((t^._low))),
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_lt, aint(hi(int64(t^._low))),
                                hregister2, elselabel);
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_gt, aword(hi((t^._low))),
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_gt, aint(hi(int64(t^._low))),
                                hregister2, l1);
                           { the comparisation of the low dword must be always unsigned! }
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_B, aword(lo((t^._low))), hregister, elselabel);
-{$else}
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_lt, aword(hi(int64(t^._low))),
-                               hregister2, elselabel);
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_gt, aword(hi(int64(t^._low))),
-                               hregister2, l1);
-                          { the comparisation of the low dword must be always unsigned! }
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_B, aword(lo(int64(t^._low))), hregister, elselabel);
-{$endif}
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_B, aint(lo(int64(t^._low))), hregister, elselabel);
                           cg.a_label(exprasmlist,l1);
                        end
                      else
 {$endif cpu64bit}
                        begin
-                        cg.a_cmp_const_reg_label(exprasmlist, opsize, jmp_lt, aword(t^._low), hregister,
+                        cg.a_cmp_const_reg_label(exprasmlist, opsize, jmp_lt, aint(t^._low), hregister,
                            elselabel);
                        end;
                   end;
@@ -670,25 +665,17 @@ implementation
                 if opsize in [OS_S64,OS_64] then
                   begin
                      objectlibrary.getlabel(l1);
-{$ifdef Delphi}
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_lt, aword(hi(t^._high)), hregister2,
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_lt, aint(hi(int64(t^._high))), hregister2,
                            t^.statement);
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_gt, aword(hi(t^._high)), hregister2,
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_gt, aint(hi(int64(t^._high))), hregister2,
                            l1);
-                    cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_BE, aword(lo(t^._high)), hregister, t^.statement);
-{$else}
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_lt, aword(hi(int64(t^._high))), hregister2,
-                           t^.statement);
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_gt, aword(hi(int64(t^._high))), hregister2,
-                           l1);
-                    cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_BE, aword(lo(int64(t^._high))), hregister, t^.statement);
-{$endif}
+                    cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_BE, aint(lo(int64(t^._high))), hregister, t^.statement);
                     cg.a_label(exprasmlist,l1);
                   end
                 else
 {$endif cpu64bit}
                   begin
-                     cg.a_cmp_const_reg_label(exprasmlist, opsize, jmp_le, aword(t^._high), hregister, t^.statement);
+                     cg.a_cmp_const_reg_label(exprasmlist, opsize, jmp_le, aint(t^._high), hregister, t^.statement);
                   end;
 
                 last:=t^._high;
@@ -775,12 +762,12 @@ implementation
       var
          lv,hv,
          max_label: tconstexprint;
-         labels : longint;
-         max_linear_list : longint;
+         labels : aint;
+         max_linear_list : aint;
          otl, ofl: tasmlabel;
          isjump : boolean;
          max_dist,
-         dist : cardinal;
+         dist : aword;
          hp : tstatementnode;
       begin
          location_reset(location,LOC_VOID,OS_NO);
@@ -866,14 +853,14 @@ implementation
                    getrange(left.resulttype.def,lv,hv);
                    jumptable_no_range:=(lv=min_label) and (hv=max_label);
                    { hack a little bit, because the range can be greater }
-                   { than the positive range of a longint            }
+                   { than the positive range of a aint            }
 
                    if (min_label<0) and (max_label>0) then
                      begin
-                        if min_label=TConstExprInt($80000000) then
-                          dist:=Cardinal(max_label)+Cardinal($80000000)
+                        if min_label=TConstExprInt(low(aint)) then
+                          dist:=aword(max_label)+aword(low(aint))
                         else
-                          dist:=Cardinal(max_label)+Cardinal(-min_label)
+                          dist:=aword(max_label)+aword(-min_label)
                      end
                    else
                      dist:=max_label-min_label;
@@ -897,7 +884,7 @@ implementation
                      end
                    else
                      begin
-                        max_dist:=4*cardinal(labels);
+                        max_dist:=4*aword(labels);
                         if jumptable_no_range then
                           max_linear_list:=4
                         else
@@ -984,8 +971,27 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2004-05-30 21:18:22  jonas
+  Revision 1.62  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.61  2004/05/30 21:18:22  jonas
     * some optimizations and associated fixes for better regvar code
+
+  Revision 1.60.2.5  2004/05/02 16:49:12  peter
+    * 64 bit fixes
+
+  Revision 1.60.2.4  2004/05/02 14:09:54  peter
+    * fix case 64bit issues
+
+  Revision 1.60.2.3  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.60.2.2  2004/04/27 18:18:25  peter
+    * aword -> aint
+
+  Revision 1.60.2.1  2004/04/26 21:02:34  peter
+    * 64bit fixes
 
   Revision 1.60  2004/02/27 10:21:05  florian
     * top_symbol killed
@@ -1244,4 +1250,3 @@ end.
   + generic sets
 
 }
-

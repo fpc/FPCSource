@@ -63,6 +63,8 @@ interface
           procedure setfuncretnode(const returnnode: tnode);
           procedure convert_carg_array_of_const;
           procedure order_parameters;
+       protected
+          pushedparasize : longint;
        public
           { the symbol containing the definition of the procedure }
           { to call                                               }
@@ -415,6 +417,9 @@ type
                  end;
                  set_varstate(left,vs_used,true);
                  resulttype:=left.resulttype;
+                 { also update paraitem type to get the correct parameter location
+                   for the new types }
+                 paraitem.paratype:=left.resulttype;
                end
              else
               if (paraitem.is_hidden) then
@@ -1530,7 +1535,7 @@ type
                       { Multiple candidates left? }
                       if cand_cnt>1 then
                        begin
-                         CGMessage(cg_e_cant_choose_overload_function);
+                         CGMessage(type_e_cant_choose_overload_function);
 {$ifdef EXTDEBUG}
                          candidates.dump_info(V_Hint);
 {$else EXTDEBUG}
@@ -1852,12 +1857,14 @@ type
              procdefinition.has_paraloc_info:=true;
            end;
 
-         current_procinfo.maxpushedparasize:=max(current_procinfo.maxpushedparasize,procdefinition.requiredargarea);
-
-         { calculate the parameter info for varargs }
+         { calculate the parameter size needed for this call include varargs if they are available }
          if assigned(varargsparas) then
-           current_procinfo.maxpushedparasize:=max(current_procinfo.maxpushedparasize,
-             paramanager.create_varargs_paraloc_info(procdefinition,varargsparas));
+           pushedparasize:=paramanager.create_varargs_paraloc_info(procdefinition,varargsparas)
+         else
+           pushedparasize:=procdefinition.requiredargarea;
+
+         { record maximum parameter size used in this proc }
+         current_procinfo.allocate_push_parasize(pushedparasize);
 
          { work trough all parameters to get the register requirements }
          if assigned(left) then
@@ -1940,14 +1947,14 @@ type
                move them to memory after ... }
              if (resulttype.def.deftype=recorddef) then
               begin
-                expectloc:=LOC_CREFERENCE;
+                expectloc:=LOC_REFERENCE;
               end
              else
              { ansi/widestrings must be registered, so we can dispose them }
               if is_ansistring(resulttype.def) or
                  is_widestring(resulttype.def) then
                begin
-                 expectloc:=LOC_CREFERENCE;
+                 expectloc:=LOC_REFERENCE;
                  registersint:=1;
                end
              else
@@ -2140,7 +2147,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.237  2004-05-25 18:51:49  peter
+  Revision 1.238  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.237  2004/05/25 18:51:49  peter
     * fix tcallnode.getcopy. the parameters need to be copied after
       methodpointerinit is copied
 
@@ -2159,6 +2169,21 @@ end.
 
   Revision 1.232  2004/05/01 22:05:01  florian
     + added lib support for Amiga/MorphOS syscalls
+
+  Revision 1.231.2.4  2004/05/31 16:39:42  peter
+    * add ungetiftemp in a few locations
+
+  Revision 1.231.2.3  2004/05/03 20:54:00  peter
+    * update paraitem after varargs typeconvs have been inserted so
+      the parameter location uses the new type
+
+  Revision 1.231.2.2  2004/05/02 12:45:32  peter
+    * enabled cpuhasfixedstack for x86-64 again
+    * fixed size of temp allocation for parameters
+
+  Revision 1.231.2.1  2004/04/28 19:55:51  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
 
   Revision 1.231  2004/03/14 20:07:13  peter
     * removed unused paravisible

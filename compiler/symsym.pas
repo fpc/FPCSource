@@ -1543,7 +1543,7 @@ implementation
           stabstring:=nil;
           st:=tstoreddef(vartype.def).numberstring;
           if (vo_is_thread_var in varoptions) then
-            threadvaroffset:='+'+tostr(pointer_size)
+            threadvaroffset:='+'+tostr(sizeof(aint))
           else
             threadvaroffset:='';
 
@@ -1586,7 +1586,8 @@ implementation
                 if (owner.symtabletype=parasymtable) then
                   begin
                     if paramanager.push_addr_param(varspez,vartype.def,tprocdef(owner.defowner).proccalloption) and
-                       not(vo_has_local_copy in varoptions) then
+                       not(vo_has_local_copy in varoptions) and
+                       not is_open_string(vartype.def) then
                       st := 'v'+st { should be 'i' but 'i' doesn't work }
                     else
                       st := 'p'+st;
@@ -1919,9 +1920,9 @@ implementation
         conststring:
           st:='s'''+backspace_quote(octal_quote(strpas(pchar(value.valueptr)),[#0..#9,#11,#12,#14..#31,'''']),['"','\',#10,#13])+'''';
         constord:
-          st:='i'+int64tostr(value.valueord);
+          st:='i'+tostr(value.valueord);
         constpointer:
-          st:='i'+int64tostr(value.valueordptr);
+          st:='i'+tostr(value.valueordptr);
         constreal:
           begin
             system.str(pbestreal(value.valueptr)^,st);
@@ -2214,7 +2215,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.172  2004-05-22 23:32:52  peter
+  Revision 1.173  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.172  2004/05/22 23:32:52  peter
   quote all low ascii chars in stabs
 
   Revision 1.171  2004/05/11 22:52:48  olle
@@ -2222,6 +2226,16 @@ end.
 
   Revision 1.170  2004/05/11 18:29:41  olle
     + mode macpas: support for implicit external
+
+  Revision 1.169.2.3  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.169.2.2  2004/04/26 21:02:34  peter
+    * 64bit fixes
+
+  Revision 1.169.2.1  2004/04/22 19:44:05  peter
+    * fix openstring stabs
 
   Revision 1.169  2004/03/29 19:19:35  florian
     + arm floating point register saving implemented

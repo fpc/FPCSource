@@ -1487,10 +1487,16 @@ finalization
 end.
 {
   $Log$
-  Revision 1.41  2004-05-23 15:23:30  peter
+  Revision 1.42  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.41  2004/05/23 15:23:30  peter
     * fixed qword(longint) that removed sign from the number
     * removed code in the compiler that relied on wrong qword(longint)
       code generation
+
+  Revision 1.40.2.1  2004/04/12 14:45:11  peter
+    * tai_const_symbol and tai_const merged
 
   Revision 1.40  2004/02/27 13:04:22  daniel
     * Removed unused concatstabto

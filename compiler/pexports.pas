@@ -64,6 +64,23 @@ implementation
         pt               : tnode;
         srsym            : tsym;
         srsymtable : tsymtable;
+
+        function IsGreater(hp1,hp2:texported_item):boolean;
+        var
+          i2 : boolean;
+        begin
+          i2:=(hp2.options and eo_index)<>0;
+          if (hp1.options and eo_index)<>0 then
+           begin
+             if i2 then
+               IsGreater:=hp1.index>hp2.index
+             else
+               IsGreater:=false;
+           end
+          else
+            IsGreater:=i2;
+        end;
+
       begin
          DefString:='';
          InternalProcName:='';
@@ -99,7 +116,7 @@ implementation
                      an underline }
                    if InternalProcName[1]='_' then
                      delete(InternalProcName,1,1)
-                   else if (target_info.system in [system_i386_win32,system_i386_wdosx]) and UseDeffileForExport then
+                   else if (target_info.system in [system_i386_win32,system_i386_wdosx]) and UseDeffileForExports then
                      begin
                        Message(parser_e_dlltool_unit_var_problem);
                        Message(parser_e_dlltool_unit_var_problem2);
@@ -144,7 +161,7 @@ implementation
                    hp.options:=hp.options or eo_resident;
                    DefString:=srsym.realname+'='+InternalProcName;{Resident ignored!}
                  end;
-                if (DefString<>'') and UseDeffileForExport then
+                if (DefString<>'') and UseDeffileForExports then
                  DefFile.AddExport(DefString);
                 { Default to generate a name entry with the provided name }
                 if not assigned(hp.name) then
@@ -169,8 +186,14 @@ end.
 
 {
   $Log$
-  Revision 1.26  2004-04-24 17:32:05  peter
+  Revision 1.27  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.26  2004/04/24 17:32:05  peter
   index number generation for mixed index-nonindexed fixed, patch by Pavel V. Ozerski
+
+  Revision 1.25.2.1  2004/05/03 14:59:57  peter
+    * no dlltool needed for win32 linking executables
 
   Revision 1.25  2004/04/08 11:07:05  michael
   indexed exports needs to be sorted (patch from Pavel)

@@ -76,7 +76,7 @@ implementation
        globtype,tokens,verbose,comphook,
        systems,
        { aasm }
-       cpubase,aasmtai,
+       cpubase,aasmbase,aasmtai,
        { symtable }
        symconst,symbase,symsym,symtype,symtable,defutil,
        paramgr,
@@ -615,9 +615,6 @@ implementation
         oldfilepos : tfileposinfo;
         templist : Taasmoutput;
         headertai : tai;
-        usesacc,
-        usesfpu,
-        usesacchi      : boolean;
       begin
         { the initialization procedure can be empty, then we
           don't need to generate anything. When it was an empty
@@ -774,10 +771,7 @@ implementation
             { add code that will load the return value, this is not done
               for assembler routines when they didn't reference the result
               variable }
-            usesacc:=false;
-            usesfpu:=false;
-            usesacchi:=false;
-            gen_load_return_value(templist,usesacc,usesacchi,usesfpu);
+            gen_load_return_value(templist);
             aktproccode.concatlist(templist);
 
             { generate symbol and save end of header position }
@@ -804,13 +798,13 @@ implementation
             aktproccode.insertlistafter(headertai,templist);
             aktfilepos:=exitpos;
             gen_restore_used_regs(aktproccode,procdef.funcret_paraloc[calleeside]);
-            { Add stack allocation code after header }
+            { Add entry code (stack allocation) after header }
             aktfilepos:=entrypos;
-            gen_stackalloc_code(templist);
+            gen_proc_entry_code(templist);
             aktproccode.insertlistafter(headertai,templist);
             { Add exit code at the end }
             aktfilepos:=exitpos;
-            gen_stackfree_code(templist,usesacc,usesacchi);
+            gen_proc_exit_code(templist);
             aktproccode.concatlist(templist);
 
             { check if the implicit finally has been generated. The flag
@@ -849,15 +843,13 @@ implementation
                  aktproccode.concatlist(aktlocaldata)
                else
                  begin
-                   aktproccode.concat(Tai_section.Create(sec_data));
+                   new_section(aktproccode,sec_data,lower(procdef.mangledname),0);
                    aktproccode.concatlist(aktlocaldata);
-                   aktproccode.concat(Tai_section.Create(sec_code));
                  end;
             end;
 
             { add the procedure to the codesegment }
-            if (cs_create_smart in aktmoduleswitches) then
-              codesegment.concat(Tai_cut.Create);
+            new_section(codesegment,sec_code,lower(procdef.mangledname),aktalignment.procalign);
             codesegment.concatlist(aktproccode);
 
             { only now we can remove the temps }
@@ -937,7 +929,9 @@ implementation
          { not for a inline procedure !!               (PM)   }
          { at lexlevel = 1 localst is the staticsymtable itself }
          { so no dispose here !!                              }
+         { The localst is also needed for debuginfo }
          if assigned(code) and
+            not(cs_debuginfo in aktmoduleswitches) and
             not(cs_browser in aktmoduleswitches) and
             (procdef.proccalloption<>pocall_inline) then
            begin
@@ -1145,7 +1139,7 @@ implementation
             if (not current_module.in_interface) then
               include(pdflags,pd_implemen);
             if (not current_module.is_unit) or
-               (cs_create_smart in aktmoduleswitches) then
+               maybe_smartlink_symbol then
               include(pd.procoptions,po_public);
             pd.forwarddef:=false;
           end;
@@ -1389,7 +1383,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.194  2004-05-28 21:14:13  peter
+  Revision 1.195  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.194  2004/05/28 21:14:13  peter
     * first load para's to temps before calling entry code (profile
 
   Revision 1.193  2004/05/24 17:31:12  peter
@@ -1415,6 +1412,29 @@ end.
 
   Revision 1.187  2004/04/11 12:37:30  peter
     * fix tree printing
+
+  Revision 1.186.2.6  2004/05/10 21:28:34  peter
+    * section_smartlink enabled for gas under linux
+
+  Revision 1.186.2.5  2004/05/02 20:20:59  florian
+    * started to fix callee side result value handling
+
+  Revision 1.186.2.4  2004/05/01 23:35:11  peter
+    * keep localst in memory to be able to generate debuginfo for
+      local types
+
+  Revision 1.186.2.3  2004/04/18 16:55:37  peter
+    * procedure entry and exit code restructured, some x86 specific
+      things are removed from the generic ncgutil code and moved to
+      the target depend cg.g_proc_entry and cg.g_proc_exit that now
+      contain all the code during startup including stackframe allocation
+      only the saving of registers is excluded from this code
+
+  Revision 1.186.2.2  2004/04/10 12:36:41  peter
+    * fixed alignment issues
+
+  Revision 1.186.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.186  2004/02/19 17:07:42  florian
     * fixed arg. area calculation

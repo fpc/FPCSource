@@ -29,6 +29,7 @@ Unit Ra386int;
     uses
       cclasses,
       cpubase,
+      globtype,
       rasm,
       rax86;
 
@@ -60,15 +61,15 @@ Unit Ra386int;
          procedure GetToken;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
-         procedure BuildRecordOffsetSize(const expr: string;var offset:longint;var size:longint);
-         procedure BuildConstSymbolExpression(needofs,isref:boolean;var value:longint;var asmsym:string);
-         function BuildConstExpression:longint;
-         function BuildRefConstExpression:longint;
+         procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint);
+         procedure BuildConstSymbolExpression(needofs,isref:boolean;var value:aint;var asmsym:string);
+         function BuildConstExpression:aint;
+         function BuildRefConstExpression:aint;
          procedure BuildReference(oper : tx86operand);
          procedure BuildOperand(oper: tx86operand);
          procedure BuildConstantOperand(oper: tx86operand);
          procedure BuildOpCode(instr : tx86instruction);
-         procedure BuildConstant(maxvalue: longint);
+         procedure BuildConstant(constsize: longint);
        end;
 
 
@@ -78,7 +79,7 @@ Unit Ra386int;
        { common }
        cutils,
        { global }
-       globtype,globals,verbose,
+       globals,verbose,
        systems,
        { aasm }
        cpuinfo,aasmbase,aasmtai,aasmcpu,
@@ -686,7 +687,7 @@ Unit Ra386int;
     { This routine builds up a record offset after a AS_DOT
       token is encountered.
       On entry actasmtoken should be equal to AS_DOT                     }
-    Procedure ti386intreader.BuildRecordOffsetSize(const expr: string;var offset:longint;var size:longint);
+    Procedure ti386intreader.BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint);
       var
         s : string;
       Begin
@@ -709,10 +710,11 @@ Unit Ra386int;
       end;
 
 
-    Procedure ti386intreader.BuildConstSymbolExpression(needofs,isref:boolean;var value:longint;var asmsym:string);
+    Procedure ti386intreader.BuildConstSymbolExpression(needofs,isref:boolean;var value:aint;var asmsym:string);
       var
         tempstr,expr,hs : string;
-        parenlevel,l,k : longint;
+        parenlevel : longint;
+        l,k : aint;
         hasparen,
         errorflag : boolean;
         prevtok : tasmtoken;
@@ -997,9 +999,9 @@ Unit Ra386int;
       end;
 
 
-    Function ti386intreader.BuildConstExpression:longint;
+    Function ti386intreader.BuildConstExpression:aint;
       var
-        l : longint;
+        l : aint;
         hs : string;
       begin
         BuildConstSymbolExpression(false,false,l,hs);
@@ -1009,9 +1011,9 @@ Unit Ra386int;
       end;
 
 
-    Function ti386intreader.BuildRefConstExpression:longint;
+    Function ti386intreader.BuildRefConstExpression:aint;
       var
-        l : longint;
+        l : aint;
         hs : string;
       begin
         BuildConstSymbolExpression(false,true,l,hs);
@@ -1023,7 +1025,7 @@ Unit Ra386int;
 
     procedure ti386intreader.BuildReference(oper : tx86operand);
       var
-        k,l,scale : longint;
+        k,l,scale : aint;
         tempstr,hs : string;
         typesize : longint;
         code : integer;
@@ -1361,7 +1363,7 @@ Unit Ra386int;
 
     Procedure ti386intreader.BuildConstantOperand(oper: tx86operand);
       var
-        l : longint;
+        l : aint;
         tempstr : string;
       begin
         if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
@@ -1406,10 +1408,10 @@ Unit Ra386int;
         expr    : string;
         tempreg : tregister;
         typesize,
-        l       : longint;
+        l       : aint;
         hl      : tasmlabel;
         toffset,
-        tsize   : longint;
+        tsize   : aint;
       Begin
         expr:='';
         repeat
@@ -1594,7 +1596,7 @@ Unit Ra386int;
                      Message(asmr_e_invalid_operand_type);
                    oper.opr.typ:=OPR_REGISTER;
                    oper.opr.reg:=tempreg;
-                   oper.SetSize(tcgsize2size[cg.reg_cgsize(oper.opr.reg)],true);
+                   oper.SetSize(tcgsize2size[reg_cgsize(oper.opr.reg)],true);
                  end;
               end;
 
@@ -1779,23 +1781,19 @@ Unit Ra386int;
       end;
 
 
-    Procedure ti386intreader.BuildConstant(maxvalue: longint);
+    Procedure ti386intreader.BuildConstant(constsize: longint);
       var
        strlength: byte;
        asmsym,
        expr: string;
-       value : longint;
+       value : aint;
       Begin
         strlength:=0; { assume it is a DB }
         Repeat
           Case actasmtoken of
             AS_STRING:
               Begin
-                if maxvalue = $ffff then
-                  strlength:=2
-                else
-                  if maxvalue = longint($ffffffff) then
-                    strlength:=4;
+                strlength:=constsize;
                 { DD and DW cases }
                 if strlength <> 0 then
                  Begin
@@ -1824,12 +1822,12 @@ Unit Ra386int;
                 BuildConstSymbolExpression(false,false,value,asmsym);
                 if asmsym<>'' then
                  begin
-                   if maxvalue<>longint($ffffffff) then
+                   if constsize<>sizeof(aint) then
                      Message1(asmr_w_const32bit_for_address,asmsym);
                    ConcatConstSymbol(curlist,asmsym,value)
                  end
                 else
-                 ConcatConstant(curlist,value,maxvalue);
+                 ConcatConstant(curlist,value,constsize);
               end;
             AS_COMMA:
               Consume(AS_COMMA);
@@ -1891,7 +1889,7 @@ Unit Ra386int;
             Begin
               inexpression:=true;
               Consume(AS_DW);
-              BuildConstant($ffff);
+              BuildConstant(2);
               inexpression:=false;
             end;
 
@@ -1899,7 +1897,7 @@ Unit Ra386int;
             Begin
               inexpression:=true;
               Consume(AS_DB);
-              BuildConstant($ff);
+              BuildConstant(1);
               inexpression:=false;
             end;
 
@@ -1907,7 +1905,7 @@ Unit Ra386int;
             Begin
               inexpression:=true;
               Consume(AS_DD);
-              BuildConstant(longint($ffffffff));
+              BuildConstant(4);
               inexpression:=false;
             end;
 
@@ -1970,9 +1968,22 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2004-05-20 21:54:33  florian
+  Revision 1.73  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.72  2004/05/20 21:54:33  florian
     + <pointer> - <pointer> result is divided by the pointer element size now
       this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
+
+  Revision 1.71.2.3  2004/05/02 00:31:33  peter
+    * fixedi i386 compile
+
+  Revision 1.71.2.2  2004/05/01 23:36:47  peter
+    * assembler reader 64bit fixes
+
+  Revision 1.71.2.1  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
 
   Revision 1.71  2004/03/02 17:32:12  florian
     * make cycle fixed
@@ -2187,7 +2198,7 @@ end.
     * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
 
   Revision 1.23  2002/04/15 19:12:09  carl
-  + target_info.size_of_pointer -> pointer_size
+  + target_info.size_of_pointer -> sizeof(aint)
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units
     (where they are used)

@@ -41,6 +41,10 @@ unit paramgr;
 
        tvarargspara = class(tlinkedlist)
           varargsinfo : set of tvarargsinfo;
+{$ifdef x86_64}
+          { x86_64 requires %al to contain the no. SSE regs passed }
+          mmregsused  : longint;
+{$endif x86_64}
        end;
 
        {# This class defines some methods to take care of routine
@@ -177,7 +181,7 @@ implementation
           formaldef :
             result:=true;
           recorddef :
-            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (def.size>pointer_size);
+            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (def.size>sizeof(aint));
           arraydef :
             begin
               if (calloption in [pocall_cdecl,pocall_cppdecl]) then
@@ -189,7 +193,7 @@ implementation
                begin
                  result:=(
                           (tarraydef(def).highrange>=tarraydef(def).lowrange) and
-                          (def.size>pointer_size)
+                          (def.size>sizeof(aint))
                          ) or
                          is_open_array(def) or
                          is_array_of_const(def) or
@@ -223,10 +227,10 @@ implementation
           formaldef :
             copy_value_on_stack:=true;
           recorddef :
-            copy_value_on_stack:=(def.size>pointer_size);
+            copy_value_on_stack:=(def.size>sizeof(aint));
           arraydef :
             copy_value_on_stack:=(tarraydef(def).highrange>=tarraydef(def).lowrange) and
-                                 (def.size>pointer_size);
+                                 (def.size>sizeof(aint));
           objectdef :
             copy_value_on_stack:=is_object(def);
           stringdef :
@@ -246,12 +250,12 @@ implementation
         case varspez of
           vs_out,
           vs_var :
-            push_size:=pointer_size;
+            push_size:=sizeof(aint);
           vs_value,
           vs_const :
             begin
                 if push_addr_param(varspez,def,calloption) then
-                  push_size:=pointer_size
+                  push_size:=sizeof(aint)
                 else
                   begin
                     { special array are normally pushed by addr, only for
@@ -336,7 +340,7 @@ implementation
                 cg.getexplicitregister(list,loc.registerhigh);
             end;
           else
-            internalerror(200306091);
+            internalerror(200306092);
         end;
       end;
 
@@ -369,7 +373,7 @@ implementation
 {$endif cputargethasfixedstack}
             end;
           else
-            internalerror(200306091);
+            internalerror(200306093);
         end;
         case loc.lochigh of
           LOC_INVALID :
@@ -382,7 +386,7 @@ implementation
           LOC_CMMREGISTER :
             cg.ungetregister(list,loc.register);
           else
-            internalerror(200306091);
+            internalerror(200306094);
         end;
       end;
 
@@ -476,16 +480,18 @@ implementation
       end;
 
 
-   procedure tparamanager.alloctempparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var locpara:tparalocation);
-     var
-       href : treference;
-     begin
-       tg.gettemp(list,paraitem.paratype.def.size,tt_persistent,href);
-       locpara.loc:=LOC_REFERENCE;
-       locpara.lochigh:=LOC_INVALID;
-       locpara.reference.index:=href.base;
-       locpara.reference.offset:=href.offset;
-     end;
+    procedure tparamanager.alloctempparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var locpara:tparalocation);
+      var
+        href : treference;
+        l    : aint;
+      begin
+        l:=push_size(paraitem.paratyp,paraitem.paratype.def,calloption);
+        tg.gettemp(list,l,tt_persistent,href);
+        locpara.loc:=LOC_REFERENCE;
+        locpara.lochigh:=LOC_INVALID;
+        locpara.reference.index:=href.base;
+        locpara.reference.offset:=href.offset;
+      end;
 
 
     function tparamanager.create_inline_paraloc_info(p : tabstractprocdef):longint;
@@ -534,8 +540,28 @@ end.
 
 {
    $Log$
-   Revision 1.74  2004-04-18 15:22:24  florian
+   Revision 1.75  2004-06-16 20:07:09  florian
+     * dwarf branch merged
+
+   Revision 1.74  2004/04/18 15:22:24  florian
      + location support for arguments, currently PowerPC/MorphOS only
+
+   Revision 1.73.2.5  2004/05/03 20:18:52  peter
+     * fixes for tprintf
+
+   Revision 1.73.2.4  2004/05/02 20:20:59  florian
+     * started to fix callee side result value handling
+
+   Revision 1.73.2.3  2004/05/02 12:45:32  peter
+     * enabled cpuhasfixedstack for x86-64 again
+     * fixed size of temp allocation for parameters
+
+   Revision 1.73.2.2  2004/05/01 16:02:09  peter
+     * POINTER_SIZE replaced with sizeof(aint)
+     * aint,aword,tconst*int moved to globtype
+
+   Revision 1.73.2.1  2004/05/01 11:12:23  florian
+     * spilling of registers with size<>4 fixed
 
    Revision 1.73  2004/03/07 00:16:59  florian
      * compilation of arm rtl fixed
@@ -837,5 +863,4 @@ end.
    Revision 1.1  2002/07/11 14:41:28  florian
      * start of the new generic parameter handling
 }
-
 

@@ -112,7 +112,7 @@ Const
   HiGPReg = R_31;
 
   { sizes }
-  pointer_size  = 8;
+  sizeof(aint)  = 8;
   extended_size = 16;
 
   general_registers = [R_0..R_31];
@@ -283,7 +283,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2002-11-17 18:26:16  mazen
+  Revision 1.7  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.6.2.1  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.6  2002/11/17 18:26:16  mazen
   * fixed a compilation bug accmulator-->accumulator, in definition of return_result_reg
 
   Revision 1.5  2002/11/17 17:49:09  mazen

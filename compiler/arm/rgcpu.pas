@@ -29,7 +29,7 @@ unit rgcpu;
   interface
 
      uses
-       aasmbase,aasmtai,
+       aasmbase,aasmtai,aasmcpu,
        cgbase,
        cpubase,
        rgobj;
@@ -37,11 +37,11 @@ unit rgcpu;
      type
        trgcpu = class(trgobj)
          procedure add_cpu_interferences(p : tai);override;
-         procedure do_spill_read(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: word;
+         procedure do_spill_read(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
           const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
-         procedure do_spill_written(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: word;
+         procedure do_spill_written(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
           const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
-         procedure do_spill_readwritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: word;
+         procedure do_spill_readwritten(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
           const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
        end;
 
@@ -50,8 +50,7 @@ unit rgcpu;
     uses
       verbose, cutils,
       cgutils,cgobj,
-      procinfo,
-      aasmcpu;
+      procinfo;
 
 
     procedure trgcpu.add_cpu_interferences(p : tai);
@@ -64,7 +63,7 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.do_spill_read(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: word;
+    procedure trgcpu.do_spill_read(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
       var
         helpins: tai;
@@ -86,7 +85,10 @@ unit rgcpu;
             current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
 
             { load consts entry }
-            getregisterinline(helplist,nil,defaultsub,tmpreg);
+            if getregtype(regs[regidx].tempreg)=R_INTREGISTER then
+              getregisterinline(helplist,pos,defaultsub,tmpreg)
+            else
+              tmpreg:=cg.getintregister(helplist,OS_ADDR);
             tmpref.symbol:=l;
             tmpref.base:=NR_R15;
             helplist.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
@@ -96,34 +98,28 @@ unit rgcpu;
             ref.index:=tmpreg;
             ref.offset:=0;
 
-            helpins:=taicpu.op_reg_ref(A_LDR,regs[regidx].tempreg,ref);
+            helpins:=spilling_create_load(ref,regs[regidx].tempreg);
             helplist.concat(helpins);
             if pos=nil then
               list.insertlistafter(list.first,helplist)
             else
               list.insertlistafter(pos.next,helplist);
 
-            ungetregisterinline(helplist,tai(helplist.last),regs[regidx].tempreg);
+            ungetregisterinline(list,helpins,regs[regidx].tempreg);
 
-            ungetregisterinline(list,instr,regs[regidx].tempreg);
+            if getregtype(regs[regidx].tempreg)=R_INTREGISTER then
+              ungetregisterinline(list,helpins,tmpreg);
+
             forward_allocation(tai(helpins.next),instr);
 
             helplist.free;
           end
         else
-          begin
-            helpins:=taicpu.op_reg_ref(A_LDR,regs[regidx].tempreg,ref);
-            if pos=nil then
-              list.insertafter(helpins,list.first)
-            else
-              list.insertafter(helpins,pos.next);
-            ungetregisterinline(list,instr,regs[regidx].tempreg);
-            forward_allocation(tai(helpins.next),instr);
-          end;
+          inherited do_spill_read(list,instr,pos,regidx,spilltemplist,regs);
       end;
 
 
-    procedure trgcpu.do_spill_written(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: word;
+    procedure trgcpu.do_spill_written(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
       const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
       var
         helpins: tai;
@@ -145,7 +141,10 @@ unit rgcpu;
             current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
 
             { load consts entry }
-            getregisterinline(helplist,nil,defaultsub,tmpreg);
+            if getregtype(regs[regidx].tempreg)=R_INTREGISTER then
+              getregisterinline(helplist,pos,defaultsub,tmpreg)
+            else
+              tmpreg:=cg.getintregister(helplist,OS_ADDR);
             tmpref.symbol:=l;
             tmpref.base:=NR_R15;
             helplist.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
@@ -155,36 +154,33 @@ unit rgcpu;
             ref.index:=tmpreg;
             ref.offset:=0;
 
-            helplist.concat(taicpu.op_reg_ref(A_STR,regs[regidx].tempreg,ref));
+            helplist.concat(spilling_create_store(regs[regidx].tempreg,ref));
             ungetregisterinline(helplist,tai(helplist.last),regs[regidx].tempreg);
-            ungetregisterinline(helplist,tai(helplist.last),tmpreg);
+            if getregtype(regs[regidx].tempreg)=R_INTREGISTER then
+              ungetregisterinline(helplist,tai(helplist.last),tmpreg);
 
             list.insertlistafter(instr,helplist);
 
             helplist.free;
           end
         else
-          begin
-            helpins:=taicpu.op_reg_ref(A_STR,regs[regidx].tempreg,ref);
-            list.insertafter(helpins,instr);
-            ungetregisterinline(list,helpins,regs[regidx].tempreg);
-          end;
+          inherited do_spill_written(list,instr,pos,regidx,spilltemplist,regs);
       end;
 
 
-    procedure trgcpu.do_spill_readwritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: word;
+    procedure trgcpu.do_spill_readwritten(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
       const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
       var
         helpins1, helpins2: tai;
         tmpref,ref : treference;
+        helplist : taasmoutput;
+        l : tasmlabel;
         tmpreg : tregister;
-
       begin
         ref:=spilltemplist[regs[regidx].orgreg];
-        internalerror(200403141);
-        {
         if abs(ref.offset)>4095 then
           begin
+            helplist:=taasmoutput.create;
             reference_reset(tmpref);
             { create consts entry }
             objectlibrary.getlabel(l);
@@ -194,35 +190,59 @@ unit rgcpu;
             current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
 
             { load consts entry }
-            getregisterinline(list,pos,defaultsub,tmpreg);
+            if getregtype(regs[regidx].tempreg)=R_INTREGISTER then
+              getregisterinline(helplist,pos,defaultsub,tmpreg)
+            else
+              tmpreg:=cg.getintregister(helplist,OS_ADDR);
             tmpref.symbol:=l;
             tmpref.base:=NR_R15;
-            list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
+            helplist.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
 
             if ref.index<>NR_NO then
               internalerror(200401263);
             ref.index:=tmpreg;
             ref.offset:=0;
-          end;
-        }
-        helpins1:=taicpu.op_reg_ref(A_LDR,regs[regidx].tempreg,ref);
-        if pos=nil then
-          list.insertafter(helpins1,list.first)
+
+            helpins1:=spilling_create_load(ref,regs[regidx].tempreg);
+            helplist.concat(helpins1);
+            if pos=nil then
+              list.insertlistafter(list.first,helplist)
+            else
+              list.insertlistafter(pos.next,helplist);
+
+            helpins2:=spilling_create_store(regs[regidx].tempreg,ref);
+            list.insertafter(helpins2,instr);
+            ungetregisterinline(list,helpins2,regs[regidx].tempreg);
+
+            if getregtype(regs[regidx].tempreg)=R_INTREGISTER then
+              ungetregisterinline(list,helpins2,tmpreg);
+
+            forward_allocation(tai(helpins1.next),instr);
+          end
         else
-          list.insertafter(helpins1,pos.next);
-        ref:=spilltemplist[regs[regidx].orgreg];
-        ref.symboldata:=nil;
-        helpins2:=taicpu.op_reg_ref(A_STR,regs[regidx].tempreg,ref);
-        list.insertafter(helpins2,instr);
-        ungetregisterinline(list,helpins2,regs[regidx].tempreg);
-        forward_allocation(tai(helpins1.next),instr);
+          inherited do_spill_readwritten(list,instr,pos,regidx,spilltemplist,regs);
       end;
 
 end.
 
 {
   $Log$
-  Revision 1.10  2004-03-14 16:15:40  florian
+  Revision 1.11  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.10.2.4  2004/06/13 20:38:38  florian
+    * fixed floating point register spilling on sparc
+
+  Revision 1.10.2.3  2004/06/13 16:02:39  florian
+    * fixed floating point register spilling problems with offsets > 4095
+
+  Revision 1.10.2.2  2004/06/13 10:51:17  florian
+    * fixed several register allocator problems (sparc/arm)
+
+  Revision 1.10.2.1  2004/06/12 17:01:01  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.10  2004/03/14 16:15:40  florian
     * spilling problem fixed
     * handling of floating point memory references fixed
 

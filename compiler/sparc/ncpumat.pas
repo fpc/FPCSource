@@ -49,13 +49,13 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symdef,
+      symconst,
       aasmbase,aasmcpu,aasmtai,
       defutil,
-      cgbase,cgobj,pass_1,pass_2,
+      cgbase,cgobj,pass_2,
       ncon,
-      cpubase,cpuinfo,
-      ncgutil,cgcpu,cg64f32,rgobj;
+      cpubase,
+      ncgutil,cgcpu;
 
 {*****************************************************************************
                              TSparcMODDIVNODE
@@ -65,16 +65,16 @@ implementation
       const
                     { signed   overflow }
         divops: array[boolean, boolean] of tasmop =
-          ((A_SDIV,A_UDIV),(A_SDIVcc,A_UDIVcc));
+          ((A_UDIV,A_UDIVcc),(A_SDIV,A_SDIVcc));
       var
-         power,
-         l1, l2     : longint;
+         power      : longint;
          op         : tasmop;
          tmpreg,
          numerator,
          divider,
          resultreg  : tregister;
-
+         overflowlabel : tasmlabel;
+         ai : taicpu;
       begin
          secondpass(left);
          secondpass(right);
@@ -84,15 +84,18 @@ implementation
          location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
          location_copy(location,left.location);
          numerator := location.register;
-         resultreg := location.register;
-         if (location.loc = LOC_CREGISTER) then
+
+         if (nodetype = modn) then
+           resultreg := cg.GetIntRegister(exprasmlist,OS_INT)
+         else
            begin
-             location.loc := LOC_REGISTER;
-             location.register := cg.GetIntRegister(exprasmlist,OS_INT);
+             if (location.loc = LOC_CREGISTER) then
+               begin
+                 location.loc := LOC_REGISTER;
+                 location.register := cg.GetIntRegister(exprasmlist,OS_INT);
+               end;
              resultreg := location.register;
            end;
-         if (nodetype = modn) then
-           resultreg := cg.GetIntRegister(exprasmlist,OS_INT);
 
          if (nodetype = divn) and
             (right.nodetype = ordconstn) and
@@ -117,17 +120,35 @@ implementation
              { needs overflow checking, (-maxlongint-1) div (-1) overflows! }
              { And on Sparc, the only way to catch a div-by-0 is by checking  }
              { the overflow flag (JM)                                       }
+
+             { Fill %y with the -1 or 0 depending on the highest bit }
+             if is_signed(left.resulttype.def) then
+               begin
+                 tmpreg:=cg.GetIntRegister(exprasmlist,OS_INT);
+                 exprasmlist.concat(taicpu.op_reg_const_reg(A_SRA,numerator,31,tmpreg));
+                 exprasmlist.concat(taicpu.op_reg_reg(A_MOV,tmpreg,NR_Y));
+               end
+             else
+               exprasmlist.concat(taicpu.op_reg_reg(A_MOV,NR_G0,NR_Y));
+             { wait 3 instructions slots before we can read %y }
+             exprasmlist.concat(taicpu.op_none(A_NOP));
+             exprasmlist.concat(taicpu.op_none(A_NOP));
+             exprasmlist.concat(taicpu.op_none(A_NOP));
+
              op := divops[is_signed(right.resulttype.def),
                           cs_check_overflow in aktlocalswitches];
              exprasmlist.concat(taicpu.op_reg_reg_reg(op,numerator,divider,resultreg));
 
              if (nodetype = modn) then
                begin
+                 objectlibrary.getlabel(overflowlabel);
+                 ai:=taicpu.op_cond_sym(A_Bxx,C_O,overflowlabel);
+                 ai.delayslot_annulled:=true;
+                 exprasmlist.concat(ai);
+                 exprasmlist.concat(taicpu.op_reg(A_NOT,resultreg));
+                 cg.a_label(exprasmlist,overflowlabel);
                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_SMUL,resultreg,divider,resultreg));
-                 cg.UngetRegister(exprasmlist,divider);
-                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,numerator,resultreg));
-                 cg.UngetRegister(exprasmlist,resultreg);
-                 resultreg := location.register;
+                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,numerator,resultreg,resultreg));
                end
              else
                cg.UngetRegister(exprasmlist,divider);
@@ -146,122 +167,115 @@ implementation
                              TSparcSHLRSHRNODE
 *****************************************************************************}
 
-function TSparcShlShrNode.first_shlshr64bitint:TNode;
-  begin
-    result := nil;
-  end;
+    function TSparcShlShrNode.first_shlshr64bitint:TNode;
+      begin
+        { 64bit without constants need a helper }
+        if is_64bit(left.resulttype.def) and
+           (right.nodetype<>ordconstn) then
+          begin
+            result:=inherited first_shlshr64bitint;
+            exit;
+          end;
 
-procedure tSparcshlshrnode.pass_2;
-  var
-    resultreg, hregister1,hregister2,
-    hregisterhigh,hregisterlow : tregister;
-    op : topcg;
-    asmop1, asmop2: tasmop;
-    shiftval: aword;
-    r:Tregister;
-  begin
-    secondpass(left);
-    secondpass(right);
-    if is_64bitint(left.resulttype.def)
-    then
+        result := nil;
+      end;
+
+
+    procedure tSparcshlshrnode.pass_2;
+      var
+        hregister,resultreg,hregister1,
+        hregisterhigh,hregisterlow : tregister;
+        op : topcg;
+        shiftval: aword;
       begin
-        location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
-        location_copy(location,left.location);
-        hregisterhigh := location.registerhigh;
-        hregisterlow := location.registerlow;
-        if (location.loc = LOC_CREGISTER) then
+        { 64bit without constants need a helper, and is
+          already replaced in pass1 }
+        if is_64bit(left.resulttype.def) and
+           (right.nodetype<>ordconstn) then
+          internalerror(200405301);
+
+        secondpass(left);
+        secondpass(right);
+        if is_64bit(left.resulttype.def) then
           begin
-            location.loc := LOC_REGISTER;
-            location.registerhigh := cg.GetIntRegister(exprasmlist,OS_INT);
-            location.registerlow := cg.GetIntRegister(exprasmlist,OS_INT);
-          end;
-        if (right.nodetype = ordconstn) then
-          begin
-            shiftval := tordconstnode(right).value;
-            if tordconstnode(right).value > 31 then
+            location_reset(location,LOC_REGISTER,OS_64);
+
+            { load left operator in a register }
+            location_force_reg(exprasmlist,left.location,OS_64,false);
+            hregisterhigh:=left.location.registerhigh;
+            hregisterlow:=left.location.registerlow;
+
+            shiftval := tordconstnode(right).value and 63;
+            if shiftval > 31 then
               begin
                 if nodetype = shln then
                   begin
                     if (shiftval and 31) <> 0 then
-                      cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,shiftval and 31,hregisterlow,location.registerhigh);
-                    cg.a_load_const_reg(exprasmlist,OS_32,0,location.registerlow);
+                      cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,shiftval and 31,hregisterlow,hregisterhigh);
+                    cg.a_load_const_reg(exprasmlist,OS_32,0,hregisterlow);
                   end
                 else
                   begin
                     if (shiftval and 31) <> 0 then
-                      cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval and 31,hregisterhigh,location.registerlow);
-                    cg.a_load_const_reg(exprasmlist,OS_32,0,location.registerhigh);
+                      cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval and 31,hregisterhigh,hregisterlow);
+                    cg.a_load_const_reg(exprasmlist,OS_32,0,hregisterhigh);
                   end;
+                location.registerhigh:=hregisterlow;
+                location.registerlow:=hregisterhigh;
               end
             else
               begin
-{$warning TODO shl 64bit const}
+                hregister:=cg.getintregister(exprasmlist,OS_32);
                 if nodetype = shln then
                   begin
-                    {exprasmlist.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,location.registerhigh,hregisterhigh,shiftval,0,31-shiftval));
-                    exprasmlist.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,location.registerhigh,hregisterlow,shiftval,32-shiftval,31));
-                    exprasmlist.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,location.registerlow,hregisterlow,shiftval,0,31-shiftval));}
+                    cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,32-shiftval,hregisterlow,hregister);
+                    cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,shiftval,hregisterhigh,hregisterhigh);
+                    cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hregister,hregisterhigh,hregisterhigh);
+                    cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,shiftval,hregisterlow,hregisterlow);
                   end
                 else
                   begin
-                    {exprasmlist.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,location.registerlow,hregisterlow,32-shiftval,shiftval,31));
-                    exprasmlist.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,location.registerlow,hregisterhigh,32-shiftval,0,shiftval-1));
-                    exprasmlist.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,location.registerhigh,hregisterhigh,32-shiftval,shiftval,31));}
+                    cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,32-shiftval,hregisterhigh,hregister);
+                    cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval,hregisterlow,hregisterlow);
+                    cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hregister,hregisterlow,hregisterlow);
+                    cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval,hregisterhigh,hregisterhigh);
                   end;
+                location.registerhigh:=hregisterhigh;
+                location.registerlow:=hregisterlow;
               end;
           end
         else
-          { no constant shiftcount }
           begin
-            location_force_reg(exprasmlist,right.location,OS_S32,true);
-            hregister1 := right.location.register;
-            if nodetype = shln then
+            { load left operators in a register }
+            location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
+            location_copy(location,left.location);
+            resultreg := location.register;
+            hregister1 := location.register;
+            if (location.loc = LOC_CREGISTER) then
               begin
-                asmop1 := A_SLL;
-                asmop2 := A_SRL;
+                location.loc := LOC_REGISTER;
+                resultreg := cg.GetIntRegister(exprasmlist,OS_INT);
+                location.register := resultreg;
+              end;
+            { determine operator }
+            if nodetype=shln then
+              op:=OP_SHL
+            else
+              op:=OP_SHR;
+            { shifting by a constant directly coded: }
+            if (right.nodetype=ordconstn) then
+              begin
+                if tordconstnode(right).value and 31<>0 then
+                  cg.a_op_const_reg_reg(exprasmlist,op,OS_32,tordconstnode(right).value and 31,hregister1,resultreg)
               end
             else
               begin
-                asmop1 := A_SRL;
-                asmop2 := A_SLL;
-                resultreg := location.registerhigh;
-                location.registerhigh := location.registerlow;
-                location.registerlow := resultreg;
+                { load shift count in a register if necessary }
+                location_force_reg(exprasmlist,right.location,def_cgsize(right.resulttype.def),true);
+                cg.a_op_reg_reg_reg(exprasmlist,op,OS_32,right.location.register,hregister1,resultreg);
               end;
-{$warning TODO shl 64bit no-const}
-          end
-      end
-    else
-      begin
-        { load left operators in a register }
-        location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
-        location_copy(location,left.location);
-        resultreg := location.register;
-        hregister1 := location.register;
-        if (location.loc = LOC_CREGISTER) then
-          begin
-            location.loc := LOC_REGISTER;
-            resultreg := cg.GetIntRegister(exprasmlist,OS_INT);
-            location.register := resultreg;
-          end;
-        { determine operator }
-        if nodetype=shln then
-          op:=OP_SHL
-        else
-          op:=OP_SHR;
-        { shifting by a constant directly coded: }
-        if (right.nodetype=ordconstn) then
-          cg.a_op_const_reg_reg(exprasmlist,op,OS_32,tordconstnode(right).value and 31,hregister1,resultreg)
-        else
-          begin
-            { load shift count in a register if necessary }
-            location_force_reg(exprasmlist,right.location,def_cgsize(right.resulttype.def),true);
-            hregister2 := right.location.register;
-            cg.a_op_reg_reg_reg(exprasmlist,op,OS_32,hregister2,hregister1,resultreg);
-            cg.UngetRegister(exprasmlist,hregister2);
           end;
       end;
-  end;
 
 
 {*****************************************************************************
@@ -318,7 +332,19 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2003-10-24 11:33:30  mazen
+  Revision 1.17  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.16.2.3  2004/05/30 17:07:08  peter
+    * fix shl shr for sparc
+
+  Revision 1.16.2.2  2004/05/30 13:45:36  florian
+    * fixed unsigned division
+
+  Revision 1.16.2.1  2004/05/27 23:35:12  peter
+    * div fixed
+
+  Revision 1.16  2003/10/24 11:33:30  mazen
   *fixes related to removal of rg
 
   Revision 1.15  2003/10/01 20:34:50  peter

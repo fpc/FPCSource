@@ -1018,7 +1018,7 @@ implementation
         resulttype:=restype;
         { check if it's valid }
         if restype.def.deftype = errordef then
-          CGMessage(cg_e_illegal_expression);
+          CGMessage(parser_e_illegal_expression);
       end;
 
 
@@ -1137,8 +1137,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.126  2004-04-29 19:56:37  daniel
+  Revision 1.127  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.126  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.125.2.1  2004/04/28 19:55:51  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
 
   Revision 1.125  2004/03/02 17:32:12  florian
     * make cycle fixed

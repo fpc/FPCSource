@@ -28,9 +28,9 @@ interface
 
     uses
        cclasses,
-       globals,
+       globtype,globals,
        symconst,symbase,symtype,symdef,
-       cgbase,cpuinfo,cpubase;
+       cgbase,cpubase;
 
     type
        tmmxtype = (mmxno,mmxu8bit,mmxs8bit,mmxu16bit,mmxs16bit,
@@ -56,9 +56,6 @@ interface
 
     {# Returns true, if definition defines an integer type }
     function is_integer(def : tdef) : boolean;
-
-    { true if p is a 32bit int i.e. dword or longint }
-    function is_32bitint(def : tdef) : boolean;
 
     {# Returns true if definition is a boolean }
     function is_boolean(def : tdef) : boolean;
@@ -173,6 +170,9 @@ interface
     {# Returns true, if def is an extended type }
     function is_extended(def : tdef) : boolean;
 
+    {# Returns true, if def is a 32 bit integer type }
+    function is_32bitint(def : tdef) : boolean;
+
     {# Returns true, if def is a 64 bit integer type }
     function is_64bitint(def : tdef) : boolean;
 
@@ -203,7 +203,7 @@ interface
 implementation
 
     uses
-       globtype,tokens,systems,verbose;
+       tokens,systems,verbose;
 
     { returns true, if def uses FPU }
     function is_fpu(def : tdef) : boolean;
@@ -339,14 +339,6 @@ implementation
         is_integer:=(def.deftype=orddef) and
                     (torddef(def).typ in [u8bit,u16bit,u32bit,u64bit,
                                           s8bit,s16bit,s32bit,s64bit]);
-      end;
-
-
-    { true if p is a 32bit int i.e. dword or longint }
-    function is_32bitint(def : tdef) : boolean;
-      begin
-        is_32bitint:=(def.deftype=orddef) and
-                    (torddef(def).typ in [u32bit,s32bit]);
       end;
 
 
@@ -606,6 +598,13 @@ implementation
       begin
         is_smallset:=(p.deftype=setdef) and
                      (tsetdef(p).settype=smallset);
+      end;
+
+
+    { true, if def is a 32 bit int type }
+    function is_32bitint(def : tdef) : boolean;
+      begin
+         result:=(def.deftype=orddef) and (torddef(def).typ in [u32bit,s32bit])
       end;
 
 
@@ -905,7 +904,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2004-05-28 21:13:23  peter
+  Revision 1.16  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.15  2004/05/28 21:13:23  peter
     * prefer signed constants over unsigned
 
   Revision 1.14  2004/05/01 22:05:01  florian
@@ -913,6 +915,13 @@ end.
 
   Revision 1.13  2004/04/29 19:56:36  daniel
     * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.12.2.2  2004/05/03 16:27:38  peter
+    * fixed shl for x86-64
+
+  Revision 1.12.2.1  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
 
   Revision 1.12  2004/03/29 14:44:10  peter
     * fixes to previous constant integer commit
@@ -1106,7 +1115,7 @@ end.
     * moved more routines from cga/n386util
 
   Revision 1.68  2002/04/15 19:08:22  carl
-  + target_info.size_of_pointer -> pointer_size
+  + target_info.size_of_pointer -> sizeof(aint)
   + some cleanup of unused types/variables
 
   Revision 1.67  2002/04/07 13:40:29  carl

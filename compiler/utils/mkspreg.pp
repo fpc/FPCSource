@@ -29,7 +29,8 @@ var s : string;
     regtypes,
     numbers,
     stdnames,
-    stabs : array[0..max_regcount-1] of string[63];
+    stabs,
+    dwarfs : array[0..max_regcount-1] of string[63];
     regnumber_index,
     std_regname_index : array[0..max_regcount-1] of byte;
 
@@ -204,6 +205,8 @@ begin
         stdnames[regcount]:=readstr;
         readcomma;
         stabs[regcount]:=readstr;
+        readcomma;
+        dwarfs[regcount]:=readstr;
         { Create register number }
         if supregs[regcount][1]<>'$' then
           begin
@@ -232,7 +235,7 @@ procedure write_inc_files;
 
 var
     norfile,stdfile,supfile,
-    numfile,stabfile,confile,
+    numfile,stabfile,dwarffile,confile,
     rnifile,srifile:text;
     first:boolean;
 
@@ -243,6 +246,7 @@ begin
   openinc(numfile,'rspnum.inc');
   openinc(stdfile,'rspstd.inc');
   openinc(stabfile,'rspstab.inc');
+  openinc(dwarffile,'rspdwrf.inc');
   openinc(norfile,'rspnor.inc');
   openinc(rnifile,'rsprni.inc');
   openinc(srifile,'rspsri.inc');
@@ -254,6 +258,7 @@ begin
           writeln(numfile,',');
           writeln(stdfile,',');
           writeln(stabfile,',');
+          writeln(dwarffile,',');
           writeln(rnifile,',');
           writeln(srifile,',');
         end
@@ -264,6 +269,7 @@ begin
       write(numfile,'NR_',names[i]);
       write(stdfile,'''',stdnames[i],'''');
       write(stabfile,stabs[i]);
+      write(dwarffile,dwarfs[i]);
       write(rnifile,regnumber_index[i]);
       write(srifile,std_regname_index[i]);
     end;
@@ -273,6 +279,7 @@ begin
   closeinc(numfile);
   closeinc(stdfile);
   closeinc(stabfile);
+  closeinc(dwarffile);
   closeinc(norfile);
   closeinc(rnifile);
   closeinc(srifile);
@@ -295,7 +302,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2004-01-12 16:39:41  peter
+  Revision 1.6  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.5.2.1  2004/05/11 21:07:21  peter
+    * dwarf reg
+
+  Revision 1.5  2004/01/12 16:39:41  peter
     * sparc updates, mostly float related
 
   Revision 1.4  2003/09/03 20:33:28  peter

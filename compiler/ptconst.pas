@@ -66,9 +66,10 @@ implementation
       var
          len,base  : longint;
          p,hp,hpstart : tnode;
-         i,j,l,offset,
-         varalign,
-         strlength : longint;
+         i,j,l,
+         varalign  : longint;
+         offset,
+         strlength : aint;
          curconstsegment : TAAsmoutput;
          ll        : tasmlabel;
          s,sorg    : string;
@@ -116,28 +117,28 @@ implementation
                          if is_constboolnode(p) then
                            curconstSegment.concat(Tai_const.Create_8bit(byte(tordconstnode(p).value)))
                          else
-                           Message(cg_e_illegal_expression);
+                           Message(parser_e_illegal_expression);
                       end;
                     bool16bit :
                       begin
                          if is_constboolnode(p) then
                            curconstSegment.concat(Tai_const.Create_16bit(word(tordconstnode(p).value)))
                          else
-                           Message(cg_e_illegal_expression);
+                           Message(parser_e_illegal_expression);
                       end;
                     bool32bit :
                       begin
                          if is_constboolnode(p) then
                            curconstSegment.concat(Tai_const.Create_32bit(cardinal(tordconstnode(p).value)))
                          else
-                           Message(cg_e_illegal_expression);
+                           Message(parser_e_illegal_expression);
                       end;
                     uchar :
                       begin
                          if is_constcharnode(p) then
                            curconstSegment.concat(Tai_const.Create_8bit(byte(tordconstnode(p).value)))
                          else
-                           Message(cg_e_illegal_expression);
+                           Message(parser_e_illegal_expression);
                       end;
                     uwidechar :
                       begin
@@ -146,7 +147,7 @@ implementation
                          if is_constwidecharnode(p) then
                            curconstSegment.concat(Tai_const.Create_16bit(word(tordconstnode(p).value)))
                          else
-                           Message(cg_e_illegal_expression);
+                           Message(parser_e_illegal_expression);
                       end;
                     s8bit,
                     u8bit :
@@ -157,7 +158,7 @@ implementation
                               check_range(torddef(t.def));
                            end
                          else
-                           Message(cg_e_illegal_expression);
+                           Message(parser_e_illegal_expression);
                       end;
                     u16bit,
                     s16bit :
@@ -168,7 +169,7 @@ implementation
                              check_range(torddef(t.def));
                            end
                          else
-                           Message(cg_e_illegal_expression);
+                           Message(parser_e_illegal_expression);
                      end;
                     s32bit,
                     u32bit :
@@ -180,7 +181,7 @@ implementation
                                check_range(torddef(t.def));
                            end
                          else
-                           Message(cg_e_illegal_expression);
+                           Message(parser_e_illegal_expression);
                       end;
                     s64bit,
                     u64bit,
@@ -188,29 +189,23 @@ implementation
                       begin
                          if is_constintnode(p) then
                            intvalue := tordconstnode(p).value
-{$ifndef VER1_0}
                          else if is_constrealnode(p) and
-                                 (torddef(t.def).typ = scurrency) and
-                                 (trealconstnode(p).value_real*10000 >= low(int64)) and
-                                 (trealconstnode(p).value_real*10000 <= high(int64)) then
-                             intvalue := round(trealconstnode(p).value_real*10000)
+                                 (torddef(t.def).typ=scurrency)
+                           { allow bootstrapping }
+{$ifndef VER1_0}
+                                 and (trealconstnode(p).value_real*10000 >= low(int64)) and
+                                 (trealconstnode(p).value_real*10000 <= high(int64))
 {$endif ndef VER1_0}
+                           then
+                             begin
+                               intvalue:=round(trealconstnode(p).value_real*10000);
+                             end
                          else
                            begin
-                             intvalue := 0;
-                             Message(cg_e_illegal_expression);
+                             intvalue:=0;
+                             Message(parser_e_illegal_expression);
                            end;
-{$warning maybe change to create_64bit}
-                        if target_info.endian = endian_little then
-                          begin
-                            curconstSegment.concat(Tai_const.Create_32bit(Cardinal(intvalue and $ffffffff)));
-                            curconstSegment.concat(Tai_const.Create_32bit(Cardinal(intvalue shr 32)));
-                          end
-                        else
-                          begin
-                            curconstSegment.concat(Tai_const.Create_32bit(Cardinal(intvalue shr 32)));
-                            curconstSegment.concat(Tai_const.Create_32bit(Cardinal(intvalue and $ffffffff)));
-                          end;
+                        curconstSegment.concat(Tai_const.Create_64bit(intvalue));
                       end;
                     else
                       internalerror(3799);
@@ -225,7 +220,7 @@ implementation
               else if is_constintnode(p) then
                 value:=tordconstnode(p).value
               else
-                Message(cg_e_illegal_expression);
+                Message(parser_e_illegal_expression);
 
               case tfloatdef(t.def).typ of
                  s32real :
@@ -267,13 +262,13 @@ implementation
                    with Tclassrefdef(p.resulttype.def) do
                      begin
                         if not Tobjectdef(pointertype.def).is_related(Tobjectdef(pointertype.def)) then
-                          message(cg_e_illegal_expression);
-                        curconstSegment.concat(Tai_const_symbol.Create(objectlibrary.newasmsymbol(
+                          message(parser_e_illegal_expression);
+                        curconstSegment.concat(Tai_const.Create_sym(objectlibrary.newasmsymbol(
                           Tobjectdef(pointertype.def).vmt_mangledname,AB_EXTERNAL,AT_DATA)));
                      end;
                  niln:
-                   curconstSegment.concat(Tai_const.Create_ptr(0));
-                 else Message(cg_e_illegal_expression);
+                   curconstSegment.concat(Tai_const.Create_sym(nil));
+                 else Message(parser_e_illegal_expression);
               end;
               p.free;
            end;
@@ -301,17 +296,25 @@ implementation
                    end;
               { const pointer ? }
               if (p.nodetype = pointerconstn) then
-                curconstsegment.concat(Tai_const.Create_ptr(TConstPtrUInt(tpointerconstnode(p).value)))
+                begin
+                  if sizeof(TConstPtrUInt)=8 then
+                    curconstsegment.concat(Tai_const.Create_64bit(TConstPtrUInt(tpointerconstnode(p).value)))
+                  else
+                    if sizeof(TConstPtrUInt)=4 then
+                      curconstsegment.concat(Tai_const.Create_32bit(TConstPtrUInt(tpointerconstnode(p).value)))
+                  else
+                    internalerror(200404122);
+                end
               { nil pointer ? }
               else if p.nodetype=niln then
-                curconstSegment.concat(Tai_const.Create_ptr(0))
+                curconstSegment.concat(Tai_const.Create_sym(nil))
               { maybe pchar ? }
               else
                 if is_char(tpointerdef(t.def).pointertype.def) and
                    (p.nodetype<>addrn) then
                   begin
                     objectlibrary.getdatalabel(ll);
-                    curconstSegment.concat(Tai_const_symbol.Create(ll));
+                    curconstSegment.concat(Tai_const.Create_sym(ll));
                     if p.nodetype=stringconstn then
                      varalign:=tstringconstnode(p).len
                     else
@@ -334,7 +337,7 @@ implementation
                       if is_constcharnode(p) then
                         Consts.concat(Tai_string.Create(char(byte(tordconstnode(p).value))+#0))
                     else
-                      Message(cg_e_illegal_expression);
+                      Message(parser_e_illegal_expression);
                 end
               { maybe pwidechar ? }
               else
@@ -342,8 +345,8 @@ implementation
                    (p.nodetype<>addrn) then
                   begin
                     objectlibrary.getdatalabel(ll);
-                    curconstSegment.concat(Tai_const_symbol.Create(ll));
-                    Consts.concat(tai_align.create(const_align(pointer_size)));
+                    curconstSegment.concat(Tai_const.Create_sym(ll));
+                    Consts.concat(tai_align.create(const_align(sizeof(aint))));
                     Consts.concat(Tai_label.Create(ll));
                     if (p.nodetype in [stringconstn,ordconstn]) then
                       begin
@@ -360,7 +363,7 @@ implementation
                          end;
                       end
                     else
-                      Message(cg_e_illegal_expression);
+                      Message(parser_e_illegal_expression);
                 end
               else
                 if p.nodetype=addrn then
@@ -409,17 +412,17 @@ implementation
                                           base:=tarraydef(tvecnode(hp).left.resulttype.def).lowrange;
                                        end
                                      else
-                                       Message(cg_e_illegal_expression);
+                                       Message(parser_e_illegal_expression);
                                    end;
                                    if is_constintnode(tvecnode(hp).right) then
                                      inc(offset,len*(get_ordinal_value(tvecnode(hp).right)-base))
                                    else
-                                     Message(cg_e_illegal_expression);
+                                     Message(parser_e_illegal_expression);
                                  end;
                                subscriptn :
                                  inc(offset,tsubscriptnode(hp).vs.fieldoffset)
                                else
-                                 Message(cg_e_illegal_expression);
+                                 Message(parser_e_illegal_expression);
                              end;
                              hp:=tbinarynode(hp).left;
                           end;
@@ -432,18 +435,18 @@ implementation
                               if po_abstractmethod in tprocsym(srsym).first_procdef.procoptions then
                                 Message(type_e_cant_take_address_of_abstract_method)
                               else
-                                curconstSegment.concat(Tai_const_symbol.Createname(tprocsym(srsym).first_procdef.mangledname,AT_FUNCTION,offset));
+                                curconstSegment.concat(Tai_const.Createname(tprocsym(srsym).first_procdef.mangledname,AT_FUNCTION,offset));
                             end;
                           varsym :
-                            curconstSegment.concat(Tai_const_symbol.Createname(tvarsym(srsym).mangledname,AT_DATA,offset));
+                            curconstSegment.concat(Tai_const.Createname(tvarsym(srsym).mangledname,AT_DATA,offset));
                           typedconstsym :
-                            curconstSegment.concat(Tai_const_symbol.Createname(ttypedconstsym(srsym).mangledname,AT_DATA,offset));
+                            curconstSegment.concat(Tai_const.Createname(ttypedconstsym(srsym).mangledname,AT_DATA,offset));
                           else
                             Message(type_e_variable_id_expected);
                         end;
                       end
                     else
-                      Message(cg_e_illegal_expression);
+                      Message(parser_e_illegal_expression);
                   end
               else
               { allow typeof(Object type)}
@@ -452,14 +455,14 @@ implementation
                   begin
                     if (tinlinenode(p).left.nodetype=typen) then
                       begin
-                        curconstSegment.concat(Tai_const_symbol.createname(
+                        curconstSegment.concat(Tai_const.createname(
                           tobjectdef(tinlinenode(p).left.resulttype.def).vmt_mangledname,AT_DATA,0));
                       end
                     else
-                      Message(cg_e_illegal_expression);
+                      Message(parser_e_illegal_expression);
                   end
               else
-                Message(cg_e_illegal_expression);
+                Message(parser_e_illegal_expression);
               p.free;
            end;
          setdef:
@@ -472,7 +475,7 @@ implementation
                    inserttypeconv(p,t);
                    { we only allow const sets }
                    if assigned(tsetconstnode(p).left) then
-                     Message(cg_e_illegal_expression)
+                     Message(parser_e_illegal_expression)
                    else
                      begin
                         { this writing is endian independant   }
@@ -500,7 +503,7 @@ implementation
                      end;
                 end
               else
-                Message(cg_e_illegal_expression);
+                Message(parser_e_illegal_expression);
               p.free;
            end;
          enumdef:
@@ -514,14 +517,14 @@ implementation
                      case p.resulttype.def.size of
                        1 : curconstSegment.concat(Tai_const.Create_8bit(Byte(tordconstnode(p).value)));
                        2 : curconstSegment.concat(Tai_const.Create_16bit(Word(tordconstnode(p).value)));
-                       4 : curconstSegment.concat(Tai_const.Create_32bit(Cardinal(tordconstnode(p).value)));
+                       4 : curconstSegment.concat(Tai_const.Create_32bit(Longint(tordconstnode(p).value)));
                      end;
                    end
                   else
                    IncompatibleTypes(p.resulttype.def,t.def);
                 end
               else
-                Message(cg_e_illegal_expression);
+                Message(parser_e_illegal_expression);
               p.free;
            end;
          stringdef:
@@ -551,7 +554,7 @@ implementation
                 end
               else
                 begin
-                  Message(cg_e_illegal_expression);
+                  Message(parser_e_illegal_expression);
                   strlength:=-1;
                 end;
               if strlength>=0 then
@@ -617,20 +620,20 @@ implementation
                      begin
                         { an empty ansi string is nil! }
                         if (strlength=0) then
-                          curconstSegment.concat(Tai_const.Create_ptr(0))
+                          curconstSegment.concat(Tai_const.Create_sym(nil))
                         else
                           begin
                             objectlibrary.getdatalabel(ll);
-                            curconstSegment.concat(Tai_const_symbol.Create(ll));
+                            curconstSegment.concat(Tai_const.Create_sym(ll));
                             { the actual structure starts at -12 from start label - CEC }
-                            Consts.concat(tai_align.create(const_align(pointer_size)));
+                            Consts.concat(tai_align.create(const_align(sizeof(aint))));
                             { first write the maximum size }
-                            Consts.concat(Tai_const.Create_32bit(strlength));
+                            Consts.concat(Tai_const.Create_aint(strlength));
                             { second write the real length }
-                            Consts.concat(Tai_const.Create_32bit(strlength));
+                            Consts.concat(Tai_const.Create_aint(strlength));
                             { redondent with maxlength but who knows ... (PM) }
                             { third write use count (set to -1 for safety ) }
-                            Consts.concat(Tai_const.Create_32bit(Cardinal(-1)));
+                            Consts.concat(Tai_const.Create_aint(-1));
                             Consts.concat(Tai_label.Create(ll));
                             getmem(ca,strlength+2);
                             move(strval^,ca^,strlength);
@@ -677,16 +680,16 @@ implementation
                      begin
                         { an empty ansi string is nil! }
                         if (strlength=0) then
-                          curconstSegment.concat(Tai_const.Create_ptr(0))
+                          curconstSegment.concat(Tai_const.Create_sym(nil))
                         else
                           begin
                             objectlibrary.getdatalabel(ll);
-                            curconstSegment.concat(Tai_const_symbol.Create(ll));
+                            curconstSegment.concat(Tai_const.Create_sym(ll));
                             { the actual structure starts at -12 from start label - CEC }
-                            Consts.concat(tai_align.create(const_align(pointer_size)));
-                            Consts.concat(Tai_const.Create_32bit(strlength));
-                            Consts.concat(Tai_const.Create_32bit(strlength));
-                            Consts.concat(Tai_const.Create_32bit(Cardinal(-1)));
+                            Consts.concat(tai_align.create(const_align(sizeof(aint))));
+                            Consts.concat(Tai_const.Create_aint(strlength));
+                            Consts.concat(Tai_const.Create_aint(strlength));
+                            Consts.concat(Tai_const.Create_aint(-1));
                             Consts.concat(Tai_label.Create(ll));
                             for i:=0 to strlength-1 do
                               Consts.concat(Tai_const.Create_16bit(pcompilerwidestring(strval)^.data[i]));
@@ -744,7 +747,7 @@ implementation
                       end
                    else
                      begin
-                       Message(cg_e_illegal_expression);
+                       Message(parser_e_illegal_expression);
                        len:=0;
                      end;
                    if len>(tarraydef(t.def).highrange-tarraydef(t.def).lowrange+1) then
@@ -768,7 +771,7 @@ implementation
                 begin
                   { Only allow nil initialization }
                   consume(_NIL);
-                  curconstSegment.concat(Tai_const.Create_ptr(0));
+                  curconstSegment.concat(Tai_const.Create_sym(nil));
                 end
               else
                 begin
@@ -782,9 +785,9 @@ implementation
               { under tp:  =nil or =var under fpc: =nil or =@var }
               if token=_NIL then
                 begin
-                   curconstSegment.concat(Tai_const.Create_ptr(0));
+                   curconstSegment.concat(Tai_const.Create_sym(nil));
                    if (po_methodpointer in tprocvardef(t.def).procoptions) then
-                     curconstSegment.concat(Tai_const.Create_ptr(0));
+                     curconstSegment.concat(Tai_const.Create_sym(nil));
                    consume(_NIL);
                    exit;
                 end;
@@ -831,11 +834,11 @@ implementation
               if (p.nodetype=loadn) and
                  (tloadnode(p).symtableentry.typ=procsym) then
                begin
-                 curconstSegment.concat(Tai_const_symbol.createname(
+                 curconstSegment.concat(Tai_const.createname(
                    tprocsym(tloadnode(p).symtableentry).first_procdef.mangledname,AT_FUNCTION,0));
                end
               else
-               Message(cg_e_illegal_expression);
+               Message(parser_e_illegal_expression);
               p.free;
            end;
          { reads a typed constant record }
@@ -865,7 +868,7 @@ implementation
                   else
                     begin
                       p.free;
-                      Message(cg_e_illegal_expression);
+                      Message(parser_e_illegal_expression);
                       exit;
                     end;
                 end
@@ -982,7 +985,7 @@ implementation
                     end
                   else
                     begin
-                      curconstSegment.concat(Tai_const.Create_ptr(0));
+                      curconstSegment.concat(Tai_const.Create_sym(nil));
                     end;
                   p.free;
                 end
@@ -1034,9 +1037,9 @@ implementation
                                    begin
                                      for i:=1 to vmt_offset-aktpos do
                                        curconstsegment.concat(tai_const.create_8bit(0));
-                                     curconstsegment.concat(tai_const_symbol.createname(vmt_mangledname,AT_DATA,0));
+                                     curconstsegment.concat(tai_const.createname(vmt_mangledname,AT_DATA,0));
                                      { this is more general }
-                                     aktpos:=vmt_offset + pointer_size;
+                                     aktpos:=vmt_offset + sizeof(aint);
                                    end;
 
                                { if needed fill }
@@ -1061,9 +1064,9 @@ implementation
                      begin
                        for i:=1 to tobjectdef(t.def).vmt_offset-aktpos do
                          curconstsegment.concat(tai_const.create_8bit(0));
-                       curconstsegment.concat(tai_const_symbol.createname(tobjectdef(t.def).vmt_mangledname,AT_DATA,0));
+                       curconstsegment.concat(tai_const.createname(tobjectdef(t.def).vmt_mangledname,AT_DATA,0));
                        { this is more general }
-                       aktpos:=tobjectdef(t.def).vmt_offset + pointer_size;
+                       aktpos:=tobjectdef(t.def).vmt_offset + sizeof(aint);
                      end;
                    for i:=1 to t.def.size-aktpos do
                      curconstSegment.concat(Tai_const.Create_8bit(0));
@@ -1089,7 +1092,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2004-05-23 15:23:30  peter
+  Revision 1.86  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.85  2004/05/23 15:23:30  peter
     * fixed qword(longint) that removed sign from the number
     * removed code in the compiler that relied on wrong qword(longint)
       code generation
@@ -1099,6 +1105,29 @@ end.
 
   Revision 1.83  2004/04/11 10:44:23  peter
     * block_type is bt_const when parsing typed consts
+
+  Revision 1.82.2.7  2004/06/13 20:38:38  florian
+    * fixed floating point register spilling on sparc
+
+  Revision 1.82.2.6  2004/06/13 10:51:16  florian
+    * fixed several register allocator problems (sparc/arm)
+
+  Revision 1.82.2.5  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.82.2.4  2004/04/29 19:07:22  peter
+    * compile fixes
+
+  Revision 1.82.2.3  2004/04/28 19:55:52  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
+
+  Revision 1.82.2.2  2004/04/27 18:18:26  peter
+    * aword -> aint
+
+  Revision 1.82.2.1  2004/04/12 14:45:11  peter
+    * tai_const_symbol and tai_const merged
 
   Revision 1.82  2004/03/18 11:43:57  olle
     * change AT_FUNCTION to AT_DATA where appropriate
@@ -1266,7 +1295,7 @@ end.
   * fix generic size problems which depend now on EXTEND_SIZE constant
 
   Revision 1.43  2002/04/15 19:01:53  carl
-  + target_info.size_of_pointer -> pointer_Size
+  + target_info.size_of_pointer -> sizeof(aint)
 
   Revision 1.42  2002/04/04 19:06:03  peter
     * removed unused units

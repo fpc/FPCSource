@@ -91,11 +91,11 @@ begin
   is_empty:=false;
 end;
 
+
 function tdeffile.empty : boolean;
 begin
-  empty:=is_empty and (description='');
+  empty:=is_empty or DescriptionSetExplicity;
 end;
-
 
 
 procedure tdeffile.writefile;
@@ -160,7 +160,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2003-03-23 23:20:38  hajny
+  Revision 1.13  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.12.2.1  2004/05/03 14:59:57  peter
+    * no dlltool needed for win32 linking executables
+
+  Revision 1.12  2003/03/23 23:20:38  hajny
     + emx target added
 
   Revision 1.11  2002/07/26 21:15:38  florian

@@ -29,8 +29,7 @@ interface
     uses
       symtype,symdef,symbase,
       node,ncal,
-      globals,
-      cpuinfo;
+      globtype,globals;
 
     { reads a whole expression }
     function expr : tnode;
@@ -69,7 +68,7 @@ implementation
        { common }
        cutils,
        { global }
-       globtype,tokens,verbose,
+       tokens,verbose,
        systems,widestr,
        { symtable }
        symconst,symtable,symsym,defutil,defcmp,
@@ -80,7 +79,7 @@ implementation
        scanner,
        pbase,pinline,
        { codegen }
-       procinfo
+       procinfo,cpuinfo
        ;
 
     { sub_expr(opmultiply) is need to get -1 ** 4 to be
@@ -113,7 +112,7 @@ implementation
               p:=comp_expr(true);
               if not is_constintnode(p) then
                 begin
-                  Message(cg_e_illegal_expression);
+                  Message(parser_e_illegal_expression);
                   { error recovery }
                   consume(_RECKKLAMMER);
                 end
@@ -228,7 +227,7 @@ implementation
                   sl.addconst(sl_vec,tordconstnode(tvecnode(p).right).value)
                 else
                   begin
-                    Message(cg_e_illegal_expression);
+                    Message(parser_e_illegal_expression);
                     { recovery }
                     sl.addconst(sl_vec,0);
                   end;
@@ -406,7 +405,7 @@ implementation
                statement_syssym:=geninlinenode(in_sizeof_x,false,p1)
               else
                begin
-                 statement_syssym:=cordconstnode.create(p1.resulttype.def.size,s32inttype,true);
+                 statement_syssym:=cordconstnode.create(p1.resulttype.def.size,sinttype,true);
                  { p1 not needed !}
                  p1.destroy;
                end;
@@ -497,8 +496,8 @@ implementation
               p1:=comp_expr(true);
               p1:=caddrnode.create(p1);
               do_resulttypepass(p1);
-              { Ofs() returns a cardinal, not a pointer }
-              p1.resulttype:=u32inttype;
+              { Ofs() returns a cardinal/qword, not a pointer }
+              p1.resulttype:=uinttype;
               consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
@@ -1094,7 +1093,7 @@ implementation
               if not assigned(srsym) then
                srsym:=generrorsym;
               if (srsym.typ<>procsym) then
-               Message(cg_e_illegal_expression);
+               Message(parser_e_illegal_expression);
               symtablestack:=storesymtablestack;
             end;
 
@@ -1370,7 +1369,7 @@ implementation
                 else
                   begin
                     p1:=cerrornode.create;
-                    Message(cg_e_illegal_expression);
+                    Message(parser_e_illegal_expression);
                   end;
               end; { end case }
             end;
@@ -1469,7 +1468,7 @@ implementation
                       begin
                          { ^ as binary operator is a problem!!!! (FK) }
                          again:=false;
-                         Message(cg_e_invalid_qualifier);
+                         Message(parser_e_invalid_qualifier);
                          recoverconsume_postfixops;
                          p1.destroy;
                          p1:=cerrornode.create;
@@ -1555,7 +1554,7 @@ implementation
                               end;
                             else
                               begin
-                                Message(cg_e_invalid_qualifier);
+                                Message(parser_e_invalid_qualifier);
                                 p1.destroy;
                                 p1:=cerrornode.create;
                                 comp_expr(true);
@@ -1641,14 +1640,14 @@ implementation
 
                          pointerdef:
                            begin
-                             Message(cg_e_invalid_qualifier);
+                             Message(parser_e_invalid_qualifier);
                              if tpointerdef(p1.resulttype.def).pointertype.def.deftype in [recorddef,objectdef,classrefdef] then
                               Message(parser_h_maybe_deref_caret_missing);
                            end;
 
                          else
                            begin
-                             Message(cg_e_invalid_qualifier);
+                             Message(parser_e_invalid_qualifier);
                              p1.destroy;
                              p1:=cerrornode.create;
                              consume(_ID);
@@ -1675,7 +1674,7 @@ implementation
                                { proc():= is never possible }
                                if token=_ASSIGNMENT then
                                  begin
-                                   Message(cg_e_illegal_expression);
+                                   Message(parser_e_illegal_expression);
                                    p1.free;
                                    p1:=cerrornode.create;
                                    again:=false;
@@ -1699,10 +1698,11 @@ implementation
 
       var
          l        : longint;
-{$ifndef cpu64bit}
+         ic       : int64;
+         qc       : qword;
+{$ifndef cpu64}
          card     : cardinal;
-{$endif cpu64bit}
-         ic       : TConstExprInt;
+{$endif cpu64}
          oldp1,
          p1       : tnode;
          code     : integer;
@@ -1849,15 +1849,29 @@ implementation
 
            _INTCONST :
              begin
-{$ifdef cpu64bit}
+{$ifdef cpu64}
+               { when already running under 64bit must read int64 constant, because reading
+                 cardinal first will also succeed (code=0) for values > maxcardinal, because
+                 range checking is off by default (PFV) }
                val(pattern,ic,code);
                if code=0 then
                  begin
                     consume(_INTCONST);
                     int_to_type(ic,htype);
                     p1:=cordconstnode.create(ic,htype,true);
+                 end
+               else
+                 begin
+                   { try qword next }
+                   val(pattern,qc,code);
+                   if code=0 then
+                     begin
+                        consume(_INTCONST);
+                        htype:=u64inttype;
+                        p1:=cordconstnode.create(qc,htype,true);
+                     end;
                  end;
-{$else cpu64bit}
+{$else}
                { try cardinal first }
                val(pattern,card,code);
                if code=0 then
@@ -1885,17 +1899,28 @@ implementation
                             consume(_INTCONST);
                             int_to_type(ic,htype);
                             p1:=cordconstnode.create(ic,htype,true);
+                         end
+                       else
+                         begin
+                           { try qword next }
+                           val(pattern,qc,code);
+                           if code=0 then
+                             begin
+                                consume(_INTCONST);
+                                htype:=u64inttype;
+                                p1:=cordconstnode.create(card,htype,true);
+                             end;
                          end;
                      end;
                  end;
-{$endif cpu64bit}
+{$endif}
                if code<>0 then
                  begin
                    { finally float }
                    val(pattern,d,code);
                    if code<>0 then
                      begin
-                        Message(cg_e_invalid_integer);
+                        Message(parser_e_invalid_integer);
                         consume(_INTCONST);
                         l:=1;
                         p1:=cordconstnode.create(l,sinttype,true);
@@ -2112,7 +2137,7 @@ implementation
              begin
                p1:=cerrornode.create;
                consume(token);
-               Message(cg_e_illegal_expression);
+               Message(parser_e_illegal_expression);
              end;
         end;
 
@@ -2334,7 +2359,7 @@ implementation
        begin
          if (p.nodetype<>ordconstn) or
             not(is_integer(p.resulttype.def)) then
-          Message(cg_e_illegal_expression)
+          Message(parser_e_illegal_expression)
          else
           get_intconst:=tordconstnode(p).value;
        end;
@@ -2355,7 +2380,7 @@ implementation
           if (p.nodetype=ordconstn) and is_char(p.resulttype.def) then
             get_stringconst:=char(tordconstnode(p).value)
           else
-            Message(cg_e_illegal_expression);
+            Message(parser_e_illegal_expression);
         end
       else
         get_stringconst:=strpas(tstringconstnode(p).value_str);
@@ -2365,7 +2390,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.156  2004-05-23 18:28:41  peter
+  Revision 1.157  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.156  2004/05/23 18:28:41  peter
     * methodpointer is loaded into a temp when it was a calln
 
   Revision 1.155  2004/05/16 15:03:48  florian
@@ -2376,6 +2404,26 @@ end.
 
   Revision 1.153  2004/04/12 18:59:32  florian
     * small x86_64 fixes
+
+  Revision 1.152.2.6  2004/05/03 16:49:00  peter
+    * sizeof fixed
+
+  Revision 1.152.2.5  2004/05/02 20:54:33  peter
+    * use val(int64) when running under 64bit
+
+  Revision 1.152.2.4  2004/05/02 13:04:28  peter
+    * ofs fixed
+
+  Revision 1.152.2.3  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.152.2.2  2004/04/28 19:55:52  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
+
+  Revision 1.152.2.1  2004/04/10 19:45:07  florian
+    + .*leb128 support to assembler writer added
 
   Revision 1.152  2004/03/29 14:42:52  peter
     * variant array support

@@ -52,48 +52,47 @@ Interface
       globtype,globals,verbose,
       systems,
       { aasm }
-      cpubase,cpuinfo,aasmbase,aasmtai,aasmcpu,
+      cpubase,aasmbase,aasmtai,aasmcpu,
       { symtable }
-      symconst,symbase,symtype,symsym,symtable,
+      symconst,symsym,
       { parser }
       scanner,
       procinfo,
-      itcpugas,
       rabase,rautils,
-      cgbase,cgobj,cgutils
+      cgbase,cgobj
       ;
 
-    procedure tSparcReader.ReadSym(oper : tSparcoperand);
+    procedure TSparcReader.ReadSym(oper : tSparcoperand);
       var
          tempstr : string;
-         typesize,l,k : longint;
+         typesize,l,k : aint;
       begin
         tempstr:=actasmpattern;
         Consume(AS_ID);
         { typecasting? }
         if (actasmtoken=AS_LPAREN) and
            SearchType(tempstr,typesize) then
-         begin
-           oper.hastype:=true;
-           Consume(AS_LPAREN);
-           BuildOperand(oper);
-           Consume(AS_RPAREN);
-           if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
-             oper.SetSize(typesize,true);
-         end
+          begin
+            oper.hastype:=true;
+            Consume(AS_LPAREN);
+            BuildOperand(oper);
+            Consume(AS_RPAREN);
+            if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
+              oper.SetSize(typesize,true);
+          end
         else
-         if not oper.SetupVar(tempstr,false) then
-          Message1(sym_e_unknown_id,tempstr);
+          if not oper.SetupVar(tempstr,false) then
+            Message1(sym_e_unknown_id,tempstr);
         { record.field ? }
         if actasmtoken=AS_DOT then
-         begin
-           BuildRecordOffsetSize(tempstr,l,k);
-           inc(oper.opr.ref.offset,l);
-         end;
+          begin
+            BuildRecordOffsetSize(tempstr,l,k);
+            inc(oper.opr.ref.offset,l);
+          end;
       end;
 
 
-    procedure tSparcReader.ReadPercent(oper : tSparcoperand);
+    procedure TSparcReader.ReadPercent(oper : tSparcoperand);
       begin
         { check for ...@ }
         if actasmtoken=AS_AT then
@@ -118,9 +117,9 @@ Interface
       end;
 
 
-    Procedure tSparcReader.BuildReference(oper : tSparcoperand);
+    Procedure TSparcReader.BuildReference(oper : tSparcoperand);
       var
-        l : longint;
+        l : aint;
         regs : byte;
         hasimm : boolean;
       begin
@@ -215,10 +214,10 @@ Interface
       end;
 
 
-    Procedure tSparcReader.BuildOperand(oper : tSparcoperand);
+    Procedure TSparcReader.BuildOperand(oper : tSparcoperand);
       var
         expr : string;
-        typesize,l : longint;
+        typesize,l : aint;
 
         procedure AddLabelOperand(hl:tasmlabel);
           begin
@@ -241,7 +240,7 @@ Interface
             hasdot  : boolean;
             l,
             toffset,
-            tsize   : longint;
+            tsize   : aint;
           begin
             if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
              exit;
@@ -283,192 +282,235 @@ Interface
         tempreg : tregister;
         tempstr : string;
         hl : tasmlabel;
+        gotplus,
+        negative : boolean;
       Begin
         expr:='';
-        case actasmtoken of
-          AS_INTNUM,
-          AS_MINUS,
-          AS_PLUS,
-          AS_MOD:
-            Begin
-              { Constant memory offset }
-              { This must absolutely be followed by (  }
-              oper.InitRef;
-              oper.opr.ref.offset:=BuildConstExpression(True,False);
-            end;
-
-          AS_LBRACKET :
-            begin
-              { memory reference }
-              BuildReference(oper);
-            end;
-
-          AS_HI,
-          AS_LO:
-            begin
-              { Low or High part of a constant (or constant
-                memory location) }
-              oper.InitRef;
-              if actasmtoken=AS_LO then
-                oper.opr.ref.refaddr:=addr_lo
-              else
-                oper.opr.ref.refaddr:=addr_hi;
-              Consume(actasmtoken);
-              Consume(AS_LPAREN);
-              BuildConstSymbolExpression(false, true,false,l,tempstr);
-              if not assigned(oper.opr.ref.symbol) then
-                oper.opr.ref.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,AT_FUNCTION)
-              else
-                Message(asmr_e_cant_have_multiple_relocatable_symbols);
-              case oper.opr.typ of
-                OPR_CONSTANT :
-                  inc(oper.opr.val,l);
-                OPR_LOCAL :
-                  inc(oper.opr.localsymofs,l);
-                OPR_REFERENCE :
-                  inc(oper.opr.ref.offset,l);
-                else
-                  internalerror(200309202);
+        gotplus:=true;
+        negative:=false;
+        repeat
+          case actasmtoken of
+            AS_MINUS :
+              begin
+                consume(AS_MINUS);
+                negative:=true;
+                gotplus:=true;
               end;
-              Consume(AS_RPAREN);
-            end;
 
-          AS_ID: { A constant expression, or a Variable ref.  }
-            Begin
-              { Local Label ? }
-              if is_locallabel(actasmpattern) then
-               begin
-                 CreateLocalLabel(actasmpattern,hl,false);
-                 Consume(AS_ID);
-                 AddLabelOperand(hl);
-               end
-              else
-               { Check for label }
-               if SearchLabel(actasmpattern,hl,false) then
-                begin
-                  Consume(AS_ID);
-                  AddLabelOperand(hl);
-                end
-              else
-               { probably a variable or normal expression }
-               { or a procedure (such as in CALL ID)      }
-               Begin
-                 { is it a constant ? }
-                 if SearchIConstant(actasmpattern,l) then
-                  Begin
-                    if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
-                     Message(asmr_e_invalid_operand_type);
-                    BuildConstantOperand(oper);
-                  end
-                 else
+            AS_PLUS :
+              begin
+                consume(AS_PLUS);
+                negative:=false;
+                gotplus:=true;
+              end;
+
+            AS_INTNUM,
+            AS_MOD:
+              Begin
+                if not gotplus then
+                  Message(asmr_e_invalid_reference_syntax);
+                l:=BuildConstExpression(True,False);
+                if negative then
+                  l:=-l;
+                { Constant memory offset }
+                oper.InitRef;
+                oper.opr.ref.refaddr:=addr_full;
+                oper.opr.ref.offset:=l;
+                GotPlus:=(prevasmtoken=AS_PLUS) or
+                         (prevasmtoken=AS_MINUS);
+                if GotPlus then
+                  negative:=(prevasmtoken=AS_MINUS);
+              end;
+
+            AS_LBRACKET :
+              begin
+                { memory reference }
+                BuildReference(oper);
+                gotplus:=false;
+              end;
+
+            AS_HI,
+            AS_LO:
+              begin
+                { Low or High part of a constant (or constant
+                  memory location) }
+                oper.InitRef;
+                if actasmtoken=AS_LO then
+                  oper.opr.ref.refaddr:=addr_lo
+                else
+                  oper.opr.ref.refaddr:=addr_hi;
+                Consume(actasmtoken);
+                Consume(AS_LPAREN);
+                BuildConstSymbolExpression(false, true,false,l,tempstr);
+                if not assigned(oper.opr.ref.symbol) then
+                  oper.opr.ref.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,AT_FUNCTION)
+                else
+                  Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                case oper.opr.typ of
+                  OPR_CONSTANT :
+                    inc(oper.opr.val,l);
+                  OPR_LOCAL :
+                    inc(oper.opr.localsymofs,l);
+                  OPR_REFERENCE :
+                    inc(oper.opr.ref.offset,l);
+                  else
+                    internalerror(200309202);
+                end;
+                Consume(AS_RPAREN);
+                gotplus:=false;
+              end;
+
+            AS_ID: { A constant expression, or a Variable ref.  }
+              Begin
+                { Local Label ? }
+                if is_locallabel(actasmpattern) then
+                 begin
+                   CreateLocalLabel(actasmpattern,hl,false);
+                   Consume(AS_ID);
+                   AddLabelOperand(hl);
+                 end
+                else
+                 { Check for label }
+                 if SearchLabel(actasmpattern,hl,false) then
                   begin
-                    expr:=actasmpattern;
                     Consume(AS_ID);
-                    { typecasting? }
-                    if (actasmtoken=AS_LPAREN) and
-                       SearchType(expr,typesize) then
+                    AddLabelOperand(hl);
+                  end
+                else
+                 { probably a variable or normal expression }
+                 { or a procedure (such as in CALL ID)      }
+                 Begin
+                   { is it a constant ? }
+                   if SearchIConstant(actasmpattern,l) then
+                    Begin
+                      if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
+                       Message(asmr_e_invalid_operand_type);
+                      BuildConstantOperand(oper);
+                    end
+                   else
+                    begin
+                      expr:=actasmpattern;
+                      Consume(AS_ID);
+                      { typecasting? }
+                      if (actasmtoken=AS_LPAREN) and
+                         SearchType(expr,typesize) then
+                       begin
+                         oper.hastype:=true;
+                         Consume(AS_LPAREN);
+                         BuildOperand(oper);
+                         Consume(AS_RPAREN);
+                         if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
+                           oper.SetSize(typesize,true);
+                       end
+                      else
+                       begin
+                         if oper.SetupVar(expr,false) then
+                           ReadPercent(oper)
+                         else
+                          Begin
+                            { look for special symbols ... }
+                            if expr= '__HIGH' then
+                              begin
+                                consume(AS_LPAREN);
+                                if not oper.setupvar('high'+actasmpattern,false) then
+                                  Message1(sym_e_unknown_id,'high'+actasmpattern);
+                                consume(AS_ID);
+                                consume(AS_RPAREN);
+                              end
+                            else
+                             if expr = '__RESULT' then
+                              oper.SetUpResult
+                            else
+                             if expr = '__SELF' then
+                              oper.SetupSelf
+                            else
+                             if expr = '__OLDEBP' then
+                              oper.SetupOldEBP
+                            else
+                              { check for direct symbolic names   }
+                              { only if compiling the system unit }
+                              if (cs_compilesystem in aktmoduleswitches) then
+                               begin
+                                 if not oper.SetupDirectVar(expr) then
+                                  Begin
+                                    { not found, finally ... add it anyways ... }
+                                    Message1(asmr_w_id_supposed_external,expr);
+                                    oper.InitRef;
+                                    oper.opr.ref.symbol:=objectlibrary.newasmsymbol(expr,AB_EXTERNAL,AT_FUNCTION);
+                                  end;
+                               end
+                            else
+                              Message1(sym_e_unknown_id,expr);
+                          end;
+                       end;
+                    end;
+                    if actasmtoken=AS_DOT then
+                      MaybeRecordOffset;
+                    { add a constant expression? }
+                    if (actasmtoken=AS_PLUS) then
                      begin
-                       oper.hastype:=true;
-                       Consume(AS_LPAREN);
-                       BuildOperand(oper);
-                       Consume(AS_RPAREN);
-                       if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
-                         oper.SetSize(typesize,true);
+                       l:=BuildConstExpression(true,false);
+                       case oper.opr.typ of
+                         OPR_CONSTANT :
+                           inc(oper.opr.val,l);
+                         OPR_LOCAL :
+                           inc(oper.opr.localsymofs,l);
+                         OPR_REFERENCE :
+                           inc(oper.opr.ref.offset,l);
+                         else
+                           internalerror(200309202);
+                       end;
                      end
-                    else
-                     begin
-                       if oper.SetupVar(expr,false) then
-                         ReadPercent(oper)
-                       else
-                        Begin
-                          { look for special symbols ... }
-                          if expr= '__HIGH' then
-                            begin
-                              consume(AS_LPAREN);
-                              if not oper.setupvar('high'+actasmpattern,false) then
-                                Message1(sym_e_unknown_id,'high'+actasmpattern);
-                              consume(AS_ID);
-                              consume(AS_RPAREN);
-                            end
-                          else
-                           if expr = '__RESULT' then
-                            oper.SetUpResult
-                          else
-                           if expr = '__SELF' then
-                            oper.SetupSelf
-                          else
-                           if expr = '__OLDEBP' then
-                            oper.SetupOldEBP
-                          else
-                            { check for direct symbolic names   }
-                            { only if compiling the system unit }
-                            if (cs_compilesystem in aktmoduleswitches) then
-                             begin
-                               if not oper.SetupDirectVar(expr) then
-                                Begin
-                                  { not found, finally ... add it anyways ... }
-                                  Message1(asmr_w_id_supposed_external,expr);
-                                  oper.InitRef;
-                                  oper.opr.ref.symbol:=objectlibrary.newasmsymbol(expr,AB_EXTERNAL,AT_FUNCTION);
-                                end;
-                             end
-                          else
-                            Message1(sym_e_unknown_id,expr);
-                        end;
-                     end;
-                  end;
-                  if actasmtoken=AS_DOT then
-                    MaybeRecordOffset;
-                  { add a constant expression? }
-                  if (actasmtoken=AS_PLUS) then
-                   begin
-                     l:=BuildConstExpression(true,false);
-                     case oper.opr.typ of
-                       OPR_CONSTANT :
-                         inc(oper.opr.val,l);
-                       OPR_LOCAL :
-                         inc(oper.opr.localsymofs,l);
-                       OPR_REFERENCE :
-                         inc(oper.opr.ref.offset,l);
-                       else
-                         internalerror(200309202);
-                     end;
-                   end
-               end;
-            end;
+                 end;
+                gotplus:=false;
+              end;
 
-          AS_REGISTER: { Register, a variable reference or a constant reference  }
-            Begin
-              { save the type of register used. }
-              tempreg:=actasmregister;
-              Consume(AS_REGISTER);
-              if (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
+            AS_REGISTER: { Register, a variable reference or a constant reference  }
+              Begin
+                { save the type of register used. }
+                tempreg:=actasmregister;
+                Consume(AS_REGISTER);
+                if (oper.opr.typ in [OPR_REGISTER,OPR_REFERENCE]) and gotplus then
                   begin
-                    if not (oper.opr.typ in [OPR_NONE,OPR_REGISTER]) then
+                    oper.initref;
+                    oper.opr.ref.refaddr:=addr_full;
+                    if oper.opr.ref.base<>NR_NO then
+                      oper.opr.ref.base:=tempreg
+                    else
+                      if oper.opr.ref.index<>NR_NO then
+                        oper.opr.ref.index:=tempreg
+                    else
+                      Message(asmr_e_multiple_index);
+                  end
+                else
+                  begin
+                    if (oper.opr.typ<>OPR_NONE) then
                       Message(asmr_e_invalid_operand_type);
                     oper.opr.typ:=OPR_REGISTER;
                     oper.opr.reg:=tempreg;
-                  end
-              else
-                Message(asmr_e_syn_operand);
+                  end;
+                gotplus:=false;
+              end;
+
+            AS_END,
+            AS_SEPARATOR,
+            AS_COMMA:
+              break;
+          else
+            Begin
+              Message(asmr_e_syn_operand);
+              Consume(actasmtoken);
             end;
-          AS_END,
-          AS_SEPARATOR,
-          AS_COMMA: ;
-        else
-          Begin
-            Message(asmr_e_syn_operand);
-            Consume(actasmtoken);
-          end;
-        end; { end case }
+          end; { end case }
+        until false;
       end;
 
 
 {*****************************************************************************
-                                tSparcReader
+                                TSparcReader
 *****************************************************************************}
 
-    procedure tSparcReader.BuildOpCode(instr : tSparcinstruction);
+    procedure TSparcReader.BuildOpCode(instr : tSparcinstruction);
       var
         operandnum : longint;
       Begin
@@ -495,6 +537,19 @@ Interface
            operandnum:=0;
            exit;
          end;
+
+        { delayslot annulled? }
+        if (actasmtoken=AS_COMMA) then
+         begin
+           consume(AS_COMMA);
+           if actasmpattern='A' then
+             instr.delayslot_annulled:=true;
+           { force reading of AS_COMMA instead of AS_ID, otherwise
+             a label .L0 will first read a AS_DOT instead of AS_ID }
+           actasmtoken:=AS_COMMA;
+           consume(AS_COMMA);
+         end;
+
         { Read the operands }
         repeat
           case actasmtoken of
@@ -551,8 +606,8 @@ Interface
         else if (Upcase(s[1])='B') or
                 ((Upcase(s[1])='F') and (Upcase(s[2])='B')) then
           begin
-  { we can search here without an extra table which is sorted by string length
-    because we take the whole remaining string without the leading B }
+            { we can search here without an extra table which is sorted by string length
+              because we take the whole remaining string without the leading B }
             if (Upcase(s[1])='F') then
               actopcode := A_FBxx
             else
@@ -561,11 +616,14 @@ Interface
               if (Upper(copy(s,2,length(s)-1))=Upper(Cond2Str[cond])) then
                 begin
                   actasmtoken:=AS_OPCODE;
+                  actcondition:=cond;
                   is_asmopcode:=true;
                 end;
           end;
       end;
-    procedure tSparcReader.ConvertCalljmp(instr : tSparcinstruction);
+
+
+    procedure TSparcReader.ConvertCalljmp(instr : tSparcinstruction);
       var
         newopr : toprrec;
       begin
@@ -584,7 +642,7 @@ Interface
       end;
 
 
-    procedure tSparcReader.handleopcode;
+    procedure TSparcReader.handleopcode;
       var
         instr : tSparcinstruction;
       begin
@@ -610,14 +668,14 @@ const
           (
             id    : asmmode_Sparc_gas;
             idtxt : 'GAS';
-            casmreader : tSparcReader;
+            casmreader : TSparcReader;
           );
 
   asmmode_Sparc_standard_info : tasmmodeinfo =
           (
             id    : asmmode_standard;
             idtxt : 'STANDARD';
-            casmreader : tSparcReader;
+            casmreader : TSparcReader;
           );
 
 initialization
@@ -626,7 +684,22 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2004-03-02 00:36:33  olle
+  Revision 1.9  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.8.2.4  2004/06/02 20:59:05  peter
+    * fix negative consts
+
+  Revision 1.8.2.3  2004/05/25 21:38:53  peter
+    * assembler reader/writer updates
+
+  Revision 1.8.2.2  2004/05/18 20:24:03  florian
+    * fixed crash with unknown symbols
+
+  Revision 1.8.2.1  2004/05/01 23:36:47  peter
+    * assembler reader 64bit fixes
+
+  Revision 1.8  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.7  2004/02/27 13:27:28  mazen

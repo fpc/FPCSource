@@ -121,6 +121,9 @@ unit cpubase;
         {$i rarmsta.inc}
       );
 
+      regdwarf_table : array[tregisterindex] of shortint = (
+        {$i rarmdwa.inc}
+      );
       { registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [RS_R0..RS_R3,RS_R12..RS_R15];
       VOLATILE_FPUREGISTERS = [RS_F0..RS_F3];
@@ -291,7 +294,7 @@ unit cpubase;
                 { lo(valueqword)/hi(valueqword) instead (JM)              }
                 { 2 : (valuelow, valuehigh:AWord);                        }
                 { overlay a complete 64 Bit value }
-                3 : (valueqword : qword);
+                3 : (value64 : qword);
               );
             LOC_CREFERENCE,
             LOC_REFERENCE : (reference : treference);
@@ -435,6 +438,8 @@ unit cpubase;
 
       NR_MM_RESULT_REG  = NR_NO;
 
+      NR_RETURN_ADDRESS_REG = NR_FUNCTION_RETURN_REG;
+
       { Offset where the parent framepointer is pushed }
       PARENT_FRAMEPOINTER_OFFSET = 0;
 
@@ -465,6 +470,8 @@ unit cpubase;
                                   Helpers
 *****************************************************************************}
 
+    { Returns the tcgsize corresponding with the size of reg.}
+    function reg_cgsize(const reg: tregister) : tcgsize;
     function cgsize2subreg(s:Tcgsize):Tsubregister;
     function is_calljmp(o:tasmop):boolean;
     procedure inverse_flags(var f: TResFlags);
@@ -500,6 +507,21 @@ unit cpubase;
       begin
         cgsize2subreg:=R_SUBWHOLE;
       end;
+
+
+    function reg_cgsize(const reg: tregister): tcgsize;
+      const subreg2cgsize:array[Tsubregister] of Tcgsize =
+            (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO);
+      begin
+        case getregtype(reg) of
+          R_INTREGISTER :
+            reg_cgsize:=OS_32;
+          R_FPUREGISTER :
+            reg_cgsize:=OS_F80;
+          else
+            internalerror(200303181);
+          end;
+        end;
 
 
     function is_calljmp(o:tasmop):boolean;
@@ -570,7 +592,19 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.29  2004-03-23 21:03:50  florian
+  Revision 1.30  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.29.2.3  2004/06/13 10:51:17  florian
+    * fixed several register allocator problems (sparc/arm)
+
+  Revision 1.29.2.2  2004/06/12 17:01:01  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.29.2.1  2004/05/01 11:12:23  florian
+    * spilling of registers with size<>4 fixed
+
+  Revision 1.29  2004/03/23 21:03:50  florian
     * arm assembler instructions can have 4 operands
     * qword comparisations fixed
 

@@ -26,15 +26,6 @@ interface
 uses
   globtype;
 type
-{# Natural integer register type and size for the target machine }
-  AWord=Longword;
-  AInt = Longint;
-  PAWord=^AWord;
-{ the ordinal type used when evaluating constant integer expressions }
-  TConstExprInt=int64;
-{ this must be an ordinal type with the same size as a pointer }
-{ Note: must be unsigned!! Otherwise, ugly code like           }
-  TConstPtrUInt=cardinal;
   bestreal = double;
   ts32real = single;
   ts64real = double;
@@ -53,8 +44,6 @@ const
 {# Size of native extended floating point type }
 {SPARC architecture uses IEEE double floating point numbers}
   extended_size = 8;
-{# Size of a pointer                           }
-  pointer_size  = 4;
 {# Size of a multimedia register               }
   mmreg_size = 8;
 { target cpu string (used by compiler options) }
@@ -62,8 +51,7 @@ const
 { size of the buffer used for setjump/longjmp
   the size of this buffer is deduced from the
   jmp_buf structure in setjumph.inc file }
-{$warning jmp_buf_size not set!}
-  JMP_BUF_SIZE = 4; // 4 is used temporary to remove AllocTemp warning
+  JMP_BUF_SIZE = 12;
 
   { calling conventions supported by the code generator }
   supported_calling_conventions : tproccalloptions = [
@@ -90,8 +78,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2004-04-28 15:19:03  florian
+  Revision 1.17  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.16  2004/04/28 15:19:03  florian
     + syscall directive support for MorphOS added
+
+  Revision 1.15.2.2  2004/05/30 21:42:13  peter
+    * fix JMP_BUF_SIZE
+
+  Revision 1.15.2.1  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
 
   Revision 1.15  2004/03/12 08:18:11  mazen
   - revert '../' from include path

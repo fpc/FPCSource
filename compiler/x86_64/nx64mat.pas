@@ -53,7 +53,7 @@ implementation
       cgbase,pass_1,pass_2,
       ncon,
       cpubase,cpuinfo,
-      cga,ncgutil,cgobj;
+      cga,ncgutil,cgobj,cgx86;
 
 {*****************************************************************************
                              TX8664MODDIVNODE
@@ -78,7 +78,7 @@ implementation
         hreg1:=left.location.register;
 
         if (nodetype=divn) and (right.nodetype=ordconstn) and
-           ispowerof2(tordconstnode(right).value,power) then
+           ispowerof2(int64(tordconstnode(right).value),power) then
           begin
             { for signed numbers, the numerator must be adjusted before the
               shift instruction, but not wih unsigned numbers! Otherwise,
@@ -116,7 +116,7 @@ implementation
             if torddef(left.resulttype.def).typ=u64bit then
               emit_reg_reg(A_XOR,S_Q,NR_RDX,NR_RDX)
             else
-              emit_none(A_CDQ,S_NO);
+              emit_none(A_CDO,S_NO);
 
             {Division depends on the right type.}
             if Torddef(right.resulttype.def).typ=u64bit then
@@ -164,6 +164,8 @@ implementation
     procedure tx8664shlshrnode.pass_2;
       var
         op : Tasmop;
+        opsize : tcgsize;
+        mask : aint;
       begin
         secondpass(left);
         secondpass(right);
@@ -174,25 +176,37 @@ implementation
         else
           op:=A_SHR;
 
+        { special treatment of 32bit values for backwards compatibility }
+        if left.resulttype.def.size<=4 then
+          begin
+            opsize:=OS_32;
+            mask:=31;
+          end
+        else
+          begin
+            opsize:=OS_64;
+            mask:=63;
+          end;
+
+
         { load left operators in a register }
         location_copy(location,left.location);
-        location_force_reg(exprasmlist,location,OS_INT,false);
+        location_force_reg(exprasmlist,location,opsize,false);
 
         { shifting by a constant directly coded: }
         if (right.nodetype=ordconstn) then
-          { l shl 32 should 0 imho, but neither TP nor Delphi do it in this way (FK)}
-          emit_const_reg(op,S_Q,tordconstnode(right).value and 63,location.register)
+          emit_const_reg(op,tcgsize2opsize[opsize],tordconstnode(right).value and mask,location.register)
         else
           begin
             { load right operators in a RCX }
             if right.location.loc<>LOC_CREGISTER then
               location_release(exprasmlist,right.location);
             cg.getexplicitregister(exprasmlist,NR_RCX);
-            cg.a_load_loc_reg(exprasmlist,OS_64,right.location,NR_RCX);
+            cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,NR_RCX);
 
             { right operand is in ECX }
             cg.ungetregister(exprasmlist,NR_RCX);
-            emit_reg_reg(op,S_Q,NR_CL,location.register);
+            emit_reg_reg(op,tcgsize2opsize[opsize],NR_CL,location.register);
           end;
       end;
 
@@ -205,7 +219,19 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2004-02-05 18:28:37  peter
+  Revision 1.5  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.4.2.3  2004/05/03 16:27:38  peter
+    * fixed shl for x86-64
+
+  Revision 1.4.2.2  2004/04/26 15:54:33  peter
+    * small x86-64 fixes
+
+  Revision 1.4.2.1  2004/04/24 16:02:19  florian
+    * sign extension for int div int fixed
+
+  Revision 1.4  2004/02/05 18:28:37  peter
     * x86_64 fixes for opsize
 
   Revision 1.3  2004/02/05 01:24:08  florian

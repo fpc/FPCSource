@@ -287,13 +287,13 @@ implementation
             begin
               if assigned(currpara.parasym) then
                begin
-                 hvs:=tvarsym.create('$high'+tvarsym(currpara.parasym).name,vs_const,s32inttype);
+                 hvs:=tvarsym.create('$high'+tvarsym(currpara.parasym).name,vs_const,sinttype);
                  include(hvs.varoptions,vo_is_high_value);
                  tvarsym(currpara.parasym).owner.insert(hvs);
                end
               else
                hvs:=nil;
-              pd.concatpara(currpara,s32inttype,hvs,nil,true);
+              pd.concatpara(currpara,sinttype,hvs,nil,true);
             end
            else
             begin
@@ -1272,7 +1272,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=36;
+  num_proc_directives=37;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1453,6 +1453,15 @@ const
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_near;
       pocall   : pocall_none;
       pooption : [];
+      mutexclpocall : [pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : []
+    ),(
+      idtok:_NOSTACKFRAME;
+      pd_flags : [pd_implemen,pd_body,pd_procvar,pd_notobjintf];
+      handler  : nil;
+      pocall   : pocall_none;
+      pooption : [po_nostackframe];
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
       mutexclpo     : []
@@ -2238,7 +2247,10 @@ const
 end.
 {
   $Log$
-  Revision 1.180  2004-05-23 20:54:39  peter
+  Revision 1.181  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.180  2004/05/23 20:54:39  peter
     * fixed 3114
 
   Revision 1.179  2004/05/23 19:06:26  peter
@@ -2287,6 +2299,12 @@ end.
 
   Revision 1.165  2004/04/18 15:22:24  florian
     + location support for arguments, currently PowerPC/MorphOS only
+
+  Revision 1.164.2.2  2004/05/27 23:36:18  peter
+    * nostackframe procdirective added
+
+  Revision 1.164.2.1  2004/04/28 21:22:34  florian
+    * invisible high parameter of open arrays changed to 64 bit on 64 bit cpus
 
   Revision 1.164  2004/02/26 16:13:25  peter
     * fix crash when method is not declared in object declaration

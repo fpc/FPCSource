@@ -27,7 +27,7 @@ unit ppu;
 interface
 
   uses
-    cpuinfo;
+    globtype;
 
 { Also write the ppu if only crc if done, this can be used with ppudump to
   see the differences between the intf and implementation }
@@ -1053,7 +1053,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.49  2004-05-19 21:16:13  peter
+  Revision 1.50  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.49  2004/05/19 21:16:13  peter
     * add DEBUGINFO symbol to reference the .o file that includes the
       stabs info for types and global/static variables
     * debuginfo flag added to ppu to indicate whether debuginfo is
@@ -1061,6 +1064,10 @@ end.
 
   Revision 1.48  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.47.2.1  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
 
   Revision 1.47  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned

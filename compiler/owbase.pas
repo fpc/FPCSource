@@ -45,6 +45,7 @@ type
     procedure closefile;virtual;
     procedure writesym(const sym:string);virtual;
     procedure write(const b;len:longint);virtual;
+    procedure WriteZeros(l:longint);
   end;
 
   tobjectreader=class
@@ -167,6 +168,20 @@ begin
         exit;
       end;
    end;
+end;
+
+
+procedure tobjectwriter.WriteZeros(l:longint);
+var
+  empty : array[0..255] of byte;
+begin
+  if l>sizeof(empty) then
+    internalerror(200404081);
+  if l>0 then
+    begin
+      fillchar(empty,l,0);
+      Write(empty,l);
+    end;
 end;
 
 
@@ -307,7 +322,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2002-07-01 18:46:24  peter
+  Revision 1.12  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.11.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
+
+  Revision 1.11  2002/07/01 18:46:24  peter
     * internal linker
     * reorganized aasm layer
 

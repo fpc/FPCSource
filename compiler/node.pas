@@ -1132,7 +1132,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2004-05-24 20:39:41  florian
+  Revision 1.86  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.85  2004/05/24 20:39:41  florian
     * stricter handling of formal const parameters and IE fixed
 
   Revision 1.84  2004/05/23 18:28:41  peter
@@ -1141,6 +1144,16 @@ end.
   Revision 1.83  2004/05/23 15:06:21  peter
     * implicit_finally flag must be set in pass1
     * add check whether the implicit frame is generated when expected
+
+  Revision 1.82  2004/05/20 21:54:33  florian
+    + <pointer> - <pointer> result is divided by the pointer element size now
+      this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
+
+  Revision 1.81.2.1  2004/05/30 10:45:50  peter
+    * merged fixes from main branch
+
+  Revision 1.85  2004/05/24 20:39:41  florian
+    * stricter handling of formal const parameters and IE fixed
 
   Revision 1.82  2004/05/20 21:54:33  florian
     + <pointer> - <pointer> result is divided by the pointer element size now

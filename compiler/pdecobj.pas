@@ -371,7 +371,7 @@ implementation
           else
             begin
               p.free;
-              Message(cg_e_illegal_expression);
+              Message(parser_e_illegal_expression);
             end;
         end;
 
@@ -706,7 +706,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2004-02-26 16:13:25  peter
+  Revision 1.77  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.76.2.1  2004/04/28 19:55:52  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
+
+  Revision 1.76  2004/02/26 16:13:25  peter
     * fix crash when method is not declared in object declaration
     * fix parsing of mapped interface functions
 

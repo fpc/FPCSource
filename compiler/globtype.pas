@@ -29,11 +29,37 @@ interface
        maxidlen = 64;
 
     type
+{$ifndef fpc}
+       qword = int64;
+{$endif fpc}
+
 {$ifdef ver1_0}
        { Bootstrapping }
        PtrInt = DWord;
        SizeInt = Longint;
 {$endif ver1_0}
+
+       { Natural integer register type and size for the target machine }
+{$ifdef cpu64bit}
+       AWord = qword;
+       AInt = Int64;
+{$else cpu64bit}
+       AWord = longword;
+       AInt = longint;
+{$endif cpu64bit}
+       PAWord = ^AWord;
+       PAInt = ^AInt;
+
+       { the ordinal type used when evaluating constant integer expressions }
+       TConstExprInt = int64;
+       { ... the same unsigned }
+       TConstExprUInt = qword;
+       { This must be an ordinal type with the same size as a pointer
+         Note: Must be unsigned! Otherwise, ugly code like
+         pointer(-1) will result in a pointer with the value
+         $fffffffffffffff on a 32bit machine if the compiler uses
+         int64 constants internally (JM) }
+       TConstPtrUInt = AWord;
 
        { Switches which can be changed locally }
        tlocalswitch = (cs_localnone,
@@ -79,7 +105,7 @@ interface
          cs_browser_log,
          { debugger }
          cs_gdb_dbx,cs_gdb_gsym,cs_gdb_heaptrc,cs_gdb_lineinfo,
-         cs_checkpointer,cs_gdb_valgrind,
+         cs_checkpointer,cs_gdb_valgrind,cs_gdb_dwarf,
          { assembling }
          cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,
          cs_asm_regalloc,cs_asm_tempalloc,cs_asm_nodes,
@@ -267,7 +293,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2004-05-23 15:06:20  peter
+  Revision 1.57  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.56  2004/05/23 15:06:20  peter
     * implicit_finally flag must be set in pass1
     * add check whether the implicit frame is generated when expected
 
@@ -282,6 +311,16 @@ end.
 
   Revision 1.52  2004/04/28 15:19:03  florian
     + syscall directive support for MorphOS added
+
+  Revision 1.51.2.3  2004/05/02 00:45:51  peter
+    * define sizeint for 1.0.x
+
+  Revision 1.51.2.2  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.51.2.1  2004/04/10 22:08:52  florian
+    + more dwarf infrastructure
 
   Revision 1.51  2004/04/04 18:46:09  olle
     + added $APPTYPE TOOL for MPW tools on MacOS

@@ -40,15 +40,17 @@ unit nx86add;
         function  getresflags(unsigned : boolean) : tresflags;
         procedure left_must_be_reg(opsize:TCGSize;noswap:boolean);
         procedure left_and_right_must_be_fpureg;
-        procedure emit_op_right_left(op:TAsmOp;opsize:TOpSize);
+        procedure emit_op_right_left(op:TAsmOp;opsize:TCgSize);
         procedure emit_generic_code(op:TAsmOp;opsize:TCgSize;unsigned,extra_not,mboverflow:boolean);
 
         procedure second_cmpfloatsse;
         procedure second_addfloatsse;
         procedure second_mul;virtual;abstract;
       public
+{$ifdef i386}
         function  first_addstring : tnode; override;
         procedure second_addstring;override;
+{$endif i386}
         procedure second_addfloat;override;
         procedure second_addsmallset;override;
         procedure second_add64bit;override;
@@ -116,11 +118,11 @@ unit nx86add;
            if (nodetype=subn) and (nf_swaped in flags) then
             begin
               if extra_not then
-                emit_reg(A_NOT,TCGSize2Opsize[opsize],left.location.register);
-              r:=cg.getintregister(exprasmlist,OS_INT);
-              cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,r);
+                cg.a_op_reg_reg(exprasmlist,OP_NOT,opsize,left.location.register,left.location.register);
+              r:=cg.getintregister(exprasmlist,opsize);
+              cg.a_load_loc_reg(exprasmlist,opsize,right.location,r);
               emit_reg_reg(op,TCGSize2Opsize[opsize],left.location.register,r);
-              emit_reg_reg(A_MOV,TCGSize2Opsize[opsize],r,left.location.register);
+              cg.a_load_reg_reg(exprasmlist,opsize,opsize,r,left.location.register);
               cg.ungetregister(exprasmlist,r);
             end
            else
@@ -152,7 +154,7 @@ unit nx86add;
                else
                  if (op=A_IMUL) and
                     (right.location.loc=LOC_CONSTANT) and
-                    (ispowerof2(right.location.value,power)) and
+                    (ispowerof2(int64(right.location.value),power)) and
                     not(cs_check_overflow in aktlocalswitches) then
                   begin
                     emit_const_reg(A_SHL,TCGSize2Opsize[opsize],power,left.location.register);
@@ -161,15 +163,15 @@ unit nx86add;
                  begin
                    if extra_not then
                      begin
-                        r:=cg.getintregister(exprasmlist,OS_INT);
-                        cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,r);
+                        r:=cg.getintregister(exprasmlist,opsize);
+                        cg.a_load_loc_reg(exprasmlist,opsize,right.location,r);
                         emit_reg(A_NOT,TCGSize2Opsize[opsize],r);
                         emit_reg_reg(A_AND,TCGSize2Opsize[opsize],r,left.location.register);
                         cg.ungetregister(exprasmlist,r);
                      end
                    else
                      begin
-                        emit_op_right_left(op,TCGSize2Opsize[opsize]);
+                        emit_op_right_left(op,opsize);
                      end;
                  end;
             end;
@@ -255,18 +257,35 @@ unit nx86add;
       end;
 
 
-    procedure tx86addnode.emit_op_right_left(op:TAsmOp;opsize:TOpsize);
+    procedure tx86addnode.emit_op_right_left(op:TAsmOp;opsize:TCgsize);
+{$ifdef x86_64}
+      var
+        tmpreg : tregister;
+{$endif x86_64}
       begin
         { left must be a register }
         case right.location.loc of
           LOC_REGISTER,
           LOC_CREGISTER :
-            exprasmlist.concat(taicpu.op_reg_reg(op,opsize,right.location.register,left.location.register));
+            exprasmlist.concat(taicpu.op_reg_reg(op,TCGSize2Opsize[opsize],right.location.register,left.location.register));
           LOC_REFERENCE,
           LOC_CREFERENCE :
-            exprasmlist.concat(taicpu.op_ref_reg(op,opsize,right.location.reference,left.location.register));
+            exprasmlist.concat(taicpu.op_ref_reg(op,TCGSize2Opsize[opsize],right.location.reference,left.location.register));
           LOC_CONSTANT :
-            exprasmlist.concat(taicpu.op_const_reg(op,opsize,right.location.value,left.location.register));
+            begin
+{$ifdef x86_64}
+              { x86_64 only supports signed 32 bits constants directly }
+              if (opsize in [OS_S64,OS_64]) and
+                 ((right.location.value<low(longint)) or (right.location.value>high(longint))) then
+                begin
+                  tmpreg:=cg.getintregister(exprasmlist,opsize);
+                  cg.a_load_const_reg(exprasmlist,opsize,right.location.value,tmpreg);
+                  exprasmlist.concat(taicpu.op_reg_reg(op,TCGSize2Opsize[opsize],tmpreg,left.location.register));
+                end
+              else
+{$endif x86_64}
+                exprasmlist.concat(taicpu.op_const_reg(op,TCGSize2Opsize[opsize],right.location.value,left.location.register));
+            end;
           else
             internalerror(200203232);
         end;
@@ -410,7 +429,7 @@ unit nx86add;
                  ((nf_swaped in flags) and (nodetype = gten)) then
                 swapleftright;
               location_force_reg(exprasmlist,left.location,opsize,true);
-              emit_op_right_left(A_AND,TCGSize2Opsize[opsize]);
+              emit_op_right_left(A_AND,opsize);
               op:=A_CMP;
               { warning: ugly hack, we need a JE so change the node to equaln }
               nodetype:=equaln;
@@ -692,6 +711,7 @@ unit nx86add;
                                 Addstring
 *****************************************************************************}
 
+{$ifdef i386}
     { note: if you implemented an fpc_shortstr_concat similar to the    }
     { one in i386.inc, you have to override first_addstring like in     }
     { ti386addnode.first_string and implement the shortstring concat    }
@@ -789,6 +809,8 @@ unit nx86add;
              internalerror(200108303);
        end;
      end;
+{$endif i386}
+
 
 {*****************************************************************************
                                   Add64bit
@@ -913,7 +935,22 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2004-02-22 16:30:37  florian
+  Revision 1.10  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.9.2.4  2004/05/02 16:46:28  peter
+    * disable i386 optimized shortstr_compare for x86_64
+
+  Revision 1.9.2.3  2004/04/28 18:35:42  peter
+    * cardinal fixes for x86-64
+
+  Revision 1.9.2.2  2004/04/27 18:18:26  peter
+    * aword -> aint
+
+  Revision 1.9.2.1  2004/04/26 15:54:33  peter
+    * small x86-64 fixes
+
+  Revision 1.9  2004/02/22 16:30:37  florian
     * fixed
     + second_cmpfloatsse
 

@@ -113,8 +113,8 @@ begin
   for i:=1 to n do
    begin
      msgidxmax[i]:=idxmax[i-1];
-     getmem(msgidx[i],msgidxmax[i]*4);
-     fillchar(msgidx[i]^,msgidxmax[i]*4,0);
+     getmem(msgidx[i],msgidxmax[i]*sizeof(pointer));
+     fillchar(msgidx[i]^,msgidxmax[i]*sizeof(pointer),0);
    end;
 end;
 
@@ -124,7 +124,7 @@ var
   i : longint;
 begin
   for i:=1 to msgparts do
-   freemem(msgidx[i],msgidxmax[i]*4);
+   freemem(msgidx[i],msgidxmax[i]*sizeof(pointer));
   if msgallocsize>0 then
    begin
      freemem(msgtxt,msgsize);
@@ -333,7 +333,7 @@ var
 begin
   { clear }
   for i:=1 to msgparts do
-   fillchar(msgidx[i]^,msgidxmax[i]*4,0);
+   fillchar(msgidx[i]^,msgidxmax[i]*sizeof(pointer),0);
 end;
 
 
@@ -418,7 +418,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2004-02-20 19:49:21  daniel
+  Revision 1.11  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.10.2.1  2004/05/02 14:09:54  peter
+    * fix case 64bit issues
+
+  Revision 1.10  2004/02/20 19:49:21  daniel
     * Message system uses open arrays internally
     * Bugfix for string handling in array constructor node
     * Micro code reductions in pdecl.pas

@@ -27,8 +27,9 @@ unit aasmcpu;
 interface
 
 uses
-  cclasses,aasmtai,
-  aasmbase,globals,verbose,
+  cclasses,
+  globtype,globals,verbose,
+  aasmbase,aasmtai,
   cgbase,cpubase,cpuinfo;
 
     const
@@ -38,7 +39,8 @@ uses
       O_MOV_DEST = 1;
 
     type
-      taicpu = class(taicpu_abstract)
+      taicpu = class(tai_cpu_abstract)
+         delayslot_annulled : boolean;   { conditinal opcode with ,a }
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -53,7 +55,7 @@ uses
 
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
          constructor op_reg_ref_reg(op:tasmop;_op1:TRegister;_op2:TReference;_op3:tregister);
-         constructor op_reg_const_reg(op:tasmop;_op1:TRegister;_op2:aword;_op3:tregister);
+         constructor op_reg_const_reg(op:tasmop;_op1:TRegister;_op2:aint;_op3:tregister);
 
          { this is for Jmp instructions }
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
@@ -65,8 +67,6 @@ uses
 
          { register spilling code }
          function spilling_get_operation_type(opnr: longint): topertype;override;
-         function spilling_create_load(const ref:treference;r:tregister): tai;override;
-         function spilling_create_store(r:tregister; const ref:treference): tai;override;
       end;
 
       tai_align = class(tai_align_abstract)
@@ -76,6 +76,8 @@ uses
     procedure InitAsm;
     procedure DoneAsm;
 
+    function spilling_create_load(const ref:treference;r:tregister): tai;
+    function spilling_create_store(r:tregister; const ref:treference): tai;
 
 implementation
 
@@ -193,7 +195,7 @@ implementation
       end;
 
 
-    constructor taicpu.op_reg_const_reg(op:tasmop;_op1:TRegister;_op2:aword;_op3:tregister);
+    constructor taicpu.op_reg_const_reg(op:tasmop;_op1:TRegister;_op2:aint;_op3:tregister);
       begin
          inherited create(op);
          ops:=3;
@@ -230,8 +232,10 @@ implementation
 
     function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
-        result:=((opcode=A_MOV) and (regtype = R_INTREGISTER)) or
-                ((opcode=A_FMOVS) and (regtype = R_FPUREGISTER)) and
+        result:=(
+                 ((opcode=A_MOV) and (regtype = R_INTREGISTER)) or
+                 ((opcode=A_FMOVS) and (regtype = R_FPUREGISTER))
+                ) and
                 (ops=2) and
                 (oper[0]^.typ=top_reg) and
                 (oper[1]^.typ=top_reg) and
@@ -241,21 +245,14 @@ implementation
 
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
-        result := operand_read;
-        case opcode of
-          A_STB..A_STDA:
-            begin
-              if opnr = 1 then
-                result := operand_write;
-            end;
-          else
-            if opnr = 0 then
-              result := operand_write;
-          end;
+        if opnr=ops-1 then
+          result := operand_write
+        else
+          result := operand_read;
       end;
 
 
-    function taicpu.spilling_create_load(const ref:treference;r:tregister): tai;
+    function spilling_create_load(const ref:treference;r:tregister): tai;
       begin
         case getregtype(r) of
           R_INTREGISTER :
@@ -277,7 +274,7 @@ implementation
       end;
 
 
-    function taicpu.spilling_create_store(r:tregister; const ref:treference): tai;
+    function spilling_create_store(r:tregister; const ref:treference): tai;
       begin
         case getregtype(r) of
           R_INTREGISTER :
@@ -308,10 +305,33 @@ implementation
       begin
       end;
 
+begin
+  cai_cpu:=taicpu;
+  cai_align:=tai_align;
 end.
 {
   $Log$
-  Revision 1.47  2004-03-12 08:18:11  mazen
+  Revision 1.48  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.47.2.5  2004/06/03 19:23:41  florian
+    * fixed some spilling issues
+
+  Revision 1.47.2.4  2004/05/30 17:54:14  florian
+    + implemented cmp64bit
+    * started to fix spilling
+    * fixed int64 sub partially
+
+  Revision 1.47.2.3  2004/05/28 20:29:49  florian
+    * fixed currency trouble on x86-64
+
+  Revision 1.47.2.2  2004/05/25 21:38:53  peter
+    * assembler reader/writer updates
+
+  Revision 1.47.2.1  2004/05/11 21:06:51  peter
+    * sparc compiler fixed
+
+  Revision 1.47  2004/03/12 08:18:11  mazen
   - revert '../' from include path
 
   Revision 1.46  2004/03/11 16:21:27  mazen

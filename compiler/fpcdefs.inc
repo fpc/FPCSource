@@ -18,8 +18,10 @@
       { We don't use exceptions, so turn off the implicit
         exceptions in the constructors }
       {$IMPLICITEXCEPTIONS OFF}
-      { Inline small functions }
-      {$define USEINLINE}
+      { Inline small functions, but not when EXTDEBUG is used }
+      {$ifndef EXTDEBUG}
+        {$define USEINLINE}
+      {$endif EXTDEBUG}
     {$else}
       { Optimizer is broken when compiling with optimizations using 1.0.x }
       {$ifndef USEOPT}
@@ -64,6 +66,7 @@
   {$define cpuextended}
   {$define cpufloat128}
   {$define noopt}
+  {$define cputargethasfixedstack}
 {$endif x86_64}
 
 {$ifdef alpha}
@@ -99,8 +102,24 @@
 
 {
   $Log$
-  Revision 1.36  2004-05-30 21:20:40  jonas
+  Revision 1.37  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.36  2004/05/30 21:20:40  jonas
     * enable regvars by default for PPC
+
+  Revision 1.35.2.4  2004/05/02 12:45:32  peter
+    * enabled cpuhasfixedstack for x86-64 again
+    * fixed size of temp allocation for parameters
+
+  Revision 1.35.2.3  2004/05/02 01:02:24  peter
+    * remove fixed stack for x86-64
+
+  Revision 1.35.2.2  2004/04/29 23:30:28  peter
+    * fix i386 compiler
+
+  Revision 1.35.2.1  2004/04/23 22:12:37  florian
+    * fixed some potential stack corruption reasons
 
   Revision 1.35  2004/03/16 22:12:10  florian
     * some alignment issues resolved

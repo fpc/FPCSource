@@ -94,6 +94,71 @@ unit i_bsd;
             use_function_relative_addresses : true
           );
 
+
+       system_x86_64_freebsd_info : tsysteminfo =
+          (
+            system       : system_x86_64_freebsd;
+            name         : 'FreeBSD for x86-64';
+            shortname    : 'FreeBSD';
+            flags        : [tf_needs_symbol_size,tf_smartlink_sections];
+            cpu          : cpu_x86_64;
+            unit_env     : 'BSDUNITS';
+            extradefines : 'UNIX;HASUNIX';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 8;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 8;
+                localalignmin   : 4;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 8;
+                maxCrecordalign : 8
+              );
+            first_parm_offset : 16;
+            heapsize     : 256*1024;
+            stacksize    : 256*1024;
+            DllScanSupported:false;
+            use_function_relative_addresses : true
+          );
+
+
        system_i386_netbsd_info : tsysteminfo =
           (
             system       : system_i386_NetBSD;
@@ -427,6 +492,11 @@ initialization
      set_source_info(system_i386_NetBSD_info);
   {$endif}
 {$endif cpu86}
+{$ifdef cpux86_64}
+   {$ifdef FreeBSD}
+     set_source_info(system_x86_64_FreeBSD_info);
+   {$endif}
+{$endif}
 {$ifdef cpu68}
   {$ifdef NetBSD}
      set_source_info(system_m68k_NetBSD_info);
@@ -443,7 +513,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2004-03-29 21:17:39  florian
+  Revision 1.11  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.10.2.1  2004/05/11 17:07:55  marco
+   * x86_64 freebsd target support
+
+  Revision 1.10  2004/03/29 21:17:39  florian
     * fixed dyn. lib extension on darwin
 
   Revision 1.9  2004/02/08 20:03:05  jonas

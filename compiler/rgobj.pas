@@ -227,21 +227,21 @@ unit rgobj;
         procedure ungetregisterinline(list:Taasmoutput;position:Tai;r:Tregister);
         procedure add_constraints(reg:Tregister);virtual;
 
-        procedure do_spill_read(list:Taasmoutput;instr:Taicpu_abstract;
+        procedure do_spill_read(list:Taasmoutput;instr:Taicpu;
                                 pos:Tai;regidx:word;
                                 const spilltemplist:Tspill_temp_list;
                                 const regs:Tspillregsinfo);virtual;
-        procedure do_spill_written(list:Taasmoutput;instr:Taicpu_abstract;
+        procedure do_spill_written(list:Taasmoutput;instr:Taicpu;
                                    pos:Tai;regidx:word;
                                    const spilltemplist:Tspill_temp_list;
                                    const regs:Tspillregsinfo);virtual;
-        procedure do_spill_readwritten(list:Taasmoutput;instr:Taicpu_abstract;
+        procedure do_spill_readwritten(list:Taasmoutput;instr:Taicpu;
                                        pos:Tai;regidx:word;
                                        const spilltemplist:Tspill_temp_list;
                                        const regs:Tspillregsinfo);virtual;
 
         function instr_spill_register(list:Taasmoutput;
-                                      instr:taicpu_abstract;
+                                      instr:taicpu;
                                       const r:Tsuperregisterset;
                                       const spilltemplist:Tspill_temp_list): boolean;virtual;
       private
@@ -310,7 +310,7 @@ unit rgobj;
       maxspillingcounter = 20;
 
 
-implementation
+  implementation
 
     uses
        systems,
@@ -1625,7 +1625,7 @@ implementation
                       end;
                   end;
               ait_instruction:
-                with Taicpu_abstract(p) do
+                with Taicpu(p) do
                   begin
                     for i:=0 to ops-1 do
                       with oper[i]^ do
@@ -1763,7 +1763,7 @@ implementation
               {Clear all interferences of the spilled register.}
               clear_interferences(t);
               {Get a temp for the spilled register}
-              tg.gettemp(templist,4,tt_noreuse,spill_temps^[t]);
+              tg.gettemp(templist,tcgsize2size[reg_cgsize(newreg(regtype,t,R_SUBWHOLE))],tt_noreuse,spill_temps^[t]);
             end;
         list.insertlistafter(headertai,templist);
         templist.free;
@@ -1800,10 +1800,10 @@ implementation
                       end;
                   end;
               ait_instruction:
-                with Taicpu_abstract(p) do
+                with Taicpu(p) do
                   begin
                     aktfilepos:=fileinfo;
-                    if instr_spill_register(list,Taicpu_abstract(p),regs_to_spill_set,spill_temps^) then
+                    if instr_spill_register(list,taicpu(p),regs_to_spill_set,spill_temps^) then
                       spill_registers:=true;
                   end;
             end;
@@ -1818,7 +1818,7 @@ implementation
       end;
 
 
-    procedure Trgobj.do_spill_read(list:Taasmoutput;instr:Taicpu_abstract;
+    procedure Trgobj.do_spill_read(list:Taasmoutput;instr:taicpu;
                                    pos:Tai;regidx:word;
                                    const spilltemplist:Tspill_temp_list;
                                    const regs:Tspillregsinfo);
@@ -1828,7 +1828,7 @@ implementation
     begin
       with regs[regidx] do
         begin
-          helpins:=instr.spilling_create_load(spilltemplist[orgreg],tempreg);
+          helpins:=spilling_create_load(spilltemplist[orgreg],tempreg);
           if pos=nil then
             list.insertafter(helpins,list.first)
           else
@@ -1839,7 +1839,7 @@ implementation
     end;
 
 
-    procedure Trgobj.do_spill_written(list:Taasmoutput;instr:Taicpu_abstract;
+    procedure Trgobj.do_spill_written(list:Taasmoutput;instr:taicpu;
                                       pos:Tai;regidx:word;
                                       const spilltemplist:Tspill_temp_list;
                                       const regs:Tspillregsinfo);
@@ -1849,14 +1849,14 @@ implementation
     begin
       with regs[regidx] do
         begin
-          helpins:=instr.spilling_create_store(tempreg,spilltemplist[orgreg]);
+          helpins:=spilling_create_store(tempreg,spilltemplist[orgreg]);
           list.insertafter(helpins,instr);
           ungetregisterinline(list,helpins,tempreg);
         end;
     end;
 
 
-    procedure Trgobj.do_spill_readwritten(list:Taasmoutput;instr:Taicpu_abstract;
+    procedure Trgobj.do_spill_readwritten(list:Taasmoutput;instr:taicpu;
                                           pos:Tai;regidx:word;
                                           const spilltemplist:Tspill_temp_list;
                                           const regs:Tspillregsinfo);
@@ -1866,12 +1866,12 @@ implementation
     begin
       with regs[regidx] do
         begin
-          helpins1:=instr.spilling_create_load(spilltemplist[orgreg],tempreg);
+          helpins1:=spilling_create_load(spilltemplist[orgreg],tempreg);
           if pos=nil then
             list.insertafter(helpins1,list.first)
           else
             list.insertafter(helpins1,pos.next);
-          helpins2:=instr.spilling_create_store(tempreg,spilltemplist[orgreg]);
+          helpins2:=spilling_create_store(tempreg,spilltemplist[orgreg]);
           list.insertafter(helpins2,instr);
           ungetregisterinline(list,helpins2,tempreg);
           forward_allocation(tai(helpins1.next),instr);
@@ -1880,7 +1880,7 @@ implementation
 
 
     function trgobj.instr_spill_register(list:Taasmoutput;
-                                         instr:taicpu_abstract;
+                                         instr:taicpu;
                                          const r:Tsuperregisterset;
                                          const spilltemplist:Tspill_temp_list): boolean;
       var
@@ -1930,17 +1930,14 @@ implementation
           i: longint;
           supreg: tsuperregister;
         begin
-          if (getregtype(reg) = R_INTREGISTER) then
-            begin
-              supreg := getsupreg(reg);
-              for i := 0 to pred(regindex) do
-                if (regs[i].mustbespilled) and
-                   (regs[i].orgreg = supreg) then
-                  begin
-                    reg := regs[i].tempreg;
-                    break;
-                  end;
-            end;
+          supreg := getsupreg(reg);
+          for i := 0 to pred(regindex) do
+            if (regs[i].mustbespilled) and
+               (regs[i].orgreg = supreg) then
+              begin
+                reg := regs[i].tempreg;
+                break;
+              end;
         end;
 
 
@@ -2037,12 +2034,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.126  2004-05-22 23:34:28  peter
+  Revision 1.127  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.126  2004/05/22 23:34:28  peter
   tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
 
   Revision 1.125  2004/04/26 19:57:50  jonas
     * do not remove "allocation,deallocation" pairs, as those are important
       for the optimizer
+
+  Revision 1.124.2.3  2004/06/13 10:51:16  florian
+    * fixed several register allocator problems (sparc/arm)
+
+  Revision 1.124.2.2  2004/05/01 11:12:23  florian
+    * spilling of registers with size<>4 fixed
+
+  Revision 1.124.2.1  2004/04/10 12:36:41  peter
+    * fixed alignment issues
 
   Revision 1.124  2004/03/14 22:50:04  peter
     * rewrote add_to_movelist, it now uses a field to store the number
@@ -2160,7 +2169,7 @@ end.
     * some ALLOWDUPREG improvements
 
   Revision 1.91  2003/10/21 15:15:36  peter
-    * taicpu_abstract.oper[] changed to pointers
+    * taicpu.oper[] changed to pointers
 
   Revision 1.90  2003/10/19 12:36:36  florian
     * improved speed; reduced memory usage of the interference bitmap

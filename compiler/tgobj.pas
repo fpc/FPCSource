@@ -578,7 +578,14 @@ unit tgobj;
 end.
 {
   $Log$
-  Revision 1.43  2004-01-12 22:11:38  peter
+  Revision 1.44  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.43.2.1  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.43  2004/01/12 22:11:38  peter
     * use localalign info for alignment for locals and temps
     * sparc fpu flags branching added
     * moved powerpc copy_valye_openarray to generic
@@ -732,7 +739,7 @@ end.
     * removed old logs and updated copyright year
 
   Revision 1.6  2002/04/15 19:08:22  carl
-  + target_info.size_of_pointer -> pointer_size
+  + target_info.size_of_pointer -> sizeof(aint)
   + some cleanup of unused types/variables
 
   Revision 1.5  2002/04/07 13:38:48  carl

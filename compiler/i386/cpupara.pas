@@ -207,14 +207,14 @@ unit cpupara;
                begin
                  result.loc:=LOC_REFERENCE;
                  result.reference.index:=NR_STACK_POINTER_REG;
-                 result.reference.offset:=POINTER_SIZE*nr;
+                 result.reference.offset:=sizeof(aint)*nr;
                end;
            end
          else
            begin
              result.loc:=LOC_REFERENCE;
              result.reference.index:=NR_STACK_POINTER_REG;
-             result.reference.offset:=POINTER_SIZE*nr;
+             result.reference.offset:=sizeof(aint)*nr;
            end;
       end;
 
@@ -225,34 +225,37 @@ unit cpupara;
       begin
         { Function return }
         fillchar(paraloc,sizeof(tparalocation),0);
-        paraloc.size:=def_cgsize(p.rettype.def);
+        if (p.proctypeoption=potype_constructor) then
+          paraloc.size:=OS_ADDR
+        else
+          paraloc.size:=def_cgsize(p.rettype.def);
         paraloc.lochigh:=LOC_INVALID;
-        { Return in FPU register? }
-        if p.rettype.def.deftype=floatdef then
+        if paraloc.size<>OS_NO then
           begin
-            paraloc.loc:=LOC_FPUREGISTER;
-            paraloc.register:=NR_FPU_RESULT_REG;
-          end
-        else
-         { Return in register? }
-         if not ret_in_param(p.rettype.def,p.proccalloption) then
-          begin
-            paraloc.loc:=LOC_REGISTER;
-{$ifndef cpu64bit}
-            if paraloc.size in [OS_64,OS_S64] then
-             begin
-               paraloc.register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
-               paraloc.register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
-             end
+            { Return in FPU register? }
+            if p.rettype.def.deftype=floatdef then
+              begin
+                paraloc.loc:=LOC_FPUREGISTER;
+                paraloc.register:=NR_FPU_RESULT_REG;
+              end
             else
-{$endif cpu64bit}
-             begin
-               paraloc.register:=NR_FUNCTION_RETURN_REG;
-             end;
-          end
-        else
-          begin
-            paraloc.loc:=LOC_REFERENCE;
+             { Return in register? }
+             if not ret_in_param(p.rettype.def,p.proccalloption) then
+              begin
+                paraloc.loc:=LOC_REGISTER;
+                if paraloc.size in [OS_64,OS_S64] then
+                  begin
+                    paraloc.lochigh:=LOC_REGISTER;
+                    paraloc.register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
+                    paraloc.register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
+                  end
+                else
+                  paraloc.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(paraloc.size));
+              end
+            else
+              begin
+                paraloc.loc:=LOC_REFERENCE;
+              end;
           end;
         p.funcret_paraloc[side]:=paraloc;
       end;
@@ -494,7 +497,21 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2004-02-09 22:14:17  peter
+  Revision 1.51  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.50.2.3  2004/05/02 21:37:35  florian
+    * setting of func. ret. for i386 fixed
+
+  Revision 1.50.2.2  2004/05/02 12:45:32  peter
+    * enabled cpuhasfixedstack for x86-64 again
+    * fixed size of temp allocation for parameters
+
+  Revision 1.50.2.1  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.50  2004/02/09 22:14:17  peter
     * more x86_64 parameter fixes
     * tparalocation.lochigh is now used to indicate if registerhigh
       is used and what the type is

@@ -484,7 +484,11 @@ uses
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
     procedure create_cond_imm(BO,BI:byte;var r : TAsmCond);
     procedure create_cond_norm(cond: TAsmCondFlag; cr: byte;var r : TasmCond);
+
     function cgsize2subreg(s:Tcgsize):Tsubregister;
+    { Returns the tcgsize corresponding with the size of reg.}
+    function reg_cgsize(const reg: tregister) : tcgsize; virtual;
+
     function findreg_by_number(r:Tregister):tregisterindex;
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
@@ -623,7 +627,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  2004-02-27 10:21:05  florian
+  Revision 1.87  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.86.2.1  2004/05/01 11:12:24  florian
+    * spilling of registers with size<>4 fixed
+
+  Revision 1.86  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

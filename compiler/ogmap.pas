@@ -44,8 +44,8 @@ interface
          procedure AddCommonSymbolsHeader;
          procedure AddCommonSymbol(p:tasmsymbol);
          procedure AddMemoryMapHeader;
-         procedure AddMemoryMapSection(p:texesection);
-         procedure AddMemoryMapObjectData(p:TAsmObjectData;sec:TSection);
+         procedure AddMemoryMapExeSection(p:texesection);
+         procedure AddMemoryMapObjectSection(p:TAsmSection);
          procedure AddMemoryMapSymbol(p:tasmsymbol);
        end;
 
@@ -102,7 +102,7 @@ implementation
             writeln(t,p.name);
             s:='';
           end;
-         writeln(t,PadSpace(s,20)+'0x'+PadSpace(hexstr(p.size,1),16)+TAsmObjectData(p.objectdata).name);
+         writeln(t,PadSpace(s,20)+'0x'+PadSpace(hexstr(p.size,1),16)+p.owner.name);
        end;
 
 
@@ -114,18 +114,18 @@ implementation
        end;
 
 
-     procedure TExeMap.AddMemoryMapSection(p:texesection);
+     procedure TExeMap.AddMemoryMapExeSection(p:texesection);
        begin
          { .text           0x000018a8     0xd958 }
          writeln(t,PadSpace(p.name,18)+PadSpace('0x'+HexStr(p.mempos,8),15)+'0x'+HexStr(p.memsize,1));
        end;
 
 
-     procedure TExeMap.AddMemoryMapObjectData(p:TAsmObjectData;sec:TSection);
+     procedure TExeMap.AddMemoryMapObjectSection(p:TAsmSection);
        begin
          { .text           0x000018a8     0xd958     object.o }
-         writeln(t,' '+PadSpace(p.sects[sec].name,17)+PadSpace('0x'+HexStr(p.sects[sec].mempos,8),16)+
-                   '0x'+HexStr(p.sects[sec].memsize,1)+' '+p.name);
+         writeln(t,' '+PadSpace(p.name,17)+PadSpace('0x'+HexStr(p.mempos,8),16)+
+                   '0x'+HexStr(p.memsize,1)+' '+p.owner.name);
        end;
 
 
@@ -138,7 +138,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2003-04-22 14:33:38  peter
+  Revision 1.3  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.2.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
+
+  Revision 1.2  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.1  2002/07/01 18:46:24  peter

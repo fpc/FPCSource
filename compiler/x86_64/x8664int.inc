@@ -198,7 +198,6 @@
 'movq',
 'movsb',
 'movsd',
-'movsl',
 'movsq',
 'movsw',
 'movsx',
@@ -564,5 +563,7 @@
 'movddup',
 'movshdup',
 'movsldup',
-'movabs'
+'movabs',
+'movsxd',
+'cdo'
 );

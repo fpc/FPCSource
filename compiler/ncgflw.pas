@@ -79,8 +79,6 @@ interface
           procedure pass_2;override;
        end;
 
-
-
 implementation
 
     uses
@@ -411,7 +409,7 @@ implementation
              if lnf_testatbegin in loopflags then
                begin
                  cg.a_cmp_const_loc_label(exprasmlist,opsize,hcond,
-                   aword(tordconstnode(right).value),
+                   tordconstnode(right).value,
                    t2.location,aktbreaklabel);
                end;
            end;
@@ -981,7 +979,7 @@ implementation
               }
               paraloc1:=paramanager.getintparaloc(pocall_default,1);
               paramanager.allocparaloc(exprasmlist,paraloc1);
-              cg.a_param_const(exprasmlist,OS_ADDR,aword(-1),paraloc1);
+              cg.a_param_const(exprasmlist,OS_ADDR,-1,paraloc1);
               paramanager.freeparaloc(exprasmlist,paraloc1);
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_CATCHES');
@@ -1161,7 +1159,7 @@ implementation
          if assigned(exceptsymtable) then
            begin
              tvarsym(exceptsymtable.symindex.first).localloc.loc:=LOC_REFERENCE;
-             tg.GetLocal(exprasmlist,POINTER_SIZE,voidpointertype.def,
+             tg.GetLocal(exprasmlist,sizeof(aint),voidpointertype.def,
                 tvarsym(exceptsymtable.symindex.first).localloc.reference);
              reference_reset_base(href2,tvarsym(exceptsymtable.symindex.first).localloc.reference.index,
                 tvarsym(exceptsymtable.symindex.first).localloc.reference.offset);
@@ -1169,13 +1167,12 @@ implementation
            end
          else
            begin
-             tg.GetTemp(exprasmlist,POINTER_SIZE,tt_normal,exceptref);
+             tg.GetTemp(exprasmlist,sizeof(aint),tt_normal,exceptref);
              cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,exceptref);
            end;
 
-
-         { in the case that another exception is risen }
-         { we've to destroy the old one                }
+         { in the case that another exception is risen
+           we've to destroy the old one                }
          objectlibrary.getlabel(doobjectdestroyandreraise);
 
          { call setjmp, and jump to finally label on non-zero result }
@@ -1443,7 +1440,20 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  2004-03-29 14:43:47  peter
+  Revision 1.96  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.95.2.3  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.95.2.2  2004/04/27 18:18:25  peter
+    * aword -> aint
+
+  Revision 1.95.2.1  2004/04/24 20:13:24  florian
+    * fixed x86-64 exception handling
+
+  Revision 1.95  2004/03/29 14:43:47  peter
     * cleaner temp get/unget for exceptions
 
   Revision 1.94  2004/03/02 00:36:33  olle

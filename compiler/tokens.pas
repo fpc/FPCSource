@@ -219,6 +219,7 @@ type
     _SHORTSTRING,
     _COMPILERPROC,
     _FINALIZATION,
+    _NOSTACKFRAME,
     _DISPINTERFACE,
     _SAVEREGISTERS,
     _UNIMPLEMENTED,
@@ -446,6 +447,7 @@ const
       (str:'SHORTSTRING'   ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'COMPILERPROC'  ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'FINALIZATION'  ;special:false;keyword:m_initfinal;op:NOTOKEN),
+      (str:'NOSTACKFRAME'  ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'DISPINTERFACE' ;special:false;keyword:m_class;op:NOTOKEN),
       (str:'SAVEREGISTERS' ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'UNIMPLEMENTED' ;special:false;keyword:m_all;op:NOTOKEN),
@@ -512,13 +514,19 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  2004-05-03 10:06:38  olle
+  Revision 1.29  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.28  2004/05/03 10:06:38  olle
     + added language constructs UNIV, C, ... for mode mac
     * consolidated macro expression to conform to Pascal
     * macro true is defined as <> 0
 
   Revision 1.27  2004/04/18 15:22:24  florian
     + location support for arguments, currently PowerPC/MorphOS only
+
+  Revision 1.26.2.1  2004/05/27 23:36:18  peter
+    * nostackframe procdirective added
 
   Revision 1.26  2004/02/17 17:38:11  daniel
     * Enable threadvars for all modes

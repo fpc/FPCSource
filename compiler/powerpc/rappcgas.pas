@@ -65,7 +65,7 @@ Unit rappcgas;
     procedure tppcattreader.ReadSym(oper : tppcoperand);
       var
          tempstr : string;
-         typesize,l,k : longint;
+         typesize,l,k : aint;
       begin
         tempstr:=actasmpattern;
         Consume(AS_ID);
@@ -138,7 +138,7 @@ Unit rappcgas;
         end;
 
       var
-        l : longint;
+        l : aint;
 
       begin
         Consume(AS_LPAREN);
@@ -242,7 +242,7 @@ Unit rappcgas;
     Procedure tppcattreader.BuildOperand(oper : tppcoperand);
       var
         expr : string;
-        typesize,l : longint;
+        typesize,l : aint;
 
 
         procedure AddLabelOperand(hl:tasmlabel);
@@ -266,7 +266,7 @@ Unit rappcgas;
             hasdot  : boolean;
             l,
             toffset,
-            tsize   : longint;
+            tsize   : aint;
           begin
             if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
              exit;
@@ -348,7 +348,7 @@ Unit rappcgas;
       var
         tempreg : tregister;
         hl : tasmlabel;
-        ofs : longint;
+        ofs : aint;
       Begin
         expr:='';
         case actasmtoken of
@@ -753,7 +753,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2004-03-02 00:36:33  olle
+  Revision 1.15  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.14.2.1  2004/05/01 23:36:47  peter
+    * assembler reader 64bit fixes
+
+  Revision 1.14  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.13  2004/02/28 16:00:45  florian

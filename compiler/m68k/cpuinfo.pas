@@ -21,20 +21,6 @@ Interface
     globtype;
 
 Type
-   { Architecture word - Native unsigned type }
-   aword  = longword;
-   PAWord = ^AWord;
-   AInt = longint;
-
-   { this must be an ordinal type with the same size as a pointer }
-   { to allow some dirty type casts for example when using        }
-   { tconstsym.value                                              }
-   { Note: must be unsigned!! Otherwise, ugly code like           }
-   { pointer(-1) will result in a pointer with the value          }
-   { $fffffffffffffff on a 32bit machine if the compiler uses     }
-   { int64 constants internally (JM)                              }
-   TConstPtrUInt = longword;
-
    bestreal = real;
    ts32real = single;
    ts64real = double;
@@ -62,8 +48,6 @@ Type
 Const
    {# Size of native extended floating point type }
    extended_size = 8;
-   {# Size of a pointer                           }
-   pointer_size  = 4;
    {# Size of a multimedia register               }
    mmreg_size = 16;
    { size of the buffer used for setjump/longjmp
@@ -105,7 +89,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.11  2004-05-01 23:29:01  florian
+  Revision 1.12  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.11  2004/05/01 23:29:01  florian
     * continued to fix m68k compiler compilation
 
   Revision 1.10  2004/04/28 15:19:03  florian
@@ -113,6 +100,10 @@ end.
 
   Revision 1.9  2004/04/18 21:13:59  florian
     * more adaptions for m68k
+
+  Revision 1.8.2.1  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
 
   Revision 1.8  2004/01/30 12:17:18  florian
     * fixed some m68k compilation problems

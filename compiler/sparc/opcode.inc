@@ -4,8 +4,9 @@
 A_NONE,
 A_ABCD,
 A_ADD,A_ADDcc,A_ADDX,A_ADDXcc,
-A_AND,A_ANDcc,A_ANDN,A_ADDNcc,
+A_AND,A_ANDcc,A_ANDN,A_ANDNcc,
 {Branching instructions}
+A_JMP,
 A_JMPL,
 A_CALL,
 A_BA,A_Bxx,A_FBA,A_FBxx,
@@ -21,7 +22,7 @@ A_NOP,
 A_OR,A_ORcc,A_ORN,A_ORNcc,
 A_RDASR,A_RDY,A_RDPSR,A_RDWIM,A_RDTBR,
 A_RESTORE,
-A_RET,
+A_RET,A_RETL,
 A_SAVE,
 A_SDIV,A_SDIVcc,
 A_SMUL,A_SMULcc,
@@ -71,7 +72,19 @@ A_FMOVD
 
 {
         $Log$
-        Revision 1.12  2004-01-12 22:11:39  peter
+        Revision 1.13  2004-06-16 20:07:11  florian
+          * dwarf branch merged
+
+        Revision 1.12.2.3  2004/05/27 23:34:59  peter
+          * retl added
+
+        Revision 1.12.2.2  2004/05/25 21:38:53  peter
+          * assembler reader/writer updates
+
+        Revision 1.12.2.1  2004/05/13 20:58:47  florian
+          * fixed register addressed jumps in interface wrappers
+
+        Revision 1.12  2004/01/12 22:11:39  peter
           * use localalign info for alignment for locals and temps
           * sparc fpu flags branching added
           * moved powerpc copy_valye_openarray to generic

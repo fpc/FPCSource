@@ -269,6 +269,7 @@ type
          function  search(const s:string):TNamedIndexItem;
          function  speedsearch(const s:string;SpeedValue:cardinal):TNamedIndexItem;
          property  Items[const s:string]:TNamedIndexItem read Search;default;
+         property  Count:longint read FCount;
        end;
 
        tsingleList=class
@@ -1379,27 +1380,27 @@ end;
             if root<>nil then
               begin
                 dec(FCount);
-            if root.FLeft<>nil then
-             begin
-               { Now the Node pointing to root must point to the left
-                 subtree of root. The right subtree of root must be
-                 connected to the right bottom of the left subtree.}
-               if lr=left then
-                oldroot.FLeft:=root.FLeft
-               else
-                oldroot.FRight:=root.FLeft;
-               if root.FRight<>nil then
-                insert_right_bottom(root.FLeft,root.FRight);
-             end
-            else
-             begin
-               { There is no left subtree. So we can just replace the Node to
-                 delete with the right subtree.}
-               if lr=left then
-                oldroot.FLeft:=root.FRight
-               else
-                oldroot.FRight:=root.FRight;
-             end;
+                if root.FLeft<>nil then
+                 begin
+                   { Now the Node pointing to root must point to the left
+                     subtree of root. The right subtree of root must be
+                     connected to the right bottom of the left subtree.}
+                   if lr=left then
+                    oldroot.FLeft:=root.FLeft
+                   else
+                    oldroot.FRight:=root.FLeft;
+                   if root.FRight<>nil then
+                    insert_right_bottom(root.FLeft,root.FRight);
+                 end
+                else
+                 begin
+                   { There is no left subtree. So we can just replace the Node to
+                     delete with the right subtree.}
+                   if lr=left then
+                    oldroot.FLeft:=root.FRight
+                   else
+                    oldroot.FRight:=root.FRight;
+                 end;
               end;
             delete_from_tree:=root;
           end;
@@ -1602,9 +1603,9 @@ end;
       begin
         inc(FCount);
         if assigned(FHashArray) then
-         insert:=insertNode(obj,FHashArray^[obj.SpeedValue mod hasharraysize])
+          insert:=insertNode(obj,FHashArray^[obj.SpeedValue mod hasharraysize])
         else
-         insert:=insertNode(obj,FRoot);
+          insert:=insertNode(obj,FRoot);
       end;
 
 
@@ -2300,7 +2301,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  2004-05-24 17:30:09  peter
+  Revision 1.34  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.33  2004/05/24 17:30:09  peter
     * allow setting of name in dictionary always. Otherwise it is never
       possible to create an item with a name and rename before insert
       this is used in the symtable to hide the current symbol
@@ -2310,6 +2314,15 @@ end.
 
   Revision 1.31  2004/04/28 18:02:54  peter
     * add TList to cclasses, remove classes dependency from t_win32
+
+  Revision 1.30.2.3  2004/05/02 14:27:21  peter
+    * use sizeof(pointer) instead of 4
+
+  Revision 1.30.2.2  2004/04/09 14:34:53  peter
+    * fixed compilation for win32
+
+  Revision 1.30.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.30  2004/01/15 15:16:17  daniel
     * Some minor stuff

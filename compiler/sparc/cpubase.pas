@@ -24,12 +24,12 @@
 }
 unit cpubase;
 
-{$INCLUDE fpcdefs.inc}
+{$i fpcdefs.inc}
 
 interface
 
 uses
-  strings,cutils,cclasses,aasmbase,cpuinfo,cgbase;
+  globtype,strings,cutils,cclasses,aasmbase,cpuinfo,cgbase;
 
 
 {*****************************************************************************
@@ -39,7 +39,7 @@ uses
     type
 {$WARNING CPU32 opcodes do not fully include the Ultra SPRAC instruction set.}
       { don't change the order of these opcodes! }
-      TAsmOp=({$INCLUDE opcode.inc});
+      TAsmOp=({$i opcode.inc});
 
       {# This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];
@@ -50,7 +50,7 @@ uses
       {# Last value of opcode enumeration  }
       lastop  = high(tasmop);
 
-      std_op2str:op2strtable=({$INCLUDE strinst.inc});
+      std_op2str:op2strtable=({$i strinst.inc});
 
 {*****************************************************************************
                                   Registers
@@ -83,6 +83,10 @@ uses
 
       regstabs_table : array[tregisterindex] of ShortInt = (
         {$i rspstab.inc}
+      );
+
+      regdwarf_table : array[tregisterindex] of ShortInt = (
+        {$i rspdwrf.inc}
       );
 
 
@@ -121,6 +125,7 @@ uses
       CondAsmOpStr:array[0..CondAsmOps-1] of string[7]=(
         'B','FB'
       );
+
 
 {*****************************************************************************
                                    Flags
@@ -172,9 +177,6 @@ uses
          relsymbol      : tasmsymbol;
          { reference type addr or symbol itself }
          refaddr : trefaddr;
-         { changed when inlining and possibly in other cases, don't }
-         { set manually                                             }
-         offsetfixup : longint;
          { used in conjunction with the previous field }
          options     : trefoptions;
          { alignment this reference is guaranteed to have }
@@ -260,15 +262,11 @@ type
             LOC_CONSTANT : (
               case longint of
 {$ifdef FPC_BIG_ENDIAN}
-                1 : (_valuedummy,value : AWord);
+                1 : (_valuedummy,value : Aint);
 {$else FPC_BIG_ENDIAN}
-                1 : (value : AWord);
+                1 : (value : Aint);
 {$endif FPC_BIG_ENDIAN}
-                { can't do this, this layout depends on the host cpu. Use }
-                { lo(valueqword)/hi(valueqword) instead (JM)              }
-                { 2 : (valuelow, valuehigh:AWord);                        }
-                { overlay a complete 64 Bit value }
-                3 : (valueqword : qword);
+                2 : (value64 : int64);
               );
             LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
               LOC_REGISTER,LOC_CREGISTER : (
@@ -388,6 +386,8 @@ type
       }
 {$warning As indicated in rs6000.h, but can't find it anywhere else!}
       {PIC_OFFSET_REG = R_30;}
+      { Return address for DWARF }
+      NR_RETURN_ADDRESS_REG = NR_I7;
       { the return_result_reg, is used inside the called function to store its return
       value when that is a scalar value otherwise a pointer to the address of the
       result is placed inside it }
@@ -455,6 +455,7 @@ type
     procedure inverse_flags(var f: TResFlags);
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
     function cgsize2subreg(s:Tcgsize):Tsubregister;
+    function reg_cgsize(const reg: tregister): tcgsize;
     function std_regname(r:Tregister):string;
     function std_regnum_search(const s:string):Tregister;
     function findreg_by_number(r:Tregister):tregisterindex;
@@ -517,6 +518,24 @@ implementation
       end;
 
 
+    function reg_cgsize(const reg: tregister): tcgsize;
+      begin
+        case getregtype(reg) of
+          R_INTREGISTER :
+            result:=OS_32;
+          R_FPUREGISTER :
+            begin
+              if getsubreg(reg)=R_SUBFD then
+                result:=OS_F64
+              else
+                result:=OS_F32;
+            end;
+          else
+            internalerror(200303181);
+        end;
+      end;
+
+
     function std_regname(r:Tregister):string;
       var
         p : tregisterindex;
@@ -544,7 +563,25 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2004-03-12 08:18:11  mazen
+  Revision 1.66  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.65.2.5  2004/06/13 20:38:38  florian
+    * fixed floating point register spilling on sparc
+
+  Revision 1.65.2.4  2004/05/28 22:21:48  peter
+    * fixed sparc compile
+
+  Revision 1.65.2.3  2004/05/28 20:29:50  florian
+    * fixed currency trouble on x86-64
+
+  Revision 1.65.2.2  2004/05/13 20:58:47  florian
+    * fixed register addressed jumps in interface wrappers
+
+  Revision 1.65.2.1  2004/05/11 21:06:51  peter
+    * sparc compiler fixed
+
+  Revision 1.65  2004/03/12 08:18:11  mazen
   - revert '../' from include path
 
   Revision 1.64  2004/03/11 16:22:52  mazen

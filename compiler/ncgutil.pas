@@ -53,8 +53,8 @@ interface
 
     procedure gen_proc_symbol(list:Taasmoutput);
     procedure gen_proc_symbol_end(list:Taasmoutput);
-    procedure gen_stackalloc_code(list:Taasmoutput);
-    procedure gen_stackfree_code(list:Taasmoutput;usesacc,usesacchi:boolean);
+    procedure gen_proc_entry_code(list:Taasmoutput);
+    procedure gen_proc_exit_code(list:Taasmoutput);
     procedure gen_save_used_regs(list:TAAsmoutput);
     procedure gen_restore_used_regs(list:TAAsmoutput;const funcretparaloc:tparalocation);
     procedure gen_initialize_code(list:TAAsmoutput;inlined:boolean);
@@ -62,7 +62,7 @@ interface
     procedure gen_entry_code(list:TAAsmoutput);
     procedure gen_exit_code(list:TAAsmoutput);
     procedure gen_load_para_value(list:TAAsmoutput);
-    procedure gen_load_return_value(list:TAAsmoutput; var uses_acc,uses_acchi,uses_fpu : boolean);
+    procedure gen_load_return_value(list:TAAsmoutput);
 
 (*
     procedure geninlineentrycode(list:TAAsmoutput;stackframe:longint);
@@ -86,7 +86,8 @@ interface
     }
 
     const
-      EXCEPT_BUF_SIZE = 12;
+
+      EXCEPT_BUF_SIZE = 4*2*sizeof(aint);
     type
       texceptiontemps=record
         jmpbuf,
@@ -96,8 +97,8 @@ interface
 
     procedure get_exception_temps(list:taasmoutput;var t:texceptiontemps);
     procedure unget_exception_temps(list:taasmoutput;const t:texceptiontemps);
-    procedure new_exception(list:TAAsmoutput;const t:texceptiontemps;a:aword;exceptlabel:tasmlabel);
-    procedure free_exception(list:TAAsmoutput;const t:texceptiontemps;a:aword;endexceptlabel:tasmlabel;onlyfree:boolean);
+    procedure new_exception(list:TAAsmoutput;const t:texceptiontemps;a:aint;exceptlabel:tasmlabel);
+    procedure free_exception(list:TAAsmoutput;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
 
     procedure insertconstdata(sym : ttypedconstsym);
     procedure insertbssdata(sym : tvarsym);
@@ -125,7 +126,7 @@ implementation
     globals,systems,verbose,
     ppu,defutil,
     procinfo,paramgr,fmodule,
-    regvars,
+    regvars,dwarf,
 {$ifdef GDB}
     gdb,
 {$endif GDB}
@@ -274,6 +275,7 @@ implementation
       end;
         *)
 
+
 {*****************************************************************************
                             EXCEPTION MANAGEMENT
 *****************************************************************************}
@@ -282,7 +284,7 @@ implementation
       begin
         tg.GetTemp(list,EXCEPT_BUF_SIZE,tt_persistent,t.envbuf);
         tg.GetTemp(list,JMP_BUF_SIZE,tt_persistent,t.jmpbuf);
-        tg.GetTemp(list,sizeof(aword),tt_persistent,t.reasonbuf);
+        tg.GetTemp(list,sizeof(aint),tt_persistent,t.reasonbuf);
       end;
 
 
@@ -294,7 +296,7 @@ implementation
       end;
 
 
-    procedure new_exception(list:TAAsmoutput;const t:texceptiontemps;a:aword;exceptlabel:tasmlabel);
+    procedure new_exception(list:TAAsmoutput;const t:texceptiontemps;a:aint;exceptlabel:tasmlabel);
       var
         paraloc1,paraloc2,paraloc3 : tparalocation;
       begin
@@ -328,7 +330,7 @@ implementation
      end;
 
 
-    procedure free_exception(list:TAAsmoutput;const t:texceptiontemps;a:aword;endexceptlabel:tasmlabel;onlyfree:boolean);
+    procedure free_exception(list:TAAsmoutput;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
      begin
          cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(list,'FPC_POPADDRSTACK');
@@ -400,7 +402,7 @@ implementation
                  if l.loc=LOC_CONSTANT then
                   begin
                     if (longint(l.value)<0) then
-                     cg.a_load_const_reg(list,OS_32,$ffffffff,hregisterhi)
+                     cg.a_load_const_reg(list,OS_32,aint($ffffffff),hregisterhi)
                     else
                      cg.a_load_const_reg(list,OS_32,0,hregisterhi);
                   end
@@ -446,7 +448,7 @@ implementation
             allocator eliminates unnecessary moves, so it's not needed
             and trying to recycle registers can cause problems because
             the registers changes size and may need aditional constraints.
-            
+
             Not if it's about LOC_CREGISTER's (JM)
             }
            const_location :=
@@ -523,6 +525,7 @@ implementation
         hl : tasmlabel;
         oldloc : tlocation;
       begin
+        oldloc:=l;
         {Do not bother to recycle the existing register. The register
          allocator eliminates unnecessary moves, so it's not needed
          and trying to recycle registers can cause problems because
@@ -665,12 +668,14 @@ implementation
           LOC_CREGISTER :
             begin
               tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
+{$ifndef cpu64bit}
               if l.size in [OS_64,OS_S64] then
                 begin
                   cg64.a_load64_loc_ref(list,l,r);
                   location_release(list,l);
                 end
               else
+{$endif cpu64bit}
                 begin
                   location_release(list,l);
                   cg.a_load_loc_ref(list,l.size,l,r);
@@ -701,6 +706,8 @@ implementation
           end
         else
           maybe_pushfpu:=false;
+{$else i386}
+        maybe_pushfpu:=false;
 {$endif i386}
       end;
 
@@ -950,9 +957,7 @@ implementation
       var
         hp : ptemprecord;
         href : treference;
-        paraloc1 : tparalocation;
       begin
-        paraloc1:=paramanager.getintparaloc(pocall_default,1);
         hp:=tg.templist;
         while assigned(hp) do
          begin
@@ -968,13 +973,14 @@ implementation
       end;
 
 
-    procedure gen_load_return_value(list:TAAsmoutput; var uses_acc,uses_acchi,uses_fpu : boolean);
+    procedure gen_load_return_value(list:TAAsmoutput);
       var
         ressym : tvarsym;
         resloc : tlocation;
-        href   : treference;
         hreg   : tregister;
+        resultloc : tparalocation;
       begin
+        resultloc:=current_procinfo.procdef.funcret_paraloc[calleeside];
         { Is the loading needed? }
         if is_void(current_procinfo.procdef.rettype.def) or
            (
@@ -982,53 +988,37 @@ implementation
             (not(assigned(current_procinfo.procdef.funcretsym)) or
              (tvarsym(current_procinfo.procdef.funcretsym).refs=0))
            ) then
-          exit;
+           exit;
 
-        { Constructors need to return self }
+        { constructors return self }
         if (current_procinfo.procdef.proctypeoption=potype_constructor) then
-          begin
-            cg.getexplicitregister(list,NR_FUNCTION_RETURN_REG);
-            { return the self pointer }
-            ressym:=tvarsym(current_procinfo.procdef.parast.search('self'));
-            if not assigned(ressym) then
-              internalerror(200305058);
-            cg.ungetregister(list,NR_FUNCTION_RETURN_REG);
-            // for the optimizer
-            cg.a_reg_alloc(list,NR_FUNCTION_RETURN_REG);
-            case ressym.localloc.loc of
-              LOC_REFERENCE :
-                begin
-                  reference_reset_base(href,ressym.localloc.reference.index,ressym.localloc.reference.offset);
-                  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_FUNCTION_RETURN_REG);
-                end;
-              LOC_REGISTER:
-                cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,ressym.localloc.register,NR_FUNCTION_RETURN_REG);
-              else
-                internalerror(2004020409);
-            end;
-            uses_acc:=true;
-            exit;
-          end;
-
-        ressym := tvarsym(current_procinfo.procdef.funcretsym);
+          ressym:=tvarsym(current_procinfo.procdef.parast.search('self'))
+        else
+          ressym := tvarsym(current_procinfo.procdef.funcretsym);
         if (ressym.refs>0) then
           begin
             case ressym.localloc.loc of
-              LOC_FPUREGISTER,
-              LOC_REGISTER :
+              LOC_FPUREGISTER:
                 begin
-                  if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
-                    location_reset(resloc,LOC_CREGISTER,OS_ADDR)
-                  else
-                    if ressym.vartype.def.deftype = floatdef then
-                      location_reset(resloc,LOC_CFPUREGISTER,def_cgsize(current_procinfo.procdef.rettype.def))
-                    else
-                      location_reset(resloc,LOC_CREGISTER,def_cgsize(current_procinfo.procdef.rettype.def));
+                  location_reset(resloc,LOC_CREGISTER,resultloc.size);
                   resloc.register:=ressym.localloc.register;
                 end;
-              LOC_REFERENCE :
+
+              LOC_REGISTER:
                 begin
-                  location_reset(resloc,LOC_REFERENCE,def_cgsize(current_procinfo.procdef.rettype.def));
+                  location_reset(resloc,LOC_CREGISTER,resultloc.size);
+                  resloc.register:=ressym.localloc.register;
+                end;
+
+              LOC_MMREGISTER:
+                begin
+                  location_reset(resloc,LOC_CMMREGISTER,resultloc.size);
+                  resloc.register:=ressym.localloc.register;
+                end;
+
+              LOC_REFERENCE:
+                begin
+                  location_reset(resloc,LOC_REFERENCE,resultloc.size);
                   reference_reset_base(resloc.reference,ressym.localloc.reference.index,ressym.localloc.reference.offset);
                 end;
               else
@@ -1038,78 +1028,46 @@ implementation
             { Here, we return the function result. In most architectures, the value is
               passed into the FUNCTION_RETURN_REG, but in a windowed architecure like sparc a
               function returns in a register and the caller receives it in an other one }
-            case current_procinfo.procdef.rettype.def.deftype of
-              orddef,
-              enumdef :
+            case resultloc.loc of
+              LOC_REGISTER:
                 begin
-                  uses_acc:=true;
-    {$ifndef cpu64bit}
+{$ifndef cpu64bit}
                   if resloc.size in [OS_64,OS_S64] then
-                   begin
-                     uses_acchi:=true;
-                     cg.getexplicitregister(list,NR_FUNCTION_RETURN64_LOW_REG);
-                     cg.getexplicitregister(list,NR_FUNCTION_RETURN64_HIGH_REG);
-                     cg.ungetregister(list,NR_FUNCTION_RETURN64_LOW_REG);
-                     cg.ungetregister(list,NR_FUNCTION_RETURN64_HIGH_REG);
-                     // for the optimizer
-                     cg.a_reg_alloc(list,NR_FUNCTION_RETURN64_LOW_REG);
-                     cg.a_reg_alloc(list,NR_FUNCTION_RETURN64_HIGH_REG);
-                     cg64.a_load64_loc_reg(list,resloc,joinreg64(NR_FUNCTION_RETURN64_LOW_REG,
-                                           NR_FUNCTION_RETURN64_HIGH_REG));
-                   end
-                  else
-    {$endif cpu64bit}
-                   begin
-                     cg.getexplicitregister(list,NR_FUNCTION_RETURN_REG);
-                     hreg:=cg.makeregsize(list,NR_FUNCTION_RETURN_REG,resloc.size);
-                     cg.ungetregister(list,hreg);
-                     // for the optimizer
-                     cg.a_reg_alloc(list,NR_FUNCTION_RETURN_REG);
-                     cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
-                   end;
-                end;
-              floatdef :
-                begin
-                  uses_fpu := true;
-    {$ifdef cpufpemu}
-                  if cs_fp_emulation in aktmoduleswitches then
-                    cg.a_loadfpu_loc_reg(list,resloc,NR_FUNCTION_RETURN_REG)
-                  else
-    {$endif cpufpemu}
-                    cg.a_loadfpu_loc_reg(list,resloc,NR_FPU_RESULT_REG);
-                end;
-              else
-                begin
-                  if not paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
-                   begin
-                     uses_acc:=true;
-    {$ifndef cpu64bit}
-                     { Win32 can return records in EAX:EDX }
-                     if resloc.size in [OS_64,OS_S64] then
-                      begin
-                        uses_acchi:=true;
-                        cg.getexplicitregister(list,NR_FUNCTION_RETURN64_LOW_REG);
-                        cg.getexplicitregister(list,NR_FUNCTION_RETURN64_HIGH_REG);
-                        cg.ungetregister(list,NR_FUNCTION_RETURN64_LOW_REG);
-                        cg.ungetregister(list,NR_FUNCTION_RETURN64_HIGH_REG);
-                        // for the optimizer
-                        cg.a_reg_alloc(list,NR_FUNCTION_RETURN64_LOW_REG);
-                        cg.a_reg_alloc(list,NR_FUNCTION_RETURN64_HIGH_REG);
-                        cg64.a_load64_loc_reg(list,resloc,joinreg64(NR_FUNCTION_RETURN64_LOW_REG,
-                                              NR_FUNCTION_RETURN64_HIGH_REG));
-                      end
-                     else
-    {$endif cpu64bit}
-                      begin
-                        cg.getexplicitregister(list,NR_FUNCTION_RETURN_REG);
-                        hreg:=cg.makeregsize(list,NR_FUNCTION_RETURN_REG,resloc.size);
-                        cg.ungetregister(list,hreg);
-                        // for the optimizer
-                        cg.a_reg_alloc(list,NR_FUNCTION_RETURN_REG);
-                        cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
-                      end;
+                    begin
+                      cg.getexplicitregister(list,NR_FUNCTION_RETURN64_LOW_REG);
+                      cg.getexplicitregister(list,NR_FUNCTION_RETURN64_HIGH_REG);
+                      cg.ungetregister(list,NR_FUNCTION_RETURN64_LOW_REG);
+                      cg.ungetregister(list,NR_FUNCTION_RETURN64_HIGH_REG);
+                      // for the optimizer
+                      cg.a_reg_alloc(list,NR_FUNCTION_RETURN64_LOW_REG);
+                      cg.a_reg_alloc(list,NR_FUNCTION_RETURN64_HIGH_REG);
+                      cg64.a_load64_loc_reg(list,resloc,joinreg64(NR_FUNCTION_RETURN64_LOW_REG,
+                                            NR_FUNCTION_RETURN64_HIGH_REG));
                     end
+                  else
+{$endif cpu64bit}
+                    begin
+                      cg.getexplicitregister(list,resultloc.register);
+                      hreg:=cg.makeregsize(list,resultloc.register,resloc.size);
+                      cg.ungetregister(list,hreg);
+                      // for the optimizer
+                      cg.a_reg_alloc(list,resultloc.register);
+                      cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
+                    end;
                 end;
+              LOC_FPUREGISTER:
+                begin
+                  cg.a_loadfpu_loc_reg(list,resloc,resultloc.register);
+                end;
+              LOC_MMREGISTER:
+                begin
+                  cg.a_loadmm_loc_reg(list,resloc.size,resloc,resultloc.register,mms_movescalar);
+                end;
+              LOC_INVALID,
+              LOC_REFERENCE:
+                ;
+              else
+                internalerror(200405025);
             end;
          end;
       end;
@@ -1141,36 +1099,39 @@ implementation
                       { cg.a_load_param_reg will first allocate and then deallocate paraloc }
                       { register (if the parameter resides in a register) and then allocate }
                       { the regvar (which is currently not allocated)                       }
-                      cg.a_loadany_param_reg(list,hp.paraloc[calleeside],tvarsym(hp.parasym).localloc.register,nil);
+                      cg.a_loadany_param_reg(list,hp.paraloc[calleeside],tvarsym(hp.parasym).localloc.register,mms_movescalar);
                     end;
                   LOC_REFERENCE :
                     begin
                       if hp.paraloc[calleeside].loc<>LOC_REFERENCE then
                         begin
-                          if getsupreg(hp.paraloc[calleeside].register)<first_int_imreg then
+                          if getregtype(hp.paraloc[calleeside].register)=R_INTREGISTER then
                             begin
+                              if getsupreg(hp.paraloc[calleeside].register)<first_int_imreg then
+                                begin
+{$ifndef cpu64bit}
+                                  if (hp.paraloc[calleeside].size in [OS_S64,OS_64]) then
+                                    begin
+                                      cg.getexplicitregister(list,hp.paraloc[calleeside].registerlow);
+                                      cg.getexplicitregister(list,hp.paraloc[calleeside].registerhigh);
+                                    end
+                                  else
+{$endif cpu64bit}
+                                    cg.getexplicitregister(list,hp.paraloc[calleeside].register);
+                                end;
+                              { Release parameter register }
 {$ifndef cpu64bit}
                               if (hp.paraloc[calleeside].size in [OS_S64,OS_64]) then
                                 begin
-                                  cg.getexplicitregister(list,hp.paraloc[calleeside].registerlow);
-                                  cg.getexplicitregister(list,hp.paraloc[calleeside].registerhigh);
+                                  cg.ungetregister(list,hp.paraloc[calleeside].registerlow);
+                                  cg.ungetregister(list,hp.paraloc[calleeside].registerhigh);
                                 end
                               else
 {$endif cpu64bit}
-                                cg.getexplicitregister(list,hp.paraloc[calleeside].register);
+                                cg.ungetregister(list,hp.paraloc[calleeside].register);
                             end;
-                          { Release parameter register }
-{$ifndef cpu64bit}
-                          if (hp.paraloc[calleeside].size in [OS_S64,OS_64]) then
-                            begin
-                              cg.ungetregister(list,hp.paraloc[calleeside].registerlow);
-                              cg.ungetregister(list,hp.paraloc[calleeside].registerhigh);
-                            end
-                          else
-{$endif cpu64bit}
-                            cg.ungetregister(list,hp.paraloc[calleeside].register);
                           reference_reset_base(href,tvarsym(hp.parasym).localloc.reference.index,tvarsym(hp.parasym).localloc.reference.offset);
-                          cg.a_loadany_param_ref(list,hp.paraloc[calleeside],href,nil);
+                          cg.a_loadany_param_ref(list,hp.paraloc[calleeside],href,mms_movescalar);
                         end;
                     end;
                   else
@@ -1323,11 +1284,11 @@ implementation
                while assigned(hp) do
                  begin
                    If (hp.u.flags and uf_has_debuginfo)=uf_has_debuginfo then
-                     current_procinfo.aktlocaldata.concat(Tai_const_symbol.Createname(make_mangledname('DEBUGINFO',hp.u.globalsymtable,''),AT_DATA,0));
+                     current_procinfo.aktlocaldata.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',hp.u.globalsymtable,''),AT_DATA,0));
                    hp:=tused_unit(hp.next);
                  end;
                { include reference to debuginfo for this program }
-               current_procinfo.aktlocaldata.concat(Tai_const_symbol.Createname(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
+               current_procinfo.aktlocaldata.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
              end;
 {$endif GDB}
          end;
@@ -1478,7 +1439,7 @@ implementation
       end;
 
 
-    procedure gen_stackalloc_code(list:Taasmoutput);
+    procedure gen_proc_entry_code(list:Taasmoutput);
       var
         hitemp,
         lotemp,
@@ -1487,6 +1448,11 @@ implementation
         paraloc1   : tparalocation;
         href       : treference;
       begin
+        { generate call frame marker for dwarf call frame info }
+        dwarfcfi.start_frame(list);
+
+        { allocate temp for saving the argument used when
+          stack checking uses a register for pushing the stackframe size }
         check:=(cs_check_stack in aktlocalswitches) and (current_procinfo.procdef.proctypeoption<>potype_proginit);
         if check then
           begin
@@ -1494,8 +1460,9 @@ implementation
               is destroyed when calling stackchecking code }
             paraloc1:=paramanager.getintparaloc(pocall_default,1);
             if paraloc1.loc=LOC_REGISTER then
-              tg.GetTemp(list,POINTER_SIZE,tt_normal,href);
+              tg.GetTemp(list,sizeof(aint),tt_normal,href);
           end;
+
         { Calculate size of stackframe }
         stackframe:=current_procinfo.calc_stackframe_size;
 
@@ -1516,94 +1483,56 @@ implementation
               tostr_with_plus(lotemp)+' and '+std_regname(current_procinfo.framepointer)+tostr_with_plus(hitemp))));
           end;
 
-{$ifndef powerpc}
-        { at least for the ppc this applies always, so this code isn't usable (FK) }
-        { omit stack frame ? }
-        if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
-          begin
-            CGmessage(cg_d_stackframe_omited);
-            if stackframe<>0 then
-              cg.g_stackpointer_alloc(list,stackframe);
-          end
-        else
-{$endif powerpc}
-          begin
-            if (po_interrupt in current_procinfo.procdef.procoptions) then
-              cg.g_interrupt_stackframe_entry(list);
+         { generate target specific proc entry code }
+         cg.g_proc_entry(list,stackframe,(po_nostackframe in current_procinfo.procdef.procoptions));
 
-            cg.g_stackframe_entry(list,stackframe);
-
-            { Add stack checking code? }
-            if check then
-              begin
-                { The tempspace to store original register is already
-                  allocated above before the stackframe size is calculated. }
-                if paraloc1.loc=LOC_REGISTER then
-                  cg.a_load_reg_ref(list,OS_INT,OS_INT,paraloc1.register,href);
-                paramanager.allocparaloc(list,paraloc1);
-                cg.a_param_const(list,OS_INT,stackframe,paraloc1);
-                paramanager.freeparaloc(list,paraloc1);
-                { No register saving needed, saveregisters is used }
-{$ifndef x86}
-                cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-{$endif x86}
-                cg.a_call_name(list,'FPC_STACKCHECK');
-{$ifndef x86}
-                cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-{$endif x86}
-                if paraloc1.loc=LOC_REGISTER then
-                  begin
-                    cg.a_load_ref_reg(list,OS_INT,OS_INT,href,paraloc1.register);
-                    tg.UnGetTemp(list,href);
-                  end;
-              end;
-          end;
+         { Add stack checking code? }
+         if check then
+           begin
+             { The tempspace to store original register is already
+               allocated above before the stackframe size is calculated. }
+             if paraloc1.loc=LOC_REGISTER then
+               cg.a_load_reg_ref(list,OS_INT,OS_INT,paraloc1.register,href);
+             paramanager.allocparaloc(list,paraloc1);
+             cg.a_param_const(list,OS_INT,stackframe,paraloc1);
+             paramanager.freeparaloc(list,paraloc1);
+             cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+             cg.a_call_name(list,'FPC_STACKCHECK');
+             cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+             if paraloc1.loc=LOC_REGISTER then
+               begin
+                 cg.a_load_ref_reg(list,OS_INT,OS_INT,href,paraloc1.register);
+                 tg.UnGetTemp(list,href);
+               end;
+           end;
       end;
 
 
-    procedure gen_stackfree_code(list:Taasmoutput;usesacc,usesacchi:boolean);
+    procedure gen_proc_exit_code(list:Taasmoutput);
       var
-        stacksize,
-        retsize : longint;
+        parasize : longint;
       begin
-{$ifndef powerpc}
-        { remove stackframe }
-        if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+        { c style clearstack does not need to remove parameters from the stack, only the
+          return value when it was pushed by arguments }
+        if current_procinfo.procdef.proccalloption in clearstack_pocalls then
           begin
-            stacksize:=current_procinfo.calc_stackframe_size;
-            if (stacksize<>0) then
-              cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
+            parasize:=0;
+            if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
+              inc(parasize,sizeof(aint));
           end
         else
-          cg.g_restore_frame_pointer(list);
-{$endif}
-{$ifdef x86}
-        { at last, the return is generated }
-        if (po_interrupt in current_procinfo.procdef.procoptions) then
-          cg.g_interrupt_stackframe_exit(list,usesacc,usesacchi)
-        else
-{$endif x86}
-          begin
-            if current_procinfo.procdef.proccalloption in clearstack_pocalls then
-              begin
-                retsize:=0;
-                if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
-                  inc(retsize,POINTER_SIZE);
-              end
-            else
-              retsize:=current_procinfo.para_stack_size;
-            cg.g_return_from_proc(list,retsize);
-          end;
-{$ifndef cpu64bit}
-        if usesacchi then
-          begin
-            cg.a_reg_dealloc(list,NR_FUNCTION_RETURN64_LOW_REG);
-            cg.a_reg_dealloc(list,NR_FUNCTION_RETURN64_HIGH_REG);
-          end
-        else
-{$endif cpu64bit}
-        if usesacc then
-          cg.a_reg_dealloc(list,NR_FUNCTION_RETURN_REG);
+          parasize:=current_procinfo.para_stack_size;
+
+        { generate target specific proc exit code }
+        cg.g_proc_exit(list,parasize,(po_nostackframe in current_procinfo.procdef.procoptions));
+
+        { release return registers, needed for optimizer }
+        if current_procinfo.procdef.funcret_paraloc[calleeside].loc<>LOC_INVALID then
+          paramanager.freeparaloc(list,
+            current_procinfo.procdef.funcret_paraloc[calleeside]);
+
+        { end of frame marker for call frame info }
+        dwarfcfi.end_frame(list);
       end;
 
 
@@ -1797,8 +1726,6 @@ implementation
         storefilepos : tfileposinfo;
         curconstsegment : taasmoutput;
         l : longint;
-        stabstr:Pchar;
-
       begin
         storefilepos:=aktfilepos;
         aktfilepos:=sym.fileinfo;
@@ -1808,11 +1735,10 @@ implementation
           curconstsegment:=consts;
         l:=sym.getsize;
         { insert cut for smartlinking or alignment }
-        if (cs_create_smart in aktmoduleswitches) then
-          curconstSegment.concat(Tai_cut.Create);
-        curconstSegment.concat(Tai_align.create(const_align(l)));
+        maybe_new_object_file(curconstSegment);
+        new_section(curconstSegment,sec_rodata,lower(sym.mangledname),const_align(l));
         if (sym.owner.symtabletype=globalsymtable) or
-           (cs_create_smart in aktmoduleswitches) or
+           maybe_smartlink_symbol or
            (assigned(current_procinfo) and
             (current_procinfo.procdef.proccalloption=pocall_inline)) or
            DLLSource then
@@ -1827,24 +1753,17 @@ implementation
       var
         l,varalign : longint;
         storefilepos : tfileposinfo;
-        stabstr:Pchar;
       begin
         storefilepos:=aktfilepos;
         aktfilepos:=sym.fileinfo;
         l:=sym.getvaluesize;
         if (vo_is_thread_var in sym.varoptions) then
-          inc(l,pointer_size);
+          inc(l,sizeof(aint));
         varalign:=var_align(l);
-        {
-        sym.address:=align(datasize,varalign);
-        datasize:=tvarsym(sym).address+l;
-        }
-        { insert cut for smartlinking or alignment }
-        if (cs_create_smart in aktmoduleswitches) then
-          bssSegment.concat(Tai_cut.Create);
-        bssSegment.concat(Tai_align.create(varalign));
+        maybe_new_object_file(bssSegment);
+        new_section(bssSegment,sec_bss,lower(sym.mangledname),varalign);
         if (sym.owner.symtabletype=globalsymtable) or
-           (cs_create_smart in aktmoduleswitches) or
+           maybe_smartlink_symbol or
            DLLSource or
            (assigned(current_procinfo) and
             (current_procinfo.procdef.proccalloption=pocall_inline)) or
@@ -2015,7 +1934,7 @@ implementation
                   begin
 {$warning TODO Allocate register paras}
                     localloc.loc:=LOC_REFERENCE;
-                    localloc.size:=int_cgsize(paramanager.push_size(vs_value,vartype.def,pocall_inline));
+                    localloc.size:=int_cgsize(paramanager.push_size(varspez,vartype.def,pocall_inline));
                     tg.GetLocal(list,tcgsize2size[localloc.size],vartype.def,localloc.reference);
                     if cs_asm_source in aktglobalswitches then
                       begin
@@ -2083,7 +2002,7 @@ implementation
         { rtti can only be generated for classes that are always typesyms }
         def:=tstoreddef(ttypesym(p).restype.def);
         { there is an error, skip rtti info }
-        if def.deftype=errordef then
+        if (def.deftype=errordef) or (Errorcount>0) then
           exit;
         { only create rtti once for each definition }
         if not(df_has_rttitable in def.defoptions) then
@@ -2099,9 +2018,8 @@ implementation
            def.rttitablesym:=rsym;
            { write rtti data }
            def.write_child_rtti_data(fullrtti);
-           if (cs_create_smart in aktmoduleswitches) then
-            rttiList.concat(Tai_cut.Create);
-           rttilist.concat(tai_align.create(const_align(pointer_size)));
+           maybe_new_object_file(rttilist);
+           new_section(rttilist,sec_rodata,rsym.get_label.name,const_align(sizeof(aint)));
            rttiList.concat(Tai_symbol.Create_global(rsym.get_label,0));
            def.write_rtti_data(fullrtti);
            rttiList.concat(Tai_symbol_end.Create(rsym.get_label));
@@ -2138,9 +2056,8 @@ implementation
            def.inittablesym:=rsym;
            { write inittable data }
            def.write_child_rtti_data(initrtti);
-           if (cs_create_smart in aktmoduleswitches) then
-            rttiList.concat(Tai_cut.Create);
-           rttilist.concat(tai_align.create(const_align(pointer_size)));
+           maybe_new_object_file(rttilist);
+           new_section(rttilist,sec_rodata,rsym.get_label.name,const_align(sizeof(aint)));
            rttiList.concat(Tai_symbol.Create_global(rsym.get_label,0));
            def.write_rtti_data(initrtti);
            rttiList.concat(Tai_symbol_end.Create(rsym.get_label));
@@ -2150,7 +2067,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.206  2004-06-01 20:39:33  jonas
+  Revision 1.207  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.206  2004/06/01 20:39:33  jonas
     * fixed bug regarding parameters on the ppc (they were allocated twice
       under some circumstances and not at all in others)
 
@@ -2183,6 +2103,68 @@ end.
 
   Revision 1.198  2004/05/02 17:26:19  peter
     * fix stabs for globals
+
+  Revision 1.197.2.19  2004/05/31 16:39:42  peter
+    * add ungetiftemp in a few locations
+
+  Revision 1.197.2.18  2004/05/27 23:36:18  peter
+    * nostackframe procdirective added
+
+  Revision 1.197.2.17  2004/05/10 21:28:34  peter
+    * section_smartlink enabled for gas under linux
+
+  Revision 1.197.2.16  2004/05/02 21:07:30  florian
+    * fixed constructor results
+
+  Revision 1.197.2.15  2004/05/02 20:56:54  florian
+    * more fixes to handle_return_value update
+
+  Revision 1.197.2.14  2004/05/02 20:20:59  florian
+    * started to fix callee side result value handling
+
+  Revision 1.197.2.13  2004/05/02 16:49:43  peter
+    * generate stabs for globals/locals at the end of a unit compile
+
+  Revision 1.197.2.12  2004/05/01 23:34:43  peter
+    * don't generate rtti when there is an error
+
+  Revision 1.197.2.11  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.197.2.10  2004/04/29 23:30:28  peter
+    * fix i386 compiler
+
+  Revision 1.197.2.9  2004/04/27 18:47:51  florian
+    * exception addr record size for 64 bit systems fixed
+
+  Revision 1.197.2.8  2004/04/27 18:18:25  peter
+    * aword -> aint
+
+  Revision 1.197.2.7  2004/04/26 21:02:34  peter
+    * 64bit fixes
+
+  Revision 1.197.2.6  2004/04/26 19:57:39  florian
+    * first part of single parameter fix
+
+  Revision 1.197.2.5  2004/04/26 15:54:33  peter
+    * small x86-64 fixes
+
+  Revision 1.197.2.4  2004/04/18 16:55:37  peter
+    * procedure entry and exit code restructured, some x86 specific
+      things are removed from the generic ncgutil code and moved to
+      the target depend cg.g_proc_entry and cg.g_proc_exit that now
+      contain all the code during startup including stackframe allocation
+      only the saving of registers is excluded from this code
+
+  Revision 1.197.2.3  2004/04/12 19:34:45  peter
+    * basic framework for dwarf CFI
+
+  Revision 1.197.2.2  2004/04/10 12:36:41  peter
+    * fixed alignment issues
+
+  Revision 1.197.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.197  2004/03/29 14:43:47  peter
     * cleaner temp get/unget for exceptions

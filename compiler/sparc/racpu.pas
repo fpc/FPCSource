@@ -35,13 +35,32 @@ interface
     end;
 
     TSparcInstruction=class(TInstruction)
+      delayslot_annulled : boolean;
+      { opcode adding }
+      function ConcatInstruction(p : taasmoutput) : tai;override;
     end;
 
 implementation
+
+    function TSparcInstruction.ConcatInstruction(p : taasmoutput) : tai;
+      begin
+        result:=inherited ConcatInstruction(p);
+        { delay slot annulled support }
+        if (result.typ=ait_instruction) and
+           delayslot_annulled then
+          taicpu(result).delayslot_annulled:=true;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.1  2003-12-08 13:02:21  mazen
+  Revision 1.2  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.1.2.1  2004/05/25 21:38:53  peter
+    * assembler reader/writer updates
+
+  Revision 1.1  2003/12/08 13:02:21  mazen
   + support for native sparc assembler reader
 
 }

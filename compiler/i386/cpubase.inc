@@ -111,6 +111,8 @@
       {# Frame pointer register }
       RS_FRAME_POINTER_REG = RS_EBP;
       NR_FRAME_POINTER_REG = NR_EBP;
+      { Return address for DWARF }
+      NR_RETURN_ADDRESS_REG = NR_EIP;
       {# Register for addressing absolute data in a position independant way,
          such as in PIC code. The exact meaning is ABI specific. For
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
@@ -167,7 +169,13 @@
 
 {
   $Log$
-  Revision 1.12  2004-02-05 18:28:37  peter
+  Revision 1.13  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.12.2.1  2004/04/20 16:35:58  peter
+    * generate dwarf for stackframe entry
+
+  Revision 1.12  2004/02/05 18:28:37  peter
     * x86_64 fixes for opsize
 
   Revision 1.11  2004/01/14 23:39:05  florian

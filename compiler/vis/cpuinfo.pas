@@ -46,7 +46,7 @@ Const
    {# Size of native extended floating point type }
    extended_size = 8;
    {# Size of a pointer                           }
-   pointer_size  = 4;
+   sizeof(aint)  = 4;
    {# Size of a multimedia register               }
    mmreg_size = 8;
    { target cpu string (used by compiler options) }
@@ -63,7 +63,14 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-10-14 16:31:52  carl
+  Revision 1.2  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.1.2.1  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.1  2002/10/14 16:31:52  carl
     + first revision of vm
 
 }

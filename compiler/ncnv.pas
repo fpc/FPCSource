@@ -603,7 +603,7 @@ implementation
     function ttypeconvnode.resulttype_string_to_chararray : tnode;
 
       var
-        arrsize: aword;
+        arrsize : aint;
 
       begin
          with tarraydef(resulttype.def) do
@@ -1331,7 +1331,7 @@ implementation
                      if assigned(htype.def) then
                        inserttypeconv_explicit(left,htype)
                      else
-                       CGMessage2(cg_e_illegal_type_conversion,left.resulttype.def.gettypename,resulttype.def.gettypename);
+                       CGMessage2(type_e_illegal_type_conversion,left.resulttype.def.gettypename,resulttype.def.gettypename);
                    end;
 
                  { check if the result could be in a register }
@@ -1380,7 +1380,7 @@ implementation
                              (left.nodetype=derefn)
                             )
                            ) then
-                       CGMessage2(cg_e_illegal_type_conversion,left.resulttype.def.gettypename,resulttype.def.gettypename);
+                       CGMessage2(type_e_illegal_type_conversion,left.resulttype.def.gettypename,resulttype.def.gettypename);
                    end;
                end
               else
@@ -1391,12 +1391,22 @@ implementation
             internalerror(200211231);
         end;
 
-        { Give hint for unportable code }
-        if ((left.resulttype.def.deftype=orddef) and
-            (resulttype.def.deftype in [pointerdef,procvardef,classrefdef])) or
-           ((resulttype.def.deftype=orddef) and
-            (left.resulttype.def.deftype in [pointerdef,procvardef,classrefdef])) then
-          CGMessage(cg_h_pointer_to_longint_conv_not_portable);
+        { Give hint or warning for unportable code, exceptions are
+           - typecasts from constants
+           - void }
+        if (left.nodetype<>ordconstn) and
+           not(is_void(left.resulttype.def)) and
+           (((left.resulttype.def.deftype=orddef) and
+             (resulttype.def.deftype in [pointerdef,procvardef,classrefdef])) or
+            ((resulttype.def.deftype=orddef) and
+             (left.resulttype.def.deftype in [pointerdef,procvardef,classrefdef]))) then
+          begin
+            { Give a warning when sizes don't match, because then info will be lost }
+            if left.resulttype.def.size=resulttype.def.size then
+              CGMessage(type_h_pointer_to_longint_conv_not_portable)
+            else
+              CGMessage(type_w_pointer_to_longint_conv_not_portable);
+          end;
 
         { Constant folding and other node transitions to
           remove the typeconv node }
@@ -1438,8 +1448,15 @@ implementation
               { ordinal contants can be directly converted }
               { but not char to char because it is a widechar to char or via versa }
               { which needs extra code to do the code page transistion             }
-              if is_ordinal(resulttype.def) and
-                 not(convtype=tc_char_2_char) then
+              { constant ordinal to pointer }
+              if (resulttype.def.deftype=pointerdef) then
+                begin
+                   hp:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value),resulttype);
+                   result:=hp;
+                   exit;
+                end
+              else if is_ordinal(resulttype.def) and
+                      not(convtype=tc_char_2_char) then
                 begin
                    { replace the resulttype and recheck the range }
                    left.resulttype:=resulttype;
@@ -1463,7 +1480,7 @@ implementation
               { constant pointer to ordinal }
               else if is_ordinal(resulttype.def) then
                 begin
-                   hp:=cordconstnode.create(tpointerconstnode(left).value,
+                   hp:=cordconstnode.create(TConstExprInt(tpointerconstnode(left).value),
                      resulttype,true);
                    result:=hp;
                    exit;
@@ -1630,7 +1647,7 @@ implementation
            exit;
          { when converting to 64bit, first convert to a 32bit int and then   }
          { convert to a 64bit int (only necessary for 32bit processors) (JM) }
-         if resulttype.def.size > sizeof(aword) then
+         if resulttype.def.size > sizeof(aint) then
            begin
              result := ctypeconvnode.create_explicit(left,u32inttype);
              result := ctypeconvnode.create(result,resulttype);
@@ -1687,7 +1704,7 @@ implementation
          if assigned(tunarynode(left).left) then
           begin
             if (left.expectloc<>LOC_CREFERENCE) then
-              CGMessage(cg_e_illegal_expression);
+              CGMessage(parser_e_illegal_expression);
             registersint:=left.registersint;
             expectloc:=left.expectloc
           end
@@ -2446,7 +2463,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.147  2004-05-23 18:28:41  peter
+  Revision 1.148  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.147  2004/05/23 18:28:41  peter
     * methodpointer is loaded into a temp when it was a calln
 
   Revision 1.146  2004/05/23 15:03:40  peter
@@ -2457,6 +2477,29 @@ end.
 
   Revision 1.144  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.143.2.4  2004/05/30 10:45:50  peter
+    * merged fixes from main branch
+
+  Revision 1.146  2004/05/23 15:03:40  peter
+    * some typeconvs don't allow assignment or passing to var para
+
+  Revision 1.145  2004/05/23 14:14:18  florian
+    + added set of widechar support (limited to 256 chars, is delphi compatible)
+
+  Revision 1.144  2004/04/29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.143.2.3  2004/04/28 20:37:27  peter
+    * don't give ordinal->pointer warning when typecasting from
+      constant or void type
+
+  Revision 1.143.2.2  2004/04/28 19:55:51  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
+
+  Revision 1.143.2.1  2004/04/27 18:18:26  peter
+    * aword -> aint
 
   Revision 1.143  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned

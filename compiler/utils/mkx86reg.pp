@@ -25,7 +25,7 @@ var s : string;
     line : longint;
     regcount:byte;
     regcount_bsstart:byte;
-    names,numbers,stdnames,intnames,nasmnames,attnames,stabs,ots,ops:
+    names,numbers,stdnames,intnames,nasmnames,attnames,stabs,dwarf32,dwarf64,ots,ops:
         array[0..max_regcount-1] of string[63];
     regnumber_index,std_regname_index,int_regname_index,att_regname_index,
     nasm_regname_index:array[0..max_regcount-1] of byte;
@@ -296,6 +296,10 @@ begin
         readcomma;
         stabs[regcount]:=readstr;
         readcomma;
+        dwarf32[regcount]:=readstr;
+        readcomma;
+        dwarf64[regcount]:=readstr;
+        readcomma;
         ots[regcount]:=readstr;
         readcomma;
         ops[regcount]:=readstr;
@@ -329,7 +333,7 @@ procedure write_inc_files;
 
 var attfile,intfile,otfile,opfile,
     norfile,nasmfile,stdfile,
-    numfile,stabfile,confile,
+    numfile,stabfile,dwrffile,confile,
     rnifile,irifile,srifile,
     arifile,nrifile:text;
     first:boolean;
@@ -346,6 +350,7 @@ begin
       openinc(nasmfile,fileprefix+'nasm.inc');
     end;
   openinc(stabfile,fileprefix+'stab.inc');
+  openinc(dwrffile,fileprefix+'dwrf.inc');
   openinc(otfile,fileprefix+'ot.inc');
   openinc(opfile,fileprefix+'op.inc');
   openinc(norfile,fileprefix+'nor.inc');
@@ -371,6 +376,7 @@ begin
               writeln(nasmfile,',');
             end;
           writeln(stabfile,',');
+          writeln(dwrffile,',');
           writeln(otfile,',');
           writeln(opfile,',');
           writeln(rnifile,',');
@@ -394,6 +400,10 @@ begin
           write(nasmfile,'''',nasmnames[i],'''');
         end;
       write(stabfile,stabs[i]);
+      if x86_64 then
+        write(dwrffile,dwarf64[i])
+      else	
+        write(dwrffile,dwarf32[i]);
       write(otfile,ots[i]);
       write(opfile,ops[i]);
       write(rnifile,regnumber_index[i]);
@@ -417,6 +427,7 @@ begin
       closeinc(nasmfile);
     end;
   closeinc(stabfile);
+  closeinc(dwrffile);
   closeinc(otfile);
   closeinc(opfile);
   closeinc(norfile);
@@ -458,7 +469,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-12-15 21:25:49  peter
+  Revision 1.5  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.4.2.1  2004/04/12 19:34:46  peter
+    * basic framework for dwarf CFI
+
+  Revision 1.4  2003/12/15 21:25:49  peter
     * reg allocations for imaginary register are now inserted just
       before reg allocation
     * tregister changed to enum to allow compile time check

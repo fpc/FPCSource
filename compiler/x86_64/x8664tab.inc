@@ -4488,13 +4488,6 @@
     flags   : if_willamette or if_sse2
   ),
   (
-    opcode  : A_MOVSL;
-    ops     : 0;
-    optypes : (ot_none,ot_none,ot_none);
-    code    : #209#1#165;
-    flags   : if_386
-  ),
-  (
     opcode  : A_MOVSQ;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none);
@@ -11464,6 +11457,27 @@
     ops     : 2;
     optypes : (ot_reg32,ot_immediate,ot_none);
     code    : #209#8#184#33;
+    flags   : if_x86_64
+  ),
+  (
+    opcode  : A_MOVSXD;
+    ops     : 2;
+    optypes : (ot_reg64,ot_memory,ot_none);
+    code    : #209#193#1#99#72;
+    flags   : if_x86_64
+  ),
+  (
+    opcode  : A_MOVSXD;
+    ops     : 2;
+    optypes : (ot_reg64,ot_reg32,ot_none);
+    code    : #209#193#1#99#72;
+    flags   : if_x86_64
+  ),
+  (
+    opcode  : A_CDO;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #209#1#153;
     flags   : if_x86_64
   )
 );

@@ -42,17 +42,16 @@ implementation
        nbas,
        link,assemble,import,export,gendef,ppu,comprsrc,
        cresstr,procinfo,
+       dwarf,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
        scanner,pbase,pexpr,psystem,psub;
 
-    procedure fixseg(p:TAAsmoutput;sec:TSection);
+    procedure fixseg(p:TAAsmoutput;sec:TAsmSectionType);
       begin
-        p.insert(Tai_section.Create(sec));
-        if (cs_create_smart in aktmoduleswitches) then
-         p.insert(Tai_cut.Create);
-        p.concat(Tai_section.Create(sec_none));
+        maybe_new_object_file(p);
+        p.insert(Tai_section.Create(sec,'',0));
       end;
 
 
@@ -113,7 +112,7 @@ implementation
             end;
 
            GenerateAsm(true);
-           if target_asm.needar then
+           if (af_needar in target_asm.flags) then
              Linker.MakeStaticLibrary;
          end;
 
@@ -133,6 +132,15 @@ implementation
            current_module.linkunitstaticlibs.add(current_module.staticlibfilename^,link_smart);
            current_module.flags:=current_module.flags or uf_smart_linked;
          end;
+      end;
+
+
+    procedure create_dwarf;
+      begin
+{$warning TODO Make it dependent on the -gd switch}
+        dwarflist:=taasmoutput.create;
+        { Call frame information }
+        dwarfcfi.generate_code(dwarflist);
       end;
 
 
@@ -192,7 +200,7 @@ implementation
          begin
            If (hp.u.flags and uf_threadvars)=uf_threadvars then
             begin
-              ltvTables.concat(Tai_const_symbol.Createname(make_mangledname('THREADVARLIST',hp.u.globalsymtable,''),AT_DATA,0));
+              ltvTables.concat(Tai_const.Createname(make_mangledname('THREADVARLIST',hp.u.globalsymtable,''),AT_DATA,0));
               inc(count);
             end;
            hp:=tused_unit(hp.next);
@@ -200,17 +208,16 @@ implementation
         { Add program threadvars, if any }
         If (current_module.flags and uf_threadvars)=uf_threadvars then
          begin
-           ltvTables.concat(Tai_const_symbol.Createname(make_mangledname('THREADVARLIST',current_module.localsymtable,''),AT_DATA,0));
+           ltvTables.concat(Tai_const.Createname(make_mangledname('THREADVARLIST',current_module.localsymtable,''),AT_DATA,0));
            inc(count);
          end;
         { TableCount }
         ltvTables.insert(Tai_const.Create_32bit(count));
         ltvTables.insert(Tai_symbol.Createname_global('FPC_THREADVARTABLES',AT_DATA,0));
-        ltvTables.insert(Tai_align.Create(const_align(pointer_size)));
+        ltvTables.insert(Tai_align.Create(const_align(sizeof(aint))));
         ltvTables.concat(Tai_symbol_end.Createname('FPC_THREADVARTABLES'));
         { insert in data segment }
-        if (cs_create_smart in aktmoduleswitches) then
-          dataSegment.concat(Tai_cut.Create);
+        maybe_new_object_file(dataSegment);
         dataSegment.concatlist(ltvTables);
         ltvTables.free;
       end;
@@ -225,7 +232,7 @@ implementation
            (vo_is_thread_var in tvarsym(p).varoptions) then
          begin
            { address of threadvar }
-           ltvTable.concat(tai_const_symbol.Createname(tvarsym(p).mangledname,AT_DATA,0));
+           ltvTable.concat(tai_const.Createname(tvarsym(p).mangledname,AT_DATA,0));
            { size of threadvar }
            ltvTable.concat(tai_const.create_32bit(tvarsym(p).getsize));
          end;
@@ -246,10 +253,9 @@ implementation
             s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
             { add begin and end of the list }
             ltvTable.insert(tai_symbol.Createname_global(s,AT_DATA,0));
-            ltvTable.concat(tai_const.create_ptr(0));  { end of list marker }
+            ltvTable.concat(tai_const.create_sym(nil));  { end of list marker }
             ltvTable.concat(tai_symbol_end.createname(s));
-            if (cs_create_smart in aktmoduleswitches) then
-             dataSegment.concat(Tai_cut.Create);
+            maybe_new_object_file(dataSegment);
             dataSegment.concatlist(ltvTable);
             current_module.flags:=current_module.flags or uf_threadvars;
           end;
@@ -270,7 +276,7 @@ implementation
          begin
            If (hp.u.flags and uf_has_resources)=uf_has_resources then
             begin
-              ResourceStringTables.concat(Tai_const_symbol.Createname(make_mangledname('RESOURCESTRINGLIST',hp.u.globalsymtable,''),AT_DATA,0));
+              ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESOURCESTRINGLIST',hp.u.globalsymtable,''),AT_DATA,0));
               inc(count);
             end;
            hp:=tused_unit(hp.next);
@@ -278,7 +284,7 @@ implementation
         { Add program resources, if any }
         If ResourceStringList<>Nil then
          begin
-           ResourceStringTables.concat(Tai_const_symbol.Createname(make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,''),AT_DATA,0));
+           ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,''),AT_DATA,0));
            Inc(Count);
          end;
         { TableCount }
@@ -287,8 +293,7 @@ implementation
         ResourceStringTables.insert(Tai_align.Create(const_align(4)));
         ResourceStringTables.concat(Tai_symbol_end.Createname('FPC_RESOURCESTRINGTABLES'));
         { insert in data segment }
-        if (cs_create_smart in aktmoduleswitches) then
-          dataSegment.concat(Tai_cut.Create);
+        maybe_new_object_file(dataSegment);
         dataSegment.concatlist(ResourceStringTables);
         ResourceStringTables.free;
       end;
@@ -309,13 +314,13 @@ implementation
            if (hp.u.flags and (uf_init or uf_finalize))<>0 then
             begin
               if (hp.u.flags and uf_init)<>0 then
-               unitinits.concat(Tai_const_symbol.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),AT_FUNCTION,0))
+               unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),AT_FUNCTION,0))
               else
-               unitinits.concat(Tai_const.Create_ptr(0));
+               unitinits.concat(Tai_const.Create_sym(nil));
               if (hp.u.flags and uf_finalize)<>0 then
-               unitinits.concat(Tai_const_symbol.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),AT_FUNCTION,0))
+               unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),AT_FUNCTION,0))
               else
-               unitinits.concat(Tai_const.Create_ptr(0));
+               unitinits.concat(Tai_const.Create_sym(nil));
               inc(count);
             end;
            hp:=tused_unit(hp.next);
@@ -324,13 +329,13 @@ implementation
         if (current_module.flags and (uf_init or uf_finalize))<>0 then
          begin
            if (current_module.flags and uf_init)<>0 then
-            unitinits.concat(Tai_const_symbol.Createname(make_mangledname('INIT$',current_module.localsymtable,''),AT_FUNCTION,0))
+            unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',current_module.localsymtable,''),AT_FUNCTION,0))
            else
-            unitinits.concat(Tai_const.Create_ptr(0));
+            unitinits.concat(Tai_const.Create_sym(nil));
            if (current_module.flags and uf_finalize)<>0 then
-            unitinits.concat(Tai_const_symbol.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,''),AT_FUNCTION,0))
+            unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,''),AT_FUNCTION,0))
            else
-            unitinits.concat(Tai_const.Create_ptr(0));
+            unitinits.concat(Tai_const.Create_sym(nil));
            inc(count);
          end;
         { TableCount,InitCount }
@@ -340,8 +345,7 @@ implementation
         unitinits.insert(Tai_align.Create(const_align(4)));
         unitinits.concat(Tai_symbol_end.Createname('INITFINAL'));
         { insert in data segment }
-        if (cs_create_smart in aktmoduleswitches) then
-          dataSegment.concat(Tai_cut.Create);
+        maybe_new_object_file(dataSegment);
         dataSegment.concatlist(unitinits);
         unitinits.free;
       end;
@@ -349,11 +353,8 @@ implementation
 
     procedure insertheap;
       begin
-         if (cs_create_smart in aktmoduleswitches) then
-           begin
-             bssSegment.concat(Tai_cut.Create);
-             dataSegment.concat(Tai_cut.Create);
-           end;
+        maybe_new_object_file(bssSegment);
+        maybe_new_object_file(dataSegment);
         { On the Macintosh Classic M68k Architecture
           The Heap variable is simply a POINTER to the
           real HEAP. The HEAP must be set up by the RTL
@@ -651,15 +652,6 @@ implementation
       begin
         if not (cs_debuginfo in aktmoduleswitches) then
          exit;
-        { include symbol that will be referenced from the program to be sure to
-          include this debuginfo .o file }
-        if current_module.is_unit then
-          begin
-            current_module.flags:=current_module.flags or uf_has_debuginfo;
-            debugList.concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.globalsymtable,''),AT_DATA,0));
-          end
-        else
-          debugList.concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
         { first write all global/local symbols to a temp list. This will flag
           all required tdefs. Afterwards this list will be added }
         vardebuglist:=taasmoutput.create;
@@ -1192,9 +1184,11 @@ implementation
 
          if is_assembler_generated then
           begin
-          { finish asmlist by adding segment starts }
+            { create dwarf debuginfo }
+            create_dwarf;
+            { finish asmlist by adding segment starts }
             insertsegment;
-          { assemble }
+            { assemble }
             create_objectfile;
           end;
 
@@ -1243,6 +1237,14 @@ implementation
          Status.IsLibrary:=IsLibrary;
          Status.IsExe:=true;
          parse_only:=false;
+
+         { DLL defaults to create reloc info }
+         if islibrary then
+           begin
+             if not RelocSectionSetExplicitly then
+               RelocSection:=true;
+           end;
+
          { relocation works only without stabs under win32 !! PM }
          { internal assembler uses rva for stabs info
            so it should work with relocated DLLs }
@@ -1375,7 +1377,7 @@ implementation
          if assigned(exportlib) and
             (target_info.system in [system_i386_win32,system_i386_wdosx]) and
             assigned(current_module._exports.first) then
-           codesegment.concat(tai_const_symbol.create(exportlib.edatalabel));
+           codesegment.concat(tai_const.create_sym(exportlib.edatalabel));
 
          If ResourceStrings.ResStrCount>0 then
           begin
@@ -1446,7 +1448,8 @@ implementation
          insertheap;
          insertstacklength;
 
-//         datasize:=symtablestack.datasize;
+         { create dwarf debuginfo }
+         create_dwarf;
 
          { finish asmlist by adding segment starts }
          insertsegment;
@@ -1492,7 +1495,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.155  2004-05-23 20:56:42  peter
+  Revision 1.156  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.155  2004/05/23 20:56:42  peter
     * initialize errorsym/errortype.def.owner to prevent crashes
 
   Revision 1.154  2004/05/23 15:06:21  peter
@@ -1517,6 +1523,25 @@ end.
 
   Revision 1.149  2004/05/02 17:26:19  peter
     * fix stabs for globals
+
+  Revision 1.148.2.6  2004/05/03 14:59:57  peter
+    * no dlltool needed for win32 linking executables
+
+  Revision 1.148.2.5  2004/05/02 16:49:43  peter
+    * generate stabs for globals/locals at the end of a unit compile
+
+  Revision 1.148.2.4  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.148.2.3  2004/04/12 19:34:46  peter
+    * basic framework for dwarf CFI
+
+  Revision 1.148.2.2  2004/04/12 14:45:11  peter
+    * tai_const_symbol and tai_const merged
+
+  Revision 1.148.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.148  2004/03/24 20:24:25  hajny
     * OS/2 heap management modified to be able to grow heap as needed

@@ -160,7 +160,7 @@ implementation
           begin
             { the parser will give this message already because we }
             { return an errornode (JM)                             }
-            { CGMessagePos(fileinfo,cg_e_illegal_expression);      }
+            { CGMessagePos(fileinfo,parser_e_illegal_expression);      }
             exit;
           end;
 
@@ -241,15 +241,20 @@ implementation
           procname := procname + 'float'
         else
           case torddef(source.resulttype.def).typ of
+{$ifdef cpu64bit}
+            u64bit:
+              procname := procname + 'uint';
+{$else}
             u32bit:
-              procname := procname + 'longword';
+              procname := procname + 'uint';
             u64bit:
               procname := procname + 'qword';
             scurrency,
             s64bit:
               procname := procname + 'int64';
+{$endif}
             else
-              procname := procname + 'longint';
+              procname := procname + 'sint';
           end;
 
         { free the errornode we generated in the beginning }
@@ -284,6 +289,12 @@ implementation
     function tinlinenode.handle_read_write: tnode;
 
       const
+{$ifdef cpu64bit}
+        hasownreadfunc = [uchar,uwidechar,bool8bit,bool16bit,bool32bit];
+{$else cpu64bit}
+        hasownreadfunc = [uchar,uwidechar,bool8bit,bool16bit,bool32bit,s64bit,u64bit];
+{$endif cpu64bit}
+
         procnames: array[boolean,boolean] of string[11] =
           (('write_text_','read_text_'),('typed_write','typed_read'));
 
@@ -598,18 +609,30 @@ implementation
                     begin
                       is_ordinal := true;
                       case torddef(para.left.resulttype.def).typ of
-                        s8bit,s16bit,s32bit :
+{$ifdef cpu64bit}
+                        s64bit,
+{$endif cpu64bit}
+                        s8bit,
+                        s16bit,
+                        s32bit :
                           name := procprefix+'sint';
-                        u8bit,u16bit,u32bit :
+{$ifdef cpu64bit}
+                        u64bit,
+{$endif cpu64bit}
+                        u8bit,
+                        u16bit,
+                        u32bit :
                           name := procprefix+'uint';
                         uchar :
                           name := procprefix+'char';
                         uwidechar :
                           name := procprefix+'widechar';
+{$ifndef cpu64bit}
                         s64bit :
                           name := procprefix+'int64';
                         u64bit :
                           name := procprefix+'qword';
+{$endif cpu64bit}
                         bool8bit,
                         bool16bit,
                         bool32bit :
@@ -694,7 +717,7 @@ implementation
                           begin
                             if not assigned(lenpara) then
                               lenpara := ccallparanode.create(
-                                cordconstnode.create(0,s32inttype,false),nil)
+                                cordconstnode.create(0,sinttype,false),nil)
                             else
                               { make sure we don't pass the successive }
                               { parameters too. We also already have a }
@@ -706,24 +729,25 @@ implementation
                           begin
                             if not assigned(lenpara) then
                               lenpara := ccallparanode.create(
-                                cordconstnode.create(-32767,s32inttype,false),nil);
+                                cordconstnode.create(-32767,sinttype,false),nil);
                             { also create a default fracpara if necessary }
                             if not assigned(fracpara) then
                               fracpara := ccallparanode.create(
-                                cordconstnode.create(-1,s32inttype,false),nil);
+                                cordconstnode.create(-1,sinttype,false),nil);
                             { add it to the lenpara }
                             lenpara.right := fracpara;
                             { and add the realtype para (this also removes the link }
                             { to any parameters coming after it)                    }
                             fracpara.right := ccallparanode.create(
                                 cordconstnode.create(ord(tfloatdef(para.left.resulttype.def).typ),
-                                s32inttype,true),nil);
+                                sinttype,true),nil);
                           end;
                       end;
 
                     if do_read and
                       ((is_ordinal and
-                        (torddef(para.left.resulttype.def).typ in [s8bit,s16bit,u8bit,u16bit])
+                        not(torddef(para.left.resulttype.def).typ in hasownreadfunc) and
+                        (para.left.resulttype.def.size<>sinttype.def.size)
                        ) or
                        (is_real and
                         not equal_defs(para.left.resulttype.def,pbestrealtype^.def)
@@ -738,9 +762,9 @@ implementation
                         if is_real then
                           restype := pbestrealtype
                         else if is_signed(para.left.resulttype.def) then
-                          restype := @s32inttype
+                          restype := @sinttype
                         else
-                          restype := @u32inttype;
+                          restype := @uinttype;
 
                         { create the parameter list: the temp ... }
                         temp := ctempcreatenode.create(restype^,restype^.def.size,tt_persistent);
@@ -877,8 +901,12 @@ implementation
 
         { check if codepara is valid }
         if assigned(codepara) and
-           ((codepara.resulttype.def.deftype <> orddef) or
-            is_64bitint(codepara.resulttype.def)) then
+           (
+            (codepara.resulttype.def.deftype <> orddef)
+{$ifndef cpu64bit}
+            or is_64bitint(codepara.resulttype.def)
+{$endif cpu64bit}
+            ) then
           begin
             CGMessagePos1(codepara.fileinfo,type_e_integer_expr_expected,codepara.resulttype.def.typename);
             exit;
@@ -904,9 +932,9 @@ implementation
         { code is not a 32bit parameter (we already checked whether the }
         { the code para, if specified, was an orddef)                   }
         if not assigned(codepara) or
-           (torddef(codepara.resulttype.def).typ in [u8bit,u16bit,s8bit,s16bit]) then
+           (codepara.resulttype.def.size<>sinttype.def.size) then
           begin
-            tempcode := ctempcreatenode.create(s32inttype,4,tt_persistent);
+            tempcode := ctempcreatenode.create(sinttype,sinttype.def.size,tt_persistent);
             addstatement(newstatement,tempcode);
             { set the resulttype of the temp (needed to be able to get }
             { the resulttype of the tempref used in the new code para) }
@@ -923,13 +951,13 @@ implementation
             { we need its resulttype later on }
             codepara.get_paratype;
           end
-        else if (torddef(codepara.resulttype.def).typ = u32bit) then
+        else if (torddef(codepara.resulttype.def).typ = torddef(sinttype.def).typ) then
           { because code is a var parameter, it must match types exactly    }
           { however, since it will return values in [0..255], both longints }
           { and cardinals are fine. Since the formal code para type is      }
           { longint, insert a typecoversion to longint for cardinal para's  }
           begin
-            codepara.left := ctypeconvnode.create_explicit(codepara.left,s32inttype);
+            codepara.left := ctypeconvnode.create_explicit(codepara.left,sinttype);
             { make it explicit, oterwise you may get a nonsense range }
             { check error if the cardinal already contained a value   }
             { > $7fffffff                                             }
@@ -943,18 +971,31 @@ implementation
           orddef:
             begin
               case torddef(destpara.resulttype.def).typ of
-                s8bit,s16bit,s32bit:
+{$ifdef cpu64bit}
+                scurrency,
+                s64bit,
+{$endif cpu64bit}
+                s8bit,
+                s16bit,
+                s32bit:
                   begin
                     suffix := 'sint_';
                     { we also need a destsize para in this case }
                     sizepara := ccallparanode.create(cordconstnode.create
                       (destpara.resulttype.def.size,s32inttype,true),nil);
                   end;
-                u8bit,u16bit,u32bit:
+{$ifdef cpu64bit}
+                u64bit,
+{$endif cpu64bit}
+                u8bit,
+                u16bit,
+                u32bit:
                    suffix := 'uint_';
+{$ifndef cpu64bit}
                 scurrency,
                 s64bit: suffix := 'int64_';
                 u64bit: suffix := 'qword_';
+{$endif cpu64bit}
                 else
                   internalerror(200304225);
               end;
@@ -1194,7 +1235,7 @@ implementation
                      vl2:=tordconstnode(tcallparanode(tcallparanode(left).right).left).value;
                    end;
                  else
-                   CGMessage(cg_e_illegal_expression);
+                   CGMessage(parser_e_illegal_expression);
                end;
                case inlinenumber of
                  in_const_trunc :
@@ -1402,16 +1443,16 @@ implementation
                      if assigned(hightree) then
                       begin
                         hp:=caddnode.create(addn,hightree,
-                                         cordconstnode.create(1,s32inttype,false));
+                                         cordconstnode.create(1,sinttype,false));
                         if (left.resulttype.def.deftype=arraydef) and
                            (tarraydef(left.resulttype.def).elesize<>1) then
                           hp:=caddnode.create(muln,hp,cordconstnode.create(tarraydef(
-                            left.resulttype.def).elesize,s32inttype,true));
+                            left.resulttype.def).elesize,sinttype,true));
                         result:=hp;
                       end;
                    end
                   else
-                   resulttype:=s32inttype;
+                   resulttype:=sinttype;
                 end;
 
               in_typeof_x:
@@ -1425,7 +1466,7 @@ implementation
                    if (left.nodetype=ordconstn) then
                     begin
                       hp:=cordconstnode.create(
-                         tordconstnode(left).value,s32inttype,true);
+                         tordconstnode(left).value,sinttype,true);
                       result:=hp;
                       goto myexit;
                     end;
@@ -1592,7 +1633,7 @@ implementation
                   if is_shortstring(left.resulttype.def) then
                    resulttype:=u8inttype
                   else
-                   resulttype:=s32inttype;
+                   resulttype:=sinttype;
                 end;
 
               in_typeinfo_x:
@@ -1697,7 +1738,7 @@ implementation
                              set_varstate(tcallparanode(tcallparanode(left).right).left,vs_used,true);
                              inserttypeconv_explicit(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resulttype);
                              if assigned(tcallparanode(tcallparanode(left).right).right) then
-                               CGMessage(cg_e_illegal_expression);
+                               CGMessage(parser_e_illegal_expression);
                            end;
                         end
                        else
@@ -2126,7 +2167,7 @@ implementation
                        hpp := tcallparanode(tcallparanode(left).right).left;
                        tcallparanode(tcallparanode(left).right).left := nil;
                        if assigned(tcallparanode(tcallparanode(left).right).right) then
-                         CGMessage(cg_e_illegal_expression);
+                         CGMessage(parser_e_illegal_expression);
                      end
                    else
                      { no, create constant 1 }
@@ -2359,12 +2400,43 @@ begin
 end.
 {
   $Log$
-  Revision 1.135  2004-05-28 21:15:20  peter
+  Revision 1.136  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.135  2004/05/28 21:15:20  peter
     * inc(x,y) makes y always of type x to prevent 64bit operations
       when x is a u32bit and y is signed
 
   Revision 1.134  2004/05/23 18:28:41  peter
     * methodpointer is loaded into a temp when it was a calln
+
+  Revision 1.133.2.9  2004/05/03 16:49:00  peter
+    * sizeof fixed
+
+  Revision 1.133.2.8  2004/05/02 11:26:05  peter
+    * fixed i386 readln(qword)
+
+  Revision 1.133.2.7  2004/05/01 21:30:17  peter
+    * fixed read for int64/qword
+
+  Revision 1.133.2.6  2004/05/01 20:51:19  peter
+    * fix val code parameter
+
+  Revision 1.133.2.5  2004/05/01 16:35:51  florian
+    * fixed length(<ansi/widestring>) for 64 Bit CPUs
+
+  Revision 1.133.2.4  2004/04/29 19:50:36  peter
+    * fixed val for 64bit
+
+  Revision 1.133.2.3  2004/04/29 19:07:22  peter
+    * compile fixes
+
+  Revision 1.133.2.2  2004/04/28 19:55:51  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
+
+  Revision 1.133.2.1  2004/04/26 21:05:09  peter
+    * size of classes is now stored as aint
 
   Revision 1.133  2004/03/18 16:19:03  peter
     * fixed operator overload allowing for pointer-string

@@ -63,7 +63,6 @@ interface
          { reader }
          FReader    : tobjectreader;
        protected
-         function  str2sec(const s:string):TSection;
          function  readobjectdata(data:TAsmObjectData):boolean;virtual;abstract;
        public
          constructor create;
@@ -73,9 +72,8 @@ interface
          property Reader:TObjectReader read FReader;
        end;
 
-       texesection = class
+       texesection = class(tnamedindexitem)
        public
-         name      : string[32];
          available : boolean;
          secsymidx,
          datasize,
@@ -83,21 +81,22 @@ interface
          memsize,
          mempos    : longint;
          flags     : cardinal;
-         DataList  : TLinkedList;
+         secdatalist : TLinkedList;
          constructor create(const n:string);
          destructor  destroy;override;
        end;
 
        texeoutput = class
+       private
+         procedure Sections_FixUpSymbol(s:tnamedindexitem;arg:pointer);
        protected
          { writer }
          FWriter : tobjectwriter;
-         procedure WriteZeros(l:longint);
          procedure MapObjectdata(var datapos:longint;var mempos:longint);
          function  writedata:boolean;virtual;abstract;
        public
          { info for each section }
-         sections     : array[TSection] of texesection;
+         sections     : tdictionary;
          { global symbols }
          externalsyms : tsinglelist;
          commonsyms   : tsinglelist;
@@ -193,7 +192,7 @@ implementation
 
     constructor texesection.create(const n:string);
       begin
-        name:=n;
+        inherited createname(n);
         mempos:=0;
         memsize:=0;
         datapos:=0;
@@ -201,7 +200,7 @@ implementation
         secsymidx:=0;
         available:=false;
         flags:=0;
-        datalist:=TLinkedList.Create;
+        secdatalist:=TLinkedList.Create;
       end;
 
 
@@ -215,8 +214,6 @@ implementation
 ****************************************************************************}
 
     constructor texeoutput.create;
-      var
-        sec : TSection;
       begin
         { init writer }
         FWriter:=tobjectwriter.create;
@@ -228,18 +225,13 @@ implementation
         globalsyms.noclear:=true;
         externalsyms:=tsinglelist.create;
         commonsyms:=tsinglelist.create;
-        { sections }
-        for sec:=low(TSection) to high(TSection) do
-         sections[sec]:=texesection.create(target_asm.secnames[sec]);
+        sections:=tdictionary.create;
       end;
 
 
     destructor texeoutput.destroy;
-      var
-        sec : TSection;
       begin
-        for sec:=low(TSection) to high(TSection) do
-         sections[sec].free;
+        sections.free;
         globalsyms.free;
         externalsyms.free;
         commonsyms.free;
@@ -273,23 +265,13 @@ implementation
 
 
     procedure texeoutput.addobjdata(objdata:TAsmObjectData);
-      var
-        sec : TSection;
       begin
         objdatalist.concat(objdata);
-        { check which sections are available }
-        for sec:=low(TSection) to high(TSection) do
-         begin
-           if assigned(objdata.sects[sec]) then
-            begin
-              sections[sec].available:=true;
-              sections[sec].flags:=objdata.sects[sec].flags;
-            end;
-         end;
       end;
 
 
     procedure texeoutput.MapObjectdata(var datapos:longint;var mempos:longint);
+{$ifdef needrewrite}
       var
         sec : TSection;
         s   : TAsmSection;
@@ -333,27 +315,54 @@ implementation
               sections[sec].memsize:=mempos-sections[sec].mempos;
             end;
          end;
+{$endif needrewrite}
+      begin
       end;
 
 
-    procedure texeoutput.WriteZeros(l:longint);
+    procedure texeoutput.Sections_FixUpSymbol(s:tnamedindexitem;arg:pointer);
+{$ifdef needrewrite}
       var
-        empty : array[0..63] of char;
+        secdata : TAsmSection;
+        hsym    : TAsmSymbol;
       begin
-        if l>0 then
-         begin
-           fillchar(empty,l,0);
-           FWriter.Write(empty,l);
-         end;
+        with texesection(s) do
+          begin
+            if assigned(exemap) then
+              exemap.AddMemoryMapExeSection(TExeSection(s));
+            secdata:=TAsmSection(secdatalist.first);
+            while assigned(secdata) do
+             begin
+               if assigned(exemap) then
+                 exemap.AddMemoryMapObjectSection(secdata);
+               hsym:=tasmsymbol(secdata.owner.symbols.first);
+               while assigned(hsym) do
+                 begin
+                   { process only the symbols that are defined in this section
+                     and are located in this module }
+                   if ((hsym.section=secdata) or
+                       ((secdata.sectype=sec_bss) and (hsym.section.sectype=sec_common))) then
+                     begin
+                       if hsym.currbind=AB_EXTERNAL then
+                         internalerror(200206303);
+                       inc(hsym.address,secdata.mempos);
+                       if assigned(exemap) then
+                         exemap.AddMemoryMapSymbol(hsym);
+                     end;
+                   hsym:=tasmsymbol(hsym.indexnext);
+                 end;
+               secdata:=TAsmSection(secdata.indexnext);
+             end;
+          end;
+      end;
+{$endif needrewrite}
+      begin
       end;
 
 
     procedure texeoutput.FixUpSymbols;
       var
-        sec : TSection;
-        objdata : TAsmObjectData;
-        sym,
-        hsym : tasmsymbol;
+        sym : tasmsymbol;
       begin
         {
           Fixing up symbols is done in the following steps:
@@ -363,39 +372,8 @@ implementation
         }
         { Step 1, Update addresses }
         if assigned(exemap) then
-         exemap.AddMemoryMapHeader;
-        for sec:=low(TSection) to high(TSection) do
-         if sections[sec].available then
-          begin
-            if assigned(exemap) then
-              exemap.AddMemoryMapSection(sections[sec]);
-            objdata:=TAsmObjectData(objdatalist.first);
-            while assigned(objdata) do
-             begin
-               if assigned(objdata.sects[sec]) then
-                begin
-                  if assigned(exemap) then
-                    exemap.AddMemoryMapObjectData(objdata,sec);
-                  hsym:=tasmsymbol(objdata.symbols.first);
-                  while assigned(hsym) do
-                   begin
-                     { process only the symbols that are defined in this section
-                       and are located in this module }
-                     if ((hsym.section=sec) or
-                         ((sec=sec_bss) and (hsym.section=sec_common))) then
-                      begin
-                        if hsym.currbind=AB_EXTERNAL then
-                         internalerror(200206303);
-                        inc(hsym.address,TAsmObjectData(hsym.objectdata).sects[sec].mempos);
-                        if assigned(exemap) then
-                          exemap.AddMemoryMapSymbol(hsym);
-                      end;
-                     hsym:=tasmsymbol(hsym.indexnext);
-                   end;
-                end;
-               objdata:=TAsmObjectData(objdata.next);
-             end;
-          end;
+          exemap.AddMemoryMapHeader;
+        sections.foreach(@sections_fixupsymbol,nil);
         { Step 2, Update commons }
         sym:=tasmsymbol(commonsyms.first);
         while assigned(sym) do
@@ -408,7 +386,7 @@ implementation
               sym.size:=sym.altsymbol.size;
               sym.section:=sym.altsymbol.section;
               sym.typ:=sym.altsymbol.typ;
-              sym.objectdata:=sym.altsymbol.objectdata;
+              sym.owner:=sym.altsymbol.owner;
             end;
            sym:=tasmsymbol(sym.listnext);
          end;
@@ -424,7 +402,7 @@ implementation
               sym.size:=sym.altsymbol.size;
               sym.section:=sym.altsymbol.section;
               sym.typ:=sym.altsymbol.typ;
-              sym.objectdata:=sym.altsymbol.objectdata;
+              sym.owner:=sym.altsymbol.owner;
             end;
            sym:=tasmsymbol(sym.listnext);
          end;
@@ -463,7 +441,6 @@ implementation
       var
         commonobjdata,
         objdata : TAsmObjectData;
-        s : TAsmSection;
         sym,p : tasmsymbol;
       begin
         commonobjdata:=nil;
@@ -484,7 +461,7 @@ implementation
            sym:=tasmsymbol(objdata.symbols.first);
            while assigned(sym) do
             begin
-              if not assigned(sym.objectdata) then
+              if not assigned(sym.owner) then
                internalerror(200206302);
               case sym.currbind of
                 AB_GLOBAL :
@@ -495,7 +472,7 @@ implementation
                     else
                       begin
                         Comment(V_Error,'Multiple defined symbol '+sym.name);
-                        CalculateSymbols:=false;
+                        result:=false;
                       end;
                   end;
                 AB_EXTERNAL :
@@ -528,17 +505,12 @@ implementation
                     if assigned(exemap) then
                       exemap.AddCommonSymbolsHeader;
                     { create .bss section and add to list }
-                    s:=TAsmSection.create(target_asm.secnames[sec_common],0,true);
                     commonobjdata:=TAsmObjectData.create('*COMMON*');
-                    commonobjdata.sects[sec_bss]:=s;
+                    commonobjdata.createsection(sec_bss,'',0,[aso_alloconly]);
                     addobjdata(commonobjdata);
                   end;
                  p:=TAsmSymbol.Create(sym.name,AB_GLOBAL,AT_FUNCTION);
-                 p.SetAddress(0,sec_common,s.datasize,sym.size);
-                 p.objectdata:=commonobjdata;
-                 commonobjdata.sects[sec_bss].alloc(sym.size);
-                 commonobjdata.symbols.insert(p);
-                 { update this symbol }
+                 commonobjdata.writesymbol(p);
                  if assigned(exemap) then
                    exemap.AddCommonSymbol(p);
                  { make this symbol available as a global }
@@ -605,25 +577,16 @@ implementation
       end;
 
 
-    function tobjectinput.str2sec(const s:string):TSection;
-      var
-        t : TSection;
-      begin
-        for t:=low(TSection) to high(TSection) do
-         begin
-           if (s=target_asm.secnames[t]) then
-            begin
-              str2sec:=t;
-              exit;
-            end;
-         end;
-        str2sec:=sec_none;
-      end;
-
 end.
 {
   $Log$
-  Revision 1.13  2003-04-22 14:33:38  peter
+  Revision 1.14  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.13.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
+
+  Revision 1.13  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.12  2002/07/01 18:46:24  peter

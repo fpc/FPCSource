@@ -30,23 +30,6 @@ Interface
     globtype;
 
 Type
-   AWord = QWord;
-   PAWord = ^AWord;
-   AInt = int64;
-   PAInt = ^AInt;
-
-   { the ordinal type used when evaluating constant integer expressions }
-   TConstExprInt = int64;
-   { ... the same unsigned }
-   TConstExprUInt = {$ifdef fpc}qword{$else}int64{$endif};
-
-   { this must be an ordinal type with the same size as a pointer }
-   { Note: must be unsigned!! Otherwise, ugly code like           }
-   { pointer(-1) will result in a pointer with the value          }
-   { $fffffffffffffff on a 32bit machine if the compiler uses     }
-   { int64 constants internally (JM)                              }
-   TConstPtrUInt = qword;
-
    bestreal = extended;
    ts32real = single;
    ts64real = double;
@@ -69,8 +52,6 @@ Type
 Const
    { Size of native extended type }
    extended_size = 10;
-   { Size of a pointer }
-   pointer_size  = 8;
    { Size of a multimedia register }
    mmreg_size = 16;
    { target cpu string (used by compiler options) }
@@ -79,8 +60,7 @@ Const
      the size of this buffer is deduced from the
      jmp_buf structure in setjumph.inc file
    }
-   {$warning FIX: jmp_buf_size }
-   jmp_buf_size = 48;
+   jmp_buf_size = 64;
 
 
    { calling conventions supported by the code generator }
@@ -111,11 +91,27 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.12  2004-04-28 15:19:03  florian
+  Revision 1.13  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.12  2004/04/28 15:19:03  florian
     + syscall directive support for MorphOS added
 
   Revision 1.11  2004/04/12 18:25:26  florian
     + AInt added
+
+  Revision 1.10.2.4  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.10.2.3  2004/04/26 21:00:37  peter
+    * AInt fixed, PAInt added
+
+  Revision 1.10.2.2  2004/04/24 20:13:24  florian
+    * fixed x86-64 exception handling
+
+  Revision 1.10.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.10  2003/12/25 01:07:09  florian
     + $fputype directive support

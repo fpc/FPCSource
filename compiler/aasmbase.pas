@@ -34,49 +34,65 @@ interface
 
     uses
        cutils,cclasses,
-       globtype,globals,systems;
+       globtype,globals,systems,
+       cpuinfo;
 
-  { asm symbol functions }
     type
+       TAsmSection = class;
+       TAsmObjectData = class;
+
        TAsmsymbind=(AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL);
 
        TAsmsymtype=(AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION);
 
        TAsmRelocationType = (RELOC_ABSOLUTE,RELOC_RELATIVE,RELOC_RVA);
 
-       TAsmSectionSizes = array[TSection] of longint;
+       TAsmSectionType=(sec_none,
+         sec_code,sec_data,sec_rodata,sec_bss,
+         sec_common, { used for executable creation }
+         sec_custom, { custom section, no prefix }
+         { stabs }
+         sec_stab,sec_stabstr,
+         { win32 }
+         sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_edata,
+         { C++ exception handling unwinding (uses dwarf) }
+         sec_eh_frame,
+         { dwarf }
+         sec_debug_frame
+       );
+
+       TAsmSectionOption = (aso_alloconly,aso_executable);
+       TAsmSectionOptions = set of TAsmSectionOption;
 
        TAsmSymbol = class(TNamedIndexItem)
        private
          { this need to be incremented with every symbol loading into the
            paasmoutput, thus in loadsym/loadref/const_symbol (PFV) }
-         refs    : longint;
+         refs       : longint;
        public
          defbind,
-         currbind  : TAsmsymbind;
-         typ       : TAsmsymtype;
+         currbind   : TAsmsymbind;
+         typ        : TAsmsymtype;
          { the next fields are filled in the binary writer }
-         section : TSection;
+         section    : TAsmSection;
          address,
-         size    : longint;
+         size       : aint;
          { Alternate symbol which can be used for 'renaming' needed for
            inlining }
-         altsymbol : tasmsymbol;
+         altsymbol  : tasmsymbol;
          { pointer to objectdata that is the owner of this symbol }
-         objectdata : pointer;
-         { pointer to the tai that is the owner of this symbol }
-{         taiowner : pointer;}
+         owner      : tasmobjectdata;
          { Is the symbol in the used list }
          inusedlist : boolean;
          { assembler pass label is set, used for detecting multiple labels }
-         pass : byte;
-         ppuidx : longint;
+         pass       : byte;
+         ppuidx     : longint;
          constructor create(const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
          procedure reset;
          function  is_used:boolean;
          procedure increfs;
          procedure decrefs;
-         procedure setaddress(_pass:byte;sec:TSection;offset,len:longint);
+         procedure setaddress(_pass:byte;sec:TAsmSection;offset,len:aint);
        end;
 
        TAsmLabel = class(TAsmSymbol)
@@ -94,77 +110,92 @@ interface
 
        TAsmRelocation = class(TLinkedListItem)
           address,
-          orgsize  : longint;  { original size of the symbol to relocate, required for COFF }
-          symbol   : tasmsymbol;
-          section  : TSection; { only used if symbol=nil }
+          orgsize  : aint;  { original size of the symbol to relocate, required for COFF }
+          symbol   : TAsmSymbol;
+          section  : TAsmSection; { only used if symbol=nil }
           typ      : TAsmRelocationType;
-          constructor CreateSymbol(Aaddress:longint;s:Tasmsymbol;Atyp:TAsmRelocationType);
-          constructor CreateSymbolSize(Aaddress:longint;s:Tasmsymbol;Aorgsize:longint;Atyp:TAsmRelocationType);
-          constructor CreateSection(Aaddress:longint;sec:TSection;Atyp:TAsmRelocationType);
+          constructor CreateSymbol(Aaddress:aint;s:Tasmsymbol;Atyp:TAsmRelocationType);
+          constructor CreateSymbolSize(Aaddress:aint;s:Tasmsymbol;Aorgsize:aint;Atyp:TAsmRelocationType);
+          constructor CreateSection(Aaddress:aint;sec:TAsmSection;Atyp:TAsmRelocationType);
        end;
 
-       TAsmSection = class(TLinkedListItem)
-         name      : string[32];
-         secsymidx : longint;   { index for the section in symtab }
-         addralign : longint;   { alignment of the section }
-         flags     : cardinal;  { section flags }
+       TAsmSection = class(TNamedIndexItem)
+         owner      : TAsmObjectData;
+         secoptions : TAsmSectionOptions;
+         sectype    : TAsmSectionType;
+         secsymidx  : longint;   { index for the section in symtab }
+         addralign  : longint;   { alignment of the section }
          { size of the data and in the file }
          dataalignbytes : longint;
          data      : TDynamicArray;
-         datasize  : longint;
-         datapos   : longint;
-         { size and position in memory, set by seTSectionsize }
+         datasize,
+         datapos   : aint;
+         { size and position in memory }
          memsize,
-         mempos    : longint;
+         mempos    : aint;
          { relocation }
          relocations : TLinkedList;
-         constructor create(const Aname:string;Aalign:longint;alloconly:boolean);
+         constructor create(const Aname:string;Atype:TAsmSectionType;Aalign:longint;Aoptions:TAsmSectionOptions);virtual;
          destructor  destroy;override;
-         function  write(var d;l:longint):longint;
-         function  writestr(const s:string):longint;
+         function  write(const d;l:aint):aint;
+         function  writestr(const s:string):aint;
          procedure writealign(l:longint);
-         function  aligneddatasize:longint;
+         function  aligneddatasize:aint;
+         procedure setdatapos(var dpos:aint);
          procedure alignsection;
-         procedure alloc(l:longint);
-         procedure addsymreloc(ofs:longint;p:tasmsymbol;relative:TAsmRelocationType);
-         procedure addsectionreloc(ofs:longint;sec:TSection;relative:TAsmRelocationType);
-       end;
-
-       TAsmObjectAlloc = class
-         currsec : TSection;
-         secsize : TAsmSectionSizes;
-         constructor create;
-         destructor  destroy;override;
-         procedure seTSection(sec:TSection);
-         function  sectionsize:longint;
-         procedure sectionalloc(l:longint);
-         procedure sectionalign(l:longint);
-         procedure staballoc(p:pchar);
-         procedure resetSections;
-       end;
-
-       TAsmObjectData = class(TLinkedListItem)
-       public
-         name      : string[80];
-         currsec   : TSection;
-         sects     : array[TSection] of TAsmSection;
-         symbols   : tindexarray; { contains symbols that will be defined in object file }
-         constructor create(const n:string);
-         destructor  destroy;override;
-         procedure createsection(sec:TSection);virtual;
-         procedure defaulTSection(sec:TSection);
-         function  sectionsize(s:TSection):longint;
-         function  currsectionsize:longint;
-         procedure setsectionsizes(var s:TAsmSectionSizes);virtual;
-         procedure alloc(len:longint);
-         procedure allocalign(len:longint);
-         procedure writebytes(var data;len:longint);
-         procedure writereloc(data,len:longint;p:tasmsymbol;relative:TAsmRelocationType);virtual;abstract;
-         procedure writesymbol(p:tasmsymbol);virtual;abstract;
-         procedure writestabs(section:TSection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
-         procedure writesymstabs(section:TSection;offset:longint;p:pchar;ps:tasmsymbol;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
+         procedure alloc(l:aint);
+         procedure addsymreloc(ofs:aint;p:tasmsymbol;relative:TAsmRelocationType);
+         procedure addsectionreloc(ofs:aint;sec:TAsmSection;relative:TAsmRelocationType);
          procedure fixuprelocs;virtual;
        end;
+       TAsmSectionClass = class of TAsmSection;
+
+       TAsmObjectData = class(TLinkedListItem)
+       private
+         FName      : string[80];
+         FCurrSec   : TAsmSection;
+         FSects     : TDictionary;
+         FCAsmSection : TAsmSectionClass;
+         { Symbols that will be defined in this object file }
+         FSymbols   : TIndexArray;
+         { Special info sections that are written to during object generation }
+         FStabsRecSize : longint;
+         FStabsSec,
+         FStabStrSec : TAsmSection;
+         procedure section_reset(p:tnamedindexitem;arg:pointer);
+         procedure section_fixuprelocs(p:tnamedindexitem;arg:pointer);
+       protected
+         property StabsRecSize:longint read FStabsRecSize write FStabsRecSize;
+         property StabsSec:TAsmSection read FStabsSec write FStabsSec;
+         property StabStrSec:TAsmSection read FStabStrSec write FStabStrSec;
+         property CAsmSection:TAsmSectionClass read FCAsmSection write FCAsmSection;
+       public
+         constructor create(const n:string);virtual;
+         destructor  destroy;override;
+         function  sectionname(atype:tasmsectiontype;const aname:string):string;virtual;
+         function  createsection(atype:tasmsectiontype;const aname:string;aalign:longint;aoptions:TAsmSectionOptions):tasmsection;virtual;
+         procedure setsection(asec:tasmsection);
+         procedure alloc(len:aint);
+         procedure allocalign(len:longint);
+         procedure allocstabs(p:pchar);
+         procedure allocsymbol(currpass:byte;p:tasmsymbol;len:aint);
+         procedure writebytes(var data;len:aint);
+         procedure writereloc(data,len:aint;p:tasmsymbol;relative:TAsmRelocationType);virtual;abstract;
+         procedure writesymbol(p:tasmsymbol);virtual;abstract;
+         procedure writestabs(offset:aint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
+         procedure writesymstabs(offset:aint;p:pchar;ps:tasmsymbol;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
+         procedure beforealloc;virtual;
+         procedure beforewrite;virtual;
+         procedure afteralloc;virtual;
+         procedure afterwrite;virtual;
+         procedure resetsections;
+         procedure fixuprelocs;
+         property Name:string[80] read FName;
+         property CurrSec:TAsmSection read FCurrSec;
+         property Symbols:TindexArray read FSymbols;
+         property Sects:TDictionary read FSects;
+       end;
+       TAsmObjectDataClass = class of TAsmObjectData;
 
 {$ifndef delphi}
        tasmsymbolidxarr = array[0..($7fffffff div sizeof(pointer))] of tasmsymbol;
@@ -253,7 +284,7 @@ implementation
     procedure tasmsymbol.reset;
       begin
         { reset section info }
-        section:=sec_none;
+        section:=nil;
         address:=0;
         size:=0;
         indexnr:=-1;
@@ -284,7 +315,7 @@ implementation
       end;
 
 
-    procedure tasmsymbol.setaddress(_pass:byte;sec:TSection;offset,len:longint);
+    procedure tasmsymbol.setaddress(_pass:byte;sec:TAsmSection;offset,len:aint);
       begin
         if (_pass=pass) then
          begin
@@ -318,20 +349,17 @@ implementation
     constructor tasmlabel.createdata(const modulename:string;nr:longint);
       begin;
         labelnr:=nr;
-        if (cs_create_smart in aktmoduleswitches) or
-           target_asm.labelprefix_only_inside_procedure then
-          inherited create('_$'+modulename+'$_L'+tostr(labelnr),AB_GLOBAL,AT_DATA)
-        else
-          inherited create(target_asm.labelprefix+tostr(labelnr),AB_LOCAL,AT_DATA);
+        inherited create('_$'+modulename+'$_L'+tostr(labelnr),AB_GLOBAL,AT_DATA);
         is_set:=false;
         is_addr := false;
         { write it always }
         increfs;
       end;
 
+
     constructor tasmlabel.createaddr(nr:longint);
       begin;
-        create(nr);
+        self.create(nr);
         is_addr := true;
       end;
 
@@ -344,83 +372,30 @@ implementation
 
 
 {****************************************************************************
-                                TAsmObjectAlloc
-****************************************************************************}
-
-    constructor TAsmObjectAlloc.create;
-      begin
-      end;
-
-
-    destructor TAsmObjectAlloc.destroy;
-      begin
-      end;
-
-
-    procedure TAsmObjectAlloc.seTSection(sec:TSection);
-      begin
-        currsec:=sec;
-      end;
-
-
-    procedure TAsmObjectAlloc.reseTSections;
-      begin
-        FillChar(secsize,sizeof(secsize),0);
-      end;
-
-
-    procedure TAsmObjectAlloc.sectionalloc(l:longint);
-      begin
-        inc(secsize[currsec],l);
-      end;
-
-
-    procedure TAsmObjectAlloc.sectionalign(l:longint);
-      begin
-        if (secsize[currsec] mod l)<>0 then
-          inc(secsize[currsec],l-(secsize[currsec] mod l));
-      end;
-
-
-    procedure TAsmObjectAlloc.staballoc(p:pchar);
-      begin
-        inc(secsize[sec_stab]);
-        if assigned(p) and (p[0]<>#0) then
-          inc(secsize[sec_stabstr],strlen(p)+1);
-      end;
-
-
-    function TAsmObjectAlloc.sectionsize:longint;
-      begin
-        sectionsize:=secsize[currsec];
-      end;
-
-
-{****************************************************************************
                               TAsmRelocation
 ****************************************************************************}
 
-    constructor TAsmRelocation.CreateSymbol(Aaddress:longint;s:Tasmsymbol;Atyp:TAsmRelocationType);
+    constructor TAsmRelocation.CreateSymbol(Aaddress:aint;s:Tasmsymbol;Atyp:TAsmRelocationType);
       begin
         Address:=Aaddress;
         Symbol:=s;
         OrgSize:=0;
-        Section:=Sec_none;
+        Section:=nil;
         Typ:=Atyp;
       end;
 
 
-    constructor TAsmRelocation.CreateSymbolSize(Aaddress:longint;s:Tasmsymbol;Aorgsize:longint;Atyp:TAsmRelocationType);
+    constructor TAsmRelocation.CreateSymbolSize(Aaddress:aint;s:Tasmsymbol;Aorgsize:aint;Atyp:TAsmRelocationType);
       begin
         Address:=Aaddress;
         Symbol:=s;
         OrgSize:=Aorgsize;
-        Section:=Sec_none;
+        Section:=nil;
         Typ:=Atyp;
       end;
 
 
-    constructor TAsmRelocation.CreateSection(Aaddress:longint;sec:TSection;Atyp:TAsmRelocationType);
+    constructor TAsmRelocation.CreateSection(Aaddress:aint;sec:TAsmSection;Atyp:TAsmRelocationType);
       begin
         Address:=Aaddress;
         Symbol:=nil;
@@ -434,20 +409,22 @@ implementation
                               TAsmSection
 ****************************************************************************}
 
-    constructor TAsmSection.create(const Aname:string;Aalign:longint;alloconly:boolean);
+    constructor TAsmSection.create(const Aname:string;Atype:TAsmSectionType;Aalign:longint;Aoptions:TAsmSectionOptions);
       begin
-        inherited create;
+        inherited createname(Aname);
+        sectype:=Atype;
         name:=Aname;
+        secoptions:=Aoptions;
         secsymidx:=0;
         addralign:=Aalign;
         { data }
         datasize:=0;
         datapos:=0;
-        if alloconly then
+        if (aso_alloconly in aoptions) then
          data:=nil
         else
          Data:=TDynamicArray.Create(8192);
-        { position }
+        { memory }
         mempos:=0;
         memsize:=0;
         { relocation }
@@ -463,22 +440,20 @@ implementation
       end;
 
 
-    function TAsmSection.write(var d;l:longint):longint;
+    function TAsmSection.write(const d;l:aint):aint;
       begin
         write:=datasize;
-        if not assigned(Data) then
-         Internalerror(3334441);
-        Data.write(d,l);
+        if assigned(Data) then
+          Data.write(d,l);
         inc(datasize,l);
       end;
 
 
-    function TAsmSection.writestr(const s:string):longint;
+    function TAsmSection.writestr(const s:string):aint;
       begin
         writestr:=datasize;
-        if not assigned(Data) then
-         Internalerror(3334441);
-        Data.write(s[1],length(s));
+        if assigned(Data) then
+          Data.write(s[1],length(s));
         inc(datasize,length(s));
       end;
 
@@ -504,9 +479,22 @@ implementation
       end;
 
 
-    function TAsmSection.aligneddatasize:longint;
+    function TAsmSection.aligneddatasize:aint;
       begin
         aligneddatasize:=align(datasize,addralign);
+      end;
+
+
+    procedure TAsmSection.setdatapos(var dpos:aint);
+      var
+        alignedpos : aint;
+      begin
+        { get aligned datapos }
+        alignedpos:=align(dpos,addralign);
+        dataalignbytes:=alignedpos-dpos;
+        datapos:=alignedpos;
+        { update datapos }
+        dpos:=datapos+aligneddatasize;
       end;
 
 
@@ -516,15 +504,13 @@ implementation
       end;
 
 
-    procedure TAsmSection.alloc(l:longint);
+    procedure TAsmSection.alloc(l:aint);
       begin
-        if assigned(Data) then
-         Internalerror(3334442);
         inc(datasize,l);
       end;
 
 
-    procedure TAsmSection.addsymreloc(ofs:longint;p:tasmsymbol;relative:TAsmRelocationType);
+    procedure TAsmSection.addsymreloc(ofs:aint;p:tasmsymbol;relative:TAsmRelocationType);
       var
         r : TAsmRelocation;
       begin
@@ -532,13 +518,13 @@ implementation
         r.address:=ofs;
         r.orgsize:=0;
         r.symbol:=p;
-        r.section:=sec_none;
+        r.section:=nil;
         r.typ:=relative;
         relocations.concat(r);
       end;
 
 
-    procedure TAsmSection.addsectionreloc(ofs:longint;sec:TSection;relative:TAsmRelocationType);
+    procedure TAsmSection.addsectionreloc(ofs:aint;sec:TAsmSection;relative:TAsmRelocationType);
       var
         r : TAsmRelocation;
       begin
@@ -552,6 +538,11 @@ implementation
       end;
 
 
+    procedure TAsmSection.fixuprelocs;
+      begin
+      end;
+
+
 {****************************************************************************
                                 TAsmObjectData
 ****************************************************************************}
@@ -559,93 +550,162 @@ implementation
     constructor TAsmObjectData.create(const n:string);
       begin
         inherited create;
-        name:=n;
+        FName:=n;
         { sections }
-        FillChar(Sects,sizeof(Sects),0);
+        FSects:=tdictionary.create;
+        FStabsRecSize:=1;
+        FStabsSec:=nil;
+        FStabStrSec:=nil;
         { symbols }
-        symbols:=tindexarray.create(symbolsgrow);
-        symbols.noclear:=true;
+        FSymbols:=tindexarray.create(symbolsgrow);
+        FSymbols.noclear:=true;
+        { section class type for creating of new sections }
+        FCAsmSection:=TAsmSection;
       end;
 
 
     destructor TAsmObjectData.destroy;
+      begin
+        FSects.free;
+        FSymbols.free;
+      end;
+
+
+    function TAsmObjectData.sectionname(atype:tasmsectiontype;const aname:string):string;
+      const
+        secnames : array[tasmsectiontype] of string[12] = ('',
+          'code','data','rodata','bss',
+          'common',
+          'note',
+          'stab','stabstr',
+          'idata2','idata4','idata5','idata6','idata7','edata',
+          'eh_frame',
+          'debug_frame'
+        );
+      begin
+        if aname<>'' then
+          result:=secnames[atype]+'.'+aname
+        else
+          result:=secnames[atype];
+      end;
+
+
+    function TAsmObjectData.createsection(atype:tasmsectiontype;const aname:string;aalign:longint;aoptions:TAsmSectionOptions):TAsmSection;
       var
-        sec : TSection;
+        secname : string;
       begin
-        { free memory }
-        for sec:=low(TSection) to high(TSection) do
-         if assigned(sects[sec]) then
-          sects[sec].free;
-        symbols.free;
+        secname:=sectionname(atype,aname);
+        result:=TasmSection(FSects.search(secname));
+        if not assigned(result) then
+          begin
+{$warning TODO make alloconly configurable}
+            if atype=sec_bss then
+              include(aoptions,aso_alloconly);
+            result:=CAsmSection.create(secname,atype,aalign,aoptions);
+            FSects.Insert(result);
+            result.owner:=self;
+          end;
+        FCurrSec:=result;
       end;
 
 
-    procedure TAsmObjectData.createsection(sec:TSection);
+    procedure TAsmObjectData.setsection(asec:tasmsection);
       begin
-        sects[sec]:=TAsmSection.create(target_asm.secnames[sec],1,(sec=sec_bss));
+        if asec.owner<>self then
+          internalerror(200403041);
+        FCurrSec:=asec;
       end;
 
 
-    function TAsmObjectData.sectionsize(s:TSection):longint;
+    procedure TAsmObjectData.writebytes(var data;len:aint);
       begin
-        if assigned(sects[s]) then
-         sectionsize:=sects[s].datasize
-        else
-         sectionsize:=0;
+        if not assigned(currsec) then
+          internalerror(200402251);
+        currsec.write(data,len);
       end;
 
 
-    function TAsmObjectData.currsectionsize:longint;
+    procedure TAsmObjectData.alloc(len:aint);
       begin
-        if assigned(sects[currsec]) then
-         currsectionsize:=sects[currsec].datasize
-        else
-         currsectionsize:=0;
-      end;
-
-
-    procedure TAsmObjectData.seTSectionsizes(var s:TAsmSectionSizes);
-      begin
-      end;
-
-
-    procedure TAsmObjectData.defaulTSection(sec:TSection);
-      begin
-        currsec:=sec;
-      end;
-
-
-    procedure TAsmObjectData.writebytes(var data;len:longint);
-      begin
-        if not assigned(sects[currsec]) then
-         createsection(currsec);
-        sects[currsec].write(data,len);
-      end;
-
-
-    procedure TAsmObjectData.alloc(len:longint);
-      begin
-        if not assigned(sects[currsec]) then
-         createsection(currsec);
-        sects[currsec].alloc(len);
+        if not assigned(currsec) then
+          internalerror(200402252);
+        currsec.alloc(len);
       end;
 
 
     procedure TAsmObjectData.allocalign(len:longint);
       var
-        modulo : longint;
+        modulo : aint;
       begin
-        if not assigned(sects[currsec]) then
-         createsection(currsec);
-        modulo:=sects[currsec].datasize mod len;
+        if not assigned(currsec) then
+          internalerror(200402253);
+        modulo:=currsec.datasize mod len;
         if modulo > 0 then
-          sects[currsec].alloc(len-modulo);
+          currsec.alloc(len-modulo);
+      end;
+
+
+    procedure TAsmObjectData.allocsymbol(currpass:byte;p:tasmsymbol;len:aint);
+      begin
+        p.setaddress(currpass,currsec,currsec.datasize,len);
+      end;
+
+
+    procedure TAsmObjectData.allocstabs(p:pchar);
+      begin
+        if not(assigned(FStabsSec) and assigned(FStabStrSec)) then
+          internalerror(200402254);
+        FStabsSec.alloc(FStabsRecSize);
+        if assigned(p) and (p[0]<>#0) then
+          FStabStrSec.alloc(strlen(p)+1);
+      end;
+
+
+    procedure TAsmObjectData.section_reset(p:tnamedindexitem;arg:pointer);
+      begin
+        with tasmsection(p) do
+          begin
+            datasize:=0;
+            datapos:=0;
+          end;
+      end;
+
+
+    procedure TAsmObjectData.section_fixuprelocs(p:tnamedindexitem;arg:pointer);
+      begin
+        tasmsection(p).fixuprelocs;
+      end;
+
+
+    procedure TAsmObjectData.beforealloc;
+      begin
+      end;
+
+
+    procedure TAsmObjectData.beforewrite;
+      begin
+      end;
+
+
+    procedure TAsmObjectData.afteralloc;
+      begin
+      end;
+
+
+    procedure TAsmObjectData.afterwrite;
+      begin
+      end;
+
+
+    procedure TAsmObjectData.resetsections;
+      begin
+        FSects.foreach(@section_reset,nil);
       end;
 
 
     procedure TAsmObjectData.fixuprelocs;
       begin
-        { no relocation support by default }
+        FSects.foreach(@section_fixuprelocs,nil);
       end;
 
 
@@ -693,9 +753,9 @@ implementation
          begin
            if not assigned(asmsymbolidx) then
              internalerror(200208072);
-           if (longint(pointer(s))<1) or (longint(pointer(s))>asmsymbolppuidx) then
+           if (ptrint(pointer(s))<1) or (ptrint(pointer(s))>asmsymbolppuidx) then
              internalerror(200208073);
-           s:=asmsymbolidx^[longint(pointer(s))-1];
+           s:=asmsymbolidx^[ptrint(pointer(s))-1];
          end;
       end;
 
@@ -708,7 +768,9 @@ implementation
         if assigned(hp) then
          begin
            {$IFDEF EXTDEBUG}
-           if (_typ <> AT_NONE) and (hp.typ <> _typ) then
+           if (_typ <> AT_NONE) and
+              (hp.typ <> _typ) and
+              not(cs_compilesystem in aktmoduleswitches) then
              begin
                //Writeln('Error symbol '+hp.name+' type is ',Ord(_typ),', should be ',Ord(hp.typ));
                InternalError(2004031501);
@@ -822,7 +884,7 @@ implementation
            with hp do
             begin
               if is_used and
-                 (section=Sec_none) and
+                 (section=nil) and
                  not(currbind in [AB_EXTERNAL,AB_COMMON]) then
                Message1(asmw_e_undefined_label,name);
             end;
@@ -880,7 +942,22 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2004-03-18 11:45:39  olle
+  Revision 1.18  2004-06-16 20:07:06  florian
+    * dwarf branch merged
+
+  Revision 1.17.2.4  2004/05/11 21:04:40  peter
+    * ignore EXTDEBUG check for different asmsymbol type for system unit
+
+  Revision 1.17.2.3  2004/04/26 21:05:09  peter
+    * size of classes is now stored as aint
+
+  Revision 1.17.2.2  2004/04/12 19:34:45  peter
+    * basic framework for dwarf CFI
+
+  Revision 1.17.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
+
+  Revision 1.17  2004/03/18 11:45:39  olle
     + added type similarity check in newasmsymbol
 
   Revision 1.16  2004/03/02 00:36:32  olle

@@ -292,7 +292,7 @@ interface
                    internalerror(43244);
                   if (right.location.loc = LOC_CONSTANT) then
                     cg.a_op_const_reg_reg(exprasmlist,OP_OR,location.size,
-                      aword(1 shl aword(right.location.value)),
+                      aint(1 shl right.location.value),
                       left.location.register,location.register)
                   else
                     begin
@@ -305,7 +305,7 @@ interface
                             left.location.register,location.register)
                       else
                         cg.a_op_const_reg_reg(exprasmlist,OP_OR,location.size,
-                            aword(left.location.value),tmpreg,location.register);
+                            left.location.value,tmpreg,location.register);
                       cg.ungetregister(exprasmlist,tmpreg);
                     end;
                   opdone := true;
@@ -338,7 +338,7 @@ interface
                     begin
                       tmpreg := cg.getintregister(exprasmlist,location.size);
                       cg.a_load_const_reg(exprasmlist,location.size,
-                        aword(left.location.value),tmpreg);
+                        left.location.value,tmpreg);
                       cg.a_op_reg_reg(exprasmlist,OP_NOT,location.size,right.location.register,right.location.register);
                       cg.a_op_reg_reg(exprasmlist,OP_AND,location.size,right.location.register,tmpreg);
                       cg.a_load_reg_reg(exprasmlist,OS_INT,location.size,tmpreg,location.register);
@@ -363,7 +363,7 @@ interface
               swapleftright;
             if (right.location.loc = LOC_CONSTANT) then
               cg.a_op_const_reg_reg(exprasmlist,cgop,location.size,
-                aword(right.location.value),left.location.register,
+                right.location.value,left.location.register,
                 location.register)
             else
               cg.a_op_reg_reg_reg(exprasmlist,cgop,location.size,
@@ -447,7 +447,7 @@ interface
                  location.register)
             else
               cg.a_op_const_reg_reg(exprasmlist,cgop,location.size,
-                 aword(right.location.value),left.location.register,
+                 right.location.value,left.location.register,
                  location.register);
          end;
 
@@ -507,11 +507,55 @@ interface
             internalerror(2002072705);
         end;
 
+{$ifdef cpu64bit}
         case nodetype of
           xorn,orn,andn,addn:
             begin
               if (right.location.loc = LOC_CONSTANT) then
-                cg64.a_op64_const_reg_reg(exprasmlist,op,right.location.valueqword,
+                cg.a_op_const_reg_reg(exprasmlist,op,location.size,right.location.value,
+                  left.location.register64,location.register)
+              else
+                cg.a_op_reg_reg_reg(exprasmlist,op,location.size,right.location.register,
+                  left.location.register64,location.register);
+            end;
+          subn:
+            begin
+              if (nf_swaped in flags) then
+                swapleftright;
+
+              if left.location.loc <> LOC_CONSTANT then
+                begin
+                  if (location.registerlow = NR_NO) then
+                    begin
+                     location.registerlow := cg.getintregister(exprasmlist,OS_INT);
+                     location.registerhigh := cg.getintregister(exprasmlist,OS_INT);
+                  end;
+                  if right.location.loc <> LOC_CONSTANT then
+                    // reg64 - reg64
+                    cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,location.size,
+                      right.location.register,left.location.register,location.register)
+                  else
+                    // reg64 - const64
+                    cg.a_op_const_reg_reg(exprasmlist,OP_SUB,location.size,
+                      right.location.value,left.location.register,location.register);
+                end
+              else
+                begin
+                  // const64 - reg64
+                  location_force_reg(exprasmlist,left.location,left.location.size,true);
+                  cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,location.size,
+                    right.location.register,left.location.register,location.register);
+                end;
+            end;
+          else
+            internalerror(2002072803);
+        end;
+{$else cpu64bit}
+        case nodetype of
+          xorn,orn,andn,addn:
+            begin
+              if (right.location.loc = LOC_CONSTANT) then
+                cg64.a_op64_const_reg_reg(exprasmlist,op,right.location.value64,
                   left.location.register64,location.register64)
               else
                 cg64.a_op64_reg_reg_reg(exprasmlist,op,right.location.register64,
@@ -532,7 +576,7 @@ interface
                   else
                     // reg64 - const64
                     cg64.a_op64_const_reg_reg(exprasmlist,OP_SUB,
-                      right.location.valueqword,left.location.register64,
+                      right.location.value64,left.location.register64,
                       location.register64)
                 end
               else
@@ -547,6 +591,7 @@ interface
           else
             internalerror(2002072803);
         end;
+{$endif cpu64bit}
 
         { emit overflow check if enabled }
         if checkoverflow then
@@ -653,7 +698,7 @@ interface
                location.register)
           else
             cg.a_op_const_reg_reg(exprasmlist,cgop,location.size,
-               aword(right.location.value),left.location.register,
+               right.location.value,left.location.register,
                location.register);
         end
       else  { subtract is a special case since its not commutative }
@@ -762,7 +807,27 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2004-02-26 16:11:29  peter
+  Revision 1.30  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.29.2.5  2004/06/13 10:51:16  florian
+    * fixed several register allocator problems (sparc/arm)
+
+  Revision 1.29.2.4  2004/06/12 17:01:01  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.29.2.3  2004/06/02 20:59:05  peter
+    * fix negative consts
+
+  Revision 1.29.2.2  2004/05/30 17:54:14  florian
+    + implemented cmp64bit
+    * started to fix spilling
+    * fixed int64 sub partially
+
+  Revision 1.29.2.1  2004/04/27 18:18:25  peter
+    * aword -> aint
+
+  Revision 1.29  2004/02/26 16:11:29  peter
     * use op_ordinal for dynarr compares
 
   Revision 1.28  2004/02/04 19:22:27  peter

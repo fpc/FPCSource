@@ -140,13 +140,13 @@ implementation
                            end
                           else
                            begin
-                             Message(cg_e_invalid_qualifier);
+                             Message(parser_e_invalid_qualifier);
                              result:=false;
                            end;
                         end
                        else
                         begin
-                          Message(cg_e_invalid_qualifier);
+                          Message(parser_e_invalid_qualifier);
                           result:=false;
                         end;
                        consume(_ID);
@@ -169,7 +169,7 @@ implementation
                                      IncompatibleTypes(p.resulttype.def,tarraydef(def).rangetype.def);
                                  end
                                else
-                                Message(cg_e_illegal_expression)
+                                Message(parser_e_illegal_expression)
                              end;
                             p.free;
                             pl.addconst(sl_vec,idx);
@@ -177,7 +177,7 @@ implementation
                           end
                          else
                           begin
-                            Message(cg_e_invalid_qualifier);
+                            Message(parser_e_invalid_qualifier);
                             result:=false;
                           end;
                        until not try_to_consume(_COMMA);
@@ -217,6 +217,7 @@ implementation
          hvs      : tvarsym;
          readprocdef,
          writeprocdef : tprocvardef;
+         oldsymtablestack : tsymtable;
       begin
          { Generate temp procvardefs to search for matching read/write
            procedures. the readprocdef will store all definitions }
@@ -283,21 +284,24 @@ implementation
                   sc.insert(readvs);
                   consume(_ID);
                 until not try_to_consume(_COMMA);
-                if token=_COLON then
+                if try_to_consume(_COLON) then
                   begin
-                     consume(_COLON);
-                     if token=_ARRAY then
-                       begin
-                          consume(_ARRAY);
-                          consume(_OF);
-                          { define range and type of range }
-                          tt.setdef(tarraydef.create(0,-1,s32inttype));
-                          { define field type }
-                          single_type(arraytype,s,false);
-                          tarraydef(tt.def).setelementtype(arraytype);
-                       end
-                     else
-                       single_type(tt,s,false);
+                    { for records, don't search the recordsymtable for
+                     the symbols of the types }
+                    oldsymtablestack:=symtablestack;
+                    symtablestack:=symtablestack.next;
+                    if try_to_consume(_ARRAY) then
+                      begin
+                        consume(_OF);
+                        { define range and type of range }
+                        tt.setdef(tarraydef.create(0,-1,s32inttype));
+                        { define field type }
+                        single_type(arraytype,s,false);
+                        tarraydef(tt.def).setelementtype(arraytype);
+                      end
+                    else
+                      single_type(tt,s,false);
+                    symtablestack:=oldsymtablestack;
                   end
                 else
                   tt:=cformaltype;
@@ -328,22 +332,29 @@ implementation
          if (token=_COLON) or (readprocdef.minparacount>0) or (aclass=nil) then
            begin
               consume(_COLON);
+              { insert types in global symtable }
+              oldsymtablestack:=symtablestack;
+	      while not(symtablestack.symtabletype in [globalsymtable,staticsymtable]) do
+                symtablestack:=symtablestack.next;
               single_type(p.proptype,hs,false);
+              symtablestack:=oldsymtablestack;
               if (idtoken=_INDEX) then
                 begin
                    consume(_INDEX);
                    pt:=comp_expr(true);
                    if is_constnode(pt) and
-                      is_ordinal(pt.resulttype.def) and
-                      (not is_64bitint(pt.resulttype.def)) then
+                      is_ordinal(pt.resulttype.def)
+{$ifndef cpu64bit}
+                      and (not is_64bitint(pt.resulttype.def))
+{$endif}
+                      then
                      p.index:=tordconstnode(pt).value
                    else
                      begin
                        Message(parser_e_invalid_property_index_value);
                        p.index:=0;
                      end;
-{$warning FIXME: force 32bit int for property index}
-                   inserttypeconv(pt,s32inttype);
+                   inserttypeconv(pt,sinttype);
                    p.indextype.setdef(pt.resulttype.def);
                    include(p.propoptions,ppo_indexed);
                    { concat a longint to the para templates }
@@ -389,7 +400,7 @@ implementation
                      handle_calling_convention(readprocdef);
                      calc_parast(readprocdef);
                      { search procdefs matching readprocdef }
-                     p.readaccess.procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.para,p.proptype.def,[cpo_allowdefaults]);
+                     p.readaccess.procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.para,p.proptype.def,[cpo_allowdefaults,cpo_allowconvert]);
                      if not assigned(p.readaccess.procdef) then
                        Message(parser_e_ill_property_access_sym);
                    end;
@@ -434,7 +445,7 @@ implementation
                      handle_calling_convention(writeprocdef);
                      calc_parast(writeprocdef);
                      { search procdefs matching writeprocdef }
-                     p.writeaccess.procdef:=Tprocsym(sym).search_procdef_bypara(writeprocdef.para,writeprocdef.rettype.def,[cpo_allowdefaults]);
+                     p.writeaccess.procdef:=Tprocsym(sym).search_procdef_bypara(writeprocdef.para,writeprocdef.rettype.def,[cpo_allowdefaults,cpo_allowconvert]);
                      if not assigned(p.writeaccess.procdef) then
                        Message(parser_e_ill_property_access_sym);
                    end;
@@ -512,7 +523,9 @@ implementation
          if try_to_consume(_DEFAULT) then
            begin
               if not(is_ordinal(p.proptype.def) or
+{$ifndef cpu64bit}
                      is_64bitint(p.proptype.def) or
+{$endif cpu64bit}
                      is_class(p.proptype.def) or
                      is_single(p.proptype.def) or
                      (p.proptype.def.deftype in [classrefdef,pointerdef]) or
@@ -1102,8 +1115,12 @@ implementation
                   vs:=tvarsym.create(sorg,vs_value,casetype);
                   tabstractrecordsymtable(symtablestack).insertfield(vs,true);
                 end;
-              if not(is_ordinal(casetype.def)) or is_64bitint(casetype.def)  then
-               Message(type_e_ordinal_expr_expected);
+              if not(is_ordinal(casetype.def))
+{$ifndef cpu64bit}
+                 or is_64bitint(casetype.def)
+{$endif cpu64bit}
+                 then
+                Message(type_e_ordinal_expr_expected);
               consume(_OF);
               UnionSymtable:=trecordsymtable.create(aktpackrecords);
               Unionsymtable.next:=symtablestack;
@@ -1120,7 +1137,7 @@ implementation
                 repeat
                   pt:=comp_expr(true);
                   if not(pt.nodetype=ordconstn) then
-                    Message(cg_e_illegal_expression);
+                    Message(parser_e_illegal_expression);
                   pt.free;
                   if token=_COMMA then
                    consume(_COMMA)
@@ -1177,9 +1194,28 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2004-04-11 12:38:16  peter
+  Revision 1.74  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.73  2004/04/11 12:38:16  peter
     * fix calling convention problem when parsing default value before
       the semicolon
+
+  Revision 1.72.2.5  2004/05/02 20:54:04  peter
+    * allow convert when choosing property function with index
+
+  Revision 1.72.2.4  2004/05/01 20:51:20  peter
+    * fix val code parameter
+
+  Revision 1.72.2.3  2004/04/28 19:55:52  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
+
+  Revision 1.72.2.2  2004/04/26 15:54:33  peter
+    * small x86-64 fixes
+
+  Revision 1.72.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.72  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned

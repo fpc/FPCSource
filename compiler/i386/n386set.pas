@@ -27,13 +27,14 @@ unit n386set;
 interface
 
     uses
+      globtype,
       node,nset,pass_1,ncgset;
 
     type
       ti386casenode = class(tcgcasenode)
-         procedure optimizevalues(var max_linear_list:longint;var max_dist:cardinal);override;
+         procedure optimizevalues(var max_linear_list:aint;var max_dist:aword);override;
          function  has_jumptable : boolean;override;
-         procedure genjumptable(hp : pcaserecord;min_,max_ : longint);override;
+         procedure genjumptable(hp : pcaserecord;min_,max_ : aint);override;
          procedure genlinearlist(hp : pcaserecord);override;
       end;
 
@@ -41,7 +42,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      systems,
       verbose,globals,
       symconst,symdef,defutil,
       aasmbase,aasmtai,aasmcpu,
@@ -56,7 +57,7 @@ implementation
                             TI386CASENODE
 *****************************************************************************}
 
-    procedure ti386casenode.optimizevalues(var max_linear_list:longint;var max_dist:cardinal);
+    procedure ti386casenode.optimizevalues(var max_linear_list:aint;var max_dist:aword);
       begin
         { a jump table crashes the pipeline! }
         if aktoptprocessor=Class386 then
@@ -76,7 +77,7 @@ implementation
       end;
 
 
-    procedure ti386casenode.genjumptable(hp : pcaserecord;min_,max_ : longint);
+    procedure ti386casenode.genjumptable(hp : pcaserecord;min_,max_ : aint);
       var
         table : tasmlabel;
         last : TConstExprInt;
@@ -86,31 +87,32 @@ implementation
 
         procedure genitem(t : pcaserecord);
           var
-            i : longint;
+            i : aint;
           begin
             if assigned(t^.less) then
               genitem(t^.less);
             { fill possible hole }
             for i:=last+1 to t^._low-1 do
-              jumpSegment.concat(Tai_const_symbol.Create(elselabel));
+              jumpSegment.concat(Tai_const.Create_sym(elselabel));
             for i:=t^._low to t^._high do
-              jumpSegment.concat(Tai_const_symbol.Create(t^.statement));
+              jumpSegment.concat(Tai_const.Create_sym(t^.statement));
             last:=t^._high;
             if assigned(t^.greater) then
               genitem(t^.greater);
           end;
 
       begin
-        if (cs_create_smart in aktmoduleswitches) then
+        if (cs_create_smart in aktmoduleswitches) or
+           (af_smartlink_sections in target_asm.flags) then
           jumpsegment:=current_procinfo.aktlocaldata
         else
           jumpsegment:=datasegment;
         if not(jumptable_no_range) then
           begin
              { case expr less than min_ => goto elselabel }
-             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,aword(min_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,aint(min_),hregister,elselabel);
              { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_gt,aword(max_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_gt,aint(max_),hregister,elselabel);
           end;
         objectlibrary.getlabel(table);
         { make it a 32bit register }
@@ -118,7 +120,7 @@ implementation
         cg.a_load_reg_reg(exprasmlist,opsize,OS_INT,hregister,indexreg);
         { create reference }
         reference_reset_symbol(href,table,0);
-        href.offset:=(-longint(min_))*4;
+        href.offset:=(-aint(min_))*4;
         href.index:=indexreg;
         href.scalefactor:=4;
         emit_ref(A_JMP,S_NO,href);
@@ -145,7 +147,7 @@ implementation
              { need we to test the first value }
              if first and (t^._low>get_min_value(left.resulttype.def)) then
                begin
-                 cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,aword(t^._low),hregister,elselabel);
+                 cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,aint(t^._low),hregister,elselabel);
                end;
              if t^._low=t^._high then
                begin
@@ -153,7 +155,7 @@ implementation
                     cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,0,hregister,t^.statement)
                   else
                     begin
-                      cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, aword(t^._low-last), hregister);
+                      cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, aint(t^._low-last), hregister);
                       cg.a_jmp_flags(exprasmlist,F_E,t^.statement);
                     end;
                   last:=t^._low;
@@ -168,7 +170,7 @@ implementation
                     begin
                        { have we to ajust the first value ? }
                        if (t^._low>get_min_value(left.resulttype.def)) then
-                         cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, longint(t^._low), hregister);
+                         cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, aint(t^._low), hregister);
                     end
                   else
                     begin
@@ -176,7 +178,7 @@ implementation
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
 
-                      cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, longint(t^._low-last), hregister);
+                      cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, aint(t^._low-last), hregister);
                       { no jump necessary here if the new range starts at }
                       { at the value following the previous one           }
                       if ((t^._low-last) <> 1) or
@@ -185,7 +187,7 @@ implementation
                     end;
                   {we need to use A_SUB, because A_DEC does not set the correct flags, therefor
                    using a_op_const_reg(OP_SUB) is not possible }
-                  emit_const_reg(A_SUB,TCGSize2OpSize[opsize],longint(t^._high-t^._low),hregister);
+                  emit_const_reg(A_SUB,TCGSize2OpSize[opsize],aint(t^._high-t^._low),hregister);
                   cg.a_jmp_flags(exprasmlist,cond_le,t^.statement);
                   last:=t^._high;
                   lastrange:=true;
@@ -224,8 +226,26 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2004-05-22 23:34:28  peter
+  Revision 1.75  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.74  2004/05/22 23:34:28  peter
   tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.73.2.5  2004/05/02 20:54:41  peter
+    * compile fix
+
+  Revision 1.73.2.4  2004/05/02 14:09:54  peter
+    * fix case 64bit issues
+
+  Revision 1.73.2.3  2004/04/29 23:30:28  peter
+    * fix i386 compiler
+
+  Revision 1.73.2.2  2004/04/12 14:45:11  peter
+    * tai_const_symbol and tai_const merged
+
+  Revision 1.73.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.73  2004/02/27 10:21:05  florian
     * top_symbol killed

@@ -31,13 +31,13 @@ unit rgx86;
     uses
       cpubase,
       cpuinfo,
-      aasmbase,aasmtai,
+      aasmbase,aasmtai,aasmcpu,
       cclasses,globtype,cgbase,rgobj;
 
     type
        trgx86 = class(trgobj)
          function instr_spill_register(list:Taasmoutput;
-                                       instr:taicpu_abstract;
+                                       instr:taicpu;
                                        const r:Tsuperregisterset;
                                        const spilltemplist:Tspill_temp_list): boolean;override;
        end;
@@ -95,8 +95,7 @@ implementation
 
     uses
        systems,
-       verbose,
-       aasmcpu;
+       verbose;
 
     const
        { This value is used in tsaved. If the array value is equal
@@ -109,7 +108,7 @@ implementation
 ******************************************************************************}
 
     function trgx86.instr_spill_register(list:Taasmoutput;
-                                         instr:taicpu_abstract;
+                                         instr:taicpu;
                                          const r:Tsuperregisterset;
                                          const spilltemplist:Tspill_temp_list): boolean;
     {
@@ -615,7 +614,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2004-01-12 16:37:59  peter
+  Revision 1.3  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.2.2.1  2004/04/10 12:36:42  peter
+    * fixed alignment issues
+
+  Revision 1.2  2004/01/12 16:37:59  peter
     * moved spilling code from taicpu to rg
 
   Revision 1.1  2003/12/24 00:12:57  florian

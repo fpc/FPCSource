@@ -333,7 +333,7 @@ implementation
                begin
                  { a load of a procvar can't have parameters }
                  if assigned(tcallnode(left).left) then
-                   CGMessage(cg_e_illegal_expression);
+                   CGMessage(parser_e_illegal_expression);
                  { is it a procvar? }
                  hp:=tcallnode(left).right;
                  if assigned(hp) then
@@ -367,7 +367,7 @@ implementation
          { if it were a valid construct, the addr node would already have }
          { been removed in the parser. This happens for (in FPC mode)     }
          { procvar1 := @procvar2(parameters);                             }
-         CGMessage(cg_e_illegal_expression)
+         CGMessage(parser_e_illegal_expression)
         else
          if (left.nodetype=loadn) and (tloadnode(left).symtableentry.typ=procsym) then
           begin
@@ -482,7 +482,7 @@ implementation
          if not(left.expectloc in [LOC_CREFERENCE,LOC_REFERENCE]) then
            begin
              aktfilepos:=left.fileinfo;
-             CGMessage(cg_e_illegal_expression);
+             CGMessage(parser_e_illegal_expression);
            end;
 
          registersint:=left.registersint;
@@ -522,7 +522,7 @@ implementation
          if left.resulttype.def.deftype=pointerdef then
           resulttype:=tpointerdef(left.resulttype.def).pointertype
          else
-          CGMessage(cg_e_invalid_qualifier);
+          CGMessage(parser_e_invalid_qualifier);
       end;
 
     procedure Tderefnode.mark_write;
@@ -638,7 +638,7 @@ implementation
            begin
               if (left.expectloc<>LOC_CREFERENCE) and
                  (left.expectloc<>LOC_REFERENCE) then
-                CGMessage(cg_e_illegal_expression);
+                CGMessage(parser_e_illegal_expression);
               expectloc:=left.expectloc;
            end;
       end;
@@ -981,8 +981,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2004-04-29 19:56:37  daniel
+  Revision 1.84  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.83  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.82.2.1  2004/04/28 19:55:51  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
 
   Revision 1.82  2004/03/29 14:42:52  peter
     * variant array support

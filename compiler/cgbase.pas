@@ -28,6 +28,7 @@ unit cgbase;
 interface
 
     uses
+      globtype,
       cpuinfo,
       symconst;
 
@@ -283,7 +284,7 @@ interface
     {# From a constant numeric value, return the abstract code generator
        size.
     }
-    function int_cgsize(const a: aword): tcgsize;{$ifdef USEINLINE}inline;{$endif}
+    function int_cgsize(const a: aint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
 
     { return the inverse condition of opcmp }
     function inverse_opcmp(opcmp: topcmp): topcmp;{$ifdef USEINLINE}inline;{$endif}
@@ -510,7 +511,7 @@ implementation
       end;
 
 
-    function int_cgsize(const a: aword): tcgsize;{$ifdef USEINLINE}inline;{$endif}
+    function int_cgsize(const a: aint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
       const
         size2cgsize : array[0..8] of tcgsize = (
           OS_NO,OS_8,OS_16,OS_32,OS_32,OS_64,OS_64,OS_64,OS_64
@@ -587,7 +588,17 @@ finalization
 end.
 {
   $Log$
-  Revision 1.88  2004-02-27 10:21:05  florian
+  Revision 1.89  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.88.2.2  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.88.2.1  2004/04/27 18:18:25  peter
+    * aword -> aint
+
+  Revision 1.88  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

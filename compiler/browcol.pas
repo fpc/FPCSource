@@ -92,8 +92,8 @@ type
       Items      : PSymbolCollection;
       DType      : PString;
       VType      : PString;
-      TypeID     : longint;
-      RelatedTypeID : longint;
+      TypeID     : Ptrint;
+      RelatedTypeID : Ptrint;
       DebuggerCount : longint;
       Ancestor   : PSymbol;
       Flags      : longint;
@@ -587,8 +587,8 @@ begin
   if S1<S2 then R:=-1 else
   if S1>S2 then R:=1 else
   { make sure that we distinguish between different objects with the same name }
-  if longint(K1^.Symbol)<longint(K2^.Symbol) then R:=-1 else
-  if longint(K1^.Symbol)>longint(K2^.Symbol) then R:= 1 else
+  if Ptrint(K1^.Symbol)<Ptrint(K2^.Symbol) then R:=-1 else
+  if Ptrint(K1^.Symbol)>Ptrint(K2^.Symbol) then R:= 1 else
   R:=0;
   Compare:=R;
 end;
@@ -1441,7 +1441,7 @@ end;
                     assigned(tpointerdef(vartype.def).pointertype.def) then
                  begin
                    Symbol^.Flags:=(Symbol^.Flags or sfPointer);
-                   Symbol^.RelatedTypeID:=longint(tpointerdef(vartype.def).pointertype.def);
+                   Symbol^.RelatedTypeID:=Ptrint(tpointerdef(vartype.def).pointertype.def);
                  end;
                if  Table.symtabletype in [recordsymtable,objectsymtable] then
                  MemInfo.Addr:=fieldoffset
@@ -1508,7 +1508,7 @@ end;
             with ttypesym(sym) do
               if assigned(restype.def) then
                begin
-                Symbol^.TypeID:=longint(restype.def);
+                Symbol^.TypeID:=Ptrint(restype.def);
                 case restype.def.deftype of
                   arraydef :
                     SetDType(Symbol,GetArrayDefStr(tarraydef(restype.def)));
@@ -1523,7 +1523,7 @@ end;
                     begin
                       ObjDef:=childof;
                       if ObjDef<>nil then
-                        Symbol^.RelatedTypeID:=longint(ObjDef);{TypeNames^.Add(S);}
+                        Symbol^.RelatedTypeID:=Ptrint(ObjDef);{TypeNames^.Add(S);}
                       Symbol^.Flags:=(Symbol^.Flags or sfObject);
                       if tobjectdef(restype.def).objecttype=odt_class then
                         Symbol^.Flags:=(Symbol^.Flags or sfClass);
@@ -1537,7 +1537,7 @@ end;
                   pointerdef :
                     begin
                       Symbol^.Flags:=(Symbol^.Flags or sfPointer);
-                      Symbol^.RelatedTypeID:=longint(tpointerdef(restype.def).pointertype.def);{TypeNames^.Add(S);}
+                      Symbol^.RelatedTypeID:=Ptrint(tpointerdef(restype.def).pointertype.def);{TypeNames^.Add(S);}
                       SetDType(Symbol,GetPointerDefStr(tpointerdef(restype.def)));
                     end;
 
@@ -1943,8 +1943,8 @@ var K1: PPointerXRef absolute Key1;
     K2: PPointerXRef absolute Key2;
     R: integer;
 begin
-  if longint(K1^.PtrValue)<longint(K2^.PtrValue) then R:=-1 else
-  if longint(K1^.PtrValue)>longint(K2^.PtrValue) then R:= 1 else
+  if Ptrint(K1^.PtrValue)<Ptrint(K2^.PtrValue) then R:=-1 else
+  if Ptrint(K1^.PtrValue)>Ptrint(K2^.PtrValue) then R:= 1 else
   R:=0;
   Compare:=R;
 end;
@@ -2118,7 +2118,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2004-03-23 22:34:49  peter
+  Revision 1.38  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.37.2.1  2004/05/03 21:08:56  peter
+    * use ptrint
+
+  Revision 1.37  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed

@@ -59,7 +59,7 @@ Implementation
       procinfo,
       itcpugas,
       rabase,rautils,
-      cgbase,cgobj
+      cgbase
       ;
 
     procedure tx86attreader.handlepercent;
@@ -132,7 +132,7 @@ Implementation
 
       procedure Consume_Scale;
         var
-          l : longint;
+          l : aint;
         begin
           { we have to process the scaling }
           l:=BuildConstExpression(false,true);
@@ -264,8 +264,7 @@ Implementation
       var
         tempstr,
         expr : string;
-        typesize,
-        l,k : longint;
+        typesize,l,k : aint;
 
 
         procedure AddLabelOperand(hl:tasmlabel);
@@ -289,7 +288,7 @@ Implementation
             hasdot  : boolean;
             l,
             toffset,
-            tsize   : longint;
+            tsize   : aint;
           begin
             if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
              exit;
@@ -427,7 +426,7 @@ Implementation
                begin
                  oper.opr.typ:=OPR_REGISTER;
                  oper.opr.reg:=actasmregister;
-                 oper.SetSize(tcgsize2size[cg.reg_cgsize(actasmregister)],true);
+                 oper.SetSize(tcgsize2size[reg_cgsize(actasmregister)],true);
                  Consume(AS_REGISTER);
                end
               else
@@ -573,7 +572,7 @@ Implementation
                     Message(asmr_e_invalid_operand_type);
                   oper.opr.typ:=OPR_REGISTER;
                   oper.opr.reg:=tempreg;
-                  oper.SetSize(tcgsize2size[cg.reg_cgsize(oper.opr.reg)],true);
+                  oper.SetSize(tcgsize2size[reg_cgsize(oper.opr.reg)],true);
                 end
               else
                 Message(asmr_e_syn_operand);
@@ -789,7 +788,20 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.3  2004-03-02 00:36:33  olle
+  Revision 1.4  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.3.2.3  2004/05/01 23:36:47  peter
+    * assembler reader 64bit fixes
+
+  Revision 1.3.2.2  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.3.2.1  2004/05/01 11:12:24  florian
+    * spilling of registers with size<>4 fixed
+
+  Revision 1.3  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.2  2004/02/09 19:23:48  peter
@@ -954,7 +966,7 @@ end.
   + start of tassembler / tmodulebase class cleanup
 
   Revision 1.21  2002/04/15 19:12:09  carl
-  + target_info.size_of_pointer -> pointer_size
+  + target_info.size_of_pointer -> sizeof(aint)
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units
     (where they are used)

@@ -29,13 +29,12 @@ unit cpupi;
   interface
 
     uses
-       cutils,
+       globtype,cutils,
        procinfo,cpuinfo,psub;
 
     type
        tarmprocinfo = class(tcgprocinfo)
           floatregstart : aword;
-          constructor create(aparent:tprocinfo);override;
           // procedure handle_body_start;override;
           // procedure after_pass1;override;
           procedure set_first_temp_offset;override;
@@ -47,64 +46,13 @@ unit cpupi;
   implementation
 
     uses
-       globtype,globals,systems,
+       globals,systems,
        cpubase,
        aasmtai,
        tgobj,
        symconst,symsym,paramgr,
        cgbase,
        cgobj;
-
-    constructor tarmprocinfo.create(aparent:tprocinfo);
-
-      begin
-         inherited create(aparent);
-         maxpushedparasize:=0;
-      end;
-
-(*
-    procedure tarmprocinfo.handle_body_start;
-      var
-         ofs : aword;
-      begin
-        if not(po_assembler in procdef.procoptions) then
-          begin
-            {!!!!!!!!
-            case target_info.abi of
-              abi_powerpc_aix:
-                ofs:=align(maxpushedparasize+LinkageAreaSizeAIX,16);
-              abi_powerpc_sysv:
-                ofs:=align(maxpushedparasize+LinkageAreaSizeSYSV,16);
-            end;
-            }
-            inc(procdef.parast.address_fixup,ofs);
-            procdef.localst.address_fixup:=procdef.parast.address_fixup+procdef.parast.datasize;
-          end;
-        inherited handle_body_start;
-      end;
-
-    procedure tarmprocinfo.after_pass1;
-      begin
-         if not(po_assembler in procdef.procoptions) then
-           begin
-             if cs_asm_source in aktglobalswitches then
-               aktproccode.insert(Tai_comment.Create(strpnew('Parameter copies start at: r1+'+tostr(procdef.parast.address_fixup))));
-
-             if cs_asm_source in aktglobalswitches then
-               aktproccode.insert(Tai_comment.Create(strpnew('Locals start at: r1+'+tostr(procdef.localst.address_fixup))));
-
-             firsttemp_offset:=align(procdef.localst.address_fixup+procdef.localst.datasize,16);
-             if cs_asm_source in aktglobalswitches then
-               aktproccode.insert(Tai_comment.Create(strpnew('Temp. space start: r1+'+tostr(firsttemp_offset))));
-
-             //!!!! tg.setfirsttemp(firsttemp_offset);
-             tg.firsttemp:=firsttemp_offset;
-             tg.lasttemp:=firsttemp_offset;
-             inherited after_pass1;
-           end;
-      end;
-*)
-
 
     procedure tarmprocinfo.set_first_temp_offset;
       begin
@@ -118,6 +66,7 @@ unit cpupi;
           >256 as non shifter constants }
         tg.setfirsttemp(-12-28);
       end;
+
 
     procedure tarmprocinfo.allocate_push_parasize(size:longint);
       begin
@@ -157,7 +106,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2004-03-29 19:19:35  florian
+  Revision 1.8  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.7.2.2  2004/06/12 17:01:01  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.7.2.1  2004/04/23 22:12:37  florian
+    * fixed some potential stack corruption reasons
+
+  Revision 1.7  2004/03/29 19:19:35  florian
     + arm floating point register saving implemented
     * hopefully stabs generation for MacOSX fixed
     + some defines for arm added

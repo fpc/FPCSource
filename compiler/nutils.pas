@@ -246,7 +246,7 @@ implementation
             resulttypepass(result);
           end
         else
-          CGMessage(cg_e_illegal_expression);
+          CGMessage(parser_e_illegal_expression);
       end;
 
 
@@ -263,7 +263,7 @@ implementation
             resulttypepass(result);
           end
         else
-          CGMessage(cg_e_illegal_expression);
+          CGMessage(parser_e_illegal_expression);
       end;
 
 
@@ -280,7 +280,7 @@ implementation
             resulttypepass(result);
           end
         else
-          CGMessage(cg_e_illegal_expression);
+          CGMessage(parser_e_illegal_expression);
       end;
 
 
@@ -298,7 +298,7 @@ implementation
             resulttypepass(result);
           end
         else
-          CGMessage(cg_e_illegal_expression);
+          CGMessage(parser_e_illegal_expression);
       end;
 
 
@@ -315,7 +315,7 @@ implementation
             resulttypepass(result);
           end
         else
-          CGMessage(cg_e_illegal_expression);
+          CGMessage(parser_e_illegal_expression);
       end;
 
 
@@ -438,11 +438,18 @@ end.
 
 {
   $Log$
-  Revision 1.12  2004-05-23 18:28:41  peter
+  Revision 1.13  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.12  2004/05/23 18:28:41  peter
     * methodpointer is loaded into a temp when it was a calln
 
   Revision 1.11  2004/05/23 15:04:49  peter
     * generate better code for ansistring initialization
+
+  Revision 1.10.2.1  2004/04/28 19:55:52  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
 
   Revision 1.10  2004/02/20 21:55:59  peter
     * procvar cleanup

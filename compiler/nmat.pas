@@ -459,18 +459,12 @@ implementation
               exit;
            end;
 
-         { expand to cpu wordsize, but don't change sign. For
-           32bit ignore 64bit since that has it's own code }
-{$ifndef cpu64bit}
-         if not is_64bit(left.resulttype.def) then
-{$endif}
-           begin
-             { constants generate signed integers }
-             if is_signed(left.resulttype.def) then
-               inserttypeconv(left,sinttype)
-             else
-               inserttypeconv(left,uinttype);
-           end;
+         { calculations for ordinals < 32 bit have to be done in
+           32 bit for backwards compatibility. That way 'shl 33' is
+           the same as 'shl 1'. It's ugly but compatible with delphi/tp/gcc }
+         if (not is_64bit(left.resulttype.def)) and
+            (torddef(left.resulttype.def).typ<>u32bit) then
+           inserttypeconv(left,s32inttype);
 
          inserttypeconv(right,sinttype);
 
@@ -861,12 +855,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2004-05-28 21:14:34  peter
+  Revision 1.64  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.63  2004/05/28 21:14:34  peter
     * fixed div qword
 
   Revision 1.62  2004/05/19 23:29:25  peter
     * don't change sign for unsigned shl/shr operations
     * cleanup for u32bit
+
+  Revision 1.61.2.1  2004/05/03 16:27:38  peter
+    * fixed shl for x86-64
 
   Revision 1.61  2004/03/29 14:44:10  peter
     * fixes to previous constant integer commit

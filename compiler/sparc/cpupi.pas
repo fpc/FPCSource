@@ -42,8 +42,8 @@ interface
 implementation
 
     uses
-      globtype,systems,globals,
-      tgobj,paramgr,symconst,symsym;
+      systems,globals,
+      tgobj,paramgr,symconst;
 
     constructor tsparcprocinfo.create(aparent:tprocinfo);
       begin
@@ -60,25 +60,23 @@ implementation
 
 
     function TSparcProcInfo.calc_stackframe_size:longint;
-      var
-        savearea : longint;
       begin
-        { ABI requires at least space to save 6 arguments }
-        savearea:=max(maxpushedparasize,6*4);
         {
           Stackframe layout:
           %fp
             <locals>
             <temp>
-            <arguments for calling>
-            <return pointer for calling>
-            <register window save area for calling>
+            <arguments 6-n for calling>
+          %sp+92
+            <space for arguments 0-5>                \
+            <return pointer for calling>              | included in first_parm_offset
+            <register window save area for calling>  /
           %sp
 
           Alignment must be the max available, as doubles require
           8 byte alignment
         }
-        result:=Align(tg.direction*tg.lasttemp+savearea+target_info.first_parm_offset,aktalignment.localalignmax);
+        result:=Align(tg.direction*tg.lasttemp+maxpushedparasize+target_info.first_parm_offset,aktalignment.localalignmax);
       end;
 
 
@@ -87,7 +85,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2004-03-12 08:18:11  mazen
+  Revision 1.27  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.26.2.1  2004/05/31 22:08:21  peter
+    * fix passing of >6 arguments
+
+  Revision 1.26  2004/03/12 08:18:11  mazen
   - revert '../' from include path
 
   Revision 1.25  2004/03/11 16:22:09  mazen

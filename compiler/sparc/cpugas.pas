@@ -68,13 +68,12 @@ implementation
               begin
                 if assigned(symbol) then
                   internalerror(2003052601);
-                GetReferenceString:='[';
                 if base<>NR_NO then
                   GetReferenceString:=GetReferenceString+gas_regname(base);
                 if index=NR_NO then
                   begin
-                    if (Offset<simm13lo) or (Offset>simm13hi) then
-                      internalerror(2003053008);
+                    { if (Offset<simm13lo) or (Offset>simm13hi) then
+                      internalerror(2003053008); }
                     if offset>0 then
                       GetReferenceString:=GetReferenceString+'+'+ToStr(offset)
                     else if offset<0 then
@@ -86,15 +85,12 @@ implementation
                       internalerror(2003052603);
                     GetReferenceString:=GetReferenceString+'+'+gas_regname(index);
                   end;
-                GetReferenceString:=GetReferenceString+']';
               end;
           end;
       end;
 
 
     function getopstr(const Oper:TOper):string;
-      var
-        hs : string;
       begin
         with Oper do
           case typ of
@@ -103,61 +99,21 @@ implementation
             top_const:
               getopstr:=tostr(longint(val));
             top_ref:
-              if Oper.ref^.refaddr=addr_full then
-                begin
-                  if assigned(ref) then
-                    hs:={'$'+}ref^.symbol.name
-                  else
-                    hs:='$';
-                  if ref^.offset>0 then
-                   hs:=hs+'+'+tostr(ref^.offset)
-                  else
-                   if ref^.offset<0 then
-                    hs:=hs+tostr(ref^.offset)
-                  else
-                   if not(assigned(ref)) then
-                     hs:=hs+'0';
-                  getopstr:=hs;
-                end
+              if Oper.ref^.refaddr=addr_no then
+                getopstr:='['+getreferencestring(ref^)+']'
               else
                 getopstr:=getreferencestring(ref^);
             else
               internalerror(10001);
           end;
         end;
-    (*
-    function getopstr_jmp(const Oper:TOper):string;
-      var
-        hs:string;
-      begin
-        with Oper do
-          case typ of
-            top_reg:
-              getopstr_jmp:=gas_reg2str[reg]+'+';
-            top_ref:
-              getopstr_jmp:=GetReferenceString(ref^);
-            top_const:
-              getopstr_jmp:=tostr(longint(val));
-            top_symbol:
-              begin
-                hs:=sym.name;
-                if symofs>0 then
-                 hs:=hs+'+'+tostr(symofs)
-                else
-                 if symofs<0 then
-                  hs:=hs+tostr(symofs);
-                getopstr_jmp:=hs;
-              end;
-            else
-              internalerror(10001);
-          end;
-        end;*)
+
 
     procedure TGasSPARC.WriteInstruction(hp:Tai);
-        var
-                Op:TAsmOp;
-                s:String;
-                i:Integer;
+      var
+        Op:TAsmOp;
+        s:String;
+        i:Integer;
       begin
         if hp.typ<>ait_instruction then
           exit;
@@ -184,6 +140,8 @@ implementation
           begin
             { call maybe not translated to call }
             s:=#9+std_op2str[op]+cond2str[taicpu(hp).condition];
+            if taicpu(hp).delayslot_annulled then
+              s:=s+',a';
             if taicpu(hp).ops>0 then
               begin
                 s:=s+#9+getopstr(taicpu(hp).oper[0]^);
@@ -196,39 +154,38 @@ implementation
 
 
     const
-      as_SPARC_as_info:TAsmInfo=(
-        id:as_gas;
-        idtxt:'AS';
-        asmbin:'as';
-        asmcmd:'-o $OBJ $ASM';
-        supported_target:system_any;
-        outputbinary:false;
-        allowdirect:true;
-        needar:true;
-        labelprefix_only_inside_procedure:false;
-        labelprefix:'.L';
-        comment:';# ';
-        secnames:({sec_none}'',           {no section}
-                  {sec_code}'.text',      {executable code}
-                  {sec_data}'.data',      {initialized R/W data}
-                  {sec_bss}'.section ".bss"',        {uninitialized R/W data}
-                  {sec_idata2}'.comment', {comments}
-                  {sec_idata4}'.debug',   {debugging information}
-                  {sec_idata5}'.rodata',  {RO data}
-                  {sec_idata6}'.line',    {line numbers info for symbolic debug}
-                  {sec_idata7}'.init',    {runtime intialization code}
-                  {sec_edata}'.fini',     {runtime finalization code}
-                  {sec_stab}'.stab',
-                  {sec_stabstr} '.stabstr',
-                  {sec_common}'.note')    {note info}
-      );
+      as_sparc_as_info : tasminfo =
+         (
+           id     : as_gas;
+           idtxt  : 'AS';
+           asmbin : 'as';
+           asmcmd : '-o $OBJ $ASM';
+           supported_target : system_any;
+           flags : [af_allowdirect,af_needar,af_smartlink_sections];
+           labelprefix : '.L';
+           comment : '# ';
+         );
 
 begin
   RegisterAssembler(as_SPARC_as_info,TGasSPARC);
 end.
 {
     $Log$
-    Revision 1.25  2004-02-27 15:15:33  mazen
+    Revision 1.26  2004-06-16 20:07:10  florian
+      * dwarf branch merged
+
+    Revision 1.25.2.3  2004/05/30 17:54:14  florian
+      + implemented cmp64bit
+      * started to fix spilling
+      * fixed int64 sub partially
+
+    Revision 1.25.2.2  2004/05/25 21:38:53  peter
+      * assembler reader/writer updates
+
+    Revision 1.25.2.1  2004/05/11 21:06:51  peter
+      * sparc compiler fixed
+
+    Revision 1.25  2004/02/27 15:15:33  mazen
     * symaddr ==> refaddr to follow the rest of compiler changes
 
     Revision 1.24  2004/01/12 16:39:41  peter

@@ -1,6 +1,5 @@
 {
     $Id$
-
     Copyright (c) 1998-2002 by Florian Klaempfl
     Member of the Free Pascal development team
 
@@ -41,7 +40,7 @@ unit cgobj;
 {$ifdef delphi}
        dmisc,
 {$endif}
-       cclasses,
+       cclasses,globtype,
        cpubase,cpuinfo,cgbase,
        aasmbase,aasmtai,aasmcpu,
        symconst,symbase,symtype,symdef,symtable,rgobj
@@ -106,9 +105,6 @@ unit cgobj;
 
           function makeregsize(list:Taasmoutput;reg:Tregister;size:Tcgsize):Tregister;
 
-          {# Returns the tcgsize corresponding with the size of reg.}
-          class function reg_cgsize(const reg: tregister) : tcgsize; virtual;
-
           {# Emit a label to the instruction stream. }
           procedure a_label(list : taasmoutput;l : tasmlabel);virtual;
 
@@ -138,7 +134,7 @@ unit cgobj;
              @param(a value of constant to send)
              @param(locpara where the parameter will be stored)
           }
-          procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);virtual;
+          procedure a_param_const(list : taasmoutput;size : tcgsize;a : aint;const locpara : tparalocation);virtual;
           {# Pass the value of a parameter, which is located in memory, to a routine.
 
              A generic version is provided. This routine should
@@ -174,7 +170,7 @@ unit cgobj;
           procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);virtual;
 
           { Copies a whole memory block to the stack, the locpara must be a memory location }
-          procedure a_param_copy_ref(list : taasmoutput;size : qword;const r : treference;const locpara : tparalocation);
+          procedure a_param_copy_ref(list : taasmoutput;size : aint;const r : treference;const locpara : tparalocation);
           { Remarks:
             * If a method specifies a size you have only to take care
               of that number of bits, i.e. load_const_reg with OP_8 must
@@ -208,9 +204,9 @@ unit cgobj;
           procedure a_call_reg(list : taasmoutput;reg : tregister);virtual;abstract;
 
           { move instructions }
-          procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);virtual; abstract;
-          procedure a_load_const_ref(list : taasmoutput;size : tcgsize;a : aword;const ref : treference);virtual;
-          procedure a_load_const_loc(list : taasmoutput;a : aword;const loc : tlocation);
+          procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aint;register : tregister);virtual; abstract;
+          procedure a_load_const_ref(list : taasmoutput;size : tcgsize;a : aint;const ref : treference);virtual;
+          procedure a_load_const_loc(list : taasmoutput;a : aint;const loc : tlocation);
           procedure a_load_reg_ref(list : taasmoutput;fromsize,tosize : tcgsize;register : tregister;const ref : treference);virtual; abstract;
           procedure a_load_reg_reg(list : taasmoutput;fromsize,tosize : tcgsize;reg1,reg2 : tregister);virtual; abstract;
           procedure a_load_reg_loc(list : taasmoutput;fromsize : tcgsize;reg : tregister;const loc: tlocation);
@@ -248,9 +244,9 @@ unit cgobj;
           { the op_reg_reg, op_reg_ref or op_reg_loc methods and keep in mind   }
           { that in this case the *second* operand is used as both source and   }
           { destination (JM)                                                    }
-          procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister); virtual; abstract;
-          procedure a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; const ref: TReference); virtual;
-          procedure a_op_const_loc(list : taasmoutput; Op: TOpCG; a: AWord; const loc: tlocation);
+          procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: Aint; reg: TRegister); virtual; abstract;
+          procedure a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: Aint; const ref: TReference); virtual;
+          procedure a_op_const_loc(list : taasmoutput; Op: TOpCG; a: Aint; const loc: tlocation);
           procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); virtual; abstract;
           procedure a_op_reg_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; reg: TRegister; const ref: TReference); virtual;
           procedure a_op_ref_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); virtual;
@@ -260,20 +256,19 @@ unit cgobj;
           { trinary operations for processors that support them, 'emulated' }
           { on others. None with "ref" arguments since I don't think there  }
           { are any processors that support it (JM)                         }
-          procedure a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
-            size: tcgsize; a: aword; src, dst: tregister); virtual;
-          procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
-            size: tcgsize; src1, src2, dst: tregister); virtual;
+          procedure a_op_const_reg_reg(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister); virtual;
+          procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister); virtual;
 
           {  comparison operations }
-          procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+          procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
             l : tasmlabel);virtual; abstract;
-          procedure a_cmp_const_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const ref : treference;
+          procedure a_cmp_const_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;const ref : treference;
             l : tasmlabel); virtual;
-          procedure a_cmp_const_loc_label(list: taasmoutput; size: tcgsize;cmp_op: topcmp; a: aword; const loc: tlocation;
+          procedure a_cmp_const_loc_label(list: taasmoutput; size: tcgsize;cmp_op: topcmp; a: aint; const loc: tlocation;
             l : tasmlabel);
           procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); virtual; abstract;
           procedure a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const ref: treference; reg : tregister; l : tasmlabel); virtual;
+          procedure a_cmp_reg_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister; const ref: treference; l : tasmlabel); virtual;
           procedure a_cmp_loc_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const loc: tlocation; reg : tregister; l : tasmlabel);
           procedure a_cmp_ref_loc_label(list: taasmoutput; size: tcgsize;cmp_op: topcmp; const ref: treference; const loc: tlocation;
             l : tasmlabel);
@@ -300,7 +295,7 @@ unit cgobj;
              @param(reg The register to emit the opcode with, returns the register with
                    which the opcode will be emitted)
           }
-          function optimize_op_const_reg(list: taasmoutput; var op: topcg; var a : aword; var reg: tregister): boolean;virtual;
+          function optimize_op_const_reg(list: taasmoutput; var op: topcg; var a : aint; var reg: tregister): boolean;virtual;
 
          {#
              This routine is used in exception management nodes. It should
@@ -321,7 +316,7 @@ unit cgobj;
              The size of the value to save is OS_S32. The default version
              saves the exception reason to a temp. memory area.
           }
-         procedure g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aword);virtual;
+         procedure g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aint);virtual;
          {#
              This routine is used in exception management nodes. It should
              load the exception reason to the FUNCTION_RETURN_REG. The saved value
@@ -348,7 +343,7 @@ unit cgobj;
              @param(loadref Is the source reference a pointer to the actual source (TRUE), is it the actual source address (FALSE))
 
           }
-          procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword;delsource,loadref : boolean);virtual; abstract;
+          procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint;delsource,loadref : boolean);virtual; abstract;
           {# This should emit the opcode to a shortrstring from the source
              to destination, if loadref is true, it assumes that it first must load
              the source address from the memory location where
@@ -379,19 +374,8 @@ unit cgobj;
           {# Generates overflow checking code for a node }
           procedure g_overflowcheck(list: taasmoutput; const l:tlocation; def:tdef); virtual; abstract;
 
-          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);virtual;
+          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aint);virtual;
           procedure g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);virtual;
-          {# Emits instructions which should be emitted when entering
-             a routine declared as @var(interrupt). The default
-             behavior does nothing, should be overriden as required.
-          }
-          procedure g_interrupt_stackframe_entry(list : taasmoutput);virtual;
-
-          {# Emits instructions which should be emitted when exiting
-             a routine declared as @var(interrupt). The default
-             behavior does nothing, should be overriden as required.
-          }
-          procedure g_interrupt_stackframe_exit(list : taasmoutput;accused,acchiused:boolean);virtual;
 
           {# Emits instructions when compilation is done in profile
              mode (this is set as a command line option). The default
@@ -409,18 +393,13 @@ unit cgobj;
 
              @param(localsize Number of bytes to allocate as locals)
           }
-          procedure g_stackframe_entry(list : taasmoutput;localsize : longint);virtual; abstract;
-          {# Emits instructiona for restoring the frame pointer
-             at routine exit. For some processors, this routine
-             may do nothing at all.
-          }
-          procedure g_restore_frame_pointer(list : taasmoutput);virtual; abstract;
+          procedure g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);virtual; abstract;
           {# Emits instructions for returning from a subroutine.
-             Should also restore the stack.
+             Should also restore the framepointer and stack.
 
              @param(parasize  Number of bytes of parameters to deallocate from stack)
           }
-          procedure g_return_from_proc(list : taasmoutput;parasize : aword);virtual; abstract;
+          procedure g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);virtual;abstract;
           {# This routine is called when generating the code for the entry point
              of a routine. It should save all registers which are not used in this
              routine, and which should be declared as saved in the std_saved_registers
@@ -444,6 +423,7 @@ unit cgobj;
           procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);virtual;abstract;
        end;
 
+{$ifndef cpu64bit}
     {# @abstract(Abstract code generator for 64 Bit operations)
        This class implements an abstract code generator class
        for 64 Bit operations.
@@ -453,14 +433,14 @@ unit cgobj;
         procedure a_reg_alloc(list : taasmoutput;r : tregister64);virtual;abstract;
         { Deallocates 64 Bit register r by inserting a pa_regdealloc record}
         procedure a_reg_dealloc(list : taasmoutput;r : tregister64);virtual;abstract;
-        procedure a_load64_const_ref(list : taasmoutput;value : qword;const ref : treference);virtual;abstract;
+        procedure a_load64_const_ref(list : taasmoutput;value : int64;const ref : treference);virtual;abstract;
         procedure a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);virtual;abstract;
         procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);virtual;abstract;
         procedure a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64);virtual;abstract;
-        procedure a_load64_const_reg(list : taasmoutput;value : qword;reg : tregister64);virtual;abstract;
+        procedure a_load64_const_reg(list : taasmoutput;value : int64;reg : tregister64);virtual;abstract;
         procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64);virtual;abstract;
         procedure a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);virtual;abstract;
-        procedure a_load64_const_loc(list : taasmoutput;value : qword;const l : tlocation);virtual;abstract;
+        procedure a_load64_const_loc(list : taasmoutput;value : int64;const l : tlocation);virtual;abstract;
         procedure a_load64_reg_loc(list : taasmoutput;reg : tregister64;const l : tlocation);virtual;abstract;
 
         procedure a_load64high_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);virtual;abstract;
@@ -473,16 +453,16 @@ unit cgobj;
         procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);virtual;abstract;
         procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);virtual;abstract;
         procedure a_op64_reg_ref(list : taasmoutput;op:TOpCG;regsrc : tregister64;const ref : treference);virtual;abstract;
-        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;regdst : tregister64);virtual;abstract;
-        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : qword;const ref : treference);virtual;abstract;
-        procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;value : qword;const l: tlocation);virtual;abstract;
+        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;regdst : tregister64);virtual;abstract;
+        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : int64;const ref : treference);virtual;abstract;
+        procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;value : int64;const l: tlocation);virtual;abstract;
         procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;reg : tregister64;const l : tlocation);virtual;abstract;
         procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg64 : tregister64);virtual;abstract;
-        procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);virtual;
+        procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64);virtual;
         procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);virtual;
 
         procedure a_param64_reg(list : taasmoutput;reg64 : tregister64;const loc : tparalocation);virtual;abstract;
-        procedure a_param64_const(list : taasmoutput;value : qword;const loc : tparalocation);virtual;abstract;
+        procedure a_param64_const(list : taasmoutput;value : int64;const loc : tparalocation);virtual;abstract;
         procedure a_param64_ref(list : taasmoutput;const r : treference;const loc : tparalocation);virtual;abstract;
         procedure a_param64_loc(list : taasmoutput;const l : tlocation;const loc : tparalocation);virtual;abstract;
 
@@ -498,12 +478,13 @@ unit cgobj;
              @param(reg The register to emit the opcode with, returns the register with
                    which the opcode will be emitted)
         }
-        function optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : qword; var reg: tregister64): boolean;virtual;abstract;
+        function optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : int64; var reg: tregister64): boolean;virtual;abstract;
 
 
         { override to catch 64bit rangechecks }
         procedure g_rangecheck64(list: taasmoutput; const l:tlocation; fromdef,todef: tdef);virtual;abstract;
     end;
+{$endif cpu64bit}
 
     procedure reference_release(list: taasmoutput; const ref : treference);
 
@@ -519,14 +500,16 @@ unit cgobj;
     var
        {# Main code generator class }
        cg : tcg;
+{$ifndef cpu64bit}
        {# Code generator class for all operations working with 64-Bit operands }
        cg64 : tcg64;
+{$endif cpu64bit}
 
 
 implementation
 
     uses
-       globals,globtype,options,systems,
+       globals,options,systems,
        verbose,defutil,paramgr,
        tgobj,cutils,
        cgutils;
@@ -672,7 +655,7 @@ implementation
       end;
 
 
-    function  tcg.uses_registers(rt:Tregistertype):boolean;
+    function tcg.uses_registers(rt:Tregistertype):boolean;
       begin
         if assigned(rg[rt]) then
           result:=rg[rt].uses_registers
@@ -710,11 +693,17 @@ implementation
       var
         rt : tregistertype;
       begin
-        for rt:=low(tregistertype) to high(tregistertype) do
+        for rt:=R_FPUREGISTER to R_SPECIALREGISTER do
           begin
             if assigned(rg[rt]) then
               rg[rt].do_register_allocation(list,headertai);
           end;
+         { running the other register allocator passes could require addition int/addr. registers
+           when spilling so run int/addr register allocation at the end }
+         if assigned(rg[R_INTREGISTER]) then
+           rg[R_INTREGISTER].do_register_allocation(list,headertai);
+         if assigned(rg[R_ADDRESSREGISTER]) then
+           rg[R_ADDRESSREGISTER].do_register_allocation(list,headertai);
       end;
 
 
@@ -760,7 +749,7 @@ implementation
       end;
 
 
-    procedure tcg.a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);
+    procedure tcg.a_param_const(list : taasmoutput;size : tcgsize;a : aint;const locpara : tparalocation);
       var
          ref : treference;
       begin
@@ -792,7 +781,9 @@ implementation
                  reference_reset(ref);
                  ref.base:=locpara.reference.index;
                  ref.offset:=locpara.reference.offset;
-                 a_load_ref_ref(list,size,locpara.size,r,ref);
+                 { use concatcopy, because it can also be a float which fails when
+                   load_ref_ref is used }
+                 g_concatcopy(list,r,ref,tcgsize2size[size],false,false);
               end
             else
               internalerror(2002071004);
@@ -828,7 +819,7 @@ implementation
       end;
 
 
-    procedure tcg.a_param_copy_ref(list : taasmoutput;size : qword;const r : treference;const locpara : tparalocation);
+    procedure tcg.a_param_copy_ref(list : taasmoutput;size : aint;const r : treference;const locpara : tparalocation);
       var
         ref : treference;
       begin
@@ -960,7 +951,7 @@ implementation
       end;
 
 
-    procedure tcg.a_load_const_ref(list : taasmoutput;size : tcgsize;a : aword;const ref : treference);
+    procedure tcg.a_load_const_ref(list : taasmoutput;size : tcgsize;a : aint;const ref : treference);
       var
         tmpreg: tregister;
       begin
@@ -971,7 +962,7 @@ implementation
       end;
 
 
-    procedure tcg.a_load_const_loc(list : taasmoutput;a : aword;const loc: tlocation);
+    procedure tcg.a_load_const_loc(list : taasmoutput;a : aint;const loc: tlocation);
       begin
         case loc.loc of
           LOC_REFERENCE,LOC_CREFERENCE:
@@ -1027,7 +1018,7 @@ implementation
       end;
 
 
-    function tcg.optimize_op_const_reg(list: taasmoutput; var op: topcg; var a : aword; var reg:tregister): boolean;
+    function tcg.optimize_op_const_reg(list: taasmoutput; var op: topcg; var a : aint; var reg:tregister): boolean;
       var
         powerval : longint;
       begin
@@ -1148,7 +1139,7 @@ implementation
       end;
 
 
-    procedure tcg.a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; const ref: TReference);
+    procedure tcg.a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: aint; const ref: TReference);
 
       var
         tmpreg: tregister;
@@ -1162,7 +1153,7 @@ implementation
       end;
 
 
-    procedure tcg.a_op_const_loc(list : taasmoutput; Op: TOpCG; a: AWord; const loc: tlocation);
+    procedure tcg.a_op_const_loc(list : taasmoutput; Op: TOpCG; a: aint; const loc: tlocation);
 
       begin
         case loc.loc of
@@ -1250,7 +1241,7 @@ implementation
       end;
 
     procedure Tcg.a_op_const_reg_reg(list:Taasmoutput;op:Topcg;size:Tcgsize;
-                                     a:aword;src,dst:Tregister);
+                                     a:aint;src,dst:Tregister);
 
     begin
       a_load_reg_reg(list,size,size,src,dst);
@@ -1279,7 +1270,7 @@ implementation
 
 
 
-    procedure tcg.a_cmp_const_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const ref : treference;
+    procedure tcg.a_cmp_const_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;const ref : treference;
      l : tasmlabel);
 
       var
@@ -1292,7 +1283,7 @@ implementation
         ungetregister(list,tmpreg);
       end;
 
-    procedure tcg.a_cmp_const_loc_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const loc : tlocation;
+    procedure tcg.a_cmp_const_loc_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;const loc : tlocation;
       l : tasmlabel);
 
       begin
@@ -1306,17 +1297,28 @@ implementation
         end;
       end;
 
-    procedure tcg.a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const ref: treference; reg : tregister; l : tasmlabel);
 
+    procedure tcg.a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const ref: treference; reg : tregister; l : tasmlabel);
       var
         tmpreg: tregister;
-
       begin
         tmpreg:=getintregister(list,size);
         a_load_ref_reg(list,size,size,ref,tmpreg);
         a_cmp_reg_reg_label(list,size,cmp_op,tmpreg,reg,l);
         ungetregister(list,tmpreg);
       end;
+
+
+    procedure tcg.a_cmp_reg_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; reg : tregister; const ref: treference; l : tasmlabel);
+      var
+        tmpreg: tregister;
+      begin
+        tmpreg:=getintregister(list,size);
+        a_load_ref_reg(list,size,size,ref,tmpreg);
+        a_cmp_reg_reg_label(list,size,cmp_op,reg,tmpreg,l);
+        ungetregister(list,tmpreg);
+      end;
+
 
     procedure tcg.a_cmp_loc_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const loc: tlocation; reg : tregister; l : tasmlabel);
       begin
@@ -1486,12 +1488,6 @@ implementation
           else
             internalerror(200312232);
         end;
-      end;
-
-
-    class function tcg.reg_cgsize(const reg: tregister) : tcgsize;
-      begin
-        reg_cgsize := OS_INT;
       end;
 
 
@@ -1762,11 +1758,9 @@ implementation
     { type used is checked against todefs ranges. fromdef (p.resulttype.def) }
     { is the original type used at that location. When both defs are equal   }
     { the check is also insert (needed for succ,pref,inc,dec)                }
+{$ifndef ver1_0}
       const
-{$ifdef ver1_0}
-        awordsignedmax=high(longint);
-{$else}
-        awordsignedmax=high(aword) div 2;
+        aintmax=high(aint);
 {$endif}
       var
         neglabel : tasmlabel;
@@ -1774,43 +1768,71 @@ implementation
         lto,hto,
         lfrom,hfrom : TConstExprInt;
         from_signed: boolean;
+{$ifdef ver1_0}
+        aintmax : aint;
+{$endif ver1_0}
       begin
+{$ifdef ver1_0}
+  {$ifdef cpu64bit}
+        { this is required to prevent incorrect code }
+        aintmax:=$7fffffff;
+        aintmax:=int64(aintmax shl 16) or int64($ffff);
+        aintmax:=int64(aintmax shl 16) or int64($ffff);
+  {$else cpu64bit}
+        aintmax:=high(aint);
+  {$endif cpu64bit}
+{$endif}
         { range checking on and range checkable value? }
         if not(cs_check_range in aktlocalswitches) or
            not(fromdef.deftype in [orddef,enumdef,arraydef]) then
           exit;
+{$ifndef cpu64bit}
+        { handle 64bit rangechecks separate for 32bit processors }
         if is_64bit(fromdef) or is_64bit(todef) then
           begin
              cg64.g_rangecheck64(list,l,fromdef,todef);
              exit;
           end;
+{$endif cpu64bit}
         { only check when assigning to scalar, subranges are different, }
         { when todef=fromdef then the check is always generated         }
         getrange(fromdef,lfrom,hfrom);
         getrange(todef,lto,hto);
+        from_signed := is_signed(fromdef);
         { no range check if from and to are equal and are both longint/dword }
         { (if we have a 32bit processor) or int64/qword, since such          }
         { operations can at most cause overflows (JM)                        }
         { Note that these checks are mostly processor independent, they only }
         { have to be changed once we introduce 64bit subrange types          }
-{$warning range check still s32bit}
+{$ifdef cpu64bit}
         if (fromdef = todef) and
            (fromdef.deftype=orddef) and
-           (((sizeof(aword) = 4) and
-             (((torddef(fromdef).typ = s32bit) and
+           (((((torddef(fromdef).typ = s64bit) and
+               (lfrom = low(int64)) and
+               (hfrom = high(int64))) or
+              ((torddef(fromdef).typ = u64bit) and
+               (lfrom = low(qword)) and
+               (hfrom = high(qword)))))) then
+          exit;
+{$else cpu64bit}
+        if (fromdef = todef) and
+           (fromdef.deftype=orddef) and
+           (((((torddef(fromdef).typ = s32bit) and
                (lfrom = low(longint)) and
                (hfrom = high(longint))) or
               ((torddef(fromdef).typ = u32bit) and
                (lfrom = low(cardinal)) and
                (hfrom = high(cardinal)))))) then
           exit;
-        if todef<>fromdef then
-         begin
-           { if the from-range falls completely in the to-range, no check }
-           { is necessary                                                 }
-           if (lto<=lfrom) and (hto>=hfrom) then
-            exit;
-         end;
+{$endif cpu64bit}
+
+        { if the from-range falls completely in the to-range, no check }
+        { is necessary. Don't do this conversion for the largest unsigned type }
+        if (todef<>fromdef) and
+           (from_signed or (hfrom>=0)) and
+           (lto<=lfrom) and (hto>=hfrom) then
+          exit;
+
         { generate the rangecheck code for the def where we are going to }
         { store the result                                               }
 
@@ -1822,45 +1844,46 @@ implementation
         { the parts < 0 and > maxlongint out                                 }
 
         { is_signed now also works for arrays (it checks the rangetype) (JM) }
-        from_signed := is_signed(fromdef);
         if from_signed xor is_signed(todef) then
-          if from_signed then
-            { from is signed, to is unsigned }
-            begin
-              { if high(from) < 0 -> always range error }
-              if (hfrom < 0) or
-                 { if low(to) > maxlongint also range error }
-                 (lto > awordsignedmax) then
-                begin
-                  a_call_name(list,'FPC_RANGEERROR');
-                  exit
-                end;
-              { from is signed and to is unsigned -> when looking at from }
-              { as an unsigned value, it must be < maxlongint (otherwise  }
-              { it's negative, which is invalid since "to" is unsigned)   }
-              if hto > awordsignedmax then
-                hto := awordsignedmax;
-            end
-          else
-            { from is unsigned, to is signed }
-            begin
-              if (lfrom > awordsignedmax) or
-                 (hto < 0) then
-                begin
-                  a_call_name(list,'FPC_RANGEERROR');
-                  exit
-                end;
-              { from is unsigned and to is signed -> when looking at to }
-              { as an unsigned value, it must be >= 0 (since negative   }
-              { values are the same as values > maxlongint)             }
-              if lto < 0 then
-                lto := 0;
-            end;
+          begin
+             if from_signed then
+               { from is signed, to is unsigned }
+               begin
+                 { if high(from) < 0 -> always range error }
+                 if (hfrom < 0) or
+                    { if low(to) > maxlongint also range error }
+                    (lto > aintmax) then
+                   begin
+                     a_call_name(list,'FPC_RANGEERROR');
+                     exit
+                   end;
+                 { from is signed and to is unsigned -> when looking at to }
+                 { as an signed value, it must be < maxaint (otherwise     }
+                 { it will become negative, which is invalid since "to" is unsigned) }
+                 if hto < 0 then
+                   hto := aintmax;
+               end
+             else
+               { from is unsigned, to is signed }
+               begin
+                 if (lfrom > aintmax) or
+                    (hto < 0) then
+                   begin
+                     a_call_name(list,'FPC_RANGEERROR');
+                     exit
+                   end;
+                 { from is unsigned and to is signed -> when looking at to }
+                 { as an unsigned value, it must be >= 0 (since negative   }
+                 { values are the same as values > maxlongint)             }
+                 if lto < 0 then
+                   lto := 0;
+               end;
+          end;
         hreg:=getintregister(list,OS_INT);
         a_load_loc_reg(list,OS_INT,l,hreg);
-        a_op_const_reg(list,OP_SUB,OS_INT,aword(lto),hreg);
+        a_op_const_reg(list,OP_SUB,OS_INT,aint(lto),hreg);
         objectlibrary.getlabel(neglabel);
-        a_cmp_const_reg_label(list,OS_INT,OC_BE,aword(hto-lto),hreg,neglabel);
+        a_cmp_const_reg_label(list,OS_INT,OC_BE,aint(hto-lto),hreg,neglabel);
         { !!! should happen right after the compare (JM) }
         ungetregister(list,hreg);
         a_call_name(list,'FPC_RANGEERROR');
@@ -1916,7 +1939,6 @@ implementation
            a_param_reg(list,OS_ADDR,reg,paraloc1);
            paramanager.freeparaloc(list,paraloc1);
            paramanager.freeparaloc(list,paraloc2);
-           { No register saving needed, saveregisters is used }
            allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            a_call_name(list,'FPC_CHECK_OBJECT_EXT');
            deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -1927,7 +1949,6 @@ implementation
             paramanager.allocparaloc(list,paraloc1);
             a_param_reg(list,OS_ADDR,reg,paraloc1);
             paramanager.freeparaloc(list,paraloc1);
-            { No register saving needed, saveregisters is used }
             allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,'FPC_CHECK_OBJECT');
             deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -1939,7 +1960,7 @@ implementation
                             Entry/Exit Code Functions
 *****************************************************************************}
 
-    procedure tcg.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);
+    procedure tcg.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aint);
       var
         sizereg,sourcereg,destreg : tregister;
         paraloc1,paraloc2,paraloc3 : tparalocation;
@@ -1955,7 +1976,7 @@ implementation
         { calculate necessary memory }
         a_load_ref_reg(list,OS_INT,OS_INT,lenref,sizereg);
         a_op_const_reg(list,OP_ADD,OS_INT,1,sizereg);
-        a_op_const_reg(list,OP_MUL,OS_INT,elesize,sizereg);
+        a_op_const_reg(list,OP_IMUL,OS_INT,elesize,sizereg);
         { load source }
         a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,sourcereg);
 
@@ -2013,16 +2034,6 @@ implementation
       end;
 
 
-    procedure tcg.g_interrupt_stackframe_entry(list : taasmoutput);
-      begin
-      end;
-
-
-    procedure tcg.g_interrupt_stackframe_exit(list : taasmoutput;accused,acchiused:boolean);
-      begin
-      end;
-
-
     procedure tcg.g_profilecode(list : taasmoutput);
       begin
       end;
@@ -2030,19 +2041,19 @@ implementation
 
     procedure tcg.g_exception_reason_save(list : taasmoutput; const href : treference);
       begin
-        a_load_reg_ref(list, OS_S32, OS_32, NR_FUNCTION_RETURN_REG, href);
+        a_load_reg_ref(list, OS_INT, OS_INT, NR_FUNCTION_RESULT_REG, href);
       end;
 
 
-    procedure tcg.g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aword);
+    procedure tcg.g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aint);
       begin
-        a_load_const_ref(list, OS_S32, a, href);
+        a_load_const_ref(list, OS_INT, a, href);
       end;
 
 
     procedure tcg.g_exception_reason_load(list : taasmoutput; const href : treference);
       begin
-        a_load_ref_reg(list, OS_S32, OS_S32, href, NR_FUNCTION_RETURN_REG);
+        a_load_ref_reg(list, OS_INT, OS_INT, href, NR_FUNCTION_RESULT_REG);
       end;
 
 
@@ -2050,7 +2061,8 @@ implementation
                                     TCG64
 *****************************************************************************}
 
-    procedure tcg64.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword; regsrc,regdst : tregister64);
+{$ifndef cpu64bit}
+    procedure tcg64.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64; regsrc,regdst : tregister64);
       begin
         a_load64_reg_reg(list,regsrc,regdst);
         a_op64_const_reg(list,op,value,regdst);
@@ -2058,10 +2070,30 @@ implementation
 
 
     procedure tcg64.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);
+      var
+        tmpreg64 : tregister64;
       begin
-        a_load64_reg_reg(list,regsrc2,regdst);
-        a_op64_reg_reg(list,op,regsrc1,regdst);
+        { when src1=dst then we need to first create a temp to prevent
+          overwriting src1 with src2 }
+        if (regsrc1.reghi=regdst.reghi) or
+           (regsrc1.reglo=regdst.reghi) or
+           (regsrc1.reghi=regdst.reglo) or
+           (regsrc1.reglo=regdst.reglo) then
+          begin
+            tmpreg64.reglo:=cg.getintregister(list,OS_32);
+            tmpreg64.reghi:=cg.getintregister(list,OS_32);
+            a_load64_reg_reg(list,regsrc2,tmpreg64);
+            a_op64_reg_reg(list,op,regsrc1,tmpreg64);
+            a_load64_reg_reg(list,tmpreg64,regdst);
+          end
+        else
+          begin
+            a_load64_reg_reg(list,regsrc2,regdst);
+            a_op64_reg_reg(list,op,regsrc1,regdst);
+          end;
       end;
+{$endif cpu64bit}
+
 
 {****************************************************************************
                                   TReference
@@ -2136,11 +2168,16 @@ initialization
     ;
 finalization
   cg.free;
+{$ifndef cpu64bit}
   cg64.free;
+{$endif cpu64bit}
 end.
 {
   $Log$
-  Revision 1.164  2004-05-22 23:34:27  peter
+  Revision 1.165  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.164  2004/05/22 23:34:27  peter
   tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
 
   Revision 1.163  2004/04/29 19:56:36  daniel
@@ -2148,6 +2185,65 @@ end.
 
   Revision 1.162  2004/04/18 07:52:43  florian
     * fixed web bug 3048: comparision of dyn. arrays
+
+  Revision 1.161.2.17  2004/06/13 10:51:16  florian
+    * fixed several register allocator problems (sparc/arm)
+
+  Revision 1.161.2.16  2004/06/02 16:07:00  peter
+    * fixed op64_reg_reg_reg to not override src when src=dst
+
+  Revision 1.161.2.15  2004/05/30 17:54:13  florian
+    + implemented cmp64bit
+    * started to fix spilling
+    * fixed int64 sub partially
+
+  Revision 1.161.2.14  2004/05/30 12:07:54  florian
+    * fixed loading/saving of exception reason for CPUs where RETURN and RESULT registers of functions are differently named
+
+  Revision 1.161.2.13  2004/05/27 23:36:18  peter
+    * nostackframe procdirective added
+
+  Revision 1.161.2.12  2004/05/10 21:28:34  peter
+    * section_smartlink enabled for gas under linux
+
+  Revision 1.161.2.11  2004/05/03 19:06:34  peter
+    * fixed range checking
+
+  Revision 1.161.2.10  2004/05/02 20:20:59  florian
+    * started to fix callee side result value handling
+
+  Revision 1.161.2.9  2004/05/02 12:45:32  peter
+    * enabled cpuhasfixedstack for x86-64 again
+    * fixed size of temp allocation for parameters
+
+  Revision 1.161.2.8  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.161.2.7  2004/05/01 11:12:23  florian
+    * spilling of registers with size<>4 fixed
+
+  Revision 1.161.2.6  2004/04/28 21:46:22  peter
+    * fix 1.0.x bootstrap of maxaint
+
+  Revision 1.161.2.5  2004/04/27 18:18:25  peter
+    * aword -> aint
+
+  Revision 1.161.2.4  2004/04/26 16:09:16  peter
+    * fixed infinite loop with 64bit rangecheck
+
+  Revision 1.161.2.3  2004/04/26 15:54:33  peter
+    * small x86-64 fixes
+
+  Revision 1.161.2.2  2004/04/24 20:13:24  florian
+    * fixed x86-64 exception handling
+
+  Revision 1.161.2.1  2004/04/18 16:55:37  peter
+    * procedure entry and exit code restructured, some x86 specific
+      things are removed from the generic ncgutil code and moved to
+      the target depend cg.g_proc_entry and cg.g_proc_exit that now
+      contain all the code during startup including stackframe allocation
+      only the saving of registers is excluded from this code
 
   Revision 1.161  2004/03/06 20:35:19  florian
     * fixed arm compilation

@@ -129,7 +129,7 @@ interface
                    AsmWrite('0');
               end;
           top_const :
-            AsmWrite('$'+tostr(aint(o.val)));
+              AsmWrite('$'+tostr(o.val));
           else
             internalerror(10001);
         end;
@@ -159,7 +159,7 @@ interface
                 end;
             end;
           top_const :
-            AsmWrite(tostr(aint(o.val)));
+            AsmWrite(tostr(o.val));
           else
             internalerror(10001);
         end;
@@ -177,8 +177,14 @@ interface
         taicpu(hp).SetOperandOrder(op_att);
         op:=taicpu(hp).opcode;
         calljmp:=is_calljmp(op);
-        { call maybe not translated to call }
-        AsmWrite(#9+gas_op2str[op]+cond2str[taicpu(hp).condition]);
+        AsmWrite(#9);
+        { movsd should not be translated to movsl when there
+          are (xmm) arguments }
+        if (op=A_MOVSD) and (taicpu(hp).ops>0) then
+          AsmWrite('movsd')
+        else
+          AsmWrite(gas_op2str[op]);
+        AsmWrite(cond2str[taicpu(hp).condition]);
         { suffix needed ?  fnstsw,fldcw don't support suffixes
           with binutils 2.9.5 under linux }
 {        if (Taicpu(hp).oper[0]^.typ=top_reg) and
@@ -234,17 +240,9 @@ interface
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_target : system_any;
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure : false;
+            flags : [af_allowdirect,af_needar,af_smartlink_sections];
             labelprefix : '.L';
             comment : '# ';
-            secnames : ('',
-              '.text','.data','.section .bss',
-              '.section .idata$2','.section .idata$4','.section .idata$5',
-                '.section .idata$6','.section .idata$7','.section .edata',
-              '.stab','.stabstr','COMMON')
           );
 {$else x86_64}
        as_i386_as_info : tasminfo =
@@ -254,17 +252,9 @@ interface
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_target : system_any;
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure : false;
+            flags : [af_allowdirect,af_needar,af_smartlink_sections];
             labelprefix : '.L';
             comment : '# ';
-            secnames : ('',
-              '.text','.data','.section .bss',
-              '.section .idata$2','.section .idata$4','.section .idata$5',
-                '.section .idata$6','.section .idata$7','.section .edata',
-              '.stab','.stabstr','COMMON')
           );
 
        as_i386_as_aout_info : tasminfo =
@@ -274,17 +264,9 @@ interface
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_target : system_any;
-{            supported_target : system_i386_emx;}
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure : false;
+            flags : [af_allowdirect,af_needar];
             labelprefix : 'L';
             comment : '# ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '','','','','','',
-              '.stab','.stabstr','COMMON')
           );
 {$endif x86_64}
 
@@ -298,7 +280,29 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2004-02-27 10:21:06  florian
+  Revision 1.14  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.13.2.6  2004/05/10 21:28:35  peter
+    * section_smartlink enabled for gas under linux
+
+  Revision 1.13.2.5  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.13.2.4  2004/04/27 18:18:26  peter
+    * aword -> aint
+
+  Revision 1.13.2.3  2004/04/26 21:04:04  peter
+    * write aint
+
+  Revision 1.13.2.2  2004/04/22 20:20:50  peter
+    * fix writing of movsd for xmm
+
+  Revision 1.13.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
+
+  Revision 1.13  2004/02/27 10:21:06  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
@@ -414,7 +418,7 @@ end.
       the parast, detected by tcalcst3 test
 
   Revision 1.18  2002/04/15 19:12:10  carl
-  + target_info.size_of_pointer -> pointer_size
+  + target_info.size_of_pointer -> sizeof(aint)
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units
     (where they are used)

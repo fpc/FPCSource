@@ -46,11 +46,12 @@ unit cpunode;
        // n386con,n386flw,n386mat,n386mem,
        // n386set,n386inl,n386opt,
        { this not really a node }
-       // n386obj
+       nx64obj,
        { the cpu specific node units must be used after the generic ones to
          get the correct class pointer }
        nx86set,
        nx64add,
+       nx64cal,
        nx64cnv,
        nx64mat,
        nx64inl
@@ -59,7 +60,16 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.8  2004-02-22 12:04:04  florian
+  Revision 1.9  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.8.2.2  2004/05/03 20:18:52  peter
+    * fixes for tprintf
+
+  Revision 1.8.2.1  2004/04/22 21:14:34  peter
+    * nx64obj added, untested
+
+  Revision 1.8  2004/02/22 12:04:04  florian
     + nx86set added
     * some more x86-64 fixes
 

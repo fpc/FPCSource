@@ -451,7 +451,7 @@ implementation
         { Multiple candidates left? }
         if cand_cnt>1 then
           begin
-            CGMessage(cg_e_cant_choose_overload_function);
+            CGMessage(type_e_cant_choose_overload_function);
 {$ifdef EXTDEBUG}
             candidates.dump_info(V_Hint);
 {$else EXTDEBUG}
@@ -597,7 +597,7 @@ implementation
         { Multiple candidates left? }
         if cand_cnt>1 then
           begin
-            CGMessage(cg_e_cant_choose_overload_function);
+            CGMessage(type_e_cant_choose_overload_function);
 {$ifdef EXTDEBUG}
             candidates.dump_info(V_Hint);
 {$else EXTDEBUG}
@@ -696,11 +696,6 @@ implementation
 {$endif SUPPORT_MMX}
             end;
          end;
-
-         { error CGMessage, if more than 8 floating point }
-         { registers are needed                         }
-         { if p.registersfpu>maxfpuregs then
-          CGMessage(cg_e_too_complex_expr); now pushed if needed PM }
       end;
 
 
@@ -1909,7 +1904,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2004-05-25 21:27:35  florian
+  Revision 1.93  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.92  2004/05/25 21:27:35  florian
     * fixed another formal const problem caused by yesterday's changes
 
   Revision 1.91  2004/05/24 21:24:40  florian
@@ -1932,6 +1930,37 @@ end.
 
   Revision 1.85  2004/04/18 07:52:43  florian
     * fixed web bug 3048: comparision of dyn. arrays
+
+  Revision 1.84.2.2  2004/05/30 10:45:49  peter
+    * merged fixes from main branch
+
+  Revision 1.92  2004/05/25 21:27:35  florian
+    * fixed another formal const problem caused by yesterday's changes
+
+  Revision 1.91  2004/05/24 21:24:40  florian
+    * properties are allowed as formal const parameters as well
+
+  Revision 1.90  2004/05/24 21:04:31  florian
+    * fixed more formal const problems
+
+  Revision 1.89  2004/05/24 20:39:41  florian
+    * stricter handling of formal const parameters and IE fixed
+
+  Revision 1.88  2004/05/23 18:28:40  peter
+    * methodpointer is loaded into a temp when it was a calln
+
+  Revision 1.87  2004/05/23 15:03:40  peter
+    * some typeconvs don't allow assignment or passing to var para
+
+  Revision 1.86  2004/05/16 13:29:46  peter
+    * forbid more overloaded operators with orddef/enumdef
+
+  Revision 1.85  2004/04/18 07:52:43  florian
+    * fixed web bug 3048: comparision of dyn. arrays
+
+  Revision 1.84.2.1  2004/04/28 19:55:51  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
 
   Revision 1.84  2004/03/18 16:29:07  peter
     * missing result initialization in node2opstr

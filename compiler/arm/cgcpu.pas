@@ -29,7 +29,7 @@ unit cgcpu;
   interface
 
     uses
-       symtype,
+       globtype,symtype,
        cgbase,cgobj,
        aasmbase,aasmcpu,aasmtai,
        cpubase,cpuinfo,node,cg64f32,rgcpu;
@@ -42,23 +42,23 @@ unit cgcpu;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
-        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);override;
+        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aint;const locpara : tparalocation);override;
         procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);override;
         procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
 
         procedure a_call_name(list : taasmoutput;const s : string);override;
         procedure a_call_reg(list : taasmoutput;reg: tregister); override;
 
-        procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister); override;
+        procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: aint; reg: TRegister); override;
         procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
 
         procedure a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
-          size: tcgsize; a: aword; src, dst: tregister); override;
+          size: tcgsize; a: aint; src, dst: tregister); override;
         procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
           size: tcgsize; src1, src2, dst: tregister); override;
 
         { move instructions }
-        procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aword;reg : tregister);override;
+        procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aint;reg : tregister);override;
         procedure a_load_reg_ref(list : taasmoutput; fromsize, tosize: tcgsize; reg : tregister;const ref : treference);override;
         procedure a_load_ref_reg(list : taasmoutput; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : taasmoutput; fromsize, tosize : tcgsize;reg1,reg2 : tregister);override;
@@ -69,7 +69,7 @@ unit cgcpu;
         procedure a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference); override;
 
         {  comparison operations }
-        procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+        procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
           l : tasmlabel);override;
         procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
 
@@ -79,14 +79,13 @@ unit cgcpu;
 
         procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);override;
-        procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
-        procedure g_return_from_proc(list : taasmoutput;parasize : aword); override;
-        procedure g_restore_frame_pointer(list : taasmoutput);override;
+        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aint);override;
+        procedure g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);override;
+        procedure g_proc_exit(list : taasmoutput;parasize : longint;nostackframe:boolean); override;
 
         procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
 
-        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
+        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint; delsource,loadref : boolean);override;
 
         procedure g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef); override;
 
@@ -102,8 +101,8 @@ unit cgcpu;
 
       tcg64farm = class(tcg64f32)
         procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);override;
-        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);override;
-        procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);override;
+        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;reg : tregister64);override;
+        procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64);override;
         procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);override;
       end;
 
@@ -119,7 +118,7 @@ unit cgcpu;
 
 
     uses
-       globtype,globals,verbose,systems,cutils,
+       globals,verbose,systems,cutils,
        symconst,symdef,symsym,
        tgobj,
        procinfo,cpupi,
@@ -170,7 +169,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);
+    procedure tcgarm.a_param_const(list : taasmoutput;size : tcgsize;a : aint;const locpara : tparalocation);
       var
         ref: treference;
       begin
@@ -268,7 +267,7 @@ unit cgcpu;
       end;
 
 
-     procedure tcgarm.a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister);
+     procedure tcgarm.a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: aint; reg: TRegister);
        begin
           a_op_const_reg_reg(list,op,size,a,reg,reg);
        end;
@@ -294,7 +293,7 @@ unit cgcpu;
 
 
      procedure tcgarm.a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
-       size: tcgsize; a: aword; src, dst: tregister);
+       size: tcgsize; a: aint; src, dst: tregister);
        var
          shift : byte;
          tmpreg : tregister;
@@ -468,7 +467,7 @@ unit cgcpu;
        end;
 
 
-     procedure tcgarm.a_load_const_reg(list : taasmoutput; size: tcgsize; a : aword;reg : tregister);
+     procedure tcgarm.a_load_const_reg(list : taasmoutput; size: tcgsize; a : aint;reg : tregister);
        var
           imm_shift : byte;
           l : tasmlabel;
@@ -547,7 +546,7 @@ unit cgcpu;
             tmpref.symboldata:=current_procinfo.aktlocaldata.last;
 
             if assigned(ref.symbol) then
-              current_procinfo.aktlocaldata.concat(tai_const_symbol.Create_offset(ref.symbol,ref.offset))
+              current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
             else
               current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
 
@@ -777,7 +776,7 @@ unit cgcpu;
 
 
     {  comparison operations }
-    procedure tcgarm.a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+    procedure tcgarm.a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
       l : tasmlabel);
       var
         tmpreg : tregister;
@@ -838,12 +837,12 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);
+    procedure tcgarm.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aint);
       begin
       end;
 
 
-    procedure tcgarm.g_stackframe_entry(list : taasmoutput;localsize : longint);
+    procedure tcgarm.g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);
       var
          ref : treference;
          shift : byte;
@@ -900,7 +899,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.g_return_from_proc(list : taasmoutput;parasize : aword);
+    procedure tcgarm.g_proc_exit(list : taasmoutput;parasize : longint;nostackframe:boolean);
       var
          ref : treference;
          firstfloatreg,lastfloatreg,
@@ -934,12 +933,6 @@ unit cgcpu;
             ref.index:=NR_FRAME_POINTER_REG;
             list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)+[RS_R11,RS_R13,RS_R15]),PF_EA));
           end;
-      end;
-
-
-    procedure tcgarm.g_restore_frame_pointer(list : taasmoutput);
-      begin
-         { the frame pointer on the ARM is restored while the ret is executed }
       end;
 
 
@@ -1022,7 +1015,7 @@ unit cgcpu;
         tmpref.symboldata:=current_procinfo.aktlocaldata.last;
 
         if assigned(ref.symbol) then
-          current_procinfo.aktlocaldata.concat(tai_const_symbol.Create_offset(ref.symbol,ref.offset))
+          current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
         else
           current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
 
@@ -1055,7 +1048,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);
+    procedure tcgarm.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint; delsource,loadref : boolean);
       var
         srcref,dstref:treference;
         srcreg,destreg,countreg,r:tregister;
@@ -1234,13 +1227,13 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64farm.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);
+    procedure tcg64farm.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : int64;reg : tregister64);
       begin
         a_op64_const_reg_reg(list,op,value,reg,reg);
       end;
 
 
-    procedure tcg64farm.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);
+    procedure tcg64farm.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64);
       var
         tmpreg : tregister;
         b : byte;
@@ -1331,7 +1324,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2004-03-31 19:13:04  florian
+  Revision 1.52  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.51.2.1  2004/06/12 17:01:01  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.51  2004/03/31 19:13:04  florian
     * concatcopy with len=0 exits now immediatly
 
   Revision 1.50  2004/03/29 19:19:35  florian

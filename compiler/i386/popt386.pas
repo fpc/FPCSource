@@ -343,7 +343,7 @@ begin
                         taicpu(hp1).opcode := A_AND;
                         l := (1 shl (taicpu(hp1).oper[0]^.val)) - 1;
                         case taicpu(p).opsize Of
-                          S_L: taicpu(hp1).LoadConst(0,l Xor aword($ffffffff));
+                          S_L: taicpu(hp1).LoadConst(0,l Xor aint($ffffffff));
                           S_B: taicpu(hp1).LoadConst(0,l Xor $ff);
                           S_W: taicpu(hp1).LoadConst(0,l Xor $ffff);
                         end;
@@ -558,7 +558,7 @@ var
               (taicpu(hp1).oper[1]^.typ = top_reg) and
               (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
              begin
-               taicpu(p).LoadConst(0,AWord(int64(taicpu(p).oper[0]^.val)-int64(taicpu(hp1).oper[0]^.val)));
+               taicpu(p).LoadConst(0,taicpu(p).oper[0]^.val-taicpu(hp1).oper[0]^.val);
                asml.remove(hp1);
                hp1.free;
                if (taicpu(p).oper[0]^.val = 0) then
@@ -877,7 +877,7 @@ begin
                                 else
                                   begin
                                     taicpu(p).opcode := A_ADD;
-                                    taicpu(p).loadconst(0,aword(l));
+                                    taicpu(p).loadconst(0,l);
                                   end;
                               end;
                     end;
@@ -2002,7 +2002,13 @@ end.
 
 {
   $Log$
-  Revision 1.59  2004-03-14 18:42:32  jonas
+  Revision 1.60  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.59.2.1  2004/04/29 23:30:28  peter
+    * fix i386 compiler
+
+  Revision 1.59  2004/03/14 18:42:32  jonas
     * fixed refaddr bug that caused go32v2 cycle failure
 
   Revision 1.58  2004/02/28 16:59:02  jonas

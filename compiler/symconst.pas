@@ -233,7 +233,9 @@ type
     po_reintroduce,
     { location of parameters is given explicitly as it is necessary for some syscall
       conventions like that one of MorphOS }
-    po_explicitparaloc
+    po_explicitparaloc,
+    { no stackframe will be generated, used by lowlevel assembler like get_frame }
+    po_nostackframe
   );
   tprocoptions=set of tprocoption;
 
@@ -407,7 +409,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.82  2004-05-23 14:32:17  peter
+  Revision 1.83  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.82  2004/05/23 14:32:17  peter
     * tprocinfoflag moved to globtype
 
   Revision 1.81  2004/04/29 19:56:37  daniel
@@ -418,6 +423,9 @@ end.
 
   Revision 1.79  2004/04/18 15:22:24  florian
     + location support for arguments, currently PowerPC/MorphOS only
+
+  Revision 1.78.2.1  2004/05/27 23:36:18  peter
+    * nostackframe procdirective added
 
   Revision 1.78  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned

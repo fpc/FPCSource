@@ -126,6 +126,8 @@ end;
 
 procedure set_default_link_type;
 begin
+  { win32 and wdosx need smartlinking by default to prevent including too much
+    dll dependencies }
   if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
     begin
       def_symbol('FPC_LINK_SMART');
@@ -775,6 +777,13 @@ begin
                             else
                               include(initglobalswitches,cs_gdb_valgrind);
                           end;
+                        'w' :
+                          begin
+                            if UnsetBool(More, j) then
+                              exclude(initglobalswitches,cs_gdb_dwarf)
+                            else
+                              include(initglobalswitches,cs_gdb_dwarf);
+                          end;
                         else
                           IllegalPara(opt);
                       end;
@@ -1065,7 +1074,10 @@ begin
                           apptype:=app_cui;
                       end;
                     'D':
-                      ForceDeffileForExport:=not UnsetBool(More, j);
+                      begin
+                        UseDeffileForExports:=not UnsetBool(More, j);
+                        UseDeffileForExportsSetExplicitly:=true;
+                      end;
                     'F':
                       begin
                         if UnsetBool(More, j) then
@@ -1686,6 +1698,10 @@ begin
   def_symbol('HASINTF');
   def_symbol('HASVARIANT');
 {$endif i386}
+{$ifdef x86_64}
+  def_symbol('HASINTF');
+  def_symbol('HASVARIANT');
+{$endif x86_64}
 {$ifdef powerpc}
   def_symbol('HASINTF');
   def_symbol('HASVARIANT');
@@ -1695,6 +1711,10 @@ begin
   def_symbol('HASINTF');
   def_symbol('HASVARIANT');
 {$endif arm}
+{$ifdef sparc}
+  def_symbol('HASINTF');
+  def_symbol('HASVARIANT');
+{$endif sparc}
   def_symbol('INTERNSETLENGTH');
   def_symbol('INTERNLENGTH');
   def_symbol('INTERNCOPY');
@@ -1712,6 +1732,7 @@ begin
     def_symbol('REGCALL');
   def_symbol('DECRREFNOTNIL');
   def_symbol('HAS_INTERNAL_INTTYPES');
+  def_symbol('STR_USES_VALINT');
 
 { using a case is pretty useless here (FK) }
 { some stuff for TP compatibility }
@@ -1758,6 +1779,7 @@ begin
 {$endif}
 {$ifdef x86_64}
   def_symbol('CPUX86_64');
+  def_symbol('CPUAMD64');
   def_symbol('CPU64');
   { not supported for now, afaik (FK)
    def_symbol('FPC_HAS_TYPE_FLOAT128'); }
@@ -1774,6 +1796,7 @@ begin
   def_symbol('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
   def_symbol('FPC_CURRENCY_IS_INT64');
   def_symbol('FPC_COMP_IS_INT64');
+  def_symbol('FPC_REQUIRES_PROPER_ALIGNMENT');
 {$endif}
 {$ifdef vis}
   def_symbol('CPUVIS');
@@ -2000,7 +2023,7 @@ begin
 
   { switch assembler if it's binary and we got -a on the cmdline }
   if (cs_asm_leave in initglobalswitches) and
-     (target_asm.outputbinary) then
+     (af_outputbinary in target_asm.flags) then
    begin
      Message(option_switch_bin_to_src_assembler);
      set_target_asm(target_info.assemextern);
@@ -2019,8 +2042,13 @@ begin
      (cs_profile in initmoduleswitches) then
     exclude(initglobalswitches,cs_link_strip);
 
+{$ifdef x86_64}
+  {$warning HACK: turn off smartlinking}
+  exclude(initmoduleswitches,cs_create_smart);
+{$endif}
+
   if not LinkTypeSetExplicitly then
-   set_default_link_type;
+    set_default_link_type;
 
   { Default alignment settings,
     1. load the defaults for the target
@@ -2048,8 +2076,41 @@ finalization
 end.
 {
   $Log$
-  Revision 1.134  2004-05-06 20:30:51  florian
+  Revision 1.135  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.134  2004/05/06 20:30:51  florian
     * m68k compiler compilation fixed
+
+  Revision 1.133.2.10  2004/05/18 20:24:03  florian
+    * fixed crash with unknown symbols
+
+  Revision 1.133.2.9  2004/05/13 20:10:38  florian
+    * released variant and interface support
+
+  Revision 1.133.2.8  2004/05/03 14:59:57  peter
+    * no dlltool needed for win32 linking executables
+
+  Revision 1.133.2.7  2004/05/02 20:52:08  peter
+    * temporary hack to disable smartlinking for x86-64
+
+  Revision 1.133.2.6  2004/04/29 19:07:22  peter
+    * compile fixes
+
+  Revision 1.133.2.5  2004/04/26 15:54:33  peter
+    * small x86-64 fixes
+
+  Revision 1.133.2.4  2004/04/22 21:14:34  peter
+    * nx64obj added, untested
+
+  Revision 1.133.2.3  2004/04/21 16:22:58  florian
+    + define CPUAMD64 for x86_64
+
+  Revision 1.133.2.2  2004/04/10 22:08:52  florian
+    + more dwarf infrastructure
+
+  Revision 1.133.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.133  2004/04/04 18:46:09  olle
     + added $APPTYPE TOOL for MPW tools on MacOS

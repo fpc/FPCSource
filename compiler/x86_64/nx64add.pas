@@ -81,7 +81,7 @@ interface
       cg.ungetregister(exprasmlist,NR_RAX);
       { Allocate a new register and store the result in RAX in it. }
       location.register:=cg.getintregister(exprasmlist,OS_INT);
-      emit_reg_reg(A_MOV,S_L,NR_RAX,location.register);
+      emit_reg_reg(A_MOV,S_Q,NR_RAX,location.register);
       location_freetemp(exprasmlist,left.location);
       location_freetemp(exprasmlist,right.location);
     end;
@@ -92,7 +92,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2004-02-05 01:24:08  florian
+  Revision 1.3  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.2.2.1  2004/04/26 15:54:33  peter
+    * small x86-64 fixes
+
+  Revision 1.2  2004/02/05 01:24:08  florian
     * several fixes to compile x86-64 system
 
   Revision 1.1  2004/01/20 12:59:37  florian

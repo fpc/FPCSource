@@ -126,7 +126,7 @@ program fpc;
      processorname:='sparc';
 {$endif sparc}
 {$ifdef x86_64}
-     ppcbin:='ppcx86_64';
+     ppcbin:='ppcx64';
      processorname:='x86_64';
 {$endif x86_64}
 {$ifdef ia64}
@@ -178,7 +178,7 @@ program fpc;
                      else if processorstr='ia64' then
                        ppcbin:='ppcia64'
                      else if processorstr='x86_64' then
-                       ppcbin:='ppcx64_64'
+                       ppcbin:='ppcx64'
                      else error('Illegal processor type "'+processorstr+'"');
                      end
                    else
@@ -204,11 +204,17 @@ program fpc;
   end.
 {
   $Log$
-  Revision 1.15  2004-06-06 01:18:47  karoly
+  Revision 1.16  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.15  2004/06/06 01:18:47  karoly
    * morphos has no .exe just like amiga
 
   Revision 1.14  2004/06/05 10:14:42  marco
    * fix for bug 3127
+
+  Revision 1.13.2.1  2004/05/02 20:53:09  peter
+    * ppcx64 support
 
   Revision 1.13  2004/03/20 22:29:37  florian
     + arm, ia64, x86_64 and sparc supported added

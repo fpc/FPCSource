@@ -27,6 +27,7 @@ unit n386mem;
 interface
 
     uses
+      globtype,
       cgbase,cpuinfo,cpubase,
       node,nmem,ncgmem;
 
@@ -40,7 +41,7 @@ interface
        end;
 
        ti386vecnode = class(tcgvecnode)
-          procedure update_reference_reg_mul(reg:tregister;l:aword);override;
+          procedure update_reference_reg_mul(reg:tregister;l:aint);override;
           procedure pass_2;override;
        end;
 
@@ -87,7 +88,7 @@ implementation
                              TI386VECNODE
 *****************************************************************************}
 
-     procedure ti386vecnode.update_reference_reg_mul(reg:tregister;l:aword);
+     procedure ti386vecnode.update_reference_reg_mul(reg:tregister;l:aint);
        var
          l2 : integer;
          hreg : tregister;
@@ -144,7 +145,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2004-02-27 10:21:05  florian
+  Revision 1.61  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.60.2.2  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.60.2.1  2004/04/29 19:07:22  peter
+    * compile fixes
+
+  Revision 1.60  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
@@ -320,7 +331,7 @@ end.
     * moved arrayconstructnode secondpass to ncgld
 
   Revision 1.25  2002/04/15 19:12:09  carl
-  + target_info.size_of_pointer -> pointer_size
+  + target_info.size_of_pointer -> sizeof(aint)
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units
     (where they are used)

@@ -67,10 +67,11 @@ implementation
       verbose,globals,
       symconst,symdef,aasmbase,aasmtai,aasmcpu,defutil,
       cpuinfo,cpubase,
-      cgbase,cgobj
+      cgbase,cgobj,
 {$ifdef delphi}
       ,dmisc
 {$endif}
+      ncgutil
       ;
 
 
@@ -141,9 +142,8 @@ implementation
                begin
                   objectlibrary.getdatalabel(lastlabel);
                   lab_real:=lastlabel;
-                  if (cs_create_smart in aktmoduleswitches) then
-                   Consts.concat(Tai_cut.Create);
-                  consts.concat(tai_align.create(const_align(resulttype.def.size)));
+                  maybe_new_object_file(consts);
+                  new_section(consts,sec_rodata,lastlabel.name,const_align(resulttype.def.size));
                   Consts.concat(Tai_label.Create(lastlabel));
                   case realait of
                     ait_real_32bit :
@@ -190,7 +190,11 @@ implementation
     procedure tcgordconstnode.pass_2;
       begin
          location_reset(location,LOC_CONSTANT,def_cgsize(resulttype.def));
-         location.valueqword:=TConstExprUInt(value);
+{$ifdef cpu64bit}
+         location.value:=value;
+{$else cpu64bit}
+         location.value64:=int64(value);
+{$endif cpu64bit}
       end;
 
 
@@ -202,7 +206,7 @@ implementation
       begin
          { an integer const. behaves as a memory reference }
          location_reset(location,LOC_CONSTANT,OS_ADDR);
-         location.value:=AWord(value);
+         location.value:=aint(value);
       end;
 
 
@@ -339,23 +343,23 @@ implementation
                                        { before the string the following sequence must be found:
                                          <label>
                                            constsymbol <datalabel>
-                                           const32 <len>
-                                           const32 <len>
-                                           const32 -1
+                                           constint <len>
+                                           constint <len>
+                                           constint -1
                                          we must then return <label> to reuse
                                        }
                                        hp2:=tai(lastlabelhp.previous);
                                        if assigned(hp2) and
-                                          (hp2.typ=ait_const_32bit) and
-                                          (tai_const(hp2).value=aword(-1)) and
+                                          (hp2.typ=ait_const_aint) and
+                                          (tai_const(hp2).value=-1) and
                                           assigned(hp2.previous) and
-                                          (tai(hp2.previous).typ=ait_const_32bit) and
+                                          (tai(hp2.previous).typ=ait_const_aint) and
                                           (tai_const(hp2.previous).value=len) and
                                           assigned(hp2.previous.previous) and
-                                          (tai(hp2.previous.previous).typ=ait_const_32bit) and
+                                          (tai(hp2.previous.previous).typ=ait_const_aint) and
                                           (tai_const(hp2.previous.previous).value=len) and
                                           assigned(hp2.previous.previous.previous) and
-                                          (tai(hp2.previous.previous.previous).typ=ait_const_symbol) and
+                                          (tai(hp2.previous.previous.previous).typ=ait_const_ptr) and
                                           assigned(hp2.previous.previous.previous.previous) and
                                           (tai(hp2.previous.previous.previous.previous).typ=ait_label) then
                                          begin
@@ -438,9 +442,8 @@ implementation
                 begin
                    objectlibrary.getdatalabel(lastlabel);
                    lab_str:=lastlabel;
-                   if (cs_create_smart in aktmoduleswitches) then
-                    Consts.concat(Tai_cut.Create);
-                   consts.concat(tai_align.create(const_align(4)));
+                   maybe_new_object_file(consts);
+                   new_section(consts,sec_rodata,lastlabel.name,const_align(sizeof(aint)));
                    Consts.concat(Tai_label.Create(lastlabel));
                    { generate an ansi string ? }
                    case st_type of
@@ -475,16 +478,16 @@ implementation
                         begin
                            { an empty ansi string is nil! }
                            if len=0 then
-                             Consts.concat(Tai_const.Create_ptr(0))
+                             Consts.concat(Tai_const.Create_sym(nil))
                            else
                              begin
                                 objectlibrary.getdatalabel(l1);
                                 objectlibrary.getdatalabel(l2);
                                 Consts.concat(Tai_label.Create(l2));
-                                Consts.concat(Tai_const_symbol.Create(l1));
-                                Consts.concat(Tai_const.Create_32bit(len));
-                                Consts.concat(Tai_const.Create_32bit(len));
-                                Consts.concat(Tai_const.Create_32bit(Cardinal(-1)));
+                                Consts.concat(Tai_const.Create_sym(l1));
+                                Consts.concat(Tai_const.Create_aint(len));
+                                Consts.concat(Tai_const.Create_aint(len));
+                                Consts.concat(Tai_const.Create_aint(-1));
                                 Consts.concat(Tai_label.Create(l1));
                                 getmem(pc,len+2);
                                 move(value_str^,pc^,len);
@@ -527,20 +530,20 @@ implementation
                         begin
                            { an empty wide string is nil! }
                            if len=0 then
-                             Consts.concat(Tai_const.Create_ptr(0))
+                             Consts.concat(Tai_const.Create_sym(nil))
                            else
                              begin
                                 objectlibrary.getdatalabel(l1);
                                 objectlibrary.getdatalabel(l2);
                                 Consts.concat(Tai_label.Create(l2));
-                                Consts.concat(Tai_const_symbol.Create(l1));
+                                Consts.concat(Tai_const.Create_sym(l1));
 
                                 { we use always UTF-16 coding for constants }
                                 { at least for now                          }
                                 { Consts.concat(Tai_const.Create_8bit(2)); }
-                                Consts.concat(Tai_const.Create_32bit(len));
-                                Consts.concat(Tai_const.Create_32bit(len));
-                                Consts.concat(Tai_const.Create_32bit(Cardinal(-1)));
+                                Consts.concat(Tai_const.Create_aint(len));
+                                Consts.concat(Tai_const.Create_aint(len));
+                                Consts.concat(Tai_const.Create_aint(-1));
                                 Consts.concat(Tai_label.Create(l1));
                                 for i:=0 to len-1 do
                                   Consts.concat(Tai_const.Create_16bit(pcompilerwidestring(value_str)^.data[i]));
@@ -599,7 +602,7 @@ implementation
         if tsetdef(resulttype.def).settype=smallset then
          begin
            location_reset(location,LOC_CONSTANT,OS_32);
-           location.value:=PAWord(value_set)^;
+           location.value:=PAInt(value_set)^;
            exit;
          end;
         location_reset(location,LOC_CREFERENCE,OS_NO);
@@ -643,7 +646,7 @@ implementation
                           else
                            begin
                              { compare small set }
-                             if paword(value_set)^=tai_const(hp1).value then
+                             if paint(value_set)^=tai_const(hp1).value then
                               begin
                                 { found! }
                                 lab_set:=lastlabel;
@@ -660,9 +663,8 @@ implementation
                begin
                  objectlibrary.getdatalabel(lastlabel);
                  lab_set:=lastlabel;
-                 if (cs_create_smart in aktmoduleswitches) then
-                  Consts.concat(Tai_cut.Create);
-                 consts.concat(tai_align.create(const_align(4)));
+                 maybe_new_object_file(consts);
+                 new_section(consts,sec_rodata,lastlabel.name,const_align(sizeof(aint)));
                  Consts.concat(Tai_label.Create(lastlabel));
                  { already handled at the start of this method?? (JM)
                  if tsetdef(resulttype.def).settype=smallset then
@@ -727,8 +729,39 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2004-04-29 19:56:37  daniel
+  Revision 1.41  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.40  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.39.2.9  2004/06/13 10:51:16  florian
+    * fixed several register allocator problems (sparc/arm)
+
+  Revision 1.39.2.8  2004/06/12 17:01:01  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.39.2.7  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.39.2.6  2004/04/29 19:07:22  peter
+    * compile fixes
+
+  Revision 1.39.2.5  2004/04/27 18:18:25  peter
+    * aword -> aint
+
+  Revision 1.39.2.4  2004/04/12 19:34:45  peter
+    * basic framework for dwarf CFI
+
+  Revision 1.39.2.3  2004/04/12 14:45:11  peter
+    * tai_const_symbol and tai_const merged
+
+  Revision 1.39.2.2  2004/04/10 12:36:41  peter
+    * fixed alignment issues
+
+  Revision 1.39.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.39  2004/03/18 17:29:40  peter
     * fix overflow
@@ -890,7 +923,6 @@ end.
       when used with int64's under Delphi)
 
 }
-
 
 
 

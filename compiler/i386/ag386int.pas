@@ -62,6 +62,12 @@ implementation
     const
       line_length = 70;
 
+      secnames : array[TAsmSectionType] of string[4] = ('',
+        'CODE','DATA','DATA','BSS',
+        '','','','','','',
+        '','','','','',''
+      );
+
     function single2str(d : single) : string;
       var
          hs : string;
@@ -305,14 +311,17 @@ implementation
 
 
     var
-      LasTSec : TSection;
+      LasTSectype : TAsmSectionType;
       lastfileinfo : tfileposinfo;
       infile,
       lastinfile   : tinputfile;
 
     const
-      ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
-        (#9'DD'#9,#9'DW'#9,#9'DB'#9);
+      ait_const2str : array[ait_const_128bit..ait_const_indirect_symbol] of string[20]=(
+        #9'FIXME128',#9'FIXME64',#9'DD'#9,#9'DW'#9,#9'DB'#9,
+        #9'FIXMESLEB',#9'FIXEMEULEB',
+        #9'RVA'#9,#9'FIXMEINDIRECT'#9
+      );
 
     Function PadTabs(const p:string;addch:char):string;
     var
@@ -439,57 +448,65 @@ implementation
              end;
 
        ait_section : begin
-                       if LasTSec<>sec_none then
-                        AsmWriteLn('_'+target_asm.secnames[LasTSec]+#9#9'ENDS');
-                       if tai_section(hp).sec<>sec_none then
+                       if LasTSecType<>sec_none then
+                        AsmWriteLn('_'+secnames[LasTSecType]+#9#9'ENDS');
+                       if tai_section(hp).sectype<>sec_none then
                         begin
                           AsmLn;
-                          AsmWriteLn('_'+target_asm.secnames[tai_section(hp).sec]+#9#9+
+                          AsmWriteLn('_'+secnames[tai_section(hp).sectype]+#9#9+
                                      'SEGMENT'#9'PARA PUBLIC USE32 '''+
-                                     target_asm.secnames[tai_section(hp).sec]+'''');
+                                     secnames[tai_section(hp).sectype]+'''');
                         end;
-                       LasTSec:=tai_section(hp).sec;
+                       LasTSecType:=tai_section(hp).sectype;
                      end;
          ait_align : begin
                      { CAUSES PROBLEMS WITH THE SEGMENT DEFINITION   }
                      { SEGMENT DEFINITION SHOULD MATCH TYPE OF ALIGN }
                      { HERE UNDER TASM!                              }
-                       AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype));
+                       if tai_align(hp).aligntype>1 then
+                         AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype));
                      end;
      ait_datablock : begin
                        if tai_datablock(hp).is_global then
                          AsmWriteLn(#9'PUBLIC'#9+tai_datablock(hp).sym.name);
                        AsmWriteLn(PadTabs(tai_datablock(hp).sym.name,#0)+'DB'#9+tostr(tai_datablock(hp).size)+' DUP(?)');
                      end;
-   ait_const_32bit,
-    ait_const_8bit,
-   ait_const_16bit : begin
-                       AsmWrite(ait_const2str[hp.typ]+tostru(tai_const(hp).value));
-                       consttyp:=hp.typ;
-                       l:=0;
-                       repeat
-                         found:=(not (tai(hp.next)=nil)) and (tai(hp.next).typ=consttyp);
-                         if found then
-                          begin
-                            hp:=tai(hp.next);
-                            s:=','+tostru(tai_const(hp).value);
-                            AsmWrite(s);
-                            inc(l,length(s));
-                          end;
-                       until (not found) or (l>line_length);
-                       AsmLn;
-                     end;
-  ait_const_symbol : begin
-                       AsmWriteLn(#9#9'DD'#9'offset '+tai_const_symbol(hp).sym.name);
-                       if tai_const_symbol(hp).offset>0 then
-                         AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
-                       else if tai_const_symbol(hp).offset<0 then
-                         AsmWrite(tostr(tai_const_symbol(hp).offset));
-                       AsmLn;
-                     end;
-     ait_const_rva : begin
-                       AsmWriteLn(#9#9'RVA'#9+tai_const_symbol(hp).sym.name);
-                     end;
+           ait_const_uleb128bit,
+           ait_const_sleb128bit,
+           ait_const_128bit,
+           ait_const_64bit,
+           ait_const_32bit,
+           ait_const_16bit,
+           ait_const_8bit,
+           ait_const_rva_symbol,
+           ait_const_indirect_symbol :
+             begin
+               AsmWrite(ait_const2str[hp.typ]);
+               consttyp:=hp.typ;
+               l:=0;
+               repeat
+                 if assigned(tai_const(hp).sym) then
+                   begin
+                     if assigned(tai_const(hp).endsym) then
+                       s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
+                     else
+                       s:=tai_const(hp).sym.name;
+                     if tai_const(hp).value<>0 then
+                       s:=s+tostr_with_plus(tai_const(hp).value);
+                   end
+                 else
+                   s:=tostr(tai_const(hp).value);
+                 AsmWrite(s);
+                 if (l>line_length) or
+                    (hp.next=nil) or
+                    (tai(hp.next).typ<>consttyp) then
+                   break;
+                 hp:=tai(hp.next);
+                 AsmWrite(',');
+               until false;
+               AsmLn;
+             end;
+
         ait_real_32bit : AsmWriteLn(#9#9'DD'#9+single2str(tai_real_32bit(hp).value));
         ait_real_64bit : AsmWriteLn(#9#9'DQ'#9+double2str(tai_real_64bit(hp).value));
       ait_real_80bit : AsmWriteLn(#9#9'DT'#9+extended2str(tai_real_80bit(hp).value));
@@ -575,7 +592,7 @@ implementation
                           AsmWrite(tai_label(hp).l.name);
                           if assigned(hp.next) and not(tai(hp.next).typ in
                              [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                              ait_const_symbol,ait_const_rva,
+                              ait_const_rva_symbol,
                               ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
                            AsmWriteLn(':')
                           else
@@ -592,7 +609,7 @@ implementation
                        AsmWrite(tai_symbol(hp).sym.name);
                        if assigned(hp.next) and not(tai(hp.next).typ in
                           [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                           ait_const_symbol,ait_const_rva,
+                           ait_const_rva_symbol,
                            ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
                         AsmWriteLn(':')
                      end;
@@ -683,27 +700,25 @@ implementation
         ait_force_line,
 ait_stab_function_name : ;
 {$endif GDB}
-           ait_cut : begin
+           ait_cutobject : begin
                      { only reset buffer if nothing has changed }
                        if AsmSize=AsmStartSize then
                         AsmClear
                        else
                         begin
-                          if LasTSec<>sec_none then
-                           AsmWriteLn('_'+target_asm.secnames[LasTSec]+#9#9'ENDS');
+                          if LasTSecType<>sec_none then
+                           AsmWriteLn('_'+secnames[LasTSecType]+#9#9'ENDS');
                           AsmLn;
                           AsmWriteLn(#9'END');
                           AsmClose;
                           DoAssemble;
-                          AsmCreate(tai_cut(hp).place);
+                          AsmCreate(tai_cutobject(hp).place);
                         end;
                      { avoid empty files }
-                       while assigned(hp.next) and (tai(hp.next).typ in [ait_cut,ait_section,ait_comment]) do
+                       while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
                         begin
                           if tai(hp.next).typ=ait_section then
-                           begin
-                             lasTSec:=tai_section(hp.next).sec;
-                           end;
+                            lasTSecType:=tai_section(hp.next).sectype;
                           hp:=tai(hp.next);
                         end;
                        AsmWriteLn(#9'.386p');
@@ -712,10 +727,10 @@ ait_stab_function_name : ;
                        { I was told that this isn't necesarry because }
                        { the labels generated by FPC are unique (FK)  }
                        { AsmWriteLn(#9'LOCALS '+target_asm.labelprefix); }
-                       if lasTSec<>sec_none then
-                          AsmWriteLn('_'+target_asm.secnames[lasTSec]+#9#9+
+                       if lasTSectype<>sec_none then
+                          AsmWriteLn('_'+secnames[lasTSectype]+#9#9+
                                      'SEGMENT'#9'PARA PUBLIC USE32 '''+
-                                     target_asm.secnames[lasTSec]+'''');
+                                     secnames[lasTSectype]+'''');
                        AsmStartSize:=AsmSize;
                      end;
            ait_marker :
@@ -782,7 +797,7 @@ ait_stab_function_name : ;
       if assigned(current_module.mainsource) then
        comment(v_info,'Start writing intel-styled assembler output for '+current_module.mainsource^);
 {$endif}
-      LasTSec:=sec_none;
+      LasTSecType:=sec_none;
       AsmWriteLn(#9'.386p');
       { masm 6.11 does not seem to like LOCALS PM }
       if (aktoutputformat = as_i386_tasm) then
@@ -827,16 +842,9 @@ ait_stab_function_name : ;
             asmbin : 'tasm';
             asmcmd : '/m2 /ml $ASM $OBJ';
             supported_target : system_any; { what should I write here ?? }
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure : true;
+            flags : [af_allowdirect,af_needar,af_labelprefix_only_inside_procedure];
             labelprefix : '@@';
             comment : '; ';
-            secnames : ('',
-              'CODE','DATA','BSS',
-              '','','','','','',
-              '','','')
           );
 
        as_i386_masm_info : tasminfo =
@@ -846,16 +854,9 @@ ait_stab_function_name : ;
             asmbin : 'masm';
             asmcmd : '/c /Cp $ASM /Fo$OBJ';
             supported_target : system_any; { what should I write here ?? }
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure : false;
+            flags : [af_allowdirect,af_needar];
             labelprefix : '@@';
             comment : '; ';
-            secnames : ('',
-              'CODE','DATA','BSS',
-              '','','','','','',
-              '','','')
           );
 
        as_i386_wasm_info : tasminfo =
@@ -865,16 +866,9 @@ ait_stab_function_name : ;
             asmbin : 'wasm';
             asmcmd : '$ASM -6s -fp6 -ms -zq -Fo=$OBJ';
             supported_target : system_any; { what should I write here ?? }
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure : false;
+            flags : [af_allowdirect,af_needar];
             labelprefix : '@@';
             comment : '; ';
-            secnames : ('',
-              'CODE','DATA','BSS',
-              '','','','','','',
-              '','','')
           );
 
 initialization
@@ -884,8 +878,30 @@ initialization
 end.
 {
   $Log$
-  Revision 1.48  2004-05-22 23:34:28  peter
+  Revision 1.49  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.48  2004/05/22 23:34:28  peter
   tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.47.2.6  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.47.2.5  2004/04/29 19:07:22  peter
+    * compile fixes
+
+  Revision 1.47.2.4  2004/04/12 19:34:46  peter
+    * basic framework for dwarf CFI
+
+  Revision 1.47.2.3  2004/04/12 14:45:11  peter
+    * tai_const_symbol and tai_const merged
+
+  Revision 1.47.2.2  2004/04/10 12:36:41  peter
+    * fixed alignment issues
+
+  Revision 1.47.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.47  2004/03/17 12:03:00  olle
     * bugfix for multiline string constants
@@ -1039,7 +1055,7 @@ end.
       the parast, detected by tcalcst3 test
 
   Revision 1.17  2002/04/15 19:12:09  carl
-  + target_info.size_of_pointer -> pointer_size
+  + target_info.size_of_pointer -> sizeof(aint)
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units
     (where they are used)

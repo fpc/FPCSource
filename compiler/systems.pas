@@ -54,13 +54,6 @@ interface
              cpu_arm                       { 10 }
        );
 
-
-       TSection=(sec_none,
-         sec_code,sec_data,sec_bss,
-         sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_edata,
-         sec_stab,sec_stabstr,sec_common
-       );
-
        tasmmode= (asmmode_none
             { standard assembler (cpu dependant) with full parsing }
             ,asmmode_standard
@@ -117,7 +110,8 @@ interface
              system_powerpc_openbsd,    { 30 }
              system_arm_linux,          { 31 }
              system_i386_watcom,        { 32 }
-             system_powerpc_MorphOS     { 33 }
+             system_powerpc_MorphOS,    { 33 }
+	     system_x86_64_freebsd	{ 34 }
        );
 
        tasm = (as_none
@@ -169,8 +163,7 @@ interface
        TAbstractLinker = class
        end;
 
-
-       TAbstractLinkerClass = class of TABstractLinker;
+       TAbstractLinkerClass = class of TAbstractLinker;
 
 
        { Abstract assembler class which is implemented in assemble module }
@@ -178,7 +171,6 @@ interface
        end;
 
        TAbstractAssemblerClass = class of TAbstractAssembler;
-
 
 
        palignmentinfo = ^talignmentinfo;
@@ -197,6 +189,12 @@ interface
          maxCrecordalign : longint;
        end;
 
+       tasmflags = (af_none,
+         af_outputbinary,af_allowdirect,
+         af_needar,af_smartlink_sections,
+         af_labelprefix_only_inside_procedure
+       );
+
        pasminfo = ^tasminfo;
        tasminfo = record
           id          : tasm;
@@ -204,13 +202,9 @@ interface
           asmbin      : string[8];
           asmcmd      : string[50];
           supported_target : tsystem;
-          outputbinary,
-          allowdirect,
-          needar,
-          labelprefix_only_inside_procedure : boolean;
+          flags        : set of tasmflags;
           labelprefix : string[3];
           comment     : string[3];
-          secnames    : array[TSection] of string[20];
        end;
 
        parinfo = ^tarinfo;
@@ -230,7 +224,8 @@ interface
             tf_under_development,
             tf_need_export,tf_needs_isconsole,
             tf_code_small,tf_static_reg_based,
-            tf_needs_symbol_size
+            tf_needs_symbol_size,
+            tf_smartlink_sections
        );
 
        psysteminfo = ^tsysteminfo;
@@ -640,15 +635,25 @@ begin
   {$ifdef cpu86}
     default_target(source_info.system);
   {$else cpu86}
+   {$ifdef linux}
     default_target(system_i386_linux);
+   {$endif}
+   {$ifdef freebsd}
+    default_target(system_i386_freebsd);
+   {$endif}
   {$endif cpu86}
 {$endif i386}
 {$ifdef x86_64}
-  {$ifdef cpu86_64}
+  {$ifdef cpux86_64}
     default_target(source_info.system);
-  {$else cpu86_64}
+  {$else cpux86_64}
+   {$ifdef linux}
     default_target(system_x86_64_linux);
-  {$endif cpu86_64}
+   {$endif}
+   {$ifdef freebsd}
+    default_target(system_x86_64_freebsd);
+   {$endif}
+  {$endif cpux86_64}
 {$endif x86_64}
 {$ifdef m68k}
   {$ifdef cpu68}
@@ -695,9 +700,31 @@ finalization
 end.
 {
   $Log$
-  Revision 1.88  2004-05-20 21:54:33  florian
+  Revision 1.89  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.88  2004/05/20 21:54:33  florian
     + <pointer> - <pointer> result is divided by the pointer element size now
       this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
+
+  Revision 1.87.2.6  2004/05/18 20:27:44  marco
+   * initsystems fix
+
+  Revision 1.87.2.5  2004/05/11 16:57:20  marco
+   * freebsd target
+
+  Revision 1.87.2.4  2004/05/10 21:28:34  peter
+    * section_smartlink enabled for gas under linux
+
+  Revision 1.87.2.3  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.87.2.2  2004/04/28 21:46:56  peter
+    * compile fixes for x86-64
+
+  Revision 1.87.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.87  2004/03/20 22:57:42  florian
     + cpu2str added
@@ -871,7 +898,7 @@ end.
   * fix generic size problems which depend now on EXTEND_SIZE constant
 
   Revision 1.39  2002/04/15 19:08:22  carl
-  + target_info.size_of_pointer -> pointer_size
+  + target_info.size_of_pointer -> sizeof(aint)
   + some cleanup of unused types/variables
 
   Revision 1.38  2002/04/14 16:56:30  carl

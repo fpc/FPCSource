@@ -4,7 +4,8 @@
           'none',
           'abcd',
           'add','addcc','addx','addxcc',
-          'and','andcc','andn','addncc',
+          'and','andcc','andn','andncc',
+          'jmp',
           'jmpl',
           'call',
           'ba','b','fba','fb',
@@ -19,7 +20,7 @@
           'or','orcc','orn','orncc',
           'rd','rd','rd','rd','rd',
           'restore',
-          'ret',
+          'ret','retl',
           'save',
           'sdiv','sdivcc',
           'smul','smulcc',
@@ -64,11 +65,23 @@
           'set',
           'skipz','skipnz',
           'tst',
-	  { internal instructions }
-	  'fmovd'
+          { internal instructions }
+          'fmovd'
 {
         $Log$
-        Revision 1.11  2004-01-12 22:11:39  peter
+        Revision 1.12  2004-06-16 20:07:11  florian
+          * dwarf branch merged
+
+        Revision 1.11.2.3  2004/05/27 23:34:59  peter
+          * retl added
+
+        Revision 1.11.2.2  2004/05/25 21:38:53  peter
+          * assembler reader/writer updates
+
+        Revision 1.11.2.1  2004/05/13 20:58:47  florian
+          * fixed register addressed jumps in interface wrappers
+
+        Revision 1.11  2004/01/12 22:11:39  peter
           * use localalign info for alignment for locals and temps
           * sparc fpu flags branching added
           * moved powerpc copy_valye_openarray to generic

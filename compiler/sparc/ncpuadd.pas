@@ -49,7 +49,7 @@ interface
       systems,
       cutils,verbose,
       paramgr,
-      aasmtai,aasmcpu,defutil,
+      aasmbase,aasmtai,aasmcpu,defutil,
       cgbase,cgcpu,
       cpupara,
       ncon,nset,nadd,
@@ -282,13 +282,57 @@ interface
     procedure tsparcaddnode.second_cmp64bit;
       var
         unsigned : boolean;
+        l : tasmlabel;
       begin
-{$warning TODO 64bit compare}
+        pass_left_right;
+        force_reg_left_right(false,false);
+
         unsigned:=not(is_signed(left.resulttype.def)) or
                   not(is_signed(right.resulttype.def));
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(unsigned);
+
+        { operation requiring proper N, Z and C flags ? }
+        if unsigned or (nodetype in [equaln,unequaln]) then
+          begin
+            objectlibrary.getlabel(l);
+            exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
+            tcgsparc(cg).a_jmp_cond(exprasmlist,OC_NE,l);
+            exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
+            cg.a_label(exprasmlist,l);
+          end
+        { operation requiring proper N, V and C flags ? }
+        else if nodetype in [gten,ltn] then
+          begin
+            exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBCC,left.location.register64.reglo,right.location.register64.reglo,NR_G0));
+            exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBXCC,left.location.register64.reghi,right.location.register64.reghi,NR_G0));
+          end
+        else
+        { operation requiring proper N, Z and V flags ? }
+          begin
+            { this isn't possible so swap operands and use the "reverse" operation }
+            exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBCC,right.location.register64.reglo,left.location.register64.reglo,NR_G0));
+            exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBXCC,right.location.register64.reghi,left.location.register64.reghi,NR_G0));
+            if nf_swaped in flags then
+              begin
+                if location.resflags=F_L then
+                  location.resflags:=F_G
+                else if location.resflags=F_GE then
+                  location.resflags:=F_LE
+                else
+                  internalerror(200401221);
+              end
+            else
+              begin
+                if location.resflags=F_G then
+                  location.resflags:=F_L
+                else if location.resflags=F_LE then
+                  location.resflags:=F_GE
+                else
+                  internalerror(200401221);
+              end;
+          end;
 
         release_reg_left_right;
       end;
@@ -320,7 +364,21 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2004-01-12 22:11:39  peter
+  Revision 1.24  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.23.2.3  2004/06/02 16:07:52  peter
+    * fixed 64bit compare
+
+  Revision 1.23.2.2  2004/05/31 16:39:42  peter
+    * add ungetiftemp in a few locations
+
+  Revision 1.23.2.1  2004/05/30 17:54:14  florian
+    + implemented cmp64bit
+    * started to fix spilling
+    * fixed int64 sub partially
+
+  Revision 1.23  2004/01/12 22:11:39  peter
     * use localalign info for alignment for locals and temps
     * sparc fpu flags branching added
     * moved powerpc copy_valye_openarray to generic
@@ -356,5 +414,4 @@ end.
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates
-
 }

@@ -27,7 +27,7 @@ unit nset;
 interface
 
     uses
-       node,globals,
+       node,globtype,globals,
        aasmbase,aasmtai,symtype;
 
     type
@@ -114,7 +114,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      systems,
       verbose,
       symconst,symdef,symsym,symtable,defutil,defcmp,
       htypechk,pass_1,
@@ -354,7 +354,7 @@ implementation
             { upper limit must be greater or equal than lower limit }
             if (tordconstnode(left).value>tordconstnode(right).value) and
                ((tordconstnode(left).value<0) or (tordconstnode(right).value>=0)) then
-              CGMessage(cg_e_upper_lower_than_lower);
+              CGMessage(parser_e_upper_lower_than_lower);
           end;
         resulttype:=left.resulttype;
       end;
@@ -694,7 +694,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2004-03-18 16:19:03  peter
+  Revision 1.54  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.53.2.2  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.53.2.1  2004/04/28 19:55:51  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
+
+  Revision 1.53  2004/03/18 16:19:03  peter
     * fixed operator overload allowing for pointer-string
     * replaced some type_e_mismatch with more informational messages
 

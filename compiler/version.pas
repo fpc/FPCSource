@@ -57,9 +57,9 @@ interface
 {$ifdef cpuia64}
         source_cpu_string = 'ia64';
 {$endif cpuia64}
-{$ifdef cpu86_64}
+{$ifdef cpux86_64}
         source_cpu_string = 'x86_64';
-{$endif cpu86_64}
+{$endif cpux86_64}
 {$ifdef cpusparc}
         source_cpu_string = 'sparc';
 {$endif cpusparc}
@@ -93,11 +93,17 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2004-05-31 12:00:56  peter
+  Revision 1.25  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.24  2004/05/31 12:00:56  peter
     * 1.9.5 for CVS HEAD
 
   Revision 1.23  2004/05/29 23:46:50  michael
   + Version 1.9.4
+
+  Revision 1.22.2.1  2004/04/28 21:46:56  peter
+    * compile fixes for x86-64
 
   Revision 1.22  2004/01/11 20:59:41  florian
     * version changed to 1.9.3

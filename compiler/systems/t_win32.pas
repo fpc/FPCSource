@@ -108,7 +108,7 @@ interface
 implementation
 
   uses
-    cgutils;
+    cpuinfo,cgutils;
 
     function DllName(Const Name : string;NdefExt:longint;DefExt:pStr4) : string;
       var n : string;
@@ -243,7 +243,7 @@ const
          hp2 : twin32imported_item;
          p : pchar;
       begin
-         importssection.concat(tai_section.create(sec_code));
+         new_section(importssection,sec_code,'',0);
          hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
            begin
@@ -291,24 +291,24 @@ const
              objectlibrary.getaddrlabel(lidata4);
              objectlibrary.getaddrlabel(lidata5);
            { create header for this importmodule }
-             importsSection.concat(Tai_cut.Create_begin);
-             importsSection.concat(Tai_section.Create(sec_idata2));
+             importsSection.concat(Tai_cutobject.Create_begin);
+             new_section(importsSection,sec_idata2,'',0);
              importsSection.concat(Tai_label.Create(lhead));
              { pointer to procedure names }
-             importsSection.concat(Tai_const_symbol.Create_rva(lidata4));
+             importsSection.concat(Tai_const.Create_rva_sym(lidata4));
              { two empty entries follow }
              importsSection.concat(Tai_const.Create_32bit(0));
              importsSection.concat(Tai_const.Create_32bit(0));
              { pointer to dll name }
-             importsSection.concat(Tai_const_symbol.Create_rva(lname));
+             importsSection.concat(Tai_const.Create_rva_sym(lname));
              { pointer to fixups }
-             importsSection.concat(Tai_const_symbol.Create_rva(lidata5));
+             importsSection.concat(Tai_const.Create_rva_sym(lidata5));
              { first write the name references }
-             importsSection.concat(Tai_section.Create(sec_idata4));
+             new_section(importsSection,sec_idata4,'',0);
              importsSection.concat(Tai_const.Create_32bit(0));
              importsSection.concat(Tai_label.Create(lidata4));
              { then the addresses and create also the indirect jump }
-             importsSection.concat(Tai_section.Create(sec_idata5));
+             new_section(importsSection,sec_idata5,'',0);
              importsSection.concat(Tai_const.Create_32bit(0));
              importsSection.concat(Tai_label.Create(lidata5));
 
@@ -317,7 +317,7 @@ const
              while assigned(hp2) do
                begin
                  { insert cuts }
-                 importsSection.concat(Tai_cut.Create);
+                 importsSection.concat(Tai_cutobject.Create);
                  { create indirect jump }
                  if not hp2.is_var then
                   begin
@@ -325,7 +325,7 @@ const
                     reference_reset_symbol(href,lcode,0);
                     { place jump in codesegment, insert a code section in the
                       imporTSection to reduce the amount of .s files (PFV) }
-                    importsSection.concat(Tai_section.Create(sec_code));
+                    new_section(importsSection,sec_code,'',0);
 {$IfDef GDB}
                     if (cs_debuginfo in aktmoduleswitches) then
                      importsSection.concat(Tai_stab_function_name.Create(nil));
@@ -344,14 +344,14 @@ const
 {$EndIf GDB}
                   end;
                  { create head link }
-                 importsSection.concat(Tai_section.Create(sec_idata7));
-                 importsSection.concat(Tai_const_symbol.Create_rva(lhead));
+                 new_section(importsSection,sec_idata7,'',0);
+                 importsSection.concat(Tai_const.Create_rva_sym(lhead));
                  { fixup }
                  objectlibrary.getlabel(tasmlabel(hp2.lab));
-                 importsSection.concat(Tai_section.Create(sec_idata4));
-                 importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab));
+                 new_section(importsSection,sec_idata4,'',0);
+                 importsSection.concat(Tai_const.Create_rva_sym(hp2.lab));
                  { add jump field to imporTSection }
-                 importsSection.concat(Tai_section.Create(sec_idata5));
+                 new_section(importsSection,sec_idata5,'',0);
                  if hp2.is_var then
                   importsSection.concat(Tai_symbol.Createname_global(hp2.func^,AT_FUNCTION,0))
                  else
@@ -384,11 +384,11 @@ const
                   end;
 {$endif GDB}
                  if hp2.name^<>'' then
-                  importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab))
+                  importsSection.concat(Tai_const.Create_rva_sym(hp2.lab))
                  else
                   importsSection.concat(Tai_const.Create_32bit(cardinal($80000000) or cardinal(hp2.ordnr)));
                  { finally the import information }
-                 importsSection.concat(Tai_section.Create(sec_idata6));
+                 new_section(importsSection,sec_idata6,'',0);
                  importsSection.concat(Tai_label.Create(hp2.lab));
                  importsSection.concat(Tai_const.Create_16bit(hp2.ordnr));
                  importsSection.concat(Tai_string.Create(hp2.name^+#0));
@@ -397,15 +397,15 @@ const
                end;
 
               { write final section }
-              importsSection.concat(Tai_cut.Create_end);
+              importsSection.concat(Tai_cutobject.Create_end);
               { end of name references }
-              importsSection.concat(Tai_section.Create(sec_idata4));
+              new_section(importsSection,sec_idata4,'',0);
               importsSection.concat(Tai_const.Create_32bit(0));
               { end if addresses }
-              importsSection.concat(Tai_section.Create(sec_idata5));
+              new_section(importsSection,sec_idata5,'',0);
               importsSection.concat(Tai_const.Create_32bit(0));
               { dllname }
-              importsSection.concat(Tai_section.Create(sec_idata7));
+              new_section(importsSection,sec_idata7,'',0);
               importsSection.concat(Tai_label.Create(lname));
               importsSection.concat(Tai_string.Create(hp1.dllname^+#0));
 
@@ -435,28 +435,27 @@ const
          while assigned(hp1) do
            begin
               { align codesegment for the jumps }
-              importsSection.concat(Tai_section.Create(sec_code));
-              importsSection.concat(Tai_align.Create_op(4,$90));
+              new_section(importsSection,sec_code,'',sizeof(aint));
               { Get labels for the sections }
               objectlibrary.getlabel(l1);
               objectlibrary.getlabel(l2);
               objectlibrary.getlabel(l3);
-              importsSection.concat(Tai_section.Create(sec_idata2));
+              new_section(importsSection,sec_idata2,'',0);
               { pointer to procedure names }
-              importsSection.concat(Tai_const_symbol.Create_rva(l2));
+              importsSection.concat(Tai_const.Create_rva_sym(l2));
               { two empty entries follow }
               importsSection.concat(Tai_const.Create_32bit(0));
               importsSection.concat(Tai_const.Create_32bit(0));
               { pointer to dll name }
-              importsSection.concat(Tai_const_symbol.Create_rva(l1));
+              importsSection.concat(Tai_const.Create_rva_sym(l1));
               { pointer to fixups }
-              importsSection.concat(Tai_const_symbol.Create_rva(l3));
+              importsSection.concat(Tai_const.Create_rva_sym(l3));
 
               { only create one section for each else it will
                 create a lot of idata* }
 
               { first write the name references }
-              importsSection.concat(Tai_section.Create(sec_idata4));
+              new_section(importsSection,sec_idata4,'',0);
               importsSection.concat(Tai_label.Create(l2));
 
               hp2:=twin32imported_item(hp1.imported_items.first);
@@ -464,7 +463,7 @@ const
                 begin
                    objectlibrary.getlabel(tasmlabel(hp2.lab));
                    if hp2.name^<>'' then
-                     importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab))
+                     importsSection.concat(Tai_const.Create_rva_sym(hp2.lab))
                    else
                      importsSection.concat(Tai_const.Create_32bit(cardinal($80000000) or cardinal(hp2.ordnr)));
                    hp2:=twin32imported_item(hp2.next);
@@ -473,7 +472,7 @@ const
               importsSection.concat(Tai_const.Create_32bit(0));
 
               { then the addresses and create also the indirect jump }
-              importsSection.concat(Tai_section.Create(sec_idata5));
+              new_section(importsSection,sec_idata5,'',0);
               importsSection.concat(Tai_label.Create(l3));
               hp2:=twin32imported_item(hp1.imported_items.first);
               while assigned(hp2) do
@@ -484,7 +483,7 @@ const
                       { create indirect jump }
                       reference_reset_symbol(href,l4,0);
                       { place jump in codesegment }
-                      importsSection.concat(Tai_section.Create(sec_code));
+                      new_section(importsSection,sec_code,'',0);
 {$IfDef GDB}
                       if (cs_debuginfo in aktmoduleswitches) then
                         importssection.concat(tai_stab_function_name.create(nil));
@@ -502,7 +501,7 @@ const
                        end;
 {$EndIf GDB}
                       { add jump field to imporTSection }
-                      importsSection.concat(Tai_section.Create(sec_idata5));
+                      new_section(importsSection,sec_idata5,'',0);
 {$ifdef GDB}
                       if (cs_debuginfo in aktmoduleswitches) then
                        begin
@@ -536,14 +535,14 @@ const
                     begin
                       importsSection.concat(Tai_symbol.Createname_global(hp2.func^,AT_DATA,0));
                     end;
-                   importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab));
+                   importsSection.concat(Tai_const.Create_rva_sym(hp2.lab));
                    hp2:=twin32imported_item(hp2.next);
                 end;
               { finalize the addresses }
               importsSection.concat(Tai_const.Create_32bit(0));
 
               { finally the import information }
-              importsSection.concat(Tai_section.Create(sec_idata6));
+              new_section(importsSection,sec_idata6,'',0);
               hp2:=twin32imported_item(hp1.imported_items.first);
               while assigned(hp2) do
                 begin
@@ -555,7 +554,7 @@ const
                    hp2:=twin32imported_item(hp2.next);
                 end;
               { create import dll name }
-              importsSection.concat(Tai_section.Create(sec_idata7));
+              new_section(importsSection,sec_idata7,'',0);
               importsSection.concat(Tai_label.Create(l1));
               importsSection.concat(Tai_string.Create(hp1.dllname^+#0));
 
@@ -735,7 +734,7 @@ const
          { we must also count the holes !! }
          entries:=ordinal_max-ordinal_base+1;
 
-         exportsSection.concat(Tai_section.Create(sec_edata));
+         new_section(exportsSection,sec_edata,'',0);
          { create label to reference from main so smartlink will include
            the .edata section }
          exportsSection.concat(Tai_symbol.Create_global(edatalabel,0));
@@ -748,7 +747,7 @@ const
          { minor version }
          exportsSection.concat(Tai_const.Create_16bit(0));
          { pointer to dll name }
-         exportsSection.concat(Tai_const_symbol.Create_rva(dll_name_label));
+         exportsSection.concat(Tai_const.Create_rva_sym(dll_name_label));
          { ordinal base normally set to 1 }
          exportsSection.concat(Tai_const.Create_32bit(ordinal_base));
          { number of entries }
@@ -756,11 +755,11 @@ const
          { number of named entries }
          exportsSection.concat(Tai_const.Create_32bit(named_entries));
          { address of export address table }
-         exportsSection.concat(Tai_const_symbol.Create_rva(export_address_table));
+         exportsSection.concat(Tai_const.Create_rva_sym(export_address_table));
          { address of name pointer pointers }
-         exportsSection.concat(Tai_const_symbol.Create_rva(export_name_table_pointers));
+         exportsSection.concat(Tai_const.Create_rva_sym(export_name_table_pointers));
          { address of ordinal number pointers }
-         exportsSection.concat(Tai_const_symbol.Create_rva(export_ordinal_table));
+         exportsSection.concat(Tai_const.Create_rva_sym(export_ordinal_table));
          { the name }
          exportsSection.concat(Tai_label.Create(dll_name_label));
          if st='' then
@@ -787,7 +786,7 @@ const
               if (hp.options and eo_name)<>0 then
                 begin
                    objectlibrary.getlabel(name_label);
-                   name_table_pointers.concat(Tai_const_symbol.Create_rva(name_label));
+                   name_table_pointers.concat(Tai_const.Create_rva_sym(name_label));
                    ordinal_table.concat(Tai_const.Create_16bit(hp.index-ordinal_base));
                    name_table.concat(Tai_align.Create_op(2,0));
                    name_table.concat(Tai_label.Create(name_label));
@@ -825,11 +824,11 @@ const
                 end;
               case hp.sym.typ of
                 varsym :
-                  address_table.concat(Tai_const_symbol.Createname_rva(tvarsym(hp.sym).mangledname));
+                  address_table.concat(Tai_const.Createname_rva(tvarsym(hp.sym).mangledname));
                 typedconstsym :
-                  address_table.concat(Tai_const_symbol.Createname_rva(ttypedconstsym(hp.sym).mangledname));
+                  address_table.concat(Tai_const.Createname_rva(ttypedconstsym(hp.sym).mangledname));
                 procsym :
-                  address_table.concat(Tai_const_symbol.Createname_rva(tprocsym(hp.sym).first_procdef.mangledname));
+                  address_table.concat(Tai_const.Createname_rva(tprocsym(hp.sym).first_procdef.mangledname));
               end;
               inc(current_index);
               hp:=texported_item(hp.next);
@@ -852,7 +851,7 @@ const
          p  : pchar;
          s  : string;
       begin
-         exportssection.concat(tai_section.create(sec_code));
+         new_section(exportssection,sec_code,'',0);
          hp:=texported_item(current_module._exports.first);
          while assigned(hp) do
            begin
@@ -884,9 +883,8 @@ begin
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
-  If not ForceDeffileForExport then
-    UseDeffileForExport:=false;
 end;
+
 
 Procedure TLinkerWin32.SetDefaultInfo;
 begin
@@ -894,16 +892,13 @@ begin
    begin
      ExeCmd[1]:='ld $OPT $STRIP $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
      DllCmd[1]:='ld $OPT $STRIP --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
-     if RelocSection or UseDeffileForExport then
-       begin
-          { ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
-            use short forms to avoid 128 char limitation problem }
-          ExeCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
-          ExeCmd[3]:='ld $OPT $STRIP $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
-          { DllCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF'; }
-          DllCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
-          DllCmd[3]:='ld $OPT $STRIP --dll $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
-       end;
+     { ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
+       use short forms to avoid 128 char limitation problem }
+     ExeCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
+     ExeCmd[3]:='ld $OPT $STRIP $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
+     { DllCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF'; }
+     DllCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
+     DllCmd[3]:='ld $OPT $STRIP --dll $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
    end;
 end;
 
@@ -1022,7 +1017,7 @@ var
   binstr,
   cmdstr  : string;
   success : boolean;
-  i       : longint;
+  cmds,i       : longint;
   AsBinStr     : string[80];
   StripStr,
   RelocStr,
@@ -1039,7 +1034,6 @@ begin
   StripStr:='';
   AsBinStr:=FindUtil(utilsprefix+'as');
   if RelocSection then
-   { Using short form to avoid problems with 128 char limitation under Dos. }
    RelocStr:='--base-file base.$$$';
   if apptype=app_gui then
    AppTypeStr:='--subsystem windows';
@@ -1053,7 +1047,11 @@ begin
 
 { Call linker }
   success:=false;
-  for i:=1 to 3 do
+  if RelocSection or (not Deffile.empty) then
+    cmds:=3
+  else
+    cmds:=1;
+  for i:=1 to cmds do
    begin
      SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
      if binstr<>'' then
@@ -1066,7 +1064,7 @@ begin
         Replace(cmdstr,'$RELOC',RelocStr);
         Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
         Replace(cmdstr,'$STRIP',StripStr);
-        if not DefFile.Empty {and UseDefFileForExport} then
+        if not DefFile.Empty then
           begin
             DefFile.WriteFile;
             Replace(cmdstr,'$DEF','-d '+maybequoted(deffile.fname));
@@ -1101,6 +1099,7 @@ var
   binstr,
   cmdstr  : string;
   success : boolean;
+  cmds,
   i       : longint;
   AsBinStr     : string[80];
   StripStr,
@@ -1119,8 +1118,7 @@ begin
   StripStr:='';
   AsBinStr:=FindUtil(utilsprefix+'as');
   if RelocSection then
-   { Using short form to avoid problems with 128 char limitation under Dos. }
-   RelocStr:='-b base.$$$';
+   RelocStr:='--base-file base.$$$';
   if apptype=app_gui then
    AppTypeStr:='--subsystem windows';
   if assigned(DLLImageBase) then
@@ -1133,7 +1131,11 @@ begin
 
 { Call linker }
   success:=false;
-  for i:=1 to 3 do
+  if RelocSection or (not Deffile.empty) then
+    cmds:=3
+  else
+    cmds:=1;
+  for i:=1 to cmds do
    begin
      SplitBinCmd(Info.DllCmd[i],binstr,cmdstr);
      if binstr<>'' then
@@ -1146,7 +1148,7 @@ begin
         Replace(cmdstr,'$RELOC',RelocStr);
         Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
         Replace(cmdstr,'$STRIP',StripStr);
-        if not DefFile.Empty {and UseDefFileForExport} then
+        if not DefFile.Empty then
           begin
             DefFile.WriteFile;
             Replace(cmdstr,'$DEF','-d '+maybequoted(deffile.fname));
@@ -1169,6 +1171,7 @@ begin
      RemoveFile(outputexedir+Info.ResName);
      RemoveFile('base.$$$');
      RemoveFile('exp.$$$');
+     RemoveFile('deffile.$$$');
    end;
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
 end;
@@ -1656,11 +1659,30 @@ initialization
 end.
 {
   $Log$
-  Revision 1.32  2004-04-28 18:02:54  peter
+  Revision 1.33  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.32  2004/04/28 18:02:54  peter
     * add TList to cclasses, remove classes dependency from t_win32
 
   Revision 1.31  2004/04/24 17:32:05  peter
   index number generation for mixed index-nonindexed fixed, patch by Pavel V. Ozerski
+
+  Revision 1.30.2.5  2004/05/03 14:59:58  peter
+    * no dlltool needed for win32 linking executables
+
+  Revision 1.30.2.4  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.30.2.3  2004/04/12 14:45:11  peter
+    * tai_const_symbol and tai_const merged
+
+  Revision 1.30.2.2  2004/04/10 12:36:42  peter
+    * fixed alignment issues
+
+  Revision 1.30.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
 
   Revision 1.30  2004/03/18 11:44:07  olle
     * change AT_FUNCTION to AT_DATA where appropriate

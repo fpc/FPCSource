@@ -40,12 +40,12 @@ unit cpupara;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           procedure alloctempparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var locpara:tparalocation);override;
-          function  create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
+          function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;override;
          private
-           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
-           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; firstpara: tparaitem;
-               var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
+          procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
+          function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; firstpara: tparaitem;
+            var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
        end;
 
   implementation
@@ -438,7 +438,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2004-03-20 21:11:01  florian
+  Revision 1.18  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.17.2.1  2004/06/13 20:38:38  florian
+    * fixed floating point register spilling on sparc
+
+  Revision 1.17  2004/03/20 21:11:01  florian
     + float parameters can be on the stack now as well
 
   Revision 1.16  2004/03/20 20:55:36  florian

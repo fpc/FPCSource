@@ -26,6 +26,10 @@ unit cstreams;
 
 interface
 
+   uses
+     cutils;
+
+
 {****************************************************************************
                                   TCStream
 ****************************************************************************}
@@ -307,7 +311,7 @@ implementation
     if TheSize>0 then
      begin
        ReadBuffer (Pointer(Result)^,TheSize);
-       P:=PByte(Longint(Result)+TheSize);
+       P:=PByte(PtrInt(Result)+TheSize);
        p^:=0;
      end;
    end;
@@ -451,7 +455,7 @@ begin
     begin
     Result:=FSize-FPosition;
     If Result>Count then Result:=Count;
-    Move (Pointer(Longint(FMemory)+FPosition)^,Buffer,Result);
+    Move (Pointer(PtrInt(FMemory)+FPosition)^,Buffer,Result);
     FPosition:=Fposition+Result;
     end;
 end;
@@ -602,7 +606,7 @@ begin
       SetCapacity (NewPos);
     FSize:=Newpos;
     end;
-  System.Move (Buffer,Pointer(Longint(FMemory)+FPosition)^,Count);
+  System.Move (Buffer,Pointer(Ptrint(FMemory)+FPosition)^,Count);
   FPosition:=NewPos;
   Result:=Count;
 end;
@@ -610,7 +614,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2002-07-01 16:23:52  peter
+  Revision 1.7  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.6.2.2  2004/04/29 19:07:22  peter
+    * compile fixes
+
+  Revision 1.6.2.1  2004/04/28 21:46:56  peter
+    * compile fixes for x86-64
+
+  Revision 1.6  2002/07/01 16:23:52  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

@@ -95,7 +95,9 @@ implementation
     procedure tx86typeconvnode.second_int_to_bool;
       var
         hregister : tregister;
+{$ifndef cpu64bit}
         href      : treference;
+{$endif cpu64bit}
         resflags  : tresflags;
         hlabel,oldtruelabel,oldfalselabel : tasmlabel;
       begin
@@ -227,7 +229,7 @@ implementation
               end
             else
               signtested:=false;
-	
+
             { We need to load from a reference }
             location_force_mem(exprasmlist,left.location);
 
@@ -299,8 +301,23 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2004-05-10 20:57:45  florian
+  Revision 1.12  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.11  2004/05/10 20:57:45  florian
     * fixed qword -> <real> type cast
+
+  Revision 1.10.2.4  2004/05/09 16:04:57  peter
+    * compile fixes
+
+  Revision 1.10.2.3  2004/05/05 05:34:24  florian
+    * qword -> double type cast fixed
+
+  Revision 1.10.2.2  2004/04/27 18:18:26  peter
+    * aword -> aint
+
+  Revision 1.10.2.1  2004/04/26 15:54:33  peter
+    * small x86-64 fixes
 
   Revision 1.10  2004/02/27 10:21:06  florian
     * top_symbol killed

@@ -92,9 +92,9 @@ function getselfoffsetfromsp(procdef: tprocdef): longint;
 begin
   { framepointer is pushed for nested procs }
   if procdef.parast.symtablelevel>normal_function_level then
-    getselfoffsetfromsp:=2*POINTER_SIZE
+    getselfoffsetfromsp:=2*sizeof(aint)
   else
-    getselfoffsetfromsp:=POINTER_SIZE;
+    getselfoffsetfromsp:=sizeof(aint);
 end;
 
 
@@ -164,6 +164,7 @@ begin
   make_global:=false;
   if (not current_module.is_unit) or
      (cs_create_smart in aktmoduleswitches) or
+     (af_smartlink_sections in target_asm.flags) or
      (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
     make_global:=true;
 
@@ -238,7 +239,17 @@ initialization
 end.
 {
   $Log$
-  Revision 1.32  2004-03-02 00:36:33  olle
+  Revision 1.33  2004-06-16 20:07:10  florian
+    * dwarf branch merged
+
+  Revision 1.32.2.2  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.32.2.1  2004/04/08 18:33:22  peter
+    * rewrite of TAsmSection
+
+  Revision 1.32  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.31  2004/02/27 13:42:52  olle

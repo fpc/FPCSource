@@ -243,7 +243,10 @@ implementation
          hrefvmt   : treference;
          hregister : tregister;
       begin
-        location_reset(location,LOC_REGISTER,OS_ADDR);
+        if inlinenumber=in_sizeof_x then
+          location_reset(location,LOC_REGISTER,OS_INT)
+        else
+          location_reset(location,LOC_REGISTER,OS_ADDR);
         { for both cases load vmt }
         if left.nodetype=typen then
           begin
@@ -327,15 +330,15 @@ implementation
          end
         else
          begin
-           { length in ansi strings is at offset -8 }
+           { length in ansi strings is at offset sizeof(aint)*2 }
            location_force_reg(exprasmlist,left.location,OS_ADDR,false);
            objectlibrary.getlabel(lengthlab);
            cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,left.location.register,lengthlab);
-           reference_reset_base(href,left.location.register,-8);
-           hregister:=cg.makeregsize(exprasmlist,left.location.register,OS_32);
-           cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,hregister);
+           reference_reset_base(href,left.location.register,-sizeof(aint)*2);
+           hregister:=cg.makeregsize(exprasmlist,left.location.register,OS_INT);
+           cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,href,hregister);
            cg.a_label(exprasmlist,lengthlab);
-           location_reset(location,LOC_REGISTER,OS_32);
+           location_reset(location,LOC_REGISTER,OS_INT);
            location.register:=hregister;
          end;
       end;
@@ -361,10 +364,11 @@ implementation
         location_copy(location,left.location);
         location_force_reg(exprasmlist,location,cgsize,false);
 
+{$ifndef cpu64bit}
         if cgsize in [OS_64,OS_S64] then
-          cg64.a_op64_const_reg(exprasmlist,cgop,1,
-                      location.register64)
+          cg64.a_op64_const_reg(exprasmlist,cgop,1,location.register64)
         else
+{$endif cpu64bit}
           cg.a_op_const_reg(exprasmlist,cgop,location.size,1,location.register);
 
         cg.g_rangecheck(exprasmlist,location,resulttype.def,resulttype.def);
@@ -429,12 +433,13 @@ implementation
           { write the add instruction }
           if addconstant then
             begin
+{$ifndef cpu64bit}
               if cgsize in [OS_64,OS_S64] then
-               cg64.a_op64_const_loc(exprasmlist,addsubop[inlinenumber],
-                  addvalue,tcallparanode(left).left.location)
+                cg64.a_op64_const_loc(exprasmlist,addsubop[inlinenumber],addvalue,tcallparanode(left).left.location)
               else
-               cg.a_op_const_loc(exprasmlist,addsubop[inlinenumber],
-                  aword(addvalue),tcallparanode(left).left.location);
+{$endif cpu64bit}
+                cg.a_op_const_loc(exprasmlist,addsubop[inlinenumber],
+                  addvalue,tcallparanode(left).left.location);
             end
            else
              begin
@@ -475,19 +480,21 @@ implementation
 
       procedure tcginlinenode.second_IncludeExclude;
         var
-          L : longint;
+          bitsperop,l : longint;
+          opsize : tcgsize;
           cgop : topcg;
           addrreg2,addrreg,
           hregister,hregister2: tregister;
           use_small : boolean;
-          cgsize : tcgsize;
           href : treference;
         begin
+          opsize:=OS_32;
+          bitsperop:=(8*tcgsize2size[opsize]);
           secondpass(tcallparanode(left).left);
           if tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn then
             begin
               { calculate bit position }
-              l:=1 shl (tordconstnode(tcallparanode(tcallparanode(left).right).left).value mod 32);
+              l:=1 shl (tordconstnode(tcallparanode(tcallparanode(left).right).left).value mod bitsperop);
 
               { determine operator }
               if inlinenumber=in_include_x_y then
@@ -497,18 +504,19 @@ implementation
                   cgop:=OP_AND;
                   l:=not(l);
                 end;
-              if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
-                begin
-                  inc(tcallparanode(left).left.location.reference.offset,
-                    (tordconstnode(tcallparanode(tcallparanode(left).right).left).value div 32)*4);
-                  cg.a_op_const_ref(exprasmlist,cgop,OS_INT,aword(l),tcallparanode(left).left.location.reference);
-                  location_release(exprasmlist,tcallparanode(left).left.location);
-                end
-              else
-                { LOC_CREGISTER }
-                begin
-                  cg.a_op_const_reg(exprasmlist,cgop,tcallparanode(left).left.location.size,aword(l),tcallparanode(left).left.location.register);
-                end;
+              case tcallparanode(left).left.location.loc of
+                LOC_REFERENCE :
+                  begin
+                    inc(tcallparanode(left).left.location.reference.offset,
+                      (tordconstnode(tcallparanode(tcallparanode(left).right).left).value div bitsperop)*tcgsize2size[opsize]);
+                    cg.a_op_const_ref(exprasmlist,cgop,opsize,l,tcallparanode(left).left.location.reference);
+                    location_release(exprasmlist,tcallparanode(left).left.location);
+                  end;
+                LOC_CREGISTER :
+                  cg.a_op_const_reg(exprasmlist,cgop,tcallparanode(left).left.location.size,l,tcallparanode(left).left.location.register);
+                else
+                  internalerror(200405021);
+              end;
             end
           else
             begin
@@ -526,17 +534,17 @@ implementation
               secondpass(tcallparanode(tcallparanode(left).right).left);
 
               { bitnumber - which must be loaded into register }
-              hregister:=cg.getintregister(exprasmlist,OS_32);
-              hregister2:=cg.getintregister(exprasmlist,OS_32);
+              hregister:=cg.getintregister(exprasmlist,opsize);
+              hregister2:=cg.getintregister(exprasmlist,opsize);
 
-              cg.a_load_loc_reg(exprasmlist,OS_32,
+              cg.a_load_loc_reg(exprasmlist,opsize,
                   tcallparanode(tcallparanode(left).right).left.location,hregister);
 
               if use_small then
                 begin
                   { hregister contains the bitnumber to add }
-                  cg.a_load_const_reg(exprasmlist, OS_32, 1, hregister2);
-                  cg.a_op_reg_reg(exprasmlist, OP_SHL, OS_32, hregister, hregister2);
+                  cg.a_load_const_reg(exprasmlist, opsize, 1, hregister2);
+                  cg.a_op_reg_reg(exprasmlist, OP_SHL, opsize, hregister, hregister2);
 
                   { possiblities :
                        bitnumber : LOC_REFERENCE, LOC_REGISTER, LOC_CREGISTER
@@ -547,13 +555,13 @@ implementation
                     begin
                       if inlinenumber=in_include_x_y then
                         begin
-                          cg.a_op_reg_ref(exprasmlist, OP_OR, OS_32, hregister2,
+                          cg.a_op_reg_ref(exprasmlist, OP_OR, opsize, hregister2,
                           tcallparanode(left).left.location.reference);
                         end
                       else
                         begin
-                          cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2,hregister2);
-                          cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2,
+                          cg.a_op_reg_reg(exprasmlist, OP_NOT, opsize, hregister2,hregister2);
+                          cg.a_op_reg_ref(exprasmlist, OP_AND, opsize, hregister2,
                               tcallparanode(left).left.location.reference);
                         end;
                     end
@@ -569,30 +577,30 @@ implementation
                   { hregister contains the bitnumber (div 32 to get the correct offset) }
                   { hregister contains the bitnumber to add }
 
-                  cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_32, 5, hregister,hregister2);
-                  cg.a_op_const_reg(exprasmlist, OP_SHL, OS_32, 2, hregister2);
+                  cg.a_op_const_reg_reg(exprasmlist, OP_SHR, opsize, 5, hregister,hregister2);
+                  cg.a_op_const_reg(exprasmlist, OP_SHL, opsize, 2, hregister2);
                   addrreg:=cg.getaddressregister(exprasmlist);
                   { we need an extra address register to be able to do an ADD operation }
                   addrreg2:=cg.getaddressregister(exprasmlist);
-                  cg.a_load_reg_reg(exprasmlist,OS_32,OS_ADDR,hregister2,addrreg2);
+                  cg.a_load_reg_reg(exprasmlist,opsize,OS_ADDR,hregister2,addrreg2);
                   { calculate the correct address of the operand }
                   cg.a_loadaddr_ref_reg(exprasmlist, tcallparanode(left).left.location.reference,addrreg);
-                  cg.a_op_reg_reg(exprasmlist, OP_ADD, OS_32, addrreg2, addrreg);
+                  cg.a_op_reg_reg(exprasmlist, OP_ADD, OS_ADDR, addrreg2, addrreg);
                   cg.ungetregister(exprasmlist,addrreg2);
 
                   { hregister contains the bitnumber to add }
-                  cg.a_load_const_reg(exprasmlist, OS_32, 1, hregister2);
-                  cg.a_op_const_reg(exprasmlist, OP_AND, OS_32, 31, hregister);
-                  cg.a_op_reg_reg(exprasmlist, OP_SHL, OS_32, hregister, hregister2);
+                  cg.a_load_const_reg(exprasmlist, opsize, 1, hregister2);
+                  cg.a_op_const_reg(exprasmlist, OP_AND, opsize, 31, hregister);
+                  cg.a_op_reg_reg(exprasmlist, OP_SHL, opsize, hregister, hregister2);
 
                   reference_reset_base(href,addrreg,0);
 
                   if inlinenumber=in_include_x_y then
-                    cg.a_op_reg_ref(exprasmlist, OP_OR, OS_32, hregister2, href)
+                    cg.a_op_reg_ref(exprasmlist, OP_OR, opsize, hregister2, href)
                   else
                     begin
-                      cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, hregister2);
-                      cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2, href);
+                      cg.a_op_reg_reg(exprasmlist, OP_NOT, opsize, hregister2, hregister2);
+                      cg.a_op_reg_ref(exprasmlist, OP_AND, opsize, hregister2, href);
                     end;
                   cg.ungetregister(exprasmlist,addrreg);
                 end;
@@ -678,11 +686,26 @@ end.
 
 {
   $Log$
-  Revision 1.58  2004-05-30 21:18:22  jonas
+  Revision 1.59  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.58  2004/05/30 21:18:22  jonas
     * some optimizations and associated fixes for better regvar code
 
   Revision 1.57  2004/05/22 23:34:28  peter
   tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
+
+  Revision 1.56.2.4  2004/05/02 16:49:12  peter
+    * 64 bit fixes
+
+  Revision 1.56.2.3  2004/05/01 16:35:51  florian
+    * fixed length(<ansi/widestring>) for 64 Bit CPUs
+
+  Revision 1.56.2.2  2004/04/27 18:18:25  peter
+    * aword -> aint
+
+  Revision 1.56.2.1  2004/04/26 21:02:34  peter
+    * 64bit fixes
 
   Revision 1.56  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*

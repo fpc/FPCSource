@@ -324,22 +324,22 @@ unit i_linux;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 4;
+                procalign       : 8;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 1;
+                constalignmax   : 8;
                 varalignmin     : 0;
-                varalignmax     : 1;
-                localalignmin   : 0;
-                localalignmax   : 1;
+                varalignmax     : 8;
+                localalignmin   : 4;
+                localalignmax   : 8;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
+                recordalignmax  : 8;
+                maxCrecordalign : 8
               );
             first_parm_offset : 16;
             heapsize     : 256*1024;
-            stacksize    : 16*1024;
+            stacksize    : 256*1024;
             DllScanSupported:false;
             use_function_relative_addresses : true
           );
@@ -400,7 +400,7 @@ unit i_linux;
                 recordalignmax  : 8;
                 maxCrecordalign : 8
               );
-            first_parm_offset : (16+1)*4;
+            first_parm_offset : 92;
             heapsize     : 256*1024;
             stacksize    : 262144;
             DllScanSupported:false;
@@ -486,11 +486,11 @@ initialization
     set_source_info(system_m68k_linux_info);
   {$endif linux}
 {$endif CPU68}
-{$ifdef CPU86_64}
+{$ifdef CPUX86_64}
   {$ifdef linux}
     set_source_info(system_x86_64_linux_info);
   {$endif linux}
-{$endif CPU86_64}
+{$endif CPUX86_64}
 {$ifdef CPUALPHA}
   {$ifdef linux}
     set_source_info(system_alpha_linux_info);
@@ -514,7 +514,25 @@ initialization
 end.
 {
   $Log$
-  Revision 1.25  2004-02-22 16:51:51  peter
+  Revision 1.26  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.25.2.5  2004/05/31 22:08:21  peter
+    * fix passing of >6 arguments
+
+  Revision 1.25.2.4  2004/05/19 21:34:58  peter
+    * disable section smartlink, it is not working stable
+
+  Revision 1.25.2.3  2004/05/10 21:28:34  peter
+    * section_smartlink enabled for gas under linux
+
+  Revision 1.25.2.2  2004/05/02 14:17:27  peter
+    * fix cpux86_64 ifdef
+
+  Revision 1.25.2.1  2004/04/28 19:54:56  peter
+    * alignment updates for x86-64
+
+  Revision 1.25  2004/02/22 16:51:51  peter
     * tf_need_symbol_size added
 
   Revision 1.24  2004/02/05 18:28:37  peter

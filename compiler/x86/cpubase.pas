@@ -184,6 +184,14 @@ uses
 {$endif x86_64}
       );
 
+      regdwarf_table : array[tregisterindex] of shortint = (
+{$ifdef x86_64}
+        {$i r8664dwrf.inc}
+{$else x86_64}
+        {$i r386dwrf.inc}
+{$endif x86_64}
+      );
+
    type
       totherregisterset = set of tregisterindex;
 
@@ -290,12 +298,11 @@ uses
             LOC_FLAGS : (resflags : tresflags);
             LOC_CONSTANT : (
               case longint of
-                1 : (value : AWord);
+                1 : (value : AInt);
                 { can't do this, this layout depends on the host cpu. Use }
                 { lo(valueqword)/hi(valueqword) instead (JM)              }
-                { 2 : (valuelow, valuehigh:AWord);                        }
                 { overlay a complete 64 Bit value }
-                3 : (valueqword : qword);
+                2 : (value64 : Int64);
               );
             LOC_CREFERENCE,
             LOC_REFERENCE : (reference : treference);
@@ -337,6 +344,7 @@ uses
 
     function cgsize2subreg(s:Tcgsize):Tsubregister;
     function reg2opsize(r:Tregister):topsize;
+    function reg_cgsize(const reg: tregister): tcgsize;
     function is_calljmp(o:tasmop):boolean;
     procedure inverse_flags(var f: TResFlags);
     function flags_to_cond(const f: TResFlags) : TAsmCond;
@@ -395,13 +403,39 @@ implementation
             cgsize2subreg:=R_SUBQ;
           OS_M64:
             cgsize2subreg:=R_SUBNONE;
-          OS_F32,OS_F64,
+          OS_F32,OS_F64,OS_C64,
           OS_M128,OS_MS128:
             cgsize2subreg:=R_SUBWHOLE;
           else
             internalerror(200301231);
         end;
       end;
+
+
+    function reg_cgsize(const reg: tregister): tcgsize;
+      const subreg2cgsize:array[Tsubregister] of Tcgsize =
+            (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO);
+      begin
+        case getregtype(reg) of
+          R_INTREGISTER :
+            reg_cgsize:=subreg2cgsize[getsubreg(reg)];
+          R_FPUREGISTER :
+            reg_cgsize:=OS_F80;
+          R_MMXREGISTER:
+            reg_cgsize:=OS_M64;
+          R_MMREGISTER:
+            reg_cgsize:=OS_M128;
+          R_SPECIALREGISTER :
+            case reg of
+              NR_CS,NR_DS,NR_ES,NR_SS,NR_FS,NR_GS:
+                reg_cgsize:=OS_16
+              else
+                reg_cgsize:=OS_32
+            end
+          else
+            internalerror(200303181);
+          end;
+        end;
 
 
     function reg2opsize(r:Tregister):topsize;
@@ -509,7 +543,26 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2004-02-27 10:21:06  florian
+  Revision 1.43  2004-06-16 20:07:11  florian
+    * dwarf branch merged
+
+  Revision 1.42.2.5  2004/05/28 20:29:50  florian
+    * fixed currency trouble on x86-64
+
+  Revision 1.42.2.4  2004/05/01 16:02:10  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.42.2.3  2004/05/01 11:12:24  florian
+    * spilling of registers with size<>4 fixed
+
+  Revision 1.42.2.2  2004/04/27 18:18:26  peter
+    * aword -> aint
+
+  Revision 1.42.2.1  2004/04/12 19:34:46  peter
+    * basic framework for dwarf CFI
+
+  Revision 1.42  2004/02/27 10:21:06  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
@@ -864,7 +917,7 @@ end.
     * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
 
   Revision 1.14  2002/04/15 19:12:09  carl
-  + target_info.size_of_pointer -> pointer_size
+  + target_info.size_of_pointer -> sizeof(aint)
   + some cleanup of unused types/variables
   * move several constants from cpubase to their specific units
     (where they are used)

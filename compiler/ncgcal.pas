@@ -48,9 +48,6 @@ interface
           procedure normal_pass_2;
           procedure inlined_pass_2;
        protected
-          { save the size of pushed parameter, needed po_clearstack
-            and alignment }
-          pushedparasize : longint;
           framepointer_paraloc : tparalocation;
           refcountedtemp : treference;
           procedure handle_return_value;
@@ -63,7 +60,6 @@ interface
              most stack based machines, where the frame pointer is
              the first invisible parameter.
           }
-          function  align_parasize:longint;virtual;
           procedure pop_parasize(pop_size:longint);virtual;
           procedure extra_interrupt_code;virtual;
           procedure extra_call_code;virtual;
@@ -88,7 +84,7 @@ implementation
       gdb,
 {$endif GDB}
       cgbase,pass_2,
-      cpuinfo,aasmbase,aasmtai,
+      aasmbase,aasmtai,
       nbas,nmem,nld,ncnv,nutils,
 {$ifdef x86}
       cga,cgx86,
@@ -127,15 +123,16 @@ implementation
           internalerror(200304235);
         location_release(exprasmlist,left.location);
         cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
-        inc(tcgcallnode(aktcallnode).pushedparasize,POINTER_SIZE);
       end;
 
 
     procedure tcgcallparanode.push_value_para;
+{$ifdef i386}
       var
+        cgsize : tcgsize;
         href   : treference;
         size   : longint;
-        cgsize : tcgsize;
+{$endif i386}
       begin
         { we've nothing to push when the size of the parameter is 0 }
         if left.resulttype.def.size=0 then
@@ -157,7 +154,6 @@ implementation
              LOC_CFPUREGISTER:
                begin
                  size:=align(TCGSize2Size[left.location.size],tempparaloc.alignment);
-                 inc(tcgcallnode(aktcallnode).pushedparasize,size);
                  if tempparaloc.reference.index=NR_STACK_POINTER_REG then
                    begin
                      cg.g_stackpointer_alloc(exprasmlist,size);
@@ -171,7 +167,6 @@ implementation
              LOC_CMMREGISTER:
                begin
                  size:=align(tfloatdef(left.resulttype.def).size,tempparaloc.alignment);
-                 inc(tcgcallnode(aktcallnode).pushedparasize,size);
                  if tempparaloc.reference.index=NR_STACK_POINTER_REG then
                    begin
                      cg.g_stackpointer_alloc(exprasmlist,size);
@@ -194,14 +189,12 @@ implementation
                         if (size>=4) or (tempparaloc.alignment>=4) then
                          begin
                            cgsize:=OS_32;
-                           inc(tcgcallnode(aktcallnode).pushedparasize,4);
                            dec(href.offset,4);
                            dec(size,4);
                          end
                         else
                          begin
                            cgsize:=OS_16;
-                           inc(tcgcallnode(aktcallnode).pushedparasize,2);
                            dec(href.offset,2);
                            dec(size,2);
                          end;
@@ -212,7 +205,6 @@ implementation
                    begin
                      reference_reset_base(href,tempparaloc.reference.index,tempparaloc.reference.offset);
                      cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false);
-                     inc(tcgcallnode(aktcallnode).pushedparasize,size);
                    end;
                end;
              else
@@ -299,7 +291,6 @@ implementation
                 internalerror(200204241);
               { push on stack }
               size:=align(left.resulttype.def.size,tempparaloc.alignment);
-              inc(tcgcallnode(aktcallnode).pushedparasize,size);
               if tempparaloc.reference.index=NR_STACK_POINTER_REG then
                 begin
                   cg.g_stackpointer_alloc(exprasmlist,size);
@@ -321,17 +312,16 @@ implementation
                 LOC_REFERENCE,
                 LOC_CREFERENCE :
                   begin
-                    cgsize:=def_cgsize(left.resulttype.def);
-                    if cgsize in [OS_64,OS_S64] then
+{$ifndef cpu64bit}
+                    if left.location.size in [OS_64,OS_S64] then
                      begin
-                       inc(tcgcallnode(aktcallnode).pushedparasize,8);
                        cg64.a_param64_loc(exprasmlist,left.location,tempparaloc);
                        location_release(exprasmlist,left.location);
                      end
                     else
+{$endif cpu64bit}
                      begin
                        location_release(exprasmlist,left.location);
-                       inc(tcgcallnode(aktcallnode).pushedparasize,align(tcgsize2size[tempparaloc.size],tempparaloc.alignment));
                        cg.a_param_loc(exprasmlist,left.location,tempparaloc);
                      end;
                   end;
@@ -340,7 +330,6 @@ implementation
                 LOC_CMMXREGISTER:
                   begin
                      location_release(exprasmlist,left.location);
-                     inc(tcgcallnode(aktcallnode).pushedparasize,8);
                      cg.a_parammm_reg(exprasmlist,left.location.register);
                   end;
 {$endif SUPPORT_MMX}
@@ -413,7 +402,6 @@ implementation
                   if (hp.nodetype=addrn) and
                      (not(nf_procvarload in hp.flags)) then
                     begin
-                      inc(tcgcallnode(aktcallnode).pushedparasize,POINTER_SIZE);
                       location_release(exprasmlist,left.location);
                       cg.a_param_loc(exprasmlist,left.location,tempparaloc);
                     end
@@ -480,12 +468,6 @@ implementation
       end;
 
 
-    function tcgcallnode.align_parasize:longint;
-      begin
-        result:=0;
-      end;
-
-
     procedure tcgcallnode.pop_parasize(pop_size:longint);
       begin
       end;
@@ -496,23 +478,25 @@ implementation
         cgsize : tcgsize;
         hregister : tregister;
         tempnode: tnode;
+        resultloc : tparalocation;
       begin
-        { structured results are easy to handle.... }
-        { needed also when result_no_used !! }
+        resultloc:=procdefinition.funcret_paraloc[callerside];
+        cgsize:=resultloc.size;
+        { structured results are easy to handle....
+          needed also when result_no_used !! }
         if paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
-         begin
-           { Location should be setup by the funcret para }
-           if location.loc<>LOC_REFERENCE then
-            internalerror(200304241);
-         end
-        else
+          begin
+            { Location should be setup by the funcret para }
+            if location.loc<>LOC_REFERENCE then
+             internalerror(200304241);
+          end
         { ansi/widestrings must be registered, so we can dispose them }
-         if resulttype.def.needs_inittable then
+        else if resulttype.def.needs_inittable then
           begin
             { the FUNCTION_RESULT_REG is already allocated }
             if not assigned(funcretnode) then
               begin
-                location_reset(location,LOC_CREFERENCE,OS_ADDR);
+                location_reset(location,LOC_REFERENCE,OS_ADDR);
                 location.reference:=refcountedtemp;
                 { a_load_reg_ref may allocate registers! }
                 cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,location.reference);
@@ -520,9 +504,9 @@ implementation
               end
             else
               begin
-                cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT_REG);
+                cg.ungetregister(exprasmlist,resultloc.register);
                 hregister := cg.getaddressregister(exprasmlist);
-                cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
+                cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,resultloc.register,hregister);
                 { in case of a regular funcretnode with ret_in_param, the }
                 { original funcretnode isn't touched -> make sure it's    }
                 { the same here (not sure if it's necessary)              }
@@ -530,98 +514,88 @@ implementation
                 tempnode.pass_2;
                 location := tempnode.location;
                 tempnode.free;
-                cg.g_decrrefcount(exprasmlist,resulttype.def,location.reference, false);
+                cg.g_decrrefcount(exprasmlist,resulttype.def,location.reference,false);
                 cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,location.reference);
                 cg.ungetregister(exprasmlist,hregister);
              end;
           end
-        else
         { we have only to handle the result if it is used }
-         if (cnf_return_value_used in callnodeflags) then
+        else if (cnf_return_value_used in callnodeflags) then
           begin
-            if (resulttype.def.deftype=floatdef) then
-              begin
-                location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-{$ifdef cpufpemu}
-                if cs_fp_emulation in aktmoduleswitches then
-                  location.register:=NR_FUNCTION_RESULT_REG
-                else
-{$endif cpufpemu}
-                  begin
-                    location.register:=NR_FPU_RESULT_REG;
-{$ifdef sparc}
-                    { Double are returned in F0:F1 }
-                    if location.size=OS_F64 then
-                      setsubreg(location.register,R_SUBFD);
-{$endif sparc}
-                  end;
-{$ifdef x86}
-                tcgx86(cg).inc_fpu_stack;
-{$else x86}
-                cg.ungetregister(exprasmlist,location.register);
-                hregister := cg.getfpuregister(exprasmlist,location.size);
-                cg.a_loadfpu_reg_reg(exprasmlist,location.size,location.register,hregister);
-                location.register := hregister;
-{$endif x86}
-              end
-            else
-              begin
-                cgsize:=def_cgsize(resulttype.def);
-                if cgsize<>OS_NO then
+            location.loc:=resultloc.loc;
+            case resultloc.loc of
+               LOC_FPUREGISTER:
                  begin
-                   location_reset(location,LOC_REGISTER,cgsize);
-{$ifndef cpu64bit}
-                   if cgsize in [OS_64,OS_S64] then
+                   location_reset(location,LOC_FPUREGISTER,cgsize);
+                   location.register:=procdefinition.funcret_paraloc[callerside].register;
+{$ifdef x86}
+                   tcgx86(cg).inc_fpu_stack;
+{$else x86}
+                   cg.ungetregister(exprasmlist,location.register);
+                   hregister:=cg.getfpuregister(exprasmlist,location.size);
+                   cg.a_loadfpu_reg_reg(exprasmlist,location.size,location.register,hregister);
+                   location.register:=hregister;
+{$endif x86}
+                 end;
+
+               LOC_REGISTER:
+                 begin
+                   if cgsize<>OS_NO then
                     begin
-                      { Move the function result to free registers, preferably the
-                        FUNCTION_RESULT_REG/FUNCTION_RESULTHIGH_REG, so no move is necessary.}
-                      { the FUNCTION_RESULT_LOW_REG/FUNCTION_RESULT_HIGH_REG
-                        are already allocated }
-                      cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT64_LOW_REG);
-                      location.registerlow:=cg.getintregister(exprasmlist,OS_INT);
-                      cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,NR_FUNCTION_RESULT64_LOW_REG,location.registerlow);
-                      cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT64_HIGH_REG);
-                      location.registerhigh:=cg.getintregister(exprasmlist,OS_INT);
-                      cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,NR_FUNCTION_RESULT64_HIGH_REG,location.registerhigh);
+                      location_reset(location,LOC_REGISTER,cgsize);
+{$ifndef cpu64bit}
+                      if cgsize in [OS_64,OS_S64] then
+                       begin
+                         { Move the function result to free registers, preferably the
+                           FUNCTION_RESULT_REG/FUNCTION_RESULTHIGH_REG, so no move is necessary.}
+                         { the FUNCTION_RESULT_LOW_REG/FUNCTION_RESULT_HIGH_REG
+                           are already allocated }
+                         cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT64_LOW_REG);
+                         location.registerlow:=cg.getintregister(exprasmlist,OS_32);
+                         cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,NR_FUNCTION_RESULT64_LOW_REG,location.registerlow);
+                         cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT64_HIGH_REG);
+                         location.registerhigh:=cg.getintregister(exprasmlist,OS_32);
+                         cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,NR_FUNCTION_RESULT64_HIGH_REG,location.registerhigh);
+                       end
+                      else
+{$endif cpu64bit}
+                       begin
+                         { Move the function result to a free register, preferably the
+                           FUNCTION_RESULT_REG, so no move is necessary.}
+                         { the FUNCTION_RESULT_REG is already allocated }
+                         cg.ungetregister(exprasmlist,resultloc.register);
+                         { change register size after the unget because the
+                           getregister was done for the full register
+
+                           def_cgsize(resulttype.def) is used here because
+                           it could be a constructor call }
+                         location.register:=cg.getintregister(exprasmlist,def_cgsize(resulttype.def));
+                         cg.a_load_reg_reg(exprasmlist,cgsize,def_cgsize(resulttype.def),resultloc.register,location.register);
+                       end;
                     end
                    else
-{$endif cpu64bit}
                     begin
-                      {Move the function result to a free register, preferably the
-                       FUNCTION_RESULT_REG, so no move is necessary.}
-                      { the FUNCTION_RESULT_REG is already allocated }
-                      cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT_REG);
-                      { change register size after the unget because the
-                      getregister was done for the full register }
-                      location.register:=cg.getintregister(exprasmlist,cgsize);
-                      cg.a_load_reg_reg(exprasmlist,cgsize,cgsize,cg.makeregsize(exprasmlist,NR_FUNCTION_RESULT_REG,cgsize),location.register);
+                      if resulttype.def.size>0 then
+                        internalerror(200305131);
                     end;
-                 end
-                else
-                 begin
-                   if resulttype.def.size>0 then
-                     internalerror(200305131);
                  end;
-              end;
+
+               LOC_MMREGISTER:
+                 begin
+                   location_reset(location,LOC_MMREGISTER,cgsize);
+                   cg.ungetregister(exprasmlist,resultloc.register);
+                   location.register:=cg.getmmregister(exprasmlist,cgsize);
+                   cg.a_loadmm_reg_reg(exprasmlist,cgsize,cgsize,resultloc.register,location.register,mms_movescalar);
+                 end;
+
+               else
+                 internalerror(200405023);
+             end;
           end
         else
           begin
-            cgsize:=def_cgsize(resulttype.def);
-
-            { an object constructor is a function with pointer result }
-            if (procdefinition.proctypeoption=potype_constructor) then
-              cgsize:=OS_ADDR;
-
             if cgsize<>OS_NO then
-{$ifndef cpu64bit}
-              if cgsize in [OS_64,OS_S64] then
-                begin
-                  cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT64_LOW_REG);
-                  cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT64_HIGH_REG);
-                end
-              else
-{$endif cpu64bit}
-                cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT_REG);
+              paramanager.freeparaloc(exprasmlist,resultloc);
             location_reset(location,LOC_VOID,OS_NO);
           end;
       end;
@@ -666,10 +640,6 @@ implementation
          regs_to_push_fpu,
          regs_to_alloc,
          regs_to_free : Tcpuregisterset;
-         oldpushedparasize : longint;
-{$ifdef cputargethasfixedstack}
-         href2,
-{$endif cputargethasfixedstack}
          href : treference;
          pop_size : longint;
          pvreg,
@@ -739,22 +709,17 @@ implementation
                            LOC_REFERENCE:
                              begin
                                reference_reset_base(href,ppn.tempparaloc.reference.index,ppn.tempparaloc.reference.offset);
-                               reference_reset_base(href2,ppn.paraitem.paraloc[callerside].reference.index,ppn.paraitem.paraloc[callerside].reference.offset);
-                               cg.g_concatcopy(exprasmlist,href,href2,ppn.paraitem.paratype.def.size,false,false);
+                               if ppn.paraitem.paraloc[callerside].size=OS_NO then
+                                 cg.a_param_copy_ref(exprasmlist,ppn.paraitem.paratype.def.size,href,ppn.paraitem.paraloc[callerside])
+                               else
+                                 cg.a_param_ref(exprasmlist,ppn.paraitem.paraloc[callerside].size,href,ppn.paraitem.paraloc[callerside]);
                              end;
                            LOC_REGISTER:
+{$ifndef cpu64bit}
                              if ppn.tempparaloc.size in [OS_64,OS_S64] then
-                               begin
-                                 reference_reset_base(href,ppn.paraitem.paraloc[callerside].reference.index,ppn.paraitem.paraloc[callerside].reference.offset);
-                                 cg.a_load_reg_ref(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerlow,
-                                    href);
-                                 { we don't use a c64.load here because later (when fixed ;)) one dword could be on the stack and the
-                                   other in a cpu register }
-                                 reference_reset_base(href,ppn.paraitem.paraloc[callerside].reference.index,ppn.paraitem.paraloc[callerside].reference.offset+4);
-                                 cg.a_load_reg_ref(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerhigh,
-                                    href);
-                               end
+                               cg64.a_param64_reg(exprasmlist,ppn.tempparaloc.register64,ppn.paraitem.paraloc[callerside])
                              else
+{$endif cpu64bit}
                                cg.a_param_reg(exprasmlist,ppn.paraitem.paraloc[callerside].size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside]);
                            LOC_FPUREGISTER:
                              cg.a_paramfpu_reg(exprasmlist,ppn.paraitem.paraloc[callerside].size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside]);
@@ -822,14 +787,10 @@ implementation
                 end;
               LOC_MMREGISTER,LOC_CMMREGISTER:
                 begin
-                  internalerror(2003102911);
+                  include(regs_to_alloc,getsupreg(procdefinition.funcret_paraloc[callerside].register));
                 end;
             end;
           end;
-
-         { Initialize for pushing the parameters }
-         oldpushedparasize:=pushedparasize;
-         pushedparasize:=0;
 
          { Process parameters, register parameters will be loaded
            in imaginary registers. The actual load to the correct
@@ -839,9 +800,6 @@ implementation
          if assigned(left) then
            tcallparanode(left).secondcallparan;
          aktcallnode:=oldaktcallnode;
-
-         { Align stack if required }
-         pop_size:=align_parasize;
 
          { procedure variable or normal function call ? }
          if (right=nil) then
@@ -973,23 +931,14 @@ implementation
          { Need to remove the parameters from the stack? }
          if (procdefinition.proccalloption in clearstack_pocalls) then
           begin
-            { the old pop_size was already included in pushedparasize }
             pop_size:=pushedparasize;
             { for Cdecl functions we don't need to pop the funcret when it
               was pushed by para }
             if paramanager.ret_in_param(procdefinition.rettype.def,procdefinition.proccalloption) then
-              dec(pop_size,POINTER_SIZE);
+              dec(pop_size,sizeof(aint));
+            { Remove parameters/alignment from the stack }
+            pop_parasize(pop_size);
           end;
-
-         { Remove parameters/alignment from the stack }
-         if pop_size>0 then
-           pop_parasize(pop_size);
-
-         { Reserve space for storing parameters that will be pushed }
-         current_procinfo.allocate_push_parasize(pushedparasize);
-
-         { Restore }
-         pushedparasize:=oldpushedparasize;
 
          { Release registers, but not the registers that contain the
            function result }
@@ -1071,7 +1020,6 @@ implementation
          oldprocinfo : tprocinfo;
          oldinlining_procedure : boolean;
          inlineentrycode,inlineexitcode : TAAsmoutput;
-         usesacc,usesacchi,usesfpu : boolean;
 {$ifdef GDB}
          startlabel,endlabel : tasmlabel;
          pp : pchar;
@@ -1173,7 +1121,7 @@ implementation
 
          cg.a_label(exprasmlist,current_procinfo.aktexitlabel);
          gen_finalize_code(inlineexitcode,true);
-         gen_load_return_value(inlineexitcode,usesacc,usesacchi,usesfpu);
+         gen_load_return_value(inlineexitcode);
          if po_assembler in current_procinfo.procdef.procoptions then
            inlineexitcode.concat(Tai_marker.Create(asmblockend));
          exprasmlist.concatlist(inlineexitcode);
@@ -1278,7 +1226,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.167  2004-05-23 18:28:41  peter
+  Revision 1.168  2004-06-16 20:07:08  florian
+    * dwarf branch merged
+
+  Revision 1.167  2004/05/23 18:28:41  peter
     * methodpointer is loaded into a temp when it was a calln
 
   Revision 1.166  2004/05/22 23:34:27  peter
@@ -1286,6 +1237,48 @@ end.
 
   Revision 1.165  2004/04/28 15:19:03  florian
     + syscall directive support for MorphOS added
+
+  Revision 1.164.2.13  2004/06/12 17:01:01  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.164.2.12  2004/05/31 16:39:42  peter
+    * add ungetiftemp in a few locations
+
+  Revision 1.164.2.11  2004/05/30 17:07:07  peter
+    * fix shl shr for sparc
+
+  Revision 1.164.2.10  2004/05/02 21:17:39  florian
+    * fixed boolean test of constructors
+
+  Revision 1.164.2.9  2004/05/02 21:07:29  florian
+    * fixed constructor results
+
+  Revision 1.164.2.8  2004/05/02 20:56:54  florian
+    * more fixes to handle_return_value update
+
+  Revision 1.164.2.7  2004/05/02 20:20:59  florian
+    * started to fix callee side result value handling
+
+  Revision 1.164.2.6  2004/05/02 19:08:01  florian
+    * rewrote tcgcallnode.handle_return_value
+
+  Revision 1.164.2.5  2004/05/02 14:09:35  peter
+    * use size of paraloc when copying reference, only when size is OS_NO
+      use the size of the type
+
+  Revision 1.164.2.4  2004/05/02 12:45:32  peter
+    * enabled cpuhasfixedstack for x86-64 again
+    * fixed size of temp allocation for parameters
+
+  Revision 1.164.2.3  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.164.2.2  2004/05/01 11:12:23  florian
+    * spilling of registers with size<>4 fixed
+
+  Revision 1.164.2.1  2004/04/27 18:18:25  peter
+    * aword -> aint
 
   Revision 1.164  2004/03/14 20:10:56  peter
     * disable some debuginfo info when valgrind support is used
@@ -1971,5 +1964,4 @@ end.
 
   Revision 1.2  2002/07/13 19:38:43  florian
     * some more generic calling stuff fixed
-
 }

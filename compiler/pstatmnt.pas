@@ -1,5 +1,6 @@
 {
     $Id$
+    $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Does the parsing of the statements
@@ -439,9 +440,9 @@ implementation
                { we can't generate debuginfo for a withnode stored in a }
                { register                                               }
                if (cs_debuginfo in aktmoduleswitches) then
-                 loadp:=ctempcreatenode.create(htype,POINTER_SIZE,tt_persistent)
+                 loadp:=ctempcreatenode.create(htype,sizeof(aint),tt_persistent)
                else
-                 loadp:=ctempcreatenode.create_reg(htype,POINTER_SIZE,tt_persistent);
+                 loadp:=ctempcreatenode.create_reg(htype,sizeof(aint),tt_persistent);
                resulttypepass(loadp);
                if hasimplicitderef then
                 begin
@@ -970,7 +971,7 @@ implementation
              { the same is true for val() if the third parameter is not 32 bit }
              if not(p.nodetype in [nothingn,calln,ifn,assignn,breakn,inlinen,
                                    continuen,labeln,blockn,exitn]) then
-               Message(cg_e_illegal_expression);
+               Message(parser_e_illegal_expression);
 
              { Specify that we don't use the value returned by the call.
                This is used for :
@@ -1105,11 +1106,22 @@ implementation
 end.
 {
   $Log$
-  Revision 1.134  2004-05-23 18:28:41  peter
+  Revision 1.135  2004-06-16 20:07:09  florian
+    * dwarf branch merged
+
+  Revision 1.134  2004/05/23 18:28:41  peter
     * methodpointer is loaded into a temp when it was a calln
 
   Revision 1.133  2004/05/23 11:39:38  peter
     * give error when goto jumps to label outside current proc scope
+
+  Revision 1.132.2.2  2004/05/01 16:02:09  peter
+    * POINTER_SIZE replaced with sizeof(aint)
+    * aint,aword,tconst*int moved to globtype
+
+  Revision 1.132.2.1  2004/04/28 19:55:52  peter
+    * new warning for ordinal-pointer when size is different
+    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
 
   Revision 1.132  2004/03/04 17:22:10  peter
     * better check for maybe_call_procvar

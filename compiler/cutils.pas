@@ -32,6 +32,9 @@ interface
 
 
     type
+{$ifdef ver1_0}
+       ptrint = longint;
+{$endif ver1_0}
        pstring = ^string;
        get_var_value_proc=function(const s:string):string of object;
        Tcharset=set of char;
@@ -65,11 +68,11 @@ interface
     function GetToken(var s:string;endchar:char):string;
     procedure uppervar(var s : string);
     function hexstr(val : cardinal;cnt : cardinal) : string;
-    function tostru(i:cardinal) : string;{$ifdef USEINLINE}inline;{$endif}
-    function tostr(i : longint) : string;{$ifdef USEINLINE}inline;{$endif}
     function realtostr(e:extended):string;{$ifdef USEINLINE}inline;{$endif}
-    function int64tostr(i : int64) : string;{$ifdef USEINLINE}inline;{$endif}
-    function tostr_with_plus(i : longint) : string;{$ifdef USEINLINE}inline;{$endif}
+    function tostr(i : qword) : string;{$ifdef USEINLINE}inline;{$endif}overload;
+    function tostr(i : int64) : string;{$ifdef USEINLINE}inline;{$endif}overload;
+    function tostr(i : longint) : string;{$ifdef USEINLINE}inline;{$endif}overload;
+    function tostr_with_plus(i : int64) : string;{$ifdef USEINLINE}inline;{$endif}
     function DStr(l:longint):string;
     procedure valint(S : string;var V : longint;var code : integer);
     {# Returns true if the string s is a number }
@@ -405,24 +408,6 @@ uses
       end;
 
 
-    function tostru(i:cardinal):string;{$ifdef USEINLINE}inline;{$endif}
-    {
-      return string of value i, but for cardinals
-    }
-      begin
-        str(i,result);
-      end;
-
-
-   function tostr(i : longint) : string;{$ifdef USEINLINE}inline;{$endif}
-   {
-     return string of value i
-   }
-     begin
-       str(i,result);
-     end;
-
-
     function DStr(l:longint):string;
       var
         TmpStr : string[32];
@@ -553,7 +538,7 @@ uses
      end;
 
 
-   function int64tostr(i : int64) : string;{$ifdef USEINLINE}inline;{$endif}
+   function tostr(i : qword) : string;{$ifdef USEINLINE}inline;{$endif}overload;
    {
      return string of value i
    }
@@ -562,7 +547,25 @@ uses
      end;
 
 
-   function tostr_with_plus(i : longint) : string;{$ifdef USEINLINE}inline;{$endif}
+   function tostr(i : int64) : string;{$ifdef USEINLINE}inline;{$endif}overload;
+   {
+     return string of value i
+   }
+     begin
+        str(i,result);
+     end;
+
+
+   function tostr(i : longint) : string;{$ifdef USEINLINE}inline;{$endif}overload;
+   {
+     return string of value i
+   }
+     begin
+        str(i,result);
+     end;
+
+
+   function tostr_with_plus(i : int64) : string;{$ifdef USEINLINE}inline;{$endif}
    {
      return string of value i, but always include a + when i>=0
    }
@@ -1188,8 +1191,20 @@ initialization
 end.
 {
   $Log$
-  Revision 1.39  2004-05-22 23:33:18  peter
+  Revision 1.40  2004-06-16 20:07:07  florian
+    * dwarf branch merged
+
+  Revision 1.39  2004/05/22 23:33:18  peter
   fix range check error when array size > maxlongint
+
+  Revision 1.38.2.3  2004/04/29 19:07:22  peter
+    * compile fixes
+
+  Revision 1.38.2.2  2004/04/26 21:01:36  peter
+    * aint fixes
+
+  Revision 1.38.2.1  2004/04/20 16:35:58  peter
+    * generate dwarf for stackframe entry
 
   Revision 1.38  2004/03/29 19:19:35  florian
     + arm floating point register saving implemented
