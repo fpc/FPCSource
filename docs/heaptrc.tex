@@ -93,21 +93,21 @@ Call trace for block 0x080528A0 size 4
 
 \section{Constants, Types and variables}
 
-The \var{fill\_extra\_info\_type} is a procedural type used in the
-\seepl{Set\_Extra\_Info}{SetExtraInfo} call.
+The \var{FillExtraInfoType} is a procedural type used in the
+\seep{SetExtraInfo} call.
 
 \begin{listing}
 type
-    fill_extra_info_type = procedure(p : pointer);
+    FillExtraInfoType = procedure(p : pointer);
 \end{listing}
 The following typed constants allow to fine-tune the standard dump of the
-memory usage by \seepl{Dump\_Heap}{DumpHeap}:
+memory usage by \seep{DumpHeap}:
 
 \begin{listing}
 const
   tracesize = 8;
   quicktrace : boolean = true;
-  halt_on_error : boolean = true;
+  HaltOnError : boolean = true;
   keepreleased : boolean = false;
 \end{listing}
 
@@ -121,11 +121,14 @@ to be dumped for the getmem call if \var{keepreleased} is \var{False}. If
 the \var{GetMem} call and 4 frames wil be dumped for the \var{FreeMem} call.
 If you want to change this value, you must recode the \file{heaptrc} unit.
 
-\var{Quicktrace} determines whether
+\var{Quicktrace} determines whether the memory manager checks whether a 
+block that is about to be released is allocated correctly. This is a rather
+time consuming search, and slows program execution significantly, so by
+default it is set to \var{False}.
 
-If \var{halt\_on\_error} is set to \var{True} then an illegal call to 
+If \var{HaltOnError} is set to \var{True} then an illegal call to 
 \var{FreeMem} will cause the memory manager to execute a \var{halt(1)} 
-instruction, causing a memory dump.
+instruction, causing a memory dump. By Default it is set to \var{True}.
 
 If \var{keepreleased} is set to true, then a list of freed memory 
 blocks is kept. This is useful if you suspect that the same memory block is
@@ -134,36 +137,36 @@ sparingly, and only when it's really necessary.
 
 \section{Functions and procedures}
 
-\begin{procedurel}{Dump\_Heap}{DumpHeap}
+\begin{procedure}{DumpHeap}
 \Declaration 
-procedure Dump\_Heap;
+procedure DumpHeap;
 \Description
-\var{dump\_heap} dumps to standard output a summary of memory usage.
+\var{DumpHeap} dumps to standard output a summary of memory usage.
 It is called automatically by the heaptrc unit when your program exits
 (by instaling an exit procedure), but it can be called at any time
 \Errors
 None.
 \SeeAlso
-\seepl{Mark\_Heap}{MarkHeap}
-\end{procedurel}
+\seep{MarkHeap}
+\end{procedure}
 
-\begin{procedurel}{Mark\_Heap}{MarkHeap}
+\begin{procedure}{MarkHeap}
 \Declaration
-procedure Mark\_Heap;
+procedure MarkHeap;
 \Description
-\var{Mark\_Heap} marks all memory blocks with a special signature.
-You can use this if you think that you corruped the
+\var{MarkHeap} marks all memory blocks with a special signature.
+You can use this if you think that you corruped the memory.
 \Errors
 None.
 \SeeAlso
-\seepl{Dump\_Heap}{DumpHeap}
-\end{procedurel}
+\seep{DumpHeap}
+\end{procedure}
 
-\begin{procedurel}{Set\_Extra\_Info}{SetExtraInfo}
+\begin{procedure}{SetExtraInfo}
 \Declaration
-procedure Set\_Extra\_Info( size : longint;func : fill\_extra\_info\_type);
+procedure SetExtraInfo( size : longint;func : FillExtraInfoType);
 \Description
-You can use \var{Set\_Extra\_Info} to store extra info in the blocks that
+You can use \var{SetExtraInfo} to store extra info in the blocks that
 the heaptrc unit reserves when tracing getmem calls. \var{Size} indicates the
 size (in bytes) that the trace mechanism should reserve for your extra
 information. For each call to \var{getmem}, \var{func} will be called,
@@ -172,13 +175,13 @@ and passed a pointer to the memory reserved.
 When dumping the memory summary, the extra info is shown as Longint values.
 
 \Errors
-You can only call \var{Set\_Extra\_Info} if no memroy has been allocated
+You can only call \var{SetExtraInfo} if no memroy has been allocated
 yet. If memory was already allocated prior to the call to
-\var{Set\_Extra\_Info}, then an error will be displayed on standard error
-output, and a \seepl{Dump\_Heap}{DumpHeap} is executed.
+\var{SetExtraInfo}, then an error will be displayed on standard error
+output, and a \seep{DumpHeap} is executed.
 \SeeAlso
-\seepl{Dump\_Heap}{DumpHeap}
-\end{procedurel}
+\seep{DumpHeap}
+\end{procedure}
 
 \latex{\inputlisting{heapex/setinfo.pp}}
 \html{\input{heapex/setinfo.tex}}
@@ -186,7 +189,10 @@ output, and a \seepl{Dump\_Heap}{DumpHeap} is executed.
 
 %
 % $Log$
-% Revision 1.1  1998-12-14 23:17:02  michael
+% Revision 1.2  1998-12-15 23:50:52  michael
+% * Some updates
+%
+% Revision 1.1  1998/12/14 23:17:02  michael
 % + INitial implementation
 %
 %

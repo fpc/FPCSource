@@ -183,7 +183,7 @@ otherwise.
 \Errors
 None.
 \SeeAlso
-\seef{TRect.Empty}, \seef{TRect.Contains}
+\seefl{Empty}{TRect.Empty}, \seefl{Contains}{TRect.Contains}
 \end{function}
 
 For an example, see \seef{TRect.Empty}
@@ -197,7 +197,7 @@ in the rectangle (including borders), \var{False} otherwise.
 \Errors
 None.
 \SeeAlso
-\seep{TRect.Intersect}, \seef{TRect.Equals}
+\seepl{Intersect}{TRect.Intersect}, \seefl{Equals}{TRect.Equals}
 \end{function}
 
 \begin{procedure}{TRect.Copy}
@@ -209,7 +209,7 @@ rectangle R has been copied to the object that invoked \var{Copy}.
 \Errors
 None.
 \SeeAlso
-\seep{TRect.Assign}
+\seepl{Assign}{TRect.Assign}
 \end{procedure}
 
 \latex{\inputlisting{objectex/ex2.pp}}
@@ -224,7 +224,7 @@ of the current rectangle with the rectangle \var{R}.
 \Errors
 None.
 \SeeAlso
-\seep{TRect.Intersect}
+\seepl{Intersect}{TRect.Intersect}
 \end{procedure}
 
 \latex{\inputlisting{objectex/ex3.pp}}
@@ -240,7 +240,7 @@ rectangle at coordinate (0,0).
 \Errors
 None.
 \SeeAlso
-\var{TRect.Union}
+\seepl{Union}{TRect.Union}
 \end{procedure}
 
 \latex{\inputlisting{objectex/ex4.pp}}
@@ -256,7 +256,7 @@ points, and \var{ADY} to both end points.
 \Errors
 None.
 \SeeAlso
-\seep{TRect.Grow}
+\seepl{Grow}{TRect.Grow}
 \end{procedure}
 
 \latex{\inputlisting{objectex/ex5.pp}}
@@ -272,12 +272,12 @@ length 2*ADX to the width of the rectangle), and an amount \var{ADY} in
 the \var{Y} direction (both on the top and the bottom side of the rectangle,
 adding a length 2*ADY to the height of the rectangle. 
 
-X and Y can be negative. If the resulting rectangle is empty, it is set 
+\var{ADX} and \var{ADY} can be negative. If the resulting rectangle is empty, it is set 
 to the empty rectangle at \var{(0,0)}.
 \Errors
 None.
 \SeeAlso
-\seep{TRect.Move}.
+\seepl{Move}{TRect.Move}.
 \end{procedure}
 
 
@@ -292,6 +292,8 @@ Procedure Trect.Assign (XA, YA, XB, YB: Sw\_Integer);
 \var{(Xb,Yb)}.
 \Errors
 None.
+\SeeAlso
+\seepl{Copy}{TRect.Copy}
 \end{procedure}
 
 For an example, see \seep{TRect.Copy}.
@@ -318,10 +320,10 @@ with Zero bytes.
 \Errors
 None.
 \SeeAlso
-\seep{TObject.Free}, \seep{TObject.Done}
+\seepl{Free}{TObject.Free}, \seepl{Done}{TObject.Done}
 \end{procedure}
 
-For an example, see \seep{TObject.Free}
+For an example, see \seepl{Free}{TObject.Free}
 
 \begin{procedure}{TObject.Free}
 \Declaration
@@ -333,7 +335,7 @@ occupied by the instance of the object.
 No checking is performed to see whether \var{self} is \var{nil} and whether
 the object is indeed allocated on the heap.
 \SeeAlso
-\seep{TObject.Init}, \seep{TObject.Done}
+\seepl{Init}{TObject.Init}, \seepl{Done}{TObject.Done}
 \end{procedure}
 
 \latex{\inputlisting{objectex/ex7.pp}}
@@ -348,7 +350,7 @@ intended to be used in the \seep{TObject.Free} method.
 \Errors
 None.
 \SeeAlso
-\seep{TObject.Free}, \seep{TObject.Init}
+\seepl{Free}{TObject.Free}, \seepl{Init}{TObject.Init}
 \end{procedure}
 
 \section{TStream}
@@ -359,10 +361,11 @@ objects that have the capability to store and retrieve data.
 
 It defines a number of methods that are common to all objects that implement
 streaming, many of them are virtual, and are only implemented in the
-descendant types.
+descendrnt types.
 
 Programs should not instantiate objects of type TStream directly, but
-instead instantiate a descendant type.
+instead instantiate a descendant type, such as \var{TDosStream},
+\var{TMemoryStream}.
 
 This is the full declaration of the \var{TStream} object:
 \begin{verbatim}
@@ -393,6 +396,249 @@ TYPE
    END;
    PStream = ^TStream;
 \end{verbatim}
+
+\begin{function}{TStream.Get}
+\Declaration
+Function TStream.Get : PObject;
+\Description
+\var{Get} reads an object definition  from a stream, and returns
+a pointer to an instance of this object.
+\Errors
+On error, \var{TStream.Status} is set, and NIL is returned.
+\SeeAlso 
+\seepl{Put}{TStream.Put}
+\end{function}
+
+\begin{function}{TStream.StrRead}
+\Declaration
+Function TStream.StrRead: PChar;
+\Description
+\var{StrRead} reads a string from the stream, allocates memory
+for it, and returns a pointer to a null-terminated copy of the string
+on the heap.
+\Errors
+On error, \var{Nil} is returned.
+\SeeAlso
+\seepl{StrWrite}{TStream.StrWrite}, \seefl{ReadStr}{TStream.ReadStr}
+\end{function}
+
+\begin{function}{TStream.GetPos}
+\Declaration 
+TSTream.GetPos : Longint; Virtual;
+\Description
+If the stream's status is \var{stOk}, \var{GetPos} returns the current 
+position in the stream. Otherwise it returns \var{-1}
+\Errors
+\var{-1} is returned if the status is an error condition.
+\SeeAlso
+\seepl{Seek}{TStream.Seek}, \seefl{GetSize}{TStream.GetSize}
+\end{function}
+
+\begin{function}{TStream.GetSize}
+\Declaration
+Function TStream.GetSize: Longint; Virtual;
+\Description
+If the stream's status is \var{stOk} then \var{GetSize} returns
+the size of the stream, otherwise it returns \var{-1}.
+\Errors
+\var{-1} is returned if the status is an error condition.
+\SeeAlso
+\seepl{Seek}{TStream.Seek}, \seefl{GetPos}{TStream.GetPos}
+\end{function}
+
+\begin{function}{TStream.ReadStr}
+\Declaration
+Function TStream.ReadStr: PString;
+\Description
+\var{ReadStr} reads a string from the stream, copies it to the heap
+and returns a pointer to this copy. The string is saved as a pascal
+string, and hence is NOT null terminated.
+\Errors
+On error (e.g. not enough memory), \var{Nil} is returned.
+\SeeAlso
+\seefl{StrRead}{TStream.StrRead}
+\end{function}
+
+\begin{procedure}{TStream.Open}
+\Declaration
+Procedure TStream.Open (OpenMode: Word); Virtual;
+\Description
+\var{Open} is an abstract method, that should be overridden by descendent
+objects. Since opening a stream depends on the stream's type this is not
+surprising.
+\Errors
+None.
+\SeeAlso
+\seepl{Close}{TStream.Close}, \seepl{Reset}{TStream.Reset}
+\end{procedure}
+
+\begin{procedure}{TStream.Close}
+\Declaration
+Procedure TStream.Close; Virtual;
+\Description
+\var{Close} is an abstract method, that should be overridden by descendent
+objects. Since Closing a stream depends on the stream's type this is not
+surprising.
+\Errors
+None.
+\SeeAlso
+\seepl{Open}{TStream.Open}, \seepl{Reset}{TStream.Reset}
+\end{procedure}
+
+\begin{procedure}{TStream.Reset}
+\Declaration
+PROCEDURE TStream.Reset;
+\Description
+\var{Reset} sets the stream's status to \var{0}, as well as the ErrorInfo
+\Errors
+None.
+\SeeAlso
+\seepl{Open}{TStream.Open}, \seepl{Close}{TStream.Close}
+\end{procedure}
+
+\begin{procedure}{TStream.Flush}
+\Declaration 
+Procedure TStream.Flush; Virtual;
+\Description
+\var{Flush} is an abstract method that should be overridden by descendent
+objects. It serves to enable the programmer to tell streams that implement 
+a buffer to clear the buffer.
+\Errors
+None.
+\SeeAlso
+\seepl{Truncate}{TStream.Truncate}
+\end{procedure}
+
+\begin{procedure}{TStream.Truncate}
+\Declaration
+Procedure TStream.Truncate; Virtual;
+\Description
+\var{Truncate} is an abstract procedure that should be overridden by
+descendent objects. It serves to enable the programmer to truncate the
+size of the stream to the current file position.
+\Errors
+None.
+\SeeAlso
+\seepl{Seek}{TStream.Seek}
+\end{procedure}
+
+\begin{procedure}{TStream.Put}
+\Declaration
+Procedure TStream.Put (P: PObject);
+\Description
+\var{Put} writes the object pointed to by \var{P}. \var{P} should be
+non-nil. The object type must have been registered with \seep{RegisterType}.
+
+After the object has been written, it can be read again with \seefl{Get}{TStream.Get}.
+\Errors
+No check is done whether P is \var{Nil} or not. Passing \var{Nil} will cause
+a run-time error 216 to be generated. If the object has not been registered,
+the status of the stream will be set to \var{stPutError}.
+\SeeAlso
+\seefl{Get}{TStream.Get}
+\end{procedure}
+
+\begin{procedure}{TStream.StrWrite}
+\Declaration
+Procedure TStream.StrWrite (P: PChar);
+\Description
+\var{StrWrite} writes the null-terminated string \var{P} to the stream.
+\var{P} can only be 65355 bytes long.
+\Errors
+None.
+\SeeAlso
+\seepl{WriteStr}{TStream.WriteStr}, \seefl{StrRead}{TStream.StrRead},
+\seefl{ReadStr}{TStream.ReadStr}
+\end{procedure}
+
+\begin{procedure}{TStream.WriteStr}
+\Declaration
+Procedure TStream.WriteStr (P: PString);
+\Description
+\var{StrWrite} writes the pascal string pointed to by \var{P} to the stream.
+\Errors
+None.
+\SeeAlso
+\seepl{StrWrite}{TStream.StrWrite}, \seefl{StrRead}{TStream.StrRead},
+\seefl{ReadStr}{TStream.ReadStr}
+\end{procedure}
+
+\begin{procedure}{TStream.Seek}
+\Declaration      
+PROCEDURE TStream.Seek (Pos: LongInt); Virtual;
+\Description
+Seek sets the position to \var{Pos}. This position is counted
+from the beginning, and is zero based. (i.e. seeek(0) sets the position
+pointer on the first byte of the stream)
+\Errors
+If \var{Pos} is larger than the stream size, \var{Status} is set to
+\var{StSeekError}.
+\SeeAlso
+\seefl{GetPos}{TStream.GetPos}, \seefl{GetSize}{TStream.GetSize}
+\end{procedure}
+
+\begin{procedure}{TStream.Error}
+\Declaration
+Procedure TStream.Error (Code, Info: Integer); Virtual;
+\Description
+\var{Error} sets the stream's status to \var{Code} and \var{ErrorInfo}
+to \var{Info}. If the \var{StreamError} procedural variable is set,
+\var{Error} executes it, passing \var{Self} as an argument.
+
+This method should not be called directly from a program. It is intended to
+be used in descendent objects.
+\Errors
+None.
+\SeeAlso
+\end{procedure}
+
+\begin{procedure}{TStream.Read}
+\Declaration
+Procedure TStream.Read (Var Buf; Count: Sw\_Word); Virtual;
+\Description
+\var{Read} is an abstract method that should be overridden by descendent
+objects.
+
+\var{Read} reads \var{Count} bytes from the stream into \var{Buf}.
+It updates the position pointer, increasing it's value with \var{Count}. 
+\var{Buf} must be large enough to contain \var{Count} bytes.
+\Errors
+No checking is done to see if \var{Buf} is large enough to contain
+\var{Count} bytes. 
+\SeeAlso
+\seepl{Write}{TStream.Write}, \seefl{ReadStr}{TStream.ReadStr},
+\seefl{StrRead}{TStream.StrRead}
+\end{procedure}
+
+\begin{procedure}{TStream.Write}
+\Declaration
+Procedure TStream.Write (Var Buf; Count: Sw\_Word); Virtual;
+\Description
+\var{Write} is an abstract method that should be overridden by descendent
+objects.
+
+\var{Write} writes \var{Count} bytes to the stream from \var{Buf}.
+It updates the position pointer, increasing it's value with \var{Count}. 
+\Errors
+No checking is done to see if \var{Buf} actually contains \var{Count} bytes. 
+\SeeAlso
+\seepl{Read}{TStream.Read}, \seepl{WriteStr}{TStream.WriteStr},
+\seepl{StrWrite}{TStream.StrWrite}
+\end{procedure}
+
+\begin{procedure}{TStream.CopyFrom}
+\Declaration
+Procedure TStream.CopyFrom (Var S: TStream; Count: Longint);
+\Description
+\var{CopyFrom} reads Count bytes from stream \var{S} and stores them
+in the current stream. It uses the \seepl{Read}{TStream.Read} method
+to read the data, and the \seepl{Write}{TStream.Write} method to
+write in the current stream.
+\Errors
+None.
+\SeeAlso
+\seepl{Read}{TStream.Read}, \seepl{Write}{TStream.Write}
+\end{procedure}
 
 \section{TDosStream}
 \label{se:TDosStream}
@@ -633,7 +879,12 @@ FUNCTION NewStr (Const S: String): PString;
 PROCEDURE DisposeStr (P: PString);
 PROCEDURE Abstract;
 PROCEDURE RegisterObjects;
+\end{verbatim}
+\begin{procedure}{RegisterType}
+\Declaration
 PROCEDURE RegisterType (Var S: TStreamRec);
+\end{procedure}
+\begin{verbatim}
 FUNCTION LongMul (X, Y: Integer): LongInt;
 FUNCTION LongDiv (X: Longint; Y: Integer): Integer;
 

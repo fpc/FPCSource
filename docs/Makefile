@@ -85,7 +85,8 @@ DVI = $(addsuffix .dvi, $(HTML))
 TXT = $(addsuffix .txt, $(HTML))
 PDF = $(addsuffix .pdf, $(HTML))
 
-CHAPTERS = $(addsuffix .tex, crt dos getopts go32 graph linux printer strings)
+CHAPTERS = $(addsuffix .tex, crt dos getopts go32 graph linux printer\
+              strings objects heaptrc)
 
 # Check if ascii-mode requested
 ifeq ($(ASCIIMODE),YES)
@@ -159,6 +160,8 @@ clean:
 	-$(MAKE) -C go32ex clean
 	-$(MAKE) -C stringex clean
 	-$(MAKE) -C refex clean
+	-$(MAKE) -C heapex clean
+	-$(MAKE) -C objectex clean
 
 $(TXT) : %.txt: %.dvi
 
@@ -178,6 +181,8 @@ unitex.chk:
 	$(MAKE) -C sockex tex
 	$(MAKE) -C mouseex tex
 	$(MAKE) -C go32ex tex
+	$(MAKE) -C heapex tex
+	$(MAKE) -C objectex tex
 	touch unitex.chk
 
 refex.chk:
@@ -326,7 +331,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.15  1998-11-17 23:42:02  michael
+# Revision 1.16  1998-12-15 23:50:53  michael
+# * Some updates
+#
+# Revision 1.15  1998/11/17 23:42:02  michael
 # + too many changes to enumerate
 #
 # Revision 1.14  1998/10/01 12:57:22  michael
