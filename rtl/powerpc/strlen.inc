@@ -22,7 +22,7 @@ asm
         { empty/invalid string? }
         cmplwi  cr0,r3,0
         { if yes, do nothing }
-        beq     LStrLenDone
+        beq     .LStrLenDone
         subi    r29,r3,1
 .LStrLenLoop:
         lbzu    r30,1(r29)
@@ -34,7 +34,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2003-11-15 19:01:27  florian
+  Revision 1.8  2003-11-23 17:34:27  jonas
+    * fixed some label names
+
+  Revision 1.7  2003/11/15 19:01:27  florian
     * fixed rtl to work with the integrated fpc ppc assembler reader
 
   Revision 1.6  2003/06/14 12:41:09  jonas

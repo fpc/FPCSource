@@ -226,7 +226,7 @@ asm
           { count div 4 for number of dwords to copy }
           srwi    r0,r5,2
           {  if 11 <= count < 63, copy using dwords }
-          blt     cr7,LMoveDWords
+          blt     cr7,.LMoveDWords
 
 {$ifndef ppc603}
           { # of dwords to copy to reach 32 byte alignment (*4) }
@@ -456,7 +456,7 @@ asm
         { FillCharSmall or FillCharVerySmall)                       }
         cmpl      cr7,r4,11
         { if filling with zero, only use dcbz }
-        bne       cr1, LFillCharNoZero
+        bne       cr1, .LFillCharNoZero
         { make r3 point again to the actual store position }
         addi      r3,r3,4
 .LFillCharDCBZLoop:
@@ -1004,7 +1004,10 @@ end;
 
 {
   $Log$
-  Revision 1.55  2003-11-15 19:01:27  florian
+  Revision 1.56  2003-11-23 17:34:27  jonas
+    * fixed some label names
+
+  Revision 1.55  2003/11/15 19:01:27  florian
     * fixed rtl to work with the integrated fpc ppc assembler reader
 
   Revision 1.54  2003/09/14 20:33:28  jonas
