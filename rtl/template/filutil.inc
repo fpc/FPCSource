@@ -43,7 +43,7 @@ begin
 end;
 
 
-Function FileSeek (Handle,Offset,Origin : Longint) : Longint;
+Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
 
 begin
   //!! Needs implementing
@@ -167,7 +167,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-01-07 16:41:51  daniel
+  Revision 1.3  2000-06-04 14:19:34  hajny
+    * parameter name change in FileSeek
+
+  Revision 1.2  2000/01/07 16:41:51  daniel
     * copyright 2000
 
   Revision 1.1  1999/11/08 22:45:01  peter

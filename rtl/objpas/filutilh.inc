@@ -52,7 +52,7 @@ Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
 Function FileCreate (Const FileName : String) : Longint;
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
 Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
-Function FileSeek (Handle,Offset,Origin : Longint) : Longint;
+Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
 Procedure FileClose (Handle : Longint);
 Function FileTruncate (Handle,Size: Longint) : boolean;
 Function FileAge (Const FileName : String): Longint;
@@ -71,7 +71,10 @@ Function FileSearch (Const Name, DirList : String) : String;
 
 {
   $Log$
-  Revision 1.8  2000-02-17 22:16:05  sg
+  Revision 1.9  2000-06-04 14:22:15  hajny
+    * parameter name change in FileSeek
+
+  Revision 1.8  2000/02/17 22:16:05  sg
   * Changed the second argument of FileWrite from "var buffer" to
     "const buffer", like in Delphi.
 

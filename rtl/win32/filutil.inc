@@ -70,10 +70,10 @@ begin
 end;
 
 
-Function FileSeek (Handle,Offset,Origin : Longint) : Longint;
+Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
 
 begin
-  Result := SetFilePointer(Handle, Offset, nil, Origin);
+  Result := SetFilePointer(Handle, FOffset, nil, Origin);
 end;
 
 
@@ -427,7 +427,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2000-05-15 19:28:41  peter
+  Revision 1.17  2000-06-04 14:16:54  hajny
+    * parameter name change in FileSeek
+
+  Revision 1.16  2000/05/15 19:28:41  peter
     * int64 support for diskfree,disksize
 
   Revision 1.15  2000/02/17 22:16:05  sg

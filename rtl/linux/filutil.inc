@@ -52,10 +52,10 @@ begin
 end;
 
 
-Function FileSeek (Handle,Offset,Origin : Longint) : Longint;
+Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
 
 begin
-  FileSeek:=fdSeek (Handle,Offset,Origin);
+  FileSeek:=fdSeek (Handle,FOffset,Origin);
 end;
 
 
@@ -283,7 +283,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2000-03-22 20:00:54  michael
+  Revision 1.17  2000-06-04 14:23:50  hajny
+    * parameter name change in FileSeek
+
+  Revision 1.16  2000/03/22 20:00:54  michael
   + removed handle checkin fileclose
 
   Revision 1.15  2000/02/17 22:16:05  sg
