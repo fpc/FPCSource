@@ -459,7 +459,9 @@ unit cpupara;
                      (nextintreg <= RS_R10) then
                     begin
                       paraloc^.loc := loc;
-                      paracgsize := int_cgsize(paralen);
+                      { make sure we don't lose whether or not the type is signed }
+                      if (paradef.deftype <> orddef) then
+                        paracgsize := int_cgsize(paralen);
                       if (paracgsize in [OS_NO,OS_64,OS_S64]) then
                         paraloc^.size := OS_INT
                       else
@@ -650,7 +652,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2005-02-14 17:13:10  peter
+  Revision 1.90  2005-02-19 14:04:14  jonas
+    * don't lose sign of ord types for register parameters
+
+  Revision 1.89  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.88  2005/02/11 15:20:23  jonas
