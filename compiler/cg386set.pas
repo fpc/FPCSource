@@ -783,6 +783,7 @@ implementation
       var
          lv,hv,max_label,labels : longint;
          max_linear_list : longint;
+         otl, ofl: pasmlabel;
 {$ifdef Delphi}
          dist : cardinal;
 {$else Delphi}
@@ -809,6 +810,15 @@ implementation
               jmp_lee:=C_BE;
            end;
          cleartempgen;
+         { save current truelabel and falselabel (they are restored in }
+         { locjump2reg) (JM)                                           }
+         if p^.left^.location.loc=LOC_JUMP then
+           begin
+            otl:=truelabel;
+            getlabel(truelabel);
+            ofl:=falselabel;
+            getlabel(falselabel);
+           end;
          secondpass(p^.left);
          { determines the size of the operand }
          opsize:=bytes2Sxx[p^.left^.resulttype^.size];
@@ -818,12 +828,13 @@ implementation
               hregister:=p^.left^.location.register;
             LOC_FLAGS :
               begin
-                hregister:=getregister32;
-                case opsize of
-                  S_B : hregister:=reg32toreg8(hregister);
-                  S_W : hregister:=reg32toreg16(hregister);
-                end;
-                emit_flag2reg(p^.left^.location.resflags,hregister);
+                locflags2reg(p^.left^.location,opsize);
+                hregister := p^.left^.location.register;
+              end;
+            LOC_JUMP:
+              begin
+                locjump2reg(p^.left^.location,opsize,otl,ofl);
+                hregister := p^.left^.location.register;
               end;
             LOC_CREGISTER:
               begin
@@ -958,7 +969,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:35  michael
+  Revision 1.3  2000-07-27 09:25:05  jonas
+    * moved locflags2reg() procedure from cg386add to cgai386
+    + added locjump2reg() procedure to cgai386
+    * fixed internalerror(2002) when the result of a case expression has
+      LOC_JUMP
+    (all merged from fixes branch)
+
+  Revision 1.2  2000/07/13 11:32:35  michael
   + removed logs
 
 }

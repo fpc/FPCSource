@@ -39,6 +39,11 @@ unit cgai386;
     function makereg16(r:tregister):tregister;
     function makereg32(r:tregister):tregister;
 
+
+    procedure locflags2reg(var l:tlocation;opsize:topsize);
+    procedure locjump2reg(var l:tlocation;opsize:topsize; otl, ofl: pasmlabel);
+
+
     procedure emitlab(var l : pasmlabel);
     procedure emitjmp(c : tasmcond;var l : pasmlabel);
     procedure emit_flag2reg(flag:tresflags;hregister:tregister);
@@ -269,6 +274,54 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           R_AL,R_BL,R_CL,R_DL :
             makereg32:=reg8toreg32(r);
         end;
+      end;
+
+
+    procedure locflags2reg(var l:tlocation;opsize:topsize);
+      var
+        hregister : tregister;
+      begin
+        if (l.loc=LOC_FLAGS) then
+         begin
+           hregister:=getregister32;
+           case opsize of
+            S_W : hregister:=reg32toreg16(hregister);
+            S_B : hregister:=reg32toreg8(hregister);
+           end;
+           emit_flag2reg(l.resflags,hregister);
+           l.loc:=LOC_REGISTER;
+           l.register:=hregister;
+         end
+        else internalerror(270720001);
+      end;
+
+
+    procedure locjump2reg(var l:tlocation;opsize:topsize; otl, ofl: pasmlabel);
+      var
+        hregister : tregister;
+        hl : pasmlabel;
+      begin
+         if l.loc = LOC_JUMP then
+           begin
+             hregister:=getregister32;
+             case opsize of
+               S_W : hregister:=reg32toreg16(hregister);
+               S_B : hregister:=reg32toreg8(hregister);
+             end;
+             l.loc:=LOC_REGISTER;
+             l.register:=hregister;
+             emitlab(truelabel);
+             truelabel:=otl;
+             emit_const_reg(A_MOV,opsize,1,hregister);
+             getlabel(hl);
+             emitjmp(C_None,hl);
+             emitlab(falselabel);
+             falselabel:=ofl;
+             emit_reg_reg(A_XOR,S_L,makereg32(hregister),
+             makereg32(hregister));
+             emitlab(hl);
+           end
+        else internalerror(270720002);
       end;
 
 
@@ -3969,7 +4022,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.4  2000-07-21 15:14:02  jonas
+  Revision 1.5  2000-07-27 09:25:05  jonas
+    * moved locflags2reg() procedure from cg386add to cgai386
+    + added locjump2reg() procedure to cgai386
+    * fixed internalerror(2002) when the result of a case expression has
+      LOC_JUMP
+    (all merged from fixes branch)
+
+  Revision 1.4  2000/07/21 15:14:02  jonas
     + added is_addr field for labels, if they are only used for getting the address
        (e.g. for io checks) and corresponding getaddrlabel() procedure
 

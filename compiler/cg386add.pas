@@ -47,23 +47,6 @@ implementation
                                 Helpers
 *****************************************************************************}
 
-    procedure locflags2reg(var l:tlocation;opsize:topsize);
-      var
-        hregister : tregister;
-      begin
-        if (l.loc=LOC_FLAGS) then
-         begin
-           case opsize of
-            S_L : hregister:=getregister32;
-            S_W : hregister:=reg32toreg16(getregister32);
-            S_B : hregister:=reg32toreg8(getregister32);
-           end;
-           emit_flag2reg(l.resflags,hregister);
-           l.loc:=LOC_REGISTER;
-           l.register:=hregister;
-         end;
-      end;
-
     function getresflags(p : ptree;unsigned : boolean) : tresflags;
 
       begin
@@ -870,25 +853,7 @@ implementation
                           LOC_FLAGS:
                             locflags2reg(p^.left^.location,opsize);
                           LOC_JUMP:
-                            begin
-                               case opsize of
-                                  S_L : hregister:=getregister32;
-                                  S_W : hregister:=reg32toreg16(getregister32);
-                                  S_B : hregister:=reg32toreg8(getregister32);
-                               end;
-                               p^.left^.location.loc:=LOC_REGISTER;
-                               p^.left^.location.register:=hregister;
-                               emitlab(truelabel);
-                               truelabel:=otl;
-                               emit_const_reg(A_MOV,opsize,1,hregister);
-                               getlabel(hl);
-                               emitjmp(C_None,hl);
-                               emitlab(falselabel);
-                               falselabel:=ofl;
-                               emit_reg_reg(A_XOR,S_L,makereg32(hregister),
-                                 makereg32(hregister));
-                               emitlab(hl);
-                            end;
+                            locjump2reg(p^.left^.location,opsize, otl, ofl);
                        end;
                        set_location(p^.location,p^.left^.location);
                        pushed:=maybe_push(p^.right^.registers32,p,false);
@@ -909,25 +874,7 @@ implementation
                           LOC_FLAGS:
                             locflags2reg(p^.right^.location,opsize);
                           LOC_JUMP:
-                            begin
-                               case opsize of
-                                  S_L : hregister:=getregister32;
-                                  S_W : hregister:=reg32toreg16(getregister32);
-                                  S_B : hregister:=reg32toreg8(getregister32);
-                               end;
-                               p^.right^.location.loc:=LOC_REGISTER;
-                               p^.right^.location.register:=hregister;
-                               emitlab(truelabel);
-                               truelabel:=otl;
-                               emit_const_reg(A_MOV,opsize,1,hregister);
-                               getlabel(hl);
-                               emitjmp(C_None,hl);
-                               emitlab(falselabel);
-                               falselabel:=ofl;
-                               emit_reg_reg(A_XOR,S_L,makereg32(hregister),
-                                 makereg32(hregister));
-                               emitlab(hl);
-                            end;
+                            locjump2reg(p^.right^.location,opsize,otl,ofl);
                        end;
                        goto do_normal;
                     end
@@ -2377,7 +2324,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:32  michael
+  Revision 1.3  2000-07-27 09:25:05  jonas
+    * moved locflags2reg() procedure from cg386add to cgai386
+    + added locjump2reg() procedure to cgai386
+    * fixed internalerror(2002) when the result of a case expression has
+      LOC_JUMP
+    (all merged from fixes branch)
+
+  Revision 1.2  2000/07/13 11:32:32  michael
   + removed logs
 
 }
