@@ -25,11 +25,14 @@ Function fpLstat(path:pchar;Info:pstat):cint;
 Function fpLstat(Filename: PathStr;Info:pstat):cint;
 Function fpSymlink(oldname,newname:pchar):cint;
 Function fpReadLink(name,linkname:pchar;maxlen:size_t):cint;
-Function fpReadLink(name:PathStr):PathStr;
 
 {
   $Log$
-  Revision 1.4  2003-11-19 11:46:55  marco
+  Revision 1.5  2004-01-01 16:10:23  marco
+   * fpreadlink(pathstr) moved to unxovl (since not platform specific),
+  	small fixes for "make all OPT='-dFPC_USE_LIBC'
+
+  Revision 1.4  2003/11/19 11:46:55  marco
    * changes due to the previous *BSD changes. Mainly moving constants from
      unix to systypes.inc (which acts as unxtypes.inc)
 

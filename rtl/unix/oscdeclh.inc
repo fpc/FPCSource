@@ -28,11 +28,8 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     function  FpAccess  (pathname : pchar; amode : cint): cint; cdecl; external name 'access';
     function  FpChdir	(path : pchar): cint; cdecl; external name 'chdir';
     function  FpClose	(fd : cint): cint; cdecl; external name 'close';
-//{$ifndef FPC_IS_SYSTEM}
     Function  FpClosedir (var dirp : Dir): cInt; cdecl; external name 'closedir';
-//{$else}
     function  FpClosedir (dirp : pdir): cint; cdecl; external name 'closedir';
-//{$endif}
     function  FpDup	(oldd:cint):cint; cdecl; external name 'dup';
     function  FpDup2	(oldd:cint;newd:cint):cint; cdecl; external name 'dup2';
     function  FpExecve	(path : pchar; argv : ppchar; envp: ppchar): cint; cdecl; external name 'execve';
@@ -44,28 +41,22 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     function  FpOpen	(path: pchar; flags : cint; mode: TMode):cint; cdecl; external name 'open';
     function  FpOpendir	(dirname : pchar): pdir; cdecl; external name 'opendir';
     function  FpRead	(fd: cint; buf: pchar; nbytes : TSize): TSSize; cdecl; external name 'read';
-//{$ifdef FPC_IS_SYSTEM}
     function  FpReaddir	(dirp : pdir) : pdirent;cdecl; external name 'readdir';
-//{$ELSE}
     Function  FpReaddir    (var dirp : Dir) : pDirent;cdecl; external name 'readdir';
-//{$endif}
     function  FpRename	(old : pchar; newpath: pchar): cint; cdecl;external name 'rename';
     function  FpRmdir	(path : pchar): cint; cdecl; external name 'rmdir';
-//    {$ifdef FPC_IS_SYSTEM}
     function  FpSigaction (sig: cint;var act : sigactionrec; var oact : sigactionrec): cint; cdecl; external name 'sigaction';
-//    {$else}
     Function  FPSigaction (sig: cInt; act :pSigActionRec;oact:pSigActionRec):cint;cdecl; external name 'sigaction';
-//    {$endif}
 
     {$ifdef BSD}
     function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint;cdecl; external name 'sigprocmask';
     {$endif}
     function  FpStat	  (path: pchar; var buf : stat): cint; cdecl; external name 'stat';
-    {$ifdef FPC_IS_SYSTEM}
+//    {$ifdef FPC_IS_SYSTEM}
     function  FpTime	   (tloc:ptime_t): time_t; cdecl; external name 'time';
-    {$else}
+//    {$else}
     Function  FpTime       (var tloc : TTime): TTime; cdecl; external name 'time';
-    {$endif}
+//    {$endif}
     function  FpUname	(var name: utsname): cint; cdecl; external name 'uname';
     function  FpUnlink	(path: pchar): cint; cdecl; external name 'unlink';
     function  FpWaitpid	(pid : TPid; stat_loc : pcint; options: cint): TPid; cdecl; external name 'waitpid';
@@ -84,14 +75,21 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpGetegid : TGid;cdecl;external name 'getegid';
     Function  FpSetuid     (uid : TUid): cInt;cdecl;external name 'setuid';
     Function  FpSetgid     (gid : TGid): cInt;cdecl;external name 'setgid';
-    Function  FpGetgroups (gidsetsize : cInt; var grouplist : tgrparr):cint; cdecl;external name 'getgroups';
+    Function  FpGetgroups  (gidsetsize : cInt; var grouplist : tgrparr):cint; cdecl;external name 'getgroups';
     Function  FpGetpgrp : TPid;  cdecl;external name 'getpgrp';
     Function  FpSetsid  : TPid; cdecl;external name 'setsid';
     Function  FpPipe       (var fildes : tfildes):cInt; cdecl;external name 'pipe';
+    Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt; cdecl external name 'fcntl';   
+    Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; cdecl external name 'fcntl';
+    Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; cdecl external name 'fcntl';
 
 {
    $Log$
-   Revision 1.4  2004-01-01 14:09:14  marco
+   Revision 1.5  2004-01-01 16:10:23  marco
+    * fpreadlink(pathstr) moved to unxovl (since not platform specific),
+   	small fixes for "make all OPT='-dFPC_USE_LIBC'
+
+   Revision 1.4  2004/01/01 14:09:14  marco
     * FPC_USE_LIBC fixes
 
    Revision 1.3  2003/12/30 15:43:20  marco
