@@ -185,7 +185,7 @@ endif
 # Targets
 
 override DIROBJECTS+=$(wildcard tply h2pas fprcp)
-override EXEOBJECTS+=ppufiles ppudump ppumove ppdep ptop rstconv data2inc fpcmake delp bin2obj
+override EXEOBJECTS+=ppufiles ppudump ppumove ppdep ptop rstconv data2inc fpcmake delp bin2obj postw32
 
 # Clean
 
