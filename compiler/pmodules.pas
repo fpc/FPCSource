@@ -710,7 +710,7 @@ unit pmodules;
 
     procedure loadunits;
       var
-         s : stringid;
+         s,sorg : stringid;
          pu,
          hp : pused_unit;
          hp2 : pmodule;
@@ -725,6 +725,7 @@ unit pmodules;
 {$endif DEBUG}
          repeat
            s:=pattern;
+           sorg:=orgpattern;
            consume(_ID);
          { Give a warning if objpas is loaded }
            if s='OBJPAS' then
@@ -747,7 +748,7 @@ unit pmodules;
               pused_unit(current_module^.used_units.last)^.in_uses:=true;
               if current_module^.compiled then
                 exit;
-              unitsym:=new(punitsym,init(s,hp2^.globalsymtable));
+              unitsym:=new(punitsym,init(sorg,hp2^.globalsymtable));
               { never claim about unused unit if
                 there is init or finalize code  PM }
               if (hp2^.flags and (uf_init or uf_finalize))<>0 then
@@ -1713,7 +1714,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.6  2000-08-27 16:11:52  peter
+  Revision 1.7  2000-08-27 20:19:39  peter
+    * store strings with case in ppu, when an internal symbol is created
+      a '$' is prefixed so it's not automatic uppercased
+
+  Revision 1.6  2000/08/27 16:11:52  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

@@ -160,12 +160,9 @@ unit pbase;
       begin
          sc:=new(pstringcontainer,init);
          repeat
-           sc^.insert_with_tokeninfo(pattern,
-             tokenpos);
-           consume(_id);
-           if token=_COMMA then consume(_COMMA)
-             else break
-         until false;
+           sc^.insert_with_tokeninfo(orgpattern,tokenpos);
+           consume(_ID);
+         until not try_to_consume(_COMMA);
          idlist:=sc;
       end;
 
@@ -197,7 +194,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-08-27 16:11:51  peter
+  Revision 1.4  2000-08-27 20:19:39  peter
+    * store strings with case in ppu, when an internal symbol is created
+      a '$' is prefixed so it's not automatic uppercased
+
+  Revision 1.3  2000/08/27 16:11:51  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

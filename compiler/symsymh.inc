@@ -28,6 +28,7 @@
        tsym = object(tsymtableentry)
           typ        : tsymtyp;
           symoptions : tsymoptions;
+          _realname  : pstring;
           fileinfo   : tfileposinfo;
 {$ifdef GDB}
           isstabwritten : boolean;
@@ -43,6 +44,7 @@
           procedure write;virtual;
           procedure prederef;virtual; { needed for ttypesym to be deref'd first }
           procedure deref;virtual;
+          function  realname : string;virtual;
           function  mangledname : string;virtual;
           procedure insert_in_data;virtual;
 {$ifdef GDB}
@@ -319,7 +321,11 @@
 
 {
   $Log$
-  Revision 1.4  2000-08-16 13:06:07  florian
+  Revision 1.5  2000-08-27 20:19:40  peter
+    * store strings with case in ppu, when an internal symbol is created
+      a '$' is prefixed so it's not automatic uppercased
+
+  Revision 1.4  2000/08/16 13:06:07  florian
     + support of 64 bit integer constants
 
   Revision 1.3  2000/08/13 12:54:56  peter

@@ -26,7 +26,11 @@
 
     constructor tsym.init(const n : string);
       begin
-         inherited initname(n);
+         if n[1]='$' then
+          inherited initname(copy(n,2,255))
+         else
+          inherited initname(upper(n));
+         _realname:=stringdup(n);
          typ:=abstractsym;
          symoptions:=current_object_option;
 {$ifdef GDB}
@@ -50,7 +54,11 @@
       begin
          inherited init;
          indexnr:=readword;
-         setname(readstring);
+         _realname:=stringdup(readstring);
+         if _realname^[1]='$' then
+          setname(copy(_realname^,2,255))
+         else
+          setname(upper(_realname^));
          typ:=abstractsym;
          readsmallset(symoptions);
          readposinfo(fileinfo);
@@ -146,11 +154,12 @@
 
     destructor tsym.done;
       begin
-         if assigned(defref) then
-           begin
-             defref^.freechain;
-             dispose(defref,done);
-           end;
+        if assigned(defref) then
+         begin
+           defref^.freechain;
+           dispose(defref,done);
+         end;
+        stringdispose(_realname);
         inherited done;
       end;
 
@@ -158,7 +167,7 @@
     procedure tsym.write;
       begin
          writeword(indexnr);
-         writestring(name);
+         writestring(_realname^);
          writesmallset(symoptions);
          writeposinfo(fileinfo);
       end;
@@ -171,6 +180,15 @@
 
     procedure tsym.deref;
       begin
+      end;
+
+
+    function tsym.realname : string;
+      begin
+        if assigned(_realname) then
+         realname:=_realname^
+        else
+         realname:=name;
       end;
 
 
@@ -2208,7 +2226,11 @@
 
 {
   $Log$
-  Revision 1.6  2000-08-21 11:27:44  pierre
+  Revision 1.7  2000-08-27 20:19:39  peter
+    * store strings with case in ppu, when an internal symbol is created
+      a '$' is prefixed so it's not automatic uppercased
+
+  Revision 1.6  2000/08/21 11:27:44  pierre
    * fix the stabs problems
 
   Revision 1.5  2000/08/16 13:06:07  florian

@@ -1055,7 +1055,6 @@ uses
         if assigned(usedasmsymbollist) then
          internalerror(78455782);
         new(usedasmsymbollist,init);
-        usedasmsymbollist^.noclear:=true;
       end;
 
 
@@ -1181,7 +1180,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.11  2000-08-27 16:11:48  peter
+  Revision 1.12  2000-08-27 20:19:38  peter
+    * store strings with case in ppu, when an internal symbol is created
+      a '$' is prefixed so it's not automatic uppercased
+
+  Revision 1.11  2000/08/27 16:11:48  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

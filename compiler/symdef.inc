@@ -422,7 +422,7 @@
          { name }
          if assigned(typesym) then
            begin
-              str:=typesym^.name;
+              str:=typesym^.realname;
               rttilist^.concat(new(pai_string,init(chr(length(str))+str)));
            end
          else
@@ -3138,7 +3138,7 @@ Const local_symtable_index : longint = $8001;
          s := procsym^.name;
          if procsym^.owner^.symtabletype=objectsymtable then
            begin
-              s2:=pobjectdef(procsym^.owner^.defowner)^.objname^;
+              s2:=upper(pobjectdef(procsym^.owner^.defowner)^.objname^);
               case proctypeoption of
                  potype_destructor:
                    s:='_$_'+tostr(length(s2))+s2;
@@ -3419,7 +3419,7 @@ Const local_symtable_index : longint = $8001;
          { it !                                  }
          if (childof=nil) and
             is_class and
-            (objname^='TOBJECT') then
+            (upper(objname^)='TOBJECT') then
            class_tobject:=@self;
        end;
 
@@ -3644,7 +3644,7 @@ Const local_symtable_index : longint = $8001;
         if objname=nil then
           s2:=''
         else
-          s2:=objname^;
+          s2:=Upper(objname^);
         vmt_mangledname:='VMT_'+s1+'$_'+s2;
     end;
 
@@ -3660,7 +3660,7 @@ Const local_symtable_index : longint = $8001;
        if objname=nil then
          s2:=''
        else
-         s2:=objname^;
+         s2:=Upper(objname^);
        rtti_name:='RTTI_'+s1+'$_'+s2;
     end;
 
@@ -3945,8 +3945,8 @@ Const local_symtable_index : longint = $8001;
                    rttilist^.concat(new(pai_const,init_16bit(count)));
                    inc(count);
                    rttilist^.concat(new(pai_const,init_8bit(proctypesinfo)));
-                   rttilist^.concat(new(pai_const,init_8bit(length(pvarsym(sym)^.name))));
-                   rttilist^.concat(new(pai_string,init(pvarsym(sym)^.name)));
+                   rttilist^.concat(new(pai_const,init_8bit(length(pvarsym(sym)^.realname))));
+                   rttilist^.concat(new(pai_string,init(pvarsym(sym)^.realname)));
 {$endif dummy}
                 end;
               propertysym:
@@ -3971,8 +3971,8 @@ Const local_symtable_index : longint = $8001;
                    rttilist^.concat(new(pai_const,init_16bit(count)));
                    inc(count);
                    rttilist^.concat(new(pai_const,init_8bit(proctypesinfo)));
-                   rttilist^.concat(new(pai_const,init_8bit(length(ppropertysym(sym)^.name))));
-                   rttilist^.concat(new(pai_string,init(ppropertysym(sym)^.name)));
+                   rttilist^.concat(new(pai_const,init_8bit(length(ppropertysym(sym)^.realname))));
+                   rttilist^.concat(new(pai_string,init(ppropertysym(sym)^.realname)));
                 end;
               else internalerror(1509992);
            end;
@@ -4085,8 +4085,8 @@ Const local_symtable_index : longint = $8001;
              if not(assigned(hp)) then
                internalerror(0206002);
              rttilist^.concat(new(pai_const,init_16bit(hp^.index)));
-             rttilist^.concat(new(pai_const,init_8bit(length(pvarsym(sym)^.name))));
-             rttilist^.concat(new(pai_string,init(pvarsym(sym)^.name)));
+             rttilist^.concat(new(pai_const,init_8bit(length(pvarsym(sym)^.realname))));
+             rttilist^.concat(new(pai_string,init(pvarsym(sym)^.realname)));
           end;
       end;
 
@@ -4257,7 +4257,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.13  2000-08-27 16:11:53  peter
+  Revision 1.14  2000-08-27 20:19:39  peter
+    * store strings with case in ppu, when an internal symbol is created
+      a '$' is prefixed so it's not automatic uppercased
+
+  Revision 1.13  2000/08/27 16:11:53  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

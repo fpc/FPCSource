@@ -268,7 +268,7 @@ unit pdecl;
                             Comment(V_Error,'default value only allowed for one parameter');
                            sc^.insert_with_tokeninfo(s,hpos);
                            { prefix 'def' to the parameter name }
-                           pdefaultvalue:=ReadConstant('def'+s,hpos);
+                           pdefaultvalue:=ReadConstant('$def'+Upper(s),hpos);
                            if assigned(pdefaultvalue) then
                             pprocdef(aktprocdef)^.parast^.insert(pdefaultvalue);
                            defaultrequired:=true;
@@ -328,7 +328,7 @@ unit pdecl;
                    { also need to push a high value? }
                      if inserthigh then
                       begin
-                        hvs:=new(Pvarsym,initdef('high'+s,s32bitdef));
+                        hvs:=new(Pvarsym,initdef('$high'+Upper(s),s32bitdef));
                         hvs^.varspez:=vs_const;
                         pprocdef(aktprocdef)^.parast^.insert(hvs);
                       end;
@@ -349,10 +349,6 @@ unit pdecl;
         dec(testcurobject);
         consume(_RKLAMMER);
       end;
-
-
-
-
 
 
     const
@@ -1053,7 +1049,7 @@ unit pdecl;
     procedure type_dec;
 
       var
-         typename : stringid;
+         typename,orgtypename : stringid;
          newtype  : ptypesym;
          sym      : psym;
          tt       : ttype;
@@ -1066,6 +1062,7 @@ unit pdecl;
          typecanbeforward:=true;
          repeat
            typename:=pattern;
+           orgtypename:=orgpattern;
            defpos:=tokenpos;
            consume(_ID);
            consume(_EQUAL);
@@ -1089,7 +1086,7 @@ unit pdecl;
                   begin
                     { we can ignore the result   }
                     { the definition is modified }
-                    object_dec(typename,pobjectdef(ptypesym(sym)^.restype.def));
+                    object_dec(orgtypename,pobjectdef(ptypesym(sym)^.restype.def));
                     newtype:=ptypesym(sym);
                   end;
                end;
@@ -1102,12 +1099,12 @@ unit pdecl;
                 will give an error (PFV) }
               tt.setdef(generrordef);
               storetokenpos:=tokenpos;
-              newtype:=new(ptypesym,init(typename,tt));
+              newtype:=new(ptypesym,init(orgtypename,tt));
               symtablestack^.insert(newtype);
               tokenpos:=defpos;
               tokenpos:=storetokenpos;
               { read the type definition }
-              read_type(tt,typename);
+              read_type(tt,orgtypename);
               { update the definition of the type }
               newtype^.restype:=tt;
               if not assigned(tt.sym) then
@@ -1299,7 +1296,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.12  2000-08-27 16:11:51  peter
+  Revision 1.13  2000-08-27 20:19:39  peter
+    * store strings with case in ppu, when an internal symbol is created
+      a '$' is prefixed so it's not automatic uppercased
+
+  Revision 1.12  2000/08/27 16:11:51  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

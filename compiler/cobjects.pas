@@ -245,11 +245,11 @@ unit cobjects;
 
        psinglelist=^tsinglelist;
        tsinglelist=object
-         noclear : boolean;
          first,
          last    : Pnamedindexobject;
          constructor init;
          destructor  done;
+         procedure reset;
          procedure clear;
          procedure insert(p:Pnamedindexobject);
        end;
@@ -1467,14 +1467,18 @@ end;
       begin
         first:=nil;
         last:=nil;
-        noclear:=false;
       end;
 
 
     destructor tsinglelist.done;
       begin
-        if not noclear then
-         clear;
+      end;
+
+
+    procedure tsinglelist.reset;
+      begin
+        first:=nil;
+        last:=nil;
       end;
 
 
@@ -1868,7 +1872,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2000-08-27 16:11:50  peter
+  Revision 1.12  2000-08-27 20:19:38  peter
+    * store strings with case in ppu, when an internal symbol is created
+      a '$' is prefixed so it's not automatic uppercased
+
+  Revision 1.11  2000/08/27 16:11:50  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

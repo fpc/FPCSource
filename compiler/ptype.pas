@@ -322,7 +322,7 @@ uses
            datacoll:=nil;
            if token=_ID then
              begin
-                p:=new(ppropertysym,init(pattern));
+                p:=new(ppropertysym,init(orgpattern));
                 propname:=pattern;
                 consume(_ID);
                 { property parameters ? }
@@ -755,7 +755,7 @@ uses
            { is the current class tobject?   }
            { so you could define your own tobject }
            if (cs_compilesystem in aktmoduleswitches) and
-             (n='TOBJECT') then
+              (upper(n)='TOBJECT') then
              begin
                 if assigned(fd) then
                   aktclass:=fd
@@ -1080,7 +1080,7 @@ uses
          aktclass^.symtable^.next:=symtablestack;
          symtablestack:=aktclass^.symtable;
          testcurobject:=1;
-         curobjectname:=n;
+         curobjectname:=Upper(n);
 
          { new procinfo }
          oldprocinfo:=procinfo;
@@ -1460,7 +1460,7 @@ uses
                 l:=-1;
                 aktenumdef:=new(penumdef,init);
                 repeat
-                  s:=pattern;
+                  s:=orgpattern;
                   defpos:=tokenpos;
                   consume(_ID);
                   { only allow assigning of specific numbers under fpc mode }
@@ -1481,11 +1481,7 @@ uses
                   tokenpos:=defpos;
                   constsymtable^.insert(new(penumsym,init(s,aktenumdef,l)));
                   tokenpos:=storepos;
-                  if token=_COMMA then
-                    consume(_COMMA)
-                  else
-                    break;
-                until false;
+                until not try_to_consume(_COMMA);
                 tt.setdef(aktenumdef);
                 consume(_RKLAMMER);
               end;
@@ -1606,7 +1602,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.7  2000-08-27 16:11:52  peter
+  Revision 1.8  2000-08-27 20:19:39  peter
+    * store strings with case in ppu, when an internal symbol is created
+      a '$' is prefixed so it's not automatic uppercased
+
+  Revision 1.7  2000/08/27 16:11:52  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 
