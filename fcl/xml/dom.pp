@@ -1,9 +1,9 @@
 {
     $Id$
     This file is part of the Free Component Library
-    This file Copyright (c) 1999-2000 by Sebastian Guenther
 
     Implementation of DOM interfaces
+    Copyright (c) 1999-2000 by Sebastian Guenther, sg@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -1499,7 +1499,10 @@ end.
 
 {
   $Log$
-  Revision 1.1.2.1  2000-07-25 09:13:54  sg
+  Revision 1.1.2.2  2000-07-29 14:20:54  sg
+  * Modified the copyright notice to remove ambiguities
+
+  Revision 1.1.2.1  2000/07/25 09:13:54  sg
   * Fixed some small bugs
     - some methods where 'virtual' instead of 'override' in dom.pp
     - corrections regaring wether NodeName or NodeValue is used, for

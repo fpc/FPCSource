@@ -1,9 +1,9 @@
 {
     $Id$
     This file is part of the Free Component Library
-    Copyright (c) 1999-2000 by Sebastian Guenther
 
     Implementation of TXMLConfig class
+    Copyright (c) 1999-2000 by Sebastian Guenther, sg@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -208,7 +208,45 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:07  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-07-29 14:20:54  sg
+  * Modified the copyright notice to remove ambiguities
+
+  Revision 1.1  2000/07/13 06:33:49  michael
+  + Initial import
+
+  Revision 1.10  2000/05/04 18:24:22  sg
+  * Bugfixes: In some cases the DOM node tree was invalid
+  * Simplifications
+  * Minor optical improvements
+
+  Revision 1.9  2000/02/13 10:03:31  sg
+  * Hopefully final fix for TDOMDocument.DocumentElement:
+    - Reading this property always delivers the first element in the document
+    - Removed SetDocumentElement. Use "AppendChild" or one of the other
+      generic methods for TDOMNode instead.
+
+  Revision 1.8  2000/01/30 22:20:08  sg
+  * TXMLConfig now frees its XML document (major memory leak...)
+
+  Revision 1.7  2000/01/07 01:24:34  peter
+    * updated copyright to 2000
+
+  Revision 1.6  2000/01/06 01:20:37  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.1  2000/01/03 19:33:11  peter
+    * moved to packages dir
+
+  Revision 1.4  1999/12/22 13:38:01  sg
+  * Lots of cosmetic changes (strings -> const AnsiStrings etc.)
+
+  Revision 1.3  1999/07/25 16:24:13  michael
+  + Fixes from Sebastiam Guenther - more error-proof
+
+  Revision 1.2  1999/07/09 21:05:50  michael
+  + fixes from Guenther Sebastian
+
+  Revision 1.1  1999/07/09 08:35:09  michael
+  + Initial implementation by Sebastian Guenther
+
 }
