@@ -513,6 +513,13 @@ begin
   FSize:=ASize;
 end;
 
+function TCustomMemoryStream.GetSize: Int64;
+
+begin
+  Result:=FSize;
+end;
+
+
 
 function TCustomMemoryStream.Read(var Buffer; Count: Longint): Longint;
 
@@ -653,7 +660,6 @@ begin
   IF FPosition>FSize then
     FPosition:=FSize;
 end;
-
 
 function TMemoryStream.Write(const Buffer; Count: Longint): Longint;
 
@@ -803,7 +809,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2005-01-19 09:09:50  michael
+  Revision 1.6  2005-01-19 19:57:57  michael
+  + CustomMemoryStream.getsize overridden
+
+  Revision 1.5  2005/01/19 09:09:50  michael
     * Patch from Peter to fix 64bit issue in tstream.seek()
 
   Revision 1.4  2005/01/18 22:31:44  michael
