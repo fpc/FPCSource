@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit exports some help routines for the code generation
 
@@ -524,7 +524,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2002-05-16 19:46:35  carl
+  Revision 1.16  2002-05-18 13:34:05  peter
+    * readded missing revisions
+
+  Revision 1.15  2002/05/16 19:46:35  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -584,74 +587,5 @@ end.
 
   Revision 1.6  2002/03/04 19:10:11  peter
     * removed compiler warnings
-
-  Revision 1.5  2001/12/30 17:24:48  jonas
-    * range checking is now processor independent (part in cgobj,
-      part in cg64f32) and should work correctly again (it needed
-      some changes after the changes of the low and high of
-      tordef's to int64)
-    * maketojumpbool() is now processor independent (in ncgutil)
-    * getregister32 is now called getregisterint
-
-  Revision 1.4  2001/11/06 14:53:48  jonas
-    * compiles again with -dmemdebug
-
-  Revision 1.3  2001/09/29 21:33:47  jonas
-    * support 64bit operands in def_cgsize()
-
-  Revision 1.2  2001/09/28 20:39:33  jonas
-    * changed all flow control structures (except for exception handling
-      related things) to processor independent code (in new ncgflw unit)
-    + generic cgobj unit which contains lots of code generator helpers with
-      global "cg" class instance variable
-    + cgcpu unit for i386 (implements processor specific routines of the above
-      unit)
-    * updated cgbase and cpubase for the new code generator units
-    * include ncgflw unit in cpunode unit
-
-  Revision 1.1  2001/08/26 13:36:36  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.11  2001/08/06 21:40:46  peter
-    * funcret moved from tprocinfo to tprocdef
-
-  Revision 1.10  2001/04/13 01:22:07  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.9  2000/12/25 00:07:26  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.8  2000/11/30 22:16:49  florian
-    * moved to i386
-
-  Revision 1.7  2000/10/31 22:02:47  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.6  2000/09/24 15:06:17  peter
-    * use defines.inc
-
-  Revision 1.5  2000/08/27 16:11:51  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.4  2000/08/12 15:34:22  peter
-    + usedasmsymbollist to check and reset only the used symbols (merged)
-
-  Revision 1.3  2000/08/03 13:17:26  jonas
-    + allow regvars to be used inside inlined procs, which required  the
-      following changes:
-        + load regvars in genentrycode/free them in genexitcode (cgai386)
-        * moved all regvar related code to new regvars unit
-        + added pregvarinfo type to hcodegen
-        + added regvarinfo field to tprocinfo (symdef/symdefh)
-        * deallocate the regvars of the caller in secondprocinline before
-          inlining the called procedure and reallocate them afterwards
-
-  Revision 1.2  2000/07/13 11:32:41  michael
-  + removed logs
 
 }

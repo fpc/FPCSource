@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2000 by Pierre Muller
+    Copyright (c) 2000-2002 by Pierre Muller
 
     This program allows to run the Makefiles
     with the compiler running inside GDB
@@ -137,8 +137,10 @@ begin
     end
   else
     Erase(fpcgdbini);
-end.  $Log$
-end.  Revision 1.2  2000-07-13 11:32:55  michael
-end.  + removed logs
-end. 
+end.
+{
+  $Log$
+  Revision 1.3  2002-05-18 13:34:27  peter
+    * readded missing revisions
+
 }

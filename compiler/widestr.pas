@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2000 by Florian Klaempfl
+    Copyright (c) 2000-2002 by Florian Klaempfl
 
     This unit contains basic functions for unicode support in the
     compiler, this unit is mainly necessary to bootstrap widestring
@@ -257,36 +257,13 @@ unit widestr;
 end.
 {
   $Log$
-  Revision 1.9  2002-05-16 19:46:47  carl
+  Revision 1.10  2002-05-18 13:34:21  peter
+    * readded missing revisions
+
+  Revision 1.9  2002/05/16 19:46:47  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
   + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.7  2001/09/02 21:16:25  peter
-    * delphi fixes
-
-  Revision 1.6  2001/07/08 21:00:16  peter
-    * various widestring updates, it works now mostly without charset
-      mapping supported
-
-  Revision 1.5  2001/05/27 14:30:55  florian
-    + some widestring stuff added
-
-  Revision 1.4  2001/05/08 21:06:33  florian
-    * some more support for widechars commited especially
-      regarding type casting and constants
-
-  Revision 1.3  2001/04/13 01:22:17  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.2  2001/04/02 21:20:35  peter
-    * resulttype rewrite
-
-  Revision 1.1  2000/11/29 00:30:43  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
 
 }

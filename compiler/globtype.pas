@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
+    Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     Global types
 
@@ -255,7 +255,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2002-05-16 19:46:36  carl
+  Revision 1.26  2002-05-18 13:34:08  peter
+    * readded missing revisions
+
+  Revision 1.25  2002/05/16 19:46:36  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -291,68 +294,5 @@ end.
   Revision 1.20  2002/01/24 18:25:48  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
-
-  Revision 1.19  2001/10/25 21:22:32  peter
-    * calling convention rewrite
-
-  Revision 1.18  2001/10/24 11:46:06  marco
-   * Opt Align fix.
-
-  Revision 1.17  2001/10/23 21:49:42  peter
-    * $calling directive and -Cc commandline patch added
-      from Pavel Ozerski
-
-  Revision 1.16  2001/10/20 20:30:21  peter
-    * read only typed const support, switch $J-
-
-  Revision 1.15  2001/09/17 21:29:11  peter
-    * merged netbsd, fpu-overflow from fixes branch
-
-  Revision 1.14  2001/07/30 20:59:27  peter
-    * m68k updates from v10 merged
-
-  Revision 1.13  2001/07/01 20:16:15  peter
-    * alignmentinfo record added
-    * -Oa argument supports more alignment settings that can be specified
-      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
-      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
-      required alignment and the maximum usefull alignment. The final
-      alignment will be choosen per variable size dependent on these
-      settings
-
-  Revision 1.12  2001/06/03 21:57:35  peter
-    + hint directive parsing support
-
-  Revision 1.11  2001/01/20 18:32:52  hajny
-    + APPTYPE support under OS/2, app_fs, GetEnvPChar for OS/2
-
-  Revision 1.10  2000/11/29 00:30:30  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.9  2000/11/12 22:20:37  peter
-    * create generic toutputsection for binary writers
-
-  Revision 1.8  2000/11/04 14:25:19  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.7  2000/09/24 15:06:16  peter
-    * use defines.inc
-
-  Revision 1.6  2000/09/21 11:30:49  jonas
-    + support for full boolean evaluation (b+/b-), default remains short
-      circuit boolean evaluation
-
-  Revision 1.5  2000/08/05 13:25:06  peter
-    * packenum 1 fixes (merged)
-
-  Revision 1.4  2000/08/02 19:49:59  peter
-    * first things for default parameters
-
-  Revision 1.3  2000/07/13 12:08:25  michael
-  + patched to 1.1.0 with former 1.09patch from peter
-
-  Revision 1.2  2000/07/13 11:32:41  michael
-  + removed logs
 
 }

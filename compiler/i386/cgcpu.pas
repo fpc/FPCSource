@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the code generator for the i386
 
@@ -1778,7 +1778,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-05-16 19:46:50  carl
+  Revision 1.20  2002-05-18 13:34:22  peter
+    * readded missing revisions
+
+  Revision 1.19  2002/05/16 19:46:50  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -1861,38 +1864,5 @@ end.
 
   Revision 1.7  2002/03/04 19:10:12  peter
     * removed compiler warnings
-
-  Revision 1.6  2001/12/30 17:24:46  jonas
-    * range checking is now processor independent (part in cgobj,
-      part in cg64f32) and should work correctly again (it needed
-      some changes after the changes of the low and high of
-      tordef's to int64)
-    * maketojumpbool() is now processor independent (in ncgutil)
-    * getregister32 is now called getregisterint
-
-  Revision 1.5  2001/12/29 15:29:59  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
-
-  Revision 1.4  2001/10/04 14:33:28  jonas
-    * fixed range check errors
-
-  Revision 1.3  2001/09/30 16:17:18  jonas
-    * made most constant and mem handling processor independent
-
-  Revision 1.2  2001/09/29 21:32:19  jonas
-    * fixed bug in a_load_reg_reg + implemented a_call
-
-  Revision 1.1  2001/09/28 20:39:33  jonas
-    * changed all flow control structures (except for exception handling
-      related things) to processor independent code (in new ncgflw unit)
-    + generic cgobj unit which contains lots of code generator helpers with
-      global "cg" class instance variable
-    + cgcpu unit for i386 (implements processor specific routines of the above
-      unit)
-    * updated cgbase and cpubase for the new code generator units
-    * include ncgflw unit in cpunode unit
 
 }

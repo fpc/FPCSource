@@ -323,7 +323,7 @@ implementation
               begin
                 generatecode(code);
                 aktprocdef.code:=code;
-{$ifdef testtemp}                
+{$ifdef testtemp}
                 if assigned(aktprocdef) and assigned(aktprocdef.localst) then
                 begin
                   stackframe:=align(tg.gettempsize+aktprocdef.localst.datasize,4);
@@ -334,7 +334,7 @@ implementation
                 end;
                 if lexlevel = 1 then
                   WriteLn(stackframe);
-{$else}                
+{$else}
                 stackframe:=tg.gettempsize;
 {                if lexlevel = 1 then
                   WriteLn(stackframe);}
@@ -819,7 +819,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2002-05-16 19:46:44  carl
+  Revision 1.53  2002-05-18 13:34:14  peter
+    * readded missing revisions
+
+  Revision 1.52  2002/05/16 19:46:44  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls

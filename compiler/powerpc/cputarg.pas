@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2001 by Peter Vreman
+    Copyright (c) 2001-2002 by Peter Vreman
 
     Includes the powerpc dependent target units
 
@@ -49,7 +49,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-05-16 19:46:53  carl
+  Revision 1.3  2002-05-18 13:34:26  peter
+    * readded missing revisions
+
+  Revision 1.2  2002/05/16 19:46:53  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls

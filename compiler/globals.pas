@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (C) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements some support functions and global variables
 
@@ -1460,7 +1460,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2002-05-16 19:46:36  carl
+  Revision 1.58  2002-05-18 13:34:08  peter
+    * readded missing revisions
+
+  Revision 1.57  2002/05/16 19:46:36  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -1496,177 +1499,5 @@ end.
   Revision 1.51  2002/01/24 18:25:48  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
-
-  Revision 1.50  2001/12/06 17:57:33  florian
-    + parasym to tparaitem added
-
-  Revision 1.49  2001/10/25 21:22:32  peter
-    * calling convention rewrite
-
-  Revision 1.48  2001/10/23 21:49:42  peter
-    * $calling directive and -Cc commandline patch added
-      from Pavel Ozerski
-
-  Revision 1.47  2001/10/21 12:33:05  peter
-    * array access for properties added
-
-  Revision 1.46  2001/10/20 20:30:20  peter
-    * read only typed const support, switch $J-
-
-  Revision 1.45  2001/10/16 15:10:34  jonas
-    * fixed goto/label/try bugs
-
-  Revision 1.44  2001/10/12 16:06:17  peter
-    * pathexists fix (merged)
-
-  Revision 1.43  2001/09/18 11:30:47  michael
-  * Fixes win32 linking problems with import libraries
-  * LINKLIB Libraries are now looked for using C file extensions
-  * get_exepath fix
-
-  Revision 1.42  2001/09/17 21:29:11  peter
-    * merged netbsd, fpu-overflow from fixes branch
-
-  Revision 1.41  2001/08/19 11:22:22  peter
-    * palmos support from v10 merged
-
-  Revision 1.40  2001/08/04 10:23:54  peter
-    * updates so it works with the ide
-
-  Revision 1.39  2001/07/01 20:16:15  peter
-    * alignmentinfo record added
-    * -Oa argument supports more alignment settings that can be specified
-      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
-      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
-      required alignment and the maximum usefull alignment. The final
-      alignment will be choosen per variable size dependent on these
-      settings
-
-  Revision 1.38  2001/06/18 20:36:24  peter
-    * -Ur switch (merged)
-    * masm fixes (merged)
-    * quoted filenames for go32v2 and win32
-
-  Revision 1.37  2001/06/03 21:57:35  peter
-    + hint directive parsing support
-
-  Revision 1.36  2001/06/03 20:21:08  peter
-    * Kylix fixes, mostly case names of units
-
-  Revision 1.35  2001/05/30 21:35:48  peter
-    * netware patches for copyright, screenname, threadname directives
-
-  Revision 1.34  2001/05/12 12:11:31  peter
-    * simplify_ppu is now the default, a recompile of the compiler now
-      only compiles pp.pas
-
-  Revision 1.33  2001/05/06 14:49:17  peter
-    * ppu object to class rewrite
-    * move ppu read and write stuff to fppu
-
-  Revision 1.32  2001/04/18 22:01:53  peter
-    * registration of targets and assemblers
-
-  Revision 1.31  2001/04/15 09:48:29  peter
-    * fixed crash in labelnode
-    * easier detection of goto and label in try blocks
-
-  Revision 1.30  2001/04/13 01:22:07  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.29  2001/04/04 21:30:42  florian
-    * applied several fixes to get the DD8 Delphi Unit compiled
-     e.g. "forward"-interfaces are working now
-
-  Revision 1.28  2001/02/20 21:41:16  peter
-    * new fixfilename, findfile for unix. Look first for lowercase, then
-      NormalCase and last for UPPERCASE names.
-
-  Revision 1.27  2001/02/09 23:05:45  peter
-    * default packenum=1 for tp7 mode
-
-  Revision 1.26  2001/02/05 20:47:00  peter
-    * support linux unit for ver1_0 compilers
-
-  Revision 1.25  2001/01/21 20:32:45  marco
-   * Renamefest. Compiler part. Not that hard.
-
-  Revision 1.24  2001/01/20 18:32:52  hajny
-    + APPTYPE support under OS/2, app_fs, GetEnvPChar for OS/2
-
-  Revision 1.23  2001/01/13 00:03:41  peter
-    * fixed findexe to also support already extension in name
-
-  Revision 1.22  2000/12/26 15:57:25  peter
-    * use system.paramstr()
-
-  Revision 1.21  2000/12/25 00:07:26  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.20  2000/11/13 15:26:12  marco
-   * Renamefest
-
-  Revision 1.19  2000/11/12 22:20:37  peter
-    * create generic toutputsection for binary writers
-
-  Revision 1.18  2000/11/04 14:25:19  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.17  2000/10/31 22:02:46  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.16  2000/10/04 14:51:08  pierre
-   * IsExe restored
-
-  Revision 1.15  2000/09/27 21:20:56  peter
-    * also set initlocalswitches in setcompilemode (merged)
-
-  Revision 1.14  2000/09/26 10:50:41  jonas
-    * initmodeswitches is changed is you change the compiler mode from the
-      command line (the -S<x> switches didn't work anymore for changing the
-      compiler mode) (merged from fixes branch)
-
-  Revision 1.13  2000/09/24 21:33:46  peter
-    * message updates merges
-
-  Revision 1.12  2000/09/24 21:19:50  peter
-    * delphi compile fixes
-
-  Revision 1.11  2000/09/24 15:12:40  peter
-    * fixed typo
-
-  Revision 1.10  2000/09/24 15:06:16  peter
-    * use defines.inc
-
-  Revision 1.9  2000/09/24 10:33:07  peter
-    * searching of exe in path also for OS/2
-    * fixed searching of exe in path.
-
-  Revision 1.8  2000/09/11 17:00:22  florian
-    + first implementation of Netware Module support, thanks to
-      Armin Diehl (diehl@nordrhein.de) for providing the patches
-
-  Revision 1.7  2000/08/27 16:11:51  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.6  2000/08/12 19:14:58  peter
-    * ELF writer works now also with -g
-    * ELF writer is default again for linux
-
-  Revision 1.5  2000/08/12 15:30:44  peter
-    * IDE patch for stream reading (merged)
-
-  Revision 1.4  2000/08/02 19:49:59  peter
-    * first things for default parameters
-
-  Revision 1.3  2000/07/13 12:08:25  michael
-  + patched to 1.1.0 with former 1.09patch from peter
-
-  Revision 1.2  2000/07/13 11:32:41  michael
-  + removed logs
 
 }

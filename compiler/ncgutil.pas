@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Helper routines for all code generators
 
@@ -1607,7 +1607,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2002-05-16 19:46:37  carl
+  Revision 1.16  2002-05-18 13:34:09  peter
+    * readded missing revisions
+
+  Revision 1.15  2002/05/16 19:46:37  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -1694,11 +1697,4 @@ end.
   Revision 1.2  2002/03/04 19:10:11  peter
     * removed compiler warnings
 
-  Revision 1.1  2001/12/30 17:24:48  jonas
-    * range checking is now processor independent (part in cgobj,
-      part in cg64f32) and should work correctly again (it needed
-      some changes after the changes of the low and high of
-      tordef's to int64)
-    * maketojumpbool() is now processor independent (in ncgutil)
-    * getregister32 is now called getregisterint
 }

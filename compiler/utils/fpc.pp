@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2000 by Florian Klaempfl
+    Copyright (c) 2000-2002 by Florian Klaempfl
 
     This file is the "loader" for the Free Pascal compiler
 
@@ -157,26 +157,7 @@ program fpc;
   end.
 {
   $Log$
-  Revision 1.3  2001-10-16 20:52:34  peter
-    * fpc -PB instead of -P?
-    * check if fpc exists if not found fallback to ppc386
-
-  Revision 1.2  2001/09/22 11:11:43  peter
-    * "fpc -P?" command to query for used ppcXXX compiler
-
-  Revision 1.1.2.1  2001/04/25 22:43:24  peter
-    * compiler dependent utils in utils/ subdir
-
-  Revision 1.1.2.2  2000/12/12 19:47:40  peter
-    * fixed for go32v2 and win32
-
-  Revision 1.1.2.1  2000/11/18 14:16:12  peter
-    * really working now
-
-  Revision 1.1  2000/07/13 06:29:50  michael
-  + Initial import
-
-  Revision 1.1  2000/07/07 17:07:20  florian
-    + initial revision
+  Revision 1.4  2002-05-18 13:34:27  peter
+    * readded missing revisions
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate i386 assembler for math nodes
 
@@ -830,7 +830,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-05-16 19:46:51  carl
+  Revision 1.31  2002-05-18 13:34:25  peter
+    * readded missing revisions
+
+  Revision 1.30  2002/05/16 19:46:51  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -891,102 +894,5 @@ end.
 
   Revision 1.23  2002/03/04 19:10:14  peter
     * removed compiler warnings
-
-  Revision 1.22  2001/12/30 17:24:47  jonas
-    * range checking is now processor independent (part in cgobj,
-      part in cg64f32) and should work correctly again (it needed
-      some changes after the changes of the low and high of
-      tordef's to int64)
-    * maketojumpbool() is now processor independent (in ncgutil)
-    * getregister32 is now called getregisterint
-
-  Revision 1.21  2001/12/29 15:27:24  jonas
-    * made 'mod powerof2' -> 'and' optimization processor independent
-
-  Revision 1.20  2001/12/27 15:33:58  jonas
-    * fixed fpuregister counting errors ("merged")
-
-  Revision 1.19  2001/12/07 13:03:49  jonas
-    * fixed web bug 1716
-
-  Revision 1.18  2001/12/04 15:57:28  jonas
-    * never generate any "shll/shrl $0,%reg" anymore
-
-  Revision 1.17  2001/12/02 16:19:17  jonas
-    * less unnecessary regvar loading with if-statements
-
-  Revision 1.16  2001/09/05 15:22:10  jonas
-    * made multiplying, dividing and mod'ing of int64 and qword processor
-      independent with compilerprocs (+ small optimizations by using shift/and
-      where possible)
-
-  Revision 1.15  2001/08/29 12:03:23  jonas
-    * fixed wrong regalloc info around FPC_MUL/DIV/MOD_INT64/QWORD calls
-    * fixed partial result overwriting with the above calls too
-
-  Revision 1.14  2001/08/26 13:37:00  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.13  2001/04/13 01:22:19  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.12  2001/04/04 22:37:06  peter
-    * fix for not with no 32bit values
-
-  Revision 1.11  2001/04/02 21:20:38  peter
-    * resulttype rewrite
-
-  Revision 1.10  2001/02/03 12:52:34  jonas
-    * fixed web bug 1383
-
-  Revision 1.9  2000/12/07 17:19:46  jonas
-    * new constant handling: from now on, hex constants >$7fffffff are
-      parsed as unsigned constants (otherwise, $80000000 got sign extended
-      and became $ffffffff80000000), all constants in the longint range
-      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
-      are cardinals and the rest are int64's.
-    * added lots of longint typecast to prevent range check errors in the
-      compiler and rtl
-    * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype.def wasn't restored correctly
-      after doing a 64bit rangecheck
-
-  Revision 1.8  2000/12/05 11:44:33  jonas
-    + new integer regvar handling, should be much more efficient
-
-  Revision 1.7  2000/11/29 00:30:48  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.6  2000/11/20 14:05:50  jonas
-    * fixed bug in my changes to fix the regalloc info for div/mod ("merged")
-
-  Revision 1.5  2000/10/31 22:02:56  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.4  2000/10/19 16:26:52  jonas
-    * fixed wrong regalloc info for secondmoddiv ("merged", also small
-      correction made afterwards in fixes branch)
-
-  Revision 1.3  2000/10/17 15:41:48  jonas
-    * fixed stupid error in previous commit :/
-
-  Revision 1.1  2000/10/15 09:33:32  peter
-    * moved n386*.pas to i386/ cpu_target dir
-
-  Revision 1.4  2000/10/14 10:14:49  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.3  2000/09/30 16:08:45  peter
-    * more cg11 updates
-
-  Revision 1.2  2000/09/24 15:06:18  peter
-    * use defines.inc
-
-  Revision 1.1  2000/09/22 22:24:37  florian
-    * initial revision
 
 }

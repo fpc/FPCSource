@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Peter Vreman
+    Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support import,export,link routines
     for the (i386) Go32v2 target
@@ -427,7 +427,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2002-05-16 19:46:53  carl
+  Revision 1.22  2002-05-18 13:34:26  peter
+    * readded missing revisions
+
+  Revision 1.21  2002/05/16 19:46:53  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -454,82 +457,5 @@ end.
 
   Revision 1.15  2002/01/29 21:27:34  peter
     * default alignment changed to 4 bytes for locals and static const,var
-
-  Revision 1.14  2001/09/18 11:32:00  michael
-  * Fixes win32 linking problems with import libraries
-  * LINKLIB Libraries are now looked for using C file extensions
-  * get_exepath fix
-
-  Revision 1.13  2001/09/17 21:29:16  peter
-    * merged netbsd, fpu-overflow from fixes branch
-
-  Revision 1.12  2001/08/30 20:08:23  peter
-    * create script.res and use link.res for commandline
-
-  Revision 1.11  2001/08/19 11:22:24  peter
-    * palmos support from v10 merged
-
-  Revision 1.10  2001/08/07 18:47:15  peter
-    * merged netbsd start
-    * profile for win32
-
-  Revision 1.9  2001/07/10 21:01:35  peter
-    * fixed crash with writing of the linker script
-
-  Revision 1.8  2001/07/01 20:16:20  peter
-    * alignmentinfo record added
-    * -Oa argument supports more alignment settings that can be specified
-      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
-      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
-      required alignment and the maximum usefull alignment. The final
-      alignment will be choosen per variable size dependent on these
-      settings
-
-  Revision 1.7  2001/06/28 19:46:25  peter
-    * added override and virtual for constructors
-
-  Revision 1.6  2001/06/18 20:36:26  peter
-    * -Ur switch (merged)
-    * masm fixes (merged)
-    * quoted filenames for go32v2 and win32
-
-  Revision 1.5  2001/06/03 15:15:31  peter
-    * dllprt0 stub for linux shared libs
-    * pass -init and -fini for linux shared libs
-    * libprefix splitted into staticlibprefix and sharedlibprefix
-
-  Revision 1.4  2001/06/02 19:22:44  peter
-    * extradefines field added
-
-  Revision 1.3  2001/04/18 22:02:04  peter
-    * registration of targets and assemblers
-
-  Revision 1.2  2001/04/13 01:22:21  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.1  2001/02/26 19:43:11  peter
-    * moved target units to subdir
-
-  Revision 1.7  2001/01/27 21:29:35  florian
-     * behavior -Oa optimized
-
-  Revision 1.6  2000/12/25 00:07:30  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.5  2000/09/24 15:06:31  peter
-    * use defines.inc
-
-  Revision 1.4  2000/08/27 16:11:54  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.3  2000/08/16 13:06:07  florian
-    + support of 64 bit integer constants
-
-  Revision 1.2  2000/07/13 11:32:50  michael
-  + removed logs
 
 }

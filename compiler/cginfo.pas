@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit exports some types and constants for the code generation
 
@@ -101,7 +101,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2002-05-16 19:46:35  carl
+  Revision 1.10  2002-05-18 13:34:05  peter
+    * readded missing revisions
+
+  Revision 1.9  2002/05/16 19:46:35  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
+    Copyright (c) 1998-2002 by Jonas Maebe, member of the Free Pascal
       development team
 
     This unit contains register renaming functionality
@@ -350,7 +350,10 @@ End.
 
 {
   $Log$
-  Revision 1.16  2002-05-16 19:46:52  carl
+  Revision 1.17  2002-05-18 13:34:26  peter
+    * readded missing revisions
+
+  Revision 1.16  2002/05/16 19:46:52  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -421,46 +424,5 @@ End.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
-
-  Revision 1.8  2001/10/12 13:55:03  jonas
-    * finer granularity for allocation of reused/replaced registers
-
-  Revision 1.7  2001/08/29 14:07:43  jonas
-    * the optimizer now keeps track of flags register usage. This fixes some
-      optimizer bugs with int64 calculations (because of the carry flag usage)
-    * fixed another bug which caused wrong optimizations with complex
-      array expressions
-
-  Revision 1.6  2001/01/06 23:35:06  jonas
-    * fixed webbug 1323
-
-  Revision 1.5  2000/12/25 00:07:34  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.4  2000/12/05 09:32:47  jonas
-    * fixed bug where "shl $1,%reg" was changed to "leal (%reg),%reg2"
-      instread of to "leal (,%reg,2),%reg2"
-
-  Revision 1.3  2000/11/29 00:30:51  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.2  2000/11/22 16:30:04  jonas
-    * fixed bug where "imul mem32,reg,reg" could be generated
-
-  Revision 1.1  2000/10/24 10:40:54  jonas
-    + register renaming ("fixes" bug1088)
-    * changed command line options meanings for optimizer:
-        O2 now means peepholopts, CSE and register renaming in 1 pass
-        O3 is the same, but repeated until no further optimizations are
-          possible or until 5 passes have been done (to avoid endless loops)
-    * changed aopt386 so it does this looping
-    * added some procedures from csopt386 to the interface because they're
-      used by rropt386 as well
-    * some changes to csopt386 and daopt386 so that newly added instructions
-      by the CSE get optimizer info (they were simply skipped previously),
-      this fixes some bugs
-
 
 }

@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-{# Base unit for writing GNU assembler output. 
+{# Base unit for writing GNU assembler output.
 }
 unit aggas;
 
@@ -34,12 +34,12 @@ interface
       aasm,assemble;
 
 
-    
+
     type
-    
+
       {# This is a derived class which is used to write
-         GAS styled assembler. 
-         
+         GAS styled assembler.
+
          The WriteInstruction() method must be overriden
          to write a single instruction to the assembler
          file.
@@ -54,7 +54,7 @@ interface
 {$endif}
         procedure WriteInstruction(hp: tai);  virtual; abstract;
       end;
-      
+
 implementation
 
     uses
@@ -153,8 +153,8 @@ var
           hs[1]:='+';
          extended2str:='0d'+hs
       end;
-      
-      
+
+
   { convert floating point values }
   { to correct endian             }
   procedure swap64bitarray(var t: t64bitarray);
@@ -197,7 +197,7 @@ var
      {!!!!!!!!!!!!}
     end;
 
-      
+
 
     const
       ait_const2str : array[ait_const_32bit..ait_const_8bit] of string[8]=
@@ -645,7 +645,7 @@ var
 
            ait_instruction :
              begin
-               WriteInstruction(hp); 
+               WriteInstruction(hp);
              end;
 
 {$ifdef GDB}
@@ -791,11 +791,14 @@ var
        comment(v_info,'Done writing gas-styled assembler output for '+current_module.mainsource^);
 {$endif EXTDEBUG}
     end;
-      
-end.      
+
+end.
 {
   $Log$
-  Revision 1.4  2002-05-16 19:46:34  carl
+  Revision 1.5  2002-05-18 13:34:05  peter
+    * readded missing revisions
+
+  Revision 1.4  2002/05/16 19:46:34  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls

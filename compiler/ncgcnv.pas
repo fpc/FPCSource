@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2000 by Florian Klaempfl
+    Copyright (c) 2000-2002 by Florian Klaempfl
 
     Generate assembler for nodes that handle type conversions which are
     the same for all (most) processors
@@ -468,7 +468,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2002-05-16 19:46:37  carl
+  Revision 1.15  2002-05-18 13:34:09  peter
+    * readded missing revisions
+
+  Revision 1.14  2002/05/16 19:46:37  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -545,23 +548,5 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
-
-  Revision 1.4  2001/12/31 09:53:15  jonas
-    * changed remaining "getregister32" calls to "getregisterint"
-
-  Revision 1.3  2001/10/04 14:33:28  jonas
-    * fixed range check errors
-
-  Revision 1.2  2001/09/30 16:16:28  jonas
-    - removed unused units form uses-clause and unused local vars
-
-  Revision 1.1  2001/09/29 21:32:47  jonas
-    * almost all second pass typeconvnode helpers are now processor independent
-    * fixed converting boolean to int64/qword
-    * fixed register allocation bugs which could cause internalerror 10
-    * isnode and asnode are completely processor indepent now as well
-    * fpc_do_as now returns its class argument (necessary to be able to use it
-      properly with compilerproc)
-
 
 }

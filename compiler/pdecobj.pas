@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2001 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Does object types for Free Pascal
 
@@ -1111,7 +1111,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2002-05-16 19:46:42  carl
+  Revision 1.45  2002-05-18 13:34:12  peter
+    * readded missing revisions
+
+  Revision 1.44  2002/05/16 19:46:42  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -1163,123 +1166,5 @@ end.
   Revision 1.36  2002/01/06 12:08:15  peter
     * removed uauto from orddef, use new range_to_basetype generating
       the correct ordinal type for a range
-
-  Revision 1.34  2001/12/06 17:57:35  florian
-    + parasym to tparaitem added
-
-  Revision 1.33  2001/11/02 22:58:02  peter
-    * procsym definition rewrite
-
-  Revision 1.32  2001/10/25 21:22:35  peter
-    * calling convention rewrite
-
-  Revision 1.31  2001/10/21 13:10:50  peter
-    * better support for indexed properties
-
-  Revision 1.30  2001/10/21 12:33:06  peter
-    * array access for properties added
-
-  Revision 1.29  2001/08/30 20:13:53  peter
-    * rtti/init table updates
-    * rttisym for reusable global rtti/init info
-    * support published for interfaces
-
-  Revision 1.28  2001/08/26 13:36:44  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.27  2001/08/22 21:16:20  florian
-    * some interfaces related problems regarding
-      mapping of interface implementions fixed
-
-  Revision 1.26  2001/06/03 21:57:36  peter
-    + hint directive parsing support
-
-  Revision 1.25  2001/05/04 15:52:03  florian
-    * some Delphi incompatibilities fixed:
-       - out, dispose and new can be used as idenfiers now
-       - const p = apointerype(nil); is supported now
-    + support for const p = apointertype(pointer(1234)); added
-
-  Revision 1.24  2001/04/21 15:36:00  peter
-    * check for type block when parsing class of
-
-  Revision 1.23  2001/04/21 13:37:16  peter
-    * made tclassheader using class of to implement cpu dependent code
-
-  Revision 1.22  2001/04/18 22:01:54  peter
-    * registration of targets and assemblers
-
-  Revision 1.21  2001/04/13 01:22:11  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.20  2001/04/04 22:43:51  peter
-    * remove unnecessary calls to firstpass
-
-  Revision 1.19  2001/04/04 21:30:43  florian
-    * applied several fixes to get the DD8 Delphi Unit compiled
-     e.g. "forward"-interfaces are working now
-
-  Revision 1.18  2001/04/02 21:20:31  peter
-    * resulttype rewrite
-
-  Revision 1.17  2001/03/16 14:56:38  marco
-   * Pavel's fixes commited (Peter asked). Cycled to test
-
-  Revision 1.16  2001/03/11 22:58:49  peter
-    * getsym redesign, removed the globals srsym,srsymtable
-
-  Revision 1.15  2000/12/25 00:07:27  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.14  2000/11/29 00:30:35  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.13  2000/11/17 17:32:58  florian
-    * properties can now be used in interfaces
-
-  Revision 1.12  2000/11/17 08:21:07  florian
-  *** empty log message ***
-
-  Revision 1.11  2000/11/12 23:24:11  florian
-    * interfaces are basically running
-
-  Revision 1.10  2000/11/12 22:17:47  peter
-    * some realname updates for messages
-
-  Revision 1.9  2000/11/06 23:05:52  florian
-    * more fixes
-
-  Revision 1.8  2000/11/06 20:30:55  peter
-    * more fixes to get make cycle working
-
-  Revision 1.7  2000/11/04 18:03:57  florian
-    * fixed upper/lower case problem
-
-  Revision 1.6  2000/11/04 17:31:00  florian
-    * fixed some problems of previous commit
-
-  Revision 1.5  2000/11/04 14:25:20  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.4  2000/10/31 22:02:49  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.3  2000/10/26 21:54:03  peter
-    * fixed crash with error in child definition (merged)
-
-  Revision 1.2  2000/10/21 18:16:11  florian
-    * a lot of changes:
-       - basic dyn. array support
-       - basic C++ support
-       - some work for interfaces done
-       ....
-
-  Revision 1.1  2000/10/14 10:14:51  peter
-    * moehrendorf oct 2000 rewrite
 
 }

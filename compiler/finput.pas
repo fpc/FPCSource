@@ -669,7 +669,7 @@ uses
     function tmodulebase.get_asmfilename : string;
      begin
          get_asmfilename:=outputpath^+newfilename^+target_info.asmext;
-     end;    
+     end;
 
     destructor tmodulebase.destroy;
       begin
@@ -693,7 +693,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.14  2002-05-16 19:46:36  carl
+  Revision 1.15  2002-05-18 13:34:07  peter
+    * readded missing revisions
+
+  Revision 1.14  2002/05/16 19:46:36  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls

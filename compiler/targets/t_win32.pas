@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Peter Vreman
+    Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support import,export,link routines
     for the (i386) Win32 target
@@ -45,13 +45,13 @@ interface
 
   const
      MAX_DEFAULT_EXTENSIONS = 3;
-     
+
   type
      tStr4=array[1..MAX_DEFAULT_EXTENSIONS]of string[4];
      pStr4=^tStr4;
 
     timportlibwin32=class(timportlib)
-      procedure GetDefExt(var N:longint;var P:pStr4);virtual; 
+      procedure GetDefExt(var N:longint;var P:pStr4);virtual;
       procedure preparelib(const s:string);override;
       procedure importprocedure(const func,module:string;index:longint;const name:string);override;
       procedure importvariable(const varname,module:string;const name:string);override;
@@ -241,7 +241,7 @@ const
          lidata4,lidata5 : tasmlabel;
          href : treference;
       begin
-         if not(aktoutputformat in MainAsmFormats)then 
+         if not(aktoutputformat in MainAsmFormats)then
           begin
             generatenasmlib;
             exit;
@@ -380,7 +380,7 @@ const
 {$endif GDB}
          href : treference;
       begin
-         if not(aktoutputformat in MainAsmFormats)then 
+         if not(aktoutputformat in MainAsmFormats)then
           begin
             generatenasmlib;
             exit;
@@ -596,7 +596,7 @@ const
          address_table,name_table_pointers,
          name_table,ordinal_table : TAAsmoutput;
       begin
-        if not (aktoutputformat in MainAsmFormats)then 
+        if not (aktoutputformat in MainAsmFormats)then
          begin
            generatenasmlib;
            exit;
@@ -1633,7 +1633,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.33  2002-05-16 19:46:53  carl
+  Revision 1.34  2002-05-18 13:34:27  peter
+    * readded missing revisions
+
+  Revision 1.33  2002/05/16 19:46:53  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -1680,115 +1683,5 @@ end.
 
   Revision 1.22  2002/01/19 11:53:07  peter
     * fixed managledname
-
-  Revision 1.21  2001/11/02 22:58:12  peter
-    * procsym definition rewrite
-
-  Revision 1.20  2001/10/12 16:06:27  peter
-    * duplicate imports fix for gdb (merged)
-
-  Revision 1.19  2001/09/30 21:29:47  peter
-    * gdb fixes merged
-
-  Revision 1.18  2001/09/18 11:32:00  michael
-  * Fixes win32 linking problems with import libraries
-  * LINKLIB Libraries are now looked for using C file extensions
-  * get_exepath fix
-
-  Revision 1.17  2001/09/17 21:29:16  peter
-    * merged netbsd, fpu-overflow from fixes branch
-
-  Revision 1.16  2001/09/13 14:47:19  michael
-  + Committed patch from peter
-
-  Revision 1.15  2001/08/07 18:47:15  peter
-    * merged netbsd start
-    * profile for win32
-
-  Revision 1.14  2001/07/01 20:16:21  peter
-    * alignmentinfo record added
-    * -Oa argument supports more alignment settings that can be specified
-      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
-      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
-      required alignment and the maximum usefull alignment. The final
-      alignment will be choosen per variable size dependent on these
-      settings
-
-  Revision 1.13  2001/06/28 19:46:25  peter
-    * added override and virtual for constructors
-
-  Revision 1.12  2001/06/18 20:36:26  peter
-    * -Ur switch (merged)
-    * masm fixes (merged)
-    * quoted filenames for go32v2 and win32
-
-  Revision 1.11  2001/06/06 21:58:16  peter
-    * Win32 fixes for Makefile so it doesn't require sh.exe
-
-  Revision 1.10  2001/06/03 20:18:13  peter
-    * define also MSWINDOWS
-
-  Revision 1.9  2001/06/03 15:15:32  peter
-    * dllprt0 stub for linux shared libs
-    * pass -init and -fini for linux shared libs
-    * libprefix splitted into staticlibprefix and sharedlibprefix
-
-  Revision 1.8  2001/06/02 19:22:44  peter
-    * extradefines field added
-
-  Revision 1.7  2001/04/21 13:33:16  peter
-    * move winstackpagesize const to cgai386 to remove uses t_win32
-
-  Revision 1.6  2001/04/18 22:02:04  peter
-    * registration of targets and assemblers
-
-  Revision 1.5  2001/04/13 23:51:02  peter
-    * fix for the stricter compilemode
-
-  Revision 1.4  2001/04/13 01:22:22  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.3  2001/04/02 21:20:40  peter
-    * resulttype rewrite
-
-  Revision 1.2  2001/03/06 18:28:02  peter
-    * patch from Pavel with a new and much faster DLL Scanner for
-      automatic importing so $linklib works for DLLs. Thanks Pavel!
-
-  Revision 1.1  2001/02/26 19:43:11  peter
-    * moved target units to subdir
-
-  Revision 1.10  2001/02/20 21:41:16  peter
-    * new fixfilename, findfile for unix. Look first for lowercase, then
-      NormalCase and last for UPPERCASE names.
-
-  Revision 1.9  2001/01/13 00:09:22  peter
-    * made Pavel O. happy ;)
-
-  Revision 1.8  2000/12/30 22:53:25  peter
-    * export with the case provided in the exports section
-
-  Revision 1.7  2000/12/25 00:07:30  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.6  2000/11/12 22:20:37  peter
-    * create generic toutputsection for binary writers
-
-  Revision 1.5  2000/09/24 15:06:31  peter
-    * use defines.inc
-
-  Revision 1.4  2000/08/27 16:11:54  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.3  2000/07/21 15:14:02  jonas
-    + added is_addr field for labels, if they are only used for getting the address
-       (e.g. for io checks) and corresponding getaddrlabel() procedure
-
-  Revision 1.2  2000/07/13 11:32:50  michael
-  + removed logs
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2000 by Florian Klaempfl
+    Copyright (c) 2000-2002 by Florian Klaempfl
 
     Basic node handling
 
@@ -806,7 +806,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2002-05-16 19:46:39  carl
+  Revision 1.27  2002-05-18 13:34:10  peter
+    * readded missing revisions
+
+  Revision 1.26  2002/05/16 19:46:39  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -842,81 +845,4 @@ end.
   Revision 1.21  2002/01/19 11:52:32  peter
     * dynarr:=nil support added
 
-  Revision 1.20  2001/10/20 19:28:38  peter
-    * interface 2 guid support
-    * guid constants support
-
-  Revision 1.19  2001/08/23 14:28:36  jonas
-    + tempcreate/ref/delete nodes (allows the use of temps in the
-      resulttype and first pass)
-    * made handling of read(ln)/write(ln) processor independent
-    * moved processor independent handling for str and reset/rewrite-typed
-      from firstpass to resulttype pass
-    * changed names of helpers in text.inc to be generic for use as
-      compilerprocs + added "iocheck" directive for most of them
-    * reading of ordinals is done by procedures instead of functions
-      because otherwise FPC_IOCHECK overwrote the result before it could
-      be stored elsewhere (range checking still works)
-    * compilerprocs can now be used in the system unit before they are
-      implemented
-    * added note to errore.msg that booleans can't be read using read/readln
-
-  Revision 1.18  2001/07/30 20:59:27  peter
-    * m68k updates from v10 merged
-
-  Revision 1.17  2001/06/04 18:14:16  peter
-    * store blocktype info in tnode
-
-  Revision 1.16  2001/06/04 11:53:13  peter
-    + varargs directive
-
-  Revision 1.15  2001/04/13 01:22:10  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.14  2001/04/02 21:20:31  peter
-    * resulttype rewrite
-
-  Revision 1.13  2001/01/13 00:08:09  peter
-    * added missing addoptn
-
-  Revision 1.12  2001/01/01 11:38:45  peter
-    * forgot to remove node.inc and nodeh.inc that were merged into node.pas
-      already.
-
-  Revision 1.11  2000/12/25 00:07:26  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.10  2000/11/29 00:30:34  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.9  2000/10/31 22:02:49  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.8  2000/10/01 19:48:24  peter
-    * lot of compile updates for cg11
-
-  Revision 1.7  2000/09/30 16:08:45  peter
-    * more cg11 updates
-
-  Revision 1.6  2000/09/28 19:49:52  florian
-  *** empty log message ***
-
-  Revision 1.5  2000/09/27 18:14:31  florian
-    * fixed a lot of syntax errors in the n*.pas stuff
-
-  Revision 1.4  2000/09/24 15:06:19  peter
-    * use defines.inc
-
-  Revision 1.3  2000/09/22 21:45:35  florian
-    * some updates e.g. getcopy added
-
-  Revision 1.2  2000/09/20 21:52:38  florian
-    * removed a lot of errors
-
-  Revision 1.1  2000/08/26 12:27:35  florian
-    * initial release
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Jonas Maebe
+    Copyright (c) 1998-2002 by Jonas Maebe
 
     This unit implements optimized nodes
 
@@ -278,7 +278,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2002-05-16 19:46:39  carl
+  Revision 1.9  2002-05-18 13:34:10  peter
+    * readded missing revisions
+
+  Revision 1.8  2002/05/16 19:46:39  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -294,23 +297,5 @@ end.
       (this is compatible with Kylix). This saves a lot of push/pop especially
       with string operations
     * adapted some routines to use the new cg methods
-
-  Revision 1.5  2001/09/02 21:12:07  peter
-    * move class of definitions into type section for delphi
-
-  Revision 1.4  2001/08/26 13:36:43  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.3  2001/04/13 01:22:10  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.2  2001/04/02 21:20:31  peter
-    * resulttype rewrite
-
-  Revision 1.1  2001/01/04 11:24:19  jonas
-    + initial implementation (still needs to be made more modular)
 
 }

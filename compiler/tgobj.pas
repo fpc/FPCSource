@@ -367,7 +367,7 @@ unit tgobj;
         _align:=target_info.alignment.localalignmin;
         if _align<4 then
           _align:=4;
-{$ifdef testtemp}   
+{$ifdef testtemp}
         if firsttemp <> lasttemp then
            gettempsize:=Align(-(lasttemp-firsttemp),_align)
         else
@@ -681,7 +681,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.8  2002-05-16 19:46:45  carl
+  Revision 1.9  2002-05-18 13:34:21  peter
+    * readded missing revisions
+
+  Revision 1.8  2002/05/16 19:46:45  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Peter Vreman
+    Copyright (c) 1998-2002 by Peter Vreman
 
     Contains the base stuff for writing for object files to disk
 
@@ -305,27 +305,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2002-05-16 19:46:42  carl
+  Revision 1.10  2002-05-18 13:34:11  peter
+    * readded missing revisions
+
+  Revision 1.9  2002/05/16 19:46:42  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
   + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.7  2001/03/05 21:40:39  peter
-    * more things for tcoffobjectinput
-
-  Revision 1.6  2000/12/24 12:25:32  peter
-    + cstreams unit
-    * dynamicarray object to class
-
-  Revision 1.4  2000/09/24 15:06:20  peter
-    * use defines.inc
-
-  Revision 1.3  2000/08/19 18:44:27  peter
-    * new tdynamicarray implementation using blocks instead of
-      reallocmem (merged)
-
-  Revision 1.2  2000/07/13 11:32:44  michael
-  + removed logs
 
 }

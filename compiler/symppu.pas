@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
+    Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
     Implementation of the reading of PPU Files for the symtable
 
@@ -388,7 +388,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2002-05-16 19:46:45  carl
+  Revision 1.12  2002-05-18 13:34:18  peter
+    * readded missing revisions
+
+  Revision 1.11  2002/05/16 19:46:45  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -413,31 +416,5 @@ end.
 
   Revision 1.8  2002/04/19 15:40:40  peter
     * optimize tfileposinfo writing, this reduces the ppu size with 20%
-
-  Revision 1.7  2001/10/21 12:33:07  peter
-    * array access for properties added
-
-  Revision 1.6  2001/05/06 14:49:17  peter
-    * ppu object to class rewrite
-    * move ppu read and write stuff to fppu
-
-  Revision 1.5  2001/04/13 01:22:16  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.4  2000/12/25 00:07:29  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.3  2000/11/29 00:30:41  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.2  2000/11/04 14:25:22  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.1  2000/10/31 22:02:52  peter
-    * symtable splitted, no real code changes
 
 }

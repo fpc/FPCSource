@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2000 by Florian Klaempfl
+    Copyright (c) 2000-2002 by Florian Klaempfl
 
     Type checking and register allocation for load/assignment nodes
 
@@ -955,7 +955,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2002-05-16 19:46:38  carl
+  Revision 1.42  2002-05-18 13:34:10  peter
+    * readded missing revisions
+
+  Revision 1.41  2002/05/16 19:46:38  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -1027,114 +1030,4 @@ end.
   Revision 1.32  2002/01/19 11:52:32  peter
     * dynarr:=nil support added
 
-  Revision 1.31  2001/12/28 15:02:00  jonas
-    * fixed web bug 1684 (it already didn't crash anymore, but it also didn't
-      generate an error) ("merged")
-
-  Revision 1.30  2001/11/07 13:52:52  jonas
-    * only save/restore nf_forcevaria flag when reversing order of
-      arrayconstructor elements, since the other flags are element specific
-
-  Revision 1.29  2001/11/02 22:58:02  peter
-    * procsym definition rewrite
-
-  Revision 1.28  2001/10/31 17:34:20  jonas
-    * fixed web bug 1651
-
-  Revision 1.27  2001/10/28 17:22:25  peter
-    * allow assignment of overloaded procedures to procvars when we know
-      which procedure to take
-
-  Revision 1.26  2001/10/12 13:51:51  jonas
-    * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
-    * fixed bug in n386add (introduced after compilerproc changes for string
-      operations) where calcregisters wasn't called for shortstring addnodes
-    * NOTE: from now on, the location of a binary node must now always be set
-       before you call calcregisters() for it
-
-  Revision 1.25  2001/09/02 21:12:07  peter
-    * move class of definitions into type section for delphi
-
-  Revision 1.24  2001/08/30 15:48:34  jonas
-    * fix from Peter for getting correct symtableentry for funcret loads
-
-  Revision 1.23  2001/08/26 13:36:41  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.22  2001/08/12 22:11:52  peter
-    * errordef.typesym is not updated anymore
-
-  Revision 1.21  2001/08/06 21:40:47  peter
-    * funcret moved from tprocinfo to tprocdef
-
-  Revision 1.20  2001/07/30 20:52:25  peter
-    * fixed array constructor passing with type conversions
-
-  Revision 1.19  2001/06/04 18:07:47  peter
-    * remove unused typenode for procvar load. Don't know what happened why
-      this code was not there already with revision 1.17.
-
-  Revision 1.18  2001/06/04 11:48:01  peter
-    * better const to var checking
-
-  Revision 1.17  2001/05/19 21:19:57  peter
-    * remove unused typenode for procvars to prevent error
-    * typenode.allowed flag to allow a typenode
-
-  Revision 1.16  2001/05/09 19:57:51  peter
-    * typenode doesn't generate code, give error in pass_1 instead of
-      getting an abstract methode runtime error
-
-  Revision 1.15  2001/04/14 14:06:31  peter
-    * move more code from loadnode.pass_1 to det_resulttype
-
-  Revision 1.14  2001/04/13 01:22:10  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.13  2001/04/05 21:03:08  peter
-    * array constructor fix
-
-  Revision 1.12  2001/04/04 22:42:40  peter
-    * move constant folding into det_resulttype
-
-  Revision 1.11  2001/04/02 21:20:31  peter
-    * resulttype rewrite
-
-  Revision 1.10  2000/12/31 11:14:10  jonas
-    + implemented/fixed docompare() mathods for all nodes (not tested)
-    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
-      and constant strings/chars together
-    * n386add.pas: don't copy temp strings (of size 256) to another temp string
-      when adding
-
-  Revision 1.9  2000/11/29 00:30:33  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.8  2000/11/04 14:25:20  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.7  2000/10/31 22:02:49  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.6  2000/10/14 10:14:50  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.5  2000/10/01 19:48:24  peter
-    * lot of compile updates for cg11
-
-  Revision 1.4  2000/09/28 19:49:52  florian
-  *** empty log message ***
-
-  Revision 1.3  2000/09/27 18:14:31  florian
-    * fixed a lot of syntax errors in the n*.pas stuff
-
-  Revision 1.2  2000/09/25 15:37:14  florian
-    * more fixes
-
-  Revision 1.1  2000/09/25 14:55:05  florian
-    * initial revision
 }

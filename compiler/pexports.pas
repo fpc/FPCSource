@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit handles the exports parsing
 
@@ -173,7 +173,10 @@ end.
 
 {
   $Log$
-  Revision 1.20  2002-05-16 19:46:43  carl
+  Revision 1.21  2002-05-18 13:34:12  peter
+    * readded missing revisions
+
+  Revision 1.20  2002/05/16 19:46:43  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -185,55 +188,5 @@ end.
 
   Revision 1.17  2002/04/04 18:41:07  carl
   + added wdosx support (patch from Pavel)
-
-  Revision 1.16  2001/11/02 22:58:04  peter
-    * procsym definition rewrite
-
-  Revision 1.15  2001/04/18 22:01:57  peter
-    * registration of targets and assemblers
-
-  Revision 1.14  2001/04/13 01:22:12  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.13  2001/04/04 22:43:52  peter
-    * remove unnecessary calls to firstpass
-
-  Revision 1.12  2001/03/11 22:58:50  peter
-    * getsym redesign, removed the globals srsym,srsymtable
-
-  Revision 1.11  2001/01/03 13:12:50  jonas
-    * fixed copy/past bugs
-
-  Revision 1.10  2000/12/30 22:53:25  peter
-    * export with the case provided in the exports section
-
-  Revision 1.9  2000/12/25 00:07:27  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.8  2000/11/29 00:30:36  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.7  2000/10/31 22:02:49  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.6  2000/10/14 10:14:51  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.5  2000/09/24 21:19:50  peter
-    * delphi compile fixes
-
-  Revision 1.4  2000/09/24 15:06:21  peter
-    * use defines.inc
-
-  Revision 1.3  2000/08/27 16:11:51  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.2  2000/07/13 11:32:44  michael
-  + removed logs
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Peter Vreman and Pierre Muller
+    Copyright (c) 1998-2002 by Peter Vreman and Pierre Muller
 
     Contains the binary coff reader and writer
 
@@ -38,7 +38,7 @@ interface
        { assembler }
        cpubase,aasm,assemble,
        { output }
-       ogbase;
+       ogbase,owbase;
 
     type
        tcoffsection = class(tobjectsection)
@@ -80,6 +80,23 @@ interface
          constructor createdjgpp(smart:boolean);
          constructor createwin32(smart:boolean);
          function  initwriting(const fn:string):boolean;override;
+       end;
+
+       tcoffexeoutput = class
+       private
+         FWriter    : tobjectwriter;
+         win32   : boolean;
+         nsects,
+         nsyms,
+         sympos : longint;
+         procedure write_symbol(const name:string;strpos,value,section,typ,aux:longint);
+         procedure write_symbols;
+       public
+         constructor createdjgpp;
+         constructor createwin32;
+         procedure calcoffsets;
+         procedure writetodisk;
+         function  initwriting(const fn:string):boolean;
        end;
 
        ttasmsymbolarray = array[0..high(word)] of tasmsymbol;
@@ -807,6 +824,209 @@ implementation
          end;
       end;
 
+
+{****************************************************************************
+                              tcoffexeoutput
+****************************************************************************}
+
+    constructor tcoffexeoutput.createdjgpp;
+      begin
+        win32:=false;
+      end;
+
+
+    constructor tcoffexeoutput.createwin32;
+      begin
+        win32:=true;
+      end;
+
+
+    function tcoffexeoutput.initwriting(const fn:string):boolean;
+      begin
+      end;
+
+
+    procedure tcoffexeoutput.write_symbol(const name:string;strpos,value,section,typ,aux:longint);
+      var
+        sym : coffsymbol;
+      begin
+        FillChar(sym,sizeof(sym),0);
+        if strpos=-1 then
+         move(name[1],sym.name,length(name))
+        else
+         sym.strpos:=strpos;
+        sym.value:=value;
+        sym.section:=section;
+        sym.typ:=typ;
+        sym.aux:=aux;
+        FWriter.write(sym,sizeof(sym));
+      end;
+
+
+    procedure tcoffexeoutput.write_symbols;
+      var
+        filename  : string[18];
+        sec       : tsection;
+        sectionval,
+        i         : longint;
+        globalval : byte;
+        secrec    : coffsectionrec;
+        sym       : toutputsymbol;
+        objdata   : tobjectdata;
+      begin
+        objdata:=tobjectdata(objdatalist.first);
+        while assigned(objdata) do
+         begin
+           with tcoffdata(objdata) do
+            begin
+              { The real symbols }
+              FSyms.seek(0);
+              for i:=1 to FSyms.size div sizeof(TOutputSymbol) do
+               begin
+                 FSyms.read(sym,sizeof(TOutputSymbol));
+                 if sym.bind=AB_LOCAL then
+                   globalval:=3
+                 else
+                   globalval:=2;
+                 if assigned(sects[sym.section]) then
+                  sectionval:=sects[sym.section].secsymidx
+                 else
+                  sectionval:=0;
+                 write_symbol(sym.namestr,sym.nameidx,sym.value,sectionval,globalval,0);
+               end;
+            end;
+           objdata:=tobjectdata(objdata.next);
+         end;
+      end;
+
+
+    procedure tcoffexeoutput.calcoffsets;
+      var
+        objdata : tobjectdata;
+        mempos,
+        datapos : longint;
+        sec     : tsection;
+      begin
+        { calc header size }
+        nsects:=0;
+        for sec:=low(tsection) to high(tsection) do
+         begin
+           if objdatasections[sec].available then
+            inc(nsects);
+         end;
+        datapos:=sizeof(coffheader)+sizeof(coffsechdr)*nsects;
+        mempos:=$1800;
+        { process first all .text, then all .data, etc. }
+        for sec:=low(tsection) to high(tsection) do
+         begin
+           if objdatasections[sec].available then
+            begin
+              objdatasections[sec].datapos:=datapos;
+              objdatasections[sec].mempos:=mempos;
+              { update objectfiles }
+              objdata:=tobjectdata(objdatalist.first);
+              while assigned(objdata) do
+               begin
+                 objdata.sects[sec].mempos:=mempos;
+                 inc(mempos,objdata.sects[sec].datasize);
+                 objdata.sects[sec].datapos:=datapos;
+                 if assigned(objdata.sects[sec].data) then
+                  inc(datapos,objdata.sects[sec].datasize);
+                 objdata:=tobjectdata(objdata.next);
+               end;
+              objdatasections[sec].datasize:=datapos-objdatasections[sec].datapos;
+              objdatasections[sec].memsize:=mempos-objdatasections[sec].mempos;
+            end;
+         end;
+        { symbols }
+        nsyms:=0;
+        sympos:=datapos;
+        objdata:=tobjectdata(objdatalist.first);
+        while assigned(objdata) do
+         begin
+           inc(nsyms,tcoffdata(objdata).FSyms.size div sizeof(TOutputSymbol));
+           objdata:=tobjectdata(objdata.next);
+         end;
+      end;
+
+
+    procedure tcoffexeoutput.writetodisk;
+      var
+        datapos,
+        secsymidx,
+        i : longint;
+        hstab    : coffstab;
+        gotreloc : boolean;
+        sec      : tsection;
+        header   : coffheader;
+        sechdr   : coffsechdr;
+        empty    : array[0..15] of byte;
+        hp       : pdynamicblock;
+        fn : string;
+        objdata : tobjectdata;
+      begin
+        fn:='p.exe';
+        FWriter:=tobjectwriter.create;
+        if not FWriter.createfile(fn) then
+         Comment(V_Fatal,'Can''t create executable '+fn);
+        { COFF header }
+        fillchar(header,sizeof(coffheader),0);
+        header.mach:=$14c;
+        header.nsects:=nsects;
+        header.sympos:=sympos;
+        header.syms:=nsyms;
+        header.flag:=$132;
+        FWriter.write(header,sizeof(header));
+        { Section headers }
+        for sec:=low(tsection) to high(tsection) do
+         if objdatasections[sec].available then
+          begin
+            fillchar(sechdr,sizeof(sechdr),0);
+            move(target_asm.secnames[sec][1],sechdr.name,length(target_asm.secnames[sec]));
+            if not win32 then
+             begin
+               sechdr.rvaofs:=objdatasections[sec].mempos;
+               sechdr.vsize:=objdatasections[sec].mempos;
+             end
+            else
+             begin
+               if sec=sec_bss then
+                sechdr.vsize:=objdatasections[sec].memsize;
+             end;
+            sechdr.datasize:=objdatasections[sec].datasize;
+            sechdr.datapos:=objdatasections[sec].datapos;
+            sechdr.nrelocs:=0;
+            sechdr.relocpos:=0;
+            sechdr.flags:=objdatasections[sec].flags;
+            FWriter.write(sechdr,sizeof(sechdr));
+          end;
+        { Sections }
+        for sec:=low(tsection) to high(tsection) do
+         if objdatasections[sec].available then
+          begin
+            { update objectfiles }
+            objdata:=tobjectdata(objdatalist.first);
+            while assigned(objdata) do
+             begin
+               if assigned(objdata.sects[sec]) and
+                  assigned(objdata.sects[sec].data) then
+                begin
+                  hp:=objdata.sects[sec].data.firstblock;
+                  while assigned(hp) do
+                   begin
+                     FWriter.write(hp^.data,hp^.used);
+                     hp:=hp^.next;
+                   end;
+                end;
+               objdata:=tobjectdata(objdata.next);
+             end;
+          end;
+        { Symbols }
+        write_symbols;
+        FWriter.closefile;
+        FWriter.free;
+      end;
+
 {****************************************************************************
                                 tcoffobjectinput
 ****************************************************************************}
@@ -921,11 +1141,30 @@ implementation
                   begin
                     if sym.section=0 then
                      begin
-                       p:=tasmsymbol.create(strname,AB_EXTERNAL,AT_FUNCTION);
+                       { try to find external }
+                       p:=tasmsymbol(globalsyms.search(strname));
+                       if not assigned(p) then
+                        begin
+                          p:=tasmsymbol.create(strname,AB_EXTERNAL,AT_FUNCTION);
+                          AddSymbol(p);
+                          externalsyms.insert(p);
+                        end;
                      end
                     else
                      begin
-                       p:=tasmsymbol.create(strname,AB_GLOBAL,AT_FUNCTION);
+                       { try to find external }
+                       p:=tasmsymbol(globalsyms.search(strname));
+                       if not assigned(p) then
+                        begin
+                          p:=tasmsymbol.create(strname,AB_GLOBAL,AT_FUNCTION);
+                          AddSymbol(p);
+                        end
+                       else
+                        begin
+                          if p.bind<>AB_EXTERNAL then
+                           Comment(V_Error,'Multiple defined symbol '+strname);
+                          p.bind:=AB_GLOBAL;
+                        end;
                        sec:=Fidx2sec[sym.section];
                        if assigned(sects[sec]) then
                         begin
@@ -938,27 +1177,30 @@ implementation
                        else
                         internalerror(34243214);
                      end;
-                    AddSymbol(p);
                     FSymTbl^[symidx]:=p
                   end;
                 COFF_SYM_STATIC :
                   begin
                     p:=tasmsymbol.create(strname,AB_LOCAL,AT_FUNCTION);
-                    sec:=Fidx2sec[sym.section];
-                    if assigned(sects[sec]) then
-                     begin
-                       p.section:=sec;
-                       if sym.value>=sects[sec].mempos then
-                        p.address:=sym.value-sects[sec].mempos
-                       else
-                        begin
-                          if Str2Sec(strname)<>sec then
-                           internalerror(432432432);
-                        end;
-                     end
-                    else
-                     internalerror(34243214);
                     AddSymbol(p);
+                    { do not resolve constants (section=-1) }
+                    if sym.section<>-1 then
+                     begin
+                       sec:=Fidx2sec[sym.section];
+                       if assigned(sects[sec]) then
+                        begin
+                          p.section:=sec;
+                          if sym.value>=sects[sec].mempos then
+                           p.address:=sym.value-sects[sec].mempos
+                          else
+                           begin
+                             if Str2Sec(strname)<>sec then
+                              internalerror(432432432);
+                           end;
+                        end
+                       else
+                        internalerror(34243214);
+                     end;
                     FSymTbl^[symidx]:=p;
                   end;
                 COFF_SYM_SECTION,
@@ -1036,6 +1278,8 @@ implementation
                  sects[sec].datapos:=sechdr.datapos;
                  sects[sec].datasize:=sechdr.datasize;
                  tcoffsection(sects[sec]).flags:=sechdr.flags;
+                 objdatasections[sec].available:=true;
+                 objdatasections[sec].flags:=sechdr.flags;
                end
               else
                Comment(V_Warning,'skipping unsupported section '+strpas(sechdr.name));
@@ -1181,15 +1425,21 @@ implementation
 initialization
   RegisterAssembler(as_i386_coff_info,TCoffAssembler);
   RegisterAssembler(as_i386_pecoff_info,TPECoffAssembler);
-  RegisterAssembler(as_i386_pecoffwdosx_info,TPECoffAssembler); 
+  RegisterAssembler(as_i386_pecoffwdosx_info,TPECoffAssembler);
 end.
 {
   $Log$
-  Revision 1.20  2002-05-16 19:46:39  carl
+  Revision 1.21  2002-05-18 13:34:10  peter
+    * readded missing revisions
+
+  Revision 1.20  2002/05/16 19:46:39  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
   + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.19  2002/05/14 19:34:43  peter
+    * removed old logs and updated copyright year
 
   Revision 1.18  2002/04/04 19:05:58  peter
     * removed unused units
@@ -1197,68 +1447,5 @@ end.
 
   Revision 1.17  2002/04/04 18:38:30  carl
   + added wdosx support (patch from Pavel)
-
-  Revision 1.16  2001/09/17 21:29:12  peter
-    * merged netbsd, fpu-overflow from fixes branch
-
-  Revision 1.15  2001/05/06 17:13:23  jonas
-    * completed incomplete typed constant records
-
-  Revision 1.14  2001/05/04 19:50:58  peter
-    * finally added the missing outputbinary field that was missing
-
-  Revision 1.13  2001/04/18 22:01:54  peter
-    * registration of targets and assemblers
-
-  Revision 1.12  2001/04/13 01:22:10  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.11  2001/04/02 21:20:31  peter
-    * resulttype rewrite
-
-  Revision 1.10  2001/03/13 18:45:07  peter
-    * fixed some memory leaks
-
-  Revision 1.9  2001/03/05 21:40:38  peter
-    * more things for tcoffobjectinput
-
-  Revision 1.8  2000/12/25 00:07:26  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.7  2000/12/24 12:25:31  peter
-    + cstreams unit
-    * dynamicarray object to class
-
-  Revision 1.6  2000/12/23 19:59:35  peter
-    * object to class for ow/og objects
-    * split objectdata from objectoutput
-
-  Revision 1.5  2000/12/21 12:06:38  jonas
-    * changed type of all "flags" variables/parameters/fields to cardinal
-      and removed longint typecasts around constants
-
-  Revision 1.4  2000/12/20 15:59:04  jonas
-    * fixed range check errors
-
-  Revision 1.3  2000/12/18 21:56:35  peter
-    * fixed stab reloc writing
-
-  Revision 1.2  2000/12/07 17:19:42  jonas
-    * new constant handling: from now on, hex constants >$7fffffff are
-      parsed as unsigned constants (otherwise, $80000000 got sign extended
-      and became $ffffffff80000000), all constants in the longint range
-      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
-      are cardinals and the rest are int64's.
-    * added lots of longint typecast to prevent range check errors in the
-      compiler and rtl
-    * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
-      after doing a 64bit rangecheck
-
-  Revision 1.1  2000/11/12 22:20:37  peter
-    * create generic toutputsection for binary writers
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2001 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generates nodes for routines that need compiler support
 
@@ -565,7 +565,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2002-05-16 19:46:43  carl
+  Revision 1.5  2002-05-18 13:34:12  peter
+    * readded missing revisions
+
+  Revision 1.4  2002/05/16 19:46:43  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls

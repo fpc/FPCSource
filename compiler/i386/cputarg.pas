@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2001 by Peter Vreman
+    Copyright (c) 2001-2002 by Peter Vreman
 
     Includes the i386 dependent target units
 
@@ -85,7 +85,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2002-05-16 19:46:50  carl
+  Revision 1.9  2002-05-18 13:34:22  peter
+    * readded missing revisions
+
+  Revision 1.8  2002/05/16 19:46:50  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -116,11 +119,5 @@ end.
 
   Revision 1.3  2002/03/28 20:48:04  carl
   - remove go32v1 support
-
-  Revision 1.2  2001/06/03 15:12:47  peter
-    * t_beos target inclusion
-
-  Revision 1.1  2001/04/18 22:02:01  peter
-    * registration of targets and assemblers
 
 }

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library and compiler.
-    Copyright (c) 1998-2000 by the Free Pascal development team
+    Copyright (c) 1998-2002 by the Free Pascal development team
 
     Internal Function/Constant Evaluator numbers
 
@@ -104,39 +104,13 @@ const
 
 {
   $Log$
-  Revision 1.6  2002-05-16 19:46:35  carl
+  Revision 1.7  2002-05-18 13:34:06  peter
+    * readded missing revisions
+
+  Revision 1.6  2002/05/16 19:46:35  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
   + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.4  2001/10/24 11:51:39  marco
-   * Make new/dispose system functions instead of keywords
-
-  Revision 1.3  2001/07/09 21:15:40  peter
-    * Length made internal
-    * Add array support for Length
-
-  Revision 1.2  2000/11/09 17:46:54  florian
-    * System.TypeInfo fixed
-    + System.Finalize implemented
-    + some new keywords for interface support added
-
-  Revision 1.1  2000/11/04 16:48:32  florian
-    * innr.inc renamed to make compiler compilation easier because the rtl contains
-      a file of the same name
-
-  Revision 1.4  2000/10/21 18:16:11  florian
-    * a lot of changes:
-       - basic dyn. array support
-       - basic C++ support
-       - some work for interfaces done
-       ....
-
-  Revision 1.3  2000/08/16 13:06:06  florian
-    + support of 64 bit integer constants
-
-  Revision 1.2  2000/07/13 11:32:43  michael
-  + removed logs
 
 }

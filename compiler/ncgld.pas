@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate assembler for nodes that handle loads and assignments which
     are the same for all (most) processors
@@ -912,7 +912,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-05-18 11:17:03  peter
+  Revision 1.8  2002-05-18 13:34:09  peter
+    * readded missing revisions
+
+  Revision 1.7  2002/05/18 11:17:03  peter
     * fixed internalerror due to releasing an not initialized register
 
   Revision 1.6  2002/05/16 19:46:37  carl

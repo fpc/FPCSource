@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Helper routines for the i386 code generator
 
@@ -36,18 +36,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-05-16 19:46:53  carl
+  Revision 1.4  2002-05-18 13:34:26  peter
+    * readded missing revisions
+
+  Revision 1.3  2002/05/16 19:46:53  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
   + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.1  2001/08/26 13:31:04  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.1  2001/08/26 13:29:33  florian
-    * some cg reorganisation
-    * some PPC updates
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate assembler for constant nodes which are the same for
     all (most) processors
@@ -175,9 +175,10 @@ implementation
 
     procedure tcgstringconstnode.pass_2;
       var
-         hp1 : tai;
+         hp1,hp2 : tai;
          l1,l2,
          lastlabel   : tasmlabel;
+         lastlabelhp : tai;
          pc       : pchar;
          same_string : boolean;
          l,j,
@@ -195,6 +196,7 @@ implementation
          location_reset(location,LOC_CREFERENCE,def_cgsize(resulttype.def));
          { const already used ? }
          lastlabel:=nil;
+         lastlabelhp:=nil;
          if not assigned(lab_str) then
            begin
               if is_shortstring(resulttype.def) then
@@ -209,7 +211,10 @@ implementation
                   while assigned(hp1) do
                     begin
                        if hp1.typ=ait_label then
-                         lastlabel:=tai_label(hp1).l
+                         begin
+                           lastlabel:=tai_label(hp1).l;
+                           lastlabelhp:=hp1;
+                         end
                        else
                          begin
                             { when changing that code, be careful that }
@@ -224,14 +229,49 @@ implementation
                                  same_string:=true;
                                  { if shortstring then check the length byte first and
                                    set the start index to 1 }
-                                 if is_shortstring(resulttype.def) then
-                                  begin
-                                    if len<>ord(tai_string(hp1).str[0]) then
+                                 case st_type of
+                                   st_shortstring:
+                                     begin
+                                       if len=ord(tai_string(hp1).str[0]) then
+                                        j:=1
+                                       else
+                                        same_string:=false;
+                                     end;
+                                   st_ansistring,
+                                   st_widestring :
+                                     begin
+                                       { before the string the following sequence must be found:
+                                         <label>
+                                           constsymbol <datalabel>
+                                           const32 <len>
+                                           const32 <len>
+                                           const32 -1
+                                         we must then return <label> to reuse
+                                       }
+                                       hp2:=tai(lastlabelhp.previous);
+                                       if assigned(hp2) and
+                                          (hp2.typ=ait_const_32bit) and
+                                          (tai_const(hp2).value=-1) and
+                                          assigned(hp2.previous) and
+                                          (tai(hp2.previous).typ=ait_const_32bit) and
+                                          (tai_const(hp2.previous).value=len) and
+                                          assigned(hp2.previous.previous) and
+                                          (tai(hp2.previous.previous).typ=ait_const_32bit) and
+                                          (tai_const(hp2.previous.previous).value=len) and
+                                          assigned(hp2.previous.previous.previous) and
+                                          (tai(hp2.previous.previous.previous).typ=ait_const_symbol) and
+                                          assigned(hp2.previous.previous.previous.previous) and
+                                          (tai(hp2.previous.previous.previous.previous).typ=ait_label) then
+                                         begin
+                                           lastlabel:=tai_label(hp2.previous.previous.previous.previous).l;
+                                           j:=0;
+                                         end
+                                       else
+                                         same_string:=false;
+                                     end;
+                                   else
                                      same_string:=false;
-                                    j:=1;
-                                  end
-                                 else
-                                  j:=0;
+                                 end;
                                  { don't check if the length byte was already wrong }
                                  if same_string then
                                   begin
@@ -249,15 +289,6 @@ implementation
                                  if same_string then
                                   begin
                                     lab_str:=lastlabel;
-                                    { create a new entry for ansistrings, but reuse the data }
-                                    if (st_type in [st_ansistring,st_widestring]) then
-                                     begin
-                                       getdatalabel(l2);
-                                       Consts.concat(Tai_label.Create(l2));
-                                       Consts.concat(Tai_const_symbol.Create(lab_str));
-                                       { return the offset of the real string }
-                                       lab_str:=l2;
-                                     end;
                                     break;
                                   end;
                               end;
@@ -488,7 +519,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-05-16 19:46:37  carl
+  Revision 1.10  2002-05-18 13:34:09  peter
+    * readded missing revisions
+
+  Revision 1.9  2002/05/16 19:46:37  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -530,15 +564,5 @@ end.
     * fixed problem when compiling the compiler with Delphi (reported by
       "Luc Langlois" <L_Langlois@Videotron.ca>) (lo/hi don't work as in FPC
       when used with int64's under Delphi)
-
-  Revision 1.3  2001/12/31 09:52:02  jonas
-    * empty widestrings can also be optimized to the constant '0'
-
-  Revision 1.2  2001/10/20 19:28:37  peter
-    * interface 2 guid support
-    * guid constants support
-
-  Revision 1.1  2001/09/30 16:17:17  jonas
-    * made most constant and mem handling processor independent
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2002 Pavel ??????
+    Copyright (c) 2001-2002 Pavel ??????
 
     This unit implements support import,export,link routines
     for the (i386) WDOSX target
@@ -165,7 +165,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-05-16 19:46:53  carl
+  Revision 1.8  2002-05-18 13:34:27  peter
+    * readded missing revisions
+
+  Revision 1.7  2002/05/16 19:46:53  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls

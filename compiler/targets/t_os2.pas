@@ -1,7 +1,7 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Daniel Mantione
-    Portions Copyright (c) 1998-2000 Eberhard Mattes
+    Copyright (c) 1998-2002 by Daniel Mantione
+    Portions Copyright (c) 1998-2002 Eberhard Mattes
 
     Unit to write out import libraries and def files for OS/2
 
@@ -591,7 +591,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.20  2002-05-16 19:46:53  carl
+  Revision 1.21  2002-05-18 13:34:27  peter
+    * readded missing revisions
+
+  Revision 1.20  2002/05/16 19:46:53  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -617,71 +620,5 @@ end.
 
   Revision 1.12  2002/01/27 12:58:42  hajny
     * fix for a problem with importprocedure
-
-  Revision 1.11  2001/09/18 11:32:00  michael
-  * Fixes win32 linking problems with import libraries
-  * LINKLIB Libraries are now looked for using C file extensions
-  * get_exepath fix
-
-  Revision 1.10  2001/09/17 21:29:16  peter
-    * merged netbsd, fpu-overflow from fixes branch
-
-  Revision 1.9  2001/08/07 18:47:15  peter
-    * merged netbsd start
-    * profile for win32
-
-  Revision 1.8  2001/07/01 20:16:20  peter
-    * alignmentinfo record added
-    * -Oa argument supports more alignment settings that can be specified
-      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
-      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
-      required alignment and the maximum usefull alignment. The final
-      alignment will be choosen per variable size dependent on these
-      settings
-
-  Revision 1.7  2001/06/28 19:46:25  peter
-    * added override and virtual for constructors
-
-  Revision 1.6  2001/06/03 15:15:32  peter
-    * dllprt0 stub for linux shared libs
-    * pass -init and -fini for linux shared libs
-    * libprefix splitted into staticlibprefix and sharedlibprefix
-
-  Revision 1.5  2001/06/02 19:22:44  peter
-    * extradefines field added
-
-  Revision 1.4  2001/04/18 22:02:04  peter
-    * registration of targets and assemblers
-
-  Revision 1.3  2001/04/13 01:22:22  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.2  2001/02/27 19:40:05  hajny
-    * a.out deleted upon successful binding
-
-  Revision 1.1  2001/02/26 19:43:11  peter
-    * moved target units to subdir
-
-  Revision 1.7  2001/01/20 18:32:52  hajny
-    + APPTYPE support under OS/2, app_fs, GetEnvPChar for OS/2
-
-  Revision 1.6  2000/12/25 00:07:30  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.5  2000/09/24 15:06:31  peter
-    * use defines.inc
-
-  Revision 1.4  2000/09/20 19:38:34  peter
-    * fixed staticlib filename and unitlink instead of otherlinky
-
-  Revision 1.3  2000/08/27 16:11:54  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.2  2000/07/13 11:32:50  michael
-  + removed logs
 
 }

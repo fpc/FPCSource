@@ -1,11 +1,11 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
+    Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
 
     Contains the assembler object for the i386
 
     * This code was inspired by the NASM sources
-      The Netwide Assembler is copyright (C) 1996 Simon Tatham and
+      The Netwide Assembler is Copyright (c) 1996 Simon Tatham and
       Julian Hall. All rights reserved.
 
     This program is free software; you can redistribute it and/or modify
@@ -28,15 +28,6 @@ unit cpuasm;
 
 {$i fpcdefs.inc}
 
-{ Optimize addressing and skip already passed nodes }
-{$ifndef NASMDEBUG}
-  {$define OPTEA}
-  {$define PASS2FLAG}
-{$endif ndef NASMDEBUG}
-
-{ Give warnings when an immediate is found in the reference struct }
-{.$define REF_IMMEDIATE_WARN}
-
 interface
 
 uses
@@ -50,6 +41,121 @@ const
 {*****************************************************************************
                               Instruction table
 *****************************************************************************}
+
+const
+{ Operand types }
+  OT_NONE      = $00000000;
+
+  OT_BITS8     = $00000001;  { size, and other attributes, of the operand  }
+  OT_BITS16    = $00000002;
+  OT_BITS32    = $00000004;
+  OT_BITS64    = $00000008;  { FPU only  }
+  OT_BITS80    = $00000010;
+  OT_FAR       = $00000020;  { this means 16:16 or 16:32, like in CALL/JMP }
+  OT_NEAR      = $00000040;
+  OT_SHORT     = $00000080;
+
+  OT_SIZE_MASK = $000000FF;  { all the size attributes  }
+  OT_NON_SIZE  = longint(not OT_SIZE_MASK);
+
+  OT_SIGNED    = $00000100;  { the operand need to be signed -128-127 }
+
+  OT_TO        = $00000200;  { operand is followed by a colon  }
+                             { reverse effect in FADD, FSUB &c  }
+  OT_COLON     = $00000400;
+
+  OT_REGISTER  = $00001000;
+  OT_IMMEDIATE = $00002000;
+  OT_IMM8      = $00002001;
+  OT_IMM16     = $00002002;
+  OT_IMM32     = $00002004;
+  OT_IMM64     = $00002008;
+  OT_IMM80     = $00002010;
+  OT_REGMEM    = $00200000;  { for r/m, ie EA, operands  }
+  OT_REGNORM   = $00201000;  { 'normal' reg, qualifies as EA  }
+  OT_REG8      = $00201001;
+  OT_REG16     = $00201002;
+  OT_REG32     = $00201004;
+  OT_MMXREG    = $00201008;  { MMX registers  }
+  OT_XMMREG    = $00201010;  { Katmai registers  }
+  OT_MEMORY    = $00204000;  { register number in 'basereg'  }
+  OT_MEM8      = $00204001;
+  OT_MEM16     = $00204002;
+  OT_MEM32     = $00204004;
+  OT_MEM64     = $00204008;
+  OT_MEM80     = $00204010;
+  OT_FPUREG    = $01000000;  { floating point stack registers  }
+  OT_FPU0      = $01000800;  { FPU stack register zero  }
+  OT_REG_SMASK = $00070000;  { special register operands: these may be treated differently  }
+                             { a mask for the following  }
+  OT_REG_ACCUM = $00211000;  { accumulator: AL, AX or EAX  }
+  OT_REG_AL    = $00211001;    { REG_ACCUM | BITSxx  }
+  OT_REG_AX    = $00211002;    { ditto  }
+  OT_REG_EAX   = $00211004;    { and again  }
+  OT_REG_COUNT = $00221000;  { counter: CL, CX or ECX  }
+  OT_REG_CL    = $00221001;    { REG_COUNT | BITSxx  }
+  OT_REG_CX    = $00221002;    { ditto  }
+  OT_REG_ECX   = $00221004;    { another one  }
+  OT_REG_DX    = $00241002;
+
+  OT_REG_SREG  = $00081002;  { any segment register  }
+  OT_REG_CS    = $01081002;  { CS  }
+  OT_REG_DESS  = $02081002;  { DS, ES, SS (non-CS 86 registers)  }
+  OT_REG_FSGS  = $04081002;  { FS, GS (386 extended registers)  }
+
+  OT_REG_CDT   = $00101004;  { CRn, DRn and TRn  }
+  OT_REG_CREG  = $08101004;  { CRn  }
+  OT_REG_CR4   = $08101404;  { CR4 (Pentium only)  }
+  OT_REG_DREG  = $10101004;  { DRn  }
+  OT_REG_TREG  = $20101004;  { TRn  }
+
+  OT_MEM_OFFS  = $00604000;  { special type of EA  }
+                             { simple [address] offset  }
+  OT_ONENESS   = $00800000;  { special type of immediate operand  }
+                             { so UNITY == IMMEDIATE | ONENESS  }
+  OT_UNITY     = $00802000;  { for shift/rotate instructions  }
+
+{Instruction flags }
+  IF_NONE   = $00000000;
+  IF_SM     = $00000001;        { size match first two operands  }
+  IF_SM2    = $00000002;
+  IF_SB     = $00000004;  { unsized operands can't be non-byte  }
+  IF_SW     = $00000008;  { unsized operands can't be non-word  }
+  IF_SD     = $00000010;  { unsized operands can't be nondword  }
+  IF_AR0    = $00000020;  { SB, SW, SD applies to argument 0  }
+  IF_AR1    = $00000040;  { SB, SW, SD applies to argument 1  }
+  IF_AR2    = $00000060;  { SB, SW, SD applies to argument 2  }
+  IF_ARMASK = $00000060;  { mask for unsized argument spec  }
+  IF_PRIV   = $00000100;  { it's a privileged instruction  }
+  IF_SMM    = $00000200;  { it's only valid in SMM  }
+  IF_PROT   = $00000400;  { it's protected mode only  }
+  IF_UNDOC  = $00001000;  { it's an undocumented instruction  }
+  IF_FPU    = $00002000;  { it's an FPU instruction  }
+  IF_MMX    = $00004000;  { it's an MMX instruction  }
+  IF_3DNOW  = $00008000;  { it's a 3DNow! instruction  }
+  IF_SSE    = $00010000;  { it's a SSE (KNI, MMX2) instruction  }
+  IF_PMASK  =
+     longint($FF000000);  { the mask for processor types  }
+  IF_PFMASK =
+     longint($F001FF00);  { the mask for disassembly "prefer"  }
+  IF_8086   = $00000000;  { 8086 instruction  }
+  IF_186    = $01000000;  { 186+ instruction  }
+  IF_286    = $02000000;  { 286+ instruction  }
+  IF_386    = $03000000;  { 386+ instruction  }
+  IF_486    = $04000000;  { 486+ instruction  }
+  IF_PENT   = $05000000;  { Pentium instruction  }
+  IF_P6     = $06000000;  { P6 instruction  }
+  IF_KATMAI = $07000000;  { Katmai instructions  }
+  IF_CYRIX  = $10000000;  { Cyrix-specific instruction  }
+  IF_AMD    = $20000000;  { AMD-specific instruction  }
+  { added flags }
+  IF_PRE    = $40000000;  { it's a prefix instruction }
+  IF_PASS2  =
+     longint($80000000);  { if the instruction can change in a second pass }
+
+  { Size of the instruction table converted by nasmconv.pas }
+  instabentries = {$i i386nop.inc}
+  maxinfolen    = 8;
 
 type
   tinsentry=packed record
@@ -79,10 +185,10 @@ type
      reg       : tregister;
      constructor create(b:byte);
      constructor create_op(b: byte; _op: byte);
-     function getfillbuf:pchar;
+     function getfillbuf:pchar;override;
   end;
 
-  taicpu = class(tainstruction)
+  taicpu = class(taicpu_abstract)
      opsize    : topsize;
      constructor op_none(op : tasmop;_size : topsize);
 
@@ -158,6 +264,44 @@ uses
   cutils,
   ogbase,
   ag386att;
+
+const
+  { Intel style operands ! }
+  opsize_2_type:array[0..2,topsize] of longint=(
+    (OT_NONE,
+     OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS16,OT_BITS32,OT_BITS32,
+     OT_BITS16,OT_BITS32,OT_BITS64,
+     OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
+     OT_NEAR,OT_FAR,OT_SHORT
+    ),
+    (OT_NONE,
+     OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS8,OT_BITS8,OT_BITS16,
+     OT_BITS16,OT_BITS32,OT_BITS64,
+     OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
+     OT_NEAR,OT_FAR,OT_SHORT
+    ),
+    (OT_NONE,
+     OT_BITS8,OT_BITS16,OT_BITS32,OT_NONE,OT_NONE,OT_NONE,
+     OT_BITS16,OT_BITS32,OT_BITS64,
+     OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
+     OT_NEAR,OT_FAR,OT_SHORT
+    )
+  );
+
+  { Convert reg to operand type }
+  reg2type : array[firstreg..lastreg] of longint = (OT_NONE,
+    OT_REG_EAX,OT_REG_ECX,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,
+    OT_REG_AX,OT_REG_CX,OT_REG_DX,OT_REG16,OT_REG16,OT_REG16,OT_REG16,OT_REG16,
+    OT_REG_AL,OT_REG_CL,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,
+    OT_REG_CS,OT_REG_DESS,OT_REG_DESS,OT_REG_DESS,OT_REG_FSGS,OT_REG_FSGS,
+    OT_FPU0,OT_FPU0,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,
+    OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,
+    OT_REG_CREG,OT_REG_CREG,OT_REG_CREG,OT_REG_CR4,
+    OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,
+    OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,
+    OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG
+  );
+
 
 {****************************************************************************
                               TAI_ALIGN
@@ -1663,7 +1807,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2002-05-16 19:46:50  carl
+  Revision 1.25  2002-05-18 13:34:22  peter
+    * readded missing revisions
+
+  Revision 1.24  2002/05/16 19:46:50  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -1712,87 +1859,5 @@ end.
       (this is compatible with Kylix). This saves a lot of push/pop especially
       with string operations
     * adapted some routines to use the new cg methods
-
-  Revision 1.17  2001/12/31 16:59:43  peter
-    * protected/private symbols parsing fixed
-
-  Revision 1.16  2001/12/29 15:29:59  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
-
-  Revision 1.15  2001/04/21 12:13:15  peter
-    * restore correct pass2 handling bug 1425 (merged)
-
-  Revision 1.14  2001/04/13 01:22:18  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.13  2001/04/05 21:33:45  peter
-    * movd and opsize fix merged
-
-  Revision 1.12  2001/03/25 12:29:45  peter
-    * offset_fixup fixes (merged)
-
-  Revision 1.11  2001/02/20 21:51:36  peter
-    * fpu fixes (merged)
-
-  Revision 1.10  2001/01/13 20:24:24  peter
-    * fixed operand order that got mixed up for external writers after
-      my previous assembler block valid instruction check
-
-  Revision 1.9  2001/01/12 19:18:42  peter
-    * check for valid asm instructions
-
-  Revision 1.8  2001/01/07 15:48:56  jonas
-    * references to symbols were only decreased in taicpu.done for jmps, fixed
-
-  Revision 1.7  2000/12/26 15:56:17  peter
-    * unrolled loops in taicpu.destroy
-
-  Revision 1.6  2000/12/25 00:07:31  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.5  2000/12/23 19:59:35  peter
-    * object to class for ow/og objects
-    * split objectdata from objectoutput
-
-  Revision 1.4  2000/12/07 17:19:45  jonas
-    * new constant handling: from now on, hex constants >$7fffffff are
-      parsed as unsigned constants (otherwise, $80000000 got sign extended
-      and became $ffffffff80000000), all constants in the longint range
-      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
-      are cardinals and the rest are int64's.
-    * added lots of longint typecast to prevent range check errors in the
-      compiler and rtl
-    * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
-      after doing a 64bit rangecheck
-
-  Revision 1.3  2000/11/12 22:20:37  peter
-    * create generic toutputsection for binary writers
-
-  Revision 1.2  2000/10/15 10:50:46  florian
-   * fixed xmm register access
-
-  Revision 1.1  2000/10/15 09:39:37  peter
-    * moved cpu*.pas to i386/
-    * renamed n386 to common cpunode
-
-  Revision 1.5  2000/09/24 15:06:14  peter
-    * use defines.inc
-
-  Revision 1.4  2000/08/27 16:11:50  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.3  2000/07/13 12:08:25  michael
-  + patched to 1.1.0 with former 1.09patch from peter
-
-  Revision 1.2  2000/07/13 11:32:38  michael
-  + removed logs
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit is the interface of the compiler which can be used by
      external programs to link in the compiler
@@ -337,7 +337,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  2002-05-16 19:46:35  carl
+  Revision 1.29  2002-05-18 13:34:06  peter
+    * readded missing revisions
+
+  Revision 1.28  2002/05/16 19:46:35  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -369,74 +372,4 @@ end.
   Revision 1.23  2002/03/24 19:05:31  carl
   + patch for SPARC from Mazen NEIFER
 
-  Revision 1.22  2001/09/18 11:30:47  michael
-  * Fixes win32 linking problems with import libraries
-  * LINKLIB Libraries are now looked for using C file extensions
-  * get_exepath fix
-
-  Revision 1.21  2001/05/06 14:49:16  peter
-    * ppu object to class rewrite
-    * move ppu read and write stuff to fppu
-
-  Revision 1.20  2001/04/21 13:37:16  peter
-    * made tclassheader using class of to implement cpu dependent code
-
-  Revision 1.19  2001/04/18 22:01:53  peter
-    * registration of targets and assemblers
-
-  Revision 1.18  2001/04/13 18:08:36  peter
-    * scanner object to class
-
-  Revision 1.17  2001/04/13 01:22:06  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.16  2001/04/02 21:20:29  peter
-    * resulttype rewrite
-
-  Revision 1.15  2000/12/26 15:57:25  peter
-    * use system.paramstr()
-
-  Revision 1.14  2000/12/25 00:07:25  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.13  2000/12/24 12:24:38  peter
-    * moved preprocessfile into a conditional
-
-  Revision 1.11  2000/11/29 00:30:30  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.10  2000/10/31 22:02:46  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.9  2000/10/15 09:39:36  peter
-    * moved cpu*.pas to i386/
-    * renamed n386 to common cpunode
-
-  Revision 1.8  2000/10/14 10:14:46  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.7  2000/10/08 10:26:33  peter
-    * merged @result fix from Pierre
-
-  Revision 1.6  2000/09/24 15:06:14  peter
-    * use defines.inc
-
-  Revision 1.5  2000/08/27 16:11:50  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.4  2000/08/21 09:14:40  jonas
-    - removed catch unit from uses clause for Linux (clashed with fpcatch
-     from IDE and is already in pp.pas for command line compiler) (merged
-     from fixes branch)
-
-  Revision 1.3  2000/08/04 22:00:50  peter
-    * merges from fixes
-
-  Revision 1.2  2000/07/13 11:32:38  michael
-  + removed logs
 }

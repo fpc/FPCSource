@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate i386 inline nodes
 
@@ -148,14 +148,8 @@ implementation
                  if is_ansistring(left.resulttype.def) or
                     is_widestring(left.resulttype.def) then
                   begin
-                    if left.location.loc<>LOC_REGISTER then
-                     begin
-                       location_release(exprasmlist,left.location);
-                       hregister:=rg.getregisterint(exprasmlist);
-                       cg.a_load_loc_reg(exprasmlist,left.location,hregister);
-                     end
-                    else
-                     hregister:=left.location.register;
+                    location_force_reg(exprasmlist,left.location,OS_ADDR,false);
+                    hregister:=left.location.register;
                     getlabel(lengthlab);
                     cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,hregister,lengthlab);
                     reference_reset_base(href,hregister,-8);
@@ -466,7 +460,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2002-05-16 19:46:51  carl
+  Revision 1.44  2002-05-18 13:34:25  peter
+    * readded missing revisions
+
+  Revision 1.43  2002/05/16 19:46:51  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -548,154 +545,5 @@ end.
 
   Revision 1.32  2002/03/04 19:10:14  peter
     * removed compiler warnings
-
-  Revision 1.31  2001/12/30 17:24:46  jonas
-    * range checking is now processor independent (part in cgobj,
-      part in cg64f32) and should work correctly again (it needed
-      some changes after the changes of the low and high of
-      tordef's to int64)
-    * maketojumpbool() is now processor independent (in ncgutil)
-    * getregister32 is now called getregisterint
-
-  Revision 1.30  2001/12/10 14:34:04  jonas
-    * fixed type conversions from dynamic arrays to open arrays
-
-  Revision 1.29  2001/12/04 15:59:03  jonas
-    * converted lo/hi to processor independent code, generated code is the
-      same as before (when turning on the optimizer)
-
-  Revision 1.28  2001/12/02 16:19:17  jonas
-    * less unnecessary regvar loading with if-statements
-
-  Revision 1.26  2001/09/28 20:38:51  jonas
-    * fixed big bug in my previous changes (the arguent for bts/btr is always
-      a 32 bit register, but it wasn't cleared properly if the value was only
-      an 8 bit one)
-
-  Revision 1.25  2001/09/27 13:03:18  jonas
-    * fixed bug reported by sg about self not being restored after calling
-      setlength
-
-  Revision 1.24  2001/09/04 14:32:45  jonas
-    * simplified det_resulttype code for include/exclude
-    * include/exclude doesn't use any helpers anymore in the i386 secondpass
-
-  Revision 1.23  2001/08/30 20:13:57  peter
-    * rtti/init table updates
-    * rttisym for reusable global rtti/init info
-    * support published for interfaces
-
-  Revision 1.22  2001/08/28 13:24:47  jonas
-    + compilerproc implementation of most string-related type conversions
-    - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using ($ifdef hascompilerproc) is not
-      necessary in the compiler)
-
-  Revision 1.21  2001/08/26 13:36:58  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.20  2001/08/24 12:33:54  jonas
-    * fixed big bug in handle_str that caused it to (almost) always call
-      fpc_<stringtype>_longint
-    * fixed small bug in handle_read_write that caused wrong warnigns about
-      uninitialized vars with read(ln)
-    + handle_val (processor independent val() handling)
-
-  Revision 1.19  2001/08/23 14:28:36  jonas
-    + tempcreate/ref/delete nodes (allows the use of temps in the
-      resulttype and first pass)
-    * made handling of read(ln)/write(ln) processor independent
-    * moved processor independent handling for str and reset/rewrite-typed
-      from firstpass to resulttype pass
-    * changed names of helpers in text.inc to be generic for use as
-      compilerprocs + added "iocheck" directive for most of them
-    * reading of ordinals is done by procedures instead of functions
-      because otherwise FPC_IOCHECK overwrote the result before it could
-      be stored elsewhere (range checking still works)
-    * compilerprocs can now be used in the system unit before they are
-      implemented
-    * added note to errore.msg that booleans can't be read using read/readln
-
-  Revision 1.18  2001/08/13 15:39:52  jonas
-    * made in_reset_typedfile/in_rewrite_typedfile handling processor
-      independent
-
-  Revision 1.17  2001/08/13 12:41:57  jonas
-    * made code for str(x,y) completely processor independent
-
-  Revision 1.16  2001/07/10 18:01:08  peter
-    * internal length for ansistring and widestrings
-
-  Revision 1.15  2001/07/08 21:00:18  peter
-    * various widestring updates, it works now mostly without charset
-      mapping supported
-
-  Revision 1.14  2001/04/13 01:22:19  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.13  2001/04/02 21:20:37  peter
-    * resulttype rewrite
-
-  Revision 1.12  2001/03/13 11:52:48  jonas
-    * fixed some memory leaks
-
-  Revision 1.11  2000/12/25 00:07:33  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.10  2000/12/09 22:51:37  florian
-    * helper name of val for qword fixed
-
-  Revision 1.9  2000/12/07 17:19:46  jonas
-    * new constant handling: from now on, hex constants >$7fffffff are
-      parsed as unsigned constants (otherwise, $80000000 got sign extended
-      and became $ffffffff80000000), all constants in the longint range
-      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
-      are cardinals and the rest are int64's.
-    * added lots of longint typecast to prevent range check errors in the
-      compiler and rtl
-    * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype.def wasn't restored correctly
-      after doing a 64bit rangecheck
-
-  Revision 1.8  2000/12/05 11:44:33  jonas
-    + new integer regvar handling, should be much more efficient
-
-  Revision 1.7  2000/11/29 00:30:47  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.6  2000/11/12 23:24:15  florian
-    * interfaces are basically running
-
-  Revision 1.5  2000/11/09 17:46:56  florian
-    * System.TypeInfo fixed
-    + System.Finalize implemented
-    + some new keywords for interface support added
-
-  Revision 1.4  2000/10/31 22:02:56  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.3  2000/10/26 14:15:07  jonas
-    * fixed setlength for shortstrings
-
-  Revision 1.2  2000/10/21 18:16:13  florian
-    * a lot of changes:
-       - basic dyn. array support
-       - basic C++ support
-       - some work for interfaces done
-       ....
-
-  Revision 1.1  2000/10/15 09:33:31  peter
-    * moved n386*.pas to i386/ cpu_target dir
-
-  Revision 1.2  2000/10/15 09:08:58  peter
-    * use System for the systemunit instead of target dependent
-
-  Revision 1.1  2000/10/14 10:14:49  peter
-    * moehrendorf oct 2000 rewrite
 
 }

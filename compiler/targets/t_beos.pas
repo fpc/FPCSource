@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Peter Vreman
+    Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements support import,export,link routines
     for the (i386) BeOS target.
@@ -532,7 +532,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2002-05-16 19:46:53  carl
+  Revision 1.18  2002-05-18 13:34:26  peter
+    * readded missing revisions
+
+  Revision 1.17  2002/05/16 19:46:53  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -559,46 +562,5 @@ end.
 
   Revision 1.11  2002/01/29 21:27:34  peter
     * default alignment changed to 4 bytes for locals and static const,var
-
-  Revision 1.10  2001/11/02 22:58:11  peter
-    * procsym definition rewrite
-
-  Revision 1.9  2001/10/12 16:05:34  peter
-    * system lib search fixed (merged)
-
-  Revision 1.8  2001/09/18 11:32:00  michael
-  * Fixes win32 linking problems with import libraries
-  * LINKLIB Libraries are now looked for using C file extensions
-  * get_exepath fix
-
-  Revision 1.7  2001/09/17 21:29:15  peter
-    * merged netbsd, fpu-overflow from fixes branch
-
-  Revision 1.6  2001/08/12 17:57:07  peter
-    * under development flag for targets
-
-  Revision 1.5  2001/08/07 18:47:15  peter
-    * merged netbsd start
-    * profile for win32
-
-  Revision 1.4  2001/07/01 20:16:20  peter
-    * alignmentinfo record added
-    * -Oa argument supports more alignment settings that can be specified
-      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
-      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
-      required alignment and the maximum usefull alignment. The final
-      alignment will be choosen per variable size dependent on these
-      settings
-
-  Revision 1.3  2001/06/28 19:46:25  peter
-    * added override and virtual for constructors
-
-  Revision 1.2  2001/06/03 15:15:31  peter
-    * dllprt0 stub for linux shared libs
-    * pass -init and -fini for linux shared libs
-    * libprefix splitted into staticlibprefix and sharedlibprefix
-
-  Revision 1.1  2001/06/02 19:29:37  peter
-    * beos target
 
 }

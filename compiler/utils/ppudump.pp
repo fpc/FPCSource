@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by the FPC Development Team
+    Copyright (c) 1998-2002 by the FPC Development Team
 
     Dumps the contents of a FPC unit file (PPU File)
 
@@ -1774,7 +1774,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-05-16 19:46:54  carl
+  Revision 1.25  2002-05-18 13:34:27  peter
+    * readded missing revisions
+
+  Revision 1.24  2002/05/16 19:46:54  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -1848,82 +1851,5 @@ end.
   Revision 1.11  2002/01/06 12:08:16  peter
     * removed uauto from orddef, use new range_to_basetype generating
       the correct ordinal type for a range
-
-  Revision 1.10  2001/12/15 05:28:01  carl
-  + Added QNX target
-
-  Revision 1.9  2001/11/02 22:58:12  peter
-    * procsym definition rewrite
-
-  Revision 1.8  2001/09/22 04:52:27  carl
-  * updated targets
-
-  Revision 1.7  2001/08/30 20:55:02  peter
-    * rttisym support
-
-  Revision 1.6  2001/08/19 09:39:29  peter
-    * local browser support fixed
-
-  Revision 1.5  2001/06/29 19:42:18  peter
-    * new flags added
-
-  Revision 1.4  2001/06/04 11:53:15  peter
-    + varargs directive
-
-  Revision 1.3  2001/05/09 14:11:10  jonas
-    * range check error fixes from Peter
-
-  Revision 1.2  2001/05/06 14:49:19  peter
-    * ppu object to class rewrite
-    * move ppu read and write stuff to fppu
-
-  Revision 1.1  2001/04/25 22:40:07  peter
-    * compiler dependent utils in utils/ subdir
-
-  Revision 1.5  2001/04/10 21:21:41  peter
-    * variantdef support
-    * propertysym fixed
-
-  Revision 1.4  2001/04/04 22:42:59  peter
-    * updated for new objectdef with interfaces
-
-  Revision 1.3  2000/09/09 19:46:40  peter
-    * show dataalignment
-
-  Revision 1.2  2000/08/13 12:58:06  peter
-    * updated for ppu additions
-
-  Revision 1.1  2000/07/13 10:16:22  michael
-  + Initial import
-
-  Revision 1.15  2000/07/04 19:05:54  peter
-    * be optimistic: version 1.00 for some utils
-
-  Revision 1.14  2000/02/09 16:44:14  peter
-    * log truncated
-
-  Revision 1.13  2000/01/23 16:34:36  peter
-    * updated for new aktlocalindex
-
-  Revision 1.12  2000/01/07 16:46:03  daniel
-    * copyright 2000
-
-  Revision 1.11  1999/11/30 10:35:37  peter
-    * support new readtype
-
-  Revision 1.10  1999/11/08 14:06:45  florian
-    + indexref of propertysym is handle too now
-
-  Revision 1.9  1999/08/31 16:07:37  pierre
-   + support for writeusedmacros
-
-  Revision 1.8  1999/08/15 10:47:14  peter
-    * updates for new options
-
-  Revision 1.7  1999/08/13 21:25:35  peter
-    * updated flags
-
-  Revision 1.6  1999/07/27 23:45:29  peter
-    * updated for typesym writing
 
 }

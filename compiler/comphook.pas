@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Peter Vreman
+    Copyright (c) 1998-2002 by Peter Vreman
 
     This unit handles the compilerhooks for output to external programs
 
@@ -355,59 +355,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2002-05-16 19:46:35  carl
+  Revision 1.19  2002-05-18 13:34:06  peter
+    * readded missing revisions
+
+  Revision 1.18  2002/05/16 19:46:35  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
   + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.16  2001/08/04 10:23:54  peter
-    * updates so it works with the ide
-
-  Revision 1.15  2001/06/07 21:25:57  peter
-    * Regenerated
-
-  Revision 1.14  2001/06/06 17:20:21  jonas
-    * fixed wrong typed constant procvars in preparation of my fix which will
-      disallow them in FPC mode (plus some other unmerged changes since
-      LAST_MERGE)
-
-  Revision 1.13  2001/02/05 20:47:00  peter
-    * support linux unit for ver1_0 compilers
-
-  Revision 1.12  2001/01/21 20:32:45  marco
-   * Renamefest. Compiler part. Not that hard.
-
-  Revision 1.11  2000/12/26 15:58:29  peter
-    * check for verbosity in verbose instead of comphook
-
-  Revision 1.10  2000/12/25 00:07:25  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.9  2000/11/13 15:26:12  marco
-   * Renamefest
-
-  Revision 1.8  2000/09/30 16:07:20  peter
-    * prefix fix (merged)
-
-  Revision 1.7  2000/09/24 21:33:46  peter
-    * message updates merges
-
-  Revision 1.6  2000/09/24 15:06:13  peter
-    * use defines.inc
-
-  Revision 1.5  2000/08/27 16:11:50  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.4  2000/08/13 13:04:15  peter
-    * -vb update
-
-  Revision 1.3  2000/08/12 15:30:45  peter
-    * IDE patch for stream reading (merged)
-
-  Revision 1.2  2000/07/13 11:32:38  michael
-  + removed logs
 
 }

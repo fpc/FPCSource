@@ -1,11 +1,11 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Peter Vreman
+    Copyright (c) 1998-2002 by Peter Vreman
 
     Contains the binary elf writer
 
     * This code was inspired by the NASM sources
-      The Netwide Assembler is copyright (C) 1996 Simon Tatham and
+      The Netwide Assembler is Copyright (c) 1996 Simon Tatham and
       Julian Hall. All rights reserved.
 
     This program is free software; you can redistribute it and/or modify
@@ -874,7 +874,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2002-05-16 19:46:39  carl
+  Revision 1.15  2002-05-18 13:34:10  peter
+    * readded missing revisions
+
+  Revision 1.14  2002/05/16 19:46:39  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -900,40 +903,5 @@ end.
   Revision 1.11  2002/04/04 19:05:58  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.10  2001/05/06 17:13:23  jonas
-    * completed incomplete typed constant records
-
-  Revision 1.9  2001/05/04 19:50:58  peter
-    * finally added the missing outputbinary field that was missing
-
-  Revision 1.8  2001/04/18 22:01:54  peter
-    * registration of targets and assemblers
-
-  Revision 1.7  2001/04/13 01:22:10  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.6  2001/03/05 21:40:39  peter
-    * more things for tcoffobjectinput
-
-  Revision 1.5  2000/12/25 00:07:26  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.4  2000/12/24 12:25:32  peter
-    + cstreams unit
-    * dynamicarray object to class
-
-  Revision 1.3  2000/12/23 19:59:35  peter
-    * object to class for ow/og objects
-    * split objectdata from objectoutput
-
-  Revision 1.2  2000/11/12 22:45:14  peter
-    * moved setting of stab hdrsym
-
-  Revision 1.1  2000/11/12 22:20:37  peter
-    * create generic toutputsection for binary writers
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements an asmoutput class for the Nasm assembler with
     Intel syntax for the i386+
@@ -898,7 +898,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.19  2002-05-16 19:46:50  carl
+  Revision 1.20  2002-05-18 13:34:21  peter
+    * readded missing revisions
+
+  Revision 1.19  2002/05/16 19:46:50  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -945,65 +948,5 @@ end.
       (this is compatible with Kylix). This saves a lot of push/pop especially
       with string operations
     * adapted some routines to use the new cg methods
-
-  Revision 1.12  2001/12/29 15:29:58  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
-
-  Revision 1.11  2001/05/06 17:13:23  jonas
-    * completed incomplete typed constant records
-
-  Revision 1.10  2001/04/21 15:33:03  peter
-    * stupid bug, finalization to initialization renaming
-
-  Revision 1.9  2001/04/21 12:09:00  peter
-    * fixed bug 1472 (merged)
-
-  Revision 1.8  2001/04/18 22:02:00  peter
-    * registration of targets and assemblers
-
-  Revision 1.7  2001/04/13 01:22:17  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.6  2001/03/05 21:39:11  peter
-    * changed to class with common TAssembler also for internal assembler
-
-  Revision 1.5  2001/02/20 21:36:39  peter
-    * tasm/masm fixes merged
-
-  Revision 1.4  2001/01/13 20:24:24  peter
-    * fixed operand order that got mixed up for external writers after
-      my previous assembler block valid instruction check
-
-  Revision 1.3  2000/12/25 00:07:31  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.2  2000/11/29 00:30:43  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.1  2000/10/15 09:47:42  peter
-    * moved to i386/
-
-  Revision 1.6  2000/09/24 15:06:11  peter
-    * use defines.inc
-
-  Revision 1.5  2000/08/27 16:11:49  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.4  2000/08/20 17:38:21  peter
-    * smartlinking fixed for linux (merged)
-
-  Revision 1.3  2000/07/13 12:08:24  michael
-  + patched to 1.1.0 with former 1.09patch from peter
-
-  Revision 1.2  2000/07/13 11:32:30  michael
-  + removed logs
 
 }

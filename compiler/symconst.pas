@@ -84,7 +84,7 @@ const
   pfOut      = 32;
 
   {# These are the different possible base values that can
-     be taken from the lexlevel variable when parsing. The 
+     be taken from the lexlevel variable when parsing. The
      lexlevel can be bigger if parsding recursive routines.
   }
   main_program_level = 1;
@@ -334,7 +334,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2002-05-16 19:46:44  carl
+  Revision 1.32  2002-05-18 13:34:18  peter
+    * readded missing revisions
+
+  Revision 1.31  2002/05/16 19:46:44  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls

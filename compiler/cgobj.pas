@@ -1103,13 +1103,13 @@ unit cgobj;
             { parameter 2 : self pointer  }
             a_param_reg(list, OS_ADDR, SELF_POINTER_REG, 2);
             { parameter 1 : vmt pointer (stored at the selfpointer address on stack)  }
-            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset); 
+            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
             a_param_ref(list, OS_ADDR,href,1);
             a_call_name(list,'FPC_NEW_CLASS');
-            a_load_reg_reg(list,OS_INT,accumulator,SELF_POINTER_REG); 
+            a_load_reg_reg(list,OS_INT,accumulator,SELF_POINTER_REG);
             { save the self pointer result }
             a_load_reg_ref(list,OS_ADDR,SELF_POINTER_REG,href);
-            a_cmp_const_reg_label(list,OS_INT,OC_EQ,0,accumulator,faillabel); 
+            a_cmp_const_reg_label(list,OS_INT,OC_EQ,0,accumulator,faillabel);
           end
         else if is_object(procinfo^._class) then
           begin
@@ -1117,26 +1117,26 @@ unit cgobj;
             a_param_const(list, OS_32, procinfo^._class.vmt_offset, 3);
             { parameter 2 : address of pointer to vmt }
             {  this is the first(?) parameter which was pushed to the constructor }
-            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset-POINTER_SIZE); 
+            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset-POINTER_SIZE);
             hregister:=get_scratch_reg(list);
             a_loadaddr_ref_reg(list, href, hregister);
             a_param_reg(list, OS_INT,hregister,1);
             free_scratch_reg(list, hregister);
             { parameter 1 : address of self pointer   }
-            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset); 
+            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
             hregister:=get_scratch_reg(list);
             a_loadaddr_ref_reg(list, href, hregister);
             a_param_reg(list, OS_INT,hregister,1);
             free_scratch_reg(list, hregister);
             a_call_name(list,'FPC_HELP_CONSTRUCTOR');
-            a_load_reg_reg(list,OS_INT,accumulator,SELF_POINTER_REG); 
-            a_cmp_const_reg_label(list,OS_INT,OC_EQ,0,accumulator,faillabel); 
+            a_load_reg_reg(list,OS_INT,accumulator,SELF_POINTER_REG);
+            a_cmp_const_reg_label(list,OS_INT,OC_EQ,0,accumulator,faillabel);
           end
         else
           internalerror(200006161);
      end;
-     
-     
+
+
     procedure tcg.g_call_destructor_helper(list : taasmoutput);
      begin
      end;
@@ -1154,9 +1154,9 @@ unit cgobj;
     procedure tcg.g_profilecode(list : taasmoutput);
       begin
       end;
-      
-      
-      
+
+
+
 
 
 finalization
@@ -1164,7 +1164,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.24  2002-05-16 19:46:35  carl
+  Revision 1.25  2002-05-18 13:34:05  peter
+    * readded missing revisions
+
+  Revision 1.24  2002/05/16 19:46:35  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls

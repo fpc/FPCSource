@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate i386 assembler for in call nodes
 
@@ -1484,7 +1484,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2002-05-16 19:46:51  carl
+  Revision 1.53  2002-05-18 13:34:23  peter
+    * readded missing revisions
+
+  Revision 1.52  2002/05/16 19:46:51  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -1566,177 +1569,5 @@ end.
 
   Revision 1.41  2002/03/04 19:10:13  peter
     * removed compiler warnings
-
-  Revision 1.40  2001/12/31 09:53:15  jonas
-    * changed remaining "getregister32" calls to "getregisterint"
-
-  Revision 1.39  2001/12/29 15:32:13  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
-
-  Revision 1.38  2001/11/18 00:00:34  florian
-    * handling of ansi- and widestring results improved
-
-  Revision 1.37  2001/11/02 23:24:40  peter
-    * fixed crash with inlining after aktprocdef change
-
-  Revision 1.36  2001/11/02 22:58:09  peter
-    * procsym definition rewrite
-
-  Revision 1.35  2001/10/25 21:22:41  peter
-    * calling convention rewrite
-
-  Revision 1.34  2001/10/21 12:33:07  peter
-    * array access for properties added
-
-  Revision 1.33  2001/09/09 08:50:15  jonas
-    * when calling an inline procedure inside a nested procedure, the
-      framepointer was being pushed on the stack, but this pushed framepointer
-      was never used nor removed from the stack again after the inlining was
-      done. It's now simply not pushed anymore, because the inlined procedure
-      can get the previous framepointer from the procedure in which it is being
-      inlined (merged)
-
-  Revision 1.32  2001/09/01 23:02:30  jonas
-    * i386*: call and jmp read their first operand
-    * cgcal: deallocate hlper register only after call statement (fixes bug
-      with "procedure of object" and optimizer reported to bugrep on
-      2001/08/30) ('merged')
-
-  Revision 1.31  2001/08/29 12:18:08  jonas
-    + new createinternres() constructor for tcallnode to support setting a
-      custom resulttype
-    * compilerproc typeconversions now set the resulttype from the type
-      conversion for the generated call node, because the resulttype of
-      of the compilerproc helper isn't always exact (e.g. the ones that
-      return shortstrings, actually return a shortstring[x], where x is
-      specified by the typeconversion node)
-    * ti386callnode.pass_2 now always uses resulttype instead of
-      procsym.definition.rettype (so the custom resulttype, if any, is
-      always used). Note that this "rettype" stuff is only for use with
-      compilerprocs.
-
-  Revision 1.30  2001/08/26 13:36:56  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.29  2001/08/19 21:11:21  florian
-    * some bugs fix:
-      - overload; with external procedures fixed
-      - better selection of routine to do an overloaded
-        type case
-      - ... some more
-
-  Revision 1.28  2001/08/06 21:40:50  peter
-    * funcret moved from tprocinfo to tprocdef
-
-  Revision 1.27  2001/07/08 21:00:16  peter
-    * various widestring updates, it works now mostly without charset
-      mapping supported
-
-  Revision 1.26  2001/07/01 20:16:20  peter
-    * alignmentinfo record added
-    * -Oa argument supports more alignment settings that can be specified
-      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
-      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
-      required alignment and the maximum usefull alignment. The final
-      alignment will be choosen per variable size dependent on these
-      settings
-
-  Revision 1.25  2001/06/04 11:48:02  peter
-    * better const to var checking
-
-  Revision 1.24  2001/05/19 21:22:53  peter
-    * function returning int64 inlining fixed
-
-  Revision 1.23  2001/05/16 15:11:42  jonas
-    * added missign begin..end pair (noticed by Carl)
-
-  Revision 1.22  2001/04/18 22:02:01  peter
-    * registration of targets and assemblers
-
-  Revision 1.21  2001/04/13 01:22:18  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.20  2001/04/02 21:20:36  peter
-    * resulttype rewrite
-
-  Revision 1.19  2001/03/11 22:58:51  peter
-    * getsym redesign, removed the globals srsym,srsymtable
-
-  Revision 1.18  2001/01/27 21:29:35  florian
-     * behavior -Oa optimized
-
-  Revision 1.17  2001/01/08 21:46:46  peter
-    * don't push high value for open array with cdecl;external;
-
-  Revision 1.16  2000/12/25 00:07:32  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.15  2000/12/09 10:45:40  florian
-    * AfterConstructor isn't called anymore when a constructor failed
-
-  Revision 1.14  2000/12/07 17:19:46  jonas
-    * new constant handling: from now on, hex constants >$7fffffff are
-      parsed as unsigned constants (otherwise, $80000000 got sign extended
-      and became $ffffffff80000000), all constants in the longint range
-      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
-      are cardinals and the rest are int64's.
-    * added lots of longint typecast to prevent range check errors in the
-      compiler and rtl
-    * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype.def wasn't restored correctly
-      after doing a 64bit rangecheck
-
-  Revision 1.13  2000/12/05 11:44:33  jonas
-    + new integer regvar handling, should be much more efficient
-
-  Revision 1.12  2000/12/03 22:26:54  florian
-    * fixed web buzg 1275: problem with int64 functions results
-
-  Revision 1.11  2000/11/29 00:30:46  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.10  2000/11/23 13:26:34  jonas
-    * fix for webbug 1066/1126
-
-  Revision 1.9  2000/11/22 15:12:06  jonas
-    * fixed inline-related problems (partially "merges")
-
-  Revision 1.8  2000/11/17 09:54:58  florian
-    * INT_CHECK_OBJECT_* isn't applied to interfaces anymore
-
-  Revision 1.7  2000/11/12 23:24:14  florian
-    * interfaces are basically running
-
-  Revision 1.6  2000/11/07 23:40:49  florian
-    + AfterConstruction and BeforeDestruction impemented
-
-  Revision 1.5  2000/11/06 23:15:01  peter
-    * added copyvaluepara call again
-
-  Revision 1.4  2000/11/04 14:25:23  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.3  2000/11/04 13:12:14  jonas
-    * check for nil pointers before calling getcopy
-
-  Revision 1.2  2000/10/31 22:02:56  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.1  2000/10/15 09:33:31  peter
-    * moved n386*.pas to i386/ cpu_target dir
-
-  Revision 1.2  2000/10/14 10:14:48  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.1  2000/10/10 17:31:56  florian
-    * initial revision
 
 }

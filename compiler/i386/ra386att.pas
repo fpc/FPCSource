@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Carl Eric Codere and Peter Vreman
+    Copyright (c) 1998-2002 by Carl Eric Codere and Peter Vreman
 
     Does the parsing for the AT&T styled inline assembler.
 
@@ -2129,7 +2129,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.23  2002-05-16 19:46:52  carl
+  Revision 1.24  2002-05-18 13:34:25  peter
+    * readded missing revisions
+
+  Revision 1.23  2002/05/16 19:46:52  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -2167,80 +2170,5 @@ end.
   Revision 1.16  2002/01/24 18:25:53  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
-
-  Revision 1.15  2001/11/02 22:58:11  peter
-    * procsym definition rewrite
-
-  Revision 1.14  2001/08/26 13:37:02  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.13  2001/08/06 21:40:50  peter
-    * funcret moved from tprocinfo to tprocdef
-
-  Revision 1.12  2001/04/18 22:02:03  peter
-    * registration of targets and assemblers
-
-  Revision 1.11  2001/04/13 20:06:05  peter
-    * allow unit.identifier in asm readers
-
-  Revision 1.10  2001/04/13 18:20:21  peter
-    * scanner object to class
-
-  Revision 1.9  2001/04/13 01:22:21  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.8  2001/03/25 12:29:45  peter
-    * offset_fixup fixes (merged)
-
-  Revision 1.7  2001/03/11 22:58:52  peter
-    * getsym redesign, removed the globals srsym,srsymtable
-
-  Revision 1.6  2000/12/25 00:07:34  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.5  2000/12/07 17:19:46  jonas
-    * new constant handling: from now on, hex constants >$7fffffff are
-      parsed as unsigned constants (otherwise, $80000000 got sign extended
-      and became $ffffffff80000000), all constants in the longint range
-      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
-      are cardinals and the rest are int64's.
-    * added lots of longint typecast to prevent range check errors in the
-      compiler and rtl
-    * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
-      after doing a 64bit rangecheck
-
-  Revision 1.4  2000/11/30 20:27:51  peter
-    * merged fix for bug 1229
-
-  Revision 1.3  2000/11/29 00:30:50  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.2  2000/10/31 22:02:57  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.1  2000/10/15 09:47:43  peter
-    * moved to i386/
-
-  Revision 1.6  2000/10/14 10:14:52  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.5  2000/09/24 21:19:51  peter
-    * delphi compile fixes
-
-  Revision 1.4  2000/09/24 15:06:26  peter
-    * use defines.inc
-
-  Revision 1.3  2000/08/27 16:11:52  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.2  2000/07/13 11:32:48  michael
-  + removed logs
 
 }

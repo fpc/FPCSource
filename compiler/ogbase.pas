@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Peter Vreman
+    Copyright (c) 1998-2002 by Peter Vreman
 
     Contains the base stuff for binary object file writers
 
@@ -67,6 +67,15 @@ interface
          size    : longint;
        end;
 
+       texesectioninfo = record
+         available : boolean;
+         datasize,
+         datapos,
+         memsize,
+         mempos    : longint;
+         flags     : longint;
+       end;
+
        tobjectsection = class
          name      : string[32];
          secsymidx : longint; { index for the section in symtab }
@@ -92,9 +101,10 @@ interface
          procedure alloc(l:longint);
          procedure addsymreloc(ofs:longint;p:tasmsymbol;relative:relative_type);
          procedure addsectionreloc(ofs:longint;sec:tsection;relative:relative_type);
+         procedure fixuprelocs;
        end;
 
-       tobjectdata = class
+       tobjectdata = class(tlinkedlistitem)
          { section }
          currsec   : tsection;
          sects     : array[TSection] of tobjectsection;
@@ -174,7 +184,11 @@ interface
       objectoutput : tobjectoutput;
 
       { globals }
-      globalsyms : tdictionary;
+      externalsyms : tsinglelist;
+      globalsyms   : tdictionary;
+      { list of all data of the object files to link }
+      objdatasections : array[tsection] of texesectioninfo;
+      objdatalist     : tlinkedlist;
 
 
 implementation
@@ -362,12 +376,46 @@ implementation
       end;
 
 
+    procedure tobjectsection.fixuprelocs;
+      var
+        hr,r : poutputreloc;
+        address,
+        relocval : longint;
+      begin
+        r:=relochead;
+        while assigned(r) do
+         begin
+           if assigned(r^.symbol) then
+            relocval:=r^.symbol.address
+           else
+            relocval:=r^.address;
+           case r^.typ of
+             relative_true  :
+               begin
+                 data.Seek(r^.address);
+                 data.Read(address,4);
+                 data.Seek(r^.address);
+                 inc(address,relocval);
+               end;
+             relative_false :
+               address:=relocval;
+             relative_rva   :
+               address:=relocval;
+           end;
+           data.Write(address,4);
+           { goto next reloc }
+           r:=r^.next;
+         end;
+      end;
+
+
 {****************************************************************************
                                 tobjectdata
 ****************************************************************************}
 
     constructor tobjectdata.create;
       begin
+        inherited create;
         { reset }
         FillChar(Sects,sizeof(Sects),0);
         localsyms:=tdictionary.create;
@@ -578,40 +626,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2002-05-16 19:46:39  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
+  Revision 1.11  2002-05-18 13:34:10  peter
+    * readded missing revisions
 
-  Revision 1.8  2001/12/31 16:54:14  peter
-    * fixed inline crash with assembler routines
-
-  Revision 1.7  2001/04/13 01:22:10  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.6  2001/03/05 21:40:38  peter
-    * more things for tcoffobjectinput
-
-  Revision 1.5  2000/12/25 00:07:26  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.4  2000/12/24 12:25:31  peter
-    + cstreams unit
-    * dynamicarray object to class
-
-  Revision 1.3  2000/12/23 19:59:35  peter
-    * object to class for ow/og objects
-    * split objectdata from objectoutput
-
-  Revision 1.2  2000/11/13 21:56:07  peter
-    * removed some virtual from methods
-    * sectionsize method implemented (fixes lineinfo stabs)
-
-  Revision 1.1  2000/11/12 22:20:37  peter
-    * create generic tobjectsection for binary writers
+  Revision 1.9  2002/05/14 19:34:43  peter
+    * removed old logs and updated copyright year
 
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Contains some helper routines for the parser
 
@@ -368,7 +368,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2002-05-16 19:46:42  carl
+  Revision 1.17  2002-05-18 13:34:11  peter
+    * readded missing revisions
+
+  Revision 1.16  2002/05/16 19:46:42  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -376,47 +379,5 @@ end.
 
   Revision 1.14  2002/01/06 21:47:32  peter
     * removed getprocvar, use only getprocvardef
-
-  Revision 1.13  2001/06/03 21:57:35  peter
-    + hint directive parsing support
-
-  Revision 1.12  2001/05/06 14:49:17  peter
-    * ppu object to class rewrite
-    * move ppu read and write stuff to fppu
-
-  Revision 1.11  2001/04/13 18:08:37  peter
-    * scanner object to class
-
-  Revision 1.10  2001/04/13 01:22:11  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.9  2001/04/02 21:20:31  peter
-    * resulttype rewrite
-
-  Revision 1.8  2001/03/11 22:58:49  peter
-    * getsym redesign, removed the globals srsym,srsymtable
-
-  Revision 1.7  2000/12/25 00:07:27  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.6  2000/10/31 22:02:49  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.5  2000/09/24 15:06:21  peter
-    * use defines.inc
-
-  Revision 1.4  2000/08/27 20:19:39  peter
-    * store strings with case in ppu, when an internal symbol is created
-      a '$' is prefixed so it's not automatic uppercased
-
-  Revision 1.3  2000/08/27 16:11:51  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.2  2000/07/13 11:32:44  michael
-  + removed logs
 
 }

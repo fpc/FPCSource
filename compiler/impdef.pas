@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Pavel
+    Copyright (c) 1998-2002 by Pavel
 
     This unit finds the export defs from PE files
 
@@ -479,26 +479,13 @@ end.
 
 {
   $Log$
-  Revision 1.8  2002-05-16 19:46:37  carl
+  Revision 1.9  2002-05-18 13:34:08  peter
+    * readded missing revisions
+
+  Revision 1.8  2002/05/16 19:46:37  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
   + start of tassembler / tmodulebase class cleanup
 
-  Revision 1.6  2001/04/13 01:22:08  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.5  2001/01/13 00:09:21  peter
-    * made Pavel O. happy ;)
-
-  Revision 1.4  2000/11/20 13:58:19  pierre
-   * missing end. added
-
-  Revision 1.3  2000/09/24 15:06:17  peter
-    * use defines.inc
-
-  Revision 1.2  2000/07/13 11:32:43  michael
-  + removed logs
 }

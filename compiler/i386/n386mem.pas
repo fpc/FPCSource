@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate i386 assembler for in memory related nodes
 
@@ -519,7 +519,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-05-16 19:46:51  carl
+  Revision 1.33  2002-05-18 13:34:25  peter
+    * readded missing revisions
+
+  Revision 1.32  2002/05/16 19:46:51  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -613,87 +616,5 @@ end.
 
   Revision 1.20  2002/03/04 19:10:14  peter
     * removed compiler warnings
-
-  Revision 1.19  2001/12/30 17:24:47  jonas
-    * range checking is now processor independent (part in cgobj,
-      part in cg64f32) and should work correctly again (it needed
-      some changes after the changes of the low and high of
-      tordef's to int64)
-    * maketojumpbool() is now processor independent (in ncgutil)
-    * getregister32 is now called getregisterint
-
-  Revision 1.18  2001/12/03 21:48:43  peter
-    * freemem change to value parameter
-    * torddef low/high range changed to int64
-
-  Revision 1.17  2001/09/30 16:17:17  jonas
-    * made most constant and mem handling processor independent
-
-  Revision 1.16  2001/08/30 20:13:57  peter
-    * rtti/init table updates
-    * rttisym for reusable global rtti/init info
-    * support published for interfaces
-
-  Revision 1.15  2001/08/26 13:37:00  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.14  2001/07/08 21:00:18  peter
-    * various widestring updates, it works now mostly without charset
-      mapping supported
-
-  Revision 1.13  2001/04/18 22:02:03  peter
-    * registration of targets and assemblers
-
-  Revision 1.12  2001/04/13 01:22:19  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.11  2001/04/02 21:20:38  peter
-    * resulttype rewrite
-
-  Revision 1.10  2001/03/11 22:58:52  peter
-    * getsym redesign, removed the globals srsym,srsymtable
-
-  Revision 1.9  2001/02/02 22:38:00  peter
-    * fixed crash with new(precord), merged
-
-  Revision 1.8  2000/12/25 00:07:33  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.7  2000/12/05 11:44:33  jonas
-    + new integer regvar handling, should be much more efficient
-
-  Revision 1.6  2000/11/29 00:30:48  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.5  2000/11/04 14:25:24  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.4  2000/10/31 22:02:57  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.3  2000/10/31 14:18:53  jonas
-    * merged double deleting of left location when using a temp in
-      secondwith (merged from fixes branch). This also fixes web bug1194
-
-  Revision 1.2  2000/10/21 18:16:13  florian
-    * a lot of changes:
-       - basic dyn. array support
-       - basic C++ support
-       - some work for interfaces done
-       ....
-
-  Revision 1.1  2000/10/15 09:33:32  peter
-    * moved n386*.pas to i386/ cpu_target dir
-
-  Revision 1.2  2000/10/14 21:52:54  peter
-    * fixed memory leaks
-
-  Revision 1.1  2000/10/14 10:14:49  peter
-    * moehrendorf oct 2000 rewrite
 
 }

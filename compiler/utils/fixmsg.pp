@@ -66,10 +66,7 @@ begin
 end.
 
   $Log$
-  Revision 1.3  2001-03-05 21:44:16  peter
-    * small diffs from Sergey applied
+  Revision 1.4  2002-05-18 13:34:27  peter
+    * readded missing revisions
 
-  Revision 1.2  2000/07/13 11:32:55  michael
-  + removed logs
- 
 }

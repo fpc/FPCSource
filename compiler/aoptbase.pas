@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Jonas Maebe, member of the Free Pascal
+    Copyright (c) 1998-2002 by Jonas Maebe, member of the Free Pascal
     Development Team
 
     This unit contains the base of all optimizer related objects
@@ -91,21 +91,19 @@ uses globals, aoptcpub, cpuinfo;
 
 Function RefsEqual(Const R1, R2: TReference): Boolean;
 Begin
-  If R1.is_immediate Then
-    RefsEqual := R2.is_immediate and (R1.Offset = R2.Offset)
-  Else
-    RefsEqual := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup)
-                 And (R1.Base = R2.Base)
+  RefsEqual := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup)
+               And (R1.Base = R2.Base)
 {$ifdef RefsHaveindex}
-                 And (R1.Index = R2.Index)
+               And (R1.Index = R2.Index)
 {$endif RefsHaveindex}
 {$ifdef RefsHaveScale}
-                 And (R1.ScaleFactor = R2.ScaleFactor)
+               And (R1.ScaleFactor = R2.ScaleFactor)
 {$endif RefsHaveScale}
-                 And (R1.Symbol = R2.Symbol)
+               And (R1.Symbol = R2.Symbol)
 {$ifdef RefsHaveSegment}
-                 And (R1.Segment = R2.Segment)
+               And (R1.Segment = R2.Segment)
 {$endif RefsHaveSegment}
+               ;
 End;
 
 
@@ -263,39 +261,13 @@ End.
 
 {
   $Log$
-  Revision 1.4  2002-05-16 19:46:34  carl
+  Revision 1.5  2002-05-18 13:34:05  peter
+    * readded missing revisions
+
+  Revision 1.4  2002/05/16 19:46:34  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
   + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.1  2001/08/26 13:36:35  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.1  2000/07/13 06:30:07  michael
-  + Initial import
-
-  Revision 1.5  2000/01/07 01:14:51  peter
-    * updated copyright to 2000
-
-  Revision 1.4  1999/11/09 22:57:08  peter
-    * compiles again both i386,alpha both with optimizer
-
-  Revision 1.3  1999/09/08 15:01:31  jonas
-    * some small changes so the noew optimizer is again compilable
-
-  Revision 1.2  1999/08/23 14:41:12  jonas
-    + checksequence (processor independent)\n  + processor independent part of docse
-
-  Revision 1.1  1999/08/18 14:32:21  jonas
-    + compilable!
-    + dataflow analyzer finished
-    + start of CSE units
-    + aoptbase which contains a base object for all optimizer objects
-    * some constants and type definitions moved around to avoid circular
-      dependencies
-    * moved some methods from base objects to specialized objects because
-      they're not used anywhere else
 
 }

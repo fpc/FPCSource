@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Peter Vreman
+    Copyright (c) 1998-2002 by Peter Vreman
 
     This unit implements the message object
 
@@ -462,7 +462,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2002-05-16 19:46:35  carl
+  Revision 1.6  2002-05-18 13:34:06  peter
+    * readded missing revisions
+
+  Revision 1.5  2002/05/16 19:46:35  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -474,40 +477,5 @@ end.
 
   Revision 1.2  2002/03/01 12:41:40  peter
     * fixed Message4()
-
-  Revision 1.1  2001/08/20 10:58:48  florian
-    * renamed messages unit to cmsgs to avoid conflicts with the
-      win32 messages unit
-
-  Revision 1.10  2001/06/03 20:21:08  peter
-    * Kylix fixes, mostly case names of units
-
-  Revision 1.9  2001/05/27 14:30:55  florian
-    + some widestring stuff added
-
-  Revision 1.8  2001/04/21 13:32:07  peter
-    * remove endless loop with replacements (merged)
-
-  Revision 1.7  2001/04/14 16:05:41  jonas
-    * allow a single replacement string to be substituted more than once per
-      message (already used in assembler reader messages for "fsub x" etc.
-      transformations) (merged)
-
-  Revision 1.6  2001/03/10 13:19:10  peter
-    * don't check messagefile for numbers, this allows the usage of
-      1.1 msgfiles with a 1.0.x compiler
-
-  Revision 1.5  2000/11/29 00:30:31  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.4  2000/09/24 21:33:46  peter
-    * message updates merges
-
-  Revision 1.3  2000/09/24 15:06:18  peter
-    * use defines.inc
-
-  Revision 1.2  2000/07/13 11:32:43  michael
-  + removed logs
 
 }

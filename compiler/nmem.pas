@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 2000 by Florian Klaempfl
+    Copyright (c) 2000-2002 by Florian Klaempfl
 
     Type checking and register allocation for memory related nodes
 
@@ -894,7 +894,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-05-16 19:46:39  carl
+  Revision 1.33  2002-05-18 13:34:10  peter
+    * readded missing revisions
+
+  Revision 1.32  2002/05/16 19:46:39  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -950,90 +953,4 @@ end.
         constructs with either too many or too little parameters)
     (both merged, includes second typo fix of pexpr.pas)
 
-  Revision 1.25  2001/12/06 17:57:34  florian
-    + parasym to tparaitem added
-
-  Revision 1.24  2001/12/03 21:48:42  peter
-    * freemem change to value parameter
-    * torddef low/high range changed to int64
-
-  Revision 1.23  2001/11/02 22:58:02  peter
-    * procsym definition rewrite
-
-  Revision 1.22  2001/10/28 17:22:25  peter
-    * allow assignment of overloaded procedures to procvars when we know
-      which procedure to take
-
-  Revision 1.20  2001/09/02 21:12:07  peter
-    * move class of definitions into type section for delphi
-
-  Revision 1.19  2001/08/26 13:36:42  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.18  2001/04/13 22:15:21  peter
-    * removed wrongly placed set_varstate in subscriptnode
-
-  Revision 1.17  2001/04/13 01:22:10  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.16  2001/04/02 21:20:31  peter
-    * resulttype rewrite
-
-  Revision 1.15  2001/03/23 00:16:07  florian
-    + some stuff to compile FreeCLX added
-
-  Revision 1.14  2000/12/31 11:14:11  jonas
-    + implemented/fixed docompare() mathods for all nodes (not tested)
-    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
-      and constant strings/chars together
-    * n386add.pas: don't copy temp strings (of size 256) to another temp string
-      when adding
-
-  Revision 1.13  2000/12/25 00:07:26  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.12  2000/12/05 15:19:50  jonas
-    * fixed webbug 1268 ("merged")
-
-  Revision 1.11  2000/11/29 00:30:34  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.10  2000/11/04 14:25:20  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.9  2000/10/31 22:02:49  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.8  2000/10/21 18:16:11  florian
-    * a lot of changes:
-       - basic dyn. array support
-       - basic C++ support
-       - some work for interfaces done
-       ....
-
-  Revision 1.7  2000/10/14 21:52:55  peter
-    * fixed memory leaks
-
-  Revision 1.6  2000/10/14 10:14:51  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.5  2000/10/01 19:48:24  peter
-    * lot of compile updates for cg11
-
-  Revision 1.4  2000/09/28 19:49:52  florian
-  *** empty log message ***
-
-  Revision 1.3  2000/09/25 15:37:14  florian
-    * more fixes
-
-  Revision 1.2  2000/09/25 15:05:25  florian
-    * some updates
-
-  Revision 1.1  2000/09/25 09:58:22  florian
-    * first revision for testing purpose
 }

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Kovacs Attila Zoltan
+    Copyright (c) 1998-2002 by Kovacs Attila Zoltan
 
     Generate i386 assembly wrapper code interface implementor objects
 
@@ -237,7 +237,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2002-05-16 19:46:52  carl
+  Revision 1.10  2002-05-18 13:34:25  peter
+    * readded missing revisions
+
+  Revision 1.9  2002/05/16 19:46:52  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
@@ -288,42 +291,4 @@ end.
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
 
-  Revision 1.4  2001/10/25 21:22:41  peter
-    * calling convention rewrite
-
-  Revision 1.3  2001/09/19 11:04:41  michael
-  * Smartlinking with interfaces fixed
-  * Better smartlinking for rtti and init tables
-
-  Revision 1.2  2001/08/26 13:37:00  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.1  2001/04/21 13:37:17  peter
-    * made tclassheader using class of to implement cpu dependent code
-
-  Revision 1.5  2001/04/13 01:22:19  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.4  2000/12/25 00:07:33  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.3  2000/11/29 00:30:47  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.2  2000/11/12 23:24:15  florian
-    * interfaces are basically running
-
-  Revision 1.1  2000/11/04 14:25:23  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.1.2.2  2000/06/15 15:05:30  kaz
-    * An minor bug fix
-
-  Revision 1.1.2.1  2000/06/15 06:26:34  kaz
-    * Initial version
 }
