@@ -523,12 +523,15 @@
             Size,Count : Longint;
             Elements : TRecElemArray;
           end;
-	  
+
         var
            vmt  : tclass;
 	   temp : pbyte;
 	   count,
 	   i    : longint;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+           recelem  : TRecElem;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
         begin
            vmt:=ClassType;
            while vmt<>nil do
@@ -541,11 +544,23 @@
                    inc(Temp);
                    I:=Temp^;
                    inc(temp,I+1);                // skip name string;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+                   move(PRecRec(Temp)^.Count,Count,sizeof(Count));
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
                    Count:=PRecRec(Temp)^.Count;  // get element Count
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
                    For I:=1 to count do
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+                     begin
+                       move(PRecRec(Temp)^.elements[I],RecElem,sizeof(RecElem));
+                       With RecElem do
+                         int_Finalize (pointer(self)+Offset,Info);
+                     end;
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
                      With PRecRec(Temp)^.elements[I] do
                        int_Finalize (pointer(self)+Offset,Info);
-		 end;       
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+		 end;
                vmt:=pclass(pointer(vmt)+vmtParent)^;
              end;
         end;
@@ -722,7 +737,10 @@
 
 {
   $Log$
-  Revision 1.34  2004-02-26 16:19:01  peter
+  Revision 1.35  2004-03-21 22:41:29  florian
+    * CleanupInstance takes now care of FPC_REQUIRES_PROPER_ALIGNMENT
+
+  Revision 1.34  2004/02/26 16:19:01  peter
     * tkclass removed from finalize()
     * cleanupinstance now parses the tkclass rtti entry itself and
       calls finalize() for the rtti members
