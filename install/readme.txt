@@ -73,7 +73,7 @@ OS/2 and DOS (extender EMX):
  or OS/2 v2.x and above
  - 3 MB RAM (8+ MB recommended) for DOS
  or 8 MB (12 or more MB recommended depending on OS version) for OS/2
- - EMX runtime package (part of OS/2 distribution)
+ - EMX or RSX (for DPMI) runtime package (part of OS/2 distribution)
 
 
 ****************************************************************************
@@ -161,15 +161,19 @@ os209912.zip specific:
       Strip for EMX
   utilemx.zip     contains additional GNU utilities which might be useful to
                   compile the run time library:
-      ChMod 3.13
+      Make 3.76.1
       RM 3.13
       CP 3.13
       MV 3.13
+      ChMod 3.13
+      PWD 1.12
       Install 3.13
+      Date 1.12
+      Echo 1.12
   gdbemx.zip      contains the GNU Debugger 4.16 for EMX
 
 common files in dos09912.zip, w3209912.zip and os209912.zip:
-----------------------------------------------
+------------------------------------------------------------
   demo.zip        contains some demo files
   docs-htm.zip    contains the documentation in HTML format
   docs-ps.zip     contains the documentation in PostScript
