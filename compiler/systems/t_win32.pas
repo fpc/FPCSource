@@ -386,7 +386,7 @@ const
                  if hp2.name^<>'' then
                   importsSection.concat(Tai_const.Create_rva_sym(hp2.lab))
                  else
-                  importsSection.concat(Tai_const.Create_32bit(cardinal($80000000) or cardinal(hp2.ordnr)));
+                  importsSection.concat(Tai_const.Create_32bit(longint($80000000) or longint(hp2.ordnr)));
                  { finally the import information }
                  new_section(importsSection,sec_idata6,'',0);
                  importsSection.concat(Tai_label.Create(hp2.lab));
@@ -465,7 +465,7 @@ const
                    if hp2.name^<>'' then
                      importsSection.concat(Tai_const.Create_rva_sym(hp2.lab))
                    else
-                     importsSection.concat(Tai_const.Create_32bit(cardinal($80000000) or cardinal(hp2.ordnr)));
+                     importsSection.concat(Tai_const.Create_32bit(longint($80000000) or hp2.ordnr));
                    hp2:=twin32imported_item(hp2.next);
                 end;
               { finalize the names ... }
@@ -1659,7 +1659,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.33  2004-06-16 20:07:11  florian
+  Revision 1.34  2004-06-18 15:16:46  peter
+    * remove obsolete cardinal() typecasts
+
+  Revision 1.33  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.32  2004/04/28 18:02:54  peter

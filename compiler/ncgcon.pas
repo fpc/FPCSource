@@ -461,7 +461,7 @@ implementation
                                 Consts.concat(Tai_const_symbol.Create(l1));
                                 Consts.concat(Tai_const.Create_32bit(len));
                                 Consts.concat(Tai_const.Create_32bit(len));
-                                Consts.concat(Tai_const.Create_32bit(Cardinal(-1)));
+                                Consts.concat(Tai_const.Create_32bit(-1));
                                 Consts.concat(Tai_label.Create(l1));
                                 getmem(pc,len+2);
                                 move(value_str^,pc^,len);
@@ -513,7 +513,7 @@ implementation
                                 Consts.concat(Tai_const_symbol.Create(l1));
                                 Consts.concat(Tai_const.Create_32bit(len));
                                 Consts.concat(Tai_const.Create_32bit(len));
-                                Consts.concat(Tai_const.Create_32bit(Cardinal(-1)));
+                                Consts.concat(Tai_const.Create_32bit(-1));
                                 Consts.concat(Tai_label.Create(l1));
                                 getmem(pc,len+2);
                                 move(value_str^,pc^,len);
@@ -729,7 +729,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2004-06-16 20:07:08  florian
+  Revision 1.42  2004-06-18 15:16:46  peter
+    * remove obsolete cardinal() typecasts
+
+  Revision 1.41  2004/06/16 20:07:08  florian
     * dwarf branch merged
 
   Revision 1.40  2004/04/29 19:56:37  daniel

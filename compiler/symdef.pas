@@ -5470,7 +5470,7 @@ implementation
                    else
                      writeproc(tpropertysym(sym).storedaccess,4);
                    rttiList.concat(Tai_const.Create_32bit(tpropertysym(sym).index));
-                   rttiList.concat(Tai_const.Create_32bit(cardinal(tpropertysym(sym).default)));
+                   rttiList.concat(Tai_const.Create_32bit(tpropertysym(sym).default));
                    rttiList.concat(Tai_const.Create_16bit(count));
                    inc(count);
                    rttiList.concat(Tai_const.Create_8bit(proctypesinfo));
@@ -6137,7 +6137,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.241  2004-06-16 20:07:09  florian
+  Revision 1.242  2004-06-18 15:16:46  peter
+    * remove obsolete cardinal() typecasts
+
+  Revision 1.241  2004/06/16 20:07:09  florian
     * dwarf branch merged
 
   Revision 1.240  2004/05/25 18:51:14  peter

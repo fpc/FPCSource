@@ -652,23 +652,7 @@ implementation
          else
            begin
               getrange(def,lv,hv);
-              if (def.deftype=orddef) and
-                 (torddef(def).typ=u32bit) then
-                begin
-                  if (l < cardinal(lv)) or
-                     (l > cardinal(hv)) then
-                    begin
-                      if not explicit then
-                       begin
-                         if (cs_check_range in aktlocalswitches) then
-                           Message(parser_e_range_check_error)
-                         else
-                           Message(parser_w_range_check_error);
-                       end;
-                      error := true;
-                    end;
-                end
-              else if (l<lv) or (l>hv) then
+              if (l<lv) or (l>hv) then
                 begin
                    if not explicit then
                     begin
@@ -904,7 +888,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2004-06-16 20:07:07  florian
+  Revision 1.17  2004-06-18 15:16:46  peter
+    * remove obsolete cardinal() typecasts
+
+  Revision 1.16  2004/06/16 20:07:07  florian
     * dwarf branch merged
 
   Revision 1.15  2004/05/28 21:13:23  peter

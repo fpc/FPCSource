@@ -2400,7 +2400,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.136  2004-06-16 20:07:08  florian
+  Revision 1.137  2004-06-18 15:16:46  peter
+    * remove obsolete cardinal() typecasts
+
+  Revision 1.136  2004/06/16 20:07:08  florian
     * dwarf branch merged
 
   Revision 1.135  2004/05/28 21:15:20  peter

@@ -660,11 +660,11 @@ unit cg64f32;
 
     function tcg64f32.optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : int64; var reg: tregister64): boolean;
       var
-        lowvalue, highvalue : cardinal;
+        lowvalue, highvalue : longint;
         hreg: tregister;
       begin
-        lowvalue := cardinal(a);
-        highvalue:= a shr 32;
+        lowvalue := longint(a);
+        highvalue:= longint(a shr 32);
         { assume it will be optimized out }
         optimize64_op_const_reg := true;
         case op of
@@ -675,9 +675,9 @@ unit cg64f32;
            end;
         OP_AND:
            begin
-              if lowvalue <> high(cardinal) then
+              if lowvalue <> -1 then
                 cg.a_op_const_reg(list,op,OS_32,lowvalue,reg.reglo);
-              if highvalue <> high(cardinal) then
+              if highvalue <> -1 then
                 cg.a_op_const_reg(list,op,OS_32,highvalue,reg.reghi);
               { already emitted correctly }
               exit;
@@ -753,7 +753,10 @@ unit cg64f32;
 end.
 {
   $Log$
-  Revision 1.59  2004-06-17 16:55:46  peter
+  Revision 1.60  2004-06-18 15:16:46  peter
+    * remove obsolete cardinal() typecasts
+
+  Revision 1.59  2004/06/17 16:55:46  peter
     * powerpc compiles again
 
   Revision 1.58  2004/06/16 20:07:07  florian

@@ -129,7 +129,7 @@ implementation
                     bool32bit :
                       begin
                          if is_constboolnode(p) then
-                           curconstSegment.concat(Tai_const.Create_32bit(cardinal(tordconstnode(p).value)))
+                           curconstSegment.concat(Tai_const.Create_32bit(longint(tordconstnode(p).value)))
                          else
                            Message(parser_e_illegal_expression);
                       end;
@@ -176,7 +176,7 @@ implementation
                       begin
                          if is_constintnode(p) then
                            begin
-                              curconstSegment.concat(Tai_const.Create_32bit(cardinal(tordconstnode(p).value)));
+                              curconstSegment.concat(Tai_const.Create_32bit(longint(tordconstnode(p).value)));
                               if torddef(t.def).typ<>u32bit then
                                check_range(torddef(t.def));
                            end
@@ -603,7 +603,7 @@ implementation
                             Consts.concat(Tai_const.Create_16bit(strlength));
                             { redondent with maxlength but who knows ... (PM) }
                             { third write use count (set to -1 for safety ) }
-                            Consts.concat(Tai_const.Create_16bit(Cardinal(-1)));
+                            Consts.concat(Tai_const.Create_16bit(-1));
                             Consts.concat(Tai_label.Create(ll));
                             getmem(ca,strlength+2);
                             move(strval^,ca^,strlength);
@@ -663,7 +663,7 @@ implementation
                             Consts.concat(Tai_const.Create_64bit(strlength));
                             { redondent with maxlength but who knows ... (PM) }
                             { third write use count (set to -1 for safety ) }
-                            Consts.concat(Tai_const.Create_64bit(Cardinal(-1)));
+                            Consts.concat(Tai_const.Create_64bit(-1));
                             Consts.concat(Tai_label.Create(ll));
                             getmem(ca,strlength+2);
                             move(strval^,ca^,strlength);
@@ -1092,7 +1092,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  2004-06-16 20:07:09  florian
+  Revision 1.87  2004-06-18 15:16:46  peter
+    * remove obsolete cardinal() typecasts
+
+  Revision 1.86  2004/06/16 20:07:09  florian
     * dwarf branch merged
 
   Revision 1.85  2004/05/23 15:23:30  peter
