@@ -173,8 +173,6 @@ type
 
 
     function  CalcSHFlags(FlagsIn: Byte; source: String): Byte;
-    procedure HideCursor;
-    procedure ShowCursor;
     procedure ChangeInLine(line: Integer);  // Redraws screen where necessary
     procedure AddUndoInfo(AInfo: TUndoInfo; CanMerge: Boolean);
 
@@ -237,6 +235,8 @@ type
       AAction: TKeyboardActionDescr): TShortcut;
     procedure AddKeyDef(AMethod: TKeyboardActionProc; ASelectionAction:TSelectionAction; ADescr: String; AKeyCode: Integer; AShiftState: TShiftState);
 
+    procedure HideCursor;
+    procedure ShowCursor;
     procedure FocusIn;
     procedure FocusOut;
     procedure DrawContent(x, y, w, h: Integer);
@@ -513,7 +513,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2000-01-31 19:28:12  sg
+  Revision 1.17  2000-02-19 19:06:17  sg
+  * HideCursor and ShowCursor are now public methods
+
+  Revision 1.16  2000/01/31 19:28:12  sg
   * Forgot some debug code ;)
 
   Revision 1.15  2000/01/31 19:23:37  sg
