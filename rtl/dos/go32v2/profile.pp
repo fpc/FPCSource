@@ -17,6 +17,11 @@
 }
 
 {$S- do not use stackcheck here .. PM }
+{$ifdef FPC_PROFILE}
+{$error }
+{$message you can not compile profile unit with profiling}
+{$endif FPC_PROFILE}
+
 Unit profile;
 
 interface
@@ -54,13 +59,10 @@ var
   no lookup. }
 procedure mcount;
 
-
 implementation
 
 uses
   go32,dpmiexcp;
-
-{$ASMMODE ATT}
 
 type
   plongint = ^longint;
@@ -68,6 +70,27 @@ var
   starttext, endtext : longint;
 const
   cache : pMTABE = nil;
+
+(*
+{$ASMMODE DIRECT}
+procedure sbrk_getmem(var p : pointer;size : longint);assembler;
+asm
+        movl    size,%eax
+        pushl   %eax
+        call    ___sbrk
+        addl    $4,%esp
+        movl    %eax,p
+end;
+
+this nice piece of code make serious problems !!! PM *)
+
+procedure sbrk_getmem(var p : pointer;size : longint);
+
+  begin
+     system.getmem(p,size);
+  end;
+
+{$ASMMODE ATT}
 
 { problem how to avoid mcount calling itself !! }
 procedure mcount;  [public, alias : 'MCOUNT'];
@@ -151,7 +174,9 @@ begin
        end;
     end;
 { lob off another page of memory and initialize the new table }
-  getmem(m,sizeof(M_TAB));
+  { problem here : getmem is not reentrant yet !!  PM }
+  { lets hope that a direct call to sbrk correct this }
+  sbrk_getmem(m,sizeof(M_TAB));
   fillchar(m^, sizeof(M_TAB),#0);
   m^.prev := mtab;
   mtab := m;
@@ -206,7 +231,7 @@ begin
        movl _RELOAD,%eax
        movl %eax,___djgpp_timer_countdown
      end;
-   mcount_tick(x);
+   timer:=mcount_tick(x);
    { _raise(SIGPROF); }
 end;
 
@@ -226,13 +251,13 @@ begin
   set_pm_interrupt($8,old_timer);
   reload:=0;
   exitproc:=oldexitproc;
-  writeln('Writing profile output');
-  writeln('histogram length = ',histlen);
-  writeln('Nb of double calls = ',doublecall);
+  writeln(stderr,'Writing profile output');
+  writeln(stderr,'histogram length = ',histlen);
+  writeln(stderr,'Nb of double calls = ',doublecall);
   if invalid_mcount_call>0 then
-    writeln('nb of invalid mcount : ',invalid_mcount_call,'/',mcount_nb)
+    writeln(stderr,'nb of invalid mcount : ',invalid_mcount_call,'/',mcount_nb)
   else
-    writeln('nb of mcount : ',mcount_nb);
+    writeln(stderr,'nb of mcount : ',mcount_nb);
   assign(f,'gmon.out');
   rewrite(f,1);
   blockwrite(f, h, sizeof(header));
@@ -247,7 +272,7 @@ begin
             blockwrite(f, m^.calls[i],sizeof(MTABE));
 {$ifdef DEBUG}
             if m^.calls[i].count>0 then
-              writeln('  0x',hexstr(m^.calls[i]._to,8),' called from ',hexstr(m^.calls[i].from,8),
+              writeln(stderr,'  0x',hexstr(m^.calls[i]._to,8),' called from ',hexstr(m^.calls[i].from,8),
                 ' ',m^.calls[i].count,' times');
 {$endif DEBUG}
          end;
@@ -330,7 +355,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1998-11-17 09:43:22  pierre
+  Revision 1.4  1998-11-18 09:22:10  pierre
+    + added $error if compiled with -pg
+    + all output to stderr
+
+  Revision 1.3  1998/11/17 09:43:22  pierre
    + No stack check
 
   Revision 1.2  1998/05/31 14:18:28  peter
