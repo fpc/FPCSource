@@ -384,6 +384,7 @@ implementation
                  else exprasmlist^.concat(new(pai386,op_ref_reg(op,opsize,
                     newreference(p^.left^.location.reference),hregister)));
              end;
+           clear_location(p^.location);
            p^.location.loc:=LOC_REGISTER;
            p^.location.register:=hregister;
            maybe_rangechecking(p,p^.left^.resulttype,p^.resulttype);
@@ -545,6 +546,7 @@ implementation
     procedure second_cstring_charpointer(p,hp : ptree;convtyp : tconverttype);
 
       begin
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          p^.location.register:=getregister32;
          inc(p^.left^.location.reference.offset);
@@ -562,6 +564,7 @@ implementation
 
       begin
          del_reference(p^.left^.location.reference);
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          p^.location.register:=getregister32;
          exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,newreference(p^.left^.location.reference),
@@ -571,6 +574,7 @@ implementation
     procedure second_pointer_to_array(p,hp : ptree;convtyp : tconverttype);
 
       begin
+         clear_location(p^.location);
          p^.location.loc:=LOC_REFERENCE;
          clear_reference(p^.location.reference);
          if p^.left^.location.loc=LOC_REGISTER then
@@ -603,6 +607,7 @@ implementation
       begin
          { this is a type conversion which copies the data, so we can't }
          { return a reference                                             }
+         clear_location(p^.location);
          p^.location.loc:=LOC_MEM;
 
          { first get the memory for the string }
@@ -641,6 +646,9 @@ implementation
          p^.left:=p;
          loadstring(p);
          p^.left:=nil; { reset left tree, which is empty }
+         { p^.right is not disposed for typeconv !! PM }
+         disposetree(p^.right);
+         p^.right:=nil;
       end;
 
     procedure second_int_real(p,hp : ptree;convtyp : tconverttype);
@@ -694,6 +702,7 @@ implementation
          else
            exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
 
+         clear_location(p^.location);
          p^.location.loc:=LOC_FPU;
       end;
 
@@ -732,6 +741,7 @@ implementation
          { better than an add on all processors }
          exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
 
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          p^.location.register:=rreg;
       end;
@@ -750,6 +760,7 @@ implementation
                  del_reference(p^.left^.location.reference);
               end;
          end;
+         clear_location(p^.location);
          p^.location.loc:=LOC_FPU;
       end;
 
@@ -827,6 +838,7 @@ implementation
          if popeax then
            exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
 
+         clear_location(p^.location);
          p^.location.loc:=LOC_FPU;
       end;
 
@@ -861,6 +873,7 @@ implementation
            end;
          exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,16,hregister)));
 
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          p^.location.register:=hregister;
       end;
@@ -868,7 +881,8 @@ implementation
 
      procedure second_proc_to_procvar(p,hp : ptree;convtyp : tconverttype);
 
-     begin
+       begin
+          clear_location(p^.location);
           p^.location.loc:=LOC_REGISTER;
           del_reference(hp^.location.reference);
           p^.location.register:=getregister32;
@@ -890,6 +904,7 @@ implementation
          getlabel(truelabel);
          getlabel(falselabel);
          secondpass(hp);
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          del_reference(hp^.location.reference);
          case hp^.resulttype^.size of
@@ -994,6 +1009,7 @@ implementation
      var
         hregister : tregister;
      begin
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          del_reference(hp^.location.reference);
          case hp^.location.loc of
@@ -1042,8 +1058,8 @@ implementation
         emitcall('FPC_SET_LOAD_SMALL',true);
         maybe_loadesi;
         popusedregisters(pushedregs);
+        clear_location(p^.location);
         p^.location.loc:=LOC_MEM;
-        stringdispose(p^.location.reference.symbol);
         p^.location.reference:=href;
       end;
 
@@ -1054,6 +1070,7 @@ implementation
          hr : preference;
 
       begin
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          getlabel(l1);
          getlabel(l2);
@@ -1137,6 +1154,7 @@ implementation
              end;
          else
           begin
+            clear_location(p^.location);
             p^.location.loc:=LOC_REGISTER;
             internalerror(12121);
           end;
@@ -1216,6 +1234,7 @@ implementation
          { save all used registers }
          pushusedregisters(pushed,$ff);
          secondpass(p^.left);
+         clear_location(p^.location);
          p^.location.loc:=LOC_FLAGS;
          p^.location.resflags:=F_NE;
 
@@ -1312,7 +1331,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1998-10-06 17:16:40  pierre
+  Revision 1.28  1998-10-08 17:17:11  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.27  1998/10/06 17:16:40  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.26  1998/10/02 07:20:35  florian

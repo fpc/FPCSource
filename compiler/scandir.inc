@@ -695,9 +695,15 @@ const
       end;
 
     procedure dir_wait(t:tdirectivetoken);
+      var had_info : boolean;
       begin
+        had_info:=(status.verbosity and V_Info)<>0;
+        { this message should allways appear !! }
+        status.verbosity:=status.verbosity or V_Info;
         Message(scan_i_press_enter);
         readln;
+        If not(had_info) then
+          status.verbosity:=status.verbosity and (not V_Info);
       end;
 
 
@@ -938,7 +944,13 @@ const
 
 {
   $Log$
-  Revision 1.35  1998-10-08 13:44:39  peter
+  Revision 1.36  1998-10-08 17:17:29  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.35  1998/10/08 13:44:39  peter
     * fixed $I %date% not in uppercase
 
   Revision 1.34  1998/09/28 16:57:24  pierre

@@ -1596,8 +1596,9 @@
           begin
             if definition^.sym=nil then
              definition^.sym:=@self;
-            if (definition^.deftype=recorddef) and assigned(precdef(definition)^.symtable) then
-             precdef(definition)^.symtable^.name:=stringdup('record '+name);
+            if (definition^.deftype=recorddef) and assigned(precdef(definition)^.symtable) and
+               (definition^.sym=@self) then
+              precdef(definition)^.symtable^.name:=stringdup('record '+name);
           end;
       end;
 
@@ -1704,6 +1705,7 @@
     constructor tmacrosym.init(const n : string);
       begin
          inherited init(n);
+         typ:=macrosym;
          defined:=true;
          buftext:=nil;
          buflen:=0;
@@ -1719,7 +1721,13 @@
 
 {
   $Log$
-  Revision 1.51  1998-10-08 13:48:50  peter
+  Revision 1.52  1998-10-08 17:17:32  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.51  1998/10/08 13:48:50  peter
     * fixed memory leaks for do nothing source
     * fixed unit interdependency
 

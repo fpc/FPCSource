@@ -162,11 +162,15 @@ var
   olddo_stop : tstopprocedure;
 {$endif}
 {$IfDef Extdebug}
-  EntryMemAvail : longint;
+{$ifdef FPC}
+  EntryMemUsed : longint;
+{$endif FPC}
 {$EndIf}
 begin
 {$ifdef EXTDEBUG}
-  EntryMemAvail:=MemAvail;
+{$ifdef FPC}
+  EntryMemUsed:=system.HeapSize-MemAvail;
+{$endif FPC}
 {$endif}
 
 { Initialize the compiler }
@@ -207,7 +211,9 @@ begin
   do_stop:=olddo_stop;
 {$endif USEEXCEPT}
 {$ifdef EXTDEBUG}
-  Comment(V_Info,'Memory Lost = '+tostr(EntryMemAvail-MemAvail));
+{$ifdef FPC}
+  Comment(V_Info,'Memory Lost = '+tostr(system.HeapSize-MemAvail+EntryMemUsed));
+{$endif FPC}
   Comment(V_Info,'Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
 {$endif EXTDEBUG}
 
@@ -224,7 +230,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1998-10-06 17:16:46  pierre
+  Revision 1.10  1998-10-08 17:17:18  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.9  1998/10/06 17:16:46  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.8  1998/09/01 09:00:27  peter

@@ -265,6 +265,7 @@ implementation
                                 ungetiftemp(p^.left^.location.reference);
 
                                 { does not hurt: }
+                                clear_location(p^.left^.location);
                                 p^.left^.location.loc:=LOC_MEM;
                                 p^.left^.location.reference:=href;
                              end;
@@ -1263,7 +1264,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-09-28 16:57:16  pierre
+  Revision 1.7  1998-10-08 17:17:15  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.6  1998/09/28 16:57:16  pierre
     * changed all length(p^.value_str^) into str_length(p)
       to get it work with and without ansistrings
     * changed sourcefiles field of tmodule to a pointer

@@ -353,7 +353,7 @@ implementation
                 begin
                    if hp^.modulename^=upper(ss) then
                      begin
-                        symt:=hp^.symtable;
+                        symt:=hp^.globalsymtable;
                         break;
                      end;
                    hp:=pmodule(hp^.next);
@@ -476,7 +476,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  1998-09-28 16:57:12  pierre
+  Revision 1.11  1998-10-08 17:17:09  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.10  1998/09/28 16:57:12  pierre
     * changed all length(p^.value_str^) into str_length(p)
       to get it work with and without ansistrings
     * changed sourcefiles field of tmodule to a pointer

@@ -399,6 +399,11 @@ end;
 procedure InitVerbose;
 begin
 { Init }
+{$ifndef EXTERN_MSG}
+  msg:=new(pmessage,Init(@msgtxt,ord(endmsgconst)));
+{$else}
+  LoadMsgFile(exepath+'errore.msg');
+{$endif}
   FillChar(Status,sizeof(TCompilerStatus),0);
   status.verbosity:=V_Default;
   Status.MaxErrorCount:=50;
@@ -410,17 +415,17 @@ begin
    dispose(msg,Done);
 end;
 
-begin
-{$ifndef EXTERN_MSG}
-  msg:=new(pmessage,Init(@msgtxt,ord(endmsgconst)));
-{$else}
-  LoadMsgFile(exepath+'errore.msg');
-{$endif}
 end.
 
 {
   $Log$
-  Revision 1.23  1998-10-06 17:17:01  pierre
+  Revision 1.24  1998-10-08 17:17:39  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.23  1998/10/06 17:17:01  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.22  1998/10/05 13:51:36  peter

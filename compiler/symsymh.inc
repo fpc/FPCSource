@@ -29,7 +29,8 @@
        { possible types for symtable entries }
        tsymtyp = (abstractsym,varsym,typesym,procsym,unitsym,programsym,
                   constsym,enumsym,typedconstsym,errorsym,syssym,
-                  labelsym,absolutesym,propertysym,funcretsym);
+                  labelsym,absolutesym,propertysym,funcretsym,
+                  macrosym);
                   { varsym_C,typedconstsym_C); }
 
        { this object is the base for all symbol objects }
@@ -314,7 +315,13 @@
 
 {
   $Log$
-  Revision 1.2  1998-09-24 15:11:18  peter
+  Revision 1.3  1998-10-08 17:17:34  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.2  1998/09/24 15:11:18  peter
     * fixed enum for not GDB
 
   Revision 1.1  1998/09/23 12:03:57  peter

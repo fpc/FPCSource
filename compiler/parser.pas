@@ -41,7 +41,7 @@ unit parser;
 {$ifdef UseBrowser}
       browser,
 {$endif UseBrowser}
-      scanner,pbase,pdecl,psystem,pmodules;
+      tree,scanner,pbase,pdecl,psystem,pmodules;
 
 
     procedure initparser;
@@ -111,7 +111,8 @@ unit parser;
          oldpattern,
          oldorgpattern  : string;
          old_block_type : tblock_type;
-         oldcurrent_scanner : pscannerfile;
+         oldcurrent_scanner,prev_scanner,
+         scanner : pscannerfile;
        { symtable }
          oldmacros,
          oldrefsymtable,
@@ -210,7 +211,12 @@ unit parser;
 
        { reset the unit or create a new program }
          if assigned(current_module) then
-          current_module^.reset
+           begin
+              {current_module^.reset this is wrong !! }
+               scanner:=current_module^.scanner;
+               current_module^.reset;
+               current_module^.scanner:=scanner;
+           end
          else
           begin
             current_module:=new(pmodule,init(filename,false));
@@ -233,6 +239,7 @@ unit parser;
        { startup scanner, and save in current_module }
          current_scanner:=new(pscannerfile,Init(filename));
          current_scanner^.readtoken;
+         prev_scanner:=current_module^.scanner;
          current_module^.scanner:=current_scanner;
 
        { init code generator for a new module }
@@ -284,6 +291,15 @@ unit parser;
             dispose(current_module^.ppufile,done);
             current_module^.ppufile:=nil;
           end;
+       { free scanner }
+         dispose(current_scanner,done);
+       { restore previous scanner !! }
+         current_module^.scanner:=prev_scanner;
+         if assigned(prev_scanner) then
+           prev_scanner^.invalid:=true;
+(* Peter I do not agree here because
+   most time current_scanner is from another unit !! PM
+          end;
 
        { free scanner, but it can already be freed due a 2nd compile }
          if assigned(current_scanner) then
@@ -292,7 +308,7 @@ unit parser;
             current_scanner:=nil;
           end;
          current_module^.scanner:=nil;
-
+ *)
        { free macros }
 {!!! No check for unused macros yet !!! }
          dispose(macros,done);
@@ -366,6 +382,16 @@ unit parser;
               else
                 Browse.list_elements;
 {$endif UseBrowser}
+            if assigned(aktprocsym) then
+              begin
+                 if (aktprocsym^.owner=nil) then
+                   begin
+                      { init parts are not needed in units !! }
+                      if current_module^.is_unit then
+                        aktprocsym^.definition^.forwarddef:=false;
+                      dispose(aktprocsym,done);
+                   end;
+              end;
           end;
 
          dec(compile_level);
@@ -374,7 +400,13 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.56  1998-10-08 13:48:45  peter
+  Revision 1.57  1998-10-08 17:17:23  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.56  1998/10/08 13:48:45  peter
     * fixed memory leaks for do nothing source
     * fixed unit interdependency
 

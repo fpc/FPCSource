@@ -102,10 +102,19 @@ unit files;
 
 
     type
+{$ifndef NEWMAP}
        tunitmap = array[0..maxunits-1] of pointer;
        punitmap = ^tunitmap;
 
        pmodule = ^tmodule;
+
+{$else NEWMAP}
+       pmodule = ^tmodule;
+
+       tunitmap = array[0..maxunits-1] of pmodule;
+       punitmap = ^tunitmap;
+{$endif NEWMAP}
+
        tmodule = object(tlinkedlist_item)
           ppufile       : pppufile; { the PPU file }
           crc,
@@ -186,7 +195,7 @@ unit files;
   implementation
 
   uses
-    dos,verbose,systems
+    dos,verbose,systems,scanner
 {$ifndef VER0_99_8}
     ,symtable
 {$endif}
@@ -228,6 +237,8 @@ unit files;
 
     destructor tinputfile.done;
       begin
+        if not closed then
+         close;
         stringdispose(path);
         stringdispose(name);
       { free memory }
@@ -307,6 +318,7 @@ unit files;
         if is_macro then
          begin
            Freemem(buf,maxbufsize);
+           buf:=nil;
            is_macro:=false;
            closed:=true;
            exit;
@@ -317,10 +329,13 @@ unit files;
             system.close(f);
            {$I+}
            i:=ioresult;
-           Freemem(buf,maxbufsize);
            closed:=true;
          end;
-        buf:=nil;
+        if assigned(buf) then
+          begin
+             Freemem(buf,maxbufsize);
+             buf:=nil;
+          end;
         bufstart:=0;
       end;
 
@@ -492,6 +507,11 @@ unit files;
          f^.ref_next:=files;
          f^.ref_index:=last_ref_index;
          files:=f;
+{$ifdef FPC}
+{$ifdef heaptrc}
+         writeln(stderr,f^.name^,' index ',current_module^.unit_index*100000+f^.ref_index);
+{$endif heaptrc}
+{$endif FPC}
       end;
 
 
@@ -779,6 +799,8 @@ unit files;
 
     procedure tmodule.reset;
       begin
+        if assigned(scanner) then
+          pscannerfile(scanner)^.invalid:=true;
 {$ifndef VER0_99_8}
         if assigned(globalsymtable) then
           begin
@@ -816,7 +838,8 @@ unit files;
         uses_imports:=false;
         do_assemble:=false;
         do_compile:=false;
-        sources_avail:=true;
+        { sources_avail:=true;
+        should not be changed PM }
         compiled:=false;
         in_implementation:=false;
         in_global:=true;
@@ -904,6 +927,8 @@ unit files;
          dispose(ppufile,done);
         if assigned(imports) then
          dispose(imports,done);
+        if assigned(scanner) then
+          pscannerfile(scanner)^.invalid:=true;
         if assigned(sourcefiles) then
          dispose(sourcefiles,done);
         used_units.done;
@@ -969,7 +994,13 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.53  1998-10-08 13:48:43  peter
+  Revision 1.54  1998-10-08 17:17:19  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.53  1998/10/08 13:48:43  peter
     * fixed memory leaks for do nothing source
     * fixed unit interdependency
 

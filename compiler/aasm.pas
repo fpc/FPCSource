@@ -602,7 +602,8 @@ uses
     destructor tai_label.done;
 
       begin
-         if (l^.is_used) then
+         if (l^.refcount>0) then
+         { can now be disposed by a tai_labeled instruction !! }
            l^.is_set:=false
          else
            dispose(l);
@@ -795,8 +796,10 @@ uses
               lab2str:=target_asm.labelprefix+tostr(l^.nb);
            end;
          { inside the WriteTree we must not count the refs PM }
+{$ifndef HEAPTRC}
          if countlabelref then
            inc(l^.refcount);
+{$endif HEAPTRC}
          l^.is_used:=true;
       end;
 
@@ -875,7 +878,13 @@ uses
 end.
 {
   $Log$
-  Revision 1.20  1998-10-06 17:16:31  pierre
+  Revision 1.21  1998-10-08 17:17:07  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.20  1998/10/06 17:16:31  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.19  1998/10/01 20:19:11  jonas

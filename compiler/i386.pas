@@ -315,6 +315,7 @@ unit i386;
     procedure clear_reference(var ref : treference);
 
     function newreference(const r : treference) : preference;
+    procedure disposereference(var r : preference);
 
     function reg2str(r : tregister) : string;
 
@@ -1069,6 +1070,15 @@ unit i386;
       end;
 
 
+    procedure disposereference(var r : preference);
+
+      begin
+         if assigned(r^.symbol) then
+           stringdispose(r^.symbol);
+         dispose(r);
+         r:=nil;
+      end;
+      
     function newreference(const r : treference) : preference;
       var
          p : preference;
@@ -1253,6 +1263,7 @@ unit i386;
            begin
               opxt:=top_const;
               op1:=pointer(_op1^.offset);
+              disposereference(_op1);
            end
          else
            begin
@@ -1317,6 +1328,7 @@ unit i386;
            begin
               opxt:=opxt+top_const shl 4;
               op2:=pointer(_op2^.offset);
+              disposereference(_op2);
            end
          else
            begin
@@ -1455,6 +1467,7 @@ unit i386;
            begin
               opxt:=opxt+top_const shl 4;
               op2:=pointer(_op2^.offset);
+              disposereference(_op2);
            end
          else
            begin
@@ -1507,6 +1520,7 @@ unit i386;
            begin
               opxt:=opxt+top_const;
               op1:=pointer(_op1^.offset);
+              disposereference(_op1);
            end
          else
            begin
@@ -1528,6 +1542,7 @@ unit i386;
            begin
               opxt:=top_const;
               op1:=pointer(_op1^.offset);
+              disposereference(_op1);
            end
          else
            begin
@@ -1539,6 +1554,7 @@ unit i386;
            begin
               opxt:=opxt+top_const shl 4;
               op2:=pointer(_op2^.offset);
+              disposereference(_op2);
            end
          else
            begin
@@ -1589,6 +1605,7 @@ unit i386;
            begin
               opxt:=opxt+top_const shl 4;
               op2:=pointer(_op2^.offset);
+              disposereference(_op2);
            end
          else
            begin
@@ -1707,7 +1724,13 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.11  1998-09-20 17:11:23  jonas
+  Revision 1.12  1998-10-08 17:17:20  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.11  1998/09/20 17:11:23  jonas
     * released REGALLOC
 
   Revision 1.10  1998/09/14 21:30:45  peter

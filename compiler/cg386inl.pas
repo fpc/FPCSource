@@ -446,6 +446,8 @@ implementation
              exit;
 
            dummycoll.paratyp:=vs_const;
+           disposetree(p^.left);
+           p^.left:=nil;
            { second arg }
            hp:=node;
            node:=node^.right;
@@ -460,6 +462,7 @@ implementation
                   );
                 if codegenerror then
                   exit;
+                disposetree(hp);
                 hp:=node;
                 node:=node^.right;
                 hp^.right:=nil;
@@ -478,6 +481,7 @@ implementation
                   );
                 if codegenerror then
                   exit;
+                disposetree(hp);
                 hp:=node;
                 node:=node^.right;
                 hp^.right:=nil;
@@ -492,6 +496,8 @@ implementation
            secondcallparan(hp,@dummycoll,false
              ,false,0
              );
+           disposetree(hp);
+             
            if codegenerror then
              exit;
 
@@ -933,7 +939,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-10-05 21:33:15  peter
+  Revision 1.12  1998-10-08 17:17:12  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.11  1998/10/05 21:33:15  peter
     * fixed 161,165,166,167,168
 
   Revision 1.10  1998/10/05 12:32:44  peter

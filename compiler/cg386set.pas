@@ -85,7 +85,7 @@ implementation
          opsize     : topsize;
          setparts   : array[1..8] of Tsetpart;
          i,numparts : byte;
-         href,href2 : Treference;
+         {href,href2 : Treference;}
          l,l2       : plabel;
 
          function analizeset(Aset:pconstset;is_small:boolean):boolean;
@@ -209,18 +209,19 @@ implementation
             else
               p^.location.resflags:=F_E;
 
-            reset_reference(href);
+            {reset_reference(href);}
             getlabel(l);
-            href.symbol:=stringdup(lab2str(l));
+            {href.symbol:=stringdup(lab2str(l));}
 
             for i:=1 to numparts do
              if setparts[i].range then
               begin
                 { Check if left is in a range }
                 { Get a label to jump over the check }
-                reset_reference(href2);
+                {reset_reference(href2);}
                 getlabel(l2);
-                href.symbol:=stringdup(lab2str(l2));
+                {shouldn't it be href2 here ??
+                href.symbol:=stringdup(lab2str(l2));}
                 if setparts[i].start=setparts[i].stop-1 then
                  begin
                    case p^.left^.location.loc of
@@ -784,7 +785,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1998-09-17 09:42:20  peter
+  Revision 1.18  1998-10-08 17:17:14  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.17  1998/09/17 09:42:20  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 

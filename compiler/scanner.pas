@@ -72,6 +72,7 @@ unit scanner;
           yylexcount     : longint;
           lastasmgetchar : char;
           preprocstack   : ppreprocstack;
+          invalid        : boolean; { flag if sourcefiles have been destroyed ! }
 
           constructor init(const fn:string);
           destructor done;
@@ -134,7 +135,10 @@ implementation
     var
       tokenidx:array[2..tokenidlen] of tokenidxrec;
 
-
+    const
+      { use any special name that is an invalid file name to avoid problems }
+      macro_special_name = '__##&&Macro&&##__';
+      
     procedure create_tokenidx;
     { create an index with the first and last token for every possible token
       length, so a search only will be done in that small part }
@@ -216,6 +220,7 @@ implementation
         lasttokenpos:=0;
         lasttoken:=_END;
         lastasmgetchar:=#0;
+        invalid:=false;
       { load block }
         if not openinputfile then
          Message1(scan_f_cannot_open_input,fn);
@@ -225,13 +230,17 @@ implementation
 
     destructor tscannerfile.done;
       begin
-        checkpreprocstack;
-      { close file, but only if we are the first compile }
-        if not current_module^.in_second_compile then
-         begin
-           if not inputfile^.closed then
-            closeinputfile;
-         end;
+        if not invalid then
+          begin
+             checkpreprocstack;
+           { close file, but only if we are the first compile }
+           { probably not necessary anymore with invalid flag PM }
+             if not current_module^.in_second_compile then
+              begin
+                if not inputfile^.closed then
+                 closeinputfile;
+              end;
+          end;
        end;
 
 
@@ -301,10 +310,18 @@ implementation
 
 
     procedure tscannerfile.nextfile;
+      var
+        to_dispose : pinputfile;
       begin
         if assigned(inputfile^.next) then
          begin
+           if inputfile^.is_macro then
+             to_dispose:=inputfile
+           else
+             to_dispose:=nil;
            inputfile:=inputfile^.next;
+           if assigned(to_dispose) then
+             dispose(to_dispose,done);
            restoreinputfile;
          end;
       end;
@@ -383,7 +400,8 @@ implementation
         dec(longint(inputpointer));
         tempcloseinputfile;
       { create macro 'file' }
-        hp:=new(pinputfile,init('Macro'));
+        { use special name to dispose after !! }
+        hp:=new(pinputfile,init(macro_special_name));
         addfile(hp);
         with inputfile^ do
          begin
@@ -1431,7 +1449,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  1998-10-08 13:45:25  peter
+  Revision 1.58  1998-10-08 17:17:30  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.57  1998/10/08 13:45:25  peter
     * EOF position is now correctly saved in aktfilepos
 
   Revision 1.56  1998/09/30 16:43:38  peter

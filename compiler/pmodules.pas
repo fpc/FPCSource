@@ -1,3 +1,4 @@
+
 {
     $Id$
     Copyright (c) 1998 by Florian Klaempfl
@@ -182,6 +183,9 @@ unit pmodules;
       { init the map }
         new(current_module^.map);
         fillchar(current_module^.map^,sizeof(tunitmap),#0);
+{$ifdef NEWMAP}
+        current_module^.map^[0]:=current_module;
+{$endif NEWMAP}
         nextmapentry:=1;
       { load the used units from interface }
         current_module^.in_implementation:=false;
@@ -206,7 +210,11 @@ unit pmodules;
                  exit;
                end;
             { setup the map entry for deref }
+{$ifndef NEWMAP}
               current_module^.map^[nextmapentry]:=loaded_unit^.globalsymtable;
+{$else NEWMAP}
+              current_module^.map^[nextmapentry]:=loaded_unit;
+{$endif NEWMAP}
               inc(nextmapentry);
               if nextmapentry>maxunits then
                Message(unit_f_too_much_units);
@@ -248,7 +256,11 @@ unit pmodules;
                end;
 {$endif TEST_IMPL}
             { setup the map entry for deref }
+{$ifndef NEWMAP}
               current_module^.map^[nextmapentry]:=loaded_unit^.globalsymtable;
+{$else NEWMAP}
+              current_module^.map^[nextmapentry]:=loaded_unit;
+{$endif NEWMAP}
               inc(nextmapentry);
               if nextmapentry>maxunits then
                Message(unit_f_too_much_units);
@@ -257,13 +269,13 @@ unit pmodules;
          end;
 {$ifdef UseBrowser}
         if cs_browser in aktmoduleswitches then
-          punitsymtable(current_module^.symtable)^.load_symtable_refs;
+          punitsymtable(current_module^.globalsymtable)^.load_symtable_refs;
         if ((current_module^.flags and uf_has_browser)<>0) and
            (cs_local_browser in aktmoduleswitches) then
          begin
            current_module^.implsymtable:=new(psymtable,load);
            psymtable(current_module^.implsymtable)^.name:=
-              stringdup('implementation of '+psymtable(current_module^.symtable)^.name^);
+              stringdup('implementation of '+psymtable(current_module^.globalsymtable)^.name^);
            psymtable(current_module^.implsymtable)^.load_browser;
          end;
 {$endif UseBrowser}
@@ -280,6 +292,9 @@ unit pmodules;
         st : punitsymtable;
         old_current_ppu : pppufile;
         old_current_module,hp,hp2 : pmodule;
+        name : string;{ necessary because
+        current_module^.mainsource^ is reset in compile !! }
+        scanner : pscannerfile;
 
         procedure loadppufile;
         begin
@@ -300,15 +315,32 @@ unit pmodules;
               end;
            { recompile the unit or give a fatal error if sources not available }
              if not(current_module^.sources_avail) then
+               if (not current_module^.search_unit(current_module^.modulename^))
+                  and (length(current_module^.modulename^)>8) then
+                 current_module^.search_unit(copy(current_module^.modulename^,1,8));
+             if not(current_module^.sources_avail) then
               Message1(unit_f_cant_compile_unit,current_module^.modulename^)
              else
               begin
+                if current_module^.in_second_compile then
+                  Message1(parser_d_compiling_second_time,current_module^.modulename^);
+                current_scanner^.tempcloseinputfile;
+                name:=current_module^.mainsource^;
+                if assigned(scanner) then
+                  scanner^.invalid:=true;
+                compile(name,compile_system);
+                if (not current_scanner^.invalid) then
+                 current_scanner^.tempopeninputfile;
+(*
                 if assigned(old_current_module^.scanner) then
                  begin
                    current_scanner^.tempcloseinputfile;
                    current_scanner:=nil;
                    { the current_scanner is always the same
                      as current_module^.scanner (PFV) }
+                     NO !!! unless you changed the code
+                     because it is only change in compile
+                     whereas current_module is changed here !!
                  end;
                 compile(current_module^.mainsource^,compile_system);
                 if (not old_current_module^.compiled) and
@@ -316,7 +348,7 @@ unit pmodules;
                  begin
                    current_scanner:=old_current_module^.scanner;
                    current_scanner^.tempopeninputfile;
-                 end;
+                 end; *)
               end;
            end
           else
@@ -386,14 +418,19 @@ unit pmodules;
              begin
                { remove the old unit }
                loaded_units.remove(hp);
+               scanner:=hp^.scanner;
                hp^.reset;
+               hp^.scanner:=scanner;
                current_module:=hp;
                current_module^.in_second_compile:=true;
                current_module^.do_compile:=true;
              end
             else
           { generates a new unit info record }
-             current_module:=new(pmodule,init(s,true));
+             begin
+                current_module:=new(pmodule,init(s,true));
+                scanner:=nil;
+             end;
             current_ppu:=current_module^.ppufile;
           { now we can register the unit }
             current_module^.loaded_from:=old_current_module;
@@ -680,7 +717,11 @@ unit pmodules;
                    loadunits;
                    { has it been compiled at a higher level ?}
                    if current_module^.compiled then
-                     exit;
+                     begin
+                        { this unit symtable is obsolete }
+                        dispose(unitst,done);
+                        exit;
+                     end;
                    unitst^.symtabletype:=globalsymtable;
                 end;
               { ... but insert the symbol table later }
@@ -740,6 +781,19 @@ unit pmodules;
          { Read the implementation units }
          parse_implementation_uses(unitst);
 
+         
+         if current_module^.compiled then
+           begin
+              { this unit symtable is obsolete }
+              dispose(unitst,done);
+              { avoid self recursive destructor call !! PM }
+              aktprocsym^.definition^.localst:=nil;
+              { absence does not matter here !! }
+              aktprocsym^.definition^.forwarddef:=false;
+              dispose(st,done);
+              exit;
+           end;
+           
          { All units are read, now give them a number }
          numberunits;
 
@@ -806,6 +860,10 @@ unit pmodules;
          { the last char should always be a point }
          consume(POINT);
 
+         { avoid self recursive destructor call !! PM }
+         aktprocsym^.definition^.localst:=nil;
+         { absence does not matter here !! }
+         aktprocsym^.definition^.forwarddef:=false;
          { test static symtable }
          st^.allsymbolsused;
 
@@ -833,7 +891,9 @@ unit pmodules;
              dellexlevel; }
 
          { remove static symtable here to save some mem ;) }
+{$ifndef UseBrowser}
          dispose(st,done);
+{$endif UseBrowser}
          current_module^.localsymtable:=nil;
 
          { tests, if all (interface) forwards are resolved }
@@ -882,6 +942,9 @@ unit pmodules;
          if current_module^.uses_imports then
           importlib^.generatelib;
 
+{$ifndef UseBrowser}
+         dispose(refsymtable,done);
+{$endif UseBrowser}
          { finish asmlist by adding segment starts }
          insertsegment;
 
@@ -974,10 +1037,11 @@ unit pmodules;
 {$endif}
          compile_proc_body(names,true,false);
          names.done;
-         codegen_doneprocedure;
 
          { avoid self recursive destructor call !! PM }
          aktprocsym^.definition^.localst:=nil;
+
+         codegen_doneprocedure;
 
          { consume the last point }
          consume(POINT);
@@ -1022,7 +1086,13 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.61  1998-10-08 13:48:47  peter
+  Revision 1.62  1998-10-08 17:17:25  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.61  1998/10/08 13:48:47  peter
     * fixed memory leaks for do nothing source
     * fixed unit interdependency
 

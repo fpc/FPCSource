@@ -276,6 +276,7 @@ unit tree;
     procedure disposetree(p : ptree);
     procedure putnode(p : ptree);
     function getnode : ptree;
+    procedure clear_location(var loc : tlocation);
     procedure set_location(var destloc,sourceloc : tlocation);
     procedure swap_location(var destloc,sourceloc : tlocation);
     procedure set_file_line(from,_to : ptree);
@@ -430,6 +431,8 @@ unit tree;
            deletecaselabels(p^.greater);
          if assigned(p^.less) then
            deletecaselabels(p^.less);
+         freelabel(p^._at);
+         freelabel(p^.statement);
          dispose(p);
       end;
 
@@ -447,6 +450,10 @@ unit tree;
 
     procedure disposetree(p : ptree);
 
+      var
+         symt : psymtable;
+         i : longint;
+         
       begin
          if not(assigned(p)) then
            exit;
@@ -511,8 +518,16 @@ unit tree;
                    disposetree(p^.left);
                  if assigned(p^.right) then
                    disposetree(p^.right);
-                 if assigned(p^.withsymtable) then
-                   dispose(p^.withsymtable,done);
+                 symt:=p^.withsymtable;
+                 for i:=1 to p^.tablecount do
+                   begin
+                      if assigned(symt) then
+                        begin
+                           p^.withsymtable:=symt^.next;
+                           dispose(symt,done);
+                        end;
+                      symt:=p^.withsymtable;
+                   end;
               end;
             else internalerror(12);
          end;
@@ -1511,6 +1526,14 @@ unit tree;
            end;
       end;
 
+    procedure clear_location(var loc : tlocation);
+
+      begin
+        if assigned(loc.reference.symbol) then
+          stringdispose(loc.reference.symbol);
+        loc.loc:=LOC_INVALID;
+      end;
+
     {This is needed if you want to be able to delete the string with the nodes !!}
     procedure set_location(var destloc,sourceloc : tlocation);
 
@@ -1597,7 +1620,13 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.45  1998-10-05 21:33:33  peter
+  Revision 1.46  1998-10-08 17:17:37  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.45  1998/10/05 21:33:33  peter
     * fixed 161,165,166,167,168
 
   Revision 1.44  1998/09/28 16:57:28  pierre

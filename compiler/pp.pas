@@ -107,9 +107,11 @@ uses
 {$ifdef profile}
   profile,
 {$endif profile}
+{$ifdef FPC}
 {$ifdef heaptrc}
-  heaptrc,
+  ppheap,
 {$endif heaptrc}
+{$endif FPC}
   globals,compiler;
 
 {$ifdef useoverlay}
@@ -259,7 +261,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  1998-10-02 17:03:51  peter
+  Revision 1.33  1998-10-08 17:17:26  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.32  1998/10/02 17:03:51  peter
     * ifdef heaptrc for heaptrc
 
   Revision 1.31  1998/09/28 16:57:23  pierre

@@ -170,6 +170,7 @@ implementation
                     ungetiftemp(p^.left^.location.reference);
 
                     { does not hurt: }
+                    clear_location(p^.left^.location);
                     p^.left^.location.loc:=LOC_MEM;
                     p^.left^.location.reference:=href;
                  end;
@@ -602,6 +603,7 @@ implementation
                                         hregister:=getregister32;
                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
                                           newreference(p^.left^.location.reference),hregister)));
+                                        clear_location(p^.left^.location);
                                         p^.left^.location.loc:=LOC_REGISTER;
                                         p^.left^.location.register:=hregister;
                                         set_location(p^.location,p^.left^.location);
@@ -612,6 +614,7 @@ implementation
                                         hregister:=getregister32;
                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
                                           newreference(p^.right^.location.reference),hregister)));
+                                        clear_location(p^.right^.location);
                                         p^.right^.location.loc:=LOC_REGISTER;
                                         p^.right^.location.register:=hregister;
                                       end;
@@ -735,6 +738,7 @@ implementation
                                     newreference(p^.left^.location.reference),hregister)));
                                end;
                           end;
+                        clear_location(p^.location);
                         p^.location.loc:=LOC_REGISTER;
                         p^.location.register:=hregister;
                      end
@@ -934,6 +938,7 @@ implementation
                              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_B,newreference(p^.location.reference),
                                hregister)));
                           end;
+                        clear_location(p^.left^.location);
                         p^.location.loc:=LOC_REGISTER;
                         p^.location.register:=hregister;
                      end;
@@ -1066,6 +1071,7 @@ implementation
                                 gten : flags:=F_AE;
                           end;
                         end;
+                       clear_location(p^.left^.location);
                        p^.location.loc:=LOC_FLAGS;
                        p^.location.resflags:=flags;
                        cmpop:=false;
@@ -1278,7 +1284,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1998-09-28 16:57:13  pierre
+  Revision 1.15  1998-10-08 17:17:10  pierre
+    * current_module old scanner tagged as invalid if unit is recompiled
+    + added ppheap for better info on tracegetmem of heaptrc
+      (adds line column and file index)
+    * several memory leaks removed ith help of heaptrc !!
+
+  Revision 1.14  1998/09/28 16:57:13  pierre
     * changed all length(p^.value_str^) into str_length(p)
       to get it work with and without ansistrings
     * changed sourcefiles field of tmodule to a pointer
