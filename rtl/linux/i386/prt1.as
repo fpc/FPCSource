@@ -16,53 +16,62 @@
 # Linux ELF startup code for Free Pascal
 #
 
-	.file	"prt1.as"
-	.text
-	.globl	_start
-	.type	_start,@function
+        .file   "prt1.as"
+        .text
+        .globl  _start
+        .type   _start,@function
 _start:
-	/* First locate the start of the environment variables */
-	popl	%ecx
-	movl	%esp,%ebx  		/* Points to the arguments */
-	movl	%ecx,%eax
-	incl	%eax
-	shll	$2,%eax
-	addl	%esp,%eax
-	andl	$0xfffffff8,%esp	/* Align stack */
+        /* First locate the start of the environment variables */
+        popl    %ecx
+        movl    %esp,%ebx               /* Points to the arguments */
+        movl    %ecx,%eax
+        incl    %eax
+        shll    $2,%eax
+        addl    %esp,%eax
+        andl    $0xfffffff8,%esp        /* Align stack */
 
-	movl	%eax,U_SYSLINUX_ENVP	/* Move the environment pointer */
-	movl	%ecx,U_SYSLINUX_ARGC	/* Move the argument counter    */
-	movl	%ebx,U_SYSLINUX_ARGV	/* Move the argument pointer	*/
+        movl    %eax,U_SYSLINUX_ENVP    /* Move the environment pointer */
+        movl    %ecx,U_SYSLINUX_ARGC    /* Move the argument counter    */
+        movl    %ebx,U_SYSLINUX_ARGV    /* Move the argument pointer    */
 
-	call	PASCALMAIN
-	
-	.globl	_haltproc
-	.type	_haltproc,@function
-_haltproc:	
-	movl	$1,%eax			/* exit call */
-	xorl	%ebx,%ebx
-	movw	U_SYSLINUX_EXITCODE,%bx
-	int	$0x80
-	jmp	_haltproc
-	
+        finit                           /* initialize fpu */
+        fwait
+        fldcw   ___fpucw
+
+        call    PASCALMAIN
+
+        .globl  _haltproc
+        .type   _haltproc,@function
+_haltproc:
+        movl    $1,%eax                 /* exit call */
+        xorl    %ebx,%ebx
+        movw    U_SYSLINUX_EXITCODE,%bx
+        int     $0x80
+        jmp     _haltproc
+
 .data
-	.align	4
-	
-	.globl	___fpc_brk_addr		/* heap management */
-	.type	___fpc_brk_addr,@object
-	.size	___fpc_brk_addr,4
+        .align  4
+___fpucw:
+        .long   0x1332
+
+        .globl  ___fpc_brk_addr         /* heap management */
+        .type   ___fpc_brk_addr,@object
+        .size   ___fpc_brk_addr,4
 ___fpc_brk_addr:
-	.long	0
-	
-	.globl	__curbrk		/* necessary for libc */
-	.type	__curbrk,@object
-	.size	__curbrk,4
+        .long   0
+
+        .globl  __curbrk                /* necessary for libc */
+        .type   __curbrk,@object
+        .size   __curbrk,4
 __curbrk:
-	.long	0
+        .long   0
 
 #
 # $Log$
-# Revision 1.3  1998-08-08 14:42:12  peter
+# Revision 1.4  1998-10-14 21:28:50  peter
+#   * initialize fpu so sigfpe is finally generated for fpu errors
+#
+# Revision 1.3  1998/08/08 14:42:12  peter
 #   * added missing ___fpc_sbrk and logs
 #
 #
