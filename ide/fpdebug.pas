@@ -2209,7 +2209,8 @@ procedure TWatch.Get_new_value;
   var p, q : pchar;
       i, j, curframe, startframe : longint;
       s,s2 : string;
-      loop_higher, found, last_removed : boolean;
+      loop_higher, found : boolean;
+      last_removed : char;
 
     function GetValue(var s : string) : boolean;
       begin
@@ -2308,17 +2309,19 @@ procedure TWatch.Get_new_value;
       i:=0;
     if (i>0) and (q[i-1]=#10) then
       begin
+        while (i>1) and ((q[i-2]=' ') or (q[i-2]=#9)) do
+          dec(i);
+        last_removed:=q[i-1];
         q[i-1]:=#0;
-        last_removed:=true;
       end
     else
-      last_removed:=false;
+      last_removed:=#0;
     if assigned(q) then
       current_value:=strnew(q)
     else
       current_value:=strnew('');
-    if last_removed then
-      q[i-1]:=#10;
+    if last_removed<>#0 then
+      q[i-1]:=last_removed;
     strdispose(p);
     GDBRunCount:=Debugger^.RunCount;
   end;
@@ -2353,16 +2356,18 @@ destructor TWatch.Done;
       procedure TWatchesCollection.Update;
         var
          W,W1 : integer;
+
          procedure GetMax(P : PWatch);
            begin
               if assigned(P^.Current_value) then
-               begin
-                 W1:=StrLen(P^.Current_value)+2+Length(GetStr(P^.expr));
-                 if W1>W then
-                  W:=W1;
-               end;
+                W1:=StrLen(P^.Current_value)+3+Length(GetStr(P^.expr))
+              else
+                W1:=2+Length(GetStr(P^.expr));
+              if W1>W then
+                W:=W1;
            end;
-        begin
+
+         begin
           W:=0;
           ForEach(@GetMax);
           MaxW:=W;
@@ -2431,11 +2436,16 @@ begin
     GetIndentedText:=''
   else if Indent<ValOffset then
     begin
-      if not assigned(PW^.current_value) then
-        S:=' '+GetStr(PW^.Expr)+' <Unknown value>'
+      S:=GetStr(PW^.Expr);
+      if Indent=0 then
+        S:=' '+S
       else
-        S:=' '+GetStr(PW^.Expr)+' '+GetPChar(PW^.Current_value);
-      GetIndentedText:=Copy(S,Indent,MaxLen);
+        S:=Copy(S,Indent,High(S));
+      if not assigned(PW^.current_value) then
+        S:=S+' <Unknown value>'
+      else
+        S:=S+' '+GetPChar(PW^.Current_value);
+      GetIndentedText:=Copy(S,1,MaxLen);
     end
   else
    begin
@@ -3866,7 +3876,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:47  peter
+  Revision 1.3  2001-08-07 22:58:10  pierre
+   * watches display enhanced and crashes removed
+
+  Revision 1.2  2001/08/05 02:01:47  peter
     * FVISION define to compile with fvision units
 
   Revision 1.1  2001/08/04 11:30:23  peter
