@@ -288,6 +288,9 @@ var
           '.debug_frame'
         );
       begin
+        if (target_info.system = system_powerpc_darwin) and
+           (atype = sec_bss) then
+          atype := sec_code;
         if use_smartlink_section and
            (atype<>sec_bss) and
            (aname<>'') then
@@ -302,7 +305,8 @@ var
         s : string;
       begin
         AsmLn;
-        AsmWrite('.section ');
+        if (target_info.system <> system_powerpc_darwin) then
+          AsmWrite('.section ');
         s:=sectionname(atype,aname);
         AsmWrite(s);
         if copy(s,1,4)='.gnu' then
@@ -962,7 +966,10 @@ var
 end.
 {
   $Log$
-  Revision 1.55  2004-06-20 08:55:28  florian
+  Revision 1.56  2004-07-01 18:16:10  jonas
+    * Darwin fixes
+
+  Revision 1.55  2004/06/20 08:55:28  florian
     * logs truncated
 
   Revision 1.54  2004/06/16 20:07:06  florian
