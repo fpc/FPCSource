@@ -2012,13 +2012,12 @@ implementation
                 end;
                got_addrn:=false;
                p1:=caddrnode.create(p1);
+               { Store the procvar that we are expecting, the
+                 addrn will use the information to find the correct
+                 procdef or it will return an error }
                if assigned(getprocvardef) and
-                  (taddrnode(p1).left.nodetype = loadn) and
-                  { make sure we found a valid procedure, otherwise the  }
-                  { "getprocvardef" will become the default in taddrnode }
-                  { while there should be an error (JM)                  }
-                  assigned(tloadnode(taddrnode(p1).left).procdef) then
-                taddrnode(p1).getprocvardef:=getprocvardef;
+                  (taddrnode(p1).left.nodetype = loadn) then
+                 taddrnode(p1).getprocvardef:=getprocvardef;
              end;
 
            _LKLAMMER :
@@ -2348,7 +2347,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.108  2003-04-22 23:50:23  peter
+  Revision 1.109  2003-04-23 10:13:55  peter
+    * firstaddr will check procvardef
+
+  Revision 1.108  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG
