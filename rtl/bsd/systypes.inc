@@ -50,7 +50,7 @@ type
   TDirEnt = dirent;
 
   TDir = packed record
-    fd     : integer;
+    fd     : longint;
     loc    : longint;
     size   : integer;
     buf    : pdirent;
@@ -139,7 +139,10 @@ type
 
 {
   $Log$
-  Revision 1.5  2000-03-17 12:58:57  marco
+  Revision 1.6  2000-04-07 20:51:17  marco
+   * updates.
+
+  Revision 1.5  2000/03/17 12:58:57  marco
    * some changes to ftruncate based procs. Added a "0" as extra parameter
 
   Revision 1.4  2000/02/04 16:55:47  marco

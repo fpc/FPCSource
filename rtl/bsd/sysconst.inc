@@ -33,7 +33,8 @@ Const
   Open_ASync    = $40;
   Open_FSync    = $80;
   Open_NoFollow = $100;
-  Open_Create   = $200;
+  Open_Create   = $200;       {BSD convention}
+  Open_Creat    = $200;       {Linux convention}
   Open_Trunc    = $400;
   Open_Excl     = $800;
 
@@ -86,7 +87,10 @@ Const
 
 {
   $Log$
-  Revision 1.3  2000-02-03 17:05:13  marco
+  Revision 1.4  2000-04-07 20:51:17  marco
+   * updates.
+
+  Revision 1.3  2000/02/03 17:05:13  marco
    * fixes and updates due to linux unit porting
 
   Revision 1.2  2000/02/02 16:35:29  marco

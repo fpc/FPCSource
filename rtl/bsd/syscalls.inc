@@ -332,7 +332,7 @@ end;
 Function Sys_Rename(Oldname,Newname:pchar):longint;
 
 begin
-  sys_rename:=do_syscallsyscall_nr_rename,longint(oldname),longint(newname));
+  sys_rename:=do_syscall(syscall_nr_rename,longint(oldname),longint(newname));
 end;
 
 Function Sys_Stat(Filename:pchar;var Buffer: stat):longint;
@@ -454,12 +454,15 @@ end;
 Procedure Sys_Exit(ExitCode:longint);
 
 begin
-  do_syscall(syscall_nr_,exitcode);
+  do_syscall(syscall_nr_exit,exitcode);
 end;
 
 {
   $Log$
-  Revision 1.11  2000-04-05 13:58:40  marco
+  Revision 1.12  2000-04-07 20:51:17  marco
+   * updates.
+
+  Revision 1.11  2000/04/05 13:58:40  marco
    * syscall variablenames reintroduced.
 
   Revision 1.10  2000/03/16 16:18:12  marco

@@ -174,7 +174,7 @@ end ['D0'];
 
 Function sbrk(size : longint) : Longint;
 begin
-  Sbrk:=do_syscall(197,0,size,3,$22,-1,0,0);
+  Sbrk:=do_syscall(syscall_nr_mmap,0,size,3,$22,-1,0,0);
   if ErrNo<>0 then
    Sbrk:=0;
 end;
@@ -325,7 +325,7 @@ Begin
 {$ifdef crtlib}
   Do_FileSize:=_rtl_filesize(Handle);
 {$else}
-  if do_SysCall(189,handle,longint(@info))=0 then
+  if do_SysCall(syscall_nr_fstat,handle,longint(@info))=0 then
    Do_FileSize:=Info.Size
   else
    Do_FileSize:=0;
@@ -338,7 +338,7 @@ Procedure Do_Truncate(Handle,Pos:longint);
 
 begin
 {$ifndef crtlib}
-  do_syscall(201,handle,pos,0);
+  do_syscall(syscall_nr_ftruncate,handle,pos,0);
   Errno2Inoutres;
 {$endif}
 end;
@@ -439,7 +439,7 @@ Function Do_IsDevice(Handle:Longint):boolean;
 var
   Data : array[0..255] of byte; {Large enough for termios info}
 begin
-  Do_IsDevice:=(do_SysCall(54,handle,$5401,longint(@data))=0);
+  Do_IsDevice:=(do_SysCall(syscall_nr_ioctl,handle,$5401,longint(@data))=0);
 end;
 
 
@@ -689,7 +689,10 @@ End.
 
 {
   $Log$
-  Revision 1.3  2000-03-17 12:58:57  marco
+  Revision 1.4  2000-04-07 20:51:17  marco
+   * updates.
+
+  Revision 1.3  2000/03/17 12:58:57  marco
    * some changes to ftruncate based procs. Added a "0" as extra parameter
 
   Revision 1.2  2000/03/16 16:21:10  marco

@@ -1,0 +1,108 @@
+$Id$
+
+1 FreeBSD status and notes. (kept on CVS because I work on several places)
+-----------------------------------------------------------------------------
+
+At the moment that you are reading this, FPC for FreeBSD is still a dream.
+We are currently working actively on FreeBSD support.
+
+NI=not implemented yet
+req=required for compiler
+noreq? = probably not required, but not checked.
+
+syscall   status        comment
+------------------------------------------------------------------------
+Readdir   req           implemented from scratch, not working. (since this
+                        call doesn't exist on FBSD and FindFirst is based on it.
+
+Clone()  NI noreq       Looks awfully complicated. Should be based on RFork.
+
+sysinfo  NI noreq       Not supported under BSD, not even by emulator
+uname    NI noreq       "        "       "    "   "   "    "   "
+                        (procedure based on this call are also commented
+                         (get* procs))
+
+signal   NI  noreq?     A *lot* of emulation code.
+alarm    NI  noreq?     Could be possible to port.
+pause    NI  noreq?     Also possible I think. Uses process information
+                        in linux-emu, that is why I didn't port directly.
+IOPERM   NI  noreq?     Concept doesn't exist on FreeBSD. No IO outside kernel?
+
+
+2 How to build a FreeBSD compiler.
+-----------------------------------------------------------------------------
+
+Comments, mistakes and suggestions to Marcov@stack.nl
+
+The FreeBSD port is 99% experimental atm, though valid native binaries can be
+obtained. They mosttimes don't function yet.
+
+Supported are probably FreeBSD 3.x (3.2, 3.4 and 4.0-release tested).
+
+The procedure here is verbose, and for the most akward case.
+If you have linux support on on your FreeBSD machine, or operate on NFS or samba
+share (so that copying and using the sources in two systems is easier)
+some steps can be omitted or simplified. Just play with it.
+
+STEP A: create the RTL assembler files.
+
+1a. Copy all linux files to a new directory. (here called BSDBUILD), and
+1b. edit the makefile to NOT compile the i386 directory. (we do that by
+    hand for now) I do this by emptying the LOADEROBJECTS= line.
+2. Copy all bsd files over them.
+3. execute  make OPT='-Tlinux -dBSD -a -s -OG3p3' (with any i386 FPC compiler)
+    in directory BSDBUILD. This failed with some go32v2 versions (which wanted
+    to assemble anyway), but worked with several win32 and linux' snapshots.
+
+You know have .ppu's and .s  's for the RTL hopefully.
+
+STEP B: Create the compiler assembler sources;
+
+This will generate the .s files for the compiler.
+
+4. Copy the mppc386.bat file in the compiler/ directory, and delete anything but
+    the ppc386 line.
+5. Add "-Fu\BSDPATH\BSDBUILD -s -a -dBSD" to the line, and delete all %1 %2 options
+    which then look like this:
+
+ppc386 -O3p3 -Ch8000000 -dI386 -dGDB  -dBROWSERLOG -Sg pp.pas -Fu\BSDPATH\BSDBUILD -s -a -dBSD -Tlinux
+
+6. Execute this line in the compiler directory (direct or via script)
+
+
+STEP C: Building the binary
+
+7. Copy all necessary files
+    (- all *.s *.ppu files, both from compiler and BSDBUILD dir,
+     - compiler/link.res and
+     - compiler/ppas.sh
+     - Cut and paste of the DO_S script at the end of this document to file
+     - rtl/bsd/i386/*.s files
+     )
+     to a directory on the BSD machine.
+8. Change to the directory on the BSD machine, and run the script DO_S to assemble
+    .s files to .o files.
+9. Adapt link.res so that all paths to the BSD machine are right.
+10. run ppas.sh
+
+
+You know should have a native FreeBSD "pp" binary.
+
+------------------
+The DO_S script.
+------------------
+#!/bin/sh
+
+for i in *.s; do
+ flup=`basename $i .s`
+ as $i -o $flup.o
+ echo $i
+ echo $flup
+ done
+
+{
+$Log$
+Revision 1.1  2000-04-07 20:51:16  marco
+ * updates.
+
+}

@@ -3418,7 +3418,7 @@ function MMap(const m:tmmapargs):longint;
 
 begin
   {Last argument (offset) is actually 64-bit under BSD. Therefore extra 0}
- do_syscall(syscall_nr_mmap,m.address,m.size,m.prot,m.flags,m.fd,m.offset,0);
+ MMap:=do_syscall(syscall_nr_mmap,m.address,m.size,m.prot,m.flags,m.fd,m.offset,0);
  LinuxError:=Errno;
 end;
 
@@ -3644,7 +3644,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  2000-04-05 13:46:22  marco
+  Revision 1.11  2000-04-07 20:51:16  marco
+   * updates.
+
+  Revision 1.10  2000/04/05 13:46:22  marco
    * rest of syscalls has constants now
 
   Revision 1.9  2000/04/05 13:07:03  marco
