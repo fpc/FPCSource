@@ -1258,6 +1258,7 @@ implementation
 
       var
          ecxpushed : boolean;
+         oldsourceoffset,
          helpsize : longint;
          i : byte;
          reg8,reg32 : tregister;
@@ -1274,6 +1275,7 @@ implementation
          end;
 
       begin
+         oldsourceoffset:=source.offset;
          if (not loadref) and
             ((size<=8) or
              (not(cs_littlesize in aktglobalswitches ) and (size<=12))) then
@@ -1403,7 +1405,10 @@ implementation
               maybe_loadself;
            end;
          if delsource then
-           ungetiftemp(source);
+           begin
+             source.offset:=oldsourceoffset;
+             ungetiftemp(source);
+           end;
       end;
 
 
@@ -2969,7 +2974,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2001-10-14 11:49:51  jonas
+  Revision 1.7  2001-10-20 17:22:57  peter
+    * concatcopy could release a wrong reference because the offset was
+      increased without restoring the original before the release of
+      a temp
+
+  Revision 1.6  2001/10/14 11:49:51  jonas
     * finetuned register allocation info for assignments
 
   Revision 1.5  2001/09/30 21:28:34  peter
