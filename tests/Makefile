@@ -1551,6 +1551,7 @@ units:
 			 OPT="$(TEST_OPT)" CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
 copyfiles: $(TEST_OUTPUTDIR)
 	$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/ctest.o test/cg
+	-$(MKDIRTREE) $(TEST_OUTPUTDIR)/tests/units/system
 	$(COPY) test/units/system/test*.txt $(TEST_OUTPUTDIR)/tests/units/system
 testprep: testprep-stamp.$(TEST_FULL_TARGET)
 testprep-stamp.$(TEST_FULL_TARGET): $(TEST_OUTPUTDIR) utils units copyfiles
