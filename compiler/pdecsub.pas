@@ -56,7 +56,7 @@ interface
     procedure parse_proc_directives(pd:tabstractprocdef;var pdflags:tpdflags);
     procedure parse_var_proc_directives(sym:tsym);
     procedure parse_object_proc_directives(pd:tabstractprocdef);
-    function  parse_proc_head(aclass:tobjectdef;potype:tproctypeoption):tprocdef;
+    function  parse_proc_head(aclass:tobjectdef;potype:tproctypeoption;var pd:tprocdef):boolean;
     function  parse_proc_dec(aclass:tobjectdef):tprocdef;
 
 
@@ -515,7 +515,7 @@ implementation
       end;
 
 
-    function parse_proc_head(aclass:tobjectdef;potype:tproctypeoption):tprocdef;
+    function parse_proc_head(aclass:tobjectdef;potype:tproctypeoption;var pd:tprocdef):boolean;
       var
         orgsp,sp : stringid;
         sym : tsym;
@@ -525,12 +525,12 @@ implementation
         searchagain : boolean;
         i : longint;
         st : tsymtable;
-        pd : tprocdef;
         aprocsym : tprocsym;
       begin
         { Save the position where this procedure really starts }
         procstartfilepos:=akttokenpos;
 
+        result:=false;
         pd:=nil;
         aprocsym:=nil;
 
@@ -575,7 +575,7 @@ implementation
            if (token=_ID) then
              aclass.implementedinterfaces.addmappings(i,sp,pattern);
            consume(_ID);
-           result:=nil;
+           result:=true;
            exit;
          end;
 
@@ -623,7 +623,11 @@ implementation
                   end;
                end
               else
-               Message(parser_e_methode_id_expected);
+               begin
+                 Message(parser_e_methode_id_expected);
+                 { recover by making it a normal procedure instead of method }
+                 aclass:=nil;
+               end;
             end
            else
             Message(parser_e_class_id_expected);
@@ -727,8 +731,7 @@ implementation
         if token=_LKLAMMER then
           parse_parameter_dec(pd);
 
-        { return created tprocdef }
-        result:=pd;
+        result:=true;
       end;
 
 
@@ -754,30 +757,33 @@ implementation
           _FUNCTION :
             begin
               consume(_FUNCTION);
-              pd:=parse_proc_head(aclass,potype_none);
-              if assigned(pd) then
+              if parse_proc_head(aclass,potype_none,pd) then
                 begin
-                  if try_to_consume(_COLON) then
-                   begin
-                     inc(testcurobject);
-                     single_type(pd.rettype,hs,false);
-                     pd.test_if_fpu_result;
-                     dec(testcurobject);
-                   end
-                  else
-                   begin
-                      if (
-                          not(is_interface(pd._class)) and
-                          not(pd.forwarddef)
-                         ) or
-                         (m_repeat_forward in aktmodeswitches) then
-                      begin
-                        consume(_COLON);
-                        consume_all_until(_SEMICOLON);
-                      end;
-                   end;
-                  if isclassmethod then
-                   include(pd.procoptions,po_classmethod);
+                  { pd=nil when it is a interface mapping }
+                  if assigned(pd) then
+                    begin
+                      if try_to_consume(_COLON) then
+                       begin
+                         inc(testcurobject);
+                         single_type(pd.rettype,hs,false);
+                         pd.test_if_fpu_result;
+                         dec(testcurobject);
+                       end
+                      else
+                       begin
+                          if (
+                              not(is_interface(pd._class)) and
+                              not(pd.forwarddef)
+                             ) or
+                             (m_repeat_forward in aktmodeswitches) then
+                          begin
+                            consume(_COLON);
+                            consume_all_until(_SEMICOLON);
+                          end;
+                       end;
+                      if isclassmethod then
+                       include(pd.procoptions,po_classmethod);
+                    end;
                 end
               else
                 begin
@@ -790,19 +796,22 @@ implementation
           _PROCEDURE :
             begin
               consume(_PROCEDURE);
-              pd:=parse_proc_head(aclass,potype_none);
-              if assigned(pd) then
+              if parse_proc_head(aclass,potype_none,pd) then
                 begin
-                  pd.rettype:=voidtype;
-                  if isclassmethod then
-                    include(pd.procoptions,po_classmethod);
+                  { pd=nil when it is a interface mapping }
+                  if assigned(pd) then
+                    begin
+                      pd.rettype:=voidtype;
+                      if isclassmethod then
+                        include(pd.procoptions,po_classmethod);
+                    end;
                 end;
             end;
 
           _CONSTRUCTOR :
             begin
               consume(_CONSTRUCTOR);
-              pd:=parse_proc_head(aclass,potype_constructor);
+              parse_proc_head(aclass,potype_constructor,pd);
               if assigned(pd) and
                  assigned(pd._class) then
                 begin
@@ -818,7 +827,7 @@ implementation
           _DESTRUCTOR :
             begin
               consume(_DESTRUCTOR);
-              pd:=parse_proc_head(aclass,potype_destructor);
+              parse_proc_head(aclass,potype_destructor,pd);
               if assigned(pd) then
                 pd.rettype:=voidtype;
             end;
@@ -838,7 +847,7 @@ implementation
                  optoken:=NOTOKEN;
                end;
               consume(token);
-              pd:=parse_proc_head(aclass,potype_operator);
+              parse_proc_head(aclass,potype_operator,pd);
               if assigned(pd) then
                 begin
                   if pd.parast.symtablelevel>normal_function_level then
@@ -2140,7 +2149,11 @@ const
 end.
 {
   $Log$
-  Revision 1.163  2004-02-20 21:54:47  peter
+  Revision 1.164  2004-02-26 16:13:25  peter
+    * fix crash when method is not declared in object declaration
+    * fix parsing of mapped interface functions
+
+  Revision 1.163  2004/02/20 21:54:47  peter
     * use sp_internal flag to silence unused internal variable
 
   Revision 1.162  2004/02/13 15:41:24  peter

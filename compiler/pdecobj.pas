@@ -68,7 +68,12 @@ implementation
         begin
            consume(_CONSTRUCTOR);
            { must be at same level as in implementation }
-           pd:=parse_proc_head(aktclass,potype_constructor);
+           parse_proc_head(aktclass,potype_constructor,pd);
+           if not assigned(pd) then
+             begin
+               consume(_SEMICOLON);
+               exit;
+             end;
            if (cs_constructor_name in aktglobalswitches) and
               (pd.procsym.name<>'INIT') then
              Message(parser_e_constructorname_must_be_init);
@@ -110,7 +115,12 @@ implementation
           pd : tprocdef;
         begin
            consume(_DESTRUCTOR);
-           pd:=parse_proc_head(aktclass,potype_destructor);
+           parse_proc_head(aktclass,potype_destructor,pd);
+           if not assigned(pd) then
+             begin
+               consume(_SEMICOLON);
+               exit;
+             end;
            if (cs_constructor_name in aktglobalswitches) and
               (pd.procsym.name<>'DONE') then
              Message(parser_e_destructorname_must_be_done);
@@ -696,7 +706,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2003-12-10 16:37:01  peter
+  Revision 1.76  2004-02-26 16:13:25  peter
+    * fix crash when method is not declared in object declaration
+    * fix parsing of mapped interface functions
+
+  Revision 1.75  2003/12/10 16:37:01  peter
     * global property support for fpc modes
 
   Revision 1.74  2003/12/04 23:27:49  peter
