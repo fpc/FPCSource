@@ -50,7 +50,7 @@
     function abs(d : ValReal) : ValReal;[internproc:fpc_in_abs_real];
     function sqr(d : ValReal) : ValReal;[internproc:fpc_in_sqr_real];
     function sqrt(d : ValReal) : ValReal;[internproc:fpc_in_sqrt_real];
-    function arctan(d : ValReal) : ValReal;[internproc:fpc_in_sqr_real];
+    function arctan(d : ValReal) : ValReal;[internproc:fpc_in_arctan_real];
     function ln(d : ValReal) : ValReal;[internproc:fpc_in_ln_real];
     function sin(d : ValReal) : ValReal;[internproc:fpc_in_sin_real];
     function cos(d : ValReal) : ValReal;[internproc:fpc_in_cos_real];
@@ -99,7 +99,10 @@
 
 {
   $Log$
-  Revision 1.19  2004-11-21 15:35:23  peter
+  Revision 1.20  2004-12-02 08:11:22  marco
+   * patch from peter.
+
+  Revision 1.19  2004/11/21 15:35:23  peter
     * float routines all use internproc and compilerproc helpers
 
   Revision 1.18  2004/11/18 10:03:36  michael
