@@ -584,8 +584,8 @@ end;
 function TraceReAllocMem(var p:pointer;size:ptrint):Pointer;
 var
   newP: pointer;
-  oldsize,
   allocsize,
+  movesize,
   i  : ptrint;
   bp : pointer;
   pl : pdword;
@@ -643,11 +643,17 @@ begin
   if not SysTryResizeMem(pp,allocsize) then
    begin
      { get a new block }
-     oldsize:=TraceMemSize(p);
      newP := TraceGetMem(size);
      { move the data }
      if newP <> nil then
-       move(p^,newP^,oldsize);
+      begin
+        movesize:=TraceMemSize(p);
+        {if the old size is larger than the new size,
+         move only the new size}
+        if movesize>size then
+          movesize:=size;
+        move(p^,newP^,movesize);
+      end;
      { release p }
      traceFreeMem(p);
      { return the new pointer }
@@ -1132,7 +1138,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.32  2004-09-16 07:21:08  michael
+  Revision 1.33  2004-09-21 14:49:29  peter
+    * fix reallocmem
+
+  Revision 1.32  2004/09/16 07:21:08  michael
   Fix tracememsize for ansistrings (From Peter)
 
   Revision 1.31  2004/06/20 09:24:40  peter
