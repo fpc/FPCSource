@@ -371,12 +371,18 @@ the name is left as it is. (filenames are case sensitive under Unix)
 \Declaration
 Procedure FindClose (Var F: SearchRec);
 \Description
+\textbf{\linux, \windows and \ostwo wonly}
+\var{FindClose} frees any resources associated with the search record
+\var{F}.
 
-\textbf{\linux only}
-Under \linux, the \var{findfirst/findnext} calls have to be mimicked. 
-An internal table of file descriptors is kept. 
+Under \linux, \windows and \ostwo the \var{findfirst/findnext} calls have 
+to be mimicked. This call is needed to free any internal resources allocated
+by the \seef{FindFirst} or \seef{FindNext} calls.
+
+E.g. on \linux, an internal table of file descriptors is kept. 
 When using different \var{searchrecs} at the same time, 
 the system may run out of file descriptors for directories.
+
 The \linux implementation of the \dos unit therefore keeps a table of open
 directories, and when the table is full, closes one of the directories, and
 reopens another. This system is adequate but slow if you use a lot of
@@ -386,13 +392,16 @@ implemented. When you don't need a \var{searchrec} any more, you can tell
 this to the \dos unit by issuing a \var{FindClose} call. The directory
 which is kept open for this \var{searchrec} is then closed, and the table slot
 freed.
-It is recommended to use the \linux call \var{Glob} when looking for files.
+
+It is recommended to use the \linux call \var{Glob} when looking for files 
+on \linux.
 
 \Errors
 None.
 \SeeAlso
 \seef{Glob}.
 \end{procedure}
+
 \begin{procedure}{FindFirst}
 \Declaration
 Procedure FindFirst (const Path: pathstr; Attr: word; var F: SearchRec);
@@ -407,6 +416,16 @@ case \var{FindFirst} will return the first file which matches the specified
 criteria.
 If \var{DosError} is different from zero, no file(s) matching the criteria 
 was(were) found.
+
+On \ostwo, you cannot issue two different \var{FindFirst} calls. That is,
+you must close any previous search operation with \seep{FindClose} before
+starting a new one. Failure to do so will end in a Run-Time Error 6 
+(Invalid file handle)
+
+Also, on \ostwo, the boolean variable \var{FileNameCaseSensitive} indicates
+whether searches are conducted case-sensitive or not. By default, searches
+are not case sensitive. If the varieble is set to \var{True}, searches on
+\ostwo are case sensistive.
 \Errors
 Errors are reported in DosError.
 \SeeAlso
