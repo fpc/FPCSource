@@ -680,7 +680,9 @@ const
             begin
               if (a and 31) <> 0 Then
                 list.concat(taicpu.op_reg_reg_const(
-                  TOpCG2AsmOpConstLo[Op],dst,src,a and 31));
+                  TOpCG2AsmOpConstLo[Op],dst,src,a and 31))
+              else
+                a_load_reg_reg(list,size,size,src,dst);
               if (a shr 5) <> 0 then
                 internalError(68991);
             end
@@ -2367,7 +2369,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2003-05-11 11:07:33  jonas
+  Revision 1.88  2003-05-11 11:45:08  jonas
+    * fixed shifts
+
+  Revision 1.87  2003/05/11 11:07:33  jonas
     * fixed optimizations in a_op_const_reg_reg()
 
   Revision 1.86  2003/04/27 11:21:36  peter

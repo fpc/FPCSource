@@ -207,16 +207,14 @@ implementation
                    begin
                      if nodetype = shln then
                        begin
-                         if (shiftval and 31) <> 0 then
-                           cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,
-                             shiftval and 31,hregisterlow,location.registerhigh);
+                         cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,
+                           shiftval and 31,hregisterlow,location.registerhigh);
                          cg.a_load_const_reg(exprasmlist,OS_32,0,location.registerlow);
                        end
                      else
                        begin
-                         if (shiftval and 31) <> 0 then
-                           cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,
-                             shiftval and 31,hregisterhigh,location.registerlow);
+                         cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,
+                           shiftval and 31,hregisterhigh,location.registerlow);
                          cg.a_load_const_reg(exprasmlist,OS_32,0,location.registerhigh);
                        end;
                    end
@@ -512,7 +510,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2003-04-24 12:57:32  florian
+  Revision 1.26  2003-05-11 11:45:08  jonas
+    * fixed shifts
+
+  Revision 1.25  2003/04/24 12:57:32  florian
     * fixed not node
 
   Revision 1.24  2003/03/11 21:46:24  jonas
