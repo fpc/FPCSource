@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for Free Pascal Netware RTL
+#   Makefile.fpc for Free Pascal Netware RTL (clib)
 #
 
 [package]
@@ -76,7 +76,7 @@ dsapi.imp dsevent.imp lib0.imp \
 locnlm32.imp ndpsrpc.imp netnlm32.imp nit.imp \
 nlmlib.imp nwpsrv3x.imp nwpsrv.imp nwsnut.imp \
 requestr.imp socklib.imp streams.imp threads.imp \
-tli.imp vollib.imp ws2_32.imp ws2nlm.imp
+tli.imp vollib.imp ws2_32.imp ws2nlm.imp unicode.imp
 
 
 [rules]

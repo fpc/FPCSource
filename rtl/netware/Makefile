@@ -242,7 +242,7 @@ dsapi.imp dsevent.imp lib0.imp \
 locnlm32.imp ndpsrpc.imp netnlm32.imp nit.imp \
 nlmlib.imp nwpsrv3x.imp nwpsrv.imp nwsnut.imp \
 requestr.imp socklib.imp streams.imp threads.imp \
-tli.imp vollib.imp ws2_32.imp ws2nlm.imp
+tli.imp vollib.imp ws2_32.imp ws2nlm.imp unicode.imp
 override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings lineinfo winsock heaptrc matrix dos crt objects sysconst initc sysutils types typinfo systhrds classes cpu mmx getopts dateutils strutils convutils charset ucomplex variants rtlconst math varutils freebidi utf8bidi mouse video keyboard cmem sockets aio nwsnut nwserv nwnit nwprot netware
 override TARGET_LOADERS+=nwpre prelude
 override TARGET_RSTS+=math varutils variants typinfo classes dateutils sysconst convutils rtlconst systhrds
