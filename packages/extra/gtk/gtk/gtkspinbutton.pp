@@ -99,9 +99,7 @@ procedure gtk_spin_button_spin(spin_button:PGtkSpinButton; direction:TGtkSpinTyp
 procedure gtk_spin_button_set_wrap(spin_button:PGtkSpinButton; wrap:gboolean);cdecl;external gtkdll name 'gtk_spin_button_set_wrap';
 procedure gtk_spin_button_set_shadow_type(spin_button:PGtkSpinButton; shadow_type:TGtkShadowType);cdecl;external gtkdll name 'gtk_spin_button_set_shadow_type';
 procedure gtk_spin_button_set_snap_to_ticks(spin_button:PGtkSpinButton; snap_to_ticks:gboolean);cdecl;external gtkdll name 'gtk_spin_button_set_snap_to_ticks';
-{$ifndef gtkwin}
 procedure gtk_spin_button_update(spin_button:PGtkSpinButton);cdecl;external gtkdll name 'gtk_spin_button_update';
-{$endif}
 
 {$endif read_interface}
 
@@ -217,7 +215,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:00  peter
+  Revision 1.3  2002-10-31 08:03:39  michael
+  + Added some missing methods
+
+  Revision 1.2  2002/09/07 15:43:00  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:13  peter

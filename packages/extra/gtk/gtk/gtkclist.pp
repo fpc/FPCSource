@@ -250,19 +250,15 @@ function  gtk_clist_get_type:TGtkType;cdecl;external gtkdll name 'gtk_clist_get_
 procedure gtk_clist_construct(clist:PGtkCList; columns:gint; titles:PPgchar);cdecl;external gtkdll name 'gtk_clist_construct';
 function  gtk_clist_new (columns:gint):PGtkWidget;cdecl;external gtkdll name 'gtk_clist_new';
 function  gtk_clist_new_with_titles (columns:gint; titles:PPgchar):PGtkWidget;cdecl;external gtkdll name 'gtk_clist_new_with_titles';
-{$ifndef gtkwin}
 procedure gtk_clist_set_hadjustment(clist:PGtkCList; adjustment:PGtkAdjustment);cdecl;external gtkdll name 'gtk_clist_set_hadjustment';
 procedure gtk_clist_set_vadjustment(clist:PGtkCList; adjustment:PGtkAdjustment);cdecl;external gtkdll name 'gtk_clist_set_vadjustment';
 function  gtk_clist_get_hadjustment(clist:PGtkCList):PGtkAdjustment;cdecl;external gtkdll name 'gtk_clist_get_hadjustment';
 function  gtk_clist_get_vadjustment(clist:PGtkCList):PGtkAdjustment;cdecl;external gtkdll name 'gtk_clist_get_vadjustment';
-{$endif}
 procedure gtk_clist_set_shadow_type(clist:PGtkCList; thetype:TGtkShadowType);cdecl;external gtkdll name 'gtk_clist_set_shadow_type';
 procedure gtk_clist_set_selection_mode(clist:PGtkCList; mode:TGtkSelectionMode);cdecl;external gtkdll name 'gtk_clist_set_selection_mode';
 procedure gtk_clist_set_reorderable(clist:PGtkCList; reorderable:gboolean);cdecl;external gtkdll name 'gtk_clist_set_reorderable';
-{$ifndef gtkwin}
 procedure gtk_clist_set_use_drag_icons(clist:PGtkCList; use_icons:gboolean);cdecl;external gtkdll name 'gtk_clist_set_use_drag_icons';
 procedure gtk_clist_set_button_actions(clist:PGtkCList; button:guint; button_actions:guint8);cdecl;external gtkdll name 'gtk_clist_set_button_actions';
-{$endif}
 procedure gtk_clist_freeze(clist:PGtkCList);cdecl;external gtkdll name 'gtk_clist_freeze';
 procedure gtk_clist_thaw(clist:PGtkCList);cdecl;external gtkdll name 'gtk_clist_thaw';
 procedure gtk_clist_column_titles_show(clist:PGtkCList);cdecl;external gtkdll name 'gtk_clist_column_titles_show';
@@ -292,10 +288,8 @@ procedure gtk_clist_set_text(clist:PGtkCList; row:gint; column:gint; thetext:Pgc
 function  gtk_clist_get_text(clist:PGtkCList; row:gint; column:gint; thetext:PPgchar):gint;cdecl;external gtkdll name 'gtk_clist_get_text';
 procedure gtk_clist_set_pixmap(clist:PGtkCList; row:gint; column:gint; pixmap:PGdkPixmap; mask:PGdkBitmap);cdecl;external gtkdll name 'gtk_clist_set_pixmap';
 function  gtk_clist_get_pixmap(clist:PGtkCList; row:gint; column:gint; pixmap:PPGdkPixmap; mask:PPGdkBitmap):gint;cdecl;external gtkdll name 'gtk_clist_get_pixmap';
-{$ifndef gtkwin}
 procedure gtk_clist_set_pixtext(clist:PGtkCList; row:gint; column:gint; thetext:Pgchar; spacing:guint8;pixmap:PGdkPixmap; mask:PGdkBitmap);cdecl;external gtkdll name 'gtk_clist_set_pixtext';
 function  gtk_clist_get_pixtext(clist:PGtkCList; row:gint; column:gint; thetext:PPgchar; spacing:Pguint8;pixmap:PPGdkPixmap; mask:PPGdkBitmap):gint;cdecl;external gtkdll name 'gtk_clist_get_pixtext';
-{$endif}
 procedure gtk_clist_set_foreground(clist:PGtkCList; row:gint; color:PGdkColor);cdecl;external gtkdll name 'gtk_clist_set_foreground';
 procedure gtk_clist_set_background(clist:PGtkCList; row:gint; color:PGdkColor);cdecl;external gtkdll name 'gtk_clist_set_background';
 procedure gtk_clist_set_cell_style(clist:PGtkCList; row:gint; column:gint; style:PGtkStyle);cdecl;external gtkdll name 'gtk_clist_set_cell_style';
@@ -318,9 +312,7 @@ function  gtk_clist_get_selection_info(clist:PGtkCList; x:gint; y:gint; row:Pgin
 procedure gtk_clist_select_all(clist:PGtkCList);cdecl;external gtkdll name 'gtk_clist_select_all';
 procedure gtk_clist_unselect_all(clist:PGtkCList);cdecl;external gtkdll name 'gtk_clist_unselect_all';
 procedure gtk_clist_swap_rows(clist:PGtkCList; row1:gint; row2:gint);cdecl;external gtkdll name 'gtk_clist_swap_rows';
-{$ifndef gtkwin}
 procedure gtk_clist_row_move(clist:PGtkCList; source_row:gint; dest_row:gint);cdecl;external gtkdll name 'gtk_clist_row_move';
-{$endif}
 procedure gtk_clist_set_compare_func(clist:PGtkCList; cmp_func:TGtkCListCompareFunc);cdecl;external gtkdll name 'gtk_clist_set_compare_func';
 procedure gtk_clist_set_sort_column(clist:PGtkCList; column:gint);cdecl;external gtkdll name 'gtk_clist_set_sort_column';
 procedure gtk_clist_set_sort_type(clist:PGtkCList; sort_type:TGtkSortType);cdecl;external gtkdll name 'gtk_clist_set_sort_type';
@@ -431,7 +423,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:59  peter
+  Revision 1.3  2002-10-31 08:03:38  michael
+  + Added some missing methods
+
+  Revision 1.2  2002/09/07 15:42:59  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:09  peter

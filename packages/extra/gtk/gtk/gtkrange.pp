@@ -89,9 +89,7 @@ function  gtk_range_get_adjustment (range:PGtkRange):PGtkAdjustment;cdecl;extern
 procedure gtk_range_set_update_policy(range:PGtkRange; policy:TGtkUpdateType);cdecl;external gtkdll name 'gtk_range_set_update_policy';
 procedure gtk_range_set_adjustment(range:PGtkRange; adjustment:PGtkAdjustment);cdecl;external gtkdll name 'gtk_range_set_adjustment';
 procedure gtk_range_draw_background(range:PGtkRange);cdecl;external gtkdll name 'gtk_range_draw_background';
-{$ifndef gtkwin}
 procedure gtk_range_clear_background(range:PGtkRange);cdecl;external gtkdll name 'gtk_range_clear_background';
-{$endif}
 procedure gtk_range_draw_trough(range:PGtkRange);cdecl;external gtkdll name 'gtk_range_draw_trough';
 procedure gtk_range_draw_slider(range:PGtkRange);cdecl;external gtkdll name 'gtk_range_draw_slider';
 procedure gtk_range_draw_step_forw(range:PGtkRange);cdecl;external gtkdll name 'gtk_range_draw_step_forw';
@@ -179,7 +177,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:00  peter
+  Revision 1.3  2002-10-31 08:03:39  michael
+  + Added some missing methods
+
+  Revision 1.2  2002/09/07 15:43:00  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:13  peter

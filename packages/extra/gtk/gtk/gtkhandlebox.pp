@@ -66,11 +66,9 @@ function  GTK_IS_HANDLE_BOX_CLASS(klass:pointer):boolean;
 
 function  gtk_handle_box_get_type:TGtkType;cdecl;external gtkdll name 'gtk_handle_box_get_type';
 function  gtk_handle_box_new : PGtkWidget;cdecl;external gtkdll name 'gtk_handle_box_new';
-{$ifndef gtkwin}
 procedure gtk_handle_box_set_shadow_type(handle_box:PGtkHandleBox; thetype:TGtkShadowType);cdecl;external gtkdll name 'gtk_handle_box_set_shadow_type';
 procedure gtk_handle_box_set_handle_position(handle_box:PGtkHandleBox; position:TGtkPositionType);cdecl;external gtkdll name 'gtk_handle_box_set_handle_position';
 procedure gtk_handle_box_set_snap_edge(handle_box:PGtkHandleBox; edge:TGtkPositionType);cdecl;external gtkdll name 'gtk_handle_box_set_snap_edge';
-{$endif}
 
 {$endif read_interface}
 
@@ -156,7 +154,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:59  peter
+  Revision 1.3  2002-10-31 08:03:39  michael
+  + Added some missing methods
+
+  Revision 1.2  2002/09/07 15:42:59  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:11  peter

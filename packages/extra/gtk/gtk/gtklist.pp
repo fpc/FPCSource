@@ -72,17 +72,13 @@ procedure gtk_list_unselect_child(list:PGtkList; child:PGtkWidget);cdecl;externa
 function  gtk_list_child_position(list:PGtkList; child:PGtkWidget):gint;cdecl;external gtkdll name 'gtk_list_child_position';
 procedure gtk_list_set_selection_mode(list:PGtkList; mode:TGtkSelectionMode);cdecl;external gtkdll name 'gtk_list_set_selection_mode';
 procedure gtk_list_extend_selection(list:PGtkList; scroll_type:TGtkScrollType; position:gfloat; auto_start_selection:gboolean);cdecl;external gtkdll name 'gtk_list_extend_selection';
-{$ifndef gtkwin}
 procedure gtk_list_start_selection(list:PGtkList);cdecl;external gtkdll name 'gtk_list_start_selection';
-{$endif}
 procedure gtk_list_end_selection(list:PGtkList);cdecl;external gtkdll name 'gtk_list_end_selection';
 procedure gtk_list_select_all(list:PGtkList);cdecl;external gtkdll name 'gtk_list_select_all';
 procedure gtk_list_unselect_all(list:PGtkList);cdecl;external gtkdll name 'gtk_list_unselect_all';
 procedure gtk_list_scroll_horizontal(list:PGtkList; scroll_type:TGtkScrollType; position:gfloat);cdecl;external gtkdll name 'gtk_list_scroll_horizontal';
 procedure gtk_list_scroll_vertical(list:PGtkList; scroll_type:TGtkScrollType; position:gfloat);cdecl;external gtkdll name 'gtk_list_scroll_vertical';
-{$ifndef gtkwin}
 procedure gtk_list_toggle_add_mode(list:PGtkList);cdecl;external gtkdll name 'gtk_list_toggle_add_mode';
-{$endif}
 procedure gtk_list_toggle_focus_row(list:PGtkList);cdecl;external gtkdll name 'gtk_list_toggle_focus_row';
 procedure gtk_list_toggle_row(list:PGtkList; item:PGtkWidget);cdecl;external gtkdll name 'gtk_list_toggle_row';
 procedure gtk_list_undo_selection(list:PGtkList);cdecl;external gtkdll name 'gtk_list_undo_selection';
@@ -142,7 +138,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:59  peter
+  Revision 1.3  2002-10-31 08:03:39  michael
+  + Added some missing methods
+
+  Revision 1.2  2002/09/07 15:42:59  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:11  peter

@@ -130,11 +130,11 @@ function  gtk_ctree_node_nth(ctree:PGtkCTree; row:guint):PGtkCTreeNode;cdecl;ext
 function  gtk_ctree_find(ctree:PGtkCTree; node:PGtkCTreeNode; child:PGtkCTreeNode):gboolean;cdecl;external gtkdll name 'gtk_ctree_find';
 function  gtk_ctree_is_ancestor(ctree:PGtkCTree; node:PGtkCTreeNode; child:PGtkCTreeNode):gboolean;cdecl;external gtkdll name 'gtk_ctree_is_ancestor';
 function  gtk_ctree_find_by_row_data(ctree:PGtkCTree; node:PGtkCTreeNode; data:gpointer):PGtkCTreeNode;cdecl;external gtkdll name 'gtk_ctree_find_by_row_data';
-{$ifndef gtkwin}
+{//$ifndef gtkwin}
 function  gtk_ctree_find_all_by_row_data(ctree:PGtkCTree; node:PGtkCTreeNode; data:gpointer):PGList;cdecl;external gtkdll name 'gtk_ctree_find_all_by_row_data';
 function  gtk_ctree_find_by_row_data_custom(ctree:PGtkCTree; node:PGtkCTreeNode; data:gpointer; func:TGCompareFunc):PGtkCTreeNode;cdecl;external gtkdll name 'gtk_ctree_find_by_row_data_custom';
 function  gtk_ctree_find_all_by_row_data_custom(ctree:PGtkCTree; node:PGtkCTreeNode; data:gpointer; func:TGCompareFunc):PGList;cdecl;external gtkdll name 'gtk_ctree_find_all_by_row_data_custom';
-{$endif}
+{//$endif}
 function  gtk_ctree_is_hot_spot(ctree:PGtkCTree; x:gint; y:gint):gboolean;cdecl;external gtkdll name 'gtk_ctree_is_hot_spot';
 procedure gtk_ctree_node_set_text(ctree:PGtkCTree; node:PGtkCTreeNode; column:gint; text:Pgchar);cdecl;external gtkdll name 'gtk_ctree_node_set_text';
 procedure gtk_ctree_node_set_pixmap(ctree:PGtkCTree; node:PGtkCTreeNode; column:gint; pixmap:PGdkPixmap; mask:PGdkBitmap);cdecl;external gtkdll name 'gtk_ctree_node_set_pixmap';
@@ -160,14 +160,28 @@ procedure gtk_ctree_node_moveto(ctree:PGtkCTree; node:PGtkCTreeNode; column:gint
 function  gtk_ctree_node_is_visible(ctree:PGtkCTree; node:PGtkCTreeNode):TGtkVisibility;cdecl;external gtkdll name 'gtk_ctree_node_is_visible';
 procedure gtk_ctree_set_indent(ctree:PGtkCTree; indent:gint);cdecl;external gtkdll name 'gtk_ctree_set_indent';
 procedure gtk_ctree_set_spacing(ctree:PGtkCTree; spacing:gint);cdecl;external gtkdll name 'gtk_ctree_set_spacing';
-{$ifndef gtkwin}
+{//$ifndef gtkwin}
 procedure gtk_ctree_set_show_stub(ctree:PGtkCTree; show_stub:gboolean);cdecl;external gtkdll name 'gtk_ctree_set_show_stub';
-{$endif}
+{//$endif}
 procedure gtk_ctree_set_line_style(ctree:PGtkCTree; line_style:TGtkCTreeLineStyle);cdecl;external gtkdll name 'gtk_ctree_set_line_style';
 procedure gtk_ctree_set_expander_style(ctree:PGtkCTree; expander_style:TGtkCTreeExpanderStyle);cdecl;external gtkdll name 'gtk_ctree_set_expander_style';
 procedure gtk_ctree_set_drag_compare_func(ctree:PGtkCTree; cmp_func:TGtkCTreeCompareDragFunc);cdecl;external gtkdll name 'gtk_ctree_set_drag_compare_func';
 procedure gtk_ctree_sort_node(ctree:PGtkCTree; node:PGtkCTreeNode);cdecl;external gtkdll name 'gtk_ctree_sort_node';
 procedure gtk_ctree_sort_recursive(ctree:PGtkCTree; node:PGtkCTreeNode);cdecl;external gtkdll name 'gtk_ctree_sort_recursive';
+
+procedure gtk_ctree_move(ctree:PGtkCTree; node:PGtkCTreeNode; new_parent:PGtkCTreeNode; new_sibling:PGtkCTreeNode);cdecl;external gtkdll name 'gtk_ctree_move';
+procedure gtk_ctree_expand(ctree:PGtkCTree; node:PGtkCTreeNode);cdecl;external gtkdll name 'gtk_ctree_expand';
+procedure gtk_ctree_expand_recursive(ctree:PGtkCTree; node:PGtkCTreeNode);cdecl;external gtkdll name 'gtk_ctree_expand_recursive';
+procedure gtk_ctree_expand_to_depth(ctree:PGtkCTree; node:PGtkCTreeNode; depth:gint);cdecl;external gtkdll name 'gtk_ctree_expand_to_depth';
+procedure gtk_ctree_collapse(ctree:PGtkCTree; node:PGtkCTreeNode);cdecl;external gtkdll name 'gtk_ctree_collapse';
+procedure gtk_ctree_collapse_recursive(ctree:PGtkCTree; node:PGtkCTreeNode);cdecl;external gtkdll name 'gtk_ctree_collapse_recursive';
+procedure gtk_ctree_collapse_to_depth(ctree:PGtkCTree; node:PGtkCTreeNode; depth:gint);cdecl;external gtkdll name 'gtk_ctree_collapse_to_depth';
+procedure gtk_ctree_select(ctree:PGtkCTree; node:PGtkCTreeNode);cdecl;external gtkdll name 'gtk_ctree_select';
+procedure gtk_ctree_select_recursive(ctree:PGtkCTree; node:PGtkCTreeNode);cdecl;external gtkdll name 'gtk_ctree_select_recursive';
+procedure gtk_ctree_unselect(ctree:PGtkCTree; node:PGtkCTreeNode);cdecl;external gtkdll name 'gtk_ctree_unselect';
+procedure gtk_ctree_unselect_recursive(ctree:PGtkCTree; node:PGtkCTreeNode);cdecl;external gtkdll name 'gtk_ctree_unselect_recursive';
+procedure gtk_ctree_real_select_recursive(ctree:PGtkCTree; node:PGtkCTreeNode; state:gint);cdecl;external gtkdll name 'gtk_ctree_real_select_recursive';
+procedure gtk_ctree_node_set_selectable(ctree:PGtkCTree; node:PGtkCTreeNode; selectable:gboolean);cdecl;external gtkdll name 'gtk_ctree_node_set_selectable';
 
 {$endif read_interface}
 
@@ -267,7 +281,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:59  peter
+  Revision 1.3  2002-10-31 08:03:39  michael
+  + Added some missing methods
+
+  Revision 1.2  2002/09/07 15:42:59  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:10  peter

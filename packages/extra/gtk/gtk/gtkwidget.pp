@@ -374,10 +374,8 @@ function  gtk_widget_get_toplevel (widget:PGtkWidget):PGtkWidget;cdecl;external 
 function  gtk_widget_get_ancestor (widget:PGtkWidget; widget_thetype:TGtkType):PGtkWidget;cdecl;external gtkdll name 'gtk_widget_get_ancestor';
 function  gtk_widget_get_colormap (widget:PGtkWidget):PGdkColormap;cdecl;external gtkdll name 'gtk_widget_get_colormap';
 function  gtk_widget_get_visual (widget:PGtkWidget):PGdkVisual;cdecl;external gtkdll name 'gtk_widget_get_visual';
-{$ifndef gtkwin}
 procedure gtk_widget_set_colormap(widget:PGtkWidget; colormap:PGdkColormap);cdecl;external gtkdll name 'gtk_widget_set_colormap';
 procedure gtk_widget_set_visual(widget:PGtkWidget; visual:PGdkVisual);cdecl;external gtkdll name 'gtk_widget_set_visual';
-{$endif}
 function  gtk_widget_get_events(widget:PGtkWidget):gint;cdecl;external gtkdll name 'gtk_widget_get_events';
 procedure gtk_widget_get_pointer(widget:PGtkWidget; x:Pgint; y:Pgint);cdecl;external gtkdll name 'gtk_widget_get_pointer';
 function  gtk_widget_is_ancestor(widget:PGtkWidget; ancestor:PGtkWidget):gint;cdecl;external gtkdll name 'gtk_widget_is_ancestor';
@@ -552,7 +550,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:00  peter
+  Revision 1.3  2002-10-31 08:03:39  michael
+  + Added some missing methods
+
+  Revision 1.2  2002/09/07 15:43:00  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:14  peter
