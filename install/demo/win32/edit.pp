@@ -7,7 +7,19 @@
 
 { Derived from menu.pp
 
-  Changes by Goeran Andersson:
+Changes by Goeran Andersson:
+
+  2000.02.24
+    Handles WM_DrawBkgnd to reduce flicker
+    Changes to also compile in FPC mode
+
+Changes by Morten Skovrup:
+
+  2000-02-21
+    Change font
+    Modified statusbar
+
+Changes by Goeran Andersson:
 
   2000.02.20
     Sends focus to editor
@@ -21,7 +33,6 @@
     Undo, Cut, Copy & Paste implemented
     WM_Paint sections commented
 
-
   1999.08.10
     LoadText() added
     NewText() added
@@ -29,45 +40,63 @@
     Asks to save file
     Empty files works
     EditCreate styles corrected
-
-2do:
-  reduce flickering when resizing
-  use the status bar for something
 }
 
 Program editdemo;
+
 {$APPTYPE GUI}
-{$MODE DELPHI}
 
-Uses Strings,Windows;
+Uses
+  Strings,Windows;
 
-Const AppName = 'EditDemo';
-
-Var AMessage: Msg;
-    HWindow,HStatus,HEdit: HWnd;
+Const
+  AppName = 'EditDemo';
 
 Type
   TFileName = Array[0..Max_Path] Of Char;
 
-Function SelectFile(Var FName:TFileName; Open:Boolean): Boolean;
-
-Const
-  Filter: PChar = 'Text files (*.txt)'#0'*.txt'#0'All files (*.*)'#0'*.*'#0;
-  Ext: PChar = 'txt';
-
 Var
-  NameRec: OpenFileName;
+  AMessage              : Msg;
+  HWindow,HStatus,HEdit : HWnd;
+  TheFont               : HFont;
+  TheLogFont            : TLogFont;
+  TheColor              : DWORD;
+  FileName              : TFileName;
+
+{********************************************************************}
+
+Procedure SetStatusText(Num : Integer; Const Text : string);
+var
+  StatText : array[0..255] of Char;
+begin
+  if Num = 0 then
+    StatText[0] := ' '  // Add space to text in first item
+  else
+    StatText[0] := #9;  // Center the rest
+  StrPCopy(@StatText[1],Text);
+  SendMessage(HStatus,SB_SETTEXT,Num,LongInt(@StatText));
+end;
+
+{********************************************************************}
+
+Function SelectFile(Var FName:TFileName; Open:Boolean): Boolean;
+Const
+  Filter : PChar = 'Text files (*.txt)'#0'*.txt'#0+
+                   'All files (*.*)'#0'*.*'#0#0;
+  Ext    : PChar = 'txt';
+Var
+  NameRec : OpenFileName;
 Begin
   FillChar(NameRec,SizeOf(NameRec),0);
   FName[0] := #0;
   With NameRec Do
     Begin
       LStructSize := SizeOf(NameRec);
-      HWndOwner := HWindow;
+      HWndOwner   := HWindow;
       LpStrFilter := Filter;
-      LpStrFile := @FName;
-      NMaxFile := Max_Path;
-      Flags := OFN_Explorer Or OFN_HideReadOnly;
+      LpStrFile   := @FName;
+      NMaxFile    := Max_Path;
+      Flags       := OFN_Explorer Or OFN_HideReadOnly;
       If Open Then
         Begin
           Flags := Flags Or OFN_FileMustExist;
@@ -80,12 +109,14 @@ Begin
       SelectFile := GetSaveFileName(@NameRec);
 End;
 
-Procedure SaveText;
+{********************************************************************}
 
-Var Len: Longint;
-    P: PChar;
-    F: File;
-    FName: TFileName;
+Procedure SaveText;
+Var
+  Len   : Longint;
+  P     : PChar;
+  F     : File;
+  FName : TFileName;
 Begin
   If SelectFile(FName,False) Then
     Begin
@@ -101,13 +132,18 @@ Begin
         End;
       Close(F);
       FreeMem(P,Len+1);
+      StrCopy(FileName,FName);
+      SetStatusText(0,StrPas(FileName));
+      SetStatusText(1,'');
+      SendMessage(HEdit,EM_SetModify,0,0);
     End;
 End;
 
-Procedure AskSave;
+{********************************************************************}
 
+Procedure AskSave;
 Const
-  BoxType=MB_IconQuestion Or MB_YesNo;
+  BoxType = MB_IconQuestion Or MB_YesNo;
 Begin
   If SendMessage(HEdit,EM_GetModify,0,0)<>0 Then
     Begin
@@ -118,18 +154,18 @@ Begin
     End;
 End;
 
-Procedure LoadText;
+{********************************************************************}
 
+Procedure LoadText;
 Var
-  FName: TFileName;
-  F: File;
-  Len: LongInt;
-  P: PChar;
+  F     : File;
+  Len   : LongInt;
+  P     : PChar;
 Begin
   AskSave;
-  If SelectFile(FName,True) Then
+  If SelectFile(FileName,True) Then
     Begin
-      Assign(F,@FName);
+      Assign(F,@FileName);
       Reset(F,1);
       Len := FileSize(F);
       GetMem(P,Len+1);
@@ -139,123 +175,166 @@ Begin
       SetWindowText(HEdit,P);
       SendMessage(HEdit,EM_SetModify,0,0);
       FreeMem(P,Len+1);
+      SetStatusText(0,StrPas(FileName));
+      SetStatusText(1,'');
     End;
 End;
 
-Procedure NewText;
+{********************************************************************}
 
+Procedure NewText;
 Const
-  Empty: PChar = '';
+  Empty : PChar = '';
 Begin
   AskSave;
+  FileName := 'Unsaved';
+  SetStatusText(0,StrPas(FileName));
   SendMessage(HEdit,WM_SetText,1,LongInt(Empty));
   SendMessage(HEdit,EM_SetModify,0,0);
 End;
 
-Function WindowProc (Window:HWnd;AMessage,WParam,LParam:Longint): Longint;
-stdcall;
-export;
+{********************************************************************}
 
+procedure SelectFont;
+var
+  ChooseFontRec : TChooseFont;
+begin
+  with ChooseFontRec do
+    begin
+      lStructSize    := SizeOf(ChooseFontRec);
+      hwndOwner      := HWindow;
+      hDC            := 0;
+      lpLogFont      := @TheLogFont;
+      iPointSize     := 0;
+      Flags          := CF_INITTOLOGFONTSTRUCT or CF_SCREENFONTS or CF_EFFECTS;
+      rgbColors      := TheColor;
+      lCustData      := 0;
+      lpfnHook       := nil;
+      lpTemplateName := nil;
+      hInstance      := 0;
+      lpszStyle      := nil;
+      nFontType      := 0;
+      nSizeMin       := 0;
+      nSizeMax       := 0;
+    end;
+  if ChooseFont(@ChooseFontRec) then
+    begin
+      DeleteObject(TheFont);
+      TheColor := ChooseFontRec.rgbColors;
+      TheFont  := CreateFontIndirect(TheLogFont);
+      SendMessage(HEdit,WM_SETFONT,TheFont,1);
+    end;
+end;
+
+{********************************************************************}
+
+Function WindowProc (Window:HWnd;AMessage,WParam,LParam:Longint): Longint;
+stdcall; export;
 Var
-    R: rect;
-    StatH: Word;
-    NrMenu : Longint;
-//  ps: paintstruct;
+  R        : rect;
+  StatH    : Word;
+  NrMenu   : Longint;
+  NotiCode : LongInt;
 Begin
   WindowProc := 0;
   Case AMessage Of
-{
-    wm_Paint:
-              Begin
-                GetClientRect(Window,@R);
-                BeginPaint(Window,@ps);
-                ...
-                EndPaint(Window,@ps);
-                Exit;
-              End;
-}
     wm_Close:
-              Begin
-                AskSave;
-              End;
+      Begin
+        AskSave;
+      End;
     wm_Destroy:
-                Begin
-                  PostQuitMessage (0);
-                  Exit;
-                End;
+      Begin
+        PostQuitMessage (0);
+        Exit;
+      End;
     wm_SetFocus:
-                 Begin
-                   SetFocus(HEdit);
-                 End;
+      Begin
+        SetFocus(HEdit);
+      End;
+    WM_EraseBkgnd:
+      Begin
+        Exit(1);
+      End;
     wm_Size:
-             Begin
-               GetClientRect(HStatus,@R);
-               StatH := R.Bottom-R.Top;
-               GetClientRect(Window,@R);
-               MoveWindow (HEdit,0,0,R.Right,R.Bottom-StatH,False);
-               MoveWindow (HStatus,0,R.Bottom-StatH,R.Right,R.Bottom,False);
-             End;
+      Begin
+        GetClientRect(HStatus,@R);
+        StatH := R.Bottom-R.Top;
+        GetClientRect(Window,@R);
+        MoveWindow (HEdit,0,0,R.Right,R.Bottom-StatH,False);
+        MoveWindow (HStatus,0,R.Bottom-StatH,R.Right,R.Bottom,False);
+      End;
     wm_Command:
-                Begin
-                  NrMenu := LoWord(WParam);
-                  Case NrMenu Of
-                    101 : NewText;
-                    102 : LoadText;
-                    103 : SaveText;
-                    104 : PostMessage(Window,WM_Close,0,0);
-                    201 : SendMessage(HEdit,WM_Undo,0,0);
-                    202 : SendMessage(HEdit,WM_Cut,0,0);
-                    203 : SendMessage(HEdit,WM_Copy,0,0);
-                    204 : SendMessage(HEdit,WM_Paste,0,0);
-                    301 : MessageBox(Window,'Options','Not implemented',
-                                     MB_OK Or MB_IconInformation);
-                    401 : MessageBox(Window,'Help','Not implemented',
-                                     MB_OK Or MB_IconInformation);
-                  End;
-                End;
+      Begin
+        NotiCode := HiWord(WParam);
+        Case NotiCode of
+          en_Change	: //Editor has changed
+            Begin
+              If SendMessage(HEdit,EM_GetModify,0,0)<>0 then
+                SetStatusText(1,'Modified')
+              Else
+                SetStatusText(1,'');
+            End;
+          Else
+            Begin //Menu item
+              NrMenu := LoWord(WParam);
+              Case NrMenu Of
+                101 : NewText;
+                102 : LoadText;
+                103 : SaveText;
+                104 : PostMessage(Window,WM_Close,0,0);
+                201 : SendMessage(HEdit,WM_Undo,0,0);
+                202 : SendMessage(HEdit,WM_Cut,0,0);
+                203 : SendMessage(HEdit,WM_Copy,0,0);
+                204 : SendMessage(HEdit,WM_Paste,0,0);
+                301 : SelectFont;
+                401 : MessageBox(Window,'Help','Not implemented',
+                                 MB_OK Or MB_IconInformation);
+              End;
+            End;
+        End;
+      End;
+    wm_CtlColorEdit :
+      Begin
+        SetTextColor(WParam,TheColor);
+        Exit(GetSysColorBrush(COLOR_WINDOW));
+      End;
   End;
   WindowProc := DefWindowProc(Window,AMessage,WParam,LParam);
 End;
 
-Function WinRegister: Boolean;
+{********************************************************************}
 
+Function WinRegister: Boolean;
 Var
-  WindowClass: WndClass;
+  WindowClass : WndClass;
 Begin
   With WindowClass Do
     Begin
-      Style := cs_hRedraw Or cs_vRedraw;
-      lpfnWndProc := WndProc(@WindowProc);
-      cbClsExtra := 0;
-      cbWndExtra := 0;
-      hInstance := system.MainInstance;
-      hIcon := LoadIcon (0,idi_Application);
-      hCursor := LoadCursor (0,idc_Arrow);
+      Style         := cs_hRedraw Or cs_vRedraw;
+      lpfnWndProc   := WndProc(@WindowProc);
+      cbClsExtra    := 0;
+      cbWndExtra    := 0;
+      hInstance     := system.MainInstance;
+      hIcon         := LoadIcon (0,idi_Application);
+      hCursor       := LoadCursor (0,idc_Arrow);
       hbrBackground := GetStockObject(GRAY_BRUSH);
-      lpszMenuName := 'Files';
+      lpszMenuName  := Nil;
       lpszClassName := AppName;
     End;
   WinRegister := RegisterClass (WindowClass)<>0;
 End;
 
-Function EditCreate(ParentWindow,Status:HWnd): HWnd;
+{********************************************************************}
 
+Function EditCreate(ParentWindow,Status:HWnd): HWnd;
 Const
   CS_Start = WS_Child or WS_HScroll or WS_VScroll or ES_MultiLine or ES_Left;
-  CS_Ex = WS_EX_ClientEdge;
-  EdiTText: PChar = '';
-
+  CS_Ex    = WS_EX_ClientEdge;
+  EdiTText : PChar = '';
 Var
-  HEdit: HWND;
-  R: TRect;
-  StatH: Word;
-{                                             rev 1.5 : comment out
-  Procedure AddText (S:String);
-  begin
-    S:=S+#0;
-    SendMessage(HEdit,em_replacesel,0,longint(pchar(@S[1])));
-  end;
-}
+  HEdit : HWND;
+  R     : TRect;
+  StatH : Word;
 Begin
   GetClientRect(Status,@R);
   StatH := R.Bottom-R.Top;
@@ -265,17 +344,40 @@ Begin
                            MainInstance,Nil);
   If HEdit<>0 Then
     Begin
+      //Set Courier new as default font
+      with TheLogFont do
+        begin
+          lfHeight         := 0;                // Default logical height of font
+          lfWidth          := 0;                // Default logical average character width
+          lfEscapement     := 0;                // angle of escapement
+          lfOrientation    := 0;                // base-line orientation angle
+          lfWeight         := FW_NORMAL;        // font weight
+          lfItalic         := 0;                // italic attribute flag
+          lfUnderline      := 0;                // underline attribute flag
+          lfStrikeOut      := 0;                // strikeout attribute flag
+          lfCharSet        := DEFAULT_CHARSET;  // character set identifier
+          lfOutPrecision   := OUT_DEFAULT_PRECIS;  // output precision
+          lfClipPrecision  := CLIP_DEFAULT_PRECIS; // clipping precision
+          lfQuality        := DEFAULT_QUALITY;     // output quality
+          lfPitchAndFamily := DEFAULT_PITCH;    // pitch and family
+          Strcopy(lfFaceName,'Courier New');    // pointer to typeface name string
+        end;
+      TheColor := GetSysColor(COLOR_WINDOWTEXT);
+      TheFont  := CreateFontIndirect(TheLogFont);
+      SendMessage(HEdit,WM_SETFONT,TheFont,1);
       ShowWindow(Hedit,SW_Show);
       UpdateWindow(HEdit);
     End;
   EditCreate := HEdit;
 End;
 
+{********************************************************************}
+
 Function WinCreate: HWnd;
 
-Var hWindow: HWnd;
-    Menu: hMenu;
-    SubMenu: hMenu;
+Var hWindow : HWnd;
+    Menu    : hMenu;
+    SubMenu : hMenu;
 Begin
   hWindow := CreateWindow (AppName,'EditDemo',ws_OverlappedWindow,
                            cw_UseDefault,cw_UseDefault,cw_UseDefault,
@@ -289,7 +391,7 @@ Begin
       AppendMenu(Submenu,MF_STRING,103,'&Save...');
       AppendMenu(Submenu,MF_SEPARATOR,0,Nil);
       AppendMenu(SubMenu,MF_String,104,'E&xit');
-      AppendMenu(Menu,MF_POPUP,SubMenu,'&Files');
+      AppendMenu(Menu,MF_POPUP,SubMenu,'&File');
       SubMenu := CreateMenu;
       AppendMenu(SubMenu,MF_String,201,'&Undo'#8'Ctrl+Z');
       AppendMenu(Submenu,MF_SEPARATOR,0,Nil);
@@ -298,7 +400,7 @@ Begin
       AppendMenu(SubMenu,MF_STRING,204,'&Paste'#8'Ctrl+V');
       AppendMenu(Menu,MF_POPUP,SubMenu,'&Edit');
       SubMenu := CreateMenu;
-      AppendMenu(SubMenu,MF_String,301,'&Settings');
+      AppendMenu(SubMenu,MF_String,301,'&Font...');
       AppendMenu(Menu,MF_POPUP,SubMenu,'&Options');
       AppendMenu(Menu,MF_STRING,401,'&Help');
       SetMenu(hWindow,menu);
@@ -308,10 +410,26 @@ Begin
   WinCreate := hWindow;
 End;
 
+{********************************************************************}
+
 Function StatusCreate (parent:hwnd): HWnd;
+var
+  AWnd   : HWnd;
+  Edges  : array[1..2] of LongInt;
 Begin
-  StatusCreate := CreateStatusWindow (WS_CHILD Or WS_VISIBLE,'Ready...',parent,$7712);
+  FileName := 'Unsaved';
+  AWnd := CreateStatusWindow(WS_CHILD or WS_VISIBLE,FileName,Parent,$7712);
+  // Create items:
+  if AWnd <> 0 then
+    begin
+      Edges[1] := 400;
+      Edges[2] := 500;
+      SendMessage(AWnd,SB_SETPARTS,2,LongInt(@Edges));
+    end;
+  StatusCreate := AWnd;
 End;
+
+{********************************************************************}
 
 Begin
   If Not WinRegister Then
@@ -331,10 +449,11 @@ Begin
           HEdit := EditCreate(HWindow,HStatus);
           SetFocus(HEdit);
           While GetMessage(@AMessage,0,0,0) Do
-          Begin
-            TranslateMessage(AMessage);
-            DispatchMessage(AMessage);
-          End;
+            Begin
+              TranslateMessage(AMessage);
+              DispatchMessage(AMessage);
+            End;
+          DeleteObject(TheFont);
           Halt(AMessage.wParam);
         End;
     End;
@@ -342,7 +461,10 @@ End.
 
 {
   $Log$
-  Revision 1.1  2000-02-20 20:33:37  florian
+  Revision 1.2  2000-02-27 21:07:58  florian
+    * updated version from Goran and Morton
+
+  Revision 1.1  2000/02/20 20:33:37  florian
     * Initial revision
 
 }
