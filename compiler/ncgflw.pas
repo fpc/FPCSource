@@ -1225,7 +1225,7 @@ implementation
          objectlibrary.getlabel(nextonlabel);
 
          { send the vmt parameter }
-         reference_reset_symbol(href2,objectlibrary.newasmsymbol(excepttype.vmt_mangledname),0);
+         reference_reset_symbol(href2,objectlibrary.newasmsymboldata(excepttype.vmt_mangledname),0);
          cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(1));
          cg.a_call_name(exprasmlist,'FPC_CATCHES');
 
@@ -1483,7 +1483,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2003-03-28 19:16:56  peter
+  Revision 1.53  2003-04-06 21:11:23  olle
+    * changed newasmsymbol to newasmsymboldata for data symbols
+
+  Revision 1.52  2003/03/28 19:16:56  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

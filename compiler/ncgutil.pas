@@ -995,7 +995,7 @@ implementation
            if tsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
             reference_reset_base(href,procinfo.framepointer,-tvarsym(p).address+tvarsym(p).owner.address_fixup)
            else
-            reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(p).mangledname),0);
+            reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(p).mangledname),0);
            cg.g_initialize(list,tvarsym(p).vartype.def,href,false);
          end;
       end;
@@ -1019,7 +1019,7 @@ implementation
                  if tsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
                   reference_reset_base(href,procinfo.framepointer,-tvarsym(p).address+tvarsym(p).owner.address_fixup)
                  else
-                  reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(p).mangledname),0);
+                  reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(p).mangledname),0);
                  cg.g_finalize(list,tvarsym(p).vartype.def,href,false);
                end;
             end;
@@ -1028,7 +1028,7 @@ implementation
               if ttypedconstsym(p).is_writable and
                  ttypedconstsym(p).typedconsttype.def.needs_inittable then
                begin
-                 reference_reset_symbol(href,objectlibrary.newasmsymbol(ttypedconstsym(p).mangledname),0);
+                 reference_reset_symbol(href,objectlibrary.newasmsymboldata(ttypedconstsym(p).mangledname),0);
                  cg.g_finalize(list,ttypedconstsym(p).typedconsttype.def,href,false);
                end;
             end;
@@ -1466,9 +1466,9 @@ function returns in a register and the caller receives it in an other one}
               if (target_info.system in [system_i386_win32,system_i386_wdosx]) and
                  (cs_profile in aktmoduleswitches) then
                begin
-                 reference_reset_symbol(href,objectlibrary.newasmsymbol('etext'),0);
+                 reference_reset_symbol(href,objectlibrary.newasmsymboldata('etext'),0);
                  cg.a_paramaddr_ref(list,href,paraloc);
-                 reference_reset_symbol(href,objectlibrary.newasmsymbol('__image_base__'),0);
+                 reference_reset_symbol(href,objectlibrary.newasmsymboldata('__image_base__'),0);
                  cg.a_paramaddr_ref(list,href,paraloc);
                  cg.a_call_name(list,'_monstartup');
                end;
@@ -1708,7 +1708,7 @@ function returns in a register and the caller receives it in an other one}
                             else if is_object(procinfo._class) then
                              begin
                                cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(2));
-                               reference_reset_symbol(href,objectlibrary.newasmsymbol(procinfo._class.vmt_mangledname),0);
+                               reference_reset_symbol(href,objectlibrary.newasmsymboldata(procinfo._class.vmt_mangledname),0);
                                cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
                              end
                             else
@@ -2005,7 +2005,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.82  2003-03-30 20:59:07  peter
+  Revision 1.83  2003-04-06 21:11:23  olle
+    * changed newasmsymbol to newasmsymboldata for data symbols
+
+  Revision 1.82  2003/03/30 20:59:07  peter
     * fix classmethod from classmethod call
     * move BeforeDestruction/AfterConstruction calls to
       genentrycode/genexitcode instead of generating them on the fly

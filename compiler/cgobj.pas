@@ -1487,7 +1487,7 @@ unit cgobj;
       begin
         if (cs_check_object in aktlocalswitches) then
          begin
-           reference_reset_symbol(hrefvmt,objectlibrary.newasmsymbol(objdef.vmt_mangledname),0);
+           reference_reset_symbol(hrefvmt,objectlibrary.newasmsymboldata(objdef.vmt_mangledname),0);
            a_paramaddr_ref(list,hrefvmt,paramanager.getintparaloc(2));
            a_param_reg(list,OS_ADDR,reg,paramanager.getintparaloc(1));
            a_call_name(list,'FPC_CHECK_OBJECT_EXT');
@@ -1719,7 +1719,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.80  2003-03-28 19:16:56  peter
+  Revision 1.81  2003-04-06 21:11:23  olle
+    * changed newasmsymbol to newasmsymboldata for data symbols
+
+  Revision 1.80  2003/03/28 19:16:56  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

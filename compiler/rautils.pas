@@ -820,7 +820,7 @@ Begin
             end;
           globalsymtable,
           staticsymtable :
-            opr.ref.symbol:=objectlibrary.newasmsymbol(tvarsym(sym).mangledname);
+            opr.ref.symbol:=objectlibrary.newasmsymboldata(tvarsym(sym).mangledname);
           parasymtable :
             begin
               { if we only want the offset we don't have to care
@@ -865,7 +865,7 @@ Begin
           localsymtable :
             begin
               if (vo_is_external in tvarsym(sym).varoptions) then
-                opr.ref.symbol:=objectlibrary.newasmsymbol(tvarsym(sym).mangledname)
+                opr.ref.symbol:=objectlibrary.newasmsymboldata(tvarsym(sym).mangledname)
               else
                 begin
                   { if we only want the offset we don't have to care
@@ -926,7 +926,7 @@ Begin
       end;
     typedconstsym :
       begin
-        opr.ref.symbol:=objectlibrary.newasmsymbol(ttypedconstsym(sym).mangledname);
+        opr.ref.symbol:=objectlibrary.newasmsymboldata(ttypedconstsym(sym).mangledname);
         case ttypedconstsym(sym).typedconsttype.def.deftype of
           orddef,
           enumdef,
@@ -1582,7 +1582,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.54  2003-03-28 19:16:57  peter
+  Revision 1.55  2003-04-06 21:11:23  olle
+    * changed newasmsymbol to newasmsymboldata for data symbols
+
+  Revision 1.54  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

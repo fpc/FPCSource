@@ -136,7 +136,7 @@ interface
                   (str_length(left)=0) then
                 begin
                   reference_reset(hr);
-                  hr.symbol:=objectlibrary.newasmsymbol('FPC_EMPTYCHAR');
+                  hr.symbol:=objectlibrary.newasmsymboldata('FPC_EMPTYCHAR');
                   location.register:=rg.getaddressregister(exprasmlist);
                   cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
                 end
@@ -157,7 +157,7 @@ interface
                   (str_length(left)=0) then
                 begin
                   reference_reset(hr);
-                  hr.symbol:=objectlibrary.newasmsymbol('FPC_EMPTYCHAR');
+                  hr.symbol:=objectlibrary.newasmsymboldata('FPC_EMPTYCHAR');
                   location.register:=rg.getaddressregister(exprasmlist);
                   cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
                 end
@@ -385,7 +385,7 @@ interface
          end;
          cg.a_cmp_const_reg_label(exprasmlist,OS_32,OC_NE,0,location.register,l1);
          reference_reset(hr);
-         hr.symbol:=objectlibrary.newasmsymbol('FPC_EMPTYCHAR');
+         hr.symbol:=objectlibrary.newasmsymboldata('FPC_EMPTYCHAR');
          cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
          cg.a_label(exprasmlist,l1);
       end;
@@ -511,7 +511,10 @@ end.
 
 {
   $Log$
-  Revision 1.37  2003-03-28 19:16:56  peter
+  Revision 1.38  2003-04-06 21:11:23  olle
+    * changed newasmsymbol to newasmsymboldata for data symbols
+
+  Revision 1.37  2003/03/28 19:16:56  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

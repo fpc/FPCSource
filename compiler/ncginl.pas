@@ -228,7 +228,7 @@ implementation
         if left.nodetype=typen then
           begin
             hregister:=rg.getaddressregister(exprasmlist);
-            reference_reset_symbol(href,objectlibrary.newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),0);
+            reference_reset_symbol(href,objectlibrary.newasmsymboldata(tobjectdef(left.resulttype.def).vmt_mangledname),0);
             cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
           end
         else
@@ -646,7 +646,10 @@ end.
 
 {
   $Log$
-  Revision 1.22  2003-03-28 19:16:56  peter
+  Revision 1.23  2003-04-06 21:11:23  olle
+    * changed newasmsymbol to newasmsymboldata for data symbols
+
+  Revision 1.22  2003/03/28 19:16:56  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

@@ -236,7 +236,7 @@ implementation
                       if not(tobjectdef(tclassrefdef(p.resulttype.def).pointertype.def).is_related(
                         tobjectdef(tclassrefdef(t.def).pointertype.def))) then
                         Message(cg_e_illegal_expression);
-                      curconstSegment.concat(Tai_const_symbol.Create(objectlibrary.newasmsymbol(tobjectdef(
+                      curconstSegment.concat(Tai_const_symbol.Create(objectlibrary.newasmsymboldata(tobjectdef(
                         tclassrefdef(p.resulttype.def).pointertype.def).vmt_mangledname)));
                    end;
                  niln:
@@ -995,7 +995,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2003-03-17 21:42:32  peter
+  Revision 1.66  2003-04-06 21:11:23  olle
+    * changed newasmsymbol to newasmsymboldata for data symbols
+
+  Revision 1.65  2003/03/17 21:42:32  peter
     * allow nil initialization of dynamic array
 
   Revision 1.64  2003/01/02 20:45:08  peter

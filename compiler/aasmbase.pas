@@ -190,6 +190,7 @@ interface
          procedure DerefAsmsymbol(var s:tasmsymbol);
          { asmsymbol }
          function  newasmsymbol(const s : string) : tasmsymbol;
+         function  newasmsymboldata(const s : string) : tasmsymbol;
          function  newasmsymboltype(const s : string;_bind:TAsmSymBind;_typ:TAsmsymtype) : tasmsymbol;
          function  getasmsymbol(const s : string) : tasmsymbol;
          function  renameasmsymbol(const sold, snew : string):tasmsymbol;
@@ -714,6 +715,21 @@ implementation
       end;
 
 
+    function TAsmLibraryData.newasmsymboldata(const s : string) : tasmsymbol;
+      var
+        hp : tasmsymbol;
+      begin
+        hp:=tasmsymbol(symbolsearch.search(s));
+        if not assigned(hp) then
+         begin
+           { Not found, insert it as an External }
+           hp:=tasmsymbol.create(s,AB_EXTERNAL,AT_DATA);
+           symbolsearch.insert(hp);
+         end;
+        newasmsymboldata:=hp;
+      end;
+
+
     function TAsmLibraryData.newasmsymboltype(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : tasmsymbol;
       var
         hp : tasmsymbol;
@@ -887,7 +903,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2003-01-30 21:46:20  peter
+  Revision 1.14  2003-04-06 21:11:23  olle
+    * changed newasmsymbol to newasmsymboldata for data symbols
+
+  Revision 1.13  2003/01/30 21:46:20  peter
     * tai_const_symbol.createdataname added
 
   Revision 1.12  2002/11/17 16:31:55  carl

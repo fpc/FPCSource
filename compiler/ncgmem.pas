@@ -122,7 +122,7 @@ implementation
          location.register:=rg.getaddressregister(exprasmlist);
          { on 80386, LEA is the same as mov imm32 }
          reference_reset_symbol(href,
-           objectlibrary.newasmsymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),0);
+           objectlibrary.newasmsymboldata(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),0);
          cg.a_loadaddr_ref_reg(exprasmlist,href,location.register);
       end;
 
@@ -919,7 +919,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2003-03-28 19:16:56  peter
+  Revision 1.45  2003-04-06 21:11:23  olle
+    * changed newasmsymbol to newasmsymboldata for data symbols
+
+  Revision 1.44  2003/03/28 19:16:56  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

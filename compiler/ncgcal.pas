@@ -389,7 +389,7 @@ implementation
                         if (oo_has_vmt in tobjectdef(methodpointer.resulttype.def).objectoptions) then
                           begin
                             location_reset(vmtloc,LOC_REFERENCE,OS_NO);
-                            reference_reset_symbol(vmtloc.reference,objectlibrary.newasmsymbol(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
+                            reference_reset_symbol(vmtloc.reference,objectlibrary.newasmsymboldata(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
                             vmtrefaddr:=true;
                           end;
                      end
@@ -429,7 +429,7 @@ implementation
                    { constructor with extended syntax called from new }
                    { vmt }
                    location_reset(vmtloc,LOC_REFERENCE,OS_ADDR);
-                   reference_reset_symbol(vmtloc.reference,objectlibrary.newasmsymbol(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
+                   reference_reset_symbol(vmtloc.reference,objectlibrary.newasmsymboldata(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
                    vmtrefaddr:=true;
                 end;
               hdisposen:
@@ -439,7 +439,7 @@ implementation
                    secondpass(methodpointer);
                    { vmt }
                    location_reset(vmtloc,LOC_REFERENCE,OS_ADDR);
-                   reference_reset_symbol(vmtloc.reference,objectlibrary.newasmsymbol(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
+                   reference_reset_symbol(vmtloc.reference,objectlibrary.newasmsymboldata(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
                    vmtrefaddr:=true;
                    { self, load in register first when it requires a virtual call }
                    location_reset(selfloc,LOC_REFERENCE,OS_ADDR);
@@ -543,7 +543,7 @@ implementation
                           begin
                             { vmt }
                             location_reset(vmtloc,LOC_REFERENCE,OS_ADDR);
-                            reference_reset_symbol(vmtloc.reference,objectlibrary.newasmsymbol(
+                            reference_reset_symbol(vmtloc.reference,objectlibrary.newasmsymboldata(
                                tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
                             vmtrefaddr:=true;
                           end;
@@ -1448,7 +1448,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2003-04-04 15:38:56  peter
+  Revision 1.43  2003-04-06 21:11:23  olle
+    * changed newasmsymbol to newasmsymboldata for data symbols
+
+  Revision 1.42  2003/04/04 15:38:56  peter
     * moved generic code from n386cal to ncgcal, i386 now also
       uses the generic ncgcal
 
