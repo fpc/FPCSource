@@ -139,9 +139,58 @@
         mr   R4,R6
       end;
 
+{$define FPC_SYSTEM_HAS_MUL_QWORD}
+    { multiplies two qwords
+      the longbool for checkoverflow avoids a misaligned stack
+    }
+    function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+      assembler;
+      asm
+        // (r3:r4) = (r3:r4) * (r5:r6),  checkoverflow is in r7
+        //   res        f1        f2
+        
+        or.     r8,r3,r5    // are both msw's 0?
+        mulhwu  r8,r4,r6    // msw of product of lsw's
+        cntlzw  r11,r3      // count leading zeroes of msw1
+        cntlzw  r12,r5      // count leading zeroes of msw2
+        subi    r0,r7,1     // if no overflowcheck, r0 := $ffffffff, else r0 := 0;
+        add     r9,r11,r12  // sum of leading zeroes
+        or      r0,r9,r0    // maximise sum if no overflow checking, otherwise it remains
+        cmplwi  cr1,r0,63   // more than 63 leading zero bits in total? If so, no overflow
+        beq     .Lmsw_zero  // if both msw's are zero, skip cross products
+        mullw   r7,r3,r6    // lsw of first cross-product
+        add     r8,r8,r7    // add
+        mullw   r7,r4,r5    // lsw of second cross-product
+        add     r8,r8,r7    // add
+      .Lmsw_zero:
+        mullw   r7,r4,r6    // lsw of product of lsw's
+        bge+    cr1,.LDone  // if the sum of leading zero's >= 63 (or checkoverflow was 0)
+                            // there's no overflow, otherwise more thorough check
+        subfic  r0,r11,31   // if msw f1 = 0, then r0 := -1, else r9 >= 0
+        cntlzw  r4,r4       // get leading zeroes count of lsw f1
+        srawi   r0,r0,31    // if msw f1 = 0, then r0 := 1, else r0 := 0
+        subfic  r10,r12,31  // same for f2
+        cntlzw  r6,r6
+        srawi   r10,r10,31
+        and     r4,r4,r0    // if msw f1 <> 0, the leading zero count lsw f1 := 0
+        and     r6,r6,r10   // same for f2
+        add     r9,r9,r4    // add leading zero counts of lsw's to sum if appropriate
+        add     r9,r9,r6
+        cmplwi  r9,63       // is the sum now > 63?
+        bge     .LDone
+        b       FPC_OVERFLOW
+      .LDone:
+        mr      r3,r8       // get msw of product in correct register
+        mr      r4,r7       // get lsw of product in correct register
+      end;
+
+
 {
   $Log$
-  Revision 1.2  2004-01-12 18:03:30  jonas
+  Revision 1.3  2004-01-12 21:35:51  jonas
+    + assembler FPC_MUL_QWORD routine
+
+  Revision 1.2  2004/01/12 18:03:30  jonas
     + ppc implemetnation of fpc_mod/div_qword (from ppc compiler writers guide)
 
   Revision 1.1  2003/09/14 11:34:13  peter
