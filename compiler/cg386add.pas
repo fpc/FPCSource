@@ -45,6 +45,7 @@ implementation
          flags : tresflags;
       begin
          { remove temporary location if not a set or string }
+         { that's a bad hack (FK) who did this ?            }
          if (p^.left^.resulttype^.deftype<>stringdef) and
             ((p^.left^.resulttype^.deftype<>setdef) or (psetdef(p^.left^.resulttype)^.settype=smallset)) and
             (p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
@@ -118,158 +119,188 @@ implementation
       begin
         { string operations are not commutative }
         if p^.swaped then
-         swaptree(p);
-
-{$ifdef UseAnsiString}
-              if is_ansistring(p^.left^.resulttype) then
-                begin
-                  case p^.treetype of
-                  addn :
-                    begin
-                       { we do not need destination anymore }
-                       del_reference(p^.left^.location.reference);
-                       del_reference(p^.right^.location.reference);
-                       { concatansistring(p); }
-                    end;
-                  ltn,lten,gtn,gten,
-                  equaln,unequaln :
-                    begin
-                       pushusedregisters(pushedregs,$ff);
-                       secondpass(p^.left);
-                       del_reference(p^.left^.location.reference);
-                       emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                       secondpass(p^.right);
-                       del_reference(p^.right^.location.reference);
-                       emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
-                       emitcall('FPC_ANSISTRCMP',true);
-                       maybe_loadesi;
-                       popusedregisters(pushedregs);
-                    end;
-                  end;
-                end
-              else
-{$endif UseAnsiString}
-       case p^.treetype of
-          addn :
-            begin
-               cmpop:=false;
-               secondpass(p^.left);
-               { if str_concat is set in expr
-                 s:=s+ ... no need to create a temp string (PM) }
-
-               if (p^.left^.treetype<>addn) and not (p^.use_strconcat) then
-                 begin
-
-                    { can only reference be }
-                    { string in register would be funny    }
-                    { therefore produce a temporary string }
-
-                    { release the registers }
-                    del_reference(p^.left^.location.reference);
-                    gettempofsizereference(256,href);
-                    copystring(href,p^.left^.location.reference,255);
-                    ungetiftemp(p^.left^.location.reference);
-
-                    { does not hurt: }
-                    clear_location(p^.left^.location);
-                    p^.left^.location.loc:=LOC_MEM;
-                    p^.left^.location.reference:=href;
-                 end;
-
-               secondpass(p^.right);
-
-               { on the right we do not need the register anymore too }
-               del_reference(p^.right^.location.reference);
-{               if p^.right^.resulttype^.deftype=orddef then
-                begin
-                  pushusedregisters(pushedregs,$ff);
-                  exprasmlist^.concat(new(pai386,op_ref_reg(
-                     A_LEA,S_L,newreference(p^.left^.location.reference),R_EDI)));
-                  exprasmlist^.concat(new(pai386,op_reg_reg(
-                     A_XOR,S_L,R_EBX,R_EBX)));
-                  reset_reference(href);
-                  href.base:=R_EDI;
-                  exprasmlist^.concat(new(pai386,op_ref_reg(
-                     A_MOV,S_B,newreference(href),R_BL)));
-                  exprasmlist^.concat(new(pai386,op_reg(
-                     A_INC,S_L,R_EBX)));
-                  exprasmlist^.concat(new(pai386,op_reg_ref(
-                     A_MOV,S_B,R_BL,newreference(href))));
-                  href.index:=R_EBX;
-                  if p^.right^.treetype=ordconstn then
-                    exprasmlist^.concat(new(pai386,op_const_ref(
-                       A_MOV,S_L,p^.right^.value,newreference(href))))
-                  else
-                   begin
-                     if p^.right^.location.loc in [LOC_CREGISTER,LOC_REGISTER] then
-                      exprasmlist^.concat(new(pai386,op_reg_ref(
-                        A_MOV,S_B,p^.right^.location.register,newreference(href))))
-                     else
-                      begin
-                        exprasmlist^.concat(new(pai386,op_ref_reg(
-                          A_MOV,S_L,newreference(p^.right^.location.reference),R_EAX)));
-                        exprasmlist^.concat(new(pai386,op_reg_ref(
-                          A_MOV,S_B,R_AL,newreference(href))));
-                      end;
-                   end;
-                  popusedregisters(pushedregs);
-                end
-               else }
-                begin
-                  pushusedregisters(pushedregs,$ff);
-                  emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                  emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
-                  emitcall('FPC_STRCONCAT',true);
-                  maybe_loadesi;
-                  popusedregisters(pushedregs);
+          swaptree(p);
+        case pstringdef(p^.left^.resulttype)^.string_typ of
+           st_ansistring:
+             begin
+                case p^.treetype of
+                   addn:
+                     begin
+                        { we do not need destination anymore }
+                        del_reference(p^.left^.location.reference);
+                        del_reference(p^.right^.location.reference);
+                        { concatansistring(p); }
+                     end;
+                   ltn,lten,gtn,gten,
+                   equaln,unequaln:
+                     begin
+                        secondpass(p^.left);
+                        pushed:=maybe_push(p^.right^.registers32,p);
+                        secondpass(p^.right);
+                        if pushed then restore(p);
+                        { release used registers }
+                        case p^.right^.location.loc of
+                          LOC_REFERENCE,LOC_MEM:
+                            del_reference(p^.right^.location.reference);
+                          LOC_REGISTER,LOC_CREGISTER:
+                            ungetregister32(p^.right^.location.register);
+                        end;
+                        case p^.left^.location.loc of
+                          LOC_REFERENCE,LOC_MEM:
+                            del_reference(p^.left^.location.reference);
+                          LOC_REGISTER,LOC_CREGISTER:
+                            ungetregister32(p^.left^.location.register);
+                        end;
+                        { push the still used registers }
+                        pushusedregisters(pushedregs,$ff);
+                        { push data }
+                        case p^.right^.location.loc of
+                          LOC_REFERENCE,LOC_MEM:
+                            emit_push_mem(p^.right^.location.reference);
+                          LOC_REGISTER,LOC_CREGISTER:
+                            exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.right^.location.register)));
+                        end;
+                        case p^.left^.location.loc of
+                          LOC_REFERENCE,LOC_MEM:
+                            emit_push_mem(p^.left^.location.reference);
+                          LOC_REGISTER,LOC_CREGISTER:
+                            exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
+                        end;
+                        emitcall('FPC_ANSICOMPARE',true);
+                        emit_reg_reg(A_OR,S_L,R_EAX,R_EAX);
+                        popusedregisters(pushedregs);
+                        maybe_loadesi;
+                        ungetiftemp(p^.left^.location.reference);
+                        ungetiftemp(p^.right^.location.reference);
+                     end;
                 end;
+             end;
+           st_shortstring:
+             begin
+                case p^.treetype of
+                   addn:
+                     begin
+                        cmpop:=false;
+                        secondpass(p^.left);
+                        { if str_concat is set in expr
+                          s:=s+ ... no need to create a temp string (PM) }
 
-               set_location(p^.location,p^.left^.location);
-               ungetiftemp(p^.right^.location.reference);
-            end;
-          ltn,lten,gtn,gten,
-          equaln,unequaln :
-            begin
-               cmpop:=true;
-             { generate better code for s='' and s<>'' }
-               if (p^.treetype in [equaln,unequaln]) and
-                  (((p^.left^.treetype=stringconstn) and (str_length(p^.left)=0)) or
-                   ((p^.right^.treetype=stringconstn) and (str_length(p^.right)=0))) then
-                 begin
-                    secondpass(p^.left);
-                    { are too few registers free? }
-                    pushed:=maybe_push(p^.right^.registers32,p);
-                    secondpass(p^.right);
-                    if pushed then restore(p);
-                    del_reference(p^.right^.location.reference);
-                    del_reference(p^.left^.location.reference);
-                    { only one node can be stringconstn }
-                    { else pass 1 would have evaluted   }
-                    { this node                         }
-                    if p^.left^.treetype=stringconstn then
-                      exprasmlist^.concat(new(pai386,op_const_ref(
-                        A_CMP,S_B,0,newreference(p^.right^.location.reference))))
-                    else
-                      exprasmlist^.concat(new(pai386,op_const_ref(
-                        A_CMP,S_B,0,newreference(p^.left^.location.reference))));
-                 end
-               else
-                 begin
-                    pushusedregisters(pushedregs,$ff);
-                    secondpass(p^.left);
-                    del_reference(p^.left^.location.reference);
-                    emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                    secondpass(p^.right);
-                    del_reference(p^.right^.location.reference);
-                    emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
-                    emitcall('FPC_STRCMP',true);
-                    maybe_loadesi;
-                    popusedregisters(pushedregs);
-                 end;
-               ungetiftemp(p^.left^.location.reference);
-               ungetiftemp(p^.right^.location.reference);
-            end;
-            else CGMessage(type_e_mismatch);
+                        if (p^.left^.treetype<>addn) and not (p^.use_strconcat) then
+                          begin
+
+                             { can only reference be }
+                             { string in register would be funny    }
+                             { therefore produce a temporary string }
+
+                             { release the registers }
+                             del_reference(p^.left^.location.reference);
+                             gettempofsizereference(256,href);
+                             copystring(href,p^.left^.location.reference,255);
+                             ungetiftemp(p^.left^.location.reference);
+
+                             { does not hurt: }
+                             clear_location(p^.left^.location);
+                             p^.left^.location.loc:=LOC_MEM;
+                             p^.left^.location.reference:=href;
+                          end;
+
+                        secondpass(p^.right);
+
+                        { on the right we do not need the register anymore too }
+                        del_reference(p^.right^.location.reference);
+                        {
+                        if p^.right^.resulttype^.deftype=orddef then
+                         begin
+                           pushusedregisters(pushedregs,$ff);
+                           exprasmlist^.concat(new(pai386,op_ref_reg(
+                              A_LEA,S_L,newreference(p^.left^.location.reference),R_EDI)));
+                           exprasmlist^.concat(new(pai386,op_reg_reg(
+                              A_XOR,S_L,R_EBX,R_EBX)));
+                           reset_reference(href);
+                           href.base:=R_EDI;
+                           exprasmlist^.concat(new(pai386,op_ref_reg(
+                              A_MOV,S_B,newreference(href),R_BL)));
+                           exprasmlist^.concat(new(pai386,op_reg(
+                              A_INC,S_L,R_EBX)));
+                           exprasmlist^.concat(new(pai386,op_reg_ref(
+                              A_MOV,S_B,R_BL,newreference(href))));
+                           href.index:=R_EBX;
+                           if p^.right^.treetype=ordconstn then
+                             exprasmlist^.concat(new(pai386,op_const_ref(
+                                A_MOV,S_L,p^.right^.value,newreference(href))))
+                           else
+                            begin
+                              if p^.right^.location.loc in [LOC_CREGISTER,LOC_REGISTER] then
+                               exprasmlist^.concat(new(pai386,op_reg_ref(
+                                 A_MOV,S_B,p^.right^.location.register,newreference(href))))
+                              else
+                               begin
+                                 exprasmlist^.concat(new(pai386,op_ref_reg(
+                                   A_MOV,S_L,newreference(p^.right^.location.reference),R_EAX)));
+                                 exprasmlist^.concat(new(pai386,op_reg_ref(
+                                   A_MOV,S_B,R_AL,newreference(href))));
+                               end;
+                            end;
+                           popusedregisters(pushedregs);
+                         end
+                        else }
+                         begin
+                           pushusedregisters(pushedregs,$ff);
+                           emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                           emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                           emitcall('FPC_STRCONCAT',true);
+                           maybe_loadesi;
+                           popusedregisters(pushedregs);
+                         end;
+
+                        set_location(p^.location,p^.left^.location);
+                        ungetiftemp(p^.right^.location.reference);
+                     end;
+                   ltn,lten,gtn,gten,
+                   equaln,unequaln :
+                     begin
+                        cmpop:=true;
+                        { generate better code for s='' and s<>'' }
+                        if (p^.treetype in [equaln,unequaln]) and
+                           (((p^.left^.treetype=stringconstn) and (str_length(p^.left)=0)) or
+                            ((p^.right^.treetype=stringconstn) and (str_length(p^.right)=0))) then
+                          begin
+                             secondpass(p^.left);
+                             { are too few registers free? }
+                             pushed:=maybe_push(p^.right^.registers32,p);
+                             secondpass(p^.right);
+                             if pushed then restore(p);
+                             del_reference(p^.right^.location.reference);
+                             del_reference(p^.left^.location.reference);
+                             { only one node can be stringconstn }
+                             { else pass 1 would have evaluted   }
+                             { this node                         }
+                             if p^.left^.treetype=stringconstn then
+                               exprasmlist^.concat(new(pai386,op_const_ref(
+                                 A_CMP,S_B,0,newreference(p^.right^.location.reference))))
+                             else
+                               exprasmlist^.concat(new(pai386,op_const_ref(
+                                 A_CMP,S_B,0,newreference(p^.left^.location.reference))));
+                          end
+                        else
+                          begin
+                             pushusedregisters(pushedregs,$ff);
+                             secondpass(p^.left);
+                             del_reference(p^.left^.location.reference);
+                             emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                             secondpass(p^.right);
+                             del_reference(p^.right^.location.reference);
+                             emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                             emitcall('FPC_STRCMP',true);
+                             maybe_loadesi;
+                             popusedregisters(pushedregs);
+                          end;
+                        ungetiftemp(p^.left^.location.reference);
+                        ungetiftemp(p^.right^.location.reference);
+                     end;
+                   else CGMessage(type_e_mismatch);
+                end;
+             end;
           end;
         SetResultLocation(cmpop,true,p);
       end;
@@ -1293,7 +1324,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1998-10-20 08:06:38  pierre
+  Revision 1.19  1998-10-20 15:09:21  florian
+    + binary operators for ansi strings
+
+  Revision 1.18  1998/10/20 08:06:38  pierre
     * several memory corruptions due to double freemem solved
       => never use p^.loc.location:=p^.left^.loc.location;
     + finally I added now by default

@@ -377,11 +377,13 @@ implementation
              if is_boolean(ld) and is_boolean(rd) then
               begin
                 case p^.treetype of
-             andn,orn : begin
-                          calcregisters(p,0,0,0);
-                          make_bool_equal_size(p);
-                          p^.location.loc:=LOC_JUMP;
-                        end;
+                  andn,
+                  orn:
+                    begin
+                       calcregisters(p,0,0,0);
+                       make_bool_equal_size(p);
+                       p^.location.loc:=LOC_JUMP;
+                    end;
              unequaln,
           equaln,xorn : begin
                           { this forces a better code generation (TEST }
@@ -437,33 +439,61 @@ implementation
            end
          else
 
-         { is one of the sides a shortstring ? }
+           { is one of the operands a string ? }
            if (rd^.deftype=stringdef) or (ld^.deftype=stringdef) then
             begin
-              {
               if is_widestring(rd) or is_widestring(ld) then
                 begin
+                   if not(is_widestring(rd)) then
+                     p^.right:=gentypeconvnode(p^.right,cwidestringdef);
+                   if not(is_widestring(ld)) then
+                     p^.left:=gentypeconvnode(p^.left,cwidestringdef);
+                   p^.resulttype:=cwidestringdef;
+                   { this is only for add, the comparisaion is handled later }
+                   p^.location.loc:=LOC_REGISTER;
                 end
               else if is_ansistring(rd) or is_ansistring(ld) then
                 begin
+                   if not(is_ansistring(rd)) then
+                     p^.right:=gentypeconvnode(p^.right,cansistringdef);
+                   if not(is_ansistring(ld)) then
+                     p^.left:=gentypeconvnode(p^.left,cansistringdef);
+                   p^.resulttype:=cansistringdef;
+                   { this is only for add, the comparisaion is handled later }
+                   p^.location.loc:=LOC_REGISTER;
                 end
               else if is_longstring(rd) or is_longstring(ld) then
                 begin
+                   if not(is_longstring(rd)) then
+                     p^.right:=gentypeconvnode(p^.right,clongstringdef);
+                   if not(is_longstring(ld)) then
+                     p^.left:=gentypeconvnode(p^.left,clongstringdef);
+                   p^.resulttype:=clongstringdef;
+                   { this is only for add, the comparisaion is handled later }
+                   p^.location.loc:=LOC_MEM;
                 end
-              }
-              if not((rd^.deftype=stringdef) and (ld^.deftype=stringdef)) then
-               begin
-                 if ld^.deftype=stringdef then
-                  p^.right:=gentypeconvnode(p^.right,cstringdef)
-                 else
-                  p^.left:=gentypeconvnode(p^.left,cstringdef);
-                 firstpass(p^.left);
-                 firstpass(p^.right);
-               end;
-            { here we call STRCONCAT or STRCMP or STRCOPY }
+              else
+                begin
+                   if not(is_shortstring(rd)) then
+                     p^.right:=gentypeconvnode(p^.right,cstringdef);
+                   if not(is_shortstring(ld)) then
+                     p^.left:=gentypeconvnode(p^.left,cstringdef);
+                   p^.resulttype:=cstringdef;
+                   { this is only for add, the comparisaion is handled later }
+                   p^.location.loc:=LOC_MEM;
+                end;
+              { only if there is a type cast we need to do again }
+              { the first pass                                   }
+              if p^.left^.treetype=typeconvn then
+                firstpass(p^.left);
+              if p^.right^.treetype=typeconvn then
+                firstpass(p^.right);
+              { here we call STRCONCAT or STRCMP or STRCOPY }
               procinfo.flags:=procinfo.flags or pi_do_call;
-              calcregisters(p,0,0,0);
-              p^.location.loc:=LOC_MEM;
+              if p^.location.loc=LOC_MEM then
+                calcregisters(p,0,0,0)
+              else
+                calcregisters(p,1,0,0);
               convdone:=true;
            end
          else
@@ -875,7 +905,8 @@ implementation
          case p^.treetype of
             ltn,lten,gtn,gten,equaln,unequaln:
               begin
-                 if not assigned(p^.resulttype) then
+                 if (not assigned(p^.resulttype)) or
+                   (p^.resulttype^.deftype=stringdef) then
                    p^.resulttype:=booldef;
                  p^.location.loc:=LOC_FLAGS;
               end;
@@ -891,16 +922,9 @@ implementation
                  if (p^.left^.resulttype^.deftype=stringdef) or
                     (p^.right^.resulttype^.deftype=stringdef) then
                    begin
-{$ifndef UseAnsiString}
                       if not assigned(p^.resulttype) then
                         p^.resulttype:=cstringdef
-{$else UseAnsiString}
-                      if is_ansistring(p^.left^.resulttype) or
-                         is_ansistring(p^.right^.resulttype) then
-                        p^.resulttype:=cansistringdef
-                      else
-                        p^.resulttype:=cstringdef;
-{$endif UseAnsiString}
+                      { the rest is done before }
                    end
                  else
                    if not assigned(p^.resulttype) then
@@ -915,7 +939,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-10-20 08:07:05  pierre
+  Revision 1.6  1998-10-20 15:09:24  florian
+    + binary operators for ansi strings
+
+  Revision 1.5  1998/10/20 08:07:05  pierre
     * several memory corruptions due to double freemem solved
       => never use p^.loc.location:=p^.left^.loc.location;
     + finally I added now by default

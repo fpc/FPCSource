@@ -144,6 +144,7 @@ implementation
          flags : tresflags;
       begin
          { remove temporary location if not a set or string }
+         { that's a hack (FK)                               }
          if (p^.left^.resulttype^.deftype<>stringdef) and
             ((p^.left^.resulttype^.deftype<>setdef) or (psetdef(p^.left^.resulttype)^.settype=smallset)) and
             (p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
@@ -217,135 +218,135 @@ implementation
       begin
         { string operations are not commutative }
         if p^.swaped then
-         swaptree(p);
-
-{$ifdef UseAnsiString}
-              if is_ansistring(p^.left^.resulttype) then
-                begin
-                  case p^.treetype of
-                  addn :
-                    begin
-                       { we do not need destination anymore }
-                       del_reference(p^.left^.location.reference);
-                       del_reference(p^.right^.location.reference);
-                       { concatansistring(p); }
-                    end;
-                  ltn,lten,gtn,gten,
-                  equaln,unequaln :
-                    begin
-                       pushusedregisters(pushedregs,$ff);
-                       secondpass(p^.left);
-                       del_reference(p^.left^.location.reference);
-                       emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                       secondpass(p^.right);
-                       del_reference(p^.right^.location.reference);
-                       emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
-                       emitcall('FPC_ANSISTRCMP',true);
-                       maybe_loada5;
-                       popusedregisters(pushedregs);
-                    end;
+          swaptree(p);
+        case pstringdef(p^.left^.resulttype)^.string_typ of
+           st_ansistring:
+             begin
+                case p^.treetype of
+                addn :
+                  begin
+                     { we do not need destination anymore }
+                     del_reference(p^.left^.location.reference);
+                     del_reference(p^.right^.location.reference);
+                     { concatansistring(p); }
                   end;
-                end
-              else
-{$endif UseAnsiString}
-
-              case p^.treetype of
-                 addn : begin
-                           cmpop:=false;
-                           secondpass(p^.left);
-                           if (p^.left^.treetype<>addn) then
-                             begin
-                                { can only reference be }
-                                { string in register would be funny    }
-                                { therefore produce a temporary string }
-
-                                { release the registers }
-                                del_reference(p^.left^.location.reference);
-                                gettempofsizereference(256,href);
-                                copystring(href,p^.left^.location.reference,255);
-                                ungetiftemp(p^.left^.location.reference);
-
-                                { does not hurt: }
-                                clear_location(p^.left^.location);
-                                p^.left^.location.loc:=LOC_MEM;
-                                p^.left^.location.reference:=href;
-                             end;
-
-                           secondpass(p^.right);
-
-                           { on the right we do not need the register anymore too }
-                           del_reference(p^.right^.location.reference);
-                           pushusedregisters(pushedregs,$ffff);
-                           { WE INVERSE THE PARAMETERS!!! }
-                           { Because parameters are inversed in the rtl }
-                           emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
-                           emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                           emitcall('FPC_STRCONCAT',true);
-                           maybe_loadA5;
-                           popusedregisters(pushedregs);
-                           set_location(p^.location,p^.left^.location);
-                           ungetiftemp(p^.right^.location.reference);
-                        end; { this case }
-              ltn,lten,gtn,gten,
+                ltn,lten,gtn,gten,
                 equaln,unequaln :
-                        begin
-                           secondpass(p^.left);
-                           { are too few registers free? }
-                           pushed:=maybe_push(p^.right^.registers32,p);
-                           secondpass(p^.right);
-                           if pushed then restore(p);
-                           cmpop:=true;
-                           del_reference(p^.right^.location.reference);
-                           del_reference(p^.left^.location.reference);
-                           { generates better code }
-                           { s='' and s<>''        }
-                           if (p^.treetype in [equaln,unequaln]) and
-                             (
-                               ((p^.left^.treetype=stringconstn) and
-                                (str_length(p^.left)=0)) or
-                               ((p^.right^.treetype=stringconstn) and
-                                (str_length(p^.right)=0))
-                             ) then
-                             begin
-                                { only one node can be stringconstn }
-                                { else pass 1 would have evaluted   }
-                                { this node                         }
-                                if p^.left^.treetype=stringconstn then
-                                  exprasmlist^.concat(new(pai68k,op_ref(
-                                    A_TST,S_B,newreference(p^.right^.location.reference))))
-                                else
-                                  exprasmlist^.concat(new(pai68k,op_ref(
-                                    A_TST,S_B,newreference(p^.left^.location.reference))));
-                             end
-                           else
-                             begin
-                               pushusedregisters(pushedregs,$ffff);
+                  begin
+                     pushusedregisters(pushedregs,$ff);
+                     secondpass(p^.left);
+                     del_reference(p^.left^.location.reference);
+                     emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                     secondpass(p^.right);
+                     del_reference(p^.right^.location.reference);
+                     emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                     emitcall('FPC_ANSISTRCMP',true);
+                     maybe_loada5;
+                     popusedregisters(pushedregs);
+                  end;
+                end;
+             end;
+           st_shortstring:
+             begin
+                case p^.treetype of
+                   addn : begin
+                             cmpop:=false;
+                             secondpass(p^.left);
+                             if (p^.left^.treetype<>addn) then
+                               begin
+                                  { can only reference be }
+                                  { string in register would be funny    }
+                                  { therefore produce a temporary string }
 
-                               { parameters are directly passed via registers       }
-                               { this has several advantages, no loss of the flags  }
-                               { on exit ,and MUCH faster on m68k machines          }
-                               {  speed difference (68000)                          }
-                               {   normal routine: entry, exit code + push  = 124   }
-                               {   (best case)                                      }
-                               {   assembler routine: param setup (worst case) = 48 }
+                                  { release the registers }
+                                  del_reference(p^.left^.location.reference);
+                                  gettempofsizereference(256,href);
+                                  copystring(href,p^.left^.location.reference,255);
+                                  ungetiftemp(p^.left^.location.reference);
 
-                               exprasmlist^.concat(new(pai68k,op_ref_reg(
-                                    A_LEA,S_L,newreference(p^.left^.location.reference),R_A0)));
-                               exprasmlist^.concat(new(pai68k,op_ref_reg(
-                                    A_LEA,S_L,newreference(p^.right^.location.reference),R_A1)));
-{
-                               emitpushreferenceaddr(p^.left^.location.reference);
-                               emitpushreferenceaddr(p^.right^.location.reference); }
-                               emitcall('FPC_STRCMP',true);
-                               maybe_loada5;
-                               popusedregisters(pushedregs);
-                          end;
-                           ungetiftemp(p^.left^.location.reference);
-                           ungetiftemp(p^.right^.location.reference);
-                        end; { end this case }
-                else CGMessage(type_e_mismatch);
-              end; { end case }
+                                  { does not hurt: }
+                                  clear_location(p^.left^.location);
+                                  p^.left^.location.loc:=LOC_MEM;
+                                  p^.left^.location.reference:=href;
+                               end;
 
+                             secondpass(p^.right);
+
+                             { on the right we do not need the register anymore too }
+                             del_reference(p^.right^.location.reference);
+                             pushusedregisters(pushedregs,$ffff);
+                             { WE INVERSE THE PARAMETERS!!! }
+                             { Because parameters are inversed in the rtl }
+                             emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                             emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                             emitcall('FPC_STRCONCAT',true);
+                             maybe_loadA5;
+                             popusedregisters(pushedregs);
+                             set_location(p^.location,p^.left^.location);
+                             ungetiftemp(p^.right^.location.reference);
+                          end; { this case }
+                ltn,lten,gtn,gten,
+                  equaln,unequaln :
+                          begin
+                             secondpass(p^.left);
+                             { are too few registers free? }
+                             pushed:=maybe_push(p^.right^.registers32,p);
+                             secondpass(p^.right);
+                             if pushed then restore(p);
+                             cmpop:=true;
+                             del_reference(p^.right^.location.reference);
+                             del_reference(p^.left^.location.reference);
+                             { generates better code }
+                             { s='' and s<>''        }
+                             if (p^.treetype in [equaln,unequaln]) and
+                               (
+                                 ((p^.left^.treetype=stringconstn) and
+                                  (str_length(p^.left)=0)) or
+                                 ((p^.right^.treetype=stringconstn) and
+                                  (str_length(p^.right)=0))
+                               ) then
+                               begin
+                                  { only one node can be stringconstn }
+                                  { else pass 1 would have evaluted   }
+                                  { this node                         }
+                                  if p^.left^.treetype=stringconstn then
+                                    exprasmlist^.concat(new(pai68k,op_ref(
+                                      A_TST,S_B,newreference(p^.right^.location.reference))))
+                                  else
+                                    exprasmlist^.concat(new(pai68k,op_ref(
+                                      A_TST,S_B,newreference(p^.left^.location.reference))));
+                               end
+                             else
+                               begin
+                                 pushusedregisters(pushedregs,$ffff);
+
+                                 { parameters are directly passed via registers       }
+                                 { this has several advantages, no loss of the flags  }
+                                 { on exit ,and MUCH faster on m68k machines          }
+                                 {  speed difference (68000)                          }
+                                 {   normal routine: entry, exit code + push  = 124   }
+                                 {   (best case)                                      }
+                                 {   assembler routine: param setup (worst case) = 48 }
+
+                                 exprasmlist^.concat(new(pai68k,op_ref_reg(
+                                      A_LEA,S_L,newreference(p^.left^.location.reference),R_A0)));
+                                 exprasmlist^.concat(new(pai68k,op_ref_reg(
+                                      A_LEA,S_L,newreference(p^.right^.location.reference),R_A1)));
+                                 {
+                                 emitpushreferenceaddr(p^.left^.location.reference);
+                                 emitpushreferenceaddr(p^.right^.location.reference); }
+                                 emitcall('FPC_STRCMP',true);
+                                 maybe_loada5;
+                                 popusedregisters(pushedregs);
+                            end;
+                             ungetiftemp(p^.left^.location.reference);
+                             ungetiftemp(p^.right^.location.reference);
+                          end; { end this case }
+
+                   else CGMessage(type_e_mismatch);
+                end;
+             end; { end case }
+          end;
         SetResultLocation(cmpop,true,p);
       end;
 
@@ -1279,7 +1280,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1998-10-20 08:06:43  pierre
+  Revision 1.14  1998-10-20 15:09:23  florian
+    + binary operators for ansi strings
+
+  Revision 1.13  1998/10/20 08:06:43  pierre
     * several memory corruptions due to double freemem solved
       => never use p^.loc.location:=p^.left^.loc.location;
     + finally I added now by default
