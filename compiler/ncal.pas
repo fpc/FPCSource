@@ -428,6 +428,7 @@ interface
         len : longint;
         st  : psymtable;
         loadconst : boolean;
+        srsym : psym;
       begin
         if assigned(hightree) then
           exit;
@@ -440,7 +441,7 @@ interface
                  is_array_of_const(left.resulttype) then
                begin
                  st:=tloadnode(left).symtable;
-                 getsymonlyin(st,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
+                 srsym:=searchsymonlyin(st,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
                  hightree:=genloadnode(pvarsym(srsym),st);
                  loadconst:=false;
                end
@@ -458,7 +459,7 @@ interface
                  if is_open_string(left.resulttype) then
                   begin
                     st:=tloadnode(left).symtable;
-                    getsymonlyin(st,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
+                    srsym:=searchsymonlyin(st,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
                     hightree:=genloadnode(pvarsym(srsym),st);
                     loadconst:=false;
                   end
@@ -647,6 +648,7 @@ interface
         is_const : boolean;
         i : longint;
         bestord  : porddef;
+        srsym : psym;
       begin
          pass_1:=nil;
          { release registers! }
@@ -754,7 +756,7 @@ interface
                      while assigned(symt^.next) and not assigned(srsym) do
                        begin
                           symt:=symt^.next;
-                          getsymonlyin(symt,actprocsym^.name);
+                          srsym:=searchsymonlyin(symt,actprocsym^.name);
                           if assigned(srsym) then
                             if srsym^.typ<>procsym then
                               begin
@@ -1568,7 +1570,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2001-02-26 19:44:52  peter
+  Revision 1.24  2001-03-12 12:47:46  michael
+  + Patches from peter
+
+  Revision 1.23  2001/02/26 19:44:52  peter
     * merged generic m68k updates from fixes branch
 
   Revision 1.22  2001/01/08 21:46:46  peter

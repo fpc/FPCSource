@@ -101,6 +101,7 @@ implementation
          p1,hp,hpp  :  tnode;
          ppn : tcallparanode;
          dummycoll: tparaitem;
+         srsym : psym;
 {$ifndef NOCOLONCHECK}
          frac_para,length_para : tnode;
 {$endif ndef NOCOLONCHECK}
@@ -477,7 +478,7 @@ implementation
                  set_varstate(left,false);
                  if push_high_param(left.resulttype) then
                   begin
-                    getsymonlyin(tloadnode(left).symtable,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
+                    srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
                     hp:=caddnode.create(addn,genloadnode(pvarsym(srsym),tloadnode(left).symtable),
                                      genordinalconstnode(1,s32bitdef));
                     if (left.resulttype^.deftype=arraydef) and
@@ -1055,7 +1056,7 @@ implementation
                  { firstcallparan(left,nil);
                    already done in firstcalln }
                  { now we know the type of buffer }
-                 getsymonlyin(systemunit,'SETTEXTBUF');
+                 srsym:=searchsymonlyin(systemunit,'SETTEXTBUF');
                  hp:=gencallnode(pprocsym(srsym),systemunit);
                  tcallnode(hp).left:=gencallparanode(
                    genordinalconstnode(tcallparanode(left).left.resulttype^.size,s32bitdef),left);
@@ -1337,7 +1338,7 @@ implementation
                                  if is_open_array(left.resulttype) or
                                    is_array_of_const(left.resulttype) then
                                   begin
-                                    getsymonlyin(tloadnode(left).symtable,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
+                                    srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
                                     hp:=genloadnode(pvarsym(srsym),tloadnode(left).symtable);
                                     firstpass(hp);
                                     result:=hp;
@@ -1363,7 +1364,7 @@ implementation
                                begin
                                  if is_open_string(left.resulttype) then
                                   begin
-                                    getsymonlyin(tloadnode(left).symtable,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
+                                    srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
                                     hp:=genloadnode(pvarsym(srsym),tloadnode(left).symtable);
                                     firstpass(hp);
                                     result:=hp;
@@ -1536,7 +1537,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2001-03-03 12:38:08  jonas
+  Revision 1.30  2001-03-12 12:47:46  michael
+  + Patches from peter
+
+  Revision 1.29  2001/03/03 12:38:08  jonas
     * fixed low() for signed types < 64bit
 
   Revision 1.28  2001/02/26 19:44:53  peter

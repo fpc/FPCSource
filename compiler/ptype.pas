@@ -102,12 +102,17 @@ implementation
          if assigned(srsym) and
             (srsym^.typ=unitsym) then
            begin
-              consume(_POINT);
-              srsym:=searchsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
-              pos:=akttokenpos;
-              s:=pattern;
-              consume(_ID);
               is_unit_specific:=true;
+              consume(_POINT);
+              if srsym^.owner^.unitid=0 then
+               begin
+                 srsym:=searchsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
+                 pos:=akttokenpos;
+                 s:=pattern;
+               end  
+              else
+               srsym:=nil; 
+              consume(_ID);
            end;
          { are we parsing a possible forward def ? }
          if isforwarddef and
@@ -579,7 +584,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2001-03-11 22:58:50  peter
+  Revision 1.19  2001-03-12 12:49:01  michael
+  + Patches from peter
+
+  Revision 1.18  2001/03/11 22:58:50  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.17  2000/12/07 17:19:43  jonas
