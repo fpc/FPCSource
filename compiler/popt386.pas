@@ -230,7 +230,7 @@ Begin
                          ((hp1^.typ <> ait_label) or
                    { skip unused labels, they're not referenced anywhere }
                           Not(Pai_Label(hp1)^.l^.is_used)) Do
-                     If (hp1^.typ <> ait_label) Then
+                     If not(hp1^.typ in [ait_label,ait_align]) Then
                        Begin
                          AsmL^.Remove(hp1);
                          Dispose(hp1, done);
@@ -1672,7 +1672,10 @@ End.
 
 {
  $Log$
- Revision 1.68  1999-11-06 16:24:00  jonas
+ Revision 1.69  1999-11-13 19:03:56  jonas
+   * don't remove align objects between JMP's and labels
+
+ Revision 1.68  1999/11/06 16:24:00  jonas
    * getfinaldestination works completely again (a lot of functionality
      got lost in the conversion resulting from the removal of
      ait_labeled_instruction)
