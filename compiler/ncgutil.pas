@@ -1366,20 +1366,42 @@ implementation
 {$ifndef cpu64bit}
                   if currpara.localloc.size in [OS_64,OS_S64] then
                     begin
-                      { First 32bits }
-                      unget_para(paraloc^);
-                      if (target_info.endian=ENDIAN_BIG) then
-                        gen_load_reg(paraloc^,currpara.localloc.register64.reghi)
+                      { Special case for single location 64bit LOC_REFERENCE parameter }
+                      if paraloc^.size in [OS_64,OS_S64] then
+                        begin
+                          if paraloc^.loc<>LOC_REFERENCE then
+                            internalerror(200412031);
+                          reference_reset_base(href,paraloc^.reference.index,paraloc^.reference.offset);
+                          if (target_info.endian=ENDIAN_BIG) then
+                            begin
+                              cg.a_load_ref_reg(list,OS_32,OS_32,href,currpara.localloc.register64.reghi);
+                              inc(href.offset,4);
+                              cg.a_load_ref_reg(list,OS_32,OS_32,href,currpara.localloc.register64.reglo);
+                            end
+                          else
+                            begin
+                              cg.a_load_ref_reg(list,OS_32,OS_32,href,currpara.localloc.register64.reglo);
+                              inc(href.offset,4);
+                              cg.a_load_ref_reg(list,OS_32,OS_32,href,currpara.localloc.register64.reghi);
+                            end;
+                        end
                       else
-                        gen_load_reg(paraloc^,currpara.localloc.register64.reglo);
-                      { Second 32bits }
-                      if not assigned(paraloc^.next) then
-                        internalerror(200410104);
-                      unget_para(paraloc^);
-                      if (target_info.endian=ENDIAN_BIG) then
-                        gen_load_reg(paraloc^,currpara.localloc.register64.reglo)
-                      else
-                        gen_load_reg(paraloc^,currpara.localloc.register64.reghi);
+                        begin
+                          { First 32bits }
+                          unget_para(paraloc^);
+                          if (target_info.endian=ENDIAN_BIG) then
+                            gen_load_reg(paraloc^,currpara.localloc.register64.reghi)
+                          else
+                            gen_load_reg(paraloc^,currpara.localloc.register64.reglo);
+                          { Second 32bits }
+                          if not assigned(paraloc^.next) then
+                            internalerror(200410104);
+                          unget_para(paraloc^.next^);
+                          if (target_info.endian=ENDIAN_BIG) then
+                            gen_load_reg(paraloc^.next^,currpara.localloc.register64.reglo)
+                          else
+                            gen_load_reg(paraloc^.next^,currpara.localloc.register64.reghi);
+                        end;
                     end
                   else
 {$endif cpu64bit}
@@ -2260,7 +2282,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.245  2004-11-21 18:13:31  peter
+  Revision 1.246  2004-12-03 16:06:31  peter
+    * fix for int64 parameters passed in a single LOC_REFERENCE of 8 bytes
+
+  Revision 1.245  2004/11/21 18:13:31  peter
     * fixed funcretloc for sparc
 
   Revision 1.244  2004/11/21 17:54:59  peter
