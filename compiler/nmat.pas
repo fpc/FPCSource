@@ -59,8 +59,8 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        {$ifdef state_tracking}
-	  function track_state_pass(exec_known:boolean):boolean;override;
-	{$endif}
+    function track_state_pass(exec_known:boolean):boolean;override;
+  {$endif}
        end;
        tnotnodeclass = class of tnotnode;
 
@@ -486,7 +486,7 @@ implementation
               if (left.location.loc<>LOC_REGISTER) and
                  (registersfpu<1) then
                 registersfpu:=1;
-              location.loc:=LOC_REGISTER;
+              location.loc:=LOC_FPUREGISTER;
            end
 {$ifdef SUPPORT_MMX}
          else if (cs_mmx in aktlocalswitches) and
@@ -519,7 +519,7 @@ implementation
  ****************************************************************************}
 
     const boolean_reverse:array[ltn..unequaln] of Tnodetype=
-	(gten,gtn,lten,ltn,unequaln,equaln);
+  (gten,gtn,lten,ltn,unequaln,equaln);
 
     constructor tnotnode.create(expr : tnode);
 
@@ -541,25 +541,25 @@ implementation
 
          resulttype:=left.resulttype;
 
-	 {Try optmimizing ourself away.}
-	 if left.nodetype=notn then
-	    begin
-		{Double not. Remove both.}
-		t:=Tnotnode(left).left;
-		Tnotnode(left).left:=nil;
-		left:=t;
-		result:=t;
-		exit;
-	    end;
-	 if left.nodetype in [ltn,lten,equaln,unequaln,gtn,gten] then
-	    begin
-		{Not of boolean expression. Turn around the operator and remove
-		 the not.}
-		result:=left;
-		left.nodetype:=boolean_reverse[left.nodetype];
-		left:=nil;
-		exit;
-	    end;
+   {Try optmimizing ourself away.}
+   if left.nodetype=notn then
+      begin
+    {Double not. Remove both.}
+    t:=Tnotnode(left).left;
+    Tnotnode(left).left:=nil;
+    left:=t;
+    result:=t;
+    exit;
+      end;
+   if left.nodetype in [ltn,lten,equaln,unequaln,gtn,gten] then
+      begin
+    {Not of boolean expression. Turn around the operator and remove
+     the not.}
+    result:=left;
+    left.nodetype:=boolean_reverse[left.nodetype];
+    left:=nil;
+    exit;
+      end;
 
          { constant folding }
          if (left.nodetype=ordconstn) then
@@ -701,12 +701,12 @@ implementation
     function Tnotnode.track_state_pass(exec_known:boolean):boolean;
 
     begin
-	track_state_pass:=true;
-	if left.track_state_pass(exec_known) then
-	    begin
-		left.resulttype.def:=nil;
-		do_resulttypepass(left);
-	    end;
+  track_state_pass:=true;
+  if left.track_state_pass(exec_known) then
+      begin
+    left.resulttype.def:=nil;
+    do_resulttypepass(left);
+      end;
     end;
 {$endif}
 
@@ -718,7 +718,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2002-07-20 11:57:54  florian
+  Revision 1.37  2002-08-14 19:26:55  carl
+    + generic int_to_real type conversion
+    + generic unaryminus node
+
+  Revision 1.36  2002/07/20 11:57:54  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

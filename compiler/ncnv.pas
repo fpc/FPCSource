@@ -263,10 +263,10 @@ implementation
 
         procedure do_set(pos : longint);
 
-	{$ifdef oldset}
+  {$ifdef oldset}
         var
           mask,l : longint;
-	{$endif}
+  {$endif}
 
         begin
           if (pos and not $ff)<>0 then
@@ -275,7 +275,7 @@ implementation
            constsethi:=pos;
           if pos<constsetlo then
            constsetlo:=pos;
-	{$ifdef oldset}
+  {$ifdef oldset}
           { to do this correctly we use the 32bit array }
           l:=pos shr 5;
           mask:=1 shl (pos mod 32);
@@ -283,9 +283,9 @@ implementation
           if (pconst32bitset(constset)^[l] and mask)<>0 then
            Message(parser_e_illegal_set_expr);
           pconst32bitset(constset)^[l]:=pconst32bitset(constset)^[l] or mask;
-	{$else}
-	  include(constset^,pos);
-	{$endif}
+  {$else}
+    include(constset^,pos);
+  {$endif}
         end;
 
       var
@@ -295,11 +295,11 @@ implementation
       begin
         if p.nodetype<>arrayconstructorn then
          internalerror(200205105);
-	new(constset);
+  new(constset);
       {$ifdef oldset}
         FillChar(constset^,sizeof(constset^),0);
       {$else}
-	constset^:=[];
+  constset^:=[];
       {$endif}
         htype.reset;
         constsetlo:=0;
@@ -964,7 +964,7 @@ implementation
                begin
                  if is_procsym_call(left) then
                   begin
-		    currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
+        currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
                     hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
                         currprocdef,tcallnode(left).symtableproc);
                     if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) and
@@ -1354,26 +1354,45 @@ implementation
       end;
 
 
-    function ttypeconvnode.first_int_to_real : tnode;
-
+    function ttypeconvnode.first_int_to_real: tnode;
+      var
+        fname: string[19];
+        typname : string[12];  
       begin
-        first_int_to_real:=nil;
-{$ifdef m68k}
-         if (cs_fp_emulation in aktmoduleswitches) or
-            (tfloatdef(resulttype.def).typ=s32real) then
-           begin
-             if registers32<1 then
-               registers32:=1;
-           end
-         else
-           if registersfpu<1 then
-             registersfpu:=1;
-{$else not m68k}
-         if registersfpu<1 then
-          registersfpu:=1;
-{$endif not m68k}
-        location.loc:=LOC_FPUREGISTER;
+        { Get the type name  }
+        {  Normally the typename should be one of the following:
+            single, double - carl
+        }    
+        typname := lower(pbestrealtype^.def.gettypename);   
+        { converting a 64bit integer to a float requires a helper }
+        if is_64bitint(left.resulttype.def) then
+          begin
+            if is_signed(left.resulttype.def) then
+              fname := 'fpc_int64_to_'+typname
+            else
+              fname := 'fpc_qword_to_'+typname;
+            result := ccallnode.createintern(fname,ccallparanode.create(
+              left,nil));
+            left:=nil;
+            firstpass(result);
+            exit;
+          end
+        else
+          { other integers are supposed to be 32 bit }
+          begin
+            if is_signed(left.resulttype.def) then
+              fname := 'fpc_longint_to_'+typname
+            else
+              fname := 'fpc_cardinal_to_'+typname;
+            result := ccallnode.createintern(fname,ccallparanode.create(
+              left,nil));
+            left:=nil;
+            firstpass(result);
+            exit;
+          end;
       end;
+
+
 
 
     function ttypeconvnode.first_real_to_real : tnode;
@@ -1920,7 +1939,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2002-08-11 16:08:55  florian
+  Revision 1.69  2002-08-14 19:26:55  carl
+    + generic int_to_real type conversion
+    + generic unaryminus node
+
+  Revision 1.68  2002/08/11 16:08:55  florian
     + support of explicit type case boolean->char
 
   Revision 1.67  2002/08/11 15:28:00  florian
