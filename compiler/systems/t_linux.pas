@@ -66,9 +66,7 @@ implementation
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,dos
-{$ifdef i386}
     ,aasmbase,aasmtai,aasmcpu,cpubase
-{$endif i386}
     ,i_linux
     ;
 
@@ -551,7 +549,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-12-06 17:51:43  peter
+  Revision 1.6  2002-12-14 13:02:45  carl
+    - remove extra ifdef i386 (avoir compilation errors)
+
+  Revision 1.5  2002/12/06 17:51:43  peter
     * m68k library support
 
   Revision 1.4  2002/11/17 16:32:04  carl
