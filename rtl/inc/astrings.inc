@@ -512,7 +512,7 @@ end;
 { overloaded version of UniqueString for interface }
 Procedure UniqueString(Var S : AnsiString); [external name 'FPC_ANSISTR_UNIQUE'];
 
-Procedure fpc_ansistr_Unique(Var S : AnsiString); [Public,Alias : 'FPC_ANSISTR_UNIQUE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_ansistr_Unique(Var S : Pointer): Ansistring; [Public,Alias : 'FPC_ANSISTR_UNIQUE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Make sure reference count of S is 1,
   using copy-on-write semantics.
@@ -521,6 +521,7 @@ Var
   SNew : Pointer;
   L    : Longint;
 begin
+  pointer(result) := pointer(s);
   If Pointer(S)=Nil then
     exit;
   if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
@@ -530,7 +531,8 @@ begin
      Move (Pointer(S)^,SNew^,L+1);
      PAnsiRec(SNew-FirstOff)^.len:=L;
      fpc_ansistr_decr_ref (Pointer(S));  { Thread safe }
-     Pointer(S):=SNew;
+     pointer(S):=SNew;
+     pointer(result):=SNew;
    end;
 end;
 
@@ -833,7 +835,11 @@ end;
 
 {
   $Log$
-  Revision 1.37  2003-05-01 08:05:23  florian
+  Revision 1.38  2003-06-17 16:38:53  jonas
+    * fpc_{ansistr|widestr}_unique is now a function so it can be used as
+      compilerproc
+
+  Revision 1.37  2003/05/01 08:05:23  florian
     * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
 
   Revision 1.36  2003/02/26 19:16:55  jonas

@@ -670,10 +670,11 @@ begin
 end;
 {$endif INTERNLENGTH}
 
+
 { overloaded version of UniqueString for interface }
 procedure UniqueString(Var S : WideString); [external name 'FPC_WIDESTR_UNIQUE'];
 
-Procedure fpc_widestr_Unique(Var S : WideString); [Public,Alias : 'FPC_WIDESTR_UNIQUE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_widestr_Unique(Var S : Pointer): Widestring; [Public,Alias : 'FPC_WIDESTR_UNIQUE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Make sure reference count of S is 1,
   using copy-on-write semantics.
@@ -682,6 +683,7 @@ Var
   SNew : Pointer;
   L    : Longint;
 begin
+  pointer(result) := pointer(s);
   If Pointer(S)=Nil then
     exit;
   if PWideRec(Pointer(S)-WideFirstOff)^.Ref<>1 then
@@ -691,7 +693,8 @@ begin
      Move (PWideChar(S)^,SNew^,(L+1)*sizeof(WideChar));
      PWideRec(SNew-WideFirstOff)^.len:=L;
      fpc_widestr_decr_ref (Pointer(S));  { Thread safe }
-     Pointer(S):=SNew;
+     pointer(S):=SNew;
+     pointer(result):=SNew;
    end;
 end;
 
@@ -990,7 +993,11 @@ end;
 
 {
   $Log$
-  Revision 1.29  2003-05-01 08:05:23  florian
+  Revision 1.30  2003-06-17 16:38:53  jonas
+    * fpc_{ansistr|widestr}_unique is now a function so it can be used as
+      compilerproc
+
+  Revision 1.29  2003/05/01 08:05:23  florian
     * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
 
   Revision 1.28  2002/12/29 16:59:17  peter

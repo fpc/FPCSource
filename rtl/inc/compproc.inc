@@ -100,7 +100,10 @@ Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : Longint); compilerproc;
 {$ifdef EXTRAANSISHORT}
 Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): Longint; compilerproc;
 {$endif EXTRAANSISHORT}
-Procedure fpc_ansistr_Unique(Var S : AnsiString); compilerproc;
+{ pointer argument because otherwise when calling this, we get }
+{ an endless loop since a 'var s: ansistring' must be made     }
+{ unique as well                                               }
+Function fpc_ansistr_Unique(Var S : Pointer): Ansistring; compilerproc;
 
 Procedure fpc_WideStr_Decr_Ref (Var S : Pointer); compilerproc;
 Procedure fpc_WideStr_Incr_Ref (S : Pointer); compilerproc;
@@ -118,7 +121,7 @@ Function fpc_WideStr_Compare(const S1,S2 : WideString): Longint; compilerproc;
 Procedure fpc_WideStr_CheckZero(p : pointer); compilerproc;
 Procedure fpc_WideStr_CheckRange(len,index : longint); compilerproc;
 Procedure fpc_WideStr_SetLength (Var S : WideString; l : Longint); compilerproc;
-Procedure fpc_widestr_Unique(Var S : WideString); compilerproc;
+function fpc_widestr_Unique(Var S : Pointer): Widestring; compilerproc;
 
 {$ifdef HASWIDECHAR}
 Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
@@ -291,7 +294,11 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.43  2003-05-26 19:36:46  peter
+  Revision 1.44  2003-06-17 16:38:53  jonas
+    * fpc_{ansistr|widestr}_unique is now a function so it can be used as
+      compilerproc
+
+  Revision 1.43  2003/05/26 19:36:46  peter
     * fpc_shortstr_concat is now the same for all targets
     * fpc_shortstr_append_shortstr added for optimized code generation
 
