@@ -75,7 +75,7 @@ implementation
       verbose,globals,cutils,
       globtype,
       symconst,symtype,symtable,symdef,types,
-      htypechk,pass_1,cpubase,cpuinfo,
+      htypechk,pass_1,cpubase,
       cgbase,
       ncon,ncnv,ncal,nadd;
 
@@ -678,7 +678,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-04-02 17:11:29  peter
+  Revision 1.31  2002-04-07 13:26:10  carl
+  + change unit use
+
+  Revision 1.30  2002/04/02 17:11:29  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

@@ -29,6 +29,7 @@ interface
     uses
       symtype,
       node,
+      globals,
       cpuinfo;
 
     { reads a whole expression }
@@ -62,7 +63,7 @@ implementation
        { common }
        cutils,
        { global }
-       globtype,globals,tokens,verbose,
+       globtype,tokens,verbose,
        systems,widestr,
        { symtable }
        symconst,symbase,symdef,symsym,symtable,types,
@@ -2456,7 +2457,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2002-04-01 20:57:13  jonas
+  Revision 1.61  2002-04-07 13:31:36  carl
+  + change unit use
+
+  Revision 1.60  2002/04/01 20:57:13  jonas
     * fixed web bug 1907
     * fixed some other procvar related bugs (all related to accepting procvar
         constructs with either too many or too little parameters)

@@ -29,7 +29,7 @@ interface
     uses
       globtype,widestr,
       node,
-      aasm,cpuinfo,
+      aasm,cpuinfo,globals,
       symconst,symtype,symdef,symsym;
 
     type
@@ -146,7 +146,7 @@ interface
 implementation
 
     uses
-      cutils,verbose,globals,systems,
+      cutils,verbose,systems,
       types,cpubase,nld;
 
     function genintconstnode(v : TConstExprInt) : tordconstnode;
@@ -724,7 +724,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-04-04 19:05:58  peter
+  Revision 1.28  2002-04-07 13:25:20  carl
+  + change unit use
+
+  Revision 1.27  2002/04/04 19:05:58  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

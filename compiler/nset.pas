@@ -27,7 +27,7 @@ unit nset;
 interface
 
     uses
-       node,cpuinfo,aasm;
+       node,globals,aasm;
 
     type
       pcaserecord = ^tcaserecord;
@@ -110,7 +110,7 @@ implementation
 
     uses
       globtype,systems,
-      verbose,globals,
+      verbose,
       symconst,symdef,symsym,types,
       htypechk,pass_1,
       ncnv,ncon,cpubase,nld,rgobj,cgbase;
@@ -574,7 +574,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-04-02 17:11:29  peter
+  Revision 1.20  2002-04-07 13:27:50  carl
+  + change unit use
+
+  Revision 1.19  2002/04/02 17:11:29  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines
