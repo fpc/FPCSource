@@ -146,7 +146,7 @@ defaultcfg=
 -Fi$1/source/rtl/inc;$1/source/rtl/i386
 
 # searchpath for objectfiles
--Fo$1/source/rtl/inc;$1/source/rtl/i386
+#-Fo$1/source/rtl/inc;$1/source/rtl/i386
 
 # searchpath for units and other system dependent things
 #IFDEF Go32V1
