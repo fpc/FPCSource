@@ -7,9 +7,20 @@ uses
 {$endif go32v2}
    ;
 
+{$ifdef CPU68K}
+  {$define SOURCE_ENDIAN_BIG}
+{$endif}
+
+{$ifdef CPUPOWERPC}
+  {$define SOURCE_ENDIAN_BIG}
+{$endif}  
 type
    tqwordrec = packed record
+{$ifndef SOURCE_ENDIAN_BIG}   
       low,high : dword;
+{$else}
+      high, low : dword;
+{$endif}      
    end;
 
 procedure dumpqword(q : qword);
