@@ -29,7 +29,13 @@ function _DosError (Error: longint): longint; cdecl;
 {$ENDIF NETWARE}
 
 const
-{$IFNDEF FPC}
+{$IFDEF FPC}
+ {$IFDEF VER1_0}
+  {$IFDEF UNIX}
+ FileNameCaseSensitive = false;
+  {$ENDIF}
+ {$ENDIF}
+{$ELSE}
  FileNameCaseSensitive = false;
 {$ENDIF}
 {$IFDEF UNIX}
