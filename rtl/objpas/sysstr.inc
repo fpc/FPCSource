@@ -26,8 +26,8 @@
 
 function NewStr(const S: string): PString;
 begin
-  result := Nil; 
-  if Length(S) <> 0 then 
+  result := Nil;
+  if Length(S) <> 0 then
     begin
     New(Result);
     result^ := S;
@@ -245,13 +245,13 @@ end ;
 function Trim(const S: string): string;
 var Ofs, Len: integer;
 begin
-len := Length(S);
-while (S[Len] = ' ') and (Len > 0) do
+  len := Length(S);
+  while (Len>0) and (S[Len] = ' ') do
    dec(Len);
-Ofs := 1;
-while (S[Ofs] = ' ') and (Ofs <= Len) do
+  Ofs := 1;
+  while (Ofs<=Len) and (S[Ofs] = ' ') do
    Inc(Ofs);
-result := Copy(S, Ofs, 1 + Len - Ofs);
+  result := Copy(S, Ofs, 1 + Len - Ofs);
 end ;
 
 {   TrimLeft returns a copy of S with all blank characters on the left stripped off  }
@@ -259,10 +259,11 @@ end ;
 function TrimLeft(const S: string): string;
 var i,l:integer;
 begin
-l := length(s);
-i := 1;
-while (s[i] = ' ') and (i <= l) do inc(i);
-Result := copy(s, i, l);
+  l := length(s);
+  i := 1;
+  while (i<=l) and (s[i] = ' ') do
+   inc(i);
+  Result := copy(s, i, l);
 end ;
 
 {   TrimRight returns a copy of S with all blank characters on the right stripped off  }
@@ -270,9 +271,10 @@ end ;
 function TrimRight(const S: string): string;
 var l:integer;
 begin
-l := length(s);
-while (s[l] = ' ') and (l > 0) do dec(l);
-result := copy(s,1,l);
+  l := length(s);
+  while (l>0) and (s[l] = ' ') do
+   dec(l);
+  result := copy(s,1,l);
 end ;
 
 {   QuotedStr returns S quoted left and right and every single quote in S
@@ -457,7 +459,7 @@ end;
 Function Format (Const Fmt : String; const Args : Array of const) : String;
 
 Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
-    ToAdd : String;
+    Hs,ToAdd : String;
     Index,Width,Prec : Longint;
     Left : Boolean;
     ExtVal: Extended;
@@ -585,14 +587,15 @@ begin
   Writeln (' Type  : ',C);
 end;
 
-Procedure Checkarg (AT : Longint);
+function Checkarg (AT : Longint;err:boolean):boolean;
 {
   Check if argument INDEX is of correct type (AT)
   If Index=-1, ArgPos is used, and argpos is augmented with 1
   DoArg is set to the argument that must be used.
 }
 begin
-  If Index=-1 then
+  result:=false;
+  if Index=-1 then
     begin
     DoArg:=Argpos;
     inc(ArgPos);
@@ -600,7 +603,12 @@ begin
   else
     DoArg:=Index;
   If (Doarg>High(Args)) or (Args[Doarg].Vtype<>AT) then
-    DoFormatError(feInvalidArgindex);
+   begin
+     if err then
+      DoFormatError(feInvalidArgindex);
+     exit;
+   end;
+  result:=true;
 end;
 
 Const Zero = '000000000000000000000000000000000000000000000000000000000000000';
@@ -625,7 +633,7 @@ begin
       {$endif}
       Case FChar of
         'D' : begin
-              Checkarg(vtinteger);
+              Checkarg(vtinteger,true);
               Width:=Abs(width);
               Str(Args[Doarg].VInteger,ToAdd);
               While Length(ToAdd)<Prec do
@@ -636,33 +644,38 @@ begin
                 end;
               end;
         'E' : begin
-              CheckArg(vtExtended);
+              CheckArg(vtExtended,true);
               If Prec=-1 then prec:=15;
               ExtVal:=Args[doarg].VExtended^;
               Prec:=Prec+5;   // correct dot, eXXX
               If ExtVal<0 then Inc(Prec); // Corect for minus sign
               If Abs(Extval)<1 then Inc(Prec); // correct for - in E
-              Writeln('STRING ',prec);
               Str(Args[doarg].VExtended^:prec,ToAdd);
-              WRITELN('DID');
               end;
         'F' : begin
               end;
         'S' : begin
-              CheckArg(vtString);
-              Index:=Length(Args[doarg].VString^);
-              If (Prec<>-1) and (Index>Prec) then
-                Index:=Prec;
-              ToAdd:=Copy(Args[DoArg].VString^,1,Index);
+                if CheckArg(vtString,false) then
+                  hs:=Args[doarg].VString^
+                else
+                  begin
+                    dec(argpos);
+                    if CheckArg(vtAnsiString,true) then
+                      hs:=ansistring(Args[doarg].VAnsiString);
+                  end;
+                Index:=Length(hs);
+                If (Prec<>-1) and (Index>Prec) then
+                  Index:=Prec;
+                ToAdd:=Copy(hs,1,Index);
               end;
         'P' : Begin
-              CheckArg(vtpointer);
+              CheckArg(vtpointer,true);
               ToAdd:=HexStr(Longint(Args[DoArg].VPointer),8);
               // Insert ':'. Is this needed in 32 bit ? No it isn't.
               // Insert(':',ToAdd,5);
               end;
         'X' : begin
-              Checkarg(vtinteger);
+              Checkarg(vtinteger,true);
               If Prec>32 then
                 ToAdd:=HexStr(Args[Doarg].VInteger,Prec)
               else
@@ -676,7 +689,6 @@ begin
                 ToAdd:=HexStr(Args[DoArg].VInteger,Prec);
                 end;
               end;
-
         '%': ToAdd:='%';
       end;
       If Width<>-1 then
@@ -692,8 +704,8 @@ begin
     end;
 end;
 
-Function FormatBuf (Var Buffer; BufLen : Cardinal; 
-                     Const Fmt; fmtLen : Cardinal; 
+Function FormatBuf (Var Buffer; BufLen : Cardinal;
+                     Const Fmt; fmtLen : Cardinal;
                      Const Args : Array of const) : Cardinal;
 
 Var S,F : String;
@@ -707,7 +719,7 @@ begin
   else
     Result:=Buflen;
   Move(S[1],Buffer,Result);
-end;                     
+end;
 
 Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
 
@@ -782,7 +794,7 @@ Begin
             End;
           End;
         End;
-        If Result[1] = ' ' Then 
+        If Result[1] = ' ' Then
           System.Delete(Result, 1, 1);
       End;
 
@@ -792,7 +804,7 @@ Begin
         If Digits = -1 Then Digits := 2
         Else If Digits > 15 Then Digits := 15;
         Str(Value:0:Digits, Result);
-        If Result[1] = ' ' Then 
+        If Result[1] = ' ' Then
           System.Delete(Result, 1, 1);
         P := Pos('.', Result);
         If P <> 0 Then Result[P] := DecimalSeparator;
@@ -900,14 +912,14 @@ for i := 0 to SizeOf(Value) shr 1 - 1 do begin
 end ;
 
 {
-   Case Translation Tables  
-   Can be used in internationalization support. 
-   
-   Although these tables can be obtained through system calls  
-   it is better to not use those, since most implementation are not 100%  
-   WARNING:  
-   before modifying a translation table make sure that the current codepage  
-   of the OS corresponds to the one you make changes to  
+   Case Translation Tables
+   Can be used in internationalization support.
+
+   Although these tables can be obtained through system calls
+   it is better to not use those, since most implementation are not 100%
+   WARNING:
+   before modifying a translation table make sure that the current codepage
+   of the OS corresponds to the one you make changes to
 }
 
 const
@@ -957,7 +969,11 @@ const
 
 {
   $Log$
-  Revision 1.14  1999-03-01 12:40:06  michael
+  Revision 1.15  1999-04-04 10:19:07  peter
+    * format support for ansistring (from mailinglist)
+    * fixed length checking in Trim()
+
+  Revision 1.14  1999/03/01 12:40:06  michael
   changed delete to system.delete
 
   Revision 1.13  1999/02/28 13:17:35  michael
