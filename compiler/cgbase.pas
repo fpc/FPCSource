@@ -38,18 +38,6 @@ unit cgbase;
       ;
 
 
-    const
-       tcgsize2size: Array[tcgsize] of longint = (0,
-          8,16,32,64,8,16,32,64,
-          32,64,EXTENDED_SIZE*8,64,
-          8,16,32,64,128,8,16,32,64,128);
-
-       tfloat2tcgsize: array[tfloattype] of tcgsize =
-         (OS_F32,OS_F64,OS_F80,OS_C64);
-
-       tcgsize2tfloat: array[OS_F32..OS_C64] of tfloattype =
-         (s32real,s64real,s80real,s64comp);
-
 
     const
        {# bitmask indicating if the procedure uses asm }
@@ -529,7 +517,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-04-20 21:32:23  carl
+  Revision 1.12  2002-04-21 15:28:06  carl
+  - remove duplicate constants
+  - move some constants to cginfo
+
+  Revision 1.11  2002/04/20 21:32:23  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants
