@@ -1003,7 +1003,7 @@ VAR I: Sw_Integer;
 BEGIN
    GetAltChar := #0;                                  { Preset fail return }
    If (Lo(KeyCode) = 0) Then Begin                    { Extended key }
-     If (Hi(KeyCode) < 128) Then Begin                { Key between 0-127 }
+     If (Hi(KeyCode) <= $83) Then Begin               { Highest value in list }
        I := 0;                                        { Start at first }
        While (I < 128) AND (Hi(KeyCode) <> AltCodes[I])
          Do Inc(I);                                   { Search for match }
@@ -1674,7 +1674,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.33  2002-09-13 09:21:15  pierre
+ Revision 1.34  2002-09-13 22:24:30  pierre
+  * fix Alt+'9' recognition in GetAltChar function
+
+ Revision 1.33  2002/09/13 09:21:15  pierre
   * don't call InitVideo in DetectVideo procedure
 
  Revision 1.32  2002/09/09 08:04:05  pierre
