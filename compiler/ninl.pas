@@ -631,6 +631,8 @@ implementation
                           end;
                       end;
                     end;
+                  variantdef :
+                    name:=procprefix+'variant';
                   arraydef :
                     begin
                       if is_chararray(para.left.resulttype.def) then
@@ -2405,7 +2407,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  2002-10-10 16:07:57  florian
+  Revision 1.93  2002-10-10 19:24:58  florian
+    + write(ln) support for variants added
+
+  Revision 1.92  2002/10/10 16:07:57  florian
     + several widestring/pwidechar related stuff added
 
   Revision 1.91  2002/10/05 14:21:08  peter

@@ -158,6 +158,11 @@ Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); compilerproc
 {$ifdef HASWIDECHAR}
 Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); compilerproc;
 {$endif HASWIDECHAR}
+
+{$ifdef HASVARIANT}
+Procedure fpc_Write_Text_Variant(Len : Longint;var f : Text;const v : variant); compilerproc;
+{$endif HASVARIANT}
+
 Procedure fpc_Read_End(var f:Text); compilerproc;
 Procedure fpc_ReadLn_End(var f : Text); compilerproc;
 Procedure fpc_Read_Text_ShortStr(var f : Text;var s : String); compilerproc;
@@ -275,7 +280,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.26  2002-10-10 16:08:50  florian
+  Revision 1.27  2002-10-10 19:24:28  florian
+    + write(ln) support for variants added
+
+  Revision 1.26  2002/10/10 16:08:50  florian
     + several widestring/pwidechar related helpers added
 
   Revision 1.25  2002/10/05 14:20:16  peter

@@ -44,7 +44,7 @@ end;
 procedure variant_init(var v : variant);[Public,Alias:'FPC_VARIANT_INIT'];
 
   begin
-     { calling the variant manager here is a problem because the static/global variants 
+     { calling the variant manager here is a problem because the static/global variants
        are initialized while the variant manager isn't assigned }
      fillchar(v,sizeof(variant),0);
   end;
@@ -54,6 +54,18 @@ procedure variant_clear(var v : variant);[Public,Alias:'FPC_VARIANT_CLEAR'];
   begin
      variantmanager.varclear(v);
   end;
+
+Procedure fpc_Write_Text_Variant(Len : Longint;var f : Text;const v : variant); iocheck; [Public,Alias:'FPC_WRITE_TEXT_VARIANT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Begin
+  If (InOutRes<>0) then
+   exit;
+  case TextRec(f).mode of
+    fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
+      variantmanager.writevariant(f,v,len);
+    fmInput: InOutRes:=105
+    else InOutRes:=103;
+  end;
+End;
 
 { ---------------------------------------------------------------------
     Overloaded operators.
@@ -566,7 +578,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.11  2002-10-09 20:13:26  florian
+  Revision 1.12  2002-10-10 19:24:28  florian
+    + write(ln) support for variants added
+
+  Revision 1.11  2002/10/09 20:13:26  florian
     * hopefully last fix to get things working :/
 
   Revision 1.10  2002/10/09 19:56:01  florian

@@ -163,6 +163,9 @@ type
       varaddref : procedure(var v : variant);
       varcopy : procedure(var dest : variant;const source : variant);
       varcast : procedure(var dest : variant;const source : variant;vartype : longint);
+
+      writevariant : function(var t : text;const v : variant;width : longint) : Pointer;
+      write0Variant : function(var t : text;const v : Variant): Pointer;
    end;
    pvariantmanager = ^tvariantmanager;
 
@@ -279,7 +282,10 @@ operator <=(const op1,op2 : variant) dest : boolean;
 
 {
   $Log$
-  Revision 1.10  2002-10-09 19:08:22  florian
+  Revision 1.11  2002-10-10 19:24:28  florian
+    + write(ln) support for variants added
+
+  Revision 1.10  2002/10/09 19:08:22  florian
     + Variant constants Unassigned and Null added
 
   Revision 1.9  2002/10/07 15:10:45  florian
