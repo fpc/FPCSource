@@ -100,10 +100,6 @@ uses
     {$endif DEBUG}
     catch,
   {$endif}
-  { we've now a lineinfo unit for all OSes }
-  {$ifdef DEBUG}
-    lineinfo,
-  {$endif DEBUG}
 {$endif FPC}
   globals,compiler;
 
@@ -153,7 +149,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-09-24 15:06:23  peter
+  Revision 1.4  2000-10-01 21:15:55  pierre
+   * lineinfo explicit load not needed anymore
+
+  Revision 1.3  2000/09/24 15:06:23  peter
     * use defines.inc
 
   Revision 1.2  2000/07/13 11:32:45  michael
