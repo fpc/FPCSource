@@ -712,6 +712,8 @@ uses
                                   Helpers
 *****************************************************************************}
 
+    function supreg_name(r:Tsuperregister):string;
+
     function  is_calljmp(o:tasmop):boolean;
 
     procedure inverse_flags(var r : TResFlags);
@@ -731,6 +733,28 @@ implementation
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
+
+   function supreg_name(r:Tsuperregister):string;
+
+    var s:string[4];
+
+    const supreg_names:array[0..last_supreg] of string[3]=
+          ('INV',
+           'r0','r1','r2','r3','r4','r5','r6','r7','r8','r9',
+           'r10','r11','r12','r13','r14','r15','r16','r17','r18','r19',
+           'r20','r21','r22','r23','r24','r25','r26','r27','r28','r29',
+           'r30' ,'r31');
+
+    begin
+      if r in [0..last_supreg] then
+        supreg_name:=supreg_names[r]
+      else
+        begin
+          str(r,s);
+          supreg_name:='invalid_reg'+s;
+        end;
+    end;
+
 
     function is_calljmp(o:tasmop):boolean;
       begin
@@ -851,7 +875,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2003-06-12 19:11:34  jonas
+  Revision 1.57  2003-06-13 17:44:44  jonas
+    + added supreg_name function
+
+  Revision 1.56  2003/06/12 19:11:34  jonas
     - removed ALL_INTREGISTERS (only the one in rgobj is valid)
 
   Revision 1.55  2003/05/31 15:05:28  peter
