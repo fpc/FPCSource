@@ -398,3 +398,4 @@ bug0299.pp   passing Array[0..1] of char by value to proc leads to problems
 bug0305.pp   Finally is not handled correctly after inputting 0
 bug0307.pp   "with object_type" doesn't work correctly!
 bug0308a.pp  problem with objects that don't have VMT nor variable fields
+bug0309.pp   problem with ATT assembler written by bin writer
