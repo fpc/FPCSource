@@ -3,6 +3,22 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{The TYPINFO unit}
 \FPCexampledir{typinfex}
+The \file{TypeInfo} unit contains many routines which can be used for
+the querying of the Run-Time Type Information (RTTI) which is generated
+by the compiler for classes that are compiled under the \var{\{\*M+\}}
+switch. This information can be used to retrieve or set property values
+for published properties for totally unknown classes. In particular, it
+can be used to stream classes. The \var{TPersistent} class in the 
+\file{Classes} unit is compiled in the \var{\{\*M+\}} state and serves
+as the base class for all classes that need to be streamed.
+
+The unit should be compatible to the Delphi 5 unit with the same name. 
+The only calls that are still missing are the Variant calls, since \fpc
+does not support the variant type yet.
+
+The examples in this chapter use a \file{rttiobj} file, which contains
+an object that has a published property of all supported types. It also
+contains some auxiliary routines and definitions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constants, Types and variables
 \section{Constants, Types and variables}
@@ -151,7 +167,8 @@ end;
 If the typeinfo kind is \var{tkClass}, then the property 
 information follows the \var{UnitName} string, as an array of \var{TPropInfo} records.
 
-The \var{TPropData} record is not used, but is provided for completeness.
+The \var{TPropData} record is not used, but is provided for completeness and
+compatibility with Delphi.
 \begin{verbatim}
 TPropData = packed record
   PropCount : Word;
@@ -183,6 +200,62 @@ The following pointer and array types are used for typecasts:
 PPropList = ^TPropList;
 TPropList = array[0..65535] of PPropInfo;
 \end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Functions and procedures by category
+\section{Function list by category}
+What follows is a listing of the available functions, grouped by category.
+For each function there is a reference to the page where the function
+can be found.
+
+\subsection{Examining published property information}
+Functions for retrieving or examining property information
+\begin{funclist}
+\funcref{FindPropInfo}{Getting property type information, With error checking.}
+\funcref{GetPropInfo}{Getting property type information, No error checking.}
+\funcref{GetPropInfos}{Find property information of a certain kind}
+\funcref{GetObjectPropClass}{Return the declared class of an object property }
+\funcref{GetPropList}{Get a list of all published properties}
+\funcref{IsPublishedProp}{Is a property published}
+\funcref{IsStoredProp}{Is a property stored}
+\funcref{PropIsType}{Is a property of a certain kind}
+\funcref{PropType}{Return the type of a property}
+\end{funclist}
+
+\subsection{Getting or setting property values}
+Functions to set or set a property's value.
+\begin{funclist}
+\funcref{GetEnumProp}{Return the value of an enumerated type property}
+\funcref{GetFloatProp}{Return the value of a float property}
+\funcref{GetInt64Prop}{Return the value of an Int64 property}
+\funcref{GetMethodProp}{Return the value of a procedural type property}
+\funcref{GetObjectProp}{Return the value of an object property}
+\funcref{GetOrdProp}{Return the value of an ordinal type property}
+\funcref{GetPropValue}{Return the value of a property as a variant}
+\funcref{GetSetProp}{Return the value of a set property}
+\funcref{GetStrProp}{Return the value of a string property}
+\funcref{GetVariantProp}{Return the value of a variant property}
+\funcref{SetEnumProp}{Set the value of an enumerated type property}
+\funcref{SetFloatProp}{Set the value of a float property}
+\funcref{SetInt64Prop}{Set the value of an Int64 property}
+\funcref{SetMethodProp}{Set the value of a procedural type property}
+\funcref{SetObjectProp}{Set the value of an object property}
+\funcref{SetOrdProp}{Set the value of an ordinal type property}
+\funcref{SetPropValue}{Set the value of a property trhough a variant}
+\funcref{SetSetProp}{Set the value of a set property}
+\funcref{SetStrProp}{Set the value of a string property}
+\funcref{SetVariantProp}{Set the value of a variant property}
+\end{funclist}
+
+\subsection{Auxiliary functions}
+\begin{funclist}
+\funcref{GetEnumName}{Get an enumerated type element name}
+\funcref{GetEnumValue}{Get ordinal number of an enumerated tye, based on the
+name.}
+\funcref{GetTypeData}{Skip type name and return a pointer to the type data}
+\funcref{SetToString}{Convert a set to its string representation}
+\funcref{StringToSet}{Convert a string representation of a set to a set}
+\end{funclist}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Functions and procedures
@@ -893,10 +966,19 @@ function SetToString(PropInfo: PPropInfo;
 \var{SetToString} takes an integer representation of a set (as received e.g.
 by \var{GetOrdProp}) and turns it into a string representing the elements in
 the set, based on the type information found in the \var{PropInfo} property
-information.
+information. By default, the string representation is not surrounded by
+square brackets. Setting the \var{Brackets} parameter to \var{True} will 
+surround the string representation with brackets.
+
+The function returns the string representation of the set.
 \Errors
+No checking is done to see whether \var{PropInfo} points to valid property
+information.
 \SeeAlso
+\seef{GetEnumName}, \seef{GetEnumValue}, \seef{StringToSet}
 \end{function}
+
+\FPCexample{ex18}
 
 \begin{procedure}{SetVariantProp}
 \Declaration
@@ -907,7 +989,8 @@ Procedure SetVariantProp(Instance: TObject;
                          const PropName: string; 
                          const Value: Variant);                 
 \Description
-Not yet implemented. Provided for Delphi compatibility only.
+Due to missing Variant support, this function is not yet implemented. 
+Provided for Delphi compatibility only.
 \Errors
 \SeeAlso
 \end{procedure}
@@ -917,6 +1000,23 @@ Not yet implemented. Provided for Delphi compatibility only.
 \Declaration
 function StringToSet(PropInfo: PPropInfo; const Value: string): Integer;
 \Description
+\var{StringToSet} converts the string representation of a set in \var{Value}
+to a integer representation of the set, using the property information found
+in \var{PropInfo}. This property information should point to the property
+information of a set property. The function returns the integer
+representation of the set. (i.e, the set value, typecast to an integer)
+
+The string representation can be surrounded with square brackets, and must 
+consist of the names of the elements of the base type of the set. The base
+type of the set should be an enumerated type. The elements should be
+separated by commas, and may be surrounded by spaces.
+each of the names will be fed to the \seef{GetEnumValue} function.
 \Errors
+No checking is done to see whether \var{PropInfo} points to valid property
+information. If a wrong name is given for an enumerated value, then an
+\var{EPropertyError} will be raised.
 \SeeAlso
+\seef{GetEnumName}, \seef{GetEnumValue}, \seef{SetToString}
 \end{function}
+
+For an example, see \seef{SetToString}.
