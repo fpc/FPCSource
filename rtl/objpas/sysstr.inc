@@ -841,12 +841,12 @@ begin
               else if CheckArg(vtInt64,true) then
                 Str(Args[DoArg].VInt64^,toadd);
               Width:=Abs(width);
-              While Length(ToAdd)<Prec do
-                begin
-                Index:=Prec-Length(ToAdd);
-                If Index>64 then Index:=64;
-                ToAdd:=Copy(Zero,1,Index)+ToAdd;
-                end;
+              Index:=Prec-Length(ToAdd);
+              If ToAdd[1]<>'-' then
+                ToAdd:=StringOfChar('0',Index)+ToAdd
+              else
+                // + 1 to accomodate for - sign in length !!
+                Insert(StringOfChar('0',Index+1),toadd,2);  
               end;
         'E' : begin
               CheckArg(vtExtended,true);
@@ -1269,16 +1269,11 @@ const
 
 {
   $Log$
-  Revision 1.7  2000-11-23 11:04:26  sg
-  * Protected some Move()'s by 'if' clauses so that the Move won't be
-    executed when the length would be 0. Otherwise, the corresponding
-    routines might get an RTE when compiled with $R+.
+  Revision 1.8  2000-12-06 22:55:29  michael
+  + Merged format fix from fixbranch
 
-  Revision 1.6  2000/11/13 14:41:20  marco
-   * Unix renamefest for defines
-
-  Revision 1.5  2000/09/30 15:51:41  michael
-  + Merged int64 fix from fixbranch
+  Revision 1.1.2.3  2000/12/06 22:51:58  michael
+  + Fixed formatting of 0-expanded negative integer
 
   Revision 1.1.2.2  2000/09/30 15:07:41  michael
   + Fixed format to handle int64 in case of "d"
