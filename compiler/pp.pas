@@ -220,11 +220,13 @@ end;
 begin
   oldexit:=exitproc;
   exitproc:=@myexit;
-{$ifdef linux}
-  heapblocks:=true;
-{$else}
-  {$ifdef go32v2}
+{$ifndef VER0_99_5}  
+  {$ifdef linux}
     heapblocks:=true;
+  {$else}
+    {$ifdef go32v2}
+      heapblocks:=true;
+    {$endif}
   {$endif}
 {$endif}
 {$ifdef UseOverlay}
@@ -236,7 +238,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  1998-08-10 14:50:16  peter
+  Revision 1.26  1998-08-10 15:49:40  peter
+    * small fixes for 0.99.5
+
+  Revision 1.25  1998/08/10 14:50:16  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.24  1998/08/10 10:18:32  peter
@@ -246,7 +251,10 @@ end.
   Revision 1.23  1998/08/05 16:00:16  florian
     * some fixes for ansi strings
     * $log$ to $Log$
-    * $log$ to Revision 1.25  1998-08-10 14:50:16  peter
+    * $log$ to Revision 1.26  1998-08-10 15:49:40  peter
+    * $log$ to   * small fixes for 0.99.5
+    * $log$ to
+    * $log$ to Revision 1.25  1998/08/10 14:50:16  peter
     * $log$ to   + localswitches, moduleswitches, globalswitches splitting
     * $log$ to
     * $log$ to Revision 1.24  1998/08/10 10:18:32  peter

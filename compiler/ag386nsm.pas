@@ -76,7 +76,11 @@ unit ag386nsm;
          hs : string;
          p : byte;
       begin
+{$ifdef VER0_99_5}
+         str(double(e),hs);
+{$else}	 
          str(e,hs);
+{$endif}	 
       { nasm expects a lowercase e }
          p:=pos('E',hs);
          if p>0 then
@@ -561,7 +565,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.5  1998-08-08 10:19:18  florian
+  Revision 1.6  1998-08-10 15:49:39  peter
+    * small fixes for 0.99.5
+
+  Revision 1.5  1998/08/08 10:19:18  florian
     * small fixes to write the extended type correct
 
   Revision 1.4  1998/06/05 17:46:03  peter
