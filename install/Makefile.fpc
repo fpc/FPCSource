@@ -23,8 +23,12 @@ ifdef OLDFPCDIR
 ifneq ($(OLDFPCDIR),)
 FPCDIRSET=fpcdirset
 fpcdirset:
-        @echo You must unset FPCDIR to use this Makefile
-        @exit 1
+        @echo --------------------------------------------
+        @echo
+        @echo You must unset FPCDIR to use this Makefile !
+        @echo
+        @echo --------------------------------------------
+        @cantcontinuewithfpcdir
 endif
 endif
 
@@ -252,24 +256,24 @@ linux:
 
 DEBSRCDIR:=/usr/src/fpc-$(FPC_VERSION)
 deb:
-	rm -rf $(DEBSRCDIR)
-	install -d $(DEBSRCDIR)
-	$(COPYTREE) $(CVSBASE)/compiler $(DEBSRCDIR)
-	$(COPYTREE) $(CVSBASE)/rtl $(DEBSRCDIR)
-	$(COPYTREE) $(CVSBASE)/fcl $(DEBSRCDIR)
-	$(COPYTREE) $(CVSBASE)/api $(DEBSRCDIR)
-	$(COPYTREE) $(CVSBASE)/packages $(DEBSRCDIR)
-	$(COPYTREE) $(CVSBASE)/utils $(DEBSRCDIR)
-	$(COPYTREE) $(CVSBASE)/logs $(DEBSRCDIR)
-	$(COPYTREE) $(CVSBASE)/docs $(DEBSRCDIR)
-	$(COPYTREE) $(CVSBASE)/base/Makefile* $(DEBSRCDIR)
-	$(COPYTREE) $(CVSBASE)/install/debian $(DEBSRCDIR)
-	$(COPYTREE) $(CVSBASE)/install/man $(DEBSRCDIR)
-	$(COPYTREE) $(CVSBASE)/install/doc $(DEBSRCDIR)
-	$(COPYTREE) $(CVSBASE)/install/demo $(DEBSRCDIR)
-	find $(DEBSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
-	chmod 755 $(DEBSRCDIR)/debian/rules
-	cd $(DEBSRCDIR) ; debian/rules binary
+        rm -rf $(DEBSRCDIR)
+        install -d $(DEBSRCDIR)
+        $(COPYTREE) $(CVSBASE)/compiler $(DEBSRCDIR)
+        $(COPYTREE) $(CVSBASE)/rtl $(DEBSRCDIR)
+        $(COPYTREE) $(CVSBASE)/fcl $(DEBSRCDIR)
+        $(COPYTREE) $(CVSBASE)/api $(DEBSRCDIR)
+        $(COPYTREE) $(CVSBASE)/packages $(DEBSRCDIR)
+        $(COPYTREE) $(CVSBASE)/utils $(DEBSRCDIR)
+        $(COPYTREE) $(CVSBASE)/logs $(DEBSRCDIR)
+        $(COPYTREE) $(CVSBASE)/docs $(DEBSRCDIR)
+        $(COPYTREE) $(CVSBASE)/base/Makefile* $(DEBSRCDIR)
+        $(COPYTREE) $(CVSBASE)/install/debian $(DEBSRCDIR)
+        $(COPYTREE) $(CVSBASE)/install/man $(DEBSRCDIR)
+        $(COPYTREE) $(CVSBASE)/install/doc $(DEBSRCDIR)
+        $(COPYTREE) $(CVSBASE)/install/demo $(DEBSRCDIR)
+        find $(DEBSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
+        chmod 755 $(DEBSRCDIR)/debian/rules
+        cd $(DEBSRCDIR) ; debian/rules binary
 
 
 RPMSOURCESDIR:=/usr/src/redhat/SOURCES
@@ -278,28 +282,28 @@ RPMSRCDIR:=$(RPMSOURCESDIR)/fpc
 DOCSRCDIR:=$(RPMSOURCESDIR)/fpcdoc
 rpm:
 # fpc.rpm
-	rm -rf $(RPMSRCDIR)
-	cp fpc-$(FPC_VERSION).spec $(RPMSPECDIR)
-	install -d $(RPMSRCDIR)
-	$(COPYTREE) $(CVSBASE)/compiler $(RPMSRCDIR)
-	$(COPYTREE) $(CVSBASE)/rtl $(RPMSRCDIR)
-	$(COPYTREE) $(CVSBASE)/fcl $(RPMSRCDIR)
-	$(COPYTREE) $(CVSBASE)/api $(RPMSRCDIR)
-	$(COPYTREE) $(CVSBASE)/packages $(RPMSRCDIR)
-	$(COPYTREE) $(CVSBASE)/utils $(RPMSRCDIR)
-	$(COPYTREE) $(CVSBASE)/logs $(RPMSRCDIR)
-	$(COPYTREE) $(CVSBASE)/base/Makefile* $(RPMSRCDIR)
-	$(COPYTREE) $(CVSBASE)/install/man $(RPMSRCDIR)
-	$(COPYTREE) $(CVSBASE)/install/doc $(RPMSRCDIR)
-	$(COPYTREE) $(CVSBASE)/install/demo $(RPMSRCDIR)
-	find $(RPMSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
-	cd $(RPMSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-$(FPC_VERSION)-src.tar.gz
-	cd $(RPMSPECDIR) ; rpm -ba fpc-$(FPC_VERSION).spec
+        rm -rf $(RPMSRCDIR)
+        cp fpc-$(FPC_VERSION).spec $(RPMSPECDIR)
+        install -d $(RPMSRCDIR)
+        $(COPYTREE) $(CVSBASE)/compiler $(RPMSRCDIR)
+        $(COPYTREE) $(CVSBASE)/rtl $(RPMSRCDIR)
+        $(COPYTREE) $(CVSBASE)/fcl $(RPMSRCDIR)
+        $(COPYTREE) $(CVSBASE)/api $(RPMSRCDIR)
+        $(COPYTREE) $(CVSBASE)/packages $(RPMSRCDIR)
+        $(COPYTREE) $(CVSBASE)/utils $(RPMSRCDIR)
+        $(COPYTREE) $(CVSBASE)/logs $(RPMSRCDIR)
+        $(COPYTREE) $(CVSBASE)/base/Makefile* $(RPMSRCDIR)
+        $(COPYTREE) $(CVSBASE)/install/man $(RPMSRCDIR)
+        $(COPYTREE) $(CVSBASE)/install/doc $(RPMSRCDIR)
+        $(COPYTREE) $(CVSBASE)/install/demo $(RPMSRCDIR)
+        find $(RPMSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
+        cd $(RPMSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-$(FPC_VERSION)-src.tar.gz
+        cd $(RPMSPECDIR) ; rpm -ba fpc-$(FPC_VERSION).spec
 # fpc-docs.rpm
-	rm -rf $(DOCSRCDIR)
-	cp fpc-docs-$(FPC_VERSION).spec $(RPMSPECDIR)
-	install -d $(DOCSRCDIR)
-	$(COPYTREE) $(CVSBASE)/docs $(DOCSRCDIR)
-	find $(DOCSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
-	cd $(DOCSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-docs-$(FPC_VERSION)-src.tar.gz
-	cd $(RPMSPECDIR) ; rpm -ba fpc-docs-$(FPC_VERSION).spec
+        rm -rf $(DOCSRCDIR)
+        cp fpc-docs-$(FPC_VERSION).spec $(RPMSPECDIR)
+        install -d $(DOCSRCDIR)
+        $(COPYTREE) $(CVSBASE)/docs $(DOCSRCDIR)
+        find $(DOCSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
+        cd $(DOCSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-docs-$(FPC_VERSION)-src.tar.gz
+        cd $(RPMSPECDIR) ; rpm -ba fpc-docs-$(FPC_VERSION).spec

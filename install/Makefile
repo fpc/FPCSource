@@ -123,8 +123,12 @@ ifdef OLDFPCDIR
 ifneq ($(OLDFPCDIR),)
 FPCDIRSET=fpcdirset
 fpcdirset:
-	@echo You must unset FPCDIR to use this Makefile
-	@exit 1
+	@echo --------------------------------------------
+	@echo
+	@echo You must unset FPCDIR to use this Makefile !
+	@echo
+	@echo --------------------------------------------
+	@cantcontinuewithfpcdir
 endif
 endif
 
