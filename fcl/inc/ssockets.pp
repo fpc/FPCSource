@@ -193,7 +193,7 @@ resourcestring
   strHostNotFound = 'Host name resolution for "%s" failed.';
   strSocketCreationFailed = 'Creation of socket failed: %s';
   strSocketBindFailed = 'Binding of socket failed: %s';
-  strSocketListenFailed = 'Listening on port #%d failed: %s';
+  strSocketListenFailed = 'Listening on port #%d failed, error: %d';
   strSocketConnectFailed = 'Connect to %s failed.';
   strSocketAcceptFailed = 'Could not accept a client connection on socket: %d, error %d';
   strSocketAcceptWouldBlock = 'Accept would block on socket: %d';
@@ -326,7 +326,7 @@ begin
   If Not FBound then
     Bind;
   If Not Sockets.Listen(FSocket,FQueueSize) then
-    Raise ESocketError.Create(seListenFailed,[FSocket]);
+    Raise ESocketError.Create(seListenFailed,[FSocket,SocketError]);
 end;
 
 Procedure TSocketServer.StartAccepting;
@@ -600,7 +600,10 @@ end.
 
 {
   $Log$
-  Revision 1.23  2004-09-18 23:24:12  armin
+  Revision 1.24  2004-09-23 18:55:21  armin
+  * corrected format for seListenFailed
+
+  Revision 1.23  2004/09/18 23:24:12  armin
   + netwlibc support
   * added error number to seAcceptFailed exception
 
