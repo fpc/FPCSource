@@ -548,7 +548,7 @@ implementation
                is_signed:=(dt in [s8bit,s16bit,s32bit,s64bit]);
              end;
            enumdef :
-             is_signed:=false;
+             is_signed:=penumdef(def)^.min < 0;
            else
              is_signed:=false;
          end;
@@ -1730,7 +1730,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2001-01-08 21:43:38  peter
+  Revision 1.31  2001-01-22 11:20:15  jonas
+    * fixed web bug 1363 (merged)
+
+  Revision 1.30  2001/01/08 21:43:38  peter
     * string isn't compatible with array of char
 
   Revision 1.29  2000/12/25 00:07:30  peter
