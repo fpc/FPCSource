@@ -29,4 +29,7 @@ ts10100.pp        tests for delphi object model
 -
 ts101xx.pp
 
-to000000          shows when uncertain optimizations can cause wrong code
+tf000001.pp       stupid example that creates a GPF sometimes
+tf000002.pp       tests that use of a type as a member of an expression is not possible
+
+to000000.pp       shows when uncertain optimizations can cause wrong code

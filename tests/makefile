@@ -1,4 +1,6 @@
-
+#
+# $Id:
+#
 # make all test
 # and printout errors
 
@@ -99,4 +101,6 @@ alltf : $(patsubst %.pp,%.ref,$(wildcard tf*.pp))
 allto : $(patsubst %.pp,%.res,$(wildcard to*.pp))
 
 clean :
-	-rm *.re* log faillist
+	-rm *.re* *.o *.ppu *.exe log faillist
+
+# $Log:
