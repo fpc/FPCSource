@@ -229,9 +229,9 @@ interface
        ttypedconstsym = class(tstoredsym)
           prefix          : pstring;
           typedconsttype  : ttype;
-          is_really_const : boolean;
-          constructor create(const n : string;p : tdef;really_const : boolean);
-          constructor createtype(const n : string;const tt : ttype;really_const : boolean);
+          is_writable     : boolean;
+          constructor create(const n : string;p : tdef;writable : boolean);
+          constructor createtype(const n : string;const tt : ttype;writable : boolean);
           constructor load(ppufile:tcompilerppufile);
           destructor destroy;override;
           function  mangledname : string;override;
@@ -1675,20 +1675,23 @@ implementation
                              TTYPEDCONSTSYM
 *****************************************************************************}
 
-    constructor ttypedconstsym.create(const n : string;p : tdef;really_const : boolean);
+    constructor ttypedconstsym.create(const n : string;p : tdef;writable : boolean);
       begin
          inherited create(n);
          typ:=typedconstsym;
          typedconsttype.setdef(p);
-         is_really_const:=really_const;
+         is_writable:=writable;
          prefix:=stringdup(procprefix);
       end;
 
 
-    constructor ttypedconstsym.createtype(const n : string;const tt : ttype;really_const : boolean);
+    constructor ttypedconstsym.createtype(const n : string;const tt : ttype;writable : boolean);
       begin
-         ttypedconstsym(self).create(n,nil,really_const);
+         inherited create(n);
+         typ:=typedconstsym;
          typedconsttype:=tt;
+         is_writable:=writable;
+         prefix:=stringdup(procprefix);
       end;
 
 
@@ -1698,7 +1701,7 @@ implementation
          typ:=typedconstsym;
          ppufile.gettype(typedconsttype);
          prefix:=stringdup(ppufile.getstring);
-         is_really_const:=boolean(ppufile.getbyte);
+         is_writable:=boolean(ppufile.getbyte);
       end;
 
 
@@ -1735,7 +1738,7 @@ implementation
          inherited writesym(ppufile);
          ppufile.puttype(typedconsttype);
          ppufile.putstring(prefix^);
-         ppufile.putbyte(byte(is_really_const));
+         ppufile.putbyte(byte(is_writable));
          ppufile.writeentry(ibtypedconstsym);
       end;
 
@@ -1748,10 +1751,10 @@ implementation
       begin
         storefilepos:=aktfilepos;
         aktfilepos:=akttokenpos;
-        if is_really_const then
-          curconstsegment:=consts
+        if is_writable then
+          curconstsegment:=datasegment
         else
-          curconstsegment:=datasegment;
+          curconstsegment:=consts;
         l:=getsize;
         varalign:=size_2_align(l);
         varalign:=used_align(varalign,aktalignment.constalignmin,aktalignment.constalignmax);
@@ -2484,7 +2487,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2001-09-19 11:04:42  michael
+  Revision 1.23  2001-10-20 20:30:21  peter
+    * read only typed const support, switch $J-
+
+  Revision 1.22  2001/09/19 11:04:42  michael
   * Smartlinking with interfaces fixed
   * Better smartlinking for rtti and init tables
 

@@ -189,19 +189,7 @@ implementation
                    { create symbol }
                    storetokenpos:=akttokenpos;
                    akttokenpos:=filepos;
-{$ifdef DELPHI_CONST_IN_RODATA}
-                   if m_delphi in aktmodeswitches then
-                     begin
-                       if assigned(readtypesym) then
-                        sym:=ttypedconstsym.createsym(orgname,readtypesym,true)
-                       else
-                        sym:=ttypedconstsym.create(orgname,def,true)
-                     end
-                   else
-{$endif DELPHI_CONST_IN_RODATA}
-                     begin
-                       sym:=ttypedconstsym.createtype(orgname,tt,false)
-                     end;
+                   sym:=ttypedconstsym.createtype(orgname,tt,(cs_typed_const_writable in aktlocalswitches));
                    akttokenpos:=storetokenpos;
                    symtablestack.insert(sym);
                    { procvar can have proc directives }
@@ -230,12 +218,7 @@ implementation
                     begin
                       { get init value }
                       consume(_EQUAL);
-{$ifdef DELPHI_CONST_IN_RODATA}
-                      if m_delphi in aktmodeswitches then
-                       readtypedconst(tt,ttypedconstsym(sym),true)
-                      else
-{$endif DELPHI_CONST_IN_RODATA}
-                       readtypedconst(tt,ttypedconstsym(sym),false);
+                      readtypedconst(tt,ttypedconstsym(sym),(cs_typed_const_writable in aktlocalswitches));
                       try_consume_hintdirective(sym.symoptions);
                       consume(_SEMICOLON);
                     end;
@@ -610,7 +593,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2001-10-20 19:28:39  peter
+  Revision 1.37  2001-10-20 20:30:21  peter
+    * read only typed const support, switch $J-
+
+  Revision 1.36  2001/10/20 19:28:39  peter
     * interface 2 guid support
     * guid constants support
 

@@ -904,10 +904,17 @@ implementation
                           exit;
                         end;
                      end;
-                   funcretsym,
-                   typedconstsym :
+                   funcretsym :
                      begin
                        valid_for_assign:=true;
+                       exit;
+                     end;
+                   typedconstsym :
+                     begin
+                       if ttypedconstsym(tloadnode(hp).symtableentry).is_writable then
+                        valid_for_assign:=true
+                       else
+                        CGMessagePos(hp.fileinfo,type_e_no_assign_to_const);
                        exit;
                      end;
                  end;
@@ -967,7 +974,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2001-10-12 13:51:51  jonas
+  Revision 1.37  2001-10-20 20:30:21  peter
+    * read only typed const support, switch $J-
+
+  Revision 1.36  2001/10/12 13:51:51  jonas
     * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
     * fixed bug in n386add (introduced after compilerproc changes for string
       operations) where calcregisters wasn't called for shortstring addnodes

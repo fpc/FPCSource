@@ -31,7 +31,7 @@ interface
     { this procedure reads typed constants }
     { sym is only needed for ansi strings  }
     { the assembler label is in the middle (PM) }
-    procedure readtypedconst(const t:ttype;sym : ttypedconstsym;no_change_allowed : boolean);
+    procedure readtypedconst(const t:ttype;sym : ttypedconstsym;writable : boolean);
 
 implementation
 
@@ -57,7 +57,7 @@ implementation
   {$maxfpuregisters 0}
 {$endif fpc}
     { this procedure reads typed constants }
-    procedure readtypedconst(const t:ttype;sym : ttypedconstsym;no_change_allowed : boolean);
+    procedure readtypedconst(const t:ttype;sym : ttypedconstsym;writable : boolean);
 
       var
          len,base  : longint;
@@ -95,10 +95,10 @@ implementation
 
 {$R-}  {Range check creates problem with init_8bit(-1) !!}
       begin
-         if no_change_allowed then
-           curconstsegment:=consts
+         if writable then
+           curconstsegment:=datasegment
          else
-           curconstsegment:=datasegment;
+           curconstsegment:=consts;
          case t.def.deftype of
             orddef:
               begin
@@ -597,10 +597,10 @@ implementation
                     consume(_LKLAMMER);
                     for l:=tarraydef(t.def).lowrange to tarraydef(t.def).highrange-1 do
                       begin
-                         readtypedconst(tarraydef(t.def).elementtype,nil,no_change_allowed);
+                         readtypedconst(tarraydef(t.def).elementtype,nil,writable);
                          consume(_COMMA);
                       end;
-                    readtypedconst(tarraydef(t.def).elementtype,nil,no_change_allowed);
+                    readtypedconst(tarraydef(t.def).elementtype,nil,writable);
                     consume(_RKLAMMER);
                  end
               else
@@ -805,7 +805,7 @@ implementation
                              aktpos:=tvarsym(srsym).address+tvarsym(srsym).vartype.def.size;
 
                              { read the data }
-                             readtypedconst(tvarsym(srsym).vartype,nil,no_change_allowed);
+                             readtypedconst(tvarsym(srsym).vartype,nil,writable);
 
                              { keep previous field for checking whether whole }
                              { record was initialized (JM)                    }
@@ -910,7 +910,7 @@ implementation
                              aktpos:=tvarsym(srsym).address+tvarsym(srsym).vartype.def.size;
 
                              { read the data }
-                             readtypedconst(tvarsym(srsym).vartype,nil,no_change_allowed);
+                             readtypedconst(tvarsym(srsym).vartype,nil,writable);
 
                              if token=_SEMICOLON then
                                consume(_SEMICOLON)
@@ -950,7 +950,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2001-10-20 17:24:26  peter
+  Revision 1.36  2001-10-20 20:30:21  peter
+    * read only typed const support, switch $J-
+
+  Revision 1.35  2001/10/20 17:24:26  peter
     * make all sets equal when reading an array of sets. Before it could
       mix normal and small sets in the same array!
 

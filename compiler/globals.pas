@@ -1361,7 +1361,7 @@ implementation
 
       { Init values }
         initmodeswitches:=fpcmodeswitches;
-        initlocalswitches:=[cs_check_io];
+        initlocalswitches:=[cs_check_io,cs_typed_const_writable];
         initmoduleswitches:=[cs_extsyntax,cs_browser];
         initglobalswitches:=[cs_check_unit_name,cs_link_static];
         initoutputformat:=target_asm.id;
@@ -1411,7 +1411,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2001-10-16 15:10:34  jonas
+  Revision 1.46  2001-10-20 20:30:20  peter
+    * read only typed const support, switch $J-
+
+  Revision 1.45  2001/10/16 15:10:34  jonas
     * fixed goto/label/try bugs
 
   Revision 1.44  2001/10/12 16:06:17  peter

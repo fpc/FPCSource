@@ -75,7 +75,7 @@ interface
          cs_check_overflow,cs_check_range,cs_check_object_ext,
          cs_check_io,cs_check_stack,
          cs_omitstackframe,cs_do_assertion,cs_generate_rtti,
-         cs_full_boolean_eval,
+         cs_full_boolean_eval,cs_typed_const_writable,
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }
@@ -90,7 +90,6 @@ interface
          { support }
          cs_support_inline,cs_support_goto,cs_support_macro,
          cs_support_c_operators,cs_static_keyword,
-         cs_typed_const_not_changeable,
          { generation }
          cs_profile,cs_debuginfo,cs_browser,cs_local_browser,cs_compilesystem,
          cs_lineinfo,
@@ -186,6 +185,7 @@ interface
 {$ifndef Delphi}
   {$ifndef xFPC}
     type
+      pguid = ^tguid;
       tguid = packed record
         D1: LongWord;
         D2: Word;
@@ -208,7 +208,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2001-09-17 21:29:11  peter
+  Revision 1.16  2001-10-20 20:30:21  peter
+    * read only typed const support, switch $J-
+
+  Revision 1.15  2001/09/17 21:29:11  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.14  2001/07/30 20:59:27  peter

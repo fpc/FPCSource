@@ -56,7 +56,7 @@ const
    {G} (typesw:ignoredsw; setsw:ord(cs_localnone)),
    {H} (typesw:localsw; setsw:ord(cs_ansistrings)),
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
-   {J} (typesw:unsupportedsw; setsw:ord(cs_typed_const_not_changeable)),
+   {J} (typesw:localsw; setsw:ord(cs_typed_const_writable)),
    {K} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {L} (typesw:modulesw; setsw:ord(cs_local_browser)),
    {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
@@ -177,7 +177,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2001-05-18 22:56:05  peter
+  Revision 1.8  2001-10-20 20:30:21  peter
+    * read only typed const support, switch $J-
+
+  Revision 1.7  2001/05/18 22:56:05  peter
     * $E is moduleswitch (merged)
 
   Revision 1.6  2000/12/25 00:07:29  peter

@@ -401,7 +401,7 @@ type
   tconsttyp = (constnone,
     constord,conststring,constreal,constbool,
     constint,constchar,constset,constpointer,constnil,
-    constresourcestring,constwstring,constwchar
+    constresourcestring,constwstring,constwchar,constguid
   );
 
   { RTTI information to store }
@@ -453,7 +453,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2001-08-30 20:13:54  peter
+  Revision 1.24  2001-10-20 20:30:21  peter
+    * read only typed const support, switch $J-
+
+  Revision 1.23  2001/08/30 20:13:54  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces
