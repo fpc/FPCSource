@@ -86,8 +86,6 @@ interface
           typen,           {A type name. Used for i.e. typeof(obj).}
           hnewn,           {The new operation, constructor call.}
           hdisposen,       {The dispose operation with destructor call.}
-          newn,     {The new operation, constructor call.}
-          simpledisposen,  {The dispose operation.}
           setelementn,     {A set element(s) (i.e. [a,b] and also [a..b]).}
           setconstn,       {A set constant (i.e. [1,2]).}
           blockn,         {A block of statements.}
@@ -104,10 +102,8 @@ interface
           casen,           {A case statement.}
           labeln,         {A label.}
           goton,           {A goto statement.}
-          simplenewn,      {The new operation.}
           tryexceptn,      {A try except block.}
           raisen,         {A raise statement.}
-          switchesn,       {??? Currently unused...}
           tryfinallyn,     {A try finally statement.}
           onn,       { for an on statement in exception code }
           isn,       {Represents the is operator.}
@@ -175,8 +171,6 @@ interface
           'typen',
           'hnewn',
           'hdisposen',
-          'newn',
-          'simpledisposen',
           'setelementn',
           'setconstn',
           'blockn',
@@ -193,10 +187,8 @@ interface
           'casen',
           'labeln',
           'goton',
-          'simplenewn',
           'tryexceptn',
           'raisen',
-          'switchesn',
           'tryfinallyn',
           'onn',
           'isn',
@@ -814,7 +806,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2002-04-06 18:13:01  jonas
+  Revision 1.24  2002-04-21 19:02:04  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.23  2002/04/06 18:13:01  jonas
     * several powerpc-related additions and fixes
 
   Revision 1.22  2002/03/31 20:26:35  jonas

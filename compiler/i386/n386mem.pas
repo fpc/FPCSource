@@ -30,15 +30,7 @@ interface
       node,nmem,ncgmem;
 
     type
-       ti386newnode = class(tnewnode)
-          procedure pass_2;override;
-       end;
-
        ti386addrnode = class(tcgaddrnode)
-          procedure pass_2;override;
-       end;
-
-       ti386simplenewdisposenode = class(tsimplenewdisposenode)
           procedure pass_2;override;
        end;
 
@@ -65,54 +57,6 @@ implementation
       cgobj,cga,tgobj,rgobj,ncgutil,n386util;
 
 {*****************************************************************************
-                            TI386NEWNODE
-*****************************************************************************}
-
-    procedure ti386newnode.pass_2;
-      var
-         pushed : tpushedsaved;
-         regstopush: tregisterset;
-         href : treference;
-      begin
-         if assigned(left) then
-           begin
-              secondpass(left);
-              location_copy(location,left.location);
-           end
-         else
-           begin
-              location_reset(location,LOC_REFERENCE,OS_ADDR);
-
-              regstopush := all_registers;
-              remove_non_regvars_from_loc(location,regstopush);
-              rg.saveusedregisters(exprasmlist,pushed,regstopush);
-
-              tg.gettempofsizereference(exprasmlist,pointer_size,location.reference);
-
-              { determines the size of the mem block }
-              push_int(tpointerdef(resulttype.def).pointertype.def.size);
-              emit_push_lea_loc(location,false);
-              rg.saveregvars(exprasmlist,all_registers);
-              emitcall('FPC_GETMEM');
-
-              if tpointerdef(resulttype.def).pointertype.def.needs_inittable then
-                begin
-                   reference_reset_symbol(href,tstoreddef(tpointerdef(resulttype.def).pointertype.def).get_rtti_label(initrtti),0);
-                   emitpushreferenceaddr(href);
-
-                   { push pointer we just allocated, we need to initialize the
-                     data located at that pointer not the pointer self (PFV) }
-                   cg.a_param_loc(exprasmlist,location,1);
-                   emitcall('FPC_INITIALIZE');
-                end;
-              rg.restoreusedregisters(exprasmlist,pushed);
-              { may be load ESI }
-              maybe_loadself;
-           end;
-      end;
-
-
-{*****************************************************************************
                              TI386ADDRNODE
 *****************************************************************************}
 
@@ -123,86 +67,6 @@ implementation
         { for use of other segments }
         if left.location.reference.segment<>R_NO then
           location.segment:=left.location.reference.segment;
-      end;
-
-{*****************************************************************************
-                         TI386SIMPLENEWDISPOSENODE
-*****************************************************************************}
-
-    procedure ti386simplenewdisposenode.pass_2;
-
-      var
-         regstopush: tregisterset;
-         pushed : tpushedsaved;
-         href : treference;
-         lefttemp: treference;
-         left_needs_initfinal: boolean;
-
-         procedure saveleft;
-         begin
-           tg.gettempofsizereference(exprasmlist,pointer_size,lefttemp);
-           cg.a_load_loc_ref(exprasmlist,left.location,lefttemp);
-           location_release(exprasmlist,left.location);
-         end;
-
-      begin
-         secondpass(left);
-         if codegenerror then
-           exit;
-
-         left_needs_initfinal:=tpointerdef(left.resulttype.def).pointertype.def.needs_inittable;
-
-         regstopush := all_registers;
-         remove_non_regvars_from_loc(left.location,regstopush);
-         rg.saveusedregisters(exprasmlist,pushed,regstopush);
-         rg.saveregvars(exprasmlist,all_registers);
-
-         { call the mem handling procedures }
-         case nodetype of
-           simpledisposen:
-             begin
-                if left_needs_initfinal then
-                  begin
-                     reference_reset_symbol(href,tstoreddef(tpointerdef(left.resulttype.def).pointertype.def).get_rtti_label(initrtti),0);
-                     emitpushreferenceaddr(href);
-                     { push pointer adress }
-                     cg.a_param_loc(exprasmlist,left.location,1);
-                     { save left and free its registers }
-                     saveleft;
-                     emitcall('FPC_FINALIZE');
-                     { push left again as parameter for freemem }
-                     emit_push_mem(lefttemp);
-                     tg.ungetiftemp(exprasmlist,lefttemp);
-                  end
-                else
-                  begin
-                    cg.a_param_loc(exprasmlist,left.location,1);
-                    location_release(exprasmlist,left.location);
-                  end;
-                emitcall('FPC_FREEMEM');
-             end;
-           simplenewn:
-             begin
-                { determines the size of the mem block }
-                push_int(tpointerdef(left.resulttype.def).pointertype.def.size);
-                emit_push_lea_loc(left.location,true);
-                { save left and free its registers }
-                if left_needs_initfinal then
-                  saveleft;
-                emitcall('FPC_GETMEM');
-                if left_needs_initfinal then
-                  begin
-                     reference_reset_symbol(href,tstoreddef(tpointerdef(left.resulttype.def).pointertype.def).get_rtti_label(initrtti),0);
-                     emitpushreferenceaddr(href);
-                     emit_push_mem(lefttemp);
-                     tg.ungetiftemp(exprasmlist,lefttemp);
-                     emitcall('FPC_INITIALIZE');
-                  end;
-             end;
-         end;
-         rg.restoreusedregisters(exprasmlist,pushed);
-         { may be load ESI }
-         maybe_loadself;
       end;
 
 
@@ -219,11 +83,11 @@ implementation
          if not tpointerdef(left.resulttype.def).is_far and
             (cs_gdb_heaptrc in aktglobalswitches) and
             (cs_checkpointer in aktglobalswitches) then
-              begin
-                 emit_reg(
-                   A_PUSH,S_L,location.reference.base);
-                 emitcall('FPC_CHECKPOINTER');
-              end;
+          begin
+             emit_reg(
+               A_PUSH,S_L,location.reference.base);
+             emitcall('FPC_CHECKPOINTER');
+          end;
       end;
 
 
@@ -655,15 +519,20 @@ implementation
 
 
 begin
-   cnewnode:=ti386newnode;
-   csimplenewdisposenode:=ti386simplenewdisposenode;
    caddrnode:=ti386addrnode;
    cderefnode:=ti386derefnode;
    cvecnode:=ti386vecnode;
 end.
 {
   $Log$
-  Revision 1.27  2002-04-20 21:37:07  carl
+  Revision 1.28  2002-04-21 19:02:07  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.27  2002/04/20 21:37:07  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

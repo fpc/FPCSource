@@ -390,8 +390,15 @@ interface
       begin
         { we reuse the old value }
         location_copy(location,left.location);
+
+        { Floats should never be returned as LOC_CONSTANT, do the
+          moving to memory before the new size is set }
+        if (resulttype.def.deftype=floatdef) and
+           (location.loc=LOC_CONSTANT) then
+         location_force_mem(location);
+
         { but use the new size, but we don't know the size of all arrays }
-        location.size:=def_cgsize(resulttype.def)
+        location.size:=def_cgsize(resulttype.def);
       end;
 
 
@@ -434,7 +441,14 @@ end.
 
 {
   $Log$
-  Revision 1.10  2002-04-19 15:39:34  peter
+  Revision 1.11  2002-04-21 19:02:03  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.10  2002/04/19 15:39:34  peter
     * removed some more routines from cga
     * moved location_force_reg/mem to ncgutil
     * moved arrayconstructnode secondpass to ncgld

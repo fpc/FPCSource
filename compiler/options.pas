@@ -382,6 +382,7 @@ begin
                         'l' : include(initglobalswitches,cs_asm_source);
                         'r' : include(initglobalswitches,cs_asm_regalloc);
                         't' : include(initglobalswitches,cs_asm_tempalloc);
+                        'n' : include(initglobalswitches,cs_asm_nodes);
                         '-' : initglobalswitches:=initglobalswitches -
                                 [cs_asm_leave, cs_asm_source,cs_asm_regalloc, cs_asm_tempalloc];
                        else
@@ -1345,6 +1346,7 @@ begin
   def_symbol('HAS_ADDR_STACK_ON_STACK');
   def_symbol('NOBOUNDCHECK');
   def_symbol('HASCOMPILERPROC');
+  def_symbol('VALUEGETMEM');
   def_symbol('VALUEFREEMEM');
 
   { some stuff for TP compatibility }
@@ -1379,7 +1381,7 @@ begin
    else
         internalerror(1295969);
   end;
-      
+
 
 { get default messagefile }
 {$ifdef Delphi}
@@ -1656,7 +1658,14 @@ finalization
 end.
 {
   $Log$
-  Revision 1.68  2002-04-20 21:32:24  carl
+  Revision 1.69  2002-04-21 19:02:04  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.68  2002/04/20 21:32:24  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

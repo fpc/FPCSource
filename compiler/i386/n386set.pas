@@ -899,7 +899,13 @@ implementation
          opsize:=bytes2Sxx[left.resulttype.def.size];
          { copy the case expression to a register }
          location_force_reg(left.location,def_cgsize(left.resulttype.def),false);
-         hregister:=left.location.register;
+         if opsize=S_Q then
+          begin
+            hregister:=left.location.registerlow;
+            hregister2:=left.location.registerhigh;
+          end
+         else
+          hregister:=left.location.register;
          if isjump then
           begin
             truelabel:=otl;
@@ -1030,7 +1036,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-04-21 15:37:26  carl
+  Revision 1.25  2002-04-21 19:02:07  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.24  2002/04/21 15:37:26  carl
   * changeregsize -> rg.makeregsize
 
   Revision 1.23  2002/04/19 15:39:35  peter

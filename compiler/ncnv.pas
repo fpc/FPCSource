@@ -1485,8 +1485,12 @@ implementation
         if convtype=tc_equal then
          begin
            { remove typeconv node if left is a const. For other nodes we can't
-             remove it because the secondpass can still depend on the old type (PFV) }
-           if is_constnode(left) then
+             remove it because the secondpass can still depend on the old type (PFV)
+             Conversions to float should also be left in the tree, because a float
+             is not possible in LOC_CONSTANT. The second_nothing routine will take
+             care of the conversion to LOC_REFERENCE }
+           if is_constnode(left) and
+              (resulttype.def.deftype<>floatdef) then
             begin
               left.resulttype:=resulttype;
               result:=left;
@@ -1701,7 +1705,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2002-04-06 18:10:42  jonas
+  Revision 1.52  2002-04-21 19:02:03  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.51  2002/04/06 18:10:42  jonas
     * several powerpc-related additions and fixes
 
   Revision 1.50  2002/04/04 19:05:58  peter

@@ -63,7 +63,7 @@ implementation
       cginfo,cgbase,pass_2,
       cpubase,
       nmem,nld,ncnv,
-      tainst,cga,cgobj,tgobj,n386ld,n386util,regvars,rgobj,rgcpu,cg64f32,cgcpu;
+      tainst,cga,cgobj,tgobj,n386ld,n386util,ncgutil,regvars,rgobj,rgcpu,cg64f32,cgcpu;
 
 {*****************************************************************************
                              TI386CALLPARANODE
@@ -133,6 +133,11 @@ implementation
          else if assigned(defcoll.paratype.def) and
                  (defcoll.paratype.def.deftype=formaldef) then
            begin
+              { allow passing of a constant to a const formaldef }
+              if (defcoll.paratyp=vs_const) and
+                 (left.location.loc=LOC_CONSTANT) then
+                location_force_mem(left.location);
+
               { allow @var }
               inc(pushedparasize,4);
               if (left.nodetype=addrn) and
@@ -1477,7 +1482,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2002-04-21 15:34:25  carl
+  Revision 1.47  2002-04-21 19:02:07  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.46  2002/04/21 15:34:25  carl
   * changeregsize -> rg.makeregsize
 
   Revision 1.45  2002/04/15 19:44:21  peter

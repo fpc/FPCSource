@@ -81,7 +81,6 @@ interface
          { refs and deletenode can hook to this copy once they get copied too    }
          hookoncopy : ptempinfo;
          ref        : treference;
-         size       : longint;
          restype    : ttype;
          valid      : boolean;
        end;
@@ -91,6 +90,7 @@ interface
        ttempcreatenode = class(tnode)
           size: longint;
           tempinfo: ptempinfo;
+          persistent: boolean;
           { * persistent temps are used in manually written code where the temp }
           { be usable among different statements and where you can manually say }
           { when the temp has to be freed (using a ttempdeletenode)             }
@@ -103,8 +103,6 @@ interface
           function pass_1 : tnode; override;
           function det_resulttype: tnode; override;
           function docompare(p: tnode): boolean; override;
-         protected
-          persistent: boolean;
         end;
        ttempcreatenodeclass = class of ttempcreatenode;
 
@@ -123,6 +121,9 @@ interface
         { a node which removes a temp }
         ttempdeletenode = class(tnode)
           constructor create(const temp: ttempcreatenode);
+          { this will convert the persistant temp to a normal temp
+            for returning to the other nodes }
+          constructor create_normal_temp(const temp: ttempcreatenode);
           function getcopy: tnode; override;
           function pass_1: tnode; override;
           function det_resulttype: tnode; override;
@@ -130,6 +131,7 @@ interface
           destructor destroy; override;
          protected
           tempinfo: ptempinfo;
+          release_to_normal : boolean;
         end;
        ttempdeletenodeclass = class of ttempdeletenode;
 
@@ -143,6 +145,12 @@ interface
        ctemprefnode : ttemprefnodeclass;
        ctempdeletenode : ttempdeletenodeclass;
 
+       { Create a blocknode and statement node for multiple statements
+         generated internally by the parser }
+       function  internalstatements(var laststatement:tstatementnode):tblocknode;
+       procedure addstatement(var laststatement:tstatementnode;n:tnode);
+
+
 implementation
 
     uses
@@ -152,6 +160,28 @@ implementation
       pass_1,
       ncal,nflw,rgobj,cgbase
       ;
+
+
+{*****************************************************************************
+                                     Helpers
+*****************************************************************************}
+
+    function internalstatements(var laststatement:tstatementnode):tblocknode;
+      begin
+        { create dummy initial statement }
+        laststatement := cstatementnode.create(nil,cnothingnode.create);
+        internalstatements := cblocknode.create(laststatement);
+      end;
+
+
+    procedure addstatement(var laststatement:tstatementnode;n:tnode);
+      begin
+        if assigned(laststatement.left) then
+         internalerror(200204201);
+        laststatement.left:=cstatementnode.create(nil,n);
+        laststatement:=tstatementnode(laststatement.left);
+      end;
+
 
 {*****************************************************************************
                              TFIRSTNOTHING
@@ -239,6 +269,7 @@ implementation
          firstpass(right);
          if codegenerror then
            exit;
+         location.loc:=right.location.loc;
          registers32:=right.registers32;
          registersfpu:=right.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -306,6 +337,11 @@ implementation
                           (tcallnode(hp.right).procdefinition.proctypeoption=potype_constructor)) and
                       not(is_void(hp.right.resulttype.def)) then
                      CGMessage(cg_e_illegal_expression);
+                   { the resulttype of the block is the last type that is
+                     returned. Normally this is a voidtype. But when the
+                     compiler inserts a block of multiple statements then the
+                     last entry can return a value }
+                   resulttype:=hp.right.resulttype;
                 end;
               hp:=tstatementnode(hp.left);
            end;
@@ -389,6 +425,7 @@ implementation
               if hp.registersmmx>registersmmx then
                 registersmmx:=hp.registersmmx;
 {$endif}
+              location.loc:=hp.location.loc;
               inc(count);
               hp:=tstatementnode(hp.left);
            end;
@@ -456,7 +493,6 @@ implementation
         new(tempinfo);
         fillchar(tempinfo^,sizeof(tempinfo^),0);
         tempinfo^.restype := _restype;
-        tempinfo^.size := _size;
         persistent := _persistent;
       end;
 
@@ -470,7 +506,6 @@ implementation
         new(n.tempinfo);
         fillchar(n.tempinfo^,sizeof(n.tempinfo^),0);
         n.tempinfo^.restype := tempinfo^.restype;
-        n.tempinfo^.size:=size;
 
         { signal the temprefs that the temp they point to has been copied, }
         { so that if the refs get copied as well, they can hook themselves }
@@ -562,6 +597,16 @@ implementation
       begin
         inherited create(temprefn);
         tempinfo := temp.tempinfo;
+        release_to_normal := false;
+        if not temp.persistent then
+          internalerror(200204211);
+      end;
+
+    constructor ttempdeletenode.create_normal_temp(const temp: ttempcreatenode);
+      begin
+        inherited create(temprefn);
+        tempinfo := temp.tempinfo;
+        release_to_normal := true;
       end;
 
     function ttempdeletenode.getcopy: tnode;
@@ -620,7 +665,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-04-04 19:05:57  peter
+  Revision 1.21  2002-04-21 19:02:03  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.20  2002/04/04 19:05:57  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

@@ -249,7 +249,15 @@ implementation
               end;
             LOC_REGISTER,LOC_CREGISTER :
               begin
-                cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
+                if left.location.size in [OS_64,OS_S64] then
+                 begin
+                   hregister:=cg.get_scratch_reg(exprasmlist);
+                   cg.a_load_reg_reg(exprasmlist,OS_32,left.location.registerlow,hregister);
+                   cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,hregister);
+                   cg.free_scratch_reg(exprasmlist,hregister);
+                 end
+                else
+                 cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
               end;
             LOC_JUMP :
               begin
@@ -364,7 +372,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2002-04-21 15:35:23  carl
+  Revision 1.37  2002-04-21 19:02:07  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.36  2002/04/21 15:35:23  carl
   * changeregsize -> rg.makeregsize
 
   Revision 1.35  2002/04/19 15:39:35  peter

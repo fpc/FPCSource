@@ -122,7 +122,7 @@ interface
          cs_gdb_dbx,cs_gdb_gsym,cs_gdb_heaptrc,cs_gdb_lineinfo,cs_checkpointer,
          { assembling }
          cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,
-         cs_asm_regalloc,cs_asm_tempalloc,
+         cs_asm_regalloc,cs_asm_tempalloc,cs_asm_nodes,
          { linking }
          cs_link_extern,cs_link_static,cs_link_smart,cs_link_shared,cs_link_deffile,
          cs_link_strip,cs_link_staticflag,cs_link_on_target
@@ -253,7 +253,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2002-03-24 19:05:59  carl
+  Revision 1.22  2002-04-21 19:02:03  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.21  2002/03/24 19:05:59  carl
   + patch for SPARC from Mazen NEIFER
 
   Revision 1.20  2002/01/24 18:25:48  peter

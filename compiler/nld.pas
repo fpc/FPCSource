@@ -275,14 +275,12 @@ implementation
                    { process methodpointer }
                    if assigned(left) then
                     begin
-                      { if only typenode then remove }
+                      resulttypepass(left);
+
+                      { turn on the allowed flag, the secondpass
+                        will handle the typen itself }
                       if left.nodetype=typen then
-                       begin
-                         left.free;
-                         left:=nil;
-                       end
-                      else
-                       resulttypepass(left);
+                       ttypenode(left).allowed:=true;
                     end;
                 end;
            else
@@ -915,7 +913,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-04-02 17:11:29  peter
+  Revision 1.35  2002-04-21 19:02:04  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.34  2002/04/02 17:11:29  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

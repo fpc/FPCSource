@@ -745,6 +745,8 @@ implementation
         prefix : string;
       begin
         prefix:='';
+        if not assigned(st) then
+         internalerror(200204212);
         { sub procedures }
         while (st.symtabletype=localsymtable) do
          begin
@@ -5468,7 +5470,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2002-04-20 21:32:25  carl
+  Revision 1.73  2002-04-21 19:02:05  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.72  2002/04/20 21:32:25  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

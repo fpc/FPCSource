@@ -298,6 +298,7 @@ implementation
           LOC_FPUREGISTER,
           LOC_CFPUREGISTER :
             begin
+              tg.gettempofsizereference(exprasmlist,TCGSize2Size[l.size],r);
               cg.a_loadfpu_reg_ref(exprasmlist,l.size,l.register,r);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
@@ -382,7 +383,14 @@ end.
 
 {
   $Log$
-  Revision 1.9  2002-04-21 15:24:38  carl
+  Revision 1.10  2002-04-21 19:02:03  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.9  2002/04/21 15:24:38  carl
   + a_jmp_cond -> a_jmp_always (a_jmp_cond is NOT portable)
   + changeregsize -> rg.makeregsize
 

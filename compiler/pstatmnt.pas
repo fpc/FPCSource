@@ -991,8 +991,8 @@ implementation
              { blockn support because a read/write is changed into a blocknode }
              { with a separate statement for each read/write operation (JM)    }
              { the same is true for val() if the third parameter is not 32 bit }
-             if not(p.nodetype in [nothingn,calln,assignn,breakn,inlinen,continuen,labeln,blockn,
-                                   simplenewn,simpledisposen]) then
+             if not(p.nodetype in [nothingn,calln,assignn,breakn,inlinen,
+                                   continuen,labeln,blockn]) then
                Message(cg_e_illegal_expression);
 
              { specify that we don't use the value returned by the call }
@@ -1071,7 +1071,7 @@ implementation
       {# Optimize the assembler block by removing all references
          which are via the frame pointer by replacing them with
          references via the stack pointer.
-         
+
          This is only available to certain cpu targets where
          the frame pointer saving must be done explicitly.
       }
@@ -1178,8 +1178,8 @@ implementation
            following conditions are met:
            - if the are no local variables
            - no reference to the result variable (refcount<=1)
-           - result is not stored as parameter 
-           - target processor has optional frame pointer save 
+           - result is not stored as parameter
+           - target processor has optional frame pointer save
              (vm, i386, vm only currently)
          }
          if (po_assembler in aktprocdef.procoptions) and
@@ -1213,7 +1213,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2002-04-20 21:32:24  carl
+  Revision 1.54  2002-04-21 19:02:05  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.53  2002/04/20 21:32:24  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

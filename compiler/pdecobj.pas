@@ -794,6 +794,7 @@ implementation
           p:=comp_expr(true);
           if p.nodetype=stringconstn then
             begin
+              stringdispose(aktclass.iidstr);
               aktclass.iidstr:=stringdup(strpas(tstringconstnode(p).value_str)); { or upper? }
               p.free;
               aktclass.isiidguidvalid:=string2guid(aktclass.iidstr^,aktclass.iidguid);
@@ -1110,7 +1111,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2002-04-19 15:46:02  peter
+  Revision 1.41  2002-04-21 19:02:04  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.40  2002/04/19 15:46:02  peter
     * mangledname rewrite, tprocdef.mangledname is now created dynamicly
       in most cases and not written to the ppu
     * add mangeledname_prefix() routine to generate the prefix of

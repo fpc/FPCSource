@@ -329,7 +329,6 @@ implementation
         orgsp,sp:stringid;
         paramoffset:longint;
         sym:tsym;
-        doinsert : boolean;
         st : tsymtable;
         srsymtable : tsymtable;
         pdl     : pprocdeflist;
@@ -478,7 +477,6 @@ implementation
              end;
          end;
 
-        doinsert:=true;
         if assigned(aktprocsym) then
          begin
            { Check if overloaded is a procsym }
@@ -498,8 +496,9 @@ implementation
                   Message1(parser_e_overloaded_no_procedure,aktprocsym.realname)
                  else
                   DuplicateSym(aktprocsym);
-                 { don't reinsert as that will generated another error }
-                 doinsert:=false;
+                 { rename the name to an unique name to avoid an
+                   error when inserting the symbol in the symtable }
+                 orgsp:=orgsp+'$'+tostr(aktfilepos.line);
                end;
               { generate a new aktprocsym }
               aktprocsym:=nil;
@@ -537,8 +536,7 @@ implementation
              end
             else
              aktprocsym:=tprocsym.create(orgsp);
-            if doinsert then
-             symtablestack.insert(aktprocsym);
+            symtablestack.insert(aktprocsym);
          end;
 
         st:=symtablestack;
@@ -1908,23 +1906,31 @@ const
 
         { insert otsym only in the right symtable }
         if ((procinfo^.flags and pi_operator)<>0) and
-           assigned(otsym) and
-           not parse_only then
-          begin
-            if ret_in_param(aprocdef.rettype.def) then
-              begin
-                aprocdef.parast.insert(otsym);
-                { this increases the data size }
-                { correct this to get the right ret $value }
-                dec(aprocdef.parast.datasize,
-                    align(otsym.getpushsize,aktprocdef.parast.dataalignment));
-                { this allows to read the funcretoffset }
-                otsym.address:=-4;
-                otsym.varspez:=vs_var;
-              end
-            else
-              aprocdef.localst.insert(otsym);
-          end;
+           assigned(otsym) then
+         begin
+           if not parse_only then
+            begin
+              if ret_in_param(aprocdef.rettype.def) then
+               begin
+                 aprocdef.parast.insert(otsym);
+                 { this increases the data size }
+                 { correct this to get the right ret $value }
+                 dec(aprocdef.parast.datasize,
+                     align(otsym.getpushsize,aktprocdef.parast.dataalignment));
+                 { this allows to read the funcretoffset }
+                 otsym.address:=-4;
+                 otsym.varspez:=vs_var;
+               end
+              else
+               aprocdef.localst.insert(otsym);
+            end
+           else
+            begin
+              { this is not required anymore }
+              otsym.free;
+              otsym:=nil;
+            end;
+         end;
 
         proc_add_definition:=forwardfound;
       end;
@@ -1932,7 +1938,14 @@ const
 end.
 {
   $Log$
-  Revision 1.52  2002-04-20 21:32:24  carl
+  Revision 1.53  2002-04-21 19:02:04  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.52  2002/04/20 21:32:24  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

@@ -47,7 +47,7 @@ procedure secondpass(var p : tnode);
 implementation
 
    uses
-{$ifdef logsecondpass}
+{$ifdef EXTDEBUG}
      cutils,
 {$endif}
      globtype,systems,verbose,
@@ -59,7 +59,7 @@ implementation
                               SecondPass
 *****************************************************************************}
 
-{$ifdef logsecondpass}
+{$ifdef EXTDEBUG}
      procedure logsecond(ht:tnodetype; entry: boolean);
        const
          secondnames: array[tnodetype] of string[13] =
@@ -92,9 +92,8 @@ implementation
              'ordconst',    {ordconstn}
              'typeconv',    {typeconvn}
              'calln',       {calln}
-             'nothing-callp',     {callparan}
+             'noth-callpar',     {callparan}
              'realconst',   {realconstn}
-             'fixconst',    {fixconstn}
              'unaryminus',  {unaryminusn}
              'asm',         {asmn}
              'vecn',        {vecn}
@@ -109,8 +108,6 @@ implementation
              'nothing-typen',     {typen}
              'hnewn',       {hnewn}
              'hdisposen',   {hdisposen}
-             'newn',        {newn}
-             'simplenewDISP', {simpledisposen}
              'setelement',  {setelementn}
              'setconst',    {setconstn}
              'blockn',      {blockn}
@@ -127,22 +124,25 @@ implementation
              'case',        {casen}
              'label',       {labeln}
              'goto',        {goton}
-             'simpleNEWdisp', {simplenewn}
              'tryexcept',   {tryexceptn}
              'raise',       {raisen}
-             'nothing-swtch',     {switchesn}
              'tryfinally',  {tryfinallyn}
              'on',    {onn}
              'is',    {isn}
              'as',    {asn}
              'error-caret',       {caretn}
              'fail',        {failn}
-             'add-startstar',  {starstarn}
+             'add-starstar',  {starstarn}
              'procinline',  {procinlinen}
              'arrayconstruc', {arrayconstructn}
              'noth-arrcnstr',     {arrayconstructrangen}
+             'tempn',
+             'temprefn',
+             'addoptn',
              'nothing-nothg',     {nothingn}
-             'loadvmt'      {loadvmtn}
+             'loadvmt',      {loadvmtn}
+             'guidconstn',
+             'rttin'
              );
       var
         p: pchar;
@@ -153,7 +153,7 @@ implementation
           p := strpnew('second'+secondnames[ht]+' (exit)');
         exprasmlist.concat(tai_asm_comment.create(p));
       end;
-{$endif logsecondpass}
+{$endif EXTDEBUG}
 
      procedure secondpass(var p : tnode);
       var
@@ -184,15 +184,13 @@ implementation
 {$ifdef EXTDEBUG}
             oldloc:=p.location.loc;
             p.location.loc:=LOC_INVALID;
+            if (cs_asm_nodes in aktglobalswitches) then
+              logsecond(p.nodetype,true);
 {$endif EXTDEBUG}
-{$ifdef logsecondpass}
-            logsecond(p.nodetype,true);
-{$endif logsecondpass}
             p.pass_2;
-{$ifdef logsecondpass}
-            logsecond(p.nodetype,false);
-{$endif logsecondpass}
 {$ifdef EXTDEBUG}
+            if (cs_asm_nodes in aktglobalswitches) then
+              logsecond(p.nodetype,false);
             if (not codegenerror) and
                (oldloc<>LOC_INVALID) and
                (p.location.loc=LOC_INVALID) then
@@ -256,48 +254,51 @@ implementation
          { only do secondpass if there are no errors }
          if ErrorCount=0 then
            begin
+{$ifdef OMITSTACKFRAME}
              if (cs_regalloc in aktglobalswitches) and
                 ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
                begin
-                                   { can we omit the stack frame ? }
-                                   { conditions:
-                                     1. procedure (not main block)
-                                     2. no constructor or destructor
-                                     3. no call to other procedures
-                                     4. no interrupt handler
-                                   }
-                                   {!!!!!! this doesn work yet, because of problems with
-                                      with linux and windows
-                                   }
-                                   (*
-                                   if assigned(aktprocsym) then
-                                     begin
-                                       if not(assigned(procinfo^._class)) and
-                                          not(aktprocdef.proctypeoption in [potype_constructor,potype_destructor]) and
-                                          not(po_interrupt in aktprocdef.procoptions) and
-                                          ((procinfo^.flags and pi_do_call)=0) and
-                                          (lexlevel>=normal_function_level) then
-                                         begin
-                                          { use ESP as frame pointer }
-                                           procinfo^.framepointer:=STACK_POINTER_REG;
-                                           use_esp_stackframe:=true;
+                 { can we omit the stack frame ? }
+                 { conditions:
+                   1. procedure (not main block)
+                   2. no constructor or destructor
+                   3. no call to other procedures
+                   4. no interrupt handler
+                 }
+                 {!!!!!! this doesn work yet, because of problems with
+                    with linux and windows
+                 }
+                 (*
+                 if assigned(aktprocsym) then
+                   begin
+                     if not(assigned(procinfo^._class)) and
+                        not(aktprocdef.proctypeoption in [potype_constructor,potype_destructor]) and
+                        not(po_interrupt in aktprocdef.procoptions) and
+                        ((procinfo^.flags and pi_do_call)=0) and
+                        (lexlevel>=normal_function_level) then
+                       begin
+                        { use ESP as frame pointer }
+                         procinfo^.framepointer:=STACK_POINTER_REG;
+                         use_esp_stackframe:=true;
 
-                                          { calc parameter distance new }
-                                           dec(procinfo^.framepointer_offset,4);
-                                           dec(procinfo^.selfpointer_offset,4);
+                        { calc parameter distance new }
+                         dec(procinfo^.framepointer_offset,4);
+                         dec(procinfo^.selfpointer_offset,4);
 
-                                          { is this correct ???}
-                                          { retoffset can be negativ for results in eax !! }
-                                          { the value should be decreased only if positive }
-                                           if procinfo^.retoffset>=0 then
-                                             dec(procinfo^.retoffset,4);
+                        { is this correct ???}
+                        { retoffset can be negativ for results in eax !! }
+                        { the value should be decreased only if positive }
+                         if procinfo^.retoffset>=0 then
+                           dec(procinfo^.retoffset,4);
 
-                                           dec(procinfo^.para_offset,4);
-                                           aktprocdef.parast.address_fixup:=procinfo^.para_offset;
-                                         end;
-                                     end;
-                                    *)
-                                  end;
+                         dec(procinfo^.para_offset,4);
+                         aktprocdef.parast.address_fixup:=procinfo^.para_offset;
+                       end;
+                   end;
+                  *)
+                end;
+{$endif OMITSTACKFRAME}
+
               { process register variable stuff (JM) }
               assign_regvars(p);
               load_regvars(procinfo^.aktentrycode,p);
@@ -320,7 +321,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2002-04-20 21:32:24  carl
+  Revision 1.26  2002-04-21 19:02:04  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.25  2002/04/20 21:32:24  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

@@ -40,18 +40,12 @@ interface
        tloadvmtnodeclass = class of tloadvmtnode;
 
        thnewnode = class(tnode)
-          constructor create;virtual;
+          objtype : ttype;
+          constructor create(t:ttype);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
        thnewnodeclass = class of thnewnode;
-
-       tnewnode = class(tunarynode)
-          constructor create(l : tnode);virtual;
-          function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
-       end;
-       tnewnodeclass = class of tnewnode;
 
        thdisposenode = class(tunarynode)
           constructor create(l : tnode);virtual;
@@ -59,13 +53,6 @@ interface
           function det_resulttype:tnode;override;
        end;
        thdisposenodeclass = class of thdisposenode;
-
-       tsimplenewdisposenode = class(tunarynode)
-          constructor create(n : tnodetype;l : tnode);
-          function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
-       end;
-       tsimplenewdisposenodeclass = class of tsimplenewdisposenode;
 
        taddrnode = class(tunarynode)
           getprocvardef : tprocvardef;
@@ -130,9 +117,7 @@ interface
     var
        cloadvmtnode : tloadvmtnodeclass;
        chnewnode : thnewnodeclass;
-       cnewnode : tnewnodeclass;
        chdisposenode : thdisposenodeclass;
-       csimplenewdisposenode : tsimplenewdisposenodeclass;
        caddrnode : taddrnodeclass;
        cdoubleaddrnode : tdoubleaddrnodeclass;
        cderefnode : tderefnodeclass;
@@ -147,6 +132,7 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symbase,types,
+      nbas,
       htypechk,pass_1,ncal,nld,ncon,ncnv,cgbase
       ;
 
@@ -180,116 +166,25 @@ implementation
                              THNEWNODE
 *****************************************************************************}
 
-    constructor thnewnode.create;
+    constructor thnewnode.create(t:ttype);
       begin
          inherited create(hnewn);
+         objtype:=t;
       end;
 
 
     function thnewnode.det_resulttype:tnode;
       begin
         result:=nil;
-        resulttype:=voidtype;
+        if objtype.def.deftype<>objectdef then
+          Message(parser_e_pointer_to_class_expected);
+        resulttype:=objtype;
       end;
 
 
     function thnewnode.pass_1 : tnode;
       begin
          result:=nil;
-      end;
-
-
-{*****************************************************************************
-                              TNEWNODE
-*****************************************************************************}
-
-    constructor tnewnode.create(l : tnode);
-      begin
-         inherited create(newn,l);
-      end;
-
-
-    function tnewnode.det_resulttype:tnode;
-      begin
-        result:=nil;
-        if assigned(left) then
-         resulttypepass(left);
-        resulttype:=voidtype;
-      end;
-
-
-    function tnewnode.pass_1 : tnode;
-{$ifdef NEW_COMPILERPROC}
-      var
-        temp          : ttempcreatenode;
-        newstatement  : tstatementnode;
-        newblock      : tblocknode;
-{$endif NEW_COMPILERPROC}
-      begin
-         result:=nil;
-{$ifdef NEW_COMPILERPROC}
-         { create the blocknode which will hold the generated statements + }
-         { an initial dummy statement                                      }
-         newstatement := cstatementnode.create(nil,cnothingnode.create);
-         newblock := cblocknode.create(newstatement);
-
-         { create temp for result }
-         temp := ctempcreatenode.create(resulttype,
-                                        resulttype.size,true);
-         newstatement.left := cstatementnode.create(nil,temp);
-
-         { create parameter }
-         sizepara := ccallparanode.create(cordconstnode.create
-             (tpointerdef(resulttype.def).pointertype.def.size,s32bittype),nil);
-
-         { create the call and assign the result to dest  }
-         { the assignment will take care of rangechecking }
-         newstatement.left := cstatementnode.create(nil,cassignmentnode.create(
-           ctemprefnode.create(tempcode),
-           ccallnode.createintern('fpc_getmem',sizepara)));
-         newstatement := tstatementnode(newstatement.left);
-
-         if tpointerdef(resulttype.def).pointertype.def.needs_inittable then
-          begin
-            para := ccallparanode.create(cloadnode.create
-                       (tpointerdef(resulttype.def).pointertype.def.size,s32bittype),
-                    ccallparanode.create(cordconstnode.create
-                       (tpointerdef(resulttype.def).pointertype.def.size,s32bittype),nil));
-            newstatement.left := cstatementnode.create(nil,cassignmentnode.create(
-            ctemprefnode.create(tempcode),
-            ccallnode.createintern('fpc_initialize',sizepara)));
-            newstatement := tstatementnode(newstatement.left);
-            new(r);
-            reset_reference(r^);
-            r^.symbol:=tstoreddef(tpointerdef(resulttype.def).pointertype.def).get_rtti_label(initrtti);
-            emitpushreferenceaddr(r^);
-            dispose(r);
-            { push pointer we just allocated, we need to initialize the
-              data located at that pointer not the pointer self (PFV) }
-            emit_push_loc(location);
-            emitcall('FPC_INITIALIZE');
-          end;
-
-         { and return it }
-         result := newblock;
-{$endif NEW_COMPILERPROC}
-
-         if assigned(left) then
-          begin
-            firstpass(left);
-            if codegenerror then
-             exit;
-
-            registers32:=left.registers32;
-            registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-            registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-            location.loc:=LOC_REGISTER
-          end
-         else
-          location.loc:=LOC_REFERENCE;
-         procinfo^.flags:=procinfo^.flags or pi_do_call;
       end;
 
 
@@ -309,6 +204,8 @@ implementation
         resulttypepass(left);
         if codegenerror then
          exit;
+        if (left.resulttype.def.deftype<>pointerdef) then
+          CGMessage1(type_e_pointer_type_expected,left.resulttype.def.typename);
         resulttype:=tpointerdef(left.resulttype.def).pointertype;
       end;
 
@@ -334,48 +231,6 @@ implementation
          if left.location.loc=LOC_CREGISTER then
            inc(registers32);
          location.loc:=LOC_REFERENCE;
-      end;
-
-
-{*****************************************************************************
-                        TSIMPLENEWDISPOSENODE
-*****************************************************************************}
-
-    constructor tsimplenewdisposenode.create(n : tnodetype;l : tnode);
-
-      begin
-         inherited create(n,l);
-      end;
-
-
-    function tsimplenewdisposenode.det_resulttype:tnode;
-      begin
-        result:=nil;
-        resulttypepass(left);
-        if codegenerror then
-         exit;
-        if (left.resulttype.def.deftype<>pointerdef) then
-          CGMessage1(type_e_pointer_type_expected,left.resulttype.def.typename);
-        resulttype:=voidtype;
-      end;
-
-
-    function tsimplenewdisposenode.pass_1 : tnode;
-      begin
-         result:=nil;
-         { this cannot be in a register !! }
-         make_not_regable(left);
-
-         firstpass(left);
-         if codegenerror then
-          exit;
-
-         registers32:=left.registers32;
-         registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-         procinfo^.flags:=procinfo^.flags or pi_do_call;
       end;
 
 
@@ -1027,9 +882,7 @@ implementation
 begin
   cloadvmtnode := tloadvmtnode;
   chnewnode := thnewnode;
-  cnewnode := tnewnode;
   chdisposenode := thdisposenode;
-  csimplenewdisposenode := tsimplenewdisposenode;
   caddrnode := taddrnode;
   cdoubleaddrnode := tdoubleaddrnode;
   cderefnode := tderefnode;
@@ -1040,7 +893,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-04-20 21:32:23  carl
+  Revision 1.29  2002-04-21 19:02:04  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.28  2002/04/20 21:32:23  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

@@ -94,6 +94,8 @@ interface
              begin
                rg.cleartempgen;
                secondpass(tstatementnode(hp).right);
+               { Compiler inserted blocks can return values }
+               location_copy(location,tstatementnode(hp).right.location);
              end;
             hp:=tstatementnode(hp).left;
           end;
@@ -223,7 +225,11 @@ interface
       begin
         { do second pass on left node }
         if assigned(left) then
-         secondpass(left);
+         begin
+           secondpass(left);
+           { Compiler inserted blocks can return values }
+           location_copy(location,left.location);
+         end;
       end;
 
 {*****************************************************************************
@@ -255,7 +261,7 @@ interface
         if not tempinfo^.valid then
           internalerror(200108231);
         { set the temp's location }
-        location_reset(location,LOC_REFERENCE,int_cgsize(tempinfo^.size));
+        location_reset(location,LOC_REFERENCE,def_cgsize(tempinfo^.restype.def));
         location.reference := tempinfo^.ref;
       end;
 
@@ -265,7 +271,10 @@ interface
 
     procedure tcgtempdeletenode.pass_2;
       begin
-        tg.ungetpersistanttempreference(exprasmlist,tempinfo^.ref);
+        if release_to_normal then
+          tg.persistanttemptonormal(tempinfo^.ref.offset)
+        else
+          tg.ungetpersistanttempreference(exprasmlist,tempinfo^.ref);
       end;
 
 
@@ -280,7 +289,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-04-04 19:05:57  peter
+  Revision 1.13  2002-04-21 19:02:03  peter
+    * removed newn and disposen nodes, the code is now directly
+      inlined from pexpr
+    * -an option that will write the secondpass nodes to the .s file, this
+      requires EXTDEBUG define to actually write the info
+    * fixed various internal errors and crashes due recent code changes
+
+  Revision 1.12  2002/04/04 19:05:57  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
