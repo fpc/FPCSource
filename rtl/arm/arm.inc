@@ -117,7 +117,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2004-01-21 23:12:07  florian
+  Revision 1.6  2004-03-14 21:45:11  florian
+    * draft for qword mul
+
+  Revision 1.5  2004/01/21 23:12:07  florian
     + get_caller_addr/frame implemented
 
   Revision 1.4  2004/01/20 21:01:57  florian
