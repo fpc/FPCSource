@@ -474,7 +474,7 @@ implementation
                    arguments }
                  if (m_tp_procvar in aktmodeswitches) and
                     (p1.nodetype=calln) and
-                    not(assigned(tcallnode(p1).left)) and
+                    (tcallnode(p1).paralength=0) and
                     not(nf_isproperty in tcallnode(p1).flags) then
                    load_procvar_from_calln(p1);
 
@@ -2478,7 +2478,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.139  2003-11-07 15:58:32  florian
+  Revision 1.140  2003-11-10 19:11:39  peter
+    * check paralength instead of assigned(left)
+
+  Revision 1.139  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions
