@@ -538,20 +538,22 @@ end;
                               Check pointer
 *****************************************************************************}
 
+{$ifndef linux}
+  {$S-}
+{$endif}
+
 {$ifdef go32v2}
 var
    __stklen : cardinal;external name '__stklen';
    __stkbottom : cardinal;external name '__stkbottom';
    edata : cardinal; external name 'edata';
+   heap_at_init : pointer;
 {$endif go32v2}
 
-{$ifndef linux}
-  {$S-}
-{$endif}
-
+{$ifdef win32}
 var
-   heap_at_init : pointer;
    StartUpHeapEnd : pointer;
+{$endif}
 
 procedure CheckPointer(p : pointer);[public, alias : 'FPC_CHECKPOINTER'];
 var
@@ -761,16 +763,19 @@ var
   pl : plongint;
   pp : pheap_mem_info;
 begin
-  dec(p,sizeof(theap_mem_info)+extra_info_size);
-{ remove heap_mem_info for linked list }
-  pp:=pheap_mem_info(p);
-  if pp^.next<>nil then
-    pp^.next^.previous:=pp^.previous;
-  if pp^.previous<>nil then
-    pp^.previous^.next:=pp^.next;
-  if pp=heap_mem_root then
-    heap_mem_root:=heap_mem_root^.previous;
-{ Do the real GetMem, but alloc also for the info block }
+  if assigned(p) then
+   begin
+     dec(p,sizeof(theap_mem_info)+extra_info_size);
+     { remove heap_mem_info for linked list }
+     pp:=pheap_mem_info(p);
+     if pp^.next<>nil then
+      pp^.next^.previous:=pp^.previous;
+     if pp^.previous<>nil then
+      pp^.previous^.next:=pp^.next;
+     if pp=heap_mem_root then
+      heap_mem_root:=heap_mem_root^.previous;
+   end;
+{ Do the real ReAllocMem, but alloc also for the info block }
   bp:=size+sizeof(theap_mem_info)+extra_info_size;
   if add_tail then
     inc(bp,sizeof(longint));
@@ -925,14 +930,22 @@ Initialization
   Assign(error_file,'heap.err');
   Rewrite(error_file);
 {$endif EXTRA}
+  { checkpointer init }
+{$ifdef go32v2}
   Heap_at_init:=HeapPtr;
+{$endif}
+{$ifdef win32}
   StartupHeapEnd:=HeapEnd;
+{$endif}
 finalization
   TraceExit;
 end.
 {
   $Log$
-  Revision 1.29  1999-11-14 21:35:04  peter
+  Revision 1.30  2000-01-03 19:37:52  peter
+    * fixed reallocmem with p=nil
+
+  Revision 1.29  1999/11/14 21:35:04  peter
     * removed warnings
 
   Revision 1.28  1999/11/09 22:32:23  pierre
