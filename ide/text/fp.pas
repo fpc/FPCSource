@@ -1,3 +1,4 @@
+
 {
     $Id$
     This file is part of the Free Pascal Integrated Development Environment
@@ -16,6 +17,12 @@
 program FP;
 
 {$I globdir.inc}
+(**********************************************************************)
+(* CONDITIONAL DEFINES                                                *)
+(*  - NODEBUG    No Debugging support                                 *)
+(*  - TP         Turbo Pascal mode                                    *)
+(*  - i386       Target is an i386 IDE                                *)
+(**********************************************************************)
 
 uses
 {$ifdef IDEHeapTrc}
@@ -98,6 +105,7 @@ begin
     if Assigned(Application) then
       ErrorBox('Stream error: '+#13+ErrS,nil)
     else
+
       writeln('Error: ',ErrS);
   end;
 end;
@@ -217,7 +225,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.38  2000-02-07 11:54:17  pierre
+  Revision 1.39  2000-02-12 23:58:26  carl
+    + Conditional define explanaations
+
+  Revision 1.38  2000/02/07 11:54:17  pierre
    + RegisterWUtils by Gabor
 
   Revision 1.37  2000/01/25 00:26:35  pierre
