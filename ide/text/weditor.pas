@@ -1338,7 +1338,10 @@ begin
     MoveChar(B,' ',Color,Size.X);
     if AY<LineCount then Line:=GetLine(AY) else Line:=@NulLine;
      GetDisplayTextFormat(AY,LineText,Format);
-    IsBreak:=Lines^.at(AY)^.isBreakpoint;
+    if AY<LineCount then
+      IsBreak:=Lines^.at(AY)^.isBreakpoint
+    else
+      IsBreak:=false;
 
 {    if (Flags and efSyntaxHighlight)<>0 then MaxX:=length(LineText)+1
        else }MaxX:=Size.X+Delta.X;
@@ -3291,7 +3294,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  1999-02-05 12:04:56  pierre
+  Revision 1.13  1999-02-05 13:22:43  pierre
+   * bug that caused crash for empty files
+
+  Revision 1.12  1999/02/05 12:04:56  pierre
    + 'loose' centering for debugger
 
   Revision 1.11  1999/02/04 17:19:26  peter
