@@ -51,6 +51,7 @@ unit cgcpu;
         procedure a_load_reg_ref(list : taasmoutput; size: tcgsize; reg : tregister;const ref : treference);override;
         procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const Ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);override;
+        procedure a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister); override;
 
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
@@ -261,6 +262,7 @@ const
             list.concat(taicpu.op_reg_const(A_LIS,reg,a shr 16));
        end;
 
+
      procedure tcgppc.a_load_reg_ref(list : taasmoutput; size: TCGSize; reg : tregister;const ref : treference);
 
        var
@@ -274,11 +276,12 @@ const
            { storing is the same for signed and unsigned values }
            size := tcgsize(ord(size)-(ord(OS_S8)-ord(OS_8)));
          { 64 bit stuff should be handled separately }
-         if size = OS_64 then
+         if size in [OS_64,OS_S64] then
            internalerror(200109236);
          op := storeinstr[size,ref2.index<>R_NO,false];
          a_load_store(list,op,reg,ref2);
        End;
+
 
      procedure tcgppc.a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref: treference;reg : tregister);
 
@@ -303,11 +306,13 @@ const
           end;
        end;
 
+
      procedure tcgppc.a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);
 
        begin
          list.concat(taicpu.op_reg_reg(A_MR,reg2,reg1));
        end;
+
 
      procedure tcgppc.a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister);
 
@@ -341,6 +346,7 @@ const
            Else InternalError(68992);
          end;
        end;
+
 
       procedure tcgppc.a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister);
 
@@ -397,6 +403,7 @@ const
           list.concat(taicpu.op_reg_reg_reg(op,R_CR0,reg1,reg2));
           a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],l);
         end;
+
 
      procedure tcgppc.a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: pasmlabel);
 
@@ -531,6 +538,7 @@ const
         { now comes the AltiVec context save, not yet implemented !!! }
       end;
 
+
     procedure tcgppc.g_stackframe_entry_mac(list : taasmoutput;localsize : longint);
  { generated the entry code of a procedure/function. Note: localsize is the }
  { sum of the size necessary for local variables and the maximum possible   }
@@ -588,6 +596,7 @@ const
  { no frame pointer on the PowerPC (maybe there is one in the SystemV ABI?)}
       end;
 
+
     procedure tcgppc.g_return_from_proc(list : taasmoutput;parasize : aword);
 
       begin
@@ -600,6 +609,7 @@ const
             internalerror(2204001);
         end;
       end;
+
 
      procedure tcgppc.a_loadaddress_ref_reg(list : taasmoutput;const ref2 : treference;r : tregister);
 
@@ -780,14 +790,27 @@ const
       end;
 
 
-    procedure tcgppc.fixref(var ref: treference);
+    procedure tcgppc.fixref(list: taasmoutput; var ref: treference);
 
        begin
          If (ref.base <> R_NO) then
            begin
              if (ref.index <> R_NO) and
-                ((ref.offset <> 0) or assigned(ref.symbol)) Then
-               Internalerror(58992)
+                ((ref.offset <> 0) or assigned(ref.symbol)) then
+               begin
+                 if not assigned(ref.symbol) and
+                    (cardinal(ref.offset-low(smallint)) <=
+                      high(smallint)-low(smallint)) then
+                   begin
+                     list.concat(A_ADDI,ref.base,ref.base,ref.offset);
+                     ref.offset := 0;
+                   end
+                 else
+                   begin
+                     list.concat(A_ADD,ref.base,ref.base,ref.index);
+                     ref.index := R_NO;
+                   end;
+               end
            end
          else
            begin
@@ -1000,7 +1023,10 @@ const
 end.
 {
   $Log$
-  Revision 1.7  2001-09-29 21:33:30  jonas
+  Revision 1.8  2001-10-28 14:16:49  jonas
+    * small fixes
+
+  Revision 1.7  2001/09/29 21:33:30  jonas
     * small optimization
 
   Revision 1.6  2001/09/28 20:40:05  jonas
