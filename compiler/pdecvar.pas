@@ -1113,6 +1113,7 @@ implementation
                          add it to the externals }
                        if extern_var then
                         begin
+                          vs.varregable := vr_none;
                           if is_dll then
                            begin
                              if not(current_module.uses_imports) then
@@ -1306,7 +1307,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  2004-12-07 16:11:52  peter
+  Revision 1.88  2004-12-11 15:19:08  jonas
+    * external vars are not regable
+
+  Revision 1.87  2004/12/07 16:11:52  peter
     * set vo_explicit_paraloc flag
 
   Revision 1.86  2004/11/29 18:50:15  peter
