@@ -162,7 +162,7 @@ begin
   if CompilerInitedAfterArgs then
    begin
      CompilerInitedAfterArgs:=false;
-     doneparser;
+     DoneParser;
      DoneImport;
      DoneExport;
      DoneLinker;
@@ -204,7 +204,7 @@ begin
 { read the arguments }
   read_arguments(cmd);
 { inits which depend on arguments }
-  initparser;
+  InitParser;
   InitImport;
   InitExport;
   InitLinker;
@@ -323,7 +323,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2001-04-13 01:22:06  peter
+  Revision 1.18  2001-04-13 18:08:36  peter
+    * scanner object to class
+
+  Revision 1.17  2001/04/13 01:22:06  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

@@ -1181,7 +1181,7 @@ implementation
            hs:=current_ppu^.getstring;
            was_defined_at_startup:=boolean(current_ppu^.getbyte);
            was_used:=boolean(current_ppu^.getbyte);
-           mac:=tmacro(current_scanner^.macros.search(hs));
+           mac:=tmacro(current_scanner.macros.search(hs));
            if assigned(mac) then
              begin
 {$ifndef EXTDEBUG}
@@ -2117,7 +2117,7 @@ implementation
     procedure tglobalsymtable.writeusedmacros;
       begin
         current_ppu^.do_crc:=false;
-        current_scanner^.macros.foreach({$ifdef FPCPROCVAR}@{$endif}writeusedmacro);
+        current_scanner.macros.foreach({$ifdef FPCPROCVAR}@{$endif}writeusedmacro);
         current_ppu^.writeentry(ibusedmacros);
         current_ppu^.do_crc:=true;
       end;
@@ -2587,7 +2587,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2001-04-13 01:22:16  peter
+  Revision 1.32  2001-04-13 18:08:37  peter
+    * scanner object to class
+
+  Revision 1.31  2001/04/13 01:22:16  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

@@ -50,7 +50,9 @@ implementation
 {$ifdef GDB}
       gdb,
 {$endif GDB}
-      comphook,scanner,pbase,ptype,pmodules,cresstr;
+      comphook,
+      scanner,scandir,
+      pbase,ptype,pmodules,cresstr;
 
 
     procedure initparser;
@@ -76,6 +78,10 @@ implementation
 
          { global switches }
          aktglobalswitches:=initglobalswitches;
+
+         { initialize scanner }
+         InitScanner;
+         InitScannerDirectives;
 
          { scanner }
          c:=#0;
@@ -112,9 +118,12 @@ implementation
            still assinged }
          if assigned(current_scanner) then
           begin
-            dispose(current_scanner,done);
+            current_scanner.free;
             current_scanner:=nil;
           end;
+
+         { close scanner }
+         DoneScanner;
 
          { close ppas,deffile }
          asmres.free;
@@ -133,13 +142,13 @@ implementation
         hp:=tstringlistitem(initdefines.first);
         while assigned(hp) do
          begin
-           current_scanner^.def_macro(hp.str);
+           current_scanner.def_macro(hp.str);
            hp:=tstringlistitem(hp.next);
          end;
       { set macros for version checking }
-        current_scanner^.set_macro('FPC_VERSION',version_nr);
-        current_scanner^.set_macro('FPC_RELEASE',release_nr);
-        current_scanner^.set_macro('FPC_PATCH',patch_nr);
+        current_scanner.set_macro('FPC_VERSION',version_nr);
+        current_scanner.set_macro('FPC_RELEASE',release_nr);
+        current_scanner.set_macro('FPC_PATCH',patch_nr);
       end;
 
 
@@ -226,7 +235,7 @@ implementation
          oldorgpattern  : string;
          old_block_type : tblock_type;
          oldcurrent_scanner,prev_scanner,
-         scanner : pscannerfile;
+         scanner : tscannerfile;
        { symtable }
          oldrefsymtable,
          olddefaultsymtablestack,
@@ -362,9 +371,9 @@ implementation
          if assigned(current_module) then
            begin
               {current_module.reset this is wrong !! }
-               scanner:=current_module.scanner;
+               scanner:=tscannerfile(current_module.scanner);
                current_module.reset;
-               current_module.scanner:=scanner;
+               tscannerfile(current_module.scanner):=scanner;
            end
          else
           begin
@@ -400,12 +409,12 @@ implementation
           aktmoduleswitches:=aktmoduleswitches+[cs_compilesystem];
 
        { startup scanner, and save in current_module }
-         current_scanner:=new(pscannerfile,Init(filename));
+         current_scanner:=tscannerfile.Create(filename);
        { macros }
          default_macros;
        { read the first token }
-         current_scanner^.readtoken;
-         prev_scanner:=current_module.scanner;
+         current_scanner.readtoken;
+         prev_scanner:=tscannerfile(current_module.scanner);
          current_module.scanner:=current_scanner;
 
        { init code generator for a new module }
@@ -473,12 +482,12 @@ implementation
             current_module.ppufile:=nil;
           end;
        { free scanner }
-         dispose(current_scanner,done);
+         current_scanner.free;
          current_scanner:=nil;
        { restore previous scanner !! }
          current_module.scanner:=prev_scanner;
          if assigned(prev_scanner) then
-           prev_scanner^.invalid:=true;
+           prev_scanner.invalid:=true;
 
          if (compile_level>1) then
            begin
@@ -603,7 +612,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2001-04-13 01:22:10  peter
+  Revision 1.15  2001-04-13 18:08:37  peter
+    * scanner object to class
+
+  Revision 1.14  2001/04/13 01:22:10  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

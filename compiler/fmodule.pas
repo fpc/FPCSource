@@ -611,7 +611,7 @@ uses
          pm : tdependent_unit;
       begin
         if assigned(scanner) then
-          pscannerfile(scanner)^.invalid:=true;
+          tscannerfile(scanner).invalid:=true;
         if assigned(globalsymtable) then
           begin
             globalsymtable.free;
@@ -785,7 +785,7 @@ uses
          externals.free;
         externals:=nil;
         if assigned(scanner) then
-          pscannerfile(scanner)^.invalid:=true;
+          tscannerfile(scanner).invalid:=true;
         used_units.free;
         dependent_units.free;
         resourcefiles.Free;
@@ -878,7 +878,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.11  2001-04-13 01:22:07  peter
+  Revision 1.12  2001-04-13 18:08:37  peter
+    * scanner object to class
+
+  Revision 1.11  2001/04/13 01:22:07  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

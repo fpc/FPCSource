@@ -465,7 +465,7 @@ implementation
         old_current_ppu : pppufile;
         old_current_module,hp,hp2 : tmodule;
         name : string;{ necessary because current_module.mainsource^ is reset in compile !! }
-        scanner : pscannerfile;
+        scanner : tscannerfile;
 
         procedure loadppufile;
         begin
@@ -508,14 +508,14 @@ implementation
                     current_module.in_second_compile:=true;
                     Message1(parser_d_compiling_second_time,current_module.modulename^);
                   end;
-                current_scanner^.tempcloseinputfile;
+                current_scanner.tempcloseinputfile;
                 name:=current_module.mainsource^;
                 if assigned(scanner) then
-                  scanner^.invalid:=true;
+                  scanner.invalid:=true;
                 compile(name,compile_system);
                 current_module.in_second_compile:=false;
-                if (not current_scanner^.invalid) then
-                  current_scanner^.tempopeninputfile;
+                if (not current_scanner.invalid) then
+                  current_scanner.tempopeninputfile;
               end;
            end
           else
@@ -595,7 +595,7 @@ implementation
              begin
                { remove the old unit }
                loaded_units.remove(hp);
-               scanner:=hp.scanner;
+               scanner:=tscannerfile(hp.scanner);
                hp.reset;
                hp.scanner:=scanner;
                { try to reopen ppu }
@@ -924,16 +924,16 @@ implementation
 
         { define a symbol in delphi,objfpc,tp,gpc mode }
         if (m_delphi in aktmodeswitches) then
-         current_scanner^.def_macro('FPC_DELPHI')
+         current_scanner.def_macro('FPC_DELPHI')
         else
          if (m_tp in aktmodeswitches) then
-          current_scanner^.def_macro('FPC_TP')
+          current_scanner.def_macro('FPC_TP')
         else
          if (m_objfpc in aktmodeswitches) then
-          current_scanner^.def_macro('FPC_OBJFPC')
+          current_scanner.def_macro('FPC_OBJFPC')
         else
          if (m_gpc in aktmodeswitches) then
-          current_scanner^.def_macro('FPC_GPC');
+          current_scanner.def_macro('FPC_GPC');
       end;
 
 
@@ -1005,7 +1005,7 @@ implementation
          if token=_ID then
           begin
           { create filenames and unit name }
-             main_file := current_scanner^.inputfile;
+             main_file := current_scanner.inputfile;
              while assigned(main_file.next) do
                main_file := main_file.next;
 
@@ -1424,7 +1424,7 @@ implementation
            end;
 
          { get correct output names }
-         main_file := current_scanner^.inputfile;
+         main_file := current_scanner.inputfile;
          while assigned(main_file.next) do
            main_file := main_file.next;
 
@@ -1639,7 +1639,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2001-04-13 01:22:12  peter
+  Revision 1.28  2001-04-13 18:08:37  peter
+    * scanner object to class
+
+  Revision 1.27  2001/04/13 01:22:12  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

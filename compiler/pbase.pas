@@ -203,7 +203,7 @@ implementation
           begin
             if token=_END then
               last_endtoken_filepos:=akttokenpos;
-            current_scanner^.readtoken;
+            current_scanner.readtoken;
           end;
       end;
 
@@ -217,7 +217,7 @@ implementation
                 try_to_consume:=true;
                 if token=_END then
                     last_endtoken_filepos:=akttokenpos;
-                current_scanner^.readtoken;
+                current_scanner.readtoken;
             end;
     end;
 
@@ -322,7 +322,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2001-04-13 01:22:11  peter
+  Revision 1.11  2001-04-13 18:08:37  peter
+    * scanner object to class
+
+  Revision 1.10  2001/04/13 01:22:11  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
