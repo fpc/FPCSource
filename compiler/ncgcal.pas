@@ -351,7 +351,6 @@ implementation
       var
          otlabel,
          oflabel : tasmlabel;
-         hp      : tnode;
       begin
          if not(assigned(parasym)) then
            internalerror(200304242);
@@ -656,17 +655,17 @@ implementation
                     not(vo_is_funcret in ppn.parasym.varoptions) then
                    location_freetemp(exprasmlist,ppn.left.location);
                  { process also all nodes of an array of const }
-                 if ppn.left.nodetype=arrayconstructorn then
+                 hp:=ppn.left;
+                 while (hp.nodetype=typeconvn) do
+                   hp:=ttypeconvnode(hp).left;
+                 if (hp.nodetype=arrayconstructorn) and
+                    assigned(tarrayconstructornode(hp).left) then
                    begin
-                     if assigned(tarrayconstructornode(ppn.left).left) then
-                      begin
-                        hp:=ppn.left;
-                        while assigned(hp) do
-                         begin
-                           location_freetemp(exprasmlist,tarrayconstructornode(hp).left.location);
-                           hp:=tarrayconstructornode(hp).right;
-                         end;
-                      end;
+                     while assigned(hp) do
+                       begin
+                         location_freetemp(exprasmlist,tarrayconstructornode(hp).left.location);
+                         hp:=tarrayconstructornode(hp).right;
+                       end;
                    end;
                end;
              ppn:=tcallparanode(ppn.right);
@@ -960,8 +959,6 @@ implementation
                 extra code }
               if (po_interrupt in procdefinition.procoptions) then
                 extra_interrupt_code;
-              {$warning fixme regvars.}
-{              rg.saveotherregvars(exprasmlist,ALL_OTHERREGISTERS);}
               extra_call_code;
               cg.a_call_reg(exprasmlist,pvreg);
            end;
@@ -1250,7 +1247,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.191  2005-01-02 16:58:48  peter
+  Revision 1.192  2005-01-04 16:36:51  peter
+    * release temps in array constructor
+
+  Revision 1.191  2005/01/02 16:58:48  peter
     * Don't release methodpointer. It is maybe still needed when we need to
      convert the calln to loadn
 
