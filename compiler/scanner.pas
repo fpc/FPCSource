@@ -147,15 +147,15 @@ unit scanner;
         orgpattern,
         pattern        : string;
         macrobuffer    : ^tmacrobuffer;
-        inputbuffer    : pchar;
+        lastlinepos,
+        lasttokenpos,
+        inputbuffer,
         inputpointer   : pchar;
 {        parse_types,   }                   { true, if type declarations are parsed }
         s_point        : boolean;
         comment_level,
         yylexcount,
-        macropos,
-        lastlinepos,
-        lasttokenpos   : longint;
+        macropos       : longint;
         lastasmgetchar : char;
         preprocstack   : ppreprocstack;
 
@@ -259,10 +259,14 @@ unit scanner;
 
     function get_current_col : longint;
       begin
-         if lastlinepos<=lasttokenpos then
-           get_current_col:=lasttokenpos-lastlinepos
-         else
-           get_current_col:=0;
+{$ifdef TP}
+        if lastlinepos<=lasttokenpos then
+          get_current_col:=longint(lasttokenpos)-longint(lastlinepos)
+        else
+          get_current_col:=longint(lastlinepos)-longint(lasttokenpos);
+{$else}
+         get_current_col:=cardinal(lasttokenpos)-cardinal(lastlinepos);
+{$endif}
       end;
 
 
@@ -382,7 +386,7 @@ unit scanner;
         inc(current_module^.current_inputfile^.line_no);
         status.currentline:=current_module^.current_inputfile^.line_no;
         inc(status.compiledlines);
-        lastlinepos:=longint(inputpointer);
+        lastlinepos:=inputpointer;
       end;
 
 
@@ -710,13 +714,13 @@ unit scanner;
         until false;
 
       { Save current token position }
-        lasttokenpos:=longint(inputpointer);
+        lasttokenpos:=inputpointer;
         tokenpos.line:=current_module^.current_inputfile^.line_no;
         tokenpos.column:=get_current_col;
         tokenpos.fileindex:=current_module^.current_index;
-        
 
-      { Check first for a identifier/keyword, this is 20+% faster (PFV) }       
+
+      { Check first for a identifier/keyword, this is 20+% faster (PFV) }
 
         if c in ['_','A'..'Z','a'..'z'] then
          begin
@@ -777,7 +781,7 @@ unit scanner;
             end;
            goto exit_label;
          end
-        else    
+        else
          begin
            case c of
                 '$' : begin
@@ -1167,8 +1171,8 @@ exit_label:
         reload;
         preprocstack:=nil;
         comment_level:=0;
-        lasttokenpos:=0;
-        lastlinepos:=0;
+        lasttokenpos:=inputpointer;
+        lastlinepos:=inputpointer;
         s_point:=false;
      end;
 
@@ -1256,7 +1260,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.21  1998-05-27 00:20:32  peter
+  Revision 1.22  1998-05-31 14:10:54  peter
+    * better get_current_col
+
+  Revision 1.21  1998/05/27 00:20:32  peter
     * some scanner optimizes
     * automaticly aout2exe for go32v1
     * fixed dynamiclinker option which was added at the wrong place
