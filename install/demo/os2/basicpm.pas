@@ -15,6 +15,8 @@
  **********************************************************************}
 program BasicPM;
 
+{$APPTYPE GUI}
+
 uses
  Os2Def, PMWin;
 
@@ -78,7 +80,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-01-14 19:02:14  hajny
+  Revision 1.2  2001-04-22 10:13:14  hajny
+    * APPTYPE specified within the source files, RC called from makefiles
+
+  Revision 1.1  2001/01/14 19:02:14  hajny
     + OS/2 demos added
 
 }

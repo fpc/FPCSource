@@ -9,6 +9,8 @@
 { Sample program for FPC under OS/2 }
 { Classic Hello world in PM version }
 
+{$APPTYPE GUI}
+
 {$R pmdemo1.res}
 
 (* PMDEMO1.RES has to be compiled from PMDEMO1.RC using "rc -r PMDEMO1.RC". *)
@@ -75,7 +77,10 @@ program pmdemo1;
  end.
 {
   $Log$
-  Revision 1.1  2001-01-14 19:02:14  hajny
+  Revision 1.2  2001-04-22 10:13:14  hajny
+    * APPTYPE specified within the source files, RC called from makefiles
+
+  Revision 1.1  2001/01/14 19:02:14  hajny
     + OS/2 demos added
 
   Revision 1.1  2000/07/13 06:31:08  michael
