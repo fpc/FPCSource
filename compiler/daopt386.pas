@@ -345,16 +345,17 @@ Begin
            ((StartPai^.typ = ait_label) and
             labelCanBeSkipped(pai_label(startPai)))) Do
       StartPai := Pai(StartPai^.Next);
-    If Assigned(StartPai) And
-       (StartPai^.typ = ait_regAlloc) and (PairegAlloc(StartPai)^.allocation = alloc) Then
-      Begin
-        if PairegAlloc(StartPai)^.Reg = Reg then
-         begin
-           FindRegAlloc:=true;
-           break;
-         end;
+    If Assigned(StartPai) and
+       (StartPai^.typ = ait_regAlloc) then
+      begin
+        if (PairegAlloc(StartPai)^.allocation = alloc) and
+           (PairegAlloc(StartPai)^.Reg = Reg) then
+          begin
+            FindRegAlloc:=true;
+            break;
+          end;
         StartPai := Pai(StartPai^.Next);
-      End
+      end
     else
       break;
   Until false;
@@ -2332,7 +2333,11 @@ End.
 
 {
   $Log$
-  Revision 1.7  2000-08-23 12:55:10  jonas
+  Revision 1.8  2000-08-25 19:39:18  jonas
+    * bugfix to FindRegAlloc function (caused wrong regalloc info in
+      some cases) (merged from fixes branch)
+
+  Revision 1.7  2000/08/23 12:55:10  jonas
     * fix for web bug 1112 and a bit of clean up in csopt386 (merged from
       fixes branch)
 
