@@ -1,3 +1,9 @@
+fpc (1.9.3-1) unstable; urgency=low
+
+  * Third beta release for 2.0
+
+ -- Mazen NEIFER <mazen@freepascal.org>  Thu,  18 Feb 2004 08:50:00 +0100
+
 fpc (1.9.0-1) unstable; urgency=low
 
   * First beta release for 2.0
