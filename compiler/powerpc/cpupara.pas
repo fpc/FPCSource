@@ -42,9 +42,10 @@ unit cpupara;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;override;
+
+          procedure create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
          private
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
-          procedure create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; firstpara: tparaitem;
               var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
           function parseparaloc(p : tparaitem;const s : string) : boolean;override;
@@ -259,7 +260,7 @@ unit cpupara;
         init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
 
         result := create_paraloc_info_intern(p,side,tparaitem(p.para.first),curintreg,curfloatreg,curmmreg,cur_stack_offset);
-        
+
         create_funcret_paraloc_info(p,side);
       end;
 
@@ -555,7 +556,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2004-07-09 21:45:24  jonas
+  Revision 1.66  2004-07-17 13:51:57  florian
+    * function result location for syscalls on MOS hopefully correctly set now
+
+  Revision 1.65  2004/07/09 21:45:24  jonas
     * fixed passing of fpu paras on the stack
     * fixed number of fpu parameters passed in registers
     * skip corresponding integer registers when using an fpu register for a

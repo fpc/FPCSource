@@ -76,7 +76,7 @@ implementation
        { aasm }
        aasmbase,
        { symtable }
-       symbase,symtable,defutil,defcmp,paramgr,
+       symbase,symtable,defutil,defcmp,paramgr,cpupara,
        { pass 1 }
        node,htypechk,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
@@ -1164,8 +1164,8 @@ begin
 {$ifdef powerpc}
   if target_info.system in [system_powerpc_morphos,system_m68k_amiga] then
     begin
-     pd.has_paraloc_info:=true;
-     include(pd.procoptions,po_explicitparaloc);
+      pd.has_paraloc_info:=true;
+      include(pd.procoptions,po_explicitparaloc);
       if consume_sym(sym,symtable) then
         begin
           if (sym.typ=varsym) and
@@ -1178,7 +1178,9 @@ begin
             end
           else
             Message(parser_e_32bitint_or_pointer_variable_expected);
-        end;
+         end;
+      (paramanager as tppcparamanager).create_funcret_paraloc_info(pd,calleeside);
+      (paramanager as tppcparamanager).create_funcret_paraloc_info(pd,callerside);
     end;
 {$endif powerpc}
   tprocdef(pd).extnumber:=get_intconst;
@@ -2258,7 +2260,10 @@ const
 end.
 {
   $Log$
-  Revision 1.183  2004-07-14 23:19:21  olle
+  Revision 1.184  2004-07-17 13:51:57  florian
+    * function result location for syscalls on MOS hopefully correctly set now
+
+  Revision 1.183  2004/07/14 23:19:21  olle
     + added external facilities for macpas
 
   Revision 1.182  2004/06/20 08:55:30  florian
