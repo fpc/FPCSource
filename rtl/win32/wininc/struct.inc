@@ -1711,33 +1711,40 @@
           dmSize : WORD;
           dmDriverExtra : WORD;
           dmFields : DWORD;
-          dmOrientation : integer;
-          dmPaperSize : integer;
-          dmPaperLength : integer;
-          dmPaperWidth : integer;
-          dmScale : integer;
-          dmCopies : integer;
-          dmDefaultSource : integer;
-          dmPrintQuality : integer;
-          dmColor : integer;
-          dmDuplex : integer;
-          dmYResolution : integer;
-          dmTTOption : integer;
-          dmCollate : integer;
-          dmFormName : array[0..(CCHFORMNAME)-1] of BCHAR;
-          dmLogPixels : WORD;
-          dmBitsPerPel : DWORD;
-          dmPelsWidth : DWORD;
-          dmPelsHeight : DWORD;
-          dmDisplayFlags : DWORD;
-          dmDisplayFrequency : DWORD;
-          dmICMMethod : DWORD;
-          dmICMIntent : DWORD;
-          dmMediaType : DWORD;
-          dmDitherType : DWORD;
-          dmICCManufacturer : DWORD;
-          dmICCModel : DWORD;
+          case byte of
+            1: (dmOrientation : SmallInt;
+                dmPaperSize : SmallInt;
+                dmPaperLength : SmallInt;
+                dmPaperWidth : SmallInt;
+                dmScale : SmallInt;
+                dmCopies : SmallInt;
+                dmDefaultSource : SmallInt;
+                dmPrintQuality : SmallInt;
+                dmColor : SmallInt;
+                dmDuplex : SmallInt;
+                dmYResolution : SmallInt;
+                dmTTOption : SmallInt;
+                dmCollate : SmallInt;
+                dmFormName : array[0..(CCHFORMNAME)-1] of BCHAR;
+                dmLogPixels : WORD;
+                dmBitsPerPel : DWORD;
+                dmPelsWidth : DWORD;
+                dmPelsHeight : DWORD;
+                dmDisplayFlags : DWORD;
+                dmDisplayFrequency : DWORD;
+                dmICMMethod : DWORD;
+                dmICMIntent : DWORD;
+                dmMediaType : DWORD;
+                dmDitherType : DWORD;
+                dmICCManufacturer : DWORD;
+                dmICCModel : DWORD
+               );
+            2: (dmPosition: POINTL;
+                dmDisplayOrientation: DWORD;
+                dmDisplayFixedOutput: DWORD;
+               );
        end;
+
      LPDEVMODE = ^DEVMODE;
      _devicemode = DEVMODE;
      devicemode = DEVMODE;
@@ -4589,8 +4596,8 @@
      _OSVERSIONINFOW = OSVERSIONINFOW;
      TOSVERSIONINFOW = OSVERSIONINFOW;
      POSVERSIONINFOW = ^OSVERSIONINFOW;
-        
-                   
+
+
 
 
 
@@ -6653,9 +6660,9 @@ type
     nFileSizeHigh:        DWORD;
     nFileSizeLow:         DWORD;
     end;
-  WIN32_FILE_ATTRIBUTE_DATA   = _WIN32_FILE_ATTRIBUTE_DATA ;  
+  WIN32_FILE_ATTRIBUTE_DATA   = _WIN32_FILE_ATTRIBUTE_DATA ;
   LPWIN32_FILE_ATTRIBUTE_DATA = ^_WIN32_FILE_ATTRIBUTE_DATA;
-  TWIN32FILEATTRIBUTEDATA     = _WIN32_FILE_ATTRIBUTE_DATA ;  
+  TWIN32FILEATTRIBUTEDATA     = _WIN32_FILE_ATTRIBUTE_DATA ;
   PWIN32FILEATTRIBUTEDATA     = ^_WIN32_FILE_ATTRIBUTE_DATA;
 
   // TrackMouseEvent. NT or higher only.
@@ -7136,7 +7143,10 @@ type
 
 {
   $Log$
-  Revision 1.29  2004-12-18 20:00:59  michael
+  Revision 1.30  2005-01-08 14:39:01  florian
+    * DEVMODE fixed
+
+  Revision 1.29  2004/12/18 20:00:59  michael
   Fixed widestring version of getversionex as per bug 3440 (Alexey Barkovoy)
 
   Revision 1.28  2004/11/07 20:46:27  marco
