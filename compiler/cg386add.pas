@@ -1025,8 +1025,9 @@ implementation
                            exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDX)));
                            popedx:=true;
                           end;
-                         emitloadord2reg(p^.right^.location,u32bitdef,R_EAX,true);
+                         { p^.left^.location can be R_EAX !!! }
                          emitloadord2reg(p^.left^.location,u32bitdef,R_EDI,true);
+                         emitloadord2reg(p^.right^.location,u32bitdef,R_EAX,true);
                          exprasmlist^.concat(new(pai386,op_reg(A_MUL,S_L,R_EDI)));
                          emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.register);
                          if popedx then
@@ -2055,7 +2056,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  1999-05-09 17:58:42  jonas
+  Revision 1.55  1999-05-10 14:37:49  pierre
+   problem with EAX being overwritten before used in A_MULL code fixed
+
+  Revision 1.54  1999/05/09 17:58:42  jonas
     + change "MUL <power of 2>, reg" to SHL (-d ShlMul)
     * do the NOT of a constant set when it's substracted internally
       (-dsetconstnot)
