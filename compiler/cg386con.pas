@@ -229,7 +229,7 @@ implementation
                                 pc[p^.length]:=#0;
                                 { to overcome this problem we set the length explicitly }
                                 { with the ending null char }
-                                consts^.concat(new(pai_string,init_length_pchar(pc,p^.length)));
+                                consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
                              end;
                         end;
                       st_shortstring:
@@ -325,7 +325,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1998-11-04 10:11:36  peter
+  Revision 1.16  1998-11-04 21:07:43  michael
+  * undid peters change. Constant ansistrings should end on null too cd ..
+
+  Revision 1.15  1998/11/04 10:11:36  peter
     * ansistring fixes
 
   Revision 1.14  1998/09/17 09:42:13  peter
