@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- 
+
 const
    DefaultStackSize = 32768; { including 16384 margin for stackchecking }
 
@@ -44,6 +44,17 @@ function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : Lo
 procedure EndThread(ExitCode : DWord);
 procedure EndThread;
 
+{some thread support functions}
+function  SuspendThread (threadHandle : dword) : dword;
+function  ResumeThread  (threadHandle : dword) : dword;
+procedure ThreadSwitch;                                                                {give time to other threads}
+function  KillThread (threadHandle : dword) : dword;
+function  WaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;  {0=no timeout}
+function  ThreadSetPriority (threadHandle : dword; Prio: longint): boolean;            {-15..+15, 0=normal}
+function  ThreadGetPriority (threadHandle : dword): Integer;
+function  GetCurrentThreadHandle : dword;
+
+
 { this allows to do a lot of things in MT safe way }
 { it is also used to make the heap management      }
 { thread safe                                      }
@@ -54,7 +65,10 @@ procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
 
 {
   $Log$
-  Revision 1.9  2002-10-16 19:04:27  michael
+  Revision 1.10  2003-03-27 17:14:27  armin
+  * more platform independent thread routines, needs to be implemented for unix
+
+  Revision 1.9  2002/10/16 19:04:27  michael
   + More system-independent thread routines
 
   Revision 1.8  2002/10/14 19:39:17  peter

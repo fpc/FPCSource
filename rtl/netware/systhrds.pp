@@ -32,6 +32,16 @@ interface
 { Include generic thread interface }
 {$i threadh.inc }
 
+{Delphi/Windows compatible priority constants, they are also defined for Unix and Win32}
+const
+   THREAD_PRIORITY_IDLE          = -15;
+   THREAD_PRIORITY_LOWEST        = -2;
+   THREAD_PRIORITY_BELOW_NORMAL  = -1;
+   THREAD_PRIORITY_NORMAL        = 0;
+   THREAD_PRIORITY_ABOVE_NORMAL  = 1;
+   THREAD_PRIORITY_HIGHEST       = 2;
+   THREAD_PRIORITY_TIME_CRITICAL = 15;
+
 implementation
 
 {$i thread.inc }
@@ -198,6 +208,73 @@ begin
 end;
 
 
+{*****************************************************************************
+                            Thread handling
+*****************************************************************************}
+
+
+function __SuspendThread (threadId : dword) : dword; cdecl; external 'clib' name 'SuspendThread';
+function __ResumeThread (threadId : dword) : dword; cdecl; external 'clib' name 'ResumeThread';
+procedure __ThreadSwitchWithDelay; cdecl; external 'clib' name 'ThreadSwitchWithDelay';
+
+{redefined because the interface has not cdecl calling convention}
+function SuspendThread (threadHandle : dword) : dword;
+begin
+  SuspendThread := __SuspendThread (threadHandle);
+end;
+
+
+function ResumeThread (threadHandle : dword) : dword;
+begin
+  ResumeThread := __ResumeThread (threadHandle);
+end;
+
+
+procedure ThreadSwitch;
+begin
+  __ThreadSwitchWithDelay;
+end;
+
+
+function  KillThread (threadHandle : dword) : dword;
+begin
+  KillThread := 1;  {not supported for netware}
+end;
+
+function GetThreadName  (threadId : longint; var threadName) : longint; cdecl; external 'clib' name 'GetThreadName';
+//function __RenameThread (threadId : longint; threadName:pchar) : longint; cdecl; external 'clib' name 'RenameThread';
+
+function  WaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;
+var
+  status : longint;
+  buf : array [0..50] of char;
+begin
+  {$warning timeout needs to be implemented}
+  repeat
+    status := GetThreadName (ThreadHandle,Buf); {should return EBADHNDL if thread is terminated}
+    ThreadSwitch;
+  until status <> 0;
+  WaitForThreadTerminate:=0;
+end;
+
+function  ThreadSetPriority (threadHandle : dword; Prio: longint): boolean; {-15..+15, 0=normal}
+begin
+  ThreadSetPriority := true;
+end;
+
+function  ThreadGetPriority (threadHandle : dword): Integer;
+begin
+  ThreadGetPriority := 0;
+end;
+
+function GetThreadID : dword; cdecl; external 'clib' name 'GetThreadID';
+
+function  GetCurrentThreadHandle : dword;
+begin
+  GetCurrentThreadHandle := GetThreadID;
+end;
+
+
 { netware requires all allocated semaphores }
 { to be closed before terminating the nlm, otherwise }
 { the server will abend (except for netware 6 i think) }
@@ -329,20 +406,20 @@ end;
 {*****************************************************************************
                            Heap Mutex Protection
 *****************************************************************************}
-			   
+			
 var
   HeapMutex : TRTLCriticalSection;
-				     
+				
 procedure NWHeapMutexInit;
 begin
   InitCriticalSection(heapmutex);
 end;
-							      
+							
 procedure NWHeapMutexDone;
 begin
   DoneCriticalSection(heapmutex);
 end;
-										       
+										
 procedure NWHeapMutexLock;
 begin
   EnterCriticalSection(heapmutex);
@@ -352,7 +429,7 @@ procedure NWHeapMutexUnlock;
 begin
   LeaveCriticalSection(heapmutex);
 end;
-																 
+																
 const
   NWMemoryMutexManager : TMemoryMutexManager = (
            MutexInit : @NWHeapMutexInit;
@@ -360,7 +437,7 @@ const
            MutexLock : @NWHeapMutexLock;
     	   MutexUnlock : @NWHeapMutexUnlock;
   );
-																							 
+																							
 procedure InitHeapMutexes;
 begin
   SetMemoryMutexManager(NWMemoryMutexManager);
@@ -377,7 +454,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-02-16 17:12:15  armin
+  Revision 1.2  2003-03-27 17:14:27  armin
+  * more platform independent thread routines, needs to be implemented for unix
+
+  Revision 1.1  2003/02/16 17:12:15  armin
   * systhrds fir netware added
 
 

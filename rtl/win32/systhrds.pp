@@ -73,6 +73,15 @@ procedure ExitThread(dwExitCode : DWord);
 function GlobalAlloc(uFlags:DWord; dwBytes:DWORD):Pointer;
   external 'kernel32' name 'GlobalAlloc';
 function GlobalFree(hMem : Pointer):Pointer; external 'kernel32' name 'GlobalFree';
+procedure Sleep(dwMilliseconds: DWord); external 'kernel32' name 'Sleep';
+function  SuspendThread (threadHandle : dword) : dword; external 'kernel32' name 'SuspendThread';
+function  ResumeThread  (threadHandle : dword) : dword; external 'kernel32' name 'ResumeThread';
+function  TerminateThread  (threadHandle : dword; var exitCode : dword) : boolean; external 'kernel32' name 'TerminateThread';
+function  GetLastError : dword; external 'kernel32' name 'GetLastError';
+function  WaitForSingleObject (hHandle,Milliseconds: dword): dword; external 'kernel32' name 'WaitForSingleObject';
+function  ThreadSetPriority (threadHandle : dword; Prio: longint): boolean; external 'kernel32' name 'SetThreadPriority';
+function  ThreadGetPriority (threadHandle : dword): Integer; external 'kernel32' name 'GetThreadPriority';
+function  GetCurrentThreadHandle : dword; external 'kernel32' name 'GetCurrentThread';
 
 {*****************************************************************************
                              Threadvar support
@@ -209,6 +218,29 @@ function GlobalFree(hMem : Pointer):Pointer; external 'kernel32' name 'GlobalFre
       end;
 
 
+    procedure ThreadSwitch;
+    begin
+      Sleep(0);
+    end;
+
+
+    function  KillThread (threadHandle : dword) : dword;
+    var exitCode : dword;
+    begin
+      if not TerminateThread (threadHandle, exitCode) then
+        KillThread := GetLastError
+      else
+        KillThread := 0;
+    end;
+
+    function  WaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;
+    begin
+      if timeoutMs = 0 then dec (timeoutMs);  // $ffffffff is INFINITE
+      WaitForThreadTerminate := WaitForSingleObject(threadHandle, TimeoutMs);
+    end;
+
+
+
 {*****************************************************************************
                           Delphi/Win32 compatibility
 *****************************************************************************}
@@ -274,7 +306,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-03-24 16:12:01  jonas
+  Revision 1.4  2003-03-27 17:14:27  armin
+  * more platform independent thread routines, needs to be implemented for unix
+
+  Revision 1.3  2003/03/24 16:12:01  jonas
     * BeginThread() now returns the thread handle instead of the threadid
       (needed because you have to free the handle after your thread is
        finished, and the threadid is already returned via a var-parameter)
@@ -289,4 +324,4 @@ end.
     * threads unit added for thread support
 
 }
-  
+

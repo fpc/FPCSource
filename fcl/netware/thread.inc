@@ -13,15 +13,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- 
-{ additional functions needed for netware that are not defined in systhrds }
-
-function SuspendThread (threadId : longint) : longint; cdecl; external 'clib' name 'SuspendThread';
-function ResumeThread (threadId : longint) : longint; cdecl; external 'clib' name 'ResumeThread';
-procedure ThreadSwitchWithDelay; cdecl; external 'clib' name 'ThreadSwitchWithDelay';
-function GetThreadName  (threadId : longint; var threadName) : longint; cdecl; external 'clib' name 'GetThreadName';
-function RenameThread (threadId : longint; threadName:pchar) : longint; cdecl; external 'clib' name 'RenameThread';
-     
 
 
 type
@@ -146,7 +137,6 @@ end;
 constructor TThread.Create(CreateSuspended: Boolean);
 var
   Flags: Integer;
-  nam : string [18];  {17 chars is the maximum}
 begin
   inherited Create;
   AddThread(self);
@@ -154,8 +144,6 @@ begin
   { Create new thread }
   FHandle := BeginThread (@ThreadProc,self);
   if FSuspended then Suspend;
-  nam := copy (ClassName,1,17)+#0;
-  RenameThread (FHandle, @nam[1]);
   FThreadID := FHandle;
   //IsMultiThread := TRUE;  {already set by systhrds}
 end;
@@ -170,7 +158,7 @@ begin
      WaitFor;
    end;
   if FHandle <> -1 then
-    SuspendThread (FHandle);  {something went wrong, this will crash the server at unload}
+    KillThread (FHandle);  {something went wrong, kill the thread (not possible on netware)}
   inherited Destroy;
   RemoveThread(self);
 end;
@@ -188,24 +176,40 @@ begin
 end;
 
 
+const
+  Priorities: array [TThreadPriority] of Integer =
+   (THREAD_PRIORITY_IDLE, THREAD_PRIORITY_LOWEST, THREAD_PRIORITY_BELOW_NORMAL,
+    THREAD_PRIORITY_NORMAL, THREAD_PRIORITY_ABOVE_NORMAL,
+    THREAD_PRIORITY_HIGHEST, THREAD_PRIORITY_TIME_CRITICAL);
+
 function TThread.GetPriority: TThreadPriority;
+var
+  P: Integer;
+  I: TThreadPriority;
 begin
-  result := tpNormal;
+  P := ThreadGetPriority(FHandle);
+  Result := tpNormal;
+  for I := Low(TThreadPriority) to High(TThreadPriority) do
+    if Priorities[I] = P then Result := I;
 end;
 
 
 procedure TThread.SetPriority(Value: TThreadPriority);
 begin
+  ThreadSetPriority(FHandle, Priorities[Value]);
 end;
 
-
+{does not make sense for netware}
 procedure TThread.Synchronize(Method: TThreadMethod);
 begin
+  {$ifndef netware}
   FSynchronizeException := nil;
   FMethod := Method;
 {  SendMessage(ThreadWindow, CM_EXECPROC, 0, Longint(Self)); }
+  {$warning Synchronize needs implementation}
   if Assigned(FSynchronizeException) then
     raise FSynchronizeException;
+  {$endif}
 end;
 
 
@@ -236,24 +240,23 @@ end;
 procedure TThread.Terminate;
 begin
   FTerminated := True;
-  ThreadSwitchWithDelay;
+  ThreadSwitch;
 end;
 
+
 function TThread.WaitFor: Integer;
-var
-  status : longint;
-  buf : array [0..50] of char;
 begin
-  repeat
-    status := GetThreadName (FHandle,Buf); {should return EBADHNDL if thread is terminated}
-    ThreadSwitchWithDelay;
-  until status <> 0;    
-  Result:=0;
+  Result := WaitForThreadTerminate (FHandle,0);
+  if Result = 0 then
+    FHandle := -1;
 end;
 
 {
   $Log$
-  Revision 1.1  2003-03-25 17:56:19  armin
+  Revision 1.2  2003-03-27 17:14:27  armin
+  * more platform independent thread routines, needs to be implemented for unix
+
+  Revision 1.1  2003/03/25 17:56:19  armin
   * first fcl implementation for netware
 
   Revision 1.7  2002/12/18 20:44:36  peter

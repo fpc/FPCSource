@@ -46,7 +46,7 @@ interface
 implementation
 
 {*****************************************************************************
-                             Generic overloaded 
+                             Generic overloaded
 *****************************************************************************}
 
 { Include generic overloaded routines }
@@ -296,13 +296,56 @@ CONST
         pthread_create(@threadid, @thread_attr, @ThreadMain,ti);
         BeginThread:=threadid;
       end;
-      
-      
+
+
     procedure EndThread(ExitCode : DWord);
       begin
         DoneThread;
         pthread_exit(pointer(ExitCode));
       end;
+
+
+    function  SuspendThread (threadHandle : dword) : dword;
+    begin
+      {$Warning SuspendThread needs to be implemented}
+    end;
+
+    function  ResumeThread  (threadHandle : dword) : dword;
+    begin
+      {$Warning ResumeThread needs to be implemented}
+    end;
+
+    procedure ThreadSwitch;  {give time to other threads}
+    begin
+      {extern int pthread_yield (void) __THROW;}
+      {$Warning ThreadSwitch needs to be implemented}
+    end;
+
+    function  KillThread (threadHandle : dword) : dword;
+    begin
+      {$Warning KillThread needs to be implemented}
+    end;
+
+    function  WaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;  {0=no timeout}
+    begin
+      {$Warning WaitForThreadTerminate needs to be implemented}
+    end;
+
+    function  ThreadSetPriority (threadHandle : dword; Prio: longint): boolean; {-15..+15, 0=normal}
+    begin
+      {$Warning ThreadSetPriority needs to be implemented}
+    end;
+
+
+    function  ThreadGetPriority (threadHandle : dword): Integer;
+    begin
+      {$Warning ThreadGetPriority needs to be implemented}
+    end;
+
+    function  GetCurrentThreadHandle : dword;
+    begin
+      {$Warning ThreadGetPriority needs to be implemented}
+    end;
 
 
 {*****************************************************************************
@@ -382,7 +425,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2003-01-05 19:11:32  marco
+  Revision 1.8  2003-03-27 17:14:27  armin
+  * more platform independent thread routines, needs to be implemented for unix
+
+  Revision 1.7  2003/01/05 19:11:32  marco
    * small changes originating from introduction of Baseunix to FreeBSD
 
   Revision 1.6  2002/11/11 21:41:06  marco
@@ -409,4 +455,4 @@ end.
     * threads unit added for thread support
 
 }
-  
+
