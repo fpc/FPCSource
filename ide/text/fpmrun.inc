@@ -215,7 +215,7 @@ begin
           if not assigned(Debugger) then
             exit;
         end;
-      Debugger^.Command('tbreak '+LowCaseStr(NameAndExtOf(FileName))+':'+IntToStr(LineNr));
+      Debugger^.Command('tbreak '+GDBFileName(NameAndExtOf(FileName))+':'+IntToStr(LineNr));
       Debugger^.Continue;
     end;
 {$else NODEBUG}
@@ -255,7 +255,8 @@ begin
       FileName:=W^.Editor^.FileName;
       LineNr:=W^.Editor^.CurPos.Y+1;
       b:=BreakpointsCollection^.ToggleFileLine(FileName,LineNr);
-      W^.Editor^.SetLineBreakState(LineNr,b);
+      {W^.Editor^.SetLineBreakState(LineNr,b);
+        already done PM }
     end;
 {$else NODEBUG}
   NoDebugger;
@@ -264,7 +265,10 @@ end;
 
 {
   $Log$
-  Revision 1.27  2000-02-02 22:48:25  pierre
+  Revision 1.28  2000-02-04 00:15:31  pierre
+   * adapted to change in fpdebug unit
+
+  Revision 1.27  2000/02/02 22:48:25  pierre
     * Use desktop^.current instead of desktop^.first
     * Avoid stopping at main if debugger started with CrtlF9
 
