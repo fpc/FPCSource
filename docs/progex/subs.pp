@@ -3,9 +3,12 @@
 }
 library subs;
 
-function SubStr(CString: PChar; FromPos, ToPos: Longint): PChar; cdecl; export;
+function SubStr(CString: PChar;FromPos,ToPos: Longint): PChar; 
+   cdecl; export;
+
 var
   Length: Integer;
+
 begin
   Length := StrLen(CString);
   SubStr := CString + Length;
