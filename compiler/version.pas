@@ -33,7 +33,7 @@ interface
        { version string }
        version_nr = '1';
        release_nr = '9';
-       patch_nr   = '0';
+       patch_nr   = '1';
        minorpatch = '';
 
        { date string }
@@ -90,7 +90,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2003-11-01 16:37:17  peter
+  Revision 1.20  2003-11-06 15:58:27  peter
+    * 1.9.1
+
+  Revision 1.19  2003/11/01 16:37:17  peter
     * don't remove .0 when patchlevel = 0
 
   Revision 1.17  2003/04/24 22:29:58  florian
