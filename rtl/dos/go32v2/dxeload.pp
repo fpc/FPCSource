@@ -78,6 +78,7 @@ begin
 { copy code }
    blockread(f,data^,dh.element_size);
    blockread(f,relocs^,dh.nrelocs*sizeof(pointer));
+   close(f);
 { relocate internal references }
    for i:=0 to dh.nrelocs-1 do
      begin
@@ -90,7 +91,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1998-10-21 16:51:08  pierre
+  Revision 1.4  1998-10-21 17:05:46  pierre
+   * wmemu387.dxe was not closed !!
+
+  Revision 1.3  1998/10/21 16:51:08  pierre
    * dxeload range check problem solved
 
   Revision 1.2  1998/05/31 14:18:24  peter
