@@ -1,6 +1,17 @@
-# makes the SYSTEM-Unit for Linux
 #
-# Copyright (c) 1996 by Michael Van Canneyt
+#   $Id$
+#   This file is part of the Free Pascal run time library.
+#   Copyright (c) 1996-98 by Michael van Canneyt
+#
+#   Makefile for the Free Pascal Linux Runtime Library
+#
+#   See the file COPYING.FPC, included in this distribution,
+#   for details about the copyright.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
 
 #####################################################################
 # Start of configurable section.
@@ -10,24 +21,14 @@
 # with the main makefile.
 #####################################################################
 
-# AOUT should be defined in main makefile.
-# But you can set it here too.
-# AOUT = -DAOUT
-
 # set the directory where to install the units.
 ifndef UNITINSTALLDIR
-UNITINSTALLDIR=/usr/lib/ppc/0.99.0
+UNITINSTALLDIR=/usr/lib/ppc/0.99.0/linuxunits
 endif
 
 # set the directory where to install the libs (must exist)
 ifndef LIBINSTALLDIR
 LIBINSTALLDIR=/usr/lib
-endif
-
-# Do you want to link to the C library ?
-# Standard it is NO. You can set it to YES to link in th C library.
-ifndef LINK_TO_C
-LINK_TO_C=NO
 endif
 
 # What is the Operating System ?
@@ -65,6 +66,16 @@ endif
 # Set this to 'shared' or 'static'
 LIBTYPE=shared
 
+# AOUT should be defined in main makefile.
+# But you can set it here too.
+# AOUT = -DAOUT
+
+# Do you want to link to the C library ?
+# Standard it is NO. You can set it to YES to link in th C library.
+ifndef LINK_TO_C
+LINK_TO_C=NO
+endif
+
 #####################################################################
 # End of configurable section.
 # Do not edit after this line.
@@ -74,15 +85,6 @@ LIBTYPE=shared
 INC=../inc
 PROCINC=../$(CPU)
 OBJPASDIR=../objpas
-
-# add required options...
-override OPT:= $(OPT) -d$(CPU)
-
-ifeq ($(OS_TARGET),$(OS_SRC))
-CROSSCOMPILE=NO
-else
-CROSSCOMPILE=YES
-endif
 
 # To copy pograms
 ifndef COPY
@@ -102,12 +104,21 @@ DEL=rm -f
 endif
 endif
 
-# To install programs
+# To install files
 ifndef INSTALL
 ifeq ($(DOS),YES)
 INSTALL=copy
 else
-INSTALL=install
+INSTALL=install -m 644
+endif
+endif
+
+# To install programs
+ifndef INSTALLEXE
+ifeq ($(DOS),YES)
+INSTALLEXE=copy
+else
+INSTALLEXE=install -m 755
 endif
 endif
 
@@ -131,20 +142,42 @@ ifndef DIFFOPTS
 DIFFOPTS=-b -c
 endif
 
+#
+# System independent Commandline Options
+#
+
+# Cross compiling ?
+ifeq ($(OS_TARGET),$(OS_SRC))
+CROSSCOMPILE=NO
+else
+CROSSCOMPILE=YES
+endif
+
+# add required options... (-dFPC is required for older versions)
+override OPT:= $(OPT) -dFPC -d$(CPU)
+
 # Was a config file specified ?
 ifdef CFGFILE
-override OPT:=$(OPT) @$(CONFIG)
+override OPT:=$(OPT) @$(CFGFILE)
 endif
 
 # Check for crosscompile
 ifeq ($(CROSSCOMPILE),YES)
-override OPT:= $(OPT) -dCROSSCOMPILE -TLINUX
+override OPT:= $(OPT) -dCROSSCOMPILE -T$(OS_TARGET)
 endif
+
+#
+# System dependent Commandline Options
+#
 
 # Check if we need C library.
 ifeq ($(LINK_TO_C),YES)
 override OPT:=$(OPT) -dCRTLIB
 endif
+
+#####################################################################
+# System dependent
+#####################################################################
 
 # check whether we make shared or static libs
 ifndef LIBTYPE
@@ -158,41 +191,27 @@ else
 LIBEXT=.so
 endif
 
-# determine needed extensions.
+# Determine needed extensions
 PPUEXT=.ppu
 PPLEXT=.ppl
 OEXT=.o
+ASMEXT=.s
 
-OBJECTS=syslinux strings dos objects linux crt printer getopts errors sockets\
-        objpas
-        
-PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
+# Define Linux Units
+SYSTEMPPU=syslinux$(PPUEXT)
+OBJECTS=strings linux objpas \
+	dos crt objects printer \
+	getopts errors sockets \
 
-ifeq ($(LINK_TO_C),NO)
-PPUOBJECTS:= prt0$(OEXT) gprt0$(OEXT) $(PPUOBJECTS)
-endif
-
-# os independent depends
-SYSTEMDEPS=system.inc systemh.inc mathh.inc real2str.inc \
-	heaph.inc innr.inc sstrings.inc file.inc \
-	text.inc typefile.inc version.inc filerec.inc \
-	textrec.inc
-
-DSYSTEMDEPS=$(addprefix $(INC)/, $(SYSTEMDEPS))
-
+# Extra Syslinux Depends
 ifeq ($(LINK_TO_C),YES)
 SYSLINUXDEPS=lprt$(OEXT)
 else
 SYSLINUXDEPS=sysconst.inc systypes.inc syscalls.inc
 endif
 
-SYSPROCDEPS=math.inc set.inc heap.inc $(CPU).inc
-
-DSYSPROCDEPS=$(addprefix $(PROCINC)/, $(SYSPROCDEPS))
-
-
 # Determine on what dos unit should depend.
-DOSDEPS = dos.pp $(INC)/filerec.inc syslinux$(PPUEXT) strings$(PPUEXT)
+DOSDEPS = dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT)
 ifeq ($(LINK_TO_C),YES)
 DOSDEPS:=$(DOSDEPS) lprt$(OEXT)
 else
@@ -206,61 +225,53 @@ else
 PRT=prt1.as
 endif
 
+# Define Loaders
+ifeq ($(LINK_TO_C),NO)
+LOADERS=prt0 gprt0
+else
+LOADERS=lprt
+endif
 
-.PHONY : all clean diffs install diffclean libs libsclean realclean
+#####################################################################
+# System independent Makefile
+#####################################################################
 
-all : $(PPUOBJECTS)
+# OS Independent Depends
+SYSTEMDEPS=system.inc systemh.inc mathh.inc real2str.inc \
+	heaph.inc innr.inc sstrings.inc file.inc \
+	text.inc typefile.inc version.inc filerec.inc \
+	textrec.inc
 
-syslinux$(PPUEXT) : syslinux.pp $(SYSLINUXDEPS) $(DSYSTEMDEPS) $(DSYSPROCDEPS)
-	$(COPY) $(DSYSTEMDEPS) $(DSYSPROCDEPS) .
-	$(PP) $(OPT) -Us -Sg syslinux $(REDIR)
-	$(DEL) $(SYSTEMDEPS) $(SYSPROCDEPS)
+# Processor Dependent Depends
+SYSPROCDEPS=math.inc set.inc heap.inc $(CPU).inc
 
-dos$(PPUEXT) : $(DOSDEPS)
-	$(COPY) $(INC)/filerec.inc $(INC)/textrec.inc .
-	$(PP) $(OPT) dos $(REDIR)
-	$(DEL) filerec.inc textrec.inc
+# Add Prefix and Suffixes
+OBJLOADERS=$(addsuffix $(OEXT), $(LOADERS))
+PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
+DSYSTEMDEPS=$(addprefix $(INC)/, $(SYSTEMDEPS))
+DSYSPROCDEPS=$(addprefix $(PROCINC)/, $(SYSPROCDEPS))
 
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(INC)/filerec.inc linux$(PPUEXT)\
-	       syslinux$(PPUEXT)
-	$(COPY) $(INC)/filerec.inc $(INC)/textrec.inc .
-	$(PP) $(OPT) crt $(REDIR)
-	$(DEL) filerec.inc textrec.inc
 
-lprt$(OEXT) : lprt.c
-	gcc $(AOUT) -c lprt.c -o lprt$(OEXT)
+.PHONY : all install clean \
+	 libs libsclean \
+	 diffs diffclean \
 
-getopts$(PPUEXT) : $(PROCINC)/getopts.pp syslinux$(PPUEXT)
-	$(COPY) $(PROCINC)/getopts.pp .
-	$(PP) $(OPT) getopts $(REDIR)
-	$(DEL) getopts.pp
+all : $(OBJLOADERS) $(PPUOBJECTS)
 
-strings$(PPUEXT) : $(PROCINC)/strings.pp syslinux$(PPUEXT)
-	$(COPY) $(PROCINC)/strings.pp .
-	$(PP) $(OPT) strings $(REDIR)
-	$(DEL) strings.pp
+install : all
+	$(MKDIR) $(UNITINSTALLDIR)
+	$(INSTALL) *$(PPUEXT) *$(OEXT) $(UNITINSTALLDIR)
 
-objects$(PPUEXT) : objects.pp syslinux$(PPUEXT)
-	$(PP) $(OPT) objects $(REDIR)
+clean :
+	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) *.PPS log
 
-printer$(PPUEXT) : printer.pp $(INC)/textrec.inc linux$(PPUEXT) syslinux$(PPUEXT)
-	$(COPY) $(INC)/textrec.inc .
-	$(PP) $(OPT) printer $(REDIR)
-	$(DEL) textrec.inc
+#####################################################################
+# Files
+#####################################################################
 
-linux$(PPUEXT) : linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc\
-		 syscalls.inc systypes.inc sysconst.inc syslinux$(PPUEXT)
-	$(COPY) $(INC)/filerec.inc $(INC)/textrec.inc .
-	$(PP) $(OPT) linux.pp $(REDIR)
-	$(DEL) filerec.inc textrec.inc
-
-sockets$(PPUEXT) : sockets.pp linux.ppu $(INC)/textrec.inc $(INC)/filerec.inc
-	$(COPY) $(INC)/filerec.inc $(INC)/textrec.inc .
-	$(PP) $(OPT) sockets.pp $(REDIR)
-	$(DEL) filerec.inc textrec.inc 
-
-errors$(PPUEXT) : errors.pp strings.ppu
-	$(PP) $(OPT) errors.pp $(REDIR)
+#
+# Loaders
+#
 
 prt0$(OEXT) : $(PRT)
 	-as $(PRT) -o prt0$(OEXT)
@@ -268,10 +279,86 @@ prt0$(OEXT) : $(PRT)
 gprt0$(OEXT) : gprt1.as
 	-as gprt1.as -o gprt0$(OEXT)
 
-objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp syslinux$(PPUEXT)
+lprt$(OEXT) : lprt.c
+	gcc $(AOUT) -c lprt.c -o lprt$(OEXT)
+
+#
+# Base Units (System, strings, os-dependent-base-unit)
+#
+
+$(SYSTEMPPU) : syslinux.pp $(SYSLINUXDEPS) $(DSYSTEMDEPS) $(DSYSPROCDEPS)
+	$(COPY) $(DSYSTEMDEPS) $(DSYSPROCDEPS) .
+	$(PP) $(OPT) -Us -Sg syslinux.pp $(REDIR)
+	$(DEL) $(SYSTEMDEPS) $(SYSPROCDEPS)
+
+strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
+	$(COPY) $(PROCINC)/strings.pp .
+	$(PP) $(OPT) strings $(REDIR)
+	$(DEL) strings.pp
+
+linux$(PPUEXT) : linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
+		 syscalls.inc systypes.inc sysconst.inc $(SYSTEMPPU)
+	$(COPY) $(INC)/filerec.inc $(INC)/textrec.inc .
+	$(PP) $(OPT) linux.pp $(REDIR)
+	$(DEL) filerec.inc textrec.inc
+
+#
+# Delphi Object Model
+#
+
+objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
 	$(COPY) $(OBJPASDIR)/objpas.pp .
 	$(PP) $(OPT) objpas $(REDIR)
 	$(DEL) objpas.pp
+
+#
+# System Dependent Units
+#
+
+sockets$(PPUEXT) : sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
+		   linux$(PPUEXT) $(SYSTEMPPU)
+	$(COPY) $(INC)/filerec.inc $(INC)/textrec.inc .
+	$(PP) $(OPT) sockets.pp $(REDIR)
+	$(DEL) filerec.inc textrec.inc
+
+errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMPPU)
+	$(PP) $(OPT) errors.pp $(REDIR)
+
+#
+# TP7 Compatible RTL Units
+#
+
+dos$(PPUEXT) : $(DOSDEPS) $(SYSTEMPPU)
+	$(COPY) $(INC)/filerec.inc $(INC)/textrec.inc .
+	$(PP) $(OPT) dos $(REDIR)
+	$(DEL) filerec.inc textrec.inc
+
+crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(INC)/filerec.inc linux$(PPUEXT)\
+	       $(SYSTEMPPU)
+	$(COPY) $(INC)/filerec.inc $(INC)/textrec.inc .
+	$(PP) $(OPT) crt $(REDIR)
+	$(DEL) filerec.inc textrec.inc
+
+objects$(PPUEXT) : objects.pp $(SYSTEMPPU)
+	$(PP) $(OPT) objects $(REDIR)
+
+printer$(PPUEXT) : printer.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
+	$(COPY) $(INC)/textrec.inc .
+	$(PP) $(OPT) printer $(REDIR)
+	$(DEL) textrec.inc
+
+#
+# Other RTL Units
+#
+
+getopts$(PPUEXT) : $(PROCINC)/getopts.pp $(SYSTEMPPU)
+	$(COPY) $(PROCINC)/getopts.pp .
+	$(PP) $(OPT) getopts $(REDIR)
+	$(DEL) getopts.pp
+
+#####################################################################
+# Libs
+#####################################################################
 
 libs	: all libfpc$(LIBEXT)
 
@@ -280,30 +367,17 @@ libfpc.so:
 
 libfpc.a:
 	$(PPUMOVE) -s -o fpc *.ppu
-		
-install : all
-	$(MKDIR) $(UNITINSTALLDIR)/linuxunits
-	$(INSTALL) -m 644 *$(PPUEXT) *$(OEXT) $(UNITINSTALLDIR)/linuxunits
 
 libinstall : libs
-	$(INSTALL) -m 755 libfpc$(LIBEXT) $(LIBINSTALLDIR)
-	$(INSTALL) -m 644 *$(PPLEXT) $(UNITINSTALLDIR)/linuxunits
-
-clean :
-	-$(DEL) *$(OEXT)
-	-$(DEL) *.s
-	-$(DEL) *$(PPUEXT)
-	-$(DEL) *.dif
-	-$(DEL) *.PPS
-	-$(DEL) log
+	$(INSTALLEXE) libfpc$(LIBEXT) $(LIBINSTALLDIR)
+	$(INSTALL) *$(PPLEXT) $(UNITINSTALLDIR)
 
 libsclean : clean
 	-$(DEL) *.a *.so *$(PPLEXT)
 
-diffclean :
-	-$(DEL) *.dif
-
-distclean : diffclean libsclean clean 
+#####################################################################
+# Diffs
+#####################################################################
 
 %.dif : %.pp
 	-$(DIFF) $(DIFFOPTS) $*.pp $(REFPATH)/linux/$*.pp >$*.dif
@@ -314,10 +388,19 @@ distclean : diffclean libsclean clean
 %.dif : %.as
 	-$(DIFF) $(DIFFOPTS) $*.s $(REFPATH)/linux/$*.s >$*.dif
 
+diffclean :
+	-$(DEL) *.dif
+
 makefile.dif : makefile
 	-$(DIFF) $(DIFFOPTS) makefile $(REFPATH)/linux/makefile > makefile.dif
 
-
 diffs : dos.dif syslinux.dif objects.dif errno.dif prt0.dif prt1.dif \
 	objects.dif linux.dif printer.dif os.dif syscalls.dif sysnr.dif \
-   makefile.dif
+	makefile.dif
+
+#####################################################################
+# Distribution
+#####################################################################
+
+distclean : clean libsclean diffclean
+

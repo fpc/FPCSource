@@ -1,7 +1,18 @@
-# Makefile for the DOS Go32v2 Run-time library.
-# we need the stupid copies and del because the old FPK Pascal doesn't handle
-# ppc386 ..\crt correct..
 #
+#   $Id$
+#   This file is part of the Free Pascal run time library.
+#   Copyright (c) 1996-98 by Michael van Canneyt
+#
+#   Makefile for the Free Pascal Go32v2 Runtime Library
+#
+#   See the file COPYING.FPC, included in this distribution,
+#   for details about the copyright.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+
 #####################################################################
 # Start of configurable section.
 # Please note that all these must be set in the main makefile, and
@@ -12,7 +23,7 @@
 
 # set the directory where to install the units.
 ifndef UNITINSTALLDIR
-UNITINSTALLDIR=c:\lib\ppc
+UNITINSTALLDIR=c:\lib\ppc\go32v2
 endif
 
 # set the directory where to install libraries
@@ -28,6 +39,12 @@ endif
 # What is the target operating system ?
 ifndef OS_TARGET
 OS_TARGET=GO32V2
+endif
+
+# What is the target processor :
+ifndef CPU
+CPU=i386
+#CPU=m68k
 endif
 
 # What compiler to use ?
@@ -54,46 +71,48 @@ endif
 
 # Where are the include files
 INC=../../inc
-
-ifndef CPU
-CPU=i386
-endif
-
 PROCINC=../../$(CPU)
-
+OBJPASDIR=../../objpas
 # Where are the .ppi files.
 PPI=../ppi
 
-ifeq ($(OS_TARGET),$(OS_SRC))
-CROSSCOMPILE=NO
-else
-CROSSCOMPILE=YES
-endif
-
 # To copy pograms
 ifndef COPY
+ifeq ($(DOS),YES)
+COPY=copy
+else
 COPY=cp -p
 endif
+endif
 
-# To delete programs
+# Check delete program
 ifndef DEL
 ifeq ($(DOS),YES)
 DEL=del
 else
-DEL=rm
+DEL=rm -f
 endif
 endif
 
-# To install programs
+# To install files
 ifndef INSTALL
 ifeq ($(DOS),YES)
-INSTALL=cp
+INSTALL=copy
 else
 INSTALL=install -m 644
 endif
 endif
 
+# To install programs
+ifndef INSTALLEXE
+ifeq ($(DOS),YES)
+INSTALLEXE=copy
+else
+INSTALLEXE=install -m 755
+endif
+endif
 
+# To make a directory.
 ifndef MKDIR
 ifeq ($(DOS),YES)
 MKDIR=mkdir
@@ -102,23 +121,9 @@ MKDIR=install -m 755 -d
 endif
 endif
 
-# Check for crosscompile
-ifeq ($(CROSSCOMPILE),YES)
-OPT:=$(OPT) -dCROSSCOMPILE -T$(OS_TARGET)
-endif
-
-# check config file
-ifdef CFGFILE
-OPT:=$(OPT) @$(CFGFILE)
-endif
-
-# to be sure to be able to compile with an older
-# compiler version
-OPT:=$(OPT) -dFPC
-
 # diff program
 ifndef REFPATH
-REFPATH=h:/cvs/rtl
+REFPATH=/usr/local/fpk/work/new/rtl
 endif
 ifndef DIFF
 DIFF=diff
@@ -127,51 +132,201 @@ ifndef DIFFOPTS
 DIFFOPTS=-b -c
 endif
 
-# os independent depends
-SYSTEMDEPS=$(INC)/system.inc $(INC)/systemh.inc $(INC)/mathh.inc $(INC)/real2str.inc \
-	$(INC)/heaph.inc $(INC)/innr.inc $(INC)/sstrings.inc $(INC)/file.inc \
-	$(INC)/text.inc $(INC)/typefile.inc $(INC)/version.inc $(INC)/filerec.inc \
-	$(INC)/textrec.inc \
-	$(PROCINC)/math.inc $(PROCINC)/set.inc $(PROCINC)/heap.inc $(PROCINC)/$(CPU).inc
+#
+# System independent Commandline Options
+#
 
+# Cross compiling ?
+ifeq ($(OS_TARGET),$(OS_SRC))
+CROSSCOMPILE=NO
+else
+CROSSCOMPILE=YES
+endif
+
+# add required options... (-dFPC is required for older versions)
+override OPT:= $(OPT) -dFPC -d$(CPU)
+
+# Was a config file specified ?
+ifdef CFGFILE
+override OPT:=$(OPT) @$(CFGFILE)
+endif
+
+# Check for crosscompile
+ifeq ($(CROSSCOMPILE),YES)
+override OPT:= $(OPT) -dCROSSCOMPILE -T$(OS_TARGET)
+endif
+
+#
+# System dependent Commandline Options
+#
+
+#####################################################################
+# System dependent
+#####################################################################
+
+# Determine needed extensions
 PPUEXT=.ppu
 PPLEXT=.ppl
-# At this moment only static libs under go32v2. When shared libs are made then
-# we should ask what kind of lib user wants, and then set the correct
-# extension... (see linux makefile for example)
-LIBEXT=.a
 OEXT=.o
+ASMEXT=.s
+LIBEXT=.a
 
-.PHONY: all clean install diffs diffclean
+# Define Linux Units
+SYSTEMPPU=system$(PPUEXT)
+OBJECTS=strings go32 objpas \
+	dpmiexcp profile dxeload emu387 \
+	dos crt objects printer \
+	cpu mmx mouse getopts graph \
 
-all : system$(PPUEXT) prt0$(OEXT) go32$(PPUEXT) strings$(PPUEXT) \
-      objpas$(PPUEXT) dpmiexcp$(PPUEXT) exceptn$(OEXT) profile$(PPUEXT) \
-      dxeload$(PPUEXT) fpu$(OEXT) emu387$(PPUEXT) \
-      dos$(PPUEXT) crt$(PPUEXT) printer$(PPUEXT) objects$(PPUEXT) \
-      mmx$(PPUEXT) cpu$(PPUEXT) \
-      mouse$(PPUEXT) getopts$(PPUEXT) graph$(PPUEXT) \
+LOADERS=prt0 exceptn fpu
+
+#####################################################################
+# System independent Makefile
+#####################################################################
+
+# OS Independent Depends
+SYSTEMDEPS=system.inc systemh.inc mathh.inc real2str.inc \
+	heaph.inc innr.inc sstrings.inc file.inc \
+	text.inc typefile.inc version.inc filerec.inc \
+	textrec.inc
+
+# Processor Dependent Depends
+SYSPROCDEPS=math.inc set.inc heap.inc $(CPU).inc
+
+# Add Prefix and Suffixes
+OBJLOADERS=$(addsuffix $(OEXT), $(LOADERS))
+PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
+DSYSTEMDEPS=$(addprefix $(INC)/, $(SYSTEMDEPS))
+DSYSPROCDEPS=$(addprefix $(PROCINC)/, $(SYSPROCDEPS))
 
 
-dxeload$(PPUEXT) : system$(PPUEXT)
-	$(PP) $(OPT) dxeload $(REDIR)
+.PHONY : all install clean \
+	 libs libsclean \
+	 diffs diffclean \
 
-emu387$(PPUEXT) : system$(PPUEXT) fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) dpmiexcp$(PPUEXT)
-	$(PP) $(OPT) emu387 $(REDIR)
+all : $(OBJLOADERS) $(PPUOBJECTS)
+
+install : all
+	$(MKDIR) $(UNITINSTALLDIR)
+	$(INSTALL) *$(PPUEXT) *$(OEXT) $(UNITINSTALLDIR)
+
+clean :
+	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) *.PPS log
+
+#####################################################################
+# Files
+#####################################################################
+
+#
+# Loaders
+#
+
+prt0$(OEXT) : v2prt0.as
+	as -o prt0$(OEXT) v2prt0.as
+
+exceptn$(OEXT) : exceptn.as
+	as -o exceptn$(OEXT) exceptn.as
 
 fpu$(OEXT) : fpu.as
 	as -o fpu$(OEXT) fpu.as
 
-printer$(PPUEXT) : ../printer.pp system$(PPUEXT)
+#
+# Base Units (System, strings, os-dependent-base-unit)
+#
+
+$(SYSTEMPPU) : system.pp $(DSYSTEMDEPS) $(DSYSPROCDEPS)
+	$(COPY) $(DSYSTEMDEPS) .
+	$(COPY) $(DSYSPROCDEPS) .
+	$(PP) $(OPT) -Us -Sg system.pp $(REDIR)
+	$(DEL) $(SYSTEMDEPS)
+	$(DEL) $(SYSPROCDEPS)
+
+strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
+	$(COPY) $(PROCINC)/strings.pp .
+	$(PP) $(OPT) strings.pp $(REDIR)
+	$(DEL) strings.pp
+
+go32$(PPUEXT) : ../go32.pp $(SYSTEMPPU)
+	$(COPY) ../go32.pp .
+	$(PP) $(OPT) go32.pp $(REDIR)
+	$(DEL) go32.pp
+
+#
+# Delphi Object Model
+#
+
+objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
+	$(COPY) $(OBJPASDIR)/objpas.pp .
+	$(PP) $(OPT) objpas.pp $(REDIR)
+	$(DEL) objpas.pp
+
+#
+# System Dependent Units
+#
+
+dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) $(SYSTEMPPU)
+	$(PP) $(OPT) -Sg dpmiexcp.pp $(REDIR)
+
+profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT) $(SYSTEMPPU)
+	$(PP) $(OPT) profile.pp $(REDIR)
+
+dxeload$(PPUEXT) : $(SYSTEMPPU)
+	$(PP) $(OPT) dxeload.pp $(REDIR)
+
+emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
+		  dpmiexcp$(PPUEXT) $(SYSTEMPPU)
+	$(PP) $(OPT) emu387.pp $(REDIR)
+
+#
+# TP7 Compatible RTL Units
+#
+
+dos$(PPUEXT) : ../dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
+	       go32$(PPUEXT) strings$(PPUEXT) $(SYSTEMPPU)
+	$(COPY) ../dos.pp $(INC)/filerec.inc $(INC)/textrec.inc .
+	$(PP) $(OPT) dos $(REDIR)
+	$(DEL) dos.pp filerec.inc textrec.inc
+
+crt$(PPUEXT) : ../crt.pp $(INC)/textrec.inc go32$(PPUEXT) $(SYSTEMPPU)
+	$(COPY) ../crt.pp $(INC)/textrec.inc .
+	$(PP) $(OPT) crt $(REDIR)
+	$(DEL) crt.pp textrec.inc
+
+objects$(PPUEXT) : ../objects.pp $(SYSTEMPPU)
+	$(COPY) ../objects.pp .
+	$(PP) $(OPT) objects.pp $(REDIR)
+	$(DEL) objects.pp
+
+printer$(PPUEXT) : ../printer.pp $(SYSTEMPPU)
 	$(COPY) ../printer.pp .
-	$(PP) $(OPT) printer $(REDIR)
+	$(PP) $(OPT) printer.pp $(REDIR)
 	$(DEL) printer.pp
 
-getopts$(PPUEXT) : $(PROCINC)/getopts.pp system$(PPUEXT)
+#
+# Other RTL Units
+#
+
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
+	$(COPY) $(PROCINC)/cpu.pp .
+	$(PP) $(OPT) cpu.pp $(REDIR)
+	$(DEL) cpu.pp
+
+mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
+	$(COPY) $(PROCINC)/mmx.pp .
+	$(PP) $(OPT) mmx.pp $(REDIR)
+	$(DEL) mmx.pp
+
+mouse$(PPUEXT) : ../mouse.pp $(SYSTEMPPU)
+	$(COPY) ../mouse.pp .
+	$(PP) $(OPT) mouse.pp $(REDIR)
+	$(DEL) mouse.pp
+
+getopts$(PPUEXT) : $(PROCINC)/getopts.pp $(SYSTEMPPU)
 	$(COPY) $(PROCINC)/getopts.pp .
-	$(PP) $(OPT) getopts $(REDIR)
+	$(PP) $(OPT) getopts.pp $(REDIR)
 	$(DEL) getopts.pp
 
-graph$(PPUEXT) : ../graph.pp mmx$(PPUEXT) go32$(PPUEXT) system$(PPUEXT) \
+graph$(PPUEXT) : ../graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) \
 	$(PPI)/arc.ppi $(PPI)/colors.ppi $(PPI)/dpmi2raw.ppi $(PPI)/ellipse.ppi \
 	$(PPI)/fill.ppi $(PPI)/font.ppi $(PPI)/global.ppi $(PPI)/ibm.ppi \
 	$(PPI)/image.ppi $(PPI)/line.ppi $(PPI)/modes.ppi $(PPI)/move.ppi \
@@ -181,94 +336,25 @@ graph$(PPUEXT) : ../graph.pp mmx$(PPUEXT) go32$(PPUEXT) system$(PPUEXT) \
 	$(PP) $(OPT) graph $(REDIR)
 	$(DEL) graph.pp *.ppi
 
-strings$(PPUEXT) : $(PROCINC)/strings.pp system$(PPUEXT)
-	$(COPY) $(PROCINC)/strings.pp .
-	$(PP) $(OPT) strings $(REDIR)
-	$(DEL) strings.pp
+#####################################################################
+# Libs
+#####################################################################
 
-dos$(PPUEXT) : ../dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
-	go32$(PPUEXT) system$(PPUEXT) strings$(PPUEXT)
-	$(COPY) ../dos.pp $(INC)/filerec.inc $(INC)/textrec.inc .
-	$(PP) $(OPT) dos $(REDIR)
-	$(DEL) dos.pp filerec.inc textrec.inc
+libs: all libfpc$(LIBEXT)
 
-exceptn$(OEXT) : exceptn.as
-	as -o exceptn$(OEXT) exceptn.as
-#   gcc not need anymore
-#	gcc -c -x assembler-with-cpp -o exceptn$(OEXT) exceptn.AS
-
-dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT)
-	$(PP) $(OPT) -Sg dpmiexcp $(REDIR)
-
-profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT)
-	$(PP) $(OPT) profile $(REDIR)
-
-system$(PPUEXT) : system.pp $(SYSTEMDEPS)
-	$(COPY) $(INC)/*.inc $(PROCINC)/*.inc .
-	$(PP) $(OPT) -dI386 -Us -Sg system $(REDIR)
-	$(DEL) systemh.inc system.inc real2str.inc version.inc $(CPU).inc sstrings.inc
-	$(DEL) mathh.inc math.inc set.inc innr.inc heap.inc heaph.inc
-	$(DEL) filerec.inc textrec.inc file.inc typefile.inc text.inc
-
-prt0$(OEXT) : v2prt0.as
-	as -o prt0$(OEXT) v2prt0.as
-#   gcc not need anymore
-#	gcc -c -x assembler-with-cpp -o prt0$(OEXT) v2prt0.AS
-
-crt$(PPUEXT) : ../crt.pp $(INC)/textrec.inc go32$(PPUEXT) system$(PPUEXT)
-	$(COPY) ../crt.pp $(INC)/textrec.inc .
-	$(PP) $(OPT) crt $(REDIR)
-	$(DEL) crt.pp textrec.inc
-
-go32$(PPUEXT) : ../go32.pp system$(PPUEXT)
-	$(COPY) ../go32.pp .
-	$(PP) $(OPT) go32 $(REDIR)
-	$(DEL) go32.pp
-
-mmx$(PPUEXT) : ../../i386/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
-	$(COPY) ../../i386/mmx.pp .
-	$(PP) $(OPT) mmx $(REDIR)
-	$(DEL) mmx.pp
-
-cpu$(PPUEXT) : ../../i386/cpu.pp system$(PPUEXT)
-	$(COPY) ../../i386/cpu.pp .
-	$(PP) $(OPT) cpu $(REDIR)
-	$(DEL) cpu.pp
-
-objpas$(PPUEXT) : ../../objpas/objpas.pp system$(PPUEXT)
-	$(COPY) ../../objpas/objpas.pp .
-	$(PP) $(OPT) objpas $(REDIR)
-	$(DEL) objpas.pp
-
-objects$(PPUEXT) : ../objects.pp system$(PPUEXT)
-	$(COPY) ../objects.pp .
-	$(PP) $(OPT) objects $(REDIR)
-	$(DEL) objects.pp
-
-mouse$(PPUEXT) : ../mouse.pp system$(PPUEXT)
-	$(COPY) ../mouse.pp .
-	$(PP) $(OPT) mouse $(REDIR)
-	$(DEL) mouse.pp
-
-libs: libfpc$(LIBEXT)
-
-libfpc.a: all
+libfpc.a:
 	$(PPUMOVE) -s -o fpc *.ppu
 
-clean:
-	-$(DEL) *$(OEXT) *$(PPUEXT) *.dif log *.s
-
-diffclean:
-	-$(DEL) *.dif
-
-install: all
-	-$(MKDIR) $(UNITINSTALLDIR)/go32unit
-	$(INSTALL) *$(PPUEXT) $(UNITINSTALLDIR)/go32unit
-	$(INSTALL) *$(OEXT)   $(UNITINSTALLDIR)/go32unit
+libsclean : clean
+	-$(DEL) *.$(LIBEXT) *$(PPLEXT)
 
 libinstall: libs
 	$(INSTALL) libfpc$(LIBEXT) $(LIBINSTALLDIR)
 	$(INSTALL) *$(PPLEXT) $(UNITINSTALLDIR)
+
+#####################################################################
+# Diffs
+#####################################################################
 
 %.dif : %.pp
 	-$(DIFF) $(DIFFOPTS) $*.pp $(REFPATH)/dos/go32v2/$*.pp > $*.dif
@@ -276,16 +362,23 @@ libinstall: libs
 %.dif : %.inc
 	-$(DIFF) $(DIFFOPTS) $*.inc $(REFPATH)/dos/go32v2/$*.inc > $*.dif
 
-# these must have the lowest priority
-
 %.dif : %.as
 	-$(DIFF) $(DIFFOPTS) $*.as $(REFPATH)/dos/go32v2/$*.as > $*.dif
 
 %.dif : %.asm
 	-$(DIFF) $(DIFFOPTS) $*.asm $(REFPATH)/dos/go32v2/$*.asm > $*.dif
 
+diffclean:
+	-$(DEL) *.dif
+
 makefile.dif : makefile
 	-$(DIFF) $(DIFFOPTS) makefile $(REFPATH)/dos/go32v2/makefile > makefile.dif
 
 diffs: system.dif v2prt0.dif dpmiexcp.dif exceptn.dif profile.dif os.dif \
        sbrk16.dif exit16.dif makefile.dif
+
+#####################################################################
+# Distribution
+#####################################################################
+
+distclean : clean libsclean diffclean
