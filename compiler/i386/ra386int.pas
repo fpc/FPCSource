@@ -720,6 +720,7 @@ Unit Ra386int;
       var
         tempstr,expr,hs : string;
         parenlevel,l,k : longint;
+        hasparen,
         errorflag : boolean;
         prevtok : tasmtoken;
         hl : tasmlabel;
@@ -827,7 +828,13 @@ Unit Ra386int;
             AS_TYPE:
               begin
                 l:=0;
+                hasparen:=false;
                 Consume(AS_TYPE);
+                if actasmtoken=AS_LPAREN then
+                  begin
+                    hasparen:=true;
+                    Consume(AS_LPAREN);
+                  end;
                 if actasmtoken<>AS_ID then
                  Message(asmr_e_type_without_identifier)
                 else
@@ -858,6 +865,8 @@ Unit Ra386int;
                  end;
                 str(l, tempstr);
                 expr:=expr + tempstr;
+                if hasparen then
+                  Consume(AS_RPAREN);
               end;
             AS_STRING:
               Begin
@@ -1966,7 +1975,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2003-11-12 16:05:39  florian
+  Revision 1.66  2003-11-29 14:41:02  peter
+    * support type()
+
+  Revision 1.65  2003/11/12 16:05:39  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it
