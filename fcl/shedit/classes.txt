@@ -1,0 +1,18 @@
+TObject
+  TCollectionItem
+     TKeyboardActionDescr		Assigns names to keyboard actions
+     TShortcut				Connects a keyboard shortcut with an action description
+  TUndoInfo				Generic undo information
+    TUndoEdit				Undo informations for inserted characters
+    TUndoDelLeft			Undo informations for left deleted characters
+    TUndoDelRight			Undo informations for right deleted characters
+  TSelection				Holds a selection (start and end coordinates)
+  ISHWidget				Generic SH widget interface
+    TGtkSHWidget			SHWidget implementation for GTK+
+    <other platform dependent
+     implementations>
+  TSHTextEdit				Generic editor engine
+    TSHPasEdit				Editor engine for Pascal source files
+    TSHXMLEdit				Editor engine for XML files
+    <other classes and highlighters for
+     additional languages>
