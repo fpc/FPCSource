@@ -414,6 +414,14 @@ CONST
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
+{$ifndef GRAPH_API}
+USES
+  Video;
+{$endif not GRAPH_API}
+
+CONST
+  SubMenuChar : array[boolean] of char = ('>',#16);
+  { SubMenuChar is the character displayed at right of submenu }
 
 {***************************************************************************}
 {                               OBJECT METHODS                              }
@@ -1123,6 +1131,9 @@ BEGIN
            End;
          S := ' ' + P^.Name^ + ' ';                   { Menu string }
          MoveCStr(B[Index], S, Color);                { Transfer string }
+        if P^.Command = 0 then
+          MoveChar(B[Size.X - 4],SubMenuChar[LowAscii],
+            Byte(Color), 1) else
          If (P^.Command <> 0) AND(P^.Param <> Nil)
          Then Begin
            if TextModeGFV or UseFixedFont then
@@ -1748,7 +1759,10 @@ END;
 END.
 {
  $Log$
- Revision 1.13  2002-05-30 06:58:28  pierre
+ Revision 1.14  2002-06-10 18:41:26  pierre
+  + add Submenu recognition sign
+
+ Revision 1.13  2002/05/30 06:58:28  pierre
   * fix grpah related menubar draw issues
 
  Revision 1.12  2002/05/29 19:36:52  pierre
