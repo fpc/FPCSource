@@ -447,6 +447,129 @@ CONST
 {$endif asmgraph}
   end;
 
+Procedure GetScanLine16(y: integer; var data);
+
+var dummylong: longint;
+    Offset, count, count2, amount, index: word;
+    shift, plane: byte;
+Begin
+{$ifdef logging}
+  LogLn('GetScanLine16 start, length to get: '+strf(ViewWidth+1)+' at y = '+strf(y));
+{$Endif logging}
+  PortB[$3ce] := 4;
+  offset := (Y + StartYViewPort) * 80 + (StartXViewPort shr 3) + VideoOfs;
+{$ifdef logging}
+  LogLn('Offset: '+HexStr(offset,4)+' - ' + strf(offset));
+{$Endif logging}
+  { first get enough pixels so offset is 32bit aligned }
+  amount := 0;
+  index := 0;
+  If ((StartXViewPort and 31) <> 0) Or
+     (ViewWidth < 32) Then
+    Begin
+      If (ViewWidth >= 32+32-(StartXViewPort and 31)) Then
+        amount := 32-(StartXViewPort and 31)
+      Else amount := ViewWidth + 1;
+{$ifdef logging}
+      LogLn('amount to align to 32bits or to get all: ' + strf(amount));
+{$Endif logging}
+      For count := 0 to amount-1 do
+        WordArray(Data)[Count] := getpixel16(Count,y);
+      index := count+1;
+      Inc(Offset,(amount+7) shr 3);
+{$ifdef logging}
+      LogLn('offset now: '+HexStr(offset,4)+' - ' + strf(offset));
+      LogLn('index now: '+strf(index));
+{$Endif logging}
+    End;
+  amount := ViewWidth + 1 - amount;
+{$ifdef logging}
+  LogLn('amount left: ' + strf(amount));
+{$Endif logging}
+  If amount = 0 Then Exit;
+  { first get everything from plane 3 (4th plane) }
+  PortB[$3cf] := 3;
+  Count := 0;
+  For Count := 1 to (amount shr 5) Do
+    Begin
+      dummylong := MemL[$a000:offset+(Count-1)*4];
+      dummylong :=
+        ((dummylong and $ff) shl 24) or
+        ((dummylong and $ff00) shl 8) or
+        ((dummylong and $ff0000) shr 8) or
+        ((dummylong and $ff000000) shr 24);
+      For Count2 := 31 downto 0 Do
+        Begin
+          WordArray(Data)[index+Count2] := DummyLong and 1;
+          DummyLong := DummyLong shr 1;
+        End;
+      Inc(Index, 32);
+    End;
+{ Now get the data from the 3 other planes }
+  plane := 3;
+  Repeat
+    Dec(Index,Count*32);
+    Dec(plane);
+    PortB[$3cf] := plane;
+    Count := 0;
+    For Count := 1 to (amount shr 5) Do
+      Begin
+        dummylong := MemL[$a000:offset+(Count-1)*4];
+        dummylong :=
+          ((dummylong and $ff) shl 24) or
+          ((dummylong and $ff00) shl 8) or
+          ((dummylong and $ff0000) shr 8) or
+          ((dummylong and $ff000000) shr 24);
+        For Count2 := 31 downto 0 Do
+          Begin
+            WordArray(Data)[index+Count2] :=
+              (WordArray(Data)[index+Count2] shl 1) + (DummyLong and 1);
+            DummyLong := DummyLong shr 1;
+          End;
+        Inc(Index, 32);
+      End;
+  Until plane = 0;
+  amount := amount and 31;
+  Dec(index);
+{$ifdef Logging}
+  LogLn('Last array index written to: '+strf(index));
+  LogLn('amount left: '+strf(amount)+' starting at x = '+strf(index+1));
+{$Endif logging}
+  For Count := 1 to amount Do
+    WordArray(Data)[index+Count] := getpixel16(index+Count,y);
+{$ifdef logging}
+  LogLn('First 32 bytes gotten with getscanline16: ');
+  If ViewWidth + 1 >= 32 Then
+    Count2 := 32
+  Else Count2 := ViewWidth;
+  For Count := 0 to Count2-1 Do
+    Log(strf(WordArray(Data)[Count])+' ');
+  LogLn('');
+  If ViewWidth + 1 >= 32 Then
+    Begin
+      LogLn('Last 32 bytes gotten with getscanline16: ');
+      For Count := 31 downto 0 Do
+      Log(strf(WordArray(Data)[ViewWidth-Count])+' ');
+    End;
+  LogLn('');
+  GetScanLineDefault(y,Data);
+  LogLn('First 32 bytes gotten with getscanlinedef: ');
+  If ViewWidth + 1 >= 32 Then
+    Count2 := 32
+  Else Count2 := ViewWidth;
+  For Count := 0 to Count2-1 Do
+    Log(strf(WordArray(Data)[Count])+' ');
+  LogLn('');
+  If ViewWidth + 1 >= 32 Then
+    Begin
+      LogLn('Last 32 bytes gotten with getscanlinedef: ');
+      For Count := 31 downto 0 Do
+      Log(strf(WordArray(Data)[ViewWidth-Count])+' ');
+    End;
+  LogLn('');
+  LogLn('GetScanLine16 end');
+{$Endif logging}
+End;
 
  Procedure DirectPutPixel16(X,Y : Integer); {$ifndef fpc}far;{$endif fpc}
  { x,y -> must be in global coordinates. No clipping. }
@@ -1828,6 +1951,7 @@ const CrtAddress: word = 0;
          mode.SetVisualPage := SetVisual200;
          mode.SetActivePage := SetActive200;
          mode.InitMode := Init640x200x16;
+         mode.GetScanLine := GetScanLine16;
 {$else fpc}
          mode.DirectPutPixel:=@DirectPutPixel16;
          mode.PutPixel:=@PutPixel16;
@@ -1839,6 +1963,7 @@ const CrtAddress: word = 0;
          mode.InitMode := @Init640x200x16;
          mode.HLine := @HLine16;
          mode.VLine := @VLine16;
+         mode.GetScanLine := @GetScanLine16;
 {$endif fpc}
          mode.XAspect := 10000;
          mode.YAspect := 10000;
@@ -1863,6 +1988,7 @@ const CrtAddress: word = 0;
          mode.GetRGBPalette := GetVGARGBPalette;
          mode.SetVisualPage := SetVisual350;
          mode.SetActivePage := SetActive350;
+         mode.GetScanLine := GetScanLine16;
 {$else fpc}
          mode.DirectPutPixel:=@DirectPutPixel16;
          mode.PutPixel:=@PutPixel16;
@@ -1874,6 +2000,7 @@ const CrtAddress: word = 0;
          mode.SetActivePage := @SetActive350;
          mode.HLine := @HLine16;
          mode.VLine := @VLine16;
+         mode.GetScanLine := @GetScanLine16;
 {$endif fpc}
          mode.XAspect := 10000;
          mode.YAspect := 10000;
@@ -1898,6 +2025,7 @@ const CrtAddress: word = 0;
          mode.InitMode := Init640x480x16;
          mode.SetVisualPage := SetVisual480;
          mode.SetActivePage := SetActive480;
+         mode.GetScanLine := GetScanLine16;
 {$else fpc}
          mode.DirectPutPixel:=@DirectPutPixel16;
          mode.PutPixel:=@PutPixel16;
@@ -1909,6 +2037,7 @@ const CrtAddress: word = 0;
          mode.SetActivePage := @SetActive480;
          mode.HLine := @HLine16;
          mode.VLine := @VLine16;
+         mode.GetScanLine := @GetScanLine16;
 {$endif fpc}
          mode.XAspect := 10000;
          mode.YAspect := 10000;
@@ -2626,7 +2755,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.17  1999-09-24 11:31:38  jonas
+Revision 1.18  1999-09-24 14:22:38  jonas
+  + getscanline16
+
+Revision 1.17  1999/09/24 11:31:38  jonas
   * fixed another typo :(
 
 Revision 1.16  1999/09/23 14:00:41  jonas
