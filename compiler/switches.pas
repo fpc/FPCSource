@@ -90,9 +90,9 @@ begin
                     aktlocalswitches:=aktlocalswitches+[tlocalswitch(setsw)]
                    else
                     aktlocalswitches:=aktlocalswitches-[tlocalswitch(setsw)];
-		 { Message for linux which has global checking only }
-                   if switch='S' then
-		    Message(scan_n_stack_check_global_under_linux);
+                 { Message for linux which has global checking only }
+                   if (switch='S') and (target_info.target=target_linux) then
+                    Message(scan_n_stack_check_global_under_linux);
                  end;
       modulesw : begin
                    if current_module^.in_main then
@@ -153,7 +153,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1998-08-10 15:47:08  peter
+  Revision 1.10  1998-08-14 18:14:57  peter
+    * forgot to check the target for linux for $S switch message
+
+  Revision 1.9  1998/08/10 15:47:08  peter
     * reinstantited stackcheck note for linux
 
   Revision 1.8  1998/08/10 14:50:27  peter
