@@ -212,11 +212,6 @@
          p : tnode;
 
       begin
-         if not(assigned(self)) then
-           begin
-              getcopy:=nil;
-              exit;
-           end;
          { this is quite tricky because we need a node of the current }
          { node type and not one of tnode!                            }
          p:=tnodeclass(classtype).createforcopy;
@@ -516,7 +511,10 @@
 
 {
   $Log$
-  Revision 1.11  2000-10-21 18:16:11  florian
+  Revision 1.12  2000-11-04 13:10:15  jonas
+    - removed check for self = nil in getcopy
+
+  Revision 1.11  2000/10/21 18:16:11  florian
     * a lot of changes:
        - basic dyn. array support
        - basic C++ support
