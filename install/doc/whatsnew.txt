@@ -17,7 +17,7 @@ Compiler:
   * Better inlining support
   * For loop variable assignment is not allowed anymore
   * $fpctarget expands to <cpu>-<os> (except for 8.3 limited targets),
-    old $target replaced with $fpcos
+    old $target removed
   * Implicit loading of Variants unit
   * Lots of bug fixes
 
