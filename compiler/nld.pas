@@ -446,7 +446,7 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_REFERENCE;
-         registers32:=0;
+         registersint:=0;
          registersfpu:=0;
 {$ifdef SUPPORT_MMX}
          registersmmx:=0;
@@ -470,9 +470,9 @@ implementation
                   expectloc:=LOC_CREFERENCE;
                 { we need a register for call by reference parameters }
                 if paramanager.push_addr_param(tvarsym(symtableentry).varspez,tvarsym(symtableentry).vartype.def,pocall_default) then
-                  registers32:=1;
+                  registersint:=1;
                 if ([vo_is_thread_var,vo_is_dll_var]*tvarsym(symtableentry).varoptions)<>[] then
-                  registers32:=1;
+                  registersint:=1;
                 { call to get address of threadvar }
                 if (vo_is_thread_var in tvarsym(symtableentry).varoptions) then
                   include(current_procinfo.flags,pi_do_call);
@@ -493,7 +493,7 @@ implementation
                      begin
                         expectloc:=LOC_CREFERENCE;
                         firstpass(left);
-                        registers32:=max(registers32,left.registers32);
+                        registersint:=max(registersint,left.registersint);
                         registersfpu:=max(registersfpu,left.registersfpu);
  {$ifdef SUPPORT_MMX}
                         registersmmx:=max(registersmmx,left.registersmmx);
@@ -837,7 +837,7 @@ implementation
            end;
 
 
-         registers32:=left.registers32+right.registers32;
+         registersint:=left.registersint+right.registersint;
          registersfpu:=max(left.registersfpu,right.registersfpu);
 {$ifdef SUPPORT_MMX}
          registersmmx:=max(left.registersmmx,right.registersmmx);
@@ -971,7 +971,7 @@ implementation
          end;
          if not assigned(htype.def) then
           htype:=voidtype;
-         resulttype.setdef(tarraydef.create(0,len-1,s32bittype));
+         resulttype.setdef(tarraydef.create(0,len-1,s32inttype));
          tarraydef(resulttype.def).setelementtype(htype);
          tarraydef(resulttype.def).IsConstructor:=true;
          tarraydef(resulttype.def).IsVariant:=varia;
@@ -1019,14 +1019,14 @@ implementation
                begin
                  case hp.left.resulttype.def.deftype of
                    enumdef :
-                     hp.left:=ctypeconvnode.create_explicit(hp.left,s32bittype);
+                     hp.left:=ctypeconvnode.create_explicit(hp.left,s32inttype);
                    arraydef :
                      hp.left:=ctypeconvnode.create(hp.left,charpointertype);
                    orddef :
                      begin
                        if is_integer(hp.left.resulttype.def) and
                           not(is_64bitint(hp.left.resulttype.def)) then
-                         hp.left:=ctypeconvnode.create(hp.left,s32bittype);
+                         hp.left:=ctypeconvnode.create(hp.left,s32inttype);
                      end;
                    floatdef :
                      hp.left:=ctypeconvnode.create(hp.left,pbestrealtype^);
@@ -1246,7 +1246,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.120  2004-01-26 16:12:28  daniel
+  Revision 1.121  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.120  2004/01/26 16:12:28  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 

@@ -88,7 +88,7 @@ implementation
      function ti386inlinenode.first_arctan_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,2);
 {$ifdef SUPPORT_MMX}
         registersmmx:=left.registersmmx;
@@ -99,7 +99,7 @@ implementation
      function ti386inlinenode.first_abs_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
         registersmmx:=left.registersmmx;
@@ -110,7 +110,7 @@ implementation
      function ti386inlinenode.first_sqr_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
         registersmmx:=left.registersmmx;
@@ -121,7 +121,7 @@ implementation
      function ti386inlinenode.first_sqrt_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
         registersmmx:=left.registersmmx;
@@ -132,7 +132,7 @@ implementation
      function ti386inlinenode.first_ln_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,2);
 {$ifdef SUPPORT_MMX}
         registersmmx:=left.registersmmx;
@@ -143,7 +143,7 @@ implementation
      function ti386inlinenode.first_cos_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
         registersmmx:=left.registersmmx;
@@ -154,7 +154,7 @@ implementation
      function ti386inlinenode.first_sin_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
         registersmmx:=left.registersmmx;
@@ -353,7 +353,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2004-02-02 20:41:59  florian
+  Revision 1.72  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.71  2004/02/02 20:41:59  florian
     + added prefetch(const mem) support
 
   Revision 1.70  2003/10/10 17:48:14  peter

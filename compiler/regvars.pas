@@ -169,7 +169,7 @@ implementation
           new(regvarinfo);
           fillchar(regvarinfo^,sizeof(regvarinfo^),0);
           current_procinfo.procdef.regvarinfo := regvarinfo;
-          if (p.registers32<maxvarregs) then
+          if (p.registersint<maxvarregs) then
             begin
               parasym:=false;
               symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars,@parasym);
@@ -177,13 +177,13 @@ implementation
               parasym:=true;
               symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars,@parasym);
               { hold needed registers free }
-              for i:=maxvarregs downto maxvarregs-p.registers32+1-maxintscratchregs do
+              for i:=maxvarregs downto maxvarregs-p.registersint+1-maxintscratchregs do
                 begin
                   regvarinfo^.regvars[i]:=nil;
                   regvarinfo^.regvars_para[i] := false;
                 end;
               { now assign register }
-              for i:=1 to maxvarregs-p.registers32-maxintscratchregs do
+              for i:=1 to maxvarregs-p.registersint-maxintscratchregs do
                 begin
                   if assigned(regvarinfo^.regvars[i]) and
                     { currently we assume we can use volatile registers for all }
@@ -640,7 +640,12 @@ end.
 
 {
   $Log$
-  Revision 1.71  2003-10-17 14:38:32  peter
+  Revision 1.72  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.71  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

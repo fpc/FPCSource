@@ -93,9 +93,9 @@ implementation
           { other integers are supposed to be 32 bit }
           begin
             if is_signed(left.resulttype.def) then
-              inserttypeconv(left,s32bittype)
+              inserttypeconv(left,s32inttype)
             else
-              inserttypeconv(left,u32bittype);
+              inserttypeconv(left,u32inttype);
             firstpass(left);
           end;
         result := nil;
@@ -227,7 +227,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2004-01-22 20:13:18  florian
+  Revision 1.9  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.8  2004/01/22 20:13:18  florian
     * fixed several issues with flags
 
   Revision 1.7  2003/11/30 19:35:29  florian

@@ -109,9 +109,9 @@ implementation
 
          { we need 2 orddefs always }
          if (left.resulttype.def.deftype<>orddef) then
-           inserttypeconv(right,s32bittype);
+           inserttypeconv(right,sinttype);
          if (right.resulttype.def.deftype<>orddef) then
-           inserttypeconv(right,s32bittype);
+           inserttypeconv(right,sinttype);
          if codegenerror then
            exit;
 
@@ -186,6 +186,7 @@ implementation
              resulttype:=left.resulttype;
            end
          else
+{$ifndef cpu64bit}
           { when there is one 64bit value, everything is done
             in 64bit }
           if (is_64bitint(left.resulttype.def) or
@@ -194,16 +195,16 @@ implementation
              if is_signed(rd) or is_signed(ld) then
                begin
                   if (torddef(ld).typ<>s64bit) then
-                    inserttypeconv(left,cs64bittype);
+                    inserttypeconv(left,s64inttype);
                   if (torddef(rd).typ<>s64bit) then
-                    inserttypeconv(right,cs64bittype);
+                    inserttypeconv(right,s64inttype);
                end
              else
                begin
                   if (torddef(ld).typ<>u64bit) then
-                    inserttypeconv(left,cu64bittype);
+                    inserttypeconv(left,u64inttype);
                   if (torddef(rd).typ<>u64bit) then
-                    inserttypeconv(right,cu64bittype);
+                    inserttypeconv(right,u64inttype);
                end;
              resulttype:=left.resulttype;
            end
@@ -216,18 +217,19 @@ implementation
            begin
               CGMessage(type_w_mixed_signed_unsigned);
               if (torddef(ld).typ<>s64bit) then
-                inserttypeconv(left,cs64bittype);
+                inserttypeconv(left,s64inttype);
               if (torddef(rd).typ<>s64bit) then
-                inserttypeconv(right,cs64bittype);
+                inserttypeconv(right,s64inttype);
               resulttype:=left.resulttype;
            end
          else
+{$endif cpu64bit}
            begin
-              { Make everything always 32bit }
-              if not(torddef(right.resulttype.def).typ in [s32bit,u32bit]) then
-                inserttypeconv(right,s32bittype);
-              if not(torddef(left.resulttype.def).typ in [s32bit,u32bit]) then
-                inserttypeconv(left,s32bittype);
+              { Make everything always default singed int }
+              if not(torddef(right.resulttype.def).typ in [torddef(sinttype.def).typ,torddef(uinttype.def).typ]) then
+                inserttypeconv(right,sinttype);
+              if not(torddef(left.resulttype.def).typ in [torddef(sinttype.def).typ,torddef(uinttype.def).typ]) then
+                inserttypeconv(left,sinttype);
               resulttype:=right.resulttype;
            end;
 
@@ -287,8 +289,8 @@ implementation
           parameters to s64bit, so they are not converted }
         if is_currency(resulttype.def) then
           begin
-            left.resulttype:=cs64bittype;
-            right.resulttype:=cs64bittype;
+            left.resulttype:=s64inttype;
+            right.resulttype:=s64inttype;
           end;
 
         { otherwise create a call to a helper }
@@ -344,7 +346,7 @@ implementation
                     left := caddnode.create(addn,left,
                       caddnode.create(andn,
                         cshlshrnode.create(sarn,left.getcopy,
-                          cordconstnode.create(shiftval,s32bittype,false)),
+                          cordconstnode.create(shiftval,sinttype,false)),
                         cordconstnode.create(tordconstnode(right).value-1,
                           right.resulttype,false)));
                     newtype := sarn;
@@ -380,8 +382,10 @@ implementation
          result := firstoptimize;
          if assigned(result) then
            exit;
+{$ifndef cpu64bit}
          { 64bit }
-         if (left.resulttype.def.deftype=orddef) and (right.resulttype.def.deftype=orddef) and
+         if (left.resulttype.def.deftype=orddef) and
+            (right.resulttype.def.deftype=orddef) and
             (is_64bitint(left.resulttype.def) or is_64bitint(right.resulttype.def)) then
            begin
              result := first_moddiv64bitint;
@@ -391,13 +395,14 @@ implementation
              calcregisters(self,2,0,0);
            end
          else
+{$endif cpu64bit}
            begin
              result := first_moddivint;
              if assigned(result) then
                exit;
              left_right_max;
-             if left.registers32<=right.registers32 then
-              inc(registers32);
+             if left.registersint<=right.registersint then
+              inc(registersint);
            end;
          expectloc:=LOC_REGISTER;
       end;
@@ -467,14 +472,16 @@ implementation
               exit;
            end;
 
+{$ifndef cpu64bit}
          { 64 bit ints have their own shift handling }
          if not(is_64bitint(left.resulttype.def)) then
            begin
-              if torddef(left.resulttype.def).typ <> u32bit then
-               inserttypeconv(left,s32bittype);
+             if torddef(left.resulttype.def).typ<>torddef(uinttype.def).typ then
+               inserttypeconv(left,sinttype);
            end;
+{$endif cpu64bit}
 
-         inserttypeconv(right,s32bittype);
+         inserttypeconv(right,sinttype);
 
          resulttype:=left.resulttype;
       end;
@@ -490,17 +497,19 @@ implementation
          if codegenerror then
            exit;
 
+{$ifndef cpu64bit}
          { 64 bit ints have their own shift handling }
-         if not(is_64bit(left.resulttype.def)) then
-           begin
-            regs:=1
-           end
-         else
+         if is_64bit(left.resulttype.def) then
            begin
              result := first_shlshr64bitint;
              if assigned(result) then
                exit;
               regs:=2;
+           end
+         else
+{$endif cpu64bit}
+           begin
+             regs:=1
            end;
 
          if (right.nodetype<>ordconstn) then
@@ -518,6 +527,7 @@ implementation
       begin
          inherited create(unaryminusn,expr);
       end;
+
 
     function tunaryminusnode.det_resulttype : tnode;
       var
@@ -563,12 +573,14 @@ implementation
                }
              end
 {$endif SUPPORT_MMX}
+{$ifndef cpu64bit}
          else if is_64bitint(left.resulttype.def) then
            begin
            end
+{$endif cpu64bit}
          else if (left.resulttype.def.deftype=orddef) then
            begin
-              inserttypeconv(left,s32bittype);
+              inserttypeconv(left,sinttype);
               resulttype:=left.resulttype;
            end
          else
@@ -599,7 +611,7 @@ implementation
          if codegenerror then
            exit;
 
-         registers32:=left.registers32;
+         registersint:=left.registersint;
          registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
@@ -621,18 +633,20 @@ implementation
                  registersmmx:=1;
              end
 {$endif SUPPORT_MMX}
+{$ifndef cpu64bit}
          else if is_64bit(left.resulttype.def) then
            begin
               if (left.expectloc<>LOC_REGISTER) and
-                 (registers32<2) then
-                registers32:=2;
+                 (registersint<2) then
+                registersint:=2;
               expectloc:=LOC_REGISTER;
            end
+{$endif cpu64bit}
          else if (left.resulttype.def.deftype=orddef) then
            begin
               if (left.expectloc<>LOC_REGISTER) and
-                 (registers32<1) then
-                registers32:=1;
+                 (registersint<1) then
+                registersint:=1;
               expectloc:=LOC_REGISTER;
            end;
       end;
@@ -642,14 +656,16 @@ implementation
                                TNOTNODE
  ****************************************************************************}
 
-    const boolean_reverse:array[ltn..unequaln] of Tnodetype=
-  (gten,gtn,lten,ltn,unequaln,equaln);
+    const
+      boolean_reverse:array[ltn..unequaln] of Tnodetype=(
+        gten,gtn,lten,ltn,unequaln,equaln
+      );
 
     constructor tnotnode.create(expr : tnode);
-
       begin
          inherited create(notn,expr);
       end;
+
 
     function tnotnode.det_resulttype : tnode;
       var
@@ -739,12 +755,15 @@ implementation
              end
          else
 {$endif SUPPORT_MMX}
+{$ifndef cpu64bit}
            if is_64bitint(left.resulttype.def) then
              begin
              end
-         else if is_integer(left.resulttype.def) then
-           begin
-           end
+         else
+{$endif cpu64bit}
+           if is_integer(left.resulttype.def) then
+             begin
+             end
          else
            begin
               notdef:=nil;
@@ -772,7 +791,7 @@ implementation
            exit;
 
          expectloc:=left.expectloc;
-         registers32:=left.registers32;
+         registersint:=left.registersint;
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
@@ -781,8 +800,8 @@ implementation
              if (expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
               begin
                 expectloc:=LOC_REGISTER;
-                if (registers32<1) then
-                 registers32:=1;
+                if (registersint<1) then
+                 registersint:=1;
               end;
             { before loading it into flags we need to load it into
               a register thus 1 register is need PM }
@@ -802,22 +821,25 @@ implementation
              end
          else
 {$endif SUPPORT_MMX}
+{$ifndef cpu64bit}
            if is_64bit(left.resulttype.def) then
              begin
                 if (expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
                  begin
                    expectloc:=LOC_REGISTER;
-                   if (registers32<2) then
-                    registers32:=2;
+                   if (registersint<2) then
+                    registersint:=2;
                  end;
              end
-         else if is_integer(left.resulttype.def) then
-           begin
-              if (left.expectloc<>LOC_REGISTER) and
-                 (registers32<1) then
-                registers32:=1;
-              expectloc:=LOC_REGISTER;
-           end
+         else
+{$endif cpu64bit}
+           if is_integer(left.resulttype.def) then
+             begin
+               if (left.expectloc<>LOC_REGISTER) and
+                  (registersint<1) then
+                 registersint:=1;
+               expectloc:=LOC_REGISTER;
+             end;
       end;
 
 {$ifdef state_tracking}
@@ -841,7 +863,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2004-01-23 15:12:49  florian
+  Revision 1.56  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.55  2004/01/23 15:12:49  florian
     * fixed generic shl/shr operations
     + added register allocation hook calls for arm specific operand types:
       register set and shifter op

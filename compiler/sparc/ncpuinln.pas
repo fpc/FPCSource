@@ -74,7 +74,7 @@ implementation
     function tSparcInlineNode.first_abs_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
         first_abs_real := nil;
       end;
@@ -83,7 +83,7 @@ implementation
     function tSparcInlineNode.first_sqr_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
         first_sqr_real:=nil;
       end;
@@ -92,7 +92,7 @@ implementation
     function tSparcInlineNode.first_sqrt_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
         first_sqrt_real := nil;
       end;
@@ -123,7 +123,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-10-24 11:32:34  mazen
+  Revision 1.8  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.7  2003/10/24 11:32:34  mazen
   *fixes related to removal of rg
 
   Revision 1.6  2003/10/01 20:34:50  peter

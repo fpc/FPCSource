@@ -188,7 +188,7 @@ implementation
             CGMessage(type_e_ordinal_expr_expected);
             { create a correct tree }
             caseexpr.free;
-            caseexpr:=cordconstnode.create(0,u32bittype,false);
+            caseexpr:=cordconstnode.create(0,u32inttype,false);
             { set error flag so no rangechecks are done }
             casedeferror:=true;
           end;
@@ -1092,7 +1092,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.128  2004-02-03 19:47:45  jonas
+  Revision 1.129  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.128  2004/02/03 19:47:45  jonas
     * don't put the temp of a withnode in a register if debugging info is on,
       because then our stabs generation internalerror's
 

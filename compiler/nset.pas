@@ -311,16 +311,16 @@ implementation
 
          if tsetdef(right.resulttype.def).settype<>smallset then
            begin
-             if registers32 < 3 then
-               registers32 := 3;
+             if registersint < 3 then
+               registersint := 3;
            end
          else
            begin
               { a smallset needs maybe an misc. register }
               if (left.nodetype<>ordconstn) and
                 not(right.expectloc in [LOC_CREGISTER,LOC_REGISTER]) and
-                (right.registers32<1) then
-                inc(registers32);
+                (right.registersint<1) then
+                inc(registersint);
            end;
       end;
 
@@ -583,7 +583,7 @@ implementation
          set_varstate(left,vs_used,true);
          if codegenerror then
            exit;
-         registers32:=left.registers32;
+         registersint:=left.registersint;
          registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
@@ -606,8 +606,8 @@ implementation
               firstpass(hp.left);
 
               { searchs max registers }
-              if hp.left.registers32>registers32 then
-                registers32:=hp.left.registers32;
+              if hp.left.registersint>registersint then
+                registersint:=hp.left.registersint;
               if hp.left.registersfpu>registersfpu then
                 registersfpu:=hp.left.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -624,8 +624,8 @@ implementation
               firstpass(elseblock);
               if codegenerror then
                 exit;
-              if registers32<elseblock.registers32 then
-                registers32:=elseblock.registers32;
+              if registersint<elseblock.registersint then
+                registersint:=elseblock.registersint;
               if registersfpu<elseblock.registersfpu then
                 registersfpu:=elseblock.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -638,7 +638,7 @@ implementation
          { there is one register required for the case expression    }
          { for 64 bit ints we cheat: the high dword is stored in EDI }
          { so we don't need an extra register                        }
-         if registers32<1 then registers32:=1;
+         if registersint<1 then registersint:=1;
       end;
 
 
@@ -694,7 +694,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2004-01-26 16:12:28  daniel
+  Revision 1.52  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.51  2004/01/26 16:12:28  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 

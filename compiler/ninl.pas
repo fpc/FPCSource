@@ -206,26 +206,26 @@ implementation
           begin
             { insert realtype parameter }
             newparas.right := ccallparanode.create(cordconstnode.create(
-              ord(tfloatdef(source.left.resulttype.def).typ),s32bittype,true),
+              ord(tfloatdef(source.left.resulttype.def).typ),s32inttype,true),
                newparas.right);
             { if necessary, insert a fraction parameter }
             if not assigned(fracpara) then
               begin
                 tcallparanode(newparas.right).right := ccallparanode.create(
-                  cordconstnode.create(-1,s32bittype,false),
+                  cordconstnode.create(-1,s32inttype,false),
                    tcallparanode(newparas.right).right);
                 fracpara := tcallparanode(tcallparanode(newparas.right).right);
               end;
             { if necessary, insert a length para }
             if not assigned(lenpara) then
               fracpara.right := ccallparanode.create(
-                cordconstnode.create(-32767,s32bittype,false),
+                cordconstnode.create(-32767,s32inttype,false),
                    fracpara.right);
           end
         else
           { for a normal parameter, insert a only length parameter if one is missing }
           if not assigned(lenpara) then
-            newparas.right := ccallparanode.create(cordconstnode.create(-1,s32bittype,false),
+            newparas.right := ccallparanode.create(cordconstnode.create(-1,s32inttype,false),
               newparas.right);
 
         { remove the parameters from the original node so they won't get disposed, }
@@ -269,7 +269,7 @@ implementation
         {   parameter is gets lifted out of its original tcallparanode (see round }
         {   line 1306 of ncal.pas), so recreate a tcallparanode here (JM)         }
         left := ccallparanode.create(cordconstnode.create(
-          tfiledef(left.resulttype.def).typedfiletype.def.size,s32bittype,true),
+          tfiledef(left.resulttype.def).typedfiletype.def.size,s32inttype,true),
           ccallparanode.create(left,nil));
         { create the correct call }
         if inlinenumber=in_reset_typedfile then
@@ -455,7 +455,7 @@ implementation
           begin
             { add the typesize to the filepara }
             filepara.right := ccallparanode.create(cordconstnode.create(
-              tfiledef(filepara.resulttype.def).typedfiletype.def.size,s32bittype,true),nil);
+              tfiledef(filepara.resulttype.def).typedfiletype.def.size,s32inttype,true),nil);
 
             { check for "no parameters" (you need at least one extra para for typed files) }
             if not assigned(para) then
@@ -694,7 +694,7 @@ implementation
                           begin
                             if not assigned(lenpara) then
                               lenpara := ccallparanode.create(
-                                cordconstnode.create(0,s32bittype,false),nil)
+                                cordconstnode.create(0,s32inttype,false),nil)
                             else
                               { make sure we don't pass the successive }
                               { parameters too. We also already have a }
@@ -706,18 +706,18 @@ implementation
                           begin
                             if not assigned(lenpara) then
                               lenpara := ccallparanode.create(
-                                cordconstnode.create(-32767,s32bittype,false),nil);
+                                cordconstnode.create(-32767,s32inttype,false),nil);
                             { also create a default fracpara if necessary }
                             if not assigned(fracpara) then
                               fracpara := ccallparanode.create(
-                                cordconstnode.create(-1,s32bittype,false),nil);
+                                cordconstnode.create(-1,s32inttype,false),nil);
                             { add it to the lenpara }
                             lenpara.right := fracpara;
                             { and add the realtype para (this also removes the link }
                             { to any parameters coming after it)                    }
                             fracpara.right := ccallparanode.create(
                                 cordconstnode.create(ord(tfloatdef(para.left.resulttype.def).typ),
-                                s32bittype,true),nil);
+                                s32inttype,true),nil);
                           end;
                       end;
 
@@ -738,9 +738,9 @@ implementation
                         if is_real then
                           restype := pbestrealtype
                         else if is_signed(para.left.resulttype.def) then
-                          restype := @s32bittype
+                          restype := @s32inttype
                         else
-                          restype := @u32bittype;
+                          restype := @u32inttype;
 
                         { create the parameter list: the temp ... }
                         temp := ctempcreatenode.create(restype^,restype^.def.size,tt_persistent);
@@ -906,7 +906,7 @@ implementation
         if not assigned(codepara) or
            (torddef(codepara.resulttype.def).typ in [u8bit,u16bit,s8bit,s16bit]) then
           begin
-            tempcode := ctempcreatenode.create(s32bittype,4,tt_persistent);
+            tempcode := ctempcreatenode.create(s32inttype,4,tt_persistent);
             addstatement(newstatement,tempcode);
             { set the resulttype of the temp (needed to be able to get }
             { the resulttype of the tempref used in the new code para) }
@@ -929,7 +929,7 @@ implementation
           { and cardinals are fine. Since the formal code para type is      }
           { longint, insert a typecoversion to longint for cardinal para's  }
           begin
-            codepara.left := ctypeconvnode.create_explicit(codepara.left,s32bittype);
+            codepara.left := ctypeconvnode.create_explicit(codepara.left,s32inttype);
             { make it explicit, oterwise you may get a nonsense range }
             { check error if the cardinal already contained a value   }
             { > $7fffffff                                             }
@@ -948,7 +948,7 @@ implementation
                     suffix := 'sint_';
                     { we also need a destsize para in this case }
                     sizepara := ccallparanode.create(cordconstnode.create
-                      (destpara.resulttype.def.size,s32bittype,true),nil);
+                      (destpara.resulttype.def.size,s32inttype,true),nil);
                   end;
                 u8bit,u16bit,u32bit:
                    suffix := 'uint_';
@@ -1204,13 +1204,13 @@ implementation
                           if (vr>=9223372036854775808.0) or (vr<=-9223372036854775809.0) then
                             begin
                                CGMessage(parser_e_range_check_error);
-                               hp:=cordconstnode.create(1,cs64bittype,false)
+                               hp:=cordconstnode.create(1,s64inttype,false)
                             end
                           else
-                            hp:=cordconstnode.create(trunc(vr),cs64bittype,true)
+                            hp:=cordconstnode.create(trunc(vr),s64inttype,true)
                        end
                      else
-                      hp:=cordconstnode.create(trunc(vl),cs64bittype,true);
+                      hp:=cordconstnode.create(trunc(vl),s64inttype,true);
                    end;
                  in_const_round :
                    begin
@@ -1219,13 +1219,13 @@ implementation
                           if (vr>=9223372036854775807.5) or (vr<=-9223372036854775808.5) then
                             begin
                                CGMessage(parser_e_range_check_error);
-                               hp:=cordconstnode.create(1,cs64bittype,false)
+                               hp:=cordconstnode.create(1,s64inttype,false)
                             end
                           else
-                            hp:=cordconstnode.create(round(vr),cs64bittype,true)
+                            hp:=cordconstnode.create(round(vr),s64inttype,true)
                        end
                      else
-                      hp:=cordconstnode.create(round(vl),cs64bittype,true);
+                      hp:=cordconstnode.create(round(vl),s64inttype,true);
                    end;
                  in_const_frac :
                    begin
@@ -1382,13 +1382,13 @@ implementation
                   case inlinenumber of
                     in_lo_word,
                     in_hi_word :
-                      resulttype:=u8bittype;
+                      resulttype:=u8inttype;
                     in_lo_long,
                     in_hi_long :
-                      resulttype:=u16bittype;
+                      resulttype:=u16inttype;
                     in_lo_qword,
                     in_hi_qword :
-                      resulttype:=u32bittype;
+                      resulttype:=u32inttype;
                   end;
                 end;
 
@@ -1402,16 +1402,16 @@ implementation
                      if assigned(hightree) then
                       begin
                         hp:=caddnode.create(addn,hightree,
-                                         cordconstnode.create(1,s32bittype,false));
+                                         cordconstnode.create(1,s32inttype,false));
                         if (left.resulttype.def.deftype=arraydef) and
                            (tarraydef(left.resulttype.def).elesize<>1) then
                           hp:=caddnode.create(muln,hp,cordconstnode.create(tarraydef(
-                            left.resulttype.def).elesize,s32bittype,true));
+                            left.resulttype.def).elesize,s32inttype,true));
                         result:=hp;
                       end;
                    end
                   else
-                   resulttype:=s32bittype;
+                   resulttype:=s32inttype;
                 end;
 
               in_typeof_x:
@@ -1425,7 +1425,7 @@ implementation
                    if (left.nodetype=ordconstn) then
                     begin
                       hp:=cordconstnode.create(
-                         tordconstnode(left).value,s32bittype,true);
+                         tordconstnode(left).value,s32inttype,true);
                       result:=hp;
                       goto myexit;
                     end;
@@ -1438,7 +1438,7 @@ implementation
                            uchar:
                              begin
                                { change to byte() }
-                               hp:=ctypeconvnode.create_explicit(left,u8bittype);
+                               hp:=ctypeconvnode.create_explicit(left,u8inttype);
                                left:=nil;
                                result:=hp;
                              end;
@@ -1446,14 +1446,14 @@ implementation
                            uwidechar :
                              begin
                                { change to word() }
-                               hp:=ctypeconvnode.create_explicit(left,u16bittype);
+                               hp:=ctypeconvnode.create_explicit(left,u16inttype);
                                left:=nil;
                                result:=hp;
                              end;
                            bool32bit :
                              begin
                                { change to dword() }
-                               hp:=ctypeconvnode.create_explicit(left,u32bittype);
+                               hp:=ctypeconvnode.create_explicit(left,u32inttype);
                                left:=nil;
                                result:=hp;
                              end;
@@ -1470,7 +1470,7 @@ implementation
                        end;
                      enumdef :
                        begin
-                         hp:=ctypeconvnode.create_explicit(left,s32bittype);
+                         hp:=ctypeconvnode.create_explicit(left,s32inttype);
                          left:=nil;
                          result:=hp;
                        end;
@@ -1509,7 +1509,7 @@ implementation
                         if (left.nodetype=stringconstn) then
                          begin
                            hp:=cordconstnode.create(
-                             tstringconstnode(left).len,s32bittype,true);
+                             tstringconstnode(left).len,s32inttype,true);
                            result:=hp;
                            goto myexit;
                          end;
@@ -1520,7 +1520,7 @@ implementation
                         if is_char(left.resulttype.def) or
                            is_widechar(left.resulttype.def) then
                          begin
-                           hp:=cordconstnode.create(1,s32bittype,false);
+                           hp:=cordconstnode.create(1,s32inttype,false);
                            result:=hp;
                            goto myexit;
                          end
@@ -1559,7 +1559,7 @@ implementation
                            if assigned(hightree) then
                             begin
                               hp:=caddnode.create(addn,hightree,
-                                                  cordconstnode.create(1,s32bittype,false));
+                                                  cordconstnode.create(1,s32inttype,false));
                               result:=hp;
                             end;
                            goto myexit;
@@ -1569,7 +1569,7 @@ implementation
                           begin
                             hp:=cordconstnode.create(tarraydef(left.resulttype.def).highrange-
                                                       tarraydef(left.resulttype.def).lowrange+1,
-                                                     s32bittype,true);
+                                                     s32inttype,true);
                             result:=hp;
                             goto myexit;
                           end
@@ -1590,9 +1590,9 @@ implementation
                   { shortstring return an 8 bit value as the length
                     is the first byte of the string }
                   if is_shortstring(left.resulttype.def) then
-                   resulttype:=u8bittype
+                   resulttype:=u8inttype
                   else
-                   resulttype:=s32bittype;
+                   resulttype:=s32inttype;
                 end;
 
               in_typeinfo_x:
@@ -1631,7 +1631,7 @@ implementation
               in_seg_x :
                 begin
                   set_varstate(left,vs_used,false);
-                  hp:=cordconstnode.create(0,s32bittype,false);
+                  hp:=cordconstnode.create(0,s32inttype,false);
                   result:=hp;
                   goto myexit;
                 end;
@@ -1705,14 +1705,14 @@ implementation
                                  else
                                   if is_64bitint(left.resulttype.def) then
                                    if is_signed(left.resulttype.def) then
-                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,cs64bittype)
+                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,s64inttype)
                                    else
-                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,cu64bittype)
+                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,u64inttype)
                                  else
                                    if is_signed(left.resulttype.def) then
-                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,s32bittype)
+                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,s32inttype)
                                    else
-                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,u32bittype);
+                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,u32inttype);
                                end;
 
                              if assigned(tcallparanode(tcallparanode(left).right).right) then
@@ -1740,7 +1740,7 @@ implementation
                   { now we know the type of buffer }
                   srsym:=searchsymonlyin(systemunit,'SETTEXTBUF');
                   hp:=ccallparanode.create(cordconstnode.create(
-                     tcallparanode(left).left.resulttype.def.size,s32bittype,true),left);
+                     tcallparanode(left).left.resulttype.def.size,s32inttype,true),left);
                   hp:=ccallnode.create(hp,tprocsym(srsym),systemunit,nil);
                   left:=nil;
                   result:=hp;
@@ -1835,14 +1835,14 @@ implementation
                       begin
                         if inlinenumber=in_low_x then
                          begin
-                           result:=cordconstnode.create(0,u8bittype,false);
+                           result:=cordconstnode.create(0,u8inttype,false);
                          end
                         else
                          begin
                            if is_open_string(left.resulttype.def) then
                             result:=load_high_value_node(tvarsym(tloadnode(left).symtableentry))
                            else
-                            result:=cordconstnode.create(tstringdef(left.resulttype.def).len,u8bittype,true);
+                            result:=cordconstnode.create(tstringdef(left.resulttype.def).len,u8inttype,true);
                          end;
                      end;
                     else
@@ -2049,7 +2049,7 @@ implementation
               end;
               if shiftconst <> 0 then
                 result := ctypeconvnode.create_explicit(cshlshrnode.create(shrn,left,
-                    cordconstnode.create(shiftconst,u32bittype,false)),resulttype)
+                    cordconstnode.create(shiftconst,u32inttype,false)),resulttype)
               else
                 result := ctypeconvnode.create_explicit(left,resulttype);
               left := nil;
@@ -2058,15 +2058,15 @@ implementation
 
           in_sizeof_x:
             begin
-              if registers32<1 then
-                 registers32:=1;
+              if registersint<1 then
+                 registersint:=1;
               expectloc:=LOC_REGISTER;
             end;
 
           in_typeof_x:
             begin
-               if registers32<1 then
-                 registers32:=1;
+               if registersint<1 then
+                 registersint:=1;
                expectloc:=LOC_REGISTER;
             end;
 
@@ -2077,8 +2077,8 @@ implementation
                else
                 begin
                   { ansi/wide string }
-                  if registers32<1 then
-                   registers32:=1;
+                  if registersint<1 then
+                   registersint:=1;
                   expectloc:=LOC_REGISTER;
                 end;
             end;
@@ -2086,13 +2086,13 @@ implementation
           in_typeinfo_x:
             begin
                expectloc:=LOC_REGISTER;
-               registers32:=1;
+               registersint:=1;
             end;
 
           in_assigned_x:
             begin
               expectloc := LOC_JUMP;
-              registers32:=1;
+              registersint:=1;
             end;
 
           in_pred_x,
@@ -2100,13 +2100,13 @@ implementation
             begin
               if is_64bit(resulttype.def) then
                begin
-                 if (registers32<2) then
-                  registers32:=2
+                 if (registersint<2) then
+                  registersint:=2
                end
               else
                begin
-                 if (registers32<1) then
-                  registers32:=1;
+                 if (registersint<1) then
+                  registersint:=1;
                end;
               expectloc:=LOC_REGISTER;
             end;
@@ -2145,7 +2145,7 @@ implementation
                      end
                    else
                      { no, create constant 1 }
-                     hpp := cordconstnode.create(1,s32bittype,false);
+                     hpp := cordconstnode.create(1,s32inttype,false);
                    { addition/substraction depending on inc/dec }
                    if inlinenumber = in_inc_x then
                      hp := caddnode.create(addn,tcallparanode(left).left.getcopy,hpp)
@@ -2168,12 +2168,12 @@ implementation
                          { need we an additional register ? }
                          if not(is_constintnode(tcallparanode(tcallparanode(left).right).left)) and
                            (tcallparanode(tcallparanode(left).right).left.expectloc in [LOC_CREFERENCE,LOC_REFERENCE]) and
-                           (tcallparanode(tcallparanode(left).right).left.registers32<=1) then
-                           inc(registers32);
+                           (tcallparanode(tcallparanode(left).right).left.registersint<=1) then
+                           inc(registersint);
 
                          { do we need an additional register to restore the first parameter? }
-                         if tcallparanode(tcallparanode(left).right).left.registers32>=registers32 then
-                           inc(registers32);
+                         if tcallparanode(tcallparanode(left).right).left.registersint>=registersint then
+                           inc(registersint);
                       end;
                  end;
             end;
@@ -2183,7 +2183,7 @@ implementation
            begin
               expectloc:=LOC_VOID;
 
-              registers32:=left.registers32;
+              registersint:=left.registersint;
               registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
               registersmmx:=left.registersmmx;
@@ -2239,7 +2239,7 @@ implementation
          in_assert_x_y :
             begin
               expectloc:=LOC_VOID;
-              registers32:=left.registers32;
+              registersint:=left.registersint;
               registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
               registersmmx:=left.registersmmx;
@@ -2374,7 +2374,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.129  2004-02-03 16:46:51  jonas
+  Revision 1.130  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.129  2004/02/03 16:46:51  jonas
     + support to store ttempcreate/ref/deletenodes in registers
     * put temps for withnodes and some newnodes in registers
      Note: this currently only works because calling ungetregister()

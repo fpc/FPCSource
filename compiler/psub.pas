@@ -305,7 +305,7 @@ implementation
                         that memory was allocated }
                       { parameter 1 : self pointer }
                       para:=ccallparanode.create(
-                                cordconstnode.create(current_procinfo.procdef._class.vmt_offset,s32bittype,false),
+                                cordconstnode.create(current_procinfo.procdef._class.vmt_offset,s32inttype,false),
                             ccallparanode.create(
                                 ctypeconvnode.create_explicit(
                                     load_vmt_pointer_node,
@@ -428,7 +428,7 @@ implementation
                       { parameter 2 : pointer to vmt }
                       { parameter 1 : self pointer }
                       para:=ccallparanode.create(
-                                cordconstnode.create(current_procinfo.procdef._class.vmt_offset,s32bittype,false),
+                                cordconstnode.create(current_procinfo.procdef._class.vmt_offset,s32inttype,false),
                             ccallparanode.create(
                                 ctypeconvnode.create_explicit(
                                     load_vmt_pointer_node,
@@ -1342,7 +1342,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.182  2004-01-21 19:01:03  florian
+  Revision 1.183  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.182  2004/01/21 19:01:03  florian
     * fixed handling of max. distance of pc relative symbols
 
   Revision 1.181  2003/12/21 19:42:43  florian

@@ -497,12 +497,12 @@ implementation
               if p.expectloc = LOC_INVALID then
                 internalerror(200110101);
 
-              if (abs(p.left.registers32-p.right.registers32)<r32) or
+              if (abs(p.left.registersint-p.right.registersint)<r32) or
                  ((p.expectloc = LOC_FPUREGISTER) and
                   (p.right.registersfpu <= p.left.registersfpu) and
                   ((p.right.registersfpu <> 0) or (p.left.registersfpu <> 0)) and
-                  (p.left.registers32   < p.right.registers32)) then
-                inc(p.registers32,r32);
+                  (p.left.registersint   < p.right.registersint)) then
+                inc(p.registersint,r32);
               if (abs(p.left.registersfpu-p.right.registersfpu)<fpu) then
                inc(p.registersfpu,fpu);
 {$ifdef SUPPORT_MMX}
@@ -515,17 +515,17 @@ implementation
               { and return a mem location, but the current node    }
               { doesn't use an integer register we get probably    }
               { trouble when restoring a node                      }
-              if (p.left.registers32=p.right.registers32) and
-                 (p.registers32=p.left.registers32) and
-                 (p.registers32>0) and
+              if (p.left.registersint=p.right.registersint) and
+                 (p.registersint=p.left.registersint) and
+                 (p.registersint>0) and
                 (p.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) and
                 (p.right.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-                inc(p.registers32);
+                inc(p.registersint);
             end
            else
             begin
-              if (p.left.registers32<r32) then
-               inc(p.registers32,r32);
+              if (p.left.registersint<r32) then
+               inc(p.registersint,r32);
               if (p.left.registersfpu<fpu) then
                inc(p.registersfpu,fpu);
 {$ifdef SUPPORT_MMX}
@@ -941,7 +941,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2003-11-12 15:48:27  peter
+  Revision 1.76  2004-02-03 22:32:53  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.75  2003/11/12 15:48:27  peter
     * fix set_varstate in for loops
     * fix set_varstate from case statements
 

@@ -274,7 +274,7 @@ interface
           flags : tnodeflags;
           ppuidx : longint;
           { the number of registers needed to evalute the node }
-          registers32,registersfpu,registersmm : longint;  { must be longint !!!! }
+          registersint,registersfpu,registersmm : longint;  { must be longint !!!! }
 {$ifdef SUPPORT_MMX}
           registersmmx : longint;
 {$endif SUPPORT_MMX}
@@ -576,7 +576,7 @@ implementation
          fileinfo:=aktfilepos;
          localswitches:=aktlocalswitches;
          resulttype.reset;
-         registers32:=0;
+         registersint:=0;
          registersfpu:=0;
 {$ifdef SUPPORT_MMX}
          registersmmx:=0;
@@ -608,7 +608,7 @@ implementation
         expectloc:=LOC_INVALID;
         { updated by secondpass }
         location.loc:=LOC_INVALID;
-        registers32:=0;
+        registersint:=0;
         registersfpu:=0;
 {$ifdef SUPPORT_MMX}
         registersmmx:=0;
@@ -695,7 +695,7 @@ implementation
         writeln(t,', pos = (',fileinfo.line,',',fileinfo.column,')',
                   ', loc = ',tcgloc2str[location.loc],
                   ', expectloc = ',tcgloc2str[expectloc],
-                  ', intregs = ',registers32,
+                  ', intregs = ',registersint,
                   ', fpuregs = ',registersfpu);
       end;
 
@@ -754,7 +754,7 @@ implementation
          p.location:=location;
          p.parent:=parent;
          p.flags:=flags;
-         p.registers32:=registers32;
+         p.registersint:=registersint;
          p.registersfpu:=registersfpu;
 {$ifdef SUPPORT_MMX}
          p.registersmmx:=registersmmx;
@@ -880,7 +880,7 @@ implementation
 
     procedure tunarynode.left_max;
       begin
-         registers32:=left.registers32;
+         registersint:=left.registersint;
          registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
@@ -1022,7 +1022,7 @@ implementation
          begin
            if assigned(right) then
             begin
-              registers32:=max(left.registers32,right.registers32);
+              registersint:=max(left.registersint,right.registersint);
               registersfpu:=max(left.registersfpu,right.registersfpu);
 {$ifdef SUPPORT_MMX}
               registersmmx:=max(left.registersmmx,right.registersmmx);
@@ -1030,7 +1030,7 @@ implementation
             end
            else
             begin
-              registers32:=left.registers32;
+              registersint:=left.registersint;
               registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
               registersmmx:=left.registersmmx;
@@ -1087,7 +1087,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  2004-01-26 16:12:28  daniel
+  Revision 1.81  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.80  2004/01/26 16:12:28  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 

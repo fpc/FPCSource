@@ -752,7 +752,7 @@ implementation
                              { First pass processed this with the assumption   }
                              { that there was an add node which may require an }
                              { extra register. Fake it or die with IE10 (JM)   }
-                             t.registers32 := taddnode(right).registers32;
+                             t.registersint := taddnode(right).registersint;
                              taddnode(right).left:=nil;
                              right.free;
                              right:=t;
@@ -761,7 +761,7 @@ implementation
                           begin
                              extraoffset:=tordconstnode(taddnode(right).left).value;
                              t:=taddnode(right).right;
-                             t.registers32 :=  right.registers32;
+                             t.registersint :=  right.registersint;
                              taddnode(right).right:=nil;
                              right.free;
                              right:=t;
@@ -773,7 +773,7 @@ implementation
                           begin
                              extraoffset:=-tordconstnode(taddnode(right).right).value;
                              t:=taddnode(right).left;
-                             t.registers32 :=  right.registers32;
+                             t.registersint :=  right.registersint;
                              taddnode(right).left:=nil;
                              right.free;
                              right:=t;
@@ -784,7 +784,7 @@ implementation
                           begin
                              extraoffset:=right.left.value;
                              t:=right.right;
-                             t^.registers32 :=  right.registers32;
+                             t^.registersint :=  right.registersint;
                              putnode(right);
                              putnode(right.left);
                              right:=t;
@@ -881,7 +881,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2004-01-31 17:45:17  peter
+  Revision 1.86  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.85  2004/01/31 17:45:17  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 

@@ -249,6 +249,7 @@ implementation
          range_to_basetype:=s16bit
         else
          range_to_basetype:=s32bit;
+{$warning add support for range_to_basetype 64bit}
       end;
 
 
@@ -418,10 +419,10 @@ implementation
     { true, if p points to an open array def }
     function is_open_array(p : tdef) : boolean;
       begin
-         { check for s32bittype is needed, because for u32bit the high
+         { check for s32inttype is needed, because for u32bit the high
            range is also -1 ! (PFV) }
          is_open_array:=(p.deftype=arraydef) and
-                        (tarraydef(p).rangetype.def=s32bittype.def) and
+                        (tarraydef(p).rangetype.def=s32inttype.def) and
                         (tarraydef(p).lowrange=0) and
                         (tarraydef(p).highrange=-1) and
                         not(tarraydef(p).IsConstructor) and
@@ -844,7 +845,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2003-12-25 01:07:09  florian
+  Revision 1.9  2004-02-03 22:32:53  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.8  2003/12/25 01:07:09  florian
     + $fputype directive support
     + single data type operations with sse unit
     * fixed more x86-64 stuff

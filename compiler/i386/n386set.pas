@@ -77,8 +77,8 @@ implementation
          { a smallset needs maybe an misc. register }
          if (left.nodetype<>ordconstn) and
             not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) and
-            (right.registers32<1) then
-           inc(registers32);
+            (right.registersint<1) then
+           inc(registersint);
       end;
 
 
@@ -674,7 +674,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2003-11-07 15:58:32  florian
+  Revision 1.71  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.70  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

@@ -154,7 +154,7 @@ implementation
                  ((p.left.registersfpu = 0) and (p.right.registersfpu = 0)) or
                  (p.location.loc<>LOC_FPUREGISTER)
                 ) and
-                (p.left.registers32<p.right.registers32)
+                (p.left.registersint<p.right.registersint)
                )
               ) then
             begin
@@ -2117,7 +2117,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.186  2004-01-31 18:40:15  daniel
+  Revision 1.187  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.186  2004/01/31 18:40:15  daniel
     * Last steps before removal of aasmtai dependency in symsym can be
       accomplished.
 

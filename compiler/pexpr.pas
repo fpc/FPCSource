@@ -185,7 +185,7 @@ implementation
              sl_typeconv :
                p1:=ctypeconvnode.create_explicit(p1,plist^.tt);
              sl_vec :
-               p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,s32bittype,true));
+               p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,s32inttype,true));
              else
                internalerror(200110205);
            end;
@@ -446,7 +446,7 @@ implementation
                statement_syssym:=geninlinenode(in_sizeof_x,false,p1)
               else
                begin
-                 statement_syssym:=cordconstnode.create(p1.resulttype.def.size,s32bittype,true);
+                 statement_syssym:=cordconstnode.create(p1.resulttype.def.size,s32inttype,true);
                  { p1 not needed !}
                  p1.destroy;
                end;
@@ -542,7 +542,7 @@ implementation
               p1:=caddrnode.create(p1);
               do_resulttypepass(p1);
               { Ofs() returns a cardinal, not a pointer }
-              p1.resulttype:=u32bittype;
+              p1.resulttype:=u32inttype;
               consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
@@ -1397,12 +1397,12 @@ implementation
                           { do a very dirty trick to bootstrap this code }
                           if (tconstsym(srsym).value.valueord>=-(int64(2147483647)+int64(1))) and
                              (tconstsym(srsym).value.valueord<=2147483647) then
-                           p1:=cordconstnode.create(tconstsym(srsym).value.valueord,s32bittype,true)
+                           p1:=cordconstnode.create(tconstsym(srsym).value.valueord,s32inttype,true)
                           else if (tconstsym(srsym).value.valueord > maxlongint) and
                                   (tconstsym(srsym).value.valueord <= int64(maxlongint)+int64(maxlongint)+1) then
-                           p1:=cordconstnode.create(tconstsym(srsym).value.valueord,u32bittype,true)
+                           p1:=cordconstnode.create(tconstsym(srsym).value.valueord,u32inttype,true)
                           else
-                           p1:=cordconstnode.create(tconstsym(srsym).value.valueord,cs64bittype,true);
+                           p1:=cordconstnode.create(tconstsym(srsym).value.valueord,s64inttype,true);
                         end;
                       conststring :
                         begin
@@ -1684,7 +1684,7 @@ implementation
                                     if (token=_COLON) then
                                      begin
                                        consume(_COLON);
-                                       p3:=caddnode.create(muln,cordconstnode.create($10,s32bittype,false),p2);
+                                       p3:=caddnode.create(muln,cordconstnode.create($10,s32inttype,false),p2);
                                        p2:=comp_expr(true);
                                        p2:=caddnode.create(addn,p2,p3);
                                        p1:=cvecnode.create(p1,p2);
@@ -2028,7 +2028,7 @@ implementation
                                 Message(cg_e_invalid_integer);
                                 consume(_INTCONST);
                                 l:=1;
-                                p1:=cordconstnode.create(l,s32bittype,true);
+                                p1:=cordconstnode.create(l,s32inttype,true);
                              end
                             else
                              begin
@@ -2039,13 +2039,13 @@ implementation
                        else
                          begin
                             consume(_INTCONST);
-                            p1:=cordconstnode.create(ic,cs64bittype,true);
+                            p1:=cordconstnode.create(ic,s64inttype,true);
                          end
                      end
                    else
                      begin
                        consume(_INTCONST);
-                       p1:=cordconstnode.create(l,defaultordconsttype,true)
+                       p1:=cordconstnode.create(l,sinttype,true)
                      end
                  end
                else
@@ -2055,9 +2055,9 @@ implementation
                    { (longint is easier to perform calculations with) (JM)      }
                    if card <= $7fffffff then
                      { no sign extension necessary, so not longint typecast (JM) }
-                     p1:=cordconstnode.create(card,s32bittype,true)
+                     p1:=cordconstnode.create(card,s32inttype,true)
                    else
-                     p1:=cordconstnode.create(card,u32bittype,true)
+                     p1:=cordconstnode.create(card,u32inttype,true)
                 end;
              end;
 
@@ -2525,7 +2525,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.145  2003-12-29 17:19:35  jonas
+  Revision 1.146  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.145  2003/12/29 17:19:35  jonas
     * integrated hack from 1.0.x so we can parse low(int64) as int64 instead
       of as double (in 1.0.x, it was necessary for low(longint))
 

@@ -88,7 +88,7 @@ interface
            if (cs_mmx in aktlocalswitches) and
               is_mmx_able_array(left.resulttype.def) then
              begin
-               registers32:=left.registers32;
+               registersint:=left.registersint;
                registersfpu:=left.registersfpu;
                registersmmx:=left.registersmmx;
                if (left.location.loc<>LOC_MMXREGISTER) and
@@ -308,7 +308,12 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-01-20 12:59:37  florian
+  Revision 1.3  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.2  2004/01/20 12:59:37  florian
     * common addnode code for x86-64 and i386
 
   Revision 1.1  2003/12/26 13:47:41  florian

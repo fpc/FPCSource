@@ -165,16 +165,16 @@ implementation
             if (left.resulttype.def.deftype=enumdef) and
                (right.resulttype.def.deftype=orddef) then
              begin
-               { insert explicit typecast to s32bit }
-               left:=ctypeconvnode.create_explicit(left,inttype);
+               { insert explicit typecast to default signed int }
+               left:=ctypeconvnode.create_explicit(left,sinttype);
                resulttypepass(left);
              end
             else
              if (left.resulttype.def.deftype=orddef) and
                 (right.resulttype.def.deftype=enumdef) then
               begin
-                { insert explicit typecast to s32bit }
-                right:=ctypeconvnode.create_explicit(right,inttype);
+                { insert explicit typecast to default signed int }
+                right:=ctypeconvnode.create_explicit(right,sinttype);
                 resulttypepass(right);
               end;
           end;
@@ -284,8 +284,8 @@ implementation
                   { make left const type the biggest (u32bit is bigger than
                     s32bit for or,and,xor) }
                   if (rd.size>ld.size) or
-                     ((torddef(rd).typ=u32bit) and
-                      (torddef(ld).typ=s32bit) and
+                     ((torddef(rd).typ=torddef(uinttype.def).typ) and
+                      (torddef(ld).typ=torddef(sinttype.def).typ) and
                       (nodetype in [orn,andn,xorn])) then
                     inserttypeconv(left,right.resulttype);
                 end;
@@ -610,8 +610,8 @@ implementation
                 end
               else
                 begin
-                  left.resulttype := cs64bittype;
-                  right.resulttype := cs64bittype;
+                  left.resulttype := s64inttype;
+                  right.resulttype := s64inttype;
                 end
             else if (left.resulttype.def.deftype <> floatdef) and
                (right.resulttype.def.deftype <> floatdef) then
@@ -744,17 +744,17 @@ implementation
              else if ((torddef(rd).typ=s64bit) or (torddef(ld).typ=s64bit)) then
                begin
                   if (torddef(ld).typ<>s64bit) then
-                   inserttypeconv(left,cs64bittype);
+                   inserttypeconv(left,s64inttype);
                   if (torddef(rd).typ<>s64bit) then
-                   inserttypeconv(right,cs64bittype);
+                   inserttypeconv(right,s64inttype);
                end
              { is there a unsigned 64 bit type ? }
              else if ((torddef(rd).typ=u64bit) or (torddef(ld).typ=u64bit)) then
                begin
                   if (torddef(ld).typ<>u64bit) then
-                   inserttypeconv(left,cu64bittype);
+                   inserttypeconv(left,u64inttype);
                   if (torddef(rd).typ<>u64bit) then
-                   inserttypeconv(right,cu64bittype);
+                   inserttypeconv(right,u64inttype);
                end
              { is there a cardinal? }
              else if ((torddef(rd).typ=u32bit) or (torddef(ld).typ=u32bit)) then
@@ -763,8 +763,8 @@ implementation
                    about the sign }
                  if nodetype in [andn,orn,xorn] then
                    begin
-                     inserttypeconv_explicit(left,u32bittype);
-                     inserttypeconv_explicit(right,u32bittype);
+                     inserttypeconv_explicit(left,u32inttype);
+                     inserttypeconv_explicit(right,u32inttype);
                    end
                  else
                    begin
@@ -776,8 +776,8 @@ implementation
                        begin
                          { perform the operation in 64bit }
                          CGMessage(type_w_mixed_signed_unsigned);
-                         inserttypeconv(left,cs64bittype);
-                         inserttypeconv(right,cs64bittype);
+                         inserttypeconv(left,s64inttype);
+                         inserttypeconv(right,s64inttype);
                        end
                      else
                        begin
@@ -785,7 +785,7 @@ implementation
                             not(is_constintnode(left) and
                                 (tordconstnode(left).value >= 0)) then
                            CGMessage(type_w_mixed_signed_unsigned2);
-                         inserttypeconv(left,u32bittype);
+                         inserttypeconv(left,u32inttype);
 
                          if is_signed(rd) and
                             { then ld = u32bit }
@@ -795,8 +795,8 @@ implementation
                            begin
                              { perform the operation in 64bit }
                              CGMessage(type_w_mixed_signed_unsigned);
-                             inserttypeconv(left,cs64bittype);
-                             inserttypeconv(right,cs64bittype);
+                             inserttypeconv(left,s64inttype);
+                             inserttypeconv(right,s64inttype);
                            end
                          else
                            begin
@@ -804,7 +804,7 @@ implementation
                                 not(is_constintnode(right) and
                                     (tordconstnode(right).value >= 0)) then
                                CGMessage(type_w_mixed_signed_unsigned2);
-                             inserttypeconv(right,u32bittype);
+                             inserttypeconv(right,u32inttype);
                            end;
                        end;
                    end;
@@ -813,7 +813,7 @@ implementation
              else
                begin
                  { if the left or right value is smaller than the normal
-                   type s32bittype and is unsigned, and the other value
+                   type s32inttype and is unsigned, and the other value
                    is a constant < 0, the result will always be false/true
                    for equal / unequal nodes.
                  }
@@ -845,8 +845,8 @@ implementation
                          CGMessage(type_w_signed_unsigned_always_false);
                     end;
 
-                 inserttypeconv(right,inttype);
-                 inserttypeconv(left,inttype);
+                 inserttypeconv(right,sinttype);
+                 inserttypeconv(left,sinttype);
                end;
            end
 
@@ -955,7 +955,7 @@ implementation
                      end
                     else
                      CGMessage(type_e_mismatch);
-                    resulttype:=inttype;
+                    resulttype:=sinttype;
                     exit;
                  end;
                addn:
@@ -971,7 +971,7 @@ implementation
                      end
                     else
                      CGMessage(type_e_mismatch);
-                    resulttype:=inttype;
+                    resulttype:=sinttype;
                     exit;
                  end;
                else
@@ -1112,7 +1112,7 @@ implementation
                 resulttype.setdef(tpointerdef.create(tarraydef(rd).elementtype));
                 inserttypeconv(right,resulttype);
               end;
-            inserttypeconv(left,inttype);
+            inserttypeconv(left,sinttype);
             if nodetype=addn then
               begin
                 if not(cs_extsyntax in aktmoduleswitches) or
@@ -1121,7 +1121,7 @@ implementation
                 if (rd.deftype=pointerdef) and
                    (tpointerdef(rd).pointertype.def.size>1) then
                   left:=caddnode.create(muln,left,
-                      cordconstnode.create(tpointerdef(rd).pointertype.def.size,inttype,true));
+                      cordconstnode.create(tpointerdef(rd).pointertype.def.size,sinttype,true));
               end
             else
               CGMessage(type_e_mismatch);
@@ -1134,7 +1134,7 @@ implementation
                  resulttype.setdef(tpointerdef.create(tarraydef(ld).elementtype));
                  inserttypeconv(left,resulttype);
               end;
-            inserttypeconv(right,inttype);
+            inserttypeconv(right,sinttype);
             if nodetype in [addn,subn] then
               begin
                 if not(cs_extsyntax in aktmoduleswitches) or
@@ -1143,7 +1143,7 @@ implementation
                 if (ld.deftype=pointerdef) and
                    (tpointerdef(ld).pointertype.def.size>1) then
                   right:=caddnode.create(muln,right,
-                    cordconstnode.create(tpointerdef(ld).pointertype.def.size,inttype,true));
+                    cordconstnode.create(tpointerdef(ld).pointertype.def.size,sinttype,true));
               end
             else
               CGMessage(type_e_mismatch);
@@ -1173,8 +1173,8 @@ implementation
          { generic conversion, this is for error recovery }
          else
           begin
-            inserttypeconv(left,inttype);
-            inserttypeconv(right,inttype);
+            inserttypeconv(left,sinttype);
+            inserttypeconv(right,sinttype);
           end;
 
          { set resulttype if not already done }
@@ -1261,7 +1261,7 @@ implementation
                     { compare the length with 0 }
                     result := caddnode.create(nodetype,
                       cinlinenode.create(in_length_x,false,left),
-                      cordconstnode.create(0,s32bittype,false))
+                      cordconstnode.create(0,s32inttype,false))
                   else
                     begin
                       { compare the pointer with nil (for ansistrings etc), }
@@ -1283,7 +1283,7 @@ implementation
                 ccallparanode.create(right,ccallparanode.create(left,nil)));
               { and compare its result with 0 according to the original operator }
               result := caddnode.create(nodetype,result,
-                cordconstnode.create(0,s32bittype,false));
+                cordconstnode.create(0,s32inttype,false));
               left := nil;
               right := nil;
             end;
@@ -1342,7 +1342,7 @@ implementation
                   { type cast the value to pass as argument to a byte, }
                   { since that's what the helper expects               }
                   tsetelementnode(right).left :=
-                    ctypeconvnode.create_explicit(tsetelementnode(right).left,u8bittype);
+                    ctypeconvnode.create_explicit(tsetelementnode(right).left,u8inttype);
                   { set the resulttype to the actual one (otherwise it's }
                   { "fpc_normal_set")                                    }
                   result := ccallnode.createinternres('fpc_set_create_element',
@@ -1359,7 +1359,7 @@ implementation
                      { the helper expects                               }
                      tsetelementnode(right).left :=
                        ctypeconvnode.create_explicit(tsetelementnode(right).left,
-                       u8bittype);
+                       u8inttype);
 
                      { convert the original set (explicitely) to an   }
                      { fpc_normal_set so we can pass it to the helper }
@@ -1370,7 +1370,7 @@ implementation
                        begin
                          tsetelementnode(right).right :=
                            ctypeconvnode.create_explicit(tsetelementnode(right).right,
-                           u8bittype);
+                           u8inttype);
 
                          { create the call }
                          result := ccallnode.createinternres('fpc_set_set_range',
@@ -1468,8 +1468,8 @@ implementation
           parameters to s64bit, so they are not converted }
         if is_currency(resulttype.def) then
           begin
-            left.resulttype:=cs64bittype;
-            right.resulttype:=cs64bittype;
+            left.resulttype:=s64inttype;
+            right.resulttype:=s64inttype;
           end;
 
         { otherwise, create the parameters for the helper }
@@ -1579,7 +1579,7 @@ implementation
              { a reference                               }
              if ((left.expectloc<>LOC_FPUREGISTER) or
                  (right.expectloc<>LOC_FPUREGISTER)) and
-                (left.registers32=right.registers32) then
+                (left.registersint=right.registersint) then
                calcregisters(self,1,1,0)
              else
                calcregisters(self,0,1,0);
@@ -1647,7 +1647,7 @@ implementation
                  calcregisters(self,1,0,0);
                  { for unsigned mul we need an extra register }
                  if nodetype=muln then
-                  inc(registers32);
+                  inc(registersint);
                end
              { generic s32bit conversion }
              else
@@ -1905,7 +1905,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.108  2004-02-02 20:41:59  florian
+  Revision 1.109  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.108  2004/02/02 20:41:59  florian
     + added prefetch(const mem) support
 
   Revision 1.107  2004/01/20 12:59:36  florian

@@ -63,7 +63,7 @@ implementation
      function tppcinlinenode.first_abs_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
         registersmmx:=left.registersmmx;
@@ -74,7 +74,7 @@ implementation
      function tppcinlinenode.first_sqr_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
         registersmmx:=left.registersmmx;
@@ -150,7 +150,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2004-02-02 21:22:19  jonas
+  Revision 1.13  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.12  2004/02/02 21:22:19  jonas
     + implemented second_prefetch
 
   Revision 1.11  2003/10/17 01:22:08  florian

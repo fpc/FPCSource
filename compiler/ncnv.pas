@@ -287,7 +287,7 @@ implementation
                  begin
                     if (constsethi>255) or
                        (torddef(t.def).low<0) then
-                      htype:=u8bittype
+                      htype:=u8inttype
                     else
                       htype:=t;
                  end;
@@ -386,8 +386,8 @@ implementation
                                    htype:=p3.resulttype
                                  else
                                    begin
-                                     inserttypeconv(p3,u8bittype);
-                                     inserttypeconv(p2,u8bittype);
+                                     inserttypeconv(p3,u8inttype);
+                                     inserttypeconv(p2,u8inttype);
                                    end;
 
                                 for l:=tordconstnode(p2).value to tordconstnode(p3).value do
@@ -406,7 +406,7 @@ implementation
                                 if assigned(htype.def) then
                                   inserttypeconv(p3,htype)
                                 else
-                                  inserttypeconv(p3,u8bittype);
+                                  inserttypeconv(p3,u8inttype);
                                 p4:=csetelementnode.create(p2,p3);
                               end;
                            end;
@@ -419,7 +419,7 @@ implementation
                             if not(is_integer(p2.resulttype.def)) then
                               update_constsethi(p2.resulttype)
                             else
-                              inserttypeconv(p2,u8bittype);
+                              inserttypeconv(p2,u8inttype);
 
                             do_set(tordconstnode(p2).value);
                             p2.free;
@@ -431,7 +431,7 @@ implementation
                             if assigned(htype.def) then
                               inserttypeconv(p2,htype)
                             else
-                              inserttypeconv(p2,u8bittype);
+                              inserttypeconv(p2,u8inttype);
 
                             p4:=csetelementnode.create(p2,nil);
                           end;
@@ -466,7 +466,7 @@ implementation
               p2.free;
             end;
            if (htype.def=nil) then
-            htype:=u8bittype;
+            htype:=u8inttype;
          end
         else
          begin
@@ -614,7 +614,7 @@ implementation
         result := ccallnode.createinternres(
           'fpc_'+tstringdef(left.resulttype.def).stringtypname+
           '_to_chararray',ccallparanode.create(left,ccallparanode.create(
-          cordconstnode.create(arrsize,s32bittype,true),nil)),resulttype);
+          cordconstnode.create(arrsize,s32inttype,true),nil)),resulttype);
         left := nil;
       end;
 
@@ -719,15 +719,15 @@ implementation
              begin
                { create word(byte(char) shl 8 or 1) for litte endian machines }
                { and word(byte(char) or 256) for big endian machines          }
-               left := ctypeconvnode.create_explicit(left,u8bittype);
+               left := ctypeconvnode.create_explicit(left,u8inttype);
                if (target_info.endian = endian_little) then
                  left := caddnode.create(orn,
-                   cshlshrnode.create(shln,left,cordconstnode.create(8,s32bittype,false)),
-                   cordconstnode.create(1,s32bittype,false))
+                   cshlshrnode.create(shln,left,cordconstnode.create(8,s32inttype,false)),
+                   cordconstnode.create(1,s32inttype,false))
                else
                  left := caddnode.create(orn,left,
-                   cordconstnode.create(1 shl 8,s32bittype,false));
-               left := ctypeconvnode.create_explicit(left,u16bittype);
+                   cordconstnode.create(1 shl 8,s32inttype,false));
+               left := ctypeconvnode.create_explicit(left,u16inttype);
                resulttypepass(left);
              end;
       end;
@@ -1016,7 +1016,7 @@ implementation
     function ttypeconvnode.resulttype_variant_to_enum : tnode;
 
       begin
-        result := ctypeconvnode.create_explicit(left,defaultordconsttype);
+        result := ctypeconvnode.create_explicit(left,sinttype);
         result := ctypeconvnode.create_explicit(result,resulttype);
         resulttypepass(result);
         { left is reused }
@@ -1027,7 +1027,7 @@ implementation
     function ttypeconvnode.resulttype_enum_to_variant : tnode;
 
       begin
-        result := ctypeconvnode.create_explicit(left,defaultordconsttype);
+        result := ctypeconvnode.create_explicit(left,sinttype);
         result := ctypeconvnode.create_explicit(result,cvarianttype);
         resulttypepass(result);
         { left is reused }
@@ -1483,9 +1483,9 @@ implementation
         else
            expectloc:=left.expectloc;
         if is_64bit(resulttype.def) then
-          registers32:=max(registers32,2)
+          registersint:=max(registersint,2)
         else
-          registers32:=max(registers32,1);
+          registersint:=max(registersint,1);
       end;
 
 
@@ -1493,7 +1493,7 @@ implementation
 
       begin
          first_cstring_to_pchar:=nil;
-         registers32:=1;
+         registersint:=1;
          expectloc:=LOC_REGISTER;
       end;
 
@@ -1524,8 +1524,8 @@ implementation
 
       begin
          first_array_to_pointer:=nil;
-         if registers32<1 then
-           registers32:=1;
+         if registersint<1 then
+           registersint:=1;
          expectloc:=LOC_REGISTER;
       end;
 
@@ -1585,8 +1585,8 @@ implementation
 
       begin
          first_pointer_to_array:=nil;
-         if registers32<1 then
-           registers32:=1;
+         if registersint<1 then
+           registersint:=1;
          expectloc:=LOC_REFERENCE;
       end;
 
@@ -1613,15 +1613,15 @@ implementation
          { convert to a 64bit int (only necessary for 32bit processors) (JM) }
          if resulttype.def.size > sizeof(aword) then
            begin
-             result := ctypeconvnode.create_explicit(left,u32bittype);
+             result := ctypeconvnode.create_explicit(left,u32inttype);
              result := ctypeconvnode.create(result,resulttype);
              left := nil;
              firstpass(result);
              exit;
            end;
          expectloc:=LOC_REGISTER;
-         if registers32<1 then
-           registers32:=1;
+         if registersint<1 then
+           registersint:=1;
       end;
 
 
@@ -1638,11 +1638,11 @@ implementation
          expectloc:=LOC_REGISTER;
          { need if bool to bool !!
            not very nice !!
-         insertypeconv(left,s32bittype);
+         insertypeconv(left,s32inttype);
          left.explizit:=true;
          firstpass(left);  }
-         if registers32<1 then
-           registers32:=1;
+         if registersint<1 then
+           registersint:=1;
       end;
 
 
@@ -1650,8 +1650,8 @@ implementation
       begin
          first_bool_to_bool:=nil;
          expectloc:=LOC_REGISTER;
-         if registers32<1 then
-           registers32:=1;
+         if registersint<1 then
+           registersint:=1;
       end;
 
 
@@ -1669,14 +1669,14 @@ implementation
           begin
             if (left.expectloc<>LOC_CREFERENCE) then
               CGMessage(cg_e_illegal_expression);
-            registers32:=left.registers32;
+            registersint:=left.registersint;
             expectloc:=left.expectloc
           end
          else
           begin
-            registers32:=left.registers32;
-            if registers32<1 then
-              registers32:=1;
+            registersint:=left.registersint;
+            if registersint<1 then
+              registersint:=1;
             expectloc:=LOC_REGISTER;
           end
       end;
@@ -1708,8 +1708,8 @@ implementation
       begin
          first_ansistring_to_pchar:=nil;
          expectloc:=LOC_REGISTER;
-         if registers32<1 then
-           registers32:=1;
+         if registersint<1 then
+           registersint:=1;
       end;
 
 
@@ -1724,8 +1724,8 @@ implementation
       begin
          first_class_to_intf:=nil;
          expectloc:=LOC_REGISTER;
-         if registers32<1 then
-           registers32:=1;
+         if registersint<1 then
+           registersint:=1;
       end;
 
     function ttypeconvnode._first_int_to_int : tnode;
@@ -1896,7 +1896,7 @@ implementation
          exit;
 
         { load the value_str from the left part }
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
         registersmmx:=left.registersmmx;
@@ -2389,7 +2389,7 @@ implementation
             if codegenerror then
               exit;
            expectloc:=call.expectloc;
-           registers32:=call.registers32;
+           registersint:=call.registersint;
            registersfpu:=call.registersfpu;
 {$ifdef SUPPORT_MMX}
            registersmmx:=call.registersmmx;
@@ -2405,7 +2405,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.135  2004-01-26 16:12:27  daniel
+  Revision 1.136  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.135  2004/01/26 16:12:27  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 

@@ -193,11 +193,11 @@ implementation
          { maxcardinal }
          i2 := i+i+1;
          if (v<=i) and (v>=-i-1) then
-           genintconstnode:=cordconstnode.create(v,s32bittype,true)
+           genintconstnode:=cordconstnode.create(v,s32inttype,true)
          else if (v > i) and (v <= i2) then
-           genintconstnode:=cordconstnode.create(v,u32bittype,true)
+           genintconstnode:=cordconstnode.create(v,u32inttype,true)
          else
-           genintconstnode:=cordconstnode.create(v,cs64bittype,true);
+           genintconstnode:=cordconstnode.create(v,s64inttype,true);
       end;
 
 
@@ -950,7 +950,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2004-01-26 16:12:27  daniel
+  Revision 1.59  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.58  2004/01/26 16:12:27  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 

@@ -245,7 +245,7 @@ implementation
 
                      { create call to fpc_getmem }
                      para := ccallparanode.create(cordconstnode.create
-                         (tpointerdef(p.resulttype.def).pointertype.def.size,s32bittype,true),nil);
+                         (tpointerdef(p.resulttype.def).pointertype.def.size,s32inttype,true),nil);
                      addstatement(newstatement,cassignmentnode.create(
                          ctemprefnode.create(temp),
                          ccallnode.createintern('fpc_getmem',para)));
@@ -326,7 +326,7 @@ implementation
 
             { create call to fpc_getmem }
             para := ccallparanode.create(cordconstnode.create
-                (tpointerdef(p1.resulttype.def).pointertype.def.size,s32bittype,true),nil);
+                (tpointerdef(p1.resulttype.def).pointertype.def.size,s32inttype,true),nil);
             addstatement(newstatement,cassignmentnode.create(
                 ctemprefnode.create(temp),
                 ccallnode.createintern('fpc_getmem',para)));
@@ -426,7 +426,7 @@ implementation
            while assigned(ppn.right) do
             begin
               set_varstate(ppn.left,vs_used,true);
-              inserttypeconv(ppn.left,s32bittype);
+              inserttypeconv(ppn.left,s32inttype);
               inc(dims);
               ppn:=tcallparanode(ppn.right);
             end;
@@ -483,7 +483,7 @@ implementation
             newblock:=internalstatements(newstatement);
 
             { get temp for array of lengths }
-            temp := ctempcreatenode.create(s32bittype,dims*s32bittype.def.size,tt_persistent);
+            temp := ctempcreatenode.create(s32inttype,dims*s32inttype.def.size,tt_persistent);
             addstatement(newstatement,temp);
 
             { load array of lengths }
@@ -492,7 +492,7 @@ implementation
             while assigned(ppn.right) do
              begin
                addstatement(newstatement,cassignmentnode.create(
-                   ctemprefnode.create_offset(temp,counter*s32bittype.def.size),
+                   ctemprefnode.create_offset(temp,counter*s32inttype.def.size),
                    ppn.left));
                ppn.left:=nil;
                inc(counter);
@@ -505,7 +505,7 @@ implementation
             npara:=ccallparanode.create(caddrnode.create
                       (ctemprefnode.create(temp)),
                    ccallparanode.create(cordconstnode.create
-                      (counter,s32bittype,true),
+                      (counter,s32inttype,true),
                    ccallparanode.create(caddrnode.create
                       (crttinode.create(tstoreddef(destppn.resulttype.def),initrtti)),
                    ccallparanode.create(ctypeconvnode.create_explicit(destppn,voidpointertype),nil))));
@@ -599,9 +599,9 @@ implementation
             end;
            { create call to fpc_finalize_array }
            npara:=ccallparanode.create(cordconstnode.create
-                     (destppn.left.resulttype.def.size,s32bittype,true),
+                     (destppn.left.resulttype.def.size,s32inttype,true),
                   ccallparanode.create(ctypeconvnode.create
-                     (ppn.left,s32bittype),
+                     (ppn.left,s32inttype),
                   ccallparanode.create(caddrnode.create
                      (crttinode.create(tstoreddef(destppn.left.resulttype.def),initrtti)),
                   ccallparanode.create(caddrnode.create
@@ -691,8 +691,8 @@ implementation
             else
              begin
                { use special -1,-1 argument to copy the whole array }
-               highppn:=cordconstnode.create(-1,s32bittype,false);
-               lowppn:=cordconstnode.create(-1,s32bittype,false);
+               highppn:=cordconstnode.create(-1,s32inttype,false);
+               lowppn:=cordconstnode.create(-1,s32inttype,false);
              end;
 
             { create temp for result, we've to use a temp because a dynarray
@@ -734,7 +734,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2004-02-03 16:46:51  jonas
+  Revision 1.28  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.27  2004/02/03 16:46:51  jonas
     + support to store ttempcreate/ref/deletenodes in registers
     * put temps for withnodes and some newnodes in registers
      Note: this currently only works because calling ungetregister()

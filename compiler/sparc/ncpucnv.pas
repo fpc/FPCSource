@@ -90,9 +90,9 @@ implementation
           { other integers are supposed to be 32 bit }
           begin
             if is_signed(left.resulttype.def) then
-              inserttypeconv(left,s32bittype)
+              inserttypeconv(left,s32inttype)
             else
-              inserttypeconv(left,u32bittype);
+              inserttypeconv(left,u32inttype);
             firstpass(left);
           end;
         result := nil;
@@ -219,7 +219,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2004-01-12 22:11:39  peter
+  Revision 1.23  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.22  2004/01/12 22:11:39  peter
     * use localalign info for alignment for locals and temps
     * sparc fpu flags branching added
     * moved powerpc copy_valye_openarray to generic

@@ -410,7 +410,7 @@ implementation
         if (right.expectloc<>LOC_FLAGS) and
            ((right.expectloc=LOC_JUMP) or
             (right.nodetype=calln) or
-            (right.registers32>=left.registers32)) then
+            (right.registersint>=left.registersint)) then
          begin
            secondpass(right);
            { increment source reference counter, this is
@@ -906,7 +906,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.105  2004-02-02 20:41:59  florian
+  Revision 1.106  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.105  2004/02/02 20:41:59  florian
     + added prefetch(const mem) support
 
   Revision 1.104  2003/12/25 01:07:09  florian

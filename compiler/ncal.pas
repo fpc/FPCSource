@@ -268,7 +268,7 @@ type
                  else
                    begin
                      hightree:=caddnode.create(subn,geninlinenode(in_length_x,false,p.getcopy),
-                                               cordconstnode.create(1,s32bittype,false));
+                                               cordconstnode.create(1,s32inttype,false));
                      loadconst:=false;
                    end;
                end;
@@ -277,13 +277,13 @@ type
           len:=0;
         end;
         if loadconst then
-          hightree:=cordconstnode.create(len,s32bittype,true)
+          hightree:=cordconstnode.create(len,s32inttype,true)
         else
           begin
             if not assigned(hightree) then
               internalerror(200304071);
             { Need to use explicit, because it can also be a enum }
-            hightree:=ctypeconvnode.create_explicit(hightree,s32bittype);
+            hightree:=ctypeconvnode.create_explicit(hightree,s32inttype);
           end;
         result:=hightree;
       end;
@@ -767,7 +767,7 @@ type
            begin
               tcallparanode(right).det_registers;
 
-              registers32:=right.registers32;
+              registersint:=right.registersint;
               registersfpu:=right.registersfpu;
 {$ifdef SUPPORT_MMX}
               registersmmx:=right.registersmmx;
@@ -776,8 +776,8 @@ type
 
          firstpass(left);
 
-         if left.registers32>registers32 then
-           registers32:=left.registers32;
+         if left.registersint>registersint then
+           registersint:=left.registersint;
          if left.registersfpu>registersfpu then
            registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -2386,7 +2386,7 @@ type
                               That means the for pushes the para with the
                               highest offset (see para3) needs to be pushed first
                             }
-                            if (hpcurr.registers32>hp.registers32)
+                            if (hpcurr.registersint>hp.registersint)
 {$ifdef x86}
                                or (hpcurr.paraitem.paraloc[callerside].reference.offset>hp.paraitem.paraloc[callerside].reference.offset)
 {$endif x86}
@@ -2402,7 +2402,7 @@ type
                   LOC_REGISTER :
                     begin
                       if (hp.paraitem.paraloc[callerside].loc=currloc) and
-                         (hpcurr.registers32>hp.registers32) then
+                         (hpcurr.registersint>hp.registersint) then
                         break;
                     end;
                 end;
@@ -2519,7 +2519,7 @@ type
                  is_widestring(resulttype.def) then
                begin
                  expectloc:=LOC_CREFERENCE;
-                 registers32:=1;
+                 registersint:=1;
                end
              else
              { we have only to handle the result if it is used }
@@ -2532,15 +2532,15 @@ type
                        if (procdefinition.proctypeoption=potype_constructor) then
                         begin
                           expectloc:=LOC_REGISTER;
-                          registers32:=1;
+                          registersint:=1;
                         end
                        else
                         begin
                           expectloc:=LOC_REGISTER;
                           if is_64bit(resulttype.def) then
-                            registers32:=2
+                            registersint:=2
                           else
-                            registers32:=1;
+                            registersint:=1;
                         end;
                      end;
                    floatdef :
@@ -2548,12 +2548,12 @@ type
                        expectloc:=LOC_FPUREGISTER;
 {$ifdef cpufpemu}
                        if (cs_fp_emulation in aktmoduleswitches) then
-                         registers32:=1
+                         registersint:=1
                        else
 {$endif cpufpemu}
 {$ifdef m68k}
                         if (tfloatdef(resulttype.def).typ=s32real) then
-                         registers32:=1
+                         registersint:=1
                        else
 {$endif m68k}
                          registersfpu:=1;
@@ -2561,7 +2561,7 @@ type
                    else
                      begin
                        expectloc:=LOC_REGISTER;
-                       registers32:=1;
+                       registersint:=1;
                      end;
                  end;
                end
@@ -2574,7 +2574,7 @@ type
 {$ifdef m68k}
          { we need one more address register for virtual calls on m68k }
          if (po_virtualmethod in procdefinition.procoptions) then
-           inc(registers32);
+           inc(registersint);
 {$endif m68k}
          { a fpu can be used in any procedure !! }
 {$ifdef i386}
@@ -2587,7 +2587,7 @@ type
                begin
                  firstpass(methodpointer);
                  registersfpu:=max(methodpointer.registersfpu,registersfpu);
-                 registers32:=max(methodpointer.registers32,registers32);
+                 registersint:=max(methodpointer.registersint,registersint);
 {$ifdef SUPPORT_MMX }
                  registersmmx:=max(methodpointer.registersmmx,registersmmx);
 {$endif SUPPORT_MMX}
@@ -2599,7 +2599,7 @@ type
          if assigned(inlinecode) then
            begin
               registersfpu:=max(inlinecode.registersfpu,registersfpu);
-              registers32:=max(inlinecode.registers32,registers32);
+              registersint:=max(inlinecode.registersint,registersint);
 {$ifdef SUPPORT_MMX}
               registersmmx:=max(inlinecode.registersmmx,registersmmx);
 {$endif SUPPORT_MMX}
@@ -2609,7 +2609,7 @@ type
          if assigned(right) then
            begin
               registersfpu:=max(right.registersfpu,registersfpu);
-              registers32:=max(right.registers32,registers32);
+              registersint:=max(right.registersint,registersint);
 {$ifdef SUPPORT_MMX}
               registersmmx:=max(right.registersmmx,registersmmx);
 {$endif SUPPORT_MMX}
@@ -2618,7 +2618,7 @@ type
          if assigned(left) then
            begin
               registersfpu:=max(left.registersfpu,registersfpu);
-              registers32:=max(left.registers32,registers32);
+              registersint:=max(left.registersint,registersint);
 {$ifdef SUPPORT_MMX}
               registersmmx:=max(left.registersmmx,registersmmx);
 {$endif SUPPORT_MMX}
@@ -2711,7 +2711,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.221  2004-01-26 16:12:27  daniel
+  Revision 1.222  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.221  2004/01/26 16:12:27  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 

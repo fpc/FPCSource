@@ -163,21 +163,21 @@ implementation
         addtype('Char',cchartype);
         addtype('WideChar',cwidechartype);
         adddef('Text',tfiledef.createtext);
-        addtype('Longword',u32bittype);
-        addtype('QWord',cu64bittype);
-        addtype('Int64',cs64bittype);
+        addtype('Longword',u32inttype);
+        addtype('QWord',u64inttype);
+        addtype('Int64',s64inttype);
         adddef('TypedFile',tfiledef.createtyped(voidtype));
         addtype('Variant',cvarianttype);
         addtype('OleVariant',colevarianttype);
         { Internal types }
         addtype('$formal',cformaltype);
         addtype('$void',voidtype);
-        addtype('$byte',u8bittype);
-        addtype('$word',u16bittype);
-        addtype('$ulong',u32bittype);
-        addtype('$longint',s32bittype);
-        addtype('$qword',cu64bittype);
-        addtype('$int64',cs64bittype);
+        addtype('$byte',u8inttype);
+        addtype('$word',u16inttype);
+        addtype('$ulong',u32inttype);
+        addtype('$longint',s32inttype);
+        addtype('$qword',u64inttype);
+        addtype('$int64',s64inttype);
         addtype('$char',cchartype);
         addtype('$widechar',cwidechartype);
         addtype('$shortstring',cshortstringtype);
@@ -202,14 +202,14 @@ implementation
         vmttype.setdef(trecorddef.create(hrecst));
         pvmttype.setdef(tpointerdef.create(vmttype));
         hrecst.insertfield(tvarsym.create('$parent',vs_value,pvmttype),true);
-        hrecst.insertfield(tvarsym.create('$length',vs_value,s32bittype),true);
-        hrecst.insertfield(tvarsym.create('$mlength',vs_value,s32bittype),true);
-        vmtarraytype.setdef(tarraydef.create(0,1,s32bittype));
+        hrecst.insertfield(tvarsym.create('$length',vs_value,s32inttype),true);
+        hrecst.insertfield(tvarsym.create('$mlength',vs_value,s32inttype),true);
+        vmtarraytype.setdef(tarraydef.create(0,1,s32inttype));
         tarraydef(vmtarraytype.def).setelementtype(voidpointertype);
         hrecst.insertfield(tvarsym.create('$__pfn',vs_value,vmtarraytype),true);
         addtype('$__vtbl_ptr_type',vmttype);
         addtype('$pvmt',pvmttype);
-        vmtarraytype.setdef(tarraydef.create(0,1,s32bittype));
+        vmtarraytype.setdef(tarraydef.create(0,1,s32inttype));
         tarraydef(vmtarraytype.def).setelementtype(pvmttype);
         addtype('$vtblarray',vmtarraytype);
         { Add a type for methodpointers }
@@ -228,12 +228,12 @@ implementation
         Load all default definitions for consts from the system unit
       }
       begin
-        globaldef('byte',u8bittype);
-        globaldef('word',u16bittype);
-        globaldef('ulong',u32bittype);
-        globaldef('longint',s32bittype);
-        globaldef('qword',cu64bittype);
-        globaldef('int64',cs64bittype);
+        globaldef('byte',u8inttype);
+        globaldef('word',u16inttype);
+        globaldef('ulong',u32inttype);
+        globaldef('longint',s32inttype);
+        globaldef('qword',u64inttype);
+        globaldef('int64',s64inttype);
         globaldef('formal',cformaltype);
         globaldef('void',voidtype);
         globaldef('char',cchartype);
@@ -257,34 +257,14 @@ implementation
         globaldef('variant',cvarianttype);
         globaldef('olevariant',colevarianttype);
         globaldef('methodpointer',methodpointertype);
-{$ifdef i386}
-        ordpointertype:=u32bittype;
-        defaultordconsttype:=s32bittype;
-{$endif i386}
-{$ifdef x86_64}
-        ordpointertype:=cu64bittype;
-        defaultordconsttype:=cs64bittype;
-{$endif x86_64}
-{$ifdef powerpc}
-        ordpointertype:=u32bittype;
-        defaultordconsttype:=s32bittype;
-{$endif powerpc}
-{$ifdef sparc}
-        ordpointertype:=u32bittype;
-        defaultordconsttype:=s32bittype;
-{$endif sparc}
-{$ifdef m68k}
-        ordpointertype:=u32bittype;
-        defaultordconsttype:=s32bittype;
-{$endif}
-{$ifdef arm}
-        ordpointertype:=u32bittype;
-        defaultordconsttype:=s32bittype;
-{$endif arm}
 {$ifdef cpu64bit}
-        inttype:=cs64bittype;
+        uinttype:=u64inttype;
+        sinttype:=s64inttype;
+        ptrinttype:=u64inttype;
 {$else cpu64bit}
-        inttype:=s32bittype;
+        uinttype:=u32inttype;
+        sinttype:=s32inttype;
+        ptrinttype:=u32inttype;
 {$endif cpu64bit}
       end;
 
@@ -301,12 +281,12 @@ implementation
         registerdef:=false;
         cformaltype.setdef(tformaldef.create);
         voidtype.setdef(torddef.create(uvoid,0,0));
-        u8bittype.setdef(torddef.create(u8bit,0,255));
-        u16bittype.setdef(torddef.create(u16bit,0,65535));
-        u32bittype.setdef(torddef.create(u32bit,0,high(longword)));
-        s32bittype.setdef(torddef.create(s32bit,low(longint),high(longint)));
-        cu64bittype.setdef(torddef.create(u64bit,low(qword),TConstExprInt(high(qword))));
-        cs64bittype.setdef(torddef.create(s64bit,low(int64),high(int64)));
+        u8inttype.setdef(torddef.create(u8bit,0,255));
+        u16inttype.setdef(torddef.create(u16bit,0,65535));
+        u32inttype.setdef(torddef.create(u32bit,0,high(longword)));
+        s32inttype.setdef(torddef.create(s32bit,low(longint),high(longint)));
+        u64inttype.setdef(torddef.create(u64bit,low(qword),TConstExprInt(high(qword))));
+        s64inttype.setdef(torddef.create(s64bit,low(int64),high(int64)));
         booltype.setdef(torddef.create(bool8bit,0,1));
         cchartype.setdef(torddef.create(uchar,0,255));
         cwidechartype.setdef(torddef.create(uwidechar,0,65535));
@@ -317,60 +297,47 @@ implementation
         cwidestringtype.setdef(tstringdef.createwide(-1));
         { length=0 for shortstring is open string (needed for readln(string) }
         openshortstringtype.setdef(tstringdef.createshort(0));
-        openchararraytype.setdef(tarraydef.create(0,-1,s32bittype));
+        openchararraytype.setdef(tarraydef.create(0,-1,s32inttype));
         tarraydef(openchararraytype.def).setelementtype(cchartype);
 {$ifdef x86}
-  {$ifdef i386}
-        ordpointertype:=u32bittype;
-        defaultordconsttype:=s32bittype;
-  {$endif i386}
-  {$ifdef x86_64}
-        ordpointertype:=cu64bittype;
-        defaultordconsttype:=cs64bittype;
-  {$endif x86_64}
         s32floattype.setdef(tfloatdef.create(s32real));
         s64floattype.setdef(tfloatdef.create(s64real));
         s80floattype.setdef(tfloatdef.create(s80real));
         s64currencytype.setdef(tfloatdef.create(s64currency));
 {$endif x86}
 {$ifdef powerpc}
-        ordpointertype:=u32bittype;
-        defaultordconsttype:=s32bittype;
         s32floattype.setdef(tfloatdef.create(s32real));
         s64floattype.setdef(tfloatdef.create(s64real));
         s80floattype.setdef(tfloatdef.create(s80real));
         s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
 {$endif powerpc}
 {$ifdef sparc}
-        ordpointertype:=u32bittype;
-        defaultordconsttype:=s32bittype;
         s32floattype.setdef(tfloatdef.create(s32real));
         s64floattype.setdef(tfloatdef.create(s64real));
         s80floattype.setdef(tfloatdef.create(s80real));
         s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
 {$endif sparc}
 {$ifdef m68k}
-        ordpointertype:=u32bittype;
-        defaultordconsttype:=s32bittype;
         s32floattype.setdef(tfloatdef.create(s32real));
         s64floattype.setdef(tfloatdef.create(s64real));
         s80floattype.setdef(tfloatdef.create(s80real));
         s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
 {$endif}
 {$ifdef arm}
-        ordpointertype:=u32bittype;
-        defaultordconsttype:=s32bittype;
         s32floattype.setdef(tfloatdef.create(s32real));
         s64floattype.setdef(tfloatdef.create(s64real));
         s80floattype.setdef(tfloatdef.create(s80real));
         s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
 {$endif arm}
 {$ifdef cpu64bit}
-        inttype:=cs64bittype;
+        uinttype:=u64inttype;
+        sinttype:=s64inttype;
+        ptrinttype:=u64inttype;
 {$else cpu64bit}
-        inttype:=s32bittype;
+        uinttype:=u32inttype;
+        sinttype:=s32inttype;
+        ptrinttype:=u32inttype;
 {$endif cpu64bit}
-
         { some other definitions }
         voidpointertype.setdef(tpointerdef.create(voidtype));
         charpointertype.setdef(tpointerdef.create(cchartype));
@@ -521,7 +488,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2004-01-28 22:16:31  peter
+  Revision 1.61  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.60  2004/01/28 22:16:31  peter
     * more record alignment fixes
 
   Revision 1.59  2004/01/20 12:59:37  florian

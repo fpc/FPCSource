@@ -700,12 +700,12 @@ interface
        cchartype,                 { Pointer to Char }
        cwidechartype,             { Pointer to WideChar }
        booltype,                  { pointer to boolean type }
-       u8bittype,                 { Pointer to 8-Bit unsigned }
-       u16bittype,                { Pointer to 16-Bit unsigned }
-       u32bittype,                { Pointer to 32-Bit unsigned }
-       s32bittype,                { Pointer to 32-Bit signed }
-       cu64bittype,               { pointer to 64 bit unsigned def }
-       cs64bittype,               { pointer to 64 bit signed def, }
+       u8inttype,                 { Pointer to 8-Bit unsigned }
+       u16inttype,                { Pointer to 16-Bit unsigned }
+       u32inttype,                { Pointer to 32-Bit unsigned }
+       s32inttype,                { Pointer to 32-Bit signed }
+       u64inttype,               { pointer to 64 bit unsigned def }
+       s64inttype,               { pointer to 64 bit signed def, }
        s32floattype,              { pointer for realconstn }
        s64floattype,              { pointer for realconstn }
        s80floattype,              { pointer to type of temp. floats }
@@ -725,12 +725,12 @@ interface
        { we use only one variant def for every variant class }
        cvarianttype,
        colevarianttype,
-       { unsigned ord type with the same size as a pointer }
        ordpointertype,
-       { pointer to type of ordinal constants }
-       defaultordconsttype,
-       { default integer type s32bittype on 32 bit systems, s64bittype on 64 bit systems }
-       inttype,
+       { default integer type s32inttype on 32 bit systems, s64bittype on 64 bit systems }
+       sinttype,
+       uinttype,
+       { unsigned ord type with the same size as a pointer }
+       ptrinttype,
        pvmttype      : ttype;     { type of classrefs, used for stabs }
 
        { pointer to the anchestor of all classes }
@@ -1898,9 +1898,9 @@ implementation
         u64bit    : stabstring := strpnew('-32;');
         s64bit    : stabstring := strpnew('-31;');
 {$endif not Use_integer_types_for_boolean}
-         {u32bit : stabstring := tstoreddef(s32bittype.def).numberstring+';0;-1;'); }
+         {u32bit : stabstring := tstoreddef(s32inttype.def).numberstring+';0;-1;'); }
         else
-          stabstring:=stabstr_evaluate('r$1;$2;$3;',[Tstoreddef(s32bittype.def).numberstring,tostr(longint(low)),tostr(longint(high))]);
+          stabstring:=stabstr_evaluate('r$1;$2;$3;',[Tstoreddef(s32inttype.def).numberstring,tostr(longint(low)),tostr(longint(high))]);
         end;
       end;
 {$endif GDB}
@@ -2062,13 +2062,13 @@ implementation
       case typ of
         s32real,s64real:
           { found this solution in stabsread.c from GDB v4.16 }
-          stabstring:=stabstr_evaluate('r$1;${savesize};0;',[tstoreddef(s32bittype.def).numberstring]);
+          stabstring:=stabstr_evaluate('r$1;${savesize};0;',[tstoreddef(s32inttype.def).numberstring]);
         s64currency,s64comp:
-          stabstring:=stabstr_evaluate('r$1;-${savesize};0;',[tstoreddef(s32bittype.def).numberstring]);
+          stabstring:=stabstr_evaluate('r$1;-${savesize};0;',[tstoreddef(s32inttype.def).numberstring]);
         s80real:
          { under dos at least you must give a size of twelve instead of 10 !! }
          { this is probably do to the fact that in gcc all is pushed in 4 bytes size }
-          stabstring:=stabstr_evaluate('r$1;12;0;',[tstoreddef(s32bittype.def).numberstring]);
+          stabstring:=stabstr_evaluate('r$1;12;0;',[tstoreddef(s32inttype.def).numberstring]);
         else
           internalerror(10005);
       end;
@@ -2591,7 +2591,7 @@ implementation
            this is obsolete with GDBPAS !!
            and anyhow creates problems with version 4.18!! PM
          if settype=smallset then
-           stabstring := strpnew('r'+s32bittype^.numberstring+';0;0xffffffff;')
+           stabstring := strpnew('r'+s32inttype^.numberstring+';0;0xffffffff;')
          else }
          stabstring:=stabstr_evaluate('@s$1;S$2',[tostr(savesize*8),tstoreddef(elementtype.def).numberstring]);
       end;
@@ -2734,7 +2734,7 @@ implementation
 
     constructor tarraydef.create_from_pointer(const elemt : ttype);
       begin
-         self.create(0,$7fffffff,s32bittype);
+         self.create(0,$7fffffff,s32inttype);
          IsConvertedPointer:=true;
          setelementtype(elemt);
       end;
@@ -6152,7 +6152,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.213  2004-01-28 22:16:31  peter
+  Revision 1.214  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.213  2004/01/28 22:16:31  peter
     * more record alignment fixes
 
   Revision 1.212  2004/01/28 21:05:56  florian

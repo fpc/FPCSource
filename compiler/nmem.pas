@@ -169,10 +169,10 @@ implementation
          if left.nodetype<>typen then
            begin
              firstpass(left);
-             registers32:=left.registers32;
+             registersint:=left.registersint;
            end;
-         if registers32<1 then
-           registers32:=1;
+         if registersint<1 then
+           registersint:=1;
       end;
 
 
@@ -240,7 +240,7 @@ implementation
       begin
         result:=nil;
         expectloc:=LOC_REGISTER;
-        registers32:=1;
+        registersint:=1;
       end;
 
 
@@ -467,13 +467,13 @@ implementation
          make_not_regable(left);
          if nf_procvarload in flags then
           begin
-            registers32:=left.registers32;
+            registersint:=left.registersint;
             registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
             registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
-            if registers32<1 then
-             registers32:=1;
+            if registersint<1 then
+             registersint:=1;
             expectloc:=left.expectloc;
             exit;
           end;
@@ -485,13 +485,13 @@ implementation
              CGMessage(cg_e_illegal_expression);
            end;
 
-         registers32:=left.registers32;
+         registersint:=left.registersint;
          registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
-         if registers32<1 then
-           registers32:=1;
+         if registersint<1 then
+           registersint:=1;
          { is this right for object of methods ?? }
          expectloc:=LOC_REGISTER;
       end;
@@ -535,7 +535,7 @@ implementation
          if codegenerror then
           exit;
 
-         registers32:=max(left.registers32,1);
+         registersint:=max(left.registersint,1);
          registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
@@ -617,7 +617,7 @@ implementation
          if codegenerror then
           exit;
 
-         registers32:=left.registers32;
+         registersint:=left.registersint;
          registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
@@ -625,8 +625,8 @@ implementation
          { classes must be dereferenced implicit }
          if is_class_or_interface(left.resulttype.def) then
            begin
-              if registers32=0 then
-                registers32:=1;
+              if registersint=0 then
+                registersint:=1;
               expectloc:=LOC_REFERENCE;
            end
          else
@@ -683,7 +683,7 @@ implementation
             not(is_char(right.resulttype.def)) and
             not(is_boolean(right.resulttype.def)) then
            begin
-             inserttypeconv(right,s32bittype);
+             inserttypeconv(right,s32inttype);
            end;
 
          case left.resulttype.def.deftype of
@@ -782,48 +782,48 @@ implementation
                   end;
                end;
 {$endif}
-              registers32:=left.registers32;
+              registersint:=left.registersint;
 
               { for ansi/wide strings, we need at least one register }
               if is_ansistring(left.resulttype.def) or
                 is_widestring(left.resulttype.def) or
               { ... as well as for dynamic arrays }
                 is_dynamic_array(left.resulttype.def) then
-                registers32:=max(registers32,1);
+                registersint:=max(registersint,1);
            end
          else
            begin
               { this rules are suboptimal, but they should give }
               { good results                                }
-              registers32:=max(left.registers32,right.registers32);
+              registersint:=max(left.registersint,right.registersint);
 
               { for ansi/wide strings, we need at least one register }
               if is_ansistring(left.resulttype.def) or
                 is_widestring(left.resulttype.def) or
               { ... as well as for dynamic arrays }
                 is_dynamic_array(left.resulttype.def) then
-                registers32:=max(registers32,1);
+                registersint:=max(registersint,1);
 
               { need we an extra register when doing the restore ? }
-              if (left.registers32<=right.registers32) and
+              if (left.registersint<=right.registersint) and
               { only if the node needs less than 3 registers }
               { two for the right node and one for the       }
               { left address                             }
-                (registers32<3) then
-                inc(registers32);
+                (registersint<3) then
+                inc(registersint);
 
               { need we an extra register for the index ? }
               if (right.expectloc<>LOC_REGISTER)
               { only if the right node doesn't need a register }
-                and (right.registers32<1) then
-                inc(registers32);
+                and (right.registersint<1) then
+                inc(registersint);
 
               { not correct, but what works better ?
-              if left.registers32>0 then
-                registers32:=max(registers32,2)
+              if left.registersint>0 then
+                registersint:=max(registersint,2)
               else
                  min. one register
-                registers32:=max(registers32,1);
+                registersint:=max(registersint,1);
               }
            end;
          registersfpu:=max(left.registersfpu,right.registersfpu);
@@ -930,7 +930,7 @@ implementation
         if assigned(left) then
          begin
            firstpass(left);
-           registers32:=left.registers32;
+           registersint:=left.registersint;
            registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
            registersmmx:=left.registersmmx;
@@ -939,10 +939,10 @@ implementation
         if assigned(withrefnode) then
           begin
             firstpass(withrefnode);
-            if withrefnode.registers32 > registers32 then
-              registers32:=withrefnode.registers32;
+            if withrefnode.registersint > registersint then
+              registersint:=withrefnode.registersint;
             if withrefnode.registersfpu > registersfpu then
-              registers32:=withrefnode.registersfpu;
+              registersint:=withrefnode.registersfpu;
 {$ifdef SUPPORT_MMX}
             if withrefnode.registersmmx > registersmmx then
               registersmmx:=withrefnode.registersmmx;
@@ -970,7 +970,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2004-01-31 17:45:17  peter
+  Revision 1.79  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.78  2004/01/31 17:45:17  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 

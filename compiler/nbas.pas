@@ -331,7 +331,7 @@ implementation
          if codegenerror then
            exit;
          expectloc:=left.expectloc;
-         registers32:=left.registers32;
+         registersint:=left.registersint;
          registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
@@ -475,17 +475,17 @@ implementation
                    firstpass(hp.left);
 
                    hp.expectloc:=hp.left.expectloc;
-                   hp.registers32:=hp.left.registers32;
+                   hp.registersint:=hp.left.registersint;
                    hp.registersfpu:=hp.left.registersfpu;
 {$ifdef SUPPORT_MMX}
                    hp.registersmmx:=hp.left.registersmmx;
 {$endif SUPPORT_MMX}
                 end
               else
-                hp.registers32:=0;
+                hp.registersint:=0;
 
-              if hp.registers32>registers32 then
-                registers32:=hp.registers32;
+              if hp.registersint>registersint then
+                registersint:=hp.registersint;
               if hp.registersfpu>registersfpu then
                 registersfpu:=hp.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -1002,7 +1002,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2004-02-03 19:48:06  jonas
+  Revision 1.79  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.78  2004/02/03 19:48:06  jonas
     * fixed and re-enabled temps in registers
 
   Revision 1.77  2004/02/03 17:56:14  jonas

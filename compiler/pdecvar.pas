@@ -276,7 +276,7 @@ implementation
                           consume(_ARRAY);
                           consume(_OF);
                           { define range and type of range }
-                          tt.setdef(tarraydef.create(0,-1,s32bittype));
+                          tt.setdef(tarraydef.create(0,-1,s32inttype));
                           { define field type }
                           single_type(arraytype,s,false);
                           tarraydef(tt.def).setelementtype(arraytype);
@@ -1135,7 +1135,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2004-01-31 17:45:17  peter
+  Revision 1.64  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.63  2004/01/31 17:45:17  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 

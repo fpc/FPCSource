@@ -82,7 +82,7 @@ implementation
     function tarminlinenode.first_abs_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
         first_abs_real := nil;
       end;
@@ -91,7 +91,7 @@ implementation
     function tarminlinenode.first_sqr_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
         first_sqr_real:=nil;
       end;
@@ -100,7 +100,7 @@ implementation
     function tarminlinenode.first_sqrt_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
         first_sqrt_real := nil;
       end;
@@ -109,7 +109,7 @@ implementation
     function tarminlinenode.first_arctan_real: tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
         result:=nil;
       end;
@@ -118,7 +118,7 @@ implementation
     function tarminlinenode.first_ln_real: tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
         result:=nil;
       end;
@@ -127,7 +127,7 @@ implementation
     function tarminlinenode.first_cos_real: tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
         result:=nil;
       end;
@@ -136,7 +136,7 @@ implementation
     function tarminlinenode.first_sin_real: tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
-        registers32:=left.registers32;
+        registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
         result:=nil;
       end;
@@ -196,7 +196,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2004-01-27 15:04:06  florian
+  Revision 1.5  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.4  2004/01/27 15:04:06  florian
     * fixed code generation for math inl. nodes
     * more code generator improvements
 

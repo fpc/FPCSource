@@ -289,14 +289,14 @@ implementation
             begin
               if assigned(currpara.parasym) then
                begin
-                 hvs:=tvarsym.create('$high'+tvarsym(currpara.parasym).name,vs_const,s32bittype);
+                 hvs:=tvarsym.create('$high'+tvarsym(currpara.parasym).name,vs_const,s32inttype);
                  include(hvs.varoptions,vo_is_high_value);
                  tvarsym(currpara.parasym).owner.insert(hvs);
                  tvarsym(currpara.parasym).highvarsym:=hvs;
                end
               else
                hvs:=nil;
-              pd.concatpara(currpara,s32bittype,hvs,nil,true);
+              pd.concatpara(currpara,s32inttype,hvs,nil,true);
             end
            else
             begin
@@ -413,7 +413,7 @@ implementation
                 consume(_ARRAY);
                 consume(_OF);
                 { define range and type of range }
-                tt.setdef(tarraydef.create(0,-1,s32bittype));
+                tt.setdef(tarraydef.create(0,-1,s32inttype));
                 { array of const ? }
                 if (token=_CONST) and (m_objpas in aktmodeswitches) then
                  begin
@@ -2149,7 +2149,12 @@ const
 end.
 {
   $Log$
-  Revision 1.157  2004-01-31 17:45:17  peter
+  Revision 1.158  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.157  2004/01/31 17:45:17  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 

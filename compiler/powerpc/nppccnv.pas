@@ -82,7 +82,7 @@ implementation
             { hack to avoid double division by 10000, as it's       }
             { already done by resulttypepass.resulttype_int_to_real }
             if is_currency(left.resulttype.def) then
-              left.resulttype := cs64bittype;
+              left.resulttype := s64inttype;
             if is_signed(left.resulttype.def) then
               fname := 'fpc_int64_to_double'
             else
@@ -97,9 +97,9 @@ implementation
           { other integers are supposed to be 32 bit }
           begin
             if is_signed(left.resulttype.def) then
-              inserttypeconv(left,s32bittype)
+              inserttypeconv(left,s32inttype)
             else
-              inserttypeconv(left,u32bittype);
+              inserttypeconv(left,u32inttype);
             firstpass(left);
           end;
         result := nil;
@@ -370,7 +370,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-12-31 22:30:39  jonas
+  Revision 1.50  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.49  2003/12/31 22:30:39  jonas
     * fixed currency bugs. Int64 currency handling still needs to be
       rewritten so that it doesn't include conversions to real anymore
       though

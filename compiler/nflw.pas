@@ -422,7 +422,7 @@ implementation
          firstpass(left);
          if codegenerror then
            exit;
-         registers32:=left.registers32;
+         registersint:=left.registersint;
          registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
@@ -435,8 +435,8 @@ implementation
               if codegenerror then
                 exit;
 
-              if registers32<right.registers32 then
-                registers32:=right.registers32;
+              if registersint<right.registersint then
+                registersint:=right.registersint;
               if registersfpu<right.registersfpu then
                 registersfpu:=right.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -577,7 +577,7 @@ implementation
          expectloc:=LOC_VOID;
          old_t_times:=cg.t_times;
          firstpass(left);
-         registers32:=left.registers32;
+         registersint:=left.registersint;
          registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
@@ -594,8 +594,8 @@ implementation
            begin
               firstpass(right);
 
-              if registers32<right.registers32 then
-                registers32:=right.registers32;
+              if registersint<right.registersint then
+                registersint:=right.registersint;
               if registersfpu<right.registersfpu then
                 registersfpu:=right.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -609,8 +609,8 @@ implementation
            begin
               firstpass(t1);
 
-              if registers32<t1.registers32 then
-                registers32:=t1.registers32;
+              if registersint<t1.registersint then
+                registersint:=t1.registersint;
               if registersfpu<t1.registersfpu then
                 registersfpu:=t1.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -794,13 +794,13 @@ implementation
             if codegenerror then
              exit;
           end;
-         registers32:=t1.registers32;
+         registersint:=t1.registersint;
          registersfpu:=t1.registersfpu;
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
-         if left.registers32>registers32 then
-           registers32:=left.registers32;
+         if left.registersint>registersint then
+           registersint:=left.registersint;
          if left.registersfpu>registersfpu then
            registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -812,8 +812,8 @@ implementation
          firstpass(t2);
          if codegenerror then
           exit;
-         if t2.registers32>registers32 then
-           registers32:=t2.registers32;
+         if t2.registersint>registersint then
+           registersint:=t2.registersint;
          if t2.registersfpu>registersfpu then
            registersfpu:=t2.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -834,8 +834,8 @@ implementation
             loopvar_notid:=Tvarsym(Tloadnode(hp).symtableentry).
              register_notification([vn_onread,vn_onwrite],@loop_var_access);
       {$endif}
-         if right.registers32>registers32 then
-           registers32:=right.registers32;
+         if right.registersint>registersint then
+           registersint:=right.registersint;
          if right.registersfpu>registersfpu then
            registersfpu:=right.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -843,8 +843,8 @@ implementation
            registersmmx:=right.registersmmx;
 {$endif SUPPORT_MMX}
          { we need at least one register for comparisons PM }
-         if registers32=0 then
-           inc(registers32);
+         if registersint=0 then
+           inc(registersint);
          cg.t_times:=old_t_times;
       end;
 
@@ -897,7 +897,7 @@ implementation
               firstpass(left);
               if codegenerror then
                exit;
-              registers32:=left.registers32;
+              registersint:=left.registersint;
               registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
               registersmmx:=left.registersmmx;
@@ -1112,7 +1112,7 @@ implementation
          if assigned(left) then
           begin
             firstpass(left);
-            registers32:=left.registers32;
+            registersint:=left.registersint;
             registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
             registersmmx:=left.registersmmx;
@@ -1291,7 +1291,7 @@ implementation
          if assigned(right) then
            begin
               firstpass(right);
-              registers32:=max(registers32,right.registers32);
+              registersint:=max(registersint,right.registersint);
               registersfpu:=max(registersfpu,right.registersfpu);
 {$ifdef SUPPORT_MMX}
               registersmmx:=max(registersmmx,right.registersmmx);
@@ -1301,7 +1301,7 @@ implementation
          if assigned(t1) then
            begin
               firstpass(t1);
-              registers32:=max(registers32,t1.registers32);
+              registersint:=max(registersint,t1.registersint);
               registersfpu:=max(registersfpu,t1.registersfpu);
 {$ifdef SUPPORT_MMX}
               registersmmx:=max(registersmmx,t1.registersmmx);
@@ -1361,7 +1361,7 @@ implementation
          if assigned(t1) then
            begin
              firstpass(t1);
-             registers32:=max(registers32,t1.registers32);
+             registersint:=max(registersint,t1.registersint);
              registersfpu:=max(registersfpu,t1.registersfpu);
 {$ifdef SUPPORT_MMX}
              registersmmx:=max(registersmmx,t1.registersmmx);
@@ -1428,7 +1428,7 @@ implementation
          result:=nil;
          include(current_procinfo.flags,pi_do_call);
          expectloc:=LOC_VOID;
-         registers32:=0;
+         registersint:=0;
          registersfpu:=0;
 {$ifdef SUPPORT_MMX}
          registersmmx:=0;
@@ -1436,7 +1436,7 @@ implementation
          if assigned(left) then
            begin
               firstpass(left);
-              registers32:=left.registers32;
+              registersint:=left.registersint;
               registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
               registersmmx:=left.registersmmx;
@@ -1446,7 +1446,7 @@ implementation
          if assigned(right) then
            begin
               firstpass(right);
-              registers32:=max(registers32,right.registers32);
+              registersint:=max(registersint,right.registersint);
               registersfpu:=max(registersfpu,right.registersfpu);
 {$ifdef SUPPORT_MMX}
               registersmmx:=max(registersmmx,right.registersmmx);
@@ -1475,7 +1475,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  2004-01-26 16:12:27  daniel
+  Revision 1.93  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.92  2004/01/26 16:12:27  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 

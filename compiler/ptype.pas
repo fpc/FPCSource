@@ -443,7 +443,7 @@ implementation
              end
            else
              begin
-                ap:=tarraydef.create(0,-1,s32bittype);
+                ap:=tarraydef.create(0,-1,s32inttype);
                 ap.IsDynamicArray:=true;
                 tt.setdef(ap);
              end;
@@ -498,7 +498,7 @@ implementation
                              equal_defs(p.resulttype.def,aktenumdef) then
                            v:=tordconstnode(p).value
                           else
-                           IncompatibleTypes(p.resulttype.def,s32bittype.def);
+                           IncompatibleTypes(p.resulttype.def,s32inttype.def);
                         end
                        else
                         Message(cg_e_illegal_expression);
@@ -643,7 +643,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2004-01-29 16:51:29  peter
+  Revision 1.64  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.63  2004/01/29 16:51:29  peter
     * fixed alignment calculation for variant records
     * fixed alignment padding of records
 

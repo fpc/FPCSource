@@ -279,7 +279,7 @@ implementation
                falselabel:=ofl;
              end;
 
-            maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+            maybe_save(exprasmlist,right.registersint,left.location,pushedregs);
             isjump:=(right.location.loc=LOC_JUMP);
             if isjump then
               begin
@@ -432,7 +432,12 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-02-19 22:00:16  daniel
+  Revision 1.3  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.2  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

@@ -86,7 +86,7 @@ implementation
           { other integers are supposed to be 32 bit }
           begin
             if is_signed(left.resulttype.def) then
-              inserttypeconv(left,s32bittype)
+              inserttypeconv(left,s32inttype)
             else
               { the fpu always considers 32-bit values as signed
                 therefore we need to call the helper in case of
@@ -297,7 +297,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2003-04-23 21:10:54  peter
+  Revision 1.11  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.10  2003/04/23 21:10:54  peter
     * fix compile for ppc,sparc,m68k
 
   Revision 1.9  2003/04/23 13:40:33  peter

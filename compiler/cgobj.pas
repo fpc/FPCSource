@@ -1754,6 +1754,7 @@ implementation
         { operations can at most cause overflows (JM)                        }
         { Note that these checks are mostly processor independent, they only }
         { have to be changed once we introduce 64bit subrange types          }
+{$warning range check still s32bit}
         if (fromdef = todef) and
            (fromdef.deftype=orddef) and
            (((sizeof(aword) = 4) and
@@ -2139,7 +2140,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.153  2004-01-31 17:45:17  peter
+  Revision 1.154  2004-02-03 22:32:53  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.153  2004/01/31 17:45:17  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 

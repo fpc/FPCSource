@@ -196,7 +196,7 @@ implementation
               { parameter 2 : pointer to vmt }
               { parameter 1 : self pointer }
               para:=ccallparanode.create(
-                        cordconstnode.create(current_procinfo.procdef._class.vmt_offset,s32bittype,false),
+                        cordconstnode.create(current_procinfo.procdef._class.vmt_offset,s32inttype,false),
                     ccallparanode.create(
                         ctypeconvnode.create_explicit(
                             load_vmt_pointer_node,
@@ -254,7 +254,12 @@ end.
 
 {
   $Log$
-  Revision 1.8  2003-11-10 22:02:52  peter
+  Revision 1.9  2004-02-03 22:32:54  peter
+    * renamed xNNbittype to xNNinttype
+    * renamed registers32 to registersint
+    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+
+  Revision 1.8  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.7  2003/10/01 20:34:49  peter
