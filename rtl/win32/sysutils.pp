@@ -605,23 +605,52 @@ end;
                               Initialization code
 ****************************************************************************}
 
+var
+   versioninfo : OSVERSIONINFO;
+   kernel32dll : THandle;
+
+function FreeLibrary(hLibModule : THANDLE) : longbool;
+  external 'kernel32' name 'FreeLibrary';
+function GetVersionEx(var VersionInformation:OSVERSIONINFO) : longbool;
+  external 'kernel32' name 'GetVersionExA';
+function LoadLibrary(lpLibFileName : pchar):THandle;
+  external 'kernel32' name 'LoadLibraryA';
+function GetProcAddress(hModule : THandle;lpProcName : pchar) : pointer;
+  external 'kernel32' name 'GetProcAddress';
+
+
 Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
+  versioninfo.dwOSVersionInfoSize:=sizeof(versioninfo);
+  GetVersionEx(versioninfo);
+  kernel32dll:=0;
+  GetDiskFreeSpaceEx:=nil;
+  if ((versioninfo.dwPlatformId=VER_PLATFORM_WIN32_WINDOWS) and
+    (versioninfo.dwBuildNUmber>=1000)) or
+    (versioninfo.dwPlatformId=VER_PLATFORM_WIN32_NT) then
+    begin
+       kernel32dll:=LoadLibrary('kernel32');
+       if kernel32dll<>0 then
+         GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
+    end;
+
 Finalization
   OutOfMemory.Free;
   InValidPointer.Free;
+  if kernel32dll<>0 then
+   FreeLibrary(kernel32dll);
 end.
 {
   $Log$
-  Revision 1.3  2000-08-29 18:01:52  michael
+  Revision 1.4  2000-09-19 23:57:57  pierre
+   * bug fix for 1041 (merged)
+
+  Revision 1.3  2000/08/29 18:01:52  michael
   Merged syserrormsg fix
 
   Revision 1.2  2000/08/20 15:46:46  peter
     * sysutils.pp moved to target and merged with disk.inc, filutil.inc
-  $Log$
-  Revision 1.3  2000-08-29 18:01:52  michael
-  Merged syserrormsg fix
 
   Revision 1.1.2.3  2000/08/22 19:21:49  michael
   + Implemented syserrormessage. Made dummies for go32v2 and OS/2
