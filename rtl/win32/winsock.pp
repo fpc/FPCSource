@@ -90,15 +90,15 @@ unit winsock;
        IOC_OUT = $40000000;
        IOC_IN = $80000000;
        IOC_INOUT = IOC_IN or IOC_OUT;
-       FIONREAD = IOC_OUT or
+       FIONREAD =cardinal( IOC_OUT or
          ((4 and IOCPARM_MASK) shl 16) or
-         (102 shl 8) or 127;
-       FIONBIO = IOC_IN or
+         (102 shl 8) or 127);
+       FIONBIO = cardinal(IOC_IN or
          ((4 and IOCPARM_MASK) shl 16) or
-         (102 shl 8) or 126;
-       FIOASYNC     = IOC_IN or
+         (102 shl 8) or 126);
+       FIOASYNC     = cardinal(IOC_IN or
          ((4 and IOCPARM_MASK) shl 16) or
-         (102 shl 8) or 125;
+         (102 shl 8) or 125);
        {
          Structures returned by network data base library, taken from the
          BSD file netdb.h.  All addresses are supplied in host order, and
@@ -307,7 +307,7 @@ unit winsock;
        taken from the BSD file sys/socket.h.
     }
     const
-       INVALID_SOCKET = longint(not(1));
+       INVALID_SOCKET = TSocket(not(1));
        SOCKET_ERROR = -1;
        SOCK_STREAM = 1;
        SOCK_DGRAM = 2;
@@ -911,7 +911,10 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
 end.
 {
   $Log$
-  Revision 1.16  2005-02-14 17:13:32  peter
+  Revision 1.17  2005-04-03 11:33:08  marco
+   * some constants changed to unsigned to avoid warnings (bug 3817)
+
+  Revision 1.16  2005/02/14 17:13:32  peter
     * truncate log
 
 }
