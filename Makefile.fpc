@@ -254,19 +254,19 @@ $(BUILDSTAMP):
         $(MAKE) rtl_clean $(CLEANOPTS)
         $(MAKE) packages_clean $(CLEANOPTS)
         $(MAKE) fcl_clean $(CLEANOPTS)
+        $(MAKE) fv_clean $(CLEANOPTS)
         $(MAKE) utils_clean $(CLEANOPTS)
 ifdef IDE
-        $(MAKE) fv_clean $(CLEANOPTS)
         $(MAKE) ide_clean $(CLEANOPTS)
 endif
 # build everything
         $(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) packages_base_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) fcl_$(ALLTARGET) $(BUILDOPTS)
+        $(MAKE) fv_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) packages_extra_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) utils_all $(BUILDOPTS)
 ifdef IDE
-        $(MAKE) fv_all $(BUILDOPTS)
         $(MAKE) ide_all $(BUILDOPTS)
         $(MAKE) installer_all $(BUILDOPTS)
 endif
@@ -314,6 +314,7 @@ install: $(BUILDSTAMP)
         $(MAKE) installbase $(INSTALLOPTS)
         $(MAKE) packages_$(INSTALLTARGET) $(INSTALLOPTS)
         $(MAKE) fcl_$(INSTALLTARGET) $(INSTALLOPTS)
+        $(MAKE) fv_$(INSTALLTARGET) $(INSTALLOPTS)
         $(MAKE) utils_$(INSTALLTARGET) $(INSTALLOPTS)
 ifdef IDE
         $(MAKE) ide_$(INSTALLTARGET) $(BUILDOPTS)
@@ -323,6 +324,7 @@ zipinstall: $(BUILDSTAMP)
         $(MAKE) fpc_zipinstall ZIPTARGET=installbase ZIPNAME=base $(INSTALLOPTS)
         $(MAKE) packages_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGUNITSPRE)
         $(MAKE) fcl_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGUNITSPRE)
+        $(MAKE) fv_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGUNITSPRE)
         $(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS)
 ifdef IDE
         $(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS)
@@ -426,6 +428,7 @@ sourcezip:
         $(MAKE) rtl_zipsourceinstall
         $(MAKE) packages_zipsourceinstall ZIPPREFIX=$(PKGUNITSPRE)
         $(MAKE) fcl_zipsourceinstall
+        $(MAKE) fv_zipsourceinstall
         $(MAKE) utils_zipsourceinstall
         $(MAKE) ide_zipsourceinstall
         $(MAKE) installer_zipsourceinstall
@@ -460,28 +463,46 @@ sunoszip: checkfpcdir
 
 renametoshort:
 # Compiler parts
-        -mv compiler$(ZIPSUFFIX).zip comp$(ZIPSUFFIX).zip
-        -mv utils$(ZIPSUFFIX).zip util$(ZIPSUFFIX).zip
-        -mv installer$(ZIPSUFFIX).zip inst$(ZIPSUFFIX).zip
+        -mv base$(ZIPSUFFIX).zip base$(ZIPSUFFIXSHORT).zip
+        -mv compiler$(ZIPSUFFIX).zip comp$(ZIPSUFFIXSHORT).zip
+        -mv utils$(ZIPSUFFIX).zip util$(ZIPSUFFIXSHORT).zip
+        -mv installer$(ZIPSUFFIX).zip inst$(ZIPSUFFIXSHORT).zip
 # Packages
-        -mv ugdbint$(ZIPSUFFIX).zip ugdb$(ZIPSUFFIX).zip
-        -mv uregexpr$(ZIPSUFFIX).zip ureg$(ZIPSUFFIX).zip
-        -mv upaszlib$(ZIPSUFFIX).zip upzl$(ZIPSUFFIX).zip
-        -mv uuncgi$(ZIPSUFFIX).zip ucgi$(ZIPSUFFIX).zip
-        -mv uunzip$(ZIPSUFFIX).zip uzip$(ZIPSUFFIX).zip
-        -mv unetdb$(ZIPSUFFIX).zip undb$(ZIPSUFFIX).zip
-        -mv uftpapi$(ZIPSUFFIX).zip uftp$(ZIPSUFFIX).zip
-        -mv uhwvideo$(ZIPSUFFIX).zip uhwv$(ZIPSUFFIX).zip
-        -mv uclkdll$(ZIPSUFFIX).zip uclk$(ZIPSUFFIX).zip
-        -mv upasjpeg$(ZIPSUFFIX).zip upjp$(ZIPSUFFIX).zip
+        -mv units-fcl$(ZIPSUFFIX).zip ufcl$(ZIPSUFFIXSHORT).zip
+        -mv units-gdbint$(ZIPSUFFIX).zip ugdb$(ZIPSUFFIXSHORT).zip
+        -mv units-regexpr$(ZIPSUFFIX).zip ureg$(ZIPSUFFIXSHORT).zip
+        -mv units-paszlib$(ZIPSUFFIX).zip upzl$(ZIPSUFFIXSHORT).zip
+        -mv units-unzip$(ZIPSUFFIX).zip uzip$(ZIPSUFFIXSHORT).zip
+        -mv units-netdb$(ZIPSUFFIX).zip undb$(ZIPSUFFIXSHORT).zip
+        -mv units-ftpapi$(ZIPSUFFIX).zip uftp$(ZIPSUFFIXSHORT).zip
+        -mv units-hwvideo$(ZIPSUFFIX).zip uhwv$(ZIPSUFFIXSHORT).zip
+        -mv units-clkdll$(ZIPSUFFIX).zip uclk$(ZIPSUFFIXSHORT).zip
+        -mv units-pasjpeg$(ZIPSUFFIX).zip upjp$(ZIPSUFFIXSHORT).zip
+        -mv units-fv$(ZIPSUFFIX).zip ufv$(ZIPSUFFIXSHORT).zip
 
 shortsrc:
-        $(MAKE) renametoshort ZIPSUFFIX=src
+        $(MAKE) renametoshort ZIPSUFFIX=$(ZIPSOURCESUFFIX) ZIPSUFFIXSHORT=src
 
 shortbin:
-        $(MAKE) renametoshort
+        $(MAKE) renametoshort ZIPSUFFIXSHORT=$(SHORTSUFFIX)
 
 shortnames: shortsrc shortbin
+
+
+##########################################################################
+# Win32, Go32v2, OS/2
+##########################################################################
+
+.PHONY: dist
+
+dist:
+        $(MAKE) sourcezip
+        $(MAKE) demozip
+        $(MAKE) zipinstall
+ifneq ($(findstring $(OS_TARGET),$(LIMIT83fs)),)
+        $(MAKE) shortnames
+endif
+
 
 ##########################################################################
 # Debian
