@@ -1289,6 +1289,8 @@ var
   l : longint;
   tempstr : string;
 begin
+  if not (opr.typ in [OPR_NONE,OPR_CONSTANT]) then
+    Message(asmr_e_invalid_operand_type);
   BuildConstSymbolExpression(true,false,l,tempstr);
   if tempstr<>'' then
    begin
@@ -1298,8 +1300,13 @@ begin
    end
   else
    begin
-     opr.typ:=OPR_CONSTANT;
-     opr.val:=l;
+     if opr.typ=OPR_NONE then
+       begin
+         opr.typ:=OPR_CONSTANT;
+         opr.val:=l;
+       end
+     else
+       inc(opr.val,l);
    end;
 end;
 
@@ -1353,6 +1360,11 @@ Begin
                 inc(opr.val,toffset);
               OPR_REFERENCE :
                 inc(opr.ref.offset,toffset);
+              OPR_NONE :
+                begin
+                  opr.typ:=OPR_CONSTANT;
+                  opr.val:=toffset;
+                end;
               else
                 internalerror(200309222);
             end;
@@ -1372,8 +1384,6 @@ Begin
       AS_NOT,
       AS_STRING :
         Begin
-          if not (opr.typ in [OPR_NONE,OPR_CONSTANT]) then
-            Message(asmr_e_invalid_operand_type);
           BuildConstant;
         end;
 
@@ -1461,7 +1471,6 @@ Begin
               else
               { is it a normal variable ? }
                Begin
-                 InitRef;
                  expr:=actasmpattern;
                  Consume(AS_ID);
                  { typecasting? }
@@ -1478,15 +1487,18 @@ Begin
                       end;
                   end
                  else
-                   if not SetupVar(expr,false) then
-                     Begin
-                       { not a variable, check special variables.. }
-                       if expr = 'SELF' then
-                         SetupSelf
-                       else
-                         Message1(sym_e_unknown_id,expr);
-                       expr:='';
-                     end;
+                  begin
+                    InitRef;
+                    if not SetupVar(expr,false) then
+                      Begin
+                        { not a variable, check special variables.. }
+                        if expr = 'SELF' then
+                          SetupSelf
+                        else
+                          Message1(sym_e_unknown_id,expr);
+                        expr:='';
+                      end;
+                   end;
                end;
            end;
         end;
@@ -1894,7 +1906,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.59  2003-10-24 17:39:03  peter
+  Revision 1.60  2003-10-27 15:29:43  peter
+    * fixed trec.field to return constant
+
+  Revision 1.59  2003/10/24 17:39:03  peter
     * more intel parser updates
 
   Revision 1.58  2003/10/23 17:19:44  peter
