@@ -1,4 +1,6 @@
-program example11;
+program example10;
+
+{ This program demonstrates the IsPublishedProp function }
 
 {$mode objfpc}
 

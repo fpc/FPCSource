@@ -1,5 +1,7 @@
 program example1;
 
+{ This program demonstrates the GetOrdProp function }
+
 {$mode objfpc}
 
 uses rttiobj,typinfo;

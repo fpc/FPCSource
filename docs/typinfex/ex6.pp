@@ -1,4 +1,6 @@
-program example3;
+program example6;
+
+{ This program demonstrates the GetMethodProp function }
 
 {$mode objfpc}
 

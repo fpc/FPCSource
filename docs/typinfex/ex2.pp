@@ -1,5 +1,7 @@
 program example2;
 
+{ This program demonstrates the GetEnumProp function }
+
 {$mode objfpc}
 
 uses rttiobj,typinfo;

@@ -1,4 +1,6 @@
-program example1;
+program example7;
+
+{ This program demonstrates the GetSetProp function }
 
 {$mode objfpc}
 

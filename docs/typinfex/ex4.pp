@@ -1,4 +1,6 @@
-program example3;
+program example4;
+
+{ This program demonstrates the GetFloatProp function }
 
 {$mode objfpc}
 

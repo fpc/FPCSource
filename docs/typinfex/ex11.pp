@@ -1,5 +1,7 @@
 program example11;
 
+{ This program demonstrates the IsStoredProp function }
+
 {$mode objfpc}
 
 uses rttiobj,typinfo;

@@ -1,4 +1,6 @@
-program example2;
+program example9;
+
+{ This program demonstrates the GetEnumName, GetEnumValue functions }
 
 {$mode objfpc}
 

@@ -1,5 +1,7 @@
 program example3;
 
+{ This program demonstrates the GetStrProp function }
+
 {$mode objfpc}
 
 uses rttiobj,typinfo;

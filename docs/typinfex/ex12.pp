@@ -1,5 +1,6 @@
-Program example13;
+Program example12;
 
+{ This program demonstrates the GetPropInfos function }
 
 uses 
   rttiobj,typinfo;

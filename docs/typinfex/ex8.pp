@@ -1,4 +1,6 @@
-program example1;
+program example8;
+
+{ This program demonstrates the SetToString function }
 
 {$mode objfpc}
 

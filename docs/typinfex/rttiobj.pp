@@ -38,6 +38,8 @@ Type
        FObj      : TObject;
        FNotifyEvent : TNotifyEvent;
        FSetField : TMyEnums;
+//       FInt64Field : Int64;
+       FInt64Field : Integer;
        FStored   : Boolean;
        Function GetBoolean : Boolean;
        Function GetByte : Byte;
@@ -93,6 +95,8 @@ Type
        Property ObjField: TObject read FObj write FObj;
        Property SetField : TMyEnums Read FSetField Write FSetField;
        Property NotifyEvent : TNotifyEvent Read FNotifyEvent Write FNotifyEvent;    
+//       Property Int64Field : Int64 Read Fint64Field Write FInt64Field;
+       Property Int64Field : Integer Read Fint64Field Write FInt64Field;
        Property BooleanField : Boolean Read FBoolean Write FBoolean;
        Property ByteField : Byte Read FByte Write FByte;
        Property CharField : Char Read FChar Write FChar;
