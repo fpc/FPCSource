@@ -101,47 +101,45 @@ var x         : longint;
     NullMask     : pbyte;
 
 begin
-  begin
-    Result := grOK;
-    case GetMode of
-      gmPrior :
-        if FIsBOF then
-          result := grBOF
-        else if FBCurrentRecord <= 0 then
-          begin
-          Result := grBOF;
-          FBCurrentRecord := -1;
-          end
-        else
-          begin
-          Dec(FBCurrentRecord);
-          FIsEof := false;
-          end;
-      gmCurrent :
-        if (FBCurrentRecord < 0) or (FBCurrentRecord >= RecordCount) then
-          Result := grError;
-      gmNext :
-        if FIsEOF then
-          result := grEOF
-        else if FBCurrentRecord >= (FBRecordCount - 1) then
-          begin
-          if getnextpacket > 0 then
-            begin
-            Inc(FBCurrentRecord);
-            FIsBof := false;
-            end
-          else
-            begin
-            FIsEOF := true;
-            result:=grEOF;
-            end
-          end
-        else
+  Result := grOK;
+  case GetMode of
+    gmPrior :
+      if FIsBOF then
+        result := grBOF
+      else if FBCurrentRecord <= 0 then
+        begin
+        Result := grBOF;
+        FBCurrentRecord := -1;
+        end
+      else
+        begin
+        Dec(FBCurrentRecord);
+        FIsEof := false;
+        end;
+    gmCurrent :
+      if (FBCurrentRecord < 0) or (FBCurrentRecord >= RecordCount) then
+        Result := grError;
+    gmNext :
+      if FIsEOF then
+        result := grEOF
+      else if FBCurrentRecord >= (FBRecordCount - 1) then
+        begin
+        if getnextpacket > 0 then
           begin
           Inc(FBCurrentRecord);
           FIsBof := false;
-          end;
-    end;
+          end
+        else
+          begin
+          FIsEOF := true;
+          result:=grEOF;
+          end
+        end
+      else
+        begin
+        Inc(FBCurrentRecord);
+        FIsBof := false;
+        end;
   end;
 
   if Result = grOK then
