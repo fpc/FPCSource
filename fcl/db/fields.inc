@@ -877,7 +877,6 @@ end;
 function TLongintField.GetAsVariant: Variant;
 
 Var L : Longint;
-v : variant;
 
 begin
   If GetValue(L) then
@@ -1344,14 +1343,18 @@ end;
 
 function TBooleanField.GetAsBoolean: Boolean;
 
+var b : wordbool;
+
 begin
-  If not GetData(@Result) then
+  If GetData(@b) then
+    result := b
+  else
     Result:=False;
 end;
 
 function TBooleanField.GetAsVariant: Variant;
 
-Var b : boolean;
+Var b : wordbool;
 
 begin
   If GetData(@b) then
@@ -1362,7 +1365,7 @@ end;
 
 function TBooleanField.GetAsString: string;
 
-Var B : boolean;
+Var B : wordbool;
 
 begin
   If Getdata(@B) then
@@ -1374,7 +1377,7 @@ end;
 function TBooleanField.GetDataSize: Word;
 
 begin
-  Result:=SizeOf(Boolean);
+  Result:=SizeOf(wordBool);
 end;
 
 function TBooleanField.GetDefaultWidth: Longint;
@@ -1387,8 +1390,11 @@ end;
 
 procedure TBooleanField.SetAsBoolean(AValue: Boolean);
 
+var b : wordbool;
+
 begin
-  SetData(@AValue);
+  b := AValue;
+  SetData(@b);
 end;
 
 procedure TBooleanField.SetAsString(const AValue: string);
@@ -2192,7 +2198,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  2005-02-16 09:31:58  michael
+  Revision 1.25  2005-02-28 16:19:07  joost
+  - Boolean fields are wordbool's now
+
+  Revision 1.24  2005/02/16 09:31:58  michael
   - Remove TTimeField and TDateField GetDataSize functions since both are exactly
     equal to their ancestor: TDateTimeField.GetDataSize
   - TAutoInc fields are set to ReadyOnly on create

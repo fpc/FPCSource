@@ -327,7 +327,7 @@ begin
     ftSmallint,
       ftInteger,
       ftword     : result := sizeof(longint);
-    ftBoolean    : result := sizeof(boolean);
+    ftBoolean    : result := sizeof(wordbool);
     ftBCD        : result := sizeof(currency);
     ftFloat      : result := sizeof(double);
     ftTime,
