@@ -681,7 +681,7 @@ function DosSetFilePtr(Handle:Longint;Pos,Method:longint;
                        var PosActual:longint):Longint; cdecl;
 {This variant seeks always from begin of file and does not return the
  actual position.}
-function DosSetFilePtr(Handle:longint;Pos:longint):longint; cdecl;
+function DosSetFilePtr(Handle:longint;Pos:longint):longint;
 {This variant returns the current filepointer.}
 function DosGetFilePtr(Handle:longint;var PosActual:longint):longint;
 
@@ -821,7 +821,7 @@ function DosQueryCurrentDir(DiskNum:longint;var Buffer:string):longint;
                       Receives size of the data returned by the device.}
 function DosDevIOCtl(Handle,Category,Func:longint;var Params;
                      ParamLen:longint;var ParamSize:longint;
-                     var Data;var DataLen:longint;var DataSize:
+                     var Data;DataLen:longint;var DataSize:
                      longint):longint; cdecl;
 
 {****************************************************************************
@@ -2697,7 +2697,7 @@ function DosSetFilePtr(Handle:longint;Pos,Method:longint;
 
 external 'DOSCALLS' index 256;
 
-function DosSetFilePtr(Handle:longint;Pos:longint):longint; cdecl;
+function DosSetFilePtr(Handle:longint;Pos:longint):longint;
 
 var PosActual:longint;
 
@@ -2887,7 +2887,7 @@ end;
 
 function DosDevIOCtl(Handle,Category,Func:longint;var Params;
                      ParamLen:longint;var ParamSize:longint;
-             var Data;var DataLen:longint;var DataSize:longint):longint; cdecl;
+                 var Data;DataLen:longint;var DataSize:longint):longint; cdecl;
 
 external 'DOSCALLS' index 284;
 
@@ -3949,7 +3949,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.4  2000-10-08 18:40:18  hajny
+  Revision 1.5  2000-10-26 20:07:19  hajny
+    * DosDevIOCtl prototype fixed, cdecl removed in DosSetFilePtr helper declaration
+
+  Revision 1.4  2000/10/08 18:40:18  hajny
     * wrong index for DosSelToFlat, DosFlatToSel
 
   Revision 1.3  2000/09/28 19:57:22  hajny
