@@ -401,6 +401,7 @@ type
 { TStringList class }
 
   TDuplicates = (dupIgnore, dupAccept, dupError);
+  TStringList = class;
 
   PStringItem = ^TStringItem;
   TStringItem = record
@@ -410,6 +411,7 @@ type
 
   PStringItemList = ^TStringItemList;
   TStringItemList = array[0..MaxListSize] of TStringItem;
+  TStringListSortCompare = function(List: TStringList; Index1, Index2: Integer): Integer;
 
   TStringList = class(TStrings)
   private
@@ -422,7 +424,7 @@ type
     FOnChanging: TNotifyEvent;
     procedure ExchangeItems(Index1, Index2: Integer);
     procedure Grow;
-    procedure QuickSort(L, R: Integer);
+    procedure QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
     procedure InsertItem(Index: Integer; const S: string);
     procedure SetSorted(Value: Boolean);
   protected
@@ -446,6 +448,7 @@ type
     function IndexOf(const S: string): Integer; override;
     procedure Insert(Index: Integer; const S: string); override;
     procedure Sort; virtual;
+    procedure CustomSort(CompareFn: TStringListSortCompare);
     property Duplicates: TDuplicates read FDuplicates write FDuplicates;
     property Sorted: Boolean read FSorted write SetSorted;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
@@ -1236,7 +1239,11 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.1.2.2  2000-10-26 22:20:57  peter
+  Revision 1.1.2.3  2000-12-03 22:32:27  sg
+  * Applied patch by Markus Kaemmerer:
+    - Added support for TStringList.CustomSort
+
+  Revision 1.1.2.2  2000/10/26 22:20:57  peter
     * tlist.clear is dynamic
 
   Revision 1.1.2.1  2000/10/15 09:35:55  michael
