@@ -387,13 +387,15 @@ end;
 function  NORTLEventCreate :PRTLEvent;
 
 begin
-  NoThreadError;
+  if IsMultiThread then
+    NoThreadError;
 end;
 
 procedure NORTLeventdestroy(state:pRTLEvent);
 
 begin
-  NoThreadError;
+  if IsMultiThread then
+    NoThreadError;
 end;
 
 procedure NORTLeventSetEvent(state:pRTLEvent);
@@ -467,7 +469,10 @@ end;
 
 {
   $Log$
-  Revision 1.23  2005-02-25 22:02:46  florian
+  Revision 1.24  2005-02-26 11:40:38  florian
+    * rtl event init/destroy throws only an error if it's used in a mult threaded program
+
+  Revision 1.23  2005/02/25 22:02:46  florian
     * another "transfer to linux"-commit
 
   Revision 1.22  2005/02/14 17:13:29  peter
