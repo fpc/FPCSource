@@ -2392,7 +2392,7 @@ implementation
                          valint(asciinr,m,code);
                          if (asciinr='') or (code<>0) then
                            Message(scan_e_illegal_char_const)
-                         else if (m<0) or (m>255) then
+                         else if (m<0) or (m>255) or (length(asciinr)>3) then
                            begin
                               if (m>=0) and (m<=65535) then
                                 begin
@@ -2764,7 +2764,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.39  2002-05-18 13:34:17  peter
+  Revision 1.40  2002-07-20 17:35:52  florian
+    + char constants specified with #.. with more than 3 digits are handled as widechar
+
+  Revision 1.39  2002/05/18 13:34:17  peter
     * readded missing revisions
 
   Revision 1.38  2002/05/16 19:46:44  carl
