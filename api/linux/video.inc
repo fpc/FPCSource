@@ -11,7 +11,6 @@ var
   TtyFd: Longint;
   Console: Boolean;
   OldVideoBuf: PVideoBuf;
-  CurColor: Byte;
 
 {$ASMMODE ATT}
 
@@ -323,7 +322,6 @@ begin
       WS.ws_Col:=80;
      if WS.ws_Row=0 then
       WS.ws_Row:=25;
-     CurColor:=$07;
      CursorX:=1;
      CursorY:=1;
      ScreenColor:=True;
@@ -480,7 +478,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-01-06 01:20:31  peter
+  Revision 1.2  2000-03-12 15:02:10  peter
+    * removed unused var
+
+  Revision 1.1  2000/01/06 01:20:31  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  1999/11/24 23:36:38  peter
