@@ -1,0 +1,5 @@
+
+- flock needs documenting (linux.pp)
+- pclose now returns exit code. (linux.pp)
+- errors not yet complete (user.tex)
+
