@@ -641,23 +641,26 @@ var
      begin
        if userini.section[rule2sec[rule]] then
         hs:=hs+' fpc_'+rulestr[rule];
-       if userini.DefaultDir<>'' then
-        hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultdir+')'
-       else
-        if (userini.DefaultBuildDir<>'') and (rule2bic[rule]=bic_build) then
-         hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultbuilddir+')'
-       else
-        if (userini.DefaultInstallDir<>'') and (rule2bic[rule]=bic_install) then
-         hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultinstalldir+')'
-       else
-        if (userini.DefaultZipInstallDir<>'') and (rule2bic[rule]=bic_zipinstall) then
-         hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultzipinstalldir+')'
-       else
-        if (userini.DefaultCleanDir<>'') and (rule2bic[rule]=bic_clean) then
-         hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultcleandir+')'
-       else
-        if rulediralso[rule] and (not TargetStringEmpty(userini.targetdirs)) then
-         hs:=hs+' $(addsuffix _'+rulestr[rule]+',$(DIROBJECTS))';
+       if rulediralso[rule] then
+        begin
+          if userini.DefaultDir<>'' then
+           hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultdir+')'
+          else
+           if (userini.DefaultBuildDir<>'') and (rule2bic[rule]=bic_build) then
+            hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultbuilddir+')'
+          else
+           if (userini.DefaultInstallDir<>'') and (rule2bic[rule]=bic_install) then
+            hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultinstalldir+')'
+          else
+           if (userini.DefaultZipInstallDir<>'') and (rule2bic[rule]=bic_zipinstall) then
+            hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultzipinstalldir+')'
+          else
+           if (userini.DefaultCleanDir<>'') and (rule2bic[rule]=bic_clean) then
+            hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultcleandir+')'
+          else
+           if (not TargetStringEmpty(userini.targetdirs)) then
+            hs:=hs+' $(addsuffix _'+rulestr[rule]+',$(DIROBJECTS))';
+        end;
      end;
     if hs<>'' then
      begin
@@ -1300,7 +1303,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2000-02-02 11:30:00  peter
+  Revision 1.31  2000-02-08 00:03:35  peter
+    * fixed zipinstall with defaultdir
+
+  Revision 1.30  2000/02/02 11:30:00  peter
     * fixed sharedlibunitobjects typo
 
   Revision 1.29  2000/01/28 12:10:46  peter
