@@ -48,6 +48,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       GDBOutputFile    : string{$ifdef GABOR}[80]{$endif} = GDBOutputFileName;
       IsEXECompiled    : boolean = false;
       LinkAfter        : boolean = true;
+      MainHasDebugInfo : boolean = false;
       MainFile         : string{$ifdef GABOR}[80]{$endif} = '';
       PrevMainFile     : string{$ifdef GABOR}[80]{$endif} = '';
       EXEFile          : string{$ifdef GABOR}[80]{$endif} = '';
@@ -97,7 +98,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.28  2000-03-02 22:34:38  pierre
+  Revision 1.29  2000-03-08 16:50:27  pierre
+   + MainHasDebugInfo boolean var
+
+  Revision 1.28  2000/03/02 22:34:38  pierre
    + external compiler support
 
   Revision 1.27  2000/02/07 11:53:11  pierre
