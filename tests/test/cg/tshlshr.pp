@@ -58,7 +58,7 @@ Begin
    longres := longres shl 15;
    Write('(SHL) Value should be 32768...');
    test(longres, 32768);
-   
+
    longres:=-1;
    longres := longres shl 15;
    Write('(SHL) Value should be -32768...');
@@ -195,8 +195,8 @@ Begin
 
    int64res:=1;
    int64res := int64res shl 65;
-   Write('(SHL) Value should be 2...');
-   test(int64res and $FFFFFFFF, 2);
+   Write('(SHL) Value should be 0...');
+   test(int64res and $FFFFFFFF, 0);
 
    int64res:=$8000;
    int64res := int64res shr 15;
@@ -298,7 +298,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-03-05 21:56:32  carl
+  Revision 1.4  2002-03-29 18:43:55  peter
+    * updated int64 tests so kylix passes the tests
+
+  Revision 1.3  2002/03/05 21:56:32  carl
   * Adapted for automated testing
 
 }

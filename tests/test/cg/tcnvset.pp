@@ -71,13 +71,13 @@ type
 type
   tnormalset = set of tbigenum;
   tsmallset = set of tsmallenum;
-  
+
 procedure fail;
 begin
-  Fail;
+  Writeln('Failed!');
   halt(1);
 end;
-  
+
 
 
   procedure SmallSet2NormalSet;
@@ -115,7 +115,10 @@ end.
 {
 
  $Log$
- Revision 1.2  2002-03-05 21:55:42  carl
+ Revision 1.3  2002-03-29 18:43:55  peter
+   * updated int64 tests so kylix passes the tests
+
+ Revision 1.2  2002/03/05 21:55:42  carl
  * Adapted for automated testing
 
  Revision 1.1  2001/06/24 23:01:22  carl

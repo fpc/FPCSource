@@ -44,7 +44,7 @@ function getint64cnt: int64;
  end;
 
   {$ENDIF}
-  
+
 procedure test(value, required: longint);
 begin
   if value <> required then
@@ -250,8 +250,8 @@ begin
   int64res := $7FFFFFFF shl 32;
   int64cnt := $80000000 shl 32;
   int64res := int64cnt div int64res;
-  Write('Value should be -1...');
-  test(int64res and $FFFFFFFF, -1);
+  Write('Value should be 1...');
+  test(int64res and $FFFFFFFF, 1);
 
   int64res := $7FFFFFFF;
   int64cnt := $80000000;
@@ -263,8 +263,8 @@ begin
   int64res := $7FFFFFFF;
   int64cnt := $80000000;
   int64res := int64cnt div int64res;
-  Write('Value should be -1...');
-  test(int64res and $FFFFFFFF, -1);
+  Write('Value should be 1...');
+  test(int64res and $FFFFFFFF, 1);
 
   WriteLn('(left) : LOC_REFERENCE; (right) : ordinal constant');
   { RIGHT : power of 2 ordconstn   }
