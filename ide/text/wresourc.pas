@@ -772,7 +772,10 @@ begin
     begin Dispose(B, Done); B:=nil; end;
   if B=nil then Fail;
   if Create(B^)=false then
-    Fail;
+    Begin
+      Dispose(B,Done);
+      Fail;
+    End;
   MyStream:=true;
 end;
 
@@ -784,14 +787,20 @@ begin
     begin Dispose(B, Done); B:=nil; end;
   if B=nil then Fail;
   if Load(B^)=false then
-    Fail;
+    Begin
+      Dispose(B,Done);
+      Fail;
+    End;
   MyStream:=true;
 end;
 
 END.
 {
   $Log$
-  Revision 1.9  2000-04-18 11:42:39  pierre
+  Revision 1.10  2000-05-16 21:48:13  pierre
+   * dispose of PBufStream before Fail in TResourceFile.LoadFile and CreateFile
+
+  Revision 1.9  2000/04/18 11:42:39  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.8  2000/02/07 08:29:14  michael
