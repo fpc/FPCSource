@@ -141,7 +141,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 SYSTEMPPU=syslinux$(PPUEXT)
 OBJECTS=strings linux \
 	dos crt objects printer \
-	getopts heaptrc errors sockets graph objpas sysutils
+	getopts heaptrc errors sockets graph objpas sysutils ports
 
 # Which units may be placed in the shared lib file
 SHAREDLIBFILES=syslinux strings linux objpas sysutils math \
@@ -284,6 +284,9 @@ printer$(PPUEXT) : printer.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
 graph$(PPUEXT) : graph.pp linux$(PPUEXT) objects$(PPUEXT)
 	$(COMPILER) graph $(REDIR)
 
+ports$(PPUEXT) : ports.pp linux$(PPUEXT)
+	$(COMPILER) -S2 ports $(REDIR)
+
 #
 # Other RTL Units
 #
@@ -340,7 +343,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.9  1998-11-24 19:50:49  jonas
+# Revision 1.10  1998-12-07 16:38:48  michael
+# Added ports unit
+#
+# Revision 1.9  1998/11/24 19:50:49  jonas
 #   + added warning about TABs
 #
 # Revision 1.8  1998/11/10 17:56:56  peter
