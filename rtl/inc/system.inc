@@ -93,26 +93,11 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
 
 {$i sstrings.inc}
 
-{$ifdef UseAnsiStrings}
-
 Type
    PLongint = ^Longint;
    PByte = ^Byte;
 
 {$i astrings.pp}
-
-{$else}
-
-{ Provide dummy procedures needed for rtti}
-Procedure decr_ansi_ref (P : pointer);[Alias : 'FPC_DECR_ANSI_REF'];
-  begin
-  end;
-
-Procedure incr_ansi_ref (P : pointer);[Alias : 'FPC_INCR_ANSI_REF'];
-  begin
-  end;
-
-{$endif}
 
 
 {****************************************************************************
@@ -476,7 +461,10 @@ end;
 
 {
   $Log$
-  Revision 1.39  1998-10-12 22:11:28  jonas
+  Revision 1.40  1998-11-04 20:34:02  michael
+  + Removed ifdef useansistrings
+
+  Revision 1.39  1998/10/12 22:11:28  jonas
     * fixed RandSeed bug
 
   Revision 1.38  1998/10/12 12:43:37  florian

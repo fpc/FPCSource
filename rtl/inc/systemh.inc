@@ -273,7 +273,6 @@ Procedure Val(const s:shortstring;Var d:ValReal);
                              AnsiString Handling
 ****************************************************************************}
 
-{$ifdef UseAnsiStrings }
 
 Procedure SetLength (Var S : AnsiString; l : Longint);
 Procedure UniqueAnsiString (Var S : AnsiString);
@@ -304,7 +303,6 @@ Procedure Str (Const I : Integer;len : Longint; Var S : AnsiString);
 Procedure Str (Const B : Byte; Len : longint; Var S : AnsiString);
 Procedure Str (Const SI : ShortInt; Len : longint; Var S : AnsiString);
 }
-{$endif}
 
 
 {****************************************************************************
@@ -432,7 +430,10 @@ const
 
 {
   $Log$
-  Revision 1.38  1998-11-04 10:20:51  peter
+  Revision 1.39  1998-11-04 20:34:01  michael
+  + Removed ifdef useansistrings
+
+  Revision 1.38  1998/11/04 10:20:51  peter
     * ansistring fixes
 
   Revision 1.37  1998/10/10 15:28:47  peter

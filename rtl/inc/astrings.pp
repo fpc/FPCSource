@@ -35,7 +35,6 @@
 
 }
 
-// Type shortstring=string;
 
 Function  NewAnsiString (Len : Longint) : Pointer; forward;
 Procedure DisposeAnsiString (Var S : Pointer); forward;
@@ -105,7 +104,6 @@ Procedure DisposeAnsiString(Var S : Pointer);
   Deallocates a AnsiString From the heap.
 }
 begin
-//  Writeln ('In disposeAnsiSTring');
   If S=Nil
     then exit;
   Dec (Longint(S),FirstOff);
@@ -695,7 +693,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  1998-11-04 15:39:44  michael
+  Revision 1.29  1998-11-04 20:34:04  michael
+  + Removed ifdef useansistrings
+
+  Revision 1.28  1998/11/04 15:39:44  michael
   + Small fixes to assign and add
 
   Revision 1.27  1998/11/04 10:20:48  peter
