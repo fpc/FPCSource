@@ -106,7 +106,7 @@ endif
 #
 
 utils:
-        $(MAKE) -C utils 
+        $(MAKE) -C utils
 
 
 ifeq ($(USESQL),YES)
@@ -169,10 +169,10 @@ override DOTESTOPT+=-c$(TEST_FPC)
 endif
 endif
 
-ifneq ($(OS_TARGET),$(TEST_OS_TARGET)) 
+ifneq ($(OS_TARGET),$(TEST_OS_TARGET))
 override DOTESTOPT+=-Y-T$(TEST_OS_TARGET)
 endif
-ifneq ($(OS_TARGET),$(TEST_BINUTILSPREFIX)) 
+ifneq ($(OS_TARGET),$(TEST_BINUTILSPREFIX))
 override DOTESTOPT+=-Y-XP$(TEST_BINUTILSPREFIX)
 endif
 ifdef TEST_RSH
@@ -190,11 +190,23 @@ endif
 ifdef TEST_VERBOSE
 override DOTESTOPT+=-V
 endif
+ifdef TEST_REMOTEOPT
+override DOTESTOPT+="-U$(TEST_REMOTEOPT)"
+endif
+ifdef TEST_PUTTY
+override DOTESTOPT+=-R$(TEST_PUTTY) -W
+endif
 
 ifdef TEST_OPT
 #  handles several options as well
 override DOTESTOPT+=$(addprefix -Y, $(TEST_OPT))
 endif
+
+ifdef TEST_REMOTEPW
+#  handles several options as well
+override DOTESTOPT+=-U-pw -U$(TEST_REMOTEPW)
+endif
+
 
 ifdef GRAPH
 override DOTESTOPT+=-g
@@ -285,7 +297,7 @@ endif
         -$(DEL) $(LOG) $(LONGLOG) $(FAILLIST)
         -$(DEL) ppas$(SRCBATCHEXT) gmon.out testprep-stamp.*
 #          Needed when link on target:
-        -$(DEL) *_ppas$(BATCHEXT) 
+        -$(DEL) *_ppas$(BATCHEXT)
 
 
 clean:

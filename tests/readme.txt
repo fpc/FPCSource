@@ -27,7 +27,7 @@ TARGET.............Only for these OS targets (win32,macos,etc).
                    Might be a list.
 SKIPTARGET.........Not for these OS targets (win32,macos,etc).
                    Might be a list.
-VERSION............Compiler with at lest this version number required. 
+VERSION............Compiler with at lest this version number required.
 MAXVERSION.........Compiler with at most this version number required.
 RESULT.............Exit code of execution of test expected
 GRAPH..............Requires graph unit
@@ -112,11 +112,18 @@ Requirements:
 Test options:
 TEST_RSH             set this to the hostname when you want to use rsh/rcp
                      to execute/copy the test
-TEST_SSH             set this to use ssh/scp to execute the test  
+TEST_SSH             set this to use ssh/scp to execute the test
+TEST_PUTTY           test using putty when remote testing (pscp and plink)
+TEST_REMOTEOPT       extra options to remote program
 TEST_REMOTEPATH      set remote path to use, default is /tmp
 TEST_DELTEMP         delete executable after running, so the remote system
                      doesn't need much free disk space
+TEST_REMOTEPW        pass a password with -pw to remote tools, mainly usefull for putty
+
 Example:
 
 make TEST_FPC=$HOME/fpc/compiler/ppcsparc TEST_BINUTILSPREFIX=sparc-linux- TEST_RSH=sunny TEST_REMOTEPATH=/tmp/tests
 make TEST_FPC=$HOME/fpc/compiler/ppcsparc TEST_BINUTILSPREFIX=sparc-linux- TEST_SSH=fpc@sunny TEST_REMOTEPATH=/tmp/tests
+
+Example for win32/putty:
+make TEST_FPC=c:\fpc\compiler\ppcarm TEST_BINUTILSPREFIX=arm-linux- TEST_PUTTY=root@192.168.42.210 TEST_REMOTEPATH=/tmp TEST_DELTEMP=1 "TEST_REMOTEPW=xxx" FPC=c:\fpc\compiler\ppc386

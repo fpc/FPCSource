@@ -57,8 +57,10 @@ const
   DelExecutable : boolean = false;
   RemoteAddr : string = '';
   RemotePath : string = '/tmp';
+  RemotePara : string = '';
   rshprog : string = 'rsh';
   rcpprog : string = 'rcp';
+  rquote : char = '''';
 
 Function FileExists (Const F : String) : Boolean;
 {
@@ -560,17 +562,22 @@ var
 begin
   RunExecutable:=false;
   execres:=true;
-  TestExe:=ForceExtension(PPFile,ExeExt);
+  { when remote testing, leave extension away }
+  if RemoteAddr='' then
+    TestExe:=ForceExtension(PPFile,ExeExt)
+  else
+    TestExe:=ForceExtension(PPFile,'');
   OutName:=ForceExtension(PPFile,'elg');
   if RemoteAddr<>'' then
     begin
       { We don't want to create subdirs, remove paths from the test }
       TestRemoteExe:=RemotePath+'/'+SplitFileName(TestExe);
-      ExecuteRemote(rshprog,RemoteAddr+' rm -f '+TestRemoteExe);
-      ExecuteRemote(rcpprog,TestExe+' '+RemoteAddr+':'+TestRemoteExe);
+      ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' rm -f '+TestRemoteExe);
+      ExecuteRemote(rcpprog,RemotePara+' '+TestExe+' '+RemoteAddr+':'+TestRemoteExe);
       { rsh doesn't pass the exitcode, use a second command to print the exitcode
         on the remoteshell to stdout }
-      execres:=ExecuteRemote(rshprog,RemoteAddr+' '''+TestRemoteExe+' ; echo "TestExitCode: $?"''');
+      execres:=ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' '+rquote+'chmod 755 '+TestRemoteExe+' ; '+
+        TestRemoteExe+' ; echo "TestExitCode: $?"'+rquote);
       { Check for TestExitCode error in output, sets ExecuteResult }
       CheckTestExitCode(OutName);
     end
@@ -632,7 +639,7 @@ begin
     begin
       Verbose(V_Debug,'Deleting executable '+TestExe);
       if RemoteAddr<>'' then
-        ExecuteRemote(rshprog,RemoteAddr+' rm -f '+TestRemoteExe);
+        ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' rm -f '+TestRemoteExe);
       RemoveFile(TestExe);
       RemoveFile(ForceExtension(TestExe,ObjExt));
       RemoveFile(ForceExtension(TestExe,PPUExt));
@@ -661,8 +668,12 @@ var
     writeln('  -I            include interactive tests');
     writeln('  -R<remote>    run the tests remotely with the given rsh/ssh address');
     writeln('  -S            use ssh instead of rsh');
+    writeln('  -T            remove temporary files (executable,ppu,o)');
     writeln('  -P<path>      path to the tests tree on the remote machine');
-    writeln('  -T            leave temporary files (executable,ppu,o)');
+    writeln('  -U<remotepara>');
+    writeln('                pass additional parameter to remove program. Multiple -U can be used');
+    writeln('  -V            be verbose');
+    writeln('  -W            use putty compatible file names when testing (plink and pscp)');
     writeln('  -Y<opts>      extra options passed to the compiler. Several -Y<opt> can be given.');
     halt(1);
   end;
@@ -688,41 +699,57 @@ begin
              DoKnown:=true;
              DoAll:=true;
            end;
+
          'C' : CompilerBin:=Para;
+
          'E' : DoExecute:=true;
+
          'G' : begin
                  DoGraph:=true;
                  if para='-' then
                    DoUsual:=false;
                end;
+
          'I' : begin
                  DoInteractive:=true;
                  if para='-' then
                    DoUsual:=false;
                end;
+
          'K' : begin
                  DoKnown:=true;
                  if para='-' then
                    DoUsual:=false;
                end;
-         'V' : DoVerbose:=true;
-
-         'X' : UseComSpec:=false;
 
          'P' : RemotePath:=Para;
 
-         'Y' : ExtraCompilerOpts:= ExtraCompilerOpts +' '+ Para;
-
          'R' : RemoteAddr:=Para;
-
-         'T' :
-           DelExecutable:=true;
 
          'S' :
            begin
              rshprog:='ssh';
              rcpprog:='scp';
            end;
+
+         'T' :
+           DelExecutable:=true;
+
+         'U' :
+           RemotePara:=+RemotePara+' '+Para;
+
+         'V' : DoVerbose:=true;
+
+         'W' :
+           begin
+             rshprog:='plink';
+             rcpprog:='pscp';
+             rquote:=' ';
+           end;
+
+         'X' : UseComSpec:=false;
+
+         'Y' : ExtraCompilerOpts:= ExtraCompilerOpts +' '+ Para;
         end;
      end
     else
@@ -946,7 +973,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2004-05-17 20:51:29  peter
+  Revision 1.37  2004-07-03 18:28:21  florian
+    + added support of putty utils to dotest
+    + remote testing executes a chmod 755 before running a test
+
+  Revision 1.36  2004/05/17 20:51:29  peter
     * print exitcode of remote test to stdout and parse the output file.
       this is the most reliable passing of the exitcode
 
