@@ -1,12 +1,10 @@
 #
-#   $Id$
-#
 #   Makefile.fpc for Free Component Library for Go32v2
 #
 
 [defaults]
 defaultunits=1
-defaulttarget=linux
+defaulttarget=go32v2
 defaultcpu=i386
 defaultoptions=-S2
 
