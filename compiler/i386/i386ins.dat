@@ -948,7 +948,7 @@ mem                   \300\2\x0F\x01\207              486,PRIV
 (Ch_All, Ch_None, Ch_None)
 void                  \322\1\xCF                      8086
 
-[IRETD]
+[IRETD,iret]
 (Ch_All, Ch_None, Ch_None)
 void                  \321\1\xCF                      386
 
@@ -1832,17 +1832,17 @@ void                  \1\xF2                          8086,PRE
 (Ch_RWECX, Ch_RWFLAGS, Ch_None)
 void                  \1\xF3                          8086,PRE
 
-[RET,retX]
+[RET]
 (Ch_All, Ch_None, Ch_None)
 void                  \1\xC3                          8086
 imm                   \1\xC2\30                       8086,SW
 
-[RETF,retfX]
+[RETF,lret]
 (Ch_All, Ch_None, Ch_None)
 void                  \1\xCB                          8086
 imm                   \1\xCA\30                       8086,SW
 
-[RETN,retnX]
+[RETN,ret]
 (Ch_All, Ch_None, Ch_None)
 void                  \1\xC3                          8086
 imm                   \1\xC2\30                       8086,SW

@@ -167,7 +167,7 @@ const
   IF_MMX    = $00004000;  { it's an MMX instruction  }
   IF_3DNOW  = $00008000;  { it's a 3DNow! instruction  }
   IF_SSE    = $00010000;  { it's a SSE (KNI, MMX2) instruction  }
-  IF_PMASK  = 
+  IF_PMASK  =
      longint($FF000000);  { the mask for processor types  }
   IF_PFMASK =
      longint($F001FF00);  { the mask for disassembly "prefer"  }
@@ -238,7 +238,8 @@ type
   topsize = (S_NO,
     S_B,S_W,S_L,S_BW,S_BL,S_WL,
     S_IS,S_IL,S_IQ,
-    S_FS,S_FL,S_FX,S_D,S_Q,S_FV
+    S_FS,S_FL,S_FX,S_D,S_Q,S_FV,
+    S_NEAR,S_FAR,S_SHORT
   );
 
 const
@@ -247,17 +248,20 @@ const
     (OT_NONE,
      OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS16,OT_BITS32,OT_BITS32,
      OT_BITS16,OT_BITS32,OT_BITS64,
-     OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64
+     OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
+     OT_NEAR,OT_FAR,OT_SHORT
     ),
     (OT_NONE,
      OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS8,OT_BITS8,OT_BITS16,
      OT_BITS16,OT_BITS32,OT_BITS64,
-     OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64
+     OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
+     OT_NEAR,OT_FAR,OT_SHORT
     ),
     (OT_NONE,
      OT_BITS8,OT_BITS16,OT_BITS32,OT_NONE,OT_NONE,OT_NONE,
      OT_BITS16,OT_BITS32,OT_BITS64,
-     OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64
+     OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
+     OT_NEAR,OT_FAR,OT_SHORT
     )
   );
 
@@ -265,7 +269,8 @@ const
   att_opsize2str : array[topsize] of string[2] = ('',
     'b','w','l','bw','bl','wl',
     's','l','q',
-    's','l','t','d','q','v'
+    's','l','t','d','q','v',
+    '','',''
   );
 {$endif}
 
@@ -919,7 +924,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-12-07 17:19:45  jonas
+  Revision 1.3  2001-02-20 21:34:04  peter
+    * iret, lret fixes
+
+  Revision 1.2  2000/12/07 17:19:45  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range
