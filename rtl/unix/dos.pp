@@ -746,8 +746,7 @@ Begin
     UnPackTime(Time,DT);
     modtime:=DTToUnixDate(DT);
     end;
-  for Index:=0 to FilerecNameLength-1 do
-    path[Index+1]:=filerec(f).name[Index];
+  path := strpas(@filerec(f).name);
   if fputime(path,@utim)<0 then
     begin
     Time:=0;
@@ -903,7 +902,10 @@ End.
 
 {
   $Log$
-  Revision 1.21  2003-12-03 20:17:03  olle
+  Revision 1.22  2003-12-29 21:15:04  jonas
+    * fixed setftime (sorry Marco :)
+
+  Revision 1.21  2003/12/03 20:17:03  olle
     * files are not pretended to have attr ARCHIVED anymore
     + FindFirst etc now also filters on attr HIDDEN
     * files with attr READONLY and ARCHIVE are always returned by FindFirst etc
