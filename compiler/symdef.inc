@@ -1771,6 +1771,7 @@
     var
       news, newrec : pchar;
       spec : string[2];
+      size : longint;
     begin
     { static variables from objects are like global objects }
     if ((p^.properties and sp_static)<>0) then
@@ -1784,9 +1785,13 @@
 
     If p^.typ = varsym then
        begin
+       size:=pvarsym(p)^.definition^.size;
+       { open arrays made overflows !! }
+       if size=$7ffffff then
+         size:=0;
        newrec := strpnew(p^.name+':'+spec+pvarsym(p)^.definition^.numberstring
                      +','+tostr(pvarsym(p)^.address*8)+','
-                     +tostr(pvarsym(p)^.definition^.size*8)+';');
+                     +tostr(size*8)+';');
        if strlen(StabRecString) + strlen(newrec) >= StabRecSize-256 then
          begin
             getmem(news,stabrecsize+memsizeinc);
@@ -3284,7 +3289,10 @@
 
 {
   $Log$
-  Revision 1.88  1999-01-20 14:18:39  pierre
+  Revision 1.89  1999-01-22 17:29:30  pierre
+   * overflow in addname for open arrays removed
+
+  Revision 1.88  1999/01/20 14:18:39  pierre
     * bugs related to mangledname solved
       - linux external without name
       -external procs already used
