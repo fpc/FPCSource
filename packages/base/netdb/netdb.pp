@@ -618,7 +618,11 @@ begin
     if LIP4Count > 0 then begin
       inc(LIP4Count); // we loop to LIP4Count-1 later
       if LIP4Count > MaxIP4Mapped then LIP4Count := MaxIP4Mapped;
+{$ifdef VER1_0}      
+      if LIP4Count > High(Addresses)+1 then LIP4Count := High(Addresses)+1;
+{$else}      
       if LIP4Count > Length(Addresses) then LIP4Count := Length(Addresses);
+{$endif}      
       for i := 0 to LIP4Count-2 do begin
         Addresses[i] := NoAddress6;
         Addresses[i][5] := $FFFF;
@@ -1149,7 +1153,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-01-24 12:23:10  michael
+  Revision 1.11  2004-02-20 21:35:00  peter
+    * 1.0.x fix
+
+  Revision 1.10  2004/01/24 12:23:10  michael
   + Patch from Johannes Berg
 
   Revision 1.9  2003/12/12 20:50:18  michael
