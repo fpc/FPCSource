@@ -193,7 +193,7 @@ end;
 
 const StackErr : boolean = false;
 
-procedure int_stackcheck(stack_size:Cardinal);[saveregisters,public,alias:'FPC_STACKCHECK'];
+procedure int_stackcheck(stack_size:Cardinal);[public,alias:'FPC_STACKCHECK'];
 {
   called when trying to get local stack if the compiler directive $S
   is set this function must preserve all registers
@@ -203,7 +203,14 @@ procedure int_stackcheck(stack_size:Cardinal);[saveregisters,public,alias:'FPC_S
 }
 begin
   if StackErr then exit;  // avoid recursive calls
-  if stackavail > stack_size + 5120 then exit;  // we really need that much, at least on nw6.5
+  asm
+    pusha
+  end;
+  stackerr := (stackavail < stack_size + 5120);   // we really need that much, at least on nw6.5
+  asm
+    popa
+  end;
+  if not StackErr then exit;
   StackErr := true;
   HandleError (202);
 end;
@@ -1178,7 +1185,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.5  2004-10-25 15:38:59  peter
+  Revision 1.6  2004-10-25 18:11:49  armin
+  * saveregisters no longer supported by compiler, for now save all registers in stackcheck
+
+  Revision 1.5  2004/10/25 15:38:59  peter
     * compiler defined HEAP and HEAPSIZE removed
 
   Revision 1.4  2004/09/26 19:23:34  armin
