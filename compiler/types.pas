@@ -1391,13 +1391,8 @@ implementation
                    begin { ordinal to real }
                      if is_integer(def_from) then
                        begin
-                          { in delphi int64 can not be converted to real }
-                          if not((m_tp in aktmodeswitches) and
-                                 (torddef(def_from).typ in [u64bit,s64bit])) then
-                           begin
-                             doconv:=tc_int_2_real;
-                             b:=1;
-                           end;
+                         doconv:=tc_int_2_real;
+                         b:=1;
                        end;
                    end;
                  floatdef :
@@ -1784,7 +1779,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2001-09-03 13:27:41  jonas
+  Revision 1.48  2001-10-16 17:15:44  jonas
+    * auto-converting from int64 to real is again allowed for all modes
+      (it's allowed in Delphi too)
+
+  Revision 1.47  2001/09/03 13:27:41  jonas
     * compilerproc implementation of set addition/substraction/...
     * changed the declaration of some set helpers somewhat to accomodate the
       above change
