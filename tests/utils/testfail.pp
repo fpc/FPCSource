@@ -20,7 +20,7 @@ uses
   redir;
 
 Const
-  FailName = 'fail';
+  FailName = 'utils/fail';
 {$ifdef UNIX}
   ExeExt='';
 {$else UNIX}
@@ -70,7 +70,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2003-04-29 21:12:17  pierre
+  Revision 1.3  2004-04-27 23:08:14  olle
+    * adopted to be run in utils, in accordance with the major makefile rework
+
+  Revision 1.2  2003/04/29 21:12:17  pierre
    * win32 specific unit added
 
   Revision 1.1  2002/12/05 16:04:26  pierre
