@@ -1,8 +1,9 @@
-unit ncurses;
-
-{   Unit to access the ncurses library
+{
+    $Id$
     Copyright (c) 1998 by Michael Van Canneyt
     member of the Free Pascal development team
+
+    Unit to access the ncurses library
 
     See the file COPYING.FPC included in this distribution,
     for details about the copyright.
@@ -12,14 +13,19 @@ unit ncurses;
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
 {
-  Many thanks to Ken Wright for his patches !!
+  Many thanks to Ken Wright for his patches !
 }
+
+unit ncurses;
+
   interface
 
-{$packrecords 4}
 {$linklib ncurses}
 {$linklib c}
+
+{$packrecords C}
 
    { Manually Added types }
    Type
@@ -1729,3 +1735,9 @@ const External_library='';
       ACS_STERLING:=acs_map['}'];
     end;
 end.
+{
+  $Log$
+  Revision 1.3  1999-11-24 23:42:00  peter
+    * fpcmake updates
+
+}

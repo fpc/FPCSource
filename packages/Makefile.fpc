@@ -1,49 +1,11 @@
 #
-#   Makefile.fpc for Free Component Library
+#   Makefile.fpc for Free Pascal Packages
 #
+
+[targets]
+dirs=ibase mysql uncgi paszlib gdbint api fv
+dirs_linux=gtk opengl utmp inet postgres ncurses forms svgalib ggi
+dirs_win32=gtk opengl
 
 [sections]
 none=1
-
-[rules]
-all:
-        $(MAKE) -C ibase
-        $(MAKE) -C mysql
-        $(MAKE) -C uncgi
-	$(MAKE) -C paszlib
-ifdef inlinux
-        $(MAKE) -C utmp
-        $(MAKE) -C inet
-        $(MAKE) -C postgres
-        $(MAKE) -C ncurses
-        $(MAKE) -C forms
-        $(MAKE) -C svgalib
-endif
-
-clean:
-        $(MAKE) -C ibase clean
-        $(MAKE) -C mysql clean
-        $(MAKE) -C uncgi clean
-	$(MAKE) -C paszlib clean
-ifdef inlinux
-        $(MAKE) -C utmp clean
-        $(MAKE) -C inet clean
-        $(MAKE) -C postgres clean
-        $(MAKE) -C ncurses clean
-        $(MAKE) -C forms clean
-        $(MAKE) -C svgalib clean
-endif
-
-install:
-        $(MAKE) -C ibase DEFAULTUNITS=1 install
-        $(MAKE) -C mysql DEFAULTUNITS=1 install
-        $(MAKE) -C uncgi DEFAULTUNITS=1 install
-	$(MAKE) -C paszlib DEFAULTUNITS=1 install
-ifdef inlinux
-        $(MAKE) -C utmp DEFAULTUNITS=1 install
-        $(MAKE) -C inet DEFAULTUNITS=1 install
-        $(MAKE) -C postgres DEFAULTUNITS=1 install
-        $(MAKE) -C ncurses DEFAULTUNITS=1 install
-        $(MAKE) -C forms DEFAULTUNITS=1 install
-        $(MAKE) -C svgalib DEFAULTUNITS=1 install
-endif

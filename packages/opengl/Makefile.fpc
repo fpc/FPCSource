@@ -4,19 +4,10 @@
 
 [targets]
 units=xlib gl glut
-programs=glutdemo
+examples=glutdemo
 
 [dirs]
 fpcdir=../..
 
 [defaults]
-defaultunits=1
 defaultoptions=-Sm
-
-
-[rules]
-.PHONY: test examples
-
-test: fpc_exes
-
-examples: fpc_exes

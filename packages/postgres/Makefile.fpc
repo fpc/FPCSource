@@ -4,18 +4,7 @@
 
 [targets]
 units=dllist postgres
-programs=testpg testemail
+examples=testpg testemail
 
 [dirs]
 fpcdir=../..
-
-[defaults]
-defaultunits=1
-
-
-[rules]
-.PHONY: test examples
-
-test: fpc_exes
-
-examples: fpc_exes

@@ -4,18 +4,7 @@
 
 [targets]
 units=svgalib vgamouse
-programs=testvga vgatest
+examples=testvga vgatest
 
 [dirs]
 fpcdir=../..
-
-[defaults]
-defaultunits=1
-
-
-[rules]
-.PHONY: test examples
-
-test: fpc_exes
-
-examples: fpc_exes

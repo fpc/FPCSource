@@ -243,7 +243,7 @@ function deflateInit2 (var strm : z_stream;
 {EXPORT}
 function deflateSetDictionary (var strm : z_stream;
                                dictionary : pBytef; {const bytes}
-			       dictLength : uint) : int;
+                               dictLength : uint) : int;
 
 {    Initializes the compression dictionary (history buffer) from the given
    byte sequence without producing any compressed output. This function must
@@ -353,11 +353,11 @@ type
 {local}
 procedure fill_window(var s : deflate_state); forward;
 {local}
-function deflate_stored(var s : deflate_state; flush : int) : block_state; far; forward;
+function deflate_stored(var s : deflate_state; flush : int) : block_state;{$ifndef fpc}far;{$endif} forward;
 {local}
-function deflate_fast(var s : deflate_state; flush : int) : block_state; far; forward;
+function deflate_fast(var s : deflate_state; flush : int) : block_state;{$ifndef fpc}far;{$endif} forward;
 {local}
-function deflate_slow(var s : deflate_state; flush : int) : block_state; far; forward;
+function deflate_slow(var s : deflate_state; flush : int) : block_state;{$ifndef fpc}far;{$endif} forward;
 {local}
 procedure lm_init(var s : deflate_state); forward;
 
@@ -533,15 +533,15 @@ begin
   strm.msg := '';
   if not Assigned(strm.zalloc) then
   begin
-{$ifdef fpc}  
+{$ifdef fpc}
     strm.zalloc := @zcalloc;
-{$else}    
+{$else}
     strm.zalloc := zcalloc;
-{$endif}    
+{$endif}
     strm.opaque := voidpf(0);
   end;
   if not Assigned(strm.zfree) then
-{$ifdef fpc}  
+{$ifdef fpc}
     strm.zfree := @zcfree;
 {$else}
     strm.zfree := zcfree;
@@ -920,10 +920,10 @@ begin
     if (strm.avail_out = 0) then
     begin
       { Since avail_out is 0, deflate will be called again with
-	more output space, but possibly with both pending and
-	avail_in equal to zero. There won't be anything to do,
-	but this is not an error situation so make sure we
-	return OK instead of BUF_ERROR at next call of deflate: }
+        more output space, but possibly with both pending and
+        avail_in equal to zero. There won't be anything to do,
+        but this is not an error situation so make sure we
+        return OK instead of BUF_ERROR at next call of deflate: }
 
       s^.last_flush := -1;
       deflate := Z_OK;
@@ -971,11 +971,11 @@ begin
       deflate := Z_OK;
       exit;
       { If flush != Z_NO_FLUSH && avail_out == 0, the next call
-	of deflate should use the same flush parameter to make sure
-	that the flush is complete. So we don't have to output an
-	empty block here, this will be done at next call. This also
-	ensures that for a very small output buffer, we emit at most
-	 one empty block. }
+        of deflate should use the same flush parameter to make sure
+        that the flush is complete. So we don't have to output an
+        empty block here, this will be done at next call. This also
+        ensures that for a very small output buffer, we emit at most
+         one empty block. }
     end;
     if (bstate = block_done) then
     begin
@@ -999,7 +999,7 @@ begin
       if (strm.avail_out = 0) then
       begin
         s^.last_flush := -1; { avoid BUF_ERROR at next call, see above }
-	deflate := Z_OK;
+        deflate := Z_OK;
         exit;
       end;
 
@@ -2038,7 +2038,7 @@ begin
       {$endif}
 
       {_tr_tally_dist(s, s->strstart -1 - s->prev_match,
-	                s->prev_length - MIN_MATCH, bflush);}
+                        s->prev_length - MIN_MATCH, bflush);}
       bflush := _tr_tally(s, s.strstart -1 - s.prev_match,
                            s.prev_length - MIN_MATCH);
 

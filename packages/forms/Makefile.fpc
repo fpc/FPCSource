@@ -21,13 +21,10 @@ FORMSVERSION=88
 
 
 [rules]
-.PHONY: test examples
-
-test: fpc_exes
-
-examples: fpc_exes
-
 forms$(PPUEXT): forms-$(FORMSVERSION)$(PASEXT) x$(PPUEXT) xresource$(PPUEXT) xlib$(PPUEXT)\
               xutil$(PPUEXT)
         ln -sf forms-$(FORMSVERSION)$(PASEXT) forms$(PASEXT)
         $(COMPILER) forms$(PASEXT)
+
+examples: all
+        $(MAKE) -C demo all
