@@ -58,7 +58,6 @@ type
 
 var
   AsmRes : TAsmScript;
-  LinkRes : TLinkRes;
 
 
 implementation
@@ -238,7 +237,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2001-04-18 22:01:58  peter
+  Revision 1.10  2001-07-10 21:01:35  peter
+    * fixed crash with writing of the linker script
+
+  Revision 1.9  2001/04/18 22:01:58  peter
     * registration of targets and assemblers
 
   Revision 1.8  2001/04/13 01:22:14  peter

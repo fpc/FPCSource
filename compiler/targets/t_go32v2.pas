@@ -166,20 +166,6 @@ begin
   ScriptRes.Add('OUTPUT_FORMAT("coff-go32-exe")');
   ScriptRes.Add('ENTRY(start)');
 
-  { Write path to search libraries }
-  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
-  while assigned(HPath) do
-   begin
-     LinkRes.Add('SEARCH_PATH("'+GetShortName(HPath.Str)+'")');
-     HPath:=TStringListItem(HPath.Next);
-   end;
-  HPath:=TStringListItem(LibrarySearchPath.First);
-  while assigned(HPath) do
-   begin
-     LinkRes.Add('SEARCH_PATH("'+GetShortName(HPath.Str)+'")');
-     HPath:=TStringListItem(HPath.Next);
-   end;
-
   ScriptRes.Add('SECTIONS');
   ScriptRes.Add('{');
   ScriptRes.Add('  .text  0x1000+SIZEOF_HEADERS : {');
@@ -225,6 +211,20 @@ begin
   ScriptRes.Add('       . = ALIGN(0x200);');
   ScriptRes.Add('    }');
   ScriptRes.Add('  }');
+
+  { Write path to search libraries }
+  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
+  while assigned(HPath) do
+   begin
+     ScriptRes.Add('SEARCH_DIR("'+GetShortName(HPath.Str)+'")');
+     HPath:=TStringListItem(HPath.Next);
+   end;
+  HPath:=TStringListItem(LibrarySearchPath.First);
+  while assigned(HPath) do
+   begin
+     ScriptRes.Add('SEARCH_DIR("'+GetShortName(HPath.Str)+'")');
+     HPath:=TStringListItem(HPath.Next);
+   end;
 
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
@@ -481,7 +481,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2001-07-01 20:16:20  peter
+  Revision 1.9  2001-07-10 21:01:35  peter
+    * fixed crash with writing of the linker script
+
+  Revision 1.8  2001/07/01 20:16:20  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
