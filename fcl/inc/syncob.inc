@@ -27,7 +27,10 @@ procedure TCriticalSection.Leave;
 
 {
   $Log$
-  Revision 1.2  1998-09-30 13:41:04  florian
+  Revision 1.1  1999-06-07 15:51:51  michael
+  + Renamed to syncob
+
+  Revision 1.2  1998/09/30 13:41:04  florian
     * fixes to make it compilable
 
   Revision 1.1  1998/09/29 11:14:25  florian
