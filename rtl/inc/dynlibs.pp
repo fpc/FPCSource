@@ -37,6 +37,11 @@ Function LoadLibrary(Name : AnsiString) : TLibHandle;
 Function GetProcedureAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
 Function UnloadLibrary(Lib : TLibHandle) : Boolean;
 
+// Kylix/Delphi compability
+Function FreeLibrary(Lib : TLibHandle) : Boolean;
+Function GetProcAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
+
+
 Implementation
 
 { ---------------------------------------------------------------------
@@ -45,11 +50,26 @@ Implementation
 
 {$i dynlibs.inc}
 
+Function FreeLibrary(Lib : TLibHandle) : Boolean;
+
+begin
+  result:=FreeLibrary(lib);
+end;
+
+Function GetProcAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
+
+begin
+  Result:=GetProcAddress(Lib,Procname);
+end;
+
 end.
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:07:45  peter
+  Revision 1.3  2004-05-04 17:14:52  marco
+   * some delphi compat aliases added.
+
+  Revision 1.2  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
 }
