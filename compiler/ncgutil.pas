@@ -1357,27 +1357,37 @@ function returns in a register and the caller receives it in an other one}
              { for now the pointer to the result can't be a register }
              if not(paramanager.ret_in_reg(aktprocdef.rettype.def,aktprocdef.proccalloption)) then
                begin
-                  paraloc:=paramanager.getfuncretparaloc(aktprocdef);
-                  reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
-                  case paraloc.loc of
-                     LOC_CREGISTER,
-                     LOC_REGISTER:
-                       if not(paraloc.size in [OS_64,OS_S64]) then
-                         cg.a_load_reg_ref(list,paraloc.size,paraloc.register,href)
-                       else
-                         cg64.a_load64_reg_ref(list,paraloc.register64,href);
-                     LOC_CFPUREGISTER,
-                     LOC_FPUREGISTER:
-                       cg.a_load_reg_ref(list,paraloc.size,paraloc.register,href);
-                     LOC_CMMREGISTER,
-                     LOC_MMREGISTER:
-                       cg.a_loadmm_reg_ref(list,paraloc.register,href);
-                  end;
+{$ifdef powerpc}
+                  { no stack space is allocated in this case -> can't save the result reg on the stack }
+                  if not(po_assembler in aktprocdef.procoptions) then
+{$endif powerpc}
+                    begin
+                      paraloc:=paramanager.getfuncretparaloc(aktprocdef);
+                      reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
+                      case paraloc.loc of
+                        LOC_CREGISTER,
+                        LOC_REGISTER:
+                          if not(paraloc.size in [OS_64,OS_S64]) then
+                            cg.a_load_reg_ref(list,paraloc.size,paraloc.register,href)
+                          else
+                            cg64.a_load64_reg_ref(list,paraloc.register64,href);
+                        LOC_CFPUREGISTER,
+                        LOC_FPUREGISTER:
+                          cg.a_load_reg_ref(list,paraloc.size,paraloc.register,href);
+                        LOC_CMMREGISTER,
+                        LOC_MMREGISTER:
+                          cg.a_loadmm_reg_ref(list,paraloc.register,href);
+                      end;
+                    end;
                end;
 
              { initialize return value }
              if (aktprocdef.rettype.def.needs_inittable) then
                begin
+{$ifdef powerpc}
+                  if (po_assembler in aktprocdef.procoptions) then
+                    internalerror(200304161);
+{$endif powerpc}
                   if (cs_implicit_exceptions in aktmoduleswitches) then
                     procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
                   reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
@@ -1413,47 +1423,50 @@ function returns in a register and the caller receives it in an other one}
           begin
              aktprocdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
 
-             { move register parameters which aren't regable into memory                                          }
-             { we do this after init_paras because it saves some code in init_paras if parameters are in register }
-             { instead in memory                                                                                  }
-             hp:=tparaitem(procinfo.procdef.para.first);
-             while assigned(hp) do
+             if not (po_assembler in aktprocdef.procoptions) then
                begin
-                  if Tvarsym(hp.parasym).reg.enum>lastreg then
-                    internalerror(200301081);
-                  if (tvarsym(hp.parasym).reg.enum<>R_NO) then
-                    case hp.paraloc.loc of
-                       LOC_CREGISTER,
-                       LOC_REGISTER:
+                 { move register parameters which aren't regable into memory                                          }
+                 { we do this after init_paras because it saves some code in init_paras if parameters are in register }
+                 { instead in memory                                                                                  }
+                 hp:=tparaitem(procinfo.procdef.para.first);
+                 while assigned(hp) do
+                   begin
+                     if Tvarsym(hp.parasym).reg.enum>lastreg then
+                       internalerror(200301081);
+                     if (tvarsym(hp.parasym).reg.enum<>R_NO) then
+                       case hp.paraloc.loc of
+                         LOC_CREGISTER,
+                         LOC_REGISTER:
 //                         if not(hp.paraloc.size in [OS_S64,OS_64]) then
-                           cg.a_load_reg_reg(list,hp.paraloc.size,OS_32,hp.paraloc.register,tvarsym(hp.parasym).reg);
+                             cg.a_load_reg_reg(list,hp.paraloc.size,OS_32,hp.paraloc.register,tvarsym(hp.parasym).reg);
 //                         else
 //                           cg64.a_load64_reg_reg(list,hp.paraloc.register64,tvarsym(hp.parasym).reg);
-                       LOC_CFPUREGISTER,
-                       LOC_FPUREGISTER:
-                         cg.a_loadfpu_reg_reg(list,hp.paraloc.register,tvarsym(hp.parasym).reg);
-                    end
-                  else if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER,
-                    LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER]) and
-                    (tvarsym(hp.parasym).reg.enum=R_NO) then
-                    begin
-                       reference_reset_base(href,procinfo.framepointer,tvarsym(hp.parasym).address+
-                         tvarsym(hp.parasym).owner.address_fixup);
-                       case hp.paraloc.loc of
-                          LOC_CREGISTER,
-                          LOC_REGISTER:
-                           if not(hp.paraloc.size in [OS_S64,OS_64]) then
-                              cg.a_load_reg_ref(list,hp.paraloc.size,hp.paraloc.register,href)
+                         LOC_CFPUREGISTER,
+                         LOC_FPUREGISTER:
+                           cg.a_loadfpu_reg_reg(list,hp.paraloc.register,tvarsym(hp.parasym).reg);
+                       end
+                     else if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER,
+                      LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER]) and
+                      (tvarsym(hp.parasym).reg.enum=R_NO) then
+                       begin
+                         reference_reset_base(href,procinfo.framepointer,tvarsym(hp.parasym).address+
+                           tvarsym(hp.parasym).owner.address_fixup);
+                         case hp.paraloc.loc of
+                           LOC_CREGISTER,
+                           LOC_REGISTER:
+                            if not(hp.paraloc.size in [OS_S64,OS_64]) then
+                               cg.a_load_reg_ref(list,hp.paraloc.size,hp.paraloc.register,href)
+                            else
+                               cg64.a_load64_reg_ref(list,hp.paraloc.register64,href);
+                           LOC_FPUREGISTER,
+                           LOC_CFPUREGISTER:
+                             cg.a_loadfpu_reg_ref(list,hp.paraloc.size,hp.paraloc.register,href);
                            else
-                              cg64.a_load64_reg_ref(list,hp.paraloc.register64,href);
-                          LOC_FPUREGISTER,
-                          LOC_CFPUREGISTER:
-                            cg.a_loadfpu_reg_ref(list,hp.paraloc.size,hp.paraloc.register,href);
-                          else
-                            internalerror(2002081302);
+                             internalerror(2002081302);
+                         end;
                        end;
-                    end;
-                  hp:=tparaitem(hp.next);
+                     hp:=tparaitem(hp.next);
+                   end;
                end;
           end;
 
@@ -2005,7 +2018,13 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.83  2003-04-06 21:11:23  olle
+  Revision 1.84  2003-04-16 09:26:55  jonas
+    * assembler procedures now again get a stackframe if they have local
+      variables. No space is reserved for a function result however.
+      Also, the register parameters aren't automatically saved on the stack
+      anymore in assembler procedures.
+
+  Revision 1.83  2003/04/06 21:11:23  olle
     * changed newasmsymbol to newasmsymboldata for data symbols
 
   Revision 1.82  2003/03/30 20:59:07  peter

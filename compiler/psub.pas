@@ -113,8 +113,15 @@ implementation
               akttokenpos:=aktprocsym.fileinfo;
               aktprocdef.funcretsym:=tfuncretsym.create(aktprocsym.name,aktprocdef.rettype);
               { insert in local symtable }
-              symtablestack.insert(aktprocdef.funcretsym);
-              symtablestack.insertvardata(aktprocdef.funcretsym);
+{$ifdef powerpc}
+              { this requires us to setup a stack frame, which gives problem in the linux syscall helpers (JM) }
+              if not(po_assembler in aktprocdef.procoptions) or
+                 not(paramanager.ret_in_reg(aktprocdef.rettype.def,aktprocdef.proccalloption)) then
+{$endif powerpc}
+                begin
+                  symtablestack.insert(aktprocdef.funcretsym);
+                  symtablestack.insertvardata(aktprocdef.funcretsym);
+                end;
               akttokenpos:=storepos;
 
 (*            already done by
@@ -857,7 +864,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2003-04-05 21:09:31  jonas
+  Revision 1.97  2003-04-16 09:26:55  jonas
+    * assembler procedures now again get a stackframe if they have local
+      variables. No space is reserved for a function result however.
+      Also, the register parameters aren't automatically saved on the stack
+      anymore in assembler procedures.
+
+  Revision 1.96  2003/04/05 21:09:31  jonas
     * several ppc/generic result offset related fixes. The "normal" result
       offset seems now to be calculated correctly and a lot of duplicate
       calculations have been removed. Nested functions accessing the parent's

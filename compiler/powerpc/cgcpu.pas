@@ -913,11 +913,6 @@ const
     procedure tcgppc.g_stackframe_entry(list : taasmoutput;localsize : longint);
 
       begin
-        { if you program in assembler, you have to take care of everything }
-        { yourself. Some things just don't work otherwise (e.g. the linux  }
-        { syscall code) (JM)                                               }
-        if (po_assembler in aktprocdef.procoptions) then
-          exit;
         case target_info.system of
           system_powerpc_macos:
             g_stackframe_entry_mac(list,localsize);
@@ -931,14 +926,6 @@ const
     procedure tcgppc.g_return_from_proc(list : taasmoutput;parasize : aword);
 
       begin
-        { if you program in assembler, you have to take care of everything }
-        { yourself. Some things just don't work otherwise (e.g. the linux  }
-        { syscall code) (JM)                                               }
-        if (po_assembler in aktprocdef.procoptions) then
-           begin
-             list.concat(taicpu.op_none(A_BLR));
-             exit;
-           end;
         case target_info.system of
           system_powerpc_macos:
             g_return_from_proc_mac(list,parasize);
@@ -985,38 +972,41 @@ const
           end;
 
         usesfpr:=false;
-        for regcounter.enum:=R_F14 to R_F31 do
-          if regcounter.enum in rg.usedbyproc then
-            begin
-               usesfpr:=true;
-               firstregfpu:=regcounter;
-               break;
-            end;
+        if not (po_assembler in aktprocdef.procoptions) then
+          for regcounter.enum:=R_F14 to R_F31 do
+            if regcounter.enum in rg.usedbyproc then
+              begin
+                usesfpr:= true;
+                firstregfpu:=regcounter;
+                break;
+              end;
 
         usesgpr:=false;
-        for regcounter2:=RS_R14 to RS_R31 do
-          begin
-            if regcounter2 in rg.usedintbyproc then
-              begin
-                 usesgpr:=true;
-                 firstreggpr.enum := R_INTREGISTER;
-                 firstreggpr.number := regcounter2 shl 8;
-                 break;
-              end;
-         end;
+        if not (po_assembler in aktprocdef.procoptions) then
+          for regcounter2:=RS_R14 to RS_R31 do
+            begin
+              if regcounter2 in rg.usedintbyproc then
+                begin
+                   usesgpr:=true;
+                   firstreggpr.enum := R_INTREGISTER;
+                   firstreggpr.number := regcounter2 shl 8;
+                   break;
+                end;
+            end;
 
         { save link register? }
-        if (procinfo.flags and pi_do_call)<>0 then
-          begin
-             { save return address... }
-             r.enum:=R_INTREGISTER;
-             r.number:=NR_R0;
-             list.concat(taicpu.op_reg(A_MFLR,r));
-             { ... in caller's rframe }
-             reference_reset_base(href,rsp,4);
-             list.concat(taicpu.op_reg_ref(A_STW,r,href));
-             a_reg_dealloc(list,r);
-          end;
+        if not (po_assembler in aktprocdef.procoptions) then
+          if (procinfo.flags and pi_do_call)<>0 then
+            begin
+               { save return address... }
+               r.enum:=R_INTREGISTER;
+               r.number:=NR_R0;
+               list.concat(taicpu.op_reg(A_MFLR,r));
+               { ... in caller's rframe }
+               reference_reset_base(href,rsp,4);
+               list.concat(taicpu.op_reg_ref(A_STW,r,href));
+               a_reg_dealloc(list,r);
+            end;
 
         if usesfpr or usesgpr then
           begin
@@ -1042,10 +1032,13 @@ const
 
         tppcprocinfo(procinfo).localsize:=localsize;
 
-        r.enum:=R_INTREGISTER;
-        r.number:=NR_STACK_POINTER_REG;
-        reference_reset_base(href,r,-localsize);
-        a_load_store(list,A_STWU,r,href);
+        if (localsize <> 0) then
+          begin
+            r.enum:=R_INTREGISTER;
+            r.number:=NR_STACK_POINTER_REG;
+            reference_reset_base(href,r,-localsize);
+            a_load_store(list,A_STWU,r,href);
+          end;
 
         { no GOT pointer loaded yet }
         gotgot:=false;
@@ -1142,25 +1135,27 @@ const
         { AltiVec context restore, not yet implemented !!! }
 
         usesfpr:=false;
-        for regcounter.enum:=R_F14 to R_F31 do
-          if regcounter.enum in rg.usedbyproc then
-            begin
-               usesfpr:=true;
-               firstregfpu:=regcounter;
-               break;
-            end;
-
-        usesgpr:=false;
-        for regcounter2:=RS_R14 to RS_R30 do
-          begin
-            if regcounter2 in rg.usedintbyproc then
+        if not (po_assembler in aktprocdef.procoptions) then
+          for regcounter.enum:=R_F14 to R_F31 do
+            if regcounter.enum in rg.usedbyproc then
               begin
-                 usesgpr:=true;
-                 firstreggpr.enum:=R_INTREGISTER;
-                 firstreggpr.number:=regcounter2 shl 8;
+                 usesfpr:=true;
+                 firstregfpu:=regcounter;
                  break;
               end;
-          end;
+
+        usesgpr:=false;
+        if not (po_assembler in aktprocdef.procoptions) then
+          for regcounter2:=RS_R14 to RS_R30 do
+            begin
+              if regcounter2 in rg.usedintbyproc then
+                begin
+                  usesgpr:=true;
+                  firstreggpr.enum:=R_INTREGISTER;
+                  firstreggpr.number:=regcounter2 shl 8;
+                  break;
+                end;
+            end;
 
         { no return (blr) generated yet }
         genret:=true;
@@ -1211,16 +1206,17 @@ const
              r.number:=NR_R1;
              a_op_const_reg(list,OP_ADD,tppcprocinfo(procinfo).localsize,r);
              { load link register? }
-             if (procinfo.flags and pi_do_call)<>0 then
-               begin
-                  r.enum:=R_INTREGISTER;
-                  r.number:=NR_STACK_POINTER_REG;
-                  reference_reset_base(href,r,4);
-                  r.enum:=R_INTREGISTER;
-                  r.number:=NR_R0;
-                  list.concat(taicpu.op_reg_ref(A_LWZ,r,href));
-                  list.concat(taicpu.op_reg(A_MTLR,r));
-               end;
+             if not (po_assembler in aktprocdef.procoptions) then
+               if (procinfo.flags and pi_do_call)<>0 then
+                 begin
+                    r.enum:=R_INTREGISTER;
+                    r.number:=NR_STACK_POINTER_REG;
+                    reference_reset_base(href,r,4);
+                    r.enum:=R_INTREGISTER;
+                    r.number:=NR_R0;
+                    list.concat(taicpu.op_reg_ref(A_LWZ,r,href));
+                    list.concat(taicpu.op_reg(A_MTLR,r));
+                 end;
              list.concat(taicpu.op_none(A_BLR));
           end;
       end;
@@ -1239,25 +1235,27 @@ const
 
     begin
       usesfpr:=false;
-      for regcounter.enum:=R_F14 to R_F31 do
-        if regcounter.enum in rg.usedbyproc then
-          begin
-             usesfpr:=true;
-             firstregfpu:=regcounter;
-             break;
-          end;
-
-      usesgpr:=false;
-      for regcounter2:=RS_R13 to RS_R31 do
-        begin
-          if regcounter2 in rg.usedintbyproc then
+      if not (po_assembler in aktprocdef.procoptions) then
+        for regcounter.enum:=R_F14 to R_F31 do
+          if regcounter.enum in rg.usedbyproc then
             begin
-               usesgpr:=true;
-               firstreggpr.enum:=R_INTREGISTER;
-               firstreggpr.number:=regcounter2 shl 8;
+               usesfpr:=true;
+               firstregfpu:=regcounter;
                break;
             end;
-        end;
+
+      usesgpr:=false;
+      if not (po_assembler in aktprocdef.procoptions) then
+        for regcounter2:=RS_R13 to RS_R31 do
+          begin
+            if regcounter2 in rg.usedintbyproc then
+              begin
+                 usesgpr:=true;
+                 firstreggpr.enum:=R_INTREGISTER;
+                 firstreggpr.number:=regcounter2 shl 8;
+                 break;
+              end;
+          end;
       offset:= 0;
 
       { save floating-point registers }
@@ -1316,26 +1314,28 @@ const
 
     begin
       usesfpr:=false;
-      for regcounter.enum:=R_F14 to R_F31 do
-        if regcounter.enum in rg.usedbyproc then
-          begin
-             usesfpr:=true;
-             firstregfpu:=regcounter;
-             break;
-          end;
-
-      usesgpr:=false;
-      for regcounter2:=RS_R13 to RS_R31 do
-        begin
-          if regcounter2 in rg.usedintbyproc then
+      if not (po_assembler in aktprocdef.procoptions) then
+        for regcounter.enum:=R_F14 to R_F31 do
+          if regcounter.enum in rg.usedbyproc then
             begin
-               usesgpr:=true;
-               firstreggpr.enum:=R_INTREGISTER;
-               firstreggpr.number:=regcounter2 shl 8;
+               usesfpr:=true;
+               firstregfpu:=regcounter;
                break;
             end;
-          inc(r.number,NR_R1-NR_R0);
-        end;
+
+      usesgpr:=false;
+      if not (po_assembler in aktprocdef.procoptions) then
+        for regcounter2:=RS_R13 to RS_R31 do
+          begin
+            if regcounter2 in rg.usedintbyproc then
+              begin
+                 usesgpr:=true;
+                 firstreggpr.enum:=R_INTREGISTER;
+                 firstreggpr.number:=regcounter2 shl 8;
+                 break;
+              end;
+            inc(r.number,NR_R1-NR_R0);
+          end;
 
       offset:= 0;
 
@@ -1464,11 +1464,14 @@ const
         localsize:=align(localsize,16);
         tppcprocinfo(procinfo).localsize:=localsize;
 
-        r.enum:=R_INTREGISTER;
-        r.number:=NR_STACK_POINTER_REG;
-        reference_reset_base(href,r,-localsize);
-        a_load_store(list,A_STWU,r,href);
-          { this also stores the old stack pointer in the new stack frame }
+        if (localsize <> 0) then
+          begin
+            r.enum:=R_INTREGISTER;
+            r.number:=NR_STACK_POINTER_REG;
+            reference_reset_base(href,r,-localsize);
+            a_load_store(list,A_STWU,r,href);
+            { this also stores the old stack pointer in the new stack frame }
+          end;
       end;
 
     procedure tcgppc.g_return_from_proc_mac(list : taasmoutput;parasize : aword);
@@ -2212,7 +2215,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2003-04-06 16:39:11  jonas
+  Revision 1.78  2003-04-16 09:26:55  jonas
+    * assembler procedures now again get a stackframe if they have local
+      variables. No space is reserved for a function result however.
+      Also, the register parameters aren't automatically saved on the stack
+      anymore in assembler procedures.
+
+  Revision 1.77  2003/04/06 16:39:11  jonas
     * don't generate entry/exit code for assembler procedures
 
   Revision 1.76  2003/03/22 18:01:13  jonas
