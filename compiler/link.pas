@@ -40,7 +40,7 @@ Type
        DynamicLinker     : String[80];    { What Dynamic linker ? }
        LinkResName       : String[32];    { Name of response file }
      { Methods }
-       Constructor Init;
+	   Constructor Init;
        Destructor Done;
        procedure AddModuleFiles(hp:pmodule);
        function  FindObjectFile(s : string) : string;
@@ -49,7 +49,7 @@ Type
        Procedure AddStaticLibrary(const S : String);
        Procedure AddSharedLibrary(S : String);
        Function  FindLinker:String;      { Find linker, sets Name }
-       Function  DoExec(const command,para:string;info,useshell:boolean):boolean;
+	   Function  DoExec(const command,para:string;info,useshell:boolean):boolean;
        Function  WriteResponseFile:Boolean;
        Function  MakeExecutable:boolean;
        Procedure MakeStaticLibrary(filescnt:longint);
@@ -145,7 +145,7 @@ begin
   if LastLDBin='' then
    begin
      LastLDBin:=FindExe(target_link.linkbin,ldfound);
-     if (not ldfound) and not(cs_link_extern in aktglobalswitches) then
+	 if (not ldfound) and not(cs_link_extern in aktglobalswitches) then
       begin
         Message1(exec_w_linker_not_found,LastLDBin);
         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
@@ -226,31 +226,31 @@ begin
   DoExec:=true;
   if not(cs_link_extern in aktglobalswitches) then
    begin
-     swapvectors;
-     if useshell then
-      shell(command+' '+para)
-     else
-      exec(command,para);
-     swapvectors;
-     if (dosexitcode<>0) then
-      begin
-        Message(exec_w_error_while_linking);
-        aktglobalswitches:=aktglobalswitches+[cs_link_extern];
-        DoExec:=false;
-      end
-     else
-      if (dosError<>0) then
-       begin
-         Message(exec_w_cant_call_linker);
-         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
-         DoExec:=false;
-       end;
+	 swapvectors;
+	 if useshell then
+	  shell(command+' '+para)
+	 else
+	  exec(command,para);
+	 swapvectors;
+	 if (doserror<>0) then
+	  begin
+		 Message(exec_w_cant_call_linker);
+		 aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+		 DoExec:=false;
+	  end
+	 else
+	  if (dosexitcode<>0) then
+	   begin
+		Message(exec_w_error_while_linking);
+		aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+		DoExec:=false;
+	   end;
    end;
 { Update asmres when externmode is set }
   if cs_link_extern in aktglobalswitches then
    begin
-     if info then
-      AsmRes.AddLinkCommand(Command,Para,current_module^.exefilename^)
+	 if info then
+	  AsmRes.AddLinkCommand(Command,Para,current_module^.exefilename^)
      else
       AsmRes.AddLinkCommand(Command,Para,'');
    end;
@@ -395,10 +395,10 @@ begin
 {$ifdef linux}
   if LinkToC then
    begin
-     AddObject('/usr/lib/crt0.o');
-     AddObject('lprt');
-     AddStaticLibrary('libc.a');
-     AddStaticLibrary('libgcc.a');
+	 AddObject('/usr/lib/crt0.o');
+	 AddObject('lprt');
+	 AddStaticLibrary('libc.a');
+	 AddStaticLibrary('libgcc.a');
    end;
 {$endif Linux}
 
@@ -416,22 +416,27 @@ begin
 {Bind}
   if target_link.bindbin<>'' then
    begin
-     s:=target_link.bindcmd;
-     Replace(s,'$EXE',current_module^.exefilename^);
-     Replace(s,'$HEAPKB',tostr((heapsize+1023) shr 10));
-     Replace(s,'$STACKKB',tostr((stacksize+1023) shr 10));
-     bindbin:=FindExe(target_link.bindbin,bindfound);
-     if (not bindfound) and not(cs_link_extern in aktglobalswitches) then
-      begin
-        Message1(exec_w_binder_not_found,bindbin);
-        aktglobalswitches:=aktglobalswitches+[cs_link_extern];
-      end;
-     DoExec(bindbin,s,false,false);
+	 s:=target_link.bindcmd;
+	 Replace(s,'$EXE',current_module^.exefilename^);
+	 {Size of the heap when an EMX program runs in OS/2.}
+	 Replace(s,'$HEAPMB',tostr((maxheapsize+1048575) shr 20));
+	 {Size of the stack when an EMX program runs in OS/2.}
+	 Replace(s,'$STACKKB',tostr((stacksize+1023) shr 10));
+	 {When an EMX program runs in DOS, the heap and stack share the
+	  same memory pool. The heap grows upwards, the stack grows downwards.}
+	 Replace(s,'$DOSHEAPKB',tostr((stacksize+maxheapsize+1023) shr 10));
+	 bindbin:=FindExe(target_link.bindbin,bindfound);
+	 if (not bindfound) and not (cs_link_extern in aktglobalswitches) then
+	  begin
+		Message1(exec_w_binder_not_found,bindbin);
+		aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+	  end;
+	 DoExec(bindbin,s,false,false);
    end;
-{$ifdef i386}  
+{$ifdef i386}
   if target_info.target=target_Win32 then
-    win_targ.postprocessexecutable;
-{$endif}    
+	win_targ.postprocessexecutable;
+{$endif}
 {Remove ReponseFile}
   if (success) and not(cs_link_extern in aktglobalswitches) then
    RemoveFile(LinkResName);
@@ -496,7 +501,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  1998-09-07 18:32:45  peter
+  Revision 1.25  1998-09-10 15:25:31  daniel
+  + Added maxheapsize.
+  * Corrected semi-bug in calling the assembler and the linker
+
+  Revision 1.24  1998/09/07 18:32:45  peter
     * fixed for m68k
 
   Revision 1.23  1998/09/03 17:39:04  florian

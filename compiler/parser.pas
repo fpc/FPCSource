@@ -70,6 +70,8 @@ unit parser;
          { memory sizes }
          if heapsize=0 then
           heapsize:=target_info.heapsize;
+	 if maxheapsize=0 then
+	  maxheapsize:=target_info.maxheapsize;
          if stacksize=0 then
           stacksize:=target_info.stacksize;
       end;
@@ -370,7 +372,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.43  1998-09-09 15:33:06  peter
+  Revision 1.44  1998-09-10 15:25:34  daniel
+  + Added maxheapsize.
+  * Corrected semi-bug in calling the assembler and the linker
+
+  Revision 1.43  1998/09/09 15:33:06  peter
     * fixed in_global to allow directives also after interface token
 
   Revision 1.42  1998/09/04 08:41:59  peter

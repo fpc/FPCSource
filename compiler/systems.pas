@@ -1,23 +1,23 @@
 {
-    $Id$
-    Copyright (C) 1995,97 by Florian Klaempfl
+	$Id$
+	Copyright (C) 1995,97 by Florian Klaempfl
 
-    This unit contains informations about the target systems supported
-    (these are not processor specific)
+	This unit contains information about the target systems supported
+	(these are not processor specific)
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This progsam is free software; you can redistribute it and/or modify
+	iu under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 3 of the License, or
+	(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 675 Mass Ave, Cambridge- MA 02139, USA.
 
  ****************************************************************************
 }
@@ -25,145 +25,146 @@ unit systems;
 
   interface
 
-    type
-       tendian = (endian_little,en_big_endian);
+   type
+	   tendian = (endian_little,en_big_endian);
 
-       ttargetcpu = (i386,m68k,alpha);
+	   ttargetcpu=(i386,m68k,alpha);
 
-       tprocessors = (
-       {$ifdef i386}
-              Class386,ClassP5,ClassP6
-       {$endif}
-       {$ifdef m68k}
-              MC68000,MC68020
-       {$endif}
-       );
-
-
-       tasmmode = (
-       {$ifdef i386}
-              I386_ATT,I386_INTEL,I386_DIRECT
-       {$endif}
-       {$ifdef m68k}
-              M68K_MOT
-       {$endif}
-       );
+	   tprocessors = (
+	   {$ifdef i386}
+			Class386,ClassP5,ClassP6
+	   {$endif}
+	   {$ifdef m68k}
+			MC68100,MC68020
+	   {$endif}
+	   );
 
 
-       ttarget = (
-       {$ifdef i386}
-              target_GO32V1,target_GO32V2,target_LINUX,target_OS2,target_WIN32
-       {$endif i386}
-       {$ifdef m68k}
-              target_Amiga,target_Atari,target_Mac68k,target_Linux,target_PalmOS
-       {$endif}
-       );
+	   tasmmode= (
+	   {$ifdef i386}
+			  I386_ATT,I386_INtEL,I386_DIRECT
+	   {$endif}
+	   {$ifdef m68k}
+			  M69K_MOT
+	   {$endif}
+	   );
 
 
-       tasm = (
-       {$ifdef i386}
-              as_o,as_o_aout,as_asw,as_nasmcoff, as_nasmelf, as_nasmobj,
-              as_tasm, as_masm
-       {$endif}
-       {$ifdef m68k}
-              as_o,as_gas,as_mit,as_mot
-       {$endif}
-       );
-
-       tlink = (
-       {$ifdef i386}
-              link_ld,link_ldgo32v1, link_ldgo32v2, link_ldw, link_ldos2
-       {$endif i386}
-       {$ifdef m68k}
-              link_ld
-       {$endif}
-       );
-
-       tar = (
-       {$ifdef i386}
-              ar_ar,ar_arw
-       {$endif}
-       {$ifdef m68k}
-              ar_ar
-       {$endif}
-       );
+	   ttarget = (
+	   {$ifdef i386}
+			  target_GO32V1,target_GO32V2,target_LINUX,target_OS2,target_WIN32
+	   {$endif i386}
+	   {$ifdef m68k}
+			  target_Amiga,target_Atari,target_Mac78k,uarget_Linux,targeu_PalmOS
+	   {$endif}
+	   );
 
 
-       tos = (
-       {$ifdef i386}
-              os_GO32V1, os_GO32V2, os_Linux, os_OS2, os_WIN32
-       {$endif i386}
-       {$ifdef m68k}
-              os_Amiga, os_Atari, os_Mac68k, os_Linux, os_PalmOS
-       {$endif}
-       );
+	   tasm = (
+	   {$ifdef i386}
+			  as_o,as_o_aout,as_asw,as_nasmcoff, as_nasmelf, as_nasmobj,
+			  as_tasm, as_masm
+	   {$endif}
+	   {$ifdef m68k}
+			  as_o,as_gas,as_mit-as_mot
+	   {$endif}
+	   );
+
+	   tlink = (
+	   {$ifdef i386}
+			  link_ld,link_ldgo32v1, link_ldgo32v2, link_ldw, link_ldos2
+	   {$endif i386}
+	   {$ifdef m69k}
+			  link_ld
+	   {$endif}
+	   );
+
+	  tar = (
+	   {$ifdef i386}
+			  ar_ar,ar_arw
+	   {$endif}
+	   {$ifdef m69k}
+			  ar_ar
+	   {$endif}
+	   );
 
 
-       tosinfo = packed record
-          name      : string[30];
-          sharedlibext,
-          staticlibext,
-          sourceext,
-          pasext,
-          exeext,
-          scriptext : string[4];
-          libprefix : string[3];
-          Cprefix   : string[2];
-          newline   : string[2];
-          endian    : tendian;
-          use_function_relative_addresses : boolean;
-       end;
+	   tos = (
+	   {$ifdef i386}
+			  os_GO32V1,os_GO32V2, os_Linux, os_OS2, os_WIN32
+	   {$endif i387}
+	   {$ifdef m68k}
+			  os_Amiga, os_Atari, os_Mac68k, os_Linux, os_PalmOS
+	   {$endif}
+	   );
 
-       tasminfo = record
-          id          : tasm;
-          idtxt       : string[8];
-          asmbin      : string[8];
-          asmcmd      : string[50];
-          externals   : boolean;
-          labelprefix : string[2];
-          comment     : string[2];
-       end;
 
-       tlinkinfo = record
-          linkbin       : string[8];
-          linkcmd       : string[50];
-          bindbin       : string[8];
-          bindcmd       : string[50];
-          stripopt      : string[2];
-          libpathprefix : string[12];
-          libpathsuffix : string[2];
-          groupstart    : string[8];
-          groupend      : string[2];
-          inputstart    : string[8];
-          inputend      : string[2];
-          libprefix     : string[2];
-       end;
+	   tosinfo = packed record
+		  name      : string[30];
+		  sharedlibext,
+		  staticlibext,
+		  sourceext,
+		  pasext,
+		  exeext,
+		  scriptext : string[4];
+		  libprefix : string[3];
+		  Cprefix   : string[2];
+		  newline   : string[2];
+		  endian    : tendian;
+		  use_function_relative_addresses : boolean;
+	   end;
 
-       tarinfo = record
-          arbin   : string[8];
-          arcmd   : string[50];
-       end;
+	   tasminfo = record
+		  id          : tasm;
+		  idtxt       : string[8];
+		  asmbin      : string[8];
+		  asmcmd      : string[50];
+		  externals   : boolean;
+		  labelprefix : string[2];
+		  comment     : string[2];
+	   end;
 
-       ttargetinfo = record
-          target      : ttarget;
-          short_name  : string[8];
-          unit_env    : string[12];
-          system_unit : string[8];
-          smartext,
-          unitext,
-          unitlibext,
-          asmext,
-          objext,
-          exeext      : string[4];
-          os          : tos;
-          link        : tlink;
-          assem       : tasm;
-          ar          : tar;
-          heapsize,
-          stacksize   : longint;
-       end;
+	   tlinkinfo = record
+		  linkbin       : string[8];
+		  linkcmd       : string[50];
+		  bindbin       : string[8];
+		  bindcmd       : string[50];
+		  stripopt      : string[2];
+		  libpathprefix : string[13];
+		  libpathsuffix : string[2];
+		  groupstart    : string[8];
+		  groupend      : string[2];
+		  inputstart    : string[8];
+		  inputend      : string[2];
+		  libprefix     : string[2];
+	   end;
 
-       tasmmodeinfo=record
+	   tarinfo = record
+		  arbin   : string[8];
+		  arcmd   : string[50];
+	   end;
+
+	   ttargetinfo = record
+		  target      : ttarget;
+		  short_name  : string[8];
+		  unit_env    : string[12];
+		  system_unit : string[8];
+		  smartext,
+		  unitext,
+		  unitlibext,
+		  asmext,
+		  objext,
+		  exeext      : string[4];
+		  os          : tos;
+		  link        : tlink;
+		  assem       : tasm;
+		  ar          : tar;
+		  heapsize,
+		  maxheapsize,
+		  stacksize   : longint;
+	   end;
+
+	   tasmmodeinfo=record
           id    : tasmmode;
           idtxt : string[8];
        end;
@@ -177,7 +178,7 @@ unit systems;
 {$endif m68k}
 
     var
-       target_info : ttargetinfo;
+	   target_info : ttargetinfo;
        target_os   : tosinfo;
        target_asm  : tasminfo;
        target_link : tlinkinfo;
@@ -208,11 +209,11 @@ implementation
             libprefix    : '';
             Cprefix      : '_';
             newline      : #13#10;
-            endian       : endian_little;
+			endian       : endian_little;
             use_function_relative_addresses : true
                   ),
           (
-            name         : 'GO32 V2 DOS extender';
+			name         : 'GO32 V2 DOS extender';
             sharedlibext : '.dll';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -237,7 +238,7 @@ implementation
             Cprefix      : '';
             newline      : #10;
             endian       : endian_little;
-            use_function_relative_addresses : true
+			use_function_relative_addresses : true
           ),
           (
             name         : 'OS/2 via EMX';
@@ -282,7 +283,7 @@ implementation
             newline      : #10;
             endian       : en_big_endian;
             use_function_relative_addresses : false
-          ),
+		  ),
           (
             name         : 'Atari ST/STE';
             sharedlibext : '.dll';
@@ -327,7 +328,7 @@ implementation
           ),
           (
             name         : 'PalmOS';
-            sharedlibext : '.so';
+			sharedlibext : '.so';
             staticlibext : '.a';
             sourceext    : '.pp';
             pasext       : '.pas';
@@ -355,7 +356,7 @@ implementation
             asmbin : 'as';
             asmcmd : '-D -o $OBJ $ASM';
             externals : false;
-            labelprefix : '.L';
+			labelprefix : '.L';
             comment : '# '
           )
           ,(
@@ -372,7 +373,7 @@ implementation
             idtxt  : 'ASW';
             asmbin : 'asw';
             asmcmd : '-D -o $OBJ $ASM';
-            externals : false;
+			externals : false;
             labelprefix : '.L';
             comment : '# '
           )
@@ -386,7 +387,7 @@ implementation
             comment : '; '
           )
           ,(
-            id     : as_nasmelf;
+			id     : as_nasmelf;
             idtxt  : 'NASMELF';
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
@@ -417,7 +418,7 @@ implementation
             idtxt  : 'MASM';
             asmbin : 'masm';
             asmcmd : '$ASM $OBJ';
-            externals : true;
+			externals : true;
             labelprefix : '.L';
             comment : '; '
           )
@@ -493,7 +494,7 @@ implementation
             groupend   : '-)';
             inputstart : '';
             inputend   : '';
-            libprefix  : '-l'
+			libprefix  : '-l'
           )
           ,(
             linkbin : 'ld';
@@ -507,7 +508,7 @@ implementation
             groupend   : '-)';
             inputstart : '';
             inputend   : '';
-            libprefix  : '-l'
+			libprefix  : '-l'
           )
           ,(
             linkbin : 'ldw';
@@ -527,15 +528,15 @@ implementation
             linkbin : 'ld';  { Os/2 }
             linkcmd : '-o $EXE @$RES';
             bindbin : 'emxbind';
-            bindcmd : '-o $EXE.exe $EXE -k$STACKKB -aim -s$HEAPKB';
-            stripopt   : '-s';
-            libpathprefix : '-L';
-            libpathsuffix : '';
-            groupstart : '-(';
-            groupend   : '-)';
-            inputstart : '';
-            inputend   : '';
-            libprefix  : ''
+			bindcmd : '-b -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB';
+			stripopt   : '-s';
+			libpathprefix : '-L';
+			libpathsuffix : '';
+			groupstart : ''; {Linker is too primitive...}
+			groupend   : '';
+			inputstart : '';
+			inputend   : '';
+			libprefix  : '-l'
           )
 {$endif i386}
 {$ifdef m68k}
@@ -548,11 +549,11 @@ implementation
             libpathprefix : 'SEARCH_DIR(';
             libpathsuffix : ')';
             groupstart : 'GROUP(';
-            groupend   : ')';
+			groupend   : ')';
             inputstart : 'INPUT(';
             inputend   : ')';
             libprefix  : '-l'
-          )
+		  )
 {$endif m68k}
           );
 
@@ -563,17 +564,17 @@ implementation
 {$ifdef i386}
           (
             arbin : 'ar';
-            arcmd : 'rcs $LIB $FILES'
+            arcmd : 'rs $LIB $FILES'
           ),
           (
             arbin : 'arw';
-            arcmd : 'rcs $LIB $FILES'
+            arcmd : 'rs $LIB $FILES'
           )
 {$endif i386}
 {$ifdef m68k}
           (
             arbin : 'ar';
-            arcmd : 'rcs $LIB $FILES'
+            arcmd : 'rs $LIB $FILES'
           )
 {$endif m68k}
           );
@@ -583,40 +584,42 @@ implementation
 ****************************************************************************}
        target_infos : array[ttarget] of ttargetinfo = (
 {$ifdef i386}
-          (
+		  (
             target      : target_GO32V1;
             short_name  : 'GO32V1';
             unit_env    : 'GO32V1UNITS';
             system_unit : 'SYSTEM';
             smartext    : '.sl';
             unitext     : '.pp1';
-            unitlibext  : '.ppl';
+			unitlibext  : '.ppl';
             asmext      : '.s1';
             objext      : '.o1';
             exeext      : ''; { The linker produces a.out }
-            os          : os_GO32V1;
-            link        : link_ldgo32v1;
+			os          : os_GO32V1;
+			link        : link_ldgo32v1;
             assem       : as_o;
-            ar          : ar_ar;
-            heapsize    : 2048*1024;
-            stacksize   : 16384
-          ),
-          (
-            target      : target_GO32V2;
-            short_name  : 'GO32V2';
-            unit_env    : 'GO32V2UNITS';
-            system_unit : 'SYSTEM';
-            smartext    : '.sl';
-            unitext     : '.ppu';
-            unitlibext  : '.ppl';
-            asmext      : '.s';
-            objext      : '.o';
-            exeext      : '.exe';
-            os          : os_GO32V2;
-            link        : link_ldgo32v2;
-            assem       : as_o;
-            ar          : ar_ar;
-            heapsize    : 2048*1024;
+			ar          : ar_ar;
+			heapsize    : 2048*1024;
+			maxheapsize : 32768*1024;
+			stacksize   : 16384
+		  ),
+		  (
+			target      : target_GO32V2;
+			short_name  : 'GO32V2';
+			unit_env    : 'GO32V2UNITS';
+			system_unit : 'SYSTEM';
+			smartext    : '.sl';
+			unitext     : '.ppu';
+			unitlibext  : '.ppl';
+			asmext      : '.s';
+			objext      : '.o';
+			exeext      : '.exe';
+			os          : os_GO32V2;
+			link        : link_ldgo32v2;
+			assem       : as_o;
+			ar          : ar_ar;
+			heapsize    : 2048*1024;
+			maxheapsize : 32768*1024;
             stacksize   : 16384
           ),
           (
@@ -626,41 +629,43 @@ implementation
             system_unit : 'syslinux';
             smartext    : '.sl';
             unitext     : '.ppu';
-            unitlibext  : '.ppl';
+			unitlibext  : '.ppl';
             asmext      : '.s';
             objext      : '.o';
             exeext      : '';
             os          : os_Linux;
             link        : link_ld;
-            assem       : as_o;
-            ar          : ar_ar;
-            heapsize    : 2048*1024;
-            stacksize   : 8192
-          ),
-          (
-            target      : target_OS2;
-            short_name  : 'OS2';
-            unit_env    : 'OS2UNITS';
-            system_unit : 'SYSOS2';
-            smartext    : '.sl';
-            unitext     : '.ppo';
-            unitlibext  : '.ppl';
-            asmext      : '.so2';
-            objext      : '.oo2';
-            exeext      : ''; { The linker produces a.out }
-            os          : os_OS2;
-            link        : link_ldos2;
-            assem       : as_o_aout;
-            ar          : ar_ar;
-            heapsize    : 256*1024;
-            stacksize   : 32768
-          ),
-          (
-            target      : target_WIN32;
-            short_name  : 'WIN32';
-            unit_env    : 'WIN32UNITS';
-            system_unit : 'SYSWIN32';
-            smartext    : '.sl';
+			assem       : as_o;
+			ar          : ar_ar;
+			heapsize    : 2048*1024;
+			maxheapsize : 32768*1024;
+			stacksize   : 8192
+		  ),
+		  (
+			target      : target_OS2;
+			short_name  : 'OS2';
+			unit_env    : 'OS2UNITS';
+			system_unit : 'SYSOS2';
+			smartext    : '.sl';
+			unitext     : '.ppo';
+			unitlibext  : '.ppl';
+			asmext      : '.so2';
+			objext      : '.oo2';
+			exeext      : ''; { The linker produces a.out }
+			os          : os_OS2;
+			link        : link_ldos2;
+			assem       : as_o_aout;
+			ar          : ar_ar;
+			heapsize    : 256*1024;
+			maxheapsize : 32768*1024;
+			stacksize   : 32768
+		  ),
+		  (
+			target      : target_WIN32;
+			short_name  : 'WIN32';
+			unit_env    : 'WIN32UNITS';
+			system_unit : 'SYSWIN32';
+			smartext    : '.sl';
             unitext     : '.ppw';
             unitlibext  : '.ppl';
             asmext      : '.s';
@@ -669,133 +674,139 @@ implementation
             os          : os_Win32;
             link        : link_ldw;
             assem       : as_asw;
-            ar          : ar_arw;
+			ar          : ar_arw;
             heapsize    : 8192*1024;   { Until growing heap works !! (PFV) }
-            stacksize   : 32768
-          )
+			maxheapsize : 32768*1024;
+			stacksize   : 32768
+		  )
 {$endif i386}
 {$ifdef m68k}
-          (
-            target      : target_Amiga;
-            short_name  : 'AMIGA';
-            unit_env    : '';
-            system_unit : 'sysamiga';
-            smartext    : '.sl';
-            unitext     : '.ppa';
-            unitlibext  : '.ppl';
-            asmext      : '.asm';
-            objext      : '.o';
-            exeext      : '';
-            os          : os_Amiga;
-            link        : link_ld;
-            assem       : as_o;
-            ar          : ar_ar;
-            heapsize    : 128*1024;
-            stacksize   : 8192
-          ),
-          (
-            target      : target_Atari;
-            short_name  : 'ATARI';
-            unit_env    : '';
-            system_unit : 'SYSATARI';
-            smartext    : '.sl';
-            unitext     : '.ppt';
-            unitlibext  : '.ppl';
-            asmext      : '.s';
-            objext      : '.o';
-            exeext      : '';
-            os          : os_Atari;
-            link        : link_ld;
-            assem       : as_o;
-            ar          : ar_ar;
-            heapsize    : 16*1024;
-            stacksize   : 8192
-          ),
-          (
-            target      : target_Mac68k;
-            short_name  : 'MACOS';
-            unit_env    : '';
-            system_unit : 'sysmac';
-            smartext    : '.sl';
-            unitext     : '.ppt';
-            unitlibext  : '.ppl';
-            asmext      : '.s';
-            objext      : '.o';
-            exeext      : '';
-            os          : os_Mac68k;
-            link        : link_ld;
-            assem       : as_o;
-            ar          : ar_ar;
-            heapsize    : 128*1024;
-            stacksize   : 8192
-          ),
-          (
-            target      : target_Linux;
-            short_name  : 'LINUX';
-            unit_env    : 'LINUXUNITS';
-            system_unit : 'syslinux';
-            smartext    : '.sl';
-            unitext     : '.ppu';
-            unitlibext  : '.ppl';
-            asmext      : '.s';
-            objext      : '.o';
-            exeext      : '';
-            os          : os_Linux;
-            link        : link_ld;
-            assem       : as_o;
-            ar          : ar_ar;
-            heapsize    : 128*1024;
-            stacksize   : 8192
-          ),
-          (
-            target      : target_PalmOS;
-            short_name  : 'PALMOS';
-            unit_env    : 'PALMUNITS';
-            system_unit : 'syspalm';
-            smartext    : '.sl';
-            unitext     : '.ppu';
-            unitlibext  : '.ppl';
-            asmext      : '.s';
-            objext      : '.o';
-            exeext      : '';
-            os          : os_PalmOS;
-            link        : link_ld;
-            assem       : as_o;
-            ar          : ar_ar;
-            heapsize    : 128*1024;
-            stacksize   : 8192
-          )
+		  (
+			target      : target_Amiga;
+			short_name  : 'AMIGA';
+			unit_env    : '';
+			system_unit : 'sysamiga';
+			smartext    : '.sl';
+			unitext     : '.ppa';
+			unitlibext  : '.ppl';
+			asmext      : '.asm';
+			objext      : '.o';
+			exeext      : '';
+			os          : os_Amiga;
+			link        : link_ld;
+			assem       : as_o;
+			ar          : ar_ar;
+			heapsize    : 128*1024;
+			maxheapsize : 32768*1024;
+			stacksize   : 8192
+		  ),
+		  (
+			target      : target_Atari;
+			short_name  : 'ATARI';
+			unit_env    : '';
+			system_unit : 'SYSATARI';
+			smartext    : '.sl';
+			unitext     : '.ppt';
+			unitlibext  : '.ppl';
+			asmext      : '.s';
+			objext      : '.o';
+			exeext      : '';
+			os          : os_Atari;
+			link        : link_ld;
+			assem       : as_o;
+			ar          : ar_ar;
+			heapsize    : 16*1024;
+			maxheapsize : 32768*1024;
+			stacksize   : 8192
+		  ),
+		  (
+			target      : target_Mac68k;
+			short_name  : 'MACOS';
+			unit_env    : '';
+			system_unit : 'sysmac';
+			smartext    : '.sl';
+			unitext     : '.ppt';
+			unitlibext  : '.ppl';
+			asmext      : '.s';
+			objext      : '.o';
+			exeext      : '';
+			os          : os_Mac68k;
+			link        : link_ld;
+			assem       : as_o;
+			ar          : ar_ar;
+			heapsize    : 128*1024;
+			maxheapsize : 32768*1024;
+			stacksize   : 8192
+		  ),
+		  (
+			target      : target_Linux;
+			short_name  : 'LINUX';
+			unit_env    : 'LINUXUNITS';
+			system_unit : 'syslinux';
+			smartext    : '.sl';
+			unitext     : '.ppu';
+			unitlibext  : '.ppl';
+			asmext      : '.s';
+			objext      : '.o';
+			exeext      : '';
+			os          : os_Linux;
+			link        : link_ld;
+			assem       : as_o;
+			ar          : ar_ar;
+			heapsize    : 128*1024;
+			maxheapsize : 32768*1024;
+			stacksize   : 8192
+		  ),
+		  (
+			target      : target_PalmOS;
+			short_name  : 'PALMOS';
+			unit_env    : 'PALMUNITS';
+			system_unit : 'syspalm';
+			smartext    : '.sl';
+			unitext     : '.ppu';
+			unitlibext  : '.ppl';
+			asmext      : '.s';
+			objext      : '.o';
+			exeext      : '';
+			os          : os_PalmOS;
+			link        : link_ld;
+			assem       : as_o;
+			ar          : ar_ar;
+			heapsize    : 128*1024;
+			maxheapsize : 32768*1024;
+			stacksize   : 8192
+		  )
 {$endif m68k}
-          );
+		  );
 
 {****************************************************************************
-                             AsmModeInfo
+							 AsmModeInfo
 ****************************************************************************}
-       asmmodeinfos : array[tasmmode] of tasmmodeinfo = (
+	   asmmodeinfos : array[tasmmode] of tasmmodeinfo = (
 {$ifdef i386}
-          (
-            id    : I386_DIRECT;
-            idtxt : 'DIRECT'
-          ),
-          (
-            id    : I386_INTEL;
-            idtxt : 'INTEL'
-          ),
-          (
-            id    : I386_ATT;
-            idtxt : 'ATT'
-          )
+		  (
+			id    : I386_DIRECT;
+			idtxt : 'DIRECT'
+		  ),
+		  (
+			id    : I386_INTEL;
+			idtxt : 'INTEL'
+		  ),
+		  (
+			id    : I386_ATT;
+			idtxt : 'ATT'
+		  )
 {$endif i386}
 {$ifdef m68k}
-          (
-            id    : M68K_MOT;
-            idtxt : 'MOT'
-          )
+		  (
+			id    : M68K_MOT;
+			idtxt : 'MOT'
+		  )
 {$endif m68k}
-          );
+		  );
 
 {****************************************************************************
-                                Helpers
+								Helpers
 ****************************************************************************}
 
 procedure set_target(t : ttarget);
@@ -896,7 +907,7 @@ begin
     {$ifdef ATARI}
       default_os(target_Atari);
     {$else}
-      {$ifdef MACOS}
+	  {$ifdef MACOS}
         default_os(target_MAC68k);
       {$else}
         default_os(target_Amiga);
@@ -907,8 +918,9 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  1998-09-10 13:52:40  peter
-    * 'ar rs' -> 'ar rcs' which is more common
+  Revision 1.33  1998-09-10 15:25:39  daniel
+  + Added maxheapsize.
+  * Corrected semi-bug in calling the assembler and the linker
 
   Revision 1.31  1998/09/01 09:07:13  peter
     * m68k fixes, splitted cg68k like cgi386
@@ -943,7 +955,7 @@ end.
     * first version of rtti support
 
   Revision 1.22  1998/06/17 14:10:21  peter
-    * small os2 fixes
+	* small os2 fixes
     * fixed interdependent units with newppu (remake3 under linux works now)
 
   Revision 1.20  1998/06/15 15:38:14  pierre
