@@ -1488,13 +1488,13 @@ end;
           procsym :
             begin
               with tprocsym(sym) do
-              if assigned(defs^.def) then
+              if assigned(first_procdef) then
               begin
                 if cs_local_browser in aktmoduleswitches then
-                  ProcessSymTable(Symbol,Symbol^.Items,defs^.def.parast);
-                if assigned(defs^.def.parast) then
+                  ProcessSymTable(Symbol,Symbol^.Items,first_procdef.parast);
+                if assigned(first_procdef.parast) then
                   begin
-                    Symbol^.Params:=TypeNames^.Add(GetAbsProcParmDefStr(defs^.def));
+                    Symbol^.Params:=TypeNames^.Add(GetAbsProcParmDefStr(first_procdef));
                   end
                 else { param-definition is NOT assigned }
                   if assigned(Table.Name) then
@@ -1504,9 +1504,9 @@ end;
                   end;
                 if cs_local_browser in aktmoduleswitches then
                  begin
-                   if assigned(defs^.def.localst) and
-                     (defs^.def.localst.symtabletype<>staticsymtable) then
-                    ProcessSymTable(Symbol,Symbol^.Items,defs^.def.localst);
+                   if assigned(first_procdef.localst) and
+                     (first_procdef.localst.symtabletype<>staticsymtable) then
+                    ProcessSymTable(Symbol,Symbol^.Items,first_procdef.localst);
                  end;
               end;
             end;
@@ -2125,7 +2125,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-08-25 19:25:18  peter
+  Revision 1.28  2002-09-07 14:13:40  peter
+    * fixed procdef access
+
+  Revision 1.27  2002/08/25 19:25:18  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be
