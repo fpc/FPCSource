@@ -815,13 +815,19 @@ type
 
   TFindMethodEvent = procedure(Reader: TReader; const MethodName: string;
     var Address: Pointer; var Error: Boolean) of object;
+  TSetMethodPropertyEvent = procedure(Reader: TReader; Instance: TPersistent;
+    PropInfo: PPropInfo; const TheMethodName: string;
+    var Handled: boolean) of object;
   TSetNameEvent = procedure(Reader: TReader; Component: TComponent;
     var Name: string) of object;
   TReferenceNameEvent = procedure(Reader: TReader; var Name: string) of object;
   TAncestorNotFoundEvent = procedure(Reader: TReader; const ComponentName: string;
     ComponentClass: TPersistentClass; var Component: TComponent) of object;
   TReadComponentsProc = procedure(Component: TComponent) of object;
-  TReaderError = procedure(Reader: TReader; const Message: string; var Handled: Boolean) of object;
+  TReaderError = procedure(Reader: TReader; const Message: string;
+    var Handled: Boolean) of object;
+  TPropertyNotFoundEvent = procedure(Reader: TReader; Instance: TPersistent;
+    var PropName: string; IsPath: boolean; var Handled, Skip: Boolean) of object;
   TFindComponentClassEvent = procedure(Reader: TReader; const ClassName: string;
     var ComponentClass: TComponentClass) of object;
   TCreateComponentEvent = procedure(Reader: TReader;
@@ -835,10 +841,12 @@ type
     FFixups: TList;
     FLoaded: TList;
     FOnFindMethod: TFindMethodEvent;
+    FOnSetMethodProperty: TSetMethodPropertyEvent;
     FOnSetName: TSetNameEvent;
     FOnReferenceName: TReferenceNameEvent;
     FOnAncestorNotFound: TAncestorNotFoundEvent;
     FOnError: TReaderError;
+    FOnPropertyNotFound: TPropertyNotFoundEvent;
     FOnFindComponentClass: TFindComponentClassEvent;
     FOnCreateComponent: TCreateComponentEvent;
     FPropName: string;
@@ -894,7 +902,9 @@ type
     property Owner: TComponent read FOwner write FOwner;
     property Parent: TComponent read FParent write FParent;
     property OnError: TReaderError read FOnError write FOnError;
+    property OnPropertyNotFound: TPropertyNotFoundEvent read FOnPropertyNotFound write FOnPropertyNotFound;
     property OnFindMethod: TFindMethodEvent read FOnFindMethod write FOnFindMethod;
+    property OnSetMethodProperty: TSetMethodPropertyEvent read FOnSetMethodProperty write FOnSetMethodProperty;
     property OnSetName: TSetNameEvent read FOnSetName write FOnSetName;
     property OnReferenceName: TReferenceNameEvent read FOnReferenceName write FOnReferenceName;
     property OnAncestorNotFound: TAncestorNotFoundEvent read FOnAncestorNotFound write FOnAncestorNotFound;
@@ -976,6 +986,9 @@ type
 
   TFindAncestorEvent = procedure (Writer: TWriter; Component: TComponent;
     const Name: string; var Ancestor, RootAncestor: TComponent) of object;
+  TWriteMethodPropertyEvent = procedure (Writer: TWriter; Instance: TPersistent;
+    PropInfo: PPropInfo; const MethodValue: TMethod;
+    const DefMethodCodeValue: Pointer; var Handled: boolean) of object;
 
   TWriter = class(TFiler)
   private
@@ -987,6 +1000,7 @@ type
     FAncestorPos: Integer;
     FChildPos: Integer;
     FOnFindAncestor: TFindAncestorEvent;
+    FOnWriteMethodProperty: TWriteMethodPropertyEvent;
     procedure AddToAncestorList(Component: TComponent);
     procedure WriteComponentData(Instance: TComponent);
   protected
@@ -1023,6 +1037,7 @@ type
     {!!!: procedure WriteWideString(const Value: WideString);}
     property RootAncestor: TComponent read FRootAncestor write FRootAncestor;
     property OnFindAncestor: TFindAncestorEvent read FOnFindAncestor write FOnFindAncestor;
+    property OnWriteMethodProperty: TWriteMethodPropertyEvent read FOnWriteMethodProperty write FOnWriteMethodProperty;
 
     property Driver: TAbstractObjectWriter read FDriver;
   end;
@@ -1504,7 +1519,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.24  2003-06-04 15:27:24  michael
+  Revision 1.25  2003-08-16 15:50:47  michael
+  + Fix from Mattias gaertner for IDE support
+
+  Revision 1.24  2003/06/04 15:27:24  michael
   + TDataModule en InitInheritedComponent erbij voor Delphi 6 compatibility
 
   Revision 1.23  2002/10/14 19:46:50  peter

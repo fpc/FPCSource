@@ -911,6 +911,30 @@ var
   PropInfo: PPropInfo;
   Obj: TObject;
   Name: String;
+  Skip: Boolean;
+  Handled: Boolean;
+  OldPropName: String;
+  
+  function HandleMissingProperty(IsPath: Boolean): boolean;
+  begin
+    Result:=true;
+    if Assigned(OnPropertyNotFound) then begin
+      // user defined property error handling
+      OldPropName:=FPropName;
+      Handled:=false;
+      Skip:=false;
+      OnPropertyNotFound(Self,Instance,FPropName,IsPath,Handled,Skip);
+      if Handled and (not Skip) and (OldPropName<>FPropName) then
+        // try alias property
+        PropInfo := GetPropInfo(Instance.ClassInfo, FPropName);
+      if Skip then begin
+        FDriver.SkipValue;
+        Result:=false;
+        exit;
+      end;
+    end;
+  end;
+  
 begin
   try
     Path := FDriver.BeginProperty;
@@ -931,8 +955,11 @@ begin
         DotPos := NextPos + 1;
 
         PropInfo := GetPropInfo(Instance.ClassInfo, FPropName);
-        if not Assigned(PropInfo) then
-          PropertyError;
+        if not Assigned(PropInfo) then begin
+          if not HandleMissingProperty(true) then exit;
+          if not Assigned(PropInfo) then
+            PropertyError;
+        end;
 
         if PropInfo^.PropType^.Kind = tkClass then
           Obj := TObject(GetOrdProp(Instance, PropInfo))
@@ -949,6 +976,8 @@ begin
       end;
 
       PropInfo := GetPropInfo(Instance.ClassInfo, FPropName);
+      if not Assigned(PropInfo) then
+        if not HandleMissingProperty(false) then exit;
       if Assigned(PropInfo) then
         ReadPropValue(Instance, PropInfo)
       else
@@ -987,6 +1016,7 @@ var
   IdentToIntFn: TIdentToInt;
   Ident: String;
   Method: TMethod;
+  Handled: Boolean;
 begin
   if not Assigned(PPropInfo(PropInfo)^.SetProc) then
     raise EReadError.Create(SReadOnlyProperty);
@@ -1030,10 +1060,17 @@ begin
         SetMethodProp(Instance, PropInfo, NullMethod);
       end else
       begin
-        Method.Code := FindMethod(Root, ReadIdent);
-        Method.Data := Root;
-        if Assigned(Method.Code) then
-          SetMethodProp(Instance, PropInfo, Method);
+        Handled:=false;
+        Ident:=ReadIdent;
+        if Assigned(OnSetMethodProperty) then
+          OnSetMethodProperty(Self,Instance,PPropInfo(PropInfo),Ident,
+                              Handled);
+        if not Handled then begin
+          Method.Code := FindMethod(Root, Ident);
+          Method.Data := Root;
+          if Assigned(Method.Code) then
+            SetMethodProp(Instance, PropInfo, Method);
+        end;
       end;
     tkSString, tkLString, tkAString, tkWString:
       SetStrProp(Instance, PropInfo, ReadString);
@@ -1268,7 +1305,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-12-02 12:04:07  sg
+  Revision 1.8  2003-08-16 15:50:47  michael
+  + Fix from Mattias gaertner for IDE support
+
+  Revision 1.7  2002/12/02 12:04:07  sg
   * Fixed handling of zero-length strings (classes.inc: When converting
     empty strings from text forms to binary forms; reader.inc: When reading
     an empty string from a binary serialization)

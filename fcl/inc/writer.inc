@@ -599,6 +599,7 @@ var
   SavedPropPath, Name: String;
   Int64Value, DefInt64Value: Int64;
   BoolValue, DefBoolValue: boolean;
+  Handled: Boolean;
 
 begin
 
@@ -667,7 +668,12 @@ begin
         else
           DefMethodCodeValue := nil;
 
-        if (MethodValue.Code <> DefMethodCodeValue) and
+        Handled:=false;
+        if Assigned(OnWriteMethodProperty) then
+          OnWriteMethodProperty(Self,Instance,PPropInfo(PropInfo),MethodValue,
+            DefMethodCodeValue,Handled);
+        if (not Handled) and
+          (MethodValue.Code <> DefMethodCodeValue) and
           ((not Assigned(MethodValue.Code)) or
           ((Length(FLookupRoot.MethodName(MethodValue.Code)) >= 0))) then
         begin
@@ -826,7 +832,10 @@ end;}
 
 {
   $Log$
-  Revision 1.7  2002-09-20 09:28:11  michael
+  Revision 1.8  2003-08-16 15:50:47  michael
+  + Fix from Mattias gaertner for IDE support
+
+  Revision 1.7  2002/09/20 09:28:11  michael
   Fix from mattias gaertner
 
   Revision 1.6  2002/09/07 15:15:26  peter
