@@ -410,22 +410,8 @@ implementation
     function Tsym.stabstring : pchar;
 
     begin
-(*      stabstring:=stabstr_evaluate('"${name}",${N_LSYM},0,${line},0',[]); *)
        stabstring:=nil;
     end;
-{
-    procedure Tsym.concatstabto(asmlist : taasmoutput);
-      var
-        stab_str : pchar;
-      begin
-         if not isstabwritten then
-           begin
-              stab_str := stabstring;
-              if assigned(stab_str) then
-                asmList.concat(Tai_stabs.Create(stab_str));
-              isstabwritten:=true;
-          end;
-    end;}
 {$endif GDB}
 
 
@@ -1543,7 +1529,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.39  2004-02-11 19:59:06  peter
+  Revision 1.40  2004-02-27 13:04:22  daniel
+    * Removed unused concatstabto
+
+  Revision 1.39  2004/02/11 19:59:06  peter
     * fix compilation without GDB
 
   Revision 1.38  2004/01/31 22:48:31  daniel
