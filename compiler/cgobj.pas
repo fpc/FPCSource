@@ -1401,13 +1401,15 @@ unit cgobj;
     procedure tcg.g_maybe_testself(list : taasmoutput);
       var
         OKLabel : tasmlabel;
+        dummyloc : tparalocation;
       begin
         if (cs_check_object in aktlocalswitches) or
            (cs_check_range in aktlocalswitches) then
          begin
            objectlibrary.getlabel(oklabel);
            a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,SELF_POINTER_REG,oklabel);
-           a_call_name(list,'FPC_RANGEERROR');
+           a_param_const(list,OS_INT,210,dummyloc);
+           a_call_name(list,'FPC_HANDLEERROR');
            a_label(list,oklabel);
          end;
       end;
@@ -1620,7 +1622,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.63  2002-11-15 01:58:46  peter
+  Revision 1.64  2002-11-16 17:06:28  peter
+    * return error 210 for failed self test
+
+  Revision 1.63  2002/11/15 01:58:46  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
