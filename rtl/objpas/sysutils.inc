@@ -361,7 +361,7 @@ procedure Abort;
 
 begin
 {$ifdef VER1_0}
-  Raise EAbort.Create(SAbortError) at Get_Caller_addr(Get_Frame);
+  Raise EAbort.Create(SAbortError) at Longint(Get_Caller_addr(Get_Frame));
 {$else VER1_0}
   Raise EAbort.Create(SAbortError) at Pointer(Get_Caller_addr(Get_Frame));
 {$endif VER1_0}
@@ -375,7 +375,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  2003-03-17 15:11:51  armin
+  Revision 1.15  2003-03-18 08:28:23  michael
+  Patch from peter for Abort routine
+
+  Revision 1.14  2003/03/17 15:11:51  armin
   + someone AssertErrorHandler, BackTraceFunc and Dump_Stack so that pointer instead of longint is needed
 
   Revision 1.13  2003/01/01 20:58:07  florian
