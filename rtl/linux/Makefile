@@ -267,6 +267,9 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
 
+gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/gettext.pp $(REDIR)
+
 #
 # Other system-independent RTL Units
 #
@@ -294,7 +297,10 @@ ipc$(PPUEXT) : ipc.pp linux$(PPUEXT) $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.30  1999-07-29 01:39:09  peter
+# Revision 1.31  1999-08-04 11:30:05  michael
+# * moved gettext to fcl
+#
+# Revision 1.30  1999/07/29 01:39:09  peter
 #   * shared lib units fixed
 #
 # Revision 1.29  1999/07/01 19:39:42  peter
