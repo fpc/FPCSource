@@ -282,7 +282,7 @@ unit tree;
              loopn : (t1,t2 : ptree;backward : boolean);
              asmn : (p_asm : paasmoutput;object_preserved : boolean);
              casen : (nodes : pcaserecord;elseblock : ptree);
-             labeln,goton : (labelnr : pasmlabel);
+             labeln,goton : (labelnr : pasmlabel;exceptionblock : ptree;labsym : plabelsym);
              withn : (withsymtable : pwithsymtable;tablecount : longint;withreference:preference;islocal:boolean);
              onn : (exceptsymtable : psymtable;excepttype : pobjectdef);
              arrayconstructn : (cargs,cargswap: boolean);
@@ -751,9 +751,6 @@ unit tree;
            deletecaselabels(p^.greater);
          if assigned(p^.less) then
            deletecaselabels(p^.less);
-         freelabel(p^._at);
-         if p^.firstlabel then
-          freelabel(p^.statement);
          dispose(p);
       end;
 
@@ -2150,7 +2147,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.18  1999-12-06 18:17:10  peter
+  Revision 1.19  1999-12-22 22:27:41  peter
+    * compiles again
+
+  Revision 1.18  1999/12/06 18:17:10  peter
     * newcg compiler compiles again
 
   Revision 1.17  1999/12/01 12:42:34  peter
