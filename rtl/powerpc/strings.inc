@@ -384,10 +384,11 @@ asm
         subi    r3,r3,1
 LStrScanLoop:
         lbzu    r0,1(r3)
-        cmplw   cr1,r0,r4
         cmplwi  r0,0
-        beq     cr1,LStrScanDone
+        cmplw   cr1,r0,r4
         bne     LStrScanLoop
+        beq     cr1,LStrScanDone
+        li      r3, 0
 LStrScanDone:
 end ['R0','R3','R4','CR0','CR1'];
 
@@ -398,26 +399,19 @@ asm
         cmplwi  r3,0
         { if yes, do nothing }
         beq     LStrrScanDone
-        { make r0 $ffffffff, later on we take min(r0,r3) }
-        li      r0,-1
-        subi    r3,r3,1
+        { make r5 will be walking through the string }
+        subi    r5,r3,1
+        { assume not found }
+        li      r3,0
 LStrrScanLoop:
-        lbzu    r10,1(r3)
+        lbzu    r10,1(r5)
         cmplw   cr1,r10,r4
         cmplwi  cr0,r10,0
         bne+    cr1,LStrrScanNotFound
         { store address of found position }
-        mr      r0,r3
+        mr      r3,r5
 LStrrScanNotFound:
         bne     LStrrScanLoop
-        { Select min of r3 and r0 -> end of string or found position    }
-        { From the PPC compiler writer's guide, not sure if I could ever }
-        { come up with something like this :)                            }
-
-        subfc   r10,r3,r0   { r10 = r0 - r3, CA = (r0 >= r3) ? 1 : 0 }
-        subfe   r0,r0,r0    { r0' = (r0 >= r3) ? 0 : -1              }
-        and     r10,r10,r0  { r10 = (r0 >= r3) ? 0 : r0 - r3         }
-        add     r3,r10,r3   { r3  = (r0 >= r3) ?  r3 : r0            }
 LStrrScanDone:
 end ['R0','R3','R4','R10','CR0','CR1'];
 
@@ -464,7 +458,10 @@ end ['R0','R9','R10','CR0','CR1'];
 
 {
   $Log$
-  Revision 1.16  2003-05-17 12:55:30  florian
+  Revision 1.17  2003-05-24 10:16:24  jonas
+    * fixed strscan and strrscan
+
+  Revision 1.16  2003/05/17 12:55:30  florian
     * fixed copy&paste bug in strecopy
 
   Revision 1.15  2003/05/17 00:01:13  jonas
