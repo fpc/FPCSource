@@ -279,15 +279,15 @@ PROCEDURE SetTime (Hour, Minute, Second, Sec100: Word);
    VAR DT: TSystemTime;
    BEGIN
      {$IFDEF PPC_FPC}                                 { FPC WINDOWS COMPILER }
-     GetSystemTime(@DT);                              { Get the date/time }
+     GetLocalTime(@DT);                              { Get the date/time }
      {$ELSE}                                          { OTHER COMPILERS }
-     GetSystemTime(DT);                               { Get the date/time }
+     GetLocalTime(DT);                               { Get the date/time }
      {$ENDIF}
      DT.wHour := Hour;                                { Transfer hour }
      DT.wMinute := Minute;                            { Transfer minute }
      DT.wSecond := Second;                            { Transfer seconds }
      DT.wMilliseconds := Sec100 * 10;                 { Transfer millisecs }
-     SetSystemTime(DT);                               { Set the date/time }
+     SetLocalTime(DT);                               { Set the date/time }
    END;
    {$ENDIF}
 {$ENDIF}
@@ -388,9 +388,9 @@ PROCEDURE GetTime (Var Hour, Minute, Second, Sec100: Word);
    VAR DT: TSystemTime;
    BEGIN
      {$IFDEF PPC_FPC}                                 { FPC WINDOWS COMPILER }
-     GetSystemTime(@DT);                              { Get the date/time }
+     GetLocalTime(@DT);                              { Get the date/time }
      {$ELSE}                                          { OTHER COMPILERS }
-     GetSystemTime(DT);                               { Get the date/time }
+     GetLocalTime(DT);                               { Get the date/time }
      {$ENDIF}
      Hour := DT.wHour;                                { Transfer hour }
      Minute := DT.wMinute;                            { Transfer minute }
@@ -438,7 +438,10 @@ END.
 
 {
  $Log$
- Revision 1.4  2001-05-04 09:04:08  pierre
+ Revision 1.5  2002-06-03 20:26:16  pierre
+  * use local time for windows
+
+ Revision 1.4  2001/05/04 09:04:08  pierre
   * fix dos assembler problem
 
  Revision 1.3  2001/05/04 08:42:56  pierre
