@@ -1859,7 +1859,7 @@ implementation
              else
                st := 'p'+st;
              case localloc.loc of
-               LOC_REGISTER :
+               LOC_REGISTER, LOC_FPUREGISTER :
                  begin
                    regidx:=findreg_by_number(localloc.register);
                    { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
@@ -2689,7 +2689,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.135  2003-11-23 17:05:16  peter
+  Revision 1.136  2003-11-29 18:16:39  jonas
+    * don't internalerror when emitting debuginfo for LOC_FPUREGISTER
+
+  Revision 1.135  2003/11/23 17:05:16  peter
     * register calling is left-right
     * parameter ordering
     * left-right calling inserts result parameter last
