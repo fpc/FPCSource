@@ -3,8 +3,8 @@
 #
 
 [targets]
-units=ibase
-examples=testib
+units=ibase40 ibase60
+examples=testib40 testib60
 
 [dirs]
 fpcdir=../..

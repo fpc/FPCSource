@@ -14,7 +14,8 @@ makefile.fpc that is distributed by the FPC team.
 
 2) By hand:
    simply type:
-   ppc386 -S2 ibase
+   ppc386 -S2 ibase60
+   (or ibase40 if you have the older version)
 
    If your libgds.so file is not in /usr/lib, you may need to add
    -Fl/path/to/libgds
