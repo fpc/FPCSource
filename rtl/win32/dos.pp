@@ -627,8 +627,11 @@ begin
     if pa[i]='/' then
      pa[i]:='\';
 
-   if (length(pa)>1) and (pa[1] in ['A'..'Z']) and (pa[2]=':') then
+   if (length(pa)>1) and (pa[2]=':') and (pa[1] in ['A'..'Z','a'..'z']) then
      begin
+        { Always uppercase driveletter }
+        if (pa[1] in ['a'..'z']) then
+         pa[1]:=Chr(Ord(Pa[1])-32);
         { we must get the right directory }
         getdir(ord(pa[1])-ord('A')+1,s);
         if (ord(pa[0])>2) and (pa[3]<>'\') then
@@ -881,7 +884,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.16  1999-05-08 19:47:27  peter
+  Revision 1.17  1999-05-16 17:08:59  peter
+    * fixed driveletter checking
+
+  Revision 1.16  1999/05/08 19:47:27  peter
     * check ioresult after getdir calls
 
   Revision 1.15  1999/04/28 11:42:52  peter

@@ -742,22 +742,23 @@ end;
           if LFNSupport then
            begin
              pa:=path;
-             { Always uppercase driveletter }
-             if (length(pa)>1) and (pa[2]=':') and (pa[1] in ['a'..'z']) then
-              pa[1]:=CHR(ORD(Pa[1])-32);
            end
           else
            if FileNameCaseSensitive then
             pa:=path
            else
             pa:=upcase(path);
+
           { allow slash as backslash }
           for i:=1 to length(pa) do
            if pa[i]='/' then
             pa[i]:='\';
 
-          if (length(pa)>1) and (pa[2]=':') and (pa[1] in ['A'..'Z']) then
+          if (length(pa)>1) and (pa[2]=':') and (pa[1] in ['A'..'Z','a'..'z']) then
             begin
+               { Always uppercase driveletter }
+               if (pa[1] in ['a'..'z']) then
+                pa[1]:=Chr(Ord(Pa[1])-32);
                { we must get the right directory }
                getdir(ord(pa[1])-ord('A')+1,s);
                i:=ioresult;
@@ -1005,7 +1006,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.8  1999-05-08 19:47:22  peter
+  Revision 1.9  1999-05-16 17:08:58  peter
+    * fixed driveletter checking
+
+  Revision 1.8  1999/05/08 19:47:22  peter
     * check ioresult after getdir calls
 
   Revision 1.7  1999/05/04 23:55:50  pierre
