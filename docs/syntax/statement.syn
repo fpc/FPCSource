@@ -5,6 +5,7 @@
 \]
 \[
 \synt{simple\ statement}\\
-\synt{structured\ statement}
+\synt{structured\ statement}\\
+\synt{asm\ statement}
 \]
 \end{psyntax}
