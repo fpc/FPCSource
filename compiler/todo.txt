@@ -1,3 +1,4 @@
+$Id$
 This list contains tasks which should be done til version 1.0.
 Don't hesitate to insert jobs :)
 Don't insert bugs there, for this purpose is the bugs directory.
@@ -92,3 +93,13 @@ compiler version and your short cut.
 - add alignment $A switch
 - $B
 
+Future versions
+---------------
+1.1
+  - full MT support in rtl
+  - synchronized keyword
+  - interfaces 
+
+2.0
+  - new code generator
+  - complete inline support
