@@ -92,27 +92,46 @@ end;
 
 procedure do_set_range(p : pointer;l,h : byte);assembler;[public,alias:'FPC_SET_SET_RANGE'];
 {
-  bad implementation, but it's very seldom used
+  adds the range [l..h] to the set pointed to by p
 }
 asm
         pushl   %eax
-        movl    p,%edi
-        xorl    %eax,%eax
-        xorl    %ecx,%ecx
-        movb    h,%al
-        movb    l,%cl
-.LSET_SET_RANGE_LOOP:
-        cmpl    %ecx,%eax
-        jl      .LSET_SET_RANGE_EXIT
-        movl    %eax,%ebx
-        movl    %eax,%edx
-        andl    $0xf8,%ebx
-        andl    $7,%edx
-        shrl    $3,%ebx
-        btsl    %edx,(%edi,%ebx)
-        dec     %eax
-        jmp     .LSET_SET_RANGE_LOOP
-.LSET_SET_RANGE_EXIT:
+        movzbl l,%eax              // lowest bit to be set in eax
+        movzbl h,%ebx              // highest in ebx
+        cmpl   %eax,%ebx
+        jb     .Lset_range_done
+        movl   p,%edi               // set address in edi
+        movl   %eax,%ecx            // lowest also in ecx
+        shrl   $3,%eax              // divide by 8 to get starting and ending byte
+        shrl   $3,%ebx              // address
+        andb   $31,%cl              // low five bits of lo determine start of bit mask
+        movl   $0x0ffffffff,%edx    // edx = bitmask to be inserted
+        andl   $0x0fffffffc,%eax    // clear two lowest bits to get start/end longint
+        andl   $0x0fffffffc,%ebx    // address * 4
+        shll   %cl,%edx             // shift bitmask to clear bits below lo
+        addl   %eax,%edi            // go to starting pos in set
+        subl   %eax,%ebx            // are bit lo and hi in the same longint?
+        jz     .Lset_range_hi       // yes, keep current mask and adjust for hi bit
+        orl    %edx,(%edi)          // no, store current mask
+        movl   $0x0ffffffff,%edx    // new mask
+        addl   $4,%edi              // next longint of set
+        subl   $4,%ebx              // bit hi in this longint?
+        jz     .Lset_range_hi       // yes, keep full mask and adjust for hi bit
+.Lset_range_loop:
+        movl   %edx,(%edi)          // no, fill longints in between with full mask
+        addl   $4,%edi
+        subl   $4,%ebx
+        jnz    .Lset_range_loop
+.Lset_range_hi:
+        movb   h,%cl              
+        movl   %edx,%ebx            // save current bitmask
+        andb   $31,%cl
+        subb   $31,%cl              // cl := (31 - (hi and 31)) = shift count to
+        negb   %cl                  // adjust bitmask for hi bit
+        shrl   %cl,%edx             // shift bitmask to clear bits higher than hi
+        andl   %edx,%ebx            // combine both bitmasks
+        orl    %ebx,(%edi)          // store to set
+.Lset_range_done:
         popl %eax
 end;
 
@@ -428,7 +447,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:41  michael
+  Revision 1.3  2000-09-21 16:09:19  jonas
+    + new, much faster do_set_range based on the PowerPC version (which
+      will be committed tomorrow)
+
+  Revision 1.2  2000/07/13 11:33:41  michael
   + removed logs
  
 }
