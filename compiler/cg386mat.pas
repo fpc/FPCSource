@@ -81,10 +81,6 @@ implementation
               pushusedregisters(pushedreg,$ff
                 and not($80 shr byte(p^.location.registerlow))
                 and not($80 shr byte(p^.location.registerhigh)));
-              if cs_check_overflow in aktlocalswitches then
-                push_int(1)
-              else
-                push_int(0);
               { the left operand is in hloc, because the
                 location of left is p^.location but p^.location
                 is already destroyed
@@ -934,7 +930,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1999-06-02 10:11:44  florian
+  Revision 1.27  1999-06-28 22:29:14  florian
+    * qword division fixed
+    + code for qword/int64 type casting added:
+      range checking isn't implemented yet
+
+  Revision 1.26  1999/06/02 10:11:44  florian
     * make cycle fixed i.e. compilation with 0.99.10
     * some fixes for qword
     * start of register calling conventions

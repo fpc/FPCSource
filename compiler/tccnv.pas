@@ -241,13 +241,13 @@ implementation
 
     procedure first_int_to_int(var p : ptree);
       begin
-        if (p^.registers32=0) and
-           (p^.left^.location.loc<>LOC_REGISTER) and
+        if (p^.left^.location.loc<>LOC_REGISTER) and
            (p^.resulttype^.size>p^.left^.resulttype^.size) then
-         begin
-           p^.registers32:=1;
            p^.location.loc:=LOC_REGISTER;
-         end;
+        if is_64bitint(p^.resulttype) then
+          p^.registers32:=max(p^.registers32,2)
+        else
+          p^.registers32:=max(p^.registers32,1);
       end;
 
 
@@ -924,7 +924,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  1999-06-28 19:30:07  peter
+  Revision 1.40  1999-06-28 22:29:21  florian
+    * qword division fixed
+    + code for qword/int64 type casting added:
+      range checking isn't implemented yet
+
+  Revision 1.39  1999/06/28 19:30:07  peter
     * merged
 
   Revision 1.35.2.5  1999/06/28 19:07:47  peter

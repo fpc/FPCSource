@@ -175,7 +175,10 @@ implementation
       var
         op      : tasmop;
         opsize    : topsize;
-        hregister : tregister;
+        hregister,
+        hregister2 : tregister;
+        l : pasmlabel;
+
       begin
         { insert range check if not explicit conversion }
         if not(pto^.explizit) then
@@ -192,6 +195,9 @@ implementation
                 2 : pto^.location.register:=makereg16(pfrom^.location.register);
                 4 : pto^.location.register:=makereg32(pfrom^.location.register);
                end;
+               { we can release the upper register }
+               if is_64bitint(pfrom^.resulttype) then
+                 ungetregister32(pfrom^.location.registerhigh);
              end;
           end
 
@@ -206,11 +212,14 @@ implementation
                 ungetiftemp(pfrom^.location.reference);
               end;
 
-            { get op and opsize, handle separate for constants, becuase
+            { get op and opsize, handle separate for constants, because
               movz doesn't support constant values }
             if (pfrom^.location.loc=LOC_MEM) and (pfrom^.location.reference.is_immediate) then
              begin
-               opsize:=def_opsize(pto^.resulttype);
+               if is_64bitint(pto^.resulttype) then
+                 opsize:=S_L
+               else
+                 opsize:=def_opsize(pto^.resulttype);
                op:=A_MOV;
              end
             else
@@ -229,13 +238,24 @@ implementation
               hregister:=getregister32
             else
               hregister:=pfrom^.location.register;
+
             { set the correct register size and location }
             clear_location(pto^.location);
             pto^.location.loc:=LOC_REGISTER;
+
+            { do we need a second register for a 64 bit type ? }
+            if is_64bitint(pto^.resulttype) then
+              begin
+                 hregister2:=getregister32;
+                 pto^.location.registerhigh:=hregister2;
+              end;
             case pto^.resulttype^.size of
-             1 : pto^.location.register:=makereg8(hregister);
-             2 : pto^.location.register:=makereg16(hregister);
-             4 : pto^.location.register:=makereg32(hregister);
+             1:
+               pto^.location.register:=makereg8(hregister);
+             2:
+               pto^.location.register:=makereg16(hregister);
+             4,8:
+               pto^.location.register:=makereg32(hregister);
             end;
             { insert the assembler code }
             if pfrom^.location.loc in [LOC_CREGISTER,LOC_REGISTER] then
@@ -243,6 +263,23 @@ implementation
             else
               exprasmlist^.concat(new(pai386,op_ref_reg(op,opsize,
                 newreference(pfrom^.location.reference),pto^.location.register)));
+
+            { do we need a sign extension for int64? }
+            if is_64bitint(pto^.resulttype) then
+              begin
+                 exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,
+                   hregister2,hregister2)));
+                 if (porddef(pto^.resulttype)^.typ=s64bitint) then
+                   begin
+                      getlabel(l);
+                      exprasmlist^.concat(new(pai386,op_const_reg(A_TEST,S_L,
+                        $80000000,hregister)));
+                      emitjmp(C_Z,l);
+                      exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,
+                        hregister2)));
+                      emitlab(l);
+                   end;
+              end;
           end;
       end;
 
@@ -1300,7 +1337,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  1999-05-31 20:35:46  peter
+  Revision 1.76  1999-06-28 22:29:10  florian
+    * qword division fixed
+    + code for qword/int64 type casting added:
+      range checking isn't implemented yet
+
+  Revision 1.75  1999/05/31 20:35:46  peter
     * ansistring fixes, decr_ansistr called after all temp ansi reuses
 
   Revision 1.74  1999/05/27 19:44:09  peter

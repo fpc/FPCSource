@@ -473,12 +473,22 @@ implementation
                                  1 : opsize:=S_B;
                                  2 : opsize:=S_W;
                                  4 : opsize:=S_L;
+                                 { S_L is correct, the copy is done }
+                                 { with two moves                   }
+                                 8 : opsize:=S_L;
                               end;
                               if loc=LOC_CREGISTER then
                                 begin
                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
                                     newreference(p^.right^.location.reference),
                                     p^.left^.location.register)));
+                                  if is_64bitint(p^.right^.resulttype) then
+                                    begin
+                                       r:=newreference(p^.right^.location.reference);
+                                       inc(r^.offset,4);
+                                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,r,
+                                         p^.left^.location.registerhigh)));
+                                    end;
 {$IfDef regallocfix}
                                   del_reference(p^.right^.location.reference);
 {$EndIf regallocfix}
@@ -488,6 +498,13 @@ implementation
                                   exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,opsize,
                                     p^.right^.location.reference.offset,
                                     newreference(p^.left^.location.reference))));
+                                  if is_64bitint(p^.right^.resulttype) then
+                                    begin
+                                       r:=newreference(p^.left^.location.reference);
+                                       inc(r^.offset,4);
+                                       exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,opsize,
+                                         0,r)));
+                                    end;
 {$IfDef regallocfix}
                                   del_reference(p^.left^.location.reference);
 {$EndIf regallocfix}
@@ -835,7 +852,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  1999-05-31 12:42:43  peter
+  Revision 1.61  1999-06-28 22:29:11  florian
+    * qword division fixed
+    + code for qword/int64 type casting added:
+      range checking isn't implemented yet
+
+  Revision 1.60  1999/05/31 12:42:43  peter
     * fixed crash with empty array constructor
 
   Revision 1.59  1999/05/27 19:44:14  peter

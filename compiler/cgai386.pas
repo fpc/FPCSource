@@ -165,6 +165,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          1 : o1:=S_B;
          2 : o1:=S_W;
          4 : o1:=S_L;
+         { I don't know if we need it (FK) }
+         8 : o1:=S_L;
         else
          internalerror(78);
         end;
@@ -178,12 +180,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   else
                    o1:=S_W;
                 end;
-            4 : begin
-                  case o1 of
-                   S_B : o1:=S_BL;
-                   S_W : o1:=S_WL;
-                  end;
-                end;
+            4,8:
+              begin
+                 case o1 of
+                    S_B : o1:=S_BL;
+                    S_W : o1:=S_WL;
+                 end;
+              end;
            end;
          end;
         def2def_opsize:=o1;
@@ -1680,6 +1683,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          emitlab(hl);
       end;
 
+    { produces range check code, while one of the operands is a 64 bit
+      integer }
+    procedure emitrangecheck64(p : ptree;todef : pdef);
+
+      begin
+         internalerror(28699);
+      end;
 
      { produces if necessary rangecheckcode }
      procedure emitrangecheck(p:ptree;todef:pdef);
@@ -1711,7 +1721,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         { only check when assigning to scalar, subranges are different,
           when todef=fromdef then the check is always generated }
         fromdef:=p^.resulttype;
-       {we also need lto and hto when checking if we need to use doublebound!
+        if is_64bitint(fromdef) or is_64bitint(todef) then
+          begin
+             emitrangecheck64(p,todef);
+             exit;
+          end;
+        {we also need lto and hto when checking if we need to use doublebound!
         (JM)}
         getrange(todef,lto,hto);
         if todef<>fromdef then
@@ -3088,7 +3103,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.7  1999-06-17 13:19:50  pierre
+  Revision 1.8  1999-06-28 22:29:15  florian
+    * qword division fixed
+    + code for qword/int64 type casting added:
+      range checking isn't implemented yet
+
+  Revision 1.7  1999/06/17 13:19:50  pierre
    * merged from 0_99_12 branch
 
   Revision 1.5.2.2  1999/06/17 12:38:39  pierre

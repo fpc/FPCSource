@@ -342,7 +342,7 @@ implementation
          case def^.deftype of
             orddef : begin
                        dt:=porddef(def)^.typ;
-                       is_signed:=(dt in [s8bit,s16bit,s32bit]);
+                       is_signed:=(dt in [s8bit,s16bit,s32bit,s64bitint]);
                      end;
            enumdef : is_signed:=false;
          else
@@ -531,45 +531,62 @@ implementation
     procedure testrange(def : pdef;var l : longint);
       var
          lv,hv: longint;
+
       begin
-         getrange(def,lv,hv);
-         if (def^.deftype=orddef) and
-            (porddef(def)^.typ=u32bit) then
+         { for 64 bit types we need only to check if it is less than }
+         { zero, if def is a qword node                              }
+         if is_64bitint(def) then
            begin
-              if lv<=hv then
+              if (l<0) and (porddef(def)^.typ=u64bit) then
                 begin
-                   if (l<lv) or (l>hv) then
-                     begin
-                        if (cs_check_range in aktlocalswitches) then
-                          Message(parser_e_range_check_error)
-                        else
-                          Message(parser_w_range_check_error);
-                     end;
-                end
-              else
-                { this happens with the wrap around problem  }
-                { if lv is positive and hv is over $7ffffff  }
-                { so it seems negative                       }
-                begin
-                   if ((l>=0) and (l<lv)) or
-                      ((l<0) and (l>hv)) then
-                     begin
-                        if (cs_check_range in aktlocalswitches) then
-                          Message(parser_e_range_check_error)
-                        else
-                          Message(parser_w_range_check_error);
-                     end;
+                   l:=0;
+                   if (cs_check_range in aktlocalswitches) then
+                     Message(parser_e_range_check_error)
+                   else
+                     Message(parser_w_range_check_error);
                 end;
            end
-         else if (l<lv) or (l>hv) then
+         else
            begin
-              if (def^.deftype=enumdef) or
-                 (cs_check_range in aktlocalswitches) then
-                Message(parser_e_range_check_error)
-              else
-                Message(parser_w_range_check_error);
-              { Fix the value to be in range }
-              l:=lv+(l mod (hv-lv+1));
+              getrange(def,lv,hv);
+              if (def^.deftype=orddef) and
+                 (porddef(def)^.typ=u32bit) then
+                begin
+                   if lv<=hv then
+                     begin
+                        if (l<lv) or (l>hv) then
+                          begin
+                             if (cs_check_range in aktlocalswitches) then
+                               Message(parser_e_range_check_error)
+                             else
+                               Message(parser_w_range_check_error);
+                          end;
+                     end
+                   else
+                     { this happens with the wrap around problem  }
+                     { if lv is positive and hv is over $7ffffff  }
+                     { so it seems negative                       }
+                     begin
+                        if ((l>=0) and (l<lv)) or
+                           ((l<0) and (l>hv)) then
+                          begin
+                             if (cs_check_range in aktlocalswitches) then
+                               Message(parser_e_range_check_error)
+                             else
+                               Message(parser_w_range_check_error);
+                          end;
+                     end;
+                end
+              else if (l<lv) or (l>hv) then
+                begin
+                   if (def^.deftype=enumdef) or
+                      (cs_check_range in aktlocalswitches) then
+                     Message(parser_e_range_check_error)
+                   else
+                     Message(parser_w_range_check_error);
+                   { Fix the value to be in range }
+                   l:=lv+(l mod (hv-lv+1));
+                end;
            end;
       end;
 
@@ -930,7 +947,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  1999-06-13 22:41:08  peter
+  Revision 1.73  1999-06-28 22:29:22  florian
+    * qword division fixed
+    + code for qword/int64 type casting added:
+      range checking isn't implemented yet
+
+  Revision 1.72  1999/06/13 22:41:08  peter
     * merged from fixes
 
   Revision 1.71.2.1  1999/06/13 22:37:17  peter

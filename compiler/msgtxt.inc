@@ -256,7 +256,7 @@ const msgtxt : array[0..000097,1..240] of char=(
   'lowed'#000+
   'W_Label not defined $1'#000+
   'E_Illegal label declaration'#000+
-  'E_GOTO und LABEL are not supported (use switch -Sg)'#000+
+  'E_GOTO and LABEL are not supported (use switch -Sg)'#000+
   'E_Label not found'#000+
   'E_identifier isn'#039't a label'#000+
   'E_label already defined'#000+
