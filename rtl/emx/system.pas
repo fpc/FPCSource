@@ -627,9 +627,10 @@ begin
       { for systems that have more handles }
     if FileRec (F).Handle > FileHandleCount then
         FileHandleCount := FileRec (F).Handle;
-    if (flags and $100)<>0 then
+    if ((Flags and $100) <> 0) and
+       (FileRec (F).Handle <> UnusedHandle) then
         begin
-            do_seekend(filerec(f).handle);
+            do_seekend (FileRec (F).Handle);
             FileRec (F).Mode := fmOutput; {fool fmappend}
         end;
 end;
@@ -1241,7 +1242,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-09-27 11:52:35  peter
+  Revision 1.8  2003-09-29 18:39:59  hajny
+    * append fix applied to GO32v2, OS/2 and EMX
+
+  Revision 1.7  2003/09/27 11:52:35  peter
     * sbrk returns pointer
 
   Revision 1.6  2003/09/24 11:13:09  yuri

@@ -18,22 +18,6 @@
 
 unit {$ifdef VER1_0}sysos2{$else}System{$endif};
 
-{Changelog:
-
-    People:
-
-        DM - Daniel Mantione
-
-    Date:           Description of change:              Changed by:
-
-     -              First released version 0.1.         DM
-
-Coding style:
-
-    My coding style is a bit unusual for Pascal. Nevertheless I friendly ask
-    you to try to make your changes not look all to different. In general,
-    set your IDE to use a tabsize of 4.}
-
 interface
 
 {Link the startup code.}
@@ -43,7 +27,24 @@ interface
  {$l prt1.o}
 {$endif}
 
+{$ifdef SYSTEMDEBUG}
+  {$define SYSTEMEXCEPTIONDEBUG}
+{$endif SYSTEMDEBUG}
+
+{ $DEFINE OS2EXCEPTIONS}
+
 {$I systemh.inc}
+
+{$IFDEF OS2EXCEPTIONS}
+(* Types and constants for exception handler support *)
+type
+{x}   PEXCEPTION_FRAME = ^TEXCEPTION_FRAME;
+{x}   TEXCEPTION_FRAME = record
+{x}     next : PEXCEPTION_FRAME;
+{x}     handler : pointer;
+{x}   end;
+
+{$ENDIF OS2EXCEPTIONS}
 
 {$I heaph.inc}
 
@@ -55,6 +56,11 @@ const
  DriveSeparator = ':';
  PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
+
+{$IFDEF OS2EXCEPTIONS}
+{x}  System_exception_frame : PEXCEPTION_FRAME =nil;
+{$ENDIF OS2EXCEPTIONS}
+
 
 type    Tos=(osDOS,osOS2,osDPMI);
 
@@ -203,6 +209,161 @@ procedure emx_init; external 'EMX' index 1;
      end;
      { all other cases ... we keep the same error code }
    end;
+
+
+{$IFDEF OS2EXCEPTIONS}
+(*
+The operating system defines a class of error conditions called exceptions, and specifies the default actions that are taken when these exceptions occur. The system default action in most cases is to terminate the thread that caused the exception. 
+
+Exception values have the following 32-bit format: 
+
+ 3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
+ 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
+ÚÄÄÄÂÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³Sev³C³       Facility          ³               Code            ³
+ÀÄÄÄÁÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+Sev Severity code. Possible values are described in the following list: 
+
+00 Success 
+01 Informational 
+10 Warning 
+11 Error 
+
+C Customer code flag. 
+
+Facility Facility code. 
+
+Code Facility's status code. 
+
+Exceptions that are specific to OS/2 Version 2.X (for example, XCPT_SIGNAL) have a facility code of 1. 
+
+System exceptions include both synchronous and asynchronous exceptions. Synchronous exceptions are caused by events that are internal to a thread's execution. For example, synchronous exceptions could be caused by invalid parameters, or by a thread's request to end its own execution. 
+
+Asynchronous exceptions are caused by events that are external to a thread's execution. For example, an asynchronous exception can be caused by a user's entering a Ctrl+C or Ctrl+Break key sequence, or by a process' issuing DosKillProcess to end the execution of another process. 
+
+The Ctrl+Break and Ctrl+C exceptions are also known as signals, or as signal exceptions. 
+
+The following tables show the symbolic names of system exceptions, their numerical values, and related information fields. 
+
+Portable, Non-Fatal, Software-Generated Exceptions 
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿
+³Exception Name                       ³Value     ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_GUARD_PAGE_VIOLATION            ³0x80000001³
+³  ExceptionInfo[0] - R/W flag        ³          ³
+³  ExceptionInfo[1] - FaultAddr       ³          ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_UNABLE_TO_GROW_STACK            ³0x80010001³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÙ
+
+
+Portable, Fatal, Hardware-Generated Exceptions 
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³Exception Name                       ³Value     ³Related Trap ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_ACCESS_VIOLATION                ³0xC0000005³0x09, 0x0B,  ³
+³  ExceptionInfo[0] - Flags           ³          ³0x0C, 0x0D,  ³
+³    XCPT_UNKNOWN_ACCESS  0x0         ³          ³0x0E         ³
+³    XCPT_READ_ACCESS     0x1         ³          ³             ³
+³    XCPT_WRITE_ACCESS    0x2         ³          ³             ³
+³    XCPT_EXECUTE_ACCESS  0x4         ³          ³             ³
+³    XCPT_SPACE_ACCESS    0x8         ³          ³             ³
+³    XCPT_LIMIT_ACCESS    0x10        ³          ³             ³
+³  ExceptionInfo[1] - FaultAddr       ³          ³             ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_INTEGER_DIVIDE_BY_ZERO          ³0xC000009B³0            ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_FLOAT_DIVIDE_BY_ZERO            ³0xC0000095³0x10         ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_FLOAT_INVALID_OPERATION         ³0xC0000097³0x10         ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_ILLEGAL_INSTRUCTION             ³0xC000001C³0x06         ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_PRIVILEGED_INSTRUCTION          ³0xC000009D³0x0D         ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_INTEGER_OVERFLOW                ³0xC000009C³0x04         ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_FLOAT_OVERFLOW                  ³0xC0000098³0x10         ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_FLOAT_UNDERFLOW                 ³0xC000009A³0x10         ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_FLOAT_DENORMAL_OPERAND          ³0xC0000094³0x10         ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_FLOAT_INEXACT_RESULT            ³0xC0000096³0x10         ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_FLOAT_STACK_CHECK               ³0xC0000099³0x10         ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_DATATYPE_MISALIGNMENT           ³0xC000009E³0x11         ³
+³  ExceptionInfo[0] - R/W flag        ³          ³             ³
+³  ExceptionInfo[1] - Alignment       ³          ³             ³
+³  ExceptionInfo[2] - FaultAddr       ³          ³             ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_BREAKPOINT                      ³0xC000009F³0x03         ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_SINGLE_STEP                     ³0xC00000A0³0x01         ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+Portable, Fatal, Software-Generated Exceptions 
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³Exception Name                       ³Value     ³Related Trap ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_IN_PAGE_ERROR                   ³0xC0000006³0x0E         ³
+³  ExceptionInfo[0] - FaultAddr       ³          ³             ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_PROCESS_TERMINATE               ³0xC0010001³             ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_ASYNC_PROCESS_TERMINATE         ³0xC0010002³             ³
+³  ExceptionInfo[0] - TID of          ³          ³             ³
+³      terminating thread             ³          ³             ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_NONCONTINUABLE_EXCEPTION        ³0xC0000024³             ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_INVALID_DISPOSITION             ³0xC0000025³             ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+Non-Portable, Fatal Exceptions 
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³Exception Name                       ³Value     ³Related Trap ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_INVALID_LOCK_SEQUENCE           ³0xC000001D³             ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_ARRAY_BOUNDS_EXCEEDED           ³0xC0000093³0x05         ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+Unwind Operation Exceptions 
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿
+³Exception Name                       ³Value     ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_UNWIND                          ³0xC0000026³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_BAD_STACK                       ³0xC0000027³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_INVALID_UNWIND_TARGET           ³0xC0000028³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÙ
+
+
+Fatal Signal Exceptions 
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿
+³Exception Name                       ³Value     ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄ´
+³XCPT_SIGNAL                          ³0xC0010003³
+³  ExceptionInfo[ 0 ] - Signal        ³          ³
+³      Number                         ³          ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÙ
+}
+{$ENDIF OS2EXCEPTIONS}
+
 
 
 {****************************************************************************
@@ -627,9 +788,10 @@ begin
       { for systems that have more handles }
     if FileRec (F).Handle > FileHandleCount then
         FileHandleCount := FileRec (F).Handle;
-    if (flags and $100)<>0 then
+    if ((Flags and $100) <> 0) and
+       (FileRec (F).Handle <> UnusedHandle) then
         begin
-            do_seekend(filerec(f).handle);
+            do_seekend (FileRec (F).Handle);
             FileRec (F).Mode := fmOutput; {fool fmappend}
         end;
 end;
@@ -1241,7 +1403,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2003-09-27 11:52:36  peter
+  Revision 1.34  2003-09-29 18:39:59  hajny
+    * append fix applied to GO32v2, OS/2 and EMX
+
+  Revision 1.33  2003/09/27 11:52:36  peter
     * sbrk returns pointer
 
   Revision 1.32  2003/03/30 09:20:30  hajny
