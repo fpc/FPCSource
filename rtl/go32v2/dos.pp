@@ -464,47 +464,51 @@ VAR
 BEGIN
  if (swap(dosversion)>=$070A) AND LFNSupport then
   begin
-   S:='C:\'#0;
-   if Drive=0 then
-    begin
-     GetDir(Drive,S);
-     Setlength(S,4);
-     S[4]:=#0;
-    end
-   else
-    S[1]:=chr(Drive+64);
-   Rec.Strucversion:=0;
-   dosmemput(tb_segment,tb_offset,Rec,SIZEOF(ExtendedFat32FreeSpaceRec));
-   dosmemput(tb_segment,tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1,S[1],4);
-   dosregs.dx:=tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1;
-   dosregs.ds:=tb_segment;
-   dosregs.di:=tb_offset;
-   dosregs.es:=tb_segment;
-   dosregs.cx:=Sizeof(ExtendedFat32FreeSpaceRec);
-   dosregs.ax:=$7303;
-   msdos(dosregs);
-   copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
-   if Free then
-    Do_DiskData:=int64(rec.AvailAllocUnits)*rec.SecPerClus*rec.BytePerSec
-   else
-    Do_DiskData:=int64(rec.TotalAllocUnits)*rec.SecPerClus*rec.BytePerSec;
-   if doserror<>0 THEN {No error clausule in int except cf}
-    Do_DiskData:=-1;
+    S:='C:\'#0;
+    if Drive=0 then
+     begin
+      GetDir(Drive,S);
+      Setlength(S,4);
+      S[4]:=#0;
+     end
+    else
+     S[1]:=chr(Drive+64);
+    Rec.Strucversion:=0;
+    dosmemput(tb_segment,tb_offset,Rec,SIZEOF(ExtendedFat32FreeSpaceRec));
+    dosmemput(tb_segment,tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1,S[1],4);
+    dosregs.dx:=tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1;
+    dosregs.ds:=tb_segment;
+    dosregs.di:=tb_offset;
+    dosregs.es:=tb_segment;
+    dosregs.cx:=Sizeof(ExtendedFat32FreeSpaceRec);
+    dosregs.ax:=$7303;
+    msdos(dosregs);
+    copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
+    if dosregs.eax<>-1 THEN {No error clausule in int except cf}
+     begin
+       copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
+       if Free then
+        Do_DiskData:=int64(rec.AvailAllocUnits)*rec.SecPerClus*rec.BytePerSec
+       else
+        Do_DiskData:=int64(rec.TotalAllocUnits)*rec.SecPerClus*rec.BytePerSec;
+     end
+    else
+     Do_DiskData:=-1;
   end
  else
   begin
-   dosregs.dl:=drive;
-   dosregs.ah:=$36;
-   msdos(dosregs);
-   if dosregs.ax<>$FFFF then
-    begin
-     if Free then
-      Do_DiskData:=int64(dosregs.ax)*dosregs.bx*dosregs.cx
-     else
-      Do_DiskData:=int64(dosregs.ax)*dosregs.cx*dosregs.dx;
-    end
-   else
-    do_diskdata:=-1;
+    dosregs.dl:=drive;
+    dosregs.ah:=$36;
+    msdos(dosregs);
+    if dosregs.ax<>$FFFF then
+     begin
+      if Free then
+       Do_DiskData:=int64(dosregs.ax)*dosregs.bx*dosregs.cx
+      else
+       Do_DiskData:=int64(dosregs.ax)*dosregs.cx*dosregs.dx;
+     end
+    else
+     do_diskdata:=-1;
   end;
 end;
 
@@ -1135,7 +1139,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.9  2000-09-06 20:47:34  peter
+  Revision 1.10  2000-10-11 15:38:03  peter
+    * diskfree doserror fix (merged)
+
+  Revision 1.9  2000/09/06 20:47:34  peter
     * removed previous fsplit() patch as it's not the correct behaviour for
       LFNs. The code showing the bug could easily be adapted (merged)
 
