@@ -38,9 +38,6 @@ unit winsock;
 
   interface
 
-    uses
-       netware;
-
     const
        {
          Default maximium number of sockets.
@@ -2434,7 +2431,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2003-03-25 18:17:54  armin
+  Revision 1.2  2003-03-30 12:35:43  armin
+  * removed uses netware from winsock, DirectoryExists implemented
+
+  Revision 1.1  2003/03/25 18:17:54  armin
   * support for fcl, support for linking without debug info
   * renamed winsock2 to winsock for win32 compatinility
   * new sockets unit for netware

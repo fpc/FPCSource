@@ -408,7 +408,12 @@ end;
 
 
 function DirectoryExists (const Directory: string): boolean;
+VAR Info : NWStatBufT;
 begin
+  If _stat (pchar(Directory),Info) <> 0 then
+    exit(false)
+  else
+    Exit ((Info.st_attr and faDirectory) <> 0);
 end;
 
 
@@ -492,7 +497,10 @@ end.
 {
 
   $Log$
-  Revision 1.9  2003-03-29 15:16:26  hajny
+  Revision 1.10  2003-03-30 12:35:43  armin
+  * removed uses netware from winsock, DirectoryExists implemented
+
+  Revision 1.9  2003/03/29 15:16:26  hajny
     * dummy DirectoryExists added
 
   Revision 1.8  2003/02/15 19:12:54  armin
