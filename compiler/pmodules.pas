@@ -547,6 +547,8 @@ implementation
           begin
             if pu.in_uses then
              begin
+               { store the original name to create the unitsym }
+               sorg:=pu.u.realmodulename^;
                tppumodule(pu.u).loadppu;
                { is our module compiled? then we can stop }
                if current_module.state=ms_compiled then
@@ -555,6 +557,13 @@ implementation
                pu.u.adddependency(current_module);
                pu.checksum:=pu.u.crc;
                pu.interface_checksum:=pu.u.interface_crc;
+               { Create unitsym, we need to use the name as specified, we
+                 can not use the modulename because that can be different
+                 when -Un is used }
+               unitsym:=tunitsym.create(sorg,pu.u.globalsymtable);
+               if (pu.u.flags and (uf_init or uf_finalize))<>0 then
+                 inc(unitsym.refs);
+               refsymtable.insert(unitsym);
              end;
             pu:=tused_unit(pu.next);
           end;
@@ -577,13 +586,6 @@ implementation
 {$EndIf GDB}
               if pu.in_uses then
                 begin
-                   { Create unitsym }
-                   unitsym:=tunitsym.create(pu.u.realmodulename^,pu.u.globalsymtable);
-                   { never claim about unused unit if
-                     there is init or finalize code  PM }
-                   if (hp2.flags and (uf_init or uf_finalize))<>0 then
-                     inc(unitsym.refs);
-                   refsymtable.insert(unitsym);
                    { Reinsert in symtablestack }
                    hp3:=symtablestack;
                    while assigned(hp3) do
@@ -1435,7 +1437,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2002-12-29 14:57:50  peter
+  Revision 1.90  2002-12-29 18:17:23  peter
+    * insert unitsym with the name as specified in the uses list
+
+  Revision 1.89  2002/12/29 14:57:50  peter
     * unit loading changed to first register units and load them
       afterwards. This is needed to support uses xxx in yyy correctly
     * unit dependency check fixed
