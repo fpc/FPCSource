@@ -8,10 +8,10 @@ Const
   NCC = 8;
 
 {$ifdef powerpc}
-TCGETS            = $403c7413;
-TCSETS            = $803c7414;
-TCSETSW           = $803c7415;
-TCSETSF           = $803c7416;
+TCGETS            = $402c7413;
+TCSETS            = $802c7414;
+TCSETSW           = $802c7415;
+TCSETSF           = $802c7416;
 TCGETA            = $40147417;
 TCSETA            = $80147418;
 TCSETAW           = $80147419;
