@@ -36,6 +36,7 @@ PROGRAM TestApp;
   USES
      {$IFDEF OS_OS2} Os2Def, os2PmApi,  {$ENDIF}
      Objects, Drivers, Views, Menus, Dialogs, App,             { Standard GFV units }
+     FVConsts,
      {$ifdef TEST}
      AsciiTab,
      {$endif TEST}
@@ -353,7 +354,10 @@ END.
 
 {
  $Log$
- Revision 1.2  2002-09-07 15:06:38  peter
+ Revision 1.3  2004-03-22 15:50:31  peter
+   * compile fixes
+
+ Revision 1.2  2002/09/07 15:06:38  peter
    * old logs removed and tabs fixed
 
 }

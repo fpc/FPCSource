@@ -15,7 +15,7 @@ BEGIN
 
   Writeln('SetFileSize: ', SetFileSize(handle, 4));
 
-  Writeln('SetFilePos: ', SetFilePos(handle, 2, 0, (LongInt(n)));
+  Writeln('SetFilePos: ', SetFilePos(handle, 2, 0, (LongInt(n))));
   Writeln('Actual: ', n);
 
   Writeln('FileRead: ', FileRead(Handle, buf, 2, n) );
