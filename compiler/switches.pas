@@ -90,6 +90,9 @@ begin
                     aktlocalswitches:=aktlocalswitches+[tlocalswitch(setsw)]
                    else
                     aktlocalswitches:=aktlocalswitches-[tlocalswitch(setsw)];
+		 { Message for linux which has global checking only }
+                   if switch='S' then
+		    Message(scan_n_stack_check_global_under_linux);
                  end;
       modulesw : begin
                    if current_module^.in_main then
@@ -150,7 +153,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1998-08-10 14:50:27  peter
+  Revision 1.9  1998-08-10 15:47:08  peter
+    * reinstantited stackcheck note for linux
+
+  Revision 1.8  1998/08/10 14:50:27  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.7  1998/07/24 22:17:00  florian
