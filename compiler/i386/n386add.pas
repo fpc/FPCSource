@@ -713,7 +713,6 @@ interface
          mmxbase : tmmxtype;
 {$endif SUPPORT_MMX}
          pushedreg : tpushed;
-         hloc : tlocation;
          regstopush: byte;
 
       procedure firstjmp64bitcmp;
@@ -2314,7 +2313,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-08-29 12:03:23  jonas
+  Revision 1.19  2001-08-29 17:50:45  jonas
+    * removed unused var
+
+  Revision 1.18  2001/08/29 12:03:23  jonas
     * fixed wrong regalloc info around FPC_MUL/DIV/MOD_INT64/QWORD calls
     * fixed partial result overwriting with the above calls too
 
