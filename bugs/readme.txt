@@ -249,3 +249,7 @@ bug0171.pp   missing typecasting in constant expressions
 bug0183.pp   internal error 10
 bug0185.pp   missing range checking for Val and subrange types
 bug0187.pp   constructor in a WIth statement isn't called correct.
+bug0188.pp   can't print function result of procedural var that returns a
+             function.
+bug0189.pp   cant compare adresses of function variables !!
+bug0190.pp   can't have typecast for var params ??
