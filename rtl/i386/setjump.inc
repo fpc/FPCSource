@@ -43,12 +43,17 @@ asm
   movl 8(%ecx),%edi
   movl 12(%ecx),%ebp
   movl 16(%ecx),%esp
+  // we should also clear the fpu
+  fninit
   jmp 20(%ecx)
 end;
 
 {
   $Log$
-  Revision 1.8  2000-02-09 16:59:29  peter
+  Revision 1.9  2000-02-09 22:12:54  florian
+    * longjump does now a finit
+
+  Revision 1.8  2000/02/09 16:59:29  peter
     * truncated log
 
   Revision 1.7  2000/01/07 16:41:33  daniel
@@ -56,5 +61,4 @@ end;
 
   Revision 1.6  1999/08/18 10:42:13  pierre
    * loading of esp value corrected
-
 }
