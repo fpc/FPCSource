@@ -762,7 +762,8 @@ implementation
                   p.free;
                 end
               { for objects we allow it only if it doesn't contain a vmt }
-              else if (oo_has_vmt in pobjectdef(def)^.objectoptions) then
+              else if (oo_has_vmt in pobjectdef(def)^.objectoptions) and
+                      not(m_tp in aktmodeswitches) then
                  Message(parser_e_type_const_not_possible)
               else
                 begin
@@ -798,6 +799,18 @@ implementation
                              if pvarsym(srsym)^.address<aktpos then
                                Message(parser_e_invalid_record_const);
 
+                             { check in VMT needs to be added for TP mode }
+                             if (m_tp in aktmodeswitches) and
+                                (oo_has_vmt in pobjectdef(def)^.objectoptions) and
+                                (pobjectdef(def)^.vmt_offset<pvarsym(srsym)^.address) then
+                               begin
+                                 for i:=1 to pobjectdef(def)^.vmt_offset-aktpos do
+                                   curconstsegment.concat(tai_const.create_8bit(0));
+                                 curconstsegment.concat(tai_const_symbol.createname(pobjectdef(def)^.vmt_mangledname));
+                                 { this is more general }
+                                 aktpos:=pobjectdef(def)^.vmt_offset + target_os.size_of_pointer;
+                               end;
+
                              { if needed fill }
                              if pvarsym(srsym)^.address>aktpos then
                                for i:=1 to pvarsym(srsym)^.address-aktpos do
@@ -813,6 +826,16 @@ implementation
                                consume(_SEMICOLON)
                              else break;
                           end;
+                     end;
+                   if (m_tp in aktmodeswitches) and
+                      (oo_has_vmt in pobjectdef(def)^.objectoptions) and
+                      (pobjectdef(def)^.vmt_offset>=aktpos) then
+                     begin
+                       for i:=1 to pobjectdef(def)^.vmt_offset-aktpos do
+                         curconstsegment.concat(tai_const.create_8bit(0));
+                       curconstsegment.concat(tai_const_symbol.createname(pobjectdef(def)^.vmt_mangledname));
+                       { this is more general }
+                       aktpos:=pobjectdef(def)^.vmt_offset + target_os.size_of_pointer;
                      end;
                    for i:=1 to def^.size-aktpos do
                      curconstSegment.concat(Tai_const.Create_8bit(0));
@@ -837,7 +860,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2000-12-25 00:07:28  peter
+  Revision 1.16  2001-02-03 00:26:35  peter
+    * merged fix for bug 1365
+
+  Revision 1.15  2000/12/25 00:07:28  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
