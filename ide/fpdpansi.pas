@@ -21,7 +21,8 @@ uses
   objects,
   video;
 
-function ExportBufferToAnsiFile(var Buffer : TVideoBuf;xmin,xmax,ymin,ymax,linesize : sw_integer;var f : text) : boolean;
+function ExportBufferToAnsiFile(var Buffer : TVideoBuf;xmin,xmax,ymin,ymax,linesize : sw_integer;
+           SaveAsText : boolean;var f : text) : boolean;
 
 implementation
 
@@ -43,7 +44,8 @@ const ColorTab : array[0..7] of byte =
       (Black,Red,Green,Brown,Blue,Magenta,Cyan,LightGray);
 
 {$i-}
-function ExportBufferToAnsiFile(var Buffer  : TVideoBuf;xmin,xmax,ymin,ymax,linesize : sw_integer;var f : text) : boolean;
+function ExportBufferToAnsiFile(var Buffer  : TVideoBuf;xmin,xmax,ymin,ymax,linesize : sw_integer;
+           SaveAsText : boolean;var f : text) : boolean;
 var
   CurColor : byte;
   CurForColor, CurBackColor : byte;
@@ -91,13 +93,14 @@ var
   textAttr : byte;
   i, j : sw_integer;
 begin
+  CurColor:=0;
   for i:=ymin to ymax do
     begin
       for j:=xmin to xmax do
         begin
           ch:=chr(Buffer[i*linesize+j] and $ff);
           textattr:=Buffer[i*linesize+j] shr 8;
-          if textattr<>CurColor then
+          if (textattr<>CurColor) and not SaveAsText then
             ChangeColor(textattr);
           Write(f,ch);
         end;
@@ -109,7 +112,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
+  Revision 1.2  2001-11-15 13:30:14  pierre
+   + save ansi dump as text is filename suffix is '.txt'
+
+  Revision 1.1  2001/08/04 11:30:23  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.1  2000/11/21 17:43:24  pierre

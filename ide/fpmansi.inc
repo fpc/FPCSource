@@ -19,7 +19,9 @@ var
    f : text;
    Buf : PVideoBuf;
    re : word;
+   p : longint;
    UL,LR : TPoint;
+   SaveAsText : boolean;
    Name, DefExt : string;
 
    function GetPoint(var P :TPoint) : boolean;
@@ -72,8 +74,10 @@ begin
     begin
       Assign(f,Name);
       Rewrite(f);
+      p:=system.pos('.',Name);
+      SaveAsText:=Copy(Name,p+1,High(Name))='txt';
       ExportBufferToAnsiFile(Buf^,UL.X,LR.X,UL.Y,LR.Y,
-        Size.X,f);
+        Size.X,SaveAsText,f);
       Close(f);
     end;
   PopStatus;
@@ -81,7 +85,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2001-10-12 14:20:11  pierre
+  Revision 1.3  2001-11-15 13:30:14  pierre
+   + save ansi dump as text is filename suffix is '.txt'
+
+  Revision 1.2  2001/10/12 14:20:11  pierre
    * use correct video buffer size
 
   Revision 1.1  2001/08/04 11:30:23  peter
