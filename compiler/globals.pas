@@ -1273,9 +1273,62 @@ implementation
           Result:=TFPUExceptionMask(CtlWord and $3F);
         end;
 {$else CPUI386}
+{$ifdef CPUPOWERPC}
+      function SetFPUExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+        var
+          newmask: record
+            case byte of
+               1: (d: double);
+               2: (a,b: cardinal);
+            end;
+        begin
+          { load currect control register contents }
+          asm
+            mffs f0
+            stfd f0,newmask.d
+          end;
+          { invalid operation: bit 24 (big endian, bit 0 = left-most bit) }
+          if (exInvalidOp in mask) then
+            newmask.b := newmask.b and not(1 shl (31-24))
+          else
+            newmask.b := newmask.b or (1 shl (31-24));
+
+          { denormals can not cause exceptions on the PPC }
+          
+          { zero divide: bit 27 }
+          if (exZeroDivide in mask) then
+            newmask.b := newmask.b and not(1 shl (31-27))
+          else
+            newmask.b := newmask.b or (1 shl (31-27));
+
+          { overflow: bit 25 }
+          if (exOverflow in mask) then
+            newmask.b := newmask.b and not(1 shl (31-25))
+          else
+            newmask.b := newmask.b or (1 shl (31-25));
+            
+          { underflow: bit 26 }
+          if (exUnderflow in mask) then
+            newmask.b := newmask.b and not(1 shl (31-26))
+          else
+            newmask.b := newmask.b or (1 shl (31-26));
+            
+          { Precision (inexact result): bit 28 }
+          if (exUnderflow in mask) then
+            newmask.b := newmask.b and not(1 shl (31-28))
+          else
+            newmask.b := newmask.b or (1 shl (31-28));
+          { update control register contents }
+          asm
+            lfd   f0, newmask.d
+            mtfsf 255,f0
+          end;
+        end;
+{$else CPUPOWERPC}
       function SetFPUExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
         begin
         end;
+{$endif CPUPOWERPC}
 {$endif CPUI386}
 
       function is_number_float(d : double) : boolean;
@@ -1744,7 +1797,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.118  2003-12-25 01:07:09  florian
+  Revision 1.119  2004-01-02 16:50:24  jonas
+    + SetFPUExceptionMask implementation for PPC
+
+  Revision 1.118  2003/12/25 01:07:09  florian
     + $fputype directive support
     + single data type operations with sse unit
     * fixed more x86-64 stuff
