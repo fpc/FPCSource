@@ -471,7 +471,7 @@ TYPE
        { this routine is used to draw all circles/ellipses/sectors     }
        { more info... on this later...                                 }
        ellipseproc = procedure (X,Y: Integer;XRadius: word;
-         YRadius:word; stAngle,EndAngle: word);
+         YRadius:word; stAngle,EndAngle: word; fp: PatternLineProc);
 
        { Line routine - draws lines thick/norm widths with current     }
        { color and line style - LINE must be clipped here.             }
@@ -503,6 +503,7 @@ TYPE
        getrgbpaletteproc =
          procedure(ColorNum: integer; var
             RedValue, GreenValue, BlueValue: Integer);
+
 
 TYPE
     {-----------------------------------}
@@ -1271,6 +1272,18 @@ var
 
 
   {********************************************************}
+  { Procedure DummyPatternLine()                           }
+  {--------------------------------------------------------}
+  { This is suimply an procedure that does nothing which   }
+  { can be passed as a patternlineproc for non-filled      }
+  { ellipses                                               }
+  {********************************************************}
+  Procedure DummyPatternLine(x1, x2, y: integer); {$ifdef tp} far; {$endif tp}
+  begin
+  end;
+
+
+  {********************************************************}
   { Procedure InternalEllipse()                            }
   {--------------------------------------------------------}
   { This routine first calculates all points required to   }
@@ -1284,13 +1297,15 @@ var
   {  YRadius - Y-Axis radius of ellipse.                   }
   {  stAngle, EndAngle: Start angle and end angles of the  }
   {  ellipse (used for partial ellipses and circles)       }
+  {  pl: procedure which either draws a patternline (for   }
+  {      FillEllipse) or does nothing (arc etc)            }
   {--------------------------------------------------------}
   { NOTE: - uses the current write mode.                   }
   {       - Angles must both be between 0 and 360          }
   {********************************************************}
 
   Procedure InternalEllipseDefault(X,Y: Integer;XRadius: word;
-    YRadius:word; stAngle,EndAngle: word); far;
+    YRadius:word; stAngle,EndAngle: word; pl: PatternLineProc); far;
    var
     j,Delta, DeltaEnd: graph_float;
     NumOfPixels: longint;
@@ -1302,7 +1317,25 @@ var
     DeltaAngle: word;
     xtemp, ytemp, xp, yp, xm, ym: integer;
     q1p, q2p, q3p, q4p: PointType;
+    BackupColor, OldLineWidth: word;
   Begin
+   If LineInfo.ThickNess = ThickWidth Then
+    { first draw the two outer ellipses using normwidth and no filling (JM) }
+     Begin
+       OldLineWidth := LineInfo.Thickness;
+       LineInfo.Thickness := NormWidth;
+       InternalEllipseDefault(x,y,XRadius+2,YRadius+2,StAngle,EndAngle,
+                              {$ifdef fpc}@{$endif fpc}DummyPatternLine);
+       InternalEllipseDefault(x,y,XRadius+1,YRadius+1,StAngle,EndAngle,
+                              {$ifdef fpc}@{$endif fpc}DummyPatternLine);
+       { restore line thickness }
+       LineInfo.Thickness := OldLineWidth;
+     End;
+   { Get End and Start points into the ArcCall information record }
+   ArcCall.X := X;
+   ArcCall.Y := Y;
+   { for restoring after PatternLine }
+   BackupColor := CurrentColor;
    With q1p Do
      Begin
        x := $7fff;
@@ -1339,121 +1372,90 @@ var
      end;
    { calculate difference of angle now so we don't always have to calculate it }
    DeltaAngle:= EndAngle-StAngle;
-   if LineInfo.Thickness=NormWidth then
+   { approximate the number of pixels required by using the circumference }
+   { equation of an ellipse.                                              }
+   { In the worst case, we have to calculate everything from the }
+   { quadrant, so divide the circumference value by 4 (JM)       }
+   NumOfPixels:=(8 div 4)*Round(2.5*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
+   { Calculate the angle precision required }
+   { Note: to get the same precision as before, we have to divide by an }
+   { extra 4 (JM)                                                       }
+   Delta := DeltaAngle / (NumOfPixels*4);
+   { Adjust for screen aspect ratio }
+   XRadius:=(longint(XRadius)*10000) div XAspect;
+   YRadius:=(longint(YRadius)*10000) div YAspect;
+   { removed from inner loop to make faster }
+   ConvFac:=Pi/180.0;
+   { store some arccall info }
+   TempTerm := (Delta+StAngle)*ConvFac;
+   ArcCall.XStart := round(XRadius*Cos(TempTerm)) + X;
+   ArcCall.XEnd := ArcCall.XStart;
+   ArcCall.YStart := round(YRadius*Sin(TempTerm+Pi)) + Y;
+   ArcCall.YEnd := ArcCall.YStart;
+   { otherwise we get an endless loop }
+   If DeltaAngle = 0 Then
      Begin
-       { approximate the number of pixels required by using the circumference }
-       { equation of an ellipse.                                              }
-       { In the worst case, we have to calculate everything from the }
-       { quadrant, so divide the circumference value by 4 (JM)       }
-       NumOfPixels:=(8 div 4)*Round(2.5*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
-       { Calculate the angle precision required }
-       { Note: to get the same precision as before, we have to divide by an }
-       { extra 4 (JM)                                                       }
-       Delta := DeltaAngle / (NumOfPixels*4);
-       { Adjust for screen aspect ratio }
-       XRadius:=(longint(XRadius)*10000) div XAspect;
-       YRadius:=(longint(YRadius)*10000) div YAspect;
-       { removed from inner loop to make faster }
-       ConvFac:=Pi/180.0;
-       { store some arccall info }
-       { Initial counter value }
-       TempTerm := (Delta+StAngle)*ConvFac;
-       ArcCall.XStart := round(XRadius*Cos(TempTerm)) + X;
-       ArcCall.XEnd := ArcCall.XStart;
-       ArcCall.YStart := round(YRadius*Sin(TempTerm+Pi)) + Y;
-       ArcCall.YEnd := ArcCall.YStart;
+       Line(x,y,ArcCall.XStart,ArcCall.YStart);
+       exit
+     End;
+   { Always just go over the first 90 degrees. Could be optimized a   }
+   { bit if StAngle and EndAngle lie in the same quadrant, left as an }
+   { execrise for the reader :) (JM)                                  }
+   j := 0;
+   DeltaAngle := 90;
+   { calculate stop position (JM)}
+   DeltaEnd := j + DeltaAngle;
+   Repeat
+         { this is used by both sin and cos }
+         TempTerm := j*ConvFac;
+         { Calculate points }
+         xtemp := round(XRadius*Cos(TempTerm));
+         ytemp := round(YRadius*Sin(TempTerm+Pi));
 
-       { convert the DeltaAngle to the new boundaries (JM) }
-       j := Delta;
-       DeltaAngle := 90;
-       { calculate stop position (JM)}
-       DeltaEnd := j + DeltaAngle;
-       Repeat
-             { this is used by both sin and cos }
-             TempTerm := j*ConvFac;
-             { Calculate points }
-             xtemp := round(XRadius*Cos(TempTerm));
-             ytemp := round(YRadius*Sin(TempTerm+Pi));
-
-             xp := x + xtemp;
-             xm := x - xtemp;
-             yp := y + ytemp;
-             ym := y - ytemp;
-             If (j >= StAngle) and (j <= EndAngle) then
-               begin
-                 q1p.x := xp;
-                 q1p.y := yp;
-                 PutPixel(xp,yp,CurrentColor);
-               end;
-             If ((180-j) >= StAngle) and ((180-j) <= EndAngle) then
-               begin
-                 If (q2p.x = $7fff) then
-                   Begin
-                     q2p.x := xm;
-                     q2p.y := yp;
-                   End;
-                 PutPixel(xm,yp,CurrentColor);
-               end;
-             If ((j+180) >= StAngle) and ((j+180) <= EndAngle) then
-               begin
-                 q3p.x := xm;
-                 q3p.y := ym;
-                 PutPixel(xm,ym,CurrentColor);
-               end;
-             If ((360-j) >= StAngle) and ((360-j) <= EndAngle) then
-               begin
-                 If (q4p.x = $7fff) then
-                   Begin
-                     q4p.x := xp;
-                     q4p.y := ym;
-                   End;
-                 PutPixel(xp,ym,CurrentColor);
-               end;
-             j:=j+Delta;
-       Until j > (DeltaEnd);
-     end
-   else
-   {******************************************}
-   {  CIRCLE OR ELLIPSE WITH THICKNESS=3      }
-   {******************************************}
-    Begin
-      Writeln('thickness 3');
-      NumOfPix[1]:=2*Round(2.5*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
-      NumOfPix[0]:=2*Round(2.5*sqrt((sqr(XRadius-1)+sqr(YRadius-1)) div 2));
-      NumOfPix[2]:=2*Round(2.5*sqrt((sqr(XRadius+1)+sqr(YRadius+1)) div 2));
-      { removed from inner loop to make faster }
-      ConvFac:=Pi/180.0;
-      for Count:=0 to 2 do
-        Begin
-          aval:=XRadius+Count-1;
-          bval:=YRadius+Count-1;
-          Delta := DeltaAngle / (4*NumOfPix[Count]);
-          aval:= (longint(aval)*10000) div XAspect;
-          bval:= (longint(bval)*10000) div YAspect;
-          j:=Delta+Stangle;
-{ store some ArcCall info }
-          TempTerm := j*ConvFac;
-          ArcCall.XStart := round(aval*Cos(TempTerm)) + X;
-          ArcCall.YStart := round(bval*Sin(TempTerm)) + Y;
-{ plot ellipse }
-          Repeat
-            { this used by both sin and cos }
-            TempTerm := j*ConvFac;
-            xtemp:=round(aval*Cos(TempTerm));
-            ytemp:=round(bval*Sin(TempTerm));
-            PutPixel(x+xtemp,y+ytemp,CurrentColor);
-            PutPixel(x+xtemp,y-ytemp,CurrentColor);
-            PutPixel(x-xtemp,y+ytemp,CurrentColor);
-            PutPixel(x-xtemp,y-ytemp,CurrentColor);
-            j:=j+Delta;
-          Until j > (DeltaAngle/4);
-        end;
-    end;
-   {******************************************}
-   {  NOW ALL PIXEL POINTS ARE IN BUFFER      }
-   {  plot them all to the screen             }
-   {******************************************}
-   Count:=0;
+         xp := x + xtemp;
+         xm := x - xtemp;
+         yp := y + ytemp;
+         ym := y - ytemp;
+         If (j >= StAngle) and (j <= EndAngle) then
+           begin
+             q1p.x := xp;
+             q1p.y := yp;
+             PutPixel(xp,yp,CurrentColor);
+           end;
+         If ((180-j) >= StAngle) and ((180-j) <= EndAngle) then
+           begin
+             If (q2p.x = $7fff) then
+               Begin
+                 q2p.x := xm;
+                 q2p.y := yp;
+               End;
+             PutPixel(xm,yp,CurrentColor);
+           end;
+         If ((j+180) >= StAngle) and ((j+180) <= EndAngle) then
+           begin
+             q3p.x := xm;
+             q3p.y := ym;
+             PutPixel(xm,ym,CurrentColor);
+           end;
+         If ((360-j) >= StAngle) and ((360-j) <= EndAngle) then
+           begin
+             If (q4p.x = $7fff) then
+               Begin
+                 q4p.x := xp;
+                 q4p.y := ym;
+               End;
+             PutPixel(xp,ym,CurrentColor);
+           end;
+         If xp-xm >2 then
+           begin
+             CurrentColor := FillSettings.Color;
+             pl(xm+1,xp-1,yp);
+             pl(xm+1,xp-1,ym);
+             CurrentColor := BackupColor;
+           end;
+         j:=j+Delta;
+   Until j > (DeltaEnd);
+   { get the end of the arc (JM) }
    If q4p.x <> $7fff Then
      Begin
        ArcCall.XEnd := q4p.x;
@@ -1474,10 +1476,6 @@ var
        ArcCall.XEnd := q1p.x;
        ArcCall.YEnd := q1p.y
      End;
-   { Get End and Start points into the ArcCall information record }
-   ArcCall.X := X;
-   ArcCall.Y := Y;
-
   end;
 
 
@@ -2092,7 +2090,6 @@ end;
 { ----------------------------------------------------------------- }
 
 
-
   Procedure Arc(X,Y : Integer; StAngle,EndAngle,Radius: word);
 
    var
@@ -2120,14 +2117,22 @@ end;
      OldWriteMode := CurrentWriteMode;
      if (LineInfo.Thickness = NormWidth) then
        CurrentWriteMode := NormalPut;
-     InternalEllipse(X,Y,Radius,Radius,StAngle,Endangle);
+{$ifdef fpc}
+     InternalEllipse(X,Y,Radius,Radius,StAngle,Endangle,@DummyPatternLine);
+{$else fpc}
+     InternalEllipse(X,Y,Radius,Radius,StAngle,Endangle,DummyPatternLine);
+{$endif fpc}
      CurrentWriteMode := OldWriteMode;
    end;
 
 
  procedure Ellipse(X,Y : Integer; stAngle, EndAngle: word; XRadius,YRadius: word);
   Begin
-    InternalEllipse(X,Y,XRadius,YRadius,stAngle,EndAngle);
+{$ifdef fpc}
+     InternalEllipse(X,Y,XRadius,YRadius,StAngle,Endangle,@DummyPatternLine);
+{$else fpc}
+     InternalEllipse(X,Y,XRadius,YRadius,StAngle,Endangle,DummyPatternLine);
+{$endif fpc}
   end;
 
 
@@ -2153,9 +2158,14 @@ end;
     { only normal put supported }
     OldWriteMode := CurrentWriteMode;
     CurrentWriteMode := NormalPut;
-    InternalEllipse(X,Y,XRadius+1,YRadius+1,0,360);
     if (XRadius > 0) and (YRadius > 0) then
-      FloodFill(X,Y,CurrentColor);
+      InternalEllipse(X,Y,XRadius,YRadius,0,360,PatternLine)
+    Else
+{$ifdef fpc}
+      InternalEllipse(X,Y,XRadius+1,YRadius+1,0,60,@DummyPatternLine);
+{$else fpc}
+      InternalEllipse(X,Y,XRadius+1,YRadius+1,0,60,DummyPatternLine);
+{$endif fpc}
     { restore old write mode }
     CurrentWriteMode := OldWriteMode;
   end;
@@ -2194,7 +2204,11 @@ end;
              OldWriteMode := CurrentWriteMode;
              CurrentWriteMode := CopyPut;
        end;
-     InternalEllipse(X,Y,Radius,Radius,0,360);
+{$ifdef fpc}
+     InternalEllipse(X,Y,Radius,Radius,0,360,@DummyPatternLine);
+{$else fpc}
+     InternalEllipse(X,Y,Radius,Radius,0,360,DummyPatternLine);
+{$endif fpc}
      if LineInfo.Thickness = Normwidth then
          CurrentWriteMode := OldWriteMode;
      { restore arc information }
@@ -2220,16 +2234,16 @@ end;
      PutPixel(x,y,CurrentColor);
      PutPixel(ArcCall.xend,ArcCall.yend,CurrentColor);
      stangle:=Stangle mod 360; EndAngle:=Endangle mod 360;
-     if stAngle<=Endangle then
+{     if stAngle<=Endangle then}
        Angle:=(stAngle+EndAngle) div 2
-     else
-       angle:=(stAngle-360+EndAngle) div 2;
+{     else
+       angle:=(stAngle-360+EndAngle) div 2};
      { fill from the point in the middle of the slice }
      XRadius:=(longint(XRadius)*10000) div XAspect;
      YRadius:=(longint(YRadius)*10000) div YAspect;
      { avoid rounding errors }
-     if abs(ArcCall.xstart-ArcCall.xend)
-        +abs(ArcCall.ystart-ArcCall.yend)>2 then
+     if (abs(ArcCall.xstart-ArcCall.xend)
+        +abs(ArcCall.ystart-ArcCall.yend)>2) then
        FloodFill(x+round(sin((angle+90)*Pi/180)*XRadius/2),
          y+round(cos((angle+90)*Pi/180)*YRadius/2),CurrentColor);
      CurrentWriteMode := writemode;
@@ -2624,6 +2638,7 @@ end;
       XRadius, YRadius : word;
       writemode : word;
   begin
+     writemode := currentwritemode;
      Arc(x,y,StAngle,EndAngle,Radius);
      Line(ArcCall.XStart, ArcCall.YStart, x,y);
      Line(x,y, ArcCall.XEnd, ArcCall.YEnd);
@@ -2636,16 +2651,16 @@ end;
      if Stangle<=Endangle then
        angle:=(StAngle+EndAngle) div 2
      else
-       angle:=(Stangle-360+Endangle) div 2;
+       angle:=(StAngle-360+EndAngle) div 2;
      { fill from the point in the middle of the slice }
      XRadius:=(longint(Radius)*10000) div XAspect;
      YRadius:=(longint(Radius)*10000) div YAspect;
      { avoid rounding errors }
      if abs(ArcCall.xstart-ArcCall.xend)
         +abs(ArcCall.ystart-ArcCall.yend)>2 then
-{       FloodFill(x+round(sin((angle+90)*Pi/180)*XRadius/2),
-         y+round(cos((angle+90)*Pi/180)*YRadius/2),truecolor);}
-{     CurrentWriteMode := writemode;}
+       floodfill(x+round(sin((angle+90)*Pi/180)*XRadius/2),
+         y+round(cos((angle)*Pi/180)*YRadius/2),FillSettings.Color);
+     CurrentWriteMode := writemode;
   end;
 
 {$i fills.inc}
@@ -2773,7 +2788,13 @@ DetectGraph
 
 {
   $Log$
-  Revision 1.20  1999-09-12 17:29:00  jonas
+  Revision 1.21  1999-09-13 12:49:08  jonas
+    * fixed Arc: internallellipse went into an endless loop if StAngle =
+      EndAngle
+    * FillEllipse is now much faster: no more floodfill,
+      InternalEllipseDefault now draws the patternlines immediatety!
+
+  Revision 1.20  1999/09/12 17:29:00  jonas
     * several changes to internalellipse to make it faster
       and to make sure it updates the ArcCall correctly
       (not yet done for width = 3)
