@@ -22,7 +22,7 @@
 #INSTALLDEBUG=1
 
 # Which docs are made when 'html' is specified
-HTML = user units ref prog
+HTML = user units ref prog fcl
 
 # Can be 'report','book' or 'html'
 PREAMBLETYPE = report
@@ -36,7 +36,7 @@ ifndef DOCINSTALLDIR
 DOCINSTALLDIR:=$(PREFIXINSTALLDIR)/doc/fpc-$(shell ppc386 -iV)
 endif 
 
-
+FPDOC=fpdoc
 
 #
 # Program definitions
@@ -108,6 +108,8 @@ CHK = $(addsuffix .chk, $(HTML) progex unitex refex htex onechap scripts)
 CHAPTERS = $(addsuffix .tex, crt dos getopts go32 graph linux printer\
              strings objects heaptrc sysutils ipc mouse gpm dxeload \
              emu387 ports math keyboard typinfo video)
+
+FCLCHAPTERS = $(addsuffix .tex, classes)
 
 GTKPDF=$(addsuffix .pdf,$(addprefix gtk, 1 2 3 4 5))
 
@@ -273,9 +275,17 @@ else
 includes: date.inc preamble.inc
 endif
 
-#
+#####################################################################
+# Tex from XML
+#####################################################################
+FPCLASSESOPT=--descr=classes.xml --input='../fcl/linux/classes.pp -I../fcl/inc'
+
+classes.tex: classes.xml
+	$(FPDOC) --output=. $(FPCLASSESOPT) --format=latex
+
+#####################################################################
 # DVI files
-#
+#####################################################################
 
 onechap: onechap.dvi
 
@@ -309,6 +319,7 @@ ps : dvi $(PS)
 pdf : $(PDF)
 
 all : dvi ps pdf txt html
+
 
 #####################################################################
 # Html creation
@@ -427,6 +438,10 @@ endif
 
 html: $(HTML)
 
+classes: classes/index.html
+
+classes/index.html: classes.xml
+	$(FPDOC) $(FPCLASSESOPT) --format=html
 
 #####################################################################
 # GTK Articles
@@ -457,6 +472,7 @@ htmlinstall: html
 	install -d -m 755 $(DOCINSTALLDIR)
 	cp fpctoc.html $(DOCINSTALLDIR)
 	cp -R buttons $(DOCINSTALLDIR)
+	cp -R pics $(DOCINSTALLDIR)
 	cp -R $(HTML) $(DOCINSTALLDIR)
 	find $(DOCINSTALLDIR) -name 'CVS' | xargs -n1 rm -rf
 
@@ -543,7 +559,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.11  2001-11-05 20:10:05  michael
+# Revision 1.12  2002-03-12 22:13:42  michael
+# + Now pics directory is included in HTML
+#
+# Revision 1.11  2001/11/05 20:10:05  michael
 # + Added onechap target
 #
 # Revision 1.10  2001/10/18 21:41:26  peter
