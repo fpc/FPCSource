@@ -1,11 +1,11 @@
 {there is no crash when tset or c from unit a are used in OuterProcedure,
  it's only a problem when using them in a nested procedure/function}
 
-unit bug0149b;
+unit tbs0149b;
 
 interface
 
-uses t2a;
+uses tbs0149a;
 
 implementation
 

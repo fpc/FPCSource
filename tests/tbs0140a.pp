@@ -1,9 +1,9 @@
 
-unit bug0140a;
+unit tbs0140a;
 
 interface
 
-uses bug0140;
+uses tbs0140;
 
 procedure Message(var O:TObject);
 

@@ -12,7 +12,7 @@ type
  end;
 implementation
 
-uses bug0140a;
+uses tbs0140a;
 
 constructor TObject.Init(aPar:byte);
  begin

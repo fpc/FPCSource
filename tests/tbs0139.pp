@@ -1,8 +1,8 @@
-unit unit2;
+unit tbs0139;
  
  interface
  uses
-    objpas, bug0139a;
+    objpas, tbs0139a;
  
  type
     AnotherClass=class(SomeClass)
