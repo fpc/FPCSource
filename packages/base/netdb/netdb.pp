@@ -137,21 +137,44 @@ Var
 { ---------------------------------------------------------------------
     Auxiliary functions.
   ---------------------------------------------------------------------}
+  
+function htonl(i:integer):integer;
+begin
+  {$ifdef ENDIAN_LITTLE}
+  result := (i shr 24) or (i shr 8 and $ff00) or (i shl 8 and $ff0000) or (i shl 24 and $ff000000);
+  {$else}
+  result := i;
+  {$endif}
+end
 
 Function htons(var W : Word) : word;
 
 begin
-  w:=Swap(w);
-  Result:=W;
+  {$ifdef ENDIAN_LITTLE}
+  result := ((w and $ff00) shr 8) or ((w and $ff) shl 8);
+  {$else}
+  result := w;
+  {$endif}
 end;
 
 Function ntohs(var W : Word) : Word;
 
 begin
-  w:=Swap(w);
-  Result:=W;
+  {$ifdef ENDIAN_LITTLE}
+  result := ((w and $ff00) shr 8) or ((w and $ff) shl 8);
+  {$else}
+  result := w;
+  {$endif}
 end;
 
+function ntohl(i:integer):integer;
+begin
+  {$ifdef ENDIAN_LITTLE}
+  result := (i shr 24) or (i shr 8 and $ff00) or (i shl 8 and $ff0000) or (i shl 24 and $ff000000);
+  {$else}
+  result := i;
+  {$endif}
+end;
 
 { ---------------------------------------------------------------------
    Resolve.conf handling
@@ -955,7 +978,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-09-28 09:34:02  peter
+  Revision 1.6  2003-09-29 07:44:11  michael
+  + Endian patch from bas steendijk@xs4all.nl
+
+  Revision 1.5  2003/09/28 09:34:02  peter
     * unix fix for 1.0.x
 
   Revision 1.4  2003/09/18 16:30:23  marco
