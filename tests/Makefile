@@ -1082,7 +1082,7 @@ endif
 ifdef INTERACTIVE
 override DOTESTOPT+=-i
 endif
-DIRS=webtbs webtbf tbs tbf test test/cg test/units/system test/units/objects
+DIRS=webtbs webtbf tbs tbf test test/cg test/units/system test/units/dos test/units/objects
 %.log : %.pp
 	$(DOTEST) $(DOTESTOPT) $<
 %.elg : %.pp
@@ -1090,7 +1090,7 @@ DIRS=webtbs webtbf tbs tbf test test/cg test/units/system test/units/objects
 .PHONY: allpreps
 allpreps: allpreps-stamp.$(OS_TARGET)
 allpreps-stamp.$(OS_TARGET):
-	$(PP) test/ptest.pp
+	$(FPC) test/cg/ptest.pp
 	$(COPY) test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o test/cg
 	$(ECHO) $(DATE) > allpreps-stamp.$(OS_TARGET)
 .PHONY: alltbs alltbf allwebtbs allwebtbf alltest alltests
