@@ -181,13 +181,17 @@ interface
           internalerror(200301081);}
 
         if (not calljmp) and
-            (gas_needsuffix[op]<>AttSufNONE) and
-            (op<>A_FNSTSW) and (op<>A_FSTSW) and
-            (op<>A_FNSTCW) and (op<>A_FSTCW) and
-            (op<>A_FLDCW) and not(
-            (taicpu(hp).oper[0]^.typ=top_reg) and
-            (getregtype(taicpu(hp).oper[0]^.reg)=R_FPUREGISTER)
-           ) then
+           (gas_needsuffix[op]<>AttSufNONE) and
+           (op<>A_FNSTSW) and
+           (op<>A_FSTSW) and
+           (op<>A_FNSTCW) and
+           (op<>A_FSTCW) and
+           (op<>A_FLDCW) and
+           not(
+               (taicpu(hp).ops<>0) and
+               (taicpu(hp).oper[0]^.typ=top_reg) and
+               (getregtype(taicpu(hp).oper[0]^.reg)=R_FPUREGISTER)
+              ) then
           AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
         { process operands }
         if taicpu(hp).ops<>0 then
@@ -289,7 +293,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2003-10-21 15:15:36  peter
+  Revision 1.10  2003-10-28 18:46:49  peter
+    * fix crash with ops=0
+
+  Revision 1.9  2003/10/21 15:15:36  peter
     * taicpu_abstract.oper[] changed to pointers
 
   Revision 1.8  2003/10/02 21:18:06  peter
