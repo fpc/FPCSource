@@ -52,7 +52,7 @@ function fpc_dynarray_length(p : pointer) : tdynarrayindex; compilerproc;
 function fpc_dynarray_high(p : pointer) : tdynarrayindex; compilerproc;
 procedure fpc_dynarray_clear(var p : pointer;ti : pointer); compilerproc;
 procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); compilerproc;
-procedure fpc_dynarray_incr_ref(var p : pointer); compilerproc;
+procedure fpc_dynarray_incr_ref(p : pointer); compilerproc;
 procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
   dimcount : dword;dims : pdynarrayindex); compilerproc;
 function fpc_dynarray_copy(var p : pointer;ti : pointer;
@@ -66,7 +66,7 @@ Function fpc_Val_UInt_Shortstr(Const S: ShortString; var Code: ValSInt): ValUInt
 Function fpc_Val_Real_ShortStr(const s : shortstring; var code : ValSInt): ValReal; compilerproc;
 
 Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); compilerproc;
-Procedure fpc_AnsiStr_Incr_Ref (Var S : Pointer); compilerproc;
+Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); compilerproc;
 Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer); compilerproc;
 function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): AnsiString; compilerproc;
 {$ifdef EXTRAANSISHORT}
@@ -88,7 +88,7 @@ Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): 
 Procedure fpc_ansistr_Unique(Var S : AnsiString); compilerproc;
 
 Procedure fpc_WideStr_Decr_Ref (Var S : Pointer); compilerproc;
-Procedure fpc_WideStr_Incr_Ref (Var S : Pointer); compilerproc;
+Procedure fpc_WideStr_Incr_Ref (S : Pointer); compilerproc;
 function fpc_WideStr_To_ShortStr (high_of_res: longint;const S2 : WideString): shortstring; compilerproc;
 Function fpc_ShortStr_To_WideStr (Const S2 : ShortString): WideString; compilerproc;
 Function fpc_WideStr_To_AnsiStr (const S2 : WideString): AnsiString; compilerproc;
@@ -176,7 +176,7 @@ function fpc_mul_int64(f1,f2 : int64;checkoverflow : longbool) : int64; compiler
 function fpc_do_is(aclass : tclass;aobject : tobject) : boolean; compilerproc;
 function fpc_do_as(aclass : tclass;aobject : tobject): tobject; compilerproc;
 procedure fpc_intf_decr_ref(var i: pointer); compilerproc;
-procedure fpc_intf_incr_ref(const i: pointer); compilerproc;
+procedure fpc_intf_incr_ref(i: pointer); compilerproc;
 procedure fpc_intf_assign(var D: pointer; const S: pointer); compilerproc;
 procedure fpc_intf_as(var D: pointer; const S: pointer; const iid: TGUID); compilerproc;
 
@@ -256,7 +256,11 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compiler
 
 {
   $Log$
-  Revision 1.15  2002-04-24 16:15:35  peter
+  Revision 1.16  2002-04-25 20:14:56  peter
+    * updated compilerprocs
+    * incr ref count has now a value argument instead of var
+
+  Revision 1.15  2002/04/24 16:15:35  peter
     * fpc_finalize_array renamed
 
   Revision 1.14  2002/04/21 18:56:59  peter

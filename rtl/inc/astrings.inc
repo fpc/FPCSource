@@ -135,7 +135,11 @@ end;
 Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); [external name 'FPC_ANSISTR_DECR_REF'];
 {$endif hascompilerproc}
 
-Procedure fpc_AnsiStr_Incr_Ref (Var S : Pointer);[Public,Alias:'FPC_ANSISTR_INCR_REF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+{$ifdef hascompilerproc}
+Procedure fpc_AnsiStr_Incr_Ref (S : Pointer);[Public,Alias:'FPC_ANSISTR_INCR_REF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+{$else}
+Procedure fpc_AnsiStr_Incr_Ref (Var S : Pointer);[Public,Alias:'FPC_ANSISTR_INCR_REF'];
+{$endif}
 Begin
   If S=Nil then
     exit;
@@ -146,7 +150,7 @@ end;
 
 {$ifdef hascompilerproc}
 { also define alias which can be used inside the system unit }
-Procedure fpc_AnsiStr_Incr_Ref (Var S : Pointer); [external name 'FPC_ANSISTR_INCR_REF'];
+Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); [external name 'FPC_ANSISTR_INCR_REF'];
 {$endif hascompilerproc}
 
 Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer);[Public,Alias:'FPC_ANSISTR_ASSIGN'];  {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -797,7 +801,11 @@ end;
 
 {
   $Log$
-  Revision 1.23  2002-01-07 13:23:53  jonas
+  Revision 1.24  2002-04-25 20:14:56  peter
+    * updated compilerprocs
+    * incr ref count has now a value argument instead of var
+
+  Revision 1.23  2002/01/07 13:23:53  jonas
     * fixed bug in fpc_char_to_ansistr when converting #0 (found by Peter)
 
   Revision 1.22  2001/11/17 23:58:12  florian

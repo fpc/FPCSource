@@ -99,7 +99,7 @@ procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);[Public,Alias:'FPC
 procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); [external name 'FPC_DYNARRAY_DECR_REF'];
 {$endif}
 
-procedure fpc_dynarray_incr_ref(var p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_dynarray_incr_ref(p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
   var
      realp : pdynarray;
   begin
@@ -115,7 +115,7 @@ procedure fpc_dynarray_incr_ref(var p : pointer);[Public,Alias:'FPC_DYNARRAY_INC
 
 {$ifdef hascompilerproc}
 { provide local access to dynarr_decr_ref for dynarr_setlength }
-procedure fpc_dynarray_incr_ref(var p : pointer); [external name 'FPC_DYNARRAY_INCR_REF'];
+procedure fpc_dynarray_incr_ref(p : pointer); [external name 'FPC_DYNARRAY_INCR_REF'];
 {$endif}
 
 { provide local access to dynarr_setlength }
@@ -261,7 +261,11 @@ function fpc_dynarray_copy(var p : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.15  2002-01-21 20:16:08  peter
+  Revision 1.16  2002-04-25 20:14:56  peter
+    * updated compilerprocs
+    * incr ref count has now a value argument instead of var
+
+  Revision 1.15  2002/01/21 20:16:08  peter
     * updated for dynarr:=nil
 
   Revision 1.14  2001/12/29 15:51:11  jonas

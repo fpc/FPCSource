@@ -139,34 +139,31 @@ Var Temp       : PByte;
 begin
   Temp:=PByte(TypeInfo);
   case temp^ of
-    { In case of an ansistring, data is pushed as a var parameter.   }
-    { This means that if you look at data as a value parameter, it   }
-    { containst the address of the ansistring. AnsiStr_Incr_Ref also }
-    { expects a var parameter, so to pass the address of the         }
-    { ansistring and not that of the data parameter on the stack,    }
-    { you have to dereference data (JM)                              }
-    tkAstring,tkWstring : fpc_AnsiStr_Incr_Ref(PPointer(Data)^);
+    tkAstring :
+      fpc_AnsiStr_Incr_Ref(PPointer(Data)^);
+    tkWstring :
+      fpc_WideStr_Incr_Ref(PPointer(Data)^);
     tkArray :
       begin
-      Temp:=Temp+1;
-      I:=temp^;
-      temp:=temp+(I+1);               // skip name string;
-      Size:=PArrayRec(Temp)^.Size;     // get element size
-      Count:=PArrayRec(Temp)^.Count;  // get element Count
-      TInfo:=PArrayRec(Temp)^.Info;   // Get element info
-      For I:=0 to Count-1 do
-        int_AddRef (Data+(I*size),TInfo);
+        Inc(Temp);
+        I:=temp^;
+        inc(temp,I+1);               // skip name string;
+        Size:=PArrayRec(Temp)^.Size;     // get element size
+        Count:=PArrayRec(Temp)^.Count;  // get element Count
+        TInfo:=PArrayRec(Temp)^.Info;   // Get element info
+        For I:=0 to Count-1 do
+          int_AddRef (Data+(I*size),TInfo);
       end;
     tkrecord :
       begin
-      Temp:=Temp+1;
-      I:=Temp^;
-      temp:=temp+(I+1);             // skip name string;
-      Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
-      Count:=PRecRec(Temp)^.Count;  // get element Count
-      For I:=1 to count do
-        With PRecRec(Temp)^.elements[I] do
-          int_AddRef (Data+Offset,Info);
+        Inc(Temp);
+        I:=Temp^;
+        temp:=temp+(I+1);             // skip name string;
+        Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
+        Count:=PRecRec(Temp)^.Count;  // get element Count
+        For I:=1 to count do
+          With PRecRec(Temp)^.elements[I] do
+            int_AddRef (Data+Offset,Info);
       end;
     tkDynArray:
       fpc_dynarray_incr_ref(PPointer(Data)^,TypeInfo);
@@ -196,8 +193,10 @@ begin
   Temp:=PByte(TypeInfo);
   case temp^ of
     { see AddRef for comment about below construct (JM) }
-    tkAstring,tkWstring:
+    tkAstring:
       fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
+    tkWstring:
+      fpc_WideStr_Decr_Ref(PPointer(Data)^);
     tkArray:
       begin
          inc(Temp);
@@ -242,7 +241,11 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
 
 {
  $Log$
- Revision 1.11  2002-04-24 16:15:35  peter
+ Revision 1.12  2002-04-25 20:14:57  peter
+   * updated compilerprocs
+   * incr ref count has now a value argument instead of var
+
+ Revision 1.11  2002/04/24 16:15:35  peter
    * fpc_finalize_array renamed
 
  Revision 1.10  2001/11/30 16:25:35  jonas

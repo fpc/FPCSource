@@ -190,7 +190,11 @@ end;
 Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);[external name 'FPC_WIDESTR_DECR_REF'];
 {$endif compilerproc}
 
-Procedure fpc_WideStr_Incr_Ref (Var S : Pointer);[Public,Alias:'FPC_WIDESTR_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+{$ifdef hascompilerproc}
+Procedure fpc_WideStr_Incr_Ref (S : Pointer);[Public,Alias:'FPC_WIDESTR_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+{$else}
+Procedure fpc_WideStr_Incr_Ref (Var S : Pointer);[Public,Alias:'FPC_WIDESTR_INCR_REF'];
+{$endif compilerproc}
 Begin
   If S=Nil then
     exit;
@@ -845,7 +849,11 @@ end;
 
 {
   $Log$
-  Revision 1.15  2001-08-30 15:43:15  jonas
+  Revision 1.16  2002-04-25 20:14:57  peter
+    * updated compilerprocs
+    * incr ref count has now a value argument instead of var
+
+  Revision 1.15  2001/08/30 15:43:15  jonas
     * converted adding/comparing of strings to compileproc. Note that due
       to the way the shortstring helpers for i386 are written, they are
       still handled by the old code (reason: fpc_shortstr_compare returns

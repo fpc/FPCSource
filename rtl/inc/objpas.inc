@@ -67,7 +67,7 @@
     {$endif hascompilerproc}
 
 
-    procedure fpc_intf_incr_ref(const i: pointer);[public,alias: 'FPC_INTF_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    procedure fpc_intf_incr_ref(i: pointer);[public,alias: 'FPC_INTF_INCR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
          if assigned(i) then
            IUnknown(i)._AddRef;
@@ -75,7 +75,7 @@
 
     {$ifdef hascompilerproc}
     { local declaration of intf_incr_ref for local access }
-    procedure intf_incr_ref(const i: pointer); [external name 'FPC_INTF_INCR_REF'];
+    procedure intf_incr_ref(i: pointer); [external name 'FPC_INTF_INCR_REF'];
     {$endif hascompilerproc}
 
     procedure fpc_intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN']; {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -696,7 +696,11 @@
 
 {
   $Log$
-  Revision 1.19  2002-03-30 14:52:59  carl
+  Revision 1.20  2002-04-25 20:14:57  peter
+    * updated compilerprocs
+    * incr ref count has now a value argument instead of var
+
+  Revision 1.19  2002/03/30 14:52:59  carl
   * don't crash everything if the class allocation failed
 
   Revision 1.18  2001/12/26 21:03:56  peter
