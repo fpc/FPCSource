@@ -77,6 +77,7 @@ unit nmat;
          rd,ld : pdef;
 
       begin
+         pass_1:=nil;
          firstpass(left);
          right.set_varstate(true);
          firstpass(right);
@@ -207,6 +208,7 @@ unit nmat;
          t : tnode;
          regs : longint;
       begin
+         pass_1:=nil;
          firstpass(left);
          set_varstate(left,true);
          firstpass(right);
@@ -402,6 +404,7 @@ unit nmat;
          t : tnode;
          notdef : pprocdef;
       begin
+         pass_1:=nil;
          firstpass(left);
          set_varstate(left,true);
          if codegenerror then
@@ -514,7 +517,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-09-22 22:09:54  florian
+  Revision 1.3  2000-09-22 22:48:54  florian
+    * some fixes
+
+  Revision 1.2  2000/09/22 22:09:54  florian
     * more stuff converted
 
   Revision 1.1  2000/09/20 21:35:12  florian
