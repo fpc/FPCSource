@@ -179,7 +179,7 @@ implementation
       symconst,symdef,symsym,symtable,
       ncon,ncal,nset,nadd,ninl,nmem,nmat,
       cgbase,procinfo,
-      htypechk,pass_1,cpubase,cpuinfo;
+      htypechk,pass_1,cpuinfo;
 
 
 {*****************************************************************************
@@ -1280,11 +1280,13 @@ implementation
                 loadn of a procvar (ignore procedures as void can not be converted)
                 then convert to a calln, the check for the result is already done
                 in is_convertible, also no conflict with @procvar is here because
-                that has an extra addrn }
+                that has an extra addrn.
+                The following deftypes always access the procvar: recorddef,setdef. This
+                has been tested with Kylix using trial and error }
               if (m_tp_procvar in aktmodeswitches) and
                  (resulttype.def.deftype<>procvardef) and
                  { ignore internal typecasts to access methodpointer fields }
-                 (resulttype.def<>methodpointertype.def) and
+                 not(resulttype.def.deftype in [recorddef,setdef]) and
                  (left.resulttype.def.deftype=procvardef) and
                  (not is_void(tprocvardef(left.resulttype.def).rettype.def)) then
                begin
@@ -2102,7 +2104,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.120  2003-10-01 20:34:48  peter
+  Revision 1.121  2003-10-07 14:30:27  peter
+    * fix 2720
+
+  Revision 1.120  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
