@@ -36,6 +36,9 @@ Type
 {$ifdef netware_libc}
     FindData : TNetwareLibcFindData;
 {$endif}
+{$ifdef MacOS}
+    FindData : TMacOSFindData;
+{$endif}
   end;
 
 Const
@@ -93,7 +96,10 @@ Function GetFileHandle(var f : Text):Longint;
 
 {
   $Log$
-  Revision 1.8  2004-12-19 18:03:29  michael
+  Revision 1.9  2005-01-24 18:25:46  olle
+    + a tiny bit of support for macos
+
+  Revision 1.8  2004/12/19 18:03:29  michael
   + Added mode field to TSearchRec for Kylix compatibility
 
   Revision 1.7  2004/10/03 20:27:00  armin
