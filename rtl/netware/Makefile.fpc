@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) systhrds objpas strings \
       cpu mmx getopts heaptrc lineinfo \
       sockets aio varutils \
       video mouse keyboard types \
-      nwsnut nwthread nwconio
+      nwsnut nwserv nwnit 
 rsts=math typinfo varutils
 
 [require]
