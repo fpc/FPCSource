@@ -53,7 +53,11 @@ Begin
 {data flow analyzer}
       If (cs_slowoptimize in aktglobalswitches) Then
         Begin
-          If DFAPass2(AsmL, BlockStart, BlockEnd) Then
+          If DFAPass2(
+{$ifdef statedebug}
+                      AsmL,
+{$endif statedebug}
+                            BlockStart, BlockEnd) Then
 {common subexpression elimination}
             CSE(AsmL, BlockStart, BlockEnd);
         End;
@@ -72,10 +76,14 @@ Begin
           While GetNextInstruction(BlockStart, BlockStart) And
                 ((BlockStart^.Typ <> Ait_Marker) Or
                  (Pai_Marker(Blockstart)^.Kind <> AsmBlockEnd)) Do;
+         {blockstart now contains a pai_marker(asmblockend)}
           If GetNextInstruction(BlockStart, HP) And
              ((HP^.typ <> ait_Marker) Or
-             (Pai_Marker(HP)^.Kind <> AsmBlockStart)) Then
+              (Pai_Marker(HP)^.Kind <> AsmBlockStart)) Then
+           {there is no assembler block anymore after the current one, so
+            optimize the next block of "normal" instructions}
             BlockEnd := DFAPass1(AsmL, BlockStart)
+           {otherwise, skip the next assembler block}
           Else BlockStart := HP;
         End
    End;
@@ -85,7 +93,10 @@ End.
 
 {
  $Log$
- Revision 1.27  1999-04-18 17:57:17  jonas
+ Revision 1.28  1999-05-08 20:39:02  jonas
+   + some comments
+
+ Revision 1.27  1999/04/18 17:57:17  jonas
    * fix for crash when the first instruction of a sequence that gets
      optimized is removed (this situation can't occur aymore now)
 
