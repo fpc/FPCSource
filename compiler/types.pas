@@ -874,14 +874,23 @@ implementation
                   end;
              end
          else
-           if (def1^.deftype=arraydef) and (def2^.deftype=arraydef) and
-             (is_open_array(def1) or is_open_array(def2) or
-               is_array_of_const(def1) or is_array_of_const(def2)) then
+           if (def1^.deftype=arraydef) and (def2^.deftype=arraydef) then
              begin
-               if parraydef(def1)^.IsArrayOfConst or parraydef(def2)^.IsArrayOfConst then
-                b:=true
+               if is_open_array(def1) or is_open_array(def2) or
+                  is_array_of_const(def1) or is_array_of_const(def2) then
+                begin
+                  if parraydef(def1)^.IsArrayOfConst or parraydef(def2)^.IsArrayOfConst then
+                   b:=true
+                  else
+                   b:=is_equal(parraydef(def1)^.definition,parraydef(def2)^.definition);
+                end
                else
-                b:=is_equal(parraydef(def1)^.definition,parraydef(def2)^.definition);
+                begin
+                  b:=(parraydef(def1)^.lowrange=parraydef(def2)^.lowrange) and
+                     (parraydef(def1)^.highrange=parraydef(def2)^.highrange) and
+                     is_equal(parraydef(def1)^.definition,parraydef(def2)^.definition) and
+                     is_equal(parraydef(def1)^.rangedef,parraydef(def2)^.rangedef);
+                end;
              end
          else
            if (def1^.deftype=classrefdef) and (def2^.deftype=classrefdef) then
@@ -957,7 +966,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  1999-07-27 23:39:15  peter
+  Revision 1.77  1999-07-29 11:41:51  peter
+    * array is_equal extended
+
+  Revision 1.76  1999/07/27 23:39:15  peter
     * open array checks also for s32bitdef, because u32bit also has a
       high range of -1
 
