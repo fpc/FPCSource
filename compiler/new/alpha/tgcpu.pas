@@ -34,6 +34,8 @@ unit tgcpu;
 
     var
        tg : ttgalpha;
+       reg_pushes : array[firstreg..lastreg] of longint;
+       is_reg_var : array[firstreg..lastreg] of boolean;
 
 implementation
 
@@ -42,10 +44,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-08-03 00:24:01  michael
-  + Initial implementation
+  Revision 1.2  1999-08-03 00:25:28  florian
+    * added reg var stuff
 
-  Revision 1.1  1999/08/02 17:14:14  florian
-    + changed the temp. generator to an object
+  Revision 1.1  1999/08/03 00:24:01  michael
+  + Initial implementation
 
 }
