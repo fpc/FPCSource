@@ -92,7 +92,9 @@ interface
           begin
             if assigned(tstatementnode(hp).left) then
              begin
+             {$ifndef newra}
                rg.cleartempgen;
+             {$endif newra}
                secondpass(tstatementnode(hp).left);
                { Compiler inserted blocks can return values }
                location_copy(location,tstatementnode(hp).left.location);
@@ -288,7 +290,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2003-03-28 19:16:56  peter
+  Revision 1.30  2003-04-17 07:50:24  daniel
+    * Some work on interference graph construction
+
+  Revision 1.29  2003/03/28 19:16:56  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

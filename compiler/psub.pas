@@ -372,6 +372,9 @@ implementation
                 aktprocdef.usedotherregisters:=rg.usedinproc;
                 procinfo.aktproccode.insertlist(procinfo.aktentrycode);
                 procinfo.aktproccode.concatlist(procinfo.aktexitcode);
+{$ifdef newra}
+                rg.writegraph;
+{$endif}
                 if not(cs_no_regalloc in aktglobalswitches) then
                   begin
                     procinfo.aktproccode.convert_registers;
@@ -864,7 +867,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2003-04-16 09:26:55  jonas
+  Revision 1.98  2003-04-17 07:50:24  daniel
+    * Some work on interference graph construction
+
+  Revision 1.97  2003/04/16 09:26:55  jonas
     * assembler procedures now again get a stackframe if they have local
       variables. No space is reserved for a function result however.
       Also, the register parameters aren't automatically saved on the stack

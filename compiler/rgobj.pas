@@ -285,6 +285,9 @@ unit rgobj;
 
           procedure saveUnusedState(var state: pointer);virtual;
           procedure restoreUnusedState(var state: pointer);virtual;
+{$ifdef newra}
+          procedure writegraph;
+{$endif}
        protected
 {$ifdef newra}
           igraph:Tinterferencegraph;
@@ -535,6 +538,9 @@ unit rgobj;
           inc(countunusedregs);
         include(unusedregs,supreg);
         list.concat(tai_regalloc.dealloc(r));
+{$ifdef newra}
+        add_edges_used(supreg);
+{$endif newra}
       end;
 
 
@@ -1211,6 +1217,38 @@ unit rgobj;
         if not(i in unusedregsint) then
           add_edge(u,i);
     end;
+
+    procedure Trgobj.writegraph;
+
+    var f:text;
+        i,j:Tsuperregister;
+
+    begin
+      assign(f,'igraph');
+      rewrite(f);
+      writeln(f,'Interference graph');
+      writeln(f);
+      write(f,'    ');
+      for i:=0 to 15 do
+        for j:=0 to 15 do
+          write(f,hexstr(i,1));
+      writeln(f);
+      write(f,'    ');
+      for i:=0 to 15 do
+        write(f,'0123456789ABCDEF');
+      writeln(f);
+      for i:=0 to 255 do
+        begin
+          write(f,hexstr(i,2):4);
+          for j:=0 to 255 do
+            if j in igraph.bitmap[i] then
+              write(f,'*')
+            else
+              write(f,'-');
+          writeln(f);
+        end;
+      close(f);
+    end;
 {$endif}
 
 
@@ -1343,7 +1381,10 @@ end.
 
 {
   $Log$
-  Revision 1.32  2003-03-28 19:16:57  peter
+  Revision 1.33  2003-04-17 07:50:24  daniel
+    * Some work on interference graph construction
+
+  Revision 1.32  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

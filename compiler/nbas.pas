@@ -284,7 +284,9 @@ implementation
       begin
          result:=nil;
          { no temps over several statements }
+      {$ifndef newra}
          rg.cleartempgen;
+      {$endif}
          { left is the statement itself calln assignn or a complex one }
          firstpass(left);
          if codegenerror then
@@ -419,7 +421,9 @@ implementation
                 end;
               if assigned(hp.left) then
                 begin
+                {$ifndef newra}
                    rg.cleartempgen;
+                {$endif}
                    codegenerror:=false;
                    firstpass(hp.left);
 
@@ -764,7 +768,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2003-04-12 14:53:59  jonas
+  Revision 1.42  2003-04-17 07:50:24  daniel
+    * Some work on interference graph construction
+
+  Revision 1.41  2003/04/12 14:53:59  jonas
     * ttempdeletenode.create now sets the nodetype to tempdeleten instead of
       temprefn
 

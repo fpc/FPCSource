@@ -136,7 +136,9 @@ implementation
 
          aktcontinuelabel:=lcont;
          aktbreaklabel:=lbreak;
+      {$ifndef newra}
          rg.cleartempgen;
+      {$endif}
          if assigned(right) then
            secondpass(right);
 
@@ -155,7 +157,9 @@ implementation
             truelabel:=lloop;
             falselabel:=lbreak;
           end;
+      {$ifndef newra}
          rg.cleartempgen;
+      {$endif}
          secondpass(left);
 
          maketojumpbool(exprasmlist,left,lr_load_regvars);
@@ -190,7 +194,9 @@ implementation
          oflabel:=falselabel;
          objectlibrary.getlabel(truelabel);
          objectlibrary.getlabel(falselabel);
+      {$ifndef newra}
          rg.cleartempgen;
+      {$endif}
          secondpass(left);
 
 
@@ -209,7 +215,9 @@ implementation
          if assigned(right) then
            begin
               cg.a_label(exprasmlist,truelabel);
+           {$ifndef newra}
               rg.cleartempgen;
+           {$endif}
               secondpass(right);
            end;
 
@@ -236,7 +244,9 @@ implementation
                    cg.a_jmp_always(exprasmlist,hl);
                 end;
               cg.a_label(exprasmlist,falselabel);
+            {$ifndef newra}
               rg.cleartempgen;
+            {$endif}
               secondpass(t1);
               { save current asmlist (previous instructions + else-block) }
               { and loaded regvar state and create a new clean list       }
@@ -319,15 +329,19 @@ implementation
          objectlibrary.getlabel(l3);
 
          { only calculate reference }
+      {$ifndef newra}
          rg.cleartempgen;
+      {$endif}
          secondpass(t2);
          hs := t2.resulttype.def.size;
          opsize := def_cgsize(t2.resulttype.def);
 
          { first set the to value
            because the count var can be in the expression !! }
+      {$ifndef newra}
          rg.cleartempgen;
-
+      {$endif}
+         
          do_loopvar_at_end:=lnf_dont_mind_loopvar_on_exit in loopflags;
 
          secondpass(right);
@@ -353,7 +367,9 @@ implementation
            temptovalue:=false;
 
          { produce start assignment }
+      {$ifndef newra}
          rg.cleartempgen;
+      {$endif}
          secondpass(left);
          count_var_is_signed:=is_signed(t2.resulttype.def);
 
@@ -415,7 +431,9 @@ implementation
             end;
 
          { help register must not be in instruction block }
+      {$ifndef newra}
          rg.cleartempgen;
+      {$endif}
          if assigned(t1) then
            begin
              secondpass(t1);
@@ -437,7 +455,9 @@ implementation
          cg.a_label(exprasmlist,aktcontinuelabel);
 
          { makes no problems there }
+      {$ifndef newra}
          rg.cleartempgen;
+      {$endif}
 
          if do_loopvar_at_end then
            if lnf_backward in loopflags then
@@ -857,7 +877,9 @@ implementation
       begin
          load_all_regvars(exprasmlist);
          cg.a_label(exprasmlist,labelnr);
+      {$ifndef newra}
          rg.cleartempgen;
+      {$endif newra}
          secondpass(left);
       end;
 
@@ -1322,7 +1344,9 @@ implementation
          { next on node }
          if assigned(left) then
            begin
+            {$ifndef newra}
               rg.cleartempgen;
+            {$endif newra}
               secondpass(left);
            end;
       end;
@@ -1483,7 +1507,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2003-04-06 21:11:23  olle
+  Revision 1.54  2003-04-17 07:50:24  daniel
+    * Some work on interference graph construction
+
+  Revision 1.53  2003/04/06 21:11:23  olle
     * changed newasmsymbol to newasmsymboldata for data symbols
 
   Revision 1.52  2003/03/28 19:16:56  peter
