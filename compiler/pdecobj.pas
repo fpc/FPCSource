@@ -674,6 +674,10 @@ implementation
                 end;
               _INTERFACE:
                 begin
+                   { need extra check here since interface is a keyword
+                     in all pascal modes }
+                   if not(m_class in aktmodeswitches) then
+                     Message(parser_f_need_objfpc_or_delphi_mode);
                    if aktinterfacetype=it_interfacecom then
                      classtype:=odt_interfacecom
                    else {it_interfacecorba}
@@ -1152,7 +1156,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2002-09-27 21:13:28  carl
+  Revision 1.54  2002-10-02 18:20:20  peter
+    * don't allow interface without m_class mode
+
+  Revision 1.53  2002/09/27 21:13:28  carl
     * low-highval always checked if limit ober 2GB is reached (to avoid overflow)
 
   Revision 1.52  2002/09/16 14:11:13  peter
