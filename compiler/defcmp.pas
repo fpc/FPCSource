@@ -706,7 +706,14 @@ implementation
                       begin
                         doconv:=tc_array_2_pointer;
                         eq:=te_convert_l1;
-                      end;
+                      end
+                     else
+                      { dynamic array to pointer, delphi only }
+                      if (m_delphi in aktmodeswitches) and
+                         is_dynamic_array(def_from) then
+                       begin
+                         eq:=te_equal;
+                       end;
                    end;
                  pointerdef :
                    begin
@@ -1275,7 +1282,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2004-06-20 08:55:29  florian
+  Revision 1.52  2004-09-16 16:32:44  peter
+    * dynarr-pointer is allowed under delphi
+
+  Revision 1.51  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.50  2004/04/12 11:26:10  peter
