@@ -241,6 +241,12 @@ var
       var
         hp: tai;
       begin
+        { only regvars are still used at jump instructions }
+        if (cs_regvars in aktglobalswitches) and
+           (p.typ = ait_instruction) and
+           taicpu(p).is_jmp then
+         regsstillvalid := regsstillvalid - ptaiprop(p.optinfo)^.usedregs;
+
         stillValid :=
           (p.typ = ait_instruction) and
           (taicpu(p).opcode <> a_jmp) and
@@ -307,6 +313,10 @@ var
     getPrevSequence := RS_INVALID;
     passedFlagsModifyingInstr := passedFlagsModifyingInstr or
       instrWritesFlags(currentPrev);
+    if (cs_regvars in aktglobalswitches) and
+       (currentprev.typ = ait_instruction) and
+       taicpu(currentprev).is_jmp then
+      regsstillvalid := regsstillvalid - ptaiprop(currentprev.optinfo)^.usedregs;
 
     if not getLastInstruction(currentPrev,hp) then
       exit;
@@ -2186,7 +2196,10 @@ end.
 
 {
   $Log$
-  Revision 1.72  2004-12-28 18:01:40  jonas
+  Revision 1.73  2004-12-30 14:51:22  jonas
+    * no more moving the loading of regvars past conditional jumps
+
+  Revision 1.72  2004/12/28 18:01:40  jonas
     * fixed several regvar related bugs, cycle with -OZp3r doesn't work
       yet though
 
