@@ -814,7 +814,7 @@ begin
       // Get ETag [42]
       ExpectString('</');
       if ExpectName <> name then
-        RaiseExc('Unmatching element end tag (expected "</' + name + '>"');
+        RaiseExc('Unmatching element end tag (expected "</' + name + '>")');
       SkipWhitespace;
       ExpectString('>');
     end;
@@ -1117,7 +1117,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-10-14 09:40:44  sg
+  Revision 1.5  2000-10-14 09:41:45  sg
+  * Fixed typo in previous fix. (forgot closing bracket. Oops.)
+
+  Revision 1.4  2000/10/14 09:40:44  sg
   * Extended the "Unmatching element end tag" exception, now the expected
     tag name is included in the message string.
 
