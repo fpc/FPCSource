@@ -29,6 +29,9 @@ Interface
 {$define usedomain}
 {$define posixworkaround}
 {$define FPC_IS_SYSTEM}
+{$ifdef FPC_USE_LIBC}
+{$define usegetcwd}
+{$endif}
 
 {$I sysunixh.inc}
 
@@ -84,6 +87,17 @@ end;
 {$I errno.inc}                          // error numbers
 {$I bunxtype.inc}                       // c-types, unix base types, unix
                                         //    base structures
+
+{*****************************************************************************
+                 Extra cdecl declarations for FPC_USE_LIBC for this os
+*****************************************************************************}
+
+{$ifdef FPC_USE_LIBC}
+Function fpReadLink(name,linkname:pchar;maxlen:cint):cint;  cdecl; external name 'readlink';
+function fpgetcwd(buf:pchar;_size:size_t):pchar; external name 'getcwd';
+{$endif}
+
+
 {$I ossysc.inc}                         // base syscalls
 {$I osmain.inc}                         // base wrappers *nix RTL (derivatives)
 
@@ -104,13 +118,6 @@ end;
 
 {$i typefile.inc}
 
-{*****************************************************************************
-                 Extra cdecl declarations for FPC_USE_LIBC for this os
-*****************************************************************************}
-
-{$ifdef FPC_USE_LIBC}
-Function fpReadLink(name,linkname:pchar;maxlen:cint):cint;  cdecl; external name 'readlink';
-{$endif}
 
 procedure SysInitStdIO;
 begin
@@ -164,7 +171,10 @@ End.
 
 {
   $Log$
-  Revision 1.11  2003-12-30 16:26:10  marco
+  Revision 1.12  2003-12-31 20:20:57  marco
+   * small additions for getcwd what we need for FPC_USE_LIBC
+
+  Revision 1.11  2003/12/30 16:26:10  marco
    * some more fixes. Testing on idefix
 
   Revision 1.10  2003/12/30 15:43:20  marco
