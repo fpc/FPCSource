@@ -109,7 +109,7 @@ implementation
          location.loc:=LOC_FPUREGISTER;
          load_fpu_location;
          exprasmlist.concat(taicpu.op_reg_reg_reg(A_FMUL,location.register,
-           location.register,left.location.register));
+           left.location.register,left.location.register));
        end;
 
 
@@ -150,7 +150,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2004-02-03 22:32:54  peter
+  Revision 1.14  2004-05-31 11:57:48  jonas
+    * fixed second_sqr_real (mainly for regvars)
+
+  Revision 1.13  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ
