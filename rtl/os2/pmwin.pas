@@ -5,6 +5,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     Copyright (c) 1999-2000 by Ramon Bosque
+    Copyrigth (c) 2003 by Yuri Prokushev
 
     OS/2 Presentation Manager windowing functions, plus common
     PM constants and types (PMWIN.DLL interface unit).
@@ -19,6 +20,8 @@
  ****************************************************************************}
 
 unit pmwin;
+
+{$MACRO ON}
 
   interface
 
@@ -355,10 +358,734 @@ const
   TMB2Info = MB2Info;
   PMB2Info = ^TMB2Info;
 
+//***************************************************************************\
+//*  FontRangeEntry
+//*
+//*     ulRun         = number of consecutive glyphs contained in the font
+//*     ulSkip        = number of consecutive glyphs skipped in the font,
+//*                     ulSkip == 0 --> Last FontRangeEntry in table
+//***************************************************************************/
+type
+  FONTRANGEENTRY=record       // fre
+    ulRun: Cardinal;
+    ulSkip: Cardinal;
+  end;
+  PFONTRANGEENTRY=^FONTRANGEENTRY;
+
+//***************************************************************************\
+//*  FontCharDef
+//*
+//*     ulGlyphOffset = offset to rendered character bitmap (0 from driver)
+//*     sAspace       = pre-character space
+//*     sBspace       = character width (always non-zero)
+//*     sCspace       = post-character space
+//***************************************************************************/
+type
+  FONTCHARDEF=record          // fcd
+    ulGlyphOffset: Cardinal;
+    sAspace: Integer;
+    sBspace: Word;
+    sCspace: integer;
+  end;
+  PFONTCHARDEF=^FONTCHARDEF;
+
+//***************************************************************************\
+//*  FocaMetricsExtension
+//***************************************************************************/
+type
+  FOCAMETRICSEXT=record // fme
+    ulSize: Cardinal;            // Total size of extension
+    ulFlags: Cardinal;           // Reserved, must be 0
+    ulGlyphCount: Cardinal;
+    ulDefaultIndex: Cardinal;
+    ulRangeTableEntries: Cardinal;
+    afreRangeTable: Array[1..1] of FONTRANGEENTRY;
+  end;
+  PFOCAMETRICSEXT=^FOCAMETRICSEXT;
+
+//**************************************************************************
+type
+  FOCAMETRICS=record    // foca
+    ulIdentity: Cardinal;
+    ulSize: Cardinal;
+    szFamilyname: Array[1..32] of Char;
+    szFacename: Array[1..32] of Char;
+    usRegistryId: Integer;
+    usCodePage: Integer;
+    yEmHeight: Integer;
+    yXHeight: Integer;
+    yMaxAscender: Integer;
+    yMaxDescender: Integer;
+    yLowerCaseAscent: Integer;
+    yLowerCaseDescent: Integer;
+    yInternalLeading: Integer;
+    yExternalLeading: Integer;
+    xAveCharWidth: Integer;
+    xMaxCharInc: Integer;
+    xEmInc: Integer;
+    yMaxBaselineExt: Integer;
+    sCharSlope: Integer;
+    sInlineDir: Integer;
+    sCharRot: Integer;
+    usWeightClass: Word;
+    usWidthClass: Word;
+    xDeviceRes: Integer;
+    yDeviceRes: Integer;
+    usFirstChar: Integer;
+    usLastChar: Integer;
+    usDefaultChar: Integer;
+    usBreakChar: Integer;
+    usNominalPointSize: Integer;
+    usMinimumPointSize: Integer;
+    usMaximumPointSize: Integer;
+    fsTypeFlags: Integer;
+    fsDefn: Integer;
+    fsSelectionFlags: Integer;
+    fsCapabilities: Integer;
+    ySubscriptXSize: Integer;
+    ySubscriptYSize: Integer;
+    ySubscriptXOffset: Integer;
+    ySubscriptYOffset: Integer;
+    ySuperscriptXSize: Integer;
+    ySuperscriptYSize: Integer;
+    ySuperscriptXOffset: Integer;
+    ySuperscriptYOffset: Integer;
+    yUnderscoreSize: Integer;
+    yUnderscorePosition: Integer;
+    yStrikeoutSize: Integer;
+    yStrikeoutPosition: Integer;
+    usKerningPairs: Integer;
+    sFamilyClass: Integer;
+    pszDeviceNameOffset: PChar;
+  end;
+  PFOCAMETRICS=^FOCAMETRICS;
+
+// REUSE - long offset to extension relative to FocaMetrics
+{$define loffExtension:=pszDeviceNameOffset}
+
+type
+  FONTFILEMETRICS=record   // ffm
+    ulIdentity: Cardinal;
+    ulSize: Cardinal;
+    szFamilyname: Array[0..32-1] of Char;
+    szFacename: Array[0..32-1] of Char;
+    usRegistryId: Integer;
+    usCodePage: Integer;
+    yEmHeight: Integer;
+    yXHeight: Integer;
+    yMaxAscender: Integer;
+    yMaxDescender: Integer;
+    yLowerCaseAscent: Integer;
+    yLowerCaseDescent: Integer;
+    yInternalLeading: Integer;
+    yExternalLeading: Integer;
+    xAveCharWidth: Integer;
+    xMaxCharInc: Integer;
+    xEmInc: Integer;
+    yMaxBaselineExt: Integer;
+    sCharSlope: Integer;
+    sInlineDir: Integer;
+    sCharRot: Integer;
+    usWeightClass: Word;
+    usWidthClass: Word;
+    xDeviceRes: Integer;
+    yDeviceRes: Integer;
+    usFirstChar: Integer;
+    usLastChar: Integer;
+    usDefaultChar: Integer;
+    usBreakChar: Integer;
+    usNominalPointSize: Integer;
+    usMinimumPointSize: Integer;
+    usMaximumPointSize: Integer;
+    fsTypeFlags: Integer;
+    fsDefn: Integer;
+    fsSelectionFlags: Integer;
+    fsCapabilities: Integer;
+    ySubscriptXSize: Integer;
+    ySubscriptYSize: Integer;
+    ySubscriptXOffset: Integer;
+    ySubscriptYOffset: Integer;
+    ySuperscriptXSize: Integer;
+    ySuperscriptYSize: Integer;
+    ySuperscriptXOffset: Integer;
+    ySuperscriptYOffset: Integer;
+    yUnderscoreSize: Integer;
+    yUnderscorePosition: Integer;
+    yStrikeoutSize: Integer;
+    yStrikeoutPosition: Integer;
+    usKerningPairs: Integer;
+    sFamilyClass: Integer;
+    ulReserved: Cardinal;
+    anose: PANOSE;
+  end;
+  PFONTFILEMETRICS=^FONTFILEMETRICS;
+
+  FONTDEFINITIONHEADER=record    // fdh
+    ulIdentity: Cardinal;
+    ulSize: Cardinal;
+    fsFontdef: Integer;
+    fsChardef: Integer;
+    usCellSize: Integer;
+    xCellWidth: Integer;
+    yCellHeight: Integer;
+    xCellIncrement: Integer;
+    xCellA: Integer;
+    xCellB: Integer;
+    xCellC: Integer;
+    pCellBaseOffset: Integer;
+  end;
+  PFONTDEFINITIONHEADER=^FONTDEFINITIONHEADER;
+
+const
+  FONTDEFFONT1     =$0047; // set width, height, inc. & base offset
+  FONTDEFFONT2     =$0042; // set height & base offset
+  FONTDEFFONT3     =$0042; // set height & base offset
+  FONTDEFCHAR1     =$0081; // set char offset and width
+  FONTDEFCHAR2     =$0081; // set char offset and width
+  FONTDEFCHAR3     =$00b8; // set char offset, A, B, and C space
+  SPACE_UNDEF      =$8000; // space undefined = take default
+  FONTDEFFOCA32    =$4000;
+  FONTDEFDEVFONT   =$2000; // Device or Downloadable font
+
+type
+  FONTSIGNATURE=record    // fs
+    ulIdentity: Cardinal;
+    ulSize: Cardinal;
+    achSignature: Array[0..12-1] of Char;
+  end;
+  PFONTSIGNATURE=^FONTSIGNATURE;
+
+  ADDITIONALMETRICS=record    // am
+    ulIdentity: Cardinal;
+    ulSize: Cardinal;
+    anose: PANOSE;
+  end;
+  PADDITIONALMETRICS=^ADDITIONALMETRICS;
+
+  FOCAFONT=record    // ff
+    fsSignature: FONTSIGNATURE;
+    fmMetrics: FOCAMETRICS;
+    fdDefinitions: FONTDEFINITIONHEADER;
+  end;
+  PFOCAFONT=^FOCAFONT;
+
+const
+  FONT_SIGNATURE          =$fffffffe;// Identity header start
+  FONT_METRICS            =$00000001;// Identity metrics
+  FONT_DEFINITION         =$00000002;// Identity definition
+  FONT_KERNPAIRS          =$00000003;// Identity Kern Pairs
+  FONT_ADDITIONALMETRICS  =$00000004;// Identity Additional Metrics
+  FONT_ENDRECORD          =$ffffffff;// Identity record end
+
+type
+  FOCAFONT32=FOCAFONT;
+  PFOCAFONT32=^FOCAFONT32;
+
+// Options for QueryFonts
+const
+  QUERY_PUBLIC_FONTS      =$0001;
+  QUERY_PRIVATE_FONTS     =$0002;
+
+  CDEF_GENERIC            =$0001;
+  CDEF_BOLD               =$0002;
+  CDEF_ITALIC             =$0004;
+  CDEF_UNDERSCORE         =$0008;
+  CDEF_STRIKEOUT          =$0010;
+  CDEF_OUTLINE            =$0020;
+
+const
+  //*************************************************************************
+  //* MLE Window styles ( in addition to WS_* )
+  //*************************************************************************/
+  MLS_WORDWRAP             = $00000001;
+  MLS_BORDER               = $00000002;
+  MLS_VSCROLL              = $00000004;
+  MLS_HSCROLL              = $00000008;
+  MLS_READONLY             = $00000010;
+  MLS_IGNORETAB            = $00000020;
+  MLS_DISABLEUNDO          = $00000040;
+  MLS_LIMITVSCROLL         = $00000080;
+
+  //*************************************************************************
+  //* MLE External Data Types
+  //*************************************************************************/
+type
+   IPT=Longint;        // insertion point
+   PIPT=^IPT;          // insertion point
+   PIX=Longint;        // pixel
+   LINE=Cardinal;      // Line number
+
+   FORMATRECT=record   // MLEFRD
+     cxFormat: Longint;           // format rectangle width
+     cyFormat: Longint;           // format rectangle height
+   end;
+   PMLEFORMATRECT=^FORMATRECT;
+
+   MLECTLDATA=record    // MLECTL
+     cbCtlData: Word;          // Length of the MLECTLDATA structure
+     afIEFormat: Word;         // import/export format
+     cchText: Cardinal;        // text limit
+     iptAnchor: IPT;           // beginning of selection
+     iptCursor: IPT;           // ending of selection
+     cxFormat: Longint;        // format rectangle width
+     cyFormat: Longint;        // format rectangle height
+     afFormatFlags: Cardinal;  // formatting rectangle flags
+     pHWXCtlData: Pointer;     // reserved for Pen CtlData (penpm.h)
+   end;
+   PMLECTLDATA=^MLECTLDATA;
+
+  //*************************************************************************
+  //* afFormatFlags mask
+  //*************************************************************************/
+const
+  MLFFMTRECT_LIMITHORZ       =$00000001;
+  MLFFMTRECT_LIMITVERT       =$00000002;
+  MLFFMTRECT_MATCHWINDOW     =$00000004;
+  MLFFMTRECT_FORMATRECT      =$00000007;
+
+  //************************************************************************
+  //* afIEFormat - Import/Export Format flags
+  //************************************************************************
+  MLFIE_CFTEXT             =  0;
+  MLFIE_NOTRANS            =  1;
+  MLFIE_WINFMT             =  2;
+  MLFIE_RTF                =  3;
+
+  //*************************************************************************
+  //* MLE color types: MLM_QUERY(TEXT/BACK)COLOR, MLM_SET(TEXT/BACK)COLOR
+  //*************************************************************************/
+  MLE_INDEX = 0;
+  MLE_RGB   = 1;
+
+  //*************************************************************************
+  //* MLN_OVERFLOW structure
+  //*************************************************************************/
+type
+  MLEOVERFLOW=record    // overflow
+    afErrInd: Cardinal;            // see mask below
+    nBytesOver: Longint;           // number of bytes overflowed
+    pixHorzOver: Longint;          // number of pixels horizontally overflow
+    pixVertOver: Longint;          // number of pixels vertically overflowed
+  end;
+  POVERFLOW=^MLEOVERFLOW;
+
+  //*************************************************************************
+  //* afErrInd - error format rectangle flags
+  //*************************************************************************/
+const
+  MLFEFR_RESIZE            =  $00000001;
+  MLFEFR_TABSTOP           =  $00000002;
+  MLFEFR_FONT              =  $00000004;
+  MLFEFR_TEXT              =  $00000008;
+  MLFEFR_WORDWRAP          =  $00000010;
+  MLFETL_TEXTBYTES         =  $00000020;
+
+  //*************************************************************************
+  //* MLN_MARGIN structure
+  //*************************************************************************/
+type
+  MLEMARGSTRUCT=record    // margin
+    afMargins: Word;      // margin indicator
+    usMouMsg: Word;       // mouse message
+    iptNear: IPT;         // the geometrically nearest insertion point
+  end;
+  PMARGSTRUCT=^MLEMARGSTRUCT;
+
+  //*************************************************************************
+  //* afFlags - margin notification indicators
+  //*************************************************************************/
+const
+  MLFMARGIN_LEFT             =$0001;
+  MLFMARGIN_BOTTOM           =$0002;
+  MLFMARGIN_RIGHT            =$0003;
+  MLFMARGIN_TOP              =$0004;
+
+  //*************************************************************************
+  // MLM_QUERYSELECTION flags
+  //************************************************************************/
+  MLFQS_MINMAXSEL           = 0;
+  MLFQS_MINSEL              = 1;
+  MLFQS_MAXSEL              = 2;
+  MLFQS_ANCHORSEL           = 3;
+  MLFQS_CURSORSEL           = 4;
+
+  //*************************************************************************
+  //* MLN_CLPBDFAIL flags
+  //*************************************************************************/
+  MLFCLPBD_TOOMUCHTEXT       =$00000001;
+  MLFCLPBD_ERROR             =$00000002;
+
+  //*************************************************************************
+  //* MLM_SEARCH structure
+  //*************************************************************************/
+type
+  MLE_SEARCHDATA=record // search
+    cb: Word;             // size of search spec structure
+    pchFind: PChar;       // string to search for
+    pchReplace: PChar;    // string to replace with
+    cchFind: Integer;     // length of pchFindString
+    cchReplace: Integer;  // length of replace string
+    iptStart: IPT;        // point at which to start search
+      // (negative indicates cursor pt)
+      // becomes pt where string found
+    iptStop: IPT;         // point at which to stop search
+      // (negative indicates EOT)
+    cchFound: Word;       // Length of found string at iptStart
+  end;
+  PMLE_SEARCHDATA=^MLE_SEARCHDATA;
+
+  //*************************************************************************
+  //* MLM_SEARCH style flags
+  //*************************************************************************/
+const
+  MLFSEARCH_CASESENSITIVE    =$00000001;
+  MLFSEARCH_SELECTMATCH      =$00000002;
+  MLFSEARCH_CHANGEALL        =$00000004;
+
+  //*************************************************************************
+  //* MLE messages - MLM from 0x01b0 to 0x01de; MLN from 0x0001 to 0x000f
+  //*************************************************************************/
+   // formatting messages
+  MLM_SETTEXTLIMIT           =$01b0;
+  MLM_QUERYTEXTLIMIT         =$01b1;
+  MLM_SETFORMATRECT          =$01b2;
+  MLM_QUERYFORMATRECT        =$01b3;
+  MLM_SETWRAP                =$01b4;
+  MLM_QUERYWRAP              =$01b5;
+  MLM_SETTABSTOP             =$01b6;
+  MLM_QUERYTABSTOP           =$01b7;
+  MLM_SETREADONLY            =$01b8;
+  MLM_QUERYREADONLY          =$01b9;
+
+  // text content manipulation and queries messages
+  MLM_QUERYCHANGED           =$01ba;
+  MLM_SETCHANGED             =$01bb;
+  MLM_QUERYLINECOUNT         =$01bc;
+  MLM_CHARFROMLINE           =$01bd;
+  MLM_LINEFROMCHAR           =$01be;
+  MLM_QUERYLINELENGTH        =$01bf;
+  MLM_QUERYTEXTLENGTH        =$01c0;
+
+  // text import and export messages
+  MLM_FORMAT                 =$01c1;
+  MLM_SETIMPORTEXPORT        =$01c2;
+  MLM_IMPORT                 =$01c3;
+  MLM_EXPORT                 =$01c4;
+  MLM_DELETE                 =$01c6;
+  MLM_QUERYFORMATLINELENGTH  =$01c7;
+  MLM_QUERYFORMATTEXTLENGTH  =$01c8;
+  MLM_INSERT                 =$01c9;
+
+  // selection messages
+  MLM_SETSEL                 =$01ca;
+  MLM_QUERYSEL               =$01cb;
+  MLM_QUERYSELTEXT           =$01cc;
+
+  // undo and redo messages
+  MLM_QUERYUNDO              =$01cd;
+  MLM_UNDO                   =$01ce;
+  MLM_RESETUNDO              =$01cf;
+
+  // text attributes messages
+  MLM_QUERYFONT              =$01d0;
+  MLM_SETFONT                =$01d1;
+  MLM_SETTEXTCOLOR           =$01d2;
+  MLM_QUERYTEXTCOLOR         =$01d3;
+  MLM_SETBACKCOLOR           =$01d4;
+  MLM_QUERYBACKCOLOR         =$01d5;
+
+  // scrolling messages
+  MLM_QUERYFIRSTCHAR         =$01d6;
+  MLM_SETFIRSTCHAR           =$01d7;
+
+  // clipboard messages
+  MLM_CUT                    =$01d8;
+  MLM_COPY                   =$01d9;
+  MLM_PASTE                  =$01da;
+  MLM_CLEAR                  =$01db;
+
+  // display manipulation messages
+  MLM_ENABLEREFRESH          =$01dc;
+  MLM_DISABLEREFRESH         =$01dd;
+
+  // search message
+  MLM_SEARCH                 =$01de;
+  MLM_QUERYIMPORTEXPORT      =$01df;
+
+  // notification messages
+  MLN_OVERFLOW               =$0001;
+  MLN_PIXHORZOVERFLOW        =$0002;
+  MLN_PIXVERTOVERFLOW        =$0003;
+  MLN_TEXTOVERFLOW           =$0004;
+  MLN_VSCROLL                =$0005;
+  MLN_HSCROLL                =$0006;
+  MLN_CHANGE                 =$0007;
+  MLN_SETFOCUS               =$0008;
+  MLN_KILLFOCUS              =$0009;
+  MLN_MARGIN                 =$000a;
+  MLN_SEARCHPAUSE            =$000b;
+  MLN_MEMERROR               =$000c;
+  MLN_UNDOOVERFLOW           =$000d;
+  MLN_CLPBDFAIL              =$000f;
+
+
+const
+  DTYP_USER              =(16384);
+
+  DTYP_CTL_ARRAY         =(1);
+  DTYP_CTL_PARRAY        =(-1);
+  DTYP_CTL_OFFSET        =(2);
+  DTYP_CTL_LENGTH        =(3);
+
+//**********************************************************************/
+//* Ordinary datatypes                                                 */
+//**********************************************************************/
+  DTYP_ACCEL             =(28);
+  DTYP_ACCELTABLE        =(29);
+  DTYP_ARCPARAMS         =(38);
+  DTYP_AREABUNDLE        =(139);
+  DTYP_ATOM              =(90);
+  DTYP_BITMAPINFO        =(60);
+  DTYP_BITMAPINFOHEADER  =(61);
+  DTYP_BITMAPINFO2       =(170);
+  DTYP_BITMAPINFOHEADER2 =(171);
+  DTYP_BIT16             =(20);
+  DTYP_BIT32             =(21);
+  DTYP_BIT8              =(19);
+  DTYP_BOOL              =(18);
+  DTYP_BTNCDATA          =(35);
+  DTYP_BYTE              =(13);
+  DTYP_CATCHBUF          =(141);
+  DTYP_CHAR              =(15);
+  DTYP_CHARBUNDLE        =(135);
+  DTYP_CLASSINFO         =(95);
+  DTYP_COUNT2            =(93);
+  DTYP_COUNT2B           =(70);
+  DTYP_COUNT2CH          =(82);
+  DTYP_COUNT4            =(152);
+  DTYP_COUNT4B           =(42);
+  DTYP_CPID              =(57);
+  DTYP_CREATESTRUCT      =(98);
+  DTYP_CURSORINFO        =(34);
+  DTYP_DEVOPENSTRUC      =(124);
+  DTYP_DLGTEMPLATE       =(96);
+  DTYP_DLGTITEM          =(97);
+  DTYP_ENTRYFDATA        =(127);
+  DTYP_ERRORID           =(45);
+  DTYP_FATTRS            =(75);
+  DTYP_FFDESCS           =(142);
+  DTYP_FIXED             =(99);
+  DTYP_FONTMETRICS       =(74);
+  DTYP_FRAMECDATA        =(144);
+  DTYP_GRADIENTL         =(48);
+  DTYP_HAB               =(10);
+  DTYP_HACCEL            =(30);
+  DTYP_HAPP              =(146);
+  DTYP_HATOMTBL          =(91);
+  DTYP_HBITMAP           =(62);
+  DTYP_HCINFO            =(46);
+  DTYP_HDC               =(132);
+  DTYP_HENUM             =(117);
+  DTYP_HHEAP             =(109);
+  DTYP_HINI              =(53);
+  DTYP_HLIB              =(147);
+  DTYP_HMF               =(85);
+  DTYP_HMQ               =(86);
+  DTYP_HPOINTER          =(106);
+  DTYP_HPROGRAM          =(131);
+  DTYP_HPS               =(12);
+  DTYP_HRGN              =(116);
+  DTYP_HSEM              =(140);
+  DTYP_HSPL              =(32);
+  DTYP_HSWITCH           =(66);
+  DTYP_HVPS              =(58);
+  DTYP_HWND              =(11);
+  DTYP_IDENTITY          =(133);
+  DTYP_IDENTITY4         =(169);
+  DTYP_IMAGEBUNDLE       =(136);
+  DTYP_INDEX2            =(81);
+  DTYP_IPT               =(155);
+  DTYP_KERNINGPAIRS      =(118);
+  DTYP_LENGTH2           =(68);
+  DTYP_LENGTH4           =(69);
+  DTYP_LINEBUNDLE        =(137);
+  DTYP_LONG              =(25);
+  DTYP_MARKERBUNDLE      =(138);
+  DTYP_MATRIXLF          =(113);
+  DTYP_MLECTLDATA        =(161);
+  DTYP_MLEMARGSTRUCT     =(157);
+  DTYP_MLEOVERFLOW       =(158);
+  DTYP_OFFSET2B          =(112);
+  DTYP_OWNERITEM         =(154);
+  DTYP_PID               =(92);
+  DTYP_PIX               =(156);
+  DTYP_POINTERINFO       =(105);
+  DTYP_POINTL            =(77);
+  DTYP_PROGCATEGORY      =(129);
+  DTYP_PROGRAMENTRY      =(128);
+  DTYP_PROGTYPE          =(130);
+  DTYP_PROPERTY2         =(88);
+  DTYP_PROPERTY4         =(89);
+  DTYP_QMSG              =(87);
+  DTYP_RECTL             =(121);
+  DTYP_RESID             =(125);
+  DTYP_RGB               =(111);
+  DTYP_RGNRECT           =(115);
+  DTYP_SBCDATA           =(159);
+  DTYP_SEGOFF            =(126);
+  DTYP_SHORT             =(23);
+  DTYP_SIZEF             =(101);
+  DTYP_SIZEL             =(102);
+  DTYP_STRL              =(17);
+  DTYP_STR16             =(40);
+  DTYP_STR32             =(37);
+  DTYP_STR64             =(47);
+  DTYP_STR8              =(33);
+  DTYP_SWBLOCK           =(63);
+  DTYP_SWCNTRL           =(64);
+  DTYP_SWENTRY           =(65);
+  DTYP_SWP               =(31);
+  DTYP_TID               =(104);
+  DTYP_TIME              =(107);
+  DTYP_TRACKINFO         =(73);
+  DTYP_UCHAR             =(22);
+  DTYP_ULONG             =(26);
+  DTYP_USERBUTTON        =(36);
+  DTYP_USHORT            =(24);
+  DTYP_WIDTH4            =(108);
+  DTYP_WNDPARAMS         =(83);
+  DTYP_WNDPROC           =(84);
+  DTYP_WPOINT            =(59);
+  DTYP_WRECT             =(55);
+  DTYP_XYWINSIZE         =(52);
+
+
+//**********************************************************************/
+//* Pointer datatypes                                                  */
+//**********************************************************************/
+  DTYP_PACCEL            =(-28);
+  DTYP_PACCELTABLE       =(-29);
+  DTYP_PARCPARAMS        =(-38);
+  DTYP_PAREABUNDLE       =(-139);
+  DTYP_PATOM             =(-90);
+  DTYP_PBITMAPINFO       =(-60);
+  DTYP_PBITMAPINFOHEADER =(-61);
+  DTYP_PBITMAPINFO2      =(-170);
+  DTYP_PBITMAPINFOHEADER2=(-171);
+  DTYP_PBIT16            =(-20);
+  DTYP_PBIT32            =(-21);
+  DTYP_PBIT8             =(-19);
+  DTYP_PBOOL             =(-18);
+  DTYP_PBTNCDATA         =(-35);
+  DTYP_PBYTE             =(-13);
+  DTYP_PCATCHBUF         =(-141);
+  DTYP_PCHAR             =(-15);
+  DTYP_PCHARBUNDLE       =(-135);
+  DTYP_PCLASSINFO        =(-95);
+  DTYP_PCOUNT2           =(-93);
+  DTYP_PCOUNT2B          =(-70);
+  DTYP_PCOUNT2CH         =(-82);
+  DTYP_PCOUNT4           =(-152);
+  DTYP_PCOUNT4B          =(-42);
+  DTYP_PCPID             =(-57);
+  DTYP_PCREATESTRUCT     =(-98);
+  DTYP_PCURSORINFO       =(-34);
+  DTYP_PDEVOPENSTRUC     =(-124);
+  DTYP_PDLGTEMPLATE      =(-96);
+  DTYP_PDLGTITEM         =(-97);
+  DTYP_PENTRYFDATA       =(-127);
+  DTYP_PERRORID          =(-45);
+  DTYP_PFATTRS           =(-75);
+  DTYP_PFFDESCS          =(-142);
+  DTYP_PFIXED            =(-99);
+  DTYP_PFONTMETRICS      =(-74);
+  DTYP_PFRAMECDATA       =(-144);
+  DTYP_PGRADIENTL        =(-48);
+  DTYP_PHAB              =(-10);
+  DTYP_PHACCEL           =(-30);
+  DTYP_PHAPP             =(-146);
+  DTYP_PHATOMTBL         =(-91);
+  DTYP_PHBITMAP          =(-62);
+  DTYP_PHCINFO           =(-46);
+  DTYP_PHDC              =(-132);
+  DTYP_PHENUM            =(-117);
+  DTYP_PHHEAP            =(-109);
+  DTYP_PHINI             =(-53);
+  DTYP_PHLIB             =(-147);
+  DTYP_PHMF              =(-85);
+  DTYP_PHMQ              =(-86);
+  DTYP_PHPOINTER         =(-106);
+  DTYP_PHPROGRAM         =(-131);
+  DTYP_PHPS              =(-12);
+  DTYP_PHRGN             =(-116);
+  DTYP_PHSEM             =(-140);
+  DTYP_PHSPL             =(-32);
+  DTYP_PHSWITCH          =(-66);
+  DTYP_PHVPS             =(-58);
+  DTYP_PHWND             =(-11);
+  DTYP_PIDENTITY         =(-133);
+  DTYP_PIDENTITY4        =(-169);
+  DTYP_PIMAGEBUNDLE      =(-136);
+  DTYP_PINDEX2           =(-81);
+  DTYP_PIPT              =(-155);
+  DTYP_PKERNINGPAIRS     =(-118);
+  DTYP_PLENGTH2          =(-68);
+  DTYP_PLENGTH4          =(-69);
+  DTYP_PLINEBUNDLE       =(-137);
+  DTYP_PLONG             =(-25);
+  DTYP_PMARKERBUNDLE     =(-138);
+  DTYP_PMATRIXLF         =(-113);
+  DTYP_PMLECTLDATA       =(-161);
+  DTYP_PMLEMARGSTRUCT    =(-157);
+  DTYP_PMLEOVERFLOW      =(-158);
+  DTYP_POFFSET2B         =(-112);
+  DTYP_POWNERITEM        =(-154);
+  DTYP_PPID              =(-92);
+  DTYP_PPIX              =(-156);
+  DTYP_PPOINTERINFO      =(-105);
+  DTYP_PPOINTL           =(-77);
+  DTYP_PPROGCATEGORY     =(-129);
+  DTYP_PPROGRAMENTRY     =(-128);
+  DTYP_PPROGTYPE         =(-130);
+  DTYP_PPROPERTY2        =(-88);
+  DTYP_PPROPERTY4        =(-89);
+  DTYP_PQMSG             =(-87);
+  DTYP_PRECTL            =(-121);
+  DTYP_PRESID            =(-125);
+  DTYP_PRGB              =(-111);
+  DTYP_PRGNRECT          =(-115);
+  DTYP_PSBCDATA          =(-159);
+  DTYP_PSEGOFF           =(-126);
+  DTYP_PSHORT            =(-23);
+  DTYP_PSIZEF            =(-101);
+  DTYP_PSIZEL            =(-102);
+  DTYP_PSTRL             =(-17);
+  DTYP_PSTR16            =(-40);
+  DTYP_PSTR32            =(-37);
+  DTYP_PSTR64            =(-47);
+  DTYP_PSTR8             =(-33);
+  DTYP_PSWBLOCK          =(-63);
+  DTYP_PSWCNTRL          =(-64);
+  DTYP_PSWENTRY          =(-65);
+  DTYP_PSWP              =(-31);
+  DTYP_PTID              =(-104);
+  DTYP_PTIME             =(-107);
+  DTYP_PTRACKINFO        =(-73);
+  DTYP_PUCHAR            =(-22);
+  DTYP_PULONG            =(-26);
+  DTYP_PUSERBUTTON       =(-36);
+  DTYP_PUSHORT           =(-24);
+  DTYP_PWIDTH4           =(-108);
+  DTYP_PWNDPARAMS        =(-83);
+  DTYP_PWNDPROC          =(-84);
+  DTYP_PWPOINT           =(-59);
+  DTYP_PWRECT            =(-55);
+  DTYP_PXYWINSIZE        =(-52);
+
 {$PACKRECORDS NORMAL}
 
 {Names beginning with T for compatibility}
-
+type
       TQVERSDATA = QVERSDATA;
       TSWP = SWP;
       TCREATESTRUCT = CREATESTRUCT;
@@ -3022,9 +3749,13 @@ const
      end;
 
 end.
+
 {
   $Log$
-  Revision 1.11  2003-01-27 17:57:36  hajny
+  Revision 1.12  2003-03-27 18:09:23  yuri
+  MLE types and various constants added
+
+  Revision 1.11  2003/01/27 17:57:36  hajny
     * additions by Yuri Prokushev (WC_* constants a.o.)
 
   Revision 1.10  2002/12/07 20:56:35  hajny
