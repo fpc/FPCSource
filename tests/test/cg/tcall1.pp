@@ -1,0 +1,217 @@
+{****************************************************************}
+{  CODE GENERATOR TEST PROGRAM                                   }
+{  By Carl Eric Codere                                           }
+{****************************************************************}
+{ NODE TESTED : secondcalln()                                    }
+{****************************************************************}
+{ PRE-REQUISITES: secondload()                                   }
+{                 secondassign()                                 }
+{                 secondtypeconv()                               }
+{                 secondtryexcept()                              }
+{****************************************************************}
+{ DEFINES:                                                       }
+{            FPC     = Target is FreePascal compiler             }
+{****************************************************************}
+{ REMARKS: This tests secondcalln(), genentrycode() and          }
+{ genexitcode().                                                 }
+{                                                                }
+{                                                                }
+{****************************************************************}
+program tcall;
+
+{$mode objfpc}
+uses sysutils;
+
+{
+class:
+  class constructor
+   1a  - success            
+   1b  - failure            
+  2 class destructor
+  3 class method
+  4 virtual method
+  5 abstract method
+  6 static method
+object:  
+  object constructor
+  7a  - success
+  7b  - failure
+  8 object destructor
+  9 method
+  10 virtual method
+standard:
+  11 function
+  12 procedure
+  13 procedure variable
+  
+modifiers:
+  no parameters                    1a  1b      
+  parameters
+     - const                       1a
+     - value                       1a
+     - variable                    1a
+     - mixed                       1a 
+     
+  explicit self parameter
+  operator directive
+  assembler directive
+  interrupt directive
+  inline directive
+  cdecl directive
+  pascal directive
+  safecall directive
+  stdcall directive
+  popstack directive
+  register directive
+}
+
+const
+  GLOBAL_RESULT = $55;
+  
+var
+ globalresult : integer;
+ failed : boolean;
+
+type
+
+  tclass1 = class
+    constructor create_none;               { class constructor }
+    constructor create_value(l:longint;b: byte);
+    constructor create_var(var l:longint;var b: byte);
+    constructor create_const(const l:longint; const b: byte);
+    constructor create_mixed(var a: byte; b: byte; var c: byte; const d: byte);
+  end;
+  
+  tclass2 = class
+    constructor create_none;               { class constructor }
+    b: array[1..20000000] of byte;
+  end;
+  
+  
+  constructor tclass1.create_none;
+   begin
+     Inherited create;
+     globalresult:=GLOBAL_RESULT;
+   end;
+
+
+  constructor tclass1.create_value(l:longint;b: byte);
+   begin
+     Inherited create;
+     globalresult:=b;
+   end;
+
+  constructor tclass1.create_var(var l:longint;var b: byte);
+    begin
+     Inherited create;
+      b:=GLOBAL_RESULT;
+    end;
+    
+  constructor tclass1.create_const(const l:longint; const b: byte);
+    begin
+     Inherited create;
+      globalresult := GLOBAL_RESULT;
+    end;
+    
+  constructor tclass1.create_mixed(var a: byte; b: byte; var c: byte; const d: byte);
+    begin
+     Inherited create;
+      globalresult := GLOBAL_RESULT;
+    end;
+
+  
+
+  constructor tclass2.create_none;
+   begin
+     Inherited create;
+     globalresult:=GLOBAL_RESULT;
+   end;
+  
+
+
+procedure fail;
+begin
+  WriteLn('Failure.');
+  halt(1);
+end;
+
+
+function myheaperror(size : longint): integer;
+  begin
+    myheaperror:=1;
+  end;
+
+var
+ class_none: tclass1;
+ class_value: tclass1;
+ class_var: tclass1;
+ class_const: tclass1;
+ class_mixed: tclass1;
+ class_none_fail : tclass2;
+ a,b,c,d: byte;
+ l:longint;
+Begin
+  { reset test variables }
+  globalresult := 0; 
+  failed := false;
+
+  { required to do correct testing...}
+  heaperror := @myheaperror;  
+  
+  write('class constructor testing...');
+  { secondcalln : class constructor success } 
+  class_none:=tclass1.create_none; 
+  if globalresult <> GLOBAL_RESULT then
+    failed:= true;
+
+  globalresult := 0; 
+  class_value:=tclass1.create_value(0,GLOBAL_RESULT); 
+  if globalresult <> GLOBAL_RESULT then
+    failed:= true;
+
+  globalresult := 0; 
+  b:=0;
+  class_var:=tclass1.create_var(l,b); 
+  globalresult:=b;
+  if globalresult <> GLOBAL_RESULT then
+    failed:= true;
+
+
+  globalresult := 0; 
+  b:=GLOBAL_RESULT;
+  class_const:=tclass1.create_const(l,b); 
+  if globalresult <> GLOBAL_RESULT then
+    failed:= true;
+
+  globalresult := 0; 
+  b:=0;
+  a:=0;
+  c:=0;
+  d:=GLOBAL_RESULT;
+  class_mixed:=tclass1.create_mixed(a,b,c,d); 
+  if globalresult <> GLOBAL_RESULT then
+    failed:= true;
+
+  globalresult := 0; 
+  { secondcalln : class constructor failure }
+  try 
+    class_none_fail:=tclass2.create_none; 
+   except
+   on EOutOfMemory do globalresult:=GLOBAL_RESULT;
+   end;   
+  if globalresult <> GLOBAL_RESULT then
+    failed:= true;
+    
+  if failed then
+    fail
+  else
+    WriteLn('Passed!');
+      
+end.
+
+{
+ $Log$
+ Revision 1.1  2002-03-30 23:19:16  carl
+ + secondcalln() : unfinished
+
+}
