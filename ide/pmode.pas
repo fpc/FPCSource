@@ -658,7 +658,8 @@ end;
 procedure freermcallback(RealCallAddr: pointer);
 var s: tseginfo;
 begin
-  s.segment:=PtrRec(RealCallAddr).seg; s.offset:=ptr(0,PtrRec(RealCallAddr).ofs);
+  s.segment:=PtrRec(RealCallAddr).seg;
+  s.offset:=pointer(longint(PtrRec(RealCallAddr).ofs));
   free_rm_callback(s);
 end;
 
@@ -717,7 +718,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:25  peter
+  Revision 1.2  2001-09-13 13:30:24  pierre
+   * pmode patch from Peter applied blindly
+
+  Revision 1.1  2001/08/04 11:30:25  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.1  2001/06/06 12:11:01  pierre
