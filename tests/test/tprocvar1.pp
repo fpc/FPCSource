@@ -96,6 +96,7 @@ const
    MyRecord : TMyRecord = (
      MyProc1 : TestProc;
      MyProc2 : @TestProc;
+     MyVar : 0;
    );
 
 var
@@ -141,12 +142,15 @@ begin
    globalvar:=0;
    callmethodparam(@o1,constmethodaddr,34);
    if globalvar<>34 then
-     do_error(1001);   
+     do_error(1001);
    writeln('Ok');
 end.
 {
   $Log$
-  Revision 1.3  2000-11-30 22:38:21  peter
+  Revision 1.4  2001-05-19 21:57:07  peter
+    * removed other warning
+
+  Revision 1.3  2000/11/30 22:38:21  peter
     * renamed test suite
 
   Revision 1.1  2000/11/29 23:14:19  peter
