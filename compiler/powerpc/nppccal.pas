@@ -96,10 +96,6 @@ implementation
             hregister2.enum:=R_INTREGISTER;
             hregister2.number:=NR_R11;
             cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,hregister1,hregister2);
-{
-            if assigned(current_procinfo.procdef.localst) then
-              exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,hregister2,hregister1,current_procinfo.procdef.parast.address_fixup));
-}
          end
        else if (current_procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
          begin
@@ -112,12 +108,11 @@ implementation
             i:=current_procdef.parast.symtablelevel-1;
             while (i>tprocdef(procdefinition).parast.symtablelevel) do
               begin
-                 {we should get the correct frame_pointer_offset at each level
-                 how can we do this !!! }
                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister1);
                  dec(i);
               end;
-            hregister2.enum:=R_11;
+            hregister2.enum:=R_INTREGISTER;
+            hregister2.number:=NR_R11;
             cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,hregister1,hregister2);
             rg.ungetregisterint(exprasmlist,hregister1);
          end
@@ -130,7 +125,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-05-24 11:47:27  jonas
+  Revision 1.16  2003-05-25 14:32:42  jonas
+    * fixed register numbering bug
+
+  Revision 1.15  2003/05/24 11:47:27  jonas
     * fixed framepointer storage: it's now always stored at r1+12, which is
       a place in the link area reserved for compiler use.
 
