@@ -181,17 +181,19 @@ interface
 
 
     const
-       { last operator which can be overloaded }
+       { last operator which can be overloaded, the first_overloaded should
+         be in tokens.pas after NOTOKEN }
        first_overloaded = _PLUS;
        last_overloaded  = _ASSIGNMENT;
     type
-       toverloaded_operators = array[first_overloaded..last_overloaded] of pprocsym;
+       toverloaded_operators = array[NOTOKEN..last_overloaded] of pprocsym;
     var
        overloaded_operators : toverloaded_operators;
        { unequal is not equal}
     const
-       overloaded_names : array [first_overloaded..last_overloaded] of string[16] =
-         ('plus','minus','star','slash','equal',
+       overloaded_names : array [NOTOKEN..last_overloaded] of string[16] =
+         ('error',
+          'plus','minus','star','slash','equal',
           'greater','lower','greater_or_equal',
           'lower_or_equal',
           'sym_diff','starstar',
@@ -2370,7 +2372,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2000-12-25 00:07:30  peter
+  Revision 1.24  2001-01-08 21:40:27  peter
+    * fixed crash with unsupported token overloading
+
+  Revision 1.23  2000/12/25 00:07:30  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

@@ -679,11 +679,19 @@ begin
                    if lexlevel>normal_function_level then
                      Message(parser_e_no_local_operator);
                    consume(_OPERATOR);
-                   if not(token in [_PLUS..last_overloaded]) then
-                     Message(parser_e_overload_operator_failed);
-                   optoken:=token;
+                   if (token in [_PLUS..last_overloaded]) then
+                    begin
+                      procinfo^.flags:=procinfo^.flags or pi_operator;
+                      optoken:=token;
+                    end
+                   else
+                    begin
+                      Message(parser_e_overload_operator_failed);
+                      { Use the dummy NOTOKEN that is also declared
+                        for the overloaded_operator[] }
+                      optoken:=NOTOKEN;
+                    end;
                    consume(Token);
-                   procinfo^.flags:=procinfo^.flags or pi_operator;
                    parse_proc_head(potype_operator);
                    if token<>_ID then
                      begin
@@ -1864,7 +1872,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2000-12-25 00:07:27  peter
+  Revision 1.11  2001-01-08 21:40:26  peter
+    * fixed crash with unsupported token overloading
+
+  Revision 1.10  2000/12/25 00:07:27  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
