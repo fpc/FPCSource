@@ -25,7 +25,7 @@ begin
   if OK then
   begin
     Text:=CodeCompleteWords^.Lookup(WordS,Index);
-    OK:=(Index<>-1);
+    OK:=(Index<>-1) and (length(Text)<>length(WordS));
   end;
   if OK=false then Text:='';
   FPCompleteCodeWord:=OK;
