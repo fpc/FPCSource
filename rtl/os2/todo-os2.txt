@@ -33,7 +33,7 @@ OS/2 native rtl                               high
           - dos.pas.................................................YP
   - sysutils.pp
   - ports.pas
-  - thread.inc
+          - thread.inc..............................................YP
   - linker (LINK386, Internal, ...)
   - loader (prt*) for EXEs
   - loader (prt*) for DLLs

@@ -15,7 +15,6 @@
  **********************************************************************}
 
 {$IFDEF MT}
-{$DEFINE EMX}
 
 const
  ThreadVarBlockSize: dword = 0;
@@ -210,16 +209,6 @@ begin
 {$endif DEBUG_MT}
  BeginThread := DosCreateThread (ThreadID, @ThreadMain, TI, CreationFlags,
                                                                     StackSize);
-{$IFDEF EMX}
-{$ASMMODE INTEL}
- asm
-  mov eax, 7F2Ch
-  mov edx, ThreadID
-  call syscall
-{$warning Error checking missing!!}
- end ['eax', 'ecx', 'edx'];
-{$ASMMODE DEFAULT}
-{$ENDIF EMX}
 end;
 
 function BeginThread (ThreadFunction: TThreadFunc): dword;
@@ -335,7 +324,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2003-10-08 05:22:47  yuri
+  Revision 1.13  2003-10-08 09:21:33  yuri
+  * EMX code removed. Most probably, MT broken. (EMX notification removed)
+
+  Revision 1.12  2003/10/08 05:22:47  yuri
   * Some emx code removed
 
   Revision 1.11  2003/10/07 21:26:35  hajny
