@@ -19,13 +19,25 @@ OLDFPCDIR:=$(FPCDIR)
 
 checkfpcdir:
 ifdef OLDFPCDIR
+ifneq ($(OLDFPCDIR),)
+FPCDIRSET=fpcdirset
+fpcdirset:
         @echo You must unset FPCDIR to use this Makefile
         @exit 1
+endif
 endif
 
 # All target
 ifndef ALLTARGET
+ifdef ($(OS_TARGET),win32)
 ALLTARGET=smart
+else
+ifdef ($(OS_TARGET),go32v2)
+ALLTARGET=smart
+else
+ALLTARGET=all
+endif
+endif
 endif
 
 # Test dir if none specified
@@ -43,8 +55,8 @@ override RELEASE=1
 BASEPACKDIR=$(BASEDIR)/basepack
 
 # Use new ppc386
-PPNEW=$(BASEDIR)/$(CVSBASE)/compiler/ppc386.exe
-PPUFILESNEW=$(BASEDIR)/$(CVSBASE)/utils/ppufiles.exe
+PPNEW=$(BASEDIR)/$(CVSBASE)/compiler/ppc386$(EXEEXT)
+PPUFILESNEW=$(BASEDIR)/$(CVSBASE)/utils/ppufiles$(EXEEXT)
 
 # Build/install options
 BUILDOPTS=FPC=$(PPNEW) RELEASE=1
@@ -58,10 +70,9 @@ help:
         @echo
         @echo Possible targets are:
         @echo
-        @echo basego32, basego32.zip
-        @echo basew32,  basew32.zip
+        @echo go32v2,win32,linux
         @echo
-        @exit 1
+        @exit
 
 
 ##########################################################################
@@ -78,12 +89,16 @@ installer:
 # Basego32.zip
 ##########################################################################
 
-.PHONY: build installbase zipinstall zipinstallbase zipinstallfcl \
+.PHONY: clean build installbase zipinstall zipinstallbase zipinstallfcl \
         zipinstallpackages
 
 export RELEASE DESTZIPDIR
 
-build: checkfpcdir
+clean:
+        $(DEL) build-stamp
+
+build: build-stamp
+build-stamp: $(FPCDIRSET)
 # create new compiler
         -$(MAKE) -C $(CVSBASE) compiler_cycle
 # clean
@@ -99,8 +114,9 @@ build: checkfpcdir
         $(MAKE) -C $(CVSBASE) packages_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) -C $(CVSBASE) utils_all $(BUILDOPTS)
 
+        touch build-stamp
 
-installbase:
+installbase: build-stamp
 # create dirs
         $(MKDIR) $(BASEINSTALLDIR)
         $(MKDIR) $(DOCINSTALLDIR)
@@ -119,36 +135,25 @@ endif
         $(MAKE) -C $(CVSBASE) rtl_install $(INSTALLOPTS)
         $(MAKE) -C $(CVSBASE) utils_install $(INSTALLOPTS)
 
-zipinstallbase:
-        $(MKDIR) $(BASEPACKDIR)
-        $(MAKE) installbase PREFIXINSTALLDIR=$(BASEPACKDIR)
-        cd $(BASEPACKDIR) ; $(ZIPPROG) $(DESTZIPDIR)/basego32.zip * ; cd $(BASEDIR)
-        $(DELTREE) $(BASEPACKDIR)
-
-zipinstallapi:
+install: build-stamp
+        $(MAKE) zipinstall ZIPTARGET=installbase PACKAGENAME=base
         $(MAKE) -C $(CVSBASE) api_zipinstall $(INSTALLOPTS)
-
-zipinstallfcl:
         $(MAKE) -C $(CVSBASE) fcl_zipinstall $(INSTALLOPTS)
-
-zipinstallpackages:
-        $(MAKE) -C $(CVSBASE) packages_install $(INSTALLOPTS)
-
-
-zipinstall: build \
-            zipinstallbase zipinstallapi zipinstallfcl \
-            zipinstallpackages
+        $(MAKE) -C $(CVSBASE) packages_zipinstall $(INSTALLOPTS)
 
 
 ##########################################################################
 # go32v2,win32 specific targets
 ##########################################################################
 
-.PHONY: go32v2 win32
+.PHONY: go32v2 win32 linux
 
 go32v2:
-        $(MAKE) zipinstall OS_TARGET=go32v2
+        $(MAKE) install OS_TARGET=go32v2
 
 win32:
-        $(MAKE) zipinstall OS_TARGET=win32
+        $(MAKE) install OS_TARGET=win32
+
+linux:
+        $(MAKE) install OS_TARGET=linux
 

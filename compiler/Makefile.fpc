@@ -7,11 +7,14 @@ fpcdir=..
 targetdir=.
 
 [require]
+rtl=1
 options=-Sg
 
 [tools]
 tooldiff=1
 toolcmp=1
+tooldate=1
+toolupx=1
 
 
 [presettings]
