@@ -82,22 +82,21 @@ begin
   if not debugger^.debuggee_started then
     Debugger^.StartTrace
   else
-   Debugger^.TraceStep;                                                                                                                                                                                                                                        
-  { I think we should not try to go deeper !                                                                                                                                                                                                                   
-    if the source is not found PM }                                                                                                                                                                                                                            
-  While (Debugger^.InvalidSourceLine and                                                                                                                                                                                                                       
+   Debugger^.TraceStep;
+  { I think we should not try to go deeper !
+    if the source is not found PM }
+  While (Debugger^.InvalidSourceLine and
          Debugger^.debuggee_started and
          not Debugger^.error) do
-    begin                                                                                                                                                                                                                                                      
-      Inc(Debugger^.HiddenStepsCount);                                                                                                                                                                                                                         
-      Debugger^.TraceNext;                                                                                                                                                                                                                                     
-    end;                                                                                                                                                                                                                                                       
-  Debugger^.AnnotateError;                                                                                                                                                                                                                                     
-{$else NODEBUG}                                                                                                                                                                                                                                                
-  NoDebugger;                                                                                                                                                                                                                                                  
-{$endif NODEBUG}                                                                                                                                                                                                                                               
-end;                                                                                                                                                                                                                                                           
-                                                                                                                                                                                                                                                               
+    begin
+      Inc(Debugger^.HiddenStepsCount);
+      Debugger^.TraceNext;
+    end;
+  Debugger^.AnnotateError;
+{$else NODEBUG}
+  NoDebugger;
+{$endif NODEBUG}
+end;
 
 procedure TIDEApp.DoRun;
 begin
@@ -239,7 +238,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  1999-07-12 13:14:19  pierre
+  Revision 1.17  1999-07-28 23:11:20  peter
+    * fixes from gabor
+
+  Revision 1.16  1999/07/12 13:14:19  pierre
     * LineEnd bug corrected, now goes end of text even if selected
     + Until Return for debugger
     + Code for Quit inside GDB Window

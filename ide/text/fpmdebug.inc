@@ -43,11 +43,14 @@ end;
 
 procedure TIDEApp.DoShowCallStack;
 begin
-  NotImplemented;                                                                                                                                                                                                                                              
+  NotImplemented;
 end;
 
 procedure TIDEApp.DoShowBreakpointList;
 begin
+{$ifdef NODEBUG}
+  NoDebugger;
+{$else}
   If assigned(BreakpointsWindow) then
     begin
       BreakpointsWindow^.Update;
@@ -59,10 +62,14 @@ begin
       New(BreakpointsWindow,Init);
       Desktop^.Insert(BreakpointsWindow);
     end;
+{$endif NODEBUG}
 end;
 
 procedure TIDEApp.DoShowWatches;
 begin
+{$ifdef NODEBUG}
+  NoDebugger;
+{$else}
   If assigned(WatchesWindow) then
     begin
       WatchesWindow^.Update;
@@ -73,9 +80,15 @@ begin
       New(WatchesWindow,Init);
       Desktop^.Insert(WatchesWindow);
     end;
+{$endif NODEBUG}
 end;
 
 procedure TIDEApp.DoAddWatch;
+{$ifdef NODEBUG}
+begin
+  NoDebugger;
+end;
+{$else}
 var
   P: PWatch;
   EditorWindow : PSourceWindow;
@@ -95,10 +108,14 @@ begin
   else
     dispose(P,Done);
 end;
+{$endif NODEBUG}
 
 {
   $Log$
-  Revision 1.6  1999-07-10 01:24:19  pierre
+  Revision 1.7  1999-07-28 23:11:19  peter
+    * fixes from gabor
+
+  Revision 1.6  1999/07/10 01:24:19  pierre
    + First implementation of watches window
 
   Revision 1.5  1999/06/30 23:58:17  pierre

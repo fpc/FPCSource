@@ -111,7 +111,7 @@ type
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
       destructor  Done; virtual;
-      procedure   FocusItem(i : sw_integer);                                                                                                                                                                                                   
+      procedure   FocusItem(i : sw_integer);
       procedure   SizeLimits(var Min, Max: TPoint); virtual;
     private
       MsgLB : PToolMessageListBox;
@@ -1440,8 +1440,8 @@ end;
 procedure TMessagesWindow.FocusItem(i : sw_integer);
 begin
   MsgLB^.FocusItem(i);
-end;                                                                                                                                                                                                                                                           
-                                                                                                                                                                                                                                                               
+end;
+
 procedure TMessagesWindow.HandleEvent(var Event: TEvent);
 begin
   case Event.What of
@@ -1505,7 +1505,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  1999-07-12 13:14:21  pierre
+  Revision 1.12  1999-07-28 23:11:24  peter
+    * fixes from gabor
+
+  Revision 1.11  1999/07/12 13:14:21  pierre
     * LineEnd bug corrected, now goes end of text even if selected
     + Until Return for debugger
     + Code for Quit inside GDB Window

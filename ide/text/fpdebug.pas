@@ -231,7 +231,7 @@ procedure DoneGDBWindow;
 procedure InitBreakpoints;
 procedure DoneBreakpoints;
 procedure InitWatches;
-procedure DoneWatches;                                                                                                                                                                                                                                         
+procedure DoneWatches;
 
 implementation
 
@@ -315,10 +315,14 @@ end;
 
 procedure TDebugController.Continue;
 begin
+{$ifdef NODEBUG}
+  NoDebugger;
+{$else}
   if not debuggee_started then
     Run
   else
     inherited Continue;
+{$endif NODEBUG}
 end;
 
 procedure TDebugController.UntilReturn;
@@ -921,26 +925,26 @@ begin
 end;
 
 (* function TBreakpointListBox.AddModuleName(const Name: string): PString;
-var P: PString;                                                                                                                                                                                                                                                
+var P: PString;
 begin
   if ModuleNames<>nil then
     P:=ModuleNames^.Add(Name)
   else
-    P:=nil;                                                                                                                                                                                                                                                    
+    P:=nil;
   AddModuleName:=P;
 end;  *)
 
 function TBreakpointListBox.GetText(Item,MaxLen: Sw_Integer): String;
 var P: PBreakpointItem;
-    S: string;                                                                                                                                                                                                                                                 
+    S: string;
 begin
-  P:=List^.At(Item);                                                                                                                                                                                                                                           
+  P:=List^.At(Item);
   S:=P^.GetText(MaxLen);
   GetText:=copy(S,1,MaxLen);
 end;
-                                                                                                                                                                                                                                                               
+
 procedure TBreakpointListBox.Clear;
-begin                                                                                                                                                                                                                                                          
+begin
   if assigned(List) then
     Dispose(List, Done);
   List:=nil;
@@ -1058,12 +1062,12 @@ var
   B: TDrawBuffer;
   Text: String;
   SCOff: Byte;
-  TC: byte;                                                                                                                                                                                                                                                    
-procedure MT(var C: word); begin if TC<>0 then C:=(C and $ff0f) or (TC and $f0); end;                                                                                                                                                                          
+  TC: byte;
+procedure MT(var C: word); begin if TC<>0 then C:=(C and $ff0f) or (TC and $f0); end;
 begin
   if (Owner<>nil) then TC:=ord(Owner^.GetColor(6)) else TC:=0;
   if State and (sfSelected + sfActive) = (sfSelected + sfActive) then
-  begin                                                                                                                                                                                                                                                        
+  begin
     NormalColor := GetColor(1);
     FocusedColor := GetColor(3);
     SelectedColor := GetColor(4);
@@ -1073,19 +1077,19 @@ begin
     SelectedColor := GetColor(4);
   end;
   if Transparent then
-    begin MT(NormalColor); MT(SelectedColor); end;                                                                                                                                                                                                             
+    begin MT(NormalColor); MT(SelectedColor); end;
   if NoSelection then
      SelectedColor:=NormalColor;
   if HScrollBar <> nil then Indent := HScrollBar^.Value
   else Indent := 0;
-  ColWidth := Size.X div NumCols + 1;                                                                                                                                                                                                                          
-  for I := 0 to Size.Y - 1 do                                                                                                                                                                                                                                  
+  ColWidth := Size.X div NumCols + 1;
+  for I := 0 to Size.Y - 1 do
   begin
     for J := 0 to NumCols-1 do
     begin
       Item := J*Size.Y + I + TopItem;
       CurCol := J*ColWidth;
-      if (State and (sfSelected + sfActive) = (sfSelected + sfActive)) and                                                                                                                                                                                     
+      if (State and (sfSelected + sfActive) = (sfSelected + sfActive)) and
         (Focused = Item) and (Range > 0) then
       begin
         Color := FocusedColor;
@@ -1094,15 +1098,15 @@ begin
       end
       else if (Item < Range) and IsSelected(Item) then
       begin
-        Color := SelectedColor;                                                                                                                                                                                                                                
-        SCOff := 2;                                                                                                                                                                                                                                            
+        Color := SelectedColor;
+        SCOff := 2;
       end
       else
-      begin                                                                                                                                                                                                                                                    
-        Color := NormalColor;                                                                                                                                                                                                                                  
+      begin
+        Color := NormalColor;
         SCOff := 4;
       end;
-      MoveChar(B[CurCol], ' ', Color, ColWidth);                                                                                                                                                                                                               
+      MoveChar(B[CurCol], ' ', Color, ColWidth);
       if Item < Range then
       begin
         Text := GetText(Item, ColWidth + Indent);
@@ -1212,8 +1216,8 @@ end;
 procedure TBreakpointsWindow.ClearBreakpoints;
 begin
   BreakLB^.Clear;
-  ReDraw;                                                                                                                                                                                                                                                      
-end;                                                                                                                                                                                                                                                           
+  ReDraw;
+end;
 
 procedure TBreakpointsWindow.ReloadBreakpoints;
   procedure InsertInBreakLB(P : PBreakpoint);
@@ -1231,10 +1235,10 @@ procedure TBreakpointsWindow.SizeLimits(var Min, Max: TPoint);
 begin
   inherited SizeLimits(Min,Max);
   Min.X:=40; Min.Y:=18;
-end;                                                                                                                                                                                                                                                           
+end;
 
 procedure TBreakpointsWindow.Close;
-begin                                                                                                                                                                                                                                                          
+begin
   Hide;
 end;
 
@@ -1273,7 +1277,7 @@ procedure TBreakpointsWindow.Update;
 begin
   ClearBreakpoints;
   ReloadBreakpoints;
-end;                                                                                                                                                                                                                                                           
+end;
 
 destructor TBreakpointsWindow.Done;
 begin
@@ -1733,8 +1737,8 @@ begin
       end;
   end;
   inherited HandleEvent(Event);
-end;                                                                                                                                                                                                                                                           
-                                                                                                                                                                                                                                                               
+end;
+
       (* constructor TWatchesListBox.Load(var S: TStream);
       procedure   TWatchesListBox.Store(var S: TStream); *)
       destructor  TWatchesListBox.Done;
@@ -1778,7 +1782,7 @@ end;
       Dispose(WLB,done);
       inherited done;
     end;
-    
+
 
 {****************************************************************************
                          TWatchItemDialog
@@ -1948,7 +1952,10 @@ end.
 
 {
   $Log$
-  Revision 1.22  1999-07-12 13:14:15  pierre
+  Revision 1.23  1999-07-28 23:11:17  peter
+    * fixes from gabor
+
+  Revision 1.22  1999/07/12 13:14:15  pierre
     * LineEnd bug corrected, now goes end of text even if selected
     + Until Return for debugger
     + Code for Quit inside GDB Window

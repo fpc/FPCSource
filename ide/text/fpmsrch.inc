@@ -95,7 +95,7 @@ begin
   OpenSymbolBrowser(0,0,'Units','Global scope',nil,S,nil,nil,nil);
 end;
 
-function SymbolDialog(const S : string) : PDialog;
+function SymbolDialog(S : string) : PDialog;
 var D: PDialog;
     R,R1,R2: TRect;
     IL: PInputLine;
@@ -137,7 +137,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1999-06-29 12:49:55  pierre
+  Revision 1.11  1999-07-28 23:11:21  peter
+    * fixes from gabor
+
+  Revision 1.10  1999/06/29 12:49:55  pierre
    * SearchSymbol works
 
   Revision 1.9  1999/06/28 19:32:22  peter

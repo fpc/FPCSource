@@ -90,7 +90,7 @@ begin
   {$ifndef DEV}Exit;{$endif}
 
   F^.CreateResource(resDesktopFlags,rcBinary,0);
-  F^.AddResourceEntry(resDesktopFlags,langDefault,0,@DesktopFileFlags,
+  F^.AddResourceEntry(resDesktopFlags,langDefault,0,DesktopFileFlags,
     SizeOf(DesktopFileFlags));
 end;
 
@@ -107,7 +107,7 @@ begin
   {$ifndef DEV}Exit;{$endif}
   New(F, LoadFile(DesktopPath));
   OK:=true;
-  
+
 end;
 
 function SaveDesktop: boolean;
@@ -137,7 +137,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  1999-06-30 23:58:13  pierre
+  Revision 1.6  1999-07-28 23:11:18  peter
+    * fixes from gabor
+
+  Revision 1.5  1999/06/30 23:58:13  pierre
     + BreakpointsList Window implemented
       with Edit/New/Delete functions
     + Individual breakpoint dialog with support for all types

@@ -193,7 +193,7 @@ begin
       Dispose(ModulesCollection,done);
       ModulesCollection:=nil;
     end;
-end;                                                                                                                                                                                                                                                           
+end;
 
 function NewBrowserTabItem(ASign: char; ALink: PView; ANext: PBrowserTabItem): PBrowserTabItem;
 var P: PBrowserTabItem;
@@ -681,7 +681,7 @@ end;
 destructor TSymbolInheritanceView.Done;
 begin
   { do not dispose,
-    belongs to a symbolcollection (PM) 
+    belongs to a symbolcollection (PM)
   if assigned(Root) then
     dispose(Root,done); }
   Inherited Done;
@@ -737,10 +737,10 @@ begin
   if P=nil then Exit;
 
   S:=PObjectSymbol(P)^.Symbol;
-  
+
   { this happens for the top objects view (PM) }
   if S=nil then exit;
-  
+
   if S^.Ancestor=nil then Anc:=nil else
     Anc:=SearchObjectForSymbol(S^.Ancestor);
   OpenSymbolBrowser(Origin.X-1,FOC-Delta.Y+1,
@@ -1160,7 +1160,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.17  1999-06-28 12:35:05  pierre
+  Revision 1.18  1999-07-28 23:11:22  peter
+    * fixes from gabor
+
+  Revision 1.17  1999/06/28 12:35:05  pierre
     + CloseAllBrowsers needed before compilation to avoid problems
     + ModulesCollection and GlobalsCollection to avoid memory leaks
 

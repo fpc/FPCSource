@@ -2047,7 +2047,7 @@ end;
 procedure TCodeEditor.JumpSelStart;
 begin
   if ValidBlock then
-    SetCurPtr(SelStart.X,SelEnd.X);
+    SetCurPtr(SelStart.X,SelStart.Y);
 end;
 
 procedure TCodeEditor.JumpSelEnd;
@@ -2514,7 +2514,7 @@ begin
   S:=GetLineText(CurPos.Y);
   if CharIdxToLinePos(CurPos.Y,length(S))<CurPos.X then
     begin
-      S:=S+CharStr(' ',CurPos.X-CharIdxToLinePos(CurPos.Y,length(S))-1);
+      S:=S+CharStr(' ',CurPos.X-CharIdxToLinePos(CurPos.Y,length(S)){-1});
       SetLineText(CurPos.Y,S);
     end;
   CI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
@@ -2734,7 +2734,7 @@ var S: string;
        ((AreaStart.Y<Y) and (Y<AreaEnd.Y)) or
        ((AreaEnd.Y=Y) and (X<=AreaEnd.X));
   end;
-
+var CurDY: sw_integer;
 begin
   Inc(SearchRunCount);
 
@@ -2800,6 +2800,7 @@ begin
     Owner^.Lock;
   if InArea(X,Y) then
   repeat
+    CurDY:=DY;
     S:=GetDisplayText(Y);
     P:=ContainsText(FindStr,S,X+1);
     Found:=P<>0;
@@ -2817,6 +2818,11 @@ begin
        LeftOK:=(A.X<=0) or (not( (S[A.X] in AlphaChars) or (S[A.X] in NumberChars) ));
        RightOK:=(B.X>=length(S)) or (not( (S[B.X+1] in AlphaChars) or (S[B.X+1] in NumberChars) ));
        Found:=LeftOK and RightOK;
+       if Found=false then
+         begin
+           CurDY:=0;
+           X:=B.X+1;
+         end;
      end;
 
     if Found then
@@ -2862,9 +2868,9 @@ begin
           end;
       end;
 
-    if CanExit=false then
+    if (CanExit=false) and (CurDY<>0) then
       begin
-        inc(Y,DY);
+        inc(Y,CurDY);
         if SForward then
           X:=0
         else
@@ -2982,17 +2988,21 @@ var
 
   var MatchedSymbol: boolean;
       MatchingSymbol: string;
-  function MatchesAnySpecSymbol(const What: string; SClass: TSpecSymbolClass; PartialMatch: boolean): boolean;
+  function MatchesAnySpecSymbol(What: string; SClass: TSpecSymbolClass; PartialMatch, CaseInsensitive: boolean): boolean;
   var S: string;
       I: Sw_integer;
       Match,Found: boolean;
   begin
     Found:=false;
+    if CaseInsensitive then
+      What:=UpcaseStr(What);
     if What<>'' then
     for I:=1 to GetSpecSymbolCount(SClass) do
     begin
       SymbolIndex:=I;
       S:=GetSpecSymbol(SClass,I-1);
+      if CaseInsensitive then
+        S:=UpcaseStr(S);
       if PartialMatch then Match:=MatchSymbol(What,S)
             else Match:=What=S;
       if Match then
@@ -3004,48 +3014,48 @@ var
 
   function IsCommentPrefix: boolean;
   begin
-    IsCommentPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssCommentPrefix,true);
+    IsCommentPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssCommentPrefix,true,false);
   end;
 
   function IsSingleLineCommentPrefix: boolean;
   begin
-    IsSingleLineCommentPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssCommentSingleLinePrefix,true);
+    IsSingleLineCommentPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssCommentSingleLinePrefix,true,false);
   end;
 
   function IsCommentSuffix: boolean;
   begin
-    IsCommentSuffix:=(MatchesAnySpecSymbol(SymbolConcat,ssCommentSuffix,true))
+    IsCommentSuffix:=(MatchesAnySpecSymbol(SymbolConcat,ssCommentSuffix,true,false))
       and (CurrentCommentType=SymbolIndex);
   end;
 
   function IsStringPrefix: boolean;
   begin
-    IsStringPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssStringPrefix,true);
+    IsStringPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssStringPrefix,true,false);
   end;
 
   function IsStringSuffix: boolean;
   begin
-    IsStringSuffix:=MatchesAnySpecSymbol(SymbolConcat,ssStringSuffix,true);
+    IsStringSuffix:=MatchesAnySpecSymbol(SymbolConcat,ssStringSuffix,true,false);
   end;
 
   function IsDirectivePrefix: boolean;
   begin
-    IsDirectivePrefix:=MatchesAnySpecSymbol(SymbolConcat,ssDirectivePrefix,true);
+    IsDirectivePrefix:=MatchesAnySpecSymbol(SymbolConcat,ssDirectivePrefix,true,false);
   end;
 
   function IsDirectiveSuffix: boolean;
   begin
-    IsDirectiveSuffix:=MatchesAnySpecSymbol(SymbolConcat,ssDirectiveSuffix,true);
+    IsDirectiveSuffix:=MatchesAnySpecSymbol(SymbolConcat,ssDirectiveSuffix,true,false);
   end;
 
   function IsAsmPrefix(const WordS: string): boolean;
   begin
-    IsAsmPrefix:=MatchesAnySpecSymbol(WordS,ssAsmPrefix,false);
+    IsAsmPrefix:=MatchesAnySpecSymbol(WordS,ssAsmPrefix,false,true);
   end;
 
   function IsAsmSuffix(const WordS: string): boolean;
   begin
-    IsAsmSuffix:=MatchesAnySpecSymbol(WordS,ssAsmSuffix,false);
+    IsAsmSuffix:=MatchesAnySpecSymbol(WordS,ssAsmSuffix,false,true);
   end;
 
   function GetCharClass(C: char): TCharClass;
@@ -3949,7 +3959,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.38  1999-07-12 13:14:24  pierre
+  Revision 1.39  1999-07-28 23:11:26  peter
+    * fixes from gabor
+
+  Revision 1.38  1999/07/12 13:14:24  pierre
     * LineEnd bug corrected, now goes end of text even if selected
     + Until Return for debugger
     + Code for Quit inside GDB Window

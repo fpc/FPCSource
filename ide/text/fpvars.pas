@@ -33,19 +33,19 @@ type
 const ClipboardWindow  : PClipboardWindow = nil;
       CalcWindow       : PCalculator = nil;
       RecentFileCount  : integer = 0;
-      OpenExts         : string[80] = '*.pas;*.pp;*.inc';
-      HighlightExts    : string[80] = '*.pas;*.pp;*.inc';
+      OpenExts         : string{$ifdef GABOR}[24]{$endif} = '*.pas;*.pp;*.inc';
+      HighlightExts    : string{$ifdef GABOR}[24]{$endif} = '*.pas;*.pp;*.inc';
       TabsPattern      : string{$ifdef GABOR}[30]{$endif} = 'make*;make*.*';
       SourceDirs       : string{$ifdef GABOR}[30]{$endif} = '';
-      PrimaryFile      : string{$ifdef GABOR}[80]{$endif} = '';
-      PrimaryFileMain  : string{$ifdef GABOR}[80]{$endif} = '';
+      PrimaryFile      : string{$ifdef GABOR}[60]{$endif} = '';
+      PrimaryFileMain  : string{$ifdef GABOR}[60]{$endif} = '';
       PrimaryFileSwitches : string{$ifdef GABOR}[30]{$endif} = '';
-      PrimaryFilePara  : string = '';
+      PrimaryFilePara  : string{$ifdef GABOR}[40]{$endif} = '';
       GDBOutputFile    : string{$ifdef GABOR}[30]{$endif} = 'gdb$$$.txt';
       IsEXECompiled    : boolean = false;
       LinkAfter        : boolean = true;
-      MainFile         : string{$ifdef GABOR}[80]{$endif} = '';
-      EXEFile          : string{$ifdef GABOR}[80]{$endif} = '';
+      MainFile         : string{$ifdef GABOR}[60]{$endif} = '';
+      EXEFile          : string{$ifdef GABOR}[60]{$endif} = '';
       CompilationPhase : TCompPhase = cpNothing;
       ProgramInfoWindow: PProgramInfoWindow = nil;
       GDBWindow        : PGDBWindow = nil;
@@ -55,16 +55,16 @@ const ClipboardWindow  : PClipboardWindow = nil;
       HeapView         : PFPHeapView = nil;
       HelpFiles        : WUtils.PUnsortedStringCollection = nil;
       ShowStatusOnError: boolean = true;
-      StartupDir       : string = '.'+DirSep;
-      IDEDir           : string = '.'+DirSep;
-      INIPath          : string = ININame;
-      SwitchesPath     : string = SwitchesName;
+      StartupDir       : string{$ifdef GABOR}[50]{$endif} = '.'+DirSep;
+      IDEDir           : string{$ifdef GABOR}[50]{$endif} = '.'+DirSep;
+      INIPath          : string{$ifdef GABOR}[50]{$endif} = ININame;
+      SwitchesPath     : string{$ifdef GABOR}[50]{$endif} = SwitchesName;
       CtrlMouseAction  : integer = acTopicSearch;
       AltMouseAction   : integer = acBrowseSymbol;
       StartupOptions   : longint = 0;
       LastExitCode     : integer = 0;
       ASCIIChart       : PFPASCIIChart = nil;
-      DesktopPath      : string = DesktopName;
+      DesktopPath      : string{$ifdef GABOR}[50]{$endif} = DesktopName;
       DesktopFileFlags : longint = dfHistoryLists+dfOpenWindows;
       DesktopLocation  : byte    = dlConfigFileDir;
       AutoSaveOptions  : longint = asEnvironment+asDesktop;
@@ -83,7 +83,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.19  1999-07-10 01:24:21  pierre
+  Revision 1.20  1999-07-28 23:11:25  peter
+    * fixes from gabor
+
+  Revision 1.19  1999/07/10 01:24:21  pierre
    + First implementation of watches window
 
   Revision 1.18  1999/06/30 23:58:19  pierre
