@@ -195,9 +195,9 @@ begin
            codesegment.concat(tai_symbol.createname_global(hp2.name^,AT_FUNCTION,0));
            codesegment.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
            codesegment.concat(tai_symbol_end.createname(hp2.name^));
-{$endif powerpc}
 {$else powerpc}
 {$error Exportliblinux.generatelib not yet implemented for target processor}
+{$endif powerpc}
 {$endif m68k}
 {$endif i386}
          end;
@@ -578,7 +578,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2004-03-02 00:36:33  olle
+  Revision 1.16  2004-03-04 16:32:59  peter
+    * misplaced $Ifdef
+
+  Revision 1.15  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.14  2004/01/03 13:51:05  jonas
