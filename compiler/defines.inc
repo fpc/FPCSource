@@ -20,6 +20,7 @@
 
 {$ifdef DELPHI}
   {$H-}
+  {$J+}
 
   {$Z1}
 

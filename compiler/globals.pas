@@ -41,7 +41,7 @@ interface
       doscalls,
 {$endif}
 {$ifdef Delphi}
-      sysutils,
+      SysUtils,
       dmisc,
 {$else}
       strings,
@@ -972,7 +972,7 @@ implementation
       {$ifdef GETENVOK}
         {$undef GETENVOK}
       {$else}
-        GetEnvPchar:=StrPNew(Dos.Getenv(envname));
+        GetEnvPchar:=StrPNew({$ifdef delphi}DMisc{$else}Dos{$endif}.Getenv(envname));
       {$endif}
       end;
 
@@ -1282,7 +1282,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2001-05-30 21:35:48  peter
+  Revision 1.36  2001-06-03 20:21:08  peter
+    * Kylix fixes, mostly case names of units
+
+  Revision 1.35  2001/05/30 21:35:48  peter
     * netware patches for copyright, screenname, threadname directives
 
   Revision 1.34  2001/05/12 12:11:31  peter

@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-Unit CPUInfo;
+Unit cpuinfo;
 
 {$i defines.inc}
 
@@ -52,7 +52,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.2  2001-02-08 13:09:03  jonas
+  Revision 1.3  2001-06-03 20:21:08  peter
+    * Kylix fixes, mostly case names of units
+
+  Revision 1.2  2001/02/08 13:09:03  jonas
     * fixed web bug 1396: tpointerord is now a cardinal instead of a longint,
       but added a hack in ncnv so that pointer(-1) still works
 

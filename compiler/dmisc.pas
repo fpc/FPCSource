@@ -27,7 +27,12 @@ unit dmisc;
 interface
 
 uses
-  windows,sysutils;
+{$ifdef linux}
+  Libc,
+{$else}
+  windows,
+{$endif}
+  sysutils;
 
 Const
   Max_Path = 255;
@@ -57,6 +62,8 @@ Const
 
 
 Type
+  DWord   = Cardinal;
+
 { Needed for Win95 LFN Support }
   ComStr  = String[255];
   PathStr = String[255];
@@ -75,29 +82,7 @@ Type
     Sec   : word;
   End;
 
-  PWin32FindData = ^TWin32FindData;
-  TWin32FindData = packed record
-    dwFileAttributes: Cardinal;
-    ftCreationTime: TFileTime;
-    ftLastAccessTime: TFileTime;
-    ftLastWriteTime: TFileTime;
-    nFileSizeHigh: Cardinal;
-    nFileSizeLow: Cardinal;
-    dwReserved0: Cardinal;
-    dwReserved1: Cardinal;
-    cFileName: array[0..MAX_PATH - 1] of Char;
-    cAlternateFileName: array[0..13] of Char;
-  end;
-
-  Searchrec = Packed Record
-    FindHandle  : THandle;
-    W32FindData : TWin32FindData;
-    time : longint;
-    size : longint;
-    attr : longint;
-    name : string;
-  end;
-
+  SearchRec = Sysutils.TSearchRec;
 
   registers = packed record
     case i : integer of
@@ -117,8 +102,6 @@ Procedure MSDos(var regs: registers);
 Function  DosVersion: Word;
 Procedure GetDate(var year, month, mday, wday: word);
 Procedure GetTime(var hour, minute, second, sec100: word);
-procedure SetDate(year,month,day: word);
-Procedure SetTime(hour,minute,second,sec100: word);
 Procedure UnpackTime(p: longint; var t: datetime);
 Procedure PackTime(var t: datetime; var p: longint);
 
@@ -127,15 +110,15 @@ Procedure Exec(const path: pathstr; const comline: comstr);
 Function  DosExitCode: word;
 
 {Disk}
-Function  DiskFree(drive: byte) : longint;
-Function  DiskSize(drive: byte) : longint;
+Function  DiskFree(drive: byte) : int64;
+Function  DiskSize(drive: byte) : int64;
 Procedure FindFirst(const path: pathstr; attr: word; var f: searchRec);
 Procedure FindNext(var f: searchRec);
 Procedure FindClose(Var f: SearchRec);
 
 {File}
 Procedure GetFAttr(var f; var attr: word);
-Procedure GetFTime(var f; var time: longint);
+Procedure GetFTime(var f; var tim: longint);
 Function  FSearch(path: pathstr; dirlist: string): pathstr;
 Function  FExpand(const path: pathstr): pathstr;
 Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
@@ -180,6 +163,7 @@ implementation
                            --- Conversion ---
 ******************************************************************************}
 
+{$ifdef MSWindows}
    function GetLastError : DWORD;stdcall;
      external 'Kernel32.dll' name 'GetLastError';
    function FileTimeToDosDateTime(const ft :TFileTime;var data,time : word) : boolean;stdcall;
@@ -230,6 +214,7 @@ begin
   WinToDosTime:=FileTimeToLocalFileTime(WTime,lft) and
                 FileTimeToDosDateTime(lft,longrec(dtime).hi,longrec(dtime).lo);
 end;
+{$endif}
 
 
 {******************************************************************************
@@ -251,72 +236,22 @@ end;
                         --- Info / Date / Time ---
 ******************************************************************************}
 
-   function GetVersion : longint;stdcall;
-     external 'Kernel32.dll' name 'GetVersion';
-   procedure GetLocalTime(var t : Windows.TSystemTime);stdcall;
-     external 'Kernel32.dll' name 'GetLocalTime';
-   function SetLocalTime(const t : Windows.TSystemTime) : boolean;stdcall;
-     external 'Kernel32.dll' name 'SetLocalTime';
-
 function dosversion : word;
 begin
-  dosversion:=GetVersion;
+  dosversion:=0;
 end;
 
 
 procedure getdate(var year,month,mday,wday : word);
-var
-  t : Windows.TSystemTime;
 begin
-  GetLocalTime(t);
-  year:=t.wYear;
-  month:=t.wMonth;
-  mday:=t.wDay;
-  wday:=t.wDayOfWeek;
-end;
-
-
-procedure setdate(year,month,day : word);
-var
-  t : Windows.TSystemTime;
-begin
-  { we need the time set privilege   }
-  { so this function crash currently }
-  {!!!!!}
-  GetLocalTime(t);
-  t.wYear:=year;
-  t.wMonth:=month;
-  t.wDay:=day;
-  { only a quite good solution, we can loose some ms }
-  SetLocalTime(t);
+  DecodeDateFully(Now,Year,Month,MDay,WDay);
 end;
 
 
 procedure gettime(var hour,minute,second,sec100 : word);
-var
-  t : Windows.TSystemTime;
 begin
-   GetLocalTime(t);
-   hour:=t.wHour;
-   minute:=t.wMinute;
-   second:=t.wSecond;
-   sec100:=t.wMilliSeconds div 10;
-end;
-
-
-procedure settime(hour,minute,second,sec100 : word);
-var
-   t : Windows.TSystemTime;
-begin
-   { we need the time set privilege   }
-   { so this function crash currently }
-   {!!!!!}
-   GetLocalTime(t);
-   t.wHour:=hour;
-   t.wMinute:=minute;
-   t.wSecond:=second;
-   t.wMilliSeconds:=sec100*10;
-   SetLocalTime(t);
+  DecodeTime(Now,Hour,Minute,Second,Sec100);
+  Sec100:=Sec100 div 10;
 end;
 
 
@@ -346,6 +281,7 @@ End;
 var
   lastdosexitcode : word;
 
+{$ifdef MSWindows}
 procedure exec(const path : pathstr;const comline : comstr);
 var
   SI: TStartupInfo;
@@ -380,11 +316,45 @@ begin
   CloseHandle(Proc);
   LastDosExitCode:=l;
 end;
-
+{$endif MSWindows}
+{$ifdef Linux}
+Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
+var
+  pid,status : longint;
+Begin
+  LastDosExitCode:=0;
+  pid:=Fork;
+  if pid=0 then
+   begin
+   {The child does the actual exec, and then exits}
+     Execl(@Path[1],@ComLine[1]);
+   {If the execve fails, we return an exitvalue of 127, to let it be known}
+     __exit(127);
+   end
+  else
+   if pid=-1 then         {Fork failed}
+    begin
+      DosError:=8;
+      exit
+    end;
+{We're in the parent, let's wait.}
+  WaitPid(Pid,@Status,0);
+  LastDosExitCode:=Status; // WaitPid and result-convert
+  if (LastDosExitCode>=0) and (LastDosExitCode<>127) then
+   DosError:=0
+  else
+   DosError:=8; // perhaps one time give an better error
+End;
+{$endif Linux}
 
 function dosexitcode : word;
 begin
   dosexitcode:=lastdosexitcode;
+end;
+
+
+procedure swapvectors;
+begin
 end;
 
 
@@ -416,156 +386,104 @@ end;
                                --- Disk ---
 ******************************************************************************}
 
-function diskfree(drive : byte) : longint;
+{$ifdef Linux]
+{
+  The Diskfree and Disksize functions need a file on the specified drive, since this
+  is required for the statfs system call.
+  These filenames are set in drivestr[0..26], and have been preset to :
+   0 - '.'      (default drive - hence current dir is ok.)
+   1 - '/fd0/.'  (floppy drive 1 - should be adapted to local system )
+   2 - '/fd1/.'  (floppy drive 2 - should be adapted to local system )
+   3 - '/'       (C: equivalent of dos is the root partition)
+   4..26          (can be set by you're own applications)
+  ! Use AddDisk() to Add new drives !
+  They both return -1 when a failure occurs.
+}
+Const
+  FixDriveStr : array[0..3] of pchar=(
+    '.',
+    '/fd0/.',
+    '/fd1/.',
+    '/.'
+    );
 var
-  disk : array[1..4] of char;
-  secs,bytes,
-  free,total : DWord;
+  Drives   : byte = 4;
+var
+  DriveStr : array[4..26] of pchar;
+
+Procedure AddDisk(const path:string);
 begin
-  if drive=0 then
-   begin
-     disk[1]:='\';
-     disk[2]:=#0;
-   end
+  if not (DriveStr[Drives]=nil) then
+   FreeMem(DriveStr[Drives],StrLen(DriveStr[Drives])+1);
+  GetMem(DriveStr[Drives],length(Path)+1);
+  StrPCopy(DriveStr[Drives],path);
+  inc(Drives);
+  if Drives>26 then
+   Drives:=4;
+end;
+
+Function DiskFree(Drive: Byte): int64;
+var
+  fs : tstatfs;
+Begin
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and (statfs(fixdrivestr[drive],fs)=0)) or
+     ((not (drivestr[Drive]=nil)) and (statfs(drivestr[drive],fs)=0)) then
+   Diskfree:=int64(fs.f_bavail)*int64(fs.f_bsize)
   else
-   begin
-     disk[1]:=chr(drive+64);
-     disk[2]:=':';
-     disk[3]:='\';
-     disk[4]:=#0;
-   end;
-  if GetDiskFreeSpace(@disk,secs,bytes,free,total) then
-   diskfree:=free*secs*bytes
+   Diskfree:=-1;
+End;
+
+Function DiskSize(Drive: Byte): int64;
+var
+  fs : tstatfs;
+Begin
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and (statfs(fixdrivestr[drive],fs)=0)) or
+     ((not (drivestr[Drive]=nil)) and (statfs(drivestr[drive],fs)=0)) then
+   Disksize:=int64(fs.f_blocks)*int64(fs.f_bsize)
   else
-   diskfree:=-1;
+   Disksize:=-1;
+End;
+
+{$else linux}
+
+function diskfree(drive : byte) : int64;
+begin
+  DiskFree:=SysUtils.DiskFree(drive);
 end;
 
 
-function disksize(drive : byte) : longint;
-var
-  disk : array[1..4] of char;
-  secs,bytes,
-  free,total : DWord;
+function disksize(drive : byte) : int64;
 begin
-  if drive=0 then
-   begin
-     disk[1]:='\';
-     disk[2]:=#0;
-   end
-  else
-   begin
-     disk[1]:=chr(drive+64);
-     disk[2]:=':';
-     disk[3]:='\';
-     disk[4]:=#0;
-   end;
-  if GetDiskFreeSpace(@disk,secs,bytes,free,total) then
-   disksize:=total*secs*bytes
-  else
-   disksize:=-1;
+  DiskSize:=SysUtils.DiskSize(drive);
 end;
 
+{$endif linux}
 
 {******************************************************************************
                          --- Findfirst FindNext ---
 ******************************************************************************}
 
-{ Needed kernel calls }
-   function FindFirstFile (lpFileName: PChar; var lpFindFileData: TWIN32FindData): THandle;stdcall;
-     external 'Kernel32.dll' name 'FindFirstFileA';
-   function FindNextFile  (hFindFile: THandle; var lpFindFileData: TWIN32FindData): Boolean;stdcall;
-     external 'Kernel32.dll' name 'FindNextFileA';
-   function FindCloseFile (hFindFile: THandle): Boolean;stdcall;
-     external 'Kernel32.dll' name 'FindClose';
-
-Procedure StringToPchar (Var S : String);
-Var L : Longint;
-begin
-  L:=ord(S[0]);
-  Move (S[1],S[0],L);
-  S[L]:=#0;
-end;
-
-
-procedure FindMatch(var f:searchrec);
-Var
-  TheAttr : Longint;
-begin
-  TheAttr:=DosToWinAttr(F.Attr);
-{ Find file with correct attribute }
-  While (F.W32FindData.dwFileAttributes and TheAttr)=0 do
-   begin
-     if not FindNextFile (F.FindHandle,F.W32FindData) then
-      begin
-        DosError:=Last2DosError(GetLastError);
-        exit;
-      end;
-   end;
-{ Convert some attributes back }
-  f.size:=F.W32FindData.NFileSizeLow;
-  f.attr:=WinToDosAttr(F.W32FindData.dwFileAttributes);
-  WinToDosTime(F.W32FindData.ftLastWriteTime,f.Time);
-  f.Name:=StrPas(@F.W32FindData.cFileName);
-end;
-
-
 procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
 begin
-{ no error }
-  doserror:=0;
-  F.Name:=Path;
-  F.Attr:=attr;
-  StringToPchar(f.name);
-{ FindFirstFile is a Win32 Call. }
-  F.FindHandle:=FindFirstFile (pchar(@f.Name),F.W32FindData);
-  If longint(F.FindHandle)=longint(Invalid_Handle_value) then
-   begin
-     DosError:=Last2DosError(GetLastError);
-     exit;
-   end;
-{ Find file with correct attribute }
-  FindMatch(f);
+  DosError:=SysUtils.FindFirst(Path,Attr,f);
 end;
 
 
 procedure findnext(var f : searchRec);
 begin
-{ no error }
-  doserror:=0;
-  if not FindNextFile (F.FindHandle,F.W32FindData) then
-   begin
-     DosError:=Last2DosError(GetLastError);
-     exit;
-   end;
-{ Find file with correct attribute }
-  FindMatch(f);
-end;
-
-
-procedure swapvectors;
-begin
+  DosError:=Sysutils.FindNext(f);
 end;
 
 
 Procedure FindClose(Var f: SearchRec);
 begin
-  If longint(F.FindHandle)<>longint(Invalid_Handle_value) then
-   FindCloseFile(F.FindHandle);
+  Sysutils.FindClose(f);
 end;
 
 
 {******************************************************************************
                                --- File ---
 ******************************************************************************}
-
-   function GetFileTime(h : longint;creation,lastaccess,lastwrite : PFileTime) : boolean;stdcall;
-     external 'Kernel32.dll' name 'GetFileTime';
-   function SetFileTime(h : longint;creation,lastaccess,lastwrite : PFileTime) : boolean;stdcall;
-     external 'Kernel32.dll' name 'SetFileTime';
-   function SetFileAttributes(lpFileName : pchar;dwFileAttributes : longint) : boolean;stdcall;
-     external 'Kernel32.dll' name 'SetFileAttributesA';
-   function GetFileAttributes(lpFileName : pchar) : longint;stdcall;
-     external 'Kernel32.dll' name 'GetFileAttributesA';
 
 procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;var ext : extstr);
 var
@@ -728,43 +646,58 @@ begin
 end;
 
 
-procedure getftime(var f;var time : longint);
-var
-   ft : TFileTime;
+procedure getftime(var f;var tim : longint);
 begin
-  if GetFileTime(filerec(f).Handle,nil,nil,@ft) and
-     WinToDosTime(ft,time) then
-    exit
-  else
-    time:=0;
+  tim:=FileGetDate(filerec(f).handle);
 end;
 
 
 procedure setftime(var f;time : longint);
-var
-  ft : TFileTime;
 begin
-  if DosToWinTime(time,ft) then
-   SetFileTime(filerec(f).Handle,nil,nil,@ft);
+  FileSetDate(filerec(f).name,Time);
 end;
 
 
+{$ifdef linux}
+procedure getfattr(var f;var attr : word);
+Var
+  info : tstatbuf;
+  LinAttr : longint;
+Begin
+  DosError:=0;
+  if (FStat(filerec(f).handle,info)<>0) then
+   begin
+     Attr:=0;
+     DosError:=3;
+     exit;
+   end
+  else
+   LinAttr:=Info.st_Mode;
+  if S_ISDIR(LinAttr) then
+   Attr:=$10
+  else
+   Attr:=$20;
+  if Access(@filerec(f).name,W_OK)<>0 then
+   Attr:=Attr or $1;
+  if (not S_ISDIR(LinAttr)) and (filerec(f).name[0]='.')  then
+   Attr:=Attr or $2;
+end;
+{$else}
 procedure getfattr(var f;var attr : word);
 var
    l : longint;
 begin
-  l:=GetFileAttributes(filerec(f).name);
-  if l=longint($ffffffff) then
-   doserror:=getlasterror;
+  l:=FileGetAttr(filerec(f).handle);
   attr:=l;
 end;
+{$endif}
 
 
 procedure setfattr(var f;attr : word);
 begin
-  doserror:=0;
-  if not(SetFileAttributes(filerec(f).name,attr)) then
-    doserror:=getlasterror;
+{$ifndef linux}
+  FileSetAttr(filerec(f).handle,attr);
+{$endif}
 end;
 
 
@@ -777,6 +710,7 @@ end;
   terminated by a #0
 }
 
+{$ifdef MSWindows}
    function GetEnvironmentStrings : pchar;stdcall;
      external 'Kernel32.dll' name 'GetEnvironmentStringsA';
    function FreeEnvironmentStrings(p : pchar) : boolean;stdcall;
@@ -850,6 +784,26 @@ begin
      end;
    FreeEnvironmentStrings(p);
 end;
+{$else}
+
+function envcount : longint;
+begin
+   envcount:=0;
+end;
+
+
+Function  EnvStr(index: integer): string;
+begin
+   envstr:='';
+end;
+
+
+Function  GetEnv(envvar: string): string;
+begin
+   getenv:=GetEnvironmentVariable(envvar);
+end;
+
+{$endif}
 
 
 {******************************************************************************
@@ -872,7 +826,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.4  2000-09-24 21:19:50  peter
+  Revision 1.5  2001-06-03 20:21:08  peter
+    * Kylix fixes, mostly case names of units
+
+  Revision 1.4  2000/09/24 21:19:50  peter
     * delphi compile fixes
 
   Revision 1.3  2000/09/24 15:06:15  peter

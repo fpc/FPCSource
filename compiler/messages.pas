@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit Messages;
+unit messages;
 
 {$i defines.inc}
 
@@ -443,7 +443,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2001-05-27 14:30:55  florian
+  Revision 1.10  2001-06-03 20:21:08  peter
+    * Kylix fixes, mostly case names of units
+
+  Revision 1.9  2001/05/27 14:30:55  florian
     + some widestring stuff added
 
   Revision 1.8  2001/04/21 13:32:07  peter

@@ -569,12 +569,16 @@ begin
 end;
 
 
+initialization
 finalization
   DeregisterInfos;
 end.
 {
   $Log$
-  Revision 1.18  2001-06-03 15:15:31  peter
+  Revision 1.19  2001-06-03 20:21:08  peter
+    * Kylix fixes, mostly case names of units
+
+  Revision 1.18  2001/06/03 15:15:31  peter
     * dllprt0 stub for linux shared libs
     * pass -init and -fini for linux shared libs
     * libprefix splitted into staticlibprefix and sharedlibprefix

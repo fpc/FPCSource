@@ -20,14 +20,14 @@
 
  ****************************************************************************
 }
-Unit CRC;
+Unit crc;
 
 {$i defines.inc}
 
 Interface
 
 Function Crc32(Const HStr:String):cardinal;
-Function UpdateCrc32(InitCrc:cardinal;var InBuf;InLen:integer):cardinal;
+Function UpdateCrc32(InitCrc:cardinal;const InBuf;InLen:integer):cardinal;
 Function UpdCrc32(InitCrc:cardinal;b:byte):cardinal;
 
 
@@ -73,7 +73,7 @@ end;
 
 
 
-Function UpdateCrc32(InitCrc:cardinal;var InBuf;InLen:Integer):cardinal;
+Function UpdateCrc32(InitCrc:cardinal;const InBuf;InLen:Integer):cardinal;
 var
   i : integer;
   p : pchar;
@@ -101,7 +101,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2001-05-09 14:11:10  jonas
+  Revision 1.6  2001-06-03 20:21:08  peter
+    * Kylix fixes, mostly case names of units
+
+  Revision 1.5  2001/05/09 14:11:10  jonas
     * range check error fixes from Peter
 
   Revision 1.4  2000/09/24 15:06:14  peter
