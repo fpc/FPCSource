@@ -1210,7 +1210,7 @@ PROCEDURE TDosStream.Close;
 BEGIN
    If (Handle <> InvalidHandle) Then FileClose(Handle);          { Close the file }
    Position := 0;                                     { Zero the position }
-   Handle := -1;                                      { Handle now invalid }
+   Handle := invalidhandle;                           { Handle now invalid }
 END;
 
 {--TDosStream---------------------------------------------------------------}
@@ -2692,7 +2692,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.22  1998-12-30 10:26:16  peter
+  Revision 1.23  1999-01-06 10:11:06  daniel
+  * Removed on more handle:=-1 statement
+
+  Revision 1.22  1998/12/30 10:26:16  peter
     * reinserted old version, because daniel skipped 3 versions !!
 
   Revision 1.19  1998/12/18 17:21:28  peter
