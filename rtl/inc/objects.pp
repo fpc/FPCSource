@@ -155,6 +155,7 @@ type
    THandle = Integer;
 const
    MaxReadBytes = $fffe;
+   invalidhandle = -1;
 {$ENDIF}
 {$IFDEF GO32V2}
 type
@@ -162,6 +163,7 @@ type
    THandle = Integer;
 const
    MaxReadBytes = $fffe;
+   invalidhandle = -1;
 {$ENDIF}
 {$IFDEF Win32}
 type
@@ -169,6 +171,7 @@ type
    THandle = Longint;
 const
    MaxReadBytes = $fffe;
+   invalidhandle = -1;
 {$ENDIF}
 {$IFDEF OS2}
 type
@@ -176,6 +179,7 @@ type
    THandle = Word;
 const
    MaxReadBytes = $7fffffff;
+   invalidhandle = $ffff;
 {$ENDIF}
 {$IFDEF LINUX}
 type
@@ -185,6 +189,7 @@ type
    THandle = Longint;
 const
    MaxReadBytes = $7fffffff;
+   invalidhandle = -1;
 {$ENDIF}
 {$IFDEF AMIGA}
 type
@@ -192,6 +197,7 @@ type
    THandle = Longint;
 const
    MaxReadBytes = $fffe;
+   invalidhandle = -1;
 {$ENDIF}
 {$IFDEF ATARI}
 type
@@ -199,6 +205,7 @@ type
    THandle = Integer;
 const
    MaxReadBytes = $fffe;
+   invalidhandle = -1;
 {$ENDIF}
 {$IFDEF MAC}
 type
@@ -206,6 +213,7 @@ type
    THandle = ???????
 const
    MaxReadBytes = $fffe;
+   invalidhandle = -1;
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
@@ -679,6 +687,7 @@ CONST
 {                        STREAM REGISTRATION RECORDS                        }
 {---------------------------------------------------------------------------}
 
+{$ifndef VER0_99_8}
 CONST
    RCollection: TStreamRec = (
      ObjType: 50;
@@ -709,6 +718,7 @@ CONST
      VmtLink: Ofs(TypeOf(TStrListMaker)^);
      Load: Nil;
      Store: @TStrListMaker.Store);
+{$endif VER0_99_8}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                 IMPLEMENTATION
@@ -724,7 +734,7 @@ type
   PointerConstructor = function(VMT: pointer; Obj: pointer; Param1: pointer): pointer;
   PointerMethod = function(Obj: pointer; Param1: pointer): pointer;
 
-function PreviousFramePointer: FramePointer;assembler;
+function CurrentFramePointer: FramePointer;assembler;
 asm
 {$ifdef i386}
     movl (%ebp), %eax
@@ -1181,7 +1191,7 @@ BEGIN
        Success := SetFilePos(Handle, 0, 0, Position); { Reset to file start }
    End Else Success := 103;                           { Open file failed }
    If (Handle = 0) OR (Success <> 0) Then Begin       { Open failed }
-     Handle := -1;                                    { Reset invalid handle }
+     Handle := invalidhandle;                         { Reset invalid handle }
      Error(stInitError, Success);                     { Call stream error }
    End;
 END;
@@ -1202,7 +1212,7 @@ PROCEDURE TDosStream.Close;
 BEGIN
    If (Handle <> -1) Then FileClose(Handle);          { Close the file }
    Position := 0;                                     { Zero the position }
-   Handle := -1;                                      { Handle now invalid }
+   Handle := invalidhandle;                           { Handle now invalid }
 END;
 
 {--TDosStream---------------------------------------------------------------}
@@ -1226,7 +1236,8 @@ VAR Success: Integer; Li: LongInt;
 BEGIN
    If (Status=stOk) Then Begin                        { Check status okay }
      If (Pos < 0) Then Pos := 0;                      { Negatives removed }
-     If (Handle = -1) Then Success := 103 Else        { File not open }
+     If (Handle = invalidhandle) Then Success := 103
+     Else                                             { File not open }
        Success := SetFilePos(Handle, Pos, 0, Li);     { Set file position }
      If ((Success = -1) OR (Li <> Pos)) Then Begin    { We have an error }
        If (Success = -1) Then Error(stSeekError, 0)   { General seek error }
@@ -1245,7 +1256,7 @@ BEGIN
        Handle := FileOpen(FName, OpenMode);           { Open the file }
        Position := 0;                                 { Reset position }
        If (Handle=0) Then Begin                       { File open failed }
-         Handle := -1;                                { Reset handle }
+         Handle := invalidhandle;                     { Reset handle }
          Error(stOpenError, 103);                     { Call stream error }
        End;
      End Else Error(stOpenError, 104);                { File already open }
@@ -1706,7 +1717,7 @@ VAR I: LongInt;
 BEGIN
    For I := Count DownTo 1 Do
      Begin                   { Down from last item }
-       IF Boolean(Longint(CallPointerLocal(Test,PreviousFramePointer,Items^[I-1]))) THEN
+       IF CallPointerLocal(Test,CurrentFramePointer,Items^[I-1])<>NIL THEN
        Begin          { Test each item }
          LastThat := Items^[I-1];                     { Return item }
          Exit;                                        { Now exit }
@@ -1722,7 +1733,7 @@ FUNCTION TCollection.FirstThat (Test: Pointer): Pointer;
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do Begin                       { Up from first item }
-     IF Boolean(Longint(CallPointerLocal(Test,PreviousFramePointer,Items^[I-1]))) THEN
+     IF CallPointerLocal(Test,CurrentFramePointer,Items^[I-1])<>NIL THEN
        Begin          { Test each item }
        FirstThat := Items^[I-1];                      { Return item }
        Exit;                                          { Now exit }
@@ -1835,7 +1846,7 @@ PROCEDURE TCollection.ForEach (Action: Pointer);
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do                             { Up from first item }
-    CallPointerLocal(Action,PreviousFramePointer,Items^[I-1]);   { Call with each item }
+    CallPointerLocal(Action,CurrentFramePointer,Items^[I-1]);   { Call with each item }
 END;
 
 {--TCollection--------------------------------------------------------------}
@@ -2641,9 +2652,11 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE RegisterObjects;
 BEGIN
+{$ifndef VER0_99_8}
    RegisterType(RCollection);                         { Register object }
    RegisterType(RStringCollection);                   { Register object }
    RegisterType(RStrCollection);                      { Register object }
+{$endif}
 END;
 
 {---------------------------------------------------------------------------}
@@ -2684,15 +2697,8 @@ END;
 END.
 {
   $Log$
-  Revision 1.19  1998-12-18 17:21:28  peter
-    * fixed firstthat,lastthat
-
-  Revision 1.18  1998/12/16 21:57:20  peter
-    * fixed currentframe,previousframe
-    + testcall to test the callspec unit
-
-  Revision 1.17  1998/12/16 00:22:25  peter
-    * more temp symbols removed
+  Revision 1.20  1998-12-23 13:31:48  daniel
+  + invalidhandle constant
 
   Revision 1.16  1998/12/08 10:11:27  peter
     * tpoint contains now sw_integer (needed to support 64k files in the
