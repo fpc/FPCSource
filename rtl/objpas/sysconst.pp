@@ -104,6 +104,8 @@ resourcestring
   SVarTypeTooManyCustom         = 'Too many custom variant types have been registered';
   SVarUnexpected                = 'Unexpected variant error';
       
+  SNoToolserver                 = 'Toolserver is not installed, cannot execute Tool';
+
   SShortMonthNameJan = 'Jan';
   SShortMonthNameFeb = 'Feb';
   SShortMonthNameMar = 'Mar';
@@ -194,6 +196,9 @@ begin
      230 : Result:=SSafecallException;
      231 : Result:=SExceptionStack;
      232 : Result:=SNoThreadSupport;
+
+     {Error in the range 900 - 999 is considered platform specific}
+     900 : Result:=SNoToolserver;    {Mac OS specific}
   end;
   If length(Result)=0 then
 {$ifdef VER1_0}  
@@ -209,7 +214,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2004-06-12 13:23:17  michael
+  Revision 1.11  2004-08-20 10:18:58  olle
+    + added error 900, for macos
+
+  Revision 1.10  2004/06/12 13:23:17  michael
   + Fixed currency<->string conversion support
 
   Revision 1.9  2004/02/08 11:44:05  michael
