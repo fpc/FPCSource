@@ -100,8 +100,8 @@ type
       function    GetModuleName: string; virtual;
     end;
 
-    PBreakpointListBox = ^TBreakpointListBox;
-    TBreakpointListBox = object(THSListBox)
+    PBreakpointsListBox = ^TBreakpointsListBox;
+    TBreakpointsListBox = object(THSListBox)
       Transparent : boolean;
       NoSelection : boolean;
       MaxWidth    : Sw_integer;
@@ -118,14 +118,14 @@ type
       procedure   ToggleCurrent;
       procedure   Draw; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
-      (* constructor Load(var S: TStream);
-      procedure   Store(var S: TStream); *)
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
       destructor  Done; virtual;
     end;
 
     PBreakpointsWindow = ^TBreakpointsWindow;
     TBreakpointsWindow = object(TDlgWindow)
-      BreakLB : PBreakpointListBox;
+      BreakLB : PBreakpointsListBox;
       constructor Init;
       procedure   AddBreakpoint(ABreakpoint : PBreakpoint);
       procedure   ClearBreakpoints;
@@ -134,6 +134,8 @@ type
       procedure   SizeLimits(var Min, Max: TPoint);virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   Update; virtual;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);                                                                                                                                                                                                                       
       destructor  Done; virtual;
     end;
 
@@ -189,8 +191,8 @@ type
       (*procedure   ToggleCurrent; *)
       procedure   Draw; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
-      (* constructor Load(var S: TStream);
-      procedure   Store(var S: TStream); *)
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
       destructor  Done; virtual;
     end;
 
@@ -209,6 +211,8 @@ type
     TWatchesWindow = Object(TDlgWindow)
       WLB : PWatchesListBox;
       Constructor Init;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);                                                                                                                                                                                                                       
       procedure Update; virtual;
       destructor  Done; virtual;
     end;
@@ -233,6 +237,8 @@ procedure DoneBreakpoints;
 procedure InitWatches;
 procedure DoneWatches;
 
+procedure RegisterFPDebugViews;
+
 implementation
 
 uses
@@ -242,6 +248,34 @@ uses
   FPIntf,FPCompile,FPIde,
   Validate,WEditor,WUtils;
 
+const
+  RBreakpointsWindow: TStreamRec = (
+     ObjType: 1701;
+     VmtLink: Ofs(TypeOf(TBreakpointsWindow)^);
+     Load:    @TBreakpointsWindow.Load;
+     Store:   @TBreakpointsWindow.Store
+  );
+
+  RBreakpointsListBox : TStreamRec = (
+     ObjType: 1702;
+     VmtLink: Ofs(TypeOf(TBreakpointsListBox)^);
+     Load:    @TBreakpointsListBox.Load;
+     Store:   @TBreakpointsListBox.Store
+  );
+
+  RWatchesWindow: TStreamRec = (
+     ObjType: 1703;
+     VmtLink: Ofs(TypeOf(TWatchesWindow)^);
+     Load:    @TWatchesWindow.Load;
+     Store:   @TWatchesWindow.Store
+  );
+
+  RWatchesListBox: TStreamRec = (
+     ObjType: 1704;
+     VmtLink: Ofs(TypeOf(TWatchesListBox)^);
+     Load:    @TWatchesListBox.Load;
+     Store:   @TWatchesListBox.Store
+  );
 
 {****************************************************************************
                             TDebugController
@@ -833,17 +867,17 @@ begin
 end;
 
 {****************************************************************************
-                         TBreakpointListBox
+                         TBreakpointsListBox
 ****************************************************************************}
 
-constructor TBreakpointListBox.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
+constructor TBreakpointsListBox.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
 begin
   inherited Init(Bounds,1,AHScrollBar, AVScrollBar);
   GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY;
   NoSelection:=true;
 end;
 
-function TBreakpointListBox.GetLocalMenu: PMenu;
+function TBreakpointsListBox.GetLocalMenu: PMenu;
 var M: PMenu;
 begin
   if (Owner<>nil) and (Owner^.GetState(sfModal)) then M:=nil else
@@ -857,7 +891,7 @@ begin
   GetLocalMenu:=M;
 end;
 
-procedure TBreakpointListBox.HandleEvent(var Event: TEvent);
+procedure TBreakpointsListBox.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
 begin
   case Event.What of
@@ -906,7 +940,7 @@ begin
   inherited HandleEvent(Event);
 end;
 
-procedure TBreakpointListBox.AddBreakpoint(P: PBreakpointItem);
+procedure TBreakpointsListBox.AddBreakpoint(P: PBreakpointItem);
 var W : integer;
 begin
   if List=nil then New(List, Init(20,20));
@@ -924,7 +958,7 @@ begin
   DrawView;
 end;
 
-(* function TBreakpointListBox.AddModuleName(const Name: string): PString;
+(* function TBreakpointsListBox.AddModuleName(const Name: string): PString;
 var P: PString;
 begin
   if ModuleNames<>nil then
@@ -934,7 +968,7 @@ begin
   AddModuleName:=P;
 end;  *)
 
-function TBreakpointListBox.GetText(Item,MaxLen: Sw_Integer): String;
+function TBreakpointsListBox.GetText(Item,MaxLen: Sw_Integer): String;
 var P: PBreakpointItem;
     S: string;
 begin
@@ -943,7 +977,7 @@ begin
   GetText:=copy(S,1,MaxLen);
 end;
 
-procedure TBreakpointListBox.Clear;
+procedure TBreakpointsListBox.Clear;
 begin
   if assigned(List) then
     Dispose(List, Done);
@@ -955,7 +989,7 @@ begin
   Message(Application,evBroadcast,cmClearLineHighlights,@Self);
 end;
 
-procedure TBreakpointListBox.TrackSource;
+procedure TBreakpointsListBox.TrackSource;
 var W: PSourceWindow;
     P: PBreakpointItem;
     R: TRect;
@@ -989,7 +1023,7 @@ begin
   Desktop^.UnLock;
 end;
 
-procedure TBreakpointListBox.ToggleCurrent;
+procedure TBreakpointsListBox.ToggleCurrent;
 var W: PSourceWindow;
     P: PBreakpointItem;
     b : boolean;
@@ -1017,7 +1051,7 @@ begin
     end;
 end;
 
-procedure TBreakpointListBox.EditCurrent;
+procedure TBreakpointsListBox.EditCurrent;
 var
   P: PBreakpointItem;
 begin
@@ -1028,7 +1062,7 @@ begin
   BreakpointCollection^.Update;
 end;
 
-procedure TBreakpointListBox.DeleteCurrent;
+procedure TBreakpointsListBox.DeleteCurrent;
 var
   P: PBreakpointItem;
 begin
@@ -1040,7 +1074,7 @@ begin
   BreakpointCollection^.Update;
 end;
 
-procedure TBreakpointListBox.EditNew;
+procedure TBreakpointsListBox.EditNew;
 var
   P: PBreakpoint;
 begin
@@ -1054,7 +1088,7 @@ begin
     dispose(P,Done);
 end;
 
-procedure TBreakpointListBox.Draw;
+procedure TBreakpointsListBox.Draw;
 var
   I, J, Item: Sw_Integer;
   NormalColor, SelectedColor, FocusedColor, Color: Word;
@@ -1124,12 +1158,12 @@ begin
   end;
 end;
 
-(* constructor TBreakpointListBox.Load(var S: TStream);
+constructor TBreakpointsListBox.Load(var S: TStream);
 begin
   inherited Load(S);
 end;
 
-procedure TBreakpointListBox.Store(var S: TStream);
+procedure TBreakpointsListBox.Store(var S: TStream);
 var OL: PCollection;
 begin
   OL:=List;
@@ -1143,9 +1177,9 @@ begin
     collection? Pasting here a modified version of TListBox.Store+
     TAdvancedListBox.Store isn't a better solution, since by eventually
     changing the obj-hierarchy you'll always have to modify this, too - BG }
-end;  *)
+end;
 
-destructor TBreakpointListBox.Done;
+destructor TBreakpointsListBox.Done;
 begin
   inherited Done;
   if List<>nil then Dispose(List, Done);
@@ -1206,6 +1240,18 @@ begin
   BreakLB^.Select;
   Update;
   BreakpointsWindow:=@self;
+end;
+
+constructor TBreakpointsWindow.Load(var S: TStream);
+begin
+  inherited Load(S);
+  GetSubViewPtr(S,BreakLB);
+end;
+
+procedure TBreakpointsWindow.Store(var S: TStream);
+begin
+  inherited Store(S);
+  PutSubViewPtr(S,BreakLB);
 end;
 
 procedure TBreakpointsWindow.AddBreakpoint(ABreakpoint : PBreakpoint);
@@ -1440,11 +1486,15 @@ end;
             p:=StrNew(Debugger^.GetOutput);
           { do not open a messagebox for such errors }
           Debugger^.got_error:=false;
+          q:=nil;
           if assigned(p) and (p[0]='$') then
             q:=StrPos(p,'=');
           if not assigned(q) then
             q:=p;
-          i:=strlen(q);
+          if assigned(q) then
+            i:=strlen(q)
+          else
+            i:=0;
           if (i>0) and (q[i-1]=#10) then
             begin
               q[i-1]:=#0;
@@ -1452,7 +1502,10 @@ end;
             end
           else
             last_removed:=false;
-          current_value:=strnew(q);
+          if assigned(q) then
+            current_value:=strnew(q)
+          else
+            current_value:=strnew('');
           if last_removed then
             q[i-1]:=#10;
           strdispose(p);
@@ -1739,8 +1792,27 @@ begin
   inherited HandleEvent(Event);
 end;
 
-      (* constructor TWatchesListBox.Load(var S: TStream);
-      procedure   TWatchesListBox.Store(var S: TStream); *)
+      constructor TWatchesListBox.Load(var S: TStream);
+        begin
+          inherited Load(S);
+        end;
+
+      procedure   TWatchesListBox.Store(var S: TStream);
+        var OL: PCollection;
+        begin                                                                                                                                                                                                                                                  
+          OL:=List;                                                                                                                                                                                                                                            
+          New(List, Init(1,1));                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                               
+          inherited Store(S);                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                               
+          Dispose(List, Done);                                                                                                                                                                                                                                 
+          List:=OL;                                                                                                                                                                                                                                            
+          { ^^^ nasty trick - has anyone a better idea how to avoid storing the                                                                                                                                                                                
+            collection? Pasting here a modified version of TListBox.Store+                                                                                                                                                                                     
+            TAdvancedListBox.Store isn't a better solution, since by eventually                                                                                                                                                                                
+            changing the obj-hierarchy you'll always have to modify this, too - BG }                                                                                                                                                                           
+        end;
+
       destructor  TWatchesListBox.Done;
         begin
           List:=nil;
@@ -1774,6 +1846,18 @@ end;
     begin
       WatchesCollection^.Update;
       Draw;
+    end;
+
+  constructor TWatchesWindow.Load(var S: TStream);
+    begin
+      inherited Load(S);
+      GetSubViewPtr(S,WLB);
+    end;
+
+  procedure TWatchesWindow.Store(var S: TStream);
+    begin
+      inherited Store(S);
+      PutSubViewPtr(S,WLB);
     end;
 
   Destructor TWatchesWindow.Done;
@@ -1946,11 +2030,22 @@ begin
   WatchesCollection:=nil;
 end;
 
+procedure RegisterFPDebugViews;
+begin
+  RegisterType(RWatchesWindow);
+  RegisterType(RBreakpointsWindow);
+  RegisterType(RWatchesListBox);
+  RegisterType(RBreakpointsListBox);
+end;
+
 end.
 
 {
   $Log$
-  Revision 1.25  1999-08-16 18:25:15  peter
+  Revision 1.26  1999-08-22 22:26:48  pierre
+   + Registration of Breakpoint/Watches windows
+
+  Revision 1.25  1999/08/16 18:25:15  peter
     * Adjusting the selection when the editor didn't contain any line.
     * Reserved word recognition redesigned, but this didn't affect the overall
       syntax highlight speed remarkably (at least not on my Amd-K6/350).
