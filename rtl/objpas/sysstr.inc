@@ -917,7 +917,7 @@ Begin
 
       Begin
         If (Precision = -1) Or (Precision > 15) Then Precision := 15;
-        TooSmall := Abs(Value) < 0.00001;
+        TooSmall := (Abs(Value) < 0.00001) and (Value>0.0);
         If Not TooSmall Then
         Begin
           Str(Value:0:999, Result);
@@ -1139,7 +1139,10 @@ const
 
 {
   $Log$
-  Revision 1.25  1999-08-25 13:13:58  michael
+  Revision 1.26  1999-09-04 20:48:34  florian
+    * format('%g',[0.0]) returned long format string, fixed
+
+  Revision 1.25  1999/08/25 13:13:58  michael
   fixed Formaterror, added missing raise
 
   Revision 1.24  1999/08/16 22:38:53  peter
