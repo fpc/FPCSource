@@ -6545,6 +6545,19 @@ type
     cbSize: Word;           { the count in bytes of the size of }
   end;
 
+  _WIN32_FILE_ATTRIBUTE_DATA = packed record
+    dwFileAttributes:     DWORD;
+    ftCreationTime:       FILETIME;
+    ftLastAccessTime:     FILETIME;
+    ftLastWriteTime:      FILETIME;
+    nFileSizeHigh:        DWORD;
+    nFileSizeLow:         DWORD;
+    end;
+  WIN32_FILE_ATTRIBUTE_DATA   = _WIN32_FILE_ATTRIBUTE_DATA ;  
+  LPWIN32_FILE_ATTRIBUTE_DATA = ^_WIN32_FILE_ATTRIBUTE_DATA;
+  TWIN32FILEATTRIBUTEDATA     = _WIN32_FILE_ATTRIBUTE_DATA ;  
+  PWIN32FILEATTRIBUTEDATA     = ^_WIN32_FILE_ATTRIBUTE_DATA;
+
 {$endif read_interface}
 
 
@@ -7014,7 +7027,10 @@ type
 
 {
   $Log$
-  Revision 1.20  2003-01-02 22:07:00  peter
+  Revision 1.21  2003-12-04 12:34:09  marco
+   * twin32fileattributedata
+
+  Revision 1.20  2003/01/02 22:07:00  peter
     * missing items
 
   Revision 1.19  2002/12/15 20:24:17  peter
