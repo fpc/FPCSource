@@ -1,0 +1,3 @@
+procedure p;
+begin
+end;
