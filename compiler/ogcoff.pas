@@ -1710,7 +1710,7 @@ const go32v2stub : array[0..2047] of byte=(
        as_i386_pecoffwdosx_info : tasminfo =
           (
             id     : as_i386_pecoffwdosx;
-            idtxt  : 'PECOFFWDOSX';
+            idtxt  : 'PEWDOSX';
             asmbin : '';
             asmcmd : '';
             supported_target : system_i386_wdosx;
@@ -1734,7 +1734,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.24  2002-08-12 15:08:39  carl
+  Revision 1.25  2002-12-07 14:08:11  carl
+    * fix warning
+
+  Revision 1.24  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class
