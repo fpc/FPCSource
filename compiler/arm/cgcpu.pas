@@ -124,9 +124,10 @@ unit cgcpu;
     procedure tcgarm.init_register_allocators;
       begin
         inherited init_register_allocators;
+        { currently, we save R14 always, so we can use it }
         rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
             [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
-             RS_R9,RS_R10,RS_R12],first_int_imreg,[]);
+             RS_R9,RS_R10,RS_R12,RS_R14],first_int_imreg,[]);
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
@@ -1207,7 +1208,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2004-01-21 19:01:03  florian
+  Revision 1.35  2004-01-22 01:47:15  florian
+    * improved register usage
+    + implemented second_cmp64bit
+
+  Revision 1.34  2004/01/21 19:01:03  florian
     * fixed handling of max. distance of pc relative symbols
 
   Revision 1.33  2004/01/21 15:41:56  florian

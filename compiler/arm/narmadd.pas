@@ -230,13 +230,46 @@ interface
     procedure tarmaddnode.second_cmp64bit;
       var
         unsigned : boolean;
+        tmpreg : tregister;
       begin
-{$warning TODO 64bit compare}
+        pass_left_right;
+        force_reg_left_right(false,false);
+
         unsigned:=not(is_signed(left.resulttype.def)) or
                   not(is_signed(right.resulttype.def));
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(unsigned);
+
+        { operation requiring proper N, Z and C flags ? }
+        if unsigned or (nodetype in [equaln,unequaln]) then
+          begin
+            exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
+            exprasmlist.concat(setcondition(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi),C_EQ));
+          end
+        { operation requiring proper N, V and C flags ? }
+        else if nodetype in [gten,ltn] then
+          begin
+            tmpreg:=cg.getintregister(exprasmlist,location.size);
+            exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,tmpreg,left.location.register64.reglo,right.location.register64.reglo),PF_S));
+            exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SBC,tmpreg,left.location.register64.reghi,right.location.register64.reghi),PF_S));
+            cg.ungetregister(exprasmlist,tmpreg);
+          end
+        else
+        { operation requiring proper N, Z and V flags ? }
+          begin
+            { this isn't possible so swap operands and use the "reverse" operation }
+            tmpreg:=cg.getintregister(exprasmlist,location.size);
+            exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,tmpreg,right.location.register64.reglo,left.location.register64.reglo),PF_S));
+            exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SBC,tmpreg,right.location.register64.reghi,left.location.register64.reghi),PF_S));
+            cg.ungetregister(exprasmlist,tmpreg);
+            if location.resflags=F_GT then
+              location.resflags:=F_LT
+            else if location.resflags=F_LE then
+              location.resflags:=F_GE
+            else
+              internalerror(200401221);
+          end;
 
         release_reg_left_right;
       end;
@@ -281,7 +314,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2003-11-02 14:30:03  florian
+  Revision 1.6  2004-01-22 01:47:15  florian
+    * improved register usage
+    + implemented second_cmp64bit
+
+  Revision 1.5  2003/11/02 14:30:03  florian
     * fixed ARM for new reg. allocation scheme
 
   Revision 1.4  2003/09/01 15:11:16  florian
