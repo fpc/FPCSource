@@ -27,6 +27,7 @@ Type
     tv_sec   : time_t;
     tv_nsec  : clong;
   end;
+  ptimespec= ^timespec;
 
   timezone = packed record
     minuteswest,
@@ -58,7 +59,10 @@ Type
 
 {
  $Log$
- Revision 1.2  2003-09-14 20:15:01  marco
+ Revision 1.3  2003-09-15 07:23:51  marco
+  * fix
+
+ Revision 1.2  2003/09/14 20:15:01  marco
   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
  Revision 1.1  2003/01/05 19:01:28  marco
