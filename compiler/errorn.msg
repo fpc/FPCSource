@@ -116,81 +116,81 @@ P_procedure/functie $1 ($2) op lijn $3
 E_Illegale vlottende komma constante
 E_FAIL mag slechts in constructors gebruikt worden
 E_Destructors hebben geen parameters
-E_string types stemmen niet overeen, wegens $V+ modus
+E_String types stemmen niet overeen, wegens $V+ modus
 E_Alleen class methodes kunnen gerefereerd met classe methodes
 E_Alleen class methodes togankelijk in classen
 E_Constante en CASE type komen niet overeen
 E_Het symbool kan niet uitgevoerd worden van een bibliotheek
 E_Een virtuele methode moet met OVERRIDE overroepen worden: $1
 E_Er is geen geerfde methode die overroepen kan worden: $1
-E_No member is provided to access property
-E_Illegal symbol for property access
-E_Cannot write a protected field of an object
-E_all overloaded methods must be virtual if one is virtual: $1
-E_overloaded methods which are virtual must have the same return type: $1
-E_EXPORT declared functions can't be nested
-E_methods can't be EXPORTed
-E_call by var parameters have to match exactly
-E_Class isn't a super class of the current class
-E_SELF is only allowed in methods
-E_methods can be only in other methods called direct with type identifier of the class
-E_Illegal use of ':'
-E_range check error in set constructor or duplicate set element
-E_Pointer to class expected
-E_Expression must be constructor call
+E_Er is geen lid om de eigenschap te bereiken
+E_Illegaal symbool voor eigenschap toegang
+E_Kan niet in beschermd veld van een object schrijven
+E_Alle overladen methodse moeten virtueel zijn als 1 virtueel is: $1
+E_Virtuele Overladen methodes moeten hetzelfde resultaat type hebben: $1
+E_EXPORT gedeclareerde functions kunnen niet genest worden.
+E_Methodes kunnen niet geexporteerd worden.
+E_Aanroep per referentie parameters moet overeenstemmende types hebben.
+E_Class is geen ouder class van de huidige class
+E_SELF is alleen toegestaan in methodes.
+E_Methodes kunnen alleen in andere methodes worden aangeroepen met type identifieerder
+E_Ongeldig gebruik van ':'
+E_Bereik fout in set constructor of dubbel set element
+E_Pointer naar class verwacht
+E_Uitdrukking moet een constructor call zijn.
 E_Expression must be destructor call
-E_Type conflict between set elements
-W_The operator / isn't defined for integer, the result will be real, use DIV instead
-E_Illegal order of record elements
-E_Expression type must by class or record type
-E_Functions with void return value can't return any value
-E_constructors and destructors must be methods
-W_Automatic type conversion from floating type to COMP which is an integer type
+E_Type conflict tussen set elementen.
+W_De operator / geeft een resultaat is van type real. Gebruik DIV voor integers.
+E_Ongeldige volgorde van record leden.
+E_Type van uitdrukking moet class of record type zijn.
+E_Procedures kunnen geen resultaat teruggeven.
+E_Constructors en Destructors moeten methodes zijn
+W_Type conversion van floating type to COMP, hetgeen een integer type is.
 E_Operator is niet hergedefineerd
-E_Variable or type indentifier expected
-E_Re-raise isn't possible there
-E_The extended syntax of new or dispose isn't allowed for a class
-E_Assembler incompatible with function return value
-E_Procedure overloading is switched off
-E_It is not possible to overload this operator (overload = instead)
-E_Comparative operator must return a boolean value
-E_Only virtual methods can be abstract
-F_Use of unsupported feature!
-E_The mix of CLASSES and OBJECTS isn't allowed
-W_Unknown procedure directive had to be ignored: $1
-E_absolute can only be associated to ONE variable
-E_absolute can only be associated a var or const
-E_Abtract methods shouldn't have any definition (with function body)
-E_This overloaded function can't be local (must be exported)
-E_succ or pred on enums with assignments not possible
-W_Virtual methods are used without a constructor
-M_Macro defined: $1
-M_Macro undefined: $1
-M_Macro $1 set to $2
-I_Compiling $1
-D_Compiling $1 for the second time
-E_Array properties aren't allowed at this point
-E_No property found to override
-E_Only one default property is allowed, found inherited default property in class %1
-E_The default property must be an array property
+E_Variable of type indentifieerder verwacht
+E_Re-raise is hier niet mogelijk
+E_De uitgebreide syntax van NEW of DISPOSE is niet toegestaan voor classes
+E_Assembler stemt niet overeen met functieresultaat type
+E_Procedure overladen is afgezet
+E_Deze operator kan niet overladen worden.
+E_Vergelijkings operator moet een boolean type als resultaat hebben.
+E_Enkel virtuele methodes kunnen abstract zijn.
+F_Gebruik van niet ondersteunde optie !
+E_CLASSES and OBJECTS kunnen niet gemengd worden.
+W_Ongekende procedure schakelaar is genegeerd: $1
+E_Absolute kan maar aan een variabele verbonden worden.
+E_Absolute kan slechts aan variabelen of constantes verbonden worden.
+E_Abtracte methodes kunnen niet gedefineerd worden.
+E_Deze overladen procedure kan niet lokaal zijn, (moet geexporteerd worden)
+E_SUCC of PRED op enumeratie types met toekenningen zijn niet mogelijk
+W_Gebruike van Virtuele methods zonder constructor
+M_Macro gedefinieerd: $1
+M_Macro ongedefinieerd: $1
+M_Macro $1 wordt $2
+I_Compilatie van $1
+D_Compilatie van $1 voor de tweede keer.
+E_Array eigenschappen zijn hier niet toegestaan.
+E_Geen eigenschap gevonden om te herdefinieren
+E_Slechts 1 default eigenschap is toegestaan, geerfde default eigenschap in kind gevonden.
+E_Default eigenschappen moeten van type Array zijn.
 ;
 ; Symbol-table errors/warnings
 ;
-N_Local variable $1 doesn't seem to be initialized yet !
-E_Identifier not found $1
-F_Internal Error in SymTableStack()
-E_Duplicate identifier $1
-E_Unknown identifier $1
-E_Forward declaration not solved $1
-F_Identifier type already defined as type
-E_Type identifier expected
-E_Type mismatch
-E_Error in type defenition
-E_Type identifier not defined
-E_Only static variables can be used in static methods or outside methods
-E_Invalid call to tvarsym.mangledname()
-F_record or class type expected
-E_To generate an instance of a class or an object with an abtract method isn't allowed
+N_Lokale variabele $1 schijnt niet geinitialiseerd te zijn !
+E_Identifieerder niet gevonden $1
+F_Interne fout in SymTableStack()
+E_Dubbele identifieerder $1
+E_Onbekende identifieerder $1
+E_Voorwaartse declaratie niet opgelost $1
+F_Type Identifieerder reeds gedefineerd als type
+E_Type identifieerder verwacht
+E_Types stemmen niet overeen
+E_Fout in type defenitie
+E_Type identifieerder niet gedefinieerd
+E_Alleen statische variabelen kunnen gebruikt worden in statische methodes
+E_Ongeldige aanroep van tvarsym.mangledname()
+F_record of class type verwacht
+E_U kan geen vertegenwoordiger van een klasse met abstracte methodes instantieren
 E_Label niet gedefineerd $1
 E_Label foutief gedefineerd
 E_GOTO en LABEL zijn momenteel uitgeschakeld (gebruik -Sg)
@@ -198,20 +198,20 @@ E_Label niet gevonden
 E_identifier is geen label
 E_label is al gedefineerd
 E_Type declaratie van set elementen is foutief
-E_Voorwaarde definitie van klasse niet opgelost $1
-H_Identifier not used $1, declared in line $2
+E_Voorwaartse definitie van klasse niet opgelost $1
+H_Identifier niet gebruikt $1, gedeclareerd in lijn $2
 E_Elementen van set zijn incompatible
 E_Set type verwacht
 W_Resultaat van functie ogeschijnlijk niet present
 E_Onbekend record lid
 N_Locale variabele schijnt niet gebruikt te worden: $1
-E_identifier idents no member
+E_Geen lid met die naam
 ;
 ; Codegenerator
 ;
 E_BREAK niet toegestaan
 E_CONTINUE niet toegestaan
-E_Expressie te ingewikkeld - overloop van wiskundige processor
+E_Uitdrukking te ingewikkeld - overloop van wiskundige processor
 E_Foutieve expressie
 E_Foutieve integer
 E_Foutieve qualifier
@@ -222,21 +222,21 @@ E_Parameters gebruiken meer dan 64 kilobyte
 E_Foute type conversie
 E_Files moeten var parameters zijn
 E_U kunt daar geen far pointer gebruiken
-E_illegal call by reference parameters
+E_Ongeldige aanroep met referentie parameters
 E_procedures die EXPORT gedeclareerd staan kunnen niet aangeroepen worden
-W_Possible illegal call of constructor or destructor (doesn't match to this context)
+W_Mogelijke illegale aanroep van constructor of destructor 
 N_Inefficiente code
 W_Deze code wordt nooit uitgevoerd
-E_procedure call with stackframe ESP/SP
-E_Abstract methods can't be called directly
-F_Internal Error in getfloatreg(), allocation failure
-F_Onbekend vlottend komma type
-F_SecondVecn() base defined twice
-F_Extended cg68k not supported
-F_32-bit unsigned not supported in MC68000 mode
-F_Internal Error in secondinline()
+E_procedure aanroep met stackframe ESP/SP
+E_Abstracte methodes kunnen niet direct aangeroepen worden.
+F_Interne fout in getfloatreg(), allocatie faling
+F_Onbekend vlottende komma type
+F_SecondVecn() basis tweemaal gedefinieerd.
+F_Extended cg68k niet ondersteund
+F_32-bit unsigned niet ondersteund in MC68000 modus
+F_Interne fout in secondinline()
 D_Register $1 gewicht $2 $3
-E_Stack limit excedeed in local routine
+E_Stack limiet excedeed in local routine
 D_Stack frame wordt niet gemaakt
 ;
 ; Assembler parsers
@@ -380,46 +380,47 @@ W_You need GNU as version >= 2.81 to compile this MMX code
 ;
 ; Exec, calls to assembler, linker, binder, libraries
 ;
-I_Assembling (pipe) $1
-E_Can't create assember file $1
-W_Assembler $1 not found, switching to external assembling
-U_Using assembler: $1
-W_Error while assembling
-W_Can't call the assembler, switching to external assembling
-I_Assembling $1
-W_Linker $1 not found, switching to external linking
-U_Using linker: $1
-E_File $1 not found, Linking may fail !!
-W_Error while linking
-W_Can't call the linker, switching to external linking
-I_Linking $1
-W_binder not found, switching to external binding
-W_ar not found, switching to external ar
-E_Dynamic Libraries not supported
-I_Closing script $1
+I_Assembleren (pijp) van $1
+E_Kan geen assembler bestand $1 niet maken
+W_Assembleerder $1 niet gevonden, overschakeling naar externe assemblage
+U_Gebruikte assembler: $1
+W_Fout bij assembleren
+W_Kan assembleerder niet oproepen, overschakeling naar externe assemblage
+I_Assembleren van $1
+W_Linker $1 niet gevonden, oveschakeling naar externe linker
+U_Gebruikte linker: $1
+E_Bestand $1 niet gevonden, linken kan foutlopen !
+W_Error tijdens linken
+W_Kan linker niet oproepen, overschakeling naar extern linken
+I_Linken van $1
+W_binder niet gevonden, overschakeling naar extern binden.
+W_ar niet gevonden, overschakeling naar externe ar
+E_Dynamische bibliotheken niet ondersteund
+I_Afsluiten batch $1
 ;
 ; Unit handling, PPU file
 ;
-U_PPU Loading $1
-D_PPU Time: $1
-D_PPU File too short
-D_PPU Invalid Header (no PPU at the begin)
-D_PPU Invalid Version $1
-D_PPU Flags: $1
-D_PPU Crc: $1
-T_PPU Source: $1
-D_objectfile and assemblerfile are older than ppufile
-D_objectfile is older than assemblerfile
-T_Unitsearch: $1
-U_Writing $1
-F_Can't Write PPU-File
-F_reading PPU-File
-F_Invalid PPU-File entry: $1
-F_PPU Dbx count problem
-E_Illegal unit name: $1
-F_Too much units
-F_Circular unit reference
-F_Can't compile unit $1, no sources available
-W_Compiling the system unit requires the -Us switch
-E_$1 Errors
-F_There were errors compiling module, compilation stopped
+U_PPU Laden $1
+D_PPU Tijd: $1
+D_PPU bestand te kort
+D_PPU Ongeldige hoofding (geen PPU aan het begin)
+D_PPU Ongeldige Versie $1
+D_PPU Vlaggen: $1
+D_PPU CRC: $1
+T_PPU Bronbestand: $1
+D_Objectbestand en assemblerbestand zijn ouder als PPU bestand
+D_Objectbestand is ouder dan assembler bestand.
+T_Unit zoeken: $1
+U_Schrijven van $1
+F_Kan geen PPU bestand schrijven
+F_Lezen van PPU bestand
+F_Ongeldig PPU bestand post: $1
+F_PPU Dbx aantal probleem
+E_Ongeldige unit naam: $1
+F_Te veel units
+F_Circulaire unit referentie
+F_Kan unit $1 niet compileren, geen broncode beschikbaar
+W_De systeem unit compileren vereist de -Us schakelaar
+E_$1 Fouten
+F_Er waren fouten bij het compileren van een module, compilatie gestopt.
+
