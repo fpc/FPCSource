@@ -33,15 +33,16 @@ Interface
 {$define FPC_USE_SYSCALL}
 {$endif}
 
+
+{$define FPC_IS_SYSTEM}
+
+{$I sysunixh.inc}
+
 {$ifdef Darwin}
 var argc:cardinal;
     argv:PPchar;
     envp:PPchar;
 {$endif}
-
-{$define FPC_IS_SYSTEM}
-
-{$I sysunixh.inc}
 
 CONST SIGSTKSZ = 40960;
 
@@ -211,7 +212,10 @@ End.
 
 {
   $Log$
-  Revision 1.17  2004-07-03 22:44:37  daniel
+  Revision 1.18  2004-07-03 22:49:34  daniel
+    * Moved declarations downwards
+
+  Revision 1.17  2004/07/03 22:44:37  daniel
     * Declared envp,argc,argv in interface for Darwin
 
   Revision 1.16  2004/06/19 08:06:04  marco
