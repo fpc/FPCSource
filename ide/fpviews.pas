@@ -3972,7 +3972,7 @@ begin
   else
 {$endif NODEBUG}
     R2.Move(0,2);
-  Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2001 by')));
+  Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2002 by')));
   R2.Move(0,2);
   Insert(New(PStaticText, Init(R2, ^C'B‚rczi G bor')));
   R2.Move(0,1);
@@ -4364,7 +4364,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.34  2002-09-12 22:07:46  pierre
+  Revision 1.35  2002-09-13 22:28:08  pierre
+   * Update copyright
+
+  Revision 1.34  2002/09/12 22:07:46  pierre
    * Enable go32v2 graph support in fixes branchfpusrscr.pas
 
   Revision 1.33  2002/09/12 08:49:10  pierre
