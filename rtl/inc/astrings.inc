@@ -458,6 +458,8 @@ begin
     Size:=Length(S)-Index;
   If Size>0 then
     begin
+    If Index<0 Then 
+      Index:=0;
     ResultAddress:=Pointer(NewAnsiString (Size));
     if ResultAddress<>Nil then
       begin
@@ -782,7 +784,10 @@ end;
 
 {
   $Log$
-  Revision 1.26  1999-05-31 20:37:39  peter
+  Revision 1.27  1999-06-05 20:48:56  michael
+  Copy checks index now for negative values.
+
+  Revision 1.26  1999/05/31 20:37:39  peter
     * fixed decr_ansistr which didn't set s to nil
 
   Revision 1.25  1999/05/17 22:41:24  florian
