@@ -2205,8 +2205,22 @@ begin
 end;
 
 procedure TCodeEditor.JumpToLastCursorPos;
+{$ifdef Undo}
+var
+  pa : PEditorAction;
+{$endif Undo}
 begin
+{$ifdef Undo}
+  if (UndoList^.count>0) and (RedoList^.count=0) then
+    begin
+      { Or should we just call Undo ?? PM }
+      pa:=UndoList^.At(UndoList^.count-1);
+      if (pa^.action=eaMoveCursor) then
+        SetCurPtr(pa^.StartPos.X,pa^.StartPos.Y);
+    end;
+{$else not Undo}
   NotImplemented;
+{$endif Undo}
 end;
 
 function TCodeEditor.InsertLine: Sw_integer;
@@ -2308,11 +2322,11 @@ begin
       begin
         S:=GetLineText(CurPos.Y-1);
         SetLineText(CurPos.Y-1,S+GetLineText(CurPos.Y));
-        StoreUndo:=HoldUndo;
         SC1.X:=Length(S);SC1.Y:=CurPOS.Y-1;
-        AddAction(eaInsertText,SC1,SC1,GetLineText(CurPos.Y));
-        DeleteLine(CurPos.Y);
+        StoreUndo:=HoldUndo;
+        AddAction(eaDeleteLine,SCP,SC1,GetLineText(CurPos.Y));
         StoreUndo:=false;
+        DeleteLine(CurPos.Y);
         LimitsChanged;
         SetCurPtr(length(S),CurPos.Y-1);
       end;
@@ -2364,6 +2378,7 @@ procedure TCodeEditor.DelChar;
 var S: string;
     SDX,SDY,CI : sw_integer;
     HoldUndo : boolean;
+    SCP : TPoint;
 begin
   if IsReadOnly then Exit;
   Lock;
@@ -2376,9 +2391,10 @@ begin
       begin
         SetLineText(CurPos.Y,S+GetLineText(CurPos.Y+1));
         StoreUndo:=HoldUndo;
-        AddAction(eaInsertText,CurPos,CurPos,GetLineText(CurPos.Y+1));
-        DeleteLine(CurPos.Y+1);
+        SCP.X:=0;SCP.Y:=CurPos.Y+1;
+        AddAction(eaDeleteLine,SCP,CurPos,GetLineText(CurPos.Y+1));
         StoreUndo:=false;
+        DeleteLine(CurPos.Y+1);
         LimitsChanged;
         SDX:=0; SDY:=-1;
       end;
@@ -3076,6 +3092,7 @@ begin
         eaDeleteLine :
           begin
             SetCurPtr(EndPos.X,EndPos.Y);
+            DelEnd;
             InsertLine;
             SetCurPtr(StartPos.X,StartPos.Y);
             SetLineText(StartPos.Y,GetStr(Text));
@@ -3099,6 +3116,7 @@ begin
         SetCmdState(UndoCmd,false);
       SetCmdState(RedoCmd,true);
       Message(Application,evBroadcast,cmCommandSetChanged,nil);
+      DrawView;
     end;
   end;
   StoreUndo := True;
@@ -3147,7 +3165,10 @@ begin
         eaDeleteLine :
           begin
             SetCurPtr(StartPos.X,StartPos.Y);
-            DeleteLine(EndPos.Y);
+            DeleteLine(StartPos.Y);
+            SetCurPtr(EndPos.X,EndPos.Y);
+            InsertText(GetStr(Text));
+            SetCurPtr(EndPos.X,EndPos.Y);
           end;
         eaSelectionChanged :
           begin
@@ -3167,6 +3188,7 @@ begin
       if RedoList^.count=0 then
         SetCmdState(RedoCmd,false);
       SetCmdState(UndoCmd,true);
+      DrawView;
       Message(Application,evBroadcast,cmCommandSetChanged,nil);
     end;
   end;
@@ -4447,7 +4469,7 @@ end;
 
 function TFileEditor.ShouldSave: boolean;
 begin
-  ShouldSave:=Modified or (FileName='');
+  ShouldSave:=Modified{ or (FileName='')};
 end;
 
 function TFileEditor.Save: Boolean;
@@ -4893,7 +4915,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.55  1999-10-27 10:46:19  pierre
+  Revision 1.56  1999-10-27 13:32:58  pierre
+   * some more Undo Fixes
+
+  Revision 1.55  1999/10/27 10:46:19  pierre
    * More Undo/Redo stuff
 
   Revision 1.54  1999/10/25 16:49:05  pierre
