@@ -317,14 +317,26 @@ implementation
                     Message(parser_e_initialized_only_one_var);
                   if is_threadvar then
                     Message(parser_e_initialized_not_for_threadvar);
-                  tconstsym:=ttypedconstsym.createtype(vs.realname,tt,true);
-                  tconstsym.fileinfo:=vs.fileinfo;
-                  symtablestack.replace(vs,tconstsym);
-                  vs.free;
-                  symtablestack.insertconstdata(tconstsym);
-                  consume(_EQUAL);
-                  readtypedconst(tt,tconstsym,true);
-                  symdone:=true;
+                  if symtablestack.symtabletype=localsymtable then
+                   begin
+                     consume(_EQUAL);
+                     tconstsym:=ttypedconstsym.createtype('default'+vs.realname,tt,false);
+                     vs.defaultconstsym:=tconstsym;
+                     symtablestack.insert(tconstsym);
+                     symtablestack.insertconstdata(tconstsym);
+                     readtypedconst(tt,tconstsym,false);
+                   end
+                  else
+                   begin
+                     tconstsym:=ttypedconstsym.createtype(vs.realname,tt,true);
+                     tconstsym.fileinfo:=vs.fileinfo;
+                     symtablestack.replace(vs,tconstsym);
+                     vs.free;
+                     symtablestack.insertconstdata(tconstsym);
+                     consume(_EQUAL);
+                     readtypedconst(tt,tconstsym,true);
+                     symdone:=true;
+                   end; 
                end;
              { if the symbol is not completely handled, then try to parse the
                hint directives }
@@ -597,7 +609,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2002-12-27 15:22:20  peter
+  Revision 1.44  2003-01-02 11:14:02  michael
+  + Patch from peter to support initial values for local variables
+
+  Revision 1.43  2002/12/27 15:22:20  peter
     * don't allow initialized threadvars
 
   Revision 1.42  2002/12/07 14:04:59  carl

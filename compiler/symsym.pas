@@ -175,6 +175,7 @@ interface
           address       : longint;
           localvarsym   : tvarsym;
           highvarsym    : tvarsym;
+          defaultconstsym : tsym;
           vartype       : ttype;
           varoptions    : tvaroptions;
           reg           : tregister; { if reg<>R_NO, then the variable is an register variable }
@@ -1598,6 +1599,7 @@ implementation
          address:=0;
          localvarsym:=nil;
          highvarsym:=nil;
+         defaultconstsym:=nil;
          refs:=0;
          varstate:=vs_used;
          varoptions:=[];
@@ -1641,6 +1643,7 @@ implementation
          address:=ppufile.getlongint;
          localvarsym:=nil;
          highvarsym:=nil;
+         defaultconstsym:=nil;
          ppufile.gettype(vartype);
          ppufile.getsmallset(varoptions);
          if (vo_is_C_var in varoptions) then
@@ -2566,7 +2569,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2003-01-01 22:51:03  peter
+  Revision 1.89  2003-01-02 11:14:02  michael
+  + Patch from peter to support initial values for local variables
+
+  Revision 1.88  2003/01/01 22:51:03  peter
     * high value insertion changed so it works also when 2 parameters
       are passed
 

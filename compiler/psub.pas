@@ -51,7 +51,7 @@ implementation
        ppu,fmodule,
        { pass 1 }
        node,
-       nbas,
+       nbas,nld,
        pass_1,
     {$ifdef state_tracking}
        nstate,
@@ -79,6 +79,27 @@ implementation
 {****************************************************************************
                       PROCEDURE/FUNCTION BODY PARSING
 ****************************************************************************}
+
+    procedure initializevars(p:tnamedindexitem;arg:pointer);
+      var
+        b : tblocknode;
+      begin
+        if tsym(p).typ<>varsym then
+         exit;
+        with tvarsym(p) do
+         begin
+           if assigned(defaultconstsym) then
+            begin
+              b:=tblocknode(arg);
+              b.left:=cstatementnode.create(
+                        cassignmentnode.create(
+                            cloadnode.create(tsym(p),tsym(p).owner),
+                            cloadnode.create(defaultconstsym,defaultconstsym.owner)),
+                        b.left);
+            end;
+         end;
+      end;
+
 
     function block(islibrary : boolean) : tnode;
       var
@@ -168,7 +189,11 @@ implementation
                 end;
             end
          else
-            block:=statement_block(_BEGIN);
+            begin
+               block:=statement_block(_BEGIN);
+               if symtablestack.symtabletype=localsymtable then
+                 symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}initializevars,block);
+            end;   
       end;
 
 
@@ -818,7 +843,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2002-12-29 18:59:34  peter
+  Revision 1.86  2003-01-02 11:14:02  michael
+  + Patch from peter to support initial values for local variables
+
+  Revision 1.85  2002/12/29 18:59:34  peter
     * fixed parsing of declarations before asm statement
 
   Revision 1.84  2002/12/29 18:25:18  peter
