@@ -729,6 +729,14 @@ var
    eend : ptruint; external name '_end';
 {$endif}
 
+{$ifdef win32}
+var
+   sdata : ptruint; external name '__data_start__';
+   edata : ptruint; external name '__data_end__';
+   sbss : ptruint; external name '__bss_start__';
+   ebss : ptruint; external name '__bss_end__';
+{$endif}
+
 
 procedure CheckPointer(p : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public, alias : 'FPC_CHECKPOINTER'];
 var
@@ -767,6 +775,13 @@ begin
   { inside stack ? }
   if (ptruint(p)>ptruint(get_frame)) and
      (ptruint(p)<Win32StackTop) then
+    goto _exit;
+  { inside data ? }
+  if (ptruint(p)>=ptruint(@sdata)) and (ptruint(p)<ptruint(@edata)) then
+    goto _exit;
+
+  { inside bss ? }
+  if (ptruint(p)>=ptruint(@sbss)) and (ptruint(p)<ptruint(@ebss)) then
     goto _exit;
 {$endif win32}
 
@@ -854,22 +869,22 @@ var
   pp : pheap_mem_info;
   i : ptrint;
   ExpectedHeapFree : ptrint;
-{$ifdef HASGETFPCHEAPSTATUS}  
+{$ifdef HASGETFPCHEAPSTATUS}
   status : TFPCHeapStatus;
-{$else HASGETFPCHEAPSTATUS}  
+{$else HASGETFPCHEAPSTATUS}
   status : THeapStatus;
-{$endif HASGETFPCHEAPSTATUS}  
+{$endif HASGETFPCHEAPSTATUS}
 begin
   pp:=heap_mem_root;
   Writeln(ptext^,'Heap dump by heaptrc unit');
   Writeln(ptext^,getmem_cnt, ' memory blocks allocated : ',getmem_size,'/',getmem8_size);
   Writeln(ptext^,freemem_cnt,' memory blocks freed     : ',freemem_size,'/',freemem8_size);
   Writeln(ptext^,getmem_cnt-freemem_cnt,' unfreed memory blocks : ',getmem_size-freemem_size);
-{$ifdef HASGETFPCHEAPSTATUS}  
+{$ifdef HASGETFPCHEAPSTATUS}
   status:=SysGetFPCHeapStatus;
-{$else HASGETFPCHEAPSTATUS}  
+{$else HASGETFPCHEAPSTATUS}
   SysGetHeapStatus(status);
-{$endif HASGETFPCHEAPSTATUS}  
+{$endif HASGETFPCHEAPSTATUS}
   Write(ptext^,'True heap size : ',status.CurrHeapSize);
   if EntryMemUsed > 0 then
     Writeln(ptext^,' (',EntryMemUsed,' used in System startup)')
@@ -946,7 +961,7 @@ end;
                             No specific tracing calls
 *****************************************************************************}
 
-{$ifdef HASGETFPCHEAPSTATUS}  
+{$ifdef HASGETFPCHEAPSTATUS}
 function TraceGetHeapStatus:THeapStatus;
 begin
   TraceGetHeapStatus:=SysGetHeapStatus;
@@ -956,12 +971,12 @@ function TraceGetFPCHeapStatus:TFPCHeapStatus;
 begin
     TraceGetFPCHeapStatus:=SysGetFPCHeapStatus;
 end;
-{$else HASGETFPCHEAPSTATUS}  
+{$else HASGETFPCHEAPSTATUS}
 procedure TraceGetHeapStatus(var status:THeapStatus);
 begin
   SysGetHeapStatus(status);
 end;
-{$endif HASGETFPCHEAPSTATUS}  
+{$endif HASGETFPCHEAPSTATUS}
 
 
 {*****************************************************************************
@@ -1012,28 +1027,28 @@ const
     AllocMem : @TraceAllocMem;
     ReAllocMem : @TraceReAllocMem;
     MemSize : @TraceMemSize;
-{$ifdef HASGETFPCHEAPSTATUS}  
+{$ifdef HASGETFPCHEAPSTATUS}
     GetHeapStatus : @TraceGetHeapStatus;
     GetFPCHeapStatus : @TraceGetFPCHeapStatus;
-{$else HASGETFPCHEAPSTATUS}  
+{$else HASGETFPCHEAPSTATUS}
     GetHeapStatus : @TraceGetHeapStatus;
-{$endif HASGETFPCHEAPSTATUS}  
+{$endif HASGETFPCHEAPSTATUS}
   );
 
 
 procedure TraceInit;
 var
-{$ifdef HASGETFPCHEAPSTATUS}  
+{$ifdef HASGETFPCHEAPSTATUS}
   initheapstatus : TFPCHeapStatus;
-{$else HASGETFPCHEAPSTATUS}  
+{$else HASGETFPCHEAPSTATUS}
   initheapstatus : THeapStatus;
-{$endif HASGETFPCHEAPSTATUS}  
+{$endif HASGETFPCHEAPSTATUS}
 begin
-{$ifdef HASGETFPCHEAPSTATUS}  
+{$ifdef HASGETFPCHEAPSTATUS}
   initheapstatus:=SysGetFPCHeapStatus;
-{$else HASGETFPCHEAPSTATUS}  
+{$else HASGETFPCHEAPSTATUS}
   SysGetHeapStatus(initheapstatus);
-{$endif HASGETFPCHEAPSTATUS}  
+{$endif HASGETFPCHEAPSTATUS}
   EntryMemUsed:=initheapstatus.CurrHeapUsed;
   MakeCRC32Tbl;
   SetMemoryManager(TraceManager);
@@ -1178,7 +1193,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.41  2005-03-04 16:49:34  peter
+  Revision 1.42  2005-03-10 20:36:31  florian
+    * fixed pointer checking for win32, thx to Martin Schreiber for the patch
+
+  Revision 1.41  2005/03/04 16:49:34  peter
     * fix getheapstatus bootstrapping
 
   Revision 1.40  2005/02/28 15:38:38  marco
