@@ -436,7 +436,12 @@ implementation
                  htype:=p.resulttype
                else
                  htype.setdef(tpointerdef.create(p.resulttype));
-               loadp:=ctempcreatenode.create_reg(htype,POINTER_SIZE,tt_persistent);
+               { we can't generate debuginfo for a withnode stored in a }
+               { register                                               }
+               if (cs_debuginfo in aktmoduleswitches) then
+                 loadp:=ctempcreatenode.create(htype,POINTER_SIZE,tt_persistent)
+               else
+                 loadp:=ctempcreatenode.create_reg(htype,POINTER_SIZE,tt_persistent);
                resulttypepass(loadp);
                if hasimplicitderef then
                 begin
@@ -1087,7 +1092,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.127  2004-02-03 16:46:51  jonas
+  Revision 1.128  2004-02-03 19:47:45  jonas
+    * don't put the temp of a withnode in a register if debugging info is on,
+      because then our stabs generation internalerror's
+
+  Revision 1.127  2004/02/03 16:46:51  jonas
     + support to store ttempcreate/ref/deletenodes in registers
     * put temps for withnodes and some newnodes in registers
      Note: this currently only works because calling ungetregister()
