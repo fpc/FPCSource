@@ -141,14 +141,14 @@ implementation
 
 {$I system.inc}
 
-var
-    heap_base: pointer; external name '__heap_base';
-    heap_brk: pointer; external name '__heap_brk';
-    heap_end: pointer; external name '__heap_end';
+//var
+//    heap_base: pointer; external name '__heap_base';
+//    heap_brk: pointer; external name '__heap_brk';
+//    heap_end: pointer; external name '__heap_end';
 
 (* Maximum heap size - only used if heap is allocated as continuous block. *)
 {$IFDEF CONTHEAP}
-    BrkLimit: cardinal;
+//    BrkLimit: cardinal;
 {$ENDIF CONTHEAP}
 
 procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
@@ -240,9 +240,6 @@ type
 
 function DosGetDateTime(var Buf:TSysDateTime):longint; cdecl;
     external 'DOSCALLS' index 230;
-
-{This is the correct way to call external assembler procedures.}
-procedure syscall; external name '___SYSCALL';
 
    { converts an OS/2 error code to a TP compatible error }
    { code. Same thing exists under most other supported   }
@@ -478,55 +475,51 @@ end;
 
 ****************************************************************************}
 
+{Get some memory.
+ P          = Pointer to memory will be returned here.
+ Size       = Number of bytes to get. The size is rounded up to a multiple
+              of 4096. This is probably not the case on non-intel 386
+              versions of OS/2.
+ Flags      = One or more of the mfXXXX constants.}
 
-{ this function allows to extend the heap by calling
-syscall $7f00 resizes the brk area}
+function DosAllocMem(var P:pointer;Size,Flag:cardinal):longint; cdecl;
+external 'DOSCALLS' index 299;
+
+function DosSetMem(P:pointer;Size,Flag:cardinal):longint; cdecl;
+external 'DOSCALLS' index 305;
+
+var
+  int_heap: pointer;
+  int_heap_end: pointer;
 
 function sbrk(size:longint):pointer;
-{$IFDEF DUMPGROW}
 var
-  L: longword;
+  p: pointer;
+  rc: longint;
 begin
+{$IFDEF DUMPGROW}
   WriteLn ('Trying to grow heap by ', Size, ' to ', HeapSize + Size);
-{$IFDEF CONTHEAP}
-  WriteLn ('BrkLimit is ', BrkLimit);
-{$ENDIF CONTHEAP}
-  asm
-    movl size,%edx
-    movw $0x7f00,%ax
-    call syscall     { result directly in EAX }
-    inc %eax         { Result in EAX, -1 = error (has to be transformed to 0) }
-    jz .LSbrk_End
-    dec %eax         { No error - back to previous value }
-.LSbrk_End:
-    mov  %eax,L
-  end ['eax', 'edx'];
-  WriteLn ('New heap at ', L);
-  Sbrk := pointer (L);
+{$ENDIF}
+  p:=int_heap_end;
+  // commit memory
+  rc:=DosSetMem(p, size, $10+3);
+  if rc<>0 then p:=nil;
+{$IFDEF DUMPGROW}
+  WriteLn ('New heap at ', Cardinal(p));
+{$ENDIF}
+  sbrk:=int_heap_end;
+  inc(int_heap_end, size);
 end;
-{$ELSE DUMPGROW}
-                                     assembler;
-asm
-    movl size,%edx
-    movw $0x7f00,%ax
-    call syscall
-    inc %eax         { Result in EAX, -1 = error (has to be transformed to 0) }
-    jz .LSbrk_End
-    dec %eax         { No error - back to previous value }
-.LSbrk_End:
-end {['eax', 'edx']};
-{$ENDIF DUMPGROW}
 
-function getheapstart:pointer;assembler;
+function getheapstart:pointer;
+begin
+  getheapstart:=int_heap;
+end;
 
-asm
-    movl heap_base,%eax
-end {['EAX']};
-
-function getheapsize:longint;assembler;
-asm
-    movl heap_brk,%eax
-end {['EAX']};
+function getheapsize:longint;
+begin
+  getheapsize:=longint(int_heap_end)-longint(int_heap);
+end;
 
 {$i heap.inc}
 
@@ -1108,14 +1101,14 @@ begin
     while (cp^ <> #0) do inc(longint(cp)); { skip to NUL }
     inc(longint(cp)); { skip to next character }
     end;
-  envp := getmem((env_count+1) * sizeof(pchar));
+  envp := sysgetmem((env_count+1) * sizeof(pchar));
   envc := env_count;
   if (envp = nil) then exit;
   cp:=environment;
   env_count:=0;
   while cp^ <> #0 do
   begin
-    envp[env_count] := getmem(strlen(cp)+1);
+    envp[env_count] := sysgetmem(strlen(cp)+1);
     strcopy(envp[env_count], cp);
 {$IfDef DEBUGENVIRONMENT}
     Writeln(stderr,'env ',env_count,' = "',envp[env_count],'"');
@@ -1126,12 +1119,6 @@ begin
     inc(longint(cp)); { skip to next character }
   end;
   envp[env_count]:=nil;
-//  longint(cp):=longint(cp)+3;
-//  dos_argv0 := sysgetmem(strlen(cp)+1);
-//  if (dos_argv0 = nil) then halt;
-//  strcopy(dos_argv0, cp);
-  { update ___dos_argv0 also }
-//  ___dos_argv0:=dos_argv0
 end;
 
 procedure InitArguments;
@@ -1346,35 +1333,6 @@ var TIB: PThreadInfoBlock;
 
 begin
     IsLibrary := FALSE;
-{$ASMMODE INTEL}
-    asm
-    {Enable the brk area by initializing it with the initial heap size.}
-        mov eax, 7F01h
-        mov edx, heap_brk
-        add edx, heap_base
-        call syscall
-        cmp eax, -1
-        jnz @heapok
-        push dword 204
-        call HandleError
-    @heapok:
-{$IFDEF CONTHEAP}
-{ Find out brk limit }
-        mov eax, 7F02h
-        mov ecx, 3
-        call syscall
-        jcxz @heaplimitknown
-        mov eax, 0
-    @heaplimitknown:
-        mov BrkLimit, eax
-{$ELSE CONTHEAP}
-{ Change sbrk behaviour to allocate arbitrary (non-contiguous) memory blocks }
-        mov eax, 7F0Fh
-        mov ecx, 0Ch
-        mov edx, 8
-        call syscall
-{$ENDIF CONTHEAP}
-    end;
 
     (* Initialize the amount of file handles *)
     FileHandleCount := GetFileHandleCount;
@@ -1388,6 +1346,17 @@ begin
     exitproc:=nil;
 
     {Initialize the heap.}
+    // Logic is following:
+    //   Application allocates maximum possible memory array (~512Mb),
+    //   but without commiting. On heap growing required amount of
+    //   memory commited. So heap can be grown up to 512Mb.
+    //   For newer systems maximum ammount of memory block can be
+    //   2 Gb, but here used 512 for campatability reasons.
+    //   Note: Check for higher limit of heap not implemented yet.
+    //   Note: Check for amount of memory for process not implemented yet.
+    //         While used hard-coded value of max heapsize (256Mb)
+    DosAllocMem(Int_Heap, 256*1024*1024, 3);
+    Int_Heap_End:=Int_Heap;
     InitHeap;
 
     { ... and exceptions }
@@ -1413,13 +1382,16 @@ begin
 {$IFDEF DUMPGROW}
  {$IFDEF CONTHEAP}
     WriteLn ('Initial brk size is ', GetHeapSize);
-    WriteLn ('Brk limit is ', BrkLimit);
+//    WriteLn ('Brk limit is ', BrkLimit);
  {$ENDIF CONTHEAP}
 {$ENDIF DUMPGROW}
 end.
 {
   $Log$
-  Revision 1.59  2003-11-19 18:21:11  yuri
+  Revision 1.60  2003-11-23 07:21:16  yuri
+  * native heap
+
+  Revision 1.59  2003/11/19 18:21:11  yuri
   * Memory allocation bug fixed
 
   Revision 1.58  2003/11/19 16:50:21  yuri
