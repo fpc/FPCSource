@@ -105,14 +105,14 @@ unit aasm;
          bind      : TAsmsymbind;
          typ       : TAsmsymtype;
          proclocal : boolean;
+         { the next fields are filled in the binary writer }
+         section : tsection;
+         idx     : longint;
+         address,
+         size    : longint;
          { this need to be incremented with every symbol loading into the
            paasmoutput, thus in loadsym/loadref/const_symbol (PFV) }
          refs    : longint;
-         { the next fields are filled in the binary writer }
-         idx     : longint;
-         section : tsection;
-         address,
-         size    : longint;
          { alternate symbol which can be used for 'renaming' needed for
            inlining }
          altsymbol : pasmsymbol;
@@ -126,12 +126,18 @@ unit aasm;
 
        pasmlabel = ^tasmlabel;
        tasmlabel = object(tasmsymbol)
-         labelnr : longint;
+{$ifdef PACKENUMFIXED}
          { this is set by the pai_label.init }
          is_set,
          { is the label only there for getting an address (e.g. for i/o }
          { checks -> true) or is it a jump target (false)               }
          is_addr : boolean;
+{$endif}
+         labelnr : longint;
+{$ifndef PACKENUMFIXED}
+         is_set,
+         is_addr : boolean;
+{$endif}
          constructor init;
          constructor initdata;
          constructor initaddr;
@@ -146,10 +152,16 @@ unit aasm;
        { the short name makes typing easier }
        pai = ^tai;
        tai = object(tlinkedlist_item)
+{$ifndef PACKENUMFIXED}
           typ      : tait;
+{$endif}
           { pointer to record with optimizer info about this tai object }
           optinfo  : pointer;
           fileinfo : tfileposinfo;
+{$ifdef PACKENUMFIXED}
+          { still 3 bytes left after the next field }
+          typ      : tait;
+{$endif}
           constructor init;
        end;
 
@@ -167,9 +179,14 @@ unit aasm;
        { generates a common label }
        pai_symbol = ^tai_symbol;
        tai_symbol = object(tai)
-          sym : pasmsymbol;
+{$ifdef PACKENUMFIXED}
           is_global : boolean;
+{$endif}
+          sym : pasmsymbol;
           size : longint;
+{$ifndef PACKENUMFIXED}
+          is_global : boolean;
+{$endif}
           constructor init(_sym:PAsmSymbol;siz:longint);
           constructor initname(const _name : string;siz:longint);
           constructor initname_global(const _name : string;siz:longint);
@@ -186,8 +203,13 @@ unit aasm;
 
        pai_label = ^tai_label;
        tai_label = object(tai)
-          l : pasmlabel;
+{$ifdef PACKENUMFIXED}
           is_global : boolean;
+{$endif}
+          l : pasmlabel;
+{$ifndef PACKENUMFIXED}
+          is_global : boolean;
+{$endif}
           constructor init(_l : pasmlabel);
        end;
 
@@ -238,9 +260,14 @@ unit aasm;
        { generates an uninitializised data block }
        pai_datablock = ^tai_datablock;
        tai_datablock = object(tai)
+{$ifdef PACKENUMFIXED}
+          is_global : boolean;
+{$endif}
           sym  : pasmsymbol;
           size : longint;
+{$ifndef PACKENUMFIXED}
           is_global : boolean;
+{$endif}
           constructor init(const _name : string;_size : longint);
           constructor init_global(const _name : string;_size : longint);
        end;
@@ -318,9 +345,14 @@ unit aasm;
 
        paitempalloc = ^taitempalloc;
        taitempalloc = object(tai)
+{$ifdef PACKENUMFIXED}
           allocation : boolean;
+{$endif}
           temppos,
           tempsize   : longint;
+{$ifndef PACKENUMFIXED}
+          allocation : boolean;
+{$endif}
           constructor alloc(pos,size:longint);
           constructor dealloc(pos,size:longint);
        end;
@@ -1114,7 +1146,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.5  2000-08-05 13:25:06  peter
+  Revision 1.6  2000-08-09 19:49:44  peter
+    * packenumfixed things so it compiles with 1.0.0 again
+
+  Revision 1.5  2000/08/05 13:25:06  peter
     * packenum 1 fixes (merged)
 
   Revision 1.4  2000/07/21 15:14:01  jonas
