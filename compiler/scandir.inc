@@ -495,6 +495,18 @@ const
                        dispose(macrobuffer);
                     end;
                end;
+          end
+        else
+          begin
+           { check if there is an assignment, then we need to give a
+             warning }
+             current_scanner^.skipspace;
+             if c=':' then
+              begin
+                current_scanner^.readchar;
+                if c='=' then
+                  Comment(V_Warning,'Marco support has been turned off');
+              end;
           end;
       end;
 
@@ -1432,7 +1444,10 @@ const
 
 {
   $Log$
-  Revision 1.4  2000-08-12 15:30:44  peter
+  Revision 1.5  2000-09-10 21:18:15  peter
+    * macro warning (merged)
+
+  Revision 1.4  2000/08/12 15:30:44  peter
     * IDE patch for stream reading (merged)
 
   Revision 1.3  2000/08/08 19:28:57  peter
