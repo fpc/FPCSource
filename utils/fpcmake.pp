@@ -64,13 +64,13 @@ const
     'linux','go32v2','win32','os2'
   );
 
-  rules=15;
+  rules=16;
   rulestr : array[1..rules] of string=(
     'all','debug',
     'examples','test',
     'smart','shared',
     'showinstall','install','sourceinstall','zipinstall','zipsourceinstall',
-    'clean','cleanall',
+    'clean','distclean','cleanall',
     'require','info'
   );
 
@@ -79,7 +79,7 @@ const
     sec_examples,sec_examples,
     sec_libs,sec_libs,
     sec_install,sec_install,sec_sourceinstall,sec_zipinstall,sec_zipinstall,
-    sec_clean,sec_clean,
+    sec_clean,sec_clean,sec_clean,
     sec_require,sec_info
   );
 
@@ -88,7 +88,7 @@ const
     bic_build,bic_build,
     bic_build,bic_build,
     bic_install,bic_install,bic_install,bic_zipinstall,bic_zipinstall,
-    bic_clean,bic_clean,
+    bic_clean,bic_clean,bic_clean,
     bic_none,bic_none
   );
 
@@ -97,7 +97,7 @@ const
     true,true,
     true,true,
     true,true,true,false,false,
-    true,true,
+    true,true,true,
     true,false
   );
 
@@ -1300,7 +1300,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2000-01-26 21:16:26  peter
+  Revision 1.29  2000-01-28 12:10:46  peter
+    * reinserted lost diff of rev 1.30
+    * distclean target
+
+  Revision 1.28  2000/01/26 21:16:26  peter
     * SMARTLINK=1 split into CREATESMART=1 and LINKSMART=1
     * FPCDIR checks enhanced
 
