@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="objpas">
+<short>Objpas - Delphi and objfpc mode system overrides</short>
+<descr>
+<p>
+The <file>objpas</file> unit is meant for compatibility with Object Pascal as
+implemented by Delphi. The unit is loaded automatically by the Free Pascal compiler
+whenever the <var>Delphi</var> or <var>objfpc</var> more is entered, either through
+the command line switches <var>-Sd</var> or <var>-Sh</var> or with the 
+<var>{$MODE DELPHI}</var> or <var>{$MODE OBJFPC}</var> directives.
+</p>
+<p>
+It redefines some basic pascal types, introduces some functions for
+compatibility with Delphi's system unit, and introduces some methods for the
+management of the resource string tables.
+</p>
+</descr>
+
+<element name="TResourceIterator">
+<short>Enumeration callback type for resource strings</short>
+<descr>
+<p>
+The resource string tables can be managed with a callback function which the
+user must provide: <var>TResourceIterator</var>.
+</p>
+</descr>
+</element>
+
+<element name="AssignFile">
+<short>Assign text or untyped file</short>
+<descr>
+<p>
+<var>AssignFile</var> is completely equivalent to the system unit's <link
+id="#rtl.system.Assign">Assign</link>
+function: It assigns <var>Name</var> to a function of any type (<var>FileType</var>
+can be <var>Text</var> or a typed or untyped <var>File</var> variable). <var>Name</var> can
+be a string, a single character or a <var>PChar</var>.
+</p>
+<p>
+It is most likely introduced to avoid confusion between the regular
+<link id="#rtl.system.Assign">Assign</link> function and the <var>Assign</var> method of <var>TPersistent</var>
+in the Delphi VCL.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="CloseFile"/>
+<link id="#rtl.system.Assign"/>
+<link id="#rtl.system.Reset"/>
+<link id="#rtl.system.Rewrite"/>
+<link id="#rtl.system.Append"/>
+</seealso>
+<example file="refex/ex88"/>
+</element>
+
+<element name="CloseFile">
+<short>Close text or untyped file </short>
+<descr>
+<p>
+<var>CloseFile</var> flushes and closes a file <var>F</var> of any file type.
+<var>F</var> can be  <var>Text</var> or a typed or untyped <var>File</var> variable.
+After a call to <var>CloseFile</var>, any attempt to write to the file <var>F</var>
+will result in an error.
+</p>
+<p>
+It is most likely introduced to avoid confusion between the regular
+<link id="#rtl.system.Close">Close</link> function and the <var>Close</var> method of <var>TForm</var>
+in the Delphi VCL.
+</p>
+<p>
+for an example, see <link id="AssignFile"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="#rtl.system.Close"/>
+<link id="AssignFile"/>
+<link id="#rtl.system.Reset"/>
+<link id="#rtl.system.Rewrite"/>
+<link id="#rtl.system.Append"/>
+</seealso>
+</element>
+
+
+<element name="Freemem">
+<short>Free memory</short>
+<descr>
+<p>
+<var>FreeMem</var> releases the memory reserved by a call to
+<link id="objpasgetmem">GetMem</link>. The (optional) <var>Size</var> parameter is
+ignored, since the object pascal version of <var>GetMem</var> stores the amount
+of memory that was requested.
+</p>
+<p>
+Be sure not to release memory that was not obtained with the <var>Getmem</var>
+call in <file>Objpas</file>. Normally, this should not happen, since objpas
+changes the default memory manager to it's own memory manager.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="#rtl.system.Freemem"/>
+<link id="Getmem"/>
+</seealso>
+<example file="refex/ex89"/>
+</element>
+
+
+<element name="Getmem">
+<short>Allocate memory on the heap</short>
+<descr>
+<p>
+<var>GetMem</var> reserves <var>Size</var> bytes of memory on the heap and returns
+a pointer to it in <var>P</var>. <var>Size</var> is stored at offset -4 of the
+result, and is used to release the memory again. <var>P</var> can be a typed or
+untyped pointer.
+</p>
+<p>
+Be sure to release this memory with the <link id="objpasfreemem">FreeMem</link> call
+defined in the <file>objpas</file> unit.
+</p>
+<p>
+For an example, see <link id="objpasfreemem">FreeMem</link>.
+</p>
+</descr>
+<errors>
+In case no more memory is available, and no more memory could be obtained
+from the system a run-time error is triggered.
+</errors>
+<seealso>
+<link id="objpasfreemem">FreeMem</link>
+<link id="Getmem"/>.
+</seealso>
+</element>
+
+
+<element name="GetResourceStringCurrentValue">
+<short>Return current value of resourcestring</short>
+<descr>
+<p>
+<var>GetResourceStringCurrentValue</var> returns the current value of the
+resourcestring in table <var>TableIndex</var> with index <var>StringIndex</var>.
+</p>
+<p>
+The current value depends on the system of internationalization that was
+used, and which language is selected when the program is executed.
+</p>
+</descr>
+<errors>
+If either <var>TableIndex</var> or <var>StringIndex</var> are out of range, then
+a empty string is returned.
+</errors>
+<seealso>
+<link id="SetResourceStrings"/>,
+<link id="GetResourceStringDefaultValue"/>,
+<link id="GetResourceStringHash"/>,
+<link id="GetResourceStringName"/>,
+<link id="ResourceStringTableCount"/>,
+<link id="ResourceStringCount"/>
+</seealso>
+<example file="refex/ex90"/>
+</element>
+
+
+<element name="GetResourceStringDefaultValue">
+<short>Return default (original) value of resourcestring</short>
+<descr>
+<p>
+<var>GetResourceStringDefaultValue</var> returns the default value of the
+resourcestring in table <var>TableIndex</var> with index <var>StringIndex</var>.
+</p>
+<p>
+The default value is the value of the string that appears in the source code
+of the programmer, and is compiled into the program.
+</p>
+</descr>
+<errors>
+If either <var>TableIndex</var> or <var>StringIndex</var> are out of range, then
+a empty string is returned.
+</errors>
+<seealso>
+<link id="SetResourceStrings"/>,
+<link id="GetResourceStringCurrentValue"/>,
+<link id="GetResourceStringHash"/>,
+<link id="GetResourceStringName"/>,
+<link id="ResourceStringTableCount"/>,
+<link id="ResourceStringCount"/>
+</seealso>
+<example file="refex/ex91"/>
+</element>
+
+
+<element name="GetResourceStringHash">
+<short>Return hash value of resource string</short>
+<descr>
+<p>
+<var>GetResourceStringHash</var> returns the hash value associated with the
+resource string in table <var>TableIndex</var>, with index <var>StringIndex</var>.
+</p>
+<p>
+The hash value is calculated from the default value of the resource string
+in a manner that gives the same result as the GNU <file>gettext</file> mechanism.
+It is stored in the resourcestring tables, so retrieval is faster than
+actually calculating the hash for each string.
+</p>
+<p>
+For an example, see <link id="Hash"/>.
+</p>
+</descr>
+<errors>
+If either <var>TableIndex</var> or <var>StringIndex</var> is zero, 0 is returned.
+</errors>
+<seealso>
+<link id="Hash"/>
+<link id="SetResourceStrings"/>,
+<link id="GetResourceStringDefaultValue"/>,
+<link id="GetResourceStringHash"/>,
+<link id="GetResourceStringName"/>,
+<link id="ResourceStringTableCount"/>,
+<link id="ResourceStringCount"/>
+</seealso>
+</element>
+
+
+<element name="GetResourceStringName">
+<short>Return name of resource string.</short>
+<descr>
+<p>
+<var>GetResourceStringName</var> returns the name of the resourcestring in table
+<var>TableIndex</var> with index <var>StringIndex</var>. The name of the string is
+always the unit name in which the string was declared, followed by a period
+and the name of the constant, all in lowercase.
+</p>
+<p>
+If a unit <file>MyUnit</file> declares a resourcestring <var>MyTitle</var> then the
+name returned will be <var>myunit.mytitle</var>. A resourcestring in the program file
+will have the name of the program prepended.
+</p>
+<p>
+The name returned by this function is also the name that is stored in the
+resourcestring file generated by the compiler.
+</p>
+<p>
+Strictly speaking, this information isn't necessary for the functioning
+of the program, it is provided only as a means to easier translation of
+strings.
+</p>
+</descr>
+<errors>
+If either <var>TableIndex</var> or <var>StringIndex</var> is zero, an empty string
+is returned.
+</errors>
+<seealso>
+<link id="SetResourceStrings"/>,
+<link id="GetResourceStringDefaultValue"/>,
+<link id="GetResourceStringHash"/>,
+<link id="GetResourceStringName"/>,
+<link id="ResourceStringTableCount"/>,
+<link id="ResourceStringCount"/>
+</seealso>
+<example file="refex/ex92"/>
+</element>
+
+
+
+<element name="Hash">
+<short>Create GNU Gettext hash value for a string</short>
+<descr>
+<var>Hash</var> calculates the hash value of the string <var>S</var> in a manner that
+is compatible with the GNU gettext hash value for the string. It is the same
+value that is stored in the Resource string tables, and which can be
+retrieved with the <link id="GetResourceStringHash"/> function call.
+</descr>
+<errors>
+ None. In case the calculated hash value should be 0, the returned result
+will be -1.
+</errors>
+<seealso>
+<link id="GetResourceStringHash"/>,
+</seealso>
+<example file="refex/ex93"/>
+</element>
+
+
+<element name="Paramstr">
+<short>Return command-line parameter</short>
+<descr>
+<p>
+<var>ParamStr</var> returns the <var>Param</var>-th command-line parameter as an
+AnsiString. The system unit <link id="Paramstr"/> function limits the result to
+255 characters, and is overridden with this function.
+</p>
+<p>
+The zeroeth command-line parameter contains the path of the executable.
+On some operating systems (BSD) it may be simply the command as typed 
+on the command-line, because the OS does not offer a method to retrieve
+the full binary name.
+</p>
+<p>
+For an example, see <link id="#rtl.system.Paramstr"/>.
+</p>
+</descr>
+<errors>
+In case <var>Param</var> is an invalid value, an empty string is returned.
+</errors>
+<seealso>
+<link id="Paramstr"/>
+</seealso>
+</element>
+
+
+<element name="ReAllocMem">
+<short>Re-allocate memory</short>
+<descr>
+<p>
+<var>ReAllocMem</var> resizes the memory pointed to by <var>P</var> so it has size
+<var>Size</var>. The value of <var>P</var> may change during this operation. 
+The contents of the memory pointed to by <var>P</var> (if any) will be copied to 
+the new location, but may be truncated if the newly allocated memory block
+is smaller in size. If a larger block is allocated, only the used memory is
+initialized, extra memory will not be zeroed out.
+</p>
+<p>
+Note that <var>P</var> may be nil, in that case the behaviour of <var>ReAllocMem</var>
+is equivalent to <link id="Getmem"/>.
+</p>
+</descr>
+<errors>
+If no memory is available then a run-time error will occur.
+</errors>
+<seealso>
+<link id="Getmem"/>
+<link id="Freemem"/>
+</seealso>
+</element>
+
+<element name="ResetResourceTables">
+<short>Restore all resource strings to their declared values</short>
+<descr>
+<p>
+<var>ResetResourceTables</var> resets all resource strings to their default
+(i.e. as in the source code) values.
+</p>
+<p>
+Normally, this should never be called from a user's program. It is called
+in the initialization code of the <file>objpas</file> unit. However, if the
+resourcetables get messed up for some reason, this procedure will fix them
+again.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetResourceStrings"/>,
+<link id="GetResourceStringDefaultValue"/>,
+<link id="GetResourceStringHash"/>,
+<link id="GetResourceStringName"/>,
+<link id="ResourceStringTableCount"/>,
+<link id="ResourceStringCount"/>
+</seealso>
+</element>
+
+<element name="ResourceStringCount">
+<short>Return number of resource strins in table</short>
+<descr>
+<p>
+<var>ResourceStringCount</var> returns the number of resourcestrings in
+the table with index <var>TableIndex</var>. The strings in a particular table
+are numbered from <var>0</var> to <var>ResourceStringCount-1</var>, i.e. they're zero
+based.
+</p>
+<p>
+For an example, see <link id="GetResourceStringDefaultValue"/>
+</p>
+</descr>
+<errors>
+If an invalid <var>TableIndex</var> is given, <var>-1</var> is returned.
+</errors>
+<seealso>
+<link id="SetResourceStrings"/>,
+<link id="GetResourceStringCurrentValue"/>,
+<link id="GetResourceStringDefaultValue"/>,
+<link id="GetResourceStringHash"/>,
+<link id="GetResourceStringName"/>,
+<link id="ResourceStringTableCount"/>,
+</seealso>
+</element>
+
+
+<element name="ResourceStringTableCount">
+<short>Return number of resource string tables</short>
+<descr>
+<p>
+<var>ResourceStringTableCount</var> returns the number of resource string tables;
+this may be zero if no resource strings are used in a program.
+</p>
+<p>
+The tables are numbered from 0 to <var>ResourceStringTableCount-1</var>, i.e.
+they're zero based.
+</p>
+<p>
+For an example, see <link id="GetResourceStringDefaultValue"/>
+</p>
+</descr>
+<errors>
+</errors>
+<seealso>
+<link id="SetResourceStrings"/>,
+<link id="GetResourceStringDefaultValue"/>,
+<link id="GetResourceStringHash"/>,
+<link id="GetResourceStringName"/>,
+<link id="ResourceStringCount"/>
+</seealso>
+</element>
+
+
+<element name="SetResourceStrings">
+<short>Set values of all resource strings.</short>
+<descr>
+<p>
+<var>SetResourceStrings</var> calls <var>SetFunction</var> for all resourcestrings
+in the resourcestring tables and sets the resourcestring's current value
+to the value returned by <var>SetFunction</var>.
+</p>
+<p>
+The <var>Name</var>,<var>Value</var> and <var>Hash</var> parameters passed to the iterator
+function are the values stored in the tables.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetResourceStringCurrentValue"/>,
+<link id="GetResourceStringDefaultValue"/>,
+<link id="GetResourceStringHash"/>,
+<link id="GetResourceStringName"/>,
+<link id="ResourceStringTableCount"/>,
+<link id="ResourceStringCount"/>
+</seealso>
+<example file="refex/ex95"/>
+</element>
+
+
+<element name="SetResourceStringValue">
+<short>Set value of a resource string</short>
+<descr>
+<var>SetResourceStringValue</var> assigns <var>Value</var> to the resource string in
+table <var>TableIndex</var> with index <var>StringIndex</var>.
+</descr>
+<errors>
+</errors>
+<seealso>
+<link id="SetResourceStrings"/>,
+<link id="GetResourceStringCurrentValue"/>,
+<link id="GetResourceStringDefaultValue"/>,
+<link id="GetResourceStringHash"/>,
+<link id="GetResourceStringName"/>,
+<link id="ResourceStringTableCount"/>,
+<link id="ResourceStringCount"/>
+</seealso>
+<example file="refex/ex94"/>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MaxInt">
+<short>Maximum value for <link id="Integer"/> type.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="integer">
+<short>Redefinition of integer as 32-bit type.</short>
+<descr>
+In <var>OBJPAS</var> mode and in <var>DELPHI</var> mode, an
+<var>Integer</var> has a size of 32 bit. In TP or regular FPC mode, an
+integer is 16 bit.
+</descr>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="PString">
+<short>Pointer to ansistring type.</short>
+</element>
+
+<!-- array type Visibility: default -->
+<element name="IntegerArray">
+<short>Generic array of <link id="#rtl.objpas.integer">integer</link></short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TIntegerArray">
+<short>Alias for <link id="#rtl.objpas.IntegerArray">IntegerArray</link></short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PIntegerArray">
+<short>Pointer to <link id="#rtl.objpas.TIntegerArray">TIntegerArray</link> type.</short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- array type Visibility: default -->
+<element name="PointerArray">
+<short>Generic Array of pointers.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TPointerArray">
+<short>Alias for <link id="#rtl.objpas.PointerArray">PointerArray</link></short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PPointerArray">
+<short>Pointer to <link id="rtl.objpas.PointerArray">PointerArray</link></short>
+</element>
+
+<!-- array type Visibility: default -->
+<element name="TBoundArray">
+<short>Array of integer, used in interfaces.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PResStringRec">
+<short>Pointer to ansistring (Delphi compatibility).</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TResStringRec">
+<short>Ansistring record in resource table (Delphi compatibility).</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="LoadResString">
+<short>Load resource string</short>
+</element>
+</module>
+</package>
+</fpdoc-descriptions>
