@@ -33,6 +33,7 @@ unit win_targ;
       procedure preparelib(const s:string);virtual;
       procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
       procedure generatelib;virtual;
+      procedure generatesmartlib;
     end;
 
     { sets some flags of the executable }
@@ -82,14 +83,117 @@ unit win_targ;
          hp1^.imported_procedures^.concat(hp2);
       end;
 
-    procedure timportlibwin32.generatelib;
 
+    procedure timportlibwin32.generatesmartlib;
+      var
+         hp1 : pimportlist;
+         hp2 : pimported_procedure;
+         lhead,lname,lcode,
+         lidata4,lidata5 : plabel;
+         r : preference;
+      begin
+         hp1:=pimportlist(current_module^.imports^.first);
+         while assigned(hp1) do
+           begin
+              importssection^.concat(new(pai_cut,init));
+              codesegment^.concat(new(pai_cut,init));
+            { create header for this importmodule }
+              { Get labels for the sections }
+              getdatalabel(lhead);
+              getdatalabel(lname);
+              getlabel(lidata4);
+              getlabel(lidata5);
+              importssection^.concat(new(pai_section,init_idata(2)));
+              importssection^.concat(new(pai_label,init(lhead)));
+              { pointer to procedure names }
+              importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(lidata4)))));
+              { two empty entries follow }
+              importssection^.concat(new(pai_const,init_32bit(0)));
+              importssection^.concat(new(pai_const,init_32bit(0)));
+              { pointer to dll name }
+              importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(lname)))));
+              { pointer to fixups }
+              importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(lidata5)))));
+              { first write the name references }
+              importssection^.concat(new(pai_section,init_idata(4)));
+              importssection^.concat(new(pai_const,init_32bit(0)));
+              importssection^.concat(new(pai_label,init(lidata4)));
+              { then the addresses and create also the indirect jump }
+              importssection^.concat(new(pai_section,init_idata(5)));
+              importssection^.concat(new(pai_const,init_32bit(0)));
+              importssection^.concat(new(pai_label,init(lidata5)));
+
+              { write final section }
+              importssection^.concat(new(pai_cut,init_end));
+              { end of name references }
+              importssection^.concat(new(pai_section,init_idata(4)));
+              importssection^.concat(new(pai_const,init_32bit(0)));
+              { end if addresses }
+              importssection^.concat(new(pai_section,init_idata(5)));
+              importssection^.concat(new(pai_const,init_32bit(0)));
+              { dllname }
+              importssection^.concat(new(pai_section,init_idata(7)));
+              importssection^.concat(new(pai_label,init(lname)));
+              importssection^.concat(new(pai_string,init(hp1^.dllname^+target_os.sharedlibext+#0)));
+
+              { create procedures }
+              hp2:=pimported_procedure(hp1^.imported_procedures^.first);
+              while assigned(hp2) do
+                begin
+                  { insert cuts }
+                  importssection^.concat(new(pai_cut,init));
+                  { create indirect jump }
+                  getlabel(lcode);
+                  new(r);
+                  reset_reference(r^);
+                  r^.symbol:=stringdup(lab2str(lcode));
+                  { place jump in codesegment, insert a code section in the
+                    importsection to reduce the amount of .s files (PFV) }
+                  importssection^.concat(new(pai_section,init(sec_code)));
+{$IfDef GDB}
+                  if (cs_debuginfo in aktmoduleswitches) then
+                   importssection^.concat(new(pai_stab_function_name,init(nil)));
+{$EndIf GDB}
+                  importssection^.concat(new(pai_align,init_op(4,$90)));
+                  importssection^.concat(new(pai_symbol,init_global(hp2^.func^)));
+                  importssection^.concat(new(pai386,op_ref(A_JMP,S_NO,r)));
+                  { create head link }
+                  importssection^.concat(new(pai_section,init_idata(7)));
+                  importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(lhead)))));
+                  { fixup }
+                  getlabel(plabel(hp2^.lab));
+                  importssection^.concat(new(pai_section,init_idata(4)));
+                  importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(hp2^.lab)))));
+                  { add jump field to importsection }
+                  importssection^.concat(new(pai_section,init_idata(5)));
+                  importssection^.concat(new(pai_label,init(lcode)));
+                  importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(hp2^.lab)))));
+                  { finally the import information }
+                  importssection^.concat(new(pai_section,init_idata(6)));
+                  importssection^.concat(new(pai_label,init(hp2^.lab)));
+                  importssection^.concat(new(pai_const,init_16bit(hp2^.ordnr)));
+                  importssection^.concat(new(pai_string,init(hp2^.name^+#0)));
+
+                  hp2:=pimported_procedure(hp2^.next);
+                end;
+              hp1:=pimportlist(hp1^.next);
+           end;
+       end;
+
+
+    procedure timportlibwin32.generatelib;
       var
          hp1 : pimportlist;
          hp2 : pimported_procedure;
          l1,l2,l3,l4 : plabel;
          r : preference;
       begin
+         if (cs_smartlink in aktmoduleswitches) then
+          begin
+            generatesmartlib;
+            exit;
+          end;
+
          hp1:=pimportlist(current_module^.imports^.first);
          while assigned(hp1) do
            begin
@@ -179,6 +283,7 @@ unit win_targ;
            end;
       end;
 
+
     procedure postprocessexecutable;
 
       begin
@@ -188,7 +293,10 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.7  1998-09-03 17:39:06  florian
+  Revision 1.8  1998-09-07 18:33:35  peter
+    + smartlinking for win95 imports
+
+  Revision 1.7  1998/09/03 17:39:06  florian
     + better code for type conversation longint/dword to real type
 
   Revision 1.6  1998/08/10 14:50:38  peter

@@ -43,6 +43,7 @@ type
     asmfile,             { current .s and .o file }
     objfile,
     as_bin   : string;
+    IsEndFile : boolean;  { special 'end' file for import dir ? }
   {outfile}
     AsmSize,
     AsmStartSize,
@@ -207,12 +208,21 @@ end;
 
 
 procedure TAsmList.NextSmartName;
+var
+  s : string;
 begin
   inc(SmartLinkFilesCnt);
   if SmartLinkFilesCnt>999999 then
    Message(assem_f_too_many_asm_files);
-  AsmFile:=Path+FixFileName(current_module^.asmprefix^+tostr(SmartLinkFilesCnt)+target_info.asmext);
-  ObjFile:=Path+FixFileName(current_module^.asmprefix^+tostr(SmartLinkFilesCnt)+target_info.objext);
+  if IsEndFile then
+   begin
+     s:=current_module^.asmprefix^+'e';
+     IsEndFile:=false;
+   end
+  else
+   s:=current_module^.asmprefix^;
+  AsmFile:=Path+FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.asmext);
+  ObjFile:=Path+FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.objext);
 end;
 
 
@@ -446,7 +456,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  1998-09-04 17:34:20  pierre
+  Revision 1.21  1998-09-07 18:33:32  peter
+    + smartlinking for win95 imports
+
+  Revision 1.20  1998/09/04 17:34:20  pierre
     * bug with datalabel corrected
     + assembler errors better commented
     * one nested record crash removed

@@ -30,10 +30,10 @@ unit aasm;
     type
 {$ifdef i386}
      {$ifndef VER0_99_5}
-       bestreal = extended; 
-     {$else} 
-       bestreal = double; 
-     {$endif}  
+       bestreal = extended;
+     {$else}
+       bestreal = double;
+     {$endif}
 {$endif}
 {$ifdef m68k}
        bestreal = real;
@@ -241,7 +241,9 @@ unit aasm;
        { insert a cut to split into several smaller files }
        pai_cut = ^tai_cut;
        tai_cut = object(tai)
+          endname : boolean;
           constructor init;
+          constructor init_end;
        end;
 
 { for each processor define the best precision }
@@ -619,8 +621,7 @@ uses
       end;
 
 {****************************************************************************
-                              TAI_ASM_COMMENT
-  comment to be inserted in the assembler file
+          TAI_ASM_COMMENT  comment to be inserted in the assembler file
  ****************************************************************************}
 
      constructor tai_asm_comment.init(_str : pchar);
@@ -681,8 +682,16 @@ uses
        begin
           inherited init;
           typ:=ait_cut;
+          endname:=false;
        end;
 
+
+     constructor tai_cut.init_end;
+       begin
+          inherited init;
+          typ:=ait_cut;
+          endname:=true;
+       end;
 
 {*****************************************************************************
                            External Helpers
@@ -843,7 +852,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.16  1998-09-03 17:08:37  pierre
+  Revision 1.17  1998-09-07 18:33:31  peter
+    + smartlinking for win95 imports
+
+  Revision 1.16  1998/09/03 17:08:37  pierre
     * better lines for stabs
       (no scroll back to if before else part
       no return to case line at jump outside case)
