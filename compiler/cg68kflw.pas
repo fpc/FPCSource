@@ -404,85 +404,79 @@ implementation
                             end;
                  else internalerror(2001);
               end;
-              if (procinfo.retdef^.deftype=orddef) then
-                begin
-                   case porddef(procinfo.retdef)^.typ of
-                      s32bit,u32bit,bool32bit : if is_mem then
-                                        exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
-                                          newreference(p^.left^.location.reference),R_D0)))
-                                      else
-                                        emit_reg_reg(A_MOVE,S_L,
-                                          p^.left^.location.register,R_D0);
-                      u8bit,s8bit,uchar,bool8bit : if is_mem then
-                                        exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,
-                                          newreference(p^.left^.location.reference),R_D0)))
-                                      else
-                                        emit_reg_reg(A_MOVE,S_B,
-                                          p^.left^.location.register,R_D0);
-                      s16bit,u16bit,bool16bit : if is_mem then
-                                        exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_W,
-                                          newreference(p^.left^.location.reference),R_D0)))
-                                      else
-                                        emit_reg_reg(A_MOVE,S_W,
-                                          p^.left^.location.register,R_D0);
-                   end;
-                end
-               else
-                 if (procinfo.retdef^.deftype in
-                     [pointerdef,enumdef,procvardef]) then
-                   begin
-                      if is_mem then
-                        exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
-                          newreference(p^.left^.location.reference),R_D0)))
-                      else
-                        exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
-                          p^.left^.location.register,R_D0)));
-                   end
-              else
-                if (procinfo.retdef^.deftype=floatdef) then
-            { floating point return values .... }
-            { single are returned in d0         }
-                  begin
-                     if (pfloatdef(procinfo.retdef)^.typ=f32bit) or
-                   (pfloatdef(procinfo.retdef)^.typ=s32real) then
-                       begin
+              case procinfo.retdef^.deftype of
+               orddef,
+              enumdef : begin
+                          case procinfo.retdef^.size of
+                           4 : if is_mem then
+                                 exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                                   newreference(p^.left^.location.reference),R_D0)))
+                               else
+                                 emit_reg_reg(A_MOVE,S_L,p^.left^.location.register,R_D0);
+                           2 : if is_mem then
+                                 exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_W,
+                                   newreference(p^.left^.location.reference),R_D0)))
+                               else
+                                 emit_reg_reg(A_MOVE,S_W,p^.left^.location.register,R_D0);
+                           1 : if is_mem then
+                                 exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,
+                                   newreference(p^.left^.location.reference),R_D0)))
+                               else
+                                 emit_reg_reg(A_MOVE,S_B,p^.left^.location.register,R_D0);
+                          end;
+                        end;
+           pointerdef,
+           procvardef : begin
                           if is_mem then
                             exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
                               newreference(p^.left^.location.reference),R_D0)))
                           else
-                            begin
-                               if pfloatdef(procinfo.retdef)^.typ=f32bit then
-                                  emit_reg_reg(A_MOVE,S_L,p^.left^.location.register,R_D0)
-                               else
-                                  begin
-                                     { single values are in the floating point registers }
-                                     if cs_fp_emulation in aktmoduleswitches then
-                                        emit_reg_reg(A_MOVE,S_L,p^.left^.location.fpureg,R_D0)
-                                     else
-                                        exprasmlist^.concat(new(pai68k,op_reg_reg(A_FMOVE,S_FS,
-                                           p^.left^.location.fpureg,R_D0)));
-                                  end;
-                            end;
-                       end
-                     else
-                       Begin
-                         { this is only possible in real non emulation mode }
-                         { LOC_MEM,LOC_REFERENCE }
-                         if is_mem then
+                            exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,p^.left^.location.register,R_D0)));
+                        end
+             floatdef : begin
+                          { floating point return values .... }
+                          { single are returned in d0         }
+                          if (pfloatdef(procinfo.retdef)^.typ=f32bit) or
+                             (pfloatdef(procinfo.retdef)^.typ=s32real) then
                            begin
-                               exprasmlist^.concat(new(pai68k,op_ref_reg(A_FMOVE,
+                             if is_mem then
+                               exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                                 newreference(p^.left^.location.reference),R_D0)))
+                             else
+                               begin
+                                 if pfloatdef(procinfo.retdef)^.typ=f32bit then
+                                   emit_reg_reg(A_MOVE,S_L,p^.left^.location.register,R_D0)
+                                 else
+                                   begin
+                                      { single values are in the floating point registers }
+                                      if cs_fp_emulation in aktmoduleswitches then
+                                         emit_reg_reg(A_MOVE,S_L,p^.left^.location.fpureg,R_D0)
+                                      else
+                                         exprasmlist^.concat(new(pai68k,op_reg_reg(A_FMOVE,S_FS,
+                                            p^.left^.location.fpureg,R_D0)));
+                                   end;
+                               end;
+                           end
+                          else
+                           Begin
+                             { this is only possible in real non emulation mode }
+                             { LOC_MEM,LOC_REFERENCE }
+                             if is_mem then
+                              begin
+                                exprasmlist^.concat(new(pai68k,op_ref_reg(A_FMOVE,
                                   getfloatsize(pfloatdef(procinfo.retdef)^.typ),
                                     newreference(p^.left^.location.reference),R_FP0)));
-                           end
-                         else
-                          { LOC_FPU }
-                            begin
-                               { convert from extended to correct type }
-                               { when storing                          }
-                               exprasmlist^.concat(new(pai68k,op_reg_reg(A_FMOVE,
-                                 getfloatsize(pfloatdef(procinfo.retdef)^.typ),p^.left^.location.fpureg,R_FP0)));
-                            end;
-                       end;
+                              end
+                             else
+                             { LOC_FPU }
+                              begin
+                                { convert from extended to correct type }
+                                { when storing                          }
+                                exprasmlist^.concat(new(pai68k,op_reg_reg(A_FMOVE,
+                                  getfloatsize(pfloatdef(procinfo.retdef)^.typ),p^.left^.location.fpureg,R_FP0)));
+                              end;
+                           end;
+                        end;
               end;
 do_jmp:
               truelabel:=otlabel;
@@ -604,7 +598,7 @@ do_jmp:
 
       begin
         InternalError(3431243);
-(*      
+(*
          { this can be called recursivly }
          oldendexceptlabel:=endexceptlabel;
          { we modify EAX }
@@ -782,7 +776,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.1  1998-09-01 09:07:09  peter
+  Revision 1.2  1998-09-01 12:48:01  peter
+    * use pdef^.size instead of orddef^.typ
+
+  Revision 1.1  1998/09/01 09:07:09  peter
     * m68k fixes, splitted cg68k like cgi386
 
 }

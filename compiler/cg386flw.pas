@@ -381,67 +381,68 @@ implementation
               secondpass(p^.left);
               case p^.left^.location.loc of
                  LOC_FPU : goto do_jmp;
-                 LOC_MEM,LOC_REFERENCE : is_mem:=true;
-                 LOC_CREGISTER,
-                 LOC_REGISTER : is_mem:=false;
-                     LOC_FLAGS : begin
-                                exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.right^.location.resflags],S_B,R_AL)));
-                                        goto do_jmp;
-                             end;
-                 LOC_JUMP : begin
-                                      emitl(A_LABEL,truelabel);
-                               exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_B,1,R_AL)));
-                               emitl(A_JMP,aktexit2label);
-                               exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_B,R_AL,R_AL)));
-                               goto do_jmp;
-                            end;
-                 else internalerror(2001);
+                 LOC_MEM,
+           LOC_REFERENCE : is_mem:=true;
+           LOC_CREGISTER,
+            LOC_REGISTER : is_mem:=false;
+               LOC_FLAGS : begin
+                             exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.right^.location.resflags],S_B,R_AL)));
+                             goto do_jmp;
+                           end;
+                LOC_JUMP : begin
+                             emitl(A_LABEL,truelabel);
+                             exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_B,1,R_AL)));
+                             emitl(A_JMP,aktexit2label);
+                             exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_B,R_AL,R_AL)));
+                             goto do_jmp;
+                           end;
+              else
+                internalerror(2001);
               end;
-                 if (procinfo.retdef^.deftype=orddef) then
-                begin
-                   case porddef(procinfo.retdef)^.typ of
-            s32bit,u32bit,bool32bit : if is_mem then
-                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                          newreference(p^.left^.location.reference),R_EAX)))
-                                      else
-                                        emit_reg_reg(A_MOV,S_L,p^.left^.location.register,R_EAX);
-         u8bit,s8bit,uchar,bool8bit : if is_mem then
-                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_B,
-                                          newreference(p^.left^.location.reference),R_AL)))
-                                      else
-                                        emit_reg_reg(A_MOV,S_B,p^.left^.location.register,R_AL);
-            s16bit,u16bit,bool16bit : if is_mem then
-                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_W,
-                                          newreference(p^.left^.location.reference),R_AX)))
-                                      else
-                                        emit_reg_reg(A_MOV,S_W,p^.left^.location.register,R_AX);
-                   end;
-                end
-                  else
-                     if (procinfo.retdef^.deftype in [pointerdef,enumdef,procvardef]) then
-                       begin
-                           if is_mem then
-                             exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                               newreference(p^.left^.location.reference),R_EAX)))
-                           else
-                             exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
-                               p^.left^.location.register,R_EAX)));
-                       end
-                 else
-                    if (procinfo.retdef^.deftype=floatdef) then
-                      begin
-                          if pfloatdef(procinfo.retdef)^.typ=f32bit then
-                            begin
-                                if is_mem then
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+              case procinfo.retdef^.deftype of
+               orddef,
+              enumdef : begin
+                          case procinfo.retdef^.size of
+                           4 : if is_mem then
+                                 exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                   newreference(p^.left^.location.reference),R_EAX)))
+                               else
+                                 emit_reg_reg(A_MOV,S_L,p^.left^.location.register,R_EAX);
+                           2 : if is_mem then
+                                 exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_W,
+                                   newreference(p^.left^.location.reference),R_AX)))
+                               else
+                                 emit_reg_reg(A_MOV,S_W,p^.left^.location.register,R_AX);
+                           1 : if is_mem then
+                                 exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_B,
+                                   newreference(p^.left^.location.reference),R_AL)))
+                               else
+                                 emit_reg_reg(A_MOV,S_B,p^.left^.location.register,R_AL);
+                          end;
+                        end;
+           pointerdef,
+           procvardef : begin
+                          if is_mem then
+                            exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                               newreference(p^.left^.location.reference),R_EAX)))
                           else
-                            emit_reg_reg(A_MOV,S_L,p^.left^.location.register,R_EAX);
-                       end
-                     else
-                       if is_mem then
-                         floatload(pfloatdef(procinfo.retdef)^.typ,p^.left^.location.reference);
-                end;
+                            exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
+                              p^.left^.location.register,R_EAX)));
+                        end;
+             floatdef : begin
+                          if pfloatdef(procinfo.retdef)^.typ=f32bit then
+                           begin
+                             if is_mem then
+                               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                 newreference(p^.left^.location.reference),R_EAX)))
+                             else
+                               emit_reg_reg(A_MOV,S_L,p^.left^.location.register,R_EAX);
+                           end
+                          else
+                           if is_mem then
+                            floatload(pfloatdef(procinfo.retdef)^.typ,p^.left^.location.reference);
+                        end;
+              end;
 do_jmp:
               truelabel:=otlabel;
               falselabel:=oflabel;
@@ -737,13 +738,19 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.12  1998-08-28 10:56:58  peter
+  Revision 1.13  1998-09-01 12:47:58  peter
+    * use pdef^.size instead of orddef^.typ
+
+  Revision 1.12  1998/08/28 10:56:58  peter
     * removed warnings
 
   Revision 1.11  1998/08/05 16:00:10  florian
     * some fixes for ansi strings
     * $log$ to $Log$
-    * $log$ to Revision 1.12  1998-08-28 10:56:58  peter
+    * $log$ to Revision 1.13  1998-09-01 12:47:58  peter
+    * $log$ to   * use pdef^.size instead of orddef^.typ
+    * $log$ to
+    * $log$ to Revision 1.12  1998/08/28 10:56:58  peter
     * $log$ to   * removed warnings
     * $log$ to changed
 

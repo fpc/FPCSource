@@ -260,11 +260,11 @@ implementation
                         tempreference:=p^.left^.location.reference;
                         del_reference(p^.left^.location.reference);
                         case p^.resulttype^.deftype of
+                        enumdef,
                         orddef :
                           begin
-                             case porddef(p^.resulttype)^.typ of
-                               s32bit,u32bit,bool32bit :
-                                 begin
+                            case p^.resulttype^.size of
+                             4 : begin
                                     inc(pushedparasize,4);
                                     if inlined then
                                       begin
@@ -276,9 +276,7 @@ implementation
                                     else
                                       emit_push_mem(tempreference);
                                  end;
-                               s8bit,u8bit,uchar,bool8bit,
-                               bool16bit,s16bit,u16bit :
-                                 begin
+                           1,2 : begin
                                    inc(pushedparasize,2);
                                    if inlined then
                                      begin
@@ -291,6 +289,8 @@ implementation
                                      exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_W,
                                        newreference(tempreference))));
                                  end;
+                             else
+                              internalerror(234231);
                              end;
                           end;
                         floatdef :
@@ -376,7 +376,7 @@ implementation
                             end;
                           end;
                         pointerdef,procvardef,
-                        enumdef,classrefdef:
+                        classrefdef:
                           begin
                              inc(pushedparasize,4);
                              if inlined then
@@ -1408,7 +1408,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1998-08-31 12:22:15  peter
+  Revision 1.21  1998-09-01 12:47:57  peter
+    * use pdef^.size instead of orddef^.typ
+
+  Revision 1.20  1998/08/31 12:22:15  peter
     * secondinline moved to cg386inl
 
   Revision 1.19  1998/08/31 08:52:03  peter

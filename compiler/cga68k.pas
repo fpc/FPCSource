@@ -767,15 +767,12 @@ begin
                         reset_reference(hr^);
                         hr^.offset:=procinfo.retoffset;
                         hr^.base:=procinfo.framepointer;
-                        if (procinfo.retdef^.deftype=orddef) then
+                        if (procinfo.retdef^.deftype in [orddef,enumdef]) then
                             begin
-                                case porddef(procinfo.retdef)^.typ of
-                                    s32bit,u32bit :
-                                        procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,hr,R_D0)));
-                                    u8bit,s8bit,uchar,bool8bit :
-                                        procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,hr,R_D0)));
-                                    s16bit,u16bit :
-                                        procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_MOVE,S_W,hr,R_D0)));
+                                case procinfo.retdef^.size of
+                                 4 : procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,hr,R_D0)));
+                                 2 : procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_MOVE,S_W,hr,R_D0)));
+                                 1 : procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,hr,R_D0)));
                                 end;
                             end
                         else
@@ -1348,7 +1345,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1998-09-01 09:07:09  peter
+  Revision 1.13  1998-09-01 12:48:02  peter
+    * use pdef^.size instead of orddef^.typ
+
+  Revision 1.12  1998/09/01 09:07:09  peter
     * m68k fixes, splitted cg68k like cgi386
 
   Revision 1.11  1998/08/31 12:26:24  peter

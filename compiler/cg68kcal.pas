@@ -219,15 +219,14 @@ implementation
                                   tempreference:=p^.left^.location.reference;
                                   del_reference(p^.left^.location.reference);
                                   case p^.resulttype^.deftype of
+                                    enumdef,
                                      orddef : begin
-                                                   case porddef(p^.resulttype)^.typ of
-                                                      s32bit,u32bit :
-                                                        begin
+                                                   case p^.resulttype^.size of
+                                                    4 : begin
                                                            emit_push_mem(tempreference);
                                                            inc(pushedparasize,4);
                                                         end;
-                                                      s8bit,u8bit,uchar,bool8bit:
-                                                      Begin
+                                                    1 : Begin
                                                           { We push a BUT, the SP is incremented by 2      }
                                                           { as specified in the Motorola Prog's Ref Manual }
                                                           { Therefore offet increments BY 2!!!             }
@@ -258,14 +257,13 @@ implementation
                                                              newreference(tempreference),R_SPPUSH))); }
                                                           end;
                                                           inc(pushedparasize,2);
-
-                                                      end;
-                                                      s16bit,u16bit : begin
+                                                        end;
+                                                    2 : begin
                                                           exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_W,
                                                             newreference(tempreference),R_SPPUSH)));
                                                           inc(pushedparasize,2);
-                                                      end;
-                                                    end;
+                                                        end;
+                                                   end;
                                               end;
                                      floatdef : begin
                                                    case pfloatdef(p^.resulttype)^.typ of
@@ -302,7 +300,7 @@ implementation
                                                    end;
                                                 end;
                                      pointerdef,procvardef,
-                                         enumdef,classrefdef:  begin
+                                         classrefdef:  begin
                                                       emit_push_mem(tempreference);
                                                       inc(pushedparasize,4);
                                                    end;
@@ -1048,7 +1046,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-01 09:07:09  peter
+  Revision 1.2  1998-09-01 12:47:59  peter
+    * use pdef^.size instead of orddef^.typ
+
+  Revision 1.1  1998/09/01 09:07:09  peter
     * m68k fixes, splitted cg68k like cgi386
 
 }
