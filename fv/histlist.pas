@@ -156,8 +156,8 @@ PROCEDURE StoreHistory (Var S: TStream);
 {                 INITIALIZED DOS/DPMI/WIN/NT/OS2 VARIABLES                 }
 {---------------------------------------------------------------------------}
 CONST
-   HistorySize: Word = 64*1024;                       { Maximum history size }
-   HistoryUsed: LongInt = 0;                          { History used }
+   HistorySize: sw_integer = 64*1024;                    { Maximum history size }
+   HistoryUsed: sw_integer = 0;                          { History used }
    HistoryBlock: Pointer = Nil;                       { Storage block }
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
@@ -169,19 +169,12 @@ CONST
 {***************************************************************************}
 
 {---------------------------------------------------------------------------}
-{                       THistRec RECORD DEFINITION                          }
-{---------------------------------------------------------------------------}
-TYPE
-   THistRec =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-   PACKED
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-   RECORD
-     Zero: byte;                                      { Start marker }
-     Id  : byte;                                      { History id }
-     Str : String;                                    { History string }
-   END;
-   PHistRec = ^THistRec;                              { History record ptr }
+{                       THistRec RECORD DEFINITION
+
+   Zero  1 byte, start marker
+   Id    1 byte, History id
+   <shortstring>   1 byte length+string data, Contents
+}
 
 {***************************************************************************}
 {                      UNINITIALIZED PRIVATE VARIABLES                      }
@@ -218,7 +211,7 @@ BEGIN
    Dec(P, 2);                                         { Correct position }
    Inc(P2, PByte(P2)^+1);                             { Next hist record }
    { Shuffle history }
-   Move(P2^, P^, cardinal(HistoryBlock) + HistoryUsed - cardinal(P2) );
+   Move(P2^, P^, Pointer(HistoryBlock) + HistoryUsed - Pointer(P2) );
    Dec(HistoryUsed, Len);                             { Adjust history used }
 END;
 
@@ -226,23 +219,24 @@ END;
 {  AdvanceStringPtr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB  }
 {---------------------------------------------------------------------------}
 PROCEDURE AdvanceStringPtr;
-VAR P: PHistRec;
+VAR P: PChar;
 BEGIN
    While (CurString <> Nil) Do Begin
-     If (cardinal(CurString) >= cardinal(HistoryBlock) + HistoryUsed) Then Begin{ Last string check }
+     If (Pointer(CurString) >= Pointer(HistoryBlock) + HistoryUsed) Then Begin{ Last string check }
        CurString := Nil;                              { Clear current string }
        Exit;                                          { Now exit }
      End;
      Inc(PChar(CurString), PByte(CurString)^+1);      { Move to next string }
-     If (cardinal(CurString) >= cardinal(HistoryBlock) + HistoryUsed) Then Begin{ Last string check }
+     If (Pointer(CurString) >= Pointer(HistoryBlock) + HistoryUsed) Then Begin{ Last string check }
        CurString := Nil;                              { Clear current string }
        Exit;                                          { Now exit }
      End;
-     P := PHistRec(CurString);                        { Transfer record ptr }
+     P := PChar(CurString);                        { Transfer record ptr }
      Inc(PChar(CurString), 2);                        { Move to string }
-     if (P^.Zero<>0) then
+     if (P^<>#0) then
        RunError(215);
-     If (P^.Id = CurId) Then Exit;                    { Found the string }
+     Inc(P);  
+     If (P^ = Chr(CurId)) Then Exit;                    { Found the string }
    End;
 END;
 
@@ -250,35 +244,31 @@ END;
 {  InsertString -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB      }
 {---------------------------------------------------------------------------}
 PROCEDURE InsertString (Id: Byte; Const Str: String);
-VAR P1, P2: PChar;
-    P : PHistRec;
+VAR P, P1, P2: PChar;
 BEGIN
   while (HistoryUsed+Length(Str)+3>HistorySize) do
    begin
-       P:=PHistRec(HistoryBlock);
+       P:=PChar(HistoryBlock);
        while Pointer(P)<Pointer(HistoryBlock)+HistorySize do
          begin
-           if Pointer(P)+Length(P^.Str)+6+Length(Str) >
+           if Pointer(P)+Length(PShortString(P+2)^)+6+Length(Str) >
               Pointer(HistoryBlock)+HistorySize then
              begin
-               HistoryUsed:=HistoryUsed-(Length(P^.Str)+3);
+               Dec(HistoryUsed,Length(PShortString(P+2)^)+3);
                FillChar(P^,Pointer(HistoryBlock)+HistorySize-Pointer(P),#0);
                break;
              end;
-           P:=PHistRec(Pointer(P)+Length(P^.Str)+3);
+           Inc(P,Length(PShortString(P+2)^)+3);
          end;
    end;
    P1 := PChar(HistoryBlock)+1;                     { First history record }
    P2 := P1+Length(Str)+3;                          { History record after }
    Move(P1^, P2^, HistoryUsed - 1);                 { Shuffle history data }
-   PHistRec(P1)^.Zero := 0;                         { Set marker byte }
-   PHistRec(P1)^.Id := Id;                          { Set history id }
-   {$IFDEF PPC_DELPHI3}                             { DELPHI3+ COMPILER }
-   Move(Str[1], PHistRec(P1)^.Str[1], Length(Str)); { Set history string }
-   SetLength(PHistRec(P1)^.Str, Length(Str));       { Set string length }
-   {$ELSE}                                          { OTHER COMPILERS }
-   Move(Str[0], PHistRec(P1)^.Str, Length(Str)+1);  { Set history string }
-   {$ENDIF}
+   P1^:=#0;                         { Set marker byte }
+   Inc(P1);
+   P1^:=Chr(Id);                          { Set history id }
+   Inc(P1);
+   Move(Str[0], P1^, Length(Str)+1);  { Set history string }
    Inc(HistoryUsed, Length(Str)+3);                 { Inc history used }
 END;
 
@@ -309,7 +299,7 @@ BEGIN
      begin
        FreeMem(HistoryBlock);              { Release history block }
        HistoryBlock:=nil;
-     end;  
+     end;
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -401,7 +391,7 @@ end;
 {  LoadHistory -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB       }
 {---------------------------------------------------------------------------}
 PROCEDURE LoadHistory (Var S: TStream);
-VAR Size: sw_Word;
+VAR Size: sw_integer;
 BEGIN
    S.Read(Size, sizeof(Size));                        { Read history size }
    If (HistoryBlock <> Nil) Then Begin                { History initialized }
@@ -416,7 +406,7 @@ END;
 {  StoreHistory -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB      }
 {---------------------------------------------------------------------------}
 PROCEDURE StoreHistory (Var S: TStream);
-VAR Size: sw_Word;
+VAR Size: sw_integer;
 BEGIN
    If (HistoryBlock = Nil) Then Size := 0 Else        { No history data }
      Size := HistoryUsed;                             { Size of history data }
@@ -428,7 +418,10 @@ END.
 
 {
  $Log$
- Revision 1.13  2004-12-22 15:45:34  peter
+ Revision 1.14  2004-12-26 13:26:52  peter
+   * remove phistrec usage
+
+ Revision 1.13  2004/12/22 15:45:34  peter
    * fixed overflow when histsize=0
 
  Revision 1.12  2004/11/06 17:08:48  peter
