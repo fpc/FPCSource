@@ -806,7 +806,7 @@ implementation
              begin
                 { here a problem detected in tabsolutesym }
                 { the types can be forward type !!        }
-                if assigned(def1^.sym) and (sp_forwarddef in def1^.sym^.symoptions) then
+                if assigned(def1^.sym) and (ppointerdef(def1)^.definition^.deftype=forwarddef) then
                   b:=(def1^.sym=def2^.sym)
                 else
                   b:=ppointerdef(def1)^.definition=ppointerdef(def2)^.definition;
@@ -923,7 +923,7 @@ implementation
            if (def1^.deftype=classrefdef) and (def2^.deftype=classrefdef) then
              begin
                 { similar to pointerdef: }
-                if assigned(def1^.sym) and (sp_forwarddef in def1^.sym^.symoptions) then
+                if assigned(def1^.sym) and (pclassrefdef(def1)^.definition^.deftype=forwarddef) then
                   b:=(def1^.sym=def2^.sym)
                 else
                   b:=is_equal(pclassrefdef(def1)^.definition,pclassrefdef(def2)^.definition);
@@ -993,7 +993,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  1999-09-15 22:09:27  florian
+  Revision 1.88  1999-10-01 08:02:51  peter
+    * forward type declaration rewritten
+
+  Revision 1.87  1999/09/15 22:09:27  florian
     + rtti is now automatically generated for published classes, i.e.
       they are handled like an implicit property
 

@@ -1413,6 +1413,18 @@
       end;
 
 
+    destructor tpointerdef.done;
+      begin
+        if assigned(definition) and
+           (definition^.deftype=forwarddef) then
+         begin
+           dispose(definition,done);
+           definition:=nil;
+         end;
+        inherited done;
+      end;
+
+
     procedure tpointerdef.deref;
       begin
          resolvedef(definition);
@@ -3754,6 +3766,31 @@ Const local_symtable_index : longint = $8001;
       end;
 
 {****************************************************************************
+                                TFORWARDDEF
+****************************************************************************}
+
+   constructor tforwarddef.init(const s:string);
+     var
+       oldregisterdef : boolean;
+     begin
+        { never register the forwarddefs, they are disposed at the
+          end of the type declaration block }
+        oldregisterdef:=registerdef;
+        registerdef:=false;
+        inherited init;
+        registerdef:=oldregisterdef;
+        deftype:=forwarddef;
+        tosymname:=s;
+     end;
+
+
+    function tforwarddef.gettypename:string;
+      begin
+        gettypename:='unresolved forward to '+tosymname;
+      end;
+
+
+{****************************************************************************
                                   TERRORDEF
 ****************************************************************************}
 
@@ -3779,7 +3816,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.166  1999-09-26 21:30:21  peter
+  Revision 1.167  1999-10-01 08:02:48  peter
+    * forward type declaration rewritten
+
+  Revision 1.166  1999/09/26 21:30:21  peter
     + constant pointer support which can happend with typecasting like
       const p=pointer(1)
     * better procvar parsing in typed consts

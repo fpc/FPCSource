@@ -254,9 +254,6 @@ unit symtable;
        lastsrsymtable : psymtable;
        lastsymknown : boolean;
 
-       forwardsallowed : boolean;  { true, wenn forward pointers can be
-                                     inserted }
-
        constsymtable : psymtable;  { symtable were the constants can be
                                      inserted }
 
@@ -383,10 +380,6 @@ unit symtable;
     function  search_a_symtable(const symbol:string;symtabletype:tsymtabletype):Psym;
     procedure getsym(const s : stringid;notfounderror : boolean);
     procedure getsymonlyin(p : psymtable;const s : stringid);
-
-{*** Forwards ***}
-    procedure save_forward(ppd : ppointerdef;typesym : ptypesym);
-    procedure resolve_forwards;
 
 {*** PPU Write/Loading ***}
     procedure writeunitas(const s : string;unittable : punitsymtable;only_crc : boolean);
@@ -819,7 +812,7 @@ implementation
            psym(p)^.deref;
       end;
 
-    procedure check_procsym_forward(sym : pnamedindexobject);
+    procedure check_forward(sym : pnamedindexobject);
       begin
          if psym(sym)^.typ=procsym then
            pprocsym(sym)^.check_forward
@@ -936,48 +929,6 @@ implementation
 {$endif UseBrowser}
 
 
-{****************************************************************************
-                             Forward Resolving
-****************************************************************************}
-
-    type
-       presolvelist = ^tresolvelist;
-       tresolvelist = record
-          p : ppointerdef;
-          typ : ptypesym;
-          next : presolvelist;
-       end;
-
-    var
-       sroot : presolvelist;
-    procedure save_forward(ppd : ppointerdef;typesym : ptypesym);
-      var
-         p : presolvelist;
-      begin
-         new(p);
-         p^.next:=sroot;
-         p^.p:=ppd;
-         ppd^.defsym := typesym;
-         p^.typ:=typesym;
-         sroot:=p;
-      end;
-
-
-    procedure resolve_forwards;
-      var
-         p : presolvelist;
-      begin
-         p:=sroot;
-         while p<>nil do
-           begin
-              sroot:=sroot^.next;
-              p^.p^.definition:=p^.typ^.definition;
-              dispose(p);
-              p:=sroot;
-           end;
-      end;
-
-
 {*****************************************************************************
                           Search Symtables for Syms
 *****************************************************************************}
@@ -997,21 +948,13 @@ implementation
               else
                 srsymtable:=srsymtable^.next;
            end;
-         if forwardsallowed then
-           begin
-              srsymtable:=symtablestack;
-              while (srsymtable^.symtabletype in [objectsymtable,recordsymtable]) do
-                   srsymtable:=srsymtable^.next;
-              srsym:=new(ptypesym,init(s,nil));
-              srsym^.symoptions:=[sp_forwarddef];
-              srsymtable^.insert(srsym);
-           end
-         else if notfounderror then
+         if notfounderror then
            begin
               Message1(sym_e_id_not_found,s);
               srsym:=generrorsym;
            end
-         else srsym:=nil;
+         else
+           srsym:=nil;
       end;
 
 
@@ -1493,8 +1436,7 @@ implementation
                    if hp^.symtabletype in [staticsymtable,globalsymtable] then
                     begin
                        hsym:=hp^.search(sym^.name);
-                       if assigned(hsym) and
-                          not(sp_forwarddef in hsym^.symoptions) then
+                       if assigned(hsym) then
                          DuplicateSym(hsym);
                     end;
                   hp:=hp^.next;
@@ -1745,7 +1687,7 @@ implementation
     { checks, if all procsyms and methods are defined }
     procedure tsymtable.check_forwards;
       begin
-         foreach({$ifndef TP}@{$endif}check_procsym_forward);
+         foreach({$ifndef TP}@{$endif}check_forward);
       end;
 
     procedure tsymtable.checklabels;
@@ -2375,7 +2317,6 @@ implementation
         symtablestack:=nil;
         systemunit:=nil;
         objpasunit:=nil;
-        sroot:=nil;
 {$ifdef GDB}
         firstglobaldef:=nil;
         lastglobaldef:=nil;
@@ -2409,7 +2350,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  1999-09-28 20:48:25  florian
+  Revision 1.51  1999-10-01 08:02:49  peter
+    * forward type declaration rewritten
+
+  Revision 1.50  1999/09/28 20:48:25  florian
     * fixed bug 610
     + added $D- for TP in symtable.pas else it can't be compiled anymore
       (too much symbols :()

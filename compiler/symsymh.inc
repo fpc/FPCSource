@@ -134,12 +134,6 @@
 {$endif GDB}
        end;
 
-       pforwardpointer=^tforwardpointer;
-       tforwardpointer=record
-         next : pforwardpointer;
-         def  : ppointerdef;
-       end;
-
        ttypesym = object(tsym)
           definition : pdef;
           synonym    : ptypesym;
@@ -151,8 +145,6 @@
           destructor done;virtual;
           procedure write;virtual;
           procedure deref;virtual;
-          procedure addforwardpointer(p:ppointerdef);
-          procedure updateforwarddef(p:pdef);
           procedure load_references;virtual;
           function  write_references : boolean;virtual;
 {$ifdef BrowserLog}
@@ -162,8 +154,6 @@
           function stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
-       private
-          forwardpointer : pforwardpointer;
        end;
 
        pvarsym = ^tvarsym;
@@ -338,7 +328,10 @@
 
 {
   $Log$
-  Revision 1.35  1999-09-26 21:30:22  peter
+  Revision 1.36  1999-10-01 08:02:48  peter
+    * forward type declaration rewritten
+
+  Revision 1.35  1999/09/26 21:30:22  peter
     + constant pointer support which can happend with typecasting like
       const p=pointer(1)
     * better procvar parsing in typed consts

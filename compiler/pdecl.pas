@@ -28,10 +28,9 @@ unit pdecl;
       globtype,tokens,globals,symtable;
 
     var
-       { pointer to the last read type symbol, (for "forward" }
-       { types)                                        }
-       lasttypesym : ptypesym;
-       readtypesym : ptypesym; { ttypesym read by read_type }
+       { ttypesym read by read_type, this is needed to be
+         stored in the ppu for resolving purposed }
+       readtypesym : ptypesym;
 
        { hack, which allows to use the current parsed }
        { object type as function argument type  }
@@ -45,7 +44,7 @@ unit pdecl;
 
     { reads a string, file type or a type id and returns a name and }
     { pdef                                                        }
-    function single_type(var s : string) : pdef;
+    function single_type(var s : string;isforwarddef:boolean) : pdef;
 
     { reads the declaration blocks }
     procedure read_declarations(islibrary : boolean);
@@ -73,39 +72,66 @@ unit pdecl;
        ,hcodegen,hcgdata
        ;
 
+    const
+       { forward types should only be possible inside a TYPE statement }
+       typecanbeforward : boolean = false;
+
     function read_type(const name : stringid) : pdef;forward;
 
     { search in symtablestack used, but not defined type }
-    procedure testforward_type(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
+    procedure resolve_type_forward(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
       var
-        reaktvarsymtable : psymtable;
-        oldaktfilepos : tfileposinfo;
+        hpd,pd : pdef;
       begin
-         if not(psym(p)^.typ=typesym) then
-          exit;
-         if (sp_forwarddef in psym(p)^.symoptions) then
-           begin
-             oldaktfilepos:=aktfilepos;
-             aktfilepos:=psym(p)^.fileinfo;
-             Message1(sym_e_forward_type_not_resolved,p^.name);
-             aktfilepos:=oldaktfilepos;
-             { try to recover }
-             ptypesym(p)^.definition:=generrordef;
-{$ifdef INCLUDEOK}
-             exclude(psym(p)^.symoptions,sp_forwarddef);
-{$else}
-             psym(p)^.symoptions:=psym(p)^.symoptions-[sp_forwarddef];
-{$endif}
-           end
-         else
-          if (ptypesym(p)^.definition^.deftype in [recorddef,objectdef]) then
-           begin
-             if (ptypesym(p)^.definition^.deftype=recorddef) then
-               reaktvarsymtable:=precorddef(ptypesym(p)^.definition)^.symtable
+         { Check only typesyms or record/object fields }
+         case psym(p)^.typ of
+           typesym :
+             pd:=ptypesym(p)^.definition;
+           varsym :
+             if (psym(p)^.owner^.symtabletype in [objectsymtable,recordsymtable]) then
+               pd:=pvarsym(p)^.definition
              else
-               reaktvarsymtable:=pobjectdef(ptypesym(p)^.definition)^.symtable;
-             reaktvarsymtable^.foreach({$ifndef TP}@{$endif}testforward_type);
-           end;
+               exit;
+           else
+             exit;
+         end;
+         case pd^.deftype of
+           pointerdef,
+           classrefdef :
+             begin
+               { classrefdef inherits from pointerdef }
+               hpd:=ppointerdef(pd)^.definition;
+               { still a forward def ? }
+               if hpd^.deftype=forwarddef then
+                begin
+                  { try to resolve the forward }
+                  getsym(pforwarddef(hpd)^.tosymname,false);
+                  { we don't need the forwarddef anymore, dispose it }
+                  dispose(hpd,done);
+                  { was a type sym found ? }
+                  if assigned(srsym) and
+                     (srsym^.typ=typesym) then
+                   begin
+                     ppointerdef(pd)^.definition:=ptypesym(srsym)^.definition;
+                     { we need a class type for classrefdef }
+                     if (pd^.deftype=classrefdef) and
+                        not((ptypesym(srsym)^.definition^.deftype=objectdef) and
+                            pobjectdef(ptypesym(srsym)^.definition)^.is_class) then
+                       Message1(type_e_class_type_expected,ptypesym(srsym)^.definition^.typename);
+                   end
+                  else
+                   begin
+                     MessagePos1(psym(p)^.fileinfo,sym_e_forward_type_not_resolved,p^.name);
+                     { try to recover }
+                     ppointerdef(pd)^.definition:=generrordef;
+                   end;
+                end;
+             end;
+           recorddef :
+             precorddef(pd)^.symtable^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
+           objectdef :
+             pobjectdef(pd)^.symtable^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
+        end;
       end;
 
 
@@ -723,10 +749,12 @@ unit pdecl;
        end;
 
 
-    function id_type(var s : string) : pdef;
+    function id_type(var s : string;isforwarddef:boolean) : pdef;
     { reads a type definition and returns a pointer }
     { to a appropriating pdef, s gets the name of   }
     { the type to allow name mangling          }
+      var
+        is_unit_specific : boolean;
       begin
          s:=pattern;
          consume(_ID);
@@ -742,38 +770,50 @@ unit pdecl;
               id_type:=aktobjectdef;
               exit;
            end;
-         getsym(s,true);
-         if assigned(srsym) then
+         { try to load the symbol to see if it's a unitsym }
+         is_unit_specific:=false;
+         getsym(s,false);
+         if assigned(srsym) and
+            (srsym^.typ=unitsym) then
            begin
-              if srsym^.typ=unitsym then
-                begin
-                   consume(_POINT);
-                   getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
-                   s:=pattern;
-                   consume(_ID);
-                end;
-              if not assigned(srsym) or
-                 (srsym^.typ<>typesym) then
-                begin
-                   Message(type_e_type_id_expected);
-                   lasttypesym:=ptypesym(srsym);
-                   id_type:=generrordef;
-                   exit;
-                end;
-              if not forwardsallowed then
-                testforward_type(srsym);
+              consume(_POINT);
+              getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
+              s:=pattern;
+              consume(_ID);
+              is_unit_specific:=true;
            end;
-         lasttypesym:=ptypesym(srsym);
+         { are we parsing a possible forward def ? }
+         if isforwarddef and
+            not(is_unit_specific) then
+          begin
+            id_type:=new(pforwarddef,init(s));
+            exit;
+          end;
+         { unknown sym ? }
+         if not assigned(srsym) then
+          begin
+            Message1(sym_e_id_not_found,s);
+            id_type:=generrordef;
+            exit;
+          end;
+         if (srsym^.typ<>typesym) then
+          begin
+            Message(type_e_type_id_expected);
+            id_type:=generrordef;
+            exit;
+          end;
+         { can't use in [] here, becuase unitid can be > 255 }
          if (ptypesym(srsym)^.owner^.unitid=0) or
             (ptypesym(srsym)^.owner^.unitid=1) then
           readtypesym:=nil
          else
           readtypesym:=ptypesym(srsym);
+         { return the definition of the type }
          id_type:=ptypesym(srsym)^.definition;
       end;
 
 
-    function single_type(var s : string) : pdef;
+    function single_type(var s : string;isforwarddef:boolean) : pdef;
     { reads a string, file type or a type id and returns a name and }
     { pdef                                                        }
        var
@@ -785,7 +825,6 @@ unit pdecl;
                 begin
                    single_type:=stringtype;
                    s:='STRING';
-                   lasttypesym:=nil;
                    readtypesym:=nil;
                 end;
             _FILE:
@@ -794,7 +833,7 @@ unit pdecl;
                    if token=_OF then
                      begin
                         consume(_OF);
-                        single_type:=new(pfiledef,init(ft_typed,single_type(hs)));
+                        single_type:=new(pfiledef,init(ft_typed,single_type(hs,false)));
                         s:='FILE$OF$'+hs;
                      end
                    else
@@ -803,12 +842,11 @@ unit pdecl;
                         single_type:=cfiledef;
                         s:='FILE';
                      end;
-                   lasttypesym:=nil;
                    readtypesym:=nil;
                 end;
             else
               begin
-                single_type:=id_type(s);
+                single_type:=id_type(s,isforwarddef);
               end;
          end;
       end;
@@ -1012,10 +1050,10 @@ unit pdecl;
                                  { define range and type of range }
                                  hp:=new(parraydef,init(0,-1,s32bitdef));
                                  { define field type }
-                                 parraydef(hp)^.definition:=single_type(s);
+                                 parraydef(hp)^.definition:=single_type(s,false);
                               end
                             else
-                              hp:=single_type(s);
+                              hp:=single_type(s,false);
                          end
                        else
                          hp:=cformaldef;
@@ -1041,7 +1079,7 @@ unit pdecl;
                 if (token=_COLON) or assigned(propertyparas) then
                   begin
                      consume(_COLON);
-                     p^.proptype:=single_type(hs);
+                     p^.proptype:=single_type(hs,false);
                      if (idtoken=_INDEX) then
                        begin
                           consume(_INDEX);
@@ -1397,7 +1435,7 @@ unit pdecl;
          oldparse_only : boolean;
          methodnametable,intmessagetable,
          strmessagetable,classnamelabel : pasmlabel;
-         storetypeforwardsallowed : boolean;
+         storetypecanbeforward : boolean;
          vmtlist : taasmoutput;
 
       begin
@@ -1419,7 +1457,8 @@ unit pdecl;
            (symtablestack^.symtabletype<>staticsymtable) then
            Message(parser_e_no_local_objects);
 
-         storetypeforwardsallowed:=typecanbeforward;
+         storetypecanbeforward:=typecanbeforward;
+         { for tp mode don't allow forward types }
          if m_tp in aktmodeswitches then
            typecanbeforward:=false;
 
@@ -1438,31 +1477,21 @@ unit pdecl;
                    { a hack, but it's easy to handle }
                    { class reference type }
                    consume(_OF);
-                   if typecanbeforward then
-                     forwardsallowed:=true;
-                   hp1:=single_type(hs);
+                   hp1:=single_type(hs,typecanbeforward);
 
-                   { accept hp1, if is a forward def ...}
-                   if ((lasttypesym<>nil) and
-                       (sp_forwarddef in lasttypesym^.symoptions)) or
-                   { or a class
-                     (if the foward defined type is a class is checked, when
-                      the forward is resolved)
-                   }
-                     ((hp1^.deftype=objectdef) and pobjectdef(hp1)^.is_class) then
+                   { accept hp1, if is a forward def or a class }
+                   if (hp1^.deftype=forwarddef) or
+                      ((hp1^.deftype=objectdef) and pobjectdef(hp1)^.is_class) then
                      begin
                         pcrd:=new(pclassrefdef,init(hp1));
                         object_dec:=pcrd;
-                        if assigned(lasttypesym) and (sp_forwarddef in lasttypesym^.symoptions) then
-                         lasttypesym^.addforwardpointer(ppointerdef(pcrd));
-                        forwardsallowed:=false;
                      end
                    else
                      begin
                         object_dec:=generrordef;
                         Message1(type_e_class_type_expected,generrordef^.typename);
                      end;
-                   typecanbeforward:=storetypeforwardsallowed;
+                   typecanbeforward:=storetypecanbeforward;
                    exit;
                 end
               { forward class }
@@ -1486,7 +1515,7 @@ unit pdecl;
                      aktclass^.insertvmt;
 
                    object_dec:=aktclass;
-                   typecanbeforward:=storetypeforwardsallowed;
+                   typecanbeforward:=storetypecanbeforward;
                    exit;
                 end;
            end;
@@ -1499,7 +1528,7 @@ unit pdecl;
          if token=_LKLAMMER then
            begin
               consume(_LKLAMMER);
-              childof:=pobjectdef(id_type(pattern));
+              childof:=pobjectdef(id_type(pattern,false));
               if (childof^.deftype<>objectdef) then
                begin
                  Message1(type_e_class_type_expected,childof^.typename);
@@ -1727,7 +1756,7 @@ unit pdecl;
           end;
          testcurobject:=0;
          curobjectname:='';
-         typecanbeforward:=storetypeforwardsallowed;
+         typecanbeforward:=storetypecanbeforward;
 
          { generate vmt space if needed }
          if not(oo_has_vmt in aktclass^.objectoptions) and
@@ -1852,7 +1881,7 @@ unit pdecl;
 
       var
          symtable : psymtable;
-         storetypeforwardsallowed : boolean;
+         storetypecanbeforward : boolean;
 
       begin
          { create recdef }
@@ -1863,12 +1892,13 @@ unit pdecl;
          symtablestack:=symtable;
          { parse record }
          consume(_RECORD);
-         storetypeforwardsallowed:=typecanbeforward;
+         storetypecanbeforward:=typecanbeforward;
+         { for tp mode don't allow forward types }
          if m_tp in aktmodeswitches then
            typecanbeforward:=false;
          read_var_decs(true,false,false);
          consume(_END);
-         typecanbeforward:=storetypeforwardsallowed;
+         typecanbeforward:=storetypecanbeforward;
          { may be scale record size to a size of n*4 ? }
          symtablestack^.datasize:=align(symtablestack^.datasize,symtablestack^.dataalignment);
          { restore symtable stack }
@@ -1910,7 +1940,7 @@ unit pdecl;
 {$endif}
                      consume(idtoken);
                      consume(_COLON);
-                     p:=single_type(hs1);
+                     p:=single_type(hs1,false);
                      procvardef^.concatdef(p,vs_value);
                    end
                   else
@@ -1940,11 +1970,11 @@ unit pdecl;
                               else
                                begin
                                { define field type }
-                                 Parraydef(p)^.definition:=single_type(s);
+                                 Parraydef(p)^.definition:=single_type(s,false);
                                end;
                             end
                           else
-                            p:=single_type(s);
+                            p:=single_type(s,false);
                        end
                      else
                        p:=cformaldef;
@@ -2129,7 +2159,7 @@ unit pdecl;
          case token of
             _STRING,_FILE:
               begin
-                p:=single_type(hs);
+                p:=single_type(hs,false);
                 readtypesym:=nil;
               end;
            _LKLAMMER:
@@ -2215,14 +2245,8 @@ unit pdecl;
            _CARET:
               begin
                 consume(_CARET);
-                { forwards allowed only inside TYPE statements }
-                if typecanbeforward then
-                  forwardsallowed:=true;
-                hp1:=single_type(hs);
+                hp1:=single_type(hs,typecanbeforward);
                 p:=new(ppointerdef,init(hp1));
-                if (lasttypesym<>nil) and (sp_forwarddef in lasttypesym^.symoptions) then
-                  lasttypesym^.addforwardpointer(ppointerdef(p));
-                forwardsallowed:=false;
                 readtypesym:=nil;
               end;
             _RECORD:
@@ -2274,7 +2298,7 @@ unit pdecl;
                 consume(_FUNCTION);
                 p:=handle_procvar;
                 consume(_COLON);
-                pprocvardef(p)^.retdef:=single_type(hs);
+                pprocvardef(p)^.retdef:=single_type(hs,false);
                 if token=_OF then
                   begin
                     consume(_OF);
@@ -2350,13 +2374,7 @@ unit pdecl;
                          { the definition is modified }
                          object_dec(typename,pobjectdef(ptypesym(sym)^.definition));
                          newtype:=ptypesym(sym);
-                       end
-                      else
-                       if (sp_forwarddef in sym^.symoptions) then
-                        begin
-                          ptypesym(sym)^.updateforwarddef(read_type(typename));
-                          newtype:=ptypesym(sym);
-                        end;
+                       end;
                     end;
                  end;
                 { no old type reused ? Then insert this new type }
@@ -2367,12 +2385,12 @@ unit pdecl;
                  end;
              end;
            consume(_SEMICOLON);
-           if assigned(newtype^.definition) and (newtype^.definition^.deftype=procvardef) then
+           if assigned(newtype^.definition) and
+              (newtype^.definition^.deftype=procvardef) then
              parse_var_proc_directives(newtype);
          until token<>_ID;
          typecanbeforward:=false;
-         symtablestack^.foreach({$ifndef TP}@{$endif}testforward_type);
-         resolve_forwards;
+         symtablestack^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
          block_type:=bt_general;
       end;
 
@@ -2549,7 +2567,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.157  1999-09-27 23:44:53  peter
+  Revision 1.158  1999-10-01 08:02:46  peter
+    * forward type declaration rewritten
+
+  Revision 1.157  1999/09/27 23:44:53  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 

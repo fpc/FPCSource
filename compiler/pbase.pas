@@ -28,11 +28,6 @@ unit pbase;
        cobjects,tokens,globals,symtable;
 
     const
-       { forward types should only be possible inside  }
-       { a TYPE statement, this crashed the compiler   }
-       { when trying to dispose local symbols          }
-       typecanbeforward : boolean = false;
-
        { true, if we are after an assignement }
        afterassignment : boolean = false;
 
@@ -165,7 +160,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  1999-09-02 18:47:44  daniel
+  Revision 1.26  1999-10-01 08:02:46  peter
+    * forward type declaration rewritten
+
+  Revision 1.25  1999/09/02 18:47:44  daniel
     * Could not compile with TP, some arrays moved to heap
     * NOAG386BIN default for TP
     * AG386* files were not compatible with TP, fixed.

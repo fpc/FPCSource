@@ -399,7 +399,6 @@
                    { Turn futher error messages off }
                    pd^.forwarddef:=false;
                 end;
-
               pd:=pd^.nextoverloaded;
            end;
       end;
@@ -1906,7 +1905,6 @@
 {$ifdef GDB}
          isusedinstab := false;
 {$endif GDB}
-         forwardpointer:=nil;
          if assigned(definition) then
           begin
              if not(assigned(definition^.sym)) then
@@ -1927,12 +1925,11 @@
           end;
       end;
 
-    constructor ttypesym.load;
 
+    constructor ttypesym.load;
       begin
          tsym.load;
          typ:=typesym;
-         forwardpointer:=nil;
          synonym:=nil;
 {$ifdef GDB}
          isusedinstab := false;
@@ -2031,38 +2028,6 @@
            precorddef(definition)^.symtable^.write_browser;
          if (definition^.deftype=objectdef) then
            pobjectdef(definition)^.symtable^.write_browser;
-      end;
-
-
-    procedure ttypesym.addforwardpointer(p:ppointerdef);
-      var
-        hfp : pforwardpointer;
-      begin
-        new(hfp);
-        hfp^.next:=forwardpointer;
-        hfp^.def:=p;
-        forwardpointer:=hfp;
-      end;
-
-
-    procedure ttypesym.updateforwarddef(p:pdef);
-      var
-        lasthfp,hfp : pforwardpointer;
-      begin
-        definition:=p;
-        symoptions:=current_object_option;
-        fileinfo:=tokenpos;
-        if assigned(definition) and not(assigned(definition^.sym)) then
-          definition^.sym:=@self;
-        { update all forwardpointers to this definition }
-        hfp:=forwardpointer;
-        while assigned(hfp) do
-         begin
-           lasthfp:=hfp;
-           hfp^.def^.definition:=definition;
-           hfp:=hfp^.next;
-           dispose(lasthfp);
-         end;
       end;
 
 
@@ -2166,7 +2131,10 @@
 
 {
   $Log$
-  Revision 1.120  1999-09-27 23:44:58  peter
+  Revision 1.121  1999-10-01 08:02:48  peter
+    * forward type declaration rewritten
+
+  Revision 1.120  1999/09/27 23:44:58  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 

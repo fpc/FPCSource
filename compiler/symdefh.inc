@@ -28,7 +28,7 @@
        tdeftype = (abstractdef,arraydef,recorddef,pointerdef,orddef,
                    stringdef,enumdef,procdef,objectdef,errordef,
                    filedef,formaldef,setdef,procvardef,floatdef,
-                   classrefdef);
+                   classrefdef,forwarddef);
 
        pdef = ^tdef;
        tdef = object(tsymtableentry)
@@ -138,6 +138,13 @@
 {$endif GDB}
        end;
 
+       pforwarddef = ^tforwarddef;
+       tforwarddef = object(tdef)
+          tosymname : string;
+          constructor init(const s:string);
+          function  gettypename:string;virtual;
+       end;
+
        perrordef = ^terrordef;
        terrordef = object(tdef)
           constructor init;
@@ -161,6 +168,7 @@
           constructor init(def : pdef);
           constructor initfar(def : pdef);
           constructor load;
+          destructor  done;virtual;
           procedure write;virtual;
           procedure deref;virtual;
           function  gettypename:string;virtual;
@@ -522,7 +530,10 @@
 
 {
   $Log$
-  Revision 1.41  1999-08-10 12:34:49  pierre
+  Revision 1.42  1999-10-01 08:02:48  peter
+    * forward type declaration rewritten
+
+  Revision 1.41  1999/08/10 12:34:49  pierre
    + procsym field in tprocdef to allow correct gdb info generation
 
   Revision 1.40  1999/08/09 22:19:57  peter

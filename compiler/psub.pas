@@ -132,7 +132,7 @@ begin
             inc(procinfo^.ESI_offset,vs^.address);
             consume(idtoken);
             consume(_COLON);
-            p:=single_type(hs1);
+            p:=single_type(hs1,false);
             if assigned(readtypesym) then
              aktprocsym^.definition^.concattypesym(readtypesym,vs_value)
             else
@@ -173,7 +173,7 @@ begin
                else
                 begin
                 { define field type }
-                  Parraydef(p)^.definition:=single_type(hs1);
+                  Parraydef(p)^.definition:=single_type(hs1,false);
                   hs1:='array_of_'+hs1;
                   { we don't need the typesym anymore }
                   readtypesym:=nil;
@@ -197,7 +197,7 @@ begin
              end
             { everything else }
             else
-             p:=single_type(hs1);
+             p:=single_type(hs1,false);
           end
          else
           begin
@@ -561,7 +561,7 @@ begin
                     begin
                       consume(_COLON);
                       inc(testcurobject);
-                      aktprocsym^.definition^.retdef:=single_type(hs);
+                      aktprocsym^.definition^.retdef:=single_type(hs,false);
                       aktprocsym^.definition^.test_if_fpu_result;
                       dec(testcurobject);
                     end;
@@ -626,7 +626,7 @@ begin
                    else
                     begin
                       aktprocsym^.definition^.retdef:=
-                       single_type(hs);
+                       single_type(hs,false);
                       aktprocsym^.definition^.test_if_fpu_result;
                       if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
                          ((aktprocsym^.definition^.retdef^.deftype<>
@@ -697,11 +697,6 @@ end;
 procedure pd_forward(const procnames:Tstringcontainer);
 begin
   aktprocsym^.definition^.forwarddef:=true;
-{$ifdef INCLUDEOK}
-  include(aktprocsym^.symoptions,sp_forwarddef);
-{$else}
-  aktprocsym^.symoptions:=aktprocsym^.symoptions+[sp_forwarddef];
-{$endif}
 end;
 
 procedure pd_stdcall(const procnames:Tstringcontainer);
@@ -1933,11 +1928,6 @@ begin
 { set the default function options }
    if parse_only then
     begin
-{$ifdef INCLUDEOK}
-      include(aktprocsym^.symoptions,sp_forwarddef);
-{$else}
-      aktprocsym^.symoptions:=aktprocsym^.symoptions+[sp_forwarddef];
-{$endif}
       aktprocsym^.definition^.forwarddef:=true;
       { set also the interface flag, for better error message when the
         implementation doesn't much this header }
@@ -2054,7 +2044,10 @@ end.
 
 {
   $Log$
-  Revision 1.23  1999-09-27 23:44:56  peter
+  Revision 1.24  1999-10-01 08:02:47  peter
+    * forward type declaration rewritten
+
+  Revision 1.23  1999/09/27 23:44:56  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 

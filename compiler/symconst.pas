@@ -32,7 +32,6 @@ type
     sp_private,
     sp_published,
     sp_protected,
-    sp_forwarddef,
     sp_static,
     sp_primary_typesym    { this is for typesym, to know who is the primary symbol of a def }
   );
@@ -180,7 +179,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1999-08-04 13:45:29  florian
+  Revision 1.3  1999-10-01 08:02:48  peter
+    * forward type declaration rewritten
+
+  Revision 1.2  1999/08/04 13:45:29  florian
     + floating point register variables !!
     * pairegalloc is now generated for register variables
 

@@ -67,8 +67,6 @@ unit parser;
 
     procedure initparser;
       begin
-         forwardsallowed:=false;
-
          { ^M means a string or a char, because we don't parse a }
          { type declaration                                      }
          ignore_equal:=false;
@@ -485,7 +483,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.85  1999-09-16 08:02:39  pierre
+  Revision 1.86  1999-10-01 08:02:45  peter
+    * forward type declaration rewritten
+
+  Revision 1.85  1999/09/16 08:02:39  pierre
    + old_compiled_module to avoid wrong file info when load PPU files
 
   Revision 1.84  1999/09/15 22:09:23  florian
