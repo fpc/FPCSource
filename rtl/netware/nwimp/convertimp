@@ -1,0 +1,50 @@
+#!/bin/sh
+
+usage ()
+{
+  echo "$0 SOURCEDIR"
+  echo ""
+  echo "converts .imp, .Imp and .IMP files from DOS CR/LF to LF only and"
+  echo "translates filename to lower case. Converted files are stored"
+  echo "in current directory."
+  echo "ad 2001/04/16"
+  exit 1
+}
+
+cnv ()
+{
+  DESTFN=`echo "$1" | tr [A-Z] [a-z]`
+  echo -n "converting $1 to $DESTDIR/$DESTFN "
+  
+  echo "# converted to unix by $USERNAME on $HST at $NOW" >$DESTDIR/$DESTFN
+  echo "#" >>$DESTDIR/$DESTFN
+  cat $1 | tr -d '\r' >> $DESTDIR/$DESTFN
+  # set time/date from source
+  touch -r $1 $DESTDIR/$DESTFN
+  echo ""
+}
+
+if [ -x /usr/bin/tr ]; then
+  if [ -x /bin/tr ]; then
+    if [ -x /usr/local/bin/tr ]; then
+      echo "this utility needs tr. Please install GNU textutils."
+      usage
+    fi
+  fi
+fi
+[ "$1" = "" ] && usage
+[ ! -d $1 ] && usage
+HST=`uname -n`
+NOW=`date`
+DESTDIR=`pwd`
+cd $1
+for i in *.imp; do
+  [ "$i" != "*.imp" ] && cnv $i
+done
+for i in *.IMP; do
+  [ "$i" != "*.IMP" ] && cnv $i
+done
+for i in *.Imp; do
+  [ "$i" != "*.Imp" ] && cnv $i
+done
+cd $DESTDIR

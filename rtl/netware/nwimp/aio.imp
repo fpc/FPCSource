@@ -1,0 +1,40 @@
+# converted to unix by root on mail.armin.d at Mon Apr 16 00:36:06 CEST 2001
+#
+#
+# functions for Application to call
+#
+   
+   AIOAcquirePort,
+   AIOConfigurePort,
+   AIOFlushBuffers,
+   AIOGetBoardList,
+   AIOGetDriverList,
+   AIOGetExternalStatus,
+   AIOGetFirstPortInfo,
+   AIOGetNextPortInfo,
+   AIOGetFirstPortStatistics,
+   AIOGetNextPortStatistics,
+   AIOGetPortCapability,
+   AIOGetPortConfiguration,
+   AIOGetPortStatistics,
+   AIOGetPortStatus,
+   AIOGetReadBufferSize,
+   AIOGetWriteBufferSize,
+   AIOReadData,
+   AIOReadStatus,
+   AIOReleasePort,
+   AIOSetControlData,
+   AIOSetExternalControl,
+   AIOSetFlowControl,
+   AIOSetFlowControlCharacters,
+   AIOSetReadBufferSize,
+   AIOSetWriteBufferSize,
+   AIOWriteData,
+   AIOWriteStatus,
+   AIOGetName_FirstPortInfo,
+   AIOGetName_NextPortInfo, 
+
+#
+# functions for Internal Application to call
+#
+   AIOAcquirePortWithRTag
