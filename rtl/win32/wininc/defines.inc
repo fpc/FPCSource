@@ -1552,6 +1552,9 @@
      EXCEPTION_NONCONTINUABLE = $1;
      EXCEPTION_STACK_OVERFLOW = $c00000fd;
      EXCEPTION_INVALID_DISPOSITION = $c0000026;
+     EXCEPTION_IN_PAGE_ERROR = $c0000006;
+     EXCEPTION_ILLEGAL_INSTRUCTION = $c000001d;
+     EXCEPTION_POSSIBLE_DEADLOCK = $c0000194;
   { GetFileType  }
      FILE_TYPE_UNKNOWN = 0;
      FILE_TYPE_DISK = 1;
@@ -5912,7 +5915,10 @@ const
 
 {
   $Log$
-  Revision 1.13  2003-10-23 09:39:39  marco
+  Revision 1.14  2003-10-26 16:31:38  florian
+    + added some missing exception numbers
+
+  Revision 1.13  2003/10/23 09:39:39  marco
    * fix for 2672
 
   Revision 1.12  2003/10/03 20:55:12  florian
