@@ -3,17 +3,29 @@ of the processor and of the operating system.
 
 The include files contain the following:
 
-system.inc	OS and Processor independent implementation part of system unit.
-systemh.inc	Interface part of the system unit.
-textrec.inc	Definition of Textrec record.
-filerec.inc	Definition of Filerec record.
-astrings.pp	AnsiStrings implementation.
-lstrings.pp	LongStrings implementation.
-sstrings.inc	ShortStrings implementation.
-heaph.inc	Declarations of Heap functions.
-mathh.inc	Declarations of mathematical functions.	
+astrings.pp     AnsiStrings implementation.
+except.inc      Delphi styled exception support.
+file.inc        Untyped file support routines.
+filerec.inc     Untyped file record definition.
+heap.inc        Runtime heap manager .
+heaph.inc       Declarations of Heap functions.
+heaptrc.inc     Runtime memory leak tracer.
+innr.inc        Internal function delcarations.
+int64.inc       Support for 64-bit integer arithmetic.
+lstrings.pp     LongStrings routine implementation.
+mathh.inc       Declarations of mathematical functions. 
+real2str.inc    Routine to convert floating point numbers to strings.
+rtti.inc        Delphi like runtime type information
+sstrings.inc    ShortStrings (TP/BP pascal like strings) implementation.
+system.inc      OS and Processor independent implementation part of system unit.
+systemh.inc     Interface part of the system unit.
+text.inc        Text file support routines.
+textrec.inc     Definition of Textrec record.
+typefile.inc    Text file record definition.
+
 
 The unit files are:
 
-ucomplex.pp	Complex functions using operator overloading
-getopts.pp	Pascal implementation of the GNU Getops
+ucomplex.pp     Complex functions using operator overloading
+getopts.pp      Pascal implementation of the GNU Getops
+objects.pp      Turbo Pascal like implementation of objects unit
