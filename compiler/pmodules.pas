@@ -405,8 +405,8 @@ unit pmodules;
                { try to reopen ppu }
                hp^.search_unit(s);
                { try to load the unit a second time first }
-               if not current_module^.in_implementation then
-                 hp^.do_compile:=true;
+{               if not current_module^.in_implementation then
+                 hp^.do_compile:=true; }
                current_module:=hp;
                current_module^.in_second_compile:=true;
                Message1(unit_u_second_load_unit,current_module^.modulename^);
@@ -764,6 +764,13 @@ unit pmodules;
            end;
 {$endif GDB}
 
+         { leave when we got an error }
+         if status.errorcount>0 then
+          begin
+            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
+            exit;
+          end;
+
          { Parse the implementation section }
          consume(_IMPLEMENTATION);
          current_module^.in_implementation:=true;
@@ -1086,7 +1093,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.72  1998-10-22 11:36:34  peter
+  Revision 1.73  1998-10-22 23:53:27  peter
+    * leave when an error has been in the interface (else other units could
+      be compiled with the implementation uses!)
+    * don't always compile when not in implementation with a second_load
+
+  Revision 1.72  1998/10/22 11:36:34  peter
     * fixed imports generation at the wrong place
 
   Revision 1.71  1998/10/21 20:13:10  peter
