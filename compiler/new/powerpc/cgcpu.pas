@@ -46,14 +46,15 @@ unit cgcpu;
           procedure a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
             l : pasmlabel);virtual;
           procedure a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
- {         procedure a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;
-              const ref: treference; l : pasmlabel);
-          procedure a_cmp_ref_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;l : longint;reg : tregister;
-            l : pasmlabel);}
 
-          procedure a_loadaddress_ref_reg(list : paasmoutput;const ref2 : treference;r : tregister);virtual;
+
           procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
           procedure g_restore_frame_pointer(list : paasmoutput);virtual;
+          procedure tcgppc.g_return_from_proc(list : paasmoutput;parasize : aword);
+
+          procedure a_loadaddress_ref_reg(list : paasmoutput;const ref2 : treference;r : tregister);virtual;
+
+          procedure g_concatcopy(list : paasmoutput;const source,dest : treference;len : aword;loadref : boolean);virtual;
 
 
           private
@@ -173,10 +174,10 @@ const
                TOpCG2AsmOpHi[Op],reg,reg,a);
            OP_SHL,OP_SHR,OP_SAR:
              Begin
-               if (a and $ffff) <> 0 Then
+               if (a and 31) <> 0 Then
                  list^.concat(new(paicpu,op_reg_reg_const(
                    TOpCG2AsmOpLo[Op],reg,reg,a and $ffff)));
-               If (a shr 16) <> 0 Then
+               If (a shr 5) <> 0 Then
                  InternalError(68991);
              End
            Else InternalError(68992);
@@ -232,49 +233,7 @@ const
         list^.concat(new(paicpu,op_const_const_sym(A_BC,AsmCond2BO[AsmCond],
           AsmCond2BI[AsmCond],newasmsymbol(l^.name))));
       end;
-{
-      procedure tcgpp.a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;
-        const ref: treference; l : pasmlabel);
 
-      var scratch_register: TRegister;
-
-      begin
-        scratch_register := get_scratch_reg(list);
-        a_load_ref_reg(list,ref,scratch_register);
-        a_cmp_reg_reg_label(list,size,cmp_op,reg,scratch_register,l)
-        free_scratch_reg(list,scratch_register);
-     end;
-
-      procedure tcgpp.a_cmp_ref_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;l : longint;reg : tregister;
-        l : pasmlabel);
-
-      var sr: TRegister;
-
-        begin
-          sr := get_scratch_register(list);
-
-          a_cmp
-}
-
-     procedure tcgppc.a_loadaddress_ref_reg(list : paasmoutput;const ref2 : treference;r : tregister);
-
-     Var
-       ref: TReference;
-
-       begin
-         ref := ref2;
-         FixRef(ref);
-         If ref.offset <> 0 Then
-           If ref.base <> R_NO then
-             a_op_reg_reg_const32(list,A_ADDI,A_ADDIS,r,r,ref.offset)
-  { FixRef makes sure that "(ref.index <> R_NO) and (ref.offset <> 0)" never}
-  { occurs, so now only ref.offset has to be loaded                         }
-           else a_load_const_reg(list, OS_32, ref.offset, r)
-         else
-           if ref.index <> R_NO Then
-             list^.concat(new(paicpu,op_reg_reg_reg(A_ADD,r,ref.base,ref.index)))
-           else list^.concat(new(paicpu,op_reg_reg(A_MR,r,ref.base)))
-       end;
 
 { *********** entry/exit code and address loading ************ }
 
@@ -330,6 +289,108 @@ const
  { no frame pointer on the PowerPC                                          }
       end;
 
+     procedure tcgppc.g_return_from_proc(list : paasmoutput;parasize : aword);
+
+     begin
+       abstract;
+     end;
+
+     procedure tcgppc.a_loadaddress_ref_reg(list : paasmoutput;const ref2 : treference;r : tregister);
+
+     Var
+       ref: TReference;
+
+       begin
+         ref := ref2;
+         FixRef(ref);
+         If ref.offset <> 0 Then
+           If ref.base <> R_NO then
+             a_op_reg_reg_const32(list,A_ADDI,A_ADDIS,r,r,ref.offset)
+  { FixRef makes sure that "(ref.index <> R_NO) and (ref.offset <> 0)" never}
+  { occurs, so now only ref.offset has to be loaded                         }
+           else a_load_const_reg(list, OS_32, ref.offset, r)
+         else
+           if ref.index <> R_NO Then
+             list^.concat(new(paicpu,op_reg_reg_reg(A_ADD,r,ref.base,ref.index)))
+           else list^.concat(new(paicpu,op_reg_reg(A_MR,r,ref.base)))
+       end;
+
+{ ************* concatcopy ************ }
+
+    procedure tcgppc.g_concatcopy(list : paasmoutput;const source,dest : treference;len : aword;loadref : boolean);virtual;
+
+    var
+      countreg, tempreg: TRegister;
+      src, dst: TReference;
+      lab: PAsmLabel;
+      count, count2: aword;
+
+      begin
+        { make sure source and dest are valid }
+        src := fixreference(source);
+        dst := fixreference(dest);
+        reset_reference(src);
+        reset_reference(dst);
+        { load the address of source into src.base }
+        src.base := get_scratch_reg(list);
+        if loadref then
+          a_load_ref_reg(list,OS_32,source,src.base)
+        else a_load_address_ref_reg(list,source,src.base);
+        { load the address of dest into dst.base }
+        dst.base := get_scratch_reg(list);
+        a_load_address_ref_reg(list,dest,dst.base);
+        count := len div 4;
+        if count > 3 then
+          { generate a loop }
+          begin
+            Inc(dst.offset,4);
+            Inc(src.offset,4);
+            a_op_reg_reg_const32(list,A_SUBI,A_NONE,src.base,src.base,4);
+            a_op_reg_reg_const32(list,A_SUBI,A_NONE,dst.base,dst.base,4);
+            countreg := get_scratch_reg(list);
+            a_load_const_reg(list,OS_32,count-1,countreg);
+            tempreg := get_scratch_reg(list);
+            getlabel(lab);
+            a_label(list, lab);
+            list^.concat(new(paicpu,op_reg_ref(A_LWZU,tempreg,
+              newreference(src)));
+            a_op_reg_reg_const32(list,A_CMPI,A_NONE,R_CR0,countreg,0);
+            list^.concat(new(paicpu,op_reg_ref(A_STWU,tempreg,
+              newreference(dst)));
+            a_op_reg_reg_const32(list,A_SUBI,A_NONE,countreg,countreg,1);
+            list^.concat(new(paicpu,op_const_const_sym(A_BC,AsmCond2BO[C_NE],
+              AsmCond2BI[C_NE],newasmsymbol(l^.name))));
+            free_scratch_reg(list,countreg);
+          end
+        else
+          { unrolled loop }
+          begin
+            tempreg := get_scratch_reg(list);
+            for count2 := 1 to count do
+              begin
+                a_load_ref_reg(list,OS_32,src,tempreg);
+                a_load_reg_ref(list,OS_32,tempreg,dst);
+                inc(src.offset,4);
+                inc(dst.offset,4);
+              end
+          end;
+       { copy the leftovers }
+       if (len and 2) <> 0 then
+         begin
+           a_load_ref_reg(list,OS_16,src,tempreg);
+           a_load_reg_ref(list,OS_16,tempreg,dst);
+           inc(src.offset,2);
+           inc(dst.offset,2);
+         end;
+       if (len and 1) <> 0 then
+         begin
+           a_load_ref_reg(list,OS_8,src,tempreg);
+           a_load_reg_ref(list,OS_8,tempreg,dst);
+         end;
+       free_scratch_reg(list,tempreg);
+       free_scratch_reg(list,src.base);
+       free_scratch_reg(list,dst.base);
+      end;
 
 {***************** This is private property, keep out! :) *****************}
 
@@ -366,7 +427,10 @@ const
 end.
 {
   $Log$
-  Revision 1.3  1999-08-25 12:00:23  jonas
+  Revision 1.4  1999-08-26 14:53:41  jonas
+    * first implementation of concatcopy (requires 4 scratch regs)
+
+  Revision 1.3  1999/08/25 12:00:23  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.2  1999/08/18 17:05:57  florian
