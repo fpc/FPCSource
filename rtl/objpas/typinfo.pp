@@ -35,6 +35,14 @@ unit typinfo;
        PByte        =^Byte;
        PLongint     =^Longint;
        PBoolean     =^Boolean;
+       PSingle      =^Single;
+       PDouble      =^Double;
+       PExtended    =^Extended;
+       PComp        =^Comp;
+       PFixed16     =^Fixed16; 
+       { Doesn't exist ?
+       PFIxed32  = ^Fixed32;
+       }
        Variant      = Pointer;
        TMethod      = Pointer;
 
@@ -230,6 +238,45 @@ unit typinfo;
       LIPNoPush:
          call (%edi)
          // now the result should be in EAX, untested yet (FK)
+      end;
+
+    function CallExtendedFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint) : Extended;assembler;
+    
+      Label LINoPush;
+
+      asm
+         movl S,%esi
+         movl Address,%edi
+         // ? Indexed function
+         movl Index,%eax
+         xorl %eax,%eax
+         jnz LINoPush
+         movl IValue,%eax
+         pushl %eax
+      LINoPush:
+         call (%edi)
+         //!! now What ??
+      end;
+
+    function CallExtendedProc(s : Pointer;Address : Pointer;Value : Extended; INdex,IVAlue : Longint) : Integer;assembler;
+
+      label LIPNoPush;
+
+      asm
+         movl S,%esi
+         movl Address,%edi
+         // Push value to set
+         //!! MUST BE CHANGED !!
+         movl Value,%eax
+         pushl %eax 
+         // ? Indexed procedure
+         movl Index,%eax
+         xorl %eax,%eax
+         jnz LIPNoPush
+         movl IValue,%eax
+         pushl %eax
+      LIPNoPush:
+         call (%edi)
       end;
 
     function CallBooleanFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Boolean;assembler;
@@ -478,12 +525,12 @@ unit typinfo;
          SetIndexValues(PropInfo,Index,Ivalue);
          case (PropInfo^.PropProcs) and 3 of
             ptfield:
-              PLongint(Pointer(Instance)+Longint(PropInfo^.GetProc))^:=Value;
+              PLongint(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
             ptstatic:
-              CallIntegerProc(Instance,PropInfo^.GetProc,Value,Index,IValue);
+              CallIntegerProc(Instance,PropInfo^.SetProc,Value,Index,IValue);
             ptvirtual:
               CallIntegerProc(Instance,
-                              (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)),
+                              (PPointer(Instance.ClassType)+Longint(PropInfo^.SetProc)),
                               Value,Index,IValue);
          end;
       end;
@@ -550,13 +597,45 @@ unit typinfo;
     procedure SetAStrProp(Instance : TObject;PropInfo : PPropInfo;
       const Value : AnsiString);
 
-    begin
-    end;
+      {
+      Dirty trick based on fact that AnsiString is just a pointer,
+      hence can be treated like an integer type.
+      }
+    
+      var
+         Index,Ivalue : Longint;
+           
+      begin
+         SetIndexValues(PropInfo,Index,IValue);
+         case (PropInfo^.PropProcs) and 3 of
+            ptfield:
+              PLongint(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Longint(Pointer(Value)) ;
+            ptstatic: 
+              CallIntegerProc(Instance,PropInfo^.SetProc,Longint(Pointer(Value)),Index,IValue);
+            ptvirtual:
+              CallIntegerProc(Instance,
+                              (PPointer(Instance.ClassType)+Longint(PropInfo^.SetProc)),
+                              Longint(Pointer(Value)),Index,IValue);
+         end;
+      end;
     
     procedure SetSStrProp(Instance : TObject;PropInfo : PPropInfo;
-      const Value : AnsiString);
+      const Value : ShortString);
+
+   Var Index,IValue: longint;
 
     begin
+      SetIndexValues(PRopInfo,Index,IValue);
+         case (PropInfo^.PropProcs) and 3 of
+            ptfield:
+              PShortString(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+            ptstatic:
+              CallSStringProc(Instance,PropInfo^.GetProc,Value,Index,IValue);
+            ptvirtual:
+              CallSStringProc(Instance,
+                              (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)),
+                              Value,Index,IValue);
+         end;
     end;
     
     procedure SetStrProp(Instance : TObject;PropInfo : PPropInfo;
@@ -571,15 +650,72 @@ unit typinfo;
 
     function GetFloatProp(Instance : TObject;PropInfo : PPropInfo) : Extended;
 
+      var
+         Index,Ivalue : longint;
+         Value : Extended;
+
+
       begin
-         {!!!!!!!!!!!}
+         SetIndexValues(PropInfo,Index,Ivalue);
+         case (PropInfo^.PropProcs) and 3 of
+            ptfield:
+              Case GetTypeData(PropInfo^.PropType)^.FloatType of
+               ftSingle: 
+                 Value:=PSingle(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+               ftDouble:
+                 Value:=PDouble(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+               ftExtended:
+                 Value:=PExtended(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+               ftcomp:
+                 Value:=PComp(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+               { Uncommenting this code results in a internal error!!
+               ftFixed16:
+                 Value:=PFixed16(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+               ftfixed32:
+                 Value:=PFixed32(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+               }  
+               end;
+            ptstatic:
+              Value:=CallExtendedFunc(Instance,PropInfo^.GetProc,Index,IValue);
+            ptvirtual:
+              Value:=CallExtendedFunc(Instance,
+                                     (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)),
+                                     Index,IValue);
+         end;
       end;
 
     procedure SetFloatProp(Instance : TObject;PropInfo : PPropInfo;
       Value : Extended);
-
-      begin
-         {!!!!!!!!!!!}
+      
+       Var IValue,Index : longint;
+      
+       begin
+         SetIndexValues(PropInfo,Index,Ivalue);
+         case (PropInfo^.PropProcs) and 3 of
+            ptfield:
+              Case GetTypeData(PropInfo^.PropType)^.FloatType of
+               ftSingle: 
+                 PSingle(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+               ftDouble:
+                 PDouble(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+               ftExtended:
+                 PExtended(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+               ftcomp:
+                 PComp(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+               { Uncommenting this code results in a internal error!!
+               ftFixed16:
+                 PFixed16(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+               ftfixed32:
+                 PFixed32(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+               }  
+               end;
+            ptstatic:
+              CallExtendedProc(Instance,PropInfo^.SetProc,Value,Index,IValue);
+            ptvirtual:
+              CallExtendedProc(Instance,
+                               (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)),
+                               Value,Index,IValue);
+         end;
       end;
 
     function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
@@ -598,7 +734,7 @@ unit typinfo;
     function GetMethodProp(Instance : TObject;PropInfo : PPropInfo) : TMethod;
 
       begin
-         {!!!!!!!!!!!}
+        {!!!!!!!!!!!!}
       end;
 
     procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo;
@@ -650,7 +786,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  1998-11-26 14:57:47  michael
+  Revision 1.16  1998-12-02 12:35:07  michael
+  More changes for type-information
+
+  Revision 1.15  1998/11/26 14:57:47  michael
   + Added packrecords 1
 
   Revision 1.11  1998/09/24 23:45:28  peter
