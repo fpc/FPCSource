@@ -1,4 +1,4 @@
-f{$mode objfpc}
+{$mode objfpc}
 {$h+}
 {
     $Id$
@@ -1996,7 +1996,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-09-20 06:58:59  michael
+  Revision 1.6  2004-09-20 15:07:19  peter
+    * typo
+
+  Revision 1.5  2004/09/20 06:58:59  michael
   + Fixed some errors pointed out by Armin Diehl
 
   Revision 1.4  2004/09/19 19:25:52  armin
