@@ -709,7 +709,8 @@ implementation
               else
                 aprocdef:=nil;
               p2:=cloadnode.create_procvar(sym,aprocdef,st);
-              if assigned(p1) then
+              if assigned(p1) and
+                 (p1.nodetype<>typen) then
                 tloadnode(p2).set_mp(p1);
               p1:=p2;
 
@@ -2303,7 +2304,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2002-12-11 22:40:36  peter
+  Revision 1.97  2003-01-05 22:44:14  peter
+    * remove a lot of code to support typen in loadn-procsym
+
+  Revision 1.96  2002/12/11 22:40:36  peter
     * assigned(procvar) fix for delphi mode, fixes tb0430
 
   Revision 1.95  2002/11/30 11:12:48  carl

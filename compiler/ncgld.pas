@@ -68,7 +68,6 @@ implementation
       var
         intreg,
         hregister : tregister;
-        freereg   : boolean;
         symtabletype : tsymtabletype;
         i : longint;
         href : treference;
@@ -290,107 +289,80 @@ implementation
                begin
                   if assigned(left) then
                     begin
-                       {
-                         THIS IS A TERRIBLE HACK!!!!!! WHICH WILL NOT WORK
-                         ON 64-BIT SYSTEMS: SINCE PROCSYM FOR METHODS
-                         CONSISTS OF TWO OS_ADDR, so you cannot set it
-                         to OS_64 - how to solve?? Carl
-                       }
-                       if (sizeof(aword) = 4) then
-                          location_reset(location,LOC_CREFERENCE,OS_64)
-                       else
-                          internalerror(20020520);
-                       tg.GetTemp(exprasmlist,2*POINTER_SIZE,tt_normal,location.reference);
-                       freereg:=false;
+                      {
+                        THIS IS A TERRIBLE HACK!!!!!! WHICH WILL NOT WORK
+                        ON 64-BIT SYSTEMS: SINCE PROCSYM FOR METHODS
+                        CONSISTS OF TWO OS_ADDR, so you cannot set it
+                        to OS_64 - how to solve?? Carl
+                      }
+                      if (sizeof(aword) = 4) then
+                         location_reset(location,LOC_CREFERENCE,OS_64)
+                      else
+                         internalerror(20020520);
+                      tg.GetTemp(exprasmlist,2*POINTER_SIZE,tt_normal,location.reference);
+                      secondpass(left);
 
-                       { called as type.method, then we only need to return
-                         the address of the function, not the self pointer }
-                       if left.nodetype=typen then
+                      { load class instance address }
+                      case left.location.loc of
+                         LOC_CREGISTER,
+                         LOC_REGISTER:
+                           begin
+                              hregister:=left.location.register;
+                              if is_object(left.resulttype.def) then
+                                CGMessage(cg_e_illegal_expression);
+                           end;
+                         LOC_CREFERENCE,
+                         LOC_REFERENCE:
+                           begin
+                              hregister:=rg.getaddressregister(exprasmlist);
+                              if is_class_or_interface(left.resulttype.def) then
+                                cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,hregister)
+                              else
+                                cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,hregister);
+                              location_release(exprasmlist,left.location);
+                              location_freetemp(exprasmlist,left.location);
+                           end;
+                         else
+                           internalerror(26019);
+                      end;
+
+                      { store the class instance address }
+                      href:=location.reference;
+                      inc(href.offset,POINTER_SIZE);
+                      cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,href);
+
+                      { virtual method ? }
+                      if (po_virtualmethod in tprocdef(resulttype.def).procoptions) then
                         begin
-                          { there is no instance, we return 0 }
-                          href:=location.reference;
-                          inc(href.offset,POINTER_SIZE);
-                          cg.a_load_const_ref(exprasmlist,OS_ADDR,0,href);
+                          { load vmt pointer }
+                          reference_reset_base(href,hregister,0);
+                          reference_release(exprasmlist,href);
+                          hregister:=rg.getaddressregister(exprasmlist);
+                          cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+
+
+                          reference_reset_base(href,hregister,tprocdef(resulttype.def)._class.vmtmethodoffset(
+                                           tprocdef(resulttype.def).extnumber));
+                          reference_release(exprasmlist,href);
+
+                          { load method address }
+                          hregister:=rg.getaddressregister(exprasmlist);
+                          cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+                          { ... and store it }
+                          cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,location.reference);
+                          rg.ungetaddressregister(exprasmlist,hregister);
                         end
-                       else
+                      else
                         begin
-                          secondpass(left);
-
-                          { load class instance address }
-                          case left.location.loc of
-                             LOC_CREGISTER,
-                             LOC_REGISTER:
-                               begin
-                                  hregister:=left.location.register;
-                                  if is_object(left.resulttype.def) then
-                                    CGMessage(cg_e_illegal_expression);
-                               end;
-                             LOC_CREFERENCE,
-                             LOC_REFERENCE:
-                               begin
-                                  hregister:=rg.getaddressregister(exprasmlist);
-                                  if is_class_or_interface(left.resulttype.def) then
-                                    cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,hregister)
-                                  else
-                                    cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,hregister);
-                                  location_release(exprasmlist,left.location);
-                                  location_freetemp(exprasmlist,left.location);
-                               end;
-                             else
-                               internalerror(26019);
-                          end;
-
-                          { store the class instance address }
-                          href:=location.reference;
-                          inc(href.offset,POINTER_SIZE);
-                          cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,href);
-                          { hregister will be reused when loading a virtual method }
-                          freereg:=true;
+                          { we don't use the hregister }
+                          rg.ungetregister(exprasmlist,hregister);
+                          { load address of the function }
+                          reference_reset_symbol(href,objectlibrary.newasmsymbol(tprocdef(resulttype.def).mangledname),0);
+                          hregister:=cg.get_scratch_reg_address(exprasmlist);
+                          cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
+                          cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,location.reference);
+                          cg.free_scratch_reg(exprasmlist,hregister);
                         end;
-
-                       { virtual method ? }
-                       if (po_virtualmethod in tprocdef(resulttype.def).procoptions) then
-                         begin
-                            if not freereg then
-                              begin
-                                if left.nodetype <> typen then
-                                  internalerror(200205161);
-                                reference_reset_symbol(href,objectlibrary.newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),
-                                  tprocdef(resulttype.def)._class.vmtmethodoffset(tprocdef(resulttype.def).extnumber));
-                              end
-                            else
-                              begin
-                                { load vmt pointer }
-                                reference_reset_base(href,hregister,0);
-                                reference_release(exprasmlist,href);
-                                hregister:=rg.getaddressregister(exprasmlist);
-                                cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
-
-
-                                reference_reset_base(href,hregister,tprocdef(resulttype.def)._class.vmtmethodoffset(
-                                                 tprocdef(resulttype.def).extnumber));
-                                reference_release(exprasmlist,href);
-                              end;
-
-                            { load method address }
-                            hregister:=rg.getaddressregister(exprasmlist);
-                            cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
-                            { ... and store it }
-                            cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,location.reference);
-                            rg.ungetaddressregister(exprasmlist,hregister);
-                         end
-                       else
-                         begin
-                            { we don't use the hregister }
-                            if freereg then
-                             rg.ungetregister(exprasmlist,hregister);
-                            { load address of the function }
-                            reference_reset_symbol(href,objectlibrary.newasmsymbol(tprocdef(resulttype.def).mangledname),0);
-                            hregister:=cg.get_scratch_reg_address(exprasmlist);
-                            cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
-                            cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,location.reference);
-                            cg.free_scratch_reg(exprasmlist,hregister);
-                         end;
                     end
                   else
                     begin
@@ -987,7 +959,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2002-12-20 18:13:46  peter
+  Revision 1.43  2003-01-05 22:44:14  peter
+    * remove a lot of code to support typen in loadn-procsym
+
+  Revision 1.42  2002/12/20 18:13:46  peter
     * fixes for fpu values in arrayconstructor
 
   Revision 1.41  2002/11/27 20:04:39  peter

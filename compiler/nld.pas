@@ -178,7 +178,11 @@ implementation
             begin
               p2:=cloadnode.create_procvar(tcallnode(p1).symtableprocentry,
                  tprocdef(tcallnode(p1).procdefinition),tcallnode(p1).symtableproc);
-              if assigned(tcallnode(p1).methodpointer) then
+              { when the methodpointer is typen we've something like:
+                tobject.create. Then only the address is needed of the
+                method without a self pointer }
+              if assigned(tcallnode(p1).methodpointer) and
+                 (tcallnode(p1).methodpointer.nodetype<>typen) then
                begin
                  tloadnode(p2).set_mp(tcallnode(p1).methodpointer);
                  tcallnode(p1).methodpointer:=nil;
@@ -268,6 +272,9 @@ implementation
 
     procedure tloadnode.set_mp(p:tnode);
       begin
+        { typen nodes should not be set }
+        if p.nodetype=typen then
+          internalerror(200301042);
         left:=p;
       end;
 
@@ -376,38 +383,9 @@ implementation
                    else
                     resulttype.setdef(procdef);
 
-                   if (m_tp_procvar in aktmodeswitches) then
-                    begin
-                      if assigned(left) then
-                       begin
-                         if left.nodetype=typen then
-                          begin
-                            { we need to return only a voidpointer,
-                              so no need to keep the typen }
-                            left.free;
-                            left:=nil;
-                          end;
-                       end
-                      else
-                       begin
-                         { if the owner of the procsym is a object,  }
-                         { left must be set, if left isn't set       }
-                         { it can be only self                       }
-                         if (tprocsym(symtableentry).owner.symtabletype=objectsymtable) then
-                           left:=cselfnode.create(tobjectdef(symtableentry.owner.defowner));
-                       end;
-                    end;
-
                    { process methodpointer }
                    if assigned(left) then
-                    begin
-                      resulttypepass(left);
-
-                      { turn on the allowed flag, the secondpass
-                        will handle the typen itself }
-                      if left.nodetype=typen then
-                       ttypenode(left).allowed:=true;
-                    end;
+                     resulttypepass(left);
                 end;
            else
              internalerror(200104141);
@@ -1272,7 +1250,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2003-01-03 12:15:56  daniel
+  Revision 1.79  2003-01-05 22:44:14  peter
+    * remove a lot of code to support typen in loadn-procsym
+
+  Revision 1.78  2003/01/03 12:15:56  daniel
     * Removed ifdefs around notifications
       ifdefs around for loop optimizations remain
 
