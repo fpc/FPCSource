@@ -389,7 +389,8 @@ begin
   DoneSysError;
   DoneEvents;
   DoneMouse;
-  DoneScreen;
+  { Not found ?? (PM)
+   DoneScreen;       }
   DoneDosMem;
 
   if Assigned(UserScreen) then
@@ -602,7 +603,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  1999-01-22 10:24:03  peter
+  Revision 1.5  1999-01-22 18:13:22  pierre
+   * DoneScreen Removed I did not find any such proc ??
+
+  Revision 1.4  1999/01/22 10:24:03  peter
     * first debugger things
 
   Revision 1.3  1999/01/21 11:54:14  peter
