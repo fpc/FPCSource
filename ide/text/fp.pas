@@ -74,7 +74,7 @@ begin
       end
     else
       if not BeforeINI then
-        TryToOpenFile(nil,Param,0,0,false);
+        TryToOpenFile(nil,Param,0,0,{false}true);
   end;
 end;
 
@@ -194,7 +194,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.26  1999-06-28 23:31:14  pierre
+  Revision 1.27  1999-06-29 22:43:12  peter
+    * try to add extensions to params
+
+  Revision 1.26  1999/06/28 23:31:14  pierre
    * typo inside go32v2 cond error removed
 
   Revision 1.25  1999/06/28 19:25:34  peter
