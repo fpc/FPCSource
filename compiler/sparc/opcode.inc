@@ -53,7 +53,7 @@ A_FADDs,A_FADDd,A_FADDq,
 A_FSUBs,A_FSUBd,A_FSUBq,
 A_FMULs,A_FMULd,A_FMULQ,
 A_FdMULq,A_FsMULd,
-A_DIVs,A_DIVd,A_FDIVq,
+A_FDIVs,A_FDIVd,A_FDIVq,
 A_FCMPs,A_FCMPd,A_FCMPq,
 A_FCPop1,A_CPop2,
           {Synthetic instructions}
@@ -68,9 +68,12 @@ A_skipz,A_skipnz,
 A_tst
 {
 	$Log$
-	Revision 1.4  2002-11-10 17:49:14  mazen
-	* A_RET --> A_RETT (RET from Trap)
+	Revision 1.5  2003-01-20 20:15:44  mazen
+	* A_CMPrs --> A_FCMPs and A_CMPd --> A_FCMPd
 
+	Revision 1.4  2002/11/10 17:49:14  mazen
+	* A_RET --> A_RETT (RET from Trap)
+	
 	Revision 1.3  2002/10/17 14:48:34  mazen
 	* branch instructions are now contigous
 	
