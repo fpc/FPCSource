@@ -1306,10 +1306,17 @@ if Not TextmodeGFV then
       SysFontWidth;                                { Calc screen width }
     ScreenHeight := (Graph.GetMaxY+1) DIV
       SysFontHeight;                               { Calc screen height }
+    UseFixedFont:=true;
 {$ifdef USE_VIDEO_API}
+    GetMem(Video.VideoBuf,sizeof(word)*ScreenWidth*ScreenHeight);
+    GetMem(Video.OldVideoBuf,sizeof(word)*ScreenWidth*ScreenHeight);
+    FillChar(Video.VideoBuf^,sizeof(word)*ScreenWidth*ScreenHeight,#0);
+    FillChar(Video.OldVideoBuf^,sizeof(word)*ScreenWidth*ScreenHeight,#0);
     ScreenMode.color:=true;
     ScreenMode.col:=ScreenWidth;
     ScreenMode.row:=ScreenHeight;
+    GfvGraph.SysFontWidth:=SysFontWidth;
+    GfvGraph.SysFontHeight:=SysFontHeight;
 {$endif USE_VIDEO_API}
 {$ifdef win32}
     SetGraphHooks;
@@ -1344,6 +1351,10 @@ BEGIN
 {$ifdef GRAPH_API}
   if Not TextmodeGFV then
     begin
+{$ifdef USE_VIDEO_API}
+      FreeMem(Video.VideoBuf,sizeof(word)*ScreenWidth*ScreenHeight);
+      FreeMem(Video.OldVideoBuf,sizeof(word)*ScreenWidth*ScreenHeight);
+{$endif USE_VIDEO_API}
       CloseGraph;
 {$ifdef win32}
     UnsetGraphHooks;
@@ -1365,7 +1376,9 @@ PROCEDURE ClearScreen;
 BEGIN
 {$ifdef GRAPH_API}
   if Not TextmodeGFV then
-    Graph.ClearDevice
+    begin
+      Graph.ClearDevice;
+    end
   else
 {$endif GRAPH_API}
 {$ifdef USE_video_api}
@@ -1586,7 +1599,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.19  2002-05-24 10:36:52  pierre
+ Revision 1.20  2002-05-28 19:14:35  pierre
+  * adapt to new GraphUpdateScreen function
+
+ Revision 1.19  2002/05/24 10:36:52  pierre
   * Try to enhance win32 special chars support
 
  Revision 1.18  2002/05/24 09:36:33  pierre

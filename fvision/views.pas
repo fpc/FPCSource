@@ -910,7 +910,10 @@ begin
   if (GetLockScreenCount=0) then
    begin
      HideMouse;
-     UpdateScreen(false);
+     if TextModeGFV then
+       UpdateScreen(false)
+     else
+       GraphUpdateScreen(false);
      ShowMouse;
    end;
 {$endif USE_VIDEO_API}
@@ -1282,7 +1285,7 @@ var
   end;
 
 begin
-  if (not TextModeGFV) then
+  if (not TextModeGFV) and not UseFixedFont then
    exit;
 {$ifdef USE_VIDEO_API}
   if ((state and sfV_CV_F) = sfV_CV_F) then
@@ -1430,7 +1433,7 @@ BEGIN
 {$ifdef USE_VIDEO_API}
      UnlockScreenUpdate;
 {$endif USE_VIDEO_API}
-     if TextModeGFV then
+     if TextModeGFV or UseFixedFont then
       begin
         DrawScreenBuf;
         If (DrawMask AND vdCursor <> 0) Then       { Check cursor mask }
@@ -3238,7 +3241,7 @@ BEGIN
    If (GOptions AND goNativeClass = 0) Then Begin     { Non natives draw }
      Inherited DrawBackGround;                        { Call ancestor }
      Bc := GetColor(1) AND $F0 SHR 4;                 { Background colour }
-     If TextModeGFV then
+     If TextModeGFV or UseFixedFont then
        Begin
          WriteChar(0,0,Chars[0],Bc,1);
          If (Size.X = 1) Then Begin                         { Vertical scrollbar }
@@ -4517,7 +4520,7 @@ VAR
     Buf : TDrawBuffer;
 BEGIN
    GetViewSettings(ViewPort, TextModeGFV);            { Get viewport }
-   If (TextModeGFV <> TRUE) Then Begin                { GRAPHICAL GFV MODE }
+   If not TextModeGFV and not UseFixedFont Then Begin                { GRAPHICAL GFV MODE }
      SetFillStyle(SolidFill, Colour);                 { Set colour up }
      Bar(RawOrigin.X+X1-ViewPort.X1, RawOrigin.Y+Y1-
        ViewPort.Y1, RawOrigin.X+X2-ViewPort.X1,
@@ -4676,12 +4679,12 @@ BEGIN
        Y := Y DIV SysFontHeight;
      End;
      GetViewSettings(ViewPort, TextModeGFV);          { Get current viewport }
-     If not TextModeGFV then Begin
+     If not TextModeGFV and not UseFixedFont then Begin
        X := X - ViewPort.X1;                          { Calc x position }
        Y := Y - ViewPort.Y1;                          { Calc y position }
      End;
      For J := 1 To H Do Begin                         { For each line }
-       If (TextModeGFV) Then Begin                    { TEXT MODE GFV }
+       If (TextModeGFV) or UseFixedFont Then Begin                    { TEXT MODE GFV }
          WriteAbs(X,Y,W,P^[L]);
          Inc(Y);
          Inc(L,W);
@@ -4725,12 +4728,12 @@ BEGIN
        Y := Y DIV SysFontHeight;
      End;
      GetViewSettings(ViewPort, TextModeGFV);          { Get current viewport }
-     If not TextModeGFV then Begin
+     If not TextModeGFV and not UseFixedFont then Begin
        X := X - ViewPort.X1;                          { Calc x position }
        Y := Y - ViewPort.Y1;                          { Calc y position }
      End;
      For J := 1 To H Do Begin                         { For each line }
-       If (TextModeGFV) Then Begin                    { TEXT MODE GFV }
+       If (TextModeGFV) or UseFixedFont Then Begin                    { TEXT MODE GFV }
          WriteAbs(X,Y,W,P^);
          Inc(Y);
        End Else Begin
@@ -4747,7 +4750,7 @@ BEGIN
          Y := Y + SysFontHeight;                       { Next line down }
        End;
      end;
-     If TextModeGFV then
+     If TextModeGFV or UseFixedFont then
        DrawScreenBuf;
    End;
 END;
@@ -4819,7 +4822,7 @@ BEGIN
         End;
         GetViewSettings(ViewPort, TextModeGFV);
 
-       If (TextModeGFV <> TRUE) Then Begin              { GRAPHICAL MODE GFV }
+       If not TextModeGFV and not UseFixedFont Then Begin              { GRAPHICAL MODE GFV }
          SetFillStyle(SolidFill, Bc);                   { Set fill style }
          Bar(Xw-ViewPort.X1, Yw-ViewPort.Y1,
            Xw-ViewPort.X1+Length(Str)*FontWidth,
@@ -4888,7 +4891,7 @@ BEGIN
        Y := RawOrigin.Y + Abs(Y);
      End;
      GetViewSettings(ViewPort, TextModeGFV);
-     If (TextModeGFV <> TRUE) Then Begin              { GRAPHICAL MODE GFV }
+     If not TextModeGFV and not UseFixedFont Then Begin              { GRAPHICAL MODE GFV }
        SetFillStyle(SolidFill, Bc);                   { Set fill style }
        Bar(X-ViewPort.X1, Y-ViewPort.Y1,
          X-ViewPort.X1+Length(Str)*FontWidth,
@@ -4903,7 +4906,7 @@ BEGIN
        end;
        WriteAbs(Tix,TiY,Length(Str),Buf);
      End;
-     If TextModeGFV then
+     If TextModeGFV or UseFixedFont then
        DrawScreenBuf;
    End;
 END;
@@ -4930,7 +4933,7 @@ BEGIN
      While (Count>0) Do Begin
        If (Count>Size.X) Then I := Size.X Else I := Count;  { Size to make }
        S[0] := Chr(I);                                { Set string length }
-       If (TextModeGFV <> TRUE) Then Begin            { GRAPHICAL MODE GFV }
+       If not TextModeGFV and not UseFixedFont Then Begin            { GRAPHICAL MODE GFV }
          SetFillStyle(SolidFill, Bc);                 { Set fill style }
          Bar(X-ViewPort.X1, Y-ViewPort.Y1,
            X-ViewPort.X1+I*FontWidth,
@@ -4946,12 +4949,12 @@ BEGIN
          WriteAbs(TiX,TiY,Length(S),Buf);
        End;
        Count := Count - I;                            { Subtract count }
-       If TextModeGFV then
+       If TextModeGFV or UseFixedFont then
          X := X + I                                    { Move x position }
        else
          X := X + I*FontWidth;                          { Move x position }
      End;
-     If TextModeGFV then
+     If TextModeGFV or UseFixedFont then
        DrawScreenBuf;
    End;
 END;
@@ -5567,7 +5570,10 @@ END.
 
 {
  $Log$
- Revision 1.24  2002-05-25 23:30:47  pierre
+ Revision 1.25  2002-05-28 19:15:16  pierre
+  * adapt to new GraphUpdateScreen function
+
+ Revision 1.24  2002/05/25 23:30:47  pierre
   * partly fix the scrollbar behavior
 
  Revision 1.23  2002/05/24 13:16:11  pierre
