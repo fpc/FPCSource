@@ -16,6 +16,10 @@
 
 {$MODE ObjFPC}
 
+{$ifndef NO_SMART_LINK}
+{$smartlink on}
+{$endif}
+
 Unit varutils;
 
 Interface
@@ -72,7 +76,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:29  peter
+  Revision 1.4  2002-10-10 19:20:02  florian
+    * unit is now smartlinked by default to avoid problems with an old oleauth.dll
+
+  Revision 1.3  2002/09/07 16:01:29  peter
     * old logs removed and tabs fixed
 
 }
