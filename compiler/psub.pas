@@ -41,7 +41,7 @@ implementation
        { common }
        cutils,cclasses,
        { global }
-       globtype,globals,tokens,verbose,
+       globtype,globals,tokens,verbose,comphook,
        systems,
        { aasm }
        cpubase,aasm,
@@ -337,7 +337,9 @@ implementation
          oldaktmaxfpuregisters:=aktmaxfpuregisters;
          aktmaxfpuregisters:=localmaxfpuregisters;
 {$ifndef NOPASS2}
-         if assigned(code) then
+         { only generate the code if no type errors are found }
+         if assigned(code) and
+            (status.errorcount=0) then
            generatecode(code);
          { set switches to status at end of procedure }
          aktlocalswitches:=exitswitches;
@@ -807,7 +809,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2001-04-13 01:22:13  peter
+  Revision 1.28  2001-04-13 17:59:03  peter
+    * don't generate code when there is already an error
+
+  Revision 1.27  2001/04/13 01:22:13  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
