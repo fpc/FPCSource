@@ -24,7 +24,7 @@ getreturncode :
 	cp retcode $(FILE).$(RESEXT)
 	@echo "Return code of $(FILE) is $(cat retcode)"
 endif
-	
+
 
 # retcode should be between 0 and 255
 # 256 is for halt
@@ -73,13 +73,17 @@ testexecsuccess:
 	@echo "Test for exec $(FILE) fails exec error $(EXERETVAL)" >>log
 endif
 	
-ifeq ($(wildcard $(FILE)$(EXEEXT)*),$(FILE)$(EXEEXT))
+ifeq ($(wildcard $(FILE)$(EXEEXT)),$(FILE)$(EXEEXT))
 testexec:
 	@echo "Testing $(FILE)$(EXEEXT)"
 ifdef NOREDIR
 	getret $(FILE)$(EXEEXT)
 else
+ifdef DJGPP
 	redir -e $(FILE).elg -o $(FILE).elg getret $(FILE)$(EXEEXT)
+else
+	getret $(FILE)$(EXEEXT) > $(FILE).elg 2>$(FILE).elg
+endif
 endif
 	cp -f retcode $(FILE).exc
 	$(MAKE) testexecsuccess 'FILE=$(FILE)' 'EXCFILE=$(FILE).exc'
@@ -145,10 +149,10 @@ testone :
 # *.exc exicode of program
 %.elg : %.res
 	$(MAKE) testexec 'FILE=$*'
-	
+
 %.eli : %.res
 	$(MAKE) testexec 'FILE=$*' 'NOREDIR=YES'
-	
+
 allts : $(patsubst %.pp,%.res,$(wildcard ts*.pp))
 
 alltbs : $(patsubst %.pp,%.res,$(wildcard tbs*.pp))
@@ -222,7 +226,10 @@ info :
 
 #
 # $Log$
-# Revision 1.1  1999-01-25 20:23:04  peter
+# Revision 1.2  1999-06-01 00:06:14  peter
+#   * linux fixes
+#
+# Revision 1.1  1999/01/25 20:23:04  peter
 #   * linux updates
 #
 # Revision 1.12  1999/01/19 18:01:43  pierre
