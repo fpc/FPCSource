@@ -323,7 +323,7 @@ Writeln(stderr,'Dos command line is #',doscmd,'# size = ',length(doscmd));
 {$EndIf }
 
 // setup cmdline variable
-sysgetmem(cmdline,length(doscmd)+1);
+cmdline := sysgetmem(length(doscmd)+1);
 move(doscmd[1],cmdline^,length(doscmd));
 cmdline[length(doscmd)]:=#0;
 
@@ -382,13 +382,13 @@ if (argc > 1) and (far_strlen(get_ds,longint(largs[1])) = 6)  then
     proxy_argc := atohex(largs[2]);
     proxy_seg  := atohex(largs[3]);
     proxy_ofs := atohex(largs[4]);
-    sysgetmem(rm_argv,proxy_argc*sizeof(word));
+    rm_argv := sysgetmem(proxy_argc*sizeof(word));
     sysseg_move(dos_selector,proxy_seg*16+proxy_ofs, get_ds,longint(rm_argv),proxy_argc*sizeof(word));
     for i:=0 to proxy_argc - 1 do
       begin
       lin := proxy_seg*16 + rm_argv^[i];
       al :=far_strlen(dos_selector, lin);
-      sysgetmem(largs[i],al+1);
+      largs[i] := sysgetmem(al+1);
       sysseg_move(dos_selector, lin, get_ds,longint(largs[i]), al+1);
 {$IfDef SYSTEM_DEBUG_STARTUP}
       Writeln(stderr,'arg ',i,' #',largs[i],'#');
@@ -397,7 +397,7 @@ if (argc > 1) and (far_strlen(get_ds,longint(largs[1])) = 6)  then
     argc := proxy_argc;
     end;
   end;
-sysgetmem(argv,argc shl 2);
+argv := sysgetmem(argc shl 2);
 for i := 0 to argc-1  do
    argv[i] := largs[i];
   _args:=argv;
@@ -441,7 +441,7 @@ var env_selector : word;
     dos_env,cp : pchar;
 begin
    stub_info:=__stubinfo;
-   sysgetmem(dos_env,stub_info^.env_size);
+   dos_env := sysgetmem(stub_info^.env_size);
    env_count:=0;
    sysseg_move(stub_info^.psp_selector,$2c, get_ds, longint(@env_selector), 2);
    sysseg_move(env_selector, 0, get_ds, longint(dos_env), stub_info^.env_size);
@@ -452,13 +452,13 @@ begin
     while (cp^ <> #0) do inc(longint(cp)); { skip to NUL }
     inc(longint(cp)); { skip to next character }
     end;
-  sysgetmem(envp,(env_count+1) * sizeof(pchar));
+  envp := sysgetmem((env_count+1) * sizeof(pchar));
   if (envp = nil) then exit;
   cp:=dos_env;
   env_count:=0;
   while cp^ <> #0 do
    begin
-     sysgetmem(envp[env_count],strlen(cp)+1);
+     envp[env_count] := sysgetmem(strlen(cp)+1);
      strcopy(envp[env_count], cp);
 {$IfDef SYSTEM_DEBUG_STARTUP}
      Writeln(stderr,'env ',env_count,' = "',envp[env_count],'"');
@@ -470,7 +470,7 @@ begin
    end;
   envp[env_count]:=nil;
   longint(cp):=longint(cp)+3;
-  sysgetmem(dos_argv0,strlen(cp)+1);
+  dos_argv0 := sysgetmem(strlen(cp)+1);
   if (dos_argv0 = nil) then halt;
   strcopy(dos_argv0, cp);
   { update ___dos_argv0 also }
@@ -1040,7 +1040,7 @@ begin
             sysfreememsize(opennames[regs.realeax],strlen(opennames[regs.realeax])+1);
          end;
        openfiles[regs.realeax]:=true;
-       sysgetmem(opennames[regs.realeax],strlen(p)+1);
+       opennames[regs.realeax] := sysgetmem(strlen(p)+1);
        move(p^,opennames[regs.realeax]^,strlen(p)+1);
     end;
 {$endif SYSTEMDEBUG}
@@ -1265,7 +1265,7 @@ Begin
   { before this, you can't use thread vars !!!! }
   { threadvarblocksize is calculate before the initialization }
   { of the system unit                                        }
-  sysgetmem(mainprogramthreadblock,threadvarblocksize);
+  mainprogramthreadblock :=  sysgetmem(threadvarblocksize);
 {$endif MT}
   InitExceptions;
 { Setup stdin, stdout and stderr }
@@ -1285,7 +1285,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.20  1999-10-28 09:53:19  peter
+  Revision 1.21  1999-10-31 09:34:48  jonas
+    * updated for new syntax of sysgetmem
+
+  Revision 1.20  1999/10/28 09:53:19  peter
     * create can also open file in fminout
 
   Revision 1.19  1999/09/20 12:40:20  pierre
