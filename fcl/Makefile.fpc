@@ -9,21 +9,21 @@ version=1.9.0
 [require]
 packages=paszlib
 packages_linux=netdb libasync pthreads
-packages_freebsd=netdb libasync
+packages_freebsd=netdb libasync pthreads
 packages_netbsd=netdb libasync
 packages_openbsd=netdb libasync
 packages_win32=netdb
 
 # clean package units
 [clean]
-units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszlib trees zbase zcompres zdeflate zinflate zuncompr zutil
+units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszlib trees zbase zcompres zdeflate zinflate zuncompr zutil pthreads
 
 [target]
 dirs=xml image db shedit passrc net 
 units=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext \
       iostream zstream cachecls xmlreg registry eventlog custapp cgiapp \
       wformat whtml wtex
-units_freebsd=process ssockets resolve fpasync
+units_freebsd=process ssockets resolve fpasync syncobjs
 units_netbsd=process ssockets resolve fpasync
 units_openbsd=process ssockets resolve fpasync
 units_linux=process resolve ssockets fpasync syncobjs
@@ -31,7 +31,6 @@ units_win32=process fileinfo resolve ssockets syncobjs
 units_netware=resolve ssockets
 rsts=$(CLASSES10) ssockets cachecls resolve custapp cgiapp eventlog registry
 exampledirs=tests
-
 [compiler]
 options=-S2
 targetdir=$(OS_TARGET)
