@@ -981,6 +981,10 @@
 
              l:=getsize;
              case owner^.symtabletype of
+
+          stt_exceptsymtable:
+            { can contain only one symbol, address calculated later }
+            ;
           localsymtable : begin
                             is_valid := 0;
                             modulo:=owner^.datasize and 3;
@@ -1646,7 +1650,11 @@
 
 {
   $Log$
-  Revision 1.24  1998-07-20 18:40:16  florian
+  Revision 1.25  1998-07-30 11:18:19  florian
+    + first implementation of try ... except on .. do end;
+    * limitiation of 65535 bytes parameters for cdecl removed
+
+  Revision 1.24  1998/07/20 18:40:16  florian
     * handling of ansi string constants should now work
 
   Revision 1.23  1998/07/14 21:37:24  peter

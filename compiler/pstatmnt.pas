@@ -478,9 +478,13 @@ unit pstatmnt;
 
       var
          p_try_block,p_finally_block,first,last,
-         p_default,e1,e2,p_specific : ptree;
+         p_default,p_specific : ptree;
+         ot : pobjectdef;
+         sym : pvarsym;
 
          old_in_except_block : boolean;
+
+         exceptsymtable : psymtable;
 
       begin
          procinfo.flags:=procinfo.flags or
@@ -530,31 +534,98 @@ unit pstatmnt;
               if token=_ON then
                 { catch specific exceptions }
                 begin
+                   p_specific:=nil;
                    repeat
                      consume(_ON);
-                     e1:=comp_expr(true);
-                     if token=COLON then
+                     if token=ID then
                        begin
-                          consume(COLON);
-                          e2:=comp_expr(true);
-                          { !!!!! }
+                          getsym(pattern,false);
+
+                          { is a explicit name for the exception given ? }
+                          if not(assigned(srsym)) then
+                            begin
+                               sym:=new(pvarsym,init(pattern,nil));
+                               exceptsymtable:=new(psymtable,init(stt_exceptsymtable));
+                               exceptsymtable^.insert(sym);
+                               consume(COLON);
+                               getsym(pattern,false);
+                               consume(ID);
+                               if srsym^.typ=unitsym then
+                                 begin
+                                    consume(POINT);
+                                    getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
+                                    consume(ID);
+                                 end;
+                               if (srsym^.typ=typesym) and
+                                 (ptypesym(srsym)^.definition^.deftype=objectdef) and
+                                 pobjectdef(ptypesym(srsym)^.definition)^.isclass then
+                                 ot:=pobjectdef(ptypesym(srsym)^.definition)
+                               else
+                                 begin
+                                    message(parser_e_class_type_expected);
+                                    ot:=pobjectdef(generrordef);
+                                 end;
+                               sym^.definition:=ot;
+                               { insert the exception symtable stack }
+                               exceptsymtable^.next:=symtablestack;
+                               symtablestack^.next:=exceptsymtable;
+                            end
+                          else
+                            begin
+                               { only exception type }
+                               if srsym^.typ=unitsym then
+                                 begin
+                                    consume(POINT);
+                                    getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
+                                    consume(ID);
+                                 end;
+                               consume(ID);
+                               if (srsym^.typ=typesym) and
+                                 (ptypesym(srsym)^.definition^.deftype=objectdef) and
+                                 pobjectdef(ptypesym(srsym)^.definition)^.isclass then
+                                 ot:=pobjectdef(ptypesym(srsym)^.definition)
+                               else
+                                 begin
+                                    message(parser_e_class_type_expected);
+                                    ot:=pobjectdef(generrordef);
+                                 end;
+                               exceptsymtable:=nil;
+                            end;
+                       end
+                     else
+                       consume(ID);
+                     consume(_DO);
+                     statement;
+                     if p_specific=nil then
+                       begin
+                          last:=gennode(onn,nil,statement);
+                          p_specific:=last;
                        end
                      else
                        begin
-                          { !!!!! }
+                          last^.left:=gennode(onn,nil,statement);
+                          last:=last^.left;
                        end;
-                     consume(_DO);
-                     statement;
+                     { set the informations }
+                     last^.excepttype:=ot;
+                     last^.exceptsymtable:=exceptsymtable;
+
+                     { remove exception symtable }
+                     if assigned(exceptsymtable) then
+                       dellexlevel;
                      if token<>SEMICOLON then
                        break;
+                     consume(SEMICOLON);
                      emptystats;
-                   until false;
+                   until (token=_END) or(token=_ELSE);
                    if token=_ELSE then
                      { catch the other exceptions }
                      begin
                         consume(_ELSE);
                         p_default:=statements_til_end;
-                     end;
+                     end
+                   else
+                     consume(_END);
                 end
               else
                 { catch all exceptions }
@@ -1171,7 +1242,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.27  1998-07-28 21:52:55  florian
+  Revision 1.28  1998-07-30 11:18:18  florian
+    + first implementation of try ... except on .. do end;
+    * limitiation of 65535 bytes parameters for cdecl removed
+
+  Revision 1.27  1998/07/28 21:52:55  florian
     + implementation of raise and try..finally
     + some misc. exception stuff
 

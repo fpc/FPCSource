@@ -4764,11 +4764,36 @@ unit pass_1;
     procedure firsttryexcept(var p : ptree);
 
       begin
+         cleartempgen;
+         firstpass(p^.left);
+
+         { on statements }
+         if assigned(p^.right) then
+           begin
+              cleartempgen;
+              firstpass(p^.right);
+              p^.registers32:=max(p^.registers32,p^.right^.registers32);
+              p^.registersfpu:=max(p^.registersfpu,p^.right^.registersfpu);
+{$ifdef SUPPORT_MMX}
+              p^.registersmmx:=max(p^.registersmmx,p^.right^.registersmmx);
+{$endif SUPPORT_MMX}
+           end;
+         { else block }
+         if assigned(p^.t1) then
+           begin
+              firstpass(p^.right);
+              p^.registers32:=max(p^.registers32,p^.t1^.registers32);
+              p^.registersfpu:=max(p^.registersfpu,p^.t1^.registersfpu);
+{$ifdef SUPPORT_MMX}
+              p^.registersmmx:=max(p^.registersmmx,p^.t1^.registersmmx);
+{$endif SUPPORT_MMX}
+           end;
       end;
 
     procedure firsttryfinally(var p : ptree);
 
       begin
+         p^.resulttype:=voiddef;
          cleartempgen;
          must_be_valid:=true;
          firstpass(p^.left);
@@ -4916,6 +4941,39 @@ unit pass_1;
            end;
       end;
 
+    procedure firstonn(var p : ptree);
+
+      begin
+         { that's really an example procedure for a firstpass :) }
+         cleartempgen;
+         p^.resulttype:=voiddef;
+         p^.registers32:=0;
+         p^.registersfpu:=0;
+{$ifdef SUPPORT_MMX}
+         p^.registersmmx:=0;
+{$endif SUPPORT_MMX}
+         if assigned(p^.left) then
+           begin
+              firstpass(p^.left);
+              p^.registers32:=p^.left^.registers32;
+              p^.registersfpu:=p^.left^.registersfpu;
+{$ifdef SUPPORT_MMX}
+              p^.registersmmx:=p^.left^.registersmmx;
+{$endif SUPPORT_MMX}
+           end;
+
+         cleartempgen;
+         if assigned(p^.right) then
+           begin
+              firstpass(p^.right);
+              p^.registers32:=max(p^.registers32,p^.right^.registers32);
+              p^.registersfpu:=max(p^.registersfpu,p^.right^.registersfpu);
+{$ifdef SUPPORT_MMX}
+              p^.registersmmx:=max(p^.registersmmx,p^.right^.registersmmx);
+{$endif SUPPORT_MMX}
+           end;
+      end;
+
     procedure firstprocinline(var p : ptree);
 
       begin
@@ -5025,7 +5083,8 @@ unit pass_1;
              firststatement,firstnothing,firstif,firstnothing,
              firstnothing,first_while_repeat,first_while_repeat,firstfor,
              firstexitn,firstwith,firstcase,firstlabel,
-             firstgoto,firstsimplenewdispose,firsttryexcept,firstraise,
+             firstgoto,firstsimplenewdispose,firsttryexcept,
+             firstonn,firstraise,
              firstnothing,firsttryfinally,firstis,firstas,firstadd,
              firstnothing,firstadd,firstprocinline,firstnothing,firstloadvmt);
 
@@ -5114,7 +5173,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.46  1998-07-28 21:52:52  florian
+  Revision 1.47  1998-07-30 11:18:17  florian
+    + first implementation of try ... except on .. do end;
+    * limitiation of 65535 bytes parameters for cdecl removed
+
+  Revision 1.46  1998/07/28 21:52:52  florian
     + implementation of raise and try..finally
     + some misc. exception stuff
 

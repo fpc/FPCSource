@@ -23,9 +23,14 @@ compiler version and your short cut.
   - correct handling of access specifiers ........................ 0.99.7 (FK)
   - interface
 * rtti
-  - generation
-  - use when copying etc.
-* AnsiString, LongString and WideString
+          - generation ........................................... 0.99.7 (FK)
+          - use when copying etc. ................................ 0.99.7 (FK)
+  - new/dispose should look for rtti'ed data
+* AnsiString
+  - operators
+  - indexed access
+  - type conversations
+* LongString and WideString
 * MMX support by the compiler
           - unary minus .......................................... 0.99.1 (FK)
           - proper handling of fixed type ........................ 0.99.1 (FK)
@@ -49,6 +54,8 @@ compiler version and your short cut.
 - subrange types of enumerations
 - method pointers (procedure of object)
 - code generation for exceptions
+- assertation
+- sysutils unit for go32v2 (excpetions!)
 - initialisation/finalization for units
 - fixed data type
         - add abstract virtual method runtime

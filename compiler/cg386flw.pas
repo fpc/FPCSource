@@ -37,6 +37,7 @@ interface
     procedure secondraise(var p : ptree);
     procedure secondtryexcept(var p : ptree);
     procedure secondtryfinally(var p : ptree);
+    procedure secondon(var p : ptree);
     procedure secondfail(var p : ptree);
 
 
@@ -552,13 +553,18 @@ do_jmp:
                              SecondTryExcept
 *****************************************************************************}
 
+    var
+       endexceptlabel : plabel;
+
     procedure secondtryexcept(var p : ptree);
 
       var
-         exceptlabel,doexceptlabel,endexceptlabel,
+         exceptlabel,doexceptlabel,oldendexceptlabel,
          nextonlabel,lastonlabel : plabel;
 
       begin
+         { this can be called recursivly }
+         oldendexceptlabel:=endexceptlabel;
          { we modify EAX }
          usedinproc:=usedinproc or ($80 shr byte(R_EAX));
 
@@ -592,23 +598,9 @@ do_jmp:
          emitl(A_JMP,endexceptlabel);
          emitl(A_LABEL,doexceptlabel);
 
-         { for each object: }
-         while false do
-           begin
-              getlabel(nextonlabel);
-           end;
-{
-for each 'on object' do :
-----------------
+         if assigned(p^.right) then
+           secondpass(p^.right);
 
-pushl objectclass;  // pass object class, or -1 if no class specified.
-call FPC_CATCHES    // Does this object tacth the exception ?
-testl %eax,%eax
-je .nexton          // No, jump to next on...
-... code for on handler...
-.nexton
-...
-}
          emitl(A_LABEL,lastonlabel);
          { default handling }
          if assigned(p^.t1) then
@@ -616,7 +608,37 @@ je .nexton          // No, jump to next on...
          else
            emitcall('FPC_RERAISE',true);
          emitl(A_LABEL,endexceptlabel);
+         endexceptlabel:=oldendexceptlabel;
+      end;
 
+    procedure secondon(var p : ptree);
+
+      var
+         nextonlabel,myendexceptlabel : plabel;
+         ref : treference;
+
+      begin
+         getlabel(nextonlabel);
+         emitcall('FPC_CATCHES',true);
+         exprasmlist^.concat(new(pai386,
+           op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+         emitl(A_JE,nextonlabel);
+         ref.symbol:=nil;
+         gettempofsizereference(4,ref);
+         { what a hack ! }
+         pvarsym(p^.exceptsymtable^.root)^.address:=ref.offset;
+
+         emitpushreferenceaddr(exprasmlist,ref);
+         emitcall('FPC_LOADEXCEPTIONPOINTER',true);
+         if assigned(p^.right) then
+           secondpass(p^.right);
+         { clear some stuff }
+         ungetiftemp(ref);
+         emitl(A_JMP,endexceptlabel);
+         emitl(A_LABEL,nextonlabel);
+         { next on node }
+         if assigned(p^.left) then
+           secondpass(p^.left);
       end;
 
 {*****************************************************************************
@@ -663,7 +685,6 @@ je .nexton          // No, jump to next on...
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
          emitl(A_JE,noreraiselabel);
          emitcall('FPC_RERAISE',true);
-         emitl(A_JMP,endfinallylabel);
          emitl(A_LABEL,noreraiselabel);
          emitcall('FPC_POPADDRSTACK',true);
          emitl(A_LABEL,endfinallylabel);
@@ -699,7 +720,11 @@ je .nexton          // No, jump to next on...
 end.
 {
   $Log$
-  Revision 1.6  1998-07-29 13:29:11  michael
+  Revision 1.7  1998-07-30 11:18:13  florian
+    + first implementation of try ... except on .. do end;
+    * limitiation of 65535 bytes parameters for cdecl removed
+
+  Revision 1.6  1998/07/29 13:29:11  michael
   + Corrected try.. code. Type of exception fram is pushed
 
   Revision 1.5  1998/07/28 21:52:49  florian

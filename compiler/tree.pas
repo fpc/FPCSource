@@ -114,6 +114,7 @@ unit tree;
                    raisen,          {A raise statement.}
                    switchesn,       {??? Currently unused...}
                    tryfinallyn,     {A try finally statement.}
+                   onn,             { for an on statement in exception code }
                    isn,             {Represents the is operator.}
                    asn,             {Represents the as typecast.}
                    caretn,          {Represents the ^ operator.}
@@ -232,6 +233,7 @@ unit tree;
              casen : (nodes : pcaserecord;elseblock : ptree);
              labeln,goton : (labelnr : plabel);
              withn : (withsymtable : psymtable;tablecount : longint);
+             onn : (exceptsymtable : psymtable;excepttype : pobjectdef);
            end;
 
     procedure init_tree;
@@ -1596,7 +1598,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.23  1998-07-24 22:17:01  florian
+  Revision 1.24  1998-07-30 11:18:23  florian
+    + first implementation of try ... except on .. do end;
+    * limitiation of 65535 bytes parameters for cdecl removed
+
+  Revision 1.23  1998/07/24 22:17:01  florian
     * internal error 10 together with array access fixed. I hope
       that's the final fix.
 
