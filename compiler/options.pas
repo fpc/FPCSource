@@ -1,4 +1,3 @@
-
 {
     $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
@@ -89,7 +88,6 @@ var
   asm_is_set  : boolean; { -T also change initoutputformat if not set idrectly }
   fpcdir,
   ppccfg,
-  msgfilename,
   param_file    : string;   { file to compile specified on the commandline }
 
 {****************************************************************************
@@ -115,17 +113,6 @@ end;
 function check_symbol(const s:string):boolean;
 begin
   check_symbol:=(initdefines.find(s)<>nil);
-end;
-
-
-procedure MaybeLoadMessageFile;
-begin
-{ Load new message file }
-  if (msgfilename<>'')  then
-    begin
-       LoadMsgFile(msgfilename);
-       msgfilename:='';
-    end;
 end;
 
 
@@ -181,7 +168,6 @@ procedure Toption.WriteInfo;
 var
   p : pchar;
 begin
-  MaybeLoadMessageFile;
   p:=MessagePchar(option_info);
   while assigned(p) do
    Comment(V_Normal,GetMsgLine(p));
@@ -209,7 +195,6 @@ var
   s     : string;
   p     : pchar;
 begin
-  MaybeLoadMessageFile;
   WriteLogo;
   Lines:=4;
   Message1(option_usage,system.paramstr(0));
@@ -1018,7 +1003,7 @@ begin
          end
         else
          begin
-           if (opts[1]='-') then
+           if (opts[1]='-') or (opts[1]='@') then
             begin
               if (not skip[level]) then
                 interpret_option(opts,false);
@@ -1104,17 +1089,17 @@ begin
      opts:=system.paramstr(paramindex);
      case opts[1] of
        '@' :
+         if not firstpass then
          begin
            Delete(opts,1,1);
-           if not firstpass then
-            Message1(option_reading_further_from,opts);
+           Message1(option_reading_further_from,opts);
            interpret_file(opts);
          end;
        '!' :
+         if not firstpass then
          begin
            Delete(opts,1,1);
-           if not firstpass then
-            Message1(option_reading_further_from,'(env) '+opts);
+           Message1(option_reading_further_from,'(env) '+opts);
            interpret_envvar(opts);
          end;
        else
@@ -1140,17 +1125,17 @@ begin
      Delete(cmd,1,i);
      case opts[1] of
        '@' :
+         if not firstpass then
          begin
            Delete(opts,1,1);
-           if not firstpass then
-            Message1(option_reading_further_from,opts);
+           Message1(option_reading_further_from,opts);
            interpret_file(opts);
          end;
        '!' :
+         if not firstpass then
          begin
            Delete(opts,1,1);
-           if not firstpass then
-            Message1(option_reading_further_from,'(env) '+opts);
+           Message1(option_reading_further_from,'(env) '+opts);
            interpret_envvar(opts);
          end;
        '"' :
@@ -1450,9 +1435,6 @@ begin
       end;
   end;
 
-{ Reload the messages file if necessary }
-  MaybeLoadMessageFile;
-
 { write logo if set }
   if option.DoWriteLogo then
    option.WriteLogo;
@@ -1572,7 +1554,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.35  2001-03-10 13:19:10  peter
+  Revision 1.36  2001-03-13 20:59:56  peter
+    * message loading fixes from Sergey (merged)
+
+  Revision 1.35  2001/03/10 13:19:10  peter
     * don't check messagefile for numbers, this allows the usage of
       1.1 msgfiles with a 1.0.x compiler
 

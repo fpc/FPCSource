@@ -67,10 +67,11 @@ Const
 var
   msg : pmessage;
 
+const
+  msgfilename : string = '';
+
 procedure SetRedirectFile(const fn:string);
 function  SetVerbosity(const s:string):boolean;
-
-procedure LoadMsgFile(const fn:string);
 
 procedure SetCompileModule(p:tmodulebase);
 procedure Stop;
@@ -286,6 +287,17 @@ var
          end;
         { reload the prefixes using the new messages }
         LoadPrefixes;
+      end;
+
+
+    procedure MaybeLoadMessageFile;
+      begin
+        { Load new message file }
+        if (msgfilename<>'')  then
+         begin
+           LoadMsgFile(msgfilename);
+           msgfilename:='';
+         end;
       end;
 
 
@@ -523,30 +535,35 @@ var
 
     function  MessagePchar(w:longint):pchar;
       begin
+        MaybeLoadMessageFile;
         MessagePchar:=msg^.GetPchar(w)
       end;
 
 
     procedure Message(w:longint);
       begin
+        MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w));
       end;
 
 
     procedure Message1(w:longint;const s1:string);
       begin
+        MaybeLoadMessageFile;
         Msg2Comment(msg^.Get1(w,s1));
       end;
 
 
     procedure Message2(w:longint;const s1,s2:string);
       begin
+        MaybeLoadMessageFile;
         Msg2Comment(msg^.Get2(w,s1,s2));
       end;
 
 
     procedure Message3(w:longint;const s1,s2,s3:string);
       begin
+        MaybeLoadMessageFile;
         Msg2Comment(msg^.Get3(w,s1,s2,s3));
       end;
 
@@ -557,6 +574,7 @@ var
       begin
         oldpos:=aktfilepos;
         aktfilepos:=pos;
+        MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w));
         aktfilepos:=oldpos;
       end;
@@ -568,6 +586,7 @@ var
       begin
         oldpos:=aktfilepos;
         aktfilepos:=pos;
+        MaybeLoadMessageFile;
         Msg2Comment(msg^.Get1(w,s1));
         aktfilepos:=oldpos;
       end;
@@ -579,6 +598,7 @@ var
       begin
         oldpos:=aktfilepos;
         aktfilepos:=pos;
+        MaybeLoadMessageFile;
         Msg2Comment(msg^.Get2(w,s1,s2));
         aktfilepos:=oldpos;
       end;
@@ -590,6 +610,7 @@ var
       begin
         oldpos:=aktfilepos;
         aktfilepos:=pos;
+        MaybeLoadMessageFile;
         Msg2Comment(msg^.Get3(w,s1,s2,s3));
         aktfilepos:=oldpos;
       end;
@@ -630,7 +651,10 @@ var
 end.
 {
   $Log$
-  Revision 1.11  2000-12-26 15:58:29  peter
+  Revision 1.12  2001-03-13 20:59:56  peter
+    * message loading fixes from Sergey (merged)
+
+  Revision 1.11  2000/12/26 15:58:29  peter
     * check for verbosity in verbose instead of comphook
 
   Revision 1.10  2000/12/25 00:07:30  peter

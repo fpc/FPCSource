@@ -1740,7 +1740,7 @@ option_too_many_cfg_files=11008_F_Too many config files nested
 % You can only nest up to 16 config files.
 option_unable_open_file=11009_F_Unable to open file $1
 % The option file cannot be found.
-option_reading_further_from=11010_N_Reading further options from $1
+option_reading_further_from=11010_D_Reading further options from $1
 % Displayed when you have notes turned on, and the compiler switches
 % to another options file.
 option_target_is_already_set=11011_W_Target is already set to: $1

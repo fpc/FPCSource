@@ -614,7 +614,7 @@ const msgtxt : array[0..000136,1..240] of char=(
   '11007_H_-? writes help pages'#000+
   '11008_F_Too many config files nested'#000+
   '11009_F_Unable to open file $1'#000+
-  '11010_N_Reading further options from $1'#000+
+  '11010_D_Reading further options from $1'#000+
   '11011_W_Target is already set to: $1'#000+
   '11012_W_Shared libs not ','supported on DOS platform, reverting to stat'+
   'ic'#000+
