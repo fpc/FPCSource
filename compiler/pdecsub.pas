@@ -464,8 +464,11 @@ implementation
                         consume(_CSTRING);
                       end
                     else
-                      if explicit_paraloc then
-                        Message(parser_e_paraloc_all_paras);
+		      begin
+                        if explicit_paraloc then
+                          Message(parser_e_paraloc_all_paras);
+			locationstr:='';
+		      end;
                   end
                 else
                   locationstr:='';
@@ -2190,7 +2193,10 @@ const
 end.
 {
   $Log$
-  Revision 1.166  2004-04-19 02:12:18  karoly
+  Revision 1.167  2004-04-28 00:20:43  karoly
+    * fixed locationstr having nonsense values in some cases
+
+  Revision 1.166  2004/04/19 02:12:18  karoly
    * quick fix for PowerPC/MorphOS location support
 
   Revision 1.165  2004/04/18 15:22:24  florian
