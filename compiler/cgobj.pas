@@ -328,7 +328,7 @@ unit cgobj;
           procedure g_return_from_proc(list : taasmoutput;parasize : aword);virtual; abstract;
           procedure g_call_constructor_helper(list : taasmoutput);virtual;
           procedure g_call_destructor_helper(list : taasmoutput);virtual;
-          procedure g_call_fail_helper(list : taasmoutput);virtual;abstract;
+          procedure g_call_fail_helper(list : taasmoutput);virtual;
           procedure g_save_standard_registers(list : taasmoutput);virtual;abstract;
           procedure g_restore_standard_registers(list : taasmoutput);virtual;abstract;
           procedure g_save_all_registers(list : taasmoutput);virtual;abstract;
@@ -1135,7 +1135,7 @@ unit cgobj;
             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset-POINTER_SIZE);
             hregister:=get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list, href, hregister);
-            a_param_reg(list, OS_ADDR,hregister,1);
+            a_param_reg(list, OS_ADDR,hregister,2);
             free_scratch_reg(list, hregister);
             { parameter 1 : address of self pointer   }
             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
@@ -1153,8 +1153,94 @@ unit cgobj;
 
 
     procedure tcg.g_call_destructor_helper(list : taasmoutput);
-     begin
-     end;
+      var
+        nofinal : tasmlabel;
+        href : treference;
+      hregister : tregister;
+      begin
+        if is_class(procinfo^._class) then
+         begin
+           { 2nd parameter  : flag }
+           reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset+POINTER_SIZE);
+           a_param_ref(list, OS_ADDR,href,2);
+           { 1st parameter to destructor : self }
+           reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
+           a_param_ref(list, OS_ADDR,href,1);
+           a_call_name(list,'FPC_DISPOSE_CLASS')
+         end
+        else if is_object(procinfo^._class) then
+         begin
+           { must the object be finalized ? }
+           if procinfo^._class.needs_inittable then
+            begin
+              getlabel(nofinal);
+              reference_reset_base(href,procinfo^.framepointer,target_info.first_parm_offset);
+              a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nofinal);
+              reference_reset_base(href,SELF_POINTER_REG,0);
+              g_finalize(list,procinfo^._class,href,false);
+              a_label(list,nofinal);
+            end;
+           { actually call destructor } 
+            { parameter 3 :vmt_offset     }
+            a_param_const(list, OS_32, procinfo^._class.vmt_offset, 3);
+            { parameter 2 : pointer to vmt }
+            {  this is the first parameter which was pushed to the destructor }
+            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset-POINTER_SIZE);
+            a_param_ref(list, OS_ADDR, href ,2);
+            { parameter 1 : address of self pointer   }
+            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
+            hregister:=get_scratch_reg_address(list);
+            a_loadaddr_ref_reg(list, href, hregister);
+            a_param_reg(list, OS_ADDR,hregister,1);
+            free_scratch_reg(list, hregister);
+            a_call_name(list,'FPC_HELP_DESTRUCTOR');
+         end
+        else
+         internalerror(200006162);
+      end;
+      
+      
+    procedure tcg.g_call_fail_helper(list : taasmoutput);
+      var
+        href : treference;
+        hregister : tregister;
+      begin
+        if is_class(procinfo^._class) then
+          begin
+{$warning todo}
+   { Should simply casll FPC_DISPOSE_CLASS and then set the 
+     SELF_POINTER_REGISTER to NIL
+   }
+             internalerror(20020523);
+{            reference_reset_base(href,procinfo^.framepointer,8);
+            a_load_ref_reg(list,OS_ADDR,href,R_ESI);
+            a_call_name(list,'FPC_HELP_FAIL_CLASS');}
+          end
+        else if is_object(procinfo^._class) then
+          begin
+            { parameter 3 :vmt_offset     }
+            a_param_const(list, OS_32, procinfo^._class.vmt_offset, 3);
+            { parameter 2 : address of pointer to vmt }
+            {  this is the first(?) parameter which was pushed to the constructor }
+            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset-POINTER_SIZE);
+            hregister:=get_scratch_reg_address(list);
+            a_loadaddr_ref_reg(list, href, hregister);
+            a_param_reg(list, OS_ADDR,hregister,2);
+            free_scratch_reg(list, hregister);
+            { parameter 1 : address of self pointer   }
+            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
+            hregister:=get_scratch_reg_address(list);
+            a_loadaddr_ref_reg(list, href, hregister);
+            a_param_reg(list, OS_ADDR,hregister,1);
+            free_scratch_reg(list, hregister);
+            a_call_name(list,'FPC_HELP_FAIL');
+            { SET SELF TO NIL }
+            a_load_const_reg(list,OS_ADDR,0,SELF_POINTER_REG);
+          end
+        else
+          internalerror(200006163);
+      end;
+      
 
     procedure tcg.g_interrupt_stackframe_entry(list : taasmoutput);
       begin
@@ -1179,7 +1265,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.26  2002-05-20 13:30:40  carl
+  Revision 1.27  2002-05-22 19:02:16  carl
+  + generic FPC_HELP_FAIL
+  + generic FPC_HELP_DESTRUCTOR instated (original from Pierre)
+  + generic FPC_DISPOSE_CLASS
+  + TEST_GENERIC define
+
+  Revision 1.26  2002/05/20 13:30:40  carl
   * bugfix of hdisponen (base must be set, not index)
   * more portability fixes
 

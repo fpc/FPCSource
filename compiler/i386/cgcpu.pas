@@ -115,9 +115,11 @@ unit cgcpu;
         procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
         procedure g_restore_frame_pointer(list : taasmoutput);override;
         procedure g_return_from_proc(list : taasmoutput;parasize : aword);override;
+{$ifndef TEST_GENERIC}
         procedure g_call_constructor_helper(list : taasmoutput);override;
         procedure g_call_destructor_helper(list : taasmoutput);override;
         procedure g_call_fail_helper(list : taasmoutput);override;
+{$endif}        
         procedure g_save_standard_registers(list : taasmoutput);override;
         procedure g_restore_standard_registers(list : taasmoutput);override;
         procedure g_save_all_registers(list : taasmoutput);override;
@@ -1623,6 +1625,7 @@ unit cgcpu;
          end;
       end;
 
+{$ifndef TEST_GENERIC}
     procedure tcg386.g_call_constructor_helper(list : taasmoutput);
       begin
         if is_class(procinfo^._class) then
@@ -1672,7 +1675,6 @@ unit cgcpu;
          internalerror(200006162);
       end;
 
-
     procedure tcg386.g_call_fail_helper(list : taasmoutput);
       var
         href : treference;
@@ -1695,6 +1697,7 @@ unit cgcpu;
         else
           internalerror(200006163);
       end;
+{$endif}
 
 
     procedure tcg386.g_save_standard_registers(list : taasmoutput);
@@ -1778,7 +1781,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-05-20 13:30:40  carl
+  Revision 1.22  2002-05-22 19:02:16  carl
+  + generic FPC_HELP_FAIL
+  + generic FPC_HELP_DESTRUCTOR instated (original from Pierre)
+  + generic FPC_DISPOSE_CLASS
+  + TEST_GENERIC define
+
+  Revision 1.21  2002/05/20 13:30:40  carl
   * bugfix of hdisponen (base must be set, not index)
   * more portability fixes
 

@@ -42,6 +42,8 @@ program pp;
   NOAG386NSM          no NASM output
   NOAG386BIN          leaves out the binary writer, default for TP
   NORA386DIR          No direct i386 assembler reader
+  TEST_GENERIC        Test Generic version of code generator
+                      (uses generic RTL calls)
   -----------------------------------------------------------------
 
   Required switches for a i386 compiler be compiled by Free Pascal Compiler:
@@ -168,7 +170,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-05-18 13:34:13  peter
+  Revision 1.14  2002-05-22 19:02:16  carl
+  + generic FPC_HELP_FAIL
+  + generic FPC_HELP_DESTRUCTOR instated (original from Pierre)
+  + generic FPC_DISPOSE_CLASS
+  + TEST_GENERIC define
+
+  Revision 1.13  2002/05/18 13:34:13  peter
     * readded missing revisions
 
   Revision 1.12  2002/05/16 19:46:43  carl
