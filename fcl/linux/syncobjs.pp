@@ -18,14 +18,7 @@ unit syncobjs;
 
 interface
 
-uses 
-  pthreads,
-{$ifdef ver1_0}
-  Linux,
-{$else}
-  unix,
-{$endif}
-  sysutils;
+uses  pthreads,Linux,sysutils;
 
 type
   PSecurityAttributes = Pointer;
@@ -183,10 +176,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-08-17 02:23:35  michael
-  + Fixed 1.1 build of syncobjs
-
-  Revision 1.1  2003/06/14 19:14:31  michael
+  Revision 1.1  2003-06-14 19:14:31  michael
   + Initial implementation
 
 }

@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for pthreads implementation
+#
+
+[package]
+name=pthreads
+version=1.0.8
+
+[target]
+units=pthreads
+
+[require]
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
