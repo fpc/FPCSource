@@ -277,10 +277,10 @@ begin
   ButtonName[1] := Labels^.Get(slNo);
   ButtonName[2] := Labels^.Get(slOk);
   ButtonName[3] := Labels^.Get(slCancel);
-  Titles[0] := Labels^.Get(sWarning);
-  Titles[1] := Labels^.Get(sError);
-  Titles[2] := Labels^.Get(sInformation);
-  Titles[3] := Labels^.Get(sConfirm);
+  Titles[0] := Strings^.Get(sWarning);
+  Titles[1] := Strings^.Get(sError);
+  Titles[2] := Strings^.Get(sInformation);
+  Titles[3] := Strings^.Get(sConfirm);
 end;
 
 procedure DoneMsgBox;
@@ -291,7 +291,10 @@ END.
 
 {
  $Log$
- Revision 1.4  2002-09-07 15:06:38  peter
+ Revision 1.5  2004-02-18 05:50:38  pierre
+  *fix for MessageBox error by Berthold Studemund
+
+ Revision 1.4  2002/09/07 15:06:38  peter
    * old logs removed and tabs fixed
 
 }
