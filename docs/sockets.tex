@@ -99,35 +99,40 @@ Function Accept (Sock:Longint;Var Addr;Var Addrlen:Longint) : Longint;
 
 \Description
 \var{Accept} accepts a connection from a socket \var{Sock}, which was
-listening for a connection. The accepted socket may NOT be used to accept
-more connections. The original socket remains open.
-The \var{Accept} call fills the address of the connecting entity in \var{Addr},
-and sets its length in \var{Addrlen}. \var{Addr} should be pointing to
-enough space, and \var{Addrlen} should be set to the amount of space
-available, prior to the call.
+listening for a connection. If a connection is accepted, a file descriptor
+is returned. On error \var{-1} is returned. The returned socket may NOT 
+be used to accept more connections.  The original socket remains open.
+
+The \var{Accept} call fills the address of the connecting entity in 
+\var{Addr}, and sets its length in \var{Addrlen}. \var{Addr} should 
+be pointing to enough space, and \var{Addrlen} should be set to the 
+amount of space available, prior to the call.
 
 \Errors
-Errors are reported in \var{SocketError}, and include the following:
+On error, \var{-1} is returned, and errors are reported in 
+\var{SocketError}, and include the following:
 \begin{description}
-\item[SYS\_EBADF] The socket descriptor is invalid.
-\item[SYS\_ENOTSOCK] The descriptor is not a socket.
-\item[SYS\_EOPNOTSUPP] The socket type doesn't support the \var{Listen}
+\item[SYS\_EBADF]  The socket descriptor is invalid.
+\item[SYS\_ENOTSOCK]  The descriptor is not a socket.
+\item[SYS\_EOPNOTSUPP]  The socket type doesn't support the \var{Listen}
 operation.
-\item[SYS\_EFAULT] \var{Addr} points outside your address space.
-\item[SYS\_EWOULDBLOCK] The requested operation would block the process.
+\item[SYS\_EFAULT]  \var{Addr} points outside your address space.
+\item[SYS\_EWOULDBLOCK]  The requested operation would block the process.
 \end{description}
 
 \SeeAlso
 \seef{Listen}, \seef{Connect}
 \end{function}
+
 \latex{\inputlisting{sockex/socksvr.pp}}
 \html{\input{sockex/socksvr.tex}}
+
 \begin{functionl}{Accept}{AltAAccept}
 \Declaration
 Function Accept (Sock:longint;var addr:string;var SockIn,SockOut:text) : Boolean;
 
 \Description
- This is an alternate form of the \seef{Accept} command. It is equivalent
+This is an alternate form of the \seef{Accept} command. It is equivalent
 to subsequently calling the regular \seef{Accept}
 function and the \seep{Sock2Text} function.
 The function returns \var{True} if successfull, \var{False} otherwise.
@@ -158,7 +163,6 @@ The errors are those of \seef{Accept}.
 \begin{functionl}{Accept}{AltCAccept}
 \Declaration
 Function Accept (Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:File) : Boolean;
-
 \Description
  This is an alternate form of the \seef{Accept} command. 
 It is equivalent
@@ -217,14 +221,15 @@ Function Connect (Sock:Longint;Var Addr;Addrlen:Longint) : Longint;
 
 \Description
 \var{Connect} opens a connection to a peer, whose address is described by
-var{Addr}. \var{AddrLen} contains the length of the address.
+\var{Addr}. \var{AddrLen} contains the length of the address.
 The type of \var{Addr} depends on the kind of connection you're trying to
 make, but is generally one of \var{TSockAddr} or \var{TUnixSockAddr}.
 
-The \var{Connect} functions returns a file descriptor if the call
-was successfull, a negative value in case of error.
+The \var{Connect} function returns a file descriptor if the call
+was successfull, \var{-1} in case of error.
 \Errors
-Errors are reported in \var{SocketError}.
+On error, \var{-1} is returned and errors are reported in 
+\var{SocketError}.
 \SeeAlso
 \seef{Listen}, \seef{Bind},\seef{Accept}
 \end{function}
