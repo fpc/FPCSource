@@ -102,6 +102,8 @@ type
     function  ParseExternalID: Boolean;                                 // [75]
     procedure ExpectExternalID;
     function  ParseEncodingDecl: String;                                // [80]
+
+    procedure ResolveEntities(RootNode: TDOMNode);
   public
     doc: TXMLReaderDocument;
     procedure ProcessXML(ABuf: PChar; AFilename: String);  // [1]
@@ -252,30 +254,38 @@ end;
 
 procedure TXMLReader.ExpectAttValue(attr: TDOMAttr);    // [10]
 var
-  strdel: array[0..1] of Char;
   s: String;
+
+  procedure FlushStringBuffer;
+  begin
+    if Length(s) > 0 then
+    begin
+      attr.AppendChild(doc.CreateTextNode(s));
+      SetLength(s, 0);
+    end;
+  end;
+
+var
+  StrDel: array[0..1] of Char;	// String delimiter
 begin
   if (buf[0] <> '''') and (buf[0] <> '"') then
     RaiseExc('Expected quotation marks');
-  strdel[0] := buf[0];
-  strdel[1] := #0;
+  StrDel[0] := buf[0];
+  StrDel[1] := #0;
   Inc(buf);
   SetLength(s, 0);
-  while not CheckFor(strdel) do
-    if not ParseReference(attr) then begin
+  while not CheckFor(StrDel) do
+    if buf[0] = '&' then
+    begin
+      FlushStringBuffer;
+      ParseReference(attr);
+    end else
+    begin
       s := s + buf[0];
       Inc(buf);
-    end else begin
-      if Length(s) > 0 then begin
-        attr.AppendChild(doc.CreateTextNode(s));
-        SetLength(s, 0);
-      end;
     end;
-
-  if Length(s) > 0 then
-    //attr.AppendChild(doc.CreateTextNode(s));
-    attr.NodeValue := s;
-
+  FlushStringBuffer;
+  ResolveEntities(Attr);
 end;
 
 function TXMLReader.ExpectPubidLiteral: String;
@@ -749,32 +759,6 @@ var
   end;
 
 
-  procedure ReplaceEntityRef(EntityNode: TDOMNode; const Replacement: String);
-  var
-    PrevSibling, NextSibling: TDOMNode;
-  begin
-    // ###
-    PrevSibling := EntityNode.PreviousSibling;
-    NextSibling := EntityNode.NextSibling;
-    if Assigned(PrevSibling) and (PrevSibling.NodeType = TEXT_NODE) then
-    begin
-      TDOMCharacterData(PrevSibling).AppendData(Replacement);
-      NewElem.RemoveChild(EntityNode);
-      if Assigned(NextSibling) and (NextSibling.NodeType = TEXT_NODE) then
-      begin
-        TDOMCharacterData(PrevSibling).AppendData(
-	  TDOMCharacterData(NextSibling).Data);
-	NewElem.RemoveChild(NextSibling);
-      end
-    end else
-      if Assigned(NextSibling) and (NextSibling.NodeType = TEXT_NODE) then
-      begin
-        TDOMCharacterData(NextSibling).InsertData(0, Replacement);
-	NewElem.RemoveChild(EntityNode);
-      end else
-        NewElem.ReplaceChild(Doc.CreateTextNode(Replacement), EntityNode);
-  end;
-
 
 var
   IsEmpty: Boolean;
@@ -782,7 +766,6 @@ var
   oldpos: PChar;
 
   attr: TDOMAttr;
-  Node, NextSibling: TDOMNode;
 begin
   oldpos := buf;
   if CheckFor('<') then
@@ -834,24 +817,9 @@ begin
       ExpectString('>');
     end;
 
-    // Resolve predefined entities
-    Node := NewElem.FirstChild;
-    while Assigned(Node) do
-    begin
-      NextSibling := Node.NextSibling;
-      if Node.NodeType = ENTITY_REFERENCE_NODE then
-        if Node.NodeName = 'amp' then
-	  ReplaceEntityRef(Node, '&')
-        else if Node.NodeName = 'apos' then
-	  ReplaceEntityRef(Node, '''')
-        else if Node.NodeName = 'gt' then
-	  ReplaceEntityRef(Node, '>')
-        else if Node.NodeName = 'lt' then
-	  ReplaceEntityRef(Node, '<')
-        else if Node.NodeName = 'quot' then
-	  ReplaceEntityRef(Node, '"');
-      Node := NextSibling;
-    end;
+    ResolveEntities(NewElem);
+
+
 
     Result := True;
   end else
@@ -970,6 +938,60 @@ begin
     end;
   end;
 end;
+
+
+{ Currently, this method will only resolve the entities which are
+  predefined in XML: }
+
+procedure TXMLReader.ResolveEntities(RootNode: TDOMNode);
+
+  procedure ReplaceEntityRef(EntityNode: TDOMNode; const Replacement: String);
+  var
+    PrevSibling, NextSibling: TDOMNode;
+  begin
+    PrevSibling := EntityNode.PreviousSibling;
+    NextSibling := EntityNode.NextSibling;
+    if Assigned(PrevSibling) and (PrevSibling.NodeType = TEXT_NODE) then
+    begin
+      TDOMCharacterData(PrevSibling).AppendData(Replacement);
+      RootNode.RemoveChild(EntityNode);
+      if Assigned(NextSibling) and (NextSibling.NodeType = TEXT_NODE) then
+      begin
+        TDOMCharacterData(PrevSibling).AppendData(
+	  TDOMCharacterData(NextSibling).Data);
+	RootNode.RemoveChild(NextSibling);
+      end
+    end else
+      if Assigned(NextSibling) and (NextSibling.NodeType = TEXT_NODE) then
+      begin
+        TDOMCharacterData(NextSibling).InsertData(0, Replacement);
+	RootNode.RemoveChild(EntityNode);
+      end else
+        RootNode.ReplaceChild(Doc.CreateTextNode(Replacement), EntityNode);
+  end;
+
+var
+  Node, NextSibling: TDOMNode;
+begin
+  Node := RootNode.FirstChild;
+  while Assigned(Node) do
+  begin
+    NextSibling := Node.NextSibling;
+    if Node.NodeType = ENTITY_REFERENCE_NODE then
+      if Node.NodeName = 'amp' then
+	ReplaceEntityRef(Node, '&')
+      else if Node.NodeName = 'apos' then
+	ReplaceEntityRef(Node, '''')
+      else if Node.NodeName = 'gt' then
+	ReplaceEntityRef(Node, '>')
+      else if Node.NodeName = 'lt' then
+        ReplaceEntityRef(Node, '<')
+      else if Node.NodeName = 'quot' then
+	ReplaceEntityRef(Node, '"');
+    Node := NextSibling;
+  end;
+end;
+
 
 
 procedure ReadXMLFile(var ADoc: TXMLDocument; var f: File);
@@ -1093,7 +1115,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2000-07-09 11:39:15  sg
+  Revision 1.18  2000-07-09 13:56:09  sg
+  * Added support for predefined entities for attribute values
+
+  Revision 1.17  2000/07/09 11:39:15  sg
   * Added support for predefined entities
   * Improved whitespace handling
 
