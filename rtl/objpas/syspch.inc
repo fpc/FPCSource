@@ -36,11 +36,14 @@ type
 {  StrPas converts a PChar to a pascal string  }
 
 function StrPas(Str: PChar): string;
+var
+  l: Integer;
 begin
-  SetLength(result, StrLen(Str));
-  if Length(Result) > 0 then
-    Move(Str^, result[1], Length(result));
-end;
+  l := StrLen(Str);
+  SetLength(result, l);
+  if l > 0 then
+    Move(Str^, result[1], l);
+end ;
 
 {  StrAlloc allocates a buffer of Size + 4
    the size of the allocated buffer is stored at result - 4
@@ -119,7 +122,12 @@ end ;
 
 {
   $Log$
-  Revision 1.3  2000-11-23 11:04:26  sg
+  Revision 1.4  2001-07-30 10:21:09  sg
+  * Two moves with a string as target are now only exectuted if the number of
+    bytes to move is greater than 0. This prevents RTE201's when compiled
+    with range checks enabled.
+
+  Revision 1.3  2000/11/23 11:04:26  sg
   * Protected some Move()'s by 'if' clauses so that the Move won't be
     executed when the length would be 0. Otherwise, the corresponding
     routines might get an RTE when compiled with $R+.
