@@ -114,7 +114,7 @@ end;
 {$endif}
 
 {$ifdef netbsdmacppc}
-{$i sysofft.inc}			// odd ball calling convention.
+{$i sysofft.inc}                        // odd ball calling convention.
 {$else}
   // generic versions.
 function Fplseek(fd : cint; offset : off_t; whence : cint): off_t; [public, alias : 'FPC_SYSC_LSEEK'];
@@ -477,12 +477,13 @@ begin
   Fpmunmap:=do_syscall(syscall_nr_munmap,TSysParam(start),Len);
 end;
 
-Function sbrk(size : longint) : cint;
+Function sbrk(size : longint) : pointer;
 begin
-  sbrk:=longint(Fpmmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0)); // ugh
-  if sbrk<>(-1) then
-   errno:=0;
-  {! It must be -1, not 0 as before, see heap.inc. Should be in sysmmap?}
+  sbrk:=Fpmmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
+  if sbrk=pointer(-1) then
+    sbrk:=nil
+  else
+    errno:=0;
 end;
 
 {
@@ -542,50 +543,50 @@ end;
 
 function Fpgetcwd(pt:pchar; _size:size_t):pchar;[public, alias :'FPC_SYSC_GETCWD'];
 {$ifndef darwin}
-const intpathmax = 1024-4;	// didn't use POSIX data in libc
-				// implementation.
+const intpathmax = 1024-4;      // didn't use POSIX data in libc
+                                // implementation.
 var ept,bpt : pchar;
-    c	    : char;
-    ret	    : cint;
+    c       : char;
+    ret     : cint;
 
 begin
    if pt=NIL Then
-    begin 
+    begin
       // POSIX: undefined. (exit(nil) ?)
       // BSD  : allocate mem for path.
-      getmem(pt,intpathmax); 
-      if pt=nil Then 
+      getmem(pt,intpathmax);
+      if pt=nil Then
         exit(nil);
       ept:=pt+intpathmax;
-    end 
+    end
    else
     Begin
       if (_size=0) Then
         Begin
           seterrno(ESysEINVAL);
-	  exit(nil);
-        End; 
+          exit(nil);
+        End;
       if (_size=1) Then
         Begin
           seterrno(ESysERANGE);
-	  exit(nil);
-        End; 
+          exit(nil);
+        End;
       ept:=pt+_size;
-    end; 
+    end;
 
     ret := do_syscall(syscall_nr___getcwd,TSysParam(pt),TSysParam( ept - pt));
-    If (ret = 0) Then 
-	If (pt[0] <> '/') Then
-	   Begin
-	     bpt := pt;
-	     ept := pt + strlen(pt) - 1;
-	     While (bpt < ept) Do
-	       Begin
-  		 c := bpt^;
- 		 bpt^:=ept^;
-		 inc(bpt);
-		 ept^:=c;
-		 dec(ept);		
+    If (ret = 0) Then
+        If (pt[0] <> '/') Then
+           Begin
+             bpt := pt;
+             ept := pt + strlen(pt) - 1;
+             While (bpt < ept) Do
+               Begin
+                 c := bpt^;
+                 bpt^:=ept^;
+                 inc(bpt);
+                 ept^:=c;
+                 dec(ept);
                End;
            End;
  Fpgetcwd:=pt;
@@ -598,7 +599,10 @@ end;
 
 {
  $Log$
- Revision 1.10  2003-09-20 12:38:29  marco
+ Revision 1.11  2003-09-27 13:04:58  peter
+   * fpISxxx renamed
+
+ Revision 1.10  2003/09/20 12:38:29  marco
   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
 
  Revision 1.9  2003/09/17 16:02:31  marco

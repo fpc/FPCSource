@@ -22,42 +22,42 @@
 
  ****************************************************************************}
 
-function FPISDIR(m : TMode): boolean;
+function FPS_ISDIR(m : TMode): boolean;
 
 begin
- FPISDIR:=((m and S_IFMT) = S_IFDIR);
+ FPS_ISDIR:=((m and S_IFMT) = S_IFDIR);
 end;
 
-function FPISCHR(m : TMode): boolean;
+function FPS_ISCHR(m : TMode): boolean;
 begin
- FPISCHR:=((m and S_IFMT) = S_IFCHR);
+ FPS_ISCHR:=((m and S_IFMT) = S_IFCHR);
 end;
 
-function FPISBLK(m : TMode): boolean;
+function FPS_ISBLK(m : TMode): boolean;
 begin
- FPISBLK:=((m and S_IFMT) = S_IFBLK);
+ FPS_ISBLK:=((m and S_IFMT) = S_IFBLK);
 end;
 
-function FPISREG(m : TMode): boolean;
+function FPS_ISREG(m : TMode): boolean;
 begin
- FPISREG:=((m and S_IFMT) = S_IFREG);
+ FPS_ISREG:=((m and S_IFMT) = S_IFREG);
 end;
 
-function FPISFIFO(m : TMode): boolean;
+function FPS_ISFIFO(m : TMode): boolean;
 begin
- FPISFIFO:=((m and S_IFMT) = S_IFIFO);
+ FPS_ISFIFO:=((m and S_IFMT) = S_IFIFO);
 end;
 
-Function FPISLNK(m:TMode):boolean;
+Function FPS_ISLNK(m:TMode):boolean;
 
 begin
- FPISLNK:=((m and S_IFMT) = S_IFLNK);
+ FPS_ISLNK:=((m and S_IFMT) = S_IFLNK);
 end;
 
-Function FPISSOCK(m:TMode):boolean;
+Function FPS_ISSOCK(m:TMode):boolean;
 
 begin
- FPISSOCK:=((m and S_IFMT) = S_IFSOCK);
+ FPS_ISSOCK:=((m and S_IFMT) = S_IFSOCK);
 end;
 
 function wifexited(status : cint): cint;
@@ -90,7 +90,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2003-09-17 11:52:05  marco
+  Revision 1.5  2003-09-27 13:04:58  peter
+    * fpISxxx renamed
+
+  Revision 1.4  2003/09/17 11:52:05  marco
    * stat macro fixes voor BSD
 
   Revision 1.3  2003/09/14 20:15:01  marco

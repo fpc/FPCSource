@@ -97,3 +97,21 @@ begin
 end;
 
 
+Function fpReadLink(Name:pathstr):pathstr;
+{
+  Read a link (where it points to)
+}
+var
+  LinkName : pathstr;
+  i : cint;
+begin
+  Name:=Name+#0;
+  i:=fpReadLink(@Name[1],@LinkName[1],high(linkname));
+  if i>0 then
+   begin
+     linkname[0]:=chr(i);
+     fpReadLink:=LinkName;
+   end
+  else
+   fpReadLink:='';
+end;

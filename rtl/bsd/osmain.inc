@@ -172,7 +172,7 @@ Begin
      Errno2Inoutres;
      exit;
    end;
-  if FpISDIR(fileinfo.st_mode) then
+  if FpS_ISDIR(fileinfo.st_mode) then
    begin
      InOutRes := 2;
      exit;
@@ -425,7 +425,7 @@ var
 begin
 {$ifdef usegetcwd}
  Fpgetcwd(@tmp[1],255);
- dir:=tmp;		
+ dir:=tmp;
 {$else}
   dir:='';
   thedir:='';
@@ -467,8 +467,8 @@ begin
        end
       else
        begin
-	 if (Errno<>ESysENOENT) then
-	  Exit;
+         if (Errno<>ESysENOENT) then
+          Exit;
        end;
     until (name<>'');
     if Fpclosedir(dirstream)<0 then
@@ -613,7 +613,10 @@ End.
 
 {
    $Log$
-   Revision 1.2  2003-05-29 20:54:09  marco
+   Revision 1.3  2003-09-27 13:04:58  peter
+     * fpISxxx renamed
+
+   Revision 1.2  2003/05/29 20:54:09  marco
     * progname fix.
 
    Revision 1.1  2003/01/05 19:01:28  marco
