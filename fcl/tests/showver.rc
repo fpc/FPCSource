@@ -1,7 +1,7 @@
 LANGUAGE 1033,1252
 1 VERSIONINFO 
-FILEVERSION 4, 0, 3, 17
-PRODUCTVERSION 3, 0, 0, 0
+FILEVERSION 2, 0, 0, 0
+PRODUCTVERSION 1, 0, 0, 0
 FILEFLAGSMASK 0
 FILEOS 0x40000
 FILETYPE 1
@@ -11,7 +11,7 @@ FILETYPE 1
   BLOCK "040904E4"
   {
    VALUE "CompanyName", "Free Pascal"
-   VALUE "FileDescription", "Frr Pascal version information extractor"
+   VALUE "FileDescription", "Free Pascal version information extractor"
    VALUE "FileVersion", "1.0"
    VALUE "InternalName", "Showver"
    VALUE "LegalCopyright", "GNU Public License"
