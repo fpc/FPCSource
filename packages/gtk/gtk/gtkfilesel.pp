@@ -51,9 +51,7 @@ function  gtk_file_selection_get_type:TGtkType;cdecl;external gtkdll name 'gtk_f
 function  gtk_file_selection_new (title:Pgchar):PGtkWidget;cdecl;external gtkdll name 'gtk_file_selection_new';
 procedure gtk_file_selection_set_filename(filesel:PGtkFileSelection; filename:Pgchar);cdecl;external gtkdll name 'gtk_file_selection_set_filename';
 function  gtk_file_selection_get_filename (filesel:PGtkFileSelection):Pgchar;cdecl;external gtkdll name 'gtk_file_selection_get_filename';
-{$ifndef gtkwin}
 procedure gtk_file_selection_complete(filesel:PGtkFileSelection; pattern:Pgchar);cdecl;external gtkdll name 'gtk_file_selection_complete';
-{$endif}
 procedure gtk_file_selection_show_fileop_buttons(filesel:PGtkFileSelection);cdecl;external gtkdll name 'gtk_file_selection_show_fileop_buttons';
 procedure gtk_file_selection_hide_fileop_buttons(filesel:PGtkFileSelection);cdecl;external gtkdll name 'gtk_file_selection_hide_fileop_buttons';
 
@@ -81,7 +79,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:35  peter
+  Revision 1.2  2000-05-26 16:23:30  peter
+    * update for new win32 dll's
+
+  Revision 1.1  1999/11/24 23:36:35  peter
     * moved to packages dir
 
   Revision 1.10  1999/10/21 08:42:01  florian

@@ -70,10 +70,8 @@ procedure gtk_signal_emit_by_name(theobject:PGtkObject; name:Pgchar; args:array 
 procedure gtk_signal_emit_by_name(theobject:PGtkObject; name:Pgchar);cdecl;external gtkdll name 'gtk_signal_emit_by_name';
 procedure gtk_signal_emitv(theobject:PGtkObject; signal_id:guint; params:PGtkArg);cdecl;external gtkdll name 'gtk_signal_emitv';
 procedure gtk_signal_emitv_by_name(theobject:PGtkObject; name:Pgchar; params:PGtkArg);cdecl;external gtkdll name 'gtk_signal_emitv_by_name';
-{$ifndef gtkwin}
 procedure gtk_signal_handlers_destroy(theobject:PGtkObject);cdecl;external gtkdll name 'gtk_signal_handlers_destroy';
 procedure gtk_signal_set_funcs(marshal_func:TGtkSignalMarshal;destroy_func:TGtkSignalDestroy);cdecl;external gtkdll name 'gtk_signal_set_funcs';
-{$endif}
 
 {$endif read_interface}
 
@@ -99,7 +97,10 @@ procedure set_is_user_signal(var a : TGtkSignalQuery; __is_user_signal : guint);
 
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:36  peter
+  Revision 1.2  2000-05-26 16:23:30  peter
+    * update for new win32 dll's
+
+  Revision 1.1  1999/11/24 23:36:36  peter
     * moved to packages dir
 
   Revision 1.15  1999/10/06 17:42:50  peter
