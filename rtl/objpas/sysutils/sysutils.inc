@@ -459,6 +459,35 @@ begin
     end;
 end;
 
+{ ---------------------------------------------------------------------
+    Diskh functions, OS independent.
+  ---------------------------------------------------------------------}
+  
+
+function ForceDirectories(Const Dir: string): Boolean;
+
+var
+  E: EInOutError;
+  ADir : String;
+  
+begin
+  Result:=True;
+  ADir:=ExcludeTrailingPathDelimiter(Dir);
+  if (ADir='') then
+    begin
+    E:=EInOutError.Create(SCannotCreateEmptyDir);
+    E.ErrorCode:=3;
+    Raise E;
+    end;
+  if Not DirectoryExists(ADir) then 
+    begin 
+    Result:=ForceDirectories(ExtractFilePath(ADir));
+    If Result then
+      CreateDir(ADir);
+    end;  
+end;
+                                  
+
 {
   Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl

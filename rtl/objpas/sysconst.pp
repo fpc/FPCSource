@@ -29,6 +29,7 @@ resourcestring
   SArgumentMissing       = 'Missing argument in format "%s"';
   SAssertError           = '%s (%s, line %d)';
   SAssertionFailed       = 'Assertion failed';
+  SCannotCreateEmptyDir  = 'Cannot create empty directory'; 
   SControlC              = 'Control-C hit';
   SDiskFull              = 'Disk Full';
   SDispatchError         = 'No variant method call dispatch';
@@ -225,7 +226,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2004-09-03 19:26:42  olle
+  Revision 1.14  2005-01-14 12:59:25  michael
+  + Implemented ForceDirectories for Delphi compatibility
+
+  Revision 1.13  2004/09/03 19:26:42  olle
     + added maxExitCode to all System.pp
     * constrained error code to be below maxExitCode in RunError et. al.
 
