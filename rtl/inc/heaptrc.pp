@@ -63,7 +63,7 @@ implementation
 
 type
    plongint = ^longint;
-   
+
 const
   { allows to add custom info in heap_mem_info }
   extra_info_size : longint = 0;
@@ -380,7 +380,7 @@ end;
 procedure TraceFreeMem(var p:pointer;size:longint);
 
   var i,bp, ppsize : longint;
-  pp,pp2 : pheap_mem_info;
+  pp : pheap_mem_info;
 begin
   inc(freemem_size,size);
   inc(freemem8_size,((size+7) div 8)*8);
@@ -493,7 +493,7 @@ var
 
 var
    heap_at_init : pointer;
-   
+
 procedure CheckPointer(p : pointer);[public, alias : 'FPC_CHECKPOINTER'];
 var
   i  : longint;
@@ -533,11 +533,11 @@ begin
 {$endif go32v2}
 
   { I don't know where the stack is in other OS !! }
-  
+
   if p>=heapptr then
     runerror(216);
   { first try valid list faster }
-  
+
 {$ifdef EXTRA}
   pp:=heap_valid_first;
   while pp<>nil do
@@ -755,7 +755,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  1999-05-23 00:07:17  pierre
+  Revision 1.16.2.1  1999-07-05 20:12:27  peter
+    * removed warning
+
+  Revision 1.16  1999/05/23 00:07:17  pierre
     * support for heap allocated before TraceGetMem is used in
       FPC_CHECKPOINTER
     * faster CHECKPOINTER routine (list of valid blocks only !)
