@@ -872,7 +872,9 @@ unit ag386att;
       if not UseDeffileForExport and assigned(exportssection) then
         Writetree(exportssection);
       Writetree(resourcesection);
+      {$ifdef GDB}
       WriteFileEndInfo;
+      {$ENDIF}
       countlabelref:=true;
 
       AsmLn;
@@ -886,7 +888,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.28  2000-02-18 21:54:07  pierre
+  Revision 1.29  2000-02-20 21:20:28  marco
+   * Put some call under Ifdef GDB, so that compiling without -dGDB works
+
+  Revision 1.28  2000/02/18 21:54:07  pierre
    * avoid LeText if no stabs info
 
   Revision 1.27  2000/02/18 12:31:07  pierre
