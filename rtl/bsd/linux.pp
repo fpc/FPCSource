@@ -614,11 +614,13 @@ function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: Stri
     General information
 ***************************}
 
+{
 Function  GetDomainName:String;
 Function  GetHostName:String;
-Function  GetEnv(P:string):Pchar;
 Function  Sysinfo(var Info:TSysinfo):Boolean;
 Function  Uname(var unamerec:utsname):Boolean;
+}
+Function  GetEnv(P:string):Pchar;
 
 {**************************
         Signal
@@ -628,7 +630,7 @@ Procedure SigAction(Signum:Integer;Var Act,OldAct:PSigActionRec );
 Procedure SigProcMask (How:Integer;SSet,OldSSet:PSigSet);
 Function  SigPending:SigSet;
 Procedure SigSuspend(Mask:Sigset);
-Function  Signal(Signum:Integer;Handler:SignalHandler):SignalHandler;
+//Function  Signal(Signum:Integer;Handler:SignalHandler):SignalHandler;
 Function  Kill(Pid:longint;Sig:integer):integer;
 Procedure SigRaise(Sig:integer);
 Function  Alarm(Sec : Longint) : longint;
@@ -2125,7 +2127,7 @@ begin
   Dup2:=Dup2(filerec(oldfile).handle,filerec(newfile).handle);
 end;
 
-
+{
 Function Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:PTimeVal):longint;
 {
   Select checks whether the file descriptor sets in readfs/writefs/exceptfs
@@ -2165,7 +2167,7 @@ begin
    end;
   Select:=Select(N,Readfds,WriteFds,ExceptFds,p);
 end;
-
+}
 
 
 Function SelectText(var T:Text;TimeOut :PTimeval):Longint;
@@ -2295,17 +2297,23 @@ Function AssignPipe(var pipe_in,pipe_out:longint):boolean;
 }
 var
   pip  : tpipe;
-  regs : SysCallregs;
+  retval  : LONGINT;
+ 
 begin
-  regs.reg2:=longint(@pip);
-  SysCall(SysCall_nr_pipe,regs);
-  pipe_in:=pip[1];
-  pipe_out:=pip[2];
-  linuxerror:=errno;
-  AssignPipe:=(LinuxError=0);
+ asm
+    lea pip,%ebx
+    push %ebx
+    mov  $42,%eax
+    int  $0x80
+    addl $4,%esp
+    mov %eax,retval
+ end;
+ checkreturnvalue(retval,retval);
+ LinuxError:=Errno;
+ pipe_in:=pip[1];
+ pipe_out:=pip[2];
+ AssignPipe:=(LinuxError=0);
 end;
-
-
 
 Function AssignPipe(var pipe_in,pipe_out:text):boolean;
 {
@@ -2375,12 +2383,17 @@ end;
 
 Function PClose(Var F:text) :longint;
 var
-  sr  : syscallregs;
   pl  : ^longint;
   res : longint;
+ 
 begin
-  sr.reg2:=Textrec(F).Handle;
-  SysCall (syscall_nr_close,sr);
+  res:=Textrec(F).Handle;
+  asm
+    push res
+    mov  $6,%eax
+    int  $0x80
+    add  $4,%esp
+  end;
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(textrec(f).userdata[2]);
   waitpid(pl^,@res,0);
@@ -2390,18 +2403,22 @@ end;
 
 Function PClose(Var F:file) : longint;
 var
-  sr : syscallregs;
   pl : ^longint;
   res : longint;
+ 
 begin
-  sr.reg2:=FileRec(F).Handle;
-  SysCall (Syscall_nr_close,sr);
+  res:=filerec(F).Handle;
+  asm
+    push res
+    mov  $6,%eax
+    int  $0x80
+    add  $4,%esp
+  end;
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(filerec(f).userdata[2]);
   waitpid(pl^,@res,0);
   pclose:=res shr 8;
 end;
-
 
 Procedure PCloseText(Var F:text);
 {
@@ -2410,8 +2427,6 @@ Procedure PCloseText(Var F:text);
 begin
   PClose(f);
 end;
-
-
 
 Procedure POpen(var F:text;const Prog:String;rw:char);
 {
@@ -2577,16 +2592,25 @@ end;
 
 
 Function mkFifo(pathname:string;mode:longint):boolean;
-var
-  regs : SysCallRegs;
+var retval : LONGINT;
 begin
   pathname:=pathname+#0;
-  regs.reg2:=longint(@pathname[1]);
-  regs.reg3:=mode or STAT_IFIFO;
-  regs.reg4:=0;
-  mkFifo:=(SysCall(syscall_nr_mknod,regs)=0);
+ asm
+  lea  %ecx,pathname
+  inc  %ecx
+  push $0
+  mov  mode,%ebx
+  or   STAT_IFIFO,%ebx
+  push %ebx
+  push %ecx
+  mov  $14,$eax
+  int  $0x80
+  addl $12,%esp
+  mov  %eax,retval
+ end;
+ mkfifo:=checkreturnvalue(retval,retval)=0;
+ LinuxError:=Errno;
 end;
-
 
 Procedure AssignStream(Var StreamIn,Streamout:text;Const Prog:String);
 {
@@ -2754,6 +2778,7 @@ end;
                         General information calls
 ******************************************************************************}
 
+{
 Function Sysinfo(var Info:TSysinfo):Boolean;
 {
   Get system info
@@ -2764,9 +2789,9 @@ Begin
   regs.reg2:=longint(@info);
   Sysinfo:=SysCall(SysCall_nr_Sysinfo,regs)=0;
 End;
+}
 
-
-
+{
 Function Uname(var unamerec:utsname):Boolean;
 {
   Get machine's names
@@ -2778,7 +2803,7 @@ Begin
   Uname:=SysCall(SysCall_nr_uname,regs)=0;
   LinuxError:=Errno;
 End;
-
+}
 
 
 Function GetEnv(P:string):Pchar;
@@ -2810,7 +2835,7 @@ Begin
    getenv:=nil;
 end;
 
-
+{
 
 Function GetDomainName:String;
 {
@@ -2827,8 +2852,6 @@ begin
    getdomainname:=strpas(@Sysn.domainname[0]);
 end;
 
-
-
 Function GetHostName:String;
 {
   Get machines name. Returns empty string if not set.
@@ -2843,7 +2866,7 @@ begin
   else
    gethostname:=strpas(@Sysn.nodename[0]);
 end;
-
+}
 
 {******************************************************************************
                           Signal handling calls
@@ -2858,18 +2881,22 @@ Function Kill(Pid:longint;Sig:integer):integer;
   Return value is zero, except for case three, where the return value
   is the number of processes to which the signal was sent.
 }
-var
-  regs : Syscallregs;
+
+var retval : LONGINT;
 begin
-  regs.reg2:=Pid;
-  regs.reg3:=Sig;
-  kill:=SysCall(Syscall_nr_kill,regs);
-  if kill<0 then
-   Kill:=0;
-  linuxerror:=errno;
+ asm
+  push Sig
+  push Pid
+  mov  $37,$eax
+  int  $0x80
+  addl $8,%esp
+  mov  %eax,retval
+ end;
+ Kill:=checkreturnvalue(retval,retval);
+ if kill<0 THEN
+  Kill:=0; 
+ LinuxError:=Errno;
 end;
-
-
 
 Procedure SigAction(Signum:Integer;Var Act,OldAct:PSigActionRec );
 {
@@ -2878,17 +2905,23 @@ Procedure SigAction(Signum:Integer;Var Act,OldAct:PSigActionRec );
   If Act is non-nil, it is used to specify the new action.
   If OldAct is non-nil the previous action is saved there.
 }
-Var
-  sr : Syscallregs;
+
+var retval : LONGINT;
 begin
-  sr.reg2:=Signum;
-  sr.reg3:=Longint(act);
-  sr.reg4:=Longint(oldact);
-  SysCall(Syscall_nr_sigaction,sr);
-  linuxerror:=errno;
+ asm
+  push oldact
+  push act
+  push signum
+  mov  $46,$eax
+  int  $0x80
+  addl $12,%esp
+  mov  %eax,retval
+ end;
+ SigAction:=checkreturnvalue(retval,retval);
+ if kill<0 THEN
+  Kill:=0; 
+ LinuxError:=Errno;
 end;
-
-
 
 Procedure SigProcMask(How:Integer;SSet,OldSSet:PSigSet);
 {
@@ -2899,17 +2932,21 @@ Procedure SigProcMask(How:Integer;SSet,OldSSet:PSigSet);
    SigSetMask : Set the list of blocked signals to SSet
   if OldSSet is non-null, the old set will be saved there.
 }
-Var
-  sr : SyscallRegs;
+VAR retval : LONGINT;
+
 begin
-  sr.reg2:=how;
-  sr.reg3:=longint(SSet);
-  sr.reg4:=longint(OldSSet);
-  SysCall(Syscall_nr_sigprocmask,sr);
-  linuxerror:=errno;
+  asm
+   push  OldSSet
+   push  SSet
+   push  How
+   mov   $48,%eax
+   int   $0x80
+   addl  $12,%esp
+   mov  %eax,retval
+  end;
+ SigProcMask:=checkreturnvalue(retval,retval);
+ LinuxError:=Errno;
 end;
-
-
 
 Function SigPending:SigSet;
 {
@@ -2917,16 +2954,18 @@ Function SigPending:SigSet;
   signals is set in SSet
 }
 Var
-  sr    : SyscallRegs;
   dummy : Sigset;
+  retval: LONGINT;
 begin
-  sr.reg2:=longint(@dummy);
-  SysCall(Syscall_nr_sigpending,sr);
-  linuxerror:=errno;
-  Sigpending:=dummy;
+  asm
+   push dummy
+   mov  $52,%eax
+   int  $0x80
+   addl $4,%esp
+  end;
+  sigpending:=checkreturnvalue(retval,dummy);
+  LinuxError:=Errno;
 end;
-
-
 
 Procedure SigSuspend(Mask:Sigset);
 {
@@ -2934,23 +2973,27 @@ Procedure SigSuspend(Mask:Sigset);
  is received.
 }
 Var
-  sr : SyscallRegs;
+  retval: LONGINT;
 begin
-  sr.reg2:=mask;
-  SysCall(Syscall_nr_sigsuspend,sr);
-  linuxerror:=errno;
+  asm
+   push mask
+   mov  $111,%eax
+   int  $0x80
+   addl $4,%esp
+   mov  %eax,retval
+  end;
+  checkreturnvalue(retval,retval);
+  LinuxError:=Errno;
 end;
 
-
-
+{
 Function Signal(Signum:Integer;Handler:SignalHandler):SignalHandler;
 {
   Install a new handler for signal Signum.
   The old signal handler is returned.
   This call does, in fact, the same as SigAction.
 }
-var
-  sr : Syscallregs;
+
 begin
   sr.reg2:=signum;
   sr.reg3:=longint(handler);
@@ -2966,7 +3009,7 @@ begin
      linuxerror:=0;
    end;
 end;
-
+}
 
 procedure SigRaise(sig:integer);
 begin
@@ -3996,7 +4039,10 @@ End.
 
 {
   $Log$
-  Revision 1.1  2000-02-03 17:03:36  marco
+  Revision 1.2  2000-02-04 12:05:04  marco
+   * a few functions added.
+
+  Revision 1.1  2000/02/03 17:03:36  marco
    * initial version. Ported till line +/- 2000
 
 
