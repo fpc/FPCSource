@@ -152,7 +152,7 @@ unit tree;
        tdisposetyp = (dt_nothing,dt_leftright,dt_left,
                       dt_mbleft,dt_string,dt_typeconv,dt_inlinen,
                       dt_mbleft_and_method,dt_constset,dt_loop,dt_case,
-                      dt_with);
+                      dt_with,dt_onn);
 
       { different assignment types }
 
@@ -553,6 +553,15 @@ unit tree;
                    disposetree(p^.t1);
                  if assigned(p^.t2) then
                    disposetree(p^.t2);
+              end;
+            dt_onn:
+              begin
+                 if assigned(p^.left) then
+                   disposetree(p^.left);
+                 if assigned(p^.right) then
+                   disposetree(p^.right);
+                 if assigned(p^.exceptsymtable) then
+                   dispose(p^.exceptsymtable,done);
               end;
             dt_with :
               begin
@@ -1598,7 +1607,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.24  1998-07-30 11:18:23  florian
+  Revision 1.25  1998-08-02 16:42:02  florian
+    * on o : tobject do should also work now, the exceptsymtable shouldn't be
+      disposed by dellexlevel
+
+  Revision 1.24  1998/07/30 11:18:23  florian
     + first implementation of try ... except on .. do end;
     * limitiation of 65535 bytes parameters for cdecl removed
 

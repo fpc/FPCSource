@@ -481,10 +481,9 @@ unit pstatmnt;
          p_default,p_specific : ptree;
          ot : pobjectdef;
          sym : pvarsym;
-
          old_in_except_block : boolean;
-
          exceptsymtable : psymtable;
+         objname : stringid;
 
       begin
          procinfo.flags:=procinfo.flags or
@@ -539,14 +538,14 @@ unit pstatmnt;
                      if token=ID then
                        begin
                           getsym(pattern,false);
-
+                          objname:=pattern;
+                          consume(ID);
                           { is a explicit name for the exception given ? }
-                          if not(assigned(srsym)) then
+                          if token=COLON then
                             begin
-                               sym:=new(pvarsym,init(pattern,nil));
+                               sym:=new(pvarsym,init(objname,nil));
                                exceptsymtable:=new(psymtable,init(stt_exceptsymtable));
                                exceptsymtable^.insert(sym);
-                               consume(ID);
                                consume(COLON);
                                getsym(pattern,false);
                                consume(ID);
@@ -576,7 +575,7 @@ unit pstatmnt;
                                if srsym^.typ=unitsym then
                                  begin
                                     consume(POINT);
-                                    getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
+                                    getsymonlyin(punitsym(srsym)^.unitsymtable,objname);
                                     consume(ID);
                                  end;
                                consume(ID);
@@ -608,7 +607,7 @@ unit pstatmnt;
                      { set the informations }
                      last^.excepttype:=ot;
                      last^.exceptsymtable:=exceptsymtable;
-
+                     last^.disposetyp:=dt_onn;
                      { remove exception symtable }
                      if assigned(exceptsymtable) then
                        dellexlevel;
@@ -1241,7 +1240,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.30  1998-07-30 16:07:10  florian
+  Revision 1.31  1998-08-02 16:41:59  florian
+    * on o : tobject do should also work now, the exceptsymtable shouldn't be
+      disposed by dellexlevel
+
+  Revision 1.30  1998/07/30 16:07:10  florian
     * try ... expect <statement> end; works now
 
   Revision 1.29  1998/07/30 13:30:37  florian
