@@ -4993,7 +4993,7 @@ function TFileEditor.LoadFile: boolean;
 var S: PBufStream;
     OK: boolean;
 begin
-  New(S, Init(FileName,stOpenRead,EditorTextBufSize));
+  New(S, Init(GetShortName(FileName),stOpenRead,EditorTextBufSize));
   OK:=Assigned(S);
 {$ifdef TEST_PARTIAL_SYNTAX}
   SyntaxComplete:=false;
@@ -5517,7 +5517,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.74  2000-01-10 23:20:04  pierre
+  Revision 1.75  2000-01-14 15:36:42  pierre
+   + GetShortFileName used for tcodeeditor file opening
+
+  Revision 1.74  2000/01/10 23:20:04  pierre
    * problem with Paste solved
 
   Revision 1.73  2000/01/10 13:25:46  pierre

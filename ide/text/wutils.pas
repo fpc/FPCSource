@@ -97,6 +97,8 @@ function NameAndExtOf(const S: string): string;
 function DirAndNameOf(const S: string): string;
 { return Dos GetFTime value or -1 if the file does not exist }
 function GetFileTime(const FileName: string): longint;
+{ copied from compiler global unit }
+function GetShortName(const n:string):string;
 
 function EatIO: integer;
 
@@ -347,6 +349,30 @@ begin
   GetFileTime:=T;
 end;
 
+function GetShortName(const n:string):string;
+{$ifdef win32}
+      var
+        hs,hs2 : string;
+{$endif}
+{$ifdef go32v2}
+      var
+        hs : string;
+{$endif}
+      begin
+        GetShortName:=n;
+{$ifdef win32}
+        hs:=n+#0;
+        Windows.GetShortPathName(@hs[1],@hs2[1],high(hs2));
+        hs2[0]:=chr(strlen(@hs2[1]));
+        GetShortName:=hs2;
+{$endif}
+{$ifdef go32v2}
+        hs:=n;
+        if Dos.GetShortName(hs) then
+         GetShortName:=hs;
+{$endif}
+      end;
+
 
 function EatIO: integer;
 begin
@@ -535,7 +561,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  2000-01-05 17:27:20  pierre
+  Revision 1.12  2000-01-14 15:36:43  pierre
+   + GetShortFileName used for tcodeeditor file opening
+
+  Revision 1.11  2000/01/05 17:27:20  pierre
    + linecomplete arg for ReadlnFromStream
 
   Revision 1.10  2000/01/03 11:38:35  michael
