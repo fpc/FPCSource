@@ -354,11 +354,11 @@ unit typinfo;
          // ? Indexed procedure
          movl Index,%eax
          testl %eax,%eax
-         jnz .LSSPNoPush
+         je .LSSPNoPush
          movl IValue,%eax
          pushl %eax
       .LSSPNoPush:
-         push %esi
+         pushl %esi
          call %edi
       end;
 
@@ -574,59 +574,44 @@ unit typinfo;
          end;
       end;
 
-    Function GetAStrProp(Instance : TObject;PropInfo : PPropInfo):Pointer;
-
-      {
-      Dirty trick based on fact that AnsiString is just a pointer,
-      hence can be treated like an integer type.
-      }
-
-      var
-         value : Pointer;
-         Index,Ivalue : Longint;
-
-      begin
-         SetIndexValues(PropInfo,Index,IValue);
-         case (PropInfo^.PropProcs) and 3 of
-            ptfield:
-              Value:=Pointer(PLongint(Pointer(Instance)+Longint(PropInfo^.GetProc))^);
-            ptstatic:
-              Value:=Pointer(LongInt(CallIntegerFunc(Instance,PropInfo^.GetProc,Index,IValue)));
-            ptvirtual:
-              Value:=Pointer(LongInt(CallIntegerFunc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Index,IValue)));
-         end;
-         GetAstrProp:=Value;
+    function GetStrProp(Instance: TObject; PropInfo: PPropInfo): AnsiString;
+    var
+      Index, IValue: LongInt;
+      ShortResult: ShortString;
+    begin
+      SetIndexValues(PropInfo, Index, IValue);
+      case Propinfo^.PropType^.Kind of
+        tkSString:
+	  case (PropInfo^.PropProcs) and 3 of
+	    ptField:
+              Result := PShortString(Pointer(Instance) + LongWord(PropInfo^.GetProc))^;
+	    ptStatic:
+	      begin
+		CallSStringFunc(Instance, PropInfo^.GetProc, Index, IValue, ShortResult);
+		Result := ShortResult;
+	      end;
+	    ptVirtual:
+	      begin
+		CallSStringFunc(Instance, PPointer(Pointer(Instance.ClassType) +
+		  LongWord(PropInfo^.GetProc))^, Index, IValue, ShortResult);
+	      Result := ShortResult;
+	    end;
+          end;
+	tkAString:
+	  case (PropInfo^.PropProcs) and 3 of
+	    ptField:
+	      Result := PAnsiString(Pointer(Instance) + LongWord(PropInfo^.GetProc))^;
+	    ptStatic:
+	      Pointer(Result) := Pointer(LongWord(CallIntegerFunc(Instance, PropInfo^.GetProc, Index, IValue)));
+	    ptVirtual:
+	      Pointer(Result) := Pointer(LongWord(CallIntegerFunc(Instance,
+	        PPointer(Pointer(Instance.ClassType) + LongWord(PropInfo^.GetProc))^, Index, IValue)));
+	  end;
+        else
+	  // Property is neither of type AnsiString nor of type ShortString
+          SetLength(Result, 0);
       end;
-
-    Function GetSStrProp(Instance : TObject;PropInfo : PPropInfo):ShortString;
-
-      var
-         value : ShortString;
-         Index,IValue : Longint;
-
-      begin
-         SetIndexValues(PropInfo,Index,IValue);
-         case (PropInfo^.PropProcs) and 3 of
-            ptfield:
-              Value:=PShortString(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
-            ptstatic:
-             CallSStringFunc(Instance,PropInfo^.GetProc,Index,IValue,Value);
-            ptvirtual:
-             CallSSTringFunc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Index,Ivalue,Value);
-         end;
-         GetSStrProp:=Value;
-      end;
-
-    function GetStrProp(Instance : TObject;PropInfo : PPropInfo) : Ansistring;
-
-      begin
-      Case Propinfo^.PropType^.Kind of
-        tkSString : Result:=GetSStrProp(Instance,PropInfo);
-        tkAString : Pointer(Result):=GetAStrProp(Instance,Propinfo);
-      else
-        Result:='';
-      end;
-      end;
+    end;
 
     procedure SetAStrProp(Instance : TObject;PropInfo : PPropInfo;
       const Value : AnsiString);
@@ -660,9 +645,9 @@ unit typinfo;
             ptfield:
               PShortString(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
             ptstatic:
-              CallSStringProc(Instance,PropInfo^.GetProc,Value,Index,IValue);
+              CallSStringProc(Instance,PropInfo^.SetProc,Value,Index,IValue);
             ptvirtual:
-              CallSStringProc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Value,Index,IValue);
+              CallSStringProc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,Value,Index,IValue);
          end;
     end;
 
@@ -739,7 +724,7 @@ unit typinfo;
             ptstatic:
               CallExtendedProc(Instance,PropInfo^.SetProc,Value,Index,IValue);
             ptvirtual:
-              CallExtendedProc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Value,Index,IValue);
+              CallExtendedProc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,Value,Index,IValue);
          end;
       end;
 
@@ -862,7 +847,13 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-11-25 18:36:55  sg
+  Revision 1.6  2000-12-13 23:28:17  sg
+  * Merged bugfix for bug 1273 from fixbranch
+  * Fixed typo in SetFloatProp
+  * Rewrote GetStrProp, now all AnsiString will be correctly
+    reference counted
+
+  Revision 1.5  2000/11/25 18:36:55  sg
   * (Final) fix for AnsiString reference counter problem in SetStrProp
 
   Revision 1.4  2000/11/04 16:28:26  florian
