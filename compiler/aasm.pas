@@ -86,8 +86,6 @@ interface
           { lazy guy !!!! ;-) (FK) }
           ait_dummy);
 
-       tcpuflags = (cf_64bitaddr);
-       tcpuflagset = set of tcpuflags;
 
 { ait_* types which don't result in executable code or which don't influence   }
 { the way the program runs/behaves, but which may be encountered by the        }
@@ -1137,7 +1135,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.22  2002-04-07 13:18:19  carl
+  Revision 1.23  2002-04-15 18:54:34  carl
+  - removed tcpuflags
+
+  Revision 1.22  2002/04/07 13:18:19  carl
   + more documentation
 
   Revision 1.21  2002/04/07 10:17:40  carl
