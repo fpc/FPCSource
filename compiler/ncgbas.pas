@@ -256,7 +256,7 @@ interface
                                    if assigned(ref^.symbol) then
                                      ReLabel(ref^.symbol);
                                    if assigned(ref^.relsymbol) then
-                                     ReLabel(ref^.symbol);
+                                     ReLabel(ref^.relsymbol);
                                  end;
                              end;
                            end;
@@ -474,7 +474,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2004-02-27 10:21:05  florian
+  Revision 1.57  2004-02-27 19:30:23  jonas
+    * fixed relsymbol copy/paste bug
+
+  Revision 1.56  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
