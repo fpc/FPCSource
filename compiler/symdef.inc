@@ -1837,10 +1837,13 @@
         {Tarraydef.size may never be called for an open array!}
         if highrange<lowrange then
             internalerror(99080501);
-        If (highrange-lowrange = $7fffffff) or
-           { () are needed around elesize-1 to avoid a possible
-             integer overflow for elesize=1 !! PM }
-           (($7fffffff div elesize + (elesize -1)) < (highrange - lowrange)) Then
+        If (elesize>0) and
+           (
+            (highrange-lowrange = $7fffffff) or
+            { () are needed around elesize-1 to avoid a possible
+              integer overflow for elesize=1 !! PM }
+            (($7fffffff div elesize + (elesize -1)) < (highrange - lowrange))
+           ) Then
           Begin
             Message(sym_e_segment_too_large);
             size := 4
@@ -3715,7 +3718,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.156  1999-08-17 13:58:56  michael
+  Revision 1.157  1999-08-26 21:13:58  peter
+    * array elementsize of 0 doesn't crash anymore
+
+  Revision 1.156  1999/08/17 13:58:56  michael
   RTTI writing patch
 
   Revision 1.155  1999/08/16 16:26:04  pierre
