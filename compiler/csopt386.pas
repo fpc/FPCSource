@@ -405,6 +405,315 @@ begin
 End;
 {$endif alignreg}
 
+{$ifdef replacereg}
+function FindRegDealloc(reg: tregister; p: pai): boolean;
+begin
+  findregdealloc := false;
+  while assigned(p^.previous) and
+        ((Pai(p^.previous)^.typ in (skipinstr+[ait_align])) or
+         ((Pai(p^.previous)^.typ = ait_label) and
+          not(Pai_Label(p^.previous)^.l^.is_used))) do
+    begin
+      p := pai(p^.previous);
+      if (p^.typ = ait_regalloc) and
+         (pairegalloc(p)^.reg = reg) then
+        begin
+          findregdealloc := not(pairegalloc(p)^.allocation);
+          break;
+        end;
+    end
+end;
+
+function regLoadedWithNewValue(reg: tregister; hp: pai): boolean;
+var p: paicpu;
+begin
+  p := paicpu(hp);
+  regLoadedWithNewValue :=
+    assigned(hp) and
+    ((hp^.typ = ait_instruction) and
+     (((p^.opcode = A_MOV) or
+       (p^.opcode = A_MOVZX) or
+       (p^.opcode = A_MOVSX) or
+       (p^.opcode = A_LEA)) and
+      (p^.oper[1].typ = top_reg) and
+      (p^.oper[1].reg = reg) {and
+      (not(p^.oper[0].typ = top_ref) or
+       not RegInRef(p^.oper[1].reg,p^.oper[0].ref^))}) or
+     ((p^.opcode = A_POP) and
+      (p^.oper[0].reg = reg))) {or
+    findRegDealloc(reg,hp)};
+end;
+
+Procedure RestoreRegContentsTo(reg: TRegister; const c: TContent; p: pai);
+var hp: pai;
+    tmpState: byte;
+begin
+  tmpState := PPaiProp(p^.optInfo)^.Regs[reg].wState;
+  PPaiProp(p^.optInfo)^.Regs[reg] := c;
+  while getNextInstruction(p,p) and
+        (PPaiProp(p^.optInfo)^.Regs[reg].wState = tmpState) do
+    PPaiProp(p^.optInfo)^.Regs[reg] := c;
+{$ifdef replaceregdebug}
+  if assigned(p) then
+    begin
+      hp := new(pai_asm_comment,init(strpnew(
+        'restored '+att_reg2str[reg]+' till here...')));
+      hp^.next := p;
+      hp^.previous := p^.previous;
+      p^.previous := hp;
+      if assigned(hp^.previous) then
+        hp^.previous^.next := hp;
+    end;
+{$endif replaceregdebug}
+end;
+
+Procedure ClearRegContentsFrom(reg: TRegister; p: pai);
+var hp: pai;
+    tmpState: byte;
+begin
+  tmpState := PPaiProp(p^.optInfo)^.Regs[reg].wState;
+  PPaiProp(p^.optInfo)^.Regs[reg].typ := con_unknown;
+  while getNextInstruction(p,p) and
+        (PPaiProp(p^.optInfo)^.Regs[reg].wState = tmpState) do
+    PPaiProp(p^.optInfo)^.Regs[reg].typ := con_unknown;
+{$ifdef replaceregdebug}
+  if assigned(p) then
+    begin
+      hp := new(pai_asm_comment,init(strpnew(
+        'cleared '+att_reg2str[reg]+' till here...')));
+      hp^.next := p;
+      hp^.previous := p^.previous;
+      p^.previous := hp;
+      if assigned(hp^.previous) then
+        hp^.previous^.next := hp;
+    end;
+{$endif replaceregdebug}
+end;
+
+function NoHardCodedRegs(p: paicpu): boolean;
+var chCount: byte;
+begin
+  NoHardCodedRegs := true;
+  with InsProp[p^.opcode] do
+    for chCount := 1 to MaxCh do
+      if Ch[chCount] in ([Ch_REAX..Ch_MEDI]-[Ch_RESP,Ch_WESP,Ch_RWESP]) then
+        begin
+          NoHardCodedRegs := false;
+          break
+        end;
+end;
+
+Procedure ChangeReg(var Reg: TRegister; orgReg, newReg: TRegister);
+begin
+  if reg = newReg then
+    reg := orgReg
+  else if reg = regtoreg8(newReg) then
+         reg := regtoreg8(orgReg)
+  else if reg = regtoreg16(newReg) then
+         reg := regtoreg16(orgReg);
+end;
+
+Procedure DoReplaceReg(orgReg,newReg: tregister; hp: paicpu);
+var opCount: byte;
+begin
+  for opCount := 0 to 2 do
+    with hp^.oper[opCount] Do
+      case typ of
+        top_reg: ChangeReg(reg,orgReg,newReg);
+        top_ref:
+          begin
+            ChangeReg(ref^.base,orgReg,newReg);
+            ChangeReg(ref^.index,orgReg,newReg);
+          end;
+      end;
+end;
+
+function RegSizesOK(oldReg,newReg: TRegister; p: paicpu): boolean;
+{ oldreg and newreg must be 32bit components }
+var opCount: byte;
+begin
+  RegSizesOK := true;
+  if not(IsGP32reg(oldReg) and IsGP32Reg(newReg)) then
+    begin
+      for opCount := 0 to 2 do
+        if (p^.oper[opCount].typ = top_reg) and
+           (p^.oper[opCount].reg in [R_AL..R_DH]) then
+          begin
+            RegSizesOK := false;
+            break
+          end
+    end;
+end;
+
+function RegReadByInstruction(reg: TRegister; hp: pai): boolean;
+{ assumes p doesn't modify registers implicitely (like div) }
+var p: paicpu;
+    opCount: byte;
+begin
+  RegReadByInstruction := false;
+  p := paicpu(hp);
+  if hp^.typ <> ait_instruction then
+    exit;
+  for opCount := 0 to 2 do
+    if (p^.oper[opCount].typ = top_ref) and
+       RegInRef(reg,p^.oper[opCount].ref^) then
+      begin
+        RegReadByInstruction := true;
+        exit
+      end;
+  for opCount := 1 to MaxCh do
+    case InsProp[p^.opcode].Ch[opCount] of
+      Ch_RWOp1,Ch_ROp1{$ifdef arithopt},Ch_MOp1{$endif}:
+        if (p^.oper[0].typ = top_reg) and
+           (p^.oper[0].reg = reg) then
+          begin
+            RegReadByInstruction := true;
+            exit
+          end;
+      Ch_RWOp2,Ch_ROp2{$ifdef arithopt},Ch_MOp2{$endif}:
+        if (p^.oper[1].typ = top_reg) and
+           (p^.oper[1].reg = reg) then
+          begin
+            RegReadByInstruction := true;
+            exit
+          end;
+      Ch_RWOp3,Ch_ROp3{$ifdef arithopt},Ch_MOp3{$endif}:
+        if (p^.oper[2].typ = top_reg) and
+           (p^.oper[2].reg = reg) then
+          begin
+            RegReadByInstruction := true;
+            exit
+          end;
+    end;
+end;
+
+procedure DoReplaceReadReg(orgReg,newReg: tregister; p: paicpu);
+var opCount: byte;
+begin
+  for opCount := 0 to 2 do
+    if p^.oper[opCount].typ = top_ref then
+      begin
+        ChangeReg(p^.oper[opCount].ref^.base,orgReg,newReg);
+        ChangeReg(p^.oper[opCount].ref^.index,orgReg,newReg);
+      end;
+  for opCount := 1 to MaxCh do
+    case InsProp[p^.opcode].Ch[opCount] of
+      Ch_RWOp1,Ch_ROp1{$ifdef arithopt},Ch_MOp1{$endif}:
+        if p^.oper[0].typ = top_reg then
+          ChangeReg(p^.oper[0].reg,orgReg,newReg);
+      Ch_RWOp2,Ch_ROp2{$ifdef arithopt},Ch_MOp2{$endif}:
+        if p^.oper[1].typ = top_reg then
+          ChangeReg(p^.oper[1].reg,orgReg,newReg);
+      Ch_RWOp3,Ch_ROp3{$ifdef arithopt},Ch_MOp3{$endif}:
+        if p^.oper[2].typ = top_reg then
+          ChangeReg(p^.oper[2].reg,orgReg,newReg);
+    end;
+end;
+
+function ReplaceReg(orgReg, newReg: TRegister; p: pai;
+           const c: TContent): Boolean;
+{ Tries to replace orgreg with newreg in all instructions coming after p }
+{ until orgreg gets loaded with a new value. Returns true if successful, }
+{ false otherwise. If successful, the contents of newReg are set to c,   }
+{ which should hold the contents of newReg before the current sequence   }
+{ started                                                                }
+var endP, hp: Pai;
+    sequenceEnd, tmpResult, newRegModified, orgRegRead, orgRegModified: Boolean;
+begin
+  ReplaceReg := False;
+  tmpResult := true;
+  sequenceEnd := false;
+  newRegModified := false;
+  orgRegRead := false;
+  endP := pai(p^.previous);
+  while tmpResult and not sequenceEnd Do
+    begin
+      tmpResult :=
+        getNextInstruction(endP,endP);
+      If tmpResult then
+        begin
+          sequenceEnd :=
+            RegLoadedWithNewValue(newReg,paicpu(endP)) or
+{             FindRegDealloc(newReg,endP) or}
+            (GetNextInstruction(endp,hp) and
+             FindRegDealloc(newReg,hp));
+          newRegModified :=
+            newRegModified or
+            (not(sequenceEnd) and
+             RegModifiedByInstruction(newReg,endP));
+          orgRegRead := newRegModified and RegReadByInstruction(orgReg,endP);
+          sequenceEnd := SequenceEnd and not(newRegModified and orgRegRead);
+          tmpResult :=
+            not(newRegModified and orgRegRead) and
+            (endP^.typ = ait_instruction) and
+            not(paicpu(endP)^.is_jmp) and
+            NoHardCodedRegs(paicpu(endP)) and
+            RegSizesOk(orgReg,newReg,paicpu(endP)) and
+            not RegModifiedByInstruction(orgReg,endP);
+        end;
+    end;
+  if SequenceEnd then
+    begin
+{$ifdef replaceregdebug}
+      hp := new(pai_asm_comment,init(strpnew(
+        'replacing '+att_reg2str[newreg]+' with '+att_reg2str[orgreg]+
+        ' from here...')));
+      hp^.next := p;
+      hp^.previous := p^.previous;
+      p^.previous := hp;
+      if assigned(hp^.previous) then
+        hp^.previous^.next := hp;
+
+      hp := new(pai_asm_comment,init(strpnew(
+        'replaced '+att_reg2str[newreg]+' with '+att_reg2str[orgreg]+
+        ' till here')));
+      hp^.next := endp^.next;
+      hp^.previous := endp;
+      endp^.next := hp;
+      if assigned(hp^.next) then
+        hp^.next^.previous := hp;
+{$endif replaceregdebug}
+      ReplaceReg := true;
+      hp := p;
+      while hp <> endP do
+        begin
+          if hp^.typ = ait_instruction then
+            DoReplaceReg(orgReg,newReg,paicpu(hp));
+          GetNextInstruction(hp,hp)
+        end;
+      if assigned(endp) and (endp^.typ = ait_instruction) then
+        DoReplaceReadReg(orgReg,newReg,paicpu(endP));
+      if (p <> endp) then
+        if not RegModifiedByInstruction(newReg,endP) then
+          RestoreRegContentsTo(newReg, c ,p)
+        else
+          ClearRegContentsFrom(orgReg,p);
+    end
+{$ifdef replaceregdebug}
+     else
+       begin
+         hp := new(pai_asm_comment,init(strpnew(
+           'replacing '+att_reg2str[newreg]+' with '+att_reg2str[orgreg]+
+           ' from here...')));
+         hp^.previous := p^.previous;
+         hp^.next := p;
+         p^.previous := hp;
+        if assigned(hp^.previous) then
+          hp^.previous^.next := hp;
+
+      hp := new(pai_asm_comment,init(strpnew(
+        'replacing '+att_reg2str[newreg]+' with '+att_reg2str[orgreg]+
+        ' failed here')));
+      hp^.next := endp^.next;
+      hp^.previous := endp;
+      endp^.next := hp;
+      if assigned(hp^.next) then
+        hp^.next^.previous := hp;
+       end;
+{$endif replaceregdebug}
+End;
+{$endif replacereg}
+
 Procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai);
 {marks the instructions that can be removed by RemoveInstructs. They're not
  removed immediately because sometimes an instruction needs to be checked in
@@ -510,10 +819,27 @@ Begin
                                                         {old reg                new reg}
                                             (RegInfo.New2OldReg[RegCounter] <> RegCounter) Then
                                            Begin
-                                             hp3 := New(Paicpu,Op_Reg_Reg(A_MOV, S_L,
-                                                                  {old reg          new reg}
-                                                    RegInfo.New2OldReg[RegCounter], RegCounter));
-                                             InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp3);
+{$ifdef replacereg}
+                                             If not ReplaceReg(RegInfo.New2OldReg[RegCounter],
+                                                      regCounter,p,
+                                                      PPaiProp(hp4^.optInfo)^.Regs[regCounter]) then
+                                               begin
+{$endif replacereg}
+                                                 hp3 := New(Paicpu,Op_Reg_Reg(A_MOV, S_L,
+                                                                         {old reg          new reg}
+                                                       RegInfo.New2OldReg[RegCounter], RegCounter));
+                                                 InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp3);
+{$ifdef replacereg}
+                                               end
+{$ifdef replaceregdebug}
+                                                else
+                                                  begin
+                                                    hp3 := new(pai_asm_comment,init(strpnew(
+                                                               'restored '+att_reg2str[regCounter]+' with data from here...')));
+                                                    insertllitem(asml,hp4,hp4^.next,hp3);
+                                                  end;
+{$endif replaceregdebug}
+{$endif replacereg}
                                            End
                                          Else
 {   imagine the following code:                                            }
@@ -701,7 +1027,11 @@ End.
 
 {
  $Log$
- Revision 1.31  1999-11-06 16:21:57  jonas
+ Revision 1.32  1999-11-14 11:26:53  jonas
+   + basic register renaming (not yet working completely, between
+     -dreplacereg/-dreplaceregdebug)
+
+ Revision 1.31  1999/11/06 16:21:57  jonas
    + search optimial register to use in alignment code (compile with
      -dalignreg, -dalignregdebug to see chosen register in
      assembler code). Still needs support in ag386bin.
