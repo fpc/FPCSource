@@ -36,26 +36,19 @@ unit cgx86;
 
     type
       tcgx86 = class(tcg)
-        rgint,
-        rgmm   : trgcpu;
         rgfpu   : Trgx86fpu;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
-        function  getintregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         function  getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
-        function  getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
         procedure ungetregister(list:Taasmoutput;r:Tregister);override;
         procedure ungetreference(list:Taasmoutput;const r:Treference);override;
         procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
         procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
         function  uses_registers(rt:Tregistertype):boolean;override;
-        procedure add_move_instruction(instr:Taicpu);override;
         procedure dec_fpu_stack;
         procedure inc_fpu_stack;
-
-        procedure do_register_allocation(list:Taasmoutput;headertai:tai);override;
 
         { passing parameters, per default the parameter is pushed }
         { nr gives the number of the parameter (enumerated from   }
@@ -176,123 +169,77 @@ unit cgx86;
     procedure Tcgx86.init_register_allocators;
       begin
         if cs_create_pic in aktmoduleswitches then
-          rgint:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP,RS_EBX])
+          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP,RS_EBX])
         else
-          rgint:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
-        rgmm:=trgcpu.create(R_MMREGISTER,R_SUBNONE,[RS_MM0,RS_MM1,RS_MM2,RS_MM3,RS_MM4,RS_MM5,RS_MM6,RS_MM7],first_sse_imreg,[]);
+          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
+        rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,[RS_MM0,RS_MM1,RS_MM2,RS_MM3,RS_MM4,RS_MM5,RS_MM6,RS_MM7],first_sse_imreg,[]);
         rgfpu:=Trgx86fpu.create;
       end;
 
 
     procedure Tcgx86.done_register_allocators;
       begin
-        rgint.free;
-        rgmm.free;
+        rg[R_INTREGISTER].free;
+        rg[R_INTREGISTER]:=nil;
+        rg[R_MMREGISTER].free;
+        rg[R_MMREGISTER]:=nil;
         rgfpu.free;
-      end;
-
-
-    function Tcgx86.getintregister(list:Taasmoutput;size:Tcgsize):Tregister;
-      begin
-        result:=rgint.getregister(list,cgsize2subreg(size));
       end;
 
 
     function Tcgx86.getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;
       begin
-        result:=trgx86fpu(rgfpu).getregisterfpu(list);
-      end;
-
-
-    function Tcgx86.getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;
-      begin
-        result:=rgmm.getregister(list,R_SUBNONE);
+        result:=rgfpu.getregisterfpu(list);
       end;
 
 
     procedure Tcgx86.getexplicitregister(list:Taasmoutput;r:Tregister);
       begin
-        case getregtype(r) of
-          R_INTREGISTER :
-            rgint.getexplicitregister(list,r);
-          R_SSEREGISTER :
-            rgmm.getexplicitregister(list,r);
-          else
-            internalerror(200310091);
-        end;
+        if getregtype(r)=R_FPUREGISTER then
+          internalerror(2003121210)
+        else
+          inherited getexplicitregister(list,r);
       end;
 
 
     procedure tcgx86.ungetregister(list:Taasmoutput;r:Tregister);
       begin
-        case getregtype(r) of
-          R_INTREGISTER :
-            rgint.ungetregister(list,r);
-          R_FPUREGISTER :
-            rgfpu.ungetregisterfpu(list,r);
-          R_SSEREGISTER :
-            rgmm.ungetregister(list,r);
-          else
-            internalerror(200310091);
-        end;
+        if getregtype(r)=R_FPUREGISTER then
+          rgfpu.ungetregisterfpu(list,r)
+        else
+          inherited ungetregister(list,r);
       end;
 
 
     procedure tcgx86.ungetreference(list:Taasmoutput;const r:Treference);
       begin
         if r.base<>NR_NO then
-          rgint.ungetregister(list,r.base);
+          ungetregister(list,r.base);
         if r.index<>NR_NO then
-          rgint.ungetregister(list,r.index);
+          ungetregister(list,r.index);
       end;
 
 
     procedure Tcgx86.allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
       begin
-        case rt of
-          R_INTREGISTER :
-            rgint.allocexplicitregisters(list,r);
-          R_SSEREGISTER :
-            rgmm.allocexplicitregisters(list,r);
-          R_FPUREGISTER :
-          else
-            internalerror(200310092);
-        end;
+        if rt<>R_FPUREGISTER then
+          inherited allocexplicitregisters(list,rt,r);
       end;
 
 
     procedure Tcgx86.deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
       begin
-        case rt of
-          R_INTREGISTER :
-            rgint.deallocexplicitregisters(list,r);
-          R_SSEREGISTER :
-            rgmm.deallocexplicitregisters(list,r);
-          R_FPUREGISTER :
-          else
-            internalerror(200310093);
-        end;
+        if rt<>R_FPUREGISTER then
+          inherited deallocexplicitregisters(list,rt,r);
       end;
 
 
     function  Tcgx86.uses_registers(rt:Tregistertype):boolean;
       begin
-        case rt of
-          R_INTREGISTER :
-            result:=rgint.uses_registers;
-          R_SSEREGISTER :
-            result:=rgmm.uses_registers;
-          R_FPUREGISTER :
-            result:=false;
-          else
-            internalerror(200310094);
-        end;
-      end;
-
-
-    procedure Tcgx86.add_move_instruction(instr:Taicpu);
-      begin
-        rgint.add_move_instruction(instr);
+        if rt=R_FPUREGISTER then
+          result:=false
+        else
+          result:=inherited uses_registers(rt);
       end;
 
 
@@ -306,20 +253,6 @@ unit cgx86;
       begin
         inc(rgfpu.fpuvaroffset);
       end;
-
-
-    procedure Tcgx86.do_register_allocation(list:Taasmoutput;headertai:tai);
-
-    begin
-      { Int }
-      rgint.check_unreleasedregs;
-      rgint.do_register_allocation(list,headertai);
-      rgint.translate_registers(list);
-      { SSE }
-      rgmm.check_unreleasedregs;
-      rgmm.do_register_allocation(list,headertai);
-      rgmm.translate_registers(list);
-    end;
 
 
 {****************************************************************************
@@ -706,7 +639,7 @@ unit cgx86;
         instr:=taicpu.op_reg_reg(op,s,reg1,reg2);
         {Notify the register allocator that we have written a move instruction so
          it can try to eliminate it.}
-        Tcgx86(cg).rgint.add_move_instruction(instr);
+        add_move_instruction(instr);
         list.concat(instr);
       end;
 
@@ -1513,7 +1446,7 @@ unit cgx86;
                 list.concat(Tai_section.Create(sec_code));
                 list.concat(Taicpu.Op_sym_ofs_reg(A_MOV,S_L,pl,0,NR_EDX));
                 a_call_name(list,target_info.Cprefix+mcountprefix+'mcount');
-                include(rgint.used_in_proc,RS_EDX);
+                include(rg[R_INTREGISTER].used_in_proc,RS_EDX);
              end;
 
            system_i386_go32v2,system_i386_watcom:
@@ -1575,7 +1508,7 @@ unit cgx86;
 
     begin
       list.concat(tai_regalloc.alloc(NR_EBP));
-      include(rgint.preserved_by_proc,RS_EBP);
+      include(rg[R_INTREGISTER].preserved_by_proc,RS_EBP);
       list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EBP));
       list.concat(Taicpu.op_reg_reg(A_MOV,S_L,NR_ESP,NR_EBP));
       if localsize>0 then
@@ -1633,36 +1566,36 @@ unit cgx86;
       begin
         { Get temp }
         size:=0;
-        if RS_EBX in rgint.used_in_proc then
+        if RS_EBX in rg[R_INTREGISTER].used_in_proc then
           inc(size,POINTER_SIZE);
-        if RS_ESI in rgint.used_in_proc then
+        if RS_ESI in rg[R_INTREGISTER].used_in_proc then
           inc(size,POINTER_SIZE);
-        if RS_EDI in rgint.used_in_proc then
+        if RS_EDI in rg[R_INTREGISTER].used_in_proc then
           inc(size,POINTER_SIZE);
         if size>0 then
           begin
             tg.GetTemp(list,size,tt_noreuse,current_procinfo.save_regs_ref);
             { Copy registers to temp }
             href:=current_procinfo.save_regs_ref;
-            if RS_EBX in rgint.used_in_proc then
+            if RS_EBX in rg[R_INTREGISTER].used_in_proc then
               begin
                 a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_EBX,href);
                 inc(href.offset,POINTER_SIZE);
               end;
-            if RS_ESI in rgint.used_in_proc then
+            if RS_ESI in rg[R_INTREGISTER].used_in_proc then
               begin
                 a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_ESI,href);
                 inc(href.offset,POINTER_SIZE);
               end;
-            if RS_EDI in rgint.used_in_proc then
+            if RS_EDI in rg[R_INTREGISTER].used_in_proc then
               begin
                 a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_EDI,href);
                 inc(href.offset,POINTER_SIZE);
               end;
           end;
-        include(rgint.preserved_by_proc,RS_EBX);
-        include(rgint.preserved_by_proc,RS_ESI);
-        include(rgint.preserved_by_proc,RS_EDI);
+        include(rg[R_INTREGISTER].preserved_by_proc,RS_EBX);
+        include(rg[R_INTREGISTER].preserved_by_proc,RS_ESI);
+        include(rg[R_INTREGISTER].preserved_by_proc,RS_EDI);
       end;
 
 
@@ -1672,17 +1605,17 @@ unit cgx86;
       begin
         { Copy registers from temp }
         href:=current_procinfo.save_regs_ref;
-        if RS_EBX in rgint.used_in_proc then
+        if RS_EBX in rg[R_INTREGISTER].used_in_proc then
           begin
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EBX);
             inc(href.offset,POINTER_SIZE);
           end;
-        if RS_ESI in rgint.used_in_proc then
+        if RS_ESI in rg[R_INTREGISTER].used_in_proc then
           begin
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_ESI);
             inc(href.offset,POINTER_SIZE);
           end;
-        if RS_EDI in rgint.used_in_proc then
+        if RS_EDI in rg[R_INTREGISTER].used_in_proc then
           begin
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EDI);
             inc(href.offset,POINTER_SIZE);
@@ -1751,7 +1684,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.89  2003-12-06 01:15:23  florian
+  Revision 1.90  2003-12-12 17:16:18  peter
+    * rg[tregistertype] added in tcg
+
+  Revision 1.89  2003/12/06 01:15:23  florian
     * reverted Peter's alloctemp patch; hopefully properly
 
   Revision 1.88  2003/12/03 23:13:20  peter

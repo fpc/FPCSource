@@ -59,7 +59,9 @@ unit cgobj;
           sould be @link(tcg64f32) and not @var(tcg).
        }
        tcg = class
+       public
           alignment : talignment;
+          rg        : array[tregistertype] of trgobj;
           t_times:cardinal;
           {************************************************}
           {                 basic routines                 }
@@ -71,28 +73,28 @@ unit cgobj;
           procedure done_register_allocators;virtual;abstract;
 
           {# Gets a register suitable to do integer operations on.}
-          function getintregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
+          function getintregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;
           {# Gets a register suitable to do integer operations on.}
           function getaddressregister(list:Taasmoutput):Tregister;virtual;
-          function getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
-          function getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
+          function getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;
+          function getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;
           function getflagregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
            the cpu specific child cg object have such a method?}
-          procedure ungetregister(list:Taasmoutput;r:Tregister);virtual;abstract;
+          procedure ungetregister(list:Taasmoutput;r:Tregister);virtual;
           procedure ungetreference(list:Taasmoutput;const r:Treference);virtual;
 
-          procedure add_move_instruction(instr:Taicpu);virtual;abstract;
+          procedure add_move_instruction(instr:Taicpu);virtual;
 
-          function  uses_registers(rt:Tregistertype):boolean;virtual;abstract;
+          function  uses_registers(rt:Tregistertype):boolean;virtual;
           {# Get a specific register.}
-          procedure getexplicitregister(list:Taasmoutput;r:Tregister);virtual;abstract;
+          procedure getexplicitregister(list:Taasmoutput;r:Tregister);virtual;
           {# Get multiple registers specified.}
-          procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);virtual;abstract;
+          procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);virtual;
           {# Free multiple registers specified.}
-          procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);virtual;abstract;
+          procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);virtual;
 
-          procedure do_register_allocation(list:Taasmoutput;headertai:tai);virtual;abstract;
+          procedure do_register_allocation(list:Taasmoutput;headertai:tai);virtual;
 
           function makeregsize(reg:Tregister;size:Tcgsize):Tregister;
 
@@ -550,24 +552,74 @@ implementation
 ******************************************************************************}
 
     constructor tcg.create;
+      begin
+      end;
 
-    begin
-    end;
 
     function Tcg.makeregsize(reg:Tregister;size:Tcgsize):Tregister;
+      var
+        subreg:Tsubregister;
+      begin
+        subreg:=cgsize2subreg(size);
+        result:=reg;
+        setsubreg(result,subreg);
+      end;
 
-    var subreg:Tsubregister;
 
-    begin
-      subreg:=cgsize2subreg(size);
-      result:=reg;
-      setsubreg(result,subreg);
-    end;
+{*****************************************************************************
+                                register allocation
+******************************************************************************}
+
+    function tcg.getintregister(list:Taasmoutput;size:Tcgsize):Tregister;
+      begin
+        if not assigned(rg[R_INTREGISTER]) then
+          internalerror(200312122);
+        result:=rg[R_INTREGISTER].getregister(list,cgsize2subreg(size));
+      end;
+
+
+    function tcg.getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;
+      begin
+        if not assigned(rg[R_FPUREGISTER]) then
+          internalerror(200312123);
+        result:=rg[R_FPUREGISTER].getregister(list,cgsize2subreg(size));
+      end;
+
+
+    function tcg.getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;
+      begin
+        if not assigned(rg[R_MMREGISTER]) then
+          internalerror(200312124);
+        result:=rg[R_MMREGISTER].getregister(list,cgsize2subreg(size));
+      end;
 
 
     function tcg.getaddressregister(list:Taasmoutput):Tregister;
       begin
-        result:=getintregister(list,OS_ADDR);
+        if assigned(rg[R_ADDRESSREGISTER]) then
+          result:=rg[R_ADDRESSREGISTER].getregister(list,R_SUBWHOLE)
+        else
+          begin
+            if not assigned(rg[R_INTREGISTER]) then
+              internalerror(200312121);
+            result:=rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
+          end;
+      end;
+
+
+    procedure tcg.getexplicitregister(list:Taasmoutput;r:Tregister);
+      begin
+        if not assigned(rg[getregtype(r)]) then
+          internalerror(200312125);
+        rg[getregtype(r)].getexplicitregister(list,r);
+      end;
+
+
+    procedure tcg.ungetregister(list:Taasmoutput;r:Tregister);
+      begin
+        if not assigned(rg[getregtype(r)]) then
+          internalerror(200312126);
+        rg[getregtype(r)].ungetregister(list,r);
       end;
 
 
@@ -575,6 +627,61 @@ implementation
       begin
         if r.base<>NR_NO then
           ungetregister(list,r.base);
+      end;
+
+
+    procedure tcg.allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
+      begin
+        if assigned(rg[rt]) then
+          rg[rt].allocexplicitregisters(list,r)
+        else
+          internalerror(200310092);
+      end;
+
+
+    procedure tcg.deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
+      begin
+        if assigned(rg[rt]) then
+          rg[rt].deallocexplicitregisters(list,r)
+        else
+          internalerror(200310093);
+      end;
+
+
+    function  tcg.uses_registers(rt:Tregistertype):boolean;
+      begin
+        if assigned(rg[rt]) then
+          result:=rg[rt].uses_registers
+        else
+          internalerror(200310094);
+      end;
+
+
+    procedure tcg.add_move_instruction(instr:Taicpu);
+      var
+        rt : tregistertype;
+      begin
+        rt:=getregtype(instr.oper[O_MOV_SOURCE]^.reg);
+        if assigned(rg[rt]) then
+          rg[rt].add_move_instruction(instr)
+        else
+          internalerror(200310095);
+      end;
+
+
+    procedure tcg.do_register_allocation(list:Taasmoutput;headertai:tai);
+      var
+        rt : tregistertype;
+      begin
+        for rt:=low(tregistertype) to high(tregistertype) do
+          begin
+            if assigned(rg[rt]) then
+              begin
+                rg[rt].check_unreleasedregs;
+                rg[rt].do_register_allocation(list,headertai);
+                rg[rt].translate_registers(list);
+              end;
+          end;
       end;
 
 
@@ -619,11 +726,10 @@ implementation
          end;
       end;
 
-    procedure tcg.a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);
 
+    procedure tcg.a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);
       var
          hr : tregister;
-
       begin
          hr:=getintregister(list,size);
          a_load_const_reg(list,size,a,hr);
@@ -1835,7 +1941,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.137  2003-12-06 22:11:47  jonas
+  Revision 1.138  2003-12-12 17:16:17  peter
+    * rg[tregistertype] added in tcg
+
+  Revision 1.137  2003/12/06 22:11:47  jonas
     + allocate volatile registers around calls to procedures declared with
       "saveregisters" on non-x86 processors
 

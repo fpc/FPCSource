@@ -176,17 +176,32 @@ unit rgobj;
       end;
       Preginfo=^TReginfo;
 
+      { This is the base class used for a register allocator. }
+      trgbase=class
+        function getregister(list:Taasmoutput;subreg:Tsubregister):Tregister;virtual;abstract;
+        {# Get the register specified.}
+        procedure getexplicitregister(list:Taasmoutput;r:Tregister);virtual;abstract;
+        {# Get multiple registers specified.}
+        procedure allocexplicitregisters(list:Taasmoutput;r:Tcpuregisterset);virtual;abstract;
+        {# Free multiple registers specified.}
+        procedure deallocexplicitregisters(list:Taasmoutput;r:Tcpuregisterset);virtual;abstract;
+        function uses_registers:boolean;virtual;abstract;
+        {# Deallocate any kind of register }
+        procedure ungetregister(list:Taasmoutput;r:Tregister);virtual;abstract;
+      end;
+
+
       {#------------------------------------------------------------------
 
-      This class implements the abstract register allocator. It is used by the
-      code generator to allocate and free registers which might be valid across
-      nodes. It also contains utility routines related to registers.
+      This class implements the default register allocator. It is used by the
+      code generator to allocate and free registers which might be valid
+      across nodes. It also contains utility routines related to registers.
 
       Some of the methods in this class should be overriden
       by cpu-specific implementations.
 
       --------------------------------------------------------------------}
-      trgobj=class
+      trgobj=class(trgbase)
         preserved_by_proc : tcpuregisterset;
         used_in_proc : tcpuregisterset;
 //        is_reg_var : Tsuperregisterset; {old regvars}
@@ -201,20 +216,20 @@ unit rgobj;
 
         {# Allocate a register. An internalerror will be generated if there is
          no more free registers which can be allocated.}
-        function getregister(list:Taasmoutput;subreg:Tsubregister):Tregister;
-        procedure add_constraints(reg:Tregister);virtual;
+        function getregister(list:Taasmoutput;subreg:Tsubregister):Tregister;virtual;
         {# Get the register specified.}
-        procedure getexplicitregister(list:Taasmoutput;r:Tregister);
+        procedure getexplicitregister(list:Taasmoutput;r:Tregister);virtual;
         {# Get multiple registers specified.}
-        procedure allocexplicitregisters(list:Taasmoutput;r:Tcpuregisterset);
+        procedure allocexplicitregisters(list:Taasmoutput;r:Tcpuregisterset);virtual;
         {# Free multiple registers specified.}
-        procedure deallocexplicitregisters(list:Taasmoutput;r:Tcpuregisterset);
-        function uses_registers:boolean;
+        procedure deallocexplicitregisters(list:Taasmoutput;r:Tcpuregisterset);virtual;
+        function uses_registers:boolean;virtual;
         {# Deallocate any kind of register }
         procedure ungetregister(list:Taasmoutput;r:Tregister);virtual;
+        procedure add_constraints(reg:Tregister);virtual;
 
         {# Do the register allocation.}
-        procedure do_register_allocation(list:Taasmoutput;headertai:tai);
+        procedure do_register_allocation(list:Taasmoutput;headertai:tai);virtual;
 
 {        procedure resetusableregisters;virtual;}
 
@@ -615,17 +630,21 @@ implementation
 
 
     function trgobj.getregister(list:Taasmoutput;subreg:Tsubregister):Tregister;
-    var p:Tsuperregister;
-        r:Tregister;
-    begin
-       p:=getnewreg;
-       supregset_exclude(unusedregs,p);
-       r:=newreg(regtype,p,subreg);
-       list.concat(Tai_regalloc.alloc(r));
-       add_edges_used(p);
-       add_constraints(r);
-       result:=r;
-    end;
+      var
+        p : Tsuperregister;
+        r : Tregister;
+      begin
+         p:=getnewreg;
+         supregset_exclude(unusedregs,p);
+         if defaultsub=R_SUBNONE then
+           r:=newreg(regtype,p,R_SUBNONE)
+         else
+           r:=newreg(regtype,p,subreg);
+         list.concat(Tai_regalloc.alloc(r));
+         add_edges_used(p);
+         add_constraints(r);
+         result:=r;
+      end;
 
 
     function trgobj.uses_registers:boolean;
@@ -1818,7 +1837,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2003-12-04 23:27:32  peter
+  Revision 1.99  2003-12-12 17:16:17  peter
+    * rg[tregistertype] added in tcg
+
+  Revision 1.98  2003/12/04 23:27:32  peter
     * remove redundant calls to add_edge_used
 
   Revision 1.97  2003/11/29 17:36:41  peter
