@@ -153,12 +153,11 @@ end;
 
 procedure TGDBController.Command(const s:string);
 begin
+  inc(in_command);
   CommandBegin(s);
   gdboutputbuf.reset;
   gdberrorbuf.reset;
-  inc(in_command);
   gdb_command(s);
-  dec(in_command);
   {
     What is that for ?? PM
     I had to comment it because
@@ -172,6 +171,7 @@ begin
      dec(in_command);
    end; }
   CommandEnd(s);
+  dec(in_command);
 end;
 
 procedure TGDBController.CommandBegin(const s:string);
@@ -330,7 +330,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2002-09-07 15:42:51  peter
+  Revision 1.5  2002-09-17 20:57:04  pierre
+    * increment in_command before calling CommandBegin
+      and after calling CommandEnd to be able to count
+      command levels inside these methods.
+
+  Revision 1.4  2002/09/07 15:42:51  peter
     * old logs removed and tabs fixed
 
   Revision 1.3  2002/04/03 09:09:22  pierre
