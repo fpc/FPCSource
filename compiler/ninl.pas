@@ -755,6 +755,8 @@ implementation
                          { range/overflow checking doesn't work properly }
                          { with the inc/dec code that's generated (JM)   }
                          ((left.resulttype^.deftype = orddef) and
+                          not(is_char(left.resulttype)) and
+                          not(is_boolean(left.resulttype)) and
                           (aktlocalswitches *
                            [cs_check_overflow,cs_check_range] <> [])) then
                         { convert to simple add (JM) }
@@ -1496,7 +1498,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2000-11-11 21:08:13  jonas
+  Revision 1.18  2000-11-12 15:27:22  jonas
+    * also don't do conversion for chars/booleans (hopefully final change :/)
+
+  Revision 1.17  2000/11/11 21:08:13  jonas
     * don't do inc/dec to add/sub conversion for enums
 
   Revision 1.16  2000/11/11 16:18:35  peter
