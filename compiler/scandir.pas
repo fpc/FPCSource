@@ -110,7 +110,6 @@ implementation
         Message1(w,current_scanner.readcomment);
       end;
 
-
 {*****************************************************************************
                               Directive Callbacks
 *****************************************************************************}
@@ -398,7 +397,14 @@ implementation
         s : string;
       begin
         current_scanner.skipspace;
-        s:=AddExtension(FixFileName(current_scanner.readcomment),target_info.objext);
+        if scanner.c = '''' then
+          begin
+            s:= current_scanner.readquotedstring;
+            current_scanner.readcomment
+          end
+        else
+          s:= trimspace(current_scanner.readcomment);
+        s:=AddExtension(FixFileName(s),target_info.objext);
         current_module.linkotherofiles.add(s,link_allways);
       end;
 
@@ -414,18 +420,27 @@ implementation
         linkMode : tLinkMode;
       begin
         current_scanner.skipspace;
-        s:=current_scanner.readcomment;
-        p:=pos(',',s);
-        if p=0 then
-         begin
-           libname:=TrimSpace(s);
-           linkmodeStr:='';
-         end
+        if scanner.c = '''' then
+          begin
+            libname:= current_scanner.readquotedstring;
+            s:= current_scanner.readcomment;
+            p:=pos(',',s);
+          end
         else
-         begin
-           libname:=TrimSpace(copy(s,1,p-1));
-           linkmodeStr:=Upper(TrimSpace(copy(s,p+1,255)));
-         end;
+          begin
+            s:= current_scanner.readcomment;
+            p:=pos(',',s);
+            if p=0 then
+              libname:=TrimSpace(s)
+            else
+              libname:=TrimSpace(copy(s,1,p-1));
+          end;
+
+        if p=0 then
+          linkmodeStr:=''
+        else
+          linkmodeStr:=Upper(TrimSpace(copy(s,p+1,255)));
+
         if (libname='') or (libname='''''') or (libname='""') then
          exit;
         { get linkmode, default is shared linking }
@@ -776,14 +791,21 @@ implementation
         s : string;
       begin
         current_scanner.skipspace;
-        s:=current_scanner.readcomment;
+        if scanner.c = '''' then
+          begin
+            s:= current_scanner.readquotedstring;
+            current_scanner.readcomment
+          end
+        else
+          s:= trimspace(current_scanner.readcomment);
+
         { replace * with current module name.
           This should always be defined. }
         if s[1]='*' then
           if Assigned(Current_Module) then
             begin
-            delete(S,1,1);
-            insert(lower(current_module.modulename^),S,1);
+              delete(S,1,1);
+              insert(lower(current_module.modulename^),S,1);
             end;
         s:=AddExtension(FixFileName(s),target_info.resext);
         if target_info.res<>res_none then
@@ -1092,7 +1114,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2004-08-22 10:17:27  peter
+  Revision 1.42  2004-08-31 22:07:04  olle
+    + compiler directives which take filenames/paths, get these trimmed, and
+      also support quotes.
+
+  Revision 1.41  2004/08/22 10:17:27  peter
     * support $RESOURCE
 
   Revision 1.40  2004/08/16 11:34:25  olle
