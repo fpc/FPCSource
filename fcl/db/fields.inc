@@ -38,6 +38,7 @@ begin
   Writeln('TFieldDef.Create : ',Aname,'(',AFieldNo,')');
 {$endif}
   FName:=Aname;
+  FDisplayName := '';
   FDatatype:=ADatatype;
   FSize:=ASize;
   FRequired:=ARequired;
@@ -77,7 +78,8 @@ begin
   Try
     Result.Size:=FSize;
     Result.Required:=FRequired;
-    Result.FieldName:=FName;
+    Result.FFieldName:=FName;
+    Result.FDisplayLabel:=FDisplayName;
     Result.FFieldNo:=Self.FieldNo;
     Result.SetFieldType(DataType);
 {$ifdef dsdebug}
@@ -2202,7 +2204,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  2005-01-12 10:29:54  michael
+  Revision 1.22  2005-02-07 11:22:23  joost
+    - Implemented TField.DisplayName
+
+  Revision 1.21  2005/01/12 10:29:54  michael
    * Patch from Joost Van der Sluis:
      - removed some duplicate definitions
      - restructured SetDataset
