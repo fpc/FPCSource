@@ -1,2 +1,2 @@
-tpc /M tpapi -Itp -Utp
+bpc /M tpapi -Uinc -Iinc -Utp -Itp -E.
 del tpapi.exe
