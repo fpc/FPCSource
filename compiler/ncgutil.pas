@@ -30,7 +30,7 @@ interface
       node,cpuinfo,
       cpubase,cpupara,
       aasmbase,aasmtai,aasmcpu,
-      cginfo,
+      cginfo,symbase,symdef,symtype,
       rgobj;
 
     type
@@ -65,27 +65,36 @@ interface
    procedure genimplicitunitinit(list : TAAsmoutput);
    procedure genimplicitunitfinal(list : TAAsmoutput);
 
-          {#
-              Allocate the buffers for exception management and setjmp environment.
-              Return a pointer to these buffers, send them to the utility routine
-              so they are registered, and then call setjmp.
+   {#
+      Allocate the buffers for exception management and setjmp environment.
+      Return a pointer to these buffers, send them to the utility routine
+      so they are registered, and then call setjmp.
 
-              Then compare the result of setjmp with 0, and if not equal
-              to zero, then jump to exceptlabel.
+      Then compare the result of setjmp with 0, and if not equal
+      to zero, then jump to exceptlabel.
 
-              Also store the result of setjmp to a temporary space by calling g_save_exception_reason
+      Also store the result of setjmp to a temporary space by calling g_save_exception_reason
 
-              It is to note that this routine may be called *after* the stackframe of a
-              routine has been called, therefore on machines where the stack cannot
-              be modified, all temps should be allocated on the heap instead of the
-              stack.
-          }
-          procedure new_exception(list : taasmoutput;const jmpbuf,envbuf, href : treference;
-              a : aword; exceptlabel : tasmlabel);
-          procedure free_exception(list : taasmoutput;const jmpbuf, envbuf, href : treference;
-           a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
+      It is to note that this routine may be called *after* the stackframe of a
+      routine has been called, therefore on machines where the stack cannot
+      be modified, all temps should be allocated on the heap instead of the
+      stack.
+    }
+    procedure new_exception(list : taasmoutput;const jmpbuf,envbuf, href : treference;
+      a : aword; exceptlabel : tasmlabel);
+    procedure free_exception(list : taasmoutput;const jmpbuf, envbuf, href : treference;
+      a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
 
-
+   {#
+      This routine returns the registers which will be used in
+      function results , depending on the return definition
+      type.
+      
+      An empty set can be returned if this function does not return
+      anything in registers.
+   }
+    function getfuncusedregisters(def : tdef): tregisterset;
+      
 
 implementation
 
@@ -96,7 +105,7 @@ implementation
     strings,
 {$endif}
     cutils,cclasses,globtype,globals,systems,verbose,
-    symbase,symconst,symtype,symsym,symdef,symtable,defbase,paramgr,
+    symconst,symsym,symtable,defbase,paramgr,
     fmodule,
     cgbase,regvars,
 {$ifdef GDB}
@@ -1039,7 +1048,8 @@ implementation
       end;
 
 
-    procedure handle_return_value(list:TAAsmoutput; inlined : boolean;var uses_acc,uses_acchi : boolean);
+
+    procedure handle_return_value(list:TAAsmoutput; inlined : boolean;var uses_acc,uses_acchi,uses_fpu : boolean);
       var
         href : treference;
         hreg : tregister;
@@ -1072,6 +1082,7 @@ implementation
                end;
              floatdef :
                begin
+                 uses_fpu := true;
                  cg.a_loadfpu_ref_reg(list,cgsize,href,FPU_RESULT_REG);
                end;
              else
@@ -1086,7 +1097,7 @@ implementation
            end;
          end;
       end;
-
+      
 
     procedure handle_fast_exit_return_value(list:TAAsmoutput);
       var
@@ -1124,6 +1135,43 @@ implementation
       end;
 
 
+    function getfuncusedregisters(def : tdef): tregisterset;
+     var
+       paramloc : tparalocation;
+       regset : tregisterset;
+     begin
+       regset:=[];
+       getfuncusedregisters:=[];
+       { if nothing is returned in registers,
+         its useless to continue on in this
+         routine
+       }  
+       if not paramanager.ret_in_reg(def) then
+         exit;
+       paramloc := paramanager.getfuncresultlocreg(def);
+       case paramloc.loc of 
+         LOC_FPUREGISTER, 
+         LOC_CFPUREGISTER, 
+{$ifdef SUPPORT_MMX}         
+         LOC_MMREGISTER, 
+         LOC_CMMREGISTER,
+{$endif}         
+         LOC_REGISTER,LOC_CREGISTER :
+             begin
+               regset := regset + [paramloc.register];
+               if ((paramloc.size in [OS_S64,OS_64]) and
+                  (sizeof(aword) < 8))
+               then
+                 begin
+                    regset := regset + [paramloc.registerhigh];
+                 end;
+             end;
+       else
+         internalerror(20020816);
+      end;
+      getfuncusedregisters:=regset;
+     end;
+
 
     procedure genentrycode(list : TAAsmoutput;
                            make_global:boolean;
@@ -1157,7 +1205,7 @@ implementation
         else
          { should we save edi,esi,ebx like C ? }
          if (po_savestdregs in aktprocdef.procoptions) then
-           cg.g_save_standard_registers(list);
+           cg.g_save_standard_registers(list,aktprocdef.usedregisters);
 
         { a constructor needs a help procedure }
         if (aktprocdef.proctypeoption=potype_constructor) then
@@ -1392,7 +1440,7 @@ implementation
         href : treference;
         usesacc,
         usesacchi,
-        usesself : boolean;
+        usesself,usesfpu : boolean;
         pd : tprocdef;
       begin
         if aktexit2label.is_used and
@@ -1524,7 +1572,7 @@ implementation
             (tfuncretsym(aktprocdef.funcretsym).refcount>1)) then
           begin
             if (aktprocdef.proctypeoption<>potype_constructor) then
-              handle_return_value(list,inlined,usesacc,usesacchi)
+              handle_return_value(list,inlined,usesacc,usesacchi,usesfpu)
             else
               begin
                 { successful constructor deletes the zero flag }
@@ -1571,7 +1619,7 @@ implementation
         else
          { should we restore edi ? }
          if (po_savestdregs in aktprocdef.procoptions) then
-           cg.g_restore_standard_registers(list);
+           cg.g_restore_standard_registers(list,aktprocdef.usedregisters);
 
         { remove stackframe }
         if not inlined then
@@ -1731,7 +1779,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2002-08-15 15:15:55  carl
+  Revision 1.38  2002-08-16 14:24:57  carl
+    * issameref() to test if two references are the same (then emit no opcodes)
+    + ret_in_reg to replace ret_in_acc
+      (fix some register allocation bugs at the same time)
+    + save_std_register now has an extra parameter which is the
+      usedinproc registers
+
+  Revision 1.37  2002/08/15 15:15:55  carl
     * jmpbuf size allocation for exceptions is now cpu specific (as it should)
     * more generic nodes for maths
     * several fixes for better m68k support

@@ -39,6 +39,12 @@ unit paramgr;
        tparamanager = class
           {# Returns true if the return value can be put in accumulator }
           function ret_in_acc(def : tdef) : boolean;virtual;
+          {# Returns true if the return value is put in a register 
+             
+             Either a floating point register, or a general purpose
+             register.
+          }
+          function ret_in_reg(def : tdef) : boolean;virtual;
 
           {# Returns true if the return value is actually a parameter
              pointer.
@@ -70,6 +76,14 @@ unit paramgr;
             generating the wrappers for implemented interfaces.
           }
           function getselflocation(p : tabstractprocdef) : tparalocation;virtual;abstract;
+          {# 
+            Returns the location of the result if the result is in
+            a register, the register(s) return depend on the type of
+            the result. 
+            
+            @param(def The definition of the result type of the function)
+          }
+          function getfuncresultlocreg(def : tdef): tparalocation; virtual;
        end;
 
     procedure setparalocs(p : tprocdef);
@@ -81,10 +95,10 @@ unit paramgr;
   implementation
 
     uses
-       cpuinfo,
+       cpuinfo,globals,globtype,
        symconst,symbase,symsym,
        rgobj,
-       defbase;
+       defbase,cgbase,cginfo,verbose;
 
     { true if the return value is in accumulator (EAX for i386), D0 for 68k }
     function tparamanager.ret_in_acc(def : tdef) : boolean;
@@ -95,6 +109,12 @@ unit paramgr;
                      ((def.deftype=objectdef) and not is_object(def)) or
                      ((def.deftype=setdef) and (tsetdef(def).settype=smallset));
       end;
+
+    function tparamanager.ret_in_reg(def : tdef) : boolean;
+      begin
+        ret_in_reg:=ret_in_acc(def) or (def.deftype=floatdef);
+      end;
+    
 
 
     { true if uses a parameter as return value }
@@ -147,6 +167,62 @@ unit paramgr;
            end;
          end;
       end;
+      
+    function tparamanager.getfuncresultlocreg(def : tdef): tparalocation; 
+      begin
+         fillchar(result,sizeof(tparalocation),0);
+         if is_void(def) then exit;
+         
+         result.size := def_cgsize(def);
+         case aktprocdef.rettype.def.deftype of
+           orddef,
+           enumdef :
+             begin
+               result.loc := LOC_REGISTER;
+               if result.size in [OS_64,OS_S64] then
+                begin
+                  result.registerhigh:=accumulatorhigh;
+                  result.register:=accumulator;
+                end
+               else
+                  result.register:=accumulator;
+             end;
+           floatdef :
+             begin
+               result.loc := LOC_FPUREGISTER;
+               if cs_fp_emulation in aktmoduleswitches then
+                  result.register := accumulator
+               else
+                  result.register := FPU_RESULT_REG;
+             end;
+          else
+             begin
+                if ret_in_acc(def) then
+                  begin
+                    result.loc := LOC_REGISTER;
+                    result.register := accumulator;
+                  end
+                else
+                   begin
+                     result.loc := LOC_REFERENCE;
+                     internalerror(2002081602);
+(*                     
+{$ifdef EXTDEBUG}
+                     { it is impossible to have the
+                       return value with an index register
+                       and a symbol!
+                     }
+                     if (ref.index <> R_NO) or (assigned(ref.symbol)) then
+                        internalerror(2002081602);
+{$endif}
+                     result.reference.index := ref.base;
+                     result.reference.offset := ref.offset;
+*)                     
+                   end;
+             end;
+          end;
+      end;
+      
 
     procedure setparalocs(p : tprocdef);
 
@@ -190,7 +266,14 @@ end.
 
 {
    $Log$
-   Revision 1.11  2002-08-12 15:08:40  carl
+   Revision 1.12  2002-08-16 14:24:58  carl
+     * issameref() to test if two references are the same (then emit no opcodes)
+     + ret_in_reg to replace ret_in_acc
+       (fix some register allocation bugs at the same time)
+     + save_std_register now has an extra parameter which is the
+       usedinproc registers
+
+   Revision 1.11  2002/08/12 15:08:40  carl
      + stab register indexes for powerpc (moved from gdb to cpubase)
      + tprocessor enumeration moved to cpuinfo
      + linker in target_info is now a class

@@ -736,7 +736,7 @@ Begin
   if (not is_void(aktprocdef.rettype.def)) then
    begin
      if (m_tp7 in aktmodeswitches) and
-        paramanager.ret_in_acc(aktprocdef.rettype.def) then
+        paramanager.ret_in_reg(aktprocdef.rettype.def) then
        begin
          Message(asmr_e_cannot_use_RESULT_here);
          exit;
@@ -1592,7 +1592,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.42  2002-08-13 18:01:52  carl
+  Revision 1.43  2002-08-16 14:24:59  carl
+    * issameref() to test if two references are the same (then emit no opcodes)
+    + ret_in_reg to replace ret_in_acc
+      (fix some register allocation bugs at the same time)
+    + save_std_register now has an extra parameter which is the
+      usedinproc registers
+
+  Revision 1.42  2002/08/13 18:01:52  carl
     * rename swatoperands to swapoperands
     + m68k first compilable version (still needs a lot of testing):
         assembler generator, system information , inline

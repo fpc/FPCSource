@@ -69,12 +69,9 @@ unit cgcpu;
           procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
           { restores the previous frame pointer at procedure exit }
           procedure g_restore_frame_pointer(list : taasmoutput);override;
-          { This routine should update the stack pointer so that parasize are freed
-            from the stack. It should also emit the return instruction
-          }  
           procedure g_return_from_proc(list : taasmoutput;parasize : aword);override;
-          procedure g_save_standard_registers(list : taasmoutput);override;
-          procedure g_restore_standard_registers(list : taasmoutput);override;
+          procedure g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
+          procedure g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
           procedure g_save_all_registers(list : taasmoutput);override;
           procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);override;
      protected
@@ -113,7 +110,7 @@ Implementation
     uses
        globtype,globals,verbose,systems,cutils,
        symdef,symsym,defbase,paramgr,
-       rgobj,tgobj,rgcpu;
+       rgobj,tgobj,rgcpu,cg64f32;
 
          
     const     
@@ -365,11 +362,11 @@ Implementation
               end;
           OP_DIV :
               Begin
-{$warning To complete DIV opcode}              
+                 internalerror(20020816);
               end;
           OP_IDIV :
               Begin
-{$warning To complete IDIV opcode}              
+                 internalerror(20020816);
               end;
           OP_IMUL :
               Begin
@@ -551,11 +548,11 @@ Implementation
               end;
           OP_DIV :
               Begin
-{$warning DIV to complete}              
+                 internalerror(20020816);
               end;
           OP_IDIV :
               Begin
-{$warning IDIV to complete}              
+                 internalerror(20020816);
               end;
           OP_IMUL :
               Begin
@@ -1016,12 +1013,26 @@ Implementation
       
       end;
       
-    procedure tcg68k.g_save_standard_registers(list : taasmoutput);
+    procedure tcg68k.g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);
+      var
+        tosave : tregisterlist;
       begin
+         tosave:=std_saved_registers;
+         { only save the registers which are not used and must be saved }
+         tosave:=tosave*usedinproc;
+         if tosave<>[] then
+           list.concat(taicpu.op_reglist_reg(A_MOVEM,S_L,tosave,R_SPPUSH));
       end;
       
-    procedure tcg68k.g_restore_standard_registers(list : taasmoutput);
+    procedure tcg68k.g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);
+      var
+       torestore : tregisterset;
       begin
+         torestore:=std_saved_registers;
+         { should be intersected with used regs, no ? }
+         torestore:=torestore*usedinproc;
+         if torestore<>[] then
+           list.concat(taicpu.op_reg_reglist(A_MOVEM,S_L,R_SPPULL,torestore));
       end;
       
     procedure tcg68k.g_save_all_registers(list : taasmoutput);
@@ -1092,12 +1103,19 @@ Implementation
 
 begin
   cg := tcg68k.create;
-{  cg64 :=tcg64fppc.create;}
+  cg64 :=tcg64f32.create;
 end.
 
 { 
   $Log$
-  Revision 1.3  2002-08-15 08:13:54  carl
+  Revision 1.4  2002-08-16 14:24:59  carl
+    * issameref() to test if two references are the same (then emit no opcodes)
+    + ret_in_reg to replace ret_in_acc
+      (fix some register allocation bugs at the same time)
+    + save_std_register now has an extra parameter which is the
+      usedinproc registers
+
+  Revision 1.3  2002/08/15 08:13:54  carl
     - a_load_sym_ofs_reg removed
     * loadvmt now calls loadaddr_ref_reg instead
 

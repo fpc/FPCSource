@@ -91,8 +91,8 @@ unit cgcpu;
         { that's the case, we can use rlwinm to do an AND operation        }
         function get_rlwi_const(a: longint; var l1, l2: longint): boolean;
 
-        procedure g_save_standard_registers(list : taasmoutput);override;
-        procedure g_restore_standard_registers(list : taasmoutput);override;
+        procedure g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
+        procedure g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);override;
 
@@ -698,12 +698,12 @@ const
         end;
 
 
-     procedure tcgppc.g_save_standard_registers(list : taasmoutput);
+     procedure tcgppc.g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);
        begin
          {$warning FIX ME}
        end;
 
-     procedure tcgppc.g_restore_standard_registers(list : taasmoutput);
+     procedure tcgppc.g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);
        begin
          {$warning FIX ME}
        end;
@@ -1666,7 +1666,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2002-08-15 08:13:54  carl
+  Revision 1.42  2002-08-16 14:24:59  carl
+    * issameref() to test if two references are the same (then emit no opcodes)
+    + ret_in_reg to replace ret_in_acc
+      (fix some register allocation bugs at the same time)
+    + save_std_register now has an extra parameter which is the
+      usedinproc registers
+
+  Revision 1.41  2002/08/15 08:13:54  carl
     - a_load_sym_ofs_reg removed
     * loadvmt now calls loadaddr_ref_reg instead
 

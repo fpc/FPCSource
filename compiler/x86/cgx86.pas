@@ -117,8 +117,8 @@ unit cgx86;
         procedure g_call_destructor_helper(list : taasmoutput);override;
         procedure g_call_fail_helper(list : taasmoutput);override;
 {$endif}
-        procedure g_save_standard_registers(list : taasmoutput);override;
-        procedure g_restore_standard_registers(list : taasmoutput);override;
+        procedure g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
+        procedure g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);override;
 
@@ -1565,20 +1565,20 @@ unit cgx86;
 {$endif}
 
 
-    procedure tcgx86.g_save_standard_registers(list : taasmoutput);
+    procedure tcgx86.g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);
       begin
-        if (R_EBX in aktprocdef.usedregisters) then
+        if (R_EBX in usedinproc) then
           list.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EBX));
         list.concat(Taicpu.Op_reg(A_PUSH,S_L,R_ESI));
         list.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EDI));
       end;
 
 
-    procedure tcgx86.g_restore_standard_registers(list : taasmoutput);
+    procedure tcgx86.g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);
       begin
         list.concat(Taicpu.Op_reg(A_POP,S_L,R_EDI));
         list.concat(Taicpu.Op_reg(A_POP,S_L,R_ESI));
-        if (R_EBX in aktprocdef.usedregisters) then
+        if (R_EBX in usedinproc) then
          list.concat(Taicpu.Op_reg(A_POP,S_L,R_EBX));
       end;
 
@@ -1644,7 +1644,14 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.10  2002-08-15 08:13:54  carl
+  Revision 1.11  2002-08-16 14:25:00  carl
+    * issameref() to test if two references are the same (then emit no opcodes)
+    + ret_in_reg to replace ret_in_acc
+      (fix some register allocation bugs at the same time)
+    + save_std_register now has an extra parameter which is the
+      usedinproc registers
+
+  Revision 1.10  2002/08/15 08:13:54  carl
     - a_load_sym_ofs_reg removed
     * loadvmt now calls loadaddr_ref_reg instead
 

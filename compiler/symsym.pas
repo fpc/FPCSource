@@ -1296,9 +1296,8 @@ implementation
          address:=procinfo^.return_offset
         else
          begin
-           { allocate space in local if ret in acc or in fpu }
-           if paramanager.ret_in_acc(returntype.def) or
-              (returntype.def.deftype=floatdef) then
+           { allocate space in local if ret in register }
+           if paramanager.ret_in_reg(returntype.def) then
             begin
               l:=returntype.def.size;
               varalign:=size_2_align(l);
@@ -2672,7 +2671,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2002-08-13 21:40:57  florian
+  Revision 1.51  2002-08-16 14:24:59  carl
+    * issameref() to test if two references are the same (then emit no opcodes)
+    + ret_in_reg to replace ret_in_acc
+      (fix some register allocation bugs at the same time)
+    + save_std_register now has an extra parameter which is the
+      usedinproc registers
+
+  Revision 1.50  2002/08/13 21:40:57  florian
     * more fixes for ppc calling conventions
 
   Revision 1.49  2002/08/12 15:08:40  carl

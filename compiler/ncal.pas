@@ -1506,10 +1506,10 @@ implementation
          else
            resulttype:=restype;
 
-         { get a register for the return value }
+         { modify the exit code, in case of special cases }
          if (not is_void(resulttype.def)) then
           begin
-            if paramanager.ret_in_acc(resulttype.def) then
+            if paramanager.ret_in_reg(resulttype.def) then
              begin
                { wide- and ansistrings are returned in EAX    }
                { but they are imm. moved to a memory location }
@@ -1786,28 +1786,28 @@ implementation
     function Tcallnode.track_state_pass(exec_known:boolean):boolean;
 
     var hp:Tcallparanode;
-	value:Tnode;
+  value:Tnode;
 
     begin
-	track_state_pass:=false;
-	hp:=Tcallparanode(left);
-	while assigned(hp) do
-	    begin
-		if left.track_state_pass(exec_known) then
-		    begin
-			left.resulttype.def:=nil;
-			do_resulttypepass(left);
-		    end;
-		value:=aktstate.find_fact(hp.left);
-		if value<>nil then
-		    begin
-			track_state_pass:=true;
-			hp.left.destroy;
-			hp.left:=value.getcopy;
-			do_resulttypepass(hp.left);
-		    end;
-		hp:=Tcallparanode(hp.right);
-	    end;
+  track_state_pass:=false;
+  hp:=Tcallparanode(left);
+  while assigned(hp) do
+      begin
+    if left.track_state_pass(exec_known) then
+        begin
+      left.resulttype.def:=nil;
+      do_resulttypepass(left);
+        end;
+    value:=aktstate.find_fact(hp.left);
+    if value<>nil then
+        begin
+      track_state_pass:=true;
+      hp.left.destroy;
+      hp.left:=value.getcopy;
+      do_resulttypepass(hp.left);
+        end;
+    hp:=Tcallparanode(hp.right);
+      end;
     end;
 {$endif}
 
@@ -1904,7 +1904,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2002-07-20 11:57:53  florian
+  Revision 1.84  2002-08-16 14:24:57  carl
+    * issameref() to test if two references are the same (then emit no opcodes)
+    + ret_in_reg to replace ret_in_acc
+      (fix some register allocation bugs at the same time)
+    + save_std_register now has an extra parameter which is the
+      usedinproc registers
+
+  Revision 1.83  2002/07/20 11:57:53  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

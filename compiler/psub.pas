@@ -106,8 +106,10 @@ implementation
               { insert in local symtable }
               symtablestack.insert(aktprocdef.funcretsym);
               akttokenpos:=storepos;
-              if paramanager.ret_in_acc(aktprocdef.rettype.def) or
-                 (aktprocdef.rettype.def.deftype=floatdef) then
+              { the result will be returned in a register, then setup
+                the temp. memory for the result
+              }  
+              if paramanager.ret_in_reg(aktprocdef.rettype.def) then
                 procinfo^.return_offset:=-tfuncretsym(aktprocdef.funcretsym).address;
               { insert result also if support is on }
               if (m_result in aktmodeswitches) then
@@ -130,18 +132,18 @@ implementation
          { because we don't know yet where the address is }
          if not is_void(aktprocdef.rettype.def) then
            begin
-              if paramanager.ret_in_acc(aktprocdef.rettype.def) or (aktprocdef.rettype.def.deftype=floatdef) then
+              if paramanager.ret_in_reg(aktprocdef.rettype.def) then
                 begin
                    { the space has been set in the local symtable }
                    procinfo^.return_offset:=-tfuncretsym(aktprocdef.funcretsym).address;
                    if ((procinfo^.flags and pi_operator)<>0) and
                       assigned(otsym) then
                      otsym.address:=-procinfo^.return_offset;
-                   { eax is modified by a function }
-                   include(rg.usedinproc,accumulator);
-                   if (sizeof(aword) < 8) and
-                      (is_64bitint(aktprocdef.rettype.def)) then
-                     include(rg.usedinproc,accumulatorhigh);
+                   { is the return result in registers? The
+                     set them as used in the routine
+                   }  
+                   rg.usedinproc := rg.usedinproc + 
+                      getfuncusedregisters(aktprocdef.rettype.def);
                 end;
            end;
 
@@ -814,7 +816,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2002-08-11 14:32:27  peter
+  Revision 1.67  2002-08-16 14:24:59  carl
+    * issameref() to test if two references are the same (then emit no opcodes)
+    + ret_in_reg to replace ret_in_acc
+      (fix some register allocation bugs at the same time)
+    + save_std_register now has an extra parameter which is the
+      usedinproc registers
+
+  Revision 1.66  2002/08/11 14:32:27  peter
     * renamed current_library to objectlibrary
 
   Revision 1.65  2002/08/11 13:24:13  peter

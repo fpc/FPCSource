@@ -98,18 +98,11 @@ unit cgobj;
              was previously allocated using @link(get_scratch_reg).
           }
           procedure free_scratch_reg(list : taasmoutput;r : tregister);
-
-          { passing parameters, per default the parameter is pushed }
-          { nr gives the number of the parameter (enumerated from   }
-          { left to right), this allows to move the parameter to    }
-          { register, if the cpu supports register calling          }
-          { conventions                                             }
-
           {# Pass a parameter, which is located in a register, to a routine.
 
              This routine should push/send the parameter to the routine, as
-             required by the specific processor ABI. This must be overriden for
-             each CPU target.
+             required by the specific processor ABI and routine modifiers. 
+             This must be overriden for each CPU target.
 
              @param(size size of the operand in the register)
              @param(r register source of the operand)
@@ -118,7 +111,9 @@ unit cgobj;
           procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);virtual;
           {# Pass a parameter, which is a constant, to a routine.
 
-             A generic version is provided.
+             A generic version is provided. This routine should
+             be overriden for optimization purposes if the cpu
+             permits directly sending this type of parameter.
 
              @param(size size of the operand in constant)
              @param(a value of constant to send)
@@ -127,7 +122,9 @@ unit cgobj;
           procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);virtual;
           {# Pass the value of a parameter, which is located in memory, to a routine.
 
-             A generic version is provided.
+             A generic version is provided. This routine should
+             be overriden for optimization purposes if the cpu
+             permits directly sending this type of parameter.
 
              @param(size size of the operand in constant)
              @param(r Memory reference of value to send)
@@ -148,17 +145,16 @@ unit cgobj;
              will calculate the address of the reference, and pass this
              calculated address as a parameter.
 
-             A generic version is provided.
+             A generic version is provided. This routine should
+             be overriden for optimization purposes if the cpu
+             permits directly sending this type of parameter.
 
              @param(r reference to get address from)
              @param(nr parameter number (starting from one) of routine (from left to right))
           }
           procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);virtual;
 
-          {**********************************}
-          { these methods must be overriden: }
-
-          { Remarks:
+          (* Remarks:
             * If a method specifies a size you have only to take care
               of that number of bits, i.e. load_const_reg with OP_8 must
               only load the lower 8 bit of the specified register
@@ -173,7 +169,7 @@ unit cgobj;
             * the procedures without fpu/mm are only for integer usage
             * normally the first location is the source and the
               second the destination
-          }
+          *)
 
           {# Emits instruction to call the method specified by symbol name.
              This routine must be overriden for each new target cpu.
@@ -266,7 +262,8 @@ unit cgobj;
              save should be done either to a temp (pointed to by href).
              or on the stack (pushing the value on the stack).
 
-             The size of the value to save is OS_S32.
+             The size of the value to save is OS_S32. The default version
+             saves the exception reason to a temp. memory area.
           }
          procedure g_exception_reason_save(list : taasmoutput; const href : treference);virtual;
          {#
@@ -275,7 +272,8 @@ unit cgobj;
              save should be done either to a temp (pointed to by href).
              or on the stack (pushing the value on the stack).
 
-             The size of the value to save is OS_S32
+             The size of the value to save is OS_S32. The default version
+             saves the exception reason to a temp. memory area.
           }
          procedure g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aword);virtual;
          {#
@@ -284,7 +282,8 @@ unit cgobj;
              should either be in the temp. area (pointed to by href , href should
              *NOT* be freed) or on the stack (the value should be popped).
 
-             The size of the value to restore is OS_S32.
+             The size of the value to save is OS_S32. The default version
+             saves the exception reason to a temp. memory area.
           }
          procedure g_exception_reason_load(list : taasmoutput; const href : treference);virtual;
 
@@ -344,9 +343,6 @@ unit cgobj;
           {# Generates overflow checking code for a node }
           procedure g_overflowcheck(list: taasmoutput; const p: tnode); virtual; abstract;
 
-          {**********************************}
-          {    entry/exit code helpers       }
-
           procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer); virtual; abstract;
           {# Emits instructions which should be emitted when entering
              a routine declared as @var(interrupt). The default
@@ -386,10 +382,31 @@ unit cgobj;
           procedure g_call_constructor_helper(list : taasmoutput);virtual;
           procedure g_call_destructor_helper(list : taasmoutput);virtual;
           procedure g_call_fail_helper(list : taasmoutput);virtual;
-          procedure g_save_standard_registers(list : taasmoutput);virtual;abstract;
-          procedure g_restore_standard_registers(list : taasmoutput);virtual;abstract;
+          {# This routine is called when generating the code for the entry point
+             of a routine. It should save all registers which are not used in this
+             routine, and which should be declared as saved in the std_saved_registers
+             set. 
+             
+             This routine is mainly used when linking to code which is generated
+             by ABI-compliant compilers (like GCC), to make sure that the reserved
+             registers of that ABI are not clobbered.
+             
+             @param(usedinproc Registers which are used in the code of this routine)
+          }             
+          procedure g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);virtual;abstract;
+          {# This routine is called when generating the code for the exit point
+             of a routine. It should restore all registers which were previously 
+             saved in @var(g_save_standard_registers).
+
+             @param(usedinproc Registers which are used in the code of this routine)
+          }             
+          procedure g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);virtual;abstract;
           procedure g_save_all_registers(list : taasmoutput);virtual;abstract;
           procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);virtual;abstract;
+          {# This routine verifies if two references are the same, and
+             if so, returns TRUE, otherwise returns false.
+          }
+          function issameref(const sref, dref : treference):boolean; 
        end;
 
     {# @abstract(Abstract code generator for 64 Bit operations)
@@ -621,6 +638,9 @@ unit cgobj;
 {$endif i386}
 
       begin
+        { verify if we have the same reference }
+        if issameref(sref,dref) then
+          exit;
 {$ifdef i386}
         { the following is done with defines to avoid a speed penalty,  }
         { since all this is only necessary for the 80x86 (because EDI   }
@@ -1508,6 +1528,13 @@ unit cgobj;
      end;
 
 
+    function tcg.issameref(const sref, dref : treference):boolean; 
+      begin
+        if CompareByte(sref,dref,sizeof(treference))=0 then
+          issameref := true
+        else
+          issameref := false;
+      end;
 
 
 
@@ -1533,7 +1560,14 @@ finalization
 end.
 {
   $Log$
-  Revision 1.49  2002-08-15 08:13:54  carl
+  Revision 1.50  2002-08-16 14:24:57  carl
+    * issameref() to test if two references are the same (then emit no opcodes)
+    + ret_in_reg to replace ret_in_acc
+      (fix some register allocation bugs at the same time)
+    + save_std_register now has an extra parameter which is the
+      usedinproc registers
+
+  Revision 1.49  2002/08/15 08:13:54  carl
     - a_load_sym_ofs_reg removed
     * loadvmt now calls loadaddr_ref_reg instead
 

@@ -55,6 +55,7 @@ implementation
        pbase,pexpr,
        { codegen }
        rgobj,cgbase
+       ,ncgutil
        ,radirect
 {$ifdef i386}
   {$ifndef NoRa386Int}
@@ -1092,9 +1093,12 @@ implementation
               { update the symtablesize back to 0 if there were no locals }
               if not haslocals then
                symtablestack.datasize:=0;
-              { set the used flag for the return }
-              if paramanager.ret_in_acc(aktprocdef.rettype.def) then
-                 include(rg.usedinproc,accumulator);
+              { set the used registers depending on the function result }
+              if paramanager.ret_in_reg(aktprocdef.rettype.def) then
+                begin
+                  rg.usedinproc := rg.usedinproc + 
+                    getfuncusedregisters(aktprocdef.rettype.def);
+                end;
             end;
          { force the asm statement }
          if token<>_ASM then
@@ -1125,11 +1129,11 @@ implementation
             then
            OptimizeFramePointer(tasmnode(p));
 
-        { Flag the result as assigned when it is returned in the
-          accumulator or on the fpu stack }
+        { Flag the result as assigned when it is returned in a
+          register.
+        }  
         if assigned(aktprocdef.funcretsym) and
-           (is_fpu(aktprocdef.rettype.def) or
-           paramanager.ret_in_acc(aktprocdef.rettype.def)) then
+           paramanager.ret_in_reg(aktprocdef.rettype.def) then
           tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
 
         { because the END is already read we need to get the
@@ -1142,7 +1146,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2002-08-11 14:32:27  peter
+  Revision 1.71  2002-08-16 14:24:58  carl
+    * issameref() to test if two references are the same (then emit no opcodes)
+    + ret_in_reg to replace ret_in_acc
+      (fix some register allocation bugs at the same time)
+    + save_std_register now has an extra parameter which is the
+      usedinproc registers
+
+  Revision 1.70  2002/08/11 14:32:27  peter
     * renamed current_library to objectlibrary
 
   Revision 1.69  2002/08/11 13:24:12  peter
