@@ -46,9 +46,9 @@ The following types are used in the signal-processing procedures.
 \begin{verbatim}
 {$Packrecords 1}
 SignalHandler   = Procedure ( Sig : Integer);
-PSignalHandler  = ^SignalHandler;
+PSignalHandler  = SignalHandler;
 SignalRestorer  = Procedure;
-PSignalrestorer = ^SignalRestorer;
+PSignalrestorer = SignalRestorer;
 
 SigActionRec = Record
   Sa_Handler  : PSignalhandler;
@@ -1739,6 +1739,8 @@ from within its own signal handler.
 \seep{SigProcMask}, \seef{SigPending}, \seep{SigSuspend}, \seef{Kill},
 \seem{Sigaction}{2}
 }
+
+\input{linuxex/ex57.tex}
 
 \function{SigPending}{}{SigSet}
 {
