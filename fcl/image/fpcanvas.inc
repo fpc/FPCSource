@@ -404,6 +404,7 @@ var p,b,dp,db,pb : boolean;
 begin
   p := Pen.style <> psClear;
   b := Brush.style <> bsClear;
+  pb := false;
   if p and (Pen is TFPCustomDrawPen) then
       begin
       p := false;
