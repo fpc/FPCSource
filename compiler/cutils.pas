@@ -161,10 +161,10 @@ uses
         y : word;
         z : word;
       Begin
-        y := (x shr 16) and $FFFF;
-        y := ((y shl 8) and $FFFF) or ((y shr 8) and $ff);
+        y := x shr 16;
+        y := word(longint(y) shl 8) or (y shr 8);
         z := x and $FFFF;
-        z := ((z shl 8) and $FFFF) or ((z shr 8) and $ff);
+        z := word(longint(z) shl 8) or (z shr 8);
         SwapLong := (longint(z) shl 16) or longint(y);
       End;
 
@@ -173,7 +173,7 @@ uses
       var
         z : byte;
       Begin
-        z := (x shr 8) and $ff;
+        z := x shr 8;
         x := x and $ff;
         x := (x shl 8);
         SwapWord := x or z;
@@ -866,7 +866,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.26  2003-04-04 15:34:25  peter
+  Revision 1.27  2003-07-05 20:06:28  jonas
+    * fixed some range check errors that occurred on big endian systems
+    * slightly optimized the swap*() functions
+
+  Revision 1.26  2003/04/04 15:34:25  peter
     * quote names with hi-ascii chars
 
   Revision 1.25  2003/01/09 21:42:27  peter

@@ -255,10 +255,10 @@ var
   y : word;
   z : word;
 Begin
-  y := (x shr 16) and $FFFF;
-  y := (y shl 8) or ((y shr 8) and $ff);
+  y := x shr 16;
+  y := word(longint(y) shl 8) or (y shr 8);
   z := x and $FFFF;
-  z := (z shl 8) or ((z shr 8) and $ff);
+  z := word(longint(z) shl 8) or (z shr 8);
   SwapLong := (longint(z) shl 16) or longint(y);
 End;
 
@@ -267,9 +267,9 @@ Function SwapWord(x : word): word;
 var
   z : byte;
 Begin
-  z := (x shr 8) and $ff;
+  z := x shr 8;
   x := x and $ff;
-  x := (x shl 8);
+  x := word(x shl 8);
   SwapWord := x or z;
 End;
 
@@ -403,8 +403,8 @@ begin
   header.target := SwapWord(header.target);
   header.flags := SwapLong(header.flags);
   header.size := SwapLong(header.size);
-  header.checksum := SwapLong(header.checksum);
-  header.interface_checksum := SwapLong(header.interface_checksum);
+  header.checksum := cardinal(SwapLong(longint(header.checksum)));
+  header.interface_checksum := cardinal(SwapLong(longint(header.interface_checksum)));
 {$ENDIF}
   { the PPU DATA is stored in native order }
   if (header.flags and uf_big_endian) = uf_big_endian then
@@ -730,8 +730,8 @@ begin
     header.target := SwapWord(header.target);
     header.flags := SwapLong(header.flags);
     header.size := SwapLong(header.size);
-    header.checksum := SwapLong(header.checksum);
-    header.interface_checksum := SwapLong(header.interface_checksum);
+    header.checksum := cardinal(SwapLong(longint(header.checksum)));
+    header.interface_checksum := cardinal(SwapLong(longint(header.interface_checksum)));
 {$endif not FPC_BIG_ENDIAN}
 { write header and restore filepos after it }
   opos:=filepos(f);
@@ -985,7 +985,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.40  2003-06-17 16:34:44  jonas
+  Revision 1.41  2003-07-05 20:06:28  jonas
+    * fixed some range check errors that occurred on big endian systems
+    * slightly optimized the swap*() functions
+
+  Revision 1.40  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
     * renamed all_intregisters to volatile_intregisters and made it
       processor dependent
