@@ -155,7 +155,11 @@ CONST
 {  it is being used by another process.               }
     ERROR_SHARING_VIOLATION      =   32;
 
+{$IFDEF MT}
+threadvar
+{$ELSE MT}
 var
+{$ENDIF MT}
     errno : longint;
 
 {$ASMMODE ATT}
@@ -1550,7 +1554,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2001-06-07 21:16:30  peter
+  Revision 1.12  2001-06-10 17:56:57  hajny
+    * errno changed to a threadvar if MT enabled
+
+  Revision 1.11  2001/06/07 21:16:30  peter
     * fixed empty arguments
 
   Revision 1.10  2001/06/01 22:23:21  peter
