@@ -131,7 +131,7 @@ procedure longjmp({const}var rec : tjmprec;return_value : longint);
 
 implementation
 
-{$ASMMODE DIRECT}
+{$I386_DIRECT}
 
 {$L exceptn.o}
 
@@ -939,7 +939,10 @@ djgpp_exception_setup;
 end.
 {
   $Log$
-  Revision 1.4  1998-06-26 08:19:08  pierre
+  Revision 1.5  1998-07-08 12:02:19  carl
+    * make it compiler under fpc v0995
+
+  Revision 1.4  1998/06/26 08:19:08  pierre
     + all debug in ifdef SYSTEMDEBUG
     + added local arrays :
       opennames names of opened files
