@@ -28,10 +28,10 @@ uses
   cobjects,symtable;
 
 const
-       { export options }
-       eo_resident = $1;
-       eo_index    = $2;
-       eo_name     = $4;
+   { export options }
+   eo_resident = $1;
+   eo_index    = $2;
+   eo_name     = $4;
 
 type
    pexported_item = ^texported_item;
@@ -47,6 +47,10 @@ type
 
    pexportlib=^texportlib;
    texportlib=object
+   private
+      notsupmsg : boolean;
+      procedure NotSupported;
+   public
       constructor Init;
       destructor Done;
       procedure preparelib(const s : string);virtual;
@@ -124,6 +128,7 @@ end;
 
 constructor texportlib.Init;
 begin
+  notsupmsg:=false;
 end;
 
 
@@ -132,24 +137,38 @@ begin
 end;
 
 
+procedure texportlib.NotSupported;
+begin
+  { show the message only once }
+  if not notsupmsg then
+   begin
+     Message(exec_e_dll_not_supported);
+     notsupmsg:=true;
+   end;
+end;
+
+
 procedure texportlib.preparelib(const s:string);
 begin
-  Message(exec_e_dll_not_supported);
+  NotSupported;
 end;
+
 
 procedure texportlib.exportprocedure(hp : pexported_item);
 begin
-  Message(exec_e_dll_not_supported);
+  NotSupported;
 end;
+
 
 procedure texportlib.exportvar(hp : pexported_item);
 begin
-  Message(exec_e_dll_not_supported);
+  NotSupported;
 end;
+
 
 procedure texportlib.generatelib;
 begin
-  Message(exec_e_dll_not_supported);
+  NotSupported;
 end;
 
 
@@ -194,7 +213,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-01-07 01:14:27  peter
+  Revision 1.10  2000-01-12 10:34:29  peter
+    * only give unsupported error once
+
+  Revision 1.9  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.8  1999/11/06 14:34:20  peter

@@ -48,6 +48,10 @@ type
 
    pimportlib=^timportlib;
    timportlib=object
+   private
+      notsupmsg : boolean;
+      procedure NotSupported;
+   public
       constructor Init;
       destructor Done;
       procedure preparelib(const s:string);virtual;
@@ -157,6 +161,7 @@ end;
 
 constructor timportlib.Init;
 begin
+  notsupmsg:=false;
 end;
 
 
@@ -165,33 +170,44 @@ begin
 end;
 
 
+procedure timportlib.NotSupported;
+begin
+  { show the message only once }
+  if not notsupmsg then
+   begin
+     Message(exec_e_dll_not_supported);
+     notsupmsg:=true;
+   end;
+end;
+
+
 procedure timportlib.preparelib(const s:string);
 begin
-  Message(exec_e_dll_not_supported);
+  NotSupported;
 end;
 
 
 procedure timportlib.importprocedure(const func,module:string;index:longint;const name:string);
 begin
-  Message(exec_e_dll_not_supported);
+  NotSupported;
 end;
 
 
 procedure timportlib.importvariable(const varname,module:string;const name:string);
 begin
-  Message(exec_e_dll_not_supported);
+  NotSupported;
 end;
 
 
 procedure timportlib.generatelib;
 begin
-  Message(exec_e_dll_not_supported);
+  NotSupported;
 end;
 
 
 procedure timportlib.generatesmartlib;
 begin
-  Message(exec_e_dll_not_supported);
+  NotSupported;
 end;
 
 
@@ -234,7 +250,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2000-01-07 01:14:27  peter
+  Revision 1.17  2000-01-12 10:34:29  peter
+    * only give unsupported error once
+
+  Revision 1.16  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.15  1999/11/06 14:34:21  peter
