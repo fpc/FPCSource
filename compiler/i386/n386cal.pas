@@ -334,7 +334,8 @@ implementation
          if (pocall_inline in procdefinition^.proccalloptions) then
            begin
               { make a copy for the next time the procedure is inlined (JM) }
-              left:=left.getcopy;
+              if assigned(left) then
+                left:=left.getcopy;
               inlined:=true;
               inlinecode:=tprocinlinenode(right);
               { set it to the same lexical level as the local symtable, becuase
@@ -352,7 +353,8 @@ implementation
                +tostr(pprocdef(procdefinition)^.parast^.address_fixup)))));
 {$endif extdebug}
               { copy for the next time the procedure is inlined (JM) }
-              right:=right.getcopy;
+              if assigned(right) then
+                right:=right.getcopy;
               { disable further inlining of the same proc
                 in the args }
               exclude(procdefinition^.proccalloptions,pocall_inline);
@@ -1593,7 +1595,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-10-31 22:02:56  peter
+  Revision 1.3  2000-11-04 13:12:14  jonas
+    * check for nil pointers before calling getcopy
+
+  Revision 1.2  2000/10/31 22:02:56  peter
     * symtable splitted, no real code changes
 
   Revision 1.1  2000/10/15 09:33:31  peter
