@@ -29,7 +29,7 @@ Const
 function TList.Get(Index: Integer): Pointer;
 
 begin
-  If (Index<0) or (Index>FCount) then
+  If (Index<0) or (Index>=FCount) then
     Error(SListIndexError,Index);
   Result:=FList^[Index];
 end;
@@ -395,7 +395,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2000-01-07 01:24:33  peter
+  Revision 1.11  2000-03-20 14:30:03  pierre
+   * fix of 877
+
+  Revision 1.10  2000/01/07 01:24:33  peter
     * updated copyright to 2000
 
   Revision 1.9  2000/01/06 01:20:33  peter
