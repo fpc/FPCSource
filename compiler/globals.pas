@@ -968,14 +968,14 @@ implementation
    Function GetFileTime ( Var F : File) : Longint;
      Var
      {$ifdef hasunix}
-	info: Stat; 
+	info: Stat;
      {$endif}
        L : longint;
      begin
      {$ifdef hasunix}
        {$IFDEF VER1_0}
         FStat (F,Info);
-        {$ifdef BSD} 
+        {$ifdef BSD}
  	L:=Info.st_Mtime;
  	{$else}
  	L:=Info.Mtime;
@@ -1668,6 +1668,18 @@ implementation
         initasmmode:=asmmode_direct;
         initfputype:=fpu_fpa;
 {$endif arm}
+{$ifdef x86_64}
+        initoptprocessor:=ClassDefault;
+        initspecificoptprocessor:=ClassDefault;
+
+        initfputype:=fpu_standard;
+
+        initpackenum:=4;
+        {$IFDEF testvarsets}
+        initsetalloc:=0;
+        {$ENDIF}
+        initasmmode:=asmmode_direct;
+{$endif x86_64}
         initinterfacetype:=it_interfacecom;
         initdefproccall:=pocall_default;
         initdefines:=TStringList.Create;
@@ -1683,7 +1695,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.102  2003-09-18 15:38:17  marco
+  Revision 1.103  2003-09-24 17:13:22  florian
+    + processor type intialization for x86-64 added
+
+  Revision 1.102  2003/09/18 15:38:17  marco
    * BSD 1.0.x still uses st_ prefixes.
 
   Revision 1.101  2003/09/16 16:17:01  peter
