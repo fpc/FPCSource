@@ -516,7 +516,7 @@ implementation
 
     procedure first_pchar_to_string(var p : ptree);
       begin
-         p^.location.loc:=LOC_MEM;
+         p^.location.loc:=LOC_REFERENCE;
       end;
 
 
@@ -940,7 +940,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  1999-04-21 09:44:01  peter
+  Revision 1.25  1999-04-22 10:49:09  peter
+    * fixed pchar to string location
+
+  Revision 1.24  1999/04/21 09:44:01  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)

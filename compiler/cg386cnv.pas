@@ -1041,8 +1041,9 @@ implementation
          case pstringdef(pto^.resulttype)^.string_typ of
            st_shortstring:
              begin
-                pushusedregisters(pushed,$ff);
+                pto^.location.loc:=LOC_REFERENCE;
                 gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
+                pushusedregisters(pushed,$ff);
                 case pfrom^.location.loc of
                    LOC_REGISTER,LOC_CREGISTER:
                      begin
@@ -1062,6 +1063,7 @@ implementation
              end;
            st_ansistring:
              begin
+                pto^.location.loc:=LOC_REFERENCE;
                 gettempansistringreference(pto^.location.reference);
                 ltemptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
                 exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
@@ -1100,8 +1102,6 @@ implementation
              end;
          else
           begin
-            clear_location(pto^.location);
-            pto^.location.loc:=LOC_REGISTER;
             internalerror(12121);
           end;
          end;
@@ -1288,7 +1288,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  1999-04-20 10:35:58  peter
+  Revision 1.67  1999-04-22 10:49:07  peter
+    * fixed pchar to string location
+
+  Revision 1.66  1999/04/20 10:35:58  peter
     * fixed bool2bool
 
   Revision 1.65  1999/04/19 09:45:47  pierre
