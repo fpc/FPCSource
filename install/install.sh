@@ -8,7 +8,7 @@
 #
 
 # Release Version
-VERSION=1.9.2
+VERSION=1.9.4
 
 # some useful functions
 # ask displays 1st parameter, and ask new value for variable, whose name is
