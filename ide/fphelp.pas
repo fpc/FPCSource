@@ -122,7 +122,7 @@ begin
     hcDOSShell      : S:=hint_dosshell;
     hcQuit          : S:=hint_exit;
     hcRecentFileBase..hcRecentFileBase+10
-                    : S:=hint_openrecentfile;
+                    : S:=hint_openrecentfile+RecentFiles[AHelpCtx-hcRecentFileBase].FileName;
 
     hcEditMenu      : S:=hint_editmenu;
     hcUndo          : S:=hint_editundo;
@@ -146,6 +146,7 @@ begin
     hcSymbol        : S:=hint_symbol;
     hcRunMenu       : S:=hint_runmenu;
     hcRun           : S:=hint_run;
+    hcRunDir        : S:=hint_rundir;
     hcParameters    : S:=hint_runparameters;
     hcResetDebugger : S:=hint_resetprogram;
     hcContToCursor  : S:=hint_rununtilcursor;
@@ -515,7 +516,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  2005-02-14 17:13:18  peter
+  Revision 1.11  2005-03-13 12:25:02  florian
+    + Recent files write full name now as hint in the status line
+    * Rundir hint in status line fixed
+
+  Revision 1.10  2005/02/14 17:13:18  peter
     * truncate log
 
 }

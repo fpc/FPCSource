@@ -936,7 +936,7 @@ const
       hint_changedir         = 'Choose a new default directory';
       hint_dosshell          = 'Temporarily exit to shell';
       hint_exit              = 'Exit the IDE';
-      hint_openrecentfile    = 'Open indicated file in a new editor window';
+      hint_openrecentfile    = 'Open ';
       hint_editmenu          = 'Clipboard editing commands';
       hint_editundo          = 'Undo the previous editor operation';
       hint_editredo          = 'Redo the previously undone editor operation';
@@ -1063,7 +1063,11 @@ const
 
 {
   $Log$
-  Revision 1.29  2005-03-12 13:48:58  florian
+  Revision 1.30  2005-03-13 12:25:02  florian
+    + Recent files write full name now as hint in the status line
+    * Rundir hint in status line fixed
+
+  Revision 1.29  2005/03/12 13:48:58  florian
     * fixed string Temporarily exit to DOS
 
   Revision 1.28  2005/02/14 17:13:18  peter

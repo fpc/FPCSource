@@ -1062,9 +1062,10 @@ var
   i,ExitCode : longint;
   ExitAddr,ExitFrame : CORE_ADDR;
 const
-  FirstArgOffset = 2 * sizeof(CORE_ADDR);
-  SecondArgOffset = 3 * sizeof(CORE_ADDR);
-  ThirdArgOffset = 4 * sizeof(CORE_ADDR);
+  { try to find the parameters }
+  FirstArgOffset = -sizeof(pointer);
+  SecondArgOffset = 2*-sizeof(pointer);
+  ThirdArgOffset = 3*-sizeof(pointer);
 
 begin
   BreakIndex:=stop_breakpoint_number;
@@ -3667,7 +3668,11 @@ end.
 
 {
   $Log$
-  Revision 1.61  2005-02-14 17:13:18  peter
+  Revision 1.62  2005-03-13 12:25:02  florian
+    + Recent files write full name now as hint in the status line
+    * Rundir hint in status line fixed
+
+  Revision 1.61  2005/02/14 17:13:18  peter
     * truncate log
 
   Revision 1.60  2005/01/08 11:43:18  florian
