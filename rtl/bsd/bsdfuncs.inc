@@ -15,8 +15,8 @@
 
  **********************************************************************}
 
+function sys_uname(var name:utsname):cint;  external name 'FPC_SYSC_UNAME';
 
-function sys_uname(var name:utsname):cint;
 Var
         mib  : array[0..1] of cint;
         rval : cint;
@@ -57,9 +57,9 @@ Begin
         sys_Uname:=rval;
 end;
 
-function GetDomainName(Name:PChar; NameLen:Cint):cint;
+function GetDomainName(Name:PChar; NameLen:Cint):cint;  external name 'FPC_SYSC_GETDOMAINNAME';
 
-Const Mib_GetDomainname : array[0..1] of cint=(CTL_KERN,KERN_NISDOMAINNAME);
+Const Mib_GetDomainName : array[0..1] of cint=(CTL_KERN,KERN_NISDOMAINNAME);
 
 VAR
 	tsize : size_t;
@@ -71,7 +71,7 @@ begin
           GetDomainName:=0;
 end;          
 
-function GetHostName(Name:PChar; NameLen:Cint):cint;
+function GetHostName(Name:PChar; NameLen:Cint):cint;  external name 'FPC_SYSC_GETHOSTNAME';
 
 Const Mib_GetHostName : array[0..1] of cint=(CTL_KERN,KERN_HOSTNAME);
 
@@ -87,7 +87,10 @@ End;
 
 {
  $Log$
- Revision 1.3  2002-09-08 16:11:59  marco
+ Revision 1.4  2002-09-08 16:20:27  marco
+  * Forgot external name's
+
+ Revision 1.3  2002/09/08 16:11:59  marco
   * Added GetDomainName and that other one ..
 
  Revision 1.2  2002/09/07 16:01:17  peter
