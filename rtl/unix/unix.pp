@@ -29,9 +29,6 @@ Uses UnixUtil,BaseUnix;
 {$I signal.inc}
 {$i ostypes.inc}
 
-var
-  LinuxError : Longint;
-
 {********************
       Process
 ********************}
@@ -298,12 +295,15 @@ Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';
 
 { Most calls of WaitPID do not handle the result correctly, this funktion treats errors more correctly }
 Function  WaitProcess(Pid:longint):cint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
-var     r,s     : LongInt;
+var     ret,r,s     : LongInt;
 begin
+  s:=$7F00;
+
   repeat
-    s:=$7F00;
     r:=fpWaitPid(Pid,@s,0);
-  until (r<>-1) or (LinuxError<>ESysEINTR);
+    if (r=-1) and (fpgeterrno=ESysEIntr) Then
+     r:=0;
+  until (r<>-1);
   if (r=-1) or (r=0) then // 0 is not a valid return and should never occur (it means status invalid when using WNOHANG)
     WaitProcess:=-1 // return -1 to indicate an error.  fpwaitpid updated it.
   else
@@ -1461,8 +1461,8 @@ var
       st        : stat;
   begin
     dirstream:=fpopendir(n);
-    if (linuxerror<>0) then
-     exit;
+    if (dirstream=nil) then
+     exit(false);
     d:=fpReaddir(dirstream^);
     while (d<>nil) do
      begin
@@ -1632,18 +1632,10 @@ begin
   temp:=temp+#0;
   thedir:=fpopendir(@temp[1]);
   if thedir=nil then
-   begin
-     glob:=nil;
-     linuxerror:=fpgeterrno;;
-     exit;
-   end;
+    exit(nil);
   temp:=basename(path,''); { get the pattern }
   if thedir^.dd_fd<0 then
-   begin
-     linuxerror:=fpgeterrno;;
-     glob:=nil;
-     exit;
-   end;
+     exit(nil);
 {get the entries}
   root:=nil;
   current:=nil;
@@ -1666,7 +1658,7 @@ begin
         end;
        if current=nil then
         begin
-          linuxerror:=ESysENOMEM;
+           fpseterrno(ESysENOMEM);
           globfree(root);
           break;
         end;
@@ -1674,7 +1666,7 @@ begin
        getmem(current^.name,length(temp2)+1);
        if current^.name=nil then
         begin
-          linuxerror:=ESysENOMEM;
+          fpseterrno(ESysENOMEM);
           globfree(root);
           break;
         end;
@@ -1723,7 +1715,10 @@ End.
 
 {
   $Log$
-  Revision 1.46  2003-11-14 16:44:48  marco
+  Revision 1.47  2003-11-14 17:30:14  marco
+   * weeehoo linuxerror is no more :-)
+
+  Revision 1.46  2003/11/14 16:44:48  marco
    * stream functions converted to work without linuxerror
 
   Revision 1.45  2003/11/13 18:44:06  marco
