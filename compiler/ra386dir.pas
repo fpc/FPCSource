@@ -77,10 +77,12 @@ unit Ra386dir;
          code:=new(paasmoutput,init);
          while not(ende) do
            begin
-              current_scanner^.gettokenpos;
+              { wrong placement
+              current_scanner^.gettokenpos; }
               case c of
                  'A'..'Z','a'..'z','_' : begin
                       hs:='';
+                      current_scanner^.gettokenpos;
                       while ((ord(c)>=ord('A')) and (ord(c)<=ord('Z')))
                          or ((ord(c)>=ord('a')) and (ord(c)<=ord('z')))
                          or ((ord(c)>=ord('0')) and (ord(c)<=ord('9')))
@@ -224,6 +226,7 @@ unit Ra386dir;
              #26 : Message(scan_f_end_of_file);
              else
                begin
+                 current_scanner^.gettokenpos;
                  inc(byte(s[0]));
                  s[length(s)]:=c;
                  c:=current_scanner^.asmgetchar;
@@ -237,7 +240,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.4  1998-07-14 14:46:59  peter
+  Revision 1.5  1998-08-21 08:45:51  pierre
+    * better line info for asm statements
+
+  Revision 1.4  1998/07/14 14:46:59  peter
     * released NEWINPUT
 
   Revision 1.3  1998/07/07 11:20:08  peter

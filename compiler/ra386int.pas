@@ -335,9 +335,9 @@ var
       c := current_scanner^.asmgetchar;
     { Possiblities for first token in a statement:                }
     {   Local Label, Label, Directive, Prefix or Opcode....       }
-    current_scanner^.gettokenpos;
     if firsttoken and not (c in [newline,#13,'{',';']) then
     begin
+      current_scanner^.gettokenpos;
       firsttoken := FALSE;
       if c = '@' then
       begin
@@ -3368,7 +3368,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1998-07-14 14:47:00  peter
+  Revision 1.5  1998-08-21 08:45:53  pierre
+    * better line info for asm statements
+
+  Revision 1.4  1998/07/14 14:47:00  peter
     * released NEWINPUT
 
   Revision 1.3  1998/07/07 11:20:09  peter

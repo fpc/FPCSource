@@ -332,9 +332,9 @@ const
      c:=current_scanner^.asmgetchar;
     { Possiblities for first token in a statement:                }
     {   Local Label, Label, Directive, Prefix or Opcode....       }
-    current_scanner^.gettokenpos;
     if firsttoken and not (c in [newline,#13,'{',';']) then
     begin
+      current_scanner^.gettokenpos;
       firsttoken := FALSE;
       { directive or local labe }
       if c = '.' then
@@ -3675,7 +3675,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  1998-08-19 16:07:54  jonas
+  Revision 1.9  1998-08-21 08:45:49  pierre
+    * better line info for asm statements
+
+  Revision 1.8  1998/08/19 16:07:54  jonas
     * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
 
   Revision 1.7  1998/08/10 23:57:23  peter
