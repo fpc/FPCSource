@@ -220,7 +220,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=lexyacc
-override PACKAGE_VERSION=1.9.4
+override PACKAGE_VERSION=1.9.6
 override TARGET_PROGRAMS+=plex pyacc
 override TARGET_UNITS+=lexlib yacclib
 override CLEAN_UNITS+=lexbase lexopt lexdfa lexpos lexlist lexrules lexmsgs lextable yaccbase yaccmsgs yaccclos yaccpars yacclook yaccsem yacclr0 yacctabl

@@ -4,7 +4,7 @@
 
 [package]
 name=rtl
-version=1.9.4
+version=1.9.6
 
 [target]
 dirs_linux=linux

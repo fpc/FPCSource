@@ -220,7 +220,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fpde
-override PACKAGE_VERSION=1.9.4
+override PACKAGE_VERSION=1.9.6
 override TARGET_PROGRAMS+=fpde
 override CLEAN_UNITS+=fpdeopts frmlink frmmakeskel frmoptions pgeditor fpdemsg frmabout frmmain frmnewnode frmtable xpms
 override CLEAN_FILES+=fpdemsg.rst  frmmakeskel.rst

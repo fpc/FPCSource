@@ -4,7 +4,7 @@
 
 [package]
 name=x11
-version=1.9.4
+version=1.9.6
 
 [target]
 units=x xlib xutil xresource xcms xshm xrender keysym xi xkb xkblib xatom xinerama
