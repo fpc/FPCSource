@@ -19,7 +19,9 @@ function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJM
   asm
     // Save registers.
     movq %rbx,(%rdi)
-    movq %rbp,8(%rdi)
+    // load old rbp
+    movq (%rbp),%rdx
+    movq %rdx,8(%rdi)
     movq %r12,16(%rdi)
     movq %r13,24(%rdi)
     movq %r14,32(%rdi)
@@ -53,7 +55,10 @@ procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'F
 
 {
   $Log$
-  Revision 1.2  2004-04-24 20:13:34  florian
+  Revision 1.3  2004-04-26 19:23:19  florian
+    * saving of rbp in setjmp fixe
+
+  Revision 1.2  2004/04/24 20:13:34  florian
     * fixed x86-64 exception handling
 
   Revision 1.1  2003/04/30 22:11:06  florian
