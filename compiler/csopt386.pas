@@ -69,13 +69,13 @@ Function CheckSequence(p: Pai; Reg: TRegister; Var Found: Longint; Var RegInfo: 
  is returned}
 Var hp2, hp3{, EndMod}: Pai;
     PrevNonRemovablePai: Pai;
-    Cnt, OldNrOfMods: Longint;
+    {Cnt,} OldNrOfMods: Longint;
     OrgRegInfo, HighRegInfo: TRegInfo;
     HighFound, OrgRegFound: Byte;
     RegCounter: TRegister;
     OrgRegResult: Boolean;
     TmpResult: Boolean;
-    TmpState: Byte;
+    {TmpState: Byte;}
 Begin {CheckSequence}
   Reg := Reg32(Reg);
   TmpResult := False;
@@ -1181,7 +1181,10 @@ End.
 
 {
  $Log$
- Revision 1.58  2000-04-29 16:57:44  jonas
+ Revision 1.59  2000-06-01 11:01:20  peter
+   * removed notes
+
+ Revision 1.58  2000/04/29 16:57:44  jonas
    * fixed incompatibility with range chcking code, -O2 and higher
      now work correctly together with -Cr
 

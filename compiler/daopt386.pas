@@ -1343,8 +1343,10 @@ Begin {checks whether the two ops are equal}
 End;
 
 Function InstructionsEquivalent(p1, p2: Pai; Var RegInfo: TRegInfo): Boolean;
+{$ifdef csdebug}
 var
   hp: pai;
+{$endif csdebug}
 Begin {checks whether two Paicpu instructions are equal}
   If Assigned(p1) And Assigned(p2) And
      (Pai(p1)^.typ = ait_instruction) And
@@ -2335,7 +2337,10 @@ End.
 
 {
  $Log$
- Revision 1.87  2000-04-29 16:56:45  jonas
+ Revision 1.88  2000-06-01 11:01:20  peter
+   * removed notes
+
+ Revision 1.87  2000/04/29 16:56:45  jonas
    * destroyreg overwrote some memory if the reg was an FPU register
 
  Revision 1.86  2000/04/10 12:45:56  jonas
