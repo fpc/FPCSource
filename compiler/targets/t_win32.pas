@@ -550,6 +550,10 @@ implementation
          entries:=ordinal_max-ordinal_base+1;
 
          exportsSection.concat(Tai_section.Create(sec_edata));
+         { create label to reference from main so smartlink will include
+           the .edata section }
+         getdatalabel(edatalabel);
+         exportsSection.concat(Tai_symbol.Create(edatalabel,0));
          { export flags }
          exportsSection.concat(Tai_const.Create_32bit(0));
          { date/time stamp }
@@ -1452,7 +1456,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2001-06-03 20:18:13  peter
+  Revision 1.11  2001-06-06 21:58:16  peter
+    * Win32 fixes for Makefile so it doesn't require sh.exe
+
+  Revision 1.10  2001/06/03 20:18:13  peter
     * define also MSWINDOWS
 
   Revision 1.9  2001/06/03 15:15:32  peter

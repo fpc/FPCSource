@@ -79,6 +79,7 @@ interface
         procedure AddVariable(const inivar:string);
         function  AddTargetDefines(const inivar,prefix:string):string;
         procedure AddRequiredPackages;
+        procedure AddTool(const varname,exename,altexename:string);
         procedure AddTools(const inivar:string);
         procedure AddRules;
         procedure AddPhony(const s:string);
@@ -86,6 +87,7 @@ interface
         procedure AddTargetDirs(const inivar:string);
         function  CheckTargetVariable(const inivar:string):boolean;
         function  CheckVariable(const inivar:string):boolean;
+        procedure AddDefaultTools;
         procedure OptimizeSections;
       public
         constructor Create(AFPCMake:TFPCMake;const AFileName:string);
@@ -421,27 +423,35 @@ implementation
       end;
 
 
+    procedure TMakefileWriter.AddTool(const varname,exename,altexename:string);
+      begin
+        with FOutput do
+         begin
+           Add('ifndef '+varname);
+           Add(varname+':=$(strip $(wildcard $(addsuffix /'+exename+'$(SRCEXEEXT),$(SEARCHPATH))))');
+           if altexename<>'' then
+            begin
+              Add('ifeq ($('+varname+'),)');
+              Add(varname+':=$(strip $(wildcard $(addsuffix /'+altexename+'$(SRCEXEEXT),$(SEARCHPATH))))');
+            end;
+           Add('ifeq ($('+varname+'),)');
+           Add(varname+'=');
+           Add('else');
+           Add(varname+':=$(firstword $('+varname+'))');
+           Add('endif');
+           if altexename<>'' then
+            begin
+              Add('else');
+              Add(varname+':=$(firstword $('+varname+'))');
+              Add('endif');
+            end;
+           Add('endif');
+           Add('export '+varname);
+         end;
+      end;
+
+
     procedure TMakefileWriter.AddTools(const inivar:string);
-
-        procedure AddTool(const exename:string);
-        var
-          varname : string;
-        begin
-          with FOutput do
-           begin
-             varname:=FixVariable(exename);
-             Add('ifndef '+varname);
-             Add(varname+':=$(strip $(wildcard $(addsuffix /'+exename+'$(SRCEXEEXT),$(SEARCHPATH))))');
-             Add('ifeq ($('+varname+'),)');
-             Add(varname+'=');
-             Add('else');
-             Add(varname+':=$(firstword $('+varname+'))');
-             Add('endif');
-             Add('endif');
-             Add('export '+varname);
-           end;
-        end;
-
       var
         hs,tool : string;
       begin
@@ -450,7 +460,7 @@ implementation
           Tool:=GetToken(hs);
           if Tool='' then
            break;
-          AddTool(Tool);
+          AddTool(FixVariable(Tool),Tool,'');
         until false;
       end;
 
@@ -644,6 +654,23 @@ implementation
       end;
 
 
+    procedure TMakefileWriter.AddDefaultTools;
+      begin
+        AddTool('ECHO','gecho','echo');
+        AddTool('DATE','gdate','date');
+        AddTool('GINSTALL','ginstall','install');
+        AddTool('CPPROG','cp','');
+        AddTool('RMPROG','rm','');
+        AddTool('MVPROG','mv','');
+        AddIniSection('shelltools');
+        AddTool('PPUFILES','ppufiles','');
+        AddTool('PPUMOVE','ppumove','');
+        AddTool('FPCMAKE','fpcmake','');
+        AddTool('ZIPPROG','zip','');
+        AddTool('TARPROG','tar','');
+        AddIniSection('defaulttools');
+      end;
+
     procedure TMakefileWriter.OptimizeSections;
       var
         SkippedSecs :integer;
@@ -775,9 +802,9 @@ implementation
            AddTargetVariable('compiler_librarydir');
            AddTargetVariable('compiler_targetdir');
            AddTargetVariable('compiler_unittargetdir');
+           { Add default tools }
+           AddDefaultTools;
            { default dirs/tools/extensions }
-           AddIniSection('shelltools');
-           AddIniSection('defaulttools');
            AddIniSection('extensions');
            AddIniSection('defaultdirs');
            if FInput.CheckLibcRequire then
@@ -836,7 +863,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2001-06-04 22:18:16  peter
+  Revision 1.11  2001-06-06 21:58:25  peter
+    * Win32 fixes for Makefile so it doesn't require sh.exe
+
+  Revision 1.10  2001/06/04 22:18:16  peter
     * Still process subdirs if a target has no section defined
 
   Revision 1.9  2001/06/04 21:42:57  peter

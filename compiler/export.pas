@@ -29,7 +29,8 @@ interface
 uses
   cutils,cclasses,
   systems,
-  symtype;
+  symtype,
+  aasm;
 
 const
    { export options }
@@ -53,6 +54,7 @@ type
       notsupmsg : boolean;
       procedure NotSupported;
    public
+      edatalabel : tasmlabel;
       constructor Create;
       destructor Destroy;override;
       procedure preparelib(const s : string);virtual;
@@ -105,6 +107,7 @@ end;
 constructor texportlib.Create;
 begin
   notsupmsg:=false;
+  edatalabel:=nil;
 end;
 
 
@@ -177,7 +180,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2001-04-18 22:01:53  peter
+  Revision 1.15  2001-06-06 21:58:16  peter
+    * Win32 fixes for Makefile so it doesn't require sh.exe
+
+  Revision 1.14  2001/04/18 22:01:53  peter
     * registration of targets and assemblers
 
   Revision 1.13  2001/04/13 01:22:07  peter

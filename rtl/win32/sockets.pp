@@ -44,25 +44,25 @@ begin
     SocketError:=0;
 end;
 
-Function Send(Sock:Longint;Var Addr;AddrLen,Flags:Longint):Longint;
+Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
 begin
-  Send:=WinSock.Send(Sock,Addr,AddrLen,Flags);
+  Send:=WinSock.Send(Sock,Buf,BufLen,Flags);
   if Send<0 then
     SocketError:=WSAGetLastError
   else
     SocketError:=0;
 end;
 
-Function Recv(Sock:Longint;Var Addr;AddrLen,Flags:Longint):Longint;
+Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
 begin
-  Recv:=WinSock.Recv(Sock,Addr,AddrLen,Flags);
+  Recv:=WinSock.Recv(Sock,Buf,BufLen,Flags);
   if Recv<0 then
     SocketError:=WSAGetLastError
   else
     SocketError:=0;
 end;
 
-Function Bind(Sock:Longint;Var Addr;AddrLen:Longint):Boolean;
+Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;
 
   var
      l : longint;
@@ -109,7 +109,7 @@ begin
     SocketError:=0;
 end;
 
-Function Connect(Sock:Longint;Var Addr;Addrlen:Longint):Boolean;
+Function Connect(Sock:Longint;Const Addr;Addrlen:Longint):Boolean;
 
 begin
   Connect:=WinSock.Connect(Sock,WinSock.TSockAddr(Addr),AddrLen)=0;
@@ -146,7 +146,7 @@ begin
     SocketError:=0;
 end;
 
-Function SetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;optlen:longint):Longint;
+Function SetSocketOptions(Sock,Level,OptName:Longint;Const OptVal;optlen:longint):Longint;
 begin
   SetSocketOptions:=WinSock.SetSockOpt(Sock,Level,OptName,OptVal,OptLen);
   if SetSocketOptions<0 then
@@ -171,7 +171,7 @@ end;
 
 
 { mimic the linux fdWrite/fdRead calls for the file/text socket wrapper }
-function fdWrite(handle : longint;var bufptr;size : dword) : dword;
+function fdWrite(handle : longint;Const bufptr;size : dword) : dword;
 begin
   fdWrite := WinSock.send(handle, bufptr, size, 0);
   if fdWrite = SOCKET_ERROR then
@@ -224,7 +224,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2000-07-28 08:43:46  sg
+  Revision 1.5  2001-06-06 21:58:24  peter
+    * Win32 fixes for Makefile so it doesn't require sh.exe
+
+  Revision 1.4  2000/07/28 08:43:46  sg
   * Applied patch by Markus Kaemmerer: Fixes fdRead and fdWrite
 
   Revision 1.3  2000/07/28 06:34:53  sg
@@ -233,5 +236,5 @@ end.
 
   Revision 1.2  2000/07/13 11:33:58  michael
   + removed logs
- 
+
 }

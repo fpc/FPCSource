@@ -319,6 +319,11 @@ implementation
             ;
 {$endif powerpc}
 {$ifdef i386}
+          target_i386_Win32 :
+            begin
+              if islibrary then
+                exportssection.concat(tai_const_symbol.create_rva(exportlib.edatalabel));
+            end;
           target_i386_GO32V2 :
             begin
               { stacksize can be specified }
@@ -1328,7 +1333,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2001-06-03 21:57:36  peter
+  Revision 1.36  2001-06-06 21:58:16  peter
+    * Win32 fixes for Makefile so it doesn't require sh.exe
+
+  Revision 1.35  2001/06/03 21:57:36  peter
     + hint directive parsing support
 
   Revision 1.34  2001/06/03 15:15:31  peter

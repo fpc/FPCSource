@@ -678,7 +678,7 @@ unit winsock;
     function accept(s:TSocket; addr: PSockAddr; var addrlen : tOS_INT) : TSocket;stdcall;
     function bind(s:TSocket; addr: PSockaddr;namelen:tOS_INT):tOS_INT;stdcall;
     function closesocket(s:TSocket):tOS_INT;stdcall;
-    function connect(s:TSocket; var name:TSockAddr; namelen:tOS_INT):tOS_INT;stdcall;
+    function connect(s:TSocket; Const name:TSockAddr; namelen:tOS_INT):tOS_INT;stdcall;
     function ioctlsocket(s:TSocket; cmd:longint; argp:pu_long):tOS_INT;stdcall; { really a c-long }
     function getpeername(s:TSocket; var name:TSockAddr;var namelen:tOS_INT):tOS_INT;stdcall;
     function getsockname(s:TSocket; var name:TSockAddr;var namelen:tOS_INT):tOS_INT;stdcall;
@@ -692,12 +692,12 @@ unit winsock;
     function ntohl(netlong:u_long):u_long;stdcall;
     function ntohs(netshort:u_short):u_short;stdcall;
     function recv(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;
-    function recvfrom(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT;var from:TSockAddr; fromlen:ptOS_INT):tOS_INT;stdcall;
+    function recvfrom(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT;Const from:TSockAddr; fromlen:ptOS_INT):tOS_INT;stdcall;
     function select(nfds:tOS_INT; readfds,writefds,exceptfds : PFDSet;timeout: PTimeVal):tOS_INT;stdcall;
-    function send(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;
-    function sendto(s:TSocket; buf:pchar; len:tOS_INT; flags:tOS_INT;var toaddr:TSockAddr; tolen:tOS_INT):tOS_INT;stdcall;
+    function send(s:TSocket;Const buf; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;
+    function sendto(s:TSocket; buf:pchar; len:tOS_INT; flags:tOS_INT;Const toaddr:TSockAddr; tolen:tOS_INT):tOS_INT;stdcall;
     function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pchar; optlen:tOS_INT):tOS_INT;stdcall;
-    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; var optval; optlen:tOS_INT):tOS_INT;stdcall;
+    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; Const optval; optlen:tOS_INT):tOS_INT;stdcall;
     function shutdown(s:TSocket; how:tOS_INT):tOS_INT;stdcall;
     function socket(af:tOS_INT; t:tOS_INT; protocol:tOS_INT):TSocket;stdcall;
 
@@ -770,7 +770,7 @@ unit winsock;
     function accept(s:TSocket; addr: PSockAddr; var addrlen : tOS_INT) : TSocket;stdcall;external winsockdll name 'accept';
     function bind(s:TSocket; addr: PSockaddr;namelen:tOS_INT):tOS_INT;stdcall;external winsockdll name 'bind';
     function closesocket(s:TSocket):tOS_INT;stdcall;external winsockdll name 'closesocket';
-    function connect(s:TSocket; var name:TSockAddr; namelen:tOS_INT):tOS_INT;stdcall;external winsockdll name 'connect';
+    function connect(s:TSocket; Const name:TSockAddr; namelen:tOS_INT):tOS_INT;stdcall;external winsockdll name 'connect';
     function ioctlsocket(s:TSocket; cmd:longint; argp:pu_long):tOS_INT;stdcall;external winsockdll name 'ioctlsocket'; { really a c-long }
     function getpeername(s:TSocket; var name:TSockAddr;var namelen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'getpeername';
@@ -788,17 +788,17 @@ unit winsock;
     function ntohl(netlong:u_long):u_long;stdcall;external winsockdll name 'ntohl';
     function ntohs(netshort:u_short):u_short;stdcall;external winsockdll name 'ntohs';
     function recv(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;external winsockdll name 'recv';
-    function recvfrom(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT;var from:TSockAddr; fromlen:ptOS_INT):tOS_INT;stdcall;
+    function recvfrom(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT;Const from:TSockAddr; fromlen:ptOS_INT):tOS_INT;stdcall;
       external winsockdll name 'recvfrom';
     function select(nfds:tOS_INT; readfds,writefds,exceptfds : PFDSet;timeout: PTimeVal):tOS_INT;stdcall;
       external winsockdll name 'select';
-    function send(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;
+    function send(s:TSocket;Const buf; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'send';
-    function sendto(s:TSocket; buf:pchar; len:tOS_INT; flags:tOS_INT;var toaddr:TSockAddr; tolen:tOS_INT):tOS_INT;stdcall;
+    function sendto(s:TSocket; buf:pchar; len:tOS_INT; flags:tOS_INT;Const toaddr:TSockAddr; tolen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'sendto';
     function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pchar; optlen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'setsockopt';
-    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; var optval; optlen:tOS_INT):tOS_INT;stdcall;
+    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; Const optval; optlen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'setsockopt';
     function shutdown(s:TSocket; how:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'shutdown';
@@ -951,7 +951,10 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.4  2001-04-10 21:26:00  peter
+  Revision 1.5  2001-06-06 21:58:24  peter
+    * Win32 fixes for Makefile so it doesn't require sh.exe
+
+  Revision 1.4  2001/04/10 21:26:00  peter
     * fixed argument names
 
   Revision 1.3  2000/12/18 17:28:58  jonas

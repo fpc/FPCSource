@@ -7,7 +7,7 @@ programs=fpcmake
 rsts=fpcmmain
 
 [clean]
-units=fpcmmain fpcmdic fpcmwr
+units=fpcmmain fpcmdic fpcmwr fpcmpkg
 
 [require]
 packages=fcl
