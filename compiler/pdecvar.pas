@@ -120,8 +120,9 @@ implementation
          tconstsym : ttypedconstsym;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
+         maxsize, startvarrecsize : longint;
          usedalign,
-         maxsize,minalignment,maxalignment,startvarrecalign,startvarrecsize : longint;
+         minalignment,maxalignment,startvarrecalign : byte;
          pt : tnode;
          vs    : tvarsym;
          srsym : tsym;
@@ -587,7 +588,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2002-11-29 22:31:19  carl
+  Revision 1.42  2002-12-07 14:04:59  carl
+   * convert some vars from longint -> byte
+
+  Revision 1.41  2002/11/29 22:31:19  carl
     + unimplemented hint directive added
     * hint directive parsing implemented
     * warning on these directives
