@@ -28,7 +28,9 @@
      2: driver := D1bit;
      4: driver := D2bit;
      16: driver := D4bit;
+     64: driver := D6bit;
      256: driver := D8bit;
+     4096: driver := D12bit;
      32768: driver := D15bit;
      65536: driver := D16bit;
 {    not yet supported
@@ -555,7 +557,10 @@ end;
 
 {
 $Log$
-Revision 1.24  2000-06-18 14:59:39  jonas
+Revision 1.25  2000-06-19 01:18:49  carl
+  + added modes for Atari/Amiga and bit depth also
+
+Revision 1.24  2000/06/18 14:59:39  jonas
   * changed maxint -> maxsmallint (range error because of objpas mod
     somewhere)
 
