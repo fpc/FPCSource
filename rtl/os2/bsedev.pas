@@ -8,10 +8,6 @@ unit bsedev;
   interface
   
 type
-(* The following line is only due to problems with cardinal *)
-(* arithmetics and should be removed as soon as possible.   *)
- cardinal = longint;
- PCardinal = ^cardinal;
  PByte = ^byte;
 
     const
@@ -234,8 +230,6 @@ type
 
        PDCBINFO = ^DCBINFO;
 
-{$PACKRECORDS 1}
-
     const
        DEVTYPE_48TPI = $0000;
        DEVTYPE_96TPI = $0001;
@@ -245,8 +239,8 @@ type
        DEVTYPE_FIXED = $0005;
        DEVTYPE_TAPE = $0006;
        DEVTYPE_UNKNOWN = $0007;
-{$PACKRECORDS 1}
 
+{$PACKRECORDS 1}
 
     type
        BIOSPARAMETERBLOCK = record
@@ -314,8 +308,6 @@ type
        end;
 
        PMODEMSTATUS = ^MODEMSTATUS;
-
-{$PACKRECORDS 1}
 
        RXQUEUE = record
           cch : word;
