@@ -829,6 +829,7 @@ unit ag386bin;
            objectoutput^.donewriting;
 
            { save section for next loop }
+           { this leads to a problem if startsec is sec_none !! PM }
            startsec:=objectalloc^.currsec;
 
            { we will start a new objectfile so reset everything }
@@ -847,6 +848,10 @@ unit ag386bin;
             end;
 
            hp:=pai(hp^.next);
+
+           { there is a problem if startsec is sec_none !! PM }
+           if startsec=sec_none then
+             startsec:=sec_code;
 
            if not MaybeNextList(hp) then
             break;
@@ -926,7 +931,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.34  2000-01-12 10:38:17  peter
+  Revision 1.35  2000-01-20 00:21:49  pierre
+   * avoid startsec=sec_none
+
+  Revision 1.34  2000/01/12 10:38:17  peter
     * smartlinking fixes for binary writer
     * release alignreg code and moved instruction writing align to cpuasm,
       but it doesn't use the specified register yet
