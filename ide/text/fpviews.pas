@@ -1218,6 +1218,7 @@ end;
 constructor TSourceWindow.Init(var Bounds: TRect; AFileName: string);
 var HSB,VSB: PScrollBar;
     R: TRect;
+    PA : Array[1..2] of pointer;
     LoadFile: boolean;
 begin
   inherited Init(Bounds,AFileName,SearchFreeWindowNo);
@@ -1237,8 +1238,16 @@ begin
   New(Editor, Init(R, HSB, VSB, Indicator,AFileName));
   Editor^.GrowMode:=gfGrowHiX+gfGrowHiY;
   if LoadFile then
-    if Editor^.LoadFile=false then
-       ErrorBox(#3'Error reading file.',nil);
+    begin
+      if Editor^.LoadFile=false then
+        ErrorBox(#3'Error reading file.',nil)
+      else if Editor^.Modified then
+        begin
+          PA[1]:=@AFileName;
+          longint(PA[2]):=Editor^.ChangedLine;
+          EditorDialog(edChangedOnloading,@PA);
+        end;
+   end;
   Insert(Editor);
   If assigned(BreakpointsCollection) then
     BreakpointsCollection^.ShowBreakpoints(@Self);
@@ -3218,7 +3227,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.63  2000-03-13 20:39:25  pierre
+  Revision 1.64  2000-03-14 13:59:41  pierre
+   + add a warning if Changed on loading
+
+  Revision 1.63  2000/03/13 20:39:25  pierre
     * one more try to get the menu update to work correctly
     * breakpoint in red at loading
 
