@@ -472,32 +472,25 @@ implementation
       begin
          if (psym(p)^.typ=varsym) and (vo_regable in pvarsym(p)^.varoptions) then
            begin
+              j:=pvarsym(p)^.refs;
+              { parameter get a less value }
+              if parasym then
+                begin
+                   if cs_littlesize in aktglobalswitches  then
+                     dec(j,1)
+                   else
+                     dec(j,100);
+                end;
               { walk through all momentary register variables }
               for i:=1 to maxvarregs do
                 begin
-                   { free register ? }
-                   if regvars[i]=nil then
-                     begin
-                        regvars[i]:=pvarsym(p);
-                        regvars_para[i]:=parasym;
-                        break;
-                     end;
-                   { else throw out a variable ? }
-                       j:=pvarsym(p)^.refs;
-                   { parameter get a less value }
-                   if parasym then
-                     begin
-                        if cs_littlesize in aktglobalswitches  then
-                          dec(j,1)
-                        else
-                          dec(j,100);
-                     end;
-                   if (j>regvars_refs[i]) and (j>0) then
+                   if (regvars[i]=nil) or ((j>regvars_refs[i]) and (j>0)) then
                      begin
                         for k:=maxvarregs-1 downto i do
                           begin
                              regvars[k+1]:=regvars[k];
                              regvars_para[k+1]:=regvars_para[k];
+                             regvars_refs[k+1]:=regvars_refs[k];
                           end;
                         { calc the new refs
                         pvarsym(p)^.refs:=j; }
@@ -517,32 +510,25 @@ implementation
       begin
          if (psym(p)^.typ=varsym) and (vo_fpuregable in pvarsym(p)^.varoptions) then
            begin
+              j:=pvarsym(p)^.refs;
+              { parameter get a less value }
+              if parasym then
+                begin
+                   if cs_littlesize in aktglobalswitches  then
+                     dec(j,1)
+                   else
+                     dec(j,100);
+                end;
               { walk through all momentary register variables }
               for i:=1 to maxfpuvarregs do
                 begin
-                   { free register ? }
-                   if regvars[i]=nil then
-                     begin
-                        regvars[i]:=pvarsym(p);
-                        regvars_para[i]:=parasym;
-                        break;
-                     end;
-                   { else throw out a variable ? }
-                       j:=pvarsym(p)^.refs;
-                   { parameter get a less value }
-                   if parasym then
-                     begin
-                        if cs_littlesize in aktglobalswitches  then
-                          dec(j,1)
-                        else
-                          dec(j,100);
-                     end;
-                   if (j>regvars_refs[i]) and (j>0) then
+                   if (regvars[i]=nil) or ((j>regvars_refs[i]) and (j>0)) then
                      begin
                         for k:=maxfpuvarregs-1 downto i do
                           begin
                              regvars[k+1]:=regvars[k];
                              regvars_para[k+1]:=regvars_para[k];
+                             regvars_refs[k+1]:=regvars_refs[k];
                           end;
                         { calc the new refs
                         pvarsym(p)^.refs:=j; }
@@ -848,7 +834,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2000-02-04 14:54:17  jonas
+  Revision 1.55  2000-02-05 15:57:58  florian
+    * for some strange reasons my fix regarding register variable
+      allocation was lost
+
+  Revision 1.54  2000/02/04 14:54:17  jonas
     * moved call to resetusableregs to compile_proc_body (put it right before the
       reset of the temp generator) so the optimizer can know which registers are
       regvars
