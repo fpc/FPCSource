@@ -45,7 +45,7 @@ interface
        tcoffsection = object(toutputsection)
           flags    : cardinal;
           relocpos : longint;
-          constructor initsec(sec:TSection;AAlign,AFlags:longint);
+          constructor initsec(sec:TSection;AAlign,AFlags:cardinal);
        end;
 
        pcoffoutput = ^tcoffoutput;
@@ -111,7 +111,7 @@ implementation
          lineno1  : longint;
          nrelocs  : word;
          lineno2  : word;
-         flags    : longint;
+         flags    : cardinal;
        end;
        coffsectionrec=packed record
          len     : longint;
@@ -146,7 +146,7 @@ implementation
                                TCoffSection
 ****************************************************************************}
 
-    constructor tcoffsection.initsec(sec:TSection;AAlign,AFlags:longint);
+    constructor tcoffsection.initsec(sec:TSection;AAlign,AFlags:cardinal);
       begin
         inherited init(target_asm.secnames[sec],AAlign,(sec=sec_bss));
         Flags:=AFlags;
@@ -217,7 +217,7 @@ implementation
     procedure tcoffoutput.createsection(sec:TSection);
       var
         Flags,
-        AAlign : longint;
+        AAlign : cardinal;
       begin
         { defaults }
         Flags:=0;
@@ -235,7 +235,7 @@ implementation
           sec_data :
             begin
               if win32 then
-               Flags:=longint($c0300040)
+               Flags:=$c0300040
               else
                Flags:=$40;
               Aalign:=4;
@@ -243,7 +243,7 @@ implementation
           sec_bss :
             begin
               if win32 then
-               Flags:=longint($c0300080)
+               Flags:=$c0300080
               else
                Flags:=$80;
               Aalign:=4;
@@ -260,7 +260,7 @@ implementation
           sec_edata :
             begin
               if win32 then
-               Flags:=longint($c0300040);
+               Flags:=$c0300040;
             end;
         end;
         sects[sec]:=new(PcoffSection,InitSec(Sec,AAlign,Flags));
@@ -748,7 +748,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-12-20 15:59:04  jonas
+  Revision 1.5  2000-12-21 12:06:38  jonas
+    * changed type of all "flags" variables/parameters/fields to cardinal
+      and removed longint typecasts around constants
+
+  Revision 1.4  2000/12/20 15:59:04  jonas
     * fixed range check errors
 
   Revision 1.3  2000/12/18 21:56:35  peter
