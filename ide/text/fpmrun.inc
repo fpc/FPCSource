@@ -108,11 +108,23 @@ begin
     end;
 
 {$ifndef NODEBUG}
-  if not assigned(Debugger) then
+  if not assigned(Debugger) or not Debugger^.debuggee_started then
 {$endif}
     begin
       DoExecute(ExeFile,GetRunParameters,'','',exNormal);
-      LastExitCode:=DosExitCode;
+      LastExitCode:=ExecuteResult;
+      If IOStatus<>0 then
+        begin
+          MsgParms[1].Ptr:=@EXEFile;
+          MsgParms[2].long:=IOStatus;
+          InformationBox(#3'Program %s'#13#3'not run'#13#3'DosError = %d',@MsgParms);
+        end
+      else If LastExitCode<>0 then
+        begin
+          MsgParms[1].Ptr:=@EXEFile;
+          MsgParms[2].long:=LastExitCode;
+          InformationBox(#3'Program %s'#13#3'exited with '#13#3'exitcode = %d',@MsgParms);
+        end;
     end
 {$ifndef NODEBUG}
   else
@@ -229,7 +241,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  1999-09-16 14:34:59  pierre
+  Revision 1.22  1999-11-10 17:17:02  pierre
+   + Information box if exit code <> 0 or DosError
+
+  Revision 1.21  1999/09/16 14:34:59  pierre
     + TBreakpoint and TWatch registering
     + WatchesCollection and BreakpointsCollection stored in desk file
     * Syntax highlighting was broken
