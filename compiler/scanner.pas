@@ -746,9 +746,9 @@ implementation
            found:=findincludefile(path,name,ext,foundfile);
            if (ext='') then
             begin
-              { try default extensions .pp and .pas }
-{              if (not found) then
-               found:=findincludefile(path,name,'.inc',foundfile);}
+              { try default extensions .inc , .pp and .pas }
+              if (not found) then
+               found:=findincludefile(path,name,'.inc',foundfile);
               if (not found) then
                found:=findincludefile(path,name,target_info.sourceext,foundfile);
               if (not found) then
@@ -2758,7 +2758,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.34  2002-04-21 07:24:09  carl
+  Revision 1.35  2002-04-21 15:22:26  carl
+  * first check .inc file extension
+
+  Revision 1.34  2002/04/21 07:24:09  carl
   - remove my fixes until Peter agrees on the fix (sorry Peter)
 
   Revision 1.32  2002/04/19 15:42:11  peter
