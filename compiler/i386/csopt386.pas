@@ -1305,7 +1305,7 @@ var
 begin
   if getLastInstruction(p,hp1) then
     with pTaiprop(hp1.optInfo)^.regs[reg] do
-      if (typ in [con_ref,con_invalid]) and
+      if (typ in [con_ref,con_invalid,con_const]) and
          (nrOfMods = 1) and
          (rState = pTaiprop(startmod.optInfo)^.regs[reg].rState) and
          (not(check) or
@@ -1956,7 +1956,11 @@ End.
 
 {
   $Log$
-  Revision 1.22  2001-11-30 16:35:02  jonas
+  Revision 1.23  2001-12-04 15:58:13  jonas
+    * unnecessary loads of constants are now also remove by
+      removePrevNotUsedLoad()
+
+  Revision 1.22  2001/11/30 16:35:02  jonas
     * added missing allocregbetween() call for a memtoreg() optimization
 
   Revision 1.21  2001/10/27 10:20:43  jonas
