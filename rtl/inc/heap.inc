@@ -532,7 +532,8 @@ begin
 { Allocate a new block? }
   if p=nil then
    begin
-     SysReAllocMem:=MemoryManager.GetMem(size);
+     p:=MemoryManager.GetMem(size);
+     SysReallocmem:=P;
      exit;
    end;
 { fix needed size }
@@ -607,7 +608,8 @@ begin
         if p2<>nil then
          Move(p^,p2^,size);
         MemoryManager.Freemem(p);
-        SysReAllocMem:=p2;
+        p:=p2;
+        SysReAllocMem:=p;
         exit;
       end;
      currsize:=pcurr^.size and sizemask;
@@ -750,7 +752,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  1999-11-01 13:56:50  peter
+  Revision 1.23  1999-11-10 22:29:51  michael
+  + Fixed sysreallocmem
+
+  Revision 1.22  1999/11/01 13:56:50  peter
     * freemem,reallocmem now get var argument
 
   Revision 1.21  1999/10/30 17:39:05  peter
