@@ -108,6 +108,7 @@ begin
 
   { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
     here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
+  linklibc:=false;
   While not SharedLibFiles.Empty do
    begin
      S:=SharedLibFiles.Get;
@@ -187,7 +188,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-10-21 14:29:38  peter
+  Revision 1.2  1999-10-22 14:42:40  peter
+    * reset linklibc
+
+  Revision 1.1  1999/10/21 14:29:38  peter
     * redesigned linker object
     + library support for linux (only procedures can be exported)
 
