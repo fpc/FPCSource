@@ -217,6 +217,7 @@ interface
 
          { taddrnode }
          nf_procvarload,
+         nf_typedaddr,
 
          { tvecnode }
          nf_memindex,
@@ -1089,7 +1090,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2003-11-23 17:38:48  peter
+  Revision 1.77  2003-11-29 14:33:13  peter
+    * typed address only used for @ and addr() that are parsed
+
+  Revision 1.76  2003/11/23 17:38:48  peter
     * mark nodes that are copies
 
   Revision 1.75  2003/11/12 15:48:27  peter

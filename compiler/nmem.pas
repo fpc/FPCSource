@@ -432,14 +432,14 @@ implementation
                ((tloadnode(hp).symtableentry.typ=absolutesym) and
                 tabsolutesym(tloadnode(hp).symtableentry).absseg) then
              begin
-               if not(cs_typed_addresses in aktlocalswitches) then
+               if not(nf_typedaddr in flags) then
                  resulttype:=voidfarpointertype
                else
                  resulttype.setdef(tpointerdef.createfar(left.resulttype));
              end
             else
              begin
-               if not(cs_typed_addresses in aktlocalswitches) then
+               if not(nf_typedaddr in flags) then
                  resulttype:=voidpointertype
                else
                  resulttype.setdef(tpointerdef.create(left.resulttype));
@@ -957,7 +957,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2003-11-10 22:02:52  peter
+  Revision 1.73  2003-11-29 14:33:13  peter
+    * typed address only used for @ and addr() that are parsed
+
+  Revision 1.72  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.71  2003/11/05 14:18:03  marco

@@ -518,6 +518,8 @@ implementation
               in_args:=true;
               p1:=comp_expr(true);
               p1:=caddrnode.create(p1);
+              if cs_typed_addresses in aktlocalswitches then
+                include(p1.flags,nf_typedaddr);
               consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
@@ -2143,6 +2145,8 @@ implementation
                 end;
                got_addrn:=false;
                p1:=caddrnode.create(p1);
+               if cs_typed_addresses in aktlocalswitches then
+                 include(p1.flags,nf_typedaddr);
                { Store the procvar that we are expecting, the
                  addrn will use the information to find the correct
                  procdef or it will return an error }
@@ -2478,7 +2482,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.140  2003-11-10 19:11:39  peter
+  Revision 1.141  2003-11-29 14:33:13  peter
+    * typed address only used for @ and addr() that are parsed
+
+  Revision 1.140  2003/11/10 19:11:39  peter
     * check paralength instead of assigned(left)
 
   Revision 1.139  2003/11/07 15:58:32  florian
