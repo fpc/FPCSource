@@ -43,12 +43,13 @@ type
   protected
     function GetTestName: string; virtual;
     function GetTestSuiteName: string; virtual;
+    procedure SetTestSuiteName(const aName: string); virtual; abstract;
   public
     function CountTestCases: integer; virtual; 
     procedure Run(AResult: TTestResult); virtual;
   published
     property TestName: string read GetTestName;
-    property TestSuiteName: string read GetTestSuiteName;
+    property TestSuiteName: string read GetTestSuiteName write SetTestSuiteName;
   end; 
   {$M-}   
 
@@ -134,7 +135,7 @@ type
     procedure RunTest; virtual;
     function GetTestName: string; override;
     function GetTestSuiteName: string; override;
-    procedure SetTestSuiteName(const aName: string); virtual;
+    procedure SetTestSuiteName(const aName: string); override;
     procedure SetTestName(const Value: string); virtual;
   public
     constructor Create; virtual;
@@ -162,7 +163,7 @@ type
     function IsTestMethod(AMethodName: string): boolean; virtual;
     function GetTestName: string; override;
     function GetTestSuiteName: string; override;
-    procedure SetTestSuiteName(const aName: string); virtual;
+    procedure SetTestSuiteName(const aName: string); override;
     procedure SetTestName(const Value: string); virtual;
   public
     constructor Create(AClass: TClass; AName: string); reintroduce; overload; virtual;
@@ -174,8 +175,7 @@ type
     function CountTestCases: integer; override;
     procedure Run(AResult: TTestResult); override;
     procedure RunTest(ATest: TTest; AResult: TTestResult); virtual;
-    procedure AddTest(ATest: TTestCase); overload; virtual;
-    procedure AddTest(ATestSuite: TTestSuite); overload; virtual;
+    procedure AddTest(ATest: TTest); overload; virtual;
     procedure AddTestSuiteFromClass(ATestClass: TClass); virtual;
     class function Warning(const aMessage: string): TTestCase;
     property Test[Index: integer]: TTest read GetTest; default;    
@@ -215,6 +215,17 @@ type
     property NumberOfErrors: integer read GetNumErrors;
     property NumberOfFailures: integer read GetNumFailures;
   end;
+
+  function ComparisonMsg(const aExpected: string; const aActual: string): string;  
+  
+Resourcestring
+
+  SCompare = ' expected: <%s> but was: <%s>';
+  SExpectedNotSame = 'expected not same';
+  SExceptionCompare = 'Exception %s expected but %s was raised';
+  SMethodNotFound = 'Method <%s> not found';
+  SNoValidInheritance = ' does not inherit from TTestCase';
+  SNoValidTests = 'No valid tests found in ';
   
   
 implementation
@@ -235,6 +246,11 @@ procedure TTestWarning.RunTest;
 begin
   Fail(FMessage);
 end;  
+
+function ComparisonMsg(const aExpected: string; const aActual: string): string;
+begin
+  Result := format(SCompare, [aExpected, aActual]);
+end;
   
 constructor EAssertionFailedError.Create;
 begin
@@ -332,8 +348,7 @@ end;
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: string);
 begin
-  AssertTrue(AMessage + ': ' + 'expected <' + Expected+ '> but was <' + Actual + '>' ,
-    AnsiCompareStr(Expected, Actual) = 0);
+  AssertTrue(AMessage + ComparisonMsg(Expected, Actual), AnsiCompareStr(Expected, Actual) = 0);
 end;
 
 class procedure TAssert.AssertEquals(Expected, Actual: string);
@@ -348,8 +363,7 @@ end;
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: integer); 
 begin
-  AssertTrue(AMessage + ' ' + 'expected: <' + IntToStr(Expected) + '> but was: <'
-    + IntToStr(Actual) + '>', Expected = Actual);
+  AssertTrue(AMessage + ComparisonMsg(IntToStr(Expected), IntToStr(Actual)), Expected = Actual);
 end;
 
 class procedure TAssert.AssertEquals(Expected, Actual: integer);
@@ -359,8 +373,7 @@ end;
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: int64);
 begin
-  AssertTrue(AMessage + ' ' + 'expected: <' + IntToStr(Expected) + '> but was: <'
-    + IntToStr(Actual) + '>', Expected = Actual);
+  AssertTrue(AMessage + ComparisonMsg(IntToStr(Expected), IntToStr(Actual)), Expected = Actual);
 end;
 
 class procedure TAssert.AssertEquals(Expected, Actual: int64);
@@ -371,8 +384,7 @@ end;
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: currency);
 begin
-  AssertTrue(AMessage + ' ' + 'expected: <' + FloatToStr(Expected) + '> but was: <'
-    + FloatToStr(Actual) + '>', Expected = Actual);
+  AssertTrue(AMessage + ComparisonMsg(FloatToStr(Expected), FloatToStr(Actual)), Expected = Actual);
 end;
 
 class procedure TAssert.AssertEquals(Expected, Actual: currency);
@@ -382,8 +394,8 @@ end;
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual, Delta: double);
 begin
-  AssertTrue(AMessage + ' ' + 'expected: <' + FloatToStr(Expected) + '> but was: <'
-      + FloatToStr(Actual) + '>', (Abs(Expected - Actual) <= Delta));
+  AssertTrue(AMessage + ComparisonMsg(FloatToStr(Expected),FloatToStr(Actual)), 
+    (Abs(Expected - Actual) <= Delta));
 end;
 
 class procedure TAssert.AssertEquals(Expected, Actual, Delta: double);
@@ -398,8 +410,7 @@ end;
  
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: boolean);
 begin
-  AssertTrue(AMessage + ' ' + 'expected: <' + BoolToStr(Expected) + '> but was: <'
-    + BoolToStr(Actual) + '>', Expected = Actual);
+  AssertTrue(AMessage + ComparisonMsg(BoolToStr(Expected), BoolToStr(Actual)), Expected = Actual);
 end;
 
 class procedure TAssert.AssertEquals(Expected, Actual: boolean);
@@ -409,8 +420,7 @@ end;
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: char);
 begin
-  AssertTrue(AMessage + ' ' + 'expected: <' + Expected + '> but was: <'
-    + Actual + '>', Expected = Actual);
+  AssertTrue(AMessage + ComparisonMsg(Expected, Actual), Expected = Actual);
 end;
 
 class procedure TAssert.AssertEquals(Expected, Actual: char);
@@ -420,8 +430,7 @@ end;
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: TClass);
 begin
-  AssertTrue(AMessage + ' ' + 'expected: <' + Expected.ClassName + '> but was: <'
-    + Actual.ClassName + '>', Expected = Actual);
+  AssertTrue(AMessage + ComparisonMsg(Expected.ClassName, Actual.ClassName), Expected = Actual);
 end;
 
 class procedure TAssert.AssertEquals(Expected, Actual: TClass);
@@ -431,8 +440,8 @@ end;
 
 class procedure TAssert.AssertSame(const AMessage: string; Expected, Actual: TObject);
 begin
-  AssertTrue(AMessage + ' ' + 'expected: <' + IntToStr(PtrInt(Expected)) + '> but was: <'
-    + IntToStr(PtrInt(Actual)) + '>', Expected = Actual);
+  AssertTrue(AMessage + ComparisonMsg(IntToStr(PtrInt(Expected)), IntToStr(PtrInt(Actual))), 
+    Expected = Actual);
 end;
 
 class procedure TAssert.AssertSame(Expected, Actual: TObject);
@@ -442,7 +451,7 @@ end;
 
 class procedure TAssert.AssertNotSame(const AMessage: string; Expected, Actual: TObject);
 begin
-  AssertFalse('expected not same', Expected = Actual);
+  AssertFalse(SExpectedNotSame, Expected = Actual);
 end;
 
 class procedure TAssert.AssertNotSame(Expected, Actual: TObject);
@@ -489,8 +498,7 @@ begin
       end;
     end;
   end;
-  AssertTrue(Format('Exception %s expected but %s was raised',
-    [AExceptionClass.ClassName, ExceptionName])+ ': ' + AMessage, Passed);
+  AssertTrue(Format(SExceptionCompare, [AExceptionClass.ClassName, ExceptionName])+ ': ' + AMessage, Passed);
 end;
 
 class procedure TAssert.AssertException(AExceptionClass: ExceptClass;
@@ -592,7 +600,7 @@ begin
   end
   else 
     begin
-      Fail('Method "' + FName + '" not found'); 
+      Fail(format(SMethodNotFound, [FName])); 
     end;
 end;
 
@@ -635,9 +643,9 @@ begin
     end;
   end
   else
-    AddTest(Warning(AClass.ClassName + ' does not inherit from TTestCase'));
+    AddTest(Warning(AClass.ClassName + SNoValidInheritance));
   if FTests.Count = 0 then
-    AddTest(Warning('No valid tests found in ' + AClass.ClassName));
+    AddTest(Warning(SNoValidTests + AClass.ClassName));
 end;
 
 constructor TTestSuite.Create(AClassArray: Array of TClass); 
@@ -724,18 +732,11 @@ begin
   ATest.Run(AResult);
 end;
 
-procedure TTestSuite.AddTest(ATest: TTestCase);
+procedure TTestSuite.AddTest(ATest: TTest);
 begin
   FTests.Add(ATest);
   if ATest.TestSuiteName = '' then
     ATest.TestSuiteName := Self.TestName;
-end;
-
-procedure TTestSuite.AddTest(ATestSuite: TTestSuite);
-begin
-  FTests.Add(ATestSuite);
-  if ATestSuite.TestSuiteName = '' then
-    ATestSuite.TestSuiteName := Self.TestName;
 end;
 
 procedure TTestSuite.AddTestSuiteFromClass(ATestClass: TClass); 

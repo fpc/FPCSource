@@ -86,6 +86,7 @@ type
     procedure TestFailNull;
     procedure TestFailNotNull;
     procedure TestAssertException;
+    procedure TestComparisonMsg;
   end;
 
   TMockListener = class(TNoRefCountObject, ITestListener)
@@ -443,6 +444,12 @@ end;
 procedure TAssertTest.TestAssertException;
 begin
   AssertException(EMyException, @RaiseMyException);
+end;
+
+procedure TAssertTest.TestComparisonMsg;
+begin
+  AssertEquals(' expected: <expectedstring> but was: <actualstring>', 
+    ComparisonMsg('expectedstring', 'actualstring'));
 end;
 
 constructor TMockListener.Create;
