@@ -416,6 +416,15 @@ implementation
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
+              { When reading a class type it is parsed as loadvmtaddrn,
+                typeinfo only needs the type so we remove the loadvmtaddrn }
+              if p1.nodetype=loadvmtaddrn then
+                begin
+                  p2:=tloadvmtaddrnode(p1).left;
+                  tloadvmtaddrnode(p1).left:=nil;
+                  p1.free;
+                  p1:=p2;
+                end;
               if p1.nodetype=typen then
                 ttypenode(p1).allowed:=true
               else
@@ -2390,7 +2399,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.158  2004-06-20 08:55:30  florian
+  Revision 1.159  2004-06-28 14:38:36  michael
+  + Patch from peter to fix typinfo for classes
+
+  Revision 1.158  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.157  2004/06/16 20:07:09  florian
