@@ -125,7 +125,7 @@ yet implemented. The alignment of data will be different in any case, since
 \subsection{\var{\$ASMMODE} : Assembler mode}
 \label{se:AsmReader}
 
-The \var{\{\$ASMMODE XXX} directive informs the compiler what kind of assembler
+The \var{\{\$ASMMODE XXX\}} directive informs the compiler what kind of assembler
 it can expect in an \var{asm} block. The \var{XXX} should be replaced by one
 of the following:
 \begin{description}
@@ -139,6 +139,8 @@ These switches are local, and retain their value to the end of the unit that
 is compiled, unless they are replaced by another directive of the same type.
 The command-line switch that corresponds to this switch is \var{-R}.
 
+The default assembler reader is the AT\&T reader.
+
 \subsection{\var{\$B} or \var{\$BOOLEVAL}: Complete boolean evaluation}
 
 This switch is understood by the \fpc compiler, but is ignored. The compiler
@@ -151,6 +153,8 @@ result, will never get called.
 If False and Bofu then
   ...
 \end{verbatim}
+This has as a consequence that any additional actions that are done by
+\var{Bofu} are not executed.
 
 \subsection{\var{\$C} or \var{\$ASSERTIONS} : Assertion support}
 
@@ -189,6 +193,8 @@ the current module (i.e. unit or program), or until a \var{\$UNDEF name} directi
 If \var{name} is already defined, this has no effect. \var{Name} is case
 insensitive.
 
+The symbols that are defined in a unit, are not saved in the unit file,
+so they are also not exported from a unit. 
 
 \subsection{\var{\$ELSE} : Switch conditional compilation}
 
@@ -235,7 +241,7 @@ This directive is recognized for compatibility with Turbo Pascal. Under the
 hence the directive is ignored. A warning is printed to the screen, telling
 you so.
 
-As an example, : the following piece of code :
+As an example, the following piece of code :
 \begin{verbatim}
 {$F+}
 
@@ -285,9 +291,11 @@ The following code
 \begin{verbatim}
 {$FATAL This code is erroneous !}
 \end{verbatim}
-will display an error message when the compiler encounters it, and trigger
-and increase the error count of the compiler.
-The compiler will immediatly stop the compilation process.
+will display an error message when the compiler encounters it,
+and the compiler will immediatly stop the compilation process.
+
+This is mainly useful inc conjunction wih \var{\{\$IFDEF \}} or
+\var{\{\$IFOPT \}} statements.
 
 \subsection{\var{\$GOTO} : Support \var{Goto} and \var{Label}}
 
@@ -304,10 +312,17 @@ label Theend;
 begin
   If ParamCount=0 then
     GoTo TheEnd;
-  Writeln ('You spcified command-line options');
+  Writeln ('You specified command-line options');
 TheEnd:  
 end.
 \end{verbatim}
+
+\begin{remark}
+If you compile assembler code not in direct mode (using the intel or
+assembler readers) you must declare any labels you use in the assembler
+code and use \var{\{\$GOTO ON\}}. If you compile in Direct mode then this is
+not necessary.
+\end{remark}
 
 \subsection{\var{\$H} or \var{\$LONGSTRINGS} : Use AnsiStrings}
 
@@ -317,9 +332,9 @@ will treat the corresponding varible as an ansistring, and will
 generate corresponding code.
 
 By default, the use of ansistrings is off, corresponding to \var{\{\$H-\}}.
-
-This feature is still experimental, and should be used with caution for the
-time being.
+The system unit is compiled without ansistrings, all its functions accept 
+shortstrng arguments. The same is true for all RTL units, except the
+\file{sysutils} unit, which is compiled with ansistrings.
 
 \subsection{\var{\$HINT} : Generate hint message}
 
@@ -329,6 +344,8 @@ option or the \var{\{\$HINTS ON\}} directive, then
 {$Hint This code should be optimized }
 \end{verbatim}
 will display a hint message when the compiler encounters it.
+
+By default, no hints are generated.
 
 \subsection{\var{\$HINTS} : Emit hints}
 
@@ -341,34 +358,38 @@ this is useful for checking parts of your code.
 
 The directive \var{\{\$IF expr\}} will continue the compilation
 if the boolean expression \var{expr} evaluates to \var{true}. If the
-compilation evaluates to false, then the source are skipped to the first
+compilation evaluates to false, then the source is skipped to the first
 \var{\{\$ELSE\}} or \var{\{\$ENDIF\}} directive.
 
-The compiler must be able to evaluate the expression at compile time.
+The compiler must be able to evaluate the expression at parse time.
 This means that you cannot use variables or constants that are defined in
 the source. Macros and symbols may be used, however.
 
 More information on this can be found in the section about
 conditionals.
 
-\subsection{\var{\$IFDEF} : Start conditional compilation}
+\subsection{\var{\$IFDEF Name} : Start conditional compilation}
 
-The \var{\{\$IFDEF name\}} will skip the compilation of the text that
-follows it if the symbol \var{name} is not defined. If it is defined, then
-compilation continues as if the directive wasn't there.
+If the symbol \var{Name} is not defined then the \var{\{\$IFDEF name\}} 
+will skip the compilation of the text that follows it to the first 
+\var{\{\$ELSE\}} or \var{\{\$ENDIF\}} directive.
+If \var{Name} is defined, then compilation continues as if the directive 
+wasn't there.
 
 \subsection{\var{\$IFNDEF} : Start conditional compilation}
 
-The \var{\{\$IFNDEF name\}} will skip the compilation of the text that
-follows it if the symbol \var{name} is defined. If it is not defined, then
-compilation continues as if the directive wasn't there.
+If the symbol \var{Name} is defined then the \var{\{\$IFNDEF name\}} 
+will skip the compilation of the text that follows it to the first 
+\var{\{\$ELSE\}} or \var{\{\$ENDIF\}} directive.
+If it is not defined, then compilation continues as if the directive 
+wasn't there.
 
 \subsection{\var{\$IFOPT} : Start conditional compilation}
 
 The \var{\{\$IFOPT switch\}} will compile the text that follows it if the
 switch \var{switch} is currently in the specified state. 
 If it isn't in the specified state, then compilation continues after the
-corresponding \var{\{\$ENDIF\}} directive.
+corresponding \var{\{\$ELSE\}} or \var{\{\$ENDIF\}} directive.
 
 As an example:
 \begin{verbatim}
@@ -391,29 +412,41 @@ option, then
 \end{verbatim}
 will display an info message when the compiler encounters it.
 
+This is useful in conjunction with the \var{\{\$IFDEF\}} directive, to show
+information about which part of the code is being compiled.
+
 \subsection{\var{\$INLINE} : Allow inline code.} 
 The \var{\{\$INLINE ON\}} directive tells the compiler that the \var{Inline}
 procedure modifier should be allowed. Procedures that are declared inline
 are copied to the places where they are called. This has the effect that
-there is no actual procedure call, the code of the procedure iis just copied
-to where the procedure is needed. By default, \var{Inline} procedures are
-not allowed. You need to specify this directive if you want to use inlined
-code. This directive is equivalent to the command-line switch \var{-Si}.
+there is no actual procedure call, the code of the procedure is just copied
+to where the procedure is needed, this results in faster execution speed if
+the function or procedure is used a lot. 
 
-Inline code is NOT exported from a unit. This means that if you call an
+By default, \var{Inline} procedures are not allowed. You need to specify 
+this directive if you want to use inlined code. This directive is 
+equivalent to the command-line switch \var{-Si}.
+
+\begin{remark}
+\begin{enumerate}
+\item Inline code is NOT exported from a unit. This means that if you call an
 inline procedure from another unit, a normal procedure call will be
 performed. Only inside units, \var{Inline} procedures are really inline.
+\item You cannot make recursive inline functions. i.e. an inline function
+that calls itself is not allowed.
+\end{remark}
 
 \subsection{\var{\$I} or \var{\$IOCHECKS} : Input/Output checking}
 The \var{\{\$I-\}} or \var{\{\$IOCHECKS OFF\}} directive tells the compiler
 not to generate input/output checking code in your program. By default, the
-compiler does not generate this code, you must switch it on using the
-\var{-Ci} command-lne switch.
+compiler generates this code\footnote{This behaviour changed in the 0.99.13
+release of the compiler. Earlier versions by default did not generate this
+code.}, you must switch it on using the \var{-Ci} command-line switch.
 
-If you compile using the \var{-Ci} compiler switch, the \fpc compiler inserts input/output
-checking code after every input/output call in your program. If an error
-occurred during input or output, then a run-time error will be generated.
-Use this switch if you wish to avoid this behavior.
+If you compile using the \var{-Ci} compiler switch, the \fpc compiler inserts 
+input/output checking code after every input/output call in your program. 
+If an error occurred during input or output, then a run-time error will 
+be generated. Use this switch if you wish to avoid this behavior.
 If you still want to check if something went wrong, you can use the
 \var{IOResult} function to see if everything went without problems.
 
@@ -435,6 +468,9 @@ if IOResult<>0 then
   end;
 ...
 \end{verbatim}
+See the \var{IOResult} function explanantion in the referece manual for a 
+detailed description of the possible errors that can occur when using 
+input/output checking.
 
 \subsection{\var{\$I} or \var{\$INCLUDE} : Include file }
 The \var{\{\$I filename\}} or \var{\{\$INCLUDE filename\}} directive
@@ -504,10 +540,14 @@ Target CPU : i386
 This switch selects the assembler reader. \var{\{\$I386\_XXX\}}
 has the same effect as \var{\{\$ASMMODE XXX\}}, \sees{AsmReader}
 
+This switch is deprecated, the \var{\{\$ASMMODE XXX\}} directive should
+be used instead.
+
 \subsection{\var{\$L} or \var{\$LINK} : Link object file}
 The \var{\{\$L filename\}} or \var{\{\$LINK filename\}} directive
 tells the compiler that the file \file{filename} should be linked to
-your program.
+your program. This cannot be used for libraries, see section 
+\sees{linklib} for that.
 
 The compiler will look for this file in the following way:
 
@@ -535,6 +575,8 @@ the command line, just before the names of the object files that must be
 linked.
 
 \subsection{\var{\$LINKLIB} : Link to a library}
+\label{se:linklib}
+
 The \var{\{\$LINKLIB name\}} will link to a library \file{name}.
 This has the effect of passing \var{-lname} to the linker.
 
@@ -582,6 +624,11 @@ knowing the actual class of the object.
 The run-time type information is accessible through the \var{TypInfo} unit,
 which is part of the \fpc Run-Time Library.
 
+\begin{remark}
+that the streaming system implemented by \fpc requires that you make 
+streamable components descendent from \var{TPersistent}.
+\end{remark}
+
 \subsection{\var{\$MACRO} : Allow use of macros.}
 
 In the \var{\{\$MACRO ON\}} state, the compiler allows you to use C-style
@@ -589,7 +636,9 @@ In the \var{\{\$MACRO ON\}} state, the compiler allows you to use C-style
 substitution. More information on using macros can be found in the 
 \sees{Macros} section. This directive is equivalent to the command-line
 switch \var{-Sm}.
- 
+
+By default, macros are not allowed.
+
 \subsection{\var{\$MESSAGE} : Generate info message}
 
 If the generation of info is turned on, through the \var{-vi} command-line
@@ -662,26 +711,47 @@ will display a note message when the compiler encounters it.
 
 \var{\{\$NOTES ON\}} switches the generation of notes on.
 \var{\{\$NOTES OFF\}} switches the generation of notes off.
- Contrary to the command-line option \var{-vn} this
-is a local switch, this is useful for checking parts of your code.
+Contrary to the command-line option \var{-vn} this is a local switch, 
+this is useful for checking parts of your code.
+
+By default, \var{\{\$NOTES }} is off.
 
 \subsection{\var{\$OUTPUT\_FORMAT} : Specify the output format}
 \var{\{\$OUTPUT\_FORMAT format\}} has the same functionality as the \var{-A}
 command-line option : It tells the compiler what kind of object file must be
-generated. You can specify this switch \textbf{only} befor the \var{Program}
+generated. You can specify this switch only {\em before} the \var{Program}
 or \var{Unit} clause in your source file. The different kinds of formats are
 shown in \seet{Formats}.
 
+The default output format depends on the platform the compiler was compiled
+on.
+
 \begin{FPCltable}{ll}{Formats generated by the x86 compiler}{Formats} \hline
 Switch value & Generated format \\ \hline
-att  & AT\&T assembler file. \\
-o    & Unix object file.\\
-obj  & OMF file.\\
-wasm & assembler for the Watcom assembler. \\ \hline
+AS        & AT\&T assembler file. \\
+AS\_AOUT   & Go32v1 assembler file.\\
+ASW       & AT\&T Win32 assembler file. \\
+COFF      & Go32v2 COFF object file.\\
+MASM      & Masm assembler file.\\
+NASM      & Nasm assembler file.\\
+NASMCOFF  & Nasm assembler file (COFF format).\\
+NASMELF   & Nasm assembler file (ELF format).\\
+PECOFF    & PECOFF object file (Win32).\\
+TASM      & Tasm assembler file.\\
 \end{FPCltable}
 
 \subsection{\var{\$P} or \var{\$OPENSTRINGS} : Use open strings}
 
+If this switch is on, all function or procedure parameters of type string
+are considered to be open string parameters; this parameter only has effect
+for short strings, not for ansistrings.
+
+When using openstrings, the declared type of the string can be different 
+from the type of string that is actually passed, even for strings that are
+passed by reference. The declared size of the string passed can be examined
+with the \var{High(P)} call.
+
+Default the use of openstrings is off.
 
 \subsection{\var{\$PACKENUM} : Minimum enumeration type size}
 
@@ -695,7 +765,6 @@ Where the form with \var{\$MINENUMSIZE} is for Delphi compatibility.
 \var{xxx} can be one of \var{1,2} or \var{4}, or \var{NORMAL} or
 \var{DEFAULT}, corresponding to the default value of 4.
 
-
 As an alternative form one can use \var{\{\$Z1\}}, \var{\{\$Z2\}}
 \var{\{\$Z4\}}. Contrary to Delphi, the default size is 4 bytes
 (\var{\{\$Z4\}}).
@@ -707,7 +776,7 @@ Type
   Days = (monday, tuesday, wednesday, thursday, friday,
           saturday, sunday);
 \end{verbatim}
-will use 1 byte to store a variable of type \var{Days}, wheras it nomally
+will use 1 byte to store a variable of type \var{Days}, whereas it nomally
 would use 4 bytes. The above code is equivalent to
 \begin{verbatim}
 {$Z1}
@@ -717,7 +786,7 @@ Type
 \end{verbatim}
 
 \begin{remark}
-Sets are always put in 32 bits or 32 bytes, this cannot be changed.
+Sets are always put in 32 bits or 32 bytes, this cannot be changed (yet).
 \end{remark}
 \subsection{\var{\$PACKRECORDS} : Alignment of record elements}
 
@@ -796,11 +865,13 @@ the unit is chopped in logical pieces: each procedure is put in it's own
 object file, and all object files are put together in a big archive. When
 using such a unit, only the pieces of code that you really need or call, 
 will be linked in your program, thus reducing the size of your executable
-substantially. Beware that using smartlinked units slows down the
-compilation process, because a separate object file must be created for each
-procedure. If you have units with many functions and procedures, this can 
-be a time consuming process, even more so if you use an external assembler
-(the assembler is called to assemble each procedure or function code block).
+substantially. 
+
+Beware: using smartlinked units slows down the compilation process, because 
+a separate object file must be created for each procedure. If you have units 
+with many functions and procedures, this can be a time consuming process, 
+even more so if you use an external assembler (the assembler is called to 
+assemble each procedure or function code block separately).
 
 The smartlinking directive should be specified {\em before} the unit
 declaration part:
@@ -819,7 +890,10 @@ This directive is equivalent to the \var{-Cx} command-line switch.
 If you specify the \var{\{\$STATIC ON\}} directive, then \var{Static}
 methods are allowed for objects. \var{Static} objects methods do not require
 a \var{Self} variable. They are equivalent to \var{Class} methods for
-classes. By default, \var{Static} methods are not allowed.
+classes. By default, \var{Static} methods are not allowed. Class methods
+are always allowed.
+
+By default, the address operator returns an untyped pointer.
 
 This directive is equivalent to the \var{-St} command-line option.
 
@@ -871,7 +945,7 @@ will display the follwing message:
 Press <return> to continue
 \end{verbatim}
 before waiting for a keypress. Careful ! This may interfere with automatic
-compilation processes. It should be used for debuggig purposes only.
+compilation processes. It should be used for debugging purposes only.
 
 \subsection{\var{\$WARNING} : Generate warning message}
 
@@ -888,6 +962,8 @@ will display a warning message when the compiler encounters it.
 \var{\{\$WARNINGS OFF\}} switches the generation of warnings off.
 Contrary to the command-line option \var{-vw} this
 is a local switch, this is useful for checking parts of your code.
+
+By default, no warnings are emitted.
 
 \subsection{\var{\$X} or \var{\$EXTENDEDSYNTAX} : Extended syntax}
 Extended syntax allows you to drop the result of a function. This means that
@@ -915,6 +991,7 @@ you an extra variable.
 The command-line compiler switch \var{-Sa1} has the same effect as the
 \var{\{\$X+\}} directive.
 
+By default, extended syntax is assumed.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Global switches
@@ -955,7 +1032,9 @@ if the application is a GUI application.
 When this switch is on (\var{\{\$DEBUGINFO ON\}}),
 the compiler inserts GNU debugging information in
 the executable. The effect of this switch is the same as the command-line
-switch \var{-g}. By default, insertion of debugging information is off.
+switch \var{-g}. 
+
+By default, insertion of debugging information is off.
 
 \subsection{\var{\$DESCRIPTION}}
 
@@ -999,12 +1078,13 @@ long as the only type used is single or real.
 
 \subsection{\var{\$G} : Generate 80286 code}
 
-This option is recognised for Turbo Pascal compatibility, but is ignored.
+This option is recognised for Turbo Pascal compatibility, but is ignored,
+since the compiler works only on 386 or higher Intel processors.
 
 \subsection{\var{\$INCLUDEPATH} : Specify include path.}
 
 This option serves to specify the include path, where the compiler looks for
-include files. \var{\{\$INCLUDEPATH XXX} will add \var{XXX} to the include
+include files. \var{\{\$INCLUDEPATH XXX\}} will add \var{XXX} to the include
 path. \var{XXX} can contain one or more paths, separated by semi-colons or
 colons.
 
@@ -1083,7 +1163,8 @@ the command-line.
 \item[Delphi] Delphi compatibility mode. All object-pascal extensions are
 enabled. This is the same as the command-line option \var{-Sd}.
 \item[TP] Turbo pascal compatibility mode. Object pascal extensions are
-disabled, except ansistrings, which remain valid. This is the same as the command-line option \var{-So}
+disabled, except ansistrings, which remain valid. 
+This is the same as the command-line option \var{-So}.
 \item[FPC] FPC mode. This is the default, if no command-line switch is
 supplied.
 \item[OBJFPC] Object pascal mode. This is the same as the \var{-S2}
@@ -1109,7 +1190,7 @@ ignored.
 \subsection{\var{\$OBJECTPATH} : Specify object path.}
 
 This option serves to specify the object path, where the compiler looks for
-object files. \var{\{\$OBJECTPATH XXX} will add \var{XXX} to the object
+object files. \var{\{\$OBJECTPATH XXX\}} will add \var{XXX} to the object
 path. \var{XXX} can contain one or more paths, separated by semi-colons or
 colons.
 
@@ -1144,6 +1225,8 @@ Specifying \var{\{\$S-\}} will turn generation of stack-checking code off.
 
 The command-line compiler switch \var{-Ct} has the same effect as the
 \var{\{\$S+\}} directive.
+
+By default, no stack checking is performed.
 
 \subsection{\var{\$UNITPATH} : Specify unit path.}
 
@@ -1286,7 +1369,7 @@ and will undefine the existing platform symbol\footnote{In versions prior to
 0.9.4, this didn't happen, thus making Cross-compiling impossible.}.
 
 \begin{FPCltable}{c}{Symbols defined by the compiler.}{Symbols} \hline
-Free \\
+FPC \\
 VER\var{v} \\
 VER\var{v}\_\var{r} \\
 VER\var{v}\_\var{r}\_\var{p} \\
@@ -1446,7 +1529,7 @@ begin
 end.
 \end{verbatim}
 As you can see from the example, this construct isn't useful when used
-with normal symbols, but it is if you use macros, which are explained in
+with normal symbols, only if you use macros, which are explained in
 \sees{Macros}, they can be very useful. When trying this example, you must
 switch on macro support, with the \var{-Sm} command-line switch.
 
@@ -1849,6 +1932,9 @@ The registers are {\em not} saved when calling a function or procedure. If
 you want to call a procedure or function from assembly language, you must
 save any registers you wish to preserve.
 
+When you call an object method from assembler, you must load the \var{ESI} 
+register with the self pointer of the object or class. 
+
 The first thing a procedure does is saving the base pointer, and setting the
 base pointer equal to the stack pointer. References to the pushed parameters
 and local variables are constructed using the base pointer.
@@ -2031,8 +2117,11 @@ The following sections attempt to explain how to do this.
 The first step in using external code blocks is declaring the function you
 want to use. \fpc supports Delphi syntax, i.e. you must use the
 \var{external} directive. The \var{external} directive replaces, in effect,
-the code block of the function. As such, It cannot be used in an interface
-section of a unit, but must always reside in the implementation section.
+the code block of the function. 
+
+The external directive doesn't specify a calling convention; it just tells
+the compiler that the code for a procedure or function resides in an
+external code block.
 
 There exist four variants of the external directive :
 \begin{enumerate}
@@ -2357,7 +2446,7 @@ exact declaration name as its mangled name. Under \windowsnt and \ostwo,
 this modifier signals a function that is exported from a DLL.
 The calling conventions used by a \var{export} procedure depend on the OS.
 This keyword can be used only in the implementation section.
-\item [Alias: ] The \var{alias} modifier can be used to give a supplementary
+\item [Alias: ] The \var{alias} modifier can be used to give a second
 assembler name to your function. This doesn't modify the calling conventions
 of the function.
 \end{description}
@@ -4072,11 +4161,10 @@ A complete list of entries and what their fields contain can be found
 in \file{ppudump.pp}.
 
 \section{Creating ppufiles}
-
-Creating a new ppufile works almost the same as writing. First you need
-to init the object and call create:
+Creating a new ppufile works almost the same as reading one. 
+First you need to init the object and call create:
 \begin{verbatim}
-  ppufile:=new(pppufile,'output.ppu');
+  ppufile:=new(pppufile,init('output.ppu'));
   ppufile.create;
 \end{verbatim}
 
@@ -4116,8 +4204,9 @@ Extra functions/variables available for writing are:
 ppufile.NewHeader;
 ppufile.NewEntry;
 \end{verbatim}
-This will give you a clean header or entry. Normally called automatically
-in \var{ppufile.writeentry}, so you can't forget it.
+This will give you a clean header or entry. Normally this is called
+automatically in \var{ppufile.writeentry}, so there should be no need to
+call these methods.
 \begin{verbatim}
 ppufile.flush;
 \end{verbatim}
@@ -4243,7 +4332,7 @@ this mode is selected by the \var{-Sd} switch.
 \begin{enumerate}
 \item You can not use the address operator to assign procedural variables.
 \item A forward declaration must not be repeated exactly the same by the
-implementation of a function/procedure. In particular, you can not omit the
+implementation of a function/procedure. In particular, you not omit the
 parameters when implementing the function or procedure.
 \item Overloading of functions is not allowed.
 \item Nested comments are not  allowed.
