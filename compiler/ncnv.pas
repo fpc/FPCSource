@@ -1193,9 +1193,9 @@ implementation
           te_convert_operator :
             begin
               include(current_procinfo.flags,pi_do_call);
-              inc(overloaded_operators[_assignment].refs);
+              inc(aprocdef.procsym.refs);
               hp:=ccallnode.create(ccallparanode.create(left,nil),
-                                   overloaded_operators[_assignment],nil,nil);
+                                   Tprocsym(aprocdef.procsym),nil,nil);
               { tell explicitly which def we must use !! (PM) }
               tcallnode(hp).procdefinition:=aprocdef;
               left:=nil;
@@ -2405,7 +2405,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.136  2004-02-03 22:32:54  peter
+  Revision 1.137  2004-02-04 22:15:15  daniel
+    * Rtti generation moved to ncgutil
+    * Assmtai usage of symsym removed
+    * operator overloading cleanup up
+
+  Revision 1.136  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

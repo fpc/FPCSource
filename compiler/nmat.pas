@@ -88,7 +88,7 @@ implementation
       systems,tokens,
       verbose,globals,cutils,
       globtype,
-      symconst,symtype,symtable,symdef,defutil,
+      symconst,symtype,symtable,symdef,symsym,defutil,
       htypechk,pass_1,cpubase,
       cgbase,procinfo,
       ncon,ncnv,ncal,nadd;
@@ -589,14 +589,12 @@ implementation
            end
          else
            begin
-              minusdef:=nil;
-              if assigned(overloaded_operators[_minus]) then
-                minusdef:=overloaded_operators[_minus].search_procdef_unary_operator(left.resulttype.def);
+              minusdef:=search_unary_operator(_minus,left.resulttype.def);
               if assigned(minusdef) then
                 begin
-                  inc(overloaded_operators[_minus].refs);
+                  inc(minusdef.procsym.refs);
                   t:=ccallnode.create(ccallparanode.create(left,nil),
-                                      overloaded_operators[_minus],nil,nil);
+                                      Tprocsym(minusdef.procsym),nil,nil);
                   left:=nil;
                   result:=t;
                   exit;
@@ -770,14 +768,12 @@ implementation
              end
          else
            begin
-              notdef:=nil;
-              if assigned(overloaded_operators[_op_not]) then
-                notdef:=overloaded_operators[_op_not].search_procdef_unary_operator(left.resulttype.def);
-              if notdef<>nil then
+              notdef:=search_unary_operator(_op_not,left.resulttype.def);
+              if assigned(notdef) then
                 begin
-                  inc(overloaded_operators[_op_not].refs);
+                  inc(notdef.procsym.refs);
                   t:=ccallnode.create(ccallparanode.create(left,nil),
-                                      overloaded_operators[_op_not],nil,nil);
+                                      Tprocsym(notdef.procsym),nil,nil);
                   left:=nil;
                   result:=t;
                   exit;
@@ -866,7 +862,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2004-02-04 19:22:27  peter
+  Revision 1.58  2004-02-04 22:15:15  daniel
+    * Rtti generation moved to ncgutil
+    * Assmtai usage of symsym removed
+    * operator overloading cleanup up
+
+  Revision 1.57  2004/02/04 19:22:27  peter
   *** empty log message ***
 
   Revision 1.56  2004/02/03 22:32:54  peter

@@ -318,7 +318,6 @@ implementation
           olddefaultsymtablestack,
           oldsymtablestack : tsymtable;
           oldaktprocsym    : tprocsym;
-          oldoverloaded_operators : toverloaded_operators;
         { cg }
           oldparse_only  : boolean;
         { asmlists }
@@ -384,7 +383,6 @@ implementation
             oldrefsymtable:=refsymtable;
             oldcurrent_procinfo:=current_procinfo;
             oldaktdefproccall:=aktdefproccall;
-            move(overloaded_operators,oldoverloaded_operators,sizeof(toverloaded_operators));
           { save scanner state }
             oldc:=c;
             oldpattern:=pattern;
@@ -450,7 +448,6 @@ implementation
          aktexceptblock:=0;
          exceptblockcounter:=0;
          aktmaxfpuregisters:=-1;
-         fillchar(overloaded_operators,sizeof(toverloaded_operators),0);
        { reset the unit or create a new program }
          if not assigned(current_module) then
           begin
@@ -605,7 +602,6 @@ implementation
                  defaultsymtablestack:=olddefaultsymtablestack;
                  aktdefproccall:=oldaktdefproccall;
                  current_procinfo:=oldcurrent_procinfo;
-                 move(oldoverloaded_operators,overloaded_operators,sizeof(toverloaded_operators));
                  aktsourcecodepage:=oldsourcecodepage;
                  aktlocalswitches:=oldaktlocalswitches;
                  aktmoduleswitches:=oldaktmoduleswitches;
@@ -695,7 +691,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2004-01-28 22:16:31  peter
+  Revision 1.60  2004-02-04 22:15:15  daniel
+    * Rtti generation moved to ncgutil
+    * Assmtai usage of symsym removed
+    * operator overloading cleanup up
+
+  Revision 1.59  2004/01/28 22:16:31  peter
     * more record alignment fixes
 
   Revision 1.58  2003/10/29 21:02:51  peter

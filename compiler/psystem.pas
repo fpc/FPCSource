@@ -44,7 +44,7 @@ implementation
     uses
       globals,globtype,
       symconst,symtype,symsym,symdef,symtable,
-      aasmtai,aasmcpu,
+      aasmtai,aasmcpu,ncgutil,
 {$ifdef GDB}
       gdb,
 {$endif GDB}
@@ -488,7 +488,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2004-02-03 22:32:54  peter
+  Revision 1.62  2004-02-04 22:15:15  daniel
+    * Rtti generation moved to ncgutil
+    * Assmtai usage of symsym removed
+    * operator overloading cleanup up
+
+  Revision 1.61  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

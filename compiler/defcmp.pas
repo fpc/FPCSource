@@ -95,8 +95,6 @@ interface
       to use on other types }
     function is_subequal(def1, def2: tdef): boolean;
 
-    function assignment_overloaded(from_def,to_def : tdef) : tprocdef;
-
      {# true, if two parameter lists are equal
       if acp is cp_none, all have to match exactly
       if acp is cp_value_equal_const call by value
@@ -121,15 +119,6 @@ implementation
       verbose,systems,
       symtable,symsym,
       defutil,symutil;
-
-
-    function assignment_overloaded(from_def,to_def:tdef):tprocdef;
-      begin
-        if assigned(overloaded_operators[_ASSIGNMENT]) then
-          assignment_overloaded:=overloaded_operators[_ASSIGNMENT].search_procdef_assignment_operator(from_def,to_def)
-        else
-          assignment_overloaded:=nil;
-      end;
 
 
     function compare_defs_ext(def_from,def_to : tdef;
@@ -1029,7 +1018,7 @@ implementation
            ((def_from.deftype in [objectdef,recorddef,arraydef,stringdef,variantdef]) or
             (def_to.deftype in [objectdef,recorddef,arraydef,stringdef,variantdef])) then
           begin
-            operatorpd:=assignment_overloaded(def_from,def_to);
+            operatorpd:=search_assignment_operator(def_from,def_to);
             if assigned(operatorpd) then
              eq:=te_convert_operator;
           end;
@@ -1263,7 +1252,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2004-01-31 14:50:54  peter
+  Revision 1.44  2004-02-04 22:15:15  daniel
+    * Rtti generation moved to ncgutil
+    * Assmtai usage of symsym removed
+    * operator overloading cleanup up
+
+  Revision 1.43  2004/01/31 14:50:54  peter
     * prefere tobject-tobject over tobject-pointer
 
   Revision 1.42  2004/01/14 21:44:16  peter

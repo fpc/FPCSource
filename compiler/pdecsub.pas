@@ -694,18 +694,9 @@ implementation
              operation }
            if (potype=potype_operator) then
              begin
-               { is the current overload sym already in the current unit }
-               if assigned(overloaded_operators[optoken]) and
-                  (overloaded_operators[optoken].owner=symtablestack) then
-                 aprocsym:=overloaded_operators[optoken]
-               else
-                 begin
-                   { create the procsym with saving the original case }
-                   aprocsym:=tprocsym.create('$'+sp);
-                   if assigned(overloaded_operators[optoken]) then
-                     overloaded_operators[optoken].concat_procdefs_to(aprocsym);
-                   overloaded_operators[optoken]:=aprocsym;
-                 end;
+               Aprocsym:=Tprocsym(symtablestack.search(sp));
+               if Aprocsym=nil then
+                 Aprocsym:=tprocsym.create('$'+sp);
              end
             else
              aprocsym:=tprocsym.create(orgsp);
@@ -2149,7 +2140,12 @@ const
 end.
 {
   $Log$
-  Revision 1.158  2004-02-03 22:32:54  peter
+  Revision 1.159  2004-02-04 22:15:15  daniel
+    * Rtti generation moved to ncgutil
+    * Assmtai usage of symsym removed
+    * operator overloading cleanup up
+
+  Revision 1.158  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

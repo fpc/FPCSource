@@ -411,31 +411,19 @@ implementation
                 else
                   exit;
              end;
-             { check if the operator contains overloaded procdefs }
-             if overloaded_operators[optoken]=nil then
+             operpd:=search_binary_operator(optoken,ld,rd);
+             if operpd=nil then
                begin
-                  CGMessage(parser_e_operator_not_overloaded);
-                  isbinaryoverloaded:=false;
-                  exit;
+                 CGMessage(parser_e_operator_not_overloaded);
+                 isbinaryoverloaded:=false;
+                 exit;
                end;
-
-             { Check if the assignment is available, if not then
-               give a message that the types are not compatible }
-             if optoken in [_EQUAL] then
-              begin
-                operpd:=overloaded_operators[optoken].search_procdef_binary_operator(ld,rd);
-                if not assigned(operpd) then
-                 begin
-                   IncompatibleTypes(ld,rd);
-                   isbinaryoverloaded:=false;
-                   exit;
-                 end;
-               end;
+             inc(operpd.procsym.refs);
 
              { the nil as symtable signs firstcalln that this is
                an overloaded operator }
-             inc(overloaded_operators[optoken].refs);
-             ht:=ccallnode.create(nil,overloaded_operators[optoken],nil,nil);
+             ht:=ccallnode.create(nil,Tprocsym(operpd.procsym),nil,nil);
+
              { we already know the procdef to use for equal, so it can
                skip the overload choosing in callnode.det_resulttype }
              if assigned(operpd) then
@@ -941,7 +929,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2004-02-03 22:32:53  peter
+  Revision 1.77  2004-02-04 22:15:15  daniel
+    * Rtti generation moved to ncgutil
+    * Assmtai usage of symsym removed
+    * operator overloading cleanup up
+
+  Revision 1.76  2004/02/03 22:32:53  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

@@ -82,7 +82,6 @@ interface
           procedure checklabels;
           function  needs_init_final : boolean;
           procedure unchain_overloaded;
-          procedure chainoperators;
 {$ifdef GDB}
           procedure concatstabto(asmlist : taasmoutput);virtual;
           function  getnewtypecount : word; override;
@@ -209,6 +208,9 @@ interface
     function  searchsystype(const s: stringid; var srsym: ttypesym): boolean;
     function  searchsysvar(const s: stringid; var srsym: tvarsym; var symowner: tsymtable): boolean;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
+    function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
+    function  search_unary_operator(op:Ttoken;def:Tdef):Tprocdef;
+    function  search_binary_operator(op:Ttoken;def1,def2:Tdef):Tprocdef;
 
 {*** Object Helpers ***}
     procedure search_class_overloads(aprocsym : tprocsym);
@@ -239,11 +241,6 @@ interface
     procedure InitSymtable;
     procedure DoneSymtable;
 
-    type
-       toverloaded_operators = array[NOTOKEN..last_overloaded] of tprocsym;
-    var
-       overloaded_operators : toverloaded_operators;
-       { unequal is not equal}
     const
        overloaded_names : array [NOTOKEN..last_overloaded] of string[16] =
          ('error',
@@ -871,59 +868,6 @@ implementation
          inc(pglobaltypecount^);
       end;
 {$endif GDB}
-
-
-    procedure tstoredsymtable.chainoperators;
-      var
-        t : ttoken;
-        srsym : tsym;
-        srsymtable,
-        storesymtablestack : tsymtable;
-      begin
-         storesymtablestack:=symtablestack;
-         symtablestack:=self;
-         make_ref:=false;
-         for t:=first_overloaded to last_overloaded do
-           begin
-              overloaded_operators[t]:=nil;
-              { each operator has a unique lowercased internal name PM }
-              while assigned(symtablestack) do
-                begin
-                  searchsym(overloaded_names[t],srsym,srsymtable);
-                  if not assigned(srsym) then
-                   begin
-                     if (t=_STARSTAR) then
-                      begin
-                        symtablestack:=systemunit;
-                        searchsym('POWER',srsym,srsymtable);
-                      end;
-                   end;
-                  if assigned(srsym) then
-                    begin
-                       if (srsym.typ<>procsym) then
-                         internalerror(12344321);
-                       { remove all previous chains }
-                       tprocsym(srsym).unchain_overload;
-                       { use this procsym as start ? }
-                       if not assigned(overloaded_operators[t]) then
-                          overloaded_operators[t]:=tprocsym(srsym)
-                       else
-                          { already got a procsym, only add defs defined in the
-                            unit of the current procsym }
-                          Tprocsym(srsym).concat_procdefs_to(overloaded_operators[t]);
-                       symtablestack:=srsym.owner.next;
-                    end
-                  else
-                    begin
-                      symtablestack:=nil;
-                    end;
-                  { search for same procsym in other units }
-                end;
-              symtablestack:=self;
-           end;
-         make_ref:=true;
-         symtablestack:=storesymtablestack;
-      end;
 
 
 {***********************************************
@@ -2075,6 +2019,80 @@ implementation
       end;
 
 
+    function search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
+
+    var st:Tsymtable;
+        sym:Tprocsym;
+        sv:cardinal;
+
+    begin
+      st:=symtablestack;
+      sv:=getspeedvalue('assign');
+      while st<>nil do
+        begin
+          sym:=Tprocsym(st.speedsearch('assign',sv));
+          if sym<>nil then
+            begin
+              if sym.typ<>procsym then
+                internalerror(200402031);
+              search_assignment_operator:=sym.search_procdef_assignment_operator(from_def,to_def);
+              if search_assignment_operator<>nil then
+                break;
+            end;
+          st:=st.next;
+        end;
+    end;
+
+    function search_unary_operator(op:Ttoken;def:Tdef):Tprocdef;
+
+    var st:Tsymtable;
+        sym:Tprocsym;
+        sv:cardinal;
+
+    begin
+      st:=symtablestack;
+      sv:=getspeedvalue(overloaded_names[op]);
+      while st<>nil do
+        begin
+          sym:=Tprocsym(st.speedsearch(overloaded_names[op],sv));
+          if sym<>nil then
+            begin
+              if sym.typ<>procsym then
+                internalerror(200402031);
+              search_unary_operator:=sym.search_procdef_unary_operator(def);
+              if search_unary_operator<>nil then
+                break;
+            end;
+          st:=st.next;
+        end;
+    end;
+
+
+    function search_binary_operator(op:Ttoken;def1,def2:Tdef):Tprocdef;
+
+    var st:Tsymtable;
+        sym:Tprocsym;
+        sv:cardinal;
+
+    begin
+      st:=symtablestack;
+      sv:=getspeedvalue(overloaded_names[op]);
+      while st<>nil do
+        begin
+          sym:=Tprocsym(st.speedsearch(overloaded_names[op],sv));
+          if sym<>nil then
+            begin
+              if sym.typ<>procsym then
+                internalerror(200402031);
+              search_binary_operator:=sym.search_procdef_binary_operator(def1,def2);
+              if search_binary_operator<>nil then
+                break;
+            end;
+          st:=st.next;
+        end;
+    end;
+
+
     function searchsystype(const s: stringid; var srsym: ttypesym): boolean;
       var
         symowner: tsymtable;
@@ -2346,8 +2364,6 @@ implementation
         { unit aliases }
         unitaliases:=tdictionary.create;
 {$endif}
-        for token:=first_overloaded to last_overloaded do
-         overloaded_operators[token]:=nil;
      end;
 
 
@@ -2364,7 +2380,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.133  2004-01-31 22:48:31  daniel
+  Revision 1.134  2004-02-04 22:15:16  daniel
+    * Rtti generation moved to ncgutil
+    * Assmtai usage of symsym removed
+    * operator overloading cleanup up
+
+  Revision 1.133  2004/01/31 22:48:31  daniel
     * Fix stabs generation problem reported by Jonas
 
   Revision 1.132  2004/01/31 18:40:15  daniel

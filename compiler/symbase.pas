@@ -43,7 +43,7 @@ interface
        indexgrowsize    = 64;
 
 {$ifdef GDB}
-       memsizeinc = 2048; { for long stabstrings }
+       memsizeinc = 4096; { for long stabstrings }
 {$endif GDB}
 
 
@@ -334,7 +334,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2004-01-15 15:16:18  daniel
+  Revision 1.19  2004-02-04 22:15:15  daniel
+    * Rtti generation moved to ncgutil
+    * Assmtai usage of symsym removed
+    * operator overloading cleanup up
+
+  Revision 1.18  2004/01/15 15:16:18  daniel
     * Some minor stuff
     * Managed to eliminate speed effects of string compression
 

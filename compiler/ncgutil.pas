@@ -98,6 +98,10 @@ interface
     procedure gen_alloc_inline_parast(list:TAAsmoutput;st:tparasymtable);
     procedure gen_free_parast(list:TAAsmoutput;st:tparasymtable);
 
+    { rtti and init/final }
+    procedure generate_rtti(p:Ttypesym);
+    procedure generate_inittable(p:tsym);
+
 
 implementation
 
@@ -2108,10 +2112,88 @@ implementation
       end;
 
 
+    { persistent rtti generation }
+    procedure generate_rtti(p:Ttypesym);
+      var
+        rsym : trttisym;
+        def  : tstoreddef;
+      begin
+        { rtti can only be generated for classes that are always typesyms }
+        def:=tstoreddef(ttypesym(p).restype.def);
+        { there is an error, skip rtti info }
+        if def.deftype=errordef then
+          exit;
+        { only create rtti once for each definition }
+        if not(df_has_rttitable in def.defoptions) then
+         begin
+           { definition should be in the same symtable as the symbol }
+           if p.owner<>def.owner then
+            internalerror(200108262);
+           { create rttisym }
+           rsym:=trttisym.create(p.name,fullrtti);
+           p.owner.insert(rsym);
+           { register rttisym in definition }
+           include(def.defoptions,df_has_rttitable);
+           def.rttitablesym:=rsym;
+           { write rtti data }
+           def.write_child_rtti_data(fullrtti);
+           if (cs_create_smart in aktmoduleswitches) then
+            rttiList.concat(Tai_cut.Create);
+           rttilist.concat(tai_align.create(const_align(pointer_size)));
+           rttiList.concat(Tai_symbol.Create_global(rsym.get_label,0));
+           def.write_rtti_data(fullrtti);
+           rttiList.concat(Tai_symbol_end.Create(rsym.get_label));
+         end;
+      end;
+
+
+    { persistent init table generation }
+    procedure generate_inittable(p:tsym);
+      var
+        rsym : trttisym;
+        def  : tstoreddef;
+      begin
+        { anonymous types are also allowed for records that can be varsym }
+        case p.typ of
+          typesym :
+            def:=tstoreddef(ttypesym(p).restype.def);
+          varsym :
+            def:=tstoreddef(tvarsym(p).vartype.def);
+          else
+            internalerror(200108263);
+        end;
+        { only create inittable once for each definition }
+        if not(df_has_inittable in def.defoptions) then
+         begin
+           { definition should be in the same symtable as the symbol }
+           if p.owner<>def.owner then
+            internalerror(200108264);
+           { create rttisym }
+           rsym:=trttisym.create(p.name,initrtti);
+           p.owner.insert(rsym);
+           { register rttisym in definition }
+           include(def.defoptions,df_has_inittable);
+           def.inittablesym:=rsym;
+           { write inittable data }
+           def.write_child_rtti_data(initrtti);
+           if (cs_create_smart in aktmoduleswitches) then
+            rttiList.concat(Tai_cut.Create);
+           rttilist.concat(tai_align.create(const_align(pointer_size)));
+           rttiList.concat(Tai_symbol.Create_global(rsym.get_label,0));
+           def.write_rtti_data(initrtti);
+           rttiList.concat(Tai_symbol_end.Create(rsym.get_label));
+         end;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.188  2004-02-04 22:01:13  peter
+  Revision 1.189  2004-02-04 22:15:15  daniel
+    * Rtti generation moved to ncgutil
+    * Assmtai usage of symsym removed
+    * operator overloading cleanup up
+
+  Revision 1.188  2004/02/04 22:01:13  peter
     * first try to get cpupara working for x86_64
 
   Revision 1.187  2004/02/03 22:32:54  peter

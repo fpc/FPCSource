@@ -994,8 +994,6 @@ implementation
          unitst.next:=symtablestack;
          symtablestack:=unitst;
 
-         tstoredsymtable(symtablestack).chainoperators;
-
 {$ifdef DEBUG}
          test_symtablestack;
 {$endif DEBUG}
@@ -1278,8 +1276,6 @@ implementation
          if token=_USES then
            loadunits;
 
-         tstoredsymtable(symtablestack).chainoperators;
-
          { reset ranges/stabs in exported definitions }
          reset_global_defs;
 
@@ -1442,7 +1438,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.137  2004-01-28 16:48:24  peter
+  Revision 1.138  2004-02-04 22:15:15  daniel
+    * Rtti generation moved to ncgutil
+    * Assmtai usage of symsym removed
+    * operator overloading cleanup up
+
+  Revision 1.137  2004/01/28 16:48:24  peter
   use local string of 8 chars
 
   Revision 1.136  2004/01/04 21:08:09  jonas
