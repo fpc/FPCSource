@@ -33,7 +33,11 @@ begin
   dbl1 := -1e-128;
   comp1 := comp(dbl1);
   str(comp1,s);
+{$ifdef cpui386}
   if s<>'-6.53142228756617E+0018' then
+{$else cpui386}
+  if s<>'-6531422287566170215' then
+{$endif cpui386}
     begin
       writeln('error');
       halt(1);
