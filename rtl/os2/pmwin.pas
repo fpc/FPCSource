@@ -2349,7 +2349,9 @@ const
     function WinInitialize(flOptions : cardinal) : cardinal; cdecl;
     function WinTerminate(hab : cardinal) : longbool; cdecl;
     function WinQueryAnchorBlock(hwnd : cardinal) : cardinal; cdecl;
-    function WinCreateWindow(hwndParent : cardinal;pszClass,pszName : pchar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;var pCtlData,pPresParams : pointer) : cardinal; cdecl;
+    function WinCreateWindow(hwndParent : cardinal;pszClass,pszName : pchar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;
+    function WinCreateWindow(hwndParent : cardinal;pszClass : cardinal;pszName : pchar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;
+    function WinCreateWCWindow(hwndParent : cardinal;pszClass : cardinal;pszName : pchar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;
     function WinEnableWindow(hwnd : cardinal;fEnable : longbool) : longbool; cdecl;
     function WinIsWindowEnabled(hwnd : cardinal) : longbool; cdecl;
     function WinEnableWindowUpdate(hwnd : cardinal;fEnable : longbool) : longbool; cdecl;
@@ -2666,7 +2668,9 @@ const
     function WinInitialize(flOptions : cardinal) : cardinal; cdecl;external 'pmwin' index 763;
     function WinTerminate(hab : cardinal) : longbool; cdecl;external 'pmwin' index 888;
     function WinQueryAnchorBlock(hwnd : cardinal) : cardinal; cdecl;external 'pmwin' index 800;
-    function WinCreateWindow(hwndParent : cardinal;pszClass,pszName : pchar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;var pCtlData,pPresParams : pointer) : cardinal; cdecl;external 'pmwin' index 909;
+    function WinCreateWindow(hwndParent : cardinal;pszClass,pszName : pchar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;external 'pmwin' index 909;
+    function WinCreateWindow(hwndParent : cardinal;pszClass : cardinal;pszName : pchar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;external 'pmwin' index 909;
+    function WinCreateWCWindow(hwndParent : cardinal;pszClass : cardinal;pszName : pchar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;external 'pmwin' index 909;
     function WinEnableWindow(hwnd : cardinal;fEnable : longbool) : longbool; cdecl;external 'pmwin' index 735;
     function WinIsWindowEnabled(hwnd : cardinal) : longbool; cdecl;external 'pmwin' index 773;
     function WinEnableWindowUpdate(hwnd : cardinal;fEnable : longbool) : longbool; cdecl;external 'pmwin' index 736;
@@ -2969,7 +2973,10 @@ const
 end.
 {
   $Log$
-  Revision 1.6  2002-10-05 19:12:55  hajny
+  Revision 1.7  2002-11-11 20:55:22  hajny
+    * WinCreateWindow correction + overloaded variant added
+
+  Revision 1.6  2002/10/05 19:12:55  hajny
     * PMERR constants made available from outside
 
   Revision 1.5  2002/09/07 16:01:25  peter
