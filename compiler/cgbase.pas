@@ -39,7 +39,7 @@ unit cgbase;
 
 
     const
-       TCGSize2Size: Array[tcgsize] of longint = (0,
+       tcgsize2size: Array[tcgsize] of longint = (0,
           8,16,32,64,8,16,32,64,
           32,64,80,64,
           8,16,32,64,128,8,16,32,64,128);
@@ -52,60 +52,61 @@ unit cgbase;
 
 
     const
-       pi_uses_asm  = $1;       { set, if the procedure uses asm }
-       pi_is_global = $2;       { set, if the procedure is exported by an unit }
-       pi_do_call   = $4;       { set, if the procedure does a call }
-       pi_operator  = $8;       { set, if the procedure is an operator   }
-       pi_C_import  = $10;      { set, if the procedure is an external C function }
-       pi_uses_exceptions = $20;{ set, if the procedure has a try statement => }
-                                { no register variables                 }
-       pi_is_assembler = $40;   { set if the procedure is declared as ASSEMBLER
-                                  => don't optimize}
-       pi_needs_implicit_finally = $80; { set, if the procedure contains data which }
-                                        { needs to be finalized              }
+       {# bitmask indicating if the procedure uses asm }
+       pi_uses_asm  = $1;       
+       {# bitmask indicating if the procedure is exported by an unit }
+       pi_is_global = $2;       
+       {# bitmask indicating if the procedure does a call }
+       pi_do_call   = $4;       
+       {# bitmask indicating if the procedure is an operator   }
+       pi_operator  = $8;       
+       {# bitmask indicating if the procedure is an external C function }
+       pi_c_import  = $10;      
+       {# bitmask indicating if the procedure has a try statement = no register optimization }
+       pi_uses_exceptions = $20;
+       {# bitmask indicating if the procedure is declared as @var(assembler), don't optimize}
+       pi_is_assembler = $40;   
+       {# bitmask indicating if the procedure contains data which needs to be finalized }
+       pi_needs_implicit_finally = $80; 
 
     type
        pprocinfo = ^tprocinfo;
        tprocinfo = object
-          { pointer to parent in nested procedures }
+          {# pointer to parent in nested procedures }
           parent : pprocinfo;
-          { current class, if we are in a method }
+          {# current class, if we are in a method }
           _class : tobjectdef;
-          { the definition of the proc itself }
+          {# the definition of the routine itself }
           procdef : tprocdef;
-
-          { frame pointer offset }
+          {# frame pointer offset??? }
           framepointer_offset : longint;
-          { self pointer offset }
+          { self pointer offset???? }
           selfpointer_offset : longint;
-          { result value offset }
+          {# result value offset in stack (functions only) }
           return_offset : longint;
-          { firsttemp position }
+          {# firsttemp position }
           firsttemp_offset : longint;
-          { parameter offset }
+          {# parameter offset in stack }
           para_offset : longint;
 
-          { some collected informations about the procedure }
-          { see pi_xxxx above                          }
+          {# some collected informations about the procedure 
+             see pi_xxxx above                               }
           flags : longint;
 
-          { register used as frame pointer }
+          {# register used as frame pointer }
           framepointer : tregister;
 
-          { true, if the procedure is exported by an unit }
+          {# true, if the procedure is exported by a unit }
           globalsymbol : boolean;
 
-          { true, if the procedure should be exported (only OS/2) }
+          {# true, if the procedure should be exported (only OS/2) }
           exported : boolean;
 
-          { true, if we can not use fast exit code }
+          {# true, if we can not use fast exit code }
           no_fast_exit : boolean;
 
-          { code for the current procedure }
           aktproccode,aktentrycode,
           aktexitcode,aktlocaldata : taasmoutput;
-          { local data is used for smartlink }
-
           constructor init;
           destructor done;
        end;
@@ -123,7 +124,7 @@ unit cgbase;
 
 
     var
-       { info about the current sub routine }
+       {# information about the current sub routine being parsed (@var(pprocinfo))}
        procinfo : pprocinfo;
 
        { labels for BREAK and CONTINUE }
@@ -141,16 +142,12 @@ unit cgbase;
        { only used in constructor for fail or if getmem fails }
        faillabel,quickexitlabel : tasmlabel;
 
-       { Boolean, wenn eine loadn kein Assembler erzeugt hat }
-       simple_loadn : boolean;
-
-       { true, if an error while code generation occurs }
+       {# true, if there was an error while code generation occurs }
        codegenerror : boolean;
 
        { save the size of pushed parameter, needed for aligning }
        pushedparasize : longint;
 
-       make_const_global : boolean;
 
     { message calls with codegenerror support }
     procedure cgmessage(t : longint);
@@ -169,13 +166,15 @@ unit cgbase;
     procedure codegen_newmodule;
     procedure codegen_newprocedure;
 
+    {# From a definition return the abstract code generator size (@var(tcgsize) enum). It is
+       to note that the value returned can be @var(OS_NO) }
     function def_cgsize(def: tdef): tcgsize;
     function int_cgsize(const l: aword): tcgsize;
 
-    { return the inverse condition of opcmp }
+    {# return the inverse condition of opcmp }
     function inverse_opcmp(opcmp: topcmp): topcmp;
 
-    { return whether op is commutative }
+    {# return whether op is commutative }
     function commutativeop(op: topcg): boolean;
 
 
@@ -530,7 +529,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-04-04 19:05:54  peter
+  Revision 1.10  2002-04-07 09:13:39  carl
+  + documentation
+  - remove unused variables
+
+  Revision 1.9  2002/04/04 19:05:54  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
