@@ -182,7 +182,7 @@ end;
 
 procedure WriteComment(node: TDOMNode);
 begin
-  Write('<!--', node.NodeValue, '-->');
+  wrtln('<!--' + node.NodeValue + '-->');
 end;
 
 procedure WriteDocument(node: TDOMNode);
@@ -262,7 +262,11 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-01-07 01:24:34  peter
+  Revision 1.7  2000-04-20 14:15:45  sg
+  * Minor bugfixes
+  * Started support for DOM level 2
+
+  Revision 1.6  2000/01/07 01:24:34  peter
     * updated copyright to 2000
 
   Revision 1.5  2000/01/06 01:20:37  peter

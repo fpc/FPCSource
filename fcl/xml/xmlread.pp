@@ -17,11 +17,11 @@
 {$MODE objfpc}
 {$H+}
 
-unit xmlread;
+unit XMLRead;
 
 interface
 
-uses sysutils, classes, DOM;
+uses SysUtils, Classes, DOM;
 
 type
 
@@ -57,6 +57,18 @@ const
 
 type
 
+  TXMLReaderDocument = class(TXMLDocument)
+  public
+    procedure SetDocType(ADocType: TDOMDocumentType);
+  end;
+
+  TXMLReaderDocumentType = class(TDOMDocumentType)
+  public
+    constructor Create(ADocument: TXMLReaderDocument);
+    property Name: DOMString read FNodeName write FNodeName;
+  end;
+
+
   TSetOfChar = set of Char;
 
   TXMLReader = class
@@ -91,10 +103,23 @@ type
     procedure ExpectExternalID;
     function  ParseEncodingDecl: String;                                // [80]
   public
-    doc: TXMLDocument;
+    doc: TXMLReaderDocument;
     procedure ProcessXML(ABuf: PChar; AFilename: String);  // [1]
     procedure ProcessDTD(ABuf: PChar; AFilename: String);  // ([29])
   end;
+
+
+
+procedure TXMLReaderDocument.SetDocType(ADocType: TDOMDocumentType);
+begin
+  FDocType := ADocType;
+end;
+
+
+constructor TXMLReaderDocumentType.Create(ADocument: TXMLReaderDocument);
+begin
+  inherited Create(ADocument);
+end;
 
 
 
@@ -182,7 +207,7 @@ begin
   BufStart := ABuf;
   Filename := AFilename;
 
-  doc := TXMLDocument.Create;
+  doc := TXMLReaderDocument.Create;
   ExpectProlog;
   LastNodeBeforeDoc := doc.LastChild;
   ExpectElement(doc);
@@ -310,19 +335,34 @@ procedure TXMLReader.ExpectProlog;    // [22]
       GetString(['a'..'z', 'A'..'Z', '0'..'9', '_', '.', ':', '-']);
   end;
 
+  procedure ParseDoctypeDecls;
+  begin
+    repeat
+        SkipWhitespace;
+    until not (ParseMarkupDecl or ParsePEReference);
+    ExpectString(']');
+  end;
+
+
+var
+  DocType: TXMLReaderDocumentType;
+
 begin
-  if CheckFor('<?xml') then begin
+  if CheckFor('<?xml') then
+  begin
     // '<?xml' VersionInfo EncodingDecl? SDDecl? S? '?>'
 
     // VersionInfo: S 'version' Eq (' VersionNum ' | " VersionNum ")
     SkipWhitespace;
     ExpectString('version');
     ParseEq;
-    if buf[0] = '''' then begin
+    if buf[0] = '''' then
+    begin
       Inc(buf);
       ParseVersionNum;
       ExpectString('''');
-    end else if buf[0] = '"' then begin
+    end else if buf[0] = '"' then
+    begin
       Inc(buf);
       ParseVersionNum;
       ExpectString('"');
@@ -334,13 +374,16 @@ begin
 
     // SDDecl?
     SkipWhitespace;
-    if CheckFor('standalone') then begin
+    if CheckFor('standalone') then
+    begin
       ExpectEq;
-      if buf[0] = '''' then begin
+      if buf[0] = '''' then
+      begin
         Inc(buf);
         if not (CheckFor('yes''') or CheckFor('no''')) then
           RaiseExc('Expected ''yes'' or ''no''');
-      end else if buf[0] = '''' then begin
+      end else if buf[0] = '''' then
+      begin
         Inc(buf);
         if not (CheckFor('yes"') or CheckFor('no"')) then
           RaiseExc('Expected "yes" or "no"');
@@ -355,23 +398,31 @@ begin
   ParseMisc(doc);
 
   // Check for "(doctypedecl Misc*)?"    [28]
-  if CheckFor('<!DOCTYPE') then begin
+  if CheckFor('<!DOCTYPE') then
+  begin
+    DocType := TXMLReaderDocumentType.Create(doc);
+    doc.SetDocType(DocType);
     SkipWhitespace;
-    ExpectName;
+    DocType.Name := ExpectName;
     SkipWhitespace;
-    ParseExternalID;
-    SkipWhitespace;
-    if CheckFor('[') then begin
-      repeat
-        SkipWhitespace;
-      until not (ParseMarkupDecl or ParsePEReference);
-      ExpectString(']');
+    if CheckFor('[') then
+    begin
+      ParseDoctypeDecls;
       SkipWhitespace;
+      ExpectString('>');
+    end else if not CheckFor('>') then
+    begin
+      ParseExternalID;
+      SkipWhitespace;
+      if CheckFor('[') then
+      begin
+        ParseDoctypeDecls;
+	SkipWhitespace;
+      end;
+      ExpectString('>');
     end;
-    ExpectString('>');
     ParseMisc(doc);
   end;
-
 end;
 
 function TXMLReader.ParseEq: Boolean;    // [25]
@@ -639,7 +690,7 @@ begin
   BufStart := ABuf;
   Filename := AFilename;
 
-  doc := TXMLDocument.Create;
+  doc := TXMLReaderDocument.Create;
   ParseMarkupDecl;
 
   {
@@ -769,10 +820,10 @@ begin
   end;
   if CheckFor('#') then begin    // Test for CharRef [66]
     if CheckFor('x') then begin
-      // *** there must be at leat one digit
+      // !!!: there must be at least one digit
       while buf[0] in ['0'..'9', 'a'..'f', 'A'..'F'] do Inc(buf);
     end else
-      // *** there must be at leat one digit
+      // !!!: there must be at least one digit
       while buf[0] in ['0'..'9'] do Inc(buf);
   end else
     AOwner.AppendChild(doc.CreateEntityReference(ExpectName));
@@ -980,7 +1031,11 @@ end.
 
 {
   $Log$
-  Revision 1.15  2000-02-13 10:03:31  sg
+  Revision 1.16  2000-04-20 14:15:45  sg
+  * Minor bugfixes
+  * Started support for DOM level 2
+
+  Revision 1.15  2000/02/13 10:03:31  sg
   * Hopefully final fix for TDOMDocument.DocumentElement:
     - Reading this property always delivers the first element in the document
     - Removed SetDocumentElement. Use "AppendChild" or one of the other
@@ -988,49 +1043,4 @@ end.
 
   Revision 1.14  2000/01/30 22:19:13  sg
   * Made some optimizations and cosmetic changes
-
-  Revision 1.13  2000/01/07 01:24:34  peter
-    * updated copyright to 2000
-
-  Revision 1.12  2000/01/06 01:20:37  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  2000/01/03 19:33:11  peter
-    * moved to packages dir
-
-  Revision 1.10  1999/12/22 13:39:55  sg
-  * Fixed parser bug: SetDocumentElement failed if the XML document contains
-    only a single element at the top hierarchy level
-  * Changed the error message if there is text after the end of the main
-    XML element
-
-  Revision 1.9  1999/12/05 22:02:11  sg
-  * The reader now sets the DocumentElement for a DOM document
-  * The XML parser raises an exception if there is additional data after
-    the end of the XML document element
-
-  Revision 1.8  1999/08/10 15:39:59  michael
-  * restored previous setting
-
-  Revision 1.6  1999/07/27 13:01:59  peter
-    * remove filerec.inc, it was missing from sysutils! You shouldn't need
-      to compile with -Irtl/inc !!
-
-  Revision 1.5  1999/07/25 16:24:14  michael
-  + Fixes from Sebastiam Guenther - more error-proof
-
-  Revision 1.4  1999/07/11 20:20:12  michael
-  + Fixes from Sebastian Guenther
-
-  Revision 1.3  1999/07/09 21:05:51  michael
-  + fixes from Guenther Sebastian
-
-  Revision 1.2  1999/07/09 10:42:50  michael
-  * Removed debug statements
-
-  Revision 1.1  1999/07/09 08:35:09  michael
-  + Initial implementation by Sebastian Guenther
-
 }
-
---------------ECFEA19D0E6E5FF5CDAF6681--)
