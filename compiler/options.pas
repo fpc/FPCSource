@@ -92,6 +92,7 @@ var
   asm_is_set  : boolean; { -T also change initoutputformat if not set idrectly }
   fpcdir,
   ppccfg,
+  ppcaltcfg,
   param_file    : string;   { file to compile specified on the commandline }
 
 {****************************************************************************
@@ -1384,27 +1385,20 @@ begin
    end
   else
    begin
-{$ifdef i386}
-     ppccfg:='ppc386.cfg';
-{$endif i386}
-{$ifdef ia64}
-     ppccfg:='ppcia64.cfg';
-{$endif ia64}
-{$ifdef m68k}
-     ppccfg:='ppc68k.cfg';
-{$endif}
-{$ifdef alpha}
-     ppccfg:='ppcalpha.cfg';
-{$endif}
-{$ifdef powerpc}
-     ppccfg:='ppcppc.cfg';
-{$endif}
+     ppcaltcfg:='ppc386.cfg';
+     ppccfg:='ppc.cfg';
    end;
 
-{ Order to read ppc386.cfg:
+{ Order to read configuration file :
+  try reading ppc386.cfg in :
    1 - current dir
    2 - configpath
-   3 - compiler path }
+   3 - compiler path
+  else try reading ppc.cfg in :
+   1 - current dir
+   2 - configpath
+   3 - compiler path
+}
 {$ifdef Delphi}
   configpath:=FixPath(dmisc.getenv('PPC_CONFIG_PATH'),false);
 {$else Delphi}
@@ -1417,26 +1411,51 @@ begin
   if ppccfg<>'' then
    begin
      read_configfile:=true;
-     if not FileExists(ppccfg) then
+     if not FileExists(ppcaltcfg) then
       begin
 {$ifdef Unix}
-        if (dos.getenv('HOME')<>'') and FileExists(FixPath(dos.getenv('HOME'),false)+'.'+ppccfg) then
-         ppccfg:=FixPath(dos.getenv('HOME'),false)+'.'+ppccfg
+        if (dos.getenv('HOME')<>'') and FileExists(FixPath(dos.getenv('HOME'),false)+'.'+ppcaltcfg) then
+         ppccfg:=FixPath(dos.getenv('HOME'),false)+'.'+ppcaltcfg
         else
 {$endif}
-         if FileExists(configpath+ppccfg) then
-          ppccfg:=configpath+ppccfg
+         if FileExists(configpath+ppcaltcfg) then
+          ppccfg:=configpath+ppcaltcfg
         else
 {$ifndef Unix}
-         if FileExists(exepath+ppccfg) then
-          ppccfg:=exepath+ppccfg
+         if FileExists(exepath+ppcaltcfg) then
+          ppccfg:=exepath+ppcaltcfg
         else
 {$endif}
          read_configfile:=false;
-      end;
+      end
+     else
+        ppccfg := ppcaltcfg;  { file is found, then set it to ppccfg }
+
+
+     if not read_configfile then
+      begin
+        read_configfile := true;
+        if not FileExists(ppccfg) then
+         begin
+    {$ifdef Unix}
+            if (dos.getenv('HOME')<>'') and FileExists(FixPath(dos.getenv('HOME'),false)+'.'+ppccfg) then
+             ppccfg:=FixPath(dos.getenv('HOME'),false)+'.'+ppccfg
+            else
+    {$endif}
+             if FileExists(configpath+ppccfg) then
+              ppccfg:=configpath+ppccfg
+            else
+    {$ifndef Unix}
+             if FileExists(exepath+ppccfg) then
+              ppccfg:=exepath+ppccfg
+            else
+    {$endif}
+             read_configfile:=false;
+         end;
+      end
    end
   else
-   read_configfile:=false;
+    read_configfile := false;
 
 { Read commandline and configfile }
   target_is_set:=false;
@@ -1626,7 +1645,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.61  2001-10-23 21:49:42  peter
+  Revision 1.62  2001-11-23 02:48:46  carl
+  + ppc.cfg is now configuration file for compiler.
+    (first tries loading ppc386.cfg for backward compatibility)
+
+  Revision 1.61  2001/10/23 21:49:42  peter
     * $calling directive and -Cc commandline patch added
       from Pavel Ozerski
 
