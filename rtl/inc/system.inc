@@ -461,6 +461,11 @@ begin
   random := longint((int64(cardinal(genrand_MT19937))*l) shr 32);
 end;
 
+function random(l:int64): int64;
+begin
+  random := longint((int64(cardinal(genrand_MT19937))*l) shr 32);
+end;
+
 function random: extended;
 begin
   random := cardinal(genrand_MT19937) * (1.0/(int64(1) shl 32));
@@ -876,7 +881,10 @@ end;
 
 {
   $Log$
-  Revision 1.54  2004-02-20 11:01:20  daniel
+  Revision 1.55  2004-04-22 17:10:38  peter
+    * random(int64) added
+
+  Revision 1.54  2004/02/20 11:01:20  daniel
     * Applied
 
   Revision 1.53  2004/02/06 20:17:13  daniel

@@ -423,6 +423,7 @@ Function  Swap (X:Int64):Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 Function  Random(l:cardinal):cardinal;
 Function  Random(l:longint):longint;
+Function  Random(l:int64):int64;
 Function  Random: extended;
 Procedure Randomize;
 
@@ -736,7 +737,10 @@ const
 
 {
   $Log$
-  Revision 1.87  2004-03-23 22:35:45  peter
+  Revision 1.88  2004-04-22 17:10:38  peter
+    * random(int64) added
+
+  Revision 1.87  2004/03/23 22:35:45  peter
     * new compiler has smallint,longint,word internal defined
 
   Revision 1.86  2004/02/20 22:15:16  florian
