@@ -1082,13 +1082,10 @@ by the code generator. Instead, internal run-time library routines
 are called to do the necessary calculations. In this case all
 real types are mapped to the single IEEE floating point type.
 
-\begin{remark}By default, emulation is on. It is possible to
-intermix emulation code with real floating point opcodes, as
-long as the only type used is single or real.
+\begin{remark}By default, emulation is on for non-unix targets. 
+For unix targets, floating point emulation (if required) is handled
+by the operating system, and by default it is off.
 \end{remark}
-
-Under \linux and most \unix'es, the kernel takes care of the
-coprocessor support.
 
 \subsection{\var{\$G} : Generate 80286 code}
 
@@ -6757,8 +6754,6 @@ ENDIAN\_LITTLE & Defined when the \fpc target is a little-endian processor \\
 & (80x86, Alpha, ARM). \\
 ENDIAN\_BIG & Defined when the \fpc target is a big-endian processor \\
 & (680x0, PowerPC, SPARC, MIPS). \\
-FPU\_EMULATION & Defined when the \fpc target uses floating-point software \\
-& emulation. \\
 FPC\_DELPHI & \fpc is in Delphi mode, either using compiler switch -Sd or \\
 & using the \var{\$MODE DELPHI} directive. \\
 FPC\_OBJFPC & \fpc is in Delphi mode, either using compiler switch -S2 or \\
@@ -6771,8 +6766,7 @@ FPC\_GPC & \fpc is in GNU Pascal mode, either using compiler switch -Sp or \\
 
 \begin{remark}
 The \var{ENDIAN\_LITTLE} and \var{ENDIAN\_BIG} defines were added
-starting from \fpc version 1.0.5. The \var{FPU\_EMULATION} define
-was added starting from \fpc version 1.0.7.
+starting from \fpc version 1.0.5. 
 \end{remark}
 
 \begin{FPCltable}{ll}{Possible CPU defines when compiling using FPC}{FPCCPUdefines}
