@@ -10,7 +10,7 @@ programs=ppufiles ppudump ppumove ppdep ptop rstconv data2inc fpcmake delp bin2o
 units=ppu ptopu
 
 [install]
-packagename=utils
+packagename=util
 sourcesubdirs=0
 
 [require]
