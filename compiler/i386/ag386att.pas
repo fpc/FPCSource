@@ -903,9 +903,11 @@ interface
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_target : target_any;
+            outputbinary: false;
             allowdirect : true;
             externals : false;
             needar : true;
+            labelprefix_only_inside_procedure : false;
             labelprefix : '.L';
             comment : '# ';
             secnames : ('',
@@ -921,9 +923,11 @@ interface
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_target : target_i386_os2;
+            outputbinary: false;
             allowdirect : true;
             externals : false;
             needar : true;
+            labelprefix_only_inside_procedure : false;
             labelprefix : 'L';
             comment : '# ';
             secnames : ('',
@@ -939,9 +943,11 @@ interface
             asmbin : 'asw';
             asmcmd : '-o $OBJ $ASM';
             supported_target : target_i386_win32;
+            outputbinary: false;
             allowdirect : true;
             externals : false;
             needar : true;
+            labelprefix_only_inside_procedure : false;
             labelprefix : '.L';
             comment : '# ';
             secnames : ('',
@@ -959,7 +965,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2001-04-21 15:33:03  peter
+  Revision 1.9  2001-05-06 17:13:23  jonas
+    * completed incomplete typed constant records
+
+  Revision 1.8  2001/04/21 15:33:03  peter
     * stupid bug, finalization to initialization renaming
 
   Revision 1.7  2001/04/21 12:09:00  peter

@@ -215,14 +215,14 @@ const
    MaxReadBytes = $fffe;
    invalidhandle = -1;
 {$ENDIF}
-{$IFDEF Netware} 
-type 
-   FNameStr = String; 
-   THandle = Longint; 
-const 
-   MaxReadBytes = $7fffffff; 
-   invalidhandle = -1; 
-{$ENDIF} 
+{$IFDEF Netware}
+type
+   FNameStr = String;
+   THandle = Longint;
+const
+   MaxReadBytes = $7fffffff;
+   invalidhandle = -1;
+{$ENDIF}
 
 
 {---------------------------------------------------------------------------}
@@ -709,31 +709,36 @@ CONST
      ObjType: 50;
      VmtLink: Ofs(TypeOf(TCollection)^);
      Load: @TCollection.Load;
-     Store: @TCollection.Store);
+     Store: @TCollection.Store;
+     Next: Nil);
 
    RStringCollection: TStreamRec = (
      ObjType: 51;
      VmtLink: Ofs(TypeOf(TStringCollection)^);
      Load: @TStringCollection.Load;
-     Store: @TStringCollection.Store);
+     Store: @TStringCollection.Store;
+     Next: Nil);
 
    RStrCollection: TStreamRec = (
      ObjType: 69;
      VmtLink: Ofs(TypeOf(TStrCollection)^);
      Load:    @TStrCollection.Load;
-     Store:   @TStrCollection.Store);
+     Store:   @TStrCollection.Store;
+     Next: Nil);
 
    RStringList: TStreamRec = (
      ObjType: 52;
      VmtLink: Ofs(TypeOf(TStringList)^);
      Load: @TStringList.Load;
-     Store: Nil);
+     Store: Nil;
+     Next: Nil);
 
    RStrListMaker: TStreamRec = (
      ObjType: 52;
      VmtLink: Ofs(TypeOf(TStrListMaker)^);
      Load: Nil;
-     Store: @TStrListMaker.Store);
+     Store: @TStrListMaker.Store;
+     Next: Nil);
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                 IMPLEMENTATION
@@ -2809,7 +2814,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.4  2001-04-16 18:36:41  florian
+  Revision 1.5  2001-05-06 17:13:22  jonas
+    * completed incomplete typed constant records
+
+  Revision 1.4  2001/04/16 18:36:41  florian
     * updates from Armin commited
 
   Revision 1.3  2000/11/13 13:40:04  marco
@@ -2817,5 +2825,5 @@ END.
 
   Revision 1.2  2000/07/13 11:33:44  michael
   + removed logs
- 
+
 }

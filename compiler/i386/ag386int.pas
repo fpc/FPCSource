@@ -759,6 +759,7 @@ ait_stab_function_name : ;
             asmbin : 'tasm';
             asmcmd : '/m2 /ml $ASM $OBJ';
             supported_target : target_any; { what should I write here ?? }
+            outputbinary: false;
             allowdirect : true;
             externals : true;
             needar : true;
@@ -778,9 +779,11 @@ ait_stab_function_name : ;
             asmbin : 'masm';
             asmcmd : '/c $ASM /Fo$OBJ';
             supported_target : target_any; { what should I write here ?? }
+            outputbinary: false;
             allowdirect : true;
             externals : true;
             needar : true;
+            labelprefix_only_inside_procedure : false;
             labelprefix : '@@';
             comment : '; ';
             secnames : ('',
@@ -795,7 +798,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2001-04-21 15:33:03  peter
+  Revision 1.13  2001-05-06 17:13:23  jonas
+    * completed incomplete typed constant records
+
+  Revision 1.12  2001/04/21 15:33:03  peter
     * stupid bug, finalization to initialization renaming
 
   Revision 1.11  2001/04/21 12:09:00  peter

@@ -875,6 +875,7 @@ implementation
             allowdirect : false;
             externals : true;
             needar : false;
+            labelprefix_only_inside_procedure: false;
             labelprefix : '.L';
             comment : '';
             secnames : ('',
@@ -889,7 +890,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2001-05-04 19:50:58  peter
+  Revision 1.10  2001-05-06 17:13:23  jonas
+    * completed incomplete typed constant records
+
+  Revision 1.9  2001/05/04 19:50:58  peter
     * finally added the missing outputbinary field that was missing
 
   Revision 1.8  2001/04/18 22:01:54  peter
