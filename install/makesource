@@ -22,7 +22,9 @@ rm -rf buildsrc
 
 mkdir buildsrc
 cd buildsrc
-cvs -z3 export -r $CVSTAG fpc
+cvs -z3 checkout -r $CVSTAG fpc
+
+find -name CVS -type d | xargs tar --remove-files cvf CVSfiles.tar.gz 
 
 rm -f $OUTPUTDIR/$PACKNAME.tar.gz $OUTPUTDIR/$PACKNAME.zip
 zip -D9r $OUTPUTDIR/$PACKNAME.zip fpc/
