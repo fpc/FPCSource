@@ -1253,10 +1253,8 @@ implementation
                    end;
                end;
                { convert the arguments (explicitely) to fpc_normal_set's }
-               left := ctypeconvnode.create(left,srsym.restype);
-               left.toggleflag(nf_explizit);
-               right := ctypeconvnode.create(right,srsym.restype);
-               right.toggleflag(nf_explizit);
+               left := ctypeconvnode.create_explicit(left,srsym.restype);
+               right := ctypeconvnode.create_explicit(right,srsym.restype);
                result := ccallnode.createintern(procname,ccallparanode.create(right,
                  ccallparanode.create(left,nil)));
                { left and right are reused as parameters }
@@ -1814,7 +1812,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2002-08-17 09:23:34  florian
+  Revision 1.63  2002-09-04 19:32:56  jonas
+    * changed some ctypeconvnode/toggleflag(nf_explizit) combo's to
+      ctypeconvnode.create_explicit() statements
+
+  Revision 1.62  2002/08/17 09:23:34  florian
     * first part of procinfo rewrite
 
   Revision 1.61  2002/08/15 15:15:55  carl
