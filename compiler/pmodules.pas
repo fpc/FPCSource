@@ -59,9 +59,6 @@ unit pmodules;
           if (cs_create_staticlib in aktmoduleswitches) or
              (cs_smartlink in aktmoduleswitches) then
             Linker.MakeStaticLibrary(SmartLinkFilesCnt);
-
-        { add the files for the linker from current_module }
-        Linker.AddModuleFiles(current_module);
       end;
 
 
@@ -974,6 +971,9 @@ unit pmodules;
           { assemble }
             create_objectfile;
           end;
+
+         { add the files for the linker from current_module }
+         Linker.AddModuleFiles(current_module);
       end;
 
 
@@ -1102,6 +1102,9 @@ unit pmodules;
          { assemble and link }
          create_objectfile;
 
+         { add the files for the linker from current_module }
+         Linker.AddModuleFiles(current_module);
+
          { create the executable when we are at level 1 }
          if (compile_level=1) then
           begin
@@ -1115,7 +1118,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.80  1998-11-06 09:48:14  pierre
+  Revision 1.81  1998-11-12 11:34:58  peter
+    * fix for empty .o files and linking of libs
+
+  Revision 1.80  1998/11/06 09:48:14  pierre
    * double initialization code calling bug fixed
 
   Revision 1.79  1998/11/03 11:33:11  peter
