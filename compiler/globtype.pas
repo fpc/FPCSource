@@ -81,7 +81,7 @@ interface
          cs_profile,cs_debuginfo,cs_browser,cs_local_browser,cs_compilesystem,
          cs_lineinfo,
          { linking }
-         cs_smartlink
+         cs_create_smart,cs_create_dynamic
        );
        tmoduleswitches = set of tmoduleswitch;
 
@@ -179,7 +179,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  1999-09-08 16:05:32  peter
+  Revision 1.19  1999-09-20 16:38:54  peter
+    * cs_create_smart instead of cs_smartlink
+    * -CX is create smartlink
+    * -CD is create dynamic, but does nothing atm.
+
+  Revision 1.18  1999/09/08 16:05:32  peter
     * pointer add/sub is now as expected and the same results as inc/dec
 
   Revision 1.17  1999/08/13 15:44:58  peter

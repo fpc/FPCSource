@@ -782,7 +782,6 @@ Begin
            Message(asmr_e_type_without_identifier)
           else
            begin
-
              getsym(actasmpattern,false);
              Consume(AS_ID);
              if assigned(srsym) then
@@ -796,10 +795,8 @@ Begin
                   typesym :
                     l:=ptypesym(srsym)^.definition^.size;
                   else
-
                     Message(asmr_e_wrong_sym_type);
                 end;
-
                 str(l,tempstr);
                 expr:=expr+tempstr;
               end
@@ -990,7 +987,7 @@ Begin
           if not GotPlus then
             Message(asmr_e_invalid_reference_syntax);
           if actasmpattern[1] = '@' then
-           Message(asmr_e_local_symbol_not_allowed_as_ref);
+           Message(asmr_e_local_label_not_allowed_as_ref);
           GotStar:=false;
           GotPlus:=false;
           if SearchIConstant(actasmpattern,l) or
@@ -1082,7 +1079,9 @@ Begin
            begin
              if hs<>'' then
               val(hs,l,code);
-             opr.ref.scalefactor:=l
+             opr.ref.scalefactor:=l;
+             if l>8 then
+              Message(asmr_e_wrong_scale_factor);
            end;
           GotPlus:=false;
           GotStar:=false;
@@ -1752,7 +1751,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  1999-09-15 20:35:43  florian
+  Revision 1.48  1999-09-20 16:39:01  peter
+    * cs_create_smart instead of cs_smartlink
+    * -CX is create smartlink
+    * -CD is create dynamic, but does nothing atm.
+
+  Revision 1.47  1999/09/15 20:35:43  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers

@@ -51,7 +51,7 @@ implementation
 {$ifdef Delphi}
      dmisc,
 {$else Delphi}
-     dos, 
+     dos,
 {$endif Delphi}
      globtype,strings,comphook,
      globals,link,files;
@@ -266,7 +266,7 @@ const   ar_magic:array[1..8] of char='!<arch>'#10;
 
 begin
     seq_no:=1;
-    if not (cs_smartlink in aktmoduleswitches) then
+    if not (cs_create_smart in aktmoduleswitches) then
       current_module^.linkotherstaticlibs.insert(s,link_allways);
     assign(out_file,current_module^.path^+s+'.ao2');
     rewrite(out_file,1);
@@ -336,7 +336,12 @@ end.
 
 {
   $Log$
-  Revision 1.10  1999-09-07 15:05:19  pierre
+  Revision 1.11  1999-09-20 16:38:59  peter
+    * cs_create_smart instead of cs_smartlink
+    * -CX is create smartlink
+    * -CD is create dynamic, but does nothing atm.
+
+  Revision 1.10  1999/09/07 15:05:19  pierre
   * use do_halt instead of runerror
 
   Revision 1.9  1999/07/18 10:19:58  florian

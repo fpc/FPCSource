@@ -1722,7 +1722,7 @@ unit pdecl;
          if not(oo_has_vmt in aktclass^.objectoptions) and
             ([oo_has_virtual,oo_has_constructor,oo_has_destructor,oo_is_class]*aktclass^.objectoptions<>[]) then
            aktclass^.insertvmt;
-         if (cs_smartlink in aktmoduleswitches) then
+         if (cs_create_smart in aktmoduleswitches) then
            datasegment^.concat(new(pai_cut,init));
 
          { Write the start of the VMT, wich is equal for classes and objects }
@@ -2536,7 +2536,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.154  1999-09-15 22:09:24  florian
+  Revision 1.155  1999-09-20 16:38:59  peter
+    * cs_create_smart instead of cs_smartlink
+    * -CX is create smartlink
+    * -CD is create dynamic, but does nothing atm.
+
+  Revision 1.154  1999/09/15 22:09:24  florian
     + rtti is now automatically generated for published classes, i.e.
       they are handled like an implicit property
 

@@ -260,7 +260,7 @@ unit win_targ;
          l1,l2,l3,l4 : pasmlabel;
          r : preference;
       begin
-         if (cs_smartlink in aktmoduleswitches) then
+         if (cs_create_smart in aktmoduleswitches) then
           begin
             generatesmartlib;
             exit;
@@ -270,7 +270,7 @@ unit win_targ;
          while assigned(hp1) do
            begin
               { Insert cuts for smartlinking }
-              if (cs_smartlink in aktmoduleswitches) then
+              if (cs_create_smart in aktmoduleswitches) then
                 begin
                   importssection^.concat(new(pai_cut,init));
                   codesegment^.concat(new(pai_cut,init));
@@ -799,7 +799,12 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.33  1999-08-25 12:00:07  jonas
+  Revision 1.34  1999-09-20 16:39:04  peter
+    * cs_create_smart instead of cs_smartlink
+    * -CX is create smartlink
+    * -CD is create dynamic, but does nothing atm.
+
+  Revision 1.33  1999/08/25 12:00:07  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.32  1999/08/11 17:26:38  peter

@@ -445,14 +445,22 @@ begin
                                  End
                                Else
                                  initlocalswitches:=initlocalswitches+[cs_check_stack];
-                            'x' :
+                            'D' :
                                If UnsetBool(More, j) then
                                  Begin
-                                   initmoduleswitches:=initmoduleswitches-[cs_smartlink];
+                                   initmoduleswitches:=initmoduleswitches-[cs_create_dynamic];
                                    inc(j)
                                  End
                                Else
-                                 initmoduleswitches:=initmoduleswitches+[cs_smartlink];
+                                 initmoduleswitches:=initmoduleswitches+[cs_create_dynamic];
+                            'X' :
+                               If UnsetBool(More, j) then
+                                 Begin
+                                   initmoduleswitches:=initmoduleswitches-[cs_create_smart];
+                                   inc(j)
+                                 End
+                               Else
+                                 initmoduleswitches:=initmoduleswitches+[cs_create_smart];
                             else
                                IllegalPara(opt);
                           end;
@@ -1217,7 +1225,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  1999-09-16 11:34:56  pierre
+  Revision 1.23  1999-09-20 16:38:59  peter
+    * cs_create_smart instead of cs_smartlink
+    * -CX is create smartlink
+    * -CD is create dynamic, but does nothing atm.
+
+  Revision 1.22  1999/09/16 11:34:56  pierre
    * typo correction
 
   Revision 1.21  1999/09/15 20:35:40  florian

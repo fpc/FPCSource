@@ -539,7 +539,7 @@ const
           _DIR_GOTO      : sw:=cs_support_goto;
           _DIR_MACRO     : sw:=cs_support_macro;
           _DIR_INLINE    : sw:=cs_support_inline;
-          _DIR_SMARTLINK : sw:=cs_smartlink;
+          _DIR_SMARTLINK : sw:=cs_create_smart;
           _DIR_STATIC    : sw:=cs_static_keyword;
         end;
         state:=current_scanner^.readstate;
@@ -1146,7 +1146,12 @@ const
 
 {
   $Log$
-  Revision 1.62  1999-09-03 10:00:49  peter
+  Revision 1.63  1999-09-20 16:39:02  peter
+    * cs_create_smart instead of cs_smartlink
+    * -CX is create smartlink
+    * -CD is create dynamic, but does nothing atm.
+
+  Revision 1.62  1999/09/03 10:00:49  peter
     * included the 1.60 version of Pierre which was lost !
 
   Revision 1.61  1999/09/02 18:47:46  daniel

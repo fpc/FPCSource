@@ -848,7 +848,7 @@
 
     function tenumdef.getrangecheckstring : string;
       begin
-         if (cs_smartlink in aktmoduleswitches) then
+         if (cs_create_smart in aktmoduleswitches) then
            getrangecheckstring:='R_'+current_module^.modulename^+tostr(rangenr)
          else
            getrangecheckstring:='R_'+tostr(rangenr);
@@ -861,7 +861,7 @@
            begin
               { generate two constant for bounds }
               getlabelnr(rangenr);
-              if (cs_smartlink in aktmoduleswitches) then
+              if (cs_create_smart in aktmoduleswitches) then
                 datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring,8)))
               else
                 datasegment^.concat(new(pai_symbol,initname(getrangecheckstring,8)));
@@ -1049,7 +1049,7 @@
     function torddef.getrangecheckstring : string;
 
       begin
-         if (cs_smartlink in aktmoduleswitches) then
+         if (cs_create_smart in aktmoduleswitches) then
            getrangecheckstring:='R_'+current_module^.modulename^+tostr(rangenr)
          else
            getrangecheckstring:='R_'+tostr(rangenr);
@@ -1067,7 +1067,7 @@
                rangechecksize:=16;
               { generate two constant for bounds }
               getlabelnr(rangenr);
-              if (cs_smartlink in aktmoduleswitches) then
+              if (cs_create_smart in aktmoduleswitches) then
                 datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring,rangechecksize)))
               else
                 datasegment^.concat(new(pai_symbol,initname(getrangecheckstring,rangechecksize)));
@@ -1763,7 +1763,7 @@
 
     function tarraydef.getrangecheckstring : string;
       begin
-         if (cs_smartlink in aktmoduleswitches) then
+         if (cs_create_smart in aktmoduleswitches) then
            getrangecheckstring:='R_'+current_module^.modulename^+tostr(rangenr)
          else
            getrangecheckstring:='R_'+tostr(rangenr);
@@ -1776,7 +1776,7 @@
            begin
               { generates the data for range checking }
               getlabelnr(rangenr);
-              if (cs_smartlink in aktmoduleswitches) then
+              if (cs_create_smart in aktmoduleswitches) then
                 datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring,8)))
               else
                 datasegment^.concat(new(pai_symbol,initname(getrangecheckstring,8)));
@@ -2697,7 +2697,7 @@ Const local_symtable_index : longint = $8001;
 {$endif}
 {$endif newcg}
            end;
-     
+
 {$ifdef newcg}
          writenormalset(usedregisters);
 {$else newcg}
@@ -3778,7 +3778,12 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.164  1999-09-15 22:09:26  florian
+  Revision 1.165  1999-09-20 16:39:02  peter
+    * cs_create_smart instead of cs_smartlink
+    * -CX is create smartlink
+    * -CD is create dynamic, but does nothing atm.
+
+  Revision 1.164  1999/09/15 22:09:26  florian
     + rtti is now automatically generated for published classes, i.e.
       they are handled like an implicit property
 

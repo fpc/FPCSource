@@ -1,7 +1,7 @@
 #
 #   $Id$
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998 by the Free Pascal Development team
+#   Copyright (c) 1999 by the Free Pascal Development team
 #
 #   English (default) Language File for Free Pascal
 #
@@ -1158,26 +1158,55 @@ cg_e_cannot_call_message_direct=E_Cannot call message handler method directly
 # Assembler reader
 #
 asmr_d_start_reading=D_Starting $1 styled assembler parsing
+% This informs you that an assembler block is being parsed
 asmr_d_finish_reading=D_Finished $1 styled assembler parsing
+% This informs you that an assembler block has finished.
 asmr_e_none_label_contain_at=E_Non-label pattern contains @
+% A identifier which isn't a label can't contain a @.
 asmr_w_override_op_not_supported=W_Override operator not supported
+% The Override operator is not supported
 asmr_e_building_record_offset=E_Error building record offset
+% There has an error occured while building the offset of a record/object
+% structure, this can happend when there is no field specified at all or
+% an unknown field identifier is used.
 asmr_e_offset_without_identifier=E_OFFSET used without identifier
+% You can only use OFFSET with an identifier. Other syntaxes aren't
+% supported
 asmr_e_type_without_identifier=E_TYPE used without identifier
+% You can only use TYPE with an identifier. Other syntaxes aren't
+% supported
 asmr_e_no_local_or_para_allowed=E_Cannot use local variable or parameters here
+% You can't use a local variable or parameter here, mostly because the
+% addressing of locals and parameters is done using the %ebp register so the
+% address can't be get directly.
 asmr_e_need_offset=E_need to use OFFSET here
+% You need to use OFFSET <id> here to get the address of the identifier.
 asmr_e_cant_have_multiple_relocatable_symbols=E_Cannot use multiple relocatable symbols
+% You can't have more than one relocatable symbol (variable/typed constant)
+% in one argument.
 asmr_e_only_add_relocatable_symbol=E_Relocatable symbol can only be added
+% Relocatable symbols (variable/typed constant) can't be used with other
+% operators. Only addition is allowed.
 asmr_e_invalid_constant_expression=E_Invalid constant expression
+% There is an error in the constant expression.
 asmr_e_relocatable_symbol_not_allowed=E_Relocatable symbol is not allowed
+% You can't use a relocatable symbol (variable/typed constant) here.
 asmr_e_invalid_reference_syntax=E_Invalid reference syntax
-asmr_e_local_symbol_not_allowed_as_ref=E_Local symbols not allowed as references
+% There is an error in the reference.
+asmr_e_local_label_not_allowed_as_ref=E_Local symbols/labels aren't allowed as references
+% You can't use local symbols/labels as references
 asmr_e_wrong_base_index=E_Invalid base and index register usage
+% There is an error with the base and index register
 asmr_e_wrong_scale_factor=E_Wrong scale factor specified
+% The scale factor given is wrong, only 1,2,4 and 8 are allowed
 asmr_e_multiple_index=E_Multiple index register usage
+% You are trying to use more than one index register
 asmr_e_invalid_operand_type=E_Invalid operand type
+% The operand type doesn't match with the opcode used
 asmr_e_invalid_string_as_opcode_operand=E_Invalid string as opcode operand: $1
+% The string specified as operand is not correct with this opcode
 asmr_w_CODE_and_DATA_not_supported=W_@CODE and @DATA not supported
+% @CODE and @DATA are unsupported and are ignored.
 asmr_e_null_label_ref_not_allowed=E_Null label references are not allowed
 asmr_e_ev_zero_divide=F_Divide by zero in asm evaluator
 asmr_e_ev_stack_overflow=F_Evaluator stack overflow
@@ -1479,7 +1508,7 @@ option_switch_bin_to_src_assembler=N_Switching assembler to default source writi
 # Logo (option -l)
 #
 option_logo_start=Free Pascal Compiler version $FPCVER [$FPCDATE] for $FPCTARGET
-option_logo_end=Copyright (c) 1993-99 by Florian Klaempfl
+option_logo_end=Copyright (c) 1993-1999 by Florian Klaempfl
 
 #
 # Info (option -i)
@@ -1517,8 +1546,8 @@ ol013=**2Co_check overflow of integer operations
 ol014=**2Cr_range checking
 ol015=**2Cs<n>_set stack size to <n>
 ol016=**2Ct_stack checking
-ol017=3*2CS_create static library
-ol018=3*2Cx_use smartlinking
+ol017=**2CD_create also dynamic library (* doesn't work yet *)
+ol018=**2CX_create also smartlinked library
 ol019=**1d<x>_defines the symbol <x>
 ol020=*O1D_generate a DEF file
 ol021=*O2Dd<x>_set description to <x>
@@ -1553,7 +1582,7 @@ ol049=**1k<x>_Pass <x> to the linker
 ol050=**1l_write logo
 ol051=**1n_don't read the default config file
 ol052=**1o<x>_change the name of the executable produced to <x>
-ol053=**1pg_generate profile code for gprof
+ol053=**1pg_generate profile code for gprof (defines FPC_PROFILE)
 ol054=*L1P_use pipes instead of creating temporary assembler files
 ol055=**1S<x>_syntax options:
 ol056=**2S2_switch some Delphi 2 extensions on
@@ -1586,62 +1615,63 @@ ol082=**2*_    declarations if an error    x : Executable info (Win32 only)
 ol083=**2*_    occurs
 ol084=**1X_executable options:
 ol085=*L2Xc_link with the c library
-ol086=**2XD_link with dynamic libraries (defines FPC_LINK_DYNAMIC)
-ol087=**2Xs_strip all symbols from executable
-ol088=**2XS_link with static libraries (defines FPC_LINK_STATIC)
-ol089=**0*_Processor specific options:
-ol090=3*1A<x>_output format:
-ol091=3*2Aas_assemble using GNU AS
-ol092=3*2Aasaout_assemble using GNU AS for aout (Go32v1)
-ol093=3*2Anasmcoff_coff (Go32v2) file using Nasm
-ol094=3*2Anasmelf_elf32 (Linux) file using Nasm
-ol095=3*2Anasmobj_obj file using Nasm
-ol096=3*2Amasm_obj file using Masm (Microsoft)
-ol097=3*2Atasm_obj file using Tasm (Borland)
-ol098=3*2Acoff_coff (Go32v2) using internal writer
-ol099=3*2Apecoff_pecoff (Win32) using internal writer
-ol100=3*1R<x>_assembler reading style:
-ol101=3*2Ratt_read AT&T style assembler
-ol102=3*2Rintel_read Intel style assembler
-ol103=3*2Rdirect_copy assembler text directly to assembler file
-ol104=3*1O<x>_optimizations:
-ol105=3*2Og_generate smaller code
-ol106=3*2OG_generate faster code (default)
-ol107=3*2Or_keep certain variables in registers (still BUGGY!!!)
-ol108=3*2Ou_enable uncertain optimizations (see docs)
-ol109=3*2O1_level 1 optimizations (quick optimizations)
-ol110=3*2O2_level 2 optimizations (-O1 + slower optimizations)
-ol111=3*2O3_level 3 optimizations (same as -O2u)
-ol112=3*2Op<x>_target processor:
-ol113=3*3Op1_set target processor to 386/486
-ol114=3*3Op2_set target processor to Pentium/PentiumMMX (tm)
-ol115=3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)
-ol116=3*1T<x>_Target operating system:
-ol117=3*2TGO32V1_version 1 of DJ Delorie DOS extender
-ol118=3*2TGO32V2_version 2 of DJ Delorie DOS extender
-ol119=3*2TLINUX_Linux
-ol120=3*2TOS2_OS/2 2.x
-ol121=3*2TWin32_Windows 32 Bit
-ol122=6*1A<x>_output format
-ol123=6*2Aas_Unix o-file using GNU AS
-ol124=6*2Agas_GNU Motorola assembler
-ol125=6*2Amit_MIT Syntax (old GAS)
-ol126=6*2Amot_Standard Motorola assembler
-ol127=6*1O_optimizations:
-ol128=6*2Oa_turn on the optimizer
-ol129=6*2Og_generate smaller code
-ol130=6*2OG_generate faster code (default)
-ol131=6*2Ox_optimize maximum (still BUGGY!!!)
-ol132=6*2O2_set target processor to a MC68020+
-ol133=6*1R<x>_assembler reading style:
-ol134=6*2RMOT_read motorola style assembler
-ol135=6*1T<x>_Target operating system:
-ol136=6*2TAMIGA_Commodore Amiga
-ol137=6*2TATARI_Atari ST/STe/TT
-ol138=6*2TMACOS_Macintosh m68k
-ol139=6*2TLINUX_Linux-68k
-ol140=**1*_
-ol141=**1?_shows this help
+ol086=**2Xs_strip all symbols from executable
+ol087=**2XD_try to link dynamic          (defines FPC_LINK_DYNAMIC)
+ol088=**2XS_try to link static (default) (defines FPC_LINK_STATIC)
+ol089=**2XX_try to link smart            (defines FPC_LINK_SMART)
+ol090=**0*_Processor specific options:
+ol091=3*1A<x>_output format:
+ol092=3*2Aas_assemble using GNU AS
+ol093=3*2Aasaout_assemble using GNU AS for aout (Go32v1)
+ol094=3*2Anasmcoff_coff (Go32v2) file using Nasm
+ol095=3*2Anasmelf_elf32 (Linux) file using Nasm
+ol096=3*2Anasmobj_obj file using Nasm
+ol097=3*2Amasm_obj file using Masm (Microsoft)
+ol098=3*2Atasm_obj file using Tasm (Borland)
+ol099=3*2Acoff_coff (Go32v2) using internal writer
+ol100=3*2Apecoff_pecoff (Win32) using internal writer
+ol101=3*1R<x>_assembler reading style:
+ol102=3*2Ratt_read AT&T style assembler
+ol103=3*2Rintel_read Intel style assembler
+ol104=3*2Rdirect_copy assembler text directly to assembler file
+ol105=3*1O<x>_optimizations:
+ol106=3*2Og_generate smaller code
+ol107=3*2OG_generate faster code (default)
+ol108=3*2Or_keep certain variables in registers (still BUGGY!!!)
+ol109=3*2Ou_enable uncertain optimizations (see docs)
+ol110=3*2O1_level 1 optimizations (quick optimizations)
+ol111=3*2O2_level 2 optimizations (-O1 + slower optimizations)
+ol112=3*2O3_level 3 optimizations (same as -O2u)
+ol113=3*2Op<x>_target processor:
+ol114=3*3Op1_set target processor to 386/486
+ol115=3*3Op2_set target processor to Pentium/PentiumMMX (tm)
+ol116=3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)
+ol117=3*1T<x>_Target operating system:
+ol118=3*2TGO32V1_version 1 of DJ Delorie DOS extender
+ol119=3*2TGO32V2_version 2 of DJ Delorie DOS extender
+ol120=3*2TLINUX_Linux
+ol121=3*2TOS2_OS/2 2.x
+ol122=3*2TWin32_Windows 32 Bit
+ol123=6*1A<x>_output format
+ol124=6*2Aas_Unix o-file using GNU AS
+ol125=6*2Agas_GNU Motorola assembler
+ol126=6*2Amit_MIT Syntax (old GAS)
+ol127=6*2Amot_Standard Motorola assembler
+ol128=6*1O_optimizations:
+ol129=6*2Oa_turn on the optimizer
+ol130=6*2Og_generate smaller code
+ol131=6*2OG_generate faster code (default)
+ol132=6*2Ox_optimize maximum (still BUGGY!!!)
+ol133=6*2O2_set target processor to a MC68020+
+ol134=6*1R<x>_assembler reading style:
+ol135=6*2RMOT_read motorola style assembler
+ol136=6*1T<x>_Target operating system:
+ol137=6*2TAMIGA_Commodore Amiga
+ol138=6*2TATARI_Atari ST/STe/TT
+ol139=6*2TMACOS_Macintosh m68k
+ol140=6*2TLINUX_Linux-68k
+ol141=**1*_
+ol142=**1?_shows this help
 ol_end=**1h_shows this help without waiting
 #
 # The End...

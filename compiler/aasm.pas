@@ -829,7 +829,7 @@ uses
       begin;
         labelnr:=nextlabelnr;
         inc(nextlabelnr);
-        if (cs_smartlink in aktmoduleswitches) then
+        if (cs_create_smart in aktmoduleswitches) then
           inherited init('_$'+current_module^.modulename^+'$_L'+tostr(labelnr),AS_GLOBAL)
         else
           inherited init(target_asm.labelprefix+tostr(labelnr),AS_LOCAL);
@@ -987,7 +987,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.63  1999-09-16 23:05:51  florian
+  Revision 1.64  1999-09-20 16:38:51  peter
+    * cs_create_smart instead of cs_smartlink
+    * -CX is create smartlink
+    * -CD is create dynamic, but does nothing atm.
+
+  Revision 1.63  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.62  1999/09/15 20:35:37  florian

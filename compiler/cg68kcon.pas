@@ -95,7 +95,7 @@ implementation
                 begin
                    getdatalabel(lastlabel);
                    p^.lab_real:=lastlabel;
-                   if (cs_smartlink in aktmoduleswitches) then
+                   if (cs_create_smart in aktmoduleswitches) then
                     consts^.concat(new(pai_cut,init));
                    consts^.concat(new(pai_label,init(lastlabel)));
                    case realait of
@@ -200,7 +200,7 @@ implementation
                 begin
                    getdatalabel(lastlabel);
                    p^.lab_str:=lastlabel;
-                   if (cs_smartlink in aktmoduleswitches) then
+                   if (cs_create_smart in aktmoduleswitches) then
                     consts^.concat(new(pai_cut,init));
                    consts^.concat(new(pai_label,init(lastlabel)));
                    { generate an ansi string ? }
@@ -337,7 +337,7 @@ implementation
                begin
                  getdatalabel(lastlabel);
                  p^.lab_set:=lastlabel;
-                 if (cs_smartlink in aktmoduleswitches) then
+                 if (cs_create_smart in aktmoduleswitches) then
                   consts^.concat(new(pai_cut,init));
                  consts^.concat(new(pai_label,init(lastlabel)));
                  if psetdef(p^.resulttype)^.settype=smallset then
@@ -372,7 +372,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1999-09-16 23:05:51  florian
+  Revision 1.7  1999-09-20 16:38:52  peter
+    * cs_create_smart instead of cs_smartlink
+    * -CX is create smartlink
+    * -CD is create dynamic, but does nothing atm.
+
+  Revision 1.6  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.5  1998/12/11 00:03:01  peter

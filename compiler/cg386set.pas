@@ -752,7 +752,7 @@ implementation
       begin
          getlabel(endlabel);
          getlabel(elselabel);
-         if (cs_smartlink in aktmoduleswitches) then
+         if (cs_create_smart in aktmoduleswitches) then
            jumpsegment:=procinfo.aktlocaldata
          else
            jumpsegment:=datasegment;
@@ -919,7 +919,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  1999-08-25 11:59:47  jonas
+  Revision 1.41  1999-09-20 16:38:52  peter
+    * cs_create_smart instead of cs_smartlink
+    * -CX is create smartlink
+    * -CD is create dynamic, but does nothing atm.
+
+  Revision 1.40  1999/08/25 11:59:47  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.39  1999/08/23 23:46:42  pierre

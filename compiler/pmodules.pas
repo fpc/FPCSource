@@ -55,7 +55,7 @@ unit pmodules;
         GenerateAsm(false);
 
         { Also create a smartlinked version ? }
-        if (cs_smartlink in aktmoduleswitches) then
+        if (cs_create_smart in aktmoduleswitches) then
          begin
            GenerateAsm(true);
            if target_asm.needar then
@@ -73,7 +73,7 @@ unit pmodules;
         current_module^.linkunitofiles.insert(current_module^.objfilename^,link_static);
         current_module^.flags:=current_module^.flags or uf_static_linked;
 
-        if (cs_smartlink in aktmoduleswitches) then
+        if (cs_create_smart in aktmoduleswitches) then
          begin
            current_module^.linkunitstaticlibs.insert(current_module^.staticlibfilename^,link_smart);
            current_module^.flags:=current_module^.flags or uf_smart_linked;
@@ -86,14 +86,14 @@ unit pmodules;
         procedure fixseg(p:paasmoutput;sec:tsection);
         begin
           p^.insert(new(pai_section,init(sec)));
-          if (cs_smartlink in aktmoduleswitches) then
+          if (cs_create_smart in aktmoduleswitches) then
            p^.insert(new(pai_cut,init));
           p^.concat(new(pai_section,init(sec_none)));
         end;
 
       begin
       {Insert Ident of the compiler}
-        if (not (cs_smartlink in aktmoduleswitches))
+        if (not (cs_create_smart in aktmoduleswitches))
 {$ifndef EXTDEBUG}
            and (not current_module^.is_unit)
 {$endif}
@@ -152,7 +152,7 @@ unit pmodules;
           concat(new(pai_symbol_end,initname('FPC_RESOURCESTRINGTABLES')));
           end;
         { insert in data segment }
-        if (cs_smartlink in aktmoduleswitches) then
+        if (cs_create_smart in aktmoduleswitches) then
           datasegment^.concat(new(pai_cut,init));
         datasegment^.concatlist(@ResourceStringTables);
         ResourceStringTables.done;
@@ -196,7 +196,7 @@ unit pmodules;
         unitinits.insert(new(pai_symbol,initname_global('INITFINAL',0)));
         unitinits.concat(new(pai_symbol_end,initname('INITFINAL')));
         { insert in data segment }
-        if (cs_smartlink in aktmoduleswitches) then
+        if (cs_create_smart in aktmoduleswitches) then
           datasegment^.concat(new(pai_cut,init));
         datasegment^.concatlist(@unitinits);
         unitinits.done;
@@ -205,7 +205,7 @@ unit pmodules;
 
     procedure insertheap;
       begin
-         if (cs_smartlink in aktmoduleswitches) then
+         if (cs_create_smart in aktmoduleswitches) then
            begin
              bsssegment^.concat(new(pai_cut,init));
              datasegment^.concat(new(pai_cut,init));
@@ -1464,7 +1464,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.155  1999-09-16 23:05:54  florian
+  Revision 1.156  1999-09-20 16:39:00  peter
+    * cs_create_smart instead of cs_smartlink
+    * -CX is create smartlink
+    * -CD is create dynamic, but does nothing atm.
+
+  Revision 1.155  1999/09/16 23:05:54  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.154  1999/09/16 14:18:12  pierre

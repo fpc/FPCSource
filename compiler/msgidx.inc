@@ -324,7 +324,7 @@ type tmsgconst=(
   asmr_e_invalid_constant_expression,
   asmr_e_relocatable_symbol_not_allowed,
   asmr_e_invalid_reference_syntax,
-  asmr_e_local_symbol_not_allowed_as_ref,
+  asmr_e_local_label_not_allowed_as_ref,
   asmr_e_wrong_base_index,
   asmr_e_wrong_scale_factor,
   asmr_e_multiple_index,
@@ -643,6 +643,7 @@ type tmsgconst=(
   ol139,
   ol140,
   ol141,
+  ol142,
   ol_end,
 endmsgconst
 );

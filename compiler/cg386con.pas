@@ -109,7 +109,7 @@ implementation
                      begin
                         getdatalabel(lastlabel);
                         p^.lab_real:=lastlabel;
-                        if (cs_smartlink in aktmoduleswitches) then
+                        if (cs_create_smart in aktmoduleswitches) then
                          consts^.concat(new(pai_cut,init));
                         consts^.concat(new(pai_label,init(lastlabel)));
                         case realait of
@@ -247,7 +247,7 @@ implementation
                 begin
                    getdatalabel(lastlabel);
                    p^.lab_str:=lastlabel;
-                   if (cs_smartlink in aktmoduleswitches) then
+                   if (cs_create_smart in aktmoduleswitches) then
                     consts^.concat(new(pai_cut,init));
                    consts^.concat(new(pai_label,init(lastlabel)));
                    { generate an ansi string ? }
@@ -381,7 +381,7 @@ implementation
                begin
                  getdatalabel(lastlabel);
                  p^.lab_set:=lastlabel;
-                 if (cs_smartlink in aktmoduleswitches) then
+                 if (cs_create_smart in aktmoduleswitches) then
                   consts^.concat(new(pai_cut,init));
                  consts^.concat(new(pai_label,init(lastlabel)));
                  if psetdef(p^.resulttype)^.settype=smallset then
@@ -417,7 +417,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  1999-09-04 20:53:06  florian
+  Revision 1.41  1999-09-20 16:38:52  peter
+    * cs_create_smart instead of cs_smartlink
+    * -CX is create smartlink
+    * -CD is create dynamic, but does nothing atm.
+
+  Revision 1.40  1999/09/04 20:53:06  florian
     * bug 580 fixed
 
   Revision 1.39  1999/08/04 00:22:45  florian

@@ -1701,7 +1701,7 @@ begin
             procinfo.aktproccode^.concatlist(procinfo.aktlocaldata);
          end;
        { now we can insert a cut }
-       if (cs_smartlink in aktmoduleswitches) then
+       if (cs_create_smart in aktmoduleswitches) then
          codesegment^.concat(new(pai_cut,init));
 
        { add the procedure to the codesegment }
@@ -1948,7 +1948,7 @@ begin
       pdflags:=pd_body;
       if current_module^.in_implementation then
        pdflags:=pdflags or pd_implemen;
-      if (not current_module^.is_unit) or (cs_smartlink in aktmoduleswitches) then
+      if (not current_module^.is_unit) or (cs_create_smart in aktmoduleswitches) then
        pdflags:=pdflags or pd_global;
       procinfo.exported:=false;
       aktprocsym^.definition^.forwarddef:=false;
@@ -2053,7 +2053,12 @@ end.
 
 {
   $Log$
-  Revision 1.21  1999-09-15 20:35:42  florian
+  Revision 1.22  1999-09-20 16:39:00  peter
+    * cs_create_smart instead of cs_smartlink
+    * -CX is create smartlink
+    * -CD is create dynamic, but does nothing atm.
+
+  Revision 1.21  1999/09/15 20:35:42  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers

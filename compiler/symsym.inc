@@ -1093,7 +1093,7 @@
            end;
          case owner^.symtabletype of
            staticsymtable :
-             if (cs_smartlink in aktmoduleswitches) then
+             if (cs_create_smart in aktmoduleswitches) then
                prefix:='_'+owner^.name^+'$$$_'
              else
                prefix:='_';
@@ -1223,7 +1223,7 @@
                  begin
                    { enable unitialized warning for local symbols }
                    varstate:=vs_declared;
-                   if (cs_smartlink in aktmoduleswitches) then
+                   if (cs_create_smart in aktmoduleswitches) then
                      bsssegment^.concat(new(pai_cut,init));
                    ali:=data_align(l);
                    if ali>1 then
@@ -1237,7 +1237,7 @@
                       concatstabto(bsssegment);
 {$endif GDB}
 
-                   if (cs_smartlink in aktmoduleswitches) or
+                   if (cs_create_smart in aktmoduleswitches) or
                       DLLSource or
                       (vo_is_C_var in varoptions) then
                      bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)))
@@ -1255,7 +1255,7 @@
                  end;
                globalsymtable :
                  begin
-                   if (cs_smartlink in aktmoduleswitches) then
+                   if (cs_create_smart in aktmoduleswitches) then
                      bsssegment^.concat(new(pai_cut,init));
                    ali:=data_align(l);
                    if ali>1 then
@@ -1575,7 +1575,7 @@
           curconstsegment:=consts
         else
           curconstsegment:=datasegment;
-        if (cs_smartlink in aktmoduleswitches) then
+        if (cs_create_smart in aktmoduleswitches) then
           curconstsegment^.concat(new(pai_cut,init));
         l:=getsize;
         ali:=data_align(l);
@@ -1599,7 +1599,7 @@
         else
           if owner^.symtabletype<>unitsymtable then
             begin
-              if (cs_smartlink in aktmoduleswitches) or
+              if (cs_create_smart in aktmoduleswitches) or
                  DLLSource then
                 curconstsegment^.concat(new(pai_symbol,initname_global(mangledname,getsize)))
               else
@@ -2157,7 +2157,12 @@
 
 {
   $Log$
-  Revision 1.117  1999-08-31 15:42:24  pierre
+  Revision 1.118  1999-09-20 16:39:03  peter
+    * cs_create_smart instead of cs_smartlink
+    * -CX is create smartlink
+    * -CD is create dynamic, but does nothing atm.
+
+  Revision 1.117  1999/08/31 15:42:24  pierre
    + tmacrosym is_used and defined_at_startup boolean fields added
 
   Revision 1.116  1999/08/24 22:38:55  michael
