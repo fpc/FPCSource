@@ -9,20 +9,12 @@ program z;
 
 type
   IBla = interface
-  function X: Boolean;
-  end;
-
-  TBla = class(TInterfacedObject, IBla, IInterface)
-  public
+  { This is not allowed }
   class function X: Boolean;
   end;
 
-class function TBLA.X: Boolean;
-begin
-  
 end;
 
 begin
-  TBla.X;
 end.
 
