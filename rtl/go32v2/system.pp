@@ -12,7 +12,18 @@
 
  **********************************************************************}
 unit system;
+
 interface
+
+{ two debug conditionnals can be used
+  - SYSTEMDEBUG
+    -for STACK checks
+    -for non closed files at exit (or at any time with GDB)
+  - SYSTEM_DEBUG_STARTUP
+    specifically for
+    - proxy command line (DJGPP feature)
+    - list of args
+    - list of env variables  (PM) }
 
 { include system-independent routine headers }
 
@@ -290,6 +301,7 @@ end;
 
 var
   _args : ppchar;external name '_args';
+
 procedure setup_arguments;
 type  arrayword = array [0..0] of word;
 var psp : word;
@@ -306,9 +318,9 @@ psp:=stub_info^.psp_selector;
 largs[0]:=dos_argv0;
 argc := 1;
 sysseg_move(psp, 128, get_ds, longint(@doscmd), 128);
-{$IfDef SYSTEMDEBUG}
+{$IfDef SYSTEM_DEBUG_STARTUP}
 Writeln(stderr,'Dos command line is #',doscmd,'# size = ',length(doscmd));
-{$EndIf SYSTEMDEBUG}
+{$EndIf }
 
 // setup cmdline variable
 getmem(cmdline,length(doscmd)+1);
@@ -358,9 +370,9 @@ if (argc > 1) and (far_strlen(get_ds,longint(largs[1])) = 6)  then
   proxy_s[0] := #6;
   if (proxy_s = '!proxy') then
     begin
-{$IfDef SYSTEMDEBUG}
+{$IfDef SYSTEM_DEBUG_STARTUP}
     Writeln(stderr,'proxy command line ');
-{$EndIf SYSTEMDEBUG}
+{$EndIf SYSTEM_DEBUG_STARTUP}
     proxy_argc := atohex(largs[2]);
     proxy_seg  := atohex(largs[3]);
     proxy_ofs := atohex(largs[4]);
@@ -372,9 +384,9 @@ if (argc > 1) and (far_strlen(get_ds,longint(largs[1])) = 6)  then
       al :=far_strlen(dos_selector, lin);
       getmem(largs[i],al+1);
       sysseg_move(dos_selector, lin, get_ds,longint(largs[i]), al+1);
-{$IfDef SYSTEMDEBUG}
+{$IfDef SYSTEM_DEBUG_STARTUP}
       Writeln(stderr,'arg ',i,' #',largs[i],'#');
-{$EndIf SYSTEMDEBUG}
+{$EndIf SYSTEM_DEBUG_STARTUP}
       end;
     argc := proxy_argc;
     end;
@@ -416,6 +428,7 @@ end;
 var
   __stubinfo : p_stub_info;external name '__stubinfo';
   ___dos_argv0 : pchar;external name '___dos_argv0';
+
 procedure setup_environment;
 var env_selector : word;
     env_count : longint;
@@ -441,9 +454,9 @@ begin
    begin
      getmem(envp[env_count],strlen(cp)+1);
      strcopy(envp[env_count], cp);
-{$IfDef SYSTEMDEBUG}
+{$IfDef SYSTEM_DEBUG_STARTUP}
      Writeln(stderr,'env ',env_count,' = "',envp[env_count],'"');
-{$EndIf SYSTEMDEBUG}
+{$EndIf SYSTEM_DEBUG_STARTUP}
      inc(env_count);
      while (cp^ <> #0) do
       inc(longint(cp)); { skip to NUL }
@@ -540,7 +553,7 @@ var
 {$endif SYSTEMDEBUG}
 begin
 {$ifdef SYSTEMDEBUG}
-  for h:=0 to max_files do
+  for h:=0 to max_files-1 do
     if openfiles[h] then
       writeln(stderr,'file ',opennames[h],' not closed at exit');
 {$endif SYSTEMDEBUG}
@@ -1238,7 +1251,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.10  1999-04-28 11:42:45  peter
+  Revision 1.11  1999-05-04 23:28:40  pierre
+    SYSTEM_DEBUG_STARTUP used to output args and env at start
+
+  Revision 1.10  1999/04/28 11:42:45  peter
     + FileNameCaseSensetive boolean
 
   Revision 1.9  1999/04/28 06:01:25  florian
