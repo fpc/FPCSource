@@ -111,8 +111,8 @@ They are used to describe types, for example the type of a variable
 symbol is given by a definition and the result type
 of a expression is given as a definition. 
 They have nothing to do with the definition of a procedure.
-Definitions are implemented as a object (symtable.pas, tdef and
-it's descendents). There are a lot of different
+Definitions are implemented as a object (in file \file{symtable.pas},
+\var{tdef} and it's descendents). There are a lot of different
 definitions: for example to describe
 ordinal types, arrays, pointers, procedures
 
@@ -218,7 +218,7 @@ occurs.
 \subsection{The first pass}
 
 This is a part of the first pass for a pointer dereferencation
-(\var{p\^\ }), the type determination and some other stuff are left out
+(\var{p\^\ }), the type determination and some other stuff are left out.
 
 \begin{verbatim}
 procedure firstderef(var p : ptree);

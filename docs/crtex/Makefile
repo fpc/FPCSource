@@ -15,7 +15,7 @@ PP=ppc386
 PPOPTS=
 
 # Script to convert the programs to LaTeX examples which can be included.
-PP2TEX=pp2tex
+PP2TEX=../pp2tex
 
 # Script to collect all examples in 1 file.
 MAKETEX=make1tex
