@@ -50,6 +50,7 @@
 
   type
      ATOM = word;
+     TAtom = ATOM;
 
      WINBOOL = longbool;
      BOOL = WINBOOL;
@@ -940,7 +941,10 @@ type
 
 {
   $Log$
-  Revision 1.23  2004-11-28 15:27:14  marco
+  Revision 1.24  2005-02-06 11:22:38  florian
+    + TAtom
+
+  Revision 1.23  2004/11/28 15:27:14  marco
    * PRESULT added
 
   Revision 1.22  2004/08/08 16:52:52  florian
