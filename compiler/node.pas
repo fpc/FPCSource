@@ -333,7 +333,7 @@ interface
 {$endif}
           { For a t1:=t2 tree, mark the part of the tree t1 that gets
             written to (normally the loadnode) as write access. }
-          procedure mark_write;virtual;abstract;
+          procedure mark_write;virtual;
           procedure det_temp;virtual;abstract;
 
           procedure pass_2;virtual;abstract;
@@ -603,6 +603,15 @@ implementation
       begin
          ischild:=false;
       end;
+
+
+    procedure tnode.mark_write;
+      begin
+{$ifdef EXTDEBUG}
+        Comment(V_Warning,'mark_write not implemented for '+nodetype2str[nodetype]);
+{$endif EXTDEBUG}
+      end;
+
 
 {$ifdef EXTDEBUG}
     procedure tnode._dowrite;
@@ -972,7 +981,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2003-04-10 17:57:52  peter
+  Revision 1.53  2003-04-22 09:52:00  peter
+    * mark_write implemented for default with a warning in EXTDEBUG, this
+      is required for error recovery where the left node can be also a non
+      writable node
+
+  Revision 1.52  2003/04/10 17:57:52  peter
     * vs_hidden released
 
   Revision 1.51  2003/03/28 19:16:56  peter
