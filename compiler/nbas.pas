@@ -51,7 +51,10 @@ interface
 
        tasmnode = class(tnode)
           p_asm : taasmoutput;
+          currenttai : tai;
+          getposition : boolean;
           constructor create(p : taasmoutput);virtual;
+          constructor create_get_position;
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -480,11 +483,22 @@ implementation
 *****************************************************************************}
 
     constructor tasmnode.create(p : taasmoutput);
-
       begin
-         inherited create(asmn);
-         p_asm:=p;
+        inherited create(asmn);
+        p_asm:=p;
+        getposition:=false;
+        currenttai:=nil;
       end;
+
+
+    constructor tasmnode.create_get_position;
+      begin
+        inherited create(asmn);
+        p_asm:=nil;
+        getposition:=true;
+        currenttai:=nil;
+      end;
+
 
     destructor tasmnode.destroy;
       begin
@@ -499,13 +513,20 @@ implementation
         hp : tai;
       begin
         inherited ppuload(t,ppufile);
-        p_asm:=taasmoutput.create;
-        repeat
-          hp:=ppuloadai(ppufile);
-          if hp=nil then
-           break;
-          p_asm.concat(hp);
-        until false;
+        getposition:=boolean(ppufile.getbyte);
+        if not getposition then
+          begin
+            p_asm:=taasmoutput.create;
+            repeat
+              hp:=ppuloadai(ppufile);
+              if hp=nil then
+                break;
+              p_asm.concat(hp);
+            until false;
+          end
+        else
+          p_asm:=nil;
+        currenttai:=nil;
       end;
 
 
@@ -514,14 +535,18 @@ implementation
         hp : tai;
       begin
         inherited ppuwrite(ppufile);
-        hp:=tai(p_asm.first);
-        while assigned(hp) do
-         begin
-           ppuwriteai(ppufile,hp);
-           hp:=tai(hp.next);
-         end;
-        { end is marked by a nil }
-        ppuwriteai(ppufile,nil);
+        ppufile.putbyte(byte(getposition));
+        if not getposition then
+          begin
+            hp:=tai(p_asm.first);
+            while assigned(hp) do
+             begin
+               ppuwriteai(ppufile,hp);
+               hp:=tai(hp.next);
+             end;
+            { end is marked by a nil }
+            ppuwriteai(ppufile,nil);
+          end;
       end;
 
 
@@ -550,15 +575,20 @@ implementation
             n.p_asm.concatlistcopy(p_asm);
           end
         else n.p_asm := nil;
+        n.getposition:=getposition;
+        n.currenttai:=currenttai;
         getcopy := n;
       end;
+
 
     function tasmnode.det_resulttype:tnode;
       begin
          result:=nil;
          resulttype:=voidtype;
-         include(current_procinfo.flags,pi_uses_asm);
+         if not getposition then
+           include(current_procinfo.flags,pi_uses_asm);
       end;
+
 
     function tasmnode.pass_1 : tnode;
       begin
@@ -823,7 +853,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-06-08 18:27:15  jonas
+  Revision 1.55  2003-06-09 12:20:47  peter
+    * getposition added to retrieve the the current tai item
+
+  Revision 1.54  2003/06/08 18:27:15  jonas
     + ability to change the location of a ttempref node with changelocation()
       method. Useful to use instead of copying the contents from one temp to
       another

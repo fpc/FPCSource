@@ -135,6 +135,12 @@ interface
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
+         if getposition then
+           begin
+             currenttai:=tai(exprasmlist.last);
+             exit;
+           end;
+
          if inlining_procedure then
            begin
              objectlibrary.CreateUsedAsmSymbolList;
@@ -310,7 +316,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2003-05-17 13:30:08  jonas
+  Revision 1.35  2003-06-09 12:20:47  peter
+    * getposition added to retrieve the the current tai item
+
+  Revision 1.34  2003/05/17 13:30:08  jonas
     * changed tt_persistant to tt_persistent :)
     * tempcreatenode now doesn't accept a boolean anymore for persistent
       temps, but a ttemptype, so you can also create ansistring temps etc
