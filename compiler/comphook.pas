@@ -191,7 +191,7 @@ begin
          if (status.verbosity and Level)=V_Fatal then
            hs:=rh_errorstr;
        end;
-     if (Level<=V_ShowFile) and (status.currentline>0) then
+     if (Level<=V_ShowFile) and (status.currentsource<>'') and (status.currentline>0) then
       begin
         { Adding the column should not confuse RHIDE,
         even if it does not yet use it PM }
@@ -234,7 +234,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-08-10 10:18:24  peter
+  Revision 1.2  1998-08-11 14:02:45  peter
+    * don't write line if no sourcefile is set
+
+  Revision 1.1  1998/08/10 10:18:24  peter
     + Compiler,Comphook unit which are the new interface units to the
       compiler
 
