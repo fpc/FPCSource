@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2002 by Olle Raab
+    Copyright (c) 2002-2003 by Olle Raab
 
     FreePascal system unit for MacOS.
 
@@ -59,115 +59,24 @@ implementation
 {$define MACOS_USE_STDCLIB}
 
 
-{ include system independent routines }
+{******** include system independent routines **********}
 {$I system.inc}
 
-{*********************** MacOS API *************}
+
+{*********************** MacOS API *********************}
+{Below is some MacOS API routines included for internal use.
+Note, because the System unit is the most low level, it should not 
+depend on any other units, and thus the macos api must be accessed 
+as an include file and not a unit.}
+
+{$I macostp.inc}
 
 {TODO: Perhaps the System unit should check the MacOS version to
 ensure it is a supported version. }
 
-{Below is some MacOS API routines needed for internal use.
-Note, because the System unit is the most low level, it should not
-depend on any other units, and in particcular not the MacOS unit.
+{$ifdef MACOS_USE_STDCLIB}
 
-Note: Types like Mac_XXX corresponds to the type XXX defined
-in MacOS Universal Headers. The prefix is to avoid name clashes
-with FPC types.}
-
-type
-  SignedByte = shortint;
-  SignedBytePtr = ^SignedByte;
-  OSErr = Integer;
-  OSType = Longint;
-  Mac_Ptr = pointer;
-  Mac_Handle = ^Mac_Ptr;
-  Str31 = string[31];
-  Str32 = string[32];
-  Str63 = string[63];
-  Str255 = string[255];
-  FSSpec = record
-      vRefNum: Integer;
-      parID: Longint;
-      name: Str63;
-   end;
-  FSSpecPtr = ^FSSpec;
-  AliasHandle = Mac_Handle;
-  ScriptCode = Integer;
-
-const
-  noErr = 0;
-  fnfErr = -43;   //File not found error
-  fsFromStart = 1;
-  fsFromLEOF = 2;
-
-function Sbrk(logicalSize: Longint): Mac_Ptr ;
-external 'InterfaceLib' name 'NewPtr';
-
-procedure DisposeHandle(hdl: Mac_Handle);
-external 'InterfaceLib';
-
-function Mac_FreeMem: Longint;
-external 'InterfaceLib' name 'FreeMem';
-
-procedure Debugger;
-external 'InterfaceLib';
-
-procedure DebugStr(s: Str255);
-external 'InterfaceLib';
-
-procedure ExitToShell;
-external 'InterfaceLib';
-
-procedure SysBeep(dur: Integer);
-external 'SysBeep';
-
-function TickCount: Longint;
-external 'InterfaceLib';
-
-{$ifndef MACOS_USE_STDCLIB}
-
-function FSpOpenDF(spec: FSSpec; permission: SignedByte;
-  var refNum: Integer): OSErr;
-external 'InterfaceLib';
-
-function FSpCreate(spec: FSSpec; creator, fileType: OSType;
-  scriptTag: ScriptCode): OSErr;
-external 'InterfaceLib';
-
-function FSClose(refNum: Integer): OSErr;
-external 'InterfaceLib';
-
-function FSRead(refNum: Integer; var count: Longint; buffPtr: Mac_Ptr): OSErr;
-external 'InterfaceLib';
-
-function FSWrite(refNum: Integer; var count: Longint; buffPtr: Mac_Ptr): OSErr;
-external 'InterfaceLib';
-
-function GetFPos(refNum: Integer; var filePos: Longint): OSErr;
-external 'InterfaceLib';
-
-function SetFPos(refNum: Integer; posMode: Integer; posOff: Longint): OSErr;
-external 'InterfaceLib';
-
-function GetEOF(refNum: Integer; var logEOF: Longint): OSErr;
-external 'InterfaceLib';
-
-function SetEOF(refNum: Integer; logEOF: Longint): OSErr;
-external 'InterfaceLib';
-
-function NewAliasMinimalFromFullPath(fullPathLength: Integer;
-  fullPath: Mac_Ptr; zoneName: Str32; serverName: Str31;
-  var alias: AliasHandle):OSErr;
-external 'InterfaceLib';
-
-function ResolveAlias(fromFile: FSSpecPtr; alias: AliasHandle;
-  var target: FSSpec; var wasChanged: Boolean):OSErr;
-external 'InterfaceLib';
-
-{$else}
-
-{**************** API to StdCLib in MacOS *************}
+{************** API to StdCLib in MacOS ***************}
 {The reason StdCLib is used is that it can easily be connected
 to either SIOW or, in case of MPWTOOL, to MPW }
 
@@ -211,9 +120,9 @@ const
 
   FIOINTERACTIVE = $00006602; // If device is interactive
   FIOBUFSIZE     = $00006603; // Return optimal buffer size
-  FIOFNAME       = $00006604;   // Return filename
-  FIOREFNUM          = $00006605; // Return fs refnum
-  FIOSETEOF          = $00006606; // Set file length
+  FIOFNAME       = $00006604; // Return filename
+  FIOREFNUM      = $00006605; // Return fs refnum
+  FIOSETEOF      = $00006606; // Set file length
 
   TIOFLUSH = $00007408;       // discard unread input.  arg is ignored
 
@@ -295,39 +204,287 @@ Sys_ERANGE      = 34;   { Math result not representable }
 
 {******************************************************}
 
+var
+  curDirectorySpec: FSSpec;
 
-   Procedure Errno2InOutRes;
+{Note about working directory. There is a facility in MacOS to
+ set a working directory. However, this requires the application
+ to have a unique application signature (creator code), to distinguish
+ its working directory from working directory of other applications.
+ Due to the fact that applications might be anonymous (without an
+ application signature), this facility will not work. Hence we
+ will manage working directory by our self.}
+
+
+function GetAppFileLocation (var spec: FSSpec): Boolean;
+//Requires >= System 7
+
+  var
+   PSN: ProcessSerialNumber;
+   info: ProcessInfoRec;
+   appFileRefNum: Integer;
+   appName: Str255;
+   dummy: Mac_Handle;
+
+begin
+  begin
+    PSN.highLongOfPSN := 0;
+    PSN.lowLongOfPSN := kCurrentProcess;
+    info.processInfoLength := SizeOf(info);
+    info.processName := nil;
+    info.processAppSpec := @spec;
+    if GetProcessInformation(PSN, info) = noErr then
+      begin
+        spec.name := '';
+        GetAppFileLocation := true;
+      end
+    else
+      GetAppFileLocation := false;
+  end
+end;
+
+{Gives the path for a given file or directory. If parent is true, 
+ a path to the directory, where the file or directory is located,
+ is returned. Functioning even with System 6}
+function FSpGetFullPath (spec: FSSpec; var fullPathHandle: Mac_Handle;
+  parent: Boolean): OSErr;
+
+  var
+    res: OSErr;
+    pb: CInfoPBRec;
+
+begin
+  fullPathHandle:= NewHandle(0); { Allocate a zero-length handle }
+  if fullPathHandle = nil then
+    begin
+      FSpGetFullPath:= MemError;
+      Exit;
+    end;
+
+  if spec.parID = fsRtParID then { The object is a volume }
+    begin
+      if not parent then
+        begin
+          { Add a colon to make it a full pathname }
+          spec.name := Concat(spec.name, ':');
+
+          { We're done }
+          Munger(fullPathHandle, 0, nil, 0, @spec.name[1], Length(spec.name));
+          res := MemError;
+        end
+      else
+        res := noErr;
+    end
+  else
+    begin
+      { The object isn't a volume }
+
+      { Add the object name }
+      if not parent then
+        Munger(fullPathHandle, 0, nil, 0, @spec.name[1], Length(spec.name));
+
+      { Get the ancestor directory names }
+      pb.ioNamePtr := @spec.name;
+      pb.ioVRefNum := spec.vRefNum;
+      pb.ioDrParID := spec.parID;
+      repeat { loop until we have an error or find the root directory }
+        begin
+          pb.ioFDirIndex := -1;
+          pb.ioDrDirID := pb.ioDrParID;
+          res := PBGetCatInfoSync(@pb);
+          if res = noErr then
+            begin
+              { Append colon to directory name }
+              spec.name := Concat(spec.name, ':');
+
+              { Add directory name to fullPathHandle }
+              Munger(fullPathHandle, 0, nil, 0, @spec.name[1], Length(spec.name));
+              res := MemError;
+            end
+        end
+      until not ((res = noErr) and (pb.ioDrDirID <> fsRtDirID));
+    end;
+
+  if res <> noErr then
+    begin
+      DisposeHandle(fullPathHandle);
+      fullPathHandle:= nil;
+    end;
+
+  FSpGetFullPath := res;
+end;
+
+Procedure Errno2InOutRes;
 {
-  Convert ErrNo error to the correct Inoutres value
+  Convert ErrNo error to the correct InOutRes value.
+  It seems that some of the errno is, in macos,
+  used for other purposes than its original definition.
 }
 
-   Begin
+begin
   if errno = 0 then { Else it will go through all the cases }
-   exit;
-  //If errno<0 then Errno:=-errno;
-     case Errno of
+    exit;
+  case Errno of
    Sys_ENFILE,
    Sys_EMFILE : Inoutres:=4;
    Sys_ENOENT : Inoutres:=2;
     Sys_EBADF : Inoutres:=6;
    Sys_ENOMEM,
-   Sys_EFAULT : Inoutres:=217;
-   Sys_EINVAL : Inoutres:=218;
-    Sys_EPIPE,
-    Sys_EINTR,
-      Sys_EIO,
+   Sys_EFAULT : Inoutres:=217; //TODO Exchange to something better
+   Sys_EINVAL : Inoutres:=218; //TODO RTE 218 doesn't exist
    Sys_EAGAIN,
    Sys_ENOSPC : Inoutres:=101;
   Sys_ENOTDIR : Inoutres:=3;
+    Sys_EPERM,
     Sys_EROFS,
    Sys_EEXIST,
    Sys_EISDIR,
-   Sys_EACCES : Inoutres:=5;
-  Sys_ETXTBSY : Inoutres:=162;
+    Sys_EINTR,  //Happens when attempt to rename a file fails
+    Sys_EBUSY,  //Happens when attempt to remove a locked file
+   Sys_EACCES,
+  Sys_ETXTBSY,  //Happens when attempt to open an already open file
+   Sys_EMLINK : Inoutres:=5; //Happens when attempt to remove open file
+    Sys_ENXIO : InOutRes:=152;
+   Sys_ESPIPE : InOutRes:=156; //Illegal seek
   else
-    InOutRes := Integer(errno);
+    InOutRes := Integer(errno);//TODO Exchange to something better
   end;
   errno:=0;
+end;
+
+Procedure OSErr2InOutRes(err: OSErr);
+{ Convert MacOS specific error codes to the correct InOutRes value}
+
+begin
+  if err = noErr then { Else it will go through all the cases }
+    exit;
+
+  case err of
+    dirFulErr, { Directory full }
+    dskFulErr  { disk full }
+      :Inoutres:=101;
+    nsvErr     { no such volume }
+      :Inoutres:=3;
+    ioErr,     { I/O error (bummers) }
+    bdNamErr   { there may be no bad names in the final system! }
+      :Inoutres:=1; //TODO Exchange to something better
+    fnOpnErr   { File not open }
+      :Inoutres:=103;
+    eofErr,    { End of file }
+    posErr     { tried to position to before start of file (r/w) }
+      :Inoutres:=100;
+    mFulErr    { memory full (open) or file won't fit (load) }
+      :Inoutres:=1; //TODO Exchange to something better
+    tmfoErr    { too many files open}
+      :Inoutres:=4;
+    fnfErr     { File not found }
+      :Inoutres:=2;
+    wPrErr     { diskette is write protected. }
+      :Inoutres:=150;
+    fLckdErr   { file is locked }
+      :Inoutres:=5;
+    vLckdErr   { volume is locked }
+      :Inoutres:=150;
+    fBsyErr    { File is busy (delete) }
+      :Inoutres:=5;
+    dupFNErr   { duplicate filename (rename) }
+      :Inoutres:=5;
+    opWrErr    { file already open with with write permission }
+      :Inoutres:=5;
+    rfNumErr,  { refnum error }
+    gfpErr     { get file position error }
+      :Inoutres:=1; //TODO Exchange to something better
+    volOffLinErr   { volume not on line error (was Ejected) }
+      :Inoutres:=152;
+    permErr    { permissions error (on file open) }
+      :Inoutres:=5;
+    volOnLinErr{ drive volume already on-line at MountVol }
+      :Inoutres:=0; //TODO Exchange to something other      
+    nsDrvErr       { no such drive (tried to mount a bad drive num) }
+      :Inoutres:=1; //TODO Perhaps exchange to something better
+    noMacDskErr,   { not a mac diskette (sig bytes are wrong) }
+    extFSErr       { volume in question belongs to an external fs }
+      :Inoutres:=157; //TODO Perhaps exchange to something better
+    fsRnErr,   { file system internal error:during rename the old 
+                 entry was deleted but could not be restored. }
+    badMDBErr  { bad master directory block }
+      :Inoutres:=1; //TODO Exchange to something better
+    wrPermErr  { write permissions error }
+      :Inoutres:=5;
+    dirNFErr   { Directory not found }
+      :Inoutres:=3;
+    tmwdoErr   { No free WDCB available }
+      :Inoutres:=1; //TODO Exchange to something better
+    badMovErr  { Move into offspring error }
+      :Inoutres:=5;
+    wrgVolTypErr   { Wrong volume type error [operation not 
+                     supported for MFS] }
+      :Inoutres:=1; //TODO Exchange to something better
+    volGoneErr { Server volume has been disconnected. }
+      :Inoutres:=152;
+
+    diffVolErr         { files on different volumes }
+      :Inoutres:=17;
+    catChangedErr      { the catalog has been modified }
+                       { OR comment: when searching with PBCatSearch }
+      :Inoutres:=0; //TODO Exchange to something other      
+    afpAccessDenied,   {  Insufficient access privileges for operation  }
+    afpDenyConflict    {  Specified open/deny modes conflict with current open modes  }
+      :Inoutres:=5;
+    afpNoMoreLocks     {  Maximum lock limit reached  }
+      :Inoutres:=5;
+    afpRangeNotLocked, {  Tried to unlock range that was not locked by user  }
+    afpRangeOverlap    {  Some or all of range already locked by same user  }
+      :Inoutres:=1; //TODO Exchange to something better
+    afpObjectTypeErr   {  File/Directory specified where Directory/File expected  }
+      :Inoutres:=3;
+    afpCatalogChanged  { OR comment: when searching with PBCatSearch }
+      :Inoutres:=0; //TODO Exchange to something other      
+    afpSameObjectErr  
+      :Inoutres:=5; //TODO Exchange to something better
+
+    memFullErr { Not enough room in heap zone }
+      :Inoutres:=203;
+  else
+    InOutRes := 1; //TODO Exchange to something better
+  end;
+end;
+
+function PathArgToFSSpec(s: string; var spec: FSSpec): Boolean;
+var
+  err: OSErr;
+begin 
+  err:= FSMakeFSSpec(curDirectorySpec.vRefNum,
+      curDirectorySpec.parID, s, spec);
+
+  if err in [ noErr, fnfErr] then
+    PathArgToFSSpec:= true
+  else
+    begin
+      OSErr2InOutRes(err);
+      PathArgToFSSpec:= false;
+    end;
+end;
+
+function PathArgToFullPath(s: string; var fullpath: AnsiString): Boolean;
+var
+  err: OSErr;
+  spec: FSSpec;
+  pathHandle: Mac_Handle;
+begin
+  PathArgToFullPath:= false;
+  if PathArgToFSSpec(s, spec) then
+    begin
+      err:= FSpGetFullPath(spec, pathHandle, false);
+      if err = noErr then
+        begin 
+          SetString(fullpath, pathHandle^, GetHandleSize(pathHandle));
+          DisposeHandle(pathHandle);
+          PathArgToFullPath:= true;
+        end
+      else
+        OSErr2InOutRes(err);
+    end;
 end;
 
 {*****************************************************************************
@@ -378,6 +535,12 @@ begin
   getheapsize:= intern_heapsize ;
 end;
 
+{ function to allocate size bytes more for the program }
+{ must return the first address of new data space or nil if failed }
+function Sbrk(logicalSize: Longint): Mac_Ptr ;
+external 'InterfaceLib' name 'NewPtr'; //Directly mapped to NewPtr
+
+
 { include standard heap management }
 {$I heap.inc}
 
@@ -404,9 +567,13 @@ begin
 end;
 
 procedure do_erase(p : pchar);
+var
+  s: AnsiString;
 begin
   {$ifdef MACOS_USE_STDCLIB}
-  remove(p);
+  if not PathArgToFullPath(p, s) then
+    exit;
+  remove(PChar(s));
   Errno2InoutRes;
   {$else}
   InOutRes:=1;
@@ -414,9 +581,15 @@ begin
 end;
 
 procedure do_rename(p1,p2 : pchar);
+var
+  s1,s2: AnsiString;
 begin
   {$ifdef MACOS_USE_STDCLIB}
-  c_rename(p1,p2);
+  if not PathArgToFullPath(p1, s1) then
+    exit;
+  if not PathArgToFullPath(p2, s2) then
+    exit;
+  c_rename(PChar(s1),PChar(s2));
   Errno2InoutRes;
   {$else}
   InOutRes:=1;
@@ -542,7 +715,6 @@ begin
   {$endif}
 end;
 
-{$ifndef MACOS_USE_STDCLIB}
 function FSpLocationFromFullPath(fullPathLength: Integer;
   fullPath: Mac_Ptr; var spec: FSSpec ):OSErr;
 
@@ -560,10 +732,9 @@ begin
     begin
       res:= ResolveAlias(nil, alias, spec, wasChanged);
       DisposeHandle(Mac_Handle(alias));
-end;
+    end;
   FSpLocationFromFullPath:= res;
 end;
-{$endif}
 
 procedure do_open(var f;p:pchar;flags:longint);
 {
@@ -575,7 +746,6 @@ procedure do_open(var f;p:pchar;flags:longint);
 }
 
 var
-  spec: FSSpec;
   creator, fileType: OSType;
   scriptTag: ScriptCode;
   refNum: Integer;
@@ -584,10 +754,7 @@ var
   fh: Longint;
 
   oflags : longint;
-
-Const
-  fsCurPerm = 0;
-  smSystemScript = -1;
+  s: AnsiString;
 
 begin
   // AllowSlash(p);
@@ -649,7 +816,13 @@ begin
          end;
      end;
      exit;
-   end;
+   end
+  else
+    begin
+      if not PathArgToFullPath(p, s) then
+        exit;
+      p:= PChar(s);
+    end;
 
   fh:= C_open(p, oflags);
 
@@ -663,9 +836,9 @@ begin
   {$else}
 
   InOutRes:=1;
-  //creator:= $522A6368;        {'MPS ' -- MPW}
-  //creator:= $74747874;        {'ttxt'}
-  creator:= $522A6368;  {'R*ch' -- BBEdit}
+  //creator:= $522A6368; {'MPS ' -- MPW}
+  //creator:= $74747874; {'ttxt'}
+  creator:= $522A6368; {'R*ch' -- BBEdit}
   fileType:= $54455854; {'TEXT'}
 
   { reset file handle }
@@ -718,25 +891,68 @@ end;
 {*****************************************************************************
                            Directory Handling
 *****************************************************************************}
+
 procedure mkdir(const s:string);[IOCheck];
+var
+  spec: FSSpec;
+  createdDirID: Longint;
 begin
-  InOutRes:=1;
+  If (s='') or (InOutRes <> 0) then
+    exit;
+ 
+  if PathArgToFSSpec(s, spec) then
+    if FSpDirCreate(spec, smSystemScript, createdDirID) = noErr then
+      InOutRes:= 0
+    else
+      InOutRes:= 1;
 end;
 
 procedure rmdir(const s:string);[IOCheck];
+//Kolla så att endast directories tas bort, kolla med dok.
+var
+  spec: FSSpec;
+  err: OSErr;
 begin
-  InOutRes:=1;
+  If (s='') or (InOutRes <> 0) then
+    exit;
+
+  if PathArgToFSSpec(s, spec) then
+    begin
+      err:= FSpDelete(spec);
+      OSErr2InOutRes(err);
+    end;
 end;
 
 procedure chdir(const s:string);[IOCheck];
+var
+  newDirSpec: FSSpec;
 begin
+  If (s='') or (InOutRes <> 0) then
+    exit;
+
   InOutRes:=1;
+  if FSMakeFSSpec (curDirectorySpec.vRefNum, curDirectorySpec.parID, 
+    s+':x', newDirSpec) in [ noErr, fnfErr] then
+      { the fictive file x is appended to the path to make FSMakeFSSpec return a FSSpec 
+        to a file in the directory. Then by clearing the name, the FSSpec then
+        points to the directory. It doesn't matter whether x exists or not.}
+      begin
+        curDirectorySpec:= newDirSpec;
+        curDirectorySpec.name:='';
+        InOutRes:= 0;
+      end;
+
 end;
 
-procedure GetDir (DriveNr: byte; var Dir: ShortString);
-
+procedure getDir (DriveNr: byte; var Dir: ShortString);
+var
+  pathHandle: Mac_Handle;
 begin
-  InOutRes := 1;
+  if FSpGetFullPath(curDirectorySpec, pathHandle, false) <> noErr then
+    Halt(3);  //exit code 3 according to MPW
+  SetString(dir, pathHandle^, GetHandleSize(pathHandle));
+  DisposeHandle(pathHandle);
+  InOutRes := 0;
 end;
 
 {*****************************************************************************
@@ -776,6 +992,9 @@ begin
   {$endif }
 end;
 
+var
+  pathHandle: Mac_Handle;
+
 begin
   if false then //To save it from the dead code stripper
     begin
@@ -791,13 +1010,19 @@ begin
   StackLength := InitialStkLen;
   StackBottom := SPtr - StackLength;
 
+  { Setup working directory }
+  if not GetAppFileLocation(curDirectorySpec) then
+    Halt(3);  //exit code 3 according to MPW
+
   { Setup heap }
   if Mac_FreeMem - intern_heapsize < 30000 then
-    Halt(3);
+    Halt(3);  //exit code 3 according to MPW
   theHeap:= Sbrk(intern_heapsize);
   if theHeap = nil then
-    Halt(3);  //According to MPW
+    Halt(3);  //exit code 3 according to MPW
+
   InitHeap;
+
   SysInitStdIO;
 
   { Setup environment and arguments }
@@ -814,7 +1039,12 @@ end.
 
 {
   $Log$
-  Revision 1.8  2003-10-16 15:43:13  peter
+  Revision 1.9  2003-10-17 23:44:30  olle
+    + working direcory emulated
+    + implemented directory handling procs
+    + all proc which take a path param, now resolve it relative wd
+
+  Revision 1.8  2003/10/16 15:43:13  peter
     * THandle is platform dependent
 
   Revision 1.7  2003/09/27 11:52:35  peter
