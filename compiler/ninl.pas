@@ -1500,6 +1500,20 @@ implementation
                         else
                          CGMessage(type_e_mismatch);
                       end;
+                    pointerdef :
+                      begin
+                        if is_pchar(left.resulttype.def) then
+                         begin
+                            hp := ccallparanode.create(left,nil);
+                            result := ccallnode.createintern('fpc_pchar_length',hp);
+                            { make sure the left node doesn't get disposed, since it's }
+                            { reused in the new node (JM)                              }
+                            left:=nil;
+                            goto myexit;
+                         end
+                        else
+                         CGMessage(type_e_mismatch);
+                      end;
                     arraydef :
                       begin
                         if is_open_array(left.resulttype.def) or
@@ -1522,17 +1536,12 @@ implementation
                           end
                         else
                           begin
-                            { can't use inserttypeconv because we need }
-                            { an explicit type conversion (JM)         }
-                            hp := ctypeconvnode.create(left,voidpointertype);
-                            hp.toggleflag(nf_explizit);
-                            hp := ccallparanode.create(hp,nil);
+                            hp := ccallparanode.create(ctypeconvnode.create_explicit(left,voidpointertype),nil);
                             result := ccallnode.createintern('fpc_dynarray_length',hp);
                             { make sure the left node doesn't get disposed, since it's }
                             { reused in the new node (JM)                              }
                             left:=nil;
-                            resulttypepass(result);
-                            exit;
+                            goto myexit;
                           end;
                       end;
                     else
@@ -1596,7 +1605,7 @@ implementation
                           (tenumdef(resulttype.def).has_jumps) then
                          CGMessage(type_e_succ_and_pred_enums_with_assign_not_possible);
                      end;
-                   
+
                    { only if the result is an enum do we do range checking }
                    if (resulttype.def.deftype=enumdef) then
                      checkrange := true
@@ -2387,7 +2396,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2002-09-13 19:12:09  carl
+  Revision 1.91  2002-10-05 14:21:08  peter
+    * Length(PChar) supported
+
+  Revision 1.90  2002/09/13 19:12:09  carl
     * only enumerations have range checking for succ/pred in const section
 
   Revision 1.89  2002/09/09 19:41:01  peter
