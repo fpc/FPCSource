@@ -22,9 +22,6 @@ program mandel;
 }
 
 uses
-{$ifdef go32v2}
-  dpmiexcp,
-{$endif go32v2}
   dos,Graph;
 
 {
@@ -77,7 +74,7 @@ begin
   if Z=0 Then
     CalcMandel:=(blue and $FFFFFF)
   else
-    CalcMandel:=(z mod Max_Color) + 1 ;
+    CalcMandel:={DefaultColors[}(z mod Max_Color) + 1 {]};
 end;
 
 {-----------------------------------------------------------------------------}
@@ -257,31 +254,38 @@ end ;
                               MAINROUTINE
 ------------------------------------------------------------------------------}
   var
-     error : word;
+     error,dummy : word;
 
-var neededtime,starttime : longint;
+var i,neededtime,starttime : longint;
   hour, minute, second, sec100 : word;
+
 const
-{$ifdef win32}
-  gmdefault : word = m640x480x16;
-{$else not win32}
-  {$ifdef Linux}
-   gmdefault : word = g640x480x256;
-  {$else}
-   gmdefault : word = m640x480x256;
-  {$endif}
-{$endif win32}
+  count : longint = 1;
+  gmdefault = m640x480;
 
 begin
+  gm:=$ffff;
   if paramcount>0 then
     begin
        val(paramstr(1),gm,error);
        if error<>0 then
          gm:=gmdefault;
-    end
-  else
-    gm:=gmdefault;
-  gd:=detect;
+{$ifdef go32v2}
+       if paramcount>1 then
+         begin
+           Val(paramstr(2),count,error);
+           if error<>0 then
+             count:=1;
+         end;
+       if paramcount>2 then
+         UseLFB:=true;
+       if paramcount>3 then
+         UseNoSelector:=true;
+{$endif go32v2}
+    end;
+  gd:=d8bit;
+  if gm=$ffff then
+    GetModeRange(gd,dummy,gm);
   GetTime(hour, minute, second, sec100);
   starttime:=((hour*60+minute)*60+second)*100+sec100;
   InitGraph(gd,gm,'');
@@ -290,44 +294,52 @@ begin
       Writeln('Graph driver ',gd,' graph mode ',gm,' not supported');
       Halt(1);
     end;
-  Max_X_Width:=GetMaxX;
-  Max_y_Width:=GetMaxY;
-  Max_Color:=GetMaxColor-1;
-  ClearViewPort;
+  for i:=1 to count do
+    begin
+      Max_X_Width:=GetMaxX;
+      Max_y_Width:=GetMaxY;
+      Max_Color:=GetMaxColor-1;
+      if Max_Color>255 then
+        Max_Color:=255;
+      ClearViewPort;
 
-  x1:=-0.9;
-  x2:= 2.2;
-  y1:= 1.25;
-  y2:=-1.25;
-  zm:=90;
-  dx:=(x1 - x2) / Max_X_Width ;
-  dy:=(y1 - y2) / Max_Y_Width ;
-  if abs(y1) = abs(y2) then
-   begin
-     SymetricCase:=true;
-     Y_Width:=Max_Y_Width shr 1
-   end
-  else
-   begin
-     SymetricCase:=false;
-     Y_Width:=Max_Y_Width;
-   end;
-  NextPoint.X:=0;
-  NextPoint.Y:=0;
-  LastColor:=CalcMandel(SearchPoint,zm);
-  CalcBounds ;
+      x1:=-0.9;
+      x2:= 2.2;
+      y1:= 1.25;
+      y2:=-1.25;
+      zm:=90;
+      dx:=(x1 - x2) / Max_X_Width ;
+      dy:=(y1 - y2) / Max_Y_Width ;
+      if abs(y1) = abs(y2) then
+       begin
+         SymetricCase:=true;
+         Y_Width:=Max_Y_Width shr 1
+       end
+      else
+       begin
+         SymetricCase:=false;
+         Y_Width:=Max_Y_Width;
+       end;
+      NextPoint.X:=0;
+      NextPoint.Y:=0;
+      LastColor:=CalcMandel(SearchPoint,zm);
+      CalcBounds ;
+    end;
   GetTime(hour, minute, second, sec100);
   neededtime:=((hour*60+minute)*60+second)*100+sec100-starttime;
 {$ifndef fpc_profile}
   readln;
 {$endif fpc_profile}
   CloseGraph;
-  Writeln('Mandel took ',Real(neededtime)/100:0:3,' secs to generate mandel graph');
+  Writeln('Mandel took ',Real(neededtime)/100/count:0:3,' secs to generate mandel graph');
   Writeln('With graph driver ',gd,' and graph mode ',gm);
 end.
 {
   $Log$
-  Revision 1.1  2000-03-09 02:40:04  alex
+  Revision 1.2  2000-07-08 20:58:05  pierre
+   * adapt to new graph modes
+
+  Revision 1.1  2000/03/09 02:40:04  alex
   moved files
 
   Revision 1.10  2000/03/08 22:32:41  alex
