@@ -134,7 +134,7 @@ type
 
   tppuerror=(ppuentrytoobig,ppuentryerror);
 
-  tppuheader=packed record { 40 bytes }
+  tppuheader=packed record { 36 bytes }
     id       : array[1..3] of char; { = 'PPU' }
     ver      : array[1..3] of char;
     compiler : word;
@@ -986,7 +986,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2001-08-30 20:13:53  peter
+  Revision 1.13  2001-09-22 04:51:58  carl
+  * updated record size
+
+  Revision 1.12  2001/08/30 20:13:53  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces
