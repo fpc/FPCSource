@@ -3473,6 +3473,83 @@
     flags   : if_286 or if_prot
   ),
   (
+    opcode  : A_LCALL;
+    ops     : 1;
+    optypes : (ot_memory or ot_far,ot_none,ot_none);
+    code    : #210#192#1#255#131;
+    flags   : if_8086
+  ),
+  (
+    opcode  : A_LCALL;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits16 or ot_far,ot_none,ot_none);
+    code    : #208#192#1#255#131;
+    flags   : if_8086
+  ),
+  (
+    opcode  : A_LCALL;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits32 or ot_far,ot_none,ot_none);
+    code    : #209#192#1#255#131;
+    flags   : if_386
+  ),
+  (
+    opcode  : A_LCALL;
+    ops     : 1;
+    optypes : (ot_memory or ot_near,ot_none,ot_none);
+    code    : #210#192#1#255#130;
+    flags   : if_8086
+  ),
+  (
+    opcode  : A_LCALL;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits16 or ot_near,ot_none,ot_none);
+    code    : #208#192#1#255#130;
+    flags   : if_8086
+  ),
+  (
+    opcode  : A_LCALL;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits32 or ot_near,ot_none,ot_none);
+    code    : #209#192#1#255#130;
+    flags   : if_386
+  ),
+  (
+    opcode  : A_LCALL;
+    ops     : 1;
+    optypes : (ot_reg16,ot_none,ot_none);
+    code    : #208#192#1#255#130;
+    flags   : if_8086
+  ),
+  (
+    opcode  : A_LCALL;
+    ops     : 1;
+    optypes : (ot_reg32,ot_none,ot_none);
+    code    : #209#192#1#255#130;
+    flags   : if_386
+  ),
+  (
+    opcode  : A_LCALL;
+    ops     : 1;
+    optypes : (ot_memory,ot_none,ot_none);
+    code    : #210#192#1#255#130;
+    flags   : if_8086
+  ),
+  (
+    opcode  : A_LCALL;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits16,ot_none,ot_none);
+    code    : #208#192#1#255#130;
+    flags   : if_8086
+  ),
+  (
+    opcode  : A_LCALL;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits32,ot_none,ot_none);
+    code    : #209#192#1#255#130;
+    flags   : if_386
+  ),
+  (
     opcode  : A_LDS;
     ops     : 2;
     optypes : (ot_reg16,ot_memory,ot_none);
@@ -3569,6 +3646,83 @@
     optypes : (ot_memory,ot_none,ot_none);
     code    : #192#2#15#1#131;
     flags   : if_286 or if_priv
+  ),
+  (
+    opcode  : A_LJMP;
+    ops     : 1;
+    optypes : (ot_memory or ot_far,ot_none,ot_none);
+    code    : #210#192#1#255#133;
+    flags   : if_8086
+  ),
+  (
+    opcode  : A_LJMP;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits16 or ot_far,ot_none,ot_none);
+    code    : #208#192#1#255#133;
+    flags   : if_8086
+  ),
+  (
+    opcode  : A_LJMP;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits32 or ot_far,ot_none,ot_none);
+    code    : #209#192#1#255#133;
+    flags   : if_386
+  ),
+  (
+    opcode  : A_LJMP;
+    ops     : 1;
+    optypes : (ot_memory or ot_near,ot_none,ot_none);
+    code    : #210#192#1#255#132;
+    flags   : if_8086
+  ),
+  (
+    opcode  : A_LJMP;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits16 or ot_near,ot_none,ot_none);
+    code    : #208#192#1#255#132;
+    flags   : if_8086
+  ),
+  (
+    opcode  : A_LJMP;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits32 or ot_near,ot_none,ot_none);
+    code    : #209#192#1#255#132;
+    flags   : if_386
+  ),
+  (
+    opcode  : A_LJMP;
+    ops     : 1;
+    optypes : (ot_reg16,ot_none,ot_none);
+    code    : #208#192#1#255#132;
+    flags   : if_8086
+  ),
+  (
+    opcode  : A_LJMP;
+    ops     : 1;
+    optypes : (ot_reg32,ot_none,ot_none);
+    code    : #209#192#1#255#132;
+    flags   : if_386
+  ),
+  (
+    opcode  : A_LJMP;
+    ops     : 1;
+    optypes : (ot_memory,ot_none,ot_none);
+    code    : #210#192#1#255#132;
+    flags   : if_8086
+  ),
+  (
+    opcode  : A_LJMP;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits16,ot_none,ot_none);
+    code    : #208#192#1#255#132;
+    flags   : if_8086
+  ),
+  (
+    opcode  : A_LJMP;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits32,ot_none,ot_none);
+    code    : #209#192#1#255#132;
+    flags   : if_386
   ),
   (
     opcode  : A_LLDT;
