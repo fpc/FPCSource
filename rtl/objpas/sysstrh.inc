@@ -83,6 +83,7 @@ Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: I
 Function FloatToStr(Value: Extended): String;
 Function StrToFloat(Value : String) : Extended;
 Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
+function LastDelimiter(const Delimiters, S: string): Integer;
 
 {==============================================================================}
 {   extra functions                                                            }
@@ -94,7 +95,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.1.2.1  2000-08-09 19:31:03  peter
+  Revision 1.1.2.2  2000-12-07 21:48:58  michael
+  + Added LastDelimiter function
+
+  Revision 1.1.2.1  2000/08/09 19:31:03  peter
     * int64 updates from Marco
 
   Revision 1.1  2000/07/13 06:31:01  michael

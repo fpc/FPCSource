@@ -1161,6 +1161,14 @@ for i := 0 to SizeOf(Value) shr 1 - 1 do begin
    end ;
 end ;
 
+Function LastDelimiter(const Delimiters, S: string): Integer;
+
+begin
+  Result:=Length(S);
+  While (Result>0) and (Pos(S[Result],Delimiters)=0) do 
+    Dec(Result);
+end;
+
 {
    Case Translation Tables
    Can be used in internationalization support.
@@ -1219,7 +1227,10 @@ const
 
 {
   $Log$
-  Revision 1.1.2.3  2000-12-06 22:51:58  michael
+  Revision 1.1.2.4  2000-12-07 21:48:57  michael
+  + Added LastDelimiter function
+
+  Revision 1.1.2.3  2000/12/06 22:51:58  michael
   + Fixed formatting of 0-expanded negative integer
 
   Revision 1.1.2.2  2000/09/30 15:07:41  michael
