@@ -281,7 +281,7 @@ scan_w_only_one_resourcefile_supported=02056_W_Only one resource file is support
 scan_w_macro_support_turned_off=02057_W_Macro support has been turned off
 % A macro declaration has been found, but macro support is currently off,
 % so the declaration will be ignored. To turn macro support on compile with
-% -Sm on the commandline or add {$MACRO ON} in the source
+% -Sm on the commandline or add \{\$MACRO ON\} in the source
 scan_e_invalid_interface_type=02058_E_Illegal interface type specified. Valids are COM, CORBA or DEFAULT.
 % The interface type that was specified is not supported
 scan_w_appid_not_support=02059_W_APPID is only supported for PalmOS
@@ -778,7 +778,7 @@ parser_e_threadvars_only_sg=03147_E_Threadvars can be only static or global
 parser_f_direct_assembler_not_allowed=03148_F_Direct assembler not supported for binary output format
 % You can't use direct assembler when using a binary writer, choose an
 % other outputformat or use an other assembler reader
-parser_w_no_objpas_use_mode=03149_W_Don't load OBJPAS unit manually, use {$mode objfpc} or {$mode delphi} instead
+parser_w_no_objpas_use_mode=03149_W_Don't load OBJPAS unit manually, use \{\$mode objfpc\} or \{\$mode delphi\} instead
 % You are trying to load the ObjPas unit manually from a uses clause. This is
 % not a good idea. Use the \var{\{\$mode objfpc\}} or
 % \var{\{\$mode delphi\}}
@@ -828,7 +828,7 @@ parser_e_dlltool_unit_var_problem2=03161_E_Compile without -WD option
 % You need to compile this file without the -WD switch on the
 % commandline
 parser_f_need_objfpc_or_delphi_mode=03162_F_You need ObjFpc (-S2) or Delphi (-Sd) mode to compile this module
-% You need to use {$mode objfpc} or {$mode delphi} to compile this file.
+% You need to use \{\$mode objfpc\} or \{\$mode delphi\} to compile this file.
 % Or use the equivalent commandline switches -S2 or -Sd.
 parser_e_no_export_with_index_for_target=03163_E_Can't export with index under $1
 % Exporting of functions or procedures with a specified index is not
@@ -1460,7 +1460,6 @@ cg_e_control_flow_outside_finally=06040_E_Control flow statements aren't allowed
 % If the procedure \var{p} raises an exception the finally block is
 % executed. If the execution reaches the exit, it's unclear what to do:
 % exiting the procedure or searching for another exception handler
-% \end{description}
 cg_w_parasize_too_big=06041_W_Parameters size exceeds limit for certain cpu's
 % This indicates that you are declaring more than 64K of parameters, which
 % might not be supported on other processor targets.
@@ -1474,6 +1473,7 @@ cg_e_break_not_allowed=06044_E_BREAK not allowed
 % You're trying to use \var{break} outside a loop construction.
 cg_e_continue_not_allowed=06045_E_CONTINUE not allowed
 % You're trying to use \var{continue} outside a loop construction.
+% \end{description}
 # EndOfTeX
 
 #
