@@ -601,9 +601,8 @@ unit pass_1;
                         if (p^.symtable^.symtablelevel)>0 then
                           begin
                              p^.registers32:=1;
-                             { auáerdem kann sie nicht mehr in ein Register
-                               geladen werden }
-                             pvarsym(p^.symtableentry)^.var_options :=
+                             { further, the variable can't be put into a register }
+                             pvarsym(p^.symtableentry)^.var_options:=
                                pvarsym(p^.symtableentry)^.var_options and not vo_regable;
                           end;
                      end;
@@ -5411,7 +5410,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.70  1998-09-04 08:42:00  peter
+  Revision 1.71  1998-09-04 11:55:18  florian
+    * problem with -Or fixed
+
+  Revision 1.70  1998/09/04 08:42:00  peter
     * updated some error messages
 
   Revision 1.69  1998/09/01 17:39:47  peter

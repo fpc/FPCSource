@@ -180,36 +180,6 @@ implementation
                                           pvarsym(p^.symtableentry)^.address;
                                      end;
                                 end;
-                              { in case call by reference, then calculate: }
-                              if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
-                                 ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
-                                  dont_copy_const_param(pvarsym(p^.symtableentry)^.definition)) or
-                                  { call by value open arrays are also indirect addressed }
-                                  is_open_array(pvarsym(p^.symtableentry)^.definition) then
-                                begin
-                                   simple_loadn:=false;
-                                   if hregister=R_NO then
-                                     hregister:=getregister32;
-                                   if is_open_array(pvarsym(p^.symtableentry)^.definition) then
-                                     begin
-                                        if (p^.location.reference.base=procinfo.framepointer) then
-                                          begin
-                                             highframepointer:=p^.location.reference.base;
-                                             highoffset:=p^.location.reference.offset;
-                                          end
-                                        else
-                                          begin
-                                             highframepointer:=R_EDI;
-                                             highoffset:=p^.location.reference.offset;
-                                             exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
-                                               p^.location.reference.base,R_EDI)));
-                                          end;
-                                     end;
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.location.reference),
-                                     hregister)));
-                                   clear_reference(p^.location.reference);
-                                   p^.location.reference.base:=hregister;
-                               end;
                               {
                               if (pvarsym(p^.symtableentry)^.definition^.deftype=objectdef) and
                                 ((pobjectdef(pvarsym(p^.symtableentry)^.definition)^.options and oois_class)<>0) then
@@ -224,6 +194,46 @@ implementation
                                 end;
                               }
                            end;
+                         { in case call by reference, then calculate: }
+                         if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
+                            ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
+                             dont_copy_const_param(pvarsym(p^.symtableentry)^.definition)) or
+                             { call by value open arrays are also indirect addressed }
+                             is_open_array(pvarsym(p^.symtableentry)^.definition) then
+                           begin
+                              simple_loadn:=false;
+                              if hregister=R_NO then
+                                hregister:=getregister32;
+                              if is_open_array(pvarsym(p^.symtableentry)^.definition) then
+                                begin
+                                   if (p^.location.reference.base=procinfo.framepointer) then
+                                     begin
+                                        highframepointer:=p^.location.reference.base;
+                                        highoffset:=p^.location.reference.offset;
+                                     end
+                                   else
+                                     begin
+                                        highframepointer:=R_EDI;
+                                        highoffset:=p^.location.reference.offset;
+                                        exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
+                                          p^.location.reference.base,R_EDI)));
+                                     end;
+                                end;
+                              if p^.location.loc=LOC_CREGISTER then
+                                begin
+                                   exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
+                                     p^.location.register,hregister)));
+                                   p^.location.loc:=LOC_REFERENCE;
+                                end
+                              else
+                                begin
+                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                     newreference(p^.location.reference),
+                                     hregister)));
+                                end;
+                              clear_reference(p^.location.reference);
+                              p^.location.reference.base:=hregister;
+                          end;
                       end;
                  end;
               procsym:
@@ -555,7 +565,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-09-03 16:03:14  florian
+  Revision 1.12  1998-09-04 11:55:17  florian
+    * problem with -Or fixed
+
+  Revision 1.11  1998/09/03 16:03:14  florian
     + rtti generation
     * init table generation changed
 
