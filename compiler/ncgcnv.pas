@@ -86,9 +86,14 @@ interface
         { is the result size smaller ? }
         if resulttype.def.size<>left.resulttype.def.size then
           begin
-            { reuse the left location by default }
             location_copy(location,left.location);
-            location_force_reg(exprasmlist,location,newsize,false);
+            { reuse a loc_reference when the newsize is smaller than
+              than the original, else load it to a register }
+            if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
+               (resulttype.def.size<left.resulttype.def.size) then
+             location.size:=newsize
+            else
+             location_force_reg(exprasmlist,location,newsize,false);
           end
         else
           begin
@@ -491,7 +496,12 @@ end.
 
 {
   $Log$
-  Revision 1.28  2002-08-25 09:06:58  peter
+  Revision 1.29  2002-09-02 18:46:00  peter
+    * reuse a reference when resizing ordinal values to smaller sizes,
+      this is required for constructions like byte(w):=1 that are
+      allowed in tp mode only
+
+  Revision 1.28  2002/08/25 09:06:58  peter
     * add calls to release temps
 
   Revision 1.27  2002/08/23 16:14:48  peter
