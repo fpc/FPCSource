@@ -3862,11 +3862,11 @@ external 'DOSCALLS' index 310;
 
 procedure DosSelToFlat; cdecl;
 
-external 'DOSCALLS' index 425;
+external 'DOSCALLS' index 426;
 
 procedure DosFlatToSel; cdecl;
 
-external 'DOSCALLS' index 426;
+external 'DOSCALLS' index 425;
 
 {$ASMMODE INTEL}
 function SelToFlat (AFarPtr: TFarPtr): pointer; assembler;
@@ -3949,7 +3949,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.3  2000-09-28 19:57:22  hajny
+  Revision 1.4  2000-10-08 18:40:18  hajny
+    * wrong index for DosSelToFlat, DosFlatToSel
+
+  Revision 1.3  2000/09/28 19:57:22  hajny
     * SelToFlat correction (still not OK probably)
 
   Revision 1.2  2000/07/14 10:33:10  michael
