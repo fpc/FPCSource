@@ -3,7 +3,11 @@ Unit dl;
 Interface
 
 Const
+ {$ifdef BSD}	// dlopen is in libc on FreeBSD.
+  LibDL = 'c';
+ {$else}
   LibDL = 'dl';
+{$endif}
 
   RTLD_LAZY         = $001;
   RTLD_NOW          = $002;
