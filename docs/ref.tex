@@ -557,7 +557,7 @@ Type & Range & Size in bytes \\ \hline
 Byte & 0 .. 255 & 1 \\
 Shortint & -128 .. 127 & 1\\
 Smallint & -32768 .. 32767 & 2\\
-longint when in Delphi or ObjFPC mode, and then has size 4} \\
+integer & either smallint, longint or int64  & size 2,4 or 8 \\
 Word & 0 .. 65535 & 2 \\
 Longint & -2147483648 .. 2147483647 & 4\\
 Cardinal & 0..4294967295 & 4 \\
@@ -566,10 +566,13 @@ QWord & 0 .. 18446744073709551615 & 8 \\ \hline
 \end{FPCltable}
 
 The \var{integer} type maps to the smallint type in the default
-\fpc mode. It maps to a longint in either Delphi or ObjFPC
-mode. This is summarized in \seet{integertype}.
+\fpc mode. It maps to either a longint or int64 in either Delphi or ObjFPC
+mode. This is summarized in \seet{integer32type} for 32-bit processors
+(such as Intel 80x86, Motorola 680x0, PowerPC 32-bit, SPARC v7, MIPS32), and
+in \seet{integer64type} for 64-bit processors (such as Alpha AXP,
+SPARC v9 or later, Intel Itanium, MIPS64).
 
-\begin{FPCltable}{lcr}{\var{Integer} type}{integertype}
+\begin{FPCltable}{lcr}{\var{Integer} type mapping for 32-bit processors}{integer32type}
 Compiler mode & Range & Size in bytes \\ \hline
 <default> & -32768 .. 32767 & 2\\
 tp & -32768 .. 32767 & 2\\
@@ -577,6 +580,13 @@ Delphi    & -2147483648 .. 2147483647 & 4\\
 ObjFPC    & -2147483648 .. 2147483647 & 4\\
 \end{FPCltable}
 
+\begin{FPCltable}{lcr}{\var{Integer} type mapping for 64-bit processors}{integer64type}
+Compiler mode & Range & Size in bytes \\ \hline
+<default> & -32768 .. 32767 & 2\\
+tp & -32768 .. 32767 & 2\\
+Delphi    & -9223372036854775808 .. 9223372036854775807 & 8 \\
+ObjFPC   &  -9223372036854775808 .. 9223372036854775807 & 8 \\
+\end{FPCltable}
 
 \fpc does automatic type conversion in expressions where different kinds of
 integer types are used.
@@ -3435,13 +3445,14 @@ does support a number of additional modifiers. They are used mainly for assemble
 reference to C object files. 
 
 \subsection{alias}
-The \var{Alias} modifier allows the programmer to specify a different name for a
+The \var{alias} modifier allows the programmer to specify a different name for a
 procedure or function. This is mostly useful for referring to this procedure
-from assembly language constructs. As an example, consider the following
-program:
+from assembly language constructs or from another object file. As an example,
+consider the following program:
 \begin{verbatim}
 Program Aliases;
-Procedure Printit; [Alias : 'DOIT'];
+
+Procedure Printit;alias : 'DOIT';
 begin
   WriteLn ('In Printit (alias : "DOIT")');
 end;
@@ -3454,8 +3465,30 @@ end.
 \begin{remark} the specified alias is inserted straight into the assembly
 code, thus it is case sensitive.
 \end{remark}
-The \var{Alias} modifier, combined with the \var{Public} modifier, make a
-powerful tool for making externally accessible symbols in pascal object files.
+The \var{alias} modifier does not make the symbol public to other modules,
+unless the routine is also declared in the interface part of a unit, or
+the \var{public} modifier is used to force it as public. Consider the
+following:
+\begin{verbatim}
+
+unit testalias;
+
+interface
+
+procedure testroutine;
+
+implementation
+
+procedure testroutine;alias:'ARoutine';
+begin
+  WriteLn('Hello world');
+end;
+
+end.
+\end{verbatim}
+
+This will make the routine \var{testroutine} available publicly to
+external object files uunder the label name \var{ARoutine}.
 
 \subsection{cdecl}
 \label{se:cdecl}
@@ -3484,27 +3517,11 @@ match exactly the ones in the declaration in \var{C}.
 \end{remark}
 
 \subsection{export}
-Sometimes a a callback function for a C library must be defined, or routines
-should be callable from a C program. Since \fpc and C use
-different calling schemes for functions and procedures\footnote{More
-techically: In C the calling procedure must clear the stack. In \fpc, the
-subroutine clears the stack.}, the compiler must be told to generate code
-that can be called from a C routine. This is where the \var{Export} modifier
-comes in. Contrary to the other modifiers, it must be specified separately,
-as follows:
-\begin{verbatim}
-function DoSquare (X : Longint) : Longint; export;
-begin
-...
-end;
-\end{verbatim}
-The square brackets around the modifier are not allowed in this case.
-\begin{remark}
-as of version 0.9.8, \fpc supports the Delphi \var{cdecl} modifier.
-This modifier works in the same way as the \var{export} modifier.
-More information about these modifiers can be found in the \progref, in the
-section on the calling mechanism and the chapter on linking.
-\end{remark}
+The export modifier is used to export names when creating a shared library
+or an executable program. This means that the symbol will be publicly
+available, and can be imported from other programs. For more information
+on this modifier, consult the section on Programming dynamic libraries
+in the \progref.
 
 
 \subsection{inline}
