@@ -3,15 +3,11 @@
 #
 
 [targets]
-units=doc_text shedit sh_pas sh_xml
-units_linux=gtkshedit
-programs_win32=gtkdemo
-programs_linux=gtkdemo
+units=gtkshedit
+programs=gtkdemo
 
 [require]
-packages=fcl
-packages_win32=gtk
-packages_linux=gtk
+packages=fcl gtk
 
 [dirs]
 fpcdir=../../..

@@ -116,7 +116,7 @@ endif
 
 # Default FPCDIR
 ifeq ($(FPCDIR),wrong)
-override FPCDIR=../..
+override FPCDIR=../../..
 ifeq ($(wildcard $(FPCDIR)/rtl),)
 override FPCDIR=wrong
 endif
@@ -178,16 +178,8 @@ endif
 
 # Targets
 
-override UNITOBJECTS+=doc_text shedit sh_pas sh_xml
-ifeq ($(OS_TARGET),linux)
 override UNITOBJECTS+=gtkshedit
-endif
-ifeq ($(OS_TARGET),linux)
 override EXEOBJECTS+=gtkdemo
-endif
-ifeq ($(OS_TARGET),win32)
-override EXEOBJECTS+=gtkdemo
-endif
 
 # Clean
 
@@ -201,19 +193,10 @@ ZIPTARGET=install
 
 # Directories
 
-ifndef TARGETDIR
-TARGETDIR=.
-endif
 
 # Packages
 
-override PACKAGES+=rtl fcl
-ifeq ($(OS_TARGET),linux)
-override PACKAGES+=gtk
-endif
-ifeq ($(OS_TARGET),win32)
-override PACKAGES+=gtk
-endif
+override PACKAGES+=rtl fcl gtk
 ifneq ($(wildcard $(FPCDIR)/rtl),)
 ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
 PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
@@ -257,28 +240,6 @@ endif
 endif
 ifdef UNITDIR_FCL
 override NEEDUNITDIR+=$(UNITDIR_FCL)
-endif
-ifneq ($(wildcard $(PACKAGEDIR)/gtk),)
-ifneq ($(wildcard $(PACKAGEDIR)/gtk/$(OS_TARGET)),)
-PACKAGEDIR_GTK=$(PACKAGEDIR)/gtk/$(OS_TARGET)
-else
-PACKAGEDIR_GTK=$(PACKAGEDIR)/gtk
-endif
-UNITDIR_GTK=$(PACKAGEDIR_GTK)
-else
-PACKAGEDIR_GTK=
-ifneq ($(wildcard $(UNITSDIR)/gtk),)
-ifneq ($(wildcard $(UNITSDIR)/gtk/$(OS_TARGET)),)
-UNITDIR_GTK=$(UNITSDIR)/gtk/$(OS_TARGET)
-else
-UNITDIR_GTK=$(UNITSDIR)/gtk
-endif
-else
-UNITDIR_GTK=
-endif
-endif
-ifdef UNITDIR_GTK
-override NEEDUNITDIR+=$(UNITDIR_GTK)
 endif
 ifneq ($(wildcard $(PACKAGEDIR)/gtk),)
 ifneq ($(wildcard $(PACKAGEDIR)/gtk/$(OS_TARGET)),)
@@ -412,11 +373,6 @@ endif
 
 ifdef UNITSDIR
 override FPCOPT+=-Fu$(UNITSDIR)
-endif
-
-# Target dirs
-ifdef TARGETDIR
-override FPCOPT+=-FE$(TARGETDIR)
 endif
 
 # Smartlinking
@@ -812,12 +768,7 @@ endif
 
 PACKAGERTL=1
 PACKAGEFCL=1
-ifeq ($(OS_TARGET),linux)
 PACKAGEGTK=1
-endif
-ifeq ($(OS_TARGET),win32)
-PACKAGEGTK=1
-endif
 ifdef PACKAGERTL
 ifneq ($(wildcard $(PACKAGEDIR_RTL)),)
 ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
