@@ -64,7 +64,7 @@ procedure TLinkerGo32v2.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld $SCRIPT $OPT $STRIP -o $EXE @$RES';
+     ExeCmd[1]:='ld $SCRIPT $OPT $STRIP -o $EXE $RES';
    end;
 end;
 
@@ -232,7 +232,10 @@ begin
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+  if source_info.system=system_i386_go32v2 then
+    Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName))
+  else  
+    Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$SCRIPT','--script='+maybequoted(outputexedir+Info.ScriptName));
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
@@ -362,7 +365,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2004-10-14 18:16:17  mazen
+  Revision 1.8  2005-01-30 12:03:28  peter
+    * only add @link.res if source is go32v2
+
+  Revision 1.7  2004/10/14 18:16:17  mazen
   * USE_SYSUTILS merged successfully : cycles with and without defines
   * Need to be optimized in performance
 
