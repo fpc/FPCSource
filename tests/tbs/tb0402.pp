@@ -1,3 +1,5 @@
+{ %version=1.1 }
+{$mode objfpc}
 type
    ta = array of longint;
 
