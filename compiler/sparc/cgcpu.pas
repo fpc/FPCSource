@@ -81,9 +81,9 @@ specific processor ABI. It is overriden for each CPU target.
     PROCEDURE a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:tasmlabel);{ OVERRIDE;}
     PROCEDURE a_jmp_flags(list:TAasmOutput;CONST f:TResFlags;l:tasmlabel);OVERRIDE;
     PROCEDURE g_flags2reg(list:TAasmOutput;Size:TCgSize;CONST f:tresflags;reg:TRegister);OVERRIDE;
-    PROCEDURE g_stackframe_entry(list:TAasmOutput;localsize:LongInt);OVERRIDE;
-    PROCEDURE g_restore_frame_pointer(list:TAasmOutput);OVERRIDE;
-    PROCEDURE g_return_from_proc(list:TAasmOutput;parasize:aword);OVERRIDE;
+    procedure g_stackframe_entry(list:TAasmOutput;localsize:LongInt);override;
+    procedure g_restore_frame_pointer(list:TAasmOutput);override;
+    procedure g_return_from_proc(list:TAasmOutput;parasize:aword);override;
     PROCEDURE g_concatcopy(list:TAasmOutput;CONST source,dest:TReference;len:aword;delsource,loadref:boolean);OVERRIDE;
     class function reg_cgsize(CONST reg:tregister):tcgsize;OVERRIDE;
   PRIVATE
@@ -806,9 +806,8 @@ execution of that instrucion is the called function stack pointer}
 	end;
 procedure tcgSPARC.g_restore_frame_pointer(list:TAasmOutput);
 	begin
-{We use trivial restore, as we set result before}
-		with list do
-			concat(Taicpu.Op_reg_const_reg(A_RESTORE,S_L,R_G0,0,R_G0));
+{This function intontionally does nothing as frame pointer is restored in the
+delay slot of the return instrucion done in g_return_from_proc}
 	end;
 procedure tcgSPARC.g_return_from_proc(list:TAasmOutput;parasize:aword);
 	var
@@ -826,8 +825,12 @@ If no inversion we can use just
 	NOP}
 		with list do
 			begin
+{Return address is computed by adding 8 to the CALL address saved onto %i6}
 				reference_reset_base(RetReference,R_I7,8);
 				concat(Taicpu.Op_ref_reg(A_JMPL,S_L,RetReference,R_G0));
+{We use trivial restore in the delay slot of the JMPL instruction, as we
+already set result onto %i0}
+				concat(Taicpu.Op_reg_const_reg(A_RESTORE,S_L,R_G0,0,R_G0));
 			end
 	end;
 PROCEDURE tcgSPARC.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tregister);
@@ -1079,7 +1082,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.7  2002-10-01 21:06:29  mazen
+  Revision 1.8  2002-10-01 21:35:58  mazen
+  + procedures exiting prologue added and stack frame now restored in the delay slot of the return (JMPL) instruction
+
+  Revision 1.7  2002/10/01 21:06:29  mazen
   attinst.inc --> strinst.inc
 
   Revision 1.6  2002/10/01 17:41:50  florian

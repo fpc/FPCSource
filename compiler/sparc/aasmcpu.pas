@@ -292,14 +292,14 @@ uses
       end;
 
 
-    constructor taicpu.op_ref_reg(op : tasmop;_size : topsize;const _op1 : treference;_op2 : tregister);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=2;
-         loadref(0,_op1);
-         loadreg(1,_op2);
-      end;
+constructor taicpu.op_ref_reg(op:tasmop;_size:topsize;const _op1:treference;_op2:tregister);
+	begin
+		inherited create(op);
+		init(_size);
+		ops:=2;
+		loadref(0,_op1);
+		loadreg(1,_op2);
+	end;
 
 
     constructor taicpu.op_ref_ref(op : tasmop;_size : topsize;const _op1,_op2 : treference);

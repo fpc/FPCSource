@@ -232,37 +232,30 @@ VAR
 {****************************************************************************
                             TISPARCATTASMOUTPUT
  ****************************************************************************}
-
-    const
-      ait_const2str : array[ait_const_32bit..ait_const_8bit] of string[8]=
-       (#9'.long'#9,#9'.short'#9,#9'.byte'#9);
-PROCEDURE TGasSPARC.WriteInstruction(hp:Tai);
-  VAR
-    Op:TAsmOp;
-    s:STRING;
-    i:Integer;
-    sep:STRING[3];
-  BEGIN
-    IF hp.typ<>ait_instruction
-    THEN
-      Exit;
-       taicpu(hp).SetOperandOrder(op_att);
-       op:=taicpu(hp).opcode;
-       { call maybe not translated to call }
-       s:=#9+std_op2str[op]+cond2str[taicpu(hp).condition];
-    IF is_CallJmp(op)
-    THEN
+const
+  ait_const2str:array[ait_const_32bit..ait_const_8bit]of string[8]=(#9'.long'#9,#9'.short'#9,#9'.byte'#9);
+procedure TGasSPARC.WriteInstruction(hp:Tai);
+	var
+		Op:TAsmOp;
+		s:STRING;
+		i:Integer;
+		sep:STRING[3];
+	begin
+		if hp.typ<>ait_instruction
+		then
+			Exit;
+		taicpu(hp).SetOperandOrder(op_att);
+		op:=taicpu(hp).opcode;
+	 {call maybe not translated to call}
+		s:=#9+std_op2str[op]+cond2str[taicpu(hp).condition];
+    if is_CallJmp(op)
+    then
            { call and jmp need an extra handling                          }
            { this code is only called if jmp isn't a labeled instruction  }
            { quick hack to overcome a problem with manglednames=255 chars }
-      BEGIN
-{        IF op<>A_JMPl
-        THEN
-          s:=cond2str(op,taicpu(hp).condition)+','
-        ELSE}
-          s:=#9'b'#9;
-        s:=s+getopstr_jmp(taicpu(hp).oper[0]);
-      END
+			begin
+				s:=#9+std_op2str[op]+#9+getopstr_jmp(taicpu(hp).oper[0]);
+			end
     ELSE
       BEGIN {process operands}
         s:=#9+std_op2str[op];
