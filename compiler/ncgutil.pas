@@ -1925,6 +1925,8 @@ implementation
       var
         sym : tsym;
       begin
+        if (po_assembler in current_procinfo.procdef.procoptions) then
+          exit;
         sym:=tsym(st.symindex.first);
         while assigned(sym) do
           begin
@@ -1932,10 +1934,32 @@ implementation
               begin
                 with tvarsym(sym) do
                   begin
-{$warning TODO Allocate register paras}
+                    { for localloc <> LOC_REFERENCE, we need regvar support inside inlined procedures }
                     localloc.loc:=LOC_REFERENCE;
                     localloc.size:=int_cgsize(paramanager.push_size(varspez,vartype.def,pocall_inline));
                     tg.GetLocal(list,tcgsize2size[localloc.size],vartype.def,localloc.reference);
+                    case paraitem.paraloc[calleeside].loc of
+                      LOC_FPUREGISTER:
+                        begin
+                          paraitem.paraloc[calleeside].register := cg.getfpuregister(list,paraitem.paraloc[calleeside].size);
+                          paraitem.paraloc[callerside] := paraitem.paraloc[calleeside];
+                        end;
+                      LOC_REGISTER:
+                        begin
+                          paraitem.paraloc[calleeside].register := cg.getintregister(list,paraitem.paraloc[calleeside].size);
+                          paraitem.paraloc[callerside] := paraitem.paraloc[calleeside];
+                        end;
+                      LOC_MMREGISTER:
+                        begin
+                          paraitem.paraloc[calleeside].register := cg.getmmregister(list,paraitem.paraloc[calleeside].size);
+                          paraitem.paraloc[callerside] := paraitem.paraloc[calleeside];
+                        end;
+                      LOC_REFERENCE:
+                        begin
+                          paraitem.paraloc[calleeside] := localloc;
+                          paraitem.paraloc[callerside] := localloc;
+                        end;
+                    end;
                     if cs_asm_source in aktglobalswitches then
                       begin
                         case localloc.loc of
@@ -1944,8 +1968,6 @@ implementation
                                 std_regname(localloc.reference.index)+tostr_with_plus(localloc.reference.offset))));
                         end;
                       end;
-                    paraitem.paraloc[callerside]:=localloc;
-                    paraitem.paraloc[calleeside]:=localloc;
                   end;
               end;
             sym:=tsym(sym.indexnext);
@@ -2067,7 +2089,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.210  2004-07-04 12:24:59  jonas
+  Revision 1.211  2004-07-09 23:41:04  jonas
+    * support register parameters for inlined procedures + some inline
+      cleanups
+
+  Revision 1.210  2004/07/04 12:24:59  jonas
     * fixed one regvar problem, but regvars are still broken since the dwarf
       merge...
 

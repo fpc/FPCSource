@@ -47,6 +47,8 @@ interface
           procedure release_para_temps;
           procedure normal_pass_2;
           procedure inlined_pass_2;
+          procedure pushparas;
+          procedure freeparas;
        protected
           framepointer_paraloc : tparalocation;
           refcountedtemp : treference;
@@ -636,6 +638,125 @@ implementation
       end;
 
 
+     procedure tcgcallnode.pushparas;
+       var
+         ppn : tcgcallparanode;
+       begin
+         { copy all resources to the allocated registers }
+         ppn:=tcgcallparanode(left);
+         while assigned(ppn) do
+           begin
+             if (ppn.left.nodetype<>nothingn) then
+               begin
+                 { better check for the real location of the parameter here, when stack passed parameters
+                   are saved temporary in registers, checking for the tempparaloc.loc is wrong
+                 }
+                 case ppn.paraitem.paraloc[callerside].loc of
+                   LOC_REGISTER:
+                     begin
+                       if not assigned(inlinecode) then
+                         begin
+                           paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
+                           paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+                         end;
+  {$ifdef sparc}
+                       case ppn.tempparaloc.size of
+                         OS_F32 :
+                           ppn.tempparaloc.size:=OS_32;
+                         OS_F64 :
+                           ppn.tempparaloc.size:=OS_64;
+                       end;
+  {$endif sparc}
+  {$ifndef cpu64bit}
+                       if ppn.tempparaloc.size in [OS_64,OS_S64] then
+                         begin
+                           cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerlow,
+                              ppn.paraitem.paraloc[callerside].registerlow);
+                           cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerhigh,
+                              ppn.paraitem.paraloc[callerside].registerhigh);
+                         end
+                       else
+  {$endif cpu64bit}
+                         cg.a_load_reg_reg(exprasmlist,ppn.tempparaloc.size,ppn.tempparaloc.size,
+                             ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register);
+                     end;
+                   LOC_FPUREGISTER:
+                     begin
+                       if not assigned(inlinecode) then
+                         begin
+                           paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
+                           paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+                           cg.a_loadfpu_reg_reg(exprasmlist,ppn.tempparaloc.size,
+                             ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register);
+                         end;
+                     end;
+                   LOC_MMREGISTER:
+                     begin
+                       if not assigned(inlinecode) then
+                         begin
+                           paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
+                           paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+                         end;
+                       cg.a_loadmm_reg_reg(exprasmlist,ppn.tempparaloc.size,
+                         ppn.tempparaloc.size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register,mms_movescalar);
+                     end;
+                   LOC_REFERENCE:
+                     begin
+                       if not assigned(inlinecode) then
+                         begin
+{$ifdef cputargethasfixedstack}
+                           { copy parameters in case they were moved to a temp. location because we've a fixed stack }
+                           paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
+                           paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+                           case ppn.tempparaloc.loc of
+                             LOC_REFERENCE:
+                               begin
+                                 reference_reset_base(href,ppn.tempparaloc.reference.index,ppn.tempparaloc.reference.offset);
+                                 if ppn.paraitem.paraloc[callerside].size=OS_NO then
+                                   cg.a_param_copy_ref(exprasmlist,ppn.paraitem.paratype.def.size,href,ppn.paraitem.paraloc[callerside])
+                                 else
+                                   cg.a_param_ref(exprasmlist,ppn.paraitem.paraloc[callerside].size,href,ppn.paraitem.paraloc[callerside]);
+                               end;
+                             LOC_REGISTER:
+      {$ifndef cpu64bit}
+                               if ppn.tempparaloc.size in [OS_64,OS_S64] then
+                                 cg64.a_param64_reg(exprasmlist,ppn.tempparaloc.register64,ppn.paraitem.paraloc[callerside])
+                               else
+      {$endif cpu64bit}
+                                 cg.a_param_reg(exprasmlist,ppn.paraitem.paraloc[callerside].size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside]);
+                             LOC_FPUREGISTER:
+                               cg.a_paramfpu_reg(exprasmlist,ppn.paraitem.paraloc[callerside].size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside]);
+                             else
+                               internalerror(200402081);
+                           end;
+  {$endif cputargethasfixedstack}
+                         end;
+                     end;
+                   else
+                     internalerror(200402091);
+                 end;
+               end;
+             ppn:=tcgcallparanode(ppn.right);
+           end;
+       end;
+
+     procedure tcgcallnode.freeparas;
+       var
+         ppn : tcgcallparanode;
+       begin
+         { free the resources allocated for the parameters }
+         ppn:=tcgcallparanode(left);
+         while assigned(ppn) do
+           begin
+             if not assigned(inlinecode) or
+                (ppn.paraitem.paraloc[callerside].loc <> LOC_REFERENCE) then
+               paramanager.freeparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+             ppn:=tcgcallparanode(ppn.right);
+           end;
+       end;
+
+
+
     procedure tcgcallnode.normal_pass_2;
       var
          regs_to_push_fpu,
@@ -646,109 +767,6 @@ implementation
          pvreg,
          vmtreg : tregister;
          oldaktcallnode : tcallnode;
-
-         procedure pushparas;
-         var
-           ppn : tcgcallparanode;
-         begin
-           { copy all resources to the allocated registers }
-           ppn:=tcgcallparanode(left);
-           while assigned(ppn) do
-             begin
-               if (ppn.left.nodetype<>nothingn) then
-                 begin
-                   { better check for the real location of the parameter here, when stack passed parameters
-                     are saved temporary in registers, checking for the tempparaloc.loc is wrong
-                   }
-                   case ppn.paraitem.paraloc[callerside].loc of
-                     LOC_REGISTER:
-                       begin
-                         paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
-                         paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
-{$ifdef sparc}
-                         case ppn.tempparaloc.size of
-                           OS_F32 :
-                             ppn.tempparaloc.size:=OS_32;
-                           OS_F64 :
-                             ppn.tempparaloc.size:=OS_64;
-                         end;
-{$endif sparc}
-{$ifndef cpu64bit}
-                         if ppn.tempparaloc.size in [OS_64,OS_S64] then
-                           begin
-                             cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerlow,
-                                ppn.paraitem.paraloc[callerside].registerlow);
-                             cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerhigh,
-                                ppn.paraitem.paraloc[callerside].registerhigh);
-                           end
-                         else
-{$endif cpu64bit}
-                           cg.a_load_reg_reg(exprasmlist,ppn.tempparaloc.size,ppn.tempparaloc.size,
-                               ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register);
-                       end;
-                     LOC_FPUREGISTER:
-                       begin
-                         paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
-                         paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
-                         cg.a_loadfpu_reg_reg(exprasmlist,ppn.tempparaloc.size,
-                           ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register);
-                       end;
-                     LOC_MMREGISTER:
-                       begin
-                         paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
-                         paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
-                         cg.a_loadmm_reg_reg(exprasmlist,ppn.tempparaloc.size,
-                           ppn.tempparaloc.size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register,mms_movescalar);
-                       end;
-                     LOC_REFERENCE:
-                       begin
-{$ifdef cputargethasfixedstack}
-                         { copy parameters in case they were moved to a temp. location because we've a fixed stack }
-                         paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
-                         paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
-                         case ppn.tempparaloc.loc of
-                           LOC_REFERENCE:
-                             begin
-                               reference_reset_base(href,ppn.tempparaloc.reference.index,ppn.tempparaloc.reference.offset);
-                               if ppn.paraitem.paraloc[callerside].size=OS_NO then
-                                 cg.a_param_copy_ref(exprasmlist,ppn.paraitem.paratype.def.size,href,ppn.paraitem.paraloc[callerside])
-                               else
-                                 cg.a_param_ref(exprasmlist,ppn.paraitem.paraloc[callerside].size,href,ppn.paraitem.paraloc[callerside]);
-                             end;
-                           LOC_REGISTER:
-{$ifndef cpu64bit}
-                             if ppn.tempparaloc.size in [OS_64,OS_S64] then
-                               cg64.a_param64_reg(exprasmlist,ppn.tempparaloc.register64,ppn.paraitem.paraloc[callerside])
-                             else
-{$endif cpu64bit}
-                               cg.a_param_reg(exprasmlist,ppn.paraitem.paraloc[callerside].size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside]);
-                           LOC_FPUREGISTER:
-                             cg.a_paramfpu_reg(exprasmlist,ppn.paraitem.paraloc[callerside].size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside]);
-                           else
-                             internalerror(200402081);
-                         end;
-{$endif cputargethasfixedstack}
-                       end;
-                     else
-                       internalerror(200402091);
-                   end;
-                 end;
-               ppn:=tcgcallparanode(ppn.right);
-             end;
-         end;
-
-       procedure freeparas;
-         var
-           ppn : tcgcallparanode;
-         begin
-           { free the resources allocated for the parameters }
-           ppn:=tcgcallparanode(left);
-           while assigned(ppn) do
-             begin
-               paramanager.freeparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
-               ppn:=tcgcallparanode(ppn.right);
-             end;
-         end;
 
       begin
          if not assigned(procdefinition) or
@@ -1067,7 +1085,10 @@ implementation
          oldaktcallnode:=aktcallnode;
          aktcallnode:=self;
          if assigned(left) then
-           tcallparanode(left).secondcallparan;
+           begin
+             tcallparanode(left).secondcallparan;
+             pushparas;
+           end;
          aktcallnode:=oldaktcallnode;
 
          { create temp procinfo that will be used for the inlinecode tree }
@@ -1112,6 +1133,8 @@ implementation
 {$endif GDB}
 
          gen_load_para_value(inlineentrycode);
+         { now that we've loaded the para's, free them }
+         freeparas;
          gen_initialize_code(inlineentrycode,true);
          if po_assembler in current_procinfo.procdef.procoptions then
            inlineentrycode.insert(Tai_marker.Create(asmblockstart));
@@ -1227,7 +1250,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.170  2004-06-29 20:56:46  peter
+  Revision 1.171  2004-07-09 23:41:04  jonas
+    * support register parameters for inlined procedures + some inline
+      cleanups
+
+  Revision 1.170  2004/06/29 20:56:46  peter
     * constructors don't return in parameter
 
   Revision 1.169  2004/06/20 08:55:29  florian

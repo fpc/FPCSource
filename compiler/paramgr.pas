@@ -305,16 +305,21 @@ implementation
       begin
         case loc.loc of
           LOC_REGISTER,
-          LOC_CREGISTER,
+          LOC_CREGISTER:
+            begin
+              if getsupreg(loc.register)<first_int_imreg then
+                cg.getexplicitregister(list,loc.register);
+            end;
           LOC_FPUREGISTER,
-          LOC_CFPUREGISTER,
+          LOC_CFPUREGISTER:
+            begin
+              if getsupreg(loc.register)<first_fpu_imreg then
+                cg.getexplicitregister(list,loc.register);
+            end;
           LOC_MMREGISTER,
           LOC_CMMREGISTER :
             begin
-              { NR_NO means we don't need to allocate the parameter.
-                This is used for inlining parameters which allocates
-                the parameters in gen_alloc_parast (PFV) }
-              if loc.register<>NR_NO then
+              if getsupreg(loc.register)<first_mm_imreg then
                 cg.getexplicitregister(list,loc.register);
             end;
           LOC_REFERENCE,
@@ -495,40 +500,10 @@ implementation
 
 
     function tparamanager.create_inline_paraloc_info(p : tabstractprocdef):longint;
-      var
-        hp : tparaitem;
-        paraloc : tparalocation;
-        parasize : longint;
       begin
-        parasize:=0;
-        hp:=tparaitem(p.para.first);
-        while assigned(hp) do
-          begin
-            if push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption) then
-              paraloc.size:=OS_ADDR
-            else
-              paraloc.size:=def_cgsize(hp.paratype.def);
-            if paraloc.size=OS_NO then
-              internalerror(200309301);
-            { Indicate parameter is loaded in register, the register
-              will be allocated when the allocpara is called }
-            paraloc.loc:=LOC_REGISTER;
-            paraloc.register:=NR_NO;
-(*
-                paraloc.loc:=LOC_REFERENCE;
-                paraloc.reference.index:=NR_FRAME_POINTER_REG;
-                l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
-                varalign:=size_2_align(l);
-                paraloc.reference.offset:=parasize+target_info.first_parm_offset;
-                varalign:=used_align(varalign,p.paraalign,p.paraalign);
-                parasize:=align(parasize+l,varalign);
-*)
-            hp.paraloc[callerside]:=paraloc;
-            hp.paraloc[calleeside]:=paraloc;
-            hp:=tparaitem(hp.next);
-          end;
         { We need to return the size allocated }
-        result:=parasize;
+        create_paraloc_info(p,callerside);
+        result:=create_paraloc_info(p,calleeside);
       end;
 
 
@@ -540,7 +515,11 @@ end.
 
 {
    $Log$
-   Revision 1.76  2004-06-20 08:55:30  florian
+   Revision 1.77  2004-07-09 23:41:04  jonas
+     * support register parameters for inlined procedures + some inline
+       cleanups
+
+   Revision 1.76  2004/06/20 08:55:30  florian
      * logs truncated
 
    Revision 1.75  2004/06/16 20:07:09  florian

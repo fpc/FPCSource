@@ -839,32 +839,44 @@ implementation
 {$ifndef cpu64bit}
               if (locpara.size in [OS_S64,OS_64]) then
                 begin
-                  getexplicitregister(list,locpara.registerlow);
-                  getexplicitregister(list,locpara.registerhigh);
-                  ungetregister(list,locpara.registerlow);
-                  ungetregister(list,locpara.registerhigh);
+                  if getsupreg(locpara.registerlow)<first_int_imreg then
+                    begin
+                      getexplicitregister(list,locpara.registerlow);
+                      getexplicitregister(list,locpara.registerhigh);
+                      ungetregister(list,locpara.registerlow);
+                      ungetregister(list,locpara.registerhigh);
+                    end;
                   cg64.a_load64_reg_ref(list,locpara.register64,ref)
                 end
               else
 {$endif cpu64bit}
                 begin
-                  getexplicitregister(list,locpara.register);
-                  ungetregister(list,locpara.register);
+                  if getsupreg(locpara.register)<first_int_imreg then
+                    begin
+                      getexplicitregister(list,locpara.register);
+                      ungetregister(list,locpara.register);
+                    end;
                   a_load_reg_ref(list,locpara.size,locpara.size,locpara.register,ref);
                 end;
             end;
           LOC_MMREGISTER,
           LOC_CMMREGISTER:
             begin
-              getexplicitregister(list,locpara.register);
-              ungetregister(list,locpara.register);
+              if getsupreg(locpara.register)<first_mm_imreg then
+                begin
+                  getexplicitregister(list,locpara.register);
+                  ungetregister(list,locpara.register);
+                end;
               a_loadmm_reg_ref(list,locpara.size,locpara.size,locpara.register,ref,shuffle);
             end;
           LOC_FPUREGISTER,
           LOC_CFPUREGISTER:
             begin
-              getexplicitregister(list,locpara.register);
-              ungetregister(list,locpara.register);
+              if getsupreg(locpara.register)<first_fpu_imreg then
+                begin
+                  getexplicitregister(list,locpara.register);
+                  ungetregister(list,locpara.register);
+                end;
               a_loadfpu_reg_ref(list,locpara.size,locpara.register,ref);
             end;
           else
@@ -883,8 +895,11 @@ implementation
             begin
               if not(locpara.size in [OS_S64,OS_64]) then
                 begin
-                  getexplicitregister(list,locpara.register);
-                  ungetregister(list,locpara.register);
+                  if getsupreg(locpara.register)<first_int_imreg then
+                    begin
+                      getexplicitregister(list,locpara.register);
+                      ungetregister(list,locpara.register);
+                    end;
 {
                   This is now a normal imaginary register, allocated the usual way (JM)
                   getexplicitregister(list,reg);
@@ -898,8 +913,11 @@ implementation
           LOC_FPUREGISTER:
             begin
 
-              getexplicitregister(list,locpara.register);
-              ungetregister(list,locpara.register);
+              if getsupreg(locpara.register)<first_fpu_imreg then
+                begin
+                  getexplicitregister(list,locpara.register);
+                  ungetregister(list,locpara.register);
+                end;
 {
               This is now a normal imaginary register, allocated the usual way (JM)
               getexplicitregister(list,reg);
@@ -909,8 +927,11 @@ implementation
           LOC_MMREGISTER,
           LOC_CMMREGISTER:
             begin
-              getexplicitregister(list,locpara.register);
-              ungetregister(list,locpara.register);
+              if getsupreg(locpara.register)<first_mm_imreg then
+                begin
+                  getexplicitregister(list,locpara.register);
+                  ungetregister(list,locpara.register);
+                end;
 {
               This is now a normal imaginary register, allocated the usual way (JM)
               getexplicitregister(list,reg);
@@ -2174,7 +2195,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.167  2004-07-03 11:47:04  peter
+  Revision 1.168  2004-07-09 23:41:04  jonas
+    * support register parameters for inlined procedures + some inline
+      cleanups
+
+  Revision 1.167  2004/07/03 11:47:04  peter
     * fix rangecheck error when assigning u32bit=s32bit
 
   Revision 1.166  2004/06/20 08:55:28  florian
