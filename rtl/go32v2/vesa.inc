@@ -2142,6 +2142,7 @@ Const
                   WriteLn('Invalid VESA Window attribute.');
                   Halt(255);
            end;
+         YOffset := 0;
        end;
 
      { if both windows are not supported, then we can assume }
@@ -2691,9 +2692,17 @@ Const
   var
    newStartVisible : word;
   begin
-    if page > HardwarePages then exit;
+    if page > HardwarePages then
+      begin
+        _graphresult := grError;
+        exit;
+      end;
     newStartVisible := (MaxY+1)*page;
-    if newStartVisible > ScanLines then exit;
+    if newStartVisible > ScanLines then
+      begin
+        _graphresult := grError;
+        exit;
+      end;
     asm
       mov ax, 4f07h
       mov bx, 0000h   { set display start }
@@ -2713,12 +2722,21 @@ Const
   begin
     { video offset is in pixels under VESA VBE! }
     { This value is reset after a mode set to page ZERO = YOffset = 0 ) }
+    if page > HardwarePages then
+      begin
+        _graphresult := grError;
+        exit;
+      end;
     YOffset := (MaxY+1)*page;
+    LinearPageOfs := YOffset*(MaxX+1);
   end;
 
 {
   $Log$
-  Revision 1.7  2001-09-10 16:15:52  jonas
+  Revision 1.8  2001-10-07 11:47:36  jonas
+    * fixed multiple page support (bug1536?) (merged)
+
+  Revision 1.7  2001/09/10 16:15:52  jonas
     * merged windows mode saving stuff from fixes branch
 
   Revision 1.6  2000/12/16 15:57:17  jonas
