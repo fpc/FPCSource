@@ -8,7 +8,7 @@ var
    q : array[0..15] of byte;
 
 begin
-  if sse2_support then
+  if is_sse2_cpu then
     asm
        movdqa    %xmm1,%xmm2
        movdqa    q,%xmm4
