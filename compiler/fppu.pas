@@ -1459,13 +1459,11 @@ uses
       var
         ups   : stringid;
         hp    : tppumodule;
-        hp2,
-        shortnamehp : tmodule;
+        hp2   : tmodule;
       begin
         { Info }
         ups:=upper(s);
         { search all loaded units }
-        shortnamehp:=nil;
         hp:=tppumodule(loaded_units.first);
         while assigned(hp) do
          begin
@@ -1494,15 +1492,10 @@ uses
                   end;
                  break;
                end;
-            end
-           else
-            if copy(hp.modulename^,1,8)=ups then
-             shortnamehp:=hp;
+            end;
            { the next unit }
            hp:=tppumodule(hp.next);
          end;
-        if assigned(shortnamehp) and not assigned(hp) then
-          Message2(unit_w_unit_name_error,s,shortnamehp.realmodulename^);
         { the unit is not in the loaded units,
           we create an entry and register the unit }
         if not assigned(hp) then
@@ -1519,7 +1512,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.61  2004-08-28 20:01:09  peter
+  Revision 1.62  2004-09-13 20:27:27  peter
+    * remove check for shortunitname, it broke units with 8 and 9 chars
+      with the first 8 chars being equal
+
+  Revision 1.61  2004/08/28 20:01:09  peter
     * print realmodulename in fatal errors
 
   Revision 1.60  2004/08/27 21:59:26  peter
