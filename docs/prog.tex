@@ -18,10 +18,16 @@
 %   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 %   Boston, MA 02111-1307, USA.
 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Preamble. 
+% Uncomment the one you need here. The book version is for the published
+% book version.
 \documentclass{report}
+%\documentclass{book}
 %
 % Preamble
-%
+\usepackage{epsfig}
+\usepackage{multicol}
 \ifx\pdfoutput\undefined
   \usepackage{html}
   \usepackage{htmllist}
@@ -29,16 +35,20 @@
 \else
   \usepackage{fpc}
 \fi
-%
-\html{\input{fpc-html.tex}}
-%
-\ifpdf
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Uncomment the fpc or fpcbook version, depending on the output format 
+% you want.
+%\usepackage{fpc}
+%\usepackage{fpcbook}
+\latex{%
+  \ifpdf
   \pdfinfo{/Author(Michael Van Canneyt)
            /Title(Programmers' Guide)
            /Subject(Free Pascal Programmers' guide)
            /Keywords(Free Pascal)
            }
 \fi
+}
 %
 % Settings
 %
