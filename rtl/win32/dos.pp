@@ -127,8 +127,8 @@ Procedure Exec(const path: pathstr; const comline: comstr);
 Function  DosExitCode: word;
 
 {Disk}
-Function  DiskFree(drive: byte) : longint;
-Function  DiskSize(drive: byte) : longint;
+Function  DiskFree(drive: byte) : int64;
+Function  DiskSize(drive: byte) : int64;
 Procedure FindFirst(const path: pathstr; attr: word; var f: searchRec);
 Procedure FindNext(var f: searchRec);
 Procedure FindClose(Var f: SearchRec);
@@ -169,6 +169,21 @@ Const
 
 implementation
 uses strings;
+type
+   OSVERSIONINFO = record
+        dwOSVersionInfoSize : DWORD;
+        dwMajorVersion : DWORD;
+        dwMinorVersion : DWORD;
+        dwBuildNumber : DWORD;
+        dwPlatformId : DWORD;
+        szCSDVersion : array[0..127] of char;
+     end;
+
+   LPOSVERSIONINFO = ^OSVERSIONINFO;
+
+var
+   versioninfo : OSVERSIONINFO;
+   kernel32dll : THandle;
 
 {******************************************************************************
                            --- Conversion ---
@@ -426,12 +441,21 @@ end;
    function GetDiskFreeSpace(drive:pchar;var sector_cluster,bytes_sector,
                              freeclusters,totalclusters:longint):longbool;
      external 'kernel32' name 'GetDiskFreeSpaceA';
+type
+   TGetDiskFreeSpaceEx = function(drive:pchar;var availableforcaller,
+                             total,free):longbool;stdcall;
 
-function diskfree(drive : byte) : longint;
+var
+   GetDiskFreeSpaceEx : TGetDiskFreeSpaceEx;
+
+function diskfree(drive : byte) : int64;
 var
   disk : array[1..4] of char;
   secs,bytes,
   free,total : longint;
+  qwtotal,qwfree,qwcaller : int64;
+
+
 begin
   if drive=0 then
    begin
@@ -445,18 +469,30 @@ begin
      disk[3]:='\';
      disk[4]:=#0;
    end;
-  if GetDiskFreeSpace(@disk,secs,bytes,free,total) then
-   diskfree:=free*secs*bytes
+  if assigned(GetDiskFreeSpaceEx) then
+    begin
+       if GetDiskFreeSpaceEx(@disk,qwcaller,qwtotal,qwfree) then
+         diskfree:=qwfree
+       else
+         diskfree:=-1;
+    end
   else
-   diskfree:=-1;
+    begin
+       if GetDiskFreeSpace(@disk,secs,bytes,free,total) then
+         diskfree:=free*secs*bytes
+       else
+         diskfree:=-1;
+    end;
 end;
 
 
-function disksize(drive : byte) : longint;
+function disksize(drive : byte) : int64;
 var
   disk : array[1..4] of char;
   secs,bytes,
   free,total : longint;
+  qwtotal,qwfree,qwcaller : int64;
+
 begin
   if drive=0 then
    begin
@@ -470,10 +506,20 @@ begin
      disk[3]:='\';
      disk[4]:=#0;
    end;
-  if GetDiskFreeSpace(@disk,secs,bytes,free,total) then
-   disksize:=total*secs*bytes
+  if assigned(GetDiskFreeSpaceEx) then
+    begin
+       if GetDiskFreeSpaceEx(@disk,qwcaller,qwtotal,qwfree) then
+         disksize:=qwtotal
+       else
+         disksize:=-1;
+    end
   else
-   disksize:=-1;
+    begin
+       if GetDiskFreeSpace(@disk,secs,bytes,free,total) then
+         disksize:=total*secs*bytes
+       else
+         disksize:=-1;
+    end;
 end;
 
 
@@ -848,11 +894,48 @@ Procedure setintvec(intno : byte;vector : pointer);
 Begin
 End;
 
+function FreeLibrary(hLibModule : THANDLE) : longbool;
+  external 'kernel32' name 'FreeLibrary';
+function GetVersionEx(var VersionInformation:OSVERSIONINFO) : longbool;
+  external 'kernel32' name 'GetVersionExA';
+function LoadLibrary(lpLibFileName : pchar):THandle;
+  external 'kernel32' name 'LoadLibraryA';
+function GetProcAddress(hModule : THandle;lpProcName : pchar) : pointer;
+  external 'kernel32' name 'GetProcAddress';
 
+var
+   oldexitproc : pointer;
+
+procedure dosexitproc;
+
+  begin
+     exitproc:=oldexitproc;
+     if kernel32dll<>0 then
+       FreeLibrary(kernel32dll);
+  end;
+
+begin
+   oldexitproc:=exitproc;
+   exitproc:=@dosexitproc;
+   versioninfo.dwOSVersionInfoSize:=sizeof(versioninfo);
+   GetVersionEx(versioninfo);
+   kernel32dll:=0;
+   GetDiskFreeSpaceEx:=nil;
+   if ((versioninfo.dwPlatformId=VER_PLATFORM_WIN32_WINDOWS) and
+     (versioninfo.dwBuildNUmber>=1000)) or
+     (versioninfo.dwPlatformId=VER_PLATFORM_WIN32_NT) then
+     begin
+        kernel32dll:=LoadLibrary('kernel32');
+        if kernel32dll<>0 then
+          GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
+     end;
 end.
 {
   $Log$
-  Revision 1.30  2000-01-11 13:45:19  pierre
+  Revision 1.31  2000-01-24 21:57:56  florian
+    * disksize/diskfree return now a int64
+
+  Revision 1.30  2000/01/11 13:45:19  pierre
    * fsearch was still worng for multiple pathes
 
   Revision 1.29  2000/01/11 12:49:26  pierre
