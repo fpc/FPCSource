@@ -639,14 +639,12 @@ implementation
              withsymtable :
                begin
                  if (st.defowner.deftype=objectdef) then
-                  begin
-                    p1:=tnode(twithsymtable(st).withrefnode).getcopy;
-                    maybe_load_methodpointer:=true;
-                  end;
+                   p1:=tnode(twithsymtable(st).withrefnode).getcopy;
                end;
              objectsymtable :
                begin
                  p1:=load_self_node;
+                 { We are calling a member }
                  maybe_load_methodpointer:=true;
                end;
            end;
@@ -1064,8 +1062,6 @@ implementation
                    end;
                  varsym:
                    begin
-                      if isclassref then
-                        Message(parser_e_only_class_methods_via_class_ref);
                       if (sp_static in sym.symoptions) then
                         begin
                            static_name:=lower(sym.owner.name^)+'_'+sym.name;
@@ -1075,7 +1071,11 @@ implementation
                            p1:=cloadnode.create(sym,srsymtable);
                         end
                       else
-                        p1:=csubscriptnode.create(sym,p1);
+                        begin
+                          if isclassref then
+                            Message(parser_e_only_class_methods_via_class_ref);
+                          p1:=csubscriptnode.create(sym,p1);
+                        end;
                    end;
                  propertysym:
                    begin
@@ -1155,19 +1155,22 @@ implementation
 
                 varsym :
                   begin
-                    { are we in a class method, we check here the
-                      srsymtable, because a field in another object
-                      also has objectsymtable. And withsymtable is
-                      not possible for self in class methods (PFV) }
-                    if (srsymtable.symtabletype=objectsymtable) and
-                       assigned(current_procdef) and
-                       (po_classmethod in current_procdef.procoptions) then
-                      Message(parser_e_only_class_methods);
                     if (sp_static in srsym.symoptions) then
                      begin
                        static_name:=lower(srsym.owner.name^)+'_'+srsym.name;
                        searchsym(static_name,srsym,srsymtable);
                        check_hints(srsym);
+                     end
+                    else
+                     begin
+                       { are we in a class method, we check here the
+                         srsymtable, because a field in another object
+                         also has objectsymtable. And withsymtable is
+                         not possible for self in class methods (PFV) }
+                       if (srsymtable.symtabletype=objectsymtable) and
+                          assigned(current_procdef) and
+                          (po_classmethod in current_procdef.procoptions) then
+                         Message(parser_e_only_class_methods);
                      end;
 
                     case srsymtable.symtabletype of
@@ -2407,7 +2410,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.121  2003-05-22 17:43:21  peter
+  Revision 1.122  2003-06-03 21:02:57  peter
+    * don't set nf_member when loaded from with symtable
+    * allow static variables in class methods
+
+  Revision 1.121  2003/05/22 17:43:21  peter
     * search defaulthandler only for message methods
 
   Revision 1.120  2003/05/15 18:58:53  peter
