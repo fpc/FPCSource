@@ -131,6 +131,7 @@ type
     TargetPrograms,
     TargetExamples,
     TargetRST      : TTargetsString;
+    InstallPackageName,
     InstallUnitSubDir,
     InstallPrefixDir,
     InstallDataDir,
@@ -312,6 +313,7 @@ begin
      ReadTargetsString(CleanUnits,ini_clean,'units','');
      ReadTargetsString(CleanFiles,ini_clean,'files','');
    { install }
+     InstallPackageName:=ReadString(ini_install,'packagename','');
      InstallPrefixDir:=ReadString(ini_install,'dirprefix','');
      InstallBaseDir:=ReadString(ini_install,'basedir','');
      InstallDataDir:=ReadString(ini_install,'datadir','');
@@ -810,14 +812,14 @@ begin
      AddSection(true,'fpcdirdetect');
 
    { fpcdir subdirs }
-     Add('ifndef PACKAGEDIR');
-     Add('PACKAGEDIR='+userini.dirpackage);
+     Add('ifndef PACKAGESDIR');
+     Add('PACKAGESDIR='+userini.dirpackage);
      Add('endif');
-     Add('ifndef TOOLKITDIR');
-     Add('TOOLKITDIR='+userini.dirtoolkit);
+     Add('ifndef TOOLKITSDIR');
+     Add('TOOLKITSDIR='+userini.dirtoolkit);
      Add('endif');
-     Add('ifndef COMPONENTDIR');
-     Add('COMPONENTDIR='+userini.dircomponent);
+     Add('ifndef COMPONENTSDIR');
+     Add('COMPONENTSDIR='+userini.dircomponent);
      Add('endif');
      AddSection(userini.requirertl,'fpcdirsubs');
 
@@ -850,6 +852,8 @@ begin
       Add('DATAINSTALLDIR='+userini.installdatadir);
      if userini.InstallUnitSubDir<>'' then
       Add('UNITSUBDIR='+userini.InstallUnitSubDir);
+     if userini.installpackagename<>'' then
+      Add('PACKAGENAME='+userini.installpackagename);
 
    { Zip }
      if userini.zipname<>'' then
@@ -934,9 +938,9 @@ begin
    { package/component dirs }
      AddHead('Package/component dirs');
      AddSection(userini.requirertl,'checkfpcdirsubs');
-     AddTargetsUnitDir('$(TOOLKITDIR)',userini.Requiretoolkits);
-     AddTargetsUnitDir('$(PACKAGEDIR)',userini.Requirepackages);
-     AddTargetsUnitDir('$(COMPONENTDIR)',userini.Requirecomponents);
+     AddTargetsUnitDir('$(TOOLKITSDIR)',userini.Requiretoolkits);
+     AddTargetsUnitDir('$(PACKAGESDIR)',userini.Requirepackages);
+     AddTargetsUnitDir('$(COMPONENTSDIR)',userini.Requirecomponents);
      Add('');
 
    { write dirs }
@@ -1129,7 +1133,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2000-01-08 16:31:04  peter
+  Revision 1.22  2000-01-10 22:55:49  peter
+    * zipname creation from packagename
+
+  Revision 1.21  2000/01/08 16:31:04  peter
     * support variable in packagenames
     * fpcmake.loc support
     * fixed place of presettings which must be before FPCDIR is set
