@@ -264,10 +264,13 @@ Uses
 {$else}
   {$ifdef statedebug}
     cutils,
+  {$else}
+    {$ifdef allocregdebug}
+      cutils,
+    {$endif}
   {$endif}
 {$endif}
-  globals, systems, verbose, symconst, symsym, cgobj,
-   rgobj, procinfo;
+  globals, systems, verbose, symconst, cgobj,procinfo;
 
 Type
   TRefCompare = function(const r1, r2: treference; size: tcgsize): boolean;
@@ -466,6 +469,8 @@ begin
 
   hp1 := p;
 {
+
+
   while not(funcResReg and
             (p.typ = ait_instruction) and
             (taicpu(p).opcode = A_JMP) and
@@ -540,6 +545,7 @@ end;
 
 
 { inserts new_one between prev and foll }
+
 procedure InsertLLItem(AsmL: TAAsmOutput; prev, foll, new_one: TLinkedListItem);
 begin
   if assigned(prev) then
@@ -1174,11 +1180,11 @@ begin
   getnextinstruction(p2,p2);
   lastRemovedWasDealloc := false;
 {$ifdef allocregdebug}
-  hp := tai_comment.Create(strpnew('allocating '+std_reg2str[supreg]+
-    ' from here...')));
+  hp := tai_comment.Create(strpnew('allocating '+std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))+
+    ' from here...'));
   insertllitem(asml,p1.previous,p1,hp);
-  hp := tai_comment.Create(strpnew('allocated '+std_reg2str[supreg]+
-    ' till here...')));
+  hp := tai_comment.Create(strpnew('allocated '+std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))+
+    ' till here...'));
   insertllitem(asml,p2,p1.next,hp);
 {$endif allocregdebug}
   if not(supreg in initialusedregs) then
@@ -2785,7 +2791,10 @@ end.
 
 {
   $Log$
-  Revision 1.75  2004-12-12 10:50:34  florian
+  Revision 1.76  2004-12-18 14:07:35  jonas
+    * fixed compilation with -dcsdebug -dallocregdebug
+
+  Revision 1.75  2004/12/12 10:50:34  florian
     * fixed operand size calculation for sse operands
     + all nasm assembler targets to help page output added
 
