@@ -372,7 +372,12 @@ implementation
            exit;
 
          if not is_boolean(left.resulttype.def) then
-           CGMessage1(type_e_boolean_expr_expected,left.resulttype.def.typename);
+           begin
+             if left.resulttype.def.deftype=variantdef then
+               inserttypeconv(left,booltype)
+             else
+               CGMessage1(type_e_boolean_expr_expected,left.resulttype.def.typename);
+           end;
 
          { optimize constant expressions }
          if (left.nodetype=ordconstn) then
@@ -554,7 +559,12 @@ implementation
            exit;
 
          if not is_boolean(left.resulttype.def) then
-           Message1(type_e_boolean_expr_expected,left.resulttype.def.typename);
+           begin
+             if left.resulttype.def.deftype=variantdef then
+               inserttypeconv(left,booltype)
+             else
+               Message1(type_e_boolean_expr_expected,left.resulttype.def.typename);
+           end;
 
          { optimize constant expressions }
          if left.nodetype=ordconstn then
@@ -1394,7 +1404,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.109  2005-02-14 17:13:06  peter
+  Revision 1.110  2005-02-23 20:38:09  florian
+    + variants can be used as cond. expr. in if, while, repeat ... until statements
+
+  Revision 1.109  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.108  2005/01/31 20:23:53  peter
