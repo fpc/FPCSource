@@ -89,7 +89,7 @@ var
   coffsec    : tcoffsechdr;
   i : longint;
 begin
-  LoadCoff:=false;
+  LoadGo32Coff:=false;
   stabofs:=-1;
   stabstrofs:=-1;
   { read and check header }
@@ -117,7 +117,7 @@ begin
          end;
       end;
    end;
-  LoadCoff:=(stabofs<>-1) and (stabstrofs<>-1);
+  LoadGo32Coff:=(stabofs<>-1) and (stabstrofs<>-1);
 end;
 {$endif Go32v2}
 
@@ -504,7 +504,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2000-02-06 19:14:22  peter
+  Revision 1.3  2000-02-06 22:13:42  florian
+    * small typo for go32 fixed
+
+  Revision 1.2  2000/02/06 19:14:22  peter
     * linux elf support
 
   Revision 1.1  2000/02/06 17:19:22  peter
