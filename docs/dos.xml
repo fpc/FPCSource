@@ -173,6 +173,33 @@ and time.
 </descr>
 </topic>
 
+<element name="TLineEndStr">
+<short>End-of-line string</short>
+<descr>
+<var>TLineEndStr</var> is used in the <link id="TextRec"/> record to
+indicate the end-of-line sequence for a text file.
+</descr>
+</element>
+
+<element name="GetMSCount">
+<short>Number of milliseconds since a starting point.</short>
+<descr>
+<p>
+<var>GetMSCount</var> returns a number of milliseconds elapsed since a
+certain moment in time. This moment in time is implementation dependent.
+This function is used for timing purposes: Substracting the results of 2
+subsequent calls to this function returns the number of milliseconds elapsed
+between the two calls.
+</p>
+<p>
+This call is not very reliable, it is recommended to use some system
+specific calls for timings.
+</p>
+</descr>
+<seealso>
+<link id="GetTime"/>
+</seealso>
+</element>
 
 <element name="fmclosed">
 <short>File is closed</short>

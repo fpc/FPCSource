@@ -332,6 +332,38 @@ the size and sign of the ordinal type:
 <short>Unsigned longing (Cardinal)</short>
 </element>
 
+<element name="TOrdType">
+<short>Alias for <link id="#rtl.typinfo.TTordType">TTordType</link>.</short>
+<descr>
+If the property is and ordinal type, then <var>TOrdType</var> determines
+the size and sign of the ordinal type:
+</descr>
+</element>
+
+<element name="TOrdType.otSByte">
+<short>Signed byte</short>
+</element>
+
+<element name="TOrdType.otUByte">
+<short>Unsigned byte</short>
+</element>
+
+<element name="TOrdType.otSWord">
+<short>Signed word</short>
+</element>
+
+<element name="TOrdType.otUWord">
+<short>Unsigned word</short>
+</element>
+
+<element name="TOrdType.otSLong">
+<short>Signed longint</short>
+</element>
+
+<element name="TOrdType.otULong">
+<short>Unsigned longing (Cardinal)</short>
+</element>
+
 <element name="TFloatType">
 <short>The size of a float type.</short>
 </element>

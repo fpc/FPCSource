@@ -7251,6 +7251,140 @@ trailing directory delimiter character.
 <short>Function prototype for <link id="#rtl.sysutils.OnGetTempFile">OnGetTempFile</link> handler.</short>
 </element>
 
+<element name="TLineEndStr">
+<short>End-of-line string</short>
+<descr>
+<var>TLineEndStr</var> is used in the <link id="TextRec"/> record to
+indicate the end-of-line sequence for a text file.
+</descr>
+</element>
+
+</descr>
+</element>
+
+<element name="TSysLocale">
+<short>Type describing the current locale</short>
+<descr>
+<var>TSysLocale</var> describes the current locale. If <var>Fareast</var> or
+<var>MBCS</var> is <var>True</var>, then the current locale uses a
+Multi-Byte Character Set. If <var>MiddleEast</var> or <var>RightToLeft</var>
+is <var>True</var> then words and sentences are read from right to left.
+</descr>
+</element>
+
+<element name="TSysLocale.FarEast">
+<short>Multi-Byte Character Set used</short>
+</element>
+
+<element name="TSysLocale.MiddleEast">
+<short>Reading direction is Right-to-left</short>
+</element>
+
+<element name="TSysLocale.MBCS">
+<short>Multi-Byte Character Set used</short>
+</element>
+
+<element name="TSysLocale.RightToLeft">
+<short>Reading direction is Right-to-left</short>
+</element>
+
+<element name="SysLocale">
+<short>Variable with locale information</short>
+<descr>
+<var>SysLocale</var> is initialized by the initialization code of the
+<file>SysUtils</file> unit. For an explanation of the fields, see <link
+id="TSysLocale"/>
+</descr>
+<seealso>
+<link id="TSysLocale"/>
+</seealso>
+</element>
+
+<element name="ForceDirectories">
+<short>Create a chain of directories</short>
+<descr>
+<var>ForceDirectories</var> tries to create any missing directories in
+<var>Dir</var> till the whole path in <var>Dir</var> exists. It returns
+<var>True</var> if <var>Dir</var> already existed or was created
+succesfully. If it failed to create any of the parts, <var>False</var> is
+returned.
+</descr>
+</element>
+
+<element name="StrCharLength">
+<short>Return the length of a null-terminated string in characters.</short>
+<descr>
+<var>StrCharLength</var> returns the length of the null-terminated string
+<var>Str</var> (a widestring) in characters (not in bytes). It uses the
+widestringmanager to do this.
+</descr>
+</element>
+
+<element name="TryStrToFloat">
+<short>Try to convert a string to a float.</short>
+<descr>
+<var>TryStrToFloat</var> tries to convert the string <var>S</var> to a
+floating point value, and stores the result in <var>Value</var>. It returns
+<var>True</var> if the operation was succesful, and <var>False</var> if it
+failed. This operation takes into account the system settings for floating
+point representations.
+</descr>
+<errors>
+On error, -1 is returned.
+</errors>
+<seealso>
+<link id="StrToFloat"/>
+</seealso>
+</element>
+
+<element name="WideCompareStr">
+<short>Compare two widestrings (case sensitive)</short>
+<descr>
+</descr>
+</element>
+
+<element name="WideCompareText">
+<short>Compare two widestrings  (ignoring case).</short>
+<descr>
+</descr>
+</element>
+
+<element name="WideFormat">
+<short>Format a wide string.</short>
+<descr>
+</descr>
+</element>
+
+<element name="WideLowerCase">
+<short>Change a widestring to all-lowercase.</short>
+<descr>
+</descr>
+</element>
+
+<element name="WideSameStr">
+<short>Check whether two widestrings are the same (case sensitive)</short>
+<descr>
+</descr>
+</element>
+
+<element name="WideSameText">
+<short>Check whether two widestrings are the same (ignoring case)</short>
+<descr>
+</descr>
+</element>
+
+<element name="WideUpperCase">
+<short>Change a widestring to all-lowercase.</short>
+<descr>
+</descr>
+</element>
+
+<element name="WrapText">
+<short></short>
+<descr></descr>
+</element>
+
+
 </module>
 </package>
 </fpdoc-descriptions>

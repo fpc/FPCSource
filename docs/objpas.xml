@@ -561,6 +561,10 @@ integer is 16 bit.
 <short>Ansistring record in resource table (Delphi compatibility).</short>
 </element>
 
+<element name="PInteger">
+<short>Pointer to <link id="#rtl.objpas.integer">Integer</link> type.</short>
+</element>
+
 <!-- function Visibility: default -->
 <element name="LoadResString">
 <short>Load resource string</short>

@@ -995,6 +995,20 @@ screen at a given location. It looks as follows:
 <example file="videoex/vidutil"/>
 </topic>
 
+<element name="CursorLines">
+<short>Currently visible scanlines of cursor.</short>
+<descr>
+<p>
+<var>CursorLines</var> is a bitmask which determines which cursor lines are
+visible and which are not. Each set bit corresponds to a cursorline being
+shown.
+</p>
+<p>
+This variable is not supported on all platforms, so it should be used
+sparingly.
+</p>
+</descr>
+</element>
 
 </module>
 </package>

@@ -55,6 +55,18 @@ demonstrates how to make a keyboard driver.
 <short>Keyboard driver not implemented.</short>
 </element>
 
+<element name="kbdApps">
+<short>Application key (popup-menu) pressed.</short>
+</element>
+
+<element name="kbdLWin">
+<short>Left windows key pressed.</short>
+</element>
+
+<element name="kbdRWin">
+<short>Right windows key pressed.</short>
+</element>
+
 <element name="kbdF1">
 <short>F1 function key pressed.</short>
 </element>
