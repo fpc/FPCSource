@@ -876,21 +876,18 @@ implementation
                    if pprocdef(p^.procdefinition)^.extnumber=-1 then
                      internalerror(44584);
                    r^.offset:=pprocdef(p^.procdefinition)^._class^.vmtmethodoffset(pprocdef(p^.procdefinition)^.extnumber);
-{$ifndef TESTOBJEXT}
-                   if (cs_check_range in aktlocalswitches) then
-                     begin
-                        emit_reg(A_PUSH,S_L,r^.base);
-                        emitcall('FPC_CHECK_OBJECT');
-                     end;
-{$else TESTOBJEXT}
-                   if (cs_check_range in aktlocalswitches) then
+                   if (cs_check_object_ext in aktlocalswitches) then
                      begin
                         emit_sym(A_PUSH,S_L,
                           newasmsymbol(pprocdef(p^.procdefinition)^._class^.vmt_mangledname));
                         emit_reg(A_PUSH,S_L,r^.base);
                         emitcall('FPC_CHECK_OBJECT_EXT');
+                     end
+                   else if (cs_check_range in aktlocalswitches) then
+                     begin
+                        emit_reg(A_PUSH,S_L,r^.base);
+                        emitcall('FPC_CHECK_OBJECT');
                      end;
-{$endif TESTOBJEXT}
                    emit_ref(A_CALL,S_NO,r);
 {$ifndef noAllocEdi}
                    ungetregister32(R_EDI);
@@ -1429,7 +1426,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.133  2000-05-15 19:30:27  peter
+  Revision 1.134  2000-05-16 20:19:05  pierre
+    + -CR option to enable check for object virtual method
+
+  Revision 1.133  2000/05/15 19:30:27  peter
     * fixed calling of inherited methods from destructors
 
   Revision 1.132  2000/05/09 14:15:03  pierre

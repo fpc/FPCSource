@@ -457,6 +457,14 @@ begin
                                 End
                               Else
                                 initlocalswitches:=initlocalswitches+[cs_check_range];
+                            'R' :
+                              If UnsetBool(More, j) then
+                                Begin
+                                  initlocalswitches:=initlocalswitches-[cs_check_object_ext];
+                                  inc(j);
+                                End
+                              Else
+                                initlocalswitches:=initlocalswitches+[cs_check_object_ext];
                             's' :
                                begin
                                  val(copy(more,j+1,length(more)-j),stacksize,code);
@@ -1445,7 +1453,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.67  2000-05-10 13:40:19  peter
+  Revision 1.68  2000-05-16 20:19:06  pierre
+    + -CR option to enable check for object virtual method
+
+  Revision 1.67  2000/05/10 13:40:19  peter
     * -Se<x> option extended to increase errorcount for
       warning,notes or hints
 

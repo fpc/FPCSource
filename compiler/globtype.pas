@@ -60,7 +60,8 @@ interface
        { Switches which can be changed locally }
        tlocalswitch = (cs_localnone,
          { codegen }
-         cs_check_overflow,cs_check_range,cs_check_io,cs_check_stack,
+         cs_check_overflow,cs_check_range,cs_check_object_ext,
+         cs_check_io,cs_check_stack,
          cs_omitstackframe,cs_do_assertion,cs_generate_rtti,
          { mmx }
          cs_mmx,cs_mmx_saturation,
@@ -198,7 +199,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2000-02-28 17:23:57  daniel
+  Revision 1.30  2000-05-16 20:19:05  pierre
+    + -CR option to enable check for object virtual method
+
+  Revision 1.29  2000/02/28 17:23:57  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new
@@ -262,4 +266,3 @@ end.
     * PPU version increased to solve .12 <-> .13 probs
 
 }
-
