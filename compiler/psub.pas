@@ -990,7 +990,10 @@ implementation
            normal procedures only store a reference to the
            current tree }
          if (procdef.proccalloption=pocall_inline) then
-           procdef.inlininginfo^.code:=code.getcopy
+           begin
+             procdef.inlininginfo^.code:=code.getcopy;
+             procdef.inlininginfo^.flags:=current_procinfo.flags;
+           end
          else
            procdef.inlininginfo^.code:=code;
 
@@ -1331,7 +1334,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.178  2003-12-16 21:29:24  florian
+  Revision 1.179  2003-12-16 22:36:19  florian
+    * forgot a commit
+
+  Revision 1.178  2003/12/16 21:29:24  florian
     + inlined procedures inherit procinfo flags
 
   Revision 1.177  2003/12/15 21:25:48  peter
