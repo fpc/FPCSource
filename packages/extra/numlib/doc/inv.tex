@@ -1,0 +1,495 @@
+%
+% part of numlib docs. In time this won't be a standalone pdf anymore, but part of a larger part.
+% for now I keep it directly compliable. Uses fpc.sty from fpc-docs pkg.
+%
+
+\documentclass{report}
+
+\usepackage{fpc}
+\lstset{%
+  basicstyle=\small,
+  language=delphi,
+  commentstyle=\itshape,
+  keywordstyle=\bfseries,
+  showstringspaces=false,
+  frame=
+}
+
+\makeindex
+
+\newcommand{\FunctionDescription}{\item[Description]\rmfamily}
+\newcommand{\Dataorganisation}{\item[Data Struct]\rmfamily}
+\newcommand{\DeclarationandParams}{\item[Declaration]\rmfamily}
+\newcommand{\References}{\item[References]\rmfamily}
+\newcommand{\Method}{\item[Method]\rmfamily}
+\newcommand{\Precision}{\item[Precision]\rmfamily}
+\newcommand{\Remarks}{\item[Remarks]\rmfamily}
+\newcommand{\Example}{\item[Example]\rmfamily}
+\newcommand{\ProgramData}{\item[Example Data]\rmfamily}
+\newcommand{\ProgramResults}{\item[Example Result]\rmfamily}
+
+\begin{document}
+
+\section{Unit inv}
+
+\textbf{Original comments:} \\ 
+The used floating point type \textbf{real} depends on the used version,
+see the general introduction for more information. You'll need to USE
+units typ an inv to use these routines. 
+
+\textbf{MvdV notes:} \\
+Integers used for parameters are of type "ArbInt" to avoid problems with
+systems that define integer differently depending on mode. 
+
+Floating point values are of type "ArbFloat" to allow writing code that is
+independant of the exact real type. (Contrary to directly specifying single,
+real, double or extended in library and examples). Typ.pas and the central
+includefile have some conditional code to switch between floating point
+types.
+
+These changes were already prepared somewhat when I got the lib, but weren't
+consequently applied. I did that while porting to FPC.
+
+\begin{procedure}{invgen}
+
+\FunctionDescription
+
+Procedure to calculate the inverse of a matrix.
+
+\Dataorganisation
+
+The procedure assumes that the calling program has declared a two dimensional
+matrix containing the maxtrixelements in a square partial block.
+
+\DeclarationandParams
+
+\lstinline|procedure invgen(n, rwidth: ArbInt; var ai: ArbFloat;var term: ArbInt);|
+
+\begin{description}
+ \item[n: integer] \mbox{ } \\
+    The parameter {\bf n} describes the size of the matrix
+ \item[rwidth: integer] \mbox{} \\
+    The parameter {\bf rwidth} describes the declared rowlength of the twodimensional
+    matrix.
+ \item[var ai: real] \mbox{} \\
+    The parameter {\bf ai} must contain to the twodimensional arrayelement
+    that is top-left in the matrix.
+    After the function has ended succesfully (\textbf{term=1}) then 
+    the input matrix has been changed into its inverse, otherwise the contents 
+    of the input matrix are undefined.
+    ongedefinieerd.
+ \item[var term: integer]  \mbox{} \\
+    After the procedure has run, this variable contains the reason for 
+    the termination of the procedure:\\
+      {\bf term}=1, succesfull termination, the inverse has been calculated
+      {\bf term}=2, inverse matrix could not be calculated because the matrix
+		    is (very close to) being singular.
+      {\bf term}=3, wrong input n$<$1
+\end{description}
+\Remarks
+  This procedure does not do array range checks. When called with invalid
+  parameters, invalid/nonsense responses or even crashes may be the result.
+
+\Example
+
+Calculate the inverse of 
+\[
+ A=
+ \left(
+ \begin{array}{rrrr}
+   4 & 2 & 4 & 1  \\
+  30 & 20 & 45 & 12 \\
+  20 & 15 & 36 & 10 \\
+  35 & 28 & 70 & 20
+ \end{array}
+ \right)
+ .
+\]
+
+Below is the source of the invgenex demo that demontrates invgenex, some
+routines of iom were used to construct matrices.
+
+\begin{lstlisting}
+program invgenex;
+uses typ, iom, inv;
+const n = 4;
+var  term : ArbInt;
+        A : array[1..n,1..n] of ArbFloat;
+
+begin
+  assign(input, paramstr(1)); reset(input);
+  assign(output, paramstr(2)); rewrite(output);
+  writeln('program results invgenex');
+  { Read matrix A }
+  iomrem(input, A[1,1], n, n, n);
+  { Print matrix A }
+  writeln; writeln('A =');
+  iomwrm(output, A[1,1], n, n, n, numdig);
+  { Calculation of the inverse of A }
+  invgen(n, n, A[1,1], term);
+  writeln; writeln('term=', term:2);
+  if term=1 then
+  { print inverse inverse of A }
+  begin
+      writeln; writeln('inverse of A =');
+      iomwrm(output, A[1,1], n, n, n, numdig);
+  end; {term=1}
+  close(input); close(output)
+end.
+\end{lstlisting}
+
+\ProgramData
+
+The input datafile looks like:
+\begin{verbatim}
+ 4  2  4  1
+30 20 45 12
+20 15 36 10
+35 28 70 20
+\end{verbatim}
+
+\ProgramResults
+
+\begin{verbatim}
+program results invgenex
+
+A =
+ 4.0000000000000000E+0000   2.0000000000000000E+0000
+ 3.0000000000000000E+0001   2.0000000000000000E+0001
+ 2.0000000000000000E+0001   1.5000000000000000E+0001
+ 3.5000000000000000E+0001   2.8000000000000000E+0001
+
+ 4.0000000000000000E+0000   1.0000000000000000E+0000
+ 4.5000000000000000E+0001   1.2000000000000000E+0001
+ 3.6000000000000000E+0001   1.0000000000000000E+0001
+ 7.0000000000000000E+0001   2.0000000000000000E+0001
+
+term= 1
+
+inverse of A =
+ 4.0000000000000000E+0000  -2.0000000000000000E+0000
+-3.0000000000000000E+0001   2.0000000000000000E+0001
+ 2.0000000000000000E+0001  -1.5000000000000000E+0001
+-3.4999999999999999E+0001   2.7999999999999999E+0001
+
+ 3.9999999999999999E+0000  -1.0000000000000000E+0000
+-4.4999999999999999E+0001   1.2000000000000000E+0001
+ 3.5999999999999999E+0001  -1.0000000000000000E+0001
+-6.9999999999999999E+0001   2.0000000000000000E+0001
+\end{verbatim}
+
+\Precision
+
+The procedure doesn't supply information about the precision of the
+operation after termination.
+
+\Method
+
+The calculation of the inverse is based on LU decomposition with partial
+pivoting.
+
+\References
+
+ Wilkinson, J.H. and Reinsch, C.\\
+ Handbook for Automatic Computation.\\
+ Volume II, Linear Algebra.\\
+ Springer Verlag, Contribution I/7, 1971.
+
+\end{procedure}
+
+\begin{procedure}{invgpd}
+
+\FunctionDescription
+
+Procedure to calculate the inverse of a symmetrical, postivive definite
+
+%van een symmetrische,positief definiete matrix.
+
+\Dataorganisation
+The procedure assumes that the calling program has declared a two dimensional
+matrix containing the maxtrixelements in a square partial block.
+
+\DeclarationandParams
+
+\lstinline|procedure invgpd(n, rwidth: ArbInt; var ai: ArbFloat; var term: ArbInt);|
+
+\begin{description}
+ \item[n: integer] \mbox{ } \\
+    The parameter {\bf n} describes the size of the matrix
+ \item[rwidth: integer] \mbox{} \\
+    The parameter {\bf rwidth} describes the declared rowlength of the twodimensional
+    matrix.
+ \item[var ai: real] \mbox{} \\
+    The parameter {\bf ai} must contain to the twodimensional arrayelement
+    that is top-left in the matrix.
+    After the function has ended succesfully (\textbf{term=1}) then 
+    the input matrix has been changed into its inverse, otherwise the contents 
+    of the input matrix are undefined.
+    ongedefinieerd.
+ \item[var term: integer]  \mbox{} \\
+    After the procedure has run, this variable contains the reason for 
+    the termination of the procedure:\\
+      {\bf term}=1, succesfull termination, the inverse has been calculated
+      {\bf term}=2, inverse matrix could not be calculated because the matrix
+		    is (very close to) being singular.
+      {\bf term}=3, wrong input n$<$1
+\end{description}
+\Remarks
+
+\begin{itemize}
+\item Only the bottomleft part of the matrix $A$ needs to be passed.
+\item \textbf{Warning} This procedure does not do array range checks. When called with invalid
+parameters, invalid/nonsense responses or even crashes may be the result.
+\end{itemize}
+
+\Example
+
+Calculate the inverse of 
+\[
+ A=
+ \left(
+ \begin{array}{rrrr}
+   5 & 7 & 6 & 5  \\
+   7 & 10 & 8 & 7 \\
+   6 & 8 & 10 & 9 \\
+   5 & 7 & 9 & 10
+ \end{array}
+ \right)
+ .
+\]
+
+\begin{lstlisting}
+program invgpdex;
+uses typ, iom, inv;
+const n = 4;
+var i, j,  term : ArbInt;
+              A : array[1..n,1..n] of ArbFloat;
+begin
+  assign(input, paramstr(1)); reset(input);
+  assign(output, paramstr(2)); rewrite(output);
+  writeln('program results invgpdex');
+  { Read bottom leftpart of matrix A}
+  for i:=1 to n do iomrev(input, A[i,1], i);
+  { print matrix A }
+  writeln; writeln('A =');
+  for i:=1 to n do for j:=1 to i-1 do A[j,i]:=A[i,j];
+  iomwrm(output, A[1,1], n, n, n, numdig);
+  { Calculate inverse of matrix A}
+  invgpd(n, n, A[1,1], term);
+  writeln; writeln('term=', term:2);
+  if term=1 then
+  { Print inverse of matrix A}
+  begin
+      writeln; writeln('inverse of A =');
+      iomwrm(output, A[1,1], n, n, n, numdig);
+  end; {term=1}
+  close(input); close(output)
+end.
+\end{lstlisting}
+
+\ProgramData
+
+\begin{verbatim}
+5
+7 10
+6 8 10
+5 7 9 10
+\end{verbatim}
+
+\ProgramResults
+\begin{verbatim}
+
+program results invgpdex
+
+A =
+ 5.0000000000000000E+0000   7.0000000000000000E+0000
+ 7.0000000000000000E+0000   1.0000000000000000E+0001
+ 6.0000000000000000E+0000   8.0000000000000000E+0000
+ 5.0000000000000000E+0000   7.0000000000000000E+0000
+
+ 6.0000000000000000E+0000   5.0000000000000000E+0000
+ 8.0000000000000000E+0000   7.0000000000000000E+0000
+ 1.0000000000000000E+0001   9.0000000000000000E+0000
+ 9.0000000000000000E+0000   1.0000000000000000E+0001
+
+term= 1
+
+inverse of A =
+ 6.8000000000000000E+0001  -4.1000000000000000E+0001
+-4.1000000000000000E+0001   2.5000000000000000E+0001
+-1.7000000000000000E+0001   1.0000000000000000E+0001
+ 1.0000000000000000E+0001  -6.0000000000000000E+0000
+
+-1.7000000000000000E+0001   1.0000000000000000E+0001
+ 1.0000000000000000E+0001  -6.0000000000000000E+0000
+ 5.0000000000000000E+0000  -3.0000000000000000E+0000
+-3.0000000000000000E+0000   2.0000000000000000E+0000
+\end{verbatim}
+
+\Precision
+
+The procedure doesn't supply information about the precision of the
+operation after termination.
+
+\Method
+
+The calculation of the inverse is based on Cholesky decomposition for a
+symmetrical positive definitie matrix. 
+
+\References
+
+ Wilkinson, J.H. and Reinsch, C.\\ Handbook for Automatic Computation.\\
+ Volume II, Linear Algebra.\\ Springer Verlag, Contribution I/7, 1971.
+
+\end{procedure}
+
+\begin{procedure}{invgsy}
+
+\FunctionDescription
+
+Procedure to calculate the inverse of a symmetrical matrix.
+
+\Dataorganisation
+
+The procedure assumes that the calling program has declared a two
+dimensional matrix containing the maxtrixelements in (the bottomleft part
+of) a square partial block.
+
+\DeclarationandParams
+
+\lstinline|procedure invgsy(n, rwidth: ArbInt; var ai: ArbFloat;var term:ArbInt);|
+
+\begin{description}
+ \item[n: integer] \mbox{ } \\
+    The parameter {\bf n} describes the size of the matrix
+ \item[rwidth: integer] \mbox{} \\
+    The parameter {\bf rwidth} describes the declared rowlength of the twodimensional
+    matrix.
+ \item[var ai: real] \mbox{} \\
+    The parameter {\bf ai} must contain to the twodimensional arrayelement
+    that is top-left in the matrix.
+    After the function has ended succesfully (\textbf{term=1}) then
+    the input matrix has been changed into its inverse, otherwise the contents
+    of the input matrix are undefined.
+    ongedefinieerd.
+ \item[var term: integer]  \mbox{} \\
+    After the procedure has run, this variable contains the reason for
+    the termination of the procedure:\\
+      {\bf term}=1, succesfull termination, the inverse has been calculated
+      {\bf term}=2, inverse matrix could not be calculated because the matrix
+                    is (very close to) being singular.
+      {\bf term}=3, wrong input n$<$1
+
+\end{description}
+
+\Remarks
+\begin{itemize}
+\item Only the bottomleft part of the matrix $A$ needs to be passed.
+\item \textbf{Warning} This procedure does not do array range checks. When called with invalid
+parameters, invalid/nonsense responses or even crashes may be the result.
+\end{itemize}
+
+\Example
+
+  Het berekenen van de inverse van
+\[
+ A=
+ \left(
+ \begin{array}{rrrr}
+   5 & 7 & 6 & 5  \\
+   7 & 10 & 8 & 7 \\
+   6 & 8 & 10 & 9 \\
+   5 & 7 & 9 & 10
+ \end{array}
+ \right)
+ .
+\]
+
+\begin{lstlisting}
+program invgsyex;
+uses typ, iom, inv;
+const n = 4;
+var i, j,  term : ArbInt;
+              A : array[1..n,1..n] of ArbFloat;
+begin
+  assign(input, paramstr(1)); reset(input);
+  assign(output, paramstr(2)); rewrite(output);
+  writeln('program results invgsyex');
+  { Read bottomleft part of matrix A}
+  for i:=1 to n do iomrev(input, A[i,1], i);
+  { print matrix A}
+  writeln; writeln('A =');
+  for i:=1 to n do for j:=1 to i-1 do A[j,i]:=A[i,j];
+  iomwrm(output, A[1,1], n, n, n, numdig);
+  { calculate inverse of matrix A}
+  invgsy(n, n, A[1,1], term);
+  writeln; writeln('term=', term:2);
+  if term=1 then
+  { print inverse of matrix A}
+  begin
+      writeln; writeln('inverse of A =');
+      iomwrm(output, A[1,1], n, n, n, numdig);
+  end; {term=1}
+  close(input); close(output)
+end.
+\end{lstlisting}
+
+\ProgramData
+
+\begin{verbatim}
+5
+7 10
+6 8 10
+5 7 9 10
+\end{verbatim}
+
+\ProgramResults
+
+\begin{verbatim}
+program results invgsyex
+
+A =
+ 5.0000000000000000E+0000   7.0000000000000000E+0000
+ 7.0000000000000000E+0000   1.0000000000000000E+0001
+ 6.0000000000000000E+0000   8.0000000000000000E+0000
+ 5.0000000000000000E+0000   7.0000000000000000E+0000
+
+ 6.0000000000000000E+0000   5.0000000000000000E+0000
+ 8.0000000000000000E+0000   7.0000000000000000E+0000
+ 1.0000000000000000E+0001   9.0000000000000000E+0000
+ 9.0000000000000000E+0000   1.0000000000000000E+0001
+
+term= 1
+
+inverse of A =
+ 6.8000000000000001E+0001  -4.1000000000000001E+0001
+-4.1000000000000001E+0001   2.5000000000000000E+0001
+-1.7000000000000000E+0001   1.0000000000000000E+0001
+ 1.0000000000000000E+0001  -6.0000000000000001E+0000
+
+-1.7000000000000000E+0001   1.0000000000000000E+0001
+ 1.0000000000000000E+0001  -6.0000000000000001E+0000
+ 5.0000000000000001E+0000  -3.0000000000000000E+0000
+-3.0000000000000000E+0000   2.0000000000000000E+0000
+\end{verbatim}
+
+\Precision
+
+The procedure doesn't supply information about the precision of the
+operation after termination.
+
+\Method
+
+The calculation of the inverse is based on reduction of a symmetrical
+matrix to a tridiagonal form.
+
+\References
+
+Aasen, J. O. \\
+On the reduction of a symmetric matrix to tridiagonal form. \\
+BIT, 11, (1971), pag. 223-242.
+
+\end{procedure}
+
+\end{document}
+
