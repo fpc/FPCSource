@@ -903,78 +903,39 @@ implementation
                    exprasmlist^.concat(new(pai386,op_const_reg(A_SHR,S_W,8,p^.location.register)));
                  p^.location.register:=reg16toreg8(p^.location.register);
               end;
-{$ifdef OLDHIGH}
-            in_high_x :
-              begin
-                 if is_open_array(p^.left^.resulttype) or
-                    is_open_string(p^.left^.resulttype) then
-                   begin
-                      secondpass(p^.left);
-                      del_reference(p^.left^.location.reference);
-                      p^.location.register:=getregister32;
-                      r:=new_reference(highframepointer,highoffset+4);
-                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                        r,p^.location.register)));
-                   end
-              end;
-{$endif OLDHIGH}
             in_sizeof_x,
             in_typeof_x :
               begin
-{$ifdef OLDHIGH}
-               { sizeof(openarray) handling }
-                 if (p^.inlinenumber=in_sizeof_x) and
-                    (is_open_array(p^.left^.resulttype) or
-                     is_open_string(p^.left^.resulttype)) then
-                  begin
-                  { sizeof(openarray)=high(openarray)+1 }
-                    secondpass(p^.left);
-                    del_reference(p^.left^.location.reference);
-                    p^.location.register:=getregister32;
-                    r:=new_reference(highframepointer,highoffset+4);
-                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                      r,p^.location.register)));
-                    exprasmlist^.concat(new(pai386,op_reg(A_INC,S_L,
-                      p^.location.register)));
-                    if (p^.left^.resulttype^.deftype=arraydef) and
-                       (parraydef(p^.left^.resulttype)^.elesize<>1) then
-                      exprasmlist^.concat(new(pai386,op_const_reg(A_IMUL,S_L,
-                        parraydef(p^.left^.resulttype)^.elesize,p^.location.register)));
-                  end
+                 { for both cases load vmt }
+                 if p^.left^.treetype=typen then
+                   begin
+                      p^.location.register:=getregister32;
+                      exprasmlist^.concat(new(pai386,op_sym_ofs_reg(A_MOV,
+                        S_L,newasmsymbol(pobjectdef(p^.left^.resulttype)^.vmt_mangledname),0,
+                        p^.location.register)));
+                   end
                  else
-{$endif OLDHIGH}
-                  begin
-                    { for both cases load vmt }
-                    if p^.left^.treetype=typen then
-                      begin
-                         p^.location.register:=getregister32;
-                         exprasmlist^.concat(new(pai386,op_sym_ofs_reg(A_MOV,
-                           S_L,newasmsymbol(pobjectdef(p^.left^.resulttype)^.vmt_mangledname),0,
-                           p^.location.register)));
-                      end
-                    else
-                      begin
-                         secondpass(p^.left);
-                         del_reference(p^.left^.location.reference);
-                         p^.location.loc:=LOC_REGISTER;
-                         p^.location.register:=getregister32;
-                         { load VMT pointer }
-                         inc(p^.left^.location.reference.offset,
-                           pobjectdef(p^.left^.resulttype)^.vmt_offset);
-                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                         newreference(p^.left^.location.reference),
-                           p^.location.register)));
-                      end;
-                    { in sizeof load size }
-                    if p^.inlinenumber=in_sizeof_x then
-                      begin
-                         new(r);
-                         reset_reference(r^);
-                         r^.base:=p^.location.register;
-                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,
-                           p^.location.register)));
-                      end;
-                  end;
+                   begin
+                      secondpass(p^.left);
+                      del_reference(p^.left^.location.reference);
+                      p^.location.loc:=LOC_REGISTER;
+                      p^.location.register:=getregister32;
+                      { load VMT pointer }
+                      inc(p^.left^.location.reference.offset,
+                        pobjectdef(p^.left^.resulttype)^.vmt_offset);
+                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                      newreference(p^.left^.location.reference),
+                        p^.location.register)));
+                   end;
+                 { in sizeof load size }
+                 if p^.inlinenumber=in_sizeof_x then
+                   begin
+                      new(r);
+                      reset_reference(r^);
+                      r^.base:=p^.location.register;
+                      exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,
+                        p^.location.register)));
+                   end;
               end;
             in_lo_long,
             in_hi_long :
@@ -1309,7 +1270,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  1999-03-16 17:52:56  jonas
+  Revision 1.31  1999-03-24 23:16:49  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.30  1999/03/16 17:52:56  jonas
     * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
     * in cgi386inl: also range checking for subrange types (compile with "-dreadrangecheck")
     * in cgai386: also small fixes to emitrangecheck

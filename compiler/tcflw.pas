@@ -235,7 +235,7 @@ implementation
 
       var
          old_t_times : longint;
-
+         hp : ptree;
       begin
          { Calc register weight }
          old_t_times:=t_times;
@@ -250,6 +250,8 @@ implementation
              exit;
           end;
 
+         { save counter var }
+         p^.t2:=getcopy(p^.left^.left);
 
          p^.registers32:=p^.t1^.registers32;
          p^.registersfpu:=p^.t1^.registersfpu;
@@ -259,16 +261,6 @@ implementation
 
          if p^.left^.treetype<>assignn then
            CGMessage(cg_e_illegal_expression);
-
-         { Laufvariable retten }
-         p^.t2:=getcopy(p^.left^.left);
-
-         { Check count var }
-         if (p^.t2^.treetype<>loadn) then
-          CGMessage(cg_e_illegal_count_var)
-         else
-          if (not(is_ordinal(p^.t2^.resulttype))) then
-           CGMessage(type_e_ordinal_expr_expected);
 
          cleartempgen;
          must_be_valid:=false;
@@ -282,8 +274,23 @@ implementation
          if p^.left^.registersmmx>p^.registersmmx then
            p^.registersmmx:=p^.left^.registersmmx;
 {$endif SUPPORT_MMX}
+
+         { process count var }
          cleartempgen;
          firstpass(p^.t2);
+         if codegenerror then
+          exit;
+
+         { Check count var, record fields are also allowed in tp7 }
+         hp:=p^.t2;
+         while (hp^.treetype=subscriptn) do
+          hp:=hp^.left;
+         if (hp^.treetype<>loadn) then
+          CGMessage(cg_e_illegal_count_var)
+         else
+          if (not(is_ordinal(p^.t2^.resulttype))) then
+           CGMessage(type_e_ordinal_expr_expected);
+
          if p^.t2^.registers32>p^.registers32 then
            p^.registers32:=p^.t2^.registers32;
          if p^.t2^.registersfpu>p^.registersfpu then
@@ -493,7 +500,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1999-03-09 19:24:42  peter
+  Revision 1.8  1999-03-24 23:17:36  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.7  1999/03/09 19:24:42  peter
     * type check the exit()
 
   Revision 1.6  1999/02/22 02:15:48  peter

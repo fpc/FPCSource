@@ -57,20 +57,12 @@ implementation
                 push_from_left_to_right,inlined : boolean;para_offset : longint);
 
       procedure maybe_push_high;
-{$ifdef OLDHIGH}
-        var
-           r    : preference;
-           hreg : tregister;
-           href : treference;
-           len  : longint;
-{$endif}
         begin
            { open array ? }
            { defcoll^.data can be nil for read/write }
            if assigned(defcoll^.data) and
               push_high_param(defcoll^.data) then
              begin
-{$ifndef OLDHIGH}
                if assigned(p^.hightree) then
                 begin
                   secondpass(p^.hightree);
@@ -78,89 +70,6 @@ implementation
                 end
                else
                 internalerror(432645);
-{$else}
-               { push high }
-               case p^.left^.resulttype^.deftype of
-                arraydef : begin
-                             if is_open_array(p^.left^.resulttype) then
-                              begin
-                                   p^.location.reference.base:=procinfo.framepointer;
-                                   p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address;
-                                r:=new_reference(highframepointer,highoffset+4);
-                                len:=-1;
-                              end
-                             else
-                              len:=parraydef(p^.left^.resulttype)^.highrange-
-                                   parraydef(p^.left^.resulttype)^.lowrange
-                           end;
-               stringdef : begin
-                             if is_open_string(defcoll^.data) then
-                               begin
-                                 if is_open_string(p^.left^.resulttype) then
-                                  begin
-                                    r:=new_reference(highframepointer,highoffset+4);
-                                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
-                                    hreg:=R_EDI;
-                                    len:=-2;
-                                  end
-                                 else
-                                  len:=pstringdef(p^.left^.resulttype)^.len
-                               end
-                             else
-                             { passing a string to an array of char }
-                               begin
-                                 if (p^.left^.treetype=stringconstn) then
-                                   len:=str_length(p^.left)
-                                 else
-                                   begin
-                                     href:=p^.location.reference;
-                                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_BL,newreference(href),R_EDI)));
-                                     hreg:=R_EDI;
-                                     len:=-2;
-                                   end;
-                               end;
-                           end;
-               else
-                len:=0;
-               end;
-             { Push from the reference? }
-               if len=-1 then
-                begin
-                  if inlined then
-                   begin
-                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
-                     r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                     exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
-                   end
-                  else
-                   exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,r)));
-                end
-               else
-               { Push from a register? }
-                if len=-2 then
-                 begin
-                   if inlined then
-                    begin
-                      r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                      exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,hreg,r)));
-                    end
-                   else
-                    exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,hreg)));
-                   ungetregister32(hreg);
-                 end
-               else
-               { Push direct value }
-                begin
-                  if inlined then
-                    begin
-                       r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                       exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,len,r)));
-                    end
-                  else
-                    push_int(len);
-                end;
-               inc(pushedparasize,4);
-{$endif OLDHIGH}
              end;
         end;
 
@@ -1308,7 +1217,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  1999-02-25 21:02:21  peter
+  Revision 1.70  1999-03-24 23:16:46  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.69  1999/02/25 21:02:21  peter
     * ag386bin updates
     + coff writer
 

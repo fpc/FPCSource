@@ -83,7 +83,7 @@ implementation
                       begin
                          p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
                          if (pvarsym(p^.symtableentry)^.var_options and vo_is_external)<>0 then
-                           maybe_concat_external(p^.symtableentry^.owner,p^.symtableentry^.mangledname);
+                           concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
                       end
                     { DLL variable }
                     else if (pvarsym(p^.symtableentry)^.var_options and vo_is_dll_var)<>0 then
@@ -93,9 +93,14 @@ implementation
                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.location.reference),hregister)));
                          p^.location.reference.symbol:=nil;
                          p^.location.reference.base:=hregister;
-                         if (pvarsym(p^.symtableentry)^.var_options and vo_is_external)<>0 then
-                           maybe_concat_external(p^.symtableentry^.owner,p^.symtableentry^.mangledname);
                       end
+                    { external variable }
+                    else if (pvarsym(p^.symtableentry)^.var_options and vo_is_external)<>0 then
+                      begin
+                         p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
+                         concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
+                      end
+                    { normal variable }
                     else
                       begin
                          symtabletype:=p^.symtable^.symtabletype;
@@ -797,7 +802,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  1999-02-25 21:02:28  peter
+  Revision 1.46  1999-03-24 23:16:52  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.45  1999/02/25 21:02:28  peter
     * ag386bin updates
     + coff writer
 

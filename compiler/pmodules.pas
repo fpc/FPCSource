@@ -738,7 +738,7 @@ unit pmodules;
 
       function is_assembler_generated:boolean;
       begin
-        is_assembler_generated:=(status.errorcount=0) and
+        is_assembler_generated:=(Errorcount=0) and
           not(
           codesegment^.empty and
           datasegment^.empty and
@@ -884,9 +884,9 @@ unit pmodules;
          read_interface_declarations;
 
          { leave when we got an error }
-         if (status.errorcount>0) and not status.skip_error then
+         if (Errorcount>0) and not status.skip_error then
           begin
-            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
+            Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
             exit;
           end;
@@ -1001,7 +1001,7 @@ unit pmodules;
          { absence does not matter here !! }
          aktprocsym^.definition^.forwarddef:=false;
          { test static symtable }
-         if (status.errorcount=0) then
+         if (Errorcount=0) then
            st^.allsymbolsused;
 
          { size of the static data }
@@ -1033,7 +1033,7 @@ unit pmodules;
          reset_global_defs;
 
          { tests, if all (interface) forwards are resolved }
-         if (status.errorcount=0) then
+         if (Errorcount=0) then
            symtablestack^.check_forwards;
 
          { now we have a correct unit, change the symtable type }
@@ -1044,9 +1044,9 @@ unit pmodules;
 {$endif GDB}
 
          { leave when we got an error }
-         if (status.errorcount>0) and not status.skip_error then
+         if (Errorcount>0) and not status.skip_error then
           begin
-            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
+            Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
             exit;
           end;
@@ -1063,7 +1063,7 @@ unit pmodules;
          if cs_local_browser in aktmoduleswitches then
            current_module^.localsymtable:=refsymtable;
          { Write out the ppufile }
-         if (status.errorcount=0) then
+         if (Errorcount=0) then
            writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack));
 
           { must be done only after local symtable ref stores !! }
@@ -1213,9 +1213,9 @@ unit pmodules;
          write_gdb_info;
 {$endIf Def New_GDB}
          { leave when we got an error }
-         if (status.errorcount>0) and not status.skip_error then
+         if (Errorcount>0) and not status.skip_error then
           begin
-            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
+            Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
             exit;
           end;
@@ -1259,7 +1259,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.103  1999-03-18 20:30:46  peter
+  Revision 1.104  1999-03-24 23:17:17  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.103  1999/03/18 20:30:46  peter
     + .a writer
 
   Revision 1.102  1999/03/16 21:07:25  peter

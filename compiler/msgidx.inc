@@ -419,6 +419,8 @@ type tmsgconst=(
   assem_f_assembler_output_not_supported,
   assem_e_unsupported_symbol_type,
   assem_e_cannot_index_relative_var,
+  assem_h_direct_global_to_mangled,
+  assem_w_direct_global_is_overloaded_func,
   exec_w_source_os_redefined,
   exec_i_assembling_pipe,
   exec_d_cant_create_asmfile,

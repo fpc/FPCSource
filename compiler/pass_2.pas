@@ -42,7 +42,7 @@ implementation
 
    uses
      globtype,systems,
-     cobjects,verbose,comphook,globals,files,
+     cobjects,comphook,verbose,globals,files,
      symtable,types,aasm,scanner,
      pass_1,hcodegen,temp_gen
 {$ifdef GDB}
@@ -500,7 +500,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1999-02-22 02:15:25  peter
+  Revision 1.16  1999-03-24 23:17:11  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.15  1999/02/22 02:15:25  peter
     * updates for ag386bin
 
   Revision 1.14  1999/01/23 23:29:37  florian

@@ -392,34 +392,37 @@ implementation
            while assigned(hp) do
             begin
               firstpass(hp^.left);
-              case hp^.left^.resulttype^.deftype of
-                enumdef :
-                  begin
-                    hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
-                    firstpass(hp^.left);
-                  end;
-                orddef :
-                  begin
-                    if is_integer(hp^.left^.resulttype) then
+              if not get_para_resulttype then
+               begin
+                 case hp^.left^.resulttype^.deftype of
+                   enumdef :
                      begin
                        hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
                        firstpass(hp^.left);
                      end;
-                  end;
-                floatdef :
-                  begin
-                    hp^.left:=gentypeconvnode(hp^.left,s80floatdef);
-                    firstpass(hp^.left);
-                  end;
-                stringdef :
-                  begin
-                    if p^.cargs then
+                   orddef :
                      begin
-                       hp^.left:=gentypeconvnode(hp^.left,charpointerdef);
+                       if is_integer(hp^.left^.resulttype) then
+                        begin
+                          hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
+                          firstpass(hp^.left);
+                        end;
+                     end;
+                   floatdef :
+                     begin
+                       hp^.left:=gentypeconvnode(hp^.left,s80floatdef);
                        firstpass(hp^.left);
                      end;
-                  end;
-              end;
+                   stringdef :
+                     begin
+                       if p^.cargs then
+                        begin
+                          hp^.left:=gentypeconvnode(hp^.left,charpointerdef);
+                          firstpass(hp^.left);
+                        end;
+                     end;
+                 end;
+               end;
               if (pd=nil) then
                pd:=hp^.left^.resulttype
               else
@@ -468,7 +471,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1999-03-18 11:21:52  peter
+  Revision 1.20  1999-03-24 23:17:39  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.19  1999/03/18 11:21:52  peter
     * convert only to s32bit if integer or enum
 
   Revision 1.18  1999/03/16 21:02:10  peter

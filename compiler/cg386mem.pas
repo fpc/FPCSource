@@ -46,7 +46,7 @@ implementation
       globtype,systems,
       cobjects,verbose,globals,
       symtable,aasm,types,
-      hcodegen,temp_gen,pass_2,
+      hcodegen,temp_gen,pass_2,pass_1,
 {$ifdef ag386bin}
       i386base,i386asm,
 {$else}
@@ -408,9 +408,10 @@ implementation
          rl : pdef;
          t   : ptree;
          hp  : preference;
+         href : treference;
          tai : Pai386;
          pushed : tpushed;
-
+         hightree : ptree;
 
       begin
          secondpass(p^.left);
@@ -553,6 +554,7 @@ implementation
               p:=_p;
            end
          else
+         { not treetype=ordconstn }
            begin
               { quick hack, to overcome Delphi 2 }
               if (cs_regalloc in aktglobalswitches) and
@@ -606,7 +608,8 @@ implementation
                 CGMessage(cg_e_illegal_expression);
               is_pushed:=maybe_push(p^.right^.registers32,p);
               secondpass(p^.right);
-              if is_pushed then restore(p);
+              if is_pushed then
+                restore(p);
               case p^.right^.location.loc of
                  LOC_REGISTER:
                    begin
@@ -651,25 +654,33 @@ implementation
                        { Booleans are stored in an 8 bit memory location, so
                          the use of MOVL is not correct }
                        case p^.right^.resulttype^.size of
-                         1:
-                           tai:=new(pai386,op_ref_reg(A_MOVZX,S_BL,newreference(p^.right^.location.reference),ind));
-                         2:
-                           tai:=new(Pai386,op_ref_reg(A_MOVZX,S_WL,newreference(p^.right^.location.reference),ind));
-                         4:
-                           tai:=new(Pai386,op_ref_reg(A_MOV,S_L,newreference(p^.right^.location.reference),ind));
+                        1 : tai:=new(pai386,op_ref_reg(A_MOVZX,S_BL,newreference(p^.right^.location.reference),ind));
+                        2 : tai:=new(Pai386,op_ref_reg(A_MOVZX,S_WL,newreference(p^.right^.location.reference),ind));
+                        4 : tai:=new(Pai386,op_ref_reg(A_MOV,S_L,newreference(p^.right^.location.reference),ind));
                        end;
                        exprasmlist^.concat(tai);
                     end;
               end;
+
             { produce possible range check code: }
-            if cs_check_range in aktlocalswitches then
-              begin
+              if cs_check_range in aktlocalswitches then
+               begin
                  if p^.left^.resulttype^.deftype=arraydef then
                    begin
-                      hp:=new_reference(R_NO,0);
-                      parraydef(p^.left^.resulttype)^.genrangecheck;
-                      hp^.symbol:=newasmsymbol(parraydef(p^.left^.resulttype)^.getrangecheckstring);
-                      exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,ind,hp)));
+                     if is_open_array(p^.left^.resulttype) then
+                      begin
+                        reset_reference(href);
+                        parraydef(p^.left^.resulttype)^.genrangecheck;
+                        href.symbol:=newasmsymbol(parraydef(p^.left^.resulttype)^.getrangecheckstring);
+                        href.offset:=4;
+                        getsymonlyin(p^.left^.symtable,'high'+pvarsym(p^.left^.symtableentry)^.name);
+                        hightree:=genloadnode(pvarsym(srsym),p^.left^.symtable);
+                        firstpass(hightree);
+                        secondpass(hightree);
+                        emit_mov_loc_ref(hightree^.location,href);
+                        disposetree(hightree);
+                      end;
+                     emitrangecheck(p^.right,p^.left^.resulttype);
                    end
                  else if (p^.left^.resulttype^.deftype=stringdef) then
                    begin
@@ -687,56 +698,55 @@ implementation
                               popusedregisters(pushed);
                               maybe_loadesi;
                            end;
-
                          st_shortstring:
                            begin
                               {!!!!!!!!!!!!!!!!!}
                            end;
-
                          st_longstring:
                            begin
                               {!!!!!!!!!!!!!!!!!}
                            end;
                       end;
                    end;
+               end;
 
-              end;
-            if p^.location.reference.index=R_NO then
-              begin
+              if p^.location.reference.index=R_NO then
+               begin
                  p^.location.reference.index:=ind;
                  calc_emit_mul;
-              end
-            else
-              begin
+               end
+              else
+               begin
                  if p^.location.reference.base=R_NO then
-                   begin
-                      case p^.location.reference.scalefactor of
-                         2 : exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,1,p^.location.reference.index)));
-                         4 : exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,2,p^.location.reference.index)));
-                         8 : exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,3,p^.location.reference.index)));
-                      end;
-                      calc_emit_mul;
-                      p^.location.reference.base:=p^.location.reference.index;
-                      p^.location.reference.index:=ind;
-                   end
+                  begin
+                    case p^.location.reference.scalefactor of
+                     2 : exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,1,p^.location.reference.index)));
+                     4 : exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,2,p^.location.reference.index)));
+                     8 : exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,3,p^.location.reference.index)));
+                    end;
+                    calc_emit_mul;
+                    p^.location.reference.base:=p^.location.reference.index;
+                    p^.location.reference.index:=ind;
+                  end
                  else
-                   begin
-                      exprasmlist^.concat(new(pai386,op_ref_reg(
-                        A_LEA,S_L,newreference(p^.location.reference),
-                        p^.location.reference.index)));
-                      ungetregister32(p^.location.reference.base);
-                      { the symbol offset is loaded,               }
-                      { so release the symbol name and set symbol  }
-                      { to nil                                     }
-                      p^.location.reference.symbol:=nil;
-                      p^.location.reference.offset:=0;
-                      calc_emit_mul;
-                      p^.location.reference.base:=p^.location.reference.index;
-                      p^.location.reference.index:=ind;
-                   end;
-              end;
-             if p^.memseg then
-               p^.location.reference.segment:=R_FS;
+                  begin
+                    exprasmlist^.concat(new(pai386,op_ref_reg(
+                      A_LEA,S_L,newreference(p^.location.reference),
+                      p^.location.reference.index)));
+                    ungetregister32(p^.location.reference.base);
+                    { the symbol offset is loaded,               }
+                    { so release the symbol name and set symbol  }
+                    { to nil                                     }
+                    p^.location.reference.symbol:=nil;
+                    p^.location.reference.offset:=0;
+                    calc_emit_mul;
+                    p^.location.reference.base:=p^.location.reference.index;
+                    p^.location.reference.index:=ind;
+                  end;
+               end;
+
+              if p^.memseg then
+                p^.location.reference.segment:=R_FS;
            end;
 
          { have we to remove a temp. wide/ansistring ?
@@ -859,7 +869,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1999-02-25 21:02:29  peter
+  Revision 1.32  1999-03-24 23:16:53  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.31  1999/02/25 21:02:29  peter
     * ag386bin updates
     + coff writer
 

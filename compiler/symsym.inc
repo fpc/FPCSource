@@ -409,7 +409,7 @@
          oldaktfilepos : tfileposinfo;
       begin
          { don't check if errors !! }
-         if status.errorcount>0 then
+         if Errorcount>0 then
            exit;
          pd:=definition;
          while assigned(pd) do
@@ -747,14 +747,14 @@
 
     procedure tfuncretsym.write;
       begin
-      
+
          (*
           Normally all references are
           transfered to the function symbol itself !! PM *)
          tsym.write;
          writedefref(funcretdef);
          writelong(address);
-         
+
          current_ppu^.writeentry(ibfuncretsym);
       end;
 
@@ -769,6 +769,30 @@
         { Nothing to do here, it is done in genexitcode  }
       end;
 {$endif GDB}
+
+    procedure tfuncretsym.insert_in_data;
+      var
+        l : longint;
+      begin
+        { allocate space in local if ret in acc or in fpu }
+        if ret_in_acc(procinfo.retdef) or (procinfo.retdef^.deftype=floatdef) then
+          begin
+             l:=funcretdef^.size;
+             inc(owner^.datasize,l);
+{$ifdef m68k}
+             { word alignment required for motorola }
+             if (l=1) then
+              inc(owner^.datasize,1)
+             else
+{$endif}
+             if (l>=4) and ((owner^.datasize and 3)<>0) then
+               inc(owner^.datasize,4-(owner^.datasize and 3))
+             else if (l>=2) and ((owner^.datasize and 1)<>0) then
+               inc(owner^.datasize,2-(owner^.datasize and 1));
+             address:=owner^.datasize;
+             procinfo.retoffset:=-owner^.datasize;
+          end;
+      end;
 
 
 {****************************************************************************
@@ -792,15 +816,18 @@
          abstyp:=absolutetyp(readbyte);
          absseg:=false;
          case abstyp of
-       tovar : begin
-                 asmname:=stringdup(readstring);
-                 ref:=srsym;
-               end;
-       toasm : asmname:=stringdup(readstring);
-      toaddr : begin
-                 address:=readlong;
-                 absseg:=boolean(readbyte);
-               end;
+           tovar :
+             begin
+               asmname:=stringdup(readstring);
+               ref:=srsym;
+             end;
+           toasm :
+             asmname:=stringdup(readstring);
+           toaddr :
+             begin
+               address:=readlong;
+               absseg:=boolean(readbyte);
+             end;
          end;
       end;
 
@@ -815,12 +842,15 @@
          writebyte(var_options and (not vo_regable));
          writebyte(byte(abstyp));
          case abstyp of
-           tovar : writestring(ref^.name);
-           toasm : writestring(asmname^);
-          toaddr : begin
-                     writelong(address);
-                     writebyte(byte(absseg));
-                   end;
+           tovar :
+             writestring(ref^.name);
+           toasm :
+             writestring(asmname^);
+           toaddr :
+             begin
+               writelong(address);
+               writebyte(byte(absseg));
+             end;
          end;
         current_ppu^.writeentry(ibabsolutesym);
       end;
@@ -846,9 +876,12 @@
     function tabsolutesym.mangledname : string;
       begin
          case abstyp of
-           tovar : mangledname:=ref^.mangledname;
-           toasm : mangledname:=asmname^;
-          toaddr : mangledname:='$'+tostr(address);
+           tovar :
+             mangledname:=ref^.mangledname;
+           toasm :
+             mangledname:=asmname^;
+           toaddr :
+             mangledname:='$'+tostr(address);
          else
            internalerror(10002);
          end;
@@ -890,17 +923,17 @@
          case p^.deftype of
            pointerdef,
            enumdef,
-           procvardef:
+           procvardef :
              var_options:=var_options or vo_regable;
-
-           orddef: case porddef(p)^.typ of
-                       u8bit,u16bit,u32bit,
-                       bool8bit,bool16bit,bool32bit,
-                       s8bit,s16bit,s32bit :
-                         var_options:=var_options or vo_regable;
-                     else
-                       var_options:=var_options and not vo_regable;
-                     end;
+           orddef :
+             case porddef(p)^.typ of
+               bool8bit,bool16bit,bool32bit,
+               u8bit,u16bit,u32bit,
+               s8bit,s16bit,s32bit :
+                 var_options:=var_options or vo_regable;
+               else
+                 var_options:=var_options and not vo_regable;
+             end;
            setdef:
              if psetdef(p)^.settype=smallset then
                var_options:=var_options or vo_regable;
@@ -989,15 +1022,17 @@
               exit;
            end;
          case owner^.symtabletype of
-           staticsymtable : if (cs_smartlink in aktmoduleswitches) then
-                              prefix:='_'+owner^.name^+'$$$_'
-                            else
-                              prefix:='_';
-             unitsymtable,
-           globalsymtable : prefix:='U_'+owner^.name^+'_';
+           staticsymtable :
+             if (cs_smartlink in aktmoduleswitches) then
+               prefix:='_'+owner^.name^+'$$$_'
+             else
+               prefix:='_';
+           unitsymtable,
+           globalsymtable :
+             prefix:='U_'+owner^.name^+'_';
            else
              Message(sym_e_invalid_call_tvarsymmangledname);
-           end;
+         end;
          mangledname:=prefix+name;
       end;
 
@@ -1017,35 +1052,17 @@
            begin
               case varspez of
                 vs_var :
-                  begin
-{$ifdef OLDHIGH}
-                    { open arrays push also the high valye }
-                    if is_open_array(definition) or
-                       is_open_string(definition) then
-                      getpushsize:=target_os.size_of_pointer+target_os.size_of_longint
-                    else
-{$endif}
-                      getpushsize:=target_os.size_of_pointer;
-                  end;
+                  getpushsize:=target_os.size_of_pointer;
                 vs_value,
                 vs_const :
                   begin
                     case definition^.deftype of
-{$ifndef OLDHIGH}
                       arraydef,
-{$endif OLDHIGH}
                       setdef,
                       stringdef,
                       recorddef,
                       objectdef :
                         getpushsize:=target_os.size_of_pointer;
-{$ifdef OLDHIGH}
-                      arraydef :
-                        if is_open_array(definition) then
-                          getpushsize:=target_os.size_of_pointer+target_os.size_of_longint
-                        else
-                          getpushsize:=target_os.size_of_pointer;
-{$endif OLDHIGH}
                       else
                         getpushsize:=definition^.size;
                     end;
@@ -1424,13 +1441,36 @@
                                   TCONSTSYM
 ****************************************************************************}
 
-    constructor tconstsym.init(const n : string;t : tconsttype;v : longint;def : pdef);
+    constructor tconstsym.init(const n : string;t : tconsttype;v : longint);
       begin
-         tsym.init(n);
+         inherited init(n);
          typ:=constsym;
-         definition:=def;
          consttype:=t;
          value:=v;
+         definition:=nil;
+         len:=0;
+      end;
+
+
+    constructor tconstsym.init_def(const n : string;t : tconsttype;v : longint;def : pdef);
+      begin
+         inherited init(n);
+         typ:=constsym;
+         consttype:=t;
+         value:=v;
+         definition:=def;
+         len:=0;
+      end;
+
+
+    constructor tconstsym.init_string(const n : string;t : tconsttype;str:pchar;l:longint);
+      begin
+         inherited init(n);
+         typ:=constsym;
+         consttype:=t;
+         value:=longint(str);
+         definition:=nil;
+         len:=l;
       end;
 
 
@@ -1443,28 +1483,36 @@
          typ:=constsym;
          consttype:=tconsttype(readbyte);
          case consttype of
-            constint,
+           constint,
            constbool,
            constchar : value:=readlong;
-            constord : begin
-                          definition:=readdefref;
-                          value:=readlong;
-                       end;
-         conststring : value:=longint(stringdup(readstring));
-           constreal : begin
-                         new(pd);
-                         pd^:=readreal;
-                         value:=longint(pd);
-                       end;
-            constset : begin
-                         definition:=readdefref;
-                         new(ps);
-                         readnormalset(ps^);
-                         value:=longint(ps);
-                       end;
-            constnil : ;
-         else
-           Message1(unit_f_ppu_invalid_entry,tostr(ord(consttype)));
+           constord :
+             begin
+               definition:=readdefref;
+               value:=readlong;
+             end;
+           conststring :
+             begin
+               len:=readlong;
+               getmem(pchar(value),len+1);
+               current_ppu^.getdata(pchar(value)^,len);
+             end;
+           constreal :
+             begin
+               new(pd);
+               pd^:=readreal;
+               value:=longint(pd);
+             end;
+           constset :
+             begin
+               definition:=readdefref;
+               new(ps);
+               readnormalset(ps^);
+               value:=longint(ps);
+             end;
+           constnil : ;
+           else
+             Message1(unit_f_ppu_invalid_entry,tostr(ord(consttype)));
          end;
       end;
 
@@ -1472,9 +1520,12 @@
     destructor tconstsym.done;
       begin
         case consttype of
-         conststring : stringdispose(pstring(value));
-           constreal : dispose(pbestreal(value));
-            constset : dispose(pnormalset(value));
+          conststring :
+            freemem(pchar(value),len+1);
+          constreal :
+            dispose(pbestreal(value));
+          constset :
+            dispose(pnormalset(value));
         end;
         inherited done;
       end;
@@ -1498,20 +1549,28 @@
          tsym.write;
          writebyte(byte(consttype));
          case consttype of
-            constnil : ;
+           constnil : ;
            constint,
            constbool,
-           constchar : writelong(value);
-            constord : begin
-                         writedefref(definition);
-                         writelong(value);
-                       end;
-         conststring : writestring(pstring(value)^);
-           constreal : writereal(pbestreal(value)^);
-            constset : begin
-                         writedefref(definition);
-                         writenormalset(pointer(value)^);
-                       end;
+           constchar :
+             writelong(value);
+           constord :
+             begin
+               writedefref(definition);
+               writelong(value);
+             end;
+           conststring :
+             begin
+               writelong(len);
+               current_ppu^.putdata(pchar(value)^,len);
+             end;
+           constreal :
+             writereal(pbestreal(value)^);
+           constset :
+             begin
+               writedefref(definition);
+               writenormalset(pointer(value)^);
+             end;
          else
            internalerror(13);
          end;
@@ -1811,7 +1870,10 @@
 
 {
   $Log$
-  Revision 1.74  1999-02-23 18:29:27  pierre
+  Revision 1.75  1999-03-24 23:17:27  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.74  1999/02/23 18:29:27  pierre
     * win32 compilation error fix
     + some work for local browser (not cl=omplete yet)
 

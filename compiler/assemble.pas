@@ -79,7 +79,7 @@ var
 Implementation
 
 uses
-  script,files,systems,verbose,comphook
+  script,files,systems,verbose
 {$ifdef linux}
   ,linux
 {$endif}
@@ -229,7 +229,7 @@ begin
   else
    begin
       DoAssemble:=false;
-      inc(status.errorcount);
+      GenerateError;
    end;
 end;
 
@@ -541,7 +541,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.40  1999-03-18 20:30:44  peter
+  Revision 1.41  1999-03-24 23:16:42  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.40  1999/03/18 20:30:44  peter
     + .a writer
 
   Revision 1.39  1999/03/01 15:43:48  peter

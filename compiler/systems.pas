@@ -277,7 +277,7 @@ implementation
             stackalignment : 2;
             size_of_pointer : 4;
             size_of_longint : 4;
-            use_bound_instruction : true;
+            use_bound_instruction : false;
             use_function_relative_addresses : true
           ),
           (
@@ -337,7 +337,7 @@ implementation
             stackalignment : 4;
             size_of_pointer : 4;
             size_of_longint : 4;
-            use_bound_instruction : true;
+            use_bound_instruction : false;
             use_function_relative_addresses : true
           ),
           (
@@ -1358,7 +1358,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  1999-03-09 11:54:09  pierre
+  Revision 1.64  1999-03-24 23:17:33  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.63  1999/03/09 11:54:09  pierre
    * pecoff default assem for win32 with ag386bin
 
   Revision 1.62  1999/03/04 13:55:48  pierre

@@ -32,7 +32,7 @@ unit Ra386dir;
   implementation
 
      uses
-        comphook,files,hcodegen,globals,scanner,aasm
+        files,hcodegen,globals,scanner,aasm
 {$ifdef Ag386Bin}
         ,i386base,i386asm
 {$else}
@@ -169,7 +169,10 @@ unit Ra386dir;
                                              else
                                              if (pos('MOV',upper(s)) > 0) and (pvarsym(sym)^.is_valid=0) then
                                               Message1(sym_n_uninitialized_local_variable,hs);
-                                             hs:='-'+tostr(pvarsym(sym)^.address)+'('+att_reg2str[procinfo.framepointer]+')';
+                                             if ((pvarsym(sym)^.var_options and vo_is_external)<>0) then
+                                               hs:=pvarsym(sym)^.mangledname
+                                             else
+                                               hs:='-'+tostr(pvarsym(sym)^.address)+'('+att_reg2str[procinfo.framepointer]+')';
                                              end
                                            else
                                            { call to local function }
@@ -212,20 +215,18 @@ unit Ra386dir;
                                              begin
                                                 if (sym^.typ = varsym) or (sym^.typ = typedconstsym) then
                                                   begin
-                                                     Do_comment(V_Warning,hs+' translated to '+sym^.mangledname);
+                                                     Message2(assem_h_direct_global_to_mangled,hs,sym^.mangledname);
                                                      hs:=sym^.mangledname;
                                                      if sym^.typ=varsym then
                                                        inc(pvarsym(sym)^.refs);
                                                   end;
                                                 { procs can be called or the address can be loaded }
-                                                if (sym^.typ=procsym) and ((pos('CALL',upper(s))>0) or
-                                                   (pos('LEA',upper(s))>0)) then
+                                                if (sym^.typ=procsym) and
+                                                   ((pos('CALL',upper(s))>0) or (pos('LEA',upper(s))>0)) then
                                                   begin
                                                      if assigned(pprocsym(sym)^.definition^.nextoverloaded) then
-                                                       begin
-                                                          Do_comment(V_Warning,hs+' is associated to an overloaded function');
-                                                       end;
-                                                     Do_comment(V_Warning,hs+' translated to '+sym^.mangledname);
+                                                       Message1(assem_w_direct_global_is_overloaded_func,hs);
+                                                     Message2(assem_h_direct_global_to_mangled,hs,sym^.mangledname);
                                                      hs:=sym^.mangledname;
                                                   end;
                                              end
@@ -242,11 +243,9 @@ unit Ra386dir;
                                              begin
                                                 if assigned(procinfo.retdef) and
                                                   (procinfo.retdef<>pdef(voiddef)) then
-                                                  begin
-                                                  hs:=retstr;
-                                                  end
+                                                  hs:=retstr
                                                 else
-                                                 Message(assem_w_void_function);
+                                                  Message(assem_w_void_function);
                                              end
                                            else if upper(hs)='__OLDEBP' then
                                              begin
@@ -257,7 +256,7 @@ unit Ra386dir;
                                                     +'('+att_reg2str[procinfo.framepointer]+')'
                                                 else
                                                   Message(assem_e_cannot_use___OLDEBP_outside_nested_procedure);
-                                                end;
+                                             end;
                                            end;
                                         end;
                                    end;
@@ -296,7 +295,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.15  1999-03-01 13:22:26  pierre
+  Revision 1.16  1999-03-24 23:17:22  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.15  1999/03/01 13:22:26  pierre
    * varsym refs incremented
 
   Revision 1.14  1999/02/22 02:15:36  peter

@@ -116,7 +116,7 @@ implementation
 
 uses
   Drivers,Views,App,
-  aasm,globtype,globals,files,comphook;
+  aasm,globtype,globals,files;
 
 {****************************************************************************
                                    Helpers
@@ -900,7 +900,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1999-03-03 01:38:11  pierre
+  Revision 1.9  1999-03-24 23:16:44  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.8  1999/03/03 01:38:11  pierre
    * avoid infinite recursion in ProcessDefIfStruct
 
   Revision 1.7  1999/02/22 11:51:32  peter

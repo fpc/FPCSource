@@ -70,6 +70,9 @@ procedure UpdateReplacement(var s:string);
 
 procedure Stop;
 procedure ShowStatus;
+function  ErrorCount:longint;
+procedure SetMaxErrorCount(count:longint);
+procedure GenerateError;
 procedure Internalerror(i:longint);
 procedure Comment(l:longint;s:string);
 procedure Message(w:tmsgconst);
@@ -290,6 +293,24 @@ begin
 end;
 
 
+function ErrorCount:longint;
+begin
+  ErrorCount:=status.errorcount;
+end;
+
+
+procedure SetMaxErrorCount(count:longint);
+begin
+  status.maxerrorcount:=count;
+end;
+
+
+procedure GenerateError;
+begin
+  inc(status.errorcount);
+end;
+
+
 procedure internalerror(i : longint);
 begin
   UpdateStatus;
@@ -438,7 +459,10 @@ end.
 
 {
   $Log$
-  Revision 1.35  1999-02-09 17:15:53  florian
+  Revision 1.36  1999-03-24 23:17:44  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.35  1999/02/09 17:15:53  florian
     * some false warnings "function result doesn't seems to be set" are
       avoided
 

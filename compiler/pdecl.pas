@@ -56,7 +56,7 @@ unit pdecl;
 
     uses
        cobjects,scanner,aasm,tree,pass_1,strings,
-       files,types,hcodegen,verbose,systems,import
+       files,types,verbose,systems,import
 {$ifdef GDB}
        ,gdb
 {$endif GDB}
@@ -73,6 +73,8 @@ unit pdecl;
 {$ifdef m68k}
        ,m68k
 {$endif}
+       { codegen }
+       ,hcodegen,hcgdata
        ;
 
     function read_type(const name : stringid) : pdef;forward;
@@ -121,8 +123,7 @@ unit pdecl;
          old_block_type : tblock_type;
          ps : pconstset;
          pd : pbestreal;
-         sp : pstring;
-         l  : longint;
+         sp : pchar;
       begin
          consume(_CONST);
          old_block_type:=block_type;
@@ -143,52 +144,38 @@ unit pdecl;
                       ordconstn:
                         begin
                            if is_constintnode(p) then
-                             symtablestack^.insert(new(pconstsym,init(name,constint,p^.value,nil)))
+                             symtablestack^.insert(new(pconstsym,init_def(name,constint,p^.value,nil)))
                            else if is_constcharnode(p) then
-                             symtablestack^.insert(new(pconstsym,init(name,constchar,p^.value,nil)))
+                             symtablestack^.insert(new(pconstsym,init_def(name,constchar,p^.value,nil)))
                            else if is_constboolnode(p) then
-                             symtablestack^.insert(new(pconstsym,init(name,constbool,p^.value,nil)))
+                             symtablestack^.insert(new(pconstsym,init_def(name,constbool,p^.value,nil)))
                            else if p^.resulttype^.deftype=enumdef then
-                             symtablestack^.insert(new(pconstsym,init(name,constord,p^.value,p^.resulttype)))
+                             symtablestack^.insert(new(pconstsym,init_def(name,constord,p^.value,p^.resulttype)))
                            else if p^.resulttype^.deftype=pointerdef then
-                             symtablestack^.insert(new(pconstsym,init(name,constord,p^.value,p^.resulttype)))
+                             symtablestack^.insert(new(pconstsym,init_def(name,constord,p^.value,p^.resulttype)))
                            else internalerror(111);
                         end;
                       stringconstn:
                         begin
-                           if p^.length>255 then
-                            l:=255
-                           else
-                            l:=p^.length;
-                           { value_str is disposed with p so I need a copy }
-                           getmem(sp,l+1);
-                           move(p^.value_str^,sp^[1],l);
-                           {$ifndef TP}
-                             {$ifopt H+}
-                               setlength(sp^,l);
-                             {$else}
-                               sp^[0]:=chr(l);
-                             {$endif}
-                           {$else}
-                             sp^[0]:=chr(l);
-                           {$endif}
-                           symtablestack^.insert(new(pconstsym,init(name,conststring,longint(sp),nil)));
+                           getmem(sp,p^.length+1);
+                           move(p^.value_str^,sp^,p^.length+1);
+                           symtablestack^.insert(new(pconstsym,init_string(name,conststring,sp,p^.length)));
                         end;
                       realconstn :
                         begin
                            new(pd);
                            pd^:=p^.value_real;
-                           symtablestack^.insert(new(pconstsym,init(name,constreal,longint(pd),nil)));
+                           symtablestack^.insert(new(pconstsym,init(name,constreal,longint(pd))));
                         end;
                       setconstn :
                         begin
                           new(ps);
                           ps^:=p^.value_set^;
-                          symtablestack^.insert(new(pconstsym,init(name,constset,longint(ps),p^.resulttype)));
+                          symtablestack^.insert(new(pconstsym,init_def(name,constset,longint(ps),p^.resulttype)));
                         end;
                       niln :
                         begin
-                          symtablestack^.insert(new(pconstsym,init(name,constnil,0,p^.resulttype)));
+                          symtablestack^.insert(new(pconstsym,init_def(name,constnil,0,p^.resulttype)));
                         end;
                       else
                         Message(cg_e_illegal_expression);
@@ -644,7 +631,8 @@ unit pdecl;
                    s:=pattern;
                    consume(ID);
                 end;
-              if srsym^.typ<>typesym then
+              if not assigned(srsym) or
+                 (srsym^.typ<>typesym) then
                 begin
                    Message(type_e_type_id_expected);
                    lasttypesym:=ptypesym(srsym);
@@ -915,8 +903,26 @@ unit pdecl;
                      consume(_READ);
                      sym:=search_class_member(aktclass,pattern);
                      if not(assigned(sym)) then
-                       Message1(sym_e_unknown_id,pattern)
+                       begin
+                         Message1(sym_e_unknown_id,pattern);
+                         consume(ID);
+                       end
                      else
+                       begin
+                          consume(ID);
+                          if (token=POINT) and
+                             ((sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=recorddef)) then
+                           begin
+                             consume(POINT);
+                             getsymonlyin(precdef(pvarsym(sym)^.definition)^.symtable,pattern);
+                             if not assigned(srsym) then
+                               Message1(sym_e_illegal_field,pattern);
+                             sym:=srsym;
+                             consume(ID);
+                           end;
+                       end;
+
+                     if assigned(sym) then
                        begin
                           { varsym aren't allowed for an indexed property
                             or an property with parameters }
@@ -945,15 +951,32 @@ unit pdecl;
                             end;
                           p^.readaccesssym:=sym;
                        end;
-                     consume(ID);
                   end;
                 if (idtoken=_WRITE) then
                   begin
                      consume(_WRITE);
                      sym:=search_class_member(aktclass,pattern);
                      if not(assigned(sym)) then
-                       Message1(sym_e_unknown_id,pattern)
+                       begin
+                         Message1(sym_e_unknown_id,pattern);
+                         consume(ID);
+                       end
                      else
+                       begin
+                          consume(ID);
+                          if (token=POINT) and
+                             ((sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=recorddef)) then
+                           begin
+                             consume(POINT);
+                             getsymonlyin(precdef(pvarsym(sym)^.definition)^.symtable,pattern);
+                             if not assigned(srsym) then
+                               Message1(sym_e_illegal_field,pattern);
+                             sym:=srsym;
+                             consume(ID);
+                           end;
+                       end;
+
+                     if assigned(sym) then
                        begin
                           if ((sym^.typ=varsym) and
                              assigned(propertyparas)) or
@@ -981,7 +1004,6 @@ unit pdecl;
                             end;
                           p^.writeaccesssym:=sym;
                        end;
-                     consume(ID);
                   end;
                 if (idtoken=_STORED) then
                   begin
@@ -2218,7 +2240,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.103  1999-03-22 22:10:25  florian
+  Revision 1.104  1999-03-24 23:17:13  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.103  1999/03/22 22:10:25  florian
     * typecanbeforward wasn't always restored in object_dec which
       sometimes caused strange effects
 

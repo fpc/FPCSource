@@ -36,7 +36,7 @@ unit ptconst;
     uses
        globtype,systems,tokens,
        cobjects,globals,scanner,aasm,tree,pass_1,
-       hcodegen,types,verbose
+       types,verbose
        { parser specific stuff }
        ,pbase,pexpr
        { processor specific stuff }
@@ -50,7 +50,10 @@ unit ptconst;
 {$ifdef m68k}
        ,m68k
 {$endif}
+       { codegen }
+       ,hcodegen,hcgdata
        ;
+
 
     { this procedure reads typed constants }
     procedure readtypedconst(def : pdef;sym : ptypedconstsym);
@@ -704,7 +707,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.38  1999-02-25 21:02:45  peter
+  Revision 1.39  1999-03-24 23:17:21  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.38  1999/02/25 21:02:45  peter
     * ag386bin updates
     + coff writer
 

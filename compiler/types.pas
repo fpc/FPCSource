@@ -21,15 +21,19 @@
  ****************************************************************************
 }
 unit types;
-
-  interface
+interface
 
     uses
-       cobjects,globals,symtable,aasm;
+       cobjects,symtable;
 
     type
        tmmxtype = (mmxno,mmxu8bit,mmxs8bit,mmxu16bit,mmxs16bit,
                    mmxu32bit,mmxs32bit,mmxfixed16,mmxsingle);
+
+    const
+       { true if we must never copy this parameter }
+       never_copy_const_param : boolean = false;
+
 
     { returns true, if def defines an ordinal type }
     function is_ordinal(def : pdef) : boolean;
@@ -96,10 +100,6 @@ unit types;
     { true if a parameter is too large to copy and only the address is pushed }
     function push_addr_param(def : pdef) : boolean;
 
-    { true if we must never copy this parameter }
-    const
-       never_copy_const_param : boolean = false;
-
     { true, if def1 and def2 are semantical the same }
     function is_equal(def1,def2 : pdef) : boolean;
 
@@ -123,23 +123,18 @@ unit types;
     { returns the range of def }
     procedure getrange(def : pdef;var l : longint;var h : longint);
 
-    { generates a VMT for _class }
-    procedure genvmt(_class : pobjectdef);
-
-    { generates the message tables for a class }
-    function genstrmsgtab(_class : pobjectdef) : plabel;
-    function genintmsgtab(_class : pobjectdef) : plabel;
-
     { some type helper routines for MMX support }
     function is_mmx_able_array(p : pdef) : boolean;
 
     { returns the mmx type }
     function mmx_type(p : pdef) : tmmxtype;
 
-  implementation
+
+implementation
 
     uses
-       strings,globtype,verbose;
+       strings,
+       globtype,globals,verbose;
 
 
     function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
@@ -215,9 +210,9 @@ unit types;
          end;
       end;
 
+
     { returns the min. value of the type }
     function get_min_value(def : pdef) : longint;
-
       begin
          case def^.deftype of
             orddef:
@@ -354,7 +349,6 @@ unit types;
 
     { true if the return value is in accumulator (EAX for i386), D0 for 68k }
     function ret_in_acc(def : pdef) : boolean;
-
       begin
          ret_in_acc:=(def^.deftype in [orddef,pointerdef,enumdef,classrefdef]) or
                      ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_ansistring,st_widestring])) or
@@ -364,12 +358,13 @@ unit types;
                      ((def^.deftype=floatdef) and (pfloatdef(def)^.typ=f32bit));
       end;
 
+
     { true, if def is a 64 bit int type }
     function is_64bitint(def : pdef) : boolean;
-
       begin
          is_64bitint:=(def^.deftype=orddef) and (porddef(def)^.typ in [u64bit,s64bitint])
       end;
+
 
     { true if uses a parameter as return value }
     function ret_in_param(def : pdef) : boolean;
@@ -393,15 +388,16 @@ unit types;
       begin
          push_addr_param:=never_copy_const_param or
            (def^.deftype = formaldef) or
-           ((def^.deftype in [arraydef,recorddef])
-           { copy directly small records or arrays unless
-             array of const ! PM }
-{$ifndef COPY_SMALL_RECORDS}
-           and ((def^.size>4) or
-           ((def^.deftype=arraydef) and
-           (parraydef(def)^.IsConstructor or
-            parraydef(def)^.isArrayOfConst)))
-{$endif def COPY_SMALL_RECORDS}
+           { copy directly small records or arrays unless array of const ! PM }
+           ((def^.deftype in [arraydef,recorddef]) and
+            ((def^.size>4) or
+             ((def^.deftype=arraydef) and
+              (parraydef(def)^.IsConstructor or
+               parraydef(def)^.isArrayOfConst or
+               is_open_array(def)
+              )
+             )
+            )
            ) or
            ((def^.deftype=objectdef) and not(pobjectdef(def)^.isclass)) or
            ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
@@ -457,14 +453,21 @@ unit types;
     procedure getrange(def : pdef;var l : longint;var h : longint);
       begin
         case def^.deftype of
-         orddef : begin
-                    l:=porddef(def)^.low;
-                    h:=porddef(def)^.high;
-                  end;
-        enumdef : begin
-                    l:=penumdef(def)^.min;
-                    h:=penumdef(def)^.max;
-                  end;
+          orddef :
+            begin
+              l:=porddef(def)^.low;
+              h:=porddef(def)^.high;
+            end;
+          enumdef :
+            begin
+              l:=penumdef(def)^.min;
+              h:=penumdef(def)^.max;
+            end;
+          arraydef :
+            begin
+              l:=parraydef(def)^.lowrange;
+              h:=parraydef(def)^.highrange;
+            end;
         else
           internalerror(987);
         end;
@@ -501,8 +504,8 @@ unit types;
            end;
       end;
 
-    function is_mmx_able_array(p : pdef) : boolean;
 
+    function is_mmx_able_array(p : pdef) : boolean;
       begin
 {$ifdef SUPPORT_MMX}
          if (cs_mmx_saturation in aktlocalswitches) then
@@ -593,13 +596,12 @@ unit types;
 {$endif SUPPORT_MMX}
       end;
 
-    function is_equal(def1,def2 : pdef) : boolean;
 
+    function is_equal(def1,def2 : pdef) : boolean;
       var
          b : boolean;
          hd : pdef;
          hp1,hp2 : pdefcoll;
-
       begin
          { both types must exists }
          if not (assigned(def1) and assigned(def2)) then
@@ -623,9 +625,9 @@ unit types;
          else
          { pointer with an equal definition are equal }
            if (def1^.deftype=pointerdef) and (def2^.deftype=pointerdef) then
-         { here a problem detected in tabsolutesym }
-         { the types can be forward type !!        }
              begin
+                { here a problem detected in tabsolutesym }
+                { the types can be forward type !!        }
                 if assigned(def1^.sym) and ((def1^.sym^.properties and sp_forwarddef)<>0) then
                   b:=(def1^.sym=def2^.sym)
                 else
@@ -650,31 +652,23 @@ unit types;
            if (def1^.deftype=floatdef) and (def2^.deftype=floatdef) then
              b:=pfloatdef(def1)^.typ=pfloatdef(def2)^.typ
          else
-            { strings with the same length are equal }
-            if (def1^.deftype=stringdef) and (def2^.deftype=stringdef) and
-               (pstringdef(def1)^.string_typ=pstringdef(def2)^.string_typ) then
-               begin
-                  b:=not(is_shortstring(def1)) or
-                    (pstringdef(def1)^.len=pstringdef(def2)^.len);
-               end
-    { STRING[N] ist equivalent zu ARRAY[0..N] OF CHAR (N<256) }
-{
-         else if ((def1^.deftype=stringdef) and (def2^.deftype=arraydef)) and
-              (parraydef(def2)^.definition^.deftype=orddef) and
-              (porddef(parraydef(def1)^.definition)^.typ=uchar) and
-              (parraydef(def2)^.lowrange=0) and
-              (parraydef(def2)^.highrange=pstringdef(def1)^.len) then
-              b:=true }
-          else
-            if (def1^.deftype=formaldef) and (def2^.deftype=formaldef) then
-              b:=true
-          { file types with the same file element type are equal }
-          { this is a problem for assign !!                      }
-          { changed to allow if one is untyped                   }
-          { all typed files are equal to the special             }
-          { typed file that has voiddef as elemnt type           }
-          { but must NOT match for text file !!!                 }
-          else
+           { strings with the same length are equal }
+           if (def1^.deftype=stringdef) and (def2^.deftype=stringdef) and
+              (pstringdef(def1)^.string_typ=pstringdef(def2)^.string_typ) then
+             begin
+                b:=not(is_shortstring(def1)) or
+                   (pstringdef(def1)^.len=pstringdef(def2)^.len);
+             end
+         else
+           if (def1^.deftype=formaldef) and (def2^.deftype=formaldef) then
+             b:=true
+         { file types with the same file element type are equal }
+         { this is a problem for assign !!                      }
+         { changed to allow if one is untyped                   }
+         { all typed files are equal to the special             }
+         { typed file that has voiddef as elemnt type           }
+         { but must NOT match for text file !!!                 }
+         else
             if (def1^.deftype=filedef) and (def2^.deftype=filedef) then
               b:=(pfiledef(def1)^.filetype=pfiledef(def2)^.filetype) and
                  ((
@@ -688,612 +682,109 @@ unit types;
                  ( (pfiledef(def1)^.typed_as=pdef(voiddef)) or
                    (pfiledef(def2)^.typed_as=pdef(voiddef))
                  )))
-          { sets with the same element type are equal }
-          else
-            if (def1^.deftype=setdef) and (def2^.deftype=setdef) then
-              begin
-                 if assigned(psetdef(def1)^.setof) and
-                    assigned(psetdef(def2)^.setof) then
-                   b:=(psetdef(def1)^.setof^.deftype=psetdef(def2)^.setof^.deftype)
-                 else
-                   b:=true;
-              end
-          else
-            if (def1^.deftype=procvardef) and (def2^.deftype=procvardef) then
-              begin
-                 { poassembler isn't important for compatibility }
-                 { if a method is assigned to a methodpointer    }
-                 { is checked before                             }
-                 b:=((pprocvardef(def1)^.options and not(poassembler or pomethodpointer or
-                       povirtualmethod or pooverridingmethod))=
-                     (pprocvardef(def2)^.options and not(poassembler or pomethodpointer or
-                       povirtualmethod or pooverridingmethod))
-                    ) and
-                   is_equal(pprocvardef(def1)^.retdef,pprocvardef(def2)^.retdef);
-                 { now evalute the parameters }
-                 if b then
-                   begin
-                      hp1:=pprocvardef(def1)^.para1;
-                      hp2:=pprocvardef(def1)^.para1;
-                      while assigned(hp1) and assigned(hp2) do
-                        begin
-                           if not(is_equal(hp1^.data,hp2^.data)) or
-                             not(hp1^.paratyp=hp2^.paratyp) then
-                             begin
-                                b:=false;
-                                break;
-                             end;
-                           hp1:=hp1^.next;
-                           hp2:=hp2^.next;
-                        end;
-                      b:=(hp1=nil) and (hp2=nil);
-                   end;
-              end
-          else
-            if (def1^.deftype=arraydef) and (def2^.deftype=arraydef) and
-              (is_open_array(def1) or is_open_array(def2)) then
-              begin
-                if parraydef(def1)^.IsArrayOfConst or parraydef(def2)^.IsArrayOfConst then
-                 b:=true
+         { sets with the same element type are equal }
+         else
+           if (def1^.deftype=setdef) and (def2^.deftype=setdef) then
+             begin
+                if assigned(psetdef(def1)^.setof) and
+                   assigned(psetdef(def2)^.setof) then
+                  b:=(psetdef(def1)^.setof^.deftype=psetdef(def2)^.setof^.deftype)
                 else
-                 b:=is_equal(parraydef(def1)^.definition,parraydef(def2)^.definition);
-              end
-          else
-            if (def1^.deftype=classrefdef) and (def2^.deftype=classrefdef) then
-              begin
-                 { similar to pointerdef: }
-                 if assigned(def1^.sym) and ((def1^.sym^.properties and sp_forwarddef)<>0) then
-                   b:=(def1^.sym=def2^.sym)
-                 else
-                   b:=is_equal(pclassrefdef(def1)^.definition,pclassrefdef(def2)^.definition);
-              end;
+                  b:=true;
+             end
+         else
+           if (def1^.deftype=procvardef) and (def2^.deftype=procvardef) then
+             begin
+                { poassembler isn't important for compatibility }
+                { if a method is assigned to a methodpointer    }
+                { is checked before                             }
+                b:=((pprocvardef(def1)^.options and not(poassembler or pomethodpointer or
+                      povirtualmethod or pooverridingmethod))=
+                    (pprocvardef(def2)^.options and not(poassembler or pomethodpointer or
+                      povirtualmethod or pooverridingmethod))
+                   ) and
+                  is_equal(pprocvardef(def1)^.retdef,pprocvardef(def2)^.retdef);
+                { now evalute the parameters }
+                if b then
+                  begin
+                     hp1:=pprocvardef(def1)^.para1;
+                     hp2:=pprocvardef(def1)^.para1;
+                     while assigned(hp1) and assigned(hp2) do
+                       begin
+                          if not(is_equal(hp1^.data,hp2^.data)) or
+                            not(hp1^.paratyp=hp2^.paratyp) then
+                            begin
+                               b:=false;
+                               break;
+                            end;
+                          hp1:=hp1^.next;
+                          hp2:=hp2^.next;
+                       end;
+                     b:=(hp1=nil) and (hp2=nil);
+                  end;
+             end
+         else
+           if (def1^.deftype=arraydef) and (def2^.deftype=arraydef) and
+             (is_open_array(def1) or is_open_array(def2)) then
+             begin
+               if parraydef(def1)^.IsArrayOfConst or parraydef(def2)^.IsArrayOfConst then
+                b:=true
+               else
+                b:=is_equal(parraydef(def1)^.definition,parraydef(def2)^.definition);
+             end
+         else
+           if (def1^.deftype=classrefdef) and (def2^.deftype=classrefdef) then
+             begin
+                { similar to pointerdef: }
+                if assigned(def1^.sym) and ((def1^.sym^.properties and sp_forwarddef)<>0) then
+                  b:=(def1^.sym=def2^.sym)
+                else
+                  b:=is_equal(pclassrefdef(def1)^.definition,pclassrefdef(def2)^.definition);
+             end;
          is_equal:=b;
       end;
 
 
     function is_subequal(def1, def2: pdef): boolean;
-    Begin
-      if assigned(def1) and assigned(def2) then
       Begin
-        is_subequal := FALSE;
-        if (def1^.deftype = orddef) and (def2^.deftype = orddef) then
-          Begin
-            { see p.47 of Turbo Pascal 7.01 manual for the separation of types }
-            { range checking for case statements is done with testrange        }
-            case porddef(def1)^.typ of
-           u8bit,u16bit,u32bit,
-           s8bit,s16bit,s32bit : is_subequal:=(porddef(def2)^.typ in [s32bit,u32bit,u8bit,s8bit,s16bit,u16bit]);
-  bool8bit,bool16bit,bool32bit : is_subequal:=(porddef(def2)^.typ in [bool8bit,bool16bit,bool32bit]);
-                         uchar : is_subequal:=(porddef(def2)^.typ=uchar);
-            end;
-          end
-        else
-          Begin
-            { I assume that both enumerations are equal when the first }
-            { pointers are equal.                                      }
-            if (def1^.deftype = enumdef) and (def2^.deftype =enumdef) then
-              Begin
-                if penumdef(def1)^.first = penumdef(def2)^.first then
-                   is_subequal := TRUE;
+        if assigned(def1) and assigned(def2) then
+        Begin
+          is_subequal := FALSE;
+          if (def1^.deftype = orddef) and (def2^.deftype = orddef) then
+            Begin
+              { see p.47 of Turbo Pascal 7.01 manual for the separation of types }
+              { range checking for case statements is done with testrange        }
+              case porddef(def1)^.typ of
+                u8bit,u16bit,u32bit,
+                s8bit,s16bit,s32bit :
+                  is_subequal:=(porddef(def2)^.typ in [s32bit,u32bit,u8bit,s8bit,s16bit,u16bit]);
+                bool8bit,bool16bit,bool32bit :
+                  is_subequal:=(porddef(def2)^.typ in [bool8bit,bool16bit,bool32bit]);
+                uchar :
+                  is_subequal:=(porddef(def2)^.typ=uchar);
               end;
-          end;
-      end; { endif assigned ... }
-    end;
-
-    type
-       pprocdeftree = ^tprocdeftree;
-
-       tprocdeftree = record
-          p : pprocdef;
-          nl : plabel;
-          l,r : pprocdeftree;
-       end;
-
-    var
-       root : pprocdeftree;
-       count : longint;
-
-    procedure insertstr(p : pprocdeftree;var at : pprocdeftree);
-
-      var
-         i : longint;
-
-      begin
-         if at=nil then
-           begin
-              at:=p;
-              inc(count);
-           end
-         else
-           begin
-              i:=strcomp(p^.p^.messageinf.str,at^.p^.messageinf.str);
-              if i<0 then
-                insertstr(p,at^.l)
-              else if i>0 then
-                insertstr(p,at^.r)
-              else
-                Message1(parser_e_duplicate_message_label,strpas(p^.p^.messageinf.str));
-           end;
-      end;
-
-    procedure disposeprocdeftree(p : pprocdeftree);
-
-      begin
-         if assigned(p^.l) then
-           disposeprocdeftree(p^.l);
-         if assigned(p^.r) then
-           disposeprocdeftree(p^.r);
-         dispose(p);
-      end;
-
-    procedure insertmsgstr(p : psym);{$ifndef FPC}far;{$endif FPC}
-
-      var
-         hp : pprocdef;
-         pt : pprocdeftree;
-
-      begin
-         if p^.typ=procsym then
-           begin
-              hp:=pprocsym(p)^.definition;
-              while assigned(hp) do
-                begin
-                   if (hp^.options and pomsgstr)<>0 then
-                     begin
-                        new(pt);
-                        pt^.p:=hp;
-                        pt^.l:=nil;
-                        pt^.r:=nil;
-                        insertstr(pt,root);
-                     end;
-                   hp:=hp^.nextoverloaded;
+            end
+          else
+            Begin
+              { I assume that both enumerations are equal when the first }
+              { pointers are equal.                                      }
+              if (def1^.deftype = enumdef) and (def2^.deftype =enumdef) then
+                Begin
+                  if penumdef(def1)^.first = penumdef(def2)^.first then
+                     is_subequal := TRUE;
                 end;
-           end;
+            end;
+        end; { endif assigned ... }
       end;
 
-    procedure writenames(p : pprocdeftree);
-
-      begin
-         getlabel(p^.nl);
-         if assigned(p^.l) then
-           writenames(p^.l);
-         datasegment^.concat(new(pai_label,init(p^.nl)));
-         datasegment^.concat(new(pai_const,init_8bit(strlen(p^.p^.messageinf.str))));
-         datasegment^.concat(new(pai_string,init_pchar(p^.p^.messageinf.str)));
-         if assigned(p^.r) then
-           writenames(p^.r);
-      end;
-
-    procedure writestrentry(p : pprocdeftree);
-
-      begin
-         if assigned(p^.l) then
-           writestrentry(p^.l);
-
-         { write name label }
-         datasegment^.concat(new(pai_const_symbol,init(lab2str(p^.nl))));
-         datasegment^.concat(new(pai_const_symbol,init(p^.p^.mangledname)));
-         maybe_concat_external(p^.p^.owner,p^.p^.mangledname);
-
-         if assigned(p^.r) then
-           writestrentry(p^.r);
-      end;
-
-    function genstrmsgtab(_class : pobjectdef) : plabel;
-
-
-      var
-         r : plabel;
-
-      begin
-         root:=nil;
-         count:=0;
-         { insert all message handlers into a tree, sorted by name }
-         _class^.publicsyms^.foreach(insertmsgstr);
-
-         { write all names }
-         if assigned(root) then
-           writenames(root);
-
-         { now start writing of the message string table }
-         getlabel(r);
-         datasegment^.concat(new(pai_label,init(r)));
-         genstrmsgtab:=r;
-         datasegment^.concat(new(pai_const,init_32bit(count)));
-         if assigned(root) then
-           begin
-              writestrentry(root);
-              disposeprocdeftree(root);
-           end;
-      end;
-
-    procedure insertint(p : pprocdeftree;var at : pprocdeftree);
-
-      var
-         i : longint;
-
-      begin
-         if at=nil then
-           begin
-              at:=p;
-              inc(count);
-           end
-         else
-           begin
-              i:=strcomp(p^.p^.messageinf.str,at^.p^.messageinf.str);
-              if p^.p^.messageinf.i<at^.p^.messageinf.i then
-                insertstr(p,at^.l)
-              else if p^.p^.messageinf.i>at^.p^.messageinf.i then
-                insertstr(p,at^.r)
-              else
-                Message1(parser_e_duplicate_message_label,tostr(p^.p^.messageinf.i));
-           end;
-      end;
-
-    procedure writeintentry(p : pprocdeftree);
-
-      begin
-         if assigned(p^.l) then
-           writeintentry(p^.l);
-
-         { write name label }
-         datasegment^.concat(new(pai_const,init_32bit(p^.p^.messageinf.i)));
-         datasegment^.concat(new(pai_const_symbol,init(p^.p^.mangledname)));
-         maybe_concat_external(p^.p^.owner,p^.p^.mangledname);
-
-         if assigned(p^.r) then
-           writeintentry(p^.r);
-      end;
-
-    procedure insertmsgint(p : psym);{$ifndef FPC}far;{$endif FPC}
-
-      var
-         hp : pprocdef;
-         pt : pprocdeftree;
-
-      begin
-         if p^.typ=procsym then
-           begin
-              hp:=pprocsym(p)^.definition;
-              while assigned(hp) do
-                begin
-                   if (hp^.options and pomsgint)<>0 then
-                     begin
-                        new(pt);
-                        pt^.p:=hp;
-                        pt^.l:=nil;
-                        pt^.r:=nil;
-                        insertint(pt,root);
-                     end;
-                   hp:=hp^.nextoverloaded;
-                end;
-           end;
-      end;
-
-    function genintmsgtab(_class : pobjectdef) : plabel;
-
-
-      var
-         r : plabel;
-
-      begin
-         root:=nil;
-         count:=0;
-         { insert all message handlers into a tree, sorted by name }
-         _class^.publicsyms^.foreach(insertmsgint);
-
-         { now start writing of the message string table }
-         getlabel(r);
-         datasegment^.concat(new(pai_label,init(r)));
-         genintmsgtab:=r;
-         datasegment^.concat(new(pai_const,init_32bit(count)));
-         if assigned(root) then
-           begin
-              writeintentry(root);
-              disposeprocdeftree(root);
-           end;
-      end;
-
-    type
-       pprocdefcoll = ^tprocdefcoll;
-
-       tprocdefcoll = record
-          next : pprocdefcoll;
-          data : pprocdef;
-       end;
-
-       psymcoll = ^tsymcoll;
-
-       tsymcoll = record
-          next : psymcoll;
-          name : pstring;
-          data : pprocdefcoll;
-       end;
-
-    var
-       wurzel : psymcoll;
-       nextvirtnumber : longint;
-       _c : pobjectdef;
-       has_constructor,has_virtual_method : boolean;
-
-    procedure eachsym(sym : psym);{$ifndef FPC}far;{$endif FPC}
-
-      var
-         procdefcoll : pprocdefcoll;
-         hp : pprocdef;
-         symcoll : psymcoll;
-         _name : string;
-         stored : boolean;
-
-      { creates a new entry in the procsym list }
-      procedure newentry;
-
-        begin
-           { if not, generate a new symbol item }
-           new(symcoll);
-           symcoll^.name:=stringdup(sym^.name);
-           symcoll^.next:=wurzel;
-           symcoll^.data:=nil;
-           wurzel:=symcoll;
-           hp:=pprocsym(sym)^.definition;
-
-           { inserts all definitions }
-           while assigned(hp) do
-             begin
-                new(procdefcoll);
-                procdefcoll^.data:=hp;
-                procdefcoll^.next:=symcoll^.data;
-                symcoll^.data:=procdefcoll;
-
-                { if it's a virtual method }
-                if (hp^.options and povirtualmethod)<>0 then
-                  begin
-                     { then it gets a number ... }
-                     hp^.extnumber:=nextvirtnumber;
-                     { and we inc the number }
-                     inc(nextvirtnumber);
-                     has_virtual_method:=true;
-                  end;
-
-                if (hp^.options and poconstructor)<>0 then
-                  has_constructor:=true;
-
-                { check, if a method should be overridden }
-                if (hp^.options and pooverridingmethod)<>0 then
-                  Message1(parser_e_nothing_to_be_overridden,_c^.name^+'.'+_name);
-                { next overloaded method }
-                hp:=hp^.nextoverloaded;
-             end;
-        end;
-
-      begin
-         { put only sub routines into the VMT }
-         if sym^.typ=procsym then
-           begin
-              _name:=sym^.name;
-              symcoll:=wurzel;
-              while assigned(symcoll) do
-                begin
-                   { does the symbol already exist in the list ? }
-                   if _name=symcoll^.name^ then
-                     begin
-                        { walk through all defs of the symbol }
-                        hp:=pprocsym(sym)^.definition;
-                        while assigned(hp) do
-                          begin
-                             { compare with all stored definitions }
-                             procdefcoll:=symcoll^.data;
-                             stored:=false;
-                             while assigned(procdefcoll) do
-                               begin
-                                  { compare parameters }
-                                  if equal_paras(procdefcoll^.data^.para1,hp^.para1,false) and
-                                     (
-                                       ((procdefcoll^.data^.options and povirtualmethod)<>0) or
-                                       ((hp^.options and povirtualmethod)<>0)
-                                     ) then
-                                    begin
-                                       { wenn sie gleich sind }
-                                       { und eine davon virtual deklariert ist }
-                                       { Fehler falls nur eine VIRTUAL }
-                                       if (procdefcoll^.data^.options and povirtualmethod)<>
-                                          (hp^.options and povirtualmethod) then
-                                         begin
-                                            { in classes, we hide the old method }
-                                            if _c^.isclass then
-                                              begin
-                                                 { warn only if it is the first time,
-                                                   we hide the method }
-                                                 if _c=hp^._class then
-                                                   Message1(parser_w_should_use_override,_c^.name^+'.'+_name);
-                                                 newentry;
-                                                 exit;
-                                              end
-                                            else
-                                              if _c=hp^._class then
-                                                begin
-                                                   if (procdefcoll^.data^.options and povirtualmethod)<>0 then
-                                                     Message1(parser_w_overloaded_are_not_both_virtual,_c^.name^+'.'+_name)
-                                                   else
-                                                     Message1(parser_w_overloaded_are_not_both_non_virtual,
-                                                       _c^.name^+'.'+_name);
-                                                   newentry;
-                                                   exit;
-                                                end;
-                                         end;
-
-                                       { check, if the overridden directive is set }
-                                       { (povirtualmethod is set! }
-
-                                       { class ? }
-                                       if _c^.isclass and
-                                         ((hp^.options and pooverridingmethod)=0) then
-                                         begin
-                                            { warn only if it is the first time,
-                                              we hide the method }
-                                            if _c=hp^._class then
-                                              Message1(parser_w_should_use_override,_c^.name^+'.'+_name);
-                                            newentry;
-                                            exit;
-                                         end;
-
-                                       { error, if the return types aren't equal }
-                                       if not(is_equal(procdefcoll^.data^.retdef,hp^.retdef)) and
-                                         not((procdefcoll^.data^.retdef^.deftype=objectdef) and
-                                           (hp^.retdef^.deftype=objectdef) and
-                                           (pobjectdef(procdefcoll^.data^.retdef)^.isclass) and
-                                           (pobjectdef(hp^.retdef)^.isclass) and
-                                           (pobjectdef(hp^.retdef)^.isrelated(pobjectdef(procdefcoll^.data^.retdef)))) then
-                                         Message1(parser_e_overloaded_methodes_not_same_ret,_c^.name^+'.'+_name);
-
-
-                                       { the flags have to match      }
-                                       { except abstract and override }
-                                       if (procdefcoll^.data^.options and not(poabstractmethod or pooverridingmethod))<>
-                                         (hp^.options and not(poabstractmethod or pooverridingmethod)) then
-                                            Message1(parser_e_header_dont_match_forward,_c^.name^+'.'+_name);
-
-                                       { now set the number }
-                                       hp^.extnumber:=procdefcoll^.data^.extnumber;
-                                       { and exchange }
-                                       procdefcoll^.data:=hp;
-                                       stored:=true;
-                                    end;
-                                  procdefcoll:=procdefcoll^.next;
-                               end;
-                             { if it isn't saved in the list }
-                             { we create a new entry         }
-                             if not(stored) then
-                               begin
-                                  new(procdefcoll);
-                                  procdefcoll^.data:=hp;
-                                  procdefcoll^.next:=symcoll^.data;
-                                  symcoll^.data:=procdefcoll;
-                                  { if the method is virtual ... }
-                                  if (hp^.options and povirtualmethod)<>0 then
-                                    begin
-                                       { ... it will get a number }
-                                       hp^.extnumber:=nextvirtnumber;
-                                       inc(nextvirtnumber);
-                                    end;
-                                  { check, if a method should be overridden }
-                                  if (hp^.options and pooverridingmethod)<>0 then
-                                   Message1(parser_e_nothing_to_be_overridden,_c^.name^+'.'+_name);
-                               end;
-                             hp:=hp^.nextoverloaded;
-                          end;
-                        exit;
-                     end;
-                   symcoll:=symcoll^.next;
-                end;
-             newentry;
-           end;
-      end;
-
-    procedure genvmt(_class : pobjectdef);
-
-      procedure do_genvmt(p : pobjectdef);
-
-        begin
-           { start with the base class }
-           if assigned(p^.childof) then
-             do_genvmt(p^.childof);
-
-           { walk through all public syms }
-           _c:=_class;
-{$ifdef tp}
-           p^.publicsyms^.foreach(eachsym);
-{$else}
-           p^.publicsyms^.foreach(@eachsym);
-{$endif}
-        end;
-
-      var
-         symcoll : psymcoll;
-         procdefcoll : pprocdefcoll;
-         i : longint;
-
-      begin
-         wurzel:=nil;
-         nextvirtnumber:=0;
-
-         has_constructor:=false;
-         has_virtual_method:=false;
-
-         { generates a tree of all used methods }
-         do_genvmt(_class);
-
-         if has_virtual_method and not(has_constructor) then
-            Message1(parser_w_virtual_without_constructor,_class^.name^);
-
-
-         { generates the VMT }
-
-         { walk trough all numbers for virtual methods and search }
-         { the method                                             }
-         for i:=0 to nextvirtnumber-1 do
-           begin
-              symcoll:=wurzel;
-
-              { walk trough all symbols }
-              while assigned(symcoll) do
-                begin
-
-                   { walk trough all methods }
-                   procdefcoll:=symcoll^.data;
-                   while assigned(procdefcoll) do
-                     begin
-                        { writes the addresses to the VMT }
-                        { but only this which are declared as virtual }
-                        if procdefcoll^.data^.extnumber=i then
-                          begin
-                             if (procdefcoll^.data^.options and povirtualmethod)<>0 then
-                               begin
-                                  { if a method is abstract, then is also the }
-                                  { class abstract and it's not allow to      }
-                                  { generates an instance                     }
-                                  if (procdefcoll^.data^.options and poabstractmethod)<>0 then
-                                    begin
-                                       _class^.options:=_class^.options or oo_is_abstract;
-                                       datasegment^.concat(new(pai_const_symbol,
-                                         init('FPC_ABSTRACTERROR')));
-                                    end
-                                  else
-                                    begin
-                                      datasegment^.concat(new(pai_const_symbol,
-                                        init(procdefcoll^.data^.mangledname)));
-                                      maybe_concat_external(procdefcoll^.data^.owner,
-                                        procdefcoll^.data^.mangledname);
-                                    end;
-                               end;
-                          end;
-                        procdefcoll:=procdefcoll^.next;
-                     end;
-                   symcoll:=symcoll^.next;
-                end;
-           end;
-         { disposes the above generated tree }
-         symcoll:=wurzel;
-         while assigned(symcoll) do
-           begin
-              wurzel:=symcoll^.next;
-              stringdispose(symcoll^.name);
-              procdefcoll:=symcoll^.data;
-              while assigned(procdefcoll) do
-                begin
-                   symcoll^.data:=procdefcoll^.next;
-                   dispose(procdefcoll);
-                   procdefcoll:=symcoll^.data;
-                end;
-              dispose(symcoll);
-              symcoll:=wurzel;
-           end;
-      end;
 
 end.
 {
   $Log$
-  Revision 1.55  1999-03-09 11:45:42  pierre
+  Revision 1.56  1999-03-24 23:17:42  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.55  1999/03/09 11:45:42  pierre
    * small arrays and records (size <=4) are copied directly
 
   Revision 1.54  1999/03/02 22:52:20  peter

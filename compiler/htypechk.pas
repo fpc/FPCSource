@@ -29,6 +29,7 @@ interface
     const
     { firstcallparan without varspez we don't count the ref }
        count_ref : boolean = true;
+       get_para_resulttype : boolean = false;
        allow_array_constructor : boolean = false;
 
 
@@ -55,7 +56,7 @@ implementation
     uses
        globtype,systems,tokens,
        cobjects,verbose,globals,
-       aasm,types,
+       types,
        hcodegen;
 
 {****************************************************************************
@@ -649,7 +650,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1999-03-06 17:25:19  peter
+  Revision 1.19  1999-03-24 23:17:02  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.18  1999/03/06 17:25:19  peter
     * moved comp<->real warning so it doesn't occure everytime that
       isconvertable is called with
 

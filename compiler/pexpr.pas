@@ -88,7 +88,6 @@ unit pexpr;
            begin
               p1:=comp_expr(true);
               p2:=gencallparanode(p1,p2);
-
               { it's for the str(l:5,s); }
               if _colon and (token=COLON) then
                 begin
@@ -813,6 +812,9 @@ unit pexpr;
          ---------------------------------------------}
 
        procedure factor_read_id;
+         var
+           pc : pchar;
+           len : longint;
          begin
            { allow post fix operators }
            again:=true;
@@ -1014,16 +1016,32 @@ unit pexpr;
                             end;
                  constsym : begin
                               case pconstsym(srsym)^.consttype of
-                               constint : p1:=genordinalconstnode(pconstsym(srsym)^.value,s32bitdef);
-                            conststring : p1:=genstringconstnode(pstring(pconstsym(srsym)^.value)^);
-                              constchar : p1:=genordinalconstnode(pconstsym(srsym)^.value,cchardef);
-                              constreal : p1:=genrealconstnode(pbestreal(pconstsym(srsym)^.value)^);
-                              constbool : p1:=genordinalconstnode(pconstsym(srsym)^.value,booldef);
-                               constset : p1:=gensetconstnode(pconstset(pconstsym(srsym)^.value),
-                                                psetdef(pconstsym(srsym)^.definition));
-                               constord : p1:=genordinalconstnode(pconstsym(srsym)^.value,
-                                                pconstsym(srsym)^.definition);
-                               constnil : p1:=genzeronode(niln);
+                                constint :
+                                  p1:=genordinalconstnode(pconstsym(srsym)^.value,s32bitdef);
+                                conststring :
+                                  begin
+                                    len:=pconstsym(srsym)^.len;
+                                    if not(cs_ansistrings in aktlocalswitches) and (len>255) then
+                                     len:=255;
+                                    getmem(pc,len+1);
+                                    move(pchar(pconstsym(srsym)^.value)^,pc^,len);
+                                    pc[len]:=#0;
+                                    p1:=genpcharconstnode(pc,len);
+                                  end;
+                                constchar :
+                                  p1:=genordinalconstnode(pconstsym(srsym)^.value,cchardef);
+                                constreal :
+                                  p1:=genrealconstnode(pbestreal(pconstsym(srsym)^.value)^);
+                                constbool :
+                                  p1:=genordinalconstnode(pconstsym(srsym)^.value,booldef);
+                                constset :
+                                  p1:=gensetconstnode(pconstset(pconstsym(srsym)^.value),
+                                        psetdef(pconstsym(srsym)^.definition));
+                                constord :
+                                  p1:=genordinalconstnode(pconstsym(srsym)^.value,
+                                        pconstsym(srsym)^.definition);
+                                constnil :
+                                  p1:=genzeronode(niln);
                               end;
                               pd:=p1^.resulttype;
                             end;
@@ -1959,7 +1977,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.87  1999-03-16 17:52:52  jonas
+  Revision 1.88  1999-03-24 23:17:15  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.87  1999/03/16 17:52:52  jonas
     * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
     * in cgi386inl: also range checking for subrange types (compile with "-dreadrangecheck")
     * in cgai386: also small fixes to emitrangecheck

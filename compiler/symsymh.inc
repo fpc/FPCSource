@@ -234,6 +234,7 @@
           constructor load;
           procedure write;virtual;
           procedure deref;virtual;
+          procedure insert_in_data;virtual;
 {$ifdef GDB}
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
@@ -287,11 +288,14 @@
        tconstsym = object(tsym)
           definition : pdef;
           consttype  : tconsttype;
-          value      : longint;
-          constructor init(const n : string;t : tconsttype;v : longint;def : pdef);
+          value,
+          len        : longint; { len is needed for string length }
+          constructor init(const n : string;t : tconsttype;v : longint);
+          constructor init_def(const n : string;t : tconsttype;v : longint;def : pdef);
+          constructor init_string(const n : string;t : tconsttype;str:pchar;l:longint);
           constructor load;
+          destructor  done;virtual;
           function  mangledname : string;virtual;
-          destructor done;virtual;
           procedure deref;virtual;
           procedure write;virtual;
 {$ifdef GDB}
@@ -331,7 +335,10 @@
 
 {
   $Log$
-  Revision 1.15  1999-02-22 13:07:11  pierre
+  Revision 1.16  1999-03-24 23:17:29  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.15  1999/02/22 13:07:11  pierre
     + -b and -bl options work !
     + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
       is not enabled when quitting global section

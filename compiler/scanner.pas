@@ -795,27 +795,33 @@ implementation
          found:=0;
          repeat
            case c of
-            #26 : Message(scan_f_end_of_file);
-            '{' : begin
-                    if comment_level=0 then
-                     found:=1;
-                    inc_comment_level;
-                  end;
-            '}' : begin
-                    dec_comment_level;
-                    found:=0;
-                  end;
-            '$' : begin
-                    if found=1 then
-                     found:=2;
-                  end;
-            '(' : begin
-                    readchar;
-                    if c='*' then
-                     skipoldtpcomment;
-                  end;
-           else
-            found:=0;
+             #26 :
+               Message(scan_f_end_of_file);
+             '{' :
+               begin
+                 if comment_level=0 then
+                  found:=1;
+                 inc_comment_level;
+               end;
+             '}' :
+               begin
+                 dec_comment_level;
+                 found:=0;
+               end;
+             '$' :
+               begin
+                 if found=1 then
+                  found:=2;
+               end;
+             '(' :
+               if (m_tp in aktmodeswitches) then
+                begin
+                  readchar;
+                  if c='*' then
+                  skipoldtpcomment;
+                end;
+             else
+                found:=0;
            end;
            c:=inputpointer^;
            if c=#0 then
@@ -1575,7 +1581,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  1999-03-16 21:00:27  peter
+  Revision 1.76  1999-03-24 23:17:24  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.75  1999/03/16 21:00:27  peter
     * fixed old tp comment behaviour within directives
 
   Revision 1.74  1999/03/11 10:46:29  daniel

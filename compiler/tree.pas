@@ -313,6 +313,13 @@ unit tree;
     function str_length(p : ptree) : longint;
     function is_emptyset(p : ptree):boolean;
 
+    { counts the labels }
+    function case_count_labels(root : pcaserecord) : longint;
+    { searches the highest label }
+    function case_get_max(root : pcaserecord) : longint;
+    { searches the lowest label }
+    function case_get_min(root : pcaserecord) : longint;
+
 {$I innr.inc}
 
   implementation
@@ -820,7 +827,6 @@ unit tree;
             p^.stringtype:=st_shortstring;
             p^.resulttype:=cshortstringdef;
           end;
-
          genstringconstnode:=p;
       end;
 
@@ -851,8 +857,18 @@ unit tree;
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
-         p^.resulttype:=cshortstringdef;
          p^.length:=length;
+         if (cs_ansistrings in aktlocalswitches) or
+            (length>255) then
+          begin
+            p^.stringtype:=st_ansistring;
+            p^.resulttype:=cansistringdef;
+          end
+         else
+          begin
+            p^.stringtype:=st_shortstring;
+            p^.resulttype:=cshortstringdef;
+          end;
          p^.value_str:=s;
          p^.lab_str:=nil;
          genpcharconstnode:=p;
@@ -1642,10 +1658,61 @@ unit tree;
       end;
 
 
+{*****************************************************************************
+                              Case Helpers
+*****************************************************************************}
+
+    function case_count_labels(root : pcaserecord) : longint;
+      var
+         _l : longint;
+
+      procedure count(p : pcaserecord);
+        begin
+           inc(_l);
+           if assigned(p^.less) then
+             count(p^.less);
+           if assigned(p^.greater) then
+             count(p^.greater);
+        end;
+
+      begin
+         _l:=0;
+         count(root);
+         case_count_labels:=_l;
+      end;
+
+
+    function case_get_max(root : pcaserecord) : longint;
+      var
+         hp : pcaserecord;
+      begin
+         hp:=root;
+         while assigned(hp^.greater) do
+           hp:=hp^.greater;
+         case_get_max:=hp^._high;
+      end;
+
+
+    function case_get_min(root : pcaserecord) : longint;
+      var
+         hp : pcaserecord;
+      begin
+         hp:=root;
+         while assigned(hp^.less) do
+           hp:=hp^.less;
+         case_get_min:=hp^._low;
+      end;
+
+
+
+
 end.
 {
   $Log$
-  Revision 1.68  1999-03-02 18:24:25  peter
+  Revision 1.69  1999-03-24 23:17:41  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.68  1999/03/02 18:24:25  peter
     * fixed overloading of array of char
 
   Revision 1.67  1999/02/25 21:02:56  peter

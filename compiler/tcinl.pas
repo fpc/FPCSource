@@ -320,7 +320,6 @@ implementation
                end;
              in_sizeof_x:
                begin
-{$ifndef OLDHIGH}
                  if push_high_param(p^.left^.resulttype) then
                   begin
                     getsymonlyin(p^.left^.symtable,'high'+pvarsym(p^.left^.symtableentry)^.name);
@@ -333,7 +332,6 @@ implementation
                     p:=hp;
                     firstpass(p);
                   end;
-{$endif OLDHIGH}
                  if p^.registers32<1 then
                     p^.registers32:=1;
                  p^.resulttype:=s32bitdef;
@@ -945,17 +943,11 @@ implementation
                                begin
                                  if is_open_array(p^.left^.resulttype) then
                                   begin
-{$ifndef OLDHIGH}
                                     getsymonlyin(p^.left^.symtable,'high'+pvarsym(p^.left^.symtableentry)^.name);
                                     hp:=genloadnode(pvarsym(srsym),p^.left^.symtable);
                                     disposetree(p);
                                     p:=hp;
                                     firstpass(p);
-{$else OLDHIGH}
-                                    p^.resulttype:=s32bitdef;
-                                    p^.registers32:=max(1,p^.registers32);
-                                    p^.location.loc:=LOC_REGISTER;
-{$endif OLDHIGH}
                                   end
                                  else
                                   begin
@@ -979,17 +971,11 @@ implementation
                                begin
                                  if is_open_string(p^.left^.resulttype) then
                                   begin
-{$ifndef OLDHIGH}
                                     getsymonlyin(p^.left^.symtable,'high'+pvarsym(p^.left^.symtableentry)^.name);
                                     hp:=genloadnode(pvarsym(srsym),p^.left^.symtable);
                                     disposetree(p);
                                     p:=hp;
                                     firstpass(p);
-{$else OLDHIGH}
-                                    p^.resulttype:=s32bitdef;
-                                    p^.registers32:=max(1,p^.registers32);
-                                    p^.location.loc:=LOC_REGISTER;
-{$endif OLDHIGH}
                                   end
                                  else
                                   begin
@@ -1048,7 +1034,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1999-03-16 17:52:55  jonas
+  Revision 1.21  1999-03-24 23:17:37  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.20  1999/03/16 17:52:55  jonas
     * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
     * in cgi386inl: also range checking for subrange types (compile with "-dreadrangecheck")
     * in cgai386: also small fixes to emitrangecheck

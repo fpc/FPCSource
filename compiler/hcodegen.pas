@@ -25,7 +25,9 @@ unit hcodegen;
   interface
 
     uses
-      verbose,aasm,tree,symtable,cobjects
+      cobjects,
+      tokens,verbose,
+      aasm,symtable
 {$ifdef i386}
 {$ifdef ag386bin}
       ,i386base
@@ -139,17 +141,8 @@ unit hcodegen;
        { save the size of pushed parameter, needed for aligning }
        pushedparasize : longint;
 
-{$ifdef OLDHIGH}
-       { this is for open arrays and strings        }
-       { but be careful, this data is in the        }
-       { generated code destroyed quick, and also   }
-       { the next call of secondload destroys this  }
-       { data                                       }
-       { So be careful using the informations       }
-       { provided by this variables                 }
-       highframepointer : tregister;
-       highoffset : longint;
-{$endif}
+       make_const_global : boolean;
+       temptoremove : plinkedlist;
 
     { message calls with codegenerror support }
     procedure cgmessage(const t : tmsgconst);
@@ -157,6 +150,8 @@ unit hcodegen;
     procedure cgmessage2(const t : tmsgconst;const s1,s2 : string);
     procedure cgmessage3(const t : tmsgconst;const s1,s2,s3 : string);
 
+    { helpers }
+    procedure maybe_concat_external(symt : psymtable;const name : string);
 
     { initialize respectively terminates the code generator }
     { for a new module or procedure                         }
@@ -165,21 +160,11 @@ unit hcodegen;
     procedure codegen_newmodule;
     procedure codegen_newprocedure;
 
-    { counts the labels }
-    function case_count_labels(root : pcaserecord) : longint;
-    { searches the highest label }
-    function case_get_max(root : pcaserecord) : longint;
-    { searches the lowest label }
-    function case_get_min(root : pcaserecord) : longint;
-
-    var
-       make_const_global : boolean;
-       temptoremove : plinkedlist;
 
 implementation
 
      uses
-        systems,comphook,globals,files,strings;
+        systems,globals,files,strings;
 
 {*****************************************************************************
             override the message calls to set codegenerror
@@ -191,9 +176,9 @@ implementation
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=status.errorcount;
+              olderrorcount:=Errorcount;
               verbose.Message(t);
-              codegenerror:=olderrorcount<>status.errorcount;
+              codegenerror:=olderrorcount<>Errorcount;
            end;
       end;
 
@@ -203,9 +188,9 @@ implementation
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=status.errorcount;
+              olderrorcount:=Errorcount;
               verbose.Message1(t,s);
-              codegenerror:=olderrorcount<>status.errorcount;
+              codegenerror:=olderrorcount<>Errorcount;
            end;
       end;
 
@@ -215,9 +200,9 @@ implementation
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=status.errorcount;
+              olderrorcount:=Errorcount;
               verbose.Message2(t,s1,s2);
-              codegenerror:=olderrorcount<>status.errorcount;
+              codegenerror:=olderrorcount<>Errorcount;
            end;
       end;
 
@@ -227,10 +212,25 @@ implementation
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=status.errorcount;
+              olderrorcount:=Errorcount;
               verbose.Message3(t,s1,s2,s3);
-              codegenerror:=olderrorcount<>status.errorcount;
+              codegenerror:=olderrorcount<>Errorcount;
            end;
+      end;
+
+
+{*****************************************************************************
+                                    Helpers
+*****************************************************************************}
+
+    procedure maybe_concat_external(symt : psymtable;const name : string);
+      begin
+         if (symt^.symtabletype=unitsymtable) or
+            ((symt^.symtabletype in [recordsymtable,objectsymtable]) and
+             (symt^.defowner^.owner^.symtabletype=unitsymtable)) or
+            ((symt^.symtabletype=withsymtable) and
+             (symt^.defowner^.owner^.symtabletype=unitsymtable)) then
+           concat_external(name,EXT_NEAR);
       end;
 
 
@@ -306,52 +306,6 @@ implementation
 
 
 {*****************************************************************************
-                              Case Helpers
-*****************************************************************************}
-
-    function case_count_labels(root : pcaserecord) : longint;
-      var
-         _l : longint;
-
-      procedure count(p : pcaserecord);
-        begin
-           inc(_l);
-           if assigned(p^.less) then
-             count(p^.less);
-           if assigned(p^.greater) then
-             count(p^.greater);
-        end;
-
-      begin
-         _l:=0;
-         count(root);
-         case_count_labels:=_l;
-      end;
-
-
-    function case_get_max(root : pcaserecord) : longint;
-      var
-         hp : pcaserecord;
-      begin
-         hp:=root;
-         while assigned(hp^.greater) do
-           hp:=hp^.greater;
-         case_get_max:=hp^._high;
-      end;
-
-
-    function case_get_min(root : pcaserecord) : longint;
-      var
-         hp : pcaserecord;
-      begin
-         hp:=root;
-         while assigned(hp^.less) do
-           hp:=hp^.less;
-         case_get_min:=hp^._low;
-      end;
-
-
-{*****************************************************************************
                               TTempToDestroy
 *****************************************************************************}
 
@@ -366,7 +320,10 @@ end.
 
 {
   $Log$
-  Revision 1.27  1999-02-25 21:02:37  peter
+  Revision 1.28  1999-03-24 23:17:00  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.27  1999/02/25 21:02:37  peter
     * ag386bin updates
     + coff writer
 

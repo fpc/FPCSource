@@ -66,14 +66,14 @@ compiler version and your short cut.
         - add strict var strings check $V switch ................ 0.99.1 (FK)
         - make dec/inc internal.................................. 0.99.6 (PFV)
         - make length internal................................... 0.99.7 (PFV)
+        - range checking for open arrays......................... 0.99.11 (PFV)
+        - method pointers (procedure of object) ................. 0.99.11 (FK)
+        - open strings, $P....................................... 0.99.10 (PFV)
+        - include/exclude........................................ 0.99.10 (PM)
 - fix all bugs of the bug directory
-- range checking for open arrays
-        - method pointers (procedure of object) ................ 0.99.11 (FK)
 - sysutils unit for go32v2 (excpetions!)
 - initialisation/finalization for units
 - fixed data type
 - add alignment $A switch
 - $B
-- open strings, $P
-- include/exclude
-  
+

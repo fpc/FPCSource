@@ -1345,7 +1345,8 @@ end;
                     { that the variable is valid.                 }
                     pvarsym(sym)^.is_valid:=1;
                     inc(pvarsym(sym)^.refs);
-                    if pvarsym(sym)^.owner^.symtabletype=staticsymtable then
+                    if (pvarsym(sym)^.owner^.symtabletype=staticsymtable) or
+                       ((pvarsym(sym)^.var_options and vo_is_external)<>0) then
                      begin
                        instr.operands[operandnum].ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname);
                      end
@@ -1790,7 +1791,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-03-01 13:22:25  pierre
+  Revision 1.7  1999-03-24 23:17:23  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.6  1999/03/01 13:22:25  pierre
    * varsym refs incremented
 
   Revision 1.5  1999/02/25 21:02:51  peter

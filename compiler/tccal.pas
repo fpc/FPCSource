@@ -27,9 +27,7 @@ interface
       symtable,tree;
 
 
-{$ifndef OLDHIGH}
     procedure gen_high_tree(p:ptree;openstring:boolean);
-{$endif}
 
     procedure firstcallparan(var p : ptree;defcoll : pdefcoll);
     procedure firstcalln(var p : ptree);
@@ -60,7 +58,6 @@ implementation
                              FirstCallParaN
 *****************************************************************************}
 
-{$ifndef OLDHIGH}
     procedure gen_high_tree(p:ptree;openstring:boolean);
       var
         len : longint;
@@ -120,11 +117,11 @@ implementation
           p^.hightree:=genordinalconstnode(len,s32bitdef);
         firstpass(p^.hightree);
       end;
-{$endif OLDHIGH}
 
 
     procedure firstcallparan(var p : ptree;defcoll : pdefcoll);
       var
+        old_get_para_resulttype : boolean;
         old_array_constructor : boolean;
         store_valid : boolean;
         oldtype     : pdef;
@@ -146,10 +143,13 @@ implementation
          if defcoll=nil then
            begin
               old_array_constructor:=allow_array_constructor;
+              old_get_para_resulttype:=get_para_resulttype;
+              get_para_resulttype:=true;
               allow_array_constructor:=true;
               if not(assigned(p^.resulttype)) or
                 (p^.left^.treetype=typeconvn) then
                 firstpass(p^.left);
+              get_para_resulttype:=old_get_para_resulttype;
               allow_array_constructor:=old_array_constructor;
               if codegenerror then
                 begin
@@ -176,17 +176,18 @@ implementation
                  must_be_valid:=(defcoll^.paratyp<>vs_var);
                  { only process typeconvn, else it will break other trees }
                  old_array_constructor:=allow_array_constructor;
+                 old_get_para_resulttype:=get_para_resulttype;
                  allow_array_constructor:=true;
+                 get_para_resulttype:=false;
                  if (p^.left^.treetype=typeconvn) then
                    firstpass(p^.left);
+                 get_para_resulttype:=old_get_para_resulttype;
                  allow_array_constructor:=old_array_constructor;
                  must_be_valid:=store_valid;
                end;
               { generate the high() value tree }
               if push_high_param(defcoll^.data) then
-{$ifndef OLDHIGH}
                 gen_high_tree(p,is_open_string(defcoll^.data));
-{$endif}
               if not(is_shortstring(p^.left^.resulttype) and
                      is_shortstring(defcoll^.data)) and
                      (defcoll^.data^.deftype<>formaldef) then
@@ -870,7 +871,7 @@ implementation
                    if make_ref then
                      begin
                         procs^.data^.lastref:=new(pref,init(procs^.data^.lastref,@p^.fileinfo));
-                        inc(procs^.data^.refcount); 
+                        inc(procs^.data^.refcount);
                         if procs^.data^.defref=nil then
                           procs^.data^.defref:=procs^.data^.lastref;
                      end;
@@ -1119,7 +1120,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1999-03-23 14:43:03  peter
+  Revision 1.29  1999-03-24 23:17:34  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.28  1999/03/23 14:43:03  peter
     * fixed crash with array of const in procvar
 
   Revision 1.27  1999/03/19 17:31:54  pierre

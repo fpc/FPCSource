@@ -46,7 +46,7 @@ unit parser;
 
     uses
       globtype,version,tokens,systems,
-      cobjects,comphook,globals,verbose,
+      cobjects,globals,verbose,
       symtable,files,aasm,hcodegen,
       assemble,link,script,gendef,
 {$ifdef BrowserLog}
@@ -452,7 +452,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.69  1999-02-25 21:02:40  peter
+  Revision 1.70  1999-03-24 23:17:10  peter
+    * fixed bugs 212,222,225,227,229,231,233
+
+  Revision 1.69  1999/02/25 21:02:40  peter
     * ag386bin updates
     + coff writer
 
