@@ -1136,6 +1136,7 @@ Procedure T386ATTOperand.BuildReference;
   end;
 
 Begin
+  InitRef;
   Consume(AS_LPAREN);
   Case actasmtoken of
     AS_INTNUM,
@@ -1495,22 +1496,6 @@ Begin
                begin
                  if SetupVar(expr,false) then
                   begin
-                    MaybeRecordOffset;
-                    { add a constant expression? }
-                    if (actasmtoken=AS_PLUS) then
-                     begin
-                       l:=BuildConstExpression(true,false);
-                       case opr.typ of
-                         OPR_CONSTANT :
-                           inc(opr.val,l);
-                         OPR_LOCAL :
-                           inc(opr.localsymofs,l);
-                         OPR_REFERENCE :
-                           inc(opr.ref.offset,l);
-                         else
-                           internalerror(200309202);
-                       end;
-                     end
                   end
                  else
                   Begin
@@ -1549,19 +1534,27 @@ Begin
                   end;
                end;
             end;
+            if actasmtoken=AS_DOT then
+              MaybeRecordOffset;
+            { add a constant expression? }
+            if (actasmtoken=AS_PLUS) then
+             begin
+               l:=BuildConstExpression(true,false);
+               case opr.typ of
+                 OPR_CONSTANT :
+                   inc(opr.val,l);
+                 OPR_LOCAL :
+                   inc(opr.localsymofs,l);
+                 OPR_REFERENCE :
+                   inc(opr.ref.offset,l);
+                 else
+                   internalerror(200309202);
+               end;
+             end
          end;
         { Do we have a indexing reference, then parse it also }
         if actasmtoken=AS_LPAREN then
-         begin
-           if (opr.typ=OPR_CONSTANT) then
-            begin
-              l:=opr.val;
-              opr.typ:=OPR_REFERENCE;
-              Fillchar(opr.ref,sizeof(treference),0);
-              opr.Ref.Offset:=l;
-            end;
-           BuildReference;
-         end;
+          BuildReference;
       end;
 
     AS_REGISTER: { Register, a variable reference or a constant reference  }
@@ -2126,7 +2119,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.53  2003-10-23 17:19:44  peter
+  Revision 1.54  2003-10-24 17:39:03  peter
+    * more intel parser updates
+
+  Revision 1.53  2003/10/23 17:19:44  peter
     * typecasting fixes
     * reference building more delphi compatible
 

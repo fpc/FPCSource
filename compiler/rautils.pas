@@ -958,16 +958,32 @@ procedure TOperand.InitRef;
 {  the operand type to OPR_REFERENCE, as well as setting up the ref   }
 {  to point to the default segment.                                   }
 {*********************************************************************}
+var
+  l : longint;
 Begin
   case opr.typ of
-    OPR_REFERENCE:
+    OPR_REFERENCE :
       exit;
-    OPR_NONE: ;
+    OPR_CONSTANT :
+      begin
+        l:=opr.val;
+        opr.typ:=OPR_REFERENCE;
+        Fillchar(opr.ref,sizeof(treference),0);
+        opr.Ref.Offset:=l;
+      end;
+    OPR_NONE :
+      begin
+        opr.typ:=OPR_REFERENCE;
+        Fillchar(opr.ref,sizeof(treference),0);
+      end;
     else
-      Message(asmr_e_invalid_operand_type);
+      begin
+        Message(asmr_e_invalid_operand_type);
+        { Recover }
+        opr.typ:=OPR_REFERENCE;
+        Fillchar(opr.ref,sizeof(treference),0);
+      end;
   end;
-  opr.typ := OPR_REFERENCE;
-  Fillchar(opr.ref,sizeof(treference),0);
 end;
 
 
@@ -1527,7 +1543,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.71  2003-10-23 17:19:11  peter
+  Revision 1.72  2003-10-24 17:39:03  peter
+    * more intel parser updates
+
+  Revision 1.71  2003/10/23 17:19:11  peter
     * SearchType returns also the size
 
   Revision 1.70  2003/10/08 19:39:58  peter

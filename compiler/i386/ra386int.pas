@@ -1305,12 +1305,6 @@ end;
 
 
 Procedure T386IntelOperand.BuildOperand;
-var
-  expr    : string;
-  tempreg : tregister;
-  typesize,
-  l       : longint;
-  hl      : tasmlabel;
 
   procedure AddLabelOperand(hl:tasmlabel);
   begin
@@ -1326,274 +1320,221 @@ var
      end;
   end;
 
-  procedure MaybeRecordOffset;
-  var
-    l,
-    toffset,
-    tsize   : longint;
-  begin
-    if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
-     exit;
-    l:=0;
-    if actasmtoken=AS_DOT then
-     begin
-       { if no type was specified before the [] then we expect the
-         first ID to be the type }
-       if expr='' then
-         begin
-           consume(AS_DOT);
-           if actasmtoken=AS_ID then
-            begin
-              expr:=actasmpattern;
-              consume(AS_ID);
-              { now the next one must the be the dot }
-              if actasmtoken<>AS_DOT then
-               begin
-                 { if it is not a dot then we expect a constant
-                   value as offset }
-                 if not SearchIConstant(expr,l) then
-                   Message(asmr_e_building_record_offset);
-                 expr:='';
-               end;
-            end
-           else
-            Message(asmr_e_no_var_type_specified)
-         end;
-       if expr<>'' then
-         begin
-           BuildRecordOffsetSize(expr,toffset,tsize);
-           inc(l,toffset);
-           SetSize(tsize,true);
-         end;
-     end;
-    if actasmtoken in [AS_PLUS,AS_MINUS] then
-     inc(l,BuildConstExpression);
-    case opr.typ of
-      OPR_LOCAL :
-        begin
-          { don't allow direct access to fields of parameters, becuase that
-            will generate buggy code. Allow it only for explicit typecasting
-            and when the parameter is in a register (delphi compatible) }
-          if (not hastype) and
-             (tvarsym(opr.localsym).owner.symtabletype=parasymtable) and
-             (current_procinfo.procdef.proccalloption<>pocall_register) then
-            Message(asmr_e_cannot_access_field_directly_for_parameters);
-          inc(opr.localsymofs,l)
-        end;
-      OPR_CONSTANT :
-        inc(opr.val,l);
-      OPR_REFERENCE :
-        inc(opr.ref.offset,l);
-      else
-        internalerror(200309222);
-    end;
-  end;
-
+var
+  expr    : string;
+  tempreg : tregister;
+  typesize,
+  l       : longint;
+  hl      : tasmlabel;
+  toffset,
+  tsize   : longint;
 Begin
-  repeat
   expr:='';
-  if actasmtoken=AS_DOT then
-    Consume(AS_DOT);
-  case actasmtoken of
-
-    AS_OFFSET,
-    AS_TYPE,
-    AS_PLUS,
-    AS_MINUS,
-    AS_NOT,
-    AS_LPAREN,
-    AS_STRING :
-      Begin
-        if not (opr.typ in [OPR_NONE,OPR_CONSTANT]) then
-          Message(asmr_e_invalid_operand_type);
-        BuildConstant;
-      end;
-
-    AS_INTNUM :
+  repeat
+    if actasmtoken=AS_DOT then
       begin
-        case opr.typ of
-          OPR_REFERENCE :
-            inc(opr.ref.offset,BuildRefConstExpression);
-          OPR_LOCAL :
-            inc(opr.localsymofs,BuildRefConstExpression);
-          OPR_NONE,
-          OPR_CONSTANT :
-            BuildConstant;
-          else
-            Message(asmr_e_invalid_operand_type);
-        end;
-      end;
-
-    AS_ID : { A constant expression, or a Variable ref. }
-      Begin
-        { Label or Special symbol reference? }
-        if actasmpattern[1] = '@' then
-         Begin
-           if actasmpattern = '@RESULT' then
-            Begin
-              InitRef;
-              SetupResult;
-              Consume(AS_ID);
-            end
-           else
-            if (actasmpattern = '@CODE') or (actasmpattern = '@DATA') then
-             begin
-               Message(asmr_w_CODE_and_DATA_not_supported);
-               Consume(AS_ID);
-             end
-           else
-            { Local Label }
-            begin
-              CreateLocalLabel(actasmpattern,hl,false);
-              Consume(AS_ID);
-              AddLabelOperand(hl);
-              if not (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
-               Message(asmr_e_syntax_error);
-            end;
-         end
-        else
-        { support result for delphi modes }
-         if (m_objpas in aktmodeswitches) and (actasmpattern='RESULT') then
+        if expr<>'' then
           begin
-            InitRef;
-            SetUpResult;
-            Consume(AS_ID);
-          end
-        { probably a variable or normal expression }
-        { or a procedure (such as in CALL ID)      }
-        else
-         Begin
-           { is it a constant ? }
-           if SearchIConstant(actasmpattern,l) then
-            Begin
-              case opr.typ of
-                OPR_REFERENCE :
-                  inc(opr.ref.offset,BuildRefConstExpression);
-                OPR_LOCAL :
-                  inc(opr.localsymofs,BuildRefConstExpression);
-                OPR_NONE,
-                OPR_CONSTANT :
-                  BuildConstant;
-                else
-                  Message(asmr_e_invalid_operand_type);
-              end;
-            end
-           else
-            { Check for pascal label }
-            if SearchLabel(actasmpattern,hl,false) then
-             begin
-               Consume(AS_ID);
-               AddLabelOperand(hl);
-               if not (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
-                Message(asmr_e_syntax_error);
-             end
-            else
-            { is it a normal variable ? }
-             Begin
-               InitRef;
-               expr:=actasmpattern;
-               Consume(AS_ID);
-               { typecasting? }
-               if (actasmtoken=AS_LPAREN) and
-                  SearchType(expr,typesize) then
+            BuildRecordOffsetSize(expr,toffset,tsize);
+            SetSize(tsize,true);
+            case opr.typ of
+              OPR_LOCAL :
                 begin
-                  hastype:=true;
-                  Consume(AS_LPAREN);
-                  BuildOperand;
-                  Consume(AS_RPAREN);
-                  if opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
-                    SetSize(typesize,true);
-                end
-               else
-                begin
-                  if SetupVar(expr,false) then
-                   begin
-                     MaybeRecordOffset;
-                     { add a constant expression? }
-                     if (actasmtoken=AS_PLUS) then
-                      begin
-                        l:=BuildConstExpression;
-                        case opr.typ of
-                          OPR_CONSTANT :
-                            inc(opr.val,l);
-                          OPR_LOCAL :
-                            inc(opr.localsymofs,l);
-                          OPR_REFERENCE :
-                            inc(opr.ref.offset,l);
-                          else
-                            internalerror(200309203);
-                        end;
-                      end
-                   end
-                  else
-                   Begin
-                     { not a variable, check special variables.. }
-                     if expr = 'SELF' then
-                      SetupSelf
-                     else
-                      Message1(sym_e_unknown_id,expr);
-                   end;
+                  { don't allow direct access to fields of parameters, becuase that
+                    will generate buggy code. Allow it only for explicit typecasting
+                    and when the parameter is in a register (delphi compatible) }
+                  if (not hastype) and
+                     (tvarsym(opr.localsym).owner.symtabletype=parasymtable) and
+                     (current_procinfo.procdef.proccalloption<>pocall_register) then
+                    Message(asmr_e_cannot_access_field_directly_for_parameters);
+                  inc(opr.localsymofs,toffset)
                 end;
-             end;
-           { handle references }
-           if actasmtoken=AS_LBRACKET then
-            begin
-              if opr.typ=OPR_CONSTANT then
-               begin
-                 l:=opr.val;
-                 opr.typ:=OPR_REFERENCE;
-                 reference_reset(opr.ref);
-                 opr.Ref.Offset:=l;
-               end;
-              BuildReference;
+              OPR_CONSTANT :
+                inc(opr.val,toffset);
+              OPR_REFERENCE :
+                inc(opr.ref.offset,toffset);
+              else
+                internalerror(200309222);
             end;
-         end;
-      end;
-
-    AS_REGISTER : { Register, a variable reference or a constant reference }
-      begin
-        { save the type of register used. }
-        tempreg:=actasmregister;
-        Consume(AS_REGISTER);
-        if actasmtoken = AS_COLON then
-         Begin
-           Consume(AS_COLON);
-           InitRef;
-           opr.ref.segment:=tempreg;
-           BuildReference;
-         end
+            expr:='';
+          end
         else
-        { Simple register }
-         begin
-           if not (opr.typ in [OPR_NONE,OPR_REGISTER]) then
+          begin
+            { See it as a separator }
+            Consume(AS_DOT);
+          end;
+     end;
+
+    case actasmtoken of
+
+      AS_OFFSET,
+      AS_TYPE,
+      AS_NOT,
+      AS_STRING :
+        Begin
+          if not (opr.typ in [OPR_NONE,OPR_CONSTANT]) then
             Message(asmr_e_invalid_operand_type);
-           opr.typ:=OPR_REGISTER;
-           opr.reg:=tempreg;
-           SetSize(tcgsize2size[cg.reg_cgsize(opr.reg)],true);
-         end;
-      end;
+          BuildConstant;
+        end;
 
-    AS_LBRACKET: { a variable reference, register ref. or a constant reference }
-      Begin
-        InitRef;
-        BuildReference;
-      end;
+      AS_PLUS,
+      AS_MINUS,
+      AS_LPAREN,
+      AS_INTNUM :
+        begin
+          case opr.typ of
+            OPR_REFERENCE :
+              inc(opr.ref.offset,BuildRefConstExpression);
+            OPR_LOCAL :
+              inc(opr.localsymofs,BuildConstExpression);
+            OPR_NONE,
+            OPR_CONSTANT :
+              BuildConstant;
+            else
+              Message(asmr_e_invalid_operand_type);
+          end;
+        end;
 
-    AS_SEG :
-      Begin
-        Message(asmr_e_seg_not_supported);
-        Consume(actasmtoken);
-      end;
+      AS_ID : { A constant expression, or a Variable ref. }
+        Begin
+          { Label or Special symbol reference? }
+          if actasmpattern[1] = '@' then
+           Begin
+             if actasmpattern = '@RESULT' then
+              Begin
+                InitRef;
+                SetupResult;
+                Consume(AS_ID);
+              end
+             else
+              if (actasmpattern = '@CODE') or (actasmpattern = '@DATA') then
+               begin
+                 Message(asmr_w_CODE_and_DATA_not_supported);
+                 Consume(AS_ID);
+               end
+             else
+              { Local Label }
+              begin
+                CreateLocalLabel(actasmpattern,hl,false);
+                Consume(AS_ID);
+                AddLabelOperand(hl);
+                if not (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
+                 Message(asmr_e_syntax_error);
+              end;
+           end
+          else
+          { support result for delphi modes }
+           if (m_objpas in aktmodeswitches) and (actasmpattern='RESULT') then
+            begin
+              InitRef;
+              SetUpResult;
+              Consume(AS_ID);
+            end
+          { probably a variable or normal expression }
+          { or a procedure (such as in CALL ID)      }
+          else
+           Begin
+             { is it a constant ? }
+             if SearchIConstant(actasmpattern,l) then
+              Begin
+                case opr.typ of
+                  OPR_REFERENCE :
+                    inc(opr.ref.offset,BuildRefConstExpression);
+                  OPR_LOCAL :
+                    inc(opr.localsymofs,BuildRefConstExpression);
+                  OPR_NONE,
+                  OPR_CONSTANT :
+                    BuildConstant;
+                  else
+                    Message(asmr_e_invalid_operand_type);
+                end;
+              end
+             else
+              { Check for pascal label }
+              if SearchLabel(actasmpattern,hl,false) then
+               begin
+                 Consume(AS_ID);
+                 AddLabelOperand(hl);
+                 if not (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
+                  Message(asmr_e_syntax_error);
+               end
+              else
+              { is it a normal variable ? }
+               Begin
+                 InitRef;
+                 expr:=actasmpattern;
+                 Consume(AS_ID);
+                 { typecasting? }
+                 if SearchType(expr,typesize) then
+                  begin
+                    hastype:=true;
+                    if (actasmtoken=AS_LPAREN) then
+                      begin
+                        Consume(AS_LPAREN);
+                        BuildOperand;
+                        Consume(AS_RPAREN);
+                        if opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
+                          SetSize(typesize,true);
+                      end;
+                  end
+                 else
+                   if not SetupVar(expr,false) then
+                     Begin
+                       { not a variable, check special variables.. }
+                       if expr = 'SELF' then
+                         SetupSelf
+                       else
+                         Message1(sym_e_unknown_id,expr);
+                       expr:='';
+                     end;
+               end;
+           end;
+        end;
 
-    AS_SEPARATOR,
-    AS_END,
-    AS_COMMA:
-      break;
+      AS_REGISTER : { Register, a variable reference or a constant reference }
+        begin
+          { save the type of register used. }
+          tempreg:=actasmregister;
+          Consume(AS_REGISTER);
+          if actasmtoken = AS_COLON then
+           Begin
+             Consume(AS_COLON);
+             InitRef;
+             opr.ref.segment:=tempreg;
+             BuildReference;
+           end
+          else
+          { Simple register }
+           begin
+             if not (opr.typ in [OPR_NONE,OPR_REGISTER]) then
+              Message(asmr_e_invalid_operand_type);
+             opr.typ:=OPR_REGISTER;
+             opr.reg:=tempreg;
+             SetSize(tcgsize2size[cg.reg_cgsize(opr.reg)],true);
+           end;
+        end;
 
-    else
-      Message(asmr_e_syn_operand);
-  end;
-  until not(actasmtoken in [AS_DOT,AS_LBRACKET]);
+      AS_LBRACKET: { a variable reference, register ref. or a constant reference }
+        Begin
+          InitRef;
+          BuildReference;
+        end;
+
+      AS_SEG :
+        Begin
+          Message(asmr_e_seg_not_supported);
+          Consume(actasmtoken);
+        end;
+
+      AS_SEPARATOR,
+      AS_END,
+      AS_COMMA:
+        break;
+
+      else
+        Message(asmr_e_syn_operand);
+    end;
+  until not(actasmtoken in [AS_DOT,AS_PLUS,AS_LBRACKET]);
   if not((actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) or
          (hastype and (actasmtoken=AS_RPAREN))) then
    begin
@@ -1953,7 +1894,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.58  2003-10-23 17:19:44  peter
+  Revision 1.59  2003-10-24 17:39:03  peter
+    * more intel parser updates
+
+  Revision 1.58  2003/10/23 17:19:44  peter
     * typecasting fixes
     * reference building more delphi compatible
 
