@@ -1508,7 +1508,7 @@ unit cgx86;
                 list.concat(Tai_section.Create(sec_code));
                 list.concat(Taicpu.Op_sym_ofs_reg(A_MOV,S_L,pl,0,NR_EDX));
                 a_call_name(list,target_info.Cprefix+'mcount');
-                supregset_include(rgint.used_in_proc,RS_EDX);
+                include(rgint.used_in_proc,RS_EDX);
              end;
 
            system_i386_go32v2,system_i386_watcom:
@@ -1628,28 +1628,28 @@ unit cgx86;
       begin
         { Get temp }
         size:=0;
-        if supregset_in(rgint.used_in_proc,RS_EBX) then
+        if RS_EBX in rgint.used_in_proc then
           inc(size,POINTER_SIZE);
-        if supregset_in(rgint.used_in_proc,RS_ESI) then
+        if RS_ESI in rgint.used_in_proc then
           inc(size,POINTER_SIZE);
-        if supregset_in(rgint.used_in_proc,RS_EDI) then
+        if RS_EDI in rgint.used_in_proc then
           inc(size,POINTER_SIZE);
         if size>0 then
           begin
             tg.GetTemp(list,size,tt_noreuse,current_procinfo.save_regs_ref);
             { Copy registers to temp }
             href:=current_procinfo.save_regs_ref;
-            if supregset_in(rgint.used_in_proc,RS_EBX) then
+            if RS_EBX in rgint.used_in_proc then
               begin
                 a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_EBX,href);
                 inc(href.offset,POINTER_SIZE);
               end;
-            if supregset_in(rgint.used_in_proc,RS_ESI) then
+            if RS_ESI in rgint.used_in_proc then
               begin
                 a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_ESI,href);
                 inc(href.offset,POINTER_SIZE);
               end;
-            if supregset_in(rgint.used_in_proc,RS_EDI) then
+            if RS_EDI in rgint.used_in_proc then
               begin
                 a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_EDI,href);
                 inc(href.offset,POINTER_SIZE);
@@ -1667,17 +1667,17 @@ unit cgx86;
       begin
         { Copy registers from temp }
         href:=current_procinfo.save_regs_ref;
-        if supregset_in(rgint.used_in_proc,RS_EBX) then
+        if RS_EBX in rgint.used_in_proc then
           begin
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EBX);
             inc(href.offset,POINTER_SIZE);
           end;
-        if supregset_in(rgint.used_in_proc,RS_ESI) then
+        if RS_ESI in rgint.used_in_proc then
           begin
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_ESI);
             inc(href.offset,POINTER_SIZE);
           end;
-        if supregset_in(rgint.used_in_proc,RS_EDI) then
+        if RS_EDI in rgint.used_in_proc then
           begin
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EDI);
             inc(href.offset,POINTER_SIZE);
@@ -1746,7 +1746,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.81  2003-10-17 15:25:18  florian
+  Revision 1.82  2003-10-18 15:41:26  peter
+    * made worklists dynamic in size
+
+  Revision 1.81  2003/10/17 15:25:18  florian
     * fixed more ppc stuff
 
   Revision 1.80  2003/10/17 14:38:32  peter

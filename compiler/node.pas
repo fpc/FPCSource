@@ -390,13 +390,6 @@ interface
           function docompare(p : tnode) : boolean;override;
        end;
 
-{$ifdef tempregdebug}
-    type
-      pptree = ^tnode;
-    var
-      curptree: pptree;
-{$endif tempregdebug}
-
     var
       { array with all class types for tnodes }
       nodeclass : tnodeclassarray;
@@ -976,7 +969,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2003-10-17 01:22:08  florian
+  Revision 1.71  2003-10-18 15:41:26  peter
+    * made worklists dynamic in size
+
+  Revision 1.70  2003/10/17 01:22:08  florian
     * compilation of the powerpc compiler fixed
 
   Revision 1.69  2003/10/08 19:19:45  peter

@@ -159,11 +159,6 @@ implementation
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
          oldpos    : tfileposinfo;
-{$ifdef TEMPREGDEBUG}
-         prevp : pptree;
-{$endif TEMPREGDEBUG}
-{$ifdef EXTDEBUG}
-{$endif EXTDEBUG}
       begin
          if not assigned(p) then
           internalerror(200208221);
@@ -195,31 +190,12 @@ implementation
                else if (p.location.loc<>p.expectloc) then
                  Comment(V_Warning,'Location is different in secondpass: '+nodetype2str[p.nodetype]);
              end;
-
-{$ifdef i386}
-{
-            if cg.rgint.unusedregsint*([first_int_supreg..last_int_supreg] - [RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG])<>
-                                      ([first_int_supreg..last_int_supreg] - [RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]) then
-              internalerror(200306171);
-}
-{$endif i386}
 {$endif EXTDEBUG}
             if codegenerror then
               include(p.flags,nf_error);
-
             codegenerror:=codegenerror or oldcodegenerror;
             aktlocalswitches:=oldlocalswitches;
             aktfilepos:=oldpos;
-{$ifdef TEMPREGDEBUG}
-            curptree:=prevp;
-{$endif TEMPREGDEBUG}
-{$ifdef EXTTEMPREGDEBUG}
-            if p.usableregs-usablereg32>p.reallyusedregs then
-              p.reallyusedregs:=p.usableregs-usablereg32;
-            if p.reallyusedregs<p.registers32 then
-              Comment(V_Debug,'registers32 overestimated '+tostr(p^.registers32)+
-                '>'+tostr(p^.reallyusedregs));
-{$endif EXTTEMPREGDEBUG}
           end
          else
            codegenerror:=true;
@@ -302,7 +278,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2003-10-17 15:08:34  peter
+  Revision 1.71  2003-10-18 15:41:26  peter
+    * made worklists dynamic in size
+
+  Revision 1.70  2003/10/17 15:08:34  peter
     * commented out more obsolete constants
 
   Revision 1.69  2003/10/10 17:48:13  peter
