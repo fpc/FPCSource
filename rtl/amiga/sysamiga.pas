@@ -58,7 +58,7 @@ const
 
   implementation
 
-    {$I EXEC.INC}
+    {$I exec.inc}
 
   TYPE
     TDateStamp = packed record
@@ -1345,7 +1345,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1998-07-01 14:13:50  carl
+  Revision 1.5  1998-07-01 14:30:56  carl
+    * forgot that includes are case sensitive
+
+  Revision 1.4  1998/07/01 14:13:50  carl
     * do_open bugfix
     * correct conversion of Amiga error codes to TP error codes
     * InoutRes word bugfix
