@@ -3,28 +3,15 @@
 #
 
 [targets]
-units=x xresource xlib xutil forms
+units=forms
 programs=fd2pascal
 
-[clean]
-units=forms-88 forms-86
-files=forms$(PASEXT)
+[packages]
+packages=x11
 
 [dirs]
 fpcdir=../..
 
-
-[presettings]
-# Version of forms
-FORMSVERSION=88
-#FORMSVERSION=86
-
-
 [rules]
-forms$(PPUEXT): forms-$(FORMSVERSION)$(PASEXT) x$(PPUEXT) xresource$(PPUEXT) xlib$(PPUEXT)\
-              xutil$(PPUEXT)
-        ln -sf forms-$(FORMSVERSION)$(PASEXT) forms$(PASEXT)
-        $(COMPILER) forms$(PASEXT)
-
 examples: all
         $(MAKE) -C demo all

@@ -10,9 +10,11 @@ programs=pushme yesno pushbutton touchbutton minput inputall choice butttypes \
          fbrowse1 fbrowse flclock fonts goodies lalign ll longlabel menu \
          objinactive objpos newbutton multilabel objreturn
 
+[packages]
+packages=forms x11
+
 [libs]
 libother=1
 
 [dirs]
 fpcdir=../../..
-unitdir=..
