@@ -113,6 +113,7 @@ uses
       NR_R9 = $0A00; NR_R10 = $0B00; NR_R11 = $0C00;
       NR_R12 = $0D00; NR_R13 = $0E00; NR_R14 = $0F00;
       NR_R15 = $1000;
+      NR_PC  = NR_R15;
 
       { Super registers: }
       RS_NONE=$00;
@@ -128,6 +129,7 @@ uses
 
       { registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [RS_R0..RS_R3];
+      VOLATILE_FPUREGISTERS = [R_F0..R_F3];
 
       { Number of first and last imaginary register. }
       first_imreg     = $21;
@@ -386,6 +388,7 @@ uses
       { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
 
       maxintregs = 15;
+      maxintscratchregs = 2;
       intregs = [R_R0..R_R14];
       usableregsint = [RS_R4..RS_R10];
       c_countusableregsint = 7;
@@ -628,7 +631,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2003-08-16 13:23:01  florian
+  Revision 1.4  2003-08-20 15:50:13  florian
+    * more arm stuff
+
+  Revision 1.3  2003/08/16 13:23:01  florian
     * several arm related stuff fixed
 
   Revision 1.2  2003/07/26 00:55:57  florian

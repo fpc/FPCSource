@@ -40,6 +40,13 @@ unit agarmgas;
         procedure WriteInstruction(hp : tai);override;
       end;
 
+    var
+      gas_reg2str : reg2strtable;
+
+    function gas_regnum_search(const s:string):Tnewregister;
+    function gas_regname(const r:Tnewregister):string;
+
+
   implementation
 
     uses
@@ -250,11 +257,25 @@ unit agarmgas;
       AsmWriteLn(s);
     end;
 
+  function gas_regnum_search(const s:string):Tnewregister;
+    begin
+    end;
+
+
+  function gas_regname(const r:Tnewregister):string;
+    begin
+    end;
+
+
 begin
   RegisterAssembler(as_arm_gas_info,TARMGNUAssembler);
+  gas_reg2str:=std_reg2str;
 end.
 {
   $Log$
-  Revision 1.1  2003-08-16 13:23:01  florian
+  Revision 1.2  2003-08-20 15:50:12  florian
+    * more arm stuff
+
+  Revision 1.1  2003/08/16 13:23:01  florian
     * several arm related stuff fixed
 }

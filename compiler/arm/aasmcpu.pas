@@ -37,7 +37,6 @@ uses
       { "mov reg,reg" source operand number }
       O_MOV_DEST = 0;
 
-
     type
       taicpu = class(taicpu_abstract)
          constructor op_none(op : tasmop);
@@ -60,8 +59,6 @@ uses
          constructor op_const_reg_const(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : longint);
 
          constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
-         constructor op_reg_bool_reg_reg(op : tasmop;_op1: tregister;_op2:boolean;_op3,_op4:tregister);
-         constructor op_reg_bool_reg_const(op : tasmop;_op1: tregister;_op2:boolean;_op3:tregister;_op4: longint);
 
          constructor op_reg_reg_reg_const_const(op : tasmop;_op1,_op2,_op3 : tregister;_op4,_op5 : Longint);
          constructor op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : Longint);
@@ -76,9 +73,6 @@ uses
          constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint);
          constructor op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:tasmsymbol;_op2ofs : longint);
          constructor op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
-
-         procedure loadbool(opidx:longint;_b:boolean);
-
 
          function is_nop: boolean; override;
          function is_move:boolean; override;
@@ -105,20 +99,6 @@ uses cutils,rgobj;
 {*****************************************************************************
                                  taicpu Constructors
 *****************************************************************************}
-
-    procedure taicpu.loadbool(opidx:longint;_b:boolean);
-      begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
-         begin
-           if typ=top_ref then
-            dispose(ref);
-           b:=_b;
-           typ:=top_bool;
-         end;
-      end;
-
 
     constructor taicpu.op_none(op : tasmop);
       begin
@@ -238,6 +218,7 @@ uses cutils,rgobj;
          loadsymbol(0,_op3,_op3ofs);
       end;
 
+
      constructor taicpu.op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; const _op3: treference);
        begin
          inherited create(op);
@@ -251,6 +232,7 @@ uses cutils,rgobj;
          loadref(2,_op3);
       end;
 
+
     constructor taicpu.op_const_reg_reg(op : tasmop;_op1 : longint;_op2, _op3 : tregister);
       begin
          inherited create(op);
@@ -263,6 +245,7 @@ uses cutils,rgobj;
          loadreg(1,_op2);
          loadreg(2,_op3);
       end;
+
 
      constructor taicpu.op_const_reg_const(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : longint);
       begin
@@ -292,36 +275,6 @@ uses cutils,rgobj;
          loadreg(1,_op2);
          loadreg(2,_op3);
          loadreg(3,_op4);
-      end;
-
-     constructor taicpu.op_reg_bool_reg_reg(op : tasmop;_op1: tregister;_op2:boolean;_op3,_op4:tregister);
-      begin
-         inherited create(op);
-         if (_op1.enum = R_INTREGISTER) and (_op1.number = NR_NO) then
-           internalerror(2003031227);
-         if (_op3.enum = R_INTREGISTER) and (_op3.number = NR_NO) then
-           internalerror(2003031228);
-         if (_op4.enum = R_INTREGISTER) and (_op4.number = NR_NO) then
-           internalerror(2003031229);
-         ops:=4;
-         loadreg(0,_op1);
-         loadbool(1,_op2);
-         loadreg(2,_op3);
-         loadreg(3,_op4);
-      end;
-
-     constructor taicpu.op_reg_bool_reg_const(op : tasmop;_op1: tregister;_op2:boolean;_op3:tregister;_op4: longint);
-      begin
-         inherited create(op);
-         if (_op1.enum = R_INTREGISTER) and (_op1.number = NR_NO) then
-           internalerror(2003031230);
-         if (_op3.enum = R_INTREGISTER) and (_op3.number = NR_NO) then
-           internalerror(2003031231);
-         ops:=4;
-         loadreg(0,_op1);
-         loadbool(0,_op2);
-         loadreg(0,_op3);
-         loadconst(0,cardinal(_op4));
       end;
 
 
@@ -420,7 +373,7 @@ uses cutils,rgobj;
 
     function taicpu.is_move:boolean;
       begin
-        is_move := opcode = A_MR;
+        is_move := opcode = A_MOV;
       end;
 
 
@@ -430,7 +383,7 @@ uses cutils,rgobj;
                              r:Tsupregset;
                              var unusedregsint:Tsupregset;
                               const spilltemplist:Tspill_temp_list): boolean;
-
+{$ifdef dummy}
       function get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister):Tai;
 
       var back:Tsupregset;
@@ -748,7 +701,10 @@ uses cutils,rgobj;
                 end;
             end;
       end;
-
+{$else dummy}
+      begin
+      end;
+{$endif dummy}
 
 
     procedure InitAsm;
@@ -763,6 +719,9 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.1  2003-08-16 13:23:01  florian
+  Revision 1.2  2003-08-20 15:50:12  florian
+    * more arm stuff
+
+  Revision 1.1  2003/08/16 13:23:01  florian
     * several arm related stuff fixed
 }
