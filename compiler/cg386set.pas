@@ -383,8 +383,12 @@ implementation
 
                   case p^.right^.location.loc of
                  LOC_REGISTER,
-                LOC_CREGISTER : emit_reg_reg(A_BT,S_L,hr,
-                                  p^.right^.location.register);
+                LOC_CREGISTER :
+                          begin
+                            emit_reg_reg(A_BT,S_L,hr,
+                              p^.right^.location.register);
+                            ungetregister32(p^.right^.location.register);
+                          end
                   else
                     begin
                       del_reference(p^.right^.location.reference);
@@ -964,7 +968,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-07-30 17:04:43  peter
+  Revision 1.5  2000-08-05 09:57:27  jonas
+    * added missing register deallocation (could cause IE10 i some cases)
+      (merged from fixes branch)
+
+  Revision 1.4  2000/07/30 17:04:43  peter
     * merged fixes
 
   Revision 1.3  2000/07/27 09:25:05  jonas
