@@ -300,6 +300,7 @@ unit pmodules;
         ImplIntf : array[boolean] of string[15]=('interface','implementation');
       var
         st : punitsymtable;
+        second_time : boolean;
         old_current_ppu : pppufile;
         old_current_module,hp,hp2 : pmodule;
         name : string;{ necessary because
@@ -416,12 +417,14 @@ unit pmodules;
                current_module:=hp;
                current_module^.in_second_compile:=true;
                Message1(unit_u_second_load_unit,current_module^.modulename^);
+               second_time:=true;
              end
             else
           { generates a new unit info record }
              begin
                 current_module:=new(pmodule,init(s,true));
                 scanner:=nil;
+                second_time:=false;
              end;
             current_ppu:=current_module^.ppufile;
           { now we can register the unit }
@@ -432,7 +435,9 @@ unit pmodules;
           { set compiled flag }
             current_module^.compiled:=true;
           { register the unit _once_ }
-            usedunits.concat(new(pused_unit,init(current_module,true)));
+          { this is buggy PM }
+            if not second_time then
+              usedunits.concat(new(pused_unit,init(current_module,true)));
           { load return pointer }
             hp:=current_module;
           end;
@@ -1110,7 +1115,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.79  1998-11-03 11:33:11  peter
+  Revision 1.80  1998-11-06 09:48:14  pierre
+   * double initialization code calling bug fixed
+
+  Revision 1.79  1998/11/03 11:33:11  peter
     + search_unit arg to only search for sources
 
   Revision 1.78  1998/10/30 12:23:41  peter
