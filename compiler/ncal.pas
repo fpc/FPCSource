@@ -406,8 +406,8 @@ interface
                 make_not_regable(left);
 
               if do_count then
-                set_varstate(left,defcoll^.paratyp in [vs_var,vs_out]);
-                { must only be done after typeconv PM }
+                set_varstate(left,not(defcoll^.paratyp in [vs_var,vs_out]));
+              { must only be done after typeconv PM }
               resulttype:=defcoll^.paratype.def;
            end;
          if left.registers32>registers32 then
@@ -1545,7 +1545,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2000-11-04 14:25:20  florian
+  Revision 1.15  2000-11-06 21:36:25  peter
+    * fixed var parameter varstate bug
+
+  Revision 1.14  2000/11/04 14:25:20  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.13  2000/10/31 22:02:47  peter
