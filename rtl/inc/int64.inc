@@ -475,29 +475,12 @@
     code := 0;
   end;
 
-Function ValQWord(Const S: AnsiString; var Code: ValSInt): QWord; [public, alias:'FPC_VAL_QWORD_ANSISTR'];
-
-  begin
-     ValQWord:=0;
-     if length(S)>255 then
-       code:=256
-     else
-       ValQWord:=ValQWord(ShortString(S),Code);
-  end;
-
-Function ValInt64(Const S: AnsiString; var Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_ANSISTR'];
-
-  begin
-     ValInt64:=0;
-     if length(S)>255 then
-       code:=256
-     else
-       ValInt64:=ValInt64(ShortString(S),Code);
-  end;
-
 {
   $Log$
-  Revision 1.6  2000-12-09 20:52:40  florian
+  Revision 1.7  2000-12-10 15:00:14  florian
+    * val for int64 hopefully works now correct
+
+  Revision 1.6  2000/12/09 20:52:40  florian
     * val for dword and qword didn't handle the max values
       correctly
     * val for qword works again

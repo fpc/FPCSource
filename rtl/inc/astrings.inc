@@ -560,16 +560,28 @@ Function ValAnsiSignedInt (DestSize: longint; Const S : AnsiString; Var Code : V
 Var
   SS : ShortString;
 begin
-  AnsiStr_To_ShortStr (SS,Pointer(S));
-  ValAnsiSignedInt := ValSignedInt(DestSize,SS,Code);
+  ValAnsiSignedInt:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       AnsiStr_To_ShortStr (SS,Pointer(S));
+       ValAnsiSignedInt := ValSignedInt(DestSize,SS,Code);
+    end;
 end;
 
-Function ValAnsiUnsignedint64 (Const S : AnsiString; Var Code : ValSInt): qword; [public, alias:'FPC_VAL_UINT64_ANSISTR'];
+Function ValAnsiUnsignedint64 (Const S : AnsiString; Var Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_ANSISTR'];
 Var
   SS : ShortString;
 begin
-  AnsiStr_To_ShortStr(SS,Pointer(S));
-  ValAnsiUnsignedInt64 := ValQWord(SS,Code);
+  ValAnsiUnsignedInt64:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       AnsiStr_To_ShortStr(SS,Pointer(S));
+       ValAnsiUnsignedInt64 := ValQWord(SS,Code);
+    end;
 end;
 
 
@@ -577,8 +589,14 @@ Function ValAnsiSignedInt64 (DestSize: longint; Const S : AnsiString; Var Code :
 Var
   SS : ShortString;
 begin
-  AnsiStr_To_ShortStr (SS,Pointer(S));
-  ValAnsiSignedInt64 := valInt64(SS,Code);
+  ValAnsiSignedInt64:=0;
+  if length(S)>255 then
+    code:=256
+  else
+    begin
+       AnsiStr_To_ShortStr (SS,Pointer(S));
+       ValAnsiSignedInt64 := valInt64(SS,Code);
+    end;
 end;
 
 {$IfDef SUPPORT_FIXED}
@@ -686,7 +704,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2000-12-08 14:04:43  jonas
+  Revision 1.9  2000-12-10 15:00:14  florian
+    * val for int64 hopefully works now correct
+
+  Revision 1.8  2000/12/08 14:04:43  jonas
     + added pos(char,ansistring), because there is also a pos(char,shortstring)
       and without the ansistring version, the shortstring version is always
       called when calling pos(char,pchar), even when using $h+ (because the
