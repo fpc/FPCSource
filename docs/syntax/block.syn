@@ -8,6 +8,7 @@
 \[
 \synt{label\ declaration\ part}\\
 \synt{constant\ declaration\ part}\\
+\synt{resourcestring\ declaration\ part}\\
 \synt{type\ declaration\ part}\\
 \synt{variable\ declaration\ part}\\
 \synt{procedure/function\ declaration\ part}
@@ -31,6 +32,13 @@
     \synt{constant\ declaration}\\
     \synt{typed\ constant\ declaration}
   \)
+\>
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{resourcestring\ declaration\ part}
+\lit*{resourcestring}
+\<[b]
+ \synt{string\ constant\ declaration}\\
 \>
 \end{mysyntdiag}
 \begin{mysyntdiag}
