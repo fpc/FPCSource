@@ -129,7 +129,9 @@ uses
 {$ELSE USE_SYSUTILS}
   dos,
 {$ENDIF USE_SYSUTILS}
+{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
   sysutils,
+{$ENDIF MACOS_USE_FAKE_SYSUTILS}
   verbose,comphook,systems,
   cutils,cclasses,globals,options,fmodule,parser,symtable,
   assemble,link,import,export,tokens,pass_1
@@ -425,7 +427,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.52  2005-01-26 16:23:28  peter
+  Revision 1.53  2005-01-31 21:30:56  olle
+    + Added fake Exception classes, only for MACOS.
+
+  Revision 1.52  2005/01/26 16:23:28  peter
     * detect arithmetic overflows for constants at compile time
     * use try..except instead of setjmp
 

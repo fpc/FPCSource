@@ -354,6 +354,33 @@ interface
        be placed in data/const segment, according to the current alignment requirements }
     function const_align(siz: longint): longint;
 
+{$IFDEF MACOS}
+
+{Since SysUtils is not yet available for MacOS, fake 
+ Exceptions classes are included here.}
+
+{$DEFINE MACOS_USE_FAKE_SYSUTILS}
+
+type
+   { exceptions }
+   Exception = class(TObject);
+
+   EExternal = class(Exception);
+
+   { integer math exceptions }
+   EInterror    = Class(EExternal);
+   EDivByZero   = Class(EIntError);
+   ERangeError  = Class(EIntError);
+   EIntOverflow = Class(EIntError);
+
+   { General math errors }
+   EMathError  = Class(EExternal);
+   EInvalidOp  = Class(EMathError);
+   EZeroDivide = Class(EMathError);
+   EOverflow   = Class(EMathError);
+   EUnderflow  = Class(EMathError);
+
+{$ENDIF MACOS}
 
 implementation
 
@@ -2191,7 +2218,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.163  2005-01-23 22:13:50  florian
+  Revision 1.164  2005-01-31 21:30:56  olle
+    + Added fake Exception classes, only for MACOS.
+
+  Revision 1.163  2005/01/23 22:13:50  florian
     * fixed math constants for big endian cpus
 
   Revision 1.162  2005/01/23 21:09:11  florian

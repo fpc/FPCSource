@@ -69,7 +69,9 @@ interface
 implementation
 
     uses
+{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
       sysutils,
+{$ENDIF MACOS_USE_FAKE_SYSUTILS}
       globtype,systems,
       cutils,verbose,globals,widestr,
       symconst,symtype,symdef,symsym,symtable,defutil,defcmp,
@@ -2137,7 +2139,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.138  2005-01-31 16:15:04  peter
+  Revision 1.139  2005-01-31 21:30:56  olle
+    + Added fake Exception classes, only for MACOS.
+
+  Revision 1.138  2005/01/31 16:15:04  peter
     * zero based array with elementsize>1 fix
 
   Revision 1.137  2005/01/26 16:23:28  peter

@@ -61,8 +61,10 @@ Const in_const_evaluation : boolean = false;
 
 Implementation
 
+{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
 uses
   sysutils;
+{$ENDIF MACOS_USE_FAKE_SYSUTILS}
 
 {$ifdef has_signal}
 {$ifdef unix}
@@ -92,7 +94,10 @@ end.
 
 {
   $Log$
-  Revision 1.21  2005-01-26 16:23:28  peter
+  Revision 1.22  2005-01-31 21:30:56  olle
+    + Added fake Exception classes, only for MACOS.
+
+  Revision 1.21  2005/01/26 16:23:28  peter
     * detect arithmetic overflows for constants at compile time
     * use try..except instead of setjmp
 
