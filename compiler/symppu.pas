@@ -101,7 +101,7 @@ implementation
 {$endif Range_check_on}
           end
         else
-          result:=getlongint;
+          result:=tconstexprint(getlongint);
       end;
 
 
@@ -128,7 +128,7 @@ implementation
 {$endif Range_check_on}
           end
         else
-          result:=getlongint;
+          result:=TConstPtrUInt(getlongint);
       end;
 
 
@@ -400,7 +400,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2003-12-22 22:15:13  peter
+  Revision 1.25  2004-01-23 15:47:23  peter
+    * range check error
+
+  Revision 1.24  2003/12/22 22:15:13  peter
     * fix write pointerconst
 
   Revision 1.23  2003/10/28 15:36:01  peter
