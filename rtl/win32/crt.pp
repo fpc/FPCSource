@@ -150,17 +150,37 @@ end; { proc. TurnMouseOff }
 
 function GetScreenHeight : longint;
 var ConsoleInfo: TConsoleScreenBufferinfo;
+    res : longint;
 begin
-  GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo);
-  Result := ConsoleInfo.dwSize.Y;
+  if not GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo) then
+    begin
+      res:=GetLastError;
+      Result:=25;
+{$ifdef SYSTEMDEBUG}
+      Writeln(stderr,'GetScreenHeight failed GetLastError returns ',res);
+      Halt(1);
+{$endif SYSTEMDEBUG}
+    end
+  else
+    Result := ConsoleInfo.dwSize.Y;
 end; { func. GetScreenHeight }
 
 
 function GetScreenWidth : longint;
 var ConsoleInfo: TConsoleScreenBufferInfo;
+    res : longint;
 begin
-  GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo);
-  Result := ConsoleInfo.dwSize.X;
+  if not GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo)then
+    begin
+      res:=GetLastError;
+      Result:=80;
+{$ifdef SYSTEMDEBUG}
+      Writeln(stderr,'GetScreenWidth failed GetLastError returns ',res);
+      Halt(1);
+{$endif SYSTEMDEBUG}
+    end
+  else
+    Result := ConsoleInfo.dwSize.X;
 end; { func. GetScreenWidth }
 
 
@@ -925,9 +945,13 @@ begin
 end;
 
 
+const
+  conout : pchar = 'CONOUT$';
+
 var
   CursorInfo  : TConsoleCursorInfo;
   ConsoleInfo : TConsoleScreenBufferinfo;
+
 begin
   { Initialize the output handles }
   OutHandle := GetStdHandle(STD_OUTPUT_HANDLE);
@@ -941,7 +965,22 @@ begin
 
   {------------------ Get the current cursor position and attr --------------}
   FillChar(ConsoleInfo, SizeOf(ConsoleInfo), 0);
-  GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo);
+  if not GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo) then
+    begin
+      OutHandle:=CreateFile(ConOut, generic_read or generic_write,
+        file_share_read or file_share_write,nil,
+        open_existing,0,0);
+      If (OutHandle=Invalid_handle_value) then
+        begin
+          Writeln(stderr,'No way to get the console handle');
+          Halt(1);
+        end;
+      if not GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo) then
+        begin
+          Writeln(stderr,'No way to get console screen buffer info');
+          Halt(1);
+        end;
+    end;
   CursorSaveX := ConsoleInfo.dwCursorPosition.X;
   CursorSaveY := ConsoleInfo.dwCursorPosition.Y;
   TextAttr := ConsoleInfo.wAttributes;
@@ -968,7 +1007,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.14  2000-02-26 14:57:17  florian
+  Revision 1.15  2000-04-14 12:14:39  pierre
+   * try to get it to work if output is redirected
+
+  Revision 1.14  2000/02/26 14:57:17  florian
     * writing at coloumn <screenwidth> wasn't possible in some cases,
       fixed
 
