@@ -426,6 +426,7 @@ unit files;
          while not ppufile^.endofentry do
           begin
             hs:=ppufile^.getstring;
+            temp:='';
             if (flags and uf_in_library)<>0 then
              begin
                sources_avail:=false;
@@ -445,11 +446,13 @@ unit files;
                  begin
                     { search for include files in the includepathlist }
                     if b<>ibend then
-                      temp:=search(hs,includesearchpath,incfile_found);
-                    if incfile_found then
                       begin
-                         hs:=temp+hs;
-                         Source_Time:=GetNamedFileTime(hs);
+                         temp:=search(hs,includesearchpath,incfile_found)
+                         if incfile_found then
+                           begin
+                              hs:=temp+hs;
+                              Source_Time:=GetNamedFileTime(hs);
+                           end;
                       end;
                  end
                else
@@ -677,6 +680,7 @@ unit files;
          ppufile^.read_data(hs[0],1,count);
          ppufile^.read_data(hs[1],ord(hs[0]),count);
          ppufile^.read_data(b,1,count);
+         temp:='';
          if (flags and uf_in_library)<>0 then
           begin
             sources_avail:=false;
@@ -690,11 +694,13 @@ unit files;
               begin
                  { search for include files in the includepathlist }
                  if b<>ibend then
-                   temp:=search(hs,includesearchpath,incfile_found);
-                 if incfile_found then
                    begin
-                      hs:=temp+hs;
-                      Source_Time:=GetNamedFileTime(hs);
+                      temp:=search(hs,includesearchpath,incfile_found);
+                      if incfile_found then
+                        begin
+                           hs:=temp+hs;
+                           Source_Time:=GetNamedFileTime(hs);
+                        end;
                    end;
               end
             else
@@ -931,7 +937,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.15  1998-05-28 14:37:53  peter
+  Revision 1.16  1998-06-04 10:42:19  pierre
+    * small bug fix in load_ppu or openppu
+
+  Revision 1.15  1998/05/28 14:37:53  peter
     * default programname is PROGRAM (like TP7) to avoid dup id's
 
   Revision 1.14  1998/05/27 19:45:02  peter
