@@ -597,7 +597,9 @@ CONST
    HideMouseProc: DrawProc = Nil;                     { Hide mouse procedure }
    ShowMouseProc: DrawProc = Nil;                     { Show mouse procedure }
    MouseMoveProc: DrawProc = Nil;                     { Mouse moved procedure }
+{$ENDIF}
 
+{$IFDEF NO_WINDOW}
 PROCEDURE HideMouseCursor;
 PROCEDURE ShowMouseCursor;
 {$ENDIF}
@@ -1245,6 +1247,7 @@ ASM
 END;
 {$ENDIF}
 
+
 {$ifndef Use_API}
 {---------------------------------------------------------------------------}
 {  HookMouse -> Platforms DOS/DPMI - Updated 27Aug98 LdB                    }
@@ -1330,6 +1333,21 @@ END;
 
 {$ENDIF}
 
+{$IFDEF USE_API}
+{$IFNDEF OS_DOS}
+PROCEDURE ShowMouseCursor;
+BEGIN
+  ShowMouse;
+END;
+
+PROCEDURE HideMouseCursor;
+BEGIN
+  HideMouse;
+END;
+
+{$ENDIF not OS_DOS}
+{$ENDIF USE_API}
+
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {               DOS/DPMI/WIN/NT/OS2 PRIVATE INTERNAL ROUTINES               }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -1352,6 +1370,7 @@ END;
 {  DetectVideo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19May98 LdB       }
 {---------------------------------------------------------------------------}
 {$ifdef Use_API}
+
 procedure DetectVideo;
 VAR
   CurrMode : TVideoMode;
@@ -3019,7 +3038,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.6  2001-05-04 08:42:55  pierre
+ Revision 1.7  2001-05-04 10:46:02  pierre
+  * various fixes  for win32 api mode
+
+ Revision 1.6  2001/05/04 08:42:55  pierre
   * some corrections for linux
 
  Revision 1.5  2001/05/03 22:32:52  pierre

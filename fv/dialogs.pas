@@ -718,6 +718,7 @@ CONST
 {                          PRIVATE INTERNAL ROUTINES                        }
 {***************************************************************************}
 
+{$IFNDEF NO_WINDOW}
 {$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
 {---------------------------------------------------------------------------}
 {  TvClusterMsgHandler -> Platforms WIN/NT - Checked 08Jun98 LdB            }
@@ -786,6 +787,7 @@ BEGIN
     iMessage, wParam, lParam);                        { Call TV view handler }
 END;
 {$ENDIF}
+{$ENDIF not NO_WINDOW}
 
 {---------------------------------------------------------------------------}
 {  IsBlank -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08Jun98 LdB           }
@@ -1064,12 +1066,14 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TInputLine.DrawBackGround;
 BEGIN
+   {$IFNDEF NO_WINDOW}
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
    If (HWindow <> 0) Then DestroyCaret;               { Destroy any caret }
    {$ENDIF}
    {$IFDEF OS_OS2}                                    { OS2 CODE }
    If (HWindow <> 0) Then WinDestroyCursor(HWindow);  { Destroy any caret }
    {$ENDIF}
+   {$ENDIF not NO_WINDOW}
    Inherited DrawBackGround;                          { Call ancestor }
 END;
 
@@ -1090,13 +1094,13 @@ BEGIN
            I := TextWidth(Data^[CurPos+1])            { Insert caret width }
            Else I := FontWidth;                       { At end use fontwidth }
      End;
-     {$IFDEF OS_DOS}
+     {$IFDEF NO_WINDOW}
      If (State AND sfCursorIns <> 0) Then Begin       { Insert mode }
        If ((CurPos+1) <= Length(Data^)) Then          { Not beyond end }
          WriteStr(-X, 0, Data^[CurPos+1], 5)          { Create block cursor }
          Else ClearArea(X, 0, X+I, FontHeight, Green);{ Line cursor }
      End Else ClearArea(X, 0, X+I, FontHeight, Green);{ Line cursor }
-     {$ENDIF}
+     {$ELSE not NO_WINDOW}
      {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
      If (HWindow <> 0) Then Begin
        CreateCaret(HWindow, 0, I, FontHeight);        { Create a craet }
@@ -1113,6 +1117,7 @@ BEGIN
          WinShowCursor(HWindow, True);                { Show the caret }
      End;
      {$ENDIF}
+     {$ENDIF not NO_WINDOW}
    End;
 END;
 
@@ -3219,7 +3224,10 @@ END;
 END.
 {
  $Log$
- Revision 1.5  2001-05-04 08:42:54  pierre
+ Revision 1.6  2001-05-04 10:46:01  pierre
+  * various fixes  for win32 api mode
+
+ Revision 1.5  2001/05/04 08:42:54  pierre
   * some corrections for linux
 
  Revision 1.4  2001/05/03 22:32:52  pierre

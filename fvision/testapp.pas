@@ -34,12 +34,18 @@ PROGRAM TestApp;
 
 {$I Platform.inc}
   USES
-     {$IFDEF OS_OS2} Os2Def, os2PmApi, Drivers, {$ENDIF}
-     Objects, Views, Menus, Dialogs, App,             { Standard GFV units }
+     {$IFDEF OS_OS2} Os2Def, os2PmApi,  {$ENDIF}
+     Objects, Drivers, Views, Menus, Dialogs, App,             { Standard GFV units }
      Gadgets;
 
 
 CONST cmAppToolbar = 1000;
+      cmWindow1    = 1001;
+      cmWindow2    = 1002;
+      cmWindow3    = 1003;
+      cmCloseWindow1    = 1101;
+      cmCloseWindow2    = 1102;
+      cmCloseWindow3    = 1103;
 
 {---------------------------------------------------------------------------}
 {          TTestAppp OBJECT - STANDARD APPLICATION WITH MENU                }
@@ -49,10 +55,16 @@ TYPE
    TTVDemo = OBJECT (TApplication)
         Clock: PClockView;
         Heap: PHeapView;
+        P1,P2,P3 : PGroup;
       CONSTRUCTOR Init;
       PROCEDURE Idle; Virtual;
+      PROCEDURE HandleEvent(var Event : TEvent);virtual;
       PROCEDURE InitMenuBar; Virtual;
       PROCEDURE InitDeskTop; Virtual;
+      PROCEDURE Window1;
+      PROCEDURE Window2;
+      PROCEDURE Window3;
+      PROCEDURE CloseWindow(var P : PGroup);
     End;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -95,6 +107,23 @@ begin
     DisableCommands([cmTile, cmCascade]);
 end;
 
+PROCEDURE TTVDemo.HandleEvent(var Event : TEvent);
+BEGIN
+   Inherited HandleEvent(Event);                      { Call ancestor }
+   If (Event.What = evCommand) Then Begin
+     Case Event.Command Of
+       cmWindow1 : Window1;
+       cmWindow2 : Window2;
+       cmWindow3 : Window3;
+       cmCloseWindow1 : CloseWindow(P1);
+       cmCloseWindow2 : CloseWindow(P2);
+       cmCloseWindow3 : CloseWindow(P3);
+       Else Exit;                                     { Unhandled exit }
+     End;
+   End;
+   ClearEvent(Event);
+END;
+
 {--TTvDemo------------------------------------------------------------------}
 {  InitMenuBar -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05Nov99 LdB       }
 {---------------------------------------------------------------------------}
@@ -108,8 +137,16 @@ BEGIN
       StdFileMenuItems(Nil)),                         { Standard file menu }
     NewSubMenu('~E~dit', 0, NewMenu(
       StdEditMenuItems(Nil)),                         { Standard edit menu }
+    NewSubMenu('~T~est', 0, NewMenu(
+      NewItem('Window 1','',kbNoKey,cmWindow1,hcNoContext,
+      NewItem('Window 2','',kbNoKey,cmWindow2,hcNoContext,
+      NewItem('Window 3','',kbNoKey,cmWindow3,hcNoContext,
+      NewItem('Close Window 1','',kbNoKey,cmCloseWindow1,hcNoContext,
+      NewItem('Close Window 2','',kbNoKey,cmCloseWindow2,hcNoContext,
+      NewItem('Close Window 3','',kbNoKey,cmCloseWindow3,hcNoContext,
+      Nil))))))),                         { Standard edit menu }
     NewSubMenu('~W~indow', 0, NewMenu(
-      StdWindowMenuItems(Nil)), Nil))))));            { Standard window  menu }
+      StdWindowMenuItems(Nil)), Nil)))))));            { Standard window  menu }
 END;
 
 {--TTvDemo------------------------------------------------------------------}
@@ -140,21 +177,9 @@ BEGIN
    Desktop := New(PDeskTop, Init(R));
 END;
 
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-{                             MAIN PROGRAM START                            }
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-VAR I: Integer; R: TRect; P: PGroup; B: PScrollBar;
-    List: PStrCollection; Lb: PListBox; MyApp: TTvDemo;
-    {$IFDEF OS_OS2} Message: QMSg; Event: TEvent; {$ENDIF}
+PROCEDURE TTvDemo.Window1;
+VAR R: TRect; P: PGroup;
 BEGIN
-   (*SystemPalette := CreateRGBPalette(256);            { Create palette }
-   For I := 0 To 15 Do Begin
-     GetSystemRGBEntry(I, RGB);                       { Get palette entry }
-     AddToRGBPalette(RGB, SystemPalette);             { Add entry to palette }
-   End;*)
-
-   MyApp.Init;                                        { Initialize app }
-
    { Create a basic window with static text and radio }
    { buttons. The buttons should be orange and white  }
    R.Assign(5, 1, 35, 16);                            { Assign area }
@@ -162,6 +187,7 @@ BEGIN
    If (P <> Nil) Then Begin                           { Window valid }
      R.Assign(5, 5, 20, 7);                           { Assign area }
      P^.Insert(New(PInputLine, Init(R, 30)));
+     R.Assign(5, 8, 20, 9);                           { Assign area }
      P^.Insert(New(PRadioButtons, Init(R,
        NewSItem('Test',
        NewSITem('Item 2', Nil)))));                   { Red radio button }
@@ -170,7 +196,21 @@ BEGIN
        'SOME STATIC TEXT')));                         { Insert static text }
    End;
    Desktop^.Insert(P);                                { Insert into desktop }
+   P1:=P;
+END;
 
+PROCEDURE TTvDemo.CloseWindow(var P : PGroup);
+BEGIN
+  If Assigned(P) then
+    BEGIN
+      Desktop^.Delete(P);
+      Dispose(P,Done);
+      P:=Nil;
+    END;
+END;
+PROCEDURE TTvDemo.Window2;
+VAR R: TRect; P: PGroup;
+BEGIN
    { Create a basic window with check boxes. The  }
    { check boxes should be orange and white       }
    R.Assign(15, 3, 45, 18);                           { Assign area }
@@ -182,7 +222,13 @@ BEGIN
        NewSITem('Item 2', Nil)))));                   { Create check box }
    End;
    Desktop^.Insert(P);                                { Insert into desktop }
+   P2:=P;
+END;
 
+PROCEDURE TTvDemo.Window3;
+VAR R: TRect; P: PGroup; B: PScrollBar;
+    List: PStrCollection; Lb: PListBox;
+BEGIN
    { Create a basic dialog box. In it are buttons,  }
    { list boxes, scrollbars, inputlines, checkboxes }
    R.Assign(32, 2, 77, 18);                           { Assign screen area }
@@ -225,7 +271,25 @@ BEGIN
      P^.Insert(New(PButton, Init(R, '~O~k', 100, bfGrabFocus)));{ Create okay button }
      R.Assign(30, 15, 40, 17);                        { Assign area }
      Desktop^.Insert(P);                              { Insert dialog }
+     P3:=P;
    End;
+END;
+
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+{                             MAIN PROGRAM START                            }
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+VAR I: Integer; R: TRect; P: PGroup; MyApp: TTvDemo;
+    {$IFDEF OS_OS2} Message: QMSg; Event: TEvent; {$ENDIF}
+BEGIN
+   (*SystemPalette := CreateRGBPalette(256);            { Create palette }
+   For I := 0 To 15 Do Begin
+     GetSystemRGBEntry(I, RGB);                       { Get palette entry }
+     AddToRGBPalette(RGB, SystemPalette);             { Add entry to palette }
+   End;*)
+
+   MyApp.Init;                                        { Initialize app }
+
+
    MyApp.Run;                                         { Run the app }
    {$IFDEF OS_OS2}
    while (MyApp.EndState = 0)
@@ -244,7 +308,10 @@ END.
 
 {
  $Log$
- Revision 1.3  2001-05-04 08:42:55  pierre
+ Revision 1.4  2001-05-04 10:46:02  pierre
+  * various fixes  for win32 api mode
+
+ Revision 1.3  2001/05/04 08:42:55  pierre
   * some corrections for linux
 
  Revision 1.2  2000/08/24 12:00:22  marco

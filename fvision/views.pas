@@ -791,6 +791,7 @@ FUNCTION CreateIdScrollBar (X, Y, Size, Id: Integer; Horz: Boolean): PScrollBar;
 {             NEW WIN/NT/OS2 VERSION SPECIFIC INTERFACE ROUTINES            }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
+{$IFNDEF NO_WINDOW}
 {$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
 {-TvViewMsgHandler---------------------------------------------------
 This is the default WIN/NT handler for TView objects. Descendant
@@ -815,6 +816,7 @@ interface.
 FUNCTION TvViewMsgHandler(Wnd: HWnd; Msg: ULong; Mp1, Mp2: MParam): MResult;
 CDECL; EXPORT;
 {$ENDIF}
+{$ENDIF not NO_WINDOW}
 
 {***************************************************************************}
 {                        INITIALIZED PUBLIC VARIABLES                       }
@@ -1038,6 +1040,7 @@ CONST
 {                          PRIVATE INTERNAL ROUTINES                        }
 {***************************************************************************}
 
+{$IFNDEF NO_WINDOW}
 {$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
 {---------------------------------------------------------------------------}
 {  TvViewMsgHandler -> Platforms WIN/NT - Updated 09Aug99 LdB               }
@@ -1492,6 +1495,7 @@ BEGIN
      Msg, Mp1, Mp2);                                  { Call default handler }
 END;
 {$ENDIF}
+{$ENDIF not NO_WINDOW}
 
 {***************************************************************************}
 {                              OBJECT METHODS                               }
@@ -1778,9 +1782,9 @@ BEGIN
      I := Pos('~', S);                                { Check for tilde }
       If (I <> 0) Then System.Delete(S, I, 1);        { Remove the tilde }
    Until (I = 0);                                     { Remove all tildes }
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   {$IFDEF NO_WINDOW}                                 { DOS/DPMI CODE }
      TextWidth := Length(S) * SysFontWidth;           { Calc text length }
-   {$ENDIF}
+   {$ELSE not NO_WINDOW}
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
      ODc := Dc;                                       { Hold device context }
      If (Dc = 0) Then Begin                           { No context set }
@@ -1832,6 +1836,7 @@ BEGIN
      If (OPs = 0) Then WinReleasePS(Ps);              { Release pres space }
      Ps := OPs;                                       { Original pres space }
    {$ENDIF}
+   {$ENDIF not NO_WINDOW}
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -1938,9 +1943,9 @@ BEGIN
      GetViewSettings(ViewPort, TextModeGFV);          { Get set viewport }
      If OverlapsArea(ViewPort.X1, ViewPort.Y1,
      ViewPort.X2, ViewPort.Y2) Then Begin             { Must be in area }
-       {$IFDEF OS_DOS}                                { DOS/DPMI CODE }
+       {$IFDEF NO_WINDOW}                                { DOS/DPMI CODE }
          HideMouseCursor;                             { Hide mouse cursor }
-       {$ENDIF}
+       {$ELSE not NO_WINDOW}
        {$IFDEF OS_WINDOWS}                            { WIN/NT CODE }
        If (HWindow <> 0) Then Begin                   { Valid window }
          ODc := Dc;                                   { Hold device context }
@@ -1951,6 +1956,7 @@ BEGIN
          OPs := Ps;                                   { Hold paint struct }
          If (Ps = 0) Then Ps := WinGetPS(Client);     { Create paint struct }
        {$ENDIF}
+       {$ENDIF not NO_WINDOW}
          If (DrawMask = 0) OR (DrawMask = vdNoChild)  { No special masks set }
          Then Begin                                   { Treat as a full redraw }
            DrawBackGround;                            { Draw background }
@@ -1975,9 +1981,9 @@ BEGIN
            If (DrawMask AND vdBorder <> 0) Then       { Check border mask }
              DrawBorder;                              { Draw border }
          End;
-       {$IFDEF OS_DOS}                                { DOS/DPMI CODE }
+       {$IFDEF NO_WINDOW}                                { DOS/DPMI CODE }
          ShowMouseCursor;                             { Show mouse cursor }
-       {$ENDIF}
+       {$ELSE not NO_WINDOW}
        {$IFDEF OS_WINDOWS}                            { WIN/NT CODE }
          If (ODc = 0) Then ReleaseDc(HWindow, Dc);    { Release context }
          Dc := ODc;                                   { Reset held context }
@@ -1988,6 +1994,7 @@ BEGIN
          Ps := OPs;                                   { Reset held struct }
        End;
        {$ENDIF}
+       {$ENDIF not NO_WINDOW}
      End;
      ReleaseViewLimits;                               { Release the limits }
    End;
@@ -2001,6 +2008,7 @@ PROCEDURE TView.MakeFirst;
 BEGIN
    If (Owner <> Nil) Then Begin                       { Must have owner }
      PutInFrontOf(Owner^.First);                      { Float to the top }
+    {$IFNDEF NO_WINDOW}
      {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
      If (HWindow <> 0) Then                           { Valid window }
        SetWindowPos(HWindow, HWND_TOP, 0, 0, 0, 0,
@@ -2011,6 +2019,7 @@ BEGIN
        WinSetWindowPos(HWindow, HWND_TOP, 0, 0, 0, 0,
          swp_ZOrder);                                 { Bring window to top }
      {$ENDIF}
+     {$ENDIF not NO_WINDOW}
    End;
 END;
 
@@ -2403,12 +2412,12 @@ BEGIN
      If (Owner <> Nil) AND                            { valid owner }
      (Owner^.State AND sfExposed <> 0)                { If owner exposed }
        Then SetState(sfExposed, Enable);              { Expose this view }
-     {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
+     {$IFDEF NO_WINDOW}                                  { DOS/DPMI CODE }
      If Enable Then DrawView Else                     { Draw the view }
        If (Owner <> Nil) Then Owner^.ReDrawArea(      { Owner valid }
          RawOrigin.X, RawOrigin.Y, RawOrigin.X +
          RawSize.X, RawOrigin.Y + RawSize.Y);         { Owner redraws area }
-     {$ENDIF}
+     {$ELSE not NO_WINDOW}
      {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
      If (HWindow <> 0) Then Begin                     { Window handle valid }
        If Enable Then ShowWindow(HWindow, sw_Show)    { Show the window }
@@ -2423,6 +2432,7 @@ BEGIN
          swp_Hide);                                   { Hide the window }
      End;
      {$ENDIF}
+     {$ENDIF not NO_WINDOW}
      If (Options AND ofSelectable <> 0) Then          { View is selectable }
        If (Owner <> Nil) Then Owner^.ResetCurrent;    { Reset selected }
    End;
@@ -2432,6 +2442,7 @@ BEGIN
          Else Command := cmReleasedFocus;             { View losing focus }
        Message(Owner, evBroadcast, Command, @Self);   { Send out message }
      End;
+     {$IFNDEF NO_WINDOW}
      {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
      If (HWindow <> 0) Then                           { Window handle valid }
        If Enable Then SetFocus(HWindow);              { Focus the window }
@@ -2441,6 +2452,7 @@ BEGIN
        If Enable Then WinSetFocus(HWND_DESKTOP,
          HWindow);                                    { Focus the window }
      {$ENDIF}
+     {$ENDIF not NO_WINDOW}
      If (GOptions AND goDrawFocus <> 0) Then Begin    { Draw focus view }
        SetDrawMask(vdFocus);                          { Set focus draw mask }
        DrawView;                                      { Redraw focus change }
@@ -2452,6 +2464,7 @@ BEGIN
      DrawView;                                        { Redraw the cursor }
    End;
    If (AState AND sfDisabled <> 0) Then Begin         { Disbale change }
+     {$IFNDEF NO_WINDOW}
      {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
      If (HWindow <> 0) Then                           { Window handle valid }
        If Enable Then EnableWindow(HWindow, False)    { Disable the window }
@@ -2462,6 +2475,7 @@ BEGIN
        If Enable Then WinEnableWindow(HWindow,False)  { Disable the window }
          Else WinEnableWindow(HWindow, True);         { Enable the window }
      {$ENDIF}
+     {$ENDIF not NO_WINDOW}
    End;
    If (AState AND sfShadow <> 0) Then Begin End;      { Change shadow state }
 END;
@@ -2530,7 +2544,7 @@ END;
 {  Locate -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 24Sep99 LdB            }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.Locate (Var Bounds: TRect);
-VAR {$IFDEF OS_DOS} X1, Y1, X2, Y2: Integer; {$ENDIF}
+VAR {$IFDEF NO_WINDOW} X1, Y1, X2, Y2: Integer; {$ENDIF}
     Min, Max: TPoint; R: TRect;
 
    FUNCTION Range(Val, Min, Max: Integer): Integer;
@@ -2541,7 +2555,7 @@ VAR {$IFDEF OS_DOS} X1, Y1, X2, Y2: Integer; {$ENDIF}
    END;
 
 BEGIN
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   {$IFDEF NO_WINDOW}                                 { DOS/DPMI CODE }
    X1 := RawOrigin.X;                                 { Current x origin }
    Y1 := RawOrigin.Y;                                 { Current y origin }
    X2 := RawOrigin.X + RawSize.X;                     { Current x size }
@@ -2555,12 +2569,12 @@ BEGIN
    GetBounds(R);                                      { Current bounds }
    If NOT Bounds.Equals(R) Then Begin                 { Size has changed }
      ChangeBounds(Bounds);                            { Change bounds }
-     {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
+     {$IFDEF NO_WINDOW}                               { DOS/DPMI CODE }
      If (State AND sfVisible <> 0) AND                { View is visible }
      (State AND sfExposed <> 0) AND (Owner <> Nil)    { Check view exposed }
        Then Owner^.ReDrawArea(X1, Y1, X2, Y2);        { Owner redraw }
      DrawView;                                        { Redraw the view }
-     {$ENDIF}
+     {$ELSE not NO_WINDOW}
      {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
      If (HWindow <> 0) Then Begin                     { Valid window handle }
        If (Owner <> Nil) AND (Owner^.HWindow <> 0)    { Valid owner }
@@ -2584,6 +2598,7 @@ BEGIN
          RawSize.X, RawSize.Y, swp_Size OR swp_Move); { Move window raw }
      End;
      {$ENDIF}
+     {$ENDIF not NO_WINDOW}
    End;
 END;
 
@@ -4078,6 +4093,7 @@ BEGIN
          ClearPos(GetPos);                            { Clear old position }
        Min := AMin;                                   { Set new minimum }
        Max := AMax;                                   { Set new maximum }
+       {$IFNDEF NO_WINDOW}
        {$IFDEF OS_WINDOWS}                            { WIN/NT CODE }
        If (GOptions AND goNativeClass <> 0) AND       { In native class mode }
        (HWindow <> 0) Then
@@ -4092,6 +4108,7 @@ BEGIN
            (LongInt(Max-1) SHL 16) OR Min);           { Post the message }
        End;
        {$ENDIF}
+       {$ENDIF not NO_WINDOW}
        { This was removed as found not needed but if you
        change limits but value unchanged scrollbar is not redrawm..LdB }
        {If (Value = AValue) AND (State and sfVisible <> 0)
@@ -4106,6 +4123,7 @@ BEGIN
          SetDrawMask(vdInner);                        { Set draw masks }
          DrawView;                                    { Redraw changed }
        End;
+       {$IFNDEF NO_WINDOW}
        {$IFDEF OS_WINDOWS}                            { WIN/NT CODE }
        If (GOptions AND goNativeClass <> 0) AND       { In native class mode }
        (HWindow <> 0) Then                            { Valid handle }
@@ -4117,6 +4135,7 @@ BEGIN
          WinSendMsg(HWindow, sbm_SetPos, Value, 0);   { Dispatch the message }
        End;
        {$ENDIF}
+       {$ENDIF not USE_API}
        If (State AND sfVisible <> 0) Then ScrollDraw; { Send update message }
      End;
    End;
@@ -4643,6 +4662,7 @@ BEGIN
    ColWidth := Size.X DIV NumCols + 1;                { Calc column width }
    If (HScrollBar = Nil) Then Indent := 0 Else        { Set indent to zero }
      Indent := HScrollBar^.Value;                     { Fetch any indent }
+   {$IFNDEF USE_API}
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
    If (GOptions AND goNativeClass <> 0) Then Begin    { Native class mode }
      If (Range <> SendMessage(HWindow, lb_GetCount,
@@ -4675,6 +4695,7 @@ BEGIN
      Exit;                                            { Native mode is done }
     End;
    {$ENDIF}
+   {$ENDIF not USE_API}
    Inherited DrawBackGround;                          { Call ancestor }
    Color := GetColor(2);                              { Normal colour }
    For I := 0 To Size.Y - 1 Do Begin                  { For each line }
@@ -4766,6 +4787,7 @@ BEGIN
    Focused := Item;                                   { Set focus to item }
    If (VScrollBar <> Nil) Then
      VScrollBar^.SetValue(Item);                      { Scrollbar to value }
+   {$IFNDEF NO_WINDOW}
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
    If (GOptions AND goNativeClass <> 0) Then Begin    { Native class mode }
      If (HWindow <> 0) Then Begin                     { Check window valid }
@@ -4777,6 +4799,7 @@ BEGIN
      Exit;                                            { Native mode done }
    End;
    {$ENDIF}
+   {$ENDIF not NO_WINDOW}
    If (Item < TopItem) Then                           { Item above top item }
      If (NumCols = 1) Then TopItem := Item            { Set top item }
        Else TopItem := Item - Item MOD Size.Y         { Set top item }
@@ -4792,11 +4815,13 @@ END;
 PROCEDURE TListViewer.SetTopItem (Item: Integer);
 BEGIN
    TopItem := Item;                                   { Set the top item }
+   {$IFNDEF NO_WINDOW}
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
    If (GOptions AND goNativeClass <> 0) AND           { Native class mode }
    (HWindow <> 0) Then                                { Window valid }
      SendMessage(HWindow, lb_SetTopIndex, Item, 0);   { Synchronize }
    {$ENDIF}
+   {$ENDIF not NO_WINDOW}
 END;
 
 {--TListViewer--------------------------------------------------------------}
@@ -5449,11 +5474,11 @@ END;
 {  GraphLine -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Sep99 LdB         }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.GraphLine (X1, Y1, X2, Y2: Integer; Colour: Byte);
-{$IFDEF OS_DOS} VAR ViewPort: ViewPortType; {$ENDIF}  { DOS/DPMI VARIABLES }
+{$IFDEF NO_WINDOW} VAR ViewPort: ViewPortType; {$ENDIF}  { DOS/DPMI VARIABLES }
     {$IFDEF OS_WINDOWS}VAR I: Word; ODc: hDc; {$ENDIF}   { WIN/NT VARIABLES }
     {$IFDEF OS_OS2}VAR I: LongInt; Lp: PointL; OPs: HPs; {$ENDIF}{ OS2 VARIABLES }
 BEGIN
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   {$IFDEF OS_DOS}                                 { DOS/DPMI CODE }
    GetViewSettings(ViewPort, TextModeGFV);            { Get viewport settings }
    If (TextModeGFV <> TRUE) Then Begin
      SetColor(Colour);                                { Set line colour }
@@ -5463,6 +5488,7 @@ BEGIN
    End Else Begin                                     { LEON???? }
    End;
    {$ENDIF}
+   {$IFNDEF NO_WINDOW}
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
    If (HWindow <> 0) Then Begin                       { Valid window }
      X1 := X1 - FrameSize;                            { Adjust X1 for frame }
@@ -5519,6 +5545,7 @@ BEGIN
      Ps := OPs;                                       { Reset held struct }
    End;
    {$ENDIF}
+   {$ENDIF not NO_WINDOW}
 END;
 
 PROCEDURE TView.GraphRectangle (X1, Y1, X2, Y2: Integer; Colour: Byte);
@@ -5536,6 +5563,7 @@ BEGIN
    End Else Begin                                     { LEON???? }
    End;
    {$ENDIF}
+   {$IFNDEF NO_WINDOW}
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
    If (HWindow <> 0) Then Begin                       { Valid window }
      X1 := X1 - FrameSize;
@@ -5594,6 +5622,7 @@ BEGIN
      Ps := OPs;                                       { Reset held struct }
    End;
    {$ENDIF}
+   {$ENDIF not NO_WINDOW}
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -5686,6 +5715,7 @@ Colour: Byte);
 CONST RadConv  = 57.2957795130823229;                 { Degrees per radian }
 VAR X1, Y1, X2, Y2, X3, Y3: Integer; {$IFDEF OS_WINDOWS} ODc: hDc; {$ENDIF}
 BEGIN
+   {$IFNDEF NO_WINDOW}
    {$IFDEF OS_WINDOWS}
    Xc := Xc - FrameSize;
    Yc := Yc - CaptSize;
@@ -5721,6 +5751,7 @@ BEGIN
      Dc := ODc;                                       { Reset held context }
    End;
    {$ENDIF}
+   {$ENDIF not NO_WINDOW}
 END;
 
 PROCEDURE TView.FilletArc (Xc, Yc: Integer; Sa, Ea: Real; XRad, YRad, Ht: Integer;
@@ -5728,6 +5759,7 @@ Colour: Byte);
 CONST RadConv  = 57.2957795130823229;                 { Degrees per radian }
 {$IFDEF OS_WINDOWS} VAR X1, Y1, X2, Y2, X3, Y3, X4, Y4: Integer; ODc: hDc; {$ENDIF}
 BEGIN
+   {$IFNDEF NO_WINDOW}
    {$IFDEF OS_WINDOWS}
    If (HWindow <> 0) Then Begin                       { Valid window }
      Xc := Xc - FrameSize;
@@ -5772,6 +5804,7 @@ BEGIN
      Dc := ODc;                                       { Reset held context }
    End;
    {$ENDIF}
+   {$ENDIF not NO_WINDOW}
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -6798,7 +6831,10 @@ END.
 
 {
  $Log$
- Revision 1.6  2001-05-04 08:42:56  pierre
+ Revision 1.7  2001-05-04 10:46:03  pierre
+  * various fixes  for win32 api mode
+
+ Revision 1.6  2001/05/04 08:42:56  pierre
   * some corrections for linux
 
  Revision 1.5  2001/05/03 22:32:52  pierre

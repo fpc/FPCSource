@@ -1022,6 +1022,7 @@ BEGIN
          If (P^.Command <> 0) AND (P^.Param <> Nil)
            Then S := S + ' - ' + P^.Param^;           { Add any parameter }
        End;
+       {$IFNDEF NO_WINDOW}
        {$IFDEF OS_WINDOWS}                            { WIN/NT CODE }
        HWindow := 0;                                  { Must zero handle }
        Dc := 0;                                       { Must zero context }
@@ -1030,6 +1031,7 @@ BEGIN
        HWindow := 0;                                  { Must zero handle }
        Ps := 0;                                       { Must zero pres space }
        {$ENDIF}
+      {$ENDIF not NO_WINDOW}
        L := TextWidth(S);                             { Width of string }
        If (L > W) Then W := L;                        { Hold maximum }
        Inc(H);                                        { Inc count of items }
@@ -1674,7 +1676,10 @@ END;
 END.
 {
  $Log$
- Revision 1.4  2001-04-10 21:57:55  pierre
+ Revision 1.5  2001-05-04 10:46:02  pierre
+  * various fixes  for win32 api mode
+
+ Revision 1.4  2001/04/10 21:57:55  pierre
   + first adds for Use_API define
 
 
