@@ -326,7 +326,10 @@ Begin
   if pid=0 then
    begin
    {The child does the actual exec, and then exits}
-     Execl (Path+' '+ComLine);
+     if ComLine='' then
+      Execl(Path)
+     else
+      Execl(Path+' '+ComLine);
    {If the execve fails, we return an exitvalue of 127, to let it be known}
      ExitProcess(127);
    end
@@ -877,7 +880,11 @@ End.
 
 {
   $Log$
-  Revision 1.9  2001-07-30 21:38:55  peter
+  Revision 1.10  2001-09-22 11:17:13  peter
+    * Fixed passing of command without parameters to Exec() to not include
+      a space after the executable name
+
+  Revision 1.9  2001/07/30 21:38:55  peter
     * m68k updates merged
 
   Revision 1.8  2001/07/12 12:42:39  marco
