@@ -87,24 +87,48 @@ end;
 function Point(AX, AY: Integer): TPoint;
 
 begin
+  with Result do
+  begin
+    X := AX;
+    Y := AY;
+  end;
 end;
 
 
 function SmallPoint(AX, AY: SmallInt): TSmallPoint;
 
 begin
+  with Result do
+  begin
+    X := AX;
+    Y := AY;
+  end;
 end;
 
 
 function Rect(ALeft, ATop, ARight, ABottom: Integer): TRect;
 
 begin
+  with Result do
+  begin
+    Left := ALeft;
+    Top := ATop;
+    Right := ARight;
+    Bottom := ABottom;
+  end;
 end;
 
 
 function Bounds(ALeft, ATop, AWidth, AHeight: Integer): TRect;
 
 begin
+  with Result do
+  begin
+    Left := ALeft;
+    Top := ATop;
+    Right := ALeft + AWidth;
+    Bottom :=  ATop + AHeight;
+  end;
 end;
 
 
@@ -346,7 +370,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1998-09-23 08:41:55  michael
+  Revision 1.6  1998-10-29 12:47:14  michael
+  + Implementation of tpoint by WYB
+
+  Revision 1.5  1998/09/23 08:41:55  michael
   Added switch to select language
 
   Revision 1.4  1998/09/23 07:47:40  michael
@@ -388,7 +415,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1998-09-23 08:41:55  michael
+  Revision 1.6  1998-10-29 12:47:14  michael
+  + Implementation of tpoint by WYB
+
+  Revision 1.5  1998/09/23 08:41:55  michael
   Added switch to select language
 
   Revision 1.4  1998/09/23 07:47:40  michael
