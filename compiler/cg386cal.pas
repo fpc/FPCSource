@@ -902,8 +902,9 @@ implementation
                                               end;
                                             else
                                               begin
-                                                 if (p^.methodpointer^.resulttype^.deftype=objectdef) and
-                                                   pobjectdef(p^.methodpointer^.resulttype)^.isclass then
+                                                 if (p^.methodpointer^.resulttype^.deftype=classrefdef) or
+                                                    ((p^.methodpointer^.resulttype^.deftype=objectdef) and
+                                                   pobjectdef(p^.methodpointer^.resulttype)^.isclass) then
                                                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                                                      newreference(p^.methodpointer^.location.reference),R_ESI)))
                                                  else
@@ -918,7 +919,7 @@ implementation
                                       But that's wrong, if we call a class method via self
                                     }
                                     if ((p^.procdefinition^.options and poclassmethod)<>0)
-                                       and not(p^.methodpointer^.treetype=selfn) then
+                                       and not(p^.methodpointer^.resulttype^.deftype=classrefdef) then
                                       begin
                                          { class method needs current VMT }
                                          new(r);
@@ -1435,7 +1436,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1998-09-24 14:27:37  peter
+  Revision 1.29  1998-09-25 00:04:00  florian
+    * problems when calling class methods fixed
+
+  Revision 1.28  1998/09/24 14:27:37  peter
     * some better support for openarray
 
   Revision 1.27  1998/09/24 09:02:13  peter

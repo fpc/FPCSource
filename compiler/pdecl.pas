@@ -1177,10 +1177,13 @@ unit pdecl;
                           aktclass^.publicsyms^.datasize-4+childof^.publicsyms^.datasize;
                      end
                    else
-                     aktclass:=new(pobjectdef,init(n,childof));
+                     begin
+                        aktclass:=new(pobjectdef,init(n,childof));
+                     end;
                 end;
            end
-         else aktclass:=new(pobjectdef,init(n,nil));
+         else
+           aktclass:=new(pobjectdef,init(n,nil));
 
          { set the class attribute }
          if is_a_class then
@@ -2056,7 +2059,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.57  1998-09-24 23:49:09  peter
+  Revision 1.58  1998-09-25 00:04:01  florian
+    * problems when calling class methods fixed
+
+  Revision 1.57  1998/09/24 23:49:09  peter
     + aktmodeswitches
 
   Revision 1.56  1998/09/23 15:39:09  pierre
