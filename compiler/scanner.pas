@@ -262,6 +262,8 @@ implementation
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
+        if hs='' then
+          Message(scan_e_error_in_preproc_expr);
         mac:=tmacro(current_scanner.macros.search(hs));
         if assigned(mac) then
           mac.is_used:=true;
@@ -276,6 +278,8 @@ implementation
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
+        if hs='' then
+          Message(scan_e_error_in_preproc_expr);
         mac:=tmacro(current_scanner.macros.search(hs));
         if assigned(mac) then
           mac.is_used:=true;
@@ -2820,7 +2824,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.52  2002-12-24 23:32:02  peter
+  Revision 1.53  2002-12-27 15:26:43  peter
+    * give an error when no symbol is specified after $if(n)def
+
+  Revision 1.52  2002/12/24 23:32:02  peter
     * support quotes around include filenames
 
   Revision 1.51  2002/12/05 19:27:00  carl
