@@ -38,13 +38,47 @@ procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
          jb .LErrorcode
          ret
 .LErrorcode:
+{$ifdef VER1_0}
          {$ifdef ErrnoWord}
           movw  %ax,Errno
          {$else}
           movl %eax,Errno
          {$endif}
-       mov $-1,%eax
-   end;
+{$else}
+{$ifdef REGCALL}
+  movl  fpc_threadvar_relocate_proc,%ecx
+  testl %ecx,%ecx
+  jne   .LThread
+  movl  %eax,Errno+4
+  jmp   .LNoThread
+.LThread:
+  movl  %eax,%ebx
+  movl Errno,%eax
+  call  *%ecx
+  movl  %ebx,(%eax)
+.LNoThread:
+{$else}
+  movl  %eax,%edx
+  movl  fpc_threadvar_relocate_proc,%eax
+  testl %eax,%eax
+  jne   .LThread
+  movl  %edx,Errno+4
+  jmp   .LNoThread
+.LThread:
+  pushl %edx
+  pushl Errno
+  call  *%eax
+  popl  %edx
+  {$ifdef ErrnoWord}
+   movw  %dx,(%eax)
+  {$else}
+   movl %edx,(%eax)
+  {$endif}
+.LNoThread:
+{$endif REGCALL}
+{$endif}
+  mov $-1,%eax
+end;
 
 function FpSysCall(sysnr:TSysParam):TSysResult; {$ifndef VER1_0} oldfpccall;{$endif} assembler; [public,alias:'FPC_DOSYS0'];
 
@@ -150,7 +184,10 @@ end;
 {$endif}
 {
   $Log$
-  Revision 1.10  2003-12-30 12:26:21  marco
+  Revision 1.11  2004-05-28 21:40:28  marco
+   * threadvar errno fix
+
+  Revision 1.10  2003/12/30 12:26:21  marco
    * FPC_USE_LIBC
 
 
