@@ -1641,10 +1641,6 @@ const
                { at least that is what it seems in the tasm 2.0 manual.      }
            OPR_CONSTANT:  p^.concat(new(pai386,op_const(instruc,
                              S_NO, instr.operands[1].val)));
-               { the size of the operand can be determined by the as,nasm and }
-               { tasm -- see note in rai386.pas                               }
-           OPR_REGISTER:  p^.concat(new(pai386,op_reg(instruc,
-                            S_NO,instr.operands[1].reg)));
            OPR_REFERENCE:
                { now first check suffix ... }
                           if instr.stropsize <> S_NO then
@@ -1654,10 +1650,32 @@ const
                           end
                { no suffix... therefore resort using intel styled checking .. }
                           else
-                          if instr.operands[1].size <> S_NO then
+                          if (instr.operands[1].size <> S_NO) and NOT (instruc in [A_CALL,A_JMP]) then
                           Begin
                            p^.concat(new(pai386,op_ref(instruc,
                             instr.operands[1].size,newreference(instr.operands[1].ref))));
+                          end
+                          else
+                          Begin
+                              { special jmp and call case with }
+                              { symbolic references.           }
+                              if (instruc in [A_CALL,A_JMP]) or
+                                 (instruc = A_FNSTCW) or
+                                 (instruc = A_FSTCW) or
+                                 (instruc = A_FLDCW) or
+                                 (instruc = A_FNSTSW) or
+                                 (instruc = A_FSTSW) or
+                                 (instruc = A_FLDENV) or
+                                 (instruc = A_FSTENV) or
+                                 (instruc = A_FNSAVE) or
+                                 (instruc = A_FSAVE) then
+                              Begin
+                                p^.concat(new(pai386,op_ref(instruc,
+                                  S_NO,newreference(instr.operands[1].ref))));
+                              end
+                              else
+                                Message(assem_e_invalid_opcode_and_operand);
+                          end;
                           end
                           else
                           Begin
@@ -3681,7 +3699,11 @@ end.
 
 {
   $Log$
-  Revision 1.7  1998-05-23 01:21:27  peter
+  Revision 1.8  1998-05-28 16:34:36  carl
+     * call bugfix
+     * operand with regs bugfix (manual patch in both cases)
+
+  Revision 1.7  1998/05/23 01:21:27  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in
