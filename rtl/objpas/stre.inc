@@ -31,7 +31,8 @@ Const
    SAssertionFailed = 'Assertion failed';
    SDiskFull = 'Disk Full';
    SDivByZero = 'Division by zero';
-   SEndOfFile = 'Read past end of file'; 
+   SEndOfFile = 'Read past end of file';
+   SFileNotFound = 'File not found';
    SFileNotAssigned = 'File not assigned';
    SFileNotOpen = 'File not open';
    SFileNotOpenForInput = 'File not open for input';
@@ -56,7 +57,11 @@ Const
    SInvalidOp = 'Invalid floating point operation';
 {
   $Log$
-  Revision 1.7  1999-07-02 17:03:22  florian
+  Revision 1.8  1999-08-28 14:53:27  florian
+    * bug 471 fixed: run time error 2 is now converted into a file not
+      found exception
+
+  Revision 1.7  1999/07/02 17:03:22  florian
     + added some runtime->excpetin wrappers: eintoverflow, eoverflow, eunderflow, einvalidop
 
   Revision 1.6  1999/06/19 07:39:46  michael

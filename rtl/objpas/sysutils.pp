@@ -216,11 +216,11 @@ Var E : Exception;
 begin
   Case Errno of
    1,203 : E:=OutOfMemory;
-   //!! ?? 2 is a 'file not found error' ??
-   2,204 : E:=InvalidPointer;
-   3,4,5,6,100,101,102,103,105,106 : { I/O errors }
+   204 : E:=InvalidPointer;
+   2,3,4,5,6,100,101,102,103,105,106 : { I/O errors }
      begin
      Case Errno of
+       2 : S:=SFileNotFound;
        3 : S:=SInvalidFileName;
        4 : S:=STooManyOpenFiles;
        5 : S:=SAccessDenied;
@@ -351,7 +351,11 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.30  1999-08-18 11:28:24  michael
+    Revision 1.31  1999-08-28 14:53:27  florian
+      * bug 471 fixed: run time error 2 is now converted into a file not
+        found exception
+
+    Revision 1.30  1999/08/18 11:28:24  michael
     * Fixed reallocmem bug 535
 
     Revision 1.29  1999/07/27 13:01:12  peter

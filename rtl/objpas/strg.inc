@@ -32,11 +32,15 @@ Const
    SOutOfMemory = 'Speicher voll';
    STooManyOpenFiles = 'Zu viele offene Dateien';
    SUnKnownRunTimeError = 'Unbekannter Laufzeitfehler : %3.3d';
-   
+   SFileNotFound = 'Datei nicht gefunden';   
    
 {
   $Log$
-  Revision 1.2  1999-07-02 17:03:23  florian
+  Revision 1.3  1999-08-28 14:53:27  florian
+    * bug 471 fixed: run time error 2 is now converted into a file not
+      found exception
+
+  Revision 1.2  1999/07/02 17:03:23  florian
     + added some runtime->excpetin wrappers: eintoverflow, eoverflow, eunderflow, einvalidop
 
   Revision 1.1  1998/10/01 16:26:06  florian
