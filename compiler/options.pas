@@ -1224,6 +1224,7 @@ begin
 { for the RTL }
   def_symbol('CARDINALMULFIXED');
 {$endif cardinalmulfix}
+  def_symbol('PACKENUMFIXED');
 
 { New since 1.09 }
   def_symbol('HASOUT');
@@ -1480,7 +1481,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-07-14 05:11:48  michael
+  Revision 1.5  2000-08-07 11:31:04  jonas
+    * fixed bug in type conversions between enum subranges (it didn't take
+      the packenum directive into account)
+    + define PACKENUMFIXED symbol in options.pas
+     (merged from fixes branch)
+
+  Revision 1.4  2000/07/14 05:11:48  michael
   + Patch to 1.1
 
   Revision 1.3  2000/07/13 12:08:26  michael

@@ -295,7 +295,8 @@ implementation
                   if (hd1=hd2) then
                     begin
                        b:=1;
-                       doconv:=tc_equal;
+                       { because of packenum they can have different sizes! (JM) }
+                       doconv:=tc_int_2_int;
                     end;
                 end;
              end;
@@ -1131,7 +1132,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:41  michael
+  Revision 1.3  2000-08-07 11:31:04  jonas
+    * fixed bug in type conversions between enum subranges (it didn't take
+      the packenum directive into account)
+    + define PACKENUMFIXED symbol in options.pas
+     (merged from fixes branch)
+
+  Revision 1.2  2000/07/13 11:32:41  michael
   + removed logs
 
 }
