@@ -1370,7 +1370,8 @@ implementation
           importlib.generatelib;
 
          if islibrary or
-            (target_info.target=target_i386_WIN32) then
+            (target_info.target=target_i386_WIN32) or
+	    (target_info.target=target_i386_NETWARE) then
            exportlib.generatelib;
 
 
@@ -1427,7 +1428,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2002-03-29 09:00:56  armin
+  Revision 1.54  2002-03-29 17:19:50  armin
+  + allow exports for netware
+
+  Revision 1.53  2002/03/29 09:00:56  armin
   + forgot to delete a debug writeln
 
   Revision 1.52  2002/03/28 16:07:52  armin

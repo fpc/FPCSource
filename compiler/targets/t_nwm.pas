@@ -40,13 +40,12 @@
     begin
     end;
 
-    exports bla name 'bla';
-
-    Without Name 'bla' this will be exported in upper-case.
+    exports foo name 'Bar';
 
     The path to the import-Files (from netware-sdk, see developer.novell.com)
     must be specified by the library-path. All external modules are defined
     as autoload. (Note: the import-files have to be in unix-format for exe2nlm)
+    By default, the most import files are included in freepascal.
 
     i.e. Procedure ConsolePrintf (p:pchar); cdecl; external 'clib.nlm';
     sets IMPORT @clib.imp and MODULE clib.
@@ -79,7 +78,6 @@
       - No debug symbols
       - libc support (needs new target)
       - prelude support (needs new compiler switch)
-      - make threadvars in the compiler working
       - a lot of additional units from nwsdk
 
 ****************************************************************************
@@ -247,7 +245,8 @@ begin
          end;
       end
      else
-      Comment(V_Error,'Exporting of variables is not supported under netware');
+      //Comment(V_Error,'Exporting of variables is not supported under netware');
+      Message1(parser_e_no_export_of_variables_for_target,'netware');
      hp2:=texported_item(hp2.next);
    end;
 end;
@@ -268,8 +267,7 @@ begin
   with Info do
    begin
      ExeCmd[1]:='nlmconv -T$RES';
-     {DllCmd[1]:='ld $OPT -shared -L. -o $EXE $RES';}
-     DllCmd[2]:='strip --strip-unneeded $EXE';
+     {DllCmd[2]:='strip --strip-unneeded $EXE';}
    end;
 end;
 
@@ -304,8 +302,7 @@ begin
   if Description <> '' then
     LinkRes.Add('DESCRIPTION "' + Description + '"');
   LinkRes.Add('VERSION '+tostr(dllmajor)+','+tostr(dllminor)+','+tostr(dllrevision));
-  {if nwscreenname = '' then nwscreenname := ProgNam;
-  if nwthreadname = '' then nwthreadname := ProgNam;}
+  
   p := Pos ('"', nwscreenname);
   while (p > 0) do
   begin
@@ -356,9 +353,8 @@ begin
   LinkRes.Add ('START _Prelude');  { defined in rtl/netware/nwpre.pp }
   LinkRes.Add ('EXIT _Stop');
 
-  //if not (cs_link_strip in aktglobalswitches) then
-  { ahhhggg: how do i detect if we have debug-symbols ? }
-  LinkRes.Add ('DEBUG');
+  if not (cs_link_strip in aktglobalswitches) then
+    LinkRes.Add ('DEBUG');
 
   { Write staticlibraries, is that correct ? }
   if not StaticLibFiles.Empty then
@@ -418,14 +414,12 @@ begin
    begin
      if not hp2.is_var then
       begin
-        { Export the Symbol
-          Warning: The Symbol is converted to upper-case if not explicitly
-          specified by >>Exports BlaBla NAME 'BlaBla';<< }
+        { Export the Symbol }
         Comment(V_Debug,'Exporting '+hp2.name^);
         LinkRes.Add ('EXPORT '+hp2.name^);
       end
      else
-      { really ? }
+      { really, i think it is possible }
       Comment(V_Error,'Exporting of variables is not supported under netware');
      hp2:=texported_item(hp2.next);
    end;
@@ -557,7 +551,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2002-03-19 20:23:57  armin
+  Revision 1.16  2002-03-29 17:19:51  armin
+  + allow exports for netware
+
+  Revision 1.15  2002/03/19 20:23:57  armin
   + smart linking now works with netware
 
   Revision 1.14  2002/03/04 17:54:59  peter
