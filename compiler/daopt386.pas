@@ -78,6 +78,8 @@ Procedure RemoveLastDeallocForFuncRes(asmL: PAasmOutput; p: pai);
 Function regLoadedWithNewValue(reg: tregister; canDependOnPrevValue: boolean;
            hp: pai): boolean;
 Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
+Procedure AllocRegBetween(AsmL: PAasmOutput; Reg: TRegister; p1, p2: Pai);
+
 Function RegsEquivalent(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo; OpAct: TopAction): Boolean;
 Function InstructionsEquivalent(p1, p2: Pai; Var RegInfo: TRegInfo): Boolean;
 Function OpsEqual(const o1,o2:toper): Boolean;
@@ -1027,6 +1029,65 @@ Begin
          Not((p^.typ = ait_label) And
             Not(Pai_Label(p)^.l^.is_used)));
 End;
+
+Procedure AllocRegBetween(AsmL: PAasmOutput; Reg: TRegister; p1, p2: Pai);
+{ allocates register Reg between (and including) instructions p1 and p2 }
+{ the type of p1 and p2 must not be in SkipInstr                        }
+var
+  hp: pai;
+  lastRemovedWasDealloc: boolean;
+Begin
+  If not(reg in usableregs+[R_EDI,R_ESI]) or
+     not(assigned(p1)) Then
+    { this happens with registers which are loaded implicitely, outside the }
+    { current block (e.g. esi with self)                                    }
+    exit;
+  lastRemovedWasDealloc := false;
+{$ifdef allocregdebug}
+  hp := new(pai_asm_comment,init(strpnew('allocating '+att_reg2str[reg]+
+    ' from here...')));
+  insertllitem(asml,p1^.previous,p1,hp);
+  hp := new(pai_asm_comment,init(strpnew('allocated '+att_reg2str[reg]+
+    ' till here...')));
+  insertllitem(asml,p2,p1^.next,hp);
+{$endif allocregdebug}
+  if Assigned(p1^.optInfo) and
+     not (reg in PPaiProp(p1^.OptInfo)^.UsedRegs) then
+    begin
+      hp := new(paiRegalloc,alloc(reg));
+      insertLLItem(asmL,p1^.previous,p1,hp);
+    end;
+  Repeat
+    If Assigned(p1^.OptInfo) Then
+      Include(PPaiProp(p1^.OptInfo)^.UsedRegs,Reg);
+    p1 := Pai(p1^.next);
+    Repeat
+      While assigned(p1) and
+            (p1^.typ in (SkipInstr-[ait_regalloc])) Do
+        p1 := Pai(p1^.next);
+{ remove all allocation/deallocation info about the register in between }
+      If assigned(p1) and
+         (p1^.typ = ait_regalloc) Then
+        If (PaiRegAlloc(p1)^.Reg = Reg) Then
+          Begin
+            lastRemovedWasDealloc := not PaiRegAlloc(p1)^.allocation;
+            hp := Pai(p1^.Next);
+            AsmL^.Remove(p1);
+            Dispose(p1, Done);
+            p1 := hp;
+          End
+        Else p1 := Pai(p1^.next);
+    Until not(assigned(p1)) or
+          Not(p1^.typ in SkipInstr);
+  Until not(assigned(p1)) or
+        (p1 = p2);
+  if assigned(p1) and lastRemovedWasDealloc then
+    begin
+      hp := new(paiRegalloc,dealloc(reg));
+      insertLLItem(asmL,p1,p1^.next,hp);
+    end;
+End;
+
 
 Procedure IncState(Var S: Byte);
 {Increases S by 1, wraps around at $ffff to 0 (so we won't get overflow
@@ -2129,7 +2190,11 @@ End.
 
 {
  $Log$
- Revision 1.84  2000-02-24 18:41:38  peter
+ Revision 1.85  2000-03-25 18:58:00  jonas
+   * moved AllocRegBetween() from csopt386 to this unit because it's now
+     also used by popt386
+
+ Revision 1.84  2000/02/24 18:41:38  peter
    * removed warnings/notes
 
  Revision 1.83  2000/02/10 14:57:14  jonas
