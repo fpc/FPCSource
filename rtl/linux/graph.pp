@@ -298,27 +298,8 @@ Procedure CloseGraph;
 const
   NoGraphics: Boolean = false;
 
-
-
-implementation
-
-uses Objects, Linux;
-
-
-{ ---------------------------------------------------------------------
-   SVGA bindings.
-
-  ---------------------------------------------------------------------}
-
-{  Link with VGA, gl and c libraries }
-{$linklib vga}
-{$linklib vgagl}
-{$linklib c}
-
- { Constants }
-const
   { VGA modes }
-  TEXT              = 0;                { Compatible with VGAlib v1.2 }
+  GTEXT             = 0;                { Compatible with VGAlib v1.2 }
   G320x200x16       = 1;
   G640x200x16       = 2;
   G640x350x16       = 3;
@@ -380,8 +361,25 @@ const
 
   GLASTMODE         = 49;
 
-  { Text }
 
+
+implementation
+
+uses Objects, Linux;
+
+
+{ ---------------------------------------------------------------------
+   SVGA bindings.
+
+  ---------------------------------------------------------------------}
+
+{  Link with VGA, gl and c libraries }
+{$linklib vga}
+{$linklib vgagl}
+{$linklib c}
+
+Const 
+  { Text }
 
   WRITEMODE_OVERWRITE = 0;
   WRITEMODE_MASKED    = 1;
@@ -405,8 +403,7 @@ const
     { Extended fields: }
      chiptype,           { Chiptype detected }
      memory,             { videomemory in KB }
-     linewidth_unit: Longint;    { Use only a multiple of this as parameter for
-                                   set_displaystart }
+     linewidth_unit: Longint;    { Use only a multiple of this as parameter for                                   set_displaystart }
      linear_aperture: PChar;     { points to mmap secondary mem aperture of card }
      aperture_size: Longint;     { size of aperture in KB if size>=videomemory.}
 
@@ -672,7 +669,7 @@ begin
   if not NoGraphics
     then begin
       if IsVirtual then gl_freecontext(BackScreen);
-      vga_setmode(TEXT)
+      vga_setmode(GTEXT)
     end
 end;
 
@@ -1467,12 +1464,45 @@ Procedure DetectGraph (Var Driver,Mode : Integer);
 begin
   Driver:=9;
   Mode:=vga_getdefaultmode;  
+  If Mode=-1 then mode:=0;
 end;
 
 Procedure InitGraph (Var Driver,Mode : Integer;DriverPath : String);
 
+var
+  VgaMode: Integer;
+  ModeInfo: pvga_modeinfo;
+
 begin
-  InitVideo;
+    If Mode=0 then
+      VgaMode := vga_getdefaultmode
+    else 
+      VGAMode :=Mode;
+    if (VgaMode = -1) then VgaMode := G320X200X256;
+    if (not vga_hasmode(VgaMode))
+      then begin
+        WriteLn('BGI: Mode not available.');
+        Halt(1)
+      end;
+    ModeInfo := vga_getmodeinfo(VgaMode);
+    {IsVirtual := (ModeInfo^.colors = 16) or (ModeInfo^.flags and IS_MODEX <> 0);}
+    IsVirtual := true;
+    { We always want a back screen (for buffering). }
+    if IsVirtual
+      then begin
+        { Create virtual screen }
+        gl_setcontextvgavirtual(VgaMode);
+        BackScreen := gl_allocatecontext;
+        gl_getcontext(BackScreen)
+      end;
+    vga_setmode(VgaMode);
+    gl_setcontextvga(VgaMode);  { Physical screen context. }
+    PhysicalScreen := gl_allocatecontext;
+    gl_getcontext(PhysicalScreen);
+    if (PhysicalScreen^.colors = 256) then gl_setrgbpalette;
+    SetColors;
+    SizeX := PhysicalScreen^.Width;
+    SizeY := PhysicalScreen^.Height
 end;
 
 Procedure CloseGraph;
@@ -1489,7 +1519,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-08-14 09:20:36  michael
+  Revision 1.7  1998-08-24 08:23:47  michael
+  Better initgraph handling.
+
+  Revision 1.6  1998/08/14 09:20:36  michael
   Typo fixed. linklib gl to linklib vgagl
 
   Revision 1.5  1998/08/12 14:01:08  michael
