@@ -189,6 +189,7 @@ type
     procedure ExecKeys(Keys: String; BlockMode: Boolean);
     procedure MultiDelLeft(Count: Integer);
 
+  public
     procedure CursorUp;
     procedure CursorDown;
     procedure CursorLeft;
@@ -366,7 +367,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-10-29 15:59:04  peter
+  Revision 1.2  1999-11-15 21:47:36  peter
+    * first working keypress things
+
+  Revision 1.1  1999/10/29 15:59:04  peter
     * inserted in fcl
 
 }

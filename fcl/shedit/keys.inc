@@ -465,7 +465,7 @@ var
   AssignmentMatched, OldSelValid: Boolean;
   OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY: Integer;
 begin
-  // WriteLn('Text Widget: Key pressed: "', Key, '" ', KeyCode);
+//  WriteLn('Text Widget: Key pressed: "', Key, '" ', KeyCode);
   HideCursor;
 
   LastCursorX := FCursorX;
@@ -569,7 +569,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1999-10-29 15:59:04  peter
+  Revision 1.2  1999-11-15 21:47:36  peter
+    * first working keypress things
+
+  Revision 1.1  1999/10/29 15:59:04  peter
     * inserted in fcl
 
 }
