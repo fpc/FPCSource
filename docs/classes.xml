@@ -33,6 +33,36 @@ streams.
 </descr>
 </element>
 
+<element name="PStringItem">
+<short>
+Pointer to a <link id="TStringItem"/> record.
+</short>
+</element>
+
+<element name="TStringItem">
+<short>
+The <var>TStringItem</var> is used to store the string and object items in a 
+<link id="TStringList"/> string list instance. It should never be used
+directly.
+</short>
+<seealso>
+<link id="TStringList"/>
+</seealso>
+</element>
+
+<element name="TStringItem.FString">
+<short>
+Contains the string.
+</short>
+</element>
+
+
+<element name="TStringItem.FObject">
+<short>
+Contains the object, if any.
+</short>
+</element>
+
 <element name="THandle">
 <short>Type to manage streams.</short>
 <descr>This type is used as the handle for <link
@@ -2457,10 +2487,11 @@ be done by freeing that element.
 -->
 
 <element name="IStringsAdapter">  <!-- Class -->
-<short></short>
-<descr>
+<short>IStringsAdapter Interface declaration.</short>
+<descr>Is not yet supported in Free Pascal.
 </descr>
 <seealso>
+<link id="TStrings"/>
 </seealso>
 </element>
 
@@ -3545,52 +3576,12 @@ be triggered.</short>
 </seealso>
 </element>
 
-<element name="PStringItem">  <!-- Pointer type -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TStringItem">  <!-- Record type -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TStringItem.FString">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TStringItem.FObject">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="PStringItemList">  <!-- Pointer type -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
 <element name="TStringItemList">  <!-- Array type -->
-<short></short>
+<short>Array of <link id="TStringItem"/> records.</short>
 <descr>
+This declaration is provided for Delphi compatibility, it is not used in
+Free Pascal.
 </descr>
-<seealso>
-</seealso>
 </element>
 
 <!--
@@ -5526,7 +5517,7 @@ stream.
 </element>
 
 <element name="TStreamProc">  <!-- Procedure type -->
-<short></short>
+<short>Procedure type used in streaming.</short>
 <descr>
 </descr>
 <seealso>
@@ -5706,128 +5697,351 @@ id="TAbstractObjectReader.BeginComponent">BeginComponent</link>.
 <element name="TAbstractObjectReader.BeginComponent">  <!-- Procedure -->
 <short>Marks the reading of a new component. </short>
 <descr>
+<p>
+This method is called when the streaming process wants to start reading a 
+new component. 
+</p>
+<p>
+Descendent classes should override this method to read the start of a
+component new component definition and return the needed arguments. 
+<var>Flags</var> should be filled with any flags that were found at the
+component definition, as well as <var>AChildPos</var>. The
+<var>CompClassName</var> should be filled with the class name of the
+streamed component, and the <var>CompName</var> argument should be filled
+with the name of the component.
+</p>
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.BeginRootComponent"/>
+<link id="TAbstractObjectReader.BeginProperty"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.BeginProperty">  <!-- Function -->
 <short>Marks the reading of a property value.</short>
 <descr>
+<var>BeginProperty</var> is called by the streaming system when it wants to
+read a new property. The return value of the function is the name of the 
+property which can be read from the stream.
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.BeginComponent"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.ReadBinary">  <!-- Procedure -->
 <short>Read binary data from the stream.</short>
 <descr>
+<var>ReadBinary</var> is called when binary data should be read from the
+stream 
+(i.e. after <link id="TAbstractObjectReader.ReadValue">ReadValue</link> 
+returned a valuetype of <var>vaBinary</var>). The data should be stored in the <var>DestData</var> memory stream
+by descendent classes.
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.ReadFloat"/>
+<link id="TAbstractObjectReader.ReadDate"/>
+<link id="TAbstractObjectReader.ReadSingle"/>
+<link id="TAbstractObjectReader.ReadIdent"/>
+<link id="TAbstractObjectReader.ReadInt8"/>
+<link id="TAbstractObjectReader.ReadInt16"/>
+<link id="TAbstractObjectReader.ReadInt32"/>
+<link id="TAbstractObjectReader.ReadInt64"/>
+<link id="TabstractObjectReader.ReadSet"/>
+<link id="TabstractObjectReader.ReadStr"/>
+<link id="TabstractObjectReader.ReadString"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.ReadFloat">  <!-- Function -->
 <short>Read a float value from the stream.</short>
 <descr>
+<var>ReadFloat</var> is called by the streaming system when it wants to read
+a float from the stream (i.e. after <link id="TAbstractObjectReader.ReadValue">ReadValue</link> 
+returned a valuetype of <var>vaExtended</var>). The return value should be the value of the float.
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.ReadFloat"/>
+<link id="TAbstractObjectReader.ReadDate"/>
+<link id="TAbstractObjectReader.ReadSingle"/>
+<link id="TAbstractObjectReader.ReadIdent"/>
+<link id="TAbstractObjectReader.ReadInt8"/>
+<link id="TAbstractObjectReader.ReadInt16"/>
+<link id="TAbstractObjectReader.ReadInt32"/>
+<link id="TAbstractObjectReader.ReadInt64"/>
+<link id="TabstractObjectReader.ReadSet"/>
+<link id="TabstractObjectReader.ReadStr"/>
+<link id="TabstractObjectReader.ReadString"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.ReadSingle">  <!-- Function -->
 <short>Read a single (real-type) value from the stream.</short>
 <descr>
+<var>ReadSingle</var> is called by the streaming system when it wants to read
+a single-type float from the stream  (i.e. after <link id="TAbstractObjectReader.ReadValue">ReadValue</link> 
+returned a valuetype of <var>vaSingle</var>). The return value should be the value of 
+the float.
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.ReadFloat"/>
+<link id="TAbstractObjectReader.ReadDate"/>
+<link id="TAbstractObjectReader.ReadSingle"/>
+<link id="TAbstractObjectReader.ReadIdent"/>
+<link id="TAbstractObjectReader.ReadInt8"/>
+<link id="TAbstractObjectReader.ReadInt16"/>
+<link id="TAbstractObjectReader.ReadInt32"/>
+<link id="TAbstractObjectReader.ReadInt64"/>
+<link id="TabstractObjectReader.ReadSet"/>
+<link id="TabstractObjectReader.ReadStr"/>
+<link id="TabstractObjectReader.ReadString"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.ReadDate">  <!-- Function -->
 <short>Read a date value from the stream.</short>
 <descr>
+<var>ReadDate</var> is called by the streaming system when it wants to read
+a date/time value from the stream  (i.e. after <link id="TAbstractObjectReader.ReadValue">ReadValue</link> 
+returned a valuetype of <var>vaDate</var>). The return value should be the date/time
+value. (This value can be stored as a float, since <var>TDateTime</var> is
+nothing but a float.)
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.ReadFloat"/>
+<link id="TAbstractObjectReader.ReadSingle"/>
+<link id="TAbstractObjectReader.ReadIdent"/>
+<link id="TAbstractObjectReader.ReadInt8"/>
+<link id="TAbstractObjectReader.ReadInt16"/>
+<link id="TAbstractObjectReader.ReadInt32"/>
+<link id="TAbstractObjectReader.ReadInt64"/>
+<link id="TabstractObjectReader.ReadSet"/>
+<link id="TabstractObjectReader.ReadStr"/>
+<link id="TabstractObjectReader.ReadString"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.ReadIdent">  <!-- Function -->
 <short>Read an identifier from the stream.</short>
 <descr>
+<p>
+<var>ReadIdent</var> is called by the streaming system if it expects to read
+an identifier of type <var>ValueType</var> from the stream after a call to
+<link id="TAbstractObjectReader.Readvalue">ReadValue</link> returned
+<var>vaIdent</var>. The identifier 
+should be returned as a string. Note that in some cases the identifier does 
+not actually have to be in the stream;
+</p>
+<table>
+<tr><td>ValueType</td><td>Expected value</td></tr>
+<tr><td>vaIdent</td><td>Read from stream.</td></tr>
+<tr><td>vaNil</td><td>'Nil'. This does not have to be read from the stream.</td></tr>
+<tr><td>vaFalse</td><td>'False'. This does not have to be read from the stream.</td></tr>
+<tr><td>vaTrue</td><td>'True'. This does not have to be read from the stream.</td></tr>
+<tr><td>vaNull</td><td>'Null'. This does not have to be read from the stream.</td></tr>
+</table>
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.ReadFloat"/>
+<link id="TAbstractObjectReader.ReadDate"/>
+<link id="TAbstractObjectReader.ReadSingle"/>
+<link id="TAbstractObjectReader.ReadInt8"/>
+<link id="TAbstractObjectReader.ReadInt16"/>
+<link id="TAbstractObjectReader.ReadInt32"/>
+<link id="TAbstractObjectReader.ReadInt64"/>
+<link id="TabstractObjectReader.ReadSet"/>
+<link id="TabstractObjectReader.ReadStr"/>
+<link id="TabstractObjectReader.ReadString"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.ReadInt8">  <!-- Function -->
 <short>Read an 8-bit integer from the stream.</short>
 <descr>
+<var>ReadInt8</var> is called by the streaming process if it expects to 
+read an integer value with a size of 8 bits (1 byte) from the stream (i.e. after <link id="TAbstractObjectReader.ReadValue">ReadValue</link> 
+returned a valuetype of <var>vaInt8</var>). 
+The return value is the value if the integer. Note that the size of the
+value in the stream does not actually have to be 1 byte.
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.ReadFloat"/>
+<link id="TAbstractObjectReader.ReadDate"/>
+<link id="TAbstractObjectReader.ReadSingle"/>
+<link id="TAbstractObjectReader.ReadIdent"/>
+<link id="TAbstractObjectReader.ReadInt16"/>
+<link id="TAbstractObjectReader.ReadInt32"/>
+<link id="TAbstractObjectReader.ReadInt64"/>
+<link id="TabstractObjectReader.ReadSet"/>
+<link id="TabstractObjectReader.ReadStr"/>
+<link id="TabstractObjectReader.ReadString"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.ReadInt16">  <!-- Function -->
 <short>Read a 16-bit integer from the stream.</short>
 <descr>
+<var>ReadInt16</var> is called by the streaming process if it expects to 
+read an integer value with a size of 16 bits (2 bytes) from the stream (i.e. after <link id="TAbstractObjectReader.ReadValue">ReadValue</link> 
+returned a valuetype of <var>vaInt16</var>). 
+The return value is the value if the integer. Note that the size of the 
+value in the stream does not actually have to be 2 bytes.
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.ReadFloat"/>
+<link id="TAbstractObjectReader.ReadDate"/>
+<link id="TAbstractObjectReader.ReadSingle"/>
+<link id="TAbstractObjectReader.ReadIdent"/>
+<link id="TAbstractObjectReader.ReadInt8"/>
+<link id="TAbstractObjectReader.ReadInt32"/>
+<link id="TAbstractObjectReader.ReadInt64"/>
+<link id="TabstractObjectReader.ReadSet"/>
+<link id="TabstractObjectReader.ReadStr"/>
+<link id="TabstractObjectReader.ReadString"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.ReadInt32">  <!-- Function -->
 <short>Read a 32-bit integer from the stream.</short>
 <descr>
-</descr>
+<var>ReadInt32</var> is called by the streaming process if it expects to 
+read an integer value with a size of 32 bits (4 bytes) from the stream (i.e. after <link id="TAbstractObjectReader.ReadValue">ReadValue</link> 
+returned a valuetype of <var>vaInt32</var>). 
+The return value is the value of the integer. Note that the size of the 
+value in the stream does not actually have to be 4 bytes.
+</descr> 
 <seealso>
+<link id="TAbstractObjectReader.ReadFloat"/>
+<link id="TAbstractObjectReader.ReadDate"/>
+<link id="TAbstractObjectReader.ReadSingle"/>
+<link id="TAbstractObjectReader.ReadIdent"/>
+<link id="TAbstractObjectReader.ReadInt8"/>
+<link id="TAbstractObjectReader.ReadInt16"/>
+<link id="TAbstractObjectReader.ReadInt64"/>
+<link id="TabstractObjectReader.ReadSet"/>
+<link id="TabstractObjectReader.ReadStr"/>
+<link id="TabstractObjectReader.ReadString"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.ReadInt64">  <!-- Function -->
 <short>Read a 64-bit integer from the stream.</short>
 <descr>
+<var>ReadInt64</var> is called by the streaming process if it expects to 
+read an int64 value with a size of 64 bits (8 bytes) from the stream (i.e. after <link id="TAbstractObjectReader.ReadValue">ReadValue</link> 
+returned a valuetype of <var>vaInt64</var>). 
+The return value is the value if the integer. Note that the size of the 
+value in the stream does not actually have to be 8 bytes.
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.ReadFloat"/>
+<link id="TAbstractObjectReader.ReadDate"/>
+<link id="TAbstractObjectReader.ReadSingle"/>
+<link id="TAbstractObjectReader.ReadIdent"/>
+<link id="TAbstractObjectReader.ReadInt8"/>
+<link id="TAbstractObjectReader.ReadInt16"/>
+<link id="TAbstractObjectReader.ReadInt32"/>
+<link id="TabstractObjectReader.ReadSet"/>
+<link id="TabstractObjectReader.ReadStr"/>
+<link id="TabstractObjectReader.ReadString"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.ReadSet">  <!-- Function -->
-<short>Read a set from the stream.</short>
+<short>Reads a set from the stream.</short>
 <descr>
+<p>
+This method is called by the streaming system if it expects to read a 
+set from the stream  (i.e. after <link id="TAbstractObjectReader.ReadValue">ReadValue</link> 
+returned a valuetype of <var>vaSet</var>). The return value is the contents of the
+set, encoded in a bitmask the following way:
+</p>
+<p> 
+For each (enumerated) value in the set, the bit corresponding to the 
+ordinal value of the enumerated value should be set. i.e. 
+as <var>1 shl ord(value)</var>.
+</p>
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.ReadFloat"/>
+<link id="TAbstractObjectReader.ReadDate"/>
+<link id="TAbstractObjectReader.ReadSingle"/>
+<link id="TAbstractObjectReader.ReadIdent"/>
+<link id="TAbstractObjectReader.ReadInt8"/>
+<link id="TAbstractObjectReader.ReadInt16"/>
+<link id="TAbstractObjectReader.ReadInt32"/>
+<link id="TAbstractObjectReader.ReadInt64"/>
+<link id="TabstractObjectReader.ReadStr"/>
+<link id="TabstractObjectReader.ReadString"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.ReadStr">  <!-- Function -->
 <short>Read a shortstring from the stream</short>
 <descr>
+<var>ReadStr</var> is called by the streaming system if it expects to read a
+shortstring from the stream  (i.e. after <link id="TAbstractObjectReader.ReadValue">ReadValue</link> 
+returned a valuetype of <var>vaLString</var>,<var>vaWstring</var> or 
+<var>vaString</var>). The return value is the string.
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.ReadFloat"/>
+<link id="TAbstractObjectReader.ReadDate"/>
+<link id="TAbstractObjectReader.ReadSingle"/>
+<link id="TAbstractObjectReader.ReadIdent"/>
+<link id="TAbstractObjectReader.ReadInt8"/>
+<link id="TAbstractObjectReader.ReadInt16"/>
+<link id="TAbstractObjectReader.ReadInt32"/>
+<link id="TAbstractObjectReader.ReadInt64"/>
+<link id="TabstractObjectReader.ReadSet"/>
+<link id="TabstractObjectReader.ReadString"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.ReadString">  <!-- Function -->
 <short>Read a string of type <var>StringType</var> from the stream.</short>
 <descr>
+<var>ReadStr</var> is called by the streaming system if it expects to read a
+string from the stream  (i.e. after <link id="TAbstractObjectReader.ReadValue">ReadValue</link> 
+returned a valuetype of <var>vaLString</var>,<var>vaWstring</var> or 
+<var>vaString</var>). The return value is the string.
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.ReadFloat"/>
+<link id="TAbstractObjectReader.ReadDate"/>
+<link id="TAbstractObjectReader.ReadSingle"/>
+<link id="TAbstractObjectReader.ReadIdent"/>
+<link id="TAbstractObjectReader.ReadInt8"/>
+<link id="TAbstractObjectReader.ReadInt16"/>
+<link id="TAbstractObjectReader.ReadInt32"/>
+<link id="TAbstractObjectReader.ReadInt64"/>
+<link id="TabstractObjectReader.ReadSet"/>
+<link id="TabstractObjectReader.ReadStr"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.SkipComponent">  <!-- Procedure -->
 <short>Skip till the end of the component.</short>
 <descr>
+This method is used to skip the entire declaration of a component in the
+stream. Each descendent of <var>TAbstractObjectReader</var> should implement
+this in a way which is optimal for the implemented stream format.
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.BeginComponent"/>
+<link id="TAbstractObjectReader.SkipValue"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.SkipValue">  <!-- Procedure -->
 <short>Skip the current value.</short>
 <descr>
+<var>SkipValue</var> should be used when skipping a value in the stream;
+The method should determine the type of the value which should be skipped
+by itself, if this is necessary.
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.SkipComponent"/>
 </seealso>
 </element>
 
@@ -6565,7 +6779,7 @@ when a component is read from a stream.</short>
 </element>
 
 <element name="TBinaryObjectWriter.BeginCollection"
-link="TAbstractObjectWriter.BeginCollection">  <!-- Procedure -->
+link="TAbstractObjectWriter.BeginCollection">  
 <short>Start writing a collection.</short>
 </element>
 
@@ -7126,6 +7340,21 @@ Not yet implemented.
   TThread
   *********************************************************************
 -->
+<element name="TThread">  <!-- Class -->
+<short>Abstract Thread class.</short>
+<descr>
+The <var>TThread</var> class encapsulates the native thread support of the
+operating system. To create a thread, declare a descendent of the
+<var>TThread</var> object and override the <link
+id="TThread.Execute">Execute</link> method. In this method, the thhread's
+code should be executed. To run a thread, create an instance of the tthread
+descendent, and call it's execute method.
+</descr>
+<seealso>
+<link id="EThread"/>
+<link id="TThread.Execute"/>
+</seealso>
+</element>
 
 <element name="TThread.DoTerminate">  <!-- Procedure -->
 <short>Terminates the thread.</short>
