@@ -90,7 +90,6 @@ implementation
                 begin
                   location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
                   exprasmlist.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
-                  location_release(exprasmlist,left.location);
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_EQ;
                end;
@@ -122,7 +121,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2004-06-20 08:55:31  florian
+  Revision 1.8  2004-10-24 07:54:25  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.7  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.6  2004/03/13 18:45:40  florian

@@ -152,12 +152,10 @@ implementation
               begin
                 if left.location.size in [OS_64,OS_S64] then
                  begin
-                   location_release(exprasmlist,left.location);
                    hregister:=cg.getintregister(exprasmlist,OS_INT);
                    cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,left.location.reference,hregister);
                    href:=left.location.reference;
                    inc(href.offset,4);
-                   cg.ungetregister(exprasmlist,hregister);
                    tcgarm(cg).setflags:=true;
                    cg.a_op_ref_reg(exprasmlist,OP_OR,OS_32,href,hregister);
                    tcgarm(cg).setflags:=false;
@@ -165,7 +163,6 @@ implementation
                 else
                  begin
                    location_force_reg(exprasmlist,left.location,left.location.size,true);
-                   location_release(exprasmlist,left.location);
                    tcgarm(cg).setflags:=true;
                    cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
                    tcgarm(cg).setflags:=false;
@@ -181,15 +178,12 @@ implementation
                  begin
                    hregister:=cg.getintregister(exprasmlist,OS_32);
                    cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.registerlow,hregister);
-                   cg.ungetregister(exprasmlist,hregister);
-                   location_release(exprasmlist,left.location);
                    tcgarm(cg).setflags:=true;
                    cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,hregister);
                    tcgarm(cg).setflags:=false;
                  end
                 else
                  begin
-                   location_release(exprasmlist,left.location);
                    tcgarm(cg).setflags:=true;
                    cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
                    tcgarm(cg).setflags:=false;
@@ -205,7 +199,6 @@ implementation
                 cg.a_label(exprasmlist,falselabel);
                 cg.a_load_const_reg(exprasmlist,OS_INT,0,hregister);
                 cg.a_label(exprasmlist,hlabel);
-                cg.ungetregister(exprasmlist,hregister);
                 tcgarm(cg).setflags:=true;
                 cg.a_op_reg_reg(exprasmlist,OP_OR,OS_INT,hregister,hregister);
                 tcgarm(cg).setflags:=false;
@@ -227,7 +220,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2004-06-20 08:55:31  florian
+  Revision 1.11  2004-10-24 07:54:25  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.10  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.9  2004/02/03 22:32:54  peter

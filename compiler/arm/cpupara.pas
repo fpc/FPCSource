@@ -200,7 +200,8 @@ unit cpupara;
         stack_offset : aword;
         hp : tparaitem;
         loc : tcgloc;
-        is_64bit: boolean;
+        paracgsize   : tcgsize;
+        paralen : longint;
 
       procedure assignintreg;
         begin
@@ -243,10 +244,18 @@ unit cpupara;
                 break;
               end;
 
+            if push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption) then
+              paracgsize:=OS_ADDR
+            else
+              begin
+                paracgsize:=def_cgSize(hp.paratype.def);
+                if paracgsize=OS_NO then
+                  paracgsize:=OS_ADDR;
+              end;
+
              hp.paraloc[side].reset;
              hp.paraloc[side].size:=paracgsize;
              hp.paraloc[side].Alignment:=std_param_align;
-             paralen:=tcgsize2size[paracgsize];
 
              if (hp.paratyp in [vs_var,vs_out]) then
                begin
@@ -259,97 +268,90 @@ unit cpupara;
                  loc:=getparaloc(p.proccalloption,paradef);
                end;
 
-             paraloc:=hp.paraloc[side].add_location;
-             case loc of
-                LOC_REGISTER:
-                  begin
-                    paraloc^.size := def_cgsize(paradef);
-                    { for things like formaldef }
-                    if paraloc^.size = OS_NO then
-                      paraloc^.size := OS_ADDR;
-                    is_64bit:=paraloc^.size in [OS_64,OS_S64,OS_F64];
-                    { this is not abi compliant }
-                    if nextintreg<=(RS_R3-ord(is_64bit)) then
-                      begin
-                        paraloc^.loc:=LOC_REGISTER;
-                        paraloc^.registerlow:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
-                        inc(nextintreg);
-                        if is_64bit then
-                         begin
-                           paraloc^.lochigh:=LOC_REGISTER;
-                           paraloc.registerhigh:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
-                           inc(nextintreg);
-                         end;
-                      end
-                    else
-                       begin
-                         nextintreg:=RS_R4;
-                         paraloc.loc:=LOC_REFERENCE;
-                         paraloc.reference.index:=NR_STACK_POINTER_REG;
-                         paraloc.reference.offset:=stack_offset;
-                         if not is_64bit then
-                           inc(stack_offset,4)
-                         else
-                           inc(stack_offset,8);
-                      end;
-                  end;
-                LOC_FPUREGISTER:
-                  begin
-                    paraloc.size:=def_cgsize(paradef);
-                    if nextfloatreg<=RS_F3 then
-                      begin
-                        paraloc.loc:=LOC_FPUREGISTER;
-                        paraloc.register:=newreg(R_FPUREGISTER,nextfloatreg,R_SUBWHOLE);
-                        inc(nextfloatreg);
-                      end
-                    else
-                      begin
-                        paraloc^.size:=def_cgsize(paradef);
-                        nextintreg:=RS_F4;
-                        paraloc^.loc:=LOC_REFERENCE;
-                        paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                        paraloc^.reference.offset:=stack_offset;
-                        case paraloc.size of
-                          OS_F32:
-                            inc(stack_offset,4);
-                          OS_F64:
-                            inc(stack_offset,8);
-                          OS_F80:
-                            inc(stack_offset,10);
-                          OS_F128:
-                            inc(stack_offset,16);
-                          else
-                            internalerror(200403201);
-                        end;
-                      end;
-                  end;
-                LOC_REFERENCE:
-                  begin
-                    paraloc^.size:=OS_ADDR;
-                    if push_addr_param(hp.paratyp,paradef,p.proccalloption) or
-                      is_open_array(paradef) or
-                      is_array_of_const(paradef) then
-                      assignintreg
-                    else
-                      begin
-                         paraloc.loc:=LOC_REFERENCE;
-                         paraloc.reference.index:=NR_STACK_POINTER_REG;
-                         paraloc.reference.offset:=stack_offset;
-                         inc(stack_offset,hp.paratype.def.size);
-                      end;
-                  end;
-                else
-                  internalerror(2002071002);
-             end;
-             if side=calleeside then
+             paralen:=tcgsize2size[paracgsize];
+             while (paralen>0) do
                begin
-                 if paraloc.loc=LOC_REFERENCE then
+                 paraloc:=hp.paraloc[side].add_location;
+                 { for things like formaldef }
+                 if paracgsize=OS_NO then
+                   paraloc^.size:=OS_ADDR
+                 else if paracgsize in [OS_64,OS_S64] then
+                   paraloc^.size:=OS_32
+                 else
+                   paraloc^.size:=def_cgsize(paradef);
+                 case loc of
+                    LOC_REGISTER:
+                      begin
+                        { this is not abi compliant }
+                        if nextintreg<=RS_R3 then
+                          begin
+                            paraloc^.loc:=LOC_REGISTER;
+                            paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
+                            inc(nextintreg);
+                          end
+                        else
+                          begin
+                            paraloc^.loc:=LOC_REFERENCE;
+                            paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                            paraloc^.reference.offset:=stack_offset;
+                         end;
+                      end;
+                    LOC_FPUREGISTER:
+                      begin
+                        if nextfloatreg<=RS_F3 then
+                          begin
+                            paraloc^.loc:=LOC_FPUREGISTER;
+                            paraloc^.register:=newreg(R_FPUREGISTER,nextfloatreg,R_SUBWHOLE);
+                            inc(nextfloatreg);
+                          end
+                        else
+                          begin
+                            paraloc^.loc:=LOC_REFERENCE;
+                            paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                            paraloc^.reference.offset:=stack_offset;
+                            case paraloc^.size of
+                              OS_F32:
+                                inc(stack_offset,4);
+                              OS_F64:
+                                inc(stack_offset,8);
+                              OS_F80:
+                                inc(stack_offset,10);
+                              OS_F128:
+                                inc(stack_offset,16);
+                              else
+                                internalerror(200403201);
+                            end;
+                          end;
+                      end;
+                    LOC_REFERENCE:
+                      begin
+                        paraloc^.size:=OS_ADDR;
+                        if push_addr_param(hp.paratyp,paradef,p.proccalloption) or
+                          is_open_array(paradef) or
+                          is_array_of_const(paradef) then
+                          assignintreg
+                        else
+                          begin
+                             paraloc^.loc:=LOC_REFERENCE;
+                             paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                             paraloc^.reference.offset:=stack_offset;
+                             inc(stack_offset,hp.paratype.def.size);
+                          end;
+                      end;
+                    else
+                      internalerror(2002071002);
+                 end;
+                 if side=calleeside then
                    begin
-                     paraloc.reference.index:=NR_FRAME_POINTER_REG;
-                     inc(paraloc.reference.offset,4);
+                     if paraloc^.loc=LOC_REFERENCE then
+                       begin
+                         paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                         inc(paraloc^.reference.offset,4);
+                       end;
                    end;
+                 dec(paralen,tcgsize2size[paraloc^.size]);
                end;
-             hp.paraloc[side]:=paraloc;
+
              hp:=tparaitem(hp.next);
           end;
         curintreg:=nextintreg;
@@ -362,43 +364,59 @@ unit cpupara;
 
     function tarmparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
-        paraloc : tparalocation;
+        paraloc : pcgparalocation;
         cur_stack_offset: aword;
         curintreg, curfloatreg, curmmreg: tsuperregister;
+        retcgsize  : tcgsize;
       begin
         init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
 
         result:=create_paraloc_info_intern(p,side,tparaitem(p.para.first),curintreg,curfloatreg,curmmreg,cur_stack_offset);
 
+        { Constructors return self instead of a boolean }
+        if (p.proctypeoption=potype_constructor) then
+          retcgsize:=OS_ADDR
+        else
+          retcgsize:=def_cgsize(p.rettype.def);
+        p.funcret_paraloc[side].reset;
+        p.funcret_paraloc[side].Alignment:=std_param_align;
+        p.funcret_paraloc[side].size:=retcgsize;
+        { void has no location }
+        if is_void(p.rettype.def) then
+          exit;
         { Function return }
-        fillchar(paraloc,sizeof(tparalocation),0);
-        paraloc.lochigh:=LOC_INVALID;
-        paraloc.size:=def_cgsize(p.rettype.def);
+        paraloc:=p.funcret_paraloc[side].add_location;
+
         { Return in FPU register? }
         if p.rettype.def.deftype=floatdef then
           begin
-            paraloc.loc:=LOC_FPUREGISTER;
-            paraloc.register:=NR_FPU_RESULT_REG;
+            paraloc^.loc:=LOC_FPUREGISTER;
+            paraloc^.register:=NR_FPU_RESULT_REG;
           end
-        else
           { Return in register? }
-          if not ret_in_param(p.rettype.def,p.proccalloption) then
+        else if not ret_in_param(p.rettype.def,p.proccalloption) then
             begin
-              paraloc.loc:=LOC_REGISTER;
-              if paraloc.size in [OS_64,OS_S64] then
+              paraloc^.loc:=LOC_REGISTER;
+              if paraloc^.size in [OS_64,OS_S64] then
                 begin
-                  paraloc.lochigh:=LOC_REGISTER;
-                  paraloc.register:=NR_FUNCTION_RETURN64_LOW_REG;
-                  paraloc.registerhigh:=NR_FUNCTION_RETURN64_HIGH_REG;
+                  { low }
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.size:=OS_32;
+                  paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
+
+                  { high }
+                  paraloc:=p.funcret_paraloc[side].add_location;
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.size:=OS_32;
+                  paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
                 end
               else
-                paraloc.register:=NR_FUNCTION_RETURN_REG;
+                paraloc^.register:=NR_FUNCTION_RETURN_REG;
             end
         else
           begin
-            paraloc.loc:=LOC_REFERENCE;
+            paraloc^.loc:=LOC_REFERENCE;
           end;
-        p.funcret_paraloc[side]:=paraloc;
      end;
 
 
@@ -417,6 +435,8 @@ unit cpupara;
           { just continue loading the parameters in the registers }
           result:=create_paraloc_info_intern(p,callerside,tparaitem(varargspara.first),curintreg,curfloatreg,curmmreg,cur_stack_offset)
         else
+          internalerror(200410231);
+        {
           begin
             hp:=tparaitem(varargspara.first);
             parasize:=cur_stack_offset;
@@ -435,6 +455,7 @@ unit cpupara;
               end;
             result := parasize;
           end;
+        }
       end;
 
 begin
@@ -442,7 +463,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2004-10-22 16:36:57  florian
+  Revision 1.21  2004-10-24 07:54:25  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.20  2004/10/22 16:36:57  florian
     * first arm fixes for new paraloc handling
 
   Revision 1.19  2004/06/20 08:55:31  florian

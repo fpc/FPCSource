@@ -160,8 +160,6 @@ interface
                  location.register,left.location.register,right.location.register),
                  cgsize2fpuoppostfix[def_cgsize(resulttype.def)]));
 
-              release_reg_left_right;
-
               location.loc:=LOC_FPUREGISTER;
             end;
           fpu_soft:
@@ -196,7 +194,6 @@ interface
              left.location.register,right.location.register),
              cgsize2fpuoppostfix[def_cgsize(resulttype.def)]));
 
-        release_reg_left_right;
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(false);
       end;
@@ -234,13 +231,11 @@ interface
               tmpreg:=cg.getintregister(exprasmlist,location.size);
               exprasmlist.concat(taicpu.op_reg_reg_reg(A_AND,tmpreg,left.location.register,right.location.register));
               exprasmlist.concat(taicpu.op_reg_reg(A_CMP,tmpreg,right.location.register));
-              cg.ungetregister(exprasmlist,tmpreg);
               location.resflags:=F_EQ;
             end;
           else
             internalerror(2004012401);
         end;
-        release_reg_left_right;
       end;
 
 
@@ -270,7 +265,6 @@ interface
             tmpreg:=cg.getintregister(exprasmlist,location.size);
             exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,tmpreg,left.location.register64.reglo,right.location.register64.reglo),PF_S));
             exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SBC,tmpreg,left.location.register64.reghi,right.location.register64.reghi),PF_S));
-            cg.ungetregister(exprasmlist,tmpreg);
           end
         else
         { operation requiring proper N, Z and V flags ? }
@@ -279,7 +273,6 @@ interface
             tmpreg:=cg.getintregister(exprasmlist,location.size);
             exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,tmpreg,right.location.register64.reglo,left.location.register64.reglo),PF_S));
             exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SBC,tmpreg,right.location.register64.reghi,left.location.register64.reghi),PF_S));
-            cg.ungetregister(exprasmlist,tmpreg);
             if nf_swaped in flags then
               begin
                 if location.resflags=F_LT then
@@ -299,8 +292,6 @@ interface
                   internalerror(200401221);
               end;
           end;
-
-        release_reg_left_right;
       end;
 
 
@@ -326,7 +317,6 @@ interface
                  cg.a_load_const_reg(exprasmlist,OS_INT,
                    aword(right.location.value),tmpreg);
                  exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register,tmpreg));
-                 cg.ungetregister(exprasmlist,tmpreg);
                end;
           end
         else
@@ -334,8 +324,6 @@ interface
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(unsigned);
-
-        release_reg_left_right;
       end;
 
 begin
@@ -343,7 +331,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2004-06-20 08:55:31  florian
+  Revision 1.16  2004-10-24 07:54:25  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.15  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.14  2004/03/23 21:03:50  florian

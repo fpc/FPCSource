@@ -32,6 +32,7 @@ unit cgcpu;
        globtype,symtype,
        cgbase,cgobj,
        aasmbase,aasmcpu,aasmtai,
+       parabase,
        cpubase,cpuinfo,node,cg64f32,rgcpu;
 
 
@@ -42,9 +43,9 @@ unit cgcpu;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
-        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aint;const locpara : tparalocation);override;
-        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);override;
-        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
+        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aint;const paraloc : TCGPara);override;
+        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
+        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const paraloc : TCGPara);override;
 
         procedure a_call_name(list : taasmoutput;const s : string);override;
         procedure a_call_reg(list : taasmoutput;reg: tregister); override;
@@ -79,20 +80,20 @@ unit cgcpu;
 
         procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint);override;
+        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;loadref:boolean);override;
         procedure g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : taasmoutput;parasize : longint;nostackframe:boolean); override;
 
         procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
 
-        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint; delsource,loadref : boolean);override;
+        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint;loadref : boolean);override;
 
         procedure g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef); override;
 
         procedure g_save_standard_registers(list : taasmoutput);override;
         procedure g_restore_standard_registers(list : taasmoutput);override;
         procedure g_save_all_registers(list : taasmoutput);override;
-        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);override;
+        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:TCGPara);override;
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
         procedure fixref(list : taasmoutput;var ref : treference);
@@ -169,78 +170,79 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.a_param_const(list : taasmoutput;size : tcgsize;a : aint;const locpara : tparalocation);
+    procedure tcgarm.a_param_const(list : taasmoutput;size : tcgsize;a : aint;const paraloc : TCGPara);
       var
         ref: treference;
       begin
-        case locpara.loc of
+        paraloc.check_simple_location;
+        case paraloc.location^.loc of
           LOC_REGISTER,LOC_CREGISTER:
-            a_load_const_reg(list,size,a,locpara.register);
+            a_load_const_reg(list,size,a,paraloc.location^.register);
           LOC_REFERENCE:
             begin
                reference_reset(ref);
-               ref.base:=locpara.reference.index;
-               ref.offset:=locpara.reference.offset;
+               ref.base:=paraloc.location^.reference.index;
+               ref.offset:=paraloc.location^.reference.offset;
                a_load_const_ref(list,size,a,ref);
             end;
           else
             internalerror(2002081101);
         end;
-        if locpara.alignment<>0 then
+        if paraloc.alignment<>0 then
           internalerror(2002081102);
       end;
 
 
-    procedure tcgarm.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);
+    procedure tcgarm.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const paraloc : TCGPara);
       var
         ref: treference;
         tmpreg: tregister;
       begin
-        case locpara.loc of
+        paraloc.check_simple_location;
+        case paraloc.location^.loc of
           LOC_REGISTER,LOC_CREGISTER:
-            a_load_ref_reg(list,size,size,r,locpara.register);
+            a_load_ref_reg(list,size,size,r,paraloc.location^.register);
           LOC_REFERENCE:
             begin
                reference_reset(ref);
-               ref.base:=locpara.reference.index;
-               ref.offset:=locpara.reference.offset;
+               ref.base:=paraloc.location^.reference.index;
+               ref.offset:=paraloc.location^.reference.offset;
                tmpreg := getintregister(list,size);
                a_load_ref_reg(list,size,size,r,tmpreg);
                a_load_reg_ref(list,size,size,tmpreg,ref);
-               ungetregister(list,tmpreg);
             end;
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
             case size of
                OS_F32, OS_F64:
-                 a_loadfpu_ref_reg(list,size,r,locpara.register);
+                 a_loadfpu_ref_reg(list,size,r,paraloc.location^.register);
                else
                  internalerror(2002072801);
             end;
           else
             internalerror(2002081103);
         end;
-        if locpara.alignment<>0 then
+        if paraloc.alignment<>0 then
           internalerror(2002081104);
       end;
 
 
-    procedure tcgarm.a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
+    procedure tcgarm.a_paramaddr_ref(list : taasmoutput;const r : treference;const paraloc : TCGPara);
       var
         ref: treference;
         tmpreg: tregister;
       begin
-         case locpara.loc of
+        paraloc.check_simple_location;
+         case paraloc.location^.loc of
             LOC_REGISTER,LOC_CREGISTER:
-              a_loadaddr_ref_reg(list,r,locpara.register);
+              a_loadaddr_ref_reg(list,r,paraloc.location^.register);
             LOC_REFERENCE:
               begin
                 reference_reset(ref);
-                ref.base := locpara.reference.index;
-                ref.offset := locpara.reference.offset;
+                ref.base := paraloc.location^.reference.index;
+                ref.offset := paraloc.location^.reference.offset;
                 tmpreg := getintregister(list,OS_ADDR);
                 a_loadaddr_ref_reg(list,r,tmpreg);
                 a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
-                ungetregister(list,tmpreg);
               end;
             else
               internalerror(2002080701);
@@ -382,7 +384,6 @@ unit cgcpu;
                   tmpreg:=getintregister(list,size);
                   a_load_const_reg(list,size,a,tmpreg);
                   a_op_reg_reg_reg(list,op,size,tmpreg,src,dst);
-                  ungetregister(list,tmpreg);
                 end;
             end;
        end;
@@ -431,7 +432,6 @@ unit cgcpu;
                      begin
                        tmpreg:=getintregister(list,size);
                        a_load_reg_reg(list,size,size,src2,dst);
-                       ungetregister(list,tmpreg);
                        list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,tmpreg,src1));
                      end;
                  end
@@ -627,8 +627,6 @@ unit cgcpu;
               end;
           end;
         list.concat(setoppostfix(taicpu.op_reg_ref(op,reg,ref),oppostfix));
-        if (tmpreg<>NR_NO) then
-          ungetregister(list,tmpreg);
       end;
 
 
@@ -793,7 +791,6 @@ unit cgcpu;
             tmpreg:=getintregister(list,size);
             a_load_const_reg(list,size,a,tmpreg);
             list.concat(taicpu.op_reg_reg(A_CMP,reg,tmpreg));
-            ungetregister(list,tmpreg);
           end;
         a_jmp_cond(list,cmp_op,l);
       end;
@@ -837,7 +834,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint);
+    procedure tcgarm.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;loadref:boolean);
       begin
       end;
 
@@ -988,7 +985,6 @@ unit cgcpu;
                 add_move_instruction(instr);
               end;
           end;
-        reference_release(list,tmpref);
       end;
 
 
@@ -1048,7 +1044,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint; delsource,loadref : boolean);
+    procedure tcgarm.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint;loadref : boolean);
       var
         srcref,dstref:treference;
         srcreg,destreg,countreg,r:tregister;
@@ -1072,7 +1068,6 @@ unit cgcpu;
           r:=getintregister(list,size2opsize[size]);
           a_load_ref_reg(list,size2opsize[size],size2opsize[size],srcref,r);
           a_load_reg_ref(list,size2opsize[size],size2opsize[size],r,dstref);
-          ungetregister(list,r);
           list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,countreg,countreg,1),PF_S));
           list.concat(setcondition(taicpu.op_sym(A_B,l),C_NE));
           { keep the registers alive }
@@ -1108,12 +1103,9 @@ unit cgcpu;
                 dec(len,copysize);
                 r:=getintregister(list,cgsize);
                 a_load_ref_reg(list,cgsize,cgsize,srcref,r);
-                if (len=0) and delsource then
-                  reference_release(list,source);
                 a_load_reg_ref(list,cgsize,cgsize,r,dstref);
                 inc(srcref.offset,copysize);
                 inc(dstref.offset,copysize);
-                ungetregister(list,r);
               end;
           end
         else
@@ -1128,9 +1120,6 @@ unit cgcpu;
             else
               a_loadaddr_ref_reg(list,source,srcreg);
             reference_reset_base(srcref,srcreg,0);
-
-            if delsource then
-              reference_release(list,source);
 
             countreg:=getintregister(list,OS_32);
 
@@ -1157,12 +1146,7 @@ unit cgcpu;
                   list.concat(Taicpu.op_none(A_MOVSB,S_NO));
                 end;
 }
-            ungetregister(list,countreg);
-            ungetregister(list,srcreg);
-            ungetregister(list,destreg);
           end;
-        if delsource then
-          tg.ungetiftemp(list,source);
       end;
 
 
@@ -1189,7 +1173,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);
+    procedure tcgarm.g_restore_all_registers(list : taasmoutput;const funcretparaloc:TCGPara);
       begin
         { we support only ARM standard calling conventions so this procedure has no use on the ARM }
       end;
@@ -1253,7 +1237,6 @@ unit cgcpu;
                   tmpreg:=cg.getintregister(list,OS_32);
                   cg.a_load_const_reg(list,OS_32,lo(value),tmpreg);
                   list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADD,regdst.reglo,regsrc.reglo,tmpreg),PF_S));
-                  cg.ungetregister(list,tmpreg);
                 end;
 
               if is_shifter_const(hi(value),b) then
@@ -1263,7 +1246,6 @@ unit cgcpu;
                   tmpreg:=cg.getintregister(list,OS_32);
                   cg.a_load_const_reg(list,OS_32,hi(value),tmpreg);
                   list.concat(taicpu.op_reg_reg_reg(A_ADC,regdst.reghi,regsrc.reghi,tmpreg));
-                  cg.ungetregister(list,tmpreg);
                 end;
             end;
           OP_SUB:
@@ -1275,7 +1257,6 @@ unit cgcpu;
                   tmpreg:=cg.getintregister(list,OS_32);
                   cg.a_load_const_reg(list,OS_32,lo(value),tmpreg);
                   list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,regdst.reglo,regsrc.reglo,tmpreg),PF_S));
-                  cg.ungetregister(list,tmpreg);
                 end;
 
               if is_shifter_const(hi(value),b) then
@@ -1285,7 +1266,6 @@ unit cgcpu;
                   tmpreg:=cg.getintregister(list,OS_32);
                   cg.a_load_const_reg(list,OS_32,hi(value),tmpreg);
                   list.concat(taicpu.op_reg_reg_reg(A_SBC,regdst.reghi,regsrc.reghi,tmpreg));
-                  cg.ungetregister(list,tmpreg);
                 end;
             end;
           else
@@ -1324,7 +1304,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2004-10-11 15:46:45  peter
+  Revision 1.56  2004-10-24 07:54:25  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.55  2004/10/11 15:46:45  peter
     * length parameter for copyvaluearray changed to tlocation
 
   Revision 1.54  2004/07/03 19:29:14  florian
