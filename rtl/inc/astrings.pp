@@ -121,7 +121,7 @@ begin
 end;
 
 
-Procedure Decr_Ansi_Ref (Var S : AnsiString);
+Procedure Decr_Ansi_Ref (Var S : AnsiString);[alias : 'DECR_ANSI_REF'];
 {
  Decreases the ReferenceCount of a non constant ansistring; 
  If the reference count is zero, deallocate the string;
@@ -672,7 +672,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-06-08 12:38:22  michael
+  Revision 1.4  1998-06-08 19:35:02  michael
+  Some changes to integrate in system unit
+
+  Revision 1.3  1998/06/08 12:38:22  michael
   Implemented rtti, inserted ansistrings again
 
   Revision 1.2  1998/05/12 10:42:44  peter
