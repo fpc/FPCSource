@@ -19,6 +19,14 @@
 setfont
 } def
 
+% sets the default font for large written class names
+/SetLargeClassFont
+{
+/Arial-BoldMT findfont
+18 scalefont
+setfont
+} def
+
 % RGB colors of the texts
 /StandardTextColor { 0 0 0 } def
 /MissedTextColor { 0.50 0.50 0.50 } def
@@ -31,16 +39,19 @@ setfont
 
 % Starting point of the class graph 
 % (0,0) is the lower left corner of the paper
-/nextx { 0 mm } def
-/nexty { 300 mm } def
+/startx { 0 mm } def
+/starty { 290 mm } def
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  End of Configurable section
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% some setups
 /Missed {0} def
 /Incomplete {1} def
 /Untested {2} def
 /Ready {3} def
-%%%%%%%%%%%%%%%%%%%%%%%%
+/nextx startx def
+/nexty starty def
+/maxx 0 mm def
 %%%%%%%%%%%%%%%%%%%%%%%%
 % drawbox
 % takes two parameters: 
@@ -74,6 +85,9 @@ setfont
   widthx 4.5 mm add add
   /nexticonx exch def 
 
+  % max. ?
+  nexticonx 1.5 mm sub maxx gt { /maxx nexticonx def } if
+
   % set box color
   status Missed eq { MissedColor setrgbcolor } if
   status Incomplete eq { IncompleteColor setrgbcolor } if
@@ -100,6 +114,75 @@ setfont
   classname
   show
 
+  grestore
+} def
+%%%%%%%%%%%%%%%%%%%%%%%%
+% drawlargebox
+% takes two parameters: 
+%     classname........name of the class
+%     status......status of development
+/drawlargebox
+{
+  % save parameters
+  /status exch def  
+  /classname exch def
+  % save enviroment
+  gsave
+  newpath
+
+  % determine the size of the class name
+  SetLargeClassFont
+  classname
+  stringwidth
+
+  % and save it ...
+  /widthy exch def
+  /widthx exch def
+
+  % moveto start point of the box
+  nextx 8 mm add
+  nexty  
+  moveto
+
+  % calculate the place for the icons
+  nextx 8 mm add
+  % add text with and additional space
+  widthx 7.5 mm add add  
+  /nexticonx exch def 
+
+  % max. ?  (remove icon offset using 1.5 mm sub)
+  nexticonx 1.5 mm sub maxx gt { /maxx nexticonx def } if
+
+  %save x-pos for the horizontal line (remove icon offset using 4.5 mm sub)
+  /lastlargeobjectx nexticonx 1.5 mm sub def
+
+  % set box color
+  status Missed eq { MissedColor setrgbcolor } if
+  status Incomplete eq { IncompleteColor setrgbcolor } if
+  status Untested eq { UntestedColor setrgbcolor } if
+  status Ready eq { ReadyColor setrgbcolor } if
+
+  % draw box
+  0 mm 4.2 mm rlineto
+  widthx 6 mm add 0 mm rlineto
+  0 mm -8.4 mm rlineto
+  0 widthx 6 mm add sub 0 mm rlineto
+  0 mm 4.2 mm rlineto
+  closepath
+  fill
+
+  % set text color
+  status Missed eq { MissedTextColor setrgbcolor } 
+  { StandardTextColor setrgbcolor } ifelse
+
+  % set text pos and write text
+  nextx 11 mm add
+  nexty 2.5 mm sub
+  moveto
+  classname
+  show
+  nexty 2.1 mm sub
+  /nexty exch def
   grestore
 } def
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -132,6 +215,7 @@ setfont
    status
    drawbox
 } def
+
 %%%%%%%%%%%%%%%%%%%%%%%%
 % newclass
 % draws a new class 
@@ -152,19 +236,85 @@ setfont
    drawbox
    grestore
 } def
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+% newclassxmoved
+% draws a new class 
+% takes three parameters: 
+%     name of the class
+%     status of development
+%     x offset in points
+%
+% Remark:
+%  between newclassxmoved and restoreoldxy have to be a newchildclass, 
+%  else the output gets scrambled, but don't do a 
+%  onelevelback should be used, restoreoldxy removes one child level!
+/newclassxmoved
+{
+   % save parameters
+   /offsetx exch def
+   /status exch def  
+   /classname exch def
+   % save enviroment
+   % push this on the stack for onemovelevelback
+   nextx
+   nexty 
+   newpath
+   SetLineWidth 
+   SetLineColor
+   nextx nexty moveto
+   0 mm -5 mm rlineto
+   8 mm offsetx add 0 mm rlineto stroke
+   nexty -5 mm add
+   /nexty exch def
+   /nextx nextx offsetx add def
+   classname status drawbox
+} def
+%%%%%%%%%%%%%%%%%%%%%%%%
+% restoreoldxy
+% restores old state of nextx and nexty
+/restoreoldxy
+{
+  % remove old child y coordinate 
+  /dummy def
+  5 mm sub 
+  /nexty exch def 
+  /nextx exch def 
+} def
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+% newlargeheadclass
+% draws a new large class item to the head line (liek tobject)
+% takes two parameters: 
+%     name of the class
+%     status of development
+/newlargeheadclass
+{
+   gsave
+   newpath
+   SetLineWidth 
+   SetLineColor
+   nextx nexty moveto   
+   8 mm 0 mm rlineto stroke
+   drawlargebox
+   grestore
+} def
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+% onelevelback
+% goes one level back in the class hierarchy
 /onelevelback
 {
    /oldy exch def
    newpath
    SetLineWidth 
    SetLineColor
-%   nexty -5 mm add
-%   /nexty exch def
    nextx -11 mm add
    /nextx exch def
    nextx oldy moveto
    nextx nexty lineto stroke         
 } def
+
 %%%%%%%%%%%%%%%%%%%%%%%%
 % Linuxonly
 % draws the linux icon
@@ -177,8 +327,9 @@ setfont
   moveto
   SetClassFont 
   StandardTextColor setrgbcolor
-  (Linux)
-  show
+%  (Linux)
+%  show
+%!!!!!!  here we have to update maxx (max. len of the current column)
   grestore
 } def
 
@@ -194,15 +345,32 @@ setfont
   moveto
   SetClassFont 
   StandardTextColor setrgbcolor
-  (Win32)
-  show
+%  (Win32)
+%  show
+%!!!!!!  here we have to update maxx (max. len of the current column)  
   grestore
 } def
+
 %%%%%%%%%%%%%%%%%%%%%%%%
 % Both
 % dummy
 /Both
 {
+} def
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+% goes to a new column
+% newcolumn
+/newcolumn
+{
+  % add 3 mm space 
+  /nextx maxx 3 mm add def
+  /nexty starty def
+  SetLineWidth 
+  SetLineColor
+  newpath
+  lastlargeobjectx nexty moveto
+  nextx nexty lineto stroke
 } def
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -212,29 +380,64 @@ setfont
 %%%%%%%%%%%%%%%%%%%%%%%
 % TObject
 %%%%%%%%%%%%%%%%%%%%%%%
-(TObject) Ready drawbox
+(TObject) Ready drawlargebox
 
 %%%%%%%%%%%%%%%%%%%%%%%
 % Exception classes
 %%%%%%%%%%%%%%%%%%%%%%%
-
-(Exception) Missed newchildclass
-(EAbort) Incomplete newchildclass
-  (ENewAbort) Untested newchildclass
-  (ECustomAbort) Ready newclass
-  onelevelback
-(EAbstractError) Missed newclass Linuxonly
-(EDatabaseError) Missed newclass Linuxonly
-  (EDBCLient) Missed newchildclass
-    (EReconcileError) Missed newchildclass Linuxonly
+  (Exception) Missed newchildclass
+  (EAbort) Incomplete newchildclass
+  (EAbstractError) Missed newclass Linuxonly
+  (EDatabaseError) Missed newclass Linuxonly
+    (EDBCLient) Missed newchildclass
+      (EReconcileError) Missed newchildclass Linuxonly
+      onelevelback
+    (EDBEngineError) Missed newclass Win32only
+    (ENoResultSet) Missed newclass
+    (EUpdateError) Missed newclass
     onelevelback
-  (EDBEngineError) Missed newclass Win32only
-  (ENoResultSet) Missed newclass
-  (EUpdateError) Missed newclass
+  (EDBEditError) Missed newclass
+  (EDSWriter) Missed newclass
   onelevelback
-(EDBEditError) Missed newclass
-(EDSWriter) Missed newclass
+(OutlineError) Missed newclass
+%%%%%%%%%%%%%%%%%%%%%%%
+% Some more base classes
+%%%%%%%%%%%%%%%%%%%%%%%
+newcolumn
+(TInterface) Missed 40 mm newclassxmoved
+(TIAddInNotifier) Missed newchildclass
+
+restoreoldxy
+(TInterfacedObject) Missed newclass
+
+(TList) Untested newclass
+(TLookupList) Missed newclass
+
+(TPropertyEditor) Missed 40 mm newclassxmoved
+(TClassProperty) Missed newchildclass
+  (TFontProperty) Missed newchildclass
+  onelevelback
+(TComponentProperty) Missed newclass
+% remove a childy coordinate
+restoreoldxy
+(TRegistry) Missed newclass
+  (TRegIniFile) Missed newchildclass
+  onelevelback
+(TSessionList) Missed newclass
+%%%%%%%%%%%%%%%%%%%%%%%
+% TPersistent classes
+%%%%%%%%%%%%%%%%%%%%%%%
+newcolumn
+(TPersistent) Missed newlargeheadclass
+(TCanvas) Missed newchildclass
+  (TControlCanvas) Missed newchildclass
+  (TMetafileCanvas) Missed newclass
+  onelevelback
+(TClipboard) Missed newclass
+%%%%%%%%%%%%%%%%%%%%%%%
+% TComponent classes
+%%%%%%%%%%%%%%%%%%%%%%%
+newcolumn
+(TComponent) Missed newlargeheadclass
 showpage
-
-
 
