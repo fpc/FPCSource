@@ -96,7 +96,7 @@ LIBDIR=$PREFIX/lib/fpc/$VERSION
 SRCDIR=$PREFIX/src/fpc-$VERSION
 DOCDIR=$PREFIX/doc/fpc-$VERSION
 DEMODIR=$DOCDIR/examples
-UTILDIR=$PREFIX/bin
+EXECDIR=$PREFIX/bin
 
 # Install compiler/RTL. Mandatory.
 echo Unpacking ...
