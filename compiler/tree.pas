@@ -289,6 +289,17 @@ unit tree;
        maxfirstpasscount : longint = 0;
 {$endif extdebug}
 
+    { gibt den ordinalen Werten der Node zurueck oder falls sie }
+    { keinen ordinalen Wert hat, wird ein Fehler erzeugt        }
+    function get_ordinal_value(p : ptree) : longint;
+
+    { true, if p is a pointer to a const int value }
+    function is_constintnode(p : ptree) : boolean;
+    { like is_constintnode }
+    function is_constboolnode(p : ptree) : boolean;
+    function is_constrealnode(p : ptree) : boolean;
+    function is_constcharnode(p : ptree) : boolean;
+
 {$I innr.inc}
 
   implementation
@@ -1537,10 +1548,61 @@ unit tree;
          destloc := sourceloc;
          sourceloc := swapl;
       end;
+
+
+    function get_ordinal_value(p : ptree) : longint;
+      begin
+         if p^.treetype=ordconstn then
+           get_ordinal_value:=p^.value
+         else
+           Message(parser_e_ordinal_expected);
+      end;
+
+
+    function is_constintnode(p : ptree) : boolean;
+
+      begin
+         {DM: According to me, an orddef with anysize, is
+          a correct constintnode. Anyway I commented changed s32bit check,
+          because it caused problems with statements like a:=high(word).}
+         is_constintnode:=((p^.treetype=ordconstn) and
+           (p^.resulttype^.deftype=orddef) and
+           (porddef(p^.resulttype)^.typ in [u8bit,s8bit,u16bit,s16bit,
+            u32bit,s32bit,uauto]));
+      end;
+
+    function is_constcharnode(p : ptree) : boolean;
+
+      begin
+         is_constcharnode:=((p^.treetype=ordconstn) and
+           (p^.resulttype^.deftype=orddef) and
+           (porddef(p^.resulttype)^.typ=uchar));
+      end;
+
+    function is_constrealnode(p : ptree) : boolean;
+
+      begin
+         is_constrealnode:=(p^.treetype=realconstn);
+      end;
+
+    function is_constboolnode(p : ptree) : boolean;
+
+      begin
+         is_constboolnode:=((p^.treetype=ordconstn) and
+           (p^.resulttype^.deftype=orddef) and
+           (porddef(p^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit]));
+      end;
+
+
+
 end.
 {
   $Log$
-  Revision 1.15  1998-06-06 08:39:07  peter
+  Revision 1.16  1998-06-12 14:50:49  peter
+    * removed the tree dependency to types.pas
+    * long_fil.pas support (not fully tested yet)
+
+  Revision 1.15  1998/06/06 08:39:07  peter
     * it needs types
 
   Revision 1.14  1998/06/05 14:37:40  pierre

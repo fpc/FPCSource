@@ -134,7 +134,7 @@ unit files;
 {$else}
           function  load_ppu(const unit_path,n,ext:string):boolean;
 {$endif}
-          procedure search_unit(const n : string);
+          function  search_unit(const n : string):boolean;
        end;
 
        pused_unit = ^tused_unit;
@@ -522,7 +522,7 @@ unit files;
     end;
 
 
-    procedure tmodule.search_unit(const n : string);
+    function tmodule.search_unit(const n : string):boolean;
       var
          ext       : string[8];
          singlepathstring,
@@ -597,6 +597,7 @@ unit files;
                sources_avail:=false;
             end;
          until Found or (path='');
+         search_unit:=Found;
       end;
 
 {$else NEWPPU}
@@ -768,7 +769,7 @@ unit files;
       load_ppu:=true;
     end;
 
-    procedure tmodule.search_unit(const n : string);
+    function tmodule.search_unit(const n : string):boolean;
       var
          ext       : string[8];
          singlepathstring,
@@ -843,6 +844,7 @@ unit files;
                sources_avail:=false;
             end;
          until Found or (path='');
+         search_unit:=Found;
       end;
 
 {$endif NEWPPU}
@@ -895,7 +897,10 @@ unit files;
           flags:=flags or uf_smartlink;
        { search the PPU file if it is an unit }
          if is_unit then
-          search_unit(modulename^);
+          begin
+            if (not search_unit(modulename^)) and (length(modulename^)>8) then
+             search_unit(copy(modulename^,1,8));
+          end;
       end;
 
     destructor tmodule.special_done;
@@ -940,7 +945,11 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.19  1998-06-12 10:32:26  pierre
+  Revision 1.20  1998-06-12 14:50:48  peter
+    * removed the tree dependency to types.pas
+    * long_fil.pas support (not fully tested yet)
+
+  Revision 1.19  1998/06/12 10:32:26  pierre
     * column problem hopefully solved
     + C vars declaration changed
 

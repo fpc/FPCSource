@@ -25,7 +25,7 @@ unit types;
   interface
 
     uses
-       cobjects,globals,symtable,tree;
+       cobjects,globals,symtable;
 
     type
        tmmxtype = (mmxno,mmxu8bit,mmxs8bit,mmxu16bit,mmxs16bit,
@@ -81,10 +81,6 @@ unit types;
     { equal                                         }
     function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
 
-    { gibt den ordinalen Werten der Node zurueck oder falls sie }
-    { keinen ordinalen Wert hat, wird ein Fehler erzeugt        }
-    function get_ordinal_value(p : ptree) : longint;
-
     { if l isn't in the range of def a range check error is generated }
     procedure testrange(def : pdef;l : longint);
 
@@ -93,14 +89,6 @@ unit types;
 
     { generates a VMT for _class }
     procedure genvmt(_class : pobjectdef);
-
-    { true, if p is a pointer to a const int value }
-    function is_constintnode(p : ptree) : boolean;
-
-    { like is_constintnode }
-    function is_constboolnode(p : ptree) : boolean;
-    function is_constrealnode(p : ptree) : boolean;
-    function is_constcharnode(p : ptree) : boolean;
 
     { some type helper routines for MMX support }
     function is_mmx_able_array(p : pdef) : boolean;
@@ -111,40 +99,6 @@ unit types;
   implementation
 
     uses verbose,aasm;
-
-    function is_constintnode(p : ptree) : boolean;
-
-      begin
-         {DM: According to me, an orddef with anysize, is
-          a correct constintnode. Anyway I commented changed s32bit check,
-          because it caused problems with statements like a:=high(word).}
-         is_constintnode:=((p^.treetype=ordconstn) and
-           (p^.resulttype^.deftype=orddef) and
-           (porddef(p^.resulttype)^.typ in [u8bit,s8bit,u16bit,s16bit,
-            u32bit,s32bit,uauto]));
-      end;
-
-    function is_constcharnode(p : ptree) : boolean;
-
-      begin
-         is_constcharnode:=((p^.treetype=ordconstn) and
-           (p^.resulttype^.deftype=orddef) and
-           (porddef(p^.resulttype)^.typ=uchar));
-      end;
-
-    function is_constrealnode(p : ptree) : boolean;
-
-      begin
-         is_constrealnode:=(p^.treetype=realconstn);
-      end;
-
-    function is_constboolnode(p : ptree) : boolean;
-
-      begin
-         is_constboolnode:=((p^.treetype=ordconstn) and
-           (p^.resulttype^.deftype=orddef) and
-           (porddef(p^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit]));
-      end;
 
     function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
 
@@ -223,86 +177,66 @@ unit types;
 
       begin
          is_open_array:=(p^.deftype=arraydef) and
-                 (parraydef(p)^.lowrange=0) and
-                 (parraydef(p)^.highrange=-1);
+                        (parraydef(p)^.lowrange=0) and
+                        (parraydef(p)^.highrange=-1);
       end;
 
     { true if o is an ansi string def }
     function is_ansistring(p : pdef) : boolean;
       begin
          is_ansistring:=(p^.deftype=stringdef) and
-                 (pstringdef(p)^.string_typ=ansistring);
+                        (pstringdef(p)^.string_typ=ansistring);
       end;
 
     { true if o is an long string def }
     function is_longstring(p : pdef) : boolean;
       begin
          is_longstring:=(p^.deftype=stringdef) and
-                 (pstringdef(p)^.string_typ=longstring);
+                        (pstringdef(p)^.string_typ=longstring);
       end;
 
-    { true if o is an long string def }
+    { true if o is an wide string def }
     function is_widestring(p : pdef) : boolean;
       begin
          is_widestring:=(p^.deftype=stringdef) and
-                 (pstringdef(p)^.string_typ=widestring);
+                        (pstringdef(p)^.string_typ=widestring);
       end;
 
     { true if o is an short string def }
     function is_shortstring(p : pdef) : boolean;
       begin
          is_shortstring:=(p^.deftype=stringdef) and
-                 (pstringdef(p)^.string_typ=shortstring);
+                         (pstringdef(p)^.string_typ=shortstring);
       end;
 
     { true if the return value is in accumulator (EAX for i386), D0 for 68k }
     function ret_in_acc(def : pdef) : boolean;
 
       begin
-         ret_in_acc:=(def^.deftype=orddef) or
-                     (def^.deftype=pointerdef) or
-                     (def^.deftype=enumdef) or
-                     ((def^.deftype=procvardef) and
-                      ((pprocvardef(def)^.options and pomethodpointer)=0)) or
-                     (def^.deftype=classrefdef) or
-                     ((def^.deftype=objectdef) and
-                      pobjectdef(def)^.isclass
-                     ) or
-                     ((def^.deftype=setdef) and
-                      (psetdef(def)^.settype=smallset)) or
-                     ((def^.deftype=floatdef) and
-                      (pfloatdef(def)^.typ=f32bit));
+         ret_in_acc:=(def^.deftype in [orddef,pointerdef,enumdef,classrefdef]) or
+                     ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)=0)) or
+                     ((def^.deftype=objectdef) and pobjectdef(def)^.isclass) or
+                     ((def^.deftype=setdef) and (psetdef(def)^.settype=smallset)) or
+                     ((def^.deftype=floatdef) and (pfloatdef(def)^.typ=f32bit));
       end;
 
     { true if uses a parameter as return value }
     function ret_in_param(def : pdef) : boolean;
 
       begin
-         ret_in_param:=(def^.deftype=arraydef) or
-                       (def^.deftype=stringdef) or
-                       ((def^.deftype=procvardef) and
-                        ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
-                       ((def^.deftype=objectdef) and
-                        ((pobjectdef(def)^.options and oois_class)=0)
-                       ) or
-                       (def^.deftype=recorddef) or
-                       ((def^.deftype=setdef) and
-                        (psetdef(def)^.settype<>smallset));
+         ret_in_param:=(def^.deftype in [arraydef,recorddef,stringdef]) or
+                       ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
+                       ((def^.deftype=objectdef) and ((pobjectdef(def)^.options and oois_class)=0)) or
+                       ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
 
     { true if a const parameter is too large to copy }
     function dont_copy_const_param(def : pdef) : boolean;
 
       begin
-         dont_copy_const_param:=(def^.deftype=arraydef) or
-                       (def^.deftype=stringdef) or
-                       (def^.deftype=objectdef) or
-                       (def^.deftype=formaldef) or
-                       (def^.deftype=recorddef) or
-                       ((def^.deftype=procvardef) and
-                        ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
-                       ((def^.deftype=setdef) and
-                        (psetdef(def)^.settype<>smallset));
+         dont_copy_const_param:=(def^.deftype in [arraydef,stringdef,objectdef,formaldef,recorddef]) or
+                       ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
+                       ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
 
     procedure testrange(def : pdef;l : longint);
@@ -347,15 +281,6 @@ unit types;
                     h:=penumdef(def)^.max;
                   end;
         end;
-      end;
-
-
-    function get_ordinal_value(p : ptree) : longint;
-      begin
-         if p^.treetype=ordconstn then
-           get_ordinal_value:=p^.value
-         else
-           Message(parser_e_ordinal_expected);
       end;
 
 
@@ -928,7 +853,11 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.13  1998-06-03 22:49:07  peter
+  Revision 1.14  1998-06-12 14:50:50  peter
+    * removed the tree dependency to types.pas
+    * long_fil.pas support (not fully tested yet)
+
+  Revision 1.13  1998/06/03 22:49:07  peter
     + wordbool,longbool
     * rename bis,von -> high,low
     * moved some systemunit loading/creating to psystem.pas
