@@ -141,6 +141,12 @@ SYSTEMUNIT=system
 ifdef EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dEXCEPTIONS_IN_SYSTEM
 endif
+
+# Insert exception handler in system unit
+ifdef NO_EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
+endif
+
 #####################################################################
 # FPCDIR Setting
 #####################################################################
@@ -226,7 +232,7 @@ endif
 
 # Info
 
-INFOTARGET=fpc_infocfg fpc_infoobjects fpc_infoinstall 
+INFOTARGET=fpc_infocfg fpc_infoobjects fpc_infoinstall
 
 #####################################################################
 # Post Settings

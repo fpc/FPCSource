@@ -18,7 +18,7 @@
 {$GOTO ON}
 {$define IN_DPMIEXCP_UNIT}
 {$ifndef NO_EXCEPTIONS_IN_SYSTEM}
-{ $ define EXCEPTIONS_IN_SYSTEM}
+{$define EXCEPTIONS_IN_SYSTEM}
 {$endif NO_EXCEPTIONS_IN_SYSTEM}
 
 Unit DpmiExcp;
@@ -32,8 +32,10 @@ Unit DpmiExcp;
 
 interface
 
+{$ifdef NO_EXCEPTIONS_IN_SYSTEM}
 uses
   go32;
+{$endif NO_EXCEPTIONS_IN_SYSTEM}
 
 {$endif ndef IN_SYSTEM}
 { No stack checking ! }
@@ -167,17 +169,13 @@ function __djgpp_set_sigquit_key(new_key : longint) : longint;cdecl;
 external name '___djgpp_set_sigquit_key';
 function __djgpp__traceback_exit(sig : longint) : longint;cdecl;
 external name '__djgpp__traceback_exit';
-{$endif CREATE_C_FUNCTIONS}
+{$else CREATE_C_FUNCTIONS}
 var
   v2prt0_ds_alias : word;external name '___v2prt0_ds_alias';
   djgpp_ds_alias  : word;external name '___djgpp_ds_alias';
-  djgpp_exception_state_ptr : pexception_state;external name '___djgpp_exception_state_ptr';
-  endtext        : longint;external name '_etext';
-  starttext       : longint;external name 'start';
   djgpp_old_kbd : tseginfo;external name '___djgpp_old_kbd';
   djgpp_hw_lock_start : longint;external name '___djgpp_hw_lock_start';
   djgpp_hw_lock_end : longint;external name '___djgpp_hw_lock_end';
-  djgpp_hwint_flags : longint;external name '___djgpp_hwint_flags';
   djgpp_dos_sel : word;external name '___djgpp_dos_sel';
   djgpp_exception_table : array[0..0] of pointer;external name '___djgpp_exception_table';
   dosmemselector : word;external name '_core_selector';
@@ -188,7 +186,12 @@ procedure djgpp_npx_hdlr;external name '___djgpp_npx_hdlr';
 procedure djgpp_kbd_hdlr;external name '___djgpp_kbd_hdlr';
 procedure djgpp_kbd_hdlr_pc98;external name '___djgpp_kbd_hdlr_pc98';
 procedure djgpp_cbrk_hdlr;external name '___djgpp_cbrk_hdlr';
-
+{$endif CREATE_C_FUNCTIONS}
+var
+  endtext        : longint;external name '_etext';
+  starttext       : longint;external name 'start';
+  djgpp_exception_state_ptr : pexception_state;external name '___djgpp_exception_state_ptr';
+  djgpp_hwint_flags : longint;external name '___djgpp_hwint_flags';
 
 {$ifdef CREATE_C_FUNCTIONS}
 var
@@ -1095,12 +1098,12 @@ begin
 end;
 
 
+{$ifdef CREATE_C_FUNCTIONS}
 var
   _swap_in  : pointer;external name '_swap_in';
   _swap_out : pointer;external name '_swap_out';
   _exception_exit : pointer;external name '_exception_exit';
 
-{$ifdef CREATE_C_FUNCTIONS}
 procedure dpmiexcp_exit{(status : longint)};[public,alias : 'excep_exit'];
 { We need to restore hardware interrupt handlers even if somebody calls
   `_exit' directly, or else we crash the machine in nested programs.
@@ -1133,17 +1136,9 @@ begin
    djgpp_exception_toggle;
 end;
 
-{$else CREATE_C_FUNCTIONS}
-procedure dpmiexcp_exit;external name 'excep_exit';
-procedure dpmi_swap_in;external name 'swap_in';
-procedure dpmi_swap_out;external name 'swap_out';
-{$endif CREATE_C_FUNCTIONS}
-
 var
   ___djgpp_app_DS : word;external name '___djgpp_app_DS';
   ___djgpp_our_DS : word;external name '___djgpp_our_DS';
-
-{$ifdef CREATE_C_FUNCTIONS}
   __djgpp_sigint_mask : word;external name '___djgpp_sigint_mask';
   __djgpp_sigint_key  : word;external name '___djgpp_sigint_key';
   __djgpp_sigquit_mask : word;external name '___djgpp_sigquit_mask';
@@ -1244,6 +1239,7 @@ begin
     { This exits, does not return.  }
     do_faulting_finish_message(djgpp_exception_state_ptr=@fake_exception);
   ___exit(-1);
+  __djgpp__traceback_exit:=0;
 end;
 
 procedure djgpp_exception_setup;
@@ -1426,7 +1422,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.13  2000-03-10 09:53:17  pierre
+  Revision 1.14  2000-03-13 19:45:21  pierre
+   + exceptions in system is default now
+
+  Revision 1.13  2000/03/10 09:53:17  pierre
    * some clean up for exceptions in system
 
   Revision 1.12  2000/03/09 09:15:10  pierre

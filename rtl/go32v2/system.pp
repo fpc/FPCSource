@@ -25,6 +25,10 @@ interface
     - list of args
     - list of env variables  (PM) }
 
+{$ifndef NO_EXCEPTIONS_IN_SYSTEM}
+{$define EXCEPTIONS_IN_SYSTEM}
+{$endif NO_EXCEPTIONS_IN_SYSTEM}
+
 { include system-independent routine headers }
 
 {$I systemh.inc}
@@ -1350,7 +1354,6 @@ end;
 {$I thread.inc}
 {$endif MT}
 
-{ define EXCEPTIONS_IN_SYSTEM}
 {$ifndef RTLLITE}
 {$ifdef  EXCEPTIONS_IN_SYSTEM}
 {$define IN_SYSTEM}
@@ -1403,7 +1406,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.35  2000-03-09 09:15:10  pierre
+  Revision 1.36  2000-03-13 19:45:21  pierre
+   + exceptions in system is default now
+
+  Revision 1.35  2000/03/09 09:15:10  pierre
     + support for djgpp v2.03 (added some new functions that are in v2.03 ofdpmiexcp.c)
     + code to integrate exception support inside the system unit
 
