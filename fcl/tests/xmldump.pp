@@ -63,12 +63,17 @@ begin
   WriteLn('Successfully parsed the document. Structure:');
   WriteLn;
   DumpNode(xml, '| ');
+  xml.Free;
 end.
 
 
 {
   $Log$
-  Revision 1.4  2000-01-06 01:20:36  peter
+  Revision 1.5  2000-01-30 22:20:57  sg
+  * The XML config object is now freed at the end of the program
+    (this enables us to detect memory leaks with this test program)
+
+  Revision 1.4  2000/01/06 01:20:36  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  2000/01/03 19:33:10  peter
