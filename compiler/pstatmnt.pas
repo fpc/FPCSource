@@ -448,7 +448,6 @@ implementation
       begin
          p:=comp_expr(true);
          do_resulttypepass(p);
-         set_varstate(p,vs_used,false);
          right:=nil;
          if (not codegenerror) and
             (p.resulttype.def.deftype in [objectdef,recorddef]) then
@@ -1183,7 +1182,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.153  2005-02-08 21:25:14  florian
+  Revision 1.154  2005-02-11 16:24:59  peter
+    * don't set varstate to vs_used for record in with at start yet
+
+  Revision 1.153  2005/02/08 21:25:14  florian
     * fixed usage of 000 as label
 
   Revision 1.152  2005/02/03 17:10:58  peter
