@@ -669,9 +669,9 @@ BEGIN
    Size.Y := ScreenHeight;                            { Set y size value }
    RawSize.X := ScreenWidth * SysFontWidth - 1;       { Set rawsize x }
    RawSize.Y := ScreenHeight * SysFontHeight - 1;     { Set rawsize y }
-   InitDesktop;                                       { Create desktop }
    InitStatusLine;                                    { Create status line }
    InitMenuBar;                                       { Create a bar menu }
+   InitDesktop;                                       { Create desktop }
    If (Desktop <> Nil) Then Insert(Desktop);          { Insert desktop }
    If (StatusLine <> Nil) Then Insert(StatusLine);    { Insert status line }
    If (MenuBar <> Nil) Then Insert(MenuBar);          { Insert menu bar }
@@ -1193,7 +1193,10 @@ END;
 END.
 {
  $Log$
- Revision 1.18  2002-06-07 14:12:21  pierre
+ Revision 1.19  2002-08-22 13:39:29  pierre
+  * Postpone InitDesktop to set the correct size
+
+ Revision 1.18  2002/06/07 14:12:21  pierre
   * try to get resizing to work
 
  Revision 1.17  2002/06/06 20:34:19  pierre
