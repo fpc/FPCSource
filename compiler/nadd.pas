@@ -1296,11 +1296,6 @@ implementation
         case nodetype of
           addn:
             begin
-              { note: if you implemented an fpc_shortstr_concat similar to the    }
-              { one in i386.inc, you have to override first_addstring like in     }
-              { ti386addnode.first_string and implement the shortstring concat    }
-              { manually! The generic routine is different from the i386 one (JM) }
-
               { create the call to the concat routine both strings as arguments }
               result := ccallnode.createintern('fpc_'+
                 tstringdef(resulttype.def).stringtypname+'_concat',
@@ -1958,7 +1953,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2003-05-24 21:12:57  florian
+  Revision 1.90  2003-05-26 19:38:28  peter
+    * generic fpc_shorstr_concat
+    + fpc_shortstr_append_shortstr optimization
+
+  Revision 1.89  2003/05/24 21:12:57  florian
     * if something doesn't work with callparatemp, the define callparatemp
       should be used because other processors with reigster calling conventions
       depend on this as well

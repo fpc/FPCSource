@@ -628,6 +628,38 @@ implementation
                     exit;
                  end;
               end;
+          end
+        else
+         if is_shortstring(left.resulttype.def) then
+          begin
+            { fold <shortstring>:=<shortstring>+<shortstring>,
+              <shortstring>+<char> is handled by an optimized node }
+            if (right.nodetype=addn) and
+               left.isequal(tbinarynode(right).left) and
+               { don't fold multiple concatenations else we could get trouble
+                 with multiple uses of s }
+               (tbinarynode(right).left.nodetype<>addn) and
+               (tbinarynode(right).right.nodetype<>addn) then
+              begin
+                { don't do a resulttypepass(right), since then the addnode }
+                { may insert typeconversions that make this optimization   }
+                { opportunity quite difficult to detect (JM)               }
+                resulttypepass(tbinarynode(right).left);
+                resulttypepass(tbinarynode(right).right);
+                if is_shortstring(tbinarynode(right).right.resulttype.def) then
+                  begin
+                    { remove property flag so it'll not trigger an error }
+                    exclude(left.flags,nf_isproperty);
+                    { generate call to helper }
+                    hp:=ccallparanode.create(tbinarynode(right).right,
+                      ccallparanode.create(left,nil));
+                    if is_shortstring(tbinarynode(right).right.resulttype.def) then
+                      result:=ccallnode.createintern('fpc_shortstr_append_shortstr',hp);
+                    tbinarynode(right).right:=nil;
+                    left:=nil;
+                    exit;
+                 end;
+              end;
           end;
 
         resulttypepass(right);
@@ -1213,7 +1245,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  2003-05-23 17:05:13  peter
+  Revision 1.96  2003-05-26 19:38:28  peter
+    * generic fpc_shorstr_concat
+    + fpc_shortstr_append_shortstr optimization
+
+  Revision 1.95  2003/05/23 17:05:13  peter
     * loadn procsym need to return procdef
 
   Revision 1.94  2003/05/23 14:27:35  peter

@@ -331,25 +331,16 @@ interface
         { special cases for shortstrings, handled in pass_2 (JM) }
         { can't handle fpc_shortstr_compare with compilerproc either because it }
         { returns its results in the flags instead of in eax                    }
-        if (nodetype = addn) and
-           is_shortstring(resulttype.def) then
+        if (nodetype in [ltn,lten,gtn,gten,equaln,unequaln]) and
+           is_shortstring(left.resulttype.def) and
+           not(((left.nodetype=stringconstn) and (str_length(left)=0)) or
+              ((right.nodetype=stringconstn) and (str_length(right)=0))) then
          begin
-           expectloc:=LOC_REFERENCE;
+           expectloc:=LOC_FLAGS;
            calcregisters(self,0,0,0);
            result := nil;
            exit;
-         end
-        else
-         if (nodetype in [ltn,lten,gtn,gten,equaln,unequaln]) and
-            is_shortstring(left.resulttype.def) and
-            not(((left.nodetype=stringconstn) and (str_length(left)=0)) or
-               ((right.nodetype=stringconstn) and (str_length(right)=0))) then
-          begin
-            expectloc:=LOC_FLAGS;
-            calcregisters(self,0,0,0);
-            result := nil;
-            exit;
-          end;
+         end;
         { otherwise, use the generic code }
         result := inherited first_addstring;
       end;
@@ -358,10 +349,8 @@ interface
     procedure ti386addnode.second_addstring;
 
       var
-        href       : treference;
         cmpop      : boolean;
         pushed     : Tpushedsavedint;
-        regstopush : Tsupregset;
       begin
         { string operations are not commutative }
         if nf_swaped in flags then
@@ -370,51 +359,6 @@ interface
            st_shortstring:
              begin
                 case nodetype of
-                   addn:
-                     begin
-                        cmpop:=false;
-                        secondpass(left);
-                        { if str_concat is set in expr
-                          s:=s+ ... no need to create a temp string (PM) }
-                        { the tempstring can also come from a typeconversion }
-                        { or a function result, so simply check for a        }
-                        { temp of 256 bytes(JM)                                          }
-                        if not(tg.istemp(left.location.reference) and
-                               (tg.SizeOfTemp(exprasmlist,left.location.reference) = 256)) and
-                           not(nf_use_strconcat in flags) then
-                          begin
-                             tg.GetTemp(exprasmlist,256,tt_normal,href);
-                             cg.g_copyshortstring(exprasmlist,left.location.reference,href,255,true,false);
-                             { location is released by copyshortstring }
-                             location_freetemp(exprasmlist,left.location);
-
-                             location_reset(left.location,LOC_REFERENCE,def_cgsize(resulttype.def));
-                             left.location.reference:=href;
-                          end;
-
-                        secondpass(right);
-
-                        { on the right we do not need the register anymore too }
-                        { Instead of releasing them already, simply do not }
-                        { push them (so the release is in the right place, }
-                        { because emitpushreferenceaddr doesn't need extra }
-                        { registers) (JM)                                  }
-                        regstopush := all_intregisters;
-                        remove_non_regvars_from_loc(right.location,regstopush);
-                        rg.saveusedintregisters(exprasmlist,pushed,regstopush);
-                        { push the maximum possible length of the result }
-                        cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(2));
-                        { the optimizer can more easily put the          }
-                        { deallocations in the right place if it happens }
-                        { too early than when it happens too late (if    }
-                        { the pushref needs a "lea (..),edi; push edi")  }
-                        location_release(exprasmlist,right.location);
-                        cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(1));
-                        rg.saveintregvars(exprasmlist,regstopush);
-                        cg.a_call_name(exprasmlist,'FPC_SHORTSTR_CONCAT');
-                        tg.ungetiftemp(exprasmlist,right.location.reference);
-                        rg.restoreusedintregisters(exprasmlist,pushed);
-                     end;
                    ltn,lten,gtn,gten,equaln,unequaln :
                      begin
                        cmpop := true;
@@ -1663,7 +1607,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2003-05-22 21:32:29  peter
+  Revision 1.68  2003-05-26 19:38:28  peter
+    * generic fpc_shorstr_concat
+    + fpc_shortstr_append_shortstr optimization
+
+  Revision 1.67  2003/05/22 21:32:29  peter
     * removed some unit dependencies
 
   Revision 1.66  2003/04/26 09:12:55  peter

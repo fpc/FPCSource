@@ -728,6 +728,9 @@ implementation
               secondpass(hp.left);
               if codegenerror then
                exit;
+              { Move flags and jump in register }
+              if hp.left.location.loc in [LOC_FLAGS,LOC_JUMP] then
+                location_force_reg(exprasmlist,hp.left.location,def_cgsize(hp.left.resulttype.def),false);
               if dovariant then
                begin
                  { find the correct vtype value }
@@ -919,7 +922,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2003-05-24 11:47:27  jonas
+  Revision 1.62  2003-05-26 19:38:28  peter
+    * generic fpc_shorstr_concat
+    + fpc_shortstr_append_shortstr optimization
+
+  Revision 1.61  2003/05/24 11:47:27  jonas
     * fixed framepointer storage: it's now always stored at r1+12, which is
       a place in the link area reserved for compiler use.
 
