@@ -413,18 +413,29 @@ Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : Longint);[Public,Alias 
 }
 Var
   Temp : Pointer;
-  movelen: longint;
+  movelen, NewLen: longint;
 begin
-   if (l>0) then
+  if (l>0) then
     begin
       if Pointer(S)=nil then
        begin
          { Need a complete new string...}
          Pointer(s):=NewAnsiString(l);
        end
+      else if (PAnsiRec(Pointer(S)-FirstOff)^.Ref = 1) then
+        begin
+          if (PAnsiRec(Pointer(S)-FirstOff)^.Maxlen < L) then
+            begin
+              Dec(Pointer(S),FirstOff);
+              NewLen := (L+AnsiRecLen+15) and not(15) - AnsiRecLen;
+              reallocmem(pointer(S),AnsiRecLen+NewLen);
+              PAnsiRec(S)^.MaxLen := NewLen;
+              Inc(Pointer(S),FirstOff);
+            end;
+          PAnsiRec(Pointer(S)-FirstOff)^.Len := L;
+          PByte(Pointer(S)+L)^:=0;
+        end
       else
-       If (PAnsiRec(Pointer(S)-FirstOff)^.Maxlen < L) or
-          (PAnsiRec(Pointer(S)-FirstOff)^.Ref <> 1) then
         begin
           { Reallocation is needed... }
           Temp:=Pointer(NewAnsiString(L));
@@ -527,6 +538,7 @@ Procedure fpc_ansistr_append_char(Var S : AnsiString;c : char); [Public,Alias : 
 begin
    SetLength(S,length(S)+1);
    S[length(S)]:=c;
+   PByte(Pointer(S)+length(S))^:=0; { Terminating Zero }
 end;
 
 Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;Str : ShortString); [Public,Alias : 'FPC_ANSISTR_APPEND_SHORTSTRING']; {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -536,6 +548,7 @@ begin
    ofs:=Length(S);
    SetLength(S,ofs+length(Str));
    move(Str[1],S[ofs+1],length(Str));
+   PByte(Pointer(S)+length(S))^:=0; { Terminating Zero }
 end;
 
 Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;Str : AnsiString); [Public,Alias : 'FPC_ANSISTR_APPEND_ANSISTRING']; {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -546,7 +559,7 @@ begin
      begin
         ofs:=Length(S);
         SetLength(S,ofs+length(Str));
-        move(Str[1],S[ofs+1],length(Str));
+        move(Str[1],S[ofs+1],length(Str)+1);
      end;
 end;
 
@@ -822,7 +835,12 @@ end;
 
 {
   $Log$
-  Revision 1.31  2002-10-19 17:06:50  michael
+  Revision 1.32  2002-10-20 12:59:21  jonas
+    * fixed ansistring append helpers so they preserve the terminating #0
+    * optimized SetLength() so that it uses reallocmem in case the refcount
+      of the target string is 1
+
+  Revision 1.31  2002/10/19 17:06:50  michael
   + Added check for nil buffer to setstring
 
   Revision 1.30  2002/10/17 12:43:00  florian
