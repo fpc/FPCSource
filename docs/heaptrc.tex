@@ -40,6 +40,7 @@ this will be displayed also.
 The information that is stored/displayed can be customized using
 some constants.
 
+
 \section{Usage}
 
 All that you need to do is to include \file{heaptrc} in the uses clause
@@ -48,48 +49,40 @@ otherwise memory allocated in initialization code of units that precede the
 heaptrc unit will not be accounted for, causing an incorrect memory usage
 report.
 
-The following example shows how to use the heaptrc unit.
+If you use the \var{-gh} switch, the compiler will insert the unit by itself,
+so you don't have to include it in your uses clause.
 
+The following example shows how to use the heaptrc unit.
 \latex{\lstinputlisting{heapex/heapex.pp}}
 \html{\input{heapex/heapex.tex}}
 
 This is the memory dump shown when running this program:
 \begin{verbatim}
-Marked memory at 08052C48 invalid
+Marked memory at 0040FA50 invalid
 Wrong size : 128 allocated 64 freed
-  0x0804C29C
-  0x080509E2
-  0x080480A4
-  0x00000000
-Heap dump by heaptrc unit
-13 memory blocks allocated : 1416/1424
-6 memory blocks freed     : 708/712
-7 unfreed memory blocks : 708
-True heap size : 2097152
-True free heap : 2096040
-Should be : 2096104
-Call trace for block 0x08052C48 size 128
-  0x080509D6
-  0x080480A4
-Call trace for block 0x08052B98 size 128
-  0x08050992
-  0x080480A4
-Call trace for block 0x08052AE8 size 128
-  0x08050992
-  0x080480A4
-Call trace for block 0x08052A38 size 128
-  0x08050992
-  0x080480A4
-Call trace for block 0x08052988 size 128
-  0x08050992
-  0x080480A4
-Call trace for block 0x080528D8 size 128
-  0x08050992
-  0x080480A4
-Call trace for block 0x080528A0 size 4
-  0x08050961
-  0x080480A4
+  0x00408708
+  0x0040CB49
+  0x0040C481
+Call trace for block 0x0040FA50 size 128
+  0x0040CB3D
+  0x0040C481
 \end{verbatim}
+
+If you use the \file{lineinfo} unit (or use the \var{-gl} switch) as well,
+then \file{heaptrc} will also give you the filenames and line-numbers of
+the procedures in the backtrace:
+\begin{verbatim}
+Marked memory at 00410DA0 invalid
+Wrong size : 128 allocated 64 freed
+  0x004094B8
+  0x0040D8F9  main,  line 25 of heapex.pp
+  0x0040D231
+Call trace for block 0x00410DA0 size 128
+  0x0040D8ED  main,  line 23 of heapex.pp
+  0x0040D231
+\end{verbatim}
+If lines without filename/line-number occur, this means there is a unit which
+has no debug info included.
 
 \section{Constants, Types and variables}
 
@@ -189,7 +182,10 @@ output, and a \seep{DumpHeap} is executed.
 
 %
 % $Log$
-% Revision 1.3  1999-06-25 22:12:16  michael
+% Revision 1.4  2000-02-07 11:21:06  michael
+% + Documented heaptrc and lineinfo
+%
+% Revision 1.3  1999/06/25 22:12:16  michael
 % + Update to version 0.19 of listings package
 %
 % Revision 1.2  1998/12/15 23:50:52  michael

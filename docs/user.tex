@@ -2340,6 +2340,107 @@ then only output the information about the timings
 
 For more information on the \gnu profiler \var{gprof}, see its manual.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Checking the heap
+\section{Detecting heap memory leaks}
+\label{se:heaptrc}
+\fpc has a built in mechanism to detect memory leaks. There is a plug-in
+unit for the memory manager that analyses the memory allocation/deallocation
+and which prints a memory usage report after the program exits.
+
+The unit that does this is called \file{heaptrc}. If you want to use it,
+you should include it as the first unit in you uses clause. Alternatively,
+you can supply the \var{-gh} switch to the compiler, and it will include
+the unit automatically for you.
+
+After the program exits, you will get a report looking like this:
+\begin{verbatim}
+Marked memory at 0040FA50 invalid
+Wrong size : 128 allocated 64 freed
+  0x00408708
+  0x0040CB49
+  0x0040C481
+Call trace for block 0x0040FA50 size 128
+  0x0040CB3D
+  0x0040C481
+\end{verbatim}
+The output of the heaptrc unit is customizable by setting some variables.
+
+You can find more information about the usage of the \file{heaptrc} unit
+in the \unitsref.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Verbos Run-time errors.
+\section{Line numbers in run-time error backtraces}
+\label{se:lineinfo}
+
+Normally, when a run-time error occurs, you are presented with a list
+of addresses that represent the call stack backtrace, i.e. the addresses
+of all procedures that were invoked when the run-time error occurred.
+
+This list is not very informative, so there exists a unit that generates
+the file names and line numbers of the called procedures using the
+addresses of the stack backtrace. This unit is called lineinfo.
+
+You can use this unit by giving the \var{-gl} option to the compiler. The
+unit will be automatically included. It is also possible to use the unit
+explicitly in your \var{uses} clause, but you must make sure that you
+compile your program with debug info.
+
+Here is an example program:
+\begin{verbatim}
+program testline;
+
+procedure generateerror255;
+
+begin
+  runerror(255);
+end;
+
+procedure generateanerror;
+
+begin
+  generateerror255;
+end;
+
+begin
+  generateanerror;
+end.
+\end{verbatim}
+When compiled with \var{-gl}, the following output is generated:
+\begin{verbatim}
+Runtime error 255 at 0x0040BDE5
+  0x0040BDE5  GENERATEERROR255,  line 6 of testline.pp
+  0x0040BDF0  GENERATEANERROR,  line 13 of testline.pp
+  0x0040BE0C  main,  line 17 of testline.pp
+  0x0040B7B1
+\end{verbatim}
+Which is more understandable than the normal message. Make sure that all
+units you use are compiled with debug info, because if they are not, no
+line number and filename can be found.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Combining heaptrc and lineinfo
+\section{Combining \file{heaptrc} and \file{lineinfo}}
+
+If you combine the lineinfo and the heaptrc information, then the output
+of the \file{heaptrc} unit will contain the names of the files and line
+numbers of the procedures that occur in the stack backtrace.
+
+In such a case, the output will look something like this:
+\begin{verbatim}
+Marked memory at 00410DA0 invalid
+Wrong size : 128 allocated 64 freed
+  0x004094B8
+  0x0040D8F9  main,  line 25 of heapex.pp
+  0x0040D231
+Call trace for block 0x00410DA0 size 128
+  0x0040D8ED  main,  line 23 of heapex.pp
+  0x0040D231
+\end{verbatim}
+If lines without filename/line-number occur, this means there is a unit which
+has no debug info included. (in the above case, the getmem call itself)
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CGI.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
