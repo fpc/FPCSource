@@ -559,7 +559,7 @@ const go32v2stub : array[0..2047] of byte=(
     function TCoffObjectData.sectionname(atype:tasmsectiontype;const aname:string):string;
       const
         secnames : array[tasmsectiontype] of string[16] = ('',
-          '.text','.data','.data','.bss',
+          '.text','.data','.rodata','.bss',
           'common',
           '.note',
           '.stab','.stabstr',
@@ -603,12 +603,21 @@ const go32v2stub : array[0..2047] of byte=(
          begin
            { current address }
            curraddr:=currsec.mempos+currsec.datasize;
-           { real address of the symbol }
-           symaddr:=p.address;
            { external/common symbols don't have a fixed memory position yet }
-           if (p.section<>nil) and
-              (p.currbind<>AB_COMMON) then
-            inc(symaddr,p.section.mempos);
+           if (p.currbind=AB_COMMON) then
+             begin
+               { For go32v2 we need to use the size as address }
+               if not win32 then
+                 symaddr:=p.size
+               else
+                 symaddr:=0;
+             end
+           else
+             begin
+               symaddr:=p.address;
+               if assigned(p.section) then
+                 inc(symaddr,p.section.mempos);
+             end;
            { no symbol relocation need inside a section }
            if (p.section=currsec) and
               (p.currbind<>AB_COMMON) then
@@ -639,10 +648,8 @@ const go32v2stub : array[0..2047] of byte=(
                  currsec.addsectionreloc(curraddr,p.section,relative)
                else
                  currsec.addsymreloc(curraddr,p,relative);
-               if not win32 then {seems wrong to me (PM) }
-                inc(data,symaddr)
-               else
-                if (relative<>RELOC_RELATIVE) and (p.section<>nil) then
+               if (not win32) or
+                  ((relative<>RELOC_RELATIVE) and (p.section<>nil)) then
                  inc(data,symaddr);
                if relative=RELOC_RELATIVE then
                 begin
@@ -1786,7 +1793,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.30  2004-08-24 19:31:44  hajny
+  Revision 1.31  2004-08-25 15:55:32  peter
+    * fixed win32 that was broken by previous fix
+
+  Revision 1.30  2004/08/24 19:31:44  hajny
     * binary writer fix for GO32v2 from Peter
 
   Revision 1.29  2004/06/20 08:55:30  florian
