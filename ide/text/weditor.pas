@@ -117,6 +117,7 @@ const
       CEditor       = #33#34#35#36#37#38#39#40#41#42#43#44#45#46#47#48#49;
 
       TAB      = #9;
+      FindStrSize = 79;
 
 type
     PLine = ^TLine;
@@ -334,8 +335,8 @@ function StdEditorDialog(Dialog: Integer; Info: Pointer): word;
 const
      EditorDialog       : TCodeEditorDialog = StdEditorDialog;
      Clipboard          : PCodeEditor = nil;
-     FindStr            : String[80] = '';
-     ReplaceStr         : String[80] = '';
+     FindStr            : String[FindStrSize] = '';
+     ReplaceStr         : String[FindStrSize] = '';
      FindFlags          : word = ffPromptOnReplace;
      WhiteSpaceChars    : set of char = [#0,#32,#255];
      TabChars           : set of char = [#9];
@@ -379,17 +380,21 @@ const
 
 type
      TFindDialogRec = packed record
-       Find     : String[80];
-       Options  : {Word}longint;{checkboxes need 32  bits PM  }
+       Find     : String[FindStrSize];
+       Options  : Word{longint};
+       { checkboxes need 32  bits PM  }
+       { reverted to word in dialogs.TCluster for TP compatibility (PM) }
+       { anyhow its complete nonsense : you can only have 16 fields
+         but use a longint to store it !! }
        Direction: word;{ and tcluster has word size }
        Scope    : word;
        Origin   : word;
      end;
 
      TReplaceDialogRec = packed record
-       Find     : String[80];
-       Replace  : String[80];
-       Options  : {Word}longint;{checkboxes need 32  bits PM  }
+       Find     : String[FindStrSize];
+       Replace  : String[FindStrSize];
+       Options  : Word{longint};
        Direction: word;
        Scope    : word;
        Origin   : word;
@@ -2390,7 +2395,9 @@ var S: string;
      begin
        if SForward then
         begin
-          if FindFlags and ffCaseSensitive<>0 then
+          if Start>length(s) then
+           P:=0
+          else if FindFlags and ffCaseSensitive<>0 then
            P:=BMFScan(S[Start],length(s)+1-Start,FindStr,Bt)+1
           else
            P:=BMFIScan(S[Start],length(s)+1-Start,IFindStr,Bt)+1;
@@ -3330,7 +3337,7 @@ begin
     Options:=Options or ofCentered;
     GetExtent(R); R.Grow(-3,-2);
     R1.Copy(R); R1.B.X:=17; R1.B.Y:=R1.A.Y+1; R2.Copy(R); R2.A.X:=17; R2.B.Y:=R2.A.Y+1;
-    New(IL1, Init(R2, 80));
+    New(IL1, Init(R2, FindStrSize));
     IL1^.Data^:=FindStr;
     Insert(IL1);
     Insert(New(PLabel, Init(R1, '~T~ext to find', IL1)));
@@ -3394,14 +3401,14 @@ begin
     Options:=Options or ofCentered;
     GetExtent(R); R.Grow(-3,-2);
     R1.Copy(R); R1.B.X:=17; R1.B.Y:=R1.A.Y+1; R2.Copy(R); R2.A.X:=17; R2.B.Y:=R2.A.Y+1;
-    New(IL1, Init(R2, 80));
+    New(IL1, Init(R2, FindStrSize));
     IL1^.Data^:=FindStr;
     Insert(IL1);
     Insert(New(PLabel, Init(R1, '~T~ext to find', IL1)));
 
     R1.Copy(R); R1.Move(0,2); R1.B.X:=17; R1.B.Y:=R1.A.Y+1;
     R2.Copy(R); R2.Move(0,2); R2.A.X:=17; R2.B.Y:=R2.A.Y+1;
-    New(IL2, Init(R2, 80));
+    New(IL2, Init(R2, FindStrSize));
     IL2^.Data^:=ReplaceStr;
     Insert(IL2);
     Insert(New(PLabel, Init(R1, '    ~N~ew text', IL2)));
@@ -3571,7 +3578,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.31  1999-05-22 13:44:35  peter
+  Revision 1.32  1999-06-21 23:36:12  pierre
+   * Size for Cluster is word (TP compatibility)
+
+  Revision 1.31  1999/05/22 13:44:35  peter
     * fixed couple of bugs
 
   Revision 1.30  1999/04/15 08:58:10  peter
