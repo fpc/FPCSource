@@ -1214,9 +1214,15 @@ begin
       SysNothing :
         Event.What:=evNothing;
       SysSetFocus :
-        Event.What:=cmReceivedFocus;
+        begin
+          Event.What:=evBroadcast;
+          Event.Command:=cmReceivedFocus;
+        end;
       SysReleaseFocus :
-        Event.What:=cmReleasedFocus;
+        begin
+          Event.What:=evBroadcast;
+          Event.Command:=cmReleasedFocus;
+        end;
       SysClose :
         begin
           Event.What:=evCommand;
@@ -1232,7 +1238,9 @@ begin
       else
         Event.What:=evNothing;
       end;
-    end;
+    end
+  else
+    Event.What:=evNothing;
 end;
 {$endif HasSysMsgUnit}
 
@@ -1663,7 +1671,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.28  2002-06-07 14:08:28  pierre
+ Revision 1.29  2002-06-10 18:16:55  pierre
+  * set Event.What to evNothing if no event in GetSystemEvent
+
+ Revision 1.28  2002/06/07 14:08:28  pierre
   * try to get resizing to work
 
  Revision 1.27  2002/06/06 20:33:35  pierre
