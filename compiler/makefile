@@ -97,9 +97,9 @@ endif
 # Where to install the _real_executable and support files
 ifndef LIBINSTALLDIR
 ifdef inlinux
-LIBINSTALLDIR=/usr/lib/fpc/0.99.5
+LIBINSTALLDIR=/usr/lib/fpc/0.99.6
 # for a.out
-# LIBINSTALLDIR=/usr/lib/ppc/aout/0.99.5
+# LIBINSTALLDIR=/usr/lib/ppc/aout/0.99.6
 else
 LIBINSTALLDIR=$(PROGINSTALLDIR)
 endif
@@ -412,7 +412,10 @@ rtlclean :
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.9  1998-04-15 14:16:48  michael
+# Revision 1.10  1998-04-23 13:21:46  michael
+# Updated version number
+#
+# Revision 1.9  1998/04/15 14:16:48  michael
 # + Removed CR characters
 #
 # Revision 1.8  1998/04/06 12:28:23  pierre
