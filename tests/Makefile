@@ -1432,7 +1432,7 @@ ifndef DBDIGEST
 DBDIGEST=./dbdigest$(EXEEXT)
 DIGESTDEP+=$(DBDIGEST)
 $(DBDIGEST) : units utils/dbdigest.pp utils/teststr.pp utils/testu.pp utils/dbtests.pp
-	$(FPC) -n -Fuunits -Fu../packages/base/mysql -FE. utils/dbdigest.pp
+	$(FPC) -n -Fuunits -Fu../packages/base/mysql -FE. utils/dbdigest.pp -al
 endif
 endif
 ifndef DIGEST
@@ -1515,7 +1515,7 @@ distclean: clean
 rundigest : $(DIGESTDEP)
 	-$(DIGEST)
 ifeq ($(USESQL),YES)
-	-$(DBDIGEST) -v $(DIGESTVER) -o $(OS_TARGET) -c $(CPU_TARGET)
+	-$(DBDIGEST) -v $(DIGESTVER) -o $(OS_TARGET) -c $(CPU_TARGET) $(DBDIGESTOPT)
 endif
 all : allexectests
 full : clean allexectests rundigest
