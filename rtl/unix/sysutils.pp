@@ -1,6 +1,5 @@
 {
     $Id$
-
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -141,20 +140,29 @@ end;
  If FileAttributes match, the entry is reused
 }
 
+Type
+  TGlobSearchRec = Record
+    Path       : String;
+    GlobHandle : PGlob;
+  end;  
+  PGlobSearchRec = ^TGlobSearchRec;
+      
 Function GlobToTSearchRec (Var Info : TSearchRec) : Boolean;
 
 Var SInfo : Stat;
     p     : Pglob;
     TAttr : Longint;
-
+    GlobSearchRec : PGlobSearchrec;
+    
 begin
   TAttr:=$ffffffff;
-  P:=pglob(Info.FindHandle);
+  GlobSearchRec:=PGlobSearchrec(Info.FindHandle);
+  P:=GlobSearchRec^.GlobHandle;
   Result:=P<>Nil;
   If Result then
     begin
-    Info.FindHandle:=Longint(P^.Next);
-    Result:=Fstat(p^.name,SInfo);
+    GlobSearchRec^.GlobHandle:=P^.Next;
+    Result:=Fstat(GlobSearchRec^.Path+StrPas(p^.name),SInfo);
     If Result then
       begin
       Info.Attr:=LinuxToWinAttr(p^.name[0],SInfo);
@@ -176,10 +184,14 @@ end;
 
 Function DoFind(Var Rslt : TSearchRec) : Longint;
 
+Var
+  GlobSearchRec : PGlobSearchRec;
+
 begin
   Result:=-1;
-  If Rslt.FindHandle<>0 then
-    While (Rslt.FindHandle<>0) and not (Result=0) do
+  GlobSearchRec:=PGlobSearchRec(Rslt.FindHandle);
+  If (GlobSearchRec^.GlobHandle<>Nil) then
+    While (GlobSearchRec^.GlobHandle<>Nil) and not (Result=0) do
       If GlobToTSearchRec(Rslt) Then Result:=0;
 end;
 
@@ -187,9 +199,15 @@ end;
 
 Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
 
+Var 
+  GlobSearchRec : PGlobSearchRec;
+  
 begin
+  New(GlobSearchRec);
+  GlobSearchRec^.Path:=ExpandFileName(ExtractFilePath(Path));
+  GlobSearchRec^.GlobHandle:=Glob(Path);
   Rslt.ExcludeAttr:=Attr; //!! Not correct !!
-  Rslt.FindHandle:=Longint(Glob(Path));
+  Rslt.FindHandle:=Longint(GlobSearchRec);
   Result:=DoFind (Rslt);
 end;
 
@@ -203,8 +221,13 @@ end;
 
 Procedure FindClose (Var F : TSearchrec);
 
+Var
+  GlobSearchRec : PGlobSearchRec;
+
 begin
-  GlobFree (PGlob(F.FindHandle));
+  GlobSearchRec:=PGlobSearchRec(F.FindHandle);
+  GlobFree (GlobSearchRec^.GlobHandle);
+  Dispose(GlobSearchRec);
 end;
 
 
@@ -435,7 +458,10 @@ end.
 {
 
   $Log$
-  Revision 1.2  2000-09-18 13:14:51  marco
+  Revision 1.3  2000-11-28 20:06:12  michael
+  + merged fix for findfirst/findnext/findclose
+
+  Revision 1.2  2000/09/18 13:14:51  marco
    * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
 
   Revision 1.3  2000/08/29 17:58:13  michael
@@ -443,15 +469,10 @@ end.
 
   Revision 1.2  2000/08/20 15:46:46  peter
     * sysutils.pp moved to target and merged with disk.inc, filutil.inc
+  Revision 1.1.2.2  2000/11/28 20:01:22  michael
+    + Fixed findfirst/findnext/findclose
 
-    Revision 1.1.2.3  2000/08/22 19:21:48  michael
-    + Implemented syserrormessage. Made dummies for go32v2 and OS/2
-    * Changed linux/errors.pp so it uses pchars for storage.
-
-    Revision 1.1.2.2  2000/08/20 15:22:57  peter
-      * removed beep from interface
-
-    Revision 1.1.2.1  2000/08/20 15:08:32  peter
-      * forgot the add command :(
-
+  Revision 1.1.2.1  2000/09/14 13:38:26  marco
+    * Moved from Linux dir. now start of generic unix dir, from which the
+      really exotic features should be moved to the target specific dirs.
 }
