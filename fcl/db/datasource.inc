@@ -486,7 +486,7 @@ begin
     else
       FState:=dsInactive;
     // Don't do events if nothing changed.
-    If FState<>FlastState then
+    If FState=FlastState then
       exit;
     end
   else
