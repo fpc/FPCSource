@@ -439,21 +439,13 @@ end;
 
 
 Procedure Writeln_End(var f:TextRec);[Public,Alias:'FPC_WRITELN_END'];
-const
-{$IFDEF SHORT_LINEBREAK}
-  eollen=1;
-  eol : array[0..0] of char=(#10);
-{$ELSE SHORT_LINEBREAK}
-  eollen=2;
-  eol : array[0..1] of char=(#13,#10);
-{$ENDIF SHORT_LINEBREAK}
 begin
   If InOutRes <> 0 then exit;
   case f.mode of
     fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
       begin
         { Write EOL }
-        WriteBuffer(f,eol,eollen);
+        WriteBuffer(f,(@sLineBreak+1)^,length(sLineBreak));
         { Flush }
         if f.FlushFunc<>nil then
           FileFunc(f.FlushFunc)(f);
@@ -1039,7 +1031,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-11-23 13:14:02  jonas
+  Revision 1.5  2001-03-21 23:29:40  florian
+    + sLineBreak and misc. stuff for Kylix compatiblity
+
+  Revision 1.4  2000/11/23 13:14:02  jonas
     * fix for web bug 1210 from Peter (merged)
 
   Revision 1.3  2000/07/14 10:33:10  michael

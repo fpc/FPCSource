@@ -53,6 +53,7 @@ Type
   Word     = 0..65535;
   dword    = cardinal;
   longword = cardinal;
+  Integer  = smallint;
 
 { at least declare Turbo Pascal real types }
 {$ifdef i386}
@@ -111,6 +112,7 @@ Type
   PWord    = ^word;
   PDWord   = ^DWord;
   PLongint = ^Longint;
+  TTextLineBreakStyle = (tlbsLF,tlbsCRLF,tlbsCR);
 
 {$ifdef HASWIDECHAR}
   PWideChar   = ^WideChar;
@@ -128,9 +130,6 @@ const
   maxLongint  = $7fffffff;
   maxSmallint = 32767;
 
-{ Integer type definition }
-type
-  Integer  = smallint;
 const
   maxint   = maxsmallint;
 
@@ -176,7 +175,7 @@ var
   ExitCode    : Word;
   StackBottom,
   LowestStack,
-  RandSeed    : Cardinal;
+  RandSeed    : Cardinal;  
 { Delphi compatible }
   IsLibrary,IsMultiThreaded,IsConsole : boolean;
 {$ifdef MT}
@@ -488,7 +487,10 @@ const
 
 {
   $Log$
-  Revision 1.16  2001-01-24 21:47:18  florian
+  Revision 1.17  2001-03-21 23:29:40  florian
+    + sLineBreak and misc. stuff for Kylix compatiblity
+
+  Revision 1.16  2001/01/24 21:47:18  florian
     + more MT stuff added
 
   Revision 1.15  2000/12/16 15:56:19  jonas

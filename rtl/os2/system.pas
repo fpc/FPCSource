@@ -129,12 +129,14 @@ const   UnusedHandle=$ffff;
 
         FileNameCaseSensitive : boolean = false;
 
+        sLineBreak : string[2] = #13#10;
+
 var
 { C-compatible arguments and environment }
   argc  : longint;external name '_argc';
   argv  : ppchar;external name '_argv';
   envp  : ppchar;external name '_environ';
-
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
 implementation
 
@@ -954,7 +956,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2001-03-21 21:08:20  hajny
+  Revision 1.11  2001-03-21 23:29:40  florian
+    + sLineBreak and misc. stuff for Kylix compatiblity
+
+  Revision 1.10  2001/03/21 21:08:20  hajny
     * GetDir fixed
 
   Revision 1.9  2001/03/10 09:57:51  hajny

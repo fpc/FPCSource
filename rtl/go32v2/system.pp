@@ -46,6 +46,9 @@ const
 
   FileNameCaseSensitive : boolean = false;
 
+  sLineBreak : string[2] = #13#10;
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
+
 { Default memory segments (Tp7 compatibility) }
   seg0040 = $0040;
   segA000 = $A000;
@@ -1417,7 +1420,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.6  2001-03-21 21:08:20  hajny
+  Revision 1.7  2001-03-21 23:29:40  florian
+    + sLineBreak and misc. stuff for Kylix compatiblity
+
+  Revision 1.6  2001/03/21 21:08:20  hajny
     * GetDir fixed
 
   Revision 1.5  2001/03/16 20:09:58  hajny

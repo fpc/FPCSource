@@ -57,6 +57,12 @@ const
 
    FileNameCaseSensitive : boolean = true;
 
+   sLineBreak : string[2] = #13#10;
+   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
+
+   { Thread count for DLL }
+   Thread_count : longint = 0;
+
 type
   TStartupInfo=packed record
     cb : longint;
@@ -91,9 +97,7 @@ var
   cmdshow     : longint;
   DLLreason,DLLparam:longint;
   Win32StackTop : Dword;
-{ Thread count for DLL }
-const
-  Thread_count : longint = 0;
+
 type
   TDLL_Process_Entry_Hook = function (dllparam : longint) : longbool;
   TDLL_Entry_Hook = procedure (dllparam : longint);
@@ -1430,7 +1434,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2001-03-21 21:08:20  hajny
+  Revision 1.9  2001-03-21 23:29:40  florian
+    + sLineBreak and misc. stuff for Kylix compatiblity
+
+  Revision 1.8  2001/03/21 21:08:20  hajny
     * GetDir fixed
 
   Revision 1.7  2001/03/16 20:09:58  hajny

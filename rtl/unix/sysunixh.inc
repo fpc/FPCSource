@@ -16,7 +16,11 @@ const
   StdOutputHandle = 1;
   StdErrorHandle  = 2;
 
+  sLineBreak : string[2] = #10;
+
 var
   argc : longint;
   argv : ppchar;
   envp : ppchar;
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
+  
