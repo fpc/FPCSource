@@ -344,9 +344,18 @@ type
   end;
 
 
+{$ifdef i386}
+{$define OLDMMAP}
+{$endif i386}
+
+{$ifdef m68k}
+{$define OLDMMAP}
+{$endif m68k}
+
 Function Fpmmap(adr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;off:off_t):pointer;  [public, alias : 'FPC_SYSC_MMAP'];
 // OFF_T procedure, and returns a pointer, NOT cint.
 
+{$ifdef OLDMMAP}
 var
   mmapargs : tmmapargs;
 begin
@@ -358,6 +367,13 @@ begin
   mmapargs.offset:=TSysParam(off);
   Fpmmap:=pointer(do_syscall(syscall_nr_mmap,TSysParam(@MMapArgs)));
 end;
+{$else OLDMMAP}
+begin
+  Fpmmap:= pointer(do_syscall(syscall_nr_mmap,TSysParam(adr),TSysParam(len),
+    TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(off)));
+end;
+{$endif OLDMMAP}
+
 
 Function Fpmunmap(adr:pointer;len:size_t):cint; [public, alias :'FPC_SYSC_MUNMAP'];
 begin
@@ -431,7 +447,11 @@ end;
 
 {
  $Log$
- Revision 1.2  2002-12-18 17:38:01  marco
+ Revision 1.3  2003-05-11 16:07:55  jonas
+   * fixed mmap for non-i386 non-m68k architectures (not sure about
+     x86-64)
+
+ Revision 1.2  2002/12/18 17:38:01  marco
   * small fix, new rtl now cycles
 
  Revision 1.1  2002/12/18 16:43:26  marco

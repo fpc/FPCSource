@@ -131,6 +131,28 @@ asm
    li    r3,-1
 end;
 
+
+function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL6'];
+{
+  This function puts the registers in place, does the call, and then
+  copies back the registers as they are after the SysCall.
+}
+asm
+  mr  r0,r3
+  mr  r3,r4
+  mr  r4,r5
+  mr  r5,r6
+  mr  r6,r7
+  mr  r7,r8
+  mr  r8,r9
+  sc
+   bnslr
+   neg   r3, r3
+   lis   r4,Errno@ha
+   stw   r3,Errno@l(r4)
+   li    r3,-1
+end;
+
 // Old style syscall:
 // Better use ktrace/strace/gdb for debugging.
 
@@ -216,7 +238,11 @@ end;
 
 {
   $Log$
-  Revision 1.4  2003-04-22 17:07:55  florian
+  Revision 1.5  2003-05-11 16:07:55  jonas
+    * fixed mmap for non-i386 non-m68k architectures (not sure about
+      x86-64)
+
+  Revision 1.4  2003/04/22 17:07:55  florian
     * there where two SYSCALL1 procedures for the powerpc, fixed
 
   Revision 1.3  2003/01/09 13:38:26  florian
