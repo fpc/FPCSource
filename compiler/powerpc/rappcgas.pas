@@ -486,10 +486,19 @@ Unit rappcgas;
               Consume(AS_REGISTER);
               if (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
                 Begin
-                  if not (oper.opr.typ in [OPR_NONE,OPR_REGISTER]) then
-                    Message(asmr_e_invalid_operand_type);
-                  oper.opr.typ:=OPR_REGISTER;
-                  oper.opr.reg:=tempreg;
+                  if is_condreg(tempreg) then
+                    begin
+                      { it isn't a real operand, everything is stored in the condition }
+                      oper.opr.typ:=OPR_NONE;
+                      { !!!! }
+                    end
+                  else
+                    begin
+                      if not (oper.opr.typ in [OPR_NONE,OPR_REGISTER]) then
+                        Message(asmr_e_invalid_operand_type);
+                      oper.opr.typ:=OPR_REGISTER;
+                      oper.opr.reg:=tempreg;
+                    end;
                 end
               else if is_condreg(tempreg) then
                 begin
@@ -735,7 +744,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2003-11-23 17:33:24  jonas
+  Revision 1.5  2003-11-23 18:32:42  florian
+    + skeleton for bXX crX,<label>
+
+  Revision 1.4  2003/11/23 17:33:24  jonas
     * fixed uninitialised var
 
   Revision 1.3  2003/11/15 19:00:10  florian
