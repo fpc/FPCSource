@@ -99,7 +99,7 @@ procedure draw(xp,yp,dir:integer);
 var z,zobs,ix,iy,iy1,iyp,ixp,x,y,s,csf,snf,mpc,i,j:integer;
 begin
   fillchar(rng,sizeof(rng),200); zobs:=100+mp^[WORD(256*yp+xp)];
-  csf:=round(256*cos(dir/180*pi)); snf:=round(256*sin(dir/180*pi));
+  csf:=round(256*cos(Real(dir)/180*pi)); snf:=round(256*sin(Real(dir)/180*pi));
   fillchar(scr^,64000,0);
   for iy:=yp to yp+55 do
    begin
@@ -152,12 +152,12 @@ begin
          #75:dec(dir,10);
          #77:inc(dir,10);
          #72:begin
-              y:=y+round(5*cos(dir/180*pi));
-              x:=x+round(5*sin(dir/180*pi));
+              y:=y+round(5*cos(Real(dir)/180*pi));
+              x:=x+round(5*sin(Real(dir)/180*pi));
              end;
          #80:begin
-              y:=y-round(5*cos(dir/180*pi));
-              x:=x-round(5*sin(dir/180*pi));
+              y:=y-round(5*cos(Real(dir)/180*pi));
+              x:=x-round(5*sin(Real(dir)/180*pi));
              end;
           end;
       #27: begin
@@ -170,7 +170,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-02-22 04:12:42  alex
+  Revision 1.4  2000-03-08 22:20:04  alex
+  fixed warnings about type conversion
+
+  Revision 1.3  2000/02/22 04:12:42  alex
   removed game unit reference for non fpc version
 
   Revision 1.2  2000/01/03 13:51:08  marco
