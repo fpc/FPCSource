@@ -20,15 +20,22 @@
                        EXTENDED data type routines
  ****************************************************************************}
 
+    {$define FPC_SYSTEM_HAS_PI}
     function pi : double;[internconst:in_pi];
       begin
         pi := 3.14159265358979320;
       end;
 
+    {$define FPC_SYSTEM_HAS_ABS}
     function abs(d : extended) : extended;[internproc:in_abs_extended];
+
+    {$define FPC_SYSTEM_HAS_SQR}
     function sqr(d : extended) : extended;[internproc:in_sqr_extended];
+
+    {$define FPC_SYSTEM_HAS_SQRT}
     function sqrt(d : extended) : extended;[internproc:in_sqrt_extended];
 
+    {
     function arctan(d : extended) : extended;[internconst:in_arctan_extended];
       begin
         runerror(207);
@@ -49,25 +56,27 @@
         runerror(207);
       end;
 
-    function exp(d : extended) : extended;assembler;[internconst:in_const_exp];
+    function exp(d : extended) : extended;[internconst:in_const_exp];
       begin
         runerror(207);
       end;
 
 
-    function frac(d : extended) : extended;assembler;[internconst:in_const_frac];
+    function frac(d : extended) : extended;[internconst:in_const_frac];
       begin
         runerror(207);
       end;
 
 
-    function int(d : extended) : extended;assembler;[internconst:in_const_int];
+    function int(d : extended) : extended;[internconst:in_const_int];
       begin
         runerror(207);
       end;
+    }
 
-
-    function trunc(d : extended) : longint;assembler;[internconst:in_const_trunc];
+    {$define FPC_SYSTEM_HAS_TRUNC}
+    {$warning FIX ME}
+    function trunc(d : extended) : int64;assembler;[internconst:in_const_trunc];
       { input: d in fr1      }
       { output: result in r3 }
       assembler;
@@ -82,9 +91,11 @@
         fctiwz   fr1,fr1
         stfd     fr1,temp.d
         lwz      r3,temp.l2
-      end ['r3','fr1'];
+        // !!!! fix int64 result
+      end ['r3','f1'];
 
 
+    {$define FPC_SYSTEM_HAS_ROUND}
     function round(d : extended) : longint;assembler;[internconst:in_const_round];
       { input: d in fr1      }
       { output: result in r3 }
@@ -100,9 +111,10 @@
         fctiw    fr1,fr1
         stfd     fr1,temp.d
         lwz      r3,temp.l2
-      end ['r3','fr1'];
+      end ['r3','f1'];
 
 
+   {$define FPC_SYSTEM_HAS_POWER}
    function power(bas,expo : extended) : extended;
      begin
         if bas=0 then
@@ -158,6 +170,7 @@
 
     { warning: the following converts a little-endian TP-style real }
     { to a big-endian double. So don't byte-swap the TP real!       }
+    {$define FPC_SYSTEM_HAS_REAL2DOUBLE}
     function real2double(r : real48) : double;
 
       var
@@ -218,7 +231,7 @@ asm
            lfd    fr2,int_to_real_factor@l(r3)
            fsub   fr3,fr3,fr1
            fmadd  fr1,fr0,fr2,fr3
-end ['r0','r3','r4','fr0','fr1','fr2','fr3'];
+end ['r0','r3','r4','f0','f1','f2','f3'];
 
 
 function fpc_qword_to_real(q: qword): double; compilerproc;
@@ -246,13 +259,17 @@ asm
            lfd    fr2,int_to_real_factor@l(r3)
            fsub   fr3,fr3,fr1
            fmadd  fr1,fr0,fr2,fr3
-end ['r0','r3','fr0','fr1','fr2','fr3'];
+end ['r0','r3','f0','f1','f2','f3'];
 
 
 
 {
   $Log$
-  Revision 1.3  2001-12-02 16:19:45  jonas
+  Revision 1.4  2002-07-28 20:43:49  florian
+    * several fixes for linux/powerpc
+    * several fixes to MT
+
+  Revision 1.3  2001/12/02 16:19:45  jonas
     * fpu results are returned in fr1, not fr0
 
   Revision 1.2  2001/10/30 17:18:14  jonas
@@ -262,6 +279,4 @@ end ['r0','r3','fr0','fr1','fr2','fr3'];
 
   Revision 1.1  2001/10/28 14:09:13  jonas
     + initial implementation, lots of things still missing
-
-
 }

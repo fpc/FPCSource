@@ -1,6 +1,5 @@
-//DLL Startup code for WIN32 port of FPK-Pascal 0.9.98
-//Written by P.Ozerski
-//16.10.1998
+// DLL Startup code for WIN32 port of Free Pascal
+// Written by P.Ozerski 16.10.1998
      .text
      .globl _mainCRTStartup
 _mainCRTStartup:
@@ -27,5 +26,10 @@ _WinMainCRTStartup:
      popl     %ebx
      popl     %ebp
      ret      $12
-
-
+//
+// $Log$
+// Revision 1.3  2002-07-28 20:43:51  florian
+//   * several fixes for linux/powerpc
+//   * several fixes to MT
+//
+//

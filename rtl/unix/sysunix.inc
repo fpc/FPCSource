@@ -145,6 +145,8 @@ asm
 end['A0','D0'];
 {$endif m68k}
 {$ifndef fpc_getheapstart_ok}
+asm
+end;
 {$error Getheapstart code is not implemented }
 {$endif not fpc_getheapstart_ok}
 
@@ -164,6 +166,8 @@ asm
 end ['D0'];
 {$endif m68k}
 {$ifndef fpc_getheapsize_ok}
+asm
+end;
 {$error Getheapsize code is not implemented }
 {$endif not fpc_getheapsize_ok}
 
@@ -750,7 +754,7 @@ Begin
   IsLibrary := FALSE;
   StackBottom := Sptr - StackLength;
 { Set up signals handlers }
-   InstallSignals;
+  InstallSignals;
 { Setup heap }
   InitHeap;
   InitExceptions;
@@ -767,7 +771,11 @@ End.
 
 {
   $Log$
-  Revision 1.22  2002-05-31 13:37:24  marco
+  Revision 1.23  2002-07-28 20:43:49  florian
+    * several fixes for linux/powerpc
+    * several fixes to MT
+
+  Revision 1.22  2002/05/31 13:37:24  marco
    * more Renamefest
 
   Revision 1.21  2002/04/21 15:55:00  carl

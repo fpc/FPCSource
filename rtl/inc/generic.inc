@@ -33,7 +33,7 @@ begin
   for i:=0 to count do
          bytearray(dest)[i]:=bytearray(source)[i];
 end;
-{$endif ndef FPC_SYSTEM_HAS_MOVE}
+{$endif not FPC_SYSTEM_HAS_MOVE}
 
 
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
@@ -53,7 +53,7 @@ begin
   for i:=(count div 4)*4 to count-1 do
     bytearray(x)[i]:=value;
 end;
-{$endif ndef FPC_SYSTEM_HAS_FILLCHAR}
+{$endif FPC_SYSTEM_HAS_FILLCHAR}
 
 
 {$ifndef FPC_SYSTEM_HAS_FILLBYTE}
@@ -61,7 +61,7 @@ procedure FillByte (var x;count : longint;value : byte );
 begin
   FillChar (X,Count,CHR(VALUE));
 end;
-{$endif ndef FPC_SYSTEM_HAS_FILLBYTE}
+{$endif not FPC_SYSTEM_HAS_FILLBYTE}
 
 
 {$ifndef FPC_SYSTEM_HAS_FILLWORD}
@@ -78,7 +78,7 @@ begin
   for i:=(count div 2)*2 to count-1 do
     wordarray(x)[i]:=value;
 end;
-{$endif ndef FPC_SYSTEM_HAS_FILLWORD}
+{$endif not FPC_SYSTEM_HAS_FILLWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_FILLDWORD}
@@ -98,7 +98,7 @@ begin
       end;
    end;
 end;
-{$endif ndef FPC_SYSTEM_HAS_FILLDWORD}
+{$endif FPC_SYSTEM_HAS_FILLDWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXCHAR}
@@ -106,7 +106,7 @@ function IndexChar(Const buf;len:longint;b:char):longint;
 begin
   IndexChar:=IndexByte(Buf,Len,byte(B));
 end;
-{$endif ndef FPC_SYSTEM_HAS_INDEXCHAR}
+{$endif not FPC_SYSTEM_HAS_INDEXCHAR}
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
@@ -123,7 +123,7 @@ begin
    i:=-1;                                {Can't use 0, since it is a possible value}
   IndexByte:=I;
 end;
-{$endif ndef FPC_SYSTEM_HAS_INDEXBYTE}
+{$endif not FPC_SYSTEM_HAS_INDEXBYTE}
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXWORD}
@@ -140,7 +140,7 @@ begin
    i:=-1;           {Can't use 0, since it is a possible value for index}
   Indexword:=I;
 end;
-{$endif ndef FPC_SYSTEM_HAS_INDEXWORD}
+{$endif not FPC_SYSTEM_HAS_INDEXWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
@@ -156,7 +156,7 @@ begin
    i:=-1;           {Can't use 0, since it is a possible value for index}
   IndexDWord:=I;
 end;
-{$endif ndef FPC_SYSTEM_HAS_INDEXDWORD}
+{$endif not FPC_SYSTEM_HAS_INDEXDWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPARECHAR}
@@ -164,7 +164,7 @@ function CompareChar(Const buf1,buf2;len:longint):longint;
 begin
   CompareChar:=CompareByte(buf1,buf2,len);
 end;
-{$endif ndef FPC_SYSTEM_HAS_COMPARECHAR}
+{$endif not FPC_SYSTEM_HAS_COMPARECHAR}
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
@@ -193,7 +193,7 @@ begin
    end;
   CompareByte:=I;
 end;
-{$endif ndef FPC_SYSTEM_HAS_COMPAREBYTE}
+{$endif not FPC_SYSTEM_HAS_COMPAREBYTE}
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
@@ -222,7 +222,7 @@ begin
    end;
   CompareWord:=I;
 end;
-{$endif ndef FPC_SYSTEM_HAS_COMPAREWORD}
+{$endif not FPC_SYSTEM_HAS_COMPAREWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
@@ -316,7 +316,7 @@ begin
    end;
   CompareChar0:=I;
 end;
-{$endif ndef FPC_SYSTEM_HAS_COMPARECHAR0}
+{$endif not FPC_SYSTEM_HAS_COMPARECHAR0}
 
 
 {****************************************************************************
@@ -362,7 +362,7 @@ begin
    fpc_help_constructor:=_self;
 end;
 
-{$endif ndef FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
+{$endif FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 
@@ -391,7 +391,7 @@ begin
    _self:=nil;
 end;
 
-{$endif ndef FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
+{$endif FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_FAIL}
 procedure fpc_help_fail(var _self : pointer; var vmt : pointer; vmt_pos : cardinal);safecall; [public,alias:'FPC_HELP_FAIL'];
@@ -455,7 +455,7 @@ procedure fpc_dispose_class(_self: tobject; flag : longint);saveregisters;[publi
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
 
-procedure fpc_check_object(vmt : pointer);saveregisters;[public,alias:'FPC_CHECK_OBJECT'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_check_object(obj : pointer);saveregisters;[public,alias:'FPC_CHECK_OBJECT'];  {$ifdef hascompilerproc} compilerproc; {$endif}
    type
      pvmt = ^tvmt;
      tvmt = packed record
@@ -554,8 +554,6 @@ begin
   pstring(dstr)^[0]:=chr(len);
  }
 end;
-
-
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
 
@@ -770,7 +768,7 @@ begin
      abs:=l;
 end;
 
-{$endif ndef FPC_SYSTEM_HAS_ABS_LONGINT}
+{$endif not FPC_SYSTEM_HAS_ABS_LONGINT}
 
 {$ifndef FPC_SYSTEM_HAS_ODD_LONGINT}
 
@@ -947,7 +945,11 @@ end;
 
 {
   $Log$
-  Revision 1.27  2002-06-16 08:19:03  carl
+  Revision 1.28  2002-07-28 20:43:47  florian
+    * several fixes for linux/powerpc
+    * several fixes to MT
+
+  Revision 1.27  2002/06/16 08:19:03  carl
   * bugfix of FPC_NEW_CLASS (was not creating correct instance)
   + FPC_HELP_FAIL_CLASS now tested (no longer required)
 

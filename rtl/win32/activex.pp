@@ -2619,7 +2619,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-03-01 12:42:42  peter
+  Revision 1.5  2002-07-28 20:43:49  florian
+    * several fixes for linux/powerpc
+    * several fixes to MT
+
+  Revision 1.4  2002/03/01 12:42:42  peter
     * fixed HASINTF
 
   Revision 1.3  2002/02/28 13:52:59  marco
@@ -2629,7 +2633,5 @@ end.
    * Merged objidl.idl translation. Most of wtypes.idl also included. Size slightly     increased.
 
   Revision 1.1  2001/08/19 21:02:02  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
-      compiled
-
+    * fixed and added a lot of stuff to get the Jedi DX8 headers      compiled
 }

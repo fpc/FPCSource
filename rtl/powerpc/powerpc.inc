@@ -311,7 +311,6 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FILLWORD}
-
 procedure fillword(var x;count : longint;value : word);
 begin
 {       registers:
@@ -337,7 +336,7 @@ begin
                 stwux   r5,r13,r14
                 bdnz    .FillWordLoop
 .FillWordEnd:
-        end [r13,r14,ctr]
+        end ['r13','r14','ctr']
 end;
 
 
@@ -527,17 +526,20 @@ end ['r0','r3','r4','r9','r10','cr0','ctr'];
                               Object Helpers
 ****************************************************************************}
 
-{define FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
-(*
-use generic implementation for now
-procedure fpc_help_constructor; assembler; [public,alias:'FPC_HELP_CONSTRUCTOR']; {$ifdef hascompilerproc} compilerproc; {$endif}
-*)
+{ use generic implementation for now }
+{ that's a problem currently, the generic has a another prototy than this defined in compproc.inc (FK) }
+
+{$define FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
+procedure fpc_help_constructor; assembler;compilerproc;
+asm
+end;
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_FAIL}
 procedure fpc_help_fail;assembler;[public,alias:'FPC_HELP_FAIL']; {$ifdef hascompilerproc} compilerproc; {$endif}
-assembler
+assembler;
 asm
-!!!!!!!!!!!
+{$warning FIX ME!}
+// !!!!!!!!!!!
 end;
 
 
@@ -551,7 +553,8 @@ procedure fpc_help_destructor;assembler;[public,alias:'FPC_HELP_DESTRUCTOR']; {$
 procedure fpc_new_class;assembler;[public,alias:'FPC_NEW_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 assembler;
 asm
-!!!!!!!!!!!
+{$warning FIX ME!}
+// !!!!!!!!!!!
 end;
 
 
@@ -559,7 +562,8 @@ end;
 procedure fpc_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 assembler;
 asm
-!!!!!!!!!!!
+{$warning FIX ME!}
+// !!!!!!!!!!!
 end;
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_FAIL_CLASS}
@@ -568,7 +572,8 @@ procedure fpc_help_fail_class;assembler;[public,alias:'FPC_HELP_FAIL_CLASS']; {$
   VMT is allways at pos 0 }
 assembler;
 asm
-!!!!!!!!!!!
+{$warning FIX ME!}
+// !!!!!!!!!!!
 end;
 
 
@@ -580,11 +585,12 @@ use generic implementation for now
 procedure fpc_check_object(obj : pointer);[public,alias:'FPC_CHECK_OBJECT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 *)
 
-{define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
-(*
-use generic implementation for now
-procedure fpc_check_object_ext;assembler;[public,alias:'FPC_CHECK_OBJECT_EXT']; {$ifdef hascompilerproc} compilerproc; {$endif}
-*)
+{ use generic implementation for now }
+{ that's a problem currently, the generic has a another prototy than this defined in compproc.inc (FK) }
+{$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
+procedure fpc_check_object_ext; compilerproc;assembler;
+asm
+end;
 
 {****************************************************************************
                                  String
@@ -645,8 +651,8 @@ LShortStrCopyLoop:
         bdnz    LShortStrCopyLoop
 end ['r0','r3','r4','r5','r10','cr0','ctr'];
 
-
-function fpc_shortstr_concat(const s1: shortstring): shortstring; compilerproc;
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
+function fpc_shortstr_concat(const s1,s2: shortstring): shortstring; compilerproc;
 { expects that results (r3) contains a pointer to the current string and s1 }
 { (r4) a pointer to the one that has to be concatenated                     }
 assembler;
@@ -743,21 +749,24 @@ function strlen(p:pchar):longint;assembler;
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:longint;assembler;
 asm
-        !!!!!!! depends on ABI !!!!!!!!
+    {$warning FIX ME!}
+    //    !!!!!!! depends on ABI !!!!!!!!
 end ['r3'];
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:longint):longint;assembler;
 asm
-        !!!!!!! depends on ABI !!!!!!!!
+   {$warning FIX ME!}
+    //     !!!!!!! depends on ABI !!!!!!!!
 end ['r3'];
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:longint):longint;assembler;
 asm
-        !!!!!!! depends on ABI !!!!!!!!
+    {$warning FIX ME!}
+   //     !!!!!!! depends on ABI !!!!!!!!
 end ['r3'];
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
@@ -826,6 +835,7 @@ LDecLockedLoop:
 end ['r3','r10'];
 
 procedure inclocked(var l : longint);assembler;
+asm
 LIncLockedLoop:
 {$ifdef MT}
     lwarx   r10,0,r3
@@ -842,7 +852,11 @@ end ['r3','r10'];
 
 {
   $Log$
-  Revision 1.8  2002-07-26 15:45:56  florian
+  Revision 1.9  2002-07-28 20:43:49  florian
+    * several fixes for linux/powerpc
+    * several fixes to MT
+
+  Revision 1.8  2002/07/26 15:45:56  florian
     * changed multi threading define: it's MT instead of MTRTL
 
   Revision 1.7  2001/09/28 13:28:49  jonas
@@ -876,5 +890,4 @@ end ['r3','r10'];
 
   Revision 1.1  2000/07/27 07:32:12  jonas
     + initial version by Casey Duncan (not yet thoroughly debugged or complete)
-
 }

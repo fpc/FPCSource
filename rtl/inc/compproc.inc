@@ -256,7 +256,11 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compiler
 
 {
   $Log$
-  Revision 1.16  2002-04-25 20:14:56  peter
+  Revision 1.17  2002-07-28 20:43:47  florian
+    * several fixes for linux/powerpc
+    * several fixes to MT
+
+  Revision 1.16  2002/04/25 20:14:56  peter
     * updated compilerprocs
     * incr ref count has now a value argument instead of var
 
@@ -362,5 +366,4 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compiler
        chars)
     * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
       still nil (used to crash, now return resp -1 and 0)
-
 }

@@ -88,7 +88,7 @@ type
            status: cardinal;
   end;
 
-{$Ifdef i386}
+{$ifdef i386}
   PSigContextRec = ^SigContextRec;
   SigContextRec = record
     gs, __gsh: word;
@@ -114,14 +114,21 @@ type
     oldmask: cardinal;
     cr2: cardinal;
   end;
-{$ENDIF}
+{$endif i386}
 
 {$Ifdef m68k}
   PSigContextRec = ^SigContextRec;
   SigContextRec = record
     { dummy for now PM }
   end;
-{$ENDIF}
+{$endif m68k}
+
+{$ifdef powerpc}
+  PSigContextRec = ^SigContextRec;
+  SigContextRec = record
+    { dummy for now PM }
+  end;
+{$endif powerpc}
 
 (*
   PSigInfoRec = ^SigInfoRec;
@@ -192,7 +199,11 @@ type
 
 {
   $Log$
-  Revision 1.4  2001-06-27 21:37:38  peter
+  Revision 1.5  2002-07-28 20:43:48  florian
+    * several fixes for linux/powerpc
+    * several fixes to MT
+
+  Revision 1.4  2001/06/27 21:37:38  peter
     * v10 merges
 
   Revision 1.3  2001/04/04 22:50:59  peter

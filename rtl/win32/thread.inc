@@ -57,14 +57,14 @@ procedure init_threadvar(var offset : dword;size : dword);[public,alias: 'FPC_IN
      offset:=threadvarblocksize;
      inc(threadvarblocksize,size);
   end;
-  
-  
-type ltvInitEntry = 
-  record
-    varaddr : pdword;
-    size    : longint;
-  end;
-  pltvInitEntry = ^ltvInitEntry;
+
+
+type
+   ltvInitEntry = packed record
+      varaddr : pdword;
+      size    : longint;
+   end;
+   pltvInitEntry = ^ltvInitEntry;
 
 procedure init_unit_threadvars (tableEntry : pltvInitEntry);
 begin
@@ -80,10 +80,10 @@ type TltvInitTablesTable =
     count : dword;
     tables: array [1..32767] of pltvInitEntry;
   end;
-  
+
 var
   ThreadvarTablesTable : TltvInitTablesTable; external name 'FPC_LOCALTHREADVARTABLES';
-  
+
 procedure init_all_unit_threadvars; [public,alias: 'FPC_INITIALIZELOCALTHREADVARS'];
 var i : integer;
 begin
@@ -98,7 +98,13 @@ end;
 function relocate_threadvar(offset : dword) : pointer;[public,alias: 'FPC_RELOCATE_THREADVAR'];
 
   begin
+     asm
+        pushal
+     end;
      relocate_threadvar:=TlsGetValue(dataindex)+offset;
+     asm
+        popal
+     end;
   end;
 
 procedure AllocateThreadVars;
@@ -135,8 +141,8 @@ procedure InitThread;
      { we don't need to set the data to 0 because we did this with }
      { the fillchar above, but it looks nicer                      }
 
-     { ExceptAddrStack and ExceptObjectStack are threadvars       }
-     { so every thread has its on exception handling capabilities }
+     { ExceptAddrStack and ExceptObjectStack are threadvars        }
+     { so every thread has its own exception handling capabilities }
      InitExceptions;
      InOutRes:=0;
      // ErrNo:=0;
@@ -204,20 +210,32 @@ function BeginThread(ThreadFunction : tthreadfunc) : DWord;
   end;
 
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : DWord;
-
   var
      dummy : dword;
-
   begin
      BeginThread:=BeginThread(nil,0,ThreadFunction,p,0,dummy);
   end;
 
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer;
   var ThreadId : DWord) : DWord;
-
   begin
      BeginThread:=BeginThread(nil,0,ThreadFunction,p,0,ThreadId);
   end;
+
+function BeginThread(ThreadFunction : tthreadfunc;p : pointer;
+  var ThreadId : Longint) : DWord;
+  begin
+     BeginThread:=BeginThread(nil,0,ThreadFunction,p,0,DWord(ThreadId));
+  end;
+
+
+function BeginThread(sa : Pointer;stacksize : dword;
+  ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
+  var ThreadId : Longint) : DWord;
+  begin
+     BeginThread:=BeginThread(sa,stacksize,ThreadFunction,p,creationflags,DWord(threadid));
+  end;
+
 
 procedure EndThread(ExitCode : DWord);
 
@@ -250,7 +268,11 @@ procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
 
 {
   $Log$
-  Revision 1.8  2002-03-31 10:03:13  armin
+  Revision 1.9  2002-07-28 20:43:50  florian
+    * several fixes for linux/powerpc
+    * several fixes to MT
+
+  Revision 1.8  2002/03/31 10:03:13  armin
   + call to DoneThread was missing
 
   Revision 1.7  2002/03/28 16:31:35  armin

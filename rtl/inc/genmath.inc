@@ -988,6 +988,7 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
                     Helper routines to support old TP styled reals
  ****************************************************************************}
 
+{$ifndef FPC_SYSTEM_HAS_REAL2DOUBLE}
     function real2double(r : real48) : double;
 
       var
@@ -1014,11 +1015,16 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
          res[7]:=res[7] or (r[5] and $80);
          real2double:=double(res);
       end;
-{$endif}
+{$endif FPC_SYSTEM_HAS_REAL2DOUBLE}
+{$endif SUPPORT_DOUBLE}
 
 {
   $Log$
-  Revision 1.3  2001-12-26 21:03:56  peter
+  Revision 1.4  2002-07-28 20:43:48  florian
+    * several fixes for linux/powerpc
+    * several fixes to MT
+
+  Revision 1.3  2001/12/26 21:03:56  peter
     * merged fixes from 1.0.x
 
   Revision 1.2  2001/07/30 21:38:55  peter
@@ -1026,6 +1032,4 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
   Revision 1.1.2.1  2001/07/29 23:58:16  carl
   + generic version of mathematical routines (taken from m68k directory)
-
-
 }

@@ -14,6 +14,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$ifndef VER1_0}
+{ $define MT}
+{$endif VER1_0}
 unit {$ifdef VER1_0}SysWin32{$else}System{$endif};
 interface
 
@@ -1564,7 +1567,11 @@ end.
 
 {
   $Log$
-  Revision 1.28  2002-07-01 16:29:05  peter
+  Revision 1.29  2002-07-28 20:43:49  florian
+    * several fixes for linux/powerpc
+    * several fixes to MT
+
+  Revision 1.28  2002/07/01 16:29:05  peter
     * sLineBreak changed to normal constant like Kylix
 
   Revision 1.27  2002/06/04 09:25:14  pierre

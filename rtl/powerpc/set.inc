@@ -193,7 +193,8 @@ Lset_range_exit:
 end ['r0','r3','r4','r5','r6','r9','r10','cr0','ctr'];
 
 
-function fpc_set_in_byte(const p: fpc_normal_set; b : byte): boolean;assembler;[public,alias:'FPC_SET_IN_BYTE'];
+{$define FPC_SYSTEM_HAS_FPC_SET_IN_BYTE}
+function fpc_set_in_byte(const p: fpc_normal_set; b : byte): boolean;compilerproc;assembler;
 {
   tests if the element b is in the set p, the **zero** flag is cleared if it's present
 
@@ -319,7 +320,7 @@ asm
        sub.     r0,r0,r10
        bdnzt    cr0*4+eq,LMCOMPSETS1
        cntlzw   r3,r0
-       srwi.    r3,r3,31 
+       srwi.    r3,r3,31
 end ['r0','r3','r4','r10','cr0','ctr'];
 
 function fpc_set_contains_sets(const set1,set2: fpc_normal_set): boolean;assembler;[public,alias:'FPC_SET_CONTAINS_SETS']; compilerproc;
@@ -339,7 +340,7 @@ asm
        andc.    r0,r0,r10
        bdnzt    cr0*4+eq,LMCONTAINSSETS1
        cntlzw   r3,r0
-       srwi.    r3,r3,31 
+       srwi.    r3,r3,31
 end ['r0','r3','r4','r10','cr0','ctr'];
 
 
@@ -509,7 +510,11 @@ end;
 
 {
   $Log$
-  Revision 1.10  2001-09-28 13:27:02  jonas
+  Revision 1.11  2002-07-28 20:43:49  florian
+    * several fixes for linux/powerpc
+    * several fixes to MT
+
+  Revision 1.10  2001/09/28 13:27:02  jonas
     * use rlwnm instead of slw, because, although the programming
       environments manual states otherwise, slw uses the whole contents of
       the register instead of bits 27-31 as shift count (rlwnm doesn't)

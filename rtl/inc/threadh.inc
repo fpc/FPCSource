@@ -24,6 +24,10 @@ type
 function BeginThread(sa : Pointer;stacksize : dword;
   ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
   var ThreadId : DWord) : DWord;
+{ Delphi uses a longint for threadid }
+function BeginThread(sa : Pointer;stacksize : dword;
+  ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
+  var ThreadId : Longint) : DWord;
 
 { add some simplfied forms which make lifer easier and porting }
 { to other OSes too ...                                        }
@@ -31,6 +35,8 @@ function BeginThread(ThreadFunction : tthreadfunc) : DWord;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : DWord;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer;
   var ThreadId : DWord) : DWord;
+function BeginThread(ThreadFunction : tthreadfunc;p : pointer;
+  var ThreadId : Longint) : DWord;
 
 procedure EndThread(ExitCode : DWord);
 procedure EndThread;
@@ -47,7 +53,11 @@ procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
 
 {
   $Log$
-  Revision 1.5  2001-10-23 21:51:03  peter
+  Revision 1.6  2002-07-28 20:43:48  florian
+    * several fixes for linux/powerpc
+    * several fixes to MT
+
+  Revision 1.5  2001/10/23 21:51:03  peter
     * criticalsection renamed to rtlcriticalsection for kylix compatibility
 
   Revision 1.4  2001/01/26 16:37:54  florian

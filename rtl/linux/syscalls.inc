@@ -32,6 +32,7 @@ Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );assembler;
 }
 {$ifdef i386}
 {$ASMMODE ATT}
+{$define fpc_syscall_ok}
 asm
 { load the registers... }
   movl 12(%ebp),%eax
@@ -56,8 +57,9 @@ asm
   movl %ebx,(%eax)
 end;
 {$ASMMODE DEFAULT}
-{$else}
+{$endif i386}
 {$ifdef m68k}
+{$define fpc_syscall_ok}
 asm
 { load the registers... }
   move.l 12(a6),a0
@@ -81,10 +83,12 @@ asm
   move.l (sp)+,d1
   move.l d1,(a0)
 end;
-{$else}
-{$error Cannot decide which processor you have ! define i386 or m68k }
-{$endif}
-{$endif}
+{$endif m68k}
+{$ifndef fpc_syscall_ok}
+{$error Cannot decide which processor you have!}
+asm
+end;
+{$endif not fpc_syscall_ok}
 
 {$IFDEF SYSCALL_DEBUG}
 Const
@@ -554,7 +558,11 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-10-14 13:33:20  peter
+  Revision 1.6  2002-07-28 20:43:48  florian
+    * several fixes for linux/powerpc
+    * several fixes to MT
+
+  Revision 1.5  2001/10/14 13:33:20  peter
     * start of thread support for linux
 
   Revision 1.4  2001/06/02 00:31:30  peter

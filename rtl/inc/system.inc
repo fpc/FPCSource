@@ -203,11 +203,13 @@ begin
  D:=real2double(b);
 end;
 
+{$ifdef SUPPORT_EXTENDED}
 operator := (b:real48) e:extended;
 
 begin
  e:=real2double(b);
 end;
+{$endif SUPPORT_EXTENDED}
 
 { Include processor specific routines }
 {$I math.inc}
@@ -755,7 +757,11 @@ end;
 
 {
   $Log$
-  Revision 1.31  2002-07-26 22:46:06  florian
+  Revision 1.32  2002-07-28 20:43:48  florian
+    * several fixes for linux/powerpc
+    * several fixes to MT
+
+  Revision 1.31  2002/07/26 22:46:06  florian
     * interface of system unit for Linux/PowerPC compiles
 
   Revision 1.30  2002/07/26 16:42:00  florian
