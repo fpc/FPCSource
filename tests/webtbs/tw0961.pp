@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { older ppc386 only define cpu86 }
 {$ifdef cpu86}
 {$define cpui386}
