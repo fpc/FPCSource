@@ -448,19 +448,25 @@ unit cobjects;
     constructor tmemdebug.init(const s:string);
       begin
         infostr:=s;
+{$ifdef Delphi}
+        startmem:=0;
+{$else}
         startmem:=memavail;
+{$endif Delphi}
       end;
 
     procedure tmemdebug.show;
       var
         l : longint;
       begin
+{$ifndef Delphi}
         write('memory [',infostr,'] ');
         l:=memavail;
         if l>startmem then
          writeln(l-startmem,' released')
         else
          writeln(startmem-l,' allocated');
+{$endif Delphi}
       end;
 
     destructor tmemdebug.done;
@@ -2395,7 +2401,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.52  2000-02-09 13:22:50  peter
+  Revision 1.53  2000-05-11 09:29:01  pierre
+   * disbal all code using MemAvail for Delphi reported by Kovacs Attila Zoltan
+
+  Revision 1.52  2000/02/09 13:22:50  peter
     * log truncated
 
   Revision 1.51  2000/01/11 17:16:04  jonas
