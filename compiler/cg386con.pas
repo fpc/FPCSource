@@ -226,7 +226,8 @@ implementation
                               pc[0]:=chr(p^.length);
                               { to overcome this problem we set the length explicitly }
                               { with the ending null char }
-                              consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
+                              pc[p^.length+1]:=#0;
+                              consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+2)));
                             end;
                         end;
                    end;
@@ -305,7 +306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1998-11-05 12:02:32  peter
+  Revision 1.18  1998-11-05 15:26:38  pierre
+   * fix for missing zero after string const
+
+  Revision 1.17  1998/11/05 12:02:32  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 
