@@ -191,6 +191,7 @@ Begin
  {*------------------------- NOTE -------------------------------------*}
  {* Variables should be of the form VAR=VALUE                          *}
  {*--------------------------------------------------------------------*}
+ WriteLn('Number of environment variables : ',EnvCount);
  WriteLn('CURRENT ENVIRONMENT');
  For I:=1 to EnvCount do
   WriteLn(EnvStr(i));
@@ -991,7 +992,10 @@ GetEnv      | Func | Returns the value of a specified environment variable.
 
 {
   $Log$
-  Revision 1.4  2001-08-09 01:14:57  carl
+  Revision 1.5  2001-08-12 18:55:00  carl
+  + added printing the number of ENV vars.
+
+  Revision 1.4  2001/08/09 01:14:57  carl
   * several updates and more error checking
 
   Revision 1.3  2001/06/06 01:31:24  carl
