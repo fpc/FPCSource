@@ -143,6 +143,7 @@ type
     procedure ParseRecordDecl(Parent: TPasRecordType);
     function ParseClassDecl(Parent: TPasElement; const AClassName: String;
       AObjKind: TPasObjKind): TPasType;
+    procedure ParseProperty(Element:TPasElement);
 
     property FileResolver: TFileResolver read FFileResolver;
     property Scanner: TPascalScanner read FScanner;
@@ -681,6 +682,11 @@ begin
         begin
           AddProcOrFunction(Section, ParseProcedureOrFunctionDecl(Section, True));
           CurBlock := declNone;
+        end;
+      tkProperty:
+        begin
+          ExpectIdentifier;
+          ParseProperty(CreateElement(TPasProperty, CurTokenString, Section));
         end;
       tkOperator:
         begin
@@ -1366,6 +1372,126 @@ begin
   end;
 end;
 
+
+procedure TPasParser.ParseProperty(Element:TPasElement);
+  
+  function GetAccessorName: String;
+  begin
+    ExpectIdentifier;
+    Result := CurTokenString;
+    while True do
+    begin
+      NextToken;
+      if CurToken = tkDot then
+      begin
+        ExpectIdentifier;
+        Result := Result + '.' + CurTokenString;
+      end else
+        break;
+    end;
+    UngetToken;
+  end;
+
+begin
+  NextToken;
+  // !!!: Parse array properties correctly
+  if CurToken = tkSquaredBraceOpen then
+  begin
+  ParseArgList(Element, TPasProperty(Element).Args, tkSquaredBraceClose);
+  NextToken;
+  end;
+  
+  if CurToken = tkColon then
+  begin
+  // read property type
+          TPasProperty(Element).VarType := ParseType(Element);
+  NextToken;
+  end;
+  if CurToken <> tkSemicolon then
+  begin
+  // read 'index' access modifier
+  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'INDEX') then
+          TPasProperty(Element).IndexValue := ParseExpression
+  else
+          UngetToken;
+  NextToken;
+  end;
+  if CurToken <> tkSemicolon then
+  begin
+  // read 'read' access modifier
+  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'READ') then
+          TPasProperty(Element).ReadAccessorName := GetAccessorName
+  else
+          UngetToken;
+  NextToken;
+  end;
+  if CurToken <> tkSemicolon then
+  begin
+  // read 'write' access modifier
+  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'WRITE') then
+          TPasProperty(Element).WriteAccessorName := GetAccessorName
+  else
+          UngetToken;
+  NextToken;
+  end;
+  if CurToken <> tkSemicolon then
+  begin
+  // read 'stored' access modifier
+  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'STORED') then
+  begin
+          NextToken;
+          if CurToken = tkTrue then
+          TPasProperty(Element).StoredAccessorName := 'True'
+          else if CurToken = tkFalse then
+          TPasProperty(Element).StoredAccessorName := 'False'
+          else if CurToken = tkIdentifier then
+          TPasProperty(Element).StoredAccessorName := CurTokenString
+          else
+          ParseExc(SParserSyntaxError);
+  end else
+          UngetToken;
+  NextToken;
+  end;
+  if CurToken <> tkSemicolon then
+  begin
+  // read 'default' value modifier
+  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'DEFAULT') then
+          TPasProperty(Element).DefaultValue := ParseExpression
+  else
+          UngetToken;
+  NextToken;
+  end;
+  if CurToken <> tkSemicolon then
+  begin
+  // read 'nodefault' modifier
+  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'NODEFAULT') then
+  begin
+          TPasProperty(Element).IsNodefault:=true;
+  end;
+  NextToken;
+  end;
+  if CurToken = tkSemicolon then
+  begin
+  // read semicolon
+  NextToken;
+  end;
+  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'DEFAULT') then
+  begin
+  NextToken;
+  if CurToken = tkSemicolon then
+  begin
+          TPasProperty(Element).IsDefault := True;
+          UngetToken;
+  end else
+  begin
+          UngetToken;
+          TPasProperty(Element).DefaultValue := ParseExpression;
+  end;
+  end else
+  UngetToken;
+end;
+
+
 // Starts after the "procedure" or "function" token
 function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement;
   IsFunction: Boolean): TPasProcedure;
@@ -1504,23 +1630,6 @@ var
     end;
   end;
 
-  function GetAccessorName: String;
-  begin
-    ExpectIdentifier;
-    Result := CurTokenString;
-    while True do
-    begin
-      NextToken;
-      if CurToken = tkDot then
-      begin
-        ExpectIdentifier;
-        Result := Result + '.' + CurTokenString;
-      end else
-        break;
-    end;
-    UngetToken;
-  end;
-
 var
   s, SourceFilename: String;
   i, SourceLinenumber: Integer;
@@ -1614,105 +1723,9 @@ begin
           tkProperty:
             begin
               ExpectIdentifier;
-              Element := CreateElement(TPasProperty, CurTokenString, Result,
-                CurVisibility);
+              Element := CreateElement(TPasProperty, CurTokenString, Result, CurVisibility);
               TPasClassType(Result).Members.Add(Element);
-              NextToken;
-              // !!!: Parse array properties correctly
-              if CurToken = tkSquaredBraceOpen then
-              begin
-                ParseArgList(Element, TPasProperty(Element).Args, tkSquaredBraceClose);
-                NextToken;
-              end;
-
-              if CurToken = tkColon then
-              begin
-                // read property type
-                  TPasProperty(Element).VarType := ParseType(Element);
-                NextToken;
-              end;
-              if CurToken <> tkSemicolon then
-              begin
-                // read 'index' access modifier
-                if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'INDEX') then
-                  TPasProperty(Element).IndexValue := ParseExpression
-                else
-                  UngetToken;
-                NextToken;
-              end;
-              if CurToken <> tkSemicolon then
-              begin
-                // read 'read' access modifier
-                if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'READ') then
-                  TPasProperty(Element).ReadAccessorName := GetAccessorName
-                else
-                  UngetToken;
-                NextToken;
-              end;
-              if CurToken <> tkSemicolon then
-              begin
-                // read 'write' access modifier
-                if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'WRITE') then
-                  TPasProperty(Element).WriteAccessorName := GetAccessorName
-                else
-                  UngetToken;
-                NextToken;
-              end;
-              if CurToken <> tkSemicolon then
-              begin
-                // read 'stored' access modifier
-                if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'STORED') then
-                begin
-                  NextToken;
-                  if CurToken = tkTrue then
-                    TPasProperty(Element).StoredAccessorName := 'True'
-                  else if CurToken = tkFalse then
-                    TPasProperty(Element).StoredAccessorName := 'False'
-                  else if CurToken = tkIdentifier then
-                    TPasProperty(Element).StoredAccessorName := CurTokenString
-                  else
-                    ParseExc(SParserSyntaxError);
-                end else
-                  UngetToken;
-                NextToken;
-              end;
-              if CurToken <> tkSemicolon then
-              begin
-                // read 'default' value modifier
-                if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'DEFAULT') then
-                  TPasProperty(Element).DefaultValue := ParseExpression
-                else
-                  UngetToken;
-                NextToken;
-              end;
-              if CurToken <> tkSemicolon then
-              begin
-                // read 'nodefault' modifier
-                if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'NODEFAULT') then
-                begin
-                  TPasProperty(Element).IsNodefault:=true;
-                end;
-                NextToken;
-              end;
-              if CurToken = tkSemicolon then
-              begin
-                // read semicolon
-                NextToken;
-              end;
-              if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'DEFAULT') then
-              begin
-                NextToken;
-                if CurToken = tkSemicolon then
-                begin
-                  TPasProperty(Element).IsDefault := True;
-                  UngetToken;
-                end else
-                begin
-                  UngetToken;
-                  TPasProperty(Element).DefaultValue := ParseExpression;
-                end;
-              end else
-                UngetToken;
+              ParseProperty(Element);
             end;
         end; // end case
         NextToken;
@@ -1843,7 +1856,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2005-02-14 17:13:16  peter
+  Revision 1.15  2005-02-17 18:33:31  peter
+    * parse global properties
+
+  Revision 1.14  2005/02/14 17:13:16  peter
     * truncate log
 
 }
