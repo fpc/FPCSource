@@ -9,19 +9,13 @@ unit uncgi;
 interface
 uses
   strings
-{$ifdef ver1_0}
- {$ifdef FreeBSD}               {In 1.0 FreeBSD still defines Linux!}
+ {$ifdef Unix}
+  {$ifdef ver1_0}
     ,Linux
   {$else}
-  {$ifdef linux}
-    ,Linux
-  {$endif}
-  {$endif}
-{$else}
-  {$ifdef Unix}
     ,Unix
   {$endif}
-{$endif}
+ {$endif}
 {$IFDEF OS2}
   ,DosCalls
 {$ENDIF OS2}
@@ -460,7 +454,10 @@ end.
 {
   HISTORY
   $Log$
-  Revision 1.3  2002-03-04 17:57:17  peter
+  Revision 1.4  2002-05-31 11:54:33  marco
+  * Renamefest for 1.0, many 1.1.x spots patched also.
+
+  Revision 1.3  2002/03/04 17:57:17  peter
     * updated example in comment
 
   Revision 1.2  2002/03/01 10:57:03  peter

@@ -13,7 +13,7 @@
   {$define extdecl := stdcall;}
   {$APPTYPE GUI}
 {$endif}
-{$ifdef linux}
+{$ifdef Unix}
   {$define extdecl := cdecl;}
 {$endif}
 

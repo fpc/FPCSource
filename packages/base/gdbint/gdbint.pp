@@ -184,12 +184,9 @@ interface
 {$ifdef go32v2}
   {$define supportexceptions}
 {$endif go32v2}
-{$ifdef linux}
+{$ifdef unix}
   {$define supportexceptions}
-{$endif linux}
-{$ifdef freebsd}
-   {$define supportexceptions}
-{$endif}
+{$endif unix}
 
 {$ifdef NotImplemented}
   {$fatal This OS is not yet supported !!!}
@@ -455,22 +452,13 @@ uses
 {$ifdef win32}
   initc,
 {$endif win32}
-{$ifdef linux}
- {$ifndef freebsd}
+{$ifdef unix}
   {$ifdef ver1_0}
     linux,
   {$else}
     unix,
   {$endif}
  {$endif}
-{$endif}
-{$ifdef freebsd}
-  {$ifdef ver1_0}
-    linux,
-  {$else}
-    unix,
-  {$endif}
-{$endif}
 {$ifdef go32v2}
   go32,
   dpmiexcp,
@@ -2561,7 +2549,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-05-13 13:45:35  peter
+  Revision 1.6  2002-05-31 11:54:32  marco
+  * Renamefest for 1.0, many 1.1.x spots patched also.
+
+  Revision 1.5  2002/05/13 13:45:35  peter
     * updated to compile tests with kylix
 
   Revision 1.4  2002/03/26 16:24:49  pierre

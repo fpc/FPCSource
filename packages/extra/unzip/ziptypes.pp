@@ -44,14 +44,14 @@ CONST
 {$IFDEF OS2}
   AllFiles = '*';
 {$ELSE}
-  {$ifdef linux}
+  {$ifdef unix}
   AllFiles = '*';
   {$else}
   AllFiles = '*.*';
   {$endif}
 {$ENDIF}
 
-{$ifdef linux}
+{$ifdef unix}
   DirSep='/';
 {$else}
   DirSep='\';
@@ -202,7 +202,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:23  peter
+  Revision 1.2  2002-05-31 11:54:33  marco
+  * Renamefest for 1.0, many 1.1.x spots patched also.
+
+  Revision 1.1  2002/01/29 17:55:23  peter
     * splitted to base and extra
 
   Revision 1.1  2001/01/30 19:26:18  peter

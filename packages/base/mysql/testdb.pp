@@ -32,7 +32,7 @@ begin
     end;
   Writeln ('Done.');
   Writeln ('Connection data:');
-{$ifdef linux}  
+{$ifdef Unix}  
   writeln ('Mysql_port      : ',mysql_port);
   writeln ('Mysql_unix_port : ',mysql_unix_port);
 {$endif}  
@@ -82,7 +82,10 @@ begin
   halt(0);
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:54:54  peter
+  Revision 1.2  2002-05-31 11:54:33  marco
+  * Renamefest for 1.0, many 1.1.x spots patched also.
+
+  Revision 1.1  2002/01/29 17:54:54  peter
     * splitted to base and extra
 
   Revision 1.2  2000/07/13 11:33:26  michael

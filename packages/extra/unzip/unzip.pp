@@ -11,7 +11,7 @@ Unzips deflated, imploded, shrunk and stored files
         * Delphi v2.x
         * Delphi v3.x
         * Virtual Pascal v2.0   (OS/2, Win32)
-        * Free Pascal Compiler  (DOS, OS/2, Win32, Linux)
+        * Free Pascal Compiler  (DOS, OS/2, Win32, Linux, FreeBSD, NetBSD)
 }
 
 {
@@ -2330,7 +2330,7 @@ FUNCTION unzipfile ( in_name : pchar;out_name : pchar;offset : longint;
 VAR err : integer;
     header : plocalheader;
     buf : ARRAY [ 0..80 ] of char;
-{$ifndef linux}
+{$ifndef unix}
     buf0 : ARRAY [ 0..3 ] of char;
 {$endif}
     storefilemode,
@@ -2451,7 +2451,7 @@ BEGIN
     p1 := strrscan ( buf, DirSep );
     IF p1 <> NIL THEN inc ( p1 );  {pointer to filename}
     p := strtok ( buf, DirSep );
-{$ifndef linux}
+{$ifndef unix}
     IF ( p <> NIL ) AND ( p [ 1 ] = ':' ) THEN BEGIN
       strcopy ( buf0, 'c:\' );    {set drive}
       buf0 [ 0 ] := p [ 0 ];
@@ -2689,7 +2689,7 @@ BEGIN
   buf^ [ offs ] := #0;  {Repair signature of next block!}
   strlcopy ( filename, pchar ( @buf^ [ localstart + sizeof ( header^ ) ] ), sizeof ( filename ) -1 );
   buf^ [ offs ] := old;
-{$ifndef linux}
+{$ifndef unix}
   REPEAT           {Convert slash to backslash!}
     p := strscan ( filename, '/' );
     IF p <> NIL THEN p [ 0 ] := '\';
@@ -3336,7 +3336,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.4  2002-03-19 13:03:43  pierre
+  Revision 1.5  2002-05-31 11:54:33  marco
+  * Renamefest for 1.0, many 1.1.x spots patched also.
+
+  Revision 1.4  2002/03/19 13:03:43  pierre
    * fix the setftime for all targets
 
   Revision 1.3  2002/03/15 11:33:33  pierre

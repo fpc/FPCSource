@@ -25,21 +25,12 @@ Unit nCrt;
 Interface
 
 Uses
-{$ifdef freebsd}
+{$ifdef Unix}
   {$ifdef ver1_0}
     linux,
   {$else}
     unix,
   {$endif}
-{$endif}
-{$ifdef linux}
- {$ifndef freebsd}
-  {$ifdef ver1_0}
-    linux,
-  {$else}
-    unix,
-  {$endif}
- {$endif}
 {$endif}
   ncurses;
 
@@ -55,7 +46,10 @@ Begin
 End. { of Unit nCrt }
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:17  peter
+  Revision 1.2  2002-05-31 11:54:33  marco
+  * Renamefest for 1.0, many 1.1.x spots patched also.
+
+  Revision 1.1  2002/01/29 17:55:17  peter
     * splitted to base and extra
 
   Revision 1.6  2001/04/19 12:40:56  marco

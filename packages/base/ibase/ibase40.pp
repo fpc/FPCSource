@@ -6,7 +6,7 @@ unit ibase40;
 interface
 
 const
-  {$ifdef linux}
+  {$ifdef Unix}
   LibName = 'gds';
   {$linklib c}
   {$else}
@@ -1847,7 +1847,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:54:50  peter
+  Revision 1.2  2002-05-31 11:54:32  marco
+  * Renamefest for 1.0, many 1.1.x spots patched also.
+
+  Revision 1.1  2002/01/29 17:54:50  peter
     * splitted to base and extra
 
   Revision 1.3  2001/04/10 23:30:03  peter
