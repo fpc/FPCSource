@@ -281,7 +281,7 @@ procedure do_close(h:longint);
 begin
 { Only three standard handles under real OS/2 }
   if (h > 4) or
-     (os_MODE = osOS2) and (FileRec (F).Handle > 2) then
+     (os_MODE = osOS2) and (h > 2) then
    begin
      asm
         movb $0x3e,%ah
@@ -755,7 +755,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2000-01-16 22:25:38  peter
+  Revision 1.23  2000-01-16 23:10:15  peter
+    * handle check fixed
+
+  Revision 1.22  2000/01/16 22:25:38  peter
     * check handle for file closing
 
   Revision 1.21  2000/01/09 20:45:58  hajny
