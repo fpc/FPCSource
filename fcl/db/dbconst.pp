@@ -35,6 +35,7 @@ Const
   SErrNoStatement          = 'SQL statement not set';
   SErrTransAlreadyActive   = 'Transaction already active';
   SErrTransactionnSet      = 'Transaction not set';
+  SErrConnTransactionnSet  = 'Transaction of connection not set';
   STransNotActive          = 'Operation cannot be performed on an inactive transaction';
   STransActive             = 'Operation cannot be performed on an active transaction';
   SFieldNotFound           = 'Field not found : "%s"';
@@ -71,7 +72,11 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-12-13 20:19:49  michael
+  Revision 1.6  2005-01-12 10:29:20  michael
+    * Patch from Joost Van der Sluis:
+    - added error message for if transaction of DB is not set
+
+  Revision 1.5  2004/12/13 20:19:49  michael
   + Initial implementation of params
 
   Revision 1.4  2004/11/05 08:32:02  michael
