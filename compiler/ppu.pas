@@ -218,7 +218,11 @@ begin
 end;
 
 
+{$ifopt R+}
+{$define Range_check_on}
+{$endif opt R+}
 
+{$R- needed here }
 {CRC 32}
 Function Crc32(Const HStr:String):longint;
 var
@@ -259,6 +263,10 @@ begin
   UpdCrc32:=Crc32Tbl[byte(InitCrc) xor b] xor (InitCrc shr 8);
 end;
 
+{$ifdef Range_check_on}
+{$R+}
+{$undef Range_check_on}
+{$endif Range_check_on}
 
 {*****************************************************************************
                                   TPPUFile
@@ -784,7 +792,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  1998-11-16 15:41:42  peter
+  Revision 1.20  1998-11-30 16:34:45  pierre
+    * corrected problems with rangecheck
+    + added needed code for no rangecheck  in CRC32 functions in ppu unit
+    * enumdef lso need its rangenr reset to zero
+      when calling reset_global_defs
+
+  Revision 1.19  1998/11/16 15:41:42  peter
     * tp7 didn't like my ifopt H+ :(
 
   Revision 1.18  1998/11/16 12:18:03  peter
