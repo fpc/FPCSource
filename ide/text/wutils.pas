@@ -110,6 +110,9 @@ const LastStrToIntResult : integer = 0;
 implementation
 
 uses
+{$ifdef win32}
+  windows,
+{$endif win32}
   Strings, Dos;
 
 {$ifdef TPUNIXLF}
@@ -561,7 +564,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  2000-01-14 15:36:43  pierre
+  Revision 1.13  2000-01-17 12:20:03  pierre
+   * uses windows needed for GetShortName
+
+  Revision 1.12  2000/01/14 15:36:43  pierre
    + GetShortFileName used for tcodeeditor file opening
 
   Revision 1.11  2000/01/05 17:27:20  pierre
