@@ -344,7 +344,7 @@ unit tgobj;
           end;
 {$ifdef EXTDEBUG}
          tl^.posinfo:=aktfilepos;
-         list.concat(tai_tempalloc.allocinfo(tl^.pos,tl^.size,'allocated with type '+TempTypeStr[templist^.temptype]));
+         list.concat(tai_tempalloc.allocinfo(tl^.pos,tl^.size,'allocated with type '+TempTypeStr[tl^.temptype]));
 {$else}
          list.concat(tai_tempalloc.alloc(tl^.pos,tl^.size));
 {$endif}
@@ -544,7 +544,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.31  2003-04-27 11:21:35  peter
+  Revision 1.32  2003-05-12 21:29:59  peter
+    * extdebug info temp alloc type was wrong
+
+  Revision 1.31  2003/04/27 11:21:35  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
