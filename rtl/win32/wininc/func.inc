@@ -235,6 +235,7 @@ function SetVoiceThreshold(nVoice:DWORD; nNotes:DWORD):DWORD; external External_
 {$endif Unknown_functions}
 function MulDiv(nNumber:longint; nNumerator:longint; nDenominator:longint):longint; external 'kernel32' name 'MulDiv';
 procedure GetSystemTime(lpSystemTime:LPSYSTEMTIME); external 'kernel32' name 'GetSystemTime';
+procedure GetSystemTime(var lpSystemTime:SYSTEMTIME); external 'kernel32' name 'GetSystemTime';
 function SetSystemTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external 'kernel32' name 'SetSystemTime';
 procedure GetLocalTime(lpSystemTime:LPSYSTEMTIME); external 'kernel32' name 'GetLocalTime';
 function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external 'kernel32' name 'SetLocalTime';
@@ -2300,7 +2301,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2002-09-26 10:38:10  florian
+  Revision 1.12  2002-10-02 19:30:52  florian
+    + GetSystemTime with var parameter added
+
+  Revision 1.11  2002/09/26 10:38:10  florian
     + added RedrawWindow with LPRECT as second parameter
 
   Revision 1.10  2002/09/15 17:53:45  peter
