@@ -87,6 +87,10 @@
 
     NUM_MODES       =   $8       ; { # of Mode X Variations           }
 
+    { in 16 color modes, the actual colors used are no 0..15, but: }
+    ToRealCols16: Array[0..15] of word =
+      (0,1,2,3,4,5,7,20,56,57,58,59,60,61,62,63);
+
   var
      ScrWidth : word absolute $40:$4a;
 
@@ -1662,49 +1666,56 @@ const CrtAddress: word = 0;
 
    { VGA is never a direct color mode, so no need to check ... }
    Procedure SetVGARGBPalette(ColorNum, RedValue, GreenValue,
-      BlueValue : Integer); {$ifndef fpc}far;{$endif fpc} assembler;
-    asm
-      { on some hardware - there is a snow like effect       }
-      { when changing the palette register directly          }
-      { so we wait for a vertical retrace start period.      }
-      mov dx, $03da
-    @1:
-      in    al, dx          { Get input status register    }
-      test  al, $08         { check if in vertical retrace }
-      jnz   @1              { yes, complete it             }
-                            { we have to wait for the next }
-                            { retrace to assure ourselves  }
-                            { that we have time to complete }
-                            { the DAC operation within      }
-                            { the vertical retrace period   }
-     @2:
-      in    al, dx
-      test  al, $08
-      jz    @2              { repeat until vertical retrace start }
+      BlueValue : Integer); {$ifndef fpc}far;{$endif fpc}
+    begin
+      { translate the color number for 16 color mode }
+      If MaxColor = 16 Then
+        ColorNum := ToRealCols16[ColorNum];
+      asm
+        { on some hardware - there is a snow like effect       }
+        { when changing the palette register directly          }
+        { so we wait for a vertical retrace start period.      }
+        mov dx, $03da
+      @1:
+        in    al, dx          { Get input status register    }
+        test  al, $08         { check if in vertical retrace }
+        jnz   @1              { yes, complete it             }
+                              { we have to wait for the next }
+                              { retrace to assure ourselves  }
+                              { that we have time to complete }
+                              { the DAC operation within      }
+                              { the vertical retrace period   }
+       @2:
+        in    al, dx
+        test  al, $08
+        jz    @2              { repeat until vertical retrace start }
 
-      mov dx, $03c8       { Set color register address to use }
-      mov ax, [ColorNum]
-      out dx, al
-      inc dx              { Point to DAC registers            }
-      mov ax, [RedValue]  { Get RedValue                      }
-{      and ax, $ff        } { mask out all upper bits           }
-      shr al, 2           { convert to LSB RGB format         }
-      out dx, al
-      mov ax, [GreenValue]{ Get RedValue                      }
-{      and ax, $ff        } { mask out all upper bits           }
-      shr al, 2           { convert to LSB RGB format         }
-      out dx, al
-      mov ax, [BlueValue] { Get RedValue                      }
-{      and ax, $ff        } { mask out all upper bits           }
-      shr al, 2           { convert to LSB RGB format         }
-      out dx, al
-    end;
+        mov dx, $03c8       { Set color register address to use }
+        mov ax, [ColorNum]
+        out dx, al
+        inc dx              { Point to DAC registers            }
+        mov ax, [RedValue]  { Get RedValue                      }
+  {      and ax, $ff        } { mask out all upper bits           }
+        shr al, 2           { convert to LSB RGB format         }
+        out dx, al
+        mov ax, [GreenValue]{ Get RedValue                      }
+  {      and ax, $ff        } { mask out all upper bits           }
+        shr al, 2           { convert to LSB RGB format         }
+        out dx, al
+        mov ax, [BlueValue] { Get RedValue                      }
+  {      and ax, $ff        } { mask out all upper bits           }
+        shr al, 2           { convert to LSB RGB format         }
+        out dx, al
+      end
+    End;
 
 
    { VGA is never a direct color mode, so no need to check ... }
   Procedure GetVGARGBPalette(ColorNum: integer; Var
       RedValue, GreenValue, BlueValue : integer); {$ifndef fpc}far;{$endif fpc}
    begin
+     If MaxColor = 16 Then
+       ColorNum := ToRealCols16[ColorNum];
      Port[$03C7] := ColorNum;
      { we must convert to lsb values... because the vga uses the 6 msb bits }
      { which is not compatible with anything.                               }
@@ -2451,7 +2462,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.21  1999-09-27 23:34:40  peter
+Revision 1.22  1999-10-08 14:28:18  jonas
+  * fixed set/getvgargbpalette for VGA 16 color modes
+
+Revision 1.21  1999/09/27 23:34:40  peter
   * new graph unit is default for go32v2
   * removed warnings/notes
 
