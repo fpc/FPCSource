@@ -78,11 +78,17 @@
       end;
 
 
+    { posinfo is not relevant for changes in PPU }
     procedure writeposinfo(const p:tfileposinfo);
+      var
+        oldcrc : boolean;
       begin
+        oldcrc:=current_ppu^.do_crc;
+        current_ppu^.do_crc:=false;
         current_ppu^.putword(p.fileindex);
         current_ppu^.putlongint(p.line);
         current_ppu^.putword(p.column);
+        current_ppu^.do_crc:=oldcrc;
       end;
 
 
@@ -113,6 +119,12 @@
                 if not assigned(p) then
                  internalerror(556655);
                 case p^.owner^.symtabletype of
+                 { when writing the pseudo PPU file
+                   to get CRC values the globalsymtable is not yet
+                   a unitsymtable PM }
+{$ifndef Dont_use_double_checksum}
+                  globalsymtable,
+{$endif Dont_use_double_checksum}
                   unitsymtable :
                     begin
                       current_ppu^.putbyte(ord(derefunit));
@@ -189,14 +201,16 @@
         hp:=pused_unit(current_module^.used_units.first);
         while assigned(hp) do
          begin
-           current_ppu^.do_interface_crc:=hp^.in_interface;
+           { implementation units should not change
+             the CRC PM }
+           current_ppu^.do_crc:=hp^.in_interface;
            current_ppu^.putstring(hp^.name^);
            { the checksum should not affect the crc of this unit ! (PFV) }
            current_ppu^.do_crc:=false;
            current_ppu^.putlongint(hp^.checksum);
            current_ppu^.putlongint(hp^.interface_checksum);
-           current_ppu^.do_crc:=true;
            current_ppu^.putbyte(byte(hp^.in_interface));
+           current_ppu^.do_crc:=true;
            hp:=pused_unit(hp^.next);
          end;
         current_ppu^.do_interface_crc:=true;
@@ -254,19 +268,22 @@
 {$endif def Test_Double_checksum_write}
        { open ppufile }
          current_ppu:=new(pppufile,init(s));
-         if not current_ppu^.create then
-          Message(unit_f_ppu_cannot_write);
-
          current_ppu^.crc_only:=only_crc;
+         if not current_ppu^.create then
+           Message(unit_f_ppu_cannot_write);
+
 {$ifdef Test_Double_checksum}
          if only_crc then
            begin
               new(current_ppu^.crc_test);
+              new(current_ppu^.crc_test2);
            end
          else
            begin
              current_ppu^.crc_test:=Current_Module^.crc_array;
              current_ppu^.crc_index:=Current_Module^.crc_size;
+             current_ppu^.crc_test2:=Current_Module^.crc_array2;
+             current_ppu^.crc_index2:=Current_Module^.crc_size2;
            end;
 {$endif def Test_Double_checksum}
 
@@ -284,7 +301,8 @@
          current_ppu^.header.cpu:=word(target_cpu);
          current_ppu^.header.target:=word(target_info.target);
          current_ppu^.header.flags:=current_module^.flags;
-         current_ppu^.writeheader;
+         If not only_crc then
+           current_ppu^.writeheader;
        { save crc in current_module also }
          current_module^.crc:=current_ppu^.crc;
          current_module^.interface_crc:=current_ppu^.interface_crc;
@@ -293,7 +311,10 @@
 {$ifdef Test_Double_checksum}
             Current_Module^.crc_array:=current_ppu^.crc_test;
             current_ppu^.crc_test:=nil;
-            Current_Module^.crc_size:=current_ppu^.crc_index;
+            Current_Module^.crc_size:=current_ppu^.crc_index2;
+            Current_Module^.crc_array2:=current_ppu^.crc_test2;
+            current_ppu^.crc_test2:=nil;
+            Current_Module^.crc_size2:=current_ppu^.crc_index2;
 {$endif def Test_Double_checksum}
             closecurrentppu;
           end;
@@ -308,6 +329,8 @@
 {$ifdef Test_Double_checksum}
          if assigned(current_ppu^.crc_test) then
            dispose(current_ppu^.crc_test);
+         if assigned(current_ppu^.crc_test2) then
+           dispose(current_ppu^.crc_test2);
 {$endif Test_Double_checksum}
        { close }
          current_ppu^.close;
@@ -450,7 +473,9 @@
     procedure readsourcefiles;
       var
         temp,hs       : string;
-        incfile_found : boolean;
+        incfile_found,
+        main_found,
+        is_main       : boolean;
         ppufiletime,
         source_time   : longint;
         hp            : pinputfile;
@@ -460,6 +485,7 @@
         while not current_ppu^.endofentry do
          begin
            hs:=current_ppu^.getstring;
+           is_main:=current_ppu^.endofentry;
            temp:='';
            if (current_module^.flags and uf_in_library)<>0 then
             begin
@@ -479,8 +505,11 @@
               incfile_found:=false;
               if (Source_Time=-1) then
                 begin
-                  temp:=search(hs,includesearchpath,incfile_found);
-                  if incfile_found then
+                  if is_main then
+                    temp:=search(hs,unitsearchpath,main_found)
+                  else
+                    temp:=search(hs,includesearchpath,incfile_found);
+                  if incfile_found or main_found then
                    begin
                      hs:=temp+hs;
                      Source_Time:=GetNamedFileTime(hs);
@@ -604,7 +633,14 @@
 
 {
   $Log$
-  Revision 1.46  1999-08-13 21:33:12  peter
+  Revision 1.47  1999-08-27 10:54:45  pierre
+    * some code adapted to CRC_only computation
+    + main file is search in unitspathlist
+      and triggers do_compile flag
+    * some changes to get identical CRC vaules after
+      interface and after implementation
+
+  Revision 1.46  1999/08/13 21:33:12  peter
     * support for array constructors extended and more error checking
 
   Revision 1.45  1999/08/03 22:03:17  peter
