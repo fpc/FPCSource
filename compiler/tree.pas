@@ -1662,9 +1662,7 @@ unit tree;
     function is_constcharnode(p : ptree) : boolean;
 
       begin
-         is_constcharnode:=((p^.treetype=ordconstn) and
-           (p^.resulttype^.deftype=orddef) and
-           (porddef(p^.resulttype)^.typ=uchar));
+         is_constcharnode:=(p^.treetype=ordconstn) and is_char(p^.resulttype);
       end;
 
     function is_constrealnode(p : ptree) : boolean;
@@ -1676,9 +1674,7 @@ unit tree;
     function is_constboolnode(p : ptree) : boolean;
 
       begin
-         is_constboolnode:=((p^.treetype=ordconstn) and
-           (p^.resulttype^.deftype=orddef) and
-           (porddef(p^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit]));
+         is_constboolnode:=(p^.treetype=ordconstn) and is_boolean(p^.resulttype);
       end;
 
     function str_length(p : ptree) : longint;
@@ -1756,7 +1752,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.93  1999-08-27 10:38:31  pierre
+  Revision 1.94  1999-09-07 07:52:20  peter
+    * > < >= <= support for boolean
+    * boolean constants are now calculated like integer constants
+
+  Revision 1.93  1999/08/27 10:38:31  pierre
    + EXTTEMPREGDEBUG code added
 
   Revision 1.92  1999/08/26 21:10:08  peter

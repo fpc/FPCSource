@@ -373,7 +373,8 @@ implementation
              restore(p,false);
              set_location(p^.left^.location,p^.location);
           end;
-             
+
+
 
         set_location(p^.location,p^.left^.location);
 
@@ -710,7 +711,7 @@ implementation
                        secondpass(p^.right);
                        maketojumpbool(p^.right);
                      end;
-          unequaln,
+          unequaln,ltn,lten,gtn,gten,
        equaln,xorn : begin
                        if p^.left^.treetype=ordconstn then
                         swaptree(p);
@@ -2139,7 +2140,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  1999-08-30 12:00:45  pierre
+  Revision 1.78  1999-09-07 07:52:19  peter
+    * > < >= <= support for boolean
+    * boolean constants are now calculated like integer constants
+
+  Revision 1.77  1999/08/30 12:00:45  pierre
    * problem with maybe_push/restore solved hopefully
 
   Revision 1.76  1999/08/23 23:31:00  pierre

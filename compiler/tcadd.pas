@@ -194,12 +194,10 @@ implementation
          in fpc mode (Needed for conversion of C code) }
          if ((lt=ordconstn) and (rt=ordconstn)) and
             ((is_constintnode(p^.left) and is_constintnode(p^.right)) or
-             ((ld^.deftype=enumdef) and is_equal(ld,rd) and (m_fpc in aktmodeswitches))) then
+             (is_constboolnode(p^.left) and is_constboolnode(p^.right) and
+              (p^.treetype in [ltn,lten,gtn,gten,equaln,unequaln]))) then
            begin
-              if ld^.deftype=enumdef then
-                resdef:=ld
-              else
-                resdef:=s32bitdef;
+              resdef:=s32bitdef;
               lv:=p^.left^.value;
               rv:=p^.right^.value;
               case p^.treetype of
@@ -350,7 +348,7 @@ implementation
                       make_bool_equal_size(p);
                       p^.location.loc:=LOC_JUMP;
                     end;
-                  xorn:
+                  xorn,ltn,lten,gtn,gten :
                     begin
                       make_bool_equal_size(p);
                       if (p^.left^.location.loc in [LOC_JUMP,LOC_FLAGS]) and
@@ -363,9 +361,7 @@ implementation
                   equaln:
                     begin
                       make_bool_equal_size(p);
-                      { Remove any compares with constants, becuase then
-                        we get a compare with Flags in the codegen which
-                        is not supported (PFV) }
+                      { Remove any compares with constants }
                       if (p^.left^.treetype=ordconstn) then
                        begin
                          hp:=p^.right;
@@ -1122,7 +1118,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  1999-08-23 23:44:05  pierre
+  Revision 1.44  1999-09-07 07:52:19  peter
+    * > < >= <= support for boolean
+    * boolean constants are now calculated like integer constants
+
+  Revision 1.43  1999/08/23 23:44:05  pierre
    * setelementn registers32 corrected
 
   Revision 1.42  1999/08/07 11:29:27  peter
