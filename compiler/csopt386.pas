@@ -220,7 +220,7 @@ Procedure AllocRegBetween(AsmL: PAasmOutput; Reg: TRegister; p1, p2: Pai);
 { the type of p1 and p2 must not be in SkipInstr                        }
 var hp: pai;
 Begin
-  If not(reg in usableregs) or
+  If not(reg in usableregs+[R_EDI,R_ESI]) or
      not(assigned(p1)) Then
     { this happens with registers which are loaded implicitely, outside the }
     { current block (e.g. esi with self)                                    }
@@ -774,9 +774,9 @@ begin
       if assigned(hp^.next) then
         hp^.next^.previous := hp;
 {$endif replaceregdebug}
-      ReplaceReg := true;
+      replaceReg := true;
       returnEndP := endP;
-      hp := p;
+      getNextInstruction(p,hp);
       while hp <> endP do
         begin
           if not(PPaiProp(hp^.optInfo)^.canBeRemoved) and
@@ -796,7 +796,7 @@ begin
       If RegLoadedWithNewValue(newReg,true,endP) then
          GetLastInstruction(endP,hp)
       else hp := endP;
-      if (p <> endp) or 
+      if (p <> endp) or
          not RegLoadedWithNewValue(newReg,true,endP) then
         RestoreRegContentsTo(newReg, c ,p, hp);
 { In both case a and b, it is possible that the new register was modified   }
@@ -1082,13 +1082,14 @@ Begin
                     top_Reg:
                       { try to replace the new reg with the old reg }
                       if (paicpu(p)^.opcode = A_MOV) and
-                         getLastInstruction(p,hp4) and
-                         getNextInstruction(p,hp3) then
+                         getLastInstruction(p,hp4) then
                         begin
                           Case paicpu(p)^.oper[1].typ of
                             top_Reg:
+                              { we only have to start replacing from the instruction after the mov, }
+                              { but replacereg only starts with getnextinstruction(p,p)             }
                               if ReplaceReg(paicpu(p)^.oper[0].reg,
-                                   paicpu(p)^.oper[1].reg,hp3,
+                                   paicpu(p)^.oper[1].reg,p,
                                    PPaiProp(hp4^.optInfo)^.Regs[paicpu(p)^.oper[1].reg],false,hp1) then
                                 begin
                                   PPaiProp(p^.optInfo)^.canBeRemoved := true;
@@ -1193,7 +1194,12 @@ End.
 
 {
  $Log$
- Revision 1.48  2000-02-11 23:50:03  jonas
+ Revision 1.49  2000-02-12 10:54:18  jonas
+   * fixed edi allocation in allocRegBetween
+   * fixed bug I introduced yesterday, added comment to prevent it from
+     happening again in the future
+
+ Revision 1.48  2000/02/11 23:50:03  jonas
    * fixed crashing bug under Dos with -dnewoptimizations (found it,
      John!). Don't understand why it didn't crash under Linux :(
 
