@@ -1159,7 +1159,8 @@ Begin
       Begin
         { Check if there is already a base (mostly ebp,esp) than this is
           not allowed,becuase it will give crashing code }
-        if (opr.ref.base<>NR_NO) then
+        if ((opr.typ=OPR_REFERENCE) and (opr.ref.base<>NR_NO)) or
+           ((opr.typ=OPR_LOCAL) and (opr.localsym.localloc.loc<>LOC_REGISTER)) then
           message(asmr_e_cannot_index_relative_var);
         opr.ref.base:=actasmregister;
         Consume(AS_REGISTER);
@@ -2139,7 +2140,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.51  2003-10-16 21:29:24  peter
+  Revision 1.52  2003-10-20 19:29:35  peter
+    * fix check for register subscription of reference parameter
+
+  Revision 1.51  2003/10/16 21:29:24  peter
     + __HIGH() to retrieve high value
 
   Revision 1.50  2003/10/07 18:21:18  peter
