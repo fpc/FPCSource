@@ -727,12 +727,16 @@ initialization
 {$ifdef i386}
   RegisterExternalLinker(system_i386_FreeBSD_info,TLinkerBSD);
   RegisterExternalLinker(system_i386_NetBSD_info,TLinkerBSD);
+  RegisterExternalLinker(system_i386_OpenBSD_info,TLinkerBSD);
   RegisterImport(system_i386_freebsd,timportlibbsd);
   RegisterExport(system_i386_freebsd,texportlibbsd);
   RegisterTarget(system_i386_freebsd_info);
   RegisterImport(system_i386_netbsd,timportlibbsd);
   RegisterExport(system_i386_netbsd,texportlibbsd);
   RegisterTarget(system_i386_netbsd_info);
+  RegisterImport(system_i386_openbsd,timportlibbsd);
+  RegisterExport(system_i386_openbsd,texportlibbsd);
+  RegisterTarget(system_i386_openbsd_info);
 {$endif i386}
 {$ifdef m68k}
 //  RegisterExternalLinker(system_m68k_FreeBSD_info,TLinkerBSD);
@@ -755,7 +759,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2004-01-05 08:13:30  jonas
+  Revision 1.8  2004-01-21 20:53:51  marco
+   * Copy and pasted some structures from Net- to OpenBSD (3.4+ ELF!)
+
+  Revision 1.7  2004/01/05 08:13:30  jonas
     * fixed compilation problems under x86
 
   Revision 1.6  2004/01/04 21:26:31  jonas

@@ -107,8 +107,8 @@ interface
              system_i386_wdosx,         { 21 }
              system_sparc_sunos,        { 22 }
              system_sparc_linux,        { 23 }
-             target_i386_openbsd,       { 24 }
-             target_m68k_openbsd,       { 25 }
+             system_i386_openbsd,       { 24 }
+             system_m68k_openbsd,       { 25 }
              system_x86_64_linux,       { 26 }
              system_powerpc_darwin,     { 27 }
              system_i386_EMX,           { 28 }
@@ -649,7 +649,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.79  2004-01-14 23:39:05  florian
+  Revision 1.80  2004-01-21 20:53:50  marco
+   * Copy and pasted some structures from Net- to OpenBSD (3.4+ ELF!)
+
+  Revision 1.79  2004/01/14 23:39:05  florian
     * another bunch of x86-64 fixes mainly calling convention and
       assembler reader related
 

@@ -20,7 +20,8 @@
  ****************************************************************************
 }
 { This unit implements support information structures for FreeBSD/NetBSD.
-  OpenBSD must still be added.}
+  OpenBSD is only added for i386 for now, though it exists for most
+  other common CPU's too}
 
 unit i_bsd;
 
@@ -98,6 +99,69 @@ unit i_bsd;
             system       : system_i386_NetBSD;
             name         : 'NetBSD for i386';
             shortname    : 'NetBSD';
+            flags        : [tf_under_development];
+            cpu          : cpu_i386;
+            unit_env     : 'BSDUNITS';
+            extradefines : 'UNIX;BSD;HASUNIX';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            Cprefix      : '_';
+            newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 1;
+                varalignmin     : 0;
+                varalignmax     : 1;
+                localalignmin   : 0;
+                localalignmax   : 1;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            heapsize    : 256*1024;
+            stacksize   : 262144;
+            DllScanSupported:false;
+            use_function_relative_addresses : true
+          );
+
+       system_i386_openbsd_info : tsysteminfo =
+          (
+            system       : system_i386_OpenBSD;
+            name         : 'OpenBSD for i386';
+            shortname    : 'OpenBSD';
             flags        : [tf_under_development];
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
@@ -359,6 +423,9 @@ initialization
   {$ifdef NetBSD}
      set_source_info(system_i386_NetBSD_info);
   {$endif}
+  {$ifdef OpenBSD}
+     set_source_info(system_i386_NetBSD_info);
+  {$endif}
 {$endif cpu86}
 {$ifdef cpu68}
   {$ifdef NetBSD}
@@ -376,7 +443,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2004-01-06 21:26:18  jonas
+  Revision 1.7  2004-01-21 20:53:51  marco
+   * Copy and pasted some structures from Net- to OpenBSD (3.4+ ELF!)
+
+  Revision 1.6  2004/01/06 21:26:18  jonas
     * fixed alignment constants for Darwin
 
   Revision 1.5  2004/01/04 21:19:57  jonas
