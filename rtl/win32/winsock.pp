@@ -66,7 +66,7 @@ unit winsock;
           tz_dsttime : longint;
        end;
        TTimeZone = timezone;
-       PTimeZoen = ^TTimeZone;
+       PTimeZone = ^TTimeZone;
 
     const
        IOCPARM_MASK = $7f;
@@ -933,7 +933,10 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.8  2000-02-23 16:48:10  alex
+  Revision 1.9  2000-03-01 11:18:39  pierre
+   * typo correction from bug 864
+
+  Revision 1.8  2000/02/23 16:48:10  alex
   fixed structure sizes for any slang on 32 bit platform,
   fiexed buggy conversions from c-short to pascal-integer,
   needs some more work to be Win64 compliant,
