@@ -1,0 +1,54 @@
+<!-- $Id$
+  XML Document Type Definition (DTD) for FreePascal/KCL fpdoc documents.
+  This DTD is not finished yet!!! Currently it is mainly used as a demo/test
+  for the new FCL XML units.
+
+  (c) 1999 Sebastian Guenther, sguenther@gmx.de
+-->
+
+
+<!-- Elements used for descriptions -->
+
+<!ELEMENT DESCR (#PCDATA|REF)*>
+
+<!ELEMENT REF (DESCR)>
+<!ATTLIST REF dest CDATA #IMPLIED>
+
+
+<!-- Elements used for building up the logical structure -->
+
+<!ELEMENT DOC (LIBRARY|UNIT|PROGRAM)>
+<!ATTLIST DOC name CDATA #REQUIRED version CDATA #IMPLIED xml:lang NMTOKEN "en">
+
+<!ELEMENT LIBRARY ((DESCR)?, (UNIT)*)>
+
+<!ELEMENT UNIT ((DESCR)?, (CONST|VAR|PROCEDURE|FUNCTION|CLASS)+)>
+
+
+<!ELEMENT CONST (DESCR)?>
+<!ATTLIST CONST name CDATA #REQUIRED  type CDATA #REQUIRED>
+
+<!ELEMENT VAR (DESCR)?>
+<!ATTLIST VAR name CDATA #REQUIRED  type CDATA #REQUIRED>
+
+<!ELEMENT PROCEDURE ((DESCR)?,(ARG)*)>
+<!ATTLIST PROCEDURE name CDATA #REQUIRED>
+
+<!ELEMENT FUNCTION ((DESCR)?,(ARG)*,(RESULT))>
+<!ATTLIST FUNCTION name CDATA #REQUIRED>
+
+<!ELEMENT ARG (DESCR)?>
+<!ATTLIST ARG name CDATA #REQUIRED  type CDATA #IMPLIED  ref (const|var) #IMPLIED>
+
+<!ELEMENT CLASS ((DESCR)?, (PUBLIC|PROTECTED|PRIVATE|PUBLISHED|CONSTRUCTOR|DESTRUCTOR|PROCEDURE|FUNCTION|VAR)*)>
+<!ATTLIST CLASS name CDATA #REQUIRED  ancestor CDATA #IMPLIED>
+<!ELEMENT PUBLIC EMPTY>
+<!ELEMENT PROTECTED EMPTY>
+<!ELEMENT PRIVATE EMPTY>
+<!ELEMENT PUBLISHED EMPTY>
+
+<!ELEMENT CONSTRUCTOR ((DESCR)?,(ARG)*)>
+<!ATTLIST CONSTRUCTOR name CDATA "Create">
+
+<!ELEMENT DESTRUCTOR ((DESCR)?,(ARG)*)>
+<!ATTLIST DESTRUCTOR name CDATA "Destroy">
