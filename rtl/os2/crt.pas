@@ -1,5 +1,7 @@
 {****************************************************************************
 
+    $Id$
+
                             Standard CRT unit.
                     Free Pascal runtime library for OS/2.
                     Copyright (c) 1997 Daniel Mantione.
@@ -255,7 +257,7 @@ begin
         end;
 end;
 
-{$asmmode intel}
+{$ASMMODE INTEL}
 procedure setcursor(y,x:word);
 
 {Set the cursor position.}
@@ -265,11 +267,11 @@ begin
         viosetcurpos(y,x,0)
     else
         asm
-            mov  ah, 2
-            mov  bl, 0
-            mov  dh, byte ptr y
-            mov  dl, byte ptr x
-            int  010h
+            mov ah, 2
+            mov bh, 0
+            mov dh, byte ptr y
+            mov dl, byte ptr x
+            int 10h
         end;
 end;
 
@@ -280,15 +282,15 @@ begin
         vioscrollup(top,left,bottom,right,lines,screl,0)
     else
         asm
-            mov  ah, 6
-            mov  al, byte ptr lines
-            mov  edi, screl
-            mov  bl, byte ptr [edi+1]
-            mov  ch, byte ptr top
-            mov  cl, byte ptr left
-            mov  dh, byte ptr bottom
-            mov  dl, byte ptr right
-            int  010h
+            mov ah, 6
+            mov al, byte ptr lines
+            mov edi, screl
+            mov bh, [edi + 1]
+            mov ch, byte ptr top
+            mov cl, byte ptr left
+            mov dh, byte ptr bottom
+            mov dl, byte ptr right
+            int 10h
         end;
 end;
 
@@ -299,20 +301,19 @@ begin
         vioscrolldn(top,left,bottom,right,lines,screl,0)
     else
         asm
-            mov  ah, 7
-            mov  al, byte ptr lines
-            mov  edi, screl
-            mov  bh, byte ptr [edi+1]
-            mov  ch, byte ptr top
-            mov  cl, byte ptr left
-            mov  dh, byte ptr bottom
-            mov  dl, byte ptr right
-            int  010h
+            mov ah, 7
+            mov al, byte ptr lines
+            mov edi, screl
+            mov bh, [edi + 1]
+            mov ch, byte ptr top
+            mov cl, byte ptr left
+            mov dh, byte ptr bottom
+            mov dl, byte ptr right
+            int 10h
         end;
 end;
 
-{$asmmode att}
-
+{$ASMMODE ATT}
 function keypressed:boolean;
 
 {Checks if a key is pressed.}
@@ -570,6 +571,7 @@ begin
     gotoXY(1,1);
 end;
 
+{$ASMMODE INTEL}
 procedure writePchar(s:Pchar;len:word);
 
 {Write a series of characters to the screen.
@@ -604,7 +606,8 @@ begin
                         ca:=@s[i];
                         n:=1;
                         while not(s[i+1] in [#8,#9,#10,#13]) and
-                         (x+n<=lo(windmax)+1) and (i<len-1) do
+{                         (x+n<=lo(windmax)+1) and (i<len-1) do}
+                         (x+n<=lo(windmax)) and (i<len-1) do
                             begin
                                 inc(n);
                                 inc(i);
@@ -612,21 +615,18 @@ begin
                         if os_mode=osOS2 then
                             viowrtcharstratt(ca,n,y,x,textattr,0)
                         else
-{$asmmode intel}
                             asm
-                                mov  ax, 01300h
-                                mov  bh, 0
-                                mov  bl, TEXTATTR
-{                                mov  bl, U_CRT_TEXTATTR }
-                                mov  dh, byte ptr y
-                                mov  dl, byte ptr x
-                                mov  cx, n
+                                mov ax, 1300h
+                                mov bh, 0
+                                mov bl, TEXTATTR
+                                mov dh, byte ptr y
+                                mov dl, byte ptr x
+                                mov cx, n
                                 push ebp
-                                mov  ebp, ca
-                                int  010h
-                                pop  ebp
+                                mov ebp, ca
+                                int 10h
+                                pop ebp
                             end;
-{$asmmode att}
                         x:=x+n;
                     end;
             end;
@@ -649,11 +649,12 @@ begin
     setcursor(y,x);
 end;
 
+{$ASMMODE ATT}
 function crtread(var f:textrec):word;
 
 {Read a series of characters from the console.}
 
-var max,curpos,i:integer;
+var max,curpos:integer;
     c:char;
     clist:array[0..2] of char;
 
@@ -890,3 +891,11 @@ begin
     assigncrt(output);
     textrec(output).mode:=fmoutput;
 end.
+
+{
+  $Log$
+  Revision 1.3  2002-08-04 19:37:55  hajny
+    * fix for bug 1998 (write in window) + removed warnings
+
+
+}
