@@ -146,7 +146,11 @@ begin
      crc:=i;
      for n:=1 to 8 do
       if odd(crc) then
+{$ifdef Delphi}
        crc:=(crc shr 1) xor $edb88320
+{$else Delphi}
+       crc:=longint(cardinal(crc shr 1) xor $edb88320)
+{$endif Delphi}
       else
        crc:=crc shr 1;
      Crc32Tbl[i]:=crc;
@@ -751,8 +755,8 @@ begin
   while pp<>nil do
    begin
      { inside this block ! }
-     if (cardinal(p)>=cardinal(pp)+sizeof(theap_mem_info)+extra_info_size) and
-        (cardinal(p)<=cardinal(pp)+sizeof(theap_mem_info)+extra_info_size+pp^.size) then
+     if (cardinal(p)>=cardinal(pp)+sizeof(theap_mem_info)+cardinal(extra_info_size)) and
+        (cardinal(p)<=cardinal(pp)+sizeof(theap_mem_info)+cardinal(extra_info_size)+cardinal(pp^.size)) then
         { allocated block }
        if ((pp^.sig=longint($DEADBEEF)) and not usecrc) or
           ((pp^.sig=calculate_sig(pp)) and usecrc) then
@@ -992,7 +996,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2000-12-07 17:19:47  jonas
+  Revision 1.6  2000-12-16 15:57:17  jonas
+    * removed 64bit evaluations when range checking is on
+
+  Revision 1.5  2000/12/07 17:19:47  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range
@@ -1014,5 +1021,5 @@ end.
 
   Revision 1.2  2000/07/13 11:33:44  michael
   + removed logs
- 
+
 }

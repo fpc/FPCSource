@@ -78,7 +78,7 @@ Type
 {  3. Set base linear address    }
 const
 {$ifdef fpc}
-   VideoOfs : DWord = 0;   { Segment to draw to }
+   VideoOfs : longint = 0;   { Segment to draw to }
 {$else fpc}
    VideoOfs : word = 0;   { Segment to draw to }
 {$endif fpc}
@@ -2653,7 +2653,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-11-11 15:57:54  jonas
+  Revision 1.5  2000-12-16 15:57:17  jonas
+    * removed 64bit evaluations when range checking is on
+
+  Revision 1.4  2000/11/11 15:57:54  jonas
     * fixed web bug 1166 (merged)
 
   Revision 1.3  2000/08/12 12:27:13  jonas

@@ -1940,8 +1940,8 @@ Const
       { The base of ds can be changed
         we need to compute the address again PM }
       LFBPointer:=pointer(FrameBufferLinearAddress-get_segment_base_address(get_ds));
-      if dword(LFBPointer)+(VESAInfo.TotalMem shl 16)-1 > DsLimit then
-        set_segment_limit(get_ds,dword(LFBPointer)+(VESAInfo.TotalMem shl 16)-1);
+      if dword(LFBPointer)+dword(VESAInfo.TotalMem shl 16)-1 > DsLimit then
+        set_segment_limit(get_ds,dword(LFBPointer)+dword(VESAInfo.TotalMem shl 16)-1);
     end;
 
   procedure HookHeapError;
@@ -2025,8 +2025,8 @@ Const
        begin
          HookHeapError;
          LFBPointer:=pointer(FrameBufferLinearAddress-get_segment_base_address(get_ds));
-         if dword(LFBPointer)+(VESAInfo.TotalMem shl 16)-1 > get_segment_limit(get_ds) then
-           set_segment_limit(get_ds,dword(LFBPointer)+(VESAInfo.TotalMem shl 16)-1);
+         if dword(LFBPointer)+dword(VESAInfo.TotalMem shl 16)-1 > dword(get_segment_limit(get_ds)) then
+           set_segment_limit(get_ds,dword(LFBPointer)+dword(VESAInfo.TotalMem shl 16)-1);
        end
      else
        begin
@@ -2715,7 +2715,10 @@ Const
 
 {
   $Log$
-  Revision 1.5  2000-08-12 12:27:13  jonas
+  Revision 1.6  2000-12-16 15:57:17  jonas
+    * removed 64bit evaluations when range checking is on
+
+  Revision 1.5  2000/08/12 12:27:13  jonas
     + setallpalette hook
     + setallpalette implemented for standard vga and VESA 2.0+
 

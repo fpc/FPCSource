@@ -45,7 +45,7 @@ begin
       end;
      c:= Year DIV 100;
      ya:= Year - 100*c;
-     result := (146097*c) SHR 2 + (1461*ya) SHR 2 + (153*Month+2) DIV 5 + Day - 693900;
+     result := (146097*c) SHR 2 + (1461*ya) SHR 2 + (153*cardinal(Month)+2) DIV 5 + cardinal(Day) - 693900;
    end
   else
    result:=0;
@@ -123,13 +123,13 @@ var
 begin
   j := pred((Trunc(System.Int(Date)) + 693900) SHL 2);
   Year:= j DIV 146097;
-  j:= j - 146097 * Year;
+  j:= j - 146097 * cardinal(Year);
   Day := j SHR 2;
   j:=(Day SHL 2 + 3) DIV 1461;
-  Day:= (Day SHL 2 + 7 - 1461*j) SHR 2;
+  Day:= (cardinal(Day) SHL 2 + 7 - 1461*j) SHR 2;
   Month:=(5 * Day-3) DIV 153;
   Day:= (5 * Day +2 - 153*Month) DIV 5;
-  Year:= 100 * Year + j;
+  Year:= 100 * cardinal(Year) + j;
   if Month < 10 then
    inc(Month,3)
   else
@@ -673,7 +673,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:50  michael
+  Revision 1.3  2000-12-16 15:57:16  jonas
+    * removed 64bit evaluations when range checking is on
+
+  Revision 1.2  2000/07/13 11:33:50  michael
   + removed logs
- 
+
 }
