@@ -27,7 +27,7 @@ incdir=$(INC) $(PROCINC)
 targetdir=.
 
 [libs]
-libname=fprtl
+libname=libfprtl.so.1.0
 libunits=$(SYSTEMUNIT) objpas strings \
       linux ports \
       dos crt objects printer \

@@ -4,7 +4,7 @@
 
 [targets]
 units=classes $(INCUNITS) $(XMLUNITS) $(SHEDITUNITS) process asyncio ssockets
-rst=ssockets
+rst=ssockets cachecls
 
 [defaults]
 defaulttarget=linux
@@ -18,7 +18,7 @@ unitsubdir=fcl
 packagename=fcl
 
 [libs]
-libname=fpfcl
+libname=libfpfcl.so.1.0
 
 [dirs]
 fpcdir=../..
