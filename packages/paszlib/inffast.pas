@@ -16,7 +16,7 @@ interface
 {$I zconf.inc}
 
 uses
-  {$ifdef DEBUG}
+  {$ifdef STRUTILS_DEBUG}
   strutils,
   {$ENDIF}
   zutil, zbase;
@@ -97,7 +97,7 @@ begin
       {DUMPBITS(t^.bits);}
       b := b shr t^.bits;
       Dec(k, t^.bits);
-     {$IFDEF DEBUG}
+     {$IFDEF STRUTILS_DEBUG}
       if (t^.base >= $20) and (t^.base < $7f) then
         Tracevv('inflate:         * literal '+char(t^.base))
       else
@@ -121,7 +121,7 @@ begin
         {DUMPBITS(e);}
         b := b shr e;
         Dec(k, e);
-        {$IFDEF DEBUG}
+        {$IFDEF STRUTILS_DEBUG}
         Tracevv('inflate:         * length ' + IntToStr(c));
         {$ENDIF}
         { decode distance base of block to copy }
@@ -159,7 +159,7 @@ begin
             b := b shr e;
             Dec(k, e);
 
-            {$IFDEF DEBUG}
+            {$IFDEF STRUTILS_DEBUG}
             Tracevv('inflate:         * distance '+IntToStr(d));
             {$ENDIF}
             { do the copy }
@@ -239,7 +239,7 @@ begin
           b := b shr t^.bits;
           Dec(k, t^.bits);
 
-         {$IFDEF DEBUG}
+         {$IFDEF STRUTILS_DEBUG}
           if (t^.base >= $20) and (t^.base < $7f) then
             Tracevv('inflate:         * literal '+char(t^.base))
           else
@@ -254,7 +254,7 @@ begin
       else
         if (e and 32 <> 0) then
         begin
-          {$IFDEF DEBUG}
+          {$IFDEF STRUTILS_DEBUG}
           Tracevv('inflate:         * end of block');
           {$ENDIF}
           {UNGRAB}
