@@ -72,7 +72,7 @@
       end;
 
 
-    procedure writecontainer(var p:tstringcontainer;id:byte;hold:boolean);
+    procedure writecontainer(var p:tstringcontainer;id:byte;hold,strippath:boolean);
       var
         hcontainer : tstringcontainer;
         s          : string;
@@ -82,7 +82,10 @@
         while not p.empty do
          begin
            s:=p.get;
-           current_ppu^.putstring(s);
+           if strippath then
+            current_ppu^.putstring(SplitFileName(s))
+           else
+            current_ppu^.putstring(s);
            if hold then
             hcontainer.insert(s);
          end;
@@ -443,7 +446,10 @@
 
 {
   $Log$
-  Revision 1.21  1998-10-14 10:45:10  pierre
+  Revision 1.22  1998-10-14 13:38:24  peter
+    * fixed path with staticlib/objects in ppufiles
+
+  Revision 1.21  1998/10/14 10:45:10  pierre
     * ppu problems for m68k fixed (at least in cross compiling)
     * one last memory leak for sysamiga fixed
     * the amiga RTL compiles now completely !!

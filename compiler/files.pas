@@ -611,7 +611,7 @@ unit files;
          { lib and exe could be loaded with a file specified with -o }
          if AllowOutput and (OutputFile<>'') then
           n:=OutputFile;
-         staticlibfilename:=stringdup(target_os.libprefix+n+target_os.staticlibext);
+         staticlibfilename:=stringdup(p+target_os.libprefix+n+target_os.staticlibext);
          sharedlibfilename:=stringdup(p+target_os.libprefix+n+target_os.sharedlibext);
          { output dir of exe can be specified separatly }
          if AllowOutput and (OutputExeDir<>'') then
@@ -1021,7 +1021,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.63  1998-10-14 11:02:49  daniel
+  Revision 1.64  1998-10-14 13:38:19  peter
+    * fixed path with staticlib/objects in ppufiles
+
+  Revision 1.63  1998/10/14 11:02:49  daniel
   * Stupid typo fixed.
 
   Revision 1.62  1998/10/14 10:59:37  daniel
