@@ -18,9 +18,10 @@ program ImgConv;
 
 {_$define UseFile}
 
-uses FPImage, FPWriteXPM, FPWritePNG, FPReadXPM, FPReadPNG,
+uses FPWriteXPM, FPWritePNG, FPWriteBMP,
+     FPReadXPM, FPReadPNG, FPReadBMP,
      {$ifndef UseFile}classes,{$endif}
-     sysutils;
+     FPImage, sysutils;
 
 var img : TFPMemoryImage;
     reader : TFPCustomImageReader;
@@ -35,6 +36,8 @@ begin
     T := upcase (paramstr(1)[1]);
     if T = 'X' then
       Reader := TFPReaderXPM.Create
+    else if T = 'B' then
+      Reader := TFPReaderBMP.Create
     else
       Reader := TFPReaderPNG.Create;
     ReadFile := paramstr(2);
@@ -52,9 +55,11 @@ begin
   T := WriteOptions[1];
   if T = 'X' then
     Writer := TFPWriterXPM.Create
+  else if T = 'B' then
+    Writer := TFPWriterBMP.Create
   else
     Writer := TFPWriterPNG.Create;
-  img := TFPMemoryImage.Create(1,1);
+  img := TFPMemoryImage.Create(0,0);
 end;
 
 procedure ReadImage;
@@ -118,7 +123,7 @@ begin
   if (paramcount <> 4) and (paramcount <> 3) then
     begin
     writeln ('Give filename to read and to write, preceded by filetype:');
-    writeln ('X for XPM, P for PNG');
+    writeln ('X for XPM, P for PNG, B for BMP (write only)');
     writeln ('example: imgconv X hello.xpm P hello.png');
     writeln ('example: imgconv hello.xpm P hello.png');
     writeln ('Options for');
