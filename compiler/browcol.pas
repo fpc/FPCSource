@@ -324,6 +324,12 @@ const
      Load:    @TReferenceCollection.Load;
      Store:   @TReferenceCollection.Store
   );
+  RModuleSymbol: TStreamRec = (
+     ObjType: 3011;
+     VmtLink: Ofs(TypeOf(TModuleSymbol)^);
+     Load:    @TModuleSymbol.Load;
+     Store:   @TModuleSymbol.Store
+  );
 
 {****************************************************************************
                                    Helpers
@@ -2078,6 +2084,7 @@ begin
   RegisterType(RIDSortedSymbolCollection);
   RegisterType(RObjectSymbolCollection);
   RegisterType(RReferenceCollection);
+  RegisterType(RModuleSymbol);
 end;
 
 begin
@@ -2086,7 +2093,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2000-07-05 10:17:38  pierre
+  Revision 1.43  2000-07-05 21:20:48  pierre
+   + Register TModuleSymbol
+
+  Revision 1.42  2000/07/05 10:17:38  pierre
    * avoid internalerror on open arrays
 
   Revision 1.41  2000/06/19 19:56:43  pierre
