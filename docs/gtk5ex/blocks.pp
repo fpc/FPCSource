@@ -44,7 +44,6 @@ type
     FDrawPixMap : PgdkPixmap;
     FPixMap : PgdkPixMap;
     FBitMap : PGdkBitMap;
-    FVisible : Boolean;
   Protected
     Procedure CreateSpriteFromData(SpriteData : PPGchar);
     Procedure CreatePixMap; Virtual; Abstract; 
@@ -55,7 +54,6 @@ type
     Function GetChangeRect (Var Rect : TGDkRectAngle) : Boolean;
     Property PixMap : PgdkPixMap Read FPixMap;
     Property BitMap : PGdkBitMap Read FBitMap; 
-    Property Visible : Boolean Read FVisible Write FVisible;
   end;
 
   TPad = Class (TSprite)
@@ -378,7 +376,6 @@ Constructor TSprite.Create(DrawingArea: PGtkWidget);
 begin
   Inherited Create;
   FDrawingArea:=DrawingArea;
-  Visible:=False;
 end;
 
 Procedure TSprite.CreateSpriteFromData(SpriteData : PPGChar);
@@ -396,19 +393,16 @@ Var
   gc : PGDKGc;
   
 begin
-  if Visible then
-    begin
-    if FPixMap=Nil then
-      CreatePixMap;    
-    gc:=gtk_widget_get_style(FDrawingArea)^.fg_gc[GTK_STATE_NORMAL];
-    gdk_gc_set_clip_origin(gc,Left,Top);
-    gdk_gc_set_clip_mask(gc,FBitmap);
-    if FDrawPixMap<>Nil then
-      gdk_draw_pixmap(FDrawPixMap,gc,FPixMap,0,0,Left,Top,Width,Height)
-    else
-      gdk_draw_pixmap(FDrawPixMap{FDrawingArea^.window},gc,FPixMap,0,0,Left,Top,Width,Height);
-    gdk_gc_set_clip_mask(gc,Nil);  
-    end;
+  if FPixMap=Nil then
+    CreatePixMap;    
+  gc:=gtk_widget_get_style(FDrawingArea)^.fg_gc[GTK_STATE_NORMAL];
+  gdk_gc_set_clip_origin(gc,Left,Top);
+  gdk_gc_set_clip_mask(gc,FBitmap);
+  if FDrawPixMap<>Nil then
+    gdk_draw_pixmap(FDrawPixMap,gc,FPixMap,0,0,Left,Top,Width,Height)
+  else
+    gdk_draw_pixmap(FDrawPixMap{FDrawingArea^.window},gc,FPixMap,0,0,Left,Top,Width,Height);
+  gdk_gc_set_clip_mask(gc,Nil);  
 end;
 
 Function TSprite.GetChangeRect (Var Rect : TGDkRectAngle) : Boolean;
@@ -462,7 +456,6 @@ begin
   Inherited Create(DrawingArea);
   FSpeed:=6;
   FSlope:=50;
-  Visible:=True;
 end;
 
 Procedure TPad.CreatePixMap; 
@@ -549,7 +542,6 @@ begin
   FCurrentSpeedY:=-100;
   FCurrentSpeedX:=0;
   FSpeedFactor:=10;
-  Visible:=True;
 end;
 
 Procedure TBall.CreatePixMap; 
