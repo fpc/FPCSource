@@ -326,7 +326,7 @@ unit types;
          ret_in_param:=(def^.deftype in [arraydef,recorddef]) or
            ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
            ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
-           ((def^.deftype=objectdef) and ((pobjectdef(def)^.options and oois_class)=0)) or
+           ((def^.deftype=objectdef) and ((pobjectdef(def)^.options and oo_is_class)=0)) or
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
 
@@ -944,7 +944,7 @@ unit types;
                                   { generates an instance                     }
                                   if (procdefcoll^.data^.options and poabstractmethod)<>0 then
                                     begin
-                                       _class^.options:=_class^.options or oois_abstract;
+                                       _class^.options:=_class^.options or oo_is_abstract;
                                        datasegment^.concat(new(pai_const,init_symbol('FPC_ABSTRACTERROR')));
                                     end
                                   else
@@ -982,7 +982,12 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.34  1998-10-12 09:50:06  florian
+  Revision 1.35  1998-10-19 08:55:13  pierre
+    * wrong stabs info corrected once again !!
+    + variable vmt offset with vmt field only if required
+      implemented now !!!
+
+  Revision 1.34  1998/10/12 09:50:06  florian
     + support of <procedure var type>:=<pointer> in delphi mode added
 
   Revision 1.33  1998/10/06 20:43:30  peter

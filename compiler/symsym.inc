@@ -1001,7 +1001,7 @@
              {  check for instance of an abstract object or class }
              {
              if (pvarsym(sym)^.definition^.deftype=objectdef) and
-               ((pobjectdef(pvarsym(sym)^.definition)^.options and oois_abstract)<>0) then
+               ((pobjectdef(pvarsym(sym)^.definition)^.options and oo_is_abstract)<>0) then
                Message(sym_e_no_instance_of_abstract_object);
              }
 
@@ -1712,7 +1712,12 @@
 
 {
   $Log$
-  Revision 1.53  1998-10-16 08:51:53  peter
+  Revision 1.54  1998-10-19 08:55:07  pierre
+    * wrong stabs info corrected once again !!
+    + variable vmt offset with vmt field only if required
+      implemented now !!!
+
+  Revision 1.53  1998/10/16 08:51:53  peter
     + target_os.stackalignment
     + stack can be aligned at 2 or 4 byte boundaries
 

@@ -370,7 +370,7 @@ implementation
 
               { this must be a _class_ }
               if (p^.left^.resulttype^.deftype<>objectdef) or
-                ((pobjectdef(p^.left^.resulttype)^.options and oois_class)=0) then
+                ((pobjectdef(p^.left^.resulttype)^.options and oo_is_class)=0) then
                 CGMessage(type_e_mismatch);
 
               p^.registersfpu:=p^.left^.registersfpu;
@@ -482,7 +482,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-10-06 20:49:10  peter
+  Revision 1.3  1998-10-19 08:55:10  pierre
+    * wrong stabs info corrected once again !!
+    + variable vmt offset with vmt field only if required
+      implemented now !!!
+
+  Revision 1.2  1998/10/06 20:49:10  peter
     * m68k compiler compiles again
 
   Revision 1.1  1998/09/23 20:42:24  peter

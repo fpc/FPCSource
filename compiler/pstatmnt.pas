@@ -812,7 +812,7 @@ unit pstatmnt;
                      end;
                    { check, if the first parameter is a pointer to a _class_ }
                    classh:=pobjectdef(ppointerdef(pd)^.definition);
-                   if (classh^.options and oois_class)<>0 then
+                   if (classh^.options and oo_is_class)<>0 then
                          begin
                             Message(parser_e_no_new_or_dispose_for_classes);
                             new_dispose_statement:=factor(false);
@@ -1215,7 +1215,12 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.44  1998-10-13 13:10:27  peter
+  Revision 1.45  1998-10-19 08:55:01  pierre
+    * wrong stabs info corrected once again !!
+    + variable vmt offset with vmt field only if required
+      implemented now !!!
+
+  Revision 1.44  1998/10/13 13:10:27  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.43  1998/10/08 13:46:22  peter

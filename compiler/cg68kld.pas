@@ -201,7 +201,7 @@ implementation
                           end;
                          { should be dereferenced later (FK)
                          if (pvarsym(p^.symtableentry)^.definition^.deftype=objectdef) and
-                           ((pobjectdef(pvarsym(p^.symtableentry)^.definition)^.options and oois_class)<>0) then
+                           ((pobjectdef(pvarsym(p^.symtableentry)^.definition)^.options and oo_is_class)<>0) then
                            begin
                               simple_loadn:=false;
                               if hregister=R_NO then
@@ -510,7 +510,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-10-14 08:47:16  pierre
+  Revision 1.7  1998-10-19 08:54:55  pierre
+    * wrong stabs info corrected once again !!
+    + variable vmt offset with vmt field only if required
+      implemented now !!!
+
+  Revision 1.6  1998/10/14 08:47:16  pierre
     * bugs in secondfuncret for result in subprocedures removed
 
   Revision 1.5  1998/10/14 08:08:53  pierre

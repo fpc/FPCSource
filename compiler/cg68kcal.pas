@@ -565,7 +565,7 @@ implementation
                                  { will be made                                  }
                                  { con- and destructors need a pointer to the vmt }
                                  if is_con_or_destructor and
-                                   ((pobjectdef(p^.methodpointer^.resulttype)^.options and oois_class)=0) and
+                                   ((pobjectdef(p^.methodpointer^.resulttype)^.options and oo_is_class)=0) and
                                    assigned(aktprocsym) then
                                    begin
                                     if not ((aktprocsym^.definition^.options
@@ -578,7 +578,7 @@ implementation
                                            { classes need the mem ! }
                                            if ((pobjectdef(p^.methodpointer^.resulttype)^.options and
 
-                                            oois_class)=0) then
+                                            oo_is_class)=0) then
                                              push_int(0)
                                            else
                                                begin
@@ -1052,7 +1052,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-10-16 13:12:46  pierre
+  Revision 1.12  1998-10-19 08:54:53  pierre
+    * wrong stabs info corrected once again !!
+    + variable vmt offset with vmt field only if required
+      implemented now !!!
+
+  Revision 1.11  1998/10/16 13:12:46  pierre
     * added vmt_offsets in destructors code also !!!
     * vmt_offset code for m68k
 

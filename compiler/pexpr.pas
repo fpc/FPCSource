@@ -872,7 +872,7 @@ unit pexpr;
                                  else
                                   if (token=POINT) and
                                      (pd^.deftype=objectdef) and
-                                     ((pobjectdef(pd)^.options and oois_class)=0) then
+                                     ((pobjectdef(pd)^.options and oo_is_class)=0) then
                                     begin
                                       consume(POINT);
                                       if assigned(procinfo._class) then
@@ -925,7 +925,7 @@ unit pexpr;
                                     begin
                                        { class reference ? }
                                        if (pd^.deftype=objectdef)
-                                         and ((pobjectdef(pd)^.options and oois_class)<>0) then
+                                         and ((pobjectdef(pd)^.options and oo_is_class)<>0) then
                                          begin
                                             p1:=genzeronode(typen);
                                             p1^.resulttype:=pd;
@@ -1399,7 +1399,7 @@ unit pexpr;
                     { determines the current object defintion }
                     classh:=pobjectdef(ppointerdef(pd)^.definition);
                     { check for an abstract class }
-                    if (classh^.options and oois_abstract)<>0 then
+                    if (classh^.options and oo_is_abstract)<>0 then
                       Message(sym_e_no_instance_of_abstract_object);
 
                     { search the constructor also in the symbol tables of
@@ -1863,7 +1863,12 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.66  1998-10-15 15:13:28  pierre
+  Revision 1.67  1998-10-19 08:54:57  pierre
+    * wrong stabs info corrected once again !!
+    + variable vmt offset with vmt field only if required
+      implemented now !!!
+
+  Revision 1.66  1998/10/15 15:13:28  pierre
     + added oo_hasconstructor and oo_hasdestructor
       for objects options
 

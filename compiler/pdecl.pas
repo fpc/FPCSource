@@ -277,7 +277,11 @@ unit pdecl;
                 (token=ID) and (orgpattern='__asmname__') then
                begin
                  consume(ID);
-                 C_name:=get_stringconst;
+                 C_name:=pattern;
+                 if token=CCHAR then
+                  consume(CCHAR)
+                 else
+                  consume(CSTRING);
                  Is_gpc_name:=true;
                end;
              p:=read_type('');
@@ -325,13 +329,13 @@ unit pdecl;
                    symtablestack^.insert(abssym);
                  end
                 else
-                 if token=CSTRING then
+                 if (token=CSTRING) or (token=CCHAR) then
                   begin
                     storetokenpos:=tokenpos;
                     tokenpos:=declarepos;
                     abssym:=new(pabsolutesym,init(s,p));
                     s:=pattern;
-                    consume(CSTRING);
+                    consume(token);
                     abssym^.typ:=absolutesym;
                     abssym^.abstyp:=toasm;
                     abssym^.asmname:=stringdup(s);
@@ -691,7 +695,7 @@ unit pdecl;
            aktclass^.options:=aktclass^.options or oo_hasconstructor;
            consume(SEMICOLON);
              begin
-                if (aktclass^.options and oois_class)<>0 then
+                if (aktclass^.options and oo_is_class)<>0 then
                   begin
                      { CLASS constructors return the created instance }
                      aktprocsym^.definition^.retdef:=aktclass;
@@ -753,7 +757,7 @@ unit pdecl;
 
         begin
            { check for a class }
-           if (aktclass^.options and oois_class=0) then
+           if (aktclass^.options and oo_is_class=0) then
             Message(parser_e_syntax_error);
            consume(_PROPERTY);
            propertyparas:=nil;
@@ -1090,7 +1094,7 @@ unit pdecl;
                       the forward is resolved)
                    }
                      ((hp1^.deftype=objectdef) and (
-                     (pobjectdef(hp1)^.options and oois_class)<>0)) then
+                     (pobjectdef(hp1)^.options and oo_is_class)<>0)) then
                      begin
                         pcrd:=new(pclassrefdef,init(hp1));
                         object_dec:=pcrd;
@@ -1129,7 +1133,7 @@ unit pdecl;
                      end
                    else
                      aktclass:=new(pobjectdef,init(n,class_tobject));
-                   aktclass^.options:=aktclass^.options or oois_class or oo_isforward;
+                   aktclass^.options:=aktclass^.options or oo_is_class or oo_isforward;
                    object_dec:=aktclass;
                    exit;
                 end;
@@ -1154,8 +1158,8 @@ unit pdecl;
                     childof:=nil;
                  end;
                    { a mix of class and object isn't allowed }
-              if (((childof^.options and oois_class)<>0) and not is_a_class) or
-                 (((childof^.options and oois_class)=0) and is_a_class) then
+              if (((childof^.options and oo_is_class)<>0) and not is_a_class) or
+                 (((childof^.options and oo_is_class)=0) and is_a_class) then
                 Message(parser_e_mix_of_classes_and_objects);
               if assigned(fd) then
                 begin
@@ -1199,16 +1203,12 @@ unit pdecl;
                         if (childof^.options and oo_isforward)<>0 then
                           Message1(parser_e_forward_declaration_must_be_resolved,childof^.name^);
                         aktclass:=fd;
-                        aktclass^.childof:=childof;
-                        { ajust the size, because the child could be also
-                          forward defined
-                        }
-                        aktclass^.publicsyms^.datasize:=
-                          aktclass^.publicsyms^.datasize-4+childof^.publicsyms^.datasize;
+                        aktclass^.set_parent(childof);
                      end
                    else
                      begin
                         aktclass:=new(pobjectdef,init(n,childof));
+                        aktclass^.set_parent(childof);
                      end;
                 end;
            end
@@ -1218,7 +1218,7 @@ unit pdecl;
          { set the class attribute }
          if is_a_class then
            begin
-              aktclass^.options:=aktclass^.options or oois_class;
+              aktclass^.options:=aktclass^.options or oo_is_class;
 
               if (cs_generate_rtti in aktlocalswitches) or
                   (assigned(aktclass^.childof) and
@@ -1340,7 +1340,7 @@ unit pdecl;
                                     consume(SEMICOLON);
                                   end;
                       _OVERRIDE : begin
-                                    if (aktclass^.options and oois_class=0) then
+                                    if (aktclass^.options and oo_is_class=0) then
                                       Message(parser_e_constructor_cannot_be_not_virtual)
                                     else
                                       aktprocsym^.definition^.options:=aktprocsym^.definition^.options or
@@ -1390,6 +1390,13 @@ unit pdecl;
          curobjectname:='';
          typecanbeforward:=storetypeforwardsallowed;
 
+         { generate vmt space if needed }
+         if ((aktclass^.options and
+             (oo_hasvirtual or oo_hasconstructor or
+              oo_hasdestructor or oo_is_class))<>0) and
+            ((aktclass^.options and
+              oo_hasvmt)=0) then
+          aktclass^.insertvmt;
          if (cs_smartlink in aktmoduleswitches) then
            datasegment^.concat(new(pai_cut,init));
          { write extended info for classes }
@@ -1431,7 +1438,8 @@ unit pdecl;
            end;
 {$ifdef GDB}
          { generate the VMT }
-         if cs_debuginfo in aktmoduleswitches then
+         if (cs_debuginfo in aktmoduleswitches) and
+            ((aktclass^.options and oo_hasvmt)<>0) then
            begin
               do_count_dbx:=true;
               if assigned(aktclass^.owner) and assigned(aktclass^.owner^.name) then
@@ -1439,31 +1447,37 @@ unit pdecl;
                 typeglobalnumber('__vtbl_ptr_type')+'",'+tostr(N_STSYM)+',0,0,'+aktclass^.vmt_mangledname))));
            end;
 {$endif GDB}
-         datasegment^.concat(new(pai_symbol,init_global(aktclass^.vmt_mangledname)));
-
-         { determine the size with publicsyms^.datasize, because }
-         { size gives back 4 for CLASSes                         }
-         datasegment^.concat(new(pai_const,init_32bit(aktclass^.publicsyms^.datasize)));
-         datasegment^.concat(new(pai_const,init_32bit(-aktclass^.publicsyms^.datasize)));
-
-         { write pointer to parent VMT, this isn't implemented in TP }
-         { but this is not used in FPC ? (PM) }
-         { it's not used yet, but the delphi-operators as and is need it (FK) }
-         if assigned(aktclass^.childof) then
+         if ((aktclass^.options and oo_hasvmt)<>0) then
            begin
-              datasegment^.concat(new(pai_const,init_symbol(strpnew(aktclass^.childof^.vmt_mangledname))));
-              if aktclass^.childof^.owner^.symtabletype=unitsymtable then
-                concat_external(aktclass^.childof^.vmt_mangledname,EXT_NEAR);
-           end
-         else
-           datasegment^.concat(new(pai_const,init_32bit(0)));
-
-         { this generates the entries }
-         genvmt(aktclass);
-
+              datasegment^.concat(new(pai_symbol,init_global(aktclass^.vmt_mangledname)));
+     
+              { determine the size with publicsyms^.datasize, because }
+              { size gives back 4 for classes                         }
+              datasegment^.concat(new(pai_const,init_32bit(aktclass^.publicsyms^.datasize)));
+              datasegment^.concat(new(pai_const,init_32bit(-aktclass^.publicsyms^.datasize)));
+     
+              { write pointer to parent VMT, this isn't implemented in TP }
+              { but this is not used in FPC ? (PM) }
+              { it's not used yet, but the delphi-operators as and is need it (FK) }
+              { it is not written for parents that don't have any vmt !! }
+              if assigned(aktclass^.childof) and
+                 ((aktclass^.childof^.options and oo_hasvmt)<>0) then
+                begin
+                   datasegment^.concat(new(pai_const,init_symbol(strpnew(aktclass^.childof^.vmt_mangledname))));
+                   if aktclass^.childof^.owner^.symtabletype=unitsymtable then
+                     concat_external(aktclass^.childof^.vmt_mangledname,EXT_NEAR);
+                end
+              else
+                datasegment^.concat(new(pai_const,init_32bit(0)));
+     
+              { this generates the entries }
+              genvmt(aktclass);
+           end;
+           
          { restore old state }
          symtablestack:=symtablestack^.next;
          procinfo._class:=nil;
+         aktobjectdef:=nil;
          {Restore the aktprocsym.}
          aktprocsym:=oldprocsym;
 
@@ -1945,7 +1959,7 @@ unit pdecl;
                   (srsym^.typ=typesym) and
                   (ptypesym(srsym)^.definition^.deftype=objectdef) and
                   ((pobjectdef(ptypesym(srsym)^.definition)^.options and oo_isforward)<>0) and
-                  ((pobjectdef(ptypesym(srsym)^.definition)^.options and oois_class)<>0) then
+                  ((pobjectdef(ptypesym(srsym)^.definition)^.options and oo_is_class)<>0) then
                   begin
                      { we can ignore the result   }
                      { the definition is modified }
@@ -2064,7 +2078,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.72  1998-10-16 13:12:51  pierre
+  Revision 1.73  1998-10-19 08:54:56  pierre
+    * wrong stabs info corrected once again !!
+    + variable vmt offset with vmt field only if required
+      implemented now !!!
+
+  Revision 1.72  1998/10/16 13:12:51  pierre
     * added vmt_offsets in destructors code also !!!
     * vmt_offset code for m68k
 

@@ -794,6 +794,12 @@ unit pmodules;
               exit;
            end;
 
+         { reset ranges/stabs in exported definitions }
+         { If I find who removed this line !!!!!!!
+           I AM TIRED OF THIS !!!!!!!!!!!
+           DONT TOUCH  WITHOUT ASKING ME Pierre Muller }
+
+         reset_global_defs;
          { All units are read, now give them a number }
          numberunits;
 
@@ -1074,7 +1080,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.67  1998-10-13 13:10:25  peter
+  Revision 1.68  1998-10-19 08:54:59  pierre
+    * wrong stabs info corrected once again !!
+    + variable vmt offset with vmt field only if required
+      implemented now !!!
+
+  Revision 1.67  1998/10/13 13:10:25  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.66  1998/10/09 16:36:05  pierre

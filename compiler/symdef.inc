@@ -2470,7 +2470,14 @@
         strpcopy(nss,'f'+retdef^.numberstring+','+tostr(i)+';');
         param := para1;
         i := 0;
-        while assigned(param) do
+        { this confuses gdb !!
+          we should use 'F' instead of 'f' but
+          as we use c++ language mode
+          it does not like that either
+          Please do not remove this part
+          might be used once
+          gdb for pascal is ready PM }
+        (* while assigned(param) do
           begin
           inc(i);
           if param^.paratyp = vs_value then vartyp := '1' else vartyp := '0';
@@ -2479,7 +2486,7 @@
           strcat(nss,pst);
           strdispose(pst);
           param := param^.next;
-          end;
+          end; *)
         {strpcopy(strend(nss),';');}
         stabstring := strnew(nss);
         freemem(nss,1024);
@@ -2529,12 +2536,18 @@
         tdef.init;
         deftype:=objectdef;
         options:=0;
-        vmt_offset:=0;
         publicsyms:=new(psymtable,init(objectsymtable));
         publicsyms^.name := stringdup(n);
         { create space for vmt !! }
+{$ifdef OLDVMTSTYLE}
         publicsyms^.datasize:=Sizeof(pointer);
         options:=oo_hasvmt;
+        vmt_offset:=0;
+{$else }
+        options:=0;
+        vmt_offset:=0;
+        publicsyms^.datasize:=0;
+{$endif }
         publicsyms^.defowner:=@self;
         set_parent(c);
         name:=stringdup(n);
@@ -2609,13 +2622,20 @@
         else
           begin
              { first round up to multiple of 4 }
-             if (publicsyms^.datasize mod 4) <> 0 then
-               publicsyms^.datasize:=publicsyms^.datasize+4-(publicsyms^.datasize mod 4);
+             if (aktpackrecords=2) then
+               begin
+                 if (publicsyms^.datasize and 1)<>0 then
+                   inc(publicsyms^.datasize);
+               end;
+             if (aktpackrecords>=4) then
+               begin
+                  if (publicsyms^.datasize mod 4) <> 0 then
+                    publicsyms^.datasize:=publicsyms^.datasize+4-(publicsyms^.datasize mod 4);
+               end;
              vmt_offset:=publicsyms^.datasize;
              publicsyms^.datasize:=publicsyms^.datasize+sizeof(pointer);
-             options:=options and oo_hasvmt;
+             options:=options or oo_hasvmt;
           end;
-          
      end;
      
    procedure tobjectdef.check_forwards;
@@ -2667,7 +2687,7 @@
 
    function tobjectdef.size : longint;
      begin
-        if (options and oois_class)<>0 then
+        if (options and oo_is_class)<>0 then
           size:=sizeof(pointer)
 
         else
@@ -2710,6 +2730,8 @@
     var
       s1,s2:string;
     begin
+        if (options and oo_hasvmt)=0 then
+          internalerror(12346);
         if owner^.name=nil then
             s1:=''
         else
@@ -2740,7 +2762,7 @@
 
     function tobjectdef.isclass : boolean;
       begin
-         isclass:=(options and oois_class)<>0;
+         isclass:=(options and oo_is_class)<>0;
       end;
 
 
@@ -2868,21 +2890,21 @@
       {$else}
          publicsyms^.foreach(@addname);
       {$endif tp}
-      if (options and oo_hasvirtual) <> 0 then
-        if not assigned(childof) or ((childof^.options and oo_hasvirtual) = 0) then
+      if (options and oo_hasvmt) <> 0 then
+        if not assigned(childof) or ((childof^.options and oo_hasvmt) = 0) then
            begin
-              str_end:='$vf'+numberstring+':'+typeglobalnumber('vtblarray')+',0;';
-              strpcopy(strend(stabrecstring),'$vf'+numberstring+':'+typeglobalnumber('vtblarray')+',0;');
+              strpcopy(strend(stabrecstring),'$vf'+numberstring+':'+typeglobalnumber('vtblarray')
+                +','+tostr(vmt_offset*8)+';');
            end;
         {$ifdef tp}
           publicsyms^.foreach(addprocname);
         {$else}
           publicsyms^.foreach(@addprocname);
         {$endif tp }
-        if (options and oo_hasvirtual) <> 0  then
+        if (options and oo_hasvmt) <> 0  then
           begin
              anc := @self;
-             while assigned(anc^.childof) and ((anc^.childof^.options and oo_hasvirtual) <> 0) do
+             while assigned(anc^.childof) and ((anc^.childof^.options and oo_hasvmt) <> 0) do
                anc := anc^.childof;
              str_end:=';~%'+anc^.numberstring+';';
           end
@@ -3119,7 +3141,12 @@
 
 {
   $Log$
-  Revision 1.60  1998-10-16 13:12:53  pierre
+  Revision 1.61  1998-10-19 08:55:05  pierre
+    * wrong stabs info corrected once again !!
+    + variable vmt offset with vmt field only if required
+      implemented now !!!
+
+  Revision 1.60  1998/10/16 13:12:53  pierre
     * added vmt_offsets in destructors code also !!!
     * vmt_offset code for m68k
 

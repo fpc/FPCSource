@@ -116,7 +116,7 @@ implementation
                      appropriate tree node (FK)
 
                    if (pvarsym(p^.symtableentry)^.definition^.deftype=objectdef) and
-                      ((pobjectdef(pvarsym(p^.symtableentry)^.definition)^.options and oois_class)<>0) then
+                      ((pobjectdef(pvarsym(p^.symtableentry)^.definition)^.options and oo_is_class)<>0) then
                      p^.registers32:=1;
                    }
 
@@ -399,7 +399,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-10-06 20:49:12  peter
+  Revision 1.6  1998-10-19 08:55:12  pierre
+    * wrong stabs info corrected once again !!
+    + variable vmt offset with vmt field only if required
+      implemented now !!!
+
+  Revision 1.5  1998/10/06 20:49:12  peter
     * m68k compiler compiles again
 
   Revision 1.4  1998/09/28 11:07:40  peter

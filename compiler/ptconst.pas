@@ -63,6 +63,8 @@ unit ptconst;
          ca        : pchar;
          aktpos    : longint;
          pd        : pprocdef;
+         obj       : pobjectdef;
+         symt      : psymtable;
          hp1,hp2   : pdefcoll;
          value     : bestreal;
 
@@ -540,6 +542,69 @@ unit ptconst;
                 datasegment^.concat(new(pai_const,init_8bit(0)));
               consume(RKLAMMER);
            end;
+         { reads a typed object }
+         objectdef:
+           begin
+              if (pobjectdef(def)^.options and (oo_hasvmt or oo_is_class))<>0 then
+                begin
+                   Message(parser_e_type_const_not_possible);
+                   consume_all_until(RKLAMMER);
+                end
+              else
+                begin
+                   consume(LKLAMMER);
+                   aktpos:=0;
+                   while token<>RKLAMMER do
+                     begin
+                        s:=pattern;
+                        consume(ID);
+                        consume(COLON);
+                        srsym:=nil;
+                        obj:=pobjectdef(def);
+                        symt:=obj^.publicsyms;
+                        while (srsym=nil) and assigned(symt) do
+                          begin
+                             srsym:=symt^.search(s);
+                             if assigned(obj) then
+                               obj:=obj^.childof;
+                             if assigned(obj) then
+                               symt:=obj^.publicsyms
+                             else
+                               symt:=nil;
+                          end;
+                        
+                        if srsym=nil then
+                          begin
+                             Message1(sym_e_id_not_found,s);
+                             consume_all_until(SEMICOLON);
+                          end
+                        else
+                          begin
+                             { check position }
+                             if pvarsym(srsym)^.address<aktpos then
+                               Message(parser_e_invalid_record_const);
+     
+                             { if needed fill }
+                             if pvarsym(srsym)^.address>aktpos then
+                               for i:=1 to pvarsym(srsym)^.address-aktpos do
+                                 datasegment^.concat(new(pai_const,init_8bit(0)));
+     
+                             { new position }
+                             aktpos:=pvarsym(srsym)^.address+pvarsym(srsym)^.definition^.size;
+     
+                             { read the data }
+                             readtypedconst(pvarsym(srsym)^.definition,nil);
+     
+                             if token=SEMICOLON then
+                               consume(SEMICOLON)
+                             else break;
+                          end;
+                     end;
+                   for i:=1 to def^.size-aktpos do
+                     datasegment^.concat(new(pai_const,init_8bit(0)));
+                   consume(RKLAMMER);
+                end;
+           end;
          else Message(parser_e_type_const_not_possible);
          end;
       end;
@@ -547,7 +612,12 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.20  1998-10-16 08:51:49  peter
+  Revision 1.21  1998-10-19 08:55:03  pierre
+    * wrong stabs info corrected once again !!
+    + variable vmt offset with vmt field only if required
+      implemented now !!!
+
+  Revision 1.20  1998/10/16 08:51:49  peter
     + target_os.stackalignment
     + stack can be aligned at 2 or 4 byte boundaries
 
