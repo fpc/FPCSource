@@ -1109,7 +1109,9 @@ implementation
                           is_ansistring(p^.resulttype) then
                           begin
                              p^.location.loc:=LOC_MEM;
-                             p^.registers32:=0;
+                             { this is wrong we still need one register  PM
+                             p^.registers32:=0; }
+                             p^.registers32:=1;
                           end;
                      end
                    else if (p^.resulttype^.deftype=floatdef) then
@@ -1127,7 +1129,10 @@ implementation
            begin
               case p^.methodpointer^.treetype of
                 { but only, if this is not a supporting node }
-                typen,hnewn : ;
+                typen: ;
+                { we need one register for new return value PM }
+                hnewn : if p^.registers32=0 then
+                          p^.registers32:=1;
                 else
                   begin
                      if (p^.procdefinition^.proctypeoption in [potype_constructor,potype_destructor]) and
@@ -1208,7 +1213,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  1999-08-17 13:26:08  peter
+  Revision 1.62  1999-08-23 23:42:52  pierre
+   * hnewn reg allocation corrected
+
+  Revision 1.61  1999/08/17 13:26:08  peter
     * arrayconstructor -> arrayofconst fixed when arraycosntructor was not
       variant.
 
