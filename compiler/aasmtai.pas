@@ -493,13 +493,14 @@ interface
           function is_nop:boolean;virtual;abstract;
           function is_move:boolean;virtual;abstract;
           { register allocator }
-          function get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister;var unusedregsint:tsuperregisterset):Tai;
-          procedure forward_allocation(p:Tai;var unusedregsint:tsuperregisterset);
+          function get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister;var live_registers_int:Tsuperregisterworklist):Tai;
+          procedure forward_allocation(p:Tai;var {unusedregsint:tsuperregisterset}live_registers_int:Tsuperregisterworklist);
           function spill_registers(list:Taasmoutput;
                                    rgget:Trggetproc;
                                    rgunget:Trgungetproc;
                                    const r:tsuperregisterset;
-                                   var unusedregsint:tsuperregisterset;
+{                                   var unusedregsint:tsuperregisterset;}
+                                   var live_registers_int:Tsuperregisterworklist;
                                    const spilltemplist:Tspill_temp_list):boolean;virtual;
           function spilling_decode_loadstore(op: tasmop; var counterpart: tasmop; var wasload: boolean): boolean;virtual;abstract;
           function spilling_create_loadstore(op: tasmop; r:tregister; const ref:treference): tai;virtual;abstract;
@@ -1753,45 +1754,56 @@ implementation
     Register allocator methods.
   ---------------------------------------------------------------------}
 
-    function taicpu_abstract.get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister;var unusedregsint:tsuperregisterset):Tai;
+    function taicpu_abstract.get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister;
+                                            var live_registers_int:Tsuperregisterworklist):Tai;
       var
-        back   : tsuperregisterset;
+        back   : Tsuperregisterworklist;
         supreg : tsuperregister;
       begin
-        back:=unusedregsint;
+        back.copyfrom(live_registers_int);
         get_insert_pos:=p;
         while (p<>nil) and (p.typ=ait_regalloc) do
           begin
             supreg:=getsupreg(Tai_regalloc(p).reg);
             {Rewind the register allocation.}
             if Tai_regalloc(p).allocation then
-              supregset_include(unusedregsint,supreg)
+{              supregset_include(unusedregsint,supreg)}
+              live_registers_int.delete(supreg)
             else
               begin
-                supregset_exclude(unusedregsint,supreg);
+{                supregset_exclude(unusedregsint,supreg);}
+                live_registers_int.add(supreg);
                 if supreg=huntfor1 then
                   begin
                     get_insert_pos:=Tai(p.previous);
-                    back:=unusedregsint;
+                    back.done;
+                    back.copyfrom(live_registers_int);
+{                    back:=unusedregsint;}
                   end;
                 if supreg=huntfor2 then
                   begin
                     get_insert_pos:=Tai(p.previous);
-                    back:=unusedregsint;
+                    back.done;
+                    back.copyfrom(live_registers_int);
+{                    back:=unusedregsint;}
                   end;
                 if supreg=huntfor3 then
                   begin
                     get_insert_pos:=Tai(p.previous);
-                    back:=unusedregsint;
+                    back.done;
+                    back.copyfrom(live_registers_int);
+{                    back:=unusedregsint;}
                   end;
               end;
             p:=Tai(p.previous);
           end;
-        unusedregsint:=back;
+        live_registers_int.done;
+        live_registers_int.copyfrom(back);
+{        unusedregsint:=back;}
       end;
 
 
-    procedure taicpu_abstract.forward_allocation(p:Tai;var unusedregsint:Tsuperregisterset);
+    procedure taicpu_abstract.forward_allocation(p:Tai;var live_registers_int:Tsuperregisterworklist);
       begin
         {Forward the register allocation again.}
         while (p<>self) do
@@ -1799,9 +1811,11 @@ implementation
             if p.typ<>ait_regalloc then
               internalerror(200305311);
             if Tai_regalloc(p).allocation then
-              supregset_exclude(unusedregsint,getsupreg(Tai_regalloc(p).reg))
+{              supregset_exclude(unusedregsint,getsupreg(Tai_regalloc(p).reg))}
+              live_registers_int.add(getsupreg(Tai_regalloc(p).reg))
             else
-              supregset_include(unusedregsint,getsupreg(Tai_regalloc(p).reg));
+{              supregset_include(unusedregsint,getsupreg(Tai_regalloc(p).reg));}
+              live_registers_int.delete(getsupreg(Tai_regalloc(p).reg));
             p:=Tai(p.next);
           end;
       end;
@@ -1811,7 +1825,7 @@ implementation
                              rgget:Trggetproc;
                              rgunget:Trgungetproc;
                              const r:Tsuperregisterset;
-                             var unusedregsint:Tsuperregisterset;
+                             var live_registers_int:Tsuperregisterworklist;
                              const spilltemplist:Tspill_temp_list): boolean;
       type
         tspillreginfo = record
@@ -1837,7 +1851,7 @@ implementation
           else
             list.insertafter(helpins,pos.next);
           rgunget(list,self,regs[regidx].newreg);
-          forward_allocation(tai(helpins.next),unusedregsint);
+          forward_allocation(tai(helpins.next),{unusedregsint)}live_registers_int);
         end;
 
 
@@ -1863,7 +1877,7 @@ implementation
           helpins2:=spilling_create_store(regs[regidx].newreg,spilltemplist[regs[regidx].orgreg]);
           list.insertafter(helpins2,self);
           rgunget(list,helpins2,regs[regidx].newreg);
-          forward_allocation(tai(helpins1.next),unusedregsint);
+          forward_allocation(tai(helpins1.next),{unusedregsint}live_registers_int);
         end;
 
 
@@ -1963,7 +1977,7 @@ implementation
                 if regs[counter].mustbespilled then
                   begin
                     supreg := regs[counter].orgreg;
-                    pos := get_insert_pos(Tai(previous),regs[0].orgreg,regs[1].orgreg,regs[2].orgreg,unusedregsint);
+                    pos := get_insert_pos(Tai(previous),regs[0].orgreg,regs[1].orgreg,regs[2].orgreg,{unusedregsint}live_registers_int);
                     rgget(list,pos,R_SUBWHOLE,regs[counter].newreg);
                     if regs[counter].regread then
                       if regs[counter].regwritten then
@@ -2188,7 +2202,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2003-12-08 22:34:24  peter
+  Revision 1.60  2003-12-14 20:24:28  daniel
+    * Register allocator speed optimizations
+      - Worklist no longer a ringbuffer
+      - No find operations are left
+      - Simplify now done in constant time
+      - unusedregs is now a Tsuperregisterworklist
+      - Microoptimizations
+
+  Revision 1.59  2003/12/08 22:34:24  peter
     * tai_const.create_32bit changed to cardinal
 
   Revision 1.58  2003/12/06 22:16:12  jonas

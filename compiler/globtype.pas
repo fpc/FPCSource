@@ -182,7 +182,7 @@ interface
 
        { Default calling convention }
 {$ifdef x86}
-       pocall_default = pocall_stdcall;
+       pocall_default = pocall_register;
 {$else}
        pocall_default = pocall_stdcall;
 {$endif}
@@ -234,7 +234,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2003-12-04 23:27:32  peter
+  Revision 1.46  2003-12-14 20:24:28  daniel
+    * Register allocator speed optimizations
+      - Worklist no longer a ringbuffer
+      - No find operations are left
+      - Simplify now done in constant time
+      - unusedregs is now a Tsuperregisterworklist
+      - Microoptimizations
+
+  Revision 1.45  2003/12/04 23:27:32  peter
     * remove redundant calls to add_edge_used
 
   Revision 1.44  2003/11/07 15:58:32  florian

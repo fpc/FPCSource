@@ -182,6 +182,22 @@ interface
         shuffles : array[1..1] of byte;
       end;
 
+      Tsuperregisterworklist=object
+        buflength,
+        buflengthinc,
+        length:word;
+        buf    : ^tsuperregister;
+        constructor init;
+        constructor copyfrom(const x:Tsuperregisterworklist);
+        destructor  done;
+        procedure clear;
+        procedure add(s:tsuperregister);
+        function get:tsuperregister;
+        procedure deleteidx(i:word);
+        function delete(s:tsuperregister):boolean;
+      end;
+      psuperregisterworklist=^tsuperregisterworklist;
+
     const
        { alias for easier understanding }
        R_SSEREGISTER = R_MMREGISTER;
@@ -272,6 +288,101 @@ implementation
 
     uses
       verbose;
+
+{******************************************************************************
+                             tsuperregisterworklist
+******************************************************************************}
+
+    constructor tsuperregisterworklist.init;
+
+    begin
+      length:=0;
+      buflength:=0;
+      buflengthinc:=16;
+{        head:=0;
+        tail:=0;}
+      buf:=nil;
+    end;
+
+    constructor Tsuperregisterworklist.copyfrom(const x:Tsuperregisterworklist);
+
+    begin
+      self:=x;
+      if x.buf<>nil then
+        begin
+          getmem(buf,buflength*sizeof(Tsuperregister));
+          move(x.buf^,buf^,length*sizeof(Tsuperregister));
+        end;
+    end;
+
+    destructor tsuperregisterworklist.done;
+    
+    begin
+      if assigned(buf) then
+        freemem(buf);
+    end;
+
+
+    procedure tsuperregisterworklist.add(s:tsuperregister);
+    
+    begin
+      inc(length);
+      { Need to increase buffer length? }
+      if length>=buflength then
+        begin
+          inc(buflength,buflengthinc);
+          buflengthinc:=buflengthinc*2;
+          if buflengthinc>256 then
+             buflengthinc:=256;
+          reallocmem(buf,buflength*sizeof(Tsuperregister));
+        end;
+      buf[length-1]:=s;
+    end;
+
+
+    procedure tsuperregisterworklist.clear;
+    
+    begin
+      length:=0;
+    end;
+
+
+    procedure tsuperregisterworklist.deleteidx(i:word);
+    
+    begin
+      if length=0 then
+        internalerror(200310144);
+      buf[i]:=buf[length-1];
+      dec(length);
+    end;
+
+
+    function tsuperregisterworklist.get:tsuperregister;
+    
+    begin
+      if length=0 then
+        internalerror(200310142);
+      get:=buf[0];
+      buf[0]:=buf[length-1];
+      dec(length);
+    end;
+
+
+    function tsuperregisterworklist.delete(s:tsuperregister):boolean;
+    
+    var i:word;
+    
+    begin
+      delete:=false;
+      for i:=1 to length do
+        if buf[i-1]=s then
+          begin
+            deleteidx(i-1);
+            delete:=true;
+            break;
+          end;
+    end;
+
 
     procedure supregset_reset(var regs:tsuperregisterset;setall:boolean);{$ifdef USEINLINE}inline;{$endif}
       var
@@ -458,7 +569,15 @@ finalization
 end.
 {
   $Log$
-  Revision 1.77  2003-11-04 15:35:13  peter
+  Revision 1.78  2003-12-14 20:24:28  daniel
+    * Register allocator speed optimizations
+      - Worklist no longer a ringbuffer
+      - No find operations are left
+      - Simplify now done in constant time
+      - unusedregs is now a Tsuperregisterworklist
+      - Microoptimizations
+
+  Revision 1.77  2003/11/04 15:35:13  peter
     * fix for referencecounted temps
 
   Revision 1.76  2003/11/03 17:48:04  peter

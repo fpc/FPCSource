@@ -206,7 +206,8 @@ interface
                                   rgget:Trggetproc;
                                   rgunget:Trgungetproc;
                                   const r:Tsuperregisterset;
-                                  var unusedregsint:Tsuperregisterset;
+{                                  var unusedregsint:Tsuperregisterset;}
+                                  var live_registers_int:Tsuperregisterworklist;
                                   const spilltemplist:Tspill_temp_list):boolean;override;
       protected
          procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);override;
@@ -1920,7 +1921,8 @@ implementation
                                     rgget:Trggetproc;
                                     rgunget:Trgungetproc;
                                     const r:Tsuperregisterset;
-                                    var unusedregsint:Tsuperregisterset;
+{                                    var unusedregsint:Tsuperregisterset;}
+                                    var live_registers_int:Tsuperregisterworklist;
                                     const spilltemplist:Tspill_temp_list):boolean;
 
     {Spill the registers in r in this instruction. Returns true if any help
@@ -1982,7 +1984,7 @@ implementation
                     if oper[0]^.ref^.index=NR_NO then
                       pos:=Tai(previous)
                     else
-                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0]^.ref^.index),RS_INVALID,RS_INVALID,unusedregsint);
+                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0]^.ref^.index),RS_INVALID,RS_INVALID,{unusedregsint}live_registers_int);
                     rgget(list,pos,subreg,helpreg);
                     spill_registers:=true;
                     helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0]^.ref^.base),spilltemplist[supreg],helpreg);
@@ -1991,7 +1993,7 @@ implementation
                     else
                       list.insertafter(helpins,pos.next);
                     rgunget(list,helpins,helpreg);
-                    forward_allocation(Tai(helpins.next),unusedregsint);
+                    forward_allocation(Tai(helpins.next),{unusedregsint}live_registers_int);
                     oper[0]^.ref^.base:=helpreg;
                   end;
                 supreg:=getsupreg(oper[0]^.ref^.index);
@@ -2008,7 +2010,7 @@ implementation
                     if oper[0]^.ref^.base=NR_NO then
                       pos:=Tai(previous)
                     else
-                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0]^.ref^.base),RS_INVALID,RS_INVALID,unusedregsint);
+                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0]^.ref^.base),RS_INVALID,RS_INVALID,{unusedregsint}live_registers_int);
                     rgget(list,pos,subreg,helpreg);
                     spill_registers:=true;
                     helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0]^.ref^.index),spilltemplist[supreg],helpreg);
@@ -2017,7 +2019,7 @@ implementation
                     else
                       list.insertafter(helpins,pos.next);
                     rgunget(list,helpins,helpreg);
-                    forward_allocation(Tai(helpins.next),unusedregsint);
+                    forward_allocation(Tai(helpins.next),{unusedregsint}live_registers_int);
                     oper[0]^.ref^.index:=helpreg;
                   end;
                 end;
@@ -2043,9 +2045,9 @@ implementation
                       subreg:=getsubreg(oper[i]^.ref^.base);
                       if i=1 then
                         pos:=get_insert_pos(Tai(previous),getsupreg(oper[i]^.ref^.index),getsupreg(oper[0]^.reg),
-                                            RS_INVALID,unusedregsint)
+                                            RS_INVALID,{unusedregsint}live_registers_int)
                       else
-                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i]^.ref^.index),RS_INVALID,RS_INVALID,unusedregsint);
+                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i]^.ref^.index),RS_INVALID,RS_INVALID,{unusedregsint}live_registers_int);
                       rgget(list,pos,subreg,helpreg);
                       spill_registers:=true;
                       helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i]^.ref^.base),spilltemplist[supreg],helpreg);
@@ -2055,7 +2057,7 @@ implementation
                         list.insertafter(helpins,pos.next);
                       oper[i]^.ref^.base:=helpreg;
                       rgunget(list,helpins,helpreg);
-                      forward_allocation(Tai(helpins.next),unusedregsint);
+                      forward_allocation(Tai(helpins.next),{unusedregsint}live_registers_int);
                   end;
                   supreg:=getsupreg(oper[i]^.ref^.index);
                   if supregset_in(r,supreg) then
@@ -2070,9 +2072,9 @@ implementation
                       subreg:=getsubreg(oper[i]^.ref^.index);
                       if i=1 then
                         pos:=get_insert_pos(Tai(previous),getsupreg(oper[i]^.ref^.base),getsupreg(oper[0]^.reg),
-                                            RS_INVALID,unusedregsint)
+                                            RS_INVALID,{unusedregsint}live_registers_int)
                       else
-                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i]^.ref^.base),RS_INVALID,RS_INVALID,unusedregsint);
+                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i]^.ref^.base),RS_INVALID,RS_INVALID,{unusedregsint}live_registers_int);
                       rgget(list,pos,subreg,helpreg);
                       spill_registers:=true;
                       helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i]^.ref^.index),spilltemplist[supreg],helpreg);
@@ -2082,7 +2084,7 @@ implementation
                         list.insertafter(helpins,pos.next);
                       oper[i]^.ref^.index:=helpreg;
                       rgunget(list,helpins,helpreg);
-                      forward_allocation(Tai(helpins.next),unusedregsint);
+                      forward_allocation(Tai(helpins.next),{unusedregsint}live_registers_int);
                     end;
                 end;
             if (oper[0]^.typ=top_reg) and
@@ -2102,7 +2104,7 @@ implementation
                        add [r20d],r22d      ; Replace register by helpregister }
                       pos:=get_insert_pos(Tai(previous),getsupreg(oper[0]^.reg),
                                           getsupreg(oper[1]^.ref^.base),getsupreg(oper[1]^.ref^.index),
-                                          unusedregsint);
+                                          {unusedregsint}live_registers_int);
                       rgget(list,pos,subreg,helpreg);
                       spill_registers:=true;
                       helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0]^.reg),spilltemplist[supreg],helpreg);
@@ -2112,7 +2114,7 @@ implementation
                         list.insertafter(helpins,pos.next);
                       oper[0]^.reg:=helpreg;
                       rgunget(list,helpins,helpreg);
-                      forward_allocation(Tai(helpins.next),unusedregsint);
+                      forward_allocation(Tai(helpins.next),{unusedregsint}live_registers_int);
                     end
                   else
                     begin
@@ -2144,7 +2146,7 @@ implementation
                          mov r22d,[r21d]      ; Use a help register
                          add [ebp-12],r22d    ; Replace register by helpregister }
                         pos:=get_insert_pos(Tai(previous),getsupreg(oper[0]^.ref^.base),
-                                            getsupreg(oper[0]^.ref^.index),RS_INVALID,unusedregsint);
+                                            getsupreg(oper[0]^.ref^.index),RS_INVALID,{unusedregsint}live_registers_int);
                         rgget(list,pos,subreg,helpreg);
                         spill_registers:=true;
                         op:=A_MOV;
@@ -2168,7 +2170,7 @@ implementation
                         new(oper[1]^.ref);
                         oper[1]^.ref^:=spilltemplist[supreg];
                         rgunget(list,helpins,helpreg);
-                        forward_allocation(Tai(helpins.next),unusedregsint);
+                        forward_allocation(Tai(helpins.next),{unusedregsint}live_registers_int);
                       end
                     else
                       begin
@@ -2186,7 +2188,7 @@ implementation
                             hopsize:=opsize;
                             opcode:=A_MOV;
                             opsize:=reg2opsize(oper[1]^.reg);
-                            pos:=get_insert_pos(Tai(previous),getsupreg(oper[0]^.reg),RS_INVALID,RS_INVALID,unusedregsint);
+                            pos:=get_insert_pos(Tai(previous),getsupreg(oper[0]^.reg),RS_INVALID,RS_INVALID,{unusedregsint}live_registers_int);
                             rgget(list,pos,subreg,helpreg);
                             helpins:=Taicpu.op_reg_reg(op,hopsize,oper[0]^.reg,helpreg);
                             if pos=nil then
@@ -2195,7 +2197,7 @@ implementation
                               list.insertafter(helpins,pos.next);
                             oper[0]^.reg:=helpreg;
                             rgunget(list,helpins,helpreg);
-                            forward_allocation(Tai(helpins.next),unusedregsint);
+                            forward_allocation(Tai(helpins.next),{unusedregsint}live_registers_int);
                           end;
                         oper[1]^.typ:=top_ref;
                         new(oper[1]^.ref);
@@ -2342,7 +2344,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2003-11-12 16:05:40  florian
+  Revision 1.39  2003-12-14 20:24:28  daniel
+    * Register allocator speed optimizations
+      - Worklist no longer a ringbuffer
+      - No find operations are left
+      - Simplify now done in constant time
+      - unusedregs is now a Tsuperregisterworklist
+      - Microoptimizations
+
+  Revision 1.38  2003/11/12 16:05:40  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

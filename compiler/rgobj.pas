@@ -99,27 +99,6 @@ unit rgobj;
        regvarint_ptreearray = array[first_int_supreg..last_int_supreg] of tnode;
 }
 
-      tsuperregisterworklist=object
-        buflength,
-        buflengthinc,
-        length,
-        head,
-        tail   : integer;
-        buf    : ^tsuperregister;
-        constructor init;
-        destructor  done;
-        procedure clear;
-        procedure next(var i:integer);
-        procedure add(s:tsuperregister);
-        function get:tsuperregister;
-        function getlast:tsuperregister;
-        function getidx(i:integer):tsuperregister;
-        procedure deleteidx(i:integer);
-        function delete(s:tsuperregister):boolean;
-        function find(s:tsuperregister):boolean;
-      end;
-      psuperregisterworklist=^tsuperregisterworklist;
-
       {
         The interference bitmap contains of 2 layers:
           layer 1 - 256*256 blocks with pointers to layer 2 blocks
@@ -166,6 +145,9 @@ unit rgobj;
         instruction:Taicpu;
       end;
 
+      Treginfoflag=(ri_coalesced,ri_selected);
+      Treginfoflagset=set of Treginfoflag;
+
       Treginfo=record
         alias    : Tsuperregister;
         { The register allocator assigns each register a colour }
@@ -173,6 +155,7 @@ unit rgobj;
         movelist : Pmovelist;
         adjlist  : Psuperregisterworklist;
         degree   : TSuperregister;
+        flags    : Treginfoflagset;
       end;
       Preginfo=^TReginfo;
 
@@ -252,7 +235,6 @@ unit rgobj;
         procedure add_edge(u,v:Tsuperregister);
         procedure check_unreleasedregs;
 
-        unusedregs        : Tsuperregisterset;
 
       protected
         regtype           : Tregistertype;
@@ -265,7 +247,7 @@ unit rgobj;
         maxreginfo,
         maxreginfoinc,
         maxreg            : Tsuperregister;
-        usable_registers_cnt : integer;
+        usable_registers_cnt : word;
         usable_registers  : array[0..maxcpuregister-1] of tsuperregister;
         ibitmap           : Tinterferencebitmap;
         spillednodes,
@@ -279,6 +261,7 @@ unit rgobj;
         frozen_moves,
         coalesced_moves,
         constrained_moves : Tlinkedlist;
+        live_registers:Tsuperregisterworklist;
         function  getnewreg:tsuperregister;
         procedure getregisterinline(list:Taasmoutput;position:Tai;subreg:Tsubregister;var result:Tregister);
         procedure ungetregisterinline(list:Taasmoutput;position:Tai;r:Tregister);
@@ -286,6 +269,7 @@ unit rgobj;
         procedure add_to_movelist(u:Tsuperregister;data:Tlinkedlistitem);
         function move_related(n:Tsuperregister):boolean;
         procedure make_work_list;
+        procedure sort_simplify_worklist;
         procedure enable_moves(n:Tsuperregister);
         procedure decrement_degree(m:Tsuperregister);
         procedure simplify;
@@ -313,162 +297,6 @@ implementation
     uses
        systems,
        globals,verbose,tgobj,procinfo;
-
-{******************************************************************************
-                             tsuperregisterworklist
-******************************************************************************}
-
-    constructor tsuperregisterworklist.init;
-      begin
-        length:=0;
-        buflength:=0;
-        buflengthinc:=16;
-        head:=0;
-        tail:=0;
-        buf:=nil;
-      end;
-
-
-    destructor tsuperregisterworklist.done;
-      begin
-        if assigned(buf) then
-          freemem(buf);
-      end;
-
-
-    procedure tsuperregisterworklist.add(s:tsuperregister);
-      var
-        oldbuflength : integer;
-        newbuf : ^tsuperregister;
-      begin
-        inc(length);
-        { Need to increase buffer length? }
-        if length>=buflength then
-          begin
-            oldbuflength:=buflength;
-            inc(buflength,buflengthinc);
-            buflengthinc:=buflengthinc*2;
-            if buflengthinc>256 then
-              buflengthinc:=256;
-            { We need to allocate a new block and move data around when the
-              tail is wrapped around }
-            if tail<head then
-              begin
-                Getmem(newbuf,buflength*sizeof(tsuperregister));
-                move(buf[0],newbuf[oldbuflength-head],tail*sizeof(tsuperregister));
-                move(buf[head],newbuf[0],(oldbuflength-head)*sizeof(tsuperregister));
-                Freemem(buf);
-                buf:=newbuf;
-                head:=0;
-                tail:=oldbuflength-1;
-              end
-            else
-              Reallocmem(buf,buflength*sizeof(tsuperregister));
-          end;
-        buf[tail]:=s;
-        inc(tail);
-        if tail>=buflength then
-          tail:=0;
-      end;
-
-
-    procedure tsuperregisterworklist.clear;
-      begin
-        length:=0;
-        tail:=0;
-        head:=0;
-      end;
-
-
-    procedure tsuperregisterworklist.next(var i:integer);
-      begin
-        inc(i);
-        if i>=buflength then
-          i:=0;
-      end;
-
-
-    function tsuperregisterworklist.getidx(i:integer):tsuperregister;
-      begin
-        result:=buf[i];
-      end;
-
-
-    procedure tsuperregisterworklist.deleteidx(i:integer);
-      begin
-        if length=0 then
-          internalerror(200310144);
-        buf[i]:=buf[head];
-        inc(head);
-        if head>=buflength then
-          head:=0;
-        dec(length);
-      end;
-
-
-    function tsuperregisterworklist.get:tsuperregister;
-      begin
-        if length=0 then
-          internalerror(200310142);
-        result:=buf[head];
-        inc(head);
-        if head>=buflength then
-          head:=0;
-        dec(length);
-      end;
-
-
-    function tsuperregisterworklist.getlast:tsuperregister;
-      begin
-        if length=0 then
-          internalerror(200310143);
-        dec(tail);
-        if tail<0 then
-          tail:=buflength-1;
-        result:=buf[tail];
-        dec(length);
-      end;
-
-
-    function tsuperregisterworklist.delete(s:tsuperregister):boolean;
-      var
-        i : integer;
-      begin
-        result:=false;
-        i:=head;
-        while (i<>tail) do
-          begin
-            if buf[i]=s then
-              begin
-                deleteidx(i);
-                result:=true;
-                exit;
-              end;
-            inc(i);
-            if i>=buflength then
-              i:=0;
-          end;
-      end;
-
-
-    function tsuperregisterworklist.find(s:tsuperregister):boolean;
-      var
-        i : integer;
-      begin
-        result:=false;
-        i:=head;
-        while (i<>tail) do
-          begin
-            if buf[i]=s then
-              begin
-                result:=true;
-                exit;
-              end;
-            inc(i);
-            if i>=buflength then
-              i:=0;
-          end;
-      end;
 
 
 {******************************************************************************
@@ -559,9 +387,7 @@ implementation
          defaultsub:=Adefaultsub;
          preserved_by_proc:=Apreserved_by_proc;
          used_in_proc:=[];
-         supregset_reset(unusedregs,true);
-         { RS_INVALID can't be used }
-         supregset_exclude(unusedregs,RS_INVALID);
+         live_registers.init;
          ibitmap:=tinterferencebitmap.create;
          { Get reginfo for CPU registers }
          reginfo:=allocmem(first_imaginary*sizeof(treginfo));
@@ -635,7 +461,7 @@ implementation
         r : Tregister;
       begin
          p:=getnewreg;
-         supregset_exclude(unusedregs,p);
+         live_registers.add(p);
          if defaultsub=R_SUBNONE then
            r:=newreg(regtype,p,R_SUBNONE)
          else
@@ -659,11 +485,8 @@ implementation
 
     begin
       supreg:=getsupreg(r);
-      if not supregset_in(unusedregs,supreg) then
-        begin
-          supregset_include(unusedregs,supreg);
-          list.concat(Tai_regalloc.dealloc(r));
-        end;
+      if live_registers.delete(supreg) then
+        list.concat(Tai_regalloc.dealloc(r));
     end;
 
 
@@ -673,74 +496,34 @@ implementation
 
     begin
       supreg:=getsupreg(r);
-      if supregset_in(unusedregs,supreg) then
-        begin
-          supregset_exclude(unusedregs,supreg);
-          if supreg<first_imaginary then
-            include(used_in_proc,supreg);
-          list.concat(Tai_regalloc.alloc(r));
-          add_edges_used(supreg);
-          add_constraints(r);
-         end
-       else
-{$ifndef ALLOWDUPREG}
-         internalerror(200301103)
-{$else ALLOWDUPREG}
-          list.concat(Tai_regalloc.alloc(r));
-{$endif ALLOWDUPREG}
-         ;
+      live_registers.add(supreg);
+      if supreg<first_imaginary then
+        include(used_in_proc,supreg);
+      list.concat(Tai_regalloc.alloc(r));
+      add_edges_used(supreg);
+      add_constraints(r);
     end;
 
 
     procedure trgobj.allocexplicitregisters(list:Taasmoutput;r:Tcpuregisterset);
 
-    var reg:Tregister;
-        i:Tsuperregister;
+    var i:Tsuperregister;
 
     begin
-      if unusedregs[0]*r=r then
-        begin
-          unusedregs[0]:=unusedregs[0]-r;
-          used_in_proc:=used_in_proc+r;
-          for i:=0 to first_imaginary-1 do
-            if i in r then
-              begin
-                add_edges_used(i);
-                reg:=newreg(regtype,i,R_SUBWHOLE);
-                list.concat(Tai_regalloc.alloc(reg));
-              end;
-         end
-       else
-{$ifndef ALLOWDUPREG}
-         internalerror(200305061)
-{$else ALLOWDUPREG}
-          list.concat(Tai_regalloc.alloc(reg));
-{$endif ALLOWDUPREG}
-         ;
+      for i:=0 to first_imaginary-1 do
+        if i in r then
+          getexplicitregister(list,i);
     end;
+
 
     procedure trgobj.deallocexplicitregisters(list:Taasmoutput;r:Tcpuregisterset);
 
-    var reg:Tregister;
-        i:Tsuperregister;
+    var i:Tsuperregister;
 
     begin
-      if unusedregs[0]*r=[] then
-        begin
-          unusedregs[0]:=unusedregs[0]+r;
-          for i:=first_imaginary-1 downto 0 do
-            if i in r then
-              begin
-                reg:=newreg(regtype,i,R_SUBWHOLE);
-                list.concat(Tai_regalloc.dealloc(reg));
-              end;
-         end
-       else
-{$ifndef ALLOWDUPREG}
-         internalerror(200305061);
-{$else ALLOWDUPREG}
-          list.concat(Tai_regalloc.dealloc(reg));
-{$endif ALLOWDUPREG}
+      for i:=0 to first_imaginary-1 do
+        if i in r then
+          ungetregister(list,i);
     end;
 
 
@@ -807,12 +590,11 @@ implementation
 
     procedure trgobj.add_edges_used(u:Tsuperregister);
 
-    var i:Tsuperregister;
+    var i:word;
 
     begin
-      for i:=0 to maxreg-1 do
-        if not(supregset_in(unusedregs,i)) then
-          add_edge(u,i);
+      for i:=0 to live_registers.length-1 do
+        add_edge(u,live_registers.buf[i]);
     end;
 
 {$ifdef EXTDEBUG}
@@ -909,6 +691,53 @@ implementation
               end;
         end;
     end;
+    
+    procedure Trgobj.sort_simplify_worklist;
+    
+    {Sorts the simplifyworklist by the number of interferences the
+     registers in it cause. This allows simplify to execute in
+     constant time.}
+
+    var p,h,i,j,leni,lenj:word;
+        t:Tsuperregister;
+        adji,adjj:Psuperregisterworklist;
+
+    begin
+      if simplifyworklist.length<2 then
+        exit;
+      p:=1;
+      while 2*p<simplifyworklist.length do
+        p:=2*p;
+      while p<>0 do
+        begin
+          for h:=0 to simplifyworklist.length-p-1 do
+            begin
+              i:=h;
+              repeat
+                j:=i+p;
+                adji:=reginfo[simplifyworklist.buf[i]].adjlist;
+                adjj:=reginfo[simplifyworklist.buf[j]].adjlist;
+                if adji=nil then
+                  leni:=0
+                else
+                  leni:=adji^.length;
+                if adjj=nil then
+                  lenj:=0
+                else
+                  lenj:=adjj^.length;
+                if lenj>=leni then
+                  break;
+                t:=simplifyworklist.buf[i];
+                simplifyworklist.buf[i]:=simplifyworklist.buf[j];
+                simplifyworklist.buf[j]:=t;
+                if i<p then
+                  break;
+                dec(i,p)
+              until false;
+            end;
+          p:=p shr 1;
+        end;
+    end;
 
     procedure trgobj.make_work_list;
 
@@ -924,11 +753,13 @@ implementation
           freezeworklist.add(n)
         else
           simplifyworklist.add(n);
+      sort_simplify_worklist;
     end;
 
     procedure trgobj.prepare_colouring;
-    var
-      i : integer;
+    
+    var i:word;
+
     begin
       make_work_list;
       active_moves:=Tlinkedlist.create;
@@ -968,7 +799,8 @@ implementation
 
     var adj : Psuperregisterworklist;
         d,n : tsuperregister;
-        i : integer;
+        i : word;
+
     begin
       d:=reginfo[m].degree;
       if reginfo[m].degree>0 then
@@ -981,14 +813,11 @@ implementation
           adj:=reginfo[m].adjlist;
           if adj<>nil then
             begin
-              i:=adj^.head;
-              while (i<>adj^.tail) do
+              for i:=1 to adj^.length do
                 begin
-                  n:=adj^.buf[i];
-                  if selectstack.find(n) or
-                     coalescednodes.find(n) then
+                  n:=adj^.buf[i-1];
+                  if reginfo[n].flags*[ri_selected,ri_coalesced]<>[] then
                     enable_moves(n);
-                  adj^.next(i);
                 end;
             end;
           {Remove the node from the spillworklist.}
@@ -1006,50 +835,25 @@ implementation
 
     var adj : Psuperregisterworklist;
         p,n : Tsuperregister;
-        min,i : integer;
+        min,i:word;
     begin
-      {We the element with the least interferences out of the
-       simplifyworklist.}
-      min:=high(integer);
-      p:=0;
-      n:=0;
-      i:=simplifyworklist.head;
-      while (i<>simplifyworklist.tail) do
-        begin
-          adj:=reginfo[simplifyworklist.buf[i]].adjlist;
-          if adj=nil then
-            begin
-              p:=i;
-              min:=0;
-              break;  {We won't find smaller ones.}
-            end
-          else
-            if adj^.length<min then
-              begin
-                p:=i;
-                min:=adj^.length;
-                if min=0 then
-                  break;  {We won't find smaller ones.}
-              end;
-          simplifyworklist.next(i);
-        end;
-      n:=simplifyworklist.getidx(p);
-      simplifyworklist.deleteidx(p);
+      {We take the element with the least interferences out of the
+       simplifyworklist. Since the simplifyworklist is now sorted, we 
+       no longer need to search, but we can simply take the first element.}
+      n:=simplifyworklist.get;
 
       {Push it on the selectstack.}
       selectstack.add(n);
+      include(reginfo[n].flags,ri_selected);
       adj:=reginfo[n].adjlist;
       if adj<>nil then
         begin
-          i:=adj^.head;
-          while (i<>adj^.tail) do
+          for i:=1 to adj^.length do
             begin
-              n:=adj^.buf[i];
+              n:=adj^.buf[i-1];
               if (n>first_imaginary) and
-                 not(selectstack.find(n) or
-                     coalescednodes.find(n)) then
+                 (reginfo[n].flags*[ri_selected,ri_coalesced]=[]) then
                 decrement_degree(n);
-              adj^.next(i);
             end;
         end;
     end;
@@ -1057,7 +861,7 @@ implementation
     function trgobj.get_alias(n:Tsuperregister):Tsuperregister;
 
     begin
-      while coalescednodes.find(n) do
+      while ri_coalesced in reginfo[n].flags do
         n:=reginfo[n].alias;
       get_alias:=n;
     end;
@@ -1088,7 +892,7 @@ implementation
       end;
 
     var adj : Psuperregisterworklist;
-        i : integer;
+        i : word;
         n : tsuperregister;
 
     begin
@@ -1096,18 +900,15 @@ implementation
       adj:=reginfo[v].adjlist;
       if adj<>nil then
         begin
-          i:=adj^.head;
-          while (i<>adj^.tail) do
+          for i:=1 to adj^.length do
             begin
-              n:=adj^.buf[i];
-              if not(selectstack.find(n) or
-                     coalescednodes.find(n)) and
+              n:=adj^.buf[i-1];
+              if (reginfo[v].flags*[ri_coalesced,ri_selected]=[]) and
                  not ok(n,u) then
                 begin
                   adjacent_ok:=false;
                   break;
                 end;
-              adj^.next(i);
             end;
         end;
     end;
@@ -1116,7 +917,7 @@ implementation
 
     var adj : Psuperregisterworklist;
         done : Tsuperregisterset; {To prevent that we count nodes twice.}
-        i,k : integer;
+        i,k:word;
         n : tsuperregister;
 
     begin
@@ -1125,35 +926,27 @@ implementation
       adj:=reginfo[u].adjlist;
       if adj<>nil then
         begin
-          i:=adj^.head;
-          while (i<>adj^.tail) do
+          for i:=1 to adj^.length do
             begin
-              n:=adj^.buf[i];
-              if not(selectstack.find(n) or
-                     coalescednodes.find(n)) then
+              n:=adj^.buf[i-1];
+              if reginfo[u].flags*[ri_coalesced,ri_selected]=[] then
                 begin
                   supregset_include(done,n);
                   if reginfo[n].degree>=usable_registers_cnt then
                     inc(k);
                 end;
-              adj^.next(i);
             end;
         end;
       adj:=reginfo[v].adjlist;
       if adj<>nil then
-        begin
-          i:=adj^.head;
-          while (i<>adj^.tail) do
-            begin
-              n:=adj^.buf[i];
-              if not supregset_in(done,n) and
-                 (reginfo[n].degree>=usable_registers_cnt) and
-                 not(selectstack.find(n) or
-                     coalescednodes.find(n)) then
-                inc(k);
-              adj^.next(i);
-            end;
-        end;
+        for i:=1 to adj^.length do
+          begin
+            n:=adj^.buf[i-1];
+            if not supregset_in(done,n) and
+               (reginfo[n].degree>=usable_registers_cnt) and
+               (reginfo[u].flags*[ri_coalesced,ri_selected]=[]) then
+              inc(k);
+          end;
       conservative:=(k<usable_registers_cnt);
     end;
 
@@ -1162,7 +955,7 @@ implementation
 
     var add : boolean;
         adj : Psuperregisterworklist;
-        i : integer;
+        i : word;
         t : tsuperregister;
         n,o : cardinal;
         decrement : boolean;
@@ -1171,6 +964,7 @@ implementation
       if not freezeworklist.delete(v) then
         spillworklist.delete(v);
       coalescednodes.add(v);
+      include(reginfo[v].flags,ri_coalesced);
       reginfo[v].alias:=u;
 
       {Combine both movelists. Since the movelists are sets, only add
@@ -1194,28 +988,23 @@ implementation
 
       adj:=reginfo[v].adjlist;
       if adj<>nil then
-        begin
-          i:=adj^.head;
-          while (i<>adj^.tail) do
-            begin
-              t:=adj^.buf[i];
-              if not(selectstack.find(t) or
-                     coalescednodes.find(t)) then
-                begin
-                  decrement:=(t<>u) and not(ibitmap[u,t]);
-                  add_edge(t,u);
-                  { Do not call decrement_degree because it might move nodes between
-                    lists while the degree does not change (add_edge will increase it).
-                    Instead, we will decrement manually. (Only if the degree has been
-                    increased.) }
-                  if decrement and
-                     (t>=first_imaginary) and
-                     (reginfo[t].degree>0) then
-                    dec(reginfo[t].degree);
-                end;
-              adj^.next(i);
-            end;
-        end;
+        for i:=1 to adj^.length do
+          begin
+            t:=adj^.buf[i-1];
+            if reginfo[t].flags*[ri_coalesced,ri_selected]=[] then
+              begin
+                decrement:=(t<>u) and not(ibitmap[u,t]);
+                add_edge(t,u);
+                { Do not call decrement_degree because it might move nodes between
+                  lists while the degree does not change (add_edge will increase it).
+                  Instead, we will decrement manually. (Only if the degree has been
+                  increased.) }
+                if decrement and
+                   (t>=first_imaginary) and
+                   (reginfo[t].degree>0) then
+                  dec(reginfo[t].degree);
+              end;
+          end;
       if (reginfo[u].degree>=usable_registers_cnt) and
          freezeworklist.delete(u) then
         spillworklist.add(u);
@@ -1329,7 +1118,8 @@ implementation
     var
       n : tsuperregister;
       adj : psuperregisterworklist;
-      max,p,i : integer;
+      max,p,i:word;
+
     begin
       { We must look for the element with the most interferences in the
         spillworklist. This is required because those registers are creating
@@ -1339,19 +1129,17 @@ implementation
         will never converge (PFV) }
       max:=0;
       p:=0;
-      i:=spillworklist.head;
-      while (i<>spillworklist.tail) do
+      {Safe: This procedure is only called if length<>0}
+      for i:=0 to spillworklist.length-1 do
         begin
           adj:=reginfo[spillworklist.buf[i]].adjlist;
-          if assigned(adj) and
-             (adj^.length>max) then
+          if assigned(adj) and (adj^.length>max) then
             begin
               p:=i;
               max:=adj^.length;
             end;
-          spillworklist.next(i);
         end;
-      n:=spillworklist.getidx(p);
+      n:=spillworklist.buf[p];
       spillworklist.deleteidx(p);
 
       simplifyworklist.add(n);
@@ -1363,11 +1151,12 @@ implementation
     {Assign_colours assigns the actual colours to the registers.}
 
     var adj : Psuperregisterworklist;
-        i,j,k : integer;
+        i,j,k : word;
         n,a,c : Tsuperregister;
         adj_colours,
         colourednodes : Tsuperregisterset;
         found : boolean;
+        
     begin
       spillednodes.clear;
       {Reset colours}
@@ -1378,24 +1167,20 @@ implementation
       for n:=0 to first_imaginary-1 do
         supregset_include(colourednodes,n);
       {Now colour the imaginary registers on the select-stack.}
-      while (selectstack.length>0) do
+      for i:=selectstack.length downto 1 do
         begin
-          n:=selectstack.getlast;
+          n:=selectstack.buf[i-1];
           {Create a list of colours that we cannot assign to n.}
           supregset_reset(adj_colours,false);
           adj:=reginfo[n].adjlist;
           if adj<>nil then
-            begin
-              j:=adj^.head;
-              while (j<>adj^.tail) do
-                begin
-                  a:=get_alias(adj^.buf[j]);
-                  if supregset_in(colourednodes,a) then
-                    supregset_include(adj_colours,reginfo[a].colour);
-                  adj^.next(j);
-                end;
-              supregset_include(adj_colours,RS_STACK_POINTER_REG);
-            end;
+            for j:=0 to adj^.length-1 do
+              begin
+                a:=get_alias(adj^.buf[j]);
+                if supregset_in(colourednodes,a) then
+                  supregset_include(adj_colours,reginfo[a].colour);
+              end;
+            supregset_include(adj_colours,RS_STACK_POINTER_REG);
           {Assume a spill by default...}
           found:=false;
           {Search for a colour not in this list.}
@@ -1415,15 +1200,13 @@ implementation
             spillednodes.add(n);
         end;
       {Finally colour the nodes that were coalesced.}
-      i:=coalescednodes.head;
-      while (i<>coalescednodes.tail) do
+      for i:=1 to coalescednodes.length do
         begin
-          n:=coalescednodes.buf[i];
+          n:=coalescednodes.buf[i-1];
           k:=get_alias(n);
           reginfo[n].colour:=reginfo[k].colour;
           if reginfo[k].colour<maxcpuregister then
             include(used_in_proc,reginfo[k].colour);
-          coalescednodes.next(i);
         end;
 {$ifdef ra_debug}
       if aktfilepos.line=51 then
@@ -1505,7 +1288,7 @@ implementation
     {Remove node u from the interference graph and remove all collected
      move instructions it is associated with.}
 
-    var i : integer;
+    var i : word;
         v : Tsuperregister;
         adj,adj2 : Psuperregisterworklist;
 {$ifdef Principle_wrong_by_definition}
@@ -1517,10 +1300,9 @@ implementation
       adj:=reginfo[u].adjlist;
       if adj<>nil then
         begin
-          i:=adj^.head;
-          while (i<>adj^.tail) do
+          for i:=1 to adj^.length do
             begin
-              v:=adj^.buf[i];
+              v:=adj^.buf[i-1];
               {Remove (u,v) and (v,u) from bitmap.}
               ibitmap[u,v]:=false;
               ibitmap[v,u]:=false;
@@ -1535,7 +1317,6 @@ implementation
                       reginfo[v].adjlist:=nil;
                     end;
                 end;
-              adj^.next(i);
             end;
           {Remove ( u,* ) from adjacency list.}
           dispose(adj,done);
@@ -1606,7 +1387,7 @@ implementation
         r:Tregister;
     begin
        p:=getnewreg;
-       supregset_exclude(unusedregs,p);
+       live_registers.add(p);
        r:=newreg(regtype,p,subreg);
        if position=nil then
          list.insert(Tai_regalloc.alloc(r))
@@ -1625,7 +1406,7 @@ implementation
 
     begin
       supreg:=getsupreg(r);
-      supregset_include(unusedregs,supreg);
+      live_registers.delete(supreg);
       if position=nil then
         list.insert(Tai_regalloc.dealloc(r))
       else
@@ -1637,32 +1418,32 @@ implementation
 
     {Returns true if any help registers have been used.}
 
-    var i : integer;
+    var i : word;
         t : tsuperregister;
         p,q : Tai;
-        regs_to_spill_set : Tsuperregisterset;
+        regs_to_spill_set:Tsuperregisterset;
         spill_temps : ^Tspill_temp_list;
         supreg : tsuperregister;
         templist : taasmoutput;
+
     begin
       spill_registers:=false;
-      supregset_reset(unusedregs,true);
+      live_registers.clear;
       {Precoloured nodes should have an infinite degree, which we can approach
        by 255.}
       for i:=0 to first_imaginary-1 do
         reginfo[i].degree:=high(tsuperregister);
       for i:=first_imaginary to maxreg-1 do
-        reginfo[i].degree:=0;
-{      exclude(unusedregs,RS_STACK_POINTER_REG);}
-      if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
-        {Make sure the register allocator won't allocate registers into ebp.}
-        supregset_exclude(unusedregs,RS_FRAME_POINTER_REG);
+        begin
+          reginfo[i].degree:=0;
+          reginfo[i].flags:=[];
+        end;
       spill_temps:=allocmem(sizeof(treference)*maxreg);
       supregset_reset(regs_to_spill_set,false);
       { Allocate temps and insert in front of the list }
       templist:=taasmoutput.create;
-      i:=spillednodes.head;
-      while (i<>spillednodes.tail) do
+      {Safe: this procedure is only called if there are spilled nodes.}
+      for i:=0 to spillednodes.length-1 do
         begin
           t:=spillednodes.buf[i];
           {Alternative representation.}
@@ -1671,7 +1452,6 @@ implementation
           clear_interferences(t);
           {Get a temp for the spilled register}
           tg.gettemp(templist,4,tt_noreuse,spill_temps^[t]);
-          spillednodes.next(i);
         end;
       list.insertlistafter(headertai,templist);
       templist.free;
@@ -1697,9 +1477,9 @@ implementation
                       end
                     else
                       if Tai_regalloc(p).allocation then
-                        supregset_exclude(unusedregs,supreg)
+                        live_registers.add(supreg)
                       else
-                        supregset_include(unusedregs,supreg);
+                        live_registers.delete(supreg);
                   end;
               end;
             ait_instruction:
@@ -1709,9 +1489,10 @@ implementation
                                                       @getregisterinline,
                                                       @ungetregisterinline,
                                                       regs_to_spill_set,
-                                                      unusedregs,
+                                                      live_registers,
                                                       spill_temps^) then
                   spill_registers:=true;
+
                 if Taicpu_abstract(p).is_move then
                   add_move_instruction(Taicpu(p));
               end;
@@ -1719,12 +1500,9 @@ implementation
           p:=Tai(p.next);
         end;
       aktfilepos:=current_procinfo.exitpos;
-      i:=spillednodes.head;
-      while (i<>spillednodes.tail) do
-        begin
-          tg.ungettemp(list,spill_temps^[spillednodes.buf[i]]);
-          spillednodes.next(i);
-        end;
+      {Safe: this procedure is only called if there are spilled nodes.}
+      for i:=0 to spillednodes.length-1 do
+        tg.ungettemp(list,spill_temps^[spillednodes.buf[i]]);
       freemem(spill_temps);
     end;
 
@@ -1837,7 +1615,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  2003-12-12 17:16:17  peter
+  Revision 1.100  2003-12-14 20:24:28  daniel
+    * Register allocator speed optimizations
+      - Worklist no longer a ringbuffer
+      - No find operations are left
+      - Simplify now done in constant time
+      - unusedregs is now a Tsuperregisterworklist
+      - Microoptimizations
+
+  Revision 1.99  2003/12/12 17:16:17  peter
     * rg[tregistertype] added in tcg
 
   Revision 1.98  2003/12/04 23:27:32  peter
