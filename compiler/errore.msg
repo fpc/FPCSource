@@ -1421,7 +1421,7 @@ asmr_e_expr_illegal=07026_E_Illegal expression
 asmr_e_escape_seq_ignored=07027_E_escape sequence ignored: $1
 asmr_e_invalid_symbol_ref=07028_E_Invalid symbol reference
 asmr_w_fwait_emu_prob=07029_W_Fwait can cause emulation problems with emu387
-asmr_w_fadd_to_faddp=07030_W_FADD without operand translated into FADDP
+asmr_w_fadd_to_faddp=07030_W_$1 without operand translated into $1P
 asmr_w_enter_not_supported_by_linux=07031_W_ENTER instruction is not supported by Linux kernel
 % ENTER instruction can generate a stack page fault that is not
 % caught correctly by the i386 Linux page handler.
@@ -1436,8 +1436,6 @@ asmr_h_direct_global_to_mangled=07039_H_$1 translated to $2
 asmr_w_direct_global_is_overloaded_func=07040_W_$1 is associated to an overloaded function
 asmr_e_cannot_use_SELF_outside_a_method=07041_E_Cannot use SELF outside a method
 asmr_e_cannot_use_OLDEBP_outside_nested_procedure=07042_E_Cannot use OLDEBP outside a nested procedure
-asmr_e_cannot_use_RESULT_here=07084_E_Cannot use RESULT in this function
-asmr_h_RESULT_is_reg=07085_H_RESULT is register $1
 asmr_e_void_function=07043_W_Procedures can't return any value in asm code
 asmr_e_SEG_not_supported=07044_E_SEG not supported
 asmr_e_size_suffix_and_dest_dont_match=07045_E_Size suffix and destination or source size do not match
@@ -1487,6 +1485,11 @@ asmr_e_unable_to_determine_reference_size=07083_E_No size specified and unable t
 % You should specify explicitly a size for the reference, because
 % compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference.
+asmr_e_cannot_use_RESULT_here=07084_E_Cannot use RESULT in this function
+asmr_h_RESULT_is_reg=07085_H_RESULT is register $1
+asmr_w_adding_explicit_args_fXX=07086_W_"$1" without operand translated into "$1 %st,%st(1)"
+asmr_w_adding_explicit_first_arg_fXX=07087_W_"$1 %st(n)" translated into "$1 %st,%st(n)"
+asmr_w_adding_explicit_second_arg_fXX=07088_W_"$1 %st(n)" translated into "$1 %st(n),%st"
 #
 # Assembler/binary writers
 #
@@ -1603,7 +1606,7 @@ unit_u_ppu_invalid_processor=10009_U_PPU is compiled for an other processor
 % This unit file was compiled for a different processor type, and
 % cannot be read
 unit_u_ppu_invalid_target=10010_U_PPU is compiled for an other target
-% This unit file was compiled for a different processor type, and
+% This unit file was compiled for a different target, and
 % cannot be read
 unit_u_ppu_source=10011_U_PPU Source: $1
 % When you use the \var{-vu} flag, the unit CRC check is shown.
@@ -1690,6 +1693,9 @@ unit_h_cond_set_in_last_compile=10039_H_Conditional $1 was set at startup in las
 % the same conditionals are set for the recompiliation. The compiler has
 % found a conditional that was used the last time the unit was compiled, but
 % the conditional is currently not defined.
+unit_w_cant_compile_unit_with_changed_incfile=10040_W_Can't recompile unit $1, but found modifed include files
+% A unit was found to have modified include files, but
+% some source files were not found, so recompilation is impossible.
 % \end{description}
 # EndOfTeX
 

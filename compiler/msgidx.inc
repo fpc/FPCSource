@@ -410,8 +410,6 @@ const
   asmr_w_direct_global_is_overloaded_func=07040;
   asmr_e_cannot_use_SELF_outside_a_method=07041;
   asmr_e_cannot_use_OLDEBP_outside_nested_procedure=07042;
-  asmr_e_cannot_use_RESULT_here=07084;
-  asmr_h_RESULT_is_reg=07085;
   asmr_e_void_function=07043;
   asmr_e_SEG_not_supported=07044;
   asmr_e_size_suffix_and_dest_dont_match=07045;
@@ -453,6 +451,11 @@ const
   asmr_e_cannot_access_field_directly_for_parameters=07081;
   asmr_e_cannot_access_object_field_directly=07082;
   asmr_e_unable_to_determine_reference_size=07083;
+  asmr_e_cannot_use_RESULT_here=07084;
+  asmr_h_RESULT_is_reg=07085;
+  asmr_w_adding_explicit_args_fXX=07086;
+  asmr_w_adding_explicit_first_arg_fXX=07087;
+  asmr_w_adding_explicit_second_arg_fXX=07088;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -542,6 +545,7 @@ const
   unit_u_check_time=10037;
   unit_h_cond_not_set_in_last_compile=10038;
   unit_h_cond_set_in_last_compile=10039;
+  unit_w_cant_compile_unit_with_changed_incfile=10040;
   option_usage=11000;
   option_only_one_source_support=11001;
   option_def_only_for_os2=11002;
@@ -572,9 +576,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 32133;
+  MsgTxtSize = 32359;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,59,174,37,41,41,86,14,35,40,
+    17,59,174,37,41,41,89,14,35,41,
     29,1,1,1,1,1,1,1,1,1
   );
