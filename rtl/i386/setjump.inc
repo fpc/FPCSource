@@ -24,7 +24,7 @@ asm
   movl %edx,20(%eax)
   movl (%ebp),%edx
   movl %edx,12(%eax)
-  leal 8(%ebp),%edx
+  leal 12(%ebp),%edx
   movl %edx,16(%eax)
   xorl %eax,%eax
 end;
@@ -48,7 +48,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1999-03-01 15:41:00  peter
+  Revision 1.6  1999-08-18 10:42:13  pierre
+   * loading of esp value corrected
+
+  Revision 1.5  1999/03/01 15:41:00  peter
     * use external names
     * removed all direct assembler modes
 
