@@ -37,6 +37,11 @@ function AllocPooled(poolHeader: Pointer location 'a0';
                      memSize   : LongInt location 'd0'): Pointer; 
 SysCall MOS_ExecBase 708;
 
+function FreePooled(poolHeader: Pointer location 'a0';
+                    memory    : Pointer location 'a1';
+                    memSize   : LongInt location 'd0'): Pointer;
+SysCall MOS_ExecBase 714;
+
 function SetSignal(newSignals: LongInt location 'd0';
                    signalMask: LongInt location 'd1'): LongInt; 
 SysCall MOS_ExecBase 306;
@@ -72,9 +77,6 @@ SysCall MOS_ExecBase 354;
 procedure RemPort(port: PMsgPort location 'a1'); 
 SysCall MOS_ExecBase 360;
 
-function DoIO(ioRequest: PIORequest location 'a1'): ShortInt; 
-SysCall MOS_ExecBase 456;
-
 function OpenDevice(const devName: PChar      location 'a0';
                     unite        : LongInt    location 'd0';
                     ioRequest    : PIORequest location 'a1';
@@ -84,10 +86,27 @@ SysCall MOS_ExecBase 444;
 procedure CloseDevice(ioRequest: PIORequest location 'a1'); 
 SysCall MOS_ExecBase 450;
 
+function DoIO(ioRequest: PIORequest location 'a1'): ShortInt; 
+SysCall MOS_ExecBase 456;
+
+procedure SendIO(ioRequest: PIORequest location 'a1');
+SysCall MOS_ExecBase 462;
+
+function CheckIO(ioRequest: PIORequest location 'a1'): PIORequest;
+SysCall MOS_ExecBase 468;
+
+function WaitIO(ioRequest: PIORequest location 'a1'): ShortInt;
+SysCall MOS_ExecBase 474;
+
+procedure AbortIO(ioRequest: PIORequest location 'a1');
+SysCall MOS_ExecBase 480;
 
 {
   $Log$
-  Revision 1.1  2004-06-13 22:38:08  karoly
+  Revision 1.2  2004-06-23 13:23:57  karoly
+    + added a few more calls
+
+  Revision 1.1  2004/06/13 22:38:08  karoly
     * initial revision
 
 }
