@@ -1339,10 +1339,14 @@ implementation
 
 
     procedure tlocalsymtable.insertconstdata(sym : tsymentry);
+    { this does not affect the local stack space, since all
+      typed constansts and initialized variables are always
+      put in the .data / .rodata section
+    }
       var
         storefilepos : tfileposinfo;
         curconstsegment : taasmoutput;
-        address,l,varalign : longint;
+        l : longint;
       begin
         { Note: this is the same code as tabstractunitsymtable.insertconstdata }
         if sym.typ<>typedconstsym then
@@ -1354,15 +1358,10 @@ implementation
         else
           curconstsegment:=consts;
         l:=ttypedconstsym(sym).getsize;
-        varalign:=size_2_align(l);
-        varalign:=used_align(varalign,aktalignment.constalignmin,aktalignment.constalignmax);
-        address:=align(datasize,varalign);
         { insert cut for smartlinking or alignment }
         if (cs_create_smart in aktmoduleswitches) then
-          curconstSegment.concat(Tai_cut.Create)
-        else if (address<>datasize) then
-          curconstSegment.concat(Tai_align.create(varalign));
-        datasize:=address+l;
+          curconstSegment.concat(Tai_cut.Create);
+        curconstSegment.concat(Tai_align.create(const_align(l)));
 {$ifdef GDB}
         if cs_debuginfo in aktmoduleswitches then
           concatstabto(curconstsegment);
@@ -1371,12 +1370,12 @@ implementation
            DLLSource then
           begin
             curconstSegment.concat(Tai_symbol.Createdataname_global(
-                ttypedconstsym(sym).mangledname,ttypedconstsym(sym).getsize));
+                ttypedconstsym(sym).mangledname,l));
           end
         else
           begin
             curconstSegment.concat(Tai_symbol.Createdataname(
-                ttypedconstsym(sym).mangledname,ttypedconstsym(sym).getsize));
+                ttypedconstsym(sym).mangledname,l));
           end;
         aktfilepos:=storefilepos;
       end;
@@ -1483,14 +1482,12 @@ implementation
         l:=tvarsym(sym).getvaluesize;
         if (vo_is_thread_var in tvarsym(sym).varoptions) then
           inc(l,pointer_size);
-        varalign:=size_2_align(l);
-        varalign:=used_align(varalign,aktalignment.varalignmin,aktalignment.varalignmax);
+        varalign:=var_align(l);
         tvarsym(sym).address:=align(datasize,varalign);
         { insert cut for smartlinking or alignment }
         if (cs_create_smart in aktmoduleswitches) then
-          bssSegment.concat(Tai_cut.Create)
-        else if (tvarsym(sym).address<>datasize) then
-          bssSegment.concat(Tai_align.create(varalign));
+          bssSegment.concat(Tai_cut.Create);
+        bssSegment.concat(Tai_align.create(varalign));
         datasize:=tvarsym(sym).address+l;
 {$ifdef GDB}
         if cs_debuginfo in aktmoduleswitches then
@@ -1512,7 +1509,7 @@ implementation
       var
         storefilepos : tfileposinfo;
         curconstsegment : taasmoutput;
-        address,l,varalign : longint;
+        l : longint;
       begin
         if sym.typ<>typedconstsym then
          internalerror(200208254);
@@ -1523,15 +1520,10 @@ implementation
         else
           curconstsegment:=consts;
         l:=ttypedconstsym(sym).getsize;
-        varalign:=size_2_align(l);
-        varalign:=used_align(varalign,aktalignment.constalignmin,aktalignment.constalignmax);
-        address:=align(datasize,varalign);
         { insert cut for smartlinking or alignment }
         if (cs_create_smart in aktmoduleswitches) then
-          curconstSegment.concat(Tai_cut.Create)
-        else if (address<>datasize) then
-          curconstSegment.concat(Tai_align.create(varalign));
-        datasize:=address+l;
+          curconstSegment.concat(Tai_cut.Create);
+        curconstSegment.concat(Tai_align.create(const_align(l)));
 {$ifdef GDB}
         if cs_debuginfo in aktmoduleswitches then
           concatstabto(curconstsegment);
@@ -1541,12 +1533,12 @@ implementation
            DLLSource then
           begin
             curconstSegment.concat(Tai_symbol.Createdataname_global(
-                ttypedconstsym(sym).mangledname,ttypedconstsym(sym).getsize));
+                ttypedconstsym(sym).mangledname,l));
           end
         else
           begin
             curconstSegment.concat(Tai_symbol.Createdataname(
-                ttypedconstsym(sym).mangledname,ttypedconstsym(sym).getsize));
+                ttypedconstsym(sym).mangledname,l));
           end;
         aktfilepos:=storefilepos;
       end;
@@ -2320,7 +2312,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2002-10-14 19:44:43  peter
+  Revision 1.76  2002-11-09 15:29:28  carl
+    + bss / constant alignment fixes
+    * avoid incrementing address/datasize in local symtable for const's
+
+  Revision 1.75  2002/10/14 19:44:43  peter
     * threadvars need 4 bytes extra for storing the threadvar index
 
   Revision 1.74  2002/10/06 19:41:31  peter
