@@ -162,7 +162,11 @@ end;
     regs.edi := $00;
     RealIntr($10, regs);
     if VESAPtr^.Signature <> 'VESA' then
-      getVesaInfo := FALSE
+     begin
+         getVesaInfo := FALSE;
+         GlobalDosFree(word(longint(VESAPtr) shr 16));
+         exit;
+     end
     else
       getVesaInfo := TRUE;
     { The mode pointer buffer points to a real mode memory }
@@ -232,8 +236,7 @@ end;
    end;
 
 {$ELSE}
-  function getVESAInfo(var VESAInfo: TVESAInfo) : boolean;
-  begin
+  function getVESAInfo(var VESAInfo: TVESAInfo) : boolean; assembler;
   asm
        mov ax,4F00h
        les di,VESAInfo
@@ -248,7 +251,6 @@ end;
      @@ERR:
        mov al,0
      @@X:
-    end;
   end;
 
 
