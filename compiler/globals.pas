@@ -975,10 +975,11 @@ implementation
      {$ifdef hasunix}
        {$IFDEF VER1_0}
         FStat (F,Info);
+        L:=Info.st_Mtime;
        {$ELSE}
         FPFStat (F,Info);
+	L:=Info.st_Mtime;
        {$ENDIF}
-       L:=Info.Mtime;
      {$else}
        GetFTime(f,l);
      {$endif}
@@ -1678,7 +1679,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  2003-09-14 20:26:18  marco
+  Revision 1.100  2003-09-15 20:11:06  marco
+   * fixed
+
+  Revision 1.99  2003/09/14 20:26:18  marco
    * Unix reform
 
   Revision 1.98  2003/09/14 12:55:06  jonas
