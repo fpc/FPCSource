@@ -179,7 +179,7 @@ implementation
 *****************************************************************************}
     procedure tcginlinenode.second_Assert;
      var
-       hp2 : tstringconstnode;
+       hp2,hp3 : tnode;
        otlabel,oflabel : tasmlabel;
        paraloc1,paraloc2,
        paraloc3,paraloc4 : tcgpara;
@@ -202,25 +202,31 @@ implementation
        secondpass(tcallparanode(left).left);
        maketojumpbool(exprasmlist,tcallparanode(left).left,lr_load_regvars);
        cg.a_label(exprasmlist,falselabel);
-       { erroraddr }
-       paramanager.allocparaloc(exprasmlist,paraloc4);
-       cg.a_param_reg(exprasmlist,OS_ADDR,NR_FRAME_POINTER_REG,paraloc4);
-       { lineno }
-       paramanager.allocparaloc(exprasmlist,paraloc3);
-       cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,paraloc3);
-       { filename string }
+       { First call secondpass() before we can push the parameters, otherwise
+         parameters allocated in the registers can be destroyed }
+       { generate filename string parameter }
        hp2:=cstringconstnode.createstr(current_module.sourcefiles.get_file_name(aktfilepos.fileindex),st_shortstring);
-       firstpass(tnode(hp2));
-       secondpass(tnode(hp2));
+       firstpass(hp2);
+       secondpass(hp2);
        if codegenerror then
           exit;
+       { message parameter }
+       hp3:=tcallparanode(tcallparanode(left).right).left;
+       secondpass(hp3);
+       if codegenerror then
+          exit;
+       { push erroraddr }
+       paramanager.allocparaloc(exprasmlist,paraloc4);
+       cg.a_param_reg(exprasmlist,OS_ADDR,NR_FRAME_POINTER_REG,paraloc4);
+       { push lineno }
+       paramanager.allocparaloc(exprasmlist,paraloc3);
+       cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,paraloc3);
+       { push filename }
        paramanager.allocparaloc(exprasmlist,paraloc2);
        cg.a_paramaddr_ref(exprasmlist,hp2.location.reference,paraloc2);
-       hp2.free;
        { push msg }
-       secondpass(tcallparanode(tcallparanode(left).right).left);
        paramanager.allocparaloc(exprasmlist,paraloc1);
-       cg.a_paramaddr_ref(exprasmlist,tcallparanode(tcallparanode(left).right).left.location.reference,paraloc1);
+       cg.a_paramaddr_ref(exprasmlist,hp3.location.reference,paraloc1);
        { call }
        paramanager.freeparaloc(exprasmlist,paraloc1);
        paramanager.freeparaloc(exprasmlist,paraloc2);
@@ -229,6 +235,8 @@ implementation
        cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
        cg.a_call_name(exprasmlist,'FPC_ASSERT');
        cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+       location_freetemp(exprasmlist,hp3.location);
+       location_freetemp(exprasmlist,hp2.location);
        cg.a_label(exprasmlist,truelabel);
        truelabel:=otlabel;
        falselabel:=oflabel;
@@ -236,6 +244,7 @@ implementation
        paraloc2.done;
        paraloc3.done;
        paraloc4.done;
+       hp2.free;
      end;
 
 
@@ -679,7 +688,10 @@ end.
 
 {
   $Log$
-  Revision 1.69  2005-02-14 17:13:06  peter
+  Revision 1.70  2005-04-04 16:04:47  peter
+    * fix register allocation in second_assert
+
+  Revision 1.69  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.68  2005/02/13 18:55:19  florian
