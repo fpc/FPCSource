@@ -254,7 +254,7 @@ Begin
                      (Pai(hp1)^.typ = ait_instruction) And
                      (Pai386(hp1)^._operator = A_FLD) And
                      (Pai386(hp1)^.op1t = top_ref) And
-                     (Pai386(p)^.Size = Pai386(p)^.Size) And
+                     (Pai386(hp1)^.Size = Pai386(p)^.Size) And
                      RefsEqual(TReference(Pai386(p)^.op1^), TReference(Pai386(hp1)^.op1^))
                     Then
                       Begin
@@ -275,11 +275,13 @@ Begin
                               Continue
                             End
                           Else
-                            Begin
-                              Pai386(p)^._operator := A_FST;
-                              AsmL^.Remove(hp1);
-                              Dispose(hp1, done)
-                            End
+                   {fst can't store an extended value!}
+                           If (Pai386(p)^.Size <> S_FX) Then
+                             Begin
+                               Pai386(p)^._operator := A_FST;
+                               AsmL^.Remove(hp1);
+                               Dispose(hp1, done)
+                             End
                       End;
                 End;
               A_IMUL:
@@ -1363,8 +1365,14 @@ End.
 
 {
  $Log$
- Revision 1.3  1998-08-05 16:00:15  florian
+ Revision 1.4  1998-08-05 16:27:17  jonas
+   * fstp/fld bugfix (fstt does not exist)
+
+ Revision 1.3  1998/08/05 16:00:15  florian
    * some fixes for ansi strings
-   * $log$ to $Log$ changed
+   * $log$ to $Log$
+   * $log$ to Revision 1.4  1998-08-05 16:27:17  jonas
+   * $log$ to   * fstp/fld bugfix (fstt does not exist)
+   * $log$ to changed
 
 }
