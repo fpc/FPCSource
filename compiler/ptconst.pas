@@ -617,7 +617,26 @@ unit ptconst;
                     disposetree(p);
                     exit;
                   end;
-               end;
+               end
+              else if (p^.treetype=addrn) and assigned(p^.left) and
+                (p^.left^.treetype=calln) then
+                begin
+                   if (p^.left^.symtableprocentry^.owner^.symtabletype=objectsymtable) and
+                      (pobjectdef(p^.left^.symtableprocentry^.owner^.defowner)^.is_class) then
+                    hp:=genloadmethodcallnode(pprocsym(p^.left^.symtableprocentry),
+                    p^.left^.symtableproc,getcopy(p^.left^.methodpointer))
+                   else
+                    hp:=genloadcallnode(pprocsym(p^.left^.symtableprocentry),
+                      p^.left^.symtableproc);
+                   disposetree(p);
+                   do_firstpass(hp);
+                   p:=hp;
+                   if codegenerror then
+                    begin
+                       disposetree(p);
+                       exit;
+                    end;
+                end;
               { let type conversion check everything needed }
               p:=gentypeconvnode(p,def);
               do_firstpass(p);
@@ -775,7 +794,14 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.63  2000-02-13 14:21:51  jonas
+  Revision 1.64  2000-04-02 09:12:51  florian
+    + constant procedure variables can have a @ in front:
+         const p : procedure = @p;
+      til now only
+         const p : procedure = p;
+      was allowed
+
+  Revision 1.63  2000/02/13 14:21:51  jonas
     * modifications to make the compiler functional when compiled with
       -Or
 
