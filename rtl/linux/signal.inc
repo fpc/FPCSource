@@ -73,19 +73,19 @@ Const
 
 
 const
-  SI_PAD_SIZE	= ((128/sizeof(longint)) - 3);
+  SI_PAD_SIZE   = ((128 div sizeof(longint)) - 3);
 
 type
   tfpreg = record
-	  significand: array[0..3] of word;
-	  exponent: word;
+          significand: array[0..3] of word;
+          exponent: word;
   end;
 
   pfpstate = ^tfpstate;
   tfpstate = record
-	   cw, sw, tag, ipoff, cssel, dataoff, datasel: cardinal;
-	   st: array[0..7] of tfpreg;
-	   status: cardinal;
+           cw, sw, tag, ipoff, cssel, dataoff, datasel: cardinal;
+           st: array[0..7] of tfpreg;
+           status: cardinal;
   end;
 
 {$Ifdef i386}
@@ -185,7 +185,10 @@ type
 
 {
   $Log$
-  Revision 1.2  2000-09-11 14:05:31  marco
+  Revision 1.3  2001-04-04 22:50:59  peter
+    * use div instead of / in constant
+
+  Revision 1.2  2000/09/11 14:05:31  marco
    * FreeBSD support and removed old signalhandling
 
   Revision 1.1.2.1  2000/09/10 16:17:25  marco
