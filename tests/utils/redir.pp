@@ -31,6 +31,9 @@ Interface
 {$ifdef Go32v2}
 {$define implemented}
 {$endif}
+{$ifdef OS2}
+{$define shell_implemented}
+{$endif}
 {$ifdef Win32}
 {$define implemented}
 {$endif}
@@ -207,6 +210,14 @@ end;
 {$endif def go32v2}
 
 {$ifdef win32}
+Function FdClose (Handle : Longint) : boolean;
+begin
+  { Do we need this ?? }
+  FdClose:=true;
+end;
+{$endif}
+
+{$ifdef os2}
 Function FdClose (Handle : Longint) : boolean;
 begin
   { Do we need this ?? }
@@ -612,10 +623,29 @@ end;
                                  Fake
 *****************************************************************************}
 
+{$IFDEF SHELL_IMPLEMENTED}
+function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr: String): boolean;
+var
+ CmdLine2: string;
+begin
+ CmdLine2 := ComLine;
+ if RedirStdIn <> '' then CmdLine2 := CmdLine2 + ' < ' + RedirStdIn;
+ if RedirStdOut <> '' then CmdLine2 := CmdLine2 + ' > ' + RedirStdOut;
+ if RedirStdErr <> '' then
+ begin
+  if RedirStdErr = RedirStdOut
+          then CmdLine2 := CmdLine2 + ' 2>&1'
+                              else CmdLine2 := CmdLine2 + ' 2> ' + RedirStdErr;
+ end;
+ DosExecute (ProgName, CmdLine2);
+ ExecuteRedir := true;
+end;
+{$ELSE SHELL_IMPLEMENTED}
 function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
 begin
   ExecuteRedir:=false;
 end;
+{$ENDIF SHELL_IMPLEMENTED}
 
 function  ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
 begin
@@ -757,7 +787,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.6  2001-07-01 20:13:50  peter
+  Revision 1.7  2002-02-24 20:07:23  hajny
+    * dummy implementation for OS/2
+
+  Revision 1.6  2001/07/01 20:13:50  peter
     * udpated for dos
 
   Revision 1.5  2001/02/03 00:13:34  peter
