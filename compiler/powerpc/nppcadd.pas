@@ -197,21 +197,25 @@ interface
         // constant in a register first?
         if (right.location.loc = LOC_CONSTANT) then
           begin
+{$ifdef extdebug}
+            if (qword(right.location.value) > high(cardinal)) then
+              internalerror(2002080301);
+{$endif extdebug}
             if (nodetype in [equaln,unequaln]) then
               if (unsigned and
                   (right.location.value > high(word))) or
                  (not unsigned and
-                  ((longint(right.location.value) < low(smallint)) or
-                   (longint(right.location.value) > high(smallint)))) then
+                  (right.location.value < low(smallint)) or
+                   (right.location.value > high(smallint)))) then
                 // we can then maybe use a constant in the 'othersigned' case
                 // (the sign doesn't matter for // equal/unequal)
                 unsigned := not unsigned;
 
             if (unsigned and
-                (aword(right.location.value) <= high(word))) or
+                (qword(right.location.value) <= high(word))) or
                (not(unsigned) and
-                (longint(right.location.value) >= low(smallint)) and
-                (longint(right.location.value) <= high(smallint))) then
+                (right.location.value >= low(smallint)) and
+                (right.location.value <= high(smallint))) then
                useconst := true
             else
               begin
@@ -366,7 +370,7 @@ interface
                       location.register)
                   else
                     cg.a_op_const_reg_reg(exprasmlist,cgop,OS_INT,
-                      right.location.value,left.location.register,
+                      aword(right.location.value),left.location.register,
                       location.register);
                 end;
             end;
@@ -547,7 +551,7 @@ interface
                    internalerror(43244);
                   if (right.location.loc = LOC_CONSTANT) then
                     cg.a_op_const_reg_reg(exprasmlist,OP_OR,OS_INT,
-                      1 shl right.location.value,
+                      aword(1 shl aword(right.location.value)),
                       left.location.register,location.register)
                   else
                     begin
@@ -560,7 +564,7 @@ interface
                           left.location.register,location.register)
                       else
                         cg.a_op_const_reg_reg(exprasmlist,OP_OR,OS_INT,
-                          left.location.value,tmpreg,location.register);
+                          aword(left.location.value),tmpreg,location.register);
                       cg.free_scratch_reg(exprasmlist,tmpreg);
                     end;
                   opdone := true;
@@ -593,7 +597,7 @@ interface
                     begin
                       tmpreg := cg.get_scratch_reg_int(exprasmlist);
                       cg.a_load_const_reg(exprasmlist,OS_INT,
-                        left.location.value,tmpreg);
+                        aword(left.location.value),tmpreg);
                       exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC,
                         location.register,tmpreg,right.location.register));
                       cg.free_scratch_reg(exprasmlist,tmpreg);
@@ -621,18 +625,15 @@ interface
               tmpreg := cg.get_scratch_reg_int(exprasmlist);
               if left.location.loc = LOC_CONSTANT then
                 begin
-                  cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_INT,
-                    not(left.location.value),right.location.register,tmpreg);
-                  exprasmlist.concat(taicpu.op_reg_const(A_CMPWI,tmpreg,0));
-                  // the two instructions above should be folded together by
-                  // the peepholeoptimizer
+                  cg.a_op_const_reg_reg(exprasmlist,OP_AND_,OS_INT,
+                    not(aword(left.location.value)),right.location.register,tmpreg);
                 end
               else
                 begin
                   if right.location.loc = LOC_CONSTANT then
                     begin
                       cg.a_load_const_reg(exprasmlist,OS_INT,
-                        right.location.value,tmpreg);
+                        aword(right.location.value),tmpreg);
                       exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC_,tmpreg,
                         tmpreg,left.location.register));
                     end
@@ -656,7 +657,8 @@ interface
               swapleftright;
             if (right.location.loc = LOC_CONSTANT) then
               cg.a_op_const_reg_reg(exprasmlist,cgop,OS_INT,
-                right.location.value,left.location.register,location.register)
+                aword(right.location.value),left.location.register,
+                location.register)
             else
               cg.a_op_reg_reg_reg(exprasmlist,cgop,OS_INT,
                 right.location.register,left.location.register,
@@ -842,11 +844,26 @@ interface
             if (nf_swaped in flags) then
               swapleftright;
             if left.location.loc = LOC_CONSTANT then
-              begin
-                location_force_reg(exprasmlist,left.location,
-                  def_cgsize(left.resulttype.def),false);
-                location.register64 := left.location.register64;
-              end;
+              if not(cs_check_overflow in aktlocalswitches) and
+                 (left.location.value >= low(smallint)) and
+                 (left.location.value <= high(smallint)) then
+                begin
+                  // optimize
+                  exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
+                    location.register,right.location.registerlow,
+                    left.location.value));
+                  exprasmlist.concat(taicpu.op_reg_reg(A_SUBFZE,
+                    location.register,right.location.registerhigh));
+                  clear_left_right(false);
+                  exit;
+                end
+              else
+                begin
+                  // load constant in register
+                  location_force_reg(exprasmlist,left.location,
+                    def_cgsize(left.resulttype.def),false);
+                  location.register64 := left.location.register64;
+                end;
            end;
 
         if not(cs_check_overflow in aktlocalswitches) or
@@ -867,7 +884,7 @@ interface
                   if left.location.loc = LOC_CONSTANT then
                     swapleftright;
                   if (right.location.loc = LOC_CONSTANT) then
-                    cg64.a_op64_const_reg_reg(exprasmlist,op,right.location.value,
+                    cg64.a_op64_const_reg_reg(exprasmlist,op,qword(right.location.value),
                       left.location.register64,location.register64)
                   else
                     cg64.a_op64_reg_reg_reg(exprasmlist,op,right.location.register64,
@@ -888,7 +905,7 @@ interface
               subn:
                 begin
                   op1 := A_SUBC;
-                  op2 := A_SUBFMEO;
+                  op2 := A_SUBFEO;
                 end;
               else
                 internalerror(2002072806);
@@ -1244,7 +1261,7 @@ interface
                        begin
                          tmpreg := cg.get_scratch_reg_int(exprasmlist);
                          cg.a_load_const_reg(exprasmlist,OS_INT,
-                           left.location.value,tmpreg);
+                           aword(left.location.value),tmpreg);
                          cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,OS_INT,
                            right.location.register,tmpreg,location.register);
                          cg.free_scratch_reg(exprasmlist,tmpreg);
@@ -1282,7 +1299,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-07-28 16:02:49  jonas
+  Revision 1.4  2002-08-04 12:57:56  jonas
+    * more misc. fixes, mostly constant-related
+
+  Revision 1.3  2002/07/28 16:02:49  jonas
     + 64 bit operations (badly tested), everything is implemented now!
     * some small fixes
 

@@ -441,15 +441,10 @@ const
         useReg, gotrlwi: boolean;
 
 
-        function try_lo_hi: boolean;
+        procedure do_lo_hi;
           begin
-            result := false;
-            if (smallint(a) > 0) then
-              begin
-                list.concat(taicpu.op_reg_reg_const(oplo,dst,src,smallint(a)));
-                list.concat(taicpu.op_reg_reg_const(ophi,dst,dst,smallint(a shr 16)));
-                result := true;
-              end;
+            list.concat(taicpu.op_reg_reg_const(oplo,dst,src,word(a)));
+            list.concat(taicpu.op_reg_reg_const(ophi,dst,dst,word(a shr 16)));
           end;
 
       begin
@@ -469,9 +464,6 @@ const
         ophi := TOpCG2AsmOpConstHi[op];
         oplo := TOpCG2AsmOpConstLo[op];
         gotrlwi := get_rlwi_const(a,l1,l2);
-        { constants in a PPC instruction are always interpreted as signed }
-        { 16bit values, so if the value is between low(smallint) and      }
-        { high(smallint), it's easy                                       }
         if (op in [OP_ADD,OP_AND,OP_OR,OP_XOR]) then
           begin
             if (a = 0) then
@@ -481,18 +473,23 @@ const
                 exit;
               end
             else if (a = high(aword)) and
-                    (op in [OP_AND,OP_OR]) then
+                    (op in [OP_AND,OP_OR,OP_XOR]) then
               begin
-                if op = OP_OR then
-                  list.concat(taicpu.op_reg_const(A_LI,dst,-1));
+                case op of
+                  OP_OR:
+                    list.concat(taicpu.op_reg_const(A_LI,dst,-1));
+                  OP_XOR:
+                    list.concat(taicpu.op_reg_reg(A_NOT,dst,src));
+                end;
                 exit;
               end
-            else if (longint(a) >= low(smallint)) and
-               (longint(a) <= high(smallint)) and
+            else if (longint(a) >= 0)) and
+               (longint(a) <= high(word)) and
+               (op <> OP_ADD) and
                ((op <> OP_AND) or
-                 not gotrlwi) then
+                not gotrlwi) then
               begin
-                list.concat(taicpu.op_reg_reg_const(oplo,dst,src,smallint(a)));
+                list.concat(taicpu.op_reg_reg_const(oplo,dst,src,word(a)));
                 exit;
               end;
             { all basic constant instructions also have a shifted form that }
@@ -502,7 +499,7 @@ const
                (not(op = OP_AND) or
                 not gotrlwi) then
               begin
-                list.concat(taicpu.op_reg_reg_const(ophi,dst,src,smallint(a shr 16)));
+                list.concat(taicpu.op_reg_reg_const(ophi,dst,src,word(a shr 16)));
                 exit;
               end;
           end;
@@ -526,18 +523,17 @@ const
             end;
           OP_OR:
             { try to use rlwimi }
-            if gotrlwi then
+            if gotrlwi and
+               (src = dst) then
               begin
-                if src <> dst then
-                  list.concat(taicpu.op_reg_reg(A_MR,dst,src));
                 scratchreg := get_scratch_reg_int(list);
                 list.concat(taicpu.op_reg_const(A_LI,scratchreg,-1));
                 list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,dst,
                   scratchreg,0,l1,l2));
                 free_scratch_reg(list,scratchreg);
               end
-            else if not try_lo_hi then
-              useReg := true;
+            else
+              do_lo_hi;
           OP_AND:
             { try to use rlwinm }
             if gotrlwi then
@@ -546,8 +542,7 @@ const
             else
               useReg := true;
           OP_XOR:
-            if not try_lo_hi then
-              usereg := true;
+            do_lo_hi;
           OP_SHL,OP_SHR,OP_SAR:
             begin
               if (a and 31) <> 0 Then
@@ -1017,6 +1012,7 @@ const
                   if delsource then
                     reference_release(exprasmlist,source);
                   a_loadfpu_reg_ref(list,OS_F64,R_F0,dest);
+                  a_reg_dealloc(list,R_F0);
                 end;
               exit;
             end;
@@ -1129,7 +1125,6 @@ const
        if (len and 1) <> 0 then
          begin
            a_reg_alloc(list,R_0);
-           a_load_reg_ref(list,OS_16,R_0,dst);
            a_load_ref_reg(list,OS_8,src,R_0);
            a_load_reg_ref(list,OS_8,R_0,dst);
            a_reg_dealloc(list,R_0);
@@ -1416,11 +1411,11 @@ const
               if (longint(value) <> 0) then
                 begin
                   issub := op = OP_SUB;
-                  if (longint(value) >= -32768) and
-                     (longint(value) <= 32767) then
+                  if (longint(value)-ord(issub) >= -32768) and
+                     (longint(value)-ord(issub) <= 32767) then
                     begin
                       list.concat(taicpu.op_reg_reg_const(ops[issub,1],
-                        regdst.reglo,regsrc.reglo,aword(value)));
+                        regdst.reglo,regsrc.reglo,longint(value)));
                       list.concat(taicpu.op_reg_reg(ops[issub,3],
                         regdst.reghi,regsrc.reghi));
                     end
@@ -1445,8 +1440,11 @@ const
                     end
                 end
               else
-                cg.a_op_const_reg_reg(list,op,OS_32,value shr 32,regsrc.reghi,
-                  regdst.reghi);
+                begin
+                  cg.a_load_reg_reg(list,OS_INT,regsrc.reglo,regdst.reglo);
+                  cg.a_op_const_reg_reg(list,op,OS_32,value shr 32,regsrc.reghi,
+                    regdst.reghi);
+                end;
             end;
           else
             internalerror(2002072802);
@@ -1460,7 +1458,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-08-02 11:10:42  jonas
+  Revision 1.33  2002-08-04 12:57:55  jonas
+    * more misc. fixes, mostly constant-related
+
+  Revision 1.32  2002/08/02 11:10:42  jonas
     * some misc constant fixes
 
   Revision 1.31  2002/07/30 20:50:44  florian

@@ -632,22 +632,24 @@ implementation
 
 
     procedure create_cond_norm(cond: TAsmCondFlag; cr: byte;var r : TasmCond);
-      const cr2reg: array[0..7] of tregister =
-              (R_CR0,R_CR1,R_CR2,R_CR3,R_CR4,R_CR5,R_CR6,R_CR7);
+
       begin
         r.simple := true;
         r.cond := cond;
         case cond of
           C_NONE:;
           C_T..C_DZF: r.crbit := cr
-          else r.cr := cr2reg[cr];
+          else r.cr := tregister(ord(R_CR0)+cr);
         end;
       end;
 
 end.
 {
   $Log$
-  Revision 1.22  2002-07-27 19:57:18  jonas
+  Revision 1.23  2002-08-04 12:57:56  jonas
+    * more misc. fixes, mostly constant-related
+
+  Revision 1.22  2002/07/27 19:57:18  jonas
     * some typo corrections in the instruction tables
     * renamed the m* registers to v*
 
