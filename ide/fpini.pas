@@ -260,7 +260,9 @@ begin
       else
         INIFile^.SetEntry(secBreakpoint,ieBreakpointName+S,Name^);
       if assigned(Conditions) then
-        INIFile^.SetEntry(secBreakpoint,ieBreakpointCond+S,Conditions^);
+        INIFile^.SetEntry(secBreakpoint,ieBreakpointCond+S,Conditions^)
+      else
+        INIFile^.SetEntry(secBreakpoint,ieBreakpointCond+S,'');
     end;
 end;
 
@@ -646,7 +648,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2002-11-28 12:55:06  pierre
+  Revision 1.11  2002-12-12 00:03:14  pierre
+   * fix problem with breakpoint conditions that showed up again after exit
+
+  Revision 1.10  2002/11/28 12:55:06  pierre
    + save/retrieve remote support variables
 
   Revision 1.9  2002/11/21 00:37:56  pierre
