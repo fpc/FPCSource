@@ -22,7 +22,11 @@ interface
 {$H+}
 
 type
+{$ifdef VER1_0}
   THandle = type Longint;
+{$else VER1_0}
+  THandle = System.THandle;
+{$endif VER1_0}
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -548,7 +552,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.6  2003-04-01 15:57:41  peter
+    Revision 1.7  2003-10-09 20:13:19  florian
+      * more type alias updates as suggested by DarekM
+
+    Revision 1.6  2003/04/01 15:57:41  peter
       * made THandle platform dependent and unique type
 
     Revision 1.5  2003/03/29 15:36:58  hajny
