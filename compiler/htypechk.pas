@@ -975,6 +975,7 @@ implementation
     function valid_for_assign(p:ptree;allowprop:boolean):boolean;
       var
         hp : ptree;
+        gotwith,
         gotsubscript,
         gotpointer,
         gotclass,
@@ -985,6 +986,7 @@ implementation
         gotderef:=false;
         gotclass:=false;
         gotpointer:=false;
+        gotwith:=false;
         hp:=p;
         while assigned(hp) do
          begin
@@ -1062,14 +1064,15 @@ implementation
                      gotpointer:=true;
                    objectdef :
                      gotclass:=pobjectdef(hp^.resulttype)^.is_class;
+                   recorddef, { handle record like class it needs a subscription }
                    classrefdef :
                      gotclass:=true;
                  end;
                  { 1. if it returns a pointer and we've found a deref,
-                   2. if it returns a class and a subscription is found,
+                   2. if it returns a class or record and a subscription or with is found,
                    3. property is allowed }
                  if (gotpointer and gotderef) or
-                    (gotclass and gotsubscript) or
+                    (gotclass and (gotsubscript or gotwith)) or
                     (hp^.isproperty and allowprop) then
                   valid_for_assign:=true
                  else
@@ -1097,6 +1100,7 @@ implementation
                         begin
                           { continue with processing the withref node }
                           hp:=ptree(pwithsymtable(hp^.symtable)^.withrefnode);
+                          gotwith:=true;
                         end
                        else
                         begin
@@ -1127,7 +1131,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2000-06-18 19:41:19  peter
+  Revision 1.71  2000-07-06 18:56:58  peter
+    * fixed function returning record type and assigning to the result
+
+  Revision 1.70  2000/06/18 19:41:19  peter
     * fixed pchar<->[string,chararray] operations
 
   Revision 1.69  2000/06/11 07:00:21  peter
