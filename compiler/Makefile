@@ -220,7 +220,7 @@ else
 next :
 	$(MAKE) execlean
 	$(MAKE) -C $(RTLDIR) libsclean
-	$(MAKE) -C $(RTLDIR) 'PP=$(BASEDIR)/$(PP)' 'OPT=$(RTLOPTS)' all
+	$(MAKE) -C $(RTLDIR) 'PP=$(PP)' 'OPT=$(RTLOPTS)' all
 	$(MAKE) clean
 	$(MAKE) all
 endif
@@ -290,10 +290,10 @@ remake: $(EXENAME)
 	$(MAKE) execlean
 	$(MAKE) -C $(RTLDIR) libsclean
 	$(MAKE) clean
-	$(MAKE) 'PP=./$(TEMPNAME)' all
+	$(MAKE) 'PP=$(BASEDIR)/$(TEMPNAME)' all
 
 remake3: $(TEMPNAME3)
-	$(MAKE) 'PP=./$(TEMPNAME3)' 'OLDPP=./$(TEMPNAME2)' next
+	$(MAKE) 'PP=$(BASEDIR)/$(TEMPNAME3)' 'OLDPP=$(BASEDIR)/$(TEMPNAME2)' next
 	$(DIFF) $(TEMPNAME3) $(EXENAME)
 
 $(TEMPNAME1) : $(EXENAME)
@@ -301,12 +301,12 @@ $(TEMPNAME1) : $(EXENAME)
 	$(MOVE) $(EXENAME) $(TEMPNAME1)
 
 $(TEMPNAME2) : $(TEMPNAME1)
-	$(MAKE) 'PP=./$(TEMPNAME1)' 'OLDPP=' next
+	$(MAKE) 'PP=$(BASEDIR)/$(TEMPNAME1)' 'OLDPP=' next
 	-$(DEL) $(TEMPNAME2)
 	$(MOVE) $(EXENAME) $(TEMPNAME2)
 
 $(TEMPNAME3) : $(TEMPNAME2)
-	$(MAKE) 'PP=./$(TEMPNAME2)' 'OLDPP=./$(TEMPNAME1)' next
+	$(MAKE) 'PP=$(BASEDIR)/$(TEMPNAME2)' 'OLDPP=$(BASEDIR)/$(TEMPNAME1)' next
 	-$(DEL) $(TEMPNAME3)
 	$(MOVE) $(EXENAME) $(TEMPNAME3)
 
@@ -394,7 +394,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.30  1999-05-12 16:11:01  peter
+# Revision 1.31  1999-05-19 11:44:13  pierre
+#  * suppress relative paths in cycle target
+#
+# Revision 1.30  1999/05/12 16:11:01  peter
 #   * moved compilerutils
 #
 # Revision 1.29  1999/05/09 12:45:05  peter
