@@ -244,6 +244,7 @@ interface
       var
         unsigned : boolean;
         tmpreg : tregister;
+        oldnodetype : tnodetype;
       begin
         pass_left_right;
         force_reg_left_right(false,false);
@@ -251,47 +252,51 @@ interface
         unsigned:=not(is_signed(left.resulttype.def)) or
                   not(is_signed(right.resulttype.def));
 
-        location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(unsigned);
-
         { operation requiring proper N, Z and C flags ? }
         if unsigned or (nodetype in [equaln,unequaln]) then
           begin
+            location_reset(location,LOC_FLAGS,OS_NO);
+            location.resflags:=getresflags(unsigned);
             exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
             exprasmlist.concat(setcondition(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo),C_EQ));
-          end
-        { operation requiring proper N, V and C flags ? }
-        else if nodetype in [gten,ltn] then
-          begin
-            tmpreg:=cg.getintregister(exprasmlist,location.size);
-            exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,tmpreg,left.location.register64.reglo,right.location.register64.reglo),PF_S));
-            exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SBC,tmpreg,left.location.register64.reghi,right.location.register64.reghi),PF_S));
           end
         else
         { operation requiring proper N, Z and V flags ? }
           begin
-            { this isn't possible so swap operands and use the "reverse" operation }
-            tmpreg:=cg.getintregister(exprasmlist,location.size);
-            exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,tmpreg,right.location.register64.reglo,left.location.register64.reglo),PF_S));
-            exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SBC,tmpreg,right.location.register64.reghi,left.location.register64.reghi),PF_S));
-            if nf_swaped in flags then
-              begin
-                if location.resflags=F_LT then
-                  location.resflags:=F_GT
-                else if location.resflags=F_GE then
-                  location.resflags:=F_LE
-                else
-                  internalerror(200401221);
-              end
-            else
-              begin
-                if location.resflags=F_GT then
-                  location.resflags:=F_LT
-                else if location.resflags=F_LE then
-                  location.resflags:=F_GE
-                else
-                  internalerror(200401221);
-              end;
+            location_reset(location,LOC_JUMP,OS_NO);
+            exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
+            { the jump the sequence is a little bit hairy }
+            case nodetype of
+               ltn,gtn:
+                 begin
+                    cg.a_jmp_flags(exprasmlist,getresflags(false),truelabel);
+                    { cheat a little bit for the negative test }
+                    toggleflag(nf_swaped);
+                    cg.a_jmp_flags(exprasmlist,getresflags(false),falselabel);
+                    toggleflag(nf_swaped);
+                 end;
+               lten,gten:
+                 begin
+                    oldnodetype:=nodetype;
+                    if nodetype=lten then
+                      nodetype:=ltn
+                    else
+                      nodetype:=gtn;
+                    cg.a_jmp_flags(exprasmlist,getresflags(unsigned),truelabel);
+                    { cheat for the negative test }
+                    if nodetype=ltn then
+                      nodetype:=gtn
+                    else
+                      nodetype:=ltn;
+                    cg.a_jmp_flags(exprasmlist,getresflags(unsigned),falselabel);
+                    nodetype:=oldnodetype;
+                 end;
+            end;
+            exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
+            { the comparisaion of the low dword have to be
+               always unsigned!                            }
+            cg.a_jmp_flags(exprasmlist,getresflags(true),truelabel);
+            cg.a_jmp_always(exprasmlist,falselabel);
           end;
       end;
 
@@ -332,7 +337,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2005-02-14 17:13:09  peter
+  Revision 1.21  2005-02-16 22:02:26  florian
+    * fixed storing of floating point registers for procedures with large temp. area
+    * fixed int64 comparisation
+
+  Revision 1.20  2005/02/14 17:13:09  peter
     * truncate log
 
 }

@@ -989,8 +989,17 @@ unit cgcpu;
             if firstfloatreg<>RS_NO then
               begin
                 reference_reset(ref);
-                ref.base:=NR_FRAME_POINTER_REG;
-                ref.offset:=tarmprocinfo(current_procinfo).floatregstart;
+                if not(is_shifter_const(-tarmprocinfo(current_procinfo).floatregstart,shift)) then
+                  begin
+                    a_load_const_reg(list,OS_ADDR,-tarmprocinfo(current_procinfo).floatregstart,NR_R12);
+                    list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,NR_FRAME_POINTER_REG,NR_R12));
+                    ref.base:=NR_R12;
+                  end
+                else
+                  begin
+                    ref.base:=NR_FRAME_POINTER_REG;
+                    ref.offset:=tarmprocinfo(current_procinfo).floatregstart;
+                  end;
                 list.concat(taicpu.op_reg_const_ref(A_SFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
                   lastfloatreg-firstfloatreg+1,ref));
               end;
@@ -1003,6 +1012,7 @@ unit cgcpu;
          ref : treference;
          firstfloatreg,lastfloatreg,
          r : byte;
+         shift : byte;
       begin
         if not(nostackframe) then
           begin
@@ -1020,8 +1030,17 @@ unit cgcpu;
             if firstfloatreg<>RS_NO then
               begin
                 reference_reset(ref);
-                ref.base:=NR_FRAME_POINTER_REG;
-                ref.offset:=tarmprocinfo(current_procinfo).floatregstart;
+                if not(is_shifter_const(-tarmprocinfo(current_procinfo).floatregstart,shift)) then
+                  begin
+                    a_load_const_reg(list,OS_ADDR,-tarmprocinfo(current_procinfo).floatregstart,NR_R12);
+                    list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,NR_FRAME_POINTER_REG,NR_R12));
+                    ref.base:=NR_R12;
+                  end
+                else
+                  begin
+                    ref.base:=NR_FRAME_POINTER_REG;
+                    ref.offset:=tarmprocinfo(current_procinfo).floatregstart;
+                  end;
                 list.concat(taicpu.op_reg_const_ref(A_LFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
                   lastfloatreg-firstfloatreg+1,ref));
               end;
@@ -1669,7 +1688,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2005-02-15 19:53:41  florian
+  Revision 1.71  2005-02-16 22:02:26  florian
+    * fixed storing of floating point registers for procedures with large temp. area
+    * fixed int64 comparisation
+
+  Revision 1.70  2005/02/15 19:53:41  florian
     * don't generate overflow results if they aren't necessary
     * fixed op_reg_reg_reg_reg on arm
 
