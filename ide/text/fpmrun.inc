@@ -191,7 +191,11 @@ begin
       FileName:=W^.Editor^.FileName;
       LineNr:=W^.Editor^.CurPos.Y+1;
       If not assigned(Debugger) then
-        InitDebugger;
+        begin
+          InitDebugger;
+          if not assigned(Debugger) then
+            exit;
+        end;
       Debugger^.Command('tbreak '+LowCaseStr(NameAndExtOf(FileName))+':'+IntToStr(LineNr));
       Debugger^.Continue;
     end;
@@ -241,7 +245,10 @@ end;
 
 {
   $Log$
-  Revision 1.23  1999-12-10 13:01:01  pierre
+  Revision 1.24  2000-01-10 13:23:28  pierre
+   * Debugger test missing in ContTo
+
+  Revision 1.23  1999/12/10 13:01:01  pierre
    * do not recompile a program inside Debugging session
 
   Revision 1.22  1999/11/10 17:17:02  pierre
