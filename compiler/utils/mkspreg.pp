@@ -23,7 +23,7 @@ var s : string;
     line : longint;
     regcount:byte;
     regcount_bsstart:byte;
-    names,numbers,stdnames,stabs:
+    names,regtypes,numbers,stdnames,stabs:
         array[0..max_regcount-1] of string[63];
     regnumber_index,std_regname_index:array[0..max_regcount-1] of byte;
 
@@ -190,7 +190,15 @@ begin
         i:=1;
         names[regcount]:=readstr;
         readcomma;
+        regtypes[regcount]:=readstr;
+        readcomma;
         numbers[regcount]:=readstr;
+        if numbers[regcount][1]<>'$' then
+          begin
+            writeln('Missing $ before number, at line ',line);
+            writeln('Line: "',s,'"');
+            halt(1);
+          end;
         readcomma;
         stdnames[regcount]:=readstr;
         readcomma;
@@ -213,8 +221,8 @@ end;
 
 procedure write_inc_files;
 
-var 
-    norfile,stdfile,
+var
+    norfile,stdfile,supfile,
     numfile,stabfile,confile,
     rnifile,srifile:text;
     first:boolean;
@@ -222,6 +230,7 @@ var
 begin
   { create inc files }
   openinc(confile,'rspcon.inc');
+  openinc(supfile,'rspsup.inc');
   openinc(numfile,'rspnum.inc');
   openinc(stdfile,'rspstd.inc');
   openinc(stabfile,'rspstab.inc');
@@ -241,8 +250,9 @@ begin
         end
       else
         first:=false;
-      writeln(confile,names[i],' = ',numbers[i],';');
-      write(numfile,numbers[i]);
+      writeln(confile,'NR_',names[i],' = ',regtypes[i],'0000',copy(numbers[i],2,255),';');
+      writeln(supfile,'RS_',names[i],' = ',numbers[i],';');
+      write(numfile,'NR_',names[i]);
       write(stdfile,'''',stdnames[i],'''');
       write(stabfile,stabs[i]);
       write(rnifile,regnumber_index[i]);
@@ -250,6 +260,7 @@ begin
     end;
   write(norfile,regcount);
   close(confile);
+  close(supfile);
   closeinc(numfile);
   closeinc(stdfile);
   closeinc(stabfile);
@@ -275,7 +286,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2003-09-03 15:55:02  peter
+  Revision 1.3  2003-09-03 16:28:16  peter
+    * also generate superregisters
+
+  Revision 1.2  2003/09/03 15:55:02  peter
     * NEWRA branch merged
 
   Revision 1.1.2.1  2003/08/31 21:08:16  peter
