@@ -810,6 +810,10 @@ begin
 {$ifndef go32v2}
   InitScreen;
 {$endif ndef go32v2}
+{$ifdef win32}
+  { write the empty screen to dummy console handle }
+  UpdateScreen(true);
+{$endif ndef win32}
   InitEvents;
   InitSysError;
   CurDirChanged;
@@ -822,9 +826,11 @@ begin
 {$ifdef Unix}
   SetKnownKeys;
 {$endif Unix}
+{$ifndef win32}
 {$ifndef go32v2}
   UpdateScreen(true);
 {$endif go32v2}
+{$endif win32}
 end;
 
 function TIDEApp.AutoSave: boolean;
@@ -1187,7 +1193,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  2002-04-12 08:58:22  pierre
+  Revision 1.11  2002-04-25 13:34:17  pierre
+   * fix the disappearing desktop for win32
+
+  Revision 1.10  2002/04/12 08:58:22  pierre
    + add RTE(250) for Ctrl+F11 in DEBUG mode
 
   Revision 1.9  2002/03/20 14:52:01  pierre

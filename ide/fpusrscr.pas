@@ -130,6 +130,7 @@ type
       DosScreenBufferHandle,
       IDEScreenBufferHandle,
       StartScreenBufferHandle,
+      DummyScreenBufferHandle,
       NewScreenBufferHandle : THandle;
       IDEActive : boolean;
       ConsoleMode,IdeMode      : Dword;
@@ -613,6 +614,10 @@ begin
     GENERIC_READ or GENERIC_WRITE,
     FILE_SHARE_READ or FILE_SHARE_WRITE,SecurityAttr,
     CONSOLE_TEXTMODE_BUFFER,nil);
+  DummyScreenBufferHandle:=CreateConsoleScreenBuffer(
+    GENERIC_READ or GENERIC_WRITE,
+    FILE_SHARE_READ or FILE_SHARE_WRITE,SecurityAttr,
+    CONSOLE_TEXTMODE_BUFFER,nil);
   StartScreenBufferHandle:=GetStdHandle(STD_OUTPUT_HANDLE);
   GetConsoleMode(GetStdHandle(Std_Input_Handle), @ConsoleMode);
   IdeMode:=ConsoleMode;
@@ -655,6 +660,7 @@ begin
   SetStdHandle(Std_Output_Handle,StartScreenBufferHandle);
   UpdateFileHandles;
   CloseHandle(NewScreenBufferHandle);
+  CloseHandle(DummyScreenBufferHandle);
   inherited Done;
 end;
 
@@ -841,6 +847,9 @@ end;
 procedure TWin32Screen.SaveIDEScreen;
 begin
   GetConsoleMode(GetStdHandle(Std_Input_Handle), @IdeMode);
+  { set the dummy buffer as active already now PM }
+  SetStdHandle(Std_Output_Handle,DummyScreenBufferHandle);
+  UpdateFileHandles;
 end;
 
 { dummy for win32 as the Buffer screen
@@ -848,8 +857,8 @@ end;
 procedure TWin32Screen.SaveConsoleScreen;
 begin
   GetConsoleMode(GetStdHandle(Std_Input_Handle), @ConsoleMode);
-  { set the IDE buffer as active already now PM }
-  SetStdHandle(Std_Output_Handle,IDEScreenBufferHandle);
+  { set the dummy buffer as active already now PM }
+  SetStdHandle(Std_Output_Handle,DummyScreenBufferHandle);
   UpdateFileHandles;
 end;
 
@@ -869,6 +878,8 @@ var
   res : boolean;
   error : longint;
 begin
+  SetStdHandle(Std_Output_Handle,IDEScreenBufferHandle);
+  UpdateFileHandles;
   GetConsoleScreenBufferInfo(IDEScreenBufferHandle,
     @ConsoleScreenBufferInfo);
   SetConsoleActiveScreenBuffer(IDEScreenBufferHandle);
@@ -932,7 +943,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2002-01-22 16:29:52  pierre
+  Revision 1.9  2002-04-25 13:34:17  pierre
+   * fix the disappearing desktop for win32
+
+  Revision 1.8  2002/01/22 16:29:52  pierre
     * try to fix win32 problem with Dos program ouptut in command shell
       Warning, to debug under win32 with GDB you must use "set new-console on"
 
