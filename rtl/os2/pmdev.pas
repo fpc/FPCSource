@@ -236,9 +236,9 @@ const
 
 //string types for DevQueryDeviceNames
 type
-  Str16= Array[0..15] of Char;
-  Str32= Array[0..31] of Char;
-  Str64= Array[0..63] of Char;
+  Str16= string [15];
+  Str32= string [31];
+  Str64= string [63];
 
 //return code for DevQueryHardcopyCaps
 const
@@ -253,7 +253,7 @@ const
 type
   PHCInfo=^HCInfo;
   HCInfo=record
-    szFormname: Array[0..31] of Char;
+    szFormname: Str32;
     cx: Longint;
     cy: Longint;
     xLeftClip: Longint;
@@ -745,13 +745,13 @@ in define line 83 *)
     { Simple media id (if not DJP_NONE)  }
 
        TdjpForm = record
-            szFormname : array[0..31] of Char;
-            szTrayname : array[0..31] of Char;
-            szMedianame : array[0..31] of Char;
+            szFormname : Str32;
+            szTrayname : Str32;
+            szMedianame : Str32;
             ahcInfo : HCINFO;
-            szDisplayFormname : array[0..63] of Char;
-            szDisplayTrayname : array[0..63] of Char;
-            szDisplayMedianame : array[0..63] of Char;
+            szDisplayFormname : Str64;
+            szDisplayTrayname : Str64;
+            szDisplayMedianame : Str64;
             djppsFormID : TDJPT_PAPERSIZE;
             djpttTrayID : TDJPT_TRAYTYPE;
             djpmdMediaID : TDJPT_MEDIA;
@@ -932,8 +932,8 @@ in define line 83 *)
     { Bin id # (-1 for no id)            }
 
        TdjpOutputBin = record
-            szBinname : array[0..31] of Char;
-            szDisplayBinname : array[0..63] of Char;
+            szBinname : Str32;
+            szDisplayBinname : Str64;
             lBinId : Longint;
          end;
        TDJPT_OUTPUTBIN = TdjpOutputBin;
@@ -954,8 +954,8 @@ in define line 83 *)
     { Simple tray id  (if not DJP_NONE)  }
 
        TdjpInputTray = record
-            szTrayname : array[0..31] of Char;
-            szDisplayTrayname : array[0..63] of Char;
+            szTrayname : Str32;
+            szDisplayTrayname : Str64;
             djpttTrayID : TDJPT_TRAYTYPE;
          end;
        TDJPT_TRAYNAME = TdjpInputTray;
@@ -1027,7 +1027,10 @@ end.
 {
 
 $Log$
-Revision 1.2  2003-04-10 15:48:27  yuri
+Revision 1.3  2004-03-21 20:24:21  hajny
+  * C array passing warning fixed
+
+Revision 1.2  2003/04/10 15:48:27  yuri
 + Dynamic jobs properties added
 
 Revision 1.1  2002/10/18 18:08:52  hajny
