@@ -443,18 +443,21 @@ end;
 // The following belongs here, but this should be researched more.
 // function Fpgetcwd(pt:pchar; _size:size_t):pchar;[public, alias :'FPC_SYSC_GETCWD'];
 
-function gettimeofday(tp: ptimeval;tzp:ptimezone):cint; [public, alias:
+function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; [public, alias:
 'FPC_SYSC_GETTIMEOFDAY'];
 
 begin
- gettimeofday:=do_syscall(syscall_nr_gettimeofday,TSysParam(tp),TSysParam(tzp));
+ fpgettimeofday:=do_syscall(syscall_nr_gettimeofday,TSysParam(tp),TSysParam(tzp));
 end;
 
 {$ENDIF}
 
 {
  $Log$
- Revision 1.4  2003-09-14 20:15:01  marco
+ Revision 1.5  2003-09-15 20:29:50  marco
+  * small fix
+
+ Revision 1.4  2003/09/14 20:15:01  marco
   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
  Revision 1.3  2003/05/11 16:07:55  jonas
