@@ -589,7 +589,7 @@ implementation
                 end;
             end;
             if try_to_consume(_COMMA) then
-              right:=_with_statement
+              right:=_with_statement()
             else
               begin
                 consume(_DO);
@@ -620,7 +620,7 @@ implementation
             { try to recover from error }
             if try_to_consume(_COMMA) then
              begin
-               hp:=_with_statement;
+               hp:=_with_statement();
                if (hp=nil) then; { remove warning about unused }
              end
             else
@@ -638,7 +638,7 @@ implementation
     function with_statement : tnode;
       begin
          consume(_WITH);
-         with_statement:=_with_statement;
+         with_statement:=_with_statement();
       end;
 
 
@@ -1055,7 +1055,7 @@ implementation
                  if token in endtokens then
                    tlabelnode(p).left:=cnothingnode.create
                  else
-                   tlabelnode(p).left:=statement;
+                   tlabelnode(p).left:=statement();
                  { be sure to have left also resulttypepass }
                  resulttypepass(tlabelnode(p).left);
                end
@@ -1206,9 +1206,8 @@ implementation
 end.
 {
   $Log$
-  Revision 1.142  2004-10-15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
+  Revision 1.143  2004-10-15 10:35:23  mazen
+  * remove non needed parathesys as  in 1.140
 
   Revision 1.141  2004/09/27 15:15:52  peter
     * register loopvarsym for fields instead of record variable
