@@ -22,7 +22,7 @@ interface
 
 { This is very important as this code can be called
   from inside the RTE 202 error PM }
-{$ifndef unix}
+{$ifndef linux}
   {$S-}
 {$endif}
 
@@ -71,6 +71,10 @@ var
   linestab,             { stab with current line info }
   dirstab,              { stab with current directory info }
   filestab   : tstab;   { stab with current file info }
+  { value to subtract to addr parameter to get correct address on file }
+  { this should be equal to the process start address in memory        }
+  processaddress : cardinal; 
+  
 
 
 {****************************************************************************
@@ -107,6 +111,7 @@ var
   coffsec    : tcoffsechdr;
   i : longint;
 begin
+  processaddress := 0;
   LoadGo32Coff:=false;
   stabofs:=-1;
   stabstrofs:=-1;
@@ -223,6 +228,7 @@ var
   coffsec    : tcoffsechdr;
   i : longint;
 begin
+  processaddress := 0;
   LoadPeCoff:=false;
   stabofs:=-1;
   stabstrofs:=-1;
@@ -307,6 +313,7 @@ var
  AoutHeader: TAoutHeader;
  S4: string [4];
 begin
+ processaddress := 0;
  LoadEMXaout := false;
  StabOfs := -1;
  StabStrOfs := -1;
@@ -345,7 +352,7 @@ end;
 {$ENDIF EMX}
 
 
-{$ifdef unix}
+{$ifdef linux}
 function LoadElf32:boolean;
 type
   telf32header=packed record
@@ -387,6 +394,7 @@ var
   pname     : pchar;
   i : longint;
 begin
+  processaddress := 0;
   LoadElf32:=false;
   stabofs:=-1;
   stabstrofs:=-1;
@@ -409,7 +417,7 @@ begin
   if elfheader.e_shentsize<>sizeof(telf32sechdr) then
    exit;
   { read section names }
-  seek(f,elfheader.e_shoff+cardinal(elfheader.e_shstrndx)*sizeof(telf32sechdr));
+  seek(f,elfheader.e_shoff+elfheader.e_shstrndx*cardinal(sizeof(telf32sechdr)));
   blockread(f,elfsec,sizeof(telf32sechdr));
   seek(f,elfsec.sh_offset);
   blockread(f,secnames,sizeof(secnames));
@@ -435,7 +443,115 @@ begin
    end;
   LoadElf32:=(stabofs<>-1) and (stabstrofs<>-1);
 end;
-{$endif unix}
+{$endif linux}
+
+
+{$ifdef beos}
+
+{$linklib root}
+
+
+{$i osposixh.inc}
+{$i syscall.inc}
+{$i beos.inc}
+function get_next_image_info(team: team_id; var cookie:longint; var info:image_info; size: size_t) : status_t;cdecl; external 'root'; external name '_get_next_image_info';
+
+function LoadElf32:boolean;
+type
+  telf32header=packed record
+      magic0123         : longint;
+      file_class        : byte;
+      data_encoding     : byte;
+      file_version      : byte;
+      padding           : array[$07..$0f] of byte;
+      e_type            : word;
+      e_machine         : word;
+      e_version         : longword;
+      e_entry           : longword;                  // entrypoint
+      e_phoff           : longword;                  // program header offset
+      e_shoff           : longword;                  // sections header offset
+      e_flags           : longword;
+      e_ehsize          : word;             // elf header size in bytes
+      e_phentsize       : word;             // size of an entry in the program header array
+      e_phnum           : word;             // 0..e_phnum-1 of entrys
+      e_shentsize       : word;             // size of an entry in sections header array
+      e_shnum           : word;             // 0..e_shnum-1 of entrys
+      e_shstrndx        : word;             // index of string section header
+  end;
+  telf32sechdr=packed record
+      sh_name           : longword;
+      sh_type           : longword;
+      sh_flags          : longword;
+      sh_addr           : longword;
+      sh_offset         : longword;
+      sh_size           : longword;
+      sh_link           : longword;
+      sh_info           : longword;
+      sh_addralign      : longword;
+      sh_entsize        : longword;
+    end;
+var
+  elfheader : telf32header;
+  elfsec    : telf32sechdr;
+  secnames  : array[0..255] of char;
+  pname     : pchar;
+  i : longint;
+  cookie    : longint;
+  info      : image_info;
+  result    : status_t;
+begin
+  cookie := 0;
+  fillchar(info, sizeof(image_info), 0);
+  get_next_image_info(0,cookie,info,sizeof(info));
+  if (info._type = B_APP_IMAGE) then
+     processaddress := cardinal(info.text)
+  else
+     processaddress := 0; 
+  LoadElf32:=false;
+  stabofs:=-1;
+  stabstrofs:=-1;
+  { read and check header }
+  if filesize(f)<sizeof(telf32header) then
+   exit;
+  blockread(f,elfheader,sizeof(telf32header));
+{$ifdef ENDIAN_LITTLE}
+ if elfheader.magic0123<>$464c457f then
+   exit;
+{$endif ENDIAN_LITTLE}
+{$ifdef ENDIAN_BIG}
+ if elfheader.magic0123<>$7f454c46 then
+   exit;
+{$endif ENDIAN_BIG}
+  if elfheader.e_shentsize<>sizeof(telf32sechdr) then
+   exit;
+  { read section names }
+  seek(f,elfheader.e_shoff+elfheader.e_shstrndx*cardinal(sizeof(telf32sechdr)));
+  blockread(f,elfsec,sizeof(telf32sechdr));
+  seek(f,elfsec.sh_offset);
+  blockread(f,secnames,sizeof(secnames));
+  { read section info }
+  seek(f,elfheader.e_shoff);
+  for i:=1to elfheader.e_shnum do
+   begin
+     blockread(f,elfsec,sizeof(telf32sechdr));
+     pname:=@secnames[elfsec.sh_name];
+     if (pname[4]='b') and
+        (pname[1]='s') and
+        (pname[2]='t') then
+      begin
+        if (pname[5]='s') and
+           (pname[6]='t') then
+         stabstrofs:=elfsec.sh_offset
+        else
+         begin
+           stabofs:=elfsec.sh_offset;
+           stabcnt:=elfsec.sh_size div sizeof(tstab);
+         end;
+      end;
+   end;
+  LoadElf32:=(stabofs<>-1) and (stabstrofs<>-1);
+end;
+{$endif beos}
 
 
 {****************************************************************************
@@ -485,7 +601,14 @@ begin
      exit;
    end;
 {$endif}
-{$ifdef unix}
+{$ifdef linux}
+  if LoadElf32 then
+   begin
+     OpenStabs:=true;
+     exit;
+   end;
+{$endif}
+{$ifdef beos}
   if LoadElf32 then
    begin
      OpenStabs:=true;
@@ -495,6 +618,9 @@ begin
   CloseStabs;
 end;
 
+
+{$Q-}
+{ this avoids problems with some targets PM }
 
 procedure GetLineInfo(addr:dword;var func,source:string;var line:longint);
 var
@@ -512,6 +638,10 @@ begin
      if not OpenStabs then
       exit;
    end;
+  { correct the value to the correct address in the file }
+  { processaddress is set in OpenStabs                   }
+  addr := addr - processaddress;
+  
   fillchar(funcstab,sizeof(tstab),0);
   fillchar(filestab,sizeof(tstab),0);
   fillchar(dirstab,sizeof(tstab),0);
@@ -612,13 +742,13 @@ begin
 end;
 
 
-function StabBackTraceStr(addr:longint):string;
+function StabBackTraceStr(addr:longint):shortstring;
 var
   func,
   source : string;
   hs     : string[32];
   line   : longint;
-  Store  : function (addr : longint) : string;
+  Store  : TBackTraceStrFunc;
 begin
   { reset to prevent infinite recursion if problems inside the code PM }
   Store:=BackTraceStrFunc;
@@ -654,19 +784,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.6  2001-07-29 13:43:57  peter
-    * m68k updates merged
+  Revision 1.7  2001-11-19 02:45:10  carl
+  + same version as fixed branches :
+      + BeOS line information
+      * correct prototype with shortstring result type
+      + relocation of frame according to processaddress
 
-  Revision 1.5  2000/12/18 14:01:11  jonas
-    * added cardinal typecast to avoid signed evaluation
-
-  Revision 1.4  2000/11/13 13:40:04  marco
-   * Renamefest
-
-  Revision 1.3  2000/10/14 21:55:07  peter
-    * fixed concatting of source and include filenames (merged)
-
-  Revision 1.2  2000/07/13 11:33:44  michael
-  + removed logs
 
 }
