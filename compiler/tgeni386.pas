@@ -355,7 +355,8 @@ implementation
 
       begin
 {$ifndef noAllocEdi}
-         if r in [R_ESI,R_EDI] then
+         if (r = R_EDI) or
+            ((not assigned(procinfo^._class)) and (r = R_ESI)) then
            begin
              exprasmlist^.concat(new(pairegalloc,dealloc(r)));
              exit;
@@ -630,7 +631,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2000-02-09 13:23:08  peter
+  Revision 1.41  2000-02-10 11:27:18  jonas
+    * esi is never deallocated anymore in methods
+
+  Revision 1.40  2000/02/09 13:23:08  peter
     * log truncated
 
   Revision 1.39  2000/01/21 12:17:42  jonas
