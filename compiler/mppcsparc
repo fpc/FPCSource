@@ -4,6 +4,7 @@ FPC_SRC_DIR="$PWD"
 COMP_DIR="$FPC_SRC_DIR/compiler"
 RTL_DIR="$FPC_SRC_DIR/rtl"
 INCLUDE_PATH=`echo -Fi"$RTL_DIR"/{unix,linux,sparc,inc,linux/sparc}`
+SPARC_BINUTILS_DIR="/usr/local/bin/sparc-linux"
 if [[ "$1" == "-B" ]] || [[ "$#" == 0 ]]
 then
   cd "$COMP_DIR"
@@ -18,6 +19,6 @@ then
     SRC_DIR=`echo "$COMP_DIR/"{,sparc,systems}":"`
     gdb -d "$SRC_DIR" --args "$COMP_DIR"/ppcsparc -s -al $INCLUDE_PATH -dSPARC "$@"
   else
-    "$COMP_DIR"/ppcsparc -s -al $INCLUDE_PATH -dSPARC "$@"
+    "$COMP_DIR"/ppcsparc -s -al -FD"$SPARC_BINUTILS_DIR" $INCLUDE_PATH -dSPARC "$@"
   fi
 fi
