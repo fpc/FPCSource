@@ -688,7 +688,8 @@ Begin
             end;
          end;
       End;
-     RtlFindRecs[ArrayPos].LastUsed:=0;
+     if ArrayPos>0 then
+       RtlFindRecs[ArrayPos].LastUsed:=0;
    end;
 {Main loop}
   SName:=Copy(f.SearchSpec,f.NamePos+1,255);
@@ -1044,7 +1045,10 @@ End.
 
 {
   $Log$
-  Revision 1.9  1999-02-22 11:45:19  peter
+  Revision 1.10  1999-03-05 13:09:57  peter
+    * fix for findfirst from the mailinglist
+
+  Revision 1.9  1999/02/22 11:45:19  peter
     * fixed findlastused (from mailinglist)
 
   Revision 1.8  1999/01/28 12:54:13  michael
