@@ -1402,7 +1402,7 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
             flags        : [];
             cpu          : i386;
             unit_env     : 'WIN32UNITS';
-            extradefines : '';
+            extradefines : 'MSWINDOWS';
             sharedlibext : '.dll';
             staticlibext : '.aw';
             sourceext    : '.pp';
@@ -1452,7 +1452,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2001-06-03 15:15:32  peter
+  Revision 1.10  2001-06-03 20:18:13  peter
+    * define also MSWINDOWS
+
+  Revision 1.9  2001/06/03 15:15:32  peter
     * dllprt0 stub for linux shared libs
     * pass -init and -fini for linux shared libs
     * libprefix splitted into staticlibprefix and sharedlibprefix
