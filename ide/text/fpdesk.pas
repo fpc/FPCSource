@@ -216,6 +216,7 @@ function ReadOpenWindows(F: PResourceFile): boolean;
 var S: PMemoryStream;
     TempDesk: PFPDesktop;
     OK: boolean;
+    R : TRect;
     W: word;
 begin
   PushStatus('Reading desktop contents...');
@@ -253,7 +254,9 @@ begin
             GetSubViewPtr(S^,ASCIIChart);
             GetSubViewPtr(S^,MessagesWindow); LastToolMessageFocused:=nil;
           end;
-
+          Application^.GetExtent(R);
+          Inc(R.A.Y);Dec(R.B.Y);
+          DeskTop^.Locate(R);
           Application^.Insert(Desktop);
           Desktop^.ReDraw;
           Message(Application,evBroadcast,cmUpdate,nil);
@@ -414,7 +417,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.14  1999-11-25 00:25:43  pierre
+  Revision 1.15  1999-11-26 17:09:51  pierre
+   * Force Desktop into Screen
+
+  Revision 1.14  1999/11/25 00:25:43  pierre
    * add Status when loading/saving files
 
   Revision 1.13  1999/09/20 15:37:59  pierre
