@@ -324,8 +324,7 @@ implementation
          { load into temporary variable                       }
          if right.nodetype<>ordconstn then
            begin
-              temp1.symbol:=nil;
-              tg.gettempofsizereference(exprasmlist,hs,temp1);
+              tg.GetTemp(exprasmlist,hs,tt_normal,temp1);
               temptovalue:=true;
               if (right.location.loc=LOC_REGISTER) or
                  (right.location.loc=LOC_CREGISTER) then
@@ -695,9 +694,9 @@ do_jmp:
     procedure try_new_exception(list : taasmoutput;var jmpbuf,envbuf, href : treference;
       a : aword; exceptlabel : tasmlabel);
      begin
-       tg.gettempofsizereferencepersistant(list,JMP_BUF_SIZE,jmpbuf);
-       tg.gettempofsizereferencepersistant(list,12,envbuf);
-       tg.gettempofsizereferencepersistant(list,sizeof(aword),href);
+       tg.GetTemp(list,JMP_BUF_SIZE,tt_persistant,jmpbuf);
+       tg.GetTemp(list,12,tt_persistant,envbuf);
+       tg.GetTemp(list,sizeof(aword),tt_persistant,href);
        new_exception(list, jmpbuf,envbuf, href, a, exceptlabel);
      end;
 
@@ -706,8 +705,8 @@ do_jmp:
      a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
      begin
          free_exception(list, jmpbuf, envbuf, href, a, endexceptlabel, onlyfree);
-         tg.ungetpersistanttempreference(list,jmpbuf);
-         tg.ungetpersistanttempreference(list,envbuf);
+         tg.Ungettemp(list,jmpbuf);
+         tg.ungettemp(list,envbuf);
      end;
 
 
@@ -975,7 +974,7 @@ do_jmp:
          { is it this catch? No. go to next onlabel }
          cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,accumulator,nextonlabel);
          ref.symbol:=nil;
-         tg.gettempofsizereference(exprasmlist,pointer_size,ref);
+         tg.GetTemp(exprasmlist,pointer_size,tt_normal,ref);
 
          { what a hack ! }
          if assigned(exceptsymtable) then
@@ -1225,7 +1224,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-08-19 19:36:43  peter
+  Revision 1.38  2002-08-23 16:14:48  peter
+    * tempgen cleanup
+    * tt_noreuse temp type added that will be used in genentrycode
+
+  Revision 1.37  2002/08/19 19:36:43  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small

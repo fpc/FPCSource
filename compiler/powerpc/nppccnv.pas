@@ -187,7 +187,7 @@ implementation
         { stw R3,disp+4(R1)   # store lower half            }
         { lfd FR1,disp(R1)    # float load double of value  }
         { fsub FR1,FR1,FR2    # subtract 0x4330000000000000 }
-        tg.gettempofsizereference(exprasmlist,8,ref);
+        tg.Gettemp(exprasmlist,8,tt_normal,ref);
 
         signed := is_signed(left.resulttype.def);
 
@@ -422,7 +422,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-08-18 10:34:30  florian
+  Revision 1.24  2002-08-23 16:14:50  peter
+    * tempgen cleanup
+    * tt_noreuse temp type added that will be used in genentrycode
+
+  Revision 1.23  2002/08/18 10:34:30  florian
     * more ppc assembling fixes
 
   Revision 1.22  2002/08/14 19:30:42  carl

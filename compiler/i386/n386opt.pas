@@ -97,10 +97,10 @@ begin
   { ti386addnode.pass_2                                     }
   secondpass(left);
   if not(tg.istemp(left.location.reference) and
-         (tg.getsizeoftemp(left.location.reference) = 256)) and
+         (tg.sizeoftemp(left.location.reference) = 256)) and
      not(nf_use_strconcat in flags) then
     begin
-       tg.gettempofsizereference(exprasmlist,256,href);
+       tg.Gettemp(exprasmlist,256,tt_normal,href);
        cg.g_copyshortstring(exprasmlist,left.location.reference,href,255,true,false);
        { location is released by copyshortstring }
        location_freetemp(exprasmlist,left.location);
@@ -205,10 +205,10 @@ begin
   { ti386addnode.pass_2                                     }
   secondpass(left);
   if not(tg.istemp(left.location.reference) and
-         (tg.getsizeoftemp(left.location.reference) = 256)) and
+         (tg.sizeoftemp(left.location.reference) = 256)) and
      not(nf_use_strconcat in flags) then
     begin
-       tg.gettempofsizereference(exprasmlist,256,href);
+       tg.GetTemp(exprasmlist,256,tt_normal,href);
        cg.g_copyshortstring(exprasmlist,left.location.reference,href,255,true,false);
        { release the registers }
        location_freetemp(exprasmlist,left.location);
@@ -248,7 +248,11 @@ end.
 
 {
   $Log$
-  Revision 1.23  2002-08-11 14:32:30  peter
+  Revision 1.24  2002-08-23 16:14:49  peter
+    * tempgen cleanup
+    * tt_noreuse temp type added that will be used in genentrycode
+
+  Revision 1.23  2002/08/11 14:32:30  peter
     * renamed current_library to objectlibrary
 
   Revision 1.22  2002/08/11 13:24:17  peter

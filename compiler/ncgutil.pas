@@ -528,7 +528,7 @@ implementation
           LOC_FPUREGISTER,
           LOC_CFPUREGISTER :
             begin
-              tg.gettempofsizereference(list,TCGSize2Size[l.size],r);
+              tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
               cg.a_loadfpu_reg_ref(list,l.size,l.register,r);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
@@ -537,7 +537,7 @@ implementation
           LOC_REGISTER,
           LOC_CREGISTER :
             begin
-              tg.gettempofsizereference(list,TCGSize2Size[l.size],r);
+              tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
               if l.size in [OS_64,OS_S64] then
                cg64.a_load64_loc_ref(list,l,r)
               else
@@ -572,12 +572,12 @@ implementation
                begin
                  if l.size in [OS_64,OS_S64] then
                   begin
-                    tg.gettempofsizereference(exprasmlist,8,s.ref);
+                    tg.GetTemp(exprasmlist,8,tt_normal,s.ref);
                     cg64.a_load64_reg_ref(exprasmlist,joinreg64(l.registerlow,l.registerhigh),s.ref);
                   end
                  else
                   begin
-                    tg.gettempofsizereference(exprasmlist,TCGSize2Size[l.size],s.ref);
+                    tg.GetTemp(exprasmlist,TCGSize2Size[l.size],tt_normal,s.ref);
                     cg.a_load_reg_ref(exprasmlist,l.size,l.register,s.ref);
                   end;
                  location_release(exprasmlist,l);
@@ -592,7 +592,7 @@ implementation
                     { load address into a single base register }
                     cg.a_loadaddr_ref_reg(list,l.reference,l.reference.base);
                     { save base register }
-                    tg.gettempofsizereference(exprasmlist,TCGSize2Size[OS_ADDR],s.ref);
+                    tg.GetTemp(exprasmlist,TCGSize2Size[OS_ADDR],tt_normal,s.ref);
                     cg.a_load_reg_ref(exprasmlist,OS_ADDR,l.reference.base,s.ref);
                     { release }
                     location_release(exprasmlist,l);
@@ -991,7 +991,7 @@ implementation
          begin
            if hp^.temptype in [tt_ansistring,tt_freeansistring,
                                tt_widestring,tt_freewidestring,
-                               tt_interfacecom] then
+                               tt_interfacecom,tt_freeinterfacecom] then
             begin
               procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
               reference_reset_base(href,procinfo.framepointer,hp^.pos);
@@ -1133,7 +1133,6 @@ implementation
         hs : string;
         href : treference;
         p : tsymtable;
-        tmpreg : tregister;
         stackalloclist : taasmoutput;
         hp : tparaitem;
 
@@ -1276,9 +1275,9 @@ implementation
               not(aktprocdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
             begin
               include(rg.usedinproc,accumulator);
-              tg.gettempofsizereferencepersistant(list,JMP_BUF_SIZE,procinfo.exception_jmp_ref);
-              tg.gettempofsizereferencepersistant(list,12,procinfo.exception_env_ref);
-              tg.gettempofsizereferencepersistant(list,sizeof(aword),procinfo.exception_result_ref);
+              tg.GetTemp(list,JMP_BUF_SIZE,tt_persistant,procinfo.exception_jmp_ref);
+              tg.GetTemp(list,12,tt_persistant,procinfo.exception_env_ref);
+              tg.GetTemp(list,sizeof(aword),tt_persistant,procinfo.exception_result_ref);
               new_exception(list,procinfo.exception_jmp_ref,
                   procinfo.exception_env_ref,
                   procinfo.exception_result_ref,1,aktexitlabel);
@@ -1446,8 +1445,11 @@ implementation
              free_exception(list,
                   procinfo.exception_jmp_ref,
                   procinfo.exception_env_ref,
-                  procinfo.exception_result_ref,0
-                ,noreraiselabel,false);
+                  procinfo.exception_result_ref,0,
+                  noreraiselabel,false);
+             tg.Ungettemp(list,procinfo.exception_jmp_ref);
+             tg.Ungettemp(list,procinfo.exception_env_ref);
+             tg.Ungettemp(list,procinfo.exception_result_ref);
 
              if (aktprocdef.proctypeoption=potype_constructor) then
                begin
@@ -1730,7 +1732,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2002-08-18 10:42:37  florian
+  Revision 1.41  2002-08-23 16:14:49  peter
+    * tempgen cleanup
+    * tt_noreuse temp type added that will be used in genentrycode
+
+  Revision 1.40  2002/08/18 10:42:37  florian
     * remaining assembler writer bugs fixed, the errors in the
       system unit are inline assembler problems
 

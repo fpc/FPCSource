@@ -233,7 +233,7 @@ interface
          case tstringdef(resulttype.def).string_typ of
            st_shortstring :
              begin
-               tg.gettempofsizereference(exprasmlist,256,location.reference);
+               tg.GetTemp(exprasmlist,256,tt_normal,location.reference);
                cg.a_load_loc_ref(exprasmlist,left.location,
                  location.reference);
                location_release(exprasmlist,left.location);
@@ -487,7 +487,11 @@ end.
 
 {
   $Log$
-  Revision 1.26  2002-08-20 18:23:32  jonas
+  Revision 1.27  2002-08-23 16:14:48  peter
+    * tempgen cleanup
+    * tt_noreuse temp type added that will be used in genentrycode
+
+  Revision 1.26  2002/08/20 18:23:32  jonas
     * the as node again uses a compilerproc
     + (untested) support for interface "as" statements
 

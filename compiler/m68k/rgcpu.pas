@@ -109,7 +109,7 @@ unit rgcpu;
                     dec(countunusedregsint);
                     exclude(unusedregsint,r);
                   end;
-                tg.ungetpersistanttemp(list,hr.offset);
+                tg.ungettemp(list,hr);
               end;
           end;
      end;
@@ -133,7 +133,7 @@ unit rgcpu;
                not(r in unusedregsaddr) then
               begin
                 { then save it }
-                tg.gettempofsizereferencepersistant(list,pointer_size,hr);
+                tg.gettemp(list,pointer_size,tt_persistant,hr);
                 saved[r].ofs:=hr.offset;
                 cg.a_load_reg_ref(list,OS_ADDR,r,hr);
                 cg.a_reg_dealloc(list,r);
@@ -151,7 +151,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-08-12 15:08:44  carl
+  Revision 1.3  2002-08-23 16:14:50  peter
+    * tempgen cleanup
+    * tt_noreuse temp type added that will be used in genentrycode
+
+  Revision 1.2  2002/08/12 15:08:44  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

@@ -582,7 +582,7 @@ unit rgobj;
                not(r in unusedregsint) then
               begin
                 { then save it }
-                tg.gettempofsizereferencepersistant(list,sizeof(aword),hr);
+                tg.GetTemp(list,sizeof(aword),tt_persistant,hr);
                 saved[r].ofs:=hr.offset;
                 cg.a_load_reg_ref(list,OS_INT,r,hr);
                 cg.a_reg_dealloc(list,r);
@@ -605,7 +605,7 @@ unit rgobj;
                  not(r in unusedregsfpu) then
                 begin
                   { then save it }
-                  tg.gettempofsizereferencepersistant(list,extended_size,hr);
+                  tg.GetTemp(list,extended_size,tt_persistant,hr);
                   saved[r].ofs:=hr.offset;
                   cg.a_loadfpu_reg_ref(list,OS_FLOAT,r,hr);
                   cg.a_reg_dealloc(list,r);
@@ -627,7 +627,7 @@ unit rgobj;
                  not(r in unusedregsmm) then
                 begin
                   { then save it }
-                  tg.gettempofsizereferencepersistant(list,mmreg_size,hr);
+                  tg.GetTemp(list,mmreg_size,tt_persistant,hr);
                   saved[r].ofs:=hr.offset;
                   cg.a_loadmm_reg_ref(list,r,hr);
                   cg.a_reg_dealloc(list,r);
@@ -667,7 +667,7 @@ unit rgobj;
                       dec(countunusedregsmm);
                       exclude(unusedregsmm,r);
                     end;
-                  tg.ungetpersistanttemp(list,hr.offset);
+                  tg.UnGetTemp(list,hr);
                 end;
             end;
 
@@ -689,7 +689,7 @@ unit rgobj;
                       dec(countunusedregsfpu);
                       exclude(unusedregsfpu,r);
                     end;
-                  tg.ungetpersistanttemp(list,hr.offset);
+                  tg.UnGetTemp(list,hr);
                 end;
             end;
 
@@ -710,7 +710,7 @@ unit rgobj;
                     dec(countunusedregsint);
                     exclude(unusedregsint,r);
                   end;
-                tg.ungetpersistanttemp(list,hr.offset);
+                tg.UnGetTemp(list,hr);
               end;
           end;
 {$ifdef TEMPREGDEBUG}
@@ -993,7 +993,11 @@ end.
 
 {
   $Log$
-  Revision 1.18  2002-08-17 22:09:47  florian
+  Revision 1.19  2002-08-23 16:14:49  peter
+    * tempgen cleanup
+    * tt_noreuse temp type added that will be used in genentrycode
+
+  Revision 1.18  2002/08/17 22:09:47  florian
     * result type handling in tcgcal.pass_2 overhauled
     * better tnode.dowrite
     * some ppc stuff fixed

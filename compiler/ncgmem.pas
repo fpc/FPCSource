@@ -299,7 +299,7 @@ implementation
            end
          else if is_interfacecom(left.resulttype.def) then
            begin
-              tg.gettempintfcomreference(exprasmlist,location.reference);
+              tg.GetTemp(exprasmlist,pointer_size,tt_interfacecom,location.reference);
               cg.a_load_loc_ref(exprasmlist,left.location,location.reference);
            end
          else
@@ -392,7 +392,7 @@ implementation
                if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) and
                   tg.istemp(left.location.reference) then
                  begin
-                    tg.normaltemptopersistant(left.location.reference.offset);
+                    tg.ChangeTempType(left.location.reference,tt_persistant);
                     with_expr_in_temp:=true;
                  end
                else
@@ -401,8 +401,7 @@ implementation
                { if usetemp is set the value must be in tmpreg }
                if usetemp then
                 begin
-                  tg.gettempofsizereference(exprasmlist,pointer_size,withreference);
-                  tg.normaltemptopersistant(withreference.offset);
+                  tg.GetTemp(exprasmlist,pointer_size,tt_persistant,withreference);
                   { move to temp reference }
                   cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,withreference);
                   cg.free_scratch_reg(exprasmlist,tmpreg);
@@ -436,7 +435,7 @@ implementation
 
                if usetemp then
                  begin
-                   tg.ungetpersistanttemp(exprasmlist,withreference.offset);
+                   tg.UnGetTemp(exprasmlist,withreference);
 {$ifdef GDB}
                    if (cs_debuginfo in aktmoduleswitches) then
                      begin
@@ -455,7 +454,7 @@ implementation
                  end;
 
                if with_expr_in_temp then
-                 tg.ungetpersistanttemp(exprasmlist,left.location.reference.offset);
+                 tg.UnGetTemp(exprasmlist,left.location.reference);
 
                reference_reset(withreference);
             end;
@@ -878,7 +877,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-08-15 08:13:54  carl
+  Revision 1.25  2002-08-23 16:14:48  peter
+    * tempgen cleanup
+    * tt_noreuse temp type added that will be used in genentrycode
+
+  Revision 1.24  2002/08/15 08:13:54  carl
     - a_load_sym_ofs_reg removed
     * loadvmt now calls loadaddr_ref_reg instead
 

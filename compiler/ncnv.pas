@@ -1975,6 +1975,7 @@ implementation
       var
         procname: string;
       begin
+        result:=nil;
         if not assigned(call) then
           begin
             if is_class(left.resulttype.def) and
@@ -2004,7 +2005,6 @@ implementation
            registersmmx:=call.registersmmx;
 {$endif SUPPORT_MMX}
          end;
-        result:=nil;
       end;
 
 
@@ -2015,7 +2015,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2002-08-20 18:23:33  jonas
+  Revision 1.73  2002-08-23 16:14:49  peter
+    * tempgen cleanup
+    * tt_noreuse temp type added that will be used in genentrycode
+
+  Revision 1.72  2002/08/20 18:23:33  jonas
     * the as node again uses a compilerproc
     + (untested) support for interface "as" statements
 

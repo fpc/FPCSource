@@ -200,8 +200,8 @@ implementation
          objectlibrary.getlabel(endexceptlabel);
          objectlibrary.getlabel(lastonlabel);
 
-         tg.gettempofsizereferencepersistant(exprasmlist,JMP_BUF_SIZE,tempbuf);
-         tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
+         tg.GetTemp(exprasmlist,JMP_BUF_SIZE,tt_persistant,tempbuf);
+         tg.GetTemp(exprasmlist,12,tt_persistant,tempaddr);
          cg.a_paramaddr_ref(exprasmlist,tempaddr,paramanager.getintparaloc(3));
          cg.a_paramaddr_ref(exprasmlist,tempbuf,paramanager.getintparaloc(2));
          { push type of exceptionframe }
@@ -236,8 +236,8 @@ implementation
 
          cg.a_label(exprasmlist,exceptlabel);
          cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-         tg.ungetpersistanttempreference(exprasmlist,tempaddr);
-         tg.ungetpersistanttempreference(exprasmlist,tempbuf);
+         tg.UnGetTemp(exprasmlist,tempaddr);
+         tg.UnGetTemp(exprasmlist,tempbuf);
 
          exprasmList.concat(tai_regalloc.Alloc(R_EAX));
          emit_reg(A_POP,S_L,R_EAX);
@@ -278,8 +278,8 @@ implementation
               objectlibrary.getlabel(doobjectdestroy);
               objectlibrary.getlabel(doobjectdestroyandreraise);
 
-              tg.gettempofsizereferencepersistant(exprasmlist,JMP_BUF_SIZE,tempbuf);
-              tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
+              tg.GetTemp(exprasmlist,JMP_BUF_SIZE,tt_persistant,tempbuf);
+              tg.GetTemp(exprasmlist,12,tt_persistant,tempaddr);
               cg.a_paramaddr_ref(exprasmlist,tempaddr,paramanager.getintparaloc(3));
               cg.a_paramaddr_ref(exprasmlist,tempbuf,paramanager.getintparaloc(2));
               { push type of exceptionframe }
@@ -303,8 +303,8 @@ implementation
 
               cg.a_label(exprasmlist,doobjectdestroyandreraise);
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-              tg.ungetpersistanttempreference(exprasmlist,tempaddr);
-              tg.ungetpersistanttempreference(exprasmlist,tempbuf);
+              tg.Ungettemp(exprasmlist,tempaddr);
+              tg.Ungettemp(exprasmlist,tempbuf);
 
               exprasmList.concat(tai_regalloc.Alloc(R_EAX));
               exprasmList.concat(Taicpu.op_reg(A_POP,S_L,R_EAX));
@@ -433,7 +433,7 @@ implementation
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          emitjmp(C_E,nextonlabel);
          ref.symbol:=nil;
-         tg.gettempofsizereference(exprasmlist,4,ref);
+         tg.GetTemp(exprasmlist,4,tt_normal,ref);
 
          { what a hack ! }
          if assigned(exceptsymtable) then
@@ -447,8 +447,8 @@ implementation
          { we've to destroy the old one                }
          objectlibrary.getlabel(doobjectdestroyandreraise);
 
-         tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
-         tg.gettempofsizereferencepersistant(exprasmlist,JMP_BUF_SIZE,tempbuf);
+         tg.GetTemp(exprasmlist,12,tt_persistant,tempaddr);
+         tg.GetTemp(exprasmlist,JMP_BUF_SIZE,tt_persistant,tempbuf);
          cg.a_paramaddr_ref(exprasmlist,tempaddr,paramanager.getintparaloc(3));
          cg.a_paramaddr_ref(exprasmlist,tempbuf,paramanager.getintparaloc(2));
          cg.a_param_const(exprasmlist,OS_INT,1,paramanager.getintparaloc(1));
@@ -488,8 +488,8 @@ implementation
          objectlibrary.getlabel(doobjectdestroy);
          cg.a_label(exprasmlist,doobjectdestroyandreraise);
          cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-         tg.ungetpersistanttempreference(exprasmlist,tempaddr);
-         tg.ungetpersistanttempreference(exprasmlist,tempbuf);
+         tg.Ungettemp(exprasmlist,tempaddr);
+         tg.Ungettemp(exprasmlist,tempbuf);
 
          exprasmList.concat(tai_regalloc.Alloc(R_EAX));
          exprasmList.concat(Taicpu.op_reg(A_POP,S_L,R_EAX));
@@ -601,8 +601,8 @@ implementation
             aktbreaklabel:=breakfinallylabel;
           end;
 
-         tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
-         tg.gettempofsizereferencepersistant(exprasmlist,JMP_BUF_SIZE,tempbuf);
+         tg.Gettemp(exprasmlist,12,tt_persistant,tempaddr);
+         tg.Gettemp(exprasmlist,JMP_BUF_SIZE,tt_persistant,tempbuf);
          cg.a_paramaddr_ref(exprasmlist,tempaddr,paramanager.getintparaloc(3));
          cg.a_paramaddr_ref(exprasmlist,tempbuf,paramanager.getintparaloc(2));
          { Type of stack-frame must be pushed}
@@ -630,8 +630,8 @@ implementation
 
          cg.a_label(exprasmlist,finallylabel);
          cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-         tg.ungetpersistanttempreference(exprasmlist,tempaddr);
-         tg.ungetpersistanttempreference(exprasmlist,tempbuf);
+         tg.Ungettemp(exprasmlist,tempaddr);
+         tg.Ungettemp(exprasmlist,tempbuf);
 
          { finally code }
          flowcontrol:=[];
@@ -726,7 +726,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-08-15 15:15:55  carl
+  Revision 1.34  2002-08-23 16:14:49  peter
+    * tempgen cleanup
+    * tt_noreuse temp type added that will be used in genentrycode
+
+  Revision 1.33  2002/08/15 15:15:55  carl
     * jmpbuf size allocation for exceptions is now cpu specific (as it should)
     * more generic nodes for maths
     * several fixes for better m68k support

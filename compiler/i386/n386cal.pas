@@ -225,7 +225,7 @@ implementation
                          (left.resulttype.def.deftype=procvardef) and
                          (ttypeconvnode(left).left.nodetype=niln) then
                        begin
-                         tg.gettempofsizereference(exprasmlist,tcgsize2size[left.location.size],href);
+                         tg.GetTemp(exprasmlist,tcgsize2size[left.location.size],tt_normal,href);
                          cg.a_load_loc_ref(exprasmlist,left.location,href);
                          location_reset(left.location,LOC_REFERENCE,left.location.size);
                          left.location.reference:=href;
@@ -318,6 +318,8 @@ implementation
          pop_allowed : boolean;
          release_tmpreg : boolean;
          constructorfailed : tasmlabel;
+         returnref,
+         pararef : treference;
 
       label
          dont_call;
@@ -335,12 +337,12 @@ implementation
          { already here, we avoid later a push/pop                    }
          if is_widestring(resulttype.def) then
            begin
-             tg.gettempwidestringreference(exprasmlist,refcountedtemp);
+             tg.GetTemp(exprasmlist,pointer_size,tt_widestring,refcountedtemp);
              cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp);
            end
          else if is_ansistring(resulttype.def) then
            begin
-             tg.gettempansistringreference(exprasmlist,refcountedtemp);
+             tg.GetTemp(exprasmlist,pointer_size,tt_ansistring,refcountedtemp);
              cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp);
            end;
 
@@ -366,7 +368,10 @@ implementation
                 the para's are stored there }
               tprocdef(procdefinition).parast.symtablelevel:=aktprocdef.localst.symtablelevel;
               if assigned(params) then
-                inlinecode.para_offset:=tg.gettempofsizepersistant(exprasmlist,inlinecode.para_size);
+               begin
+                 tg.GetTemp(exprasmlist,inlinecode.para_size,tt_persistant,pararef);
+                 inlinecode.para_offset:=pararef.offset;
+               end;
               store_parast_fixup:=tprocdef(procdefinition).parast.address_fixup;
               tprocdef(procdefinition).parast.address_fixup:=inlinecode.para_offset;
 {$ifdef extdebug}
@@ -500,7 +505,10 @@ implementation
          { Allocate return value for inlined routines }
          if inlined and
             (resulttype.def.size>0) then
-           inlinecode.retoffset:=tg.gettempofsizepersistant(exprasmlist,Align(resulttype.def.size,aktalignment.paraalign));
+          begin
+            tg.GetTemp(exprasmlist,Align(resulttype.def.size,aktalignment.paraalign),tt_persistant,returnref);
+            inlinecode.retoffset:=returnref.offset;
+          end;
 
          { Allocate return value when returned in argument }
          if paramanager.ret_in_param(resulttype.def) then
@@ -518,9 +526,7 @@ implementation
               begin
                 if inlined then
                  begin
-                   reference_reset(funcretref);
-                   funcretref.offset:=tg.gettempofsizepersistant(exprasmlist,resulttype.def.size);
-                   funcretref.base:=procinfo.framepointer;
+                   tg.GetTemp(exprasmlist,resulttype.def.size,tt_persistant,funcretref);
 {$ifdef extdebug}
                    Comment(V_debug,'function return value is at offset '
                                    +tostr(funcretref.offset));
@@ -530,7 +536,7 @@ implementation
 {$endif extdebug}
                  end
                 else
-                 tg.gettempofsizereference(exprasmlist,resulttype.def.size,funcretref);
+                 tg.GetTemp(exprasmlist,resulttype.def.size,tt_normal,funcretref);
               end;
 
              { This must not be counted for C code
@@ -987,7 +993,7 @@ implementation
                    secondpass(inlinecode);
                    { free the args }
                    if tprocdef(procdefinition).parast.datasize>0 then
-                     tg.ungetpersistanttemp(exprasmlist,tprocdef(procdefinition).parast.address_fixup);
+                     tg.UnGetTemp(exprasmlist,pararef);
                 end;
            end
          else
@@ -1269,7 +1275,7 @@ implementation
            end;
          if inlined then
            begin
-             tg.ungetpersistanttemp(exprasmlist,inlinecode.retoffset);
+             tg.UnGetTemp(exprasmlist,returnref);
              tprocdef(procdefinition).parast.address_fixup:=store_parast_fixup;
              right:=inlinecode;
            end;
@@ -1278,7 +1284,7 @@ implementation
 
          { from now on the result can be freed normally }
          if inlined and paramanager.ret_in_param(resulttype.def) then
-           tg.persistanttemptonormal(funcretref.offset);
+           tg.ChangeTempType(funcretref,tt_normal);
 
          { if return value is not used }
          if (not(nf_return_value_used in flags)) and (not is_void(resulttype.def)) then
@@ -1309,7 +1315,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2002-08-18 20:06:30  peter
+  Revision 1.66  2002-08-23 16:14:49  peter
+    * tempgen cleanup
+    * tt_noreuse temp type added that will be used in genentrycode
+
+  Revision 1.65  2002/08/18 20:06:30  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

@@ -168,6 +168,8 @@ implementation
          oldloc : tloc;
 {$endif EXTDEBUG}
       begin
+         if not assigned(p) then
+          internalerror(200208221);
          if not(nf_error in p.flags) then
           begin
             oldcodegenerror:=codegenerror;
@@ -330,7 +332,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2002-08-20 16:55:38  peter
+  Revision 1.39  2002-08-23 16:14:49  peter
+    * tempgen cleanup
+    * tt_noreuse temp type added that will be used in genentrycode
+
+  Revision 1.38  2002/08/20 16:55:38  peter
     * don't write (stabs)line info when inlining a procedure
 
   Revision 1.37  2002/08/19 19:36:44  peter

@@ -240,6 +240,8 @@ interface
 *****************************************************************************}
 
     procedure tcgtempcreatenode.pass_2;
+      var
+        temptype : ttemptype;
       begin
         { if we're secondpassing the same tcgtempcreatenode twice, we have a bug }
         if tempinfo^.valid then
@@ -247,9 +249,10 @@ interface
 
         { get a (persistent) temp }
         if persistent then
-          tg.gettempofsizereferencepersistant(exprasmlist,size,tempinfo^.ref)
+          temptype:=tt_persistant
         else
-          tg.gettempofsizereference(exprasmlist,size,tempinfo^.ref);
+          temptype:=tt_normal;
+        tg.GetTemp(exprasmlist,size,temptype,tempinfo^.ref);
         tempinfo^.valid := true;
       end;
 
@@ -276,9 +279,9 @@ interface
     procedure tcgtempdeletenode.pass_2;
       begin
         if release_to_normal then
-          tg.persistanttemptonormal(tempinfo^.ref.offset)
+          tg.ChangeTempType(tempinfo^.ref,tt_normal)
         else
-          tg.ungetpersistanttempreference(exprasmlist,tempinfo^.ref);
+          tg.UnGetTemp(exprasmlist,tempinfo^.ref);
       end;
 
 
@@ -293,7 +296,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-08-11 14:32:26  peter
+  Revision 1.23  2002-08-23 16:14:48  peter
+    * tempgen cleanup
+    * tt_noreuse temp type added that will be used in genentrycode
+
+  Revision 1.22  2002/08/11 14:32:26  peter
     * renamed current_library to objectlibrary
 
   Revision 1.21  2002/08/11 13:24:11  peter

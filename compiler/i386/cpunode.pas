@@ -30,7 +30,16 @@ unit cpunode;
 
     uses
        { generic nodes }
-       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,
+       ncgbas,
+       ncgld,
+       ncgflw,
+       ncgcnv,
+       ncgmem,
+       ncgmat,
+       ncgcon,
+       ncgcal,
+       ncgset,
+       ncginl,
        { to be able to only parts of the generic code,
          the processor specific nodes must be included
          after the generic one (FK)
@@ -52,7 +61,11 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.16  2002-08-18 20:06:29  peter
+  Revision 1.17  2002-08-23 16:14:49  peter
+    * tempgen cleanup
+    * tt_noreuse temp type added that will be used in genentrycode
+
+  Revision 1.16  2002/08/18 20:06:29  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

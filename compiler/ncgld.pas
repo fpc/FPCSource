@@ -82,7 +82,6 @@ implementation
             absolutesym :
                begin
                   { this is only for toasm and toaddr }
-                  location.reference.symbol:=nil;
                   if (tabsolutesym(symtableentry).abstyp=toaddr) then
                    begin
 {$ifdef i386}
@@ -119,8 +118,7 @@ implementation
                        hregister:=rg.getaddressregister(exprasmlist);
                        location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname);
                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,location.reference,hregister);
-                       location.reference.symbol:=nil;
-                       location.reference.base:=hregister;
+                       reference_reset_base(location.reference,hregister,0);
                     end
                   { external variable }
                   else if (vo_is_external in tvarsym(symtableentry).varoptions) then
@@ -282,7 +280,7 @@ implementation
                           location_reset(location,LOC_CREFERENCE,OS_64)
                        else
                           internalerror(20020520);
-                       tg.gettempofsizereference(exprasmlist,2*POINTER_SIZE,location.reference);
+                       tg.GetTemp(exprasmlist,2*POINTER_SIZE,tt_normal,location.reference);
                        freereg:=false;
 
                        { called as type.method, then we only need to return
@@ -771,9 +769,9 @@ implementation
            { Allocate always a temp, also if no elements are required, to
              be sure that location is valid (PFV) }
             if tarraydef(resulttype.def).highrange=-1 then
-              tg.gettempofsizereference(exprasmlist,elesize,location.reference)
+              tg.GetTemp(exprasmlist,elesize,tt_normal,location.reference)
             else
-              tg.gettempofsizereference(exprasmlist,(tarraydef(resulttype.def).highrange+1)*elesize,location.reference);
+              tg.GetTemp(exprasmlist,(tarraydef(resulttype.def).highrange+1)*elesize,tt_normal,location.reference);
             href:=location.reference;
          end;
         hp:=self;
@@ -942,7 +940,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-08-17 09:23:35  florian
+  Revision 1.25  2002-08-23 16:14:48  peter
+    * tempgen cleanup
+    * tt_noreuse temp type added that will be used in genentrycode
+
+  Revision 1.24  2002/08/17 09:23:35  florian
     * first part of procinfo rewrite
 
   Revision 1.23  2002/08/14 18:13:28  jonas

@@ -33,66 +33,66 @@ type
       tcgunaryminusnode = class(tunaryminusnode)
          procedure pass_2;override;
       protected
-         { This routine is called to change the sign of the 
-           floating point value in the floating point 
+         { This routine is called to change the sign of the
+           floating point value in the floating point
            register r.
-           
+
            This routine should be overriden, since
            the generic version is not optimal at all. The
            generic version assumes that floating
            point values are stored in the register
            in IEEE-754 format.
-         }  
+         }
          procedure emit_float_sign_change(r: tregister; _size : tcgsize);virtual;
       end;
 
       tcgmoddivnode = class(tmoddivnode)
          procedure pass_2;override;
       protected
-         { This routine must do an actual 32-bit division, be it 
+         { This routine must do an actual 32-bit division, be it
            signed or unsigned. The result must set into the the
-           @var(num) register. 
-           
+           @var(num) register.
+
            @param(signed Indicates if the division must be signed)
            @param(denum  Register containing the denominator
            @param(num    Register containing the numerator, will also receive result)
-           
+
            The actual optimizations regarding shifts have already
            been done and emitted, so this should really a do a divide.
-         }  
+         }
          procedure emit_div_reg_reg(signed: boolean;denum,num : tregister);virtual;abstract;
-         { This routine must do an actual 32-bit modulo, be it 
+         { This routine must do an actual 32-bit modulo, be it
            signed or unsigned. The result must set into the the
-           @var(num) register. 
-           
+           @var(num) register.
+
            @param(signed Indicates if the modulo must be signed)
            @param(denum  Register containing the denominator
            @param(num    Register containing the numerator, will also receive result)
-           
+
            The actual optimizations regarding shifts have already
            been done and emitted, so this should really a do a modulo.
-         }  
+         }
          procedure emit_mod_reg_reg(signed: boolean;denum,num : tregister);virtual;abstract;
-         { This routine must do an actual 64-bit division, be it 
+         { This routine must do an actual 64-bit division, be it
            signed or unsigned. The result must set into the the
-           @var(num) register. 
-           
+           @var(num) register.
+
            @param(signed Indicates if the division must be signed)
            @param(denum  Register containing the denominator
            @param(num    Register containing the numerator, will also receive result)
-           
+
            The actual optimizations regarding shifts have already
            been done and emitted, so this should really a do a divide.
-           Currently, this routine should only be implemented on 
+           Currently, this routine should only be implemented on
            64-bit systems, otherwise a helper is called in 1st pass.
-         }  
+         }
          procedure emit64_div_reg_reg(signed: boolean;denum,num : tregister64);virtual;
       end;
-      
+
       tcgshlshrnode = class(tshlshrnode)
          procedure pass_2;override;
       end;
-      
+
 
 implementation
 
@@ -116,7 +116,7 @@ implementation
         { get a temporary memory reference to store the floating
           point value
         }
-        tg.gettempofsizereference(exprasmlist,tcgsize2size[_size],href);
+        tg.gettemp(exprasmlist,tcgsize2size[_size],tt_normal,href);
         { store the floating point value in the temporary memory area }
         cg.a_loadfpu_reg_ref(exprasmlist,_size,r,href);
         { only single and double ieee are supported }
@@ -124,11 +124,11 @@ implementation
           begin
             { on little-endian machine the most significant
               32-bit value is stored at the highest address
-            }  
+            }
             if target_info.endian = endian_little then
               inc(href.offset,4);
           end
-        else 
+        else
         if _size <> OS_F32 then
            internalerror(20020814);
         hreg := rg.getregisterint(exprasmlist);
@@ -146,7 +146,7 @@ implementation
           begin
             { on little-endian machine the most significant
               32-bit value is stored at the highest address
-            }  
+            }
             if target_info.endian = endian_little then
               dec(href.offset,4);
           end;
@@ -198,14 +198,14 @@ implementation
                            cg.a_loadfpu_ref_reg(exprasmlist,
                               def_cgsize(left.resulttype.def),
                               left.location.reference,location.register);
-                           emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));   
+                           emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));
                         end
                       else
                         begin
                            location.register:=rg.getregisterint(exprasmlist);
                            { why is the size is OS_INT, since in pass_1 we convert
                              everything to a signed natural value anyways
-                           }  
+                           }
                            cg.a_load_ref_reg(exprasmlist,OS_INT,
                                left.location.reference,location.register);
                            cg.a_op_reg_reg(exprasmlist,OP_NEG,OS_INT,location.register,
@@ -216,14 +216,14 @@ implementation
                    begin
                       location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
                       location.register:=left.location.register;
-                      emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));   
+                      emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));
                    end;
                  LOC_CFPUREGISTER:
                    begin
                       location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
                       location.register:=rg.getregisterfpu(exprasmlist);
                       cg.a_loadfpu_reg_reg(exprasmlist,left.location.register,location.register);
-                      emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));   
+                      emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));
                    end;
                  else
                     internalerror(200203225);
@@ -238,9 +238,9 @@ implementation
 
     procedure tcgmoddivnode.emit64_div_reg_reg(signed: boolean; denum,num:tregister64);
       begin
-        { handled in pass_1 already, unless pass_1 is 
+        { handled in pass_1 already, unless pass_1 is
           overriden
-        }  
+        }
         { should be handled in pass_1 (JM) }
         internalerror(200109052);
       end;
@@ -267,10 +267,10 @@ implementation
          location_copy(location,left.location);
 
          if is_64bitint(resulttype.def) then
-           begin  
+           begin
              { this code valid for 64-bit cpu's only ,
                otherwise helpers are called in pass_1
-             }  
+             }
              location_force_reg(exprasmlist,location,OS_64,false);
              location_copy(location,left.location);
              location_force_reg(exprasmlist,right.location,OS_64,false);
@@ -301,7 +301,7 @@ implementation
                       else
                           cg.a_op_const_reg(exprasmlist,OP_ADD,
                              tordconstnode(right).value-1,hreg1);
-                      cg.a_label(exprasmlist,hl);    
+                      cg.a_label(exprasmlist,hl);
                       cg.a_op_const_reg(exprasmlist,OP_SAR,power,hreg1);
                       End
                     Else { not signed }
@@ -362,13 +362,13 @@ implementation
            shln: op:=OP_SHL;
            shrn: op:=OP_SHR;
          end;
-         
+
          if is_64bitint(left.resulttype.def) then
            begin
               { already hanled in 1st pass }
               internalerror(2002081501);
 (*  Normally for 64-bit cpu's this here should be here,
-    and only pass_1 need to be overriden, but dunno how to 
+    and only pass_1 need to be overriden, but dunno how to
     do that!
               location_reset(location,LOC_REGISTER,OS_64);
 
@@ -385,7 +385,7 @@ implementation
                 begin
                   { this should be handled in pass_1 }
                   internalerror(2002081501);
-                               
+
                    if right.location.loc<>LOC_REGISTER then
                      begin
                        if right.location.loc<>LOC_CREGISTER then
@@ -424,7 +424,7 @@ implementation
                 end
               else
                 begin
-                   { load right operators in a register - this  
+                   { load right operators in a register - this
                      is done since most target cpu which will use this
                      node do not support a shift count in a mem. location (cec)
                    }
@@ -454,7 +454,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-08-15 15:15:55  carl
+  Revision 1.3  2002-08-23 16:14:48  peter
+    * tempgen cleanup
+    * tt_noreuse temp type added that will be used in genentrycode
+
+  Revision 1.2  2002/08/15 15:15:55  carl
     * jmpbuf size allocation for exceptions is now cpu specific (as it should)
     * more generic nodes for maths
     * several fixes for better m68k support
