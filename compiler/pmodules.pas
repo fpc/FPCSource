@@ -1296,7 +1296,8 @@ implementation
 
          { The program intialization needs an alias, so it can be called
            from the bootstrap code.}
-         if islibrary then
+         if islibrary or
+            (target_info.system in [system_powerpc_macos,system_powerpc_darwin]) then
           begin
             pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'main'),potype_proginit,st);
             { Win32 startup code needs a single name }
@@ -1439,7 +1440,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.135  2003-12-12 19:42:21  peter
+  Revision 1.136  2004-01-04 21:08:09  jonas
+    * Never generate a "main" symbol for PASCALMAIN for Darwin and classic
+      Mac OS, they use a C-main in their system unit
+
+  Revision 1.135  2003/12/12 19:42:21  peter
     * check unit name when expected unitname > 8 chars
 
   Revision 1.134  2003/12/08 22:33:43  peter
