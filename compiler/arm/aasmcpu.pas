@@ -324,7 +324,10 @@ implementation
           R_INTREGISTER :
             result:=taicpu.op_reg_ref(A_LDR,r,ref);
           R_FPUREGISTER :
-            result:=taicpu.op_reg_ref(A_LDF,r,ref);
+            { use lfm because we don't know the current internal format
+              and avoid exceptions
+            }
+            result:=taicpu.op_reg_const_ref(A_LFM,r,1,ref);
           else
             internalerror(200401041);
         end;
@@ -337,7 +340,10 @@ implementation
           R_INTREGISTER :
             result:=taicpu.op_reg_ref(A_STR,r,ref);
           R_FPUREGISTER :
-            result:=taicpu.op_reg_ref(A_STF,r,ref);
+            { use sfm because we don't know the current internal format
+              and avoid exceptions
+            }
+            result:=taicpu.op_reg_const_ref(A_SFM,r,1,ref);
           else
             internalerror(200401041);
         end;
@@ -358,7 +364,8 @@ implementation
           A_ADF,A_DVF,A_FDV,A_FML,
           A_RFS,A_RFC,A_RDF,
           A_RMF,A_RPW,A_RSF,A_SUF,A_ABS,A_ACS,A_ASN,A_ATN,A_COS,
-          A_EXP,A_LOG,A_LGN,A_MVF,A_MNF,A_FRD,A_MUF,A_POL,A_RND,A_SIN,A_SQT,A_TAN:
+          A_EXP,A_LOG,A_LGN,A_MVF,A_MNF,A_FRD,A_MUF,A_POL,A_RND,A_SIN,A_SQT,A_TAN,
+          A_LFM:
             if opnr=0 then
               result:=operand_write
             else
@@ -378,7 +385,7 @@ implementation
             else
               result:=operand_read;
           A_STR,A_STRB,A_STRBT,A_STRD,
-          A_STRH,A_STRT,A_STF:
+          A_STRH,A_STRT,A_STF,A_SFM:
             { important is what happens with the involved registers }
             if opnr=0 then
               result := operand_read
@@ -486,7 +493,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2004-06-20 08:55:31  florian
+  Revision 1.34  2004-07-04 15:22:34  florian
+    * fixed float spilling to use sfm/lfm instead of stf/ldf
+
+  Revision 1.33  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.32  2004/06/16 20:07:10  florian

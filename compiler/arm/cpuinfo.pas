@@ -50,7 +50,7 @@ Type
 
 Const
    {# Size of native extended floating point type }
-   extended_size = 8;
+   extended_size = 12;
    {# Size of a multimedia register               }
    mmreg_size = 16;
    { target cpu string (used by compiler options) }
@@ -97,7 +97,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.9  2004-06-20 08:55:31  florian
+  Revision 1.10  2004-07-04 15:22:34  florian
+    * fixed float spilling to use sfm/lfm instead of stf/ldf
+
+  Revision 1.9  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.8  2004/06/16 20:07:10  florian
