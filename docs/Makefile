@@ -168,28 +168,29 @@ user:
          -t "User's guide for Free Pascal" user.tex
 	sed -f foot.sed <user/footnode.html >user/footnote.html
 	mv user/footnote.html user/footnode.html
-	rm -rf user/labels.pl user/internals.pl user/.*.pag user/.*.dir
-
+	rm -f user/labels.pl user/internals.pl user/.*.pag user/.*.dir
+	rm -f user/images.* user/*.log
+	
 units: unitex
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
         -t "Unit reference for Free Pascal" units.tex
 	sed -f foot.sed <units/footnode.html >units/footnote.html
 	mv units/footnote.html units/footnode.html
-	rm -rf units/labels.pl units/internals.pl units/.*.pag units/.*.dir
+	rm -f units/labels.pl units/internals.pl units/.*.pag units/.*.dir
 
 ref: refex
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
         -t "Free Pascal reference guide" ref.tex
 	sed -f foot.sed <ref/footnode.html >ref/footnote.html
 	mv ref/footnote.html ref/footnode.html
-	rm -rf ref/labels.pl ref/internals.pl ref/.*.pag ref/.*.dir
+	rm -f ref/labels.pl ref/internals.pl ref/.*.pag ref/.*.dir
 	
 prog:
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
         -t "Free Pascal programmers guide" prog.tex
 	sed -f foot.sed <prog/footnode.html >prog/footnote.html
 	mv prog/footnote.html prog/footnode.html
-	rm -rf prog/labels.pl prog/internals.pl prog/.*.pag prog/.*.dir
+	rm -f prog/labels.pl prog/internals.pl prog/.*.pag prog/.*.dir
 
 html: $(HTML)
 
