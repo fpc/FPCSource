@@ -286,7 +286,7 @@ unit i_linux;
             system       : system_x86_64_LINUX;
             name         : 'Linux for x86-64';
             shortname    : 'linux';
-            flags        : [tf_needs_symbol_size];
+            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi];
             cpu          : cpu_x86_64;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -514,7 +514,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.27  2004-06-20 08:55:32  florian
+  Revision 1.28  2004-06-29 21:00:08  peter
+    * only enable dwarf for supported platforms
+
+  Revision 1.27  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.26  2004/06/16 20:07:11  florian

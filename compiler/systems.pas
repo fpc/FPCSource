@@ -192,7 +192,8 @@ interface
        tasmflags = (af_none,
          af_outputbinary,af_allowdirect,
          af_needar,af_smartlink_sections,
-         af_labelprefix_only_inside_procedure
+         af_labelprefix_only_inside_procedure,
+         af_supports_dwarf
        );
 
        pasminfo = ^tasminfo;
@@ -225,7 +226,8 @@ interface
             tf_need_export,tf_needs_isconsole,
             tf_code_small,tf_static_reg_based,
             tf_needs_symbol_size,
-            tf_smartlink_sections
+            tf_smartlink_sections,
+            tf_needs_dwarf_cfi
        );
 
        psysteminfo = ^tsysteminfo;
@@ -700,7 +702,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.90  2004-06-20 08:55:30  florian
+  Revision 1.91  2004-06-29 21:00:08  peter
+    * only enable dwarf for supported platforms
+
+  Revision 1.90  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.89  2004/06/16 20:07:10  florian

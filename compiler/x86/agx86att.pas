@@ -240,7 +240,7 @@ interface
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_target : system_any;
-            flags : [af_allowdirect,af_needar,af_smartlink_sections];
+            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
           );
@@ -280,7 +280,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2004-06-20 08:55:32  florian
+  Revision 1.16  2004-06-29 21:00:08  peter
+    * only enable dwarf for supported platforms
+
+  Revision 1.15  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.14  2004/06/16 20:07:11  florian

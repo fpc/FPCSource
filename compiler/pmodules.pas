@@ -137,10 +137,11 @@ implementation
 
     procedure create_dwarf;
       begin
-{$warning TODO Make it dependent on the -gd switch}
         dwarflist:=taasmoutput.create;
         { Call frame information }
-        dwarfcfi.generate_code(dwarflist);
+        if (tf_needs_dwarf_cfi in target_info.flags) and
+           (af_supports_dwarf in target_asm.flags) then
+          dwarfcfi.generate_code(dwarflist);
       end;
 
 
@@ -1504,7 +1505,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.158  2004-06-20 08:55:30  florian
+  Revision 1.159  2004-06-29 21:00:08  peter
+    * only enable dwarf for supported platforms
+
+  Revision 1.158  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.157  2004/06/18 15:16:27  peter
