@@ -140,8 +140,7 @@ unit wincrt;
        ctrlkey : boolean = false;
        shiftkey : boolean = false;
 
-    function msghandler(Window: hwnd; AMessage, WParam,
-      LParam: Longint): Longint;
+    function msghandler(Window: hwnd; AMessage, WParam: Longword; LParam: Longint): Longint;
 
       begin
          case amessage of
@@ -226,7 +225,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:29  peter
+  Revision 1.4  2003-04-23 11:22:12  peter
+    * fixed msghandler declarations
+
+  Revision 1.3  2002/09/07 16:01:29  peter
     * old logs removed and tabs fixed
 
 }
