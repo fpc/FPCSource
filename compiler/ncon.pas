@@ -359,6 +359,7 @@ implementation
       begin
          n:=tordconstnode(inherited getcopy);
          n.value:=value;
+         n.restype := restype;
          getcopy:=n;
       end;
 
@@ -402,6 +403,7 @@ implementation
       begin
          n:=tpointerconstnode(inherited getcopy);
          n.value:=value;
+         n.restype := restype;
          getcopy:=n;
       end;
 
@@ -591,6 +593,7 @@ implementation
            end
          else
            n.value_set:=nil;
+         n.restype := restype;
          n.lab_set:=lab_set;
          getcopy:=n;
       end;
@@ -657,7 +660,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2001-07-08 21:00:15  peter
+  Revision 1.20  2001-08-06 10:18:39  jonas
+    * restype wasn't copied for some constant nodetypes in getcopy
+
+  Revision 1.19  2001/07/08 21:00:15  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 
