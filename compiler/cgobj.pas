@@ -487,14 +487,31 @@ unit cgobj;
 
       var
         tmpreg: tregister;
+{$ifdef i386}
+        pushed_reg: tregister;
+{$endif i386}
 
       begin
 {$ifdef i386}
         { the following is done with defines to avoid a speed penalty,  }
         { since all this is only necessary for the 80x86 (because EDI   }
         { doesn't have an 8bit component which is directly addressable) }
+        pushed_reg := R_NO;
         if size in [OS_8,OS_S8] then
-          tmpreg := rg.getregisterint(exprasmlist)
+          if (rg.countunusedregsint = 0) then
+            begin
+              if (dref.base <> R_EBX) and
+                 (dref.index <> R_EBX) then
+                pushed_reg := R_EBX
+              else if (dref.base <> R_EAX) and
+                      (dref.index <> R_EAX) then
+                pushed_reg := R_EAX
+              else pushed_reg := R_ECX;
+              tmpreg := rg.makeregsize(pushed_reg,OS_8);
+              list.concat(taicpu.op_reg(A_PUSH,S_L,pushed_reg));
+            end
+          else
+            tmpreg := rg.getregisterint(exprasmlist)
         else
 {$endif i386}
         tmpreg := get_scratch_reg_int(list);
@@ -503,7 +520,12 @@ unit cgobj;
         a_load_reg_ref(list,size,tmpreg,dref);
 {$ifdef i386}
         if size in [OS_8,OS_S8] then
-          rg.ungetregister(exprasmlist,tmpreg)
+          begin
+            if (pushed_reg <> R_NO) then
+              list.concat(taicpu.op_reg(A_POP,S_L,pushed_reg))
+            else
+              rg.ungetregister(exprasmlist,tmpreg)
+          end
         else
 {$endif i386}
         free_scratch_reg(list,tmpreg);
@@ -1265,7 +1287,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.27  2002-05-22 19:02:16  carl
+  Revision 1.28  2002-06-06 18:53:17  jonas
+    * fixed internalerror(10) with -Or for i386 (a_load_ref_ref now saves
+      a general purpose register if it needs one but none are available)
+
+  Revision 1.27  2002/05/22 19:02:16  carl
   + generic FPC_HELP_FAIL
   + generic FPC_HELP_DESTRUCTOR instated (original from Pierre)
   + generic FPC_DISPOSE_CLASS
