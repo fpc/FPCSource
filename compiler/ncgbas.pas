@@ -341,7 +341,10 @@ interface
           internalerror(200108222);
 
         { get a (persistent) temp }
-        tg.GetTemp(exprasmlist,size,tempinfo^.temptype,tempinfo^.ref);
+        if tempinfo^.restype.def.needs_inittable then
+          tg.GetTempTyped(exprasmlist,tempinfo^.restype.def,tempinfo^.temptype,tempinfo^.ref)
+        else
+          tg.GetTemp(exprasmlist,size,tempinfo^.temptype,tempinfo^.ref);
         tempinfo^.valid := true;
       end;
 
@@ -404,7 +407,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-11-02 13:30:05  jonas
+  Revision 1.50  2003-11-04 15:35:13  peter
+    * fix for referencecounted temps
+
+  Revision 1.49  2003/11/02 13:30:05  jonas
     * fixed ppc compilation
 
   Revision 1.48  2003/10/30 19:59:00  peter

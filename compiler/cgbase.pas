@@ -167,11 +167,7 @@ interface
       { Temp types }
       ttemptype = (tt_none,
                    tt_free,tt_normal,tt_persistent,
-                   tt_noreuse,tt_freenoreuse,
-                   tt_ansistring,tt_freeansistring,
-                   tt_widestring,tt_freewidestring,
-                   tt_interfacecom,tt_freeinterfacecom);
-      ttemptypeset = set of ttemptype;
+                   tt_noreuse,tt_freenoreuse);
 
       pmmshuffle = ^tmmshuffle;
 
@@ -462,7 +458,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.76  2003-11-03 17:48:04  peter
+  Revision 1.77  2003-11-04 15:35:13  peter
+    * fix for referencecounted temps
+
+  Revision 1.76  2003/11/03 17:48:04  peter
     * int_cgsize returned garbage for a=0
 
   Revision 1.75  2003/10/31 15:51:11  peter

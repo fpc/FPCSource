@@ -353,7 +353,7 @@ implementation
            end
          else if is_interfacecom(left.resulttype.def) then
            begin
-             tg.GetTemp(exprasmlist,pointer_size,tt_interfacecom,location.reference);
+             tg.GetTempTyped(exprasmlist,left.resulttype.def,tt_normal,location.reference);
              cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,location.reference);
              { implicit deferencing also for interfaces }
              if (cs_gdb_heaptrc in aktglobalswitches) and
@@ -876,7 +876,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2003-10-10 17:48:13  peter
+  Revision 1.80  2003-11-04 15:35:13  peter
+    * fix for referencecounted temps
+
+  Revision 1.79  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

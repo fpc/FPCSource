@@ -29,7 +29,7 @@ interface
     uses
        cpubase,cgbase,
        aasmbase,aasmtai,aasmcpu,
-       node,
+       node,tgobj,
        symtype,symppu;
 
     type
@@ -854,7 +854,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2003-10-31 15:51:47  peter
+  Revision 1.72  2003-11-04 15:35:13  peter
+    * fix for referencecounted temps
+
+  Revision 1.71  2003/10/31 15:51:47  peter
     * fix crashes in asmnode.deref when p_asm=nil
 
   Revision 1.70  2003/10/29 20:34:20  peter

@@ -903,14 +903,12 @@ implementation
         hp:=tg.templist;
         while assigned(hp) do
          begin
-           if hp^.temptype in [tt_ansistring,tt_freeansistring,
-                               tt_widestring,tt_freewidestring,
-                               tt_interfacecom,tt_freeinterfacecom] then
+           if assigned(hp^.def) then
             begin
               if (cs_implicit_exceptions in aktmoduleswitches) then
                 include(current_procinfo.flags,pi_needs_implicit_finally);
               reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
-              cg.a_load_const_ref(list,OS_ADDR,0,href);
+              cg.g_initialize(list,hp^.def,href,false);
             end;
            hp:=hp^.next;
          end;
@@ -927,40 +925,11 @@ implementation
         hp:=tg.templist;
         while assigned(hp) do
          begin
-           case hp^.temptype of
-             tt_ansistring,
-             tt_freeansistring :
-               begin
-                 reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
-                 paramanager.allocparaloc(list,paraloc1);
-                 cg.a_paramaddr_ref(list,href,paraloc1);
-                 paramanager.freeparaloc(list,paraloc1);
-                 cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-                 cg.a_call_name(list,'FPC_ANSISTR_DECR_REF');
-                 cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-               end;
-             tt_widestring,
-             tt_freewidestring :
-               begin
-                 reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
-                 paramanager.allocparaloc(list,paraloc1);
-                 cg.a_paramaddr_ref(list,href,paraloc1);
-                 paramanager.freeparaloc(list,paraloc1);
-                 cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-                 cg.a_call_name(list,'FPC_WIDESTR_DECR_REF');
-                 cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-               end;
-             tt_interfacecom :
-               begin
-                 reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
-                 paramanager.allocparaloc(list,paraloc1);
-                 cg.a_paramaddr_ref(list,href,paraloc1);
-                 paramanager.freeparaloc(list,paraloc1);
-                 cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-                 cg.a_call_name(list,'FPC_INTF_DECR_REF');
-                 cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-               end;
-           end;
+           if assigned(hp^.def) then
+            begin
+              reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
+              cg.g_finalize(list,hp^.def,href,false);
+            end;
            hp:=hp^.next;
          end;
       end;
@@ -1974,7 +1943,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.162  2003-10-25 11:34:02  florian
+  Revision 1.163  2003-11-04 15:35:13  peter
+    * fix for referencecounted temps
+
+  Revision 1.162  2003/10/25 11:34:02  florian
     * fixed compilation of ppc system unit
 
   Revision 1.161  2003/10/19 01:34:30  florian

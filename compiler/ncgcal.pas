@@ -436,8 +436,7 @@ implementation
          end
         else
         { ansi/widestrings must be registered, so we can dispose them }
-         if is_ansistring(resulttype.def) or
-            is_widestring(resulttype.def) then
+         if resulttype.def.needs_inittable then
           begin
             { the FUNCTION_RESULT_REG is already allocated }
             cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT_REG);
@@ -682,20 +681,12 @@ implementation
          if assigned(varargsparas) then
            paramanager.create_varargs_paraloc_info(procdefinition,varargsparas);
 
-         if not assigned(funcretnode) then
+         if resulttype.def.needs_inittable and
+            not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) and
+            not assigned(funcretnode) then
            begin
-             { if we allocate the temp. location for ansi- or widestrings }
-             { already here, we avoid later a push/pop                    }
-             if is_widestring(resulttype.def) then
-               begin
-                 tg.gettemp(exprasmlist,pointer_size,tt_widestring,refcountedtemp);
-                 cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
-               end
-             else if is_ansistring(resulttype.def) then
-               begin
-                 tg.GetTemp(exprasmlist,pointer_size,tt_ansistring,refcountedtemp);
-                 cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
-               end;
+             tg.gettemptyped(exprasmlist,resulttype.def,tt_persistent,refcountedtemp);
+             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
            end;
 
         regs_to_alloc:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
@@ -1014,14 +1005,10 @@ implementation
 
          { if we allocate the temp. location for ansi- or widestrings }
          { already here, we avoid later a push/pop                    }
-         if is_widestring(resulttype.def) then
+         if resulttype.def.needs_inittable and
+            not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
            begin
-             tg.GetTemp(exprasmlist,pointer_size,tt_widestring,refcountedtemp);
-             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
-           end
-         else if is_ansistring(resulttype.def) then
-           begin
-             tg.GetTemp(exprasmlist,pointer_size,tt_ansistring,refcountedtemp);
+             tg.gettemptyped(exprasmlist,resulttype.def,tt_persistent,refcountedtemp);
              cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
            end;
 
@@ -1146,7 +1133,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.135  2003-10-30 17:12:49  peter
+  Revision 1.136  2003-11-04 15:35:13  peter
+    * fix for referencecounted temps
+
+  Revision 1.135  2003/10/30 17:12:49  peter
     * fixed rangecheck error
 
   Revision 1.134  2003/10/29 21:24:14  jonas
