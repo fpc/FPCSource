@@ -1201,8 +1201,8 @@ implementation
              begin
                procinfo^.framepointer:=stack_pointer;
                { set the right value for parameters }
-               dec(aktprocsym.definition.parast.address_fixup,target_os.size_of_pointer);
-               dec(procinfo^.para_offset,target_os.size_of_pointer);
+               dec(aktprocsym.definition.parast.address_fixup,target_info.size_of_pointer);
+               dec(procinfo^.para_offset,target_info.size_of_pointer);
              end;
           { force the asm statement }
             if token<>_ASM then
@@ -1217,7 +1217,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2001-04-15 09:48:30  peter
+  Revision 1.27  2001-04-18 22:01:57  peter
+    * registration of targets and assemblers
+
+  Revision 1.26  2001/04/15 09:48:30  peter
     * fixed crash in labelnode
     * easier detection of goto and label in try blocks
 

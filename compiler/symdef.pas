@@ -1191,7 +1191,7 @@ implementation
          string_typ:=st_longstring;
          deftype:=stringdef;
          len:=l;
-         savesize:=target_os.size_of_pointer;
+         savesize:=target_info.size_of_pointer;
       end;
 
 
@@ -1201,7 +1201,7 @@ implementation
          deftype:=stringdef;
          string_typ:=st_longstring;
          len:=readlong;
-         savesize:=target_os.size_of_pointer;
+         savesize:=target_info.size_of_pointer;
       end;
 
 
@@ -1211,7 +1211,7 @@ implementation
          string_typ:=st_ansistring;
          deftype:=stringdef;
          len:=l;
-         savesize:=target_os.size_of_pointer;
+         savesize:=target_info.size_of_pointer;
       end;
 
 
@@ -1221,7 +1221,7 @@ implementation
          deftype:=stringdef;
          string_typ:=st_ansistring;
          len:=readlong;
-         savesize:=target_os.size_of_pointer;
+         savesize:=target_info.size_of_pointer;
       end;
 
 
@@ -1231,7 +1231,7 @@ implementation
          string_typ:=st_widestring;
          deftype:=stringdef;
          len:=l;
-         savesize:=target_os.size_of_pointer;
+         savesize:=target_info.size_of_pointer;
       end;
 
 
@@ -1241,7 +1241,7 @@ implementation
          deftype:=stringdef;
          string_typ:=st_widestring;
          len:=readlong;
-         savesize:=target_os.size_of_pointer;
+         savesize:=target_info.size_of_pointer;
       end;
 
 
@@ -1546,7 +1546,7 @@ implementation
         memsize := memsizeinc;
         getmem(st,memsize);
         { we can specify the size with @s<size>; prefix PM }
-        if savesize <> target_os.size_of_longint then
+        if savesize <> target_info.size_of_longint then
           strpcopy(st,'@s'+tostr(savesize*8)+';e')
         else
           strpcopy(st,'e');
@@ -2159,7 +2159,7 @@ implementation
         deftype:=pointerdef;
         pointertype:=tt;
         is_far:=false;
-        savesize:=target_os.size_of_pointer;
+        savesize:=target_info.size_of_pointer;
       end;
 
 
@@ -2169,7 +2169,7 @@ implementation
         deftype:=pointerdef;
         pointertype:=tt;
         is_far:=true;
-        savesize:=target_os.size_of_pointer;
+        savesize:=target_info.size_of_pointer;
       end;
 
 
@@ -2179,7 +2179,7 @@ implementation
          deftype:=pointerdef;
          pointertype.load;
          is_far:=(readbyte<>0);
-         savesize:=target_os.size_of_pointer;
+         savesize:=target_info.size_of_pointer;
       end;
 
 
@@ -2287,7 +2287,7 @@ implementation
          deftype:=classrefdef;
          pointertype.load;
          is_far:=false;
-         savesize:=target_os.size_of_pointer;
+         savesize:=target_info.size_of_pointer;
       end;
 
 
@@ -2485,7 +2485,7 @@ implementation
               tsymtable(current_module.localsymtable).registerdef(self)
             else if assigned(current_module.globalsymtable) then
               tsymtable(current_module.globalsymtable).registerdef(self);
-         savesize:=target_os.size_of_pointer;
+         savesize:=target_info.size_of_pointer;
       end;
 
 
@@ -2493,7 +2493,7 @@ implementation
       begin
          inherited loaddef;
          deftype:=formaldef;
-         savesize:=target_os.size_of_pointer;
+         savesize:=target_info.size_of_pointer;
       end;
 
 
@@ -3053,7 +3053,7 @@ implementation
          procoptions:=[];
          rettype:=voidtype;
          symtablelevel:=0;
-         savesize:=target_os.size_of_pointer;
+         savesize:=target_info.size_of_pointer;
       end;
 
 
@@ -3123,7 +3123,7 @@ implementation
          readsmallset(proccalloptions);
          readsmallset(procoptions);
          count:=readword;
-         savesize:=target_os.size_of_pointer;
+         savesize:=target_info.size_of_pointer;
          for i:=1 to count do
           begin
             hp:=TParaItem.Create;
@@ -3178,10 +3178,10 @@ implementation
           begin
             case pdc.paratyp of
               vs_out,
-              vs_var   : inc(l,target_os.size_of_pointer);
+              vs_var   : inc(l,target_info.size_of_pointer);
               vs_value,
               vs_const : if push_addr_param(pdc.paratype.def) then
-                          inc(l,target_os.size_of_pointer)
+                          inc(l,target_info.size_of_pointer)
                          else
                           inc(l,pdc.paratype.def.size);
             end;
@@ -3915,9 +3915,9 @@ Const local_symtable_index : longint = $8001;
     function tprocvardef.size : longint;
       begin
          if (po_methodpointer in procoptions) then
-           size:=2*target_os.size_of_pointer
+           size:=2*target_info.size_of_pointer
          else
-           size:=target_os.size_of_pointer;
+           size:=target_info.size_of_pointer;
       end;
 
 
@@ -4244,7 +4244,7 @@ Const local_symtable_index : longint = $8001;
                   inc(symtable.datasize,c.symtable.datasize);
                   if (oo_has_vmt in objectoptions) and
                      (oo_has_vmt in c.objectoptions) then
-                    dec(symtable.datasize,target_os.size_of_pointer);
+                    dec(symtable.datasize,target_info.size_of_pointer);
                   { if parent has a vmt field then
                     the offset is the same for the child PM }
                   if (oo_has_vmt in c.objectoptions) or is_class(self) then
@@ -4278,7 +4278,7 @@ Const local_symtable_index : longint = $8001;
                    inc(symtable.datasize,4-(symtable.datasize mod 4));
                end;
              vmt_offset:=symtable.datasize;
-             inc(symtable.datasize,target_os.size_of_pointer);
+             inc(symtable.datasize,target_info.size_of_pointer);
              include(objectoptions,oo_has_vmt);
           end;
      end;
@@ -4364,7 +4364,7 @@ Const local_symtable_index : longint = $8001;
     function tobjectdef.size : longint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba] then
-          size:=target_os.size_of_pointer
+          size:=target_info.size_of_pointer
         else
           size:=symtable.datasize;
       end;
@@ -4381,14 +4381,14 @@ Const local_symtable_index : longint = $8001;
         { for offset of methods for classes, see rtl/inc/objpash.inc }
         case objecttype of
         odt_class:
-          vmtmethodoffset:=(index+12)*target_os.size_of_pointer;
+          vmtmethodoffset:=(index+12)*target_info.size_of_pointer;
         odt_interfacecom,odt_interfacecorba:
-          vmtmethodoffset:=index*target_os.size_of_pointer;
+          vmtmethodoffset:=index*target_info.size_of_pointer;
         else
 {$ifdef WITHDMT}
-          vmtmethodoffset:=(index+4)*target_os.size_of_pointer;
+          vmtmethodoffset:=(index+4)*target_info.size_of_pointer;
 {$else WITHDMT}
-          vmtmethodoffset:=(index+3)*target_os.size_of_pointer;
+          vmtmethodoffset:=(index+3)*target_info.size_of_pointer;
 {$endif WITHDMT}
         end;
       end;
@@ -5515,7 +5515,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.27  2001-04-13 01:22:15  peter
+  Revision 1.28  2001-04-18 22:01:58  peter
+    * registration of targets and assemblers
+
+  Revision 1.27  2001/04/13 01:22:15  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

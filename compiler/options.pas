@@ -120,7 +120,7 @@ end;
 
 procedure set_default_link_type;
 begin
-  if (target_os.id=os_i386_win32) then
+  if (target_info.target=target_i386_win32) then
     begin
       def_symbol('FPC_LINK_SMART');
       undef_symbol('FPC_LINK_STATIC');
@@ -328,6 +328,7 @@ var
   j,l  : longint;
   d    : DirStr;
   e    : ExtStr;
+  forceasm : tasm;
 begin
   if opt='' then
    exit;
@@ -358,11 +359,8 @@ begin
                        end;
                     end;
               'A' : begin
-                      if set_string_asm(More) then
-                       begin
-                         initoutputformat:=target_asm.id;
-                         asm_is_set:=true;
-                       end
+                      if set_target_asm_by_string(More) then
+                       asm_is_set:=true
                       else
                        IllegalPara(opt);
                     end;
@@ -726,19 +724,23 @@ begin
                             end;
                          end;
                          { remove old target define }
-                         undef_symbol(target_info.short_name);
-                       { load new target }
-                         if not(set_string_target(More)) then
+                         undef_symbol(upper(target_info.shortname));
+                         { Save assembler if set }
+                         if asm_is_set then
+                          forceasm:=target_asm.id;
+                         { load new target }
+                         if not(set_target_by_string(More)) then
                            IllegalPara(opt);
-                       { set new define }
-                         def_symbol(target_info.short_name);
-                         if not asm_is_set then
-                           initoutputformat:=target_asm.id;
+                         { also initialize assembler if not explicitly set }
+                         if asm_is_set then
+                          set_target_asm(forceasm);
+                         { set new define }
+                         def_symbol(upper(target_info.shortname));
                          target_is_set:=true;
                        end
                       else
-                       if More<>target_info.short_name then
-                        Message1(option_target_is_already_set,target_info.short_name);
+                       if More<>upper(target_info.shortname) then
+                        Message1(option_target_is_already_set,target_info.shortname);
                     end;
               'u' : undef_symbol(upper(More));
               'U' : begin
@@ -1183,7 +1185,7 @@ begin
           inc(i);
           case quickinfo[i] of
            'O' :
-             addinfo(source_os.shortname);
+             addinfo(lower(source_info.shortname));
 {$ifdef Delphi}
            'P' :
              addinfo('i386');
@@ -1200,7 +1202,7 @@ begin
           inc(i);
           case quickinfo[i] of
            'O' :
-             addinfo(target_os.shortname);
+             addinfo(lower(target_info.shortname));
            'P' :
              AddInfo(target_cpu_string);
            else
@@ -1260,7 +1262,7 @@ begin
   disable_configfile:=false;
 
 { default defines }
-  def_symbol(target_info.short_name);
+  def_symbol(upper(target_info.shortname));
   def_symbol('FPC');
   def_symbol('VER'+version_nr);
   def_symbol('VER'+version_nr+'_'+release_nr);
@@ -1454,11 +1456,11 @@ begin
   fsplit(param_file,inputdir,inputfile,inputextension);
   if inputextension='' then
    begin
-     if FileExists(inputdir+inputfile+target_os.sourceext) then
-      inputextension:=target_os.sourceext
+     if FileExists(inputdir+inputfile+target_info.sourceext) then
+      inputextension:=target_info.sourceext
      else
-      if FileExists(inputdir+inputfile+target_os.pasext) then
-       inputextension:=target_os.pasext;
+      if FileExists(inputdir+inputfile+target_info.pasext) then
+       inputextension:=target_info.pasext;
    end;
 
 { Add paths specified with parameters to the searchpaths }
@@ -1498,12 +1500,12 @@ begin
   { first try development RTL, else use the default installation path }
   if not disable_configfile then
     begin
-      if PathExists(FpcDir+'rtl/'+lower(target_info.short_name)) then
-       UnitSearchPath.AddPath(FpcDir+'rtl/'+lower(target_info.short_name),false)
+      if PathExists(FpcDir+'rtl/'+lower(target_info.shortname)) then
+       UnitSearchPath.AddPath(FpcDir+'rtl/'+lower(target_info.shortname),false)
       else
        begin
-         UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.short_name),false);
-         UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.short_name)+'/rtl',false);
+         UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.shortname),false);
+         UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.shortname)+'/rtl',false);
        end;
     end;
   { Add exepath if the exe is not in the current dir, because that is always searched already }
@@ -1515,21 +1517,18 @@ begin
 
 { switch assembler if it's binary and we got -a on the cmdline }
   if (cs_asm_leave in initglobalswitches) and
-     (target_asm.id in binassem) then
+     (target_asm.outputbinary) then
    begin
      Message(option_switch_bin_to_src_assembler);
-     set_target_asm(target_info.assemsrc);
-     initoutputformat:=target_asm.id;
+     set_target_asm(target_info.assemextern);
    end;
 
   if (target_asm.supported_target <> target_any) and
      (target_asm.supported_target <> target_info.target) then
    begin
-     Message2(option_incompatible_asm,target_asm.idtxt,target_os.name);
-     { Should we reset to default ??? }
-     set_target_asm(target_info.assemsrc);
+     Message2(option_incompatible_asm,target_asm.idtxt,target_info.name);
+     set_target_asm(target_info.assemextern);
      Message1(option_asm_forced,target_asm.idtxt);
-     initoutputformat:=target_asm.id;
    end;
 
 { turn off stripping if compiling with debuginfo or profile }
@@ -1557,7 +1556,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.39  2001-04-13 01:22:10  peter
+  Revision 1.40  2001-04-18 22:01:54  peter
+    * registration of targets and assemblers
+
+  Revision 1.39  2001/04/13 01:22:10  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

@@ -27,6 +27,7 @@ interface
 
 uses
   cutils,cclasses,
+  systems,
   aasm;
 
 type
@@ -34,7 +35,7 @@ type
       ordnr  : word;
       name,
       func   : pstring;
-      lab    : tasmlabel; { should be plabel, but this gaves problems with circular units }
+      lab    : tasmlabel;
       is_var : boolean;
       constructor Create(const n,s : string;o : word);
       constructor Create_var(const n,s : string);
@@ -74,56 +75,24 @@ type
      function Scan(const binname:string):longbool;virtual;abstract;
    end;
 
+   TImportLibClass=class of TImportLib;
+   TDLLScannerClass=class of TDLLScanner;
 
 var
-  importlib : timportlib;
+  CImportLib  : array[ttarget] of TImportLibClass;
+  CDLLScanner : array[ttarget] of TDLLScannerClass;
+  ImportLib   : TImportLib;
 
+procedure RegisterImport(t:ttarget;c:TImportLibClass);
+procedure RegisterDLLScanner(t:ttarget;c:TDLLScannerClass);
 procedure InitImport;
 procedure DoneImport;
+
 
 implementation
 
 uses
-  systems,verbose,globals
-{$ifdef i386}
-  {$ifndef NOTARGETLINUX}
-    ,t_linux
-  {$endif}
-  {$ifndef NOTARGETFREEBSD}
-   ,t_fbsd
-  {$endif}
-  {$ifndef NOTARGETSUNOS}
-   ,t_sunos
-  {$endif}
-  {$ifndef NOTARGETOS2}
-    ,t_os2
-  {$endif}
-  {$ifndef NOTARGETWIN32}
-    ,t_win32
-  {$endif}
-  {$ifndef NOTARGETNETWARE}
-    ,t_nwm
-  {$endif}
-  {$ifndef NOTARGETGO32V2}
-    ,t_go32v2
-  {$endif}
-{$endif}
-{$ifdef m68k}
-  {$ifndef NOTARGETLINUX}
-    ,t_linux
-  {$endif}
-{$endif}
-{$ifdef powerpc}
-  {$ifndef NOTARGETLINUX}
-    ,t_linux
-  {$endif}
-{$endif}
-{$ifdef alpha}
-  {$ifndef NOTARGETLINUX}
-    ,t_linux
-  {$endif}
-{$endif}
-  ;
+  verbose,globals;
 
 {****************************************************************************
                            Timported_item
@@ -234,64 +203,44 @@ begin
 end;
 
 
+{*****************************************************************************
+                                 Init/Done
+*****************************************************************************}
+
+procedure RegisterImport(t:ttarget;c:TImportLibClass);
+begin
+  CImportLib[t]:=c;
+end;
+
+
+procedure RegisterDLLScanner(t:ttarget;c:TDLLScannerClass);
+begin
+  CDLLScanner[t]:=c;
+end;
+
+
+procedure InitImport;
+begin
+  if assigned(CImportLib[target_info.target]) then
+   importlib:=CImportLib[target_info.target].Create
+  else
+   importlib:=TImportLib.Create;
+end;
+
+
 procedure DoneImport;
 begin
   if assigned(importlib) then
     importlib.free;
 end;
 
-
-procedure InitImport;
-begin
-  case target_info.target of
-{$ifdef i386}
-  {$ifndef NOTARGETLINUX}
-    target_i386_Linux :
-      importlib:=Timportliblinux.Create;
-  {$endif}
-  {$ifndef NOTARGETFREEBSD}
-    target_i386_freebsd:
-      importlib:=Timportlibfreebsd.Create;
-  {$endif}
-  {$ifndef NOTARGETSUNOS}
-    target_i386_sunos:
-      importlib:=Timportlibsunos.Create;
-  {$endif}
-  {$ifndef NOTARGETWIN32}
-    target_i386_Win32 :
-      importlib:=Timportlibwin32.Create;
-  {$endif}
-  {$ifndef NOTARGETOS2}
-    target_i386_OS2 :
-      importlib:=Timportlibos2.Create;
-  {$endif}
-  {$ifndef NOTARGETNETWARE}
-    target_i386_netware :
-      importlib:=Timportlibnetware.Create;
-  {$endif}
-{$endif i386}
-{$ifdef m68k}
-    target_m68k_Linux :
-      importlib:=Timportliblinux.Create;
-{$endif m68k}
-{$ifdef alpha}
-    target_alpha_Linux :
-      importlib:=Timportliblinux.Create;
-{$endif alpha}
-{$ifdef powerpc}
-    target_alpha_Linux :
-      importlib:=Timportliblinux.Create;
-{$endif powerpc}
-    else
-      importlib:=Timportlib.Create;
-  end;
-end;
-
-
 end.
 {
   $Log$
-  Revision 1.12  2001-04-13 01:22:08  peter
+  Revision 1.13  2001-04-18 22:01:54  peter
+    * registration of targets and assemblers
+
+  Revision 1.12  2001/04/13 01:22:08  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

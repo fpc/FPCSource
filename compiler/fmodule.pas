@@ -49,8 +49,7 @@ interface
 
     type
        trecompile_reason = (rr_unknown,
-         rr_noppu,rr_sourcenewer,rr_build,rr_libolder,rr_objolder,
-         rr_asmolder,rr_crcchanged
+         rr_noppu,rr_sourcenewer,rr_build,rr_crcchanged
        );
 
        TExternalsItem=class(TLinkedListItem)
@@ -92,7 +91,6 @@ interface
 
           compiled,                 { unit is already compiled }
           do_reload,                { force reloading of the unit }
-          do_assemble,              { only assemble the object, don't recompile }
           do_compile,               { need to compile the sources }
           sources_avail,            { if all sources are reachable }
           sources_checked,          { if there is already done a check for the sources }
@@ -353,11 +351,11 @@ uses
          { lib and exe could be loaded with a file specified with -o }
          if AllowOutput and (OutputFile<>'') and (compile_level=1) then
           n:=OutputFile;
-         staticlibfilename:=stringdup(p+target_os.libprefix+n+target_os.staticlibext);
+         staticlibfilename:=stringdup(p+target_info.libprefix+n+target_info.staticlibext);
          if target_info.target=target_i386_WIN32 then
-           sharedlibfilename:=stringdup(p+n+target_os.sharedlibext)
+           sharedlibfilename:=stringdup(p+n+target_info.sharedlibext)
          else
-           sharedlibfilename:=stringdup(p+target_os.libprefix+n+target_os.sharedlibext);
+           sharedlibfilename:=stringdup(p+target_info.libprefix+n+target_info.sharedlibext);
          { output dir of exe can be specified separatly }
          if AllowOutput and (OutputExeDir<>'') then
           p:=OutputExeDir
@@ -369,9 +367,7 @@ uses
 
     function tmodule.openppu:boolean;
       var
-        objfiletime,
-        ppufiletime,
-        asmfiletime : longint;
+        ppufiletime : longint;
       begin
         openppu:=false;
         Message1(unit_t_ppu_loading,ppufilename^);
@@ -382,7 +378,7 @@ uses
       { Open the ppufile }
         Message1(unit_u_ppu_name,ppufilename^);
         ppufile:=new(pppufile,init(ppufilename^));
-        ppufile^.change_endian:=source_os.endian<>target_os.endian;
+        ppufile^.change_endian:=source_info.endian<>target_info.endian;
         if not ppufile^.open then
          begin
            dispose(ppufile,done);
@@ -426,53 +422,7 @@ uses
         Message1(unit_u_ppu_flags,tostr(flags));
         Message1(unit_u_ppu_crc,tostr(ppufile^.header.checksum));
         Message1(unit_u_ppu_crc,tostr(ppufile^.header.interface_checksum)+' (intfc)');
-      { check the object and assembler file to see if we need only to
-        assemble, only if it's not in a library }
         do_compile:=false;
-        if (flags and uf_in_library)=0 then
-         begin
-           if (flags and uf_smart_linked)<>0 then
-            begin
-              objfiletime:=getnamedfiletime(staticlibfilename^);
-              Message2(unit_u_check_time,staticlibfilename^,filetimestring(objfiletime));
-              if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
-                begin
-                  recompile_reason:=rr_libolder;
-                  Message(unit_u_recompile_staticlib_is_older);
-                  do_compile:=true;
-                  exit;
-                end;
-            end;
-           if (flags and uf_static_linked)<>0 then
-            begin
-              { the objectfile should be newer than the ppu file }
-              objfiletime:=getnamedfiletime(objfilename^);
-              Message2(unit_u_check_time,objfilename^,filetimestring(objfiletime));
-              if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
-               begin
-                 { check if assembler file is older than ppu file }
-                 asmfileTime:=GetNamedFileTime(asmfilename^);
-                 Message2(unit_u_check_time,asmfilename^,filetimestring(asmfiletime));
-                 if (asmfiletime<0) or (ppufiletime>asmfiletime) then
-                  begin
-                    Message(unit_u_recompile_obj_and_asm_older);
-                    recompile_reason:=rr_objolder;
-                    do_compile:=true;
-                    exit;
-                  end
-                 else
-                  begin
-                    Message(unit_u_recompile_obj_older_than_asm);
-                    if not(cs_asm_extern in aktglobalswitches) then
-                     begin
-                       do_compile:=true;
-                       recompile_reason:=rr_asmolder;
-                       exit;
-                     end;
-                  end;
-               end;
-            end;
-         end;
         openppu:=true;
       end;
 
@@ -517,11 +467,11 @@ uses
            do_compile:=true;
            recompile_reason:=rr_noppu;
          {Check for .pp file}
-           Found:=UnitExists(target_os.sourceext,hs);
+           Found:=UnitExists(target_info.sourceext,hs);
            if not Found then
             begin
               { Check for .pas }
-              Found:=UnitExists(target_os.pasext,hs);
+              Found:=UnitExists(target_info.pasext,hs);
             end;
            stringdispose(mainsource);
            if Found then
@@ -672,7 +622,6 @@ uses
         linkothersharedlibs.Free;
         linkothersharedlibs:=TLinkContainer.Create;
         uses_imports:=false;
-        do_assemble:=false;
         do_compile:=false;
         { sources_avail:=true;
         should not be changed PM }
@@ -733,7 +682,6 @@ uses
         interface_crc:=0;
         do_reload:=false;
         unitcount:=1;
-        do_assemble:=false;
         do_compile:=false;
         sources_avail:=true;
         sources_checked:=false;
@@ -878,7 +826,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.12  2001-04-13 18:08:37  peter
+  Revision 1.13  2001-04-18 22:01:53  peter
+    * registration of targets and assemblers
+
+  Revision 1.12  2001/04/13 18:08:37  peter
     * scanner object to class
 
   Revision 1.11  2001/04/13 01:22:07  peter

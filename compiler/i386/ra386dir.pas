@@ -284,10 +284,27 @@ interface
        assemble:=casmnode.create(code);
      end;
 
+{*****************************************************************************
+                                     Initialize
+*****************************************************************************}
+
+const
+  asmmode_i386_direct_info : tasmmodeinfo =
+          (
+            id    : asmmode_i386_direct;
+            idtxt : 'DIRECT'
+          );
+
+initialization
+  RegisterAsmMode(asmmode_i386_direct_info);
+
 end.
 {
   $Log$
-  Revision 1.8  2001-04-13 18:20:21  peter
+  Revision 1.9  2001-04-18 22:02:03  peter
+    * registration of targets and assemblers
+
+  Revision 1.8  2001/04/13 18:20:21  peter
     * scanner object to class
 
   Revision 1.7  2001/04/13 01:22:21  peter

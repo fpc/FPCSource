@@ -31,7 +31,14 @@ interface
 // Up to now we use gld since the solaris ld seems not support .res-files}
 {-$DEFINE LinkTest} { DON't del link.res and write Info }
 {$DEFINE GnuLd} {The other is not implemented }
+
+implementation
+
   uses
+    cutils,cclasses,
+    verbose,systems,globtype,globals,
+    symconst,script,
+    fmodule,aasm,cpuasm,cpubase,symsym,
     import,export,link;
 
   type
@@ -61,14 +68,6 @@ interface
       function  MakeSharedLibrary:boolean;override;
     end;
 
-
-implementation
-
-  uses
-    cutils,cclasses,
-    verbose,systems,globtype,globals,
-    symconst,script,
-    fmodule,aasm,cpuasm,cpubase,symsym;
 
 {*****************************************************************************
                                TIMPORTLIBsunos
@@ -358,7 +357,7 @@ begin
         S:=SharedLibFiles.GetFirst;
         if s<>'c' then
          begin
-           i:=Pos(target_os.sharedlibext,S);
+           i:=Pos(target_info.sharedlibext,S);
            if i>0 then
             Delete(S,i,255);
            LinkRes.Add('-l'+s);
@@ -471,15 +470,72 @@ begin
 end;
 
 
+{*****************************************************************************
+                                     Initialize
+*****************************************************************************}
+
+    const
+       target_i386_sunos_info : ttargetinfo =
+          (
+            target       : target_i386_sunos;
+            name         : 'SunOS/ELF for i386';
+            shortname    : 'SunOS';
+            flags        : [];
+            cpu          : i386;
+            unit_env     : 'SUNOSUNITS';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            libprefix    : 'lib';
+            Cprefix      : '';
+            newline      : #10;
+            assem        : as_i386_as;
+            assemextern  : as_i386_as;
+            link         : ld_i386_sunos;
+            linkextern   : ld_i386_sunos;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            endian       : endian_little;
+            stackalignment : 4;
+            maxCrecordalignment : 4;
+            size_of_pointer : 4;
+            size_of_longint : 4;
+            heapsize     : 256*1024;
+            maxheapsize  : 32768*1024;
+            stacksize    : 8192;
+            DllScanSupported:false;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
+          );
+
+
+initialization
+  RegisterLinker(ld_i386_sunos,TLinkerSunos);
+  RegisterImport(target_i386_sunos,TImportLibSunos);
+  RegisterExport(target_i386_sunos,TExportLibSunos);
+  RegisterTarget(target_i386_sunos_info);
 end.
 {
   $Log$
-  Revision 1.2  2001-04-13 01:22:22  peter
+  Revision 1.3  2001-04-18 22:02:04  peter
+    * registration of targets and assemblers
+
+  Revision 1.2  2001/04/13 01:22:22  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
 
   Revision 1.1  2001/02/26 19:43:11  peter
     * moved target units to subdir
-
 }

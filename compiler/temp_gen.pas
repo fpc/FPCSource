@@ -287,7 +287,7 @@ const
       begin
         { align to 4 bytes at least
           otherwise all those subl $2,%esp are meaningless PM }
-        _align:=target_os.stackalignment;
+        _align:=target_info.stackalignment;
         if _align<4 then
           _align:=4;
         gettempsize:=Align(-lasttemp,_align);
@@ -340,13 +340,13 @@ const
           end
          else
           begin
-            ref.offset:=newtempofsize(target_os.size_of_pointer);
+            ref.offset:=newtempofsize(target_info.size_of_pointer);
 {$ifdef EXTDEBUG}
             templist^.posinfo:=aktfilepos;
 {$endif}
             templist^.temptype:=usedtype;
           end;
-         exprasmList.concat(Taitempalloc.alloc(ref.offset,target_os.size_of_pointer));
+         exprasmList.concat(Taitempalloc.alloc(ref.offset,target_info.size_of_pointer));
       end;
 
     function ungettemppointeriftype(const ref : treference; const usedtype, freetype: ttemptype) : boolean;
@@ -591,7 +591,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2001-04-13 01:22:17  peter
+  Revision 1.13  2001-04-18 22:02:00  peter
+    * registration of targets and assemblers
+
+  Revision 1.12  2001/04/13 01:22:17  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

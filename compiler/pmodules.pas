@@ -54,9 +54,6 @@ implementation
        hcodegen,
 {$ifdef i386}
        cgai386,
-  {$ifndef NOTARGETWIN32}
-       t_win32,
-  {$endif}
 {$endif i386}
 {$endif newcg}
        link,assemble,import,export,gendef,ppu,comprsrc,
@@ -76,18 +73,9 @@ implementation
            (not current_module.linkOtherSharedLibs.Empty) then
          begin
            { Init DLLScanner }
-           DLLScanner:=nil;
-           case target_info.target of
-             target_none :
-               ;
-{$ifdef i386}
-  {$ifndef NOTARGETWIN32}
-             target_i386_win32 :
-               DLLScanner:=tDLLscannerWin32.create;
-  {$endif NOTARGETWIN32}
-{$endif}
-           end;
-           if DLLScanner=nil then
+           if assigned(CDLLScanner[target_info.target]) then
+            DLLScanner:=CDLLScanner[target_info.target].Create
+           else
             internalerror(200104121);
            { Walk all shared libs }
            While not current_module.linkOtherSharedLibs.Empty do
@@ -165,7 +153,7 @@ implementation
          begin
            dataSegment.insert(Tai_align.Create(4));
            dataSegment.insert(Tai_string.Create('FPC '+full_version_string+
-             ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.short_name));
+             ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
          end;
       { finish codesegment }
         codeSegment.concat(Tai_align.Create(16));
@@ -517,12 +505,6 @@ implementation
                 if (not current_scanner.invalid) then
                   current_scanner.tempopeninputfile;
               end;
-           end
-          else
-           begin
-           { only reassemble ? }
-             if (current_module.do_assemble) then
-              OnlyAsm;
            end;
          if assigned(current_module.ppufile) then
            begin
@@ -952,7 +934,7 @@ implementation
         aktprocsym.definition:=tprocdef.create;
         symtablestack:=stt;
         aktprocsym.definition.proctypeoption:=options;
-        aktprocsym.definition.setmangledname(target_os.cprefix+name);
+        aktprocsym.definition.setmangledname(target_info.cprefix+name);
         aktprocsym.definition.forwarddef:=false;
         make_ref:=true;
         { The localst is a local symtable. Change it into the static
@@ -1212,7 +1194,7 @@ implementation
          codegen_newprocedure;
          gen_main_procsym(current_module.modulename^+'_init',potype_unitinit,st);
          aktprocsym.definition.aliasnames.insert('INIT$$'+current_module.modulename^);
-         aktprocsym.definition.aliasnames.insert(target_os.cprefix+current_module.modulename^+'_init');
+         aktprocsym.definition.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_init');
          compile_proc_body(true,false);
          codegen_doneprocedure;
 
@@ -1244,7 +1226,7 @@ implementation
               codegen_newprocedure;
               gen_main_procsym(current_module.modulename^+'_finalize',potype_unitfinalize,st);
               aktprocsym.definition.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
-              aktprocsym.definition.aliasnames.insert(target_os.cprefix+current_module.modulename^+'_finalize');
+              aktprocsym.definition.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
               compile_proc_body(true,false);
               codegen_doneprocedure;
            end
@@ -1342,7 +1324,25 @@ implementation
 
          if cs_local_browser in aktmoduleswitches then
            current_module.localsymtable:=refsymtable;
-         { Write out the ppufile }
+{$ifdef GDB}
+         pu:=tused_unit(usedunits.first);
+         while assigned(pu) do
+           begin
+              if assigned(pu.u.globalsymtable) then
+                tglobalsymtable(pu.u.globalsymtable).is_stab_written:=false;
+              pu:=tused_unit(pu.next);
+           end;
+{$endif GDB}
+
+         if is_assembler_generated then
+          begin
+          { finish asmlist by adding segment starts }
+            insertsegment;
+          { assemble }
+            create_objectfile;
+          end;
+
+         { Write out the ppufile after the object file has been created }
          store_interface_crc:=current_module.interface_crc;
          store_crc:=current_module.crc;
          if (Errorcount=0) then
@@ -1358,17 +1358,9 @@ implementation
              Comment(V_Warning,current_module.ppufilename^+' implementation CRC changed '+
                tostr(store_crc)+'<>'+tostr(current_module.interface_crc));
 {$endif EXTDEBUG}
+
          { must be done only after local symtable ref stores !! }
          closecurrentppu;
-{$ifdef GDB}
-         pu:=tused_unit(usedunits.first);
-         while assigned(pu) do
-           begin
-              if assigned(pu.u.globalsymtable) then
-                tglobalsymtable(pu.u.globalsymtable).is_stab_written:=false;
-              pu:=tused_unit(pu.next);
-           end;
-{$endif GDB}
 
          { remove static symtable (=refsymtable) here to save some mem }
          if not (cs_local_browser in aktmoduleswitches) then
@@ -1378,14 +1370,6 @@ implementation
            end;
 
          RestoreUnitSyms;
-
-         if is_assembler_generated then
-          begin
-          { finish asmlist by adding segment starts }
-            insertsegment;
-          { assemble }
-            create_objectfile;
-          end;
 
          { leave when we got an error }
          if (Errorcount>0) and not status.skip_error then
@@ -1515,7 +1499,7 @@ implementation
          gen_main_procsym('main',potype_proginit,st);
          aktprocsym.definition.aliasnames.insert('program_init');
          aktprocsym.definition.aliasnames.insert('PASCALMAIN');
-         aktprocsym.definition.aliasnames.insert(target_os.cprefix+'main');
+         aktprocsym.definition.aliasnames.insert(target_info.cprefix+'main');
 {$ifdef m68k}
          if target_info.target=target_m68k_PalmOS then
            aktprocsym.definition.aliasnames.insert('PilotMain');
@@ -1551,7 +1535,7 @@ implementation
               codegen_newprocedure;
               gen_main_procsym(current_module.modulename^+'_finalize',potype_unitfinalize,st);
               aktprocsym.definition.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
-              aktprocsym.definition.aliasnames.insert(target_os.cprefix+current_module.modulename^+'_finalize');
+              aktprocsym.definition.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
               compile_proc_body(true,false);
               codegen_doneprocedure;
            end;
@@ -1639,7 +1623,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2001-04-13 18:08:37  peter
+  Revision 1.29  2001-04-18 22:01:57  peter
+    * registration of targets and assemblers
+
+  Revision 1.28  2001/04/13 18:08:37  peter
     * scanner object to class
 
   Revision 1.27  2001/04/13 01:22:12  peter

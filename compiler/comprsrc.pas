@@ -78,7 +78,7 @@ var
 begin
   resbin:='';
   if utilsdirectory<>'' then
-   resfound:=FindFile(target_res.resbin+source_os.exeext,utilsdirectory,resbin);
+   resfound:=FindFile(target_res.resbin+source_info.exeext,utilsdirectory,resbin);
   if not resfound then
    resfound:=FindExe(target_res.resbin,resbin);
   { get also the path to be searched for the windres.h }
@@ -142,7 +142,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2001-03-13 21:01:14  peter
+  Revision 1.9  2001-04-18 22:01:53  peter
+    * registration of targets and assemblers
+
+  Revision 1.8  2001/03/13 21:01:14  peter
     * string fixes
 
   Revision 1.7  2001/02/20 21:41:17  peter

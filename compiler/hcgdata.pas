@@ -981,12 +981,12 @@ implementation
                 { allocate a pointer in the object memory }
                 with tstoredsymtable(_class.symtable) do
                   begin
-                    if (dataalignment>=target_os.size_of_pointer) then
+                    if (dataalignment>=target_info.size_of_pointer) then
                       datasize:=align(datasize,dataalignment)
                     else
-                      datasize:=align(datasize,target_os.size_of_pointer);
+                      datasize:=align(datasize,target_info.size_of_pointer);
                     _class.implementedinterfaces.ioffsets(i)^:=datasize;
-                    datasize:=datasize+target_os.size_of_pointer;
+                    datasize:=datasize+target_info.size_of_pointer;
                   end;
                 { write vtbl }
                 gintfcreatevtbl(i,rawdata,rawcode);
@@ -1266,7 +1266,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2001-04-13 01:22:07  peter
+  Revision 1.20  2001-04-18 22:01:54  peter
+    * registration of targets and assemblers
+
+  Revision 1.19  2001/04/13 01:22:07  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

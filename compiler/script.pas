@@ -88,7 +88,7 @@ end;
 
 constructor TScript.CreateExec(const s:string);
 begin
-  fn:=FixFileName(s)+source_os.scriptext;
+  fn:=FixFileName(s)+source_info.scriptext;
   executable:=true;
   data:=TStringList.Create;
 end;
@@ -238,7 +238,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2001-04-13 01:22:14  peter
+  Revision 1.9  2001-04-18 22:01:58  peter
+    * registration of targets and assemblers
+
+  Revision 1.8  2001/04/13 01:22:14  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

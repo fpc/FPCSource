@@ -1546,11 +1546,11 @@ implementation
       begin
          inherited create(procinlinen);
          inlineprocsym:=tcallnode(callp).symtableprocentry;
-         retoffset:=-target_os.size_of_pointer; { less dangerous as zero (PM) }
+         retoffset:=-target_info.size_of_pointer; { less dangerous as zero (PM) }
          para_offset:=0;
-         para_size:=inlineprocsym.definition.para_size(target_os.stackalignment);
+         para_size:=inlineprocsym.definition.para_size(target_info.stackalignment);
          if ret_in_param(inlineprocsym.definition.rettype.def) then
-           para_size:=para_size+target_os.size_of_pointer;
+           para_size:=para_size+target_info.size_of_pointer;
          { copy args }
          if assigned(code) then
            inlinetree:=code.getcopy
@@ -1617,7 +1617,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2001-04-13 23:52:29  peter
+  Revision 1.30  2001-04-18 22:01:54  peter
+    * registration of targets and assemblers
+
+  Revision 1.29  2001/04/13 23:52:29  peter
     * don't allow passing signed-unsigned ords to var parameter, this
       forbids smallint-word, shortint-byte, longint-cardinal mixtures.
       It's still allowed in tp7 -So mode.

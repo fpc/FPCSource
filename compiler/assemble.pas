@@ -26,593 +26,1502 @@ unit assemble;
 
 interface
 
-uses
+{ Use multiple passes in the internal assembler to optimize jumps }
+{$define MULTIPASS}
+
+
+    uses
 {$ifdef Delphi}
-  sysutils,
-  dmisc,
+      sysutils,
+      dmisc,
 {$else Delphi}
-  strings,
-  dos,
+      strings,
+      dos,
 {$endif Delphi}
-  globtype,globals,aasm;
+      systems,globtype,globals,aasm,ogbase;
 
-const
-  AsmOutSize=32768;
+    const
+       AsmOutSize=32768;
 
-type
-  TAssembler=class
-  public
-  {filenames}
-    path     : pathstr;
-    name     : namestr;
-    asmfile,         { current .s and .o file }
-    objfile  : string;
-    SmartAsm : boolean;
-    SmartFilesCount,
-    SmartHeaderCount : longint;
-    Constructor Create(smart:boolean);
-    Destructor Destroy;override;
-    procedure WriteTree(p:TAAsmoutput);virtual;
-    procedure WriteAsmList;virtual;
-    procedure NextSmartName(place:tcutplace);
-  end;
+    type
+      TAssembler=class
+      public
+      {filenames}
+        path     : pathstr;
+        name     : namestr;
+        asmfile,         { current .s and .o file }
+        objfile  : string;
+        SmartAsm : boolean;
+        SmartFilesCount,
+        SmartHeaderCount : longint;
+        Constructor Create(smart:boolean);virtual;
+        Destructor Destroy;override;
+        procedure NextSmartName(place:tcutplace);
+        procedure MakeObject;virtual;abstract;
+      end;
 
-  TExternalAssembler=class(TAssembler)
-  private
-    procedure CreateSmartLinkPath(const s:string);
-  protected
-  {outfile}
-    AsmSize,
-    AsmStartSize,
-    outcnt   : longint;
-    outbuf   : array[0..AsmOutSize-1] of char;
-    outfile  : file;
-  public
-    Function  FindAssembler:string;
-    Function  CallAssembler(const command,para:string):Boolean;
-    Function  DoAssemble:boolean;
-    Procedure RemoveAsm;
-    Procedure AsmFlush;
-    Procedure AsmClear;
-    Procedure AsmWrite(const s:string);
-    Procedure AsmWritePChar(p:pchar);
-    Procedure AsmWriteLn(const s:string);
-    Procedure AsmLn;
-    procedure AsmCreate(Aplace:tcutplace);
-    procedure AsmClose;
-    procedure Synchronize;
-  public
-    Constructor Create(smart:boolean);
-  end;
+      TExternalAssembler=class(TAssembler)
+      private
+        procedure CreateSmartLinkPath(const s:string);
+      protected
+      {outfile}
+        AsmSize,
+        AsmStartSize,
+        outcnt   : longint;
+        outbuf   : array[0..AsmOutSize-1] of char;
+        outfile  : file;
+      public
+        Function  FindAssembler:string;
+        Function  CallAssembler(const command,para:string):Boolean;
+        Function  DoAssemble:boolean;
+        Procedure RemoveAsm;
+        Procedure AsmFlush;
+        Procedure AsmClear;
+        Procedure AsmWrite(const s:string);
+        Procedure AsmWritePChar(p:pchar);
+        Procedure AsmWriteLn(const s:string);
+        Procedure AsmLn;
+        procedure AsmCreate(Aplace:tcutplace);
+        procedure AsmClose;
+        procedure WriteTree(p:TAAsmoutput);virtual;
+        procedure WriteAsmList;virtual;
+      public
+        Constructor Create(smart:boolean);override;
+        procedure MakeObject;override;
+      end;
 
+      TInternalAssembler=class(TAssembler)
+      public
+        constructor create(smart:boolean);override;
+        destructor  destroy;override;
+        procedure MakeObject;override;
+      protected
+        { object alloc and output }
+        objectalloc  : tobjectalloc;
+        objectoutput : tobjectoutput;
+      private
+        { the aasmoutput lists that need to be processed }
+        lists        : byte;
+        list         : array[1..maxoutputlists] of TAAsmoutput;
+        { current processing }
+        currlistidx  : byte;
+        currlist     : TAAsmoutput;
+        currpass     : byte;
+{$ifdef GDB}
+        n_line       : byte;     { different types of source lines }
+        linecount,
+        includecount : longint;
+        funcname     : tasmsymbol;
+        stabslastfileinfo : tfileposinfo;
+        procedure convertstabs(p:pchar);
+        procedure emitlineinfostabs(nidx,line : longint);
+        procedure emitstabs(s:string);
+        procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
+        procedure StartFileLineInfo;
+        procedure EndFileLineInfo;
+{$endif}
+        function  MaybeNextList(var hp:Tai):boolean;
+        function  TreePass0(hp:Tai):Tai;
+        function  TreePass1(hp:Tai):Tai;
+        function  TreePass2(hp:Tai):Tai;
+        procedure writetree;
+        procedure writetreesmart;
+      end;
 
-Procedure GenerateAsm(smart:boolean);
-Procedure OnlyAsm;
+    TAssemblerClass = class of TAssembler;
+
+    Procedure GenerateAsm(smart:boolean);
+    Procedure OnlyAsm;
+
+    procedure RegisterAssembler(const r:tasminfo;c:TAssemblerClass);
+    procedure InitAssembler;
+    procedure DoneAssembler;
 
 
 Implementation
 
-uses
-  cutils,script,fmodule,systems,verbose
+    uses
 {$ifdef unix}
   {$ifdef ver1_0}
-    ,linux
+      linux,
   {$else}
-    ,unix
+      unix,
   {$endif}
 {$endif}
-{$ifdef i386}
-  {$ifndef NoAg386Bin}
-    ,ag386bin
-  {$endif}
-  {$ifndef NoAg386Att}
-    ,ag386att
-  {$endif NoAg386Att}
-  {$ifndef NoAg386Nsm}
-    ,ag386nsm
-  {$endif NoAg386Nsm}
-  {$ifndef NoAg386Int}
-    ,ag386int
-  {$endif NoAg386Int}
-  {$ifdef Ag386Cof}
-    ,ag386cof
-  {$endif Ag386Cof}
-{$endif}
-{$ifdef m68k}
-  {$ifndef NoAg68kGas}
-    ,ag68kgas
-  {$endif NoAg68kGas}
-  {$ifndef NoAg68kMot}
-    ,ag68kmot
-  {$endif NoAg68kMot}
-  {$ifndef NoAg68kMit}
-    ,ag68kmit
-  {$endif NoAg68kMit}
-  {$ifndef NoAg68kMpw}
-    ,ag68kmpw
-  {$endif NoAg68kMpw}
-{$endif}
-  ;
+      cutils,script,finput,fmodule,verbose,
+{$ifdef GDB}
+      gdb,
+{$endif GDB}
+      cpubase,cpuasm
+      ;
+
+    var
+      CAssembler : array[tasm] of TAssemblerClass;
 
 
 {*****************************************************************************
                                    TAssembler
 *****************************************************************************}
 
-Constructor TAssembler.Create(smart:boolean);
-begin
-{ load start values }
-  asmfile:=current_module.asmfilename^;
-  objfile:=current_module.objfilename^;
-  name:=Lower(current_module.modulename^);
-  path:=current_module.outputpath^;
-  SmartAsm:=smart;
-  SmartFilesCount:=0;
-  SmartHeaderCount:=0;
-  SmartLinkOFiles.Clear;
-end;
-
-
-Destructor TAssembler.Destroy;
-begin
-end;
-
-
-procedure TAssembler.WriteTree(p:TAAsmoutput);
-begin
-end;
-
-
-procedure TAssembler.WriteAsmList;
-begin
-end;
-
-
-procedure TAssembler.NextSmartName(place:tcutplace);
-var
-  s : string;
-begin
-  inc(SmartFilesCount);
-  if SmartFilesCount>999999 then
-   Message(asmw_f_too_many_asm_files);
-  case place of
-    cut_begin :
+    Constructor TAssembler.Create(smart:boolean);
       begin
-        inc(SmartHeaderCount);
-        s:=current_module.asmprefix^+tostr(SmartHeaderCount)+'h';
+      { load start values }
+        asmfile:=current_module.asmfilename^;
+        objfile:=current_module.objfilename^;
+        name:=Lower(current_module.modulename^);
+        path:=current_module.outputpath^;
+        SmartAsm:=smart;
+        SmartFilesCount:=0;
+        SmartHeaderCount:=0;
+        SmartLinkOFiles.Clear;
       end;
-    cut_normal :
-      s:=current_module.asmprefix^+tostr(SmartHeaderCount)+'s';
-    cut_end :
-      s:=current_module.asmprefix^+tostr(SmartHeaderCount)+'t';
-  end;
-  AsmFile:=Path+FixFileName(s+tostr(SmartFilesCount)+target_info.asmext);
-  ObjFile:=Path+FixFileName(s+tostr(SmartFilesCount)+target_info.objext);
-  { insert in container so it can be cleared after the linking }
-  SmartLinkOFiles.Insert(Objfile);
-end;
+
+
+    Destructor TAssembler.Destroy;
+      begin
+      end;
+
+
+    procedure TAssembler.NextSmartName(place:tcutplace);
+      var
+        s : string;
+      begin
+        inc(SmartFilesCount);
+        if SmartFilesCount>999999 then
+         Message(asmw_f_too_many_asm_files);
+        case place of
+          cut_begin :
+            begin
+              inc(SmartHeaderCount);
+              s:=current_module.asmprefix^+tostr(SmartHeaderCount)+'h';
+            end;
+          cut_normal :
+            s:=current_module.asmprefix^+tostr(SmartHeaderCount)+'s';
+          cut_end :
+            s:=current_module.asmprefix^+tostr(SmartHeaderCount)+'t';
+        end;
+        AsmFile:=Path+FixFileName(s+tostr(SmartFilesCount)+target_info.asmext);
+        ObjFile:=Path+FixFileName(s+tostr(SmartFilesCount)+target_info.objext);
+        { insert in container so it can be cleared after the linking }
+        SmartLinkOFiles.Insert(Objfile);
+      end;
 
 
 {*****************************************************************************
-                                  TExternalAssembler
+                                 TExternalAssembler
 *****************************************************************************}
 
-Function DoPipe:boolean;
-begin
-  DoPipe:=(cs_asm_pipe in aktglobalswitches) and
-          not(cs_asm_leave in aktglobalswitches)
+    Function DoPipe:boolean;
+      begin
+        DoPipe:=(cs_asm_pipe in aktglobalswitches) and
+                not(cs_asm_leave in aktglobalswitches)
 {$ifdef i386}
-          and (aktoutputformat=as_i386_as)
+                and (aktoutputformat=as_i386_as)
 {$endif i386}
 {$ifdef m68k}
-          and (aktoutputformat=as_m68k_as);
+                and (aktoutputformat=as_m68k_as);
 {$endif m68k}
-end;
-
-
-Constructor TExternalAssembler.Create(smart:boolean);
-begin
-  inherited Create(smart);
-  if SmartAsm then
-   begin
-     path:=FixPath(current_module.outputpath^+FixFileName(current_module.modulename^)+target_info.smartext,false);
-     CreateSmartLinkPath(path);
-   end;
-  Outcnt:=0;
-end;
-
-
-procedure TExternalAssembler.CreateSmartLinkPath(const s:string);
-var
-  dir : searchrec;
-  hs  : string;
-begin
-  if PathExists(s) then
-   begin
-     { the path exists, now we clean only all the .o and .s files }
-     { .o files }
-     findfirst(s+dirsep+'*'+target_info.objext,anyfile,dir);
-     while (doserror=0) do
-      begin
-        RemoveFile(s+dirsep+dir.name);
-        findnext(dir);
       end;
-     findclose(dir);
-     { .s files }
-     findfirst(s+dirsep+'*'+target_info.asmext,anyfile,dir);
-     while (doserror=0) do
+
+
+    Constructor TExternalAssembler.Create(smart:boolean);
       begin
-        RemoveFile(s+dirsep+dir.name);
-        findnext(dir);
-      end;
-     findclose(dir);
-   end
-  else
-   begin
-     hs:=s;
-     if hs[length(hs)] in ['/','\'] then
-      delete(hs,length(hs),1);
-     {$I-}
-      mkdir(hs);
-     {$I+}
-     if ioresult<>0 then;
-   end;
-end;
-
-
-const
-  lastas  : byte=255;
-var
-  LastASBin : pathstr;
-Function TExternalAssembler.FindAssembler:string;
-var
-  asfound : boolean;
-  UtilExe  : string;
-begin
-  asfound:=false;
-  UtilExe:=AddExtension(target_asm.asmbin,source_os.exeext);
-  if lastas<>ord(target_asm.id) then
-   begin
-     lastas:=ord(target_asm.id);
-     { is an assembler passed ? }
-     if utilsdirectory<>'' then
-       asfound:=FindFile(UtilExe,utilsdirectory,LastASBin);
-     if not AsFound then
-       asfound:=FindExe(UtilExe,LastASBin);
-     if (not asfound) and not(cs_asm_extern in aktglobalswitches) then
-      begin
-        Message1(exec_w_assembler_not_found,LastASBin);
-        aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
-      end;
-     if asfound then
-      Message1(exec_t_using_assembler,LastASBin);
-   end;
-  FindAssembler:=LastASBin;
-end;
-
-
-Function TExternalAssembler.CallAssembler(const command,para:string):Boolean;
-begin
-  callassembler:=true;
-  if not(cs_asm_extern in aktglobalswitches) then
-   begin
-     swapvectors;
-     exec(command,para);
-     swapvectors;
-     if (doserror<>0) then
-      begin
-        Message1(exec_w_cant_call_assembler,tostr(doserror));
-        aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
-        callassembler:=false;
-      end
-     else
-      if (dosexitcode<>0) then
-       begin
-        Message1(exec_w_error_while_assembling,tostr(dosexitcode));
-        callassembler:=false;
-       end;
-   end
-  else
-   AsmRes.AddAsmCommand(command,para,name);
-end;
-
-
-procedure TExternalAssembler.RemoveAsm;
-var
-  g : file;
-begin
-  if cs_asm_leave in aktglobalswitches then
-   exit;
-  if cs_asm_extern in aktglobalswitches then
-   AsmRes.AddDeleteCommand(AsmFile)
-  else
-   begin
-     assign(g,AsmFile);
-     {$I-}
-      erase(g);
-     {$I+}
-     if ioresult<>0 then;
-   end;
-end;
-
-
-Function TExternalAssembler.DoAssemble:boolean;
-var
-  s : string;
-begin
-  DoAssemble:=true;
-  if DoPipe then
-   exit;
-  if not(cs_asm_extern in aktglobalswitches) then
-   begin
-     if SmartAsm then
-      begin
-        if (SmartFilesCount<=1) then
-         Message1(exec_i_assembling_smart,name);
-      end
-     else
-     Message1(exec_i_assembling,name);
-   end;
-  s:=target_asm.asmcmd;
-  Replace(s,'$ASM',AsmFile);
-  Replace(s,'$OBJ',ObjFile);
-  if CallAssembler(FindAssembler,s) then
-   RemoveAsm
-  else
-   begin
-      DoAssemble:=false;
-      GenerateError;
-   end;
-end;
-
-
-Procedure TExternalAssembler.AsmFlush;
-begin
-  if outcnt>0 then
-   begin
-     BlockWrite(outfile,outbuf,outcnt);
-     outcnt:=0;
-   end;
-end;
-
-
-Procedure TExternalAssembler.AsmClear;
-begin
-  outcnt:=0;
-end;
-
-
-Procedure TExternalAssembler.AsmWrite(const s:string);
-begin
-  if OutCnt+length(s)>=AsmOutSize then
-   AsmFlush;
-  Move(s[1],OutBuf[OutCnt],length(s));
-  inc(OutCnt,length(s));
-  inc(AsmSize,length(s));
-end;
-
-
-Procedure TExternalAssembler.AsmWriteLn(const s:string);
-begin
-  AsmWrite(s);
-  AsmLn;
-end;
-
-
-Procedure TExternalAssembler.AsmWritePChar(p:pchar);
-var
-  i,j : longint;
-begin
-  i:=StrLen(p);
-  j:=i;
-  while j>0 do
-   begin
-     i:=min(j,AsmOutSize);
-     if OutCnt+i>=AsmOutSize then
-      AsmFlush;
-     Move(p[0],OutBuf[OutCnt],i);
-     inc(OutCnt,i);
-     inc(AsmSize,i);
-     dec(j,i);
-     p:=pchar(@p[i]);
-   end;
-end;
-
-
-Procedure TExternalAssembler.AsmLn;
-begin
-  if OutCnt>=AsmOutSize-2 then
-   AsmFlush;
-  OutBuf[OutCnt]:=target_os.newline[1];
-  inc(OutCnt);
-  inc(AsmSize);
-  if length(target_os.newline)>1 then
-   begin
-     OutBuf[OutCnt]:=target_os.newline[2];
-     inc(OutCnt);
-     inc(AsmSize);
-   end;
-end;
-
-
-procedure TExternalAssembler.AsmCreate(Aplace:tcutplace);
-begin
-  if SmartAsm then
-   NextSmartName(Aplace);
-{$ifdef unix}
-  if DoPipe then
-   begin
-     Message1(exec_i_assembling_pipe,asmfile);
-     POpen(outfile,'as -o '+objfile,'W');
-   end
-  else
-{$endif}
-   begin
-     Assign(outfile,asmfile);
-     {$I-}
-      Rewrite(outfile,1);
-     {$I+}
-     if ioresult<>0 then
-      Message1(exec_d_cant_create_asmfile,asmfile);
-   end;
-  outcnt:=0;
-  AsmSize:=0;
-  AsmStartSize:=0;
-end;
-
-
-procedure TExternalAssembler.AsmClose;
-var
-  f : file;
-  l : longint;
-begin
-  AsmFlush;
-{$ifdef unix}
-  if DoPipe then
-   PClose(outfile)
-  else
-{$endif}
-   begin
-   {Touch Assembler time to ppu time is there is a ppufilename}
-     if Assigned(current_module.ppufilename) then
-      begin
-        Assign(f,current_module.ppufilename^);
-        {$I-}
-         reset(f,1);
-        {$I+}
-        if ioresult=0 then
+        inherited Create(smart);
+        if SmartAsm then
          begin
-           getftime(f,l);
-           close(f);
-           reset(outfile,1);
-           setftime(outfile,l);
+           path:=FixPath(current_module.outputpath^+FixFileName(current_module.modulename^)+target_info.smartext,false);
+           CreateSmartLinkPath(path);
+         end;
+        Outcnt:=0;
+      end;
+
+
+    procedure TExternalAssembler.CreateSmartLinkPath(const s:string);
+      var
+        dir : searchrec;
+        hs  : string;
+      begin
+        if PathExists(s) then
+         begin
+           { the path exists, now we clean only all the .o and .s files }
+           { .o files }
+           findfirst(s+dirsep+'*'+target_info.objext,anyfile,dir);
+           while (doserror=0) do
+            begin
+              RemoveFile(s+dirsep+dir.name);
+              findnext(dir);
+            end;
+           findclose(dir);
+           { .s files }
+           findfirst(s+dirsep+'*'+target_info.asmext,anyfile,dir);
+           while (doserror=0) do
+            begin
+              RemoveFile(s+dirsep+dir.name);
+              findnext(dir);
+            end;
+           findclose(dir);
+         end
+        else
+         begin
+           hs:=s;
+           if hs[length(hs)] in ['/','\'] then
+            delete(hs,length(hs),1);
+           {$I-}
+            mkdir(hs);
+           {$I+}
+           if ioresult<>0 then;
          end;
       end;
-     close(outfile);
-   end;
-end;
 
 
-{Touch Assembler and object time to ppu time is there is a ppufilename}
-procedure TExternalAssembler.Synchronize;
-begin
-{Touch Assembler time to ppu time is there is a ppufilename}
-  if Assigned(current_module.ppufilename) then
-   begin
-     SynchronizeFileTime(current_module.ppufilename^,asmfile);
-     if not(cs_asm_extern in aktglobalswitches) then
-       SynchronizeFileTime(current_module.ppufilename^,objfile);
-   end;
-end;
+    const
+      lastas  : byte=255;
+    var
+      LastASBin : pathstr;
+    Function TExternalAssembler.FindAssembler:string;
+      var
+        asfound : boolean;
+        UtilExe  : string;
+      begin
+        asfound:=false;
+        UtilExe:=AddExtension(target_asm.asmbin,source_info.exeext);
+        if lastas<>ord(target_asm.id) then
+         begin
+           lastas:=ord(target_asm.id);
+           { is an assembler passed ? }
+           if utilsdirectory<>'' then
+             asfound:=FindFile(UtilExe,utilsdirectory,LastASBin);
+           if not AsFound then
+             asfound:=FindExe(UtilExe,LastASBin);
+           if (not asfound) and not(cs_asm_extern in aktglobalswitches) then
+            begin
+              Message1(exec_w_assembler_not_found,LastASBin);
+              aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
+            end;
+           if asfound then
+            Message1(exec_t_using_assembler,LastASBin);
+         end;
+        FindAssembler:=LastASBin;
+      end;
+
+
+    Function TExternalAssembler.CallAssembler(const command,para:string):Boolean;
+      begin
+        callassembler:=true;
+        if not(cs_asm_extern in aktglobalswitches) then
+         begin
+           swapvectors;
+           exec(command,para);
+           swapvectors;
+           if (doserror<>0) then
+            begin
+              Message1(exec_w_cant_call_assembler,tostr(doserror));
+              aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
+              callassembler:=false;
+            end
+           else
+            if (dosexitcode<>0) then
+             begin
+              Message1(exec_w_error_while_assembling,tostr(dosexitcode));
+              callassembler:=false;
+             end;
+         end
+        else
+         AsmRes.AddAsmCommand(command,para,name);
+      end;
+
+
+    procedure TExternalAssembler.RemoveAsm;
+      var
+        g : file;
+      begin
+        if cs_asm_leave in aktglobalswitches then
+         exit;
+        if cs_asm_extern in aktglobalswitches then
+         AsmRes.AddDeleteCommand(AsmFile)
+        else
+         begin
+           assign(g,AsmFile);
+           {$I-}
+            erase(g);
+           {$I+}
+           if ioresult<>0 then;
+         end;
+      end;
+
+
+    Function TExternalAssembler.DoAssemble:boolean;
+      var
+        s : string;
+      begin
+        DoAssemble:=true;
+        if DoPipe then
+         exit;
+        if not(cs_asm_extern in aktglobalswitches) then
+         begin
+           if SmartAsm then
+            begin
+              if (SmartFilesCount<=1) then
+               Message1(exec_i_assembling_smart,name);
+            end
+           else
+           Message1(exec_i_assembling,name);
+         end;
+        s:=target_asm.asmcmd;
+        Replace(s,'$ASM',AsmFile);
+        Replace(s,'$OBJ',ObjFile);
+        if CallAssembler(FindAssembler,s) then
+         RemoveAsm
+        else
+         begin
+            DoAssemble:=false;
+            GenerateError;
+         end;
+      end;
+
+
+    Procedure TExternalAssembler.AsmFlush;
+      begin
+        if outcnt>0 then
+         begin
+           BlockWrite(outfile,outbuf,outcnt);
+           outcnt:=0;
+         end;
+      end;
+
+
+    Procedure TExternalAssembler.AsmClear;
+      begin
+        outcnt:=0;
+      end;
+
+
+    Procedure TExternalAssembler.AsmWrite(const s:string);
+      begin
+        if OutCnt+length(s)>=AsmOutSize then
+         AsmFlush;
+        Move(s[1],OutBuf[OutCnt],length(s));
+        inc(OutCnt,length(s));
+        inc(AsmSize,length(s));
+      end;
+
+
+    Procedure TExternalAssembler.AsmWriteLn(const s:string);
+      begin
+        AsmWrite(s);
+        AsmLn;
+      end;
+
+
+    Procedure TExternalAssembler.AsmWritePChar(p:pchar);
+      var
+        i,j : longint;
+      begin
+        i:=StrLen(p);
+        j:=i;
+        while j>0 do
+         begin
+           i:=min(j,AsmOutSize);
+           if OutCnt+i>=AsmOutSize then
+            AsmFlush;
+           Move(p[0],OutBuf[OutCnt],i);
+           inc(OutCnt,i);
+           inc(AsmSize,i);
+           dec(j,i);
+           p:=pchar(@p[i]);
+         end;
+      end;
+
+
+    Procedure TExternalAssembler.AsmLn;
+      begin
+        if OutCnt>=AsmOutSize-2 then
+         AsmFlush;
+        OutBuf[OutCnt]:=target_info.newline[1];
+        inc(OutCnt);
+        inc(AsmSize);
+        if length(target_info.newline)>1 then
+         begin
+           OutBuf[OutCnt]:=target_info.newline[2];
+           inc(OutCnt);
+           inc(AsmSize);
+         end;
+      end;
+
+
+    procedure TExternalAssembler.AsmCreate(Aplace:tcutplace);
+      begin
+        if SmartAsm then
+         NextSmartName(Aplace);
+      {$ifdef unix}
+        if DoPipe then
+         begin
+           Message1(exec_i_assembling_pipe,asmfile);
+           POpen(outfile,'as -o '+objfile,'W');
+         end
+        else
+      {$endif}
+         begin
+           Assign(outfile,asmfile);
+           {$I-}
+            Rewrite(outfile,1);
+           {$I+}
+           if ioresult<>0 then
+            Message1(exec_d_cant_create_asmfile,asmfile);
+         end;
+        outcnt:=0;
+        AsmSize:=0;
+        AsmStartSize:=0;
+      end;
+
+
+    procedure TExternalAssembler.AsmClose;
+      var
+        f : file;
+        l : longint;
+      begin
+        AsmFlush;
+      {$ifdef unix}
+        if DoPipe then
+         PClose(outfile)
+        else
+      {$endif}
+         begin
+         {Touch Assembler time to ppu time is there is a ppufilename}
+           if Assigned(current_module.ppufilename) then
+            begin
+              Assign(f,current_module.ppufilename^);
+              {$I-}
+               reset(f,1);
+              {$I+}
+              if ioresult=0 then
+               begin
+                 getftime(f,l);
+                 close(f);
+                 reset(outfile,1);
+                 setftime(outfile,l);
+               end;
+            end;
+           close(outfile);
+         end;
+      end;
+
+
+    procedure TExternalAssembler.WriteTree(p:TAAsmoutput);
+      begin
+      end;
+
+
+    procedure TExternalAssembler.WriteAsmList;
+      begin
+      end;
+
+
+    procedure TExternalAssembler.MakeObject;
+      begin
+        AsmCreate(cut_normal);
+        WriteAsmList;
+        AsmClose;
+        DoAssemble;
+      end;
+
+
+{*****************************************************************************
+                                  TInternalAssembler
+*****************************************************************************}
+
+    constructor TInternalAssembler.create(smart:boolean);
+      begin
+        inherited create(smart);
+        objectoutput:=nil;
+        objectalloc:=tobjectalloc.create;
+        SmartAsm:=smart;
+        currpass:=0;
+      end;
+
+
+   destructor TInternalAssembler.destroy;
+{$ifdef MEMDEBUG}
+      var
+        d : tmemdebug;
+{$endif}
+      begin
+{$ifdef MEMDEBUG}
+         d.init('agbin');
+{$endif}
+        objectoutput.free;
+        objectalloc.free;
+{$ifdef MEMDEBUG}
+         d.free;
+{$endif}
+      end;
+
+
+{$ifdef GDB}
+    procedure TInternalAssembler.convertstabs(p:pchar);
+      var
+        ofs,
+        nidx,nother,ii,i,line,j : longint;
+        code : integer;
+        hp : pchar;
+        reloc : boolean;
+        sec : tsection;
+        ps : tasmsymbol;
+        s : string;
+      begin
+        ofs:=0;
+        reloc:=true;
+        ps:=nil;
+        sec:=sec_none;
+        if p[0]='"' then
+         begin
+           i:=1;
+           { we can have \" inside the string !! PM }
+           while not ((p[i]='"') and (p[i-1]<>'\')) do
+            inc(i);
+           p[i]:=#0;
+           ii:=i;
+           hp:=@p[1];
+           s:=StrPas(@P[i+2]);
+         end
+        else
+         begin
+           hp:=nil;
+           s:=StrPas(P);
+           i:=-2; {needed below (PM) }
+         end;
+      { When in pass 1 then only alloc and leave }
+        if currpass=1 then
+         begin
+           objectalloc.staballoc(hp);
+           if assigned(hp) then
+            p[i]:='"';
+           exit;
+         end;
+      { Parse the rest of the stabs }
+        if s='' then
+         internalerror(33000);
+        j:=pos(',',s);
+        if j=0 then
+         internalerror(33001);
+        Val(Copy(s,1,j-1),nidx,code);
+        if code<>0 then
+         internalerror(33002);
+        i:=i+2+j;
+        Delete(s,1,j);
+        j:=pos(',',s);
+        if (j=0) then
+         internalerror(33003);
+        Val(Copy(s,1,j-1),nother,code);
+        if code<>0 then
+         internalerror(33004);
+        i:=i+j;
+        Delete(s,1,j);
+        j:=pos(',',s);
+        if j=0 then
+         begin
+           j:=256;
+           ofs:=-1;
+         end;
+        Val(Copy(s,1,j-1),line,code);
+        if code<>0 then
+          internalerror(33005);
+        if ofs=0 then
+          begin
+            Delete(s,1,j);
+            i:=i+j;
+            Val(s,ofs,code);
+            if code=0 then
+              reloc:=false
+            else
+              begin
+                ofs:=0;
+                s:=strpas(@p[i]);
+                { handle asmsymbol or
+                    asmsymbol - asmsymbol }
+                j:=pos(' ',s);
+                if j=0 then
+                  j:=pos('-',s);
+                { single asmsymbol }
+                if j=0 then
+                  j:=256;
+                { the symbol can be external
+                  so we must use newasmsymbol and
+                  not getasmsymbol !! PM }
+                ps:=newasmsymbol(copy(s,1,j-1));
+                if not assigned(ps) then
+                  internalerror(33006)
+                else
+                  begin
+                    sec:=ps.section;
+                    ofs:=ps.address;
+                    reloc:=true;
+                    UsedAsmSymbolListInsert(ps);
+                  end;
+                if j<256 then
+                  begin
+                    i:=i+j;
+                    s:=strpas(@p[i]);
+                    if (s<>'') and (s[1]=' ') then
+                      begin
+                         j:=0;
+                         while (s[j+1]=' ') do
+                           inc(j);
+                         i:=i+j;
+                         s:=strpas(@p[i]);
+                      end;
+                    ps:=getasmsymbol(s);
+                    if not assigned(ps) then
+                      internalerror(33007)
+                    else
+                      begin
+                        if ps.section<>sec then
+                          internalerror(33008);
+                        ofs:=ofs-ps.address;
+                        reloc:=false;
+                        UsedAsmSymbolListInsert(ps);
+                      end;
+                  end;
+              end;
+          end;
+        { external bss need speical handling (PM) }
+        if assigned(ps) and (ps.section=sec_none) then
+          begin
+            if currpass=2 then
+              begin
+                objectdata.writesymbol(ps);
+                objectoutput.exportsymbol(ps);
+              end;
+            objectdata.WriteSymStabs(sec,ofs,hp,ps,nidx,nother,line,reloc)
+          end
+        else
+          objectdata.WriteStabs(sec,ofs,hp,nidx,nother,line,reloc);
+        if assigned(hp) then
+         p[ii]:='"';
+      end;
+
+
+    procedure TInternalAssembler.emitlineinfostabs(nidx,line : longint);
+      var
+         sec : tsection;
+      begin
+        if currpass=1 then
+          begin
+            objectalloc.staballoc(nil);
+            exit;
+          end;
+
+        if (nidx=n_textline) and assigned(funcname) and
+           (target_info.use_function_relative_addresses) then
+          objectdata.WriteStabs(sec_code,objectdata.sectionsize(sec_code)-funcname.address,
+              nil,nidx,0,line,false)
+        else
+          begin
+            if nidx=n_textline then
+              sec:=sec_code
+            else if nidx=n_dataline then
+              sec:=sec_data
+            else
+              sec:=sec_bss;
+            objectdata.WriteStabs(sec,objectdata.sectionsize(sec),
+              nil,nidx,0,line,true);
+          end;
+      end;
+
+
+    procedure TInternalAssembler.emitstabs(s:string);
+      begin
+        s:=s+#0;
+        ConvertStabs(@s[1]);
+      end;
+
+
+    procedure TInternalAssembler.WriteFileLineInfo(var fileinfo : tfileposinfo);
+      var
+        curr_n : byte;
+        hp : tasmsymbol;
+        infile : tinputfile;
+      begin
+        if not ((cs_debuginfo in aktmoduleswitches) or
+           (cs_gdb_lineinfo in aktglobalswitches)) then
+         exit;
+      { file changed ? (must be before line info) }
+        if (fileinfo.fileindex<>0) and
+           (stabslastfileinfo.fileindex<>fileinfo.fileindex) then
+         begin
+           infile:=current_module.sourcefiles.get_file(fileinfo.fileindex);
+           if includecount=0 then
+            curr_n:=n_sourcefile
+           else
+            curr_n:=n_includefile;
+           { get symbol for this includefile }
+           hp:=newasmsymboltype('Ltext'+ToStr(IncludeCount),AB_LOCAL,AT_FUNCTION);
+           if currpass=1 then
+             begin
+                hp.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+                UsedAsmSymbolListInsert(hp);
+             end
+           else
+             objectdata.writesymbol(hp);
+           { emit stabs }
+           if (infile.path^<>'') then
+             EmitStabs('"'+lower(BsToSlash(FixPath(infile.path^,false)))+'",'+tostr(curr_n)+
+               ',0,0,Ltext'+ToStr(IncludeCount));
+           EmitStabs('"'+lower(FixFileName(infile.name^))+'",'+tostr(curr_n)+
+             ',0,0,Ltext'+ToStr(IncludeCount));
+           inc(includecount);
+         end;
+      { line changed ? }
+        if (stabslastfileinfo.line<>fileinfo.line) and (fileinfo.line<>0) then
+          emitlineinfostabs(n_line,fileinfo.line);
+        stabslastfileinfo:=fileinfo;
+      end;
+
+
+    procedure TInternalAssembler.StartFileLineInfo;
+      var
+        fileinfo : tfileposinfo;
+      begin
+        FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
+        n_line:=n_textline;
+        funcname:=nil;
+        linecount:=1;
+        includecount:=0;
+        fileinfo.fileindex:=1;
+        fileinfo.line:=1;
+        WriteFileLineInfo(fileinfo);
+      end;
+
+
+    procedure TInternalAssembler.EndFileLineInfo;
+      var
+        hp : tasmsymbol;
+        store_sec : tsection;
+      begin
+          if not ((cs_debuginfo in aktmoduleswitches) or
+             (cs_gdb_lineinfo in aktglobalswitches)) then
+           exit;
+        store_sec:=objectalloc.currsec;
+        objectalloc.setsection(sec_code);
+        hp:=newasmsymboltype('Letext',AB_LOCAL,AT_FUNCTION);
+        if currpass=1 then
+          begin
+            hp.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+            UsedAsmSymbolListInsert(hp);
+          end
+        else
+          objectdata.writesymbol(hp);
+        EmitStabs('"",'+tostr(n_sourcefile)+',0,0,Letext');
+        objectalloc.setsection(store_sec);
+      end;
+{$endif GDB}
+
+
+    function TInternalAssembler.MaybeNextList(var hp:Tai):boolean;
+      begin
+        { maybe end of list }
+        while not assigned(hp) do
+         begin
+           if currlistidx<lists then
+            begin
+              inc(currlistidx);
+              currlist:=list[currlistidx];
+              hp:=Tai(currList.first);
+            end
+           else
+            begin
+              MaybeNextList:=false;
+              exit;
+            end;
+         end;
+        MaybeNextList:=true;
+      end;
+
+
+    function TInternalAssembler.TreePass0(hp:Tai):Tai;
+      var
+        l : longint;
+      begin
+        while assigned(hp) do
+         begin
+           case hp.typ of
+             ait_align :
+               begin
+                 { always use the maximum fillsize in this pass to avoid possible
+                   short jumps to become out of range }
+                 Tai_align(hp).fillsize:=Tai_align(hp).aligntype;
+                 objectalloc.sectionalloc(Tai_align(hp).fillsize);
+               end;
+             ait_datablock :
+               begin
+                 if not SmartAsm then
+                  begin
+                    if not Tai_datablock(hp).is_global then
+                     begin
+                        l:=Tai_datablock(hp).size;
+                        if l>2 then
+                          objectalloc.sectionalign(4)
+                        else if l>1 then
+                          objectalloc.sectionalign(2);
+                        objectalloc.sectionalloc(Tai_datablock(hp).size);
+                     end;
+                  end
+                 else
+                  begin
+                    l:=Tai_datablock(hp).size;
+                    if l>2 then
+                      objectalloc.sectionalign(4)
+                    else if l>1 then
+                      objectalloc.sectionalign(2);
+                    objectalloc.sectionalloc(Tai_datablock(hp).size);
+                  end;
+               end;
+             ait_const_32bit :
+               objectalloc.sectionalloc(4);
+             ait_const_16bit :
+               objectalloc.sectionalloc(2);
+             ait_const_8bit :
+               objectalloc.sectionalloc(1);
+             ait_real_80bit :
+               objectalloc.sectionalloc(10);
+             ait_real_64bit :
+               objectalloc.sectionalloc(8);
+             ait_real_32bit :
+               objectalloc.sectionalloc(4);
+             ait_comp_64bit :
+               objectalloc.sectionalloc(8);
+             ait_const_rva,
+             ait_const_symbol :
+               objectalloc.sectionalloc(4);
+             ait_section:
+               objectalloc.setsection(Tai_section(hp).sec);
+             ait_symbol :
+               Tai_symbol(hp).sym.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+             ait_label :
+               Tai_label(hp).l.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+             ait_string :
+               objectalloc.sectionalloc(Tai_string(hp).len);
+             ait_instruction :
+               begin
+                 { reset instructions which could change in pass 2 }
+                 Taicpu(hp).resetpass2;
+                 objectalloc.sectionalloc(Taicpu(hp).Pass1(objectalloc.sectionsize));
+               end;
+             ait_cut :
+               if SmartAsm then
+                break;
+           end;
+           hp:=Tai(hp.next);
+         end;
+        TreePass0:=hp;
+      end;
+
+
+    function TInternalAssembler.TreePass1(hp:Tai):Tai;
+      var
+        i,l : longint;
+      begin
+        while assigned(hp) do
+         begin
+{$ifdef GDB}
+           { write stabs }
+          if ((cs_debuginfo in aktmoduleswitches) or
+             (cs_gdb_lineinfo in aktglobalswitches)) then
+            begin
+              if (objectalloc.currsec<>sec_none) and
+                 not(hp.typ in  [
+                     ait_label,
+                     ait_regalloc,ait_tempalloc,
+                     ait_stabn,ait_stabs,ait_section,
+                     ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
+               WriteFileLineInfo(hp.fileinfo);
+            end;
+{$endif GDB}
+           case hp.typ of
+             ait_align :
+               begin
+                 { here we must determine the fillsize which is used in pass2 }
+                 Tai_align(hp).fillsize:=align(objectalloc.sectionsize,Tai_align(hp).aligntype)-
+                   objectalloc.sectionsize;
+                 objectalloc.sectionalloc(Tai_align(hp).fillsize);
+               end;
+             ait_datablock :
+               begin
+                 if objectalloc.currsec<>sec_bss then
+                  Message(asmw_e_alloc_data_only_in_bss);
+                 if not SmartAsm then
+                  begin
+                    if Tai_datablock(hp).is_global then
+                     begin
+                       Tai_datablock(hp).sym.setaddress(sec_none,Tai_datablock(hp).size,Tai_datablock(hp).size);
+                       { force to be common/external, must be after setaddress as that would
+                         set it to AS_GLOBAL }
+                       Tai_datablock(hp).sym.bind:=AB_COMMON;
+                     end
+                    else
+                     begin
+                       l:=Tai_datablock(hp).size;
+                       if l>2 then
+                         objectalloc.sectionalign(4)
+                       else if l>1 then
+                         objectalloc.sectionalign(2);
+                       Tai_datablock(hp).sym.setaddress(objectalloc.currsec,objectalloc.sectionsize,
+                         Tai_datablock(hp).size);
+                       objectalloc.sectionalloc(Tai_datablock(hp).size);
+                     end;
+                   end
+                  else
+                   begin
+                     l:=Tai_datablock(hp).size;
+                     if l>2 then
+                       objectalloc.sectionalign(4)
+                     else if l>1 then
+                       objectalloc.sectionalign(2);
+                     Tai_datablock(hp).sym.setaddress(objectalloc.currsec,objectalloc.sectionsize,Tai_datablock(hp).size);
+                     objectalloc.sectionalloc(Tai_datablock(hp).size);
+                   end;
+                 UsedAsmSymbolListInsert(Tai_datablock(hp).sym);
+               end;
+             ait_const_32bit :
+               objectalloc.sectionalloc(4);
+             ait_const_16bit :
+               objectalloc.sectionalloc(2);
+             ait_const_8bit :
+               objectalloc.sectionalloc(1);
+             ait_real_80bit :
+               objectalloc.sectionalloc(10);
+             ait_real_64bit :
+               objectalloc.sectionalloc(8);
+             ait_real_32bit :
+               objectalloc.sectionalloc(4);
+             ait_comp_64bit :
+               objectalloc.sectionalloc(8);
+             ait_const_rva,
+             ait_const_symbol :
+               begin
+                 objectalloc.sectionalloc(4);
+                 UsedAsmSymbolListInsert(Tai_const_symbol(hp).sym);
+               end;
+             ait_section:
+               begin
+                 objectalloc.setsection(Tai_section(hp).sec);
+{$ifdef GDB}
+                 case Tai_section(hp).sec of
+                  sec_code : n_line:=n_textline;
+                  sec_data : n_line:=n_dataline;
+                   sec_bss : n_line:=n_bssline;
+                 else
+                  n_line:=n_dataline;
+                 end;
+                 stabslastfileinfo.line:=-1;
+{$endif GDB}
+               end;
+{$ifdef GDB}
+             ait_stabn :
+               convertstabs(Tai_stabn(hp).str);
+             ait_stabs :
+               convertstabs(Tai_stabs(hp).str);
+             ait_stab_function_name :
+               begin
+                 if assigned(Tai_stab_function_name(hp).str) then
+                  begin
+                    funcname:=getasmsymbol(strpas(Tai_stab_function_name(hp).str));
+                    UsedAsmSymbolListInsert(funcname);
+                  end
+                 else
+                  funcname:=nil;
+               end;
+             ait_force_line :
+               stabslastfileinfo.line:=0;
+{$endif}
+             ait_symbol :
+               begin
+                 Tai_symbol(hp).sym.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+                 UsedAsmSymbolListInsert(Tai_symbol(hp).sym);
+               end;
+             ait_symbol_end :
+               begin
+                 if target_info.target=target_i386_linux then
+                  begin
+                    Tai_symbol(hp).sym.size:=objectalloc.sectionsize-Tai_symbol(hp).sym.address;
+                    UsedAsmSymbolListInsert(Tai_symbol(hp).sym);
+                  end;
+                end;
+             ait_label :
+               begin
+                 Tai_label(hp).l.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+                 UsedAsmSymbolListInsert(Tai_label(hp).l);
+               end;
+             ait_string :
+               objectalloc.sectionalloc(Tai_string(hp).len);
+             ait_instruction :
+               begin
+                 objectalloc.sectionalloc(Taicpu(hp).Pass1(objectalloc.sectionsize));
+                 { fixup the references }
+                 for i:=1 to Taicpu(hp).ops do
+                  begin
+                    with Taicpu(hp).oper[i-1] do
+                     begin
+                       case typ of
+                         top_ref :
+                           begin
+                             if assigned(ref^.symbol) then
+                              UsedAsmSymbolListInsert(ref^.symbol);
+                           end;
+                         top_symbol :
+                           begin
+                             if sym=nil then
+                              sym:=sym;
+                             UsedAsmSymbolListInsert(sym);
+                           end;
+                       end;
+                     end;
+                  end;
+               end;
+             ait_direct :
+               Message(asmw_f_direct_not_supported);
+             ait_cut :
+               if SmartAsm then
+                break;
+           end;
+           hp:=Tai(hp.next);
+         end;
+        TreePass1:=hp;
+      end;
+
+
+    function TInternalAssembler.TreePass2(hp:Tai):Tai;
+      var
+        l  : longint;
+{$ifdef I386}
+        co : comp;
+{$endif I386}
+      begin
+        { main loop }
+        while assigned(hp) do
+         begin
+{$ifdef GDB}
+           { write stabs }
+          if ((cs_debuginfo in aktmoduleswitches) or
+             (cs_gdb_lineinfo in aktglobalswitches)) then
+            begin
+              if (objectdata.currsec<>sec_none) and
+                 not(hp.typ in [
+                     ait_label,
+                     ait_regalloc,ait_tempalloc,
+                     ait_stabn,ait_stabs,ait_section,
+                     ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
+               WriteFileLineInfo(hp.fileinfo);
+            end;
+{$endif GDB}
+           case hp.typ of
+             ait_align :
+               objectdata.writebytes(Tai_align(hp).getfillbuf^,Tai_align(hp).fillsize);
+             ait_section :
+               begin
+                 objectdata.defaultsection(Tai_section(hp).sec);
+{$ifdef GDB}
+                 case Tai_section(hp).sec of
+                  sec_code : n_line:=n_textline;
+                  sec_data : n_line:=n_dataline;
+                   sec_bss : n_line:=n_bssline;
+                 else
+                  n_line:=n_dataline;
+                 end;
+                 stabslastfileinfo.line:=-1;
+{$endif GDB}
+               end;
+             ait_symbol :
+               begin
+                 objectdata.writesymbol(Tai_symbol(hp).sym);
+                 objectoutput.exportsymbol(Tai_symbol(hp).sym);
+               end;
+             ait_datablock :
+               begin
+                 objectdata.writesymbol(Tai_datablock(hp).sym);
+                 objectoutput.exportsymbol(Tai_datablock(hp).sym);
+                 if SmartAsm or (not Tai_datablock(hp).is_global) then
+                   begin
+                     l:=Tai_datablock(hp).size;
+                     if l>2 then
+                       objectdata.allocalign(4)
+                     else if l>1 then
+                       objectdata.allocalign(2);
+                     objectdata.alloc(Tai_datablock(hp).size);
+                   end;
+               end;
+             ait_const_32bit :
+               objectdata.writebytes(Tai_const(hp).value,4);
+             ait_const_16bit :
+               objectdata.writebytes(Tai_const(hp).value,2);
+             ait_const_8bit :
+               objectdata.writebytes(Tai_const(hp).value,1);
+             ait_real_80bit :
+               objectdata.writebytes(Tai_real_80bit(hp).value,10);
+             ait_real_64bit :
+               objectdata.writebytes(Tai_real_64bit(hp).value,8);
+             ait_real_32bit :
+               objectdata.writebytes(Tai_real_32bit(hp).value,4);
+             ait_comp_64bit :
+               begin
+{$ifdef FPC}
+                 co:=comp(Tai_comp_64bit(hp).value);
+{$else}
+                 co:=Tai_comp_64bit(hp).value;
+{$endif}
+                 objectdata.writebytes(co,8);
+               end;
+             ait_string :
+               objectdata.writebytes(Tai_string(hp).str^,Tai_string(hp).len);
+             ait_const_rva :
+               objectdata.writereloc(Tai_const_symbol(hp).offset,4,
+                 Tai_const_symbol(hp).sym,relative_rva);
+             ait_const_symbol :
+               objectdata.writereloc(Tai_const_symbol(hp).offset,4,
+                 Tai_const_symbol(hp).sym,relative_false);
+             ait_label :
+               begin
+                 objectdata.writesymbol(Tai_label(hp).l);
+                 { exporting shouldn't be necessary as labels are local,
+                   but it's better to be on the safe side (PFV) }
+                 objectoutput.exportsymbol(Tai_label(hp).l);
+               end;
+             ait_instruction :
+               Taicpu(hp).Pass2;
+{$ifdef GDB}
+             ait_stabn :
+               convertstabs(Tai_stabn(hp).str);
+             ait_stabs :
+               convertstabs(Tai_stabs(hp).str);
+             ait_stab_function_name :
+               if assigned(Tai_stab_function_name(hp).str) then
+                 funcname:=getasmsymbol(strpas(Tai_stab_function_name(hp).str))
+               else
+                 funcname:=nil;
+             ait_force_line :
+               stabslastfileinfo.line:=0;
+{$endif}
+             ait_cut :
+               if SmartAsm then
+                break;
+           end;
+           hp:=Tai(hp.next);
+         end;
+        TreePass2:=hp;
+      end;
+
+
+    procedure TInternalAssembler.writetree;
+      var
+        hp : Tai;
+      label
+        doexit;
+      begin
+        objectalloc.resetsections;
+        objectalloc.setsection(sec_code);
+
+        objectoutput.initwriting(ObjFile);
+        objectdata:=objectoutput.data;
+        objectdata.defaultsection(sec_code);
+      { reset the asmsymbol list }
+        CreateUsedAsmsymbolList;
+
+{$ifdef MULTIPASS}
+      { Pass 0 }
+        currpass:=0;
+        objectalloc.setsection(sec_code);
+        { start with list 1 }
+        currlistidx:=1;
+        currlist:=list[currlistidx];
+        hp:=Tai(currList.first);
+        while assigned(hp) do
+         begin
+           hp:=TreePass0(hp);
+           MaybeNextList(hp);
+         end;
+        { leave if errors have occured }
+        if errorcount>0 then
+         goto doexit;
+{$endif}
+
+      { Pass 1 }
+        currpass:=1;
+        objectalloc.resetsections;
+        objectalloc.setsection(sec_code);
+{$ifdef GDB}
+        StartFileLineInfo;
+{$endif GDB}
+        { start with list 1 }
+        currlistidx:=1;
+        currlist:=list[currlistidx];
+        hp:=Tai(currList.first);
+        while assigned(hp) do
+         begin
+           hp:=TreePass1(hp);
+           MaybeNextList(hp);
+         end;
+{$ifdef GDB}
+        EndFileLineInfo;
+{$endif GDB}
+        { check for undefined labels and reset }
+        UsedAsmSymbolListCheckUndefined;
+
+        { set section sizes }
+        objectdata.setsectionsizes(objectalloc.secsize);
+        { leave if errors have occured }
+        if errorcount>0 then
+         goto doexit;
+
+      { Pass 2 }
+        currpass:=2;
+{$ifdef GDB}
+        StartFileLineInfo;
+{$endif GDB}
+        { start with list 1 }
+        currlistidx:=1;
+        currlist:=list[currlistidx];
+        hp:=Tai(currList.first);
+        while assigned(hp) do
+         begin
+           hp:=TreePass2(hp);
+           MaybeNextList(hp);
+         end;
+{$ifdef GDB}
+        EndFileLineInfo;
+{$endif GDB}
+
+        { leave if errors have occured }
+        if errorcount>0 then
+         goto doexit;
+
+        { write last objectfile }
+        objectoutput.donewriting;
+        objectdata:=nil;
+
+      doexit:
+        { reset the used symbols back, must be after the .o has been
+          written }
+        UsedAsmsymbolListReset;
+        DestroyUsedAsmsymbolList;
+      end;
+
+
+    procedure TInternalAssembler.writetreesmart;
+      var
+        hp : Tai;
+        startsec : tsection;
+        place: tcutplace;
+      begin
+        objectalloc.resetsections;
+        objectalloc.setsection(sec_code);
+
+        NextSmartName(cut_normal);
+        objectoutput.initwriting(ObjFile);
+        objectdata:=objectoutput.data;
+        objectdata.defaultsection(sec_code);
+        startsec:=sec_code;
+
+        { start with list 1 }
+        currlistidx:=1;
+        currlist:=list[currlistidx];
+        hp:=Tai(currList.first);
+        while assigned(hp) do
+         begin
+         { reset the asmsymbol list }
+           CreateUsedAsmSymbolList;
+
+{$ifdef MULTIPASS}
+         { Pass 0 }
+           currpass:=0;
+           objectalloc.resetsections;
+           objectalloc.setsection(startsec);
+           TreePass0(hp);
+           { leave if errors have occured }
+           if errorcount>0 then
+            exit;
+{$endif MULTIPASS}
+
+         { Pass 1 }
+           currpass:=1;
+           objectalloc.resetsections;
+           objectalloc.setsection(startsec);
+{$ifdef GDB}
+           StartFileLineInfo;
+{$endif GDB}
+           TreePass1(hp);
+{$ifdef GDB}
+           EndFileLineInfo;
+{$endif GDB}
+           { check for undefined labels }
+           UsedAsmSymbolListCheckUndefined;
+
+           { set section sizes }
+           objectdata.setsectionsizes(objectalloc.secsize);
+           { leave if errors have occured }
+           if errorcount>0 then
+            exit;
+
+         { Pass 2 }
+           currpass:=2;
+           objectdata.defaultsection(startsec);
+{$ifdef GDB}
+           StartFileLineInfo;
+{$endif GDB}
+           hp:=TreePass2(hp);
+{$ifdef GDB}
+           EndFileLineInfo;
+{$endif GDB}
+           { leave if errors have occured }
+           if errorcount>0 then
+            exit;
+
+           { if not end then write the current objectfile }
+           objectoutput.donewriting;
+           objectdata:=nil;
+
+           { reset the used symbols back, must be after the .o has been
+             written }
+           UsedAsmsymbolListReset;
+           DestroyUsedAsmsymbolList;
+
+           { end of lists? }
+           if not MaybeNextList(hp) then
+            break;
+           { save section for next loop }
+           { this leads to a problem if startsec is sec_none !! PM }
+           startsec:=objectalloc.currsec;
+
+           { we will start a new objectfile so reset everything }
+           { The place can still change in the next while loop, so don't init }
+           { the writer yet (JM)                                              }
+           if (hp.typ=ait_cut) then
+            place := Tai_cut(hp).place
+           else
+            place := cut_normal;
+
+           { avoid empty files }
+           while assigned(hp.next) and
+                 (Tai(hp.next).typ in [ait_marker,ait_comment,ait_section,ait_cut]) do
+            begin
+              if Tai(hp.next).typ=ait_section then
+               startsec:=Tai_section(hp.next).sec
+              else if (Tai(hp.next).typ=ait_cut) then
+               place := Tai_cut(hp).place;
+              hp:=Tai(hp.next);
+            end;
+
+           NextSmartName(place);
+           objectoutput.initwriting(ObjFile);
+           objectdata:=objectoutput.data;
+
+           hp:=Tai(hp.next);
+
+           { there is a problem if startsec is sec_none !! PM }
+           if startsec=sec_none then
+             startsec:=sec_code;
+
+           if not MaybeNextList(hp) then
+             break;
+         end;
+      end;
+
+
+    procedure TInternalAssembler.MakeObject;
+
+        procedure addlist(p:TAAsmoutput);
+        begin
+          inc(lists);
+          list[lists]:=p;
+        end;
+
+      begin
+        if cs_debuginfo in aktmoduleswitches then
+          addlist(debuglist);
+        addlist(codesegment);
+        addlist(datasegment);
+        addlist(consts);
+        addlist(rttilist);
+        if assigned(resourcestringlist) then
+          addlist(resourcestringlist);
+        addlist(bsssegment);
+        if assigned(importssection) then
+          addlist(importssection);
+        if assigned(exportssection) and not UseDeffileForExport then
+          addlist(exportssection);
+        if assigned(resourcesection) then
+          addlist(resourcesection);
+
+        if SmartAsm then
+          writetreesmart
+        else
+          writetree;
+      end;
 
 
 {*****************************************************************************
                      Generate Assembler Files Main Procedure
 *****************************************************************************}
 
-Procedure GenerateAsm(smart:boolean);
-var
-  a : TExternalAssembler;
-{$ifdef i386}
-  {$ifndef NoAg386Bin}
-    b : TInternalAssembler;
-  {$endif}
-{$endif}
-begin
-  case aktoutputformat of
-     as_none : ;
-{$ifdef i386}
-  {$ifndef NoAg386Bin}
-     as_i386_dbg,
-     as_i386_coff,
-     as_i386_pecoff,
-     as_i386_elf :
-       begin
-         case aktoutputformat of
-           as_i386_dbg :
-             b:=TInternalAssembler.Create(og_dbg,smart);
-           as_i386_coff :
-             b:=TInternalAssembler.Create(og_coff,smart);
-           as_i386_pecoff :
-             b:=TInternalAssembler.Create(og_pecoff,smart);
-           as_i386_elf :
-             b:=TInternalAssembler.Create(og_elf,smart);
-         end;
-         b.WriteBin;
-         b.Free;
-         if assigned(current_module.ppufilename) then
-          begin
-            if smart then
-              SynchronizeFileTime(current_module.ppufilename^,current_module.staticlibfilename^)
-            else
-              SynchronizeFileTime(current_module.ppufilename^,current_module.objfilename^);
-          end;
-         exit;
-       end;
-  {$endif NoAg386Bin}
-  {$ifndef NoAg386Att}
-     as_i386_as,
-     as_i386_as_aout,
-     as_i386_asw :
-       a:=T386ATTAssembler.create(smart);
-  {$endif NoAg386Att}
-  {$ifndef NoAg386Nsm}
-     as_i386_nasmcoff,
-     as_i386_nasmwin32,
-     as_i386_nasmelf,
-     as_i386_nasmobj :
-       a:=T386NasmAssembler.Create(smart);
-  {$endif NoAg386Nsm}
-  {$ifndef NoAg386Int}
-     as_i386_masm,
-     as_i386_tasm :
-       a:=T386IntelAssembler.Create(smart);
-  {$endif NoAg386Int}
-{$endif}
-{$ifdef m68k}
-  {$ifndef NoAg68kGas}
-     as_m68k_as,
-     as_m68k_gas :
-       a:=new(pm68kgasasmlist,Init(smart));
-  {$endif NoAg86KGas}
-  {$ifndef NoAg68kMot}
-     as_m68k_mot :
-       a:=new(pm68kmoTExternalAssembler,Init(smart));
-  {$endif NoAg86kMot}
-  {$ifndef NoAg68kMit}
-     as_m68k_mit :
-       a:=new(pm68kmiTExternalAssembler,Init(smart));
-  {$endif NoAg86KMot}
-  {$ifndef NoAg68kMpw}
-     as_m68k_mpw :
-       a:=new(pm68kmpwasmlist,Init(smart));
-  {$endif NoAg68kMpw}
-{$endif}
-  else
-    Message(asmw_f_assembler_output_not_supported);
-  end;
-  a.AsmCreate(cut_normal);
-  a.WriteAsmList;
-  a.AsmClose;
-  a.DoAssemble;
-  a.synchronize;
-  a.Free;
-end;
+    Procedure GenerateAsm(smart:boolean);
+      var
+        a : TAssembler;
+      begin
+        if assigned(CAssembler[target_info.assem]) then
+          a:=CAssembler[target_info.assem].Create(smart)
+        else
+          Message(asmw_f_assembler_output_not_supported);
+        a.MakeObject;
+        a.Free;
+      end;
 
 
-Procedure OnlyAsm;
-var
-  a : TExternalAssembler;
-begin
-  a:=TExternalAssembler.Create(false);
-  a.DoAssemble;
-  a.Free;
-end;
+    Procedure OnlyAsm;
+      var
+        a : TExternalAssembler;
+      begin
+        a:=TExternalAssembler.Create(false);
+        a.DoAssemble;
+        a.Free;
+      end;
+
+
+{*****************************************************************************
+                                 Init/Done
+*****************************************************************************}
+
+    procedure RegisterAssembler(const r:tasminfo;c:TAssemblerClass);
+      var
+        t : tasm;
+      begin
+        t:=r.id;
+        if assigned(asminfos[t]) then
+          writeln('Warning: Assembler is already registered!')
+        else
+          Getmem(asminfos[t],sizeof(tasminfo));
+        asminfos[t]^:=r;
+        CAssembler[t]:=c;
+      end;
+
+
+    procedure InitAssembler;
+      begin
+        initoutputformat:=target_info.assem;
+        aktoutputformat:=target_info.assem;
+        set_target_asm(target_info.assem);
+      end;
+
+
+    procedure DoneAssembler;
+      begin
+      end;
 
 end.
 {
   $Log$
-  Revision 1.17  2001-04-13 01:22:06  peter
+  Revision 1.18  2001-04-18 22:01:53  peter
+    * registration of targets and assemblers
+
+  Revision 1.17  2001/04/13 01:22:06  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

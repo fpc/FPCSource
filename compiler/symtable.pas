@@ -1095,7 +1095,7 @@ implementation
             if cs_gdb_dbx in aktglobalswitches then
              flags:=flags or uf_has_dbx;
 {$endif GDB}
-            if target_os.endian=endian_big then
+            if target_info.endian=endian_big then
              flags:=flags or uf_big_endian;
             if cs_browser in aktmoduleswitches then
              flags:=flags or uf_has_browser;
@@ -1131,7 +1131,7 @@ implementation
            end;
 {$endif def Test_Double_checksum}
 
-         current_ppu^.change_endian:=source_os.endian<>target_os.endian;
+         current_ppu^.change_endian:=source_info.endian<>target_info.endian;
        { write symbols and definitions }
          unittable.write;
 
@@ -2567,7 +2567,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2001-04-13 20:05:15  peter
+  Revision 1.34  2001-04-18 22:01:59  peter
+    * registration of targets and assemblers
+
+  Revision 1.33  2001/04/13 20:05:15  peter
     * better check for globalsymtable
 
   Revision 1.32  2001/04/13 18:08:37  peter

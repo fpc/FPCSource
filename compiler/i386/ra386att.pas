@@ -2120,26 +2120,29 @@ end;
                                      Initialize
 *****************************************************************************}
 
-var
-  old_exit : pointer;
+const
+  asmmode_i386_att_info : tasmmodeinfo =
+          (
+            id    : asmmode_i386_att;
+            idtxt : 'ATT'
+          );
 
-procedure ra386att_exit;
-begin
-  exitproc:=old_exit;
+initialization
+  RegisterAsmMode(asmmode_i386_att_info);
+
+finalization
   if assigned(iasmops) then
     iasmops.Free;
   if assigned(iasmregs) then
     dispose(iasmregs);
-end;
 
-
-begin
-   old_exit:=exitproc;
-   exitproc:=@ra386att_exit;
 end.
 {
   $Log$
-  Revision 1.11  2001-04-13 20:06:05  peter
+  Revision 1.12  2001-04-18 22:02:03  peter
+    * registration of targets and assemblers
+
+  Revision 1.11  2001/04/13 20:06:05  peter
     * allow unit.identifier in asm readers
 
   Revision 1.10  2001/04/13 18:20:21  peter

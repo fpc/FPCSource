@@ -553,7 +553,7 @@ begin
   if lexlevel>normal_function_level then
     begin
       procinfo^.framepointer_offset:=paramoffset;
-      inc(paramoffset,target_os.size_of_pointer);
+      inc(paramoffset,target_info.size_of_pointer);
       { this is needed to get correct framepointer push for local
         forward functions !! }
       pd.parast.symtablelevel:=lexlevel;
@@ -562,7 +562,7 @@ begin
   if assigned (procinfo^._Class)  and
      is_object(procinfo^._Class) and
      (pd.proctypeoption in [potype_constructor,potype_destructor]) then
-    inc(paramoffset,target_os.size_of_pointer);
+    inc(paramoffset,target_info.size_of_pointer);
 
   { self pointer offset                       }
   { self isn't pushed in nested procedure of methods }
@@ -571,14 +571,14 @@ begin
       procinfo^.selfpointer_offset:=paramoffset;
       if assigned(aktprocsym.definition) and
          not(po_containsself in aktprocsym.definition.procoptions) then
-        inc(paramoffset,target_os.size_of_pointer);
+        inc(paramoffset,target_info.size_of_pointer);
     end;
 
   { con/-destructor flag ? }
   if assigned (procinfo^._Class) and
      is_class(procinfo^._class) and
      (pd.proctypeoption in [potype_destructor,potype_constructor]) then
-    inc(paramoffset,target_os.size_of_pointer);
+    inc(paramoffset,target_info.size_of_pointer);
 
   procinfo^.para_offset:=paramoffset;
 
@@ -813,7 +813,7 @@ end;
 
 procedure pd_asmname;
 begin
-  aktprocsym.definition.setmangledname(target_os.Cprefix+pattern);
+  aktprocsym.definition.setmangledname(target_info.Cprefix+pattern);
   if token=_CCHAR then
     consume(_CCHAR)
   else
@@ -939,7 +939,7 @@ end;
 procedure pd_cdecl;
 begin
   if aktprocsym.definition.deftype<>procvardef then
-    aktprocsym.definition.setmangledname(target_os.Cprefix+aktprocsym.realname);
+    aktprocsym.definition.setmangledname(target_info.Cprefix+aktprocsym.realname);
   { do not copy on local !! }
   if (aktprocsym.definition.deftype=procdef) and
      assigned(aktprocsym.definition.parast) then
@@ -950,7 +950,7 @@ procedure pd_cppdecl;
 begin
   if aktprocsym.definition.deftype<>procvardef then
     aktprocsym.definition.setmangledname(
-      target_os.Cprefix+aktprocsym.definition.cplusplusmangledname);
+      target_info.Cprefix+aktprocsym.definition.cplusplusmangledname);
   { do not copy on local !! }
   if (aktprocsym.definition.deftype=procdef) and
      assigned(aktprocsym.definition.parast) then
@@ -1516,7 +1516,7 @@ const
        { Adjust positions of args for cdecl or stdcall }
          if (aktprocsym.definition.deftype=procdef) and
             (([pocall_cdecl,pocall_cppdecl,pocall_stdcall]*aktprocsym.definition.proccalloptions)<>[]) then
-           tstoredsymtable(aktprocsym.definition.parast).set_alignment(target_os.size_of_longint);
+           tstoredsymtable(aktprocsym.definition.parast).set_alignment(target_info.size_of_longint);
 
       { Call the handler }
         if pointer({$ifndef FPCPROCVAR}@{$endif}proc_direcdata[p].handler)<>nil then
@@ -1847,7 +1847,10 @@ const
 end.
 {
   $Log$
-  Revision 1.20  2001-04-13 20:05:16  peter
+  Revision 1.21  2001-04-18 22:01:57  peter
+    * registration of targets and assemblers
+
+  Revision 1.20  2001/04/13 20:05:16  peter
     * better check for globalsymtable
 
   Revision 1.19  2001/04/13 18:03:16  peter

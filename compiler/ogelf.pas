@@ -36,7 +36,7 @@ interface
        { target }
        systems,
        { assembler }
-       cpubase,aasm,
+       cpubase,aasm,assemble,
        { output }
        ogbase;
 
@@ -90,6 +90,10 @@ interface
          procedure writetodisk;override;
        public
          function  initwriting(const fn:string):boolean;override;
+       end;
+
+       telf32assembler = class(tinternalassembler)
+         constructor create(smart:boolean);override;
        end;
 
 
@@ -843,10 +847,51 @@ implementation
          end;
       end;
 
+
+{****************************************************************************
+                               TELFAssembler
+****************************************************************************}
+
+    constructor TELF32Assembler.Create(smart:boolean);
+      begin
+        inherited Create(smart);
+        objectoutput:=telf32objectoutput.create(smart);
+      end;
+
+
+{*****************************************************************************
+                                  Initialize
+*****************************************************************************}
+
+    const
+       as_i386_elf32_info : tasminfo =
+          (
+            id     : as_i386_elf32;
+            idtxt  : 'ELF';
+            asmbin : '';
+            asmcmd : '';
+            supported_target : target_any;  //target_i386_linux;
+            allowdirect : false;
+            externals : true;
+            needar : false;
+            labelprefix : '.L';
+            comment : '';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+              '.stab','.stabstr')
+          );
+
+
+initialization
+  RegisterAssembler(as_i386_elf32_info,TElf32Assembler);
 end.
 {
   $Log$
-  Revision 1.7  2001-04-13 01:22:10  peter
+  Revision 1.8  2001-04-18 22:01:54  peter
+    * registration of targets and assemblers
+
+  Revision 1.7  2001/04/13 01:22:10  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

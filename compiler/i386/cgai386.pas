@@ -737,7 +737,7 @@ implementation
         case t.loc of
           LOC_REGISTER,
          LOC_CREGISTER : begin
-                           if target_os.stackalignment=4 then
+                           if target_info.stackalignment=4 then
                              exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,makereg32(t.register)))
                            else
                              exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,makereg16(t.register)));
@@ -745,7 +745,7 @@ implementation
                          end;
                LOC_MEM,
          LOC_REFERENCE : begin
-                           if target_os.stackalignment=4 then
+                           if target_info.stackalignment=4 then
                             opsize:=S_L
                            else
                             opsize:=S_W;
@@ -821,7 +821,7 @@ implementation
         if t.is_immediate then
           begin
             if (size=4) or
-               (target_os.stackalignment=4) then
+               (target_info.stackalignment=4) then
               exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,t.offset))
             else
               exprasmList.concat(Taicpu.Op_const(A_PUSH,S_W,t.offset));
@@ -837,7 +837,7 @@ implementation
               end;
               exprasmList.concat(Taicpu.Op_ref_reg(A_MOVZX,s,
                 newreference(t),R_EDI));
-              if target_os.stackalignment=4 then
+              if target_info.stackalignment=4 then
                 exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EDI))
               else
                 exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,R_DI));
@@ -1869,7 +1869,7 @@ implementation
 {$ifndef NOTARGETWIN32}
               { windows guards only a few pages for stack growing, }
               { so we have to access every page first              }
-              if target_os.id=os_i386_win32 then
+              if target_info.target=target_i386_win32 then
                 begin
                    getlabel(again);
                    getlabel(ok);
@@ -2224,7 +2224,7 @@ implementation
 {$ifndef NOTARGETWIN32}
                             { windows guards only a few pages for stack growing, }
                             { so we have to access every page first              }
-                            if (target_os.id=os_i386_win32) and
+                            if (target_info.target=target_i386_win32) and
                               (stackframe>=winstackpagesize) then
                               begin
                                   if stackframe div winstackpagesize<=5 then
@@ -2359,7 +2359,7 @@ implementation
          hs:=aktprocsym.definition.aliasnames.getfirst;
 
 {$ifdef GDB}
-         if (cs_debuginfo in aktmoduleswitches) and target_os.use_function_relative_addresses then
+         if (cs_debuginfo in aktmoduleswitches) and target_info.use_function_relative_addresses then
            stab_function_name := Tai_stab_function_name.Create(strpnew(hs));
 {$EndIf GDB}
 
@@ -2372,7 +2372,7 @@ implementation
 
 {$ifdef GDB}
             if (cs_debuginfo in aktmoduleswitches) and
-               target_os.use_function_relative_addresses then
+               target_info.use_function_relative_addresses then
               exprasmList.insert(Tai_stab_function_name.Create(strpnew(hs)));
 {$endif GDB}
 
@@ -2385,7 +2385,7 @@ implementation
 {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) then
           begin
-            if target_os.use_function_relative_addresses then
+            if target_info.use_function_relative_addresses then
              exprasmList.insert(stab_function_name);
             exprasmList.insert(Tai_stabs.Create(aktprocsym.stabstring));
             aktprocsym.isstabwritten:=true;
@@ -2893,7 +2893,7 @@ implementation
               getmem(p,2*mangled_length+50);
               strpcopy(p,'192,0,0,');
               strpcopy(strend(p),aktprocsym.definition.mangledname);
-              if (target_os.use_function_relative_addresses) then
+              if (target_info.use_function_relative_addresses) then
                 begin
                   strpcopy(strend(p),'-');
                   strpcopy(strend(p),aktprocsym.definition.mangledname);
@@ -2904,7 +2904,7 @@ implementation
               p[0]:='2';p[1]:='2';p[2]:='4';
               strpcopy(strend(p),'_end');}
               strpcopy(p,'224,0,0,'+stabsendlabel.name);
-              if (target_os.use_function_relative_addresses) then
+              if (target_info.use_function_relative_addresses) then
                 begin
                   strpcopy(strend(p),'-');
                   strpcopy(strend(p),aktprocsym.definition.mangledname);
@@ -2929,10 +2929,10 @@ implementation
          tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data);
          tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data);
          exprasmList.insert(Tai_symbol.Createname_global('FINALIZE$$'+current_module.modulename^,0));
-         exprasmList.insert(Tai_symbol.Createname_global(target_os.cprefix+current_module.modulename^+'_finalize',0));
+         exprasmList.insert(Tai_symbol.Createname_global(target_info.cprefix+current_module.modulename^+'_finalize',0));
 {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) and
-           target_os.use_function_relative_addresses then
+           target_info.use_function_relative_addresses then
            exprasmList.insert(Tai_stab_function_name.Create(strpnew('FINALIZE$$'+current_module.modulename^)));
 {$endif GDB}
          exprasmList.concat(Taicpu.Op_none(A_RET,S_NO));
@@ -2947,10 +2947,10 @@ implementation
          tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data);
          tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data);
          exprasmList.insert(Tai_symbol.Createname_global('INIT$$'+current_module.modulename^,0));
-         exprasmList.insert(Tai_symbol.Createname_global(target_os.cprefix+current_module.modulename^+'_init',0));
+         exprasmList.insert(Tai_symbol.Createname_global(target_info.cprefix+current_module.modulename^+'_init',0));
 {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) and
-           target_os.use_function_relative_addresses then
+           target_info.use_function_relative_addresses then
            exprasmList.insert(Tai_stab_function_name.Create(strpnew('INIT$$'+current_module.modulename^)));
 {$endif GDB}
          exprasmList.concat(Taicpu.Op_none(A_RET,S_NO));
@@ -2983,7 +2983,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2001-04-13 01:22:17  peter
+  Revision 1.21  2001-04-18 22:02:00  peter
+    * registration of targets and assemblers
+
+  Revision 1.20  2001/04/13 01:22:17  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

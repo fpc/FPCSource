@@ -795,7 +795,7 @@ implementation
                                    curconstsegment.concat(tai_const.create_8bit(0));
                                  curconstsegment.concat(tai_const_symbol.createname(tobjectdef(t.def).vmt_mangledname));
                                  { this is more general }
-                                 aktpos:=tobjectdef(t.def).vmt_offset + target_os.size_of_pointer;
+                                 aktpos:=tobjectdef(t.def).vmt_offset + target_info.size_of_pointer;
                                end;
 
                              { if needed fill }
@@ -822,7 +822,7 @@ implementation
                          curconstsegment.concat(tai_const.create_8bit(0));
                        curconstsegment.concat(tai_const_symbol.createname(tobjectdef(t.def).vmt_mangledname));
                        { this is more general }
-                       aktpos:=tobjectdef(t.def).vmt_offset + target_os.size_of_pointer;
+                       aktpos:=tobjectdef(t.def).vmt_offset + target_info.size_of_pointer;
                      end;
                    for i:=1 to t.def.size-aktpos do
                      curconstSegment.concat(Tai_const.Create_8bit(0));
@@ -847,7 +847,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2001-04-13 01:22:13  peter
+  Revision 1.22  2001-04-18 22:01:57  peter
+    * registration of targets and assemblers
+
+  Revision 1.21  2001/04/13 01:22:13  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

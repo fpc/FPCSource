@@ -1376,12 +1376,12 @@ implementation
               case varspez of
                 vs_out,
                 vs_var :
-                  getpushsize:=target_os.size_of_pointer;
+                  getpushsize:=target_info.size_of_pointer;
                 vs_value,
                 vs_const :
                   begin
                       if push_addr_param(vartype.def) then
-                        getpushsize:=target_os.size_of_pointer
+                        getpushsize:=target_info.size_of_pointer
                       else
                         getpushsize:=vartype.def.size;
                   end;
@@ -1545,7 +1545,7 @@ implementation
                         end;
                       if varalign=0 then
                         varalign:=l;
-                      if (owner.dataalignment<target_os.maxCrecordalignment) then
+                      if (owner.dataalignment<target_info.maxCrecordalignment) then
                        begin
                          if (varalign>16) and (owner.dataalignment<32) then
                           owner.dataalignment:=32
@@ -1561,8 +1561,8 @@ implementation
                          else if (varalign>1) and (owner.dataalignment<2) then
                           owner.dataalignment:=2;
                        end;
-                      if owner.dataalignment>target_os.maxCrecordalignment then
-                        owner.dataalignment:=target_os.maxCrecordalignment;
+                      if owner.dataalignment>target_info.maxCrecordalignment then
+                        owner.dataalignment:=target_info.maxCrecordalignment;
                     end
                    else
                     varalign:=vartype.def.alignment;
@@ -1621,7 +1621,7 @@ implementation
                    l:=getpushsize;
                    varstate:=vs_assigned;
                    address:=owner.datasize;
-                   owner.datasize:=align(owner.datasize+l,target_os.stackalignment);
+                   owner.datasize:=align(owner.datasize+l,target_info.stackalignment);
                  end
                else
                  begin
@@ -2328,7 +2328,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2001-04-13 01:22:16  peter
+  Revision 1.11  2001-04-18 22:01:59  peter
+    * registration of targets and assemblers
+
+  Revision 1.10  2001/04/13 01:22:16  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

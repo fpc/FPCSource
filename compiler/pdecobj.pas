@@ -816,7 +816,7 @@ implementation
              begin
                 include(aktprocsym.definition.proccalloptions,pocall_cppdecl);
                 aktprocsym.definition.setmangledname(
-                  target_os.Cprefix+aktprocsym.definition.cplusplusmangledname);
+                  target_info.Cprefix+aktprocsym.definition.cplusplusmangledname);
              end;
         end;
 
@@ -1032,7 +1032,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2001-04-13 01:22:11  peter
+  Revision 1.22  2001-04-18 22:01:54  peter
+    * registration of targets and assemblers
+
+  Revision 1.21  2001/04/13 01:22:11  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

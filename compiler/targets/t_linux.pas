@@ -321,7 +321,7 @@ begin
         S:=SharedLibFiles.GetFirst;
         if s<>'c' then
          begin
-           i:=Pos(target_os.sharedlibext,S);
+           i:=Pos(target_info.sharedlibext,S);
            if i>0 then
             Delete(S,i,255);
            LinkRes.Add('-l'+s);
@@ -442,10 +442,229 @@ begin
 end;
 
 
+{*****************************************************************************
+                                  Initialize
+*****************************************************************************}
+
+{$ifdef i386}
+    const
+       target_i386_linux_info : ttargetinfo =
+          (
+            target       : target_i386_LINUX;
+            name         : 'Linux for i386';
+            shortname    : 'Linux';
+            flags        : [];
+            cpu          : i386;
+            unit_env     : 'LINUXUNITS';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            libprefix    : 'libp';
+            Cprefix      : '';
+            newline      : #10;
+            assem        : as_i386_elf32;
+            assemextern  : as_i386_as;
+            link         : ld_i386_linux;
+            linkextern   : ld_i386_linux;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            endian       : endian_little;
+            stackalignment : 4;
+            maxCrecordalignment : 4;
+            size_of_pointer : 4;
+            size_of_longint : 4;
+            heapsize     : 256*1024;
+            maxheapsize  : 32768*1024;
+            stacksize    : 8192;
+            DllScanSupported:false;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
+          );
+{$endif i386}
+{$ifdef m68k}
+    const
+       target_m68k_linux_info : ttargetinfo =
+          (
+            target       : target_m68k_linux;
+            name         : 'Linux for m68k';
+            shortname    : 'linux';
+            flags        : [];
+            cpu          : m68k;
+            short_name   : 'LINUX';
+            unit_env     : 'LINUXUNITS';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            libprefix    : 'libp';
+            Cprefix      : '';
+            newline      : #10;
+            assem        : as_m68k_as;
+            assemextern  : as_m68k_as;
+            link         : ld_m68k_linux;
+            linkextern   : ld_m68k_linux;
+            ar           : ar_m68k_ar;
+            res          : res_none;
+            endian       : endian_big;
+            stackalignment : 2;
+            maxCrecordalignment : 32;
+            size_of_pointer : 4;
+            size_of_longint : 4;
+            heapsize     : 128*1024;
+            maxheapsize  : 32768*1024;
+            stacksize    : 8192;
+            DllScanSupported:false;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
+          );
+{$endif m68k}
+{$ifdef powerpc}
+    const
+       target_powerpc_linux_info : ttargetinfo =
+          (
+            target       : target_powerpc_LINUX;
+            name         : 'Linux for PowerPC';
+            shortname    : 'linuxppc';
+            flags        : [];
+            cpu          : powerpc;
+            short_name   : 'LINUX';
+            unit_env     : '';
+            sharedlibext : '.so';
+            staticlibext : '.s';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            libprefix    : 'libp';
+            Cprefix      : '';
+            newline      : #10;
+            assem        : as_powerpc_as;
+            assemsrc     : as_powerpc_as;
+            ar           : ar_powerpc_ar;
+            res          : res_none;
+            endian       : endian_big;
+            stackalignment : 8;
+            maxCrecordalignment : 32;
+            size_of_pointer : 4;
+            size_of_longint : 4;
+            heapsize     : 256*1024;
+            maxheapsize  : 32768*1024;
+            stacksize    : 8192;
+            DllScanSupported:false;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
+          );
+{$endif powerpc}
+{$ifdef alpha}
+    const
+       target_alpha_linux_info : ttargetinfo =
+          (
+            target       : target_alpha_LINUX;
+            name         : 'Linux for Alpha';
+            shortname    : 'axplinux';
+            flags        : [];
+            cpu          : alpha;
+            short_name   : 'LINUX';
+            unit_env     : 'LINUXUNITS';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            libprefix    : 'libp';
+            Cprefix      : '';
+            newline      : #10;
+            assem        : as_alpha_as;
+            assemextern  : as_alpha_as;
+            link         : ld_alpha_linux;
+            linkextern   : ld_alpha_linux;
+            ar           : ar_alpha_ar;
+            res          : res_none;
+            endian       : endian_little;
+            stackalignment : 8;
+            maxCrecordalignment : 32;
+            size_of_pointer : 8;
+            size_of_longint : 4;
+            heapsize     : 256*1024;
+            maxheapsize  : 32768*1024;
+            stacksize    : 8192;
+            DllScanSupported:false;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
+          );
+{$endif alpha}
+
+
+initialization
+{$ifdef i386}
+  RegisterLinker(ld_i386_linux,TLinkerLinux);
+  RegisterImport(target_i386_linux,timportliblinux);
+  RegisterExport(target_i386_linux,texportliblinux);
+  RegisterTarget(target_i386_linux_info);
+{$endif i386}
+{$ifdef m68k}
+  RegisterLinker(ld_m68k_linux,TLinkerLinux);
+  RegisterImport(target_m68k_linux,timportliblinux);
+  RegisterExport(target_m68k_linux,texportliblinux);
+  RegisterTarget(target_m68k_linux_info);
+{$endif m68k}
+{$ifdef powerpc}
+  RegisterLinker(ld_powerpc_linux,TLinkerLinux);
+  RegisterImport(target_powerpc_linux,timportliblinux);
+  RegisterExport(target_powerpc_linux,texportliblinux);
+  RegisterTarget(target_powerpc_linux_info);
+{$endif powerpc}
+{$ifdef alpha}
+  RegisterLinker(ld_alpha_linux,TLinkerLinux);
+  RegisterImport(target_alpha_linux,timportliblinux);
+  RegisterExport(target_alpha_linux,texportliblinux);
+  RegisterTarget(target_alpha_linux_info);
+{$endif alpha}
 end.
 {
   $Log$
-  Revision 1.3  2001-04-13 01:22:21  peter
+  Revision 1.4  2001-04-18 22:02:04  peter
+    * registration of targets and assemblers
+
+  Revision 1.3  2001/04/13 01:22:21  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

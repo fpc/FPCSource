@@ -648,7 +648,7 @@ implementation
          if ret_in_param(procinfo^.returntype.def) then
           begin
             procinfo^.return_offset:=procinfo^.para_offset;
-            inc(procinfo^.para_offset,target_os.size_of_pointer);
+            inc(procinfo^.para_offset,target_info.size_of_pointer);
           end;
          { allows to access the parameters of main functions in nested functions }
          aktprocsym.definition.parast.address_fixup:=procinfo^.para_offset;
@@ -803,7 +803,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2001-04-14 14:05:47  peter
+  Revision 1.31  2001-04-18 22:01:57  peter
+    * registration of targets and assemblers
+
+  Revision 1.30  2001/04/14 14:05:47  peter
     * better skipping of secondpass if error
 
   Revision 1.29  2001/04/13 23:49:24  peter

@@ -45,133 +45,66 @@ interface
          sec_stab,sec_stabstr
        );
 
-     type
        tasmmode= (asmmode_none
             ,asmmode_i386_direct,asmmode_i386_att,asmmode_i386_intel
-            ,asmmode_m68k_mot,asmmode_alpha_direct,asmmode_powerpc_direct
+            ,asmmode_m68k_mot
+            ,asmmode_alpha_direct
+            ,asmmode_powerpc_direct
        );
-     const
-       {$ifdef i386}  i386asmmodecnt=3;  {$else} i386asmmodecnt=0; {$endif}
-       {$ifdef m68k}  m68kasmmodecnt=1;  {$else} m68kasmmodecnt=0; {$endif}
-       {$ifdef alpha} alphaasmmodecnt=1; {$else} alphaasmmodecnt=0; {$endif}
-       {$ifdef powerpc} powerpcasmmodecnt=1; {$else} powerpcasmmodecnt=0; {$endif}
-       asmmodecnt=i386asmmodecnt+m68kasmmodecnt+Alphaasmmodecnt+powerpcasmmodecnt+1;
 
-     type
        ttarget = (target_none,
             target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
-            target_i386_OS2,target_i386_Win32,target_i386_freebsd,
-            target_i386_Netware,target_i386_sunos,
+              target_i386_OS2,target_i386_Win32,target_i386_freebsd,
+              target_i386_Netware,target_i386_sunos,
             target_m68k_Amiga,target_m68k_Atari,target_m68k_Mac,
-            target_m68k_linux,target_m68k_PalmOS,
+              target_m68k_linux,target_m68k_PalmOS,
             target_alpha_linux,
             target_powerpc_linux,target_powerpc_macos
        );
 
-       ttargetflags = (tf_none,
-            tf_supports_stack_checking,tf_need_export,tf_needs_isconsole
-       );
-
-     const
-       { alias for supported_target field in tasminfo }
-       target_any = target_none;
-
-       {$ifdef i386} i386targetcnt=8; {$else} i386targetcnt=0; {$endif}
-       {$ifdef m68k} m68ktargetcnt=5; {$else} m68ktargetcnt=0; {$endif}
-       {$ifdef alpha} alphatargetcnt=1; {$else} alphatargetcnt=0; {$endif}
-       {$ifdef powerpc} powerpctargetcnt=2; {$else} powerpctargetcnt=0; {$endif}
-       targetcnt=i386targetcnt+m68ktargetcnt+alphatargetcnt+powerpctargetcnt+1;
-
-     type
        tasm = (as_none
             ,as_i386_as,as_i386_as_aout,as_i386_asw,
-            as_i386_nasmcoff,as_i386_nasmwin32,
-            as_i386_nasmelf,as_i386_nasmobj,
-            as_i386_tasm,as_i386_masm,
-            as_i386_dbg,as_i386_coff,as_i386_pecoff,as_i386_elf
-            ,as_m68k_as,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw,
-            as_alpha_as,as_powerpc_as,as_powerpc_mpw
+              as_i386_nasmcoff,as_i386_nasmwin32,
+              as_i386_nasmelf,as_i386_nasmobj,
+              as_i386_tasm,as_i386_masm,
+              as_i386_dbg,as_i386_coff,as_i386_pecoff,as_i386_elf32
+            ,as_m68k_as,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw
+            ,as_alpha_as
+            ,as_powerpc_as,as_powerpc_mpw
        );
-       { binary assembler writers, needed to test for -a }
-     const
-       {$ifdef i386} i386asmcnt=13; {$else} i386asmcnt=0; {$endif}
-       {$ifdef m68k} m68kasmcnt=5; {$else} m68kasmcnt=0; {$endif}
-       {$ifdef alpha} alphaasmcnt=1; {$else} alphaasmcnt=0; {$endif}
-       {$ifdef powerpc} powerpcasmcnt=2; {$else} powerpcasmcnt=0; {$endif}
-       asmcnt=i386asmcnt+m68kasmcnt+alphaasmcnt+powerpcasmcnt+1;
 
-       binassem : set of tasm = [
-         as_i386_dbg,as_i386_coff,as_i386_pecoff,as_i386_elf
-       ];
+       tld = (ld_none,
+            ld_i386_GO32V1,ld_i386_GO32V2,ld_i386_linux,
+              ld_i386_OS2,ld_i386_Win32,ld_i386_freebsd,
+              ld_i386_Netware,ld_i386_sunos,
+            ld_m68k_Amiga,ld_m68k_Atari,ld_m68k_Mac,
+              ld_m68k_linux,ld_m68k_PalmOS,
+            ld_alpha_linux,
+            ld_powerpc_linux,ld_powerpc_macos
+       );
 
-     type
        tar = (ar_none
-            ,ar_i386_ar,ar_i386_arw
-            ,ar_m68k_ar,ar_alpha_ar,ar_powerpc_ar
+            ,ar_gnu_ar,ar_gnu_arw
        );
-     const
-       {$ifdef i386} i386arcnt=2; {$else} i386arcnt=0; {$endif}
-       {$ifdef m68k} m68karcnt=1; {$else} m68karcnt=0; {$endif}
-       {$ifdef alpha} alphaarcnt=1; {$else} alphaarcnt=0; {$endif}
-       {$ifdef powerpc} powerpcarcnt=1; {$else} powerpcarcnt=0; {$endif}
-       arcnt=i386arcnt+m68karcnt+alphaarcnt+powerpcarcnt+1;
 
-     type
        tres = (res_none
-            ,res_i386_windres,res_m68k_mpw,res_powerpc_mpw, res_i386_emx
+            ,res_gnu_windres,res_emxbind
        );
-     const
-       {$ifdef i386} i386rescnt=2; {$else} i386rescnt=0; {$endif}
-       {$ifdef m68k} m68krescnt=1; {$else} m68krescnt=0; {$endif}
-       {$ifdef alpha} alpharescnt=0; {$else} alpharescnt=0; {$endif}
-       {$ifdef powerpc} powerpcrescnt=1; {$else} powerpcrescnt=0; {$endif}
-       rescnt=i386rescnt+m68krescnt+alpharescnt+powerpcrescnt+1;
+
+
+{*****************************************************************************
+                               Structures
+*****************************************************************************}
 
      type
-       tos = ( os_none,
-            os_i386_GO32V1,os_i386_GO32V2,os_i386_Linux,os_i386_OS2,
-            os_i386_Win32,os_i386_freeBSD,os_i386_Netware,os_i386_sunos,
-            os_m68k_Amiga,os_m68k_Atari,os_m68k_Mac,os_m68k_Linux,
-            os_m68k_PalmOS,os_alpha_linux,os_powerpc_linux,os_powerpc_macos
-       );
-     const
-       i386oscnt=8;
-       m68koscnt=5;
-       alphaoscnt=1;
-       powerpcoscnt=2;
-       oscnt=i386oscnt+m68koscnt+alphaoscnt+powerpcoscnt+1;
-
-   type
-       tosinfo = packed record
-          id           : tos;
-          name         : string[30];
-          shortname    : string[9];
-          sharedlibext : string[10];
-          staticlibext,
-          sourceext,
-          pasext,
-          exeext,
-          defext,
-          scriptext : string[4];
-          libprefix : string[4];
-          Cprefix   : string[2];
-          newline   : string[2];
-          endian    : tendian;
-          {longint this is a little overkill no ?? but 256 is possible one day }
-          stackalignment : word;
-          maxCrecordalignment : word;
-          size_of_pointer : byte;
-          size_of_longint : byte;
-          use_bound_instruction : boolean;
-          use_function_relative_addresses : boolean;
-       end;
-
+       pasminfo = ^tasminfo;
        tasminfo = packed record
           id          : tasm;
           idtxt       : string[9];
           asmbin      : string[8];
           asmcmd      : string[50];
           supported_target : ttarget;
+          outputbinary,
           allowdirect,
           externals,
           needar,
@@ -181,66 +114,105 @@ interface
           secnames    : array[tsection] of string[20];
        end;
 
+       parinfo = ^tarinfo;
        tarinfo = packed record
           id      : tar;
           arcmd   : string[50];
        end;
 
+       presinfo = ^tresinfo;
        tresinfo = packed record
           id      : tres;
           resbin  : string[8];
           rescmd  : string[50];
        end;
 
+       ttargetflags = (tf_none,
+            tf_supports_stack_checking,tf_need_export,tf_needs_isconsole
+       );
+
+       ptargetinfo = ^ttargetinfo;
        ttargetinfo = packed record
-          target      : ttarget;
-          flags       : set of ttargetflags;
-          cpu         : ttargetcpu;
-          short_name  : string[8];
-          unit_env    : string[12];
+          target       : ttarget;
+          name         : string[30];
+          shortname    : string[9];
+          flags        : set of ttargetflags;
+          cpu          : ttargetcpu;
+          unit_env     : string[12];
+          sharedlibext : string[10];
+          staticlibext,
+          sourceext,
+          pasext,
+          exeext,
+          defext,
+          scriptext,
           smartext,
           unitext,
           unitlibext,
           asmext,
           objext,
           resext,
-          resobjext,
-          exeext      : string[4];
-          os          : tos;
-          assem       : tasm;
-          assemsrc    : tasm; { default source writing assembler }
-          ar          : tar;
-          res         : tres;
+          resobjext    : string[4];
+          libprefix    : string[4];
+          Cprefix      : string[2];
+          newline      : string[2];
+          assem        : tasm;
+          assemextern  : tasm; { external assembler, used by -a }
+          link         : tld;
+          linkextern   : tld;  { external linker, used by -s }
+          ar           : tar;
+          res          : tres;
+          endian          : tendian;
+          stackalignment  : word;
+          maxCrecordalignment : word;
+          size_of_pointer : byte;
+          size_of_longint : byte;
           heapsize,
           maxheapsize,
-          stacksize   : longint;
+          stacksize       : longint;
           DllScanSupported : boolean;
+          use_bound_instruction : boolean;
+          use_function_relative_addresses : boolean;
        end;
 
-       tasmmodeinfo=packed record
+       pasmmodeinfo = ^tasmmodeinfo;
+       tasmmodeinfo = packed record
           id    : tasmmode;
           idtxt : string[8];
        end;
 
+    const
+       { alias for supported_target field in tasminfo }
+       target_any = target_none;
+
     var
+       targetinfos   : array[ttarget] of ptargetinfo;
+       asminfos      : array[tasm] of pasminfo;
+       arinfos       : array[tar] of parinfo;
+       resinfos      : array[tres] of presinfo;
+       asmmodeinfos  : array[tasmmode] of pasmmodeinfo;
+
+       source_info : ttargetinfo;
        target_cpu  : ttargetcpu;
        target_info : ttargetinfo;
-       target_os   : tosinfo;
        target_asm  : tasminfo;
        target_ar   : tarinfo;
        target_res  : tresinfo;
        target_path : string[12]; { for rtl/<X>/,fcl/<X>/, etc. }
-       source_os   : tosinfo;
 
-    function set_target_os(t:tos):boolean;
+    function set_target(t:ttarget):boolean;
     function set_target_asm(t:tasm):boolean;
     function set_target_ar(t:tar):boolean;
     function set_target_res(t:tres):boolean;
-    function set_target_info(t:ttarget):boolean;
 
-    function set_string_target(s : string) : boolean;
-    function set_string_asm(s : string) : boolean;
-    function set_string_asmmode(s:string;var t:tasmmode):boolean;
+    function set_target_by_string(const s : string) : boolean;
+    function set_target_asm_by_string(const s : string) : boolean;
+    function set_asmmode_by_string(const s:string;var t:tasmmode):boolean;
+
+    procedure RegisterTarget(const r:ttargetinfo);
+    procedure RegisterAsmMode(const r:tasmmodeinfo);
+    procedure RegisterRes(const r:tresinfo);
+    procedure RegisterAr(const r:tarinfo);
 
     procedure InitSystems;
 
@@ -250,1388 +222,210 @@ implementation
     uses
       cutils;
 
-    const
-
 {****************************************************************************
-                                 OS Info
-****************************************************************************}
-       os_infos : array[1..oscnt] of tosinfo = (
-          (
-            id     : os_none;
-            name         : 'No operating system';
-            shortname    : 'none'
-          ),
-          (
-            id     : os_i386_go32v1;
-            name         : 'GO32 V1 DOS extender';
-            shortname    : 'go32v1';
-            sharedlibext : '.dll';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';      { No .exe, the linker only output a.out ! }
-            defext       : '.def';
-            scriptext    : '.bat';
-            libprefix    : '';
-            Cprefix      : '_';
-            newline      : #13#10;
-            endian       : endian_little;
-            stackalignment : 2;
-            maxCrecordalignment : 4;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : false;
-            use_function_relative_addresses : true
-          ),
-          (
-            id     : os_i386_go32v2;
-            name         : 'GO32 V2 DOS extender';
-            shortname    : 'go32v2';
-            sharedlibext : '.dll';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '.exe';
-            defext       : '.def';
-            scriptext    : '.bat';
-            libprefix    : '';
-            Cprefix      : '_';
-            newline      : #13#10;
-            endian       : endian_little;
-            stackalignment : 2;
-            maxCrecordalignment : 4;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : false;
-            use_function_relative_addresses : true
-          ),
-          (
-            id     : os_i386_linux;
-            name         : 'Linux for i386';
-            shortname    : 'linux';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            libprefix    : 'libp';
-            Cprefix      : '';
-            newline      : #10;
-            endian       : endian_little;
-            stackalignment : 4;
-            maxCrecordalignment : 4;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : false;
-            use_function_relative_addresses : true
-          ),
-          (
-            id     : os_i386_FreeBSD;
-            name         : 'FreeBSD/ELF for i386';
-            shortname    : 'freebsd';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            libprefix    : 'libp';
-            Cprefix      : '';
-            newline      : #10;
-            endian       : endian_little;
-            stackalignment : 4;
-            maxCrecordalignment : 4;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : false;
-            use_function_relative_addresses : true
-          ),
-          (
-            id     : os_i386_os2;
-            name         : 'OS/2 via EMX';
-            shortname    : 'os2';
-            sharedlibext : '.ao2';
-            staticlibext : '.ao2';
-            sourceext    : '.pas';
-            pasext       : '.pp';
-            exeext       : '.exe';
-            defext       : '.def';
-            scriptext    : '.cmd';
-            libprefix    : '';
-            Cprefix      : '_';
-            newline      : #13#10;
-            endian       : endian_little;
-            stackalignment : 4;
-            maxCrecordalignment : 4;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : false;
-            use_function_relative_addresses : false
-          ),
-          (
-            id     : os_i386_win32;
-            name         : 'Win32 for i386';
-            shortname    : 'win32';
-            sharedlibext : '.dll';
-            staticlibext : '.aw';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '.exe';
-            defext       : '.def';
-            scriptext    : '.bat';
-            libprefix    : 'libp';
-            Cprefix      : '_';
-            newline      : #13#10;
-            endian       : endian_little;
-            stackalignment : 4;
-            maxCrecordalignment : 16;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : false;
-            use_function_relative_addresses : true
-          ),
-          (
-            id     : os_i386_Netware;
-            name         : 'Netware for i386';
-            shortname    : 'netware';
-            sharedlibext : '.nlm';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '.nlm';
-            defext       : '.def';
-            scriptext    : '.sh';
-            libprefix    : '';
-            Cprefix      : '';
-            newline      : #13#10;
-            endian       : endian_little;
-            stackalignment : 4;
-            maxCrecordalignment : 4;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : false;
-            use_function_relative_addresses : true
-          ),
-          (
-            id     : os_i386_sunos;
-            name         : 'sunOS/ELF for i386';
-            shortname    : 'sunos';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            libprefix    : 'lib';
-            Cprefix      : '';
-            newline      : #10;
-            endian       : endian_little;
-            stackalignment : 4;
-            maxCrecordalignment : 4;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : false;
-            use_function_relative_addresses : true
-          ),
-          (
-            id     : os_m68k_amiga;
-            name         : 'Commodore Amiga';
-            shortname    : 'amiga';
-            sharedlibext : '.library';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '';
-            scriptext    : '';
-            libprefix    : '';
-            Cprefix      : '_';
-            newline      : #10;
-            endian       : endian_big;
-            stackalignment : 2;
-            maxCrecordalignment : 4;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : false;
-            use_function_relative_addresses : false
-          ),
-          (
-            id     : os_m68k_atari;
-            name         : 'Atari ST/STE';
-            shortname    : 'atari';
-            sharedlibext : '.dll';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '.tpp';
-            defext       : '';
-            scriptext    : '';
-            libprefix    : '';
-            Cprefix      : '_';
-            newline      : #10;
-            endian       : endian_big;
-            stackalignment : 2;
-            maxCrecordalignment : 4;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : false;
-            use_function_relative_addresses : false
-          ),
-          (
-            id     : os_m68k_mac;
-            name         : 'Macintosh m68k';
-            shortname    : 'mac';
-            sharedlibext : 'Lib';
-            staticlibext : 'Lib';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '';
-            scriptext    : '';
-            libprefix    : '';
-            Cprefix      : '_';
-            newline      : #13;
-            endian       : endian_big;
-            stackalignment : 2;
-            maxCrecordalignment : 4;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : false;
-            use_function_relative_addresses : false
-          ),
-          (
-            id     : os_m68k_linux;
-            name         : 'Linux for m68k';
-            shortname    : 'linux';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '';
-            scriptext    : '.sh';
-            libprefix    : 'libp';
-            Cprefix      : '';
-            newline      : #10;
-            endian       : endian_big;
-            stackalignment : 2;
-            maxCrecordalignment : 32;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : false;
-            use_function_relative_addresses : true
-          ),
-          (
-            id     : os_m68k_palmos;
-            name         : 'PalmOS';
-            shortname    : 'palmos';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '';
-            scriptext    : '.sh';
-            libprefix    : 'libp';
-            Cprefix      : '_';
-            newline      : #10;
-            endian       : endian_big;
-            stackalignment : 2;
-            maxCrecordalignment : 32;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : false;
-            use_function_relative_addresses : false
-          ),
-          (
-            id     : os_alpha_linux;
-            name         : 'Linux for Alpha';
-            shortname    : 'axplinux';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            libprefix    : 'libp';
-            Cprefix      : '';
-            newline      : #10;
-            endian       : endian_little;
-            stackalignment : 8;
-            maxCrecordalignment : 32;
-            size_of_pointer : 8;
-            size_of_longint : 4;
-            use_bound_instruction : false;
-            use_function_relative_addresses : true
-          ),
-          (
-            id     : os_powerpc_linux;
-            name         : 'Linux for PowerPC';
-            shortname    : 'linuxppc';
-            sharedlibext : '.so';
-            staticlibext : '.s';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            libprefix    : 'libp';
-            Cprefix      : '';
-            newline      : #10;
-            endian       : endian_big;
-            stackalignment : 8;
-            maxCrecordalignment : 32;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : false;
-            use_function_relative_addresses : true
-          ),
-          (
-            id     : os_powerpc_macos;
-            name         : 'MacOs (PowerPC)';
-            shortname    : 'MacOs/PPC';
-            sharedlibext : 'Lib';
-            staticlibext : 'Lib';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '';
-            scriptext    : '';
-            libprefix    : '';
-            Cprefix      : '';
-            newline      : #13;
-            endian       : endian_big;
-            stackalignment : 8;
-            maxCrecordalignment : 32;
-            size_of_pointer : 4;
-            size_of_longint : 4;
-            use_bound_instruction : false;
-            use_function_relative_addresses : true
-          )
-          );
-
-
-{****************************************************************************
-                             Assembler Info
+                              Target setting
 ****************************************************************************}
 
-       as_infos : array[1..asmcnt] of tasminfo = (
-          (
-            id     : as_none;
-            idtxt  : 'no'
-          )
-{$ifdef i386}
-          ,(
-            id     : as_i386_as;
-            idtxt  : 'AS';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
-            supported_target : target_any;
-            allowdirect : true;
-            externals : false;
-            needar : true;
-            labelprefix : '.L';
-            comment : '# ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '','','','','','',
-              '.stab','.stabstr')
-          )
-          ,(
-            id     : as_i386_as_aout;
-            idtxt  : 'AS_AOUT';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
-            supported_target : target_i386_os2;
-            allowdirect : true;
-            externals : false;
-            needar : true;
-            labelprefix : 'L';
-            comment : '# ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '','','','','','',
-              '.stab','.stabstr')
-          )
-          ,(
-            id     : as_i386_asw;
-            idtxt  : 'ASW';
-            asmbin : 'asw';
-            asmcmd : '-o $OBJ $ASM';
-            supported_target : target_i386_win32;
-            allowdirect : true;
-            externals : false;
-            needar : true;
-            labelprefix : '.L';
-            comment : '# ';
-            secnames : ('',
-              '.text','.data','.section .bss',
-              '.section .idata$2','.section .idata$4','.section .idata$5',
-                '.section .idata$6','.section .idata$7','.section .edata',
-              '.stab','.stabstr')
-          )
-          ,(
-            id     : as_i386_nasmcoff;
-            idtxt  : 'NASMCOFF';
-            asmbin : 'nasm';
-            asmcmd : '-f coff -o $OBJ $ASM';
-            supported_target : target_i386_go32v2;
-            allowdirect : true;
-            externals : true;
-            needar : true;
-            labelprefix : '..@';
-            comment : '; ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '.stab','.stabstr')
-          )
-          ,(
-            id     : as_i386_nasmwin32;
-            idtxt  : 'NASMWIN32';
-            asmbin : 'nasm';
-            asmcmd : '-f win32 -o $OBJ $ASM';
-            supported_target : target_i386_win32;
-            allowdirect : true;
-            externals : true;
-            needar : true;
-            labelprefix : '..@';
-            comment : '; ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '.stab','.stabstr')
-          )
-          ,(
-            id     : as_i386_nasmelf;
-            idtxt  : 'NASMELF';
-            asmbin : 'nasm';
-            asmcmd : '-f elf -o $OBJ $ASM';
-            supported_target : target_i386_linux;
-            allowdirect : true;
-            externals : true;
-            needar : true;
-            labelprefix : '..@';
-            comment : '; ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '.stab','.stabstr')
-          )
-          ,(
-            id     : as_i386_nasmobj;
-            idtxt  : 'NASMOBJ';
-            asmbin : 'nasm';
-            asmcmd : '-f obj -o $OBJ $ASM';
-            supported_target : target_any; { what should I write here ?? }
-            allowdirect : true;
-            externals : true;
-            needar : true;
-            labelprefix : '..@';
-            comment : '; ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-              '.stab','.stabstr')
-          )
-          ,(
-            id     : as_i386_tasm;
-            idtxt  : 'TASM';
-            asmbin : 'tasm';
-            asmcmd : '/m2 /ml $ASM $OBJ';
-            supported_target : target_any; { what should I write here ?? }
-            allowdirect : true;
-            externals : true;
-            needar : true;
-            labelprefix_only_inside_procedure : true;
-            labelprefix : '@@';
-            comment : '; ';
-            secnames : ('',
-              'CODE','DATA','BSS',
-              '','','','','','',
-              '','')
-          )
-          ,(
-            id     : as_i386_masm;
-            idtxt  : 'MASM';
-            asmbin : 'masm';
-            asmcmd : '/c $ASM /Fo$OBJ';
-            supported_target : target_any; { what should I write here ?? }
-            allowdirect : true;
-            externals : true;
-            needar : true;
-            labelprefix : '@@';
-            comment : '; ';
-            secnames : ('',
-              'CODE','DATA','BSS',
-              '','','','','','',
-              '','')
-          )
-          ,(
-            id     : as_i386_dbg;
-            idtxt  : 'DBG';
-            asmbin : '';
-            asmcmd : '';
-            supported_target : target_any;
-            allowdirect : false;
-            externals : true;
-            needar : false;
-            labelprefix : 'L';
-            comment : '';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.stab','.stabstr')
-          )
-          ,(
-            id     : as_i386_coff;
-            idtxt  : 'COFF';
-            asmbin : '';
-            asmcmd : '';
-            supported_target : target_i386_go32v2;
-            allowdirect : false;
-            externals : true;
-            needar : false;
-            labelprefix : '.L';
-            comment : '';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.stab','.stabstr')
-          )
-          ,(
-            id     : as_i386_pecoff;
-            idtxt  : 'PECOFF';
-            asmbin : '';
-            asmcmd : '';
-            supported_target : target_i386_win32;
-            allowdirect : false;
-            externals : true;
-            needar : false;
-            labelprefix : '.L';
-            comment : '';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.stab','.stabstr')
-          )
-          ,(
-            id     : as_i386_elf;
-            idtxt  : 'ELF';
-            asmbin : '';
-            asmcmd : '';
-            supported_target : target_any;  //target_i386_linux;
-            allowdirect : false;
-            externals : true;
-            needar : false;
-            labelprefix : '.L';
-            comment : '';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.stab','.stabstr')
-          )
-{$endif i386}
-{$ifdef m68k}
-          ,(
-            id     : as_m68k_as;
-            idtxt  : 'AS';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
-            supported_target : target_any;
-            allowdirect : true;
-            externals : false;
-            needar : true;
-            labelprefix : '.L';
-            comment : '# ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.stab','.stabstr')
-          )
-          ,(
-            id     : as_m68k_gas;
-            idtxt  : 'GAS';
-            asmbin : 'as68k'; { Gas for the Amiga}
-            asmcmd : '--register-prefix-optional -o $OBJ $ASM';
-            supported_target : target_any;
-            allowdirect : true;
-            externals : false;
-            needar : true;
-            labelprefix : '.L';
-            comment : '| ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.stab','.stabstr')
-          )
-          ,(
-            id     : as_m68k_mit;
-            idtxt  : 'MIT';
-            asmbin : '';
-            asmcmd : '-o $OBJ $ASM';
-            supported_target : target_any;
-            allowdirect : true;
-            externals : false;
-            needar : true;
-            labelprefix : '.L';
-            comment : '| ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.stab','.stabstr')
-          )
-          ,(
-            id     : as_m68k_mot;
-            idtxt  : 'MOT';
-            asmbin : '';
-            asmcmd : '-o $OBJ $ASM';
-            supported_target : target_any;
-            allowdirect : true;
-            externals : false;
-            needar : true;
-            labelprefix : '__L';
-            comment : '| ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.stab','.stabstr')
-          )
-          ,(
-            id     : as_m68k_mpw;
-            idtxt  : 'MPW';
-            asmbin : '';
-            asmcmd : '-model far -o $OBJ $ASM';
-            supported_target : target_any;
-            allowdirect : true;
-            externals : false;
-            needar : true;
-            labelprefix : '__L';
-            comment : '* ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
-              '.stab','.stabstr')
-          )
-{$endif m68k}
-{$ifdef alpha}
-          ,(
-            id     : as_alpha_as;
-            idtxt  : 'AS';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
-            supported_target : target_any;
-            allowdirect : true;
-            externals : false;
-            needar : true;
-            labelprefix : '.L';
-            comment : '# ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '','','','','','',
-              '.stab','.stabstr')
-          )
-{$endif}
-{$ifdef powerpc}
-          ,(
-            id     : as_powerpc_as;
-            idtxt  : 'AS';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
-            supported_target : target_any;
-            allowdirect : true;
-            externals : false;
-            needar : true;
-            labelprefix : '.L';
-            comment : '# ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '','','','','','',
-              '.stab','.stabstr')
-          )
-          ,(
-            id     : as_powerpc_mpw;
-            idtxt  : 'PPCAsm';
-            asmbin : 'PPCAsm';
-            asmcmd : '-o $OBJ $ASM';
-            supported_target : target_any;
-            allowdirect : true;
-            externals : false;
-            needar : true;
-            labelprefix : '.L';
-            comment : '; ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '','','','','','',
-              '.stab','.stabstr')
-          )
-{$endif}
-          );
-
-
-{****************************************************************************
-                                 Ar Info
-****************************************************************************}
-       ar_infos : array[1..arcnt] of tarinfo = (
-          (
-            id    : ar_none
-          )
-{$ifdef i386}
-          ,(
-            id    : ar_i386_ar;
-            arcmd : 'ar rs $LIB $FILES'
-          ),
-          (
-            id    : ar_i386_arw;
-            arcmd : 'arw rs $LIB $FILES'
-          )
-{$endif i386}
-{$ifdef m68k}
-          ,(
-            id    : ar_m68k_ar;
-            arcmd : 'ar rs $LIB $FILES'
-          )
-{$endif m68k}
-{$ifdef alpha}
-          ,(
-            id    : ar_alpha_ar;
-            arcmd : 'ar rs $LIB $FILES'
-          )
-{$endif}
-{$ifdef powerpc}
-          ,(
-            id    : ar_powerpc_ar;
-            arcmd : 'ar rs $LIB $FILES'
-          )
-{$endif}
-          );
-
-
-{****************************************************************************
-                                 Res Info
-****************************************************************************}
-       res_infos : array[1..rescnt] of tresinfo = (
-          (
-            id     : res_none
-          )
-{$ifdef i386}
-          ,(
-            id     : res_i386_windres;
-            resbin : 'windres';
-            rescmd : '--include $INC -O coff -o $OBJ $RES'
-          )
-          ,(
-            id     : res_i386_emx;
-            resbin : 'emxbind';
-            rescmd : '-b -r $RES $OBJ'
-(* Not really used - see TLinkeros2.SetDefaultInfo in t_os2.pas. *)
-          )
-{$endif i386}
-{$ifdef m68k}
-          ,(
-            id     : res_m68k_mpw;
-            resbin : 'rez';
-            rescmd : '-i $INC -o $OBJ $RES'
-          )
-{$endif m68}
-{$ifdef powerpc}
-          ,(
-            id     : res_powerpc_mpw;
-            resbin : 'rez';
-            rescmd : '-i $INC -o $OBJ $RES'
-          )
-{$endif powerpc}
-          );
-
-
-{****************************************************************************
-                            Targets Info
-****************************************************************************}
-       target_infos : array[1..targetcnt] of ttargetinfo = (
-          (
-            target      : target_none;
-            flags       : [];
-            cpu  : no_cpu;
-            short_name  : 'notarget'
-          )
-{$ifdef i386}
-          ,(
-            target      : target_i386_GO32V1;
-            flags       : [];
-            cpu         : i386;
-            short_name  : 'GO32V1';
-            unit_env    : 'GO32V1UNITS';
-            smartext    : '.sl';
-            unitext     : '.pp1';
-            unitlibext  : '.ppl';
-            asmext      : '.s1';
-            objext      : '.o1';
-            resext      : '.res';
-            resobjext   : '.o1r';
-            exeext      : ''; { The linker produces a.out }
-            os          : os_i386_GO32V1;
-            assem       : as_i386_as;
-            assemsrc    : as_i386_as;
-            ar          : ar_i386_ar;
-            res         : res_none;
-            heapsize    : 2048*1024;
-            maxheapsize : 32768*1024;
-            stacksize   : 16384;
-            DllScanSupported:false
-          ),
-          (
-            target      : target_i386_GO32V2;
-            flags       : [];
-            cpu         : i386;
-            short_name  : 'GO32V2';
-            unit_env    : 'GO32V2UNITS';
-            smartext    : '.sl';
-            unitext     : '.ppu';
-            unitlibext  : '.ppl';
-            asmext      : '.s';
-            objext      : '.o';
-            resext      : '.res';
-            resobjext   : '.or';
-            exeext      : '.exe';
-            os          : os_i386_GO32V2;
-            assem       : as_i386_coff;
-            assemsrc    : as_i386_as;
-            ar          : ar_i386_ar;
-            res         : res_none;
-            heapsize    : 2048*1024;
-            maxheapsize : 32768*1024;
-            stacksize   : 16384;
-            DllScanSupported:false
-          ),
-          (
-            target      : target_i386_LINUX;
-            flags       : [];
-            cpu         : i386;
-            short_name  : 'LINUX';
-            unit_env    : 'LINUXUNITS';
-            smartext    : '.sl';
-            unitext     : '.ppu';
-            unitlibext  : '.ppl';
-            asmext      : '.s';
-            objext      : '.o';
-            resext      : '.res';
-            resobjext   : '.or';
-            exeext      : '';
-            os          : os_i386_Linux;
-            assem       : as_i386_elf;
-            assemsrc    : as_i386_as;
-            ar          : ar_i386_ar;
-            res         : res_none;
-            heapsize    : 256*1024;
-            maxheapsize : 32768*1024;
-            stacksize   : 8192;
-            DllScanSupported:false
-          ),
-          (
-            target      : target_i386_FreeBSD;
-            flags       : [];
-            cpu         : i386;
-            short_name  : 'FREEBSD';
-            unit_env    : 'BSDUNITS';
-            smartext    : '.sl';
-            unitext     : '.ppu';
-            unitlibext  : '.ppl';
-            asmext      : '.s';
-            objext      : '.o';
-            resext      : '.res';
-            resobjext   : '.or';
-            exeext      : '';
-            os          : os_i386_Freebsd;
-            assem       : as_i386_elf;
-            assemsrc    : as_i386_as;
-            ar          : ar_i386_ar;
-            res         : res_none;
-            heapsize    : 256*1024;
-            maxheapsize : 32768*1024;
-            stacksize   : 8192;
-            DllScanSupported:false
-          ),
-          (
-            target      : target_i386_OS2;
-            flags       : [tf_need_export];
-            cpu  : i386;
-            short_name  : 'OS2';
-            unit_env    : 'OS2UNITS';
-            smartext    : '.sl';
-            unitext     : '.ppo';
-            unitlibext  : '.ppl';
-            asmext      : '.so2';
-            objext      : '.oo2';
-            resext      : '.res';
-            resobjext   : '.oor';
-            exeext      : ''; { The linker produces a.out }
-            os          : os_i386_OS2;
-            assem       : as_i386_as_aout;
-            assemsrc    : as_i386_as_aout;
-            ar          : ar_i386_ar;
-            res         : res_i386_emx;
-            heapsize    : 256*1024;
-            maxheapsize : 32768*1024;
-            stacksize   : 256*1024;
-            DllScanSupported:true
-          ),
-          (
-            target      : target_i386_WIN32;
-            flags       : [];
-            cpu         : i386;
-            short_name  : 'WIN32';
-            unit_env    : 'WIN32UNITS';
-            smartext    : '.slw';
-            unitext     : '.ppw';
-            unitlibext  : '.ppl';
-            asmext      : '.sw';
-            objext      : '.ow';
-            resext      : '.rc';
-            resobjext   : '.owr';
-            exeext      : '.exe';
-            os          : os_i386_Win32;
-            assem       : as_i386_pecoff;
-            assemsrc    : as_i386_asw;
-            ar          : ar_i386_arw;
-            res         : res_i386_windres;
-            heapsize    : 256*1024;
-            maxheapsize : 32*1024*1024;
-            stacksize   : 32*1024*1024;
-            DllScanSupported:true
-          ),
-          (
-            target      : target_i386_NETWARE;
-            flags       : [];
-            cpu         : i386;
-            short_name  : 'NETWARE';
-            unit_env    : 'NETWAREUNITS';
-            smartext    : '.sl';
-            unitext     : '.ppn';
-            unitlibext  : '.ppl';
-            asmext      : '.s';
-            objext      : '.on';
-            resext      : '.res';
-            resobjext   : '.or';
-            exeext      : '';
-            os          : os_i386_Netware;
-            assem       : as_i386_elf;
-            assemsrc    : as_i386_as;
-            ar          : ar_i386_ar;
-            res         : res_none;
-            heapsize    : 256*1024;
-            maxheapsize : 32768*1024;
-            stacksize   : 8192;
-            DllScanSupported:false
-          ),
-          (
-            target      : target_i386_sunos;
-            flags       : [];
-            cpu         : i386;
-            short_name  : 'SUNOS';
-            unit_env    : 'SUNOSUNITS';
-            smartext    : '.sl';
-            unitext     : '.ppu';
-            unitlibext  : '.ppl';
-            asmext      : '.s';
-            objext      : '.o';
-            resext      : '.res';
-            resobjext   : '.or';
-            exeext      : '';
-            os          : os_i386_sunos;
-            assem       : as_i386_as;
-            assemsrc    : as_i386_as;
-            ar          : ar_i386_ar;
-            res         : res_none;
-            heapsize    : 256*1024;
-            maxheapsize : 32768*1024;
-            stacksize   : 8192;
-            DllScanSupported:false
-          )
-{$endif i386}
-{$ifdef m68k}
-          ,(
-            target      : target_m68k_Amiga;
-            flags       : [];
-            cpu         : m68k;
-            short_name  : 'AMIGA';
-            unit_env    : '';
-            smartext    : '.sl';
-            unitext     : '.ppa';
-            unitlibext  : '.ppl';
-            asmext      : '.asm';
-            objext      : '.o';
-            resext      : '.res';
-            resobjext   : '.or';
-            exeext      : '';
-            os          : os_m68k_Amiga;
-            assem       : as_m68k_as;
-            assemsrc    : as_m68k_as;
-            ar          : ar_m68k_ar;
-            res         : res_none;
-            heapsize    : 128*1024;
-            maxheapsize : 32768*1024;
-            stacksize   : 8192;
-            DllScanSupported:false
-          ),
-          (
-            target      : target_m68k_Atari;
-            flags       : [];
-            cpu         : m68k;
-            short_name  : 'ATARI';
-            unit_env    : '';
-            smartext    : '.sl';
-            unitext     : '.ppt';
-            unitlibext  : '.ppl';
-            asmext      : '.s';
-            objext      : '.o';
-            resext      : '.res';
-            resobjext   : '.or';
-            exeext      : '.ttp';
-            os          : os_m68k_Atari;
-            assem       : as_m68k_as;
-            assemsrc    : as_m68k_as;
-            ar          : ar_m68k_ar;
-            res         : res_none;
-            heapsize    : 16*1024;
-            maxheapsize : 32768*1024;
-            stacksize   : 8192;
-            DllScanSupported:false
-          ),
-          (
-            target      : target_m68k_Mac;
-            flags       : [];
-            cpu         : m68k;
-            short_name  : 'MACOS';
-            unit_env    : '';
-            smartext    : '.sl';
-            unitext     : '.ppt';
-            unitlibext  : '.ppl';
-            asmext      : '.a';
-            objext      : '.o';
-            resext      : '.res';
-            resobjext   : '.or';
-            exeext      : '';
-            os          : os_m68k_Mac;
-            assem       : as_m68k_mpw;
-            assemsrc    : as_m68k_mpw;
-            ar          : ar_m68k_ar;
-            res         : res_none;
-            heapsize    : 128*1024;
-            maxheapsize : 32768*1024;
-            stacksize   : 8192;
-            DllScanSupported:false
-          ),
-          (
-            target      : target_m68k_linux;
-            flags       : [];
-            cpu         : m68k;
-            short_name  : 'LINUX';
-            unit_env    : 'LINUXUNITS';
-            smartext    : '.sl';
-            unitext     : '.ppu';
-            unitlibext  : '.ppl';
-            asmext      : '.s';
-            objext      : '.o';
-            resext      : '.res';
-            resobjext   : '.or';
-            exeext      : '';
-            os          : os_m68k_Linux;
-            assem       : as_m68k_as;
-            assemsrc    : as_m68k_as;
-            ar          : ar_m68k_ar;
-            res         : res_none;
-            heapsize    : 128*1024;
-            maxheapsize : 32768*1024;
-            stacksize   : 8192;
-            DllScanSupported:false
-          ),
-          (
-            target      : target_m68k_PalmOS;
-            flags       : [];
-            cpu         : m68k;
-            short_name  : 'PALMOS';
-            unit_env    : 'PALMUNITS';
-            smartext    : '.sl';
-            unitext     : '.ppu';
-            unitlibext  : '.ppl';
-            asmext      : '.s';
-            objext      : '.o';
-            resext      : '.res';
-            resobjext   : '.or';
-            exeext      : '';
-            os          : os_m68k_PalmOS;
-            assem       : as_m68k_as;
-            assemsrc    : as_m68k_as;
-            ar          : ar_m68k_ar;
-            res         : res_none;
-            heapsize    : 128*1024;
-            maxheapsize : 32768*1024;
-            stacksize   : 8192;
-            DllScanSupported:false
-          )
-{$endif m68k}
-{$ifdef alpha}
-          ,(
-            target      : target_alpha_LINUX;
-            flags       : [];
-            cpu         : alpha;
-            short_name  : 'LINUX';
-            unit_env    : 'LINUXUNITS';
-            smartext    : '.sl';
-            unitext     : '.ppu';
-            unitlibext  : '.ppl';
-            asmext      : '.s';
-            objext      : '.o';
-            resext      : '.res';
-            resobjext   : '.or';
-            exeext      : '';
-            os          : os_alpha_Linux;
-            assem       : as_alpha_as;
-            assemsrc    : as_alpha_as;
-            ar          : ar_alpha_ar;
-            res         : res_none;
-            heapsize    : 256*1024;
-            maxheapsize : 32768*1024;
-{*** Changes made by Ozerski at 05.03.2001}
-            stacksize   : 8192;
-            DllScanSupported:false
-{*** End changes}
-          )
-{$endif}
-{$ifdef powerpc}
-          ,(
-            target      : target_powerpc_LINUX;
-            flags       : [];
-            cpu         : powerpc;
-            short_name  : 'LINUX';
-            unit_env    : '';
-            smartext    : '.sl';
-            unitext     : '.ppu';
-            unitlibext  : '.ppl';
-            asmext      : '.s';
-            objext      : '.o';
-            resext      : '.res';
-            resobjext   : '.or';
-            exeext      : '';
-            os          : os_powerpc_Linux;
-            assem       : as_powerpc_as;
-            assemsrc    : as_powerpc_as;
-            ar          : ar_powerpc_ar;
-            res         : res_none;
-            heapsize    : 256*1024;
-            maxheapsize : 32768*1024;
-            stacksize   : 8192;
-            DllScanSupported:false
-          ),
-          (
-            target      : target_powerpc_MACOS;
-            flags       : [];
-            cpu         : powerpc;
-            short_name  : 'MACOS';
-            unit_env    : '';
-            smartext    : '.sl';
-            unitext     : '.ppt';
-            unitlibext  : '.ppl';
-            asmext      : '.a';
-            objext      : '.o';
-            resext      : '.res';
-            resobjext   : '.or';
-            exeext      : '';
-            os          : os_powerpc_macos;
-            assem       : as_powerpc_mpw;
-            assemsrc    : as_powerpc_mpw;
-            ar          : ar_powerpc_ar;
-            res         : res_powerpc_mpw;
-            heapsize    : 256*1024;
-            maxheapsize : 32768*1024;
-            stacksize   : 8192;
-            DllScanSupported:false
-          )
-{$endif}
-          );
-
-{****************************************************************************
-                             AsmModeInfo
-****************************************************************************}
-       asmmodeinfos : array[1..asmmodecnt] of tasmmodeinfo = (
-          (
-            id    : asmmode_none;
-            idtxt : 'none'
-          )
-{$ifdef i386}
-          ,(
-            id    : asmmode_i386_direct;
-            idtxt : 'DIRECT'
-          ),
-          (
-            id    : asmmode_i386_att;
-            idtxt : 'ATT'
-          ),
-          (
-            id    : asmmode_i386_intel;
-            idtxt : 'INTEL'
-          )
-{$endif i386}
-{$ifdef m68k}
-          ,(
-            id    : asmmode_m68k_mot;
-            idtxt : 'MOT'
-          )
-{$endif m68k}
-{$ifdef alpha}
-          ,(
-            id    : asmmode_alpha_direct;
-            idtxt : 'DIRECT'
-          )
-{$endif}
-{$ifdef powerpc}
-          ,(
-            id    : asmmode_powerpc_direct;
-            idtxt : 'DIRECT'
-          )
-{$endif}
-          );
-
-{****************************************************************************
-                                Helpers
-****************************************************************************}
-
-function set_target_os(t:tos):boolean;
-var
-  i : longint;
+function set_target(t:ttarget):boolean;
 begin
-  set_target_os:=false;
-  { target 1 is none }
-  for i:=2 to oscnt do
-   if os_infos[i].id=t then
-    begin
-      target_os:=os_infos[i];
-      set_target_os:=true;
-      exit;
-    end;
+  set_target:=false;
+  if assigned(targetinfos[t]) then
+   begin
+     target_info:=targetinfos[t]^;
+     set_target_asm(target_info.assem);
+     set_target_ar(target_info.ar);
+     set_target_res(target_info.res);
+     target_path:=lower(target_info.shortname);
+     target_cpu:=target_info.cpu;
+     set_target:=true;
+     exit;
+   end;
 end;
 
 
 function set_target_asm(t:tasm):boolean;
-var
-  i : longint;
 begin
   set_target_asm:=false;
-  for i:=1 to asmcnt do
-   if as_infos[i].id=t then
-    begin
-      target_asm:=as_infos[i];
-      set_target_asm:=true;
-      exit;
-    end;
+  if assigned(asminfos[t]) then
+   begin
+     target_asm:=asminfos[t]^;
+     set_target_asm:=true;
+     exit;
+   end;
 end;
 
 
 function set_target_ar(t:tar):boolean;
-var
-  i : longint;
 begin
   set_target_ar:=false;
-  for i:=1 to arcnt do
-   if ar_infos[i].id=t then
-    begin
-      target_ar:=ar_infos[i];
-      set_target_ar:=true;
-      exit;
-    end;
+  if assigned(arinfos[t]) then
+   begin
+     target_ar:=arinfos[t]^;
+     set_target_ar:=true;
+     exit;
+   end;
 end;
 
 
 function set_target_res(t:tres):boolean;
-var
-  i : longint;
 begin
   set_target_res:=false;
-  for i:=1 to rescnt do
-   if res_infos[i].id=t then
+  if assigned(resinfos[t]) then
+   begin
+     target_res:=resinfos[t]^;
+     set_target_res:=true;
+     exit;
+   end;
+end;
+
+
+function set_target_by_string(const s : string) : boolean;
+var
+  hs : string;
+  t  : ttarget;
+begin
+  set_target_by_string:=false;
+  { this should be case insensitive !! PM }
+  hs:=upper(s);
+  for t:=low(ttarget) to high(ttarget) do
+   if assigned(targetinfos[t]) and
+      (upper(targetinfos[t]^.shortname)=hs) then
     begin
-      target_res:=res_infos[i];
-      set_target_res:=true;
+      set_target_by_string:=set_target(t);
       exit;
     end;
 end;
 
 
-function set_target_info(t:ttarget):boolean;
+function set_target_asm_by_string(const s : string) : boolean;
 var
-  i : longint;
+  hs : string;
+  t  : tasm;
 begin
-  set_target_info:=false;
-  for i:=1 to targetcnt do
-   if target_infos[i].target=t then
+  set_target_asm_by_string:=false;
+  { this should be case insensitive !! PM }
+  hs:=upper(s);
+  for t:=low(tasm) to high(tasm) do
+   if assigned(asminfos[t]) and
+      (asminfos[t]^.idtxt=hs) then
     begin
-      target_info:=target_infos[i];
-      set_target_os(target_info.os);
-      set_target_asm(target_info.assem);
-      set_target_ar(target_info.ar);
-      set_target_res(target_info.res);
-      target_path:=lower(target_info.short_name);
-      target_cpu:=target_info.cpu;
-      set_target_info:=true;
+      set_target_asm_by_string:=set_target_asm(t);
       exit;
+    end;
+end;
+
+
+function set_asmmode_by_string(const s:string;var t:tasmmode):boolean;
+var
+  hs : string;
+  ht : tasmmode;
+begin
+  set_asmmode_by_string:=false;
+  { this should be case insensitive !! PM }
+  hs:=upper(s);
+  for ht:=low(tasmmode) to high(tasmmode) do
+   if assigned(asmmodeinfos[ht]) and
+      (asmmodeinfos[ht]^.idtxt=hs) then
+    begin
+      t:=asmmodeinfos[ht]^.id;
+      set_asmmode_by_string:=true;
     end;
 end;
 
 
 {****************************************************************************
-                             Load from string
+                              Target registration
 ****************************************************************************}
 
-function set_string_target(s : string) : boolean;
+procedure RegisterTarget(const r:ttargetinfo);
 var
-  i : longint;
+  t : ttarget;
 begin
-  set_string_target:=false;
-  { this should be case insensitive !! PM }
-  s:=upper(s);
-  for i:=1 to targetcnt do
-   if target_infos[i].short_name=s then
-    begin
-      set_target_info(target_infos[i].target);
-      set_string_target:=true;
-      exit;
-    end;
+  t:=r.target;
+  if assigned(targetinfos[t]) then
+   writeln('Warning: Target is already registered!')
+  else
+   Getmem(targetinfos[t],sizeof(ttargetinfo));
+  targetinfos[t]^:=r;
 end;
 
 
-function set_string_asm(s : string) : boolean;
+procedure RegisterAsmmode(const r:tasmmodeinfo);
 var
-  i : longint;
+  t : tasmmode;
 begin
-  set_string_asm:=false;
-  { this should be case insensitive !! PM }
-  s:=upper(s);
-  for i:=1 to asmcnt do
-   if as_infos[i].idtxt=s then
-    begin
-      target_asm:=as_infos[i];
-      set_string_asm:=true;
-    end;
+  t:=r.id;
+  if assigned(asmmodeinfos[t]) then
+    writeln('Warning: Asmmode is already registered!')
+  else
+    Getmem(asmmodeinfos[t],sizeof(tasmmodeinfo));
+  asmmodeinfos[t]^:=r;
 end;
 
 
-function set_string_asmmode(s:string;var t:tasmmode):boolean;
+procedure RegisterRes(const r:tresinfo);
 var
-  i : longint;
+  t : tres;
 begin
-  set_string_asmmode:=false;
-  { this should be case insensitive !! PM }
-  s:=upper(s);
-  for i:=1 to asmmodecnt do
-   if asmmodeinfos[i].idtxt=s then
+  t:=r.id;
+  if assigned(resinfos[t]) then
+    writeln('Warning: resourcecompiler is already registered!')
+  else
+    Getmem(resinfos[t],sizeof(tresinfo));
+  resinfos[t]^:=r;
+end;
+
+
+procedure RegisterAr(const r:tarinfo);
+var
+  t : tar;
+begin
+  t:=r.id;
+  if assigned(arinfos[t]) then
+    writeln('Warning: ar is already registered!')
+  else
+    Getmem(arinfos[t],sizeof(tarinfo));
+  arinfos[t]^:=r;
+end;
+
+
+procedure DeregisterInfos;
+var
+  assem   : tasm;
+  target  : ttarget;
+  ar      : tar;
+  asmmode : tasmmode;
+  res     : tres;
+begin
+  for target:=low(ttarget) to high(ttarget) do
+   if assigned(targetinfos[target]) then
     begin
-      t:=asmmodeinfos[i].id;
-      set_string_asmmode:=true;
+      freemem(targetinfos[target],sizeof(ttargetinfo));
+      targetinfos[target]:=nil;
+    end;
+  for assem:=low(tasm) to high(tasm) do
+   if assigned(asminfos[assem]) then
+    begin
+      freemem(asminfos[assem],sizeof(tasminfo));
+      asminfos[assem]:=nil;
+    end;
+  for ar:=low(tar) to high(tar) do
+   if assigned(arinfos[ar]) then
+    begin
+      freemem(arinfos[ar],sizeof(tarinfo));
+      arinfos[ar]:=nil;
+    end;
+  for res:=low(tres) to high(tres) do
+   if assigned(resinfos[res]) then
+    begin
+      freemem(resinfos[res],sizeof(tresinfo));
+      resinfos[res]:=nil;
+    end;
+  for asmmode:=low(tasmmode) to high(tasmmode) do
+   if assigned(asmmodeinfos[asmmode]) then
+    begin
+      freemem(asmmodeinfos[asmmode],sizeof(tasmmodeinfo));
+      asmmodeinfos[asmmode]:=nil;
     end;
 end;
 
@@ -1640,61 +434,57 @@ end;
                       Initialization of default target
 ****************************************************************************}
 
-procedure default_os(t:ttarget);
+procedure default_target(t:ttarget);
 begin
-  set_target_info(t);
-  if source_os.name='' then
-    source_os:=target_os;
+  set_target(t);
+  if source_info.name='' then
+    source_info:=target_info;
 end;
 
 
-procedure set_source_os(t:tos);
-var
-  i : longint;
+procedure set_source(t:ttarget);
 begin
 { can't use message() here (PFV) }
-  if source_os.name<>'' then
+  if source_info.name<>'' then
     Writeln('Warning: Source OS Redefined!');
-  for i:=1 to oscnt do
-   if os_infos[i].id=t then
-    begin
-      source_os:=os_infos[i];
-      exit;
-    end;
+  if assigned(targetinfos[t]) then
+   source_info:=targetinfos[t]^
+  else
+   Writeln('Warning: Source OS Not Supported!');
 end;
 
 
 procedure InitSystems;
 begin
 { first get source OS }
-  source_os.name:='';
+  source_info.name:='';
 { please note then we use cpu86 and cpu68 here on purpose !! }
 {$ifdef cpu86}
   {$ifdef GO32V1}
-    set_source_os(os_i386_GO32V1);
+    set_source(target_i386_GO32V1);
   {$else}
     {$ifdef GO32V2}
-      set_source_os(os_i386_GO32V2);
+      set_source(target_i386_GO32V2);
     {$else}
       {$ifdef OS2}
-        set_source_os(os_i386_OS2);
-        if (OS_Mode = osDOS) or (OS_Mode = osDPMI) then
-         source_os.scriptext := '.bat';
+        set_source(target_i386_OS2);
+        if (target_Mode = osDOS) or (target_Mode = osDPMI) then
+         source_info.scriptext := '.bat';
         { OS/2 via EMX can be run under DOS as well }
       {$else}
         {$ifdef WIN32}
-          set_source_os(os_i386_WIN32);
+          set_source(target_i386_WIN32);
         {$else}
           {$Ifdef BSD}
-            set_source_os(os_i386_FreeBSD);
+            set_source(target_i386_FreeBSD);
           {$else}
             {$ifdef sunos}
-              set_source_os(os_i386_sunos);
+              set_source(target_i386_sunos);
             {$else}
               { Must be the last as some freebsd also
                 defined linux }
               {$ifdef Linux}
-                set_source_os(os_i386_LINUX);
+                set_source(target_i386_LINUX);
               {$endif linux}
             {$endif sunos}
           {$endif bsd}
@@ -1705,16 +495,16 @@ begin
 {$endif cpu86}
 {$ifdef cpu68}
   {$ifdef AMIGA}
-    set_source_os(os_m68k_Amiga);
+    set_source(target_m68k_Amiga);
   {$else}
     {$ifdef ATARI}
-      set_source_os(os_m68k_Atari);
+      set_source(target_m68k_Atari);
     {$else}
       {$ifdef MACOS}
-        set_source_os(os_m68k_MAC);
+        set_source(target_m68k_MAC);
       {$else}
         {$ifdef LINUX}
-           set_source_os(os_m68k_linux);
+           set_source(target_m68k_linux);
         {$endif linux}
       {$endif macos}
     {$endif atari}
@@ -1724,25 +514,25 @@ begin
 { Now default target !! }
 {$ifdef i386}
   {$ifdef GO32V1}
-     default_os(target_i386_GO32V1);
+     default_target(target_i386_GO32V1);
   {$else}
     {$ifdef GO32V2}
-      default_os(target_i386_GO32V2);
+      default_target(target_i386_GO32V2);
     {$else}
       {$ifdef OS2}
-        default_os(target_i386_OS2);
+        default_target(target_i386_OS2);
       {$else}
         {$ifdef LINUX}
          {$ifdef BSD}
-          default_os(target_i386_FreeBSD);
+          default_target(target_i386_FreeBSD);
          {$else}
-          default_os(target_i386_LINUX);
+          default_target(target_i386_LINUX);
          {$endif}
         {$else}
            {$ifdef WIN32}
-             default_os(target_i386_WIN32);
+             default_target(target_i386_WIN32);
            {$else}
-             default_os(target_i386_GO32V2);
+             default_target(target_i386_GO32V2);
            {$endif win32}
         {$endif linux}
       {$endif os2}
@@ -1751,38 +541,41 @@ begin
 {$endif i386}
 {$ifdef m68k}
   {$ifdef AMIGA}
-    default_os(target_m68k_Amiga);
+    default_target(target_m68k_Amiga);
   {$else}
     {$ifdef ATARI}
-      default_os(target_m68k_Atari);
+      default_target(target_m68k_Atari);
     {$else}
       {$ifdef MACOS}
-        default_os(target_m68k_Mac);
+        default_target(target_m68k_Mac);
       {$else}
         {$ifdef LINUX}
-          default_os(target_m68k_linux);
+          default_target(target_m68k_linux);
         {$else}
-          default_os(target_m68k_Amiga);
+          default_target(target_m68k_Amiga);
         {$endif linux}
       {$endif macos}
     {$endif atari}
   {$endif amiga}
 {$endif m68k}
 {$ifdef alpha}
-  default_os(target_alpha_linux);
+  default_target(target_alpha_linux);
 {$endif alpha}
 {$ifdef powerpc}
-  default_os(target_powerpc_linux);
+  default_target(target_powerpc_linux);
 {$endif powerpc}
 end;
 
 
-begin
-  InitSystems;
+finalization
+  DeregisterInfos;
 end.
 {
   $Log$
-  Revision 1.15  2001-03-06 18:28:02  peter
+  Revision 1.16  2001-04-18 22:02:00  peter
+    * registration of targets and assemblers
+
+  Revision 1.15  2001/03/06 18:28:02  peter
     * patch from Pavel with a new and much faster DLL Scanner for
       automatic importing so $linklib works for DLLs. Thanks Pavel!
 

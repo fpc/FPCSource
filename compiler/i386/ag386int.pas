@@ -498,7 +498,7 @@ interface
                                       end;
                                end; { end for i:=0 to... }
                              if quoted then AsmWrite('"');
-                               AsmWrite(target_os.newline);
+                               AsmWrite(target_info.newline);
                              counter := counter+line_length;
                           end; { end for j:=0 ... }
                         { do last line of lines }
@@ -745,10 +745,58 @@ ait_stab_function_name : ;
 {$endif EXTDEBUG}
    end;
 
+{*****************************************************************************
+                                  Initialize
+*****************************************************************************}
+
+    const
+       as_i386_tasm_info : tasminfo =
+          (
+            id           : as_i386_tasm;
+            idtxt  : 'TASM';
+            asmbin : 'tasm';
+            asmcmd : '/m2 /ml $ASM $OBJ';
+            supported_target : target_any; { what should I write here ?? }
+            allowdirect : true;
+            externals : true;
+            needar : true;
+            labelprefix_only_inside_procedure : true;
+            labelprefix : '@@';
+            comment : '; ';
+            secnames : ('',
+              'CODE','DATA','BSS',
+              '','','','','','',
+              '','')
+          );
+
+       as_i386_masm_info : tasminfo =
+          (
+            id           : as_i386_masm;
+            idtxt  : 'MASM';
+            asmbin : 'masm';
+            asmcmd : '/c $ASM /Fo$OBJ';
+            supported_target : target_any; { what should I write here ?? }
+            allowdirect : true;
+            externals : true;
+            needar : true;
+            labelprefix : '@@';
+            comment : '; ';
+            secnames : ('',
+              'CODE','DATA','BSS',
+              '','','','','','',
+              '','')
+          );
+
+finalization
+  RegisterAssembler(as_i386_tasm_info,T386IntelAssembler);
+  RegisterAssembler(as_i386_masm_info,T386IntelAssembler);
 end.
 {
   $Log$
-  Revision 1.9  2001-04-13 01:22:17  peter
+  Revision 1.10  2001-04-18 22:02:00  peter
+    * registration of targets and assemblers
+
+  Revision 1.9  2001/04/13 01:22:17  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

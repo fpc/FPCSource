@@ -86,7 +86,7 @@ implementation
                         an underline }
                       if InternalProcName[1]='_' then
                         delete(InternalProcName,1,1)
-                      else if (target_os.id=os_i386_win32) and UseDeffileForExport then
+                      else if (target_info.target=target_i386_win32) and UseDeffileForExport then
                         begin
                           Message(parser_e_dlltool_unit_var_problem);
                           Message(parser_e_dlltool_unit_var_problem2);
@@ -108,7 +108,7 @@ implementation
                        end;
                       hp.options:=hp.options or eo_index;
                       pt.free;
-                      if target_os.id=os_i386_win32 then
+                      if target_info.target=target_i386_win32 then
                        DefString:=srsym.realname+'='+InternalProcName+' @ '+tostr(hp.index)
                       else
                        DefString:=srsym.realname+'='+InternalProcName; {Index ignored!}
@@ -163,7 +163,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2001-04-13 01:22:12  peter
+  Revision 1.15  2001-04-18 22:01:57  peter
+    * registration of targets and assemblers
+
+  Revision 1.14  2001/04/13 01:22:12  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

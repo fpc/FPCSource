@@ -137,7 +137,7 @@ implementation
            begin
               pushusedregisters(pushed,$ff);
 
-              gettempofsizereference(target_os.size_of_pointer,location.reference);
+              gettempofsizereference(target_info.size_of_pointer,location.reference);
 
               { determines the size of the mem block }
               push_int(tpointerdef(resulttype.def).pointertype.def.size);
@@ -997,7 +997,7 @@ implementation
                       mangled_length:=length(aktprocsym.definition.mangledname);
                       getmem(pp,mangled_length+50);
                       strpcopy(pp,'192,0,0,'+withstartlabel.name);
-                      if (target_os.use_function_relative_addresses) then
+                      if (target_info.use_function_relative_addresses) then
                         begin
                           strpcopy(strend(pp),'-');
                           strpcopy(strend(pp),aktprocsym.definition.mangledname);
@@ -1019,7 +1019,7 @@ implementation
                      begin
                        emitlab(withendlabel);
                        strpcopy(pp,'224,0,0,'+withendlabel.name);
-                      if (target_os.use_function_relative_addresses) then
+                      if (target_info.use_function_relative_addresses) then
                         begin
                           strpcopy(strend(pp),'-');
                           strpcopy(strend(pp),aktprocsym.definition.mangledname);
@@ -1055,7 +1055,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2001-04-13 01:22:19  peter
+  Revision 1.13  2001-04-18 22:02:03  peter
+    * registration of targets and assemblers
+
+  Revision 1.12  2001/04/13 01:22:19  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

@@ -101,7 +101,7 @@ implementation
          AsmRes:=TAsmScript.Create(outputexedir+'ppas');
 
          { open deffile }
-         DefFile:=TDefFile.Create(outputexedir+inputfile+target_os.defext);
+         DefFile:=TDefFile.Create(outputexedir+inputfile+target_info.defext);
 
          { list of generated .o files, so the linker can remove them }
          SmartLinkOFiles:=TStringList.Create;
@@ -620,7 +620,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2001-04-15 09:48:30  peter
+  Revision 1.17  2001-04-18 22:01:54  peter
+    * registration of targets and assemblers
+
+  Revision 1.16  2001/04/15 09:48:30  peter
     * fixed crash in labelnode
     * easier detection of goto and label in try blocks
 

@@ -36,7 +36,7 @@ interface
        { target }
        systems,
        { assembler }
-       cpubase,aasm,
+       cpubase,aasm,assemble,
        { output }
        ogbase;
 
@@ -98,6 +98,14 @@ interface
          function  initreading:boolean;override;
          procedure donereading;override;
          procedure readfromdisk;override;
+       end;
+
+       tcoffassembler = class(tinternalassembler)
+         constructor create(smart:boolean);override;
+       end;
+
+       tpecoffassembler = class(tinternalassembler)
+         constructor create(smart:boolean);override;
        end;
 
 
@@ -1084,11 +1092,81 @@ implementation
       end;
 
 
+{****************************************************************************
+                                 TCoffAssembler
+****************************************************************************}
 
+    constructor TCoffAssembler.Create(smart:boolean);
+      begin
+        inherited Create(smart);
+        objectoutput:=tcoffobjectoutput.createdjgpp(smart);
+      end;
+
+
+{****************************************************************************
+                               TPECoffAssembler
+****************************************************************************}
+
+    constructor TPECoffAssembler.Create(smart:boolean);
+      begin
+        inherited Create(smart);
+        objectoutput:=tcoffobjectoutput.createwin32(smart);
+      end;
+
+
+{*****************************************************************************
+                                  Initialize
+*****************************************************************************}
+
+    const
+       as_i386_coff_info : tasminfo =
+          (
+            id     : as_i386_coff;
+            idtxt  : 'COFF';
+            asmbin : '';
+            asmcmd : '';
+            supported_target : target_i386_go32v2;
+            allowdirect : false;
+            externals : true;
+            needar : false;
+            labelprefix : '.L';
+            comment : '';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+              '.stab','.stabstr')
+          );
+
+    const
+       as_i386_pecoff_info : tasminfo =
+          (
+            id     : as_i386_pecoff;
+            idtxt  : 'PECOFF';
+            asmbin : '';
+            asmcmd : '';
+            supported_target : target_i386_win32;
+            allowdirect : false;
+            externals : true;
+            needar : false;
+            labelprefix : '.L';
+            comment : '';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+              '.stab','.stabstr')
+          );
+
+
+initialization
+  RegisterAssembler(as_i386_coff_info,TCoffAssembler);
+  RegisterAssembler(as_i386_pecoff_info,TPECoffAssembler);
 end.
 {
   $Log$
-  Revision 1.12  2001-04-13 01:22:10  peter
+  Revision 1.13  2001-04-18 22:01:54  peter
+    * registration of targets and assemblers
+
+  Revision 1.12  2001/04/13 01:22:10  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

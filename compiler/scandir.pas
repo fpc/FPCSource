@@ -90,9 +90,9 @@ implementation
            if not localswitcheschanged then
              nextaktlocalswitches:=aktlocalswitches;
            if state='-' then
-            nextaktlocalswitches:=nextaktlocalswitches-[sw]
+            exclude(nextaktlocalswitches,sw)
            else
-            nextaktlocalswitches:=nextaktlocalswitches+[sw];
+            include(nextaktlocalswitches,sw);
            localswitcheschanged:=true;
          end;
       end;
@@ -103,6 +103,7 @@ implementation
         current_scanner.skipspace;
         Message1(w,current_scanner.readcomment);
       end;
+
 
 {*****************************************************************************
                               Directive Callbacks
@@ -124,7 +125,7 @@ implementation
         if s='DEFAULT' then
          aktasmmode:=initasmmode
         else
-         if not set_string_asmmode(s,aktasmmode) then
+         if not set_asmmode_by_string(s,aktasmmode) then
           Message1(scan_w_unsupported_asmmode_specifier,s);
       end;
 
@@ -446,7 +447,7 @@ implementation
         else
           begin
             current_scanner.skipspace;
-            if set_string_asm(current_scanner.readid) then
+            if set_target_asm_by_string(current_scanner.readid) then
              aktoutputformat:=target_asm.id
             else
              Message1(scan_w_illegal_switch,pattern);
@@ -567,7 +568,7 @@ implementation
             end;
         s:=AddExtension(FixFileName(s),target_info.resext);
         if target_info.res<>res_none then
-          if (target_info.res = res_i386_emx) and
+          if (target_info.res = res_emxbind) and
                                  not (Current_module.ResourceFiles.Empty) then
             Message(scan_w_only_one_resourcefile_supported)
           else
@@ -808,7 +809,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2001-04-13 18:00:36  peter
+  Revision 1.2  2001-04-18 22:01:58  peter
+    * registration of targets and assemblers
+
+  Revision 1.1  2001/04/13 18:00:36  peter
     * easier registration of directives
 
   Revision 1.20  2001/04/13 01:22:13  peter

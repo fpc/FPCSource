@@ -97,9 +97,12 @@ uses
 {$endif Delphi}
   verbose,comphook,systems,
   cutils,cclasses,globals,options,fmodule,parser,symtable,
-  link,import,export,tokens,pass_1,
+  assemble,link,import,export,tokens,pass_1
   { cpu overrides }
-  cpuswtch
+  ,cpuswtch
+  { cpu targets }
+  ,cputarg
+  { cpu codegenerator }
 {$ifndef NOPASS2}
   ,cpunode
 {$endif}
@@ -166,6 +169,7 @@ begin
      DoneImport;
      DoneExport;
      DoneLinker;
+     DoneAssembler;
      DoneCpu;
    end;
 { Free memory for the others }
@@ -208,6 +212,7 @@ begin
   InitImport;
   InitExport;
   InitLinker;
+  InitAssembler;
   InitCpu;
   CompilerInitedAfterArgs:=true;
 end;
@@ -258,8 +263,8 @@ begin
 
 { show some info }
   Message1(general_t_compilername,FixFileName(system.paramstr(0)));
-  Message1(general_d_sourceos,source_os.name);
-  Message1(general_i_targetos,target_os.name);
+  Message1(general_d_sourceos,source_info.name);
+  Message1(general_i_targetos,target_info.name);
   Message1(general_t_exepath,exepath);
   WritePathList(general_t_unitpath,unitsearchpath);
   WritePathList(general_t_includepath,includesearchpath);
@@ -323,7 +328,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2001-04-13 18:08:36  peter
+  Revision 1.19  2001-04-18 22:01:53  peter
+    * registration of targets and assemblers
+
+  Revision 1.18  2001/04/13 18:08:36  peter
     * scanner object to class
 
   Revision 1.17  2001/04/13 01:22:06  peter

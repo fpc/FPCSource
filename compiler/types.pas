@@ -743,9 +743,9 @@ implementation
              formaldef :
                push_addr_param:=true;
              recorddef :
-               push_addr_param:=(def.size>target_os.size_of_pointer);
+               push_addr_param:=(def.size>target_info.size_of_pointer);
              arraydef :
-               push_addr_param:=((tarraydef(def).highrange>=tarraydef(def).lowrange) and (def.size>target_os.size_of_pointer)) or
+               push_addr_param:=((tarraydef(def).highrange>=tarraydef(def).lowrange) and (def.size>target_info.size_of_pointer)) or
                                 is_open_array(def) or
                                 is_array_of_const(def) or
                                 is_array_constructor(def);
@@ -1732,7 +1732,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2001-04-13 01:22:17  peter
+  Revision 1.40  2001-04-18 22:02:00  peter
+    * registration of targets and assemblers
+
+  Revision 1.39  2001/04/13 01:22:17  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

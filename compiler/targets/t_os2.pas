@@ -33,29 +33,7 @@ unit t_os2;
 {$i defines.inc}
 
 interface
-uses
-  import,link,comprsrc;
 
-type
-  timportlibos2=class(timportlib)
-    procedure preparelib(const s:string);override;
-    procedure importprocedure(const func,module:string;index:longint;const name:string);override;
-    procedure generatelib;override;
-  end;
-
-    tlinkeros2=class(tlinker)
-    private
-       Function  WriteResponseFile(isdll:boolean) : Boolean;
-    public
-       constructor Create;
-       procedure SetDefaultInfo;override;
-       function  MakeExecutable:boolean;override;
-    end;
-
-
-{***************************************************************************}
-
-{***************************************************************************}
 
 implementation
 
@@ -69,7 +47,25 @@ implementation
 {$endif Delphi}
      cutils,cclasses,
      globtype,comphook,systems,
-     globals,verbose,fmodule,script;
+     globals,verbose,fmodule,script,
+     import,link,comprsrc;
+
+  type
+    timportlibos2=class(timportlib)
+      procedure preparelib(const s:string);override;
+      procedure importprocedure(const func,module:string;index:longint;const name:string);override;
+      procedure generatelib;override;
+    end;
+
+    tlinkeros2=class(tlinker)
+    private
+       Function  WriteResponseFile(isdll:boolean) : Boolean;
+    public
+       constructor Create;
+       procedure SetDefaultInfo;override;
+       function  MakeExecutable:boolean;override;
+    end;
+
 
 const   profile_flag:boolean=false;
 
@@ -419,7 +415,7 @@ begin
   While not SharedLibFiles.Empty do
    begin
      S:=SharedLibFiles.GetFirst;
-     i:=Pos(target_os.sharedlibext,S);
+     i:=Pos(target_info.sharedlibext,S);
      if i>0 then
       Delete(S,i,255);
      LinkRes.Add('-l'+s);
@@ -504,10 +500,77 @@ begin
 end;
 
 
+{*****************************************************************************
+                                     Initialize
+*****************************************************************************}
+
+    const
+       res_emxbind_info : tresinfo =
+          (
+            id     : res_emxbind;
+            resbin : 'emxbind';
+            rescmd : '-b -r $RES $OBJ'
+(* Not really used - see TLinkeros2.SetDefaultInfo in t_os2.pas. *)
+          );
+
+    const
+       target_i386_os2_info : ttargetinfo =
+          (
+            target       : target_i386_OS2;
+            name         : 'OS/2 via EMX';
+            shortname    : 'OS2';
+            flags        : [tf_need_export];
+            cpu          : i386;
+            unit_env     : 'OS2UNITS';
+            sharedlibext : '.ao2';
+            staticlibext : '.ao2';
+            sourceext    : '.pas';
+            pasext       : '.pp';
+            exeext       : '.exe';
+            defext       : '.def';
+            scriptext    : '.cmd';
+            smartext     : '.sl';
+            unitext      : '.ppo';
+            unitlibext   : '.ppl';
+            asmext       : '.so2';
+            objext       : '.oo2';
+            resext       : '.res';
+            resobjext    : '.oor';
+            libprefix    : '';
+            Cprefix      : '_';
+            newline      : #13#10;
+            assem        : as_i386_as_aout;
+            assemextern  : as_i386_as_aout;
+            link         : ld_i386_os2;
+            linkextern   : ld_i386_os2;
+            ar           : ar_gnu_ar;
+            res          : res_emxbind;
+            endian       : endian_little;
+            stackalignment : 4;
+            maxCrecordalignment : 4;
+            size_of_pointer : 4;
+            size_of_longint : 4;
+            heapsize     : 256*1024;
+            maxheapsize  : 32768*1024;
+            stacksize    : 256*1024;
+            DllScanSupported:true;
+            use_bound_instruction : false;
+            use_function_relative_addresses : false
+          );
+
+
+initialization
+  RegisterLinker(ld_i386_os2,TLinkerOS2);
+  RegisterImport(target_i386_os2,TImportLibOS2);
+  RegisterRes(res_emxbind_info);
+  RegisterTarget(target_i386_os2_info);
 end.
 {
   $Log$
-  Revision 1.3  2001-04-13 01:22:22  peter
+  Revision 1.4  2001-04-18 22:02:04  peter
+    * registration of targets and assemblers
+
+  Revision 1.3  2001/04/13 01:22:22  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

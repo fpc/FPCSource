@@ -233,11 +233,11 @@ implementation
         move(s[1],buf[bufidx],length(s));
         inc(bufidx,length(s));
       { add crlf }
-        buf[bufidx]:=target_os.newline[1];
+        buf[bufidx]:=target_info.newline[1];
         inc(bufidx);
-        if length(target_os.newline)=2 then
+        if length(target_info.newline)=2 then
          begin
-           buf[bufidx]:=target_os.newline[2];
+           buf[bufidx]:=target_info.newline[2];
            inc(bufidx);
          end;
       end;
@@ -519,7 +519,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2001-04-13 01:22:06  peter
+  Revision 1.8  2001-04-18 22:01:53  peter
+    * registration of targets and assemblers
+
+  Revision 1.7  2001/04/13 01:22:06  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

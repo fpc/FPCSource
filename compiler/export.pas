@@ -28,6 +28,7 @@ interface
 
 uses
   cutils,cclasses,
+  systems,
   symtype;
 
 const
@@ -60,58 +61,23 @@ type
       procedure generatelib;virtual;
    end;
 
-var
-   exportlib : texportlib;
+   TExportLibClass=class of TExportLib;
 
+var
+  CExportLib : array[ttarget] of TExportLibClass;
+  ExportLib  : TExportLib;
+
+procedure RegisterExport(t:ttarget;c:TExportLibClass);
 procedure InitExport;
 procedure DoneExport;
 
 implementation
 
 uses
-  systems,verbose,globals
-{$ifdef i386}
-  {$ifndef NOTARGETLINUX}
-    ,t_linux
-  {$endif}
-  {$ifndef NOTARGETFREEBSD}
-    ,t_fbsd
-  {$endif}
-  {$ifndef NOTARGETOS2}
-    ,t_os2
-  {$endif}
-  {$ifndef NOTARGETSUNOS}
-    ,t_sunos
-  {$endif}
-  {$ifndef NOTARGETWIN32}
-    ,t_win32
-  {$endif}
-  {$ifndef NOTARGETNETWARE}
-    ,t_nwm
-  {$endif}
-  {$ifndef NOTARGETGO32V2}
-    ,t_go32v2
-  {$endif}
-{$endif}
-{$ifdef m68k}
-  {$ifndef NOTARGETLINUX}
-    ,t_linux
-  {$endif}
-{$endif}
-{$ifdef powerpc}
-  {$ifndef NOTARGETLINUX}
-    ,t_linux
-  {$endif}
-{$endif}
-{$ifdef alpha}
-  {$ifndef NOTARGETLINUX}
-    ,t_linux
-  {$endif}
-{$endif}
-  ;
+  verbose,globals;
 
 {****************************************************************************
-                           TImported_procedure
+                           TExported_procedure
 ****************************************************************************}
 
 constructor texported_item.Create;
@@ -133,7 +99,7 @@ end;
 
 
 {****************************************************************************
-                              TImportLib
+                              TExportLib
 ****************************************************************************}
 
 constructor texportlib.Create;
@@ -182,64 +148,39 @@ begin
 end;
 
 
-procedure DoneExport;
+{*****************************************************************************
+                                 Init/Done
+*****************************************************************************}
+
+procedure RegisterExport(t:ttarget;c:TExportLibClass);
 begin
-  if assigned(exportlib) then
-    exportlib.free;
+  CExportLib[t]:=c;
 end;
 
 
 procedure InitExport;
 begin
-  case target_info.target of
-{$ifdef i386}
-  {$ifndef NOTARGETLINUX}
-    target_i386_Linux :
-      exportlib:=Texportliblinux.Create;
-  {$endif NOTARGETLINUX}
-  {$ifndef NOTARGETFREEBSD}
-    target_i386_freebsd:
-      exportlib:=Texportlibfreebsd.Create;
-  {$endif NOTARGETFREEBSD}
-  {$ifndef NOTARGETSUNOS}
-    target_i386_SUNOS:
-      exportlib:=Texportlibsunos.Create;
-  {$endif NOTARGETSUNOS}
-  {$ifndef NOTARGETWIN32}
-    target_i386_Win32 :
-      exportlib:=Texportlibwin32.Create;
-  {$endif NOTARGETWIN32}
-  {$ifndef NOTARGETNETWARE}
-    target_i386_netware :
-      exportlib:=Texportlibnetware.Create;
-  {$endif NOTARGETNETWARE}
-{
-    target_i386_OS2 :
-      exportlib:=Texportlibos2.Create;
-}
-{$endif i386}
-{$ifdef m68k}
-    target_m68k_Linux :
-      exportlib:=Texportliblinux.Create;
-{$endif m68k}
-{$ifdef alpha}
-    target_alpha_Linux :
-      exportlib:=Texportliblinux.Create;
-{$endif alpha}
-{$ifdef powerpc}
-    target_alpha_Linux :
-      exportlib:=Texportliblinux.Create;
-{$endif powerpc}
-    else
-      exportlib:=Texportlib.Create;
-  end;
+  if assigned(CExportLib[target_info.target]) then
+   exportlib:=CExportLib[target_info.target].Create
+  else
+   exportlib:=TExportLib.Create;
+end;
+
+
+procedure DoneExport;
+begin
+  if assigned(Exportlib) then
+    Exportlib.free;
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.13  2001-04-13 01:22:07  peter
+  Revision 1.14  2001-04-18 22:01:53  peter
+    * registration of targets and assemblers
+
+  Revision 1.13  2001/04/13 01:22:07  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

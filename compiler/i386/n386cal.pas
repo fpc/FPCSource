@@ -92,9 +92,9 @@ implementation
          r : preference;
 
       begin
-         { set default para_alignment to target_os.stackalignment }
+         { set default para_alignment to target_info.stackalignment }
          if para_alignment=0 then
-          para_alignment:=target_os.stackalignment;
+          para_alignment:=target_info.stackalignment;
 
          { push from left to right if specified }
          if push_from_left_to_right and assigned(right) then
@@ -286,7 +286,7 @@ implementation
          if ([pocall_cdecl,pocall_cppdecl,pocall_stdcall]*procdefinition.proccalloptions)<>[] then
           para_alignment:=4
          else
-          para_alignment:=target_os.stackalignment;
+          para_alignment:=target_info.stackalignment;
 
          if not assigned(procdefinition) then
           exit;
@@ -1463,7 +1463,7 @@ implementation
               mangled_length:=length(oldprocsym.definition.mangledname);
               getmem(pp,mangled_length+50);
               strpcopy(pp,'192,0,0,'+startlabel.name);
-              if (target_os.use_function_relative_addresses) then
+              if (target_info.use_function_relative_addresses) then
                 begin
                   strpcopy(strend(pp),'-');
                   strpcopy(strend(pp),oldprocsym.definition.mangledname);
@@ -1507,7 +1507,7 @@ implementation
             begin
               emitlab(endlabel);
               strpcopy(pp,'224,0,0,'+endlabel.name);
-             if (target_os.use_function_relative_addresses) then
+             if (target_info.use_function_relative_addresses) then
                begin
                  strpcopy(strend(pp),'-');
                  strpcopy(strend(pp),oldprocsym.definition.mangledname);
@@ -1549,7 +1549,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2001-04-13 01:22:18  peter
+  Revision 1.22  2001-04-18 22:02:01  peter
+    * registration of targets and assemblers
+
+  Revision 1.21  2001/04/13 01:22:18  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

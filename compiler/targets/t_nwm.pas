@@ -83,7 +83,14 @@ unit t_nwm;
 
 interface
 
+
+implementation
+
   uses
+    cutils,
+    verbose,systems,globtype,globals,
+    symconst,script,
+    fmodule,aasm,cpuasm,cpubase,symsym,
     import,export,link;
 
   type
@@ -110,14 +117,6 @@ interface
       function  MakeExecutable:boolean;override;
     end;
 
-
-implementation
-
-  uses
-    cutils,
-    verbose,systems,globtype,globals,
-    symconst,script,
-    fmodule,aasm,cpuasm,cpubase,symsym;
 
 {*****************************************************************************
                                TIMPORTLIBNETWARE
@@ -271,10 +270,10 @@ begin
   WriteResponseFile:=False;
 
   ProgNam := current_module.exefilename^;
-  i:=Pos(target_os.exeext,ProgNam);
+  i:=Pos(target_info.exeext,ProgNam);
   if i>0 then
     Delete(ProgNam,i,255);
-  NlmNam := ProgNam + target_os.exeext;
+  NlmNam := ProgNam + target_info.exeext;
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
@@ -320,7 +319,7 @@ begin
         S:=lower (StaticLibFiles.GetFirst);
         if s<>'' then
          begin
-           i:=Pos(target_os.staticlibext,S);
+           i:=Pos(target_info.staticlibext,S);
            if i>0 then
             Delete(S,i,255);
            S := S + '.imp';
@@ -344,7 +343,7 @@ begin
         if s<>'' then
          begin
            s2:=s;
-           i:=Pos(target_os.sharedlibext,S);
+           i:=Pos(target_info.sharedlibext,S);
            if i>0 then
             Delete(S,i,255);
            S := S + '.imp';
@@ -418,10 +417,69 @@ begin
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
 
+
+{*****************************************************************************
+                                     Initialize
+*****************************************************************************}
+
+    const
+       target_i386_netware_info : ttargetinfo =
+          (
+            target       : target_i386_NETWARE;
+            name         : 'Netware for i386';
+            shortname    : 'Netware';
+            flags        : [];
+            cpu          : i386;
+            unit_env     : 'NETWAREUNITS';
+            sharedlibext : '.nlm';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '.nlm';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppn';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.on';
+            resext       : '.res';
+            resobjext    : '.or';
+            libprefix    : '';
+            Cprefix      : '';
+            newline      : #13#10;
+            assem        : as_i386_elf32;
+            assemextern  : as_i386_as;
+            link         : ld_i386_netware;
+            linkextern   : ld_i386_netware;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            endian       : endian_little;
+            stackalignment : 4;
+            maxCrecordalignment : 4;
+            size_of_pointer : 4;
+            size_of_longint : 4;
+            heapsize     : 256*1024;
+            maxheapsize  : 32768*1024;
+            stacksize    : 8192;
+            DllScanSupported:false;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
+          );
+
+
+initialization
+  RegisterLinker(ld_i386_netware,TLinkerNetware);
+  RegisterImport(target_i386_netware,TImportLibNetware);
+  RegisterExport(target_i386_netware,TExportLibNetware);
+  RegisterTarget(target_i386_netware_info);
 end.
 {
   $Log$
-  Revision 1.2  2001-04-13 01:22:21  peter
+  Revision 1.3  2001-04-18 22:02:04  peter
+    * registration of targets and assemblers
+
+  Revision 1.2  2001/04/13 01:22:21  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

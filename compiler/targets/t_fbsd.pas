@@ -28,7 +28,14 @@ unit t_fbsd;
 
 interface
 
+
+implementation
+
   uses
+    cutils,cclasses,
+    verbose,systems,globtype,globals,
+    symconst,script,
+    fmodule,aasm,cpuasm,cpubase,symsym,
     import,export,link;
 
   type
@@ -58,14 +65,6 @@ interface
       function  MakeSharedLibrary:boolean;override;
     end;
 
-
-implementation
-
-  uses
-    cutils,cclasses,
-    verbose,systems,globtype,globals,
-    symconst,script,
-    fmodule,aasm,cpuasm,cpubase,symsym;
 
 {*****************************************************************************
                                TIMPORTLIBLINUX
@@ -332,7 +331,7 @@ begin
         S:=SharedLibFiles.GetFirst;
         if s<>'c' then
          begin
-           i:=Pos(target_os.sharedlibext,S);
+           i:=Pos(target_info.sharedlibext,S);
            if i>0 then
             Delete(S,i,255);
            LinkRes.Add('-l'+s);
@@ -441,10 +440,69 @@ begin
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
 end;
 
+
+{*****************************************************************************
+                                     Initialize
+*****************************************************************************}
+
+    const
+       target_i386_freebsd_info : ttargetinfo =
+          (
+            target       : target_i386_FreeBSD;
+            name         : 'FreeBSD/ELF for i386';
+            shortname    : 'FreeBSD';
+            flags        : [];
+            cpu          : i386;
+            unit_env     : 'BSDUNITS';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            libprefix    : 'libp';
+            Cprefix      : '';
+            newline      : #10;
+            assem        : as_i386_elf32;
+            assemextern  : as_i386_as;
+            link         : ld_i386_freebsd;
+            linkextern   : ld_i386_freebsd;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            endian       : endian_little;
+            stackalignment : 4;
+            maxCrecordalignment : 4;
+            size_of_pointer : 4;
+            size_of_longint : 4;
+            heapsize    : 256*1024;
+            maxheapsize : 32768*1024;
+            stacksize   : 8192;
+            DllScanSupported:false;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
+          );
+
+
+initialization
+  RegisterLinker(ld_i386_freebsd,TLinkerFreeBSD);
+  RegisterImport(target_i386_freebsd,timportlibfreebsd);
+  RegisterExport(target_i386_freebsd,texportlibfreebsd);
+  RegisterTarget(target_i386_freebsd_info);
 end.
 {
   $Log$
-  Revision 1.2  2001-04-13 01:22:21  peter
+  Revision 1.3  2001-04-18 22:02:04  peter
+    * registration of targets and assemblers
+
+  Revision 1.2  2001/04/13 01:22:21  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

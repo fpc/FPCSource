@@ -26,11 +26,25 @@ unit t_win32;
 
 interface
 
-  uses
-    import,export,link;
-
   const
      winstackpagesize = 4096;
+
+implementation
+
+    uses
+{$ifdef Delphi}
+       dmisc,
+{$else Delphi}
+       dos,
+{$endif Delphi}
+       cutils,cclasses,
+       aasm,fmodule,globtype,globals,systems,verbose,
+       script,gendef,
+       cpubase,cpuasm,
+{$ifdef GDB}
+       gdb,
+{$endif}
+       import,export,link;
 
   type
     timportlibwin32=class(timportlib)
@@ -76,23 +90,6 @@ interface
     end;
 
 
-implementation
-
-    uses
-{$ifdef Delphi}
-       dmisc,
-{$else Delphi}
-       dos,
-{$endif Delphi}
-       cutils,cclasses,
-       aasm,fmodule,globtype,globals,systems,verbose,
-       script,gendef,
-       cpubase,cpuasm
-{$ifdef GDB}
-       ,gdb
-{$endif}
-       ;
-
     function DllName(Const Name : string) : string;
       var n : string;
       begin
@@ -100,7 +97,7 @@ implementation
          if (n='.DLL') or (n='.DRV') or (n='.EXE') then
            DllName:=Name
          else
-           DllName:=Name+target_os.sharedlibext;
+           DllName:=Name+target_info.sharedlibext;
       end;
 
 
@@ -580,9 +577,9 @@ implementation
          { the name }
          exportsSection.concat(Tai_label.Create(dll_name_label));
          if st='' then
-           exportsSection.concat(Tai_string.Create(current_module.modulename^+target_os.sharedlibext+#0))
+           exportsSection.concat(Tai_string.Create(current_module.modulename^+target_info.sharedlibext+#0))
          else
-           exportsSection.concat(Tai_string.Create(st+target_os.sharedlibext+#0));
+           exportsSection.concat(Tai_string.Create(st+target_info.sharedlibext+#0));
 
          {  export address table }
          address_table:=TAAsmoutput.create;
@@ -1157,7 +1154,7 @@ end;
            DOSstubOK:=(TheWord='MZ');
            seek(f,$3C);
            blockread(f,x,4,loaded);
-           if(loaded<>4)or(x>filesize(f))then
+           if(loaded<>4)or(longint(x)>filesize(f))then
             DOSstubOK:=false;
          end;
       end;
@@ -1196,7 +1193,7 @@ end;
          if (n='.DLL') or (n='.DRV') or (n='.EXE') then
            DllName:=Name
          else
-           DllName:=Name+target_os.sharedlibext;
+           DllName:=Name+target_info.sharedlibext;
       end;
 
 
@@ -1378,10 +1375,87 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
   close(f);
  end;
 
+
+{*****************************************************************************
+                                     Initialize
+*****************************************************************************}
+
+    const
+      ar_gnu_arw_info : tarinfo =
+          (
+            id    : ar_gnu_arw;
+            arcmd : 'arw rs $LIB $FILES'
+          );
+
+    const
+      res_gnu_windres_info : tresinfo =
+          (
+            id     : res_gnu_windres;
+            resbin : 'windres';
+            rescmd : '--include $INC -O coff -o $OBJ $RES'
+          );
+
+    const
+       target_i386_win32_info : ttargetinfo =
+          (
+            target       : target_i386_WIN32;
+            name         : 'Win32 for i386';
+            shortname    : 'Win32';
+            flags        : [];
+            cpu          : i386;
+            unit_env     : 'WIN32UNITS';
+            sharedlibext : '.dll';
+            staticlibext : '.aw';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '.exe';
+            defext       : '.def';
+            scriptext    : '.bat';
+            smartext     : '.slw';
+            unitext      : '.ppw';
+            unitlibext   : '.ppl';
+            asmext       : '.sw';
+            objext       : '.ow';
+            resext       : '.rc';
+            resobjext    : '.owr';
+            libprefix    : 'libp';
+            Cprefix      : '_';
+            newline      : #13#10;
+            assem        : as_i386_pecoff;
+            assemextern  : as_i386_asw;
+            link         : ld_i386_win32;
+            linkextern   : ld_i386_win32;
+            ar           : ar_gnu_arw;
+            res          : res_gnu_windres;
+            endian       : endian_little;
+            stackalignment : 4;
+            maxCrecordalignment : 16;
+            size_of_pointer : 4;
+            size_of_longint : 4;
+            heapsize     : 256*1024;
+            maxheapsize  : 32*1024*1024;
+            stacksize    : 32*1024*1024;
+            DllScanSupported:true;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
+          );
+
+
+initialization
+  RegisterLinker(ld_i386_win32,TLinkerWin32);
+  RegisterImport(target_i386_win32,TImportLibWin32);
+  RegisterExport(target_i386_win32,TExportLibWin32);
+  RegisterDLLScanner(target_i386_win32,TDLLScannerWin32);
+  RegisterAr(ar_gnu_arw_info);
+  RegisterRes(res_gnu_windres_info);
+  RegisterTarget(target_i386_win32_info);
 end.
 {
   $Log$
-  Revision 1.5  2001-04-13 23:51:02  peter
+  Revision 1.6  2001-04-18 22:02:04  peter
+    * registration of targets and assemblers
+
+  Revision 1.5  2001/04/13 23:51:02  peter
     * fix for the stricter compilemode
 
   Revision 1.4  2001/04/13 01:22:22  peter

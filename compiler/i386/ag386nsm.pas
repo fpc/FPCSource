@@ -547,7 +547,7 @@ interface
                               end;
                        end; { end for i:=0 to... }
                      if quoted then AsmWrite('"');
-                       AsmWrite(target_os.newline);
+                       AsmWrite(target_info.newline);
                      inc(counter,line_length);
                   end; { end for j:=0 ... }
                 { do last line of lines }
@@ -770,10 +770,97 @@ interface
 {$endif EXTDEBUG}
    end;
 
+
+{*****************************************************************************
+                                  Initialize
+*****************************************************************************}
+
+    const
+       as_i386_nasmcoff_info : tasminfo =
+          (
+            id           : as_i386_nasmcoff;
+            idtxt  : 'NASMCOFF';
+            asmbin : 'nasm';
+            asmcmd : '-f coff -o $OBJ $ASM';
+            supported_target : target_i386_go32v2;
+            allowdirect : true;
+            externals : true;
+            needar : true;
+            labelprefix : '..@';
+            comment : '; ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
+              '.stab','.stabstr')
+          );
+
+       as_i386_nasmwin32_info : tasminfo =
+          (
+            id           : as_i386_nasmwin32;
+            idtxt  : 'NASMWIN32';
+            asmbin : 'nasm';
+            asmcmd : '-f win32 -o $OBJ $ASM';
+            supported_target : target_i386_win32;
+            allowdirect : true;
+            externals : true;
+            needar : true;
+            labelprefix : '..@';
+            comment : '; ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
+              '.stab','.stabstr')
+          );
+
+       as_i386_nasmobj_info : tasminfo =
+          (
+            id           : as_i386_nasmobj;
+            idtxt  : 'NASMOBJ';
+            asmbin : 'nasm';
+            asmcmd : '-f obj -o $OBJ $ASM';
+            supported_target : target_any; { what should I write here ?? }
+            allowdirect : true;
+            externals : true;
+            needar : true;
+            labelprefix : '..@';
+            comment : '; ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
+              '.stab','.stabstr')
+          );
+
+       as_i386_nasmelf_info : tasminfo =
+          (
+            id           : as_i386_nasmelf;
+            idtxt  : 'NASMELF';
+            asmbin : 'nasm';
+            asmcmd : '-f elf -o $OBJ $ASM';
+            supported_target : target_i386_linux;
+            allowdirect : true;
+            externals : true;
+            needar : true;
+            labelprefix : '..@';
+            comment : '; ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
+              '.stab','.stabstr')
+          );
+
+
+finalization
+  RegisterAssembler(as_i386_nasmcoff_info,T386NasmAssembler);
+  RegisterAssembler(as_i386_nasmwin32_info,T386NasmAssembler);
+  RegisterAssembler(as_i386_nasmobj_info,T386NasmAssembler);
+  RegisterAssembler(as_i386_nasmelf_info,T386NasmAssembler);
 end.
 {
   $Log$
-  Revision 1.7  2001-04-13 01:22:17  peter
+  Revision 1.8  2001-04-18 22:02:00  peter
+    * registration of targets and assemblers
+
+  Revision 1.7  2001/04/13 01:22:17  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

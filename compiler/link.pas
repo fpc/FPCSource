@@ -72,9 +72,10 @@ Type
      TLinkerClass = class of TLinker;
 
 var
-  CLinker : array[ttarget] of TLinkerClass;
+  CLinker : array[tld] of TLinkerClass;
   Linker  : TLinker;
 
+procedure RegisterLinker(t:tld;c:TLinkerClass);
 procedure InitLinker;
 procedure DoneLinker;
 
@@ -88,49 +89,8 @@ uses
   dos,
 {$endif Delphi}
   cutils,globtype,
-  script,globals,verbose,ppu
-{$ifdef i386}
-  {$ifndef NOTARGETLINUX}
-    ,t_linux
-  {$endif}
-  {$ifndef NOTARGETFREEBSD}
-    ,t_fbsd
-  {$endif}
-  {$ifndef NOTARGETSUNOS}
-    ,t_sunos
-  {$endif}
-  {$ifndef NOTARGETOS2}
-    ,t_os2
-  {$endif}
-  {$ifndef NOTARGETWIN32}
-    ,t_win32
-  {$endif}
-  {$ifndef NOTARGETNETWARE}
-    ,t_nwm
-  {$endif}
-  {$ifndef NOTARGETGO32V1}
-    ,t_go32v1
-  {$endif}
-  {$ifndef NOTARGETGO32V2}
-    ,t_go32v2
-  {$endif}
-{$endif}
-{$ifdef m68k}
-  {$ifndef NOTARGETLINUX}
-    ,t_linux
-  {$endif}
-{$endif}
-{$ifdef powerpc}
-  {$ifndef NOTARGETLINUX}
-    ,t_linux
-  {$endif}
-{$endif}
-{$ifdef alpha}
-  {$ifndef NOTARGETLINUX}
-    ,t_linux
-  {$endif}
-{$endif}
-  ;
+  script,globals,verbose,ppu;
+
 
 {*****************************************************************************
                                    TLINKER
@@ -258,7 +218,7 @@ var
   FoundBin : string;
   UtilExe  : string;
 begin
-  UtilExe:=AddExtension(s,source_os.exeext);
+  UtilExe:=AddExtension(s,source_info.exeext);
   FoundBin:='';
   Found:=false;
   if utilsdirectory<>'' then
@@ -363,11 +323,11 @@ begin
   if s='' then
    exit;
 { remove prefix 'lib' }
-  if Copy(s,1,length(target_os.libprefix))=target_os.libprefix then
-   Delete(s,1,length(target_os.libprefix));
+  if Copy(s,1,length(target_info.libprefix))=target_info.libprefix then
+   Delete(s,1,length(target_info.libprefix));
 { remove extension if any }
-  if Copy(s,length(s)-length(target_os.sharedlibext)+1,length(target_os.sharedlibext))=target_os.sharedlibext then
-   Delete(s,length(s)-length(target_os.sharedlibext)+1,length(target_os.sharedlibext)+1);
+  if Copy(s,length(s)-length(target_info.sharedlibext)+1,length(target_info.sharedlibext))=target_info.sharedlibext then
+   Delete(s,length(s)-length(target_info.sharedlibext)+1,length(target_info.sharedlibext)+1);
 { ready to be inserted }
   SharedLibFiles.Insert (S);
 end;
@@ -380,7 +340,7 @@ var
 begin
   if s='' then
    exit;
-  ns:=FindLibraryFile(s,target_os.staticlibext,found);
+  ns:=FindLibraryFile(s,target_info.staticlibext,found);
   if not(cs_link_extern in aktglobalswitches) and (not found) then
    Message1(exec_w_libfile_not_found,s);
   StaticLibFiles.Insert(ns);
@@ -483,68 +443,18 @@ end;
                                  Init/Done
 *****************************************************************************}
 
+procedure RegisterLinker(t:tld;c:TLinkerClass);
+begin
+  CLinker[t]:=c;
+end;
+
+
 procedure InitLinker;
 begin
-  case target_info.target of
-{$ifdef i386}
-  {$ifndef NOTARGETLINUX}
-    target_i386_linux :
-      linker:=Tlinkerlinux.Create;
-  {$endif}
-  {$ifndef NOTARGETFreeBSD}
-    target_i386_FreeBSD :
-      linker:=TlinkerFreeBSD.Create;
-  {$endif}
-  {$ifndef NOTARGETSUNOS}
-    target_i386_sunos :
-      linker:=Tlinkersunos.Create;
-  {$endif}
-  {$ifndef NOTARGETWIN32}
-    target_i386_Win32 :
-      linker:=Tlinkerwin32.Create;
-  {$endif}
-  {$ifndef NOTARGETNETWARE}
-    target_i386_Netware :
-      linker:=Tlinkernetware.Create;
-  {$endif}
-  {$ifndef NOTARGETGO32V1}
-    target_i386_Go32v1 :
-      linker:=TLinkergo32v1.Create;
-  {$endif}
-  {$ifndef NOTARGETGO32V2}
-    target_i386_Go32v2 :
-      linker:=TLinkergo32v2.Create;
-  {$endif}
-  {$ifndef NOTARGETOS2}
-    target_i386_os2 :
-      linker:=TLinkeros2.Create;
-  {$endif}
-{$endif i386}
-{$ifdef m68k}
-  {$ifndef NOTARGETPALMOS}
-    target_m68k_palmos:
-      linker:=Tlinker.Create;
-  {$endif}
-  {$ifndef NOTARGETLINUX}
-    target_m68k_linux :
-      linker:=Tlinkerlinux.Create;
-  {$endif}
-{$endif m68k}
-{$ifdef alpha}
-  {$ifndef NOTARGETLINUX}
-    target_alpha_linux :
-      linker:=Tlinkerlinux.Create;
-  {$endif}
-{$endif alpha}
-{$ifdef powerpc}
-  {$ifndef NOTARGETLINUX}
-    target_powerpc_linux :
-      linker:=Tlinkerlinux.Create;
-  {$endif}
-{$endif powerpc}
-    else
-      linker:=Tlinker.Create;
-  end;
+  if assigned(CLinker[target_info.link]) then
+   linker:=CLinker[target_info.link].Create
+  else
+   linker:=Tlinker.Create;
 end;
 
 
@@ -554,10 +464,28 @@ begin
    Linker.Free;
 end;
 
+
+{*****************************************************************************
+                                   Initialize
+*****************************************************************************}
+
+    const
+      ar_gnu_ar_info : tarinfo =
+          (
+            id    : ar_gnu_ar;
+            arcmd : 'ar rs $LIB $FILES'
+          );
+
+initialization
+  RegisterAr(ar_gnu_ar_info);
+
 end.
 {
   $Log$
-  Revision 1.15  2001-04-13 01:22:08  peter
+  Revision 1.16  2001-04-18 22:01:54  peter
+    * registration of targets and assemblers
+
+  Revision 1.15  2001/04/13 01:22:08  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

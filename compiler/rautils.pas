@@ -868,7 +868,7 @@ Begin
               if (tvarsym(sym).varspez=vs_var) or
                  ((tvarsym(sym).varspez=vs_const) and
                  push_addr_param(tvarsym(sym).vartype.def)) then
-                SetSize(target_os.size_of_pointer,false);
+                SetSize(target_info.size_of_pointer,false);
             end;
           localsymtable :
             begin
@@ -908,7 +908,7 @@ Begin
               if (tvarsym(sym).varspez in [vs_var,vs_out]) or
                  ((tvarsym(sym).varspez=vs_const) and
                   push_addr_param(tvarsym(sym).vartype.def)) then
-                SetSize(target_os.size_of_pointer,false);
+                SetSize(target_info.size_of_pointer,false);
             end;
         end;
         case tvarsym(sym).vartype.def.deftype of
@@ -1583,7 +1583,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2001-04-13 20:06:05  peter
+  Revision 1.20  2001-04-18 22:01:58  peter
+    * registration of targets and assemblers
+
+  Revision 1.19  2001/04/13 20:06:05  peter
     * allow unit.identifier in asm readers
 
   Revision 1.18  2001/04/13 01:22:13  peter

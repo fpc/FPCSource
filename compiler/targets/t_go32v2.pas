@@ -27,8 +27,13 @@ unit t_go32v2;
 
 interface
 
-  uses
-    link;
+
+implementation
+
+    uses
+       link,
+       cutils,cclasses,
+       globtype,globals,systems,verbose,script,fmodule;
 
   type
     tlinkergo32v2=class(tlinker)
@@ -40,13 +45,6 @@ interface
        procedure SetDefaultInfo;override;
        function  MakeExecutable:boolean;override;
     end;
-
-
-  implementation
-
-    uses
-       cutils,cclasses,
-       globtype,globals,systems,verbose,script,fmodule;
 
 
 {****************************************************************************
@@ -130,7 +128,7 @@ begin
      S:=SharedLibFiles.GetFirst;
      if s<>'c' then
       begin
-        i:=Pos(target_os.sharedlibext,S);
+        i:=Pos(target_info.sharedlibext,S);
         if i>0 then
          Delete(S,i,255);
         LinkRes.Add('-l'+s);
@@ -251,7 +249,7 @@ begin
      S:=SharedLibFiles.GetFirst;
      if s<>'c' then
       begin
-        i:=Pos(target_os.sharedlibext,S);
+        i:=Pos(target_info.sharedlibext,S);
         if i>0 then
          Delete(S,i,255);
         ScriptRes.Add('-l'+s);
@@ -416,10 +414,67 @@ begin
 end;
 {$endif}
 
+
+{*****************************************************************************
+                                     Initialize
+*****************************************************************************}
+
+    const
+       target_i386_go32v2_info : ttargetinfo =
+          (
+            target       : target_i386_GO32V2;
+            name         : 'GO32 V2 DOS extender';
+            shortname    : 'Go32v2';
+            flags        : [];
+            cpu          : i386;
+            unit_env     : 'GO32V2UNITS';
+            sharedlibext : '.dll';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '.exe';
+            defext       : '.def';
+            scriptext    : '.bat';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            libprefix    : '';
+            Cprefix      : '_';
+            newline      : #13#10;
+            assem        : as_i386_coff;
+            assemextern  : as_i386_as;
+            link         : ld_i386_go32v2;
+            linkextern   : ld_i386_go32v2;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            endian       : endian_little;
+            stackalignment : 2;
+            maxCrecordalignment : 4;
+            size_of_pointer : 4;
+            size_of_longint : 4;
+            heapsize     : 2048*1024;
+            maxheapsize  : 32768*1024;
+            stacksize    : 16384;
+            DllScanSupported : false;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
+          );
+
+
+initialization
+  RegisterLinker(ld_i386_go32v2,TLinkerGo32v2);
+  RegisterTarget(target_i386_go32v2_info);
 end.
 {
   $Log$
-  Revision 1.2  2001-04-13 01:22:21  peter
+  Revision 1.3  2001-04-18 22:02:04  peter
+    * registration of targets and assemblers
+
+  Revision 1.2  2001/04/13 01:22:21  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

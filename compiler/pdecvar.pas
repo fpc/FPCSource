@@ -187,7 +187,7 @@ implementation
                      writeln('problem with strContStack in pdecl (3)');
 {$endif fixLeaksOnError}
                   sc.free;
-                  aktvarsym:=tvarsym.create_C(s,target_os.Cprefix+C_name,tt);
+                  aktvarsym:=tvarsym.create_C(s,target_info.Cprefix+C_name,tt);
                   include(aktvarsym.varoptions,vo_is_external);
                   symtablestack.insert(aktvarsym);
                   akttokenpos:=storetokenpos;
@@ -331,7 +331,7 @@ implementation
                       consume(_CVAR);
                       consume(_SEMICOLON);
                       is_cdecl:=true;
-                      C_name:=target_os.Cprefix+C_name;
+                      C_name:=target_info.Cprefix+C_name;
                     end;
                    { external }
                    if idtoken=_EXTERNAL then
@@ -529,7 +529,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2001-04-13 01:22:12  peter
+  Revision 1.16  2001-04-18 22:01:57  peter
+    * registration of targets and assemblers
+
+  Revision 1.15  2001/04/13 01:22:12  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

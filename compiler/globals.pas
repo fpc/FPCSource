@@ -159,29 +159,29 @@ interface
        {$ENDIF}
        initpackenum       : longint;
        initpackrecords    : tpackrecords;
-       initoutputformat   : tasm;
        initoptprocessor,
        initspecificoptprocessor : tprocessors;
        initasmmode        : tasmmode;
        initinterfacetype  : tinterfacetypes;
+       initoutputformat   : tasm;
      { current state values }
-       aktglobalswitches : tglobalswitches;
-       aktmoduleswitches : tmoduleswitches;
-       aktlocalswitches  : tlocalswitches;
+       aktglobalswitches  : tglobalswitches;
+       aktmoduleswitches  : tmoduleswitches;
+       aktlocalswitches   : tlocalswitches;
        nextaktlocalswitches : tlocalswitches;
        localswitcheschanged : boolean;
-       aktmodeswitches   : tmodeswitches;
+       aktmodeswitches    : tmodeswitches;
        {$IFDEF testvarsets}
         aktsetalloc,
        {$ENDIF}
-       aktpackenum       : longint;
-       aktmaxfpuregisters: longint;
-       aktpackrecords    : tpackrecords;
-       aktoutputformat   : tasm;
+       aktpackenum        : longint;
+       aktmaxfpuregisters : longint;
+       aktpackrecords     : tpackrecords;
        aktoptprocessor,
        aktspecificoptprocessor : tprocessors;
-       aktasmmode        : tasmmode;
-       aktinterfacetype  : tinterfacetypes;
+       aktasmmode         : tasmmode;
+       aktinterfacetype   : tinterfacetypes;
+       aktoutputformat    : tasm;
 
      { Memory sizes }
        heapsize,
@@ -253,7 +253,6 @@ interface
     Function  FixPath(s:string;allowdot:boolean):string;
     function  FixFileName(const s:string):string;
     procedure SplitBinCmd(const s:string;var bstr,cstr:string);
-    procedure SynchronizeFileTime(const fn1,fn2:string);
     function  FindFile(const f : string;path : string;var foundfile:string):boolean;
     function  FindExe(const bin:string;var foundfile:string):boolean;
     function  GetShortName(const n:string):string;
@@ -809,55 +808,26 @@ implementation
 
 
    Function GetFileTime ( Var F : File) : Longint;
-   Var
-   {$ifdef unix}
-     Info : Stat;
-   {$endif}
-     L : longint;
-   begin
-   {$ifdef unix}
-     FStat (F,Info);
-     L:=Info.Mtime;
-   {$else}
-     GetFTime(f,l);
-   {$endif}
-     GetFileTime:=L;
-   end;
+     Var
+     {$ifdef unix}
+       Info : Stat;
+     {$endif}
+       L : longint;
+     begin
+     {$ifdef unix}
+       FStat (F,Info);
+       L:=Info.Mtime;
+     {$else}
+       GetFTime(f,l);
+     {$endif}
+       GetFileTime:=L;
+     end;
 
 
    Function GetNamedFileTime (Const F : String) : Longint;
-   begin
-     GetNamedFileTime:=do_getnamedfiletime(F);
-   end;
-
-
-   {Touch Assembler and object time to ppu time is there is a ppufilename}
-   procedure SynchronizeFileTime(const fn1,fn2:string);
-   var
-     f : file;
-     l : longint;
-   begin
-     Assign(f,fn1);
-     {$I-}
-      reset(f,1);
-     {$I+}
-     if ioresult=0 then
-      begin
-        getftime(f,l);
-        { just to be sure in case there are rounding errors }
-        setftime(f,l);
-        close(f);
-        assign(f,fn2);
-        {$I-}
-         reset(f,1);
-        {$I+}
-        if ioresult=0 then
-         begin
-           setftime(f,l);
-           close(f);
-         end;
-      end;
-   end;
+     begin
+       GetNamedFileTime:=do_getnamedfiletime(F);
+     end;
 
 
    function FindFile(const f : string;path : string;var foundfile:string):boolean;
@@ -910,13 +880,13 @@ implementation
 
 
    function  FindExe(const bin:string;var foundfile:string):boolean;
-   begin
+     begin
 {$ifdef delphi}
-     FindExe:=FindFile(FixFileName(AddExtension(bin,source_os.exeext)),'.;'+exepath+';'+dmisc.getenv('PATH'),foundfile);
+       FindExe:=FindFile(FixFileName(AddExtension(bin,source_info.exeext)),'.;'+exepath+';'+dmisc.getenv('PATH'),foundfile);
 {$else delphi}
-     FindExe:=FindFile(FixFileName(AddExtension(bin,source_os.exeext)),'.;'+exepath+';'+dos.getenv('PATH'),foundfile);
+       FindExe:=FindFile(FixFileName(AddExtension(bin,source_info.exeext)),'.;'+exepath+';'+dos.getenv('PATH'),foundfile);
 {$endif delphi}
-   end;
+     end;
 
 
     function GetShortName(const n:string):string;
@@ -1197,9 +1167,9 @@ implementation
 {$ifdef need_path_search}
        if exepath='' then
         begin
-          if pos(source_os.exeext,hs1) <>
-               (length(hs1) - length(source_os.exeext)+1) then
-            hs1 := hs1 + source_os.exeext;
+          if pos(source_info.exeext,hs1) <>
+               (length(hs1) - length(source_info.exeext)+1) then
+            hs1 := hs1 + source_info.exeext;
       {$ifdef delphi}
           findfile(hs1,dmisc.getenv('PATH'),exepath);
       {$else delphi}
@@ -1262,6 +1232,7 @@ implementation
         initlocalswitches:=[cs_check_io];
         initmoduleswitches:=[cs_extsyntax,cs_browser];
         initglobalswitches:=[cs_check_unit_name,cs_link_static];
+        initoutputformat:=as_none;
 {$ifdef i386}
         initoptprocessor:=Class386;
         initspecificoptprocessor:=Class386;
@@ -1270,7 +1241,6 @@ implementation
         initsetalloc:=0;
         {$ENDIF}
         initpackrecords:=packrecord_2;
-        initoutputformat:=target_asm.id;
         initasmmode:=asmmode_i386_att;
 {$else not i386}
   {$ifdef m68k}
@@ -1312,7 +1282,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2001-04-15 09:48:29  peter
+  Revision 1.32  2001-04-18 22:01:53  peter
+    * registration of targets and assemblers
+
+  Revision 1.31  2001/04/15 09:48:29  peter
     * fixed crash in labelnode
     * easier detection of goto and label in try blocks
 

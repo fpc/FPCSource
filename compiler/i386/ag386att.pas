@@ -323,7 +323,7 @@ interface
           if (stabslastfileinfo.line<>fileinfo.line) and (fileinfo.line<>0) then
            begin
              if (n_line=n_textline) and assigned(funcname) and
-                (target_os.use_function_relative_addresses) then
+                (target_info.use_function_relative_addresses) then
               begin
                 AsmWriteLn(target_asm.labelprefix+'l'+tostr(linecount)+':');
                 AsmWrite(#9'.stabn '+tostr(n_line)+',0,'+tostr(fileinfo.line)+','+
@@ -889,10 +889,78 @@ interface
     end;
 
 
+{*****************************************************************************
+                                  Initialize
+*****************************************************************************}
+
+    const
+       as_i386_as_info : tasminfo =
+          (
+            id           : as_i386_as;
+            idtxt  : 'AS';
+            asmbin : 'as';
+            asmcmd : '-o $OBJ $ASM';
+            supported_target : target_any;
+            allowdirect : true;
+            externals : false;
+            needar : true;
+            labelprefix : '.L';
+            comment : '# ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '','','','','','',
+              '.stab','.stabstr')
+          );
+
+       as_i386_as_aout_info : tasminfo =
+          (
+            id           : as_i386_as_aout;
+            idtxt  : 'AS_AOUT';
+            asmbin : 'as';
+            asmcmd : '-o $OBJ $ASM';
+            supported_target : target_i386_os2;
+            allowdirect : true;
+            externals : false;
+            needar : true;
+            labelprefix : 'L';
+            comment : '# ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '','','','','','',
+              '.stab','.stabstr')
+          );
+
+       as_i386_asw_info : tasminfo =
+          (
+            id           : as_i386_asw;
+            idtxt  : 'ASW';
+            asmbin : 'asw';
+            asmcmd : '-o $OBJ $ASM';
+            supported_target : target_i386_win32;
+            allowdirect : true;
+            externals : false;
+            needar : true;
+            labelprefix : '.L';
+            comment : '# ';
+            secnames : ('',
+              '.text','.data','.section .bss',
+              '.section .idata$2','.section .idata$4','.section .idata$5',
+                '.section .idata$6','.section .idata$7','.section .edata',
+              '.stab','.stabstr')
+          );
+
+
+finalization
+  RegisterAssembler(as_i386_as_info,T386ATTAssembler);
+  RegisterAssembler(as_i386_as_aout_info,T386ATTAssembler);
+  RegisterAssembler(as_i386_asw_info,T386ATTAssembler);
 end.
 {
   $Log$
-  Revision 1.5  2001-04-13 01:22:17  peter
+  Revision 1.6  2001-04-18 22:02:00  peter
+    * registration of targets and assemblers
+
+  Revision 1.5  2001/04/13 01:22:17  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
