@@ -336,8 +336,13 @@ Procedure TStrings.AddStrings(TheStrings: TStrings);
 Var Runner : longint;
 
 begin
-  For Runner:=0 to TheStrings.Count-1 do
-    self.AddObject (Thestrings[Runner],TheStrings.Objects[Runner]);
+  try
+    beginupdate;
+    For Runner:=0 to TheStrings.Count-1 do
+      self.AddObject (Thestrings[Runner],TheStrings.Objects[Runner]);
+  finally
+    EndUpdate;
+  end;    
 end;
 
 
@@ -345,13 +350,18 @@ end;
 Procedure TStrings.Assign(Source: TPersistent);
 
 begin
-  If Source is TStrings then
-    begin
-    clear;
-    AddStrings(TStrings(Source));
-    exit;
-    end;
-  Inherited Assign(Source);
+  Try
+    BeginUpdate;
+    If Source is TStrings then
+      begin
+      clear;
+      AddStrings(TStrings(Source));
+      exit;
+      end;
+    Inherited Assign(Source);
+  finally
+    EndUpdate;
+  end;  
 end;
 
 
@@ -359,6 +369,8 @@ end;
 Procedure TStrings.BeginUpdate;
 
 begin
+   inc(FUpdateCount);
+   if FUpdateCount = 1 then SetUpdateState(true);
 end;
 
 
@@ -366,6 +378,10 @@ end;
 Procedure TStrings.EndUpdate;
 
 begin
+  If FUpdateCount>0 then
+     Dec(FUpdateCount);
+  if FUpdateCount=0 then
+    SetUpdateState(False);
 end;
 
 
@@ -392,12 +408,17 @@ Var
   Str : String;
 
 begin
-  Obj:=Objects[Index1];
-  Str:=Strings[Index1];
-  Objects[Index1]:=Objects[Index2];
-  Strings[Index1]:=Strings[Index2];
-  Objects[Index2]:=Obj;
-  Strings[Index2]:=Str;
+  Try
+    beginUpdate;
+    Obj:=Objects[Index1];
+    Str:=Strings[Index1];
+    Objects[Index1]:=Objects[Index2];
+    Strings[Index1]:=Strings[Index2];
+    Objects[Index2]:=Obj;
+    Strings[Index2]:=Str;
+  finally  
+    EndUpdate;
+  end;  
 end;
 
 
@@ -484,17 +505,22 @@ Var
   BufLen     : Longint;
 begin
   // reread into a buffer
-  Buffer:=Nil;
-  BufLen:=0;
-  Repeat
-    ReAllocMem(Buffer,BufLen+BufSize);
-    BytesRead:=Stream.Read((Buffer+BufLen)^,BufSize);
-    inc(BufLen,BufSize);
-  Until BytesRead<>BufSize;
-  // Null-terminate !!
-  Pchar(Buffer)[BufLen-BufSize+BytesRead]:=#0;
-  Text:=PChar(Buffer);
-  FreeMem(Buffer);
+  try
+    beginupdate;
+    Buffer:=Nil;
+    BufLen:=0;
+    Repeat
+      ReAllocMem(Buffer,BufLen+BufSize);
+      BytesRead:=Stream.Read((Buffer+BufLen)^,BufSize);
+      inc(BufLen,BufSize);
+    Until BytesRead<>BufSize;
+    // Null-terminate !!
+    Pchar(Buffer)[BufLen-BufSize+BytesRead]:=#0;
+    Text:=PChar(Buffer);
+    FreeMem(Buffer);
+  finally
+    EndUpdate;
+  end;
 end;
 
 
@@ -556,9 +582,14 @@ Procedure TStrings.SetText(TheText: PChar);
 Var S : String;
 
 begin
-  Clear;
-  While GetNextLine (TheText,S) do
-    Add(S);
+  Try
+    beginUpdate;
+    Clear;
+    While GetNextLine (TheText,S) do
+    Add(S); 
+  finally
+    EndUpdate;
+  end;   
 end;
 
 
@@ -926,7 +957,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2000-01-07 01:24:33  peter
+  Revision 1.11  2000-03-07 07:50:55  michael
+  + Added ebginupdate/endupdate
+
+  Revision 1.10  2000/01/07 01:24:33  peter
     * updated copyright to 2000
 
   Revision 1.9  2000/01/06 01:20:33  peter
