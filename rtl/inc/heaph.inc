@@ -12,6 +12,10 @@
 
  **********************************************************************}
 
+  const
+    heapblocks : boolean=false;
+
+
   var
      heaporg,heapptr,heapend,heaperror,freelist : pointer;
 
@@ -35,14 +39,18 @@
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-04-21 10:23:15  peter
+    + heapblocks
+
+  Revision 1.1.1.1  1998/03/25 11:18:43  root
+  * Restored version
 
   Revision 1.3  1998/01/26 11:59:33  michael
   + Added log at the end
 
 
-  
+
+
   Working file: rtl/inc/heaph.inc
   description:
   ----------------------------

@@ -58,20 +58,16 @@
        _heapsize : longint;
 
     type
-{$ifdef UseBlocks}
        tblocks   = array[1..maxblock] of pointer;
        pblocks   = ^tblocks;
        tnblocks  = array[1..maxblock] of longint;
        pnblocks  = ^tnblocks;
-{$endif UseBlocks}
        pheapinfo = ^theapinfo;
        theapinfo = record
          heaporg,heapptr,heapend,freelist : pointer;
          memavail,heapsize : longint;
-{$ifdef UseBlocks}
          block : pblocks;
          nblock : pnblocks;
-{$endif UseBlocks}
 {$IfDef CHECKHEAP}
         last_mem : pheap_mem_info;
         nb_get,nb_free : longint;
@@ -93,10 +89,8 @@
        otherheap : pheapinfo;
 {$endif TEMPHEAP}
 
-{$ifdef UseBlocks}
        baseblocks : tblocks;
        basenblocks : tnblocks;
-{$endif UseBlocks}
 
 { this is not supported by FPK <v093
     const
@@ -105,10 +99,8 @@
       type
          ppointer = ^pointer;
 
-{$ifdef UseBlocks}
     var blocks : pblocks;
         nblocks : pnblocks;
-{$endif UseBlocks}
 
 
 {$ifndef OS2}
@@ -245,16 +237,13 @@
       var
          hp : pfreerecord;
          ma : longint;
-{$ifdef UseBlocks}
          i  : longint;
-{$endif UseBlocks}
 
       begin
          ma:=heapend-heapptr;
-{$ifdef UseBlocks}
+         if heapblocks then
          for i:=1 to maxblock do
            ma:=ma+i*8*nblocks^[i];
-{$endif UseBlocks}
          hp:=freelist;
          while assigned(hp) do
            begin
@@ -266,8 +255,8 @@
                      writeln('freerecordlist bad at end ')
                 end
               else
-		          if ((longint(hp^.next)<=(longint(hp)+hp^.size)) or
-		             ((hp^.size and 7) <> 0)) then
+                          if ((longint(hp^.next)<=(longint(hp)+hp^.size)) or
+                             ((hp^.size and 7) <> 0)) then
                   writeln('error in freerecord list ');
 {$EndIf CHECKHEAP}
               hp:=hp^.next;
@@ -526,9 +515,7 @@
       var
          last,hp : pfreerecord;
          nochmal : boolean;
-{$ifdef UseBlocks}
          s : longint;
-{$endif}	
 
       begin
 {$ifdef CHECKHEAP}
@@ -559,7 +546,8 @@
          { calc to multiply of 8 }
          size:=(size+7) and not 7;
          dec(_memavail,size);
-{$ifdef UseBlocks}
+         if heapblocks then
+          begin
          { search cache }
          if size<=max_size then
            begin
@@ -567,11 +555,7 @@
               if assigned(blocks^[s]) then
                 begin
                    p:=blocks^[s];
-{$ifdef VER0_6}
-                   move(blocks^[s]^,blocks^[s],4);
-{$else VER0_6}
                    blocks^[s]:=pointer(blocks^[s]^);
-{$endif VER0_6}
                    dec(nblocks^[s]);
 {$ifdef CHECKHEAP}
                    goto check_new;
@@ -580,7 +564,7 @@
 {$endif CHECKHEAP}
                 end;
            end;
-{$endif UseBlocks}
+        end;
          repeat
            nochmal:=false;
            { search the freelist }
@@ -595,9 +579,8 @@
                        begin
                           p:=hp;
                           { need we the whole block ? }
-                          if hp^.size>size then
+                          if (hp^.size>size) and heapblocks then
                             begin
-{$ifdef UseBlocks}
                                { we must check if we are still below the limit !! }
                                if hp^.size-size<=max_size then
                                  begin
@@ -613,7 +596,6 @@
                                     inc(nblocks^[s]);
                                  end
                                else
-{$endif UseBlocks}
                                begin
                                   (hp+size)^.size:=hp^.size-size;
                                   (hp+size)^.next:=hp^.next;
@@ -700,9 +682,7 @@ check_new:
 {$ifdef TEMPHEAP}
          heap_switched : boolean;
 {$endif TEMPHEAP}
-{$ifdef UseBlocks}
          s : longint;
-{$endif UseBlocks}
       label freemem_exit;
 
       begin
@@ -779,16 +759,15 @@ check_new:
          inc(_memavail,size);
          if p+size>=heapptr then
            heapptr:=p
-{$ifdef UseBlocks}
          { insert into cache }
-         else if size<=max_size then
+         else
+          if heapblocks and (size<=max_size) then
            begin
               s:=size div 8;
               ppointer(p)^:=blocks^[s];
               blocks^[s]:=p;
               inc(nblocks^[s]);
            end
-{$endif UseBlocks}
          else
            begin
               { size can be allways set }
@@ -1017,7 +996,7 @@ begin
                        heapend:=pointer(NewPos+Size);
                     end
                   else
-	            begin
+                    begin
                        pfreerecord(NewPos)^.Size:=Size;
                        pfreerecord(NewPos)^.Next:=hp^.next;
                        hp^.next:=pfreerecord(NewPos);
@@ -1049,12 +1028,9 @@ end;
 { This function will initialize the Heap manager and need to be called from
   the initialization of the system unit }
 procedure InitHeap;
-{$ifdef UseBlocks}
 var
   i : longint;
-{$endif UseBlocks}  
 begin
-{$ifdef UseBlocks}
   Blocks:=@baseblocks;
   Nblocks:=@basenblocks;
   for i:=1 to maxblock do
@@ -1062,7 +1038,6 @@ begin
      Blocks^[i]:=nil;
      Nblocks^[i]:=0;
    end;
-{$endif UseBlocks}
   Curheap := @baseheap;
 {$ifdef TEMPHEAP}
   Otherheap := @tempheap;
@@ -1078,7 +1053,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-04-09 08:32:14  daniel
+  Revision 1.4  1998-04-21 10:22:48  peter
+    + heapblocks
+
+  Revision 1.3  1998/04/09 08:32:14  daniel
   * Optimized some code.
 
   Revision 1.2  1998/03/31 19:01:41  daniel
@@ -1091,7 +1069,7 @@ end;
   + Added log at the end
 
 
-  
+
   Working file: rtl/i386/heap.inc
   description:
   ----------------------------
