@@ -1,33 +1,19 @@
 #
 # Make latex using tex4ht
 #
+
 HTFONTS=/usr/share/texmf/tex/generic/tex4ht/ht-fonts/
-.PHONY: preamble3 preamble4 $(HTML)
-
-preamble3:
-	cp preamble.ts3 preamble.inc		
-
-preamble4:
-	cp preamble.ts4 preamble.inc		
-
-%.html: %.tex 
-	rm -f $(basename $<).aux $(basename $<).idx 
-	rm -f $(basename $<).toc $(basename $<).ind
+TEXEXTS=.4ct .aux .dvi .xref .4tc .idx .log .tmp .lg .idv
+	
+%.chk: %.tex
+	rm -rf $(basename $<)
+	rm -f $(addprefix $(basename $<),$(TEXEXTS))
+	cp -f preamble.ts4 preamble.inc
 	$(LATEX) $<
 	$(LATEX) $<
 	$(LATEX) $<
-	tex4ht $< -i$(HTFONTS)
 	install -d $(basename $<) -m755
-	t4ht $< -d$(basename $<)/ -m644
-	rm $(basename $<)*.html
-
-
-user: $(INCLUDES) preamble3 user.html 
-units: $(INCLUDES) preamble3 units.html
-prog: $(INCLUDES) preamble3 prog.html
-onechap: $(INCLUDES) preamble3 onechap.html
-ref: $(INCLUDES) preamble4 ref.html
-fpdoc: $(INCLUDES) preamble3 fpdoc.html
-chart: $(INCLUDES) preamble3 chart.html
-
-html: $(INCLUDES) $(HTML)
+	for ext in $(TEXEXTS); do [ -f $(basename $<)$$ext ] && mv $(basename $<)$$ext $(basename $<); done || true
+	cd $(basename $<) && tex4ht $< -i$(HTFONTS) && t4ht $< -m644
+	rm -f $(addprefix $(basename $<)/$(basename $<),$(TEXEXTS))
+	touch $@

@@ -37,16 +37,8 @@ ifndef DOCS
 DOCS = user rtl ref prog fpdoc chart
 endif
 
-# Can be 'report','book', 'html', 'hevea', 'ts3' 'ts4'
-ifdef USEHEVEA
-PREAMBLETYPE = hevea
-else
-ifdef USEL2H
-PREAMBLETYPE = html
-else
+# Can be 'report','book' for pdf/ps, html use their own preamble file
 PREAMBLETYPE = report
-endif
-endif
 
 # Locate FPDoc
 ifndef CROSSCOMPILE
@@ -132,7 +124,6 @@ export TMP=/tmp
 
 
 PS = $(addsuffix .ps, $(DOCS))
-HTML = $(addsuffix .html, $(DOCS))
 DVI = $(addsuffix .dvi, $(DOCS))
 TXT = $(addsuffix .txt, $(DOCS))
 PDF = $(addsuffix .pdf, $(DOCS))
@@ -141,6 +132,9 @@ AUX = $(addsuffix .aux, $(DOCS))
 LOG = $(addsuffix .log, $(DOCS))
 LOT = $(addsuffix .lot, $(DOCS))
 OUT = $(addsuffix .out, $(DOCS))
+# Html files are build in a directory
+HTML = $(DOCS)
+CHK = $(addsuffix .chk, $(DOCS))
 
 
 #####################################################################
@@ -160,6 +154,7 @@ OUT = $(addsuffix .out, $(DOCS))
 
 .tex.dvi:
         -rm $*.aux $*.idx  $*.ilg  $*.ind  $*.log  $*.out  $*.toc $*.tmp $*.xref $*.4ht
+        cp -f preamble.$(PREAMBLETYPE) preamble.inc
         $(LATEX) $*
         -$(MAKEINDEX) $*
         $(LATEX) $*
@@ -171,6 +166,7 @@ OUT = $(addsuffix .out, $(DOCS))
 
 .tex.pdf:
         -rm $*.aux $*.idx  $*.ilg  $*.ind  $*.log  $*.out  $*.toc $*.tmp $*.xref $*.4ht
+        cp -f preamble.$(PREAMBLETYPE) preamble.inc
         $(PDFLATEX) $*
         -$(MAKEINDEX) $*
         $(PDFLATEX) $*
@@ -212,9 +208,9 @@ clean:
         -rm -f preamble.inc date.inc messages.inc
         -rm -f *.4tc *.4ct *.css *.lg *.tmp *.xref
         -rm -rf $(DOCS)
-        -rm -f $(TOC) $(LOG) $(DVI) $(PDF) $(AUX) $(OUT) $(PS) $(HTML) *.i* $(LOT) $(TXT)
+        -rm -f $(CHK) $(TOC) $(LOG) $(DVI) $(PDF) $(AUX) $(OUT) $(PS) $(HTML) *.i* $(LOT) $(TXT)
 # Styles
-        -rm -f $(notdir $(wildcard styles/*))
+        -rm -f $(notdir $(wildcard styles/*.sty))
 
 distclean: clean cleanexamples
         -rm -f *.tar.gz *.zip
@@ -226,9 +222,6 @@ distclean: clean cleanexamples
 date.inc:
         @echo \\date\{`date +'%B %Y'`\} > date.inc
 
-preamble.inc:
-        cp -f preamble.$(PREAMBLETYPE) preamble.inc
-
 ../compiler/msg2inc$(EXEEXT):
         $(MAKE) -C ../compiler msg2inc
 
@@ -237,10 +230,12 @@ messages.inc: ../compiler/msg2inc$(EXEEXT) ../compiler/msg/errore.msg
 
 # Local copy of the required styles
 syntax.sty: styles/syntax.sty
-        cp $(wildcard styles/*.*) .
+        cp $(wildcard styles/*.sty) .
 
-# Default includes needed for all docs
-INCLUDES=date.inc preamble.inc syntax.sty
+# Default includes needed for all docs, don't include preamble.inc
+# because that is overwritten everytime with a new value and therefor
+# always more recent
+INCLUDES=date.inc syntax.sty
 
 
 #####################################################################
@@ -394,6 +389,24 @@ else
 include Makefile.4ht
 endif  # USEL2H
 endif  # USEHEVEA
+
+#fcl.chk: classes.xml
+#        $(FPDOC) $(FCLOPTS) --format=html --output=fcl
+#        touch fcl.chk
+
+rtl.chk: $(RTLXML)
+        $(FPDOC) $(RTLOPTS) --format=html --output=rtl
+        touch rtl.chk
+
+user.chk: $(INCLUDES) user.tex messages.inc
+prog.chk: $(INCLUDES) prog.tex
+onechap.chk: $(INCLUDES) onechap.tex
+ref.chk: $(INCLUDES) ref.tex
+fpdoc.chk: $(INCLUDES) fpdoc.tex
+chart.chk: $(INCLUDES) chart.tex
+
+html: $(INCLUDES) $(CHK)
+
 endif  # INSTALLDEBUG
 #######################################################################
 # Targets to force using a specific tool.
@@ -404,15 +417,6 @@ l2h:
 4ht:
         $(MAKE) html USETEX4HT=1
 
-fcl: fcl/index.html
-
-fcl/index.html: classes.xml
-        $(FPDOC) $(FCLOPTS) --format=html --output=fcl
-
-rtl: rtl/index.html
-
-rtl/index.html: $(RTLXML)
-        $(FPDOC) $(RTLOPTS) --format=html --output=rtl
 
 #####################################################################
 # GTK Articles
@@ -485,11 +489,11 @@ pdftar:
 pdfzip:
         $(MAKE) zipinstall ZIPTARGET=pdfinstall UNIXHier= USEZIP=y FULLZIPNAME=doc-pdf
 
-dvidist:
-        $(MAKE) zipinstall ZIPTARGET=dviinstall FULLZIPNAME=doc-dvi
+dvizip:
+        $(MAKE) zipinstall ZIPTARGET=dviinstall UNIXHier= USEZIP=y FULLZIPNAME=doc-dvi
 
-txtdist:
-        $(MAKE) zipinstall ZIPTARGET=txtinstall FULLZIPNAME=doc-txt
+txtzip:
+        $(MAKE) zipinstall ZIPTARGET=txtinstall UNIXHier= USEZIP=y FULLZIPNAME=doc-txt
 
 htmltar:
         $(MAKE) zipinstall ZIPTARGET=htmlinstall UNIXHier=1 USETAR=y FULLZIPNAME=fpcdochtml
@@ -500,6 +504,10 @@ htmlzip:
 psdist: pszip pstar
 
 pdfdist: pdfzip pdftar
+
+txtdist: txtzip
+
+dvidist: dvizip
 
 htmldist: htmlzip htmltar
 
@@ -566,7 +574,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.9  2005-02-18 23:04:15  michael
+# Revision 1.10  2005-02-19 22:24:47  peter
+#   * updated html target
+#
+# Revision 1.9  2005/02/18 23:04:15  michael
 # + Fixed psdist target zip names
 #
 # Revision 1.8  2005/02/14 17:53:11  peter

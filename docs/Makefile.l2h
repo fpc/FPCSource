@@ -3,14 +3,8 @@
 # Create HTML using Latex2HTML
 #
 #
-htex: htex.chk
-htex.chk: $(wildcard *.tex) includes
-	./tex2htex
-	touch htex.chk
-
-user: user.chk
-user.chk: htex.chk includes
-	cp -f preamble.html preamble.inc
+user.chk: $(INCLUDES) messages.inc 
+	cp -f preamble.l2h preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
 	-t "User's guide for Free Pascal" user.htex
 	-sed -f foot.sed <user/footnode.html >user/footnote.html
@@ -21,9 +15,8 @@ ifndef DEBUG
 endif
 	touch user.chk
 
-units: units.chk
-units.chk: unitex.chk htex.chk includes
-	cp -f preamble.html preamble.inc
+units.chk: unitex.chk $(INCLUDES)
+	cp -f preamble.l2h preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
 	-t "Unit reference for Free Pascal" units.htex
 	-sed -f foot.sed <units/footnode.html >units/footnote.html
@@ -34,9 +27,8 @@ ifndef DEBUG
 endif
 	touch units.chk
 
-ref: ref.chk
-ref.chk: refex.chk htex.chk includes
-	cp -f preamble.html preamble.inc
+ref.chk: refex.chk $(INCLUDES)
+	cp -f preamble.l2h preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
 	-t "Free Pascal reference guide" ref.htex
 	-sed -f foot.sed <ref/footnode.html >ref/footnote.html
@@ -47,9 +39,8 @@ ifndef DEBUG
 endif
 	touch ref.chk	
 
-prog: prog.chk
-prog.chk: progex.chk htex.chk includes
-	cp -f preamble.html preamble.inc
+prog.chk: progex.chk $(INCLUDES)
+	cp -f preamble.l2h preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
 	-t "Free Pascal programmers guide" prog.htex
 	-sed -f foot.sed <prog/footnode.html >prog/footnote.html
@@ -62,7 +53,7 @@ endif
 
 internal: internal.chk
 internal.chk: htex.chk
-	cp -f preamble.html preamble.inc
+	cp -f preamble.l2h preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
 	-t "Free Pascal Compiler Documentation" internal.htex
 	-sed -f foot.sed <internal/footnode.html >internal/footnote.html
@@ -73,9 +64,8 @@ ifndef DEBUG
 endif
 	touch internal.chk	
 
-onechap: onechap.chk
-onechap.chk: unitex.chk htex.chk includes
-	cp -f preamble.html preamble.inc
+onechap.chk: unitex.chk $(INCLUDES)
+	cp -f preamble.l2h preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
 	-t "Free Pascal reference guide" onechap.htex
 	-sed -f foot.sed <onechap/footnode.html >onechap/footnote.html
@@ -86,9 +76,8 @@ ifndef DEBUG
 endif
 	touch onechap.chk	
 
-fpdoc: fpdoc.chk
-fpdoc.chk: htex.chk includes
-	cp -f preamble.html preamble.inc
+fpdoc.chk: $(INCLUDES)
+	cp -f preamble.l2h preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
 	-t "Free Pascal documentation tool manual" fpdoc.htex
 	-sed -f foot.sed <fpdoc/footnode.html >fpdoc/footnote.html
@@ -99,9 +88,8 @@ ifndef DEBUG
 endif
 	touch fpdoc.chk
 
-chart: chart.chk
-chart.chk: htex.chk includes
-	cp -f preamble.html preamble.inc
+chart.chk: $(INCLUDES)
+	cp -f preamble.l2h preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
 	-t "Free Pascal documentation tool manual" chart.htex
 	-sed -f foot.sed <chart/footnode.html >chart/footnote.html
@@ -111,6 +99,3 @@ ifndef DEBUG
 	-rm -f chart/images.* chart/*.log chart/WARNINGS
 endif
 	touch chart.chk
-
-html: $(HTML)
-

@@ -2,14 +2,14 @@
 # Create HTML using hevea tex 2 html conversion
 #
 
-%.html: %.tex fpc-hevea.tex
+%.chk: %.tex fpc-hevea.tex
+	cp -f preamble.hev preamble.inc
 	$(HEVEA) $(HEVEAOPTS) $<
+	touch $(basename $<).chk
 
-user: $(INCLUDES) user.html
-units: $(INCLUDES) units.html
-prog: $(INCLUDES) prog.html
-onechap: $(INCLUDES) onechap.html
-ref: $(INCLUDES) ref.html
-fpdoc: $(INCLUDES) fpdoc.html
+user.chk: $(INCLUDES) user.tex messages.inc
+prog.chk: $(INCLUDES) prog.tex
+onechap.chk: $(INCLUDES) onechap.tex
+ref.chk: $(INCLUDES) ref.tex
+fpdoc.chk: $(INCLUDES) fpdoc.tex
 
-html: $(INCLUDES) $(addsuffix .html,$(HTML))
