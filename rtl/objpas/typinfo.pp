@@ -195,6 +195,8 @@ Function  GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PP
 {$else}
 Function  GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList;Sorted : boolean = true):longint;
 {$endif}
+Function GetPropList(TypeInfo: PTypeInfo; out PropList: PPropList): SizeInt;
+
 // Property information routines.
 Function IsStoredProp(Instance: TObject;PropInfo : PPropInfo) : Boolean;
 Function IsStoredProp(Instance: TObject; const PropName: string): Boolean;
@@ -592,7 +594,7 @@ begin
   PL^[Count]:=PI;
 end;
 
-Type TInsertProp = Procedure (PL : PProplist;PI : PPropInfo; Count : longint); 
+Type TInsertProp = Procedure (PL : PProplist;PI : PPropInfo; Count : longint);
 
 //Const InsertProps : array[false..boolean] of TInsertProp = (InsertPropNoSort,InsertProp);
 
@@ -640,6 +642,17 @@ begin
       end;
     end;
 end;
+
+
+Function GetPropList(TypeInfo: PTypeInfo; out PropList: PPropList): SizeInt;
+  begin
+    result:=GetTypeData(TypeInfo)^.Propcount;
+    if result>0 then
+      begin
+        getmem(PropList,result*sizeof(pointer));
+        GetPropInfos(TypeInfo,PropList);
+      end;
+  end;
 
 
 { ---------------------------------------------------------------------
@@ -1517,7 +1530,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.37  2005-02-22 12:14:56  marco
+  Revision 1.38  2005-02-26 11:37:01  florian
+    + overload of GetPropList added
+
+  Revision 1.37  2005/02/22 12:14:56  marco
    * getproplist sorted param added.
 
   Revision 1.36  2005/02/14 17:13:31  peter
