@@ -54,6 +54,10 @@ interface
          LOC_CMMREGISTER
        );
 
+       { since we have only 16 offsets, we need to be able to specify the high
+         and low 16 bits of the address of a symbol                            }
+       trefaddr = (addr_no,addr_full,addr_hi,addr_lo);
+
        {# Generic opcodes, which must be supported by all processors
        }
        topcg =
@@ -583,7 +587,15 @@ finalization
 end.
 {
   $Log$
-  Revision 1.87  2004-02-09 22:14:17  peter
+  Revision 1.88  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.87  2004/02/09 22:14:17  peter
     * more x86_64 parameter fixes
     * tparalocation.lochigh is now used to indicate if registerhigh
       is used and what the type is

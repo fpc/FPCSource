@@ -94,7 +94,8 @@ implementation
       aasmbase,aasmtai,
       procinfo,pass_2,
       pass_1,nld,ncon,nadd,nutils,
-      cgobj,tgobj,ncgutil,symbase
+      cgutils,cgobj,
+      tgobj,ncgutil,symbase
       ;
 
 
@@ -881,7 +882,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2004-02-20 21:55:59  peter
+  Revision 1.88  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.87  2004/02/20 21:55:59  peter
     * procvar cleanup
 
   Revision 1.86  2004/02/03 22:32:54  peter

@@ -37,7 +37,7 @@ uses
   fmodule,
   nobj,
   cpuinfo,cpubase,
-  cgobj;
+  cgutils,cgobj;
 
    type
      tppcclassheader=class(tclassheader)
@@ -167,7 +167,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-12-28 15:14:14  jonas
+  Revision 1.4  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.3  2003/12/28 15:14:14  jonas
     * hopefully fixed interfaces (untested)
 
   Revision 1.2  2003/12/23 23:12:44  peter

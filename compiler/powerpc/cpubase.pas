@@ -240,10 +240,6 @@ uses
     type
       trefoptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
 
-      { since we have only 16 offsets, we need to be able to specify the high }
-      { and low 16 bits of the address of a symbol                            }
-      trefsymaddr = (refs_full,refs_ha,refs_l);
-
       { reference record }
       preference = ^treference;
       treference = packed record
@@ -252,18 +248,13 @@ uses
          { index register, R_NO if none }
          index       : tregister;
          { offset, 0 if none }
-         offset      : longint;
+         offset      : aint;
          { symbol this reference refers to, nil if none }
          symbol      : tasmsymbol;
-         { used in conjunction with symbols and offsets: refs_full means }
-         { means a full 32bit reference, refs_ha means the upper 16 bits }
-         { and refs_l the lower 16 bits of the address                   }
-         symaddr     : trefsymaddr;
-         { changed when inlining and possibly in other cases, don't }
-         { set manually                                             }
-         offsetfixup : longint;
-         { used in conjunction with the previous field }
-         options     : trefoptions;
+         { symbol the symbol of this reference is relative to, nil if none }
+         relsymbol      : tasmsymbol;
+         { reference type addr or symbol itself }
+         refaddr : trefaddr;
          { alignment this reference is guaranteed to have }
          alignment   : byte;
       end;
@@ -276,7 +267,7 @@ uses
       end;
 
     const
-      symaddr2str: array[trefsymaddr] of string[3] = ('','@ha','@l');
+      symaddr2str: array[trefaddr] of string[3] = ('','','@ha','@l');
 
     const
       { MacOS only. Whether the direct data area (TOC) directly contain
@@ -632,7 +623,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2004-02-09 22:45:49  florian
+  Revision 1.86  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.85  2004/02/09 22:45:49  florian
     * compilation fixed
 
   Revision 1.84  2004/02/08 18:08:59  jonas

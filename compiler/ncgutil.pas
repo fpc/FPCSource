@@ -120,7 +120,7 @@ implementation
     gdb,
 {$endif GDB}
     ncon,
-    tgobj,cgobj;
+    tgobj,cgutils,cgobj;
 
 
   const
@@ -2141,7 +2141,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.193  2004-02-22 18:27:21  florian
+  Revision 1.194  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.193  2004/02/22 18:27:21  florian
     * fixed exception reason size for 64 bit systems
 
   Revision 1.192  2004/02/08 17:48:59  jonas

@@ -26,6 +26,9 @@ unit ppu;
 
 interface
 
+  uses
+    cpuinfo;
+
 { Also write the ppu if only crc if done, this can be used with ppudump to
   see the differences between the intf and implementation }
 { define INTFPPU}
@@ -217,6 +220,8 @@ type
     function  getbyte:byte;
     function  getword:word;
     function  getlongint:longint;
+    function getint64:int64;
+    function getaint:aint;
     function  getreal:ppureal;
     function  getstring:string;
     procedure getnormalset(var b);
@@ -232,6 +237,8 @@ type
     procedure putbyte(b:byte);
     procedure putword(w:word);
     procedure putlongint(l:longint);
+    procedure putint64(i:int64);
+    procedure putaint(i:aint);
     procedure putreal(d:ppureal);
     procedure putstring(s:string);
     procedure putnormalset(const b);
@@ -246,7 +253,8 @@ implementation
 {$ifdef Test_Double_checksum}
     comphook,
 {$endif def Test_Double_checksum}
-    crc;
+    crc,
+    cutils;
 
 {*****************************************************************************
                              Endian Handling
@@ -606,6 +614,35 @@ begin
 end;
 
 
+function tppufile.getint64:int64;
+var
+  i : int64;
+begin
+  if entryidx+8>entry.size then
+   begin
+     error:=true;
+     result:=0;
+     exit;
+   end;
+  readdata(i,8);
+  if change_endian then
+    result:=swapint64(i)
+  else
+    result:=i;
+  inc(entryidx,8);
+end;
+
+
+function tppufile.getaint:aint;
+begin
+{$ifdef cpu64bit}
+  result:=getint64;
+{$else cpu64bit}
+  result:=getlongint;
+{$endif cpu64bit}
+end;
+
+
 function tppufile.getreal:ppureal;
 var
   d : ppureal;
@@ -913,6 +950,18 @@ begin
 end;
 
 
+procedure tppufile.putint64(i:int64);
+begin
+  putdata(i,8);
+end;
+
+
+procedure tppufile.putaint(i:aint);
+begin
+  putdata(i,sizeof(aint));
+end;
+
+
 procedure tppufile.putreal(d:ppureal);
 begin
   putdata(d,sizeof(ppureal));
@@ -993,7 +1042,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.45  2004-01-30 13:42:03  florian
+  Revision 1.46  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.45  2004/01/30 13:42:03  florian
     * fixed more alignment issues
 
   Revision 1.44  2003/11/10 22:02:52  peter

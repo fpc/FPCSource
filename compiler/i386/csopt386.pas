@@ -1864,7 +1864,7 @@ begin
                               getNextInstruction(p,p);
                           end;
                       end;
-                    top_symbol,Top_Const:
+                    top_Const:
                       begin
                         case taicpu(p).oper[1]^.typ of
                           Top_Reg:
@@ -2115,7 +2115,15 @@ end.
 
 {
   $Log$
-  Revision 1.60  2004-02-25 20:39:58  jonas
+  Revision 1.61  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.60  2004/02/25 20:39:58  jonas
     * fixed bugs that caused pasjpeg crashes
 
   Revision 1.59  2003/12/20 22:53:33  jonas

@@ -23,6 +23,7 @@ Interface
 Type
    { Architecture word - Native unsigned type }
    AWord  = Longword;
+   AInt = Longint;
    PAWord = ^AWord;
 
    { this must be an ordinal type with the same size as a pointer }
@@ -100,7 +101,15 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.16  2003-11-12 16:05:40  florian
+  Revision 1.17  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.16  2003/11/12 16:05:40  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

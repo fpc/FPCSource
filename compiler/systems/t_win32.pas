@@ -105,6 +105,9 @@ interface
 
 implementation
 
+  uses
+    cgutils;
+
     function DllName(Const Name : string;NdefExt:longint;DefExt:pStr4) : string;
       var n : string;
           i:longint;
@@ -1603,7 +1606,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.27  2004-01-09 13:37:17  daniel
+  Revision 1.28  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.27  2004/01/09 13:37:17  daniel
     * Commented out code removed
 
   Revision 1.25  2003/12/09 19:54:59  marco

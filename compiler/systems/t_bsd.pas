@@ -40,7 +40,7 @@ implementation
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,symdef,
     import,export,link,i_bsd,
-    cgobj;
+    cgutils,cgbase,cgobj;
 
   type
     tdarwinimported_item = class(timported_item)
@@ -223,7 +223,7 @@ implementation
 {$else powerpc}
                       internalerror(2004010501);
 {$endif powerpc}
-                      
+
                       importsSection.concat(Tai_section.Create(sec_data));
                       importsSection.concat(Tai_direct.create(strpnew('.section __TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16')));
                       importsSection.concat(Tai_align.Create(4));
@@ -241,9 +241,9 @@ implementation
                        end;
 {$EndIf GDB}
 {$ifdef powerpc}
-                      href.symaddr := refs_ha;
+                      href.refaddr := addr_hi;
                       importsSection.concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
-                      href.symaddr := refs_l;
+                      href.refaddr := addr_lo;
                       href.base := NR_R11;
                       importsSection.concat(taicpu.op_reg_ref(A_LWZU,NR_R12,href));
                       importsSection.concat(taicpu.op_reg(A_MTCTR,NR_R12));
@@ -256,7 +256,7 @@ implementation
                       importsSection.concat(Tai_symbol.Create(l1,0));
                       importsSection.concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+symname)));
                       importsSection.concat(tai_const_symbol.createname(strpnew('dyld_stub_binding_helper')));
-                     
+
                     end
                    else
                     begin
@@ -760,7 +760,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2004-02-15 16:34:18  marco
+  Revision 1.10  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.9  2004/02/15 16:34:18  marco
    * pthread on -CURRENT related fixes.
 
   Revision 1.8  2004/01/21 20:53:51  marco

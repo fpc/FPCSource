@@ -107,8 +107,8 @@ unit agppcgas;
           );
 
 
-     symaddr2str: array[trefsymaddr] of string[3] = ('','@ha','@l');
-     symaddr2str_darwin: array[trefsymaddr] of string[4] = ('','ha16','lo16');
+       refaddr2str: array[trefaddr] of string[3] = ('','','@ha','@l');
+       refaddr2str_darwin: array[trefaddr] of string[4] = ('','','ha16','lo16');
 
 
     function getreferencestring(var ref : treference) : string;
@@ -117,16 +117,15 @@ unit agppcgas;
     begin
        with ref do
         begin
-          inc(offset,offsetfixup);
           if ((offset < -32768) or (offset > 32767)) and
-             (symaddr = refs_full) then
+             (refaddr = addr_no) then
             internalerror(19991);
-          if (symaddr = refs_full) then
+          if (refaddr = addr_no) then
             s := ''
           else
             begin
               if target_info.system = system_powerpc_darwin then
-                s := symaddr2str_darwin[symaddr]
+                s := refaddr2str_darwin[refaddr]
               else
                 s :='';
               s := s+'(';
@@ -144,11 +143,11 @@ unit agppcgas;
                s:=s+tostr(offset);
             end;
 
-           if (symaddr <> refs_full) then
+           if (refaddr in [addr_lo,addr_hi]) then
              begin
                s := s+')';
                if (target_info.system <> system_powerpc_darwin) then
-                 s := s+symaddr2str[symaddr];
+                 s := s+refaddr2str[refaddr];
              end;
 
            if (index=NR_NO) and (base<>NR_NO) then
@@ -187,14 +186,16 @@ unit agppcgas;
         { no top_ref jumping for powerpc }
         top_const :
           getopstr_jmp:=tostr(o.val);
-        top_symbol :
+        top_ref :
           begin
-            hs:=o.sym.name;
-            if o.symofs>0 then
-             hs:=hs+'+'+tostr(o.symofs)
+            if o.ref^.refaddr<>addr_full then
+              internalerror(200402262);
+            hs:=o.ref^.symbol.name;
+            if o.ref^.offset>0 then
+             hs:=hs+'+'+tostr(o.ref^.offset)
             else
-             if o.symofs<0 then
-              hs:=hs+tostr(o.symofs);
+             if o.ref^.offset<0 then
+              hs:=hs+tostr(o.ref^.offset);
             getopstr_jmp:=hs;
           end;
         top_none:
@@ -214,17 +215,18 @@ unit agppcgas;
         top_const:
           getopstr:=tostr(longint(o.val));
         top_ref:
-          getopstr:=getreferencestring(o.ref^);
-        top_symbol:
-          begin
-            hs:=o.sym.name;
-            if o.symofs>0 then
-             hs:=hs+'+'+tostr(o.symofs)
-            else
-             if o.symofs<0 then
-              hs:=hs+tostr(o.symofs);
-            getopstr:=hs;
-          end;
+          if o.ref^.refaddr=addr_full then
+            begin
+              hs:=o.ref^.symbol.name;
+              if o.ref^.offset>0 then
+               hs:=hs+'+'+tostr(o.ref^.offset)
+              else
+               if o.ref^.offset<0 then
+                hs:=hs+tostr(o.ref^.offset);
+              getopstr:=hs;
+            end
+          else
+            getopstr:=getreferencestring(o.ref^);
         else
           internalerror(2002070604);
       end;
@@ -328,7 +330,7 @@ unit agppcgas;
              else
                begin
                  s:=cond2str(op,taicpu(hp).condition);
-                 if (s[length(s)] <> #9) and 
+                 if (s[length(s)] <> #9) and
                     (taicpu(hp).ops>0) then
                    s := s + ',';
                end;
@@ -373,7 +375,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2004-01-04 21:17:51  jonas
+  Revision 1.41  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.40  2004/01/04 21:17:51  jonas
     + added log message for last commit
 
   Revision 1.39  2004/01/04 21:12:47  jonas

@@ -280,29 +280,32 @@ interface
                AsmWrite(sizestr(s,dest));
               AsmWrite(tostr(longint(o.val)));
             end;
-          top_symbol :
-            begin
-              asmwrite('dword ');
-              if assigned(o.sym) then
-               begin
-                asmwrite(o.sym.name);
-                if o.symofs=0 then
-                  exit;
-               end;
-              if o.symofs>0 then
-               asmwrite('+');
-              asmwrite(tostr(o.symofs))
-            end;
           top_ref :
             begin
-              if not ((opcode = A_LEA) or (opcode = A_LGS) or
-                      (opcode = A_LSS) or (opcode = A_LFS) or
-                      (opcode = A_LES) or (opcode = A_LDS) or
-                      (opcode = A_SHR) or (opcode = A_SHL) or
-                      (opcode = A_SAR) or (opcode = A_SAL) or
-                      (opcode = A_OUT) or (opcode = A_IN)) then
-                AsmWrite(sizestr(s,dest));
-              WriteReference(o.ref^);
+              if o.ref^.refaddr=addr_no then
+                begin
+                  if not ((opcode = A_LEA) or (opcode = A_LGS) or
+                          (opcode = A_LSS) or (opcode = A_LFS) or
+                          (opcode = A_LES) or (opcode = A_LDS) or
+                          (opcode = A_SHR) or (opcode = A_SHL) or
+                          (opcode = A_SAR) or (opcode = A_SAL) or
+                          (opcode = A_OUT) or (opcode = A_IN)) then
+                    AsmWrite(sizestr(s,dest));
+                  WriteReference(o.ref^);
+                end
+              else
+                begin
+                  asmwrite('dword ');
+                  if assigned(o.ref^.symbol) then
+                   begin
+                    asmwrite(o.ref^.symbol.name);
+                    if o.ref^.offset=0 then
+                      exit;
+                   end;
+                  if o.ref^.offset>0 then
+                   asmwrite('+');
+                  asmwrite(tostr(o.ref^.offset));
+                end;
             end;
           else
             internalerror(10001);
@@ -316,25 +319,26 @@ interface
           top_reg :
             AsmWrite(nasm_regname(o.reg));
           top_ref :
-            WriteReference(o.ref^);
+            if o.ref^.refaddr=addr_no then
+              WriteReference(o.ref^)
+            else
+              begin
+                if not(
+                       (op=A_JCXZ) or (op=A_JECXZ) or
+                       (op=A_LOOP) or (op=A_LOOPE) or
+                       (op=A_LOOPNE) or (op=A_LOOPNZ) or
+                       (op=A_LOOPZ)
+                      ) then
+                  AsmWrite('NEAR ');
+                AsmWrite(o.ref^.symbol.name);
+                if o.ref^.offset>0 then
+                 AsmWrite('+'+tostr(o.ref^.offset))
+                else
+                 if o.ref^.offset<0 then
+                  AsmWrite(tostr(o.ref^.offset));
+              end;
           top_const :
-            AsmWrite(tostr(longint(o.val)));
-          top_symbol :
-            begin
-              if not(
-                     (op=A_JCXZ) or (op=A_JECXZ) or
-                     (op=A_LOOP) or (op=A_LOOPE) or
-                     (op=A_LOOPNE) or (op=A_LOOPNZ) or
-                     (op=A_LOOPZ)
-                    ) then
-                AsmWrite('NEAR ');
-              AsmWrite(o.sym.name);
-              if o.symofs>0 then
-               AsmWrite('+'+tostr(o.symofs))
-              else
-               if o.symofs<0 then
-                AsmWrite(tostr(o.symofs));
-            end;
+            AsmWrite(tostr(aint(o.val)));
           else
             internalerror(10001);
         end;
@@ -920,7 +924,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.43  2003-12-14 22:42:39  peter
+  Revision 1.44  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.43  2003/12/14 22:42:39  peter
     * fixed range check errors
 
   Revision 1.42  2003/11/29 15:53:06  florian

@@ -114,9 +114,7 @@ var
     begin
        with ref do
         begin
-          inc(offset,offsetfixup);
-
-          if (symaddr <> refs_full) then
+          if (refaddr <> addr_no) then
             InternalError(2002110301)
           else if ((offset < -32768) or (offset > 32767)) then
             InternalError(19991);
@@ -180,28 +178,33 @@ var
         { no top_ref jumping for powerpc }
         top_const :
           getopstr_jmp:=tostr(o.val);
-        top_symbol :
+        top_ref :
           begin
-            hs:=o.sym.name;
-            ReplaceForbiddenChars(hs);
-            case o.sym.typ of
-              AT_FUNCTION:
-                begin
-                  if hs[1] <> '@' then {if not local label}
-                    if use_PR then
-                      hs:= '.'+hs+'[PR]'
-                    else
-                      hs:= '.'+hs
-                end
-              else
-                ;
-            end;
-            if o.symofs>0 then
-             hs:=hs+'+'+tostr(o.symofs)
+            if o.ref^.refaddr=addr_full then
+              begin
+                hs:=o.ref^.symbol.name;
+                ReplaceForbiddenChars(hs);
+                case o.ref^.symbol.typ of
+                  AT_FUNCTION:
+                    begin
+                      if hs[1] <> '@' then {if not local label}
+                        if use_PR then
+                          hs:= '.'+hs+'[PR]'
+                        else
+                          hs:= '.'+hs
+                    end
+                  else
+                    ;
+                end;
+                if o.ref^.offset>0 then
+                 hs:=hs+'+'+tostr(o.ref^.offset)
+                else
+                 if o.ref^.offset<0 then
+                  hs:=hs+tostr(o.ref^.offset);
+                getopstr_jmp:=hs;
+              end
             else
-             if o.symofs<0 then
-              hs:=hs+tostr(o.symofs);
-            getopstr_jmp:=hs;
+              internalerror(200402263);
           end;
         top_none:
           getopstr_jmp:='';
@@ -220,18 +223,19 @@ var
         top_const:
           getopstr:=tostr(longint(o.val));
         top_ref:
-          getopstr:=getreferencestring(o.ref^);
-        top_symbol:
-          begin
-            hs:=o.sym.name;
-            ReplaceForbiddenChars(hs);
-            if o.symofs>0 then
-             hs:=hs+'+'+tostr(o.symofs)
-            else
-             if o.symofs<0 then
-              hs:=hs+tostr(o.symofs);
-            getopstr:=hs;
-          end;
+          if o.ref^.refaddr=addr_no then
+            getopstr:=getreferencestring(o.ref^)
+          else
+            begin
+              hs:=o.ref^.symbol.name;
+              ReplaceForbiddenChars(hs);
+              if o.ref^.offset>0 then
+               hs:=hs+'+'+tostr(o.ref^.offset)
+              else
+               if o.ref^.offset<0 then
+                hs:=hs+tostr(o.ref^.offset);
+              getopstr:=hs;
+            end;
         else
           internalerror(2002070604);
       end;
@@ -1382,7 +1386,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.30  2004-02-04 15:28:24  olle
+  Revision 1.31  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.30  2004/02/04 15:28:24  olle
     * made more in phase with agppcgas.pas
 
   Revision 1.29  2004/01/12 00:08:03  olle

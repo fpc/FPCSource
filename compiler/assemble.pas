@@ -1192,10 +1192,8 @@ Implementation
                            begin
                              if assigned(ref^.symbol) then
                               objectlibrary.UsedAsmSymbolListInsert(ref^.symbol);
-                           end;
-                         top_symbol :
-                           begin
-                             objectlibrary.UsedAsmSymbolListInsert(sym);
+                             if assigned(ref^.relsymbol) then
+                              objectlibrary.UsedAsmSymbolListInsert(ref^.symbol);
                            end;
                        end;
                      end;
@@ -1661,7 +1659,15 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.61  2004-01-31 17:45:17  peter
+  Revision 1.62  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.61  2004/01/31 17:45:17  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 

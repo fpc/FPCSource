@@ -154,7 +154,7 @@ implementation
 {$endif GDB}
        aasmcpu,
        cpubase,cgbase,
-       cgobj
+       cgutils,cgobj
        ;
 
 
@@ -1380,7 +1380,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.63  2004-02-26 16:16:38  peter
+  Revision 1.64  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.63  2004/02/26 16:16:38  peter
     * tai_const.create_ptr added
 
   Revision 1.62  2004/02/19 17:07:42  florian

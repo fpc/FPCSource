@@ -36,7 +36,7 @@ interface
        cutils,cclasses,
        globtype,globals,systems,
        cpuinfo,cpubase,
-       cgbase,
+       cgbase,cgutils,
        symtype,
        aasmbase;
 
@@ -140,7 +140,7 @@ interface
 
     type
       { Types of operand }
-      toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_bool,top_local,
+      toptype=(top_none,top_reg,top_ref,top_const,top_bool,top_local,
        { ARM only }
        top_regset,
        top_shifterop,
@@ -150,24 +150,33 @@ interface
       { kinds of operations that an instruction can perform on an operand }
       topertype = (operand_read,operand_write,operand_readwrite);
 
-      toper=record
+      tlocaloper = record
+        localsym : pointer;
+        localsymderef : tderef;
+        localsymofs : longint;
+        localindexreg : tregister;
+        localscale : byte;
+        localgetoffset : boolean
+      end;
+      plocaloper = ^tlocaloper;
+
+      { please keep the size of this record <=12 bytes and keep it properly aligned }
+      toper = record
         ot : longint;
         case typ : toptype of
-         top_none   : ();
-         top_reg    : (reg:tregister);
-         top_ref    : (ref:preference);
-         top_const  : (val:aword);
-         top_symbol : (sym:tasmsymbol;symofs:longint);
-         top_bool   : (b:boolean);
-         { local varsym that will be inserted in pass_2 }
-         top_local  : (localsym:pointer;localsymderef:tderef;localsymofs:longint;localindexreg:tregister;
-                       localscale:byte;localgetoffset:boolean);
+          top_none   : ();
+          top_reg    : (reg:tregister);
+          top_ref    : (ref:preference);
+          top_const  : (val:aword);
+          top_bool   : (b:boolean);
+          { local varsym that will be inserted in pass_2 }
+          top_local  : (localoper:plocaloper);
       {$ifdef arm}
-         top_regset : (regset:^tcpuregisterset);
-         top_shifterop : (shifterop : pshifterop);
+          top_regset : (regset:^tcpuregisterset);
+          top_shifterop : (shifterop : pshifterop);
       {$endif arm}
       {$ifdef m68k}
-         top_regset : (regset:^tcpuregisterset);
+          top_regset : (regset:^tcpuregisterset);
       {$endif m68k}
       end;
       poper=^toper;
@@ -1657,19 +1666,12 @@ implementation
 
 
     procedure taicpu_abstract.loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
+      var
+        r : treference;
       begin
-        if not assigned(s) then
-         internalerror(200204251);
-        allocate_oper(opidx+1);
-        with oper[opidx]^ do
-         begin
-           if typ<>top_symbol then
-             clearop(opidx);
-           sym:=s;
-           symofs:=sofs;
-           typ:=top_symbol;
-         end;
-        s.increfs;
+        reference_reset_symbol(r,s,sofs);
+        r.refaddr:=addr_full;
+        loadref(opidx,r);
       end;
 
 
@@ -1681,12 +1683,18 @@ implementation
         with oper[opidx]^ do
          begin
            if typ<>top_local then
-             clearop(opidx);
-           localsym:=s;
-           localsymofs:=sofs;
-           localindexreg:=indexreg;
-           localscale:=scale;
-           localgetoffset:=getoffset;
+             begin
+               clearop(opidx);
+               new(localoper);
+             end;
+           with oper[opidx]^.localoper^ do
+             begin
+               localsym:=s;
+               localsymofs:=sofs;
+               localindexreg:=indexreg;
+               localscale:=scale;
+               localgetoffset:=getoffset;
+             end;
            typ:=top_local;
          end;
       end;
@@ -1791,6 +1799,8 @@ implementation
             case typ of
               top_ref:
                 dispose(ref);
+              top_local:
+                dispose(localoper);
 {$ifdef ARM}
               top_shifterop:
                 dispose(shifterop);
@@ -1992,10 +2002,20 @@ implementation
         inherited InsertAfter(Item,Loc);
       end;
 
+begin
+  writeln(sizeof(toper));
 end.
 {
   $Log$
-  Revision 1.72  2004-02-26 16:16:38  peter
+  Revision 1.73  2004-02-27 10:21:04  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.72  2004/02/26 16:16:38  peter
     * tai_const.create_ptr added
 
   Revision 1.71  2004/02/08 23:10:21  jonas

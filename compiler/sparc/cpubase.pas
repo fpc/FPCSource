@@ -157,10 +157,6 @@ uses
     type
       TRefOptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
 
-      { since we have no full 32 bit offsets, we need to be able to specify the high
-        and low bits of the address of a symbol                                      }
-      trefsymaddr = (refs_no,refs_full,refs_hi,refs_lo);
-
       { reference record }
       preference = ^treference;
       treference = packed record
@@ -552,7 +548,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2004-02-25 14:25:47  mazen
+  Revision 1.62  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.61  2004/02/25 14:25:47  mazen
   * fix compile problem for sparc
 
   Revision 1.60  2004/01/12 22:11:39  peter

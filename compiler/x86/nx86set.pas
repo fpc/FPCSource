@@ -47,7 +47,7 @@ implementation
       cgbase,pass_2,
       ncon,
       cpubase,cpuinfo,procinfo,
-      cga,cgobj,ncgutil,
+      cga,cgutils,cgobj,ncgutil,
       cgx86;
 
 {*****************************************************************************
@@ -495,7 +495,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2004-02-22 12:04:04  florian
+  Revision 1.2  2004-02-27 10:21:06  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.1  2004/02/22 12:04:04  florian
     + nx86set added
     * some more x86-64 fixes
  }

@@ -35,7 +35,8 @@ implementation
 
 uses
   {$ifdef replaceregdebug}cutils,{$endif}
-  verbose,globals,cpubase,daopt386,csopt386,rgobj, cgbase, cgobj;
+  verbose,globals,cpubase,daopt386,csopt386,rgobj,
+  cgbase,cgutils,cgobj;
 
 function canBeFirstSwitch(p: taicpu; supreg: tsuperregister): boolean;
 { checks whether an operation on reg can be switched to another reg without an }
@@ -54,7 +55,7 @@ begin
         (p.oper[0]^.typ <> top_ref) and
         (not pTaiprop(p.optinfo)^.FlagsUsed);
     A_INC,A_DEC:
-      canBeFirstSwitch := 
+      canBeFirstSwitch :=
         (p.oper[0]^.typ = top_reg) and
         (p.opsize = S_L) and
         (not pTaiprop(p.optinfo)^.FlagsUsed);
@@ -159,8 +160,11 @@ begin
               if p.opcode = A_SUB then
                 tmpref.offset := - tmpRef.offset;
             end;
-          top_symbol:
-            tmpref.symbol := p.oper[0]^.sym;
+          top_ref:
+            if (p.oper[0]^.ref^.refaddr=addr_full) then
+              tmpref.symbol := p.oper[0]^.ref^.symbol
+            else
+              internalerror(200402261);
           top_reg:
             begin
               tmpref.index := p.oper[0]^.reg;
@@ -360,7 +364,15 @@ End.
 
 {
   $Log$
-  Revision 1.25  2003-12-15 16:08:16  jonas
+  Revision 1.26  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.25  2003/12/15 16:08:16  jonas
     - disable removal of dead loads before a call, because register
       parameters are released before a call
     * fix storeback of registers in case of different sizes (e.g., first

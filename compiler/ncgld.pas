@@ -56,7 +56,9 @@ implementation
       cgbase,pass_2,
       procinfo,
       cpubase,cpuinfo,
-      tgobj,ncgutil,cgobj,ncgbas;
+      tgobj,ncgutil,
+      cgutils,cgobj,
+      ncgbas;
 
 {*****************************************************************************
                              SecondLoad
@@ -906,7 +908,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.111  2004-02-22 16:48:09  florian
+  Revision 1.112  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.111  2004/02/22 16:48:09  florian
     * x86_64 uses generic concatcopy_valueopenarray for now
 
   Revision 1.110  2004/02/22 16:30:37  florian

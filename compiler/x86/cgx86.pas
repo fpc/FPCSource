@@ -167,6 +167,7 @@ unit cgx86;
 
     uses
        globtype,globals,verbose,systems,cutils,
+       cgutils,
        symdef,defutil,paramgr,tgobj,procinfo;
 
     const
@@ -1780,7 +1781,15 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.114  2004-02-22 18:27:21  florian
+  Revision 1.115  2004-02-27 10:21:06  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.114  2004/02/22 18:27:21  florian
     * fixed exception reason size for 64 bit systems
 
   Revision 1.113  2004/02/22 16:48:10  florian

@@ -55,7 +55,8 @@ implementation
 {$endif}
       cutils,globtype,globals,systems,cclasses,
       verbose,finput,fmodule,script,cpuinfo,
-      itx86int
+      itx86int,
+      cgbase
       ;
 
     const
@@ -211,51 +212,54 @@ implementation
             AsmWrite(masm_regname(o.reg));
           top_const :
             AsmWrite(tostr(longint(o.val)));
-          top_symbol :
-            begin
-              AsmWrite('offset ');
-              if assigned(o.sym) then
-                AsmWrite(o.sym.name);
-              if o.symofs>0 then
-               AsmWrite('+'+tostr(o.symofs))
-              else
-               if o.symofs<0 then
-                AsmWrite(tostr(o.symofs))
-              else
-               if not(assigned(o.sym)) then
-                 AsmWrite('0');
-            end;
           top_ref :
             begin
-              if ((opcode <> A_LGS) and (opcode <> A_LSS) and
-                  (opcode <> A_LFS) and (opcode <> A_LDS) and
-                  (opcode <> A_LES)) then
-               Begin
-                 case s of
-                  S_B : AsmWrite('byte ptr ');
-                  S_W : AsmWrite('word ptr ');
-                  S_L : AsmWrite('dword ptr ');
-                 S_IS : AsmWrite('word ptr ');
-                 S_IL : AsmWrite('dword ptr ');
-                 S_IQ : AsmWrite('qword ptr ');
-                 S_FS : AsmWrite('dword ptr ');
-                 S_FL : AsmWrite('qword ptr ');
-                 S_FX : AsmWrite('tbyte ptr ');
-                 S_BW : if dest then
-                         AsmWrite('word ptr ')
-                        else
-                         AsmWrite('byte ptr ');
-                 S_BL : if dest then
-                         AsmWrite('dword ptr ')
-                        else
-                         AsmWrite('byte ptr ');
-                 S_WL : if dest then
-                         AsmWrite('dword ptr ')
-                        else
-                         AsmWrite('word ptr ');
-                 end;
-               end;
-              WriteReference(o.ref^);
+              if o.ref^.refaddr=addr_no then
+                begin
+                  if ((opcode <> A_LGS) and (opcode <> A_LSS) and
+                      (opcode <> A_LFS) and (opcode <> A_LDS) and
+                      (opcode <> A_LES)) then
+                   Begin
+                     case s of
+                      S_B : AsmWrite('byte ptr ');
+                      S_W : AsmWrite('word ptr ');
+                      S_L : AsmWrite('dword ptr ');
+                     S_IS : AsmWrite('word ptr ');
+                     S_IL : AsmWrite('dword ptr ');
+                     S_IQ : AsmWrite('qword ptr ');
+                     S_FS : AsmWrite('dword ptr ');
+                     S_FL : AsmWrite('qword ptr ');
+                     S_FX : AsmWrite('tbyte ptr ');
+                     S_BW : if dest then
+                             AsmWrite('word ptr ')
+                            else
+                             AsmWrite('byte ptr ');
+                     S_BL : if dest then
+                             AsmWrite('dword ptr ')
+                            else
+                             AsmWrite('byte ptr ');
+                     S_WL : if dest then
+                             AsmWrite('dword ptr ')
+                            else
+                             AsmWrite('word ptr ');
+                     end;
+                   end;
+                  WriteReference(o.ref^);
+                end
+              else
+                begin
+                  AsmWrite('offset ');
+                  if assigned(o.ref^.symbol) then
+                    AsmWrite(o.ref^.symbol.name);
+                  if o.ref^.offset>0 then
+                   AsmWrite('+'+tostr(o.ref^.offset))
+                  else
+                   if o.ref^.offset<0 then
+                    AsmWrite(tostr(o.ref^.offset))
+                  else
+                   if not(assigned(o.ref^.symbol)) then
+                     AsmWrite('0');
+                end;
             end;
           else
             internalerror(10001);
@@ -270,26 +274,29 @@ implementation
           AsmWrite(masm_regname(o.reg));
         top_const :
           AsmWrite(tostr(longint(o.val)));
-        top_symbol :
-          begin
-            AsmWrite(o.sym.name);
-            if o.symofs>0 then
-             AsmWrite('+'+tostr(o.symofs))
-            else
-             if o.symofs<0 then
-              AsmWrite(tostr(o.symofs));
-          end;
         top_ref :
           { what about lcall or ljmp ??? }
           begin
-            if (aktoutputformat <> as_i386_tasm) then
+            if o.ref^.refaddr=addr_no then
               begin
-                if s=S_FAR then
-                  AsmWrite('far ptr ')
+                if (aktoutputformat <> as_i386_tasm) then
+                  begin
+                    if s=S_FAR then
+                      AsmWrite('far ptr ')
+                    else
+                      AsmWrite('dword ptr ');
+                  end;
+                WriteReference(o.ref^);
+              end
+            else
+              begin
+                AsmWrite(o.ref^.symbol.name);
+                if o.ref^.offset>0 then
+                 AsmWrite('+'+tostr(o.ref^.offset))
                 else
-                  AsmWrite('dword ptr ');
+                 if o.ref^.offset<0 then
+                  AsmWrite(tostr(o.ref^.offset));
               end;
-            WriteReference(o.ref^);
           end;
         else
           internalerror(10001);
@@ -875,7 +882,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.45  2003-12-15 15:58:17  peter
+  Revision 1.46  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.45  2003/12/15 15:58:17  peter
     * wasm args fix from wiktor
 
   Revision 1.44  2003/12/14 22:42:39  peter

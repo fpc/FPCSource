@@ -337,7 +337,8 @@ type
     {# procedure contains data which needs to be finalized }
     pi_needs_implicit_finally,
     {# procedure uses fpu}
-    pi_uses_fpu
+    pi_uses_fpu,
+    pi_needs_got
   );
   tprocinfoflags=set of tprocinfoflag;
 
@@ -401,7 +402,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.75  2004-02-20 21:54:47  peter
+  Revision 1.76  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.75  2004/02/20 21:54:47  peter
     * use sp_internal flag to silence unused internal variable
 
   Revision 1.74  2004/01/21 14:22:00  florian

@@ -42,6 +42,8 @@ interface
     {# Returns the maximum value between @var(a) and @var(b) }
     function max(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
     {# Returns the value in @var(x) swapped to different endian }
+    Function SwapInt64(x : int64): int64;{$ifdef USEINLINE}inline;{$endif}
+    {# Returns the value in @var(x) swapped to different endian }
     function SwapLong(x : longint): longint;{$ifdef USEINLINE}inline;{$endif}
     {# Returns the value in @va(x) swapped to different endian }
     function SwapWord(x : word): word;{$ifdef USEINLINE}inline;{$endif}
@@ -171,6 +173,13 @@ uses
         z := x and $FFFF;
         z := word(longint(z) shl 8) or (z shr 8);
         SwapLong := (longint(z) shl 16) or longint(y);
+      End;
+
+
+    Function SwapInt64(x : int64): int64;{$ifdef USEINLINE}inline;{$endif}
+      Begin
+        result:=swaplong(hi(x));
+        result:=result or (swaplong(lo(x)) shl 32);
       End;
 
 
@@ -829,7 +838,7 @@ uses
             inc(len);
           inc(i);
         end;
-      
+
       {Second pass, writeout stabstring.}
       getmem(r,len+1);
       string_evaluate:=r;
@@ -1127,7 +1136,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.35  2004-02-22 22:13:27  daniel
+  Revision 1.36  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.35  2004/02/22 22:13:27  daniel
     * Escape newlines in constant string stabs
 
   Revision 1.34  2004/01/26 22:08:20  daniel

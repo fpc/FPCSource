@@ -91,7 +91,8 @@ implementation
       nld,ncon,
       ncgutil,
       tgobj,paramgr,
-      regvars,cgobj
+      regvars,
+      cgutils,cgobj
 {$ifndef cpu64bit}
       ,cg64f32
 {$endif cpu64bit}
@@ -1461,7 +1462,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  2004-02-12 15:54:03  peter
+  Revision 1.93  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.92  2004/02/12 15:54:03  peter
     * make extcycle is working again
 
   Revision 1.91  2004/02/05 18:28:37  peter

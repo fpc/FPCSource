@@ -122,7 +122,7 @@ implementation
 
      uses
         cutils,systems,
-        tgobj,cgobj,
+        tgobj,cgutils,cgobj,
         paramgr
         ;
 
@@ -181,7 +181,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2004-02-19 17:07:42  florian
+  Revision 1.13  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.12  2004/02/19 17:07:42  florian
     * fixed arg. area calculation
 
   Revision 1.11  2003/12/26 14:02:30  peter

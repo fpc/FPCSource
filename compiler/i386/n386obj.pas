@@ -37,7 +37,7 @@ uses
   fmodule,
   nobj,
   cpuinfo,cpubase,
-  cga,cgobj;
+  cga,cgutils,cgobj;
 
    type
      ti386classheader=class(tclassheader)
@@ -235,7 +235,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.29  2003-12-23 23:12:44  peter
+  Revision 1.30  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.29  2003/12/23 23:12:44  peter
     * extnumber failure is $ffff instead of -1
     * fix non-vmt call for register calling on i386
 

@@ -226,22 +226,24 @@ uses
 *****************************************************************************}
 
     type
-      { reference record }
+      { reference record, reordered for best alignment }
       preference = ^treference;
       treference = record
+         offset      : aint;
+         symbol,
+         relsymbol   : tasmsymbol;
          segment,
          base,
          index       : tregister;
+         refaddr     : trefaddr;
          scalefactor : byte;
-         offset      : longint;
-         symbol      : tasmsymbol;
       end;
 
       { reference record }
       pparareference = ^tparareference;
       tparareference = packed record
          index       : tregister;
-         offset      : longint;
+         offset      : aint;
       end;
 
 {*****************************************************************************
@@ -507,7 +509,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2004-02-22 18:27:21  florian
+  Revision 1.42  2004-02-27 10:21:06  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.41  2004/02/22 18:27:21  florian
     * fixed exception reason size for 64 bit systems
 
   Revision 1.40  2004/02/05 18:28:37  peter

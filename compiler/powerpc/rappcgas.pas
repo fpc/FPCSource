@@ -38,7 +38,7 @@ Unit rappcgas;
         procedure BuildOpCode(instr : tppcinstruction);
         procedure ReadAt(oper : tppcoperand);
         procedure ReadSym(oper : tppcoperand);
-        procedure ConvertCalljmp(instr : tppcinstruction);
+        { procedure ConvertCalljmp(instr : tppcinstruction); }
       end;
 
 
@@ -104,9 +104,9 @@ Unit rappcgas;
             if actasmtoken=AS_ID then
               begin
                 if upper(actasmpattern)='L' then
-                  oper.opr.ref.symaddr:=refs_l
+                  oper.opr.ref.refaddr:=addr_lo
                 else if upper(actasmpattern)='HA' then
-                  oper.opr.ref.symaddr:=refs_ha
+                  oper.opr.ref.refaddr:=addr_hi
                 else
                   Message(asmr_e_invalid_reference_syntax);
                 Consume(AS_ID);
@@ -695,7 +695,7 @@ Unit rappcgas;
           end;
       end;
 
-
+{
     procedure tppcattreader.ConvertCalljmp(instr : tppcinstruction);
       var
         newopr : toprrec;
@@ -712,7 +712,7 @@ Unit rappcgas;
             instr.Operands[1].opr:=newopr;
           end;
       end;
-
+}
 
     procedure tppcattreader.handleopcode;
       var
@@ -721,8 +721,10 @@ Unit rappcgas;
         instr:=TPPCInstruction.Create(TPPCOperand);
         BuildOpcode(instr);
         instr.condition := actcondition;
+        {
         if is_calljmp(instr.opcode) then
           ConvertCalljmp(instr);
+        }
         {
         instr.AddReferenceSizes;
         instr.SetInstructionOpsize;
@@ -758,7 +760,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2004-02-04 15:23:28  olle
+  Revision 1.10  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.9  2004/02/04 15:23:28  olle
     * uodated header comment
 
   Revision 1.8  2003/11/29 22:54:32  jonas

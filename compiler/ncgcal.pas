@@ -92,7 +92,8 @@ implementation
 {$ifdef x86}
       cga,cgx86,
 {$endif x86}
-      ncgutil,cgobj,tgobj,
+      ncgutil,
+      cgutils,cgobj,tgobj,
       procinfo;
 
 
@@ -1241,7 +1242,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.159  2004-02-26 16:12:04  peter
+  Revision 1.160  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.159  2004/02/26 16:12:04  peter
     * support typecasts for passing @var to formal const
 
   Revision 1.158  2004/02/22 13:01:15  daniel

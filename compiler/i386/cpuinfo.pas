@@ -32,6 +32,7 @@ Interface
 Type
    { Natural integer register type and size for the target machine }
    AWord = longword;
+   AInt = longint;
    PAWord = ^AWord;
 
    { This must be an ordinal type with the same size as a pointer
@@ -123,7 +124,15 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.22  2003-12-25 12:01:35  florian
+  Revision 1.23  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.22  2003/12/25 12:01:35  florian
     + possible sse2 unit usage for double calculations
     * some sse2 assembler issues fixed
 

@@ -759,7 +759,7 @@ implementation
         o.ot:=ppufile.getlongint;
         case o.typ of
           top_reg :
-              ppufile.getdata(o.reg,sizeof(Tregister));
+            ppufile.getdata(o.reg,sizeof(Tregister));
           top_ref :
             begin
               new(o.ref);
@@ -767,23 +767,22 @@ implementation
               ppufile.getdata(o.ref^.base,sizeof(Tregister));
               ppufile.getdata(o.ref^.index,sizeof(Tregister));
               o.ref^.scalefactor:=ppufile.getbyte;
-              o.ref^.offset:=ppufile.getlongint;
+              o.ref^.offset:=ppufile.getaint;
               o.ref^.symbol:=ppufile.getasmsymbol;
+              o.ref^.relsymbol:=ppufile.getasmsymbol;
             end;
           top_const :
-            o.val:=aword(ppufile.getlongint);
-          top_symbol :
-            begin
-              o.sym:=ppufile.getasmsymbol;
-              o.symofs:=ppufile.getlongint;
-            end;
+            o.val:=aword(ppufile.getaint);
           top_local :
             begin
-              ppufile.getderef(o.localsymderef);
-              o.localsymofs:=ppufile.getlongint;
-              o.localindexreg:=tregister(ppufile.getlongint);
-              o.localscale:=ppufile.getbyte;
-              o.localgetoffset:=(ppufile.getbyte<>0);
+              with o.localoper^ do
+                begin
+                  ppufile.getderef(localsymderef);
+                  localsymofs:=ppufile.getaint;
+                  localindexreg:=tregister(ppufile.getlongint);
+                  localscale:=ppufile.getbyte;
+                  localgetoffset:=(ppufile.getbyte<>0);
+                end;
             end;
         end;
       end;
@@ -802,23 +801,22 @@ implementation
               ppufile.putdata(o.ref^.base,sizeof(Tregister));
               ppufile.putdata(o.ref^.index,sizeof(Tregister));
               ppufile.putbyte(o.ref^.scalefactor);
-              ppufile.putlongint(o.ref^.offset);
+              ppufile.putaint(o.ref^.offset);
               ppufile.putasmsymbol(o.ref^.symbol);
+              ppufile.putasmsymbol(o.ref^.relsymbol);
             end;
           top_const :
-            ppufile.putlongint(longint(o.val));
-          top_symbol :
-            begin
-              ppufile.putasmsymbol(o.sym);
-              ppufile.putlongint(longint(o.symofs));
-            end;
+            ppufile.putaint(aint(o.val));
           top_local :
             begin
-              ppufile.putderef(o.localsymderef);
-              ppufile.putlongint(longint(o.localsymofs));
-              ppufile.putlongint(longint(o.localindexreg));
-              ppufile.putbyte(o.localscale);
-              ppufile.putbyte(byte(o.localgetoffset));
+              with o.localoper^ do
+                begin
+                  ppufile.putderef(localsymderef);
+                  ppufile.putaint(aint(localsymofs));
+                  ppufile.putlongint(longint(localindexreg));
+                  ppufile.putbyte(localscale);
+                  ppufile.putbyte(byte(localgetoffset));
+                end;
             end;
         end;
       end;
@@ -828,7 +826,7 @@ implementation
       begin
         case o.typ of
           top_local :
-            o.localsymderef.build(tvarsym(o.localsym));
+            o.localoper^.localsymderef.build(tvarsym(o.localoper^.localsym));
         end;
       end;
 
@@ -839,12 +837,12 @@ implementation
           top_ref :
             begin
               if assigned(o.ref^.symbol) then
-               objectlibrary.derefasmsymbol(o.ref^.symbol);
+                objectlibrary.derefasmsymbol(o.ref^.symbol);
+              if assigned(o.ref^.relsymbol) then
+                objectlibrary.derefasmsymbol(o.ref^.relsymbol);
             end;
-          top_symbol :
-            objectlibrary.derefasmsymbol(o.sym);
           top_local :
-            o.localsym:=tvarsym(o.localsymderef.resolve);
+            o.localoper^.localsym:=tvarsym(o.localoper^.localsymderef.resolve);
         end;
       end;
 
@@ -939,19 +937,45 @@ implementation
                 end;
               top_ref :
                 begin
-                  { create ot field }
-                  if (ot and OT_SIZE_MASK)=0 then
-                    ot:=OT_MEMORY or opsize_2_type[i,opsize]
+                  if ref^.refaddr=addr_no then
+                    begin
+                      { create ot field }
+                      if (ot and OT_SIZE_MASK)=0 then
+                        ot:=OT_MEMORY or opsize_2_type[i,opsize]
+                      else
+                        ot:=OT_MEMORY or (ot and OT_SIZE_MASK);
+                      if (ref^.base=NR_NO) and (ref^.index=NR_NO) then
+                        ot:=ot or OT_MEM_OFFS;
+                      { fix scalefactor }
+                      if (ref^.index=NR_NO) then
+                       ref^.scalefactor:=0
+                      else
+                       if (ref^.scalefactor=0) then
+                        ref^.scalefactor:=1;
+                    end
                   else
-                    ot:=OT_MEMORY or (ot and OT_SIZE_MASK);
-                  if (ref^.base=NR_NO) and (ref^.index=NR_NO) then
-                    ot:=ot or OT_MEM_OFFS;
-                  { fix scalefactor }
-                  if (ref^.index=NR_NO) then
-                   ref^.scalefactor:=0
-                  else
-                   if (ref^.scalefactor=0) then
-                    ref^.scalefactor:=1;
+                    begin
+                      l:=ref^.offset;
+                      if assigned(ref^.symbol) then
+                       inc(l,ref^.symbol.address);
+                      { when it is a forward jump we need to compensate the
+                        offset of the instruction since the previous time,
+                        because the symbol address is then still using the
+                        'old-style' addressing.
+                        For backwards jumps this is not required because the
+                        address of the symbol is already adjusted to the
+                        new offset }
+                      if (l>InsOffset) and (LastInsOffset<>-1) then
+                        inc(l,InsOffset-LastInsOffset);
+                      { instruction size will then always become 2 (PFV) }
+                      relsize:=(InsOffset+2)-l;
+                      if (not assigned(ref^.symbol) or
+                          ((ref^.symbol.currbind<>AB_EXTERNAL) and (ref^.symbol.address<>0))) and
+                         (relsize>=-128) and (relsize<=127) then
+                       ot:=OT_IMM32 or OT_SHORT
+                      else
+                       ot:=OT_IMM32 or OT_NEAR;
+                    end;
                 end;
               top_local :
                 begin
@@ -967,29 +991,8 @@ implementation
                   else
                     ot:=OT_IMMEDIATE or opsize_2_type[i,opsize];
                 end;
-              top_symbol :
-                begin
-                  l:=symofs;
-                  if assigned(sym) then
-                   inc(l,sym.address);
-                  { when it is a forward jump we need to compensate the
-                    offset of the instruction since the previous time,
-                    because the symbol address is then still using the
-                    'old-style' addressing.
-                    For backwards jumps this is not required because the
-                    address of the symbol is already adjusted to the
-                    new offset }
-                  if (l>InsOffset) and (LastInsOffset<>-1) then
-                    inc(l,InsOffset-LastInsOffset);
-                  { instruction size will then always become 2 (PFV) }
-                  relsize:=(InsOffset+2)-l;
-                  if (not assigned(sym) or
-                      ((sym.currbind<>AB_EXTERNAL) and (sym.address<>0))) and
-                     (relsize>=-128) and (relsize<=127) then
-                   ot:=OT_IMM32 or OT_SHORT
-                  else
-                   ot:=OT_IMM32 or OT_NEAR;
-                end;
+              else
+                internalerror(200402261);
             end;
           end;
       end;
@@ -1616,11 +1619,6 @@ implementation
                 currval:=longint(oper[opidx]^.val);
                 currsym:=nil;
               end;
-            top_symbol :
-              begin
-                currval:=oper[opidx]^.symofs;
-                currsym:=oper[opidx]^.sym;
-              end;
             else
               Message(asmw_e_immediate_or_reference_expected);
           end;
@@ -1964,7 +1962,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2004-02-09 22:14:17  peter
+  Revision 1.52  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.51  2004/02/09 22:14:17  peter
     * more x86_64 parameter fixes
     * tparalocation.lochigh is now used to indicate if registerhigh
       is used and what the type is

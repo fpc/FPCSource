@@ -61,7 +61,9 @@ implementation
       cgbase,pass_1,pass_2,
       cpuinfo,cpubase,paramgr,procinfo,
       nbas,ncon,ncal,ncnv,nld,
-      tgobj,ncgutil,cgobj,rgobj
+      tgobj,ncgutil,
+      cgutils,cgobj,
+      rgobj
 {$ifndef cpu64bit}
       ,cg64f32
 {$endif cpu64bit}
@@ -676,7 +678,15 @@ end.
 
 {
   $Log$
-  Revision 1.54  2004-02-05 16:58:43  florian
+  Revision 1.55  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.54  2004/02/05 16:58:43  florian
     * fixed (hopefully) the ansistring length bug
 
   Revision 1.53  2004/02/05 01:24:08  florian

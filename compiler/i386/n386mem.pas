@@ -55,7 +55,7 @@ implementation
       symdef,paramgr,
       aasmtai,
       nld,ncon,nadd,
-      cgobj;
+      cgutils,cgobj;
 
 {*****************************************************************************
                              TI386ADDRNODE
@@ -144,7 +144,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2003-10-21 15:13:27  peter
+  Revision 1.60  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.59  2003/10/21 15:13:27  peter
     * fix vecnode code that caused to much register conflicts
 
   Revision 1.58  2003/10/10 17:48:14  peter

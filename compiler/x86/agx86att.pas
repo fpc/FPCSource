@@ -50,6 +50,7 @@ interface
       cutils,systems,
       verbose,
       itcpugas,
+      cpuinfo,
       cgbase,
       aasmcpu;
 
@@ -111,23 +112,24 @@ interface
           top_reg :
             AsmWrite(gas_regname(o.reg));
           top_ref :
-            WriteReference(o.ref^);
+            if o.ref^.refaddr=addr_no then
+              WriteReference(o.ref^)
+            else
+              begin
+                AsmWrite('$');
+                if assigned(o.ref^.symbol) then
+                 AsmWrite(o.ref^.symbol.name);
+                if o.ref^.offset>0 then
+                 AsmWrite('+'+tostr(o.ref^.offset))
+                else
+                 if o.ref^.offset<0 then
+                  AsmWrite(tostr(o.ref^.offset))
+                else
+                 if not(assigned(o.ref^.symbol)) then
+                   AsmWrite('0');
+              end;
           top_const :
-            AsmWrite('$'+tostr(longint(o.val)));
-          top_symbol :
-            begin
-              AsmWrite('$');
-              if assigned(o.sym) then
-               AsmWrite(o.sym.name);
-              if o.symofs>0 then
-               AsmWrite('+'+tostr(o.symofs))
-              else
-               if o.symofs<0 then
-                AsmWrite(tostr(o.symofs))
-              else
-               if not(assigned(o.sym)) then
-                 AsmWrite('0');
-            end;
+            AsmWrite('$'+tostr(aint(o.val)));
           else
             internalerror(10001);
         end;
@@ -141,20 +143,23 @@ interface
             AsmWrite('*'+gas_regname(o.reg));
           top_ref :
             begin
-              AsmWrite('*');
-              WriteReference(o.ref^);
+              if o.ref^.refaddr=addr_no then
+                begin
+                  AsmWrite('*');
+                  WriteReference(o.ref^);
+                end
+              else
+                begin
+                  AsmWrite(o.ref^.symbol.name);
+                  if o.ref^.offset>0 then
+                   AsmWrite('+'+tostr(o.ref^.offset))
+                  else
+                   if o.ref^.offset<0 then
+                    AsmWrite(tostr(o.ref^.offset));
+                end;
             end;
           top_const :
-            AsmWrite(tostr(longint(o.val)));
-          top_symbol :
-            begin
-              AsmWrite(o.sym.name);
-              if o.symofs>0 then
-               AsmWrite('+'+tostr(o.symofs))
-              else
-               if o.symofs<0 then
-                AsmWrite(tostr(o.symofs));
-            end;
+            AsmWrite(tostr(aint(o.val)));
           else
             internalerror(10001);
         end;
@@ -293,7 +298,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2003-12-24 00:33:10  florian
+  Revision 1.13  2004-02-27 10:21:06  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.12  2003/12/24 00:33:10  florian
     * x86-64 compilation fixed
 
   Revision 1.11  2003/11/12 16:05:40  florian

@@ -1384,8 +1384,6 @@ begin {checks whether the two ops are equal}
         OpsEqual := RefsEqual(o1.ref^, o2.ref^);
       Top_Const :
         OpsEqual:=o1.val=o2.val;
-      Top_Symbol :
-        OpsEqual:=(o1.sym=o2.sym) and (o1.symofs=o2.symofs);
       Top_None :
         OpsEqual := True
     end;
@@ -1590,7 +1588,6 @@ begin
   case o.typ Of
     top_reg: readreg(p, getsupreg(o.reg));
     top_ref: readref(p, o.ref);
-    top_symbol : ;
   end;
 end;
 
@@ -1880,7 +1877,6 @@ begin
         readref(ptaiprop(taiObj.OptInfo), o.ref);
         DestroyRefs(taiObj, o.ref^, RS_INVALID);
       end;
-    top_symbol:;
   end;
 end;
 
@@ -2454,7 +2450,7 @@ begin
                               DestroyRefs(p, taicpu(p).oper[1]^.ref^, RS_INVALID);
                           end;
                       end;
-                    top_symbol,Top_Const:
+                    top_Const:
                       begin
                         case taicpu(p).oper[1]^.typ Of
                           top_reg:
@@ -2713,7 +2709,15 @@ end.
 
 {
   $Log$
-  Revision 1.64  2003-12-23 19:52:55  peter
+  Revision 1.65  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.64  2003/12/23 19:52:55  peter
     * more byte->word
 
   Revision 1.63  2003/12/22 23:11:41  peter

@@ -90,7 +90,8 @@ implementation
       paramgr,
       pass_2,
       nbas,ncon,nflw,
-      ncgutil,regvars,cpuinfo;
+      ncgutil,regvars,cpuinfo,
+      cgutils;
 
 
 {*****************************************************************************
@@ -990,7 +991,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2004-02-08 14:51:04  jonas
+  Revision 1.60  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.59  2004/02/08 14:51:04  jonas
     * fixed for regvars + simplification
 
   Revision 1.58  2004/02/05 19:35:27  florian

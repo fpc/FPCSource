@@ -72,7 +72,10 @@ interface
       aasmbase,aasmtai,aasmcpu,symsym,
       defutil,
       nflw,pass_2,
-      cgbase,procinfo,cgobj,tgobj
+      cgbase,
+      cgutils,cgobj,
+      procinfo,
+      tgobj
       ;
 
 {*****************************************************************************
@@ -142,13 +145,13 @@ interface
         begin
           if (op.typ=top_local) then
             begin
-              sofs:=op.localsymofs;
-              indexreg:=op.localindexreg;
+              sofs:=op.localoper^.localsymofs;
+              indexreg:=op.localoper^.localindexreg;
 {$ifdef x86}
-              scale:=op.localscale;
+              scale:=op.localoper^.localscale;
 {$endif x86}
-              getoffset:=op.localgetoffset;
-              sym:=tvarsym(pointer(op.localsym));
+              getoffset:=op.localoper^.localgetoffset;
+              sym:=tvarsym(pointer(op.localoper^.localsym));
               case sym.localloc.loc of
                 LOC_REFERENCE :
                   begin
@@ -249,10 +252,12 @@ interface
                            begin
                              case typ of
                                top_ref :
-                                 if assigned(ref^.symbol) then
-                                   ReLabel(ref^.symbol);
-                               top_symbol :
-                                 ReLabel(sym);
+                                 begin
+                                   if assigned(ref^.symbol) then
+                                     ReLabel(ref^.symbol);
+                                   if assigned(ref^.relsymbol) then
+                                     ReLabel(ref^.symbol);
+                                 end;
                              end;
                            end;
                         end;
@@ -469,7 +474,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2004-02-04 18:45:29  jonas
+  Revision 1.56  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.55  2004/02/04 18:45:29  jonas
     + some more usage of register temps
 
   Revision 1.54  2004/02/03 19:48:06  jonas

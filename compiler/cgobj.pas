@@ -504,21 +504,7 @@ unit cgobj;
         procedure g_rangecheck64(list: taasmoutput; const l:tlocation; fromdef,todef: tdef);virtual;abstract;
     end;
 
-
-    { trerefence handling }
-
-    {# Clear to zero a treference }
-    procedure reference_reset(var ref : treference);
-    {# Clear to zero a treference, and set is base address
-       to base register.
-    }
-    procedure reference_reset_base(var ref : treference;base : tregister;offset : longint);
-    procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset : longint);
     procedure reference_release(list: taasmoutput; const ref : treference);
-    { This routine verifies if two references are the same, and
-       if so, returns TRUE, otherwise returns false.
-    }
-    function references_equal(sref : treference;dref : treference) : boolean;
 
     { tlocation handling }
 
@@ -541,7 +527,8 @@ implementation
     uses
        globals,globtype,options,systems,
        verbose,defutil,paramgr,
-       tgobj,cutils;
+       tgobj,cutils,
+       cgutils;
 
     const
       { Please leave this here, this module should NOT use
@@ -2049,40 +2036,9 @@ implementation
                                   TReference
 ****************************************************************************}
 
-    procedure reference_reset(var ref : treference);
-      begin
-        FillChar(ref,sizeof(treference),0);
-{$ifdef arm}
-        ref.signindex:=1;
-{$endif arm}
-      end;
-
-
-    procedure reference_reset_base(var ref : treference;base : tregister;offset : longint);
-      begin
-        reference_reset(ref);
-        ref.base:=base;
-        ref.offset:=offset;
-      end;
-
-
-    procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset : longint);
-      begin
-        reference_reset(ref);
-        ref.symbol:=sym;
-        ref.offset:=offset;
-      end;
-
-
     procedure reference_release(list: taasmoutput; const ref : treference);
       begin
         cg.ungetreference(list,ref);
-      end;
-
-
-    function references_equal(sref : treference;dref : treference):boolean;
-      begin
-        references_equal:=CompareByte(sref,dref,sizeof(treference))=0;
       end;
 
 
@@ -2153,7 +2109,15 @@ finalization
 end.
 {
   $Log$
-  Revision 1.158  2004-02-20 22:16:34  florian
+  Revision 1.159  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.158  2004/02/20 22:16:34  florian
     * handling of float parameters passed in mm registers fixed
 
   Revision 1.157  2004/02/12 15:54:03  peter

@@ -42,7 +42,7 @@ uses
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
-  cpuinfo,cpubase,cgobj,daopt386,rgobj;
+  cpuinfo,cpubase,cgutils,daopt386,rgobj;
 
 function RegUsedAfterInstruction(reg: Tregister; p: tai; var UsedRegs: TRegSet): Boolean;
 var
@@ -465,7 +465,7 @@ var
     if level > 20 then
       exit;
     GetfinalDestination := false;
-    p1 := dfa.getlabelwithsym(tasmlabel(hp.oper[0]^.sym));
+    p1 := dfa.getlabelwithsym(tasmlabel(hp.oper[0]^.ref^.symbol));
     if assigned(p1) then
       begin
         SkipLabels(p1,p1);
@@ -487,14 +487,14 @@ var
               SkipLabels(p1,p1)) then
             begin
               { quick check for loops of the form "l5: ; jmp l5 }
-              if (tasmlabel(taicpu(p1).oper[0]^.sym).labelnr =
-                   tasmlabel(hp.oper[0]^.sym).labelnr) then
+              if (tasmlabel(taicpu(p1).oper[0]^.ref^.symbol).labelnr =
+                   tasmlabel(hp.oper[0]^.ref^.symbol).labelnr) then
                 exit;
               if not GetFinalDestination(asml, taicpu(p1),succ(level)) then
                 exit;
-              tasmlabel(hp.oper[0]^.sym).decrefs;
-              hp.oper[0]^.sym:=taicpu(p1).oper[0]^.sym;
-              tasmlabel(hp.oper[0]^.sym).increfs;
+              tasmlabel(hp.oper[0]^.ref^.symbol).decrefs;
+              hp.oper[0]^.ref^.symbol:=taicpu(p1).oper[0]^.ref^.symbol;
+              tasmlabel(hp.oper[0]^.ref^.symbol).increfs;
             end
           else
             if (taicpu(p1).condition = inverse_cond[hp.condition]) then
@@ -506,8 +506,8 @@ var
   {$endif finaldestdebug}
                   objectlibrary.getlabel(l);
                   insertllitem(asml,p1,p1.next,tai_label.Create(l));
-                  tasmlabel(taicpu(hp).oper[0]^.sym).decrefs;
-                  hp.oper[0]^.sym := l;
+                  tasmlabel(taicpu(hp).oper[0]^.ref^.symbol).decrefs;
+                  hp.oper[0]^.ref^.symbol := l;
                   l.increfs;
   {               this won't work, since the new label isn't in the labeltable }
   {               so it will fail the rangecheck. Labeltable should become a   }
@@ -521,7 +521,7 @@ var
                     strpnew('next label reused'))));
   {$endif finaldestdebug}
                   l.increfs;
-                  hp.oper[0]^.sym := l;
+                  hp.oper[0]^.ref^.symbol := l;
                   if not GetFinalDestination(asml, hp,succ(level)) then
                     exit;
                 end;
@@ -602,7 +602,7 @@ begin
                 { remove jumps to a label coming right after them }
                 if GetNextInstruction(p, hp1) then
                   begin
-                    if FindLabel(tasmlabel(taicpu(p).oper[0]^.sym), hp1) and
+                    if FindLabel(tasmlabel(taicpu(p).oper[0]^.ref^.symbol), hp1) and
   {$warning FIXME removing the first instruction fails}
                         (p<>blockstart) then
                       begin
@@ -619,14 +619,14 @@ begin
                         if (tai(hp1).typ=ait_instruction) and
                             (taicpu(hp1).opcode=A_JMP) and
                             GetNextInstruction(hp1, hp2) and
-                            FindLabel(tasmlabel(taicpu(p).oper[0]^.sym), hp2) then
+                            FindLabel(tasmlabel(taicpu(p).oper[0]^.ref^.symbol), hp2) then
                           begin
                             if taicpu(p).opcode=A_Jcc then
                               begin
                                 taicpu(p).condition:=inverse_cond[taicpu(p).condition];
                                 tai_label(hp2).l.decrefs;
-                                taicpu(p).oper[0]^.sym:=taicpu(hp1).oper[0]^.sym;
-                                taicpu(p).oper[0]^.sym.increfs;
+                                taicpu(p).oper[0]^.ref^.symbol:=taicpu(hp1).oper[0]^.ref^.symbol;
+                                taicpu(p).oper[0]^.ref^.symbol.increfs;
                                 asml.remove(hp1);
                                 hp1.free;
                                 GetFinalDestination(asml, taicpu(p),0);
@@ -705,7 +705,7 @@ begin
                          (taicpu(hp3).is_jmp) and
                          (taicpu(hp3).opcode = A_JMP) and
                          GetNextInstruction(hp3, hp4) and
-                         FindLabel(tasmlabel(taicpu(hp1).oper[0]^.sym),hp4) then
+                         FindLabel(tasmlabel(taicpu(hp1).oper[0]^.ref^.symbol),hp4) then
                         begin
                           taicpu(hp2).Opcode := A_SUB;
                           taicpu(hp2).Loadoper(1,taicpu(hp2).oper[0]^);
@@ -1751,7 +1751,7 @@ begin
                 begin
                   if (taicpu(p).ops >= 2) and
                      ((taicpu(p).oper[0]^.typ = top_const) or
-                      (taicpu(p).oper[0]^.typ = top_symbol)) and
+                      ((taicpu(p).oper[0]^.typ = top_ref) and (taicpu(p).oper[0]^.ref^.refaddr=addr_full))) and
                      (taicpu(p).oper[1]^.typ = top_reg) and
                      ((taicpu(p).ops = 2) or
                       ((taicpu(p).oper[2]^.typ = top_reg) and
@@ -1857,9 +1857,9 @@ begin
                    GetNextInstruction(p, hp1) and
                    (hp1.typ = ait_instruction) and
                    (taicpu(hp1).opcode = A_JMP) and
-                   (taicpu(hp1).oper[0]^.typ = top_symbol) then
+                   ((taicpu(hp1).oper[0]^.typ=top_ref) and (taicpu(p).oper[0]^.ref^.refaddr=addr_full)) then
                   begin
-                    hp2 := taicpu.Op_sym(A_PUSH,S_L,taicpu(hp1).oper[0]^.sym);
+                    hp2 := taicpu.Op_sym(A_PUSH,S_L,taicpu(hp1).oper[0]^.ref^.symbol);
                     InsertLLItem(asml, p.previous, p, hp2);
                     taicpu(p).opcode := A_JMP;
                     taicpu(p).is_jmp := true;
@@ -1999,7 +1999,15 @@ end.
 
 {
   $Log$
-  Revision 1.56  2004-02-03 21:19:40  peter
+  Revision 1.57  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.56  2004/02/03 21:19:40  peter
     * remove previous commit
 
   Revision 1.55  2004/02/03 16:53:37  peter

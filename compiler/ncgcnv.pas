@@ -63,7 +63,7 @@ interface
       cpubase,cpuinfo,systems,
       pass_2,
       procinfo,cgbase,
-      cgobj,
+      cgutils,cgobj,
       ncgutil,
       tgobj
       ;
@@ -535,7 +535,15 @@ end.
 
 {
   $Log$
-  Revision 1.54  2004-02-05 01:24:08  florian
+  Revision 1.55  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.54  2004/02/05 01:24:08  florian
     * several fixes to compile x86-64 system
 
   Revision 1.53  2004/01/31 17:45:17  peter

@@ -158,7 +158,8 @@ const
     uses
        globtype,globals,verbose,systems,cutils,
        symconst,symdef,symsym,
-       rgobj,tgobj,cpupi,procinfo,paramgr;
+       rgobj,tgobj,cpupi,procinfo,paramgr,
+       cgutils;
 
 
     procedure tcgppc.init_register_allocators;
@@ -172,11 +173,19 @@ const
              RS_R14,RS_R13],first_int_imreg,[]);
         case target_info.abi of
           abi_powerpc_aix:
-            rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
-                [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,RS_F9,
-                 RS_F10,RS_F11,RS_F12,RS_F13,RS_F31,RS_F30,RS_F29,RS_F28,RS_F27,
-                 RS_F26,RS_F25,RS_F24,RS_F23,RS_F22,RS_F21,RS_F20,RS_F19,RS_F18,
-                 RS_F17,RS_F16,RS_F15,RS_F14],first_fpu_imreg,[]);
+            { darwin uses R10 as got }
+            if target_info.system=system_powerpc_darwin then
+              rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
+                  [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,RS_F9,
+                   RS_F11,RS_F12,RS_F13,RS_F31,RS_F30,RS_F29,RS_F28,RS_F27,
+                   RS_F26,RS_F25,RS_F24,RS_F23,RS_F22,RS_F21,RS_F20,RS_F19,RS_F18,
+                   RS_F17,RS_F16,RS_F15,RS_F14],first_fpu_imreg,[])
+            else
+              rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
+                  [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,RS_F9,
+                   RS_F10,RS_F11,RS_F12,RS_F13,RS_F31,RS_F30,RS_F29,RS_F28,RS_F27,
+                   RS_F26,RS_F25,RS_F24,RS_F23,RS_F22,RS_F21,RS_F20,RS_F19,RS_F18,
+                   RS_F17,RS_F16,RS_F15,RS_F14],first_fpu_imreg,[]);
           abi_powerpc_sysv:
             rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
                 [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,RS_F9,
@@ -951,6 +960,7 @@ const
          usesfpr,usesgpr,gotgot : boolean;
          parastart : aword;
 //         r,r2,rsp:Tregister;
+         l : tasmlabel;
          regcounter2, firstfpureg: Tsuperregister;
          hp: tparaitem;
 
@@ -1153,13 +1163,24 @@ const
         if cs_create_pic in aktmoduleswitches then
           begin
              { if we didn't get the GOT pointer till now, we've to calculate it now }
-             if not(gotgot) then
-               begin
-                  {!!!!!!!!!!!!!}
-               end;
-             a_reg_alloc(list,NR_R31);
-             { place GOT ptr in r31 }
-             list.concat(taicpu.op_reg_reg(A_MFSPR,NR_R31,NR_LR));
+             if not(gotgot) and (pi_needs_got in current_procinfo.flags) then
+             case target_info.system of
+               system_powerpc_darwin:
+                 begin
+                   list.concat(taicpu.op_reg_reg(A_MFSPR,NR_R0,NR_LR));
+                   objectlibrary.getlabel(l);
+                   list.concat(taicpu.op_const_const_sym(A_BCL,20,31,l));
+                   a_label(list,l);
+                   list.concat(taicpu.op_reg_reg(A_MFSPR,NR_R10,NR_LR));
+                   list.concat(taicpu.op_reg_reg(A_MTSPR,NR_R0,NR_LR));
+                 end;
+               else
+                 begin
+                   a_reg_alloc(list,NR_R31);
+                   { place GOT ptr in r31 }
+                   list.concat(taicpu.op_reg_reg(A_MFSPR,NR_R31,NR_LR));
+                 end;
+             end;
           end;
         { save the CR if necessary ( !!! always done currently ) }
         { still need to find out where this has to be done for SystemV
@@ -1332,7 +1353,7 @@ const
      var regcounter,firstregfpu,firstreggpr: TSuperRegister;
          usesfpr,usesgpr: boolean;
          href : treference;
-         offset: integer;
+         offset: aint;
          regcounter2, firstfpureg: Tsuperregister;
     begin
       usesfpr:=false;
@@ -1678,7 +1699,7 @@ const
                  reference_reset(tmpref);
                  tmpref.offset := ref2.offset;
                  tmpref.symbol := ref2.symbol;
-                 tmpref.symaddr := refs_ha;
+                 tmpref.refaddr := addr_hi;
                  if ref2.base<> NR_NO then
                    begin
                      list.concat(taicpu.op_reg_reg_ref(A_ADDIS,r,
@@ -1692,7 +1713,7 @@ const
                  else
                    list.concat(taicpu.op_reg_ref(A_LIS,r,tmpref));
                  tmpref.base := NR_NO;
-                 tmpref.symaddr := refs_l;
+                 tmpref.refaddr := addr_lo;
                  { can be folded with one of the next instructions by the }
                  { optimizer probably                                     }
                  list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,r,tmpref));
@@ -2154,14 +2175,14 @@ const
                 reference_reset(tmpref);
                 tmpref.symbol := ref.symbol;
                 tmpref.offset := ref.offset;
-                tmpref.symaddr := refs_ha;
+                tmpref.refaddr := addr_hi;
                 if ref.base <> NR_NO then
                   list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg,
                     ref.base,tmpref))
                 else
                   list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,tmpref));
                 ref.base := tmpreg;
-                ref.symaddr := refs_l;
+                ref.refaddr := addr_lo;
                 list.concat(taicpu.op_reg_ref(op,reg,ref));
               end
             else
@@ -2300,7 +2321,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.163  2004-02-09 22:45:49  florian
+  Revision 1.164  2004-02-27 10:21:05  florian
+    * top_symbol killed
+    + refaddr to treference added
+    + refsymbol to treference added
+    * top_local stuff moved to an extra record to save memory
+    + aint introduced
+    * tppufile.get/putint64/aint implemented
+
+  Revision 1.163  2004/02/09 22:45:49  florian
     * compilation fixed
 
   Revision 1.162  2004/02/09 20:44:40  olle
