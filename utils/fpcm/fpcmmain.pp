@@ -1147,7 +1147,7 @@ implementation
 {$ifdef UNIX}
               if (s[1]<>'/') then
 {$else}
-              if (length(s)>2) and (s[2]<>':') then
+              if ((length(s)>2) and (s[2]<>':')) or (length(s)<=2) then
 {$endif}
                s:=ExtractFilePath(FFileName)+s;
               hs:=SubstVariables('$(wildcard $(addprefix '+s+'/,rtl units))');
@@ -1232,7 +1232,7 @@ implementation
 {$ifdef UNIX}
               if (s[1]<>'/') then
 {$else}
-              if (length(s)>2) and (s[2]<>':') then
+              if ((length(s)>2) and (s[2]<>':')) or (length(s)<=2) then
 {$endif}
                s:=ExtractFilePath(FFileName)+s;
               SetVariable('LCLDIR',s,false);
@@ -1556,7 +1556,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2004-02-07 00:22:24  florian
+  Revision 1.37  2004-02-22 14:55:22  hajny
+    * small correction for checking of absolute paths
+
+  Revision 1.36  2004/02/07 00:22:24  florian
     + arm-linux target
 
   Revision 1.35  2004/01/05 17:45:02  marco
