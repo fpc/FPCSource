@@ -23,7 +23,8 @@ unit contnrs;
        private
           ffreeobjects : boolean;
        public
-          constructor create(freeobjects : boolean = true);
+          constructor create;
+          constructor create(freeobjects : boolean);
        end;
 
        TOrderedList = class
@@ -40,11 +41,21 @@ unit contnrs;
          inherited create;
          ffreeobjects:=freeobjects;
       end;
+      
+    constructor tobjectlist.create;
+
+      begin
+         inherited create;
+         ffreeobjects:=True;
+      end;
 
 end.
 {
   $Log$
-  Revision 1.1  2002-07-16 13:34:39  florian
+  Revision 1.2  2002-07-21 12:04:49  michael
+  + No optional parameters in 1.0.6
+
+  Revision 1.1  2002/07/16 13:34:39  florian
     + skeleton for contnr.pp added
 
 }
