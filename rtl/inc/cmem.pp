@@ -23,7 +23,11 @@ Const
   {$ifdef netware}
   LibName = 'clib';
   {$else}
-  LibName = 'c';
+    {$ifdef netwlibc}
+    LibName = 'libc';
+    {$else}
+    LibName = 'c';
+    {$endif netwlibc}
   {$endif}
 {$else}
   LibName = 'msvcrt';
@@ -165,7 +169,10 @@ end.
 
 {
  $Log$
- Revision 1.5  2004-05-05 13:00:43  jonas
+ Revision 1.6  2004-09-15 20:37:42  armin
+ * add support for netware libc
+
+ Revision 1.5  2004/05/05 13:00:43  jonas
    * fixed reallocmem (bug noted by Vincent Snijders)
 
  Revision 1.4  2004/03/23 22:35:20  peter
