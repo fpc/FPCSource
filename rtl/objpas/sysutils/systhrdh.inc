@@ -16,10 +16,11 @@
 
 type
    IReadWriteSync = interface
-      procedure BeginRead;
-      procedure EndRead;
-      procedure BeginWrite;
-      procedure EndWrite;
+     ['{7B108C52-1D8F-4CDB-9CDF-57E071193D3F}']
+     procedure BeginRead;
+     procedure EndRead;
+     function BeginWrite : boolean;
+     procedure EndWrite;
    end;
 
 {$endif HASINTF}
@@ -31,7 +32,10 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
 
 {
   $Log$
-  Revision 1.2  2004-03-05 12:17:50  marco
+  Revision 1.3  2005-02-06 20:31:35  florian
+    + GlobalNameSpace
+
+  Revision 1.2  2004/03/05 12:17:50  marco
    * interlocked* changed to longints, including winapi. (which was a bug)
 
   Revision 1.1  2003/10/06 21:01:06  peter
