@@ -47,11 +47,13 @@ Var
   ExceptAddrStack   : PExceptAddr;
   ExceptObjectStack : PExceptObject;
 
+{$IFNDEF VIRTUALPASCAL}
 Function RaiseList : PExceptObject;
 
 begin
   RaiseList:=ExceptObjectStack;
 end;
+{$ENDIF}
 
 {$ifndef HAS_ADDR_STACK_ON_STACK}
 Function fpc_PushExceptAddr (Ft: Longint): PJmp_buf ;
@@ -281,7 +283,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.10  2003-05-01 08:05:23  florian
+  Revision 1.11  2003-09-06 21:56:29  marco
+   * one VIRTUALPASCAL
+
+  Revision 1.10  2003/05/01 08:05:23  florian
     * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
 
   Revision 1.9  2002/10/14 19:39:17  peter
