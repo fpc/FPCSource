@@ -198,7 +198,10 @@ __abox__:
 
 /*
   $Log$
-  Revision 1.9  2004-06-06 12:47:57  karoly
+  Revision 1.10  2004-06-06 12:51:06  karoly
+    * changelog fixed
+
+  Revision 1.9  2004/06/06 12:47:57  karoly
     * some cleanup, comments added
 
   Revision 1.8  2004/06/05 19:25:12  karoly
@@ -218,6 +221,9 @@ __abox__:
 
   Revision 1.3  2004/04/09 02:58:15  karoly
    * typo fixed.
+
+  Revision 1.2  2004/04/09 02:54:25  karoly
+   * execbase loading oops fixed.
 
   Revision 1.1  2004/03/16 10:29:22  karoly
    * first implementation of some startup code for MOS
