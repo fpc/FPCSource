@@ -71,6 +71,7 @@ resourcestring
   SInvalidVarOpWithHResultWithPrefix = 'Invalid variant operation (%s%.8x)'+LineEnding+'%s';
   SNoError               = 'No error.';
   SNoThreadSupport       = 'Threads not supported. Recompile program with thread driver.';
+  SOSError               = 'System error, (OS Code %d):'+LineEnding+'%s';
   SOutOfMemory           = 'Out of memory';
   SOverflow              = 'Floating point overflow';
   SPrivilege             = 'Privileged instruction';
@@ -79,6 +80,7 @@ resourcestring
   STooManyOpenFiles      = 'Too many open files';
   SUnKnownRunTimeError   = 'Unknown Run-Time error : %3.3d';
   SUnderflow             = 'Floating point underflow';
+  SUnkOSError            = 'An operating system call failed.';
   SUnknown               = 'Unknown run-time error code: ';
   SUnknownErrorCode      = 'Unknown error code: %d';
   SVarArrayBounds        = 'Variant array bounds error';
@@ -206,7 +208,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2004-01-20 23:05:31  hajny
+  Revision 1.9  2004-02-08 11:44:05  michael
+  + OSERRor related constants
+
+  Revision 1.8  2004/01/20 23:05:31  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.7  2004/01/10 19:35:17  michael
