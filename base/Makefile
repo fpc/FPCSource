@@ -296,35 +296,38 @@ export PACKAGEDIR=$(BASEDIR)
 
 idezips: clean
 	$(MAKE) ide_all
-	$(MAKE) -C $(IDEDIR) zipinstall ZIPNAME=ide_fake
+	$(MAKE) -C $(IDEDIR) fpc_zipinstall ZIPNAME=ide_fake
 	$(MAKE) ide_clean
 	$(MAKE) ide_gdb
-	$(MAKE) -C $(IDEDIR) zipinstall ZIPNAME=ide_gdb
+	$(MAKE) -C $(IDEDIR) fpc_zipinstall ZIPNAME=ide_gdb
 	$(MAKE) ide_clean
 	$(MAKE) ide_full
-	$(MAKE) -C $(IDEDIR) zipinstall ZIPNAME=ide_comp
+	$(MAKE) -C $(IDEDIR) fpc_zipinstall ZIPNAME=ide_comp
 	$(MAKE) ide_clean
 	$(MAKE) ide_fullgdb
-	$(MAKE) -C $(IDEDIR) zipinstall ZIPNAME=ide_full
+	$(MAKE) -C $(IDEDIR) fpc_zipinstall ZIPNAME=ide_full
 
 fvzip: rtl_clean api_clean fv_clean
 	$(MAKE) api_all
-	$(MAKE) -C $(APIDIR) zipinstall ZIPNAME=fv-$(PACKAGESUFFIX)
+	$(MAKE) -C $(APIDIR) fpc_zipinstall ZIPNAME=fv-$(PACKAGESUFFIX)
 	$(MAKE) fv_all
-	$(MAKE) -C $(FVDIR) zipinstalladd ZIPNAME=fv-$(PACKAGESUFFIX)
+	$(MAKE) -C $(FVDIR) fpc_zipinstalladd ZIPNAME=fv-$(PACKAGESUFFIX)
 
 compilerzip: #compiler_clean rtl_clean
 	$(MAKE) compiler_all
-	$(MAKE) -C compiler zipinstall ZIPTARGET=quickinstall ZIPNAME=compiler-$(PACKAGESUFFIX)
-	$(MAKE) -C $(RTLDIR) zipinstalladd ZIPNAME=compiler-$(PACKAGESUFFIX)
+	$(MAKE) -C compiler fpc_zipinstall ZIPTARGET=quickinstall ZIPNAME=compiler-$(PACKAGESUFFIX)
+	$(MAKE) -C $(RTLDIR) fpc_zipinstalladd ZIPNAME=compiler-$(PACKAGESUFFIX)
 
 #
 # $Log$
-# Revision 1.8  1999-03-16 00:46:54  peter
+# Revision 1.9  1999-03-18 11:19:31  peter
+#   * fixed zipinstall
+#
+# Revision 1.8	1999/03/16 00:46:54  peter
 #   * makefile.fpc targets start with fpc_
 #   * small updates for install scripts
 #
-# Revision 1.7  1999/03/09 01:35:46  peter
+# Revision 1.7	1999/03/09 01:35:46  peter
 #   * makefile.fpc updates and defaultfpcdir var
 #
 #
