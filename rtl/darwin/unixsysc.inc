@@ -19,14 +19,14 @@
 Function PClose(Var F:file) : cint;
 var
   pl : ^cint;
-  res : cint;
+//  res : cint;
 
 begin
   fpclose(filerec(F).Handle);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(filerec(f).userdata[2]);
-  fpwaitpid(pl^,@res,0);
-  pclose:=res shr 8;
+  pclose := WaitProcess(pl^);
+//  pclose:=res shr 8;
 end;
 
 Function PClose(Var F:text) :cint;
@@ -66,7 +66,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2004-01-04 20:05:38  jonas
+  Revision 1.2  2004-07-01 18:28:15  jonas
+    * fixed returning of proper exit status after pclose
+
+  Revision 1.1  2004/01/04 20:05:38  jonas
     * first working version of the Darwin/Mac OS X (for PowerPC) RTL
       Several non-essential units are still missing, but make cycle works
 
