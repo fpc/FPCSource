@@ -449,21 +449,38 @@ implementation
          { constant folding }
          if (left.nodetype=ordconstn) then
            begin
-              if is_boolean(left.resulttype.def) then
-                { here we do a boolean(byte(..)) type cast because }
-                { boolean(<int64>) is buggy in 1.00                }
-                t:=cordconstnode.create(byte(not(boolean(byte(tordconstnode(left).value)))),left.resulttype)
-              else
-                begin
-                  v:=tordconstnode(left).value;
-                  case left.resulttype.def^.size of
-                    1 : v:=(not(v and $ff)) and $ff;
-                    2 : v:=(not(v and $ffff)) and $ffff;
-                    4 : v:=(not(v and $ffffffff)) and $ffffffff;
-                    8 : v:=not(v);
+              v:=tordconstnode(left).value;
+              case porddef(left.resulttype.def)^.typ of
+                bool8bit,
+                bool16bit,
+                bool32bit :
+                  begin
+                    { here we do a boolean(byte(..)) type cast because }
+                    { boolean(<int64>) is buggy in 1.00                }
+                    v:=byte(not(boolean(byte(v))));
                   end;
-                  t:=cordconstnode.create(v,left.resulttype);
-                end;
+                uchar,
+                u8bit :
+                  v:=byte(not byte(v));
+                s8bit :
+                  v:=shortint(not shortint(v));
+                uwidechar,
+                u16bit :
+                  v:=word(not word(v));
+                s16bit :
+                  v:=smallint(not smallint(v));
+                u32bit :
+                  v:=cardinal(not cardinal(v));
+                s32bit :
+                  v:=longint(not longint(v));
+                u64bit :
+                  v:=int64(not int64(v)); { maybe qword is required }
+                s64bit :
+                  v:=int64(not int64(v));
+                else
+                  CGMessage(type_e_mismatch);
+              end;
+              t:=cordconstnode.create(v,left.resulttype);
               resulttypepass(t);
               result:=t;
               exit;
@@ -578,7 +595,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-04-04 22:42:40  peter
+  Revision 1.19  2001-04-05 21:00:27  peter
+    * fix constant not evaluation
+
+  Revision 1.18  2001/04/04 22:42:40  peter
     * move constant folding into det_resulttype
 
   Revision 1.17  2001/04/02 21:20:31  peter
