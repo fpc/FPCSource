@@ -63,15 +63,16 @@ Type
 {$endif}
 
 { some type aliases }
-  dword    = cardinal;
-  longword = cardinal;
+  dword       = cardinal;
+  longword    = cardinal;
+  ShortString = String;
 
 { Zero - terminated strings }
-  PChar  = ^Char;
-  PPChar = ^PChar;
+  PChar       = ^Char;
+  PPChar      = ^PChar;
 
 { procedure type }
-  TProcedure = Procedure;
+  TProcedure  = Procedure;
 
 const
 { max. values for longint and int}
@@ -387,7 +388,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.31  1998-09-20 17:49:09  florian
+  Revision 1.32  1998-09-22 15:30:55  peter
+    * shortstring=string type added
+
+  Revision 1.31  1998/09/20 17:49:09  florian
     * some ansistring fixes
 
   Revision 1.30  1998/09/17 16:34:17  peter

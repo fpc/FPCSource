@@ -296,7 +296,7 @@ begin
     TAbstractErrorHAndler(AbstractErrorHAndler);
   Runerror(211);
 end;
-  
+
 Function IOResult:Word;
 Begin
   IOResult:=InOutRes;
@@ -463,17 +463,12 @@ end;
 {$i setjump.inc}
 
 
-{*****************************************************************************
-      Exception support.
-*****************************************************************************}
-
-{ No go, because objpas needed :( (MVC) }
-{ $i except.inc}
-
-
 {
   $Log$
-  Revision 1.33  1998-09-16 13:08:03  michael
+  Revision 1.34  1998-09-22 15:30:54  peter
+    * shortstring=string type added
+
+  Revision 1.33  1998/09/16 13:08:03  michael
   Added AbstractErrorHandler
 
   Revision 1.32  1998/09/16 12:37:07  michael
