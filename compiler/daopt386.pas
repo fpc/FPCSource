@@ -42,15 +42,18 @@ Type
   TRegInfo = Record
                 NewRegsEncountered, OldRegsEncountered: TRegSet;
                 RegsLoadedForRef: TRegSet;
-                Old2NewReg, New2OldReg: TRegArray;
+                New2OldReg: TRegArray;
               End;
+
+{possible actions on an operand: read, write or modify (= read & write)}
+  TOpAction = (OpAct_Read, OpAct_Write, OpAct_Modify, OpAct_Unknown);
 
 {*********************** Procedures and Functions ************************}
 
 Procedure InsertLLItem(AsmL: PAasmOutput; prev, foll, new_one: PLinkedList_Item);
 
 Function Reg32(Reg: TRegister): TRegister;
-Function RefsEquivalent(Const R1, R2: TReference; Var RegInfo: TRegInfo): Boolean;
+Function RefsEquivalent(Const R1, R2: TReference; Var RegInfo: TRegInfo; OpAct: TOpAction): Boolean;
 Function RefsEqual(Const R1, R2: TReference): Boolean;
 Function IsGP32Reg(Reg: TRegister): Boolean;
 Function RegInRef(Reg: TRegister; Const Ref: TReference): Boolean;
@@ -61,7 +64,7 @@ Function GetNextInstruction(Current: Pai; Var Next: Pai): Boolean;
 Function GetLastInstruction(Current: Pai; Var Last: Pai): Boolean;
 
 Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
-Function RegsEquivalent(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo): Boolean;
+Function RegsEquivalent(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo; OpAct: TopAction): Boolean;
 Function InstructionsEquivalent(p1, p2: Pai; Var RegInfo: TRegInfo): Boolean;
 Function OpsEqual(typ: Longint; op1, op2: Pointer): Boolean;
 
@@ -830,21 +833,18 @@ Begin
       NewRegsEncountered := NewRegsEncountered + [NewReg];
       OldRegsEncountered := OldRegsEncountered + [OldReg];
       New2OldReg[NewReg] := OldReg;
-      Old2NewReg[OldReg] := NewReg;
       Case OldReg Of
         R_EAX..R_EDI:
           Begin
             NewRegsEncountered := NewRegsEncountered + [Reg32toReg16(NewReg)];
             OldRegsEncountered := OldRegsEncountered + [Reg32toReg16(OldReg)];
             New2OldReg[Reg32toReg16(NewReg)] := Reg32toReg16(OldReg);
-            Old2NewReg[Reg32toReg16(OldReg)] := Reg32toReg16(NewReg);
             If (NewReg in [R_EAX..R_EBX]) And
                (OldReg in [R_EAX..R_EBX]) Then
               Begin
                 NewRegsEncountered := NewRegsEncountered + [Reg32toReg8(NewReg)];
                 OldRegsEncountered := OldRegsEncountered + [Reg32toReg8(OldReg)];
                 New2OldReg[Reg32toReg8(NewReg)] := Reg32toReg8(OldReg);
-                Old2NewReg[Reg32toReg8(OldReg)] := Reg32toReg8(NewReg);
               End;
           End;
         R_AX..R_DI:
@@ -852,14 +852,12 @@ Begin
             NewRegsEncountered := NewRegsEncountered + [Reg16toReg32(NewReg)];
             OldRegsEncountered := OldRegsEncountered + [Reg16toReg32(OldReg)];
             New2OldReg[Reg16toReg32(NewReg)] := Reg16toReg32(OldReg);
-            Old2NewReg[Reg16toReg32(OldReg)] := Reg16toReg32(NewReg);
             If (NewReg in [R_AX..R_BX]) And
                (OldReg in [R_AX..R_BX]) Then
               Begin
                 NewRegsEncountered := NewRegsEncountered + [Reg16toReg8(NewReg)];
                 OldRegsEncountered := OldRegsEncountered + [Reg16toReg8(OldReg)];
                 New2OldReg[Reg16toReg8(NewReg)] := Reg16toReg8(OldReg);
-                Old2NewReg[Reg16toReg8(OldReg)] := Reg16toReg8(NewReg);
               End;
           End;
         R_AL..R_BL:
@@ -869,7 +867,6 @@ Begin
             OldRegsEncountered := OldRegsEncountered + [Reg8toReg32(OldReg)]
                                + [Reg8toReg16(OldReg)];
             New2OldReg[Reg8toReg32(NewReg)] := Reg8toReg32(OldReg);
-            Old2NewReg[Reg8toReg16(OldReg)] := Reg8toReg16(NewReg);
           End;
       End;
     End;
@@ -892,7 +889,7 @@ Begin
 End;
 
 
-Function RegsEquivalent(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo): Boolean;
+Function RegsEquivalent(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo; OPAct: TOpAction): Boolean;
 Begin
   If Not((OldReg = R_NO) Or (NewReg = R_NO)) Then
     If RegsSameSize(OldReg, NewReg) Then
@@ -902,27 +899,44 @@ Begin
  processed. This happens if it has been compared with a register that doesn't
  have an 8 bit component (such as EDI). In that case the 8 bit component is
  still set to R_NO and the comparison in the Else-part will fail}
-        If Not((Reg32(NewReg) in NewRegsEncountered) Or
-               (Reg32(OldReg) in OldRegsEncountered)) Then
-          Begin
-            AddReg2RegInfo(OldReg, NewReg, RegInfo);
-            RegsEquivalent := True
-          End
-        Else RegsEquivalent :=
-               (Reg32(NewReg) in NewRegsEncountered) And
-               (Reg32(OldReg) in OldRegsEncountered) And
-               (OldReg = New2OldReg[NewReg])
+        If (Reg32(OldReg) in OldRegsEncountered) Then
+          If (Reg32(NewReg) in NewRegsEncountered) Then
+            RegsEquivalent := (OldReg = New2OldReg[NewReg])
+
+ { If we haven't encountered the new register yet, but we have encountered the
+   old one already, the new one can only be correct if it's being written to
+   (and consequently the old one is also being written to), otherwise
+
+   movl -8(%ebp), %eax        and         movl -8(%ebp), %eax
+   movl (%eax), %eax                      movl (%edx), %edx
+
+   are considered equivalent}
+
+          Else
+            If (OpAct = OpAct_Write) Then
+              Begin
+                AddReg2RegInfo(OldReg, NewReg, RegInfo);
+                RegsEquivalent := True
+              End
+            Else Regsequivalent := False
+        Else
+          If Not(Reg32(NewReg) in NewRegsEncountered) Then
+            Begin
+              AddReg2RegInfo(OldReg, NewReg, RegInfo);
+              RegsEquivalent := True
+            End
+          Else RegsEquivalent := False
     Else RegsEquivalent := False
   Else RegsEquivalent := OldReg = NewReg
 End;
 
-Function RefsEquivalent(Const R1, R2: TReference; var RegInfo: TRegInfo): Boolean;
+Function RefsEquivalent(Const R1, R2: TReference; var RegInfo: TRegInfo; OpAct: TOpAction): Boolean;
 Begin
   If R1.IsIntValue
      Then RefsEquivalent := R2.IsIntValue and (R1.Offset = R2.Offset)
      Else If (R1.Offset = R2.Offset) And
-             RegsEquivalent(R1.Base, R2.Base, RegInfo) And
-             RegsEquivalent(R1.Index, R2.Index, RegInfo) And
+             RegsEquivalent(R1.Base, R2.Base, RegInfo, OpAct) And
+             RegsEquivalent(R1.Index, R2.Index, RegInfo, OpAct) And
              (R1.Segment = R2.Segment) And (R1.ScaleFactor = R2.ScaleFactor)
             Then
               Begin
@@ -1266,12 +1280,12 @@ Begin
     End;
 End;}
 
-Function OpsEquivalent(typ: Longint; OldOp, NewOp: Pointer; Var RegInfo: TRegInfo): Boolean;
+Function OpsEquivalent(typ: Longint; OldOp, NewOp: Pointer; Var RegInfo: TRegInfo; OpAct: TopAction): Boolean;
 Begin {checks whether the two ops are equivalent}
   Case typ Of
-    Top_Reg: OpsEquivalent := RegsEquivalent(TRegister(OldOp), TRegister(NewOp), RegInfo);
+    Top_Reg: OpsEquivalent :=RegsEquivalent(TRegister(OldOp), TRegister(NewOp), RegInfo, OpAct);
     Top_Const: OpsEquivalent := OldOp = NewOp;
-    Top_Ref: OpsEquivalent := RefsEquivalent(TReference(OldOp^), TReference(NewOp^), RegInfo);
+    Top_Ref: OpsEquivalent := RefsEquivalent(TReference(OldOp^), TReference(NewOp^), RegInfo, OpAct);
     Top_None: OpsEquivalent := True
     Else OpsEquivalent := False
   End;
@@ -1328,7 +1342,7 @@ Begin {checks whether two Pai386 instructions are equal}
  {the registers from op2 have to be equivalent, but not necessarily equal}
                 InstructionsEquivalent :=
                   RegsEquivalent(TRegister(Pai386(p1)^.op2), TRegister(Pai386(p2)^.op2),
-                                 RegInfo);
+                                 RegInfo, OpAct_Write);
               End
  {the registers are loaded with values from different memory locations. If
   this was allowed, the instructions "mov -4(esi),eax" and "mov -4(ebp),eax"
@@ -1343,57 +1357,50 @@ Begin {checks whether two Pai386 instructions are equal}
                                 Reg32(TRegister(Pai386(p2)^.op2)),R_NO,R_ESP])
  {it won't do any harm if the register is already in RegsLoadedForRef}
                   Then
-{$ifdef csdebug}
                     Begin
-{$endif csdebug}
                       RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Base];
 {$ifdef csdebug}
                       Writeln(att_reg2str[base], ' added');
-                    end;
 {$endif csdebug}
+                    end;
                 If Not(Index in [ProcInfo.FramePointer,
                                  Reg32(TRegister(Pai386(p2)^.op2)),R_NO,R_ESP])
                   Then
-{$ifdef csdebug}
                     Begin
-{$endif csdebug}
                       RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index];
 {$ifdef csdebug}
                       Writeln(att_reg2str[index], ' added');
-                    end;
 {$endif csdebug}
+                    end;
 
               End;
             If Not(Reg32(TRegister(Pai386(p2)^.op2)) In [ProcInfo.FramePointer,
                                                          R_NO,R_ESP])
               Then
-{$ifdef csdebug}
                 Begin
-{$endif csdebug}
-
                   RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef -
                                                  [Reg32(TRegister(Pai386(p2)^.op2))];
 {$ifdef csdebug}
                   Writeln(att_reg2str[Reg32(TRegister(Pai386(p2)^.op2))], ' removed');
-                end;
 {$endif csdebug}
-              InstructionsEquivalent :=
-                 OpsEquivalent(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1, RegInfo) And
-                 OpsEquivalent(Pai386(p1)^.op2t, Pai386(p1)^.op2, Pai386(p2)^.op2, RegInfo)
+                end;
+            InstructionsEquivalent :=
+               OpsEquivalent(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1, RegInfo, OpAct_Read) And
+               OpsEquivalent(Pai386(p1)^.op2t, Pai386(p1)^.op2, Pai386(p2)^.op2, RegInfo, OpAct_Write)
           End
       Else
  {an instruction <> mov, movzx, movsx}
         If (Pai386(p1)^.op3t = top_none) Then
           InstructionsEquivalent :=
-            OpsEquivalent(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1, RegInfo) And
-            OpsEquivalent(Pai386(p1)^.op2t, Pai386(p1)^.op2, Pai386(p2)^.op2, RegInfo)
+            OpsEquivalent(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1, RegInfo, OpAct_Unknown) And
+            OpsEquivalent(Pai386(p1)^.op2t, Pai386(p1)^.op2, Pai386(p2)^.op2, RegInfo, OpAct_Unknown)
         Else
           InstructionsEquivalent :=
-            OpsEquivalent(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1, RegInfo) And
+            OpsEquivalent(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1, RegInfo, OpAct_Unknown) And
             OpsEquivalent(Pai386(p1)^.op2t, Pointer(Longint(TwoWords(Pai386(p1)^.op2).Word1)),
-                          Pointer(Longint(TwoWords(Pai386(p2)^.op2).Word1)), RegInfo) And
+                          Pointer(Longint(TwoWords(Pai386(p2)^.op2).Word1)), RegInfo, OpAct_Unknown) And
             OpsEquivalent(Pai386(p1)^.op3t, Pointer(Longint(TwoWords(Pai386(p1)^.op2).Word2)),
-                          Pointer(Longint(TwoWords(Pai386(p2)^.op2).Word2)), RegInfo)
+                          Pointer(Longint(TwoWords(Pai386(p2)^.op2).Word2)), RegInfo, OpAct_Unknown)
  {the instructions haven't even got the same structure, so they're certainly
   not equivalent}
     Else InstructionsEquivalent := False;
@@ -2084,7 +2091,11 @@ End.
 
 {
  $Log$
- Revision 1.32  1998-12-15 19:33:58  jonas
+ Revision 1.33  1998-12-17 16:37:38  jonas
+   + extra checks in RegsEquivalent so some more optimizations can be done (which
+     where disabled by the second fix from revision 1.22)
+
+ Revision 1.32  1998/12/15 19:33:58  jonas
    * uncommented OpsEqual & added to interface because popt386 uses it now
 
  Revision 1.31  1998/12/11 00:03:13  peter

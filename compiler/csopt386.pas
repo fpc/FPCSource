@@ -88,7 +88,6 @@ Begin {CheckSequence}
       RegInfo.OldRegsEncountered := RegInfo.NewRegsEncountered;
       RegInfo.New2OldReg[ProcInfo.FramePointer] := ProcInfo.FramePointer;
       RegInfo.New2OldReg[R_ESP] := R_ESP;
-      RegInfo.Old2NewReg := RegInfo.New2OldReg;
       Found := 0;
       hp2 := PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].StartMod;
       If (PrevNonRemovablePai <> PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].StartMod)
@@ -554,7 +553,11 @@ End.
 
 {
  $Log$
- Revision 1.16  1998-12-02 16:23:31  jonas
+ Revision 1.17  1998-12-17 16:37:39  jonas
+   + extra checks in RegsEquivalent so some more optimizations can be done (which
+     where disabled by the second fix from revision 1.22)
+
+ Revision 1.16  1998/12/02 16:23:31  jonas
    * changed "if longintvar in set" to case or "if () or () .." statements
    * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
 
