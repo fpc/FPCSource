@@ -304,9 +304,15 @@ begin
     Try  
       Argv:=MakeCommand(Self);
       Try
-        PName:=ApplicationName;
-        If (PName='') then
-          PName:=CommandLine;
+        If (Argv<>Nil) and (ArgV[0]<>Nil) then
+          PName:=StrPas(Argv[0])
+        else
+          begin  
+          // This should never happen, actually.
+          PName:=ApplicationName;
+          If (PName='') then
+            PName:=CommandLine;
+          end;  
         if (pos('/',PName)<>1) then
           PName:=FileSearch(Pname,fpgetenv('PATH'));
         Pid:=fpfork;
