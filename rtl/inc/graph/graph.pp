@@ -187,7 +187,6 @@ Unit Graph;
 {   - optimize InternalEllipse()                         }
 {      using linear appx. of sine/cosine tables          }
 {   - justification for stroked fonts does not work      }
-{   - On Closegraph deallocate all font pointers         }
 {--------------------------------------------------------}
 
 { text.inc will crash on aligned requirement machines.          }
@@ -1956,35 +1955,65 @@ type
   pt = array[0..$fffffff] of word;
   ptw = array[0..2] of longint;
 var
-  color: word;
-  i,j: Integer;
-  Y1,X1: Integer;
   k: longint;
+  oldCurrentColor, color: word;
+  oldCurrentWriteMode, i, j, y1, x1, deltaX, deltaX1, deltaY: Integer;
 Begin
-  X1:= ptw(Bitmap)[0]+X; { get width and adjust end coordinate accordingly }
-  Y1:= ptw(Bitmap)[1]+Y; { get height and adjust end coordinate accordingly }
-  k:= 3 * Sizeof(longint) div Sizeof(word); { Three reserved longs at start of bitmap }
+{$ifdef logging}
+  LogLn('putImage at ('+strf(x)+','+strf(y)+') with width '+strf(ptw(Bitmap)[0])+
+    ' and height '+strf(ptw(Bitmap)[1]));
+  deltaY := 0;
+{$endif logging}
+  inc(x,startXViewPort);
+  inc(y,startYViewPort);
+  x1 := ptw(Bitmap)[0]+x; { get width and adjust end coordinate accordingly }
+  y1 := ptw(Bitmap)[1]+y; { get height and adjust end coordinate accordingly }
+
+  deltaX := 0;
+  deltaX1 := 0;
+  k := 3 * sizeOf(Longint) div sizeOf(Word); { Three reserved longs at start of bitmap }
+ { check which part of the image is in the viewport }
+  if clipPixels then
+    begin
+      if y < startYViewPort then
+        begin
+          deltaY := startYViewPort - y;
+          inc(k,(x1-x+1)*deltaY);
+          y := startYViewPort;
+         end;
+      if y1 > startYViewPort+viewHeight then
+        y1 := startYViewPort+viewHeight;
+      if x < startXViewPort then
+        begin
+          deltaX := startXViewPort-x;
+          x := startXViewPort;
+        end;
+      if x1 > startXViewPort + viewWidth then
+        begin
+          deltaX1 := x1 - (startXViewPort + viewWidth);
+          x1 := startXViewPort + viewWidth;
+        end;
+    end;
+{$ifdef logging}
+  LogLn('deltax: '+strf(deltax)+', deltax1: '+strf(deltax1)+',deltay: '+strf(deltay));
+{$endif logging}
+  oldCurrentColor := currentColor;
+  oldCurrentWriteMode := currentWriteMode;
+  currentWriteMode := bitBlt;
   for j:=Y to Y1 do
    Begin
+     inc(k,deltaX);
      for i:=X to X1 do
       begin
-        case BitBlt of
-{$R-}
-          CopyPut: color:= pt(Bitmap)[k];  { also = normalput }
-          XORPut: color:= pt(Bitmap)[k] XOR GetPixel(i,j);
-          OrPut: color:= pt(Bitmap)[k] OR GetPixel(i,j);
-          AndPut: color:= pt(Bitmap)[k] AND GetPixel(i,j);
-          NotPut: color:= not pt(Bitmap)[k];
-{$ifdef debug}
-{$R+}
-{$endif debug}
-        end;
-        putpixel(i,j,color);
-        Inc(k);
+        currentColor := pt(bitmap)[k];
+        directPutPixel(i,j);
+        inc(k);
      end;
+     inc(k,deltaX1);
    end;
+  currentWriteMode := oldCurrentWriteMode;
+  currentColor := oldCurrentColor;
 end;
-
 
 Procedure DefaultGetImage(X1,Y1,X2,Y2: Integer; Var Bitmap); {$ifndef fpc}far;{$endif fpc}
 type
@@ -3005,7 +3034,14 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.46  1999-12-11 23:41:38  jonas
+  Revision 1.47  1999-12-12 13:34:20  jonas
+    * putimage now performs the lipping itself and uses directputpixel
+      (note: this REQUIRES or/and/notput support in directputpixel,
+      this is not yet the case in the assembler versions!)
+    * YOffset addition moved in hlinevesa256 and vlinevesa256
+      because it uses still putpixel afterwards
+
+  Revision 1.46  1999/12/11 23:41:38  jonas
     * changed definition of getscanlineproc to "getscanline(x1,x2,y:
       integer; var data);" so it can be used by getimage too
     * changed getimage so it uses getscanline

@@ -432,8 +432,7 @@ end;
      offs : longint;
      col : byte;
   begin
-     y := y + YOffset;
-     offs := longint(y) * BytesPerLine + x;
+     offs := (longint(y) + YOffset) * BytesPerLine + x;
      Case CurrentWriteMode of
        XorPut:
          Begin
@@ -472,7 +471,7 @@ end;
      GetPixVESA256:=mem[WinReadSeg : word(offs)];
   end;
 
-  Procedure GetScanLineVESA256(x1, x2, y: integer; var data);
+  Procedure GetScanLineVESA256(x1, x2, y: integer; var data); {$ifndef fpc}far;{$endif}
   var offs: Longint;
       l, amount, bankrest, index, pixels: longint;
       x, curbank: integer;
@@ -573,7 +572,6 @@ end;
                 StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
             exit;
       end;
-    Y:= Y + YOffset; { Adjust for correct virtual page }
     {$ifdef logging}
     LogLn('hline '+strf(x)+' - '+strf(x2)+' on '+strf(y)+' in mode '+strf(currentwritemode));
     {$endif logging}
@@ -583,7 +581,7 @@ end;
     {$endif logging}
     if HLength>0 then
       begin
-         Offs:=Longint(y)*bytesperline+x;
+         Offs:=(Longint(y)+YOffset)*bytesperline+x;
          {$ifdef logging}
          LogLn('Offs: '+strf(offs)+' -- '+hexstr(offs,8));
          {$endif logging}
@@ -849,8 +847,6 @@ end;
                 StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
             exit;
       end;
-    Y := Y + YOffset;
-    Y2 := Y2 + YOffset; { adjust for current virtual page }
     Col := Byte(CurrentColor);
     {$ifdef logging}
     LogLn('vline '+strf(y)+' - '+strf(y2)+' on '+strf(x)+' in mode '+strf(currentwritemode));
@@ -861,7 +857,7 @@ end;
     {$endif logging}
     if VLength>0 then
       begin
-         Offs:=Longint(y)*bytesperline+x;
+         Offs:=(Longint(y)+YOffset)*bytesperline+x;
          {$ifdef logging}
          LogLn('Offs: '+strf(offs)+' -- '+hexstr(offs,8));
          {$endif logging}
@@ -2373,7 +2369,14 @@ end;
 
 {
 $Log$
-Revision 1.8  1999-12-11 23:41:39  jonas
+Revision 1.9  1999-12-12 13:34:20  jonas
+  * putimage now performs the lipping itself and uses directputpixel
+    (note: this REQUIRES or/and/notput support in directputpixel,
+    this is not yet the case in the assembler versions!)
+  * YOffset addition moved in hlinevesa256 and vlinevesa256
+    because it uses still putpixel afterwards
+
+Revision 1.8  1999/12/11 23:41:39  jonas
   * changed definition of getscanlineproc to "getscanline(x1,x2,y:
     integer; var data);" so it can be used by getimage too
   * changed getimage so it uses getscanline

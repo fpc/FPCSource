@@ -7,9 +7,6 @@
 {$endif DPMI}
 
 {$ifndef fpc}
-  {$ifndef noasmgraph}
-    {$define asmgraph}
-  {$endif noasmgraph}
   {$i dpmi.inc}
 {$else fpc}
   {$asmmode intel}
@@ -588,6 +585,7 @@ End;
     PortW[$3ce] := $ff08;
     PortW[$3ce] := $0001;
 {$else asmgraph}
+{ note: still needs xor/or/and/notput support !!!!! (JM) }
     asm
   {$ifndef fpc}
       mov  es, [SegA000]
@@ -1099,6 +1097,7 @@ End;
    Mem[SegA000:offset] := dummy;
  end;
 {$else asmgraph}
+{ note: still needs or/and/notput support !!!!! (JM) }
   assembler;
     asm
   {$ifndef fpc}
@@ -1435,6 +1434,7 @@ const CrtAddress: word = 0;
    Mem[Sega000: offset] := Dummy;
  end;
 {$else asmgraph}
+{ note: still needs or/and/notput support !!!!! (JM) }
  Assembler;
  asm
    mov di,[Y]                   ; (* DI = Y coordinate                 *)
@@ -2512,7 +2512,14 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.6  1999-12-11 23:41:39  jonas
+Revision 1.7  1999-12-12 13:34:19  jonas
+  * putimage now performs the lipping itself and uses directputpixel
+    (note: this REQUIRES or/and/notput support in directputpixel,
+    this is not yet the case in the assembler versions!)
+  * YOffset addition moved in hlinevesa256 and vlinevesa256
+    because it uses still putpixel afterwards
+
+Revision 1.6  1999/12/11 23:41:39  jonas
   * changed definition of getscanlineproc to "getscanline(x1,x2,y:
     integer; var data);" so it can be used by getimage too
   * changed getimage so it uses getscanline
@@ -2627,7 +2634,7 @@ Revision 1.10  1999/09/11 19:43:01  jonas
 Revision 1.9  1999/08/01 14:50:51  jonas
   * fixed hline16 and vline16 for notput (also TP supPorts copy, and, or, xor and
     notput for lines!!)
-  * fixed directputpixel16 to supPort all the different put types
+  * fixed directputpixel16 to support all the different put types
 
 Revision 1.8  1999/07/18 15:07:19  jonas
   + xor-, and and- orput supPort for VESA256 modes
