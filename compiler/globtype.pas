@@ -181,7 +181,11 @@ interface
          );
 
        { Default calling convention }
+{$ifdef x86}
        pocall_default = pocall_stdcall;
+{$else}
+       pocall_default = pocall_stdcall;
+{$endif}
 
     type
        stringid = string[maxidlen];
@@ -230,7 +234,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2003-11-07 15:58:32  florian
+  Revision 1.45  2003-12-04 23:27:32  peter
+    * remove redundant calls to add_edge_used
+
+  Revision 1.44  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

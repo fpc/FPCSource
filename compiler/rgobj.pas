@@ -644,8 +644,6 @@ implementation
         begin
           supregset_include(unusedregs,supreg);
           list.concat(Tai_regalloc.dealloc(r));
-          add_edges_used(supreg);
-          add_constraints(r);
         end;
     end;
 
@@ -1613,8 +1611,6 @@ implementation
         list.insert(Tai_regalloc.dealloc(r))
       else
         list.insertafter(Tai_regalloc.dealloc(r),position);
-      add_edges_used(supreg);
-      add_constraints(r);
     end;
 
 
@@ -1822,7 +1818,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2003-11-29 17:36:41  peter
+  Revision 1.98  2003-12-04 23:27:32  peter
+    * remove redundant calls to add_edge_used
+
+  Revision 1.97  2003/11/29 17:36:41  peter
     * check for add_move_instruction
 
   Revision 1.96  2003/11/24 15:17:37  florian
