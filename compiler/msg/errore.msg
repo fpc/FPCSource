@@ -1891,6 +1891,7 @@ option_help_pages=11025_[
 **2Cn_omit linking stage
 **2Co_check overflow of integer operations
 **2Cr_range checking
+**2CR_verify object method call validity
 **2Cs<n>_set stack size to <n>
 **2Ct_stack checking
 **2CX_create also smartlinked library
@@ -1946,6 +1947,8 @@ option_help_pages=11025_[
 **2Ss_constructor name must be init (destructor must be done)
 **2St_allow static keyword in objects
 **1s_don't call assembler and linker (only with -a)
+**2st_Generate script to link on target
+**2sh_Generate script to link on host
 **1u<x>_undefines the symbol <x>
 **1U_unit options:
 **2Un_don't check the unit name
