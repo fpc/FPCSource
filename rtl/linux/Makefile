@@ -79,13 +79,14 @@ UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
             cpu mmx getopts heaptrc \
             errors sockets gpm ipc
 
-# Unit Objects Which are placed in libfpc.so
+# Unit Objects Which are placed in libfpc.so, this can't contain units
+# that need to be linked with other libs like graph, gpm
 SHAREDLIBUNITOBJECTS=$(SYSTEMUNIT) objpas strings \
             linux ports \
             dos crt objects printer \
             sysutils typinfo math \
             cpu mmx getopts heaptrc \
-            errors sockets gpm ipc
+            sockets ipc
 
 
 #####################################################################
@@ -293,7 +294,10 @@ ipc$(PPUEXT) : ipc.pp linux$(PPUEXT) $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.29  1999-07-01 19:39:42  peter
+# Revision 1.30  1999-07-29 01:39:09  peter
+#   * shared lib units fixed
+#
+# Revision 1.29  1999/07/01 19:39:42  peter
 #   + gpm unit
 #
 # Revision 1.28  1999/06/03 09:36:32  peter
