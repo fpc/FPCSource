@@ -1,4 +1,4 @@
-{ %RESULTCODE=1 }
+{ %FAIL }
 { Source provided for Free Pascal Bug Report 1858 }
 { Submitted by "Mattias Gaertner" on  2002-03-07 }
 { e-mail: nc-gaertnma@netcologne.de }
@@ -23,7 +23,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-03-07 21:46:41  carl
+  Revision 1.1  2002-03-08 20:18:28  carl
+  * moved to correct directory
+
+  Revision 1.2  2002/03/07 21:46:41  carl
   + fix unit name
 
   Revision 1.1  2002/03/07 21:40:56  carl
