@@ -1860,7 +1860,7 @@ implementation
                  { from is signed and to is unsigned -> when looking at to }
                  { as an signed value, it must be < maxaint (otherwise     }
                  { it will become negative, which is invalid since "to" is unsigned) }
-                 if hto < 0 then
+                 if hto > aintmax then
                    hto := aintmax;
                end
              else
@@ -2174,7 +2174,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.166  2004-06-20 08:55:28  florian
+  Revision 1.167  2004-07-03 11:47:04  peter
+    * fix rangecheck error when assigning u32bit=s32bit
+
+  Revision 1.166  2004/06/20 08:55:28  florian
     * logs truncated
 
   Revision 1.165  2004/06/16 20:07:07  florian
