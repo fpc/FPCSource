@@ -333,6 +333,9 @@ uses
                          end
                        else varspez:=vs_value;
                        sc:=idlist;
+{$ifdef fixLeaksOnError}
+                       strContStack.push(sc);
+{$endif fixLeaksOnError}
                        if token=_COLON then
                          begin
                             consume(_COLON);
@@ -367,6 +370,10 @@ uses
                          hp2^.paratype:=tt;
                          propertyparas^.insert(hp2);
                        until false;
+{$ifdef fixLeaksOnError}
+                       if strContStack.pop <> sc then
+                         writeln('problem with strContStack in ptype');
+{$endif fixLeaksOnError}
                        dispose(sc,done);
                      until not try_to_consume(_SEMICOLON);
                      dec(testcurobject);
@@ -1510,7 +1517,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.13  2000-01-07 01:14:34  peter
+  Revision 1.14  2000-01-11 17:16:06  jonas
+    * removed a lot of memory leaks when an error is encountered (caused by
+      procinfo and pstringcontainers). There are still plenty left though :)
+
+  Revision 1.13  2000/01/07 01:14:34  peter
     * updated copyright to 2000
 
   Revision 1.12  1999/11/30 10:40:52  peter

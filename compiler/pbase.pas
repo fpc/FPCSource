@@ -25,7 +25,11 @@ unit pbase;
   interface
 
     uses
-       cobjects,tokens,globals,symtable;
+       cobjects,tokens,globals,symtable
+{$ifdef fixLeaksOnError}
+       ,comphook
+{$endif fixLeaksOnError}
+       ;
 
     const
        { true, if we are after an assignement }
@@ -53,6 +57,12 @@ unit pbase;
        { true, if we should ignore an equal in const x : 1..2=2 }
        ignore_equal : boolean;
 
+{$ifdef fixLeaksOnError}
+    { not worth it to make a pstack, there's only one data field (a pointer). }
+    { in the interface, because pmodules and psub also use it for their names }
+    var strContStack: TStack;
+        pbase_old_do_stop: tstopprocedure;
+{$endif fixLeaksOnError}
 
     function tokenstring(i : ttoken):string;
 
@@ -156,11 +166,39 @@ unit pbase;
          idlist:=sc;
       end;
 
+{$ifdef fixLeaksOnError}
+procedure pbase_do_stop; {$ifdef tp} far; {$endif tp}
+var names: PStringContainer;
+begin
+  names := PStringContainer(strContStack.pop);
+  while names <> nil do
+    begin
+      dispose(names,done);
+      names := PStringContainer(strContStack.pop);
+    end;
+  strContStack.done;
+  do_stop := pbase_old_do_stop;
+{$ifdef tp}
+  do_stop;
+{$else tp}
+  do_stop();
+{$endif tp}
+end;
+
+begin
+  strContStack.init;
+  pbase_old_do_stop := do_stop;
+  do_stop := {$ifndef tp}@{$endif}pbase_do_stop;
+{$endif fixLeaksOnError}
 end.
 
 {
   $Log$
-  Revision 1.28  2000-01-07 01:14:28  peter
+  Revision 1.29  2000-01-11 17:16:04  jonas
+    * removed a lot of memory leaks when an error is encountered (caused by
+      procinfo and pstringcontainers). There are still plenty left though :)
+
+  Revision 1.28  2000/01/07 01:14:28  peter
     * updated copyright to 2000
 
   Revision 1.27  1999/11/06 14:34:21  peter

@@ -164,7 +164,17 @@ implementation
 implementation
 
      uses
-        systems,globals,files,strings,cresstr;
+        systems,globals,files,strings,cresstr
+{$ifdef fixLeaksOnError}
+        ,comphook
+{$endif fixLeaksOnError}
+
+        ;
+
+{$ifdef fixLeaksOnError}
+     var procinfoStack: TStack;
+         hcodegen_old_do_stop: tstopprocedure;
+{$endif fixLeaksOnError}
 
 {*****************************************************************************
             override the message calls to set codegenerror
@@ -321,12 +331,19 @@ implementation
            so it must not be reset to zero before this storage !}
          { new procinfo }
          new(procinfo,init);
+{$ifdef fixLeaksOnError}
+         procinfoStack.push(procinfo);
+{$endif fixLeaksOnError}
       end;
 
 
 
     procedure codegen_doneprocedure;
       begin
+{$ifdef fixLeaksOnError}
+         if procinfo <> procinfoStack.pop then
+           writeln('problem with procinfoStack!');
+{$endif fixLeaksOnError}
          dispose(procinfo,done);
          procinfo:=nil;
       end;
@@ -401,11 +418,40 @@ implementation
          typ:=p;
       end;
 {$endif newcg}
+
+{$ifdef fixLeaksOnError}
+procedure hcodegen_do_stop; {$ifdef tp} far; {$endif tp}
+var p: pprocinfo;
+begin
+  p := pprocinfo(procinfoStack.pop);
+  while p <> nil Do
+    begin
+      dispose(p,done);
+      p := pprocinfo(procinfoStack.pop);
+    end;
+  procinfoStack.done;
+  do_stop := hcodegen_old_do_stop;
+{$ifdef tp}
+  do_stop;
+{$else tp}
+  do_stop();
+{$endif tp}
+end;
+
+begin
+  hcodegen_old_do_stop := do_stop;
+  do_stop := {$ifdef tp}@{$endif}hcodegen_do_stop;
+  procinfoStack.init;
+{$endif fixLeaksOnError}
 end.
 
 {
   $Log$
-  Revision 1.53  2000-01-07 01:14:27  peter
+  Revision 1.54  2000-01-11 17:16:04  jonas
+    * removed a lot of memory leaks when an error is encountered (caused by
+      procinfo and pstringcontainers). There are still plenty left though :)
+
+  Revision 1.53  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.52  1999/12/09 23:18:04  pierre

@@ -134,6 +134,9 @@ unit pdecl;
             begin
              { read identifiers }
                sc:=idlist;
+{$ifdef fixLeaksOnError}
+               strContStack.push(sc);
+{$endif fixLeaksOnError}
              { read type declaration, force reading for value and const paras }
                if (token=_COLON) or (varspez=vs_value) then
                 begin
@@ -248,6 +251,10 @@ unit pdecl;
 
                    end;
                 end;
+{$ifdef fixLeaksOnError}
+               if PStringContainer(strContStack.pop) <> sc then
+                  writeln('problem with strContStack in pdecl (1)');
+{$endif fixLeaksOnError}
                dispose(sc,done);
                tokenpos:=storetokenpos;
             end;
@@ -304,6 +311,10 @@ unit pdecl;
                      st^.defowner^.owner^.insert(new(pvarsym,init(s,tt)));
                   end;
              end;
+{$ifdef fixLeaksOnError}
+             if strContStack.pop <> sc then
+               writeln('problem with strContStack in pdecl (2)');
+{$endif fixLeaksOnError}
            dispose(sc,done);
            tokenpos:=filepos;
         end;
@@ -345,6 +356,9 @@ unit pdecl;
            begin
              C_name:=orgpattern;
              sc:=idlist;
+{$ifdef fixLeaksOnError}
+             strContStack.push(sc);
+{$endif fixLeaksOnError}
              consume(_COLON);
              if (m_gpc in aktmodeswitches) and
                 not(is_record or is_object or is_threadvar) and
@@ -372,6 +386,10 @@ unit pdecl;
                   s:=sc^.get_with_tokeninfo(tokenpos);
                   if not sc^.empty then
                    Message(parser_e_absolute_only_one_var);
+{$ifdef fixLeaksOnError}
+                   if strContStack.pop <> sc then
+                     writeln('problem with strContStack in pdecl (3)');
+{$endif fixLeaksOnError}
                   dispose(sc,done);
                   aktvarsym:=new(pvarsym,init_C(s,target_os.Cprefix+C_name,tt));
 {$ifdef INCLUDEOK}
@@ -392,6 +410,10 @@ unit pdecl;
                 s:=sc^.get_with_tokeninfo(declarepos);
                 if not sc^.empty then
                  Message(parser_e_absolute_only_one_var);
+{$ifdef fixLeaksOnError}
+                 if strContStack.pop <> sc then
+                   writeln('problem with strContStack in pdecl (4)');
+{$endif fixLeaksOnError}
                 dispose(sc,done);
                 { parse the rest }
                 if token=_ID then
@@ -506,6 +528,10 @@ unit pdecl;
                    s:=sc^.get_with_tokeninfo(declarepos);
                    if not sc^.empty then
                     Message(parser_e_absolute_only_one_var);
+{$ifdef fixLeaksOnError}
+                   if strContStack.pop <> sc then
+                     writeln('problem with strContStack in pdecl (5)');
+{$endif fixLeaksOnError}
                    dispose(sc,done);
                    { defaults }
                    is_dll:=false;
@@ -1182,7 +1208,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.177  2000-01-10 11:14:19  peter
+  Revision 1.178  2000-01-11 17:16:05  jonas
+    * removed a lot of memory leaks when an error is encountered (caused by
+      procinfo and pstringcontainers). There are still plenty left though :)
+
+  Revision 1.177  2000/01/10 11:14:19  peter
     * fixed memory leak with options, you must use StopOptions instead of
       Stop
     * fixed memory leak with forward resolving, make_ref is now false

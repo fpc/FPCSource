@@ -45,7 +45,6 @@ procedure parse_var_proc_directives(var sym : psym);
 procedure parse_object_proc_directives(var sym : pprocsym);
 procedure read_proc;
 
-
 implementation
 
 uses
@@ -1797,6 +1796,9 @@ begin
    oldprocinfo:=procinfo;
 { create a new procedure }
    new(names,init);
+{$ifdef fixLeaksOnError}
+   strContStack.push(names);
+{$endif fixLeaksOnError}
    codegen_newprocedure;
    with procinfo^ do
     begin
@@ -1908,6 +1910,10 @@ begin
        consume(_SEMICOLON);
      end;
 { close }
+{$ifdef fixLeaksOnError}
+   if names <> strContStack.pop then
+     writeln('problem with strContStack in psub!');
+{$endif fixLeaksOnError}
    dispose(names,done);
    codegen_doneprocedure;
 { Restore old state }
@@ -1933,7 +1939,11 @@ end.
 
 {
   $Log$
-  Revision 1.40  2000-01-07 01:14:31  peter
+  Revision 1.41  2000-01-11 17:16:06  jonas
+    * removed a lot of memory leaks when an error is encountered (caused by
+      procinfo and pstringcontainers). There are still plenty left though :)
+
+  Revision 1.40  2000/01/07 01:14:31  peter
     * updated copyright to 2000
 
   Revision 1.39  1999/12/22 01:01:52  peter

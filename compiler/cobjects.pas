@@ -388,6 +388,26 @@ unit cobjects;
        end;
 {$endif BUFFEREDFILE}
 
+{$ifdef fixLeaksOnError}
+    PStackItem = ^TStackItem;
+    TStackItem = record
+      next: PStackItem;
+      data: pointer;
+    end;
+
+    PStack = ^TStack;
+    TStack = object
+      constructor init;
+      destructor done;
+      procedure push(p: pointer);
+      function pop: pointer;
+      function top: pointer;
+      function isEmpty: boolean;
+     private
+      head: PStackItem;
+    end;
+{$endif fixLeaksOnError}
+
     function getspeedvalue(const s : string) : longint;
 
     { releases the string p and assignes nil to p }
@@ -447,6 +467,63 @@ unit cobjects;
       begin
         show;
       end;
+
+{*****************************************************************************
+                                 Stack
+*****************************************************************************}
+
+
+
+{$ifdef fixLeaksOnError}
+constructor TStack.init;
+begin
+  head := nil;
+end;
+
+procedure TStack.push(p: pointer);
+var s: PStackItem;
+begin
+  new(s);
+  s^.data := p;
+  s^.next := head;
+  head := s;
+end;
+
+function TStack.pop: pointer;
+var s: PStackItem;
+begin
+  pop := top;
+  if assigned(head) then
+    begin
+      s := head^.next;
+      dispose(head);
+      head := s;
+    end
+end;
+
+function TStack.top: pointer;
+begin
+  if not isEmpty then
+    top := head^.data
+  else top := NIL;
+end;
+
+function TStack.isEmpty: boolean;
+begin
+  isEmpty := head = nil;
+end;
+
+destructor TStack.done;
+var temp: PStackItem;
+begin
+  while head <> nil do
+    begin
+      temp := head^.next;
+      dispose(head);
+      head := temp;
+    end;
+end;
+{$endif fixLeaksOnError}
 
 
 {$ifndef OLDSPEEDVALUE}
@@ -2318,7 +2395,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.50  2000-01-07 01:14:23  peter
+  Revision 1.51  2000-01-11 17:16:04  jonas
+    * removed a lot of memory leaks when an error is encountered (caused by
+      procinfo and pstringcontainers). There are still plenty left though :)
+
+  Revision 1.50  2000/01/07 01:14:23  peter
     * updated copyright to 2000
 
   Revision 1.49  1999/12/22 01:01:48  peter

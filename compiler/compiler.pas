@@ -322,13 +322,24 @@ begin
   Writeln('Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
 {$endif newcg}
 {$endif EXTDEBUG}
+{$ifdef fixLeaksOnError}
+ {$ifdef tp}
+  do_stop;
+ {$else tp}
+  do_stop();
+ {$endif tp}
+{$endif fixLeaksOnError}
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.44  2000-01-11 16:56:22  jonas
+  Revision 1.45  2000-01-11 17:16:04  jonas
+    * removed a lot of memory leaks when an error is encountered (caused by
+      procinfo and pstringcontainers). There are still plenty left though :)
+
+  Revision 1.44  2000/01/11 16:56:22  jonas
     - removed call to do_stop at the end of compile() since it obviously breaks the
       automatic compiling of units. Make cycle worked though! 8)
 

@@ -57,7 +57,6 @@ unit pmodules;
 {$endif GDB}
        scanner,pbase,psystem,pdecl,psub,parser;
 
-
     procedure create_objectfile;
       begin
         { create the .s file and assemble it }
@@ -935,7 +934,11 @@ unit pmodules;
       end;
 
       var
+{$ifdef fixLeaksOnError}
+         names  : Pstringcontainer;
+{$else fixLeaksOnError}
          names  : Tstringcontainer;
+{$endif fixLeaksOnError}
          st     : psymtable;
          unitst : punitsymtable;
 {$ifdef GDB}
@@ -1157,11 +1160,22 @@ unit pmodules;
          { Compile the unit }
          codegen_newprocedure;
          gen_main_procsym(current_module^.modulename^+'_init',potype_unitinit,st);
+{$ifdef fixLeaksOnError}
+         new(names,init);
+         strContStack.push(names);
+         names^.insert('INIT$$'+current_module^.modulename^);
+         names^.insert(target_os.cprefix+current_module^.modulename^+'_init');
+         compile_proc_body(names^,true,false);
+         if names <> PstringContainer(strContStack.pop) then
+           writeln('Problem with strContStack in pmodules (1)');
+         dispose(names,done);
+{$else fixLeaksOnError}
          names.init;
          names.insert('INIT$$'+current_module^.modulename^);
          names.insert(target_os.cprefix+current_module^.modulename^+'_init');
          compile_proc_body(names,true,false);
          names.done;
+{$endif fixLeaksOnError}
          codegen_doneprocedure;
 
          { avoid self recursive destructor call !! PM }
@@ -1176,11 +1190,22 @@ unit pmodules;
               { Compile the finalize }
               codegen_newprocedure;
               gen_main_procsym(current_module^.modulename^+'_finalize',potype_unitfinalize,st);
+{$ifdef fixLeaksOnError}
+              new(names,init);
+              strContStack.push(names);
+              names^.insert('FINALIZE$$'+current_module^.modulename^);
+              names^.insert(target_os.cprefix+current_module^.modulename^+'_finalize');
+              compile_proc_body(names^,true,false);
+              if names <> PstringContainer(strContStack.pop) then
+                writeln('Problem with strContStack in pmodules (2)');
+              dispose(names,done);
+{$else fixLeaksOnError}
               names.init;
               names.insert('FINALIZE$$'+current_module^.modulename^);
               names.insert(target_os.cprefix+current_module^.modulename^+'_finalize');
               compile_proc_body(names,true,false);
               names.done;
+{$endif fixLeaksOnError}
               codegen_doneprocedure;
            end;
 
@@ -1328,7 +1353,11 @@ unit pmodules;
       var
          st    : psymtable;
          hp    : pmodule;
+{$ifdef fixLeaksOnError}
+         names : Pstringcontainer;
+{$else fixLeaksOnError}
          names : Tstringcontainer;
+{$endif fixLeaksOnError}
       begin
          DLLsource:=islibrary;
          IsExe:=true;
@@ -1435,16 +1464,32 @@ unit pmodules;
           from the bootstrap code.}
          codegen_newprocedure;
          gen_main_procsym('main',potype_proginit,st);
+{$ifdef fixLeaksOnError}
+         new(names,init);
+         strContStack.push(names);
+         names^.insert('program_init');
+         names^.insert('PASCALMAIN');
+         names^.insert(target_os.cprefix+'main');
+ {$ifdef m68k}
+         if target_info.target=target_m68k_PalmOS then
+           names^.insert('PilotMain');
+ {$endif m68k}
+         compile_proc_body(names^,true,false);
+         if names <> PstringContainer(strContStack.pop) then
+           writeln('Problem with strContStack in pmodules (1)');
+         dispose(names,done);
+{$else fixLeaksOnError}
          names.init;
          names.insert('program_init');
          names.insert('PASCALMAIN');
          names.insert(target_os.cprefix+'main');
-{$ifdef m68k}
+ {$ifdef m68k}
          if target_info.target=target_m68k_PalmOS then
            names.insert('PilotMain');
-{$endif}
+ {$endif m68k}
          compile_proc_body(names,true,false);
          names.done;
+{$endif fixLeaksOnError}
 
          { avoid self recursive destructor call !! PM }
          aktprocsym^.definition^.localst:=nil;
@@ -1471,11 +1516,22 @@ unit pmodules;
               { Compile the finalize }
               codegen_newprocedure;
               gen_main_procsym(current_module^.modulename^+'_finalize',potype_unitfinalize,st);
+{$ifdef fixLeaksOnError}
+              new(names,init);
+              strContStack.push(names);
+              names^.insert('FINALIZE$$'+current_module^.modulename^);
+              names^.insert(target_os.cprefix+current_module^.modulename^+'_finalize');
+              compile_proc_body(names^,true,false);
+              if names <> PstringContainer(strContStack.pop) then
+                writeln('Problem with strContStack in pmodules (1)');
+              dispose(names,done);
+{$else fixLeaksOnError}
               names.init;
               names.insert('FINALIZE$$'+current_module^.modulename^);
               names.insert(target_os.cprefix+current_module^.modulename^+'_finalize');
               compile_proc_body(names,true,false);
               names.done;
+{$endif fixLeaksOnError}
               codegen_doneprocedure;
            end;
 
@@ -1561,7 +1617,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.179  2000-01-11 09:52:07  peter
+  Revision 1.180  2000-01-11 17:16:05  jonas
+    * removed a lot of memory leaks when an error is encountered (caused by
+      procinfo and pstringcontainers). There are still plenty left though :)
+
+  Revision 1.179  2000/01/11 09:52:07  peter
     * fixed placing of .sl directories
     * use -b again for base-file selection
     * fixed group writing for linux with smartlinking
