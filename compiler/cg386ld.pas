@@ -549,9 +549,17 @@ implementation
                                   p^.right^.location.register,
                                   p^.left^.location.register)))
                               else
-                                exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,
-                                  p^.right^.location.register,
-                                  newreference(p^.left^.location.reference))));
+{$IfDef regallocfix}
+                                Begin
+{$EndIf regallocfix}
+                                  exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,
+                                    p^.right^.location.register,
+                                    newreference(p^.left^.location.reference))));
+{$IfDef regallocfix}
+                                  ungetregister(p^.right^.location.register);
+                                  del_reference(p^.left^.location.reference);
+                                end;
+{$EndIf regallocfix}
 
                               if is_64bitint(p^.right^.resulttype) then
                                 begin
@@ -797,7 +805,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  1999-03-31 13:55:07  peter
+  Revision 1.48  1999-04-09 15:48:47  jonas
+    * added fix for missing register deallocation (-dregallocfix)
+
+  Revision 1.47  1999/03/31 13:55:07  peter
     * assembler inlining working for ag386bin
 
   Revision 1.46  1999/03/24 23:16:52  peter
