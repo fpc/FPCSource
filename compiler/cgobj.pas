@@ -337,8 +337,8 @@ unit cgobj;
           }
           procedure g_copyshortstring(list : taasmoutput;const source,dest : treference;len:byte;delsource,loadref : boolean);
 
-          procedure g_incrrefcount(list : taasmoutput;t: tdef; const ref: treference);
-          procedure g_decrrefcount(list : taasmoutput;t: tdef; const ref: treference);
+          procedure g_incrrefcount(list : taasmoutput;t: tdef; const ref: treference;loadref : boolean);
+          procedure g_decrrefcount(list : taasmoutput;t: tdef; const ref: treference;loadref : boolean);
           procedure g_initialize(list : taasmoutput;t : tdef;const ref : treference;loadref : boolean);
           procedure g_finalize(list : taasmoutput;t : tdef;const ref : treference;loadref : boolean);
 
@@ -1296,7 +1296,7 @@ unit cgobj;
       end;
 
 
-    procedure tcg.g_incrrefcount(list : taasmoutput;t: tdef; const ref: treference);
+    procedure tcg.g_incrrefcount(list : taasmoutput;t: tdef; const ref: treference;loadref : boolean);
       var
         href : treference;
         incrfunc : string;
@@ -1316,20 +1316,26 @@ unit cgobj;
          { call the special incr function or the generic addref }
          if incrfunc<>'' then
           begin
-            a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(1));
+            if loadref then
+              a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(1))
+            else
+              a_paramaddr_ref(list,ref,paramanager.getintparaloc(1));
             a_call_name(list,incrfunc);
           end
          else
           begin
             reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
             a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
-            a_paramaddr_ref(list,ref,paramanager.getintparaloc(1));
+            if loadref then
+              a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(1))
+            else
+              a_paramaddr_ref(list,ref,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_ADDREF');
          end;
       end;
 
 
-    procedure tcg.g_decrrefcount(list : taasmoutput;t: tdef; const ref: treference);
+    procedure tcg.g_decrrefcount(list : taasmoutput;t: tdef; const ref: treference; loadref:boolean);
       var
         href : treference;
         decrfunc : string;
@@ -1357,14 +1363,20 @@ unit cgobj;
                reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
                a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
              end;
-            a_paramaddr_ref(list,ref,paramanager.getintparaloc(1));
+            if loadref then
+              a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(1))
+            else
+              a_paramaddr_ref(list,ref,paramanager.getintparaloc(1));
             a_call_name(list,decrfunc);
           end
          else
           begin
             reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
             a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
-            a_paramaddr_ref(list,ref,paramanager.getintparaloc(1));
+            if loadref then
+              a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(1))
+            else
+              a_paramaddr_ref(list,ref,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_DECREF');
          end;
       end;
@@ -1398,7 +1410,7 @@ unit cgobj;
          if is_ansistring(t) or
             is_widestring(t) or
             is_interfacecom(t) then
-           g_decrrefcount(list,t,ref)
+           g_decrrefcount(list,t,ref,loadref)
          else
            begin
               reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
@@ -1853,7 +1865,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.92  2003-04-27 11:21:32  peter
+  Revision 1.93  2003-04-29 07:28:52  michael
+  + Patch from peter to fix wrong pushing of ansistring function results in open array
+
+  Revision 1.92  2003/04/27 11:21:32  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

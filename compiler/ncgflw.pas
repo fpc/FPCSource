@@ -717,7 +717,7 @@ implementation
                     useless for string constants }
                   if (left.resulttype.def.needs_inittable) and
                      (left.nodetype<>stringconstn) then
-                    cg.g_incrrefcount(exprasmlist,left.resulttype.def,left.location.reference);
+                    cg.g_incrrefcount(exprasmlist,left.resulttype.def,left.location.reference,false);
                   { the result of left is not needed anymore after this
                     node }
                   location_freetemp(exprasmlist,left.location);
@@ -1531,7 +1531,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2003-04-27 11:21:33  peter
+  Revision 1.57  2003-04-29 07:29:14  michael
+  + Patch from peter to fix wrong pushing of ansistring function results in open array
+
+  Revision 1.56  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

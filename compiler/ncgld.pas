@@ -445,7 +445,7 @@ implementation
              useless for string constants}
            if (right.resulttype.def.needs_inittable) and
               (right.nodetype<>stringconstn) then
-            cg.g_incrrefcount(exprasmlist,right.resulttype.def,right.location.reference);
+            cg.g_incrrefcount(exprasmlist,right.resulttype.def,right.location.reference,false);
            if codegenerror then
              exit;
 
@@ -462,7 +462,7 @@ implementation
               secondpass(left);
               { decrement destination reference counter }
               if (left.resulttype.def.needs_inittable) then
-               cg.g_decrrefcount(exprasmlist,left.resulttype.def,left.location.reference);
+               cg.g_decrrefcount(exprasmlist,left.resulttype.def,left.location.reference,false);
             {$ifndef newra}
               maybe_restore(exprasmlist,right.location,pushedregs);
             {$endif newra}
@@ -479,7 +479,7 @@ implementation
               secondpass(left);
               { decrement destination reference counter }
               if (left.resulttype.def.needs_inittable) then
-               cg.g_decrrefcount(exprasmlist,left.resulttype.def,left.location.reference);
+               cg.g_decrrefcount(exprasmlist,left.resulttype.def,left.location.reference,false);
               if codegenerror then
                exit;
             end;
@@ -494,7 +494,7 @@ implementation
              useless for string constants}
            if (right.resulttype.def.needs_inittable) and
               (right.nodetype<>stringconstn) then
-            cg.g_incrrefcount(exprasmlist,right.resulttype.def,right.location.reference);
+            cg.g_incrrefcount(exprasmlist,right.resulttype.def,right.location.reference,false);
           {$ifndef newra}
            maybe_restore(exprasmlist,left.location,pushedregs);
           {$endif}
@@ -917,6 +917,10 @@ implementation
               else
               { normal array constructor of the same type }
                begin
+                 if is_ansistring(left.resulttype.def) or
+                    is_widestring(left.resulttype.def) or
+                    (left.resulttype.def.deftype=variantdef) then
+                   freetemp:=false;
                  location_release(exprasmlist,hp.left.location);
                  case hp.left.location.loc of
                    LOC_FPUREGISTER,
@@ -953,7 +957,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-04-27 11:21:33  peter
+  Revision 1.55  2003-04-29 07:29:14  michael
+  + Patch from peter to fix wrong pushing of ansistring function results in open array
+
+  Revision 1.54  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

@@ -890,12 +890,12 @@ implementation
          if is_widestring(resulttype.def) then
            begin
              tg.GetTemp(exprasmlist,pointer_size,tt_widestring,refcountedtemp);
-             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp);
+             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
            end
          else if is_ansistring(resulttype.def) then
            begin
              tg.GetTemp(exprasmlist,pointer_size,tt_ansistring,refcountedtemp);
-             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp);
+             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
            end;
 
          if (procdefinition.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_stdcall]) then
@@ -1438,7 +1438,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2003-04-27 11:21:33  peter
+  Revision 1.56  2003-04-29 07:28:52  michael
+  + Patch from peter to fix wrong pushing of ansistring function results in open array
+
+  Revision 1.55  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

@@ -1049,7 +1049,7 @@ implementation
                       -tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup)
                  else
                   reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
-                 cg.g_incrrefcount(list,tvarsym(p).vartype.def,href);
+                 cg.g_incrrefcount(list,tvarsym(p).vartype.def,href,is_open_array(tvarsym(p).vartype.def));
                end;
              vs_out :
                begin
@@ -1090,7 +1090,7 @@ implementation
                    -tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup)
               else
                reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
-              cg.g_decrrefcount(list,tvarsym(p).vartype.def,href);
+              cg.g_decrrefcount(list,tvarsym(p).vartype.def,href,is_open_array(tvarsym(p).vartype.def));
             end;
          end;
       end;
@@ -2006,7 +2006,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2003-04-28 21:17:38  peter
+  Revision 1.95  2003-04-29 07:28:52  michael
+  + Patch from peter to fix wrong pushing of ansistring function results in open array
+
+  Revision 1.94  2003/04/28 21:17:38  peter
     * do not finalize function results
 
   Revision 1.93  2003/04/27 16:30:34  jonas
