@@ -24,7 +24,9 @@
 
 { some dummy types necessary to have generic resulttypes for certain compilerprocs }
 type
-  fpc_big_chararray = array[0..maxlongint-1] of char;
+  { normally the array shall be maxlongint big, but that will confuse
+    the debugger }
+  fpc_big_chararray = array[0..1023] of char;
   fpc_small_set = longint;
   fpc_normal_set = array[0..7] of longint;
 
@@ -288,7 +290,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.38  2003-04-23 21:28:21  peter
+  Revision 1.39  2003-04-25 21:15:20  peter
+    * fpc_big_array changed to 1k only. using maxlongint will crash gdb
+
+  Revision 1.38  2003/04/23 21:28:21  peter
     * fpc_round added, needed for int64 currency
 
   Revision 1.37  2003/04/02 14:07:30  peter
