@@ -92,6 +92,7 @@ Uses
   {$ifdef ver1_0}
     linux,
   {$else}
+    baseunix,
     unix,
   {$endif}
 {$endif unix}
@@ -172,34 +173,33 @@ Var
 var
   TempHOut, TempHIn,TempHError : longint;
 
-{ For linux the following functions exist
-Function  Dup(oldfile:longint;var newfile:longint):Boolean;
-Function  Dup2(oldfile,newfile:longint):Boolean;
-Function  fdClose(fd:longint):boolean;
+{
+For linux the following functions exist
+Function  fpdup(oldfile:longint;var newfile:longint):Boolean;
+Function  fpdup2(oldfile,newfile:longint):Boolean;
+Function  fpClose(fd:longint):boolean;
 }
 {$ifdef go32v2}
 
 function dup(fh : longint;var nh : longint) : boolean;
-  var
-    Regs : Registers;
-
+var
+  Regs : Registers;
 begin
     Regs.ah:=$45;
     Regs.bx:=fh;
     MsDos (Regs);
-    Dup:=true;
+    dup:=true;
     If (Regs.Flags and fCarry)=0 then
       nh:=Regs.Ax
     else
-      Dup:=false;
+      fpdup:=false;
 end;
 
 function dup2(fh,nh : longint) : boolean;
-  var
-    Regs : Registers;
-
+var
+  Regs : Registers;
 begin
-    Dup2:=true;
+    dup2:=true;
     If fh=nh then
       exit;
     Regs.ah:=$46;
@@ -207,41 +207,60 @@ begin
     Regs.cx:=nh;
     MsDos (Regs);
     If (Regs.Flags and fCarry)<>0 then
-      Dup2:=false;
+      dup2:=false;
 end;
 
-Function FdClose (Handle : Longint) : boolean;
+{$ifndef ver1_0}
+function fpdup(fh:longint):longint;
+var
+  fn : longint;
+begin
+  if not dup(fh,fpdup) then
+   fpdup:=-1;
+end;
+
+function fpdup2(fh:longint):longint;
+var
+  fn : longint;
+begin
+  if not dup2(fh,fpdup2) then
+   fpdup2:=-1;
+end;
+{$endif ver1_0}
+
+
+Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif}( (Handle : Longint) : boolean;
 var Regs: registers;
 begin
   Regs.Eax := $3e00;
   Regs.Ebx := Handle;
   MsDos(Regs);
-  FdClose:=(Regs.Flags and fCarry)=0;
+  {$ifdef ver1_0}fdclose{$else}fpclose{$endif}(:=(Regs.Flags and fCarry)=0;
 end;
 
 {$endif def go32v2}
 
 {$ifdef win32}
-Function FdClose (Handle : Longint) : boolean;
+Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif}( (Handle : Longint) : boolean;
 begin
   { Do we need this ?? }
-  FdClose:=true;
+  {$ifdef ver1_0}fdclose{$else}fpclose{$endif}(:=true;
 end;
 {$endif}
 
 {$ifdef os2}
-Function FdClose (Handle : Longint) : boolean;
+Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif}( (Handle : Longint) : boolean;
 begin
   { Do we need this ?? }
-  FdClose:=true;
+  {$ifdef ver1_0}fdclose{$else}fpclose{$endif}(:=true;
 end;
 {$endif}
 
 {$ifdef TP}
-Function FdClose (Handle : Longint) : boolean;
+Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif}( (Handle : Longint) : boolean;
 begin
   { if executed as under GO32 this hangs the DOS-prompt }
-  FdClose:=true;
+  {$ifdef ver1_0}fdclose{$else}fpclose{$endif}(:=true;
 end;
 
 {$endif}
@@ -336,8 +355,15 @@ function ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
 {$ifdef win32}
     if SetStdHandle(Std_Output_Handle,FileRec(FOUT^).Handle) then
 {$else not win32}
-    if dup(StdOutputHandle,TempHOut) and
-       dup2(FileRec(FOUT^).Handle,StdOutputHandle) then
+    {$ifdef ver1_0}
+    dup(StdOutputHandle,TempHOut);
+    dup2(FileRec(FOUT^).Handle,StdOutputHandle);
+    {$else}
+    TempHOut:=fpdup(StdOutputHandle);
+    fpdup2(FileRec(FOUT^).Handle,StdOutputHandle);
+    {$endif}
+    if (TempHOut<>UnusedHandle) and
+       (StdOutputHandle<>UnusedHandle) then
 {$endif not win32}
       begin
          ChangeRedirOut:=True;
@@ -367,8 +393,15 @@ function ChangeRedirIn(Const Redir : String) : Boolean;
 {$ifdef win32}
     if SetStdHandle(Std_Input_Handle,FileRec(FIN^).Handle) then
 {$else not win32}
-    if dup(StdInputHandle,TempHIn) and
-       dup2(FileRec(FIN^).Handle,StdInputHandle) then
+    {$ifdef ver1_0}
+    dup(StdInputHandle,TempHIn);
+    dup2(FileRec(FIn^).Handle,StdInputHandle);
+    {$else}
+    TempHIn:=fpdup(StdInputHandle);
+    fpdup2(FileRec(FIn^).Handle,StdInputHandle);
+    {$endif}
+    if (TempHIn<>UnusedHandle) and
+       (StdInputHandle<>UnusedHandle) then
 {$endif not win32}
       begin
          ChangeRedirIn:=True;
@@ -402,8 +435,15 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
 {$ifdef win32}
     if SetStdHandle(Std_Error_Handle,FileRec(FERR^).Handle) then
 {$else not win32}
-    if dup(StdErrorHandle,TempHError) and
-       dup2(FileRec(FERR^).Handle,StdErrorHandle) then
+    {$ifdef ver1_0}
+    dup(StdErrorHandle,TempHError);
+    dup2(FileRec(FERR^).Handle,StdErrorHandle);
+    {$else}
+    TempHError:=fpdup(StdErrorHandle);
+    fpdup2(FileRec(FERR^).Handle,StdErrorHandle);
+    {$endif}
+    if (TempHError<>UnusedHandle) and
+       (StdErrorHandle<>UnusedHandle) then
 {$endif not win32}
       begin
          ChangeRedirError:=True;
@@ -459,11 +499,11 @@ end;
 {$ifdef win32}
     SetStdHandle(Std_Output_Handle,StdOutputHandle);
 {$else not win32}
-    dup2(TempHOut,StdOutputHandle);
+    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(TempHOut,StdOutputHandle);
 {$endif not win32}
 {$endif FPC}
     Close (FOUT^);
-    fdClose(TempHOut);
+    {$ifdef ver1_0}fdclose{$else}fpclose{$endif}(TempHOut);
     RedirChangedOut:=false;
   end;
 
@@ -480,11 +520,11 @@ end;
 {$ifdef win32}
     SetStdHandle(Std_Input_Handle,StdInputHandle);
 {$else not win32}
-    dup2(TempHIn,StdInputHandle);
+    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(TempHIn,StdInputHandle);
 {$endif not win32}
 {$endif}
     Close (FIn^);
-    fdClose(TempHIn);
+    {$ifdef ver1_0}fdclose{$else}fpclose{$endif}(TempHIn);
     RedirChangedIn:=false;
   end;
 
@@ -501,7 +541,7 @@ end;
 {$ifdef win32}
     SetStdHandle(Std_Input_Handle,StdInputHandle);
 {$else not win32}
-    dup2(TempHIn,StdInputHandle);
+    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(TempHIn,StdInputHandle);
 {$endif not win32}
 {$endif}
     InRedirDisabled:=True;
@@ -521,7 +561,7 @@ end;
 {$ifdef win32}
     SetStdHandle(Std_Input_Handle,FileRec(FIn^).Handle);
 {$else not win32}
-    dup2(FileRec(FIn^).Handle,StdInputHandle);
+    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(FileRec(FIn^).Handle,StdInputHandle);
 {$endif not win32}
 {$endif}
     InRedirDisabled:=False;
@@ -540,7 +580,7 @@ end;
 {$ifdef win32}
     SetStdHandle(Std_Output_Handle,StdOutputHandle);
 {$else not win32}
-    dup2(TempHOut,StdOutputHandle);
+    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(TempHOut,StdOutputHandle);
 {$endif not win32}
 {$endif}
     OutRedirDisabled:=True;
@@ -560,7 +600,7 @@ end;
 {$ifdef win32}
     SetStdHandle(Std_Output_Handle,FileRec(FOut^).Handle);
 {$else not win32}
-    dup2(FileRec(FOut^).Handle,StdOutputHandle);
+    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(FileRec(FOut^).Handle,StdOutputHandle);
 {$endif not win32}
 {$endif}
     OutRedirDisabled:=False;
@@ -579,11 +619,11 @@ end;
 {$ifdef win32}
     SetStdHandle(Std_Error_Handle,StdErrorHandle);
 {$else not win32}
-    dup2(TempHError,StdErrorHandle);
+    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(TempHError,StdErrorHandle);
 {$endif not win32}
 {$endif}
     Close (FERR^);
-    fdClose(TempHError);
+    {$ifdef ver1_0}fdclose{$else}fpclose{$endif}(TempHError);
     RedirChangedError:=false;
   end;
 
@@ -600,7 +640,7 @@ end;
 {$ifdef win32}
     SetStdHandle(Std_Error_Handle,StdErrorHandle);
 {$else not win32}
-    dup2(TempHError,StdErrorHandle);
+    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(TempHError,StdErrorHandle);
 {$endif not win32}
 {$endif}
     ErrorRedirDisabled:=True;
@@ -620,7 +660,7 @@ end;
 {$ifdef win32}
     SetStdHandle(Std_Error_Handle,FileRec(FErr^).Handle);
 {$else not win32}
-    dup2(FileRec(FERR^).Handle,StdErrorHandle);
+    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(FileRec(FERR^).Handle,StdErrorHandle);
 {$endif not win32}
 {$endif}
     ErrorRedirDisabled:=False;
@@ -930,7 +970,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.13  2003-06-05 20:03:22  peter
+  Revision 1.14  2003-09-25 16:48:18  peter
+    * fixed for 1.1 unix
+
+  Revision 1.13  2003/06/05 20:03:22  peter
     * Shell return adapted for 1.1
 
   Revision 1.12  2003/01/12 19:46:50  hajny
