@@ -1,12 +1,4 @@
-{*****************************************************************************}
-{ File                   : cgcpu.pas                                          }
-{ Author                 : Mazen NEIFER                                       }
-{ Project                : Free Pascal Compiler (FPC)                         }
-{ Creation date          : 2002\04\26                                         }
-{ Licence                : GPL                                                }
-{ Bug report             : mazen.neifer.01@supaero.org                        }
-{*****************************************************************************}
-{
+{******************************************************************************
     $Id$
 
     Copyright (c) 1998-2000 by Florian Klaempfl
@@ -24,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with this program;if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- ****************************************************************************}
+ *****************************************************************************}
 UNIT cgcpu;
 {This unit implements the code generator for the SPARC architecture}
 {$INCLUDE fpcdefs.inc}
@@ -108,7 +100,7 @@ IMPLEMENTATION
 USES
   globtype,globals,verbose,systems,cutils,
   symdef,symsym,defbase,paramgr,
-  rgobj,tgobj,rgcpu;
+  rgobj,tgobj,rgcpu,cpupi;
     { we implement the following routines because otherwise we can't }
     { instantiate the class since it's abstract                      }
 procedure tcgSPARC.a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;CONST LocPara:TParaLocation);
@@ -815,34 +807,22 @@ procedure tcgSPARC.g_flags2reg(list:TAasmOutput;Size:TCgSize;CONST f:tresflags;r
 
 { *********** entry/exit code and address loading ************ }
 
-procedure tcgSPARC.g_stackframe_entry(list:TAasmOutput;localsize:LongInt);
+procedure tcgSPARC.g_stackframe_entry(list:TAasmOutput;LocalSize:LongInt);
   var
     href:TReference;
     i:integer;
     again:tasmlabel;
   begin
-{According the the SPARC ABI the standard stack frame must include :
-  *  16 word save for the in and local registers in case of overflow/underflow.
-this save area always must exist at the %o6+0,
-  *  software conventions requires space for the aggregate return value pointer, even if the word is not used,
-  *  althogh the first six words of arguments reside in registers, the standard
-stack frame reserves space for them. Arguments beond the sixth reside on the
-stack as in the Intel architecture,
-  * other areas depend on the compiler and the code being compiled. The
-standard calling sequence does not define a maximum stack frame size, nor does
-it restrict how a language system uses the "unspecified" areas of the standard
-stack frame.}
-    Dec(LocalSize,(16+1+5)*4);
 {Althogh the SPARC architecture require only word alignment, software
 convention and the operating system require every stack frame to be double word
 aligned}
-    LocalSize:=(LocalSize+3)and $FFFFFFFC;
-{Execute the SAVE instruction to get a new register window and get a new stack
-frame. In the "SAVE %i6,size,%i6" the first %i6 is related to the state before
-execution of the SAVE instrucion so it is the caller %i6, when the %i6 after
-execution of that instrucion is the called function stack pointer}
+    LocalSize:=(LocalSize+7)and $FFFFFFF8;
+{Execute the SAVE instruction to get a new register window and create a new
+stack frame. In the "SAVE %i6,size,%i6" the first %i6 is related to the state
+before execution of the SAVE instrucion so it is the caller %i6, when the %i6
+after execution of that instruction is the called function stack pointer}
     with list do
-      concat(Taicpu.Op_reg_const_reg(A_SAVE,S_SW,Stack_Pointer_Reg,localsize,Stack_Pointer_Reg));
+      concat(Taicpu.Op_reg_const_reg(A_SAVE,S_SW,Stack_Pointer_Reg,LocalSize,Stack_Pointer_Reg));
   end;
 procedure tcgSPARC.g_restore_frame_pointer(list:TAasmOutput);
   begin
@@ -1274,7 +1254,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.19  2002-10-28 20:59:17  mazen
+  Revision 1.20  2002-11-03 20:22:40  mazen
+  * parameter handling updated
+
+  Revision 1.19  2002/10/28 20:59:17  mazen
   * TOpSize values changed S_L --> S_SW
 
   Revision 1.18  2002/10/22 13:43:01  mazen

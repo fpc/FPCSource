@@ -1315,6 +1315,7 @@ implementation
              { move register parameters which aren't regable into memory                                          }
              { we do this after init_paras because it saves some code in init_paras if parameters are in register }
              { instead in memory                                                                                  }
+{$IFNDEF SPARC}
              hp:=tparaitem(procinfo.procdef.para.first);
              while assigned(hp) do
                begin
@@ -1352,6 +1353,7 @@ implementation
                     end;
                   hp:=tparaitem(hp.next);
                end;
+{$ENDIF SPARC}
           end;
 
         if (not inlined) then
@@ -1846,7 +1848,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2002-10-16 19:01:43  peter
+  Revision 1.57  2002-11-03 20:22:40  mazen
+  * parameter handling updated
+
+  Revision 1.56  2002/10/16 19:01:43  peter
     + $IMPLICITEXCEPTIONS switch to turn on/off generation of the
       implicit exception frames for procedures with initialized variables
       and for constructors. The default is on for compatibility

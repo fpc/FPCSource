@@ -31,6 +31,7 @@ type
     (which must be an integer parameter)
     @param(nr Parameter number of routine, starting from 1)}
     function GetIntParaLoc(nr:longint):TParaLocation;override;
+    {Creates location information related to the parameter of the function}
     procedure create_param_loc_info(p:TAbstractProcDef);override;
     {Returns the location where the invisible parameter for structured function
     results will be passed.}
@@ -282,7 +283,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-10-13 21:46:07  mazen
+  Revision 1.9  2002-11-03 20:22:40  mazen
+  * parameter handling updated
+
+  Revision 1.8  2002/10/13 21:46:07  mazen
   * assembler output format fixed
 
   Revision 1.7  2002/10/10 19:57:51  mazen

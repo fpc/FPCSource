@@ -34,6 +34,17 @@ type
     {max of space need for parameters, currently used by the PowerPC port only}
     maxpushedparasize:aword;
     constructor create;override;
+{According the the SPARC ABI the standard stack frame must include :
+  *  16 word save for the in and local registers in case of overflow/underflow.
+this save area always must exist at the %o6+0,
+  *  software conventions requires space for the aggregate return value pointer, even if the word is not used,
+  *  althogh the first six words of arguments reside in registers, the standard
+stack frame reserves space for them. Arguments beond the sixth reside on the
+stack as in the Intel architecture,
+  * other areas depend on the compiler and the code being compiled. The
+standard calling sequence does not define a maximum stack frame size, nor does
+it restrict how a language system uses the "unspecified" areas of the standard
+stack frame.}
     procedure after_header;override;
     procedure after_pass1;override;
   end;
@@ -50,26 +61,32 @@ constructor TSparcprocinfo.create;
 	end;
 procedure TSparcprocinfo.after_header;
 	begin
-  	{ this value is necessary for nested procedures }
-		procdef.localst.address_fixup:=align(procdef.parast.datasize,16);
+  	{Reserve the stack for copying parameters passeѕ into registers}
+    procdef.parast.address_fixup:=(16+1)*4;
 	end;
-procedure TSparcprocinfo.after_pass1;
+procedure TSparcProcInfo.after_pass1;
 	begin
-		procdef.parast.address_fixup:=align(maxpushedparasize,16);
-	  WriteLn('Parameter copies start at: %i6+'+tostr(procdef.parast.address_fixup));
-    procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
-		WriteLn(strpnew('Locals start at: %o6+'+tostr(procdef.localst.address_fixup)));
-		procinfo.firsttemp_offset:=align(procdef.localst.address_fixup+procdef.localst.datasize,16);
-	  WriteLn('Temp. space start: %o6+'+tostr(procinfo.firsttemp_offset));
+    if(procdef.parast.datasize>6*4)
+    then
+      procdef.localst.address_fixup:=procdef.parast.datasize+(16+1)*4
+    else
+      procdef.localst.address_fixup:=6*4+(16+1)*4;
+		procinfo.firsttemp_offset:=procdef.localst.address_fixup+procdef.localst.datasize;
+	  WriteLn('Parameter copies start at: %i6-'+tostr(procdef.parast.address_fixup));
+		WriteLn('Locals start at: %o6-'+tostr(procdef.localst.address_fixup));
+	  WriteLn('Temp. space start: %o6-'+tostr(procinfo.firsttemp_offset));
 		tg.firsttemp:=procinfo.firsttemp_offset;
 		tg.lasttemp:=procinfo.firsttemp_offset;
 	end;
 begin
-  cprocinfo:=TSparcprocinfo;
+  cprocinfo:=TSparcProcInfo;
 end.
 {
   $Log$
-  Revision 1.4  2002-10-20 19:01:38  mazen
+  Revision 1.5  2002-11-03 20:22:40  mazen
+  * parameter handling updated
+
+  Revision 1.4  2002/10/20 19:01:38  mazen
   + op_raddr_reg and op_caddr_reg added to fix functions prologue
 
   Revision 1.3  2002/10/10 15:10:39  mazen
