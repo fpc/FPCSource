@@ -144,7 +144,7 @@ begin
   FileSeek:=-1;
   if (Handle<=0) then exit;
 
-  case Origin do
+  case Origin of
     fsFromBeginning: seekMode:=OFFSET_BEGINNING;
     fsFromCurrent  : seekMode:=OFFSET_CURRENT;
     fsFromEnd      : seekMode:=OFFSET_END;
@@ -200,7 +200,7 @@ begin
   tmpOldName:=PathConv(OldName)+#0;
   tmpNewName:=PathConv(NewName)+#0;
 
-  RenameFile:=Rename(tmpOldName, tmpNewName);
+  RenameFile:=dosRename(tmpOldName, tmpNewName);
 end;
 
 
@@ -568,7 +568,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.4  2005-01-12 08:03:42  karoly
+    Revision 1.5  2005-01-30 02:36:14  karoly
+      * fixed compilation
+
+    Revision 1.4  2005/01/12 08:03:42  karoly
       * Few more Sysutils functions implemented
 
     Revision 1.3  2005/01/11 17:44:06  karoly
