@@ -78,7 +78,7 @@ uses
   ,tgen68k,cga68k
 {$endif}
   { parser specific stuff }
-  ,pbase,pdecl,pexpr,pstatmnt
+  ,pbase,ptype,pdecl,pexpr,pstatmnt
 {$ifdef newcg}
   ,tgcpu,convtree,cgobj,tgeni386  { for the new code generator tgeni386 is only a dummy }
 {$endif newcg}
@@ -86,204 +86,6 @@ uses
 
 var
   realname:string;  { contains the real name of a procedure as it's typed }
-
-
-procedure formal_parameter_list;
-{
-  handle_procvar needs the same changes
-}
-var
-  sc      : Pstringcontainer;
-  s       : string;
-  storetokenpos : tfileposinfo;
-  p       : Pdef;
-  hsym    : psym;
-  hvs,
-  vs      : Pvarsym;
-  hs1,hs2 : string;
-  varspez : Tvarspez;
-  inserthigh : boolean;
-begin
-  consume(_LKLAMMER);
-  inc(testcurobject);
-  repeat
-    if try_to_consume(_VAR) then
-      varspez:=vs_var
-    else
-      if try_to_consume(_CONST) then
-        varspez:=vs_const
-      else
-        varspez:=vs_value;
-    inserthigh:=false;
-    readtypesym:=nil;
-    if idtoken=_SELF then
-      begin
-         { we parse the defintion in the class definition }
-         if assigned(procinfo^._class) and procinfo^._class^.is_class then
-           begin
-{$ifndef UseNiceNames}
-            hs2:=hs2+'$'+'self';
-{$else UseNiceNames}
-            hs2:=hs2+tostr(length('self'))+'self';
-{$endif UseNiceNames}
-            vs:=new(Pvarsym,init('@',procinfo^._class));
-            vs^.varspez:=vs_var;
-          { insert the sym in the parasymtable }
-            aktprocsym^.definition^.parast^.insert(vs);
-{$ifdef INCLUDEOK}
-            include(aktprocsym^.definition^.procoptions,po_containsself);
-{$else}
-            aktprocsym^.definition^.procoptions:=aktprocsym^.definition^.procoptions+[po_containsself];
-{$endif}
-{$ifdef newcg}
-            inc(procinfo^.selfpointer_offset,vs^.address);
-{$else newcg}
-            inc(procinfo^.ESI_offset,vs^.address);
-{$endif newcg}
-            consume(idtoken);
-            consume(_COLON);
-            p:=single_type(hs1,false);
-            if assigned(readtypesym) then
-             aktprocsym^.definition^.concattypesym(readtypesym,vs_value)
-            else
-             aktprocsym^.definition^.concatdef(p,vs_value);
-            CheckTypes(p,procinfo^._class);
-           end
-         else
-           consume(_ID);
-      end
-    else
-      begin
-       { read identifiers }
-         sc:=idlist;
-       { read type declaration, force reading for value and const paras }
-         if (token=_COLON) or (varspez=vs_value) then
-          begin
-            consume(_COLON);
-          { check for an open array }
-            if token=_ARRAY then
-             begin
-               consume(_ARRAY);
-               consume(_OF);
-             { define range and type of range }
-               p:=new(Parraydef,init(0,-1,s32bitdef));
-             { array of const ? }
-               if (token=_CONST) and (m_objpas in aktmodeswitches) then
-                begin
-                  consume(_CONST);
-                  srsym:=nil;
-                  getsymonlyin(systemunit,'TVARREC');
-                  if not assigned(srsym) then
-                   InternalError(1234124);
-                  Parraydef(p)^.definition:=ptypesym(srsym)^.definition;
-                  Parraydef(p)^.IsArrayOfConst:=true;
-                  hs1:='array_of_const';
-                end
-               else
-                begin
-                { define field type }
-                  Parraydef(p)^.definition:=single_type(hs1,false);
-                  hs1:='array_of_'+hs1;
-                  { we don't need the typesym anymore }
-                  readtypesym:=nil;
-                end;
-               inserthigh:=true;
-             end
-            { open string ? }
-            else if (varspez=vs_var) and
-                    (
-                      (
-                        ((token=_STRING) or (idtoken=_SHORTSTRING)) and
-                        (cs_openstring in aktmoduleswitches) and
-                        not(cs_ansistrings in aktlocalswitches)
-                      ) or
-                    (idtoken=_OPENSTRING)) then
-             begin
-               consume(token);
-               p:=openshortstringdef;
-               hs1:='openstring';
-               inserthigh:=true;
-             end
-            { everything else }
-            else
-             p:=single_type(hs1,false);
-          end
-         else
-          begin
-     {$ifndef UseNiceNames}
-            hs1:='$$$';
-     {$else UseNiceNames}
-            hs1:='var';
-     {$endif UseNiceNames}
-            p:=cformaldef;
-            { }
-          end;
-         hs2:=aktprocsym^.definition^.mangledname;
-         storetokenpos:=tokenpos;
-         while not sc^.empty do
-          begin
-{$ifndef UseNiceNames}
-            hs2:=hs2+'$'+hs1;
-{$else UseNiceNames}
-            hs2:=hs2+tostr(length(hs1))+hs1;
-{$endif UseNiceNames}
-            s:=sc^.get_with_tokeninfo(tokenpos);
-            if assigned(readtypesym) then
-             begin
-               aktprocsym^.definition^.concattypesym(readtypesym,varspez);
-               vs:=new(Pvarsym,initsym(s,readtypesym))
-             end
-            else
-             begin
-               aktprocsym^.definition^.concatdef(p,varspez);
-               vs:=new(Pvarsym,init(s,p));
-             end;
-            vs^.varspez:=varspez;
-          { we have to add this to avoid var param to be in registers !!!}
-            if (varspez in [vs_var,vs_const]) and push_addr_param(p) then
-{$ifdef INCLUDEOK}
-              include(vs^.varoptions,vo_regable);
-{$else}
-              vs^.varoptions:=vs^.varoptions+[vo_regable];
-{$endif}
-
-            { search for duplicate ids in object members/methods    }
-            { but only the current class, I don't know why ...      }
-            { at least TP and Delphi do it in that way   (FK) }
-            if assigned(procinfo^._class) and
-               (lexlevel=normal_function_level) then
-             begin
-               hsym:=procinfo^._class^.symtable^.search(vs^.name);
-               if assigned(hsym) then
-                DuplicateSym(hsym);
-             end;
-
-          { do we need a local copy }
-            if (varspez=vs_value) and push_addr_param(p) and
-               not(is_open_array(p) or is_array_of_const(p)) then
-              vs^.setname('val'+vs^.name);
-
-          { insert the sym in the parasymtable }
-            aktprocsym^.definition^.parast^.insert(vs);
-
-          { also need to push a high value? }
-            if inserthigh then
-             begin
-               hvs:=new(Pvarsym,init('high'+s,s32bitdef));
-               hvs^.varspez:=vs_const;
-               aktprocsym^.definition^.parast^.insert(hvs);
-             end;
-
-          end;
-         dispose(sc,done);
-         tokenpos:=storetokenpos;
-      end;
-    aktprocsym^.definition^.setmangledname(hs2);
-  until not try_to_consume(_SEMICOLON);
-  dec(testcurobject);
-  consume(_RKLAMMER);
-end;
-
 
 
 procedure parse_proc_head(options:tproctypeoption);
@@ -543,7 +345,8 @@ begin
     definitions of args defs in staticsymtable for
     implementation of a global method }
   if token=_LKLAMMER then
-    formal_parameter_list;
+    parameter_dec(aktprocsym^.definition);
+
   { so we only restore the symtable now }
   symtablestack:=st;
   if (options=potype_operator) then
@@ -1577,7 +1380,7 @@ begin
        getlabel(quickexitlabel);
      end;
    { reset break and continue labels }
-   in_except_block:=false;
+   block_type:=bt_general;
    aktbreaklabel:=nil;
    aktcontinuelabel:=nil;
 
@@ -2099,7 +1902,11 @@ end.
 
 {
   $Log$
-  Revision 1.28  1999-10-13 10:37:36  peter
+  Revision 1.29  1999-10-22 10:39:35  peter
+    * split type reading from pdecl to ptype unit
+    * parameter_dec routine is now used for procedure and procvars
+
+  Revision 1.28  1999/10/13 10:37:36  peter
     * moved mangledname creation of normal proc so it also handles a wrong
       method proc
 

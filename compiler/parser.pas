@@ -67,7 +67,7 @@ unit parser;
       { cgbase must be after hcodegen to use the correct procinfo !!! }
       cgbase,
 {$endif newcg}
-      comphook,tree,scanner,pbase,pdecl,psystem,pmodules,cresstr;
+      comphook,tree,scanner,pbase,ptype,psystem,pmodules,cresstr;
 
 
     procedure initparser;
@@ -487,7 +487,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.88  1999-10-12 21:20:45  florian
+  Revision 1.89  1999-10-22 10:39:34  peter
+    * split type reading from pdecl to ptype unit
+    * parameter_dec routine is now used for procedure and procvars
+
+  Revision 1.88  1999/10/12 21:20:45  florian
     * new codegenerator compiles again
 
   Revision 1.87  1999/10/03 19:44:41  peter

@@ -137,7 +137,7 @@ interface
 
        { currently parsed block type }
        tblock_type = (bt_none,
-         bt_general,bt_type,bt_const
+         bt_general,bt_type,bt_const,bt_except
        );
 
        { packrecords types }
@@ -179,7 +179,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  1999-09-20 16:38:54  peter
+  Revision 1.20  1999-10-22 10:39:34  peter
+    * split type reading from pdecl to ptype unit
+    * parameter_dec routine is now used for procedure and procvars
+
+  Revision 1.19  1999/09/20 16:38:54  peter
     * cs_create_smart instead of cs_smartlink
     * -CX is create smartlink
     * -CD is create dynamic, but does nothing atm.

@@ -26,10 +26,6 @@ unit pstatmnt;
 
     uses tree;
 
-    var
-       { true, if we are in a except block }
-       in_except_block : boolean;
-
     { reads a block }
     function block(islibrary : boolean) : ptree;
 
@@ -506,7 +502,7 @@ unit pstatmnt;
            end
          else
            begin
-              if not(in_except_block) then
+              if (block_type<>bt_except) then
                Message(parser_e_no_reraise_possible);
            end;
          raise_statement:=gennode(raisen,p1,p2);
@@ -520,7 +516,7 @@ unit pstatmnt;
          p_default,p_specific,hp : ptree;
          ot : pobjectdef;
          sym : pvarsym;
-         old_in_except_block : boolean;
+         old_block_type : tblock_type;
          exceptsymtable : psymtable;
          objname : stringid;
 
@@ -564,8 +560,8 @@ unit pstatmnt;
          else
            begin
               consume(_EXCEPT);
-              old_in_except_block:=in_except_block;
-              in_except_block:=true;
+              old_block_type:=block_type;
+              block_type:=bt_except;
               p_specific:=nil;
               if token=_ON then
                 { catch specific exceptions }
@@ -677,7 +673,7 @@ unit pstatmnt;
                 end;
               dec(statement_level);
 
-              in_except_block:=old_in_except_block;
+              block_type:=old_block_type;
               try_statement:=genloopnode(tryexceptn,p_try_block,p_specific,p_default,false);
            end;
       end;
@@ -694,7 +690,7 @@ unit pstatmnt;
            begin
               p:=comp_expr(true);
               consume(_RKLAMMER);
-              if in_except_block then
+              if (block_type=bt_except) then
                 Message(parser_e_exit_with_argument_not__possible);
               if procinfo^.retdef=pdef(voiddef) then
                 Message(parser_e_void_function);
@@ -1324,7 +1320,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.104  1999-10-14 14:57:54  florian
+  Revision 1.105  1999-10-22 10:39:35  peter
+    * split type reading from pdecl to ptype unit
+    * parameter_dec routine is now used for procedure and procvars
+
+  Revision 1.104  1999/10/14 14:57:54  florian
     - removed the hcodegen use in the new cg, use cgbase instead
 
   Revision 1.103  1999/09/27 23:44:56  peter

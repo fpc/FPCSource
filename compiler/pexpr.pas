@@ -60,7 +60,7 @@ unit pexpr;
 {$endif newcg}
        pass_1,
        { parser specific stuff }
-       pbase,pdecl,
+       pbase,ptype,
        { processor specific stuff }
        cpubase,cpuinfo;
 
@@ -1757,7 +1757,7 @@ unit pexpr;
                  p1:=genrealconstnode(d,bestrealdef^);
                end;
      _STRING : begin
-                 pd:=stringtype;
+                 pd:=string_dec;
                  { STRING can be also a type cast }
                  if token=_LKLAMMER then
                   begin
@@ -2113,7 +2113,11 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.148  1999-10-14 14:57:52  florian
+  Revision 1.149  1999-10-22 10:39:34  peter
+    * split type reading from pdecl to ptype unit
+    * parameter_dec routine is now used for procedure and procvars
+
+  Revision 1.148  1999/10/14 14:57:52  florian
     - removed the hcodegen use in the new cg, use cgbase instead
 
   Revision 1.147  1999/09/28 11:03:54  peter
