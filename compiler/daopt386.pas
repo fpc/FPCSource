@@ -1672,6 +1672,8 @@ End;
 
 Procedure ReadReg(p: PPaiProp; Reg: TRegister);
 Begin
+  Reg := Reg32(Reg);
+  If Reg in [R_EAX..R_EDI] Then
     IncState(p^.Regs[Reg32(Reg)].RState)
 End;
 
@@ -2225,7 +2227,11 @@ End.
 
 {
  $Log$
- Revision 1.35  1999-01-08 12:39:22  florian
+ Revision 1.36  1999-01-20 17:41:26  jonas
+   * small bugfix (memory corruption could occur when certain fpu instructions
+     were encountered)
+
+ Revision 1.35  1999/01/08 12:39:22  florian
    Changes of Alexander Stohr integrated:
      + added KNI opcodes
      + added KNI registers
