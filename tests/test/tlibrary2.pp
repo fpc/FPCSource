@@ -1,3 +1,4 @@
+{ %OPT=-Fl. }
 { %NEEDLIBRARY }
 
 { Test program to test linking to fpc library }
@@ -16,9 +17,9 @@
 
 const
 {$ifdef win32}
-  libname='tlibrary.dll';
+  libname='tlibrary1.dll';
 {$else}
-  libname='libtlibrary.so';
+  libname='libtlibrary1.so';
 {$endif}
 
 procedure test;external libname name 'TestName';
