@@ -452,6 +452,7 @@ implementation
                              emitlab(truelabel);
                              exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_B,1,R_AL)));
                              emitjmp(C_None,aktexit2label);
+                             emitlab(falselabel);
                              exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_B,R_AL,R_AL)));
                              goto do_jmp;
                            end;
@@ -797,7 +798,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.31  1999-04-14 09:14:46  peter
+  Revision 1.32  1999-04-17 13:10:58  peter
+    * fixed exit()
+
+  Revision 1.31  1999/04/14 09:14:46  peter
     * first things to store the symbol/def number in the ppu
 
   Revision 1.30  1999/03/05 16:14:59  peter
