@@ -24,9 +24,9 @@ interface
   {$define SYSTEMEXCEPTIONDEBUG}
 {$endif SYSTEMDEBUG}
 
-{$ifdef i386}
+{$ifdef cpui386}
   {$define Set_i386_Exception_handler}
-{$endif i386}
+{$endif cpui386}
 
 { include system-independent routine headers }
 {$I systemh.inc}
@@ -1389,7 +1389,7 @@ begin
         SetUnhandledExceptionFilter(nil);
 end;
 
-{$else not i386 (Processor specific !!)}
+{$else not cpui386 (Processor specific !!)}
 procedure install_exception_handlers;
 begin
 end;
@@ -1539,7 +1539,10 @@ end.
 
 {
   $Log$
-  Revision 1.46  2003-10-16 15:43:13  peter
+  Revision 1.47  2003-10-17 22:15:10  olle
+    * changed i386 to cpui386
+
+  Revision 1.46  2003/10/16 15:43:13  peter
     * THandle is platform dependent
 
   Revision 1.45  2003/10/06 23:52:53  florian

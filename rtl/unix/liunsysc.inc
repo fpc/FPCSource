@@ -608,7 +608,7 @@ end;
       Port IO functions
 --------------------------------}
 
-{$ifdef i386}
+{$ifdef cpui386}
 {
 Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
 {
@@ -634,11 +634,14 @@ begin
   LinuxError:=fpgetErrno;
 end;
 }
-{$endif i386}
+{$endif cpui386}
 
 {
   $Log$
-  Revision 1.5  2003-09-20 17:27:05  marco
+  Revision 1.6  2003-10-17 22:13:30  olle
+    * changed i386 to cpui386
+
+  Revision 1.5  2003/09/20 17:27:05  marco
    * mmap fix.
 
   Revision 1.4  2003/09/16 20:52:24  marco

@@ -117,7 +117,7 @@ end;
       Port IO functions
 --------------------------------}
 
-{$ifdef i386}
+{$ifdef cpui386}
 
 Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
 {
@@ -145,11 +145,14 @@ begin
   LinuxError:=fpgetErrno;
 end;
 
-{$endif i386}
+{$endif cpui386}
 
 {
   $Log$
-  Revision 1.13  2003-09-20 12:45:34  marco
+  Revision 1.14  2003-10-17 22:11:28  olle
+    * changed i386 to cpui386
+
+  Revision 1.13  2003/09/20 12:45:34  marco
    * Small fix. Cycle works
 
   Revision 1.12  2003/09/16 21:46:27  marco

@@ -23,9 +23,9 @@ interface
   {$define SYSTEMEXCEPTIONDEBUG}
 {$endif SYSTEMDEBUG}
 
-{$ifdef i386}
+{$ifdef cpui386}
   {$define Set_i386_Exception_handler}
-{$endif i386}
+{$endif cpui386}
 
 
 { include system-independent routine headers }
@@ -812,7 +812,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.18  2003-09-27 11:52:35  peter
+  Revision 1.19  2003-10-17 22:12:02  olle
+    * changed i386 to cpui386
+
+  Revision 1.18  2003/09/27 11:52:35  peter
     * sbrk returns pointer
 
   Revision 1.17  2003/03/25 18:17:54  armin

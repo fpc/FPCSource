@@ -77,14 +77,14 @@ Type
 {$i filerec.inc}
 {$i textrec.inc}
 
-{$ifdef i386}
+{$ifdef cpui386}
   Registers = packed record
     case i : integer of
      0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
      1 : (al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh : byte);
      2 : (eax, ebx, ecx, edx, ebp, esi, edi : longint);
     End;
-{$endif i386}
+{$endif cpui386}
 
   DateTime = packed record
     Year,
@@ -137,10 +137,10 @@ Function  EnvStr(index: integer): string;
 Function  GetEnv (envvar: string): string;
 
 {Do Nothing Functions, no Linux version}
-{$ifdef i386}
+{$ifdef cpui386}
 Procedure Intr(intno: byte; var regs: registers);
 Procedure MSDos(var regs: registers);
-{$endif i386}
+{$endif cpui386}
 Procedure SwapVectors;
 Procedure GetIntVec(intno: byte; var vector: pointer);
 Procedure SetIntVec(intno: byte; vector: pointer);
@@ -787,7 +787,7 @@ End;
                       --- Do Nothing Procedures/Functions ---
 ******************************************************************************}
 
-{$ifdef i386}
+{$ifdef cpui386}
 Procedure Intr (intno: byte; var regs: registers);
 Begin
   {! No Linux equivalent !}
@@ -799,7 +799,7 @@ Procedure msdos(var regs : registers);
 Begin
   {! No Linux equivalent !}
 End;
-{$endif i386}
+{$endif cpui386}
 
 
 
@@ -903,7 +903,10 @@ End.
 
 {
   $Log$
-  Revision 1.18  2003-09-27 12:51:33  peter
+  Revision 1.19  2003-10-17 22:13:30  olle
+    * changed i386 to cpui386
+
+  Revision 1.18  2003/09/27 12:51:33  peter
     * fpISxxx macros renamed to C compliant fpS_ISxxx
 
   Revision 1.17  2003/09/17 17:30:46  marco

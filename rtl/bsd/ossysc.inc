@@ -140,7 +140,7 @@ end;
 Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer; [public, alias:  'FPC_SYSC_MMAP'];
 
 begin
-  Fpmmap:=pointer(longint(do_syscall(syscall_nr_mmap,TSysParam(Start),Len,Prot,Flags,fd,{$ifdef cpupowerpc}0,{$endif}offst{$ifdef i386},0{$endif})));
+  Fpmmap:=pointer(longint(do_syscall(syscall_nr_mmap,TSysParam(Start),Len,Prot,Flags,fd,{$ifdef cpupowerpc}0,{$endif}offst{$ifdef cpui386},0{$endif})));
 end;
 
 {$endif}
@@ -599,7 +599,10 @@ end;
 
 {
  $Log$
- Revision 1.12  2003-09-27 13:45:58  peter
+ Revision 1.13  2003-10-17 22:10:30  olle
+   * changed i386 to cpui386
+
+ Revision 1.12  2003/09/27 13:45:58  peter
    * fpnanosleep exported in baseunix
    * fpnanosleep has pointer arguments to be C compliant
 

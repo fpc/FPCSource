@@ -428,7 +428,7 @@ function MUnMap (P : Pointer; Size : Longint) : Boolean;
 
 //Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
 //Function  IoPL(Level : longint) : Boolean;
-{$ifdef i386}
+{$ifdef cpui386}
 Procedure WritePort (Port : Longint; Value : Byte);
 Procedure WritePort (Port : Longint; Value : Word);
 Procedure WritePort (Port : Longint; Value : Longint);
@@ -2854,7 +2854,7 @@ end;
       Memory functions
 --------------------------------}
 
-{$IFDEF I386}
+{$IFDEF cpui386}
 Procedure WritePort (Port : Longint; Value : Byte);
 {
   Writes 'Value' to port 'Port'
@@ -3131,7 +3131,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.8  2003-09-29 14:36:06  peter
+  Revision 1.9  2003-10-17 22:13:30  olle
+    * changed i386 to cpui386
+
+  Revision 1.8  2003/09/29 14:36:06  peter
     * fixed for stricter compiler
 
   Revision 1.7  2003/09/27 13:49:41  peter

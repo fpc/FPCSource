@@ -40,9 +40,9 @@ const
   logend: string = #10#10;
 {$endif logging}
 
-{$ifdef I386}
+{$ifdef cpui386}
 {$ASMMODE ATT}
-{$endif I386}
+{$endif cpui386}
 
 const
 
@@ -706,7 +706,7 @@ var
 begin
   if not force then
    begin
-{$ifdef i386}
+{$ifdef cpui386}
      asm
           movl    VideoBuf,%esi
           movl    OldVideoBuf,%edi
@@ -716,7 +716,7 @@ begin
           cmpsl
           setne   DoUpdate
      end;
-{$else not i386}
+{$else not cpui386}
      p1:=plongint(VideoBuf);
      p2:=plongint(OldVideoBuf);
      for i:=0 to VideoBufSize div 2 do
@@ -731,7 +731,7 @@ begin
            inc(p1);
            inc(p2);
          end;
-{$endif not i386}
+{$endif not cpui386}
    end
   else
    DoUpdate:=true;
@@ -826,7 +826,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2003-09-14 20:15:01  marco
+  Revision 1.15  2003-10-17 22:13:30  olle
+    * changed i386 to cpui386
+
+  Revision 1.14  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.13  2003/03/26 12:45:21  armin
