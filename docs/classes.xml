@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ISO8859-1"?>
 <fpdoc-descriptions>
-<package name="fcl">
+<package name="rtl">
 <module name="classes">
-<short>Basic classes for FCL </short>
+<short>Basic classes for RTL </short>
 <descr>
 <p>This documentation describes the FPC <file>classes</file> unit. 
 The <file>Classes</file> unit contains basic classes for the Free Component

@@ -21,7 +21,7 @@ the linux unit.
 People that have code which heavily uses the old <file>Linux</file> unit,
 can simply change <file>linux</file> by <file>oldlinux</file> in the
 <var>uses</var> clause of their projects, but they should really consider
-moving to the <file>Unix</var> and <var>BaseUnix</var> units.
+moving to the <file>Unix</file> and <file>BaseUnix</file> units.
 </p>
 <p>
 For porting FPC to new unix-like platforms, it should be sufficient to
@@ -2239,7 +2239,7 @@ In case the function fails, the following return values are possible:
 </dl>
 </errors>
 <seealso>
-<link id="#rtl.unix.fpPOpen"/>
+<link id="#rtl.unix.POpen"/>
 <link id="fpMkFifo"/>
 </seealso>
 <example file="linuxex/ex36"/>
@@ -3056,7 +3056,7 @@ The flags may be<var>OR</var>-ed with one of the following constants:
 </p>
 <dl>
 <dt>O_Creat</dt><dd> File is created if it doesn't exist.</dd>
-<dt>O_Excl</dt><dd> If the file is opened with <var>Open_Creat</var> and it
+<dt>O_Excl</dt><dd> If the file is opened with <var>O_Creat</var> and it
 already exists, the call wil fail.</dd>
 <dt>O_NoCtty</dt><dd> If the file is a terminal device, it will NOT become
 the process' controlling terminal.</dd>
@@ -3065,7 +3065,7 @@ the process' controlling terminal.</dd>
 write</em>, the file pointer is positioned at the end of the file.</dd>
 <dt>O_NonBlock</dt><dd> The file is opened in non-blocking mode. No operation
 on the file descriptor will cause the calling process to wait till.</dd>
-<dt>O_NDelay</dt><dd> Idem as <var>Open_NonBlock</var></dd>
+<dt>O_NDelay</dt><dd> Idem as <var>O_NonBlock</var></dd>
 <dt>O_Sync</dt><dd> The file is opened for synchronous IO. Any write
 operation on the file will not return untill the data is physically written
 to disk.</dd>
@@ -3159,7 +3159,7 @@ directory containing it.</dd>
 </errors>
 <seealso>
 <link id="FpLink"/>
-<link id="#rtl.unix.SymLink"/>
+<link id="#rtl.unix.FpSymLink"/>
 </seealso>
 </element>
 

@@ -448,7 +448,7 @@ the size and sign of the ordinal type:
 <short>Set of <link id="TTypeKind"/> enumeration.</short>
 </element>
 
-<element id="TTypeInfo">
+<element name="TTypeInfo">
 <short>Type information record</short>
 <descr>
 <p>
