@@ -326,6 +326,7 @@ Fixed bugs:
   bug0261.pp   problems for assignment overloading                  OK 0.99.12a (PM)
   bug0263.pp   export directive is not necessary in delphi anymore  OK 0.99.13 (PFV)
   bug0264.pp   methodpointer bugs                                   OK 0.99.12b (FK)
+  bug0265.pp   nested proc with for-counter in other lex level      OK 0.99.13 (PFV)
   bug0266.pp   linux crt write cuts 256 char                        OK 0.99.13 (PFV)
   bug0267.pp   parameters after methodpointer are wrong             OK 0.99.12b (FK)
   bug0268.pp   crash with exceptions                                OK 0.99.13 (FK)
@@ -389,6 +390,5 @@ bug0289.pp   no hint/note for unused types
 Unfixed bugs:
 -------------
 bug0262.pp   problems with virtual and overloaded methods
-bug0265.pp   nested proc with for-counter in other lex level
 bug0293.pp   no error with variable name = type name
 bug0299.pp   passing Array[0..1] of char by value to proc leads to problems
