@@ -47,7 +47,6 @@ unit cpunode;
        n386add,
        n386cal,
        n386con,
-       n386flw,
        n386mem,
        n386set,
        n386inl,
@@ -61,7 +60,10 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.17  2002-08-23 16:14:49  peter
+  Revision 1.18  2002-08-24 18:35:42  peter
+    * i386 uses now the generic exception management from ncgflw
+
+  Revision 1.17  2002/08/23 16:14:49  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 
