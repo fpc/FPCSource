@@ -20,8 +20,12 @@ end;
 begin
   dotest;
 end.
+{
   $Log$
-  Revision 1.2  2002-09-07 15:43:06  peter
+  Revision 1.3  2003-01-05 20:26:35  michael
+  + fixed log
+
+  Revision 1.2  2002/09/07 15:43:06  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:22  peter
