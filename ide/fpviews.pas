@@ -2643,7 +2643,8 @@ begin
   if assigned(W) then
     begin
       W^.GetExtent(R);
-      R.B.Y:=Owner^.Origin.Y;
+      if Owner^.Origin.Y>R.A.Y+4 then
+        R.B.Y:=Owner^.Origin.Y;
       W^.ChangeBounds(R);
       W^.Editor^.SetCurPtr(Col,Row);
     end
@@ -4203,7 +4204,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  2001-12-19 10:59:18  pierre
+  Revision 1.12  2002-01-09 09:48:00  pierre
+   try to fix bug 1732
+
+  Revision 1.11  2001/12/19 10:59:18  pierre
    * attempt to fix web bug 1730
 
   Revision 1.10  2001/11/07 00:28:53  pierre
