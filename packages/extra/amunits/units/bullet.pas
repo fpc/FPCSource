@@ -22,6 +22,9 @@
     for the library
     13 Jan 2003.
     
+    Changed startcode for library.
+    1 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -377,9 +380,27 @@ FUNCTION OpenEngine : pGlyphEngine;
 FUNCTION ReleaseInfoA(glyphEngine : pGlyphEngine; tagList : pTagItem) : ULONG;
 FUNCTION SetInfoA(glyphEngine : pGlyphEngine; tagList : pTagItem) : ULONG;
 
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitBULLETLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    BULLETIsCompiledHow : longint;
+
 IMPLEMENTATION
 
-uses msgbox;
+{
+ If you don't use array of const then just remove tagsarray
+}
+uses
+{$ifndef dont_use_openlib}
+msgbox,
+{$endif dont_use_openlib}
+tagsarray;
 
 PROCEDURE CloseEngine(glyphEngine : pGlyphEngine);
 BEGIN
@@ -442,7 +463,49 @@ BEGIN
   END;
 END;
 
-{$I useautoopenlib.inc}
+
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of bullet.library}
+  {$Info don't forget to use InitBULLETLibrary in the beginning of your program}
+
+var
+    bullet_exit : Pointer;
+
+procedure ClosebulletLibrary;
+begin
+    ExitProc := bullet_exit;
+    if BulletBase <> nil then begin
+        CloseLibrary(BulletBase);
+        BulletBase := nil;
+    end;
+end;
+
+procedure InitBULLETLibrary;
+begin
+    BulletBase := nil;
+    BulletBase := OpenLibrary(BULLETNAME,LIBVERSION);
+    if BulletBase <> nil then begin
+        bullet_exit := ExitProc;
+        ExitProc := @ClosebulletLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open bullet.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    BULLETIsCompiledHow := 2;
+{$endif use_init_openlib}
+
 {$ifdef use_auto_openlib}
   {$Info Compiling autoopening of bullet.library}
 
@@ -458,18 +521,13 @@ begin
     end;
 end;
 
-const
-    { Change VERSION and LIBVERSION to proper values }
-
-    VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
-
 begin
     BulletBase := nil;
     BulletBase := OpenLibrary(BULLETNAME,LIBVERSION);
     if BulletBase <> nil then begin
         bullet_exit := ExitProc;
-        ExitProc := @ClosebulletLibrary
+        ExitProc := @ClosebulletLibrary;
+        BULLETIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
         'Can''t open bullet.library version ' + VERSION + #10 +
@@ -478,10 +536,15 @@ begin
         halt(20);
     end;
 
-{$else}
-   {$Warning No autoopening of bullet.library compiled}
-   {$Info Make sure you open bullet.library yourself}
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    BULLETIsCompiledHow := 3;
+   {$Warning No autoopening of bullet.library compiled}
+   {$Warning Make sure you open bullet.library yourself}
+{$endif dont_use_openlib}
+
 
 END. (* UNIT BULLET *)
 
