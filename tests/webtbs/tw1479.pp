@@ -15,6 +15,6 @@ begin
    halt(1);
   fn:=FileSearch(ThisDir+fname,PathSeparator);
   writeln('found: ',fn);
-  if fn<>'.'+fname then
+  if fn<>ThisDir+fname then
    halt(1);
 end.
