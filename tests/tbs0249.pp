@@ -7,6 +7,7 @@ type
   TNotifyEvent = procedure( Sender: TObject ) of object;
 
   THost = class
+  protected
     FOnEvent: TNotifyEvent;
     procedure SetOnEvent( Value: TNotifyEvent );
   public
