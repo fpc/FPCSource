@@ -46,12 +46,15 @@ implementation
        { aasm }
        cpubase,cpuinfo,aasmbase,aasmtai,
        { symtable }
-       symconst,symbase,symdef,symsym,symtype,symtable,types,paramgr,
+       symconst,symbase,symdef,symsym,symtype,symtable,types,
        ppu,fmodule,
        { pass 1 }
        node,
        nbas,
        pass_1,
+    {$ifdef state_tracking}
+       nstate,
+    {$endif state_tracking}
        { pass 2 }
 {$ifndef NOPASS2}
        pass_2,
@@ -103,7 +106,7 @@ implementation
               { insert in local symtable }
               symtablestack.insert(aktprocdef.funcretsym);
               akttokenpos:=storepos;
-              if paramanager.ret_in_acc(aktprocdef.rettype.def) or
+              if ret_in_acc(aktprocdef.rettype.def) or
                  (aktprocdef.rettype.def.deftype=floatdef) then
                 procinfo^.return_offset:=-tfuncretsym(aktprocdef.funcretsym).address;
               { insert result also if support is on }
@@ -127,7 +130,7 @@ implementation
          { because we don't know yet where the address is }
          if not is_void(aktprocdef.rettype.def) then
            begin
-              if paramanager.ret_in_acc(aktprocdef.rettype.def) or (aktprocdef.rettype.def.deftype=floatdef) then
+              if ret_in_acc(aktprocdef.rettype.def) or (aktprocdef.rettype.def.deftype=floatdef) then
                 begin
                    { the space has been set in the local symtable }
                    procinfo^.return_offset:=-tfuncretsym(aktprocdef.funcretsym).address;
@@ -244,6 +247,9 @@ implementation
          block_type:=bt_general;
          aktbreaklabel:=nil;
          aktcontinuelabel:=nil;
+    {$ifdef state_tracking}
+	 aktstate:=Tstate_storage.create;
+    {$endif state_tracking}
 
          { insert symtables for the class, by only if it is no nested function }
          if assigned(procinfo^._class) and not(parent_has_class) then
@@ -312,6 +318,10 @@ implementation
           begin
             { the procedure is now defined }
             aktprocdef.forwarddef:=false;
+
+{$ifdef state_tracking}
+	    do_track_state_pass(code);
+{$endif}
 
              { only generate the code if no type errors are found, else
                finish at least the type checking pass }
@@ -445,6 +455,9 @@ implementation
 
          aktmaxfpuregisters:=oldaktmaxfpuregisters;
 
+    {$ifdef state_tracking}
+	 aktstate.destroy;
+    {$endif state_tracking}
          { restore filepos, the switches are already set }
          aktfilepos:=savepos;
          { restore labels }
@@ -641,7 +654,7 @@ implementation
 {$endif i386}
 
          { pointer to the return value ? }
-         if paramanager.ret_in_param(aktprocdef.rettype.def) then
+         if ret_in_param(aktprocdef.rettype.def) then
           begin
             procinfo^.return_offset:=procinfo^.para_offset;
             inc(procinfo^.para_offset,pointer_size);
@@ -816,8 +829,9 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2002-07-11 14:41:28  florian
-    * start of the new generic parameter handling
+  Revision 1.58  2002-07-14 18:00:44  daniel
+  + Added the beginning of a state tracker. This will track the values of
+    variables through procedures and optimize things away.
 
   Revision 1.56  2002/07/07 09:52:32  florian
     * powerpc target fixed, very simple units can be compiled

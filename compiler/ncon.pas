@@ -53,6 +53,9 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode) : boolean; override;
+       {$ifdef extdebug}
+          procedure dowrite;override;
+       {$endif}
        end;
        tordconstnodeclass = class of tordconstnode;
 
@@ -398,6 +401,15 @@ implementation
           (value = tordconstnode(p).value);
       end;
 
+{$ifdef extdebug}
+    procedure Tordconstnode.dowrite;
+    
+    begin
+	inherited dowrite;
+	write('[',value,']');
+    end;
+{$endif}
+
 {*****************************************************************************
                             TPOINTERCONSTNODE
 *****************************************************************************}
@@ -721,7 +733,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-07-01 18:46:23  peter
+  Revision 1.34  2002-07-14 18:00:43  daniel
+  + Added the beginning of a state tracker. This will track the values of
+    variables through procedures and optimize things away.
+
+  Revision 1.33  2002/07/01 18:46:23  peter
     * internal linker
     * reorganized aasm layer
 

@@ -28,6 +28,9 @@ interface
 
     uses
        node,
+       {$ifdef state_tracking}
+       nstate,
+       {$endif}
        symconst,symbase,symtype,symsym,symdef;
 
     type
@@ -54,6 +57,9 @@ interface
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+       {$ifdef state_tracking}
+          procedure track_state_pass(exec_known:boolean);override;
+       {$endif state_tracking}
           function docompare(p: tnode): boolean; override;
        end;
        tassignmentnodeclass = class of tassignmentnode;
@@ -122,7 +128,7 @@ implementation
 
     uses
       cutils,verbose,globtype,globals,systems,
-      symtable,paramgr,types,
+      symtable,types,
       htypechk,pass_1,
       ncon,ninl,ncnv,nmem,ncal,cpubase,rgobj,cginfo,cgbase
       ;
@@ -345,7 +351,7 @@ implementation
                    { we need a register for call by reference parameters }
                    if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
                       ((tvarsym(symtableentry).varspez=vs_const) and
-                      paramanager.push_addr_param(tvarsym(symtableentry).vartype.def)) or
+                      push_addr_param(tvarsym(symtableentry).vartype.def)) or
                       { call by value open arrays are also indirect addressed }
                       is_open_array(tvarsym(symtableentry).vartype.def) then
                      registers32:=1;
@@ -547,6 +553,8 @@ implementation
 
 
     function tassignmentnode.pass_1 : tnode;
+    
+    
       begin
          result:=nil;
 
@@ -568,6 +576,26 @@ implementation
           inherited docompare(p) and
           (assigntype = tassignmentnode(p).assigntype);
       end;
+
+{$ifdef state_tracking}
+    procedure Tassignmentnode.track_state_pass(exec_known:boolean);
+    
+    var se:Tstate_entry;
+
+    begin
+	if exec_known then
+	    begin
+		right.track_state_pass(exec_known);
+		{Force a new resulttype pass.}
+		right.resulttype.def:=nil;
+		do_resulttypepass(right);
+		resulttypepass(right);
+		aktstate.store_fact(left.getcopy,right.getcopy);
+	    end
+	else
+	    aktstate.delete_fact(left);
+    end;
+{$endif}
 
 
 {*****************************************************************************
@@ -603,7 +631,7 @@ implementation
       begin
          result:=nil;
          location.loc:=LOC_REFERENCE;
-         if paramanager.ret_in_param(resulttype.def) or
+         if ret_in_param(resulttype.def) or
             (lexlevel<>funcretsym.owner.symtablelevel) then
            registers32:=1;
       end;
@@ -955,8 +983,9 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2002-07-11 14:41:28  florian
-    * start of the new generic parameter handling
+  Revision 1.44  2002-07-14 18:00:44  daniel
+  + Added the beginning of a state tracker. This will track the values of
+    variables through procedures and optimize things away.
 
   Revision 1.42  2002/05/18 13:34:10  peter
     * readded missing revisions

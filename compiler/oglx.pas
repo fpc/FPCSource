@@ -307,11 +307,26 @@ uses
          end;*)
       end;
 
+function gen_section_header(sec:Tsection;obj:cardinal):Tlxobject_table_entry;
+	    virtual_size:cardinal;
+	    reloc_base_addr:cardinal;
+	    object_flags:Tlxobject_flag_set;
+	    page_table_index:cardinal;
+	    page_count:cardinal;
+	    reserved:cardinal;
+
+begin
+    gen_section_header.virtual_size:=sections[sec.memsize];
+    
+end;
 
 function Tlxexeoutput.writedata:boolean;
 
 var header:Tlxheader;
     hsym:Tasmsymbol;
+    code_object_header,data_object_header,bss_object_header,stack_object_header,
+     heap_object_header:Tlxobject_table_entry;
+
 
 begin
     result:=false;
@@ -321,6 +336,7 @@ begin
     header.os_type:=1;			{OS/2}
     {Set the initial EIP.}
     header.eip_object:=code_object;
+    hsym:=tasmsymbol(globalsyms.search('start'));
     if not assigned(hsym) then
 	begin
 	    comment(V_Error,'Entrypoint "start" not defined');
@@ -329,7 +345,18 @@ begin
     header.eip:=hsym.address-sections[sec_code].mempos;
     {Set the initial ESP.}
     header.esp_object:=stack_object;
+    header.esp:=stacksize;
     Fwriter.write(header,sizeof(header));
+    for sec:=low(Tsection) to high(Tsection) do
+	if sections[sec].available then
+	    if not(sec in [sec_code,sec_data,sec_bss,sec_stab,sec_stabstr]) then
+	        begin
+		    result:=false;
+		    exit;
+		end;
+    code_object_header:=gen_section_header(sec_code,code_object);
+    data_object_header:=gen_section_header(sec_data,data_object);
+    bss_object_header:=gen_section_header(sec_bss,bss_object);
     result:=true;
 end;
 
@@ -372,7 +399,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-07-11 15:23:25  daniel
+  Revision 1.3  2002-07-14 18:00:44  daniel
+  + Added the beginning of a state tracker. This will track the values of
+    variables through procedures and optimize things away.
+
+  Revision 1.2  2002/07/11 15:23:25  daniel
   * Continued work on LX header
 
   Revision 1.1  2002/07/08 19:22:22  daniel

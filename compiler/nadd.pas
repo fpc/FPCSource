@@ -34,6 +34,9 @@ interface
           constructor create(tt : tnodetype;l,r : tnode);override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+	{$ifdef state_tracking}
+	  procedure track_state_pass(exec_known:boolean);override;
+	{$endif}
          protected
           { override the following if you want to implement }
           { parts explicitely in the code generator (JM)    }
@@ -61,6 +64,9 @@ implementation
       cgbase,
       htypechk,pass_1,
       nmat,ncnv,ncon,nset,nopt,ncal,ninl,
+      {$ifdef state_tracking}
+      nstate,
+      {$endif}
       cpubase;
 
 
@@ -94,6 +100,10 @@ implementation
          l1,l2   : longint;
          rv,lv   : tconstexprint;
          rvd,lvd : bestreal;
+{$ifdef state_tracking}
+	 factval : Tnode;
+	 change  : boolean;
+{$endif}
 
       begin
          result:=nil;
@@ -1336,6 +1346,7 @@ implementation
          { first do the two subtrees }
          firstpass(left);
          firstpass(right);
+	 
          if codegenerror then
            exit;
 
@@ -1612,12 +1623,37 @@ implementation
            end;
       end;
 
+{$ifdef state_tracking}
+    procedure Taddnode.track_state_pass(exec_known:boolean);
+
+    var factval:Tnode;
+    
+    begin
+	factval:=aktstate.find_fact(left);
+	if factval<>nil then
+	    begin
+	        left.destroy;
+	        left:=factval.getcopy;
+	    end;
+	factval:=aktstate.find_fact(right);
+	if factval<>nil then
+	    begin
+	        right.destroy;
+	        right:=factval.getcopy;
+	    end;
+    end;
+{$endif}
+
 begin
    caddnode:=taddnode;
 end.
 {
   $Log$
-  Revision 1.51  2002-05-18 13:34:08  peter
+  Revision 1.52  2002-07-14 18:00:43  daniel
+  + Added the beginning of a state tracker. This will track the values of
+    variables through procedures and optimize things away.
+
+  Revision 1.51  2002/05/18 13:34:08  peter
     * readded missing revisions
 
   Revision 1.50  2002/05/16 19:46:37  carl

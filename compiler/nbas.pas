@@ -69,6 +69,9 @@ interface
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+{$ifdef state_tracking}
+	  procedure track_state_pass(exec_known:boolean);override;
+{$endif state_tracking}
        end;
        tblocknodeclass = class of tblocknode;
 
@@ -290,7 +293,7 @@ implementation
            registersmmx:=right.registersmmx;
 {$endif}
       end;
-
+      
 {$ifdef extdebug}
     procedure tstatementnode.dowrite;
 
@@ -433,6 +436,20 @@ implementation
            end;
       end;
 
+{$ifdef state_tracking}
+      procedure Tblocknode.track_state_pass(exec_known:boolean);
+      
+      var hp:Tstatementnode;
+      
+      begin
+        hp:=Tstatementnode(left);
+	while assigned(hp) do
+	    begin
+		hp.right.track_state_pass(exec_known);
+		hp:=Tstatementnode(hp.left);
+	    end;
+      end;
+{$endif state_tracking}
 
 {*****************************************************************************
                              TASMNODE
@@ -675,7 +692,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-07-01 18:46:22  peter
+  Revision 1.28  2002-07-14 18:00:43  daniel
+  + Added the beginning of a state tracker. This will track the values of
+    variables through procedures and optimize things away.
+
+  Revision 1.27  2002/07/01 18:46:22  peter
     * internal linker
     * reorganized aasm layer
 

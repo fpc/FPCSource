@@ -38,12 +38,15 @@ interface
 
     procedure firstpass(var p : tnode);
     function  do_firstpass(var p : tnode) : boolean;
+{$ifdef state_tracking}
+    procedure  do_track_state_pass(p:Tnode);
+{$endif}
 
 
 implementation
 
     uses
-      globtype,systems,
+      globtype,systems,cclasses,
       cutils,globals,
       cgbase,symdef,
 {$ifdef extdebug}
@@ -193,11 +196,23 @@ implementation
          firstpass(p);
          do_firstpass:=codegenerror;
       end;
+      
+{$ifdef state_tracking}
+     procedure do_track_state_pass(p:Tnode);
+     
+     begin
+        p.track_state_pass(true);
+     end;
+{$endif}
 
 end.
 {
   $Log$
-  Revision 1.24  2002-06-16 08:15:54  carl
+  Revision 1.25  2002-07-14 18:00:44  daniel
+  + Added the beginning of a state tracker. This will track the values of
+    variables through procedures and optimize things away.
+
+  Revision 1.24  2002/06/16 08:15:54  carl
   * commented out uncompilable debug code
 
   Revision 1.23  2002/05/18 13:34:11  peter

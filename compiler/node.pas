@@ -329,6 +329,11 @@ interface
           function det_resulttype : tnode;virtual;abstract;
           { dermines the number of necessary temp. locations to evaluate
             the node }
+{$ifdef state_tracking}
+	  { Does optimizations by keeping track of the variable states
+	    in a procedure }
+	  procedure track_state_pass(exec_known:boolean);virtual;
+{$endif}
           procedure det_temp;virtual;abstract;
 
           procedure pass_2;virtual;abstract;
@@ -515,6 +520,13 @@ implementation
             (flags*flagsequal=p.flags*flagsequal) and
             docompare(p));
       end;
+
+{$ifdef state_tracking}
+    procedure Tnode.track_state_pass(exec_known:boolean);
+    
+    begin
+    end;
+{$endif state_tracking}
 
     function tnode.docompare(p : tnode) : boolean;
 
@@ -806,7 +818,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2002-07-01 18:46:24  peter
+  Revision 1.29  2002-07-14 18:00:44  daniel
+  + Added the beginning of a state tracker. This will track the values of
+    variables through procedures and optimize things away.
+
+  Revision 1.28  2002/07/01 18:46:24  peter
     * internal linker
     * reorganized aasm layer
 
