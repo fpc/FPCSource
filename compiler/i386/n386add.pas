@@ -1348,6 +1348,7 @@ interface
     procedure ti386addnode.second_mul;
 
     var r:Tregister;
+        hl4 : tasmlabel;
 
     begin
       {The location.register will be filled in later (JM)}
@@ -1367,6 +1368,13 @@ interface
       {Also allocate EDX, since it is also modified by a mul (JM).}
       cg.getexplicitregister(exprasmlist,NR_EDX);
       emit_reg(A_MUL,S_L,r);
+      if cs_check_overflow in aktlocalswitches  then
+       begin
+         objectlibrary.getlabel(hl4);
+         cg.a_jmp_flags(exprasmlist,F_AE,hl4);
+         cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
+         cg.a_label(exprasmlist,hl4);
+       end;
       {Free EDX}
       cg.ungetregister(exprasmlist,NR_EDX);
       {Free EAX}
@@ -1581,7 +1589,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2003-12-21 11:28:41  daniel
+  Revision 1.90  2003-12-23 22:13:41  peter
+    * overlfow support in second_mul
+
+  Revision 1.89  2003/12/21 11:28:41  daniel
     * Some work to allow mmx instructions to be used for 32 byte sets
 
   Revision 1.88  2003/12/06 01:15:23  florian
