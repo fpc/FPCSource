@@ -136,8 +136,8 @@ asm
           {  if overlap, then r10 := -1 else r10 := 0  }
           subfe   r10,r10,r10
 
-          {  count < 39 ? (32 + max. alignment (7) }
-          cmpwi   cr7,r5,39
+          {  count < 63 ? (32 + max. alignment (31) }
+          cmpwi   cr7,r5,63
 
           {  if count <= 0, stop  }
           ble     cr0,LMoveDone
@@ -152,7 +152,7 @@ asm
           {  if overlap, then point source and dest to the end  }
           add     r3,r3,r0
           add     r4,r4,r0
-          {  if overlap, then r0 := 6, else r6 := -1  }
+          {  if overlap, then r6 := 0, else r6 := -1  }
           not     r6,r10
           {  if overlap, then r10 := -2, else r10 := 0  }
           slwi    r10,r10,1
@@ -178,16 +178,30 @@ LMove4ByteAlignLoop:
           {  while not aligned, continue  }
           bne     cr0,LMove4ByteAlignLoop
 
-          { check for 8 byte alignment }
-          andi.   r0,r4,7
+          { check for 32 byte alignment }
+          andi.   r7,r4,31
           { we are going to copy one byte again (the one at the newly }
           { aligned address), so increase count byte 1                }
           addi    r5,r5,1
           { count div 4 for number of dwords to copy }
           srwi    r0,r5,2
-          {  if 11 <= count < 39, copy using dwords }
+          {  if 11 <= count < 63, copy using dwords }
           blt     cr7,LMoveDWords
 
+          { # of dwords to copy to reach 32 byte alignment (*4) }
+          { (depends on forward/backward copy)                  }
+
+          { if forward copy, r6 = -1 -> r8 := 32 }
+          { if backward copy, r6 = 0 -> r8 := 0  }
+          rlwinm  r8,r6,0,31-6+1,31-6+1
+          { if forward copy, we have to copy 32 - unaligned count bytes }
+          { if backward copy unaligned count bytes                      }
+          sub     r7,r8,r7
+          { if backward copy, the calculated value is now negate -> }
+          { make it positive again                                 }
+          not     r8, r6
+          add     r7, r7, r8
+          xor     r7, r7, r8
           { multiply the update count with 4 }
           slwi    r10,r10,2
           slwi    r6,r6,2
@@ -195,15 +209,18 @@ LMove4ByteAlignLoop:
           add     r3,r3,r6
           add     r4,r4,r6
 
-          beq     cr0,L8BytesAligned
-
+          beq     cr0,LMove32BytesAligned
+L32BytesAlignMoveLoop:
           {  count >= 39 -> align to 8 byte boundary and then use the FPU  }
           {  since we're already at 4 byte alignment, use dword store      }
+          subic.  r7,r7,4
           lwzux   r0,r3,r10
-          stwux   r0,r4,r10
           subi    r5,r5,4
-L8BytesAligned:
-          { count div 32 ( >= 1, since count was >=39 }
+          stwux   r0,r4,r10
+          bne     L32BytesAlignMoveLoop
+
+LMove32BytesAligned:
+          { count div 32 ( >= 1, since count was >=63 }
           srwi    r0,r5,5
           { remainder }
           andi.   r5,r5,31
@@ -217,6 +234,7 @@ L8BytesAligned:
 
           {  adjust the update count: it will now be 8 or -8 depending on overlap  }
           slwi    r10,r10,1
+          { get dcbz offset }
 
           {  adjust source and dest pointers: because of the above loop, dest is now   }
           {  aligned to 8 bytes. So if we add r6 we will still have an 8 bytes         }
@@ -226,16 +244,34 @@ L8BytesAligned:
 
           slwi    r6,r6,1
 
-LMove32ByteLoop:
+          { the dcbz offset must give a 32 byte aligned address when added   }
+          { to the current dest address and its address must point to the    }
+          { bytes that will be overwritten in the current iteration. In case }
+          { of a forward loop, the dest address has currently an offset of   }
+          { -8 compared to the bytes that will be overwritten (and r6 = -8). }
+          { In case of a backward of a loop, the dest address currently has  }
+          { an offset of +32 compared to the bytes that will be overwritten  }
+          { (and r6 = 0). So the forward dcbz offset must become +8 and the  }
+          { backward -32 -> (-r6 * 5) - 32 gives the correct offset          }
+          slwi    r7,r6,2
+          add     r7,r7,r6
+          neg     r7,r7
+          subi    r7,r7,32
+
+LMove32ByteDcbz:
           lfdux   f0,r3,r10
           lfdux   f1,r3,r10
           lfdux   f2,r3,r10
           lfdux   f3,r3,r10
+          { must be done only now, in case source and dest are less than }
+          { 32 bytes apart!                                              }
+          dcbz    r4,r7
           stfdux  f0,r4,r10
           stfdux  f1,r4,r10
           stfdux  f2,r4,r10
           stfdux  f3,r4,r10
-          bdnz    LMove32ByteLoop
+          bdnz    LMove32ByteDcbz
+LMove32ByteLoopDone:
 
           { cr0*4+eq is true if "count and 31" = 0 }
           beq     cr0,LMoveDone
@@ -897,7 +933,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.46  2003-05-17 00:19:51  jonas
+  Revision 1.47  2003-05-29 12:14:02  jonas
+    * move() now uses dcbz if possible
+
+  Revision 1.46  2003/05/17 00:19:51  jonas
     * fixed inclocked
 
   Revision 1.45  2003/05/14 19:47:35  jonas
