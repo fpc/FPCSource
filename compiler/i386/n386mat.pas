@@ -755,8 +755,8 @@ implementation
               LOC_CREFERENCE :
                 begin
                   location_force_reg(exprasmlist,left.location,def_cgsize(resulttype.def),true);
-                  location_release(exprasmlist,left.location);
                   emit_reg_reg(A_TEST,opsize,left.location.register,left.location.register);
+                  location_release(exprasmlist,left.location);
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_E;
                 end;
@@ -830,7 +830,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-07-20 11:58:02  florian
+  Revision 1.34  2002-08-02 07:44:31  jonas
+    * made assigned() handling generic
+    * add nodes now can also evaluate constant expressions at compile time
+      that contain nil nodes
+
+  Revision 1.33  2002/07/20 11:58:02  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

@@ -197,7 +197,8 @@ implementation
             { support pointer arithmetics on constants (JM) }
             ((lt = pointerconstn) and is_constintnode(right) and
              (nodetype in [addn,subn])) or
-            ((lt = pointerconstn) and (rt = pointerconstn) and
+            (((lt = pointerconstn) or (lt = niln)) and
+             ((rt = pointerconstn) or (rt = niln)) and
              (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,subn])) then
            begin
               { when comparing/substracting  pointers, make sure they are }
@@ -229,14 +230,26 @@ implementation
                 end;
 
               { load values }
-              if (lt = ordconstn) then
-                lv:=tordconstnode(left).value
-              else
-                lv:=tpointerconstnode(left).value;
-              if (rt = ordconstn) then
-                rv:=tordconstnode(right).value
-              else
-                rv:=tpointerconstnode(right).value;
+              case lt of
+                ordconstn:
+                  lv:=tordconstnode(left).value;
+                pointerconstn:
+                  lv:=tpointerconstnode(left).value;
+                niln:
+                  lv:=0;
+                else
+                  internalerror(2002080202);
+              end;
+              case rt of
+                ordconstn:
+                  rv:=tordconstnode(right).value;
+                pointerconstn:
+                  rv:=tpointerconstnode(right).value;
+                niln:
+                  rv:=0;
+                else
+                  internalerror(2002080203);
+              end;
               if (lt = pointerconstn) and
                  (rt <> pointerconstn) then
                 rv := rv * tpointerdef(left.resulttype.def).pointertype.def.size;
@@ -1731,7 +1744,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2002-07-26 11:17:52  jonas
+  Revision 1.59  2002-08-02 07:44:30  jonas
+    * made assigned() handling generic
+    * add nodes now can also evaluate constant expressions at compile time
+      that contain nil nodes
+
+  Revision 1.58  2002/07/26 11:17:52  jonas
     * the optimization of converting a multiplication with a power of two to
       a shl is moved from n386add/secondpass to nadd/resulttypepass
 

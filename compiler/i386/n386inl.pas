@@ -35,7 +35,6 @@ interface
             so that the code generator will actually generate
             these nodes.
           }
-          function first_assigned: tnode;override;
           function first_pi: tnode ; override;
           function first_arctan_real: tnode; override;
           function first_abs_real: tnode; override;
@@ -45,7 +44,6 @@ interface
           function first_cos_real: tnode; override;
           function first_sin_real: tnode; override;
           { second pass override to generate these nodes }
-          procedure second_assigned;override;
           procedure second_IncludeExclude;override;
           procedure second_pi; override;
           procedure second_arctan_real; override;
@@ -75,12 +73,6 @@ implementation
 {*****************************************************************************
                               TI386INLINENODE
 *****************************************************************************}
-
-    function ti386inlinenode.first_assigned: tnode;
-     begin
-       location.loc:=LOC_FLAGS;
-       first_assigned := nil;
-     end;
 
      function ti386inlinenode.first_pi : tnode;
       begin
@@ -248,24 +240,6 @@ implementation
          emit_none(A_FSIN,S_NO)
        end;
 
-     procedure ti386inlinenode.second_assigned;
-      begin
-        secondpass(tcallparanode(left).left);
-        location_release(exprasmlist,tcallparanode(left).left.location);
-        if (tcallparanode(left).left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-           begin
-             emit_reg_reg(A_OR,S_L,
-                tcallparanode(left).left.location.register,
-                tcallparanode(left).left.location.register);
-           end
-         else
-           begin
-             emit_const_ref(A_CMP,S_L,0,tcallparanode(left).left.location.reference);
-           end;
-        location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=F_NE;
-      end;
-       
 {*****************************************************************************
                      INCLUDE/EXCLUDE GENERIC HANDLING
 *****************************************************************************}
@@ -354,7 +328,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2002-07-26 11:16:35  jonas
+  Revision 1.52  2002-08-02 07:44:31  jonas
+    * made assigned() handling generic
+    * add nodes now can also evaluate constant expressions at compile time
+      that contain nil nodes
+
+  Revision 1.51  2002/07/26 11:16:35  jonas
     * fixed (actual and potential) range errors
 
   Revision 1.50  2002/07/25 18:02:33  carl

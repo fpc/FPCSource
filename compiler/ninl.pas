@@ -39,7 +39,6 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
-          function first_assigned: tnode; virtual;
           { All the following routines currently
             call compilerproc's, unless they are
             overriden in which case, the code
@@ -1529,25 +1528,21 @@ implementation
 
               in_assigned_x:
                 begin
-                   { assigned(nil) is always false }
-                   if (tcallparanode(left).left.nodetype=niln) then
-                    begin
-                      hp:=cordconstnode.create(0,booltype);
-                      result:=hp;
-                      goto myexit;
-                    end;
-                   { assigned(pointer(n)) is only false when n=0 }
-                   if (tcallparanode(left).left.nodetype=pointerconstn) then
-                    begin
-                      if tpointerconstnode(tcallparanode(left).left).value=0 then
-                       hp:=cordconstnode.create(0,booltype)
-                      else
-                       hp:=cordconstnode.create(1,booltype);
-                      result:=hp;
-                      goto myexit;
-                    end;
-                   set_varstate(left,true);
-                   resulttype:=booltype;
+{
+                   result := caddnode.create(unequaln,
+                     ctypeconvnode.create_explicit(tcallparanode(left).left,
+                     voidpointertype),cnilnode.create);
+}
+                   result := caddnode.create(unequaln,tcallparanode(left).left,
+                     cnilnode.create);
+                   tcallparanode(left).left := nil;
+                   { free left, because otherwise some code at 'myexit' tries  }
+                   { to run get_paratype for it, which crashes since left.left }
+                   { is now nil                                                }
+                   left.free;
+                   left := nil;
+                   resulttypepass(result);
+                   goto myexit;
                 end;
 
               in_ofs_x :
@@ -2032,7 +2027,8 @@ implementation
 
           in_assigned_x:
             begin
-               result := first_assigned;
+               { should be removed in resulttype pass }
+               internalerror(2002080201);
             end;
 
           in_ofs_x :
@@ -2241,12 +2237,6 @@ implementation
 {$maxfpuregisters default}
 {$endif fpc}
 
-    function tinlinenode.first_assigned: tnode;
-     begin
-       location.loc:=LOC_REGISTER;
-       first_assigned := nil;
-     end;
-
     function tinlinenode.docompare(p: tnode): boolean;
       begin
         docompare :=
@@ -2356,7 +2346,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2002-07-29 21:23:43  florian
+  Revision 1.83  2002-08-02 07:44:31  jonas
+    * made assigned() handling generic
+    * add nodes now can also evaluate constant expressions at compile time
+      that contain nil nodes
+
+  Revision 1.82  2002/07/29 21:23:43  florian
     * more fixes for the ppc
     + wrappers for the tcnvnode.first_* stuff introduced
 
