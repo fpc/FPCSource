@@ -27,7 +27,7 @@
 unit browcol;
 interface
 uses
-  cobjects,objects,symconst,symtable;
+  cobjects,objects,symconst,symtable,cpuinfo;
 
 {$ifndef FPC}
   type
@@ -1378,9 +1378,9 @@ end;
       constresourcestring,
       conststring :
 {        Name:=''''+GetStr(PString(sym^.Value))+'''';}
-        Name:=''''+StrPas(pointer(sym^.Value))+'''';
+        Name:=''''+StrPas(pointer(tpointerord(sym^.Value)))+'''';
       constreal:
-        Name:=FloatToStr(PBestReal(sym^.Value)^);
+        Name:=FloatToStr(PBestReal(tpointerord(sym^.Value))^);
       constbool:
 {        if boolean(sym^.Value)=true then
           Name:='TRUE'
@@ -1392,7 +1392,7 @@ end;
       constchar:
         Name:=''''+chr(sym^.Value)+'''';
       constset:
-{        Name:=SetToStr(pnormalset(sym^.Value))};
+{        Name:=SetToStr(pnormalset(tpointerord(sym^.Value)))};
       constnil: ;
     end;
     GetConstValueName:=Name;
@@ -2094,7 +2094,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-08-18 13:18:12  pierre
+  Revision 1.6  2000-08-18 14:33:07  marco
+   + Fixed cast tconstsym.value with tpointerord
+
+  Revision 1.5  2000/08/18 13:18:12  pierre
    * restore next instead of indexnext field for dc local var in GetAbsProcParmDefStr
 
   Revision 1.4  2000/08/16 18:33:53  peter
