@@ -110,7 +110,7 @@ interface
        { a node which will create a (non)persistent temp of a given type with a given  }
        { size (the size is separate to allow creating "void" temps with a custom size) }
        ttempcreatenode = class(tnode)
-          size: longint;
+          size: aint;
           tempinfo: ptempinfo;
           { * persistent temps are used in manually written code where the temp }
           { be usable among different statements and where you can manually say }
@@ -119,7 +119,7 @@ interface
           { where the node that receives the temp becomes responsible for       }
           { freeing it. In this last case, you must use only one reference      }
           { to it and *not* generate a ttempdeletenode                          }
-          constructor create(const _restype: ttype; _size: longint; _temptype: ttemptype;allowreg:boolean); virtual;
+          constructor create(const _restype: ttype; _size: aint; _temptype: ttemptype;allowreg:boolean); virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -666,7 +666,7 @@ implementation
                           TEMPCREATENODE
 *****************************************************************************}
 
-    constructor ttempcreatenode.create(const _restype: ttype; _size: longint; _temptype: ttemptype;allowreg:boolean);
+    constructor ttempcreatenode.create(const _restype: ttype; _size: aint; _temptype: ttemptype;allowreg:boolean);
       begin
         inherited create(tempcreaten);
         size := _size;
@@ -1026,7 +1026,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2005-02-14 17:13:06  peter
+  Revision 1.95  2005-03-27 20:19:21  florian
+    + compiler support for reading/writing of vararrays
+
+  Revision 1.94  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.93  2005/01/31 16:15:17  peter

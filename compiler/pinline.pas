@@ -404,7 +404,7 @@ implementation
         result := cerrornode.create;
 
         consume(_LKLAMMER);
-        paras:=parse_paras(false,false);
+        paras:=parse_paras(false,_RKLAMMER);
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin
@@ -531,7 +531,7 @@ implementation
         result := cerrornode.create;
 
         consume(_LKLAMMER);
-        paras:=parse_paras(false,false);
+        paras:=parse_paras(false,_RKLAMMER);
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin
@@ -569,7 +569,7 @@ implementation
         result := cerrornode.create;
 
         consume(_LKLAMMER);
-        paras:=parse_paras(false,false);
+        paras:=parse_paras(false,_RKLAMMER);
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin
@@ -631,7 +631,7 @@ implementation
         result := cerrornode.create;
 
         consume(_LKLAMMER);
-        paras:=parse_paras(false,false);
+        paras:=parse_paras(false,_RKLAMMER);
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin
@@ -741,7 +741,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2005-03-25 22:20:19  peter
+  Revision 1.44  2005-03-27 20:19:21  florian
+    + compiler support for reading/writing of vararrays
+
+  Revision 1.43  2005/03/25 22:20:19  peter
     * add hint when passing an uninitialized variable to a var parameter
 
   Revision 1.42  2005/03/25 21:55:43  jonas

@@ -29,7 +29,7 @@ interface
     uses
       symtype,symdef,symbase,
       node,ncal,
-      globtype,globals;
+      tokens,globtype,globals;
 
     { reads a whole expression }
     function expr : tnode;
@@ -46,7 +46,7 @@ interface
 
     function node_to_symlist(p1:tnode):tsymlist;
 
-    function parse_paras(__colon,in_prop_paras : boolean) : tnode;
+    function parse_paras(__colon : boolean;end_of_paras : ttoken) : tnode;
 
     { the ID token has to be consumed before calling this function }
     procedure do_member_read(classh:tobjectdef;getaddr : boolean;sym : tsym;var p1 : tnode;var again : boolean;callflags:tcallnodeflags);
@@ -65,7 +65,7 @@ implementation
        { common }
        cutils,
        { global }
-       tokens,verbose,
+       verbose,
        systems,widestr,
        { symtable }
        symconst,symtable,symsym,defutil,defcmp,
@@ -253,18 +253,12 @@ implementation
       end;
 
 
-    function parse_paras(__colon,in_prop_paras : boolean) : tnode;
-
+    function parse_paras(__colon : boolean;end_of_paras : ttoken) : tnode;
       var
          p1,p2 : tnode;
-         end_of_paras : ttoken;
          prev_in_args : boolean;
          old_allow_array_constructor : boolean;
       begin
-         if in_prop_paras  then
-           end_of_paras:=_RECKKLAMMER
-         else
-           end_of_paras:=_RKLAMMER;
          if token=end_of_paras then
            begin
               parse_paras:=nil;
@@ -703,7 +697,7 @@ implementation
             begin
               if try_to_consume(_LKLAMMER) then
                begin
-                 paras:=parse_paras(false,false);
+                 paras:=parse_paras(false,_RKLAMMER);
                  consume(_RKLAMMER);
                end
               else
@@ -732,7 +726,7 @@ implementation
             begin
               if try_to_consume(_LKLAMMER) then
                begin
-                 paras:=parse_paras(true,false);
+                 paras:=parse_paras(true,_RKLAMMER);
                  consume(_RKLAMMER);
                end
               else
@@ -744,7 +738,7 @@ implementation
           in_str_x_string :
             begin
               consume(_LKLAMMER);
-              paras:=parse_paras(true,false);
+              paras:=parse_paras(true,_RKLAMMER);
               consume(_RKLAMMER);
               p1 := geninlinenode(l,false,paras);
               statement_syssym := p1;
@@ -902,7 +896,7 @@ implementation
               begin
                 if try_to_consume(_LKLAMMER) then
                  begin
-                   para:=parse_paras(false,false);
+                   para:=parse_paras(false,_RKLAMMER);
                    consume(_RKLAMMER);
                  end;
               end;
@@ -975,17 +969,17 @@ implementation
          { has parameters                                             }
          if (ppo_hasparameters in tpropertysym(sym).propoptions) then
            begin
-              if try_to_consume(_LECKKLAMMER) then
-                begin
-                   paras:=parse_paras(false,true);
-                   consume(_RECKKLAMMER);
-                end;
+             if try_to_consume(_LECKKLAMMER) then
+               begin
+                 paras:=parse_paras(false,_RECKKLAMMER);
+                 consume(_RECKKLAMMER);
+               end;
            end;
          { indexed property }
          if (ppo_indexed in tpropertysym(sym).propoptions) then
            begin
-              p2:=cordconstnode.create(tpropertysym(sym).index,tpropertysym(sym).indextype,true);
-              paras:=ccallparanode.create(p2,paras);
+             p2:=cordconstnode.create(tpropertysym(sym).index,tpropertysym(sym).indextype,true);
+             paras:=ccallparanode.create(p2,paras);
            end;
          { we need only a write property if a := follows }
          { if not(afterassignment) and not(in_args) then }
@@ -1482,7 +1476,7 @@ implementation
                     p1:=cerrornode.create;
                     if try_to_consume(_LKLAMMER) then
                      begin
-                       parse_paras(false,false);
+                       parse_paras(false,_RKLAMMER);
                        consume(_RKLAMMER);
                      end;
                   end;
@@ -1545,30 +1539,116 @@ implementation
 
         { tries to avoid syntax errors after invalid qualifiers }
         procedure recoverconsume_postfixops;
+          begin
+            repeat
+              if not try_to_consume(_CARET) then
+                if try_to_consume(_POINT) then
+                  try_to_consume(_ID)
+                else if try_to_consume(_LECKKLAMMER) then
+                  begin
+                    repeat
+                      comp_expr(true);
+                    until not try_to_consume(_COMMA);
+                    consume(_RECKKLAMMER);
+                  end
+                else
+                  break;
+            until false;
+          end;
 
-        begin
-          repeat
-            if not try_to_consume(_CARET) then
-              if try_to_consume(_POINT) then
-                try_to_consume(_ID)
-              else if try_to_consume(_LECKKLAMMER) then
-                begin
-                  repeat
-                    comp_expr(true);
-                  until not try_to_consume(_COMMA);
-                  consume(_RECKKLAMMER);
-                end
-              else
-                break;
-          until false;
-        end;
+
+        procedure handle_variantarray;
+          var
+            p4 : tnode;
+            newstatement : tstatementnode;
+            tempresultvariant,
+            temp    : ttempcreatenode;
+            paras : tcallparanode;
+            newblock : tnode;
+            countindices : aint;
+          begin
+            { create statements with call initialize the arguments and
+              call fpc_dynarr_setlength }
+            newblock:=internalstatements(newstatement);
+
+            { get temp for array of indicies,
+              we set the real size later }
+            temp:=ctempcreatenode.create(sinttype,4,tt_persistent,false);
+            addstatement(newstatement,temp);
+
+            countindices:=0;
+            repeat
+              p4:=comp_expr(true);
+
+              addstatement(newstatement,cassignmentnode.create(
+                ctemprefnode.create_offset(temp,countindices*sinttype.def.size),p4));
+               inc(countindices);
+            until not try_to_consume(_COMMA);
+
+            { set real size }
+            temp.size:=countindices*sinttype.def.size;
+
+            consume(_RECKKLAMMER);
+
+            { we need only a write access if a := follows }
+            if token=_ASSIGNMENT then
+              begin
+                consume(_ASSIGNMENT);
+                p4:=comp_expr(true);
+
+                { create call to fpc_vararray_put }
+                paras:=ccallparanode.create(cordconstnode.create
+                      (countindices,sinttype,true),
+                   ccallparanode.create(caddrnode.create_internal
+                  (ctemprefnode.create(temp)),
+                   ccallparanode.create(ctypeconvnode.create_internal(p4,cvarianttype),
+                   ccallparanode.create(p1
+                     ,nil))));
+
+                addstatement(newstatement,ccallnode.createintern('fpc_vararray_put',paras));
+                addstatement(newstatement,ctempdeletenode.create(temp));
+              end
+            else
+              begin
+                { create temp for result }
+                tempresultvariant:=ctempcreatenode.create(cvarianttype,cvarianttype.def.size,tt_persistent,true);
+                addstatement(newstatement,tempresultvariant);
+
+                { create call to fpc_vararray_get }
+                paras:=ccallparanode.create(cordconstnode.create
+                      (countindices,sinttype,true),
+                   ccallparanode.create(caddrnode.create_internal
+                  (ctemprefnode.create(temp)),
+                   ccallparanode.create(p1,
+                   ccallparanode.create(
+                     ctypeconvnode.create_internal(
+                       cderefnode.create(
+                         ctypeconvnode.create_internal(ctemprefnode.create(temp),voidpointertype
+                       )
+                     ),cvarianttype),
+                     nil))));
+
+                addstatement(newstatement,ccallnode.createintern('fpc_vararray_get',paras));
+                addstatement(newstatement,ctempdeletenode.create(temp));
+                { the last statement should return the value as
+                  location and type, this is done be referencing the
+                  temp and converting it first from a persistent temp to
+                  normal temp }
+                addstatement(newstatement,ctempdeletenode.create_normal_temp(tempresultvariant));
+                addstatement(newstatement,ctemprefnode.create(tempresultvariant));
+              end;
+            p1:=newblock;
+          end;
 
         var
-           store_static : boolean;
-           protsym  : tpropertysym;
-           p2,p3 : tnode;
-           hsym  : tsym;
-           classh : tobjectdef;
+          store_static : boolean;
+          protsym  : tpropertysym;
+          p2,p3 : tnode;
+          hsym  : tsym;
+          classh : tobjectdef;
+
+        label
+          skipreckklammercheck;
         begin
           again:=true;
           while again do
@@ -1637,7 +1717,12 @@ implementation
                                  p2:=comp_expr(true);
                                  p1:=cvecnode.create(p1,p2);
                               end;
-                            variantdef,
+                            variantdef:
+                              begin
+                                handle_variantarray;
+                                { the RECKKLAMMER is already read }
+                                goto skipreckklammercheck;
+                              end;
                             stringdef :
                               begin
                                 p2:=comp_expr(true);
@@ -1684,8 +1769,10 @@ implementation
                               end;
                           end;
                           do_resulttypepass(p1);
-                        until not try_to_consume(_COMMA);;
+                        until not try_to_consume(_COMMA);
                         consume(_RECKKLAMMER);
+                        { handle_variantarray eats the RECKKLAMMER and jumps here }
+                      skipreckklammercheck:
                       end;
                   end;
 
@@ -1801,7 +1888,7 @@ implementation
                          begin
                            if try_to_consume(_LKLAMMER) then
                              begin
-                               p2:=parse_paras(false,false);
+                               p2:=parse_paras(false,_RKLAMMER);
                                consume(_RKLAMMER);
                                p1:=ccallnode.create_procvar(p2,p1);
                                { proc():= is never possible }
@@ -2536,7 +2623,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.186  2005-03-25 22:20:19  peter
+  Revision 1.187  2005-03-27 20:19:21  florian
+    + compiler support for reading/writing of vararrays
+
+  Revision 1.186  2005/03/25 22:20:19  peter
     * add hint when passing an uninitialized variable to a var parameter
 
   Revision 1.185  2005/03/05 16:37:42  florian
