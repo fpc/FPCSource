@@ -100,6 +100,11 @@ cat <<EOFCFG > $thefile
   #WRITE Compiling Debug Version
 #ENDIF
 
+# set binutils prefix
+#IFDEF FPC_CROSSCOMPILING
+  -XP$fpctarget-
+#ENDIF
+
 # ----------------
 # Parsing switches
 # ----------------
