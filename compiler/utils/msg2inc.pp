@@ -33,9 +33,7 @@ var
   OutFile,
   OutName    : string;
   Mode       : TMode;
-  TexOption,
-  TexHeader,
-  TexError   : boolean;
+  TexHeader  : boolean;
 
   MsgTxt     : pchar;
   EnumTxt    : pchar;
@@ -233,7 +231,7 @@ begin
       begin
         write(t,'  ');
         s:=UpCase(strpas(p));
-        crcvalue:=UpdateCRC32(crcvalue,@s[1],length(s));
+        crcvalue:=UpdateCRC32(crcvalue,s[1],length(s));
 {$ifdef DEBUGCRC}
         Writeln(t2,s);
         Writeln(t2,crcvalue);
@@ -683,8 +681,7 @@ var
   procedure helpscreen;
   begin
     writeln('usage : msg2inc [Options] <msgfile> <incfile> <constname>');
-    writeln('<Options> can be : -TE    Create .doc TeX file (error style)');
-    writeln('                   -TO    Create .doc TeX file (options style)');
+    writeln('<Options> can be : -T     Create .doc TeX file');
     writeln('                   -TS    Create .doc TeX file (stand-alone)');
     writeln('                   -I     Intel style asm output');
     writeln('                   -S     array of string');
@@ -708,8 +705,6 @@ begin
         case ch of
          'T' : begin
                  case upcase(para[1]) of
-                  'O' : TexOption:=true;
-                  'E' : TexError:=true;
                   'S' : TexHeader:=True;
                  end;
                  Mode:=M_Tex;
@@ -777,7 +772,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-05-15 13:14:48  pierre
+  Revision 1.7  2000-05-26 18:20:38  peter
+    * fixed wrong var parameter with @
+
+  Revision 1.6  2000/05/15 13:14:48  pierre
    + calculate a CRC value for enums
 
   Revision 1.5  2000/02/09 13:23:11  peter
