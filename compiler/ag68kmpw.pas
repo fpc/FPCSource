@@ -547,7 +547,7 @@ ait_labeled_instruction :
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module^.mainsource) then
-       comment(v_info,'Start writing motorola-styled assembler output for '+current_module^.mainsource^);
+       comment(v_info,'Start writing MPW-styled assembler output for '+current_module^.mainsource^);
 {$endif}
       WriteTree(externals);
       AsmLn;
@@ -579,7 +579,17 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.4  1998-10-14 15:56:42  pierre
+  Revision 1.5  1998-10-20 08:06:37  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.4  1998/10/14 15:56:42  pierre
     * all references to comp suppressed for m68k
 
   Revision 1.3  1998/10/12 12:20:47  pierre

@@ -580,7 +580,7 @@ implementation
                        if p^.left^.treetype=ordconstn then
                         swaptree(p);
                        secondpass(p^.left);
-                       p^.location:=p^.left^.location;
+                       set_location(p^.location,p^.left^.location);
                        { are enough registers free ? }
                        pushed:=maybe_push(p^.right^.registers32,p);
                        secondpass(p^.right);
@@ -1279,7 +1279,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-10-17 02:53:48  carl
+  Revision 1.13  1998-10-20 08:06:43  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.12  1998/10/17 02:53:48  carl
     * bugfix of FPU deallocation in $E- mode
 
   Revision 1.11  1998/10/14 11:28:15  florian

@@ -814,12 +814,25 @@ implementation
                  end
                 else
                  begin
+                    { BUG HERE : detected with nasm :
+                      hregister is allways 32 bit
+                      it should be converted to 16 or 8 bit depending on op_size  PM }
+                    { still not perfect :
+                      if hregister is already a 16 bit reg ?? PM }
+                    case opsize of
+                      S_B : hregister:=reg32toreg8(hregister);
+                      S_W : hregister:=reg32toreg16(hregister);
+                    end;
                     if p^.left^.left^.location.loc=LOC_CREGISTER then
                       exprasmlist^.concat(new(pai386,op_reg_reg(addsubop[p^.inlinenumber],opsize,
                         hregister,p^.left^.left^.location.register)))
                     else
                       exprasmlist^.concat(new(pai386,op_reg_ref(addsubop[p^.inlinenumber],opsize,
                         hregister,newreference(p^.left^.left^.location.reference))));
+                    case opsize of
+                      S_B : hregister:=reg8toreg32(hregister);
+                      S_W : hregister:=reg16toreg32(hregister);
+                    end;
                    ungetregister32(hregister);
                  end;
                 emitoverflowcheck(p^.left^.left);
@@ -929,6 +942,7 @@ implementation
                         end
                       else
                         begin
+                           internalerror(10083);
                         end;
                    end;
               end;
@@ -941,7 +955,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1998-10-13 16:50:02  pierre
+  Revision 1.14  1998-10-20 08:06:40  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.13  1998/10/13 16:50:02  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

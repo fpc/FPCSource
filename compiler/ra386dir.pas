@@ -180,7 +180,7 @@ unit Ra386dir;
                                       else
 
                                         begin
-{$ifdef TESTGLOBALVAR}
+{$ifndef IGNOREGLOBALVAR}
                                            getsym(upper(hs),false);
                                            sym:=srsym;
                                            if assigned(sym) and (sym^.owner^.symtabletype in [unitsymtable,
@@ -262,7 +262,17 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.8  1998-09-04 08:42:08  peter
+  Revision 1.9  1998-10-20 08:06:57  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.8  1998/09/04 08:42:08  peter
     * updated some error messages
 
   Revision 1.7  1998/09/03 17:39:05  florian

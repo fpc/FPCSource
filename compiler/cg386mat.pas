@@ -348,7 +348,7 @@ implementation
 {$ifdef SUPPORT_MMX}
             LOC_MMXREGISTER:
               begin
-                 p^.location:=p^.left^.location;
+                 set_location(p^.location,p^.left^.location);
                  emit_reg_reg(A_PXOR,S_NO,R_MM7,R_MM7);
                  do_mmx_neg;
               end;
@@ -488,7 +488,7 @@ implementation
                  { load operand }
                  case p^.left^.location.loc of
                     LOC_MMXREGISTER:
-                      p^.location:=p^.left^.location;
+                      set_location(p^.location,p^.left^.location);
                     LOC_CMMXREGISTER:
                       begin
                          p^.location.register:=getregistermmx;
@@ -561,7 +561,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-10-09 08:56:24  pierre
+  Revision 1.9  1998-10-20 08:06:42  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.8  1998/10/09 08:56:24  pierre
     * several memory leaks fixed
 
   Revision 1.7  1998/09/17 09:42:17  peter

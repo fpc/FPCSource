@@ -507,7 +507,10 @@ implementation
                        if p^.left^.treetype=ordconstn then
                         swaptree(p);
                        secondpass(p^.left);
-                       p^.location:=p^.left^.location;
+                       set_location(p^.location,p^.left^.location);
+                       {p^.location:=p^.left^.location;
+                       created a bug !!! PM
+                       because symbol was used twice }
                        { are enough registers free ? }
                        pushed:=maybe_push(p^.right^.registers32,p);
                        secondpass(p^.right);
@@ -1290,7 +1293,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1998-10-09 11:47:45  pierre
+  Revision 1.18  1998-10-20 08:06:38  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.17  1998/10/09 11:47:45  pierre
     * still more memory leaks fixes !!
 
   Revision 1.16  1998/10/09 08:56:21  pierre

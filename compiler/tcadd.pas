@@ -509,13 +509,23 @@ implementation
                 if (psetdef(ld)^.settype<>smallset) and
                    (psetdef(rd)^.settype=smallset) then
                  begin
-                   p^.right:=gentypeconvnode(p^.right,psetdef(p^.left^.resulttype));
+                   if (p^.right^.treetype=setconstn) then
+                     begin
+                        t:=gensetconstnode(p^.right^.value_set,psetdef(p^.left^.resulttype));
+                        t^.left:=p^.right^.left;
+                        putnode(p^.right);
+                        p^.right:=t;
+                     end
+                   else
+                     p^.right:=gentypeconvnode(p^.right,psetdef(p^.left^.resulttype));
                    firstpass(p^.right);
                  end;
 
-                { do constant evalution }
+                { do constant evaluation }
                 if (p^.right^.treetype=setconstn) and
-                   (p^.left^.treetype=setconstn) then
+                   not assigned(p^.right^.left) and
+                   (p^.left^.treetype=setconstn) and
+                   not assigned(p^.left^.left) then
                   begin
                      new(resultset);
                      case p^.treetype of
@@ -905,7 +915,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-10-14 12:53:39  peter
+  Revision 1.5  1998-10-20 08:07:05  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.4  1998/10/14 12:53:39  peter
     * fixed small tp7 things
     * boolean:=longbool and longbool fixed
 

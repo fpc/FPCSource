@@ -1327,14 +1327,14 @@ end;
              if (dest_loc.loc=LOC_CREGISTER) or (dest_loc.loc=LOC_REGISTER) then
                begin
                  emit_reg_reg(A_MOVE,s,reg,dest_loc.register);
-                 p^.location:=dest_loc;
+                 set_location(p^.location,dest_loc);
                  in_dest_loc:=true;
                end
              else
              if (dest_loc.loc=LOC_REFERENCE) or (dest_loc.loc=LOC_MEM) then
                begin
                  exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,s,reg,newreference(dest_loc.reference))));
-                 p^.location:=dest_loc;
+                 set_location(p^.location,dest_loc);
                  in_dest_loc:=true;
                end
              else
@@ -1346,7 +1346,17 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  1998-10-16 13:12:48  pierre
+  Revision 1.26  1998-10-20 08:06:46  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.25  1998/10/16 13:12:48  pierre
     * added vmt_offsets in destructors code also !!!
     * vmt_offset code for m68k
 

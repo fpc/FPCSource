@@ -308,7 +308,7 @@ unit tree;
   implementation
 
     uses
-       verbose,files,types;
+       systems,verbose,files,types;
 
 
     function getnode : ptree;
@@ -1151,7 +1151,7 @@ unit tree;
          p^.para_offset:=0;
          p^.para_size:=p^.inlineprocdef^.para_size;
          if ret_in_param(p^.inlineprocdef^.retdef) then
-           p^.para_size:=p^.para_size+sizeof(pointer);
+           p^.para_size:=p^.para_size+target_os.size_of_pointer;
          { copy args }
          p^.left:=getcopy(code);
          p^.registers32:=code^.registers32;
@@ -1620,7 +1620,17 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.46  1998-10-08 17:17:37  pierre
+  Revision 1.47  1998-10-20 08:07:07  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.46  1998/10/08 17:17:37  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)

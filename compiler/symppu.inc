@@ -307,7 +307,6 @@
       end;
 
 
-{$ifdef UseBrowser}
     function readsymref : psym;
       var
         hd : psym;
@@ -316,7 +315,6 @@
         longint(hd):=longint(hd) or (longint(current_ppu^.getword) shl 16);
         readsymref:=hd;
       end;
-{$endif}
 
 
     procedure readsourcefiles;
@@ -445,7 +443,17 @@
 
 {
   $Log$
-  Revision 1.23  1998-10-16 13:37:24  florian
+  Revision 1.24  1998-10-20 08:06:59  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.23  1998/10/16 13:37:24  florian
     + switch -FD added to specify the path for utilities
 
   Revision 1.22  1998/10/14 13:38:24  peter

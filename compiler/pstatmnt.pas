@@ -377,6 +377,7 @@ unit pstatmnt;
                               symtab^.next:=new(psymtable,init(symtable.withsymtable));
                               symtab:=symtab^.next;
                               symtab^.root:=obj^.publicsyms^.root;
+                              symtab^.defowner:=obj;
                               obj:=obj^.childof;
                               inc(levelcount);
                             end;
@@ -1203,8 +1204,8 @@ unit pstatmnt;
                   procinfo.framepointer:=R_SP;
 {$endif}
                   { set the right value for parameters }
-                  dec(aktprocsym^.definition^.parast^.call_offset,sizeof(pointer));
-                  dec(procinfo.call_offset,sizeof(pointer));
+                  dec(aktprocsym^.definition^.parast^.call_offset,target_os.size_of_pointer);
+                  dec(procinfo.call_offset,target_os.size_of_pointer);
               end;
             assembler_block:=_asm_statement;
           { becuase the END is already read we need to get the
@@ -1215,7 +1216,17 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.45  1998-10-19 08:55:01  pierre
+  Revision 1.46  1998-10-20 08:06:53  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.45  1998/10/19 08:55:01  pierre
     * wrong stabs info corrected once again !!
     + variable vmt offset with vmt field only if required
       implemented now !!!

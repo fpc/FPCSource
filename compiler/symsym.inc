@@ -28,6 +28,9 @@
       begin
          left:=nil;
          right:=nil;
+{$ifdef nextfield}
+          nextsym:=nil;
+{$endif nextfield}
          setname(n);
          typ:=abstractsym;
          properties:=current_object_option;
@@ -214,7 +217,7 @@
          setstring(_name,s);
       end;
 
-    { for most symbol types ther is nothing to do at all }
+    { for most symbol types there is nothing to do at all }
     procedure tsym.insert_in_data;
       begin
       end;
@@ -944,30 +947,30 @@
               case varspez of
                  vs_value : begin
                               if is_open_array(definition) then
-                                getsize:=sizeof(pointer)+4
+                                getsize:=target_os.size_of_pointer+target_os.size_of_longint
                               else
                                 getsize:=definition^.size;
                             end;
                    vs_var : begin
                             { open arrays push also the high valye }
                               if is_open_array(definition) then
-                                getsize:=sizeof(pointer)+4
+                                getsize:=target_os.size_of_pointer+target_os.size_of_pointer
                               else
-                                getsize:=sizeof(pointer);
+                                getsize:=target_os.size_of_pointer;
                             end;
                  vs_const : begin
                               case definition^.deftype of
                              stringdef,
                              recorddef,
                              objectdef,
-                                setdef : getsize:=sizeof(pointer);
+                                setdef : getsize:=target_os.size_of_pointer;
                               arraydef : begin
                                          { open arrays push also the high valye }
                                            if (parraydef(definition)^.lowrange=0) and
                                               (parraydef(definition)^.highrange=-1) then
-                                             getsize:=sizeof(pointer)+4
+                                             getsize:=target_os.size_of_pointer+target_os.size_of_pointer
                                            else
-                                             getsize:=sizeof(pointer);
+                                             getsize:=target_os.size_of_pointer;
                                          end;
                               else
                                getsize:=definition^.size;
@@ -1712,7 +1715,17 @@
 
 {
   $Log$
-  Revision 1.54  1998-10-19 08:55:07  pierre
+  Revision 1.55  1998-10-20 08:07:00  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.54  1998/10/19 08:55:07  pierre
     * wrong stabs info corrected once again !!
     + variable vmt offset with vmt field only if required
       implemented now !!!

@@ -423,7 +423,7 @@
          string_typ:=st_longstring;
          deftype:=stringdef;
          len:=l;
-         savesize:=Sizeof(pointer);
+         savesize:=target_os.size_of_pointer;
       end;
 
 
@@ -433,7 +433,7 @@
          deftype:=stringdef;
          string_typ:=st_longstring;
          len:=readlong;
-         savesize:=Sizeof(pointer);
+         savesize:=target_os.size_of_pointer;
       end;
 
 
@@ -443,7 +443,7 @@
          string_typ:=st_ansistring;
          deftype:=stringdef;
          len:=l;
-         savesize:=sizeof(pointer);
+         savesize:=target_os.size_of_pointer;
       end;
 
 
@@ -453,7 +453,7 @@
          deftype:=stringdef;
          string_typ:=st_ansistring;
          len:=readlong;
-         savesize:=sizeof(pointer);
+         savesize:=target_os.size_of_pointer;
       end;
 
 
@@ -463,7 +463,7 @@
          string_typ:=st_widestring;
          deftype:=stringdef;
          len:=l;
-         savesize:=sizeof(pointer);
+         savesize:=target_os.size_of_pointer;
       end;
 
 
@@ -473,7 +473,7 @@
          deftype:=stringdef;
          string_typ:=st_widestring;
          len:=readlong;
-         savesize:=sizeof(pointer);
+         savesize:=target_os.size_of_pointer;
       end;
 
 
@@ -1166,7 +1166,7 @@
          inherited init;
          deftype:=pointerdef;
          definition:=def;
-         savesize:=Sizeof(pointer);
+         savesize:=target_os.size_of_pointer;
       end;
 
 
@@ -1176,7 +1176,7 @@
          deftype:=pointerdef;
          { the real address in memory is calculated later (deref) }
          definition:=readdefref;
-         savesize:=Sizeof(pointer);
+         savesize:=target_os.size_of_pointer;
       end;
 
 
@@ -1254,7 +1254,7 @@
          inherited init(def);
          deftype:=classrefdef;
          definition:=def;
-         savesize:=Sizeof(pointer);
+         savesize:=target_os.size_of_pointer;
       end;
 
 
@@ -1409,7 +1409,7 @@
       begin
          inherited init;
          deftype:=formaldef;
-         savesize:=Sizeof(pointer);
+         savesize:=target_os.size_of_pointer;
       end;
 
 
@@ -1417,7 +1417,7 @@
       begin
          inherited load;
          deftype:=formaldef;
-         savesize:=Sizeof(pointer);
+         savesize:=target_os.size_of_pointer;
       end;
 
 
@@ -1690,13 +1690,21 @@
     procedure addname(p : psym);
     var
       news, newrec : pchar;
+      spec : string[2];
     begin
     { static variables from objects are like global objects }
     if ((p^.properties and sp_static)<>0) then
       exit;
+    if ((p^.properties and sp_protected)<>0) then
+      spec:='/1'
+    else if ((p^.properties and sp_private)<>0) then
+      spec:='/0'
+    else
+      spec:='';
+
     If p^.typ = varsym then
        begin
-       newrec := strpnew(p^.name+':'+pvarsym(p)^.definition^.numberstring
+       newrec := strpnew(p^.name+':'+spec+pvarsym(p)^.definition^.numberstring
                      +','+tostr(pvarsym(p)^.address*8)+','
                      +tostr(pvarsym(p)^.definition^.size*8)+';');
        if strlen(StabRecString) + strlen(newrec) >= StabRecSize-256 then
@@ -1718,6 +1726,7 @@
     function trecdef.stabstring : pchar;
       Var oldrec : pchar;
           oldsize : longint;
+          cur : psym;
       begin
         oldrec := stabrecstring;
         oldsize:=stabrecsize;
@@ -1725,11 +1734,20 @@
         stabrecsize:=memsizeinc;
         strpcopy(stabRecString,'s'+tostr(savesize));
         RecOffset := 0;
+{$ifdef nonextfield}
         {$ifdef tp}
           symtable^.foreach(addname);
         {$else}
           symtable^.foreach(@addname);
         {$endif}
+{$else nonextfield}
+         cur:=symtable^.root;
+         while assigned(cur) do
+           begin
+              addname(cur);
+              cur:=cur^.nextsym;
+           end;
+{$endif nonextfield}
         { FPC doesn't want to convert a char to a pchar}
         { is this a bug ? }
         strpcopy(strend(StabRecString),';');
@@ -1843,7 +1861,7 @@
          fpu_used:=0;
          options:=0;
          retdef:=voiddef;
-         savesize:=Sizeof(pointer);
+         savesize:=target_os.size_of_pointer;
       end;
 
 
@@ -1915,7 +1933,7 @@
          options:=readlong;
          count:=readword;
          para1:=nil;
-         savesize:=Sizeof(pointer);
+         savesize:=target_os.size_of_pointer;
          for i:=1 to count do
            begin
               new(hp);
@@ -1942,9 +1960,9 @@
           begin
             case pdc^.paratyp of
               vs_value : inc(l,align(pdc^.data^.size,target_os.stackalignment));
-              vs_var   : inc(l,sizeof(pointer));
+              vs_var   : inc(l,target_os.size_of_pointer);
               vs_const : if dont_copy_const_param(pdc^.data) then
-                          inc(l,sizeof(pointer))
+                          inc(l,target_os.size_of_pointer)
                          else
                           inc(l,align(pdc^.data^.size,target_os.stackalignment));
             end;
@@ -2298,6 +2316,7 @@
       if i>0 then
         begin
         strpcopy(strend(StabRecString),','+tostr(i)+';');
+        (* confuse gdb !! PM
         if assigned(parast) then
           {$IfDef TP}
           parast^.foreach(addparaname)
@@ -2318,7 +2337,7 @@
                +':'+param^.data^.numberstring+','+vartyp+';');
             param := param^.next;
             end;
-          end;
+          end;   *)
         {strpcopy(strend(StabRecString),';');}
         end;
       stabstring := strnew(stabrecstring);
@@ -2444,9 +2463,9 @@
     function tprocvardef.size : longint;
       begin
          if (options and pomethodpointer)=0 then
-           size:=sizeof(pointer)
+           size:=target_os.size_of_pointer
          else
-           size:=2*sizeof(pointer);
+           size:=2*target_os.size_of_pointer;
       end;
 
 
@@ -2540,7 +2559,7 @@
         publicsyms^.name := stringdup(n);
         { create space for vmt !! }
 {$ifdef OLDVMTSTYLE}
-        publicsyms^.datasize:=Sizeof(pointer);
+        publicsyms^.datasize:=target_os.size_of_pointer;
         options:=oo_hasvmt;
         vmt_offset:=0;
 {$else }
@@ -2573,7 +2592,7 @@
                +childof^.publicsyms^.datasize;
              if ((options and oo_hasvmt)<>0) and
                 ((c^.options and oo_hasvmt)<>0) then
-               publicsyms^.datasize:=publicsyms^.datasize-Sizeof(pointer);
+               publicsyms^.datasize:=publicsyms^.datasize-target_os.size_of_pointer;
              { if parent has a vmt field then
                the offset is the same for the child PM }
              if ((c^.options and oo_hasvmt)<>0) then
@@ -2633,7 +2652,7 @@
                     publicsyms^.datasize:=publicsyms^.datasize+4-(publicsyms^.datasize mod 4);
                end;
              vmt_offset:=publicsyms^.datasize;
-             publicsyms^.datasize:=publicsyms^.datasize+sizeof(pointer);
+             publicsyms^.datasize:=publicsyms^.datasize+target_os.size_of_pointer;
              options:=options or oo_hasvmt;
           end;
      end;
@@ -2688,7 +2707,7 @@
    function tobjectdef.size : longint;
      begin
         if (options and oo_is_class)<>0 then
-          size:=sizeof(pointer)
+          size:=target_os.size_of_pointer
 
         else
           size:=publicsyms^.datasize;
@@ -2873,6 +2892,9 @@
           oldrec : pchar;
           oldrecsize : longint;
           str_end : string;
+{$ifndef nonextfield}
+          cur : psym;
+{$endif nonextfield}
       begin
         oldrec := stabrecstring;
         oldrecsize:=stabrecsize;
@@ -2885,22 +2907,40 @@
           strpcopy(strend(stabrecstring),'!1,020,'+childof^.numberstring+';');
         {virtual table to implement yet}
         RecOffset := 0;
-      {$ifdef tp}
-         publicsyms^.foreach(addname);
-      {$else}
-         publicsyms^.foreach(@addname);
-      {$endif tp}
+{$ifdef nonextfield}
+        {$ifdef tp}
+          publicsyms^.foreach(addname);
+        {$else}
+          publicsyms^.foreach(@addname);
+        {$endif}
+{$else nonextfield}
+         cur:=publicsyms^.root;
+         while assigned(cur) do
+           begin
+              addname(cur);
+              cur:=cur^.nextsym;
+           end;
+{$endif nonextfield}
       if (options and oo_hasvmt) <> 0 then
         if not assigned(childof) or ((childof^.options and oo_hasvmt) = 0) then
            begin
               strpcopy(strend(stabrecstring),'$vf'+numberstring+':'+typeglobalnumber('vtblarray')
                 +','+tostr(vmt_offset*8)+';');
            end;
+{$ifdef nonextfield}
         {$ifdef tp}
           publicsyms^.foreach(addprocname);
         {$else}
           publicsyms^.foreach(@addprocname);
         {$endif tp }
+{$else nonextfield}
+         cur:=publicsyms^.root;
+         while assigned(cur) do
+           begin
+              addprocname(cur);
+              cur:=cur^.nextsym;
+           end;
+{$endif nonextfield}
         if (options and oo_hasvmt) <> 0  then
           begin
              anc := @self;
@@ -3141,7 +3181,17 @@
 
 {
   $Log$
-  Revision 1.61  1998-10-19 08:55:05  pierre
+  Revision 1.62  1998-10-20 08:06:58  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.61  1998/10/19 08:55:05  pierre
     * wrong stabs info corrected once again !!
     + variable vmt offset with vmt field only if required
       implemented now !!!

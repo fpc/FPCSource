@@ -54,7 +54,7 @@ unit ptconst;
 {$ifdef m68k}
          j : longint;
 {$endif m68k}
-         p         : ptree;
+         p,hp      : ptree;
          i,l,offset,
          strlength : longint;
          lsym      : pvarsym;
@@ -166,6 +166,14 @@ unit ptconst;
            begin
               p:=comp_expr(true);
               do_firstpass(p);
+              { allows horrible ofs(typeof(TButton)^) code !! }
+              if (p^.treetype=addrn) and (p^.left^.treetype=derefn) then
+                begin
+                   hp:=p^.left^.left;
+                   p^.left^.left:=nil;
+                   disposetree(p);
+                   p:=hp;
+                end;
               { nil pointer ? }
               if p^.treetype=niln then
                 datasegment^.concat(new(pai_const,init_32bit(0)))
@@ -612,7 +620,17 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.21  1998-10-19 08:55:03  pierre
+  Revision 1.22  1998-10-20 08:06:56  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.21  1998/10/19 08:55:03  pierre
     * wrong stabs info corrected once again !!
     + variable vmt offset with vmt field only if required
       implemented now !!!

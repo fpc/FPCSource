@@ -39,6 +39,9 @@
           typ        : tsymtyp;
           _name      : pchar;
           left,right : psym;
+{$ifndef nonextfield}
+          nextsym    : psym;
+{$endif nextfield}
           speedvalue : longint;
           properties : symprop;
           owner      : psymtable;
@@ -315,7 +318,17 @@
 
 {
   $Log$
-  Revision 1.3  1998-10-08 17:17:34  pierre
+  Revision 1.4  1998-10-20 08:07:02  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.3  1998/10/08 17:17:34  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)

@@ -385,7 +385,7 @@ const msgtxt : array[0..00091,1..240] of char=(+
   'W_NEAR ignored'#000+
   'W_FAR ignored'#000+
   'D_Creating inline asm lookup tables'#000+
-  'W_Using a defined name as a local ','label'#000+
+  'E_Using a defined name as a local ','label'#000+
   'F_internal error in HandleExtend()'#000+
   'E_Invalid character: <'#000+
   'E_Invalid character: >'#000+

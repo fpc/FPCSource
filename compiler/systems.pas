@@ -120,7 +120,9 @@ unit systems;
           Cprefix   : string[2];
           newline   : string[2];
           endian    : tendian;
-          stackalignment : longint;
+          stackalignment : {longint this is a little overkill no ?? }byte;
+          size_of_pointer : byte;
+          size_of_longint : byte;
           use_function_relative_addresses : boolean;
        end;
 
@@ -222,6 +224,8 @@ implementation
             newline      : #13#10;
             endian       : endian_little;
             stackalignment : 2;
+            size_of_pointer : 4;
+            size_of_longint : 4;
             use_function_relative_addresses : true
           ),
           (
@@ -238,6 +242,8 @@ implementation
             newline      : #13#10;
             endian       : endian_little;
             stackalignment : 2;
+            size_of_pointer : 4;
+            size_of_longint : 4;
             use_function_relative_addresses : true
           ),
           (
@@ -254,6 +260,8 @@ implementation
             newline      : #10;
             endian       : endian_little;
             stackalignment : 4;
+            size_of_pointer : 4;
+            size_of_longint : 4;
             use_function_relative_addresses : true
           ),
           (
@@ -270,6 +278,8 @@ implementation
             newline      : #13#10;
             endian       : endian_little;
             stackalignment : 2;
+            size_of_pointer : 4;
+            size_of_longint : 4;
             use_function_relative_addresses : false
           ),
           (
@@ -286,6 +296,8 @@ implementation
             newline      : #13#10;
             endian       : endian_little;
             stackalignment : 4;
+            size_of_pointer : 4;
+            size_of_longint : 4;
             use_function_relative_addresses : true
           ),
           (
@@ -302,6 +314,8 @@ implementation
             newline      : #10;
             endian       : endian_big;
             stackalignment : 2;
+            size_of_pointer : 4;
+            size_of_longint : 4;
             use_function_relative_addresses : false
           ),
           (
@@ -318,6 +332,8 @@ implementation
             newline      : #10;
             endian       : endian_big;
             stackalignment : 2;
+            size_of_pointer : 4;
+            size_of_longint : 4;
             use_function_relative_addresses : false
           ),
           (
@@ -334,6 +350,8 @@ implementation
             newline      : #13;
             endian       : endian_big;
             stackalignment : 2;
+            size_of_pointer : 4;
+            size_of_longint : 4;
             use_function_relative_addresses : false
           ),
           (
@@ -350,6 +368,8 @@ implementation
             newline      : #10;
             endian       : endian_big;
             stackalignment : 2;
+            size_of_pointer : 4;
+            size_of_longint : 4;
             use_function_relative_addresses : true
           ),
           (
@@ -366,6 +386,8 @@ implementation
             newline      : #10;
             endian       : endian_big;
             stackalignment : 2;
+            size_of_pointer : 4;
+            size_of_longint : 4;
             use_function_relative_addresses : false
           )
           );
@@ -1152,7 +1174,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  1998-10-16 08:51:54  peter
+  Revision 1.47  1998-10-20 08:07:04  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.46  1998/10/16 08:51:54  peter
     + target_os.stackalignment
     + stack can be aligned at 2 or 4 byte boundaries
 

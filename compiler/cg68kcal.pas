@@ -841,7 +841,11 @@ implementation
                 end
               else
                 emitcall(p^.procdefinition^.mangledname,
-                  p^.symtableproc^.symtabletype=unitsymtable);
+                  (p^.symtableproc^.symtabletype=unitsymtable) or
+                  ((p^.symtableproc^.symtabletype=objectsymtable) and
+                  (pobjectdef(p^.symtableproc^.defowner)^.owner^.symtabletype=unitsymtable))or
+                  ((p^.symtableproc^.symtabletype=withsymtable) and
+                  (pobjectdef(p^.symtableproc^.defowner)^.owner^.symtabletype=unitsymtable)));
               if ((p^.procdefinition^.options and poclearstack)<>0) then
                 begin
                    if (pushedparasize > 0) and (pushedparasize < 9) then
@@ -1052,7 +1056,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-10-19 08:54:53  pierre
+  Revision 1.13  1998-10-20 08:06:45  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.12  1998/10/19 08:54:53  pierre
     * wrong stabs info corrected once again !!
     + variable vmt offset with vmt field only if required
       implemented now !!!

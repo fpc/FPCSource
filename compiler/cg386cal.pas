@@ -1163,6 +1163,8 @@ implementation
                 emitcall(p^.procdefinition^.mangledname,
                   (p^.symtableproc^.symtabletype=unitsymtable) or
                   ((p^.symtableproc^.symtabletype=objectsymtable) and
+                  (pobjectdef(p^.symtableproc^.defowner)^.owner^.symtabletype=unitsymtable))or
+                  ((p^.symtableproc^.symtabletype=withsymtable) and
                   (pobjectdef(p^.symtableproc^.defowner)^.owner^.symtabletype=unitsymtable)))
               else { inlined proc }
                 { inlined code is in inlinecode }
@@ -1512,7 +1514,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  1998-10-16 08:51:45  peter
+  Revision 1.36  1998-10-20 08:06:39  pierre
+    * several memory corruptions due to double freemem solved
+      => never use p^.loc.location:=p^.left^.loc.location;
+    + finally I added now by default
+      that ra386dir translates global and unit symbols
+    + added a first field in tsymtable and
+      a nextsym field in tsym
+      (this allows to obtain ordered type info for
+      records and objects in gdb !)
+
+  Revision 1.35  1998/10/16 08:51:45  peter
     + target_os.stackalignment
     + stack can be aligned at 2 or 4 byte boundaries
 
