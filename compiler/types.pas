@@ -1437,9 +1437,9 @@ implementation
                       end;
                     stringdef :
                       begin
-                        { string to array of char}
-                        if (not(is_special_array(def_to)) or is_open_array(def_to)) and
-                          is_equal(parraydef(def_to)^.elementtype.def,cchardef) then
+                        { string to char array }
+                        if (not is_special_array(def_to)) and
+                           is_char(parraydef(def_to)^.elementtype.def) then
                          begin
                            doconv:=tc_string_2_chararray;
                            b:=1;
@@ -1730,7 +1730,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2000-12-25 00:07:30  peter
+  Revision 1.30  2001-01-08 21:43:38  peter
+    * string isn't compatible with array of char
+
+  Revision 1.29  2000/12/25 00:07:30  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
