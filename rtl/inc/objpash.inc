@@ -44,7 +44,14 @@
        vmtBeforeDestruction    = vmtMethodStart+sizeof(pointer)*6;
        vmtDefaultHandlerStr    = vmtMethodStart+sizeof(pointer)*7;
 
-    type
+       { IInterface }
+       S_OK          = 0;
+       S_FALSE       = 1;
+       E_NOINTERFACE = hresult($80004002);
+       E_UNEXPECTED  = hresult($8000FFFF);
+       E_NOTIMPL     = hresult($80004001);
+  
+     type
        TextFile = Text;
 
        { now the let's declare the base classes for the class object }
@@ -301,7 +308,10 @@
 
 {
   $Log$
-  Revision 1.25  2005-01-26 17:07:10  peter
+  Revision 1.26  2005-01-31 19:41:39  peter
+    * interface additions
+
+  Revision 1.25  2005/01/26 17:07:10  peter
     * retrieve backtrace when exception is raised
     * RaiseMaxFrameCount added to limit the number of backtraces, setting
       it to 0 disables backtraces. Default is 16

@@ -555,9 +555,33 @@ begin
     Result := False;
 end;
 
+{$ifdef HASINTF}
+function TComponent.QueryInterface(const IID: TGUID; out Obj): HResult;stdcall;
+begin
+  if GetInterface(IID, Obj) then
+    result:=S_OK
+  else
+    result:=E_NOINTERFACE;
+end;
+
+function TComponent._AddRef: Integer;stdcall;
+begin
+  result:=-1;
+end;
+
+function TComponent._Release: Integer;stdcall;
+begin
+  result:=-1;
+end;
+
+{$endif HASINTF}
+
 {
   $Log$
-  Revision 1.5  2004-09-22 19:57:45  michael
+  Revision 1.6  2005-01-31 19:41:39  peter
+    * interface additions
+
+  Revision 1.5  2004/09/22 19:57:45  michael
   + More optimal FreeNotification when destroying
 
   Revision 1.4  2004/09/22 18:48:31  michael
