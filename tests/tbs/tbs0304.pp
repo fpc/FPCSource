@@ -1,4 +1,5 @@
 {$asmmode intel}
+{$inline on}
 
 var
   cb : word;
