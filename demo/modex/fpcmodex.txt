@@ -43,9 +43,6 @@ has been cycling FIDOnets Pascal areas for years.
 The program displays a landscape in which you can move with the cursor keys.
 Exit with ESCAPE. A flabbergasting effect in just 150 lines.
 
-TODO:
-- Higher resolution (LFB) graphics?
-
 HISTORY
  v0.01 :
        - Initial FPC port.
