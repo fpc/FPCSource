@@ -153,7 +153,7 @@ parser_e_no_procedure_to_access_property=E_Er is geen lid om de eigenschap te be
 parser_e_ill_property_access_sym=E_Illegaal symbool voor eigenschap toegang
 parser_e_cant_access_protected_member=E_Kan niet in beschermd veld van een object schrijven
 parser_e_cant_access_private_member=E_Kan niet in prive veld van een object schrijven
-parser_e_overloaded_are_not_both_virtual=E_Alle overladen methodse moeten virtueel zijn als 1 virtueel is: $1
+parser_w_overloaded_are_not_both_virtual=W_Alle overladen methodse moeten virtueel zijn als 1 virtueel is: $1
 parser_e_overloaded_methodes_not_same_ret=E_Virtuele Overladen methodes moeten hetzelfde resultaat type hebben: $1
 parser_e_dont_nest_export=E_EXPORT gedeclareerde functions kunnen niet genest worden.
 parser_e_methods_dont_be_export=E_Methodes kunnen niet geexporteerd worden.
@@ -214,6 +214,10 @@ parser_f_assembler_reader_not_supported=F_Geselecteerde assembler lezer wordt ni
 parser_e_proc_dir_conflict=E_Procedure directive $1 maakt conflicten met andere directives
 parser_e_call_convention_dont_match_forward=E_Calling convention doesn't match forward
 parser_e_register_calling_not_supported=E_Register calling (fastcall) wordt niet ondersteund
+parser_e_property_cant_have_a_default_value=E_Eigenschap kan geen standaard waarde hebben
+parser_e_property_default_value_must_const=E_De standaard waarde van een eigenschap moet een constant zijn
+parser_e_cant_publish_that=E_Symbool kan niet worden gepubliceerd, alleen mogelijk voor een klasse
+parser_e_cant_publish_that_property=E_Deze soort eigenschap kan niet worden gepubliceerd
 
 #
 # Type Checking
@@ -235,6 +239,7 @@ type_e_strict_var_string_violation=E_String types stemmen niet overeen, wegens $
 type_e_succ_and_pred_enums_with_assign_not_possible=E_SUCC of PRED op enumeratie types met toekenningen zijn niet mogelijk
 type_e_cant_read_write_type=E_Kan niet lezen of schrijven met dit type variabele
 type_e_typeconflict_in_set=E_Type conflict tussen set elementen.
+type_e_integer_or_real_expr_expected=E_Integer or real expressie verwacht
 
 #
 # Symtable
@@ -266,7 +271,7 @@ sym_w_function_result_not_set=W_Resultaat van functie ogeschijnlijk niet present
 sym_e_illegal_field=E_Onbekend record lid
 sym_n_uninitialized_local_variable=N_Locale variabele $1 schijnt niet geinitialiseert te zijn
 sym_e_id_no_member=E_Geen lid met de naam $1
-sym_o_param_list=O_Declaratie gevonden: $1
+sym_b_param_list=B_Declaratie gevonden: $1
 
 #
 # Codegenerator
