@@ -1,6 +1,6 @@
 #! /bin/sh
 
-FPCDIR=/usr/lib/fpc/0.99.11
+FPCDIR=/usr/lib/fpc/0.99.12
 
 # create link
 ln -sf $FPCDIR/ppc386 /usr/bin/ppc386
@@ -12,4 +12,4 @@ GCCDIR=`dirname $GCCSPEC`
 $FPCDIR/samplecfg $FPCDIR $GCCDIR
 
 # update ld.so cache
-ldconfig
+# ldconfig

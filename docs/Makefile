@@ -25,8 +25,12 @@
 HTML = user units ref prog
 
 # Where do you want the html files to be put ?
+ifndef PREFIXINSTALLDIR
+PREFIXINSTALLDIR=/usr
+endif
+
 ifndef DOCINSTALLDIR
-DOCINSTALLDIR=/usr/doc/fpc-0.99.12
+DOCINSTALLDIR=$(PREFIXINSTALLDIR)/doc/fpc-0.99.12
 endif 
 
 #
@@ -398,7 +402,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.25  1999-06-08 18:28:13  peter
+# Revision 1.26  1999-06-08 22:11:28  peter
+#   * debian updates
+#
+# Revision 1.25  1999/06/08 18:28:13  peter
 #   * fixes for 0.99.12 release
 #
 # Revision 1.24  1999/06/03 00:06:42  peter

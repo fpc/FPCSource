@@ -231,7 +231,7 @@ execlean :
 	-$(DEL) $(EXENAME)
 
 distclean: clean
-	-$(DEL) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3)
+	-$(DEL) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC)
 
 
 #####################################################################
@@ -395,7 +395,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.32  1999-06-08 18:28:12  peter
+# Revision 1.33  1999-06-08 22:11:27  peter
+#   * debian updates
+#
+# Revision 1.32  1999/06/08 18:28:12  peter
 #   * fixes for 0.99.12 release
 #
 # Revision 1.31  1999/05/19 11:44:13  pierre

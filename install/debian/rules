@@ -14,8 +14,12 @@ NEWPP=$(PWD)/compiler/ppc386
 
 #export DH_VERBOSE=1
 
-build: build-stamp
-build-stamp:
+###################
+# Binary
+#
+
+buildbin: buildbin-stamp
+buildbin-stamp:
 	@echo "--- Building"
 	dh_testdir
 
@@ -27,15 +31,16 @@ build-stamp:
 	$(MAKE) gtk_all PP=$(NEWPP)
 	$(MAKE) api_all PP=$(NEWPP)
 	$(MAKE) fv_all PP=$(NEWPP)
+	$(MAKE) -C packages all PP=$(NEWPP) RELEASE=1
+	
+	touch buildbin-stamp
 
-	touch build-stamp
-
-clean:
+cleanbin:
 	@echo "--- Cleaning"
 	dh_testdir
 	dh_testroot
 
-	rm -f build-stamp install-stamp
+	rm -f buildbin-stamp installbin-stamp
 	rm -rf ${BUILD_DIR}
 	
 	$(MAKE) compiler_clean
@@ -46,11 +51,12 @@ clean:
 	$(MAKE) gtk_clean
 	$(MAKE) api_clean
 	$(MAKE) fv_clean
+	$(MAKE) -C packages clean
 
 	dh_clean
 
-install: install-stamp
-install-stamp: build
+installbin: installbin-stamp
+installbin-stamp: buildbin
 	@echo "--- Installing"
 	dh_testdir
 	dh_testroot
@@ -61,26 +67,107 @@ install-stamp: build
 	$(MAKE) rtl_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
 	$(MAKE) utils_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
 
+	$(MAKE) base_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
+	$(MAKE) man_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
+	$(MAKE) demo_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
+
 	$(MAKE) fcl_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
 	$(MAKE) gtk_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
 	$(MAKE) api_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
 	$(MAKE) fv_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
+	$(MAKE) -C packages install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
 	
-	touch install-stamp
+	touch installbin-stamp
 
-binary-indep:
-# We have nothing to do by default.
+###################
+# Documentation
+#
 
-binary-arch: install \
-	fp-compiler \
+builddoc: builddoc-stamp
+builddoc-stamp:
+	@echo "--- Building Documentation"
+	dh_testdir
+
+	$(MAKE) -C docs html
+
+	touch builddoc-stamp
+
+installdoc: installdoc-stamp
+installdoc-stamp: builddoc
+	@echo "--- Installing Documentation"
+	dh_testdir
+	dh_testroot
+	dh_clean
+
+	$(MAKE) -C docs install DOCINSTALLDIR=${INSTALL_DIR}/usr/doc/fpc/0.99.12/
+	
+	touch installdoc-stamp
+
+cleandoc:
+	@echo "--- Cleaning Documentation"
+	dh_testdir
+	dh_testroot
+
+	rm -f builddoc-stamp installdoc-stamp
+	rm -rf ${BUILD_DIR}
+
+	$(MAKE) -C docs clean
+
+###################
+# Generic
+#
+
+build: buildbin builddoc
+
+install: installbin installdoc
+
+clean: cleanbin cleandoc
+
+
+###################
+# Deb building
+#
+
+binary-indep: fp-docs \
+
+binary-arch: fp-compiler \
 	fp-rtl \
 	fp-utils \
 	fp-fcl \
 	fp-gtk \
 	fp-api \
-	fp-fv
+	fp-fv \
+	fp-extra
 
-fp-compiler:
+fp-compiler: installbin
+	@echo "--- Building: $@"
+	dh_installdocs		-p$@ -P$(BUILD_DIR)/$@
+	dh_installchangelogs	-p$@ -P$(BUILD_DIR)/$@
+	dh_installexamples	-p$@ -P$(BUILD_DIR)/$@
+	dh_movefiles		-p$@ -P$(BUILD_DIR)/$@
+	dh_compress		-p$@ -P$(BUILD_DIR)/$@
+	dh_fixperms		-p$@ -P$(BUILD_DIR)/$@
+	dh_installdeb	 	-p$@ -P$(BUILD_DIR)/$@
+#	dh_shlibdeps	 	-p$@ -P$(BUILD_DIR)/$@
+	dh_gencontrol	 	-p$@ -P$(BUILD_DIR)/$@
+	dh_md5sums		-p$@ -P$(BUILD_DIR)/$@
+	dh_builddeb		-p$@ -P$(BUILD_DIR)/$@
+
+fp-utils: installbin
+	@echo "--- Building: $@"
+	dh_installdocs		-p$@ -P$(BUILD_DIR)/$@
+	dh_installchangelogs	-p$@ -P$(BUILD_DIR)/$@
+	dh_undocumented		-p$@ -P$(BUILD_DIR)/$@ h2pas.1 ppumove.1 ppdep.1
+	dh_movefiles		-p$@ -P$(BUILD_DIR)/$@
+	dh_compress		-p$@ -P$(BUILD_DIR)/$@
+	dh_fixperms		-p$@ -P$(BUILD_DIR)/$@
+	dh_installdeb	 	-p$@ -P$(BUILD_DIR)/$@
+#	dh_shlibdeps	 	-p$@ -P$(BUILD_DIR)/$@
+	dh_gencontrol	 	-p$@ -P$(BUILD_DIR)/$@
+	dh_md5sums		-p$@ -P$(BUILD_DIR)/$@
+	dh_builddeb		-p$@ -P$(BUILD_DIR)/$@
+
+fp-rtl fp-fcl fp-gtk fp-fv fp-api fp-extra: installbin
 	@echo "--- Building: $@"
 	dh_installdocs		-p$@ -P$(BUILD_DIR)/$@
 	dh_installchangelogs	-p$@ -P$(BUILD_DIR)/$@
@@ -93,15 +180,14 @@ fp-compiler:
 	dh_md5sums		-p$@ -P$(BUILD_DIR)/$@
 	dh_builddeb		-p$@ -P$(BUILD_DIR)/$@
 
-fp-rtl fp-utils fp-fcl fp-gtk fp-fv fp-api:
+fp-docs: installdoc
 	@echo "--- Building: $@"
 	dh_installdocs		-p$@ -P$(BUILD_DIR)/$@
-	dh_installchangelogs	-p$@ -P$(BUILD_DIR)/$@
+	dh_installchangelogs 	-p$@ -P$(BUILD_DIR)/$@
 	dh_movefiles		-p$@ -P$(BUILD_DIR)/$@
 	dh_compress		-p$@ -P$(BUILD_DIR)/$@
 	dh_fixperms		-p$@ -P$(BUILD_DIR)/$@
 	dh_installdeb	 	-p$@ -P$(BUILD_DIR)/$@
-#	dh_shlibdeps	 	-p$@ -P$(BUILD_DIR)/$@
 	dh_gencontrol	 	-p$@ -P$(BUILD_DIR)/$@
 	dh_md5sums		-p$@ -P$(BUILD_DIR)/$@
 	dh_builddeb		-p$@ -P$(BUILD_DIR)/$@
@@ -109,5 +195,5 @@ fp-rtl fp-utils fp-fcl fp-gtk fp-fv fp-api:
 source diff:                                                                  
 	@echo >&2 'source and diff are obsolete - use dpkg-source -b'; false
 
-binary: binary-indep binary-arch
+binary: binary-indep binary-arch  
 .PHONY: build clean binary-indep binary-arch binary

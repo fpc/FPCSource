@@ -2,6 +2,14 @@
 # Man page installation for linux
 #
 
+ifndef PREFIXINSTALLDIR
+PREFIXINSTALLDIR=/usr
+endif
+
+MANINSTALLDIR=$(PREFIXINSTALLDIR)/man
+
 installman:
-	cp *.1 /usr/man/man1
-	cp *.5 /usr/man/man5
+	install -d -m 755 $(MANINSTALLDIR)/man1
+	install -d -m 755 $(MANINSTALLDIR)/man5
+	install -m 644 *.1 $(MANINSTALLDIR)/man1
+	install -m 644 *.5 $(MANINSTALLDIR)/man5

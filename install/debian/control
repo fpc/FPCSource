@@ -6,7 +6,8 @@ Standards-Version: 2.5.1.0
 
 Package: fp-compiler
 Architecture: i386
-Depends: fp-rtl (= 0.99.11-1)
+Depends: fp-rtl (= 0.99.12-1)
+Recommends: fp-docs (= 0.99.12-1)
 Suggests: fp-utils
 Replaces: fpc
 Description: Free Pascal Compiler
@@ -20,14 +21,14 @@ Description: Free Pascal Compiler
  
 Package: fp-rtl
 Architecture: i386
-Recommends: fp-compiler (= 0.99.11-1)
+Recommends: fp-compiler (= 0.99.12-1)
 Replaces: fpc
 Description: Free Pascal Runtime Library
  Runtime Libraries for the Free Pascal Compiler.
  
 Package: fp-utils
 Architecture: i386
-Recommends: fp-compiler (= 0.99.11-1)
+Recommends: fp-compiler (= 0.99.12-1)
 Replaces: fpc
 Description: Free Pascal Utils
  This package contains some handy utils for usage with the Free Pascal
@@ -37,28 +38,51 @@ Description: Free Pascal Utils
    - ptop  : Source beautifier
    - ppudump : Dump the information stored in a .ppu (unit) file
    - ppumove : Place multiple units in a shared library
+
+Package: fp-docs
+Architecture: all
+Recommends: fp-docs (= 0.99.12-1)
+Replaces: fpc
+Description: Free Pascal Documentation
+ Documentation for the Free Pascal Compiler.
   
 Package: fp-fcl
 Architecture: i386
-Depends: fp-compiler (= 0.99.11-1), fp-rtl (= 0.99.11-1)
+Depends: fp-compiler (= 0.99.12-1), fp-rtl (= 0.99.12-1)
 Description: Free Pascal Free Component Library
  Free Component Library for the Free Pascal Compiler.
  
 Package: fp-gtk
 Architecture: i386
-Depends: fp-compiler (= 0.99.11-1), fp-rtl (= 0.99.11-1)
+Depends: fp-compiler (= 0.99.12-1), fp-rtl (= 0.99.12-1)
 Description: Free Pascal GTK Bindings
  GTK 1.2.x bindings for the Free Pascal Compiler.
  
 Package: fp-api
 Architecture: i386
-Depends: fp-compiler (= 0.99.11-1), fp-rtl (= 0.99.11-1)
+Depends: fp-compiler (= 0.99.12-1), fp-rtl (= 0.99.12-1)
 Description: Free Pascal API Units
  API Units needed by Free Vision.
  
 Package: fp-fv
 Architecture: i386
-Depends: fp-compiler (= 0.99.11-1), fp-rtl (= 0.99.11-1), fp-api (= 0.99.11-1)
+Depends: fp-compiler (= 0.99.12-1), fp-rtl (= 0.99.12-1), fp-api (= 0.99.12-1)
 Description: Free Pascal Free Vision
  Free Turbo Vision clone for the Free Pascal Compiler.
  
+Package: fp-extra
+Architecture: i386
+Depends: fp-compiler (= 0.99.12-1), fp-rtl (= 0.99.12-1)
+Description: Free Pascal Extra Packages
+ Some different packages for the Free Pascal Compiler
+ Bindings to libraries:
+ - MySql bindings
+ - InterBase bindings
+ - Postgres bindings
+ - Ncurses bindings
+ - Forms 0.88/0.86 bindings
+ - Svgalib bindings
+ Other units:
+ - Inet unit for easier tcp/ip handling
+ - Uncgi unit
+ - Utmp unit

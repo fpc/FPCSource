@@ -187,7 +187,7 @@ compiler_all: rtl_all
 	$(MAKE) -C $(COMPILERDIR) all
 
 compiler_clean:
-	$(MAKE) -C $(COMPILERDIR) clean
+	$(MAKE) -C $(COMPILERDIR) distclean
 
 compiler_install:
 	$(MAKE) -C $(COMPILERDIR) install
@@ -443,7 +443,10 @@ utilszip: utils_clean rtl_clean
 
 #
 # $Log$
-# Revision 1.17  1999-06-08 18:28:11  peter
+# Revision 1.18  1999-06-08 22:11:26  peter
+#   * debian updates
+#
+# Revision 1.17  1999/06/08 18:28:11  peter
 #   * fixes for 0.99.12 release
 #
 # Revision 1.16  1999/05/16 02:37:29  peter
