@@ -49,7 +49,7 @@ procedure fpc_cpuinit;
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;nostackframe;
   asm
-    mov %sp,%o0
+    mov %fp,%o0
   end;
 
 
@@ -352,7 +352,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2004-10-14 19:45:39  florian
+  Revision 1.14  2004-11-03 20:53:58  florian
+    * get_frame fixed
+
+  Revision 1.13  2004/10/14 19:45:39  florian
     + added and implemented functions for locked operations
 
   Revision 1.12  2004/10/03 12:41:30  florian
