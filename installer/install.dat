@@ -5,8 +5,8 @@
 #
 # Warning: no package should contain more than 16 files
 
-title=Free Pascal Compiler 1.9.2
-version=1.9.2
+title=Free Pascal Compiler 1.0.12
+version=1.0.12
 
 #
 # General
@@ -149,6 +149,12 @@ package=ufclemx.zip,~F~ree Component Library (FCL)
 package=uuncgiemx.zip[ucgiemx.zip],Uncgi unit
 # OS/2 9
 #package=ufvemx.zip,Free ~V~ision (FV)
+# OS/2 10
+package=uclkdllemx.zip[uclkemx.zip],CLKDLL interface unit (eCS 1.1+)
+# OS/2 11
+package=ulvmemx.zip,LVM interface unit
+# OS/2 12
+package=upasjpegemx.zip[upjpgemx.zip],PasJPEG units
 
 
 #
@@ -193,7 +199,7 @@ package=unetdbemx.zip[undbemx.zip],NetDB units
 #
 # Common packages
 #
-pack=C~o~mmon
+pack=~C~ommon
 # Common 1
 package=docs-pdf.zip,Documentation (~P~DF)
 # Common 2
@@ -223,6 +229,22 @@ package=installersrc.zip[instsrc.zip],~I~nstaller sources
 package=docsrc.zip,~D~ocumentation sources (LaTeX)
 # Source 8
 package=uuncgisrc.zip[ucgisrc.zip],Uncgi unit source
+# Source 9
+package=uunzipsrc.zip[uzipsrc.zip],Unzip units
+# Source 10
+package=uregexprsrc.zip[uregsrc.zip],Regular expression units
+# Source 11
+package=upaszlibsrc.zip[upzlsrc.zip],PasZLib units
+# Source 12
+package=urexxsrc.zip,REXX SAA interface units
+# Source 13
+package=uzlibsrc.zip,ZLib interface units
+# Source 14
+package=unetdbsrc.zip[undbsrc.zip],NetDB units
+# Source 15
+package=ummsystemsrc.zip,MMSystem interface units
+# Source 16
+package=ugdbintsrc.zip[ugdbsrc.zip],GDB Interfacing units
 
 #
 # Source packages 2nd part
@@ -230,42 +252,32 @@ package=uuncgisrc.zip[ucgisrc.zip],Uncgi unit source
 pack=So~u~rces 2
 filecheck=*src.zip
 # Source-2 1
-package=ugdbintsrc.zip[ugdbsrc.zip],GDB Interfacing units
-# Source-2 2
-package=upaszlibsrc.zip[upzlsrc.zip],PasZLib units
-# Source-2 3
-package=uregexprsrc.zip[uregsrc.zip],Regular expression units
-# Source-2 4
-package=uunzipsrc.zip[uzipsrc.zip],Unzip units
-# Source-2 5
 package=uopenglsrc.zip,OpenGL units
-# Source-2 6
+# Source-2 2
 package=ugtksrc.zip,GTK units
-# Source-2 7
+# Source-2 3
 package=uinetsrc.zip,Internet helper routines units
-# Source-2 8
+# Source-2 4
 package=uibasesrc.zip,Interbase interface units
-# Source-2 9
+# Source-2 5
 package=umysqlsrc.zip,MySQL interface units
-# Source-2 10
-package=ummsystemsrc.zip,MMSystem interface units
-# Source-2 11
-package=uzlibsrc.zip,ZLib interface units
-# Source-2 12
-package=urexxsrc.zip,REXX SAA interface units
-# Source-2 13
+# Source-2 6
 package=uftpapisrc.zip[uftpsrc.zip],FTP API interface units
-# Source-2 14
+# Source-2 7
 package=uhwvideosrc.zip[uhwvsrc.zip],HW Video interface units
-# Source-2 15
+# Source-2 8
 package=ummtksrc.zip,MMOS/2 interface units
-# Source-2 16
-package=unetdbsrc.zip[undbsrc.zip],NetDB units
+# Source-2 9
+package=uclkdllsrc.zip[uclksrc.zip],CLKDLL interface unit (eCS 1.1+)
+# Source-2 10
+package=ulvmsrc.zip,LVM interface unit
+# Source-2 11
+package=upasjpegsrc.zip[upjpgsrc.zip],PasJPEG units
 
 
 defaultcfg=
 #
-# Example fpc.cfg for Free Pascal Compiler Version 1.9.0
+# Example fpc.cfg for Free Pascal Compiler Version 1.0.12
 #
 
 # ----------------------
