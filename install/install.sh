@@ -1,7 +1,7 @@
 #!/bin/sh
 #
-# Free Pascal installation script for Linux.
-# Copyright 1996-2002 Michael Van Canneyt and Peter Vreman
+# Free Pascal installation script for Unixy platforms.
+# Copyright 1996-2004 Michael Van Canneyt, Marco van de Voort and Peter Vreman
 #
 # Don't edit this file. 
 # Everything can be set when the script is run.
@@ -117,6 +117,7 @@ LIBDIR=$PREFIX/lib/fpc/$VERSION
 SRCDIR=$PREFIX/src/fpc-$VERSION
 EXECDIR=$PREFIX/bin
 OSNAME=`uname -s | tr A-Z a-z`
+ARCHNAME=`uname -m | tr A-Z a-z`
 
 BSDHIER=0
 case $OSNAME in 
@@ -124,6 +125,45 @@ case $OSNAME in
   BSDHIER=1;;
 esac
 
+# conversion from GNU/OS archname to FPC archname
+case $ARCHNAME in
+*sun4u) 
+  ARCHNAME=sparc64;;
+*sun4)  
+  ARCHNAME=sparc32;;
+*i486)
+  ARCHNAME=i386;;
+*i586)
+  ARCHNAME=i386;;
+*i686)
+  ARCHNAME=i386;;
+*ppc)
+  ARCHNAME=powerpc;;
+*armc4l)
+  ARCHNAME=arm;;
+*amd64)
+  ARCHNAME=x86_64;;
+esac
+
+SHORTARCH=$ARCHNAME
+
+# conversion from long to short archname for ppc<x>
+case $SHORTARC in
+*m68k)
+  SHORTARCH=68k;;
+*sparc) 
+  SHORTARCH=sparc;;
+*i386)
+  SHORTARCH=386;;
+*powerpc)
+  SHORTARCH=ppc;;
+*arm)
+  SHORTARCH=arm;;
+*x86_64)
+  SHORTARCH=x64;;
+esac
+
+FULLARCH=$ARCHNAME-$OSNAME
 
 if [ "${BSDHIER}" = "1" ]; then
 DOCDIR=$PREFIX/share/doc/fpc-$VERSION
@@ -138,8 +178,8 @@ DEMODIR=$DOCDIR/examples
 # Install compiler/RTL. Mandatory.
 echo Installing compiler and RTL ...
 unztarfromtar binary.tar base${OSNAME}.tar.gz $PREFIX
-rm -f $EXECDIR/ppc386
-ln -sf $LIBDIR/ppc386 $EXECDIR/ppc386
+rm -f $EXECDIR/ppc$(SHORTARCH)
+ln -sf $LIBDIR/ppc$(SHORTARCH) $EXECDIR/ppc$(SHORTARCH)
 echo Installing utilities...
 unztarfromtar binary.tar util${OSNAME}.tar.gz $PREFIX
 if yesno "Install FCL"; then
