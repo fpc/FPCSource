@@ -409,6 +409,7 @@ const
 
               hp1:=timportlist(hp1.next);
            end;
+         importsSection.convert_registers;
        end;
 
 
@@ -559,6 +560,7 @@ const
 
               hp1:=timportlist(hp1.next);
            end;
+         importsSection.convert_registers;
       end;
 
 
@@ -1626,7 +1628,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2003-01-06 20:19:52  peter
+  Revision 1.12  2003-04-12 15:43:40  peter
+    * convert registers for importssection
+
+  Revision 1.11  2003/01/06 20:19:52  peter
     * use findutil
 
   Revision 1.10  2003/01/05 13:36:53  florian
