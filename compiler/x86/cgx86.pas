@@ -147,10 +147,17 @@ unit cgx86;
       end;
 
    const
+{$ifdef x86_64}
+      TCGSize2OpSize: Array[tcgsize] of topsize =
+        (S_NO,S_B,S_W,S_L,S_D,S_B,S_W,S_L,S_D,
+         S_FS,S_FL,S_FX,S_IQ,S_FXX,
+         S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
+{$else x86_64}
       TCGSize2OpSize: Array[tcgsize] of topsize =
         (S_NO,S_B,S_W,S_L,S_L,S_B,S_W,S_L,S_L,
          S_FS,S_FL,S_FX,S_IQ,S_FXX,
          S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
+{$endif x86_64}
 
 
   implementation
@@ -1901,7 +1908,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.94  2003-12-24 00:10:03  florian
+  Revision 1.95  2003-12-24 01:47:23  florian
+    * first fixes to compile the x86-64 system unit
+
+  Revision 1.94  2003/12/24 00:10:03  florian
     - delete parameter in cg64 methods removed
 
   Revision 1.93  2003/12/21 19:42:43  florian

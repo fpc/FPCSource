@@ -2831,10 +2831,24 @@ implementation
            cachedsize := elesize;
            if (cachedsize>0) and
                (
+{$ifdef cpu64bit}
+{$ifdef VER1_0}
+                { 1.0.x can't handle this and while bootstrapping with 1.0.x we can forget about it }
+                false
+{$else}
+                (TConstExprInt(highrange)-TConstExprInt(lowrange) > $7fffffffffffffff) or
+
+                { () are needed around cachedsize-1 to avoid a possible
+                  integer overflow for cachedsize=1 !! PM }
+                (($7fffffffffffffff div cachedsize + (cachedsize -1)) < (int64(highrange) - int64(lowrange)))
+{$endif VER1_0}
+{$else cpu64bit}
                 (TConstExprInt(highrange)-TConstExprInt(lowrange) > $7fffffff) or
+
                 { () are needed around cachedsize-1 to avoid a possible
                   integer overflow for cachedsize=1 !! PM }
                 (($7fffffff div cachedsize + (cachedsize -1)) < (int64(highrange) - int64(lowrange)))
+{$endif cpu64bit}
                ) Then
              Message(sym_e_segment_too_large);
          end;
@@ -6138,7 +6152,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.194  2003-12-21 19:42:43  florian
+  Revision 1.195  2003-12-24 01:47:22  florian
+    * first fixes to compile the x86-64 system unit
+
+  Revision 1.194  2003/12/21 19:42:43  florian
     * fixed ppc inlining stuff
     * fixed wrong unit writing
     + added some sse stuff

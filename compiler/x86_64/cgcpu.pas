@@ -49,15 +49,29 @@ unit cgcpu;
 
 
     class function tcgx86_64.reg_cgsize(const reg: tregister): tcgsize;
-      const
-        opsize_2_cgsize: array[topsize] of tcgsize = (OS_NO,
-          OS_8,OS_16,OS_32,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,
-          OS_32,OS_64,OS_64,
-          OS_F32,OS_F64,OS_F80,OS_F32,OS_F64,OS_NO,OS_NO,
-          OS_NO,OS_NO,OS_NO
-        );
-      begin
-        result := opsize_2_cgsize[reg2opsize(reg)];
+    const subreg2cgsize:array[Tsubregister] of Tcgsize =
+          (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO);
+
+    begin
+      case getregtype(reg) of
+        R_INTREGISTER :
+          reg_cgsize:=subreg2cgsize[getsubreg(reg)];
+        R_FPUREGISTER :
+          reg_cgsize:=OS_F80;
+        R_MMXREGISTER:
+          reg_cgsize:=OS_M64;
+        R_MMREGISTER:
+          reg_cgsize:=OS_M128;
+        R_SPECIALREGISTER :
+          case reg of
+            NR_CS,NR_DS,NR_ES,NR_SS,NR_FS,NR_GS:
+              reg_cgsize:=OS_16
+            else
+              reg_cgsize:=OS_32
+          end
+        else
+            internalerror(200303181);
+        end;
       end;
 
 
@@ -192,7 +206,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-12-22 19:00:17  florian
+  Revision 1.7  2003-12-24 01:47:23  florian
+    * first fixes to compile the x86-64 system unit
+
+  Revision 1.6  2003/12/22 19:00:17  florian
     * fixed some x86-64 issues
 
   Revision 1.5  2003/09/25 13:13:32  florian
