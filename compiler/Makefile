@@ -187,16 +187,17 @@ distclean: clean
 
 
 #####################################################################
-# Include depencies (linux only)
+# Include depencies
 #####################################################################
 
-ifdef USEDEPEND
-$(MAKEDEP) : $(RTLDIR)/utils/mkdep.pp
+$(MAKEDEP): $(RTLDIR)/utils/mkdep.pp
 	$(COMPILER) $(RTLDIR)/utils/mkdep.pp
 	$(COPY) $(RTLDIR)/utils/$(MAKEDEP) $(MAKEDEP)
 
 dependencies : $(MAKEDEP)
 	$(MAKEDEP) pp.pas $(PPOPTDEF) $(LOCALDEF) '-F$$(COMPILER) $$(LOCALOPT)' > depend
+
+ifdef USEDEPEND
 
 include depend
 
@@ -332,7 +333,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.12  1998-10-22 19:15:46  peter
+# Revision 1.13  1998-10-22 23:55:24  peter
+#   * dependencies,mkdep target is not linux only
+#
+# Revision 1.12  1998/10/22 19:15:46  peter
 #   + VERBOSE=1 to set -vwni (necessary due the -n)
 #   * fixed OPT, now also passed to RTLOPTS
 #
@@ -345,35 +349,35 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 # Revision 1.10  1998/10/09 12:59:07  pierre
 #   * MMX_SUPPORT used by default
 #
-# Revision 1.9  1998/10/09 11:07:44  peter
+# Revision 1.9	1998/10/09 11:07:44  peter
 #   + cycledep
 #
-# Revision 1.8  1998/10/09 08:54:18  pierre
+# Revision 1.8	1998/10/09 08:54:18  pierre
 #   + added cvstest target
 #     uses -n option to avoid use of local ppc386.cfg
 #
-# Revision 1.7  1998/09/29 18:34:45  peter
+# Revision 1.7	1998/09/29 18:34:45  peter
 #   + chmod 755 makecfg
 #
-# Revision 1.6  1998/09/23 15:41:42  pierre
+# Revision 1.6	1998/09/23 15:41:42  pierre
 #  export for RTLOPTS (useful for make) !!
 #
-# Revision 1.5  1998/09/22 13:09:24  pierre
+# Revision 1.5	1998/09/22 13:09:24  pierre
 #   + added possibility to read makefile.loc if it exists
 #     this allows simple addition of private rules
 #   * restored EXENAME dependencies
 #     PASFILES and INCFILES where not defined anymore !!
 #
-# Revision 1.4  1998/09/16 16:41:38  peter
+# Revision 1.4	1998/09/16 16:41:38  peter
 #   * merged fixes
 #
 # Revision 1.1.2.2  1998/09/16 16:12:43  peter
 #   * uses makefile.cfg
 #
-# Revision 1.3  1998/09/11 13:12:45  michael
+# Revision 1.3	1998/09/11 13:12:45  michael
 # + makecfg has support for different kinds of units
 #
-# Revision 1.2  1998/09/11 12:27:04  pierre
+# Revision 1.2	1998/09/11 12:27:04  pierre
 #  added execlean target to be able to keep *.s files
 #
 # Revision 1.1.2.1  1998/09/11 12:07:51  pierre
