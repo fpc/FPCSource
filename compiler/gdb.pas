@@ -83,6 +83,10 @@ Const
 
 {$ifdef i386}
            { this is the register order for GDB }
+           { this is indeed the internal order of
+             registers in GDB, but as we use STABS,
+             the values are converted using
+             i386_stab_reg_to_regnum from i386_tdep.c PM }
            { 0 "eax",   "ecx",    "edx",   "ebx",     \
              4 "esp",   "ebp",    "esi",   "edi",        \
              8 "eip",   "eflags", "cs",    "ss",        \
@@ -107,18 +111,21 @@ Const
     R_MM0,R_MM1,R_MM2,R_MM3,R_MM4,R_MM5,R_MM6,R_MM7,
     R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7
   ); }
+
+    { So here we need to use the stabs numbers PM }
            GDB_i386index : array[tregister] of shortint =(-1,
           0,1,2,3,4,5,6,7,
           0,1,2,3,4,5,6,7,
           0,1,2,3,0,1,2,3,
-          10,12,13,11,14,15,
-          16,16,17,18,19,20,21,22,23,
+          -1,-1,-1,-1,-1,-1,
+          12,12,13,14,15,16,17,18,19,
           -1,-1,-1,-1,-1,-1,
           -1,-1,-1,-1,
           -1,-1,-1,-1,-1,
-          { I think, GDB doesn't know MMX (FK) }
-          16,17,18,19,20,21,22,23,
-          32,33,34,35,36,37,38,39
+          { I think, GDB doesn't know MMX (FK)
+            GDB does not, but stabs does PM }
+          29,30,31,32,33,34,35,36,
+          21,22,23,24,25,26,27,28
         );
 {$endif i386}
 {$ifdef m68k}
@@ -290,7 +297,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2001-10-12 16:05:36  peter
+  Revision 1.9  2001-12-02 17:20:58  peter
+    * merged register fixes
+
+  Revision 1.8  2001/10/12 16:05:36  peter
     * more registers (merged)
 
   Revision 1.7  2001/04/21 12:03:11  peter
