@@ -22,6 +22,13 @@ uses
   testu,
   redir;
 
+{$ifdef go32v2}
+  {$define LIMIT83FS}
+{$endif}
+{$ifdef os2}
+  {$define LIMIT83FS}
+{$endif}
+
 type
   tcompinfo = (compver,comptarget,compcpu);
 
@@ -220,7 +227,7 @@ begin
   if s[length(s)] in ['\','/'] then
     hs:=Copy(s,1,length(s)-1)
   else
-    hs:=s;  
+    hs:=s;
   if not PathExists(hs) then
     begin
       { Try parent first }
@@ -416,9 +423,9 @@ begin
 end;
 
 
-function GetCompilerFullTarget:string;
+function CompilerFullTarget:string;
 begin
-  GetCompilerFullTarget:=CompilerCPU+'-'+CompilerTarget;
+  CompilerFullTarget:=CompilerCPU+'-'+CompilerTarget;
 end;
 
 
@@ -865,10 +872,10 @@ begin
     begin
       Res:=GetCompilerCPU;
       Res:=GetCompilerTarget;
-      RTLUnitsDir:='units/'+GetCompilerFullTarget;
+      RTLUnitsDir:='units/'+{$ifdef LIMIT83FS}CompilerTarget{$else}CompilerFullTarget{$endif};
       if not PathExists(RTLUnitsDir) then
         Verbose(V_Abort,'Unit path "'+RTLUnitsDir+'" does not exists');
-      OutputDir:='output/'+GetCompilerFullTarget;
+      OutputDir:='output/'+{$ifdef LIMIT83FS}CompilerTarget{$else}CompilerFullTarget{$endif};
       if not PathExists(OutputDir) then
         Verbose(V_Abort,'Output path "'+OutputDir+'" does not exists');
       { Global log files }
@@ -1081,7 +1088,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2004-11-09 23:13:50  peter
+  Revision 1.42  2004-11-29 21:25:32  peter
+  support for limit83fs
+
+  Revision 1.41  2004/11/09 23:13:50  peter
     * fixed library tests
     * fix test cases to generate their own temporary files
 
