@@ -17,11 +17,12 @@
 ****************************************************************************}
 
 {$I real2str.inc}
-{$ifdef ver1_0}
+
+{$ifndef INTERNSETLENGTH}
 procedure SetLength(var s:shortstring;len:StrLenInt);
-{$else ver1_0}
+{$else INTERNSETLENGTH}
 procedure Shortstr_SetLength(var s:shortstring;len:StrLenInt);[Public,Alias : 'FPC_SHORTSTR_SETLENGTH'];
-{$endif ver1_0}
+{$endif INTERNSETLENGTH}
 begin
   if Len>255 then
    Len:=255;
@@ -559,7 +560,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-10-21 18:20:17  florian
+  Revision 1.5  2000-11-06 20:34:24  peter
+    * changed ver1_0 defines to temporary defs
+
+  Revision 1.4  2000/10/21 18:20:17  florian
     * a lot of small changes:
        - setlength is internal
        - win32 graph unit extended

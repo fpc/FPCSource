@@ -32,7 +32,7 @@
            handleerror(219);
       end;
 
-{$ifdef ver1_0}
+{$ifndef HASINTF}
     { dummies for make cycle with 1.0.x }
     procedure int_do_intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF'];
       begin
@@ -50,7 +50,7 @@
       begin
       end;
 
-{$else ver1_0}
+{$else HASINTF}
     { interface helpers }
     procedure int_do_intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF'];
       begin
@@ -67,8 +67,10 @@
 
     procedure int_do_intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN'];
       begin
-         if assigned(S) then IUnknown(S)._AddRef;
-         if assigned(D) then IUnknown(D)._Release;
+         if assigned(S) then
+           IUnknown(S)._AddRef;
+         if assigned(D) then
+           IUnknown(D)._Release;
          D:=S;
       end;
 
@@ -88,7 +90,7 @@
         else
           int_do_intf_decr_ref(D);
       end;
-{$endif ver1_0}
+{$endif HASINTF}
 
 {****************************************************************************
                                TOBJECT
@@ -187,13 +189,13 @@
       class function TObject.MethodAddress(const name : shortstring) : pointer;
 
         var
-	   UName : ShortString;
+           UName : ShortString;
            methodtable : pmethodnametable;
            i : dword;
            c : tclass;
 
         begin
-	   UName := UpCase(name);
+           UName := UpCase(name);
            c:=self;
            while assigned(c) do
              begin
@@ -243,53 +245,53 @@
 
       function TObject.FieldAddress(const name : shortstring) : pointer;
 
-	type
-	   PFieldInfo = ^TFieldInfo;
-	   TFieldInfo = packed record
-	     FieldOffset: LongWord;
-	     ClassTypeIndex: Word;
-	     Name: ShortString;
-	   end;
+        type
+           PFieldInfo = ^TFieldInfo;
+           TFieldInfo = packed record
+             FieldOffset: LongWord;
+             ClassTypeIndex: Word;
+             Name: ShortString;
+           end;
 
-	   PFieldTable = ^TFieldTable;
-	   TFieldTable = packed record
-	     FieldCount: Word;
-	     ClassTable: Pointer;
-	     { Fields: array[Word] of TFieldInfo;  Elements have variant size! }
-	   end;
+           PFieldTable = ^TFieldTable;
+           TFieldTable = packed record
+             FieldCount: Word;
+             ClassTable: Pointer;
+             { Fields: array[Word] of TFieldInfo;  Elements have variant size! }
+           end;
 
         var
-	   UName: ShortString;
-	   CurClassType: TClass;
-	   FieldTable: PFieldTable;
-	   FieldInfo: PFieldInfo;
-	   i: Integer;
+           UName: ShortString;
+           CurClassType: TClass;
+           FieldTable: PFieldTable;
+           FieldInfo: PFieldInfo;
+           i: Integer;
 
         begin
-	   if Length(name) > 0 then
-	   begin
-	     UName := UpCase(name);
-	     CurClassType := ClassType;
-	     while CurClassType <> nil do
-	     begin
-	       FieldTable := PFieldTable((Pointer(CurClassType) + vmtFieldTable)^);
-	       if FieldTable <> nil then
-	       begin
-	         FieldInfo := PFieldInfo(Pointer(FieldTable) + 6);
-	         for i := 0 to FieldTable^.FieldCount - 1 do
-	         begin
-	           if UpCase(FieldInfo^.Name) = UName then
-		   begin
-		     fieldaddress := Pointer(Self) + FieldInfo^.FieldOffset;
-	             exit;
-		   end;
-		   Inc(Pointer(FieldInfo), 7 + Length(FieldInfo^.Name));
-	         end;
-	       end;
-	       { Try again with the parent class type }
-	       CurClassType := CurClassType.ClassParent;
-	     end;
-	   end;
+           if Length(name) > 0 then
+           begin
+             UName := UpCase(name);
+             CurClassType := ClassType;
+             while CurClassType <> nil do
+             begin
+               FieldTable := PFieldTable((Pointer(CurClassType) + vmtFieldTable)^);
+               if FieldTable <> nil then
+               begin
+                 FieldInfo := PFieldInfo(Pointer(FieldTable) + 6);
+                 for i := 0 to FieldTable^.FieldCount - 1 do
+                 begin
+                   if UpCase(FieldInfo^.Name) = UName then
+                   begin
+                     fieldaddress := Pointer(Self) + FieldInfo^.FieldOffset;
+                     exit;
+                   end;
+                   Inc(Pointer(FieldInfo), 7 + Length(FieldInfo^.Name));
+                 end;
+               end;
+               { Try again with the parent class type }
+               CurClassType := CurClassType.ClassParent;
+             end;
+           end;
 
            fieldaddress:=nil;
         end;
@@ -502,7 +504,7 @@
         begin
         end;
 
-{$ifndef ver1_0}
+{$ifdef HASINTF}
       function IsGUIDEqual(const guid1, guid2: tguid): boolean;
         begin
           IsGUIDEqual:=
@@ -590,7 +592,7 @@
         begin
           getinterfacetable:=pinterfacetable((pointer(Self)+vmtIntfTable)^);
         end;
-{$endif ver1_0}
+{$endif HASINTF}
 
 {****************************************************************************
                              Exception Support
@@ -604,7 +606,10 @@
 
 {
   $Log$
-  Revision 1.5  2000-11-04 17:52:46  florian
+  Revision 1.6  2000-11-06 20:34:24  peter
+    * changed ver1_0 defines to temporary defs
+
+  Revision 1.5  2000/11/04 17:52:46  florian
     * fixed linker errors
 
   Revision 1.4  2000/11/04 16:29:54  florian

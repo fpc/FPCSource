@@ -267,9 +267,9 @@ function strpas(p:pchar):shortstring;
 function strlen(p:pchar):longint;
 
 { Shortstring functions }
-{$ifdef ver1_0}
+{$ifndef INTERNSETLENGTH}
 Procedure SetLength (Var S : ShortString; l : longint);
-{$endif ver1_0}
+{$endif INTERNSETLENGTH}
 Function  Copy(const s:shortstring;index:StrLenInt;count:StrLenInt):shortstring;
 Procedure Delete(Var s:shortstring;index:StrLenInt;count:StrLenInt);
 Procedure Insert(const source:shortstring;Var s:shortstring;index:StrLenInt);
@@ -304,9 +304,9 @@ function  length(c:char):byte;
                              AnsiString Handling
 ****************************************************************************}
 
-{$ifdef ver1_0}
+{$ifndef INTERNSETLENGTH}
 Procedure SetLength (Var S : AnsiString; l : Longint);
-{$endif ver1_0}
+{$endif INTERNSETLENGTH}
 Procedure UniqueString (Var S : AnsiString);
 Function  Length (Const S : AnsiString) : Longint;
 Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
@@ -321,9 +321,9 @@ Function StringOfChar(c : char;l : longint) : AnsiString;
 ****************************************************************************}
 
 {$ifdef haswidechar}
-{$ifdef ver1_0}
+{$ifndef INTERNSETLENGTH}
 Procedure SetLength (Var S : WideString; l : Longint);
-{$endif ver1_0}
+{$endif INTERNSETLENGTH}
 Procedure UniqueString (Var S : WideString);
 Function  Length (Const S : WideString) : Longint;
 Function  Copy (Const S : WideString; Index,Size : Longint) : WideString;
@@ -484,7 +484,10 @@ const
 
 {
   $Log$
-  Revision 1.8  2000-10-23 16:15:40  jonas
+  Revision 1.9  2000-11-06 20:34:24  peter
+    * changed ver1_0 defines to temporary defs
+
+  Revision 1.8  2000/10/23 16:15:40  jonas
     * renamed strlenint to longint since 1.0 doesn't know that type
 
   Revision 1.7  2000/10/23 14:00:59  florian

@@ -294,11 +294,11 @@ begin
     HandleErrorFrame(201,get_frame);
 end;
 
-{$ifdef ver1_0}
+{$ifndef INTERNSETLENGTH}
 Procedure SetLength (Var S : WideString; l : Longint);
-{$else ver1_0}
+{$else INTERNSETLENGTH}
 Procedure WideStr_SetLength (Var S : WideString; l : Longint);[Public,Alias : 'FPC_WIDESTR_SETLENGTH'];
-{$endif ver1_0}
+{$endif INTERNSETLENGTH}
 {
   Sets The length of string S to L.
   Makes sure S is unique, and contains enough room.
@@ -500,7 +500,10 @@ end;}
 
 {
   $Log$
-  Revision 1.4  2000-10-21 18:20:17  florian
+  Revision 1.5  2000-11-06 20:34:24  peter
+    * changed ver1_0 defines to temporary defs
+
+  Revision 1.4  2000/10/21 18:20:17  florian
     * a lot of small changes:
        - setlength is internal
        - win32 graph unit extended

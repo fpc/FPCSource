@@ -138,17 +138,17 @@
           { new for gtk, default handler for text based messages }
           procedure DefaultHandlerStr(var message);virtual;
 
-{$ifndef ver1_0}
+{$ifdef HASINTF}
           { interface functions }
           function getinterface(const iid : tguid; out obj) : boolean;
           function getinterfacebystr(const iidstr : string; out obj) : boolean;
           class function getinterfaceentry(const iid : tguid) : pinterfaceentry;
           class function getinterfaceentrybystr(const iidstr : string) : pinterfaceentry;
           class function getinterfacetable : pinterfacetable;
-{$endif ver1_0}
+{$endif HASINTF}
        end;
 
-{$ifndef ver1_0}
+{$ifdef HASINTF}
        IUnknown = interface
          ['{00000000-0000-0000-C000-000000000046}']
          function QueryInterface(const iid: tguid; out obj): LongInt; stdcall;
@@ -168,7 +168,7 @@
            LocaleID: LongInt; Flags: Word; var params;
            VarResult, ExcepInfo, ArgErr: Pointer): Integer; stdcall;
        end;
-{$endif ver1_0}
+{$endif HASINTF}
 
        TExceptProc = Procedure (Obj : TObject; Addr,Frame: Pointer);
 
@@ -183,7 +183,7 @@
 
        Const
           ExceptProc : TExceptProc = Nil;
-	  RaiseProc : TExceptProc = Nil;
+          RaiseProc : TExceptProc = Nil;
 
        Function RaiseList : PExceptObject;
 
@@ -258,7 +258,10 @@
        end;
 {
   $Log$
-  Revision 1.6  2000-11-04 17:31:50  florian
+  Revision 1.7  2000-11-06 20:34:24  peter
+    * changed ver1_0 defines to temporary defs
+
+  Revision 1.6  2000/11/04 17:31:50  florian
     * fixed some out declarations
 
   Revision 1.5  2000/11/04 16:28:55  florian
