@@ -279,6 +279,7 @@ implementation
 {$ifdef extdebug}
         store_count_ref : boolean;
 {$endif def extdebug}
+        p1 : tnode;
       begin
          inc(parsing_para_level);
 
@@ -438,6 +439,20 @@ implementation
          { Handle formal parameters separate }
          if (defcoll.paratype.def.deftype=formaldef) then
            begin
+             { load procvar if a procedure is passed }
+             if (m_tp_procvar in aktmodeswitches) and
+                (left.nodetype=calln) and
+                (is_void(left.resulttype.def)) then
+              begin
+                p1:=cloadnode.create_procvar(tcallnode(left).symtableprocentry,
+                   tprocdef(tcallnode(left).procdefinition),tcallnode(left).symtableproc);
+                if assigned(tcallnode(left).right) then
+                 tloadnode(p1).set_mp(tcallnode(left).right);
+                left.free;
+                left:=p1;
+                resulttypepass(left);
+              end;
+
              case defcoll.paratyp of
                vs_var,
                vs_out :
@@ -1829,7 +1844,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2002-04-15 19:44:19  peter
+  Revision 1.70  2002-04-16 16:09:08  peter
+    * allow passing the address of a procedure to a formal parameter
+      in delphi mode
+
+  Revision 1.69  2002/04/15 19:44:19  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing
