@@ -64,7 +64,9 @@ type
     procedure StartListing(Frames: Boolean; const name: String);
     procedure StartListing(Frames: Boolean);
     procedure EndListing;
-
+    Function  EscapeTex(S : String) : String;
+    Function  StripTex(S : String) : String;
+    
     procedure WriteCommentLine;
     procedure WriteComment(Comment : String);
     procedure StartSection(SectionName : String; SectionLabel : String);
@@ -306,24 +308,42 @@ begin
   System.WriteLn(f, Format(s, Args));
 end;
 
-procedure TLaTeXWriter.DescrWriteText(const AText: DOMString);
+Function TLatexWriter.EscapeTex(S : String) : String;
+
 var
   i: Integer;
-  s: DOMString;
+
 begin
-  SetLength(s, 0);
-  for i := 1 to Length(AText) do
-    case AText[i] of
+  SetLength(Result, 0);
+  for i := 1 to Length(S) do
+    case S[i] of
       '&','{','}','#','_','$','%':		// Escape these characters
-        s := s + '\' + AText[i];
+        Result := Result + '\' + S[i];
       '~','^':
-        S := S + '\'+AText[i]+' ';
+        Result := Result + '\'+S[i]+' ';
       '\': 
-        S:=S+'$\backslash$'  
+        Result:=Result+'$\backslash$'  
       else
-        s := s + AText[i];
+        Result := Result + S[i];
     end;
-  Write(s);
+end;
+
+Function TLatexWriter.StripTex(S : String) : String;
+
+var
+  I,L: Integer;
+
+begin
+  SetLength(Result, 0);
+  for i := 1 to Length(S) do
+    If not (S[i] in ['&','{','}','#','_','$','%','''','~','^', '\']) then
+      Result := Result + S[i];
+end;
+
+procedure TLaTeXWriter.DescrWriteText(const AText: DOMString);
+
+begin
+  Write(EscapeTex(AText));
 end;
 
 procedure TLaTeXWriter.DescrBeginBold;
@@ -387,7 +407,7 @@ end;
 
 procedure TLaTeXWriter.DescrEndLink;
 begin
-  WriteF(' (\pageref{%s})',[Flink]);
+  WriteF(' (\pageref{%s})',[StripTex(Flink)]);
 end;
 
 procedure TLaTeXWriter.DescrWriteLinebreak;
@@ -620,14 +640,14 @@ begin
     begin
       UnitRef := TPasType(ASection.UsesList[i]);
       WriteLnF('%s\index{unit!%s} & \pageref{%s} \\',
-        [UnitRef.Name, UnitRef.Name, GetLabel(UnitRef)]);
+        [UnitRef.Name, UnitRef.Name, StripTex(GetLabel(UnitRef))]);
     end;
     WriteLn('\end{FPCltable}');
   end;
   DocNode := Engine.FindDocNode(ASection.Parent);
   if Assigned(DocNode) and not IsDescrNodeEmpty(DocNode.Descr) then
   begin
-    WriteLnF('\section{%s}', [SDocOverview]);
+    WriteLnF('\section{%s}', [EscapeTex(SDocOverview)]);
     WriteDescr(ASection.Parent, DocNode.Descr);
     Writeln('');
   end;
@@ -663,12 +683,12 @@ begin
   if ASection.Consts.Count > 0 then
   begin
     WriteLnF('\subsection{%s}\label{suse:%sConstants}',
-      [SDocConstants, ModuleName]);
+      [EscapeTex(SDocConstants), EscapeTex(ModuleName)]);
     for i := 0 to ASection.Consts.Count - 1 do
     begin
       ConstDecl := TPasConst(ASection.Consts[i]);
       StartListing(False);
-      WriteLn(ConstDecl.GetDeclaration(True));
+      WriteLn(EscapeTex(ConstDecl.GetDeclaration(True)));
       EndListing;
       WriteLabel(ConstDecl);  
       WriteIndex(ConstDecl);
@@ -690,14 +710,14 @@ begin
     SortElementList(Values);
     DescrBeginTable(2,True);
     DescrBeginTableCaption;
-      Writeln(Format(SDocValuesForEnum,[TypeDecl.Name]));
+      Writeln(EscapeTex(Format(SDocValuesForEnum,[TypeDecl.Name])));
     DescrEndTableCaption;
     DescrBeginTableHeadRow;
       DescrBeginTableCell;
-        Writeln(SDocValue);
+        Writeln(EscapeTex(SDocValue));
       DescrEndTableCell;
       DescrBeginTableCell;
-        Writeln(SDocExplanation);
+        Writeln(EscapeTex(SDocExplanation));
       DescrEndTableCell;
     DescrEndTableHeadRow;
     For I:=0 to Values.Count-1 do
@@ -705,7 +725,7 @@ begin
       EV:=TPasEnumValue(Values[i]);
       DescrBeginTableRow;
         DescrBeginTableCell;
-          Writeln(EV.Name);
+          Writeln(EscapeTex(EV.Name));
         DescrEndTableCell;
         DescrBeginTableCell;
           DocNode := Engine.FindDocNode(EV);
@@ -730,7 +750,7 @@ begin
     begin
       TypeDecl := TPasType(ASection.Types[i]);
       StartListing(False);
-      Writeln(TypeDecl.GetDeclaration(True));
+      Writeln(EscapeTex(TypeDecl.GetDeclaration(True)));
       EndListing;
       WriteLabel(TypeDecl);
       WriteIndex(TypeDecl);
@@ -755,7 +775,7 @@ begin
     begin
       VarDecl := TPasVariable(ASection.Variables[i]);
       StartListing(False);
-      WriteLn(VarDecl.GetDeclaration(True));
+      WriteLn(EscapeTex(VarDecl.GetDeclaration(True)));
       EndListing;
       WriteLabel(VarDecl);
       WriteIndex(VarDecl);
@@ -948,7 +968,6 @@ var
   s: String;
   Arg: TPasArgument;
   DocNode: TDocNode;
-  Ref : String;
   List : TStringList;
   
 begin
@@ -967,16 +986,12 @@ begin
       StartSubSection(SDocMethodOverview);
       WriteLabel(GetLabel(ClassDecl) + ':Methods');
       WriteLn('\begin{tabularx}{\textwidth}{llX}');
-      WriteLnF('%s & %s & %s \\ \hline',  [SDocPage, SDocMethod, SDocDescription]);
+      WriteLnF('%s & %s & %s \\ \hline',  [EscapeTex(SDocPage), EscapeTex(SDocMethod), EscapeTex(SDocDescription)]);
       For I:=0 to List.Count-1 do
         begin
         Member:=TPasElement(List.Objects[i]);
         DocNode := Engine.FindDocNode(Member);
-        if Assigned(DocNode) and (Length(DocNode.Link) > 0) then
-          ref:=Format('%s:%s',[Modulename,DocNode.link])
-        else
-          ref:=Format('%s:%s.%s',[ModuleName, LowerCase(ClassDecl.Name),LowerCase(Member.Name)]);
-        WriteF('\pageref{%s} & %s & ',[GetLabel(Member), Member.Name]);
+        WriteF('\pageref{%s} & %s & ',[StripTex(GetLabel(Member)), EscapeTex(Member.Name)]);
         if Assigned(DocNode) and Assigned(DocNode.ShortDescr) then
           WriteDescr(Member, DocNode.ShortDescr);
         WriteLn('\\');
@@ -1016,11 +1031,11 @@ begin
       WriteLabel(GetLabel(ClassDecl) + ':Properties');
       WriteLn('\begin{tabularx}{\textwidth}{lllX}');
       WriteLnF('%s & %s & %s & %s \\ \hline',
-        [SDocPage, SDocProperty, SDocAccess, SDocDescription]);
+        [EscapeTex(SDocPage), EscapeTex(SDocProperty), EscapeTex(SDocAccess), EscapeTex(SDocDescription)]);
       For I:=0 to List.Count-1 do
         begin  
         Member:=TPasElement(List.objects[i]);
-        WriteF('\pageref{%s} & %s & ', [GetLabel(Member), Member.Name]);
+        WriteF('\pageref{%s} & %s & ', [StripTex(GetLabel(Member)), EscapeTex(Member.Name)]);
         setlength(S,0);
         if Length(TPasProperty(Member).ReadAccessorName) > 0 then
           s := s + 'r';
@@ -1169,7 +1184,7 @@ end;
 
 procedure TLaTeXWriter.WriteLabel(const s: String);
 begin
-  WriteLnF('\label{%s}', [LowerCase(s)]);
+  WriteLnF('\label{%s}', [LowerCase(StripTex(s))]);
 end;
 
 procedure TLaTeXWriter.WriteIndex(El : TPasElement);
@@ -1180,7 +1195,7 @@ end;
 procedure TLaTeXWriter.WriteIndex(const s : String);
 begin
   Write('\index{');
-  Write(s);
+  Write(EscapeTex(s));
   Writeln('}');
 end;
 
@@ -1190,9 +1205,9 @@ begin
     Writeln('\begin{verbatim}')
   else  
     if Frames then
-      Writelnf('\begin{lstlisting}{%s}',[Name])
+      Writelnf('\begin{lstlisting}{%s}',[StripTex(Name)])
     else  
-      Writelnf('\begin{lstlisting}[frame=]{%s}',[Name]);
+      Writelnf('\begin{lstlisting}[frame=]{%s}',[StripTex(Name)]);
 end;
 
 procedure TLaTeXWriter.StartListing(Frames : Boolean);
@@ -1234,7 +1249,7 @@ begin
   Writeln('');
   WriteCommentLine;
   WriteComment(SectionName);
-  Writeln('\section{'+SectionName+'}');
+  Writeln('\section{'+EscapeTex(SectionName)+'}');
 end;
 
 procedure TLatexWriter.StartSubSection(SubSectionName : String; SubSectionLabel : String);
@@ -1247,7 +1262,7 @@ procedure TLatexWriter.StartSubSection(SubSectionName : String);
 begin
   Writeln('');
   WriteComment(SubsectionName);
-  Writeln('\subsection{'+SubSectionName+'}');
+  Writeln('\subsection{'+EscapeTex(SubSectionName)+'}');
 end;
 
 procedure TLatexWriter.StartChapter(ChapterName : String; ChapterLabel : String);
@@ -1262,7 +1277,7 @@ begin
   WriteCommentLine;
   WriteComment(ChapterName);
   WriteCommentLine;
-  Writeln('\chapter{'+ChapterName+'}');
+  Writeln('\chapter{'+EscapeTex(ChapterName)+'}');
 end;
 
 procedure CreateLaTeXDocForPackage(APackage: TPasPackage; AEngine: TFPDocEngine);
@@ -1283,7 +1298,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-03-17 23:03:20  michael
+  Revision 1.2  2003-03-18 01:11:51  michael
+  + Some fixes to deal with illegal tex characters
+
+  Revision 1.1  2003/03/17 23:03:20  michael
   + Initial import in CVS
 
   Revision 1.13  2003/03/13 22:02:13  sg
