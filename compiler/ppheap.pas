@@ -39,7 +39,7 @@ interface
 implementation
 
     uses
-       globtype,globals,fmodule;
+       cutils,globtype,globals,fmodule;
 
 {*****************************************************************************
                             Filename registration
@@ -163,7 +163,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-11-15 01:58:53  peter
+  Revision 1.12  2002-11-19 12:08:24  pierre
+   * fix compilation failure
+
+  Revision 1.11  2002/11/15 01:58:53  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
