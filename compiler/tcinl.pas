@@ -106,6 +106,9 @@ implementation
          count_ref:=false;
          if not (p^.inlinenumber in [in_read_x,in_readln_x,in_sizeof_x,
             in_typeof_x,in_ord_x,in_str_x_string,
+{$IfDef ValIntern}
+            in_val_x,
+{$EndIf ValIntern}
             in_reset_typedfile,in_rewrite_typedfile]) then
            must_be_valid:=true
          else
@@ -807,6 +810,73 @@ implementation
                   { calc registers }
                   left_right_max(p);
                end;
+{$IfDef ValIntern}
+
+             in_val_x :
+               begin
+                  procinfo.flags:=procinfo.flags or pi_do_call;
+                  p^.resulttype:=voiddef;
+                  { check the amount of parameters }
+                  if not(assigned(p^.left)) or
+                     not(assigned(p^.left^.right)) then
+                   begin
+                     CGMessage(parser_e_wrong_parameter_size);
+                     exit;
+                   end;
+                  If Assigned(p^.left^.right^.right) Then
+                   {there is a "code" parameter}
+                     Begin
+                  { first pass just the code parameter for first local use}
+                       hp := p^.left^.right;
+                       p^.left^.right := nil;
+                       must_be_valid := false;
+                       count_ref := true;
+                       firstcallparan(p^.left, nil);
+                       if codegenerror then exit;
+                       p^.left^.right := hp;
+                     {code has to be a var parameter}
+                       if (p^.left^.left^.location.loc<>LOC_REFERENCE) then
+                         CGMessage(type_e_variable_id_expected)
+                       else
+                         if (p^.left^.left^.resulttype^.deftype <> orddef) or
+                            not(porddef(p^.left^.left^.resulttype)^.typ in
+                                [u16bit,s16bit,u32bit,s32bit]) then
+                           CGMessage(type_e_mismatch);
+                       hpp := p^.left^.right
+                     End
+                  Else hpp := p^.left;
+                  {now hpp = the destination value tree}
+                  { first pass just the destination parameter for first local use}
+                  hp:=hpp^.right;
+                  must_be_valid:=false;
+                  count_ref:=true;
+                  hpp^.right:=nil;
+                 {hpp = destination}
+                  firstcallparan(hpp,nil);
+                  if codegenerror then exit;
+                  hpp^.right := hp;
+                  if (hpp^.left^.location.loc<>LOC_REFERENCE) then
+                    CGMessage(type_e_variable_id_expected)
+                  else
+                    If Not((hpp^.left^.resulttype^.deftype = floatdef) or
+                           ((hpp^.left^.resulttype^.deftype = orddef) And
+                            (POrdDef(hpp^.left^.resulttype)^.typ in
+                              [u32bit,s32bit,{s64bitint,u64bit, -- not supported yet in RTL}
+                               u8bit,s8bit,u16bit,s16bit])))
+                        Then CGMessage(type_e_mismatch);
+                  must_be_valid:=true;
+                 {hp = source (String)}
+                  count_ref := false;
+                  must_be_valid := true;
+                  firstcallparan(hp,nil);
+                  if codegenerror then exit;
+                  If (hp^.resulttype^.deftype<>stringdef) then
+                    CGMessage(type_e_mismatch);
+{                  firstcallparan(p^.left,nil);}
+                  { calc registers }
+                  left_right_max(p);
+               end;
+{$EndIf ValIntern}
             in_include_x_y,
             in_exclude_x_y:
               begin
@@ -978,7 +1048,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1999-02-22 12:36:34  florian
+  Revision 1.20  1999-03-16 17:52:55  jonas
+    * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
+    * in cgi386inl: also range checking for subrange types (compile with "-dreadrangecheck")
+    * in cgai386: also small fixes to emitrangecheck
+
+  Revision 1.19  1999/02/22 12:36:34  florian
     + warning for lo/hi(longint/dword) in -So and -Sd mode added
 
   Revision 1.18  1999/02/22 02:15:49  peter

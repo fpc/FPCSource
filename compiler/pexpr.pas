@@ -417,6 +417,29 @@ unit pexpr;
               pd:=voiddef;
             end;
 
+{$IfDef ValIntern}
+          in_val_x:
+            Begin
+              consume(LKLAMMER);
+              in_args := true;
+              p1:= gencallparanode(comp_expr(true), nil);
+              Must_be_valid := False;
+              consume(COMMA);
+              p2 := gencallparanode(comp_expr(true),p1);
+              if (token = COMMA) then
+                Begin
+                  consume(COMMA);
+                  p2 := gencallparanode(comp_expr(true),p2)
+                End;
+              consume(RKLAMMER);
+              p2 := geninlinenode(l,false,p2);
+              do_firstpass(p2);
+              statement_syssym := p2;
+              pd := voiddef;
+            End;
+{$EndIf ValIntern}
+
+
           in_include_x_y,
           in_exclude_x_y :
             begin
@@ -1936,7 +1959,12 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.86  1999-03-04 13:55:44  pierre
+  Revision 1.87  1999-03-16 17:52:52  jonas
+    * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
+    * in cgi386inl: also range checking for subrange types (compile with "-dreadrangecheck")
+    * in cgai386: also small fixes to emitrangecheck
+
+  Revision 1.86  1999/03/04 13:55:44  pierre
     * some m68k fixes (still not compilable !)
     * new(tobj) does not give warning if tobj has no VMT !
 

@@ -63,6 +63,9 @@ begin
   p^.insert(new(psyssym,init('INC',in_inc_x)));
   p^.insert(new(psyssym,init('STR',in_str_x_string)));
   p^.insert(new(psyssym,init('ASSERT',in_assert_x_y)));
+{$IfDef ValIntern}
+  p^.insert(new(psyssym,init('VAL',in_val_x)));
+{$EndIf ValIntern}
 end;
 
 
@@ -253,7 +256,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1999-03-02 02:56:17  peter
+  Revision 1.17  1999-03-16 17:52:54  jonas
+    * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
+    * in cgi386inl: also range checking for subrange types (compile with "-dreadrangecheck")
+    * in cgai386: also small fixes to emitrangecheck
+
+  Revision 1.16  1999/03/02 02:56:17  peter
     + stabs support for binary writers
     * more fixes and missing updates from the previous commit :(
 

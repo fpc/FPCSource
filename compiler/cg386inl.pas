@@ -338,25 +338,91 @@ implementation
                                        emitcall('FPC_WRITE_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true);
                                    end;
                           orddef : begin
+ {in the range checking code, hp^.left is stil the current parameter, since
+  hp only gets modified when doread is false (JM)}
                                      case porddef(pararesult)^.typ of
                                           u8bit : if doread then
-                                                    emitcall('FPC_READ_TEXT_BYTE',true);
+{$IfDef ReadRangeCheck}
+                                                    Begin
+{$EndIf ReadRangeCheck}
+                                                      emitcall('FPC_READ_TEXT_BYTE',true);
+{$IfDef ReadRangeCheck}
+                                                      If (porddef(pararesult)^.low <> 0) or
+                                                         (porddef(pararesult)^.high <> 255) Then
+                                                        emitrangecheck(hp^.left,pararesult);
+                                                    End;
+{$EndIf ReadRangeCheck}
+
                                           s8bit : if doread then
-                                                    emitcall('FPC_READ_TEXT_SHORTINT',true);
+{$IfDef ReadRangeCheck}
+                                                    Begin
+{$EndIf ReadRangeCheck}
+                                                      emitcall('FPC_READ_TEXT_SHORTINT',true);
+{$IfDef ReadRangeCheck}
+                                                      If (porddef(pararesult)^.low <> -128) or
+                                                         (porddef(pararesult)^.high <> 127) Then
+                                                        emitrangecheck(hp^.left,pararesult);
+                                                    End;
+{$EndIf ReadRangeCheck}
                                          u16bit : if doread then
-                                                    emitcall('FPC_READ_TEXT_WORD',true);
+{$IfDef ReadRangeCheck}
+                                                    Begin
+{$EndIf ReadRangeCheck}
+                                                      emitcall('FPC_READ_TEXT_WORD',true);
+{$IfDef ReadRangeCheck}
+                                                      If (porddef(pararesult)^.low <> 0) or
+                                                         (porddef(pararesult)^.high <> 65535) Then
+                                                        emitrangecheck(hp^.left,pararesult);
+                                                    End;
+{$EndIf ReadRangeCheck}
                                          s16bit : if doread then
-                                                    emitcall('FPC_READ_TEXT_INTEGER',true);
+{$IfDef ReadRangeCheck}
+                                                    Begin
+{$EndIf ReadRangeCheck}
+                                                      emitcall('FPC_READ_TEXT_INTEGER',true);
+{$IfDef ReadRangeCheck}
+                                                      If (porddef(pararesult)^.low <> -32768) or
+                                                         (porddef(pararesult)^.high <> 32767) Then
+                                                        emitrangecheck(hp^.left,pararesult);
+                                                    End;
+{$EndIf ReadRangeCheck}
                                          s32bit : if doread then
-                                                    emitcall('FPC_READ_TEXT_LONGINT',true)
+{$IfDef ReadRangeCheck}
+                                                    Begin
+{$EndIf ReadRangeCheck}
+                                                      emitcall('FPC_READ_TEXT_LONGINT',true)
+{$IfDef ReadRangeCheck}
+                                                      ;If (porddef(pararesult)^.low <> $80000000) or
+                                                         (porddef(pararesult)^.high <> $7fffffff) Then
+                                                        emitrangecheck(hp^.left,pararesult);
+                                                    End
+{$EndIf ReadRangeCheck}
                                                   else
                                                     emitcall('FPC_WRITE_TEXT_LONGINT',true);
                                          u32bit : if doread then
-                                                    emitcall('FPC_READ_TEXT_CARDINAL',true)
+{$IfDef ReadRangeCheck}
+                                                    Begin
+{$EndIf ReadRangeCheck}
+                                                      emitcall('FPC_READ_TEXT_CARDINAL',true)
+{$IfDef ReadRangeCheck}
+                                                      ;If (porddef(pararesult)^.low <> $0) or
+                                                         (porddef(pararesult)^.high <> $ffffffff) Then
+                                                        emitrangecheck(hp^.left,pararesult);
+                                                    End
+{$EndIf ReadRangeCheck}
                                                   else
                                                     emitcall('FPC_WRITE_TEXT_CARDINAL',true);
                                           uchar : if doread then
-                                                    emitcall('FPC_READ_TEXT_CHAR',true)
+{$IfDef ReadRangeCheck}
+                                                    Begin
+{$EndIf ReadRangeCheck}
+                                                        emitcall('FPC_READ_TEXT_CHAR',true)
+{$IfDef ReadRangeCheck}
+                                                      ;If (porddef(pararesult)^.low <> 0) or
+                                                         (porddef(pararesult)^.high <> 255) Then
+                                                        emitrangecheck(hp^.left,pararesult);
+                                                    End
+{$EndIf ReadRangeCheck}
                                                   else
                                                     emitcall('FPC_WRITE_TEXT_CHAR',true);
                                          s64bitint:
@@ -535,7 +601,7 @@ implementation
              exit;
 
            if is_real then
-             emitcall(procedureprefix++float_name[pfloatdef(hp^.resulttype)^.typ],true)
+             emitcall(procedureprefix+float_name[pfloatdef(hp^.resulttype)^.typ],true)
            else
              case porddef(hp^.resulttype)^.typ of
                 u32bit:
@@ -552,6 +618,216 @@ implementation
              end;
            popusedregisters(pushed);
         end;
+
+{$IfDef ValIntern}
+
+        Procedure Handle_Val;
+
+        var
+           hp,node, code_para, dest_para : ptree;
+           hreg: TRegister;
+           hdef: POrdDef;
+           pushed2: TPushed;
+           procedureprefix : string;
+           hr: TReference;
+           dummycoll : tdefcoll;
+           has_code, has_32bit_code, oldregisterdef: boolean;
+
+          begin
+          {save the register variables}
+           pushusedregisters(pushed,$ff);
+           node:=p^.left;
+           hp:=node;
+           node:=node^.right;
+           hp^.right:=nil;
+           has_32bit_code := false;
+          {if we have 3 parameters, we have a code parameter}
+           has_code := Assigned(node^.right);
+           reset_reference(hr);
+           hreg := R_NO;
+
+          {the function result will be in EAX, so we need to reserve it so
+           that secondpass(dest_para^.left) and secondpass(code_para^.left)
+           won't use it}
+           hreg := getexplicitregister32(R_EAX);
+          {if EAX is already in use, it's a register variable (ok, we've saved
+           those with pushusedregisters). Since we don't need another
+           register besides EAX, release it}
+           If hreg <> R_EAX Then ungetregister32(hreg);
+
+           If has_code then
+             Begin
+               {code is an orddef, that's checked in tcinl}
+               If (porddef(hp^.left^.resulttype)^.typ in [u32bit,s32bit]) Then
+                 Begin
+                   has_32bit_code := true;
+                   code_para := hp;
+                   hp:=node;
+                   node:=node^.right;
+                   hp^.right:=nil;
+                 End
+               Else
+                 Begin
+                   secondpass(hp^.left);
+                   code_para := hp;
+                   hp := node;
+                   node:=node^.right;
+                   hp^.right:=nil;
+                 End;
+             End;
+           {hp = destination now, save for later use}
+           dest_para := hp;
+           secondpass(dest_para^.left);
+
+          {unget EAX (if we got it before), since otherwise pushusedregisters
+           will push it on the stack. No more registers are allocated before
+           the function call that will also have to be accessed afterwards,
+           so if EAX is allocated now before the function call, it doesn't
+           matter.}
+           If (hreg = R_EAX) then Ungetregister32(R_EAX);
+
+          {(if necessary) save the address loading of code_para and dest_para}
+
+           pushusedregisters(pushed2,$ff);
+
+          {now that we've already pushed the results from
+           secondpass(code_para^.left) and secondpass(dest_para^.left) on the
+           stack, we can put the real parameters on the stack}
+
+           If has_32bit_code Then
+             Begin
+               dummycoll.paratyp:=vs_var;
+               dummycoll.data:=code_para^.resulttype;
+               secondcallparan(code_para,@dummycoll,false,false,0);
+               if codegenerror then
+                 exit;
+               Disposetree(code_para);
+             End
+           Else
+             Begin
+           {only 32bit code parameter is supported, so fake one}
+               GetTempOfSizeReference(4,hr);
+               emitpushreferenceaddr(exprasmlist,hr);
+             End;
+
+           Case dest_para^.resulttype^.deftype of
+             floatdef: procedureprefix := 'FPC_VAL_REAL_';
+             orddef:
+               Case PordDef(dest_para^.resulttype)^.typ of
+                 u8bit,u16bit,u32bit{,u64bit}: procedureprefix := 'FPC_VAL_UINT_';
+                 s8bit,s16bit,s32bit{,s64bitint}: procedureprefix := 'FPC_VAL_SINT_';
+               End;
+           End;
+
+          {node = first parameter = string}
+           dummycoll.paratyp:=vs_const;
+           dummycoll.data:=node^.resulttype;
+           secondcallparan(node,@dummycoll,false,false,0);
+           if codegenerror then
+             exit;
+
+           {if we are converting to a signed number, we have to include the
+            size of the destination, so the Val function can extend the sign
+            of the result to allow proper range checking}
+           If (dest_para^.resulttype^.deftype = orddef) Then
+              Case PordDef(dest_para^.resulttype)^.typ of
+                s8bit: exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_W,1)));
+                s16bit: exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_W,2)));
+                s32bit: exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_W,4)));
+              End;
+
+           case pstringdef(node^.resulttype)^.string_typ of
+              st_widestring:
+                emitcall(procedureprefix+'STRWIDE',true);
+              st_ansistring:
+                emitcall(procedureprefix+'STRANSI',true);
+              st_shortstring:
+                emitcall(procedureprefix+'SSTRING',true);
+              st_longstring:
+                emitcall(procedureprefix+'STRLONG',true);
+           end;
+           disposetree(node);
+           p^.left := nil;
+
+          {restore the addresses loaded by secondpass}
+           popusedregisters(pushed2);
+          {reload esi in case the dest_para/code_para is a class variable or so}
+           maybe_loadesi;
+
+           If has_code and Not(has_32bit_code) Then
+             {only 16bit code is possible}
+             Begin
+               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,NewReference(hr),R_EDI)));
+               emit_mov_reg_loc(R_DI,code_para^.left^.location);
+               Disposetree(code_para);
+             End;
+
+          {save the function result in the destinatin variable}
+           Case dest_para^.left^.resulttype^.deftype of
+             floatdef: floatstore(PFloatDef(dest_para^.left^.resulttype)^.typ,
+                                   dest_para^.left^.location.reference);
+             orddef:
+               Case PordDef(dest_para^.left^.resulttype)^.typ of
+                 u8bit,s8bit:
+                   emit_mov_reg_loc(R_AL,dest_para^.left^.location);
+                 u16bit,s16bit:
+                   emit_mov_reg_loc(R_AX,dest_para^.left^.location);
+                 u32bit,s32bit:
+                   emit_mov_reg_loc(R_EAX,dest_para^.left^.location);
+                 {u64bit,s64bitint: ???}
+               End;
+           End;
+           If (cs_check_range in aktlocalswitches) and
+              (dest_para^.left^.resulttype^.deftype = orddef) and
+            {the following has to be changed to 64bit checking, once Val
+             returns 64 bit values (unless a special Val function is created
+             for that}
+            {no need to rangecheck longints or cardinals on 32bit processors}
+               not((porddef(dest_para^.left^.resulttype)^.typ = s32bit) and
+                   (porddef(dest_para^.left^.resulttype)^.low = $80000000) and
+                   (porddef(dest_para^.left^.resulttype)^.high = $7fffffff)) and
+               not((porddef(dest_para^.left^.resulttype)^.typ = u32bit) and
+                   (porddef(dest_para^.left^.resulttype)^.low = 0) and
+                   (porddef(dest_para^.left^.resulttype)^.high = $ffffffff)) then
+             Begin
+               If has_32bit_code then
+               {we don't have temporary variable space yet}
+                 GetTempOfSizeReference(4,hr);
+              {save the result in a temp variable, because EAX may be
+               overwritten by popusedregs()}
+               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EAX,NewReference(hr))));
+              {clean up the stack, so a backtrace is possible if range check
+               fails}
+               popusedregisters(pushed);
+              {create a temporary 32bit location for the returned value}
+               hp := getcopy(dest_para^.left);
+               hp^.location.loc := LOC_REFERENCE;
+               hp^.location.reference := hr;
+              {do not register this temporary def}
+               OldRegisterDef := RegisterDef;
+               RegisterDef := False;
+               Case PordDef(dest_para^.left^.resulttype)^.typ of
+                 u8bit,u16bit,u32bit: new(hdef,init(u32bit,0,$fffffff));
+                 s8bit,s16bit,s32bit: new(hdef,init(s32bit,$fffffff,$7ffffff));
+               end;
+               hp^.resulttype := hdef;
+               emitrangecheck(hp,dest_para^.left^.resulttype);
+               hp^.right := nil;
+               Dispose(hp^.resulttype, Done);
+               RegisterDef := OldRegisterDef;
+               disposetree(hp);
+              {it's possible that the range cheking was handled by a
+               procedure that has destroyed ESI}
+               maybe_loadesi;
+             End
+           Else
+            {clean up the stack}
+             popusedregisters(pushed);
+          {dest_para^right is already nil}
+           disposetree(dest_para);
+           UnGetIfTemp(hr);
+        end;
+{$EndIf ValIntern}
 
       var
          r : preference;
@@ -943,6 +1219,12 @@ implementation
                  handle_str;
                  maybe_loadesi;
               end;
+{$IfDef ValIntern}
+            in_val_x :
+              Begin
+                handle_val;
+              End;
+{$EndIf ValIntern}
             in_include_x_y,
             in_exclude_x_y:
               begin
@@ -1027,7 +1309,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1999-02-25 21:02:27  peter
+  Revision 1.30  1999-03-16 17:52:56  jonas
+    * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
+    * in cgi386inl: also range checking for subrange types (compile with "-dreadrangecheck")
+    * in cgai386: also small fixes to emitrangecheck
+
+  Revision 1.29  1999/02/25 21:02:27  peter
     * ag386bin updates
     + coff writer
 
