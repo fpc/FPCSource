@@ -47,7 +47,7 @@ type
     procedure IllegalPara(const opt:string);
     function  Unsetbool(const opts:string; pos: Longint):boolean;
     procedure interpret_proc_specific_options(const opt:string);virtual;
-    procedure interpret_option(const opt :string);
+    procedure interpret_option(const opt :string;ispara:boolean);
     procedure Interpret_envvar(const envname : string);
     procedure Interpret_file(const filename : string);
     procedure Read_Parameters;
@@ -327,7 +327,7 @@ begin
 end;
 
 
-procedure TOption.interpret_option(const opt:string);
+procedure TOption.interpret_option(const opt:string;ispara:boolean);
 var
   code : integer;
   c    : char;
@@ -504,28 +504,28 @@ begin
                        'D' : utilsdirectory:=FixPath(More,true);
                        'e' : SetRedirectFile(More);
                        'E' : OutputExeDir:=FixPath(More,true);
-                       'i' : if firstpass then
-                              includesearchpath.AddPath(More,false)
+                       'i' : if ispara then
+                              ParaIncludePath.AddPath(More,false)
                              else
-                              ParaIncludePath.AddPath(More,false);
+                              includesearchpath.AddPath(More,false);
                        'g' : Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
-                       'l' : if firstpass then
-                              LibrarySearchPath.AddPath(More,false)
+                       'l' : if ispara then
+                              ParaLibraryPath.AddPath(More,false)
                              else
-                              ParaLibraryPath.AddPath(More,false);
+                              LibrarySearchPath.AddPath(More,false);
                        'L' : if More<>'' then
                               ParaDynamicLinker:=More
                              else
                               IllegalPara(opt);
-                       'o' : if firstpass then
-                              ObjectSearchPath.AddPath(More,false)
+                       'o' : if ispara then
+                              ParaObjectPath.AddPath(More,false)
                              else
-                              ParaObjectPath.AddPath(More,false);
+                              ObjectSearchPath.AddPath(More,false);
                        'r' : Msgfilename:=More;
-                       'u' : if firstpass then
-                              unitsearchpath.AddPath(More,false)
+                       'u' : if ispara then
+                              ParaUnitPath.AddPath(More,false)
                              else
-                              ParaUnitPath.AddPath(More,false);
+                              unitsearchpath.AddPath(More,false);
                        'U' : OutputUnitDir:=FixPath(More,true);
                       else
                         IllegalPara(opt);
@@ -593,10 +593,10 @@ begin
                           IllegalPara(Opt);
                         end;
                      end;
-              'I' : if firstpass then
-                     includesearchpath.AddPath(More,false)
+              'I' : if ispara then
+                     ParaIncludePath.AddPath(More,false)
                     else
-                     ParaIncludePath.AddPath(More,false);
+                     includesearchpath.AddPath(More,false);
               'k' : if more<>'' then
                      ParaLinkOptions:=ParaLinkOptions+' '+More
                     else
@@ -937,7 +937,7 @@ begin
         else
          begin
            if (not skip[level]) and (opts[1]='-') then
-            interpret_option(opts)
+            interpret_option(opts,false)
          end;
       end;
    end;
@@ -984,7 +984,7 @@ begin
     arglen:=pc-argstart;
     hs[0]:=chr(arglen);
     move(argstart^,hs[1],arglen);
-    interpret_option(hs);
+    interpret_option(hs,true);
   { skip quote }
     if pc^ in quote then
      inc(pc);
@@ -1019,7 +1019,7 @@ begin
            interpret_envvar(opts);
          end;
        else
-         interpret_option(opts);
+         interpret_option(opts,true);
      end;
    end;
 end;
@@ -1055,7 +1055,7 @@ begin
            interpret_envvar(opts);
          end;
        else
-         interpret_option(opts);
+         interpret_option(opts,true);
      end;
    end;
 end;
@@ -1332,7 +1332,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.40  1999-12-08 10:40:01  pierre
+  Revision 1.41  1999-12-10 10:03:54  peter
+    * fixed parameter orderning
+
+  Revision 1.40  1999/12/08 10:40:01  pierre
     + allow use of unit var in exports of DLL for win32
       by using direct export writing by default instead of use of DEFFILE
       that does not allow assembler labels that do not
