@@ -898,9 +898,9 @@ implementation
 
                  { When there is a signed type we convert to signed int.
                    Otherwise (both are unsigned) we keep the result also unsigned.
-		   Exception is substraction, that also gives an signed result }
+                   Exception is substraction, that also gives an signed result }
                  if (nodetype=subn) or
-		    (is_signed(ld) or is_signed(rd)) then
+                    (is_signed(ld) or is_signed(rd)) then
                    begin
                      inserttypeconv(right,sinttype);
                      inserttypeconv(left,sinttype);
@@ -1065,7 +1065,7 @@ implementation
            Note: Must be done after pointerdef+pointerdef has been checked, else
            pchar is converted to string }
          else if (rd.deftype=stringdef) or
-	         (ld.deftype=stringdef) or
+                 (ld.deftype=stringdef) or
                  ((is_pchar(rd) or is_chararray(rd) or is_char(rd) or is_open_chararray(rd) or
                    is_pwidechar(rd) or is_widechararray(rd) or is_widechar(rd) or is_open_widechararray(rd)) and
                   (is_pchar(ld) or is_chararray(ld) or is_char(ld) or is_open_chararray(ld) or
@@ -1079,31 +1079,31 @@ implementation
                    is_pwidechar(ld) or is_widechararray(ld) or is_widechar(ld) or is_open_widechararray(ld) then
                   strtype:= st_widestring
                 else
-		  if is_ansistring(rd) or is_ansistring(ld) or
+                  if is_ansistring(rd) or is_ansistring(ld) or
                      ((cs_ansistrings in aktlocalswitches) and
                      //todo: Move some of this to longstring's then they are implemented?
                       (
-		       is_pchar(rd) or (is_chararray(rd) and (rd.size > 255)) or is_open_chararray(rd) or
+                       is_pchar(rd) or (is_chararray(rd) and (rd.size > 255)) or is_open_chararray(rd) or
                        is_pchar(ld) or (is_chararray(ld) and (ld.size > 255)) or is_open_chararray(ld)
                       )
                      ) then
                     strtype:= st_ansistring
                 else
-		  if is_longstring(rd) or is_longstring(ld) then
+                  if is_longstring(rd) or is_longstring(ld) then
                     strtype:= st_longstring
                 else
-		  begin
+                  begin
                     {$warning todo: add a warning/hint here if one converting a too large array}
                     { nodes is PChar, array [with size > 255] or OpenArrayOfChar.
                       Note: Delphi halts with error if "array [0..xx] of char"
                            is assigned to ShortString and string length is less
                            then array size }
                     strtype:= st_shortstring;
-		  end;
+                  end;
 
                 // Now convert nodes to common string type
-		case strtype of
-		  st_widestring :
+                case strtype of
+                  st_widestring :
                     begin
                       if not(is_widestring(rd)) then
                         inserttypeconv(right,cwidestringtype);
@@ -2071,7 +2071,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.135  2005-01-16 11:13:40  peter
+  Revision 1.136  2005-01-16 11:56:37  peter
+    * fixed some tabs
+
+  Revision 1.135  2005/01/16 11:13:40  peter
     * ord-ord always gives a signed result
 
   Revision 1.134  2005/01/10 22:10:26  peter
