@@ -534,7 +534,8 @@ interface
          pd : pprocdef;
          oldcallprocsym : pprocsym;
          def_from,def_to,conv_to : pdef;
-         hpt,pt,inlinecode : tnode;
+         hpt,inlinecode : tnode;
+         pt : tcallparanode;
          exactmatch,inlined : boolean;
          paralength,lastpara : longint;
          lastparatype : pdef;
@@ -555,7 +556,7 @@ interface
 
       { check if the resulttype from tree p is equal with def, needed
         for stringconstn and formaldef }
-      function is_equal(p:tnode;def:pdef) : boolean;
+      function is_equal(p:tcallparanode;def:pdef) : boolean;
 
         begin
            { safety check }
@@ -571,11 +572,11 @@ interface
              the specified value matches the range }
              or
              (
-              (left.nodetype=ordconstn) and
+              (tbinarynode(p).left.nodetype=ordconstn) and
               is_integer(p.resulttype) and
               is_integer(def) and
-              (tordconstnode(left).value>=porddef(def)^.low) and
-              (tordconstnode(left).value<=porddef(def)^.high)
+              (tordconstnode(p.left).value>=porddef(def)^.low) and
+              (tordconstnode(p.left).value<=porddef(def)^.high)
              )
            { to support ansi/long/wide strings in a proper way }
            { string and string[10] are assumed as equal }
@@ -587,12 +588,12 @@ interface
              )
              or
              (
-              (left.nodetype=stringconstn) and
+              (p.left.nodetype=stringconstn) and
               (is_ansistring(p.resulttype) and is_pchar(def))
              )
              or
              (
-              (left.nodetype=ordconstn) and
+              (p.left.nodetype=ordconstn) and
               (is_char(p.resulttype) and (is_shortstring(def) or is_ansistring(def)))
              )
            { set can also be a not yet converted array constructor }
@@ -605,8 +606,8 @@ interface
              or
              (
               (m_tp_procvar in aktmodeswitches) and
-              (def^.deftype=procvardef) and (left.nodetype=calln) and
-              (proc_to_procvar_equal(pprocdef(tcallnode(left).procdefinition),pprocvardef(def)))
+              (def^.deftype=procvardef) and (p.left.nodetype=calln) and
+              (proc_to_procvar_equal(pprocdef(tcallnode(p.left).procdefinition),pprocvardef(def)))
              )
              ;
         end;
@@ -679,10 +680,10 @@ interface
 
               { check the parameters }
               pdc:=pparaitem(pprocvardef(right.resulttype)^.para^.first);
-              pt:=left;
+              pt:=tcallparanode(left);
               while assigned(pdc) and assigned(pt) do
                 begin
-                   pt:=tcallparanode(pt).right;
+                   pt:=tcallparanode(pt.right);
                    pdc:=pparaitem(pdc^.next);
                 end;
               if assigned(pt) or assigned(pdc) then
@@ -745,12 +746,12 @@ interface
                   end;
 {$endif TEST_PROCSYMS}
                    { determine length of parameter list }
-                   pt:=left;
+                   pt:=tcallparanode(left);
                    paralength:=0;
                    while assigned(pt) do
                      begin
                         inc(paralength);
-                        pt:=tcallparanode(pt).right;
+                        pt:=tcallparanode(pt.right);
                      end;
 
                    { link all procedures which have the same # of parameters }
@@ -804,7 +805,7 @@ interface
                     end;
 
                 { now we can compare parameter after parameter }
-                   pt:=left;
+                   pt:=tcallparanode(left);
                    { we start with the last parameter }
                    lastpara:=paralength+1;
                    lastparatype:=nil;
@@ -828,7 +829,7 @@ interface
                                begin
                                   if hp^.nextpara^.paratype.def=pt.resulttype then
                                     begin
-                                       include(tcallparanode(pt).callparaflags,cpf_exact_match_found);
+                                       include(pt.callparaflags,cpf_exact_match_found);
                                        hp^.nextpara^.argconvtyp:=act_exact;
                                     end
                                   else
@@ -839,10 +840,10 @@ interface
                                begin
                                  hp^.nextpara^.argconvtyp:=act_convertable;
                                  hp^.nextpara^.convertlevel:=isconvertable(pt.resulttype,hp^.nextpara^.paratype.def,
-                                     hcvt,tcallparanode(pt).left.nodetype,false);
+                                     hcvt,pt.left.nodetype,false);
                                  case hp^.nextpara^.convertlevel of
-                                  1 : include(tcallparanode(pt).callparaflags,cpf_convlevel1found);
-                                  2 : include(tcallparanode(pt).callparaflags,cpf_convlevel2found);
+                                  1 : include(pt.callparaflags,cpf_convlevel1found);
+                                  2 : include(pt.callparaflags,cpf_convlevel2found);
                                  end;
                                end;
 
@@ -901,7 +902,7 @@ interface
                           end;
                         { load next parameter or quit loop if no procs left }
                         if assigned(procs) then
-                          pt:=tcallparanode(pt).right
+                          pt:=tcallparanode(pt.right)
                         else
                           break;
                      end;
@@ -942,7 +943,7 @@ interface
                             hp^.nextpara:=hp^.firstpara;
                             hp:=hp^.next;
                           end;
-                        pt:=left;
+                        pt:=tcallparanode(left);
                         while assigned(pt) do
                           begin
                              { matches a parameter of one procedure exact ? }
@@ -1010,7 +1011,7 @@ interface
                                   hp^.nextpara:=pparaitem(hp^.nextpara^.next);
                                   hp:=hp^.next;
                                end;
-                             pt:=tcallparanode(pt).right;
+                             pt:=tcallparanode(pt.right);
                           end;
                      end;
 
@@ -1026,10 +1027,10 @@ interface
                            hp:=hp^.next;
                          end;
 
-                        pt:=left;
+                        pt:=tcallparanode(left);
                         while assigned(pt) do
                           begin
-                             if cpf_exact_match_found in tcallparanode(pt).callparaflags then
+                             if cpf_exact_match_found in pt.callparaflags then
                                begin
                                  hp:=procs;
                                  procs:=nil;
@@ -1054,7 +1055,7 @@ interface
                                   hp^.nextpara:=pparaitem(hp^.nextpara^.next);
                                   hp:=hp^.next;
                                end;
-                             pt:=tcallparanode(pt).right;
+                             pt:=tcallparanode(pt.right);
                           end;
                      end;
 
@@ -1072,11 +1073,11 @@ interface
                            hp:=hp^.next;
                          end;
 
-                        pt:=left;
+                        pt:=tcallparanode(left);
                         while assigned(pt) do
                           begin
                             bestord:=nil;
-                            if (tcallparanode(pt).left.nodetype=ordconstn) and
+                            if (pt.left.nodetype=ordconstn) and
                                is_integer(pt.resulttype) then
                              begin
                                hp:=procs;
@@ -1123,7 +1124,7 @@ interface
                                hp^.nextpara:=pparaitem(hp^.nextpara^.next);
                                hp:=hp^.next;
                              end;
-                            pt:=tcallparanode(pt).right;
+                            pt:=tcallparanode(pt.right);
                           end;
                      end;
 
@@ -1142,11 +1143,11 @@ interface
                            hp:=hp^.next;
                          end;
 
-                        pt:=left;
+                        pt:=tcallparanode(left);
                         while assigned(pt) do
                           begin
-                             if (cpf_convlevel1found in tcallparanode(pt).callparaflags) and
-                               (cpf_convlevel2found in tcallparanode(pt).callparaflags) then
+                             if (cpf_convlevel1found in pt.callparaflags) and
+                               (cpf_convlevel2found in pt.callparaflags) then
                                begin
                                  hp:=procs;
                                  procs:=nil;
@@ -1172,7 +1173,7 @@ interface
                                   hp^.nextpara:=pparaitem(hp^.nextpara^.next);
                                   hp:=hp^.next;
                                end;
-                             pt:=tcallparanode(pt).right;
+                             pt:=tcallparanode(pt.right);
                           end;
                      end;
 
@@ -1233,11 +1234,11 @@ interface
                      begin
                      { settextbuf needs two args }
                        if assigned(tcallparanode(left).right) then
-                         pt:=geninlinenode(pprocdef(procdefinition)^.extnumber,is_const,left)
+                        hpt:=geninlinenode(pprocdef(procdefinition)^.extnumber,is_const,left)
                        else
                          begin
-                           pt:=geninlinenode(pprocdef(procdefinition)^.extnumber,is_const,
-                             tcallparanode(left).left);
+                           hpt:=geninlinenode(pprocdef(procdefinition)^.extnumber,is_const,
+                                              tcallparanode(left).left);
                            tcallparanode(left).left:=nil;
                            left.free;
                            left:=nil;
@@ -1245,10 +1246,10 @@ interface
                      end
                    else
                      begin
-                       pt:=geninlinenode(pprocdef(procdefinition)^.extnumber,is_const,nil);
+                       hpt:=geninlinenode(pprocdef(procdefinition)^.extnumber,is_const,nil);
                      end;
-                   firstpass(pt);
-                   pass_1:=pt;
+                   firstpass(hpt);
+                   pass_1:=hpt;
                    goto errorexit;
                 end
               else
@@ -1529,7 +1530,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-10-14 21:52:55  peter
+  Revision 1.11  2000-10-21 14:35:27  peter
+    * readd to many remove p. for tcallnode.is_equal()
+
+  Revision 1.10  2000/10/14 21:52:55  peter
     * fixed memory leaks
 
   Revision 1.9  2000/10/14 10:14:50  peter
