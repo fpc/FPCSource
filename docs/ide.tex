@@ -24,9 +24,9 @@
 \chapter{Using the IDE}
 
 The IDE (\textbf{I}ntegrated \textbf{D}evelopment \textbf{E}nvironment)
-provides a comfortable user interface to the compiler, further it
+provides a comfortable user interface to the compiler. Moreover, it
 provides a debugger, symbol browser etc. The IDE is a textmode
-application this allows the same look and feel for all supported
+application which allows the same look and feel for all supported
 operating systems. Furthermore, it will be very familiar to all
 Turbo Pascal users.
 Currently the IDE is available for DOS, Win32 and Linux.
@@ -40,37 +40,38 @@ fp
 at the command line. Of course, you can also start the IDE
 from a graphical user interface (under the Windows enviroment, you
 can switch between windowed mode and full screen mode by pressing
-Alt-Enter).
+\textsc{Alt-Enter}).
 
 \subsection{The IDE screen}
 
 \begin{htmlonly}
-The screen of the IDE looks like this after start up:
+After start up, the screen of the IDE looks like this:
 \htmladdimg{../pics/idestart.gif}
 \end{htmlonly}
 \begin{latexonly}
-The screen of the IDE looks like this after start up like figure \ref{fig:idestart}.
+After start up, the screen of the IDE looks like figure \ref{fig:idestart}.
 \begin{figure}
 \caption{The IDE screen immediatly after startup}
 \label{fig:idestart}
 \ifpdf
 \epsfig{file=pics/idestart.pdf,width=\textwidth}
 \else
-\epsfig{file=pics/idestart.eps,width=\textwidth}
+%%%%%%%%%% !!!!!!!! eps\epsfig{file=pics/idestart.eps,width=\textwidth}
 \fi
 \end{figure}
 \end{latexonly}
-At top of the screen you see the menu bar, at the bottom the statusbar.
-The empty bar between them is called the desktop.
+At top of the screen you see the \emph{menu bar}, at the bottom
+the \emph{status bar}. The empty bar between them is called the
+\emph{desktop}.
 
 The statusbar allows a quick access to often used commands by
-clicking them with the mouse. Further, it reminds you about often used
-keyboard shortcuts.
+clicking them with the mouse. Further, it reminds you about 
+keyboard shortcuts that are frequently used.
 
 In upper right corner of the IDE screen a clock is displayed to
-remind you to go to bed in time. At lower right corner a you'll
+remind you to go to bed in time. At lower right corner you'll
 see the current amount of unsed memory. Don't worry if this value
-is low the IDE allocates more memory from the operating system
+is low - the IDE allocates more memory from the operating system
 if it runs out of memory.
 
 You can exit from the IDE by selecting \var{File|Exit}
@@ -78,7 +79,7 @@ You can exit from the IDE by selecting \var{File|Exit}
 or by pressing \textsc{Alt-X}.
 
 \begin{remark}
-A complete reference of all keyboard shortcuts can be found in the
+A complete reference of all keyboard shortcuts can be found in
 section \ref{ide:keyshortcuts}.
 \end{remark}
 
@@ -89,29 +90,32 @@ When starting the IDE, command line options can be passed:
 fp [-option] [-option] ... <file name> ...
 \end{verbatim}
 
-Option is one of the following switches (the option letters
+\var{Option} is one of the following switches (the option letters
 aren't case sensitive):
 
 \begin{description}
-\item [-N] DOS only: Don't use long file names. Since Win95 an interface
+\item [-N] DOS only: Do not use long file names. Since Windows 95 an interface
 is provided to DOS applications to access long file names. The IDE uses
 this interface by default to access files. Under certain circumstances, this
 can lead to problems.
-\item [-Cfilename] This option followed by (without spaces)
-a filename uses the given file to read the options
+\item [-Cfilename] This option followed by
+a filename uses the given file to read the options. The file name
+must follow the \var{C-} without spaces.
 \item [-R] After starting the IDE, it changes automatically to the directory
 which was active when you left the IDE the last time.
 \end{description}
 
-Under DOS/Win32, \var{/} can be used instead of \var{\-} to pass a
-command line switch to the IDE
+The files given at the command line are loaded into edit
+window automatically.
 
-Furthermore, the files given at the command line are loaded into edit
-windows automatically.
+\begin{remark}
+Under DOS/Win32, \var{/} can be used instead of \var{-} to pass a
+command line switch to the IDE.
+\end{remark}
 
 \subsection{Using the mouse}
 \label{ide:mouseusage}
-If the system is equipped with a mouse, it can be use it to work with the
+If the system is equipped with a mouse, it can be used to work with the
 IDE. The left button is used to select menu items, press buttons, select
 text blocks etc. The right mouse button is used to access the local menu.
 The local menu isn't always available. Holding down the \textsc{Ctrl} or
@@ -119,19 +123,19 @@ The local menu isn't always available. Holding down the \textsc{Ctrl} or
 execute user defined functions, see \ref{ide:prefmouse}
 
 \begin{remark}
-This manual uses at several places the term "drag the mouse". This
-means that you have to move the mouse while keeping the left
-mouse button pressed.
+Occasionally, this manual uses the term "drag the mouse". This
+means that you have to move the mouse while pressing the left
+mouse button.
 \end{remark}
 
 \begin{remark}
-When talking about left and right mouse, it means always that the
+When talking about left and right mouse button, it always means that the
 mouse buttons aren't reversed, if you want you can exchange the
-bavior of the left and right mouse button, see \ref{ide:prefmouse}.
+behavior of the left and right mouse button, see \ref{ide:prefmouse}.
 \end{remark}
 
 \begin{remark}
-Under certain circumstances you won't be able to use the mouse,
+Under the following circumstances you won't be able to use the mouse,
 even if your system has one:
 \begin{itemize}
 \item The IDE is running under Linux throught a telnet connection
@@ -141,25 +145,26 @@ even if your system has one:
 
 \subsection{Accessing the menu}
 The menu (the gray bar at the top of the IDE) can be accessed by using
-the mouse to select items. If you don't use a mouse, you can use
-\textsc{F10} to switch the menu. Use the arrow keys to navigate and the Enter
-key to select items. To access the menu very fast without leaving the
+the mouse to select items. If you do not use a mouse, you can use
+\textsc{F10} to switch to the menu. Use the arrow keys to navigate
+and the \textsc{Enter} key to select items.
+To access the menu very fast without leaving the
 keyboard with your hands, \textsc{Alt-<highlighted letter>}
 can be used, afterwards
 menu entries can be selected by pressing also the highlighted letter, but
 without \textsc{Alt}. E.g. \textsc{Alt-S G} is a fast way to
-display the goto line dialog.
+display the \emph{goto line dialog}.
 
-Every menu item is explained by a short text in the statusbar.
+Every menu item is explained by a short text in the status bar.
 
-In certain cases, a local menu is available. It can be access by pressing
+In certain cases, a local menu is available. It can be accessed by pressing
 the right mouse button or \textsc{Alt-F10}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Windows
 \section{Windows}
-In our days, working with windowed applications should be a known
-by most users. Nevertheless, the following section describes how
+In our days, working with windowed applications should be familiar to
+most users. Nevertheless, the following section describes how
 the windows work in the \fpc IDE to allow an efficient work with it.
 
 \subsection{Basics}
@@ -175,79 +180,82 @@ Figure \ref{fig:idewin} shows a common IDE edit window.
 \ifpdf
 \epsfig{file=pics/idewin.pdf,width=\textwidth}
 \else
-\epsfig{file=pics/idewin.eps,width=\textwidth}
+%%%%%%%%%% !!!!!!!!eps \epsfig{file=pics/idewin.eps,width=\textwidth}
 \fi
 \end{figure}
 \end{latexonly}
-The window is surround by the so called frame, the whith double
+The window is surround by the so called \emph{frame}, the whith double
 line around the window.
 At the top of the window you'll see the title bar, it contains the title
-of the window (what else?). To move the window click on
-the title bar and drag window with the mouse.
-If you don't have a mouse, see \ref{ide:keyboardwindow} how
+of the window (what else?). To move the window click, on
+the title bar and drag the window with the mouse.
+If you do not have a mouse, see \ref{ide:keyboardwindow} how
 to use the keyboard to work with windows.
 
-At the upper left corner you see the close icon. If you click it the
+At the upper left corner you see the \emph{close icon}. If you click it the
 window will be closed, it can be also closed by pressing \textsc{Alt-F3} or
 selecting the menu item \var{Window|Close}. All open windows can be closed
-by selecting the menu item \var{Window|Close all}
+by selecting the menu item \var{Window|Close all}.
 
-To resize the window click on the lower left corner of the window
+To resize the window, click on the lower left corner of the window
 and drag it (move the mouse while holding the left button pressed).
-Keyboard users should look at the section \ref{ide:keyboardwindow}.
-Not all windows can be resized, for examples dialog windows
-(\ref{ide:dialogwindow}) can't be resized.
+Keyboard users should look at section \ref{ide:keyboardwindow}.
+Not all windows can be resized. This applies, for example, to
+\emph{dialog windows} (\ref{ide:dialogwindow}).
 
 At the upper right you'll see a green arrow. Clicking this arrow
 zooms the window to the whole desktop. If you click this arrow on
 a zoomed window, the old size of the window will be restored. Pressing
-the key F5 has the same affect as clicking that arrow. Furthermore,
+the key \textsc{F5} has the same effect as clicking that arrow. Furthermore,
 this can be also done by selecting the menu item \var{Window|Zoom}.
-Windows which aren't resizeable can't be zoom.
+Windows which aren't resizeable can't be zoomed, either.
 
 The scrollbars at the right and bottom border can be used to scroll
 the window contents with the mouse. Click on the arrows to scroll
-line by line and on the dotted area between the arrows and the cyan
+line by line and on the dotted area between the arrows and the
+cyan-coloured
 rectangle to scroll page by page. By dragging the rectangle you can
-scroll continously throught the window contents.
+scroll continously through the window contents.
 
-The star and the numbers at the lower left corner
+The star and the numbers in the lower left corner
 are explained in the section about the editor, see \ref{ide:editingtext}.
 
 \subsection{Working with multiple windows}
-When working with larger projects, you'll have multile windows on your
-desktop. An inactive window is identified by a greyed frame, you can
-activate it, by clicking on the window with the mouse. Or you can
-step trought all open windows by pressing \textsc{F6}
+When working with larger projects, you'll have multible windows on your
+desktop. An inactive window is identified by a grey frame. You can
+activate it by clicking on the window with the mouse. Or you can
+step trough all open windows by pressing \textsc{F6}
 (menu item \var{Window|Next}).
 To activate the last activated window, press \textsc{Shift-F6}
 (menu item \var{Window|Previous}).
 
-If the window has number at the upper
+If the window has a number in the upper
 right corner, you can activate it by pressing \textsc{Alt-<number>}.
 \textsc{Alt-0} has a special meaning,
 it shows a dialog box with all available
-windows which allows a quick activation of windows which doesn't have a
+windows which allows a quick activation of windows which don't have a
 number.
 
 Of course, you can order the windows on the IDE desktop by zooming and
-resizing them with the mouse or keyboard. Especially with the
-keyboard, this is very hard. You can use instead the menu items
+resizing them with the mouse or keyboard. This is particularly difficult
+with the keyboard. Instead, you can use the menu items
 \var{Window|Tile} and \var{Window|Cascade}. Tile means that the
-whole desktop space is tiled even by all windows. Cascade brings
+whole desktop space is divided up evenly between all resizable
+windows. \emph{Cascade} brings
 all windows in a cascaded position. Just try these commands if you've
 multiple windows on the IDE desktop.
 
 In very rare cases the screen of the IDE may be mixed up. In this
-case the whole IDE screen can be forced to be redrawn by selecting
-the menu item \var{Window|Refresh}.
+case the whole IDE screen can bebe refreshed by selecting
+the menu item \var{Window|Refresh display}.
 
 \subsection{Dialog windows}
 \label{ide:dialogwindow}
 In many cases the IDE displays a dialog window to get user input.
 The main difference to other windows is that you can't activate
-other windows will the dialog is active. This behavior is called modal.
-To activate another window, you've to close a modal window/dialog.
+other windows while a dialog is active. This behavior is called
+\emph{modal}. To activate another window, you've to close
+a modal window/dialog.
 
 \begin{htmlonly}
 A typical dialog window looks like:
@@ -261,7 +269,7 @@ Figure \ref{fig:idedlg} shows a typical dialog window.
 \ifpdf
 \epsfig{file=pics/idedlg.pdf,width=\textwidth}
 \else
-\epsfig{file=pics/idedlg.eps,width=\textwidth}
+%%%%%%%%%% !!!!!!!!eps \epsfig{file=pics/idedlg.eps,width=\textwidth}
 \fi
 \end{figure}
 \end{latexonly}
@@ -272,52 +280,55 @@ Figure \ref{fig:idedlg} shows a typical dialog window.
 To resize/move a window with the keyboard, go into the size/move mode
 by pressing \textsc{Ctrl-F5} or selecting the menu item
 \var{Window|Size/Move}. Now the window frame will be green. Using the
-cursor keys you can move window and pressing shift and the cursor
-keys, it can be resized. The size/move mode can be left by pressing
-\textsc{Enter} and the window will keep it's size and position
-or by pressing \textsc{Esc} and the old size will be restored.
+cursor keys you can move the window. By pressing shift and the cursor
+keys, the window can be resized. The size/move mode can be left by pressing
+\textsc{Enter}. In this the window will keep it's size and position.
+Alternativly, you can press \textsc{Esc} and the old size will be restored.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The help system
 \section{The help system}
 If you are stuck somewhere while editing files, regarding the syntax
 of a pascal statment or the behavior of a subroutine of the runtime
-library, you can use the help system to get some information. The
-help system is called by pressing F1.
+library, you can use the \emph{help system} to get some information. The
+help system is called up by pressing F1.
 
 \subsection{Navigating in the help system}
-The help system contains hyperlinks which can be access by clicking
+The help system contains hyperlinks which can be accessed by clicking
 them with the mouse. Alternativly, \textsc{Tab} and \textsc{Shift-Tab}
 can be used to move between the different hyperlinks of a page
 and the \textsc{Enter} key can be used to select them.
 
-The contents of the help system is display, if you press \textsc{Shift-F1}.
-To go back to the last help topic, \textsc{press Alt-F1}. This works
-also if the help window isn't displayed on the window.
+The contents of the help system is displayed, if you press \textsc{Shift-F1}.
+To go back to the last help topic, \textsc{press Alt-F1}. This also works
+if the help window isn't displayed on the desktop.
 
 \subsection{Working with help files}
 The IDE contains a help system which can display HTML files
 as well as the TPH format known from TP. Of course, the HTML
 viewer of the help system is limited, so forget about displaying
-HTML files which use e.g. CSS. It is designed to display the FPC
+HTML files which use e.g. CSS \footnote{\textbf{C}ascaded
+\textbf{S}tyle \textbf{S}heets, an extension to HTML to
+get a similiar look like of a document with all browsers}. It is designed to display the FPC
 help files, but feel free to improve it and send us patches...
 
-The menu item \var{Help|Files} allows you to add and delete
+The menu item \var{Help|Files} permits you to add and delete
 help files.
 
-Press the new button to add a new file. You'll be asked for the location
-of the help file. If it is a HTML file, a dialog box will be display
-which asks for a title, this title will be included in the
+Press the \emph{new button} to add a new file. You'll be asked to enter
+the location of the help file. If it is an
+HTML file, a dialog box will be displayed
+which asks for a title. This title will then be included in the
 contents of help.
 
 A help file can be deleted from the help system (it ISN'T deleted from
-your hard disk) by pressing the delete button.
+your hard disk) by pressing the \emph{delete button}.
 
 \subsection{The about dialog}
-The about dialog (\var{Help|About...}) shows some information
+The \emph{about dialog} (\var{Help|About...}) shows some information
 about the IDE, please include versions and dates of this
 dialog if you report bugs, have suggestion etc regarding the IDE.
-Furthermore, it contains the copyright information.
+Furthermore, it contains copyright information.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Editing text
@@ -325,14 +336,28 @@ Furthermore, it contains the copyright information.
 \label{ide:editingtext}
 %%%!!!!!!!!!!!!!!
 
-\subsection{Insertation modes}
+\subsection{Insertion modes}
 %%%!!!!!!!!!!!!!!
+
+\subsection{Setting marks}
+The IDE provides a feature which permits you to set a mark at
+the current cursor position. Later, you can return to this
+position by pressing a keyboard shortcut.
+
+You can set up to 9 marks per source file, they are set by
+\textsc{Ctrl-K-<Number>} (where number is the number of the mark).
+To go to a previous set mark, press \textsc{Ctrl-Q-<Number}.
+
+\begin{remark}
+Currently, the marks aren't stored if the IDE is left. This may
+change in future implementations of the IDE.
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Searching in the text
 \section{Searching in the text}
 \label{ide:searching}
-%%%!!!!!!!!!!!!!!
+
 
 \subsection{The symbol browser}
 %%%!!!!!!!!!!!!!!
@@ -489,7 +514,15 @@ it just loads another set of switches which were adjusted before
 by the user in the compiler or directory dialog.
 
 \subsection{The directory dialog}
+In the directory dialog, you've to specify the directories where
+the compiler should look for units, library etc, where the
+output files should be stored etc. You can specify multiple
+directories (except for the output directory) seperated by
+semicolon.
+
+\begin{description}
 %%%!!!!!!!!!!!!!!
+\end{description}
 
 \subsection{The target operating system}
 The menu item \var{Compile|Target} allows you to specify the target
@@ -506,9 +539,40 @@ The IDE is configurable in a wide range, you can change colors, screen
 resolution etc. The configuration setting can reached via the
 submenu \var{Environment} in the \var{Options} menu.
 
+\subsection{Preferences}
+The \emph{preferences dialog} is called by the menu item
+\var{Options|Environment|Preferences}.
+
+%%%!!!!!!!!!!!!!!
+
+\subsubsection{Video modes}
+The \emph{drop down list} at the top of the dialog allows you
+to select a video mode.
+
+\begin{remark}
+You have to select the video mode by pressing space or clicking
+on it. If the drop down list is opened while leaving the dialog,
+the new video mode will not be applied.
+\end{remark}
+
+The available video modes depend on the system on which the IDE
+is running. 
+
+\begin{remark}
+If you're using VESA modes under DOS, the display refresh rate may be
+annoying low. On older graphics card (1998 and before),
+you can try to use the \emph{UniVBE} driver of \emph{SciTech}. But
+it is quite outdated (last update somewhere in 1998). For newer
+graphics cards which support VESA 3.0, you can try to get one
+of the TSR programs
+\footnote{\textbf{T}erminate and \textbf{S}tay \textbf{R}esisdent}
+available at the net to customize the refresh rate.
+%%%%!!!!!!!! footnote with URL
+\end{remark}
+
 \subsection{Mouse}
 \label{ide:prefmouse}
-The mouse options dialog is called by the menu item
+The \emph{mouse options dialog} is called by the menu item
 \var{Options|Environment|Mouse}. You can use the slider to adjust the
 double clock speed. If you're left handed you can exchange the
 behavior of the left and right mouse button by checking the checkbox
@@ -547,7 +611,18 @@ by the browser
 % Regular expressions
 \section{Regular expressions}
 \label{ide:regexpr}
-%%%!!!!!!!!!!!!!!
+A regular expression is a string with sepcial characters which describes 
+a whole class of expressions. You may know this from the command line
+where can enter a \file{ls *.pas} (or \file{dir *.pas}) to get a list
+of all pascal files in a directory. \file{*.pas} is something 
+similiar to regular expression. It uses a wildcard to describe a whole 
+class of strings: these which end with "\file{.pas}". The possibilty 
+of the wildcards in the command line are especially on DOS very limited. 
+Regular expressions offer much more: for example \file{[A-Z][0-9]+} 
+describes all strings which begin with a upper case letter followed by
+one or more digits (you'll understand this regular expression later).
+
+%%%!!!!!!!!!!
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Keyboard shortcuts
@@ -686,7 +761,10 @@ Undo & \textsc{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.4  2000-03-01 15:39:40  florian
+%  Revision 1.5  2000-03-04 07:47:28  florian
+%    * some corrections and some new stuff
+%
+%  Revision 1.4  2000/03/01 15:39:40  florian
 %    * some new stuff
 %
 %  Revision 1.3  2000/02/28 17:45:40  florian
