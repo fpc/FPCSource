@@ -208,7 +208,6 @@ override PACKAGE_VERSION=1.9.2
 override TARGET_UNITS+=jmorecfg jpeglib jdeferr jerror jcomapi jinclude rdcolmap cdjpeg jdapimin jmemmgr jutils jmemnobs jdmarker jdinput jdapistd jdmaster jdcolor jdsample jdpostct jddctmgr jdct jidctfst jidctint jidctflt jidctred jdphuff jdhuff jdcoefct jdmainct jquant2 jquant1 jdmerge jdatasrc wrbmp wrppm wrtarga
 override TARGET_EXAMPLES+=cjpeg demo djpeg jpegtran rdjpgcom
 override INSTALL_FPCPACKAGE=y
-override COMPILER_OPTIONS+=-Sdg
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
 endif

@@ -6,9 +6,6 @@
 name=pasjpeg
 version=1.9.2
 
-[compiler]
-options=-Sdg
-
 [target]
 units=jmorecfg jpeglib jdeferr jerror jcomapi jinclude rdcolmap cdjpeg \
       jdapimin jmemmgr jutils jmemnobs jdmarker jdinput jdapistd jdmaster \

@@ -108,3 +108,8 @@
     {$undef RGB_RED_IS_0}          { BGR byte order in JQUANT2 }
   {$endif}
 {$endif}
+
+{$IFDEF FPC}
+{$MODE DELPHI}
+{$GOTO ON}
+{$ENDIF}

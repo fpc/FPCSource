@@ -9,6 +9,7 @@ Unit JDCoefCt;
   Also, the input side (only) is used when reading a file for transcoding. }
 
 { Original: jdcoefct.c ; Copyright (C) 1994-1997, Thomas G. Lane. }
+{$I jconfig.inc}
 
 interface
 
@@ -20,7 +21,6 @@ uses
   jutils,
   jpeglib;
 
-{$I jconfig.inc}
 
 {GLOBAL}
 procedure jinit_d_coef_controller (cinfo : j_decompress_ptr;

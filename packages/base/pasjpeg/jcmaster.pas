@@ -9,6 +9,8 @@ Unit JcMaster;
 
 interface
 
+{$I jconfig.inc}
+
 uses
   jmorecfg,
   jinclude,
@@ -17,7 +19,6 @@ uses
   jutils,
   jpeglib;
 
-{$I jconfig.inc}
 
 { Initialize master compression control. }
 

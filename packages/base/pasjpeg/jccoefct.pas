@@ -8,6 +8,8 @@ Unit JcCoefCt;
 
 interface
 
+{$I jconfig.inc}
+
 uses
   jmorecfg,
   jinclude,
@@ -16,7 +18,6 @@ uses
   jutils,
   jpeglib;
 
-{$I jconfig.inc}
 
 { We use a full-image coefficient buffer when doing Huffman optimization,
   and also for writing multiple-scan JPEG files.  In all cases, the DCT

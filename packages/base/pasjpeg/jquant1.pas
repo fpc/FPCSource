@@ -8,10 +8,11 @@ Unit JQuant1;
 
 interface
 
+{$I jconfig.inc}
+
 uses
   jpeglib;
 
-{$I jconfig.inc}
 
 {GLOBAL}
 procedure jinit_1pass_quantizer (cinfo : j_decompress_ptr);

@@ -10,6 +10,7 @@ Unit JcpHuff;
 
 interface
 
+{$I jconfig.inc}
 uses
   jmorecfg,
   jinclude,
@@ -20,7 +21,6 @@ uses
   jcomapi,
   jchuff;       	{ Declarations shared with jchuff.c }
 
-{$I jconfig.inc}
 
 { Module initialization routine for progressive Huffman entropy encoding. }
 

@@ -12,6 +12,8 @@ Unit JdPostCt;
   An integrated upsample/convert/quantize process would replace this module
   entirely. }
 
+{$I jconfig.inc}
+
 interface
 
 uses
@@ -22,7 +24,6 @@ uses
   jutils,
   jpeglib;
 
-{$I jconfig.inc}
 
 { Initialize postprocessing controller. }
 
