@@ -1,3 +1,4 @@
+{$R-}
 {$Q+}
 var i: integer;
     b: byte;
