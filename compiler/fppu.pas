@@ -569,7 +569,7 @@ uses
            case asmsymtype of
              1 :
                ppufile.putstring(s.name);
-             2 :
+             2..4 :
                ppufile.putlongint(tasmlabel(s).labelnr);
            end;
            ppufile.putbyte(byte(s.defbind));
@@ -813,9 +813,9 @@ uses
                 2 :
                  librarydata.asmsymbolidx^[i-1]:=librarydata.newasmlabel(labelnr,false,false);
                 3 :
-                 librarydata.asmsymbolidx^[i-1]:=librarydata.newasmlabel(labelnr,true,false);
-                4 :
                  librarydata.asmsymbolidx^[i-1]:=librarydata.newasmlabel(labelnr,false,true);
+                4 :
+                 librarydata.asmsymbolidx^[i-1]:=librarydata.newasmlabel(labelnr,true,false);
               end;
             end;
          end;
@@ -1514,7 +1514,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.53  2004-03-02 00:36:33  olle
+  Revision 1.54  2004-03-17 12:12:59  olle
+    * bugfix in [read|write]asmsymbols for data and address labels
+
+  Revision 1.53  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.52  2004/02/03 16:14:13  peter
