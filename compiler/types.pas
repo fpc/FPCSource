@@ -526,15 +526,13 @@ implementation
          push_addr_param:=never_copy_const_param or
            (def^.deftype = formaldef) or
            { copy directly small records or arrays unless array of const ! PM }
-           ((def^.deftype in [arraydef,recorddef]) and
-            ((Parraydef(def)^.highrange<Parraydef(def)^.lowrange) 
-             or (def^.size>4) or
-             ((def^.deftype=arraydef) and
-              (parraydef(def)^.IsConstructor or
-               parraydef(def)^.isArrayOfConst or
-               is_open_array(def)
-              )
-             )
+           ((def^.deftype=recorddef) and (def^.size>4)) or
+           ((def^.deftype=arraydef) and
+            ((Parraydef(def)^.highrange<Parraydef(def)^.lowrange) or
+             (def^.size>4) or
+             parraydef(def)^.IsConstructor or
+             parraydef(def)^.isArrayOfConst or
+             is_open_array(def)
             )
            ) or
            ((def^.deftype=objectdef) and not(pobjectdef(def)^.is_class)) or
@@ -974,7 +972,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  1999-08-07 14:21:06  florian
+  Revision 1.84  1999-08-13 15:38:23  peter
+    * fixed push_addr_param for records < 4, the array high<low range check
+      broke this code.
+
+  Revision 1.83  1999/08/07 14:21:06  florian
     * some small problems fixed
 
   Revision 1.82  1999/08/07 13:36:56  daniel
