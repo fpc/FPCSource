@@ -25,57 +25,6 @@
 { Allow duplicate allocations, can be used to get the .s file written }
 { $define ALLOWDUPREG}
 
-{#******************************************************************************
-
-@abstract(Abstract register allocator unit)
-
-Register allocator introduction.
-
-Free Pascal uses a Chaitin style register allocator. We use a variant similair
-to the one described in the book "Modern compiler implementation in C" by
-Andrew W. Appel., published by Cambridge University Press.
-
-The register allocator that is described by Appel uses a much improved way
-of register coalescing, called "iterated register coalescing". Instead
-of doing coalescing as a prepass to the register allocation, the coalescing
-is done inside the register allocator. This has the advantage that the
-register allocator can coalesce very aggresively without introducing spills.
-
-Reading this book is recommended for a complete understanding. Here is a small
-introduction.
-The code generator thinks it has an infinite amount of registers. Our processor
-has a limited amount of registers. Therefore we must reduce the amount of
-registers until there are less enough to fit into the processors registers.
-
-Registers can interfere or not interfere. If two imaginary registers interfere
-they cannot be placed into the same psysical register. Reduction of registers
-is done by:
-
-- "coalescing" Two registers that do not interfere are combined
-   into one register.
-- "spilling" A register is changed into a memory location and the generated
-   code is modified to use the memory location instead of the register.
-
-Register allocation is a graph colouring problem. Each register is a colour, and
-if two registers interfere there is a connection between them in the graph.
-
-In addition to the imaginary registers in the code generator, the psysical
-CPU registers are also present in this graph. This allows us to make
-interferences between imaginary registers and cpu registers. This is very
-usefull for describing architectural constraints, like for example that
-the div instruction modifies edx, so variables that are in use at that time
-cannot be stored into edx. This can be modelled by making edx interfere
-with those variables.
-
-Graph colouring is an NP complete problem. Therefore we use an approximation
-that pushes registers to colour on to a stack. This is done in the "simplify"
-procedure.
-
-The register allocator first checks which registers are a candidate for
-coalescing.
-
-*******************************************************************************}
-
 
 unit rgobj;
 
@@ -1024,7 +973,7 @@ unit rgobj;
 
     begin
       k:=0;
-      supregset_reset(done,false);
+      supregset_reset(done,false,maxreg);
       with reginfo[u] do
         begin
           adj:=adjlist;
@@ -1315,7 +1264,7 @@ unit rgobj;
       for n:=0 to maxreg-1 do
         reginfo[n].colour:=n;
       {Colour the cpu registers...}
-      supregset_reset(colourednodes,false);
+      supregset_reset(colourednodes,false,maxreg);
       for n:=0 to first_imaginary-1 do
         supregset_include(colourednodes,n);
       {Now colour the imaginary registers on the select-stack.}
@@ -1323,7 +1272,7 @@ unit rgobj;
         begin
           n:=selectstack.buf^[i-1];
           {Create a list of colours that we cannot assign to n.}
-          supregset_reset(adj_colours,false);
+          supregset_reset(adj_colours,false,maxreg);
           adj:=reginfo[n].adjlist;
           if adj<>nil then
             for j:=0 to adj^.length-1 do
@@ -1360,14 +1309,6 @@ unit rgobj;
           if reginfo[k].colour<maxcpuregister then
             include(used_in_proc,reginfo[k].colour);
         end;
-{$ifdef ra_debug}
-      if aktfilepos.line=179 then
-        begin
-          writeln('colourlist');
-          for i:=0 to maxreg-1 do
-            writeln(i:4,'   ',reginfo[i].colour:4)
-        end;
-{$endif ra_debug}
     end;
 
     procedure trgobj.colour_registers;
@@ -1752,7 +1693,7 @@ unit rgobj;
         for i:=first_imaginary to maxreg-1 do
           exclude(reginfo[i].flags,ri_selected);
         spill_temps:=allocmem(sizeof(treference)*maxreg);
-        supregset_reset(regs_to_spill_set,false);
+        supregset_reset(regs_to_spill_set,false,$ffff);
         { Allocate temps and insert in front of the list }
         templist:=taasmoutput.create;
         {Safe: this procedure is only called if there are spilled nodes.}
@@ -2045,7 +1986,15 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.130  2004-06-22 18:24:18  florian
+  Revision 1.131  2004-07-07 17:35:26  daniel
+    * supregset_reset clears 8kb of memory. However, it is being called in
+      inner loops, see for example colour_registers. According to profile data
+      this causes fillchar to be the most time consuming procedure.
+      Some modifications done to make it clear less than 8kb of memory each
+      call. Divides time spent in fillchar by two, but it still is the no.1
+      procedure.
+
+  Revision 1.130  2004/06/22 18:24:18  florian
     * fixed arm compilation
 
   Revision 1.129  2004/06/20 08:55:30  florian

@@ -268,7 +268,8 @@ interface
     var
        mms_movescalar : pmmshuffle;
 
-    procedure supregset_reset(var regs:tsuperregisterset;setall:boolean);{$ifdef USEINLINE}inline;{$endif}
+    procedure supregset_reset(var regs:tsuperregisterset;setall:boolean;
+                              maxreg:Tsuperregister);{$ifdef USEINLINE}inline;{$endif}
     procedure supregset_include(var regs:tsuperregisterset;s:tsuperregister);{$ifdef USEINLINE}inline;{$endif}
     procedure supregset_exclude(var regs:tsuperregisterset;s:tsuperregister);{$ifdef USEINLINE}inline;{$endif}
     function supregset_in(const regs:tsuperregisterset;s:tsuperregister):boolean;{$ifdef USEINLINE}inline;{$endif}
@@ -400,16 +401,12 @@ implementation
     end;
 
 
-    procedure supregset_reset(var regs:tsuperregisterset;setall:boolean);{$ifdef USEINLINE}inline;{$endif}
-      var
-        b : byte;
-      begin
-        if setall then
-          b:=$ff
-        else
-          b:=0;
-        fillchar(regs,sizeof(regs),b);
-      end;
+    procedure supregset_reset(var regs:tsuperregisterset;setall:boolean;
+                              maxreg:Tsuperregister);{$ifdef USEINLINE}inline;{$endif}
+
+    begin
+      fillchar(regs,(maxreg or 7) shr 3,-byte(setall));
+    end;
 
 
     procedure supregset_include(var regs:tsuperregisterset;s:tsuperregister);{$ifdef USEINLINE}inline;{$endif}
@@ -588,7 +585,15 @@ finalization
 end.
 {
   $Log$
-  Revision 1.90  2004-06-20 08:55:28  florian
+  Revision 1.91  2004-07-07 17:35:26  daniel
+    * supregset_reset clears 8kb of memory. However, it is being called in
+      inner loops, see for example colour_registers. According to profile data
+      this causes fillchar to be the most time consuming procedure.
+      Some modifications done to make it clear less than 8kb of memory each
+      call. Divides time spent in fillchar by two, but it still is the no.1
+      procedure.
+
+  Revision 1.90  2004/06/20 08:55:28  florian
     * logs truncated
 
   Revision 1.89  2004/06/16 20:07:07  florian
