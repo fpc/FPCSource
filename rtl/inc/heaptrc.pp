@@ -726,6 +726,7 @@ var
 var
    etext: ptruint; external name '_etext';
    edata : ptruint; external name '_edata';
+   eend : ptruint; external name '_end';
 {$endif}
 
 
@@ -774,8 +775,8 @@ begin
   if (ptruint(p)>ptruint(get_frame)) and
      (ptruint(p)<$c0000000) then      //todo: 64bit!
     goto _exit;
-  { inside data ? }
-  if (ptruint(p)>=ptruint(@etext)) and (ptruint(p)<ptruint(@edata)) then
+  { inside data or bss ? }
+  if (ptruint(p)>=ptruint(@etext)) and (ptruint(p)<ptruint(@eend)) then
     goto _exit;
 {$endif linux}
 
@@ -1144,7 +1145,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.37  2004-11-22 19:34:58  peter
+  Revision 1.38  2005-01-21 15:56:32  peter
+    * uses _eend instead of _edata in checkpointer, patch by
+      Martin Schreiber
+
+  Revision 1.37  2004/11/22 19:34:58  peter
     * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
 
   Revision 1.36  2004/10/25 17:04:07  peter
