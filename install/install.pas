@@ -16,10 +16,48 @@
  **********************************************************************}
 program install;
 
-{$DEFINE FV}
+{$DEFINE FV}       (* TH - added to make use of the original Turbo Vision possible. *)
+{ $DEFINE DLL}      (* TH - if defined, UNZIP32.DLL library is used to unpack. *)
+{ $DEFINE DOSSTUB}   (* TH - should _not_ be defined unless creating a bound DOS and OS/2 installer!!! *)
+(* Defining DOSSTUB causes adding a small piece of code    *)
+(* for starting the OS/2 part from the DOS part of a bound *)
+(* application if running in OS/2 VDM (DOS) window. Used   *)
+(* only if compiling with TP/BP (see conditionals below).  *)
+
+{$IFDEF VER60}
+ {$DEFINE TP}
+{$ENDIF}
+
+{$IFDEF VER70}
+ {$DEFINE TP}
+{$ENDIF}
 
 {$IFDEF OS2}
  {$UNDEF FV}
+ {$IFDEF DOSSTUB}
+  {$UNDEF DOSSTUB}
+ {$ENDIF}
+ {$IFDEF VIRTUALPASCAL}
+  {$DEFINE DLL}
+ {$ENDIF}
+{$ENDIF}
+
+{$IFDEF WIN32}
+ {$IFDEF DOSSTUB}
+  {$UNDEF DOSSTUB}
+ {$ENDIF}
+{$ENDIF}
+
+{$IFDEF FPC}
+ {$IFDEF DOSSTUB}
+  {$UNDEF DOSSTUB}
+ {$ENDIF}
+{$ENDIF}
+
+{$IFDEF DPMI}
+ {$IFDEF DOSSTUB}
+  {$UNDEF DOSSTUB}
+ {$ENDIF}
 {$ENDIF}
 
   uses
@@ -34,18 +72,31 @@ program install;
   {$ENDIF VirtualPascal}
  {$ENDIF FPC}
 {$ENDIF OS2}
+{$ifdef HEAPTRC}
+     heaptrc,
+{$endif HEAPTRC}
      strings,dos,objects,drivers,
 {$IFDEF FV}
      commands,
 {$ENDIF}
-     app,dialogs,views,menus,msgbox,
-     unzip,ziptypes;
+     unzip,ziptypes,
+{$IFDEF DLL}
+     unzipdll,
+{$ENDIF}
+     app,dialogs,views,menus,msgbox;
+
 
   const
      maxpackages=20;
-     maxdefcfgs=200;
+     maxdefcfgs=1024;
 
      cfgfile='install.dat';
+
+{$ifdef linux}
+     DirSep='/';
+{$else}
+     DirSep='\';
+{$endif}
 
   type
      tpackage=record
@@ -94,6 +145,30 @@ program install;
          procedure do_installdialog;
          procedure readcfg(const fn:string);
      end;
+{$IFDEF DOSSTUB}
+ PByte = ^byte;
+ PRunBlock = ^TRunBlock;
+ TRunBlock = record
+  Length: word;
+  Dependent: word;
+  Background: word;
+  TraceLevel: word;
+  PrgTitle: PChar;
+  PrgName: PChar;
+  Args: PChar;
+  TermQ: longint;
+  Environment: pointer;
+  Inheritance: word;
+  SesType: word;
+  Icon: pointer;
+  PgmHandle: longint;
+  PgmControl: word;
+  Column: word;
+  Row: word;
+  Width: word;
+  Height: word;
+ end;
+{$ENDIF}
 
   var
      installapp  : tapp;
@@ -132,6 +207,7 @@ program install;
     end;
 
 
+(* TH - not needed any more
   function lower(const s : string):string;
     var
        i : integer;
@@ -144,6 +220,7 @@ program install;
        lower[0]:=s[0];
     end;
 
+*)
 
   procedure Replace(var s:string;const s1,s2:string);
     var
@@ -166,16 +243,25 @@ program install;
     end;
 
 
-  function diskspace(const zipfile : string) : string;
+  function DiskSpaceN(const zipfile : string) : longint;
     var
       compressed,uncompressed : longint;
       s : string;
     begin
       s:=zipfile+#0;
       uncompressed:=UnzipSize(@s[1],compressed);
-      uncompressed:=uncompressed shr 10;
+      DiskSpaceN:=uncompressed shr 10;
+    end;
+
+
+  function diskspace(const zipfile : string) : string;
+    var
+      uncompressed : longint;
+      s : string;
+    begin
+      uncompressed:=DiskSpaceN (zipfile);
       str(uncompressed,s);
-      diskspace:=' ('+s+' Kb)';
+      diskspace:=' ('+s+' KB)';
     end;
 
 
@@ -183,7 +269,7 @@ program install;
     var
       start,
       s1 : string;
-      i,result : longint;
+      i : longint;
       err : boolean;
       dir : searchrec;
       params : array[0..0] of pointer;
@@ -193,10 +279,17 @@ program install;
        FindFirst(s,AnyFile,dir);
        if doserror=0 then
          begin
-            result:=messagebox('The installation directory exists already. '+
-              'Do you want to enter a new installation directory ?',nil,
-              mferror+mfyesbutton+mfnobutton);
-            createdir:=(result=cmNo);
+(* TH - check the directory attribute! *)
+            if Dir.Attr and Directory = 0 then
+              begin
+                messagebox('A file with the name chosen as the installation '+
+                'directory exists already. Cannot create this directory!',nil,
+                mferror+mfokbutton);
+                createdir:=false;
+              end else
+                createdir:=messagebox('The installation directory exists already. '+
+                'Do you want to enter a new installation directory ?',nil,
+                mferror+mfyesbutton+mfnobutton)=cmNo;
             exit;
          end;
        err:=false;
@@ -238,9 +331,22 @@ program install;
             exit;
          end;
 {$ifndef TP}
+ {$IFNDEF OS2}
        FindClose (dir);
+ {$ENDIF}
 {$endif}
        createdir:=true;
+    end;
+
+  function GetProgDir: DirStr;
+    var
+      D: DirStr;
+      N: NameStr;
+      E: ExtStr;
+    begin
+       FSplit (FExpand (ParamStr (0)), D, N, E);
+       if (D [0] <> #0) and (D [byte (D [0])] = '\') then Dec (D [0]);
+       GetProgDir := D;
     end;
 
 
@@ -256,7 +362,7 @@ program install;
       dir    : searchrec;
       params : array[0..0] of pointer;
     begin
-      findfirst(fn,$ff,dir);
+      findfirst(fn,AnyFile,dir);
       if doserror=0 then
        begin
          params[0]:=@fn;
@@ -273,7 +379,7 @@ program install;
          MessageBox(#3'Default config not written.'#13#3'%s'#13#3'couldn''t be created',@params,mfinformation+mfokbutton);
          exit;
        end;
-      for i:=1to cfg.defcfgs do
+      for i:=1 to cfg.defcfgs do
        if assigned(cfg.defcfg[i]) then
          begin
            s:=cfg.defcfg[i]^;
@@ -317,8 +423,18 @@ program install;
        fn:=startpath+DirSep+s+#0;
        dir:=topath+#0;
        wild:=AllFiles + #0;
-       FileUnzipEx(@fn[1],@dir[1],@wild[1]);
+(* TH - added to clear the previous state of DosError *)
+       DosError := 0;
+{$IFDEF DLL}
+       if
+{$ENDIF}
+          FileUnzipEx(@fn[1],@dir[1],@wild[1])
+{$IFDEF DLL}
+                                               = 0 then
+{$ELSE}
+                                              ;
        if doserror<>0 then
+{$ENDIF}
          begin
             messagebox('Error when extracting. Disk full?',nil,mferror+mfokbutton);
             errorhalt;
@@ -335,19 +451,69 @@ program install;
       R       : TRect;
       P       : PStaticText;
       Control : PButton;
+      YB: word;
+{$IFNDEF LINUX}
+      S: string;
+      WPath: boolean;
+{$ENDIF}
+{$IFDEF OS2}
+      ErrPath: array [0..259] of char;
+      Handle: longint;
+      WLibPath: boolean;
+    const
+      EMXName: array [1..4] of char = 'EMX'#0;
+{$ENDIF}
     begin
-      R.Assign(6, 6, 74, 16);
+      YB := 14;
+
+{$IFNDEF LINUX}
+      S := Data.BasePath + Cfg.BinSub;
+      if Pos (Upper (S), Upper (GetEnv ('PATH'))) = 0 then
+      begin
+       WPath := true;
+       Inc (YB, 2);
+      end else WPath := false;
+ {$IFDEF OS2}
+      if DosLoadModule (@ErrPath, SizeOf (ErrPath), @EMXName, Handle) = 0 then
+      begin
+       WLibPath := false;
+       DosFreeModule (Handle);
+      end else
+      begin
+       WLibPath := true;
+       Inc (YB, 2);
+      end;
+ {$ENDIF}
+{$ENDIF}
+
+      R.Assign(6, 6, 74, YB);
       inherited init(r,'Installation Successfull');
 
-      R.Assign(2, 2, 64, 5);
-      P:=new(pstatictext,init(r,'Extend your PATH variable with '''+data.basepath+cfg.binsub+''''));
-      insert(P);
+{$IFNDEF LINUX}
+      if WPath then
+      begin
+       R.Assign(2, 3, 64, 5);
+       P:=new(pstatictext,init(r,'Extend your PATH variable with '''+S+''''));
+       insert(P);
+      end;
 
-      R.Assign(2, 4, 64, 5);
+ {$IFDEF OS2}
+      if WLibPath then
+      begin
+       if WPath then S := 'and your LIBPATH with ''' + S + '\dll''' else
+                             S := 'Extend your LIBPATH with ''' + S + '\dll''';
+       R.Assign (2, YB - 13, 64, YB - 11);
+       P := New (PStaticText, Init (R, S));
+       Insert (P);
+      end;
+ {$ENDIF}
+{$ENDIF}
+
+      R.Assign(2, YB - 11, 64, YB - 10);
       P:=new(pstatictext,init(r,'To compile files enter '''+cfg.ppc386+' [file]'''));
       insert(P);
 
-      R.Assign (29, 7, 39, 9);
+      R.Assign (29, YB - 9, 39, YB - 7);
       Control := New (PButton, Init (R,'~O~k', cmOK, bfDefault));
       Insert (Control);
     end;
@@ -442,7 +608,8 @@ program install;
        r    : trect;
        result,
        c    : word;
-       i    : longint;
+       i, DSize, Space : longint;
+       S: DirStr;
     begin
       data.basepath:=cfg.basepath;
       data.mask:=0;
@@ -453,18 +620,43 @@ program install;
         c:=executedialog(p,@data);
         if (c=cmok) then
           begin
-            if (data.mask>0) then
+            if Data.BasePath = '' then
+              messagebox('Please, choose the directory for installation first.',nil,
+                 mferror+mfokbutton) else
              begin
-               if createdir(data.basepath) then
-                break;
-             end
-            else
-             begin
+              if (data.mask>0) then
+               begin
+(* TH - check the available disk space here *)
+{$IFNDEF LINUX}
+                DSize := 0;
+                for i:=1 to cfg.packages do
+                begin
+                 if data.mask and packagemask(i)<>0 then
+                 Inc (DSize, DiskSpaceN(cfg.package[i].zip));
+                end;
+                S := FExpand (Data.BasePath);
+                Space := DiskFree (byte (S [1]) - 64) shr 10;
+                if Space < DSize then S := 'is not' else S := '';
+                if Space < DSize + 500 then
+                 begin
+                  if S = '' then S := 'might not be';
+                  if messagebox('There ' + S + ' enough space on the target ' +
+                    'drive for all the selected components. Do you ' +
+                    'want to change the installation path?',nil,
+                    mferror+mfyesbutton+mfnobutton) = cmYes then Continue;
+                 end;
+{$ENDIF}
+                if createdir(data.basepath) then
+                 break;
+              end
+             else
+              begin
                result:=messagebox('No components selected.'#13#13'Abort installation?',nil,
                  mferror+mfyesbutton+mfnobutton);
                if result=cmYes then
                 exit;
-             end;
+              end;
+            end;
           end
         else
           exit;
@@ -474,7 +666,7 @@ program install;
       r.assign(20,7,60,16);
       p2:=new(punzipdialog,init(r,'Extracting files'));
       desktop^.insert(p2);
-      for i:=1to cfg.packages do
+      for i:=1 to cfg.packages do
        begin
          if data.mask and packagemask(i)<>0 then
           p2^.do_unzip(cfg.package[i].zip,data.basepath);
@@ -524,15 +716,23 @@ program install;
 {$endif}
 
     begin
-      assign(t,fn);
+      assign(t,StartPath + DirSep + fn);
       {$I-}
        reset(t);
       {$I+}
       if ioresult<>0 then
        begin
-         params[0]:=@fn;
-         messagebox('File %s not found!',@params,mferror+mfokbutton);
-         errorhalt;
+         StartPath := GetProgDir;
+         assign(t,StartPath + DirSep + fn);
+         {$I-}
+          reset(t);
+         {$I+}
+         if ioresult<>0 then
+          begin
+            params[0]:=@fn;
+            messagebox('File %s not found!',@params,mferror+mfokbutton);
+            errorhalt;
+          end;
        end;
       line:=0;
       while not eof(t) do
@@ -625,8 +825,83 @@ program install;
            end;
     end;
 
+{$IFDEF DOSSTUB}
+function CheckOS2: boolean;
+var
+ OwnName: PathStr;
+ OwnDir: DirStr;
+ Name: NameStr;
+ Ext: ExtStr;
+ DosV, W: word;
+ P: PChar;
+const
+ Title: string [15] = 'FPC Installer'#0;
+ RunBlock: TRunBlock = (Length: $32;
+                        Dependent: 0;
+                        Background: 0;
+                        TraceLevel: 0;
+                        PrgTitle: @Title [1];
+                        PrgName: nil;
+                        Args: nil;
+                        TermQ: 0;
+                        Environment: nil;
+                        Inheritance: 0;
+                        SesType: 2;
+                        Icon: nil;
+                        PgmHandle: 0;
+                        PgmControl: 2;
+                        Column: 0;
+                        Row: 0;
+                        Width: 80;
+                        Height: 25);
+begin
+ CheckOS2 := false;
+ asm
+  mov ah, 30h
+  int 21h
+  xchg ah, al
+  mov DosV, ax
+  mov ax, 4010h
+  int 2Fh
+  cmp ax, 4010h
+  jnz @0
+  xor bx, bx
+@0:
+  mov W, bx
+ end;
+ if DosV > 3 shl 8 then
+ begin
+  OwnName := FExpand (ParamStr (0));
+  FSplit (OwnName, OwnDir, Name, Ext);
+  if (DosV >= 20 shl 8 + 10) and (W >= 20 shl 8 + 10) then
+                       (* OS/2 version 2.1 or later running (double-checked) *)
+  begin
+   OwnName [Succ (byte (OwnName [0]))] := #0;
+   RunBlock.PrgName := @OwnName [1];
+   P := Ptr (PrefixSeg, $80);
+   if PByte (P)^ <> 0 then
+   begin
+    Inc (P);
+    RunBlock.Args := Ptr (PrefixSeg, $81);
+   end;
+   asm
+    mov ax, 6400h
+    mov bx, 0025h
+    mov cx, 636Ch
+    mov si, offset RunBlock
+    int 21h
+    jc @0
+    mov DosV, 0
+@0:
+   end;
+   CheckOS2 := DosV = 0;
+  end;
+ end;
+end;
+{$ENDIF}
 
 begin
+(* TH - no error boxes if checking an inaccessible disk etc. *)
 {$IFDEF OS2}
  {$IFDEF FPC}
    DosCalls.DosError (0);
@@ -638,6 +913,9 @@ begin
   {$ENDIF VirtualPascal}
  {$ENDIF FPC}
 {$ENDIF}
+{$IFDEF DOSSTUB}
+   if CheckOS2 then Halt;
+{$ENDIF}
    getdir(0,startpath);
    successfull:=false;
 
@@ -646,12 +924,16 @@ begin
 
    installapp.init;
    installapp.readcfg(cfgfile);
+{   installapp.readcfg(startpath+dirsep+cfgfile);}
    installapp.do_installdialog;
    installapp.done;
 end.
 {
   $Log$
-  Revision 1.14  1998-12-22 22:47:34  peter
+  Revision 1.15  1999-02-17 22:34:08  peter
+    * updates from TH for OS2
+
+  Revision 1.14  1998/12/22 22:47:34  peter
     * updates for OS2
     * small fixes
 
@@ -695,3 +977,4 @@ end.
     + version/release/patch numbers as string added
 
 }
+
