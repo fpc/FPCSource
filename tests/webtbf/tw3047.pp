@@ -1,7 +1,8 @@
+{ %fail }
 { Source provided for Free Pascal Bug Report 3047 }
 { Submitted by "GBD" on  2004-04-12 }
 { e-mail:  }
-{ $mode delphi}
+{$mode delphi}
 
 function JenkinsHashBuffer(const buffer; length : Integer; initVal : Integer) : longword;
 begin

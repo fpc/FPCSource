@@ -1,3 +1,4 @@
+{ %fail }
 procedure p1(const v);
 
   begin
