@@ -1139,7 +1139,10 @@ implementation
                 begin
                   { release FPU stack }
                   emit_reg(A_FSTP,S_NO,R_ST0);
-                  dec(fpuvaroffset);
+                  {
+                    dec(fpuvaroffset);
+                    do NOT decrement as the increment before
+                    is not called for unused results PM }
                 end;
            end;
       end;
@@ -1222,7 +1225,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.108  1999-10-26 12:30:40  peter
+  Revision 1.109  1999-11-04 00:23:58  pierre
+   * fix for fpuvaroffset for unused return value
+
+  Revision 1.108  1999/10/26 12:30:40  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes
