@@ -197,7 +197,7 @@ endif
 
 # Targets
 
-override UNITOBJECTS+=x xlib xutil xresource xcms
+override UNITOBJECTS+=x xlib xutil xresource xcms xshm xrender
 
 # Clean
 
