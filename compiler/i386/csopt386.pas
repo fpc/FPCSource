@@ -1354,15 +1354,10 @@ var
 {$ifdef testing}
     hp: tai;
 {$endif testing}
-    tmpresult: boolean;
 begin
+  Result:=false;
   Counter := RS_EAX;
   repeat
-     tmpresult := (ptaiprop(p.optinfo)^.regs[counter].typ in
-         [con_const,con_noRemoveConst]) and
-       (taicpu(ptaiprop(p.optinfo)^.Regs[Counter].StartMod).opsize = size) and
-       (taicpu(ptaiprop(p.optinfo)^.Regs[Counter].StartMod).oper[0]^.typ = top_const) and
-       (taicpu(ptaiprop(p.optinfo)^.Regs[Counter].StartMod).oper[0]^.val = l);
 {$ifdef testing}
      if (ptaiprop(p.optinfo)^.regs[counter].typ in [con_const,con_noRemoveConst]) then
        begin
@@ -1375,11 +1370,17 @@ begin
            hp.previous^.next := hp;
        end;
 {$endif testing}
+     if (ptaiprop(p.optinfo)^.regs[counter].typ in [con_const,con_noRemoveConst]) and
+        (taicpu(ptaiprop(p.optinfo)^.Regs[Counter].StartMod).opsize = size) and
+        (taicpu(ptaiprop(p.optinfo)^.Regs[Counter].StartMod).oper[0]^.typ = top_const) and
+        (taicpu(ptaiprop(p.optinfo)^.Regs[Counter].StartMod).oper[0]^.val = l) then
+       begin
+         res:=taicpu(ptaiprop(p.optinfo)^.Regs[Counter].StartMod).oper[1]^.reg;
+         result:=true;
+         exit;
+       end;
      inc(counter);
-  until tmpresult or (Counter > RS_EDI);
-  if tmpResult then
-    res := taicpu(ptaiprop(p.optinfo)^.Regs[Counter].StartMod).oper[1]^.reg;
-  FindRegWithConst := tmpResult;
+  until (Counter > RS_EDI);
 end;
 
 
@@ -1561,7 +1562,7 @@ begin
 {$warning add cycle detection for register loads and use xchg if necessary}
                     insertpos := regloads[reginfo.new2oldreg[regcounter]];
                   end;
-  
+
                 hp := Tai_Marker.Create(NoPropInfoStart);
                 InsertLLItem(asml, insertpos.previous,insertpos, hp);
                 hp2 := taicpu.Op_Reg_Reg(A_MOV, S_L,
@@ -1626,7 +1627,7 @@ begin
   hp := Tai_Marker.Create(NoPropInfoStart);
   InsertLLItem(asml, p.previous,p, hp);
   { duplicate the original instruction and replace it's designated operant with the register }
-  hp := p.getcopy;
+  hp := tai(p.getcopy);
   taicpu(hp).loadreg(opnr,reg);
   { add optimizer state info }
   new(ptaiprop(hp.optinfo));
@@ -2055,7 +2056,11 @@ end.
 
 {
   $Log$
-  Revision 1.54  2003-12-13 15:48:47  jonas
+  Revision 1.55  2003-12-14 14:18:59  peter
+    * optimizer works again with 1.0.x
+    * fixed wrong loop in FindRegWithConst
+
+  Revision 1.54  2003/12/13 15:48:47  jonas
     * isgp32reg was being called with both tsuperregister and tregister
       parameters, so changed type to tsuperregister (fixes bug reported by
       Bas Steendijk)

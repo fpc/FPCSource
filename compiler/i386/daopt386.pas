@@ -451,7 +451,7 @@ begin
             (tasmlabel(taicpu(p).oper[0]^.sym) = aktexit2label)) and
         getLastInstruction(p, p) and
         not(regInInstruction(supreg, p)) do
-    hp1 := p; 
+    hp1 := p;
 }
   { don't insert a dealloc for registers which contain the function result }
   { if they are followed by a jump to the exit label (for exit(...))       }
@@ -1957,6 +1957,7 @@ var
   hp1, hp2: tai;
 {$ifdef i386}
   regcounter: tregister;
+  supreg : tsuperregister;
 {$endif i386}
   usedregs, nodeallocregs: tregset;
 begin
@@ -2003,30 +2004,33 @@ begin
             labeltable^[tai_label(p).l.labelnr-lolab].taiobj := p;
 {$ifdef i386}
         ait_regalloc:
-          if tai_regalloc(p).allocation then
-            begin
-              if not(getsupreg(tai_regalloc(p).reg) in usedregs) then
-                include(usedregs, getsupreg(tai_regalloc(p).reg))
-              else
-                addregdeallocfor(list, tai_regalloc(p).reg, p);
-            end
-          else
-            begin
-              exclude(usedregs, getsupreg(tai_regalloc(p).reg));
-              hp1 := p;
-              hp2 := nil;
-              while not(findregalloc(tai_regalloc(p).reg, tai(hp1.next),true)) and
-                    getnextinstruction(hp1, hp1) and
-                    regininstruction(getsupreg(tai_regalloc(p).reg), hp1) Do
-                hp2 := hp1;
-              if hp2 <> nil then
-                begin
-                  hp1 := tai(p.previous);
-                  list.remove(p);
-                  insertllitem(list, hp2, tai(hp2.next), p);
-                  p := hp1;
-                end;
-            end;
+          begin
+            supreg:=getsupreg(tai_regalloc(p).reg);
+            if tai_regalloc(p).allocation then
+              begin
+                if not(supreg in usedregs) then
+                  include(usedregs, supreg)
+                else
+                  addregdeallocfor(list, tai_regalloc(p).reg, p);
+              end
+            else
+              begin
+                exclude(usedregs, supreg);
+                hp1 := p;
+                hp2 := nil;
+                while not(findregalloc(tai_regalloc(p).reg, tai(hp1.next),true)) and
+                      getnextinstruction(hp1, hp1) and
+                      regininstruction(getsupreg(tai_regalloc(p).reg), hp1) Do
+                  hp2 := hp1;
+                if hp2 <> nil then
+                  begin
+                    hp1 := tai(p.previous);
+                    list.remove(p);
+                    insertllitem(list, hp2, tai(hp2.next), p);
+                    p := hp1;
+                  end;
+              end;
+           end;
 {$endif i386}
       end;
       repeat
@@ -2701,7 +2705,11 @@ end.
 
 {
   $Log$
-  Revision 1.57  2003-12-13 15:48:47  jonas
+  Revision 1.58  2003-12-14 14:18:59  peter
+    * optimizer works again with 1.0.x
+    * fixed wrong loop in FindRegWithConst
+
+  Revision 1.57  2003/12/13 15:48:47  jonas
     * isgp32reg was being called with both tsuperregister and tregister
       parameters, so changed type to tsuperregister (fixes bug reported by
       Bas Steendijk)

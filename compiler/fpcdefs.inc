@@ -45,9 +45,6 @@
   {$endif}
   {$define x86}
   {$define cpuextended}
-  {$ifdef VER1_0}
-    {$define NOOPT}
-  {$endif VER1_0}
 {$endif i386}
 
 {$ifdef x86_64}
@@ -88,7 +85,11 @@
 
 {
   $Log$
-  Revision 1.27  2003-11-22 13:11:10  jonas
+  Revision 1.28  2003-12-14 14:18:59  peter
+    * optimizer works again with 1.0.x
+    * fixed wrong loop in FindRegWithConst
+
+  Revision 1.27  2003/11/22 13:11:10  jonas
     - disable the optimizer if compiling with 1.0, because it has a code
       generator (not optimizer) bug that causes crashes in the 1.1
       optimizer
