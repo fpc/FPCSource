@@ -2398,7 +2398,8 @@ implementation
                    end
                  else
                    begin
-                      if length(pattern)=1 then
+                      pattern[0]:=chr(len);
+                      if len=1 then
                        token:=_CCHAR
                       else
                        token:=_CSTRING;
@@ -2655,7 +2656,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.26  2001-10-22 19:55:44  peter
+  Revision 1.27  2001-10-22 20:25:49  peter
+    * fixed previous commit
+
+  Revision 1.26  2001/10/22 19:55:44  peter
     * give error with string constants longer than 255 chars, this is
       compatible with kylix
 
