@@ -177,7 +177,6 @@ interface
 
     procedure tarmaddnode.second_cmpfloat;
       begin
-        { we will see what instruction set we'll use on the arm for FP
         pass_left_right;
         if (nf_swaped in flags) then
           swapleftright;
@@ -190,14 +189,10 @@ interface
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
 
-        exprasmlist.concat(taicpu.op_reg_reg(A_FCMPs,
+        exprasmlist.concat(taicpu.op_reg_reg(A_CMF,
            left.location.register,right.location.register));
-        { Delay slot (can only contain integer operation) }
-        exprasmlist.concat(taicpu.op_none(A_NOP));
 
         release_reg_left_right;
-        }
-        //!!!!
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
       end;
@@ -344,7 +339,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2004-01-26 19:05:56  florian
+  Revision 1.12  2004-03-11 22:41:37  florian
+    + second_cmpfloat implemented, needs probably to be fixed
+
+  Revision 1.11  2004/01/26 19:05:56  florian
     * fixed several arm issues
 
   Revision 1.10  2004/01/24 20:19:46  florian
