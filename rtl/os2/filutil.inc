@@ -190,17 +190,36 @@ begin
 end;
 
 
-Function FileGetDate (Handle : Longint) : Longint;
-
-begin
-  //!! Needs implementing
+function FileGetDate (Handle: longint): longint; assembler;
+asm
+    mov ax, 5700h
+    mov ebx, Handle
+    call syscall
+    mov eax, -1
+    jc @FGetDateEnd
+    mov ax, dx
+    shld eax, cx, 16
+@FGetDateEnd:
 end;
 
 
-Function FileSetDate (Handle,Age : Longint) : Longint;
-
+function FileSetDate (Handle, Age: longint): longint;
 begin
-  //!! Needs implementing
+    if os_mode = osOS2 then
+        begin
+{TODO: !!! Must be done differently for OS/2 !!!}
+        end
+    else
+        asm
+            mov ax, 5701h
+            mov ebx, Handle
+            mov cx, word ptr [Age]
+            mov dx, word ptr [Age + 2]
+            call syscall
+            jnc @FSetDateEnd
+            mov eax, -1
+@FSetDateEnd:
+        end;
 end;
 
 
@@ -342,7 +361,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2000-05-29 17:59:58  hajny
+  Revision 1.9  2000-06-01 18:36:50  hajny
+    * FileGetDate added
+
+  Revision 1.8  2000/05/29 17:59:58  hajny
     * FindClose implemented
 
   Revision 1.7  2000/05/28 18:22:58  hajny
