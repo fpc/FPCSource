@@ -69,10 +69,19 @@
 
        pguid = ^tguid;
        tguid = packed record
-         D1: LongWord;
-         D2: Word;
-         D3: Word;
-         D4: array[0..7] of Byte;
+          case integer of
+             1 : (
+                  Data1 : DWord;
+                  Data2 : word;
+                  Data3 : word;
+                  Data4 : array[0..7] of byte;
+                 );
+             2 : (
+                  D1 : DWord;
+                  D2 : word;
+                  D3 : word;
+                  D4 : array[0..7] of byte;
+                 );
        end;
 
        pinterfaceentry = ^tinterfaceentry;
@@ -270,7 +279,10 @@
        end;
 {
   $Log$
-  Revision 1.9  2001-03-22 23:26:37  florian
+  Revision 1.10  2001-04-04 17:56:45  florian
+    * TGUID definition from win32/wininc/struct.inc copied
+
+  Revision 1.9  2001/03/22 23:26:37  florian
     * some types moved to systemh
     + some types like PDispatch added
 
