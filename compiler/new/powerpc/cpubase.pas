@@ -150,7 +150,6 @@ type
 
   reg2strtable = array[tregister] of string[5];
 
-
 Const
    R_SPR1 = R_XER;
    R_SPR8 = R_LR;
@@ -363,6 +362,9 @@ const
   availabletempregsfpu = [R_F14..R_F31];
   availabletempregsmm  = [R_M0..R_M31];
 
+  lvaluelocations = [LOC_REFERENCE, LOC_CREGISTER, LOC_CFPUREGISTER,
+                     LOC_CMMREGISTER];
+
   c_countusableregsint = 21;
   c_countusableregsfpu = 32;
   c_countusableregsmm  = 32;
@@ -565,7 +567,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2000-03-26 16:38:06  jonas
+  Revision 1.14  2000-04-29 09:01:06  jonas
+    * nmem compiles again (at least for powerpc)
+
+  Revision 1.13  2000/03/26 16:38:06  jonas
     * frame_pointer = stackpointer instead of R_NO
 
   Revision 1.12  2000/01/07 01:14:58  peter

@@ -126,6 +126,7 @@ unit cgobj;
 
           { move instructions }
           procedure a_load_const_reg(list : paasmoutput;size : tcgsize;a : aword;register : tregister);virtual;
+          procedure a_load_const_ref(list : paasmoutput;size : tcgsize;a : aword;const ref : treference);virtual;
           procedure a_load_reg_ref(list : paasmoutput;size : tcgsize;register : tregister;const ref : treference);virtual;
           procedure a_load_ref_reg(list : paasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual;
           procedure a_load_reg_reg(list : paasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual;
@@ -166,7 +167,6 @@ unit cgobj;
           procedure g_profilecode(list : paasmoutput);virtual;
           procedure g_stackcheck(list : paasmoutput;stackframesize : longint);virtual;
 
-          procedure a_load_const_ref(list : paasmoutput;size : tcgsize;a : aword;const ref : treference);virtual;
           procedure g_maybe_loadself(list : paasmoutput);virtual;
           { copies len bytes from the source to destination, if }
           { loadref is true, it assumes that it first must load }
@@ -1329,7 +1329,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.37  2000-04-22 14:25:03  jonas
+  Revision 1.38  2000-04-29 09:01:06  jonas
+    * nmem compiles again (at least for powerpc)
+
+  Revision 1.37  2000/04/22 14:25:03  jonas
     * aasm.pas: pai_align instead of pai_align_abstract if cpu <> i386
     + systems.pas: info for macos/ppc
     * new/cgobj.pas: compiles again without newst define
