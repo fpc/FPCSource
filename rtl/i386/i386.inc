@@ -1141,7 +1141,7 @@ function declocked(var l : longint) : boolean;assembler;
 
   asm
      movl       l,%edi
-{$ifdef MTRTL}
+{$ifdef MT}
      { this check should be done because a lock takes a lot }
      { of time!                                             }
      cmpb       $0,IsMultithread
@@ -1150,7 +1150,7 @@ function declocked(var l : longint) : boolean;assembler;
      decl       (%edi)
      jmp        .Ldeclockedend
 .Ldeclockednolock:
-{$endif MTRTL}
+{$endif MT}
      decl       (%edi);
 .Ldeclockedend:
      setzb      %al
@@ -1160,7 +1160,7 @@ procedure inclocked(var l : longint);assembler;
 
   asm
      movl       l,%edi
-{$ifdef MTRTL}
+{$ifdef MT}
      { this check should be done because a lock takes a lot }
      { of time!                                             }
      cmpb       $0,IsMultithread
@@ -1169,14 +1169,17 @@ procedure inclocked(var l : longint);assembler;
      incl       (%edi)
      jmp        .Linclockedend
 .Linclockednolock:
-{$endif MTRTL}
+{$endif MT}
      incl       (%edi)
 .Linclockedend:
   end ['EDI'];
 
 {
   $Log$
-  Revision 1.25  2002-07-06 20:31:59  carl
+  Revision 1.26  2002-07-26 15:45:33  florian
+    * changed multi threading define: it's MT instead of MTRTL
+
+  Revision 1.25  2002/07/06 20:31:59  carl
   + added TEST_GENERIC to test generic version
 
   Revision 1.24  2002/06/16 08:21:26  carl

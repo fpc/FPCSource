@@ -249,7 +249,7 @@ L32ByteAlignLoopDone:
         { move to ctr }
         mtctr     r10
         { check how many rest there is (to decide whether we'll use }
-        { FillCharSmall or FillCharVerySmall)                       } 
+        { FillCharSmall or FillCharVerySmall)                       }
         cmpl      cr7,r4,11
         { if filling with zero, only use dcbz }
         bne       cr1, LFillCharNoZero
@@ -688,7 +688,7 @@ asm
       subme   r9,r9,r9     { if r9 >= r10 then r9' := 0 else r9' := -1    }
       and     r9,r0,r9     { if r9 >= r10 then r9' := 0 else r9' := r9-r8 }
       add     r9,r9,r10    { if r9 >= r10 then r9' := r10 else r9' := r9  }
-      
+
       { first compare dwords (length/4) }
       srwi.   r8,r9,2
       { keep length mod 4 for the ends }
@@ -714,7 +714,7 @@ LShortStrCompare4Loop:
       addi    r8,r8,3
 LShortStrCompare1:
       { if comparelen mod 4 = 0, skip this and return the difference in }
-      { lengths                                                         } 
+      { lengths                                                         }
       beq     cr1,LShortStrCompareLen
 LShortStrCompare1Loop:
       lbzu    r3,1(r4)
@@ -811,38 +811,41 @@ function declocked(var l : longint) : boolean;assembler;
 { input:  address of l in r3                                      }
 { output: boolean indicating whether l is zero after decrementing }
 asm
-LDecLockedLoop:   
-{$ifdef MTRTL}
+LDecLockedLoop:
+{$ifdef MT}
     lwarx   r10,0,r3
     subi    r10,r10,1
     stwcx.  r10,0,r3
     bne-    LDecLockedLoop
-{$else MTRTL}
+{$else MT}
     lwzx    r10,0,r3
     subi    r10,r10,1
     stw     r10,0,r3
-{$endif MTRTL}
+{$endif MT}
     mr.     r3,r10
 end ['r3','r10'];
 
 procedure inclocked(var l : longint);assembler;
-LIncLockedLoop:   
-{$ifdef MTRTL}
+LIncLockedLoop:
+{$ifdef MT}
     lwarx   r10,0,r3
     addi    r10,r10,1
     stwcx.  r10,0,r3
     bne-    LDecLockedLoop
-{$else MTRTL}
+{$else MT}
     lwzx    r10,0,r3
     addi    r10,r10,1
     stw     r10,0,r3
-{$endif MTRTL}
+{$endif MT}
 end ['r3','r10'];
 
 
 {
   $Log$
-  Revision 1.7  2001-09-28 13:28:49  jonas
+  Revision 1.8  2002-07-26 15:45:56  florian
+    * changed multi threading define: it's MT instead of MTRTL
+
+  Revision 1.7  2001/09/28 13:28:49  jonas
     * small changes to move (different count values trigger the selection of
       moving bytes instead dwords/doubles and move dcbt instruction)
     + implemented fillchar (untested)
