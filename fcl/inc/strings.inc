@@ -506,8 +506,11 @@ end;
 
 Procedure TStrings.SaveToStream(Stream: TStream); 
 
+VAr S : String;
+
 begin
-  Stream.WriteAnsiString(Text);
+  S:=Text;
+  Stream.Write(Pointer(S)^,Length(S));
 end;
 
 Function GetNextLine (P : Pchar; Var S : String) : Boolean;
@@ -900,7 +903,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  1999-02-04 17:19:14  michael
+  Revision 1.13  1999-02-04 21:41:12  michael
+  + Fixed loadfromstream bug
+
+  Revision 1.12  1999/02/04 17:19:14  michael
   + fixed getvalue
 
   Revision 1.11  1999/02/02 23:49:23  florian
