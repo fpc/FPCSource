@@ -95,6 +95,52 @@ begin
 end;
 
 
+function PPUFlags2Str(flags:longint):string;
+type
+  tflagopt=record
+    mask : longint;
+    str  : string[30];
+  end;
+const
+  flagopts=11;
+  flagopt : array[1..flagopts] of tflagopt=(
+    (mask: $1    ;str:'init'),
+    (mask: $2    ;str:'final'),
+    (mask: $4    ;str:'big_endian'),
+    (mask: $8    ;str:'dbx'),
+    (mask: $10   ;str:'browser'),
+    (mask: $20   ;str:'in_library'),
+    (mask: $40   ;str:'smart_linked'),
+    (mask: $80   ;str:'static_linked'),
+    (mask: $100  ;str:'shared_linked'),
+    (mask: $200  ;str:'local_browser'),
+    (mask: $400  ;str:'no_link')
+  );
+var
+  i : longint;
+  first  : boolean;
+  s : string;
+begin
+  s:='';
+  if flags<>0 then
+   begin
+     first:=true;
+     for i:=1to flagopts do
+      if (flags and flagopt[i].mask)<>0 then
+       begin
+         if first then
+           first:=false
+         else
+           s:=s+', ';
+         s:=s+flagopt[i].str;
+       end;
+   end
+  else
+   s:='none';
+  PPUFlags2Str:=s;
+end;
+
+
 const
   HexTbl : array[0..15] of char='0123456789ABCDEF';
 function HexB(b:byte):string;
@@ -1040,30 +1086,7 @@ begin
         Writeln('Compiler version        : ',hi(ppufile^.header.compiler and $ff),'.',lo(ppufile^.header.compiler));
         WriteLn('Target processor        : ',Cpu2Str(cpu));
         WriteLn('Target operating system : ',Target2Str(target));
-        Write  ('Unit flags              : ',flags,', ');
-          if (flags and uf_init)<>0 then
-           write('init ');
-          if (flags and uf_big_endian)<>0 then
-           write('big_endian ');
-          if (flags and uf_finalize)<>0 then
-           write('finalize ');
-          if (flags and uf_has_dbx)<>0 then
-           write('has_dbx ');
-          if (flags and uf_has_browser)<>0 then
-           write('has_browser ');
-          if (flags and uf_in_library)<>0 then
-           write('in_library ');
-          if (flags and uf_smart_linked)<>0 then
-           write('smart_linked ');
-          if (flags and uf_shared_linked)<>0 then
-           write('shared_linked ');
-          if (flags and uf_static_linked)<>0 then
-           write('static_linked ');
-          if (flags and uf_local_browser)<>0 then
-           write('local_browser ');
-          if (flags=0) then
-           write('(none)');
-          writeln;
+        Writeln('Unit flags              : ',PPUFlags2Str(flags));
         Writeln('FileSize (w/o header)   : ',size);
         Writeln('Checksum                : ',checksum);
         Writeln('Interface Checksum      : ',interface_checksum);
@@ -1244,7 +1267,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1999-07-27 23:45:29  peter
+  Revision 1.7  1999-08-13 21:25:35  peter
+    * updated flags
+
+  Revision 1.6  1999/07/27 23:45:29  peter
     * updated for typesym writing
 
   Revision 1.5  1999/07/05 12:32:40  florian
