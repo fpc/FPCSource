@@ -236,11 +236,14 @@ implementation
              begin
                case def_from^.deftype of
                 orddef : begin { ordinal to real }
-                           if pfloatdef(def_to)^.typ=f32bit then
-                            doconv:=tc_int_2_fix
-                           else
-                            doconv:=tc_int_2_real;
-                           b:=true;
+                           if is_integer(def_from) then
+                             begin
+                                if pfloatdef(def_to)^.typ=f32bit then
+                                  doconv:=tc_int_2_fix
+                                else
+                                  doconv:=tc_int_2_real;
+                                b:=true;
+                             end;
                          end;
               floatdef : begin { 2 float types ? }
                            if pfloatdef(def_from)^.typ=pfloatdef(def_to)^.typ then
@@ -713,7 +716,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1998-12-15 17:11:37  peter
+  Revision 1.14  1999-01-19 15:55:32  pierre
+   * fix for boolean to comp conversion (now disabled)
+
+  Revision 1.13  1998/12/15 17:11:37  peter
     * string:=pchar not allowed in tp mode
 
   Revision 1.12  1998/12/11 00:03:18  peter
