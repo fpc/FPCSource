@@ -172,10 +172,13 @@ interface
                                                else
                                                  begin
                                                     if (tvarsym(sym).reg.enum<>R_NO) then
-                                                      hs:=gas_reg2str[procinfo.framepointer.enum]
+// until new regallocator stuff settles down
+//                                                      hs:=gas_reg2str[procinfo.framepointer.enum]
+                                                      hs:=gas_reg2str[STACK_POINTER_REG]
                                                     else
                                                       hs:=tostr(tvarsym(sym).address)+
-                                                        '('+gas_reg2str[procinfo.framepointer.enum]+')';
+//                                                        '('+gas_reg2str[procinfo.framepointer.enum]+')';
+                                                        '('+gas_reg2str[STACK_POINTER_REG]+')';
                                                  end;
                                             end
                                           else
@@ -196,7 +199,8 @@ interface
                                                     l:=tvarsym(sym).address;
                                                     { set offset }
                                                     inc(l,aktprocdef.parast.address_fixup);
-                                                    hs:=tostr(l)+'('+gas_reg2str[procinfo.framepointer.enum]+')';
+//                                                    hs:=tostr(l)+'('+gas_reg2str[procinfo.framepointer.enum]+')';
+                                                    hs:=tostr(l)+'('+gas_reg2str[STACK_POINTER_REG]+')';
                                                     if pos(',',s) > 0 then
                                                       tvarsym(sym).varstate:=vs_used;
                                                  end;
@@ -314,7 +318,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2003-01-08 18:43:58  daniel
+  Revision 1.8  2003-03-22 18:00:27  jonas
+    * fixes for new regallocator
+
+  Revision 1.7  2003/01/08 18:43:58  daniel
    * Tregister changed into a record
 
   Revision 1.6  2002/11/25 17:43:28  peter
