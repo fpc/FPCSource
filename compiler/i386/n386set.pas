@@ -99,6 +99,7 @@ implementation
          opsize     : topsize;
          setparts   : array[1..8] of Tsetpart;
          i,numparts : byte;
+         adjustment : longint;
          {href,href2 : Treference;}
          l,l2       : pasmlabel;
 {$ifdef CORRECT_SET_IN_FPC}
@@ -148,20 +149,19 @@ implementation
                      setparts[numparts].range:=true;
                      setparts[numparts].start:=setparts[numparts].stop;
                      setparts[numparts].stop:=i;
-                     inc(compares);
+                     ranges := true;
+                     { there's only one compare per range anymore. Only a }
+                     { sub is added, but that's much faster than a        }
+                     { cmp/jcc combo so neglect its effect                }
+{                     inc(compares);
                      if compares>maxcompares then
-                      exit;
+                      exit; }
                    end
-                 else
-                  begin
+                  else
+                   begin
                     {Extend a range.}
                     setparts[numparts].stop:=i;
-                    {A range of two elements can better
-                     be checked as two separate ones.
-                     When extending a range, our range
-                     becomes larger than two elements.}
-                    ranges:=true;
-                  end;
+                   end;
               end;
              analizeset:=true;
            end;
@@ -208,19 +208,34 @@ implementation
             if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
              begin
                pleftreg:=left.location.register;
-               if pleftreg in [R_AX..R_DX] then
+               if pleftreg in [R_AX..R_DI] then
                 begin
-                  emit_const_reg(A_AND,S_W,255,pleftreg);
-                  opsize:=S_W;
+                  emit_const_reg(A_AND,S_L,255,reg16toreg32(pleftreg));
                 end
                else
                 if pleftreg in [R_EAX..R_EDI] then
                  begin
                    emit_const_reg(A_AND,S_L,255,pleftreg);
-                   opsize:=S_L;
                  end
                else
-                opsize:=S_B;
+                begin
+                  if ranges then
+                    emit_const_reg(A_AND,S_L,255,reg8toreg32(pleftreg));
+                end;
+               opsize := S_L;
+               if ranges then
+                 begin
+                   pleftreg := makereg32(pleftreg);
+                   opsize := S_L;
+                 end
+             end
+            else
+             begin
+               { load the value in a register }
+               pleftreg := getexplicitregister32(R_EDI);
+               opsize := S_L;
+               emit_ref_reg(A_MOVZX,S_BL,newreference(left.location.reference),
+                            pleftreg);
              end;
 
             { Get a label to jump to the end }
@@ -235,102 +250,82 @@ implementation
 
             getlabel(l);
 
+            { how much have we already substracted from the x in the }
+            { "x in [y..z]" expression                               }
+            adjustment := 0;
+
             for i:=1 to numparts do
              if setparts[i].range then
+              { use fact that a <= x <= b <=> cardinal(x-a) <= cardinal(b-a) }
               begin
-                { Check if left is in a range }
-                { Get a label to jump over the check }
-                getlabel(l2);
-                if setparts[i].start=setparts[i].stop-1 then
-                 begin
-                   case left.location.loc of
-                  LOC_REGISTER,
-                 LOC_CREGISTER : emit_const_reg(A_CMP,opsize,
-                                   setparts[i].start,pleftreg);
-                   else
-                     emit_const_ref(A_CMP,S_B,
-                       setparts[i].start,newreference(left.location.reference));
-                   end;
-                   { Result should be in carry flag when ranges are used }
-                   if ranges then
-                     emit_none(A_STC,S_NO);
-                   { If found, jump to end }
-                   emitjmp(C_E,l);
-                   case left.location.loc of
-                  LOC_REGISTER,
-                 LOC_CREGISTER : emit_const_reg(A_CMP,opsize,
-                                   setparts[i].stop,pleftreg);
-                   else
-                     emit_const_ref(A_CMP,S_B,
-                       setparts[i].stop,newreference(left.location.reference));
-                   end;
-                   { Result should be in carry flag when ranges are used }
-                   if ranges then
-                     emit_none(A_STC,S_NO);
-                   { If found, jump to end }
-                   emitjmp(C_E,l);
-                 end
-                else
-                 begin
-                   if setparts[i].start<>0 then
-                    begin
-                      { We only check for the lower bound if it is > 0, because
-                        set elements lower than 0 dont exist }
-                      case left.location.loc of
-                     LOC_REGISTER,
-                    LOC_CREGISTER :
+                { is the range different from all legal values? }
+                if (setparts[i].stop-setparts[i].start <> 255) then
+                  begin
+                    { yes, is the lower bound <> 0? }
+                    if (setparts[i].start <> 0) then
+                      { we're going to substract from the left register,   }
+                      { so in case of a LOC_CREGISTER first move the value }
+                      { to edi (not done before because now we can do the  }
+                      { move and substract in one instruction with LEA)    }
+                      if (pleftreg <> R_EDI) and
+                         (left.location.loc = LOC_CREGISTER) then
+                        begin
+                          getexplicitregister32(R_EDI);
+                          emit_ref_reg(A_LEA,S_L,
+                            new_reference(pleftreg,-setparts[i].start),R_EDI);
+                          { only now change pleftreg since previous value is }
+                          { still used in previous instruction               }
+                          pleftreg := R_EDI;
+                          opsize := S_L;
+                        end
+                      else
+                        begin
+                          { otherwise, the value is already in a register   }
+                          { that can be modified                            }
+                          if setparts[i].start-adjustment <> 1 then
+                            emit_const_reg(A_SUB,opsize,
+                              setparts[i].start-adjustment,pleftreg)
+                          else emit_reg(A_DEC,opsize,pleftreg);
+                        end;
+                    { new total value substracted from x:           }
+                    { adjustment + (setparts[i].start - adjustment) }
+                    adjustment := setparts[i].start;
+
+                    { check if result < b-a+1 (not "result <= b-a", since }
+                    { we need a carry in case the element is in the range }
+                    { (this will never overflow since we check at the     }
+                    { beginning whether stop-start <> 255)                }
                     emit_const_reg(A_CMP,opsize,
-                                      setparts[i].start,pleftreg);
-                      else
-                        emit_const_ref(A_CMP,S_B,
-                          setparts[i].start,newreference(left.location.reference));
-                      end;
-                      { If lower, jump to next check }
-                      emitjmp(C_B,l2);
-                    end;
-                   { We only check for the high bound if it is < 255, because
-                     set elements higher than 255 do nt exist, the its always true,
-                     so only a JMP is generated }
-                   if setparts[i].stop<>255 then
-                    begin
-                      case left.location.loc of
-                     LOC_REGISTER,
-                    LOC_CREGISTER : emit_const_reg(A_CMP,opsize,
-                                      setparts[i].stop+1,pleftreg);
-                      else
-                        emit_const_ref(A_CMP,S_B,
-                          setparts[i].stop+1,newreference(left.location.reference));
-                      end;
-                      { If higher, element is in set }
-                      emitjmp(C_B,l);
-                    end
-                   else
-                    begin
-                      emit_none(A_STC,S_NO);
-                      emitjmp(C_None,l);
-                    end;
-                 end;
-                { Emit the jump over label }
-                emitlab(l2);
+                      setparts[i].stop-setparts[i].start+1,pleftreg);
+                    { use C_C instead of C_B: the meaning is the same, but }
+                    { then the optimizer can easier trace the jump to its  }
+                    { final destination since the resultflag of this node  }
+                    { is set to the carryflag                              }
+                    emitjmp(C_C,l);
+                  end
+                else
+                  { if setparts[i].start = 0 and setparts[i].stop = 255,  }
+                  { it's always true since "in" is only allowed for bytes }
+                  begin
+                    emit_none(A_STC,S_NO);
+                    emitjmp(C_NONE,l);
+                  end;
               end
              else
               begin
                 { Emit code to check if left is an element }
-                case left.location.loc of
-               LOC_REGISTER,
-              LOC_CREGISTER : emit_const_reg(A_CMP,opsize,
-                                setparts[i].stop,pleftreg);
-                else
-                  emit_const_ref(A_CMP,S_B,
-                    setparts[i].stop,newreference(left.location.reference));
-                end;
+                emit_const_reg(A_CMP,opsize,setparts[i].stop-adjustment,
+                  pleftreg);
                 { Result should be in carry flag when ranges are used }
                 if ranges then
                  emit_none(A_STC,S_NO);
                 { If found, jump to end }
                 emitjmp(C_E,l);
               end;
-             if ranges then
+             if ranges and
+                { if the last one was a range, the carry flag is already }
+                { set appropriately                                      }
+                not(setparts[numparts].range) then
               emit_none(A_CLC,S_NO);
              { To compensate for not doing a second pass }
              right.location.reference.symbol:=nil;
@@ -340,8 +335,11 @@ implementation
             LOC_REGISTER,
            LOC_CREGISTER : ungetregister(pleftreg);
              else
-               del_reference(left.location.reference);
-             end;
+               begin
+                del_reference(left.location.reference);
+                ungetregister(R_EDI);
+               end
+             end
           end
          else
           begin
@@ -1069,7 +1067,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-12-25 00:07:33  peter
+  Revision 1.11  2001-02-11 12:14:56  jonas
+    * simplified and optimized code generated for in-statements
+
+  Revision 1.10  2000/12/25 00:07:33  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
