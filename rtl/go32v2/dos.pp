@@ -19,6 +19,7 @@ interface
 Uses
   Go32;
 
+
 Const
   {Bitmasks for CPU Flags}
   fcarry     = $0001;
@@ -102,7 +103,7 @@ Procedure Exec(const path: pathstr; const comline: comstr);
 Function  DosExitCode: word;
 
 {Disk}
-{$ifdef HasInt64Diskfuncs}
+{$ifdef Int64}
  Function  DiskFree(drive: byte) : int64;
  Function  DiskSize(drive: byte) : int64;
 {$else}
@@ -447,7 +448,7 @@ end;
                                --- Disk ---
 ******************************************************************************}
 
-{$ifdef HasInt64Diskfuncs}
+{$ifdef Int64}
 
 TYPE  ExtendedFat32FreeSpaceRec=packed Record
          RetSize           : WORD; { (ret) size of returned structure}
@@ -1139,7 +1140,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.18  2000-01-23 12:28:38  marco
+  Revision 1.19  2000-01-23 16:31:23  peter
+    * hasint64diskspace define changed to int64 so it's default now
+
+  Revision 1.18  2000/01/23 12:28:38  marco
    * Added diskfree and disksize with AH=71 dos functions (LFN/Fat32)
 
   Revision 1.17  2000/01/07 16:41:30  daniel
