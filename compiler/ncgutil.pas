@@ -341,6 +341,13 @@ implementation
                   begin
                     if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                      l.register:=rg.makeregsize(l.register,dst_size);
+                    { for big endian systems, the reference's offset must }
+                    { be increased in this case, since they have the      }
+                    { MSB first in memory and e.g. byte(word_var) should  }
+                    { return  the second byte in this case (JM)           }
+                    if (target_info.endian = ENDIAN_BIG) and
+                       (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                      inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
                     l.size:=dst_size;
                   end;
                  cg.a_load_loc_reg(list,l,hregister);
@@ -426,6 +433,13 @@ implementation
                   begin
                     if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                      l.register:=rg.makeregsize(l.register,dst_size);
+                    { for big endian systems, the reference's offset must }
+                    { be increased in this case, since they have the      }
+                    { MSB first in memory and e.g. byte(word_var) should  }
+                    { return  the second byte in this case (JM)           }
+                    if (target_info.endian = ENDIAN_BIG) and
+                       (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                      inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
                     l.size:=dst_size;
                   end;
                  cg.a_load_loc_reg(list,l,hregister);
@@ -1615,7 +1629,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2002-07-07 09:52:32  florian
+  Revision 1.21  2002-07-11 07:33:25  jonas
+    * big-endian fixes for location_force_reg*()
+
+  Revision 1.20  2002/07/07 09:52:32  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 
