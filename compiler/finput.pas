@@ -440,6 +440,14 @@ uses
       var
         ofm : byte;
       begin
+        { Check if file exists, this will also check if it is
+          a real file and not a directory }
+        if not fileexists(filename) then
+          begin
+            result:=false;
+            exit;
+          end;
+        { Open file }
         ofm:=filemode;
         filemode:=0;
         Assign(f,filename);
@@ -704,7 +712,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.22  2003-04-28 16:18:16  peter
+  Revision 1.23  2003-12-27 22:27:24  peter
+    * check with fileexists() before opening a file
+
+  Revision 1.22  2003/04/28 16:18:16  peter
     * sharedlib is placed in exe outputdir
 
   Revision 1.21  2002/12/29 14:57:50  peter
