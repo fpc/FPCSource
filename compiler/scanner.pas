@@ -1132,9 +1132,9 @@ implementation
               if (not found) then
                found:=findincludefile(path,name,'.inc',foundfile);
               if (not found) then
-               found:=findincludefile(path,name,target_info.sourceext,foundfile);
+               found:=findincludefile(path,name,sourceext,foundfile);
               if (not found) then
-               found:=findincludefile(path,name,target_info.pasext,foundfile);
+               found:=findincludefile(path,name,pasext,foundfile);
             end;
            if current_scanner.inputfilecount<max_include_nesting then
              begin
@@ -3348,7 +3348,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.102  2005-03-20 18:13:34  olle
+  Revision 1.103  2005-03-20 22:36:45  olle
+    * Cleaned up handling of source file extension.
+    + Added support for .p extension for macos and darwin
+
+  Revision 1.102  2005/03/20 18:13:34  olle
     * Support for pascal constant expr in compile time expr, is now only allowed in mode Delphi
     + Warning for undefined compile time var in mode macpas
     * Support for some turbo directives in mode macpas

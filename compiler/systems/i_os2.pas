@@ -45,8 +45,6 @@ unit i_os2;
             cpu          : cpu_i386;
             unit_env     : 'OS2UNITS';
             extradefines : '';
-            sourceext    : '.pas';
-            pasext       : '.pp';
             exeext       : '.exe';
             defext       : '.def';
             scriptext    : '.cmd';
@@ -65,6 +63,7 @@ unit i_os2;
             staticClibext : '.a';
             staticClibprefix : '';
             sharedClibprefix : '';
+            p_ext_support : false;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
@@ -115,7 +114,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2005-02-14 17:13:10  peter
+  Revision 1.9  2005-03-20 22:36:45  olle
+    * Cleaned up handling of source file extension.
+    + Added support for .p extension for macos and darwin
+
+  Revision 1.8  2005/02/14 17:13:10  peter
     * truncate log
 
 }

@@ -1959,12 +1959,13 @@ begin
 {$ENDIF USE_SYSUTILS}
   if inputextension='' then
    begin
-     if FileExists(inputdir+inputfile+target_info.sourceext) then
-      inputextension:=target_info.sourceext
-     else if FileExists(inputdir+inputfile+target_info.pasext) then
-       inputextension:=target_info.pasext
-     else if (m_mac in aktmodeswitches) and FileExists(inputdir+inputfile+'.p') then
-       inputextension:='.p';
+     if FileExists(inputdir+inputfile+sourceext) then
+      inputextension:=sourceext
+     else if FileExists(inputdir+inputfile+pasext) then
+       inputextension:=pasext
+     else if ((m_mac in aktmodeswitches) or target_info.p_ext_support) 
+	     and FileExists(inputdir+inputfile+pext) then
+       inputextension:=pext;
    end;
 
   { Check output dir }
@@ -2103,7 +2104,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.170  2005-03-05 16:37:42  florian
+  Revision 1.171  2005-03-20 22:36:45  olle
+    * Cleaned up handling of source file extension.
+    + Added support for .p extension for macos and darwin
+
+  Revision 1.170  2005/03/05 16:37:42  florian
     * fixed copy(dyn. array,...);
 
   Revision 1.169  2005/03/04 16:49:22  peter

@@ -40,8 +40,6 @@ unit i_bsd;
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
-            sourceext    : '.pp';
-            pasext       : '.pas';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -60,6 +58,7 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            p_ext_support : false;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -103,8 +102,6 @@ unit i_bsd;
             cpu          : cpu_x86_64;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;HASUNIX';
-            sourceext    : '.pp';
-            pasext       : '.pas';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -123,6 +120,7 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            p_ext_support : false;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -166,8 +164,6 @@ unit i_bsd;
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
-            sourceext    : '.pp';
-            pasext       : '.pas';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -186,6 +182,7 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            p_ext_support : false;
             Cprefix      : '_';
             newline      : #10;
             dirsep       : '/';
@@ -228,8 +225,6 @@ unit i_bsd;
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
-            sourceext    : '.pp';
-            pasext       : '.pas';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -248,6 +243,7 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            p_ext_support : false;
             Cprefix      : '_';
             newline      : #10;
             dirsep       : '/';
@@ -290,8 +286,6 @@ unit i_bsd;
             cpu          : cpu_m68k;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
-            sourceext    : '.pp';
-            pasext       : '.pas';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -310,6 +304,7 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            p_ext_support : false;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -352,8 +347,6 @@ unit i_bsd;
             cpu          : cpu_powerpc;
             unit_env     : '';
             extradefines : 'UNIX;BSD;HASUNIX';
-            sourceext    : '.pp';
-            pasext       : '.pas';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -372,6 +365,7 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            p_ext_support : false;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -417,8 +411,6 @@ unit i_bsd;
             cpu          : cpu_powerpc;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
-            sourceext    : '.pp';
-            pasext       : '.pas';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -437,6 +429,7 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            p_ext_support : true;
             Cprefix      : '_';
             newline      : #10;
             dirsep       : '/';
@@ -506,7 +499,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2005-02-14 17:13:10  peter
+  Revision 1.17  2005-03-20 22:36:45  olle
+    * Cleaned up handling of source file extension.
+    + Added support for .p extension for macos and darwin
+
+  Revision 1.16  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.15  2005/01/25 18:48:15  peter

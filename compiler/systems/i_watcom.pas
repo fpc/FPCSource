@@ -39,8 +39,6 @@ unit i_watcom;
             cpu          : cpu_i386;
             unit_env     : 'WATCOMUNITS';
             extradefines : 'DPMI';
-            sourceext    : '.pp';
-            pasext       : '.pas';
             exeext       : '.exe';
             defext       : '.def';
             scriptext    : '.bat';
@@ -59,6 +57,7 @@ unit i_watcom;
             staticClibext : '.a';
             staticClibprefix : '';
             sharedClibprefix : '';
+            p_ext_support : false;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
@@ -103,7 +102,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2005-02-14 17:13:10  peter
+  Revision 1.8  2005-03-20 22:36:45  olle
+    * Cleaned up handling of source file extension.
+    + Added support for .p extension for macos and darwin
+
+  Revision 1.7  2005/02/14 17:13:10  peter
     * truncate log
 
 }

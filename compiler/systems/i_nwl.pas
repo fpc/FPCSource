@@ -37,8 +37,6 @@ unit i_nwl;
             cpu          : cpu_i386;
             unit_env     : 'NETWLIBCUNITS';
             extradefines : 'NETWARE;NETWARE_LIBC';
-            sourceext    : '.pp';
-            pasext       : '.pas';
             exeext       : '.nlm';
             defext       : '.def';
             scriptext    : '.sh';
@@ -57,6 +55,7 @@ unit i_nwl;
             staticClibext : '.a';
             staticClibprefix : '';
             sharedClibprefix : '';
+            p_ext_support : false;
             Cprefix      : '';
             newline      : #13#10;
             dirsep       : '/';
@@ -101,7 +100,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2005-02-14 17:13:10  peter
+  Revision 1.5  2005-03-20 22:36:45  olle
+    * Cleaned up handling of source file extension.
+    + Added support for .p extension for macos and darwin
+
+  Revision 1.4  2005/02/14 17:13:10  peter
     * truncate log
 
 }

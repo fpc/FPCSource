@@ -267,16 +267,16 @@ uses
            do_compile:=true;
            recompile_reason:=rr_noppu;
          {Check for .pp file}
-           Found:=UnitExists(target_info.sourceext,hs);
+           Found:=UnitExists(sourceext,hs);
            if not Found then
             begin
               { Check for .pas }
-              Found:=UnitExists(target_info.pasext,hs);
+              Found:=UnitExists(pasext,hs);
             end;
            if not Found and (m_mac in aktmodeswitches) then
             begin
               { Check for .p, if mode is macpas}
-              Found:=UnitExists('.p',hs);
+              Found:=UnitExists(pext,hs);
             end;
            stringdispose(mainsource);
            if Found then
@@ -348,17 +348,17 @@ uses
           begin
             { the full filename is specified so we can't use here the
               searchpath (PFV) }
-            Message1(unit_t_unitsearch,AddExtension(sourcefn^,target_info.sourceext));
-            fnd:=FindFile(AddExtension(sourcefn^,target_info.sourceext),'',hs);
+            Message1(unit_t_unitsearch,AddExtension(sourcefn^,sourceext));
+            fnd:=FindFile(AddExtension(sourcefn^,sourceext),'',hs);
             if not fnd then
              begin
-               Message1(unit_t_unitsearch,AddExtension(sourcefn^,target_info.pasext));
-               fnd:=FindFile(AddExtension(sourcefn^,target_info.pasext),'',hs);
+               Message1(unit_t_unitsearch,AddExtension(sourcefn^,pasext));
+               fnd:=FindFile(AddExtension(sourcefn^,pasext),'',hs);
              end;
-            if not fnd and (m_mac in aktmodeswitches) then
+            if not fnd and ((m_mac in aktmodeswitches) or target_info.p_ext_support) then
              begin
-               Message1(unit_t_unitsearch,AddExtension(sourcefn^,'.p'));
-               fnd:=FindFile(AddExtension(sourcefn^,'.p'),'',hs);
+               Message1(unit_t_unitsearch,AddExtension(sourcefn^,pext));
+               fnd:=FindFile(AddExtension(sourcefn^,pext),'',hs);
              end;
             if fnd then
              begin
@@ -1611,7 +1611,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.67  2005-02-14 17:13:06  peter
+  Revision 1.68  2005-03-20 22:36:45  olle
+    * Cleaned up handling of source file extension.
+    + Added support for .p extension for macos and darwin
+
+  Revision 1.67  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.66  2005/01/19 22:19:41  peter

@@ -37,8 +37,6 @@ unit i_morph;
             cpu          : cpu_powerpc;
             unit_env     : '';
             extradefines : '';
-            sourceext    : '.pp';
-            pasext       : '.pas';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -57,6 +55,7 @@ unit i_morph;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : '';
+            p_ext_support : false;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -102,7 +101,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2005-02-14 17:13:10  peter
+  Revision 1.7  2005-03-20 22:36:45  olle
+    * Cleaned up handling of source file extension.
+    + Added support for .p extension for macos and darwin
+
+  Revision 1.6  2005/02/14 17:13:10  peter
     * truncate log
 
 }

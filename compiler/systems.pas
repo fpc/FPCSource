@@ -243,9 +243,7 @@ interface
           flags        : set of tsystemflags;
           cpu          : tsystemcpu;
           unit_env     : string[16];
-          extradefines : string[40];
-          sourceext,
-          pasext,
+          extradefines : string[40]; 
           exeext,
           defext,
           scriptext,
@@ -264,6 +262,7 @@ interface
           staticClibext,
           staticClibprefix : string[4];
           sharedClibprefix : string[4];
+          p_ext_support:Boolean; {Whether extension .p is supported by default}
           Cprefix      : string[2];
           newline      : string[2];
           dirsep       : char;
@@ -718,7 +717,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.103  2005-02-14 17:13:09  peter
+  Revision 1.104  2005-03-20 22:36:45  olle
+    * Cleaned up handling of source file extension.
+    + Added support for .p extension for macos and darwin
+
+  Revision 1.103  2005/02/14 17:13:09  peter
     * truncate log
 
   Revision 1.102  2005/02/13 20:11:16  peter

@@ -76,6 +76,11 @@ interface
        { maximum nesting of routines }
        maxnesting = 32;
 
+       { Filenames and extensions }
+       sourceext  = '.pp';
+       pasext     = '.pas';
+       pext       = '.p';
+
        treelogfilename = 'tree.log';
 
 {$if defined(CPUARM) and defined(FPUFPA)}
@@ -2289,7 +2294,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.173  2005-03-13 11:27:52  florian
+  Revision 1.174  2005-03-20 22:36:45  olle
+    * Cleaned up handling of source file extension.
+    + Added support for .p extension for macos and darwin
+
+  Revision 1.173  2005/03/13 11:27:52  florian
     + gpc mode uses tp_procvars
 
   Revision 1.172  2005/02/14 17:13:06  peter
