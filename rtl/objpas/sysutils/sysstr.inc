@@ -947,7 +947,7 @@ Begin
         TooSmall := (Abs(Value) < 0.00001) and (Value>0.0);
         If Not TooSmall Then
         Begin
-          Str(Value:0:999, Result);
+          Str(Value:digits:precision, Result);
           P := Pos('.', Result);
           Result[P] := DecimalSeparator;
           TooLarge := P > Precision + 1;
@@ -2009,7 +2009,10 @@ const
 
 {
   $Log$
-  Revision 1.30  2005-02-26 10:21:17  florian
+  Revision 1.31  2005-02-28 11:12:17  jonas
+    * fixed web bug 3708
+
+  Revision 1.30  2005/02/26 10:21:17  florian
     + implemented WideFormat
     + some Widestring stuff implemented
     * some Widestring stuff fixed
