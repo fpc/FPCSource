@@ -333,26 +333,38 @@ implementation
         var
           hs: string;
           mac : tmacro;
+          macrocount,
           len : integer;
         begin
-          preproc_substitutedtoken := current_scanner.preproc_pattern;
-          mac:=tmacro(current_scanner.macros.search(preproc_substitutedtoken));
-          if assigned(mac) then
-          begin
-            if mac.defined and assigned(mac.buftext) then
-            begin
-              if mac.buflen>255 then
+          result := current_scanner.preproc_pattern;
+          { allow macro support in macro's }
+          macrocount:=0;
+          repeat
+            mac:=tmacro(current_scanner.macros.search(result));
+            if not assigned(mac) then
+              break;
+
+            inc(macrocount);
+            if macrocount>max_macro_nesting then
               begin
-                len:=255;
-                Message(scan_w_macro_cut_after_255_chars);
-              end
-              else
-                len:=mac.buflen;
-              hs[0]:=char(len);
-              move(mac.buftext^,hs[1],len);
-              preproc_substitutedtoken:=upcase(hs);
-            end;
-          end;
+                Message(scan_w_macro_deep_ten);
+                break;
+              end;
+
+            if mac.defined and assigned(mac.buftext) then
+              begin
+                if mac.buflen>255 then
+                  begin
+                    len:=255;
+                    Message(scan_w_macro_cut_after_255_chars);
+                  end
+                else
+                  len:=mac.buflen;
+                hs[0]:=char(len);
+                move(mac.buftext^,hs[1],len);
+                result:=upcase(hs);
+              end;
+          until false;
         end;
 
         function read_factor : string;
@@ -1717,7 +1729,7 @@ implementation
         readnumber;
         readval_asstring:=pattern;
       end;
-    
+
 
     function tscannerfile.readcomment:string;
       var
@@ -2968,7 +2980,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.71  2004-02-25 00:54:47  olle
+  Revision 1.72  2004-02-26 16:15:45  peter
+    * resursive macro's fixed in preprocessor
+
+  Revision 1.71  2004/02/25 00:54:47  olle
     + mode mac: preproc support for hexadecimal numbers
     + mode mac: preproc support for TRUE, FALSE
 
