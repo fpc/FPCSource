@@ -1146,7 +1146,8 @@ implementation
                 else if (psym(p)^.owner^.symtabletype=objectsymtable) then
                   MessagePos2(psym(p)^.fileinfo,sym_n_private_identifier_only_set,psym(p)^.owner^.name^,p^.name)
                 else if (psym(p)^.owner^.symtabletype<>parasymtable) then
-                  MessagePos1(psym(p)^.fileinfo,sym_n_local_identifier_only_set,p^.name);
+                  if not (vo_is_exported in pvarsym(p)^.varoptions) then
+                    MessagePos1(psym(p)^.fileinfo,sym_n_local_identifier_only_set,p^.name);
              end;
          end
       else if ((psym(p)^.owner^.symtabletype in
@@ -2924,7 +2925,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2000-06-02 18:48:48  florian
+  Revision 1.95  2000-06-02 21:17:26  pierre
+   fix bug in tbs/tbs0317
+
+  Revision 1.94  2000/06/02 18:48:48  florian
     + fieldtable support for classes
 
   Revision 1.93  2000/06/01 19:07:52  peter
