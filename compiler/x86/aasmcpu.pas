@@ -201,7 +201,6 @@ interface
          procedure Pass2(sec:TAsmObjectdata);virtual;
          procedure SetOperandOrder(order:TOperandOrder);
          function is_same_reg_move:boolean;override;
-         function is_reg_move:boolean;override;
       protected
          procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);override;
          procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);override;
@@ -1906,15 +1905,6 @@ implementation
       end;
 
 
-    function Taicpu.is_reg_move:boolean;
-      begin
-        result:=(ops=2) and
-                (oper[0]^.typ=top_reg) and
-                (oper[1]^.typ=top_reg) and
-                ((opcode=A_MOV) or (opcode=A_MOVZX) or (opcode=A_MOVSX));
-      end;
-
-
 {*****************************************************************************
                               Instruction table
 *****************************************************************************}
@@ -1964,7 +1954,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2004-02-05 18:28:37  peter
+  Revision 1.49  2004-02-08 20:15:43  jonas
+    - removed taicpu.is_reg_move because it's not used anymore
+    + support tracking fpu register moves by rgobj for the ppc
+
+  Revision 1.48  2004/02/05 18:28:37  peter
     * x86_64 fixes for opsize
 
   Revision 1.47  2004/02/03 21:21:23  peter

@@ -495,7 +495,6 @@ interface
           procedure loadreg(opidx:longint;r:tregister);
           procedure loadoper(opidx:longint;o:toper);
           procedure clearop(opidx:longint);
-          function is_reg_move:boolean;virtual;abstract;
           function is_same_reg_move:boolean;virtual;abstract;
           { register allocator }
           function spilling_create_load(const ref:treference;r:tregister): tai;virtual;abstract;
@@ -1975,7 +1974,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2004-01-31 17:45:16  peter
+  Revision 1.70  2004-02-08 20:15:42  jonas
+    - removed taicpu.is_reg_move because it's not used anymore
+    + support tracking fpu register moves by rgobj for the ppc
+
+  Revision 1.69  2004/01/31 17:45:16  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 

@@ -457,8 +457,12 @@ const
 
      procedure tcgppc.a_loadfpu_reg_reg(list: taasmoutput; size: tcgsize; reg1, reg2: tregister);
 
+       var
+         instr: taicpu;
        begin
-         list.concat(taicpu.op_reg_reg(A_FMR,reg2,reg1));
+         instr :=  taicpu.op_reg_reg(A_FMR,reg2,reg1);
+         list.concat(instr);
+         rg[R_FPUREGISTER].add_move_instruction(instr);
        end;
 
 
@@ -2292,7 +2296,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.160  2004-02-08 14:50:13  jonas
+  Revision 1.161  2004-02-08 20:15:42  jonas
+    - removed taicpu.is_reg_move because it's not used anymore
+    + support tracking fpu register moves by rgobj for the ppc
+
+  Revision 1.160  2004/02/08 14:50:13  jonas
     * fixed previous commit
 
   Revision 1.159  2004/02/07 15:01:05  jonas

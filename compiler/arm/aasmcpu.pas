@@ -69,7 +69,6 @@ uses
          constructor op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
 
          function is_same_reg_move: boolean; override;
-         function is_reg_move:boolean; override;
 
          { register spilling code }
          function spilling_create_load(const ref:treference;r:tregister): tai;override;
@@ -297,17 +296,12 @@ implementation
     function taicpu.is_same_reg_move: boolean;
       begin
         { allow the register allocator to remove unnecessary moves }
-        result:=is_reg_move and (oper[0]^.reg=oper[1]^.reg);
-      end;
-
-
-    function taicpu.is_reg_move:boolean;
-      begin
         result:=((opcode=A_MOV) or (opcode=A_MVF)) and
                 (condition=C_None) and
                 (ops=2) and
                 (oper[0]^.typ=top_reg) and
-                (oper[1]^.typ=top_reg);
+                (oper[1]^.typ=top_reg) and
+                (oper[0]^.reg=oper[1]^.reg);
       end;
 
 
@@ -427,7 +421,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2004-01-26 19:05:56  florian
+  Revision 1.26  2004-02-08 20:15:42  jonas
+    - removed taicpu.is_reg_move because it's not used anymore
+    + support tracking fpu register moves by rgobj for the ppc
+
+  Revision 1.25  2004/01/26 19:05:56  florian
     * fixed several arm issues
 
   Revision 1.24  2004/01/24 20:19:46  florian

@@ -148,10 +148,8 @@ implementation
       { only if no asm is used }
       { and no try statement   }
       if (cs_regvars in aktglobalswitches) and
-{$ifndef i386}
          { we have to store regvars back to memory in this case! }
          (tcgprocinfo(current_procinfo).nestedprocs.count = 0) and
-{$endif i386}
          not(pi_uses_asm in current_procinfo.flags) and
          not(pi_uses_exceptions in current_procinfo.flags) then
         begin
@@ -672,7 +670,11 @@ end.
 
 {
   $Log$
-  Revision 1.73  2004-02-08 18:08:59  jonas
+  Revision 1.74  2004-02-08 20:15:42  jonas
+    - removed taicpu.is_reg_move because it's not used anymore
+    + support tracking fpu register moves by rgobj for the ppc
+
+  Revision 1.73  2004/02/08 18:08:59  jonas
     * fixed regvars support. Needs -doldregvars to activate. Only tested with
       ppc, other processors should however only require maxregvars and
       maxfpuregvars constants in cpubase.pas. Remember to take scratch-

@@ -82,7 +82,6 @@ uses
 
 
          function is_same_reg_move: boolean; override;
-         function is_reg_move:boolean; override;
 
          { register spilling code }
          function spilling_get_operation_type(opnr: longint): topertype;override;
@@ -359,21 +358,10 @@ uses cutils,rgobj;
 
     function taicpu.is_same_reg_move: boolean;
       begin
-        { we don't insert any more nops than necessary }
         result :=
-          ((opcode=A_MR) and (ops=2) and (oper[0]^.typ=top_reg) and (oper[1]^.typ=top_reg) and (oper[0]^.reg=oper[1]^.reg));
-      end;
-
-
-    function taicpu.is_reg_move:boolean;
-      begin
-        result:=(opcode = A_MR) or
-          (opcode = A_EXTSB) or
-          (opcode = A_EXTSH) or
-          ((opcode = A_RLWINM) and
-            (oper[2]^.val = 0) and
-            (oper[4]^.val = 31) and
-            (oper[3]^.val in [31-8+1,31-16+1]));
+          ((opcode=A_MR) or (opcode = A_FMR)) and
+          { these opcodes can only have registers as operands }
+          (oper[0]^.reg=oper[1]^.reg);
       end;
 
 
@@ -417,7 +405,11 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.23  2003-12-28 22:09:12  florian
+  Revision 1.24  2004-02-08 20:15:42  jonas
+    - removed taicpu.is_reg_move because it's not used anymore
+    + support tracking fpu register moves by rgobj for the ppc
+
+  Revision 1.23  2003/12/28 22:09:12  florian
     + setting of bit 6 of cr for c var args on ppc implemented
 
   Revision 1.22  2003/12/26 14:02:30  peter

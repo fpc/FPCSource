@@ -61,7 +61,6 @@ uses
          constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint);
 
          { register allocation }
-         function is_reg_move:boolean;override;
          function is_same_reg_move:boolean;override;
 
          { register spilling code }
@@ -215,15 +214,6 @@ implementation
       end;
 
 
-    function taicpu.is_reg_move:boolean;
-      begin
-        result:=((opcode=A_MOV) or (opcode=A_FMOVS)) and
-                (ops=2) and
-                (oper[0]^.typ=top_reg) and
-                (oper[1]^.typ=top_reg);
-      end;
-
-
     function taicpu.is_same_reg_move:boolean;
       begin
         result:=((opcode=A_MOV) or (opcode=A_FMOVS)) and
@@ -306,7 +296,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2004-01-12 16:39:40  peter
+  Revision 1.42  2004-02-08 20:15:43  jonas
+    - removed taicpu.is_reg_move because it's not used anymore
+    + support tracking fpu register moves by rgobj for the ppc
+
+  Revision 1.41  2004/01/12 16:39:40  peter
     * sparc updates, mostly float related
 
   Revision 1.40  2003/12/28 16:20:09  jonas
