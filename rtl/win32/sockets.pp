@@ -53,9 +53,30 @@ begin
     SocketError:=0;
 end;
 
+Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint;
+begin
+  // Dubious construct, this should be checked.
+  Send:=WinSock.SendTo(Sock,Buf,BufLen,Flags,Winsock.TSockAddr(Addr),AddrLen);
+  if Send<0 then
+    SocketError:=WSAGetLastError
+  else
+    SocketError:=0;
+end;
+
 Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
 begin
   Recv:=WinSock.Recv(Sock,Buf,BufLen,Flags);
+  if Recv<0 then
+    SocketError:=WSAGetLastError
+  else
+    SocketError:=0;
+end;
+
+
+Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr; AddrLen : Integer) : longint;
+
+begin
+  Recv:=WinSock.RecvFrom(Sock,Buf,BufLen,Flags,Winsock.TSockAddr(Addr),AddrLen);
   if Recv<0 then
     SocketError:=WSAGetLastError
   else
@@ -224,8 +245,17 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2001-06-06 21:58:24  peter
+  Revision 1.6  2002-02-04 21:29:34  michael
+  + merged missing sendto/rcvfrom functions
+
+  Revision 1.5  2001/06/06 21:58:24  peter
     * Win32 fixes for Makefile so it doesn't require sh.exe
+
+  Revision 1.1.2.4  2002/02/04 21:25:28  michael
+  + Added missing sendto/rcvfrom functions
+
+  Revision 1.1.2.3  2001/06/06 22:00:40  peter
+    * Win32 fixes
 
   Revision 1.4  2000/07/28 08:43:46  sg
   * Applied patch by Markus Kaemmerer: Fixes fdRead and fdWrite

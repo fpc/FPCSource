@@ -78,21 +78,27 @@ begin
   Socket:=SocketCall(Socket_Sys_Socket,Domain,SocketType,ProtoCol);
 end;
 
-
-
 Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
 begin
   Send:=SocketCall(Socket_Sys_Send,Sock,Longint(@Buf),BufLen,Flags,0,0);
 end;
 
 
+Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint;
+begin
+  Sendto:=SocketCall(Socket_Sys_SendTo,Sock,Longint(@Buf),BufLen,Flags,Longint(@Addr),AddrLen);
+end;
 
 Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
 begin
   Recv:=SocketCall(Socket_Sys_Recv,Sock,Longint(@Buf),BufLen,Flags,0,0);
 end;
 
+Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr ; AddrLen : Integer) : longint;
 
+begin
+  RecvFrom:=SocketCall(Socket_Sys_Recv,Sock,Longint(@buf),buflen,flags,Longint(@Addr),AddrLen);
+end;
 
 Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;
 begin
@@ -261,7 +267,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-06-10 08:51:44  peter
+  Revision 1.5  2002-02-04 21:29:34  michael
+  + merged missing sendto/rcvfrom functions
+
+  Revision 1.4  2001/06/10 08:51:44  peter
     * forgotten file for the const to var fixes
 
   Revision 1.3  2001/06/04 11:43:51  peter

@@ -12,9 +12,20 @@ begin
   Send:=do_syscall(syscall_nr_sendto,Sock,Longint(@Buf),BufLen,Flags,0,0);
 end;
 
+Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint;
+begin
+  Sendto:=SocketCall(syscall_nr_Sendto,Sock,Longint(@Buf),BufLen,Flags,Longint(@Addr),AddrLen);
+end;
+
 Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
 begin
   Recv:=do_syscall(syscall_nr_Recvfrom,Sock,Longint(@Buf),BufLen,Flags,0,0);
+end;
+
+Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr ; AddrLen : Integer) : longint;
+
+begin
+  RecvFrom:=do_syscall(syscall_nr_Recvfrom,Sock,Longint(@buf),buflen,flags,Longint(@Addr),AddrLen);
 end;
 
 Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;

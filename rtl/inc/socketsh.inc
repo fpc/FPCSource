@@ -133,7 +133,9 @@ Var
 {Basic Socket Functions}
 Function Socket(Domain,SocketType,Protocol:Longint):Longint;
 Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
+Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint;
 Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
+Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr; AddrLen : Integer) : longint;
 Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;
 Function Listen (Sock,MaxConnect:Longint):Boolean;
 Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
@@ -159,10 +161,21 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 {
   $Log$
-  Revision 1.6  2001-06-06 21:58:24  peter
+  Revision 1.7  2002-02-04 21:29:34  michael
+  + merged missing sendto/rcvfrom functions
+
+  Revision 1.6  2001/06/06 21:58:24  peter
     * Win32 fixes for Makefile so it doesn't require sh.exe
 
   Revision 1.5  2001/06/04 11:43:51  peter
+
+  Revision 1.1.2.4  2002/02/04 21:25:28  michael
+    + Added missing sendto/rcvfrom functions
+
+  Revision 1.1.2.3  2001/06/06 22:00:39  peter
+    * Win32 fixes
+
+  Revision 1.1.2.2  2001/06/04 11:43:18  peter
     * Formal const to var fixes
     * Hexstr(int64) added
 
