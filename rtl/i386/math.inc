@@ -46,7 +46,7 @@
       asm
             fldt d
             fldt d
-            fmulp
+            fmulp %st(1)
       end [];
 
 
@@ -118,7 +118,7 @@
             // comes from DJ GPP
             fldt        d
             fldl2e
-            fmulp
+            fmulp       %st(1)
             fstcw      .LCW1
             fstcw      .LCW2
             andw        $0xf3ff,.LCW2
@@ -131,7 +131,7 @@
             fsub        %st(1),%st
             f2xm1
             fld1
-            faddp
+            faddp       %st(1)
             fscale
             fstp        %st(1)
             jmp         .LCW3
@@ -370,7 +370,10 @@
 
 {
   $Log$
-  Revision 1.21  2000-02-15 14:37:36  florian
+  Revision 1.22  2000-04-07 21:29:00  pierre
+   changed to get nasm to compile system
+
+  Revision 1.21  2000/02/15 14:37:36  florian
     * disabled FIXED data type per default
 
   Revision 1.20  2000/02/09 16:59:29  peter
