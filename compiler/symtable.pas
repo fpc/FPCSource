@@ -1793,20 +1793,12 @@ implementation
     function  searchsym(const s : stringid;var srsym:tsym;var srsymtable:tsymtable):boolean;
       var
         speedvalue : cardinal;
-      {$ifdef compress}
-        senc:stringid;
-      {$else}
-        senc:stringid absolute s;
-      {$endif}
       begin
-       {$ifdef compress}
-         senc:=minilzw_encode(s);
-       {$endif}
-         speedvalue:=getspeedvalue(senc);
+         speedvalue:=getspeedvalue(s);
          srsymtable:=symtablestack;
          while assigned(srsymtable) do
            begin
-              srsym:=tsym(srsymtable.speedsearch(senc,speedvalue));
+              srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
               if assigned(srsym) and
                  (not assigned(current_procinfo) or
                   tstoredsym(srsym).is_visible_for_object(current_procinfo.procdef._class)) then
@@ -1824,16 +1816,8 @@ implementation
     function  searchsym_type(const s : stringid;var srsym:tsym;var srsymtable:tsymtable):boolean;
       var
         speedvalue : cardinal;
-      {$ifdef compress}
-        senc:stringid;
-      {$else}
-        senc:stringid absolute s;
-      {$endif}
       begin
-      {$ifdef compress}
-         senc:=minilzw_encode(s);
-      {$endif}
-         speedvalue:=getspeedvalue(senc);
+         speedvalue:=getspeedvalue(s);
          srsymtable:=symtablestack;
          while assigned(srsymtable) do
            begin
@@ -1845,7 +1829,7 @@ implementation
               }
               if not(srsymtable.symtabletype in [recordsymtable,objectsymtable,parasymtable]) then
                 begin
-                  srsym:=tsym(srsymtable.speedsearch(senc,speedvalue));
+                  srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
                   if assigned(srsym) and
                      (not assigned(current_procinfo) or
                       tstoredsym(srsym).is_visible_for_object(current_procinfo.procdef._class)) then
@@ -1893,16 +1877,8 @@ implementation
         speedvalue : cardinal;
         topclassh  : tobjectdef;
         sym        : tsym;
-      {$ifdef compress}
-        senc:stringid;
-      {$else}
-        senc:stringid absolute s;
-      {$endif}
       begin
-       {$ifdef compress}
-         senc:=minilzw_encode(s);
-       {$endif}
-         speedvalue:=getspeedvalue(senc);
+         speedvalue:=getspeedvalue(s);
          { when the class passed is defined in this unit we
            need to use the scope of that class. This is a trick
            that can be used to access protected members in other
@@ -1921,7 +1897,7 @@ implementation
          sym:=nil;
          while assigned(classh) do
           begin
-            sym:=tsym(classh.symtable.speedsearch(senc,speedvalue));
+            sym:=tsym(classh.symtable.speedsearch(s,speedvalue));
             if assigned(sym) and
                tstoredsym(sym).is_visible_for_object(topclassh) then
               break;
@@ -2067,19 +2043,11 @@ implementation
       var
         speedvalue : cardinal;
         srsym      : tsym;
-      {$ifdef compress}
-        senc:string;
-      {$else}
-        senc:string absolute s;
-      {$endif}
       begin
-      {$ifdef compress}
-        senc:=minilzw_encode(s);
-      {$endif}
-        speedvalue:=getspeedvalue(senc);
+        speedvalue:=getspeedvalue(s);
         while assigned(pd) do
          begin
-           srsym:=tsym(pd.symtable.speedsearch(senc,speedvalue));
+           srsym:=tsym(pd.symtable.speedsearch(s,speedvalue));
            if assigned(srsym) then
             begin
               search_class_member:=srsym;
@@ -2140,7 +2108,7 @@ implementation
       var
         speedvalue : cardinal;
         srsym      : tprocsym;
-        senc       : string;
+        s          : string;
         objdef     : tobjectdef;
       begin
         if aprocsym.overloadchecked then
@@ -2153,15 +2121,11 @@ implementation
         if not assigned(objdef.childof) then
          exit;
         objdef:=objdef.childof;
-       {$ifdef compress}
-        senc:=minilzw_encode(aprocsym.name);
-       {$else}
-        senc:=aprocsym.name;
-       {$endif}
-        speedvalue:=getspeedvalue(senc);
+        s:=aprocsym.name;
+        speedvalue:=getspeedvalue(s);
         while assigned(objdef) do
          begin
-           srsym:=tprocsym(objdef.symtable.speedsearch(senc,speedvalue));
+           srsym:=tprocsym(objdef.symtable.speedsearch(s,speedvalue));
            if assigned(srsym) then
             begin
               if (srsym.typ<>procsym) then
@@ -2334,7 +2298,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.124  2004-01-11 23:56:20  daniel
+  Revision 1.125  2004-01-15 15:16:18  daniel
+    * Some minor stuff
+    * Managed to eliminate speed effects of string compression
+
+  Revision 1.124  2004/01/11 23:56:20  daniel
     * Experiment: Compress strings to save memory
       Did not save a single byte of mem; clearly the core size is boosted by
       temporary memory usage...

@@ -1324,11 +1324,7 @@ type
              begin
                if srsymtable.symtabletype in [localsymtable,staticsymtable,globalsymtable] then
                 begin
-                {$ifdef compress}
-                  srprocsym:=tprocsym(srsymtable.speedsearch(minilzw_encode(symtableprocentry.name),symtableprocentry.speedvalue));
-                {$else}
-                  srprocsym:=tprocsym(srsymtable.speedsearch(minilzw_encode(symtableprocentry.name),symtableprocentry.speedvalue));
-                {$endif}
+                  srprocsym:=tprocsym(srsymtable.speedsearch(symtableprocentry.name,symtableprocentry.speedvalue));
                   { process only visible procsyms }
                   if assigned(srprocsym) and
                      (srprocsym.typ=procsym) and
@@ -2715,7 +2711,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.219  2004-01-14 17:53:58  peter
+  Revision 1.220  2004-01-15 15:16:18  daniel
+    * Some minor stuff
+    * Managed to eliminate speed effects of string compression
+
+  Revision 1.219  2004/01/14 17:53:58  peter
     * ignore hidden parameters when default parameters are used
 
   Revision 1.218  2004/01/11 23:56:19  daniel

@@ -869,7 +869,7 @@ end;
         { dictionary }
         Fleft:=nil;
         Fright:=nil;
-        Fspeedvalue:=cardinal($ffffffff);
+        fspeedvalue:=getspeedvalue(n);
       {$ifdef compress}
         FName:=stringdup(minilzw_encode(n));
       {$else}
@@ -892,6 +892,7 @@ end;
          begin
            if assigned(FName) then
              stringdispose(FName);
+           fspeedvalue:=getspeedvalue(n);
          {$ifdef compress}
            FName:=stringdup(minilzw_encode(n));
          {$else}
@@ -1064,7 +1065,7 @@ end;
       {$ifdef compress}
         senc:=minilzw_encode(s);
       {$endif}
-        SpeedValue:=GetSpeedValue(senc);
+        SpeedValue:=GetSpeedValue(s);
         n:=FRoot;
         if assigned(FHashArray) then
          begin
@@ -1187,7 +1188,7 @@ end;
       begin
         hp:=nil;
         Replace:=false;
-        newobj.FSpeedValue:=GetSpeedValue(newobj.FName^);
+{        newobj.FSpeedValue:=GetSpeedValue(newobj.FName^);}
         { must be the same name and hash }
         if (oldobj.FSpeedValue<>newobj.FSpeedValue) or
            (oldobj.FName^<>newobj.FName^) then
@@ -1255,7 +1256,7 @@ end;
 
     function Tdictionary.insert(obj:TNamedIndexItem):TNamedIndexItem;
       begin
-        obj.FSpeedValue:=GetSpeedValue(obj.FName^);
+{        obj.FSpeedValue:=GetSpeedValue(obj.FName^);}
         if assigned(FHashArray) then
          insert:=insertNode(obj,FHashArray^[obj.SpeedValue mod hasharraysize])
         else
@@ -1336,7 +1337,7 @@ end;
         oldsenc:=minilzw_encode(olds);
         newsenc:=minilzw_encode(news);
       {$endif}
-        spdval:=GetSpeedValue(oldsenc);
+        spdval:=GetSpeedValue(olds);
         if assigned(FHashArray) then
          hp:=FHashArray^[spdval mod hasharraysize]
         else
@@ -1389,7 +1390,7 @@ end;
                   hp.FRight:=nil;
                   stringdispose(hp.FName);
                   hp.FName:=stringdup(newsenc);
-                  hp.FSpeedValue:=GetSpeedValue(newsenc);
+                  hp.FSpeedValue:=GetSpeedValue(news);
                   { reinsert }
                   if assigned(FHashArray) then
                    rename:=insertNode(hp,FHashArray^[hp.SpeedValue mod hasharraysize])
@@ -1419,18 +1420,16 @@ end;
     var t:string;
 
     begin
-    {$ifdef compress}
-      t:=minilzw_encode(s);
-      search:=speedsearch(t,getspeedvalue(t));
-    {$else}
       search:=speedsearch(s,getspeedvalue(s));
-    {$endif}
     end;
 
 
     function Tdictionary.speedsearch(const s:string;SpeedValue:cardinal):TNamedIndexItem;
       var
         NewNode:TNamedIndexItem;
+      {$ifdef compress}
+        decn:string;
+      {$endif}
       begin
         if assigned(FHashArray) then
          NewNode:=FHashArray^[SpeedValue mod hasharraysize]
@@ -1445,6 +1444,19 @@ end;
              NewNode:=NewNode.FRight
            else
             begin
+            {$ifdef compress}
+              decn:=minilzw_decode(newnode.fname^);
+              if (decn=s) then
+               begin
+                 speedsearch:=NewNode;
+                 exit;
+               end
+              else
+               if s>decn then
+                NewNode:=NewNode.FLeft
+              else
+               NewNode:=NewNode.FRight;
+            {$else}
               if (NewNode.FName^=s) then
                begin
                  speedsearch:=NewNode;
@@ -1455,6 +1467,7 @@ end;
                 NewNode:=NewNode.FLeft
               else
                NewNode:=NewNode.FRight;
+            {$endif}
             end;
          end;
         speedsearch:=nil;
@@ -1943,7 +1956,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2004-01-11 23:56:19  daniel
+  Revision 1.30  2004-01-15 15:16:17  daniel
+    * Some minor stuff
+    * Managed to eliminate speed effects of string compression
+
+  Revision 1.29  2004/01/11 23:56:19  daniel
     * Experiment: Compress strings to save memory
       Did not save a single byte of mem; clearly the core size is boosted by
       temporary memory usage...

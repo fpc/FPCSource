@@ -767,8 +767,6 @@ uses
         i : integer;
         InitCrc : cardinal;
       begin
-        if Crc32Tbl[1]=0 then
-         MakeCrc32Tbl;
         InitCrc:=cardinal($ffffffff);
         for i:=1 to Length(s) do
          InitCrc:=Crc32Tbl[byte(InitCrc) xor ord(s[i])] xor (InitCrc shr 8);
@@ -979,11 +977,16 @@ uses
     end;
 
 initialization
+  makecrc32tbl;
   initupperlower;
 end.
 {
   $Log$
-  Revision 1.30  2004-01-11 23:56:19  daniel
+  Revision 1.31  2004-01-15 15:16:18  daniel
+    * Some minor stuff
+    * Managed to eliminate speed effects of string compression
+
+  Revision 1.30  2004/01/11 23:56:19  daniel
     * Experiment: Compress strings to save memory
       Did not save a single byte of mem; clearly the core size is boosted by
       temporary memory usage...

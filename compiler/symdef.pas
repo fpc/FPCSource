@@ -4137,6 +4137,7 @@ implementation
     end;
 
     procedure tprocdef.concatstabto(asmlist : taasmoutput);
+
     begin
       { released procdef? }
       if not assigned(parast) then
@@ -6163,7 +6164,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.198  2004-01-11 23:56:20  daniel
+  Revision 1.199  2004-01-15 15:16:18  daniel
+    * Some minor stuff
+    * Managed to eliminate speed effects of string compression
+
+  Revision 1.198  2004/01/11 23:56:20  daniel
     * Experiment: Compress strings to save memory
       Did not save a single byte of mem; clearly the core size is boosted by
       temporary memory usage...
