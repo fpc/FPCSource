@@ -429,12 +429,15 @@ implementation
            { all types can be passed to a formaldef }
            is_equal:=(def^.deftype=formaldef) or
              (types.is_equal(p^.resulttype,def))
-           { integer constants are compatible with all integer parameters }
+           { integer constants are compatible with all integer parameters if
+             the specified value matches the range }
              or
              (
               (p^.left^.treetype=ordconstn) and
               is_integer(p^.resulttype) and
-              is_integer(def)
+              is_integer(def) and
+              (p^.left^.value>=porddef(def)^.low) and
+              (p^.left^.value<=porddef(def)^.high)
              )
            { to support ansi/long/wide strings in a proper way }
            { string and string[10] are assumed as equal }
@@ -482,6 +485,7 @@ implementation
       var
         is_const : boolean;
         i : longint;
+        bestord  : porddef;
       begin
          { release registers! }
          { if procdefinition<>nil then we called firstpass already }
@@ -916,6 +920,75 @@ implementation
                           end;
                      end;
 
+                   { Check if there are integer constant to integer
+                     parameters then choose the best matching integer
+                     parameter and remove the others, this is Delphi
+                     compatible. 1 = byte, 256 = word, etc. }
+                   if assigned(procs) and assigned(procs^.next) then
+                     begin
+                        { reset nextpara for all procs left }
+                        hp:=procs;
+                        while assigned(hp) do
+                         begin
+                           hp^.nextpara:=hp^.firstpara;
+                           hp:=hp^.next;
+                         end;
+
+                        pt:=p^.left;
+                        while assigned(pt) do
+                          begin
+                            bestord:=nil;
+                            if (pt^.left^.treetype=ordconstn) and
+                               is_integer(pt^.resulttype) then
+                             begin
+                               hp:=procs;
+                               while assigned(hp) do
+                                begin
+                                  def_to:=hp^.nextpara^.paratype.def;
+                                  { to be sure, it couldn't be something else,
+                                    also the defs here are all in the range
+                                    so now find the closest range }
+                                  if not is_integer(def_to) then
+                                   internalerror(43297815);
+                                  if (not assigned(bestord)) or
+                                     ((porddef(def_to)^.low>bestord^.low) or
+                                      (porddef(def_to)^.high<bestord^.high)) then
+                                   bestord:=porddef(def_to);
+                                  hp:=hp^.next;
+                                end;
+                             end;
+                            { if a bestmatch is found then remove the other
+                              procs which don't match the bestord }
+                            if assigned(bestord) then
+                             begin
+                               hp:=procs;
+                               procs:=nil;
+                               while assigned(hp) do
+                                begin
+                                  hp2:=hp^.next;
+                                  { keep matching bestord, dispose the others }
+                                  if (porddef(hp^.nextpara^.paratype.def)=bestord) then
+                                   begin
+                                     hp^.next:=procs;
+                                     procs:=hp;
+                                   end
+                                  else
+                                   dispose(hp);
+                                  hp:=hp2;
+                                end;
+                             end;
+
+                            { update nextpara for all procedures }
+                            hp:=procs;
+                            while assigned(hp) do
+                             begin
+                               hp^.nextpara:=pparaitem(hp^.nextpara^.next);
+                               hp:=hp^.next;
+                             end;
+                            pt:=pt^.right;
+                          end;
+                     end;
+
                    { Check if there are convertlevel 1 and 2 differences
                      left for the parameters, then discard all convertlevel
                      2 procedures. The value of convlevelXfound can still
@@ -1260,7 +1333,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-08-13 14:53:32  peter
+  Revision 1.8  2000-08-15 03:43:24  peter
+    * integer constant -> integer para enhanced to search the best matching
+      procedure, just like delphi does (merged)
+
+  Revision 1.7  2000/08/13 14:53:32  peter
     * integer constant is equal with all integer type arguments (merged)
 
   Revision 1.6  2000/08/13 12:54:56  peter
