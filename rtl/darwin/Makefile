@@ -1468,6 +1468,8 @@ unix$(PPUEXT) : unixtype$(PPUEXT) baseunix$(PPUEXT) unixutil$(PPUEXT) strings$(P
 		 sysconst.inc $(UNIXINC)/timezone.inc \
 		 unixsysc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 unixutil$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
+dynlibs$(PPUEXT) : dl$(PPUEXT)
+ctypes$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 dos$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) unix$(PPUEXT) $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 	       unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 crt$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) unix$(PPUEXT) termio$(PPUEXT) $(UNIXINC)/crt.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

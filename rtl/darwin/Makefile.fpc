@@ -141,6 +141,10 @@ unix$(PPUEXT) : unixtype$(PPUEXT) baseunix$(PPUEXT) unixutil$(PPUEXT) strings$(P
 
 unixutil$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 
+dynlibs$(PPUEXT) : dl$(PPUEXT)
+
+ctypes$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
+
 
 #
 # TP7 Compatible RTL Units
