@@ -126,6 +126,8 @@ Type
     TOperand = record
       size: topsize;
       opinfo: longint; { ao_xxxx flags }
+      overriden : boolean; { indicates if the opcode has been overriden }
+                           { by a pseudo-opcode such as DWORD PTR       }
       case operandtype:toperandtype of
        { the size of the opr_none field should be at least equal to each }
        { other field as to facilitate initialization.                    }
@@ -266,10 +268,10 @@ Type
   {                     Symbol helper routines                          }
   {---------------------------------------------------------------------}
 
-  Function GetTypeOffset(const base: string; const field: string;
-    Var Offset: longint):boolean;
-  Function GetVarOffset(const base: string; const field: string;
-    Var Offset: longint):boolean;
+  Function GetTypeOffset(var Instr: TInstruction; const base: string; const field: string;
+    Var Offset: longint; operandnum: byte):boolean;
+  Function GetVarOffset(var Instr: TInstruction;const base: string; const field: string;
+    Var Offset: longint; operandnum: byte):boolean;
   Function SearchIConstant(const s:string; var l:longint): boolean;
   Function SearchLabel(const s: string; var hl: plabel): boolean;
   Function CreateVarInstr(var Instr: TInstruction; const hs:string;
@@ -762,6 +764,7 @@ end;
   for k:=1 to maxoperands do
   begin
     operands[k].size := S_NO;
+    operands[k].overriden := FALSE;
     operands[k].operandtype := OPR_NONE;
     { init to zeros }
     fillchar(operands[k].l, sizeof(operands[k].l),#0);
@@ -1029,8 +1032,8 @@ end;
 
 
 
-  Function GetVarOffset(const base: string; const field: string;
-    Var Offset: longint):boolean;
+  Function GetVarOffset(var Instr: TInstruction;const base: string; const field: string;
+    Var Offset: longint; operandnum: byte):boolean;
   { search and returns the offset of records/objects of the base }
   { with field name setup in field.                              }
   { returns 0 if not found.                                      }
@@ -1057,6 +1060,24 @@ end;
              if assigned(pvarsym(p)) then
              Begin
                 Offset := pvarsym(p)^.address;
+                { the current size is NOT overriden if it already }
+                { exists, such as in the case of a byte ptr, in   }
+                { front of the identifier.                        }
+                if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
+                Begin
+                  case pvarsym(p)^.getsize of
+                   1: instr.operands[operandnum].size := S_B;
+                   2: instr.operands[operandnum].size := S_W{ could be S_IS};
+                   4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
+                   8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
+                   extended_size: instr.operands[operandnum].size := S_FX;
+                  else
+                   { this is in the case where the instruction is LEA }
+                   { or something like that, in that case size is not }
+                   { important.                                       }
+                    instr.operands[operandnum].size := S_NO;
+                  end; { end case }
+                end;
                 GetVarOffset := TRUE;
                 Exit;
              end;
@@ -1079,6 +1100,24 @@ end;
              Begin
                 Offset := pvarsym(p)^.address;
                 GetVarOffset := TRUE;
+                { the current size is NOT overriden if it already }
+                { exists, such as in the case of a byte ptr, in   }
+                { front of the identifier.                        }
+                if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
+                Begin
+                  case pvarsym(p)^.getsize of
+                   1: instr.operands[operandnum].size := S_B;
+                   2: instr.operands[operandnum].size := S_W{ could be S_IS};
+                   4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
+                   8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
+                   extended_size: instr.operands[operandnum].size := S_FX;
+                  else
+                   { this is in the case where the instruction is LEA }
+                   { or something like that, in that case size is not }
+                   { important.                                       }
+                    instr.operands[operandnum].size := S_NO;
+                  end; { end case }
+                end;
                 Exit;
              end;
            end; { endif }
@@ -1099,6 +1138,24 @@ end;
              Begin
                 Offset := pvarsym(p)^.address;
                 GetVarOffset := TRUE;
+                { the current size is NOT overriden if it already }
+                { exists, such as in the case of a byte ptr, in   }
+                { front of the identifier.                        }
+                if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
+                Begin
+                  case pvarsym(p)^.getsize of
+                   1: instr.operands[operandnum].size := S_B;
+                   2: instr.operands[operandnum].size := S_W{ could be S_IS};
+                   4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
+                   8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
+                   extended_size: instr.operands[operandnum].size := S_FX;
+                  else
+                   { this is in the case where the instruction is LEA }
+                   { or something like that, in that case size is not }
+                   { important.                                       }
+                    instr.operands[operandnum].size := S_NO;
+                  end; { end case }
+                end;
                 Exit;
              end;
           end
@@ -1112,6 +1169,24 @@ end;
              Begin
                 Offset := pvarsym(p)^.address;
                 GetVarOffset := TRUE;
+                { the current size is NOT overriden if it already }
+                { exists, such as in the case of a byte ptr, in   }
+                { front of the identifier.                        }
+                if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
+                Begin
+                  case pvarsym(p)^.getsize of
+                   1: instr.operands[operandnum].size := S_B;
+                   2: instr.operands[operandnum].size := S_W{ could be S_IS};
+                   4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
+                   8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
+                   extended_size: instr.operands[operandnum].size := S_FX;
+                  else
+                   { this is in the case where the instruction is LEA }
+                   { or something like that, in that case size is not }
+                   { important.                                       }
+                    instr.operands[operandnum].size := S_NO;
+                  end; { end case }
+                end;
                 Exit;
              end;
           end
@@ -1120,8 +1195,8 @@ end;
 
 
 
-  Function GetTypeOffset(const base: string; const field: string;
-    Var Offset: longint):boolean;
+  Function GetTypeOffset(var instr: TInstruction; const base: string; const field: string;
+    Var Offset: longint; operandnum: byte):boolean;
   { search and returns the offset of records/objects of the base }
   { with field name setup in field.                              }
   { returns 0 if not found.                                      }
@@ -1148,6 +1223,24 @@ end;
              if assigned(p) then
              Begin
                 Offset := pvarsym(p)^.address;
+                { the current size is NOT overriden if it already }
+                { exists, such as in the case of a byte ptr, in   }
+                { front of the identifier.                        }
+                if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
+                Begin
+                  case pvarsym(p)^.getsize of
+                   1: instr.operands[operandnum].size := S_B;
+                   2: instr.operands[operandnum].size := S_W{ could be S_IS};
+                   4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
+                   8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
+                   extended_size: instr.operands[operandnum].size := S_FX;
+                  else
+                   { this is in the case where the instruction is LEA }
+                   { or something like that, in that case size is not }
+                   { important.                                       }
+                    instr.operands[operandnum].size := S_NO;
+                  end; { end case }
+                end;
                 GetTypeOffset := TRUE;
                 Exit;
              end;
@@ -1169,6 +1262,24 @@ end;
              if assigned(p) then
              Begin
                 Offset := pvarsym(p)^.address;
+                { the current size is NOT overriden if it already }
+                { exists, such as in the case of a byte ptr, in   }
+                { front of the identifier.                        }
+                if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
+                Begin
+                  case pvarsym(p)^.getsize of
+                   1: instr.operands[operandnum].size := S_B;
+                   2: instr.operands[operandnum].size := S_W{ could be S_IS};
+                   4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
+                   8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
+                   extended_size: instr.operands[operandnum].size := S_FX;
+                  else
+                   { this is in the case where the instruction is LEA }
+                   { or something like that, in that case size is not }
+                   { important.                                       }
+                    instr.operands[operandnum].size := S_NO;
+                  end; { end case }
+                end;
                 GetTypeOffset := TRUE;
                 Exit;
              end;
@@ -1189,6 +1300,24 @@ end;
              if assigned(p) then
              Begin
                 Offset := pvarsym(p)^.address;
+                { the current size is NOT overriden if it already }
+                { exists, such as in the case of a byte ptr, in   }
+                { front of the identifier.                        }
+                if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
+                Begin
+                  case pvarsym(p)^.getsize of
+                   1: instr.operands[operandnum].size := S_B;
+                   2: instr.operands[operandnum].size := S_W{ could be S_IS};
+                   4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
+                   8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
+                   extended_size: instr.operands[operandnum].size := S_FX;
+                  else
+                   { this is in the case where the instruction is LEA }
+                   { or something like that, in that case size is not }
+                   { important.                                       }
+                    instr.operands[operandnum].size := S_NO;
+                  end; { end case }
+                end;
                 GetTypeOffset := TRUE;
                 Exit;
              end
@@ -1203,6 +1332,24 @@ end;
                if assigned(p) then
                Begin
                   Offset := pvarsym(p)^.address;
+                { the current size is NOT overriden if it already }
+                { exists, such as in the case of a byte ptr, in   }
+                { front of the identifier.                        }
+                if instr.operands[operandnum].size = S_NO then
+                Begin
+                  case pvarsym(p)^.getsize of
+                   1: instr.operands[operandnum].size := S_B;
+                   2: instr.operands[operandnum].size := S_W{ could be S_IS};
+                   4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
+                   8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
+                   extended_size: instr.operands[operandnum].size := S_FX;
+                  else
+                   { this is in the case where the instruction is LEA }
+                   { or something like that, in that case size is not }
+                   { important.                                       }
+                    instr.operands[operandnum].size := S_NO;
+                  end; { end case }
+                end;
                   GetTypeOffset := TRUE;
                   Exit;
                end
@@ -1251,7 +1398,7 @@ end;
                     { the current size is NOT overriden if it already }
                     { exists, such as in the case of a byte ptr, in   }
                     { front of the identifier.                        }
-                    if instr.operands[operandnum].size = S_NO then
+                   if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
                     Begin
                       case pvarsym(sym)^.getsize of
                        1: instr.operands[operandnum].size := S_B;
@@ -1305,7 +1452,7 @@ end;
                     { the current size is NOT overriden if it already }
                     { exists, such as in the case of a byte ptr, in   }
                     { front of the identifier.                        }
-                    if instr.operands[operandnum].size = S_NO then
+                    if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
                     Begin
                       case pvarsym(sym)^.getsize of
                         1: instr.operands[operandnum].size := S_B;
@@ -1347,7 +1494,7 @@ end;
                    { the current size is NOT overriden if it already }
                    { exists, such as in the case of a byte ptr, in   }
                    { front of the identifier.                        }
-                     if (instr.operands[operandnum].size = S_NO) and (sym^.typ = varsym) then
+                   if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
                       Begin
                         case pvarsym(sym)^.getsize of
                          1: instr.operands[operandnum].size := S_B;
@@ -1629,7 +1776,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1998-08-18 20:51:32  peter
+  Revision 1.8  1998-08-27 00:43:06  carl
+    +} now record offsets searches set the operand sizes
+
+  Revision 1.7  1998/08/18 20:51:32  peter
     * fixed bug 42
 
   Revision 1.6  1998/08/10 14:49:40  peter
