@@ -323,6 +323,7 @@ implementation
            p.t2:=t2.getcopy
          else
            p.t2:=nil;
+         p.loopflags:=loopflags;
          getcopy:=p;
       end;
 
@@ -1471,7 +1472,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2003-12-01 18:44:15  peter
+  Revision 1.90  2003-12-08 19:29:21  peter
+    * copy loopflags
+
+  Revision 1.89  2003/12/01 18:44:15  peter
     * fixed some crashes
     * fixed varargs and register calling probs
 
