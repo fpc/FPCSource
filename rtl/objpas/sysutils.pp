@@ -205,24 +205,24 @@ Var
 
       begin
          inherited create;
-	 fmessage:=ResString^;
+         fmessage:=ResString^;
       end;
 
 
-    constructor Exception.CreateResFmt(ResString: PString; const Args: array of const); overload;
+    constructor Exception.CreateResFmt(ResString: PString; const Args: array of const);
 
       begin
-	 inherited create;
-	 fmessage:=Format(ResString^,args);
+         inherited create;
+         fmessage:=Format(ResString^,args);
       end;
 
 
     constructor Exception.CreateHelp(const Msg: string; AHelpContext: Integer);
 
       begin
-	 inherited create;
-	 fmessage:=Msg;
-	 fhelpcontext:=AHelpContext;
+         inherited create;
+         fmessage:=Msg;
+         fhelpcontext:=AHelpContext;
       end;
 
 
@@ -236,7 +236,7 @@ Var
     end;
 
 
-    constructor Exception.CreateResHelp(ResString: PString; AHelpContext: Integer); overload;
+    constructor Exception.CreateResHelp(ResString: PString; AHelpContext: Integer);
 
     begin
        inherited create;
@@ -246,7 +246,7 @@ Var
 
 
     constructor Exception.CreateResFmtHelp(ResString: PString; const Args: array of const;
-      AHelpContext: Integer); overload;
+      AHelpContext: Integer);
 
     begin
        inherited create;
@@ -389,7 +389,7 @@ function ExceptionErrorMessage(ExceptObject: TObject; ExceptAddr: Pointer;
 Var
   S : AnsiString;
   Len : Integer;
-  
+
 begin
   S:=Format(SExceptionErrorMessage,[ExceptObject.ClassName,ExceptAddr]);
   If ExceptObject is Exception then
@@ -440,7 +440,7 @@ begin
   {$ifdef win32}
   MessageBeep(0);
   {$else}
-  
+
   {$endif}
 end;
 
@@ -455,7 +455,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.4  2000-07-27 16:20:52  sg
+  Revision 1.5  2000-08-06 14:19:06  peter
+    * overload directives removed (merged)
+
+  Revision 1.4  2000/07/27 16:20:52  sg
   * Applied patch by Markus Kaemmerer with minor modifications: More methods
     of the Exception class are now implemented (in a manner so that they can
     be used as in Delphi, although the declarations are somewhat different)
@@ -465,5 +468,5 @@ end.
 
   Revision 1.2  2000/07/13 11:33:51  michael
   + removed logs
- 
+
 }
