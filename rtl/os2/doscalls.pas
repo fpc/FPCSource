@@ -1083,50 +1083,11 @@ const   faReadOnly      =  1;
  Bit 11..15:    hours}
 
 type
-        (*
-            added by KO Myung-Hun on 1999.07.04
-            for compatible with previous source code
-        *)
         TFileStatus = object
         end;
         PFileStatus = ^TFileStatus;
 
-        (*
-            modified TFileStatus to TFileStatus0 by KO M.H. on 1999.07.04
-            because TFileStatus3 included a new field, NextEntryOffset and
-            new TFileStatus3 needed compatibility with previous source code.
-        *)
-        TFileStatus0 = object( TFileStatus )
-            DateCreation,           {Date of file creation.}
-            TimeCreation,           {Time of file creation.}
-            DateLastAccess,         {Date of last access to file.}
-            TimeLastAccess,         {Time of last access to file.}
-            DateLastWrite,          {Date of last modification of file.}
-            TimeLastWrite:word;     {Time of last modification of file.}
-            FileSize,               {Size of file.}
-            FileAlloc:longint;      {Amount of space the file really
-                                     occupies on disk.}
-        end;
-        PFileStatus0=^TFileStatus0;
-
-        TFileStatus1=object(TFileStatus0)
-            AttrFile:word;          {Attributes of file.}
-        end;
-        PFileStatus1=^TFileStatus1;
-
-        TFileStatus2=object(TFileStatus0)
-            AttrFile:word;
-            cbList:longint;
-        end;
-        PFileStatus2=^TFileStatus2;
-
-        (*
-            fixed by KO Myung-Hun on 1999.07.04
-
-            contents : NextEntryOffset field is not included
-        *)
-        TFileStatus3 = object( TFileStatus )
-            NextEntryOffset : Longint;  {Offset of next entry}
+        TFileStatus3 = object (TFileStatus)
             DateCreation,               {Date of file creation.}
             TimeCreation,               {Time of file creation.}
             DateLastAccess,             {Date of last access to file.}
@@ -1134,32 +1095,16 @@ type
             DateLastWrite,              {Date of last modification of file.}
             TimeLastWrite:word;         {Time of last modification of file.}
             FileSize,                   {Size of file.}
-            FileAlloc:longint;          {Amount of space the file really
+            FileAlloc:cardinal;         {Amount of space the file really
                                          occupies on disk.}
-            AttrFile:longint;           {Attributes of file.}
+            AttrFile:cardinal;          {Attributes of file.}
         end;
         PFileStatus3=^TFileStatus3;
 
-        TFileStatus4=object(TFileStatus0)
-            AttrFile:longint;
+        TFileStatus4=object(TFileStatus3)
             cbList:longint;
         end;
         PFileStatus4=^TFileStatus4;
-
-        TFileFindBuf1=object(TFileStatus1)
-            Name:string;                {Also possible to use as ASCIIZ.
-                                         The byte following the last string
-                                         character is always zero.}
-        end;
-        PFileFindBuf1=^TFileFindBuf1;
-
-
-        TFileFindBuf2=object(TFileStatus2)
-            Name:string;                {Also possible to use as ASCIIZ.
-                                         The byte following the last string
-                                         character is always zero.}
-        end;
-        PFileFindBuf2=^TFileFindBuf2;
 
         TFileFindBuf3=object(TFileStatus3)
             Name:string;                {Also possible to use as ASCIIZ.
@@ -4741,7 +4686,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.21  2003-02-22 22:58:26  hajny
+  Revision 1.22  2003-11-01 20:41:47  hajny
+    * TFileStatus3 corrected
+
+  Revision 1.21  2003/02/22 22:58:26  hajny
     + logging facility API calls added
 
   Revision 1.20  2003/02/20 17:09:49  hajny
