@@ -351,16 +351,16 @@ export PACKAGEDIR=$(BASEDIR)
 
 idezips: clean
 	$(MAKE) ide_all
-	$(MAKE) -C $(IDEDIR) fpc_zipinstall ZIPNAME=ide-fake-$(PACKAGESUFFIX)
+	$(MAKE) -C $(IDEDIR)/text fpc_zipinstall ZIPNAME=ide-fake-$(PACKAGESUFFIX)
 	$(MAKE) ide_clean
 	$(MAKE) ide_gdb
-	$(MAKE) -C $(IDEDIR) fpc_zipinstall ZIPNAME=ide-gdb-$(PACKAGESUFFIX)
+	$(MAKE) -C $(IDEDIR)/text fpc_zipinstall ZIPNAME=ide-gdb-$(PACKAGESUFFIX)
 	$(MAKE) ide_clean
 	$(MAKE) ide_full
-	$(MAKE) -C $(IDEDIR) fpc_zipinstall ZIPNAME=ide-comp-$(PACKAGESUFFIX)
+	$(MAKE) -C $(IDEDIR)/text fpc_zipinstall ZIPNAME=ide-comp-$(PACKAGESUFFIX)
 	$(MAKE) ide_clean
 	$(MAKE) ide_fullgdb
-	$(MAKE) -C $(IDEDIR) fpc_zipinstall ZIPNAME=ide-full-$(PACKAGESUFFIX)
+	$(MAKE) -C $(IDEDIR)/text fpc_zipinstall ZIPNAME=ide-full-$(PACKAGESUFFIX)
 
 fvzip: rtl_clean api_clean fv_clean
 	$(MAKE) api_all
@@ -383,7 +383,10 @@ compilerzip: compiler_clean rtl_clean
 
 #
 # $Log$
-# Revision 1.12  1999-04-16 20:15:41  michael
+# Revision 1.13  1999-04-19 12:53:02  peter
+#   * fixed idezips target
+#
+# Revision 1.12  1999/04/16 20:15:41  michael
 # + Adapted ide Makefiles
 #
 # Revision 1.11  1999/04/08 10:16:16  peter
