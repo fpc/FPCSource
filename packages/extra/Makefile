@@ -209,7 +209,7 @@ ifeq ($(OS_TARGET),win32)
 override TARGET_DIRS+=unzip uncgi opengl gtk zlib mmsystem tcl cdrom
 endif
 ifeq ($(OS_TARGET),os2)
-override TARGET_DIRS+=unzip uncgi
+override TARGET_DIRS+=unzip uncgi zlib
 endif
 ifeq ($(OS_TARGET),freebsd)
 override TARGET_DIRS+=unzip uncgi fpasync x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp cmem bfd zlib gdbm ncurses
@@ -1076,6 +1076,7 @@ endif
 ifeq ($(OS_TARGET),os2)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_UNCGI=1
+TARGET_DIRS_ZLIB=1
 endif
 ifeq ($(OS_TARGET),freebsd)
 TARGET_DIRS_UNZIP=1
