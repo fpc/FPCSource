@@ -22,7 +22,7 @@ Procedure WritePortW (Port : Longint; Var Buf; Count: longint);
 Procedure WritePortl (Port : Longint; Var Buf; Count: longint);
 
 implementation
-
+{$ASMMODE ATT}
 
 Procedure WritePort (Port : Longint; Value : Byte);
 {

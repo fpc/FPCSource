@@ -15,7 +15,6 @@
 
 { Include syscall itself }
 {i syscallo.inc}
-
 Function Sys_mmap(adr,len,prot,flags,fdes,off:longint):longint; // moved from sysunix.inc, used in sbrk
 
 begin
@@ -33,6 +32,7 @@ begin
   if (pointer(func)=nil) or (sp=nil) then
    exit(-1); // give an error result
 {$ifdef cpui386}
+{$ASMMODE ATT}
   asm
         { Insert the argument onto the new stack. }
         movl    sp,%ecx
@@ -122,7 +122,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-30 16:42:25  marco
+  Revision 1.2  2003-10-31 08:55:11  mazen
+  + assembler mode forced to ATT style for x86 cpu
+
+  Revision 1.1  2003/10/30 16:42:25  marco
    * Killing off old syscall convention anywhere except for oldlinux
 
   Revision 1.19  2003/10/17 20:56:24  olle
