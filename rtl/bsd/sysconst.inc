@@ -41,8 +41,8 @@ Const
   { The waitpid uses the following options:}
   Wait_NoHang   = 1;
   Wait_UnTraced = 2;
-  Wait_Any      = -1;
-  Wait_MyPGRP   = 0;
+  Wait_Any      = -1; 
+  Wait_MyPGRP   = 0;  
   { Constants to check stat.mode -  checked all STAT constants with BSD}
   STAT_IFMT   = $f000; {00170000 }
   STAT_IFSOCK = $c000; {0140000 }
@@ -86,7 +86,10 @@ Const
 
 {
   $Log$
-  Revision 1.2  2000-02-02 16:35:29  marco
+  Revision 1.3  2000-02-03 17:05:13  marco
+   * fixes and updates due to linux unit porting
+
+  Revision 1.2  2000/02/02 16:35:29  marco
    * Checked stat constants
 
   Revision 1.1  2000/02/02 15:41:28  marco
