@@ -708,14 +708,13 @@ end ['EAX'];
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
 
-function abs(l:longint):longint;assembler;[internconst:in_const_abs];
+function abs(l:longint):longint; assembler;[internconst:in_const_abs];
 asm
         movl    l,%eax
-        orl     %eax,%eax
-        jns     .LMABS1
-        negl    %eax
-.LMABS1:
-end ['EAX'];
+        cltd
+        xorl    %edx,%eax
+        subl    %edx,%eax
+end ['EAX','EDX'];
 
 {$define FPC_SYSTEM_HAS_ODD_LONGINT}
 
@@ -884,7 +883,10 @@ end;
 
 {
   $Log$
-  Revision 1.60  1999-11-20 12:48:09  jonas
+  Revision 1.61  1999-12-11 18:59:44  jonas
+    * faster abs() function (no jump anymore)
+
+  Revision 1.60  1999/11/20 12:48:09  jonas
     * reinstated old random generator, but modified it so the integer
       one now has a much longer period
 
