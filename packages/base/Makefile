@@ -237,7 +237,7 @@ ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=paszlib pasjpeg regexpr netdb md5  gdbint
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb md5  gdbint mysql ibase odbc sqlite
+override TARGET_DIRS+=paszlib pasjpeg regexpr netdb md5  gdbint mysql ibase odbc sqlite postgres
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=paszlib pasjpeg regexpr netdb md5
@@ -1401,6 +1401,7 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_SQLITE=1
+TARGET_DIRS_POSTGRES=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_PASZLIB=1
