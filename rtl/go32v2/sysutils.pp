@@ -775,7 +775,7 @@ begin
        CommandLine := Path + ' ' + ComLine
       else
        CommandLine := Path;
-      e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,Dos.DosError]);
+      e:=EOSError.CreateFmt('Failed to execute %s : %d',[CommandLine,Dos.DosError]);
       e.ErrorCode:=Dos.DosError;
       raise e;
     end;
@@ -803,8 +803,8 @@ end;
 
 procedure initdelay;assembler;
 asm
-	pushl %ebx
-	pushl %edi
+        pushl %ebx
+        pushl %edi
         { for some reason, using int $31/ax=$901 doesn't work here }
         { and interrupts are always disabled at this point when    }
         { running a program inside gdb(pas). Web bug 1345 (JM)     }
@@ -824,15 +824,15 @@ asm
         movl    $55,%ecx
         divl    %ecx
         movl    %eax,DelayCnt
-	popl %edi
-	popl %ebx
+        popl %edi
+        popl %ebx
 end;
 
 
 procedure Sleep(MilliSeconds: Cardinal);assembler;
 asm
-	pushl %ebx
-	pushl %edi
+        pushl %ebx
+        pushl %edi
         movl  MilliSeconds,%ecx
         jecxz   .LDelay2
         movl    $0x400,%edi
@@ -843,8 +843,8 @@ asm
         call    DelayLoop
         loop    .LDelay1
 .LDelay2:
-	popl %edi
-	popl %ebx
+        popl %edi
+        popl %ebx
 end;
 
 {****************************************************************************
@@ -860,7 +860,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.22  2004-01-20 23:09:14  hajny
+  Revision 1.23  2004-01-25 13:05:08  jonas
+    * fixed compilation errors
+
+  Revision 1.22  2004/01/20 23:09:14  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.21  2004/01/10 20:25:14  michael
