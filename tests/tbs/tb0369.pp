@@ -1,7 +1,7 @@
 
 type
   ptchar=^tchar;
-  tchar=record
+  tchar=packed record
     c : char;
   end;
 

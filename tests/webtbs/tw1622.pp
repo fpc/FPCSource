@@ -4,6 +4,7 @@
 PROGRAM Test;
 
 
+{$ifdef go32v2}
 CONST
    SomeSegment = $B800;
    SomeOffset  = $0000;
@@ -20,6 +21,7 @@ VAR
    { address; that is correctly recognized   }
    { by Borland Pascal.                      }
    {-----------------------------------------}
+{$endif go32v2}
 
 
 { Adding some test code for normal absolute stuff }

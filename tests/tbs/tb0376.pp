@@ -9,5 +9,9 @@ begin
 end;
 
 begin
-  f;
+  if f<>5 then
+   begin
+     writeln('error!');
+     halt(1);
+   end;
 end.

@@ -1,11 +1,19 @@
 {$i+}
 
+{ Widestring is not supported in 1.0.x }
+{$ifndef VER1_0}
+  {$define HASWIDESTR}
+{$endif VER1_0}
+
 procedure test_rwtext;
 var
   t: text;
   s: shortstring;
   a: ansistring;
-  w: widestring;
+{$ifdef HASWIDESTR}
+  wc : widechar;
+  w : widestring;
+{$endif HASWIDESTR}
   l: longint;
   card: cardinal;
   b: byte; bool: boolean;
@@ -31,7 +39,7 @@ begin
   writeln('floats: ',r,' ',r:1,' ',r:8,' ',r:10:2);
   arr := 'arrofchars';
   writeln('array of char: ',arr:38);
-  
+
   arr[10] := #0;
   p := @arr;
   writeln('pchar test: ',p);
@@ -39,14 +47,18 @@ begin
   a := 'this is an ansistring';
   writeln(a);
 
+{$ifdef HASWIDESTR}
+  wc := 'y';
+  writeln('widechar: ',wc);
   w := 'this is a widestring';
   writeln(w);
+{$endif HASWIDESTR}
 
   write('no new line now...',l,c,b);
-  
+
   write;
   read;
-  
+
   assign(t,'treadwrt.txt');
   rewrite(t);
   writeln('testing text file functionality...');
