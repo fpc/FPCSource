@@ -1014,9 +1014,22 @@ const
                                'Desktop layout could not be stored.';
       error_user_screen_not_avail = 'Sorry, user screen not available.';
 
+      { caught signals or abnormal exits }
+            { Debugger messages and status hints }
+      error_programexitedwitherror = #3'Program generated a RTE %d'#13+
+                                     #3'at address $%s.'#13+
+                                     #3'Save your sources and restart the IDE.';
+      error_programexitedwithsignal = #3'Program generated a signal %d.'#13+
+                                      #3'Save your sources and restart the IDE.';
+
+
+
 {
   $Log$
-  Revision 1.6  2002-02-06 14:45:00  pierre
+  Revision 1.7  2002-03-20 14:52:44  pierre
+   + rescue dialogs for main loop
+
+  Revision 1.6  2002/02/06 14:45:00  pierre
    + handle signals
 
   Revision 1.5  2001/11/07 00:28:53  pierre
