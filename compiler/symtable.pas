@@ -406,7 +406,7 @@ unit symtable;
           'lower_or_equal',
           'sym_diff','starstar',
           'as','is','in','or',
-          'and','div','mod','shl','shr','xor',
+          'and','div','mod','not','shl','shr','xor',
           'assign');
 
 {$ifdef UNITALIASES}
@@ -2925,7 +2925,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2000-06-02 21:17:26  pierre
+  Revision 1.96  2000-06-05 20:41:17  pierre
+    + support for NOT overloading
+    + unsupported overloaded operators generate errors
+
+  Revision 1.95  2000/06/02 21:17:26  pierre
    fix bug in tbs/tbs0317
 
   Revision 1.94  2000/06/02 18:48:48  florian

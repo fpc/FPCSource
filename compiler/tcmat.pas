@@ -368,6 +368,7 @@ implementation
     procedure firstnot(var p : ptree);
       var
          t : ptree;
+         notdef : pprocdef;
       begin
          firstpass(p^.left);
          set_varstate(p^.left,true);
@@ -427,7 +428,7 @@ implementation
                     p^.registers32:=2;
                  end;
              end
-         else
+         else if is_integer(p^.left^.resulttype) then
            begin
               p^.left:=gentypeconvnode(p^.left,s32bitdef);
               firstpass(p^.left);
@@ -444,15 +445,43 @@ implementation
                  (p^.registers32<1) then
                 p^.registers32:=1;
               p^.location.loc:=LOC_REGISTER;
+           end
+         else
+           begin
+              if assigned(overloaded_operators[_op_not]) then
+                notdef:=overloaded_operators[_op_not]^.definition
+              else
+                notdef:=nil;
+              while assigned(notdef) do
+                begin
+                   if is_equal(pparaitem(notdef^.para^.first)^.paratype.def,p^.left^.resulttype) and
+                      (pparaitem(notdef^.para^.first)^.next=nil) then
+                     begin
+                        t:=gencallnode(overloaded_operators[_op_not],nil);
+                        t^.left:=gencallparanode(p^.left,nil);
+                        putnode(p);
+                        p:=t;
+                        firstpass(p);
+                        exit;
+                     end;
+                   notdef:=notdef^.nextoverloaded;
+                end;
+              CGMessage(type_e_mismatch);
            end;
+
          p^.registersfpu:=p^.left^.registersfpu;
       end;
+
 
 
 end.
 {
   $Log$
-  Revision 1.30  2000-06-02 21:13:56  pierre
+  Revision 1.31  2000-06-05 20:41:18  pierre
+    + support for NOT overloading
+    + unsupported overloaded operators generate errors
+
+  Revision 1.30  2000/06/02 21:13:56  pierre
    * use is_equal instead of direct def equality in unary minus overload
 
   Revision 1.29  2000/02/17 14:53:43  florian

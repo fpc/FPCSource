@@ -1890,8 +1890,8 @@ _LECKKLAMMER : begin
                  p1:=sub_expr(oppower,false);
                  p1:=gensinglenode(unaryminusn,p1);
                end;
-        _NOT : begin
-                 consume(_NOT);
+     _OP_NOT : begin
+                 consume(_OP_NOT);
                  p1:=factor(false);
                  p1:=gensinglenode(notn,p1);
                end;
@@ -2121,7 +2121,11 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.174  2000-06-02 21:22:56  pierre
+  Revision 1.175  2000-06-05 20:41:17  pierre
+    + support for NOT overloading
+    + unsupported overloaded operators generate errors
+
+  Revision 1.174  2000/06/02 21:22:56  pierre
    tok2node moved to htypechk unit
 
   Revision 1.173  2000/03/23 15:56:59  peter

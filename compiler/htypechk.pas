@@ -30,34 +30,37 @@ interface
       Ttok2nodeRec=record
         tok : ttoken;
         nod : ttreetyp;
+        op_overloading_supported : boolean;
       end;
 
     const
-      tok2nodes=23;
+      tok2nodes=25;
       tok2node:array[1..tok2nodes] of ttok2noderec=(
-        (tok:_PLUS    ;nod:addn),
-        (tok:_MINUS   ;nod:subn),
-        (tok:_STAR    ;nod:muln),
-        (tok:_SLASH   ;nod:slashn),
-        (tok:_EQUAL   ;nod:equaln),
-        (tok:_GT      ;nod:gtn),
-        (tok:_LT      ;nod:ltn),
-        (tok:_GTE     ;nod:gten),
-        (tok:_LTE     ;nod:lten),
-        (tok:_SYMDIF  ;nod:symdifn),
-        (tok:_STARSTAR;nod:starstarn),
-        (tok:_OP_AS     ;nod:asn),
-        (tok:_OP_IN     ;nod:inn),
-        (tok:_OP_IS     ;nod:isn),
-        (tok:_OP_OR     ;nod:orn),
-        (tok:_OP_AND    ;nod:andn),
-        (tok:_OP_DIV    ;nod:divn),
-        (tok:_OP_MOD    ;nod:modn),
-        (tok:_OP_SHL    ;nod:shln),
-        (tok:_OP_SHR    ;nod:shrn),
-        (tok:_OP_XOR    ;nod:xorn),
-        (tok:_CARET   ;nod:caretn),
-        (tok:_UNEQUAL ;nod:unequaln)
+        (tok:_PLUS    ;nod:addn;op_overloading_supported:true),      { binary overloading supported }
+        (tok:_MINUS   ;nod:subn;op_overloading_supported:true),      { binary and unary overloading supported }
+        (tok:_STAR    ;nod:muln;op_overloading_supported:true),      { binary overloading supported }
+        (tok:_SLASH   ;nod:slashn;op_overloading_supported:true),    { binary overloading supported }
+        (tok:_EQUAL   ;nod:equaln;op_overloading_supported:true),    { binary overloading supported }
+        (tok:_GT      ;nod:gtn;op_overloading_supported:true),       { binary overloading supported }
+        (tok:_LT      ;nod:ltn;op_overloading_supported:true),       { binary overloading supported }
+        (tok:_GTE     ;nod:gten;op_overloading_supported:true),      { binary overloading supported }
+        (tok:_LTE     ;nod:lten;op_overloading_supported:true),      { binary overloading supported }
+        (tok:_SYMDIF  ;nod:symdifn;op_overloading_supported:true),   { binary overloading supported }
+        (tok:_STARSTAR;nod:starstarn;op_overloading_supported:true), { binary overloading supported }
+        (tok:_OP_AS     ;nod:asn;op_overloading_supported:false),     { binary overloading NOT supported }
+        (tok:_OP_IN     ;nod:inn;op_overloading_supported:false),     { binary overloading NOT supported }
+        (tok:_OP_IS     ;nod:isn;op_overloading_supported:false),     { binary overloading NOT supported }
+        (tok:_OP_OR     ;nod:orn;op_overloading_supported:true),     { binary overloading supported }
+        (tok:_OP_AND    ;nod:andn;op_overloading_supported:true),    { binary overloading supported }
+        (tok:_OP_DIV    ;nod:divn;op_overloading_supported:true),    { binary overloading supported }
+        (tok:_OP_NOT    ;nod:notn;op_overloading_supported:true),    { unary overloading supported }
+        (tok:_OP_MOD    ;nod:modn;op_overloading_supported:true),    { binary overloading supported }
+        (tok:_OP_SHL    ;nod:shln;op_overloading_supported:true),    { binary overloading supported }
+        (tok:_OP_SHR    ;nod:shrn;op_overloading_supported:true),    { binary overloading supported }
+        (tok:_OP_XOR    ;nod:xorn;op_overloading_supported:true),    { binary overloading supported }
+        (tok:_ASSIGNMENT;nod:assignn;op_overloading_supported:true), { unary overloading supported }
+        (tok:_CARET   ;nod:caretn;op_overloading_supported:false),    { binary overloading NOT supported }
+        (tok:_UNEQUAL ;nod:unequaln;op_overloading_supported:false)   { binary overloading NOT supported  overload = instead }
       );
     const
     { firstcallparan without varspez we don't count the ref }
@@ -649,13 +652,23 @@ implementation
         if (treetyp=assignn) then
           begin
             isunaryoperatoroverloadable:=true;
-             { this already get tbs0261 to fail not is_equal(rd,dd); PM }
+             { this already get tbs0261 to fail
+             isunaryoperatoroverloadable:=not is_equal(rd,dd); PM }
           end
         { should we force that rd and dd are equal ?? }
         else if (treetyp=unaryminusn) then
           begin
             isunaryoperatoroverloadable:=
               not is_integer(rd) and not (rd^.deftype=floatdef)
+{$ifdef SUPPORT_MMX}
+              and not ((cs_mmx in aktlocalswitches) and
+              is_mmx_able_array(rd))
+{$endif SUPPORT_MMX}
+              ;
+          end
+        else if (treetyp=notn) then
+          begin
+            isunaryoperatoroverloadable:=not is_integer(rd) and not is_boolean(rd)
 {$ifdef SUPPORT_MMX}
               and not ((cs_mmx in aktlocalswitches) and
               is_mmx_able_array(rd))
@@ -678,8 +691,9 @@ implementation
                       ld:=pvarsym(pf^.parast^.symindex^.first)^.vartype.def;
                       rd:=pvarsym(pf^.parast^.symindex^.first^.next)^.vartype.def;
                       dd:=pf^.rettype.def;
-                      isoperatoracceptable:=isbinaryoperatoroverloadable
-                        (ld,rd,dd,tok2node[i].nod);
+                      isoperatoracceptable:=
+                        tok2node[i].op_overloading_supported and
+                        isbinaryoperatoroverloadable(ld,rd,dd,tok2node[i].nod);
                       break;
                     end;
               end;
@@ -689,8 +703,9 @@ implementation
                 for i:=1 to tok2nodes do
                   if tok2node[i].tok=optoken then
                     begin
-                      isoperatoracceptable:=isunaryoperatoroverloadable
-                        (rd,dd,tok2node[i].nod);
+                      isoperatoracceptable:=
+                        tok2node[i].op_overloading_supported and
+                        isunaryoperatoroverloadable(rd,dd,tok2node[i].nod);
                       break;
                     end;
               end;
@@ -1089,7 +1104,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2000-06-04 09:04:30  peter
+  Revision 1.67  2000-06-05 20:41:17  pierre
+    + support for NOT overloading
+    + unsupported overloaded operators generate errors
+
+  Revision 1.66  2000/06/04 09:04:30  peter
     * check for procvar in valid_for_formal
 
   Revision 1.65  2000/06/02 21:22:04  pierre

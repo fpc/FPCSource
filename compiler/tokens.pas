@@ -50,6 +50,7 @@ type
     _OP_AND,
     _OP_DIV,
     _OP_MOD,
+    _OP_NOT,
     _OP_SHL,
     _OP_SHR,
     _OP_XOR,
@@ -249,7 +250,8 @@ const
       (str:'or'            ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'and'           ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'div'           ;special:true ;keyword:m_none;op:NOTOKEN),
-      (str:'mod'            ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'mod'           ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'not'           ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'shl'           ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'shr'           ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'xor'           ;special:true ;keyword:m_none;op:NOTOKEN),
@@ -306,7 +308,7 @@ const
       (str:'MOD'           ;special:false;keyword:m_all;op:_OP_MOD),
       (str:'NEW'           ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'NIL'           ;special:false;keyword:m_all;op:NOTOKEN),
-      (str:'NOT'           ;special:false;keyword:m_all;op:NOTOKEN),
+      (str:'NOT'           ;special:false;keyword:m_all;op:_OP_NOT),
       (str:'SET'           ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'SHL'           ;special:false;keyword:m_all;op:_OP_SHL),
       (str:'SHR'           ;special:false;keyword:m_all;op:_OP_SHR),
@@ -513,7 +515,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2000-03-19 14:56:39  florian
+  Revision 1.23  2000-06-05 20:41:18  pierre
+    + support for NOT overloading
+    + unsupported overloaded operators generate errors
+
+  Revision 1.22  2000/03/19 14:56:39  florian
     * bug 873 fixed
     * some cleanup in objectdec
 
