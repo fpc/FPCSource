@@ -774,6 +774,8 @@ function ScreenToClient(hWnd: HWND; var lpPoint: TPoint): BOOL; external 'user32
 function ScrollConsoleScreenBuffer(hConsoleOutput: THandle; const lpScrollRectangle: TSmallRect; const lpClipRectangle: TSmallRect; dwDestinationOrigin: TCoord; var lpFill: TCharInfo): BOOL;external 'kernel32' name 'ScrollConsoleScreenBufferA';
 function ScrollConsoleScreenBufferA(hConsoleOutput: THandle; const lpScrollRectangle: TSmallRect; const lpClipRectangle: TSmallRect; dwDestinationOrigin: TCoord; var lpFill: TCharInfo): BOOL; external 'kernel32' name 'ScrollConsoleScreenBufferA';
 function ScrollConsoleScreenBufferW(hConsoleOutput: THandle; const lpScrollRectangle: TSmallRect; const lpClipRectangle: TSmallRect; dwDestinationOrigin: TCoord; var lpFill: TCharInfo): BOOL; external 'kernel32' name 'ScrollConsoleScreenBufferW';
+function ScrollWindow(hWnd:HWND; XAmount:longint; YAmount:longint;lpRect:lpRECT; lpClipRect:lpRECT):WINBOOL; external 'user32' name 'ScrollWindow';
+function ScrollWindowEx(hWnd:HWND; dx:longint; dy:longint; prcScroll:lpRECT; prcClip:lpRECT;hrgnUpdate:HRGN; prcUpdate:LPRECT; flags:UINT):longint; external 'user32' name 'ScrollWindowEx';
 //function ScrollDC(DC: HDC; DX, DY: Integer; var Scroll, Clip: TRect; Rgn: HRGN; Update: PRect): BOOL; external 'user32' name 'ScrollDC';
 //function SearchPath(lpPath, lpFileName, lpExtension: PChar; nBufferLength: DWORD; lpBuffer: PChar; var lpFilePart: PChar): DWORD;external 'kernel32' name 'SearchPathA';
 //function SearchPathA(lpPath, lpFileName, lpExtension: LPCSTR; nBufferLength: DWORD; lpBuffer: LPCSTR; var lpFilePart: LPCSTR): DWORD; external 'kernel32' name 'SearchPathA';
@@ -1059,7 +1061,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  2004-12-18 20:00:59  michael
+  Revision 1.29  2005-01-15 11:44:48  marco
+   * scrollwindow(ex) added at Neli's request
+
+  Revision 1.28  2004/12/18 20:00:59  michael
   Fixed widestring version of getversionex as per bug 3440 (Alexey Barkovoy)
 
   Revision 1.27  2004/11/07 20:46:27  marco
