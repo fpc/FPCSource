@@ -52,6 +52,7 @@ interface
         procedure do_register_allocation(list:Taasmoutput;headertai:tai);override;
         procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
         procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
+        function  uses_registers(rt:Tregistertype):boolean;override;
         { sparc special, needed by cg64 }
         procedure handle_load_store(list:taasmoutput;isstore:boolean;op: tasmop;reg:tregister;ref: treference);
         procedure handle_reg_const_reg(list:taasmoutput;op:Tasmop;src:tregister;a:aword;dst:tregister);
@@ -332,6 +333,22 @@ implementation
           R_MMREGISTER :;
           else
             internalerror(200310093);
+        end;
+      end;
+
+
+
+    function  TCgSparc.uses_registers(rt:Tregistertype):boolean;
+      begin
+        case rt of
+          R_INTREGISTER :
+            result:=rgint.uses_registers;
+          R_MMREGISTER  :
+            result:=false;
+          R_FPUREGISTER :
+            result:=rgfpu.uses_registers;
+          else
+            internalerror(2003120900);
         end;
       end;
 
@@ -1216,7 +1233,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2003-10-29 15:18:33  mazen
+  Revision 1.73  2003-12-09 09:44:22  mazen
+  + added uses_registers overloaded method for sparc
+
+  Revision 1.72  2003/10/29 15:18:33  mazen
   + added fake MM Registers support because of generic code need it.
 
   Revision 1.71  2003/10/24 15:20:37  peter
