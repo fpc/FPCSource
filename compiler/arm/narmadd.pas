@@ -36,10 +36,9 @@ interface
        protected
           procedure second_addfloat;override;
           procedure second_cmpfloat;override;
-          procedure second_cmpboolean;override;
+          procedure second_cmpordinal;override;
           procedure second_cmpsmallset;override;
           procedure second_cmp64bit;override;
-          procedure second_cmpordinal;override;
        end;
 
   implementation
@@ -124,40 +123,53 @@ interface
       var
         op : TAsmOp;
       begin
-        { we will see what instruction set we'll use on the arm for FP
-        pass_left_right;
-        if (nf_swaped in flags) then
-          swapleftright;
+        case aktfputype of
+           fpu_fpa,
+           fpu_fpa10,
+           fpu_fpa11:
+             begin
+               { we will see what instruction set we'll use on the arm for FP
+               pass_left_right;
+               if (nf_swaped in flags) then
+                 swapleftright;
 
-        case nodetype of
-          addn :
-            op:=A_FADDs;
-          muln :
-            op:=A_FMULs;
-          subn :
-            op:=A_FSUBs;
-          slashn :
-            op:=A_FDIVs;
-          else
-            internalerror(200306014);
+               case nodetype of
+                 addn :
+                   op:=A_FADDs;
+                 muln :
+                   op:=A_FMULs;
+                 subn :
+                   op:=A_FSUBs;
+                 slashn :
+                   op:=A_FDIVs;
+                 else
+                   internalerror(200306014);
+               end;
+
+               { force fpureg as location, left right doesn't matter
+                 as both will be in a fpureg }
+               location_force_fpureg(exprasmlist,left.location,true);
+               location_force_fpureg(exprasmlist,right.location,(left.location.loc<>LOC_CFPUREGISTER));
+
+               location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+               if left.location.loc<>LOC_CFPUREGISTER then
+                 location.register:=left.location.register
+               else
+                 location.register:=right.location.register;
+
+               exprasmlist.concat(taicpu.op_reg_reg_reg(op,
+                  left.location.register,right.location.register,location.register));
+
+               release_reg_left_right;
+               }
+               location.loc:=LOC_FPUREGISTER;
+             end;
+           fpu_soft:
+             { this case should be handled already by pass1 }
+             internalerror(200308252);
+           else
+             internalerror(200308251);
         end;
-
-        { force fpureg as location, left right doesn't matter
-          as both will be in a fpureg }
-        location_force_fpureg(exprasmlist,left.location,true);
-        location_force_fpureg(exprasmlist,right.location,(left.location.loc<>LOC_CFPUREGISTER));
-
-        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-        if left.location.loc<>LOC_CFPUREGISTER then
-          location.register:=left.location.register
-        else
-          location.register:=right.location.register;
-
-        exprasmlist.concat(taicpu.op_reg_reg_reg(op,
-           left.location.register,right.location.register,location.register));
-
-        release_reg_left_right;
-        }
       end;
 
 
@@ -183,30 +195,9 @@ interface
 
         release_reg_left_right;
         }
-      end;
-
-
-    procedure tarmaddnode.second_cmpboolean;
-      var
-        zeroreg : tregister;
-      begin
-        {!!!!!!!
-        pass_left_right;
-        force_reg_left_right(true,true);
-
-        zeroreg.enum:=R_INTREGISTER;
-        zeroreg.number:=NR_G0;
-
-        if right.location.loc = LOC_CONSTANT then
-          tcgsparc(cg).handle_reg_const_reg(exprasmlist,A_SUBcc,left.location.register,right.location.value,zeroreg)
-        else
-          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,zeroreg));
-
+        //!!!!
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
-
-        release_reg_left_right;
-        }
       end;
 
 
@@ -238,7 +229,6 @@ interface
       var
         unsigned : boolean;
       begin
-        {!!!!!!!
 {$warning TODO 64bit compare}
         unsigned:=not(is_signed(left.resulttype.def)) or
                   not(is_signed(right.resulttype.def));
@@ -247,35 +237,41 @@ interface
         location.resflags:=getresflags(unsigned);
 
         release_reg_left_right;
-        }
       end;
 
 
     procedure tarmaddnode.second_cmpordinal;
       var
-        zeroreg : tregister;
         unsigned : boolean;
+        tmpreg : tregister;
+        b : byte;
       begin
-        {!!!!!!!
         pass_left_right;
         force_reg_left_right(true,true);
 
         unsigned:=not(is_signed(left.resulttype.def)) or
                   not(is_signed(right.resulttype.def));
 
-        zeroreg.enum:=R_INTREGISTER;
-        zeroreg.number:=NR_G0;
-
         if right.location.loc = LOC_CONSTANT then
-          tcgsparc(cg).handle_reg_const_reg(exprasmlist,A_SUBcc,left.location.register,right.location.value,zeroreg)
+          begin
+             if is_shifter_const(right.location.value,b) then
+               exprasmlist.concat(taicpu.op_reg_const(A_CMP,left.location.register,right.location.value))
+             else
+               begin
+                 tmpreg:=rg.getregisterint(exprasmlist,location.size);
+                 cg.a_load_const_reg(exprasmlist,OS_INT,
+                   aword(right.location.value),tmpreg);
+                 exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register,tmpreg));
+                 rg.ungetregisterint(exprasmlist,tmpreg);
+               end;
+          end
         else
-          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,zeroreg));
+          exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register,right.location.register));
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(unsigned);
 
         release_reg_left_right;
-        }
       end;
 
 begin
@@ -283,6 +279,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2003-08-21 03:14:00  florian
+  Revision 1.2  2003-08-25 23:20:38  florian
+    + started to implement FPU support for the ARM
+    * fixed a lot of other things
+
+  Revision 1.1  2003/08/21 03:14:00  florian
     * arm compiler can be compiled; far from being working
 }

@@ -30,7 +30,7 @@ unit cpunode;
 
     uses
        { generic nodes }
-       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,ncgopt,
+       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,ncgopt,ncgmat,
        { to be able to only parts of the generic code,
          the processor specific nodes must be included
          after the generic one (FK)
@@ -43,7 +43,11 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.4  2003-08-24 12:27:26  florian
+  Revision 1.5  2003-08-25 23:20:38  florian
+    + started to implement FPU support for the ARM
+    * fixed a lot of other things
+
+  Revision 1.4  2003/08/24 12:27:26  florian
     * continued to work on the arm port
 
   Revision 1.3  2003/08/21 23:24:08  florian

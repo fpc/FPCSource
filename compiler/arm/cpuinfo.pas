@@ -45,6 +45,15 @@ Type
        armv4
       );
 
+   tfputype =
+     (no_fpuprocessor,
+      fpu_soft,
+      fpu_fpa,
+      fpu_fpa10,
+      fpu_fpa11,
+      fpu_vfp
+     );
+
 Const
    {# Size of native extended floating point type }
    extended_size = 8;
@@ -66,6 +75,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.1  2003-07-21 16:35:30  florian
+  Revision 1.2  2003-08-25 23:20:38  florian
+    + started to implement FPU support for the ARM
+    * fixed a lot of other things
+
+  Revision 1.1  2003/07/21 16:35:30  florian
     * very basic stuff for the arm
 }

@@ -39,6 +39,7 @@ uses
 
     type
       taicpu = class(taicpu_abstract)
+         roundingmode : troundingmode;
          procedure loadshifterop(opidx:longint;const so:tshifterop);
          constructor op_none(op : tasmop);
 
@@ -48,7 +49,6 @@ uses
          constructor op_reg_reg(op : tasmop;_op1,_op2 : tregister);
          constructor op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
          constructor op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
-         constructor op_const_reg(op:tasmop; _op1: longint; _op2: tregister);
 
          constructor op_const_const(op : tasmop;_op1,_op2 : longint);
 
@@ -162,16 +162,6 @@ implementation
          ops:=2;
          loadreg(0,_op1);
          loadconst(1,aword(_op2));
-      end;
-
-     constructor taicpu.op_const_reg(op:tasmop; _op1: longint; _op2: tregister);
-      begin
-         inherited create(op);
-         if (_op2.enum = R_INTREGISTER) and (_op2.number = NR_NO) then
-           internalerror(2003031209);
-         ops:=2;
-         loadconst(0,aword(_op1));
-         loadreg(1,_op2);
       end;
 
 
@@ -751,7 +741,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2003-08-24 12:27:26  florian
+  Revision 1.4  2003-08-25 23:20:38  florian
+    + started to implement FPU support for the ARM
+    * fixed a lot of other things
+
+  Revision 1.3  2003/08/24 12:27:26  florian
     * continued to work on the arm port
 
   Revision 1.2  2003/08/20 15:50:12  florian

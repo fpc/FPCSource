@@ -92,16 +92,6 @@ unit cgcpu;
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
-      private
-
-        procedure g_stackframe_entry_sysv(list : taasmoutput;localsize : longint);
-        procedure g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
-        procedure g_stackframe_entry_aix(list : taasmoutput;localsize : longint);
-        procedure g_return_from_proc_aix(list : taasmoutput;parasize : aword);
-        procedure g_stackframe_entry_mac(list : taasmoutput;localsize : longint);
-        procedure g_return_from_proc_mac(list : taasmoutput;parasize : aword);
-
-
         procedure a_load_store(list:taasmoutput;op: tasmop;reg:tregister;
                     ref: treference);
 
@@ -131,6 +121,8 @@ unit cgcpu;
       TOpCmp2AsmCond: Array[topcmp] of TAsmCondFlag = (C_NONE,C_EQ,C_GT,
                            C_LT,C_GE,C_LE,C_NE,C_LE,C_LT,C_GE,C_GT);
     }
+
+   function is_shifter_const(d : dword;var imm_shift : byte) : boolean;
 
   implementation
 
@@ -386,6 +378,7 @@ unit cgcpu;
 
      procedure tcgarm.a_jmp_always(list : taasmoutput;l: tasmlabel);
        begin
+         list.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(l.name)));
        end;
 
 
@@ -459,36 +452,6 @@ unit cgcpu;
        end;
 
 
-     procedure tcgarm.g_stackframe_entry_sysv(list : taasmoutput;localsize : longint);
-       begin
-       end;
-
-
-     procedure tcgarm.g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
-       begin
-       end;
-
-
-     procedure tcgarm.g_stackframe_entry_aix(list : taasmoutput;localsize : longint);
-       begin
-       end;
-
-
-     procedure tcgarm.g_return_from_proc_aix(list : taasmoutput;parasize : aword);
-       begin
-       end;
-
-
-     procedure tcgarm.g_stackframe_entry_mac(list : taasmoutput;localsize : longint);
-       begin
-       end;
-
-
-     procedure tcgarm.g_return_from_proc_mac(list : taasmoutput;parasize : aword);
-       begin
-       end;
-
-
      { contains the common code of a_load_reg_ref and a_load_ref_reg }
      procedure tcgarm.a_load_store(list:taasmoutput;op: tasmop;reg:tregister;
                  ref: treference);
@@ -530,7 +493,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-08-24 12:27:26  florian
+  Revision 1.5  2003-08-25 23:20:38  florian
+    + started to implement FPU support for the ARM
+    * fixed a lot of other things
+
+  Revision 1.4  2003/08/24 12:27:26  florian
     * continued to work on the arm port
 
   Revision 1.3  2003/08/21 03:14:00  florian

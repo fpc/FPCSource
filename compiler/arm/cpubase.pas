@@ -56,8 +56,13 @@ uses
               A_SBC,A_SMLAL,A_SMULL,A_SMUL,
               A_SMULW,A_STC,A_STC2,A_STM,A_STR,A_STRB,A_STRBT,A_STRD,
               A_STRH,A_STRT,A_SUB,A_SWI,A_SWP,A_SWPB,A_TEQ,A_TST,
-              A_UMLAL,A_UMULL
-              { FPA coprocessor codes }
+              A_UMLAL,A_UMULL,
+              { FPA coprocessor instructions }
+              A_LDF,A_STF,A_LFM,A_SFM,A_FLT,A_FIX,A_WFS,A_RFS,A_RFC,
+              A_ADF,A_DVF,A_FDV,A_FML,A_FRD,A_MUF,A_POL,A_PW,A_RDF,
+              A_RMF,A_RPW,A_RSF,A_SUF,A_ABS,A_ACS,A_ASN,A_ATN,A_COS,
+              A_EXP,A_LOG,A_LGN,A_MVF,A_MNF,A_NRM,A_RND,A_SIN,A_SQT,A_TAN,A_URD,
+              A_CMF,A_CNF
               { VPA coprocessor codes }
               );
 
@@ -188,18 +193,28 @@ uses
         in this enumeration
       }
       TOpPostfix = (PF_None,
-        { update condition flags }
+        { update condition flags
+          or floating point single }
         PF_S,
+        { floating point size }
+        PF_D,PF_E,PF_P,FP_EP,
         { load/store }
         PF_B,PF_SB,PF_BT,PF_H,PF_SH,PF_T,
         { multiple load/store address modes }
         PF_IA,PF_IB,PF_DA,PF_DB,PF_DF,PF_FA,PF_ED,PF_EA
       );
+
+      TRoundingMode = (RM_None,RM_P,RM_M,RM_Z);
+
     const
       oppostfix2str : array[TOpPostfix] of string[2] = ('',
         's',
+        'd','e','p','ep',
         'b','sb','bt','h','sh','t',
         'ia','ib','da','db','df','fa','ed','ea');
+
+      roundingmode2str : array[TRoundingMode] of string[1] = ('',
+        'p','m','z');
 
 {*****************************************************************************
                                 Conditions
@@ -434,8 +449,13 @@ uses
                 'sbc','smlal','smull','smul',
                 'smulw','stc','stc2','stm','str','strb','strbt','strd',
                 'strh','strt','sub','swi','swp','swpb','teq','tst',
-                'umlal','umull'
+                'umlal','umull',
                 { FPA coprocessor codes }
+                'ldf','stf','lfm','sfm','flt','fix','wfs','rfs','rfc',
+                'adf','dvf','fdv','fml','frd','muf','pol','pw','rdf',
+                'rmf','rpw','rsf','suf','abs','acs','asn','atn','cos',
+                'exp','log','lgn','mvf','mnf','nrm','rnd','sin','sqt','tan','urd',
+                'cmf','cnf'
                 { VPA coprocessor codes }
                 );
 
@@ -640,7 +660,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2003-08-24 12:27:26  florian
+  Revision 1.7  2003-08-25 23:20:38  florian
+    + started to implement FPU support for the ARM
+    * fixed a lot of other things
+
+  Revision 1.6  2003/08/24 12:27:26  florian
     * continued to work on the arm port
 
   Revision 1.5  2003/08/21 03:14:00  florian

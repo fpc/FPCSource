@@ -32,6 +32,7 @@ interface
     type
        tarmtypeconvnode = class(tcgtypeconvnode)
          protected
+           function first_int_to_real: tnode;override;
          { procedure second_int_to_int;override; }
          { procedure second_string_to_string;override; }
          { procedure second_cstring_to_pchar;override; }
@@ -66,6 +67,43 @@ implementation
       ncgutil,
       cpubase,aasmcpu,
       rgobj,tgobj,cgobj,cginfo;
+
+
+{*****************************************************************************
+                             FirstTypeConv
+*****************************************************************************}
+
+    function tarmtypeconvnode.first_int_to_real: tnode;
+      var
+        fname: string[19];
+      begin
+        { converting a 64bit integer to a float requires a helper }
+        if is_64bitint(left.resulttype.def) then
+          begin
+            if is_signed(left.resulttype.def) then
+              fname := 'fpc_int64_to_double'
+            else
+              fname := 'fpc_qword_to_double';
+            result := ccallnode.createintern(fname,ccallparanode.create(
+              left,nil));
+            left:=nil;
+            firstpass(result);
+            exit;
+          end
+        else
+          { other integers are supposed to be 32 bit }
+          begin
+            if is_signed(left.resulttype.def) then
+              inserttypeconv(left,s32bittype)
+            else
+              inserttypeconv(left,u32bittype);
+            firstpass(left);
+          end;
+        result := nil;
+        if registersfpu<1 then
+          registersfpu:=1;
+        expectloc:=LOC_FPUREGISTER;
+      end;
 
 
     procedure tarmtypeconvnode.second_int_to_real;
@@ -138,6 +176,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2003-08-21 23:24:08  florian
+  Revision 1.2  2003-08-25 23:20:38  florian
+    + started to implement FPU support for the ARM
+    * fixed a lot of other things
+
+  Revision 1.1  2003/08/21 23:24:08  florian
     * continued to work on the arm skeleton
 }
