@@ -274,7 +274,10 @@ implementation
           R_KNIREGISTER:
             t:='k';
           else
-            internalerror(200308251);
+            begin
+              result:='INVALID';
+              exit;
+            end;
         end;
         str(getsupreg(r),nr);
         case getsubreg(r) of
@@ -302,7 +305,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2003-09-03 16:29:37  peter
+  Revision 1.24  2003-09-03 21:06:19  peter
+    * write INVALID as register name instead of IE
+
+  Revision 1.23  2003/09/03 16:29:37  peter
     * superregisters also from .dat file
 
   Revision 1.22  2003/09/03 15:55:00  peter
