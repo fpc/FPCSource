@@ -3629,7 +3629,7 @@ begin
         movl 8(%ebp),%edx
         movb 12(%ebp),%al
         outb %al,%dx
-        end;
+        end ['EAX','EDX'];
 end;
 
 Procedure WritePort (Port : Longint; Value : Word);
@@ -3642,7 +3642,7 @@ begin
         movl 8(%ebp),%edx
         movw 12(%ebp),%ax
         outw %ax,%dx
-        end ['EAX','EBX'];
+        end ['EAX','EDX'];
 end;
 
 
@@ -3657,7 +3657,7 @@ begin
         movl 8(%ebp),%edx
         movl 12(%ebp),%eax
         outl %eax,%dx
-        end ['EAX','EBX'];
+        end ['EAX','EDX'];
 end;
 
 
@@ -3723,7 +3723,7 @@ begin
         inb %dx,%al
         andl $255,%eax
         movl %eax,12(%ebp)
-        end ['EAX','EBX'];
+        end ['EAX','EDX'];
 end;
 
 
@@ -3738,7 +3738,7 @@ begin
         inw %dx,%ax
         andl $65535,%eax
         movl %eax,12(%ebp)
-        end ['EAX','EBX'];
+        end ['EAX','EDX'];
 end;
 
 
@@ -3752,7 +3752,7 @@ begin
         movl 8(%ebp),%edx
         inl %dx,%eax
         movl %eax,12(%ebp)
-        end ['EAX','EBX'];
+        end ['EAX','EDX'];
 end;
 
 
@@ -3768,7 +3768,7 @@ begin
         cld
         rep
         insl
-  end ['ECX','ESI','EDX'];
+  end ['ECX','EDI','EDX'];
 end;
 
 
@@ -3785,7 +3785,7 @@ begin
         cld
         rep
         insw
-  end ['ECX','ESI','EDX'];
+  end ['ECX','EDI','EDX'];
 end;
 
 
@@ -3802,7 +3802,7 @@ begin
         cld
         rep
         insb
-  end ['ECX','ESI','EDX'];
+  end ['ECX','EDI','EDX'];
 end;
 {$ENDIF}
 
@@ -3817,7 +3817,10 @@ End.
 
 {
   $Log$
-  Revision 1.56  1999-12-28 09:38:07  sg
+  Revision 1.57  2000-01-04 12:56:09  jonas
+    * fixed modified registers for port routines
+
+  Revision 1.56  1999/12/28 09:38:07  sg
   * the long version of AssignStream now sets the result value to -1 in
     _all_ cases when it would fail.
 
