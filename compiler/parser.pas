@@ -279,7 +279,6 @@ implementation
 {         implementation, so doesn't need to be saved/restored (JM) }
 {          oldexceptblockcounter  : integer;                        }
          oldstatement_level : integer;
-         prev_name          : pstring;
 {$ifdef USEEXCEPT}
 {$ifndef Delphi}
          recoverpos    : jmp_buf;
@@ -295,7 +294,6 @@ implementation
 
       begin
          inc(compile_level);
-         prev_name:=stringdup(parser_current_file);
          parser_current_file:=filename;
          old_compiled_module:=compiled_module;
        { save symtable state }
@@ -416,8 +414,9 @@ implementation
          aktasmmode:=initasmmode;
          aktinterfacetype:=initinterfacetype;
 
-       { startup scanner, and save in current_module }
+       { startup scanner and load the first file }
          current_scanner:=tscannerfile.Create(filename);
+         current_scanner.firstfile;
        { macros }
          default_macros;
        { read the first token }
@@ -514,6 +513,7 @@ implementation
               akttokenpos:=oldtokenpos;
               block_type:=old_block_type;
               current_scanner:=oldcurrent_scanner;
+              parser_current_file:=current_scanner.inputfile.name^;
               { restore cg }
               nextlabelnr:=oldnextlabelnr;
               parse_only:=oldparse_only;
@@ -556,7 +556,12 @@ implementation
               statement_level:=oldstatement_level;
               aktexceptblock:=0;
               exceptblockcounter:=0;
+           end
+         else
+           begin
+              parser_current_file:='';
            end;
+
        { Shut down things when the last file is compiled }
          if (compile_level=1) then
           begin
@@ -613,8 +618,6 @@ implementation
           end;
 
          dec(compile_level);
-         parser_current_file:=prev_name^;
-         stringdispose(prev_name);
          compiled_module:=old_compiled_module;
 {$ifdef USEEXCEPT}
          if longjump_used then
@@ -625,7 +628,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2002-04-20 21:32:24  carl
+  Revision 1.30  2002-04-21 18:57:23  peter
+    * fixed memleaks when file can't be opened
+
+  Revision 1.29  2002/04/20 21:32:24  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

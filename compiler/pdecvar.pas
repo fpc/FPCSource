@@ -272,6 +272,7 @@ implementation
                             (target_info.target=target_i386_go32v2) then
                           begin
                             consume(token);
+                            pt.free;
                             pt:=expr;
                             if is_constintnode(pt) then
                               begin
@@ -290,6 +291,7 @@ implementation
                  end
                 else
                   Message(parser_e_absolute_only_to_var_or_const);
+                pt.free;
                 symdone:=true;
               end;
              { Handling of Delphi typed const = initialized vars ! }
@@ -575,7 +577,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2001-11-20 18:48:26  peter
+  Revision 1.23  2002-04-21 18:57:24  peter
+    * fixed memleaks when file can't be opened
+
+  Revision 1.22  2001/11/20 18:48:26  peter
     * fixed initialized variables
 
   Revision 1.21  2001/10/23 21:49:42  peter

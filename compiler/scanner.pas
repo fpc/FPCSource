@@ -113,6 +113,7 @@ interface
           procedure tempcloseinputfile;
           procedure saveinputfile;
           procedure restoreinputfile;
+          procedure firstfile;
           procedure nextfile;
           procedure addfile(hp:tinputfile);
           procedure reload;
@@ -913,9 +914,14 @@ implementation
         invalid:=false;
         in_asm_string:=false;
         macros:=tdictionary.create;
+      end;
+
+
+    procedure tscannerfile.firstfile;
+      begin
       { load block }
         if not openinputfile then
-         Message1(scan_f_cannot_open_input,fn);
+          Message1(scan_f_cannot_open_input,inputfile.name^);
         reload;
       { process first read char }
         case c of
@@ -2758,7 +2764,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.35  2002-04-21 15:22:26  carl
+  Revision 1.36  2002-04-21 18:57:23  peter
+    * fixed memleaks when file can't be opened
+
+  Revision 1.35  2002/04/21 15:22:26  carl
   * first check .inc file extension
 
   Revision 1.34  2002/04/21 07:24:09  carl
