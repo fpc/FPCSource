@@ -277,6 +277,25 @@ will display an error message when the compiler encounters it, and trigger
 and increase the error count of the compiler.
 The compiler will immediatly stop the compilation process.
 
+\subsection{\var{\$GOTO} : Support \var{Goto} and \var{Label}}
+
+If \var{\{\$GOTO ON\}} is specified, the compiler will support \var{Goto}
+statements and \var{Label} declarations. By default, \var{\$GOTO OFF} is
+assumed. This directive corresponds to the \var{-Sg} command-line option.
+
+As an example, the following code can be compiled:
+\begin{verbatim}
+{$GOTO ON}
+
+label Theend;
+
+begin
+  If ParamCount=0 then
+    GoTo TheEnd;
+  Writeln ('You spcified command-line options');
+TheEnd:  
+end.
+\end{verbatim}
 
 \subsection{\var{\$H} or \var{\$LONGSTRINGS} : Use AnsiStrings}
 
@@ -356,9 +375,21 @@ option, then
 \end{verbatim}
 will display an info message when the compiler encounters it.
 
+\subsection{\var{\$INLINE} : Allow inline code.} 
+The \var{\{\$INLINE ON\}} directive tells the compiler that the \var{Inline}
+procedure modifier should be allowed. Procedures that are declared inline
+are copied to the places where they are called. This has the effect that
+there is no actual procedure call, the code of the procedure iis just copied
+to where the procedure is needed. By default, \var{Inline} procedures are
+not allowed. You need to specify this directive if you want to use inlined
+code. This directive is equivalent to the command-line switch \var{-Si}.
 
-\subsection{\var{\$I} or \var{\$IOCHECK} : Input/Output checking}
-The \var{\{\$I-\}} or \var{\{\$IOCHECK OFF\}} directive tells the compiler
+Inline code is NOT exported from a unit. This means that if you call an
+inline procedure from another unit, a normal procedure call will be
+performed. Only inside units, \var{Inline} procedures are really inline.
+
+\subsection{\var{\$I} or \var{\$IOCHECKS} : Input/Output checking}
+The \var{\{\$I-\}} or \var{\{\$IOCHECKS OFF\}} directive tells the compiler
 not to generate input/output checking code in your program. By default, the
 compiler does not generate this code, you must switch it on using the
 \var{-Ci} command-lne switch.
@@ -436,7 +467,7 @@ Program InfoDemo;
 
 Const User = {$I %USER%};
 
-begin
+joe begin
   Write ('This program was comilped at ',{$I %TIME%});
   Writeln (' on ',{$I %DATE%});
   Writeln ('By ',User);
@@ -521,9 +552,27 @@ ppc386 -k-lc foo.pp
 
 \subsection{\var{\$M} or \var{\$TYPEINFO} : Generate type info}
 
-This switch is recognized for Delphi compatibility only since the generation
-of type information isn't fully implemented yet.
+For classes that are compiled in the \var{\{\$M+ \}} or \var{\{\$TYPEINFO ON\}}
+state, the compiler will generate Run-Time Type Information (RTTI). All
+descendent objects of an object that was compiled in the \var{$M+} state
+will get RTTI information too, as well as any published classes.
+By default, no Run-Time Type Information is generated. The \var{TPersistent}
+object that is present in the FCL (Free Component Library) is generated in
+the \var{\{\$M+\}} state. The generation of RTTI allows programmers to
+stream objects, and to access published properties of objects, without
+knowing the actual class of the object.
 
+The run-time type information is accessible through the \var{TypInfo} unit,
+which is part of the \fpc Run-Time Library.
+
+\subsection{\var{\$MACRO} : Allow use of macros.}
+
+In the \var{\{\$MACRO ON\}} state, the compiler allows you to use C-style
+(although not as elaborate) macros. Macros provide a means for simple text
+substitution. More information on using macros can be found in the 
+\sees{Macros} section. This directive is equivalent to the command-line
+switch \var{-Sm}.
+ 
 \subsection{\var{\$MESSAGE} : Generate info message}
 
 If the generation of info is turned on, through the \var{-vi} command-line
@@ -718,6 +767,41 @@ This works only on the intel compiler, and MMX support must be on
 saturation support (\sees{SaturationSupport}) for more information
 on the effect of this directive.
 
+\subsection{\var{\$SMARTLINK} : Use smartlinking}
+
+A unit that is compiled in the \var{\{\$SMARTLINK ON\}} state will be
+compiled in such a way that it can be used for smartlinking. This means that
+the unit is chopped in logical pieces: each procedure is put in it's own 
+object file, and all object files are put together in a big archive. When
+using such a unit, only the pieces of code that you really need or call, 
+will be linked in your program, thus reducing the size of your executable
+substantially. Beware that using smartlinked units slows down the
+compilation process, because a separate object file must be creayed for each
+procedure. If you have units with many functions and procedures, this can 
+be a time consuming process, even more so if you use an external assembler
+(the assembler is called to assemble each procedure or function code block).
+
+The smartlinking directive should be specified {\em before} the unit
+declaration part:
+\begin{verbatim}
+{$SMARTLINK ON}
+
+Unit MyUnit;
+
+Interface
+ ...
+\end{verbatim}
+
+This directive is equivalent to the \var{-Cx} command-line switch.
+
+\subsection{\var{\$STATIC} : Allow use of \var{Static} keyword.}
+If you specify the \var{\{\$STATIC ON\}} directive, then \var{Static}
+methods are allowed for objects. \var{Static} objects methods do not require
+a \var{Self} variable. They are equivalent to \var{Class} methods for
+classes. By default, \var{Static} methods are not allowed.
+
+This directive is equivalent to the \var{-St} command-line option.
+
 \subsection{\var{\$STOP} : Generate fatal error message}
 
 The following code
@@ -819,12 +903,40 @@ Global directives affect the whole of the compilation process. That is why
 they also have a command - line counterpart. The command-line counterpart is
 given for each of the directives.
 
+\subsection{\var{\$APPTYPE} : Specify type of application (Win32 only)}
+
+The \var{\{\$APPTYPE XXX\}} accepts one argument that can have two possible
+values : \var{GUI} or \var{CONSOLE}. It is used to tell the windows
+Operating system if an application is a console application or a graphical
+application. By default, a program compiled by \fpc is a console
+application. Running it will display a console window. Specifying the 
+\var{\{\$APPTYPE GUI\}} directive will mark the application as a graphical
+application; no console window will be opened when the application is run.
+
+Care should be taken when compiling \var{GUI} applications; the \var{Input}
+and \var{Output} files are not available in a GUI application, and
+attempting to read from or write to them will result in a run-time error.
+
+It is possible to determine the application type of a windows application
+at runtime. The \var{IsConsole} constant, declared as
+\begin{verbatim}
+Const
+  IsConsole : Boolean 
+\end{verbatim}
+contains \var{True} if the application is a console application, \var{False}
+if the application is a GUI application.
+
 \subsection{\var{\$D} or \var{\$DEBUGINFO}: Debugging symbols}
 
 When this switch is on (\var{\{\$DEBUGINFO ON\}}),
 the compiler inserts GNU debugging information in
 the executable. The effect of this switch is the same as the command-line
 switch \var{-g}. By default, insertion of debugging information is off.
+
+\subsection{\var{\$DESCRIPTION}}
+
+This switch is recognised for compatibility only, but is ignored completely
+by the compiler. At a later stage, this switch may be activated.
 
 \subsection{\var{\$E} : Emulation of coprocessor}
 
@@ -860,16 +972,67 @@ real types are mapped to the single IEEE floating point type.
 intermix emulation code with real floating point opcodes, as
 long as the only type used is single or real.
 
-
 \subsection{\var{\$G} : Generate 80286 code}
 
 This option is recognised for Turbo Pascal compatibility, but is ignored,
 
+\subsection{\var{\$INCLUDEPATH} : Specify include path.}
+
+This option serves to specify the include path, where the compiler looks for
+include files. \var{\{\$INCLUDEPATH XXX} will add \var{XXX} to the include
+path. \var{XXX} can contain one or more paths, separated by semi-colons or
+colons.
+
+for example
+\begin{verbatim}
+{$INCLUDEPATH ../inc;../i386}
+
+{$I strings.inc}
+\end{verbatim}
+
+Will add the directories \file{../inc} and \file{../i386} to the include
+path of the compiler. The compiler will look for the file \file{strings.inc}
+in both these directories, and will include the first found file. This directive is 
+equivalent to the \var{-Fi} command-line switch.
+
+Caution is in order when using this directive: If you distribute files, the 
+places of the files may not be the same as on your machine; moreover, the
+directory structure may be different. In general it would be fair to say
+that you should avoid using {\em absolute} paths, instead use {\em relative}
+paths, as in the example above. Only use this directive if you are certain
+of the places where the files reside. If you are not sure, it is better
+practice to use makefiles and makefile variables.
+ 
 \subsection{\var{\$L} or \var{\$LOCALSYMBOLS}: Local symbol information}
 
 This switch (not to be confused with the \var{\{\$L file\}} file linking
 directive) is recognised for Turbo Pascal compatibility, but is ignored.
 generation of symbol information is controlled by the \var{\$D} switch.
+
+\subsection{\var{\$LIBRARYPATH} : Specify library path.}
+
+This option serves to specify the library path, where the linker looks for
+static or dynamic libraries. \var{\{\$LIBRARYPATH XXX} will add \var{XXX} 
+to the library path. \var{XXX} can contain one or more paths, separated 
+by semi-colons or colons.
+
+for example
+\begin{verbatim}
+{$LIBRARYPATH /usr/X11/lib;/usr/local/lib}
+
+{$LINKLIB X11}
+\end{verbatim}
+
+Will add the directories \file{/usr/X11/lib} and \file{/usr/local/lib} to 
+the linker library path. The linker will look for the library \file{libX11.so}
+in both these directories, and use the first found file. This directive is 
+equivalent to the \var{-Fl} command-line switch.
+
+Caution is in order when using this directive: If you distribute files, the 
+places of the libraries may not be the same as on your machine; moreover, the
+directory structure may be different. In general it would be fair to say
+that you should avoid using this directive. If you are not sure, it is better
+practice to use makefiles and makefile variables.
 
 \subsection{\var{\$M} or \var{\$MEMORY}: Memory sizes}
 
@@ -917,6 +1080,33 @@ mathematics.
 This switch is recognised for Turbo Pascal compatibility, but is otherwise
 ignored.
 
+\subsection{\var{\$OBJECTPATH} : Specify object path.}
+
+This option serves to specify the object path, where the compiler looks for
+object files. \var{\{\$OBJECTPATH XXX} will add \var{XXX} to the object
+path. \var{XXX} can contain one or more paths, separated by semi-colons or
+colons.
+
+for example
+\begin{verbatim}
+{$OBJECTPATH ../inc;../i386}
+
+{$L strings.o}
+\end{verbatim}
+
+Will add the directories \file{../inc} and \file{../i386} to the 
+object path of the compiler. The compiler will look for the file \file{strings.o}
+in both these directories, and will link the first found file in the
+program. This directive is equivalent to the \var{-Fo} command-line switch.
+
+Caution is in order when using this directive: If you distribute files, the 
+places of the files may not be the same as on your machine; moreover, the
+directory structure may be different. In general it would be fair to say
+that you should avoid using {\em absolute} paths, instead use {\em relative}
+paths, as in the example above. Only use this directive if you are certain
+of the places where the files reside. If you are not sure, it is better
+practice to use makefiles and makefile variables.
+ 
 \subsection{\var{\$S} : Stack checking}
 The \var{\{\$S+\}} directive tells the compiler to generate stack checking
 code. This generates code to check if a stack overflow occurred, i.e. to see
@@ -929,7 +1119,33 @@ Specifying \var{\{\$S-\}} will turn generation of stack-checking code off.
 The command-line compiler switch \var{-Ct} has the same effect as the
 \var{\{\$S+\}} directive.
 
+\subsection{\var{\$UNITPATH} : Specify unit path.}
 
+This option serves to specify the unit path, where the compiler looks for
+unit files. \var{\{\$UNITPATH XXX\}} will add \var{XXX} to the unit
+path. \var{XXX} can contain one or more paths, separated by semi-colons or
+colons.
+
+for example
+\begin{verbatim}
+{$UNITPATH ../units;../i386/units}
+
+Uses strings;
+\end{verbatim}
+
+Will add the directories \file{../units} and \file{../i386/units} to the unit
+path of the compiler. The compiler will look for the file \file{strings.ppu}
+in both these directories, and will link the first found file in the
+program. This directive is equivalent to the \var{-Fu} command-line switch.
+
+Caution is in order when using this directive: If you distribute files, the 
+places of the files may not be the same as on your machine; moreover, the
+directory structure may be different. In general it would be fair to say
+that you should avoid using {\em absolute} paths, instead use {\em relative}
+paths, as in the example above. Only use this directive if you are certain
+of the places where the files reside. If you are not sure, it is better
+practice to use makefiles and makefile variables.
+ 
 \subsection{\var{\$W} or \var{\$STACKFRAMES} : Generate stackframes}
 
 The \var{\{\$W\}} switch directove controls the generation of stackframes.
