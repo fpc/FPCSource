@@ -1046,7 +1046,7 @@ makefiles: fpc_makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
-TESTSUBDIRS=cg units/system units/dos units/crt units/objects
+TESTSUBDIRS=cg cg/cdecl units/system units/dos units/crt units/objects
 TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
 ifeq ($(OS_TARGET),linux)
 INUNIX=1
