@@ -480,7 +480,7 @@ ifneq ($(wildcard $(CVSINSTALL)/fpc.spec),)
 
 .PHONY: rpmcopy rpm
 
-RPMFPCVERSION:=$(shell grep 'define fpcversion' $(CVSINSTALL)/fpc.spec | awk '{ print $$2 }')
+RPMFPCVERSION:=$(shell grep 'define fpcversion' $(CVSINSTALL)/fpc.spec | awk '{ print $$3 }')
 
 REDHATDIR=/usr/src/redhat
 RPMSOURCESDIR:=$(REDHATDIR)/SOURCES
