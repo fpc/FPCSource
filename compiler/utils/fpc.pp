@@ -94,6 +94,7 @@ program fpc;
      processorstr   : string;
      ppccommandline : ansistring;
      i : longint;
+     errorvalue     : Longint;
   begin
      ppccommandline:='';
 {$ifdef i386}
@@ -165,18 +166,22 @@ program fpc;
      { call ppcXXX }
      swapvectors;
      {$ifdef unix}
-     SysUtils.exec(ppcbin,ppccommandline);
+     errorvalue:=SysUtils.exec(ppcbin,ppccommandline);
      {$else}
      Dos.exec(ppcbin,ppccommandline);
+     errorvalue:=doserror;
      {$endif}
      swapvectors;
-     if doserror<>0 then
+     if errorvalue<>0 then
        error(ppcbin+' can''t be executed');
      halt(dosexitcode);
   end.
 {
   $Log$
-  Revision 1.9  2004-01-03 09:12:23  marco
+  Revision 1.10  2004-01-03 09:20:45  marco
+   * errorhandling fixed
+
+  Revision 1.9  2004/01/03 09:12:23  marco
    * unix does ansistring exec
 
   Revision 1.8  2003/10/08 19:16:50  peter
