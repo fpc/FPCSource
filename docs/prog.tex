@@ -3849,30 +3849,71 @@ The algorithm for allocating memory is as follows:
 or of bigger size, if so it is allocated and the routine exits.
 \item If not found in the \var{freelist} the heap is grown to allocate the
 specified memory, and the routine exits.
-\item If the heap cannot be grown anymore (and if \var{heaperror} is set
-accordingly), a call to the operating system is made to grow the heap further.
-If the block to allocate < 256Kb, then the heap is grown by 256Kb, otherwise
-it is grown by 1024Kb.
+\item If the heap cannot be grown internally anymore and if \var{heaperror} is set
+accordingly, it calls the heap error handler. If there is no heap error handler
+installed, the runtime library generates a runtime error 203.
 \end{enumerate}
+
+
+% Error handler routinr
+\subsection{The HeapError variable}
+
+The heap error permits developpers to install a heap error hook which
+is called each time an allocation cannot be completed by the default
+heap manager. \var{HeapError} is a pointer that points to a function
+with the following prototype:
+
+\begin{verbatim}
+  function HeapFunc(size : longint): integer;
+\end{verbatim}
+
+The \var{size} parameter indicates the size of the block which could
+not be allocated. Depending on the success, the error handler routine
+should return a value which indicates what the default heap manager
+should do thereafter (cf. \seet{Heaperrorresult}).
+
+\begin{FPCltable}{|c|l|}{Heap error result}{Heaperrorresult}
+\hline
+ Value returned & Memory manager action \\
+ \hline
+     0		& Generates a runtime error 203 \\
+     1		& \var{GetMem} and \var{New} returns \var{nil} \\
+     2		& Try allocating the memory block once again \\
+\hline
+\end{FPCltable}
+
+
 
 % The heap grows
 \subsection{The heap grows}
-\fpc supports the \var{HeapError} procedural variable. If this variable is
-non-nil, then it is called in case you try to allocate memory, and the heap
-is full. By default, \var{HeapError} points to the \var{GrowHeap} function,
+By default, \var{HeapError} points to the \var{GrowHeap} function,
 which tries to increase the heap.
 
-The growheap function issues a system call to try to increase the size of the
+The \var{GrowHeap} function issues a system call to try to increase the size of the
 memory available to your program. It first tries to increase memory in a 256Kb
 chunk if the size to allocate is less than 256Kb, or 1024K otherwise.
 If this fails, it tries to increase the heap by the amount you requested
 from the heap.
 
-If the call to \var{GrowHeap} has failed, then a run-time error is generated,
-or nil is returned, depending on the \var{GrowHeap} result.
-
 If the call to \var{GrowHeap} was successful, then the needed memory will be
 allocated.
+
+If the call to \var{GrowHeap} fails, the value returned depends on the
+value of the \var{ReturnNilIfGrowHeapFails} global variable. This is summarized
+in \seet{growheapnil}.
+
+\begin{FPCltable}{|c|l|}{ReturnNilIfGrowHeapFails value}{growheapnil}
+\hline
+  ReturnNilGrowHeapFails & Default memory \\
+    value		 & manager action \\
+\hline  
+     FALSE	        & (The default) Runtime error 203 generated \\
+     TRUE 		& \var{GetMem} and \var{New} returns \var{nil} \\
+\hline
+\end{FPCltable}
+
+\var{ReturnNilIfGrowHeapFails} can be set to change the behavior of 
+the default memory manager error handler.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Debugging the heap
