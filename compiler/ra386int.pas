@@ -309,9 +309,10 @@ var
       c := current_scanner^.asmgetchar;
     { Possiblities for first token in a statement:                }
     {   Local Label, Label, Directive, Prefix or Opcode....       }
+    if not (c in [newline,#13,'{',';']) then
+      current_scanner^.gettokenpos;
     if firsttoken and not (c in [newline,#13,'{',';']) then
     begin
-      current_scanner^.gettokenpos;
       firsttoken := FALSE;
       if c = '@' then
       begin
@@ -2614,10 +2615,24 @@ end;
                   end;
         {  [...*SCALING+expr] ... }
         AS_PLUS: Begin
-                    if instr.operands[operandnum].ref.offset <> 0 then
-                     Message(assem_f_internal_error_in_buildscale);
-                    instr.operands[operandnum].ref.offset :=
-                         BuildRefExpression;
+                    Consume(AS_PLUS);
+                    if actasmtoken=AS_REGISTER then
+                      begin
+                        if instr.operands[operandnum].ref.base <> R_NO then
+                          Message(assem_e_defining_base_more_than_once)
+                        else
+                          instr.operands[operandnum].ref.base :=
+                            findregister(actasmpattern);
+                        consume(AS_REGISTER);
+                        if actasmtoken=AS_RBRACKET then
+                          consume(AS_RBRACKET);
+                      end;
+                    if (actasmtoken in [AS_PLUS,AS_MINUS]) then
+                      if instr.operands[operandnum].ref.offset <> 0 then
+                        Message(assem_f_internal_error_in_buildscale)
+                      else
+                        instr.operands[operandnum].ref.offset :=
+                          BuildRefExpression;
                     end;
         {  [...*SCALING] ... }
         AS_RBRACKET: Consume(AS_RBRACKET);
@@ -2808,9 +2823,15 @@ end;
   {*********************************************************************}
   var
     l:longint;
+    again : boolean;
+    
   Begin
      Consume(AS_LBRACKET);
      initAsmRef(instr);
+     again:=true;
+     while again do
+     begin
+       again:=false;
      Case actasmtoken of
          { Constant reference expression OR variable reference expression }
          AS_ID: Begin
@@ -2832,7 +2853,12 @@ end;
                 else if NOT var_prefix then
                  Begin
                     InitAsmRef(instr);
-                    if not CreateVarInstr(instr,actasmpattern,operandnum) then
+                    if CreateVarInstr(instr,actasmpattern,operandnum) then
+                      begin
+                        var_prefix:=true;
+                        again:=true;
+                      end
+                    else
                      Message1(assem_e_unknown_id,actasmpattern);
                     Consume(AS_ID);
                    { is there a constant expression following }
@@ -2841,7 +2867,7 @@ end;
                     Begin
                       Inc(instr.operands[operandnum].ref.offset, BuildRefExpression);
                     end
-                   else
+                   else if not again then
                       Consume(AS_RBRACKET);
                  end
                  else
@@ -2877,7 +2903,12 @@ end;
                              else if NOT var_prefix then
                                Begin
                                InitAsmRef(instr);
-                               if not CreateVarInstr(instr,actasmpattern,operandnum) then
+                               if CreateVarInstr(instr,actasmpattern,operandnum) then
+                                 begin
+                                   var_prefix:=true;
+                                   again:=true;
+                                 end
+                               else
                                 Message1(assem_e_unknown_id,actasmpattern);
                                Consume(AS_ID);
                                { is there a constant expression following }
@@ -2887,7 +2918,7 @@ end;
                                     Inc(instr.operands[operandnum].ref.offset,
                                       BuildRefExpression);
                                    end
-                                 else
+                                 else if not again then
                                    Consume(AS_RBRACKET);
                                end
                              else
@@ -2953,6 +2984,7 @@ end;
            Consume(actasmtoken);
        end;
      end; { end case }
+     end;{ while }
   end;
 
 
@@ -3590,7 +3622,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  1999-04-17 22:16:58  pierre
+  Revision 1.28  1999-04-18 00:32:23  pierre
+   * fix for bug0124 and better error position info
+
+  Revision 1.27  1999/04/17 22:16:58  pierre
     * ifdef USE_OP3 released (changed into ifndef NO_OP3)
     * SHRD and SHLD first operand (ATT syntax) can only be CL reg or immediate const
 

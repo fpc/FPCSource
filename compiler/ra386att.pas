@@ -308,9 +308,10 @@ var
      c:=current_scanner^.asmgetchar;
     { Possiblities for first token in a statement:                }
     {  Local Label, Label, Directive, Prefix or Opcode....       }
+    if not (c in [newline,#13,'{',';']) then
+      current_scanner^.gettokenpos;
     if firsttoken and not (c in [newline,#13,'{',';']) then
     begin
-      current_scanner^.gettokenpos;
       firsttoken := FALSE;
       { directive or local labe }
       if c = '.' then
@@ -3923,7 +3924,10 @@ end.
 
 {
   $Log$
-  Revision 1.35  1999-04-17 22:16:55  pierre
+  Revision 1.36  1999-04-18 00:32:22  pierre
+   * fix for bug0124 and better error position info
+
+  Revision 1.35  1999/04/17 22:16:55  pierre
     * ifdef USE_OP3 released (changed into ifndef NO_OP3)
     * SHRD and SHLD first operand (ATT syntax) can only be CL reg or immediate const
 
