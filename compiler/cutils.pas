@@ -93,7 +93,7 @@ interface
     procedure strdispose(var p : pchar);
 
     function string_evaluate(s:string;get_var_value:get_var_value_proc;
-                             vars:array of string):Pchar;
+                             const vars:array of string):Pchar;
     {# makes the character @var(c) lowercase, with spanish, french and german
        character set
     }
@@ -737,7 +737,7 @@ uses
       end;
 
     function string_evaluate(s:string;get_var_value:get_var_value_proc;
-                             vars:array of string):Pchar;
+                             const vars:array of string):Pchar;
 
     {S contains a prototype of a stabstring. Stabstr_evaluate will expand
      variables and parameters.
@@ -1104,7 +1104,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.32  2004-01-25 11:33:48  daniel
+  Revision 1.33  2004-01-25 13:18:59  daniel
+    * Made varags parameter constant
+
+  Revision 1.32  2004/01/25 11:33:48  daniel
     * 2nd round of gdb cleanup
 
   Revision 1.31  2004/01/15 15:16:18  daniel

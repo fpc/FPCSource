@@ -87,7 +87,7 @@ interface
           { debug }
 {$ifdef GDB}
           function get_var_value(const s:string):string;
-          function stabstr_evaluate(const s:string;vars:array of string):Pchar;
+          function stabstr_evaluate(const s:string;const vars:array of string):Pchar;
           function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : taasmoutput);virtual;
           function  NumberString:string;
@@ -1097,7 +1097,7 @@ implementation
         get_var_value:=tostr(savesize);
     end;
 
-    function Tstoreddef.stabstr_evaluate(const s:string;vars:array of string):Pchar;
+    function Tstoreddef.stabstr_evaluate(const s:string;const vars:array of string):Pchar;
 
     begin
       stabstr_evaluate:=string_evaluate(s,@get_var_value,vars);
@@ -6182,7 +6182,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.204  2004-01-25 12:37:15  daniel
+  Revision 1.205  2004-01-25 13:18:59  daniel
+    * Made varags parameter constant
+
+  Revision 1.204  2004/01/25 12:37:15  daniel
     * Last commit broke debug info for records. Fixed.
 
   Revision 1.203  2004/01/25 11:33:48  daniel
