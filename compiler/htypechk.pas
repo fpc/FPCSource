@@ -246,8 +246,10 @@ implementation
                    exit;
                  end;
                 { dynamic array compare with niln }
-                if is_dynamic_array(ld) and
-                   (rt=niln) and
+                if ((is_dynamic_array(ld) and
+                   (rt=niln)) or
+                   (is_dynamic_array(ld) and is_dynamic_array(rd)))
+                   and
                    (treetyp in [equaln,unequaln]) then
                  begin
                    allowed:=false;
@@ -1921,7 +1923,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2004-03-18 16:29:07  peter
+  Revision 1.85  2004-04-18 07:52:43  florian
+    * fixed web bug 3048: comparision of dyn. arrays
+
+  Revision 1.84  2004/03/18 16:29:07  peter
     * missing result initialization in node2opstr
 
   Revision 1.83  2004/03/18 16:19:03  peter

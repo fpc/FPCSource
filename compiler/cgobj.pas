@@ -1659,7 +1659,8 @@ implementation
          paraloc2:=paramanager.getintparaloc(pocall_default,2);
          if is_ansistring(t) or
             is_widestring(t) or
-            is_interfacecom(t) then
+            is_interfacecom(t) or
+            is_dynamic_array(t) then
            a_load_const_ref(list,OS_ADDR,0,ref)
          else
            begin
@@ -2110,7 +2111,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.161  2004-03-06 20:35:19  florian
+  Revision 1.162  2004-04-18 07:52:43  florian
+    * fixed web bug 3048: comparision of dyn. arrays
+
+  Revision 1.161  2004/03/06 20:35:19  florian
     * fixed arm compilation
     * cleaned up code generation for exported linux procedures
 

@@ -1091,7 +1091,8 @@ implementation
 
        { support dynamicarray=nil,dynamicarray<>nil }
          else if (is_dynamic_array(ld) and (rt=niln)) or
-                 (is_dynamic_array(rd) and (lt=niln)) then
+                 (is_dynamic_array(rd) and (lt=niln)) or
+                 (is_dynamic_array(ld) and is_dynamic_array(rd)) then
           begin
             if not(nodetype in [equaln,unequaln]) then
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
@@ -1925,7 +1926,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.115  2004-03-29 14:44:10  peter
+  Revision 1.116  2004-04-18 07:52:43  florian
+    * fixed web bug 3048: comparision of dyn. arrays
+
+  Revision 1.115  2004/03/29 14:44:10  peter
     * fixes to previous constant integer commit
 
   Revision 1.114  2004/03/23 22:34:49  peter
