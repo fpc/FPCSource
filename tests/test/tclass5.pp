@@ -68,7 +68,7 @@ program test_fail;
      writeln('Call to ta1.test after successful init');
      ta1.test;
      ta2:=tarraycla.create(true);
-     writeln('ta2 = ',longint(ta2),' after unsuccessful init');
+     writeln('ta2 = ',ptrint(ta2),' after unsuccessful init');
      Writeln('Trying to call ta2.test (should generate a Run Time Error)');
      ta2.test;
   end.

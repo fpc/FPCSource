@@ -46,19 +46,22 @@ begin
   test(length(shortstr)=18);
   { verify if the address are correctly aligned! }
   pt:=@shortstr;
-  test((cardinal(pt) mod sizeof(pointer))=0);
+  test((ptruint(pt) mod sizeof(pointer))=0);
   pt:=p;
-  test((cardinal(pt) mod sizeof(pointer))=0);
+  test((ptruint(pt) mod sizeof(pointer))=0);
   pt:=pchar(ansistr);
-  test((cardinal(pt) mod sizeof(pointer))=0);
+  test((ptruint(pt) mod sizeof(pointer))=0);
 {$ifdef haswidestring}
   pt:=pchar(widestr);
-  test((cardinal(pt) mod sizeof(pointer))=0);
+  test((ptruint(pt) mod sizeof(pointer))=0);
 {$endif}
 end.  
 {
    $Log$
-   Revision 1.2  2002-11-09 21:19:21  carl
+   Revision 1.3  2004-04-29 21:04:58  peter
+     * 64 bit fixes
+
+   Revision 1.2  2002/11/09 21:19:21  carl
      * now check address of tc's also and give error.
      + 1.1 only
 
