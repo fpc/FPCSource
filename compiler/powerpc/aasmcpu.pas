@@ -425,7 +425,13 @@ uses cutils,rgobj;
 
     function taicpu.is_move:boolean;
       begin
-        is_move := opcode = A_MR;
+        is_move := (opcode = A_MR) or
+                   (opcode = A_EXTSB) or
+                   (opcode = A_EXTSH) or
+                   ((opcode = A_RLWINM) and
+                    (oper[3].val = 0) and
+                    (oper[5].val = 31) and
+                    (oper[4].val in [31-8+1,31-16+1]));
       end;
 
 
@@ -717,7 +723,10 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.14  2003-08-17 16:53:19  jonas
+  Revision 1.15  2003-08-18 21:27:00  jonas
+    * some newra optimizations (eliminate lots of moves between registers)
+
+  Revision 1.14  2003/08/17 16:53:19  jonas
     * fixed compilation of ppc compiler with -dnewra
 
   Revision 1.13  2003/08/11 21:18:20  peter

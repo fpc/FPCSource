@@ -450,6 +450,8 @@ const
 
      procedure tcgppc.a_load_reg_reg(list : taasmoutput;fromsize, tosize : tcgsize;reg1,reg2 : tregister);
 
+       var
+         instr: taicpu;
        begin
          if (reg1.enum<>R_INTREGISTER) or (reg1.number = 0) then
            internalerror(200303101);
@@ -463,19 +465,23 @@ const
            begin
              case tosize of
                OS_8:
-                 list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,
-                   reg2,reg1,0,31-8+1,31));
+                 instr := taicpu.op_reg_reg_const_const_const(A_RLWINM,
+                   reg2,reg1,0,31-8+1,31);
                OS_S8:
-                 list.concat(taicpu.op_reg_reg(A_EXTSB,reg2,reg1));
+                 instr := taicpu.op_reg_reg(A_EXTSB,reg2,reg1);
                OS_16:
-                 list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,
-                   reg2,reg1,0,31-16+1,31));
+                 instr := taicpu.op_reg_reg_const_const_const(A_RLWINM,
+                   reg2,reg1,0,31-16+1,31);
                OS_S16:
-                 list.concat(taicpu.op_reg_reg(A_EXTSH,reg2,reg1));
+                 instr := taicpu.op_reg_reg(A_EXTSH,reg2,reg1);
                OS_32,OS_S32:
-                 list.concat(taicpu.op_reg_reg(A_MR,reg2,reg1));
+                 instr := taicpu.op_reg_reg(A_MR,reg2,reg1);
                else internalerror(2002090901);
              end;
+             list.concat(instr);
+{$ifdef newra}
+             rg.add_move_instruction(instr);
+{$endif newra}
            end;
        end;
 
@@ -2655,7 +2661,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.121  2003-08-18 11:50:55  olle
+  Revision 1.122  2003-08-18 21:27:00  jonas
+    * some newra optimizations (eliminate lots of moves between registers)
+
+  Revision 1.121  2003/08/18 11:50:55  olle
     + cleaning up in proc entry and exit, now calc_stack_frame always is used.
 
   Revision 1.120  2003/08/17 16:59:20  jonas
