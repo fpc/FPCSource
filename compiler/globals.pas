@@ -222,6 +222,7 @@ unit globals;
     function min(a,b : longint) : longint;
     function max(a,b : longint) : longint;
     function align(i,a:longint):longint;
+    function align_from_size(datasize:longint;length:longint):longint;
     procedure Replace(var s:string;s1:string;const s2:string);
     procedure ReplaceCase(var s:string;const s1,s2:string);
     function upper(const s : string) : string;
@@ -405,6 +406,31 @@ implementation
          else
            max:=a;
       end;
+
+    function align_from_size(datasize:longint;length:longint):longint;
+
+    {Increases the datasize with the required alignment; i.e. on pentium
+     words should be aligned word; and dwords should be aligned dword.
+     So for a word (len=2), datasize is increased to the nearest multiple
+     of 2, and for len=4, datasize is increased to the nearest multiple of
+     4.}
+
+    var data_align:word;
+
+    begin
+        {$IFDEF I386}
+        if length>2 then
+            data_align:=4
+        else if length>1 then
+            data_align:=2
+        else
+            data_align:=1;
+        {$ENDIF}
+        {$IFDEF M68K}
+        data_align:=2;
+        {$ENDIF}
+        align_from_size:=(datasize+data_align-1) and not(data_align-1);
+    end;
 
 
     function align(i,a:longint):longint;
@@ -1537,7 +1563,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2000-02-28 17:23:57  daniel
+  Revision 1.55  2000-03-08 15:39:45  daniel
+    + Added align_from_size function as suggested by Peter.
+
+  Revision 1.54  2000/02/28 17:23:57  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new
