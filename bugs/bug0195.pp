@@ -1,4 +1,7 @@
-uses graph,dpmiexcp;
+uses graph
+{$ifdef go32v2}
+,dpmiexcp
+{$endif go32v2};
 var
    GDriver, GMode: Integer;
    w:word;

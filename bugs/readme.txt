@@ -264,3 +264,4 @@ bug0197.pp   should produce an error: problem with c1:=c2<c3 where c? is
              a comp type
 bug0198.pp   calling specifications aren't allowed in class declarations,
              this should be allowed
+bug0199.pp   bug in mul code
