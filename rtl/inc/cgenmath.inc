@@ -101,6 +101,9 @@
     end;
 {$endif}
 
+(*
+
+Not supported on Mac OS X 10.1
 
 {$ifndef FPC_SYSTEM_HAS_ROUND}
 {$define FPC_SYSTEM_HAS_ROUND}
@@ -121,7 +124,7 @@
     end;
 {$endif hascompilerproc}
 {$endif}
-
+*)
 
 
 {$ifndef FPC_SYSTEM_HAS_LN}
@@ -174,7 +177,10 @@
 
 {
   $Log$
-  Revision 1.1  2004-10-09 21:00:46  jonas
+  Revision 1.2  2004-10-12 07:08:33  jonas
+    - disabled llround, not present under Mac OS X 10.1
+
+  Revision 1.1  2004/10/09 21:00:46  jonas
     + cgenmath with libc math functions. Faster than the routines in genmath
       and also have full double support (exp() only has support for values in
       the single range in genmath, for example). Used in FPC_USE_LIBC is
