@@ -1013,6 +1013,9 @@ implementation
         parafixup,
         i : longint;
       begin
+        { we don't need to allocate space for the locals }
+        aktprocdef.localst.datasize:=0;
+        procinfo.firsttemp_offset:=0;
         { replace framepointer with stackpointer }
         procinfo.framepointer:=STACK_POINTER_REG;
         { set the right value for parameters }
@@ -1070,31 +1073,10 @@ implementation
 
       var
         p : tnode;
-        haslocals,hasparas : boolean;
       begin
-         { retrieve info about locals and paras before a result
-           is inserted in the symtable }
-         haslocals:=(aktprocdef.localst.datasize>0);
-         hasparas:=(aktprocdef.parast.datasize>0);
-
-         { temporary space is set, while the BEGIN of the procedure }
-         if symtablestack.symtabletype=localsymtable then
-           procinfo.firsttemp_offset := tg.direction*symtablestack.datasize
-         else
-           procinfo.firsttemp_offset := 0;
-
-         { assembler code does not allocate }
-         { space for the return value       }
+         { Rename the funcret so that recursive calls are possible }
          if not is_void(aktprocdef.rettype.def) then
-           begin
-             symtablestack.rename(aktprocdef.funcretsym.name,'$result');
-             { update the symtablesize back to 0 if there were no locals }
-             if not haslocals then
-              symtablestack.datasize:=0;
-
-             { set the used registers depending on the function result }
-             procinfo.update_usedinproc_result;
-           end;
+           symtablestack.rename(aktprocdef.funcretsym.name,'$result');
 
          { force the asm statement }
          if token<>_ASM then
@@ -1105,15 +1087,16 @@ implementation
 
          { set the framepointer to esp for assembler functions when the
            following conditions are met:
-           - if the are no local variables
+           - if the are no local variables (except the allocated result)
+           - if the are no parameters
            - no reference to the result variable (refcount<=1)
            - result is not stored as parameter
            - target processor has optional frame pointer save
              (vm, i386, vm only currently)
          }
          if (po_assembler in aktprocdef.procoptions) and
-            (not haslocals) and
-            (not hasparas) and
+            (aktprocdef.parast.datasize=0) and
+            (aktprocdef.localst.datasize=aktprocdef.rettype.def.size) and
             (aktprocdef.owner.symtabletype<>objectsymtable) and
             (not assigned(aktprocdef.funcretsym) or
              (tfuncretsym(aktprocdef.funcretsym).refcount<=1)) and
@@ -1142,7 +1125,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2002-12-29 18:59:34  peter
+  Revision 1.84  2003-01-01 21:05:24  peter
+    * fixed assembler methods stackpointer optimization that was
+      broken after the previous change
+
+  Revision 1.83  2002/12/29 18:59:34  peter
     * fixed parsing of declarations before asm statement
 
   Revision 1.82  2002/12/27 18:18:56  peter
