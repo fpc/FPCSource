@@ -23,9 +23,9 @@ units=classes contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream 
 units_freebsd=process asyncio ssockets http
 units_netbsd=process asyncio ssockets http
 units_openbsd=process asyncio ssockets http
-units_linux=process asyncio ssockets http
-units_win32=process fileinfo
-rsts=classes ssockets cachecls
+units_linux=process asyncio ssockets http resolve
+units_win32=process fileinfo resolve
+rsts=classes ssockets cachecls resolve
 exampledirs=tests
 
 [compiler]
