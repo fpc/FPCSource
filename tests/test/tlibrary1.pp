@@ -1,4 +1,3 @@
-{ %OPT=-FE. }
 { %NORUN }
 
 { The .so of the library needs to be in the current dir when
