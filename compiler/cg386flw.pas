@@ -566,6 +566,7 @@ do_jmp:
          getlabel(doexceptlabel);
          getlabel(endexceptlabel);
          getlabel(lastonlabel);
+         push_int (1); { push type of exceptionframe }
          emitcall('FPC_PUSHEXCEPTADDR',true);
          exprasmlist^.concat(new(pai386,
            op_reg(A_PUSH,S_L,R_EAX)));
@@ -634,6 +635,7 @@ je .nexton          // No, jump to next on...
          getlabel(finallylabel);
          getlabel(noreraiselabel);
          getlabel(endfinallylabel);
+         push_int(1); { Type of stack-frame must be pushed}
          emitcall('FPC_PUSHEXCEPTADDR',true);
          exprasmlist^.concat(new(pai386,
            op_reg(A_PUSH,S_L,R_EAX)));
@@ -697,7 +699,10 @@ je .nexton          // No, jump to next on...
 end.
 {
   $Log$
-  Revision 1.5  1998-07-28 21:52:49  florian
+  Revision 1.6  1998-07-29 13:29:11  michael
+  + Corrected try.. code. Type of exception fram is pushed
+
+  Revision 1.5  1998/07/28 21:52:49  florian
     + implementation of raise and try..finally
     + some misc. exception stuff
 
