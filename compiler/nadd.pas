@@ -99,6 +99,14 @@ implementation
 
 
     function taddnode.det_resulttype:tnode;
+
+        function allowenumop(nt:tnodetype):boolean;
+        begin
+          result:=(nt in [equaln,unequaln,ltn,lten,gtn,gten]) or
+                  ((cs_allow_enum_calc in aktlocalswitches) and
+                   (nt in [addn,subn]));
+        end;
+
       var
          hp,t    : tnode;
          lt,rt   : tnodetype;
@@ -256,17 +264,31 @@ implementation
 
 
          { both are int constants }
-         if ((is_constintnode(left) and is_constintnode(right)) or
-              (is_constboolnode(left) and is_constboolnode(right) and
-               (nodetype in [slashn,ltn,lten,gtn,gten,equaln,unequaln,andn,xorn,orn])) or
-              (is_constenumnode(left) and is_constenumnode(right) and
-               (nodetype in [equaln,unequaln,ltn,lten,gtn,gten]))) or
-            { support pointer arithmetics on constants (JM) }
-            ((lt = pointerconstn) and is_constintnode(right) and
-             (nodetype in [addn,subn])) or
-            (((lt = pointerconstn) or (lt = niln)) and
-             ((rt = pointerconstn) or (rt = niln)) and
-             (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,subn])) then
+         if (
+             (
+              is_constintnode(left) and
+              is_constintnode(right)
+             ) or
+             (
+              is_constboolnode(left) and
+              is_constboolnode(right) and
+              (nodetype in [slashn,ltn,lten,gtn,gten,equaln,unequaln,andn,xorn,orn])
+             ) or
+             (
+              is_constenumnode(left) and
+              is_constenumnode(right) and
+              allowenumop(nodetype))
+             ) or
+             (
+              (lt = pointerconstn) and
+              is_constintnode(right) and
+              (nodetype in [addn,subn])
+             ) or
+             (
+              (lt in [pointerconstn,niln]) and
+              (rt in [pointerconstn,niln]) and
+              (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,subn])
+             ) then
            begin
               t:=nil;
               { when comparing/substracting  pointers, make sure they are }
@@ -327,10 +349,13 @@ implementation
                       {$Q+}
                     {$endif}
                     try
-                      if (lt <> pointerconstn) then
-                        t := genintconstnode(lv+rv)
+                      if (lt=pointerconstn) then
+                        t := cpointerconstnode.create(lv+rv,left.resulttype)
                       else
-                        t := cpointerconstnode.create(lv+rv,left.resulttype);
+                        if is_integer(ld) then
+                          t := genintconstnode(lv+rv)
+                      else
+                        t := cordconstnode.create(lv+rv,left.resulttype,(ld.deftype<>enumdef));
                     except
                       on E:EIntOverflow do
                         begin
@@ -351,13 +376,21 @@ implementation
                       {$Q+}
                     {$endif}
                     try
-                      if (lt=pointerconstn) and (rt=pointerconstn) and
-                        (tpointerdef(rd).pointertype.def.size>1) then
-                        t := genintconstnode((lv-rv) div tpointerdef(left.resulttype.def).pointertype.def.size)
-                      else if (lt <> pointerconstn) or (rt = pointerconstn) then
-                        t := genintconstnode(lv-rv)
+                      if (lt=pointerconstn) then
+                        begin
+                          { pointer-pointer results in an integer }
+                          if (rt=pointerconstn) then
+                            t := genintconstnode((lv-rv) div tpointerdef(ld).pointertype.def.size)
+                          else
+                            t := cpointerconstnode.create(lv-rv,left.resulttype);
+                        end
                       else
-                        t := cpointerconstnode.create(lv-rv,left.resulttype);
+                        begin
+                          if is_integer(ld) then
+                            t:=genintconstnode(lv-rv)
+                          else
+                            t:=cordconstnode.create(lv-rv,left.resulttype,(ld.deftype<>enumdef));
+                        end;
                     except
                       on E:EIntOverflow do
                         begin
@@ -1386,7 +1419,7 @@ implementation
          { enums }
          else if (ld.deftype=enumdef) and (rd.deftype=enumdef) then
           begin
-            if (nodetype in [equaln,unequaln,ltn,lten,gtn,gten]) then
+            if allowenumop(nodetype) then
               inserttypeconv(right,left.resulttype)
             else
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
@@ -2139,7 +2172,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.140  2005-02-14 17:13:06  peter
+  Revision 1.141  2005-02-17 17:52:39  peter
+    * allow enum arithmetics inside an enum def, compatible with delphi
+
+  Revision 1.140  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.139  2005/01/31 21:30:56  olle

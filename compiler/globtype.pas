@@ -84,7 +84,7 @@ than 255 characters. That's why using Ansi Strings}
          cs_check_io,cs_check_stack,
          cs_checkpointer,
          cs_omitstackframe,cs_do_assertion,cs_generate_rtti,
-         cs_full_boolean_eval,cs_typed_const_writable,
+         cs_full_boolean_eval,cs_typed_const_writable,cs_allow_enum_calc,
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }
@@ -319,7 +319,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2005-02-14 17:13:06  peter
+  Revision 1.71  2005-02-17 17:52:39  peter
+    * allow enum arithmetics inside an enum def, compatible with delphi
+
+  Revision 1.70  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.69  2005/02/06 11:15:31  peter

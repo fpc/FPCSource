@@ -254,7 +254,6 @@ implementation
         s : stringid;
         l,v : TConstExprInt;
         oldaktpackrecords : longint;
-        hs : string;
         defpos,storepos : tfileposinfo;
 
         procedure expr_type;
@@ -471,6 +470,7 @@ implementation
         is_func,
         enumdupmsg : boolean;
         newtype : ttypesym;
+        oldlocalswitches : tlocalswitches;
       begin
          tt.reset;
          case token of
@@ -499,7 +499,10 @@ implementation
                       try_to_consume(_EQUAL)
                      ) then
                     begin
+                       oldlocalswitches:=aktlocalswitches;
+                       include(aktlocalswitches,cs_allow_enum_calc);
                        p:=comp_expr(true);
+                       aktlocalswitches:=oldlocalswitches;
                        if (p.nodetype=ordconstn) then
                         begin
                           { we expect an integer or an enum of the
@@ -653,7 +656,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2005-02-14 17:13:07  peter
+  Revision 1.76  2005-02-17 17:52:39  peter
+    * allow enum arithmetics inside an enum def, compatible with delphi
+
+  Revision 1.75  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.74  2005/02/01 08:46:13  michael
