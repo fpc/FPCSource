@@ -332,6 +332,7 @@ begin
 
   Verbose('Reading '+fn);
   ini:=TIniFile.Create(fn);
+  ini.escapelinefeeds:=True;
 
   with userini,ini do
    begin
@@ -500,6 +501,7 @@ begin
      Verbose('Opening '+fn);
      result:=TIniFile.Create(fn);
    end;
+  result.Escapelinefeeds:=True; 
 end;
 
 
@@ -1303,7 +1305,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2000-02-09 16:44:14  peter
+  Revision 1.33  2000-03-11 15:58:56  michael
+  + Added escapelinefeeds:=true after inifile.create
+
+  Revision 1.32  2000/02/09 16:44:14  peter
     * log truncated
 
   Revision 1.31  2000/02/08 00:03:35  peter
