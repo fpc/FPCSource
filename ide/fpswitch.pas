@@ -624,9 +624,13 @@ begin
   Pref:=Prefix;
   if IsSel then
     begin
-      P:=Items^.At(SelNr[SwitchesMode]);
-      if not P^.IsDefault then
-        writeln(CfgFile,' '+ItemParam(SelNr[SwitchesMode]));
+      { can be empty for some targets }
+      If Items^.count>0 then
+        begin
+          P:=Items^.At(SelNr[SwitchesMode]);
+          if not P^.IsDefault then
+            writeln(CfgFile,' '+ItemParam(SelNr[SwitchesMode]));
+        end;
     end
   else
     Items^.ForEach(@writeitem);
@@ -940,6 +944,11 @@ begin
      AddSelectItem('~P~alm OS','palmos',idNone);
      {AddSelectItem('~M~ac OS','macos',idNone); }
 {$endif M68K}
+{$ifdef powerpc}
+     AddSelectItem('~L~inux','linux',idNone);
+     AddSelectItem('~N~etBSD','netbsd',idNone);
+     AddSelectItem('~M~ac OS','macos',idNone);
+{$endif powerpc}
    end;
   New(AsmReaderSwitches,InitSelect('R'));
   with AsmReaderSwitches^ do
@@ -1239,7 +1248,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2002-11-21 00:37:56  pierre
+  Revision 1.12  2002-11-30 01:56:52  pierre
+   + powerpc cpu support started
+
+  Revision 1.11  2002/11/21 00:37:56  pierre
    + some cross gdb enhancements
 
   Revision 1.10  2002/09/07 15:40:45  peter

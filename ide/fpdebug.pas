@@ -289,6 +289,10 @@ type
        a0,a1,a2,a3,a4,a5,fp,sp : dword;
        ps,pc : dword;
 {$endif m68k}
+{$ifdef powerpc}
+       r : array [0..31] of dword;
+       pc,ps,cr,lr,ctr,xer : dword;
+{$endif powerpc}
     end;
 
     PRegistersView = ^TRegistersView;
@@ -321,6 +325,9 @@ type
       fp0,fp1,fp2,fp3,fp4,fp5,fp6,fp7 : string;
       fpcontrol,fpstatus,fpiaddr : dword;
 {$endif m68k}
+{$ifdef powerpc}
+       f : array [0..31] of string;
+{$endif powerpc}
     end;
 
     PFPUView = ^TFPUView;
@@ -521,6 +528,13 @@ const
   FrameName = '$fp';
 {$define FrameNameKnown}
 {$endif m68k}
+{$ifdef powerpc}
+  { stack and frame registers are the same on powerpc,
+    so I am not sure that this will work PM }
+const
+  FrameName = '$r1';
+{$define FrameNameKnown}
+{$endif powerpc}
 
 {$ifdef TP}
 function HexStr(Value: longint; Len: byte): string;
@@ -3196,6 +3210,9 @@ end;
        buffer : array[0..255] of char;
        v : dword;
        code : word;
+{$ifdef powerpc}
+       i : byte;
+{$endif powerpc}
 
     begin
        GetIntRegs:=false;
@@ -3293,6 +3310,26 @@ end;
                       else if reg='pc' then
                         rs.pc:=v;
 {$endif m68k}
+{$ifdef powerpc}
+                      if (reg[1]='r') then
+                        begin
+                          for i:=0 to 31 do
+                            if reg='r'+inttostr(i) then
+                              rs.r[i]:=v;
+                        end
+                      { other regs
+                        pc,ps,cr,lr,ctr,xer : dword; }
+                      else if (reg='pc') then
+                        rs.pc:=v
+                      else if (reg='ps') then
+                        rs.ps:=v
+                      else if (reg='lr') then
+                        rs.lr:=v
+                      else if (reg='ctr') then
+                        rs.ctr:=v
+                      else if (reg='xer') then
+                        rs.xer:=v;
+{$endif powerpc}
                       p:=strscan(p1,#10);
                       if assigned(p) then
                         begin
@@ -3330,6 +3367,9 @@ end;
        rs : tintregs;
        OK : boolean;
        color :byte;
+{$ifdef powerpc}
+       i : byte;
+{$endif powerpc}
 
     procedure SetColor(x,y : longint);
     begin
@@ -3453,7 +3493,33 @@ end;
             WriteStr(16,8,' z'+chr(byte((rs.ps and $4)<>0)+48),color);
             SetColor(rs.ps and $8,OldReg.ps and $8);
             WriteStr(14,8, 'x'+chr(byte((rs.ps and $8)<>0)+48),color);
-{$endif i386}
+{$endif m68k}
+{$ifdef powerpc}
+            for i:=0 to 15 do
+              begin
+                SetColor(rs.r[i],OldReg.r[i]);
+                if i<10 then
+                  WriteStr(1,i,'r'+IntToStr(i)+'  '+HexStr(longint(rs.r[i]),8),color)
+                else
+                  WriteStr(1,i,'r'+IntToStr(i)+' '+HexStr(longint(rs.r[i]),8),color);
+              end;
+            for i:=16 to 31 do
+              begin
+                SetColor(rs.r[i],OldReg.r[i]);
+                WriteStr(15,i-16,'r'+IntToStr(i)+' '+HexStr(longint(rs.r[i]),8),color);
+              end;
+            { other regs pc,ps,cr,lr,ctr,xer : dword; }
+            SetColor(rs.pc,OldReg.pc);
+            WriteStr(1,16,'pc  '+HexStr(longint(rs.pc),8),color);
+            SetColor(rs.ps,OldReg.ps);
+            WriteStr(15,16,'ps  '+HexStr(longint(rs.ps),8),color);
+            SetColor(rs.lr,OldReg.lr);
+            WriteStr(1,17,'lr  '+HexStr(longint(rs.lr),8),color);
+            SetColor(rs.ctr,OldReg.ctr);
+            WriteStr(15,17,'ctr '+HexStr(longint(rs.ctr),8),color);
+            SetColor(rs.xer,OldReg.xer);
+            WriteStr(15,18,'xer '+HexStr(longint(rs.xer),8),color);
+{$endif powerpc}
          end
        else
          WriteStr(0,0,'<debugger error>',7);
@@ -3477,13 +3543,23 @@ end;
 
     begin
        Desktop^.GetExtent(R);
+{$ifdef i386}
        R.A.X:=R.B.X-28;
        R.B.Y:=R.A.Y+11;
+{$endif i386}
+{$ifdef m68k}
+       R.A.X:=R.B.X-28;
+       R.B.Y:=R.A.Y+11;
+{$endif m68k}
+{$ifdef powerpc}
+       R.A.X:=R.B.X-28;
+       R.B.Y:=R.A.Y+22;
+{$endif powerpc}
        inherited Init(R,dialog_registers, wnNoNumber);
        Flags:=wfClose or wfMove;
        Palette:=wpCyanWindow;
        HelpCtx:=hcRegistersWindow;
-       R.Assign(1,1,26,10);
+       R.Assign(1,1,Size.X-1,Size.Y-1);
        RV:=new(PRegistersView,init(R));
        Insert(RV);
        If assigned(RegistersWindow) then
@@ -3629,6 +3705,12 @@ end;
                       else if reg='fpiaddr' then
                         rs.fpiaddr:=res;
 {$endif m68k}
+{$ifdef powerpc}
+                      if reg[1]='f' then
+                        for i:=0 to 31 do
+                          if reg='f'+inttostr(i) then
+                            rs.f[i]:=v;
+{$endif powerpc}
                       p:=strscan(p1,#10);
                       if assigned(p) then
                         begin
@@ -3668,6 +3750,9 @@ end;
        top : byte;
        color :byte;
        ok : boolean;
+{$ifdef powerpc}
+       i : byte;
+{$endif powerpc}
     const
       TypeStr : Array[0..3] of string[6] =
       ('Valid ','Zero  ','Spec  ','Empty ');
@@ -3775,6 +3860,16 @@ end;
             SetIColor(rs.fpiaddr,OldReg.fpiaddr);
             WriteStr(1,10,'fpiaddr    '+hexstr(rs.fpiaddr,8),color);
 {$endif m68k}
+{$ifdef powerpc}
+            for i:=0 to 31 do
+              begin
+                SetColor(rs.f[i],OldReg.f[i]);
+                if i<10 then
+                  WriteStr(1,i,'f'+IntToStr(i)+'  '+rs.f[i],color)
+                else
+                  WriteStr(1,i,'f'+IntToStr(i)+' '+rs.f[i],color);
+              end;
+{$endif powerpc}
          end
        else
          WriteStr(0,0,'<debugger error>',7);
@@ -3798,13 +3893,23 @@ end;
 
     begin
        Desktop^.GetExtent(R);
+{$ifdef i386}
        R.A.X:=R.B.X-44;
        R.B.Y:=R.A.Y+14;
+{$endif i386}
+{$ifdef m68k}
+       R.A.X:=R.B.X-44;
+       R.B.Y:=R.A.Y+14;
+{$endif m68k}
+{$ifdef powerpc}
+       R.A.X:=R.B.X-44;
+       R.B.Y:=R.A.Y+33;
+{$endif powerpc}
        inherited Init(R,dialog_fpu, wnNoNumber);
        Flags:=wfClose or wfMove or wfgrow;
        Palette:=wpCyanWindow;
        HelpCtx:=hcFPURegisters;
-       R.Assign(1,1,42,13);
+       R.Assign(1,1,Size.X-2,Size.Y-2);
        RV:=new(PFPUView,init(R));
        Insert(RV);
        If assigned(FPUWindow) then
@@ -4306,7 +4411,10 @@ end.
 
 {
   $Log$
-  Revision 1.37  2002-11-28 13:00:25  pierre
+  Revision 1.38  2002-11-30 01:56:52  pierre
+   + powerpc cpu support started
+
+  Revision 1.37  2002/11/28 13:00:25  pierre
    + remote support
 
   Revision 1.36  2002/11/21 17:52:28  pierre

@@ -867,7 +867,11 @@ end;
 function GetAsmReservedWordCount: integer;
 begin
   GetAsmReservedWordCount:=ord(lastop) - ord(firstop)
+{$ifndef powerpc}
    + CondAsmOps*(ord(high(TasmCond))-ord(low(TasmCond)));
+{$else powerpc}
+   + CondAsmOps*(ord(high(TAsmCondFlag))-ord(low(TAsmCondFlag)));
+{$endif powerpc}
 end;
 
 
@@ -4367,7 +4371,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.36  2002-09-19 22:15:45  pierre
+  Revision 1.37  2002-11-30 01:56:52  pierre
+   + powerpc cpu support started
+
+  Revision 1.36  2002/09/19 22:15:45  pierre
    * fix compilation failure for m68k target
 
   Revision 1.35  2002/09/13 22:28:08  pierre
