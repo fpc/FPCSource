@@ -312,7 +312,7 @@ begin
      I:=IndexByte(Buf,Len,0);
      If (I=-1) then
        I:=Len;
-     IndexChar0:=IndexByte(Buf,I,b);
+     IndexChar0:=IndexByte(Buf,I,byte(b));
    end
   else
    IndexChar0:=0;
@@ -1237,7 +1237,10 @@ end;
 
 {
   $Log$
-  Revision 1.88  2004-12-05 12:41:00  michael
+  Revision 1.89  2004-12-12 12:39:02  peter
+    * missing typecast in indexchar0
+
+  Revision 1.88  2004/12/05 12:41:00  michael
   + Fixed IndexChar0
 
   Revision 1.87  2004/11/17 22:19:04  peter
