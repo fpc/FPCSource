@@ -44,8 +44,6 @@ interface
 
     function  check_proc_directive(isprocvar:boolean):boolean;
 
-    procedure calc_parast(pd:tabstractprocdef);
-
     procedure insert_funcret_local(pd:tprocdef);
 
     function  proc_add_definition(var pd:tprocdef):boolean;
@@ -1886,29 +1884,27 @@ const
           convention is set. }
         pd.parast.foreach_static(@set_addr_param_regable,pd);
 
-        { add mangledname to external list }
-        if (pd.deftype=procdef) and
-           (po_external in pd.procoptions) and
-           target_info.DllScanSupported then
-          current_module.externals.insert(tExternalsItem.create(tprocdef(pd).mangledname));
-      end;
-
-
-    procedure calc_parast(pd:tabstractprocdef);
-      begin
         { insert hidden high parameters }
         pd.parast.foreach_static(@insert_hidden_para,pd);
+
         { insert hidden self parameter }
         insert_self_and_vmt_para(pd);
+
         { insert funcret parameter if required }
         insert_funcret_para(pd);
+
         { insert parentfp parameter if required }
         insert_parentfp_para(pd);
 
         { Calculate parameter tlist }
         pd.calcparas;
-      end;
 
+        { add mangledname to external list, must be done after pd.calcparas }
+        if (pd.deftype=procdef) and
+           (po_external in pd.procoptions) and
+           target_info.DllScanSupported then
+          current_module.externals.insert(tExternalsItem.create(tprocdef(pd).mangledname));
+      end;
 
 
     procedure parse_proc_directives(pd:tabstractprocdef;var pdflags:tpdflags);
@@ -2267,7 +2263,10 @@ const
 end.
 {
   $Log$
-  Revision 1.205  2004-11-15 23:35:31  peter
+  Revision 1.206  2004-11-16 20:32:40  peter
+  * fixes for win32 mangledname
+
+  Revision 1.205  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

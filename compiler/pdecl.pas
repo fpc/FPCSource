@@ -213,7 +213,6 @@ implementation
                        end;
                       { add default calling convention }
                       handle_calling_convention(tabstractprocdef(tt.def));
-                      calc_parast(tprocvardef(tt.def));
                     end;
                    if not skipequal then
                     begin
@@ -488,7 +487,6 @@ implementation
                         consume(_SEMICOLON);
                        parse_var_proc_directives(tsym(newtype));
                        handle_calling_convention(tprocvardef(tt.def));
-                       calc_parast(tprocvardef(tt.def));
                      end;
                   end;
                 objectdef,
@@ -653,7 +651,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2004-11-15 23:35:31  peter
+  Revision 1.92  2004-11-16 20:32:40  peter
+  * fixes for win32 mangledname
+
+  Revision 1.91  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

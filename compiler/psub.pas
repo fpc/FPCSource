@@ -1174,10 +1174,6 @@ implementation
          { Set calling convention }
          handle_calling_convention(pd);
 
-         { everything of the proc definition is known, we can now
-           calculate the parameters }
-         calc_parast(pd);
-
          { search for forward declarations }
          if not proc_add_definition(pd) then
            begin
@@ -1402,7 +1398,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.215  2004-11-15 23:35:31  peter
+  Revision 1.216  2004-11-16 20:32:41  peter
+  * fixes for win32 mangledname
+
+  Revision 1.215  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

@@ -646,7 +646,6 @@ implementation
                       end;
                     { Add implicit hidden parameters and function result }
                     handle_calling_convention(pd);
-                    calc_parast(pd);
                   end;
               end;
             else
@@ -659,7 +658,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2004-11-15 23:35:31  peter
+  Revision 1.71  2004-11-16 20:32:41  peter
+  * fixes for win32 mangledname
+
+  Revision 1.70  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

@@ -594,7 +594,6 @@ implementation
                      begin
                        parse_object_proc_directives(pd);
                        handle_calling_convention(pd);
-                       calc_parast(pd);
 
                        { add definition to procsym }
                        proc_add_definition(pd);
@@ -637,7 +636,6 @@ implementation
                     pd:=constructor_head;
                     parse_object_proc_directives(pd);
                     handle_calling_convention(pd);
-                    calc_parast(pd);
 
                     { add definition to procsym }
                     proc_add_definition(pd);
@@ -677,7 +675,6 @@ implementation
                     pd:=destructor_head;
                     parse_object_proc_directives(pd);
                     handle_calling_convention(pd);
-                    calc_parast(pd);
 
                     { add definition to procsym }
                     proc_add_definition(pd);
@@ -733,7 +730,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2004-10-15 09:14:17  mazen
+  Revision 1.83  2004-11-16 20:32:40  peter
+  * fixes for win32 mangledname
+
+  Revision 1.82  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

@@ -121,9 +121,9 @@ implementation
          hp2 : twin32imported_item;
          hs  : string;
       begin
-         { force the current mangledname }
-         if assigned(aprocdef) then
-           aprocdef.has_mangledname:=true;
+         { procdef or funcname must be give, not both }
+         if assigned(aprocdef) and (func<>'') then
+           internalerror(200411161);
          { append extension if required }
          hs:=AddExtension(module,target_info.sharedlibext);
          { search for the module }
@@ -141,13 +141,26 @@ implementation
               current_module.imports.concat(hp1);
            end;
          { search for reuse of old import item }
-         hp2:=twin32imported_item(hp1.imported_items.first);
-         while assigned(hp2) do
-          begin
-            if hp2.func^=func then
-             break;
-            hp2:=twin32imported_item(hp2.next);
-          end;
+         if assigned(aprocdef) then
+           begin
+             hp2:=twin32imported_item(hp1.imported_items.first);
+             while assigned(hp2) do
+              begin
+                if hp2.procdef=aprocdef then
+                 break;
+                hp2:=twin32imported_item(hp2.next);
+              end;
+           end
+         else
+           begin
+             hp2:=twin32imported_item(hp1.imported_items.first);
+             while assigned(hp2) do
+              begin
+                if hp2.func^=func then
+                 break;
+                hp2:=twin32imported_item(hp2.next);
+              end;
+           end;
          if not assigned(hp2) then
           begin
             hp2:=twin32imported_item.create(func,name,index);
@@ -159,7 +172,7 @@ implementation
 
     procedure timportlibwin32.importprocedure(aprocdef:tprocdef;const module : string;index : longint;const name : string);
       begin
-        win32importproc(aprocdef,aprocdef.mangledname,module,index,name);
+        win32importproc(aprocdef,'',module,index,name);
       end;
 
 
@@ -294,17 +307,16 @@ implementation
                     if (cs_debuginfo in aktmoduleswitches) then
                      importsSection.concat(Tai_stab_function_name.Create(nil));
 {$EndIf GDB}
-                    importsSection.concat(Tai_symbol.Createname_global(hp2.func^,AT_FUNCTION,0));
+                    if assigned(hp2.procdef) then
+                      mangledstring:=hp2.procdef.mangledname
+                    else
+                      mangledstring:=hp2.func^;
+                    importsSection.concat(Tai_symbol.Createname_global(mangledstring,AT_FUNCTION,0));
                     importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                     importsSection.concat(Tai_align.Create_op(4,$90));
 {$IfDef GDB}
                     if (cs_debuginfo in aktmoduleswitches) and assigned(hp2.procdef) then
-                     begin
-                       mangledstring:=hp2.procdef.mangledname;
-                       hp2.procdef.setmangledname(hp2.func^);
                        hp2.procdef.concatstabto(importssection);
-                       hp2.procdef.setmangledname(mangledstring);
-                     end;
 {$EndIf GDB}
                   end;
                  { create head link }
@@ -452,17 +464,16 @@ implementation
                       if (cs_debuginfo in aktmoduleswitches) then
                         importssection.concat(tai_stab_function_name.create(nil));
 {$EndIf GDB}
-                      importsSection.concat(Tai_symbol.Createname_global(hp2.func^,AT_FUNCTION,0));
+                      if assigned(hp2.procdef) then
+                        mangledstring:=hp2.procdef.mangledname
+                      else
+                        mangledstring:=hp2.func^;
+                      importsSection.concat(Tai_symbol.Createname_global(mangledstring,AT_FUNCTION,0));
                       importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                       importsSection.concat(Tai_align.Create_op(4,$90));
 {$IfDef GDB}
                       if (cs_debuginfo in aktmoduleswitches) and assigned(hp2.procdef) then
-                       begin
-                         mangledstring:=hp2.procdef.mangledname;
-                         hp2.procdef.setmangledname(hp2.func^);
-                         hp2.procdef.concatstabto(importssection);
-                         hp2.procdef.setmangledname(mangledstring);
-                       end;
+                        hp2.procdef.concatstabto(importssection);
 {$EndIf GDB}
                       { add jump field to imporTSection }
                       new_section(importsSection,sec_idata5,'',0);
@@ -1612,7 +1623,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.42  2004-11-08 22:09:59  peter
+  Revision 1.43  2004-11-16 20:32:41  peter
+  * fixes for win32 mangledname
+
+  Revision 1.42  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.41  2004/11/04 17:12:52  peter

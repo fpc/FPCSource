@@ -395,7 +395,6 @@ implementation
                      readprocdef.rettype:=p.proptype;
                      { Insert hidden parameters }
                      handle_calling_convention(readprocdef);
-                     calc_parast(readprocdef);
                      { search procdefs matching readprocdef }
                      { we ignore hidden stuff here because the property access symbol might have
                        non default calling conventions which might change the hidden stuff;
@@ -443,7 +442,6 @@ implementation
                      writeprocdef.parast.insert(hparavs);
                      { Insert hidden parameters }
                      handle_calling_convention(writeprocdef);
-                     calc_parast(writeprocdef);
                      { search procdefs matching writeprocdef }
                      p.writeaccess.procdef:=Tprocsym(sym).search_procdef_bypara(writeprocdef.paras,writeprocdef.rettype.def,[cpo_allowdefaults,cpo_allowconvert]);
                      if not assigned(p.writeaccess.procdef) then
@@ -962,7 +960,6 @@ implementation
                        begin
                          { Add calling convention for procvar }
                          handle_calling_convention(tprocvardef(tt.def));
-                         calc_parast(tprocvardef(tt.def));
                        end;
                      read_default_value(sc,tt,is_threadvar);
                      { for locals we've created typedconstsym with a different name }
@@ -989,7 +986,6 @@ implementation
                    end;
                  { Add calling convention for procvar }
                  handle_calling_convention(tprocvardef(tt.def));
-                 calc_parast(tprocvardef(tt.def));
                  { Handling of Delphi typed const = initialized vars }
                  if (token=_EQUAL) and
                     not(is_record or is_object) and
@@ -1310,7 +1306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2004-11-15 23:35:31  peter
+  Revision 1.85  2004-11-16 20:32:40  peter
+  * fixes for win32 mangledname
+
+  Revision 1.84  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

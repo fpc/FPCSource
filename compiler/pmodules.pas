@@ -798,7 +798,7 @@ implementation
         pd.forwarddef:=false;
         pd.setmangledname(target_info.cprefix+name);
         pd.aliasnames.insert(pd.mangledname);
-        calc_parast(pd);
+        handle_calling_convention(pd);
         { We don't need is a local symtable. Change it into the static
           symtable }
         pd.localst.free;
@@ -1521,7 +1521,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.174  2004-11-15 23:35:31  peter
+  Revision 1.175  2004-11-16 20:32:40  peter
+  * fixes for win32 mangledname
+
+  Revision 1.174  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

@@ -297,7 +297,7 @@ $(addsuffix _clean,$(CYCLETARGETS)):
         -$(DEL) $(addprefix $(subst _clean,,$@)/,*$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT))
         -$(DEL) $(addprefix $(subst _clean,,$@)/,ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcppc$(EXEEXT) $(EXENAME))
 
-cycleclean: cleanall
+cycleclean: cleanall $(addsuffix _clean,$(PPC_TARGET))
         -$(DEL) $(EXENAME)
 
 clean: tempclean execlean cleanall $(addsuffix _clean,$(PPC_TARGET)) $(addsuffix _clean,$(TARGET_DIRS))
