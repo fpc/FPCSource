@@ -586,7 +586,7 @@ interface
 
         { emit overflow check if enabled }
         if checkoverflow then
-           cg.g_overflowcheck(exprasmlist,self);
+           cg.g_overflowcheck(exprasmlist,Location,ResultType.Def);
 
       end;
 
@@ -741,7 +741,7 @@ interface
 
         { emit overflow check if required }
         if checkoverflow then
-         cg.g_overflowcheck(exprasmlist,self);
+         cg.g_overflowcheck(exprasmlist,Location,ResultType.Def);
       end;
 
 
@@ -797,7 +797,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2003-06-01 21:38:06  peter
+  Revision 1.12  2003-06-10 20:46:17  mazen
+  * fixing a general compile problem related to
+    cg.g_overflowcheck declaration that has
+    changed
+
+  Revision 1.11  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates
