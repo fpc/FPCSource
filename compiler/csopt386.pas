@@ -39,7 +39,7 @@ Procedure CSE(AsmL: PAasmOutput; First, Last: Pai);
 Implementation
 
 Uses
-  CObjects, verbose, hcodegen, globals,cpubase,cpuasm,DAOpt386;
+  CObjects, verbose, hcodegen, globals,cpubase,cpuasm,DAOpt386, tgeni386;
 
 {
 Function PaiInSequence(P: Pai; Const Seq: TContent): Boolean;
@@ -220,7 +220,8 @@ Procedure AllocRegBetween(AsmL: PAasmOutput; Reg: TRegister; p1, p2: Pai);
 { the type of p1 and p2 must not be in SkipInstr                        }
 var hp: pai;
 Begin
-  If not(assigned(p1)) Then
+  If not(reg in usableregs) or
+     not(assigned(p1)) Then
     { this happens with registers which are loaded implicitely, outside the }
     { current block (e.g. esi with self)                                    }
     exit;
@@ -229,10 +230,12 @@ Begin
       Include(PPaiProp(p1^.OptInfo)^.UsedRegs,Reg);
     p1 := Pai(p1^.next);
     Repeat
-      While (p1^.typ in (SkipInstr-[ait_regalloc])) Do
+      While assigned(p1) and
+            (p1^.typ in (SkipInstr-[ait_regalloc])) Do
         p1 := Pai(p1^.next);
 { remove all allocation/deallocation info about the register in between }
-      If (p1^.typ = ait_regalloc) Then
+      If assigned(p1) and
+         (p1^.typ = ait_regalloc) Then
         If (PaiRegAlloc(p1)^.Reg = Reg) Then
           Begin
             hp := Pai(p1^.Next);
@@ -241,8 +244,10 @@ Begin
             p1 := hp;
           End
         Else p1 := Pai(p1^.next);
-    Until Not(p1^.typ in SkipInstr);
-  Until p1 = p2;
+    Until not(assigned(p1)) or
+          Not(p1^.typ in SkipInstr);
+  Until not(assigned(p1)) or
+        (p1 = p2);
 End;
 
 Procedure SetAlignReg(p: Pai);
@@ -673,12 +678,15 @@ begin
 end;
 
 function ReplaceReg(orgReg, newReg: TRegister; p: pai;
-           const c: TContent; orgRegCanBeModified: Boolean): Boolean;
+           const c: TContent; orgRegCanBeModified: Boolean;
+           var returnEndP: pai): Boolean;
 { Tries to replace orgreg with newreg in all instructions coming after p }
 { until orgreg gets loaded with a new value. Returns true if successful, }
 { false otherwise. If successful, the contents of newReg are set to c,   }
 { which should hold the contents of newReg before the current sequence   }
 { started                                                                }
+{ if the functino returns true, returnEndP holds the lat instruction     }
+{ where newReg was replaced by orgReg                                    }
 var endP, hp: Pai;
     sequenceEnd, tmpResult, newRegModified, orgRegRead: Boolean;
 begin
@@ -767,6 +775,7 @@ begin
         hp^.next^.previous := hp;
 {$endif replaceregdebug}
       ReplaceReg := true;
+      returnEndP := endP;
       hp := p;
       while hp <> endP do
         begin
@@ -861,10 +870,7 @@ Procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai);
  two different sequences}
 Var Cnt, Cnt2: Longint;
     p, hp1, hp2: Pai;
-    hp3, hp4: Pai;
-{$ifdef csdebug}
-    hp5: pai;
-{$endif csdebug}
+    hp3, hp4, hp5: pai;
     RegInfo: TRegInfo;
     RegCounter: TRegister;
     TmpState: Byte;
@@ -963,7 +969,7 @@ Begin
                                              getLastInstruction(p,hp3);
                                              If not ReplaceReg(RegInfo.New2OldReg[RegCounter],
                                                       regCounter,hp3,
-                                                      PPaiProp(hp4^.optInfo)^.Regs[regCounter],true) then
+                                                      PPaiProp(hp4^.optInfo)^.Regs[regCounter],true,hp5) then
                                                begin
 {$endif replacereg}
                                                  hp3 := New(Paicpu,Op_Reg_Reg(A_MOV, S_L,
@@ -1081,8 +1087,13 @@ Begin
                             top_Reg:
                               if ReplaceReg(paicpu(p)^.oper[0].reg,
                                    paicpu(p)^.oper[1].reg,p,
-                                   PPaiProp(hp4^.optInfo)^.Regs[regCounter],false) then
-                                PPaiProp(p^.optInfo)^.canBeRemoved := true;
+                                   PPaiProp(hp4^.optInfo)^.Regs[regCounter],false,hp1) then
+                                begin
+                                  PPaiProp(p^.optInfo)^.canBeRemoved := true;
+                                  allocRegBetween(asmL,paicpu(p)^.oper[0].reg,
+                                    PPaiProp(p^.optInfo)^.regs[paicpu(p)^.oper[0].reg].startMod,
+                                    hp1);
+                                end;
                           end
                         end;
 {$endif replacereg}
@@ -1091,18 +1102,26 @@ Begin
                         Case Paicpu(p)^.oper[1].typ Of
                           Top_Reg:
                             Begin
+                              regCounter := Reg32(Paicpu(p)^.oper[1].reg);
                               If GetLastInstruction(p, hp1) Then
-                                With PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Paicpu(p)^.oper[1].reg)] Do
+                                With PPaiProp(hp1^.OptInfo)^.Regs[regCounter] Do
                                   If (Typ = Con_Const) And
                                      (paicpu(startMod)^.opsize >= paicpu(p)^.opsize) and
                                      (paicpu(StartMod)^.oper[0].val = paicpu(p)^.oper[0].val) Then
-                                    PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
+                                    begin
+                                      PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
+                                      allocRegBetween(asmL,regCounter,startMod,p);
+                                    end;
                             End;
 {$ifdef arithopt}
                           Top_Ref:
                             if getLastInstruction(p,hp1) and
                                findRegWithConst(hp1,paicpu(p)^.opsize,paicpu(p)^.oper[0].val,regCounter) then
-                              paicpu(p)^.loadreg(0,regCounter);
+                              begin
+                                paicpu(p)^.loadreg(0,regCounter);
+                                allocRegBetween(AsmL,reg32(regCounter),
+                                  PPaiProp(hp1^.optinfo)^.regs[regCounter].startMod,p);
+                              end;
 {$endif arithopt}
                         End;
                       End;
@@ -1171,7 +1190,12 @@ End.
 
 {
  $Log$
- Revision 1.42  2000-01-28 15:15:31  jonas
+ Revision 1.43  2000-02-04 13:52:17  jonas
+   * better support for regvars (still needs a move of the call to the optimize
+   procedure to a place where resetusableregisters is not yet called to work)
+   * small regallocation fixes for -dnewoptimizations
+
+ Revision 1.42  2000/01/28 15:15:31  jonas
     * moved skipinstr from daopt386 to aasm
     * fixed crashing bug with -dreplacereg in csopt386.pas
 

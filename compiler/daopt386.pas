@@ -212,7 +212,7 @@ Var
 Implementation
 
 Uses
-  globals, systems, strings, verbose, hcodegen, symconst;
+  globals, systems, strings, verbose, hcodegen, symconst, tgeni386;
 
 Type
   TRefCompare = function(const r1, r2: TReference): Boolean;
@@ -396,7 +396,8 @@ begin
     end;
 end;
 
-procedure getFuncResRegs(var regs: TRegSet);
+procedure getNoDeallocRegs(var regs: TRegSet);
+var regCounter: TRegister;
 begin
   regs := [];
   if assigned(procinfo^.returntype.def) then
@@ -414,7 +415,10 @@ begin
             if procinfo^.returntype.def^.size = 8 then
               regs := regs + [R_EDX];
           end;
-    end
+    end;
+  for regCounter := R_EAX to R_EBX do
+    if not(regCounter in usableregs) then
+      regs := regs + [regCounter];
 end;
 
 Procedure AddRegDeallocFor(asmL: paasmOutput; reg: TRegister; p: pai);
@@ -422,7 +426,10 @@ var hp1: pai;
     funcResRegs: TRegset;
     funcResReg: boolean;
 begin
-  getFuncResRegs(funcResRegs);
+  if not(reg in usableregs) then
+    exit;
+  getNoDeallocRegs(funcResRegs);
+  funcResRegs := funcResRegs - usableregs;
   funcResReg := reg in funcResRegs;
   hp1 := p;
   while not(funcResReg and
@@ -434,7 +441,8 @@ begin
     hp1 := p;
   { don't insert a dealloc for registers which contain the function result }
   { if they are followed by a jump to the exit label (for exit(...))       }
-  if not((hp1^.typ = ait_instruction) and
+  if not(funcResReg) or
+     not((hp1^.typ = ait_instruction) and
          (paicpu(hp1)^.opcode = A_JMP) and
          (pasmlabel(paicpu(hp1)^.oper[0].sym) = aktexit2label)) then
     begin
@@ -449,7 +457,7 @@ Procedure BuildLabelTableAndFixRegAlloc(asmL: PAasmOutput; Var LabelTable: PLabe
  Also fixes some RegDeallocs like "# %eax released; push (%eax)"}
 Var p, hp1, hp2, lastP: Pai;
     regCounter: TRegister;
-    UsedRegs, funcResRegs: TRegSet;
+    UsedRegs, noDeallocRegs: TRegSet;
 Begin
   UsedRegs := [];
   If (LabelDif <> 0) Then
@@ -510,9 +518,9 @@ Begin
       until not(Assigned(p)) or
             not(p^.typ in (SkipInstr - [ait_regalloc]));
     End;
-  { don't add deallocation for function result variable }
-  getFuncResRegs(funcResRegs);
-  usedRegs := usedRegs - funcResRegs;
+  { don't add deallocation for function result variable or for regvars}
+  getNoDeallocRegs(noDeallocRegs);
+  usedRegs := usedRegs - noDeallocRegs;
   for regCounter := R_EAX to R_EDI do
     if regCounter in usedRegs then
       addRegDeallocFor(asmL,regCounter,lastP);
@@ -2121,7 +2129,12 @@ End.
 
 {
  $Log$
- Revision 1.80  2000-01-28 15:15:31  jonas
+ Revision 1.81  2000-02-04 13:52:17  jonas
+   * better support for regvars (still needs a move of the call to the optimize
+   procedure to a place where resetusableregisters is not yet called to work)
+   * small regallocation fixes for -dnewoptimizations
+
+ Revision 1.80  2000/01/28 15:15:31  jonas
     * moved skipinstr from daopt386 to aasm
     * fixed crashing bug with -dreplacereg in csopt386.pas
 
