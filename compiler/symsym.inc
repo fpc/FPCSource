@@ -602,9 +602,15 @@
          index:=readlong;
          default:=readlong;
          { it's hack ... }
+{$ifdef oldpropppu}
          readaccesssym:=psym(stringdup(readstring));
          writeaccesssym:=psym(stringdup(readstring));
          storedsym:=psym(stringdup(readstring));
+{$else oldpropppu}
+         readaccesssym:=readsymref;
+         writeaccesssym:=readsymref;
+         storedsym:=readsymref;
+{$endif oldpropppu}
          { now the defs: }
          readaccessdef:=readdefref;
          writeaccessdef:=readdefref;
@@ -618,6 +624,8 @@
          resolvedef(readaccessdef);
          resolvedef(writeaccessdef);
          resolvedef(storeddef);
+{$ifdef oldpropppu}
+
          { solve the hack we did in load: }
          if pstring(readaccesssym)^<>'' then
            begin
@@ -651,6 +659,11 @@
            srsym:=nil;
          stringdispose(pstring(storedsym));
          storedsym:=srsym;
+{$else oldpropppu}
+         resolvesym(readaccesssym);
+         resolvesym(writeaccesssym);
+         resolvesym(storedsym);
+{$endif oldpropppu}
       end;
 
     function tpropertysym.getsize : longint;
@@ -667,6 +680,7 @@
          writelong(options);
          writelong(index);
          writelong(default);
+{$ifdef oldpropppu}
          if assigned(readaccesssym) then
            writestring(readaccesssym^.name)
          else
@@ -679,6 +693,11 @@
            writestring(storedsym^.name)
          else
            writestring('');
+{$else oldpropppu}
+         writesymref(readaccesssym);
+         writesymref(writeaccesssym);
+         writesymref(storedsym);
+{$endif oldpropppu}
          writedefref(readaccessdef);
          writedefref(writeaccessdef);
          writedefref(storeddef);
@@ -974,7 +993,7 @@
           writelong(address);
          writedefref(definition);
          { symbols which are load are never candidates for a register,
-           turn of the regable }
+           turn off the regable }
          writebyte(var_options and (not vo_regable));
          if (var_options and vo_is_C_var)<>0 then
             writestring(mangledname);
@@ -2019,7 +2038,13 @@
 
 {
   $Log$
-  Revision 1.94.2.2  1999-06-28 10:32:29  pierre
+  Revision 1.94.2.3  1999-07-05 12:30:24  peter
+    * merged fix from mainbranch
+
+  Revision 1.97  1999/07/05 12:13:25  florian
+    * property reading from PPU fixed (new PPU format), it uses now writesym...
+
+  Revision 1.94.2.2  1999/06/28 10:32:29  pierre
    * fixes bug453
 
   Revision 1.94.2.1  1999/06/22 16:26:45  pierre
