@@ -1,0 +1,718 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 2000 by Florian Klaempfl
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA.
+%
+\chapter{The MATH unit}
+\FPCexampledir{mathex}
+
+This chapter describes the \file{math} unit. The \var{math} unit
+was initially written by Florian Klaempfl. It provides mathematical
+functions which aren't covered by the system unit.
+
+This chapter starts out with a definition of all types and constants
+that are defined, followed by a complete explanation of each function.
+{\em Remark} This unit is compiled in Object Pascal mode so all
+\var{integers} are 32 bit.
+
+\section{Constants and types}
+
+The following types are defined in the \file{math} unit:
+\begin{verbatim}
+Type
+   Float = Extended;
+\end{verbatim}
+
+\begin{verbatim}
+Type
+   TPaymentTime = (PTEndOfPeriod,PTStartOfPeriod);
+\end{verbatim}
+
+\begin{verbatim}
+Type
+   EInvalidArgument = Class(EMathError);
+\end{verbatim}
+
+\section{Functions and Procedures}
+
+\begin{function}{arccos}
+\Declaration
+Function arccos(x : float) : float;
+\Description
+\var{Arccos} returns the inverse cosine of its argument \var{x}. The
+argument \var{x} should lie between -1 and 1 (borders included). 
+\Errors
+If the argument \var{x} is not in the allowed range, an \var{EMathError}
+exception is raised.
+\SeeAlso
+\seef{arcsin}, \seef{arcosh}, \seef{arsinh}, \seef{arctanh}
+\end{function}
+
+\FPCexample{ex1}
+
+\begin{function}{arcosh}
+\Declaration
+Function arcosh(x : float) : float;
+Function arccosh(x : float) : float;
+\Description
+\var{Arcosh} returns the inverse hyperbolic cosine of its argument \var{x}. 
+The argument \var{x} should be larger than 1. 
+
+The \var{arccosh} variant of this function is supplied for \delphi 
+compatibility.
+\Errors
+If the argument \var{x} is not in the allowed range, an \var{EMathError}
+exception is raised.
+\SeeAlso
+\seef{cosh}, \seef{sinh}, \seef{arcsin}, \seef{arcsinh}, \seef{arctanh},
+\seef{tanh}
+\end{function}
+
+\FPCexample{ex3}
+
+\begin{function}{arcsin}
+\Declaration
+Function arcsin(x : float) : float;
+\Description
+\var{Arcsin} returns the inverse sine of its argument \var{x}. The
+argument \var{x} should lie between -1 and 1. 
+\Errors
+If the argument \var{x} is not in the allowed range, an \var{EMathError}
+exception is raised.
+\SeeAlso
+\seef{arccos}, \seef{arccosh}, \seef{arcsinh}, \seef{arctanh}
+\end{function}
+
+\FPCexample{ex2}
+
+
+\begin{function}{arcsinh}
+\Declaration
+Function arcsinh(x : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{arctan2}
+\Declaration
+Function arctan2(x,y : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{arctanh}
+\Declaration
+Function arctanh(x : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{arsinh}
+\Declaration
+Function arsinh(x : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{artanh}
+\Declaration
+Function artanh(x : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{ceil}
+\Declaration
+Function ceil(x : float) : longint;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{cosh}
+\Declaration
+Function cosh(x : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{cotan}
+\Declaration
+Function cotan(x : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{cycletorad}
+\Declaration
+Function cycletorad(cycle : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{degtograd}
+\Declaration
+Function degtograd(deg : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{degtorad}
+\Declaration
+Function degtorad(deg : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{floor}
+\Declaration
+Function floor(x : float) : longint;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{procedure}{frexp}
+\Declaration
+Procedure frexp(x : float;var mantissa,exponent : float);
+\Description
+
+\Errors
+\SeeAlso
+\end{procedure}
+
+\FPCexample{}
+
+
+\begin{function}{gradtodeg}
+\Declaration
+Function gradtodeg(grad : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{gradtorad}
+\Declaration
+Function gradtorad(grad : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{hypot}
+\Declaration
+Function hypot(x,y : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{intpower}
+\Declaration
+Function intpower(base : float;exponent : longint) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{ldexp}
+\Declaration
+Function ldexp(x : float;p : longint) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{lnxpi}
+\Declaration
+Function lnxpi(x : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{log10}
+\Declaration
+Function log10(x : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{log2}
+\Declaration
+Function log2(x : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{logn}
+\Declaration
+Function logn(n,x : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+  var m1,m2,m3,m4,skew,kurtosis : float);
+\begin{function}{max}
+\Declaration
+Function max(Int1,Int2:Cardinal):Cardinal;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{max}
+\Declaration
+Function max(Int1,Int2:Integer):Integer;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{maxIntValue}
+\Declaration
+Function maxIntValue(const Data: array of Integer): Integer;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{maxvalue}
+\Declaration
+Function maxvalue(const data : array of float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{mean}
+\Declaration
+Function mean(const data : array of float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+  var mean,stddev : float);
+\begin{procedure}{meanandstddev}
+\Declaration
+Procedure meanandstddev(const data : array of float;
+\Description
+
+\Errors
+\SeeAlso
+\end{procedure}
+
+\FPCexample{}
+
+
+\begin{function}{min}
+\Declaration
+Function min(Int1,Int2:Cardinal):Cardinal;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{min}
+\Declaration
+Function min(Int1,Int2:Integer):Integer;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{minIntValue}
+\Declaration
+Function minIntValue(const Data: array of Integer): Integer;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{minvalue}
+\Declaration
+Function minvalue(const data : array of float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{procedure}{momentskewkurtosis}
+\Declaration
+Procedure momentskewkurtosis(const data : array of float;
+\Description
+
+\Errors
+\SeeAlso
+\end{procedure}
+
+\FPCexample{}
+
+
+\begin{function}{norm}
+\Declaration
+Function norm(const data : array of float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{popnstddev}
+\Declaration
+Function popnstddev(const data : array of float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{popnvariance}
+\Declaration
+Function popnvariance(const data : array of float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{power}
+\Declaration
+Function power(base,exponent : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{radtocycle}
+\Declaration
+Function radtocycle(rad : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{radtodeg}
+\Declaration
+Function radtodeg(rad : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{radtograd}
+\Declaration
+Function radtograd(rad : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{randg}
+\Declaration
+Function randg(mean,stddev : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{procedure}{sincos}
+\Declaration
+Procedure sincos(theta : float;var sinus,cosinus : float);
+\Description
+
+\Errors
+\SeeAlso
+\end{procedure}
+
+\FPCexample{}
+
+
+\begin{function}{sinh}
+\Declaration
+Function sinh(x : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{stddev}
+\Declaration
+Function stddev(const data : array of float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{sum}
+\Declaration
+Function sum(const data : array of float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+  var sum,sumofsquares : float);
+\begin{function}{sumofsquares}
+\Declaration
+Function sumofsquares(const data : array of float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{procedure}{sumsandsquares}
+\Declaration
+Procedure sumsandsquares(const data : array of float;
+\Description
+
+\Errors
+\SeeAlso
+\end{procedure}
+
+\FPCexample{}
+
+
+\begin{function}{tan}
+\Declaration
+Function tan(x : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{tanh}
+\Declaration
+Function tanh(x : float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{totalvariance}
+\Declaration
+Function totalvariance(const data : array of float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
+\begin{function}{variance}
+\Declaration
+Function variance(const data : array of float) : float;
+\Description
+
+\Errors
+\SeeAlso
+\end{function}
+
+\FPCexample{}
+
+
