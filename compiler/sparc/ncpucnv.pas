@@ -236,13 +236,13 @@ implementation
             internalerror(200110012);
          end;
          tempreg := cg.get_scratch_reg_int(exprasmlist);
-         {$WARNING FIXME what reallty should be done?}
-         exprasmlist.concat(taicpu.op_reg_const_reg(A_OR,S_L,tempreg,$4330,tempreg));
+         {$WARNING FIXME what really should be done?}
+         exprasmlist.concat(taicpu.op_reg_const_reg(A_OR,tempreg,$4330,tempreg));
          cg.a_load_reg_ref(exprasmlist,OS_32,tempreg,ref);
          cg.free_scratch_reg(exprasmlist,tempreg);
          if signed then
-         {$WARNING FIXME what reallty should be done?}
-           exprasmlist.concat(taicpu.op_reg_const_reg(A_XOR,S_L,leftreg,$8000,valuereg));
+         {$WARNING FIXME what really should be done?}
+           exprasmlist.concat(taicpu.op_reg_const_reg(A_XOR,leftreg,$8000,valuereg));
          inc(ref.offset,4);
          cg.a_load_reg_ref(exprasmlist,OS_32,valuereg,ref);
          dec(ref.offset,4);
@@ -262,7 +262,7 @@ implementation
          tempconst.free;
 
          location.register := rg.getregisterfpu(exprasmlist);
-         {$WARNING FIXME what reallty should be done?}
+         {$WARNING FIXME what really should be done?}
          exprasmlist.concat(taicpu.op_reg_ref(A_LD,location.register,ref));
 
          tg.ungetiftemp(exprasmlist,ref);
@@ -273,7 +273,7 @@ implementation
 
          { work around bug in some PowerPC processors }
          if (tfloatdef(resulttype.def).typ = s32real) then
-         {$WARNING FIXME what reallty should be done?}
+         {$WARNING FIXME what really should be done?}
            exprasmlist.concat(taicpu.op_reg_reg(A_ADD,location.register,location.register));
        end;
 
@@ -285,7 +285,7 @@ implementation
           { properly converted to singles                                   }
           if (tfloatdef(left.resulttype.def).typ = s64real) and
              (tfloatdef(resulttype.def).typ = s32real) then
-         {$WARNING FIXME what reallty should be done?}
+         {$WARNING FIXME what really should be done?}
             exprasmlist.concat(taicpu.op_reg_reg(A_ADD,location.register,location.register));
        end;
 
@@ -323,7 +323,7 @@ implementation
                 else
                   hreg2 := left.location.register;
                 hreg1 := rg.getregisterint(exprasmlist);
-                exprasmlist.concat(taicpu.op_reg_const_reg(A_SUB,S_L,hreg1,1,
+                exprasmlist.concat(taicpu.op_reg_const_reg(A_SUB,hreg1,1,
                   hreg2));
                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,hreg1,hreg1,hreg2));
                 rg.ungetregister(exprasmlist,hreg2);
@@ -420,7 +420,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-11-06 11:31:24  mazen
+  Revision 1.7  2002-11-10 19:07:46  mazen
+  * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
+
+  Revision 1.6  2002/11/06 11:31:24  mazen
   * op_reg_reg_reg don't need any more a TOpSize parameter
 
   Revision 1.5  2002/10/22 13:43:01  mazen

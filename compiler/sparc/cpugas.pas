@@ -160,7 +160,6 @@ procedure TGasSPARC.WriteInstruction(hp:Tai);
 		if hp.typ<>ait_instruction
 		then
 			Exit;
-		taicpu(hp).SetOperandOrder(op_att);
 		op:=taicpu(hp).opcode;
 	 {call maybe not translated to call}
 		s:=#9+std_op2str[op]+cond2str[taicpu(hp).condition];
@@ -210,7 +209,10 @@ initialization
 end.
 {
     $Log$
-    Revision 1.8  2002-10-25 19:37:53  mazen
+    Revision 1.9  2002-11-10 19:07:46  mazen
+    * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
+
+    Revision 1.8  2002/10/25 19:37:53  mazen
     * bug of references name missing last character fixed
 
     Revision 1.7  2002/10/20 19:01:38  mazen

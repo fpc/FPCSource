@@ -122,7 +122,7 @@ procedure TSparcAddNode.left_must_be_reg(OpSize:TOpSize;NoSwap:Boolean);
       begin
 {maybe we can reuse a constant register when the operation is a comparison that
 doesn't change the value of the register}
-        location_force_reg(exprasmlist,left.location,opsize_2_cgsize[opsize],(nodetype IN [ltn,lten,gtn,gten,equaln,unequaln]));
+        location_force_reg(exprasmlist,left.location,opsize_2_cgsize[opsize],(nodetype in [ltn,lten,gtn,gten,equaln,unequaln]));
       end;
   end;
 procedure TSparcAddNode.emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extra_not,mboverflow:Boolean);
@@ -181,9 +181,10 @@ procedure TSparcAddNode.emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extr
               end
             ELSE IF(op=A_ADD)AND(right.location.loc=LOC_CONSTANT)AND(right.location.value=1)AND NOT(cs_check_overflow in aktlocalswitches)
             THEN
-              begin
-                emit_reg(A_INC,opsize,left.location.register);
-              end
+              with ExprAsmList,left.location do
+                begin
+                  concat(TAiCpu.op_reg_const_reg(A_ADD,register,1,register));
+                end
             ELSE IF(op=A_SUB)AND(right.location.loc=LOC_CONSTANT)AND(right.location.value=1)AND NOT(cs_check_overflow in aktlocalswitches)
             THEN
               begin
@@ -236,14 +237,17 @@ procedure TSparcAddNode.emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extr
 procedure TSparcAddNode.emit_op_right_left(op:TAsmOp);
   begin
     {left must be a register}
-    with exprasmlist do
-      case right.location.loc of
+    with left,location,exprasmlist do
+      case Right.Location.Loc of
         LOC_REGISTER,LOC_CREGISTER:
-          concat(taicpu.op_reg_reg_reg(op,right.location.register,left.location.register,left.location.register));
+          concat(taicpu.op_reg_reg_reg(op,Register,Right.Location.register,register));
         LOC_REFERENCE,LOC_CREFERENCE :
-          concat(taicpu.op_reg_ref_reg(op,S_W,left.location.register,right.location.reference,left.location.register));
+          begin
+            location_force_reg(exprasmlist,Right.Location,OS_32,(nodetype in [ltn,lten,gtn,gten,equaln,unequaln]));
+            concat(taicpu.op_reg_reg_reg(op,register,Right.Location.register,register));
+          end;
         LOC_CONSTANT:
-          concat(taicpu.op_reg_const_reg(op,S_W,left.location.register,right.location.value,left.location.register));
+          concat(taicpu.op_reg_const_reg(op,register,Right.Location.value,register));
         else
           InternalError(200203232);
       end;
@@ -404,7 +408,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.8  2002-11-06 15:34:00  mazen
+    Revision 1.9  2002-11-10 19:07:46  mazen
+    * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
+
+    Revision 1.8  2002/11/06 15:34:00  mazen
     *** empty log message ***
 
     Revision 1.7  2002/11/06 11:31:24  mazen

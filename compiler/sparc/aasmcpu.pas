@@ -31,7 +31,6 @@ uses
 const
   MaxPrefixes=4;
 type
-  TOperandOrder=(op_intel,op_att);
   { alignment for operator }
   tai_align=class(tai_align_abstract)
  reg:tregister;
@@ -46,15 +45,13 @@ type
     constructor op_const(op:tasmop;_op1:aword);
     constructor op_ref(op:tasmop;const _op1:treference);
     constructor op_reg_reg(op:tasmop;_op1,_op2:tregister);
-    constructor op_reg_ref(op:tasmop;_op1:tregister;const _op2:treference);
+    constructor op_reg_ref(Op:TAsmOp;Reg:TRegister;const Ref:TReference);
     constructor op_reg_const(op:tasmop;_op1:tregister;_op2:aword);
     constructor op_const_reg(op:tasmop;_op1:aword;_op2:tregister);
-    constructor op_ref_reg(op:tasmop;const _op1:treference;_op2:tregister);
- { this is only allowed if _op1 is an int value (_op1^.isintvalue=true) }
- constructor op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference);
- constructor op_reg_reg_reg(op:tasmop;_op1,_op2,_op3:tregister);
- constructor op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:aWord;_op3:tregister);
- constructor op_reg_ref_reg(op:tasmop;_size:topsize;_op1:tregister;const _op2:treference;_op3:TRegister);
+    constructor op_ref_reg(Op:TAsmOp;const Ref:TReference;Reg:TRegister);
+    constructor op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference);
+    constructor op_reg_reg_reg(op:tasmop;_op1,_op2,_op3:tregister);
+    constructor op_reg_const_reg(Op:TAsmOp;SrcReg:TRegister;value:aWord;DstReg:TRegister);
  constructor op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op2:treference;_op3:tregister);
  constructor op_const_reg_ref(op:tasmop;_size:topsize;_op1:aword;_op2:tregister;const _op3:treference);
 
@@ -72,7 +69,6 @@ type
   procedure loadcaddr(opidx:longint;aReg:TRegister;cnst:Integer);
   procedure loadraddr(opidx:longint;rg1,rg2:TRegister);
   private
- FOperandOrder:TOperandOrder;
  procedure init(_size:topsize);{this need to be called by all constructor}
  public
      { the next will reset all instructions that can change in pass 2 }
@@ -80,7 +76,6 @@ type
      procedure ResetPass2;
      function  CheckIfValid:boolean;
      function  Pass1(offset:longint):longint;virtual;
-     procedure SetOperandOrder(order:TOperandOrder);
   private
      { next fields are filled in pass1, so pass2 is faster }
      insentry  : PInsEntry;
@@ -153,10 +148,7 @@ procedure taicpu.changeopsize(siz:topsize);
   end;
 procedure taicpu.init(_size:topsize);
   begin
-     { default order is att }
-     FOperandOrder:=op_att;
-     {segprefix:=R_NONE;}{This may be only for I386 architecture!}
-     opsize:=_size;
+    opsize:=_size;
   end;
 constructor taicpu.op_none(op:tasmop);
   begin
@@ -200,13 +192,16 @@ constructor taicpu.op_reg_const(op:tasmop;_op1:tregister; _op2:aword);
      loadreg(0,_op1);
      loadconst(1,_op2);
   end;
-constructor taicpu.op_reg_ref(op:tasmop;_op1:tregister;const _op2:treference);
+constructor taicpu.op_reg_ref(Op:TAsmOp;Reg:TRegister;const Ref:TReference);
   begin
-     inherited create(op);
-     init(_size);
-     ops:=2;
-     loadreg(0,_op1);
-     loadref(1,_op2);
+    if not(Op in [A_STB..A_STDFQ])
+    then
+      fail;
+    inherited Create(Op);
+    init(_size);
+    ops:=2;
+    LoadReg(0,Reg);
+    LoadRef(1,Ref);
   end;
 constructor taicpu.op_const_reg(op:tasmop;_op1:aword;_op2:tregister);
   begin
@@ -216,13 +211,16 @@ constructor taicpu.op_const_reg(op:tasmop;_op1:aword;_op2:tregister);
      loadconst(0,_op1);
      loadreg(1,_op2);
   end;
-constructor taicpu.op_ref_reg(op:tasmop;const _op1:treference;_op2:tregister);
+constructor TAiCpu.op_ref_reg(Op:TAsmOp;const Ref:TReference;Reg:TRegister);
 	begin
-		inherited create(op);
-		init(S_SW);
-		ops:=2;
-		loadref(0,_op1);
-		loadreg(1,_op2);
+    if not(Op in [A_JMPL,A_FLUSH,A_LDSB..A_LDDC,A_RETT,A_SWAP])
+    then
+      fail;
+		inherited Create(Op);
+		Init(S_SW);
+		Ops:=2;
+		LoadRef(0,Ref);
+		LoadReg(1,Reg);
 	end;
 constructor taicpu.op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference);
   begin
@@ -241,23 +239,14 @@ constructor taicpu.op_reg_reg_reg(op:tasmop;_op1,_op2,_op3:tregister);
      loadreg(1,_op2);
      loadreg(2,_op3);
   end;
-CONSTRUCTOR taicpu.op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:aWord;_op3:TRegister);
-  BEGIN
-INHERITED create(op);
-init(_size);
-ops:=3;
-LoadReg(0,_op1);
-LoadConst(1,_op2);
-LoadReg(2,_op3);
-  END;
-constructor taicpu.op_reg_ref_reg(op:tasmop;_size:topsize;_op1:tregister;const _op2:treference;_op3:tregister);
+constructor taicpu.op_reg_const_reg(op:TAsmOp;SrcReg:TRegister;Value:aWord;DstReg:TRegister);
   begin
-    inherited create(op);
-    init(_size);
+    inherited Create(Op);
+    Init(S_W);
     ops:=3;
-    LoadReg(0,_op1);
-    LoadRef(1,_op2);
-    LoadReg(2,_op3);
+    LoadReg(0,SrcReg);
+    LoadConst(1,Value);
+    LoadReg(2,DstReg);
   end;
 constructor taicpu.op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op2:treference;_op3:tregister);
   begin
@@ -421,18 +410,6 @@ procedure taicpu.Swatoperands;
           end;
     end;
   end;
-
-
-procedure taicpu.SetOperandOrder(order:TOperandOrder);
-  begin
-    if FOperandOrder<>order then
-     begin
-       Swatoperands;
-       FOperandOrder:=order;
-     end;
-  end;
-
-
 { This check must be done with the operand in ATT order
   i.e.after swapping in the intel reader
   but before swapping in the NASM and TASM writers PM }
@@ -711,8 +688,6 @@ begin
   optimize }
   if (Insentry=nil) or ((InsEntry^.flags and IF_PASS2)<>0) then
    begin
- { We need intel style operands }
- SetOperandOrder(op_intel);
  { create the .ot fields }
  create_ot;
  { set the file postion }
@@ -1138,7 +1113,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.11  2002-11-06 11:31:24  mazen
+    Revision 1.12  2002-11-10 19:07:46  mazen
+    * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
+
+    Revision 1.11  2002/11/06 11:31:24  mazen
     * op_reg_reg_reg don't need any more a TOpSize parameter
 
     Revision 1.10  2002/11/05 16:15:00  mazen

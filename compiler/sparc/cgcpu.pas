@@ -28,7 +28,6 @@ USES
   node,symconst;
 TYPE
   tcgSPARC=CLASS(tcg)
-    FreeParamRegSet:TRegisterSet;
 {This method is used to pass a parameter, which is located in a register, to a
 routine. It should give the parameter to the routine, as required by the
 specific processor ABI. It is overriden for each CPU target.
@@ -212,7 +211,7 @@ procedure tcgSPARC.a_load_const_reg(list:TAasmOutput;size:TCGSize;a:aword;reg:TR
     WITH List DO
       IF a<>0
       THEN{R_G0 is usually set to zero, so we use it}
-        Concat(taicpu.op_reg_const_reg(A_OR,TCGSize2OpSize[size],R_G0,a,reg))
+        Concat(taicpu.op_reg_const_reg(A_OR,R_G0,a,reg))
       ELSE{The is no A_MOV in sparc, that's why we use A_OR with help of R_G0}
         Concat(taicpu.op_reg_reg_reg(A_OR,R_G0,R_G0,reg));
   END;
@@ -668,7 +667,7 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
                  ispowerof2(a,power) then
                 { can be done with a shift }
                 inherited a_op_const_reg_reg(list,op,size,a,src,dst);
-              list.concat(taicpu.op_reg_const_reg(A_SMUL,S_SW,src,a,dst));
+              list.concat(taicpu.op_reg_const_reg(A_SMUL,src,a,dst));
             end;
           OP_ADD, OP_SUB:
             if (a = 0) then
@@ -822,7 +821,7 @@ stack frame. In the "SAVE %i6,size,%i6" the first %i6 is related to the state
 before execution of the SAVE instrucion so it is the caller %i6, when the %i6
 after execution of that instruction is the called function stack pointer}
     with list do
-      concat(Taicpu.Op_reg_const_reg(A_SAVE,S_SW,Stack_Pointer_Reg,LocalSize,Stack_Pointer_Reg));
+      concat(Taicpu.Op_reg_const_reg(A_SAVE,Stack_Pointer_Reg,LocalSize,Stack_Pointer_Reg));
   end;
 procedure tcgSPARC.g_restore_frame_pointer(list:TAasmOutput);
   begin
@@ -847,7 +846,7 @@ If no inversion we can use just
         concat(Taicpu.Op_caddr_reg(A_JMPL,R_I7,8,R_G0));
 {We use trivial restore in the delay slot of the JMPL instruction, as we
 already set result onto %i0}
-        concat(Taicpu.Op_reg_const_reg(A_RESTORE,S_SW,R_G0,0,R_G0));
+        concat(Taicpu.Op_reg_const_reg(A_RESTORE,R_G0,0,R_G0));
       end
   end;
 procedure tcgSPARC.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tregister);
@@ -1053,8 +1052,8 @@ procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;le
             { easy to notice in the generated assembler                     }
             inc(dst.offset,8);
             inc(src.offset,8);
-            list.concat(taicpu.op_reg_const_reg(A_SUB,S_SW,src.base,8,src.base));
-            list.concat(taicpu.op_reg_const_reg(A_SUB,S_SW,dst.base,8,dst.base));
+            list.concat(taicpu.op_reg_const_reg(A_SUB,src.base,8,src.base));
+            list.concat(taicpu.op_reg_const_reg(A_SUB,dst.base,8,dst.base));
             countreg := get_scratch_reg_int(list);
             a_load_const_reg(list,OS_32,count,countreg);
             { explicitely allocate R_O0 since it can be used safely here }
@@ -1062,7 +1061,7 @@ procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;le
             a_reg_alloc(list,R_F0);
             objectlibrary.getlabel(lab);
             a_label(list, lab);
-            list.concat(taicpu.op_reg_const_reg(A_SUB,S_SW,countreg,1,countreg));
+            list.concat(taicpu.op_reg_const_reg(A_SUB,countreg,1,countreg));
             list.concat(taicpu.op_reg_ref(A_LDF,R_F0,src));
             list.concat(taicpu.op_reg_ref(A_STD,R_F0,dst));
             //a_jmp(list,A_BC,C_NE,0,lab);
@@ -1254,7 +1253,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.22  2002-11-06 11:31:24  mazen
+  Revision 1.23  2002-11-10 19:07:46  mazen
+  * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
+
+  Revision 1.22  2002/11/06 11:31:24  mazen
   * op_reg_reg_reg don't need any more a TOpSize parameter
 
   Revision 1.21  2002/11/05 16:15:00  mazen

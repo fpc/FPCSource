@@ -72,9 +72,9 @@ procedure TSparcProcInfo.after_pass1;
     else
       procdef.localst.address_fixup:=6*4+(16+1)*4;
 		procinfo.firsttemp_offset:=procdef.localst.address_fixup+procdef.localst.datasize;
-	  WriteLn('Parameter copies start at: %i6-'+tostr(procdef.parast.address_fixup));
-		WriteLn('Locals start at: %o6-'+tostr(procdef.localst.address_fixup));
-	  WriteLn('Temp. space start: %o6-'+tostr(procinfo.firsttemp_offset));
+	  WriteLn('Parameter copies start at: %i6+'+tostr(procdef.parast.address_fixup));
+		WriteLn('Locals start at: %o6+'+tostr(procdef.localst.address_fixup));
+	  WriteLn('Temp. space start: %o6+'+tostr(procinfo.firsttemp_offset));
 		tg.firsttemp:=procinfo.firsttemp_offset;
 		tg.lasttemp:=procinfo.firsttemp_offset;
 	end;
@@ -83,7 +83,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-11-03 20:22:40  mazen
+  Revision 1.6  2002-11-10 19:07:46  mazen
+  * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
+
+  Revision 1.5  2002/11/03 20:22:40  mazen
   * parameter handling updated
 
   Revision 1.4  2002/10/20 19:01:38  mazen
