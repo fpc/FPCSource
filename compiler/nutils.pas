@@ -167,9 +167,15 @@ implementation
               begin
                 { if self<>0 and vmt=1 then freeinstance }
                 addstatement(newstatement,cifnode.create(
-                    caddnode.create(unequaln,
-                        load_self_pointer_node,
-                        cnilnode.create),
+                    caddnode.create(andn,
+                        caddnode.create(unequaln,
+                            load_self_pointer_node,
+                            cnilnode.create),
+                        caddnode.create(equaln,
+                            ctypeconvnode.create(
+                                load_vmt_pointer_node,
+                                voidpointertype),
+                            cpointerconstnode.create(1,voidpointertype))),
                     ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node),
                     nil));
               end
@@ -212,7 +218,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-05-13 19:14:41  peter
+  Revision 1.3  2003-05-13 20:54:06  peter
+    * fail checks vmt value before calling dispose
+
+  Revision 1.2  2003/05/13 19:14:41  peter
     * failn removed
     * inherited result code check moven to pexpr
 
