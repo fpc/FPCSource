@@ -1712,7 +1712,7 @@ to compile programs that need long filenames as native Win32 applications;
 % Utilities.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Utilities and units that come with Free Pascal}
+\chapter{Utilities that come with Free Pascal}
 \label{ch:Utilities}
 Besides the compiler and the Run-Time Library, \fpc comes with some utility
 programs and units. Here we list these programs and units.
@@ -2089,34 +2089,66 @@ detail in the appendices of the \progref.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Supplied units
-\section{Supplied units}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Units that come with Free Pascal}
+\label{ch:Units}
+
 Here we list the units that come with the \fpc distribution. Since there is
-a difference in the supplied units per operating system, we list them
-separately per system. They are documented in the \unitsref.
+a difference in the supplied units per operating system, we first describe
+the generic ones, then describe those which are operating specific. 
 
 %
 % Common units
 %
-\subsection{Units common to all platforms}
-The following units are common to all platform; i.e. their workings
-are guaranteed to be the same on all platforms.
+\section{Standard units}
+
+The following units are standard and are meant to be ported to
+all supported platforms by \fpc. A brief description of each unit
+is also given.
+
 \begin{itemize}
+\item [crt] This unit is similar to the unit of the same name of
+Turbo Pascal. It implements writing to the console in color,  moving the 
+text cursor around and reading from the keyboard.
+\item [dos] This unit provides basic routines for accessing the operating
+system. This includes file searching, environment variables access,
+getting the operating system version, getting and setting the
+system time. It is to note that some of these routines are duplicated
+in functionality in the \var{sysutils} unit.
 \item [getopts] This unit gives you the \gnu \var{getopts} command-line
 arguments  handling mechanism. It also supports long options.
-\item [keyboard] provides basic keyboard handling in a platform independent way,
+\item [graph] This unit provides basic graphics handling, with routines to
+draw lines on the screen, display texts etc. It provides the same functions
+as the Turbo Pascal unit.
+\item [keyboard] provides basic keyboard handling routines in a platform independent way,
 and supports writing custom drivers.
+\item[math] This unit contains common mathematical routines (trigonometric
+functions, logarithms, etc.) as well as more complex ones (summations of arrays,
+normalization functions, etc.).
 \item [mmx] This unit provides support for \var{mmx} extensions in your
-code.
-\item [mouse] provides basic mouse handling in a platform independent way,
-and supports writing custom drivers.
-\item [objects]  This unit provides basic routines for handling objects.
+code. 
+\item [mouse] provides basic mouse handling routines in a platform independent way,
+and supports writing custom drivers. 
+\item [objects]  This unit provides the base object for standard Turbo Pascal
+objects. It also implements File and Memory stream objects, as well as sorted
+and non-sorted collections, and string streams.
 \item [objpas] is used for Delphi compatibility; you should never load this
 unit explicitly; it is automatically loaded if you request Delphi mode.
+\item [printer]  This unit provides all you need for rudimentary access
+to the printer using standard I/O routines.
+\item[sockets] This gives the programmer access to sockets and TCP/IP 
+programming.
 \item [strings] This unit provides basic string handling routines for the
 \var{pchar} type, comparable to similar routines in standard \var{C}
 libraries.
+\item [system] This unit is available for all supported platforms, even
+though the unit name may be different (e.g : syslinux, sysos2). It includes
+among others, basic file I/O routines, memory management routines, all compiler 
+helper routines, and directory services routines. 
 \item[sysutils] is an alternative implementation of the sysutils unit of
-Delphi.
+Delphi. It includes file I/O access routines which takes care of file
+locking, date and string handling routines, file search, date and string 
+conversion routines.
 \item[typinfo] Provides functions to acces Run-Time Type Information, just
 like Delphi.
 \item [video] provides basic screen handling in a platform independent way,
@@ -2126,36 +2158,20 @@ and supports writing custom drivers.
 %
 % Under DOS
 %
-\subsection{Under DOS}
+\section{Under DOS}
 \begin{itemize}
-\item [crt] This unit provides basic screen handling routines.
-It provides the same functionality  as the Turbo Pascal \var{CRT} unit.
-\item [dos] This unit provides basic routines for accessing the operating
-system \dos. It provides almost the same functionality as the Turbo Pascal
-unit.
 \item [emu387] This unit provides support for the coprocessor emulator.
-\item [graph] This unit provides basic graphics handling, with routines to
-draw lines on the screen, display texts etc. It provides the same functions
-as the Turbo Pascal unit.
 \item [go32] This unit provides access to possibilities of the \var{GO32}
 \dos extender.
-\item [printer]  This unit provides all you need for rudimentary access
-to the printer.
 \end{itemize}
 
 %
 % Under Windows
 %
-\subsection{Under Windows}
+\section{Under Windows}
 \begin{itemize}
-\item [dos] This unit provides basic routines for
-accessing the operating system \dos. It emulates this functionality
-by issuing calls to the Windows operating system.
-\item [crt and wincrt] These units provides basic screen handling routines.
-They provide the same functionality as the Turbo Pascal \var{CRT} unit.
-\item [graph] This unit provides basic graphics
-handling, with routines to draw lines on the screen, display texts etc. It
-provides the same functions as the Turbo Pascal unit.
+\item [wincrt] This implements a console in a standard GUI window, contrary
+to the \var{crt} unit which is for the Windows console only.
 \item [Windows] This unit provides access to al Win32 API calls. Effort has
 been taken to make sure that it is compatible to the Delphi version of this
 unit, so code for Delphi is easily ported to \fpc.
@@ -2163,35 +2179,19 @@ unit, so code for Delphi is easily ported to \fpc.
 \item[winmouse] provides access to the mouse in \windows.
 \item[ole2] provides access to the OLE capabilities of \windows.
 \item[winsock] provides acces to the \windows sockets API Winsock.
-\item[sockets] is a wrapper around winsock that is compatible with the
-\linux sockets layer. Using this unit ensures that your code will run
-both on \windows and \linux.
 \end{itemize}
 
 %
 % Under Linux
 %
-\subsection{Under Linux}
+\section{Under Linux}
 \begin{itemize}
-\item [crt] This unit provides basic screen handling routines.
-It provides the same functionality Turbo Pascal \var{CRT} unit.
-It should work on any terminal which supports the \var{vt100} escape
-sequences.
-\item [dos] This unit provides an emulation of the same unit under \dos.
-It is intended primarily for easy porting of Pascal programs from \dos
-to \linux. For good performance, however, it is recommended to use the
-\var{linux} unit.
 \item [linux] This unit provides access to the
 \linux operating system. It provides most file and I/O handling routines
 that you may need. It implements most of the standard \var{C} library constructs
 that you will find on a Unix system. If you do a lot of disk/file
 operations, the use of this unit is recommended over the one you use under
 Dos.
-\item [printer] This unit provides an interface to the standard Unix
-printing mechanism. It supports printing to file and to any command you
-would like.
-\item [sockets] This unit gives you access to sockets and TCP/IP
-programming.
 \item [graph] Is an implementation of Borlands \file{graph} unit, which
 works on the Linux console. Its implementation is as complete as on
 the other platforms (it shares the same code).
@@ -2204,7 +2204,7 @@ extensively. Programs using this construct must be run as ruit or setuid
 root, and are a serious security risk on your system.
 \end{itemize}
 
-\subsection{Under OS/2}
+\section{Under OS/2}
 \begin{itemize}
 \item [doscalls] interface to \file{doscalls.dll}.
 \item [dive] interface to \file{dive.dll}
@@ -2215,6 +2215,12 @@ root, and are a serious security risk on your system.
 \item [kbdcalls] interface to \file{kbdcalls.dll} keyboard handling library.
 \item [moncalls] interface to \file{moncalls.dll} monitoring handling library.
 \end{itemize}
+
+\section{Unit availability}
+
+Standard unit availability for each of the supported platforms 
+is given in the FAQ / Knowledge base. 
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Debugging
