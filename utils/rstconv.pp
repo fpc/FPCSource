@@ -60,6 +60,8 @@ begin
 
   while not eof(f) do begin
     ReadLn(f, s);
+    If (Length(S)=0) or (S[1]='#') then 
+      continue;
     item := TConstItem(ConstItems.Add);
 
     DotPos := Pos('.', s);
@@ -203,7 +205,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-07-23 18:23:45  michael
+  Revision 1.2  1999-07-24 16:22:38  michael
+  + Comments and empty lines are now ignored
+
+  Revision 1.1  1999/07/23 18:23:45  michael
   + Added rstconv
 
 }
