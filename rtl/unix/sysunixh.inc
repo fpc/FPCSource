@@ -52,13 +52,18 @@ const
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
+{$ifndef Darwin}
 var argc:longint;external name 'operatingsystem_parameter_argc';
     argv:PPchar;external name 'operatingsystem_parameter_argv';
     envp:PPchar;external name 'operatingsystem_parameter_envp';
+{$endif}
 
 {
   $Log$
-  Revision 1.20  2004-07-03 21:50:31  daniel
+  Revision 1.21  2004-07-03 22:52:33  daniel
+    * No envp,argv,argc declaration for Darwin
+
+  Revision 1.20  2004/07/03 21:50:31  daniel
     * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
       longer necessary
 
