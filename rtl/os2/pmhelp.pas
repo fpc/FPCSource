@@ -498,3 +498,10 @@ function DdfBitmap(ahddf: HDDF; hbm: HBITMAP; fAlign: cardinal): Longbool; cdecl
     external HELPMGRDLL index 88;
 
 end.
+{
+  $Log$
+  Revision 1.4  2002-10-17 18:54:24  hajny
+    + added missing CVS log
+
+
+}
