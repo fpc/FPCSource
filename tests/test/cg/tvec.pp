@@ -39,11 +39,11 @@ const
  min_small_array = 0;
  max_small_array = 255;
 
- min_big_neg_array = -100000;
- max_big_neg_array = 100000;
+ min_big_neg_array = -77000;
+ max_big_neg_array = 77000;
 
  min_big_array = 0;
- max_big_array = 524288;
+ max_big_array = 77000;
 
  min_big_odd_array = 0;
  max_big_odd_array = 255;
@@ -61,7 +61,7 @@ type
   { so all elements are byte for easy  }
   { testing.                           }
   toddelement   = packed record
-   _b0 : array[1..65537] of byte;
+   _b0 : array[1..8] of byte;
    _b1 : byte;
    _b2 : byte;
   end;
@@ -421,7 +421,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-06-30 00:48:37  carl
+  Revision 1.3  2001-06-30 02:16:28  carl
+  - reduced sizes of arrays to make it work under m68k
+
+  Revision 1.2  2001/06/30 00:48:37  carl
   + added LOC_FLAGS and LOC_JUMP tests (still missing open array tests)
 
   Revision 1.1  2001/06/29 02:02:10  carl
