@@ -98,6 +98,37 @@ Var EnvP : PChar;
 function GetEnvironmentStrings : pchar; external 'kernel32' name 'GetEnvironmentStringsA';
 function FreeEnvironmentStrings(p : pchar) : longbool; external 'kernel32' name 'FreeEnvironmentStringsA';
 
+Procedure FInitWin32CGI;
+begin
+  { Free memory }
+  FreeMem (EnvP,EnvLen);
+  ExitProc:=OldExitProc;
+end;
+
+Procedure InitWin32CGI;
+var s : String;
+    i,len : longint;
+    hp,p : pchar;
+
+begin
+  { Make a local copy of environment}
+  p:=GetEnvironmentStrings;
+  hp:=p;
+  envp:=Nil;
+  envlen:=0;
+  while hp[0]<>#0 do
+    begin
+    len:=strlen(hp);
+    hp:=hp+len+1;
+    EnvLen:=Envlen+len+1;
+    end;
+  GetMem(EnvP,Envlen);
+  Move(P^,EnvP^,EnvLen);
+  FreeEnvironmentStrings(p);
+  OldExitProc:=ExitProc;
+  ExitProc:=@FinitWin32CGI;
+end;
+
 Function GetEnv(envvar: string): pchar;
 { Getenv that can return environment vars of length>255 }
 var s : String;
@@ -123,40 +154,33 @@ begin
     hp:=hp+len+1;
     end;
 end;
+{$endif}
 
-Procedure FInitWin32CGI;
-
+{$ifdef GO32V2}
+Function  GetEnv(envvar: string): pchar;
+var
+  hp    : ppchar;
+  p     : pchar;
+  hs    : string;
+  eqpos : longint;
 begin
-  { Free memory }
-  FreeMem (EnvP,EnvLen);
-  ExitProc:=OldExitProc;
-end;
-
-Procedure InitWin32CGI;
-
-var s : String;
-    i,len : longint;
-    hp,p : pchar;
-
-begin
-  { Make a local copy of environment}
-  p:=GetEnvironmentStrings;
-  hp:=p;
-  envp:=Nil;
-  envlen:=0;
-  while hp[0]<>#0 do
-    begin
-    len:=strlen(hp);
-    hp:=hp+len+1;
-    EnvLen:=Envlen+len+1;
-    end;
-  GetMem(EnvP,Envlen);
-  Move(P^,EnvP^,EnvLen);
-  FreeEnvironmentStrings(p);
-  OldExitProc:=ExitProc;
-  ExitProc:=@FinitWin32CGI;
+  envvar:=upcase(envvar);
+  hp:=envp;
+  getenv:=nil;
+  while assigned(hp^) do
+   begin
+     hs:=strpas(hp^);
+     eqpos:=pos('=',hs);
+     if copy(hs,1,eqpos-1)=envvar then
+      begin
+        getenv:=hp^+eqpos;
+        exit;
+      end;
+     inc(hp);
+   end;
 end;
 {$endif}
+
 
 var
   done_init     : boolean;
@@ -389,7 +413,10 @@ end.
 {
   HISTORY
   $Log$
-  Revision 1.5  1999-11-14 15:59:06  peter
+  Revision 1.6  2000-01-10 23:46:19  peter
+    * works also under go32v2
+
+  Revision 1.5  1999/11/14 15:59:06  peter
     * fpcmake'd
 
   Revision 1.4  1999/07/26 20:07:44  michael
