@@ -281,7 +281,7 @@ begin
         end;
       else
         begin
-          writeln('!! unsupported dereftyp: ',ord(derefindex));
+          writeln('!! unsupported dereftyp: ',ord(b));
           break;
         end;
     end;
@@ -807,15 +807,24 @@ end;
 procedure readdefinitions(start_read : boolean);
 type
   tsettype  = (normset,smallset,varset);
-  tbasetype = (uauto,uvoid,uchar,
-               u8bit,u16bit,u32bit,
-               s8bit,s16bit,s32bit,
-               bool8bit,bool16bit,bool32bit,
-               u64bit,s64bit);
+  tbasetype = (
+    uauto,uvoid,uchar,
+    u8bit,u16bit,u32bit,
+    s8bit,s16bit,s32bit,
+    bool8bit,bool16bit,bool32bit,
+    u64bit,s64bit,uwidechar
+  );
+  tobjectdeftype = (odt_none,
+    odt_class,
+    odt_object,
+    odt_interfacecom,
+    odt_interfacecorba,
+    odt_cppclass
+  );
 var
   b : byte;
   oldread_member : boolean;
-  totaldefs,
+  totaldefs,l,j,
   defcnt : longint;
 begin
   defcnt:=0;
@@ -843,9 +852,9 @@ begin
          ibpointerdef :
            begin
              readcommondef('Pointer definition');
-             write  (space,'    Pointed Type : ');
+             write  (space,'     Pointed Type : ');
              readtype;
-             writeln(space,'          Is Far : ',(getbyte<>0));
+             writeln(space,'           Is Far : ',(getbyte<>0));
            end;
 
          iborddef :
@@ -868,6 +877,7 @@ begin
                bool32bit : writeln('bool32bit');
                u64bit    : writeln('u64bit');
                s64bit    : writeln('s64bit');
+               uwidechar : writeln('uwidechar');
                else        writeln('!! Warning: Invalid base type ',b);
              end;
              writeln(space,'            Range : ',getlongint,' to ',getlongint);
@@ -960,12 +970,46 @@ begin
          ibobjectdef :
            begin
              readcommondef('Object/Class definition');
+             b:=getbyte;
+             write  (space,'             Type : ');
+             case tobjectdeftype(b) of
+               odt_class          : writeln('class');
+               odt_object         : writeln('object');
+               odt_interfacecom   : writeln('interfacecom');
+               odt_interfacecorba : writeln('interfacecorba');
+               odt_cppclass       : writeln('cppclass');
+               else                 writeln('!! Warning: Invalid object type ',b);
+             end;
              writeln(space,'             Size : ',getlongint);
              writeln(space,'       Vmt offset : ',getlongint);
              writeln(space,'    Name of Class : ',getstring);
              write(space,  '   Ancestor Class : ');
              readdefref;
              writeln(space,'          Options : ',getlongint);
+             writeln(space,'         Has RTTI : ',(getbyte<>0));
+
+             if tobjectdeftype(b) in [odt_interfacecom,odt_interfacecorba] then
+               begin
+                  writeln(space,'       GUID Valid : ',(getbyte<>0));
+                  { IIDGUID }
+                  for j:=1to 16 do
+                   getbyte;
+                  writeln(space,'       IID String : ',getstring);
+                  writeln(space,'  Last VTable idx : ',getlongint);
+               end;
+
+             if tobjectdeftype(b) in [odt_class,odt_interfacecorba] then
+              begin
+                l:=getlongint;
+                writeln(space,'  Impl Intf Count : ',l);
+                for j:=1 to l do
+                 begin
+                   write  (space,'  - Definition : ');
+                   readdefref;
+                   writeln(space,'       IOffset : ',getlongint);
+                 end;
+              end;
+
            {read the record definitions and symbols}
              space:='    '+space;
              oldread_member:=read_member;
@@ -1464,7 +1508,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-09-09 19:46:40  peter
+  Revision 1.4  2001-04-04 22:42:59  peter
+    * updated for new objectdef with interfaces
+
+  Revision 1.3  2000/09/09 19:46:40  peter
     * show dataalignment
 
   Revision 1.2  2000/08/13 12:58:06  peter
