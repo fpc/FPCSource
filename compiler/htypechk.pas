@@ -787,8 +787,9 @@ implementation
                begin
                  { Allow add/sub operators on a pointer, or an integer
                    and a pointer typecast and deref has been found }
-                 if (hp.resulttype.def.deftype=pointerdef) or
-                    (is_integer(hp.resulttype.def) and gotpointer and gotderef) then
+                 if ((hp.resulttype.def.deftype=pointerdef) or
+                     (is_integer(hp.resulttype.def) and gotpointer)) and
+                    gotderef then
                   valid_for_assign:=true
                  else
                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
@@ -937,7 +938,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2001-12-31 16:59:41  peter
+  Revision 1.41  2002-01-16 09:33:46  jonas
+    * no longer allow assignments to pointer expressions (unless there's a
+      deref), reported by John Lee
+
+  Revision 1.40  2001/12/31 16:59:41  peter
     * protected/private symbols parsing fixed
 
   Revision 1.39  2001/11/08 21:55:36  marco
