@@ -18,7 +18,8 @@ unit FPDesk;
 interface
 
 const
-     DesktopVersion     = $0009; { <- if you change any Load&Store methods,
+     MinDesktopVersion  = $000A;
+     DesktopVersion     = $000A; { <- if you change any Load&Store methods,
                                       default object properties (Options,State)
                                       then you should also change this }
      ResDesktopFlags    = 'FLAGS';
@@ -284,7 +285,7 @@ begin
     begin
       PushStatus(msg_storingbreakpoints);
       New(S, Init(30*1024,4096));
-      BreakpointsCollection^.Store(S^);
+      S^.Put(BreakpointsCollection);
       S^.Seek(0);
       F^.CreateResource(resBreakpoints,rcBinary,0);
       OK:=F^.AddResourceEntryFromStream(resBreakpoints,langDefault,0,S^,S^.GetSize);
@@ -300,7 +301,7 @@ end;
 function ReadOpenWindows(F: PResourceFile): boolean;
 var S: PMemoryStream;
     OK: boolean;
-    W: word;
+    DV: word;
     WI: TWindowInfo;
     Title: string;
     XDataOfs: word;
@@ -314,6 +315,7 @@ procedure ProcessWindowInfo;
 var W: PWindow;
     SW: PSourceWindow absolute W;
     St: string;
+    Ch: char;
     TP,TP2: TPoint;
     L: longint;
     R: TRect;
@@ -422,17 +424,21 @@ begin
        end;
      hcASCIITableWindow:
        begin
-{$ifndef FVISION}
          if ASCIIChart=nil then
            begin
              New(ASCIIChart, Init);
              Desktop^.Insert(ASCIIChart);
            end;
          W:=ASCIIChart;
-{$else FVISION}
-         W:=nil;
-{$endif FVISION}
-       end;
+         if DV>=$A then
+           begin
+             GetData(ch,sizeof(char));
+             AsciiChart^.Report^.AsciiChar:=ord(ch);
+             AsciiChart^.Table^.SetCursor(
+               ord(ch) mod AsciiChart^.Table^.Size.X,
+               ord(ch) div AsciiChart^.Table^.Size.X);
+           end;
+      end;
   end;
   if W=nil then
     begin
@@ -466,8 +472,8 @@ begin
   S^.Seek(0);
   if OK then
   begin
-    S^.Read(W,SizeOf(W));
-    OK:=(W=DesktopVersion);
+    S^.Read(DV,SizeOf(DV));
+    OK:=(DV=DesktopVersion) or (DV>=MinDesktopVersion);
     if OK=false then
       ErrorBox(msg_invaliddesktopversionlayoutlost,nil);
   end;
@@ -532,6 +538,7 @@ var W: PWindow;
     XDataOfs: word;
     XData: array[0..1024] of byte;
     St: string;
+    Ch: char;
     TP: TPoint;
     L: longint;
 procedure AddData(const B; Size: word);
@@ -581,6 +588,11 @@ begin
         TP:=SW^.Editor^.SelEnd; AddData(TP,sizeof(TP));
         TP:=SW^.Editor^.CurPos; AddData(TP,sizeof(TP));
         TP:=SW^.Editor^.Delta; AddData(TP,sizeof(TP));
+      end;
+    hcAsciiTableWindow :
+      begin
+        ch:=chr(PFPAsciiChart(P)^.Report^.AsciiChar);
+        AddData(ch,sizeof(char));
       end;
   end;
 
@@ -842,22 +854,22 @@ begin
           Application^.SetScreenVideoMode(VM);
       end;
     if ((DesktopFileFlags and dfHistoryLists)<>0) then
-      OK:=OK and ReadHistory(F);
+      OK:=ReadHistory(F) and OK;
     if ((DesktopFileFlags and dfWatches)<>0) then
-      OK:=OK and ReadWatches(F);
+      OK:=ReadWatches(F) and OK;
     if ((DesktopFileFlags and dfBreakpoints)<>0) then
-      OK:=OK and ReadBreakpoints(F);
+      OK:=ReadBreakpoints(F) and OK;
     if ((DesktopFileFlags and dfOpenWindows)<>0) then
-      OK:=OK and ReadOpenWindows(F);
+      OK:=ReadOpenWindows(F) and OK;
     { no errors if no browser info available PM }
     if ((DesktopFileFlags and dfSymbolInformation)<>0) then
-      OK:=OK and ReadSymbols(F);
+      OK:=ReadSymbols(F) and OK;
     if ((DesktopFileFlags and dfCodeCompleteWords)<>0) then
-      OK:=OK and ReadCodeComplete(F);
+      OK:=ReadCodeComplete(F) and OK;
     if ((DesktopFileFlags and dfCodeTemplates)<>0) then
-      OK:=OK and ReadCodeTemplates(F);
+      OK:=ReadCodeTemplates(F) and OK;
 {$ifdef Unix}
-    OK:=OK and ReadKeys(F);
+    OK:=ReadKeys(F) and OK;
 {$endif Unix}
     Dispose(F, Done);
   end;
@@ -954,172 +966,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2001-10-11 11:38:22  pierre
-   * small fvision specific changes
+  Revision 1.7  2002-02-09 00:32:27  pierre
+   * fix error when loading breakpoints, try to load other items even after an error
 
-  Revision 1.2  2001/08/05 12:23:00  peter
-    * Automatically support for fvision or old fv
+  Revision 1.6  2002/09/07 15:40:42  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.1  2001/08/04 11:30:23  peter
-    * ide works now with both compiler versions
+  Revision 1.5  2002/09/04 14:03:52  pierre
+   * MinDesktopVersion increased because of CodeComplete changes
 
-  Revision 1.1.2.8  2001/03/22 17:28:03  pierre
-   * small fix to OpenWindows
-
-  Revision 1.1.2.7  2001/03/12 17:34:55  pierre
-   + Disassembly window started
-
-  Revision 1.1.2.6  2000/12/12 16:51:50  pierre
-   + keys loading/storing begin
-
-  Revision 1.1.2.5  2000/11/29 11:25:59  pierre
-   + TFPDlgWindow that handles cmSearchWindow
-
-  Revision 1.1.2.4  2000/11/29 00:54:44  pierre
-   + preserve window number and save special windows
-
-  Revision 1.1.2.3  2000/10/18 21:53:26  pierre
-   * several Gabor fixes
-
-  Revision 1.1.2.2  2000/09/18 13:20:54  pierre
-   New bunch of Gabor changes
-
-  Revision 1.1.2.1  2000/07/20 11:02:15  michael
-  + Fixes from gabor. See fixes.txt
-
-  Revision 1.1  2000/07/13 09:48:34  michael
-  + Initial import
-
-  Revision 1.29  2000/06/22 09:07:12  pierre
-   * Gabor changes: see fixes.txt
-
-  Revision 1.28  2000/05/02 08:42:27  pierre
-   * new set of Gabor changes: see fixes.txt
-
-  Revision 1.27  2000/04/25 08:42:33  pierre
-   * New Gabor changes : see fixes.txt
-
-  Revision 1.26  2000/04/18 11:42:36  pierre
-   lot of Gabor changes : see fixes.txt
-
-  Revision 1.25  2000/03/21 23:32:05  pierre
-   adapted to wcedit addition by Gabor
-
-  Revision 1.24  2000/03/20 19:19:46  pierre
-   * LFN support in streams
-
-  Revision 1.23  2000/03/13 20:36:52  pierre
-   * Breakpoints saved and loaded before sources
-
-  Revision 1.22  2000/02/07 12:03:48  pierre
-   Last commit is from Gabor's changes!
-
-  Revision 1.21  2000/02/07 11:55:27  pierre
-   + Code Complete and Template saving from Gabor
-
-  Revision 1.20  2000/02/04 00:12:57  pierre
-   * Breakpoint are marked in source at desktop loading
-
-  Revision 1.19  2000/01/25 00:26:36  pierre
-   + Browser info saving
-
-  Revision 1.18  2000/01/03 11:38:33  michael
-  Changes from Gabor
-
-  Revision 1.17  1999/12/20 00:30:56  pierre
-   * problem with VideoMode storing solved
-
-  Revision 1.16  1999/12/10 13:02:05  pierre
-  + VideoMode save/restore
-
-  Revision 1.15  1999/11/26 17:09:51  pierre
-   * Force Desktop into Screen
-
-  Revision 1.14  1999/11/25 00:25:43  pierre
-   * add Status when loading/saving files
-
-  Revision 1.13  1999/09/20 15:37:59  pierre
-   * ReadOpenWindows and ReadSymobls was missing, still does not work correctly :(
-
-  Revision 1.12  1999/09/17 16:41:10  pierre
-   * other stream error for Watches/Breakpoints corrected
-
-  Revision 1.11  1999/09/17 16:28:58  pierre
-   * ResWatches in WriteBreakpoints typo !
-
-  Revision 1.10  1999/09/16 14:34:58  pierre
-    + TBreakpoint and TWatch registering
-    + WatchesCollection and BreakpointsCollection stored in desk file
-    * Syntax highlighting was broken
-
-  Revision 1.9  1999/09/07 09:23:00  pierre
-   * no errors if no browser info available
-
-  Revision 1.8  1999/08/16 18:25:16  peter
-    * Adjusting the selection when the editor didn't contain any line.
-    * Reserved word recognition redesigned, but this didn't affect the overall
-      syntax highlight speed remarkably (at least not on my Amd-K6/350).
-      The syntax scanner loop is a bit slow but the main problem is the
-      recognition of special symbols. Switching off symbol processing boosts
-      the performance up to ca. 200%...
-    * The editor didn't allow copying (for ex to clipboard) of a single character
-    * 'File|Save as' caused permanently run-time error 3. Not any more now...
-    * Compiler Messages window (actually the whole desktop) did not act on any
-      keypress when compilation failed and thus the window remained visible
-    + Message windows are now closed upon pressing Esc
-    + At 'Run' the IDE checks whether any sources are modified, and recompiles
-      only when neccessary
-    + BlockRead and BlockWrite (Ctrl+K+R/W) implemented in TCodeEditor
-    + LineSelect (Ctrl+K+L) implemented
-    * The IDE had problems closing help windows before saving the desktop
-
-  Revision 1.7  1999/08/03 20:22:30  peter
-    + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
-    + Desktop saving should work now
-       - History saved
-       - Clipboard content saved
-       - Desktop saved
-       - Symbol info saved
-    * syntax-highlight bug fixed, which compared special keywords case sensitive
-      (for ex. 'asm' caused asm-highlighting, while 'ASM' didn't)
-    * with 'whole words only' set, the editor didn't found occourences of the
-      searched text, if the text appeared previously in the same line, but didn't
-      satisfied the 'whole-word' condition
-    * ^QB jumped to (SelStart.X,SelEnd.X) instead of (SelStart.X,SelStart.Y)
-      (ie. the beginning of the selection)
-    * when started typing in a new line, but not at the start (X=0) of it,
-      the editor inserted the text one character more to left as it should...
-    * TCodeEditor.HideSelection (Ctrl-K+H) didn't update the screen
-    * Shift shouldn't cause so much trouble in TCodeEditor now...
-    * Syntax highlight had problems recognizing a special symbol if it was
-      prefixed by another symbol character in the source text
-    * Auto-save also occours at Dos shell, Tool execution, etc. now...
-
-  Revision 1.5  1999/06/30 23:58:13  pierre
-    + BreakpointsList Window implemented
-      with Edit/New/Delete functions
-    + Individual breakpoint dialog with support for all types
-      ignorecount and conditions
-      (commands are not yet implemented, don't know if this wolud be useful)
-      awatch and rwatch have problems because GDB does not annotate them
-      I fixed v4.16 for this
-
-  Revision 1.4  1999/04/15 08:58:05  peter
-    * syntax highlight fixes
-    * browser updates
-
-  Revision 1.3  1999/04/07 21:55:45  peter
-    + object support for browser
-    * html help fixes
-    * more desktop saving things
-    * NODEBUG directive to exclude debugger
-
-  Revision 1.2  1999/03/23 16:16:39  peter
-    * linux fixes
-
-  Revision 1.1  1999/03/23 15:11:28  peter
-    * desktop saving things
-    * vesa mode
-    * preferences dialog
+  Revision 1.4  2002/05/31 12:37:09  pierre
+   + register asciitable char
 
 }
