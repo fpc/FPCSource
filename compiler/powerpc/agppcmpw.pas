@@ -47,6 +47,7 @@ interface
         procedure WriteAsmFileHeader;
         private
         procedure GenProcedureHeader(var hp:tai);
+        procedure WriteDataExportHeader(var s:string; isGlobal, isConst:boolean);
       end;
 
 
@@ -110,7 +111,6 @@ var
 
     var
       s : string;
-      i,b:boolean;
     begin
        with ref do
         begin
@@ -158,7 +158,7 @@ var
               if (offset=0) then
                 s:=s+gas_regname(base)+','+gas_regname(index)
               else
-                internalerror(19992);
+                internalerror(19992); //  *** ???
             end;
         end;
       getreferencestring:=s;
@@ -258,7 +258,7 @@ var
                               branchmode(op)+#9;
                   case c.cond of
                     C_LT..C_NU:
-                      cond2str := tempstr+gas_regname(newreg(R_SPECIALREGISTER,c.cr,R_SUBNONE));
+                      cond2str := tempstr+gas_regname(newreg(R_SPECIALREGISTER,c.cr,R_SUBNONE)); // *** R_SUBWHOLE ???
                     C_T..C_DZF:
                       cond2str := tempstr+tostr(c.crbit);
                   end;
@@ -422,25 +422,43 @@ var
         s:= tai_symbol(hp).sym.name;
         replaced:= ReplaceForbiddenChars(s);
 
+        if not use_PR then
+          begin
+            AsmWrite(#9'export'#9'.');
+            AsmWrite(s);
+            if replaced then
+              begin
+                AsmWrite(' => ''.');
+                AsmWrite(tai_symbol(hp).sym.name);
+                AsmWrite('''');
+              end;
+            AsmLn;
+          end;
+
+        AsmWrite(#9'export'#9);
+        AsmWrite(s);
+        AsmWrite('[DS]');
         if replaced then
           begin
-            if not use_PR then
-              AsmWriteLn(#9'export'#9'.'+s+' => ''.'+tai_symbol(hp).sym.name+'''');
-            AsmWriteLn(#9'export'#9+s+'[DS] => '''+tai_symbol(hp).sym.name+'[DS]''');
-          end
-        else
-          begin
-            if not use_PR then
-              AsmWriteLn(#9'export'#9'.'+s);
-            AsmWriteLn(#9'export'#9+s+'[DS]');
+            AsmWrite(' => ''');
+            AsmWrite(tai_symbol(hp).sym.name);
+            AsmWrite('[DS]''');
           end;
+        AsmLn;
+
         {Entry in transition vector: }
-        AsmWriteLn(#9'csect'#9+s+'[DS]');
-        AsmWriteLn(#9'dc.l'#9'.'+s);
+        AsmWrite(#9'csect'#9); AsmWrite(s); AsmWriteLn('[DS]');
+
+        AsmWrite(#9'dc.l'#9'.'); AsmWriteLn(s);
+
         AsmWriteln(#9'dc.l'#9'TOC[tc0]');
+
         {Entry in TOC: }
         AsmWriteLn(#9'toc');
-        AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[DS]');
+
+        AsmWrite(#9'tc'#9);
+        AsmWrite(s); AsmWrite('[TC],');
+        AsmWrite(s); AsmWriteln('[DS]');
       end;
 
     function GetAdjacentTaiSymbol(var hp:tai):Boolean;
@@ -485,13 +503,27 @@ var
       replaced:= ReplaceForbiddenChars(s);
 
       if use_PR then
-        if replaced then
-           AsmWriteLn(#9'export'#9'.'+s+'[PR] => ''.'+tai_symbol(last).sym.name+'[PR]''')
-        else
-           AsmWriteLn(#9'export'#9'.'+s+'[PR]');
+        begin
+          AsmWrite(#9'export'#9'.'); AsmWrite(s); AsmWrite('[PR]');
+          if replaced then
+            begin
+              AsmWrite(' => ''.');
+              AsmWrite(tai_symbol(last).sym.name);
+              AsmWrite('[PR]''');
+            end;
+          AsmLn;
+        end;
 
-      AsmWriteLn(#9'csect'#9'.'+s+'[PR]');    //starts the section
-      AsmWriteLn(#9'function'#9'.'+s+'[PR]'); //info for debugger
+      {Starts the section: }
+      AsmWrite(#9'csect'#9'.');
+      AsmWrite(s);
+      AsmWriteLn('[PR]');
+
+      {Info for the debugger: }
+      AsmWrite(#9'function'#9'.');
+      AsmWrite(s);
+      AsmWriteLn('[PR]');
+
       {$ifdef GDB}
       if ((cs_debuginfo in aktmoduleswitches) or
            (cs_gdb_lineinfo in aktglobalswitches)) then
@@ -507,43 +539,67 @@ var
       repeat
         s:= tai_symbol(hp).sym.name;
         ReplaceForbiddenChars(s);
-        AsmWriteLn('.'+s+':');
+        AsmWrite('.'); AsmWrite(s); AsmWriteLn(':');
       until not GetAdjacentTaiSymbol(hp);
     end;
 
-    (*
-    procedure TPPCMPWAssembler.GenProcedureHeader(hp:tai);
-
+    procedure TPPCMPWAssembler.WriteDataExportHeader(var s:string; isGlobal, isConst:boolean);
+    // Returns in s the changed string
     var
-      s: string;
+      sym: string;
       replaced: boolean;
 
     begin
-      s:= tai_symbol(hp).sym.name;
+      sym:= s;
       replaced:= ReplaceForbiddenChars(s);
-      if replaced then
+
+      if isGlobal then
         begin
-           AsmWriteLn(#9'export'#9'.'+s+'[PR] => ''.'+tai_symbol(hp).sym.name+'[PR]''');
-           AsmWriteLn(#9'export'#9+s+'[DS] => '''+tai_symbol(hp).sym.name+'[DS]''');
+          AsmWrite(#9'export'#9);
+          AsmWrite(s);
+          if isConst then
+            AsmWrite(const_storage_class)
+          else
+            AsmWrite('[RW]');
+          if replaced then
+              begin
+                AsmWrite(' => ''');
+                AsmWrite(sym);
+                AsmWrite('''');
+              end;
+          AsmLn;
+        end;
+
+      if not macos_direct_globals then
+        begin
+          AsmWriteLn(#9'toc');
+
+          AsmWrite(#9'tc'#9);
+          AsmWrite(s);
+          AsmWrite('[TC], ');
+          AsmWrite(s);
+          if isConst then
+            AsmWrite(const_storage_class)
+          else
+            AsmWrite('[RW]');
+          AsmLn;
+
+          AsmWrite(#9'csect'#9);
+          AsmWrite(s);
+          if isConst then
+            AsmWrite(const_storage_class)
+          else
+            AsmWrite('[RW]');
         end
       else
         begin
-           AsmWriteLn(#9'export'#9'.'+s+'[PR]');
-           AsmWriteLn(#9'export'#9+s+'[DS]');
+          AsmWrite(#9'csect'#9);
+          AsmWrite(s);
+          AsmWrite('[TC]');
         end;
-      {Entry in transition vector: }
-      AsmWriteLn(#9'csect'#9+s+'[DS]');
-      AsmWriteLn(#9'dc.l'#9'.'+s);
-      AsmWriteln(#9'dc.l'#9'TOC[tc0]');
-      {Entry in TOC: }
-      AsmWriteLn(#9'toc');
-      AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[DS]');
-      {Start the section of the body of the proc: }
-      AsmWriteLn(#9'csect'#9'.'+s+'[PR]');
 
-      AsmWriteLn('.'+s+':');
+      AsmLn;
     end;
-    *)
 
     var
       LasTSec : TSection;
@@ -778,24 +834,15 @@ var
             ait_datablock:
               begin
                  s:= tai_datablock(hp).sym.name;
-                 replaced:= ReplaceForbiddenChars(s);
-                 if tai_datablock(hp).is_global then
-                   if replaced then
-                     AsmWriteLn(#9'export'#9+s+'[RW] => '''+tai_datablock(hp).sym.name+'''')
-                   else
-                     AsmWriteLn(#9'export'#9+s+'[RW]');
 
+                 WriteDataExportHeader(s, tai_datablock(hp).is_global, false);
 
                  if not macos_direct_globals then
                    begin
-                     AsmWriteLn(#9'toc');
-                     AsmWriteLn(#9'tc'#9+s+'[TC], '+s+'[RW]');
-                     AsmWriteLn(#9'csect'#9+s+'[RW]');
                      AsmWriteLn(#9'ds.b '+tostr(tai_datablock(hp).size));
                    end
                  else
                    begin
-                     AsmWriteLn(#9'csect'#9+s+'[TC]');
                      AsmWriteLn(PadTabs(s+':',#0)+'ds.b '+tostr(tai_datablock(hp).size));
                      {TODO: ? PadTabs(s,#0) }
                    end;
@@ -821,32 +868,27 @@ var
                end;
             ait_const_symbol:
               begin
-                (*
-                 AsmWriteLn(#9#9'dd'#9'offset '+tai_const_symbol(hp).sym.name);
-                 if tai_const_symbol(hp).offset>0 then
-                   AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
-                 else if tai_const_symbol(hp).offset<0 then
-                   AsmWrite(tostr(tai_const_symbol(hp).offset));
-                 AsmLn;
-                *)
-
                 s:= tai_const_symbol(hp).sym.name;
                 ReplaceForbiddenChars(s);
 
-
+                AsmWrite(#9'dc.l'#9);
                 if tai_const_symbol(hp).sym.typ = AT_FUNCTION then
                   begin
                     if use_PR then
-                      AsmWriteLn(#9'dc.l'#9'.'+ s +'[PR]')
+                      AsmWrite('.');
+
+                    AsmWrite(s);
+
+                    if use_PR then
+                      AsmWriteLn('[PR]')
                     else
-                      AsmWriteLn(#9'dc.l'#9 + s + '[DS]')
+                      AsmWriteLn('[DS]')
                   end
                 else
                   begin
-                    if macos_direct_globals then
-                      AsmWriteLn(#9'dc.l'#9+s)
-                    else
-                      AsmWriteLn(#9'dc.l'#9+s+const_storage_class);
+                    AsmWrite(s);
+                    if not macos_direct_globals then
+                      AsmWriteLn(const_storage_class);
                   end;
 
                 (* TODO: the following might need to be included. Temporaily we
@@ -871,7 +913,9 @@ var
               begin
                  {NOTE When a single quote char is encountered, it is
                  replaced with a numeric ascii value. It could also
-                 have been replaced with the escape seq of double quotes.}
+                 have been replaced with the escape seq of double quotes.
+                 Backslash seems to be used as an escape char, although
+                 this is not mentioned in the PPCAsm documentation.}
                  counter := 0;
                  lines := tai_string(hp).len div line_length;
                  { separate lines in different parts }
@@ -886,7 +930,8 @@ var
                             { it is an ascii character. }
                             if (ord(tai_string(hp).str[i])>31) and
                                (ord(tai_string(hp).str[i])<128) and
-                               (tai_string(hp).str[i]<>'''') then
+                               (tai_string(hp).str[i]<>'''') and
+                               (tai_string(hp).str[i]<>'\') then
                                 begin
                                   if not(quoted) then
                                       begin
@@ -908,7 +953,7 @@ var
                                 end;
                          end; { end for i:=0 to... }
                        if quoted then AsmWrite('''');
-                         AsmWrite(target_info.newline);
+                       AsmWrite(target_info.newline);
                        counter := counter+line_length;
                     end; { end for j:=0 ... }
                   { do last line of lines }
@@ -919,8 +964,8 @@ var
                       { it is an ascii character. }
                       if (ord(tai_string(hp).str[i])>31) and
                          (ord(tai_string(hp).str[i])<128) and
-                         (tai_string(hp).str[i]<>'''') then
-                          begin
+                         (tai_string(hp).str[i]<>'''') and
+                         (tai_string(hp).str[i]<>'\') then                          begin
                             if not(quoted) then
                                 begin
                                   if i>counter then
@@ -952,18 +997,26 @@ var
                     s:= tai_label(hp).l.name;
                     ReplaceForbiddenChars(s);
                     if s[1] = '@' then
+                      //Local labels:
                       AsmWriteLn(s+':')
                     else
                       begin
+                        //Procedure entry points:
                         if not macos_direct_globals then
                           begin
                             AsmWriteLn(#9'toc');
-                            AsmWriteLn(#9'tc'#9+s+'[TC], '+s+const_storage_class);
-                            AsmWriteLn(#9'csect'#9+s+const_storage_class);
+                            AsmWrite(#9'tc'#9); AsmWrite(s);
+                            AsmWrite('[TC], '); AsmWrite(s);
+                            AsmWriteLn(const_storage_class);
+
+                            AsmWrite(#9'csect'#9); AsmWrite(s);
+                            AsmWriteLn(const_storage_class);
                           end
                         else
                           begin
-                            AsmWriteLn(#9'csect'#9+s+'[TC]');
+                            AsmWrite(#9'csect'#9); AsmWrite(s);
+                            AsmWriteLn('[TC]');
+
                             AsmWriteLn(PadTabs(s+':',#0));
                           end;
                       end;
@@ -981,24 +1034,13 @@ var
                   else if tai_symbol(hp).sym.typ=AT_DATA then
                     begin
                        s:= tai_symbol(hp).sym.name;
-                       replaced:= ReplaceForbiddenChars(s);
-                       if tai_symbol(hp).is_global then
-                         if replaced then
-                           AsmWriteLn(#9'export'#9+s+'[RW] => '''+tai_symbol(hp).sym.name+'''')
-                         else
-                           AsmWriteLn(#9'export'#9+s+'[RW]');
 
+                       WriteDataExportHeader(s, tai_symbol(hp).is_global, true);
 
-                       if not macos_direct_globals then
+                       if macos_direct_globals then
                          begin
-                           AsmWriteLn(#9'toc');
-                           AsmWriteLn(#9'tc'#9+s+'[TC], '+s+ const_storage_class);
-                           AsmWriteLn(#9'csect'#9+s+ const_storage_class);
-                         end
-                       else
-                         begin
-                           AsmWriteLn(#9'csect'#9+s+'[TC]');
-                           AsmWriteLn(s+':');
+                           AsmWrite(s);
+                           AsmWriteLn(':');
                          end;
                     end
                   else
@@ -1084,44 +1126,77 @@ var
 
       var
         s:string;
+        replaced: boolean;
 
       begin
         if tasmsymbol(p).defbind=AB_EXTERNAL then
           begin
             //Writeln('ZZZ ',p.name,' ',p.classname,' ',Ord(tasmsymbol(p).typ));
             s:= p.name;
-            case tasmsymbol(p).typ of
-              AT_FUNCTION:
-                begin
-                   if ReplaceForbiddenChars(s) then
+            replaced:= ReplaceForbiddenChars(s);
+
+            with currentasmlist do
+              case tasmsymbol(p).typ of
+                AT_FUNCTION:
+                  begin
+                    AsmWrite(#9'import'#9'.');
+                    AsmWrite(s);
+                    if use_PR then
+                     AsmWrite('[PR]');
+
+                    if replaced then
                      begin
-                        if not use_PR then
-                          currentasmlist.AsmWriteLn(#9'import'#9'.'+s+' <= ''.'+p.name+'''')
-                        else
-                          currentasmlist.AsmWriteLn(#9'import'#9'.'+s+'[PR] <= ''.'+p.name+'[PR]''');
-                        currentasmlist.AsmWriteLn(#9'import'#9+s+'[DS] <= '''+p.name+'[DS]''');
-                     end
-                   else
-                     begin
-                        if not use_PR then
-                          currentasmlist.AsmWriteLn(#9'import'#9'.'+s)
-                        else
-                          currentasmlist.AsmWriteLn(#9'import'#9'.'+s+'[PR]');
-                        currentasmlist.AsmWriteLn(#9'import'#9+s+'[DS]');
+                       AsmWrite(' <= ''.');
+                       AsmWrite(p.name);
+                       if use_PR then
+                         AsmWrite('[PR]''')
+                       else
+                         AsmWrite('''');
                      end;
-                   currentasmlist.AsmWriteLn(#9'toc');
-                   currentasmlist.AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[DS]');
-                end
-              else
-                begin
-                   if ReplaceForbiddenChars(s) then
-                     currentasmlist.AsmWriteLn(#9'import'#9+s+'[RW] <= '''+p.name+'''')
-                   else
-                     currentasmlist.AsmWriteLn(#9'import'#9+s+'[RW]');
-                   currentasmlist.AsmWriteLn(#9'toc');
-                   currentasmlist.AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[RW]');
-                end;
-            end;
+                    AsmLn;
+
+                    AsmWrite(#9'import'#9);
+                    AsmWrite(s);
+                    AsmWrite('[DS]');
+                    if replaced then
+                     begin
+                       AsmWrite(' <= ''');
+                       AsmWrite(p.name);
+                       AsmWrite('[DS]''');
+                     end;
+                    AsmLn;
+
+                    AsmWriteLn(#9'toc');
+
+                    AsmWrite(#9'tc'#9);
+                    AsmWrite(s);
+                    AsmWrite('[TC],');
+                    AsmWrite(s);
+                    AsmWriteLn('[DS]');
+                  end;
+                AT_DATA:
+                  begin
+                    AsmWrite(#9'import'#9);
+                    AsmWrite(s);
+                    AsmWrite('[RW]');
+                    if replaced then
+                      begin
+                        AsmWrite(' <= ''');
+                        AsmWrite(p.name);
+                        AsmWrite('''');
+                      end;
+                    AsmLn;
+
+                    AsmWriteLn(#9'toc');
+                    AsmWrite(#9'tc'#9);
+                    AsmWrite(s);
+                    AsmWrite('[TC],');
+                    AsmWrite(s);
+                    AsmWriteLn('[RW]');
+                  end
+                else
+                  InternalError(2003090901);
+              end;
           end;
       end;
 
@@ -1262,7 +1337,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.24  2003-09-03 19:35:24  peter
+  Revision 1.25  2003-09-12 12:30:27  olle
+    * max lenght of symbols increased to 255
+    * emitted strings can now contain backslashes
+
+  Revision 1.24  2003/09/03 19:35:24  peter
     * powerpc compiles again
 
   Revision 1.23  2003/08/24 21:40:12  olle
