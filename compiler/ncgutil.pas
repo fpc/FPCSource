@@ -836,12 +836,14 @@ implementation
                  tvarsym(p).vartype.def.needs_inittable then
                 dofinalize:=true;
             end;
+{
           typedconstsym :
             begin
               if ttypedconstsym(p).is_writable and
                  ttypedconstsym(p).typedconsttype.def.needs_inittable then
                 dofinalize:=true;
             end;
+}
         end;
         if dofinalize then
           begin
@@ -2089,7 +2091,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.211  2004-07-09 23:41:04  jonas
+  Revision 1.212  2004-07-17 13:14:17  jonas
+    * don't finalize typed consts (fixes bug3212, but causes memory leak;
+      they should be finalized at the end of the module)
+
+  Revision 1.211  2004/07/09 23:41:04  jonas
     * support register parameters for inlined procedures + some inline
       cleanups
 
