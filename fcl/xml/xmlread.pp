@@ -188,6 +188,11 @@ begin
   ExpectElement(doc);
   ParseMisc(doc);
 
+  doc.SetDocumentElement(LastNodeBeforeDoc.NextSibling as TDOMElement);
+
+  if buf[0] <> #0 then
+    RaiseExc('Data after end of document element');
+
   {
   if buf[0] <> #0 then begin
     WriteLn('=== Unparsed: ===');
@@ -977,7 +982,12 @@ end.
 
 {
   $Log$
-  Revision 1.8  1999-08-10 15:39:59  michael
+  Revision 1.9  1999-12-05 22:02:11  sg
+  * The reader now sets the DocumentElement for a DOM document
+  * The XML parser raises an exception if there is additional data after
+    the end of the XML document element
+
+  Revision 1.8  1999/08/10 15:39:59  michael
   * restored previous setting
 
   Revision 1.6  1999/07/27 13:01:59  peter
