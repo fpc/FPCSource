@@ -9,11 +9,14 @@ var r:trec; s:ansistring;
 begin
   s:=chr(ord('A')+random(26));
   r.s:=s;
+  writeln('init');
   if plongint(pointer(s)-4)^<>3 then
     halt(1);
+  writeln('p1()');
   p1(r);
   if plongint(pointer(s)-4)^<>3 then
     halt(1);
+  writeln('p2()');
   p2(r);
   if plongint(pointer(s)-4)^<>3 then
     halt(1);
