@@ -12,8 +12,7 @@
 %
 %  Example:
 %
-%	\begin{htmllist}
-%	\htmlitemmark{WhiteBall}
+%	\begin{htmllist}[WhiteBall]
 %	\item[Item 1:] This will have a white ball
 %	\item[Item 2:] This will also have a white ball
 %	\htmlitemmark{RedBall}
@@ -27,7 +26,11 @@
 
 % Modifications:
 
-\newenvironment{htmllist}{%
+\newenvironment{htmllist}[1][]{%
+\begin{description}}{%
+\end{description}}
+
+\newenvironment{htmllist*}[1][]{%
 \begin{description}}{%
 \end{description}}
 
