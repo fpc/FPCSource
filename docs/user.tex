@@ -76,15 +76,16 @@ conflict with this manual, authoritative.
 it supports the following operating systems:
 \begin{itemize}
 \item \dos
-\item \linux % (Intel and m68k)
+\item \linux % (Intel, AMD64 and m68k)
 \item \amiga (version 0.99.5 only)
 \item \windows
-\item \ostwo (using the EMX package, so it also works on DOS/Windows)
+\item \ostwo (optionally using the EMX package, so it also works on DOS/Windows)
 \item \freebsd
 \item \beos (under development)
 \item \solaris (under development)
-\item \palmos(under development)
+\item \palmos (under development)
 \item \netbsd 
+\item \netware
 \item \openbsd (under development)
 \end{itemize}
 
@@ -94,7 +95,7 @@ but it also enhances these languages with elements like operator overloading.
 And, unlike these ancestors, it supports multiple platforms.
 
 It also differs from them in the sense that you cannot use compiled units
-from one system for the other.
+from one system for the other, i.e. you cannot use TP compiled units.
 
 Also, at the time of writing, there is a beta version of an
 Integrated Development Environment (IDE) available for \fpc.
@@ -158,8 +159,8 @@ The compiler needs at least the following hardware:
 \item An Intel 80386 or higher processor (for the intel version). A coprocessor 
 is not required, although it will slow down your program's performance if you do 
 floating point calculations without a coprocessor, since emulation will be used.
-\item 4 Megabytes of free memory. 
-\item At least 3 Megabytes free disk space.
+\item 32 Megabytes of free memory. 
+\item At least 8 Megabytes free disk space.
 \end{enumerate}
 
 % Software requirements
@@ -502,22 +503,41 @@ then it is defaulted to the following:
 \begin{itemize}
 \item On \linux:
 \begin{verbatim}
-  /usr/local/lib/fpc/VERSION
+  /usr/local/lib/fpc/FPCVERSION
 or
-  /usr/lib/fpc/VERSION
+  /usr/lib/fpc/FPCVERSION
 \end{verbatim}
 whichever is found first.
 \item On other OSes: the compiler binary directory, with '../' appended
-to it, if it exists.
+to it, if it exists. For instance, on Windows, this would mean
+\begin{verbatim}
+C:\FPC\1.9.6\units\i386-win32
+\end{verbatim}
+This is assuming the compiler was installed in the directory
+\begin{verbatim}
+C:\FPC\1.9.6
+\end{verbatim}
 \end{itemize}
 After this directory is determined , the following paths are added to the
 search path:
 \begin{enumerate}
-\item FPCDIR/units/TARGET
-\item FPCDIR/units/TARGET/rtl
+\item FPCDIR/units/FPCTARGET
+\item FPCDIR/units/FPCTARGET/rtl
 \end{enumerate}
-Here target must be replaced by the name of the target you are compiling for.
+Here target must be replaced by the name of the target you are compiling
+for: this is a combination of CPU and OS, so for instance
+\begin{verbatim}
+/usr/local/lib/fpc/1.9.6/units/i386-linux/
+\end{verbatim}
+or, when cross-compiling
+\begin{verbatim}
+/usr/local/lib/fpc/1.9.6/units/i386-win32/
+\end{verbatim}
 \end{enumerate}
+
+Note that (for optimization) the compiler will drop any non-existing paths 
+from the search path, i.e. the existence of the path will be tested.
+
 You can see what paths the compiler will search by giving the compiler
 the \var{-vu} option.
 
@@ -1720,11 +1740,192 @@ All example programs of the documentation are available. Check out the
 directories that end on \file{ex} in the documentation sources. There you
 will find all example sources.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Supplied programs
-\section{Supplied programs}
+\section{fpcmake}
 
-\subsection{ppudump program}
+\file{fpcmake} is the \fpc makefile constructor program.
+
+It reads a \file{Makefile.fpc} configuration file and converts it to a
+\file{Makefile} suitable for reading by GNU \file{make} to compile
+your projects. It is similar in functionality to GNU \file{autoconf}
+or \file{Imake} for making X projects.
+
+\file{fpcmake} accepts filenames of makefile description files as its
+command-line arguments. For each of these files it will create a
+\file{Makefile} in the same directory where the file is located,
+overwriting any other existing file.
+
+If no options are given, it just attempts to read the file \file{Makefile.fpc}
+in the current directory and tries to construct a makefile from it.
+any previously existing \file{Makefile} will be erased.
+
+The format of the \file{fpcmake} configuration file is described in great
+detail in the appendices of the \progref.
+
+\section{fpdoc - Pascal Unit documenter}
+
+\file{fpdoc} is a program which generates fully cross-referenced
+documentation for a unit. It generates documentation for each 
+identifier found in the unit's interface section. The generated 
+documentation can be in many formats for instance HTML and LaTeX. 
+Unlike other documentation tools, the documentation can be in a separate
+file (in XML format), so the sources aren't cluttered with documentation.
+It's companion program \file{makeskel} creates an empty XML file with
+entries for all identifiers.
+
+\file{fpdoc} and \file{makeskel} are described in \fpdocref.
+
+\section{h2pas - C header to Pascal Unit converter}
+\file{h2pas} attempts to convert a C header file to a pascal unit. 
+it can handle most C constructs that one finds in a C header file,
+and attempts to translate them to their pascal counterparts. see below
+(constructs) for a full description of what the translator can handle.
+The unit with pascal declarations can then be used to access code written in C.
+
+The output of the h2pas program is written to a file with the same name as
+the C header file that was used as input, but with the extension \file{.pp}
+The output file that h2pas creates can be customized in a number of ways by
+means of many options.
+
+\subsection{Options}
+The output of  \file{h2pas} can be controlled with the following options:
+
+\begin{description}
+\item[-d] use \var{external;} for all procedure and function declarations.
+\item[-D] use \var{external libname name 'func\_name'} for function and 
+procedure declarations.
+\item[-e] Emit a series of constants instead of an enumeration type for the 
+C \var{enum} construct. 
+\item[-i] create an include file instead of a unit (omits the unit header).
+\item[-l] \textbf{libname} specify the library name for external function 
+declarations.
+\item[-o] \textbf{outfile} Specify the output file name. Default is the input file name with 
+the extension replaced by \file{.pp}
+\item[-p] use the letter \var{P} in front of pointer type parameters instead of \^.
+\item[-s] Strip comments from the input file. By default comments are converted
+to comments, but they may be displaced, since a comment is handled by the
+scanner.
+\item[-t] prepend typedef type names with the letter \var{T} (used to follow 
+Borland's convention that all types should be defined with T).
+\item[-v] replace pointer parameters by call by reference parameters.
+Use with care because some calls can expect a \var{Nil} pointer.
+\item[-w] Header file is a win32 header file (adds support for some special macros).
+\item[-x] handle SYS\_TRAP of the PalmOS header files.
+\end{description}
+
+\subsection{Constructs}
+The following C declarations and statements are recognized:
+
+\begin{description}
+\item[defines] 
+defines are changed into pascal constants if they are simple defines.
+macros are changed - wherever possible to functions; however the arguments
+are all integers, so these must be changed manually. Simple expressions 
+in define staments are recognized, as are most arithmetic operators: 
+addition, substraction, multiplication, division, logical operators, 
+comparision operators, shift operators. The C construct ( A ? B : C)
+is also recognized and translated to a pascal construct with an IF
+statement (this is buggy, however).
+
+\item[preprocessor statements]
+the conditional preprocessing commands are recognized and translated into
+equivalent pascal compiler directives. The special 
+\begin{verbatim}
+#ifdef __cplusplus
+\end{verbatim}
+is also recognized and removed.
+\item[typedef] A typedef statement is changed into a pascal type statement. 
+The following basic types are recognized:
+\begin{itemize}
+\item \var{char} changed to \var{char}.
+\item \var{float} changed to \var{real} (=double in \fpc).
+\item \var{int} changed to \var{longint}.
+\item \var{long} changed to \var{longint}.
+\item \var{long int} changed to \var{longint}.
+\item \var{short} changed to \var{integer}. 
+\item \var{unsigned} changed to \var{cardinal}.
+\item \var{unsigned char} changed to \var{byte}.
+\item \var{unsigned int} changed to \var{cardinal}.
+\item \var{unsigned long int} changed to \var{cardinal}.
+\item \var{unsigned short} changed to \var{word}.
+\item \var{void} ignored.
+\end{itemize}
+These types are also changed if they appear in the arguments of a function
+or procedure.
+\item[functions and procedures]
+functions and procedures are translated as well; pointer types may be
+changed to call by reference arguments (using the \var{var} argument) 
+by using the \var{-p} command line argument. functions that have a 
+variable number of arguments are changed to a function with an 
+\var{array of const} argument.
+\item[specifiers]
+The \var{extern} specifier is recognized; however it is ignored. the
+\var{packed} specifier is also recognised and changed with the
+\var{PACKRECORDS} directive. The \var{const} specifier is also 
+recognized, but is ignored.
+\item[modifiers] 
+If the \var{-w} option is specified, then the following modifiers are recognized:
+\begin{verbatim}
+STDCALL
+CDECL
+CALLBACK
+PASCAL
+WINAPI
+APIENTRY
+WINGDIAPI
+\end{verbatim}
+as defined in the win32 headers. If additionally the \var{-x}
+option is specified then the  
+\begin{verbatim}
+SYS_TRAP
+\end{verbatim}
+specifier is also recognized.
+\item[enums]
+enum constructs are changed into enumeration types; bear in mind that in C
+enumeration types can have values assigned to them; Free Pascal also allows
+this to a certain degree. If you know that values are assigned to enums, it
+is best to use the \var{-e} option to change the enus to a series of integer 
+constants.
+
+\item[unions] unions are changed to variant records. 
+\item[structs] are changed to pascal records, with C packing.
+\end{description}
+
+\section{h2paspp - preprocessor for h2pas}
+\var{h2paspp} can be used as a simple preprocessor for \file{h2pas}. It
+removes some of the constructs that h2pas has difficulties with. 
+\file{h2paspp} reads one or more C header files and preprocesses them, writing the result 
+to files with the same name as the originals as it goes along. 
+It does not accept all preprocesser tokens of C, but takes care of the following 
+preprocessor directives:
+
+\begin{description}
+\item [\#define symbol] Defines the new symbol \var{symbol}. Note that macros are not supported.
+\item [\#if symbol] The text following this directive is included if \var{symbol} is defined.
+\item [\#ifdef symbol] The text following this directive is included if \var{symbol} is defined. 
+\item [\#ifndef symbol] The text following this directive is included if \var{symbol} is not defined.
+\item [\#include filename] Include directives are removed, unless the \var{-I} option was given, 
+in which case the include file is included and written to the output file.
+\item[\#undef symbol] The symbol \var{symbol} is undefined.
+\end{description}
+
+\subsection{Usage}
+\file{h2paspp} accepts one or more filenames and preprocesses them. 
+It will read the input, and write output to a file with the same name 
+unless the \var{-o} option is given, in which case the file is written 
+to the specified file. Note that only one output filename can be given.
+
+
+\subsection{Options}
+\file{h2paspp} has a small number of options to control its behaviour:
+\begin{description}
+\item[-dsymbol] Define the symbol \var{symbol} before processing is started.
+\item[-h] emit a small helptext.
+\item[-I] include include files instead of dropping the include statement.
+\item[-ooutfile] If this option is given, the output will be written to a 
+file named \file{outfile}. Note that only one output file can be given.
+\end{description}
+
+\section{ppudump program}
 
 \file{ppudump} is a program which shows the contents of a \fpc unit. It
 is distributed with the compiler. You can just issue the following command
@@ -1750,7 +1951,7 @@ letters:
 \end{description}
 
 
-\subsection{ppumove program}
+\section{ppumove program}
 
 \file{ppumove} is a program to make shared or static libraries from
 multiple units. It can be compared with the \file{tpumove} program that
@@ -1827,9 +2028,9 @@ for the timer code in the library.
 You could then use or distribute the files \file{libboth.so}, \file{timer.ppl}
 and \file{ppu.ppl}.
 
-\subsection{ptop - Pascal source beautifier}
+\section{ptop - Pascal source beautifier}
 
-\subsubsection{ptop program}
+\subsection{ptop program}
 % This section was supplied by Marco Van de voort, for which my thanks.
 % I did some cleaning, and added the subsubsection with help on on the
 % object. MVC.
@@ -1860,7 +2061,7 @@ Some options modify the behaviour of ptop:
 \item[-g \file{ptop.cfg}] Writes a default configuration file to be edited to the file "ptop.cfg"
 \end{description}
 
-\subsubsection{The ptop configuration file}
+\subsection{The ptop configuration file}
 
 Creating and distributing a configuration file for ptop is not necesarry,
 unless you want to modify the standard behaviour of \file{ptop}. The configuration
@@ -1971,7 +2172,7 @@ the default file by upper.
 \file{ptop} is still development software, so it is wise to visually check the generated
 source and try to compile it, to see if \file{ptop} hasn't made any errors.
 
-\subsubsection{ptopu unit}
+\subsection{ptopu unit}
 
 The source of the \file{PtoP} program is conveniently split in two files:
 One is a unit containing an object that does the actual beautifying of the
@@ -2034,7 +2235,7 @@ end;
 Using memory streams allows very fast formatting of code, and is perfectly
 suitable for editors.
 
-\subsection{rstconv program}
+\section{rstconv program}
 
 The \file{rstconv} program converts the resource string files generates by
 the compiler (when you use resource string sections) to \file{.po} files
@@ -2058,26 +2259,59 @@ will convert the \file{resdemo.rst} file to \file{resdemo.po}.
 More information on the \file{rstconv} utility can be found in the \progref,
 under the chapter about resource strings.
 
-\subsection{fpcmake}
+\section{unitdiff program}
 
-\file{fpcmake} is the \fpc makefile constructor program.
+\subsection{Synopsis}
+\file{unitdiff} shows differences between 2 unit interface sections. 
+\begin{verbatim}
+unitdiff [--disable-arguments] [--disable-private] [--disable-protected] 
+[--help] [--lang=language] [--list] [--output=filename] [--sparse] 
+file1 file2
+\end{verbatim}
 
-It reads a \file{Makefile.fpc} configuration file and converts it to a
-\file{Makefile} suitable for reading by GNU \file{make} to compile
-your projects. It is similar in functionality to GNU \file{autoconf}
-or \file{Imake} for making X projects.
+\subsection{Description and usage}
 
-\file{fpcmake} accepts filenames of makefile description files as its
-command-line arguments. For each of these files it will create a
-\file{Makefile} in the same directory where the file is located,
-overwriting any other existing file.
+\file{Unitdiff} scans one or two Free Pascal unit source files and either lists all
+available identifiers, or describes the differences in identifiers
+between the two units.
 
-If no options are given, it just attempts to read the file \file{Makefile.fpc}
-in the current directory and tries to construct a makefile from it.
-any previously existing \file{Makefile} will be erased.
+You can invoke \file{unitdiff} with as the only required argument a
+\file{input} filename. It will then simply list all available identifiers.
 
-The format of the \file{fpcmake} configuration file is described in great
-detail in the appendices of the \progref.
+The regular use is to invoke \file{unitdiff} with 2 arguments:
+\begin{verbatim}
+unitdiff input1 input2
+\end{verbatim}
+It will then show the difference in interface between the two
+units, or list the available identifiers in both units. The output of 
+\file{unitdiff} will go to standard output by default.
+
+\subsection{Options}
+\file{unitdiff} has some options, most of them optional, defaults will be used in most
+cases.
+
+\begin{description}
+\item[--disable-arguments] If this option is specified,  \file{unitdiff}
+will not check the arguments of functions and procedures. By default, 
+these are checked as well.
+\item[--disable-private] By default, private methods of classes are checked. 
+if this option is specified, private fields or methods are not checked.
+\item[--disable-protected] By default, protected  methods of classes are 
+checked. if this option is specified, protected and private fields or 
+methods are not checked.
+\item[--help] Emit a short help text and exit.
+\item[--lang=language] Sets the language for the output file. This will mainly 
+set the strings used for the headers in various parts of the documentation files 
+(by default they're in english). Currently, valid options are
+\item[--list] If this option is specified, only the list of available identifiers will be
+specified for the unit or units. If only 1 unit is specified, this option is
+automatically assumed.
+\item[--output=filename] This option tells \file{unitdiff} where the output should go. 
+If this option is not specified, the output is sent to standard output (the screen).
+\item[--sparse] Turns on sparse mode. In this mode, the output will not contain the types of
+the identifiers. Only the names of the identifiers are written to the
+output. By default, also type descriptions are written.
+\end{description}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Supplied units
