@@ -102,8 +102,13 @@ Procedure Exec(const path: pathstr; const comline: comstr);
 Function  DosExitCode: word;
 
 {Disk}
-Function  DiskFree(drive: byte) : longint;
-Function  DiskSize(drive: byte) : longint;
+{$ifdef HasInt64Diskfuncs}
+ Function  DiskFree(drive: byte) : int64;
+ Function  DiskSize(drive: byte) : int64;
+{$else}
+ Function  DiskFree(drive: byte) : longint;
+ Function  DiskSize(drive: byte) : longint;
+{$endif}
 Procedure FindFirst(const path: pathstr; attr: word; var f: searchRec);
 Procedure FindNext(var f: searchRec);
 Procedure FindClose(Var f: SearchRec);
@@ -442,6 +447,91 @@ end;
                                --- Disk ---
 ******************************************************************************}
 
+{$ifdef HasInt64Diskfuncs}
+
+TYPE  ExtendedFat32FreeSpaceRec=packed Record
+         RetSize           : WORD; { (ret) size of returned structure}
+         Strucversion      : WORD; {(call) structure version (0000h)
+                                    (ret) actual structure version (0000h)}
+         SecPerClus,               {number of sectors per cluster}
+         BytePerSec,               {number of bytes per sector}
+         AvailClusters,            {number of available clusters}
+         TotalClusters,            {total number of clusters on the drive}
+         AvailPhysSect,            {physical sectors available on the drive}
+         TotalPhysSect,            {total physical sectors on the drive}
+         AvailAllocUnits,          {Available allocation units}
+         TotalAllocUnits : DWORD;  {Total allocation units}
+         Dummy,Dummy2    : DWORD;  {8 bytes reserved}
+         END;
+
+function do_diskdata(drive : byte; Free : BOOLEAN) : Int64;
+
+VAR S    : String;
+    Rec  : ExtendedFat32FreeSpaceRec;
+
+BEGIN
+ if (swap(dosversion)>=$070A) AND LFNSupport then
+  begin
+   DosError:=0;
+   S:='C:\'#0;
+   if Drive=0 then
+    begin
+     GetDir(Drive,S);
+     Setlength(S,4);
+     S[4]:=#0;
+    end
+   else
+    S[1]:=chr(Drive+64);
+   Rec.Strucversion:=0;
+   dosmemput(tb_segment,tb_offset,Rec,SIZEOF(ExtendedFat32FreeSpaceRec));
+   dosmemput(tb_segment,tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1,S[1],4);
+   dosregs.dx:=tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1;
+   dosregs.ds:=tb_segment;
+   dosregs.di:=tb_offset;
+   dosregs.es:=tb_segment;
+   dosregs.cx:=Sizeof(ExtendedFat32FreeSpaceRec);
+   dosregs.ax:=$7303;
+   msdos(dosregs);
+   LoadDosError;
+   copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
+   if Free then
+    Do_DiskData:=int64(rec.AvailAllocUnits)*rec.SecPerClus*rec.BytePerSec
+   else
+    Do_DiskData:=int64(rec.TotalAllocUnits)*rec.SecPerClus*rec.BytePerSec;
+   if doserror<>0 THEN {No error clausule in int except cf}
+    Do_DiskData:=-1;
+  end
+ else
+  begin
+   DosError:=0;
+   dosregs.dl:=drive;
+   dosregs.ah:=$36;
+   msdos(dosregs);
+   if dosregs.ax<>$FFFF then
+    begin
+     if Free then
+      Do_DiskData:=dosregs.ax*dosregs.bx*dosregs.cx
+     else
+      Do_DiskData:=dosregs.ax*dosregs.cx*dosregs.dx;
+    end
+   else
+    do_diskdata:=-1;
+  end;
+end;
+
+function diskfree(drive : byte) : int64;
+
+begin
+   diskfree:=Do_DiskData(drive,TRUE);
+end;
+
+
+function disksize(drive : byte) : int64;
+begin
+  disksize:=Do_DiskData(drive,false);
+end;
+{$else}
+
 function diskfree(drive : byte) : longint;
 begin
   DosError:=0;
@@ -466,6 +556,8 @@ begin
   else
    disksize:=-1;
 end;
+
+{$endif}
 
 
 {******************************************************************************
@@ -1047,7 +1139,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.17  2000-01-07 16:41:30  daniel
+  Revision 1.18  2000-01-23 12:28:38  marco
+   * Added diskfree and disksize with AH=71 dos functions (LFN/Fat32)
+
+  Revision 1.17  2000/01/07 16:41:30  daniel
     * copyright 2000
 
   Revision 1.16  2000/01/07 16:32:23  daniel
