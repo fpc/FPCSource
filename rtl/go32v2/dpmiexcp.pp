@@ -748,7 +748,7 @@ end;
 procedure show_call_frame(djgpp_exception_state : pexception_state);
 begin
   errln('Call frame traceback EIPs:');
-  errln('  0x'+hexstr(djgpp_exception_state^.__eip, 8));
+  errln(BackTraceStrFunc(djgpp_exception_state^.__eip));
   dump_stack(stderr,djgpp_exception_state^.__ebp);
 end;
 
@@ -1466,7 +1466,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.16  2000-03-31 23:19:12  pierre
+  Revision 1.17  2000-04-14 12:24:12  pierre
+   Use BackTraceStrFunc in show_call_frame
+
+  Revision 1.16  2000/03/31 23:19:12  pierre
     * changed handling of interrupt 0x75 :
       the status word is saved into ___djgpp_fpu_state
       and inserted in __sigmaks field of djgpp exception record
