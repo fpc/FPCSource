@@ -1404,7 +1404,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-10-03 14:46:37  peter
+  Revision 1.6  2003-10-05 00:02:36  florian
+    * fixed line feeds
+
+  Revision 1.5  2003/10/03 14:46:37  peter
     * popstack to oldfpccall
 
   Revision 1.4  2003/04/22 10:24:29  florian
