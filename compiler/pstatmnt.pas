@@ -982,13 +982,15 @@ implementation
                                    continuen,labeln,blockn,exitn]) then
                Message(cg_e_illegal_expression);
 
-             { specify that we don't use the value returned by the call }
-             { Question : can this be also improtant
-               for inlinen ??
+             { specify that we don't use the value returned by the call
                it is used for :
                 - dispose of temp stack space
-                - dispose on FPU stack }
-             if p.nodetype=calln then
+                - dispose on FPU stack
+               Object constructor results are ignored }
+             if (p.nodetype=calln) and
+                not((tcallnode(p).procdefinition.proctypeoption=potype_constructor) and
+                    assigned(tprocdef(tcallnode(p).procdefinition)._class) and
+                    is_object(tprocdef(tcallnode(p).procdefinition)._class)) then
                exclude(p.flags,nf_return_value_used);
 
              code:=p;
@@ -1132,7 +1134,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.117  2003-10-29 15:40:20  peter
+  Revision 1.118  2003-10-29 20:01:41  peter
+    * object constructor results are always used
+
+  Revision 1.117  2003/10/29 15:40:20  peter
     * support indexing and offset retrieval for locals
 
   Revision 1.116  2003/10/17 14:38:32  peter
