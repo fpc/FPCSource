@@ -1,6 +1,5 @@
 %!PS-Adobe-2.0
-%BoundingBox: 0 0 4000 6400
-%%DocumentPaperSizes: a3
+%%DocumentPaperSizes: a2
 %
 %    $Id$
 %
@@ -512,10 +511,6 @@ newcolumn
 (TCollectionItem) Untested newclass
   (TCheckConstraint) Untested newchildclass
   onelevelback
-(TDatabase) Untested newclass
-(TDataset) Ready newclass
-  (TDBdatset) Untested newchildclass
-  onelevelback
 (TDOMimplementation) Ready newclass
 (TDOMNode) Ready newclass
   (TDOMCharacterdata) Ready newchildclass
@@ -539,36 +534,6 @@ newcolumn
   (TDOMProcessinginstruction) Ready newclass
   onelevelback
 (TEZcgi) Ready newclass
-(TField) Ready newclass
-  (TBooleanField) Ready newchildclass
-  (TBinaryField) Ready newclass
-    (TBytesField) Ready newchildclass
-      (TVarBytesField) Ready newchildclass
-      onelevelback
-    onelevelback 
-  (TBlobField) Ready newclass
-    (TGraphicsField) Ready newchildclass
-    (TMemoField) Ready newclass
-    onelevelback
-  (TDateTimeField) Ready newclass
-    (TDateField) Ready newchildclass
-    (TTimeField) Ready newclass
-    onelevelback
-  (TNumericField) Ready newclass
-    (TBCDField) Ready newchildclass
-    (TFloatField) Ready newclass
-    (TLongintField) Ready newclass
-      (TAutoIncField) Ready newchildclass
-      onelevelback
-    (TSmallIntField) Ready newclass
-    (TWordField) Ready newclass
-    onelevelback
-  (TStringField) Ready newclass
-  onelevelback
-(TFieldDef) Ready newclass
-(TFieldDefs) Ready newclass
-(TFields) Ready newclass
-newcolumn
 (TFiler) Untested newclass
   (TReader) Untested newchildclass
   (TWriter) Untested newclass
@@ -600,6 +565,7 @@ newcolumn
 (TRTFParser) Ready newclass
 (TRTLCriticalSection) Untested newclass
 (TSessionList) Missing newclass
+newcolumn
 (TStream) Ready newclass
   (TBase64EncodingStream) Ready newchildclass
   (TCustomZlibStream) Ready newclass
@@ -653,6 +619,39 @@ newcolumn
 %%%%%%%%%%%%%%%%%%%%%%%
 newcolumn
 (TComponent) Untested newlargeheadclass
+(TDatabase) Untested newchildclass
+(TDataset) Ready newclass
+  (TDBdatset) Untested newchildclass
+  onelevelback
+(TField) Ready newclass
+  (TBooleanField) Ready newchildclass
+  (TBinaryField) Ready newclass
+    (TBytesField) Ready newchildclass
+      (TVarBytesField) Ready newchildclass
+      onelevelback
+    onelevelback 
+  (TBlobField) Ready newclass
+    (TGraphicsField) Ready newchildclass
+    (TMemoField) Ready newclass
+    onelevelback
+  (TDateTimeField) Ready newclass
+    (TDateField) Ready newchildclass
+    (TTimeField) Ready newclass
+    onelevelback
+  (TNumericField) Ready newclass
+    (TBCDField) Ready newchildclass
+    (TFloatField) Ready newclass
+    (TLongintField) Ready newclass
+      (TAutoIncField) Ready newchildclass
+      onelevelback
+    (TSmallIntField) Ready newclass
+    (TWordField) Ready newclass
+    onelevelback
+  (TStringField) Ready newclass
+  onelevelback
+(TFieldDef) Ready newclass
+(TFieldDefs) Ready newclass
+(TFields) Ready newclass
 
 % Print footer and eject (last) page
 printfooter
@@ -660,7 +659,10 @@ showpage
 
 %
 %   $Log$
-%   Revision 1.14  1999-10-28 19:53:01  michael
+%   Revision 1.15  1999-10-28 20:22:03  michael
+%   + TField etc were in wrong part of the tree, they descend from TComponent
+%
+%   Revision 1.14  1999/10/28 19:53:01  michael
 %   Added many classes
 %
 %   Revision 1.13  1999/09/08 19:50:11  michael
