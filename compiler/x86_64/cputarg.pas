@@ -41,7 +41,7 @@ implementation
       ,t_linux
     {$endif}
     {$ifndef NOTARGETFREEBSD}
-      ,t_fbsd
+      ,t_bsd
     {$endif}
     {$ifndef NOTARGETWIN32}
       ,t_win32
@@ -62,7 +62,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2003-04-30 15:45:35  florian
+  Revision 1.5  2003-12-24 00:33:10  florian
+    * x86-64 compilation fixed
+
+  Revision 1.4  2003/04/30 15:45:35  florian
     * merged more x86-64/i386 code
 
   Revision 1.3  2002/09/07 15:25:15  peter

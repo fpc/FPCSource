@@ -224,7 +224,7 @@ interface
 {$ifdef x86_64}
        as_x86_64_as_info : tasminfo =
           (
-            id     : as_x86_64_as;
+            id     : as_gas;
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
@@ -293,7 +293,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2003-11-12 16:05:40  florian
+  Revision 1.12  2003-12-24 00:33:10  florian
+    * x86-64 compilation fixed
+
+  Revision 1.11  2003/11/12 16:05:40  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

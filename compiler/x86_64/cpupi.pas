@@ -29,10 +29,10 @@ unit cpupi;
   interface
 
     uses
-       cgbase;
+       psub,procinfo;
 
     type
-       tx86_64procinfo = class(tprocinfo)
+       tx86_64procinfo = class(tcgprocinfo)
        end;
 
 
@@ -43,7 +43,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2003-01-05 13:36:54  florian
+  Revision 1.2  2003-12-24 00:33:10  florian
+    * x86-64 compilation fixed
+
+  Revision 1.1  2003/01/05 13:36:54  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 }
