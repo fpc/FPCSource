@@ -250,6 +250,8 @@
      USHORT = word;
 
      WPARAM = cardinal;
+     PLPSTR = ^LPSTR;
+     PLPWStr= ^LPWStr;
 
 {
   Enumerations
@@ -942,7 +944,10 @@ type
 
 {
   $Log$
-  Revision 1.6  2001-06-27 21:37:39  peter
+  Revision 1.7  2001-07-30 14:08:57  marco
+   * plpstr and plpwstr added
+
+  Revision 1.6  2001/06/27 21:37:39  peter
     * v10 merges
 
   Revision 1.5  2000/12/18 17:28:58  jonas
