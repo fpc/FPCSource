@@ -191,6 +191,7 @@ type
     function GetCanModify: Boolean; virtual;
     function GetDataSize: Word; virtual;
     function GetDefaultWidth: Longint; virtual;
+    function GetDisplayName : String; 
     function GetIsNull: Boolean; virtual;
     function GetParentComponent: TComponent; override;
     procedure GetText(var AText: string; ADisplayText: Boolean); virtual;
@@ -242,7 +243,8 @@ type
     property CustomConstraint: string read FCustomConstraint write FCustomConstraint;
     property ConstraintErrorMessage: string read FConstraintErrorMessage write FConstraintErrorMessage;
     property DefaultExpression: string read FDefaultExpression write FDefaultExpression;
-    property DisplayLabel: string read FDisplayLabel write FDisplayLabel;
+    property DisplayLabel : string read FDisplayLabel write FDisplayLabel;
+    property DisplayName : String Read GetDisplayName; 
     property DisplayWidth: Longint read FDisplayWidth write FDisplayWidth;
     property FieldKind: TFieldKind read FFieldKind write FFieldKind;
     property FieldName: string read FFieldName write FFieldName;
@@ -1258,7 +1260,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1999-11-11 17:31:09  michael
+  Revision 1.5  1999-11-12 22:53:32  michael
+  + Added append() insert() tested append. Datetime as string works now
+
+  Revision 1.4  1999/11/11 17:31:09  michael
   + Added Checks for all simple field types.
   + Initial implementation of Insert/Append
 

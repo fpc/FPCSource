@@ -268,7 +268,13 @@ begin
   case Field.Index of
     0: Move(Buffer^, ActiveBuffer^, Field.Size);
     1: Move(Buffer^, PDDGData(ActiveBuffer)^.Height, Field.DataSize);
-    2: Move(Buffer^, PDDGData(ActiveBuffer)^.ShoeSize, Field.DataSize);
+    2: Move(Buffer^, PDDGData(ActiveBuffer)^.LongField, Field.DataSize);
+    3: Move(Buffer^, PDDGData(ActiveBuffer)^.ShoeSize, Field.DataSize);
+    4: Move(Buffer^, PDDGData(ActiveBuffer)^.WordField, Field.DataSize);
+    5: Move(Buffer^, PDDGData(ActiveBuffer)^.DateTimeField, Field.DataSize);
+    6: Move(Buffer^, PDDGData(ActiveBuffer)^.TimeField, Field.DataSize);
+    7: Move(Buffer^, PDDGData(ActiveBuffer)^.DateField, Field.DataSize);
+    8: Move(Buffer^, PDDGData(ActiveBuffer)^.Even, Field.DataSize);
   end;
   DataEvent(deFieldChange, Longint(Field));
 end;
@@ -399,7 +405,7 @@ begin
       DatabaseError('Could not open table');
   end;
   // open data file
-  FileMode := fmOpenRead;
+  FileMode := fmOpenReadWrite;
   Writeln ('OPening data file');
   AssignFile(FDataFile, FTableName);
   Reset(FDataFile);  
@@ -442,6 +448,9 @@ begin
     else RecPos := FileSize(FDataFile);
   end;
   Seek(FDataFile, RecPos);
+ {$ifdef dsdebug}
+  Writeln ('Writing record to disk.');
+ {$endif}
   BlockWrite(FDataFile, PDDGData(ActiveBuffer)^, 1);
   if State <> dsEdit then
   begin
@@ -449,6 +458,9 @@ begin
     else InsPos := FRecordPos;
     FIndexList.Insert(InsPos, Pointer(RecPos));
   end;
+ {$ifdef dsdebug}
+  Writeln ('Writing index to disk.');
+ {$endif}
   FIndexList.SaveToFile(FIdxName);
 end;
 

@@ -341,6 +341,15 @@ begin
   Result:=10;
 end;
 
+function TField.GetDisplayName  : String;
+
+begin
+  If FDisplayLabel<>'' then
+    result:=FDisplayLabel
+  else
+    Result:=FFieldName;
+end;
+
 function TField.getIndex : longint;
 
 begin
@@ -968,7 +977,10 @@ end;
 Function TFloatField.CheckRange(AValue : Extended) : Boolean;
 
 begin
-  Result:=(AValue>=FMinValue) and (AVAlue<=FMAxValue);
+  If (FMinValue<>0) or (FmaxValue<>0) then
+    Result:=(AValue>=FMinValue) and (AVAlue<=FMAxValue)
+  else
+    Result:=True;
 end;
 
 
@@ -1102,6 +1114,8 @@ begin
       Case DataType of
        ftTime : F:=ShortTimeFormat;
        ftDate : F:=ShortDateFormat;
+      else
+       F:='c'
       end;
     TheText:=FormatDateTime(F,R);
     end;
@@ -1675,6 +1689,9 @@ begin
   For I:=0 To FFieldList.Count-1 do
     If S=UpperCase(TField(FFieldList[i]).FieldName) Then
       Begin
+      {$ifdef dsdebug}
+      Writeln ('Found field ',Value);
+      {$endif}
       Result:=TField(FFieldList[I]);
       Exit;
       end;
@@ -1735,7 +1752,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1999-11-11 17:31:09  michael
+  Revision 1.4  1999-11-12 22:53:32  michael
+  + Added append() insert() tested append. Datetime as string works now
+
+  Revision 1.3  1999/11/11 17:31:09  michael
   + Added Checks for all simple field types.
   + Initial implementation of Insert/Append
 

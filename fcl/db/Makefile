@@ -124,8 +124,8 @@ endif
 
 # Targets
 
-UNITOBJECTS=db ddg_ds ddg_rec mysqldb
-EXEOBJECTS=testds createds mtest
+UNITOBJECTS=db ddg_ds ddg_rec
+EXEOBJECTS=testds createds tested
 
 # Clean
 
@@ -134,8 +134,7 @@ EXEOBJECTS=testds createds mtest
 
 
 # Defaults
-
-DEFAULTUNITS=1
+# DEFAULTUNITS=1
 override NEEDOPT=-S2
 
 # Directories
@@ -953,6 +952,8 @@ db$(PPUEXT): db.pp fields.inc dataset.inc dbs.inc
 ddg_ds$(PPUEXT): db$(PPUEXT) ddg_rec$(PPUEXT) ddg_ds$(PASEXT)
 
 testds$(EXEEXT): ddg_ds$(PPUEXT) testds$(PASEXT)
+
+tested$(EXEEXT): ddg_ds$(PPUEXT) tested$(PASEXT)
 
 createds$(EXEEXT): createds$(PASEXT) ddg_rec$(PPUEXT)
 

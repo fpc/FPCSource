@@ -41,10 +41,14 @@ Const
   SConnected = 'Operation cannot be performed on an connected database';
   SNoSuchRecord = 'Could not find the requested record.';  
   SDatasetReadOnly = 'Dataset is read-only.';
-
+  SNeedField = 'Field %s is required, but not supplied.';
+  
 {
   $Log$
-  Revision 1.3  1999-11-11 17:31:09  michael
+  Revision 1.4  1999-11-12 22:53:32  michael
+  + Added append() insert() tested append. Datetime as string works now
+
+  Revision 1.3  1999/11/11 17:31:09  michael
   + Added Checks for all simple field types.
   + Initial implementation of Insert/Append
 
