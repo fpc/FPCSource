@@ -794,7 +794,9 @@ implementation
                           p1:=ccallnode.create(paras,tprocsym(tpropertysym(sym).readaccess.firstsym^.sym),st,p1);
                           { we know the procedure to call, so
                             force the usage of that procedure }
-                          tcallnode(p1).procdefinition:=tprocdef(tpropertysym(sym).readaccess.def);
+{                           no, because then the amount and the validity of the paras
+                            is not checked (JM)
+                          tcallnode(p1).procdefinition:=tprocdef(tpropertysym(sym).readaccess.def); }
                           include(p1.flags,nf_isproperty);
                        end
                      else
@@ -2325,7 +2327,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2001-09-02 21:18:28  peter
+  Revision 1.43  2001-10-18 16:30:38  jonas
+    * property parameters are now fully parsed by the firstcall code to
+      check for the correct amount and types (merged)
+
+  Revision 1.42  2001/09/02 21:18:28  peter
     * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
       is used for holding target platform pointer values. As those can be
       bigger than the source platform.
