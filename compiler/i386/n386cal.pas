@@ -837,57 +837,61 @@ implementation
                   end;
 
               { push base pointer ?}
-              if (lexlevel>=normal_function_level) and assigned(tprocdef(procdefinition).parast) and
-                ((tprocdef(procdefinition).parast.symtablelevel)>normal_function_level) then
-                begin
-                   { if we call a nested function in a method, we must      }
-                   { push also SELF!                                    }
-                   { THAT'S NOT TRUE, we have to load ESI via frame pointer }
-                   { access                                              }
-                   {
-                     begin
-                        loadesi:=false;
-                        emit_reg(A_PUSH,S_L,R_ESI);
-                     end;
-                   }
-                   if lexlevel=(tprocdef(procdefinition).parast.symtablelevel) then
-                     begin
-                        new(r);
-                        reset_reference(r^);
-                        r^.offset:=procinfo^.framepointer_offset;
-                        r^.base:=procinfo^.framepointer;
-                        emit_ref(A_PUSH,S_L,r)
-                     end
-                     { this is only true if the difference is one !!
-                       but it cannot be more !! }
-                   else if (lexlevel=tprocdef(procdefinition).parast.symtablelevel-1) then
-                     begin
-                        emit_reg(A_PUSH,S_L,procinfo^.framepointer)
-                     end
-                   else if (lexlevel>tprocdef(procdefinition).parast.symtablelevel) then
-                     begin
-                        hregister:=getregister32;
-                        new(r);
-                        reset_reference(r^);
-                        r^.offset:=procinfo^.framepointer_offset;
-                        r^.base:=procinfo^.framepointer;
-                        emit_ref_reg(A_MOV,S_L,r,hregister);
-                        for i:=(tprocdef(procdefinition).parast.symtablelevel) to lexlevel-1 do
-                          begin
-                             new(r);
-                             reset_reference(r^);
-                             {we should get the correct frame_pointer_offset at each level
-                             how can we do this !!! }
-                             r^.offset:=procinfo^.framepointer_offset;
-                             r^.base:=hregister;
-                             emit_ref_reg(A_MOV,S_L,r,hregister);
-                          end;
-                        emit_reg(A_PUSH,S_L,hregister);
-                        ungetregister32(hregister);
-                     end
-                   else
-                     internalerror(25000);
-                end;
+              { never when inlining, since if necessary, the base pointer }
+              { can/will be gottten from the current procedure's symtable }
+              { (JM)                                                      }
+              if not inlined then
+                if (lexlevel>=normal_function_level) and assigned(tprocdef(procdefinition).parast) and
+                  ((tprocdef(procdefinition).parast.symtablelevel)>normal_function_level) then
+                  begin
+                     { if we call a nested function in a method, we must      }
+                     { push also SELF!                                    }
+                     { THAT'S NOT TRUE, we have to load ESI via frame pointer }
+                     { access                                              }
+                     {
+                       begin
+                          loadesi:=false;
+                          emit_reg(A_PUSH,S_L,R_ESI);
+                       end;
+                     }
+                     if lexlevel=(tprocdef(procdefinition).parast.symtablelevel) then
+                       begin
+                          new(r);
+                          reset_reference(r^);
+                          r^.offset:=procinfo^.framepointer_offset;
+                          r^.base:=procinfo^.framepointer;
+                          emit_ref(A_PUSH,S_L,r)
+                       end
+                       { this is only true if the difference is one !!
+                         but it cannot be more !! }
+                     else if (lexlevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
+                       begin
+                          emit_reg(A_PUSH,S_L,procinfo^.framepointer)
+                       end
+                     else if (lexlevel>(tprocdef(procdefinition).parast.symtablelevel)) then
+                       begin
+                          hregister:=getregister32;
+                          new(r);
+                          reset_reference(r^);
+                          r^.offset:=procinfo^.framepointer_offset;
+                          r^.base:=procinfo^.framepointer;
+                          emit_ref_reg(A_MOV,S_L,r,hregister);
+                          for i:=(tprocdef(procdefinition).parast.symtablelevel) to lexlevel-1 do
+                            begin
+                               new(r);
+                               reset_reference(r^);
+                               {we should get the correct frame_pointer_offset at each level
+                               how can we do this !!! }
+                               r^.offset:=procinfo^.framepointer_offset;
+                               r^.base:=hregister;
+                               emit_ref_reg(A_MOV,S_L,r,hregister);
+                            end;
+                          emit_reg(A_PUSH,S_L,hregister);
+                          ungetregister32(hregister);
+                       end
+                     else
+                       internalerror(25000);
+                  end;
 
               saveregvars(regs_to_push);
 
@@ -1584,7 +1588,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2001-09-01 23:02:30  jonas
+  Revision 1.33  2001-09-09 08:50:15  jonas
+    * when calling an inline procedure inside a nested procedure, the
+      framepointer was being pushed on the stack, but this pushed framepointer
+      was never used nor removed from the stack again after the inlining was
+      done. It's now simply not pushed anymore, because the inlined procedure
+      can get the previous framepointer from the procedure in which it is being
+      inlined (merged)
+
+  Revision 1.32  2001/09/01 23:02:30  jonas
     * i386*: call and jmp read their first operand
     * cgcal: deallocate hlper register only after call statement (fixes bug
       with "procedure of object" and optimizer reported to bugrep on
