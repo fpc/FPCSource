@@ -457,7 +457,7 @@ end;
 
 
 {$ASMMODE DIRECT}
-function strpas(p:pchar):string;
+function strpas(p:pchar):string;[public,alias:'FPC_PCHAR_TO_STR'];
 begin
   asm
         cld
@@ -688,7 +688,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  1998-09-14 10:48:08  peter
+  Revision 1.22  1998-09-22 15:32:00  peter
+    + fpc_pchar_to_str alias for strpas
+
+  Revision 1.21  1998/09/14 10:48:08  peter
     * FPC_ names
     * Heap manager is now system independent
 
