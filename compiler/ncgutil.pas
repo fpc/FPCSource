@@ -1224,33 +1224,6 @@ implementation
       begin
         if not is_void(current_procdef.rettype.def) then
           begin
-             { for now the pointer to the result can't be a register }
-             if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
-               begin
-{$ifdef powerpc}
-                  { no stack space is allocated in this case -> can't save the result reg on the stack }
-                  if not(po_assembler in current_procdef.procoptions) then
-{$endif powerpc}
-                    begin
-                      paraloc:=paramanager.getfuncretparaloc(current_procdef);
-                      reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
-                      case paraloc.loc of
-                        LOC_CREGISTER,
-                        LOC_REGISTER:
-                          if not(paraloc.size in [OS_64,OS_S64]) then
-                            cg.a_load_reg_ref(list,paraloc.size,paraloc.register,href)
-                          else
-                            cg64.a_load64_reg_ref(list,paraloc.register64,href);
-                        LOC_CFPUREGISTER,
-                        LOC_FPUREGISTER:
-                          cg.a_load_reg_ref(list,paraloc.size,paraloc.register,href);
-                        LOC_CMMREGISTER,
-                        LOC_MMREGISTER:
-                          cg.a_loadmm_reg_ref(list,paraloc.register,href);
-                      end;
-                    end;
-               end;
-
              { initialize return value }
              if (current_procdef.rettype.def.needs_inittable) then
                begin
@@ -1260,8 +1233,11 @@ implementation
 {$endif powerpc}
                   if (cs_implicit_exceptions in aktmoduleswitches) then
                     include(current_procinfo.flags,pi_needs_implicit_finally);
-                  reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
+                  reference_reset_base(href,current_procinfo.framepointer,tvarsym(current_procdef.funcretsym).adjusted_address);
                   cg.g_initialize(list,current_procdef.rettype.def,href,paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption));
+                  { load the pointer to the initialized retvalue in te register }
+                  if (tvarsym(current_procdef.funcretsym).reg.enum <> R_NO) then
+                    cg.a_load_ref_reg(list,OS_ADDR,href,tvarsym(current_procdef.funcretsym).reg);
                end;
           end;
       end;
@@ -1269,14 +1245,29 @@ implementation
 
     procedure load_return_value(list:TAAsmoutput; var uses_acc,uses_acchi,uses_fpu : boolean);
       var
-        href : treference;
+        ressym: tvarsym;
+        resloc: tlocation;
         hreg,r,r2 : tregister;
-        cgsize : TCGSize;
       begin
         if not is_void(current_procdef.rettype.def) then
          begin
-           reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
-           cgsize:=def_cgsize(current_procdef.rettype.def);
+           ressym := tvarsym(current_procdef.funcretsym);
+           if ressym.reg.enum <> R_NO then
+             begin
+               if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
+                 location_reset(resloc,LOC_CREGISTER,OS_ADDR)
+               else
+                 if ressym.vartype.def.deftype = floatdef then
+                   location_reset(resloc,LOC_CFPUREGISTER,def_cgsize(current_procdef.rettype.def))
+                 else
+                   location_reset(resloc,LOC_CREGISTER,def_cgsize(current_procdef.rettype.def));
+               resloc.register := ressym.reg;
+             end
+           else 
+             begin
+               location_reset(resloc,LOC_REFERENCE,def_cgsize(current_procdef.rettype.def));
+               reference_reset_base(resloc.reference,current_procinfo.framepointer,tvarsym(current_procdef.funcretsym).adjusted_address);
+             end;
            { Here, we return the function result. In most architectures, the value is
              passed into the FUNCTION_RETURN_REG, but in a windowed architecure like sparc a
              function returns in a register and the caller receives it in an other one }
@@ -1286,7 +1277,7 @@ implementation
                begin
                  uses_acc:=true;
 {$ifndef cpu64bit}
-                 if cgsize in [OS_64,OS_S64] then
+                 if resloc.size in [OS_64,OS_S64] then
                   begin
                     uses_acchi:=true;
                     r.enum:=R_INTREGISTER;
@@ -1295,14 +1286,14 @@ implementation
                     r2.enum:=R_INTREGISTER;
                     r2.number:=NR_FUNCTION_RETURN64_HIGH_REG;
                     cg.a_reg_alloc(list,r2);
-                    cg64.a_load64_ref_reg(list,href,joinreg64(r,r2));
+                    cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2));
                   end
                  else
 {$endif cpu64bit}
                   begin
                     hreg.enum:=R_INTREGISTER;
-                    hreg.number:=(RS_FUNCTION_RETURN_REG shl 8) or cgsize2subreg(cgsize);
-                    cg.a_load_ref_reg(list,cgsize,href,hreg);
+                    hreg.number:=(RS_FUNCTION_RETURN_REG shl 8) or cgsize2subreg(resloc.size);
+                    cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
                   end;
                end;
              floatdef :
@@ -1314,7 +1305,7 @@ implementation
                  else
 {$endif cpufpemu}
                   r.enum:=FPU_RESULT_REG;
-                 cg.a_loadfpu_ref_reg(list,cgsize,href,r);
+                 cg.a_loadfpu_loc_reg(list,resloc,r);
                end;
              else
                begin
@@ -1323,7 +1314,7 @@ implementation
                     uses_acc:=true;
 {$ifndef cpu64bit}
                     { Win32 can return records in EAX:EDX }
-                    if cgsize in [OS_64,OS_S64] then
+                    if resloc.size in [OS_64,OS_S64] then
                      begin
                        uses_acchi:=true;
                        r.enum:=R_INTREGISTER;
@@ -1332,14 +1323,14 @@ implementation
                        r2.enum:=R_INTREGISTER;
                        r2.number:=NR_FUNCTION_RETURN64_HIGH_REG;
                        cg.a_reg_alloc(list,r2);
-                       cg64.a_load64_ref_reg(list,href,joinreg64(r,r2));
+                       cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2));
                      end
                     else
 {$endif cpu64bit}
                      begin
                        hreg.enum:=R_INTREGISTER;
-                       hreg.number:=(RS_FUNCTION_RETURN_REG shl 8) or cgsize2subreg(cgsize);
-                       cg.a_load_ref_reg(list,cgsize,href,hreg);
+                       hreg.number:=(RS_FUNCTION_RETURN_REG shl 8) or cgsize2subreg(resloc.size);
+                       cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
                      end;
                    end
                end;
@@ -1768,20 +1759,20 @@ implementation
                 if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
                   list.concat(Tai_stabs.Create(strpnew(
                    '"'+current_procdef.procsym.name+':X*'+tstoreddef(current_procdef.rettype.def).numberstring+'",'+
-                   tostr(N_tsym)+',0,0,'+tostr(current_procinfo.return_offset))))
+                   tostr(N_tsym)+',0,0,'+tostr(tvarsym(current_procdef.funcretsym).adjusted_address))))
                 else
                   list.concat(Tai_stabs.Create(strpnew(
                    '"'+current_procdef.procsym.name+':X'+tstoreddef(current_procdef.rettype.def).numberstring+'",'+
-                   tostr(N_tsym)+',0,0,'+tostr(current_procinfo.return_offset))));
+                   tostr(N_tsym)+',0,0,'+tostr(tvarsym(current_procdef.funcretsym).adjusted_address))));
                 if (m_result in aktmodeswitches) then
                   if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
                     list.concat(Tai_stabs.Create(strpnew(
                      '"RESULT:X*'+tstoreddef(current_procdef.rettype.def).numberstring+'",'+
-                     tostr(N_tsym)+',0,0,'+tostr(current_procinfo.return_offset))))
+                     tostr(N_tsym)+',0,0,'+tostr(tvarsym(current_procdef.funcretsym).adjusted_address))))
                   else
                     list.concat(Tai_stabs.Create(strpnew(
                      '"RESULT:X'+tstoreddef(current_procdef.rettype.def).numberstring+'",'+
-                     tostr(N_tsym)+',0,0,'+tostr(current_procinfo.return_offset))));
+                     tostr(N_tsym)+',0,0,'+tostr(tvarsym(current_procdef.funcretsym).adjusted_address))));
               end;
             mangled_length:=length(current_procdef.mangledname);
             getmem(p,2*mangled_length+50);
@@ -1822,14 +1813,29 @@ implementation
 
     procedure load_inlined_return_value(list:TAAsmoutput);
       var
-        href : treference;
+        ressym: tvarsym;
+        resloc: tlocation;
         r,r2 : tregister;
-        cgsize : TCGSize;
       begin
         if not is_void(current_procdef.rettype.def) then
          begin
-           reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
-           cgsize:=def_cgsize(current_procdef.rettype.def);
+           ressym := tvarsym(current_procdef.funcretsym);
+           if ressym.reg.enum <> R_NO then
+             begin
+               if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
+                 location_reset(resloc,LOC_CREGISTER,OS_ADDR)
+               else
+                 if ressym.vartype.def.deftype = floatdef then
+                   location_reset(resloc,LOC_CFPUREGISTER,def_cgsize(current_procdef.rettype.def))
+                 else
+                   location_reset(resloc,LOC_CREGISTER,def_cgsize(current_procdef.rettype.def));
+               resloc.register := ressym.reg;
+             end
+           else   
+             begin
+               location_reset(resloc,LOC_CREGISTER,def_cgsize(current_procdef.rettype.def));
+               reference_reset_base(resloc.reference,current_procinfo.framepointer,tvarsym(current_procdef.funcretsym).adjusted_address);
+             end;
            { Here, we return the function result. In most architectures, the value is
              passed into the FUNCTION_RETURN_REG, but in a windowed architecure like sparc a
              function returns in a register and the caller receives it in an other one }
@@ -1838,17 +1844,17 @@ implementation
              enumdef :
                begin
 {$ifndef cpu64bit}
-                 if cgsize in [OS_64,OS_S64] then
+                 if resloc.size in [OS_64,OS_S64] then
                   begin
                     r:=rg.getregisterint(list,OS_INT);
                     r2:=rg.getregisterint(list,OS_INT);
-                    cg64.a_load64_ref_reg(list,href,joinreg64(r,r2));
+                    cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2));
                   end
                  else
 {$endif cpu64bit}
                   begin
-                    r:=rg.getregisterint(list,cgsize);
-                    cg.a_load_ref_reg(list,cgsize,href,r);
+                    r:=rg.getregisterint(list,resloc.size);
+                    cg.a_load_loc_reg(list,resloc.size,resloc,r);
                   end;
                end;
              floatdef :
@@ -1859,7 +1865,7 @@ implementation
                  else
 {$endif cpufpemu}
                   r.enum:=FPU_RESULT_REG;
-                 cg.a_loadfpu_ref_reg(list,cgsize,href,r);
+                 cg.a_loadfpu_loc_reg(list,resloc,r);
                end;
              else
                begin
@@ -1867,17 +1873,17 @@ implementation
                   begin
 {$ifndef cpu64bit}
                     { Win32 can return records in EAX:EDX }
-                    if cgsize in [OS_64,OS_S64] then
+                    if resloc.size in [OS_64,OS_S64] then
                      begin
                        r:=rg.getregisterint(list,OS_INT);
                        r2:=rg.getregisterint(list,OS_INT);
-                       cg64.a_load64_ref_reg(list,href,joinreg64(r,r2));
+                       cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2));
                      end
                     else
 {$endif cpu64bit}
                      begin
-                       r:=rg.getregisterint(list,cgsize);
-                       cg.a_load_ref_reg(list,cgsize,href,r);
+                       r:=rg.getregisterint(list,resloc.size);
+                       cg.a_load_loc_reg(list,resloc.size,resloc,r);
                      end;
                    end
                end;
@@ -1946,7 +1952,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.116  2003-06-01 21:38:06  peter
+  Revision 1.117  2003-06-02 21:42:05  jonas
+    * function results can now also be regvars
+    - removed tprocinfo.return_offset, never use it again since it's invalid
+      if the result is a regvar
+
+  Revision 1.116  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

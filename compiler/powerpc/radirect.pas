@@ -114,7 +114,7 @@ interface
          tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
        { !!!!!
        if (not is_void(current_procdef.rettype.def)) then
-         retstr:=upper(tostr(procinfo^.return_offset)+'('+gas_reg2str[procinfo^.framepointer]+')')
+         retstr:=upper(tostr(tvarsym(current_procdef.funcretsym).adjusted_address)+'('+gas_reg2str[procinfo^.framepointer]+')')
        else
        }
          retstr:='';
@@ -351,7 +351,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2003-05-30 23:57:08  peter
+  Revision 1.15  2003-06-02 21:42:05  jonas
+    * function results can now also be regvars
+    - removed tprocinfo.return_offset, never use it again since it's invalid
+      if the result is a regvar
+
+  Revision 1.14  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)

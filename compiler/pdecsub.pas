@@ -111,6 +111,7 @@ implementation
            { Generate result variable accessing function result }
            vs:=tvarsym.create('$result',vs_var,pd.rettype);
            include(vs.varoptions,vo_is_funcret);
+           include(vs.varoptions,vo_regable);
            pd.parast.insert(vs);
            pd.insertpara(vs.vartype,vs,nil,true);
            { Store the this symbol as funcretsym for procedures }
@@ -210,6 +211,10 @@ implementation
             begin
               vs:=tvarsym.create('$result',vs_value,pd.rettype);
               include(vs.varoptions,vo_is_funcret);
+              if tstoreddef(pd.rettype.def).is_intregable then
+                include(vs.varoptions,vo_regable);
+              if tstoreddef(pd.rettype.def).is_fpuregable then
+                include(vs.varoptions,vo_fpuregable);
               pd.localst.insert(vs);
               pd.localst.insertvardata(vs);
               pd.funcretsym:=vs;
@@ -2163,7 +2168,12 @@ const
 end.
 {
   $Log$
-  Revision 1.125  2003-05-22 21:31:35  peter
+  Revision 1.126  2003-06-02 21:42:05  jonas
+    * function results can now also be regvars
+    - removed tprocinfo.return_offset, never use it again since it's invalid
+      if the result is a regvar
+
+  Revision 1.125  2003/05/22 21:31:35  peter
     * defer codegeneration for nested procedures
 
   Revision 1.124  2003/05/15 18:58:53  peter

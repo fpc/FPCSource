@@ -99,7 +99,7 @@ interface
        framereg:=current_procinfo.framepointer;
        convert_register_to_enum(framereg);
        if (not is_void(current_procdef.rettype.def)) then
-         retstr:=upper(tostr(current_procinfo.return_offset)+'('+std_reg2str[framereg.enum]+')')
+         retstr:=upper(tostr(tvarsym(current_procdef.funcretsym).adjusted_address)+'('+std_reg2str[framereg.enum]+')')
        else
          retstr:='';
 
@@ -349,7 +349,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2003-05-23 22:33:48  florian
+  Revision 1.11  2003-06-02 21:42:05  jonas
+    * function results can now also be regvars
+    - removed tprocinfo.return_offset, never use it again since it's invalid
+      if the result is a regvar
+
+  Revision 1.10  2003/05/23 22:33:48  florian
     * fix some small flaws which prevent sparc linux system unit from compiling
     * some reformatting done
 

@@ -78,8 +78,6 @@ unit cpupi;
                aktproccode.insert(Tai_comment.Create(strpnew('Parameter copies start at: r1+'+tostr(procdef.parast.address_fixup))));
 
              procdef.localst.address_fixup:=procdef.parast.address_fixup+procdef.parast.datasize;
-             if assigned(procdef.funcretsym) then
-               return_offset:=tvarsym(procdef.funcretsym).address+tvarsym(procdef.funcretsym).owner.address_fixup;
 
              if cs_asm_source in aktglobalswitches then
                aktproccode.insert(Tai_comment.Create(strpnew('Locals start at: r1+'+tostr(procdef.localst.address_fixup))));
@@ -100,7 +98,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2003-05-24 11:47:27  jonas
+  Revision 1.22  2003-06-02 21:42:05  jonas
+    * function results can now also be regvars
+    - removed tprocinfo.return_offset, never use it again since it's invalid
+      if the result is a regvar
+
+  Revision 1.21  2003/05/24 11:47:27  jonas
     * fixed framepointer storage: it's now always stored at r1+12, which is
       a place in the link area reserved for compiler use.
 

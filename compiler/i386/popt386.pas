@@ -38,6 +38,7 @@ Implementation
 Uses
   globtype,systems,
   globals,cgbase,
+  symsym,symdef,
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
@@ -76,7 +77,7 @@ begin
          ((Taicpu(hp2).opcode = A_LEAVE) or
           (Taicpu(hp2).opcode = A_RET)) and
          (Taicpu(p).oper[0].ref^.Base.enum = current_procinfo.FramePointer.enum) and
-         (Taicpu(p).oper[0].ref^.Offset >= current_procinfo.Return_Offset) and
+         (Taicpu(p).oper[0].ref^.Offset >= tvarsym(current_procinfo.procdef.funcretsym).adjusted_address) and
          (Taicpu(p).oper[0].ref^.Index.enum = R_NO) then
         begin
           asml.remove(p);
@@ -995,7 +996,7 @@ Begin
                                   (Taicpu(hp1).opcode = A_RET)) And
                                  (Taicpu(p).oper[1].typ = top_ref) And
                                  (Taicpu(p).oper[1].ref^.base.enum = current_procinfo.FramePointer.enum) And
-                                 (Taicpu(p).oper[1].ref^.offset >= current_procinfo.Return_Offset) And
+                                 (Taicpu(p).oper[1].ref^.offset >= tvarsym(current_procinfo.procdef.funcretsym).adjusted_address) And
                                  (Taicpu(p).oper[1].ref^.index.enum = R_NO) And
                                  (Taicpu(p).oper[0].typ = top_reg)
                                 Then
@@ -1565,7 +1566,7 @@ Begin
                       (Taicpu(hp2).opcode = A_RET)) And
                      (Taicpu(p).oper[0].ref^.Base.enum = current_procinfo.FramePointer.enum) And
                      (Taicpu(p).oper[0].ref^.Index.enum = R_NO) And
-                     (Taicpu(p).oper[0].ref^.Offset >= current_procinfo.Return_Offset) And
+                     (Taicpu(p).oper[0].ref^.Offset >= tvarsym(current_procinfo.procdef.funcretsym).adjusted_address) And
                      (hp1.typ = ait_instruction) And
                      (Taicpu(hp1).opcode = A_MOV) And
                      (Taicpu(hp1).opsize = S_B) And
@@ -2060,7 +2061,12 @@ End.
 
 {
   $Log$
-  Revision 1.44  2003-05-30 23:57:08  peter
+  Revision 1.45  2003-06-02 21:42:05  jonas
+    * function results can now also be regvars
+    - removed tprocinfo.return_offset, never use it again since it's invalid
+      if the result is a regvar
+
+  Revision 1.44  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)

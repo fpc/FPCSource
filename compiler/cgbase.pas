@@ -78,8 +78,6 @@ unit cgbase;
              frame pointer from the outer procedure is stored.
           }
           framepointer_offset : longint;
-          {# result value offset in stack (functions only) }
-          return_offset : longint;
           {# firsttemp position }
           firsttemp_offset : longint;
 
@@ -347,7 +345,6 @@ implementation
         parent:=aparent;
         procdef:=nil;
         framepointer_offset:=0;
-        return_offset:=0;
         firsttemp_offset:=0;
         flags:=[];
         framepointer.enum:=R_INTREGISTER;
@@ -414,9 +411,6 @@ implementation
       var
         srsym : tvarsym;
       begin
-         { Retrieve function result offset }
-         if assigned(procdef.funcretsym) then
-           current_procinfo.return_offset:=tvarsym(procdef.funcretsym).adjusted_address;
       end;
 
 
@@ -579,7 +573,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2003-05-26 21:17:17  peter
+  Revision 1.53  2003-06-02 21:42:05  jonas
+    * function results can now also be regvars
+    - removed tprocinfo.return_offset, never use it again since it's invalid
+      if the result is a regvar
+
+  Revision 1.52  2003/05/26 21:17:17  peter
     * procinlinenode removed
     * aktexit2label removed, fast exit removed
     + tcallnode.inlined_pass_2 added
