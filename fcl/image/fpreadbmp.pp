@@ -178,7 +178,6 @@ procedure TFPReaderBMP.WriteScanLine(Row : Integer; Img : TFPCustomImage);
 
 Var
   Column : Integer;
-  AColor : TFPColor;
   
 begin
   Case BFI.BitCount of
@@ -220,7 +219,10 @@ initialization
 end.
 {
 $Log$
-Revision 1.8  2004-02-20 23:00:35  michael
+Revision 1.9  2004-02-20 23:07:44  michael
++ Small improvements. More cosmetic in nature
+
+Revision 1.8  2004/02/20 23:00:35  michael
 + Small improvements. More cosmetic in nature
 
 Revision 1.7  2004/02/20 22:42:44  michael
