@@ -1238,7 +1238,11 @@ const
                           internalerror(200310011);
                         reference_reset_base(href,tvarsym(hp.parasym).localloc.reference.index,tvarsym(hp.parasym).localloc.reference.offset);
                         reference_reset_base(href2,NR_R12,hp.paraloc[callerside].reference.offset);
-                        cg.a_load_ref_ref(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,href);
+                        { we can't use functions here which allocate registers (FK)
+                          cg.a_load_ref_ref(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,href);
+                        }
+                        cg.a_load_ref_reg(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,NR_R0);
+                        cg.a_load_reg_ref(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,NR_R0,href);                        
                       end
 {$ifdef dummy}
                     else if (hp.calleeparaloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
@@ -2467,7 +2471,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.142  2003-12-06 22:13:53  jonas
+  Revision 1.143  2003-12-07 21:59:21  florian
+    * a_load_ref_ref isn't allowed to be used in g_stackframe_entry
+
+  Revision 1.142  2003/12/06 22:13:53  jonas
     * another fix to a_load_ref_reg()
     + implemented uses_registers() method
 
