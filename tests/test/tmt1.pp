@@ -3,6 +3,8 @@
 {$mode objfpc}
 {$threading on}
 
+uses sysutils;
+
 const
    threadcount = 100;
    stringlen = 10000;
@@ -23,7 +25,7 @@ function f(p : pointer) : longint;
         inc(thri);
       end;
      writeln('thread ',longint(p),' finished');
-     inc(finished);
+     InterLockedIncrement(finished);
      f:=0;
   end;
 
