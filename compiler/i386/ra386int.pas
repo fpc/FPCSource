@@ -285,6 +285,9 @@ Unit Ra386int;
             end;
            actasmpattern[0]:=chr(len);
            uppervar(actasmpattern);
+           { allow spaces }
+           while (c in [' ',#9]) do
+             c:=current_scanner.asmgetchar;
            { label ? }
            if c = ':' then
             begin
@@ -2019,7 +2022,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2004-11-09 22:32:59  peter
+  Revision 1.81  2004-11-21 21:36:13  peter
+    * allow spaces before : of a label
+
+  Revision 1.80  2004/11/09 22:32:59  peter
     * small m68k updates to bring it up2date
     * give better error for external local variable
 
