@@ -57,6 +57,8 @@ endif
 
 clean: fpc_cleanall
 
+distclean: clean
+
 fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
 
 gdb:

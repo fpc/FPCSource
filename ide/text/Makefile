@@ -906,13 +906,11 @@ zipinstall: fpc_zipinstall
 
 zipsourceinstall: fpc_zipsourceinstall
 
-distclean: fpc_distclean
-
 cleanall: fpc_cleanall
 
 info: fpc_info
 
-.PHONY:  all debug smart shared showinstall sourceinstall zipinstall zipsourceinstall distclean cleanall info
+.PHONY:  all debug smart shared showinstall sourceinstall zipinstall zipsourceinstall cleanall info
 
 #####################################################################
 # Exes
@@ -1254,6 +1252,8 @@ endif
 .PHONY: gdb full fullgdb clean_compiler clean
 
 clean: fpc_cleanall
+
+distclean: clean
 
 fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
 
