@@ -355,11 +355,12 @@ implementation
       begin
          clear_location(location);
          location.loc:=LOC_REGISTER;
-         location.register:=getregister32;
          case tstringdef(left.resulttype.def).string_typ of
            st_shortstring :
              begin
                inc(left.location.reference.offset);
+               del_reference(left.location.reference);
+               location.register:=getregister32;
                emit_ref_reg(A_LEA,S_L,newreference(left.location.reference),
                  location.register);
              end;
@@ -374,8 +375,12 @@ implementation
                   emit_ref_reg(A_LEA,S_L,hr,location.register);
                 end
                else
-                emit_ref_reg(A_MOV,S_L,newreference(left.location.reference),
-                  location.register);
+                begin
+                  del_reference(left.location.reference);
+                  location.register:=getregister32;
+                  emit_ref_reg(A_MOV,S_L,newreference(left.location.reference),
+                    location.register);
+                end;
              end;
            st_longstring:
              begin
@@ -393,8 +398,12 @@ implementation
                   emit_ref_reg(A_LEA,S_L,hr,location.register);
                 end
                else
-                emit_ref_reg(A_MOV,S_L,newreference(left.location.reference),
-                  location.register);
+                begin
+                  del_reference(left.location.reference);
+                  location.register:=getregister32;
+                  emit_ref_reg(A_MOV,S_L,newreference(left.location.reference),
+                    location.register);
+                end;
              end;
          end;
       end;
@@ -1414,7 +1423,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2001-07-08 21:00:17  peter
+  Revision 1.17  2001-07-16 13:19:08  jonas
+    * fixed allocation of register before release in second_cstring_to_pchar
+
+  Revision 1.16  2001/07/08 21:00:17  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 
