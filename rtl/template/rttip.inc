@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by xxxx
+    Copyright (c) 1998 by Michael Van Canneyt
     member of the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -38,7 +38,7 @@ begin
       For I:=0 to Count-1 do
         Initialize (Data+(I*size),TInfo);   
       end; 
-    tkrecord :
+    tkRecord,tkObject,tkClass:
       begin
       Temp:=Temp+1;
       I:=Temp^;
@@ -74,7 +74,7 @@ begin
       For I:=0 to Count-1 do
         Finalize (Data+(I*size),TInfo);   
       end; 
-    tkrecord :
+    tkRecord,tkObject,tkClass:
       begin
       Temp:=Temp+1;
       I:=Temp^;
@@ -110,7 +110,7 @@ begin
       For I:=0 to Count-1 do
         AddRef (Data+(I*size),TInfo);   
       end; 
-    tkrecord :
+    tkRecord,tkObject,tkClass:
       begin
       Temp:=Temp+1;
       I:=Temp^;
@@ -146,7 +146,7 @@ begin
       For I:=0 to Count-1 do
         DecRef (Data+(I*size),TInfo);   
       end; 
-    tkrecord :
+    tkRecord,tkObject,tkClass:
       begin
       Temp:=Temp+1;
       I:=Temp^;
@@ -162,7 +162,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-06-08 19:32:16  michael
+  Revision 1.3  1998-08-23 20:58:53  florian
+    + rtti for objects and classes
+    + TObject.GetClassName implemented
+
+  Revision 1.2  1998/06/08 19:32:16  michael
   + Implemented DecRef
 
   Revision 1.1  1998/06/08 15:32:14  michael

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by xxxx
+    Copyright (c) 1998 by Michael Van Canneyt
     member of the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -35,7 +35,14 @@ asm
 	jz	.DoArrayInit
 	decb	%al
 	jz	.DoRecordInit
+	decb	%al
+	decb	%al
+        jz      .DoObjectInit
+	decb	%al
+        jz      .DoClassInit
 	jmp	.ExitInitialize
+.DoObjectInit:
+.DoClassInit:
 .DoRecordInit:
 	incl	%ebx
 	movzbl	(%ebx),%eax
@@ -111,12 +118,19 @@ asm
 	jz	.DoArrayFinal
 	decb	%al
 	jz	.DoRecordFinal
+	decb	%al
+	decb	%al
+        jz      .DoObjectFinal
+	decb	%al
+        jz      .DoClassFinal
 	jmp	.ExitFinalize
+.DoClassFinal:
+.DoObjectFinal:
 .DoRecordFinal:
 	incl	%ebx
 	movzbl	(%ebx),%eax
 # Skip also recordsize.
-        addl    $5,%eax 
+        addl    $5,%eax
 	addl	%eax,%ebx
 # %ebx points to element count. Set in %edx
 	movl	(%ebx),%edx
@@ -190,12 +204,19 @@ asm
 	jz	.DoArrayAddRef
 	decb	%al
 	jz	.DoRecordAddRef
+	decb	%al
+	decb	%al
+        jz      .DoObjectAddRef
+	decb	%al
+        jz      .DoClassAddRef
 	jmp	.ExitAddRef
+.DoClassAddRef:
+.DoObjectAddRef:
 .DoRecordAddRef:
 	incl	%ebx
 	movzbl	(%ebx),%eax
 # Skip also recordsize.
-        addl    $5,%eax 
+        addl    $5,%eax
 	addl	%eax,%ebx
 # %ebx points to element count. Set in %edx
 	movl	(%ebx),%edx
@@ -269,12 +290,19 @@ asm
 	jz	.DoArrayDecRef
 	decb	%al
 	jz	.DoRecordDecRef
-	jmp	.ExitDecRef
+	decb	%al
+	decb	%al
+        jz      .DoObjectDecRef
+	decb	%al
+        jz      .DoClassDecRef
+        jmp	.ExitDecRef
+.DoClassDecRef:
+.DoObjectDecRef:
 .DoRecordDecRef:
 	incl	%ebx
 	movzbl	(%ebx),%eax
 # Skip also recordsize.
-        addl    $5,%eax 
+        addl    $5,%eax
 	addl	%eax,%ebx
 # %ebx points to element count. Set in %edx
 	movl	(%ebx),%edx
@@ -333,7 +361,11 @@ end;
 
 {
   $Log$
-  Revision 1.5  1998-06-25 08:41:43  florian
+  Revision 1.6  1998-08-23 20:58:50  florian
+    + rtti for objects and classes
+    + TObject.GetClassName implemented
+
+  Revision 1.5  1998/06/25 08:41:43  florian
     * better rtti
 
   Revision 1.4  1998/06/17 11:50:43  michael

@@ -16,9 +16,27 @@
 
 unit objpas;
 
-  interface  
+  interface
 
-    type       
+    const
+       // vmtSelfPtr           = -36;  { not implemented yet }
+       vmtIntfTable         = -32;
+       vmtAutoTable         = -28;
+       vmtInitTable         = -24;
+       vmtTypeInfo          = -20;
+       vmtFieldTable        = -16;
+       vmtMethodTable       = -12;
+       vmtDynamicTable      = -8;
+       vmtClassName         = -4;
+       vmtInstanceSize      = 0;
+       vmtParent            = 8;
+       vmtDestroy           = 12;
+       vmtNewInstance       = 16;
+       vmtFreeInstance      = 20;
+       vmtSafeCallException = 24;
+       vmtDefaultHandler    = 28;
+
+    type
        { first, in object pascal, the types must be redefined }
        smallint = system.integer;
        integer = system.longint;
@@ -28,25 +46,32 @@ unit objpas;
 
        { some pointer definitions }
        pshortstring = ^shortstring;
-       // pansistring = ^ansistring;
-       // pwidestring = ^widestring;
+       plongstring = ^longstring;
+       pansistring = ^ansistring;
+       pwidestring = ^widestring;
        // pstring = pansistring;
        pextended = ^extended;
-       
+       ppointer = ^pointer;
 
        { now the let's declare the base classes for the class object }
        { model                                                       }
        tobject = class;
        tclass = class of tobject;
+       pclass = ^tclass;
 
        tobject = class
           { please don't change the order of virtual methods, because      }
           { their vmt offsets are used by some assembler code which uses   }
           { hard coded addresses      (FK)                                 }
           constructor create;
+          { the virtual procedures must be in THAT order }
           destructor destroy;virtual;
           class function newinstance : tobject;virtual;
           procedure freeinstance;virtual;
+          function safecallexception(exceptobject : tobject;
+            exceptaddr : pointer) : integer;virtual;
+          procedure defaulthandler(var message);virtual;
+
           procedure free;
           class function initinstance(instance : pointer) : tobject;
           procedure cleanupinstance;
@@ -60,7 +85,6 @@ unit objpas;
 
           { message handling routines }
           procedure dispatch(var message);
-          procedure defaulthandler(var message);virtual;
 
           class function methodaddress(const name : shortstring) : pointer;
           class function methodname(address : pointer) : shortstring;
@@ -72,19 +96,18 @@ unit objpas;
           class function getinterfaceentry(const iid : tguid) : pinterfaceentry;
           class function getinterfacetable : pinterfacetable;
           }
-          function safecallexception(exceptobject : tobject;
-            exceptaddr : pointer) : integer;virtual;
        end;
-       
+
        TExceptProc = Procedure (Obj : TObject; Addr: Pointer);
-       
+
        var
           abstracterrorproc : pointer;
        Const
           ExceptProc : Pointer {TExceptProc} = Nil;
-          
 
   implementation
+
+    procedure finalize(data,typeinfo : pointer);external name 'FINALIZE';
 
     { the reverse order of the parameters make code generation easier }
     function _is(aclass : tclass;aobject : tobject) : boolean;[public,alias: 'DO_IS'];
@@ -98,7 +121,7 @@ unit objpas;
 
       begin
          if assigned(aobject) and not(aobject.inheritsfrom(aclass)) then
-           { throw an exception }
+           runerror(219);
       end;
 
     procedure abstracterror;[public,alias: 'ABSTRACTERROR'];
@@ -117,25 +140,25 @@ unit objpas;
   {                               TOBJECT                                  }
   {************************************************************************}
 
-      constructor tobject.create;
+      constructor TObject.Create;
 
         begin
         end;
 
-      destructor tobject.destroy;
+      destructor TObject.Destroy;
 
         begin
         end;
 
-      procedure tobject.free;
+      procedure TObject.Free;
 
         begin
            // the call via self avoids a warning
            if self<>nil then
-             self.destroy;  
+             self.destroy;
         end;
 
-      class function tobject.instancesize : longint;
+      class function TObject.InstanceSize : LongInt;
 
         type
            plongint = ^longint;
@@ -143,107 +166,101 @@ unit objpas;
         begin
            { type of self is class of tobject => it points to the vmt }
            { the size is saved at offset 0                            }
-           instancesize:=plongint(self)^;
+           InstanceSize:=plongint(self)^;
         end;
 
-      class function tobject.initinstance(instance : pointer) : tobject;
-
-        type
-           ppointer = ^pointer;
+      class function TObject.InitInstance(instance : pointer) : tobject;
 
         begin
            fillchar(instance^,self.instancesize,0);
            { insert VMT pointer into the new created memory area }
            { (in class methods self contains the VMT!)           }
            ppointer(instance)^:=pointer(self);
-           initinstance:=tobject(instance);
+           InitInstance:=TObject(Instance);
         end;
 
-      class function tobject.classparent : tclass;
-
-        type
-           ptclass = ^tclass;
+      class function TObject.ClassParent : tclass;
 
         begin
            { type of self is class of tobject => it points to the vmt }
-           { the parent vmt is saved at offset 8                      }
-           classparent:=(ptclass(self)+8)^;
+           { the parent vmt is saved at offset vmtParent              }
+           classparent:=(pclass(self)+vmtParent)^;
         end;
 
-      class function tobject.newinstance : tobject;
+      class function TObject.NewInstance : tobject;
 
         var
            p : pointer;
 
         begin
            getmem(p,instancesize);
-           initinstance(p);
-           newinstance:=tobject(p);
+           InitInstance(p);
+           NewInstance:=TObject(p);
         end;
 
-      procedure tobject.freeinstance;
+      procedure TObject.FreeInstance;
 
         var
-           p : pointer;
+           p : Pointer;
 
         begin
-           { !!! we should finalize some data }
+           CleanupInstance;
 
            { self is a register, so we can't pass it call by reference }
-           p:=pointer(self);
-           freemem(p,instancesize);
+           p:=Pointer(Self);
+           FreeMem(p,InstanceSize);
         end;
 
-      function tobject.classtype : tclass;
+      function TObject.ClassType : TClass;
 
         begin
-           classtype:=tclass(pointer(self)^)
+           ClassType:=TClass(Pointer(Self)^)
         end;
 
-      class function tobject.methodaddress(const name : shortstring) : pointer;
+      class function TObject.MethodAddress(const name : shortstring) : pointer;
 
         begin
            methodaddress:=nil;
         end;
 
-      class function tobject.methodname(address : pointer) : shortstring;
+      class function TObject.MethodName(address : pointer) : shortstring;
 
         begin
            methodname:='';
         end;
 
-      function tobject.fieldaddress(const name : shortstring) : pointer;
+      function TObject.FieldAddress(const name : shortstring) : pointer;
 
         begin
            fieldaddress:=nil;
         end;
 
-      function tobject.safecallexception(exceptobject : tobject;
+      function TObject.safecallexception(exceptobject : tobject;
         exceptaddr : pointer) : integer;
 
         begin
            safecallexception:=0;
         end;
 
-      class function tobject.classinfo : pointer;
+      class function TObject.ClassInfo : pointer;
 
         begin
-           classinfo:=nil;
+           ClassInfo:=(PPointer(self)+vmtTypeInfo)^;
         end;
 
-      class function tobject.classname : shortstring;
+      class function TObject.ClassName : ShortString;
 
         begin
-           classname:='';
+           ClassName:=PShortString((PPointer(Self)+vmtClassName)^)^;
         end;
 
-      class function tobject.classnameis(const name : string) : boolean;
+      class function TObject.classnameis(const name : string) : boolean;
 
         begin
            classnameis:=classname=name;
         end;
 
-      class function tobject.inheritsfrom(aclass : tclass) : boolean;
+      class function TObject.InheritsFrom(aclass : TClass) : Boolean;
 
         var
            c : tclass;
@@ -254,27 +271,36 @@ unit objpas;
              begin
                 if c=aclass then
                   begin
-                     inheritsfrom:=true;
+                     InheritsFrom:=true;
                      exit;
                   end;
-                c:=c.classparent;
+                c:=c.ClassParent;
              end;
-           inheritsfrom:=false;
+           InheritsFrom:=false;
         end;
 
-      procedure tobject.dispatch(var message);
+      procedure TObject.Dispatch(var message);
 
         begin
         end;
 
-      procedure tobject.defaulthandler(var message);
+      procedure TObject.DefaultHandler(var message);
 
         begin
         end;
 
-      procedure tobject.cleanupinstance;
+      procedure TObject.CleanupInstance;
+
+        var
+           vmt : tclass;
 
         begin
+           vmt:=ClassType;
+           while vmt<>nil do
+             begin
+                Finalize(Pointer(Self),Pointer(vmt)+vmtInitTable);
+                vmt:=vmt.ClassParent;
+             end;
         end;
 
 {$i except.inc}
@@ -284,7 +310,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1998-07-30 16:10:11  michael
+  Revision 1.6  1998-08-23 20:58:52  florian
+    + rtti for objects and classes
+    + TObject.GetClassName implemented
+
+  Revision 1.5  1998/07/30 16:10:11  michael
   + Added support for ExceptProc+
 
   Revision 1.4  1998/07/29 15:44:33  michael

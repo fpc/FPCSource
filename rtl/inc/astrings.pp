@@ -29,10 +29,10 @@
   @    : String + Terminating #0;
   Pchar(Ansistring) is a valid typecast.
   So AS[i] is converted to the address @AS+i-1.
-  
+
   Constants should be assigned a reference count of -1
   Meaning that they can't be disposed of.
-  
+
 }
 
 Type shortstring=string;
@@ -44,7 +44,7 @@ Procedure Incr_Ansi_Ref (Var S : AnsiString); forward;
 Procedure AssignAnsiString (Var S1 : AnsiString; S2 : Pointer); forward;
 Procedure Ansi_String_Concat (Var S1 : AnsiString; Var S2 : AnsiString); forward;
 Procedure Ansi_ShortString_Concat (Var S1: AnsiString; Var S2 : ShortString); forward;
-Procedure Ansi_To_ShortString (Var S1 : ShortString; Var S2 : AnsiString; maxlen : longint); forward;
+Procedure Ansi_To_ShortString (Var S1 : ShortString; S2 : Pointer; maxlen : longint); forward;
 Procedure Short_To_AnsiString (Var S1 : AnsiString; Const S2 : ShortString); forward;
 Function  AnsiCompare (Var S1,S2 : AnsiString): Longint; forward;
 Function  AnsiCompare (var S1 : AnsiString; Var S2 : ShortString): Longint; forward;
@@ -58,7 +58,7 @@ Type TAnsiRec = Record
       First : Char;
      end;
      PAnsiRec = ^TAnsiRec;
-          
+
 Const AnsiRecLen = SizeOf(TAnsiRec);
       FirstOff   = SizeOf(TAnsiRec)-1;
       
@@ -74,9 +74,9 @@ begin
     Writeln ('String is nil')
   Else
     Begin
-    With PansiRec(Pointer(S)-Firstoff)^ do
+    With PAnsiRec(Pointer(S)-Firstoff)^ do
       begin
-      Writeln ('MAxlen : ',maxlen);
+      Writeln ('Maxlen : ',maxlen);
       Writeln ('Len    : ',len);
       Writeln ('Ref    : ',ref);
       end;  
@@ -220,7 +220,7 @@ begin
     begin
     Size:=PAnsiRec(Pointer(S2)-FirstOff)^.Len;
     Location:=Length(S1);
-    { Setlength takes case of uniqueness 
+    { Setlength takes case of uniqueness
       and allocated memory. We need to use length, 
       to take into account possibility of S1=Nil }
 //!!    SetLength (S1,Size+Location); 
@@ -249,17 +249,17 @@ begin
   PByte( Pointer(S1)+length(S1) )^:=0; { Terminating Zero }
 end;
 
-
-Procedure Ansi_To_ShortString (Var S1 : ShortString; Var S2 : AnsiString; Maxlen : Longint);  [Public, alias: 'FPC_TO_ANSISTRING_SHORT'];
+Procedure Ansi_To_ShortString (Var S1 : ShortString;S2 : Pointer; Maxlen : Longint);
+  [Public, alias: 'FPC_TO_ANSISTRING_SHORT'];
 {
  Converts a AnsiString to a ShortString;
 }
 Var Size : Longint;
 
 begin
-  Size:=PAnsiRec(Pointer(S2)-FirstOff)^.Len;
+  Size:=PAnsiRec(S2-FirstOff)^.Len;
   If Size>maxlen then Size:=maxlen;
-  Move (Pointer(S2)^,S1[1],Size);
+  Move (S2^,S1[1],Size);
   byte(S1[0]):=Size;
 end;
 
@@ -388,7 +388,7 @@ begin
     PByte (Pointer(S)+l)^:=0;
     end
   else if l>0 then
-    begin  
+    begin
     If (PAnsiRec(Pointer(S)-FirstOff)^.Maxlen < L) or
        (PAnsiRec(Pointer(S)-FirstOff)^.Ref <> 1) then
       begin
@@ -400,10 +400,10 @@ begin
       Pointer(S):=Temp;
       end;
     PAnsiRec(Pointer(S)-FirstOff)^.Len:=l
-    end 
+    end
   else
     { Length=0 }
-    begin  
+    begin
     Decr_Ansi_Ref (S);
     S:=Nil;
     end;
@@ -417,7 +417,7 @@ begin
   ResultAddress:=Nil;
   dec(index);
   { Check Size. Accounts for Zero-length S }
-  if Length(S)<Index+Size then 
+  if Length(S)<Index+Size then
     Size:=Length(S)-Index; 
   If Size>0 then
     begin
@@ -683,7 +683,11 @@ end;
 
 {
   $Log$
-  Revision 1.12  1998-08-22 09:32:12  michael
+  Revision 1.13  1998-08-23 20:58:51  florian
+    + rtti for objects and classes
+    + TObject.GetClassName implemented
+
+  Revision 1.12  1998/08/22 09:32:12  michael
   + minor fixes typos, and ansi2pchar
 
   Revision 1.11  1998/08/08 12:28:10  florian
