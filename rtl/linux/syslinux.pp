@@ -47,9 +47,6 @@ Implementation
 
 {$I system.inc}
 
-Type
-  PLongint = ^Longint;
-
 {$ifdef crtlib}
   Procedure _rtl_exit(l: longint); cdecl;
   Function  _rtl_paramcount: longint; cdecl;
@@ -678,7 +675,10 @@ End.
 
 {
   $Log$
-  Revision 1.7  1998-07-02 12:36:21  carl
+  Revision 1.8  1998-07-13 21:19:14  florian
+    * some problems with ansi string support fixed
+
+  Revision 1.7  1998/07/02 12:36:21  carl
     * IOCheck/InOutRes check for mkdir, chdir and rmdir as in TP
 
   Revision 1.6  1998/07/01 15:30:01  peter

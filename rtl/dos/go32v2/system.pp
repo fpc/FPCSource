@@ -127,8 +127,7 @@ implementation
 
 const
   carryflag = 1;
-type
-  plongint = ^longint;
+
 var
   doscmd : string[128];  { Dos commandline copied from PSP, max is 128 chars }
 
@@ -1058,7 +1057,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.11  1998-07-07 12:33:08  carl
+  Revision 1.12  1998-07-13 21:19:08  florian
+    * some problems with ansi string support fixed
+
+  Revision 1.11  1998/07/07 12:33:08  carl
     * added 2k buffer for stack checking for correct io on error
 
   Revision 1.10  1998/07/02 12:29:20  carl

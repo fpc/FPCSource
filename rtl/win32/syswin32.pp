@@ -127,9 +127,6 @@ CONST
 var
     errno : longint;
 
-type
-  plongint = ^longint;
-
    { misc. functions }
    function GetLastError : DWORD;
      external 'kernel32' name 'GetLastError';
@@ -762,7 +759,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  1998-07-07 12:37:28  carl
+  Revision 1.13  1998-07-13 21:19:15  florian
+    * some problems with ansi string support fixed
+
+  Revision 1.12  1998/07/07 12:37:28  carl
     * correct mapping of error codes for TP compatibility
     + implemented stack checking in ifdef dummy
 

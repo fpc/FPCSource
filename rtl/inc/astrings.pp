@@ -41,7 +41,7 @@ Function  NewAnsiString (Len : Longint) : AnsiString; forward;
 Procedure DisposeAnsiString (Var S : AnsiString); forward;
 Procedure Decr_Ansi_Ref (Var S : AnsiString); forward;
 Procedure Incr_Ansi_Ref (Var S : AnsiString); forward;
-Procedure AssignAnsiString (Var S1 : AnsiString; S2 : AnsiString); 
+Procedure AssignAnsiString (Var S1 : AnsiString; S2 : AnsiString); forward;
 Procedure Ansi_String_Concat (Var S1 : AnsiString; Const S2 : AnsiString); forward;
 Procedure Ansi_ShortString_Concat (Var S1: AnsiString; Const S2 : ShortString); forward;
 Procedure Ansi_To_ShortString (Var S1 : ShortString; Const S2 : AnsiString; maxlen : longint); forward;
@@ -58,10 +58,7 @@ Type TAnsiRec = Record
       First : Char;
      end;
      PAnsiRec = ^TAnsiRec;
-     
-     PLongint = ^Longint;
-     PByte = ^Byte;
-     
+          
 Const AnsiRecLen = SizeOf(TAnsiRec);
       FirstOff   = SizeOf(TAnsiRec)-1;
       
@@ -325,7 +322,7 @@ end;
 
 
 
-Procedure Write_Text_AnsiString (Len : Longint; T : TextRec; Var S : AnsiString);[Public, alias 'WRITE_TEXT_ANSISTRING'];
+Procedure Write_Text_AnsiString (Len : Longint; T : TextRec; Var S : AnsiString);[Public, alias: 'WRITE_TEXT_ANSISTRING'];
 {
  Writes a AnsiString to the Text file T
 }
@@ -368,7 +365,7 @@ Procedure SetLength (Var S : AnsiString; l : Longint);
 Var Temp : Pointer;
 
 begin
-  If (S=Nil) and (l>0) then
+   If (Pointer(S)=Nil) and (l>0) then
     begin
     { Need a complete new string...}
     S:=NewAnsiString(l);
@@ -384,9 +381,9 @@ begin
       { Reallocation is needed... }
       Temp:=Pointer(NewAnsiString(L));
       if Length(S)>0 then
-        Move (S^,Temp^,Length(S)+1);
+        Move (Pointer(S)^,Temp^,Length(S)+1);
       Decr_Ansi_ref (S);
-      S:=Temp;
+      S:=AnsiString(Temp);
       end;
     PAnsiRec(Pointer(S)-FirstOff)^.Len:=l
     end 
@@ -418,7 +415,7 @@ begin
       PByte(ResultAddress+Size)^:=0;
       end;
     end;
-  Copy:=ResultAddress;
+  Copy:=AnsiString(ResultAddress);
 end;
 
 
@@ -438,7 +435,7 @@ begin
    begin
    inc (i);
    S:=Pointer(copy(Source,i,length(Substr)));
-   if AnsiCompare(substr,s)=0 then
+   if AnsiCompare(substr,AnsiString(s))=0 then
      begin
      j := i;
      e := false;
@@ -547,7 +544,7 @@ begin
  System.Val(SS,SI,Code);
 end;
 
-
+{
 Procedure Str (Const R : Real;Len,fr : Longint; Var S : AnsiString);
 
 Var SS : ShortString;
@@ -624,7 +621,7 @@ Procedure Str (Const SI : ShortInt; Len : Longint; Var S : AnsiString);
 
 begin
 end;
-
+}
 
 
 Procedure Delete (Var S : AnsiString; Index,Size: Longint);
@@ -672,7 +669,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1998-07-06 14:29:08  michael
+  Revision 1.8  1998-07-13 21:19:09  florian
+    * some problems with ansi string support fixed
+
+  Revision 1.7  1998/07/06 14:29:08  michael
   + Added Public,Alias directives for some calls
 
   Revision 1.6  1998/06/25 08:41:44  florian

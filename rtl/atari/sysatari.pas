@@ -48,8 +48,6 @@ const
 
     var
       errno : integer;
-    type
-       plongint = ^longint;
 
 {$S-}
     procedure Stack_Check; assembler;
@@ -635,7 +633,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-07-13 12:34:13  carl
+  Revision 1.6  1998-07-13 21:19:07  florian
+    * some problems with ansi string support fixed
+
+  Revision 1.5  1998/07/13 12:34:13  carl
     + Error2InoutRes implemented
     * do_read was doing a wrong os call!
     * do_open was not pushing the right values

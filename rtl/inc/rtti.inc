@@ -24,12 +24,6 @@ Const
   tkArray    = 13;
   tkRecord   = 14;
  
-{ Some useful types }
-Type
-
-  PByte = ^Byte;
-
-
 { A record is designed as follows : 
     1    : tkrecord
     2    : Length of name string (n);
@@ -38,7 +32,9 @@ Type
     7+n  : number of elements (N)
     11+n : N times : Pointer to type info
                      Offset in record
-} 
+}
+
+Type
 
 TRecElem = Record
   Info : Pointer;
@@ -75,7 +71,10 @@ TArrayRec = record
 
 { 
   $Log$
-  Revision 1.2  1998-06-08 15:32:15  michael
+  Revision 1.3  1998-07-13 21:19:11  florian
+    * some problems with ansi string support fixed
+
+  Revision 1.2  1998/06/08 15:32:15  michael
   + Split rtti according to processor. Implemented optimized i386 code.
 
 }

@@ -158,7 +158,11 @@ begin
     insert ('.',temp,3);
     str(abs(correct),power);
     if length(power)<explen-2 then
+{$ifndef USEANSISTRINGS} {!!!!!!!!! this doesn't work with ansi strings }
       power:=copy(zero,1,explen-2-length(power))+power;
+{$else USEANSISTRINGS}
+      ;  
+{$endif USEANSISTRINGS}
     if correct<0 then power:='-'+power else power:='+'+power;
     temp:=temp+'E'+power;
     end
@@ -198,7 +202,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1998-06-18 08:15:33  michael
+  Revision 1.5  1998-07-13 21:19:10  florian
+    * some problems with ansi string support fixed
+
+  Revision 1.4  1998/06/18 08:15:33  michael
   + Fixed error when printing zero. len was calculated wron.
 
   Revision 1.3  1998/05/12 10:42:45  peter

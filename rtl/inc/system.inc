@@ -112,6 +112,10 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
 
 {$ifdef UseAnsiStrings}
 
+Type
+   PLongint = ^Longint;
+   PByte = ^Byte;
+
 {$i astrings.pp}
 
 {$else}
@@ -493,7 +497,10 @@ End;
 
 {
   $Log$
-  Revision 1.19  1998-07-08 11:56:55  carl
+  Revision 1.20  1998-07-13 21:19:12  florian
+    * some problems with ansi string support fixed
+
+  Revision 1.19  1998/07/08 11:56:55  carl
     * randon and Random(l) now work correctly - don't touch it works!
 
   Revision 1.18  1998/07/02 13:01:55  carl
