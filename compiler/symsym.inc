@@ -1029,11 +1029,35 @@
                           end;
          recordsymtable,
          objectsymtable : begin
-                            address:=owner^.datasize;
-                          { align record and object fields }
-                            owner^.datasize:=(owner^.datasize+l+(aktpackrecords-1)) and (not (aktpackrecords-1));
                           { this symbol can't be loaded to a register }
                             var_options:=var_options and not vo_regable;
+                          { align record and object fields }
+                            if (l=1) or (aktpackrecords=1) then
+                             begin
+                               address:=owner^.datasize;
+                               inc(owner^.datasize,l)
+                             end
+                            else
+                             if (l=2) or (aktpackrecords=2) then
+                              begin
+                                owner^.datasize:=(owner^.datasize+1) and (not 1);
+                                address:=owner^.datasize;
+                                inc(owner^.datasize,l)
+                              end
+                            else
+                             if (l<=4) or (aktpackrecords=4) then
+                              begin
+                                owner^.datasize:=(owner^.datasize+3) and (not 3);
+                                address:=owner^.datasize;
+                                inc(owner^.datasize,l);
+                              end
+                            else
+                             if (l<=16) or (aktpackrecords=16) then
+                              begin
+                                owner^.datasize:=(owner^.datasize+15) and (not 15);
+                                address:=owner^.datasize;
+                                inc(owner^.datasize,l);
+                              end;
                           end;
            parasymtable : begin
                             address:=owner^.datasize;
@@ -1620,7 +1644,10 @@
 
 {
   $Log$
-  Revision 1.22  1998-07-14 14:47:08  peter
+  Revision 1.23  1998-07-14 21:37:24  peter
+    * fixed packrecords as discussed at the alias
+
+  Revision 1.22  1998/07/14 14:47:08  peter
     * released NEWINPUT
 
   Revision 1.21  1998/07/13 21:17:38  florian
