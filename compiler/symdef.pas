@@ -2549,7 +2549,7 @@ implementation
               tsymtable(current_module.localsymtable).registerdef(self)
             else if assigned(current_module.globalsymtable) then
               tsymtable(current_module.globalsymtable).registerdef(self);
-         savesize:=POINTER_SIZE;
+         savesize:=0;
       end;
 
 
@@ -2557,7 +2557,7 @@ implementation
       begin
          inherited ppuloaddef(ppufile);
          deftype:=formaldef;
-         savesize:=POINTER_SIZE;
+         savesize:=0;
       end;
 
 
@@ -5838,7 +5838,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.156  2003-07-06 21:50:33  jonas
+  Revision 1.157  2003-07-08 15:20:56  peter
+    * don't allow add/assignments for formaldef
+    * formaldef size changed to 0
+
+  Revision 1.156  2003/07/06 21:50:33  jonas
     * fixed ppc compilation problems and changed VOLATILE_REGISTERS for x86
       so that it doesn't include ebp and esp anymore
 

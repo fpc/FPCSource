@@ -137,6 +137,7 @@ implementation
         begin
           internal_check:=true;
           case ld.deftype of
+            formaldef,
             recorddef,
             variantdef :
               begin
@@ -993,7 +994,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2003-06-13 21:19:30  peter
+  Revision 1.65  2003-07-08 15:20:56  peter
+    * don't allow add/assignments for formaldef
+    * formaldef size changed to 0
+
+  Revision 1.64  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.63  2003/05/09 17:47:02  peter

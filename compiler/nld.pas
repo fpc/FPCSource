@@ -675,9 +675,10 @@ implementation
         if codegenerror then
           exit;
 
-        { assignments to open arrays aren't allowed }
-        if is_open_array(left.resulttype.def) then
-          CGMessage(type_e_mismatch);
+        { assignments to formaldefs and open arrays aren't allowed }
+        if (left.resulttype.def.deftype=formaldef) or
+           is_open_array(left.resulttype.def) then
+          CGMessage(type_e_operator_not_allowed);
 
         { test if node can be assigned, properties are allowed }
         valid_for_assignment(left);
@@ -1286,7 +1287,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.102  2003-06-13 21:19:30  peter
+  Revision 1.103  2003-07-08 15:20:56  peter
+    * don't allow add/assignments for formaldef
+    * formaldef size changed to 0
+
+  Revision 1.102  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.101  2003/06/08 20:01:53  jonas
