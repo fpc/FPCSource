@@ -186,11 +186,6 @@ const
           else
             internalerror(2003122903);
         end;
-        rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
-            [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,RS_F9,
-             RS_F10,RS_F11,RS_F12,RS_F13,RS_F31,RS_F30,RS_F29,RS_F28,RS_F27,
-             RS_F26,RS_F25,RS_F24,RS_F23,RS_F22,RS_F21,RS_F20,RS_F19,RS_F18,
-             RS_F17,RS_F16,RS_F15,RS_F14],first_fpu_imreg,[]);
         {$warning FIX ME}
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
             [RS_M0,RS_M1,RS_M2],first_mm_imreg,[]);
@@ -2304,7 +2299,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.155  2004-01-12 22:11:38  peter
+  Revision 1.156  2004-01-25 16:36:34  jonas
+    - removed double construction of fpu register allocator
+
+  Revision 1.155  2004/01/12 22:11:38  peter
     * use localalign info for alignment for locals and temps
     * sparc fpu flags branching added
     * moved powerpc copy_valye_openarray to generic
