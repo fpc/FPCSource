@@ -739,6 +739,7 @@ const
      Clipboard          : PCustomCodeEditor = nil;
      FindStr            : String[FindStrSize] = '';
      ReplaceStr         : String[FindStrSize] = '';
+     FindReplaceEditor  : PCustomCodeEditor = nil;
      FindFlags          : word = ffPromptOnReplace;
      WhiteSpaceChars    : set of char = [#0,#32,#255];
      TabChars           : set of char = [#9];
@@ -782,6 +783,11 @@ type
        Scope    : word;
        Origin   : word;
      end;
+
+     TEditorInputLine = object(TInputLine)
+       Procedure   HandleEvent(var Event : TEvent);virtual;
+     end;
+     PEditorInputLine = ^TEditorInputLine;
 
      TGotoLineDialogRec = packed record
        LineNo  : string[5];
@@ -5881,6 +5887,7 @@ begin
     Scope := (FindFlags and ffmScope) shr ffsScope;
     Origin := (FindFlags and ffmOrigin) shr ffsOrigin;
     DoConf:= (FindFlags and ffPromptOnReplace)<>0;
+    FindReplaceEditor:=@self;
     if EditorDialog(edFind, @FindRec) <> cmCancel then
     begin
       FindStr := Find;
@@ -5901,6 +5908,7 @@ begin
       else
         EditorDialog(edSearchFailed,nil);
     end;
+    FindReplaceEditor:=nil;
   end;
 end;
 
@@ -5925,7 +5933,9 @@ begin
     Direction := (FindFlags and ffmDirection) shr ffsDirection;
     Scope := (FindFlags and ffmScope) shr ffsScope;
     Origin := (FindFlags and ffmOrigin) shr ffsOrigin;
+    FindReplaceEditor:=@self;
     Re:=EditorDialog(edReplace, @ReplaceRec);
+    FindReplaceEditor:=nil;
     if Re <> cmCancel then
     begin
       FindStr := Find;
@@ -6675,10 +6685,39 @@ begin
   At:=PEditorAction(Inherited At(Idx));
 end;
 
+procedure TEditorInputLine.HandleEvent(var Event : TEvent);
+var
+  s : string;
+  i : longint;
+begin
+     If (Event.What=evKeyDown) and
+        (Event.KeyCode=kbRight) and
+        (CurPos = Length(Data^)) and
+        Assigned(FindReplaceEditor) then
+       Begin
+         s:=FindReplaceEditor^.GetDisplayText(FindReplaceEditor^.CurPos.Y);
+         s:=Copy(s,FindReplaceEditor^.CurPos.X + 1 -length(Data^),high(s));
+         i:=pos(Data^,s);
+         if i>0 then
+           begin
+             s:=Data^+s[i+length(Data^)];
+             If not assigned(validator) or
+                Validator^.IsValidInput(s,False)  then
+               Begin
+                 Event.CharCode:=s[length(s)];
+                 Event.Scancode:=0;
+                 Inherited HandleEvent(Event);
+               End;
+           end;
+       End
+     else
+       Inherited HandleEvent(Event);
+end;
+
 function CreateFindDialog: PDialog;
 var R,R1,R2: TRect;
     D: PDialog;
-    IL1: PInputLine;
+    IL1: PEditorInputLine;
     Control : PView;
     CB1: PCheckBoxes;
     RB1,RB2,RB3: PRadioButtons;
@@ -7029,7 +7068,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  2001-09-17 21:30:26  pierre
+  Revision 1.9  2001-09-17 22:54:09  pierre
+   + Line completion for Find/Replace dialogs
+
+  Revision 1.8  2001/09/17 21:30:26  pierre
    * fix a bug in Find/Replace dialog about RegExp
 
   Revision 1.7  2001/09/14 23:47:09  pierre
