@@ -482,14 +482,18 @@ external 'DOSCALLS' index 299;
 function DosSetMem(P:pointer;Size,Flag:cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 305;
 
+function DosFreeMem (P: pointer): cardinal; cdecl;
+external 'DOSCALLS' index 304;
+
 var
-  Int_Heap_End: pointer;
+{  Int_Heap_End: pointer;}
   Int_Heap: pointer;
 {$IFNDEF VER1_0}
                      external name 'HEAP';
 {$ENDIF VER1_0}
   Int_HeapSize: cardinal; external name 'HEAPSIZE';
-  PreviousHeap: cardinal;
+  HighMemSupported: boolean;
+{  PreviousHeap: cardinal;
   AllocatedMemory: cardinal;
 
 
@@ -497,8 +501,14 @@ function GetHeapSize: longint;
 begin
   GetHeapSize := PreviousHeap + longint (Int_Heap_End) - longint (Int_Heap);
 end;
+}
 
+function GetHeapSize: longint; assembler;
+asm
+  movl Int_HeapSize, %eax
+end ['EAX'];
 
+(*
 function Sbrk (Size: longint): pointer;
 var
   P: pointer;
@@ -506,16 +516,16 @@ var
 const
   MemAllocBlock = 4 * 1024 * 1024;
 begin
-{$IFDEF DUMPGROW}
+{ $IFDEF DUMPGROW}
   WriteLn ('Trying to grow heap by ', Size, ' to ', HeapSize + Size);
-{$ENDIF}
+{ $ENDIF}
   // commit memory
   RC := DosSetMem (Int_Heap_End, Size, $13);
 
   if RC <> 0 then
 
-(* Not enough memory was allocated - let's try to allocate more
-   (4 MB steps or as much as requested if more than 4 MB needed). *)
+( * Not enough memory was allocated - let's try to allocate more
+   (4 MB steps or as much as requested if more than 4 MB needed). * )
 
    begin
     if Size > MemAllocBlock then
@@ -538,36 +548,119 @@ begin
     else
      begin
       Sbrk := nil;
-{$IFDEF DUMPGROW}
+{ $IFDEF DUMPGROW}
       WriteLn ('Error ', RC, ' during additional memory allocation!');
       WriteLn ('Total allocated memory is ', cardinal (AllocatedMemory), ', ',
                                                    GetHeapSize, ' committed.');
-{$ENDIF DUMPGROW}
+{ $ENDIF DUMPGROW}
       Exit;
      end;
    end;
 
   if RC <> 0 then
    begin
-{$IFDEF DUMPGROW}
+{ $IFDEF DUMPGROW}
     WriteLn ('Error ', RC, ' while trying to commit more memory!');
     WriteLn ('Current memory object starts at ', cardinal (Int_Heap),
                              ' and committed until ', cardinal (Int_Heap_End));
     WriteLn ('Total allocated memory is ', cardinal (AllocatedMemory), ', ',
                                                    GetHeapSize, ' committed.');
-{$ENDIF DUMPGROW}
+{ $ENDIF DUMPGROW}
     Sbrk := nil;
    end
   else
    begin
     Sbrk := Int_Heap_End;
-{$IFDEF DUMPGROW}
+{ $IFDEF DUMPGROW}
     WriteLn ('New heap at ', cardinal (Int_Heap_End));
-{$ENDIF DUMPGROW}
+{ $ENDIF DUMPGROW}
     Inc (Int_Heap_End, Size);
    end;
 end;
+*)
+{$IFDEF DUMPGROW}
+ {$DEFINE EXTDUMPGROW}
+{$ENDIF DUMPGROW}
 
+function SysOSAlloc (Size: PtrInt): pointer;
+var
+  P: pointer;
+  RC: cardinal;
+begin
+{$IFDEF EXTDUMPGROW}
+  WriteLn ('Trying to grow heap by ', Size, ' to ', Int_HeapSize
+                                                            + cardinal (Size));
+{$ENDIF}
+
+  if HighMemSupported then
+   RC := DosAllocMem (P, Size, $403)
+  else
+   RC := DosAllocMem (P, Size, 3);
+  if RC = 0 then
+   begin
+{$IFDEF EXTDUMPGROW}
+    WriteLn ('DosAllocMem returned memory at ', cardinal (P));
+{$ENDIF}
+    RC := DosSetMem (P, Size, $410);
+    if RC = 0 then
+     begin
+{$IFDEF EXTDUMPGROW}
+      WriteLn ('New heap at ', cardinal (P));
+{$ENDIF EXTDUMPGROW}
+      SysOSAlloc := P;
+      Inc (Int_HeapSize, Size);
+     end
+    else
+     begin
+{$IFDEF EXTDUMPGROW}
+      WriteLn ('Error ', RC, ' in DosSetMem while trying to commit memory!');
+      WriteLn ('Total allocated memory is ', Int_HeapSize);
+{$ENDIF EXTDUMPGROW}
+      RC := DosFreeMem (P);
+      SysOSAlloc := nil;
+     end;
+   end
+  else
+   begin
+    SysOSAlloc := nil;
+{$IFDEF EXTDUMPGROW}
+    WriteLn ('Error ', RC, ' during additional memory allocation (DosAllocMem)!');
+    WriteLn ('Total allocated memory is ', Int_HeapSize);
+{$ENDIF EXTDUMPGROW}
+   end;
+end;
+
+{$define HAS_SYSOSFREE}
+
+procedure SysOSFree (P: pointer; Size: PtrInt);
+var
+  RC: cardinal;
+begin
+{$IFDEF EXTDUMPGROW}
+  WriteLn ('Trying to free memory!');
+  WriteLn ('Total allocated memory is ', Int_HeapSize);
+{$ENDIF EXTDUMPGROW}
+  Dec (Int_HeapSize, Size);
+  RC := DosSetMem (P, Size, $20);
+  if RC = 0 then
+   begin
+    RC := DosFreeMem (P);
+{$IFDEF EXTDUMPGROW}
+    if RC <> 0 then
+     begin
+      WriteLn ('Error ', RC, ' during memory deallocation (DosFreeMem)!');
+      WriteLn ('Total allocated memory is ', Int_HeapSize);
+     end;
+{$ENDIF EXTDUMPGROW}
+   end
+{$IFDEF EXTDUMPGROW}
+  else
+   begin
+    WriteLn ('Error ', RC, ' in DosSetMem while trying to decommit memory!');
+    WriteLn ('Total allocated memory is ', Int_HeapSize);
+   end;
+{$ENDIF EXTDUMPGROW}
+end;
 
 function GetHeapStart: pointer;
 begin
@@ -1460,19 +1553,45 @@ begin
     //   Application allocates the amount of memory specified by the compiler
     //   switch -Ch but without commiting. On heap growing required amount of
     //   memory commited. More memory is allocated as needed within sbrk.
+(* Being changed now - new behaviour will be documented after  *)
+(* things settle down a bit and everything is tested properly. *)
 
-    RC := DosAllocMem (Int_Heap, Int_HeapSize, 3);
-
+    RC := DosAllocMem (Int_Heap, Int_HeapSize, $403);
+    if RC = 87 then
+     begin
+(* Using of high memory address space (> 512 MB) *)
+(* is not supported on this system.              *)
+      RC := DosAllocMem (Int_Heap, Int_HeapSize, 3);
+      HighMemSupported := false;
+     end
+    else
+     HighMemSupported := true;
     if RC <> 0 then
      begin
       Str (RC, ErrStr);
-      ErrStr := 'Error during heap initialization (' + ErrStr + ')!!';
+      ErrStr := 'Error during heap initialization (DosAllocMem - ' + ErrStr + ')!!'#13#10;
       DosWrite (2, @ErrStr [1], Length (ErrStr), RC);
       HandleError (204);
+     end
+    else
+     begin
+      RC := DosSetMem (Int_Heap, Int_HeapSize, $410);
+      if RC <> 0 then
+       begin
+        Str (RC, ErrStr);
+        ErrStr := 'Error during heap initialization (DosSetMem - ' + ErrStr + ')!!'#13#10;
+        DosWrite (2, @ErrStr [1], Length (ErrStr), RC);
+        HandleError (204);
+       end
+{$IFDEF EXTDUMPGROW}
+      else
+       begin
+        Str (Int_HeapSize, ErrStr);
+        ErrStr := 'Initially allocated ' + ErrStr + ' bytes of memory.'#13#10;
+        DosWrite (1, @ErrStr [1], Length (ErrStr), RC);
+       end
+{$ENDIF}
      end;
-    AllocatedMemory := Int_HeapSize;
-    Int_Heap_End := Int_Heap;
-    PreviousHeap := 0;
     InitHeap;
 
     { ... and exceptions }
@@ -1501,7 +1620,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2004-05-16 18:51:20  peter
+  Revision 1.72  2004-07-18 15:20:38  hajny
+    + Memory allocation routines changed to support the new memory manager
+
+  Revision 1.71  2004/05/16 18:51:20  peter
     * use thandle in do_*
 
   Revision 1.70  2004/04/22 21:10:56  peter
