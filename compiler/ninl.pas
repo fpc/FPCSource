@@ -39,6 +39,10 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
+{$ifdef hascompilerproc}
+        private
+          function str_pass_1: tnode;
+{$endif hascompilerproc}
        end;
 
     var
@@ -973,9 +977,13 @@ implementation
                 CGMessage(cg_e_illegal_expression);
               { we need a var parameter }
               valid_for_var(tcallparanode(hp).left);
+{$ifndef hascompilerproc}
+              { with compilerproc's, this is not necessary anymore, the callnode }
+              { will convert it to an openstring itself if necessary (JM)        }
               { generate the high() value for the shortstring }
               if is_shortstring(tcallparanode(hp).left.resulttype.def) then
                 tcallparanode(hp).gen_high_tree(true);
+{$endif not hascompilerproc}
               { !!!! check length of string }
               while assigned(tcallparanode(hp).right) do
                 hp:=tcallparanode(hp).right;
@@ -1378,6 +1386,102 @@ implementation
 {$ifdef fpc}
 {$maxfpuregisters 0}
 {$endif fpc}
+
+{$ifdef hascompilerproc}
+    function tinlinenode.str_pass_1 : tnode;
+      var
+        lenpara,
+        fracpara,
+        newparas,
+        dest,
+        source  : tcallparanode;
+        newnode : tnode;
+        len,
+        fraclen : longint;
+        procname: string;
+        is_real : boolean;
+
+      begin
+        { get destination string }
+        dest := tcallparanode(left);
+
+        { get source para (number) }
+        source := dest;
+        while assigned(source.right) do
+          source := tcallparanode(source.right);
+        is_real := source.resulttype.def.deftype = floatdef;
+        
+        { get len/frac parameters }
+        lenpara := nil;
+        fracpara := nil;
+        if (cpf_is_colon_para in tcallparanode(dest.right).callparaflags) then
+          begin
+            lenpara := tcallparanode(dest.right);
+            if (cpf_is_colon_para in tcallparanode(lenpara.right).callparaflags) then
+              begin
+                fracpara := lenpara;
+                lenpara := tcallparanode(lenpara.right);
+              end;
+          end;
+
+        { generate the parameter list for the compilerproc }
+        newparas := dest;
+
+        { if we have a float parameter, insert the realtype, len and fracpara parameters }
+        if is_real then
+          begin
+            { insert realtype parameter }
+            newparas.right := ccallparanode.create(cordconstnode.create(
+              ord(tfloatdef(source.left.resulttype.def).typ),s32bittype),newparas.right);
+            { if necessary, insert a fraction parameter }
+            if not assigned(fracpara) then
+              begin
+                tcallparanode(newparas.right).right := ccallparanode.create(
+                  cordconstnode.create(-1,s32bittype),tcallparanode(newparas.right).right);
+                fracpara := tcallparanode(tcallparanode(newparas.right).right);
+              end;
+            { if necessary, insert a length para }
+            if not assigned(lenpara) then
+              fracpara.right := ccallparanode.create(cordconstnode.create(-32767,s32bittype),
+                fracpara.right);
+          end
+        else
+          { for a normal parameter, insert a only length parameter if one is missing }
+          if not assigned(lenpara) then
+            newparas.right := ccallparanode.create(cordconstnode.create(-1,s32bittype),
+              newparas.right);
+        
+        { remove the parameters from the original node so they won't get disposed, }
+        { since they're reused                                                     }
+        left := nil;
+        
+        { create procedure name }
+        procname := 'fpc_' + lowercase(tstringdef(dest.resulttype.def).stringtypname)+'_';
+        if is_real then
+          procname := procname + 'float'
+        else
+          case torddef(dest.resulttype.def).typ of
+            u32bit:
+              procname := procname + 'cardinal';
+            u64bit:
+              procname := procname + 'qword';
+            s64bit:
+              procname := procname + 'int64';
+            else
+              procname := procname + 'longint';
+          end;
+        
+        { create the call node, }
+        newnode := ccallnode.createintern(procname,newparas);
+        { firstpass it }
+        firstpass(newnode);
+        
+        { and return it }
+        result := newnode;
+      end;
+{$endif hascompilerproc}
+
+
     function tinlinenode.pass_1 : tnode;
       var
          srsym   : tsym;
@@ -1634,7 +1738,11 @@ implementation
            begin
               procinfo^.flags:=procinfo^.flags or pi_do_call;
               { calc registers }
+{$ifndef hascompilerproc}
               left_max;
+{$else not hascompilerproc}
+              result := str_pass_1;
+{$endif not hascompilerproc}
            end;
 
          in_val_x :
@@ -1793,7 +1901,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2001-08-06 12:47:31  jonas
+  Revision 1.47  2001-08-13 12:41:57  jonas
+    * made code for str(x,y) completely processor independent
+
+  Revision 1.46  2001/08/06 12:47:31  jonas
     * parameters to FPC_TYPED_WRITE can't be regvars (merged)
 
   Revision 1.45  2001/08/06 09:44:10  jonas

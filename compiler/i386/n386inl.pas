@@ -545,6 +545,7 @@ implementation
            dummycoll.free;
         end;
 
+{$ifndef hascompilerproc}
       procedure handle_str;
 
         var
@@ -675,6 +676,7 @@ implementation
         myexit:
            dummycoll.free;
         end;
+{$endif hascompilerproc}
 
 
         Procedure Handle_Val;
@@ -1494,8 +1496,13 @@ implementation
               handlereadwrite(true,true);
             in_str_x_string :
               begin
+{$ifndef hascompilerproc}
                  handle_str;
                  maybe_loadself;
+{$else not hascompilerproc}
+                 { should be removed in pass 1 (JM) }
+                 internalerror(200108131);
+{$endif not hascompilerproc}
               end;
             in_val_x :
               Begin
@@ -1693,7 +1700,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2001-07-10 18:01:08  peter
+  Revision 1.17  2001-08-13 12:41:57  jonas
+    * made code for str(x,y) completely processor independent
+
+  Revision 1.16  2001/07/10 18:01:08  peter
     * internal length for ansistring and widestrings
 
   Revision 1.15  2001/07/08 21:00:18  peter

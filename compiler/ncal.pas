@@ -543,12 +543,19 @@ implementation
      constructor tcallnode.createintern(const name: string; params: tnode);
        var
          srsym: tsym;
+         symowner: tsymtable;
        begin
-         srsym := searchsymonlyin(systemunit,name);
+         if not (cs_compilesystem in aktmoduleswitches) then
+           begin
+             srsym := searchsymonlyin(systemunit,name);
+             symowner := systemunit;
+           end
+         else
+           searchsym(name,srsym,symowner);
          if not assigned(srsym) or
             (srsym.typ <> procsym) then
            internalerror(200107271);
-         self.create(params,tprocsym(srsym),systemunit,nil);
+         self.create(params,tprocsym(srsym),symowner,nil);
        end;
 {$endif hascompilerproc}
 
@@ -1680,7 +1687,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2001-08-06 21:40:46  peter
+  Revision 1.41  2001-08-13 12:41:56  jonas
+    * made code for str(x,y) completely processor independent
+
+  Revision 1.40  2001/08/06 21:40:46  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.39  2001/08/01 15:07:29  jonas
