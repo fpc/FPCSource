@@ -1,12 +1,3 @@
-{$ifdef win32}
-  uses winsock;
-
-Function GetDNSError : Longint;
-
-begin
-  GetDNSError:=0;
-end;
-{$else}
 const
   { Net type }
   socklib = 'c';
@@ -75,4 +66,15 @@ function getservbyport (port : longint; protocol : pchar) : PServEntry; cdecl; e
 
 var
   GetDNSError : longint;external socklib name 'h_errno';
-{$endif}
+
+Function InitResolve : Boolean;
+
+begin
+  Result:=True;
+end;
+
+Function FinalResolve : Boolean;
+
+begin
+  Result:=True;
+end;
