@@ -666,12 +666,10 @@ in mind:
 \item The \var{Pred} and \var{Succ} functions cannot be used on
 this kind of enumeration types. Trying to do this anyhow will result in a 
 compiler error.
-\item Enumeration types are by default stored using the same default size. This behaviour can be changed
+\item Enumeration types stored using a default size. This behaviour can be changed
 with the \var{\{\$PACKENUM n\}} compiler directive, which
 tells the compiler the minimal number of bytes to be used for enumeration
-types. More information can be found in the \progref, in the compiler directives
-and memory issues sections.
-
+types.
 For instance
 \begin{verbatim}
 Type
@@ -692,7 +690,8 @@ Small enum : 1
 Large enum : 4
 \end{verbatim}
 \end{enumerate}
-
+More information can be found in the \progref, in the compiler directives
+section.
 \subsubsection{Subrange types}
 A subrange type is a range of values from an ordinal type (the {\em host}
 type). To define a subrange type, one must specify it's limiting values: the
@@ -752,8 +751,9 @@ When the single quote character must be represented, it should be typed
 two times successively, thus \var{''''} represents the single quote character.
 
 \subsection{Strings}
-\fpc supports the \var{String} type as it is defined in Turbo Pascal and
-it supports ansistrings as in Delphi.
+\fpc supports the \var{String} type as it is defined in Turbo Pascal
+(A sequence of characters with a specified length) and it
+supports ansistrings as in Delphi.
 To declare a variable as a string, use the following type specification:
 \input{syntax/sstring.syn}
 
@@ -763,7 +763,7 @@ ansistrng or a short string.
 
 Whatever the actual type, ansistrings and short strings can be used
 interchangeably. The compiler always takes care of the necessary type
-coversions. Note, however, that the result of an expression that contains
+conversions. Note, however, that the result of an expression that contains
 ansistrings and short strings will always be an ansistring.
 
 \subsection{Short strings}
@@ -782,11 +782,9 @@ The predefined type \var{ShortString} is defined as a string of length 255:
  ShortString = String[255];
 \end{verbatim}
 
-For short strings \fpc reserves \var{Size+1} bytes for the string \var{S},
-and in the zeroeth element of the string (\var{S[0]}) it will store the
-length of the variable.
 If the size of the string is not specified, \var{255} is taken as a
-default.
+default. The length of the string can be obtained with the \seef{Length}
+standard runtime routine.
 For example in
 \begin{verbatim}
 {$H-}
@@ -795,9 +793,8 @@ Type
    NameString = String[10];
    StreetString = String;
 \end{verbatim}
-\var{NameString} can contain maximum 10 characters. While
-\var{StreetString} can contain 255 characters. The sizes of these variables
-are, respectively, 11 and 256 bytes.
+\var{NameString} can contain a maximum of 10 characters. While
+\var{StreetString} can contain up to 255 characters.
 
 \subsection{Ansistrings}
 
@@ -809,23 +806,12 @@ counted. Internally, an ansistring is treated as a pointer.
 
 If the string is empty (\var{''}), then the pointer is nil.
 If the string is not empty, then the pointer points to a structure in
-heap memory that looks as in \seet{ansistrings}.
+heap memory.
 
-\begin{FPCltable}{rl}{AnsiString memory structure}{ansistrings}
-Offset & Contains \\ \hline
--12  & Longint with maximum string size. \\
--8   & Longint with actual string size.\\
--4   & Longint with reference count.\\
-0    & Actual string, null-terminated. \\ \hline
-\end{FPCltable}
-
-Because of this structure, it is possible to typecast an ansistring to a
-pchar. If the string is empty (so the pointer is nil) then the compiler
-makes sure that the typecasted pchar will point to a null byte.
-
-AnsiStrings can be unlimited in length. Since the length is stored,
-the length of an ansistring is available immediatly, providing for fast
-access.
+It is possible to typecast an ansistring to a pchar.
+If the string is empty (so the pointer is nil) then the compiler
+makes sure that the typecasted pchar will point to a null byte. AnsiStrings
+can be unlimited in length.
 
 Assigning one ansistring to another doesn't involve moving the actual
 string. A statement
@@ -868,14 +854,8 @@ statements:
 then a copy of the string is created before the assignment. This is known
 as {\em copy-on-write} semantics.
 
-It is impossible to access the length of an ansistring by referring to
-the zeroeth character. The following statement will generate a compiler
-error if S is an ansistring:
-\begin{verbatim}
-  Len:=S[0];
-\end{verbatim}
-Instead, the \seef{Length} function must be used to get the length of a
-string.
+The \seef{Length} function must be used to get the length of an
+ansistring.
 
 To set the length of an ansistring, the \seep{SetLength} function must be used.
 Constant ansistrings have a reference count of -1 and are treated specially.
