@@ -53,7 +53,7 @@ const
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
    {J} (typesw:illegalsw; setsw:ord(cs_localnone)),
    {K} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
-   {L} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {L} (typesw:modulesw; setsw:ord(cs_local_browser)),
    {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
    {N} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {O} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
@@ -154,7 +154,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1998-09-01 12:52:05  peter
+  Revision 1.13  1998-09-22 17:13:52  pierre
+    + browsing updated and developed
+      records and objects fields are also stored
+
+  Revision 1.12  1998/09/01 12:52:05  peter
     + a lot of delphi switches
 
   Revision 1.11  1998/08/18 20:52:21  peter

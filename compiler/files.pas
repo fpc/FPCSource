@@ -123,7 +123,9 @@ unit files;
           unitcount     : word;     { local unit counter }
           unit_index    : word;     { global counter for browser }
           symtable      : pointer;  { pointer to the psymtable of this unit }
-
+{$ifdef UseBrowser}
+          implsymtable  : pointer;
+{$endif UseBrowser}
           uses_imports  : boolean;  { Set if the module imports from DLL's.}
           imports       : plinkedlist;
 
@@ -795,6 +797,9 @@ unit files;
          scanner:=nil;
          map:=nil;
          symtable:=nil;
+{$ifdef UseBrowser}
+         implsymtable:=nil;
+{$endif UseBrowser}
          flags:=0;
          crc:=0;
          unitcount:=1;
@@ -887,7 +892,11 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.46  1998-09-21 08:45:10  pierre
+  Revision 1.47  1998-09-22 17:13:43  pierre
+    + browsing updated and developed
+      records and objects fields are also stored
+
+  Revision 1.46  1998/09/21 08:45:10  pierre
     + added vmt_offset in tobjectdef.write for fututre use
       (first steps to have objects without vmt if no virtual !!)
     + added fpu_used field for tabstractprocdef  :

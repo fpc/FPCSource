@@ -136,6 +136,11 @@ unit parser;
          oldaktoptprocessor : tprocessors;
          oldaktasmmode      : tasmmode;
 
+{$ifdef usebrowser}
+{$ifdef debug}
+         hp : pmodule;
+{$endif debug}
+{$endif usebrowser}
 
       begin
          inc(compile_level);
@@ -356,6 +361,14 @@ unit parser;
              end;
 {$ifdef UseBrowser}
           { Write Browser }
+{$ifdef debug}
+            hp:=pmodule(loaded_units.first);
+            while assigned(hp) do
+              begin
+                 writeln('Unit ',hp^.modulename^,' has index ',hp^.unit_index);
+                 hp:=pmodule(hp^.next);
+              end;
+{$endif debug}
             if cs_browser in aktmoduleswitches then
               if Browse.elements_to_list^.empty then
                 begin
@@ -373,7 +386,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.47  1998-09-21 09:00:18  peter
+  Revision 1.48  1998-09-22 17:13:48  pierre
+    + browsing updated and developed
+      records and objects fields are also stored
+
+  Revision 1.47  1998/09/21 09:00:18  peter
     * reset_gdb_info only when debuginfo is set
 
   Revision 1.46  1998/09/21 08:45:12  pierre

@@ -174,6 +174,7 @@ N_BINCL to N_EINCL
                if do_count then
                  begin
                    dbx_counter^ := dbx_counter^+byte(st[i]);
+                   { skip file number }
                    if st[i] = '(' then
                      begin
                         inc(i);
@@ -242,7 +243,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-07-10 08:31:38  pierre
+  Revision 1.3  1998-09-22 17:13:45  pierre
+    + browsing updated and developed
+      records and objects fields are also stored
+
+  Revision 1.2  1998/07/10 08:31:38  pierre
     *  Just the N_FNAME to N_FUN substitution for stabs of functions
       thanks again Daniel !!
 

@@ -196,6 +196,8 @@
 {$ifdef UseBrowser}
             if cs_browser in aktmoduleswitches then
              flags:=flags or uf_has_browser;
+            if cs_local_browser in aktmoduleswitches then
+             flags:=flags or uf_local_browser;
 {$endif UseBrowser}
           end;
 
@@ -441,7 +443,11 @@
 
 {
   $Log$
-  Revision 1.16  1998-09-22 15:40:56  peter
+  Revision 1.17  1998-09-22 17:13:53  pierre
+    + browsing updated and developed
+      records and objects fields are also stored
+
+  Revision 1.16  1998/09/22 15:40:56  peter
     * some extra ifdef GDB
 
   Revision 1.15  1998/09/21 08:45:23  pierre

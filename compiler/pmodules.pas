@@ -255,6 +255,14 @@ unit pmodules;
              punitsymtable(current_module^.symtable)^.
                load_symtable_refs;
           end;
+        if ((current_module^.flags and uf_has_browser)<>0) and
+           (cs_local_browser in aktmoduleswitches) then
+          begin
+             current_module^.implsymtable:=new(psymtable,load);
+             psymtable(current_module^.implsymtable)^.name:=
+               stringdup('implementation of '+psymtable(current_module^.symtable)^.name^);
+             psymtable(current_module^.implsymtable)^.load_browser;
+          end;
 {$endif UseBrowser}
         { remove the map, it's not needed anymore }
         dispose(current_module^.map);
@@ -345,6 +353,7 @@ unit pmodules;
          if (not assigned(st)) then
           begin
           { if the unit is loaded remove it first }
+          { this creates problem with the browser !! }
             if assigned(hp) then
              begin
                { remove the old unit }
@@ -650,7 +659,11 @@ unit pmodules;
 
          { number the definitions, so a deref from other units works }
          refsymtable^.number_defs;
-
+{$ifdef UseBrowser}
+         refsymtable^.number_symbols;
+         { we don't want implementation units symbols in unitsymtable !! PM }
+         refsymtable:=p;
+{$endif UseBrowser}
          { Read the implementation units }
          parse_implementation_uses(unitst);
 
@@ -724,6 +737,9 @@ unit pmodules;
          { size of the static data }
          datasize:=symtablestack^.datasize;
 
+         { avoid self recursive destructor call !! PM }
+         aktprocsym^.definition^.localst:=nil;
+         
          { unsed static symbols ? }
          symtablestack^.allsymbolsused;
 
@@ -741,7 +757,10 @@ unit pmodules;
          current_module^.in_implementation:=false;
          { deletes all symtables generated in the implementation part }
          while symtablestack^.symtabletype<>globalsymtable do
-           dellexlevel;
+           if cs_local_browser in aktmoduleswitches then
+             symtablestack:=symtablestack^.next
+           else
+             dellexlevel;
 
          { tests, if all forwards are resolved }
          symtablestack^.check_forwards;
@@ -755,7 +774,17 @@ unit pmodules;
 
          {Write out the unit if the compile was succesfull.}
          if status.errorcount=0 then
-          writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack));
+          begin
+             writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack));
+{$ifdef UseBrowser}
+            if cs_local_browser in aktmoduleswitches then
+              begin
+                 current_module^.implsymtable:=refsymtable;
+                 refsymtable^.write;
+                 refsymtable^.write_browser;
+              end;
+{$endif UseBrowser}
+          end;
 
 {$ifdef GDB}
          pu:=pused_unit(usedunits.first);
@@ -822,8 +851,17 @@ unit pmodules;
          { of the program                                              }
          st:=new(punitsymtable,init(staticsymtable,current_module^.modulename^));
 
+         { necessary for browser }
+         loaded_units.insert(current_module);
+
+
          {Generate a procsym.}
          make_ref:=false;
+         { this was missing !!
+           the procdef was registered to systemunit
+           after the defhasharray was set !!
+           so the defhasharray became wrong !! PM }
+         symtablestack:=st;
          aktprocsym:=new(Pprocsym,init('main'));
          aktprocsym^.definition:=new(Pprocdef,init);
          aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poproginit;
@@ -836,8 +874,6 @@ unit pmodules;
 
          refsymtable:=st;
 
-         { necessary for browser }
-         loaded_units.insert(current_module);
 
          {Insert the symbols of the system unit into the stack of symbol
           tables.}
@@ -887,6 +923,9 @@ unit pmodules;
          compile_proc_body(names,true,false);
          names.done;
 
+         { avoid self recursive destructor call !! PM }
+         aktprocsym^.definition^.localst:=nil;
+         
          codegen_doneprocedure;
 
          consume(POINT);
@@ -928,7 +967,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.51  1998-09-22 15:40:55  peter
+  Revision 1.52  1998-09-22 17:13:49  pierre
+    + browsing updated and developed
+      records and objects fields are also stored
+
+  Revision 1.51  1998/09/22 15:40:55  peter
     * some extra ifdef GDB
 
   Revision 1.50  1998/09/21 08:45:17  pierre

@@ -67,8 +67,9 @@ type
     procedure closelog;
     procedure ident;
     procedure unident;
-    procedure browse_symbol(s : string);
+    procedure browse_symbol(const sr : string);
     procedure list_elements;
+    procedure list_debug_infos;
   end;
 
 var
@@ -222,6 +223,30 @@ implementation
          stderrlog:=false;
       end;
 
+    procedure tbrowser.list_debug_infos;
+{$ifndef debug}
+      begin
+      end;
+{$else debug}
+      var
+         hp : pmodule;
+         ff : pinputfile;
+      begin
+         hp:=pmodule(loaded_units.first);
+         while assigned(hp) do
+           begin
+              addlog('Unit '+hp^.modulename^+' has index '+tostr(hp^.unit_index));
+              ff:=hp^.sourcefiles.files;
+              while assigned(ff) do
+                begin
+                   addlog('File '+ff^.name^+' index '+tostr(ff^.ref_index));
+                   ff:=ff^.ref_next;
+                end;
+              hp:=pmodule(hp^.next);
+           end;
+      end;
+{$endif debug}
+      
     procedure tbrowser.addlog(const s:string);
       begin
         if not logopen then
@@ -265,12 +290,12 @@ implementation
       end;
 
 
-    procedure tbrowser.browse_symbol(s : string);
+    procedure tbrowser.browse_symbol(const sr : string);
       var
          sym,symb : psym;
          symt : psymtable;
          hp : pmodule;
-         ss : string;
+         s,ss : string;
          p : byte;
 
          procedure next_substring;
@@ -286,11 +311,32 @@ implementation
                   ss:=s;
                   s:='';
                 end;
+              addlog('substring : '+ss);
           end;
       begin
+         s:=sr;
          symt:=symtablestack;
          next_substring;
-         sym:=symt^.search(ss);
+         if assigned(symt) then
+           begin
+              sym:=symt^.search(ss);
+              if sym=nil then
+                sym:=symt^.search(upper(ss));
+           end
+         else
+           sym:=nil;
+         if assigned(sym) and (sym^.typ=unitsym) and (s<>'') then
+           begin
+              addlog('Unitsym found !');
+              symt:=punitsym(sym)^.unitsymtable;
+              if assigned(symt) then
+                begin
+                   next_substring;
+                   sym:=symt^.search(ss);
+                end
+              else
+                sym:=nil;
+           end;
          if not assigned(sym) then
            begin
               symt:=nil;
@@ -298,7 +344,7 @@ implementation
               hp:=pmodule(loaded_units.first);
               while assigned(hp) do
                 begin
-                   if hp^.modulename^=ss then
+                   if hp^.modulename^=upper(ss) then
                      begin
                         symt:=hp^.symtable;
                         break;
@@ -314,15 +360,11 @@ implementation
                 begin
                    next_substring;
                    sym:=symt^.search(ss);
+                   if sym=nil then
+                     sym:=symt^.search(upper(ss));
                 end;
            end;
 
-         if (sym^.typ=unitsym) and (s<>'') then
-           begin
-              symt:=punitsym(sym)^.unitsymtable;
-              next_substring;
-              sym:=symt^.search(ss);
-           end;
          while assigned(sym) and (s<>'') do
            begin
               next_substring;
@@ -336,6 +378,8 @@ implementation
                           else
                             symt:=pobjectdef(ptypesym(sym)^.definition)^.publicsyms;
                           sym:=symt^.search(ss);
+                          if sym=nil then
+                            sym:=symt^.search(upper(ss));
                        end;
                   end;
                 varsym :
@@ -347,16 +391,22 @@ implementation
                           else
                             symt:=pobjectdef(pvarsym(sym)^.definition)^.publicsyms;
                           sym:=symt^.search(ss);
+                          if sym=nil then
+                            sym:=symt^.search(upper(ss));
                        end;
                   end;
                 procsym :
                   begin
                      symt:=pprocsym(sym)^.definition^.parast;
                      symb:=symt^.search(ss);
+                     if symb=nil then
+                       symb:=symt^.search(upper(ss));
                      if not assigned(symb) then
                        begin
                           symt:=pprocsym(sym)^.definition^.parast;
                           sym:=symt^.search(ss);
+                          if symb=nil then
+                            symb:=symt^.search(upper(ss));
                        end
                      else
                        sym:=symb;
@@ -417,7 +467,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1998-09-21 08:45:05  pierre
+  Revision 1.8  1998-09-22 17:13:42  pierre
+    + browsing updated and developed
+      records and objects fields are also stored
+
+  Revision 1.7  1998/09/21 08:45:05  pierre
     + added vmt_offset in tobjectdef.write for fututre use
       (first steps to have objects without vmt if no virtual !!)
     + added fpu_used field for tabstractprocdef  :
