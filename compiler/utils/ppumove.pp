@@ -28,7 +28,7 @@ uses
   {$ifdef ver1_0}
   linux,
   {$else}
-  Baseunix,Unix,
+  Baseunix,Unix, UnixUtil,
   {$endif}
 {$else unix}
   dos,
@@ -614,7 +614,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-09-14 20:26:18  marco
+  Revision 1.7  2003-09-18 15:48:22  marco
+   * adapted to unixutil
+
+  Revision 1.6  2003/09/14 20:26:18  marco
    * Unix reform
 
   Revision 1.5  2002/05/18 13:34:27  peter
