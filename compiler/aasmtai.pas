@@ -53,6 +53,7 @@ interface
           ait_symbol,
           ait_symbol_end, { needed to calc the size of a symbol }
           ait_label,
+          ait_const_64bit,
           ait_const_32bit,
           ait_const_16bit,
           ait_const_8bit,
@@ -102,6 +103,7 @@ interface
           'symbol',
           'symbol_end',
           'label',
+          'const_64bit',
           'const_32bit',
           'const_16bit',
           'const_8bit',
@@ -329,9 +331,11 @@ interface
        end;
 
 
-       { Generates a long integer (32 bit) }
+       { Generates an integer const }
        tai_const = class(tai)
-          value : cardinal;
+          value : qword;
+          constructor Create_ptr(_value : TConstPtrUInt);
+          constructor Create_64bit(_value : qword);
           constructor Create_32bit(_value : cardinal);
           constructor Create_16bit(_value : word);
           constructor Create_8bit(_value : byte);
@@ -878,24 +882,41 @@ implementation
                                TAI_CONST
  ****************************************************************************}
 
-    constructor tai_const.Create_32bit(_value : cardinal);
+    constructor tai_const.Create_ptr(_value : TConstPtrUInt);
+      begin
+{$ifdef cpu64bit}
+        self.create_64bit(_value);
+{$else cpu64bit}
+        self.create_32bit(_value);
+{$endif cpu64bit}
+      end;
 
+
+    constructor tai_const.Create_64bit(_value : qword);
+      begin
+         inherited Create;
+         typ:=ait_const_64bit;
+         value:=_value;
+      end;
+
+
+    constructor tai_const.Create_32bit(_value : cardinal);
       begin
          inherited Create;
          typ:=ait_const_32bit;
          value:=_value;
       end;
 
-    constructor tai_const.Create_16bit(_value : word);
 
+    constructor tai_const.Create_16bit(_value : word);
       begin
          inherited Create;
          typ:=ait_const_16bit;
          value:=_value;
       end;
 
-    constructor tai_const.Create_8bit(_value : byte);
 
+    constructor tai_const.Create_8bit(_value : byte);
       begin
          inherited Create;
          typ:=ait_const_8bit;
@@ -1974,7 +1995,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2004-02-08 23:10:21  jonas
+  Revision 1.72  2004-02-26 16:16:38  peter
+    * tai_const.create_ptr added
+
+  Revision 1.71  2004/02/08 23:10:21  jonas
     * taicpu.is_same_reg_move() now gets a regtype parameter so it only
       removes moves of that particular register type. This is necessary so
       we don't remove the live_start instruction of a register before it

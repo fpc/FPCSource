@@ -448,6 +448,7 @@ implementation
         aiclass[ait_symbol]:=tai_symbol;
         aiclass[ait_symbol_end]:=tai_symbol_end;
         aiclass[ait_label]:=tai_label;
+        aiclass[ait_const_64bit]:=tai_const;
         aiclass[ait_const_32bit]:=tai_const;
         aiclass[ait_const_16bit]:=tai_const;
         aiclass[ait_const_8bit]:=tai_const;
@@ -488,7 +489,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2004-02-04 22:15:15  daniel
+  Revision 1.63  2004-02-26 16:16:38  peter
+    * tai_const.create_ptr added
+
+  Revision 1.62  2004/02/04 22:15:15  daniel
     * Rtti generation moved to ncgutil
     * Assmtai usage of symsym removed
     * operator overloading cleanup up

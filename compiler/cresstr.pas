@@ -154,7 +154,7 @@ procedure TResourceStrings.CreateResourceStringList;
     With P Do
      begin
        if (Value=nil) or (len=0) then
-         resourcestringlist.concat(tai_const.create_32bit(0))
+         resourcestringlist.concat(tai_const.create_ptr(0))
        else
          begin
             objectlibrary.getdatalabel(l1);
@@ -171,7 +171,7 @@ procedure TResourceStrings.CreateResourceStringList;
             consts.concat(tai_const.create_8bit(0));
          end;
        { append Current value (nil) and hash...}
-       resourcestringlist.concat(tai_const.create_32bit(0));
+       resourcestringlist.concat(tai_const.create_ptr(0));
        resourcestringlist.concat(tai_const.create_32bit(hash));
        { Append the name as a ansistring. }
        objectlibrary.getdatalabel(l1);
@@ -300,7 +300,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2003-12-29 19:31:20  florian
+  Revision 1.21  2004-02-26 16:16:38  peter
+    * tai_const.create_ptr added
+
+  Revision 1.20  2003/12/29 19:31:20  florian
     * fixed error message, if a resource file can't be written
 
   Revision 1.19  2003/12/08 22:34:24  peter

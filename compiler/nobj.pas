@@ -444,8 +444,8 @@ implementation
               datasegment.concat(tai_align.create(const_align(POINTER_SIZE)));
               dataSegment.concat(Tai_label.Create(r));
               { entries for caching }
-              dataSegment.concat(Tai_const.Create_32bit(0));
-              dataSegment.concat(Tai_const.Create_32bit(0));
+              dataSegment.concat(Tai_const.Create_ptr(0));
+              dataSegment.concat(Tai_const.Create_ptr(0));
 
               dataSegment.concat(Tai_const.Create_32bit(count));
               if assigned(root) then
@@ -897,7 +897,7 @@ implementation
         else
           begin
             { nil for Corba interfaces }
-            dataSegment.concat(Tai_const.Create_32bit(0)); { nil }
+            dataSegment.concat(Tai_const.Create_ptr(0)); { nil }
           end;
         { VTable }
         dataSegment.concat(Tai_const_symbol.Createname(gintfgetvtbllabelname(contintfindex)));
@@ -1281,7 +1281,7 @@ implementation
               if assigned(dmtlabel) then
                 dataSegment.concat(Tai_const_symbol.Create(dmtlabel)))
               else
-                dataSegment.concat(Tai_const.Create_32bit(0));
+                dataSegment.concat(Tai_const.Create_ptr(0));
            end;
 {$endif WITHDMT}
          { write pointer to parent VMT, this isn't implemented in TP }
@@ -1292,7 +1292,7 @@ implementation
             (oo_has_vmt in _class.childof.objectoptions) then
            dataSegment.concat(Tai_const_symbol.Createname(_class.childof.vmt_mangledname))
          else
-           dataSegment.concat(Tai_const.Create_32bit(0));
+           dataSegment.concat(Tai_const.Create_ptr(0));
 
          { write extended info for classes, for the order see rtl/inc/objpash.inc }
          if is_class(_class) then
@@ -1303,36 +1303,36 @@ implementation
             if (oo_has_msgint in _class.objectoptions) then
               dataSegment.concat(Tai_const_symbol.Create(intmessagetable))
             else
-              dataSegment.concat(Tai_const.Create_32bit(0));
+              dataSegment.concat(Tai_const.Create_ptr(0));
             { pointer to method table }
             if assigned(methodnametable) then
               dataSegment.concat(Tai_const_symbol.Create(methodnametable))
             else
-              dataSegment.concat(Tai_const.Create_32bit(0));
+              dataSegment.concat(Tai_const.Create_ptr(0));
             { pointer to field table }
             dataSegment.concat(Tai_const_symbol.Create(fieldtablelabel));
             { pointer to type info of published section }
             if (oo_can_have_published in _class.objectoptions) then
               dataSegment.concat(Tai_const_symbol.Create(_class.get_rtti_label(fullrtti)))
             else
-              dataSegment.concat(Tai_const.Create_32bit(0));
+              dataSegment.concat(Tai_const.Create_ptr(0));
             { inittable for con-/destruction }
             if _class.members_need_inittable then
               dataSegment.concat(Tai_const_symbol.Create(_class.get_rtti_label(initrtti)))
             else
-              dataSegment.concat(Tai_const.Create_32bit(0));
+              dataSegment.concat(Tai_const.Create_ptr(0));
             { auto table }
-            dataSegment.concat(Tai_const.Create_32bit(0));
+            dataSegment.concat(Tai_const.Create_ptr(0));
             { interface table }
             if _class.implementedinterfaces.count>0 then
               dataSegment.concat(Tai_const_symbol.Create(interfacetable))
             else
-              dataSegment.concat(Tai_const.Create_32bit(0));
+              dataSegment.concat(Tai_const.Create_ptr(0));
             { table for string messages }
             if (oo_has_msgstr in _class.objectoptions) then
               dataSegment.concat(Tai_const_symbol.Create(strmessagetable))
             else
-              dataSegment.concat(Tai_const.Create_32bit(0));
+              dataSegment.concat(Tai_const.Create_ptr(0));
           end;
          { write virtual methods }
          writevirtualmethods(dataSegment);
@@ -1380,7 +1380,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.62  2004-02-19 17:07:42  florian
+  Revision 1.63  2004-02-26 16:16:38  peter
+    * tai_const.create_ptr added
+
+  Revision 1.62  2004/02/19 17:07:42  florian
     * fixed arg. area calculation
 
   Revision 1.61  2004/02/13 15:41:24  peter

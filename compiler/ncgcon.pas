@@ -349,7 +349,7 @@ implementation
                         begin
                            { an empty ansi string is nil! }
                            if len=0 then
-                             Consts.concat(Tai_const.Create_32bit(0))
+                             Consts.concat(Tai_const.Create_ptr(0))
                            else
                              begin
                                 objectlibrary.getdatalabel(l1);
@@ -374,7 +374,7 @@ implementation
                         begin
                            { an empty wide string is nil! }
                            if len=0 then
-                             Consts.concat(Tai_const.Create_32bit(0))
+                             Consts.concat(Tai_const.Create_ptr(0))
                            else
                              begin
                                 objectlibrary.getdatalabel(l1);
@@ -574,7 +574,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2004-01-24 18:12:40  florian
+  Revision 1.37  2004-02-26 16:16:38  peter
+    * tai_const.create_ptr added
+
+  Revision 1.36  2004/01/24 18:12:40  florian
     * fixed several arm floating point issues
 
   Revision 1.35  2004/01/12 16:39:40  peter

@@ -1730,7 +1730,7 @@ implementation
          if assigned(basedef) then
            rttiList.concat(Tai_const_symbol.Create(basedef.get_rtti_label(rt)))
          else
-           rttiList.concat(Tai_const.Create_32bit(0));
+           rttiList.concat(Tai_const.Create_ptr(0));
          hp:=tenumsym(firstenum);
          while assigned(hp) do
            begin
@@ -1908,6 +1908,7 @@ implementation
             begin
               rttiList.concat(Tai_const.Create_8bit(tkInt64));
               write_rtti_name;
+{$warning maybe change to create_64bit}
               if target_info.endian=endian_little then
                 begin
                   { low }
@@ -5400,7 +5401,7 @@ implementation
                    { isn't it stored ? }
                    if not(ppo_stored in tpropertysym(sym).propoptions) then
                      begin
-                        rttiList.concat(Tai_const.Create_32bit(0));
+                        rttiList.concat(Tai_const.Create_ptr(0));
                         proctypesinfo:=proctypesinfo or (3 shl 4);
                      end
                    else
@@ -5607,13 +5608,13 @@ implementation
                   not(objecttype in [odt_interfacecom,odt_interfacecorba]) then
                  rttiList.concat(Tai_const_symbol.Createname(vmt_mangledname))
                else
-                 rttiList.concat(Tai_const.Create_32bit(0));
+                 rttiList.concat(Tai_const.Create_ptr(0));
 
                { write owner typeinfo }
                if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
                  rttiList.concat(Tai_const_symbol.Create(childof.get_rtti_label(fullrtti)))
                else
-                 rttiList.concat(Tai_const.Create_32bit(0));
+                 rttiList.concat(Tai_const.Create_ptr(0));
 
                { count total number of properties }
                if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
@@ -6118,7 +6119,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.222  2004-02-22 19:55:25  daniel
+  Revision 1.223  2004-02-26 16:16:38  peter
+    * tai_const.create_ptr added
+
+  Revision 1.222  2004/02/22 19:55:25  daniel
     * Revert my latest change
 
   Revision 1.221  2004/02/22 18:49:03  daniel

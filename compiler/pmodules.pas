@@ -242,7 +242,7 @@ implementation
             s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
             { add begin and end of the list }
             ltvTable.insert(tai_symbol.createdataname_global(s,0));
-            ltvTable.concat(tai_const.create_32bit(0));  { end of list marker }
+            ltvTable.concat(tai_const.create_ptr(0));  { end of list marker }
             ltvTable.concat(tai_symbol_end.createname(s));
             if (cs_create_smart in aktmoduleswitches) then
              dataSegment.concat(Tai_cut.Create);
@@ -307,11 +307,11 @@ implementation
               if (hp.u.flags and uf_init)<>0 then
                unitinits.concat(Tai_const_symbol.Createname(make_mangledname('INIT$',hp.u.globalsymtable,'')))
               else
-               unitinits.concat(Tai_const.Create_32bit(0));
+               unitinits.concat(Tai_const.Create_ptr(0));
               if (hp.u.flags and uf_finalize)<>0 then
                unitinits.concat(Tai_const_symbol.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,'')))
               else
-               unitinits.concat(Tai_const.Create_32bit(0));
+               unitinits.concat(Tai_const.Create_ptr(0));
               inc(count);
             end;
            hp:=tused_unit(hp.next);
@@ -322,11 +322,11 @@ implementation
            if (current_module.flags and uf_init)<>0 then
             unitinits.concat(Tai_const_symbol.Createname(make_mangledname('INIT$',current_module.localsymtable,'')))
            else
-            unitinits.concat(Tai_const.Create_32bit(0));
+            unitinits.concat(Tai_const.Create_ptr(0));
            if (current_module.flags and uf_finalize)<>0 then
             unitinits.concat(Tai_const_symbol.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,'')))
            else
-            unitinits.concat(Tai_const.Create_32bit(0));
+            unitinits.concat(Tai_const.Create_ptr(0));
            inc(count);
          end;
         { TableCount,InitCount }
@@ -1438,7 +1438,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.139  2004-02-06 22:37:00  daniel
+  Revision 1.140  2004-02-26 16:16:38  peter
+    * tai_const.create_ptr added
+
+  Revision 1.139  2004/02/06 22:37:00  daniel
     * Removed not very usefull nextglobal & previousglobal fields from
       Tstoreddef, saving 78 kb of memory
 
