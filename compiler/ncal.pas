@@ -704,7 +704,8 @@ type
                    begin
                      { for ordinals, floats and enums, verify if we might cause
                        some range-check errors. }
-                     if (left.resulttype.def.deftype in [enumdef,orddef,floatdef]) and
+                     if (paraitem.paratype.def.deftype in [enumdef,orddef,floatdef]) and
+                        (left.resulttype.def.deftype in [enumdef,orddef,floatdef]) and
                         (left.nodetype in [vecn,loadn,calln]) then
                        begin
                           if (left.resulttype.def.size>paraitem.paratype.def.size) then
@@ -2649,7 +2650,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.175  2003-08-10 17:25:23  peter
+  Revision 1.176  2003-08-23 18:42:57  peter
+    * only check for size matches when parameter is enum,ord,float
+
+  Revision 1.175  2003/08/10 17:25:23  peter
     * fixed some reported bugs
 
   Revision 1.174  2003/07/25 09:54:57  jonas
