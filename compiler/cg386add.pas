@@ -913,21 +913,24 @@ implementation
                                end
                              else if (p^.right^.treetype=ordconstn) and
                                 (op=A_ADD) and
-                                (p^.right^.value=1) then
+                                (p^.right^.value=1) and
+                                not(cs_check_overflow in aktlocalswitches) then
                                begin
                                   exprasmlist^.concat(new(pai386,op_reg(A_INC,opsize,
                                     p^.location.register)));
                                end
                              else if (p^.right^.treetype=ordconstn) and
                                 (op=A_SUB) and
-                                (p^.right^.value=1) then
+                                (p^.right^.value=1) and
+                                not(cs_check_overflow in aktlocalswitches) then
                                begin
                                   exprasmlist^.concat(new(pai386,op_reg(A_DEC,opsize,
                                     p^.location.register)));
                                end
                              else if (p^.right^.treetype=ordconstn) and
                                 (op=A_IMUL) and
-                                (ispowerof2(p^.right^.value,power)) then
+                                (ispowerof2(p^.right^.value,power)) and
+                                not(cs_check_overflow in aktlocalswitches) then
                                begin
                                   exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,opsize,power,
                                     p^.location.register)));
@@ -1734,7 +1737,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  1998-12-22 13:10:56  florian
+  Revision 1.38  1999-01-05 17:03:36  jonas
+    * don't output inc/dec if cs_check_overflow is on, because inc/dec don't change
+      the carry flag
+
+  Revision 1.37  1998/12/22 13:10:56  florian
     * memory leaks for ansistring type casts fixed
 
   Revision 1.36  1998/12/19 00:23:40  florian
