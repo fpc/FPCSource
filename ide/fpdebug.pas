@@ -37,9 +37,11 @@ type
      NoSwitch : boolean;
      HasExe   : boolean;
      RunCount : longint;
+     WindowWidth : longint;
      FPCBreakErrorNumber : longint;
     constructor Init;
     procedure SetExe(const exefn:string);
+    procedure SetWidth(AWidth : longint);
     procedure SetDirectories;
     destructor  Done;
     procedure DoSelectSourceline(const fn:string;line:longint);virtual;
@@ -600,6 +602,7 @@ begin
   NoSwitch:=False;
   HasExe:=false;
   Debugger:=@self;
+  WindowWidth:=-1;
 {$ifndef GABOR}
   switch_to_user:=true;
 {$endif}
@@ -616,9 +619,13 @@ begin
       Command('b FPC_BREAK_ERROR');
       FPCBreakErrorNumber:=last_breakpoint_number;
 {$ifdef FrameNameKnown}
+      { this fails in GDB 5.1 because
+        GDB replies that there is an attempt to dereference
+        a generic pointer...
+        test delayed in DoSourceLine... PM
       Command('cond '+IntToStr(FPCBreakErrorNumber)+
         ' (('+FrameName+' + 8)^ <> 0) or'+
-        ' (('+FrameName+' + 12)^ <> 0)');
+        ' (('+FrameName+' + 12)^ <> 0)');  }
 {$endif FrameNameKnown}
       SetArgs(GetRunParameters);
       SetDirectories;
@@ -630,6 +637,12 @@ begin
       HasExe:=false;
       Command('file');
     end;
+end;
+
+procedure TDebugController.SetWidth(AWidth : longint);
+begin
+  WindowWidth:=AWidth;
+  Command('set width '+inttostr(WindowWidth));
 end;
 
 procedure TDebugController.SetDirectories;
@@ -876,6 +889,8 @@ function TDebugController.GetValue(Const expr : string) : pchar;
 var
   p,p2,p3 : pchar;
 begin
+  if WindowWidth<>-1 then
+    Command('set width 0xffffffff');
   Command('p '+expr);
   p:=GetOutput;
   p3:=nil;
@@ -904,6 +919,8 @@ begin
   if assigned(p3) then
     p3^:=#10;
   got_error:=false;
+  if WindowWidth<>-1 then
+    Command('set width '+IntToStr(WindowWidth));
 end;
 
 function TDebugController.GetFramePointer : CORE_ADDR;
@@ -1001,6 +1018,11 @@ begin
       ExitCode:=GetLongintAt(GetFramePointer+FirstArgOffset);
       ExitAddr:=GetPointerAt(GetFramePointer+SecondArgOffset);
       ExitFrame:=GetPointerAt(GetFramePointer+ThirdArgOffset);
+      if (ExitCode=0) and (ExitAddr=0) then
+        begin
+          Command('continue');
+          exit;
+        end;
       { forget all old frames }
       clear_frames;
       { record new frames }
@@ -3613,6 +3635,8 @@ end;
       { forget all old frames }
       Debugger^.clear_frames;
 
+      if Debugger^.WindowWidth<>-1 then
+        Debugger^.Command('set width 0xffffffff');
       Debugger^.Command('backtrace');
       { generate list }
       { all is in tframeentry }
@@ -3653,6 +3677,8 @@ end;
         end;
       if Assigned(list) and (List^.Count > 0) then
         FocusItem(0);
+      if Debugger^.WindowWidth<>-1 then
+        Debugger^.Command('set width '+IntToStr(Debugger^.WindowWidth));
       DeskTop^.Unlock;
      {$endif}
     end;
@@ -4029,7 +4055,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2002-03-27 11:24:09  pierre
+  Revision 1.11  2002-04-02 11:10:29  pierre
+   * fix FPC_BREAK_ERROR problem and avoid blinking J
+
+  Revision 1.10  2002/03/27 11:24:09  pierre
    * fix several problems related to long file nmze support for win32 exes
 
   Revision 1.9  2002/02/06 14:45:00  pierre
