@@ -10,7 +10,7 @@ version=1.9.4
 packages=fcl
 
 [target]
-programs=fpdoc makeskel
+programs=fpdoc makeskel unitdiff
 rst=dwriter fpdoc dglobals makeskel
 # removed to reduce dependencies of rpm.
 #dirs_linux_i386=fpde
