@@ -272,15 +272,35 @@ const
 	TCharArray = CharArray;
 
 {Another bunch of compatibility things}
-        HWND = cardinal;
+        HWnd = cardinal;
+        THWnd = HWnd;
+        PHWnd = ^HWnd;
         HAB = cardinal;
+        THAB = HAB;
+        PHAB = ^HAB;
         HMQ = cardinal;
+        THMQ = HMQ;
+        PHMQ = ^HMQ;
         HPS = cardinal;
+        THPS = HPS;
+        PHPS = ^HPS;
         HRGN = cardinal;
+        THRGN = HRGN;
+        PHRGN = ^HRGN;
         HBitmap = cardinal;
+        THBitmap = HBitmap;
+        PHBitmap = ^HBitmap;
+        HEv = cardinal;
+        THEv = HEv;
+        PHEv = ^HEv;
+        HMtx = cardinal;
+        THMtx = HMtx;
+        PHMtx = ^HMtx;
         ULONG = cardinal;
         MParam = pointer;
         MResult = pointer;
+        Fixed = longint;
+        Fixed88 = integer;
 
 { Constants from bseord.h header file (ordinal numbers of API functions) }
 
@@ -3234,7 +3254,10 @@ const
 end.
 {
   $Log$
-  Revision 1.3  2000-09-03 18:59:45  hajny
+  Revision 1.4  2001-01-03 20:06:11  hajny
+    * some more compatibility additions (HEv, HMtx, ...)
+
+  Revision 1.3  2000/09/03 18:59:45  hajny
     + bsedev, bseerr, bsememf and bseord merged into OS2Def
 
   Revision 1.1.2.1  2000/09/03 18:22:05  hajny
