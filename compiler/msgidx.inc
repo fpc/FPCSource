@@ -22,14 +22,12 @@ const
   scan_f_syn_expected=02003;
   scan_t_start_include_file=02004;
   scan_w_comment_level=02005;
-  scan_n_far_directive_ignored=02006;
   scan_n_ignored_switch=02008;
   scan_w_illegal_switch=02009;
   scan_w_switch_is_global=02010;
   scan_e_illegal_char_const=02011;
   scan_f_cannot_open_input=02012;
   scan_f_cannot_open_includefile=02013;
-  scan_e_too_much_endifs=02014;
   scan_w_only_pack_records=02015;
   scan_w_only_pack_enum=02016;
   scan_e_endif_expected=02017;
@@ -78,13 +76,9 @@ const
   scan_w_appname_not_support=02060;
   scan_e_string_exceeds_255_chars=02061;
   parser_e_syntax_error=03000;
-  parser_w_proc_far_ignored=03001;
-  parser_w_proc_near_ignored=03002;
-  parser_w_proc_interrupt_ignored=03003;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
   parser_e_no_overload_for_all_procs=03006;
-  parser_e_no_dll_file_specified=03007;
   parser_e_export_name_double=03008;
   parser_e_export_ordinal_double=03009;
   parser_e_export_invalid_index=03010;
@@ -92,9 +86,7 @@ const
   parser_w_parser_win32_debug_needs_WN=03012;
   parser_e_constructorname_must_be_init=03013;
   parser_e_destructorname_must_be_done=03014;
-  parser_e_illegal_open_parameter=03015;
   parser_e_proc_inline_not_supported=03016;
-  parser_w_priv_meth_not_virtual=03017;
   parser_w_constructor_should_be_public=03018;
   parser_w_destructor_should_be_public=03019;
   parser_n_only_one_destructor=03020;
@@ -102,14 +94,12 @@ const
   parser_f_no_anonym_objects=03022;
   parser_n_object_has_no_vmt=03023;
   parser_e_illegal_parameter_list=03024;
-  parser_e_wrong_parameter_type=03025;
   parser_e_wrong_parameter_size=03026;
   parser_e_overloaded_no_procedure=03027;
   parser_e_overloaded_have_same_parameters=03028;
   parser_e_header_dont_match_forward=03029;
   parser_e_header_different_var_names=03030;
   parser_n_duplicate_enum=03031;
-  parser_n_interface_name_diff_implementation_name=03032;
   parser_e_no_with_for_variable_in_other_segments=03033;
   parser_e_too_much_lexlevel=03034;
   parser_e_range_check_error=03035;
@@ -141,8 +131,6 @@ const
   parser_e_ill_property_access_sym=03061;
   parser_e_cant_access_protected_member=03062;
   parser_e_cant_access_private_member=03063;
-  parser_w_overloaded_are_not_both_virtual=03064;
-  parser_w_overloaded_are_not_both_non_virtual=03065;
   parser_e_overridden_methods_not_same_ret=03066;
   parser_e_dont_nest_export=03067;
   parser_e_methods_dont_be_export=03068;
@@ -164,7 +152,6 @@ const
   parser_e_overload_impossible=03084;
   parser_e_no_reraise_possible=03085;
   parser_e_no_new_or_dispose_for_classes=03086;
-  parser_e_asm_incomp_with_function_return=03087;
   parser_e_procedure_overloading_is_off=03088;
   parser_e_overload_operator_failed=03089;
   parser_e_comparative_operator_return_boolean=03090;
@@ -185,7 +172,6 @@ const
   parser_u_parsing_interface=03105;
   parser_u_parsing_implementation=03106;
   parser_d_compiling_second_time=03107;
-  parser_e_no_paras_allowed=03108;
   parser_e_no_property_found_to_override=03109;
   parser_e_only_one_default_property=03110;
   parser_e_property_need_paras=03111;
@@ -199,7 +185,6 @@ const
   parser_e_proc_dir_not_allowed_in_procvar=03119;
   parser_e_function_already_declared_public_forward=03120;
   parser_e_not_external_and_export=03121;
-  parser_e_name_keyword_expected=03122;
   parser_w_not_supported_for_inline=03123;
   parser_w_inlining_disabled=03124;
   parser_i_writing_browser_log=03125;
@@ -207,14 +192,11 @@ const
   parser_f_assembler_reader_not_supported=03127;
   parser_e_proc_dir_conflict=03128;
   parser_e_call_convention_dont_match_forward=03129;
-  parser_e_register_calling_not_supported=03130;
   parser_e_property_cant_have_a_default_value=03131;
   parser_e_property_default_value_must_const=03132;
   parser_e_cant_publish_that=03133;
   parser_e_cant_publish_that_property=03134;
-  parser_w_empty_import_name=03135;
   parser_e_empty_import_name=03136;
-  parser_e_used_proc_name_changed=03137;
   parser_e_division_by_zero=03138;
   parser_e_invalid_float_operation=03139;
   parser_e_array_lower_less_than_upper_bound=03140;
@@ -243,8 +225,6 @@ const
   parser_e_no_export_with_index_for_target=03163;
   parser_e_no_export_of_variables_for_target=03164;
   parser_e_improper_guid_syntax=03165;
-  parser_f_interface_cant_have_variables=03166;
-  parser_f_interface_cant_have_constr_or_destr=03167;
   parser_w_interface_mapping_notfound=03168;
   parser_e_interface_id_expected=03169;
   parser_e_type_cant_be_used_in_array_index=03170;
@@ -277,7 +257,6 @@ const
   type_e_ordinal_expr_expected=04007;
   type_e_pointer_type_expected=04008;
   type_e_class_type_expected=04009;
-  type_e_varid_or_typeid_expected=04010;
   type_e_cant_eval_constant_expr=04011;
   type_e_set_element_are_not_comp=04012;
   type_e_set_operation_unknown=04013;
@@ -323,12 +302,9 @@ const
   sym_h_duplicate_id_where=05003;
   sym_e_unknown_id=05004;
   sym_e_forward_not_resolved=05005;
-  sym_f_id_already_typed=05006;
   sym_e_error_in_type_def=05007;
-  sym_e_type_id_not_defined=05008;
   sym_e_forward_type_not_resolved=05009;
   sym_e_only_static_in_static=05010;
-  sym_e_invalid_call_tvarsymmangledname=05011;
   sym_f_type_must_be_rec_or_class=05012;
   sym_e_no_instance_of_abstract_object=05013;
   sym_w_label_not_defined=05014;
@@ -358,7 +334,6 @@ const
   sym_e_id_no_member=05038;
   sym_b_param_list=05039;
   sym_e_segment_too_large=05040;
-  sym_w_segment_too_large=05041;
   sym_e_no_matching_implementation_found=05042;
   sym_w_deprecated_symbol=05043;
   sym_w_non_portable_symbol=05044;
@@ -382,31 +357,23 @@ const
   cg_w_member_cd_call_from_method=06016;
   cg_n_inefficient_code=06017;
   cg_w_unreachable_code=06018;
-  cg_e_stackframe_with_esp=06019;
   cg_e_cant_call_abstract_method=06020;
-  cg_f_internal_error_in_getfloatreg=06021;
-  cg_f_unknown_float_type=06022;
-  cg_f_secondvecn_base_defined_twice=06023;
-  cg_f_extended_cg68k_not_supported=06024;
-  cg_f_32bit_not_supported_in_68000=06025;
-  cg_f_internal_error_in_secondinline=06026;
   cg_d_register_weight=06027;
-  cg_e_stacklimit_in_local_routine=06028;
   cg_d_stackframe_omited=06029;
   cg_e_unable_inline_object_methods=06031;
   cg_e_unable_inline_procvar=06032;
   cg_e_no_code_for_inline_stored=06033;
-  cg_e_no_call_to_interrupt=06034;
   cg_e_can_access_element_zero=06035;
-  cg_e_paralimit_in_local_routine=06036;
   cg_e_cannot_call_cons_dest_inside_with=06037;
   cg_e_cannot_call_message_direct=06038;
   cg_e_goto_inout_of_exception_block=06039;
   cg_e_control_flow_outside_finally=06040;
+  cg_w_parasize_too_big=06041;
+  cg_w_localsize_too_big=06042;
+  cg_e_localsize_too_big=06043;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
   asmr_e_none_label_contain_at=07002;
-  asmr_w_override_op_not_supported=07003;
   asmr_e_building_record_offset=07004;
   asmr_e_offset_without_identifier=07005;
   asmr_e_type_without_identifier=07006;
@@ -468,7 +435,6 @@ const
   asmr_e_unknown_label_identifier=07062;
   asmr_e_invalid_register=07063;
   asmr_e_invalid_fpu_register=07064;
-  asmr_e_nor_not_supported=07065;
   asmr_w_modulo_not_supported=07066;
   asmr_e_invalid_float_const=07067;
   asmr_e_invalid_float_expr=07068;
@@ -488,14 +454,11 @@ const
   asmr_e_cannot_access_object_field_directly=07082;
   asmr_e_unable_to_determine_reference_size=07083;
   asmr_e_cannot_use_RESULT_here=07084;
-  asmr_h_RESULT_is_reg=07085;
   asmr_w_adding_explicit_args_fXX=07086;
   asmr_w_adding_explicit_first_arg_fXX=07087;
   asmr_w_adding_explicit_second_arg_fXX=07088;
   asmr_e_invalid_char_smaller=07089;
   asmr_e_invalid_char_greater=07090;
-  asmr_w_xdef_not_supported=07091;
-  asmr_e_invalid_global_def=07092;
   asmr_w_align_not_supported=07093;
   asmr_e_no_inc_and_dec_together=07094;
   asmr_e_invalid_reg_list_in_movem=07095;
@@ -639,9 +602,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 35629;
+  MsgTxtSize = 33983;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,62,190,50,56,41,98,19,35,43,
+    17,62,190,50,56,44,98,19,35,43,
     40,1,1,1,1,1,1,1,1,1
   );

@@ -1470,7 +1470,12 @@ function returns in a register and the caller receives it in an other one}
               stackalloclist.concat(Tai_symbol.Createname(hs,0));
            until false;
 
-        stackframe:=stackframe+tg.gettempsize;
+          stackframe:=stackframe+tg.gettempsize;
+{$ifndef m68k}
+          { give a warning if the limit of local variables is reached }
+          if stackframe > maxlocalsize then
+            Message(cg_w_localsize_too_big); 
+{$endif}
 {$ifndef powerpc}
            { at least for the ppc this applies always, so this code isn't usable (FK) }
            { omit stack frame ? }
@@ -1738,7 +1743,16 @@ function returns in a register and the caller receives it in an other one}
            if (po_interrupt in aktprocdef.procoptions) then
             cg.g_interrupt_stackframe_exit(list,usesself,usesacc,usesacchi)
            else
-            cg.g_return_from_proc(list,parasize);
+             begin
+{$ifndef i386}
+               { give a warning if the limit of parameters allowed for
+                 certain processors is reached.
+               }
+               if (parasize > maxparasize) 
+                 Message(cg_w_parasize_too_big);
+{$endif}
+               cg.g_return_from_proc(list,parasize);
+             end;
          end;
 
         if not inlined then
@@ -1882,7 +1896,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.67  2002-11-30 18:44:57  carl
+  Revision 1.68  2002-12-01 22:06:59  carl
+    * warning of portabilitiy problems with parasize / localsize
+
+  Revision 1.67  2002/11/30 18:44:57  carl
     + profiling support for Win32
 
   Revision 1.66  2002/11/30 14:39:15  carl
