@@ -1,0 +1,11 @@
+#
+#   Makefile.fpc for FPC graph demos (part of FPC demo package)
+#
+
+[target]
+units=flist
+programs=lister
+
+[default]
+fpcdir=../..
+
