@@ -458,22 +458,22 @@ type
   THandleStream = class(TStream)
   private
     FHandle: Integer;
-  protected
-    procedure SetSize(NewSize: Longint); override;
   public
     constructor Create(AHandle: Integer);
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
     property Handle: Integer read FHandle;
   end;
 
 { TFileStream class }
 
   TFileStream = class(THandleStream)
+  protected
+    procedure SetSize(NewSize: Longint); override;
   public
     constructor Create(const FileName: string; Mode: Word);
     destructor Destroy; override;
+    function Seek(Offset: Longint; Origin: Word): Longint; override;
   end;
 
 { TCustomMemoryStream abstract class }
@@ -1047,7 +1047,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.4  1998-05-27 11:41:43  michael
+  Revision 1.5  1998-06-10 21:53:06  michael
+  + Implemented Handle/FileStreams
+
+  Revision 1.4  1998/05/27 11:41:43  michael
   Implemented TCollection and TCollectionItem
 
   Revision 1.3  1998/05/06 12:58:35  michael

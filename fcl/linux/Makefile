@@ -7,10 +7,11 @@
 #
 
 # What Compiler should we use ?
-PP=ppc386
+PP=/home/michael/fpk/compiler/ppc386
 
 # Where are the Free Pascal units ? (Optional)
-# UNITDIR = /usr/lib/fpc/0.99.5/linuxunits
+UNITDIR = /home/michael/fpk/rtl/linux
+
 
 # Processor you are using
 CPU=i386
@@ -78,7 +79,8 @@ progs: $(PROGNAMES)
 $(PROGNAMES): %:%.pp
 	$(PP) $(OPT) $<
 
-classes.ppu: classes.pp $(INCFILENAMES) $(PROCFILENAMES)
+classes.ppu: classes.pp $(INCFILENAMES) $(PROCFILENAMES) osfile.inc \
+             oscalls.inc
 
 #
 # Generic install and clean targets

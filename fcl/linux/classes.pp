@@ -28,6 +28,9 @@ uses
 
 implementation
 
+{ OS-dependent file handling. }
+{$i osfile.inc}
+
 { OS - independent class implementations are in /inc directory. }
 
 {$i classes.inc}
@@ -35,7 +38,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-05-06 13:00:25  michael
+  Revision 1.4  1998-06-10 21:53:09  michael
+  + Implemented Handle/FileStreams
+
+  Revision 1.3  1998/05/06 13:00:25  michael
   + Added strings to uses clause, for TStrings class.
 
   Revision 1.2  1998/05/04 14:31:51  michael

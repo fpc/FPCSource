@@ -41,7 +41,8 @@
   procedure TStream.SetSize(NewSize: Longint);
 
     begin
-       SetPosition(NewSize);
+    // We do nothing. Pipe streams don't support this
+    // As wel as possible read-ony streams !!
     end;
 
   procedure TStream.ReadBuffer(var Buffer; Count: Longint);
@@ -267,43 +268,33 @@
     end;
 
 
-
-
-
-
-
 {****************************************************************************}
 {*                             THandleStream                                *}
 {****************************************************************************}
 
-Procedure THandleStream.SetSize(NewSize: Longint);
-
-begin
-end;
-
-
 Constructor THandleStream.Create(AHandle: Integer);
 
 begin
+  FHandle:=AHandle;
 end;
 
 
 function THandleStream.Read(var Buffer; Count: Longint): Longint;
 
 begin
+  Result:=OSReadHandle(FHandle,Buffer,Count);
+  If Result=-1 then Result:=0;
 end;
 
 
 function THandleStream.Write(const Buffer; Count: Longint): Longint;
 
 begin
+  Result:=OSWriteHandle(FHandle,Buffer,Count);
+  If Result=-1 then Result:=0;
 end;
 
 
-function THandleStream.Seek(Offset: Longint; Origin: Word): Longint;
-
-begin
-end;
 
 
 {****************************************************************************}
@@ -313,13 +304,35 @@ end;
 constructor TFileStream.Create(const FileName: string; Mode: Word);
 
 begin
+  FHandle:=OSCreateFile (Filename,Mode);
+  If FHandle<0 then
+{$ifdef NoExceptions}
+   RunError(255);
+{$else}
+   raise EFCreateError;
+{$endif}
 end;
 
 
 destructor TFileStream.Destroy;
 
 begin
+  OSCloseHandle(FHandle);
 end;
+
+Procedure TFileStream.SetSize(NewSize: Longint);
+
+begin
+  OSSetHandleSize (FHandle,NewSize);
+end;
+
+
+function TFileStream.Seek(Offset: Longint; Origin: Word): Longint;
+
+begin
+  OSSeekHandle (FHandle,OffSet,Origin);
+end;
+
 
 {****************************************************************************}
 {*                             TCustomMemoryStream                          *}
@@ -491,7 +504,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-05-06 12:58:35  michael
+  Revision 1.4  1998-06-10 21:53:07  michael
+  + Implemented Handle/FileStreams
+
+  Revision 1.3  1998/05/06 12:58:35  michael
   + Added WriteAnsiString method to TStream
 
   Revision 1.2  1998/05/05 15:25:04  michael
