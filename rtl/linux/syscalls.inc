@@ -333,6 +333,7 @@ end;
 function CloseDir(p:pdir):integer;
 begin
   closedir:=sys_close(p^.fd)
+  dispose(p^.buf);
 end;
 
 
@@ -368,7 +369,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-05-30 14:18:42  peter
+  Revision 1.4  1999-07-28 12:14:37  michael
+  * Memory leak fixed in CloseDir, by Sebastian Guenther
+
+  Revision 1.3  1998/05/30 14:18:42  peter
     * fixed to remake with -Rintel in the ppc386.cfg
 
   Revision 1.2  1998/05/06 12:38:22  michael
