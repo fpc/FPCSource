@@ -1,10 +1,11 @@
+
+uses 
+  graph;
+
 const
   Triangle: array[1..4] of PointType = ((X: 50; Y: 100), (X: 100; Y:100),
     (X: 150; Y: 150), (X:  50; Y: 100));
 
-begin
-   graphdefaults;
-   drawpoly
 var Gd, Gm: Integer;
 begin
   Gd := Detect;

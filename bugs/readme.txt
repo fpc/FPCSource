@@ -193,15 +193,18 @@ Fixed bugs:
   bug0167.pp   crash when declaring a procedure with same name as object OK 0.99.9 (PFV)
   bug0168.pp   set:=set+element is allowed (should be: set:=set+[element]) OK 0.99.9 (PFV)
   bug0170.pp   Asm, {$ifdef} is seen as a separator                  OK 0.99.9 (PFV)
+  bug0172.pp   with with absolute seg:ofs should not be possible OK 0.99.9 (PM)
   bug0173.pp   secondbug is parsed as asm, but should be normal pascalcode OK 0.99.9 (PFV)
   bug0174.pp   Asm, offsets of fields are not possible yet           OK 0.99.9 (PFV)
   bug0176.pp   unit.symbol not allowed for implementation vars         OK 0.99.9 (PM)
   bug0177.pp   program.symbol not allowed (almost the same as bug 176) OK 0.99.9 (PM)
   bug0178.pp   problems with undefined labels and fail outside constructor OK 0.99.9 (PM)
+  bug0179.pp   show a problem for -So mode  OK v0.99.9 (PM)
   bug0180.pp   problem for units with names different from file name
                  should be accepted with -Un !!
                Solved, but you still need to use the file name from other
                units  OK 0.99.9 (PM) 
+  bug0181.pp   shows a problem with name mangling OK v0.99.9 (PM)
 
 Unproducable bugs:
 ------------------
@@ -230,5 +233,3 @@ bug0152.pp   End value of loop variable must be calculated before loop
 bug0163.pp   missing <= and >= operators for sets.
 bug0169.pp   missing new(type) support for not object/class
 bug0171.pp   missing typecasting in constant expressions
-bug0172.pp   with with absolute seg:ofs should not be possible
-bug0179.pp   show a problem for -So mode 
