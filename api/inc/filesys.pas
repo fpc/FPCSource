@@ -573,7 +573,7 @@ end;
 Procedure EpochToDateTime (Epoch : Longint; var DT : TDateTime);
 { Returns a Checked datetime, starting from a Unix epoch-style time }
 
-var y,m,d,h,mi,s : integer; { needed because of call by var }
+var y,m,d,h,mi,s : Word; { needed because of call by var }
 
 begin
   Linux.EpochToLocal(Epoch,Y,M,D,h,mi,s);
@@ -1060,7 +1060,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-11-13 14:35:57  marco
+  Revision 1.3  2000-11-23 10:17:48  sg
+  * Linux.EpochToLocal has var arguments of type Word, not Integer - so
+    some local variables had to be changed
+
+  Revision 1.2  2000/11/13 14:35:57  marco
    * Unix Renamefest for defines.
 
   Revision 1.1  2000/07/13 06:29:38  michael
