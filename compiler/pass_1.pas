@@ -1617,6 +1617,7 @@ unit pass_1;
          hp  : ptree;
          hp2 : pdefcoll;
          store_valid : boolean;
+         hp3 : pabstractprocdef;
 
       begin
          make_not_regable(p^.left);
@@ -1632,13 +1633,16 @@ unit pass_1;
                      begin
                         p^.resulttype:=new(pprocvardef,init);
 
-                        pprocvardef(p^.resulttype)^.options:=
-                          p^.left^.symtableprocentry^.definition^.options;
+                     { it could also be a procvar, not only pprocsym ! }
+                        if p^.left^.symtableprocentry^.typ=varsym then
+                         hp3:=pabstractprocdef(pvarsym(p^.left^.symtableprocentry)^.definition)
+                        else
+                         hp3:=pabstractprocdef(pprocsym(p^.left^.symtableprocentry)^.definition);
 
-                        pprocvardef(p^.resulttype)^.retdef:=
-                          p^.left^.symtableprocentry^.definition^.retdef;
+                        pprocvardef(p^.resulttype)^.options:=hp3^.options;
+                        pprocvardef(p^.resulttype)^.retdef:=hp3^.retdef;
 
-                        hp2:=p^.left^.symtableprocentry^.definition^.para1;
+                        hp2:=hp3^.para1;
                         while assigned(hp2) do
                           begin
                              pprocvardef(p^.resulttype)^.concatdef(hp2^.data,hp2^.paratyp);
@@ -2997,7 +3001,7 @@ unit pass_1;
               { do we know the procedure to call ? }
               if not(assigned(p^.procdefinition)) then
                 begin
-                   actprocsym:=p^.symtableprocentry;
+                   actprocsym:=pprocsym(p^.symtableprocentry);
                    { determine length of parameter list }
                    pt:=p^.left;
                    paralength:=0;
@@ -5179,7 +5183,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.53  1998-08-12 19:39:28  peter
+  Revision 1.54  1998-08-13 11:00:10  peter
+    * fixed procedure<>procedure construct
+
+  Revision 1.53  1998/08/12 19:39:28  peter
     * fixed some crashes
 
   Revision 1.52  1998/08/10 14:50:08  peter

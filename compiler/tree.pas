@@ -204,7 +204,7 @@ unit tree;
              assignn : (assigntyp : tassigntyp;concat_string : boolean);
              loadn : (symtableentry : psym;symtable : psymtable;
                       is_absolute,is_first : boolean);
-             calln : (symtableprocentry : pprocsym;
+             calln : (symtableprocentry : psym;
                       symtableproc : psymtable;procdefinition : pprocdef;
                       methodpointer : ptree;
                       no_check,unit_specific,return_value_used : boolean);
@@ -1557,7 +1557,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.27  1998-08-10 14:50:35  peter
+  Revision 1.28  1998-08-13 11:00:13  peter
+    * fixed procedure<>procedure construct
+
+  Revision 1.27  1998/08/10 14:50:35  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.26  1998/08/10 09:57:19  peter

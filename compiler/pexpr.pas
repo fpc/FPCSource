@@ -1,4 +1,4 @@
- {
+{
     $Id$
     Copyright (c) 1998 by Florian Klaempfl
 
@@ -868,15 +868,17 @@ unit pexpr;
                              else
                              if (token=LKLAMMER) or
                                 ((pprocvardef(pd)^.para1=nil) and
-                                (token<>ASSIGNMENT) and (not in_args)) then
+                                 (not((token in [ASSIGNMENT,UNEQUAL,EQUAL]))) and
+                                 (not afterassignment) and
+                                 (not in_args)) then
                                begin
                                   { do this in a strange way  }
                                   { it's not a clean solution }
                                   p2:=p1;
-                                  p1:=gencallnode(nil,
-                                    nil);
+                                  p1:=gencallnode(nil,nil);
                                   p1^.right:=p2;
                                   p1^.unit_specific:=unit_specific;
+                                  p1^.symtableprocentry:=sym;
                                   if token=LKLAMMER then
                                     begin
                                        consume(LKLAMMER);
@@ -884,9 +886,17 @@ unit pexpr;
                                        consume(RKLAMMER);
                                     end;
                                   pd:=pprocvardef(pd)^.retdef;
+                               { proc():= is never possible }
+                                  if token in [ASSIGNMENT,UNEQUAL,EQUAL] then
+                                   begin
+                                     Message(cg_e_illegal_expression);
+                                     p1:=genzeronode(errorn);
+                                     again:=false;
+                                   end;
                                   p1^.resulttype:=pd;
                                end
-                             else again:=false;
+                             else
+                              again:=false;
                              p1^.resulttype:=pd;
                           end
                           else again:=false;
@@ -1740,53 +1750,55 @@ unit pexpr;
          expr:=p1;
       end;
 
-    function get_intconst:longint;
 
+    function get_intconst:longint;
     {Reads an expression, tries to evalute it and check if it is an integer
      constant. Then the constant is returned.}
-
-    var p:Ptree;
-
+    var
+      p:Ptree;
     begin
-        p:=comp_expr(true);
-        do_firstpass(p);
-        if (p^.treetype<>ordconstn) and
+      p:=comp_expr(true);
+      do_firstpass(p);
+      if (p^.treetype<>ordconstn) and
          (p^.resulttype^.deftype=orddef) and
-         not (Porddef(p^.resulttype)^.typ in
-         [uvoid,uchar,bool8bit]) then
-            Message(cg_e_illegal_expression)
-        else
-            get_intconst:=p^.value;
-        disposetree(p);
+         not(Porddef(p^.resulttype)^.typ in [uvoid,uchar,bool8bit,bool16bit,bool32bit]) then
+        Message(cg_e_illegal_expression)
+      else
+        get_intconst:=p^.value;
+      disposetree(p);
     end;
 
-    function get_stringconst:string;
 
+    function get_stringconst:string;
     {Reads an expression, tries to evaluate it and checks if it is a string
      constant. Then the constant is returned.}
-
-    var p:Ptree;
-
+    var
+      p:Ptree;
     begin
-        get_stringconst:='';
-        p:=comp_expr(true);
-        do_firstpass(p);
-        if p^.treetype<>stringconstn then
-            if (p^.treetype=ordconstn) and
+      get_stringconst:='';
+      p:=comp_expr(true);
+      do_firstpass(p);
+      if p^.treetype<>stringconstn then
+        begin
+          if (p^.treetype=ordconstn) and
              (p^.resulttype^.deftype=orddef) and
              (Porddef(p^.resulttype)^.typ=uchar) then
-                get_stringconst:=char(p^.value)
-            else
-                Message(cg_e_illegal_expression)
-        else
-            get_stringconst:=p^.values^;
-        disposetree(p);
+            get_stringconst:=char(p^.value)
+          else
+            Message(cg_e_illegal_expression);
+        end
+      else
+        get_stringconst:=p^.values^;
+      disposetree(p);
     end;
 
 end.
 {
   $Log$
-  Revision 1.33  1998-08-11 15:31:39  peter
+  Revision 1.34  1998-08-13 11:00:12  peter
+    * fixed procedure<>procedure construct
+
+  Revision 1.33  1998/08/11 15:31:39  peter
     * write extended to ppu file
     * new version 0.99.7
 
@@ -1831,8 +1843,6 @@ end.
 
   Revision 1.23  1998/06/04 09:55:40  pierre
     * demangled name of procsym reworked to become independant of the mangling scheme
-
-  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
 
   Revision 1.22  1998/06/02 17:03:03  pierre
     *  with node corrected for objects

@@ -1889,6 +1889,9 @@ implementation
                       r,p^.location.register)));
                     exprasmlist^.concat(new(pai386,op_reg(A_INC,S_L,
                       p^.location.register)));
+                    if parraydef(p^.left^.resulttype)^.elesize<>1 then
+                      exprasmlist^.concat(new(pai386,op_const_reg(A_IMUL,S_L,
+                        parraydef(p^.left^.resulttype)^.elesize,p^.location.register)));
                   end
                  else
                   begin
@@ -2311,7 +2314,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1998-08-11 14:05:33  peter
+  Revision 1.15  1998-08-13 11:00:09  peter
+    * fixed procedure<>procedure construct
+
+  Revision 1.14  1998/08/11 14:05:33  peter
     * fixed sizeof(array of char)
 
   Revision 1.13  1998/08/10 14:49:45  peter
