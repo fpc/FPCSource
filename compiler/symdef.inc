@@ -1790,16 +1790,11 @@
 
     function tarraydef.size : longint;
       begin
-        {Tarraydef.size may never be called for an open array!}
-        if highrange<lowrange then
-            internalerror($99080501);
-        If (highrange-lowrange = $7fffffff) or
-           (($7fffffff div elesize + elesize -1) < (highrange - lowrange)) Then
-          Begin
-            Message(sym_e_segment_too_large);
-            size := 4
-          End
-        Else size:=(highrange-lowrange+1)*elesize;
+         { dirty hack to overcome an overflow (PFV) }
+         if highrange=$7fffffff then
+          size:=$7fffffff
+         else
+          size:=(highrange-lowrange+1)*elesize;
       end;
 
 
@@ -3590,11 +3585,8 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.143  1999-08-06 11:13:30  peter
-    * fixed message which was wrong styled
-
-  Revision 1.142  1999/08/05 22:41:34  daniel
-  *** empty log message ***
+  Revision 1.144  1999-08-06 23:36:42  peter
+    * removed daniels changes, because it broke all 'array of ...' code
 
   Revision 1.141  1999/08/05 16:53:13  peter
     * V_Fatal=1, all other V_ are also increased

@@ -528,8 +528,7 @@ implementation
            (def^.deftype = formaldef) or
            { copy directly small records or arrays unless array of const ! PM }
            ((def^.deftype in [arraydef,recorddef]) and
-            ((Parraydef(def)^.highrange<Parraydef(def)^.lowrange) 
-             or (def^.size>4) or
+            ((def^.size>4) or
              ((def^.deftype=arraydef) and
               (parraydef(def)^.IsConstructor or
                parraydef(def)^.isArrayOfConst or
@@ -975,9 +974,8 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  1999-08-05 22:42:49  daniel
-  * Fixed potential bug for open arrays (Their size is not known at
-    compilation time).
+  Revision 1.81  1999-08-06 23:36:44  peter
+    * removed daniels changes, because it broke all 'array of ...' code
 
   Revision 1.79  1999/08/03 22:03:41  peter
     * moved bitmask constants to sets
