@@ -575,11 +575,11 @@ implementation
             short_name  : 'GO32V1';
             unit_env    : 'GO32V1UNITS';
             system_unit : 'SYSTEM';
-            smartext    : '.SL';
-            unitext     : '.PP1';
-            unitlibext  : '.PPL';
-            asmext      : '.S1';
-            objext      : '.O1';
+            smartext    : '.sl';
+            unitext     : '.pp1';
+            unitlibext  : '.ppl';
+            asmext      : '.s1';
+            objext      : '.o1';
             exeext      : ''; { The linker produces a.out }
             os          : os_GO32V1;
             link        : link_ldgo32v1;
@@ -593,12 +593,12 @@ implementation
             short_name  : 'GO32V2';
             unit_env    : 'GO32V2UNITS';
             system_unit : 'SYSTEM';
-            smartext    : '.SL';
-            unitext     : '.PPU';
-            unitlibext  : '.PPL';
-            asmext      : '.S';
-            objext      : '.O';
-            exeext      : '.EXE';
+            smartext    : '.sl';
+            unitext     : '.ppu';
+            unitlibext  : '.ppl';
+            asmext      : '.s';
+            objext      : '.o';
+            exeext      : '.exe';
             os          : os_GO32V2;
             link        : link_ldgo32v2;
             assem       : as_o;
@@ -876,7 +876,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  1998-08-25 12:42:47  pierre
+  Revision 1.29  1998-08-26 10:09:21  peter
+    * more lowercase extensions
+
+  Revision 1.28  1998/08/25 12:42:47  pierre
     * CDECL changed to CVAR for variables
       specifications are read in structures also
     + started adding GPC compatibility mode ( option  -Sp)
