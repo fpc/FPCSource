@@ -304,3 +304,4 @@ bug0221.pp   syntax parsing incompatibilities with tp7
 bug0222.pp   an record field can't be the counter index (compiles with TP)
 bug0223.pp   wrong boolean evaluation in writeln
 bug0224.pp   I/O-Error generation in readln can't be switched off
+bug0225.pp   Sigsegv when run with range checks on open arrays
