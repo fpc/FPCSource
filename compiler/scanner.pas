@@ -203,11 +203,7 @@ interface
 implementation
 
     uses
-{$ifdef delphi}
-      dmisc,
-{$else}
-      dos,
-{$endif delphi}
+      SysUtils,
       cutils,
       systems,
       switches,
@@ -980,9 +976,9 @@ implementation
         args,
         foundfile,
         hs    : string;
-        path  : dirstr;
-        name  : namestr;
-        ext   : extstr;
+        path  : String;
+        name  : String;
+        ext   : String;
         hp    : tinputfile;
         found : boolean;
       begin
@@ -1026,7 +1022,7 @@ implementation
             if hs='FPCTARGETOS' then
              hs:=target_info.shortname
            else
-             hs:=getenv(hs);
+             hs:=GetEnvironmentVariable(hs);
            if hs='' then
             Message1(scan_w_include_env_not_found,path);
            { make it a stringconst }
@@ -1037,7 +1033,9 @@ implementation
         else
          begin
            hs:=FixFileName(hs);
-           fsplit(hs,path,name,ext);
+           path := SplitPath(hs);
+           name := SplitName(hs);
+           ext := SplitExtension(hs);
            { try to find the file }
            found:=findincludefile(path,name,ext,foundfile);
            if (ext='') then
@@ -3267,7 +3265,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.88  2004-09-12 20:46:58  olle
+  Revision 1.89  2004-09-28 16:00:52  mazen
+  - remove Dos unit dependency
+
+  Revision 1.88  2004/09/12 20:46:58  olle
     * Minor bugfix in $IFOPT
 
   Revision 1.87  2004/08/22 23:16:06  olle
