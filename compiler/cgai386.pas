@@ -3302,7 +3302,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                               if (target_info.target=target_linux) and
                                ((aktprocsym^.definition^.options and poexports)<>0) then
                                   exprasmlist^.insert(new(Paicpu,op_reg(A_PUSH,S_L,R_EDI))); }
-
+                              { ATTENTION:
+                                never use ENTER in linux !!!
+                                the stack page fault does not support it PM }
                               exprasmlist^.insert(new(paicpu,op_const_const(A_ENTER,S_NO,stackframe,0)))
                           end
                       else
@@ -3966,7 +3968,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.102  2000-05-14 18:49:04  florian
+  Revision 1.103  2000-05-17 11:06:11  pierre
+   add a comment about ENTER and linux
+
+  Revision 1.102  2000/05/14 18:49:04  florian
     + Int64/QWord stuff for array of const added
 
   Revision 1.101  2000/05/09 14:17:33  pierre
