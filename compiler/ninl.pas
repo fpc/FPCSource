@@ -1659,6 +1659,7 @@ implementation
                     end;
                 end;
 
+              in_initialize_x,
               in_finalize_x,
               in_setlength_x:
                 begin
@@ -2097,11 +2098,8 @@ implementation
               expectloc:=LOC_REGISTER;
             end;
 
-          in_setlength_x:
-            begin
-              expectloc:=LOC_VOID;
-            end;
-
+          in_setlength_x,
+          in_initialize_x,
           in_finalize_x:
             begin
               expectloc:=LOC_VOID;
@@ -2358,7 +2356,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.122  2003-11-10 22:02:52  peter
+  Revision 1.123  2003-11-29 16:19:54  peter
+    * Initialize() added
+
+  Revision 1.122  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.121  2003/10/21 15:15:36  peter

@@ -597,6 +597,11 @@ implementation
               consume(_RKLAMMER);
             end;
 
+          in_initialize_x:
+            begin
+              statement_syssym:=inline_initialize;
+            end;
+
           in_finalize_x:
             begin
               statement_syssym:=inline_finalize;
@@ -2492,7 +2497,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.142  2003-11-29 14:49:46  peter
+  Revision 1.143  2003-11-29 16:19:54  peter
+    * Initialize() added
+
+  Revision 1.142  2003/11/29 14:49:46  peter
     * fix crash with exit() in a procedure
 
   Revision 1.141  2003/11/29 14:33:13  peter

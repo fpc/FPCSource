@@ -36,6 +36,7 @@ interface
     function new_function : tnode;
 
     function inline_setlength : tnode;
+    function inline_initialize : tnode;
     function inline_finalize : tnode;
     function inline_copy : tnode;
 
@@ -524,6 +525,44 @@ implementation
       end;
 
 
+    function inline_initialize : tnode;
+      var
+        newblock,
+        paras   : tnode;
+        npara,
+        destppn,
+        ppn     : tcallparanode;
+      begin
+        { for easy exiting if something goes wrong }
+        result := cerrornode.create;
+
+        consume(_LKLAMMER);
+        paras:=parse_paras(false,false);
+        consume(_RKLAMMER);
+        if not assigned(paras) then
+         begin
+           CGMessage(parser_e_wrong_parameter_size);
+           exit;
+         end;
+
+        ppn:=tcallparanode(paras);
+        { 2 arguments? }
+        if assigned(ppn.right) then
+         begin
+           CGMessage(parser_e_wrong_parameter_size);
+           paras.free;
+           exit;
+         end;
+
+        newblock:=initialize_data_node(ppn.left);
+        ppn.left:=nil;
+
+        paras.free;
+        result.free;
+        result:=newblock;
+      end;
+
+
     function inline_finalize : tnode;
       var
         newblock,
@@ -693,7 +732,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2003-11-10 22:02:52  peter
+  Revision 1.25  2003-11-29 16:19:54  peter
+    * Initialize() added
+
+  Revision 1.24  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.23  2003/11/04 19:05:03  peter

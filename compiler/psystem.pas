@@ -90,6 +90,7 @@ implementation
         p.insert(tsyssym.create('TypeInfo',in_typeinfo_x));
         p.insert(tsyssym.create('SetLength',in_setlength_x));
         p.insert(tsyssym.create('Copy',in_copy_x));
+        p.insert(tsyssym.create('Initialize',in_initialize_x));
         p.insert(tsyssym.create('Finalize',in_finalize_x));
         p.insert(tsyssym.create('Length',in_length_x));
         p.insert(tsyssym.create('New',in_new_x));
@@ -509,7 +510,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2003-10-06 22:23:41  florian
+  Revision 1.58  2003-11-29 16:19:54  peter
+    * Initialize() added
+
+  Revision 1.57  2003/10/06 22:23:41  florian
     + added basic olevariant support
 
   Revision 1.56  2003/09/28 17:55:04  peter
