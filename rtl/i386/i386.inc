@@ -226,79 +226,6 @@ asm
 end;
 
 
-procedure help_fail;assembler;
-asm
-end;
-
-
-procedure int_new_class;assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'NEW_CLASS'];
-asm
-     { create class ? }
-     movl 8(%ebp),%edi
-     orl %edi,%edi
-     jz .LNEW_CLASS1
-     { esi contains the vmt }
-     pushl %esi
-     { call newinstance (class method!) }
-     call *16(%esi)
-     { newinstance returns a pointer to the new created }
-     { instance in eax                                  }
-     { load esi and insert self                         }
-     movl %eax,8(%ebp)
-     movl %eax,%esi
-     orl  %eax,%eax
-     ret
-.LNEW_CLASS1:
-     movl %esi,8(%ebp)
-     orl %eax,%eax
-end;
-
-
-procedure int_dispose_class;assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'DISPOSE_CLASS'];
-asm
-     { destroy class ? }
-     movl 8(%ebp),%edi
-     { save self }
-     movl %esi,8(%ebp)
-     orl %edi,%edi
-     jz .LDISPOSE_CLASS1
-     { no inherited call }
-     movl (%esi),%edi
-     { push self }
-     pushl %esi
-     { call freeinstance }
-     call *20(%edi)
-.LDISPOSE_CLASS1:
-     { load self }
-     movl 8(%ebp),%esi
-end;
-
-
-{ checks for a correct vmt pointer }
-procedure int_check_object;assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'CHECK_OBJECT'];
-asm
-     pushl %edi
-     movl 8(%esp),%edi
-     pushl %eax
-     { Here we must check if the VMT pointer is nil before  }
-     { accessing it...                                      }
-     { WARNING: Will only probably work with GAS, as fields }
-     { are ZEROED automatically in BSS, which might not be  }
-     { the case with other linkers/assemblers...            }
-     orl   %edi,%edi
-     jz    .Lco_re
-     movl (%edi),%eax
-     addl 4(%edi),%eax
-     jnz .Lco_re
-     popl %eax
-     popl %edi
-     ret $4
-.Lco_re:
-     pushl $210
-     call FPC_HANDLEERROR
-end;
-
-
 procedure int_help_destructor;assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'HELP_DESTRUCTOR'];
 asm
 { Stack (relative to %ebp):
@@ -343,21 +270,83 @@ asm
         popal
 end;
 
+
+procedure int_new_class;assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'NEW_CLASS'];
+asm
+        { create class ? }
+        movl    8(%ebp),%edi
+        orl     %edi,%edi
+        jz      .LNEW_CLASS1
+        { esi contains the vmt }
+        pushl   %esi
+        { call newinstance (class method!) }
+        call    *16(%esi)
+        { newinstance returns a pointer to the new created }
+        { instance in eax                                  }
+        { load esi and insert self                         }
+        movl    %eax,%esi
+.LNEW_CLASS1:
+        movl    %esi,8(%ebp)
+        orl     %eax,%eax
+end;
+
+
+procedure int_dispose_class;assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'DISPOSE_CLASS'];
+asm
+        { destroy class ? }
+        movl    8(%ebp),%edi
+        { save self }
+        movl    %esi,8(%ebp)
+        orl     %edi,%edi
+        jz      .LDISPOSE_CLASS1
+        { no inherited call }
+        movl    (%esi),%edi
+        { push self }
+        pushl   %esi
+        { call freeinstance }
+        call    *20(%edi)
+.LDISPOSE_CLASS1:
+        { load self }
+        movl    8(%ebp),%esi
+end;
+
 {$ASMMODE ATT}
+
+
+{ checks for a correct vmt pointer }
+procedure int_check_object;assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'CHECK_OBJECT'];
+asm
+        pushl   %edi
+        movl    8(%esp),%edi
+        pushl   %eax
+        { Here we must check if the VMT pointer is nil before  }
+        { accessing it...                                      }
+        orl     %edi,%edi
+        jz      .Lco_re
+        movl    (%edi),%eax
+        addl    4(%edi),%eax
+        jz      .Lco_ok
+.Lco_re:
+        pushl   $210
+        call    HandleError
+.Lco_ok:
+        popl    %eax
+        popl    %edi
+end;
 
 
 {****************************************************************************
                                  String
 ****************************************************************************}
 
-procedure strcopy(dstr,sstr:pointer;len:longint);[public,alias:{$ifdef NEWSTRNAMES}'FPC_SHORTSTR_COPY'{$else}{$ifdef FPCNAMES}'FPC_'+{$endif}'STRCOPY'{$endif}];
+procedure int_strcopy(len:longint;sstr,dstr:pointer);[public,alias:{$ifdef NEWSTRNAMES}'FPC_SHORTSTR_COPY'{$else}{$ifdef FPCNAMES}'FPC_'+{$endif}'STRCOPY'{$endif}];
 {
   this procedure must save all modified registers except EDI and ESI !!!
 }
 begin
   asm
-        pushl %eax
-        pushl %ecx
+        pushl   %eax
+        pushl   %ecx
         cld
         movl    16(%ebp),%edi
         movl    12(%ebp),%esi
@@ -386,13 +375,13 @@ begin
         movl    %eax,%ecx
         rep
         movsb
-        popl %ecx
-        popl %eax
-  end ['ECX','EAX','ESI','EDI'];
+        popl    %ecx
+        popl    %eax
+  end ['ESI','EDI'];
 end;
 
 
-procedure strconcat(s1,s2 : pointer);[public,alias:{$ifdef NEWSTRNAMES}'FPC_SHORTSTR_CONCAT'{$else}{$ifdef FPCNAMES}'FPC_'+{$endif}'STRCONCAT'{$endif}];
+procedure int_strconcat(s1,s2:pointer);[public,alias:{$ifdef NEWSTRNAMES}'FPC_SHORTSTR_CONCAT'{$else}{$ifdef FPCNAMES}'FPC_'+{$endif}'STRCONCAT'{$endif}];
 begin
   asm
         xorl    %ecx,%ecx
@@ -431,7 +420,7 @@ begin
 end;
 
 
-procedure strcmp(dstr,sstr : pointer);[public,alias:{$ifdef NEWSTRNAMES}'FPC_SHORTSTR_COMPARE'{$else}{$ifdef FPCNAMES}'FPC_'+{$endif}'STRCMP'{$endif}];
+procedure int_strcmp(dstr,sstr:pointer);[public,alias:{$ifdef NEWSTRNAMES}'FPC_SHORTSTR_COMPARE'{$else}{$ifdef FPCNAMES}'FPC_'+{$endif}'STRCMP'{$endif}];
 begin
   asm
         cld
@@ -605,80 +594,97 @@ end;
                                  Str()
 ****************************************************************************}
 
-    procedure int_str(l : longint;var s : string);
+procedure int_str(l : longint;var s : string);
+var
+  buffer : array[0..11] of byte;
+begin
+  { Workaround: }
+  if l=$80000000 then
+   begin
+     s:='-2147483648';
+     exit;
+   end;
+  asm
+        movl    l,%eax          // load Integer
+        movl    s,%edi          // Load String address
+        xorl    %ecx,%ecx       // String length=0
+        xorl    %ebx,%ebx       // Buffer length=0
+        movl    $0x0a,%esi      // load 10 as dividing constant.
+        orl     %eax,%eax       // Sign ?
+        jns     .LM2
+        neg     %eax
+        movb    $0x2d,1(%edi)   // put '-' in String
+        incl    %ecx
+.LM2:
+        cdq
+        idivl   %esi,%eax
+        addb    $0x30,%dl       // convert Rest to ASCII.
+        movb    %dl,-12(%ebp,%ebx)
+        incl    %ebx
+        cmpl    $0,%eax
+        jnz     .LM2
+        { copy String }
+.LM3:
+        movb    -13(%ebp,%ebx),%al    // -13 because EBX is decreased only later
+        movb    %al,1(%edi,%ecx)
+        incl    %ecx
+        decl    %ebx
+        jnz     .LM3
+        movb    %cl,(%edi)      // Copy String length
+  end;
+end;
 
-      var
-         buffer : array[0..11] of byte;
 
-      begin
-         { Workaround: }
-         if l=$80000000 then
-           begin
-              s:='-2147483648';
-              exit;
-           end;
-         asm
-            movl 8(%ebp),%eax    // load Integer
-            movl 12(%ebp),%edi      // Load String address
-            xorl %ecx,%ecx    // String length=0
-            xorl %ebx,%ebx    // Buffer length=0
-            movl $0x0a,%esi      // load 10 as dividing constant.
-            or %eax,%eax        // Sign ?
-            jns .LM2
-            neg %eax
-            movb $0x2d,1(%edi)   // put '-' in String
-            incl %ecx
-         .LM2:
-            cdq
-            idivl %esi,%eax
-            addb $0x30,%dl    // convert Rest to ASCII.
-            movb %dl,-12(%ebp,%ebx)
-            incl %ebx
-            cmpl $0,%eax
-            jnz .LM2
-                        // copy String
-         .LM3:
-            movb -13(%ebp,%ebx),%al    // -13 because EBX is decreased only
-                                       // later.
-            movb %al,1(%edi,%ecx)
-            incl %ecx
-            decl %ebx
-            jnz .LM3
-            movb %cl,(%edi)      // Copy String length
-         end;
-      end;
+procedure int_str(c : cardinal;var s : string);
+var
+  buffer : array[0..14] of byte;
+begin
+  asm
+        movl    c,%eax          // load CARDINAL
+        movl    s,%edi          // Load String address
+        xorl    %ecx,%ecx       // String length=0
+        xorl    %ebx,%ebx       // Buffer length=0
+        movl    $0x0a,%esi      // load 10 as dividing constant.
+.LM4:
+        xorl    %edx,%edx
+        divl    %esi,%eax
+        addb    $0x30,%dl       // convert Rest to ASCII.
+        movb    %dl,-12(%ebp,%ebx)
+        incl    %ebx
+        cmpl    $0,%eax
+        jnz     .LM4
+        { now copy the string }
+.LM5:
+        movb    -13(%ebp,%ebx),%al    // -13 because EBX is decreased only later
+        movb    %al,1(%edi,%ecx)
+        incl    %ecx
+        decl    %ebx
+        jnz     .LM5
+        movb    %cl,(%edi)      // Copy String length
+  end;
+end;
 
-    procedure int_str(c : cardinal;var s : string);
 
-      var
-         buffer : array[0..14] of byte;
+{****************************************************************************
+                               Bounds Check
+****************************************************************************}
 
-      begin
-         asm
-            movl 8(%ebp),%eax       // load CARDINAL
-            movl 12(%ebp),%edi      // Load String address
-            xorl %ecx,%ecx          // String length=0
-            xorl %ebx,%ebx          // Buffer length=0
-            movl $0x0a,%esi         // load 10 as dividing constant.
-         .LM4:
-            xorl %edx,%edx
-            divl %esi,%eax
-            addb $0x30,%dl          // convert Rest to ASCII.
-            movb %dl,-12(%ebp,%ebx)
-            incl %ebx
-            cmpl $0,%eax
-            jnz .LM4
-            { now copy the string }
-         .LM5:
-            movb -13(%ebp,%ebx),%al    // -13 because EBX is decreased only
-                                       // later.
-            movb %al,1(%edi,%ecx)
-            incl %ecx
-            decl %ebx
-            jnz .LM5
-            movb %cl,(%edi)            // Copy String length
-         end;
-      end;
+procedure int_boundcheck;assembler;[public,alias: 'FPC_BOUNDCHECK'];
+{
+  called with:
+    %ecx - value
+    %edi - pointer to the ranges
+}
+asm
+        cmpl    (%edi),%ecx
+        jl      .Lbc_err
+        cmpl    4(%edi),%ecx
+        jle     .Lbc_ok
+.Lbc_err:
+        pushl   $201
+        call    HandleError
+.Lbc_ok:
+end;
 
 
 {****************************************************************************
@@ -712,7 +718,10 @@ end;
 
 {
   $Log$
-  Revision 1.30  1998-11-17 00:41:08  peter
+  Revision 1.31  1998-11-26 21:33:58  peter
+    + FPC_BOUNDCHECK
+
+  Revision 1.30  1998/11/17 00:41:08  peter
     * renamed string functions
 
   Revision 1.29  1998/10/19 08:49:16  pierre
