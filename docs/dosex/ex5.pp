@@ -4,7 +4,7 @@ uses Dos;
 { Program to demonstrate the Exec and DosExitCode function. }
 
 begin
-{$IFDEF LINUX}
+{$IFDEF Unix}
   WriteLn('Executing /bin/ls -la');
   Exec('/bin/ls','-la');
 {$ELSE}
