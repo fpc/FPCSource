@@ -377,7 +377,7 @@ implementation
                      begin
                         pushusedregisters(pushed,$ff);
                         emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                        emitcall('FPC_UNIQUE_ANSISTRING',true);
+                        emitcall('FPC_ANSISTR_UNIQUE',true);
                         maybe_loadesi;
                         popusedregisters(pushed);
                      end;
@@ -388,7 +388,7 @@ implementation
                      begin
                         pushusedregisters(pushed,$ff);
                         emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                        emitcall('FPC_UNIQUE_WIDESTRING',true);
+                        emitcall('FPC_WIDESTR_UNIQUE',true);
                         maybe_loadesi;
                         popusedregisters(pushed);
                      end;
@@ -702,7 +702,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1998-11-16 15:35:09  pierre
+  Revision 1.18  1998-11-17 00:36:40  peter
+    * more ansistring fixes
+
+  Revision 1.17  1998/11/16 15:35:09  pierre
    * added error for with if different segment
 
   Revision 1.16  1998/10/21 11:44:42  florian

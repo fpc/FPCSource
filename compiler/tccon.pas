@@ -84,10 +84,20 @@ implementation
 
     procedure firststringconst(var p : ptree);
       begin
-        if cs_ansistrings in aktlocalswitches then
+{         if cs_ansistrings in aktlocalswitches then
           p^.resulttype:=cansistringdef
-        else
-          p^.resulttype:=cshortstringdef;
+         else
+          p^.resulttype:=cshortstringdef; }
+        case p^.stringtype of
+          st_shortstring :
+            p^.resulttype:=cshortstringdef;
+          st_ansistring :
+            p^.resulttype:=cansistringdef;
+          st_widestring :
+            p^.resulttype:=cwidestringdef;
+          st_longstring :
+            p^.resulttype:=clongstringdef;
+        end;
         p^.location.loc:=LOC_MEM;
       end;
 
@@ -116,7 +126,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-11-05 12:03:04  peter
+  Revision 1.3  1998-11-17 00:36:48  peter
+    * more ansistring fixes
+
+  Revision 1.2  1998/11/05 12:03:04  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 

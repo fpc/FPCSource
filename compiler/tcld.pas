@@ -227,7 +227,7 @@ implementation
           begin
             if not (is_shortstring(p^.right^.resulttype) or
                     is_ansistring(p^.right^.resulttype) or
-                    ((p^.right^.resulttype^.deftype=orddef) and (porddef(p^.right^.resulttype)^.typ=uchar))) then
+                    is_char(p^.right^.resulttype)) then
              begin
                p^.right:=gentypeconvnode(p^.right,p^.left^.resulttype);
                firstpass(p^.right);
@@ -423,7 +423,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-11-10 10:09:18  peter
+  Revision 1.9  1998-11-17 00:36:49  peter
+    * more ansistring fixes
+
+  Revision 1.8  1998/11/10 10:09:18  peter
     * va_list -> array of const
 
   Revision 1.7  1998/11/05 14:26:48  peter

@@ -169,7 +169,7 @@ implementation
                             end;
                    orddef : begin
                             { char to string}
-                              if is_equal(def_from,cchardef) then
+                              if is_char(def_from) then
                                begin
                                  doconv:=tc_char_to_string;
                                  b:=true;
@@ -675,7 +675,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-10-14 13:33:24  peter
+  Revision 1.8  1998-11-17 00:36:42  peter
+    * more ansistring fixes
+
+  Revision 1.7  1998/10/14 13:33:24  peter
     * fixed small typo
 
   Revision 1.6  1998/10/14 12:53:38  peter

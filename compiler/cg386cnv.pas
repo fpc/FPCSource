@@ -426,7 +426,7 @@ implementation
               end;
 
             st_longstring:
-              case pstringdef(p^.left)^.string_typ of
+              case pstringdef(p^.left^.resulttype)^.string_typ of
                  st_shortstring:
                    begin
                       {!!!!!!!}
@@ -445,25 +445,15 @@ implementation
               end;
 
             st_ansistring:
-              case pstringdef(p^.left)^.string_typ of
+              case pstringdef(p^.left^.resulttype)^.string_typ of
                  st_shortstring:
                    begin
-                      pushusedregisters(pushed,$ff);
                       gettempofsizereference(p^.resulttype^.size,p^.location.reference);
-                      emitpushreferenceaddr(exprasmlist,p^.location.reference);
-                      case p^.left^.location.loc of
-                         LOC_REGISTER,LOC_CREGISTER:
-                           begin
-                              exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
-                              ungetregister32(p^.left^.location.register);
-                           end;
-                         LOC_REFERENCE,LOC_MEM:
-                           begin
-                              emit_push_mem(p^.left^.location.reference);
-                              del_reference(p^.left^.location.reference);
-                           end;
-                      end;
-                      emitcall('FPC_ANSI_TO_SHORTSTRING',true);
+                      exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(p^.location.reference))));
+                      pushusedregisters(pushed,$ff);
+                      emit_push_lea_loc(p^.left^.location);
+                      emit_push_lea_loc(p^.location);
+                      emitcall('FPC_SHORTSTR_TO_ANSISTR',true);
                       maybe_loadesi;
                       popusedregisters(pushed);
                    end;
@@ -480,7 +470,7 @@ implementation
               end;
 
             st_widestring:
-              case pstringdef(p^.left)^.string_typ of
+              case pstringdef(p^.left^.resulttype)^.string_typ of
                  st_shortstring:
                    begin
                       {!!!!!!!}
@@ -621,9 +611,9 @@ implementation
                {temptoremove^.concat(new(ptemptodestroy,init(p^.location.reference,p^.resulttype)));}
                exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(p^.location.reference))));
                pushusedregisters(pushed,$ff);
-               emit_push_loc(p^.left^.location);
+               emit_pushw_loc(p^.left^.location);
                emitpushreferenceaddr(exprasmlist,p^.location.reference);
-               emitcall('FPC_CHAR2ANSI',true);
+               emitcall('FPC_CHAR_TO_ANSISTR',true);
                popusedregisters(pushed);
                maybe_loadesi;
              end;
@@ -1099,7 +1089,7 @@ implementation
                      end;
                 end;
                 emitpushreferenceaddr(exprasmlist,p^.location.reference);
-                emitcall('FPC_PCHAR_TO_STR',true);
+                emitcall('FPC_PCHAR_TO_SHORTSTR',true);
                 maybe_loadesi;
                 popusedregisters(pushed);
              end;
@@ -1122,7 +1112,7 @@ implementation
                      end;
                 end;
                 emitpushreferenceaddr(exprasmlist,p^.location.reference);
-                emitcall('FPC_PCHAR_TO_ANSISTRING',true);
+                emitcall('FPC_PCHAR_TO_ANSISTR',true);
                 maybe_loadesi;
                 popusedregisters(pushed);
              end;
@@ -1307,7 +1297,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1998-11-16 15:35:38  peter
+  Revision 1.33  1998-11-17 00:36:39  peter
+    * more ansistring fixes
+
+  Revision 1.32  1998/11/16 15:35:38  peter
     * rename laod/copystring -> load/copyshortstring
     * fixed int-bool cnv bug
     + char-ansistring conversion

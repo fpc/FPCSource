@@ -81,6 +81,7 @@ type tmsgconst=(
   parser_e_header_different_var_names,
   parser_n_duplicate_enum,
   parser_n_interface_name_diff_implementation_name,
+  parser_e_no_with_for_variable_in_other_segments,
   parser_e_too_much_lexlevel,
   parser_e_range_check_error,
   parser_w_range_check_error,

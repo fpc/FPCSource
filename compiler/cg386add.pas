@@ -152,19 +152,9 @@ implementation
                         { push the still used registers }
                         pushusedregisters(pushedregs,$ff);
                         { push data }
-                        case p^.right^.location.loc of
-                          LOC_REFERENCE,LOC_MEM:
-                            emit_push_mem(p^.right^.location.reference);
-                          LOC_REGISTER,LOC_CREGISTER:
-                            exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.right^.location.register)));
-                        end;
-                        case p^.left^.location.loc of
-                          LOC_REFERENCE,LOC_MEM:
-                            emit_push_mem(p^.left^.location.reference);
-                          LOC_REGISTER,LOC_CREGISTER:
-                            exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
-                        end;
-                        emitcall('FPC_ANSICAT',true);
+                        emit_push_loc(p^.right^.location);
+                        emit_push_loc(p^.left^.location);
+                        emitcall('FPC_ANSISTR_CONCAT',true);
                         unused:=savedunused;
                         p^.location.register:=getexplicitregister32(R_EAX);
                         p^.location.loc:=LOC_REGISTER;
@@ -214,7 +204,7 @@ implementation
                           LOC_REGISTER,LOC_CREGISTER:
                             exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
                         end;
-                        emitcall('FPC_ANSICOMPARE',true);
+                        emitcall('FPC_ANSISTR_COMPARE',true);
                         emit_reg_reg(A_OR,S_L,R_EAX,R_EAX);
                         popusedregisters(pushedregs);
                         maybe_loadesi;
@@ -258,50 +248,12 @@ implementation
 
                         { on the right we do not need the register anymore too }
                         del_reference(p^.right^.location.reference);
-                        {
-                        if p^.right^.resulttype^.deftype=orddef then
-                         begin
-                           pushusedregisters(pushedregs,$ff);
-                           exprasmlist^.concat(new(pai386,op_ref_reg(
-                              A_LEA,S_L,newreference(p^.left^.location.reference),R_EDI)));
-                           exprasmlist^.concat(new(pai386,op_reg_reg(
-                              A_XOR,S_L,R_EBX,R_EBX)));
-                           reset_reference(href);
-                           href.base:=R_EDI;
-                           exprasmlist^.concat(new(pai386,op_ref_reg(
-                              A_MOV,S_B,newreference(href),R_BL)));
-                           exprasmlist^.concat(new(pai386,op_reg(
-                              A_INC,S_L,R_EBX)));
-                           exprasmlist^.concat(new(pai386,op_reg_ref(
-                              A_MOV,S_B,R_BL,newreference(href))));
-                           href.index:=R_EBX;
-                           if p^.right^.treetype=ordconstn then
-                             exprasmlist^.concat(new(pai386,op_const_ref(
-                                A_MOV,S_L,p^.right^.value,newreference(href))))
-                           else
-                            begin
-                              if p^.right^.location.loc in [LOC_CREGISTER,LOC_REGISTER] then
-                               exprasmlist^.concat(new(pai386,op_reg_ref(
-                                 A_MOV,S_B,p^.right^.location.register,newreference(href))))
-                              else
-                               begin
-                                 exprasmlist^.concat(new(pai386,op_ref_reg(
-                                   A_MOV,S_L,newreference(p^.right^.location.reference),R_EAX)));
-                                 exprasmlist^.concat(new(pai386,op_reg_ref(
-                                   A_MOV,S_B,R_AL,newreference(href))));
-                               end;
-                            end;
-                           popusedregisters(pushedregs);
-                         end
-                        else }
-                         begin
-                           pushusedregisters(pushedregs,$ff);
-                           emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                           emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
-                           emitcall('FPC_STRCONCAT',true);
-                           maybe_loadesi;
-                           popusedregisters(pushedregs);
-                         end;
+                        pushusedregisters(pushedregs,$ff);
+                        emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                        emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                        emitcall('FPC_SHORTSTR_CONCAT',true);
+                        maybe_loadesi;
+                        popusedregisters(pushedregs);
 
                         set_location(p^.location,p^.left^.location);
                         ungetiftemp(p^.right^.location.reference);
@@ -341,7 +293,7 @@ implementation
                              secondpass(p^.right);
                              del_reference(p^.right^.location.reference);
                              emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
-                             emitcall('FPC_STRCMP',true);
+                             emitcall('FPC_SHORTSTR_COMPARE',true);
                              maybe_loadesi;
                              popusedregisters(pushedregs);
                           end;
@@ -1406,7 +1358,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1998-11-16 16:17:16  peter
+  Revision 1.27  1998-11-17 00:36:38  peter
+    * more ansistring fixes
+
+  Revision 1.26  1998/11/16 16:17:16  peter
     * fixed ansistring temp which forgot a reset
 
   Revision 1.25  1998/11/16 15:35:35  peter
