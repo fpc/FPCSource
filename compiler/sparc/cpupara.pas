@@ -45,7 +45,7 @@ interface
         function  create_varargs_paraloc_info(p : TAbstractProcDef; varargspara:tvarargsparalist):longint;override;
       private
         procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
-        procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tlist;
+        procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
                                              var intparareg,parasize:longint);
       end;
 
@@ -207,7 +207,7 @@ implementation
       end;
 
 
-    procedure tsparcparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tlist;
+    procedure tsparcparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                            var intparareg,parasize:longint);
       var
         paraloc      : pcgparalocation;
@@ -317,7 +317,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2004-11-21 18:13:31  peter
+  Revision 1.51  2004-11-22 22:01:19  peter
+    * fixed varargs
+    * replaced dynarray with tlist
+
+  Revision 1.50  2004/11/21 18:13:31  peter
     * fixed funcretloc for sparc
 
   Revision 1.49  2004/11/21 17:54:59  peter

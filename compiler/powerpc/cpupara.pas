@@ -46,7 +46,7 @@ unit cpupara;
           procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
          private
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
-          function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tlist;
+          function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
               var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
           function parseparaloc(p : tparavarsym;const s : string) : boolean;override;
        end;
@@ -289,7 +289,7 @@ unit cpupara;
 
 
 
-    function tppcparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tlist;
+    function tppcparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
                var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
       var
          stack_offset: aword;
@@ -587,7 +587,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2004-11-21 17:54:59  peter
+  Revision 1.74  2004-11-22 22:01:19  peter
+    * fixed varargs
+    * replaced dynarray with tlist
+
+  Revision 1.73  2004/11/21 17:54:59  peter
     * ttempcreatenode.create_reg merged into .create with parameter
       whether a register is allowed
     * funcret_paraloc renamed to funcretloc

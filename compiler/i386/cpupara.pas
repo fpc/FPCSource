@@ -51,8 +51,8 @@ unit cpupara;
           procedure createtempparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);override;
        private
           procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
-          procedure create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tlist;var parasize:longint);
-          procedure create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tlist;var parareg,parasize:longint);
+          procedure create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;var parasize:longint);
+          procedure create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;var parareg,parasize:longint);
        end;
 
   implementation
@@ -284,7 +284,7 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tlist;var parasize:longint);
+    procedure ti386paramanager.create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;var parasize:longint);
       var
         i  : integer;
         hp : tparavarsym;
@@ -368,7 +368,7 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tlist;
+    procedure ti386paramanager.create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                             var parareg,parasize:longint);
       var
         hp : tparavarsym;
@@ -514,7 +514,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2004-11-21 17:54:59  peter
+  Revision 1.60  2004-11-22 22:01:19  peter
+    * fixed varargs
+    * replaced dynarray with tlist
+
+  Revision 1.59  2004/11/21 17:54:59  peter
     * ttempcreatenode.create_reg merged into .create with parameter
       whether a register is allowed
     * funcret_paraloc renamed to funcretloc

@@ -432,7 +432,7 @@ interface
           { saves a definition to the return type }
           rettype         : ttype;
           parast          : tsymtable;
-          paras           : tlist;
+          paras           : tparalist;
           proctypeoption  : tproctypeoption;
           proccalloption  : tproccalloption;
           procoptions     : tprocoptions;
@@ -3352,15 +3352,6 @@ implementation
       end;
 
 
-    function ParaNrCompare(Item1, Item2: Pointer): Integer;
-      var
-        I1 : tparavarsym absolute Item1;
-        I2 : tparavarsym absolute Item2;
-      begin
-        Result:=I1.paranr-I2.paranr;
-      end;
-
-
     procedure tabstractprocdef.calcparas;
       var
         paracount : longint;
@@ -3369,7 +3360,7 @@ implementation
           we need to reresolve this unit (PFV) }
         if assigned(paras) then
           paras.free;
-        paras:=tlist.create;
+        paras:=tparalist.create;
         paracount:=0;
         minparacount:=0;
         maxparacount:=0;
@@ -3378,7 +3369,7 @@ implementation
         { Insert parameters in table }
         parast.foreach(@insert_para,nil);
         { Order parameters }
-        paras.sort(@paranrcompare);
+        paras.sortparas;
       end;
 
 
@@ -6145,7 +6136,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.278  2004-11-21 21:51:31  peter
+  Revision 1.279  2004-11-22 22:01:19  peter
+    * fixed varargs
+    * replaced dynarray with tlist
+
+  Revision 1.278  2004/11/21 21:51:31  peter
     * manglednames for nested procedures include full parameters from
       the parents to prevent double manglednames
 

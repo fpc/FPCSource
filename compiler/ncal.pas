@@ -28,7 +28,7 @@ interface
 
     uses
        cutils,cclasses,
-       globtype,cpuinfo,
+       globtype,
        paramgr,parabase,
        node,nbas,nutils,
        {$ifdef state_tracking}
@@ -50,10 +50,8 @@ interface
 
        tcallnode = class(tbinarynode)
        private
-{$ifndef VER1_0}
           { info for inlining }
-          inlinelocals: array of tnode;
-{$endif VER1_0}
+          inlinelocals: TList;
           { number of parameters passed from the source, this does not include the hidden parameters }
           paralength   : smallint;
           function  gen_self_tree_methodpointer:tnode;
@@ -70,9 +68,7 @@ interface
 
           procedure createinlineparas(var createstatement, deletestatement: tstatementnode);
           function replaceparaload(var n: tnode; arg: pointer): foreachnoderesult;
-{$ifndef VER1_0}
           procedure createlocaltemps(p:TNamedIndexItem;arg:pointer);
-{$endif VER1_0}
        protected
           pushedparasize : longint;
        public
@@ -820,6 +816,8 @@ type
 
 
     destructor tcallnode.destroy;
+      var
+        i : longint;
       begin
          methodpointer.free;
          methodpointerinit.free;
@@ -827,7 +825,11 @@ type
          _funcretnode.free;
          inlinecode.free;
          if assigned(varargsparas) then
-           varargsparas.free;
+           begin
+             for i:=0 to varargsparas.count-1 do
+               tparavarsym(varargsparas[i]).free;
+             varargsparas.free;
+           end;
          inherited destroy;
       end;
 
@@ -969,7 +971,7 @@ type
            for i:=0 to varargsparas.count-1 do
              begin
                hp:=tparavarsym(varargsparas[i]);
-               hpn:=tparavarsym.create(hp.realname,0,hp.varspez,hp.vartype);
+               hpn:=tparavarsym.create(hp.realname,hp.paranr,hp.varspez,hp.vartype);
                n.varargsparas.add(hpn);
              end;
          end
@@ -1370,22 +1372,35 @@ type
            pt:=tcallparanode(pt.right);
          end;
 
-        { Create parasyms for varargs }
+        { Create parasyms for varargs, first count the number of varargs paras,
+          then insert the parameters with numbering in reverse order. The SortParas
+          will set the correct order at the end}
         pt:=tcallparanode(left);
         i:=0;
         while assigned(pt) do
           begin
             if cpf_varargs_para in pt.callparaflags then
-              begin
-                if not assigned(varargsparas) then
-                  varargsparas:=tvarargsparalist.create;
-                varargspara:=tparavarsym.create('va'+tostr(i),0,vs_value,pt.resulttype);
-                { varargspara is left-right, use insert
-                  instead of concat }
-                varargsparas.add(varargspara);
-                pt.parasym:=varargspara;
-              end;
+              inc(i);
             pt:=tcallparanode(pt.right);
+          end;
+        if (i>0) then
+          begin
+            varargsparas:=tvarargsparalist.create;
+            pt:=tcallparanode(left);
+            while assigned(pt) do
+              begin
+                if cpf_varargs_para in pt.callparaflags then
+                  begin
+                    varargspara:=tparavarsym.create('va'+tostr(i),i,vs_value,pt.resulttype);
+                    dec(i);
+                    { varargspara is left-right, use insert
+                      instead of concat }
+                    varargsparas.add(varargspara);
+                    pt.parasym:=varargspara;
+                  end;
+                pt:=tcallparanode(pt.right);
+              end;
+            varargsparas.sortparas;
           end;
       end;
 
@@ -1397,7 +1412,6 @@ type
         hpt : tnode;
         pt : tcallparanode;
         lastpara : longint;
-        currpara : tparavarsym;
         paraidx,
         cand_cnt : integer;
         i : longint;
@@ -1892,27 +1906,24 @@ type
                 resulttypepass(n);
                 result := fen_true;
               end
-{$ifndef VER1_0}
             else
               begin
                 { local? }
                 if (tloadnode(n).symtableentry.typ <> localvarsym) then
                   exit;
-                if (tloadnode(n).symtableentry.indexnr > high(inlinelocals)) or
+                if (tloadnode(n).symtableentry.indexnr >= inlinelocals.count) or
                    not assigned(inlinelocals[tloadnode(n).symtableentry.indexnr]) then
                   internalerror(20040720);
-                temp := inlinelocals[tloadnode(n).symtableentry.indexnr].getcopy;
+                temp := tnode(inlinelocals[tloadnode(n).symtableentry.indexnr]).getcopy;
                 n.free;
                 n := temp;
                 resulttypepass(n);
                 result := fen_true;
               end;
-{$endif ndef VER1_0}
           end;
       end;
 
 
-{$ifndef VER1_0}
       type
         ptempnodes = ^ttempnodes;
         ttempnodes = record
@@ -1921,14 +1932,13 @@ type
 
     procedure tcallnode.createlocaltemps(p:TNamedIndexItem;arg:pointer);
       var
-        tempinfo: ptempnodes absolute ptempnodes(arg);
+        tempinfo: ptempnodes absolute arg;
         tempnode: ttempcreatenode;
       begin
         if (tsymentry(p).typ <> localvarsym) then
           exit;
-        if (p.indexnr > high(inlinelocals)) then
-          setlength(inlinelocals,p.indexnr+10);
-{$ifndef VER1_0}
+        if (p.indexnr >= inlinelocals.count) then
+          inlinelocals.capacity:=p.indexnr+10;
         if (vo_is_funcret in tabstractvarsym(p).varoptions) and
            assigned(funcretnode) then
           begin
@@ -1943,7 +1953,6 @@ type
             inlinelocals[tabstractvarsym(p).indexnr] := funcretnode.getcopy
           end
         else
-{$endif ndef VER1_0}
           begin
             tempnode := ctempcreatenode.create(tabstractvarsym(p).vartype,tabstractvarsym(p).vartype.def.size,tt_persistent,true);
             addstatement(tempinfo^.createstatement,tempnode);
@@ -1964,7 +1973,6 @@ type
             inlinelocals[p.indexnr] := ctemprefnode.create(tempnode);
           end;
       end;
-{$endif ndef VER1_0}
 
 
     procedure tcallnode.createinlineparas(var createstatement, deletestatement: tstatementnode);
@@ -1972,9 +1980,7 @@ type
         para: tcallparanode;
         tempnode: ttempcreatenode;
         hp: tnode;
-{$ifndef VER1_0}
         tempnodes: ttempnodes;
-{$endif ndef VER1_0}
       begin
         { parameters }
         para := tcallparanode(left);
@@ -2027,18 +2033,16 @@ type
                 para := tcallparanode(para.right);
               end;
           end;
-{$ifndef VER1_0}
         { local variables }
         if not assigned(tprocdef(procdefinition).localst) or
            (tprocdef(procdefinition).localst.symindex.count = 0) then
           exit;
         tempnodes.createstatement := createstatement;
         tempnodes.deletestatement := deletestatement;
-        setlength(inlinelocals,tprocdef(procdefinition).localst.symindex.count);
+        inlinelocals.capacity:=tprocdef(procdefinition).localst.symindex.count;
         tprocdef(procdefinition).localst.foreach(@createlocaltemps,@tempnodes);
         createstatement := tempnodes.createstatement;
         deletestatement := tempnodes.deletestatement;
-{$endif ndef VER1_0}
       end;
 
 
@@ -2079,10 +2083,11 @@ type
                   { replace the parameter loads with the parameter values }
                   foreachnode(result,replaceparaload,@fileinfo);
                   { free the temps for the locals }
-                  for i := 0 to high(inlinelocals) do
+                  for i := 0 to inlinelocals.count-1 do
                     if assigned(inlinelocals[i]) then
-                      inlinelocals[i].free;
-                  setlength(inlinelocals,0);
+                      tnode(inlinelocals[i]).free;
+                  inlinelocals.free;
+                  inlinelocals:=nil;
                   addstatement(createstatement,result);
                   addstatement(createstatement,deleteblock);
                   { set function result location if necessary }
@@ -2399,7 +2404,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.261  2004-11-21 17:54:59  peter
+  Revision 1.262  2004-11-22 22:01:19  peter
+    * fixed varargs
+    * replaced dynarray with tlist
+
+  Revision 1.261  2004/11/21 17:54:59  peter
     * ttempcreatenode.create_reg merged into .create with parameter
       whether a register is allowed
     * funcret_paraloc renamed to funcretloc

@@ -68,7 +68,11 @@ unit parabase;
          va_uses_float_reg
        );
 
-       tvarargsparalist = class(tlist)
+       tparalist = class(tlist)
+          procedure SortParas;
+       end;
+
+       tvarargsparalist = class(tparalist)
           varargsinfo : set of tvarargsinfo;
 {$ifdef x86_64}
           { x86_64 requires %al to contain the no. SSE regs passed }
@@ -81,7 +85,8 @@ unit parabase;
 implementation
 
     uses
-      systems,verbose;
+      systems,verbose,
+      symsym;
 
 
 {****************************************************************************
@@ -222,11 +227,35 @@ implementation
         end;
       end;
 
+
+{****************************************************************************
+                          TParaList
+****************************************************************************}
+
+    function ParaNrCompare(Item1, Item2: Pointer): Integer;
+      var
+        I1 : tparavarsym absolute Item1;
+        I2 : tparavarsym absolute Item2;
+      begin
+        Result:=I1.paranr-I2.paranr;
+      end;
+
+
+    procedure TParaList.SortParas;
+      begin
+        Sort(@ParaNrCompare);
+      end;
+
+
 end.
 
 {
    $Log$
-   Revision 1.5  2004-11-15 23:35:31  peter
+   Revision 1.6  2004-11-22 22:01:19  peter
+     * fixed varargs
+     * replaced dynarray with tlist
+
+   Revision 1.5  2004/11/15 23:35:31  peter
      * tparaitem removed, use tparavarsym instead
      * parameter order is now calculated from paranr value in tparavarsym
 
