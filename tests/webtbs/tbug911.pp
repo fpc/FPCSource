@@ -4,5 +4,5 @@ begin
 end;
 
 begin
-  log(1,5);
+  log(2,5);
 end.
