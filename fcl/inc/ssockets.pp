@@ -11,8 +11,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$MODE objfpc}
 
 unit ssockets;
+
 
 interface
 
@@ -125,8 +127,8 @@ type
   Protected
     Procedure DoConnect(ASocket : longint); Virtual;
   Public
-    Constructor Create(ASocket : longint); Override; Overload;
-    Constructor Create(const AHost: String; APort: Word); Overload;
+    Constructor Create(ASocket : longint); Override; {$ifndef ver1_0}Overload;{$endif}
+    Constructor Create(const AHost: String; APort: Word); {$ifndef ver1_0}Overload;{$endif}
     Property Host : String Read FHost;
     Property Port : Word Read FPort;
   end;
@@ -137,8 +139,8 @@ type
   Protected
     Procedure DoConnect(ASocket : longint); Virtual;
   Public
-    Constructor Create(ASocket : Longint); Overload;
-    Constructor Create(AFileName : String); Overload;
+    Constructor Create(ASocket : Longint); {$ifndef ver1_0}Overload;{$endif}
+    Constructor Create(AFileName : String); {$ifndef ver1_0}Overload;{$endif}
     Property FileName : String Read FFileName;
   end;
 
@@ -515,7 +517,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2001-11-20 18:53:29  peter
+  Revision 1.8  2001-11-24 20:59:13  carl
+  * fix compilation problems for version 1.0.x branch
+
+  Revision 1.7  2001/11/20 18:53:29  peter
     * overload fix
 
   Revision 1.6  2001/04/20 18:50:00  marco
