@@ -370,6 +370,9 @@ begin
 {$ifdef linux}
    Message1(general_u_gcclibpath,Linker.librarysearchpath);
 {$endif}
+{$ifdef TP}
+   Comment(V_Info,'Memory: '+tostr(MemAvail)+' Bytes Free');
+{$endif}
 
    start:=getrealtime;
    compile(inputdir+inputfile+inputextension,false);
@@ -381,6 +384,9 @@ begin
 
    clearnodes;
    done_symtable;
+{$ifdef TP}
+   Comment(V_Info,'Memory: '+tostr(MemAvail)+' Bytes Free');
+{$endif}
 {$ifdef EXTDEBUG}
    Comment(V_Info,'Memory lost = '+tostr(EntryMemAvail-MemAvail));
 {$endif EXTDEBUG}
@@ -392,7 +398,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  1998-06-15 13:43:45  daniel
+  Revision 1.15  1998-06-16 11:32:18  peter
+    * small cosmetic fixes
+
+  Revision 1.14  1998/06/15 13:43:45  daniel
 
 
   * Updated overlays.
