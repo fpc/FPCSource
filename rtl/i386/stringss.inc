@@ -61,13 +61,13 @@ asm
         // this won't overwrite data since the result = 255 char string
         // and we never process more than the first 255 chars of p
         shrl    $8,%eax
-        jz      .LStrPasDone
+        jc      .LStrPasDone
         incl    %ecx
         shrl    $8,%eax
-        jz      .LStrPasDone
+        jc      .LStrPasDone
         incl    %ecx
         shrl    $8,%eax
-        jz      .LStrPasDone
+        jc      .LStrPasDone
         incl    %ecx
         jmp     .LStrPasDone
 .LStrPasPreEndLoop:
@@ -106,7 +106,10 @@ end ['EDI','EAX','ECX'];
 
 {
   $Log$
-  Revision 1.4  2001-03-04 12:42:18  jonas
+  Revision 1.5  2001-03-04 17:31:35  jonas
+    * fixed all implementations of strpas
+
+  Revision 1.4  2001/03/04 12:42:18  jonas
     * fixed strpas (was limited to 254 chars) and made it overall slightly faster
 
   Revision 1.3  2001/02/10 16:08:46  jonas
