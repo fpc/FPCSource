@@ -77,7 +77,7 @@ implementation
             <register window save area for calling>
           %sp
         }
-        result:=procdef.localst.datasize+tg.gettempsize+savearea;
+        result:=Align(lasttemp+savearea,4);
       end;
 
 
@@ -86,7 +86,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2003-07-06 17:58:22  peter
+  Revision 1.19  2003-08-20 17:48:49  peter
+    * fixed stackalloc to not allocate localst.datasize twice
+    * order of stackalloc code fixed for implicit init/final
+
+  Revision 1.18  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc
     * parent framepointer code more generic
 

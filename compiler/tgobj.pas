@@ -86,7 +86,6 @@ unit tgobj;
              @param(l start offset where temps will start in stack)
           }
           procedure setfirsttemp(l : longint);
-          function gettempsize : longint;
 
           procedure gettemp(list: taasmoutput; size : longint;temptype:ttemptype;var ref : treference);
           procedure ungettemp(list: taasmoutput; const ref : treference);
@@ -199,19 +198,6 @@ unit tgobj;
            internalerror(200204221);
          firsttemp:=l;
          lasttemp:=l;
-      end;
-
-
-    function ttgobj.gettempsize : longint;
-      var
-        _align : longint;
-      begin
-        { align to 4 bytes at least
-          otherwise all those subl $2,%esp are meaningless PM }
-        _align:=target_info.alignment.localalignmin;
-        if _align<4 then
-          _align:=4;
-        gettempsize:=Align(direction*lasttemp,_align);
       end;
 
 
@@ -551,7 +537,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.36  2003-07-06 17:58:22  peter
+  Revision 1.37  2003-08-20 17:48:49  peter
+    * fixed stackalloc to not allocate localst.datasize twice
+    * order of stackalloc code fixed for implicit init/final
+
+  Revision 1.36  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc
     * parent framepointer code more generic
 

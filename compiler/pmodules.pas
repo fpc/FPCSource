@@ -752,7 +752,10 @@ implementation
         usesacc,
         usesfpu,
         usesacchi : boolean;
+        headertai : tai;
+        templist  : taasmoutput;
       begin
+        templist:=Taasmoutput.create;
         { update module flags }
         current_module.flags:=current_module.flags or flag;
         { create procdef }
@@ -771,7 +774,11 @@ implementation
             internalerror(200304253);
         end;
         include(current_procinfo.flags,pi_do_call);
-        gen_stackalloc_code(list);
+        { generate symbol and save end of header position }
+        gen_proc_symbol(templist);
+        headertai:=tai(templist.last);
+        list.concatlist(templist);
+        { generate procedure 'body' }
         gen_entry_code(list,false);
         gen_initialize_code(list,false);
         gen_finalize_code(list,false);
@@ -779,9 +786,14 @@ implementation
         usesfpu:=false;
         usesacchi:=false;
         gen_load_return_value(list,usesacc,usesacchi,usesfpu);
+        { Add stack allocation code after header }
+        gen_stackalloc_code(templist);
+        list.insertlistafter(headertai,templist);
+        { Add exit code at the end }
         gen_exit_code(list,false,usesacc,usesacchi,usesfpu);
 {        list.convert_registers;}
         release_main_proc(pd);
+        templist.free;
       end;
 
 
@@ -1453,7 +1465,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.117  2003-08-20 09:07:00  daniel
+  Revision 1.118  2003-08-20 17:48:49  peter
+    * fixed stackalloc to not allocate localst.datasize twice
+    * order of stackalloc code fixed for implicit init/final
+
+  Revision 1.117  2003/08/20 09:07:00  daniel
     * New register coding now mandatory, some more convert_registers calls
       removed.
 

@@ -67,8 +67,9 @@ interface
     procedure gen_initialize_code(list:TAAsmoutput;inlined:boolean);
     procedure gen_finalize_code(list : TAAsmoutput;inlined:boolean);
 
-    procedure gen_entry_code(list:TAAsmoutput;inlined:boolean);
+    procedure gen_proc_symbol(list:Taasmoutput);
     procedure gen_stackalloc_code(list:Taasmoutput);
+    procedure gen_entry_code(list:TAAsmoutput;inlined:boolean);
     procedure gen_exit_code(list : TAAsmoutput;inlined,usesacc,usesacchi,usesfpu:boolean);
 
 (*
@@ -1625,6 +1626,79 @@ implementation
                                 Entry/Exit
 ****************************************************************************}
 
+    procedure gen_proc_symbol(list:Taasmoutput);
+      var
+        hs : string;
+      begin
+        { add symbol entry point as well as debug information                 }
+        { will be inserted in front of the rest of this list.                 }
+        { Insert alignment and assembler names }
+        { Align, gprof uses 16 byte granularity }
+        if (cs_profile in aktmoduleswitches) then
+          list.concat(Tai_align.create(16))
+        else
+          list.concat(Tai_align.create(aktalignment.procalign));
+
+{$ifdef GDB}
+        if (cs_debuginfo in aktmoduleswitches) then
+          begin
+            if (po_public in current_procinfo.procdef.procoptions) then
+              Tprocsym(current_procinfo.procdef.procsym).is_global:=true;
+            current_procinfo.procdef.concatstabto(list);
+            Tprocsym(current_procinfo.procdef.procsym).isstabwritten:=true;
+          end;
+{$endif GDB}
+
+        repeat
+          hs:=current_procinfo.procdef.aliasnames.getfirst;
+          if hs='' then
+            break;
+{$ifdef GDB}
+          if (cs_debuginfo in aktmoduleswitches) and
+             target_info.use_function_relative_addresses then
+          list.concat(Tai_stab_function_name.create(strpnew(hs)));
+{$endif GDB}
+          if (cs_profile in aktmoduleswitches) or
+             (po_public in current_procinfo.procdef.procoptions) then
+            list.concat(Tai_symbol.createname_global(hs,0))
+          else
+            list.concat(Tai_symbol.createname(hs,0));
+        until false;
+      end;
+
+
+    procedure gen_stackalloc_code(list:Taasmoutput);
+      var
+        stackframe : longint;
+      begin
+        { Calculate size of stackframe }
+        stackframe:=current_procinfo.calc_stackframe_size;
+
+{$ifndef powerpc}
+        { at least for the ppc this applies always, so this code isn't usable (FK) }
+        { omit stack frame ? }
+        if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
+          begin
+            CGmessage(cg_d_stackframe_omited);
+            if stackframe<>0 then
+              cg.g_stackpointer_alloc(list,stackframe);
+          end
+        else
+{$endif powerpc}
+          begin
+            if (po_interrupt in current_procinfo.procdef.procoptions) then
+              cg.g_interrupt_stackframe_entry(list);
+
+            cg.g_stackframe_entry(list,stackframe);
+
+            {Never call stack checking before the standard system unit
+             has been initialized.}
+             if (cs_check_stack in aktlocalswitches) and (current_procinfo.procdef.proctypeoption<>potype_proginit) then
+               cg.g_stackcheck(list,stackframe);
+          end;
+      end;
+
+
     procedure gen_entry_code(list:TAAsmoutput;inlined:boolean);
       var
         href : treference;
@@ -1638,7 +1712,6 @@ implementation
           gdb stabs information is generated AFTER the rest of this
           code, since temp. allocation might occur before - carl
         }
-
         if assigned(current_procinfo.procdef.parast) and
            not (po_assembler in current_procinfo.procdef.procoptions) then
           begin
@@ -1714,77 +1787,7 @@ implementation
       end;
 
 
-    procedure gen_stackalloc_code(list:Taasmoutput);
-      var
-        hs : string;
-        stackframe : longint;
-      begin
-        {************************* Stack allocation **************************}
-        { and symbol entry point as well as debug information                 }
-        { will be inserted in front of the rest of this list.                 }
-        { Insert alignment and assembler names }
-        { Align, gprof uses 16 byte granularity }
-        if (cs_profile in aktmoduleswitches) then
-          list.concat(Tai_align.create(16))
-        else
-          list.concat(Tai_align.create(aktalignment.procalign));
-
-{$ifdef GDB}
-        if (cs_debuginfo in aktmoduleswitches) then
-          begin
-            if (po_public in current_procinfo.procdef.procoptions) then
-              Tprocsym(current_procinfo.procdef.procsym).is_global:=true;
-            current_procinfo.procdef.concatstabto(list);
-            Tprocsym(current_procinfo.procdef.procsym).isstabwritten:=true;
-          end;
-{$endif GDB}
-
-        repeat
-          hs:=current_procinfo.procdef.aliasnames.getfirst;
-          if hs='' then
-            break;
-{$ifdef GDB}
-          if (cs_debuginfo in aktmoduleswitches) and
-             target_info.use_function_relative_addresses then
-          list.concat(Tai_stab_function_name.create(strpnew(hs)));
-{$endif GDB}
-          if (cs_profile in aktmoduleswitches) or
-             (po_public in current_procinfo.procdef.procoptions) then
-            list.concat(Tai_symbol.createname_global(hs,0))
-          else
-            list.concat(Tai_symbol.createname(hs,0));
-        until false;
-
-        { Calculate size of stackframe }
-        stackframe:=current_procinfo.calc_stackframe_size;
-
-{$ifndef powerpc}
-        { at least for the ppc this applies always, so this code isn't usable (FK) }
-        { omit stack frame ? }
-        if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
-          begin
-            CGmessage(cg_d_stackframe_omited);
-            if stackframe<>0 then
-              cg.g_stackpointer_alloc(list,stackframe);
-          end
-        else
-{$endif powerpc}
-          begin
-            if (po_interrupt in current_procinfo.procdef.procoptions) then
-              cg.g_interrupt_stackframe_entry(list);
-
-            cg.g_stackframe_entry(list,stackframe);
-
-            {Never call stack checking before the standard system unit
-             has been initialized.}
-             if (cs_check_stack in aktlocalswitches) and (current_procinfo.procdef.proctypeoption<>potype_proginit) then
-               cg.g_stackcheck(list,stackframe);
-          end;
-      end;
-
-
     procedure gen_exit_code(list : TAAsmoutput;inlined,usesacc,usesacchi,usesfpu:boolean);
-
       var
 {$ifdef GDB}
         stabsendlabel : tasmlabel;
@@ -1792,6 +1795,7 @@ implementation
         p : pchar;
 {$endif GDB}
         rsp : Tregister;
+        stacksize,
         retsize : longint;
       begin
 
@@ -1830,8 +1834,9 @@ implementation
          begin
            if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
             begin
-              if (tg.gettempsize<>0) then
-                cg.a_op_const_reg(list,OP_ADD,OS_32,tg.gettempsize,current_procinfo.framepointer);
+              stacksize:=current_procinfo.calc_stackframe_size;
+              if (stacksize<>0) then
+                cg.a_op_const_reg(list,OP_ADD,OS_32,stacksize,current_procinfo.framepointer);
             end
            else
             cg.g_restore_frame_pointer(list);
@@ -2072,7 +2077,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.135  2003-08-17 16:59:20  jonas
+  Revision 1.136  2003-08-20 17:48:49  peter
+    * fixed stackalloc to not allocate localst.datasize twice
+    * order of stackalloc code fixed for implicit init/final
+
+  Revision 1.135  2003/08/17 16:59:20  jonas
     * fixed regvars so they work with newra (at least for ppc)
     * fixed some volatile register bugs
     + -dnotranslation option for -dnewra, which causes the registers not to

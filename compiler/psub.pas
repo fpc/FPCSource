@@ -571,8 +571,8 @@ implementation
         oldprocinfo : tprocinfo;
         oldaktmaxfpuregisters : longint;
         oldfilepos : tfileposinfo;
-        templist, templist2,
-        stackalloccode : Taasmoutput;
+        templist : Taasmoutput;
+        headertai : tai;
         usesacc,
         usesfpu,
         usesacchi      : boolean;
@@ -594,7 +594,6 @@ implementation
         aktbreaklabel:=nil;
         aktcontinuelabel:=nil;
         templist:=Taasmoutput.create;
-        templist2:=Taasmoutput.create;
 
         { add parast/localst to symtablestack }
         add_to_symtablestack;
@@ -639,7 +638,7 @@ implementation
         aktfilepos:=exitpos;
         aktlocalswitches:=exitswitches;
         gen_finalize_code(templist,false);
-        { the finalcode must be added if the was no position available,
+        { the finalcode must be concatted if there was no position available,
           using insertlistafter will result in an insert at the start
           when currentai=nil }
         if assigned(tasmnode(finalasmnode).currenttai) then
@@ -659,17 +658,26 @@ implementation
         {   regvars again) (JM)                                            }
         free_regvars(aktproccode);
 {$endif newra}
-        { handle return value, this is not done for assembler routines when
-          they didn't reference the result variable }
+
+        { add code that will load the return value, this is not done
+          for assembler routines when they didn't reference the result
+          variable }
         usesacc:=false;
         usesfpu:=false;
         usesacchi:=false;
-        gen_load_return_value(templist2,usesacc,usesacchi,usesfpu);
+        gen_load_return_value(templist,usesacc,usesacchi,usesfpu);
+        aktproccode.concatlist(templist);
 
+        { generate symbol and save end of header position }
+        gen_proc_symbol(templist);
+        headertai:=tai(templist.last);
+        { add entry code after header }
         gen_entry_code(templist,false);
+        { insert symbol and entry code }
         aktproccode.insertlist(templist);
 
-        aktproccode.concatlist(templist2);
+        { The procedure body is finished, we can now
+          allocate the registers }
 {$ifdef newra}
 {$ifdef ra_debug2}
         rg.writegraph;
@@ -698,14 +706,11 @@ implementation
 {$ifdef newra}
         translate_regvars(aktproccode,rg.colour);
 {$endif newra}
-        stackalloccode:=Taasmoutput.create;
-        gen_stackalloc_code(stackalloccode);
-{        stackalloccode.convert_registers;}
-        aktproccode.insertlist(stackalloccode);
-        stackalloccode.free;
-
+        { Add stack allocation code after header }
+        gen_stackalloc_code(templist);
+        aktproccode.insertlistafter(headertai,templist);
+        { Add exit code at the end }
         gen_exit_code(templist,false,usesacc,usesacchi,usesfpu);
-{        templist.convert_registers;}
         aktproccode.concatlist(templist);
 
         { now all the registers used are known }
@@ -741,7 +746,6 @@ implementation
 
         { restore }
         templist.free;
-        templist2.free;
         aktmaxfpuregisters:=oldaktmaxfpuregisters;
         aktfilepos:=oldfilepos;
         current_procinfo:=oldprocinfo;
@@ -1302,7 +1306,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.137  2003-08-20 15:50:35  peter
+  Revision 1.138  2003-08-20 17:48:49  peter
+    * fixed stackalloc to not allocate localst.datasize twice
+    * order of stackalloc code fixed for implicit init/final
+
+  Revision 1.137  2003/08/20 15:50:35  peter
     * define NOOPT until optimizer is fixed
 
   Revision 1.136  2003/08/20 09:07:00  daniel

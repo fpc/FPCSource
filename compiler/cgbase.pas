@@ -198,7 +198,7 @@ unit cgbase;
 implementation
 
      uses
-        systems,
+        cutils,systems,
         cresstr,
         tgobj,rgobj,
         defutil,
@@ -361,8 +361,15 @@ implementation
 
 
     function tprocinfo.calc_stackframe_size:longint;
+      var
+        _align : longint;
       begin
-        result:=procdef.localst.datasize+tg.gettempsize;
+        { align to 4 bytes at least
+          otherwise all those subl $2,%esp are meaningless PM }
+        _align:=target_info.alignment.localalignmin;
+        if _align<4 then
+          _align:=4;
+        result:=Align(tg.direction*tg.lasttemp,_align);
       end;
 
 
@@ -567,7 +574,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2003-08-11 21:18:20  peter
+  Revision 1.59  2003-08-20 17:48:49  peter
+    * fixed stackalloc to not allocate localst.datasize twice
+    * order of stackalloc code fixed for implicit init/final
+
+  Revision 1.58  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 
   Revision 1.57  2003/07/06 17:58:22  peter
