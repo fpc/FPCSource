@@ -12,7 +12,7 @@ valid for that node.
 'Natural type' is a signed 32-bit value on 32-bit architectures.
 'Natural type' is a signed 64-bit value on 64-bit architectures.
 
-secondadd() ........... /cg/taddbool.pp      Boolean arithmetic operations     
+secondadd() ........... /cg/taddbool.pp      Boolean arithmetic operations
 secondadd() ........... /cg/taddcard.pp      Cardinal arithmetic operations
 secondadd() ........... /cg/taddreal.pp      Real arithmetic operations
 secondadd() ........... /cg/taddlong.pp      Longint arithmetic operations
@@ -111,6 +111,7 @@ Floating Point ........ tfpu1.pp
                         tfpu2.pp
 Assembler readers.......tasmread.pp    tests for support of unit or program specifier
                         testmovd.pp    testspecial issues about MOVD instruction
+                        tasout.pp      tests a problem if a unit is compiled with nasm
 
 --------------------------------------------------------------------
                             RTL
