@@ -1,3 +1,5 @@
+{ %version=1.1 }
+
 { %FAIL }
 
 {$ifdef fpc}{$mode objfpc}{$endif}
