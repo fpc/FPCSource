@@ -2149,7 +2149,6 @@ var
     if C in WhiteSpaceChars then CC:=ccWhiteSpace else
     if C in TabChars then CC:=ccTab else
     if C in HashChars then CC:=ccHash else
-    if C in AlphaChars then CC:=ccAlpha else
     if C in NumberChars then CC:=ccNumber else
     if (LastCC=ccNumber) and (C in RealNumberChars) then
       begin
@@ -2158,12 +2157,18 @@ var
             if (LineText[X+1]='.') then
               cc:=ccSymbol
             else
-              CC:=ccRealNumber
+              cc:=ccRealNumber;
           end
-        else
-          cc:=ccrealnumber;
+        else {'E','e'}
+          begin
+            if (LineText[X+1]in ['+','-','0'..'9']) then
+              cc:=ccRealNumber
+            else
+              cc:=ccAlpha
+          end;
       end else
-    CC:=ccSymbol;
+    if C in AlphaChars then CC:=ccAlpha else
+      CC:=ccSymbol;
     GetCharClass:=CC;
   end;
 
@@ -2190,7 +2195,8 @@ var
     case SClass of
       ccWhiteSpace : C:=coWhiteSpaceColor;
       ccTab : C:=coTabColor;
-      ccNumber :
+      ccNumber,
+      ccRealNumber :
         if copy(WordS,1,1)='$' then
           C:=coHexNumberColor
         else
@@ -2223,7 +2229,7 @@ var
       FirstCC:=CC;
     if ( (CC<>LastCC) and
         (
-         ((FirstCC=ccNumber) and (CC<>ccRealNumber)) or
+         ((FirstCC=ccNumber) and (CC<>ccRealNumber) {and (CC<>ccNumber)}) or
         (((CC<>ccAlpha) or (LastCC<>ccNumber) ) and
           ( (CC<>ccNumber) or (LastCC<>ccAlpha) ) and
           ( (CC<>ccNumber) or (LastCC<>ccHash) ) and
@@ -2231,59 +2237,60 @@ var
          ))) or
 
        (X>length(LineText)) or (CC=ccSymbol) then
-    begin
-      MatchedSymbol:=false;
-      EX:=X-1;
-      if (CC=ccSymbol) then
-       begin
-         if length(SymbolConcat)>=High(SymbolConcat) then
-           Delete(SymbolConcat,1,1);
-         SymbolConcat:=SymbolConcat+C;
-       end;
-      case CC of
-        ccSymbol :
-          if IsCommentSuffix and (InComment) then
-             Inc(EX) else
-          if IsStringSuffix and (InString) then
-             Inc(EX) else
-          if IsDirectiveSuffix and (InDirective) then
-             Inc(EX);
-      end;
-      if (C='$') and (MatchedSymbol=false) and (IsDirectivePrefix=false) then
-        CC:=ccNumber;
-      if CC<>ccSymbol then SymbolConcat:='';
-      FormatWord(LastCC,ClassStart,EX);
-      ClassStart:=EX+1;
-      case CC of
-        ccAlpha  : ;
-        ccNumber :
-          if (LastCC<>ccAlpha) then;
-        ccSymbol :
-            if IsDirectivePrefix and (InComment=true) and (CurrentCommentType=1) and
-               (InDirective=false) then
-               begin InDirective:=true; InComment:=false; Dec(ClassStart,length(MatchingSymbol)-1); end else
-            if IsDirectiveSuffix and (InComment=false) and (InDirective=true) then
-               InDirective:=false else
-            if IsCommentPrefix and (InComment=false) and (InString=false) then
-              begin
-                InComment:=true;
-                CurrentCommentType:=SymbolIndex;
-                InSingleLineComment:=IsSingleLineCommentPrefix;
-                {InString:=false; }
-                Dec(ClassStart,length(MatchingSymbol)-1);
-              end
-            else
+      begin
+        MatchedSymbol:=false;
+        EX:=X-1;
+        if (CC=ccSymbol) then
+         begin
+           if length(SymbolConcat)>=High(SymbolConcat) then
+             Delete(SymbolConcat,1,1);
+           SymbolConcat:=SymbolConcat+C;
            if IsCommentSuffix and (InComment) then
-             begin InComment:=false; InString:=false; end else
-           if IsStringPrefix and (InComment=false) and (InString=false) then
-             begin InString:=true; Dec(ClassStart,length(MatchingSymbol)-1); end else
-           if IsStringSuffix and (InComment=false) and (InString=true) then
-             InString:=false;
+              Inc(EX) else
+           if IsStringSuffix and (InString) then
+              Inc(EX) else
+           if IsDirectiveSuffix and (InDirective) then
+              Inc(EX);
+         end;
+        if CC=ccRealNumber then
+          Inc(EX);
+        if (C='$') and (MatchedSymbol=false) and (IsDirectivePrefix=false) then
+          CC:=ccNumber;
+        if CC<>ccSymbol then SymbolConcat:='';
+        FormatWord(LastCC,ClassStart,EX);
+        ClassStart:=EX+1;
+        if ClassStart=X then
+          FirstCC:=CC;
+        case CC of
+          ccAlpha  : ;
+          ccNumber :
+            if (LastCC<>ccAlpha) then;
+          ccSymbol :
+              if IsDirectivePrefix and (InComment=true) and (CurrentCommentType=1) and
+                 (InDirective=false) then
+                 begin InDirective:=true; InComment:=false; Dec(ClassStart,length(MatchingSymbol)-1); end else
+              if IsDirectiveSuffix and (InComment=false) and (InDirective=true) then
+                 InDirective:=false else
+              if IsCommentPrefix and (InComment=false) and (InString=false) then
+                begin
+                  InComment:=true;
+                  CurrentCommentType:=SymbolIndex;
+                  InSingleLineComment:=IsSingleLineCommentPrefix;
+                  {InString:=false; }
+                  Dec(ClassStart,length(MatchingSymbol)-1);
+                end
+              else
+             if IsCommentSuffix and (InComment) then
+               begin InComment:=false; InString:=false; end else
+             if IsStringPrefix and (InComment=false) and (InString=false) then
+               begin InString:=true; Dec(ClassStart,length(MatchingSymbol)-1); end else
+             if IsStringSuffix and (InComment=false) and (InString=true) then
+               InString:=false;
+        end;
+        if MatchedSymbol and (InComment=false) then
+          SymbolConcat:='';
+        LastCC:=CC;
       end;
-      if MatchedSymbol and (InComment=false) then
-        SymbolConcat:='';
-      LastCC:=CC;
-    end;
   end;
 
 var CurLine: Sw_integer;
@@ -6930,7 +6937,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2001-08-12 00:06:49  pierre
+  Revision 1.4  2001-09-04 22:58:58  pierre
+   * fix highlight for 'i:=1to'
+
+  Revision 1.3  2001/08/12 00:06:49  pierre
    * better clipboard handling for files with tabs
 
   Revision 1.2  2001/08/05 02:01:48  peter
