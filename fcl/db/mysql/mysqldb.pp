@@ -237,22 +237,22 @@ begin
   for I := 0 to FC-1 do
     begin
     fld := mysql_fetch_field_direct(FMYSQLRES, I);
-    if Field.FieldName = fld.name then
+    if Field.FieldName = fld^.name then
       begin
-      Move(CurBuf^, PChar(Buffer)^, MySQLDataSize(fld.ftype, fld.length));
+      Move(CurBuf^, PChar(Buffer)^, MySQLDataSize(fld^._type, fld^.length));
       if Field.DataType in [ftString{, ftWideString}] then
         begin
         Result := PChar(buffer)^ <> #0;
         if Result then
           // Terminate string (necessary for enum fields)
-          PChar(buffer)[fld.length] := #0;
+          PChar(buffer)[fld^.length] := #0;
         end
       else
         Result := True;
       break;
       end
     else
-      Inc(CurBuf, MySQLDataSize(fld.ftype, fld.length));
+      Inc(CurBuf, MySQLDataSize(fld^._type, fld^.length));
     end;
 end;
 
@@ -374,8 +374,8 @@ begin
       for I := 0 to FC-1 do
         begin
         field := mysql_fetch_field_direct(FMYSQLRES, I);
-        if MySQLFieldToFieldType(field.ftype, field.length, DFT, DFS) then
-            TFieldDef.Create(FieldDefs, field.name, DFT, DFS, False, I+1);
+        if MySQLFieldToFieldType(field^._type, field^.length, DFT, DFS) then
+            TFieldDef.Create(FieldDefs, field^.name, DFT, DFS, False, I+1);
         end;
     finally
       if WasClosed then
@@ -523,7 +523,7 @@ begin
   for I := 0 to FC-1 do
     begin
     field := mysql_fetch_field_direct(FMYSQLRES, I);
-    FRecordSize := FRecordSize + MySQLDataSize(field.ftype, field.length);
+    FRecordSize := FRecordSize + MySQLDataSize(field^._type, field^.length);
     end;
   FBufferSize := FRecordSize + SizeOf(TMySQLDatasetBookmark);
 end;
@@ -544,7 +544,7 @@ begin
   for I := 0 to FC-1 do
     begin
     field := mysql_fetch_field_direct(FMYSQLRES, I);
-    CT := MySQLWriteFieldData(field.ftype, field.length, row^, Buffer);
+    CT := MySQLWriteFieldData(field^._type, field^.length, row^, Buffer);
     Inc(Buffer, CT);
     Inc(row);
     end;
@@ -824,10 +824,13 @@ Var
   H,U,P : String;
 
 begin
+  if (FMySQL=Nil) then
+    New(FMySQL);
   H:=HostName;
   U:=UserName;
   P:=Password;
-  FMySQL:=mysql_connect(FMySQL,PChar(H),PChar(U),Pchar(P));
+  mysql_init(FMySQL);
+  FMySQL:=mysql_real_connect(FMySQL,PChar(H),PChar(U),Pchar(P),Nil,0,Nil,0);
   If (FMySQL=Nil) then
     MySQlError(Nil,SErrServerConnectFailed,Self);
   FServerInfo := strpas(mysql_get_server_info(FMYSQL));
@@ -877,8 +880,8 @@ begin
   if Disconnect then
     ConnectToServer;
   try
-    if mysql_create_db(FMySQL,Pchar(DatabaseName))<>0 then
-      MySQLError(FMySQL,SErrDatabaseCreate,Self);
+    {if mysql_create_db(FMySQL,Pchar(DatabaseName))<>0 then 
+      MySQLError(FMySQL,SErrDatabaseCreate,Self);}
   Finally
     If Disconnect then
       DoInternalDisconnect;
@@ -897,8 +900,10 @@ begin
   If (FMySQL=Nil) then
     ConnectToServer;
   try
+{
     if mysql_drop_db(FMySQL,Pchar(DatabaseName))<>0 then
       MySQLError(FMySQL,SErrDatabaseDrop,Self);
+}
   Finally
     If Disconnect then
       DoInternalDisconnect;
@@ -916,7 +921,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-09-20 07:13:38  michael
+  Revision 1.6  2004-09-29 20:26:48  michael
+  + Adapted to version 4 of mysql
+
+  Revision 1.5  2004/09/20 07:13:38  michael
   + Database property published
 
   Revision 1.4  2003/08/16 16:42:21  michael
