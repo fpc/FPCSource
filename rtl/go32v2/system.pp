@@ -1280,15 +1280,12 @@ begin
 end;
 
 
-function GetDirIO (DriveNr: byte; var Dir: ShortString): word;
-                                               [public, alias: 'FPC_GETDIRIO'];
+procedure GetDir (DriveNr: byte; var Dir: ShortString);
 var
   temp : array[0..255] of char;
   i    : longint;
   regs : trealregs;
-  IOR: word;
 begin
-  IOR := 0;
   regs.realedx:=drivenr;
   regs.realesi:=tb_offset;
   regs.realds:=tb_segment;
@@ -1301,7 +1298,7 @@ begin
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
    Begin
-     IOR := lo(regs.realeax);
+     GetInOutRes (lo(regs.realeax));
      exit;
    end
   else
@@ -1332,12 +1329,6 @@ begin
      i:= (regs.realeax and $ff) + ord('A');
      dir[1]:=chr(i);
    end;
-end;
-
-procedure GetDir (DriveNr: byte; var Dir: ShortString);
-
-begin
-  GetInOutRes (GetDirIO (DriveNr, Dir));
 end;
 
 
@@ -1426,7 +1417,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.5  2001-03-16 20:09:58  hajny
+  Revision 1.6  2001-03-21 21:08:20  hajny
+    * GetDir fixed
+
+  Revision 1.5  2001/03/16 20:09:58  hajny
     * universal FExpand
 
   Revision 1.4  2001/02/20 21:31:12  peter

@@ -482,8 +482,7 @@ Begin
 End;
 
 
-function GetDirIO (DriveNr: byte; var Dir: ShortString): word;
-                                               [public, alias: 'FPC_GETDIRIO'];
+procedure GetDir (DriveNr: byte; var Dir: ShortString);
 var
   thisdir      : stat;
   rootino,
@@ -498,7 +497,6 @@ var
   mountpoint,validdir : boolean;
   predot       : string[255];
 begin
-  GetDirIO := 0;
   drivenr:=0;
   dir:='';
   thedir:='/'#0;
@@ -552,12 +550,6 @@ begin
    end;
 { Now rootino=thisino and rootdev=thisdev so we've reached / }
   dir:=thedir
-end;
-
-procedure GetDir (DriveNr: byte; var Dir: ShortString);
-
-begin
-    InOutRes := GetDirIO (DriveNr, Dir);
 end;
 
 
@@ -754,7 +746,10 @@ End.
 
 {
   $Log$
-  Revision 1.6  2001-03-16 20:09:58  hajny
+  Revision 1.7  2001-03-21 21:08:20  hajny
+    * GetDir fixed
+
+  Revision 1.6  2001/03/16 20:09:58  hajny
     * universal FExpand
 
   Revision 1.5  2001/02/20 21:31:12  peter

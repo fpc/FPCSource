@@ -771,14 +771,12 @@ end;
 
 {$ASMMODE ATT}
 
-function GetDirIO (DriveNr: byte; var Dir: ShortString): word;
-                                               [public, alias: 'FPC_GETDIRIO'];
+procedure GetDir (DriveNr: byte; var Dir: ShortString);
 
 {Written by Michael Van Canneyt.}
 
 var sof:Pchar;
     i:byte;
-    IOR: word;
 
 begin
     Dir [4] := #0;
@@ -788,14 +786,13 @@ begin
     { supplied by DOS, so we let dos string start at   }
     { dir[4]                                           }
     { Get dir from drivenr : 0=default, 1=A etc... }
-    IOR := 0;
     asm
         movb drivenr,%dl
         movl sof,%esi
         mov  $0x47,%ah
         call syscall
         jnc .LGetDir
-        movw %ax, IOR
+        movw %ax, InOutRes
 .LGetDir:
     end;
     { Now Dir should be filled with directory in ASCIIZ, }
@@ -829,13 +826,6 @@ begin
             dir[1]:=char(i);
         end;
     if not (FileNameCaseSensitive) then dir:=upcase(dir);
-    GetDirIO := IOR;
-end;
-
-procedure GetDir (DriveNr: byte; var Dir: ShortString);
-
-begin
-    InOutRes := GetDirIO (DriveNr, Dir);
 end;
 
 
@@ -964,7 +954,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2001-03-10 09:57:51  hajny
+  Revision 1.10  2001-03-21 21:08:20  hajny
+    * GetDir fixed
+
+  Revision 1.9  2001/03/10 09:57:51  hajny
     * FExpand without IOResult change, remaining direct asm removed
 
   Revision 1.8  2001/02/20 21:31:12  peter

@@ -640,23 +640,23 @@ begin
   dirfn(TDirFnType(@SetCurrentDirectory),s);
 end;
 
-function GetDirIO (DriveNr: byte; var Dir: ShortString): word;
-                                               [public, alias: 'FPC_GETDIRIO'];
+procedure GetDir (DriveNr: byte; var Dir: ShortString);
 const
   Drive:array[0..3]of char=(#0,':',#0,#0);
 var
   defaultdrive:boolean;
   DirBuf,SaveBuf:array[0..259] of Char;
-  IOR: word;
 begin
-  IOR := 0;
   defaultdrive:=drivenr=0;
   if not defaultdrive then
    begin
     byte(Drive[0]):=Drivenr+64;
     GetCurrentDirectory(SizeOf(SaveBuf),SaveBuf);
     if SetCurrentDirectory(@Drive) <> 0 then
-     IOR := word (GetLastError);
+     begin
+      errno := word (GetLastError);
+      Errno2InoutRes;
+     end;
    end;
   GetCurrentDirectory(SizeOf(DirBuf),DirBuf);
   if not defaultdrive then
@@ -664,14 +664,6 @@ begin
   dir:=strpas(DirBuf);
   if not FileNameCaseSensitive then
    dir:=upcase(dir);
-  GetDirIO := IOR;
-end;
-
-procedure GetDir (DriveNr: byte; var Dir: ShortString);
-
-begin
-  errno := GetDirIO (DriveNr, Dir);
-  Errno2InoutRes;
 end;
 
 
@@ -1438,7 +1430,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2001-03-16 20:09:58  hajny
+  Revision 1.8  2001-03-21 21:08:20  hajny
+    * GetDir fixed
+
+  Revision 1.7  2001/03/16 20:09:58  hajny
     * universal FExpand
 
   Revision 1.6  2001/02/20 21:31:12  peter

@@ -18,11 +18,19 @@
 
 
 function GetDirIO (DriveNr: byte; var Dir: OpenString): word;
-                                                [external name 'FPC_GETDIRIO'];
 
 (* GetDirIO is supposed to return the root of the given drive   *)
 (* in case of an error for compatibility of FExpand with TP/BP. *)
-(* Dir must be specified as OpenString since System has $P+.    *)
+
+var
+  OldInOutRes: word;
+begin
+  OldInOutRes := InOutRes;
+  InOutRes := 0;
+  GetDir (DriveNr, Dir);
+  GetDirIO := InOutRes;
+  InOutRes := OldInOutRes;
+end;
 
 
 function FExpand (const Path: PathStr): PathStr;
@@ -199,7 +207,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-03-19 21:09:30  hajny
+  Revision 1.5  2001-03-21 21:08:20  hajny
+    * GetDir fixed
+
+  Revision 1.4  2001/03/19 21:09:30  hajny
     * one more problem in the Unix part
 
   Revision 1.3  2001/03/19 21:05:42  hajny
