@@ -218,6 +218,7 @@ bug0153.pp   Asm, indexing a local/para var should produce an error like tp7
 bug0155.pp   Asm, Missing string return for asm functions
 bug0170.pp   Asm, {$ifdef} is seen as a separator
 bug0174.pp   Asm, offsets of fields are not possible yet
+bug0175.pp   Asm, word variable should be allowed with a %eax without casting
 
 bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
@@ -226,4 +227,3 @@ bug0169.pp   missing new(type) support for not object/class
 bug0171.pp   missing typecasting in constant expressions
 bug0172.pp   with with absolute seg:ofs should not be possible
 bug0173.pp   secondbug is parsed as asm, but should be normal pascalcode
-
