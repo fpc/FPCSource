@@ -494,9 +494,11 @@ implementation
                         Message(parser_e_default_value_only_one_para);
                       { prefix 'def' to the parameter name }
                       defaultvalue:=ReadConstant('$def'+vs.name,vs.fileinfo);
-                      include(defaultvalue.symoptions,sp_internal);
                       if assigned(defaultvalue) then
-                       tprocdef(pd).parast.insert(defaultvalue);
+                        begin
+                          include(defaultvalue.symoptions,sp_internal);
+                          tprocdef(pd).parast.insert(defaultvalue);
+                        end;
                       defaultrequired:=true;
                     end
                    else
@@ -1309,7 +1311,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_ASSEMBLER;
-      pd_flags : [pd_implemen,pd_body,pd_notobjintf];
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobjintf];
       handler  : nil;
       pocall   : pocall_none;
       pooption : [po_assembler];
@@ -2264,7 +2266,11 @@ const
 end.
 {
   $Log$
-  Revision 1.189  2004-08-25 15:57:19  peter
+  Revision 1.190  2004-08-29 11:28:41  peter
+  fixed crash with error in default value
+  allow assembler directive in interface
+
+  Revision 1.189  2004/08/25 15:57:19  peter
     * fix for tw3261
 
   Revision 1.188  2004/08/22 20:11:38  florian
