@@ -1,5 +1,5 @@
 PROGRAM Sterne;
-{$mode objfpc}
+
 
 uses Exec, Graphics, Intuition, Utility, systemvartags;
 
@@ -151,7 +151,10 @@ END.
 
 {
   $Log$
-  Revision 1.2  2002-11-28 19:40:45  nils
+  Revision 1.3  2003-01-19 14:57:12  nils
+  * removed mode objfpc
+
+  Revision 1.2  2002/11/28 19:40:45  nils
     * update
 
 }

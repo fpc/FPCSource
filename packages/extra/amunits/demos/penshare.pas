@@ -1,5 +1,5 @@
 Program PenShare;
-{$mode objfpc}
+
 
 { Dieses Programm demonstriert die ObtainPen Funktion der graphics.lib V39+
 
@@ -107,7 +107,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-11-28 19:42:27  nils
+  Revision 1.2  2003-01-19 14:57:12  nils
+  * removed mode objfpc
+
+  Revision 1.1  2002/11/28 19:42:27  nils
     * initial release
 
 }

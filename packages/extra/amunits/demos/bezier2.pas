@@ -1,5 +1,5 @@
 Program Bezier;
-{$mode objfpc}
+
 
 {  This program draws Bezier curves in the slow, simple, recursive
    way.  When it first runs, you enter points in the window by
@@ -282,7 +282,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-11-28 19:42:26  nils
+  Revision 1.2  2003-01-19 14:57:12  nils
+  * removed mode objfpc
+
+  Revision 1.1  2002/11/28 19:42:26  nils
     * initial release
 
 }

@@ -1,5 +1,4 @@
 PROGRAM EasyGadtools;
-{$mode objfpc}
 
 {
     This is just a test on how to make a unit EasyGadtools.
@@ -180,7 +179,10 @@ END.
 
 {
   $Log$
-  Revision 1.1  2002-11-28 19:42:26  nils
+  Revision 1.2  2003-01-19 14:57:12  nils
+  * removed mode objfpc
+
+  Revision 1.1  2002/11/28 19:42:26  nils
     * initial release
 
 }

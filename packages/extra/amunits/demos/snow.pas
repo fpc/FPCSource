@@ -1,5 +1,5 @@
 Program Snowflake;
-{$mode objfpc}
+
 { This program draws a fractal snowflake pattern.  I think I got it out
 of some magazine years ago.  It was written, as I remember it, for the
 PC in BASIC, which I converted to AmigaBASIC.  I have long since
