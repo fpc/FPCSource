@@ -1,3 +1,4 @@
+{$mode tp}
 { this is allowed in BP !!!
   but its complete nonsense because
   this code sets parameter test
