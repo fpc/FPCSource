@@ -3,10 +3,11 @@
 #
 
 [target]
-programs=fpc ppufiles ppudump ppumove
+programs=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
+rst=fpcmkcfg fpcsubst
 
 [clean]
-units=ppu crc
+units=ppu crc usubst
 
 [compiler]
 unitdir=..
@@ -14,6 +15,9 @@ sourcedir=..
 
 [install]
 fpcpackage=y
+
+[require]
+tools=data2inc
 
 [default]
 fpcdir=../..
@@ -30,6 +34,15 @@ ppufiles$(EXEEXT): ppufiles.pp ppu$(PPUEXT)
 ppudump$(EXEEXT): ppudump.pp ppu$(PPUEXT)
 
 ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
+
+fpcsubst$(EXEEXT): fpcsubst.pp usubst.pp
+
+fpcmkcfg$(EXEEXT): fpcmkcfg.pp usubst.pp fpccfg.inc
+
+ifneq ($(DATA2INC),)
+fpccfg.inc: fpc.cft
+        $(DATA2INC) -b -s fpc.cft fpccfg.inc DefaultConfig 
+endif
 
 #
 # Don't export some tools, which are found in the current dir if it's in

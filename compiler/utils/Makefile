@@ -231,202 +231,202 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-sunos)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),sparc-sunos)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),i386-sunos)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),sparc-sunos)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override CLEAN_UNITS+=ppu crc
+override CLEAN_UNITS+=ppu crc usubst
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)
@@ -1915,6 +1915,15 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
+ifndef DATA2INC
+DATA2INC:=$(strip $(wildcard $(addsuffix /data2inc$(SRCEXEEXT),$(SEARCHPATH))))
+ifeq ($(DATA2INC),)
+DATA2INC= __missing_command_DATA2INC
+else
+DATA2INC:=$(firstword $(DATA2INC))
+endif
+endif
+export DATA2INC
 all: fpc_all
 debug: fpc_debug
 smart: fpc_smart
@@ -1943,4 +1952,10 @@ ppu$(PPUEXT): ppu.pas
 ppufiles$(EXEEXT): ppufiles.pp ppu$(PPUEXT)
 ppudump$(EXEEXT): ppudump.pp ppu$(PPUEXT)
 ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
+fpcsubst$(EXEEXT): fpcsubst.pp usubst.pp
+fpcmkcfg$(EXEEXT): fpcmkcfg.pp usubst.pp fpccfg.inc
+ifneq ($(DATA2INC),)
+fpccfg.inc: fpc.cft
+	$(DATA2INC) -b -s fpc.cft fpccfg.inc DefaultConfig 
+endif
 unexport PPUFILES PPUMOVE

@@ -230,7 +230,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2005-01-09 13:36:12  michael
+  Revision 1.1  2005-02-05 10:25:30  peter
+    * move tools to compiler/utils/
+
+  Revision 1.1  2005/01/09 13:36:12  michael
   + Initial implementation of installer tools
 
   Revision 1.2  2002/09/07 15:40:47  peter

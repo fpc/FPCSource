@@ -110,7 +110,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2005-01-09 15:19:03  peter
+  Revision 1.1  2005-02-05 10:25:30  peter
+    * move tools to compiler/utils/
+
+  Revision 1.2  2005/01/09 15:19:03  peter
     * fix linebreak
 
   Revision 1.1  2005/01/09 13:36:12  michael

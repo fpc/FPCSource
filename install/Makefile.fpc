@@ -6,35 +6,12 @@
 name=install
 version=1.9.7
 
-[require]
-packages=fcl
-
-[target]
-programs=fpcsubst fpcmkcfg
-rst=fpcmkcfg fpcsubst
-# removed to reduce dependencies of rpm.
-#dirs_linux_i386=fpde
-#dirs_win32=fpde
-
-[compiler]
-options=-S2h
-
 [install]
 fpcpackage=n
 
 [default]
 fpcdir=..
 
-[clean]
-units=usubst
-
 [rules]
-fpcsubst$(EXEEXT): fpcsubst.pp usubst.pp
-
-fpcmkcfg$(EXEEXT): fpcmkcfg.pp usubst.pp fpccfg.inc
-
-fpccfg.inc: fpc.cft
-	bin2obj -a -o fpccfg.inc -c DefaultConfig fpc.cft
-
 fpc.iss: fpc.ist
 	fpcsubst -i fpc.ist -o fpc.ist $(FPCISSSUBST)
