@@ -6,6 +6,7 @@
 \synt{object\ type} \\
 \synt{class\ type} \\
 \synt{class\ reference\ type}\\
+\synt{interface\ type}\\
 \synt{set\ type}\\
 \synt{file\ type}
 \end{stack}

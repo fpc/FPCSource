@@ -1,0 +1,23 @@
+\begin{diagram}{Interface type}{interfacetype}
+\begin{mysyntdiag}
+\lit*{Interface} 
+\begin{stack}\\ heritage \end{stack}
+\begin{stack}\\ \lit*{['} GUID \lit*{']} \end{stack}
+\begin{stack}\\ 
+\synt{component\ list} 
+\end{stack}
+\lit*{end} 
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{heritage} \lit*( \synt{interface\ type\ identifier} \lit* )
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{component\ list} 
+  \begin{rep}[b] 
+    \begin{stack} 
+      \synt{method\ definition} \\
+      \synt{property\ definition}
+    \end{stack} \\ 
+  \end{rep} 
+\end{mysyntdiag}
+\end{diagram}

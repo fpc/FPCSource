@@ -286,6 +286,7 @@ library
 on
 property
 raise
+threadvar
 try
 \end{verbatim}
 \end{multicols}
@@ -1046,13 +1047,20 @@ when a type supports the \var{packed} keyword.
 In the following, each of the possible structured types is discussed.
 \subsection{Arrays}
 \fpc supports arrays as in Turbo Pascal, multi-dimensional arrays
-and packed arrays are also supported:
+and packed arrays are also supported, as well as the dynamic arrays of
+Delphi:
 \input{syntax/typearr.syn}
-The following is a valid array declaration:
+\subsubsection{Static arrays}
+When the range of the array is included in the array definition, it is
+called a static array. Trying to access an element with an index that is
+outside the declared range will generate a run-time error (if range checking
+is on).  The following is an example of a valid array declaration:
 \begin{verbatim}
 Type
   RealArray = Array [1..100] of Real;
 \end{verbatim}
+Valid indexes for accessing an element of the array are between 1 and 100,
+where the borders 1 and 100 are included.
 As in Turbo Pascal, if the array component type is in itself an array, it is
 possible to combine the two arrays into one multi-dimensional array. The
 following declaration:
@@ -1068,6 +1076,162 @@ Type
 The functions \seef{High} and \seef{Low} return the high and low bounds of
 the leftmost index type of the array. In the above case, this would be 100
 and 1.
+
+When static array-type variables are assigned to each other, the contents of the
+whole array is copied. This is also true for multi-dimensional arrays:
+\begin{verbatim}
+program testarray1;
+
+Type
+  TA = Array[0..9,0..9] of Integer;
+  
+var   
+  A,B : TA;
+  I,J : Integer;
+begin
+  For I:=0 to 9 do
+    For J:=0 to 9 do 
+      A[I,J]:=I*J;
+  For I:=0 to 9 do
+    begin
+    For J:=0 to 9 do 
+      Write(A[I,J]:2,' ');
+    Writeln;
+    end;
+  B:=A;
+  Writeln;
+  For I:=0 to 9 do
+    For J:=0 to 9 do 
+      A[9-I,9-J]:=I*J;
+  For I:=0 to 9 do
+    begin
+    For J:=0 to 9 do 
+      Write(B[I,J]:2,' ');
+    Writeln;
+    end;
+end.  
+\end{verbatim}
+The output will be 2 identical matrices.
+
+\subsubsection{Dynamic arrays}
+As of version 1.1, \fpc also knows dynamic arrays: In that case, the array
+range is omitted, as in the following example:
+\begin{verbatim}
+Type
+  TByteArray : Array of Byte;
+\end{verbatim}
+When declaring a variable of a dynamic array type, the initial length of the
+array is zero. The actual length of the array must be set with the standard
+\var{SetLength} function, which will allocate the memory to contain the
+array elements on the heap. The following example will set the length to
+1000:
+\begin{verbatim}
+Var 
+  A : TByteArray;
+
+begin
+  SetLength(A,1000);
+\end{verbatim}
+After a call to \var{SetLength}, valid array indexes are 0 to 999: the array
+index is always zero-based.
+
+Note that the length of the array is set in elements, not in bytes of 
+allocated mmemory (although these may be the same). The amount of 
+memory allocated is the size of the array multiplied by the size of 
+1 element in the array. The memory will be disposed of at the exit of the
+current procedure or function. 
+
+It is also possible to resize the array: in that case, as much of the 
+elements in the array as will fit in the new size, will be kept. The array
+can be resized to zero, which effectively resets the variable.
+
+At all times, trying to access an element of the array that is not in the
+current length of the array will generate a run-time error.
+
+Assignment of one dynamic array-type variable to another will let both
+variables point to the same array. Contrary to ansistrings, an 
+assignment to an element of one array will be reflected in the 
+other:
+\begin{verbatim}
+Var
+  A,B : TByteArray;
+
+begin
+  SetLength(A,10);
+  A[1]:=33;
+  B:=A;
+  A[1]:=31;
+\end{verbatim}
+After the second assignment, the first element in B will also contain 31.
+
+It can also be seen from the output of the following example:
+\begin{verbatim}
+program testarray1;
+
+Type
+  TA = Array of array of Integer;
+  
+var   
+  A,B : TA;
+  I,J : Integer;
+begin
+  Setlength(A,10,10);
+  For I:=0 to 9 do
+    For J:=0 to 9 do 
+      A[I,J]:=I*J;
+  For I:=0 to 9 do
+    begin
+    For J:=0 to 9 do 
+      Write(A[I,J]:2,' ');
+    Writeln;
+    end;
+  B:=A;
+  Writeln;
+  For I:=0 to 9 do
+    For J:=0 to 9 do 
+      A[9-I,9-J]:=I*J;
+  For I:=0 to 9 do
+    begin
+    For J:=0 to 9 do 
+      Write(B[I,J]:2,' ');
+    Writeln;
+    end;
+end.  
+\end{verbatim}
+The output will be a matrix of numbers, and then the same matrix, mirrorred.
+
+Dynamic arrays are reference counted: if in one of the previous examples A
+goes out of scope and B does not, then the array is not yet disposed of: the
+reference count of A (and B) is decreased with 1. As soon as the reference
+count reaches zero, the memory is disposed of.
+
+It is also possible to copy and/or resize the array with the standard 
+\var{Copy} function, which acts as the copy function for strings:
+\begin{verbatim}
+program testarray3;
+
+Type
+  TA = array of Integer;
+  
+var   
+  A,B : TA;
+  I,J : Integer;
+begin
+  Setlength(A,10);
+  For I:=0 to 9 do
+      A[I]:=I;
+  B:=Copy(A,3,9);    
+  For I:=0 to 5 do
+    Writeln(B[I]);
+end.  
+\end{verbatim}
+The \var{Copy} function will copy 9 elements of the array to a new array.
+Starting at the element at index 3 (i.e. the fourth element) of the array.
+
+The \var{Low} function on a dynamic array will always return 0, and the
+High function will return the value \var{Length-1}, i.e., the value of the
+highest allowed array index. The \var{Length} function will return the
+number of elements in the array.
 \subsection{Record types}
 \fpc supports fixed records and records with variant parts.
 The syntax diagram for a record type is
@@ -1508,8 +1672,116 @@ calling convention.
 \end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Objects
+% Variant types
+\section{Variant types}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Definition
+\subsection{Definition}
+As of version 1.1, FPC has support for variants. For variant support to be
+enabled, the \file{variants} unit must be included in every unit that uses
+variants in some way. Furthermore, the compiler must be in \var{Delphi} or
+\var{ObjFPC} mode.
+
+The type of a value stored in a variant is only determined at runtime: 
+it depends what has been assigned to the to the variant. Almost any type 
+can be assigned to variants: ordinal types, string types, int64 types.
+Structured types such as sets, records, arrays, files, objects and classes 
+are not assign-compatible with a variant, as well as pointers. Interfaces
+and COM or CORBA objects can be assigned to a variant.
+
+This means that the following assignments are valid:
+\begin{verbatim}
+Type
+  TMyEnum = (One,Two,Three);
+
+Var
+  V : Variant;
+  I : Integer;
+  B : Byte;
+  W : Word;
+  Q : Int64;
+  E : Extended;
+  D : Double;
+  En : TMyEnum;
+  AS : AnsiString;
+  WS : WideString;
+
+begin
+  V:=I;
+  V:=B;
+  V:=W;
+  V:=Q;
+  V:=E;
+  V:=En;
+  V:=D:
+  V:=AS;
+  V:=WS;
+end;
+\end{verbatim}
+And of course vice-versa as well.
+\begin{remark}
+The enumerated type assignment is broken in the early 1.1 development series of the
+compiler. It is expected that this is fixed soon.
+\end{remark}
+
+A variant can hold an an array of values: All elements in the array have the
+same type (but can be of type 'variant'). For a variant that contains an
+array, the variant can be indexed:
+\begin{verbatim}
+Program testv;
+
+uses variants;
+
+Var
+  A : Variant;
+  I : integer;
+
+begin
+  A:=VarArrayCreate([1,10],varInteger);
+  For I:=1 to 10 do
+    A[I]:=I;
+end.
+\end{verbatim}
+(for the explanation of \var{VarArrayCreate}, see \unitsref.)
+
+Note that when the array contains a string, this is not considered an 'array
+of characters', and so the variant cannot be indexed to retrieve a character
+at a certain position in the string.
+
+\begin{remark}
+The array functionality is broken in the early 1.1 development series of the
+compiler. It is expected that this is fixed soon.
+\end{remark}
+
+\subsection{Variants in assignments and expressions}
+As can be seen from the definition above, most simple types can be assigned
+to a variant. Likewise, a variant can be assigned to a simple type: If
+possible, the value of the variant will be converted to the type that is
+being assigned to. This may fail: Assigning a variant containing a string 
+to an integer will fail unless the string represents a valid integer. In the
+following example, the first assignment will work, the second will fail:
+\begin{verbatim}
+program testv3;
+
+uses Variants;
+
+Var
+  V : Variant;
+  I : Integer;
+
+begin
+  V:='100';
+  I:=V;
+  Writeln('I : ',I);
+  V:='Something else';
+  I:=V;
+  Writeln('I : ',I);
+end.
+\end{verbatim}
+The first assignment will work
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Objects
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Objects}
 \label{ch:Objects}
@@ -1870,7 +2142,6 @@ of an ordinary \var{record} type.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Classes
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Classes}
 \label{ch:Classes}
@@ -2270,10 +2541,158 @@ AIntList[26] := 1;
 Only one default property per class is allowed, and descendent classes
 cannot redeclare the default property.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Interfaces
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Interfaces}
+\label{ch:Interfaces}
+\section{Definition}
+As of version 1.1, FPC supports interfaces. Interfaces are an 
+alternative to multiple inheritance (where a class can have multiple
+parent classes) as implemented for instance in C++.  An interface is
+basically a named set of methods and properties: A class that 
+{\em implements} the interface provides {\em all} the methods as 
+they are enumerated in the Interface definition. It is not possible for a
+class to implement only part of the interface: it is all or nothing.
+
+Interfaces can also be ordered in a hierarchy, exactly as classes:
+An interface definition that inherits from another interface definition
+contains all the methods from the parent interface, as well as the methods
+explicitly named in the interface definition. A class implementing an
+interface must then implement all members of the interface as well as the
+methods of the parent interface(s).
+
+An interface can be uniquely identified by a GUID (GUID is an acronym for
+Globally Unique Identifier, a 128-bit integer guaranteed always to be 
+unique\footnote{In theory, of course.}. Especially on Windows systems, the
+GUID of an interface can and most be used when using COM.
+
+The definition of an Interface has the following form:
+\input{syntax/typeintf.syn}
+Along with this definition the following must be noted:
+\begin{itemize}
+\item Interfaces can only be used in \var{DELPHI} mode or in \var{OBJFPC}
+mode.
+\item There are no visibility specifiers. All members are public (indeed,
+it would make little sense to make them private or protected).
+\item The properties declared in an interface can only have methods as read and
+write specifiers.
+\item There are no constructors or destructors. Instances of interfaces
+cannot be created directly: instead, an instance of a class implementing 
+the interface must be created.
+\item Only calling convention modifiers may be present in the definition of
+a method. Modifiers as \var{virtual}, \var{abstract} or \var{dynamic}, and
+hence also \var{override} cannot be present in the definition of a interface
+definition.
+\end{itemize}
+
+\section{Identification: A GUID}
+An interface can be identified by a GUID. This is a 128-bit number, which is
+represented in a text representation (a string literal):
+\begin{verbatim}
+['{HHHHHHHH-HHHH-HHHH-HHHH-HHHHHHHHHHHH}']
+\end{verbatim}
+Each \var{H} character represents a hexadecimal number (0-9,A-F). The format
+contains 8-4-4-4-12 numbers. A GUID can also be represented by the following
+record, defined in the \file{objpas} unit (included automatically when in
+\var{DELPHI} or \var{OBJFPC} mode:
+\begin{verbatim}
+PGuid = ^TGuid;
+TGuid = packed record
+   case integer of
+      1 : (
+           Data1 : DWord;
+           Data2 : word;
+           Data3 : word;
+           Data4 : array[0..7] of byte;
+          );
+      2 : (
+           D1 : DWord;
+           D2 : word;
+           D3 : word;
+           D4 : array[0..7] of byte;
+          );
+end;
+\end{verbatim}
+A constant of type TGUID can be specified using a string literal:
+\begin{verbatim}
+{$mode objfpc}
+program testuid;
+
+Const
+  MyGUID : TGUID = '{10101010-1010-0101-1001-110110110110}';
+
+begin
+end.
+\end{verbatim}
+
+\section{Interfaces and COM}
+When using interfaces on Windows which should be available to the COM
+subsystem, the calling convention should be \var{stdcall} - this is not the
+default \fpc calling convention, so it should be specified explicitly.
+
+COM does not know properties. It only knows methods. So when specifying
+property definitions as part of an interface definition, be aware that the
+properties will only be known in the \fpc compiled program: other Windows
+programs will not be aware of the property definitions. For this reason,
+property definitions must always have interface methods as the read/write
+specifiers.
+
+\section*{Interface implementations}
+When a class implements an interface, it should implement all methods of the
+interface. If a method of an interface is not implemented, then the compiler
+will give an error. For example:
+\begin{verbatim}
+Type
+  IMyInterface = Interface
+    Function MyFunc : Integer;
+    Function MySecondFunc : Integer;
+  end;
+
+  TMyClass = Class(TInterfacedObject,IMyInterface)
+    Function MyFunc : Integer;
+    Function MyOtherFunc : Integer;
+  end;
+
+Function TMyClass.MyFunc : Integer;
+
+begin
+  Result:=23;
+end;
+
+Function TMyClass.MyOtherFunc : Integer;
+
+begin
+  Result:=24;
+end;
+\end{verbatim}
+will result in a compiler error:
+\begin{verbatim}
+Error: No matching implementation for interface method
+"IMyInterface.MySecondFunc:LongInt" found
+\end{verbatim}
+
+At the moment of writing, the compiler does not yet support providing
+aliases for an interface as in Delphi. i.e. the following will not yet 
+compile:
+\begin{verbatim}
+ype
+  IMyInterface = Interface
+    Function MyFunc : Integer;
+  end;
+
+  TMyClass = Class(TInterfacedObject,IMyInterface)
+    Function MyOtherFunction : Integer;
+    // The following fails in FPC.
+    Function IMyInterface.MyFunc = MyOtherFunction;
+  end;
+\end{verbatim}
+This declaration should tell the compiler that the \var{MyFunc} method of
+the \var{IMyInterface} interface is implemented in the \var{MyOtherFunction}
+method of the \var{TMyClass} class.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Expressions
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Expressions}
 \label{ch:Expressions}
@@ -4853,8 +5272,8 @@ DriveSeparator = ':';
 PathSeparator = ':';
 FileNameCaseSensitive : Boolean = True;
 \end{verbatim}
-(the shown values are for \unix platforms, but will be different on other
-platforms)
+The shown values are for \unix platforms, but will be different on other
+platforms.
 The meaning of the constants is the following:
 \begin{description}
 \item[LineEnding] End of line marker. This constant is used when writing end
@@ -5371,12 +5790,12 @@ byte-per-byte basis for a total of \var{len} bytes.
 
 The function returns one of the following values:
 \begin{description}
-\item[-1] if \var{buf1} and \var{buf2} contain different bytes
+\item[less than 0] if \var{buf1} and \var{buf2} contain different bytes
 in the first \var{len} bytes, and the first such byte is smaller in \var{buf1}
 than the byte at the same position in \var{buf2}.
 \item[0]  if the first \var{len} bytes in \var{buf1} and \var{buf2} are
 equal.
-\item [1] if \var{buf1} and \var{buf2} contain different bytes
+\item [greater than 0] if \var{buf1} and \var{buf2} contain different bytes
 in the first \var{len} bytes, and the first such byte is larger in \var{buf1}
 than the byte at the same position in \var{buf2}.
 \end{description}
@@ -6686,7 +7105,10 @@ Procedure Readln [Var F : Text], V1 [, V2, ... , Vn]);
 \Description
 \var{Read} reads one or more values from a file \var{F}, and stores the
 result in \var{V1}, \var{V2}, etc. After that it goes to the next line in
-the file (defined by the \var{LineFeed (\#10)} character).
+the file. The end of the line is marked by the \var{LineEnding}
+character sequence (which is platform dependent). The end-of-line marker is
+not considered part of the line and is ignored.
+
 If no file \var{F} is specified, then standard input is read.
 The variables \var{V1, V2} etc. must be of type \var{Char}, \var{Integer},
 \var{Real}, \var{String} or \var{PChar}.
