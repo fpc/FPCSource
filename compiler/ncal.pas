@@ -526,15 +526,7 @@ type
              if (m_tp_procvar in aktmodeswitches) and
                 (left.nodetype=calln) and
                 (is_void(left.resulttype.def)) then
-              begin
-                p1:=cloadnode.create_procvar(tcallnode(left).symtableprocentry,
-                   tprocdef(tcallnode(left).procdefinition),tcallnode(left).symtableproc);
-                if assigned(tcallnode(left).right) then
-                 tloadnode(p1).set_mp(tcallnode(left).right);
-                left.free;
-                left:=p1;
-                resulttypepass(left);
-              end;
+               load_procvar_from_calln(left);
 
              case defcoll.paratyp of
                vs_var,
@@ -1618,6 +1610,7 @@ type
         found,
         is_const : boolean;
         bestord  : torddef;
+        eq : tequaltype;
         srprocsym  : tprocsym;
         srsymtable : tsymtable;
       begin
@@ -1884,14 +1877,19 @@ type
                                     hp^.nextPara.convertlevel:=0
                                    else
                                     begin
-                                      case compare_defs(pt.resulttype.def,hp^.nextPara.paratype.def,pt.left.nodetype) of
+                                      eq:=compare_defs(pt.resulttype.def,hp^.nextPara.paratype.def,pt.left.nodetype);
+                                      case eq of
+                                        te_equal,
+                                        te_exact,
                                         te_convert_l1 :
                                           hp^.nextPara.convertlevel:=1;
                                         te_convert_operator,
                                         te_convert_l2 :
                                           hp^.nextPara.convertlevel:=2;
-                                        else
+                                        te_incompatible :
                                           hp^.nextPara.convertlevel:=0;
+                                        else
+                                          internalerror(200211271);
                                       end;
                                     end;
                                    case hp^.nextPara.convertlevel of
@@ -2844,7 +2842,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.111  2002-11-27 02:31:17  peter
+  Revision 1.112  2002-11-27 15:33:46  peter
+    * the never ending story of tp procvar hacks
+
+  Revision 1.111  2002/11/27 02:31:17  peter
     * fixed inlinetree parsing in det_resulttype
 
   Revision 1.110  2002/11/25 18:43:32  carl

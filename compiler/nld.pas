@@ -147,6 +147,8 @@ interface
        crttinode : trttinodeclass;
 
 
+      procedure load_procvar_from_calln(var p1:tnode);
+
 implementation
 
     uses
@@ -155,6 +157,36 @@ implementation
       htypechk,pass_1,
       ncon,ninl,ncnv,nmem,ncal,cpubase,rgobj,cginfo,cgbase
       ;
+
+{*****************************************************************************
+                                 Helpers
+*****************************************************************************}
+
+      procedure load_procvar_from_calln(var p1:tnode);
+        var
+          p2 : tnode;
+        begin
+          { was it a procvar, then we simply remove the calln and
+            reuse the right }
+          if assigned(tcallnode(p1).right) then
+            begin
+              p2:=tcallnode(p1).right;
+              tcallnode(p1).right:=nil;
+            end
+          else
+            begin
+              p2:=cloadnode.create_procvar(tcallnode(p1).symtableprocentry,
+                 tprocdef(tcallnode(p1).procdefinition),tcallnode(p1).symtableproc);
+              if assigned(tcallnode(p1).methodpointer) then
+               begin
+                 tloadnode(p2).set_mp(tcallnode(p1).methodpointer);
+                 tcallnode(p1).methodpointer:=nil;
+               end;
+            end;
+          resulttypepass(p2);
+          p1.free;
+          p1:=p2;
+        end;
 
 
 {*****************************************************************************
@@ -1181,7 +1213,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2002-11-25 17:43:20  peter
+  Revision 1.67  2002-11-27 15:33:47  peter
+    * the never ending story of tp procvar hacks
+
+  Revision 1.66  2002/11/25 17:43:20  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

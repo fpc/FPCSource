@@ -195,17 +195,6 @@ implementation
             exit;
           end;
 
-         { tp7 procvar def support, in tp7 a procvar is always called, if the
-           procvar is passed explicit a addrn would be there }
-         if (m_tp_procvar in aktmodeswitches) and
-            (def_from.deftype=procvardef) and
-            (fromtreetype=loadn) and
-            { only if the procvar doesn't require any paramters }
-            (tprocvardef(def_from).minparacount = 0) then
-          begin
-            def_from:=tprocvardef(def_from).rettype.def;
-          end;
-
          { we walk the wanted (def_to) types and check then the def_from
            types if there is a conversion possible }
          b:=te_incompatible;
@@ -1160,7 +1149,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-11-27 02:32:14  peter
+  Revision 1.3  2002-11-27 15:33:46  peter
+    * the never ending story of tp procvar hacks
+
+  Revision 1.2  2002/11/27 02:32:14  peter
     * fix cp_procvar compare
 
   Revision 1.1  2002/11/25 17:43:16  peter

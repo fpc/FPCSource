@@ -1096,7 +1096,7 @@ implementation
       var
          vl,vl2    : TConstExprInt;
          vr        : bestreal;
-         hp        : tnode;
+         hp,p1     : tnode;
          srsym     : tsym;
          isreal    : boolean;
          checkrange : boolean;
@@ -1569,13 +1569,7 @@ implementation
 
               in_assigned_x:
                 begin
-{
-                   result := caddnode.create(unequaln,
-                     ctypeconvnode.create_explicit(tcallparanode(left).left,
-                     voidpointertype),cnilnode.create);
-}
-                   result := caddnode.create(unequaln,tcallparanode(left).left,
-                     cnilnode.create);
+                   result := caddnode.create(unequaln,tcallparanode(left).left,cnilnode.create);
                    tcallparanode(left).left := nil;
                    { free left, because otherwise some code at 'myexit' tries  }
                    { to run get_paratype for it, which crashes since left.left }
@@ -2401,7 +2395,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.99  2002-11-27 02:37:13  peter
+  Revision 1.100  2002-11-27 15:33:47  peter
+    * the never ending story of tp procvar hacks
+
+  Revision 1.99  2002/11/27 02:37:13  peter
     * case statement inlining added
     * fixed inlining of write()
     * switched statementnode left and right parts so the statements are

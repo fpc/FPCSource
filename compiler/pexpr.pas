@@ -207,8 +207,8 @@ implementation
          p1 : tnode;
       begin
          if (m_tp_procvar in aktmodeswitches) and
+            (token<>_ASSIGNMENT) and
             (not got_addrn) and
-            (not in_args) and
             (block_type=bt_general) then
           begin
             { ignore vecn,subscriptn }
@@ -225,9 +225,16 @@ implementation
             until false;
             if (hp.nodetype=loadn) then
                begin
-                  { support if procvar then for tp7 and many other expression like this }
+                  { get the resulttype of p }
                   do_resulttypepass(p);
-                  if (getprocvardef=nil) and (p.resulttype.def.deftype=procvardef) then
+                  { convert the procvar load to a call:
+                     - not expecting a procvar
+                     - the procvar does not get arguments, when it
+                       requires arguments the callnode will fail
+                       Note: When arguments were passed there was no loadn }
+                  if (getprocvardef=nil) and
+                     (p.resulttype.def.deftype=procvardef) and
+                     (tprocvardef(p.resulttype.def).minparacount=0) then
                     begin
                        p1:=ccallnode.create(nil,nil,nil,nil);
                        tcallnode(p1).set_procvar(p);
@@ -362,6 +369,12 @@ implementation
               p1:=comp_expr(true);
               if not codegenerror then
                begin
+                 { load procvar if a procedure is passed }
+                 if (m_tp_procvar in aktmodeswitches) and
+                    (p1.nodetype=calln) and
+                    (is_void(p1.resulttype.def)) then
+                   load_procvar_from_calln(p1);
+
                  case p1.resulttype.def.deftype of
                    pointerdef,
                    procvardef,
@@ -1616,13 +1629,12 @@ implementation
                                 p2:=p1;
                                 p1:=ccallnode.create(nil,nil,nil,nil);
                                 tcallnode(p1).set_procvar(p2);
-                                if token=_LKLAMMER then
+                                if try_to_consume(_LKLAMMER) then
                                   begin
-                                     consume(_LKLAMMER);
                                      tcallnode(p1).left:=parse_paras(false,false);
                                      consume(_RKLAMMER);
                                   end;
-                             { proc():= is never possible }
+                                { proc():= is never possible }
                                 if token=_ASSIGNMENT then
                                  begin
                                    Message(cg_e_illegal_expression);
@@ -2021,9 +2033,7 @@ implementation
 
         { tp7 procvar handling, but not if the next token
           will be a := }
-        if (m_tp_procvar in aktmodeswitches) and
-           (token<>_ASSIGNMENT) then
-          check_tp_procvar(p1);
+        check_tp_procvar(p1);
 
         factor:=p1;
         check_tokenpos;
@@ -2160,9 +2170,7 @@ implementation
          if not assigned(p1.resulttype.def) then
           do_resulttypepass(p1);
          filepos:=akttokenpos;
-         if (m_tp_procvar in aktmodeswitches) and
-            (token<>_ASSIGNMENT) then
-           check_tp_procvar(p1);
+         check_tp_procvar(p1);
          if token in [_ASSIGNMENT,_PLUSASN,_MINUSASN,_STARASN,_SLASHASN] then
            afterassignment:=true;
          oldp1:=p1;
@@ -2264,7 +2272,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2002-11-26 22:58:24  peter
+  Revision 1.94  2002-11-27 15:33:47  peter
+    * the never ending story of tp procvar hacks
+
+  Revision 1.93  2002/11/26 22:58:24  peter
     * fix for tw2178. When a ^ or . follows a procsym then the procsym
       needs to be called
 
