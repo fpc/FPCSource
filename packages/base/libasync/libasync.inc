@@ -55,7 +55,7 @@ var
   NeedData: Boolean;
   CallbackTypes: TCallbackTypes;
 begin
-  if IOHandle > MaxHandle then
+  if (IOHandle < 0) or (IOHandle > MaxHandle) then
   begin
     Result := asyncInvalidFileHandle;
     exit;
@@ -483,7 +483,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2002-09-25 21:53:39  sg
+  Revision 1.5  2003-11-21 01:05:28  sg
+  * Improved checks for valid handles
+
+  Revision 1.4  2002/09/25 21:53:39  sg
   * Split in common implementation an platform dependent implementation
 
 }
