@@ -51,12 +51,12 @@ NEWPPUFILES=`pwd`/utils/ppufiles
 	make man_install PP=${NEWPP}
 	
 %clean
-	make compiler_clean
-	make rtl_clean
-	make fcl_clean
-	make api_clean
-	make packages_clean
-	make utils_clean
+	make compiler_distclean
+	make rtl_distclean
+	make fcl_distclean
+	make api_distclean
+	make packages_distclean
+	make utils_distclean
 
 %post
 FPCDIR=%{fpcdir}
