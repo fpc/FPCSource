@@ -6,11 +6,13 @@
 
 uses
   Linux,Video
+{$ifndef NOMOUSE}
 {$ifdef OLDGPM}
   ,gpm114
 {$else}
   ,gpm
 {$endif}
+{$endif ndef NOMOUSE}
   ;
 
 const
@@ -22,9 +24,12 @@ var
 
 
 procedure PlaceMouseCur(ofs:longint);
+{$ifndef NOMOUSE}
 var
   upd : boolean;
+{$endif ndef NOMOUSE}
 begin
+{$ifndef NOMOUSE}
   if VideoBuf=nil then
    exit;
   upd:=false;
@@ -42,13 +47,17 @@ begin
    end;
   if upd then
    Updatescreen(false);
+{$endif ndef NOMOUSE}
 end;
 
 
 procedure InitMouse;
+{$ifndef NOMOUSE}
 var
   connect : TGPMConnect;
+{$endif ndef NOMOUSE}
 begin
+{$ifndef NOMOUSE}
   PendingMouseHead:=@PendingMouseEvent;
   PendingMouseTail:=@PendingMouseEvent;
   PendingMouseEvents:=0;
@@ -61,20 +70,27 @@ begin
   Gpm_Open(connect,0);
 { show mousepointer }
   ShowMouse;
+{$endif ndef NOMOUSE}
 end;
 
 
 procedure DoneMouse;
 begin
+{$ifndef NOMOUSE}
   HideMouse;
   Gpm_Close;
+{$endif ndef NOMOUSE}
 end;
 
 
 function DetectMouse:byte;
 begin
+{$ifdef NOMOUSE}
+  DetectMouse:=0;
+{$else ndef NOMOUSE}
 { always a mouse deamon present }
   DetectMouse:=2;
+{$endif ndef NOMOUSE}
 end;
 
 
@@ -93,35 +109,53 @@ end;
 
 
 function GetMouseX:word;
+{$ifndef NOMOUSE}
 var
   e : TGPMEvent;
+{$endif ndef NOMOUSE}
 begin
+{$ifdef NOMOUSE}
+  GetMouseX:=0;
+{$else ndef NOMOUSE}
   if gpm_fd<0 then
    exit(0);
   Gpm_GetSnapshot(e);
   GetMouseX:=e.x-1;
+{$endif ndef NOMOUSE}
 end;
 
 
 function GetMouseY:word;
+{$ifndef NOMOUSE}
 var
   e : TGPMEvent;
+{$endif ndef NOMOUSE}
 begin
+{$ifdef NOMOUSE}
+  GetMouseY:=0;
+{$else ndef NOMOUSE}
   if gpm_fd<0 then
    exit(0);
   Gpm_GetSnapshot(e);
   GetMouseY:=e.y-1;
+{$endif ndef NOMOUSE}
 end;
 
 
 function GetMouseButtons:word;
+{$ifndef NOMOUSE}
 var
   e : TGPMEvent;
+{$endif ndef NOMOUSE}
 begin
+{$ifdef NOMOUSE}
+  GetMouseButtons:=0;
+{$else ndef NOMOUSE}
   if gpm_fd<0 then
    exit(0);
   Gpm_GetSnapshot(e);
   GetMouseButtons:=e.buttons;
+{$endif ndef NOMOUSE}
 end;
 
 
@@ -131,9 +165,14 @@ end;
 
 
 procedure GetMouseEvent(var MouseEvent: TMouseEvent);
+{$ifndef NOMOUSE}
 var
   e : TGPMEvent;
+{$endif ndef NOMOUSE}
 begin
+{$ifdef NOMOUSE}
+  fillchar(@MouseEvent,SizeOf(TMouseEvent),#0);
+{$else ndef NOMOUSE}
   if gpm_fd<0 then
    exit;
   Gpm_GetEvent(e);
@@ -158,15 +197,22 @@ begin
 { update mouse cursor }
   if mousecur then
    PlaceMouseCur(MouseEvent.y*ScreenWidth+MouseEvent.x);
+{$endif ndef NOMOUSE}
 end;
 
 
 function PollMouseEvent(var MouseEvent: TMouseEvent):boolean;
 
+{$ifndef NOMOUSE}
 var
   e : TGPMEvent;
   fds : FDSet;
+{$endif ndef NOMOUSE}
 begin
+{$ifdef NOMOUSE}
+  fillchar(@MouseEvent,SizeOf(TMouseEvent),#0);
+  exit(false);
+{$else ndef NOMOUSE}
   if gpm_fd<0 then
    exit(false);
   FD_Zero(fds);
@@ -195,11 +241,15 @@ begin
    end
   else
    PollMouseEvent:=false;
+{$endif ndef NOMOUSE}
 end;
 
 {
   $Log$
-  Revision 1.1  2000-01-06 01:20:31  peter
+  Revision 1.2  2000-04-17 08:51:38  pierre
+   + set conditional NOMOUSE to get dummy mouse unit
+
+  Revision 1.1  2000/01/06 01:20:31  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  1999/11/24 23:36:38  peter
