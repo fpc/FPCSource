@@ -26,7 +26,7 @@ type
    directivestr=string[directivelen];
    tdirectivetoken=(
      _DIR_NONE,
-     _DIR_ALIGN,
+     _DIR_ALIGN,_DIR_ASMMODE,
      _DIR_D,_DIR_DEFINE,_DIR_DESCRIPTION,
      _DIR_ELSE,_DIR_ENDIF,_DIR_ERROR,
      _DIR_FATAL,
@@ -46,7 +46,7 @@ const
    lastdirective=_DIR_WARNING;
    directive:array[tdirectivetoken] of directivestr=(
      '',
-     'ALIGN',
+     'ALIGN','ASMMODE',
      'D','DEFINE','DESCRIPTION',
      'ELSE','ENDIF','ERROR',
      'FATAL',
@@ -697,6 +697,19 @@ const
       end;
 
     procedure dir_asmmode(t:tdirectivetoken);
+      var
+        s : string;
+      begin
+        skipspace;
+        s:=readid;
+        if s='DEFAULT' then
+         aktasmmode:=initasmmode
+        else
+         if not set_string_asmmode(s,aktasmmode) then
+          Comment(V_Warning,'Unsupported asm mode specified '+s);     
+      end;
+
+    procedure dir_oldasmmode(t:tdirectivetoken);
       begin
 {$ifdef i386}
         case t of
@@ -730,6 +743,7 @@ const
         directiveproc:array[tdirectivetoken] of tdirectiveproc=(
          {_DIR_NONE} nil,
          {_DIR_ALIGN} dir_delphiswitch,
+         {_DIR_ASMMODE} dir_asmmode,
          {_DIR_D} dir_description,
          {_DIR_DEFINE} dir_define,
          {_DIR_DESCRIPTION} dir_description,
@@ -738,9 +752,9 @@ const
          {_DIR_ERROR} dir_message,
          {_DIR_FATAL} dir_message,
          {_DIR_I} dir_include,
-         {_DIR_I386_ATT} dir_asmmode,
-         {_DIR_I386_DIRECT} dir_asmmode,
-         {_DIR_I386_INTEL} dir_asmmode,
+         {_DIR_I386_ATT} dir_oldasmmode,
+         {_DIR_I386_DIRECT} dir_oldasmmode,
+         {_DIR_I386_INTEL} dir_oldasmmode,
          {_DIR_IOCHECKS} dir_delphiswitch,
          {_DIR_IF} dir_conditional,
          {_DIR_IFDEF} dir_conditional,
@@ -816,7 +830,10 @@ const
 
 {
   $Log$
-  Revision 1.9  1998-05-23 01:21:28  peter
+  Revision 1.10  1998-05-30 14:31:10  peter
+    + $ASMMODE
+
+  Revision 1.9  1998/05/23 01:21:28  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in

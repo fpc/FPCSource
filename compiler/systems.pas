@@ -26,6 +26,27 @@ unit systems;
   interface
 
     type
+       tendian = (endian_little,en_big_endian);
+
+       tprocessors = (
+{$ifdef i386}
+              i386,i486,pentium,pentiumpro,cx6x86,pentium2,amdk6
+{$endif}
+{$ifdef m68k}
+              MC68000,MC68020
+{$endif}
+       );
+
+
+       tasmmode = (
+{$ifdef i386}
+              I386_ATT,I386_INTEL,I386_DIRECT
+{$endif}
+{$ifdef m68k}
+              M68K_MOT
+{$endif}
+       );
+
        ttarget = (target_GO32V1,target_GO32V2,target_LINUX,target_OS2,
                   target_WIN32,target_Amiga,target_Atari,target_Mac68k);
 
@@ -49,7 +70,6 @@ unit systems;
        {$endif}
        );
 
-       tendian = (endian_little,en_big_endian);
 
        tosinfo = record
           name      : string[30];
@@ -106,6 +126,10 @@ unit systems;
           assem       : tasm;
        end;
 
+       tasmmodeinfo=record
+          id    : tasmmode;
+          idtxt : string[8];
+       end;
 
     var
        target_info : ttargetinfo;
@@ -116,7 +140,7 @@ unit systems;
 
     function set_string_target(const s : string) : boolean;
     function set_string_asm(const s : string) : boolean;
-
+    function set_string_asmmode(const s:string;var t:tasmmode):boolean;
 
 implementation
 
@@ -545,6 +569,31 @@ implementation
           )
           );
 
+{****************************************************************************
+                             AsmModeInfo
+****************************************************************************}
+       asmmodeinfos : array[tasmmode] of tasmmodeinfo = (
+{$ifdef i386}
+          (
+            id : I386_DIRECT;
+            idtxt : 'DIRECT';
+          ),
+          (
+            id    : I386_INTEL;
+            idtxt : 'INTEL';
+          ),
+          (
+            id    : I386_ATT;
+            idtxt : 'ATT'
+          )
+{$endif}
+{$ifdef m68k}
+          (
+            id    : M68K_MOT;
+            idtxt : 'MOT';
+          )
+{$endif}
+          );
 
 {****************************************************************************
                                 Helpers
@@ -588,6 +637,20 @@ begin
       target_asm:=as_infos[tasm(j)];
       set_string_asm:=true;
     end;
+end;
+
+
+function set_string_asmmode(const s:string;var t:tasmmode):boolean;
+var
+  i : longint;
+begin
+  set_string_asmmode:=false;
+  for i:=0 to (sizeof(asmmodeinfos) div sizeof(tasmmodeinfo))-1 do
+   if asmmodeinfos[tasmmode(i)].idtxt=s then
+    begin
+      t:=asmmodeinfos[tasmmode(i)].id;
+      set_string_asmmode:=true;
+    end;   
 end;
 
 
@@ -637,7 +700,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  1998-05-29 13:24:45  peter
+  Revision 1.15  1998-05-30 14:31:11  peter
+    + $ASMMODE
+
+  Revision 1.14  1998/05/29 13:24:45  peter
     + asw assembler
 
   Revision 1.13  1998/05/27 00:20:33  peter

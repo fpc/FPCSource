@@ -60,7 +60,7 @@ begin
             'x' : initswitches:=initswitches+[cs_optimize,cs_maxoptimieren];
             'z' : initswitches:=initswitches+[cs_optimize,cs_uncertainopts];
             '2' : initoptprocessor:=pentium2;
-            '3' : initoptprocessor:=globals.i386;
+            '3' : initoptprocessor:=systems.i386;
             '4' : initoptprocessor:=i486;
             '5' : initoptprocessor:=pentium;
             '6' : initoptprocessor:=pentiumpro;
@@ -89,7 +89,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1998-05-28 17:26:48  peter
+  Revision 1.7  1998-05-30 14:31:05  peter
+    + $ASMMODE
+
+  Revision 1.6  1998/05/28 17:26:48  peter
     * fixed -R switch, it didn't work after my previous akt/init patch
     * fixed bugs 110,130,136
 

@@ -75,7 +75,7 @@ var
 Implementation
 
 Uses
-  files,aasm,globals,AsmUtils,strings,hcodegen,scanner,
+  files,aasm,globals,AsmUtils,strings,hcodegen,scanner,systems,
   cobjects,verbose,symtable,types;
 
 type
@@ -1536,7 +1536,7 @@ const
     { the att version only if the processor > i386 or we are compiling  }
     { the system unit then this will be allowed...                      }
     if (instruc >= lastop_in_table) and
-       ((cs_compilesystem in aktswitches) or (aktoptprocessor > globals.i386)) then
+       ((cs_compilesystem in aktswitches) or (aktoptprocessor >systems.i386)) then
       begin
          Message1(assem_w_opcode_not_in_table,att_op2str[instruc]);
          fits:=true;
@@ -3683,7 +3683,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  1998-05-29 09:58:16  pierre
+  Revision 1.10  1998-05-30 14:31:08  peter
+    + $ASMMODE
+
+  Revision 1.9  1998/05/29 09:58:16  pierre
     * OPR_REGISTER for 1 arg was missing in ratti386.pas
       (probably a merging problem)
     * errors at start of line were lost

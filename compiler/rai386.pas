@@ -82,7 +82,7 @@ var
 Implementation
 
 Uses
-  files,aasm,globals,AsmUtils,strings,hcodegen,scanner,
+  systems,files,aasm,globals,AsmUtils,strings,hcodegen,scanner,
   cobjects,verbose,types;
 
 
@@ -1345,7 +1345,7 @@ var
     { this makes cpu.pp uncompilable, but i think this code should be }
     { inserted in the system unit anyways.                            }
     if (instruc >= lastop_in_table) and
-       ((cs_compilesystem in aktswitches) or (aktoptprocessor > globals.i386)) then
+       ((cs_compilesystem in aktswitches) or (aktoptprocessor > systems.i386)) then
       begin
          Message(assem_w_opcode_not_in_table);
          fits:=true;
@@ -3369,7 +3369,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.7  1998-05-28 16:32:05  carl
+  Revision 1.8  1998-05-30 14:31:07  peter
+    + $ASMMODE
+
+  Revision 1.7  1998/05/28 16:32:05  carl
     * bugfix with operands main branch version (patched manually)
 
   Revision 1.6  1998/05/23 01:21:26  peter

@@ -32,7 +32,7 @@ Unit aopt386;
   implementation
 
     uses
-       cobjects,globals,symtable,strings,verbose,hcodegen
+       cobjects,globals,systems,symtable,strings,verbose,hcodegen
 {$ifdef i386}
        ,i386
        ,cgi386
@@ -1631,7 +1631,10 @@ end;
 End.
 {
   $Log$
-  Revision 1.13  1998-05-24 18:42:37  jonas
+  Revision 1.14  1998-05-30 14:31:02  peter
+    + $ASMMODE
+
+  Revision 1.13  1998/05/24 18:42:37  jonas
     * final bugfilx for mov optimizes, remake3 with optimizations works again!
 
   Revision 1.12  1998/05/24 15:20:59  jonas

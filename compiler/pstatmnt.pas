@@ -40,7 +40,7 @@ unit pstatmnt;
 
     uses
        cobjects,scanner,globals,symtable,aasm,pass_1,
-       types,hcodegen,files,verbose
+       types,hcodegen,files,verbose,systems
 {$ifdef NEWPPU}
        ,ppu
 {$endif}
@@ -1121,7 +1121,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.14  1998-05-29 09:58:14  pierre
+  Revision 1.15  1998-05-30 14:31:06  peter
+    + $ASMMODE
+
+  Revision 1.14  1998/05/29 09:58:14  pierre
     * OPR_REGISTER for 1 arg was missing in ratti386.pas
       (probably a merging problem)
     * errors at start of line were lost
