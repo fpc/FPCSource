@@ -14,10 +14,12 @@
 /usr/bin/postw32
 /usr/bin/fpcmake
 /usr/bin/fprcp
-/usr/lib/fpc/%{fpc_main_version}/units/linux/lexlib.ppu
-/usr/lib/fpc/%{fpc_main_version}/units/linux/yacclib.ppu
-/usr/lib/fpc/%{fpc_main_version}/units/linux/lexlib.o
-/usr/lib/fpc/%{fpc_main_version}/units/linux/yacclib.o
+/usr/bin/fpdoc
+/usr/bin/makeskel
+/usr/lib/fpc/%{fpcversion}/units/linux/lexlib.ppu
+/usr/lib/fpc/%{fpcversion}/units/linux/yacclib.ppu
+/usr/lib/fpc/%{fpcversion}/units/linux/lexlib.o
+/usr/lib/fpc/%{fpcversion}/units/linux/yacclib.o
 /usr/lib/fpc/lexyacc/yylex.cod
 /usr/lib/fpc/lexyacc/yyparse.cod
 /usr/share/man/man1/delp.1
@@ -31,5 +33,6 @@
 /usr/share/man/man1/ptop.1
 /usr/share/man/man1/pyacc.1
 /usr/share/man/man1/rstconv.1
+/usr/share/man/man1/fpdoc.1
 /usr/share/man/man5/fpcmake.5
 /usr/share/man/man5/ptop.cfg.5

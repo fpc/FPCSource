@@ -1,0 +1,10 @@
+/usr/share/doc/fp-units-gfx
+
+/usr/lib/fpc/%{fpcversion}/units/linux/opengl
+/usr/lib/fpc/%{fpcversion}/units/linux/forms
+/usr/lib/fpc/%{fpcversion}/units/linux/svgalib
+/usr/lib/fpc/%{fpcversion}/units/linux/ggi
+/usr/lib/fpc/%{fpcversion}/units/linux/libgd
+/usr/lib/fpc/%{fpcversion}/units/linux/libpng
+
+/usr/bin/fd2pascal

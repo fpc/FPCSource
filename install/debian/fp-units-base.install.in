@@ -1,0 +1,7 @@
+/usr/share/doc/fp-units-base
+
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib
+/usr/lib/fpc/%{fpcversion}/units/linux/pasjpeg
+/usr/lib/fpc/%{fpcversion}/units/linux/ncurses
+/usr/lib/fpc/%{fpcversion}/units/linux/x11
+/usr/lib/fpc/%{fpcversion}/units/linux/regexpr

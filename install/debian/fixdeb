@@ -12,7 +12,6 @@ fi
 PACKAGEVERSION=`head -n 1 $1/changelog | awk '{ print $2 }' | tr -d '[()]'`
 FPCVERSION=`echo $PACKAGEVERSION | awk -F '-' '{ print $1 }'`
 DEBVERSION=`echo $PACKAGEVERSION | awk -F '-' '{ print $2 }'`
-FPC_MAIN_VERSION=`echo $PACKAGEVERSION | awk -F '\.[0-9]-' '{ print $1 }'`
 
 # Snapshot ?
 if [ "$DEBVERSION" == "0" ]; then
@@ -29,6 +28,6 @@ echo 'DebVersion    : ' $DEBVERSION
 
 for i in $1/*.in
 do
-  j=${i/.in/}
-  sed -e 's/%{fpc_main_version}/'$FPC_MAIN_VERSION'/g;s/%{fpcversion}/'$FPCVERSION'/g;s/%{packageversion}/'$PACKAGEVERSION'/g' $i > $j
+  j=${i/%.in/}
+  sed -e 's/%{fpcversion}/'$FPCVERSION'/g;s/%{packageversion}/'$PACKAGEVERSION'/g' $i > $j
 done

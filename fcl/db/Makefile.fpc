@@ -15,6 +15,7 @@ dirs_openbsd=mysql interbase sqlite
 dirs_win32=mysql interbase sqlite
 units=db ddg_ds ddg_rec dbwhtml
 exampledirs=tests
+rsts=dbwhtml
 
 [compiler]
 options=-S2

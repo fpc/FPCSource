@@ -1,16 +1,57 @@
-fpc (1.9.3-1) unstable; urgency=low
+fpc (1.9.3-0) unstable; urgency=low
 
-  * Third beta release for 2.0
+  * Snapshot release
 
- -- Mazen NEIFER <mazen@freepascal.org>  Thu,  18 Feb 2004 08:50:00 +0100
+ -- Peter Vreman <peter@freepascal.org>  Thu, 18 Mrt 2004 12:00:00 +0100
 
-fpc (1.9.0-1) unstable; urgency=low
+fpc (1.0.10-1.2) unstable; urgency=low
 
-  * First beta release for 2.0
+  * NMU
+  * debian/control: Also had to remove build dependency on latex2html here
+    (Closes: #221316)
 
- -- Peter Vreman <peter@freepascal.org>  Sat,  1 Nov 2003 22:00:00 +0100
+ -- Roland Stigge <stigge@antcom.de>  Thu, 12 Feb 2004 10:27:20 +0100
 
-fpc (1.0.6-20020228) unstable; urgency=low
+fpc (1.0.10-1.1) unstable; urgency=low
+
+  * NMU
+  * debian/control.in: Removed Build-Depends: latex2html which moved to
+    non-free (Closes: #221316)
+
+ -- Roland Stigge <stigge@antcom.de>  Sat, 20 Dec 2003 20:45:41 +0100
+
+fpc (1.0.10-1) unstable; urgency=low
+
+  * New upstream release.
+  * Acknowledging Amaya's NMU.  Thanks for the hand.  (Closes: #141439)
+  * Package dependency lists corrected.  (Closes: #84863, #155158)
+  * Example compiles correctly now.  (Closes: #174371)
+  * Fixed vanishing fpc(1) manpage if gpc is installed.  (Closes: #136283)
+  * Fixed manpage error.  (Closes: #191695)
+  * Spelling mistakes are gone.  (Closes: #124637, #124638)
+  * Both bugs (doc-base-file-references-usr-doc and debian-changelog-file-
+    contains-obsolete-user-emacs-settings, in lintian tags) were corrected
+    long ago.  (Closes: #127092)
+  * Upstream have added the AddDisk function.  (Closes: #103163)
+
+ -- Carlos Laviola <claviola@debian.org>  Sat,  2 Aug 2003 04:35:51 -0300
+
+fpc (1.0.6-2) unstable; urgency=low
+
+  * NMU for Debcamp BSP.
+  * Apply a very silly patch (Closes: #141439), which was RC. The PDF file now
+    builds.
+  * Updated versioned-build-depends-on-debhelper. 
+
+ -- Amaya Rodrigo Sastre <amaya@debian.org>  Sat, 12 Jul 2003 17:58:50 +0200
+
+fpc (1.0.6-1) unstable; urgency=low
+
+  * New upstream version.  (Closes: #154199)
+
+ -- Carlos Laviola <claviola@debian.org>  Sat, 10 Aug 2002 04:26:15 -0300
+
+fpc (1.0.4+1.0.6cvs20020228-1) unstable; urgency=low
 
   * New upstream version.
 
@@ -115,10 +156,10 @@ fpc (0.99.12b-1) unstable; urgency=low
 
   * New Upstream Release
 
- -- Peter Vreman <peter@freepascal.org>  Thu, 10 Jun 1999 12:00:00 +0200
+ -- Peter Vreman <pfv@cooldown.demon.nl>  Thu, 10 Jun 1999 12:00:00 +0200
 
 fpc (0.99.12a-1) unstable; urgency=low
 
   * Initial Release
 
- -- Peter Vreman <peter@freepascal.org>  Thu, 10 Jun 1999 12:00:00 +0200
+ -- Peter Vreman <pfv@cooldown.demon.nl>  Thu, 10 Jun 1999 12:00:00 +0200

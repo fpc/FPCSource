@@ -10,6 +10,7 @@ version=1.9.2
 dirs=fpcm tply h2pas fprcp dxegen fpdoc
 programs=ppdep ptop rstconv data2inc delp bin2obj postw32
 dirs_win32=fpmc
+rsts=rstconv
 
 [require]
 packages=fcl

@@ -1,8 +1,0 @@
-/usr/share/doc/fp-units-misc
-
-/usr/lib/fpc/%{fpc_main_version}/units/linux/cmem
-/usr/lib/fpc/%{fpc_main_version}/units/linux/utmp
-/usr/lib/fpc/%{fpc_main_version}/units/linux/zlib
-/usr/lib/fpc/%{fpc_main_version}/units/linux/syslog
-/usr/lib/fpc/%{fpc_main_version}/units/linux/gdbint
-/usr/lib/fpc/%{fpc_main_version}/units/linux/unzip

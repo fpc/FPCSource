@@ -565,7 +565,9 @@ debcopy: distclean
         $(COPYTREE) utils $(DEBSRCDIR)
         $(COPYTREE) demo $(DEBSRCDIR)
         $(COPYTREE) logs $(DEBSRCDIR)
+ifndef NODOCS
         $(COPYTREE) docs $(DEBSRCDIR)
+endif
         $(COPYTREE) Makefile* $(DEBSRCDIR)
         $(COPYTREE) $(CVSINSTALL)/debian $(DEBSRCDIR)
         $(COPYTREE) $(CVSINSTALL)/man $(DEBSRCDIR)
@@ -574,7 +576,11 @@ debcopy: distclean
         chmod 755 $(DEBSRCDIR)/debian/rules
 
 deb: checkfpcdir debcopy
+ifdef NODOCS
+        cd $(DEBSRCDIR) ; debian/rules binary-arch
+else
         cd $(DEBSRCDIR) ; debian/rules binary
+endif
 
 endif   # changelog found
 

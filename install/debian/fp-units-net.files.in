@@ -1,4 +1,0 @@
-/usr/share/doc/fp-units-net
-
-/usr/lib/fpc/%{fpc_main_version}/units/linux/inet
-/usr/lib/fpc/%{fpc_main_version}/units/linux/uncgi

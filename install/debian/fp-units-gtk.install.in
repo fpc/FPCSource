@@ -1,0 +1,4 @@
+/usr/share/doc/fp-units-gtk
+
+/usr/lib/fpc/%{fpcversion}/units/linux/gtk
+/usr/lib/fpc/%{fpcversion}/units/linux/fpgtk
