@@ -64,7 +64,7 @@ unit pexports;
                    if assigned(srsym) then
                      begin
                         hp^.sym:=srsym;
-                        if ((srsym^.typ<>procsym) or
+                        if ((hp^.sym^.typ<>procsym) or
                             ((tf_need_export in target_info.flags) and
                              not(po_exports in pprocdef(pprocsym(srsym)^.definition)^.procoptions)
                             )
@@ -131,12 +131,10 @@ unit pexports;
                           end;
                         if (DefString<>'') and UseDeffileForExport then
                          DefFile.AddExport(DefString);
-                        if srsym^.typ=procsym then
+                        if hp^.sym^.typ=procsym then
                           exportlib^.exportprocedure(hp)
                         else
-                          begin
-                             exportlib^.exportvar(hp);
-                          end;
+                          exportlib^.exportvar(hp);
                      end;
                 end
               else
@@ -155,7 +153,10 @@ end.
 
 {
   $Log$
-  Revision 1.21  2000-02-24 18:41:39  peter
+  Revision 1.22  2000-04-24 12:47:27  peter
+    * fixed check for exporting var or proc
+
+  Revision 1.21  2000/02/24 18:41:39  peter
     * removed warnings/notes
 
   Revision 1.20  2000/02/23 23:06:39  florian
