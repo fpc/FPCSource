@@ -20,6 +20,10 @@ interface
  {$DEFINE EMX} (* EMX is the only possibility under OS/2 at the moment *)
 {$ENDIF OS2}
 
+{ This is very important as this code can be called
+  from inside the RTE 202 error PM }
+{$S-}
+
 implementation
 
 uses
@@ -622,7 +626,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.8  2000-04-12 11:15:06  pierre
+  Revision 1.9  2000-04-20 13:03:41  pierre
+   * disable stack check in lineinfo
+
+  Revision 1.8  2000/04/12 11:15:06  pierre
    * reset funcstab when changing object
 
   Revision 1.7  2000/03/23 22:00:08  pierre
