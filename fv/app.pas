@@ -927,15 +927,11 @@ BEGIN
          If (Event.What = evNothing) Then Begin       { No mouse event }
            Drivers.GetMouseEvent(Event);              { Load mouse event }
            If (Event.What = evNothing) Then
-{$ifdef HasSysMsgUnit}
              begin
                Drivers.GetSystemEvent(Event);         { Load system event }
                If (Event.What = evNothing) Then
-{$endif HasSysMsgUnit}
                  Idle;     { Idle if no event }
-{$ifdef HasSysMsgUnit}
              end;
-{$endif HasSysMsgUnit}
          End;
        End;
      End;
@@ -1162,7 +1158,10 @@ END;
 END.
 {
  $Log$
- Revision 1.23  2004-11-03 20:33:05  peter
+ Revision 1.24  2004-11-04 20:57:58  peter
+ sysmsgs is always available
+
+ Revision 1.23  2004/11/03 20:33:05  peter
    * removed unnecesasry graphfv stuff
 
  Revision 1.22  2002/09/22 19:42:52  hajny

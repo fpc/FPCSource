@@ -177,21 +177,18 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$UNDEF OS_DOS}
   {$DEFINE OS_LINUX}
   {$DEFINE OS_UNIX}
-  {$DEFINE HasSysMsgUnit}
 {$ENDIF}
 
 {$IFDEF FreeBSD}
   {$UNDEF OS_DOS}
   {$DEFINE OS_FREEBSD}
   {$DEFINE OS_UNIX}
-  {$DEFINE HasSysMsgUnit}
 {$ENDIF}
 
 {$IFDEF NETBSD}
   {$UNDEF OS_DOS}
   {$DEFINE OS_NETBSD}
   {$DEFINE OS_UNIX}
-  {$DEFINE HasSysMsgUnit}
 {$ENDIF}
 
 
@@ -199,7 +196,6 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$UNDEF OS_DOS}
   {$DEFINE OS_DARWIN}
   {$DEFINE OS_UNIX}
-  {$DEFINE HasSysMsgUnit}
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
@@ -207,7 +203,6 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {---------------------------------------------------------------------------}
 {$IFDEF GO32V2}
   {$DEFINE OS_GO32}
-  {$DEFINE HasSysMsgUnit}
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
@@ -219,7 +214,6 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$ENDIF}
   {$UNDEF BIT_16}
   {$DEFINE BIT_32}
-  {$DEFINE HasSysMsgUnit}
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
@@ -392,7 +386,10 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
 {
  $Log$
- Revision 1.12  2004-11-03 20:33:05  peter
+ Revision 1.13  2004-11-04 20:57:58  peter
+ sysmsgs is always available
+
+ Revision 1.12  2004/11/03 20:33:05  peter
    * removed unnecesasry graphfv stuff
 
  Revision 1.11  2004/02/06 20:59:29  jonas

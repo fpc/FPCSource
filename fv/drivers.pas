@@ -84,9 +84,7 @@ USES
    {$ENDIF}
 
    video,
-{$ifdef HasSysMsgUnit}
    SysMsg,
-{$endif HasSysMsgUnit}
    FVCommon, Objects;                                 { GFV standard units }
 
 {***************************************************************************}
@@ -423,14 +421,12 @@ and the button and double click variables are set appropriately.
 ---------------------------------------------------------------------}
 PROCEDURE GetMouseEvent (Var Event: TEvent);
 
-{$ifdef HasSysMsgUnit}
 {-GetSystemEvent------------------------------------------------------
 Checks whether a system event is available. If a system event has occurred,
 Event.What is set to evCommand appropriately
 10Oct2000 PM
 ---------------------------------------------------------------------}
 procedure GetSystemEvent (Var Event: TEvent);
-{$endif HasSysMsgUnit}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                      EVENT HANDLER CONTROL ROUTINES                       }
@@ -1099,7 +1095,6 @@ begin
    FillChar(Event,sizeof(TEvent),0);
 end;
 
-{$ifdef HasSysMsgUnit}
 {---------------------------------------------------------------------------}
 {  GetSystemEvent                                                           }
 {---------------------------------------------------------------------------}
@@ -1142,7 +1137,6 @@ begin
   else
     Event.What:=evNothing;
 end;
-{$endif HasSysMsgUnit}
 
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -1170,9 +1164,7 @@ BEGIN
      LastWhereY:=MouseWhere.y;
      MouseEvents := True;                             { Set initialized flag }
     end;
-{$ifdef HasSysMsgUnit}
   InitSystemMsg;
-{$endif HasSysMsgUnit}
 END;
 
 {---------------------------------------------------------------------------}
@@ -1180,9 +1172,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE DoneEvents;
 BEGIN
-{$ifdef HasSysMsgUnit}
   DoneSystemMsg;
-{$endif HasSysMsgUnit}
   Mouse.DoneMouse;
   MouseEvents:=false;
 END;
@@ -1441,9 +1431,7 @@ BEGIN
    ButtonCount := DetectMouse;                        { Detect mouse }
    DetectVideo;                                       { Detect video }
    InitKeyboard;
-{$ifdef HasSysMsgUnit}
    InitSystemMsg;
-{$endif HasSysMsgUnit}
 {$ifdef win32}
    SetFileApisToOEM;
    SetConsoleCP(437);
@@ -1455,7 +1443,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.41  2004-11-03 20:51:36  florian
+ Revision 1.42  2004-11-04 20:57:58  peter
+ sysmsgs is always available
+
+ Revision 1.41  2004/11/03 20:51:36  florian
    * fixed problems on targets requiring proper alignment
 
  Revision 1.40  2004/11/03 20:33:05  peter

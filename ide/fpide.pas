@@ -575,14 +575,10 @@ begin
   while GetTargetedEvent(P,Event) do
     P^.HandleEvent(Event);
 {$ifdef FVISION}
-{$ifdef HasSysMsgUnit}
   { Handle System events directly }
   Drivers.GetSystemEvent(Event);         { Load system event }
   If (Event.What <> evNothing) Then
-    Begin
-      HandleEvent(Event);
-    End;
-{$endif HasSysMsgUnit}
+    HandleEvent(Event);
 {$endif FVISION}
 
   inherited GetEvent(Event);
@@ -1252,7 +1248,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.27  2004-11-02 23:53:19  peter
+  Revision 1.28  2004-11-04 20:57:59  peter
+  sysmsgs is always available
+
+  Revision 1.27  2004/11/02 23:53:19  peter
     * fixed crashes with ide and 1.9.x
 
   Revision 1.26  2003/09/29 14:36:59  peter

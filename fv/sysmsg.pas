@@ -84,7 +84,22 @@ implementation
 {$define HAS_SYSMSG}
 {$endif unix}
 
-{$ifndef HAS_SYSMSG}
+{$ifdef HAS_SYSMSG}
+
+procedure PutSystemEvent(const SystemEvent: TSystemEvent);
+begin
+  if PendingSystemEvents<SystemEventBufSize then
+   begin
+     PendingSystemTail^:=SystemEvent;
+     inc(PendingSystemTail);
+     if longint(PendingSystemTail)=longint(@PendingSystemEvent)+sizeof(PendingSystemEvent) then
+      PendingSystemTail:=@PendingSystemEvent;
+       inc(PendingSystemEvents);
+   end;
+end;
+
+{$else HAS_SYSMSG}
+
 procedure InitSystemMsg;
 begin
 end;
@@ -104,24 +119,19 @@ begin
   PollSystemEvent:=false;
 end;
 
-{$endif not HAS_SYSMSG}
-
 procedure PutSystemEvent(const SystemEvent: TSystemEvent);
 begin
-  if PendingSystemEvents<SystemEventBufSize then
-   begin
-     PendingSystemTail^:=SystemEvent;
-     inc(PendingSystemTail);
-     if longint(PendingSystemTail)=longint(@PendingSystemEvent)+sizeof(PendingSystemEvent) then
-      PendingSystemTail:=@PendingSystemEvent;
-       inc(PendingSystemEvents);
-   end;
 end;
+
+{$endif not HAS_SYSMSG}
 
 end.
 {
   $Log$
-  Revision 1.1  2002-05-21 11:59:57  pierre
+  Revision 1.2  2004-11-04 20:57:59  peter
+  sysmsgs is always available
+
+  Revision 1.1  2002/05/21 11:59:57  pierre
    + system messages unit added
 
 }
