@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="ports">
+<short>The PORTS unit</short>
+<descr>
+<p>
+The ports unit implements the <var>port</var> constructs found in Turbo Pascal. 
+It uses classes and default array properties to do this.
+</p>
+<p>
+The unit exists on linux, os/2 and dos. It is implemented only for
+compatibility with Turbo Pascal. It's usage is discouraged, because using ports
+is not portable programming, and the operating system may not even allow
+it (for instance Windows).
+</p>
+<p>
+Under linux, your program must be run as root, or the <var>IOPerm</var> call
+must be set in order to set appropriate permissions on the port access.
+</p>
+</descr>
+
+<element name="TPort">
+<short>Type implemented to support integer-sized port access</short>
+<descr>
+The <var>TPort</var> type is implemented specially for access to the ports
+in a TP compatible manner. There is no need to create an instance of this
+type: the standard TP variables are instantiated at unit initialization.
+</descr>
+<seealso>
+<link id="port"/>
+<link id="TPortW"/>
+<link id="TPortL"/>
+</seealso>
+</element>
+
+<element name="tport.writeport">
+<short>Writes an integer of data to a port</short>
+<descr>
+</descr>
+<seealso>
+<link id="tport.readport"/>
+</seealso>
+</element>
+
+<element name="tport.readport">
+<short>Reads an integer of data from a port</short>
+<descr>
+</descr>
+<seealso>
+<link id="tport.writeport"/>
+</seealso>
+</element>
+
+<element name="tport.pp">
+<short>Access integer-sized port by port number</short>
+<descr>
+</descr>
+</element>
+
+<element name="TPortW">
+<short>Type implemented to support word-sized port access</short>
+<descr>
+The <var>TPortW</var> type is implemented specially for access to the ports
+in a TP compatible manner. There is no need to create an instance of this
+type: the standard TP variables are instantiated at unit initialization.
+</descr>
+<seealso>
+<link id="portw"/>
+<link id="TPort"/>
+<link id="TPortL"/>
+</seealso>
+</element>
+
+<element name="TPortW.writeport">
+<short>Writes a word of data to a port</short>
+<descr>
+</descr>
+<seealso>
+<link id="TPortW.readport"/>
+</seealso>
+</element>
+
+<element name="TPortW.readport">
+<short>Reads a word of data from a port</short>
+<descr>
+</descr>
+<seealso>
+<link id="TPortW.writeport"/>
+</seealso>
+</element>
+
+<element name="TPortW.pp">
+<short>Access word-sized port by port number</short>
+<descr>
+</descr>
+</element>
+
+<element name="TPortL">
+<short>Type implemented to support Longint-sized port access</short>
+<descr>
+The <var>TPortL</var> type is implemented specially for access to the ports
+in a TP compatible manner. There is no need to create an instance of this
+type: the standard TP variables are instantiated at unit initialization.
+</descr>
+<seealso>
+<link id="portw"/>
+<link id="TPort"/>
+<link id="TPortL"/>
+</seealso>
+</element>
+
+<element name="TPortL.writeport">
+<short>Writes a Longint of data to a port</short>
+<descr>
+</descr>
+<seealso>
+<link id="TPortL.readport"/>
+</seealso>
+</element>
+
+<element name="TPortL.readport">
+<short>Reads a Longint of data from a port</short>
+<descr>
+</descr>
+<seealso>
+<link id="TPortL.writeport"/>
+</seealso>
+</element>
+
+<element name="TPortL.pp">
+<short>Access Longint-sized port by port number</short>
+<descr>
+</descr>
+</element>
+
+<element name="Port">
+<short>Provide port access per integer</short>
+<descr>
+<p>
+Default instance of type <link id="TPort"/>. Do not free. This variable is
+initialized in the unit initialization code, and freed at finalization.
+</p>
+<p>
+Since there is a default property for a variable of this type, a sentence as
+</p>
+<code>
+  port[221]:=12;
+</code>
+<p>
+Will result in the integer 12 being written to port 221, if port is defined
+as a variable of type <var>tport</var>
+</p>
+</descr>
+</element>
+
+<element name="Portb">
+<short>Provide port access per byte</short>
+<descr>
+<p>
+Default instance of type <link id="TPort"/>. Do not free. This variable is
+initialized in the unit initialization code, and freed at finalization.
+</p>
+<p>
+Since there is a default property for a variable of this type, a sentence as
+</p>
+<code>
+  portb[221]:=12;
+</code>
+<p>
+Will result in the byte 12 being written to port 221, if port is defined
+as a variable of type <var>tport</var>
+</p>
+</descr>
+</element>
+
+<element name="PortW">
+<short>Provide port access per word</short>
+<descr>
+<p>
+Default instance of type <link id="TPortW"/>. Do not free. This variable is
+initialized in the unit initialization code, and freed at finalization.
+</p>
+<p>
+Since there is a default property for a variable of this type, a sentence as
+</p>
+<code>
+  portb[221]:=12;
+</code>
+<p>
+Will result in the word 12 being written to port 221, if port is defined
+as a variable of type <var>tport</var>
+</p>
+</descr>
+</element>
+
+<element name="PortL">
+<short>Provide port access per longint</short>
+<descr>
+<p>
+Default instance of type <link id="TPortL"/>. Do not free. This variable is
+initialized in the unit initialization code, and freed at finalization.
+</p>
+<p>
+Since there is a default property for a variable of this type, a sentence as
+</p>
+<code>
+  portl[221]:=12;
+</code>
+<p>
+Will result in the longint 12 being written to port 221, if port is defined
+as a variable of type <var>tport</var>
+</p>
+</descr>
+</element>
+
+</module>
+</package>
+</fpdoc-descriptions>
