@@ -27,17 +27,17 @@ Unit cpuinfo;
 Interface
 
 Type
-   {# Natural integer register type and size for the target machine }
+   { Natural integer register type and size for the target machine }
    AWord = longword;
    PAWord = ^AWord;
 
-   { this must be an ordinal type with the same size as a pointer }
-   { Note: must be unsigned!! Otherwise, ugly code like           }
-   { pointer(-1) will result in a pointer with the value          }
-   { $fffffffffffffff on a 32bit machine if the compiler uses     }
-   { int64 constants internally (JM)                              }
+   { This must be an ordinal type with the same size as a pointer
+     Note: Must be unsigned! Otherwise, ugly code like
+     pointer(-1) will result in a pointer with the value
+     $fffffffffffffff on a 32bit machine if the compiler uses
+     int64 constants internally (JM)                              }
    TConstPtrUInt = longword;
-   
+
    bestreal = extended;
    ts32real = single;
    ts64real = double;
@@ -77,7 +77,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.15  2002-09-07 20:48:43  carl
+  Revision 1.16  2002-12-05 14:18:09  florian
+    * two comments fixed
+
+  Revision 1.15  2002/09/07 20:48:43  carl
     * cardinal -> longword
 
   Revision 1.14  2002/09/07 15:25:10  peter
