@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team.
+    Copyright (c) 1999-2004 by the Free Pascal development team.
 
     Dos unit for BP7 compatible RTL
 
@@ -18,7 +18,6 @@ interface
 
 Const
   Max_Path    = 260;
-  FileNameLen = 255;
 
 Type
   TWin32Handle = longint;
@@ -55,17 +54,7 @@ Type
     name : string;
   end;
 
-
-  registers = packed record
-    case i : integer of
-     0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
-     1 : (al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh : byte);
-     2 : (eax,  ebx,  ecx,  edx,  ebp,  esi,  edi : longint);
-    end;
-
 {$i dosh.inc}
-
-
 
 Const
   { allow EXEC to inherited handles from calling process,
@@ -80,6 +69,15 @@ implementation
 
 uses
    strings;
+
+{$DEFINE HAS_GETMSCOUNT}
+{$DEFINE HAS_GETSHORTNAME}
+{$DEFINE HAS_GETLONGNAME}
+
+{$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
+{$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
+
+{$I dos.inc}
 
 const
    INVALID_HANDLE_VALUE = longint($ffffffff);
@@ -116,6 +114,13 @@ var
      stdcall; external 'kernel32' name 'FileTimeToLocalFileTime';
    function LocalFileTimeToFileTime(const lft : TWin32FileTime;var ft : TWin32FileTime) : longbool;
      stdcall; external 'kernel32' name 'LocalFileTimeToFileTime';
+   function GetTickCount : longint;
+     stdcall;external 'kernel32' name 'GetTickCount';
+
+function GetMsCount: int64;
+begin
+  GetMsCount := cardinal (GetTickCount);
+end;
 
 type
   Longrec=packed record
@@ -160,21 +165,6 @@ var
 begin
   WinToDosTime:=FileTimeToLocalFileTime(WTime,lft) and
                 FileTimeToDosDateTime(lft,longrec(dtime).hi,longrec(dtime).lo);
-end;
-
-
-{******************************************************************************
-                           --- Dos Interrupt ---
-******************************************************************************}
-
-procedure intr(intno : byte;var regs : registers);
-begin
-  { !!!!!!!! }
-end;
-
-procedure msdos(var regs : registers);
-begin
-  { !!!!!!!! }
 end;
 
 
@@ -263,26 +253,6 @@ begin
 end;
 
 
-Procedure packtime(var t : datetime;var p : longint);
-Begin
-  p:=(t.sec shr 1)+(t.min shl 5)+(t.hour shl 11)+(t.day shl 16)+(t.month shl 21)+((t.year-1980) shl 25);
-End;
-
-
-Procedure unpacktime(p : longint;var t : datetime);
-Begin
-  with t do
-   begin
-     sec:=(p and 31) shl 1;
-     min:=(p shr 5) and 63;
-     hour:=(p shr 11) and 31;
-     day:=(p shr 16) and 31;
-     month:=(p shr 21) and 15;
-     year:=(p shr 25)+1980;
-   end;
-End;
-
-
 {******************************************************************************
                                --- Exec ---
 ******************************************************************************}
@@ -308,13 +278,6 @@ type
      stdcall; external 'kernel32' name 'WaitForSingleObject';
    function CloseHandle(h : TWin32Handle) : longint;
      stdcall; external 'kernel32' name 'CloseHandle';
-
-{$ifdef HASTHREADVAR}
-threadvar
-{$else HASTHREADVAR}
-var
-{$endif HASTHREADVAR}
-  lastdosexitcode : longint;
 
 procedure exec(const path : pathstr;const comline : comstr);
 var
@@ -361,38 +324,6 @@ begin
     l:=-1;
   CloseHandle(Proc);
   LastDosExitCode:=l;
-end;
-
-
-function dosexitcode : word;
-begin
-  dosexitcode:=lastdosexitcode and $ffff;
-end;
-
-
-procedure getcbreak(var breakvalue : boolean);
-begin
-{ !! No Win32 Function !! }
-  breakvalue := true;
-end;
-
-
-procedure setcbreak(breakvalue : boolean);
-begin
-{ !! No Win32 Function !! }
-end;
-
-
-procedure getverify(var verify : boolean);
-begin
-{ !! No Win32 Function !! }
- verify := true;
-end;
-
-
-procedure setverify(verify : boolean);
-begin
-{ !! No Win32 Function !! }
 end;
 
 
@@ -579,11 +510,6 @@ begin
 end;
 
 
-procedure swapvectors;
-begin
-end;
-
-
 Procedure FindClose(Var f: SearchRec);
 begin
   If longint(F.FindHandle)<>Invalid_Handle_value then
@@ -604,48 +530,6 @@ end;
    function GetFileAttributes(lpFileName : pchar) : longint;
      stdcall; external 'kernel32' name 'GetFileAttributesA';
 
-procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;var ext : extstr);
-var
-   dotpos,p1,i : longint;
-begin
-   { allow slash as backslash }
-   for i:=1 to length(path) do
-    if path[i]='/' then path[i]:='\';
-   { get drive name }
-   p1:=pos(':',path);
-   if p1>0 then
-     begin
-        dir:=path[1]+':';
-        delete(path,1,p1);
-     end
-   else
-     dir:='';
-   { split the path and the name, there are no more path informtions }
-   { if path contains no backslashes                                 }
-   while true do
-     begin
-        p1:=pos('\',path);
-        if p1=0 then
-          break;
-        dir:=dir+copy(path,1,p1);
-        delete(path,1,p1);
-     end;
-   { try to find out a extension }
-   Ext:='';
-   i:=Length(Path);
-   DotPos:=256;
-   While (i>0) Do
-     Begin
-        If (Path[i]='.') Then
-          begin
-             DotPos:=i;
-             break;
-          end;
-        Dec(i);
-     end;
-   Ext:=Copy(Path,DotPos,255);
-   Name:=Copy(Path,1,DotPos - 1);
-end;
 
 { <immobilizer> }
 
@@ -655,19 +539,6 @@ function GetFullPathName(lpFileName: PChar; nBufferLength: Longint; lpBuffer: PC
 function GetShortPathName(lpszLongPath:pchar; lpszShortPath:pchar; cchBuffer:DWORD):DWORD;
     stdcall; external 'kernel32' name 'GetShortPathNameA';
 
-
-(*
-function FExpand (const Path: PathStr): PathStr;
-- declared in fexpand.inc
-*)
-
-{$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
-{$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
-
-{$I fexpand.inc}
-
-{$UNDEF FPC_FEXPAND_DRIVES}
-{$UNDEF FPC_FEXPAND_UNC}
 
 Function FSearch(path: pathstr; dirlist: string): pathstr;
 var
@@ -905,22 +776,6 @@ begin
 end;
 
 
-{******************************************************************************
-                             --- Not Supported ---
-******************************************************************************}
-
-Procedure keep(exitcode : word);
-Begin
-End;
-
-Procedure getintvec(intno : byte;var vector : pointer);
-Begin
-End;
-
-Procedure setintvec(intno : byte;vector : pointer);
-Begin
-End;
-
 function FreeLibrary(hLibModule : TWin32Handle) : longbool;
   stdcall; external 'kernel32' name 'FreeLibrary';
 function GetVersionEx(var VersionInformation:OSVERSIONINFO) : longbool;
@@ -959,7 +814,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2004-04-07 09:26:23  michael
+  Revision 1.29  2004-12-05 16:44:43  hajny
+    * GetMsCount added, platform independent routines moved to single include file
+
+  Revision 1.28  2004/04/07 09:26:23  michael
   + Patch for findfirst (bug 3042) from Peter Vreman
 
   Revision 1.27  2004/03/14 18:43:21  peter

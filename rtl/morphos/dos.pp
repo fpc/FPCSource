@@ -32,49 +32,6 @@ unit Dos;
 
 interface
 
-const
-  {Bitmasks for CPU Flags}
-  fcarry     = $0001;
-  fparity    = $0004;
-  fauxiliary = $0010;
-  fzero      = $0040;
-  fsign      = $0080;
-  foverflow  = $0800;
-
-  {Bitmasks for file attribute}
-  readonly  = $01;
-  hidden    = $02;
-  sysfile   = $04;
-  volumeid  = $08;
-  directory = $10;
-  archive   = $20;
-  anyfile   = $3F;
-
-  {File Status}
-  fmclosed = $D7B0;
-  fminput  = $D7B1;
-  fmoutput = $D7B2;
-  fminout  = $D7B3;
-
-
-Type
-  ComStr  = String[255];  { size increased to be more compatible with Unix}
-  PathStr = String[255];  { size increased to be more compatible with Unix}
-  DirStr  = String[255];  { size increased to be more compatible with Unix}
-  NameStr = String[255];  { size increased to be more compatible with Unix}
-  ExtStr  = String[255];  { size increased to be more compatible with Unix}
-
-
-{
-  filerec.inc contains the definition of the filerec.
-  textrec.inc contains the definition of the textrec.
-  It is in a separate file to make it available in other units without
-  having to use the DOS unit for it.
-}
-{$i filerec.inc}
-{$i textrec.inc}
-
-
 type
   SearchRec = Packed Record
     { watch out this is correctly aligned for all processors }
@@ -89,80 +46,19 @@ type
     Name : String[255]; {name of found file}
   End;
 
-
-  DateTime = packed record
-    Year : Word;
-    Month: Word;
-    Day  : Word;
-    Hour : Word;
-    Min  : Word;
-    Sec  : Word;
-  End;
-
-  { Some ugly x86 registers... }
-  registers = packed record
-    case i : integer of
-     0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
-     1 : (al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh : byte);
-     2 : (eax,  ebx,  ecx,  edx,  ebp,  esi,  edi : longint);
-    end;
-
-
-var
-  DosError : integer;
-
-{Interrupt}
-Procedure Intr(intno: byte; var regs: registers);
-Procedure MSDos(var regs: registers);
-
-{Info/Date/Time}
-Function  DosVersion: Word;
-Procedure GetDate(var year, month, mday, wday: word);
-Procedure GetTime(var hour, minute, second, sec100: word);
-procedure SetDate(year,month,day: word);
-Procedure SetTime(hour,minute,second,sec100: word);
-Procedure UnpackTime(p: longint; var t: datetime);
-Procedure PackTime(var t: datetime; var p: longint);
-
-{Exec}
-Procedure Exec(const path: pathstr; const comline: comstr);
-Function  DosExitCode: word;
-
-{Disk}
-Function  DiskFree(drive: byte) : longint;
-Function  DiskSize(drive: byte) : longint;
-Procedure FindFirst(path: pathstr; attr: word; var f: searchRec);
-Procedure FindNext(var f: searchRec);
-Procedure FindClose(Var f: SearchRec);
-
-{File}
-Procedure GetFAttr(var f; var attr: word);
-Procedure GetFTime(var f; var time: longint);
-Function  FSearch(path: pathstr; dirlist: string): pathstr;
-Function  FExpand(const path: pathstr): pathstr;
-Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
-
-{Environment}
-Function  EnvCount: longint;
-Function  EnvStr(index: integer): string;
-Function  GetEnv(envvar: string): string;
-
-{Misc}
-Procedure SetFAttr(var f; attr: word);
-Procedure SetFTime(var f; time: longint);
-Procedure GetCBreak(var breakvalue: boolean);
-Procedure SetCBreak(breakvalue: boolean);
-Procedure GetVerify(var verify: boolean);
-Procedure SetVerify(verify: boolean);
-
-{Do Nothing Functions}
-Procedure SwapVectors;
-Procedure GetIntVec(intno: byte; var vector: pointer);
-Procedure SetIntVec(intno: byte; vector: pointer);
-Procedure Keep(exitcode: word);
-
+{$I dosh.inc}
 
 implementation
+
+{$DEFINE HAS_GETMSCOUNT}
+{$DEFINE HAS_GETCBREAK}
+{$DEFINE HAS_SETSBREAK}
+
+{$DEFINE FPC_FEXPAND_VOLUMES} (* Full paths begin with drive specification *)
+{$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
+{$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
+{$I dos.inc}
+
 
 { * include MorphOS specific functions & definitions * }
 
@@ -210,38 +106,6 @@ end;
 function BSTR2STRING(s : LongInt): PChar; Inline;
 begin
   BSTR2STRING:=Pointer(Longint(BADDR(s))+1);
-end;
-
-Procedure AmigaToDt(SecsPast: LongInt; Var Dt: DateTime);
-var
-  cd : pClockData;
-Begin
-  New(cd);
-  Amiga2Date(SecsPast,cd);
-  Dt.sec   := cd^.sec;
-  Dt.min   := cd^.min;
-  Dt.hour  := cd^.hour;
-  Dt.day   := cd^.mday;
-  Dt.month := cd^.month;
-  Dt.year  := cd^.year;
-  Dispose(cd);
-End;
-
-Function DtToAmiga(DT: DateTime): LongInt;
-var
-  cd : pClockData;
-  temp : Longint;
-Begin
-  New(cd);
-  cd^.sec   := Dt.sec;
-  cd^.min   := Dt.min;
-  cd^.hour  := Dt.hour;
-  cd^.mday  := Dt.day;
-  cd^.month := Dt.month;
-  cd^.year  := Dt.year;
-  temp := Date2Amiga(cd);
-  Dispose(cd);
-  DtToAmiga := temp;
 end;
 
 function IsLeapYear(Source : Word) : Boolean;
@@ -321,36 +185,6 @@ begin
   move(name[1],buffer,length(name));
   buffer[length(name)]:=#0;
   dosSetFileDate:=SetFileDate(buffer,p);
-end;
-
-
-{******************************************************************************
-                           --- Dos Interrupt ---
-******************************************************************************}
-
-procedure Intr(intno: byte; var regs: registers);
-begin
-  { Does not apply to MorphOS - not implemented }
-end;
-
-procedure SwapVectors;
-begin
-  { Does not apply to MorphOS - Do Nothing }
-end;
-
-procedure msdos(var regs : registers);
-begin
-  { ! Not implemented in MorphOS ! }
-end;
-
-procedure getintvec(intno : byte;var vector : pointer);
-begin
-  { ! Not implemented in MorphOS ! }
-end;
-
-procedure setintvec(intno : byte;vector : pointer);
-begin
-  { ! Not implemented in MorphOS ! }
 end;
 
 
@@ -588,26 +422,18 @@ Begin
   dispose(cd);
   End;
 
-Procedure unpacktime(p : longint;var t : datetime);
-Begin
-  AmigaToDt(p,t);
-End;
 
-
-Procedure packtime(var t : datetime;var p : longint);
-Begin
-  p := DtToAmiga(t);
+function GetMsCount: int64;
+var
+  TV: TTimeVal;
+begin
+  Get_Sys_Time (@TV);
+  GetMsCount := TV.TV_Secs * 1000 + TV.TV_Micro div 1000;
 end;
-
 
 {******************************************************************************
                                --- Exec ---
 ******************************************************************************}
-
-
-Var
-  LastDosExitCode: word;
-  Ver : Boolean;
 
 
 Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
@@ -649,12 +475,6 @@ Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
   End;
 
 
-Function DosExitCode: Word;
-  Begin
-    DosExitCode:=LastdosExitCode;
-  End;
-
-
   Procedure GetCBreak(Var BreakValue: Boolean);
   Begin
    breakvalue := system.BreakOn;
@@ -666,17 +486,6 @@ Function DosExitCode: Word;
    system.Breakon := BreakValue;
   End;
 
-
-  Procedure GetVerify(Var Verify: Boolean);
-   Begin
-     verify:=ver;
-   End;
-
-
- Procedure SetVerify(Verify: Boolean);
-  Begin
-    ver:=Verify;
-  End;
 
 {******************************************************************************
                                --- Disk ---
@@ -939,44 +748,6 @@ End;
 {******************************************************************************
                                --- File ---
 ******************************************************************************}
-Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
-var
-  I: Word;
-begin
-  { allow backslash as slash }
-  for i:=1 to length(path) do
-    if path[i]='\' then path[i]:='/';
-
-  I := Length(Path);
-  while (I > 0) and not ((Path[I] = '/') or (Path[I] = ':'))
-     do Dec(I);
-  if Path[I] = '/' then
-     dir := Copy(Path, 0, I)
-  else dir := Copy(Path,0,I);
-
-  if Length(Path) > Length(dir) then
-      name := Copy(Path, I + 1, Length(Path)-I)
-  else
-      name := '';
-  { Remove extension }
-  if pos('.',name) <> 0 then
-   begin
-     ext:=copy(name,pos('.',name),length(name));
-     delete(name,pos('.',name),length(name));
-   end
- else
-   ext := '';
-end;
-
-{$DEFINE FPC_FEXPAND_VOLUMES} (* Full paths begin with drive specification *)
-{$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
-{$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
-{$I fexpand.inc}
-
-{$UNDEF FPC_FEXPAND_VOLUMES} (* Full paths begin with drive specification *)
-{$UNDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
-{$UNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
-
 
 function FSearch(path: PathStr; dirlist: String) : PathStr;
 var
@@ -1242,15 +1013,6 @@ begin
 end;
 
 
-{******************************************************************************
-                             --- Not Supported ---
-******************************************************************************}
-
-Procedure keep(exitcode : word);
-  Begin
-  { ! Not implemented in MorphOS ! }
-  End;
-
 procedure AddDevice(str : String);
 begin
     inc(numberofdevices);
@@ -1304,7 +1066,6 @@ end;
 
 Begin
  DosError:=0;
- ver := TRUE;
  numberofdevices := 0;
  StrOfPaths := '';
  ReadInDevices;
@@ -1312,7 +1073,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  2004-11-23 02:57:58  karoly
+  Revision 1.11  2004-12-05 16:44:43  hajny
+    * GetMsCount added, platform independent routines moved to single include file
+
+  Revision 1.10  2004/11/23 02:57:58  karoly
     * Fixed missing $INLINE
 
   Revision 1.9  2004/11/18 22:30:33  karoly

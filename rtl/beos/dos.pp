@@ -20,9 +20,6 @@ Interface
 
 {$goto on}
 
-Const
-  FileNameLen=255;
-
 Type
   SearchRec = packed Record
   {Fill : array[1..21] of byte;  Fill replaced with below}
@@ -39,13 +36,6 @@ Type
     SearchDir  : String[FileNameLen]; { path we are searching in }
   End;
 
-  Registers = packed record
-    case i : integer of
-     0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
-     1 : (al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh : byte);
-     2 : (eax, ebx, ecx, edx, ebp, esi, edi : longint);
-    End;
-
 {$i dosh.inc}
 
 Procedure AddDisk(const path:string);
@@ -53,8 +43,10 @@ Procedure AddDisk(const path:string);
 Implementation
 
 Uses
-  Strings,posix;
+  strings,posix;
 
+(* Potentially needed FPC_FEXPAND_* defines should be defined here. *)
+{$I dos.inc}
 
   { Used by AddDisk(), DiskFree() and DiskSize() }
 const
@@ -111,7 +103,7 @@ begin
 end;
 
 
-{$i dos.inc}    { include OS specific stuff }
+{$i dos_beos.inc}    { include OS specific stuff }
 
 
 
@@ -251,25 +243,6 @@ Begin
 End;
 
 
-
-Procedure packtime(var t : datetime;var p : longint);
-Begin
-  p:=(t.sec shr 1)+(t.min shl 5)+(t.hour shl 11)+(t.day shl 16)+(t.month shl 21)+((t.year-1980) shl 25);
-End;
-
-
-
-Procedure unpacktime(p : longint;var t : datetime);
-Begin
-  t.sec:=(p and 31) shl 1;
-  t.min:=(p shr 5) and 63;
-  t.hour:=(p shr 11) and 31;
-  t.day:=(p shr 16) and 31;
-  t.month:=(p shr 21) and 15;
-  t.year:=(p shr 25)+1980;
-End;
-
-
 Procedure UnixDateToDt(SecsPast: LongInt; Var Dt: DateTime);
 Begin
   EpochToLocal(SecsPast,dt.Year,dt.Month,dt.Day,dt.Hour,dt.Min,dt.Sec);
@@ -280,14 +253,6 @@ End;
 {******************************************************************************
                                --- Exec ---
 ******************************************************************************}
-
-{$ifdef HASTHREADVAR}
-threadvar
-{$else HASTHREADVAR}
-var
-{$endif HASTHREADVAR}
-  LastDosExitCode: word;
-
 
 Function  InternalWaitProcess(Pid:pid_t):Longint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
 var     r,s     : cint;
@@ -375,11 +340,6 @@ Begin
   LastDosExitCode:=InternalWaitProcess(pid); // WaitPid and result-convert
   if (LastDosExitCode>=0) and (LastDosExitCode<>127) then DosError:=0 else
      DosError:=8; // perhaps one time give an better error
-End;
-
-Function DosExitCode: Word;
-Begin
-  DosExitCode:=LastDosExitCode;
 End;
 {$ENDIF}
 
@@ -650,44 +610,6 @@ End;
                                --- File ---
 ******************************************************************************}
 
-Procedure FSplit(const Path:PathStr;Var Dir:DirStr;Var Name:NameStr;Var Ext:ExtStr);
-Var
-  DotPos,SlashPos,i : longint;
-Begin
-  SlashPos:=0;
-  DotPos:=256;
-  i:=Length(Path);
-  While (i>0) and (SlashPos=0) Do
-   Begin
-     If (DotPos=256) and (Path[i]='.') Then
-      begin
-        DotPos:=i;
-      end;
-     If (Path[i]='/') Then
-      SlashPos:=i;
-     Dec(i);
-   End;
-  Ext:=Copy(Path,DotPos,255);
-  Dir:=Copy(Path,1,SlashPos);
-  Name:=Copy(Path,SlashPos + 1,DotPos - SlashPos - 1);
-End;
-
-
-
-{
-function FExpand (const Path: PathStr): PathStr;
-- declared in fexpand.inc
-}
-(*
-{$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
-*)
-const
-  LFNSupport = true;
-  FileNameCaseSensitive = true;
-
-{$I fexpand.inc}
-
-
 
 Function FSearch(const path:pathstr;dirlist:string):pathstr;
 {
@@ -866,52 +788,6 @@ end;
 
 
 
-{******************************************************************************
-                      --- Do Nothing Procedures/Functions ---
-******************************************************************************}
-
-Procedure Intr (intno: byte; var regs: registers);
-Begin
-  {! No POSIX equivalent !}
-End;
-
-
-
-Procedure msdos(var regs : registers);
-Begin
-  {! No POSIX equivalent !}
-End;
-
-
-
-Procedure getintvec(intno : byte;var vector : pointer);
-Begin
-  {! No POSIX equivalent !}
-End;
-
-
-
-Procedure setintvec(intno : byte;vector : pointer);
-Begin
-  {! No POSIX equivalent !}
-End;
-
-
-
-Procedure SwapVectors;
-Begin
-  {! No POSIX equivalent !}
-End;
-
-
-
-Procedure keep(exitcode : word);
-Begin
-  {! No POSIX equivalent !}
-End;
-
-
-
 Procedure setftime(var f; time : longint);
 Begin
   {! No POSIX equivalent !}
@@ -925,34 +801,6 @@ Begin
 End;
 
 
-
-Procedure GetCBreak(Var BreakValue: Boolean);
-Begin
-{! No POSIX equivalent !}
-  breakvalue:=true
-End;
-
-
-
-Procedure SetCBreak(BreakValue: Boolean);
-Begin
-  {! No POSIX equivalent !}
-End;
-
-
-
-Procedure GetVerify(Var Verify: Boolean);
-Begin
-  {! No POSIX equivalent !}
-  Verify:=true;
-End;
-
-
-
-Procedure SetVerify(Verify: Boolean);
-Begin
-  {! No POSIX equivalent !}
-End;
 
 { Include timezone routines }
 {$i timezone.inc}
@@ -969,7 +817,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.9  2004-02-17 17:37:26  daniel
+  Revision 1.10  2004-12-05 16:44:43  hajny
+    * GetMsCount added, platform independent routines moved to single include file
+
+  Revision 1.9  2004/02/17 17:37:26  daniel
     * Enable threadvars again
 
   Revision 1.8  2004/02/16 22:16:57  hajny

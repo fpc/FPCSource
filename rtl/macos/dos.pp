@@ -19,10 +19,6 @@ Uses
   macostp;
   
 
-Const
-  {Max PathName Length for files}
-  FileNameLen=255;
-
 Type
     SearchRec = packed record
         Attr: Byte;       {attribute of found file}
@@ -64,6 +60,19 @@ Implementation
 Uses
   macutils,
   unixutil {for FNMatch};
+
+{$UNDEF USE_FEXPAND_INC}
+
+{$IFNDEF USE_FEXPAND_INC}
+ {$DEFINE HAS_FEXPAND}
+{$ENDIF USE_FEXPAND_INC}
+
+{$DEFINE FPC_FEXPAND_VOLUMES}
+{$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
+{$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
+
+{$I dos.inc}
+
 
 function MacTimeToDosPackedTime(macfiletime: UInt32): Longint;
 var
@@ -124,21 +133,6 @@ begin
   second := d.second;
   sec100 := 0;
 end;
-
-procedure Packtime(var t : datetime;var p : longint);
-Begin
-  p:=(t.sec shr 1)+(t.min shl 5)+(t.hour shl 11)+(t.day shl 16)+(t.month shl 21)+((t.year-1980) shl 25);
-End;
-
-procedure Unpacktime(p : longint;var t : datetime);
-Begin
-  t.sec:=(p and 31) shl 1;
-  t.min:=(p shr 5) and 63;
-  t.hour:=(p shr 11) and 31;
-  t.day:=(p shr 16) and 31;
-  t.month:=(p shr 21) and 15;
-  t.year:=(p shr 25)+1980;
-End;
 
 Procedure SetDate(Year, Month, Day: Word);
 
@@ -277,13 +271,6 @@ begin
   ExecuteToolserverScript:= err;
 end;
 
-{$ifdef HASTHREADVAR}
-threadvar
-{$else HASTHREADVAR}
-var
-{$endif HASTHREADVAR}
-  laststatuscode : longint;
-
 Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
 var
   s: AnsiString;
@@ -294,13 +281,13 @@ Begin
   {Make ToolServers working directory in sync with our working directory}
   PathArgToFullPath(':', wdpath);
   wdpath:= 'Directory ' + wdpath;
-  err:= ExecuteToolserverScript(PChar(wdpath), laststatuscode);
+  err:= ExecuteToolserverScript(PChar(wdpath), LastDosExitCode);
     {TODO Only change path when actually needed. But this requires some 
      change counter to be incremented each time wd is changed. }
 
   s:= path + ' ' + comline;
   
-  err:= ExecuteToolserverScript(PChar(s), laststatuscode);
+  err:= ExecuteToolserverScript(PChar(s), LastDosExitCode);
   if err = afpItemNotFound then
     DosError := 900
   else
@@ -308,21 +295,6 @@ Begin
   //TODO Better dos error codes
 End;
 
-Function DosExitCode: Word;
-var
-  clippedstatus: Word;
-Begin
-  if laststatuscode <> 0 then
-    begin
-      {MPW status might be 24 bits}
-      clippedstatus := laststatuscode and $ffff;
-      if clippedstatus = 0 then
-        clippedstatus:= 1;
-      DosExitCode:= clippedstatus;
-    end
-  else
-    DosExitCode := 0;  
-End;
 
 {******************************************************************************
                                --- Disk ---
@@ -785,26 +757,7 @@ End;
   end;
 
 
-{$UNDEF USE_FEXPAND_INC}
-
-{$IFDEF USE_FEXPAND_INC}
-
-
-{$DEFINE FPC_FEXPAND_VOLUMES}
-{$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
-{$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
-
-{ TODO A lot of issues before this works}
-
-{$I fexpand.inc}
-
-{$UNDEF FPC_FEXPAND_VOLUMES}
-{$UNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
-{$UNDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
-
-
-
-{$ELSE}
+{$IFNDEF USE_FEXPAND_INC}
 
 { TODO nonexisting dirs in path's doesnt work (nonexisting files do work)
        example: Writeln('FExpand on :nisse:kalle : ', FExpand(':nisse:kalle')); }
@@ -817,29 +770,8 @@ End;
     FExpand:= fullpath;
   end;
 
-{$ENDIF}
+{$ENDIF USE_FEXPAND_INC}
 
-  procedure FSplit (path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
-
-  var
-    dotPos,colonPos,i : longint;
-  
-  begin
-    colonPos:=0;
-    dotPos:=256;
-    i:=Length(path);
-    while (i>0) and (colonPos=0) Do
-      begin
-        If (dotPos=256) and (path[i]='.') Then
-          dotPos:=i;
-        If (path[i]=':') Then
-          colonPos:=i;
-        Dec(i);
-      end;
-    ext:=Copy(path,dotPos,255);
-    dir:=Copy(path,1,colonPos);
-    name:=Copy(path,colonPos + 1,dotPos - colonPos - 1);
-  end;
 
   procedure GetFTime (var f ; var time: longint);
 
@@ -998,64 +930,28 @@ Begin
    GetEnv:=StrPas(p);
 End;
 
-{******************************************************************************
-                      --- Do Nothing Procedures/Functions ---
-******************************************************************************}
-
-Procedure getintvec(intno : byte;var vector : pointer);
-Begin
-  {! No MacOS equivalent !}
-End;
-
-Procedure setintvec(intno : byte;vector : pointer);
-Begin
-  {! No MacOS equivalent !}
-End;
-
-Procedure SwapVectors;
-Begin
-  {! No MacOS equivalent !}
-End;
-
-Procedure Keep(exitcode : word);
-Begin
-  {! No MacOS equivalent !}
-End;
-
+{
 Procedure GetCBreak(Var BreakValue: Boolean);
 Begin
-  {! Might be implemented in future on MacOS to handle Cmd-. (period) key press}
-  breakvalue:=true
+--  Might be implemented in future on MacOS to handle Cmd-. (period) key press
 End;
 
 Procedure SetCBreak(BreakValue: Boolean);
 Begin
-  {! Might be implemented in future on MacOS to handle Cmd-. (period) key press}
+--  Might be implemented in future on MacOS to handle Cmd-. (period) key press
 End;
 
 Procedure GetVerify(Var Verify: Boolean);
 Begin
-  {! Might be implemented in future on MacOS}
-  Verify:=true;
+--  Might be implemented in future on MacOS
 End;
 
 Procedure SetVerify(Verify: Boolean);
 Begin
-  {! Might be implemented in future on MacOS}
+--   Might be implemented in future on MacOS
 End;
+}
 
-function  GetShortName(var p : String) : boolean;
-
-begin
-  { short=long under MacOS}
- GetShortName:=True;
-end;
-
-function  GetLongName(var p : String) : boolean;
-begin
-  { short=long under MacOS}
- GetLongName:=True;
-end;
 
 {******************************************************************************
                             --- Initialization ---

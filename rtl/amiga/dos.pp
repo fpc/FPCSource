@@ -33,9 +33,6 @@ Interface
 
 {$I os.inc}
 
-Const
-  FileNameLen = 255;
-
 type
   SearchRec = Packed Record
     { watch out this is correctly aligned for all processors }
@@ -50,16 +47,18 @@ type
     Name : String[255]; {name of found file}
   End;
 
-  registers = packed record
-    case i : integer of
-     0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
-     1 : (al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh : byte);
-     2 : (eax,  ebx,  ecx,  edx,  ebp,  esi,  edi : longint);
-    end;
-
 {$i dosh.inc}
 
 implementation
+
+{$DEFINE HAS_GETCBREAK}
+{$DEFINE HAS_SETCBREAK}
+
+{$DEFINE FPC_FEXPAND_VOLUMES} (* Full paths begin with drive specification *)
+{$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
+{$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
+
+{$I dos.inc}
 
 const
   DaysPerMonth :  Array[1..12] of ShortInt =
@@ -611,38 +610,6 @@ begin
 end;
 
 
-Procedure AmigaToDt(SecsPast: LongInt; Var Dt: DateTime);
-var
-  cd : pClockData;
-Begin
-  New(cd);
-  Amiga2Date(SecsPast,cd);
-  Dt.sec   := cd^.sec;
-  Dt.min   := cd^.min;
-  Dt.hour  := cd^.hour;
-  Dt.day   := cd^.mday;
-  Dt.month := cd^.month;
-  Dt.year  := cd^.year;
-  Dispose(cd);
-End;
-
-Function DtToAmiga(DT: DateTime): LongInt;
-var
-  cd : pClockData;
-  temp : Longint;
-Begin
-  New(cd);
-  cd^.sec   := Dt.sec;
-  cd^.min   := Dt.min;
-  cd^.hour  := Dt.hour;
-  cd^.mday  := Dt.day;
-  cd^.month := Dt.month;
-  cd^.year  := Dt.year;
-  temp := Date2Amiga(cd);
-  Dispose(cd);
-  DtToAmiga := temp;
-end;
-
 Function SetProtection(const name: string; mask:longint): longint;
  var
   buffer : array[0..255] of char;
@@ -664,7 +631,8 @@ Function SetProtection(const name: string; mask:longint): longint;
 
 Function IsLeapYear(Source : Word) : Boolean;
 Begin
-  If (Source Mod 4 = 0) Then
+  If (Source mod 400 = 0) or ((Source mod 4 = 0) and (Source mod 100 <> 0))
+   Then
     IsLeapYear := True
   Else
     IsLeapYear := False;
@@ -750,41 +718,6 @@ End;
 
 
 
-
-
-{******************************************************************************
-                           --- Dos Interrupt ---
-******************************************************************************}
-
-Procedure Intr (intno: byte; var regs: registers);
-  Begin
-  { Does not apply to Linux - not implemented }
-  End;
-
-
-Procedure SwapVectors;
-  Begin
-  { Does not apply to Linux - Do Nothing }
-  End;
-
-
-Procedure msdos(var regs : registers);
-  Begin
-  { ! Not implemented in Linux ! }
-  End;
-
-
-Procedure getintvec(intno : byte;var vector : pointer);
-  Begin
-  { ! Not implemented in Linux ! }
-  End;
-
-
-Procedure setintvec(intno : byte;vector : pointer);
-  Begin
-  { ! Not implemented in Linux ! }
-  End;
-
 {******************************************************************************
                         --- Info / Date / Time ---
 ******************************************************************************}
@@ -839,29 +772,9 @@ Procedure SetTime(Hour, Minute, Second, Sec100: Word);
   { !! }
   End;
 
-Procedure unpacktime(p : longint;var t : datetime);
-Begin
-  AmigaToDt(p,t);
-End;
-
-
-Procedure packtime(var t : datetime;var p : longint);
-Begin
-  p := DtToAmiga(t);
-end;
-
-
 {******************************************************************************
                                --- Exec ---
 ******************************************************************************}
-
-
-{$ifdef HASTHREADVAR}
-threadvar
-{$else HASTHREADVAR}
-var
-{$endif HASTHREADVAR}
-  LastDosExitCode: word;
 
 
 Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
@@ -903,12 +816,6 @@ Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
   End;
 
 
-Function DosExitCode: Word;
-  Begin
-    DosExitCode:=LastdosExitCode;
-  End;
-
-
   Procedure GetCBreak(Var BreakValue: Boolean);
   Begin
    breakvalue := system.BreakOn;
@@ -920,16 +827,6 @@ Function DosExitCode: Word;
    system.Breakon := BreakValue;
   End;
 
-
-  Procedure GetVerify(Var Verify: Boolean);
-   Begin
-     verify:=true;
-   End;
-
-
- Procedure SetVerify(Verify: Boolean);
-  Begin
-  End;
 
 {******************************************************************************
                                --- Disk ---
@@ -1188,35 +1085,7 @@ End;
                                --- File ---
 ******************************************************************************}
 
-Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
-var
-  I: Word;
-begin
-  { allow backslash as slash }
-  for i:=1 to length(path) do
-    if path[i]='\' then path[i]:='/';
-
-  I := Length(Path);
-  while (I > 0) and not ((Path[I] = '/') or (Path[I] = ':'))
-     do Dec(I);
-  if Path[I] = '/' then
-     dir := Copy(Path, 0, I)
-  else dir := Copy(Path,0,I);
-
-  if Length(Path) > Length(dir) then
-      name := Copy(Path, I + 1, Length(Path)-I)
-  else
-      name := '';
-  { Remove extension }
-  if pos('.',name) <> 0 then
-     delete(name,pos('.',name),length(name));
-
-  I := Pos('.',Path);
-  if I > 0 then
-     ext := Copy(Path,I,Length(Path)-(I-1))
-     else ext := '';
-end;
-
+(*
 Function FExpand(Path: PathStr): PathStr;
 var
     FLock  : BPTR;
@@ -1266,6 +1135,7 @@ begin
        end;
     end else FExpand := '';
 end;
+*)
 
 
    Function  fsearch(path : pathstr;dirlist : string) : pathstr;
@@ -1533,15 +1403,6 @@ begin
 end;
 
 
-{******************************************************************************
-                             --- Not Supported ---
-******************************************************************************}
-
-Procedure keep(exitcode : word);
-  Begin
-  { ! Not implemented in Linux ! }
-  End;
-
 procedure AddDevice(str : String);
 begin
     inc(numberofdevices);
@@ -1612,7 +1473,10 @@ End.
 
 {
   $Log$
-  Revision 1.8  2004-02-17 17:37:25  daniel
+  Revision 1.9  2004-12-05 16:44:43  hajny
+    * GetMsCount added, platform independent routines moved to single include file
+
+  Revision 1.8  2004/02/17 17:37:25  daniel
     * Enable threadvars again
 
   Revision 1.7  2004/02/16 22:16:55  hajny

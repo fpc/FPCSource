@@ -15,10 +15,6 @@
 Unit Dos;
 Interface
 
-Const
-  {Max FileName Length for files}
-  FileNameLen=255;
-
 Type
 
   SearchRec =
@@ -43,16 +39,6 @@ Type
     NamePos    : Word;        {end of path, start of name position}
   End;
 
-
-{$ifdef cpui386}
-  Registers = packed record
-    case i : integer of
-     0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
-     1 : (al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh : byte);
-     2 : (eax, ebx, ecx, edx, ebp, esi, edi : longint);
-    End;
-{$endif cpui386}
-
 {$i dosh.inc}
 
 {Extra Utils}
@@ -67,6 +53,14 @@ Implementation
 
 Uses
   Strings,Unix,BaseUnix,{$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF};
+
+{$DEFINE HAS_GETMSCOUNT}
+
+{$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
+{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
+
+{$I dos.inc}
+
 
 {$ifndef FPC_USE_LIBC}
 {$i sysnr.inc}
@@ -261,6 +255,7 @@ begin
   fpSettimeofday(@tv,nil);
 end;
 
+
 Function SetDateTime(Year,Month,Day,hour,minute,second:Word) : Boolean;
 var
   tv : timeval;
@@ -268,6 +263,7 @@ begin
   tv.tv_sec:= LocalToEpoch ( Year, Month, Day, Hour, Minute, Second ) ;
   SetDatetime:=fpSettimeofday(@tv,nil)=0;
 end;
+
 
 Procedure GetTime(Var Hour, Minute, Second, Sec100: Word);
 var
@@ -279,29 +275,11 @@ begin
   sec100:=tz.tv_usec div 10000;
 end;
 
-Procedure packtime(var t : datetime;var p : longint);
-Begin
-  p:=(t.sec shr 1)+(t.min shl 5)+(t.hour shl 11)+(t.day shl 16)+(t.month shl 21)+((t.year-1980) shl 25);
-End;
-
-
-
-Procedure unpacktime(p : longint;var t : datetime);
-Begin
-  t.sec:=(p and 31) shl 1;
-  t.min:=(p shr 5) and 63;
-  t.hour:=(p shr 11) and 31;
-  t.day:=(p shr 16) and 31;
-  t.month:=(p shr 21) and 15;
-  t.year:=(p shr 25)+1980;
-End;
-
 
 Procedure UnixDateToDt(SecsPast: LongInt; Var Dt: DateTime);
 Begin
   EpochToLocal(SecsPast,dt.Year,dt.Month,dt.Day,dt.Hour,dt.Min,dt.Sec);
 End;
-
 
 
 Function DTToUnixDate(DT: DateTime): LongInt;
@@ -310,44 +288,19 @@ Begin
 End;
 
 
+function GetMsCount: int64;
+var
+   tv : TimeVal;
+{  tz : TimeZone;}
+begin
+  FPGetTimeOfDay (@tv, nil {,tz});
+  GetMsCount := tv.tv_Sec * 1000 + tv.tv_uSec div 1000;
+end;
+
 
 {******************************************************************************
                                --- Exec ---
 ******************************************************************************}
-
-Procedure FSplit( Path:PathStr;Var Dir:DirStr;Var Name:NameStr;Var Ext:ExtStr);
-Var
-  DotPos,SlashPos,i : longint;
-Begin
-  SlashPos:=0;
-  DotPos:=256;
-  i:=Length(Path);
-  While (i>0) and (SlashPos=0) Do
-   Begin
-     If (DotPos=256) and (Path[i]='.') Then
-      begin
-        DotPos:=i;
-      end;
-     If (Path[i]='/') Then
-      SlashPos:=i;
-     Dec(i);
-   End;
-  Ext:=Copy(Path,DotPos,255);
-  Dir:=Copy(Path,1,SlashPos);
-  Name:=Copy(Path,SlashPos + 1,DotPos - SlashPos - 1);
-End;
-
-
-{$ifdef HASTHREADVAR}
-{$ifdef VER1_9_2}
-var
-{$else VER1_9_2}
-threadvar
-{$endif VER1_9_2}
-{$else HASTHREADVAR}
-var
-{$endif HASTHREADVAR}
-  LastDosExitCode: word;
 
 Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
 var
@@ -393,13 +346,6 @@ Begin
     DosError:=0
   else
     DosError:=8; // perhaps one time give an better error
-End;
-
-
-
-Function DosExitCode: Word;
-Begin
-  DosExitCode:=LastDosExitCode;
 End;
 
 
@@ -797,17 +743,6 @@ End;
                                --- File ---
 ******************************************************************************}
 
-
-{$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
-{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
-
-{$I fexpand.inc}
-
-{$UNDEF FPC_FEXPAND_GETENVPCHAR}
-{$UNDEF FPC_FEXPAND_TILDE}
-
-
-
 Function FSearch(path : pathstr;dirlist : string) : pathstr;
 Var
   info : BaseUnix.stat;
@@ -936,54 +871,6 @@ Begin
 End;
 
 
-{******************************************************************************
-                      --- Do Nothing Procedures/Functions ---
-******************************************************************************}
-
-{$ifdef cpui386}
-Procedure Intr (intno: byte; var regs: registers);
-Begin
-  {! No Unix equivalent !}
-End;
-
-
-
-Procedure msdos(var regs : registers);
-Begin
-  {! No Unix equivalent !}
-End;
-{$endif cpui386}
-
-
-
-Procedure getintvec(intno : byte;var vector : pointer);
-Begin
-  {! No Unix equivalent !}
-End;
-
-
-
-Procedure setintvec(intno : byte;vector : pointer);
-Begin
-  {! No Unix equivalent !}
-End;
-
-
-
-Procedure SwapVectors;
-Begin
-  {! No Unix equivalent !}
-End;
-
-
-
-Procedure keep(exitcode : word);
-Begin
-  {! No Unix equivalent !}
-End;
-
-
-
 Procedure setfattr (var f;attr : word);
 Begin
   {! No Unix equivalent !}
@@ -994,49 +881,6 @@ End;
 
 
 
-Procedure GetCBreak(Var BreakValue: Boolean);
-Begin
-{! No Unix equivalent !}
-  breakvalue:=true
-End;
-
-
-
-Procedure SetCBreak(BreakValue: Boolean);
-Begin
-  {! No Unix equivalent !}
-End;
-
-
-
-Procedure GetVerify(Var Verify: Boolean);
-Begin
-  {! No Unix equivalent !}
-  Verify:=true;
-End;
-
-
-
-Procedure SetVerify(Verify: Boolean);
-Begin
-  {! No Unix equivalent !}
-End;
-
-
-function  GetShortName(var p : String) : boolean;
-
-begin
- { short=long under *nix}
- GetShortName:=True;
-end;
-
-function  GetLongName(var p : String) : boolean;
-begin
-  { short=long under *nix}
- GetLongName:=True;
-end;
-
-
 {******************************************************************************
                             --- Initialization ---
 ******************************************************************************}
@@ -1045,7 +889,10 @@ End.
 
 {
   $Log$
-  Revision 1.39  2004-12-02 18:24:35  marco
+  Revision 1.40  2004-12-05 16:44:43  hajny
+    * GetMsCount added, platform independent routines moved to single include file
+
+  Revision 1.39  2004/12/02 18:24:35  marco
    * fpsettimeofday.
 
   Revision 1.38  2004/10/31 17:11:52  marco

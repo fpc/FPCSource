@@ -30,16 +30,13 @@ interface
 
 uses    Strings, DosCalls;
 
-Const 
-  FileNameLen = 255;
-  
 Type
   {Search record which is used by findfirst and findnext:}
   searchrec=record
     case boolean of
-    false: (handle:longint;     {Used in os_OS2 mode}
+    false: (handle:THandle;     {Used in os_OS2 mode}
             FStat:PFileFindBuf3;
-            fill2:array[1..21-SizeOf(longint)-SizeOf(pointer)] of byte;
+            fill2:array[1..21-SizeOf(THandle)-SizeOf(pointer)] of byte;
             attr2:byte;
             time2:longint;
             size2:longint;
@@ -49,16 +46,6 @@ Type
             time:longint;
             size:longint;
             name:string);       {Filenames can be long in OS/2!}
-  end;
-
-
-   {Data structure for the registers needed by msdos and intr:}
-  registers=packed record
-    case i:integer of
-      0:(ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,
-         f8,flags,fs,gs:word);
-      1:(al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh:byte);
-      2:(eax,ebx,ecx,edx,ebp,esi,edi:longint);
   end;
 
 {$i dosh.inc}
@@ -127,13 +114,24 @@ var
 
 implementation
 
+{$DEFINE HAS_INTR}
+{$DEFINE HAS_SETVERIFY}
+{$DEFINE HAS_GETVERIFY}
+
+{$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
+{$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
+
+const
+    LFNSupport = true;
+
+{$I dos.inc}
+
 
 {$ifdef HASTHREADVAR}
 threadvar
 {$else HASTHREADVAR}
 var
 {$endif HASTHREADVAR}
-  LastDosExitCode: longint;
   LastSR: SearchRec;
 
 var
@@ -218,6 +216,7 @@ begin
         end;
 end;
 
+
 procedure GetFTime (var F; var Time: longint); assembler;
 asm
     pushl %ebx
@@ -243,6 +242,7 @@ asm
     movw %ax,DosError
     popl %ebx
 end {['eax', 'ecx', 'edx']};
+
 
 procedure SetFTime (var F; Time: longint);
 
@@ -281,16 +281,8 @@ begin
         end ['eax', 'ecx', 'edx'];
 end;
 
-procedure msdos(var regs:registers);
 
-{Not recommended for EMX. Only works in DOS mode, not in OS/2 mode.}
-
-begin
-   if os_mode in [osDPMI,osDOS] then
-     intr($21,regs);
-end;
-
-procedure intr(intno:byte;var regs:registers);
+procedure Intr (IntNo: byte; var Regs: Registers);
 
 {Not recommended for EMX. Only works in DOS mode, not in OS/2 mode.}
 
@@ -497,13 +489,6 @@ begin
 end;
 
 
-function DosExitCode: word;
-
-begin
-  DosExitCode := LastDosExitCode and $FFFF;
-end;
-
-
 function dosversion:word;assembler;
 
 {Returns DOS version in DOS and OS/2 version in OS/2}
@@ -511,6 +496,7 @@ asm
     movb $0x30,%ah
     call syscall
 end ['eax'];
+
 
 procedure GetDate (var Year, Month, MDay, WDay: word);
 
@@ -533,8 +519,8 @@ begin
     end ['eax', 'ecx', 'edx'];
 end;
 
-{$asmmode intel}
 
+{$asmmode intel}
 procedure SetDate (Year, Month, Day: word);
 var DT: TDateTime;
 begin
@@ -555,8 +541,8 @@ begin
             call syscall
         end ['eax', 'ecx', 'edx'];
 end;
-
 {$asmmode att}
+
 
 procedure GetTime (var Hour, Minute, Second, Sec100: word);
 {$IFDEF REGCALL}
@@ -587,6 +573,7 @@ end;
 end {['eax', 'ecx', 'edx']};
 {$ENDIF REGCALL}
 
+
 {$asmmode intel}
 procedure SetTime (Hour, Minute, Second, Sec100: word);
 var DT: TDateTime;
@@ -613,24 +600,6 @@ end;
 
 {$asmmode att}
 
-procedure getcbreak(var breakvalue:boolean);
-
-begin
-  breakvalue := True;
-end;
-
-procedure setcbreak(breakvalue:boolean);
-
-begin
-{! Do not use in OS/2. Also not recommended in DOS. Use
-       signal handling instead.
-    asm
-        movb BreakValue,%dl
-        movw $0x3301,%ax
-        call syscall
-    end ['eax', 'edx'];
-}
-end;
 
 procedure getverify(var verify:boolean);
 
@@ -830,7 +799,7 @@ begin
     if os_mode = osOS2 then
     begin
       New (F.FStat);
-      F.Handle := longint ($FFFFFFFF);
+      F.Handle := THandle ($FFFFFFFF);
       Count := 1;
       DosError := integer (DosFindFirst (Path, F.Handle,
                      Attr and FindResvdMask, F.FStat, SizeOf (F.FStat^),
@@ -877,24 +846,22 @@ begin
     DosSearchRec2SearchRec (F);
 end;
 
+
 procedure FindClose (var F: SearchRec);
 begin
     if os_mode = osOS2 then
     begin
-  if F.Handle <> $FFFFFFFF then DosError := DosFindClose (F.Handle);
+  if F.Handle <> THandle ($FFFFFFFF) then DosError := DosFindClose (F.Handle);
   Dispose (F.FStat);
 end;
 end;
 
-procedure swapvectors;
-{For TP compatibility, this exists.}
-begin
-end;
 
 function envcount:longint;assembler;
 asm
     movl envc,%eax
 end ['EAX'];
+
 
 function envstr(index : longint) : string;
 
@@ -909,6 +876,7 @@ begin
     hp:=EnvP[index-1];
     envstr:=strpas(hp);
 end;
+
 
 function GetEnvPChar (EnvVar: string): PChar;
 (* The assembler version is more than three times as fast as Pascal. *)
@@ -969,108 +937,12 @@ begin
 end;
 {$ASMMODE ATT}
 
+
 function GetEnv (EnvVar: string): string;
 begin
  GetEnv := StrPas (GetEnvPChar (EnvVar));
 end;
 
-procedure fsplit(path:pathstr;var dir:dirstr;var name:namestr;
-                 var ext:extstr);
-
-var p1,i : longint;
-    dotpos : integer;
-
-begin
-    { allow slash as backslash }
-    for i:=1 to length(path) do
-      if path[i]='/' then path[i]:='\';
-    {Get drive name}
-    p1:=pos(':',path);
-    if p1>0 then
-        begin
-            dir:=path[1]+':';
-            delete(path,1,p1);
-        end
-    else
-        dir:='';
-    { split the path and the name, there are no more path informtions }
-    { if path contains no backslashes                                 }
-    while true do
-        begin
-            p1:=pos('\',path);
-            if p1=0 then
-                break;
-            dir:=dir+copy(path,1,p1);
-              delete(path,1,p1);
-        end;
-   { try to find out a extension }
-   Ext:='';
-   i:=Length(Path);
-   DotPos:=256;
-   While (i>0) Do
-     Begin
-       If (Path[i]='.') Then
-         begin
-           DotPos:=i;
-           break;
-         end;
-       Dec(i);
-     end;
-   Ext:=Copy(Path,DotPos,255);
-   Name:=Copy(Path,1,DotPos - 1);
-end;
-
-(*
-function FExpand (const Path: PathStr): PathStr;
-- declared in fexpand.inc
-*)
-
-{$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
-{$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
-
-const
-    LFNSupport = true;
-
-{$I fexpand.inc}
-
-{$UNDEF FPC_FEXPAND_DRIVES}
-{$UNDEF FPC_FEXPAND_UNC}
-
-procedure PackTime (var T: DateTime; var P: longint);
-
-var zs:longint;
-
-begin
-    P := -1980;
-    P := P + T.Year and 127;
-    P := P shl 4;
-    P := P + T.Month;
-    P := P shl 5;
-    P := P + T.Day;
-    P := P shl 16;
-    zs:= T.hour;
-    zs:= zs shl 6;
-    zs:= zs + T.Min;
-    zs:= zs shl 5;
-    zs:= zs + T.Sec div 2;
-    P := P + (zs and $ffff);
-end;
-
-procedure unpacktime (P: longint; var T: DateTime);
-
-begin
-    T.Sec := (P and 31) * 2;
-    P := P shr 5;
-    T.Min := P and 63;
-    P := P shr 6;
-    T.Hour := P and 31;
-    P := P shr 5;
-    T.Day := P and 31;
-    P := P shr 5;
-    T.Month := P and 15;
-    P := P shr 4;
-    T.Year := P + 1980;
-end;
 
 procedure getfattr(var f;var attr : word);
  { Under EMX, this routine requires     }
@@ -1101,6 +973,7 @@ begin
     popl %ebx
  end ['eax', 'ecx', 'edx'];
 end;
+
 
 procedure setfattr(var f;attr : word);
  { Under EMX, this routine requires     }
@@ -1195,28 +1068,6 @@ var
                              --- Not Supported ---
 ******************************************************************************}
 
-procedure Keep (ExitCode: word);
-begin
-end;
-
-procedure GetIntVec (IntNo: byte; var Vector: pointer);
-begin
-end;
-
-procedure SetIntVec (IntNo: byte; Vector: pointer);
-begin
-end;
-
-function  GetShortName(var p : String) : boolean;
-begin
-  GetShortName:=true;
-end;
-
-function  GetLongName(var p : String) : boolean;
-begin
-  GetLongName:=true;
-end;
-
 
 
 begin
@@ -1229,7 +1080,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2004-03-21 20:35:24  hajny
+  Revision 1.16  2004-12-05 16:44:43  hajny
+    * GetMsCount added, platform independent routines moved to single include file
+
+  Revision 1.15  2004/03/21 20:35:24  hajny
     * Exec cleanup
 
   Revision 1.14  2004/03/08 22:31:00  hajny

@@ -19,9 +19,6 @@ interface
 
 uses libc;
 
-Const
-  FileNameLen = 255;
-
 Type
   searchrec = packed record
      DirP  : POINTER;              { used for opendir }
@@ -38,13 +35,6 @@ Type
      _attr : word;
    end;
 
-  registers = packed record
-    case i : integer of
-     0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
-     1 : (al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh : byte);
-     2 : (eax,  ebx,  ecx,  edx,  ebp,  esi,  edi : longint);
-    end;
-
 {$i dosh.inc}
 {Extra Utils}
 function weekday(y,m,d : longint) : longint;
@@ -54,6 +44,16 @@ implementation
 
 uses
   strings;
+
+{$DEFINE HAS_GETMSCOUNT}
+{$DEFINE HAS_KEEP}
+
+{$DEFINE FPC_FEXPAND_DRIVES}
+{$DEFINE FPC_FEXPAND_VOLUMES}
+{$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
+
+{$i dos.inc}
+
 
 {$ASMMODE ATT}
 
@@ -138,36 +138,19 @@ begin
 end;
 
 
-Procedure packtime(var t : datetime;var p : longint);
-Begin
-  p:=(t.sec shr 1)+(t.min shl 5)+(t.hour shl 11)+(t.day shl 16)+(t.month shl 21)+((t.year-1980) shl 25);
-End;
-
-
-Procedure unpacktime(p : longint;var t : datetime);
-Begin
-  with t do
-   begin
-     sec:=(p and 31) shl 1;
-     min:=(p shr 5) and 63;
-     hour:=(p shr 11) and 31;
-     day:=(p shr 16) and 31;
-     month:=(p shr 21) and 15;
-     year:=(p shr 25)+1980;
-   end;
-End;
+function GetMsCount: int64;
+var
+  tv : TimeVal;
+  tz : TimeZone;
+begin
+  FPGetTimeOfDay (tv, tz);
+  GetMsCount := tv.tv_Sec * 1000 + tv.tv_uSec div 1000;
+end;
 
 
 {******************************************************************************
                                --- Exec ---
 ******************************************************************************}
-
-{$ifdef HASTHREADVAR}
-threadvar
-{$else HASTHREADVAR}
-var
-{$endif HASTHREADVAR}
-  lastdosexitcode : word;
 
 const maxargs=256;
 procedure exec(const path : pathstr;const comline : comstr);
@@ -226,33 +209,6 @@ begin
   end;
 end;
 
-
-
-function dosexitcode : word;
-begin
-  dosexitcode:=lastdosexitcode;
-end;
-
-
-procedure getcbreak(var breakvalue : boolean);
-begin
-end;
-
-
-procedure setcbreak(breakvalue : boolean);
-begin
-end;
-
-
-procedure getverify(var verify : boolean);
-begin
-  verify := true;
-end;
-
-
-procedure setverify(verify : boolean);
-begin
-end;
 
 
 {******************************************************************************
@@ -493,77 +449,9 @@ begin
 end;
 
 
-procedure swapvectors;
-begin
-end;
-
-
 {******************************************************************************
                                --- File ---
 ******************************************************************************}
-
-procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;var ext : extstr);
-var
-   dotpos,p1,i : longint;
-begin
-  { allow backslash as slash }
-  for i:=1 to length(path) do
-   if path[i]='\' then path[i]:='/';
-  { get volume name }
-  p1:=pos(':',path);
-  if p1>0 then
-    begin
-       dir:=copy(path,1,p1);
-       delete(path,1,p1);
-    end
-  else
-    dir:='';
-  { split the path and the name, there are no more path informtions }
-  { if path contains no backslashes                                 }
-  while true do
-    begin
-       p1:=pos('/',path);
-       if p1=0 then
-         break;
-       dir:=dir+copy(path,1,p1);
-       delete(path,1,p1);
-    end;
-  { try to find out a extension }
-  //if LFNSupport then
-    begin
-       Ext:='';
-       i:=Length(Path);
-       DotPos:=256;
-       While (i>0) Do
-         Begin
-            If (Path[i]='.') Then
-              begin
-                 DotPos:=i;
-                 break;
-              end;
-            Dec(i);
-         end;
-       Ext:=Copy(Path,DotPos,255);
-       Name:=Copy(Path,1,DotPos - 1);
-    end
-end;
-
-
-function  GetShortName(var p : String) : boolean;
-begin
-  GetShortName := false;
-end;
-
-function  GetLongName(var p : String) : boolean;
-begin
-  GetLongName := false;
-end;
-
-
-{$define FPC_FEXPAND_DRIVES}
-{$define FPC_FEXPAND_VOLUMES}
-{$define FPC_FEXPAND_NO_DEFAULT_PATHS}
-{$i fexpand.inc}
 
 Function FSearch(path: pathstr; dirlist: string): pathstr;
 var
@@ -798,31 +686,14 @@ Begin
  while true do delay (60000);
 End;
 
-Procedure getintvec(intno : byte;var vector : pointer);
-Begin
- { no netware equivalent }
-End;
-
-Procedure setintvec(intno : byte;vector : pointer);
-Begin
- { no netware equivalent }
-End;
-
-procedure intr(intno : byte;var regs : registers);
-begin
- { no netware equivalent }
-end;
-
-procedure msdos(var regs : registers);
-begin
- { no netware equivalent }
-end;
-
 
 end.
 {
   $Log$
-  Revision 1.4  2004-09-26 19:23:34  armin
+  Revision 1.5  2004-12-05 16:44:43  hajny
+    * GetMsCount added, platform independent routines moved to single include file
+
+  Revision 1.4  2004/09/26 19:23:34  armin
   * exiting threads at nlm unload
   * renamed some libc functions
 

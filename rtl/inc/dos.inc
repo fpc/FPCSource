@@ -29,7 +29,6 @@ var
  {$ENDIF HASTHREADVAR}
   LastDosExitCode: longint;
 
-
 function DosExitCode: word;
 begin
   if LastDosExitCode > high (word) then
@@ -108,16 +107,25 @@ end;
 
 
 {$IFNDEF HAS_GETVERIFY}
+var
+  VerifyValue: boolean;
+
 procedure GetVerify (var Verify: boolean);
 begin
-  Verify := true;
+  Verify := VerifyValue;
 end;
 {$ENDIF HAS_GETVERIFY}
 
 
 {$IFNDEF HAS_SETVERIFY}
+ {$IFDEF HAS_GETVERIFY}
+var
+  VerifyValue: boolean;
+ {$ENDIF HAS_GETVERIFY}
+
 procedure SetVerify (Verify: boolean);
 begin
+  VerifyValue := Verify;
 end;
 {$ENDIF HAS_SETVERIFY}
 
@@ -290,7 +298,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2004-11-28 12:33:35  hajny
+  Revision 1.2  2004-12-05 16:44:43  hajny
+    * GetMsCount added, platform independent routines moved to single include file
+
+  Revision 1.1  2004/11/28 12:33:35  hajny
     * common implementation of platform independent functions for unit Dos
 
 
