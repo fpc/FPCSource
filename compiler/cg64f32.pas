@@ -743,20 +743,13 @@ unit cg64f32;
         optimize64_op_const_reg := false;
       end;
 
-(*
-    procedure int64f32_assignment_int64_reg(p : passignmentnode);
-
-      begin
-      end;
-
-
-begin
-   p2_assignment:=@int64f32_assignement_int64;
-*)
 end.
 {
   $Log$
-  Revision 1.56  2003-12-24 00:10:02  florian
+  Revision 1.57  2004-01-22 02:22:47  florian
+    * op_const_reg_reg with OP_SAR fixed
+
+  Revision 1.56  2003/12/24 00:10:02  florian
     - delete parameter in cg64 methods removed
 
   Revision 1.55  2003/12/07 15:00:45  jonas

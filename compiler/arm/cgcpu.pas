@@ -302,7 +302,7 @@ unit cgcpu;
                   if a>32 then
                     internalerror(200308291);
                   shifterop_reset(so);
-                  so.shiftmode:=SM_LSL;
+                  so.shiftmode:=SM_ASR;
                   so.shiftimm:=a;
                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
                 end;
@@ -1208,7 +1208,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2004-01-22 01:47:15  florian
+  Revision 1.36  2004-01-22 02:22:47  florian
+    * op_const_reg_reg with OP_SAR fixed
+
+  Revision 1.35  2004/01/22 01:47:15  florian
     * improved register usage
     + implemented second_cmp64bit
 
