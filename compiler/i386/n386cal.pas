@@ -460,7 +460,7 @@ implementation
                   para_alignment,para_offset);
            end;
          if inlined then
-           inlinecode.retoffset:=gettempofsizepersistant(4);
+           inlinecode.retoffset:=gettempofsizepersistant(Align(resulttype.def.size,target_info.stackalignment));
          if ret_in_param(resulttype.def) then
            begin
               { This must not be counted for C code
@@ -1551,7 +1551,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2001-05-16 15:11:42  jonas
+  Revision 1.24  2001-05-19 21:22:53  peter
+    * function returning int64 inlining fixed
+
+  Revision 1.23  2001/05/16 15:11:42  jonas
     * added missign begin..end pair (noticed by Carl)
 
   Revision 1.22  2001/04/18 22:02:01  peter
