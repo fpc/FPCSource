@@ -351,6 +351,9 @@ implementation
               end
              else
               begin
+              { load eof position in tokenpos/aktfilepos }
+                gettokenpos;
+              { close file }
                 closeinputfile;
               { no next module, than EOF }
                 if not assigned(inputfile^.next) then
@@ -901,8 +904,9 @@ implementation
           end;
         until false;
 
-      { Save current token position }
-        gettokenpos;
+      { Save current token position, for EOF its already loaded }
+        if c<>#26 then
+         gettokenpos;
 
       { Check first for a identifier/keyword, this is 20+% faster (PFV) }
         if c in ['_','A'..'Z','a'..'z'] then
@@ -1427,7 +1431,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  1998-09-30 16:43:38  peter
+  Revision 1.57  1998-10-08 13:45:25  peter
+    * EOF position is now correctly saved in aktfilepos
+
+  Revision 1.56  1998/09/30 16:43:38  peter
     * fixed unit interdependency with circular uses
 
   Revision 1.55  1998/09/28 16:57:26  pierre
