@@ -5228,7 +5228,8 @@ implementation
       end;
 
     procedure tobjectdef.concatstabto(asmlist : taasmoutput);
-      var st:string;
+      var
+        oldtypesym : tsym;
       begin
         if objecttype<>odt_class then
           begin
@@ -5247,14 +5248,10 @@ implementation
           writing_class_record_stab:=false;
           { Write the invisible pointer class }
           is_def_stab_written:=not_written;
-          if assigned(typesym) then
-            begin
-              st:=typesym.name;
-              typesym.name:=' ';
-            end;
+          oldtypesym:=typesym;
+          typesym:=nil;
           inherited concatstabto(asmlist);
-          if assigned(typesym) then
-              typesym.name:=st;
+          typesym:=oldtypesym;
         end;
       end;
 {$endif GDB}
@@ -6119,7 +6116,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.224  2004-03-02 00:36:33  olle
+  Revision 1.225  2004-03-03 22:01:44  peter
+    * fix hidden pointer for stabs
+
+  Revision 1.224  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.223  2004/02/26 16:16:38  peter
