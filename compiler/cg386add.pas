@@ -866,6 +866,10 @@ implementation
 {$endif cardinalmulfix}
                    case p^.treetype of
                       addn : begin
+                               { this is a really ugly hack!!!!!!!!!! }
+                               { this could be done later using EDI   }
+                               { as it is done for subn               }
+                               { instead of two registers!!!!         }
                                if is_set then
                                 begin
                                 { adding elements is not commutative }
@@ -2236,7 +2240,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2000-02-09 13:22:45  peter
+  Revision 1.94  2000-02-14 22:34:28  florian
+    * fixed another internalerror
+
+  Revision 1.93  2000/02/09 13:22:45  peter
     * log truncated
 
   Revision 1.92  2000/01/23 13:57:52  jonas

@@ -753,14 +753,11 @@ implementation
                 else
                  if psetdef(ld)^.settype=smallset then
                   begin
-                     calcregisters(p,1,0,0);
                      { are we adding set elements ? }
                      if p^.right^.treetype=setelementn then
-                       begin
-                       { we need at least two registers PM }
-                         if p^.registers32<2 then
-                           p^.registers32:=2;
-                       end;
+                       calcregisters(p,2,0,0)
+                     else
+                       calcregisters(p,1,0,0);
                      p^.location.loc:=LOC_REGISTER;
                   end
                  else
@@ -1258,7 +1255,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2000-02-13 22:46:28  florian
+  Revision 1.68  2000-02-14 22:34:28  florian
+    * fixed another internalerror
+
+  Revision 1.67  2000/02/13 22:46:28  florian
     * fixed an internalerror with writeln
     * fixed arrayconstructor_to_set to force the generation of better code
       and added a more strict type checking
