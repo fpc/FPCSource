@@ -32,12 +32,11 @@ unit impdef;
 interface
 
    uses
-   {$ifdef Delphi}
+   {$IFDEF USE_SYSUTILS}
      SysUtils,
-     Dmisc;
-   {$else}
+   {$ELSE USE_SYSUTILS}
      Dos;
-   {$endif}
+   {$ENDIF USE_SYSUTILS}
 
    var
      as_name,
@@ -175,7 +174,11 @@ procedure CreateTempDir(const s:string);
  end;
 procedure call_as(const name:string);
  begin
+{$IFDEF USE_SYSUTILS}
+  ExecuteProcess(as_name,'-o '+name+'o '+name);
+{$ELSE USE_SYSUTILS}
   exec(as_name,'-o '+name+'o '+name);
+{$ENDIF USE_SYSUTILS}
  end;
 procedure call_ar;
  var
@@ -190,7 +193,11 @@ procedure call_ar;
   GetFAttr(f,attr);
   If DOSError=0 then
    erase(f);
+{$IFDEF USE_SYSUTILS}
+  ExecuteProcess(ar_name,'rs '+impname+' '+path+dirsep+'*.swo');
+{$ELSE USE_SYSUTILS}
   exec(ar_name,'rs '+impname+' '+path+dirsep+'*.swo');
+{$ENDIF USE_SYSUTILS}
   cleardir(path,'*.sw');
   cleardir(path,'*.swo');
   {$i-}
@@ -478,7 +485,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2004-06-20 08:55:29  florian
+  Revision 1.15  2004-10-14 17:33:29  mazen
+  * use SysUtils unit instead of Dos Unit
+
+  Revision 1.14  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.13  2004/02/22 14:52:59  hajny

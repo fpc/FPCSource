@@ -162,11 +162,11 @@ interface
 implementation
 
 uses
-{$ifdef Delphi}
-  dmisc,
-{$else Delphi}
+{$IFDEF USE_SYSUTILS}
+  SysUtils,
+{$ELSE USE_SYSUTILS}
   dos,
-{$endif Delphi}
+{$ENDIF USE_SYSUTILS}
 {$ifdef heaptrc}
   fmodule,
   ppheap,
@@ -179,14 +179,22 @@ uses
  ****************************************************************************}
 
     constructor tinputfile.create(const fn:string);
+{$IFDEF USE_SYSUTILS}
+{$ELSE USE_SYSUTILS}
       var
         p:dirstr;
         n:namestr;
         e:extstr;
+{$ENDIF USE_SYSUTILS}
       begin
+{$IFDEF USE_SYSUTILS}
+        name:=stringdup(SplitFileName(fn));
+        path:=stringdupSplitPath(fn));
+{$ELSE USE_SYSUTILS}
         FSplit(fn,p,n,e);
         name:=stringdup(n+e);
         path:=stringdup(p);
+{$ENDIF USE_SYSUTILS}
         next:=nil;
         filetime:=-1;
       { file info }
@@ -631,7 +639,13 @@ uses
          { Create names }
          paramfn := stringdup(fn);
          paramallowoutput := allowoutput;
+{$IFDEF USE_SYSUTILS}
+         p := SplitPath(fn);
+         n := SplitName(fn);
+         e := SplitExtension(fn);
+{$ELSE USE_SYSUTILS}
          fsplit(fn,p,n,e);
+{$ENDIF USE_SYSUTILS}
          n:=FixFileName(n);
          { set path }
          path:=stringdup(FixPath(p,false));
@@ -726,7 +740,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.26  2004-08-02 07:15:54  michael
+  Revision 1.27  2004-10-14 17:26:04  mazen
+  * use SysUtils unit instead of Dos Unit
+
+  Revision 1.26  2004/08/02 07:15:54  michael
   + Patch from Christian Iversen to implement  LIBPREFIX/SUFFIX/EXTENSION directives
 
   Revision 1.25  2004/06/20 08:55:29  florian

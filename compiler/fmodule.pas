@@ -173,11 +173,11 @@ function get_source_file(moduleindex,fileindex : longint) : tinputfile;
 implementation
 
     uses
-    {$ifdef delphi}
-      dmisc,
-    {$else}
+    {$IFDEF USE_SYSUTILS}
+      SysUtils,
+    {$ELSE USE_SYSUTILS}
       dos,
-    {$endif}
+    {$ENDIF USE_SYSUTILS}
       verbose,systems,
       scanner,
       procinfo;
@@ -348,7 +348,13 @@ implementation
         n : namestr;
         e : extstr;
       begin
+    {$IFDEF USE_SYSUTILS}
+        p := SplitPath(s);
+        n := SplitName(s);
+        e := SplitExtension(s);
+    {$ELSE USE_SYSUTILS}
         FSplit(s,p,n,e);
+    {$ENDIF USE_SYSUTILS}
         { Programs have the name 'Program' to don't conflict with dup id's }
         if _is_unit then
          inherited create(n)
@@ -694,7 +700,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2004-08-30 20:23:33  peter
+  Revision 1.47  2004-10-14 17:30:09  mazen
+  * use SysUtils unit instead of Dos Unit
+
+  Revision 1.46  2004/08/30 20:23:33  peter
     * use realmodulename in unit not used msg
 
   Revision 1.45  2004/06/20 08:55:29  florian
