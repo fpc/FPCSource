@@ -1372,9 +1372,9 @@ begin
   if fpcdir='' then
    begin
      if PathExists('/usr/local/lib/fpc/'+version_string) then
-      fpcdir:='/usr/local/lib/fpc/'+version_string
+      fpcdir:='/usr/local/lib/fpc/'+version_string+'/'
      else
-      fpcdir:='/usr/lib/fpc/'+version_string;
+      fpcdir:='/usr/lib/fpc/'+version_string+'/';
    end;
 {$else}
   fpcdir:=FixPath(getenv('FPCDIR'),false);
@@ -1427,7 +1427,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.55  2000-01-23 18:20:50  sg
+  Revision 1.56  2000-01-31 15:55:42  peter
+    * fixed default unit location for linux when fpcdir was not set
+
+  Revision 1.55  2000/01/23 18:20:50  sg
   * Fixed typo in line 1375 ("fpidr" instead of "fpcdir")
 
   Revision 1.54  2000/01/23 16:36:37  peter
