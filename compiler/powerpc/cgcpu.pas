@@ -681,7 +681,10 @@ const
           end
         else if (op = OP_ADD) then
           if a = 0 then
-            exit
+            begin
+              a_load_reg_reg(list,size,size,src,dst);
+              exit
+            end
           else if (a >= low(smallint)) and
                   (a <= high(smallint)) then
              begin
@@ -1351,7 +1354,13 @@ const
         if usesgpr or usesfpr then
           begin
              { address of gpr save area to r11 }
-             a_op_const_reg_reg(list,OP_ADD,OS_ADDR,localsize,NR_STACK_POINTER_REG,NR_R12);
+             { (register allocator is no longer valid at this time and an add of 0   }
+             { is translated into a move, which is then registered with the register }
+             { allocator, causing a crash                                            }
+             if (localsize <> 0) then
+               a_op_const_reg_reg(list,OP_ADD,OS_ADDR,localsize,NR_STACK_POINTER_REG,NR_R12)
+             else
+               list.concat(taicpu.op_reg_reg(A_MR,NR_R12,NR_STACK_POINTER_REG));
              if usesfpr then
                begin
                  reference_reset_base(href,NR_R12,-8);
@@ -1409,7 +1418,11 @@ const
         if genret then
           begin
              { adjust r1 }
-             a_op_const_reg(list,OP_ADD,OS_ADDR,localsize,NR_R1);
+             { (register allocator is no longer valid at this time and an add of 0   }
+             { is translated into a move, which is then registered with the register }
+             { allocator, causing a crash                                            }
+             if (localsize <> 0) then
+               a_op_const_reg(list,OP_ADD,OS_ADDR,localsize,NR_R1);
              { load link register? }
              if not (po_assembler in current_procinfo.procdef.procoptions) then
                begin
@@ -2416,7 +2429,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.175  2004-07-09 21:45:24  jonas
+  Revision 1.176  2004-07-17 14:48:20  jonas
+    * fixed op_const_reg_reg for (OP_ADD,0,reg1,reg2)
+
+  Revision 1.175  2004/07/09 21:45:24  jonas
     * fixed passing of fpu paras on the stack
     * fixed number of fpu parameters passed in registers
     * skip corresponding integer registers when using an fpu register for a
