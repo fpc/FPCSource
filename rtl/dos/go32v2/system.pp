@@ -165,18 +165,18 @@ begin
 {$ifdef SYSTEMDEBUG}
         movl    U_SYSTEM_LOWESTSTACK,%ebx
         cmpl    %eax,%ebx
-        jb      _is_not_lowest
+        jb      .L_is_not_lowest
         movl    %eax,U_SYSTEM_LOWESTSTACK
-_is_not_lowest:
+.L_is_not_lowest:
 {$endif SYSTEMDEBUG}
         movl    __stkbottom,%ebx
         cmpl    %eax,%ebx
-        jae     __short_on_stack
+        jae     .L__short_on_stack
         popl    %ebx
         popl    %eax
         leave
         ret     $4
-__short_on_stack:
+.L__short_on_stack:
         { can be usefull for error recovery !! }
         popl    %ebx
         popl    %eax
@@ -1057,7 +1057,12 @@ Begin
 End.
 {
   $Log$
-  Revision 1.13  1998-07-30 13:26:22  michael
+  Revision 1.14  1998-08-04 14:34:38  pierre
+    * small bug fix to get it compiled with bugfix version !!
+      (again the asmmode problem !!!
+      Peter it was really not the best idea you had !!)
+
+  Revision 1.13  1998/07/30 13:26:22  michael
   + Added support for ErrorProc variable. All internal functions are required
     to call HandleError instead of runerror from now on.
     This is necessary for exception support.
