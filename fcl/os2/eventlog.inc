@@ -232,23 +232,36 @@ end;
 function TEventLog.MapTypeToCategory(EventType: TEventType): Word;
 begin
   Result:=0;
+  If (EventType=ETCustom) then
+    DoGetCustomEventCategory(Result);
 end;
 
 function TEventLog.MapTypeToEventID(EventType: TEventType): DWord;
 
 begin
   Result:=0;
+  If (EventType=ETCustom) then
+    DoGetCustomEventID(Result);
 end;
 
 function TEventLog.MapTypeToEvent(EventType: TEventType): DWord;
 
 begin
-  Result := ord (EventType);
+  If EventType=etCustom Then
+    begin
+    Result:=CustomLogType;
+    DoGetCustomEvent(Result);
+    end
+  else
+    Result := ord (EventType);
 end;
 
 {
   $Log$
-  Revision 1.3  2003-03-20 20:15:27  hajny
+  Revision 1.4  2003-03-25 21:08:10  michael
+  + Added support for custom log event type
+
+  Revision 1.3  2003/03/20 20:15:27  hajny
     * range checking has to be disabled
 
   Revision 1.2  2003/03/02 02:01:35  hajny

@@ -23,9 +23,12 @@ interface
 uses SysUtils,Classes;
 
 Type
+  TEventLog = Class; 
   TEventType = (etCustom,etInfo,etWarning,etError,etDebug);
   TLogType = (ltSystem,ltFile);
-
+  TLogCodeEvent = Procedure (Sender : TObject; Var Code : DWord) of Object;
+  TLogCategoryEvent = Procedure (Sender : TObject; Var Code : Word) of Object;
+   
   TEventLog = Class(TComponent)
   Private
     FEventIDOffset : DWord;
@@ -38,6 +41,9 @@ Type
     FFileName: String;
     FTimeStampFormat: String;
     FCustomLogType: Word;
+    FOnGetCustomCategory : TLogCategoryEvent;
+    FOnGetCustomEventID : TLogCodeEvent;
+    FOnGetCustomEvent : TLogCodeEvent;
     procedure SetActive(const Value: Boolean);
     procedure SetIdentification(const Value: String);
     procedure SetlogType(const Value: TLogType);
@@ -52,16 +58,19 @@ Type
     procedure DeActivateFileLog;
     procedure DeActivateSystemLog;
     procedure CheckIdentification;
-    function MapTypeToEvent(EventType: TEventType): DWord;
+    Procedure DoGetCustomEventID(Var Code : DWord); 
+    Procedure DoGetCustomEventCategory(Var Code : Word); 
+    Procedure DoGetCustomEvent(Var Code : DWord); 
   Protected
     Procedure CheckInactive;
     Procedure EnsureActive;
+    function MapTypeToEvent(EventType: TEventType): DWord;
+    Function MapTypeToCategory(EventType : TEventType) : Word;
+    Function MapTypeToEventID(EventType : TEventType) : DWord;
   Public
     Destructor Destroy; override;
     Function EventTypeToString(E : TEventType) : String; 
     Function RegisterMessageFile(AFileName : String) : Boolean; virtual;
-    Function MapTypeToCategory(EventType : TEventType) : Word;
-    Function MapTypeToEventID(EventType : TEventType) : DWord;
     Procedure Log (EventType : TEventType; Msg : String); {$ifndef fpc }Overload;{$endif}
     Procedure Log (EventType : TEventType; Fmt : String; Args : Array of const); {$ifndef fpc }Overload;{$endif}
     Procedure Log (Msg : String); {$ifndef fpc }Overload;{$endif}
@@ -74,6 +83,7 @@ Type
     Procedure Debug (Fmt : String; Args : Array of const); {$ifndef fpc }Overload;{$endif}
     Procedure Info (Msg : String); {$ifndef fpc }Overload;{$endif}
     Procedure Info (Fmt : String; Args : Array of const); {$ifndef fpc }Overload;{$endif}
+  Published
     Property Identification : String Read FIdentification Write SetIdentification;
     Property LogType : TLogType Read Flogtype Write SetlogType;
     Property Active : Boolean Read FActive write SetActive;
@@ -82,6 +92,9 @@ Type
     Property TimeStampFormat : String Read FTimeStampFormat Write FTimeStampFormat;
     Property CustomLogType : Word Read FCustomLogType Write FCustomLogType;
     Property EventIDOffset : DWord Read FEventIDOffset Write FEventIDOffset;
+    Property OnGetCustomCategory : TLogCategoryEvent Read FOnGetCustomCategory Write FOnGetCustomCategory;
+    Property OnGetCustomEventID : TLogCodeEvent Read FOnGetCustomEventID Write FOnGetCustomEventID;
+    Property OnGetCustomEvent : TLogCodeEvent Read FOnGetCustomEvent Write FOnGetCustomEvent;
   End;
 
   ELogError = Class(Exception);
@@ -277,6 +290,28 @@ begin
   end;
 end;
 
+Procedure TEventLog.DoGetCustomEventID(Var Code : DWord); 
+
+begin
+  If Assigned(FOnGetCustomEventID) then
+    FOnGetCustomEventID(Self,Code);  
+end;
+
+Procedure TEventLog.DoGetCustomEventCategory(Var Code : Word); 
+
+begin
+  If Assigned(FOnGetCustomCategory) then
+    FOnGetCustomCategory(Self,Code);
+end;
+
+Procedure TEventLog.DoGetCustomEvent(Var Code : DWord); 
+
+begin
+  If Assigned(FOnGetCustomEvent) then
+    FOnGetCustomEvent(Self,Code);  
+end;
+
+
 destructor TEventLog.Destroy;
 begin
   Active:=False;
@@ -287,7 +322,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-02-19 20:25:16  michael
+  Revision 1.2  2003-03-25 21:04:48  michael
+  + Added support for custom log event type
+
+  Revision 1.1  2003/02/19 20:25:16  michael
   + Added event log
 
 }

@@ -99,12 +99,16 @@ end;
 function TEventLog.MapTypeToCategory(EventType: TEventType): Word;
 begin
   Result:=0;
+  If (EventType=ETCustom) then
+    DoGetCustomEventCategory(Result);
 end;
 
 function TEventLog.MapTypeToEventID(EventType: TEventType): DWord;
 
 begin
   Result:=0;
+  If (EventType=ETCustom) then
+    DoGetCustomEventID(Result);
 end;
 
 function TEventLog.MapTypeToEvent(EventType: TEventType): DWord;
@@ -118,7 +122,8 @@ begin
     begin
     If CustomLogType=0 then
       CustomLogType:=LOG_NOTICE;
-    Result:=CustomLogType
+    Result:=CustomLogType;
+    DoGetCustomEvent(Result);
     end
   else
     Result:=WinET[EventType];
