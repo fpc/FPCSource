@@ -159,7 +159,7 @@ unit systems;
 
        tasminfo = packed record
           id          : tasm;
-          idtxt       : string[8];
+          idtxt       : string[9];
           asmbin      : string[8];
           asmcmd      : string[50];
           allowdirect,
@@ -1525,7 +1525,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.100  2000-04-04 13:54:58  pierre
+  Revision 1.101  2000-04-04 14:18:15  pierre
+   * nasmwin32 is 9 chars long, idtxt changed accordingly
+
+  Revision 1.100  2000/04/04 13:54:58  pierre
    + nasmwin32 for win32 object output with nasm assembler
 
   Revision 1.99  2000/02/09 13:23:06  peter
