@@ -30,35 +30,6 @@ const
       ((0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334),
        (0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335));
 
-Procedure GetLocalTime(var SystemTime: TSystemTime);
-{$IFDEF GO32V2}
-var Regs: Registers;
-begin
-Regs.ah := $2C;
-RealIntr($21, Regs);
-SystemTime.Hour := Regs.Ch;
-SystemTime.Minute := Regs.Cl;
-SystemTime.Second := Regs.Dh;
-SystemTime.MilliSecond := Regs.Dl;
-Regs.ah := $2A;
-RealIntr($21, Regs);
-SystemTime.Year := Regs.Cx;
-SystemTime.Month := Regs.Dh;
-SystemTime.Day := Regs.Dl;
-end ;
-{$ELSE}
-{$IFDEF LINUX}
-begin
-linux.GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second);
-linux.GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day);
-SystemTime.MilliSecond := 0;
-end ;
-{$ELSE}
-begin
-end ;
-{$ENDIF}
-{$ENDIF}
-
 function DoEncodeDate(Year, Month, Day: Word): longint;
 var i: longint;
 begin
@@ -160,14 +131,23 @@ end ;
     Hour, Minute, Second and MilliSecond    }
 
 procedure DecodeTime(Time: TDateTime; var Hour, Minute, Second, MilliSecond: word);
-var l:longint;
+var l:TDateTime;
+
 begin
-l := Trunc(Frac(time) * MSecsPerDay);
-Hour   := l div 3600000;l := l mod 3600000;
-Minute := l div 60000;l := l mod 60000;
-Second := l div 1000;l := l mod 1000;
-MilliSecond := l;
-end ;
+{ l := Trunc(Frac(time) * MSecsPerDay);
+ Hour   := l div 3600000;l := l mod 3600000;
+ Minute := l div 60000;l := l mod 60000;
+ Second := l div 1000;l := l mod 1000;
+ MilliSecond := l;
+}
+  Time := Frac(Time) * 24;
+  Hour := Trunc(Time);
+  Time := Frac(Time) * 60;
+  Minute  := Trunc(Time);
+  Time := Frac(Time) * 60;
+  Second  := Trunc(Time);
+  MilliSecond := Trunc(Frac(Time) * 1000);
+end;
 
 {   DateTimeToSystemTime converts DateTime value to SystemTime   }
 
@@ -625,7 +605,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1999-02-10 22:15:10  michael
+  Revision 1.8  1999-02-24 15:56:28  michael
+  + Small fixes. Moved getlocaltime to system-dependent files
+
+  Revision 1.7  1999/02/10 22:15:10  michael
   + Changed to ansistrings
 
   Revision 1.6  1999/02/09 12:38:42  michael

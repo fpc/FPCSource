@@ -26,32 +26,29 @@
 
 function NewStr(const S: string): PString;
 begin
-result := Nil;
-{
-if Length(S) <> 0 then begin
-   result := New(PString);
-   result^ := S;
-   end ;
-}
+  result := Nil; 
+  if Length(S) <> 0 then 
+    begin
+    New(Result);
+    result^ := S;
+    end ;
 end ;
 
 {   DisposeStr frees the memory occupied by S   }
 
 procedure DisposeStr(S: PString);
 begin
-{
 if S <> Nil then begin
    Dispose(S);
    S := Nil;
    end ;
-}
 end ;
 
 {   AssignStr assigns S to P^   }
 
 procedure AssignStr(var P: PString; const S: string);
 begin
-P^ := s;
+  P^ := s;
 end ;
 
 {   AppendStr appends S to Dest   }
@@ -880,7 +877,10 @@ end ;
 
 {
   $Log$
-  Revision 1.11  1999-02-10 22:15:12  michael
+  Revision 1.12  1999-02-24 15:56:29  michael
+  + Small fixes. Moved getlocaltime to system-dependent files
+
+  Revision 1.11  1999/02/10 22:15:12  michael
   + Changed to ansistrings
 
   Revision 1.10  1998/12/15 22:43:09  peter
