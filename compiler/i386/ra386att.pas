@@ -1612,7 +1612,7 @@ var
   i : longint;
 begin
   OpOrder:=op_att;
-  for i:=1to max_operands do
+  for i:=1 to max_operands do
    Operands[i]:=T386AttOperand.Create;
 end;
 
@@ -2119,7 +2119,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.54  2003-10-24 17:39:03  peter
+  Revision 1.55  2003-10-26 13:37:22  florian
+    * fixed web bug 2128
+
+  Revision 1.54  2003/10/24 17:39:03  peter
     * more intel parser updates
 
   Revision 1.53  2003/10/23 17:19:44  peter

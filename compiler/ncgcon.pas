@@ -153,7 +153,12 @@ implementation
 {$else ver1_0}
                     { the round is necessary for native compilers where comp isn't a float }
                     ait_comp_64bit :
-                      Consts.concat(Tai_comp_64bit.Create(round(value_real)));
+                      begin
+                        if (value_real>9223372036854775807.0) or (value_real<-9223372036854775808.0) then
+                          Message(parser_e_range_check_error)
+                        else
+                          Consts.concat(Tai_comp_64bit.Create(round(value_real)));
+                      end;
 {$endif ver1_0}
                   else
                     internalerror(10120);
@@ -554,7 +559,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2003-10-10 17:48:13  peter
+  Revision 1.33  2003-10-26 13:37:22  florian
+    * fixed web bug 2128
+
+  Revision 1.32  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units
