@@ -274,6 +274,9 @@ unit tree;
     function gensinglenode(t : ttreetyp;l : ptree) : ptree;
     function gensubscriptnode(varsym : pvarsym;l : ptree) : ptree;
     function genordinalconstnode(v : TConstExprInt;def : pdef) : ptree;
+    { same as genordinalconstnode, but the resulttype }
+    { is determines automatically                     }
+    function genintconstnode(v : TConstExprInt) : ptree;
     function genpointerconstnode(v : tpointerord;def : pdef) : ptree;
     function genfixconstnode(v : longint;def : pdef) : ptree;
     function gentypeconvnode(node : ptree;t : pdef) : ptree;
@@ -874,6 +877,20 @@ unit tree;
           testrange(p^.resulttype,p^.value);
       {$ENDIF}
          genordinalconstnode:=p;
+      end;
+
+    function genintconstnode(v : TConstExprInt) : ptree;
+
+      var
+         i : TConstExprInt;
+
+      begin
+         { we need to bootstrap this code, so it's a little bit messy }
+         i:=2147483647;
+         if (v<=i) and (v>=-i-1) then
+           genintconstnode:=genordinalconstnode(v,s32bitdef)
+         else
+           genintconstnode:=genordinalconstnode(v,cs64bitdef);
       end;
 
     function genpointerconstnode(v : tpointerord;def : pdef) : ptree;
@@ -2133,7 +2150,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.6  2000-08-16 13:06:07  florian
+  Revision 1.7  2000-08-17 12:03:48  florian
+    * fixed several problems with the int64 constants
+
+  Revision 1.6  2000/08/16 13:06:07  florian
     + support of 64 bit integer constants
 
   Revision 1.5  2000/08/12 06:46:51  florian

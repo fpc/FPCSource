@@ -227,20 +227,24 @@ implementation
              (is_constboolnode(p^.left) and is_constboolnode(p^.right) and
               (p^.treetype in [ltn,lten,gtn,gten,equaln,unequaln,andn,xorn,orn]))) then
            begin
+              { xor, and, or are handled different from arithmetic }
+              { operations regarding the result type               }
               { return a boolean for boolean operations (and,xor,or) }
               if is_constboolnode(p^.left) then
                resdef:=booldef
+              else if is_64bitint(rd) or is_64bitint(ld) then
+                resdef:=cs64bitdef
               else
-               resdef:=s32bitdef;
+                resdef:=s32bitdef;
               lv:=p^.left^.value;
               rv:=p^.right^.value;
               case p^.treetype of
-                addn : t:=genordinalconstnode(lv+rv,resdef);
-                subn : t:=genordinalconstnode(lv-rv,resdef);
-                muln : t:=genordinalconstnode(lv*rv,resdef);
+                addn : t:=genintconstnode(lv+rv);
+                subn : t:=genintconstnode(lv-rv);
+                muln : t:=genintconstnode(lv*rv);
                 xorn : t:=genordinalconstnode(lv xor rv,resdef);
-                 orn : t:=genordinalconstnode(lv or rv,resdef);
-                andn : t:=genordinalconstnode(lv and rv,resdef);
+                 orn: t:=genordinalconstnode(lv or rv,resdef);
+                andn: t:=genordinalconstnode(lv and rv,resdef);
                  ltn : t:=genordinalconstnode(ord(lv<rv),booldef);
                 lten : t:=genordinalconstnode(ord(lv<=rv),booldef);
                  gtn : t:=genordinalconstnode(ord(lv>rv),booldef);
@@ -451,12 +455,12 @@ implementation
                 end;
 (*
                 { these one can't be in flags! }
-                
+
                 Yes they can, secondadd converts the loc_flags to a register.
                 The typeconversions below are simply removed by firsttypeconv()
                 because the resulttype of p^.left = p^.left^.resulttype
                 (surprise! :) (JM)
-                
+
                 if p^.treetype in [xorn,unequaln,equaln] then
                   begin
                      if p^.left^.location.loc=LOC_FLAGS then
@@ -1285,7 +1289,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-07-27 09:19:37  jonas
+  Revision 1.5  2000-08-17 12:03:48  florian
+    * fixed several problems with the int64 constants
+
+  Revision 1.4  2000/07/27 09:19:37  jonas
     * removed obsolete typeconversion (it got removed by the compiler in
       firsttypeconv anyway) (merged from fixes branch)
 

@@ -38,7 +38,7 @@ implementation
       globtype,systems,tokens,
       cobjects,verbose,globals,
       symconst,symtable,aasm,types,
-      htypechk,pass_1,cpubase,
+      htypechk,pass_1,cpubase,cpuinfo,
 {$ifdef newcg}
       cgbase,
 {$else newcg}
@@ -54,7 +54,7 @@ implementation
     procedure firstmoddiv(var p : ptree);
       var
          t : ptree;
-         rv,lv : longint;
+         rv,lv : tconstexprint;
          rd,ld : pdef;
 
       begin
@@ -81,8 +81,10 @@ implementation
          if is_constintnode(p^.left) and is_constintnode(p^.right) then
            begin
               case p^.treetype of
-                modn : t:=genordinalconstnode(lv mod rv,s32bitdef);
-                divn : t:=genordinalconstnode(lv div rv,s32bitdef);
+                modn:
+                  t:=genintconstnode(lv mod rv);
+                divn:
+                  t:=genintconstnode(lv div rv);
               end;
               disposetree(p);
               firstpass(t);
@@ -199,8 +201,10 @@ implementation
          if is_constintnode(p^.left) and is_constintnode(p^.right) then
            begin
               case p^.treetype of
-                 shrn : t:=genordinalconstnode(p^.left^.value shr p^.right^.value,s32bitdef);
-                 shln : t:=genordinalconstnode(p^.left^.value shl p^.right^.value,s32bitdef);
+                 shrn:
+                   t:=genintconstnode(p^.left^.value shr p^.right^.value);
+                 shln:
+                   t:=genintconstnode(p^.left^.value shl p^.right^.value);
               end;
               disposetree(p);
               firstpass(t);
@@ -256,7 +260,7 @@ implementation
            exit;
          if is_constintnode(p^.left) then
            begin
-              t:=genordinalconstnode(-p^.left^.value,s32bitdef);
+              t:=genintconstnode(-p^.left^.value);
               disposetree(p);
               firstpass(t);
               p:=t;
@@ -378,11 +382,11 @@ implementation
          if (p^.left^.treetype=ordconstn) then
            begin
               if is_boolean(p^.left^.resulttype) then
-               { here we do a boolena(byte(..)) type cast because }
-               { boolean(<int64>) is buggy in 1.00                }
-               t:=genordinalconstnode(byte(not(boolean(byte(p^.left^.value)))),p^.left^.resulttype)
+                { here we do a boolena(byte(..)) type cast because }
+                { boolean(<int64>) is buggy in 1.00                }
+                t:=genordinalconstnode(byte(not(boolean(byte(p^.left^.value)))),p^.left^.resulttype)
               else
-               t:=genordinalconstnode(not(p^.left^.value),p^.left^.resulttype);
+                t:=genordinalconstnode(not(p^.left^.value),p^.left^.resulttype);
               disposetree(p);
               firstpass(t);
               p:=t;
@@ -479,7 +483,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-08-16 13:06:07  florian
+  Revision 1.4  2000-08-17 12:03:48  florian
+    * fixed several problems with the int64 constants
+
+  Revision 1.3  2000/08/16 13:06:07  florian
     + support of 64 bit integer constants
 
   Revision 1.2  2000/07/13 11:32:52  michael
