@@ -39,6 +39,20 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
+          function first_assigned: tnode; virtual;
+          { All the following routines currently
+            call compilerproc's, unless they are
+            overriden in which case, the code
+            generator handles them.
+          }
+          function first_pi: tnode ; virtual;
+          function first_arctan_real: tnode; virtual;
+          function first_abs_real: tnode; virtual;
+          function first_sqr_real: tnode; virtual;
+          function first_sqrt_real: tnode; virtual;
+          function first_ln_real: tnode; virtual;
+          function first_cos_real: tnode; virtual;
+          function first_sin_real: tnode; virtual;
         private
           function handle_str: tnode;
           function handle_reset_rewrite_typed: tnode;
@@ -1752,11 +1766,10 @@ implementation
              in_pi:
                 begin
                   if block_type=bt_const then
-                    setconstrealvalue(pi)
+                     setconstrealvalue(pi)
                   else
-                    resulttype:=s80floattype;
+                     resulttype:=pbestrealtype^;
                 end;
-
               in_cos_extended :
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
@@ -1764,8 +1777,8 @@ implementation
                   else
                    begin
                      set_varstate(left,true);
-                     inserttypeconv(left,s80floattype);
-                     resulttype:=s80floattype;
+                     inserttypeconv(left,pbestrealtype^);
+                     resulttype:=pbestrealtype^;
                    end;
                 end;
 
@@ -1776,8 +1789,8 @@ implementation
                   else
                    begin
                      set_varstate(left,true);
-                     inserttypeconv(left,s80floattype);
-                     resulttype:=s80floattype;
+                     inserttypeconv(left,pbestrealtype^);
+                     resulttype:=pbestrealtype^;
                    end;
                 end;
 
@@ -1788,8 +1801,8 @@ implementation
                   else
                    begin
                      set_varstate(left,true);
-                     inserttypeconv(left,s80floattype);
-                     resulttype:=s80floattype;
+                     inserttypeconv(left,pbestrealtype^);
+                     resulttype:=pbestrealtype^;
                    end;
                 end;
 
@@ -1800,8 +1813,8 @@ implementation
                   else
                    begin
                      set_varstate(left,true);
-                     inserttypeconv(left,s80floattype);
-                     resulttype:=s80floattype;
+                     inserttypeconv(left,pbestrealtype^);
+                     resulttype:=pbestrealtype^;
                    end;
                 end;
 
@@ -1812,8 +1825,8 @@ implementation
                   else
                    begin
                      set_varstate(left,true);
-                     inserttypeconv(left,s80floattype);
-                     resulttype:=s80floattype;
+                     inserttypeconv(left,pbestrealtype^);
+                     resulttype:=pbestrealtype^;
                    end;
                 end;
 
@@ -1833,8 +1846,8 @@ implementation
                   else
                    begin
                      set_varstate(left,true);
-                     inserttypeconv(left,s80floattype);
-                     resulttype:=s80floattype;
+                     inserttypeconv(left,pbestrealtype^);
+                     resulttype:=pbestrealtype^;
                    end;
                 end;
 
@@ -1854,8 +1867,8 @@ implementation
                   else
                    begin
                      set_varstate(left,true);
-                     inserttypeconv(left,s80floattype);
-                     resulttype:=s80floattype;
+                     inserttypeconv(left,pbestrealtype^);
+                     resulttype:=pbestrealtype^;
                    end;
                 end;
 
@@ -2006,7 +2019,7 @@ implementation
 
           in_assigned_x:
             begin
-               location.loc:=LOC_FLAGS;
+               result := first_assigned;
             end;
 
           in_ofs_x :
@@ -2143,78 +2156,42 @@ implementation
 
          in_cos_extended:
            begin
-             location.loc:=LOC_FPUREGISTER;
-             registers32:=left.registers32;
-             registersfpu:=max(left.registersfpu,1);
-{$ifdef SUPPORT_MMX}
-             registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
+             result:= first_cos_real;
            end;
 
          in_sin_extended:
            begin
-             location.loc:=LOC_FPUREGISTER;
-             registers32:=left.registers32;
-             registersfpu:=max(left.registersfpu,1);
-{$ifdef SUPPORT_MMX}
-             registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
+             result := first_sin_real;
            end;
 
          in_arctan_extended:
            begin
-             location.loc:=LOC_FPUREGISTER;
-             registers32:=left.registers32;
-             registersfpu:=max(left.registersfpu,2);
-{$ifdef SUPPORT_MMX}
-             registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
+             result := first_arctan_real;
            end;
 
          in_pi:
            begin
-             location.loc:=LOC_FPUREGISTER;
-             registersfpu:=1;
+             result := first_pi;
            end;
 
          in_abs_extended:
            begin
-             location.loc:=LOC_FPUREGISTER;
-             registers32:=left.registers32;
-             registersfpu:=max(left.registersfpu,1);
-{$ifdef SUPPORT_MMX}
-             registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
+             result := first_abs_real;
            end;
 
          in_sqr_extended:
            begin
-             location.loc:=LOC_FPUREGISTER;
-             registers32:=left.registers32;
-             registersfpu:=max(left.registersfpu,1);
-{$ifdef SUPPORT_MMX}
-             registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
+             result := first_sqr_real;
            end;
 
          in_sqrt_extended:
            begin
-             location.loc:=LOC_FPUREGISTER;
-             registers32:=left.registers32;
-             registersfpu:=max(left.registersfpu,1);
-{$ifdef SUPPORT_MMX}
-             registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
+             result := first_sqrt_real;
            end;
 
          in_ln_extended:
            begin
-             location.loc:=LOC_FPUREGISTER;
-             registers32:=left.registers32;
-             registersfpu:=max(left.registersfpu,2);
-{$ifdef SUPPORT_MMX}
-             registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
+             result := first_ln_real;
            end;
 
 {$ifdef SUPPORT_MMX}
@@ -2251,6 +2228,11 @@ implementation
 {$maxfpuregisters default}
 {$endif fpc}
 
+    function tinlinenode.first_assigned: tnode;
+     begin
+       location.loc:=LOC_REGISTER;
+       first_assigned := nil;
+     end;
 
     function tinlinenode.docompare(p: tnode): boolean;
       begin
@@ -2260,12 +2242,113 @@ implementation
       end;
 
 
+     function tinlinenode.first_pi : tnode;
+      begin
+        { create the call to the helper }
+        first_pi := ccallnode.createintern('fpc_pi',nil);
+        { now left is nil, nothing left, so no second pass 
+          required.
+        }        
+        left := nil;
+      end;
+      
+      
+     function tinlinenode.first_arctan_real : tnode;
+      begin
+        { create the call to the helper }
+        { on entry left node contains the parameter }
+        first_arctan_real := ccallnode.createintern('fpc_arctan_real',
+                ccallparanode.create(left,nil));
+        { now left is nil, nothing left, so no second pass 
+          required.
+        }        
+        left := nil;
+      end;
+      
+     function tinlinenode.first_abs_real : tnode;
+      begin
+        { create the call to the helper }
+        { on entry left node contains the parameter }
+        first_abs_real := ccallnode.createintern('fpc_abs_real',
+                ccallparanode.create(left,nil));
+        { now left is nil, nothing left, so no second pass 
+          required.
+        }        
+        left := nil;
+      end;
+      
+     function tinlinenode.first_sqr_real : tnode;
+      begin
+        { create the call to the helper }
+        { on entry left node contains the parameter }
+        first_sqr_real := ccallnode.createintern('fpc_sqr_real',
+                ccallparanode.create(left,nil));
+        { now left is nil, nothing left, so no second pass 
+          required.
+        }        
+        left := nil;
+      end;
+      
+     function tinlinenode.first_sqrt_real : tnode;
+      begin
+        { create the call to the helper }
+        { on entry left node contains the parameter }
+        first_sqrt_real := ccallnode.createintern('fpc_sqrt_real',
+                ccallparanode.create(left,nil));
+        { now left is nil, nothing left, so no second pass 
+          required.
+        }        
+        left := nil;
+      end;
+      
+     function tinlinenode.first_ln_real : tnode;
+      begin
+        { create the call to the helper }
+        { on entry left node contains the parameter }
+        first_ln_real := ccallnode.createintern('fpc_ln_real',
+                ccallparanode.create(left,nil));
+        { now left is nil, nothing left, so no second pass 
+          required.
+        }        
+        left := nil;
+      end;
+      
+     function tinlinenode.first_cos_real : tnode;
+      begin
+        { create the call to the helper }
+        { on entry left node contains the parameter }
+        first_cos_real := ccallnode.createintern('fpc_cos_real',
+                ccallparanode.create(left,nil));
+        { now left is nil, nothing left, so no second pass 
+          required.
+        }        
+        left := nil;
+      end;
+      
+     function tinlinenode.first_sin_real : tnode;
+      begin
+        { create the call to the helper }
+        { on entry left node contains the parameter }
+        first_sin_real := ccallnode.createintern('fpc_sin_real',
+                ccallparanode.create(left,nil));
+        { now left is nil, nothing left, so no second pass 
+          required.
+        }        
+        left := nil;
+      end;
+
+
 begin
    cinlinenode:=tinlinenode;
 end.
 {
   $Log$
-  Revision 1.79  2002-07-20 11:57:54  florian
+  Revision 1.80  2002-07-25 18:00:19  carl
+    + Resulttype for floats is now CPU independent (bestrealytype)
+    + Generic version of some routines (call to RTL routines)
+        : still untested.
+
+  Revision 1.79  2002/07/20 11:57:54  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
