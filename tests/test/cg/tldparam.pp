@@ -201,6 +201,8 @@
 
 {$ifdef fpc}
 
+{$inline on}
+
    function testretbyteinline: byte; inline;
      begin
        Write('(byte) : Value should be 126...');
@@ -395,7 +397,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-05-19 11:51:50  peter
+  Revision 1.2  2001-07-31 08:03:14  pierre
+   * inline on directive added
+
+  Revision 1.1  2001/05/19 11:51:50  peter
     * renamed to .pp
 
   Revision 1.2  2001/05/18 18:20:07  carl
