@@ -28,6 +28,7 @@ type
   TSparcAddNode=class(TAddNode)
     procedure pass_2;override;
   private
+    procedure clear_left_right(cmpop:Boolean);
     procedure second_addboolean;
     procedure second_add64bit;
     procedure second_addfloat;
@@ -35,6 +36,7 @@ type
     procedure left_must_be_reg(OpSize:TOpSize;NoSwap:Boolean);
     procedure emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extra_not,mboverflow:Boolean);
     procedure emit_op_right_left(op:TAsmOp);
+    procedure Load_left_right(cmpop,load_constants:Boolean);
     procedure pass_left_and_right;
     procedure set_result_location(cmpOp,unsigned:Boolean);
   end;
@@ -50,6 +52,25 @@ uses
   ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
 const
   opsize_2_cgSize:array[S_B..S_L]of TCgSize=(OS_8,OS_16,OS_32);
+procedure TSparcAddNode.clear_left_right(cmpop:Boolean);
+  begin
+    if(right.location.loc in [LOC_REGISTER,LOC_FPUREGISTER])and(cmpop or(location.register.enum <> right.location.register.enum))
+    then
+      begin
+        rg.ungetregister(exprasmlist,right.location.register);
+        if is_64bitint(right.resulttype.def)
+        then
+          rg.ungetregister(exprasmlist,right.location.registerhigh);
+        end;
+    if(left.location.loc in [LOC_REGISTER,LOC_FPUREGISTER])and(cmpop or(location.register.enum <> left.location.register.enum))
+    then
+      begin
+        rg.ungetregister(exprasmlist,left.location.register);
+        if is_64bitint(left.resulttype.def)
+        then
+          rg.ungetregister(exprasmlist,left.location.registerhigh);
+      end;
+  end;
 procedure TSparcAddNode.second_addboolean;
   var
     cgop:TOpCg;
@@ -125,7 +146,7 @@ procedure TSparcAddNode.second_addboolean;
           location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def))
         else
           location_reset(location,LOC_FLAGS,OS_NO);
-        //load_left_right(cmpop,false);
+        load_left_right(cmpop,false);
         if (left.location.loc = LOC_CONSTANT)
         then
           swapleftright;
@@ -197,7 +218,7 @@ procedure TSparcAddNode.second_addboolean;
             end;
         end;
       end;
-//    clear_left_right(CmpOp);
+    clear_left_right(CmpOp);
   end;
 function TSparcAddNode.GetResFlags(unsigned:Boolean):TResFlags;
   begin
@@ -558,7 +579,7 @@ procedure TSparcAddNode.second_add64bit;
         if not cmpop then
           location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
 
-        //load_left_right(cmpop,(cs_check_overflow in aktlocalswitches) and (nodetype in [addn,subn]));
+        load_left_right(cmpop,(cs_check_overflow in aktlocalswitches) and (nodetype in [addn,subn]));
 
         if not(cs_check_overflow in aktlocalswitches) or
            not(nodetype in [addn,subn]) then
@@ -778,9 +799,54 @@ procedure TSparcAddNode.second_add64bit;
            not(nodetype in [equaln,unequaln]) then
           location_reset(location,LOC_JUMP,OS_NO);
 
-//        clear_left_right(cmpop);
+        clear_left_right(cmpop);
 
       end;
+procedure TSparcAddNode.load_left_right(cmpop,load_constants:Boolean);
+  procedure load_node(var n:tnode);
+    begin
+      case n.location.loc of
+        LOC_REGISTER:
+          if not cmpop
+          then
+            begin
+              location.register := n.location.register;
+              if is_64bitint(n.resulttype.def)
+              then
+                location.registerhigh := n.location.registerhigh;
+            end;
+        LOC_REFERENCE,LOC_CREFERENCE:
+          begin
+            location_force_reg(exprasmlist,n.location,def_cgsize(n.resulttype.def),false);
+            if not cmpop
+            then
+              begin
+                location.register := n.location.register;
+                if is_64bitint(n.resulttype.def)
+                then
+                  location.registerhigh := n.location.registerhigh;
+              end;
+          end;
+        LOC_CONSTANT:
+          begin
+            if load_constants
+            then
+              begin
+                location_force_reg(exprasmlist,n.location,def_cgsize(n.resulttype.def),false);
+                if not cmpop
+                then
+                  location.register := n.location.register;
+                if is_64bitint(n.resulttype.def)
+                then
+                  location.registerhigh := n.location.registerhigh;
+                end;
+              end;
+          end;
+      end;
+  begin
+    load_node(left);
+    load_node(right);
+  end;
 procedure TSparcAddNode.second_addfloat;
   var
     reg   : tregister;
@@ -864,7 +930,7 @@ procedure TSparcAddNode.second_addfloat;
               r,left.location.register,right.location.register))
           end;
 
-//        clear_left_right(cmpop);
+        clear_left_right(cmpop);
   end;
 procedure TSparcAddNode.set_result_location(cmpOp,unsigned:Boolean);
   begin
@@ -946,8 +1012,7 @@ procedures }
       location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def))
     else
       location_reset(location,LOC_FLAGS,OS_NO);
-    //load_left_right(cmpop, (cs_check_overflow in aktlocalswitches) and
-    //(nodetype in [addn,subn,muln]));
+    load_left_right(cmpop,(cs_check_overflow in aktlocalswitches)and(nodetype in [addn,subn,muln]));
     if(location.register.enum = R_NO)and not(cmpop)
     then
       location.register := rg.getregisterint(exprasmlist);
@@ -1008,7 +1073,7 @@ procedures }
             location_release(exprasmlist,left.location);
           end;
       end;
-      //clear_left_right(cmpop);
+      clear_left_right(cmpop);
    end;
 procedure TSparcAddNode.pass_left_and_right;
   var
@@ -1046,7 +1111,11 @@ begin
 end.
 {
     $Log$
-    Revision 1.8  2003-01-22 20:45:15  mazen
+    Revision 1.9  2003-02-13 21:15:18  mazen
+    + Load_left_right and clear_left_right implemented fixing test0001 register
+    allocation bug.
+
+    Revision 1.8  2003/01/22 20:45:15  mazen
     * making math code in RTL compiling.
     *NB : This does NOT mean necessary that it will generate correct code!
 
