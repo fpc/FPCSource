@@ -354,6 +354,7 @@ implementation
          opsize : topsize;
          otlabel,hlabel,oflabel : pasmlabel;
          hregister : tregister;
+         fputyp : tfloattype;
          loc : tloc;
          r : preference;
          ai : pai386;
@@ -626,11 +627,22 @@ implementation
 
                            end;
             LOC_FPU : begin
+                              if (p^.left^.resulttype^.deftype=floatdef) then
+                               fputyp:=pfloatdef(p^.left^.resulttype)^.typ
+                              else
+                               if (p^.right^.resulttype^.deftype=floatdef) then
+                                fputyp:=pfloatdef(p^.right^.resulttype)^.typ
+                              else
+                               if (p^.right^.treetype=typeconvn) and
+                                  (p^.right^.left^.resulttype^.deftype=floatdef) then
+                                fputyp:=pfloatdef(p^.right^.left^.resulttype)^.typ
+                              else
+                                fputyp:=s32real;
+
                               if loc<>LOC_REFERENCE then
                                 internalerror(10010)
                               else
-                                floatstore(pfloatdef(p^.left^.resulttype)^.typ,
-                                  p^.left^.location.reference);
+                                floatstore(fputyp,p^.left^.location.reference);
                            end;
             LOC_JUMP     : begin
                               getlabel(hlabel);
@@ -863,7 +875,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  1999-07-24 15:12:56  michael
+  Revision 1.67  1999-07-27 23:36:36  peter
+    * try to determine the fpu type needed in assignment
+
+  Revision 1.66  1999/07/24 15:12:56  michael
   changes for resourcestrings
 
   Revision 1.65  1999/07/23 23:09:06  peter
