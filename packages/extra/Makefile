@@ -200,7 +200,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(OS_TARGET),linux)
-override TARGET_DIRS+=unzip uncgi fpasync x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp cmem bfd zlib gdbm ncurses tcl cdrom imlib gnome1
+override TARGET_DIRS+=unzip uncgi fpasync x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp cmem bfd zlib gdbm ncurses tcl cdrom imlib gnome1 os2units
 endif
 ifeq ($(OS_TARGET),go32v2)
 override TARGET_DIRS+=unzip uncgi
@@ -209,7 +209,7 @@ ifeq ($(OS_TARGET),win32)
 override TARGET_DIRS+=unzip uncgi opengl gtk zlib mmsystem tcl cdrom
 endif
 ifeq ($(OS_TARGET),os2)
-override TARGET_DIRS+=unzip uncgi zlib
+override TARGET_DIRS+=unzip uncgi zlib os2units
 endif
 ifeq ($(OS_TARGET),freebsd)
 override TARGET_DIRS+=unzip uncgi fpasync x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp cmem bfd zlib gdbm ncurses
@@ -1077,6 +1077,7 @@ ifeq ($(OS_TARGET),os2)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_UNCGI=1
 TARGET_DIRS_ZLIB=1
+TARGET_DIRS_OS2UNITS=1
 endif
 ifeq ($(OS_TARGET),freebsd)
 TARGET_DIRS_UNZIP=1
@@ -2126,6 +2127,49 @@ mmsystem_makefiles:
 mmsystem:
 	$(MAKE) -C mmsystem all
 .PHONY: mmsystem_all mmsystem_debug mmsystem_smart mmsystem_release mmsystem_examples mmsystem_shared mmsystem_install mmsystem_sourceinstall mmsystem_exampleinstall mmsystem_distinstall mmsystem_zipinstall mmsystem_zipsourceinstall mmsystem_zipexampleinstall mmsystem_zipdistinstall mmsystem_clean mmsystem_distclean mmsystem_cleanall mmsystem_info mmsystem_makefiles mmsystem
+endif
+ifdef TARGET_DIRS_OS2UNITS
+os2units_all:
+	$(MAKE) -C os2units all
+os2units_debug:
+	$(MAKE) -C os2units debug
+os2units_smart:
+	$(MAKE) -C os2units smart
+os2units_release:
+	$(MAKE) -C os2units release
+os2units_examples:
+	$(MAKE) -C os2units examples
+os2units_shared:
+	$(MAKE) -C os2units shared
+os2units_install:
+	$(MAKE) -C os2units install
+os2units_sourceinstall:
+	$(MAKE) -C os2units sourceinstall
+os2units_exampleinstall:
+	$(MAKE) -C os2units exampleinstall
+os2units_distinstall:
+	$(MAKE) -C os2units distinstall
+os2units_zipinstall:
+	$(MAKE) -C os2units zipinstall
+os2units_zipsourceinstall:
+	$(MAKE) -C os2units zipsourceinstall
+os2units_zipexampleinstall:
+	$(MAKE) -C os2units zipexampleinstall
+os2units_zipdistinstall:
+	$(MAKE) -C os2units zipdistinstall
+os2units_clean:
+	$(MAKE) -C os2units clean
+os2units_distclean:
+	$(MAKE) -C os2units distclean
+os2units_cleanall:
+	$(MAKE) -C os2units cleanall
+os2units_info:
+	$(MAKE) -C os2units info
+os2units_makefiles:
+	$(MAKE) -C os2units makefiles
+os2units:
+	$(MAKE) -C os2units all
+.PHONY: os2units_all os2units_debug os2units_smart os2units_release os2units_examples os2units_shared os2units_install os2units_sourceinstall os2units_exampleinstall os2units_distinstall os2units_zipinstall os2units_zipsourceinstall os2units_zipexampleinstall os2units_zipdistinstall os2units_clean os2units_distclean os2units_cleanall os2units_info os2units_makefiles os2units
 endif
 all: $(addsuffix _all,$(TARGET_DIRS))
 debug: $(addsuffix _debug,$(TARGET_DIRS))
