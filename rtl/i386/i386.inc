@@ -21,6 +21,12 @@
                                Primitives
 ****************************************************************************}
 
+function geteipasebx : pointer;assembler;[public,alias:'FPC_GETEIPINEBX'];
+asm
+  movl (%esp),%ebx
+  ret
+end;
+
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:longint);assembler;
 var
@@ -1313,7 +1319,10 @@ end;
 
 {
   $Log$
-  Revision 1.47  2003-09-14 11:34:13  peter
+  Revision 1.48  2003-10-14 00:57:48  florian
+    + some code for PIC support added
+
+  Revision 1.47  2003/09/14 11:34:13  peter
     * moved int64 asm code to int64p.inc
     * save ebx,esi
 
