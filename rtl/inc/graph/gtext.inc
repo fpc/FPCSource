@@ -276,7 +276,7 @@
               move(hp[i+1],FHeader,sizeof(FHeader));
               move(hp[Prefix_Size],header,sizeof(Header));
               { check if the font name is already allocated? }
-              i:=Prefix_Size+sizeof(Header)+1;
+              i:=Prefix_Size+sizeof(Header);
               for b:=1 to installedfonts do
                 begin
                    if fonts[b].name=FHeader.Font_name then
@@ -755,7 +755,10 @@
 
 {
 $Log$
-Revision 1.17  2000-04-02 12:13:36  florian
+Revision 1.18  2000-04-16 08:45:48  jonas
+  * fixed registerbgifont (webbug 847)
+
+Revision 1.17  2000/04/02 12:13:36  florian
   * some more procedures can be now hooked by the OS specific implementation
 
 Revision 1.16  2000/03/24 18:16:33  florian
