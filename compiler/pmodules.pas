@@ -1319,6 +1319,7 @@ unit pmodules;
           begin
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
+            closecurrentppu;
             exit;
           end;
 
@@ -1660,7 +1661,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.187  2000-04-02 10:18:18  florian
+  Revision 1.188  2000-04-14 08:15:05  pierre
+   * close ppu file if errors
+
+  Revision 1.187  2000/04/02 10:18:18  florian
     * bug 701 fixed: ansistrings in interface and implementation part of the units
       are now finalized correctly even if there are no explicit initialization/
       finalization statements
