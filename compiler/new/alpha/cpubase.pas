@@ -203,6 +203,13 @@ procedure disposereference(var r : preference);
 
 function reg2str(r : tregister) : string;
 
+{*****************************************************************************
+                                  Init/Done
+*****************************************************************************}
+
+  procedure InitCpu;
+  procedure DoneCpu;
+  
 implementation
 
 uses
@@ -252,10 +259,25 @@ begin
   r:=Nil;
 end;
 
+{*****************************************************************************
+                                  Init/Done
+*****************************************************************************}
+
+  procedure InitCpu;
+    begin
+    end;
+    
+  procedure DoneCpu;
+    begin
+    end;
+  
 end.
 {
   $Log$
-  Revision 1.13  1999-08-06 16:41:10  jonas
+  Revision 1.14  1999-08-23 23:27:55  pierre
+   + dummy InitCpu/DoneCpu
+
+  Revision 1.13  1999/08/06 16:41:10  jonas
     * PowerPC compiles again, several routines implemented in cgcpu.pas
     * added constant to cpubase of alpha and powerpc for maximum
       number of operands

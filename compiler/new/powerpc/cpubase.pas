@@ -421,6 +421,13 @@ const
 
     function is_calljmp(o:tasmop):boolean;
 
+{*****************************************************************************
+                                  Init/Done
+*****************************************************************************}
+
+  procedure InitCpu;
+  procedure DoneCpu;
+  
 
 implementation
 
@@ -486,10 +493,25 @@ begin
   new_reference:=r;
 end;
 
+{*****************************************************************************
+                                  Init/Done
+*****************************************************************************}
+
+  procedure InitCpu;
+    begin
+    end;
+    
+  procedure DoneCpu;
+    begin
+    end;
+  
 end.
 {
   $Log$
-  Revision 1.4  1999-08-06 16:41:12  jonas
+  Revision 1.5  1999-08-23 23:27:54  pierre
+   + dummy InitCpu/DoneCpu
+
+  Revision 1.4  1999/08/06 16:41:12  jonas
     * PowerPC compiles again, several routines implemented in cgcpu.pas
     * added constant to cpubase of alpha and powerpc for maximum
       number of operands
