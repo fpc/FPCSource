@@ -158,15 +158,15 @@ uses strings,globals;
 ******************************************************************************}
 
    function GetLastError : DWORD;
-     external 'kernel32' name 'GetLastError';
+     external 'Kernel32.dll' name 'GetLastError';
    function FileTimeToDosDateTime(const ft :TFileTime;var data,time : word) : boolean;
-     external 'kernel32' name 'FileTimeToDosDateTime';
+     external 'Kernel32.dll' name 'FileTimeToDosDateTime';
    function DosDateTimeToFileTime(date,time : word;var ft :TFileTime) : boolean;
-     external 'kernel32' name 'DosDateTimeToFileTime';
+     external 'Kernel32.dll' name 'DosDateTimeToFileTime';
    function FileTimeToLocalFileTime(const ft : TFileTime;var lft : TFileTime) : boolean;
-     external 'kernel32' name 'FileTimeToLocalFileTime';
+     external 'Kernel32.dll' name 'FileTimeToLocalFileTime';
    function LocalFileTimeToFileTime(const lft : TFileTime;var ft : TFileTime) : boolean;
-     external 'kernel32' name 'LocalFileTimeToFileTime';
+     external 'Kernel32.dll' name 'LocalFileTimeToFileTime';
 
 type
   Longrec=packed record
@@ -229,11 +229,11 @@ end;
 ******************************************************************************}
 
    function GetVersion : longint;
-     external 'kernel32' name 'GetVersion';
+     external 'Kernel32.dll' name 'GetVersion';
    procedure GetLocalTime(var t : TSystemTime);
-     external 'kernel32' name 'GetLocalTime';
+     external 'Kernel32.dll' name 'GetLocalTime';
    function SetLocalTime(const t : TSystemTime) : boolean;
-     external 'kernel32' name 'SetLocalTime';
+     external 'Kernel32.dll' name 'SetLocalTime';
 
 function dosversion : word;
 begin
@@ -448,11 +448,11 @@ end;
 { Needed kernel calls }
 
    function FindFirstFile (lpFileName: PChar; var lpFindFileData: TWIN32FindData): THandle;
-     external 'kernel32' name 'FindFirstFileA';
+     external 'Kernel32.dll' name 'FindFirstFileA';
    function FindNextFile  (hFindFile: THandle; var lpFindFileData: TWIN32FindData): Boolean;
-     external 'kernel32' name 'FindNextFileA';
+     external 'Kernel32.dll' name 'FindNextFileA';
    function FindCloseFile (hFindFile: THandle): Boolean;
-     external 'kernel32' name 'FindClose';
+     external 'Kernel32.dll' name 'FindClose';
 
 Procedure StringToPchar (Var S : String);
 Var L : Longint;
@@ -535,13 +535,13 @@ end;
 ******************************************************************************}
 
    function GetFileTime(h : longint;creation,lastaccess,lastwrite : PFileTime) : boolean;
-     external 'kernel32' name 'GetFileTime';
+     external 'Kernel32.dll' name 'GetFileTime';
    function SetFileTime(h : longint;creation,lastaccess,lastwrite : PFileTime) : boolean;
-     external 'kernel32' name 'SetFileTime';
+     external 'Kernel32.dll' name 'SetFileTime';
    function SetFileAttributes(lpFileName : pchar;dwFileAttributes : longint) : boolean;
-     external 'kernel32' name 'SetFileAttributesA';
+     external 'Kernel32.dll' name 'SetFileAttributesA';
    function GetFileAttributes(lpFileName : pchar) : longint;
-     external 'kernel32' name 'GetFileAttributesA';
+     external 'Kernel32.dll' name 'GetFileAttributesA';
 
 procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;var ext : extstr);
 var
@@ -754,9 +754,9 @@ end;
 }
 
    function GetEnvironmentStrings : pchar;
-     external 'kernel32' name 'GetEnvironmentStringsA';
+     external 'Kernel32.dll' name 'GetEnvironmentStringsA';
    function FreeEnvironmentStrings(p : pchar) : boolean;
-     external 'kernel32' name 'FreeEnvironmentStringsA';
+     external 'Kernel32.dll' name 'FreeEnvironmentStringsA';
 
 function envcount : longint;
 var
@@ -848,7 +848,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.2  1999-05-04 21:44:41  florian
+  Revision 1.3  1999-05-05 08:20:12  michael
+  * kernel32 changed to kernel32.dll
+
+  Revision 1.2  1999/05/04 21:44:41  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.1  1998/09/18 16:03:38  florian
