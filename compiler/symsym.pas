@@ -326,9 +326,6 @@ interface
     var
        generrorsym : tsym;
 
-    const
-       current_object_option : tsymoptions = [sp_public];
-
     { rtti and init/final }
     procedure generate_rtti(p:tsym);
     procedure generate_inittable(p:tsym);
@@ -372,12 +369,6 @@ implementation
     constructor tstoredsym.create(const n : string);
       begin
          inherited create(n);
-         symoptions:=current_object_option;
-{$ifdef GDB}
-         isstabwritten := false;
-{$endif GDB}
-{         fileinfo:=akttokenpos;}
-         lastref:=defref;
          _mangledname:=nil;
       end;
 
@@ -389,9 +380,6 @@ implementation
       begin
          inherited loadsym(ppufile);
          _mangledname:=nil;
-{$ifdef GDB}
-         isstabwritten := false;
-{$endif GDB}
       end;
 
 {    procedure tstoredsym.buildderef;
@@ -2292,9 +2280,8 @@ implementation
     var stabchar:string[2];
 
     begin
-      if restype.def=nil then
-        stabstring:=nil
-      else
+      stabstring:=nil;
+      if restype.def<>nil then
         begin
           if restype.def.deftype in tagtypes then
             stabchar:='Tt'
@@ -2466,7 +2453,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.150  2004-01-31 21:09:58  daniel
+  Revision 1.151  2004-01-31 22:48:31  daniel
+    * Fix stabs generation problem reported by Jonas
+
+  Revision 1.150  2004/01/31 21:09:58  daniel
     * Stabs lineinfo problem fixed
 
   Revision 1.149  2004/01/31 18:40:15  daniel

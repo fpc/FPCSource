@@ -852,11 +852,16 @@ implementation
       if Tsym(p).typ=typesym then
         begin
           ao:=Taasmoutput(arg);
-          Tsym(p).isstabwritten:=false;
-          stabstr:=Tsym(p).stabstring;
-          if stabstr<>nil then
-            ao.concat(Tai_stabs.create(stabstr));
-          Tsym(p).isstabwritten:=true;
+          if Ttypesym(p).restype.def.typesym=p then
+            Tstoreddef(Ttypesym(p).restype.def).concatstabto(ao)
+          else
+            begin
+              Tsym(p).isstabwritten:=false;
+              stabstr:=Tsym(p).stabstring;
+              if stabstr<>nil then
+                ao.concat(Tai_stabs.create(stabstr));
+              Tsym(p).isstabwritten:=true;
+            end;
         end;
     end;
 
@@ -2359,7 +2364,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.132  2004-01-31 18:40:15  daniel
+  Revision 1.133  2004-01-31 22:48:31  daniel
+    * Fix stabs generation problem reported by Jonas
+
+  Revision 1.132  2004/01/31 18:40:15  daniel
     * Last steps before removal of aasmtai dependency in symsym can be
       accomplished.
 

@@ -345,12 +345,18 @@ implementation
                         begin
                           ttypesym(p).isusedinstab:=true;
 {                          ttypesym(p).concatstabto(debuglist);}
+                          {not stabs for forward defs }
                           if not Ttypesym(p).isstabwritten then
                             begin
-                              stab_str:=Ttypesym(p).stabstring;
-                              if assigned(stab_str) then
-                                debuglist.concat(Tai_stabs.create(stab_str));
-                              Ttypesym(p).isstabwritten:=true;
+                              if Ttypesym(p).restype.def.typesym=p then
+                                Tstoreddef(Ttypesym(p).restype.def).concatstabto(debuglist)
+                              else
+                                begin
+                                  stab_str:=Ttypesym(p).stabstring;
+                                  if assigned(stab_str) then
+                                    debuglist.concat(Tai_stabs.create(stab_str));
+                                  Ttypesym(p).isstabwritten:=true;
+                                end;
                             end;
                         end;
 {$endif GDB}
@@ -673,7 +679,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2004-01-31 18:40:15  daniel
+  Revision 1.77  2004-01-31 22:48:31  daniel
+    * Fix stabs generation problem reported by Jonas
+
+  Revision 1.76  2004/01/31 18:40:15  daniel
     * Last steps before removal of aasmtai dependency in symsym can be
       accomplished.
 

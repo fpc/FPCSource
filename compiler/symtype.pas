@@ -219,6 +219,9 @@ interface
       memprocnodetree : tmemdebug;
 {$endif MEMDEBUG}
 
+    const
+       current_object_option : tsymoptions = [sp_public];
+
 
 implementation
 
@@ -227,6 +230,7 @@ implementation
        fmodule,
        symdef,
        gdb;
+
 
 {****************************************************************************
                                 Tdef
@@ -304,6 +308,11 @@ implementation
             defref:=tref.create(defref,@akttokenpos);
             inc(refcount);
           end;
+         lastref:=defref;
+{$ifdef GDB}
+         isstabwritten := false;
+{$endif GDB}
+         symoptions:=current_object_option;
       end;
 
     constructor tsym.loadsym(ppufile:tcompilerppufile);
@@ -328,6 +337,9 @@ implementation
          refs:=0;
          lastwritten:=nil;
          refcount:=0;
+{$ifdef GDB}
+         isstabwritten := false;
+{$endif GDB}
       end;
 
     destructor tsym.destroy;
@@ -1528,7 +1540,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.37  2004-01-31 21:09:58  daniel
+  Revision 1.38  2004-01-31 22:48:31  daniel
+    * Fix stabs generation problem reported by Jonas
+
+  Revision 1.37  2004/01/31 21:09:58  daniel
     * Stabs lineinfo problem fixed
 
   Revision 1.36  2004/01/31 18:40:15  daniel
