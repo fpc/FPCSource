@@ -257,7 +257,9 @@
            vtWideChar   : (VWideChar: WideChar);
            vtPWideChar  : (VPWideChar: PWideChar);
            vtAnsiString : (VAnsiString: Pointer);
-   //           vtCurrency   : (VCurrency: PCurrency);
+{$ifdef HASCURRENCY}
+           vtCurrency   : (VCurrency: PCurrency);
+{$endif HASCURRENCY}
 {$ifdef HASVARIANT}
            vtVariant    : (VVariant: PVariant);
 {$endif HASVARIANT}
@@ -269,7 +271,10 @@
 
 {
   $Log$
-  Revision 1.14  2002-09-07 15:07:46  peter
+  Revision 1.15  2002-09-26 14:43:24  florian
+    + tvarrec field vcurrency for compilers with hascurrency released
+
+  Revision 1.14  2002/09/07 15:07:46  peter
     * old logs removed and tabs fixed
 
 }
