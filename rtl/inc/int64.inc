@@ -60,6 +60,61 @@
          fpc_div_qword:=0;
          if n=0 then
            HandleErrorFrame(200,get_frame);
+{$ifdef i386}
+         { the following piece of code is taken from the     }
+         { AMD Athlon Processor x86 Code Optimization manual }
+         asm
+            movl n+4,%ecx
+            movl n,%ebx
+            movl z+4,%edx
+            movl z,%eax
+            testl %ecx,%ecx
+            jnz .Lqworddivbigdivisor
+            cmpl %ebx,%edx
+            jae .Lqworddivtwo_divs
+            divl %ebx
+            movl %ecx,%edx
+            leave
+            ret $16
+
+         .Lqworddivtwo_divs:
+            movl %eax,%ecx
+            movl %edx,%eax
+            xorl %edx,%edx
+            divl %ebx
+            xchgl %ecx,%eax
+            divl %ebx
+            movl %ecx,%edx
+            leave
+            ret $16
+
+         .Lqworddivbigdivisor:
+            movl %ecx,%edi
+            shrl $1,%edx
+            rcrl $1,%eax
+            rorl $1,%edi
+            rcrl $1,%ebx
+            bsrl %ecx,%ecx
+            shrdl %cl,%edi,%ebx
+            shrdl %cl,%edx,%eax
+            shrl %cl,%edx
+            roll $1,%edi
+            divl %ebx
+            movl z,%ebx
+            movl %eax,%ecx
+            imull %eax,%edi
+            mull n
+            addl %edi,%edx
+            subl %eax,%ebx
+            movl %ecx,%eax
+            movl z+4,%ecx
+            sbbl %edx,%ecx
+            sbbl $0,%eax
+            xorl %edx,%edx
+            leave
+            ret $16
+         end;
+{$else i386}
          lzz:=count_leading_zeros(z);
          lzn:=count_leading_zeros(n);
          { if the denominator contains less zeros }
@@ -78,6 +133,7 @@
            dec(shift);
            n:=n shr 1;
          until shift<0;
+{$endif i386}
       end;
 
     function fpc_mod_qword(n,z : qword) : qword;[public,alias: 'FPC_MOD_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -207,6 +263,8 @@
 {$ifdef i386}
          if not(checkoverflow) then
            begin
+              { the following piece of code is taken from the     }
+              { AMD Athlon Processor x86 Code Optimization manual }
               asm
                  movl f1+4,%edx
                  movl f2+4,%ecx
@@ -508,7 +566,10 @@
 
 {
   $Log$
-  Revision 1.12  2001-09-05 15:22:09  jonas
+  Revision 1.13  2001-11-15 00:07:42  florian
+    * qword div qword for i386 improved
+
+  Revision 1.12  2001/09/05 15:22:09  jonas
     * made multiplying, dividing and mod'ing of int64 and qword processor
       independent with compilerprocs (+ small optimizations by using shift/and
       where possible)
@@ -559,5 +620,4 @@
 
   Revision 1.2  2000/07/13 11:33:44  michael
   + removed logs
-
 }
