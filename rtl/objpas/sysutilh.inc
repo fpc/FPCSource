@@ -117,6 +117,10 @@ Var
   {$i filerec.inc}
   {$i textrec.inc}
 
+Type
+  TFileRec=FileRec;
+  TTextRec=TextRec;
+
   { Read internationalization settings }
   {$i sysinth.inc}
 
@@ -134,7 +138,10 @@ Var
 
 {
   $Log$
-  Revision 1.4  2000-08-30 18:29:34  hajny
+  Revision 1.5  2000-09-24 21:55:07  peter
+    * ttextrec,tfilerec added (merged)
+
+  Revision 1.4  2000/08/30 18:29:34  hajny
     * OS/2 fix - datih.inc moved to the beginning
 
   Revision 1.3  2000/08/29 17:56:32  michael
