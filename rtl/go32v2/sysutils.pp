@@ -258,7 +258,7 @@ Function FileExists (Const FileName : String) : Boolean;
 Var
   Sr : Searchrec;
 begin
-  DOS.FindFirst(Path,$3f,sr);
+  DOS.FindFirst(FileName,$3f,sr);
   if DosError = 0 then
    begin
      { No volumeid,directory }
@@ -274,7 +274,7 @@ Function DirectoryExists (Const Directory : String) : Boolean;
 Var
   Sr : Searchrec;
 begin
-  DOS.FindFirst(Path,$3f,sr);
+  DOS.FindFirst(Directory,$3f,sr);
   if DosError = 0 then
    begin
      Result:=(sr.attr and $10)=$10;
@@ -754,7 +754,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.14  2003-04-01 15:57:41  peter
+  Revision 1.15  2003-04-02 15:18:28  peter
+    * fix argument names
+
+  Revision 1.14  2003/04/01 15:57:41  peter
     * made THandle platform dependent and unique type
 
   Revision 1.13  2003/03/29 18:21:42  hajny
