@@ -19,11 +19,11 @@ type
   { corresponding to real    single     fixed   extended and comp for i386 }
 
 {$ifdef i386}
-{$ifdef VER0_9_5}
+{$ifdef VER0_99_5}
   bestreal = double;
-{$else VER0_9_5}
+{$else VER0_99_5}
   bestreal = extended; 
-{$endif VER0_9_5}
+{$endif VER0_99_5}
 {$else i386}
   bestreal = single;
 {$endif i386}
@@ -201,7 +201,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1998-08-08 12:28:12  florian
+  Revision 1.8  1998-08-10 15:56:30  peter
+    * fixed 0_9_5 typo
+
+  Revision 1.7  1998/08/08 12:28:12  florian
     * a lot small fixes to the extended data type work
 
   Revision 1.6  1998/07/18 17:14:22  florian
