@@ -28,7 +28,7 @@ type
       2: (cards: Array[0..1] of cardinal; w: word);
   end;
 const
-  maxPrec = 17;
+  maxDigits = 17;
 {$else}
 {$ifdef SUPPORT_DOUBLE}
 type
@@ -39,7 +39,7 @@ type
       2: (cards: Array[0..1] of cardinal);
   end;
 const
-  maxPrec = 14;
+  maxDigits = 14;
 {$else}
 {$ifdef SUPPORT_SINGLE}
 type
@@ -50,19 +50,19 @@ type
       2: (cards: Array[0..0] of cardinal);
   end;
 const
-  maxPrec = 9;
+  maxDigits = 9;
 {$endif SUPPORT_SINGLE}
 {$endif SUPPORT_DOUBLE}
 {$endif SUPPORT_EXTENDED}
 
 type
   { the value in the last position is used for rounding }
-  TIntPartStack = array[1..maxPrec+1] of valReal;
+  TIntPartStack = array[1..maxDigits+1] of valReal;
 
 var
   roundCorr, corrVal: valReal;
   intPart, spos, endpos, fracCount: longint;
-  correct, currprec: longint;
+  correct, currprec, maxPrec: longint;
   temp : string;
   power : string[10];
   sign : boolean;
@@ -103,7 +103,7 @@ var
       begin
         inc(stackPtr);
         inc(digits);
-        if stackPtr > maxPrec+1 then
+        if stackPtr > maxDigits+1 then
           begin
             stackPtr := 1;
             overflow := true;
@@ -115,7 +115,7 @@ var
     if digits = 0 then
       exit;
     endStackPtr := stackPtr+1;
-    if endStackPtr > maxPrec + 1 then
+    if endStackPtr > maxDigits + 1 then
       endStackPtr := 1;
  { now, all digits are calculated using trunc(d*10^(-n)-int(d*10^(-n-1))*10) }
     corrVal := 0.0;
@@ -133,9 +133,9 @@ var
       corrVal := int(intPartStack[stackPtr]) * 10.0;
       dec(stackPtr);
       if stackPtr = 0 then
-        stackPtr := maxPrec+1;
+        stackPtr := maxDigits+1;
     until (overflow and (stackPtr = endStackPtr)) or
-          (not overflow and (stackPtr = maxPrec+1)) or (currPrec = 0);
+          (not overflow and (stackPtr = maxDigits+1)) or (currPrec = 0);
     { round if we didn't use all available digits yet and if the }
     { remainder is > 5                                           }
     if overflow  and
@@ -247,7 +247,8 @@ begin
       if sign then
         d:=-d;
       { determine precision : maximal precision is : }
-      currprec := maxlen-explen-2;
+      currPrec := maxlen-explen-2;
+      maxPrec := currPrec;
       { this is also the maximal number of decimals !!}
       if f>currprec then
         f:=currprec;
@@ -381,7 +382,10 @@ end;
 
 {
   $Log$
-  Revision 1.26  2000-03-02 07:35:57  jonas
+  Revision 1.27  2000-03-05 09:41:05  jonas
+    * fixed rounding problem when writing out single/double type vars
+
+  Revision 1.26  2000/03/02 07:35:57  jonas
     * sign was not written in some cases
 
   Revision 1.25  2000/02/27 14:41:25  peter
