@@ -48,16 +48,16 @@ interface
           procedure emit_bit_test_reg_reg(list : taasmoutput; bitnumber : tregister;
              value : tregister; __result :tregister);virtual;
        end;
-       
+
        tcgcasenode = class(tcasenode)
-          { 
+          {
             Emits the case node statement. Contrary to the intel
             80x86 version, this version does not emit jump tables,
             because of portability problems.
-          }  
+          }
           procedure pass_2;override;
        end;
-       
+
 
 implementation
 
@@ -158,13 +158,13 @@ implementation
              compares,maxcompares:word;
              i:byte;
            begin
-         if Aset=[] then
-        {The expression...
-            if expr in []
-         ...is allways false. It should be optimized away in the
-         resulttype pass, and thus never occur here. Since we
-         do generate wrong code for it, do internalerror.}
-        internalerror(2002072301);
+             if Aset=[] then
+              {The expression...
+                  if expr in []
+               ...is allways false. It should be optimized away in the
+               resulttype pass, and thus never occur here. Since we
+               do generate wrong code for it, do internalerror.}
+              internalerror(2002072301);
              analizeset:=false;
              ranges:=false;
              numparts:=0;
@@ -262,11 +262,12 @@ implementation
          location_reset(location,LOC_REGISTER,OS_INT);
          { allocate a register for the result }
          location.register := rg.getregisterint(exprasmlist);
-         { Get a label to jump to the end }
-         getlabel(l);
 
          if genjumps then
           begin
+            { Get a label to jump to the end }
+            getlabel(l);
+
             { clear the register value, indicating result is FALSE }
             cg.a_load_const_reg(exprasmlist,OS_INT,0,location.register);
             opsize := def_cgsize(left.resulttype.def);
@@ -413,22 +414,12 @@ implementation
                     else
                       internalerror(200203312);
                   end;
-                 { then do AND with constant and register }
-                 cg.a_op_const_reg(exprasmlist,OP_AND,1 shl
-                    (tordconstnode(left).value and 31),hr);
-                 { if the value in the AND register is <> 0 then the value is equal. }
-                 cg.a_cmp_const_reg_label(exprasmlist,OS_32,OC_EQ,1 shl
-                    (tordconstnode(left).value and 31),hr,l);
-                 cg.free_scratch_reg(exprasmlist,hr);
-                 getlabel(l3);
-                 cg.a_jmp_always(exprasmlist,l3);
-                 { Now place the end label if IN success }
-                 cg.a_label(exprasmlist,l);
-                 { result register is 1 : LOC_JUMP }
-                 cg.a_load_const_reg(exprasmlist,OS_INT,1,location.register);
-                 { in case value is not found }
-                 cg.a_label(exprasmlist,l3);
                  location_release(exprasmlist,right.location);
+                 { then do SHR tge register }
+                 cg.a_op_const_reg(exprasmlist,OP_SHR,
+                    tordconstnode(left).value and 31,hr);
+                 { then extract the lowest bit }
+                 cg.a_op_const_reg(exprasmlist,OP_AND,1,hr);
                 end
                else
                 begin
@@ -498,20 +489,10 @@ implementation
                 begin
                   { this section has not been tested!    }
                   { can it actually occur currently? CEC }
-                  internalerror(20020610);
+                  { yes: "if bytevar in [1,3,5,7,9,11,13,15]" (JM) }
                   getlabel(l);
                   getlabel(l2);
 
-                  { Is this treated in firstpass ?? }
-                  if left.nodetype=ordconstn then
-                    begin
-                      hr:=rg.getregisterint(exprasmlist);
-                      left.location.loc:=LOC_REGISTER;
-                      left.location.size:=OS_INT;
-                      left.location.register:=hr;
-                      cg.a_load_const_reg(exprasmlist,OS_INT,
-                            tordconstnode(left).value,hr);
-                    end;
                   case left.location.loc of
                      LOC_REGISTER,
                      LOC_CREGISTER:
@@ -527,20 +508,22 @@ implementation
                           hr2:=rg.getregisterint(exprasmlist);
                           cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
                        end;
-                  else
-                    begin
-                       cg.a_cmp_const_ref_label(exprasmlist,OS_8,OC_BE,31,left.location.reference,l);
-                       cg.a_jmp_always(exprasmlist,l2);
-                       cg.a_label(exprasmlist,l);
-                       location_release(exprasmlist,left.location);
-                       hr:=rg.getregisterint(exprasmlist);
-                       cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,hr);
-                     { We have to load the value into a register because
-                       btl does not accept values only refs or regs (PFV) }
-                       hr2:=rg.getregisterint(exprasmlist);
-                       cg.a_load_const_reg(exprasmlist,OS_INT,
-                         right.location.value,hr2);
-                    end;
+                     LOC_REFERENCE,LOC_CREFERENCE:
+                       begin
+                          cg.a_cmp_const_ref_label(exprasmlist,OS_8,OC_BE,31,left.location.reference,l);
+                          cg.a_jmp_always(exprasmlist,l2);
+                          cg.a_label(exprasmlist,l);
+                          location_release(exprasmlist,left.location);
+                          hr:=rg.getregisterint(exprasmlist);
+                          cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,hr);
+                        { We have to load the value into a register because
+                          btl does not accept values only refs or regs (PFV) }
+                          hr2:=rg.getregisterint(exprasmlist);
+                          cg.a_load_const_reg(exprasmlist,OS_INT,
+                            right.location.value,hr2);
+                       end;
+                     else
+                       internalerror(2002081002);
                   end;
                   { emit bit test operation }
                   emit_bit_test_reg_reg(exprasmlist,hr,hr2,location.register);
@@ -553,21 +536,13 @@ implementation
                  but also used if the left side contains higher values > 32 }
                else if left.nodetype=ordconstn then
                 begin
-                  getlabel(l2);
-                  getlabel(l);
                   { use location.register as scratch register here }
                   inc(right.location.reference.offset,tordconstnode(left).value shr 3);
                   cg.a_load_ref_reg(exprasmlist, OS_8, right.location.reference, location.register);
-                  cg.a_op_const_reg(exprasmlist, OP_AND,1 shl (tordconstnode(left).value and 7),
-                     location.register);
-                  cg.a_cmp_const_reg_label(exprasmlist,OS_8, OC_NE,0,location.register,l2);
-                  cg.a_load_const_reg(exprasmlist, OS_INT,0, location.register);
-                  cg.a_jmp_always(exprasmlist,l);
-                  cg.a_label(exprasmlist,l2);
-                  cg.a_load_const_reg(exprasmlist, OS_INT,1, location.register);
-                  {emit_const_ref(A_TEST,S_B,1 shl (tordconstnode(left).value and 7),right.location.reference);}
-                  cg.a_label(exprasmlist,l);
                   location_release(exprasmlist,right.location);
+                  cg.a_op_const_reg(exprasmlist,OP_SHR, tordconstnode(left).value and 7,
+                    location.register);
+                  cg.a_op_const_reg(exprasmlist, OP_AND,1,location.register);
                 end
                else
                 begin
@@ -592,7 +567,7 @@ implementation
           end;
           location_freetemp(exprasmlist,right.location);
        end;
-       
+
 {*****************************************************************************
                             TCGCASENODE
 *****************************************************************************}
@@ -601,7 +576,7 @@ implementation
       var
          with_sign : boolean;
          opsize : tcgsize;
-         jmp_gt,jmp_le,jmp_lee : topcmp;
+         jmp_gt,jmp_lt,jmp_le : topcmp;
          hp : tnode;
          { register with case expression }
          hregister,hregister2 : tregister;
@@ -637,14 +612,14 @@ implementation
                 end
               else
                 begin
-                  cg.a_cmp_const_reg_label(exprasmlist,OS_INT, jmp_le,p^._low,hregister, lesslabel);
+                  cg.a_cmp_const_reg_label(exprasmlist,OS_INT, jmp_lt,p^._low,hregister, lesslabel);
                   cg.a_cmp_const_reg_label(exprasmlist,OS_INT, jmp_gt,p^._low,hregister, greaterlabel);
                 end;
               cg.a_jmp_always(exprasmlist,p^.statement);
            end
          else
            begin
-              cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_le,p^._low, hregister, lesslabel);
+              cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,p^._low, hregister, lesslabel);
               cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_gt,p^._high,hregister, greaterlabel);
               cg.a_jmp_always(exprasmlist,p^.statement);
            end;
@@ -679,23 +654,23 @@ implementation
                     end
                   else
                     begin
-                       cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,longint(t^._low) ,hregister, t^.statement);
+                       cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ, longint(t^._low),hregister, t^.statement);
                        last:=t^._low;
                     end;
                end
              else
                begin
-                  { if there is no unused label between the last and the }
-                  { present label then the lower limit can be checked    }
-                  { immediately. else check the range in between:        }
+                  { it begins with the smallest label, if the value }
+                  { is even smaller then jump immediately to the    }
+                  { ELSE-label                                }
                   if first or (t^._low-last>1) then
                     begin
                        if opsize in [OS_64,OS_S64] then
                          begin
                             getlabel(l1);
-                            cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_le, longint(hi(int64(t^._low))), 
+                            cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, longint(hi(int64(t^._low))),
                                  hregister2, elselabel);
-                            cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, longint(hi(int64(t^._low))), 
+                            cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, longint(hi(int64(t^._low))),
                                  hregister2, l1);
                             { the comparisation of the low dword must be always unsigned! }
                             cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_B, longint(lo(int64(t^._low))), hregister, elselabel);
@@ -703,7 +678,7 @@ implementation
                          end
                        else
                          begin
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_le, longint(t^._low), hregister, 
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, longint(t^._low), hregister,
                              elselabel);
                          end;
                     end;
@@ -711,16 +686,16 @@ implementation
                   if opsize in [OS_S64,OS_64] then
                     begin
                        getlabel(l1);
-                       cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_le, longint(hi(int64(t^._high))), hregister2, 
+                       cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, longint(hi(int64(t^._high))), hregister2,
                              t^.statement);
-                       cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, longint(hi(int64(t^._high))), hregister2, 
+                       cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, longint(hi(int64(t^._high))), hregister2,
                              l1);
                       cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_BE, longint(lo(int64(t^._high))), hregister, t^.statement);
                       cg.a_label(exprasmlist,l1);
                     end
                   else
                     begin
-                       cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lee,longint(t^._high) , hregister, t^.statement);
+                       cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_le, longint(t^._high), hregister, t^.statement);
                     end;
 
                   last:=t^._high;
@@ -742,14 +717,14 @@ implementation
         var
            first : boolean;
            last : TConstExprInt;
-           scratch_reg : tregister;
+           scratch_reg: tregister;
 
         procedure genitem(t : pcaserecord);
 
             procedure gensub(value:longint);
             begin
-              { here, since the sub and cmp are separate we need 
-                to move the result before subtract to a help 
+              { here, since the sub and cmp are separate we need
+                to move the result before subtract to a help
                 register.
               }
               cg.a_load_reg_reg(exprasmlist, opsize, hregister, scratch_reg);
@@ -762,7 +737,7 @@ implementation
              { need we to test the first value }
              if first and (t^._low>get_min_value(left.resulttype.def)) then
                begin
-                  cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_le,longint(t^._low),hregister,elselabel);
+                  cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,longint(t^._low),hregister,elselabel);
                end;
              if t^._low=t^._high then
                begin
@@ -773,7 +748,7 @@ implementation
                   else
                     begin
                         gensub(longint(t^._low-last));
-                        cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,0,hregister,t^.statement);
+                        cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,longint(t^._low-last),hregister,t^.statement);
                     end;
                   last:=t^._low;
                end
@@ -794,10 +769,10 @@ implementation
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
                       gensub(longint(t^._low-last));
-                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT,jmp_le,longint(t^._low-last),scratch_reg,elselabel);
+                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT,jmp_lt,longint(t^._low-last),hregister,elselabel);
                     end;
                   gensub(longint(t^._high-t^._low));
-                  cg.a_cmp_const_reg_label(exprasmlist, OS_INT,jmp_lee,longint(t^._high-t^._low),scratch_reg,t^.statement);
+                  cg.a_cmp_const_reg_label(exprasmlist, OS_INT,jmp_le,longint(t^._high-t^._low),hregister,t^.statement);
                   last:=t^._high;
                end;
              first:=false;
@@ -815,8 +790,8 @@ implementation
                 first:=true;
                 scratch_reg := cg.get_scratch_reg_int(exprasmlist);
                 genitem(hp);
+                cg.free_scratch_reg(exprasmlist);
                 cg.a_jmp_always(exprasmlist,elselabel);
-                cg.free_scratch_reg(exprasmlist, scratch_reg);
              end;
         end;
 
@@ -836,14 +811,14 @@ implementation
          if with_sign then
            begin
               jmp_gt:=OC_GT;
-              jmp_le:=OC_LT;
-              jmp_lee:=OC_LTE;
+              jmp_lt:=OC_LT;
+              jmp_le:=OC_LTE;
            end
          else
             begin
               jmp_gt:=OC_A;
-              jmp_le:=OC_B;
-              jmp_lee:=OC_BE;
+              jmp_lt:=OC_B;
+              jmp_le:=OC_BE;
            end;
          rg.cleartempgen;
          { save current truelabel and falselabel }
@@ -963,7 +938,7 @@ implementation
            end;
          cg.a_label(exprasmlist,endlabel);
       end;
-       
+
 
 
 
@@ -974,7 +949,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-07-28 09:24:18  carl
+  Revision 1.12  2002-08-10 17:15:12  jonas
+    * optimizations and bugfix
+
+  Revision 1.11  2002/07/28 09:24:18  carl
   + generic case node
 
   Revision 1.10  2002/07/23 14:31:00  daniel
