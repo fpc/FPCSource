@@ -286,9 +286,9 @@ implementation
         again  : boolean;
         srsym  : tsym;
         srsymtable : tsymtable;
-      {$ifdef gdb}
+      {$ifdef gdb_notused}
         stab_str:Pchar;
-      {$endif}
+      {$endif gdb_notused}
 
       begin
          { Check only typesyms or record/object fields }
@@ -342,7 +342,7 @@ implementation
                        tpointerdef(pd).pointertype.setsym(srsym);
                        { avoid wrong unused warnings web bug 801 PM }
                        inc(ttypesym(srsym).refs);
-{$ifdef GDB}
+{$ifdef GDB_UNUSED}
                        if (cs_debuginfo in aktmoduleswitches) and assigned(debuglist) and
                           (tsym(p).owner.symtabletype in [globalsymtable,staticsymtable]) then
                         begin
@@ -362,7 +362,7 @@ implementation
                                 end;
                             end;
                         end;
-{$endif GDB}
+{$endif GDB_UNUSED}
                        { we need a class type for classrefdef }
                        if (pd.deftype=classrefdef) and
                           not(is_class(ttypesym(srsym).restype.def)) then
@@ -675,7 +675,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2004-02-20 19:49:21  daniel
+  Revision 1.83  2004-03-08 22:07:47  peter
+    * stabs updates to write stabs for def for all implictly used
+      units
+
+  Revision 1.82  2004/02/20 19:49:21  daniel
     * Message system uses open arrays internally
     * Bugfix for string handling in array constructor node
     * Micro code reductions in pdecl.pas

@@ -345,9 +345,11 @@ type
 {$ifdef GDB}
 type
   tdefstabstatus = (
-    not_written,
-    being_written,
-    written);
+    stab_state_unused,
+    stab_state_used,
+    stab_state_writing,
+    stab_state_written
+  );
 
 const
   tagtypes : Set of tdeftype =
@@ -402,7 +404,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.76  2004-02-27 10:21:05  florian
+  Revision 1.77  2004-03-08 22:07:47  peter
+    * stabs updates to write stabs for def for all implictly used
+      units
+
+  Revision 1.76  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

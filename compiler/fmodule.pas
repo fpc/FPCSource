@@ -87,6 +87,8 @@ interface
         do_compile,               { need to compile the sources }
         sources_avail,            { if all sources are reachable }
         interface_compiled,       { if the interface section has been parsed/compiled/loaded }
+        is_stab_written,
+        is_reset,
         is_unit,
         in_interface,             { processing the implementation part? }
         in_global     : boolean;  { allow global settings }
@@ -142,12 +144,10 @@ interface
       end;
 
        tused_unit = class(tlinkedlistitem)
-          unitid          : longint;
           checksum,
           interface_checksum : cardinal;
           in_uses,
-          in_interface,
-          is_stab_written : boolean;
+          in_interface    : boolean;
           u               : tmodule;
           unitsym         : tunitsym;
           constructor create(_u : tmodule;intface,inuses:boolean;usym:tunitsym);
@@ -314,8 +314,6 @@ implementation
         u:=_u;
         in_interface:=intface;
         in_uses:=inuses;
-        is_stab_written:=false;
-        unitid:=0;
         unitsym:=usym;
         if _u.state=ms_compiled then
          begin
@@ -396,6 +394,8 @@ implementation
         in_global:=true;
         is_unit:=_is_unit;
         islibrary:=false;
+        is_stab_written:=false;
+        is_reset:=false;
         uses_imports:=false;
         imports:=TLinkedList.Create;
         _exports:=TLinkedList.Create;
@@ -563,6 +563,8 @@ implementation
         interface_compiled:=false;
         in_interface:=true;
         in_global:=true;
+        is_stab_written:=false;
+        is_reset:=false;
         crc:=0;
         interface_crc:=0;
         flags:=0;
@@ -692,7 +694,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2003-12-08 22:33:43  peter
+  Revision 1.44  2004-03-08 22:07:46  peter
+    * stabs updates to write stabs for def for all implictly used
+      units
+
+  Revision 1.43  2003/12/08 22:33:43  peter
     * don't allow duplicate uses
     * fix wrong circular dependency
 

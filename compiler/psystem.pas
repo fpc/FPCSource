@@ -121,9 +121,6 @@ implementation
         end;
 
       var
-        { several defs to simulate more or less C++ objects for GDB }
-        vmttype,
-        vmtarraytype : ttype;
         hrecst : trecordsymtable;
       begin
 {$ifdef cpufpemu}
@@ -254,6 +251,8 @@ implementation
         globaldef('void_farpointer',voidfarpointertype);
         globaldef('file',cfiletype);
         globaldef('pvmt',pvmttype);
+        globaldef('vtblarray',vmtarraytype);
+        globaldef('__vtbl_ptr_type',vmttype);
         globaldef('variant',cvarianttype);
         globaldef('olevariant',colevarianttype);
         globaldef('methodpointer',methodpointertype);
@@ -489,7 +488,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2004-03-02 01:13:01  olle
+  Revision 1.66  2004-03-08 22:07:47  peter
+    * stabs updates to write stabs for def for all implictly used
+      units
+
+  Revision 1.65  2004/03/02 01:13:01  olle
     * undone last commit
 
   Revision 1.63  2004/02/26 16:16:38  peter

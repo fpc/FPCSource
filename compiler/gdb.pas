@@ -84,6 +84,8 @@ Const
 
   implementation
 
+uses fmodule;
+
 { to use N_EXCL we have to count the character in the stabs for
 N_BINCL to N_EINCL
   Code comes from stabs.c for ld
@@ -179,6 +181,10 @@ N_BINCL to N_EINCL
       begin
          inherited create;
          typ:=ait_stabs;
+
+if current_module.modulename^='NCNV' then
+  current_module:=current_module;
+
          str:=_str;
          if do_count_dbx then
            begin
@@ -233,7 +239,11 @@ end.
 
 {
   $Log$
-  Revision 1.17  2003-10-22 15:22:33  peter
+  Revision 1.18  2004-03-08 22:07:46  peter
+    * stabs updates to write stabs for def for all implictly used
+      units
+
+  Revision 1.17  2003/10/22 15:22:33  peter
     * fixed unitsym-globalsymtable relation so the uses of a unit
       is counted correctly
 

@@ -132,9 +132,6 @@ interface
 
        ttypesym = class(Tsym)
           restype    : ttype;
-{$ifdef GDB}
-          isusedinstab : boolean;
-{$endif GDB}
           constructor create(const n : string;const tt : ttype);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -2064,9 +2061,6 @@ implementation
          inherited create(n);
          typ:=typesym;
          restype:=tt;
-{$ifdef GDB}
-         isusedinstab := false;
-{$endif GDB}
         { register the typesym for the definition }
         if assigned(restype.def) and
            (restype.def.deftype<>errordef) and
@@ -2079,9 +2073,6 @@ implementation
       begin
          inherited loadsym(ppufile);
          typ:=typesym;
-{$ifdef GDB}
-         isusedinstab := false;
-{$endif GDB}
          ppufile.gettype(restype);
       end;
 
@@ -2250,7 +2241,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.164  2004-03-02 18:12:31  florian
+  Revision 1.165  2004-03-08 22:07:47  peter
+    * stabs updates to write stabs for def for all implictly used
+      units
+
+  Revision 1.164  2004/03/02 18:12:31  florian
     * for vars with is_dll_var the mangledname is written to the ppu as well
 
   Revision 1.163  2004/03/02 17:32:12  florian

@@ -1265,7 +1265,7 @@ implementation
            do_count_dbx:=true;
            if assigned(_class.owner) and assigned(_class.owner.name) then
              dataSegment.concat(Tai_stabs.Create(strpnew('"vmt_'+_class.owner.name^+_class.name+':S'+
-               typeglobalnumber('__vtbl_ptr_type')+'",'+tostr(N_STSYM)+',0,0,'+_class.vmt_mangledname)));
+               tstoreddef(vmttype.def).numberstring+'",'+tostr(N_STSYM)+',0,0,'+_class.vmt_mangledname)));
          end;
 {$endif GDB}
          dataSegment.concat(tai_align.create(const_align(POINTER_SIZE)));
@@ -1380,7 +1380,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.66  2004-03-04 17:23:50  peter
+  Revision 1.67  2004-03-08 22:07:46  peter
+    * stabs updates to write stabs for def for all implictly used
+      units
+
+  Revision 1.66  2004/03/04 17:23:50  peter
     * fix compare of parameters, they need to match exact
 
   Revision 1.65  2004/03/02 00:36:33  olle

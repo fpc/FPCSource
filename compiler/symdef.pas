@@ -67,8 +67,8 @@ interface
           fileinfo   : tfileposinfo;
 {$endif}
 {$ifdef GDB}
-          globalnb       : word;
-          is_def_stab_written : tdefstabstatus;
+          globalnb   : word;
+          stab_state : tdefstabstatus;
 {$endif GDB}
           constructor create;
           constructor ppuloaddef(ppufile:tcompilerppufile);
@@ -90,7 +90,7 @@ interface
           function stabstr_evaluate(const s:string;const vars:array of string):Pchar;
           function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : taasmoutput);virtual;
-          function  NumberString:string;
+          function  NumberString:string;virtual;
           procedure set_globalnb;virtual;
           function  allstabstring : pchar;virtual;
 {$endif GDB}
@@ -138,7 +138,7 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
-          procedure concatstabto(asmlist : taasmoutput);override;
+          function  numberstring:string;override;
 {$endif GDB}
        end;
 
@@ -204,6 +204,7 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
+          function  numberstring:string;override;
           procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
        end;
@@ -218,7 +219,7 @@ interface
           Count         : integer;
           FRTTIType     : trttitype;
 {$ifdef GDB}
-          procedure addname(p:Tnamedindexitem;arg:pointer);
+          procedure field_addname(p:Tnamedindexitem;arg:pointer);
 {$endif}
           procedure count_field_rtti(sym : tnamedindexitem;arg:pointer);
           procedure write_field_rtti(sym : tnamedindexitem;arg:pointer);
@@ -226,6 +227,9 @@ interface
        public
           symtable : tsymtable;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
+{$ifdef GDB}
+          function  numberstring:string;override;
+{$endif}
        end;
 
        trecorddef = class(tabstractrecorddef)
@@ -243,7 +247,6 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
-          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
           function  needs_inittable : boolean;override;
           { rtti }
@@ -314,6 +317,7 @@ interface
           function  classnumberstring : string;
           procedure concatstabto(asmlist : taasmoutput);override;
           function  allstabstring : pchar;override;
+          function  numberstring : string;
 {$endif GDB}
           { rtti }
           procedure write_child_rtti_data(rt:trttitype);override;
@@ -361,7 +365,6 @@ interface
           { debug }
 {$ifdef GDB}
           function stabstring : pchar;override;
-          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
        end;
 
@@ -386,8 +389,8 @@ interface
           function  getmangledparaname : string;override;
           procedure setelementtype(t: ttype);
 {$ifdef GDB}
-          function stabstring : pchar;override;
-          procedure concatstabto(asmlist : taasmoutput);override;
+          function  stabstring : pchar;override;
+          function  numberstring:string;override;
 {$endif GDB}
           procedure buildderef;override;
           procedure deref;override;
@@ -468,6 +471,7 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
+          function  numberstring:string;override;
           procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
        end;
@@ -487,7 +491,6 @@ interface
           { debug }
 {$ifdef GDB}
           function stabstring : pchar;override;
-          procedure concatstabto(asmlist : taasmoutput); override;
 {$endif GDB}
           { rtti }
           procedure write_rtti_data(rt:trttitype);override;
@@ -600,6 +603,7 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
+          function  numberstring:string;override;
           procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
        end;
@@ -634,7 +638,7 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
-          procedure concatstabto(asmlist : taasmoutput);override;
+          function  numberstring:string;override;
 {$endif GDB}
           { init/final }
           function  needs_inittable : boolean;override;
@@ -688,7 +692,7 @@ interface
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
-          procedure concatstabto(asmlist : taasmoutput);override;
+          function  numberstring:string;override;
 {$endif GDB}
           { rtti }
           procedure write_rtti_data(rt:trttitype);override;
@@ -700,6 +704,9 @@ interface
     var
        aktobjectdef : tobjectdef;  { used for private functions check !! }
 {$ifdef GDB}
+  {$ifdef EXTDEBUG}
+       writing_def_stabs : boolean;
+  {$endif EXTDEBUG}
        { for STAB debugging }
        globaltypecount  : word;
        pglobaltypecount : pword;
@@ -746,6 +753,9 @@ interface
        uinttype,
        { unsigned ord type with the same size as a pointer }
        ptrinttype,
+       { several types to simulate more or less C++ objects for GDB }
+       vmttype,
+       vmtarraytype,
        pvmttype      : ttype;     { type of classrefs, used for stabs }
 
        { pointer to the anchestor of all classes }
@@ -793,11 +803,6 @@ interface
 
     function reverseparaitems(p: tparaitem): tparaitem;
     function make_mangledname(const typeprefix:string;st:tsymtable;const suffix:string):string;
-
-{$ifdef GDB}
-    { GDB Helpers }
-    function typeglobalnumber(const s : string) : string;
-{$endif GDB}
 
     { should be in the types unit, but the types unit uses the node stuff :( }
     function is_interfacecom(def: tdef): boolean;
@@ -906,19 +911,6 @@ implementation
       end;
 
 
-{$ifdef GDB}
-    procedure forcestabto(asmlist : taasmoutput; pd : tdef);
-      begin
-        if tstoreddef(pd).is_def_stab_written = not_written then
-         begin
-           if assigned(pd.typesym) then
-            ttypesym(pd.typesym).isusedinstab := true;
-           tstoreddef(pd).concatstabto(asmlist);
-         end;
-      end;
-{$endif GDB}
-
-
 {****************************************************************************
                      TDEF (base class for definitions)
 ****************************************************************************}
@@ -933,7 +925,7 @@ implementation
          if registerdef then
            symtablestack.registerdef(self);
 {$ifdef GDB}
-         is_def_stab_written := not_written;
+         stab_state:=stab_state_unused;
          globalnb := 0;
 {$endif GDB}
          fillchar(localrttilab,sizeof(localrttilab),0);
@@ -947,7 +939,7 @@ implementation
          fillchar(fileinfo,sizeof(fileinfo),0);
 {$endif}
 {$ifdef GDB}
-         is_def_stab_written := not_written;
+         stab_state:=stab_state_unused;
          globalnb := 0;
 {$endif GDB}
          fillchar(localrttilab,sizeof(localrttilab),0);
@@ -963,26 +955,25 @@ implementation
 
 
     procedure Tstoreddef.reset;
-
-    begin
+      begin
 {$ifdef GDB}
-      if assigned(typesym) then
-        ttypesym(typesym).isusedinstab:=false;
-      is_def_stab_written:=not_written;
+        stab_state:=stab_state_unused;
 {$endif GDB}
-      if assigned(rttitablesym) then
-        trttisym(rttitablesym).lab := nil;
-      if assigned(inittablesym) then
-        trttisym(inittablesym).lab := nil;
-      localrttilab[initrtti]:=nil;
-      localrttilab[fullrtti]:=nil;
-    end;
+        if assigned(rttitablesym) then
+          trttisym(rttitablesym).lab := nil;
+        if assigned(inittablesym) then
+          trttisym(inittablesym).lab := nil;
+        localrttilab[initrtti]:=nil;
+        localrttilab[fullrtti]:=nil;
+      end;
+
 
     function tstoreddef.getcopy : tstoreddef;
       begin
-         Message(sym_e_cant_create_unique_type);
-         getcopy:=terrordef.create;
+        Message(sym_e_cant_create_unique_type);
+        getcopy:=terrordef.create;
       end;
+
 
     procedure tstoreddef.ppuwritedef(ppufile:tcompilerppufile);
       begin
@@ -994,16 +985,14 @@ implementation
         if df_has_inittable in defoptions then
          ppufile.putderef(inittablesymderef);
 {$ifdef GDB}
-        if globalnb = 0 then
+        if globalnb=0 then
           begin
-            if assigned(owner) then
+            if (cs_gdb_dbx in aktglobalswitches) and
+               assigned(owner) then
               globalnb := owner.getnewtypecount
             else
-              begin
-                globalnb := PGlobalTypeCount^;
-                Inc(PGlobalTypeCount^);
-              end;
-           end;
+              set_globalnb;
+          end;
 {$endif GDB}
       end;
 
@@ -1050,142 +1039,128 @@ implementation
 
 
 {$ifdef GDB}
-     procedure tstoreddef.set_globalnb;
-     begin
-         globalnb :=PGlobalTypeCount^;
-         inc(PglobalTypeCount^);
-     end;
+    procedure tstoreddef.set_globalnb;
+      begin
+        globalnb:=PGlobalTypeCount^;
+        inc(PglobalTypeCount^);
+      end;
+
 
     function Tstoreddef.get_var_value(const s:string):string;
+      begin
+        if s='numberstring' then
+          get_var_value:=numberstring
+        else if s='sym_line' then
+          if assigned(typesym) then
+             get_var_value:=tostr(Ttypesym(typesym).fileinfo.line)
+          else
+             get_var_value:='0'
+        else if s='sym_name' then
+          if assigned(typesym) then
+             get_var_value:=Ttypesym(typesym).name
+          else
+             get_var_value:=' '
+        else if s='N_LSYM' then
+          get_var_value:=tostr(N_LSYM)
+        else if s='savesize' then
+          get_var_value:=tostr(savesize);
+      end;
 
-    begin
-      if s='numberstring' then
-        get_var_value:=numberstring
-      else if s='sym_line' then
-        if assigned(typesym) then
-           get_var_value:=tostr(Ttypesym(typesym).fileinfo.line)
-        else
-           get_var_value:='0'
-      else if s='sym_name' then
-        if assigned(typesym) then
-           get_var_value:=Ttypesym(typesym).name
-        else
-           get_var_value:=' '
-      else if s='N_LSYM' then
-        get_var_value:=tostr(N_LSYM)
-      else if s='savesize' then
-        get_var_value:=tostr(savesize);
-    end;
 
     function Tstoreddef.stabstr_evaluate(const s:string;const vars:array of string):Pchar;
+      begin
+        stabstr_evaluate:=string_evaluate(s,@get_var_value,vars);
+      end;
 
-    begin
-      stabstr_evaluate:=string_evaluate(s,@get_var_value,vars);
-    end;
 
     function tstoreddef.stabstring : pchar;
+      begin
+        stabstring:=stabstr_evaluate('t${numberstring};',[]);
+      end;
 
-    begin
-      stabstring:=stabstr_evaluate('t${numberstring};',[]);
-    end;
 
     function tstoreddef.numberstring : string;
-      var table : tsymtable;
+      var
+        table : tsymtable;
       begin
-      {formal def have no type !}
-      if deftype = formaldef then
-        begin
-        numberstring := tstoreddef(voidtype.def).numberstring;
-        exit;
-        end;
-      if (not assigned(typesym)) or (not ttypesym(typesym).isusedinstab) then
-        begin
-           {set even if debuglist is not defined}
-           if assigned(typesym) then
-             ttypesym(typesym).isusedinstab := true;
-           if assigned(debuglist) and (is_def_stab_written = not_written) then
-             concatstabto(debuglist);
-        end;
-      if not (cs_gdb_dbx in aktglobalswitches) then
-        begin
-           if globalnb = 0 then
-             set_globalnb;
-           numberstring := tostr(globalnb);
-        end
-      else
-        begin
-           if globalnb = 0 then
-             begin
-                if assigned(owner) then
+        {formal def have no type !}
+        if deftype = formaldef then
+          begin
+            numberstring := tstoreddef(voidtype.def).numberstring;
+            exit;
+          end;
+        if (stab_state=stab_state_unused) then
+          begin
+            stab_state:=stab_state_used;
+            if globalnb=0 then
+              begin
+                if (cs_gdb_dbx in aktglobalswitches) and
+                   assigned(owner) then
                   globalnb := owner.getnewtypecount
                 else
-                  begin
-                     globalnb := PGlobalTypeCount^;
-                     Inc(PGlobalTypeCount^);
-                  end;
-             end;
-           if assigned(typesym) then
-             begin
-                table := ttypesym(typesym).owner;
-                if table.unitid > 0 then
-                  numberstring := '('+tostr(table.unitid)+','+tostr(tstoreddef(ttypesym(typesym).restype.def).globalnb)+')'
-                else
-                  numberstring := tostr(globalnb);
-                exit;
-             end;
-           numberstring := tostr(globalnb);
-        end;
+                  set_globalnb;
+              end;
+          end;
+        if (cs_gdb_dbx in aktglobalswitches) and
+           assigned(typesym) and
+           (ttypesym(typesym).owner.unitid<>0) then
+          result:='('+tostr(ttypesym(typesym).owner.unitid)+','+tostr(tstoreddef(ttypesym(typesym).restype.def).globalnb)+')'
+        else
+          begin
+            if globalnb=0 then
+              internalerror(200403081);
+            result:=tostr(globalnb);
+          end;
       end;
 
 
     function tstoreddef.allstabstring : pchar;
-    var stabchar : string[2];
+      var
+        stabchar : string[2];
         ss,st,su : pchar;
-    begin
-      ss := stabstring;
-      stabchar := 't';
-      if deftype in tagtypes then
-        stabchar := 'Tt';
-      st:=stabstr_evaluate('"${sym_name}:$1$2=',[stabchar,numberstring]);
-      reallocmem(st,strlen(ss)+512);
-      su:=stabstr_evaluate('",${N_LSYM},0,${sym_line},0',[]);
-      strcopy(strecopy(strend(st),ss),su);
-      reallocmem(st,strlen(st)+1);
-      allstabstring:=st;
-      strdispose(ss);
-      strdispose(su);
-    end;
+      begin
+        ss := stabstring;
+        stabchar := 't';
+        if deftype in tagtypes then
+          stabchar := 'Tt';
+        st:=stabstr_evaluate('"${sym_name}:$1$2=',[stabchar,numberstring]);
+        reallocmem(st,strlen(ss)+512);
+        su:=stabstr_evaluate('",${N_LSYM},0,${sym_line},0',[]);
+        strcopy(strecopy(strend(st),ss),su);
+        reallocmem(st,strlen(st)+1);
+        allstabstring:=st;
+        strdispose(ss);
+        strdispose(su);
+      end;
+
 
     procedure tstoreddef.concatstabto(asmlist : taasmoutput);
-     var stab_str : pchar;
-    begin
-    if ((typesym = nil) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches))
-      and (is_def_stab_written = not_written) then
+      var
+        stab_str : pchar;
       begin
-      If cs_gdb_dbx in aktglobalswitches then
-        begin
-           { otherwise you get two of each def }
-           If assigned(typesym) then
-             begin
-                if ttypesym(typesym).typ=symconst.typesym then
-                  ttypesym(typesym).isusedinstab:=true;
+        if (stab_state<>stab_state_used) then
+          exit;
+        If cs_gdb_dbx in aktglobalswitches then
+          begin
+            { otherwise you get two of each def }
+            If assigned(typesym) then
+              begin
                 if (ttypesym(typesym).owner = nil) or
                    ((ttypesym(typesym).owner.symtabletype = globalsymtable) and
                     tglobalsymtable(ttypesym(typesym).owner).dbx_count_ok)  then
-                begin
-                   {with DBX we get the definition from the other objects }
-                   is_def_stab_written := written;
-                   exit;
-                end;
-             end;
-        end;
-      { to avoid infinite loops }
-      is_def_stab_written := being_written;
-      stab_str := allstabstring;
-      asmList.concat(Tai_stabs.Create(stab_str));
-      is_def_stab_written := written;
+                  begin
+                    {with DBX we get the definition from the other objects }
+                    stab_state := stab_state_written;
+                    exit;
+                  end;
+              end;
+          end;
+        { to avoid infinite loops }
+        stab_state := stab_state_writing;
+        stab_str := allstabstring;
+        asmList.concat(Tai_stabs.Create(stab_str));
+        stab_state := stab_state_written;
       end;
-    end;
 {$endif GDB}
 
 
@@ -1430,27 +1405,27 @@ implementation
         case string_typ of
            st_shortstring:
              begin
-               charst := typeglobalnumber('char');
+               charst:=tstoreddef(cchartype.def).numberstring;
                { this is what I found in stabs.texinfo but
                  gdb 4.12 for go32 doesn't understand that !! }
              {$IfDef GDBknowsstrings}
                 stabstring:=stabstr_evaluate('n$1;$2',[charst,tostr(len)]);
              {$else}
-               bytest := typeglobalnumber('byte');
+               bytest:=tstoreddef(u8inttype.def).numberstring;
                stabstring:=stabstr_evaluate('s$1length:$2,0,8;st:ar$2;1;$3;$4,8,$5;;',
                            [tostr(len+1),bytest,tostr(len),charst,tostr(len*8)]);
              {$EndIf}
              end;
            st_longstring:
              begin
-               charst := typeglobalnumber('char');
+               charst:=tstoreddef(cchartype.def).numberstring;
                { this is what I found in stabs.texinfo but
                  gdb 4.12 for go32 doesn't understand that !! }
              {$IfDef GDBknowsstrings}
                stabstring:=stabstr_evaluate('n$1;$2',[charst,tostr(len)]);
              {$else}
-               bytest := typeglobalnumber('byte');
-               longst := typeglobalnumber('longint');
+               bytest:=tstoreddef(u8inttype.def).numberstring;
+               longst:=tstoreddef(u32inttype.def).numberstring;
                stabstring:=stabstr_evaluate('s$1length:$2,0,32;dummy:$6,32,8;st:ar$2;1;$3;$4,40,$5;;',
                             [tostr(len+5),longst,tostr(len),charst,tostr(len*8),bytest]);
               {$EndIf}
@@ -1458,20 +1433,49 @@ implementation
            st_ansistring:
              begin
                { an ansi string looks like a pchar easy !! }
-               stabstring:=strpnew('*'+typeglobalnumber('char'));
+               charst:=tstoreddef(cchartype.def).numberstring;
+               stabstring:=strpnew('*'+charst);
              end;
            st_widestring:
              begin
                { an ansi string looks like a pwidechar easy !! }
-               stabstring:=strpnew('*'+typeglobalnumber('widechar'));
+               charst:=tstoreddef(cwidechartype.def).numberstring;
+               stabstring:=strpnew('*'+charst);
              end;
+        end;
       end;
-    end;
 
 
-    procedure tstringdef.concatstabto(asmlist : taasmoutput);
+    function tstringdef.numberstring:string;
+      var
+        old_state : tdefstabstatus;
       begin
-        inherited concatstabto(asmlist);
+        old_state:=stab_state;
+        result:=inherited numberstring;
+        if (old_state=stab_state_unused) then
+          begin
+            case string_typ of
+               st_shortstring:
+                 begin
+                   tstoreddef(cchartype.def).numberstring;
+                 {$IfNDef GDBknowsstrings}
+                   tstoreddef(u8inttype.def).numberstring;
+                 {$EndIf}
+                 end;
+               st_longstring:
+                 begin
+                   tstoreddef(cchartype.def).numberstring;
+                 {$IfNDef GDBknowsstrings}
+                   tstoreddef(u8inttype.def).numberstring;
+                   tstoreddef(u32inttype.def).numberstring;
+                 {$EndIf}
+                 end;
+               st_ansistring:
+                 tstoreddef(cchartype.def).numberstring;
+               st_widestring:
+                 tstoreddef(cwidechartype.def).numberstring;
+            end;
+         end;
       end;
 {$endif GDB}
 
@@ -2204,23 +2208,37 @@ implementation
       { but the string could become too long !! }
       stabstring:=stabstr_evaluate('s${savesize}HANDLE:$1,0,32;MODE:$1,32,32;RECSIZE:$1,64,32;'+
                                    '_PRIVATE:ar$2;1;32;$3,96,256;USERDATA:ar$2;1;16+$3,352,128;'+
-                                   'NAME:ar$2;0;255;$4,480,2048',[typeglobalnumber('longint'),
-                                   typeglobalnumber('word'),typeglobalnumber('byte'),
-                                   typeglobalnumber('char')]);
+                                   'NAME:ar$2;0;255;$4,480,2048',[tstoreddef(u32inttype.def).numberstring,
+                                   tstoreddef(u16inttype.def).numberstring,tstoreddef(u8inttype.def).numberstring,
+                                   tstoreddef(cchartype.def).numberstring]);
    {$EndIf}
       end;
 
 
-    procedure tfiledef.concatstabto(asmlist : taasmoutput);
+    function tfiledef.numberstring:string;
+      var
+        old_state : tdefstabstatus;
       begin
-      { most file defs are unnamed !!! }
-      if ((typesym = nil) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
-         (is_def_stab_written  = not_written) then
-        begin
-        if assigned(typedfiletype.def) then
-          forcestabto(asmlist,typedfiletype.def);
-        inherited concatstabto(asmlist);
-        end;
+        old_state:=stab_state;
+        result:=inherited numberstring;
+        if (old_state=stab_state_unused) then
+          begin
+   {$IfDef GDBknowsfiles}
+            case filetyp of
+              ft_typed :
+                tstoreddef(typedfiletype.def).numberstring;
+              ft_untyped :
+                tstoreddef(voidtype.def).numberstring;
+              ft_text :
+                tstoreddef(cchartype.def).numberstring;
+            end;
+   {$Else}
+            tstoreddef(u32inttype.def).numberstring;
+            tstoreddef(u16inttype.def).numberstring;
+            tstoreddef(u8inttype.def).numberstring;
+            tstoreddef(cchartype.def).numberstring;
+   {$EndIf}
+          end;
       end;
 {$endif GDB}
 
@@ -2380,18 +2398,29 @@ implementation
       end;
 
 
+    function tpointerdef.numberstring:string;
+      var
+        old_state : tdefstabstatus;
+      begin
+        old_state:=stab_state;
+        result:=inherited numberstring;
+        if (stab_state=stab_state_unused) and
+           assigned(pointertype.def) then
+          tstoreddef(pointertype.def).numberstring;
+      end;
+
+
     procedure tpointerdef.concatstabto(asmlist : taasmoutput);
       var st,nb : string;
 
       begin
-      if assigned(pointertype.def) and
-         (pointertype.def.deftype=forwarddef) then
-        exit;
+        if (stab_state<>stab_state_used) then
+          exit;
+        if assigned(pointertype.def) and
+           (pointertype.def.deftype=forwarddef) then
+          exit;
 
-      if ( (typesym=nil) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
-         (is_def_stab_written = not_written) then
-        begin
-          is_def_stab_written := being_written;
+        stab_state:=stab_state_writing;
         if assigned(pointertype.def) and
            (pointertype.def.deftype in [recorddef,objectdef]) then
           begin
@@ -2400,7 +2429,7 @@ implementation
             else
               nb:=tstoreddef(pointertype.def).numberstring;
             {to avoid infinite recursion in record with next-like fields }
-            if tstoreddef(pointertype.def).is_def_stab_written = being_written then
+            if tstoreddef(pointertype.def).stab_state=stab_state_writing then
               begin
                 if assigned(pointertype.def.typesym) then
                   begin
@@ -2412,33 +2441,31 @@ implementation
                             '"$1:t${numberstring}=*$2=xs$3:",${N_LSYM},0,${sym_line},0',
                             [st,nb,pointertype.def.typesym.name])));
                   end;
+                stab_state:=stab_state_written;
               end
             else
               begin
-                is_def_stab_written := not_written;
+                stab_state:=stab_state_used;
                 inherited concatstabto(asmlist);
               end;
-            is_def_stab_written := written;
           end
         else
           begin
-            if assigned(pointertype.def) then
-              forcestabto(asmlist,pointertype.def);
-            is_def_stab_written := not_written;
+            stab_state:=stab_state_used;
             inherited concatstabto(asmlist);
           end;
-        end;
       end;
 {$endif GDB}
 
-    function tpointerdef.gettypename : string;
 
+    function tpointerdef.gettypename : string;
       begin
          if is_far then
           gettypename:='^'+pointertype.def.typename+';far'
          else
           gettypename:='^'+pointertype.def.typename;
       end;
+
 
 {****************************************************************************
                               TCLASSREFDEF
@@ -2476,16 +2503,10 @@ implementation
       begin
          stabstring:=strpnew(tstoreddef(pvmttype.def).numberstring+';');
       end;
-
-
-    procedure tclassrefdef.concatstabto(asmlist : taasmoutput);
-      begin
-        inherited concatstabto(asmlist);
-      end;
 {$endif GDB}
 
-    function tclassrefdef.gettypename : string;
 
+    function tclassrefdef.gettypename : string;
       begin
          gettypename:='Class Of '+pointertype.def.typename;
       end;
@@ -2566,26 +2587,19 @@ implementation
 {$ifdef GDB}
     function tsetdef.stabstring : pchar;
       begin
-         { For small sets write a longint, which can at least be seen
-           in the current GDB's (PFV)
-           this is obsolete with GDBPAS !!
-           and anyhow creates problems with version 4.18!! PM
-         if settype=smallset then
-           stabstring := strpnew('r'+s32inttype^.numberstring+';0;0xffffffff;')
-         else }
-         stabstring:=stabstr_evaluate('@s$1;S$2',[tostr(savesize*8),tstoreddef(elementtype.def).numberstring]);
+        stabstring:=stabstr_evaluate('@s$1;S$2',[tostr(savesize*8),tstoreddef(elementtype.def).numberstring]);
       end;
 
 
-    procedure tsetdef.concatstabto(asmlist : taasmoutput);
+    function tsetdef.numberstring:string;
+      var
+        old_state : tdefstabstatus;
       begin
-      if ( not assigned(typesym) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
-          (is_def_stab_written = not_written) then
-        begin
-          if assigned(elementtype.def) then
-            forcestabto(asmlist,elementtype.def);
-          inherited concatstabto(asmlist);
-        end;
+        old_state:=stab_state;
+        result:=inherited numberstring;
+        if (old_state=stab_state_unused) and
+           assigned(elementtype.def) then
+          tstoreddef(elementtype.def).numberstring;
       end;
 {$endif GDB}
 
@@ -2674,23 +2688,23 @@ implementation
 
 {$ifdef GDB}
     function tformaldef.stabstring : pchar;
-
-    begin
-      stabstring:=stabstr_evaluate('formal${numberstring};',[]);
-    end;
+      begin
+        stabstring:=stabstr_evaluate('formal${numberstring};',[]);
+      end;
 
 
     procedure tformaldef.concatstabto(asmlist : taasmoutput);
       begin
-      { formaldef can't be stab'ed !}
+        { formaldef can't be stab'ed !}
       end;
 {$endif GDB}
 
-    function tformaldef.gettypename : string;
 
+    function tformaldef.gettypename : string;
       begin
          gettypename:='<Formal type>';
       end;
+
 
 {***************************************************************************
                            TARRAYDEF
@@ -2773,15 +2787,17 @@ implementation
       end;
 
 
-    procedure tarraydef.concatstabto(asmlist : taasmoutput);
+    function tarraydef.numberstring:string;
+      var
+        old_state : tdefstabstatus;
       begin
-      if (not assigned(typesym) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches))
-        and (is_def_stab_written = not_written) then
-        begin
-        {when array are inserted they have no definition yet !!}
-        if assigned(_elementtype.def) then
-          inherited concatstabto(asmlist);
-        end;
+        old_state:=stab_state;
+        result:=inherited numberstring;
+        if (old_state=stab_state_unused) then
+          begin
+            tstoreddef(rangetype.def).numberstring;
+            tstoreddef(_elementtype.def).numberstring;
+          end;
       end;
 {$endif GDB}
 
@@ -2939,47 +2955,53 @@ implementation
 
 
 {$ifdef GDB}
-    procedure tabstractrecorddef.addname(p:Tnamedindexitem;arg:pointer);
-
-    var newrec:Pchar;
+    procedure tabstractrecorddef.field_addname(p:Tnamedindexitem;arg:pointer);
+      var
+        newrec:Pchar;
         spec:string[3];
         varsize:longint;
         state:^Trecord_stabgen_state;
+      begin
+        state:=arg;
+        { static variables from objects are like global objects }
+        if (Tsym(p).typ=varsym) and not (sp_static in Tsym(p).symoptions) then
+          begin
+            if (sp_protected in tsym(p).symoptions) then
+              spec:='/1'
+            else if (sp_private in tsym(p).symoptions) then
+              spec:='/0'
+            else
+              spec:='';
+            varsize:=tvarsym(p).vartype.def.size;
+            { open arrays made overflows !! }
+            if varsize>$fffffff then
+              varsize:=$fffffff;
+            newrec:=stabstr_evaluate('$1:$2,$3,$4;',[p.name,
+                                     spec+tstoreddef(tvarsym(p).vartype.def).numberstring,
+                                     tostr(tvarsym(p).fieldoffset*8),tostr(varsize*8)]);
+            if state^.stabsize+strlen(newrec)>=state^.staballoc-256 then
+              begin
+                inc(state^.staballoc,memsizeinc);
+                reallocmem(state^.stabstring,state^.staballoc);
+              end;
+            strcopy(state^.stabstring+state^.stabsize,newrec);
+            inc(state^.stabsize,strlen(newrec));
+            strdispose(newrec);
+            {This should be used for case !!}
+            inc(state^.recoffset,Tvarsym(p).vartype.def.size);
+          end;
+      end;
 
-    begin
-      state:=arg;
-      { static variables from objects are like global objects }
-      if (Tsym(p).typ=varsym) and not (sp_static in Tsym(p).symoptions) then
-        begin
-          if (sp_protected in tsym(p).symoptions) then
-            spec:='/1'
-          else if (sp_private in tsym(p).symoptions) then
-            spec:='/0'
-          else
-            spec:='';
-          { class fields are pointers PM, obsolete now PM }
-          {if (tvarsym(p).vartype.def.deftype=objectdef) and
-             tobjectdef(tvarsym(p).vartype.def).is_class then
-             spec:=spec+'*'; }
-          varsize:=tvarsym(p).vartype.def.size;
-          { open arrays made overflows !! }
-          if varsize>$fffffff then
-            varsize:=$fffffff;
-          newrec:=stabstr_evaluate('$1:$2,$3,$4;',[p.name,
-                                   spec+tstoreddef(tvarsym(p).vartype.def).numberstring,
-                                   tostr(tvarsym(p).fieldoffset*8),tostr(varsize*8)]);
-          if state^.stabsize+strlen(newrec)>=state^.staballoc-256 then
-            begin
-              inc(state^.staballoc,memsizeinc);
-              reallocmem(state^.stabstring,state^.staballoc);
-            end;
-          strcopy(state^.stabstring+state^.stabsize,newrec);
-          inc(state^.stabsize,strlen(newrec));
-          strdispose(newrec);
-          {This should be used for case !!}
-          inc(state^.recoffset,Tvarsym(p).vartype.def.size);
-        end;
-    end;
+
+    function tabstractrecorddef.numberstring:string;
+      var
+        old_state : tdefstabstatus;
+      begin
+        old_state:=stab_state;
+        result:=inherited numberstring;
+        if old_state=stab_state_unused then
+          tstoredsymtable(symtable).numberstring;
+      end;
 {$endif GDB}
 
 
@@ -3125,23 +3147,14 @@ implementation
       strpcopy(state.stabstring,'s'+tostr(size));
       state.recoffset:=0;
       state.stabsize:=strlen(state.stabstring);
-      symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addname,@state);
-{      strpcopy(strend(state.stabstring),';');}
+      symtable.foreach({$ifdef FPCPROCVAR}@{$endif}field_addname,@state);
       state.stabstring[state.stabsize]:=';';
       state.stabstring[state.stabsize+1]:=#0;
       reallocmem(state.stabstring,state.stabsize+2);
       stabstring:=state.stabstring;
     end;
-
-
-    procedure trecorddef.concatstabto(asmlist : taasmoutput);
-      begin
-        if (not assigned(typesym) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
-           (is_def_stab_written = not_written)  then
-          inherited concatstabto(asmlist);
-      end;
-
 {$endif GDB}
+
 
     procedure trecorddef.write_child_rtti_data(rt:trttitype);
       begin
@@ -3542,17 +3555,23 @@ implementation
       end;
 
 
+    function tabstractprocdef.numberstring:string;
+      var
+        old_state : tdefstabstatus;
+      begin
+        old_state:=stab_state;
+        result:=inherited numberstring;
+        if (old_state=stab_state_unused) then
+          tstoreddef(rettype.def).numberstring;
+      end;
+
+
     procedure tabstractprocdef.concatstabto(asmlist : taasmoutput);
       begin
-         { released procdef? }
-         if not assigned(parast) then
-           exit;
-         if (not assigned(typesym) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches))
-            and (is_def_stab_written = not_written)  then
-           begin
-              if assigned(rettype.def) then forcestabto(asmlist,rettype.def);
-              inherited concatstabto(asmlist);
-           end;
+        { released procdef? }
+        if not assigned(parast) then
+          exit;
+        inherited concatstabto(asmlist);
       end;
 {$endif GDB}
 
@@ -4013,113 +4032,87 @@ implementation
       end;
 
 {$ifdef GDB}
-
-{$ifdef unused}
-{    procedure addparaname(p : tsym);
-      var vs : char;
-      begin
-      if tvarsym(p).varspez = vs_value then vs := '1'
-        else vs := '0';
-      strpcopy(strend(StabRecString),p^.name+':'+tstoreddef(tvarsym(p).vartype.def).numberstring+','+vs+';');
-      end; }
-
-
-    function tprocdef.stabstring : pchar;
-      var
-          i : longint;
-          stabrecstring : pchar;
-      begin
-      getmem(StabRecString,1024);
-      strpcopy(StabRecString,'f'+tstoreddef(rettype.def).numberstring);
-      i:=maxparacount;
-      if i>0 then
-        begin
-        strpcopy(strend(StabRecString),','+tostr(i)+';');
-        (* confuse gdb !! PM
-        if assigned(parast) then
-          parast.foreach({$ifdef FPCPROCVAR}@{$endif}addparaname)
-          else
-          begin
-          param := para1;
-          i := 0;
-          while assigned(param) do
-            begin
-            inc(i);
-            if param^.paratyp = vs_value then vartyp := '1' else vartyp := '0';
-            {Here we have lost the parameter names !!}
-            {using lower case parameters }
-            strpcopy(strend(stabrecstring),'p'+tostr(i)
-               +':'+param^.paratype.def.numberstring+','+vartyp+';');
-            param := param^.next;
-            end;
-          end;   *)
-        {strpcopy(strend(StabRecString),';');}
-        end;
-      stabstring := strnew(stabrecstring);
-      freemem(stabrecstring,1024);
-      end;
-{$endif unused}
-
     function tprocdef.stabstring: pchar;
-     Var RType : Char;
-         Obj,Info : String;
-         stabsstr : string;
-         p : pchar;
-    begin
-      obj := procsym.name;
-      info := '';
-      if tprocsym(procsym).is_global then
-       RType := 'F'
-      else
-       RType := 'f';
-     if assigned(owner) then
+      Var
+        RType : Char;
+        Obj,Info : String;
+        stabsstr : string;
+        p : pchar;
       begin
-        if (owner.symtabletype = objectsymtable) then
-         obj := owner.name^+'__'+procsym.name;
-        { this code was correct only as long as the local symboltable
-          of the parent had the same name as the function
-          but this is no true anymore !! PM
-        if (owner.symtabletype=localsymtable) and assigned(owner.name) then
-         info := ','+name+','+owner.name^;  }
-        if (owner.symtabletype=localsymtable) and
-           assigned(owner.defowner) and
-           assigned(tprocdef(owner.defowner).procsym) then
-          info := ','+procsym.name+','+tprocdef(owner.defowner).procsym.name;
+        obj := procsym.name;
+        info := '';
+        if tprocsym(procsym).is_global then
+          RType := 'F'
+        else
+          RType := 'f';
+        if assigned(owner) then
+         begin
+           if (owner.symtabletype = objectsymtable) then
+             obj := owner.name^+'__'+procsym.name;
+           if (owner.symtabletype=localsymtable) and
+              assigned(owner.defowner) and
+              assigned(tprocdef(owner.defowner).procsym) then
+             info := ','+procsym.name+','+tprocdef(owner.defowner).procsym.name;
+         end;
+        stabsstr:=mangledname;
+        getmem(p,length(stabsstr)+255);
+        strpcopy(p,'"'+obj+':'+RType
+              +tstoreddef(rettype.def).numberstring+info+'",'+tostr(n_function)
+              +',0,'+
+              tostr(fileinfo.line)
+              +',');
+        strpcopy(strend(p),stabsstr);
+        stabstring:=strnew(p);
+        freemem(p,length(stabsstr)+255);
       end;
-     stabsstr:=mangledname;
-     getmem(p,length(stabsstr)+255);
-     strpcopy(p,'"'+obj+':'+RType
-           +tstoreddef(rettype.def).numberstring+info+'",'+tostr(n_function)
-           +',0,'+
-           tostr(fileinfo.line)
-           +',');
-     strpcopy(strend(p),stabsstr);
-     stabstring:=strnew(p);
-     freemem(p,length(stabsstr)+255);
-    end;
+
+
+    function tprocdef.numberstring:string;
+      var
+        old_state : tdefstabstatus;
+      begin
+        old_state:=stab_state;
+        result:=inherited numberstring;
+        if (old_state=stab_state_unused) then
+          begin
+            if assigned(_class) then
+              _class.numberstring;
+            tstoreddef(rettype.def).numberstring;
+            if not(po_external in procoptions) then
+              begin
+                tstoredsymtable(parast).numberstring;
+                { local type defs and vars should not be written
+                  inside the main proc stab }
+                if assigned(localst) and
+                   (localst.symtablelevel>main_program_level) then
+                  tstoredsymtable(localst).numberstring;
+              end;
+          end;
+      end;
+
 
     procedure tprocdef.concatstabto(asmlist : taasmoutput);
-
-    begin
-      { released procdef? }
-      if not assigned(parast) then
-        exit;
-      if (proccalloption=pocall_internproc) then
-        exit;
-      if not isstabwritten then
+      begin
+        { released procdef? }
+        if not assigned(parast) then
+          exit;
+        if (proccalloption=pocall_internproc) then
+          exit;
+        { assign a number for this def }
+        numberstring;
+        stab_state:=stab_state_writing;
         asmList.concat(Tai_stabs.Create(stabstring));
-      isstabwritten := true;
-      if not(po_external in procoptions) then
-        begin
-          tstoredsymtable(parast).concatstabto(asmlist);
-          { local type defs and vars should not be written
-            inside the main proc stab }
-          if assigned(localst) and
-             (localst.symtablelevel>main_program_level) then
-            tstoredsymtable(localst).concatstabto(asmlist);
-        end;
-      is_def_stab_written := written;
-    end;
+        if not(po_external in procoptions) then
+          begin
+            tstoredsymtable(parast).concatstabto(asmlist);
+            { local type defs and vars should not be written
+              inside the main proc stab }
+            if assigned(localst) and
+               (localst.symtablelevel>main_program_level) then
+              tstoredsymtable(localst).concatstabto(asmlist);
+          end;
+        stab_state:=stab_state_written;
+      end;
 {$endif GDB}
 
 
@@ -4517,15 +4510,6 @@ implementation
         {strpcopy(strend(nss),';');}
         stabstring := strnew(nss);
         freemem(nss,1024);
-      end;
-
-
-    procedure tprocvardef.concatstabto(asmlist : taasmoutput);
-      begin
-         if ( not assigned(typesym) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches))
-           and (is_def_stab_written = not_written)  then
-           inherited concatstabto(asmlist);
-         is_def_stab_written:=written;
       end;
 {$endif GDB}
 
@@ -5032,7 +5016,7 @@ implementation
     procedure tobjectdef.addprocname(p :tnamedindexitem;arg:pointer);
       var virtualind,argnames : string;
           newrec : pchar;
-          pd,ipd : tprocdef;
+          pd     : tprocdef;
           lindex : longint;
           para : TParaItem;
           arglength : byte;
@@ -5044,15 +5028,12 @@ implementation
         if tsym(p).typ = procsym then
          begin
            pd := tprocsym(p).first_procdef;
-           { this will be used for full implementation of object stabs
-           not yet done }
-           ipd := Tprocsym(p).last_procdef;
            if (po_virtualmethod in pd.procoptions) then
              begin
                lindex := pd.extnumber;
                {doesnt seem to be necessary
                lindex := lindex or $80000000;}
-               virtualind := '*'+tostr(lindex)+';'+ipd._class.classnumberstring+';'
+               virtualind := '*'+tostr(lindex)+';'+pd._class.classnumberstring+';'
              end
             else
              virtualind := '.';
@@ -5070,53 +5051,55 @@ implementation
             para := TParaItem(pd.Para.first);
             while assigned(para) do
               begin
-              if Para.paratype.def.deftype = formaldef then
-                begin
-                   if Para.paratyp=vs_var then
-                     argnames := argnames+'3var'
-                   else if Para.paratyp=vs_const then
-                     argnames:=argnames+'5const'
-                   else if Para.paratyp=vs_out then
-                     argnames:=argnames+'3out';
-                end
-              else
-                begin
-                { if the arg definition is like (v: ^byte;..
-                there is no sym attached to data !!! }
-                if assigned(Para.paratype.def.typesym) then
+                if Para.paratype.def.deftype = formaldef then
                   begin
-                     arglength := length(Para.paratype.def.typesym.name);
-                     argnames := argnames + tostr(arglength)+Para.paratype.def.typesym.name;
+                    case Para.paratyp of
+                      vs_var :
+                        argnames := argnames+'3var';
+                      vs_const :
+                        argnames:=argnames+'5const';
+                      vs_out :
+                        argnames:=argnames+'3out';
+                    end;
                   end
                 else
                   begin
-                     argnames:=argnames+'11unnamedtype';
+                    { if the arg definition is like (v: ^byte;..
+                    there is no sym attached to data !!! }
+                    if assigned(Para.paratype.def.typesym) then
+                      begin
+                        arglength := length(Para.paratype.def.typesym.name);
+                        argnames := argnames + tostr(arglength)+Para.paratype.def.typesym.name;
+                      end
+                    else
+                      argnames:=argnames+'11unnamedtype';
                   end;
-                end;
-              para := TParaItem(Para.next);
+                para := TParaItem(Para.next);
               end;
-           ipd.is_def_stab_written := written;
            { here 2A must be changed for private and protected }
            { 0 is private 1 protected and 2 public }
-           if (sp_private in tsym(p).symoptions) then sp:='0'
-           else if (sp_protected in tsym(p).symoptions) then sp:='1'
-           else sp:='2';
-          newrec:=stabstr_evaluate('$1::$2=##$3;:$4;$5A$6;',[p.name,ipd.numberstring,
-                                   Tstoreddef(pd.rettype.def).numberstring,argnames,sp,
-                                   virtualind]);
-          { get spare place for a string at the end }
-          olds:=state^.stabsize;
-          inc(state^.stabsize,strlen(newrec));
-          if state^.stabsize>=state^.staballoc-256 then
-            begin
-               inc(state^.staballoc,memsizeinc);
-               reallocmem(state^.stabstring,state^.staballoc);
-            end;
-          strcopy(state^.stabstring+olds,newrec);
-          strdispose(newrec);
-          {This should be used for case !!
-          RecOffset := RecOffset + pd.size;}
-        end;
+           if (sp_private in tsym(p).symoptions) then
+             sp:='0'
+           else if (sp_protected in tsym(p).symoptions) then
+             sp:='1'
+           else
+             sp:='2';
+           newrec:=stabstr_evaluate('$1::$2=##$3;:$4;$5A$6;',[p.name,pd.numberstring,
+                                    Tstoreddef(pd.rettype.def).numberstring,argnames,sp,
+                                    virtualind]);
+           { get spare place for a string at the end }
+           olds:=state^.stabsize;
+           inc(state^.stabsize,strlen(newrec));
+           if state^.stabsize>=state^.staballoc-256 then
+             begin
+                inc(state^.staballoc,memsizeinc);
+                reallocmem(state^.stabstring,state^.staballoc);
+             end;
+           strcopy(state^.stabstring+olds,newrec);
+           strdispose(newrec);
+           {This should be used for case !!
+           RecOffset := RecOffset + pd.size;}
+         end;
       end;
 
 
@@ -5139,11 +5122,11 @@ implementation
             {virtual table to implement yet}
             state.recoffset:=0;
             state.stabsize:=strlen(state.stabstring);
-            symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addname,@state);
+            symtable.foreach({$ifdef FPCPROCVAR}@{$endif}field_addname,@state);
             if (oo_has_vmt in objectoptions) then
               if not assigned(childof) or not(oo_has_vmt in childof.objectoptions) then
                  begin
-                    ts:='$vf'+classnumberstring+':'+typeglobalnumber('vtblarray')+','+tostr(vmt_offset*8)+';';
+                    ts:='$vf'+classnumberstring+':'+tstoreddef(vmtarraytype.def).numberstring+','+tostr(vmt_offset*8)+';';
                     strpcopy(state.stabstring+state.stabsize,ts);
                     inc(state.stabsize,length(ts));
                  end;
@@ -5196,63 +5179,84 @@ implementation
      end;
 
 
+    function tobjectdef.numberstring : string;
+      var
+        old_state : tdefstabstatus;
+        anc : tobjectdef;
+      begin
+        old_state:=stab_state;
+        result:=inherited numberstring;
+        if (old_state=stab_state_unused) then
+          begin
+            tstoreddef(vmtarraytype.def).numberstring;
+            tstoredsymtable(symtable).numberstring;
+            { parents }
+            anc:=self;
+            while assigned(anc.childof) and
+                  (oo_has_vmt in anc.childof.objectoptions) do
+              begin
+                anc:=anc.childof;
+                anc.numberstring;
+              end;
+          end;
+      end;
+
+
     function tobjectdef.allstabstring : pchar;
-    var stabchar : string[2];
+      var
+        stabchar : string[2];
         ss,st : pchar;
         sname : string;
         sym_line_no : longint;
       begin
-      ss := stabstring;
-      getmem(st,strlen(ss)+512);
-      stabchar := 't';
-      if deftype in tagtypes then
-        stabchar := 'Tt';
-      if assigned(typesym) then
-        begin
-           sname := typesym.name;
-           sym_line_no:=typesym.fileinfo.line;
-        end
-      else
-        begin
-           sname := ' ';
-           sym_line_no:=0;
-        end;
-      if writing_class_record_stab then
-        strpcopy(st,'"'+sname+':'+stabchar+classnumberstring+'=')
-      else
-        strpcopy(st,'"'+sname+':'+stabchar+numberstring+'=');
-      strpcopy(strecopy(strend(st),ss),'",'+tostr(N_LSYM)+',0,'+tostr(sym_line_no)+',0');
-      allstabstring := strnew(st);
-      freemem(st,strlen(ss)+512);
-      strdispose(ss);
+        ss := stabstring;
+        getmem(st,strlen(ss)+512);
+        stabchar := 't';
+        if deftype in tagtypes then
+          stabchar := 'Tt';
+        if assigned(typesym) then
+          begin
+             sname := typesym.name;
+             sym_line_no:=typesym.fileinfo.line;
+          end
+        else
+          begin
+             sname := ' ';
+             sym_line_no:=0;
+          end;
+        if writing_class_record_stab then
+          strpcopy(st,'"'+sname+':'+stabchar+classnumberstring+'=')
+        else
+          strpcopy(st,'"'+sname+':'+stabchar+numberstring+'=');
+        strpcopy(strecopy(strend(st),ss),'",'+tostr(N_LSYM)+',0,'+tostr(sym_line_no)+',0');
+        allstabstring := strnew(st);
+        freemem(st,strlen(ss)+512);
+        strdispose(ss);
       end;
+
 
     procedure tobjectdef.concatstabto(asmlist : taasmoutput);
       var
         oldtypesym : tsym;
+        stab_str   : pchar;
       begin
-        if objecttype<>odt_class then
+        if (stab_state<>stab_state_used) then
+          exit;
+        if objecttype=odt_class then
           begin
+            { Write the record class itself }
+            writing_class_record_stab:=true;
             inherited concatstabto(asmlist);
-            exit;
-          end;
-
-      if ((typesym=nil) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
-         (is_def_stab_written = not_written) then
-        begin
-          if globalnb=0 then
-            set_globalnb;
-          { Write the record class itself }
-          writing_class_record_stab:=true;
+            writing_class_record_stab:=false;
+            { Write the invisible pointer class }
+            oldtypesym:=typesym;
+            typesym:=nil;
+            stab_str := allstabstring;
+            asmList.concat(Tai_stabs.Create(stab_str));
+            typesym:=oldtypesym;
+          end
+        else
           inherited concatstabto(asmlist);
-          writing_class_record_stab:=false;
-          { Write the invisible pointer class }
-          is_def_stab_written:=not_written;
-          oldtypesym:=typesym;
-          typesym:=nil;
-          inherited concatstabto(asmlist);
-          typesym:=oldtypesym;
-        end;
       end;
 {$endif GDB}
 
@@ -6008,51 +6012,6 @@ implementation
 
 
 {****************************************************************************
-                               GDB Helpers
-****************************************************************************}
-
-{$ifdef GDB}
-    function typeglobalnumber(const s : string) : string;
-
-      var st : string;
-          symt : tsymtable;
-          srsym : tsym;
-          srsymtable : tsymtable;
-          old_make_ref : boolean;
-      begin
-         old_make_ref:=make_ref;
-         make_ref:=false;
-         typeglobalnumber := '0';
-         srsym := nil;
-         if pos('.',s) > 0 then
-           begin
-           st := copy(s,1,pos('.',s)-1);
-           searchsym(st,srsym,srsymtable);
-           st := copy(s,pos('.',s)+1,255);
-           if assigned(srsym) then
-             begin
-             if srsym.typ = unitsym then
-               begin
-               symt := tunitsym(srsym).unitsymtable;
-               srsym := tsym(symt.search(st));
-               end else srsym := nil;
-             end;
-           end else st := s;
-         if srsym = nil then
-          searchsym(st,srsym,srsymtable);
-         if (srsym=nil) or
-            (srsym.typ<>typesym) then
-           begin
-             Message(type_e_type_id_expected);
-             exit;
-           end;
-         typeglobalnumber := tstoreddef(ttypesym(srsym).restype.def).numberstring;
-         make_ref:=old_make_ref;
-      end;
-{$endif GDB}
-
-
-{****************************************************************************
                            Definition Helpers
 ****************************************************************************}
 
@@ -6116,7 +6075,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.225  2004-03-03 22:01:44  peter
+  Revision 1.226  2004-03-08 22:07:47  peter
+    * stabs updates to write stabs for def for all implictly used
+      units
+
+  Revision 1.225  2004/03/03 22:01:44  peter
     * fix hidden pointer for stabs
 
   Revision 1.224  2004/03/02 00:36:33  olle

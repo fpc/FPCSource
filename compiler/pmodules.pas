@@ -24,8 +24,6 @@ unit pmodules;
 
 {$i fpcdefs.inc}
 
-{$define New_GDB}
-
 interface
 
     procedure proc_unit;
@@ -571,16 +569,6 @@ implementation
          symtablestack:=defaultsymtablestack;
          while assigned(pu) do
            begin
-{$IfDef GDB}
-              if (cs_debuginfo in aktmoduleswitches) and
-                 (cs_gdb_dbx in aktglobalswitches) and
-                not pu.is_stab_written then
-                begin
-                   tglobalsymtable(pu.u.globalsymtable).concattypestabto(debuglist);
-                   pu.is_stab_written:=true;
-                   pu.unitid:=tsymtable(pu.u.globalsymtable).unitid;
-                end;
-{$EndIf GDB}
               if pu.in_uses then
                 begin
                    { Reinsert in symtablestack }
@@ -607,41 +595,68 @@ implementation
       end;
 
 
-     procedure write_gdb_info;
 {$IfDef GDB}
+     procedure write_gdb_info;
+
+       procedure reset_unit_type_info;
        var
-         hp : tused_unit;
+         hp : tmodule;
+       begin
+         hp:=tmodule(loaded_units.first);
+         while assigned(hp) do
+           begin
+             hp.is_stab_written:=false;
+             hp:=tmodule(hp.next);
+           end;
+       end;
+
+       procedure write_used_unit_type_info(hp:tmodule);
+       var
+         pu : tused_unit;
+       begin
+         pu:=tused_unit(hp.used_units.first);
+         while assigned(pu) do
+           begin
+             if not pu.u.is_stab_written then
+               begin
+                 { prevent infinte loop for circular dependencies }
+                 pu.u.is_stab_written:=true;
+                 if assigned(pu.u.globalsymtable) then
+                   begin
+                     { first write the info for this unit, that will flag also all
+                       needed typesyms from used units }
+                     tglobalsymtable(pu.u.globalsymtable).concattypestabto(debuglist);
+                     { write type info from used units }
+                     write_used_unit_type_info(pu.u);
+                   end;
+               end;
+             pu:=tused_unit(pu.next);
+           end;
+       end;
+
        begin
          if not (cs_debuginfo in aktmoduleswitches) then
           exit;
-         { now insert the units in the symtablestack }
-         hp:=tused_unit(current_module.used_units.first);
-         while assigned(hp) do
-           begin
-              if (cs_debuginfo in aktmoduleswitches) and
-                not hp.is_stab_written then
-                begin
-                   tglobalsymtable(hp.u.globalsymtable).concattypestabto(debuglist);
-                   hp.is_stab_written:=true;
-                   hp.unitid:=tsymtable(hp.u.globalsymtable).unitid;
-                end;
-              hp:=tused_unit(hp.next);
-           end;
-         if (not current_module.in_interface) and
-            assigned(current_module.localsymtable) then
-           begin
-              { all types }
-              tstaticsymtable(current_module.localsymtable).concattypestabto(debuglist);
-              { and all local symbols}
-              tstaticsymtable(current_module.localsymtable).concatstabto(debuglist);
-           end
-         else if assigned(current_module.globalsymtable) then
+         { write type info for dependent units }
+         reset_unit_type_info;
+         { first write the types from this unit }
+         if assigned(current_module.globalsymtable) then
            begin
               { all types }
               tglobalsymtable(current_module.globalsymtable).concattypestabto(debuglist);
               { and all local symbols}
               tglobalsymtable(current_module.globalsymtable).concatstabto(debuglist);
            end;
+         if assigned(current_module.localsymtable) then
+           begin
+              { all types }
+              tstaticsymtable(current_module.localsymtable).concattypestabto(debuglist);
+              { and all local symbols}
+              tstaticsymtable(current_module.localsymtable).concatstabto(debuglist);
+           end;
+         { The debuginfo for this unit has flagged the required types, now we
+           write used types from the used units }
+         write_used_unit_type_info(current_module);
          if (cs_gdb_dbx in aktglobalswitches) then
            begin
              debugList.concat(tai_comment.Create(strpnew('EINCL of global '+
@@ -654,12 +669,45 @@ implementation
              dbx_counter:=tglobalsymtable(current_module.globalsymtable).prev_dbx_counter;
              do_count_dbx:=false;
            end;
-
-       end;
-{$Else GDB}
-       begin
        end;
 {$EndIf GDB}
+
+
+     procedure reset_all_defs;
+
+       procedure reset_used_unit_defs(hp:tmodule);
+         var
+           hp2 : tmodule;
+           pu : tused_unit;
+         begin
+           pu:=tused_unit(hp.used_units.first);
+           while assigned(pu) do
+             begin
+               if not pu.u.is_reset then
+                 begin
+                   { prevent infinte loop for circular dependencies }
+                   pu.u.is_reset:=true;
+                   if assigned(pu.u.globalsymtable) then
+                     begin
+                       tglobalsymtable(pu.u.globalsymtable).reset_all_defs;
+                       reset_used_unit_defs(pu.u);
+                     end;
+                 end;
+               pu:=tused_unit(pu.next);
+             end;
+         end;
+
+       var
+         hp2 : tmodule;
+       begin
+         hp2:=tmodule(loaded_units.first);
+         while assigned(hp2) do
+           begin
+             hp2.is_reset:=false;
+             hp2:=tmodule(hp2.next);
+           end;
+         reset_used_unit_defs(current_module);
+       end;
 
 
     procedure parse_implementation_uses;
@@ -806,9 +854,6 @@ implementation
          main_file: tinputfile;
          st     : tsymtable;
          unitst : tglobalsymtable;
-{$ifdef GDB}
-         pu     : tused_unit;
-{$endif GDB}
          store_crc,store_interface_crc : cardinal;
          s1,s2  : ^string; {Saves stack space}
          force_init_final : boolean;
@@ -943,10 +988,6 @@ implementation
             exit;
           end;
 
-{$ifdef New_GDB}
-         write_gdb_info;
-{$endIf Def New_GDB}
-
          { Our interface is compiled, generate CRC and switch to implementation }
          if not(cs_compilesystem in aktmoduleswitches) and
             (Errorcount=0) then
@@ -1074,28 +1115,8 @@ implementation
            end;
 
 {$ifdef GDB}
-         { add all used definitions even for implementation}
-         if (cs_debuginfo in aktmoduleswitches) then
-          begin
-{$IfnDef New_GDB}
-            if assigned(current_module.globalsymtable) then
-              begin
-                 { all types }
-                 tglobalsymtable(current_module.globalsymtable).concattypestabto(debuglist);
-                 { and all local symbols}
-                 tglobalsymtable(current_module.globalsymtable).concatstabto(debuglist);
-              end;
-            { all local types }
-            tglobalsymtable(st)^.concattypestabto(debuglist);
-            { and all local symbols}
-            st^.concatstabto(debuglist);
-{$else New_GDB}
-            write_gdb_info;
-{$endIf Def New_GDB}
-          end;
+         write_gdb_info;
 {$endif GDB}
-
-         reset_all_defs;
 
          if (Errorcount=0) then
            begin
@@ -1106,10 +1127,6 @@ implementation
              { remove cross unit overloads }
              tstoredsymtable(symtablestack).unchain_overloaded;
            end;
-
-{$ifdef GDB}
-         tglobalsymtable(symtablestack).is_stab_written:=false;
-{$endif GDB}
 
          { leave when we got an error }
          if (Errorcount>0) and not status.skip_error then
@@ -1132,15 +1149,6 @@ implementation
 
          if cs_local_browser in aktmoduleswitches then
            current_module.localsymtable:=refsymtable;
-{$ifdef GDB}
-         pu:=tused_unit(usedunits.first);
-         while assigned(pu) do
-           begin
-              if assigned(pu.u.globalsymtable) then
-                tglobalsymtable(pu.u.globalsymtable).is_stab_written:=false;
-              pu:=tused_unit(pu.next);
-           end;
-{$endif GDB}
 
          if is_assembler_generated then
           begin
@@ -1355,9 +1363,10 @@ implementation
          { consume the last point }
          consume(_POINT);
 
-{$ifdef New_GDB}
+{$ifdef GDB}
          write_gdb_info;
-{$endIf Def New_GDB}
+{$endif GDB}
+
          { leave when we got an error }
          if (Errorcount>0) and not status.skip_error then
           begin
@@ -1439,7 +1448,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.142  2004-03-02 17:32:12  florian
+  Revision 1.143  2004-03-08 22:07:47  peter
+    * stabs updates to write stabs for def for all implictly used
+      units
+
+  Revision 1.142  2004/03/02 17:32:12  florian
     * make cycle fixed
     + pic support for darwin
     + support of importing vars from shared libs on darwin implemented

@@ -53,12 +53,6 @@ interface
           procedure varsymbolused(p : TNamedIndexItem;arg:pointer);
           procedure TestPrivate(p : TNamedIndexItem;arg:pointer);
           procedure objectprivatesymbolused(p : TNamedIndexItem;arg:pointer);
-{$ifdef GDB}
-       private
-          procedure concatstab(p : TNamedIndexItem;arg:pointer);
-          procedure resetstab(p : TNamedIndexItem;arg:pointer);
-          procedure concattypestab(p : TNamedIndexItem;arg:pointer);
-{$endif}
           procedure unchain_overloads(p : TNamedIndexItem;arg:pointer);
           procedure loaddefs(ppufile:tcompilerppufile);
           procedure loadsyms(ppufile:tcompilerppufile);
@@ -85,6 +79,7 @@ interface
           function  needs_init_final : boolean;
           procedure unchain_overloaded;
 {$ifdef GDB}
+          procedure numberstring;
           procedure concatstabto(asmlist : taasmoutput);virtual;
           function  getnewtypecount : word; override;
 {$endif GDB}
@@ -141,7 +136,6 @@ interface
           dbx_count : longint;
           prev_dbx_counter : plongint;
           dbx_count_ok : boolean;
-          is_stab_written : boolean;
 {$endif GDB}
           constructor create(const n : string);
 {$ifdef GDB}
@@ -215,8 +209,6 @@ interface
 {*** Object Helpers ***}
     procedure search_class_overloads(aprocsym : tprocsym);
     function search_default_property(pd : tobjectdef) : tpropertysym;
-
-    procedure reset_all_defs;
 
 {*** symtable stack ***}
 {$ifdef DEBUG}
@@ -594,14 +586,6 @@ implementation
             if not(assigned(ttypesym(sym).restype.def.owner)) and
                (ttypesym(sym).restype.def.deftype<>errordef) then
               registerdef(ttypesym(sym).restype.def);
-{$ifdef GDB}
-            if (cs_debuginfo in aktmoduleswitches) and assigned(debuglist) and
-               (symtabletype in [globalsymtable,staticsymtable]) then
-              begin
-                ttypesym(sym).isusedinstab := true;
-                {sym.concatstabto(debuglist);}
-              end;
-{$endif GDB}
           end;
 
          { insert in index and search hash }
@@ -631,21 +615,6 @@ implementation
               (unitid<current_module.mapsize) and
               assigned(current_module.map[unitid].unitsym) then
              inc(current_module.map[unitid].unitsym.refs);
-
-{$ifdef GDB}
-           { if it is a type, we need the stabs of this type
-             this might be the cause of the class debug problems
-             as TCHILDCLASS.Create did not generate appropriate
-             stabs debug info if TCHILDCLASS wasn't used anywhere else PM }
-           if (cs_debuginfo in aktmoduleswitches) and
-              (hp.typ=typesym) and make_ref then
-             begin
-               if assigned(ttypesym(hp).restype.def) then
-                 tstoreddef(ttypesym(hp).restype.def).numberstring
-               else
-                 ttypesym(hp).isusedinstab:=true;
-             end;
-{$endif GDB}
 
            { unitsym are only loaded for browsing PM    }
            { this was buggy anyway because we could use }
@@ -776,11 +745,6 @@ implementation
                  not(is_funcret_sym(tsym(p))) and
                  (
                   (tsym(p).typ<>procsym) or
-{$ifdef GDB}
-                  not (tprocsym(p).is_global) or
-{$endif GDB}
-                  { all program functions are declared global
-                    but unused should still be signaled PM }
                   ((tsym(p).owner.symtabletype=staticsymtable) and
                    not current_module.is_unit)
                  ) then
@@ -823,57 +787,6 @@ implementation
 
 
 {$ifdef GDB}
-
-    procedure TStoredSymtable.concatstab(p : TNamedIndexItem;arg:pointer);
-
-    var stabstr:Pchar;
-        ao:Taasmoutput;
-
-    begin
-      if Tsym(p).typ<>procsym then
-        begin
-          ao:=Taasmoutput(arg);
-          if not Tsym(p).isstabwritten then
-            begin
-              stabstr:=Tsym(p).stabstring;
-              if stabstr<>nil then
-                ao.concat(Tai_stabs.create(stabstr));
-              Tsym(p).isstabwritten:=true;
-            end;
-        end;
-    end;
-
-
-    procedure TStoredSymtable.resetstab(p : TNamedIndexItem;arg:pointer);
-      begin
-        if tsym(p).typ <> procsym then
-          Tstoredsym(p).isstabwritten:=false;
-      end;
-
-
-    procedure TStoredSymtable.concattypestab(p : TNamedIndexItem;arg:pointer);
-
-    var stabstr:Pchar;
-        ao:Taasmoutput;
-
-    begin
-      if Tsym(p).typ=typesym then
-        begin
-          ao:=Taasmoutput(arg);
-          if Ttypesym(p).restype.def.typesym=p then
-            Tstoreddef(Ttypesym(p).restype.def).concatstabto(ao)
-          else
-            begin
-              Tsym(p).isstabwritten:=false;
-              stabstr:=Tsym(p).stabstring;
-              if stabstr<>nil then
-                ao.concat(Tai_stabs.create(stabstr));
-              Tsym(p).isstabwritten:=true;
-            end;
-        end;
-    end;
-
-
    function tstoredsymtable.getnewtypecount : word;
       begin
          getnewtypecount:=pglobaltypecount^;
@@ -924,9 +837,45 @@ implementation
 
 
 {$ifdef GDB}
-    procedure tstoredsymtable.concatstabto(asmlist : taasmoutput);
+    procedure tstoredsymtable.numberstring;
+      var
+        p : tsym;
       begin
-        foreach({$ifdef FPCPROCVAR}@{$endif}concatstab,asmlist);
+        p:=tsym(symindex.first);
+        while assigned(p) do
+          begin
+            case tsym(p).typ of
+              varsym :
+                tstoreddef(tvarsym(p).vartype.def).numberstring;
+              procsym :
+                tprocsym(p).first_procdef.numberstring;
+            end;
+            p:=tsym(p.indexnext);
+          end;
+      end;
+
+
+    procedure tstoredsymtable.concatstabto(asmlist : taasmoutput);
+      var
+        stabstr : Pchar;
+        p : tsym;
+      begin
+        p:=tsym(symindex.first);
+        while assigned(p) do
+          begin
+            { Procsym and typesym are already written }
+            if not(Tsym(p).typ in [procsym,typesym]) then
+              begin
+                if not Tsym(p).isstabwritten then
+                  begin
+                    stabstr:=Tsym(p).stabstring;
+                    if stabstr<>nil then
+                      asmlist.concat(Tai_stabs.create(stabstr));
+                    Tsym(p).isstabwritten:=true;
+                  end;
+              end;
+            p:=tsym(p.indexnext);
+          end;
       end;
 {$endif}
 
@@ -1373,7 +1322,6 @@ implementation
          { reset GDB things }
          prev_dbx_counter := dbx_counter;
          dbx_counter := nil;
-         is_stab_written:=false;
          dbx_count := -1;
 {$endif GDB}
       end;
@@ -1381,18 +1329,12 @@ implementation
 
 {$ifdef GDB}
       procedure tabstractunitsymtable.concattypestabto(asmlist : taasmoutput);
-        var prev_dbx_count : plongint;
+        var
+          prev_dbx_count : plongint;
+          p : tstoreddef;
         begin
-           if is_stab_written then
-             exit;
            if not assigned(name) then
              name := stringdup('Main_program');
-           {if (symtabletype = globalsymtable) and
-              (current_module.globalsymtable<>self) then
-             begin
-                unitid:=current_module.unitcount;
-                inc(current_module.unitcount);
-             end;}
            asmList.concat(tai_comment.Create(strpnew('Begin unit '+name^+' has index '+tostr(unitid))));
            if cs_gdb_dbx in aktglobalswitches then
              begin
@@ -1416,22 +1358,34 @@ implementation
                     do_count_dbx:=assigned(dbx_counter);
                   end;
              end;
-           foreach({$ifdef FPCPROCVAR}@{$endif}concattypestab,asmlist);
+
+{$ifdef EXTDEBUG}
+           writing_def_stabs:=true;
+{$endif EXTDEBUG}
+           p:=tstoreddef(defindex.first);
+           while assigned(p) do
+             begin
+               if (p.stab_state=stab_state_used) then
+                 p.concatstabto(asmlist);
+               p:=tstoreddef(p.indexnext);
+             end;
+{$ifdef EXTDEBUG}
+           writing_def_stabs:=false;
+{$endif EXTDEBUG}
+
            if cs_gdb_dbx in aktglobalswitches then
              begin
                 if (current_module.globalsymtable<>self) then
                   begin
                     dbx_counter := prev_dbx_count;
                     do_count_dbx:=false;
-                    asmList.concat(tai_comment.Create(strpnew('End unit '+name^
-                      +' has index '+tostr(unitid))));
                     asmList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'
                       +tostr(N_EINCL)+',0,0,0')));
                     do_count_dbx:=assigned(dbx_counter);
                     dbx_count_ok := {true}false;
                   end;
              end;
-           is_stab_written:=true;
+           asmList.concat(tai_comment.Create(strpnew('End unit '+name^+' has index '+tostr(unitid))));
         end;
 {$endif GDB}
 
@@ -1535,8 +1489,8 @@ implementation
              unittypecount:=1;
              pglobaltypecount := @unittypecount;
              {unitid:=current_module.unitcount;}
-             debugList.concat(tai_comment.Create(strpnew('Global '+name^+' has index '+tostr(unitid))));
-             debugList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));
+             {debugList.concat(tai_comment.Create(strpnew('Global '+name^+' has index '+tostr(unitid))));
+             debugList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));}
              {inc(current_module.unitcount);}
              { we can't use dbx_vcount, because we don't know
                if the object file will be loaded before or afeter PM }
@@ -2129,18 +2083,6 @@ implementation
         search_class_member:=nil;
       end;
 
-    procedure reset_all_defs;
-
-    var st:Tsymtable;
-
-    begin
-      st:=symtablestack;
-      while st<>nil do
-        begin
-          Tstoredsymtable(st).reset_all_defs;
-          st:=st.next;
-        end;
-    end;
 
 {*****************************************************************************
                             Definition Helpers
@@ -2375,7 +2317,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.141  2004-02-26 16:16:19  peter
+  Revision 1.142  2004-03-08 22:07:47  peter
+    * stabs updates to write stabs for def for all implictly used
+      units
+
+  Revision 1.141  2004/02/26 16:16:19  peter
     * check if withsymtable.defowner is in the current unit
 
   Revision 1.140  2004/02/24 16:12:39  peter
