@@ -81,6 +81,7 @@
 {$ifdef powerpc}
   {$define noopt}
   {$define oldset}
+  {$define oldregvars}
 {$endif powerpc}
 
 {$ifdef arm}
@@ -98,7 +99,10 @@
 
 {
   $Log$
-  Revision 1.35  2004-03-16 22:12:10  florian
+  Revision 1.36  2004-05-30 21:20:40  jonas
+    * enable regvars by default for PPC
+
+  Revision 1.35  2004/03/16 22:12:10  florian
     * some alignment issues resolved
     * compiler doesn't generate anymore instructions not supported by the linux fpe
 
