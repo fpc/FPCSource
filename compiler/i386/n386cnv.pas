@@ -55,22 +55,14 @@ interface
           procedure second_call_helper(c : tconverttype);
        end;
 
-       ti386asnode = class(tasnode)
-          procedure pass_2;override;
-       end;
-
-       ti386isnode = class(tisnode)
-          procedure pass_2;override;
-       end;
-
 implementation
 
    uses
-      verbose,globals,systems,
+      verbose,systems,
       symconst,symdef,aasm,
       cgbase,temp_gen,pass_2,
       ncon,ncal,
-      cpubase,cpuasm,
+      cpubase,
       cga,tgcpu,n386util;
 
 
@@ -84,7 +76,6 @@ implementation
         opsize    : topsize;
         hregister,
         hregister2 : tregister;
-        l : tasmlabel;
 
       begin
         { insert range check if not explicit conversion }
@@ -184,18 +175,14 @@ implementation
                 end
               else
                 begin
-                  emit_reg_reg(A_XOR,S_L,
-                    hregister2,hregister2);
                   if (torddef(resulttype.def).typ=s64bit) and
-                    is_signed(left.resulttype.def) then
+                     is_signed(left.resulttype.def) then
                     begin
-                       getlabel(l);
-                       emit_const_reg(A_TEST,S_L,longint($80000000),makereg32(hregister));
-                       emitjmp(C_Z,l);
-                       emit_reg(A_NOT,S_L,
-                         hregister2);
-                       emitlab(l);
-                    end;
+                      emit_reg_reg(A_MOV,S_L,location.register,hregister2);
+                      emit_const_reg(A_SAR,S_L,31,hregister2);
+                    end
+                   else
+                     emit_reg_reg(A_XOR,S_L,hregister2,hregister2);
                 end;
           end;
       end;
@@ -484,123 +471,15 @@ implementation
       end;
 
 
-{*****************************************************************************
-                             TI386ISNODE
-*****************************************************************************}
-
-    procedure ti386isnode.pass_2;
-      var
-         pushed : tpushed;
-
-      begin
-         { save all used registers }
-         pushusedregisters(pushed,$ff);
-         secondpass(left);
-         clear_location(location);
-         location.loc:=LOC_FLAGS;
-         location.resflags:=F_NE;
-
-         { push instance to check: }
-         case left.location.loc of
-            LOC_REGISTER,LOC_CREGISTER:
-              begin
-                 emit_reg(A_PUSH,
-                   S_L,left.location.register);
-                 ungetregister32(left.location.register);
-              end;
-            LOC_MEM,LOC_REFERENCE:
-              begin
-                 emit_ref(A_PUSH,
-                   S_L,newreference(left.location.reference));
-                 del_reference(left.location.reference);
-              end;
-            else internalerror(100);
-         end;
-
-         { generate type checking }
-         secondpass(right);
-         case right.location.loc of
-            LOC_REGISTER,LOC_CREGISTER:
-              begin
-                 emit_reg(A_PUSH,
-                   S_L,right.location.register);
-                 ungetregister32(right.location.register);
-              end;
-            LOC_MEM,LOC_REFERENCE:
-              begin
-                 emit_ref(A_PUSH,
-                   S_L,newreference(right.location.reference));
-                 del_reference(right.location.reference);
-              end;
-            else internalerror(100);
-         end;
-         saveregvars($ff);
-         emitcall('FPC_DO_IS');
-         emit_reg_reg(A_OR,S_B,R_AL,R_AL);
-         popusedregisters(pushed);
-         maybe_loadself;
-      end;
-
-
-{*****************************************************************************
-                             TI386ASNODE
-*****************************************************************************}
-
-    procedure ti386asnode.pass_2;
-      var
-         pushed : tpushed;
-      begin
-         secondpass(left);
-         { save all used registers }
-         pushusedregisters(pushed,$ff);
-
-         { push instance to check: }
-         case left.location.loc of
-            LOC_REGISTER,LOC_CREGISTER:
-              emit_reg(A_PUSH,
-                S_L,left.location.register);
-            LOC_MEM,LOC_REFERENCE:
-              emit_ref(A_PUSH,
-                S_L,newreference(left.location.reference));
-            else internalerror(100);
-         end;
-
-         { we doesn't modifiy the left side, we check only the type }
-         set_location(location,left.location);
-
-         { generate type checking }
-         secondpass(right);
-         case right.location.loc of
-            LOC_REGISTER,LOC_CREGISTER:
-              begin
-                 emit_reg(A_PUSH,
-                   S_L,right.location.register);
-                 ungetregister32(right.location.register);
-              end;
-            LOC_MEM,LOC_REFERENCE:
-              begin
-                 emit_ref(A_PUSH,
-                   S_L,newreference(right.location.reference));
-                 del_reference(right.location.reference);
-              end;
-            else internalerror(100);
-         end;
-         saveregvars($ff);
-         emitcall('FPC_DO_AS');
-         { restore register, this restores automatically the }
-         { result                                           }
-         popusedregisters(pushed);
-         maybe_loadself;
-      end;
-
 begin
    ctypeconvnode:=ti386typeconvnode;
-   cisnode:=ti386isnode;
-   casnode:=ti386asnode;
 end.
 {
   $Log$
-  Revision 1.24  2001-09-29 21:32:47  jonas
+  Revision 1.25  2001-09-30 16:12:47  jonas
+    - removed unnecessary i386 pass_2 of as- and isnode and added dummy generic ones
+
+  Revision 1.24  2001/09/29 21:32:47  jonas
     * almost all second pass typeconvnode helpers are now processor independent
     * fixed converting boolean to int64/qword
     * fixed register allocation bugs which could cause internalerror 10

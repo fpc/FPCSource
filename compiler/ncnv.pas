@@ -105,6 +105,7 @@ interface
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+          procedure pass_2;override;
        end;
        tasnodeclass = class of tasnode;
 
@@ -112,6 +113,7 @@ interface
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+          procedure pass_2;override;
        end;
        tisnodeclass = class of tisnode;
 
@@ -1503,6 +1505,13 @@ implementation
          firstpass(result);
       end;
 
+    { dummy pass_2, it will never be called, but we need one since }
+    { you can't instantiate an abstract class                      }
+    procedure tisnode.pass_2;
+
+      begin
+      end;
+
 
 {*****************************************************************************
                                 TASNODE
@@ -1563,6 +1572,14 @@ implementation
       end;
 
 
+    { dummy pass_2, it will never be called, but we need one since }
+    { you can't instantiate an abstract class                      }
+    procedure tasnode.pass_2;
+
+      begin
+      end;
+
+
 begin
    ctypeconvnode:=ttypeconvnode;
    casnode:=tasnode;
@@ -1570,7 +1587,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2001-09-29 21:32:46  jonas
+  Revision 1.39  2001-09-30 16:12:46  jonas
+    - removed unnecessary i386 pass_2 of as- and isnode and added dummy generic ones
+
+  Revision 1.38  2001/09/29 21:32:46  jonas
     * almost all second pass typeconvnode helpers are now processor independent
     * fixed converting boolean to int64/qword
     * fixed register allocation bugs which could cause internalerror 10
