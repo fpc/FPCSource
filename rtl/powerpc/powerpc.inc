@@ -389,6 +389,8 @@ LFillChar32ByteLoop:
         bdnz      LFillChar32ByteLoop
         { if there was no rest, we're finished }
         beq       LFillCharDone
+        { make r3 point again to the actual next byte that must be written }
+        addi      r3,r3,8
         b         LFillCharVerySmall
 LFillCharSmall:
         { when we arrive here, we're already 4 byte aligned }
@@ -894,7 +896,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.42  2003-05-12 19:00:50  jonas
+  Revision 1.43  2003-05-12 19:39:33  jonas
+    * fixed final fillchar error (tfillchr passes now)
+
+  Revision 1.42  2003/05/12 19:00:50  jonas
     * fixed bug in fillchar
 
   Revision 1.41  2003/05/10 20:33:39  jonas
