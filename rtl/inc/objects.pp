@@ -628,6 +628,9 @@ Disposes of a PString allocated by the function NewStr.
 ---------------------------------------------------------------------}
 PROCEDURE DisposeStr (P: PString);
 
+PROCEDURE SetStr(VAR p:pString; CONST s:STRING);
+
+
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                        STREAM INTERFACE ROUTINES                          }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -2684,6 +2687,16 @@ BEGIN
    If (P <> Nil) Then FreeMem(P, Length(P^) + 1);     { Release memory }
 END;
 
+
+PROCEDURE SetStr(VAR p:pString; CONST s:STRING);
+BEGIN
+  IF p<>NIL THEN
+    FreeMem(P, Length(P^) + 1);
+  GetMem(p,LENGTH(s)+1);
+  pSTRING(p)^ := s
+END;
+
+
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                        STREAM INTERFACE ROUTINES                          }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -2744,7 +2757,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.27  1999-02-22 15:04:45  peter
+  Revision 1.28  1999-02-25 21:25:26  peter
+    + SetStr() function
+
+  Revision 1.27  1999/02/22 15:04:45  peter
     * fixed typecasting in firstthat
 
   Revision 1.26  1999/02/21 23:13:01  florian
