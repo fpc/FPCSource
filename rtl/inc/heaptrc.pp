@@ -136,6 +136,7 @@ begin
   dump_stack(stderr,get_caller_frame(get_frame));
   for i:=0 to (exact_info_size div 4)-1 do
     writeln(stderr,'info ',i,'=',plongint(@p^.extra_info+4*i)^);
+  call_stack(p);
 end;
 
 
@@ -364,7 +365,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  1999-02-16 17:20:26  pierre
+  Revision 1.11  1999-03-26 19:10:34  peter
+    * show also allocation stack for a wrong size
+
+  Revision 1.10  1999/02/16 17:20:26  pierre
    * no heap dump if program has an heap error !
 
   Revision 1.9  1999/01/22 12:39:22  pierre
