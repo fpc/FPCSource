@@ -242,103 +242,103 @@ endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),i386-sunos)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),sparc-sunos)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard get9
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition clipboard asl ahi get9
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_LOADERS+=prt0
@@ -1995,4 +1995,6 @@ layers$(PPUEXT)  : layers.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
 intuition$(PPUEXT): intuition.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT) \
 		    inputevent$(PPUEXT) timer$(PPUEXT) layers$(PPUEXT)
 clipboard$(PPUEXT): clipboard.pas exec$(PPUEXT)
+asl$(PPUEXT): asl.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
+ahi$(PPUEXT): ahi.pas exec$(PPUEXT) utility$(PPUEXT)
 get9$(PPUEXT): get9.pas exec$(PPUEXT)

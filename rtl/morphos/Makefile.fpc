@@ -13,7 +13,7 @@ units=$(SYSTEMUNIT) systhrds objpas macpas strings \
       charset ucomplex getopts matrix \
       variants types rtlconst sysconst dateutil \
       exec timer doslib utility hardware inputevent graphics layers \
-      intuition clipboard get9
+      intuition clipboard asl ahi get9
 rsts=math rtlconst varutils typinfo variants classes sysconst dateutil
 
 [require]
@@ -193,5 +193,9 @@ intuition$(PPUEXT): intuition.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEX
                     inputevent$(PPUEXT) timer$(PPUEXT) layers$(PPUEXT)
 
 clipboard$(PPUEXT): clipboard.pas exec$(PPUEXT)
+
+asl$(PPUEXT): asl.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
+
+ahi$(PPUEXT): ahi.pas exec$(PPUEXT) utility$(PPUEXT)
 
 get9$(PPUEXT): get9.pas exec$(PPUEXT)

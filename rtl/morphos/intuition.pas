@@ -4316,7 +4316,7 @@ SysCall IntuitionBase 570;
 procedure GetDefaultPubScreen(nameBuffer : PChar location 'a0');
 SysCall IntuitionBase 582;
 
-function EasyRequestArgs(window : pWindow location 'a0'; easyStruct : pEasyStruct location 'a1'; VAR idcmpPtr : CARDINAL location 'a2'; args : POINTER location 'a3') : LongInt;
+function EasyRequestArgs(window : pWindow location 'a0'; easyStruct : pEasyStruct location 'a1'; idcmpPtr : Pointer location 'a2'; args : POINTER location 'a3') : LongInt;
 SysCall IntuitionBase 588;
 
 function BuildEasyRequestArgs(window : pWindow location 'a0'; easyStruct : pEasyStruct location 'a1'; idcmp : CARDINAL location 'd0'; args : POINTER location 'a3') : pWindow;
@@ -4690,7 +4690,10 @@ end. (* UNIT INTUITION *)
 
 {
   $Log$
-  Revision 1.1  2004-12-07 19:30:13  karoly
+  Revision 1.2  2005-01-30 19:00:09  karoly
+    * changes for ASL and AHI support
+
+  Revision 1.1  2004/12/07 19:30:13  karoly
     * initial revision
 
 }
