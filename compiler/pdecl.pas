@@ -1153,14 +1153,17 @@ unit pdecl;
               getsym(pattern,true);}
               childof:=pobjectdef(id_type(pattern));
               if (childof^.deftype<>objectdef) then
-                 begin
-                    Message(type_e_class_type_expected);
-                    childof:=nil;
-                 end;
-                   { a mix of class and object isn't allowed }
-              if (((childof^.options and oo_is_class)<>0) and not is_a_class) or
-                 (((childof^.options and oo_is_class)=0) and is_a_class) then
-                Message(parser_e_mix_of_classes_and_objects);
+               begin
+                 Message(type_e_class_type_expected);
+                 childof:=nil;
+               end
+              else
+               begin
+                 { a mix of class and object isn't allowed }
+                 if (((childof^.options and oo_is_class)<>0) and not is_a_class) or
+                    (((childof^.options and oo_is_class)=0) and is_a_class) then
+                  Message(parser_e_mix_of_classes_and_objects);
+               end;
               if assigned(fd) then
                 begin
                    { the forward of the child must be resolved to get
@@ -1450,12 +1453,12 @@ unit pdecl;
          if ((aktclass^.options and oo_hasvmt)<>0) then
            begin
               datasegment^.concat(new(pai_symbol,init_global(aktclass^.vmt_mangledname)));
-     
+
               { determine the size with publicsyms^.datasize, because }
               { size gives back 4 for classes                         }
               datasegment^.concat(new(pai_const,init_32bit(aktclass^.publicsyms^.datasize)));
               datasegment^.concat(new(pai_const,init_32bit(-aktclass^.publicsyms^.datasize)));
-     
+
               { write pointer to parent VMT, this isn't implemented in TP }
               { but this is not used in FPC ? (PM) }
               { it's not used yet, but the delphi-operators as and is need it (FK) }
@@ -1469,11 +1472,11 @@ unit pdecl;
                 end
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
-     
+
               { this generates the entries }
               genvmt(aktclass);
            end;
-           
+
          { restore old state }
          symtablestack:=symtablestack^.next;
          procinfo._class:=nil;
@@ -2078,7 +2081,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.73  1998-10-19 08:54:56  pierre
+  Revision 1.74  1998-10-20 13:09:13  peter
+    * fixed object(unknown) crash
+
+  Revision 1.73  1998/10/19 08:54:56  pierre
     * wrong stabs info corrected once again !!
     + variable vmt offset with vmt field only if required
       implemented now !!!
