@@ -2327,6 +2327,11 @@ are as follows:
 \item Public and private typed constants in a unit have their unit name prepended to them :TC\_\_UNITNAME\$\$
 \end{itemize}
 
+Currently, in \fpc v1.0, if you declare a variable in unit name \var{tunit},
+with the name \var{\_a}, and you declare the same variable with name \var{a}
+in unit name \var{tunit\_}, you will get the same mangled name. This is
+a limitation of the compiler which will be fixed in release v1.1.
+
 Examples
 
 \begin{verbatim}
@@ -2553,7 +2558,7 @@ register & Left-to-right & Caller & default & None \\ \hline
 
 More about this can be found in \seec{Linking} on linking. Information
 on GCC registers saved, GCC stack alignment and general stack alignment
-on an operating system basis can be found in \seec{AppI}. The \var{register}
+on an operating system basis can be found in Appendix \ref{ch:AppI}. The \var{register}
 modifier is currently not supported, and maps to the default calling
 convention.
 
@@ -2692,7 +2697,7 @@ from one operating system to another. For example, passing a
 byte as a value parameter to a routine could either decrement the
 stack pointer by 1, 2, 4 or even 8 bytes depending on the target
 operating system and processor. The minimal default stack pointer decrement
-value is given in \seec{AppI}.
+value is given in Appendix \ref{ch:AppI}.
 
 For example, on \freebsd, all parameters passed to a routine guarantee
 a minimal stack decrease of four bytes per parameter, even if the
@@ -2715,11 +2720,14 @@ Motorola 680x0 & 32K \\ \hline
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Local variables
-\section{Local variables}
-\label{se:LocalVars}
-
-Stack alignment for local variables to complete!!!
-
+%\section{Local variables}
+%\label{se:LocalVars}
+%
+% Stack alignment for local variables to complete -
+% Currently the FPC version 1.0 stack alignment is
+% simply too messy to describe consistently.
+%
+%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Linking issues
@@ -3315,18 +3323,42 @@ alignment will also be given.
 
 \subsection{integer types}
 
+The storage size of the default integer types are given in
+\refref. In the case of user defined-types, the storage space
+occupied depends on the bounds of the type:
+
+\begin{itemize}
+\item If both bounds are within range -128..127, the variable
+is stored as a shortint (signed 8-bit quantity).
+\item If both bounds are within the range 0..255, the variable
+is stored as a byte (unsigned 8-bit quantity).
+\item If both bounds are within the range -32768..32767, the variable
+is stored as a smallint (signed 16-bit quantity).
+\item If both bounds are within the range 0..65535, the variable
+is stored as a word (unsigned 16-bit quantity)
+\item If both bounds are within the range 0..4294967295, the
+variable is stored as a cardinal (unsigned 32-bit quantity).
+\item Otherwise the variable is stored as a longint (signed
+32-bit quantity).
+\end{itemize}
+
 \subsection{char types}
 
 A \var{char}, or a subrange of the char type is stored
-as an unsigned byte.
+as a byte.
 
 \subsection{boolean types}
 
+The \var{boolean} type is stored as a byte and can take
+a value of \var{true} or \var{false}.
 
+A \var{ByteBool} is stored as a byte, a \var{WordBool}
+type is stored as a word, and a \var{longbool} is stored
+as a longint.
 
-\subsection{enumerations}
+\subsection{enumeration types}
 
-By default all enumerations are stored as an unsigned
+By default all enumerations are stored as a
 cardinal (4 bytes), which is equivalent to specifying
 the \var{\{\$Z4\}}, \var{\{\$PACKENUM 4\}} or
 \var{\{\$PACKENUM DEFAULT\}} switches.
@@ -3354,37 +3386,122 @@ value is stored as a 4 byte value (cardinal).
 
 \subsection{floating point types}
 
-\subsubsection{Intel 80x86 specific}
+Floating point type sizes and mapping vary from one
+processor to another. Except for the Intel 80x86
+architecture, the \var{extended} type maps to the IEEE
+double type.
 
-All normal floating point types map to their real type, including
-\var{comp} and \var{extended}.
+\begin{FPCltable}{lr}{Processor mapping of real type}{RealMapping}
+Processor & Real type mapping\\
+\hline
+Intel 80x86 &   \var{double}\\
+Motorola 680x0 (with \{\$E-\} switch) & \var{double}\\
+Motorola 680x0 (with \{\$E+\} switch) & \var{single}\\
+\hline
+\end{FPCltable}
 
-\subsubsection{Motorola 680x0 specific}
+Floating point types have a storage binary format divided
+into three distinct fields : the mantissa, the exponent
+and the sign bit which stores the sign of the floating
+pointer value.
 
-Early generations of the Motorola 680x0 processors did not have integrated
-floating point units, so to circumvent this fact, all floating point
-operations are emulated (with the \var{\$E+} switch, which is the default)
-using the IEEE \var{Single} floating point type. In other words when
-emulation is on, Real, Single, Double and Extended all map to the
-\var{single} floating point type.
+\subsubsection{single}
 
-When the \var{\$E} switch is turned off, normal 68882/68881/68040
-floating point opcodes are emitted. The Real type still maps to
-\var{Single} but the other types map to their true floating point
-types. Only basic FPU opcodes are used, which means that it can
-work on 68040 processors correctly.
+The \var{single} type occupies 4 bytes of storage space,
+and its memory structures is the same as the IEEE-754 single
+type.
 
-\begin{remark}\var{Double} and \var{Extended} types in true floating
-point mode have not been extensively tested as of version 0.99.5.
-\end{remark}
-\begin{remark}The \var{comp} data type is currently not supported.
-\end{remark}
+The memory format of the \var{single} format looks like
+\begin{htmlonly}
+this:
+\fpcaddimg{./single.png}
+\end{htmlonly}
+\begin{latexonly}
+\seefig{singleformat}.
+\begin{figure}
+\begin{center}
+\caption{The single format}
+\label{fig:singleformat}
+\ifpdf
+\epsfig{file=single.png}
+\else
+\epsfig{file=single.eps}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
 
+
+\subsubsection{double}
+
+The \var{double} type occupies 8 bytes of storage space,
+and its memory structures is the same as the IEEE-754 double
+type.
+
+The memory format of the \var{double} format looks like
+\begin{htmlonly}
+this:
+\fpcaddimg{./double.png}
+\end{htmlonly}
+\begin{latexonly}
+\seefig{doubleformat}.
+\begin{figure}
+\begin{center}
+\caption{The double format}
+\label{fig:doubleformat}
+\ifpdf
+\epsfig{file=double.png}
+\else
+\epsfig{file=double.eps}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+
+
+On processors which do not support co-processor operations (and which have
+the \$\{E-\} switch), the \var{double} type does not exist.
+
+
+
+\subsubsection{extended}
+
+For Intel 80x86 processors, the \var{extended} type has
+the format shown in figure XXX, and takes up 10 bytes of
+storage.
+
+For all other processors which support floating point operations,
+the \var{extended} type is a nickname for the \var{double} type. 
+It has the same format and size as the \var{double} type. On
+processors which do not support co-processor operations (and which have
+the \$\{E-\} switch), the
+\var{extended} type does not exist.
+
+\subsubsection{comp}
+
+For Intel 80x86 processors, the \var{comp} type has
+the format shown in figure XXX, and can contain
+integer values only. The \var{comp} type takes up
+8 bytes of storage space. 
+
+On other processors, the \var{comp} type is not supported.
+
+\subsubsection{real}
+
+Contrary to Turbo Pascal, where the \var{real} type had
+a special internal format, under \fpc the \var{real} type
+simply maps to one of the other real types. It maps to the
+\var{double} type on processors which support floating
+point operations, while it maps to the \var{single} type
+on processors which do not support floating point operations
+in hardware. See \seet{RealMapping} for more information
+on this.
 
 \subsection{pointer types}
 
-A \var{pointer} type is stored as an unsigned 32-bit value on
-32-bit processors, and is stored as a 64-bit unsigned value
+A \var{pointer} type is stored as a cardinal (unsigned 32-bit value) on
+32-bit processors, and is stored as a 64-bit unsigned value\footnote{this
+is actually the \var{qword} type, which is not supported in \fpc v1.0}
 on 64-bit processors.
 
 \subsection{string types}
@@ -3406,7 +3523,7 @@ Offset & Contains \\ \hline
 -12  & Longint with maximum string size. \\
 -8   & Longint with actual string size.\\
 -4   & Longint with reference count.\\
-0    & Actual string, null-terminated. \\ \hline
+0    & Actual array of \var{char}, null-terminated. \\ \hline
 \end{FPCltable}
 
 
@@ -3414,14 +3531,14 @@ Offset & Contains \\ \hline
 
 A shortstring occupies as many bytes as its maximum length plus one.
 The first byte contains the current dynamic length of the string. The
-following bytes contain the actual characters (unsigned 8-bit quantities)
+following bytes contain the actual characters (of type \var{char})
 of the string. The maximum size of a short string is the length
 byte followed by 255 characters.
 
 \subsubsection{widestring types}
 
 The widestring (composed of unicode characters) is not supported
-in \fpc v1.0.x.
+in \fpc v1.0.
 
 \subsection{set types}
 
@@ -3431,12 +3548,12 @@ number of elements in a set is 256.
 
 If a set has less than 32 elements, it is coded as an unsigned
 32-bit value. Otherwise it is coded as a 32 element array of
-32-bit unsigned values (hence a size of 256 bytes).
+32-bit unsigned values (cardinal) (hence a size of 256 bytes).
 
-The longint number of a specific elment \var{E} is given by :
+The cardinal number of a specific element \var{E} is given by :
 
 \begin{verbatim}
- LongNumber = (E div 32);
+ CardinalNumber = (E div 32);
 \end{verbatim}
 
 and the bit number within that 32-bit value is given by:
@@ -3446,7 +3563,22 @@ and the bit number within that 32-bit value is given by:
 
 \subsection{array types}
 
+An array is stored as a contiguous sequence of variables
+of the components of the array. The components with the
+lowest indexes are stored first in memory. No alignment
+is done between each element of the array. A multi-dimensional
+array is stored with the rightmost dimension increasing first.
+
 \subsection{record types}
+
+Each field of a record are stored in a contigous sequence
+of variables, where the first field is stored at the
+lowest address in memory. In case of variant fields in
+a record, each variant starts at the same address in
+memory. Fields of record are usually aligned, unless
+the \var{packed} directive is specified when declaring
+the record type. For more information on field alignment,
+consult \sees{StructuredAlignment}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % memory storage of Objects
@@ -3455,7 +3587,8 @@ and the bit number within that 32-bit value is given by:
 
 Objects are stored in memory just as ordinary records with an extra field:
 a pointer to the Virtual Method Table (VMT). This field is stored first, and
-all fields in the object are stored in the order they are declared.
+all fields in the object are stored in the order they are declared (with possible
+alignment of field addresses, uness the object was declared as being \var{packed}).
 
 This field is initialized by the call to the object's \var{Constructor} method.
 If the \var{new} operator was used to call the constructor, the data fields
@@ -3610,8 +3743,44 @@ the address of the routine.
 
 \subsection{Typed constants and variable alignment}
 
-\subsection{Structured types alignment}
+All static data (variables and typed constants) are usually aligned
+on a power of two boundary. The exact alignment depends on the target processor 
+and the optimization flags. This applies only to the start address of the
+variables, and not the alignment of fields within structures or objects
+for example. For more information on structured alignment, \sees{StructuredAlignment}.
 
+\subsubsection{Intel 80x86 data alignment}
+
+\begin{FPCltable}{llll}{80x86 Data alignment}{DataAlignmentx86}
+\hline
+Size of the data (in bytes) & Alignment (small size) & Alignment (fast)\\
+1\\
+2\\
+3\\
+4\\
+5-8\\
+8+\\
+\hline
+\end{FPCltable}
+
+\subsubsection{Motorola 680x0 alignment}
+
+
+\begin{FPCltable}{llll}{680x0 Data alignment}{DataAlignment68k}
+\hline
+Size of the data (in bytes) & Alignment (small size) & Alignment (fast)\\
+1\\
+2\\
+3\\
+4\\
+5-8\\
+8+\\
+\hline
+\end{FPCltable}
+
+
+\subsection{Structured types alignment}
+\label{se:StructuredAlignment}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The heap
@@ -3627,6 +3796,58 @@ Pascal. These extra possibilities are explained in the next subsections.
 \subsection{Heap allocation strategy}
 
 
+The heap is a memory structure which is organized as a stack. The heap
+bottom is stored in the variable \var{HeapOrg}. Initially the heap
+pointer (\var{HeapPtr}) points to the bottom of the heap. When a
+variable is allocated on the heap, \var{HeapPtr} is incremented by the
+size of the allocated memory block. This has the effect of stacking
+dynamic variables on top of each other.
+
+Each time a block is allocated, its size is normalized to have
+a granularity of 16 bytes.
+
+When \var{Dispose} or \var{FreeMem} is called to dispose of a
+memory block which is not on the top of the heap, the heap becomes
+fragmented. The deallocation routines also add the freed blocks to
+the \var{freelist} which is actually a linked list of free blocks.
+Furthermore, if the deallocated block was less then 8K in size, the
+free list cache is also updated.
+
+The free list cache is actually a cache of free heap blocks which
+have specific lengths (the adjusted block size divided by 16 gives the
+index into the free list cache table). It is faster to access then
+searching through the entire \var{freelist}.
+
+The format of an entry in the \var{freelist} is as follows:
+
+\begin{verbatim}
+ PFreeRecord = ^TFreeRecord;
+ TFreeRecord = record
+   Size : longint;
+   Next : PFreeRecord;
+   Prev : PFreeRecord;
+ end;
+
+\end{verbatim}
+
+The \var{Next} field points to the next free block, while
+the \var{Prev} field points to the previous free block.
+
+The algorithm for allocating memory is as follows:
+
+\begin{enumerate}
+\item The size of the block to allocate is adjusted to a 16 byte granularity.
+\item The cached free list is searched to find a free block of the specified
+ size or bigger size, if so it is allocated and the routine exits.
+\item The \var{freelist} is searched to find a free block of the specified size
+or of bigger size, if so it is allocated and the routine exits.
+\item If not found in the \var{freelist} the heap is grown to allocate the
+specified memory, and the routine exits.
+\item If the heap cannot be grown anymore, a call to the operating system
+is made to grow the heap further. If the block to allocate < 256Kb, then
+the heap is grown by 256Kb, otherwise it is grown by 1024Kb.
+\end{enumerate}
+
 % The heap grows
 \subsection{The heap grows}
 \fpc supports the \var{HeapError} procedural variable. If this variable is
@@ -3635,9 +3856,10 @@ is full. By default, \var{HeapError} points to the \var{GrowHeap} function,
 which tries to increase the heap.
 
 The growheap function issues a system call to try to increase the size of the
-memory available to your program. It first tries to increase memory in a 1 MB
-chunk. If this fails, it tries to increase the heap by the amount you
-requested from the heap.
+memory available to your program. It first tries to increase memory in a 256Kb
+chunk if the size to allocate is less than 256Kb, or 1024K otherwise.
+If this fails, it tries to increase the heap by the amount you requested
+from the heap.
 
 If the call to \var{GrowHeap} has failed, then a run-time error is generated,
 or nil is returned, depending on the \var{GrowHeap} result.
@@ -4548,6 +4770,7 @@ windows & .dll & <none> \\
 os/2    & .dll & <none>\\
 BeOS    & .so  & lib \\
 FreeBSD & .so & lib \\
+NetBSD  & .so & lib \\
 \hline
 \end{FPCltable}
 
@@ -6458,5 +6681,32 @@ on stack checking when compiling for this target platform.
 \chapter{Operating system specific behavior}
 \label{ch:AppI}
 
+This appendix describes some special behaviors which vary
+from operating system to operating system. This is described
+in \seet{OSBehave}. The GCC version column indicates the GCC compiler
+version used to get the values for both the GCC stack alignment and
+GCC saved registers of the previous columns. This means that this GCC
+compiler version should be used (or compilers with the same register and
+stack alignment conventions)
+
+\begin{FPCltable}{lllll}{Operating system specific behavior}{OSBehave}
+Operating systems & Min. param. stack align  &  GCC stack alignment &  GCC saved registers & GCC version\\
+\hline
+Amiga & & & &\\
+Atari & & & &\\
+BeOS-x86 & & & &\\
+DOS & & & &\\
+FreeBSD & & & &\\
+linux-m68k & & & &\\
+linux-x86 & & & &\\
+MacOS-68k & & & &\\
+NetBSD & & & &\\
+OS/2 & & & &\\
+PalmOS & & & &\\
+QNX-x86 & & & &\\
+Solaris-x86 & & && \\
+Win32 & & & & \\
+\hline
+\end{FPCltable}
 
 \end{document}
