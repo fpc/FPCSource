@@ -224,7 +224,8 @@ procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
                readln(t2,s);
                inc(i2);
             end;
-          if assigned(diffnext) and (i2=diffnext^.line) then
+          if assigned(orgnext) and
+             assigned(diffnext) and (i2=diffnext^.line) then
             begin
                if assigned(diffnext^.Equivalent) then
                  begin
@@ -294,7 +295,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1999-06-09 12:17:34  pierre
+  Revision 1.5  1999-06-11 13:06:45  peter
+    * fixed crash with errorn.msg
+
+  Revision 1.4  1999/06/09 12:17:34  pierre
    * bugfix from fixes-0_99_12 merged
 
 
