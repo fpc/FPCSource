@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1994-1996 by International Business Machines Corporation
     Copyright (c) 1997 Antony T Curtis.
-    Copyright (c) 2002-2003 by Yuri Prokushev (prokushev@freemail.ru)
+    Copyright (c) 2002-2005 by Yuri Prokushev (prokushev@freemail.ru)
 
     System Object Model Run-time library API (SOM.DLL)
 
@@ -1408,17 +1408,63 @@ Function va_SOMObject_somDispatchA(somSelf: PSOMObject;
                 descriptor: somId;
                 args: array of const): Pointer; cdecl;
   external 'som' name 'va_SOMObject_somDispatchA'; {index 64}
+Function somva_SOMObject_somDispatchA(somSelf: PSOMObject;
+                methodId: somId;
+                descriptor: somId;
+                args: array of const): Pointer; cdecl;
+  external 'som' name 'somva_SOMObject_somDispatchA'; {index 96}
 Function va_SOMObject_somDispatchL(somSelf: PSOMObject;
                 methodId: somId;
                 descriptor: somId;
                 args: array of const): Longint; cdecl;
   external 'som' name 'va_SOMObject_somDispatchL'; {index 66}
+Function somva_SOMObject_somDispatchL(somSelf: PSOMObject;
+                methodId: somId;
+                descriptor: somId;
+                args: array of const): Longint; cdecl;
+  external 'som' name 'somva_SOMObject_somDispatchL'; {index 98}
+  
 Function va_SOMObject_somDispatch(somSelf: PSOMObject;
                 retValue: PsomTokenl
                 methodId: somIdl
                 args: array of const): Boolean; cdecl;
   external 'som' name 'va_SOMObject_somDispatch'; {index 68}
 
+Procedure va_SOMObject_somDispatchV(somSelf: PSOMObject;
+                methodId: somId;
+                descriptor: somId;
+                args: array of const); cdecl;
+  external 'som' name 'va_SOMObject_somDispatchV'; {index 67}
+
+Procedure somva_SOMObject_somDispatchV(somSelf: PSOMObject;
+                methodId: somId;
+                descriptor: somId;
+                args: array of const); cdecl;
+  external 'som' name 'somva_SOMObject_somDispatchV'; {index 99}
+
+Function va_SOMObject_somDispatchD(somSelf: PSOMObject;
+                methodId: somId;
+                descriptor: somId;
+                args: array of const): double; cdecl;
+  external 'som' name 'va_SOMObject_somDispatchD'; {index 65}
+
+Function somva_SOMObject_somDispatchD(somSelf: SOMObject;
+                methodId: somId;
+                descriptor: somId;
+                args: array of const): double; cdecl;
+  external 'som' name 'somva_SOMObject_somDispatchD'; {index 97}
+Function somva_SOMObject_somDispatch(somSelf: PSOMObject;
+                retValue: PsomToken;
+                methodId: somId;
+                args: array of const): boolean; cdecl;
+  external 'som' name 'somva_SOMObject_somDispatch'; {index 100}
+Function somva_SOMObject_somClassDispatch(somSelf: PSOMObject;
+                clsObj: PSOMClass;
+                retValue: PsomToken,
+                methodId: somId;
+                args: array of const): boolean; cdecl;
+  external 'som' name 'somva_SOMObject_somClassDispatch'; {index 101}
+  
 Implementation
 
 Function exception_id(ev:Environment):PChar; cdecl;
@@ -1460,55 +1506,6 @@ end;
 
 End.
 
-(* Not finished yet
-
-double   va_SOMObject_somDispatchD(SOMObject *somSelf,
-                somId methodId,
-                somId descriptor,
-                args: array of const)
-³ 00065 ³ va_SOMObject_somDispatchD
-
-
-void   va_SOMObject_somDispatchV(SOMObject *somSelf,
-                somId methodId,
-                somId descriptor,
-                args: array of const)
-³ 00067 ³ va_SOMObject_somDispatchV
-
-void*  SOMLINK somva_SOMObject_somDispatchA(SOMObject *somSelf,
-                somId methodId,
-                somId descriptor,
-                args: array of const)
-³ 00096 ³ somva_SOMObject_somDispatchA
-double  SOMLINK somva_SOMObject_somDispatchD(SOMObject *somSelf,
-                somId methodId,
-                somId descriptor,
-                args: array of const)
-³ 00097 ³ somva_SOMObject_somDispatchD
-long  SOMLINK somva_SOMObject_somDispatchL(SOMObject *somSelf,
-                somId methodId,
-                somId descriptor,
-                args: array of const)
-³ 00098 ³ somva_SOMObject_somDispatchL
-void  SOMLINK somva_SOMObject_somDispatchV(SOMObject *somSelf,
-                somId methodId,
-                somId descriptor,
-                args: array of const)
-³ 00099 ³ somva_SOMObject_somDispatchV
-boolean  SOMLINK somva_SOMObject_somDispatch(SOMObject *somSelf,
-                somToken* retValue,
-                somId methodId,
-                args: array of const)
-³ 00100 ³ somva_SOMObject_somDispatch
-boolean  SOMLINK somva_SOMObject_somClassDispatch(SOMObject *somSelf,
-                SOMClass* clsObj,
-                somToken* retValue,
-                somId methodId,
-                args: array of const)
-³ 00101 ³ somva_SOMObject_somClassDispatch
-
-*)
-
 (*
 ³ 00038 ³ somSaveMetrics // not found
 ³ 00046 ³ somWriteMetrics // not found
@@ -1526,7 +1523,10 @@ boolean  SOMLINK somva_SOMObject_somClassDispatch(SOMObject *somSelf,
 
 {
 $Log$
-Revision 1.3  2004-05-26 16:38:58  yuri
+Revision 1.4  2004-12-23 05:04:38  yuri
+* Porting finished.
+
+Revision 1.3  2004/05/26 16:38:58  yuri
 * Some functions updated.
 
 Revision 1.2  2003/11/30 08:13:14  yuri
