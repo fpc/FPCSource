@@ -29,7 +29,7 @@ const
   tokenidlen=14;
 
 type
-  ttoken=(
+  ttoken=(NOTOKEN,
     { operators, which can also be overloaded }
     PLUS,
     MINUS,
@@ -191,6 +191,7 @@ type
 
 const
   tokeninfo:array[ttoken] of tokenrec=(
+      (str:''              ;special:true ;keyword:m_none),
     { Operators which can be overloaded }
       (str:'+'             ;special:true ;keyword:m_none),
       (str:'-'             ;special:true ;keyword:m_none),
@@ -348,7 +349,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1999-02-22 20:13:41  florian
+  Revision 1.4  1999-04-01 22:07:53  peter
+    * universal string names (ansistr instead of stransi) for val/str
+
+  Revision 1.3  1999/02/22 20:13:41  florian
     + first implementation of message keyword
 
   Revision 1.2  1999/02/05 12:51:21  florian

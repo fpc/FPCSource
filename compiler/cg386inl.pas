@@ -529,16 +529,16 @@ implementation
              dummycoll.data:=hp^.resulttype;
            case pstringdef(hp^.resulttype)^.string_typ of
               st_widestring:
-                procedureprefix:='FPC_STRWIDE_';
+                procedureprefix:='FPC_WIDESTR_';
 
               st_ansistring:
-                procedureprefix:='FPC_STRANSI_';
+                procedureprefix:='FPC_ANSISTR_';
 
               st_shortstring:
-                procedureprefix:='FPC_STR_';
+                procedureprefix:='FPC_SHORTSTR_';
 
               st_longstring:
-                procedureprefix:='FPC_STRLONG_';
+                procedureprefix:='FPC_LONGSTR_';
            end;
            secondcallparan(hp,@dummycoll,false,false,0);
            if codegenerror then
@@ -678,7 +678,6 @@ implementation
 
           {(if necessary) save the address loading of dest_para and possibly
            register variables}
-
            pushusedregisters(pushed,$ff);
 
           {only now load the address of the code parameter, since we want
@@ -719,12 +718,13 @@ implementation
              End;
 
            Case dest_para^.resulttype^.deftype of
-             floatdef: procedureprefix := 'FPC_VAL_REAL_';
+             floatdef:
+               procedureprefix := 'FPC_VAL_REAL_';
              orddef:
-               Case PordDef(dest_para^.resulttype)^.typ of
-                 u8bit,u16bit,u32bit{,u64bit}: procedureprefix := 'FPC_VAL_UINT_';
-                 s8bit,s16bit,s32bit{,s64bitint}: procedureprefix := 'FPC_VAL_SINT_';
-               End;
+               if is_signed(dest_para^.resulttype) then
+                 procedureprefix := 'FPC_VAL_SINT_'
+               else
+                 procedureprefix := 'FPC_VAL_UINT_';
            End;
 
           {node = first parameter = string}
@@ -746,13 +746,13 @@ implementation
 
            case pstringdef(node^.resulttype)^.string_typ of
               st_widestring:
-                emitcall(procedureprefix+'STRWIDE',true);
+                emitcall(procedureprefix+'WIDESTR',true);
               st_ansistring:
-                emitcall(procedureprefix+'STRANSI',true);
+                emitcall(procedureprefix+'ANSISTR',true);
               st_shortstring:
-                emitcall(procedureprefix+'SSTRING',true);
+                emitcall(procedureprefix+'SHORTSTR',true);
               st_longstring:
-                emitcall(procedureprefix+'STRLONG',true);
+                emitcall(procedureprefix+'LONGSTR',true);
            end;
            disposetree(node);
            p^.left := nil;
@@ -1277,7 +1277,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  1999-04-01 06:21:04  jonas
+  Revision 1.37  1999-04-01 22:07:51  peter
+    * universal string names (ansistr instead of stransi) for val/str
+
+  Revision 1.36  1999/04/01 06:21:04  jonas
     * added initialization for has_32bit_code (caused problems with Val statement
       without code parameter)
 
