@@ -3240,6 +3240,13 @@ implementation
             hp.parasym:=tvarsym(hp.parasymderef.resolve);
             { connect parasym to paraitem }
             tvarsym(hp.parasym).paraitem:=hp;
+            { Don't count hidden parameters }
+            if (not hp.is_hidden) then
+             begin
+               if not assigned(hp.defaultvalue) then
+                 inc(minparacount);
+               inc(maxparacount);
+             end;
             hp:=TParaItem(hp.next);
           end;
       end;
@@ -3278,13 +3285,6 @@ implementation
             ppufile.getderef(hp.parasymderef);
             hp.parasym:=nil;
             hp.is_hidden:=boolean(ppufile.getbyte);
-            { Don't count hidden parameters }
-            if (not hp.is_hidden) then
-             begin
-               if not assigned(hp.defaultvalue) then
-                inc(minparacount);
-               inc(maxparacount);
-             end;
             { Parameters are stored left to right in both ppu and memory }
             Para.concat(hp);
           end;
@@ -5884,7 +5884,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.181  2003-10-17 15:08:34  peter
+  Revision 1.182  2003-10-21 18:14:49  peter
+    * fix counting of parameters when loading ppu
+
+  Revision 1.181  2003/10/17 15:08:34  peter
     * commented out more obsolete constants
 
   Revision 1.180  2003/10/17 14:52:07  peter
