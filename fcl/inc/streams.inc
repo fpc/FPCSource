@@ -71,6 +71,12 @@
       TStreamSeek : TSeek64;
       CurrClass   : TClass;
     begin
+{$ifdef ver1_0}    
+      if (Offset<Low(longint)) or
+         (Offset>High(longint)) then
+        raise ERangeError.Create(SRangeError);
+      raise EStreamError.CreateFmt(SSeekNotImplemented,[ClassName]);
+{$else}
       // Redirect calls to 64bit Seek, but we can't call the 64bit Seek
       // from TStream, because then we end up in an infinite loop
       CurrSeek:=nil;
@@ -89,6 +95,7 @@
        Result:=Seek(Int64(offset),TSeekOrigin(origin))
       else
        raise EStreamError.CreateFmt(SSeekNotImplemented,[ClassName]);
+{$endif}
     end;
 
   function TStream.Seek(Offset: Int64; Origin: TSeekorigin): Int64;
@@ -733,7 +740,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-10-28 17:16:44  peter
+  Revision 1.5  2001-11-24 20:41:40  carl
+  * fix compilation under FPC version 1.0.x
+
+  Revision 1.4  2001/10/28 17:16:44  peter
     * int64 file functions added
 
   Revision 1.3  2001/03/08 19:38:32  michael
