@@ -609,7 +609,11 @@ implementation
                { is this correct ?  At least after is like if used }
                set_varstate(p^.left,false);
                p^.varstateset:=false;
+               { incrementing the para level is a dirty trick
+                 to get set_varstate to set p^.left var as used PM }
+               inc(parsing_para_level);
                set_varstate(p^.left,true);
+               dec(parsing_para_level);
                if codegenerror then
                  exit;
                symtable:=p^.withsymtable;
@@ -640,7 +644,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2000-01-07 09:36:24  pierre
+  Revision 1.39  2000-01-10 00:42:44  pierre
+   * fix for bug 776
+
+  Revision 1.38  2000/01/07 09:36:24  pierre
    * With argument is set as used to avoid unnecessary warnings
 
   Revision 1.37  2000/01/07 01:14:46  peter
