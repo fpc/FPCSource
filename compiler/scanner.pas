@@ -1127,6 +1127,8 @@ implementation
 
     function tscannerfile.tempopeninputfile:boolean;
       begin
+        if inputfile.is_macro then
+          exit;
         tempopeninputfile:=inputfile.tempopen;
       { reload buffer }
         inputbuffer:=inputfile.buf;
@@ -1137,7 +1139,7 @@ implementation
 
     procedure tscannerfile.tempcloseinputfile;
       begin
-        if inputfile.closed then
+        if inputfile.closed or inputfile.is_macro then
          exit;
         inputfile.setpos(inputstart+(inputpointer-inputbuffer));
         inputfile.tempclose;
@@ -2929,7 +2931,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.65  2003-11-10 19:08:59  peter
+  Revision 1.66  2003-11-12 16:57:59  peter
+    * do nothing for macro's in tempcloseinput,tempopeninput
+
+  Revision 1.65  2003/11/10 19:08:59  peter
     + $IF DECLARED() added
 
   Revision 1.64  2003/11/10 19:08:32  peter
