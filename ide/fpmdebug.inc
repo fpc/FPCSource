@@ -80,6 +80,7 @@ end;
 
 procedure TIDEApp.DoUserScreen;
 var Event : TEvent;
+    ev    : TMouseEvent;
     Clear : Boolean;
 begin
   if UserScreen=nil then
@@ -91,31 +92,55 @@ begin
   ShowUserScreen;
 
   InitKeyBoard;
+  if UseMouse Then
+    InitMouse;
   repeat
     repeat
       Drivers.GetKeyEvent(Event);
-      if Event.What=evNothing then
-        GiveUpTimeSlice;
-    until Event.What=evKeyboard;
-    Clear:=true;
-    if not UserScreen^.CanScroll then
+      if (Event.What and EvKeyboard)=evNothing then
+        Begin
+          If UseMouse Then
+            Begin  
+              Drivers.GetMouseEvent(Event);
+              if (Event.What and evMouse)=evNothing then
+               GiveUpTimeSlice
+              else
+                Event.what:=evMouse;
+            End;
+        End
+      else
+        Event.what:=evkeyboard;
+    until Event.What in [evKeyboard,evmouse];
+    if event.what=evmouse then
       Clear:=false
     else
-      case Event.keycode of
-        kbPgUp : UserScreen^.Scroll(-20);
-        kbPgDn : UserScreen^.Scroll(20);
-        kbUp : UserScreen^.Scroll(-1);
-        kbDown : UserScreen^.Scroll(1);
-        kbHome : UserScreen^.Scroll(-1024);
-        kbEnd : UserScreen^.Scroll(+1024);
-      else
-         Clear:=false;
+      begin
+        Clear:=true;
+        if not UserScreen^.CanScroll then
+          Clear:=false
+       else
+        case Event.keycode of
+          kbPgUp : UserScreen^.Scroll(-20);
+          kbPgDn : UserScreen^.Scroll(20);
+          kbUp : UserScreen^.Scroll(-1);
+          kbDown : UserScreen^.Scroll(1);
+          kbHome : UserScreen^.Scroll(-1024);
+          kbEnd : UserScreen^.Scroll(+1024);
+        else
+           Clear:=false;
+        end;
       end;
     if Clear then
       ClearEvent(Event);
-  until Event.what=evKeyboard;
+  until Event.what in [evKeyboard,evmouse];
   while (Keyboard.PollKeyEvent<>0) do
-   Keyboard.GetKeyEvent;
+          Keyboard.GetKeyEvent;
+  if UseMouse Then
+    Begin
+     while PollMouseEvent(Ev) do
+       GetMouseEvent(ev);
+     donemouse;
+    End;
   DoneKeyboard;
 
   ShowIDEScreen;
@@ -258,7 +283,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2005-02-14 17:13:18  peter
+  Revision 1.10  2005-04-04 03:59:13  marco
+   * fix for 3194: Use mouse to exit output screen
+
+  Revision 1.9  2005/02/14 17:13:18  peter
     * truncate log
 
   Revision 1.8  2005/01/08 11:43:18  florian
