@@ -43,22 +43,16 @@ type
     procedure test_normal(x: byte);
     class procedure test_static(x: byte);
     procedure test_virtual(x: byte);virtual;
-    procedure test_normal_self(self : tsimpleclass; x: byte); message 0;
-    class procedure test_static_self(self : tsimpleclass; x: byte); message 1;
-    procedure test_virtual_self(self : tsimpleclass; x: byte);virtual;message 2;
   end;
 
   tobjectmethod = procedure (x: byte) of object ;
   tclassmethod = procedure (x: byte) of object;
-  { used for testing pocontainsself explicit parameter }
-  tclassmethodself = procedure (self : tsimpleclass; x: byte) of object;
 
 var
   proc : troutine;
   func : troutineresult;
   obj_method : tobjectmethod;
   cla_method : tclassmethod;
-  cla_method_self : tclassmethodself;
   global_s32bit : longint;
   global_s64bit : int64;
   global_u8bit : byte;
@@ -137,26 +131,6 @@ var
      get_object_method_virtual := @obj.test_virtual;
    end;
 
-  { class access }
-  function get_class_method_normal_self : tclassmethodself;
-   begin
-     get_class_method_normal_self := @cla.test_normal_self;
-   end;
-
-{
-  HOW CAN WE GET THIS ADDRESS???
-  function get_class_method_static_self : tclassmethodself;
-   begin
-     get_class_method_static_self := @cla.test_static_self;
-   end;
-}
-
-  function get_class_method_virtual_self : tclassmethodself;
-   begin
-     get_class_method_virtual_self := @cla.test_virtual_self;
-   end;
-
-
   function get_class_method_normal : tclassmethod;
    begin
      get_class_method_normal := @cla.test_normal;
@@ -213,22 +187,6 @@ var
    begin
      global_u8bit := x;
    end;
-
-  procedure tsimpleclass.test_normal_self(self : tsimpleclass; x: byte);
-   begin
-     global_u8bit := x;
-   end;
-
-  class procedure tsimpleclass.test_static_self(self : tsimpleclass; x: byte);
-   begin
-     global_u8bit := x;
-   end;
-
-  procedure tsimpleclass.test_virtual_self(self : tsimpleclass; x: byte);
-   begin
-     global_u8bit := x;
-   end;
-
 
 var
  failed : boolean;
@@ -492,6 +450,12 @@ Begin
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
 
+ If failed then
+   fail
+ else
+   WriteLn('Passed!');
+
+
  clear_globals;
  clear_values;
 
@@ -503,30 +467,12 @@ Begin
  clear_globals;
  clear_values;
 
- tclassmethodself(get_class_method_normal_self)(cla,RESULT_U8BIT);
- if global_u8bit <> RESULT_U8BIT then
-   failed := true;
-
- clear_globals;
- clear_values;
-
-
- tclassmethodself(get_class_method_virtual_self)(cla,RESULT_U8BIT);
- if global_u8bit <> RESULT_U8BIT then
-   failed := true;
-
-
- If failed then
-   fail
- else
-   WriteLn('Passed!');
 
  Write('Testing class method variable call (LOC_REFERENCE)...');
 
  clear_globals;
  clear_values;
  failed := false;
-
 
  cla_method := @cla.test_normal;
  cla_method(RESULT_U8BIT);
@@ -562,31 +508,6 @@ Begin
  clear_values;
 
 
- cla_method_self := @cla.test_normal_self;
- cla_method_self(cla, RESULT_U8BIT);
- if global_u8bit <> RESULT_U8BIT then
-   failed := true;
-
- clear_globals;
- clear_values;
-
-
- cla_method_self := @cla.test_virtual_self;
- cla_method_self(cla,RESULT_U8BIT);
- if global_u8bit <> RESULT_U8BIT then
-   failed := true;
-
- clear_globals;
- clear_values;
-
- cla_method_self := @cla.test_virtual_self;
- cla_method_self(cla, RESULT_U8BIT);
- if global_u8bit <> RESULT_U8BIT then
-   failed := true;
-
- clear_globals;
- clear_values;
-
 { cla_method := @cla.test_static;
  cla_method(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
@@ -601,7 +522,10 @@ end.
 
 {
    $Log$
-   Revision 1.5  2003-01-16 22:14:49  peter
+   Revision 1.6  2003-05-15 20:34:29  peter
+     * removed po_containsself tests
+
+   Revision 1.5  2003/01/16 22:14:49  peter
      * fixed wrong methodpointer loads
 
    Revision 1.4  2002/09/07 15:40:54  peter

@@ -12,7 +12,7 @@
 { DEFINES:                                                       }
 {****************************************************************}
 { REMARKS: This tests a subset of the secondcalln() , it         }
-{          verifies procedural variables for cdecl               }
+{          verifies procedural variables for cdecl              }
 {          calling conventions.                                  }
 {****************************************************************}
 program tcalpvr3;
@@ -35,27 +35,24 @@ type
     constructor init;
     procedure test_normal(x: byte);cdecl;
     procedure test_static(x: byte);static;cdecl;
+    procedure test_virtual(x: byte);virtual;cdecl;
   end;
 
   tsimpleclass = class
     constructor create;
     procedure test_normal(x: byte);cdecl;
     class procedure test_static(x: byte);cdecl;
-    procedure test_normal_self(self : tsimpleclass; x: byte); message 0;cdecl;
-    class procedure test_static_self(self : tsimpleclass; x: byte); message 1;cdecl;
+    procedure test_virtual(x: byte);virtual;cdecl;
   end;
 
   tobjectmethod = procedure (x: byte) of object ;cdecl;
   tclassmethod = procedure (x: byte) of object;cdecl;
-  { used for testing pocontainsself explicit parameter }
-  tclassmethodself = procedure (self : tsimpleclass; x: byte) of object;cdecl;
 
 var
   proc : troutine;
   func : troutineresult;
   obj_method : tobjectmethod;
   cla_method : tclassmethod;
-  cla_method_self : tclassmethodself;
   global_s32bit : longint;
   global_s64bit : int64;
   global_u8bit : byte;
@@ -124,12 +121,14 @@ var
      get_object_method_normal := @obj.test_normal;
    end;
 
-
-
-  { class access }
-  function get_class_method_normal_self : tclassmethodself;
+  function get_object_type_method_virtual : tobjectmethod;
    begin
-     get_class_method_normal_self := @cla.test_normal_self;
+     get_object_type_method_virtual := @obj.test_virtual;
+   end;
+
+  function get_object_method_virtual : tobjectmethod;
+   begin
+     get_object_method_virtual := @obj.test_virtual;
    end;
 
 {
@@ -139,7 +138,6 @@ var
      get_class_method_static_self := @cla.test_static_self;
    end;
 }
-
 
   function get_class_method_normal : tclassmethod;
    begin
@@ -151,6 +149,10 @@ var
      get_class_method_static := @cla.test_static;
    end;}
 
+  function get_class_method_virtual : tclassmethod;
+   begin
+     get_class_method_virtual := @cla.test_virtual;
+   end;
 
  {****************************************************************************************************}
 
@@ -164,6 +166,11 @@ var
    end;
 
   procedure tsimpleobject.test_static(x: byte);cdecl;
+   begin
+     global_u8bit := x;
+   end;
+
+  procedure tsimpleobject.test_virtual(x: byte);cdecl;
    begin
      global_u8bit := x;
    end;
@@ -184,17 +191,10 @@ var
      global_u8bit := x;
    end;
 
-
-  procedure tsimpleclass.test_normal_self(self : tsimpleclass; x: byte);cdecl;
+  procedure tsimpleclass.test_virtual(x: byte);cdecl;
    begin
      global_u8bit := x;
    end;
-
-  class procedure tsimpleclass.test_static_self(self : tsimpleclass; x: byte);cdecl;
-   begin
-     global_u8bit := x;
-   end;
-
 
 
 var
@@ -344,12 +344,41 @@ Begin
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
 
+ clear_globals;
+ clear_values;
+
+ tobjectmethod(get_object_type_method_virtual)(RESULT_U8BIT);
+ if global_u8bit <> RESULT_U8BIT then
+   failed := true;
+
+ clear_globals;
+ clear_values;
+
+ tobjectmethod(get_object_method_virtual)(RESULT_U8BIT);
+ if global_u8bit <> RESULT_U8BIT then
+   failed := true;
 
  clear_globals;
  clear_values;
 
  value_u8bit := RESULT_U8BIT;
  tobjectmethod(get_object_method_normal)(value_u8bit);
+ if global_u8bit <> RESULT_U8BIT then
+   failed := true;
+
+ clear_globals;
+ clear_values;
+
+ value_u8bit := RESULT_U8BIT;
+ tobjectmethod(get_object_type_method_virtual)(value_u8bit);
+ if global_u8bit <> RESULT_U8BIT then
+   failed := true;
+
+ clear_globals;
+ clear_values;
+
+ value_u8bit := RESULT_U8BIT;
+ tobjectmethod(get_object_method_virtual)(value_u8bit);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
 
@@ -373,12 +402,36 @@ Begin
  clear_globals;
  clear_values;
 
+ obj_method:=@obj.test_virtual;
+ obj_method(RESULT_U8BIT);
+ if global_u8bit <> RESULT_U8BIT then
+   failed := true;
+
+ clear_globals;
+ clear_values;
+
+ obj_method:=@obj.test_virtual;
+ obj_method(RESULT_U8BIT);
+ if global_u8bit <> RESULT_U8BIT then
+   failed := true;
+
+ clear_globals;
+ clear_values;
+
  value_u8bit := RESULT_U8BIT;
  obj_method:=@obj.test_normal;
  obj_method(value_u8bit);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
 
+ clear_globals;
+ clear_values;
+
+ value_u8bit := RESULT_U8BIT;
+ obj_method:=@obj.test_virtual;
+ obj_method(value_u8bit);
+ if global_u8bit <> RESULT_U8BIT then
+   failed := true;
 
  clear_globals;
  clear_values;
@@ -409,7 +462,8 @@ Begin
  clear_globals;
  clear_values;
 
- tclassmethodself(get_class_method_normal_self)(cla,RESULT_U8BIT);
+
+ tclassmethod(get_class_method_virtual)(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
 
@@ -430,6 +484,22 @@ Begin
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
 
+ clear_globals;
+ clear_values;
+
+
+ cla_method := @cla.test_virtual;
+ cla_method(RESULT_U8BIT);
+ if global_u8bit <> RESULT_U8BIT then
+   failed := true;
+
+ clear_globals;
+ clear_values;
+
+ cla_method := @cla.test_virtual;
+ cla_method(RESULT_U8BIT);
+ if global_u8bit <> RESULT_U8BIT then
+   failed := true;
 
  clear_globals;
  clear_values;
@@ -442,15 +512,6 @@ Begin
  clear_globals;
  clear_values;
 
-
- cla_method_self := @cla.test_normal_self;
- cla_method_self(cla, RESULT_U8BIT);
- if global_u8bit <> RESULT_U8BIT then
-   failed := true;
-
-
- clear_globals;
- clear_values;
 
 { cla_method := @cla.test_static;
  cla_method(RESULT_U8BIT);
@@ -466,21 +527,14 @@ end.
 
 {
    $Log$
-   Revision 1.7  2003-01-16 22:14:49  peter
+   Revision 1.8  2003-05-15 20:34:29  peter
+     * removed po_containsself tests
+
+   Revision 1.4  2003/01/16 22:14:49  peter
      * fixed wrong methodpointer loads
 
-   Revision 1.6  2002/10/29 20:44:31  carl
-     * updated with corrects testing (removed cdecl in constructors)
-
-   Revision 1.5  2002/10/21 19:21:28  carl
-     * only test on version 1.1 +
-
-   Revision 1.4  2002/10/21 19:07:08  carl
-     + reinstate test
-     - remove virtual method calls
-
-   Revision 1.3  2002/10/21 08:03:14  pierre
-    * added %FAIL because cdecl and virtual are not compatible
+   Revision 1.3  2003/01/05 18:21:30  peter
+     * removed more conflicting calling directives
 
    Revision 1.2  2002/09/07 15:40:54  peter
      * old logs removed and tabs fixed

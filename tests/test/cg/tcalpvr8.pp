@@ -12,10 +12,10 @@
 { DEFINES:                                                       }
 {****************************************************************}
 { REMARKS: This tests a subset of the secondcalln() , it         }
-{          verifies procedural variables for saveregisters       }
+{          verifies procedural variables for saveregisters              }
 {          calling conventions.                                  }
 {****************************************************************}
-program tcalpvr8;
+program tcalpvr3;
 {$MODE OBJFPC}
 {$STATIC ON}
 {$R+}
@@ -43,22 +43,16 @@ type
     procedure test_normal(x: byte);saveregisters;
     class procedure test_static(x: byte);saveregisters;
     procedure test_virtual(x: byte);virtual;saveregisters;
-    procedure test_normal_self(self : tsimpleclass; x: byte); message 0;saveregisters;
-    class procedure test_static_self(self : tsimpleclass; x: byte); message 1;saveregisters;
-    procedure test_virtual_self(self : tsimpleclass; x: byte);virtual;message 2;saveregisters;
   end;
 
   tobjectmethod = procedure (x: byte) of object ;saveregisters;
   tclassmethod = procedure (x: byte) of object;saveregisters;
-  { used for testing pocontainsself explicit parameter }
-  tclassmethodself = procedure (self : tsimpleclass; x: byte) of object;saveregisters;
 
 var
   proc : troutine;
   func : troutineresult;
   obj_method : tobjectmethod;
   cla_method : tclassmethod;
-  cla_method_self : tclassmethodself;
   global_s32bit : longint;
   global_s64bit : int64;
   global_u8bit : byte;
@@ -137,12 +131,6 @@ var
      get_object_method_virtual := @obj.test_virtual;
    end;
 
-  { class access }
-  function get_class_method_normal_self : tclassmethodself;
-   begin
-     get_class_method_normal_self := @cla.test_normal_self;
-   end;
-
 {
   HOW CAN WE GET THIS ADDRESS???
   function get_class_method_static_self : tclassmethodself;
@@ -150,12 +138,6 @@ var
      get_class_method_static_self := @cla.test_static_self;
    end;
 }
-
-  function get_class_method_virtual_self : tclassmethodself;
-   begin
-     get_class_method_virtual_self := @cla.test_virtual_self;
-   end;
-
 
   function get_class_method_normal : tclassmethod;
    begin
@@ -210,21 +192,6 @@ var
    end;
 
   procedure tsimpleclass.test_virtual(x: byte);saveregisters;
-   begin
-     global_u8bit := x;
-   end;
-
-  procedure tsimpleclass.test_normal_self(self : tsimpleclass; x: byte);saveregisters;
-   begin
-     global_u8bit := x;
-   end;
-
-  class procedure tsimpleclass.test_static_self(self : tsimpleclass; x: byte);saveregisters;
-   begin
-     global_u8bit := x;
-   end;
-
-  procedure tsimpleclass.test_virtual_self(self : tsimpleclass; x: byte);saveregisters;
    begin
      global_u8bit := x;
    end;
@@ -500,22 +467,6 @@ Begin
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
 
- clear_globals;
- clear_values;
-
- tclassmethodself(get_class_method_normal_self)(cla,RESULT_U8BIT);
- if global_u8bit <> RESULT_U8BIT then
-   failed := true;
-
- clear_globals;
- clear_values;
-
-
- tclassmethodself(get_class_method_virtual_self)(cla,RESULT_U8BIT);
- if global_u8bit <> RESULT_U8BIT then
-   failed := true;
-
-
  If failed then
    fail
  else
@@ -562,31 +513,6 @@ Begin
  clear_values;
 
 
- cla_method_self := @cla.test_normal_self;
- cla_method_self(cla, RESULT_U8BIT);
- if global_u8bit <> RESULT_U8BIT then
-   failed := true;
-
- clear_globals;
- clear_values;
-
-
- cla_method_self := @cla.test_virtual_self;
- cla_method_self(cla,RESULT_U8BIT);
- if global_u8bit <> RESULT_U8BIT then
-   failed := true;
-
- clear_globals;
- clear_values;
-
- cla_method_self := @cla.test_virtual_self;
- cla_method_self(cla, RESULT_U8BIT);
- if global_u8bit <> RESULT_U8BIT then
-   failed := true;
-
- clear_globals;
- clear_values;
-
 { cla_method := @cla.test_static;
  cla_method(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
@@ -601,14 +527,16 @@ end.
 
 {
    $Log$
-   Revision 1.4  2003-01-16 22:14:49  peter
+   Revision 1.5  2003-05-15 20:34:29  peter
+     * removed po_containsself tests
+
+   Revision 1.4  2003/01/16 22:14:49  peter
      * fixed wrong methodpointer loads
 
-   Revision 1.3  2002/12/29 15:30:55  peter
-     * updated for 1.1 compiler that does not allow calling conventions
-       for constructor/destructor
+   Revision 1.3  2003/01/05 18:21:30  peter
+     * removed more conflicting calling directives
 
-   Revision 1.2  2002/09/07 15:40:55  peter
+   Revision 1.2  2002/09/07 15:40:54  peter
      * old logs removed and tabs fixed
 
    Revision 1.1  2002/05/05 13:58:50  carl
