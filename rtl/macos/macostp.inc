@@ -698,10 +698,16 @@ external 'InterfaceLib';
 function FSpDelete(spec: FSSpec): OSErr;
 external 'InterfaceLib';
 
-FUNCTION FSpSetFLock({CONST}VAR spec: FSSpec): OSErr;
+FUNCTION FSpGetFInfo(const spec: FSSpec; VAR fndrInfo: FInfo): OSErr;
 external 'InterfaceLib';
 
-FUNCTION FSpRstFLock({CONST}VAR spec: FSSpec): OSErr;
+FUNCTION FSpSetFInfo(const spec: FSSpec; const fndrInfo: FInfo): OSErr;
+external 'InterfaceLib';
+
+FUNCTION FSpSetFLock(const spec: FSSpec): OSErr;
+external 'InterfaceLib';
+
+FUNCTION FSpRstFLock(const spec: FSSpec): OSErr;
 external 'InterfaceLib';
 
 function FSClose(refNum: Integer): OSErr;
