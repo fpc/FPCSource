@@ -1,6 +1,3 @@
-{ %FAIL }
-{ this test should fail at compilation
-  because cdecl and virtual are incompatible PM }
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {  Copyright (c) 2002 Carl Eric Codere                           }
@@ -201,9 +198,9 @@ type
    procedure method_normal_params_mixed(u8 :byte; u16: word;
       bigstring: shortstring; s32: longint; s64: int64);cdecl;
    procedure method_virtual_params_mixed(u8 :byte; u16: word;
-      bigstring: shortstring; s32: longint; s64: int64);virtual;cdecl;
+      bigstring: shortstring; s32: longint; s64: int64);virtual;
    procedure method_virtual_overriden_params_mixed(u8 :byte; u16: word;
-      bigstring: shortstring; s32: longint; s64: int64);virtual;cdecl;
+      bigstring: shortstring; s32: longint; s64: int64);virtual;
    procedure method_static_params_mixed(u8 :byte; u16: word;
       bigstring: shortstring; s32: longint; s64: int64);static;cdecl;
    procedure method_normal_call_inherited_params_mixed(
@@ -211,17 +208,17 @@ type
 
    { virtual methods which call other methods }
    procedure method_virtual_call_static_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;cdecl;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;
    procedure method_virtual_call_virtual_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;cdecl;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;
    procedure method_virtual_call_overriden_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;cdecl;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;
    procedure method_virtual_call_normal_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;cdecl;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;
    procedure method_virtual_call_constructor_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;cdecl;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;
    procedure method_virtual_call_inherited_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;cdecl;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;
 
  end;
 
@@ -238,7 +235,7 @@ type
    constructor constructor_params_mixed_call_inherited(u8 :byte; u16: word;
       bigstring: shortstring; s32: longint; s64: int64);cdecl;
    procedure method_virtual_overriden_params_mixed(
-    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;cdecl;
+    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;
 
    { normal methods which call other methods }
    procedure method_normal_call_static_params_mixed(
@@ -256,7 +253,7 @@ type
 
    { virtual methods which call other methods }
    procedure method_virtual_call_inherited_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;cdecl;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;
 
  end;
 
@@ -455,7 +452,7 @@ procedure tvmtobject.method_normal_params_mixed(
  end;
 
 procedure tvmtobject.method_virtual_params_mixed(
-    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);cdecl;
+    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
  begin
    object_u8bit := u8;
    object_u16bit := u16;
@@ -466,7 +463,7 @@ procedure tvmtobject.method_virtual_params_mixed(
 
 { this one should be overriden }
 procedure tvmtobject.method_virtual_overriden_params_mixed(
-    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);cdecl;
+    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
  begin
     RunError(211);
  end;
@@ -494,38 +491,38 @@ procedure tvmtobject.method_normal_call_inherited_params_mixed(
 
 
 procedure tvmtobject.method_virtual_call_static_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);cdecl;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
   begin
     method_static_params_mixed(u8, u16, bigstring, s32, s64);
   end;
 
 procedure tvmtobject.method_virtual_call_virtual_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);cdecl;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
    begin
     method_virtual_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
 procedure tvmtobject.method_virtual_call_overriden_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);cdecl;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
    begin
     method_virtual_overriden_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
 
 procedure tvmtobject.method_virtual_call_normal_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);cdecl;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
    begin
     method_normal_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
 procedure tvmtobject.method_virtual_call_constructor_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);cdecl;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
    begin
      constructor_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
 procedure tvmtobject.method_virtual_call_inherited_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);cdecl;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
   begin
    object_u8bit := u8;
    object_u16bit := u16;
@@ -595,7 +592,7 @@ constructor theritedvmtobject.constructor_params_mixed_call_inherited
 
 { this one should be overriden }
 procedure theritedvmtobject.method_virtual_overriden_params_mixed(
-    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);cdecl;
+    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
  begin
    object_u8bit := u8;
    object_u16bit := u16;
@@ -643,7 +640,7 @@ procedure theritedvmtobject.method_normal_call_inherited_params_mixed(
   end;
 
 procedure theritedvmtobject.method_virtual_call_inherited_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);cdecl;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
   begin
    Inherited method_virtual_call_inherited_params_mixed(u8, u16, bigstring,
      s32, s64);
@@ -3297,7 +3294,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-10-21 08:03:14  pierre
+  Revision 1.5  2002-10-21 19:07:08  carl
+    + reinstate test
+    - remove virtual method calls
+
+  Revision 1.4  2002/10/21 08:03:14  pierre
    * added %FAIL because cdecl and virtual are not compatible
 
   Revision 1.3  2002/09/07 15:40:53  peter
