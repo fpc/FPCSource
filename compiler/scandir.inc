@@ -784,7 +784,7 @@ const
           Message(scan_e_resourcefiles_not_supported);
       end;
 
-
+{$ifndef PAVEL_LINKLIB}
     procedure dir_linklib(t:tdirectivetoken);
       var
         s : string;
@@ -821,6 +821,86 @@ const
          insert(s,link_allways);
       {$ENDIF}
       end;
+{$else PAVEL_LINKLIB}
+    procedure dir_linklib(t:tdirectivetoken);
+      var
+       s:string;
+       libname,linkmodeStr:string;
+       p:longint;
+      type
+       tLinkMode=(lm_dynamic,lm_static);
+      var
+       linkMode:tLinkMode;
+      function ExtractLinkMode:tLinkMode;
+       var
+        p:longint;
+       begin
+        p:=pos(',',linkmodeStr);
+        if p>0 then
+         linkmodeStr:=copy(linkmodeStr,1,pred(p));
+        for p:=1 to length(linkmodeStr)do
+         linkmodeStr[p]:=upcase(linkmodeStr[p]);
+        if linkmodeStr='STATIC' then
+         ExtractLinkMode:=lm_static
+        else
+         ExtractLinkMode:=lm_dynamic
+       end;
+      procedure MangleLibName(mode:tLinkMode);
+       begin
+        if (libname[1]='''')and(libname[length(libname)]='''')then
+         begin
+          delete(libname,1,1);
+          delete(libname,length(libname),1);
+         end
+        else
+         begin
+          libname:=target_os.libprefix+libname;
+          case mode of
+           lm_static:
+            libname:=AddExtension(FixFileName(libname),target_os.staticlibext);
+           lm_dynamic:
+            libname:=AddExtension(FixFileName(libname),target_os.sharedlibext);
+          end;
+         end;
+       end;
+      begin
+       current_scanner^.skipspace;
+       s:=current_scanner^.readcomment;
+       p:=pos(',',s);
+       if p=0 then
+        begin
+         libname:=s;
+         linkmodeStr:=''
+        end
+       else
+        begin
+         libname:=copy(s,1,pred(p));
+         linkmodeStr:=copy(s,succ(p),255);
+        end;
+       if(libname='')or(libname='''''')then
+        exit;
+       linkMode:=ExtractLinkMode;
+       MangleLibName(linkMode);
+       if linkMode=lm_static then
+{$IFDEF NEWST}
+        current_module^.linkOtherStaticLibs.
+         insert(new(Plinkitem,init(FixFileName(libname),link_allways)))
+{$ELSE}
+        current_module^.linkOtherStaticLibs.
+         insert(FixFileName(libname),link_allways)
+{$ENDIF}
+       else
+{$IFDEF NEWST}
+        current_module^.linkOtherSharedLibs.
+         insert(new(Plinkitem,init(FixFileName(libname),link_allways)));
+{$ELSE}
+        current_module^.linkOtherSharedLibs.
+         insert(FixFileName(libname),link_allways);
+{$ENDIF}
+      end;
+
+
+{$endif PAVEL_LINKLIB}
 
 
     procedure dir_outputformat(t:tdirectivetoken);
@@ -1335,7 +1415,11 @@ const
 
 {
   $Log$
-  Revision 1.80  2000-05-09 21:31:50  pierre
+  Revision 1.81  2000-05-23 20:18:25  pierre
+    + pavel's code integrated, but onyl inside
+      ifdef pavel_linklib !
+
+  Revision 1.80  2000/05/09 21:31:50  pierre
    * fix problem when modifying several local switches in a row
 
   Revision 1.79  2000/05/03 14:36:58  pierre
