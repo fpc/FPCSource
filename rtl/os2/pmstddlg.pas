@@ -1231,7 +1231,7 @@ unit PMStdDlg;
         external 'PMCTLS' index 6;
     function WinFontDlg(hwndP : HWnd;hwndO : HWnd;pfntd : PFontDlg) : HWnd; cdecl;
         external 'PMCTLS' index 2;
-    function WinDefFontDlgProc(hwnd : HWnd;msg : cardinal;mp1 : MParam;mp2 : MParam) : MResult; cdecl;
+    function WinDefFontDlgProc(_hwnd : HWnd;msg : cardinal;mp1 : MParam;mp2 : MParam) : MResult; cdecl;
         external 'PMCTLS' index 3;
     function DrgAcceptDroppedFiles(hwnd : HWnd;pszPath : PChar;pszTypes : PChar;ulDefaultOp : cardinal;ulRsvd : cardinal) : Longbool; cdecl;
         external 'PMDRAG' index 66;
@@ -1303,7 +1303,10 @@ unit PMStdDlg;
 end.
 {
   $Log$
-  Revision 1.2  2002-10-05 18:33:14  hajny
+  Revision 1.3  2002-10-05 18:35:05  hajny
+    * mistyping corrected
+
+  Revision 1.2  2002/10/05 18:33:14  hajny
     + Finally made usable by Yuri Prokushev
 
 
