@@ -397,8 +397,8 @@ begin
   if Desktop^.ExecView(D)=cmOK then
   begin
     DebugInfoSwitches^.SetCurrSel(RB^.Value);
-    Writeln(':',CB^.Value,':');
-    readln;
+    {Writeln(':',CB^.Value,':');
+    readln;}
     if CB^.Value = 3 then
       I := 1
     else
@@ -724,7 +724,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  1999-02-16 10:43:56  peter
+  Revision 1.15  1999-02-16 17:15:28  pierre
+   * Peter's debug code commented
+
+  Revision 1.14  1999/02/16 10:43:56  peter
     * use -dGDB for the compiler
     * only use gdb_file when -dDEBUG is used
     * profiler switch is now a toggle instead of radiobutton
