@@ -347,7 +347,7 @@ docsrc:
 .PHONY: demozip
 
 demozip:
-        $(MAKE) -C $(CVSINSTALL)/demo zipsourceinstall ZIPNAME=demo
+        $(MAKE) -C demo zipsourceinstall ZIPNAME=demo
 
 
 ##########################################################################
