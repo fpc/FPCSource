@@ -26,16 +26,29 @@ endif
 # New ppc386 (or ppc68k if on m68k machine !)
 ifndef PPNEW
 ifeq ($(CPU_TARGET),m68k)
-PPNEWBASE=ppc68k
+PPSUF=68k
 endif
 ifeq ($(CPU_TARGET),i386)
-PPNEWBASE=ppc386
+PPSUF=386
 endif
 ifeq ($(CPU_TARGET),powerpc)
-PPNEWBASE=ppcppc
+PPSUF=ppc
+endif
+ifeq ($(CPU_TARGET),alpha)
+PPSUF=axp
 endif
 
-PPNEW=$(BASEDIR)/compiler/$(PPNEWBASE)$(SRCEXEEXT)
+ifneq ($(OS_TARGET),$(OS_SOURCE))
+PPPRE=ppcross
+else
+ifneq ($(CPU_TARGET),$(CPU_SOURCE))
+PPPRE=ppcross
+else
+PPPRE=ppc
+endif
+endif
+
+PPNEW=$(BASEDIR)/compiler/$(PPPRE)$(PPSUF)$(SRCEXEEXT)
 endif
 
 # Check if there is already a ppc386 binary in compiler, then
