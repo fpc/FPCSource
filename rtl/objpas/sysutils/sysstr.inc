@@ -2044,7 +2044,7 @@ Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
 
 begin
   Result:=False;
-  If Index<=Length(S) then
+  If (Index>0) and (Index<=Length(S)) then
     Result:=Pos(S[Index],Delimiters)<>0; // Note we don't do MBCS yet
 end;
 
@@ -2187,7 +2187,10 @@ const
 
 {
   $Log$
-  Revision 1.15  2004-08-07 19:32:35  florian
+  Revision 1.16  2004-08-30 18:00:12  michael
+  + Extra index check in IsDelimiter
+
+  Revision 1.15  2004/08/07 19:32:35  florian
     * fixed CompareStr with a patch from Michalis Kamburelis
 
   Revision 1.14  2004/08/07 16:56:28  florian
