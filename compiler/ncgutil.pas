@@ -87,7 +87,7 @@ interface
 
     const
 
-      EXCEPT_BUF_SIZE = 4*2*sizeof(aint);
+      EXCEPT_BUF_SIZE = 3*sizeof(aint);
     type
       texceptiontemps=record
         jmpbuf,
@@ -2067,7 +2067,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.208  2004-06-20 08:55:29  florian
+  Revision 1.209  2004-06-29 20:57:21  peter
+    * fixed size of exceptbuf
+
+  Revision 1.208  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.207  2004/06/16 20:07:08  florian
