@@ -1,7 +1,8 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 1999-2000 by Jonas Maebe, member of the
+    Free Pascal development team
 
     Include file with set operations called by the compiler
 
@@ -54,12 +55,16 @@ asm
         stw     r5,20(r3)
         stw     r5,24(r3)
         stw     r5,28(r3)
+
         // get the index of the correct *dword* in the set
         // (((b div 8) div 4)*4= (b div 8) and not(3))
-        rlwinm  r5,r4,29,3,31     // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
-        // r4 := 1 shl r4[27-31] -> bit index in dword (rlw* instructions with
-        // shift count in register only consider lower 5 bits of this register)
-        rotlw   r4,r6,r4          // equivalent to rlwnm r4,r6,r4,0,31
+        // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
+        rlwinm  r5,r4,29,0,31-2
+
+        // r4 := 1 shl r4[27-31] -> bit index in dword (shift instructions
+        // with count in register only consider lower 5 bits of this register)
+        slw     r4,r6,r4
+
         // store the result
         stwx    r4,r3,r5
         lwz     r5,saveR5
@@ -78,18 +83,18 @@ asm
        stw      r5,saveR5
        stw      r6,saveR6
        // get the index of the correct *dword* in the set
-       rlwinm   r5,r4,29,3,31     // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
+       rlwinm   r5,r4,29,0,31-2   // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
        // load dword in which the bit has to be set (and update r3 to this address)
        lwzxu    r6,r3,r5
        li       r5,1
        // generate bit which has to be inserted
-       rotlw    r4,r5,r4          // equivalent to rlwnm r4,r5,r4,0,31
+       slw      r4,r5,r4
        // insert it
        lwz      r5,saveR5
-       or       r7,r7,r4
+       or       r4,r7,r4
        lwz      r6,saveR6
        // store result
-       stw      r7,(r3)
+       stw      r4,(r3)
 end ['R3','R4'];
 
 
@@ -110,14 +115,14 @@ asm
        // load dword in which the bit has to be set (and update r3 to this address)
        lwzxu    r6,r3,r5
        li       r5,1
-       // generate bit which has to be inserted
-       rotlw    r4,r5,r4          // equivalent to rlwnm r4,r5,r4,0,31
+       // generate bit which has to be cleared
+       slw      r4,r5,r4
        // insert it
        lwz      r5,saveR5
-       nor      r7,r7,r4
+       nor      r4,r6,r4
        lwz      r6,saveR6
        // store result
-       stw      r7,(r3)
+       stw      r4,(r3)
 end ['R3','R4'];
 
 
@@ -135,18 +140,18 @@ asm
   stw    r8,saveR8
   rlwinm r6,r4,32-3,0,31-2    // divide by 8 to get starting and ending byte-
   rlwinm r7,r5,32-3,0,31-2    // address and clear two lowest bits to get
-                              // start/end longint address * 4
+                              //  start/end longint address
   sub.   r7,r6,r7             // are bit lo and hi in the same longint?
   rlwinm r5,r5,0,31-4,31      // hi := hi mod 32 (= "hi and 31", but the andi
-                              // instr. only exists in flags modifying form)
+                              //  instr. only exists in flags modifying form)
   eqv    r8,r8,r8             // r8 = $0x0ffffffff = bitmask to be inserted
-  subfic r5,r5,32             // hi := 32 - (hi mod 32) = shift count for later
+  subfic r5,r5,31             // hi := 31 - (hi mod 32) = shift count for later
   srw    r8,r8,r4             // shift bitmask to clear bits below lo
                               // note: shift right = opposite little endian!!
-  lwzu   r4,r3,r6             // go to starting pos in set and load value
-                              // (lo is not necessary anymore)
+  lwzxu  r4,r3,r6             // go to starting pos in set and load value
+                              //  (lo is not necessary anymore)
   beq    .Lset_range_hi       // if bit lo and hi in same longint, keep
-                              // current mask and adjust for hi bit
+                              //  current mask and adjust for hi bit
   subic. r7,r7,4              // bit hi in next longint?
   or     r4,r4,r8             // merge and
   stw    r4,(r3)              // store current mask
@@ -159,14 +164,15 @@ asm
   bne    .Lset_range_loop
   lwzu    r4,4(r3)            // load next value from set
 .Lset_range_hi:               // in all cases, r3 here contains the address of
-                              // the longint which contains the hi bit and r9
-                              // contains this longint
-  slw    r7,r8,r5             // r7 := bitmask shl (32 - (hi mod 32)) =
-                              // bitmask with bits higher than hi cleared
+                              //  the longint which contains the hi bit and r4
+                              //  contains this longint
+  slw    r7,r8,r5             // r7 := bitmask shl (31 - (hi mod 32)) =
+                              //  bitmask with bits higher than hi cleared
+                              //  (r8 = $0xffffffff unless the first beq was
+                              //   taken)
   and    r8,r7,r8             // combine lo and hi bitmasks for this longint
   or     r4,r4,r8             // and combine with existing set
   stw    r4,(r3)              // store to set
-.Lset_range_done:
   lwz    r6,saver6
   lwz    r7,saver7
   lwz    r8,saver8
@@ -181,23 +187,21 @@ procedure do_in_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_IN_B
   on entry: p in r3, b in r4
 }
 var
-  saveR5, saveR6: longint;
+  saveR5: longint;
 asm
        stw      r5,saveR5
        stw      r6,saveR6
        // get the index of the correct *dword* in the set
-       rlwinm   r5,r4,29,3,31     // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
-       // load dword in which the bit has to be set (and update r3 to this address)
-       lwzx     r6,r3,r5
+       // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
+       rlwinm   r5,r4,29,0,31-2
+       // load dword in which the bit has to be tested
+       lwzx     r3,r3,r5
        li       r5,1
-       // generate bit which has to be inserted
-       rotlw    r4,r5,r4          // equivalent to rlwnm r4,r5,r4,0,31
-       // insert it
+       // generate bit which has to be tested
+       slw      r4,r5,r4
        lwz      r5,saveR5
-       and.     r7,r7,r4
-       lwz      r6,saveR6
-       // store result
-       stw      r7,(r3)
+       // test it
+       and.     r3,r3,r4
 end ['R4'];
 
 
@@ -540,12 +544,16 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-09-22 10:03:18  jonas
+  Revision 1.4  2000-09-26 14:19:04  jonas
+    * fixed several small bugs
+    * fixed several typo's in the comments
+
+  Revision 1.3  2000/09/22 10:03:18  jonas
     + implementation for FPC_SET_SET_RANGE
     * changed some routines so they never read data from after the actual
       set (could cause sigsegv's if the set is at the end of the heap)
 
   Revision 1.2  2000/07/13 11:33:56  michael
   + removed logs
- 
+
 }
