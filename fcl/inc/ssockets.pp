@@ -47,9 +47,9 @@ type
     Procedure SetSocketOptions(Value : TSocketOptions);
   Public
     Constructor Create (AHandle : Longint);virtual;
+    destructor Destroy; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
     Property SocketOptions : TSocketOptions Read FSocketOptions
-    destructor Destroy; override;
                                             Write SetSocketOptions;
   end;
 
@@ -524,7 +524,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2001-12-17 20:21:35  sg
+  Revision 1.10  2001-12-17 21:03:55  sg
+  * Fixed merging mistake of my last commit :/
+
+  Revision 1.9  2001/12/17 20:21:35  sg
   * Some cosmetic improvements (fixed wrong method visibilities etc.)
   * TSocketStream now closes the underlying file handle upon destruction
 
