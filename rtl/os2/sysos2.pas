@@ -543,7 +543,7 @@ begin
             movl p, %edx
             call syscall
             cmpl $0xffffffff, %eax
-            jnz .LOPEN1
+            jnz .LOPEN2
             movw %cx, InOutRes
             movw UnusedHandle, %ax
 .LOPEN2:
@@ -806,7 +806,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2000-07-09 17:05:24  hajny
+  Revision 1.34  2000-07-09 17:09:47  hajny
+    * little mistyping
+
+  Revision 1.33  2000/07/09 17:05:24  hajny
     * default sharing mode changed to deny all (compatibility)
 
   Revision 1.32  2000/06/11 09:47:57  hajny
