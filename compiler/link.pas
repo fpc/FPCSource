@@ -25,6 +25,11 @@ Unit link;
 
 Interface
 
+{ Needed for LFN support in path to the executable }
+{$ifdef GO32V2}
+  {$define ALWAYSSHELL}
+{$endif}
+
 uses cobjects,files;
 
 Type
@@ -80,7 +85,7 @@ uses
   ;
 
 {$ifndef linux}
-Procedure Shell(command:string);
+Procedure Shell(const command:string);
 { This is already defined in the linux.ppu for linux, need for the *
   expansion under linux }
 var
@@ -271,10 +276,14 @@ begin
   if not(cs_link_extern in aktglobalswitches) then
    begin
      swapvectors;
+{$ifdef ALWAYSSHELL}
+     shell(command+' '+para);
+{$else}
      if useshell then
       shell(command+' '+para)
      else
       exec(command,para);
+{$endif}
      swapvectors;
      if (doserror<>0) then
       begin
@@ -645,8 +654,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.55  1999-06-15 13:57:31  peter
+  Revision 1.56  1999-06-18 09:55:30  peter
     * merged
+
+  Revision 1.55  1999/06/15 13:57:31  peter
+    * merged
+
+  Revision 1.54.2.2  1999/06/18 09:51:55  peter
+    * always use shell() for go32v2 to support LFN
 
   Revision 1.54.2.1  1999/06/15 13:51:56  peter
     * also check ld-2.1.so for glibc 2.1, previous was only for 2.1.1

@@ -1028,6 +1028,8 @@ Begin
                       (Pai386(hp1)^.opcode=A_PUSH) and
                       (Pai386(hp1)^.oper[0].typ = top_reg) And
                       (Pai386(hp1)^.oper[0].reg=Pai386(p)^.oper[0].reg) then
+                  { This can't be done, because the register which is popped
+                    can still be used after the push (PFV)
                      If (Not(cs_regalloc in aktglobalswitches)) Then
                        Begin
                          hp2:=pai(hp1^.next);
@@ -1038,7 +1040,7 @@ Begin
                          p:=hp2;
                          continue
                        End
-                     Else
+                     Else }
                        Begin
                          { change it to a two op operation }
                          Pai386(p)^.oper[1].typ:=top_none;
@@ -1052,7 +1054,7 @@ Begin
                          hp1 := Pai(p^.next);
                          AsmL^.Remove(hp1);
                          Dispose(hp1, Done)
-                       End
+                       End;
                 end;
               A_PUSH:
                 Begin
@@ -1519,7 +1521,13 @@ End.
 
 {
  $Log$
- Revision 1.54  1999-05-27 19:44:49  peter
+ Revision 1.55  1999-06-18 09:55:31  peter
+   * merged
+
+ Revision 1.54.2.1  1999/06/18 09:52:40  peter
+   * pop;push -> mov (esp),reg always instead of being removed
+
+ Revision 1.54  1999/05/27 19:44:49  peter
    * removed oldasm
    * plabel -> pasmlabel
    * -a switches to source writing automaticly
