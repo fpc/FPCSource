@@ -1,7 +1,10 @@
 {
     $Id$
+    This file contains the Win32-API import declarations
+    for the system unit and the DOS unit
+
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by Florian Klaempfl,
+    Copyright (c) 1997,98 by Florian Klaempfl,
     member of the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -54,36 +57,53 @@
 	 wHour,wMinute,wSecond,WMilliseconds : word;
        end;
 
+       FILETIME = record
+         dwLowDateTime : longint;
+         dwHighDateTime : longint;
+       end;
+
+       PFILETIME = ^FILETIME;
+
    { command line/enviroment functions }
-   function GetCommandLine : LPTSTR;external 'kernel32' name 'GetCommandLineA';
+   function GetCommandLine : LPTSTR;
+     external 'kernel32' name 'GetCommandLineA';
    function GetEnvironmentStrings : pchar;
      external 'kernel32' name 'GetEnvironmentStringsA';
    function FreeEnvironmentStrings(p : pchar) : boolean;
      external 'kernel32' name 'FreeEnvironmentStringsA';
 
-   { string functions }
+   { string functions
    function lstrlen(lpString:LPCTSTR):longint;external;
    function lstrcat(lpString1:LPTSTR; lpString2:LPCTSTR):LPTSTR;external;
    function lstrcpy(lpString1:LPTSTR; lpString2:LPCTSTR):LPTSTR;external;
+   }
 
    { process functions }
-   procedure ExitProcess(uExitCode : UINT);external 'kernel32' name 'ExitProcess';
+   procedure ExitProcess(uExitCode : UINT);
+     external 'kernel32' name 'ExitProcess';
 
    { file functions }
-   function GetStdHandle(nStdHandle:DWORD):HANDLE;external 'kernel32' name 'GetStdHandle';
+   function GetStdHandle(nStdHandle:DWORD):HANDLE;
+     external 'kernel32' name 'GetStdHandle';
    function WriteFile(fh:longint;buf:pointer;len:longint;var loaded:longint;
-                   overlap:pointer):longint;external 'kernel32' name 'WriteFile';
+     overlap:pointer):longint;
+     external 'kernel32' name 'WriteFile';
    function ReadFile(fh:longint;buf:pointer;len:longint;var loaded:longint;
-                  overlap:pointer):longint;external 'kernel32' name 'ReadFile';
-   function CloseHandle(h : longint) : longint;external 'kernel32' name 'CloseHandle';
-   function DeleteFile(p : pchar) : longint;external 'kernel32' name 'DeleteFileA';
-   function MoveFile(old,_new : pchar) : longint;external 'kernel32' name 'MoveFileA';
+     overlap:pointer):longint;
+     external 'kernel32' name 'ReadFile';
+   function CloseHandle(h : longint) : longint;
+     external 'kernel32' name 'CloseHandle';
+   function DeleteFile(p : pchar) : longint;
+     external 'kernel32' name 'DeleteFileA';
+   function MoveFile(old,_new : pchar) : longint;
+     external 'kernel32' name 'MoveFileA';
    function SetFilePointer(l1,l2 : longint;l3 : pointer;l4 : longint) : longint;
      external 'kernel32' name 'SetFilePointer';
    function GetFileSize(h:longint;p:pointer) : longint;
      external 'kernel32' name 'GetFileSize';
    function CreateFile(name:pointer;access,sharing:longint;security:pointer;
-     how,attr,template:longint) : longint;external 'kernel32' name 'CreateFileA';
+     how,attr,template:longint) : longint;
+     external 'kernel32' name 'CreateFileA';
    function CreateDirectory(name : pointer;sec : pointer) : longint;
      external 'kernel32' name 'CreateDirectoryA';
    function RemoveDirectory(name:pointer):longint;
@@ -96,37 +116,67 @@
      external 'kernel32' name 'SetFileAttributesA';
    function GetFileAttributes(lpFileName : pchar) : longint;
      external 'kernel32' name 'GetFileAttributesA';
+   function GetFileTime(h : longint;creation,lastaccess,lastwrite : PFILETIME) : boolean;
+     external 'kernel32' name 'GetFileTime';
+   function SetFileTime(h : longint;creation,lastaccess,lastwrite : PFILETIME) : boolean;
+     external 'kernel32' name 'SetFileTime';
 
    { module functions }
-   function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;external 'kernel32' name 'GetModuleFileNameA';
-   procedure GetStartupInfo(p : pointer);external 'kernel32' name 'GetStartupInfoA';
+   function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;
+     external 'kernel32' name 'GetModuleFileNameA';
+   procedure GetStartupInfo(p : pointer);
+     external 'kernel32' name 'GetStartupInfoA';
    function GetModuleHandle(p : pointer) : longint;
      external 'kernel32' name 'GetModuleHandleA';
 
    { memory functions }
-   function GlobalAlloc(mode,size:longint):longint;external 'kernel32' name 'GlobalAlloc';
-   function GlobalHandle(p:pointer):longint;external 'kernel32' name 'GlobalHandle';
-   function GlobalLock(handle:longint):pointer;external 'kernel32' name 'GlobalLock';
-   function GlobalUnlock(h:longint):longint;external 'kernel32' name 'GlobalUnlock';
-   function GlobalFree(h:longint):longint;external 'kernel32' name 'GlobalUnlock';
-   procedure GlobalMemoryStatus(p:pointer);external 'kernel32' name 'GlobalMemoryStatus';
-   function LocalAlloc(uFlags : UINT;uBytes :UINT) : HLOCAL;external 'kernel32' name 'LocalAlloc';
-   function LocalFree(hMem:HLOCAL):HLOCAL;external 'kernel32' name 'LocalFree';
+   function GlobalAlloc(mode,size:longint):longint;
+     external 'kernel32' name 'GlobalAlloc';
+   function GlobalHandle(p:pointer):longint;
+     external 'kernel32' name 'GlobalHandle';
+   function GlobalLock(handle:longint):pointer;
+     external 'kernel32' name 'GlobalLock';
+   function GlobalUnlock(h:longint):longint;
+     external 'kernel32' name 'GlobalUnlock';
+   function GlobalFree(h:longint):longint;
+     external 'kernel32' name 'GlobalUnlock';
+   procedure GlobalMemoryStatus(p:pointer);
+     external 'kernel32' name 'GlobalMemoryStatus';
+   function LocalAlloc(uFlags : UINT;uBytes :UINT) : HLOCAL;
+     external 'kernel32' name 'LocalAlloc';
+   function LocalFree(hMem:HLOCAL):HLOCAL;
+     external 'kernel32' name 'LocalFree';
 
    { time and date functions }
    procedure GetLocalTime(var t : SYSTEMTIME);
      external 'kernel32' name 'GetLocalTime';
    function SetLocalTime(const t : SYSTEMTIME) : boolean;
      external 'kernel32' name 'SetLocalTime';
+   function FileTimeToDosDateTime(const ft : FILETIME;var data,time : word) : boolean;
+     external 'kernel32' name 'FileTimeToDosDateTime';
+   function DosDateTimeToFileTime(date,time : word;var ft : FILETIME) : boolean;
+     external 'kernel32' name 'DosDateTimeToFileTime';
+   function GetTickCount : longint;
+     external 'kernel32' name 'GetTickCount';
+   function FileTimeToLocalFileTime(const ft : FILETIME;var lft : FILETIME) : boolean;
+     external 'kernel32' name 'FileTimeToLocalFileTime';
+   function LocalFileTimeToFileTime(const lft : FILETIME;var ft : FILETIME) : boolean;
+     external 'kernel32' name 'LocalFileTimeToFileTime';
 
    { misc. functions }
-   function GetLastError : DWORD;external 'kernel32' name 'GetLastError';
-   function MessageBox(w1:longint;l1,l2:pointer;w2:longint):longint;external 'user32' name 'MessageBoxA';
-   function GetTickCount : longint;external 'kernel32' name 'GetTickCount';
-   function GetVersion : longint;external 'kernel32' name 'GetVersion';
+   function GetLastError : DWORD;
+     external 'kernel32' name 'GetLastError';
+   function MessageBox(w1:longint;l1,l2:pointer;w2:longint):longint;
+     external 'user32' name 'MessageBoxA';
+   function GetVersion : longint;
+     external 'kernel32' name 'GetVersion';
+
 {
   $Log$
-  Revision 1.3  1998-04-26 21:49:58  florian
+  Revision 1.4  1998-04-26 22:37:22  florian
+    * some small extensions
+
+  Revision 1.3  1998/04/26 21:49:58  florian
     + more stuff added (??dir procedures etc.)
 
   Revision 1.2  1998/03/27 00:50:22  peter

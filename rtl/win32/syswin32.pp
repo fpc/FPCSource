@@ -2,7 +2,8 @@
     $Id$
     This file is part of the Free Pascal run time library.
     FPC Pascal system unit for the Win32 API.
-    Copyright (c) 1993,98 by Florian Klaempfl and Pavel Ozerski
+
+    Copyright (c) 1993-98 by Florian Klaempfl and Pavel Ozerski
     member of the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -410,7 +411,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-04-26 21:49:57  florian
+  Revision 1.4  1998-04-26 22:37:22  florian
+    * some small extensions
+
+  Revision 1.3  1998/04/26 21:49:57  florian
     + more stuff added (??dir procedures etc.)
 
   Revision 1.2  1998/03/27 00:50:22  peter
