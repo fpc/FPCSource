@@ -362,6 +362,12 @@ BASEINSTALLDIR=$(PREFIXINSTALLDIR)
 endif
 endif
 
+# try to find where libgcc.a is.
+ifdef inlinux
+ifndef GCCLIBDIR
+GCCLIBDIR:=$(shell "dirname `gcc -v | & awk -F" " '  print $4 }'`")
+endif
+endif
 
 #####################################################################
 # Install Directories based on BASEINSTALLDIR
@@ -876,8 +882,9 @@ fpc_depend:
 # Info rules
 #####################################################################
 
-fpc_info: fpc_cfginfo fpc_objectinfo fpc_toolsinfo fpc_installinfo
-
+fpc_info: fpc_cfginfo fpc_objectinfo fpc_toolsinfo fpc_installinfo\
+          fpc_dirinfo
+	
 fpc_cfginfo:
 	@$(ECHO)
 	@$(ECHO)  == Configuration info ==
@@ -889,6 +896,11 @@ fpc_cfginfo:
 	@$(ECHO)  Target.... $(OS_TARGET)
 	@$(ECHO)  Basedir... $(BASEDIR)
 	@$(ECHO)
+
+fpc_dirinfo
+ifdef inlinux
+	@$(ECHO)  GCC library in $(GCCLIBDIR)
+endif	
 
 fpc_toolsinfo:
 	@$(ECHO)
@@ -973,7 +985,10 @@ endif
 
 #
 # $Log$
-# Revision 1.15  1999-04-16 20:12:35  michael
+# Revision 1.16  1999-04-20 12:07:49  michael
+# Added autodetect of gcc lib for linux
+#
+# Revision 1.15  1999/04/16 20:12:35  michael
 # + install target now correctly takes the BASEINSTALLDIR on linux
 #
 # Revision 1.14  1999/04/08 10:16:17  peter
