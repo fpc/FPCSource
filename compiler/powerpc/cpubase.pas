@@ -124,7 +124,7 @@ uses
       treg64 = tregister64;
 
       {# Type definition for the array of string of register nnames }
-      reg2strtable = array[tregister] of string[5];
+      treg2strtable = array[tregister] of string[5];
 
     Const
       {# First register in the tregister enumeration }
@@ -153,7 +153,7 @@ uses
       VX = 6;
       OX = 7;}
 
-      mot_reg2str : reg2strtable = ('',
+      mot_reg2str : treg2strtable = ('',
         'r0','r1','r2','r3','r4','r5','r6','r7','r8','r9','r10','r11','r12','r13',
         'r14','r15','r16','r17','r18','r19','r20','r21','r22','r23','r24','r25',
         'r26','r27','r28','r29','r30','r31',
@@ -167,7 +167,7 @@ uses
         'XER','LR','CTR','FPSCR'
       );
 
-      std_reg2str : reg2strtable = ('',
+      std_reg2str : treg2strtable = ('',
         'r0','r1','r2','r3','r4','r5','r6','r7','r8','r9','r10','r11','r12','r13',
         'r14','r15','r16','r17','r18','r19','r20','r21','r22','r23','r24','r25',
         'r26','r27','r28','r29','r30','r31',
@@ -383,7 +383,7 @@ uses
               case longint of
                 1 : (value : AWord);
                 { can't do this, this layout depends on the host cpu. Use }
-                { lo(valueqword)/hi(valueqword) instead (JM)              }     
+                { lo(valueqword)/hi(valueqword) instead (JM)              }
                 { 2 : (valuelow, valuehigh:AWord);                        }
                 { overlay a complete 64 Bit value }
                 3 : (valueqword : qword);
@@ -709,7 +709,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2002-08-14 18:41:47  jonas
+  Revision 1.29  2002-08-18 21:36:42  florian
+    + handling of local variables in direct reader implemented
+
+  Revision 1.28  2002/08/14 18:41:47  jonas
     - remove valuelow/valuehigh fields from tlocation, because they depend
       on the endianess of the host operating system -> difficult to get
       right. Use lo/hi(location.valueqword) instead (remember to use

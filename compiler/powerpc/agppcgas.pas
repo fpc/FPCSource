@@ -31,7 +31,8 @@ unit agppcgas;
 
     uses
        aasmtai,
-       aggas;
+       aggas,
+       cpubase;
 
     type
       PPPCGNUAssembler=^TPPCGNUAssembler;
@@ -39,13 +40,29 @@ unit agppcgas;
         procedure WriteInstruction(hp : tai);override;
       end;
 
+    const
+      gas_reg2str : treg2strtable = ('',
+        'r0','r1','r2','r3','r4','r5','r6','r7','r8','r9','r10','r11','r12','r13','r14','r15','r16',
+        'r17','r18','r19','r20','r21','r22','r23','r24','r25','r26','r27','r28','r29','r30','r31',
+        'f0','f1','f2','f3','f4','f5','f6','f7', 'f8','f9','f10','f11','f12',
+        'f13','f14','f15','f16','f17', 'f18','f19','f20','f21','f22', 'f23','f24',
+        'f25','f26','f27','f28','f29','f30','f31',
+        'v0','v1','v2','v3','v4','v5','v6','v7','v8','v9','v10','v11','v12',
+        'v13','v14','v15','v16','v17','v18','v19','v20','v21','v22', 'v23','v24',
+        'v25','v26','v27','v28','v29','v30','v31',
+        'cR','cr0','cr1','cr2','cr3','cr4','cr5','cr6','cr7',
+        'xer','lr','ctr','fpscr'
+      );
+
+
+
   implementation
 
     uses
        cutils,globals,verbose,
        systems,
        assemble,
-       aasmcpu,cpubase;
+       aasmcpu;
 
     const
        as_ppc_gas_info : tasminfo =
@@ -113,19 +130,6 @@ unit agppcgas;
          'clrslwi.', 'blr', 'bctr', 'blrl', 'bctrl', 'crset', 'crclr', 'crmove',
          'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'mtcr');
 
-      reg2str : reg2strtable = ('',
-        'r0','r1','r2','r3','r4','r5','r6','r7','r8','r9','r10','r11','r12','r13','r14','r15','r16',
-        'r17','r18','r19','r20','r21','r22','r23','r24','r25','r26','r27','r28','r29','r30','r31',
-        'f0','f1','f2','f3','f4','f5','f6','f7', 'f8','f9','f10','f11','f12',
-        'f13','f14','f15','f16','f17', 'f18','f19','f20','f21','f22', 'f23','f24',
-        'f25','f26','f27','f28','f29','f30','f31',
-        'v0','v1','v2','v3','v4','v5','v6','v7','v8','v9','v10','v11','v12',
-        'v13','v14','v15','v16','v17','v18','v19','v20','v21','v22', 'v23','v24',
-        'v25','v26','v27','v28','v29','v30','v31',
-        'cR','cr0','cr1','cr2','cr3','cr4','cr5','cr6','cr7',
-        'xer','lr','ctr','fpscr'
-      );
-
      symaddr2str: array[trefsymaddr] of string[2] = ('','@ha','@l');
 
     function getreferencestring(var ref : treference) : string;
@@ -167,10 +171,10 @@ unit agppcgas;
                      else
                        s:=s+'0';
                   end;
-                s:=s+'('+reg2str[base]+')'
+                s:=s+'('+gas_reg2str[base]+')'
              end
            else if (index<>R_NO) and (base<>R_NO) and (offset=0) then
-             s:=s+reg2str[base]+','+reg2str[index]
+             s:=s+gas_reg2str[base]+','+gas_reg2str[index]
            else if ((index<>R_NO) or (base<>R_NO)) then
 {$ifndef testing}
             internalerror(19992);
@@ -190,7 +194,7 @@ unit agppcgas;
     begin
       case o.typ of
         top_reg :
-          getopstr_jmp:=reg2str[o.reg];
+          getopstr_jmp:=gas_reg2str[o.reg];
         { no top_ref jumping for powerpc }
         top_const :
           getopstr_jmp:=tostr(o.val);
@@ -222,7 +226,7 @@ unit agppcgas;
     begin
       case o.typ of
         top_reg:
-          getopstr:=reg2str[o.reg];
+          getopstr:=gas_reg2str[o.reg];
         { no top_ref jumping for powerpc }
         top_const:
           getopstr:=tostr(longint(o.val));
@@ -289,7 +293,7 @@ unit agppcgas;
                               branchmode(op)+#9;
                   case c.cond of
                     C_LT..C_NU:
-                      cond2str := tempstr+reg2str[c.cr];
+                      cond2str := tempstr+gas_reg2str[c.cr];
                     C_T..C_DZF:
                       cond2str := tempstr+tostr(c.crbit);
                   end;
@@ -351,7 +355,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-08-18 10:34:30  florian
+  Revision 1.13  2002-08-18 21:36:42  florian
+    + handling of local variables in direct reader implemented
+
+  Revision 1.12  2002/08/18 10:34:30  florian
     * more ppc assembling fixes
 
   Revision 1.11  2002/08/17 18:23:53  florian

@@ -53,7 +53,8 @@ interface
        { codegen }
        cgbase,
        { constants }
-       agppcgas
+       agppcgas,
+       cpubase
        ;
 
     function assemble : tnode;
@@ -134,8 +135,7 @@ interface
                                  end
                                else
                                  Message(asmr_w_using_defined_as_local);
-                           end;
-{$ifdef dummy}
+                           end
                          else
                            { access to local variables }
                            if assigned(aktprocdef) then
@@ -145,14 +145,14 @@ interface
 
                                 { is the last written character an special }
                                 { char ?                                   }
+                                { !!!
                                 if (s[length(s)]='%') and
                                    ret_in_acc(aktprocdef.rettype.def) and
                                    ((pos('AX',upper(hs))>0) or
                                    (pos('AL',upper(hs))>0)) then
                                   tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
-                                if (s[length(s)]<>'%') and
-                                  (s[length(s)]<>'$') and
-                                  ((s[length(s)]<>'0') or (hs[1]<>'x')) then
+                                }
+                                if ((s[length(s)]<>'0') or (hs[1]<>'x')) then
                                   begin
                                      if assigned(aktprocdef.localst) and
                                         (lexlevel >= normal_function_level) then
@@ -161,32 +161,27 @@ interface
                                        sym:=nil;
                                      if assigned(sym) then
                                        begin
-                                          if (sym.typ = labelsym) then
+                                          if (sym.typ=labelsym) then
                                             Begin
                                                hs:=tlabelsym(sym).lab.name;
                                             end
                                           else if sym.typ=varsym then
                                             begin
-                                            {variables set are after a comma }
-                                            {like in movl %eax,I }
-                                            if pos(',',s) > 0 then
-                                              tvarsym(sym).varstate:=vs_used
-                                            else
-                                            if (pos('MOV',upper(s)) > 0) and (tvarsym(sym).varstate=vs_declared) then
-                                             Message1(sym_n_uninitialized_local_variable,hs);
-                                            if (vo_is_external in tvarsym(sym).varoptions) then
-                                              hs:=tvarsym(sym).mangledname
-                                            else
-                                              hs:='-'+tostr(tvarsym(sym).address)+
-                                                  '('+gas_reg2str[procinfo^.framepointer]+')';
+                                               if (vo_is_external in tvarsym(sym).varoptions) then
+                                                 hs:=tvarsym(sym).mangledname
+                                               else
+                                                 begin
+                                                    if (tvarsym(sym).reg<>R_NO) then
+                                                      hs:=gas_reg2str[procinfo.framepointer]
+                                                    else
+                                                      hs:=tostr(tvarsym(sym).address)+
+                                                        '('+gas_reg2str[procinfo.framepointer]+')';
+                                                 end;
                                             end
                                           else
                                           { call to local function }
-                                          if (sym.typ=procsym) and ((pos('CALL',upper(s))>0) or
-                                             (pos('LEA',upper(s))>0)) then
-                                            begin
-                                               hs:=tprocsym(sym).defs^.def.mangledname;
-                                            end;
+                                          if (sym.typ=procsym) and (pos('BL',upper(s))>0) then
+                                            hs:=tprocsym(sym).defs^.def.mangledname;
                                        end
                                      else
                                        begin
@@ -201,83 +196,85 @@ interface
                                                     l:=tvarsym(sym).address;
                                                     { set offset }
                                                     inc(l,aktprocdef.parast.address_fixup);
-                                                    hs:=tostr(l)+'('+gas_reg2str[procinfo^.framepointer]+')';
+                                                    hs:=tostr(l)+'('+gas_reg2str[procinfo.framepointer]+')';
                                                     if pos(',',s) > 0 then
                                                       tvarsym(sym).varstate:=vs_used;
                                                  end;
-                                            end
-                                     { I added that but it creates a problem in line.ppi
-                                     because there is a local label wbuffer and
-                                     a static variable WBUFFER ...
-                                     what would you decide, florian ?}
-                                     else
-                                       begin
-                                          searchsym(upper(hs),sym,srsymtable);
-                                          if assigned(sym) and (sym.owner.symtabletype in [globalsymtable,staticsymtable]) then
-                                            begin
-                                              case sym.typ of
-                                                varsym :
-                                                  begin
-                                                    Message2(asmr_h_direct_global_to_mangled,hs,tvarsym(sym).mangledname);
-                                                    hs:=tvarsym(sym).mangledname;
-                                                    inc(tvarsym(sym).refs);
-                                                  end;
-                                                typedconstsym :
-                                                  begin
-                                                    Message2(asmr_h_direct_global_to_mangled,hs,ttypedconstsym(sym).mangledname);
-                                                    hs:=ttypedconstsym(sym).mangledname;
-                                                  end;
-                                                procsym :
-                                                  begin
-                                                    { procs can be called or the address can be loaded }
-                                                    if ((pos('CALL',upper(s))>0) or (pos('LEA',upper(s))>0)) then
-                                                     begin
-                                                       if assigned(tprocsym(sym).defs^.def) then
-                                                         Message1(asmr_w_direct_global_is_overloaded_func,hs);
-                                                       Message2(asmr_h_direct_global_to_mangled,hs,tprocsym(sym).defs^.def.mangledname);
-                                                       hs:=tprocsym(sym).defs^.def.mangledname;
-                                                     end;
-                                                  end;
-                                                else
-                                                  Message(asmr_e_wrong_sym_type);
-                                              end;
-                                            end
-                                          else if upper(hs)='__SELF' then
-                                            begin
-                                               if assigned(procinfo^._class) then
-                                                 hs:=tostr(procinfo^.selfpointer_offset)+
-                                                     '('+gas_reg2str[procinfo^.framepointer]+')'
-                                               else
-                                                Message(asmr_e_cannot_use_SELF_outside_a_method);
-                                            end
-                                          else if upper(hs)='__RESULT' then
-                                            begin
-                                               if (not is_void(aktprocdef.rettype.def)) then
-                                                 hs:=retstr
-                                               else
-                                                 Message(asmr_e_void_function);
-                                            end
-                                          { implement old stack/frame pointer access for nested procedures }
-                                          {!!!!
-                                          else if upper(hs)='__OLDSP' then
-                                            begin
-                                               { complicate to check there }
-                                               { we do it: }
-                                               if lexlevel>normal_function_level then
-                                                 hs:=tostr(procinfo^.framepointer_offset)+
-                                                   '('+gas_reg2str[procinfo^.framepointer]+')'
-                                               else
-                                                 Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
                                             end;
-                                          }
-                                          end;
+{$ifdef dummy}
+                                          { I added that but it creates a problem in line.ppi
+                                          because there is a local label wbuffer and
+                                          a static variable WBUFFER ...
+                                          what would you decide, florian ?}
+                                          else
+                                            begin
+                                               searchsym(upper(hs),sym,srsymtable);
+                                               if assigned(sym) and (sym.owner.symtabletype in [globalsymtable,staticsymtable]) then
+                                                 begin
+                                                   case sym.typ of
+                                                     varsym :
+                                                       begin
+                                                         Message2(asmr_h_direct_global_to_mangled,hs,tvarsym(sym).mangledname);
+                                                         hs:=tvarsym(sym).mangledname;
+                                                         inc(tvarsym(sym).refs);
+                                                       end;
+                                                     typedconstsym :
+                                                       begin
+                                                         Message2(asmr_h_direct_global_to_mangled,hs,ttypedconstsym(sym).mangledname);
+                                                         hs:=ttypedconstsym(sym).mangledname;
+                                                       end;
+                                                     procsym :
+                                                       begin
+                                                         { procs can be called or the address can be loaded }
+                                                         if ((pos('CALL',upper(s))>0) or (pos('LEA',upper(s))>0)) then
+                                                          begin
+                                                            if assigned(tprocsym(sym).defs^.def) then
+                                                              Message1(asmr_w_direct_global_is_overloaded_func,hs);
+                                                            Message2(asmr_h_direct_global_to_mangled,hs,tprocsym(sym).defs^.def.mangledname);
+                                                            hs:=tprocsym(sym).defs^.def.mangledname;
+                                                          end;
+                                                       end;
+                                                     else
+                                                       Message(asmr_e_wrong_sym_type);
+                                                   end;
+                                                 end
+                                               else if upper(hs)='__SELF' then
+                                                 begin
+                                                    if assigned(procinfo^._class) then
+                                                      hs:=tostr(procinfo^.selfpointer_offset)+
+                                                          '('+gas_reg2str[procinfo^.framepointer]+')'
+                                                    else
+                                                     Message(asmr_e_cannot_use_SELF_outside_a_method);
+                                                 end
+                                               else if upper(hs)='__RESULT' then
+                                                 begin
+                                                    if (not is_void(aktprocdef.rettype.def)) then
+                                                      hs:=retstr
+                                                    else
+                                                      Message(asmr_e_void_function);
+                                                 end
+                                               { implement old stack/frame pointer access for nested procedures }
+                                               {!!!!
+                                               else if upper(hs)='__OLDSP' then
+                                                 begin
+                                                    { complicate to check there }
+                                                    { we do it: }
+                                                    if lexlevel>normal_function_level then
+                                                      hs:=tostr(procinfo^.framepointer_offset)+
+                                                        '('+gas_reg2str[procinfo^.framepointer]+')'
+                                                    else
+                                                      Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
+                                                 end;
+                                               }
+                                               end;
+                                            end;
+{$endif dummy}
                                        end;
                                   end;
                              end;
-{$endif dummy}
                          s:=s+hs;
                       end;
-                 end;
+                end;
               '{',';',#10,#13:
                 begin
                    if pos(retstr,s) > 0 then
@@ -317,7 +314,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-08-10 14:52:52  carl
+  Revision 1.2  2002-08-18 21:36:42  florian
+    + handling of local variables in direct reader implemented
+
+  Revision 1.1  2002/08/10 14:52:52  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's
