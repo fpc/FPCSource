@@ -1658,6 +1658,9 @@ begin
 { new processor stuff }
 {$ifdef i386}
   def_symbol('CPUI386');
+  def_symbol('FPC_HAS_TYPE_EXTENDED');
+  def_symbol('FPC_HAS_TYPE_DOUBLE');
+  def_symbol('FPC_HAS_TYPE_SINGLE');
 {$endif}
 {$ifdef m68k}
   def_symbol('CPU68K');
@@ -1667,6 +1670,8 @@ begin
 {$endif}
 {$ifdef powerpc}
   def_symbol('CPUPOWERPC');
+  def_symbol('FPC_HAS_TYPE_DOUBLE');
+  def_symbol('FPC_HAS_TYPE_SINGLE');
 {$endif}
 {$ifdef iA64}
   def_symbol('CPUIA64');
@@ -1899,7 +1904,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.94  2003-03-28 19:16:56  peter
+  Revision 1.95  2003-04-24 11:21:45  florian
+    + HAS_TYPE_* defines for floats on i386 and powerpc added
+
+  Revision 1.94  2003/03/28 19:16:56  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386
