@@ -114,9 +114,18 @@ implementation
         { Load memory in fpu register }
         cg.a_loadfpu_ref_reg(exprasmlist,location.size,left.location.reference,location.register);
         tg.ungetiftemp(exprasmlist,left.location.reference);
-{$warning TODO Handle also double}
+
         { Convert value in fpu register from integer to float }
-        exprasmlist.concat(taicpu.op_reg_reg(A_FiTOs,location.register,location.register));
+        case tfloatdef(resulttype.def).typ of
+          s32real:
+             exprasmlist.concat(taicpu.op_reg_reg(A_FiTOs,location.register,location.register));
+          s64real:
+            exprasmlist.concat(taicpu.op_reg_reg(A_FiTOd,location.register,location.register));
+          s128real:
+            exprasmlist.concat(taicpu.op_reg_reg(A_FiTOq,location.register,location.register));
+          else
+            internalerror(200408011);
+        end;
       end;
 
 
@@ -142,7 +151,7 @@ implementation
           internalerror(200401121);
         location_release(exprasmlist,left.location);
         location.register:=cg.getfpuregister(exprasmlist,location.size);
-        exprasmlist.concat(taicpu.op_reg_reg(A_FsTOd,left.location.register,location.register));
+        exprasmlist.concat(taicpu.op_reg_reg(op,left.location.register,location.register));
       end;
 
 
@@ -226,7 +235,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2004-06-20 08:55:32  florian
+  Revision 1.27  2004-08-01 19:01:10  florian
+    * float to float and int to float fixed
+
+  Revision 1.26  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.25  2004/06/16 20:07:10  florian
