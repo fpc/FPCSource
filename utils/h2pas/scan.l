@@ -75,6 +75,14 @@ unit scan;
           { p contains the operator string
             p1 contains the left expr
             p2 contains the right expr }
+          t_arrayop,
+          {
+            p1 contains the array expr
+            p2 contains the index expressions }
+          t_callop,
+          {
+            p1 contains the proc expr
+            p2 contains the index expressions }
           t_arg,
           {
             p1 contain the typedef
@@ -110,12 +118,14 @@ unit scan;
           p : pchar;
           next : presobject;
           p1,p2,p3 : presobject;
-          { dtyp : tdtyp; }
+          { name of int/real, then no T prefix is required }
+          intname : boolean;
           constructor init_no(t : ttyp);
           constructor init_one(t : ttyp;_p1 : presobject);
           constructor init_two(t : ttyp;_p1,_p2 : presobject);
           constructor init_three(t : ttyp;_p1,_p2,_p3 : presobject);
           constructor init_id(const s : string);
+          constructor init_intid(const s : string);
           constructor init_bop(const s : string;_p1,_p2 : presobject);
           constructor init_preop(const s : string;_p1 : presobject);
           procedure setstr(const s:string);
@@ -208,6 +218,7 @@ unit scan;
          p2:=nil;
          p3:=nil;
          next:=nil;
+         intname:=false;
       end;
 
     constructor tresobject.init_bop(const s : string;_p1,_p2 : presobject);
@@ -218,6 +229,7 @@ unit scan;
          p2:=_p2;
          p3:=nil;
          next:=nil;
+         intname:=false;
       end;
 
     constructor tresobject.init_id(const s : string);
@@ -228,6 +240,18 @@ unit scan;
          p2:=nil;
          p3:=nil;
          next:=nil;
+         intname:=false;
+      end;
+
+    constructor tresobject.init_intid(const s : string);
+      begin
+         typ:=t_id;
+         p:=strpnew(s);
+         p1:=nil;
+         p2:=nil;
+         p3:=nil;
+         next:=nil;
+         intname:=true;
       end;
 
     constructor tresobject.init_two(t : ttyp;_p1,_p2 : presobject);
@@ -238,6 +262,7 @@ unit scan;
          p3:=nil;
          p:=nil;
          next:=nil;
+         intname:=false;
       end;
 
     constructor tresobject.init_three(t : ttyp;_p1,_p2,_p3 : presobject);
@@ -248,6 +273,7 @@ unit scan;
          p3:=_p3;
          p:=nil;
          next:=nil;
+         intname:=false;
       end;
 
     constructor tresobject.init_one(t : ttyp;_p1 : presobject);
@@ -258,6 +284,7 @@ unit scan;
          p3:=nil;
          next:=nil;
          p:=nil;
+         intname:=false;
       end;
 
     constructor tresobject.init_no(t : ttyp);
@@ -268,6 +295,7 @@ unit scan;
          p2:=nil;
          p3:=nil;
          next:=nil;
+         intname:=false;
       end;
 
     procedure tresobject.setstr(const s : string);
@@ -310,6 +338,7 @@ unit scan;
          newres : presobject;
       begin
          newres:=new(presobject,init_no(typ));
+         newres^.intname:=intname;
          if assigned(p) then
            newres^.p:=strnew(p);
          if assigned(p1) then
@@ -415,10 +444,8 @@ D [0-9]
                         else
                           return(256);
 {D}*[U]?[L]?            begin
-                           if yytext[length(yytext)]='L' then
-                             dec(byte(yytext[0]));
-                           if yytext[length(yytext)]='U' then
-                             dec(byte(yytext[0]));
+                           if yytext[length(yytext)] in ['L','U'] then
+                             Delete(yytext,length(yytext),1);
                            return(NUMBER);
                         end;
 "0x"[0-9A-Fa-f]*[U]?[L]?
@@ -429,10 +456,8 @@ D [0-9]
                                 delete(yytext,1,2);
                                 yytext:='$'+yytext;
                              end;
-                           if yytext[length(yytext)]='L' then
-                             dec(byte(yytext[0]));
-                           if yytext[length(yytext)]='U' then
-                             dec(byte(yytext[0]));
+                           if yytext[length(yytext)] in ['L','U'] then
+                             Delete(yytext,length(yytext),1);
                            return(NUMBER);
                         end;
 {D}+(\.{D}+)?([Ee][+-]?{D}+)?
@@ -455,6 +480,7 @@ D [0-9]
 "<"                     return(LT);
 "|"                     return(_OR);
 "&"                     return(_AND);
+"~"                     return(_NOT); (* inverse, but handled as not operation *)
 "!"                     return(_NOT);
 "/"                     return(_SLASH);
 "+"                     return(_PLUS);
@@ -572,6 +598,21 @@ D [0-9]
                            flush(outfile);
                            block_type:=bt_no;
                         end;
+"# "[0-9]+" "           begin
+                          (* preprocessor line info *)
+                          repeat
+                            c:=get_char;
+                            case c of
+                              newline :
+                                begin
+                                  unget_char(c);
+                                  exit;
+                                end;
+                              #0 :
+                                commenteof;
+                            end;
+                          until false;
+                        end;
 "#"[ \t]*"pragma"       begin
                            if not stripinfo then
                             begin
@@ -600,6 +641,7 @@ D [0-9]
 "int"                   return(INT);
 "short"                 return(SHORT);
 "long"                  return(LONG);
+"signed"                return(SIGNED);
 "unsigned"              return(UNSIGNED);
 "float"                 return(REAL);
 "const"                 return(_CONST);
