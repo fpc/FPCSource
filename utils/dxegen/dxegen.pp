@@ -119,7 +119,7 @@ Var
   Tmp           : array[0..8] Of char;
   Written       : Word;
 
-Function fixrelocs(i:longint): preloc; inline;
+Function fixrelocs(i:longint): preloc; {$ifdef HASINLINE}inline;{$endif}
 
 Begin
   fixrelocs := preloc(longint(relocs)+i*SIZEOF(reloc));
@@ -315,6 +315,9 @@ Begin
   Close(output_f);
 End.
 {
- $Log:
+ $Log$
+ Revision 1.2  2001-08-02 10:41:50  marco
+  * Fix from peter (inline between ifdefs) committed
 
 }
+
