@@ -1687,7 +1687,8 @@ const
             begin
               if (pd.deftype<>procdef) then
                internalerror(200110232);
-              tprocdef(pd).setmangledname(lower(tprocdef(pd).procsym.name));
+              if (target_info.system<>system_i386_watcom) then
+                tprocdef(pd).setmangledname(lower(tprocdef(pd).procsym.name));
             end;
           pocall_far16 :
             begin
@@ -2126,7 +2127,10 @@ const
 end.
 {
   $Log$
-  Revision 1.144  2003-10-03 22:00:33  peter
+  Revision 1.145  2003-10-05 11:10:52  peter
+    * temporary fix for compilerprocs on watcom
+
+  Revision 1.144  2003/10/03 22:00:33  peter
     * parameter alignment fixes
 
   Revision 1.143  2003/10/02 21:13:09  peter
