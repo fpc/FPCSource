@@ -712,7 +712,7 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
     function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT;var optval;var optlen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'getsockopt';
     function htonl(hostlong:u_long):u_long;stdcall;external winsockdll name 'htonl';
-    function htons(hostshort:u_short):u_short;external winsockdll name 'htons';
+    function htons(hostshort:u_short):u_short;stdcall;external winsockdll name 'htons';
     function inet_addr(cp:pchar):cardinal;stdcall;external winsockdll name 'inet_addr';
     function inet_ntoa(i : TInAddr):pchar;stdcall;external winsockdll name 'inet_ntoa';
     function listen(s:TSocket; backlog:tOS_INT):tOS_INT;stdcall;external winsockdll name 'listen';
@@ -911,7 +911,10 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
 end.
 {
   $Log$
-  Revision 1.13  2004-06-06 04:01:45  marco
+  Revision 1.14  2004-06-14 08:27:06  michael
+  + Fix for bug 3166 by Michalis Kamburelis
+
+  Revision 1.13  2004/06/06 04:01:45  marco
    * fix for 3142 (I hope).
 
   Revision 1.12  2003/01/01 14:34:22  peter
