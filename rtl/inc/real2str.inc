@@ -286,8 +286,8 @@ begin
             end;
           { adjust the precision depending on how many digits we already }
           { "processed" by multiplying by 10                             }
-          if currPrec >= abs(Correct) then
-            currPrec := currPrec - abs(correct)+1;
+{          if currPrec >= abs(Correct) then
+            currPrec := currPrec - abs(correct)+1;}
         end;
       { current length of the output string in endPos }
       endPos := spos;
@@ -305,7 +305,8 @@ begin
               corrVal := 0.5;
               for fracCount := 1 to currPrec do
                 corrVal := corrVal / 10.0;
-              d := d + corrVal;
+              if d > corrVal then
+                d := d + corrVal;
             end;
           { 0.0 < d < 1.0 if we didn't round of earlier, otherwise 1 < d < 10 }
           if d < 1.0-roundCorr then
@@ -375,7 +376,12 @@ end;
 
 {
   $Log$
-  Revision 1.23  2000-02-26 15:49:40  jonas
+  Revision 1.24  2000-02-26 18:53:11  jonas
+    * fix for lost precision because sometimes the correction value was
+      larger than the number to be corrected
+    * incompatibility with TP's output fixed
+
+  Revision 1.23  2000/02/26 15:49:40  jonas
     + new str_real which is completely TP compatible regarding output
       format and which should have no rounding errors anymore
 
