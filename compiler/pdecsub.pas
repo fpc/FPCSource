@@ -48,7 +48,7 @@ interface
     procedure parse_proc_directives(var pdflags:word);
 
     procedure handle_calling_convention(sym:tprocsym;def:tabstractprocdef);
-    procedure calc_parasymtable_addresses(def:tprocdef);
+    procedure calc_parasymtable_addresses(pd:tprocdef);
 
     procedure parse_proc_head(options:tproctypeoption);
     procedure parse_proc_dec;
@@ -1711,41 +1711,35 @@ const
       end;
 
 
-    procedure calc_parasymtable_addresses(def:tprocdef);
+    procedure calc_parasymtable_addresses(pd:tprocdef);
       var
-        lastps,
-        ps : tsym;
+        currpara : tparaitem;
         st : tsymtable;
       begin
-        st:=def.parast;
-        if po_leftright in def.procoptions then
+        st:=pd.parast;
+        if po_leftright in pd.procoptions then
          begin
-           { pushed in reversed order, left to right }
-           lastps:=nil;
-           while assigned(st.symindex.first) and (lastps<>tsym(st.symindex.first)) do
+           { pushed from left to right, so the in reverse order
+             on the stack }
+           currpara:=tparaitem(pd.para.last);
+           while assigned(currpara) do
             begin
-              ps:=tsym(st.symindex.first);
-              while assigned(ps.indexnext) and (tsym(ps.indexnext)<>lastps) do
-                ps:=tsym(ps.indexnext);
-              if (ps.typ=varsym) then
-                st.insertvardata(ps);
-              lastps:=ps;
+              if not(assigned(currpara.parasym) and (currpara.parasym.typ=varsym)) then
+                internalerror(200304231);
+              st.insertvardata(currpara.parasym);
+              currpara:=tparaitem(currpara.previous);
             end;
          end
         else
          begin
-           { pushed in normal order, right to left }
-           ps:=tsym(st.symindex.first);
-           while assigned(ps) do
+           { pushed from right to left }
+           currpara:=tparaitem(pd.para.first);
+           while assigned(currpara) do
             begin
-              if (ps.typ=varsym) and
-                 not(vo_is_high_value in tvarsym(ps).varoptions) then
-               begin
-                 st.insertvardata(ps);
-                 if assigned(tvarsym(ps).highvarsym) then
-                   st.insertvardata(tvarsym(ps).highvarsym);
-               end;
-              ps:=tsym(ps.indexnext);
+              if not(assigned(currpara.parasym) and (currpara.parasym.typ=varsym)) then
+                internalerror(200304232);
+              st.insertvardata(currpara.parasym);
+              currpara:=tparaitem(currpara.next);
             end;
          end;
       end;
@@ -2132,7 +2126,12 @@ const
 end.
 {
   $Log$
-  Revision 1.111  2003-04-10 17:57:53  peter
+  Revision 1.112  2003-04-22 13:47:08  peter
+    * fixed C style array of const
+    * fixed C array passing
+    * fixed left to right with high parameters
+
+  Revision 1.111  2003/04/10 17:57:53  peter
     * vs_hidden released
 
   Revision 1.110  2003/03/28 19:16:56  peter

@@ -168,17 +168,13 @@ unit paramgr;
           recorddef :
             push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (def.size>pointer_size);
           arraydef :
-            push_addr_param:=(
-                              not(calloption in [pocall_cdecl,pocall_cppdecl]) and
+            push_addr_param:=(calloption in [pocall_cdecl,pocall_cppdecl]) or
+                             (
                               (tarraydef(def).highrange>=tarraydef(def).lowrange) and
                               (def.size>pointer_size)
                              ) or
                              is_open_array(def) or
-                             { array of const for cdecl are only pushed values }
-                             (
-                              not(calloption in [pocall_cdecl,pocall_cppdecl]) and
-                              is_array_of_const(def)
-                             ) or
+                             is_array_of_const(def) or
                              is_array_constructor(def);
           objectdef :
             push_addr_param:=is_object(def);
@@ -405,7 +401,12 @@ end.
 
 {
    $Log$
-   Revision 1.31  2003-02-02 19:25:54  carl
+   Revision 1.32  2003-04-22 13:47:08  peter
+     * fixed C style array of const
+     * fixed C array passing
+     * fixed left to right with high parameters
+
+   Revision 1.31  2003/02/02 19:25:54  carl
      * Several bugfixes for m68k target (register alloc., opcode emission)
      + VIS target
      + Generic add more complete (still not verified)

@@ -753,7 +753,8 @@ implementation
                           { range checking for open and dynamic arrays needs
                             runtime code }
                           secondpass(right);
-                          rangecheck_array;
+                          if (cs_check_range in aktlocalswitches) then
+                            rangecheck_array;
                        end;
                   end;
                 stringdef :
@@ -944,7 +945,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2003-04-22 10:09:35  daniel
+  Revision 1.47  2003-04-22 13:47:08  peter
+    * fixed C style array of const
+    * fixed C array passing
+    * fixed left to right with high parameters
+
+  Revision 1.46  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

@@ -133,8 +133,8 @@ implementation
              else
                push_value_para(exprasmlist,left,calloption,para_offset,para_alignment,paraitem.paraloc);
            end
-         { filter array constructor with c styled args }
-         else if is_array_constructor(left.resulttype.def) and (nf_cargs in left.flags) then
+         { filter array of const c styled args }
+         else if is_array_of_const(left.resulttype.def) and (nf_cargs in left.flags) then
            begin
              { nothing, everything is already pushed }
            end
@@ -1299,7 +1299,7 @@ implementation
     procedure tcgprocinlinenode.pass_2;
        var st : tsymtable;
            oldprocdef : tprocdef;
-           ps, i : longint;
+           savedstackoffset,ps, i : longint;
            oldprocinfo : tprocinfo;
            oldinlining_procedure,
            nostackframe,make_global : boolean;
@@ -1476,7 +1476,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-04-22 10:09:34  daniel
+  Revision 1.49  2003-04-22 13:47:08  peter
+    * fixed C style array of const
+    * fixed C array passing
+    * fixed left to right with high parameters
+
+  Revision 1.48  2003/04/22 10:09:34  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

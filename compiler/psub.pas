@@ -125,7 +125,7 @@ implementation
               akttokenpos:=storepos;
 
 (*            already done by
-              symtablestack.insertvardata(aktprocdef.funcretsym); above (JM)              
+              symtablestack.insertvardata(aktprocdef.funcretsym); above (JM)
               procinfo.set_result_offset;
 *)
               { insert result also if support is on }
@@ -226,6 +226,8 @@ implementation
          code:tnode;
          { true when no stackframe is required }
          nostackframe:boolean;
+         { offset where the stackpointer is saved, -1 when not saved }
+         savedstackoffset:longint;
          { number of bytes which have to be cleared by RET }
          parasize:longint;
          { filepositions }
@@ -884,7 +886,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  2003-04-22 10:09:35  daniel
+  Revision 1.100  2003-04-22 13:47:08  peter
+    * fixed C style array of const
+    * fixed C array passing
+    * fixed left to right with high parameters
+
+  Revision 1.99  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

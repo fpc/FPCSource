@@ -128,6 +128,10 @@ unit cgbase;
           }
           exception_result_ref :treference;
 
+          {# Holds the reference used to store the original stackpointer
+             after all registers are saved
+          }
+          save_stackptr_ref :treference;
           {# Holds the reference used to store alll saved registers.
 
              This is used on systems which do not have direct stack
@@ -397,6 +401,7 @@ implementation
         reference_reset(exception_env_ref);
         reference_reset(exception_jmp_ref);
         reference_reset(exception_result_ref);
+        reference_reset(save_stackptr_ref);
       end;
 
 
@@ -428,7 +433,7 @@ implementation
            begin
               if paramanager.ret_in_reg(procdef.rettype.def,procdef.proccalloption) then
                 begin
-(* already done in symtable.pas:tlocalsymtable.insertvardata() (JM) 
+(* already done in symtable.pas:tlocalsymtable.insertvardata() (JM)
                    { the space has been set in the local symtable }
                    procinfo.return_offset:=tg.direction*tfuncretsym(procdef.funcretsym).address;
 *)
@@ -443,7 +448,7 @@ implementation
       end;
 
 
-(* already done in symtable.pas:tlocalsymtable.insertvardata() (JM) 
+(* already done in symtable.pas:tlocalsymtable.insertvardata() (JM)
     procedure tprocinfo.set_result_offset;
       begin
          if paramanager.ret_in_reg(procdef.rettype.def,procdef.proccalloption) then
@@ -663,7 +668,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2003-04-05 21:09:31  jonas
+  Revision 1.40  2003-04-22 13:47:08  peter
+    * fixed C style array of const
+    * fixed C array passing
+    * fixed left to right with high parameters
+
+  Revision 1.39  2003/04/05 21:09:31  jonas
     * several ppc/generic result offset related fixes. The "normal" result
       offset seems now to be calculated correctly and a lot of duplicate
       calculations have been removed. Nested functions accessing the parent's

@@ -364,7 +364,6 @@ unit cgobj;
           procedure g_overflowcheck(list: taasmoutput; const p: tnode); virtual; abstract;
 
           procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);virtual;abstract;
-          procedure g_removevaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);virtual;abstract;
           {# Emits instructions which should be emitted when entering
              a routine declared as @var(interrupt). The default
              behavior does nothing, should be overriden as required.
@@ -1839,7 +1838,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.82  2003-04-22 10:09:34  daniel
+  Revision 1.83  2003-04-22 13:47:08  peter
+    * fixed C style array of const
+    * fixed C array passing
+    * fixed left to right with high parameters
+
+  Revision 1.82  2003/04/22 10:09:34  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

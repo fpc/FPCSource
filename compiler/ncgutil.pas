@@ -65,9 +65,10 @@ interface
     procedure genentrycode(list : TAAsmoutput;
                            make_global:boolean;
                            stackframe:longint;
-                           var parasize:longint;var nostackframe:boolean;
+                           var parasize:longint;
+                           var nostackframe:boolean;
                            inlined : boolean);
-   procedure genexitcode(list : TAAsmoutput;parasize:longint;nostackframe,inlined:boolean);
+   procedure genexitcode(list : TAAsmoutput;parasize:longint;nostackframe:boolean;inlined:boolean);
    procedure genimplicitunitinit(list : TAAsmoutput);
    procedure genimplicitunitfinal(list : TAAsmoutput);
 
@@ -962,24 +963,6 @@ implementation
       end;
 
 
-    procedure removevalueparas(p : tnamedindexitem;arg:pointer);
-      var
-        href1 : treference;
-        list : taasmoutput;
-      begin
-        list:=taasmoutput(arg);
-        if (tsym(p).typ=varsym) and
-           (tvarsym(p).varspez=vs_value) and
-           (is_open_array(tvarsym(p).vartype.def) or
-            is_array_of_const(tvarsym(p).vartype.def)) and
-           (paramanager.push_addr_param(tvarsym(p).vartype.def,procinfo.procdef.proccalloption)) then
-         begin
-           reference_reset_base(href1,procinfo.framepointer,tvarsym(p).address+procinfo.para_offset);
-           cg.g_removevaluepara_openarray(list,href1,tarraydef(tvarsym(p).vartype.def).elesize);
-         end;
-      end;
-
-
     { generates the code for initialisation of local data }
     procedure initialize_data(p : tnamedindexitem;arg:pointer);
       var
@@ -1313,7 +1296,8 @@ function returns in a register and the caller receives it in an other one}
     procedure genentrycode(list : TAAsmoutput;
                            make_global:boolean;
                            stackframe:longint;
-                           var parasize:longint;var nostackframe:boolean;
+                           var parasize:longint;
+                           var nostackframe:boolean;
                            inlined : boolean);
       var
         hs : string;
@@ -1321,6 +1305,7 @@ function returns in a register and the caller receives it in an other one}
         stackalloclist : taasmoutput;
         hp : tparaitem;
         paraloc : tparalocation;
+        rsp,
         tmpreg : tregister;
         inheriteddesctructorlabel : tasmlabel;
       begin
@@ -1340,6 +1325,18 @@ function returns in a register and the caller receives it in an other one}
          { should we save edi,esi,ebx like C ? }
          if (po_savestdregs in aktprocdef.procoptions) then
            cg.g_save_standard_registers(list,aktprocdef.usedintregisters);
+
+        { Save stackpointer value }
+        if not inlined and
+           (procinfo.framepointer.number<>NR_STACK_POINTER_REG) and
+           ((po_savestdregs in aktprocdef.procoptions) or
+            (po_saveregisters in aktprocdef.procoptions)) then
+         begin
+           tg.GetTemp(list,POINTER_SIZE,tt_noreuse,procinfo.save_stackptr_ref);
+           rsp.enum:=R_INTREGISTER;
+           rsp.number:=NR_STACK_POINTER_REG;
+           cg.a_load_reg_ref(list,OS_ADDR,rsp,procinfo.save_stackptr_ref);
+         end;
 
         { the actual profile code can clobber some registers,
           therefore if the context must be saved, do it before
@@ -1643,7 +1640,7 @@ function returns in a register and the caller receives it in an other one}
       end;
 
 
-   procedure genexitcode(list : TAAsmoutput;parasize:longint;nostackframe,inlined:boolean);
+   procedure genexitcode(list : TAAsmoutput;parasize:longint;nostackframe:boolean;inlined:boolean);
       var
 {$ifdef GDB}
         stabsendlabel : tasmlabel;
@@ -1659,7 +1656,7 @@ function returns in a register and the caller receives it in an other one}
         usesacchi,
         usesself,usesfpu : boolean;
         pd : tprocdef;
-        tmpreg,r  : Tregister;
+        rsp,tmpreg,r  : Tregister;
       begin
         if aktexit2label.is_used and
            ((procinfo.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0) then
@@ -1857,12 +1854,17 @@ function returns in a register and the caller receives it in an other one}
           end;
 {$endif GDB}
 
-        { remove copies of call by value parameters when there are also
-          registers saved on the stack }
-        if ((po_saveregisters in aktprocdef.procoptions) or
-            (po_savestdregs in aktprocdef.procoptions)) and
-           not(po_assembler in aktprocdef.procoptions) then
-          aktprocdef.parast.foreach_static({$ifndef TP}@{$endif}removevalueparas,list);
+        { Restore stackpointer if it was saved }
+        if not inlined and
+           (procinfo.framepointer.number<>NR_STACK_POINTER_REG) and
+           ((po_savestdregs in aktprocdef.procoptions) or
+            (po_saveregisters in aktprocdef.procoptions)) then
+         begin
+           rsp.enum:=R_INTREGISTER;
+           rsp.number:=NR_STACK_POINTER_REG;
+           cg.a_load_ref_reg(list,OS_ADDR,procinfo.save_stackptr_ref,rsp);
+           tg.UngetTemp(list,procinfo.save_stackptr_ref);
+         end;
 
         { for the save all registers we can simply use a pusha,popa which
           push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
@@ -2046,7 +2048,12 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.85  2003-04-22 10:09:35  daniel
+  Revision 1.86  2003-04-22 13:47:08  peter
+    * fixed C style array of const
+    * fixed C array passing
+    * fixed left to right with high parameters
+
+  Revision 1.85  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

@@ -109,7 +109,6 @@ unit cgx86;
 
         { entry/exit code helpers }
         procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);override;
-        procedure g_removevaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);override;
         procedure g_interrupt_stackframe_entry(list : taasmoutput);override;
         procedure g_interrupt_stackframe_exit(list : taasmoutput;selfused,accused,acchiused:boolean);override;
         procedure g_profilecode(list : taasmoutput);override;
@@ -1516,33 +1515,6 @@ unit cgx86;
       end;
 
 
-    procedure tcgx86.g_removevaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);
-      var
-        lenref : treference;
-        power  : longint;
-        r,rsp  : Tregister;
-      begin
-        lenref:=ref;
-        inc(lenref.offset,4);
-        { caluclate size and adjust stack space }
-        rg.getexplicitregisterint(list,NR_EDI);
-        r.enum:=R_INTREGISTER;
-        r.number:=NR_EDI;
-        rsp.enum:=R_INTREGISTER;
-        rsp.number:=NR_ESP;
-        list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,r));
-        list.concat(Taicpu.op_reg(A_INC,S_L,r));
-        if (elesize<>1) then
-         begin
-           if ispowerof2(elesize, power) then
-             list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,r))
-           else
-             list.concat(Taicpu.op_const_reg(A_IMUL,S_L,elesize,r));
-         end;
-        list.concat(Taicpu.op_reg_reg(A_ADD,S_L,r,rsp));
-      end;
-
-
     procedure tcgx86.g_interrupt_stackframe_entry(list : taasmoutput);
 
     var r:Tregister;
@@ -1862,7 +1834,12 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.39  2003-04-22 10:09:35  daniel
+  Revision 1.40  2003-04-22 13:47:08  peter
+    * fixed C style array of const
+    * fixed C array passing
+    * fixed left to right with high parameters
+
+  Revision 1.39  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used
