@@ -967,7 +967,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  1999-11-05 13:15:00  florian
+  Revision 1.52  1999-11-06 14:34:29  peter
+    * truncated log to 20 revs
+
+  Revision 1.51  1999/11/05 13:15:00  florian
     * some fixes to get the new cg compiling again
 
   Revision 1.50  1999/09/27 23:45:00  peter
@@ -1042,127 +1045,5 @@ end.
   Revision 1.34  1999/06/02 22:25:54  pierre
   * changed $ifdef FPC @ into $ifndef TP
   + debug note about longint to pointer conversion
-
-  Revision 1.33  1999/05/27 19:45:15  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.32  1999/05/20 14:58:28  peter
-    * fixed arrayconstruct->set conversion which didn't work for enum sets
-
-  Revision 1.31  1999/05/13 21:59:52  peter
-    * removed oldppu code
-    * warning if objpas is loaded from uses
-    * first things for new deref writing
-
-  Revision 1.30  1999/05/12 00:20:00  peter
-    * removed R_DEFAULT_SEG
-    * uniform float names
-
-  Revision 1.29  1999/05/09 11:37:05  peter
-    * fixed order of arguments for incompatible types message
-
-  Revision 1.28  1999/05/06 09:05:34  peter
-    * generic write_float and str_float
-    * fixed constant float conversions
-
-  Revision 1.27  1999/05/01 13:24:48  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.26  1999/04/26 13:31:58  peter
-    * release storenumber,double_checksum
-
-  Revision 1.25  1999/04/22 10:49:09  peter
-    * fixed pchar to string location
-
-  Revision 1.24  1999/04/21 09:44:01  peter
-    * storenumber works
-    * fixed some typos in double_checksum
-    + incompatible types type1 and type2 message (with storenumber)
-
-  Revision 1.23  1999/04/15 08:56:24  peter
-    * fixed bool-bool conversion
-
-  Revision 1.22  1999/04/08 09:47:31  pierre
-   * warn if uninitilized local vars are used in IS or AS statements
-
-  Revision 1.21  1999/03/06 17:25:20  peter
-    * moved comp<->real warning so it doesn't occure everytime that
-      isconvertable is called with
-
-  Revision 1.20  1999/03/02 18:24:23  peter
-    * fixed overloading of array of char
-
-  Revision 1.19  1999/02/22 02:15:46  peter
-    * updates for ag386bin
-
-  Revision 1.18  1999/01/27 14:56:57  pierre
-  * typo error corrected solves bug0190 and bug0204
-
-  Revision 1.17  1999/01/27 14:15:25  pierre
-   * bug0209 corrected (introduce while solving other bool to int related bugs)
-
-  Revision 1.16  1999/01/27 13:02:21  pierre
-   boolean to int conversion problems bug0205 bug0208
-
-  Revision 1.15  1999/01/27 00:13:57  florian
-    * "procedure of object"-stuff fixed
-
-  Revision 1.14  1999/01/19 12:17:45  peter
-    * removed rangecheck warning which was shown twice
-
-  Revision 1.13  1998/12/30 22:13:47  peter
-    * if explicit cnv then also handle the ordinal consts direct
-
-  Revision 1.12  1998/12/11 00:03:53  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.11  1998/12/04 10:18:12  florian
-    * some stuff for procedures of object added
-    * bug with overridden virtual constructors fixed (reported by Italo Gomes)
-
-  Revision 1.10  1998/11/29 12:40:24  peter
-    * newcnv -> not oldcnv
-
-  Revision 1.9  1998/11/26 13:10:43  peter
-    * new int - int conversion -dNEWCNV
-    * some function renamings
-
-  Revision 1.8  1998/11/05 12:03:03  peter
-    * released useansistring
-    * removed -Sv, its now available in fpc modes
-
-  Revision 1.7  1998/10/23 11:58:27  florian
-    * better code generation for s:=s+[b] if b is in the range of
-      a small set and s is also a small set
-
-  Revision 1.6  1998/10/21 15:12:58  pierre
-    * bug fix for IOCHECK inside a procedure with iocheck modifier
-    * removed the GPF for unexistant overloading
-      (firstcall was called with procedinition=nil !)
-    * changed typen to what Florian proposed
-      gentypenode(p : pdef) sets the typenodetype field
-      and resulttype is only set if inside bt_type block !
-
-  Revision 1.5  1998/10/07 10:38:55  peter
-    * forgot a firstpass in arrayconstruct2set
-
-  Revision 1.4  1998/10/05 21:33:32  peter
-    * fixed 161,165,166,167,168
-
-  Revision 1.3  1998/09/27 10:16:26  florian
-    * type casts pchar<->ansistring fixed
-    * ansistring[..] calls does now an unique call
-
-  Revision 1.2  1998/09/24 23:49:22  peter
-    + aktmodeswitches
-
-  Revision 1.1  1998/09/23 20:42:24  peter
-    * splitted pass_1
 
 }

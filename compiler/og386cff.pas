@@ -978,7 +978,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.13  1999-11-02 15:06:57  peter
+  Revision 1.14  1999-11-06 14:34:21  peter
+    * truncated log to 20 revs
+
+  Revision 1.13  1999/11/02 15:06:57  peter
     * import library fixes for win32
     * alignment works again
 
@@ -1049,27 +1052,5 @@ end.
 
   Revision 1.7  1999/03/04 13:44:58  pierre
    * win32 pecoff sections datapos allways zero
-
-  Revision 1.6  1999/03/03 11:41:54  pierre
-    + stabs info corrected to give results near to GAS output
-    * local labels (with .L are not stored in object anymore)
-      so we get the same number of symbols as from GAS !
-
-  Revision 1.5  1999/03/03 01:36:46  pierre
-    + stabs output working (though not really tested)
-      for a simple file the only difference to GAS output is due
-      to the VMA of the different sections
-
-  Revision 1.4  1999/03/02 02:56:27  peter
-    + stabs support for binary writers
-    * more fixes and missing updates from the previous commit :(
-
-  Revision 1.3  1999/03/01 15:46:25  peter
-    * ag386bin finally make cycles correct
-    * prefixes are now also normal opcodes
-
-  Revision 1.2  1999/02/25 21:03:10  peter
-    * ag386bin updates
-    + coff writer
 
 }

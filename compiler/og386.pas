@@ -270,7 +270,10 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.13  1999-11-02 15:06:57  peter
+  Revision 1.14  1999-11-06 14:34:21  peter
+    * truncated log to 20 revs
+
+  Revision 1.13  1999/11/02 15:06:57  peter
     * import library fixes for win32
     * alignment works again
 
@@ -342,8 +345,5 @@ end.
   Revision 1.2  1999/02/25 21:03:09  peter
     * ag386bin updates
     + coff writer
-
-  Revision 1.1  1999/02/16 17:59:39  peter
-    + initial files
 
 }

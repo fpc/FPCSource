@@ -1391,7 +1391,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  1999-09-27 23:44:48  peter
+  Revision 1.36  1999-11-06 14:34:18  peter
+    * truncated log to 20 revs
+
+  Revision 1.35  1999/09/27 23:44:48  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
@@ -1491,58 +1494,4 @@ end.
   Revision 1.16  1998/09/14 10:44:04  peter
     * all internal RTL functions start with FPC_
 
-  Revision 1.15  1998/09/07 18:46:00  peter
-    * update smartlinking, uses getdatalabel
-    * renamed ptree.value vars to value_str,value_real,value_set
-
-  Revision 1.14  1998/09/04 08:41:50  peter
-    * updated some error CGMessages
-
-  Revision 1.13  1998/09/01 12:48:02  peter
-    * use pdef^.size instead of orddef^.typ
-
-  Revision 1.12  1998/09/01 09:07:09  peter
-    * m68k fixes, splitted cg68k like cgi386
-
-  Revision 1.11  1998/08/31 12:26:24  peter
-    * m68k and palmos updates from surebugfixes
-
-  Revision 1.10  1998/08/21 14:08:41  pierre
-    + TEST_FUNCRET now default (old code removed)
-      works also for m68k (at least compiles)
-
-  Revision 1.9  1998/08/17 10:10:04  peter
-    - removed OLDPPU
-
-  Revision 1.8  1998/08/10 14:43:16  peter
-    * string type st_ fixed
-
-  Revision 1.7  1998/07/10 10:51:01  peter
-    * m68k updates
-
-  Revision 1.6  1998/06/08 13:13:39  pierre
-    + temporary variables now in temp_gen.pas unit
-      because it is processor independent
-    * mppc68k.bat modified to undefine i386 and support_mmx
-      (which are defaults for i386)
-
-  Revision 1.5  1998/06/04 23:51:36  peter
-    * m68k compiles
-    + .def file creation moved to gendef.pas so it could also be used
-      for win32
-
-  Revision 1.4  1998/05/07 00:17:00  peter
-    * smartlinking for sets
-    + consts labels are now concated/generated in hcodegen
-    * moved some cpu code to cga and some none cpu depended code from cga
-      to tree and hcodegen and cleanup of hcodegen
-    * assembling .. output reduced for smartlinking ;)
-
-  Revision 1.3  1998/04/29 10:33:46  pierre
-    + added some code for ansistring (not complete nor working yet)
-    * corrected operator overloading
-    * corrected nasm output
-    + started inline procedures
-    + added starstarn : use ** for exponentiation (^ gave problems)
-    + started UseTokenInfo cond to get accurate positions
 }

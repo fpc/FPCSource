@@ -193,7 +193,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-10-21 14:29:34  peter
+  Revision 1.8  1999-11-06 14:34:20  peter
+    * truncated log to 20 revs
+
+  Revision 1.7  1999/10/21 14:29:34  peter
     * redesigned linker object
     + library support for linux (only procedures can be exported)
 

@@ -834,7 +834,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  1999-11-04 23:11:21  peter
+  Revision 1.45  1999-11-06 14:34:21  peter
+    * truncated log to 20 revs
+
+  Revision 1.44  1999/11/04 23:11:21  peter
     * fixed pchar and deref detection for assigning
 
   Revision 1.43  1999/10/27 16:04:45  peter
@@ -910,94 +913,5 @@ end.
 
   Revision 1.27  1999/06/01 19:27:47  peter
     * better checks for procvar and methodpointer
-
-  Revision 1.26  1999/05/20 14:58:26  peter
-    * fixed arrayconstruct->set conversion which didn't work for enum sets
-
-  Revision 1.25  1999/05/19 20:40:12  florian
-    * fixed a couple of array related bugs:
-      - var a : array[0..1] of char;   p : pchar;  p:=a+123; works now
-      - open arrays with an odd size doesn't work: movsb wasn't generated
-      - introduced some new array type helper routines (is_special_array) etc.
-      - made the array type checking in isconvertable more strict, often
-        open array can be used where is wasn't allowed etc...
-
-  Revision 1.24  1999/05/06 10:10:02  peter
-    * overloaded conversion has lower priority
-
-  Revision 1.23  1999/04/26 09:30:47  peter
-    * small tp7 fix
-    * fix void pointer with formaldef
-
-  Revision 1.22  1999/04/21 22:00:01  pierre
-    + valid_for_formal_var and valid_for_formal_const added
-
-  Revision 1.21  1999/04/21 16:31:40  pierre
-  ra386att.pas : problem with commit -m !
-
-  Revision 1.20  1999/04/15 08:56:27  peter
-    * fixed bool-bool conversion
-
-  Revision 1.19  1999/03/24 23:17:02  peter
-    * fixed bugs 212,222,225,227,229,231,233
-
-  Revision 1.18  1999/03/06 17:25:19  peter
-    * moved comp<->real warning so it doesn't occure everytime that
-      isconvertable is called with
-
-  Revision 1.17  1999/03/02 18:24:20  peter
-    * fixed overloading of array of char
-
-  Revision 1.16  1999/01/27 13:53:27  pierre
-  htypechk.pas
-
-  Revision 1.15  1999/01/27 13:12:10  pierre
-   * bool to int must be explicit
-
-  Revision 1.14  1999/01/19 15:55:32  pierre
-   * fix for boolean to comp conversion (now disabled)
-
-  Revision 1.13  1998/12/15 17:11:37  peter
-    * string:=pchar not allowed in tp mode
-
-  Revision 1.12  1998/12/11 00:03:18  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.11  1998/12/10 09:47:21  florian
-    + basic operations with int64/qord (compiler with -dint64)
-    + rtti of enumerations extended: names are now written
-
-  Revision 1.10  1998/11/29 12:40:23  peter
-    * newcnv -> not oldcnv
-
-  Revision 1.9  1998/11/26 13:10:42  peter
-    * new int - int conversion -dNEWCNV
-    * some function renamings
-
-  Revision 1.8  1998/11/17 00:36:42  peter
-    * more ansistring fixes
-
-  Revision 1.7  1998/10/14 13:33:24  peter
-    * fixed small typo
-
-  Revision 1.6  1998/10/14 12:53:38  peter
-    * fixed small tp7 things
-    * boolean:=longbool and longbool fixed
-
-  Revision 1.5  1998/10/12 09:49:58  florian
-    + support of <procedure var type>:=<pointer> in delphi mode added
-
-  Revision 1.4  1998/09/30 16:42:52  peter
-    * fixed bool-bool cnv
-
-  Revision 1.3  1998/09/24 23:49:05  peter
-    + aktmodeswitches
-
-  Revision 1.2  1998/09/24 09:02:14  peter
-    * rewritten isconvertable to use case
-    * array of .. and single variable are compatible
-
-  Revision 1.1  1998/09/23 20:42:22  peter
-    * splitted pass_1
 
 }

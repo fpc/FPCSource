@@ -119,7 +119,7 @@ Var
  l1 : pasmlabel;
  s : pchar;
  l : longint;
-  
+
 begin
  With P^ Do
    begin
@@ -308,7 +308,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1999-08-27 15:55:36  michael
+  Revision 1.15  1999-11-06 14:34:20  peter
+    * truncated log to 20 revs
+
+  Revision 1.14  1999/08/27 15:55:36  michael
   * Fixed small bug: next field in resourcelist was not initialized
 
   Revision 1.13  1999/08/26 20:24:39  michael

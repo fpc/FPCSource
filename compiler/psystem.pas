@@ -238,7 +238,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  1999-09-16 23:05:55  florian
+  Revision 1.29  1999-11-06 14:34:23  peter
+    * truncated log to 20 revs
+
+  Revision 1.28  1999/09/16 23:05:55  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.27  1999/08/13 14:24:17  pierre
@@ -316,34 +319,5 @@ end.
   Revision 1.9  1998/11/05 12:02:54  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
-
-  Revision 1.8  1998/11/04 10:11:44  peter
-    * ansistring fixes
-
-  Revision 1.7  1998/10/05 12:32:48  peter
-    + assert() support
-
-  Revision 1.6  1998/09/24 23:49:17  peter
-    + aktmodeswitches
-
-  Revision 1.5  1998/08/10 14:50:19  peter
-    + localswitches, moduleswitches, globalswitches splitting
-
-  Revision 1.4  1998/06/25 14:04:24  peter
-    + internal inc/dec
-
-  Revision 1.3  1998/06/04 23:51:55  peter
-    * m68k compiles
-    + .def file creation moved to gendef.pas so it could also be used
-      for win32
-
-  Revision 1.2  1998/06/04 08:23:57  pierre
-    * boolean again intern declared (needed to be able to compile
-      older RTL's)
-
-  Revision 1.1  1998/06/03 22:49:01  peter
-    + wordbool,longbool
-    * rename bis,von -> high,low
-    * moved some systemunit loading/creating to psystem.pas
 
 }

@@ -290,7 +290,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.24  1999-09-27 23:44:58  peter
+  Revision 1.25  1999-11-06 14:34:24  peter
+    * truncated log to 20 revs
+
+  Revision 1.24  1999/09/27 23:44:58  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
@@ -376,26 +379,5 @@ end.
 
   Revision 1.5  1998/08/21 08:45:51  pierre
     * better line info for asm statements
-
-  Revision 1.4  1998/07/14 14:46:59  peter
-    * released NEWINPUT
-
-  Revision 1.3  1998/07/07 11:20:08  peter
-    + NEWINPUT for a better inputfile and scanner object
-
-  Revision 1.2  1998/06/24 14:06:37  peter
-    * fixed the name changes
-
-  Revision 1.1  1998/06/23 14:00:18  peter
-    * renamed RA* units
-
-  Revision 1.5  1998/06/12 10:32:32  pierre
-    * column problem hopefully solved
-    + C vars declaration changed
-
-  Revision 1.4  1998/06/04 23:51:58  peter
-    * m68k compiles
-    + .def file creation moved to gendef.pas so it could also be used
-      for win32
 
 }

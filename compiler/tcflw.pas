@@ -338,7 +338,7 @@ implementation
                 begin
                   pt:=genzeronode(funcretn);
                   pt^.retdef:=p^.resulttype;
-                  pt^.funcretprocinfo:=procinfo; 
+                  pt^.funcretprocinfo:=procinfo;
                   p^.left:=gennode(assignn,pt,p^.left);
                   firstpass(p^.left);
                 end;
@@ -507,7 +507,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1999-10-05 22:01:53  pierre
+  Revision 1.24  1999-11-06 14:34:30  peter
+    * truncated log to 20 revs
+
+  Revision 1.23  1999/10/05 22:01:53  pierre
    * bug exit('test') + fail for classes
 
   Revision 1.22  1999/10/04 20:27:41  peter
@@ -579,16 +582,5 @@ end.
 
   Revision 1.4  1998/12/11 00:03:55  peter
     + globtype,tokens,version unit splitted from globals
-
-  Revision 1.3  1998/10/19 08:55:10  pierre
-    * wrong stabs info corrected once again !!
-    + variable vmt offset with vmt field only if required
-      implemented now !!!
-
-  Revision 1.2  1998/10/06 20:49:10  peter
-    * m68k compiler compiles again
-
-  Revision 1.1  1998/09/23 20:42:24  peter
-    * splitted pass_1
 
 }

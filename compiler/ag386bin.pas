@@ -907,7 +907,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.26  1999-11-02 15:06:56  peter
+  Revision 1.27  1999-11-06 14:34:16  peter
+    * truncated log to 20 revs
+
+  Revision 1.26  1999/11/02 15:06:56  peter
     * import library fixes for win32
     * alignment works again
 
@@ -974,80 +977,5 @@ end.
 
   Revision 1.8  1999/05/09 11:38:04  peter
     * don't write .o and link if errors occure during assembling
-
-  Revision 1.6  1999/05/07 00:36:58  pierre
-    * added alignment code for .bss
-    * stabs correct but externalbss disabled
-      would need a special treatment in writestabs
-
-  Revision 1.5  1999/05/06 09:05:07  peter
-    * generic write_float and str_float
-    * fixed constant float conversions
-
-  Revision 1.4  1999/05/05 22:21:47  peter
-    * updated messages
-
-  Revision 1.3  1999/05/05 17:34:29  peter
-    * output is more like as 2.9.1
-    * stabs really working for go32v2
-
-  Revision 1.2  1999/05/04 21:44:30  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.1  1999/05/01 13:23:57  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.14  1999/04/16 11:49:48  peter
-    + tempalloc
-    + -at to show temp alloc info in .s file
-
-  Revision 1.13  1999/03/12 00:20:03  pierre
-   + win32 output working !
-
-  Revision 1.12  1999/03/11 17:52:34  peter
-    * fixed wrong ot_signed generation in insns tab
-
-  Revision 1.11  1999/03/10 13:41:07  pierre
-   + partial implementation for win32 !
-     winhello works but pp still does not !
-
-  Revision 1.10  1999/03/08 14:51:05  peter
-    + smartlinking for ag386bin
-
-  Revision 1.9  1999/03/06 17:24:18  peter
-    * rewritten intel parser a lot, especially reference reading
-    * size checking added for asm parsers
-
-  Revision 1.8  1999/03/05 13:09:50  peter
-    * first things for tai_cut support for ag386bin
-
-  Revision 1.7  1999/03/03 11:41:53  pierre
-    + stabs info corrected to give results near to GAS output
-    * local labels (with .L are not stored in object anymore)
-      so we get the same number of symbols as from GAS !
-
-  Revision 1.6  1999/03/03 01:36:44  pierre
-    + stabs output working (though not really tested)
-      for a simple file the only difference to GAS output is due
-      to the VMA of the different sections
-
-  Revision 1.5  1999/03/02 02:56:18  peter
-    + stabs support for binary writers
-    * more fixes and missing updates from the previous commit :(
-
-  Revision 1.4  1999/03/01 15:46:20  peter
-    * ag386bin finally make cycles correct
-    * prefixes are now also normal opcodes
-
-  Revision 1.3  1999/02/25 21:03:01  peter
-    * ag386bin updates
-    + coff writer
-
-  Revision 1.2  1999/02/22 02:16:00  peter
-    * updates for ag386bin
-
-  Revision 1.1  1999/02/16 17:59:37  peter
-    + initial files
 
 }

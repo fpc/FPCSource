@@ -1069,7 +1069,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1999-09-27 23:44:48  peter
+  Revision 1.21  1999-11-06 14:34:18  peter
+    * truncated log to 20 revs
+
+  Revision 1.20  1999/09/27 23:44:48  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
@@ -1168,9 +1171,6 @@ end.
 
   Revision 1.2  1998/09/01 12:47:59  peter
     * use pdef^.size instead of orddef^.typ
-
-  Revision 1.1  1998/09/01 09:07:09  peter
-    * m68k fixes, splitted cg68k like cgi386
 
 }
 

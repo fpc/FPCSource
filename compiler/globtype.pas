@@ -191,7 +191,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  1999-11-04 10:55:31  peter
+  Revision 1.22  1999-11-06 14:34:21  peter
+    * truncated log to 20 revs
+
+  Revision 1.21  1999/11/04 10:55:31  peter
     * TSearchPathString for the string type of the searchpaths, which is
       ansistring under FPC/Delphi
 
@@ -267,13 +270,6 @@ end.
 
   Revision 1.3  1999/01/27 13:51:44  pierre
    * dos end of line problem
-
-  Revision 1.2  1998/12/23 12:40:48  daniel
-  * Added begin to globtype and version to avoid empty object files.
-  * Fileexists no longer finds volume labels.
-
-  Revision 1.1  1998/12/11 00:05:27  peter
-    * splitted from globals.pas
 
 }
 

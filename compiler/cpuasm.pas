@@ -1528,7 +1528,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-11-05 16:01:46  jonas
+  Revision 1.5  1999-11-06 14:34:20  peter
+    * truncated log to 20 revs
+
+  Revision 1.4  1999/11/05 16:01:46  jonas
     + first implementation of choosing least used register for alignment code
        (not yet working, between ifdef alignreg)
 
@@ -1598,82 +1601,5 @@ end.
   Revision 1.6  1999/05/12 00:19:50  peter
     * removed R_DEFAULT_SEG
     * uniform float names
-
-  Revision 1.5  1999/05/11 16:29:59  peter
-    * more noag386bin defines, so tp7 can compile at least
-
-  Revision 1.4  1999/05/05 22:21:51  peter
-    * updated messages
-
-  Revision 1.3  1999/05/02 22:41:53  peter
-    * moved section names to systems
-    * fixed nasm,intel writer
-
-  Revision 1.2  1999/05/02 21:33:52  florian
-    * several bugs regarding -Or fixed
-
-  Revision 1.1  1999/05/01 13:24:23  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.18  1999/04/16 11:49:51  peter
-    + tempalloc
-    + -at to show temp alloc info in .s file
-
-  Revision 1.17  1999/04/16 09:35:11  pierre
-   + tai constructors needed for SHRD and IMUL added
-
-  Revision 1.16  1999/04/01 21:58:21  peter
-    * small fixes for proces_ea
-
-  Revision 1.15  1999/03/31 13:55:32  peter
-    * assembler inlining working for ag386bin
-
-  Revision 1.14  1999/03/29 16:05:49  peter
-    * optimizer working for ag386bin
-
-  Revision 1.13  1999/03/26 00:01:11  peter
-    * first things for optimizer (compiles but cycle crashes)
-
-  Revision 1.12  1999/03/12 00:20:04  pierre
-   + win32 output working !
-
-  Revision 1.11  1999/03/10 13:41:08  pierre
-   + partial implementation for win32 !
-     winhello works but pp still does not !
-
-  Revision 1.10  1999/03/09 19:25:24  peter
-    * only pass jmp's a second time in pass1
-
-  Revision 1.9  1999/03/08 14:51:06  peter
-    + smartlinking for ag386bin
-
-  Revision 1.8  1999/03/06 17:24:19  peter
-    * rewritten intel parser a lot, especially reference reading
-    * size checking added for asm parsers
-
-  Revision 1.7  1999/03/02 02:56:19  peter
-    + stabs support for binary writers
-    * more fixes and missing updates from the previous commit :(
-
-  Revision 1.6  1999/03/01 15:46:21  peter
-    * ag386bin finally make cycles correct
-    * prefixes are now also normal opcodes
-
-  Revision 1.5  1999/02/26 00:48:28  peter
-    * assembler writers fixed for ag386bin
-
-  Revision 1.4  1999/02/25 21:03:02  peter
-    * ag386bin updates
-    + coff writer
-
-  Revision 1.3  1999/02/22 02:44:17  peter
-    * ag386bin doesn't use i386.pas anymore
-
-  Revision 1.2  1999/02/22 02:16:02  peter
-    * updates for ag386bin
-
-  Revision 1.1  1999/02/16 17:59:37  peter
-    + initial files
 
 }

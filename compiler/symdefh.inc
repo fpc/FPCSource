@@ -530,7 +530,10 @@
 
 {
   $Log$
-  Revision 1.44  1999-10-26 12:30:45  peter
+  Revision 1.45  1999-11-06 14:34:27  peter
+    * truncated log to 20 revs
+
+  Revision 1.44  1999/10/26 12:30:45  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes
@@ -624,91 +627,5 @@
     + MessagePos() which is enhanced Message() function but also gets the
       position info
     * Removed comp warnings
-
-  Revision 1.24  1999/05/06 09:05:30  peter
-    * generic write_float and str_float
-    * fixed constant float conversions
-
-  Revision 1.23  1999/04/26 18:30:02  peter
-    * farpointerdef moved into pointerdef.is_far
-
-  Revision 1.22  1999/04/26 13:31:49  peter
-    * release storenumber,double_checksum
-
-  Revision 1.21  1999/04/21 09:43:52  peter
-    * storenumber works
-    * fixed some typos in double_checksum
-    + incompatible types type1 and type2 message (with storenumber)
-
-  Revision 1.20  1999/04/14 09:15:00  peter
-    * first things to store the symbol/def number in the ppu
-
-  Revision 1.19  1999/04/08 15:57:52  peter
-    + subrange checking for readln()
-
-  Revision 1.18  1999/03/02 18:24:21  peter
-    * fixed overloading of array of char
-
-  Revision 1.17  1999/03/01 13:45:06  pierre
-   + added staticppusymtable symtable type for local browsing
-
-  Revision 1.16  1999/02/22 20:13:39  florian
-    + first implementation of message keyword
-
-  Revision 1.15  1999/01/20 14:18:40  pierre
-    * bugs related to mangledname solved
-      - linux external without name
-      -external procs already used
-      (added count and is_used boolean fiels in tprocvar)
-
-  Revision 1.14  1999/01/12 14:25:33  peter
-    + BrowserLog for browser.log generation
-    + BrowserCol for browser info in TCollections
-    * released all other UseBrowser
-
-  Revision 1.13  1998/12/30 22:15:53  peter
-    + farpointer type
-    * absolutesym now also stores if its far
-
-  Revision 1.12  1998/12/10 09:47:28  florian
-    + basic operations with int64/qord (compiler with -dint64)
-    + rtti of enumerations extended: names are now written
-
-  Revision 1.11  1998/11/29 21:45:49  florian
-    * problem with arrays with init tables fixed
-
-  Revision 1.10  1998/11/20 15:36:00  florian
-    * problems with rtti fixed, hope it works
-
-  Revision 1.9  1998/11/10 10:09:14  peter
-    * va_list -> array of const
-
-  Revision 1.8  1998/11/09 11:44:37  peter
-    + va_list for printf support
-
-  Revision 1.7  1998/11/05 12:02:59  peter
-    * released useansistring
-    * removed -Sv, its now available in fpc modes
-
-  Revision 1.6  1998/10/22 17:11:23  pierre
-    + terminated the include exclude implementation for i386
-    * enums inside records fixed
-
-  Revision 1.5  1998/10/16 13:12:55  pierre
-    * added vmt_offsets in destructors code also !!!
-    * vmt_offset code for m68k
-
-  Revision 1.4  1998/10/16 08:51:52  peter
-    + target_os.stackalignment
-    + stack can be aligned at 2 or 4 byte boundaries
-
-  Revision 1.3  1998/10/05 21:33:30  peter
-    * fixed 161,165,166,167,168
-
-  Revision 1.2  1998/10/02 07:20:40  florian
-    * range checking in units doesn't work if the units are smartlinked, fixed
-
-  Revision 1.1  1998/09/23 12:03:57  peter
-    * overloading fix for array of const
 
 }

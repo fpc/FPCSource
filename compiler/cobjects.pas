@@ -2277,7 +2277,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.43  1999-10-26 12:30:41  peter
+  Revision 1.44  1999-11-06 14:34:20  peter
+    * truncated log to 20 revs
+
+  Revision 1.43  1999/10/26 12:30:41  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes
@@ -2353,100 +2356,4 @@ end.
   Revision 1.24  1999/04/14 09:14:47  peter
     * first things to store the symbol/def number in the ppu
 
-  Revision 1.23  1999/04/08 20:59:39  florian
-    * fixed problem with default properties which are a class
-    * case bug (from the mailing list with -O2) fixed, the
-      distance of the case labels can be greater than the positive
-      range of a longint => it is now a dword for fpc
-
-  Revision 1.22  1999/03/31 13:55:10  peter
-    * assembler inlining working for ag386bin
-
-  Revision 1.21  1999/03/19 16:35:29  pierre
-   * Tnamedindexobject done also removed left and right
-
-  Revision 1.20  1999/03/18 20:30:45  peter
-    + .a writer
-
-  Revision 1.19  1999/03/01 13:32:00  pierre
-   * external used before implemented problem fixed
-
-  Revision 1.18  1999/02/24 00:59:13  peter
-    * small updates for ag386bin
-
-  Revision 1.17  1999/01/19 11:00:33  daniel
-  + Tdictionary object:  Tsymtable will become object(TTdictionary) in the
-    future
-  + Tnamed_item object:  Tsym will become object(Tnamed_item) in the future
-
-  Revision 1.16  1998/11/04 10:11:37  peter
-    * ansistring fixes
-
-  Revision 1.15  1998/10/19 18:04:40  peter
-    + tstringcontainer.init_no_doubles
-
-  Revision 1.14  1998/09/18 16:03:37  florian
-    * some changes to compile with Delphi
-
-  Revision 1.13  1998/08/12 19:28:16  peter
-    * better libc support
-
-  Revision 1.12  1998/07/14 14:46:47  peter
-    * released NEWINPUT
-
-  Revision 1.11  1998/07/07 11:19:54  peter
-    + NEWINPUT for a better inputfile and scanner object
-
-  Revision 1.10  1998/07/01 15:26:59  peter
-    * better bufferfile.reset error handling
-
-  Revision 1.9  1998/06/03 23:40:37  peter
-    + unlimited file support, release tempclose
-
-  Revision 1.8  1998/05/20 09:42:33  pierre
-    + UseTokenInfo now default
-    * unit in interface uses and implementation uses gives error now
-    * only one error for unknown symbol (uses lastsymknown boolean)
-      the problem came from the label code !
-    + first inlined procedures and function work
-      (warning there might be allowed cases were the result is still wrong !!)
-    * UseBrower updated gives a global list of all position of all used symbols
-      with switch -gb
-
-  Revision 1.7  1998/05/06 18:36:53  peter
-    * tai_section extended with code,data,bss sections and enumerated type
-    * ident 'compiled by FPC' moved to pmodules
-    * small fix for smartlink
-
-  Revision 1.6  1998/05/06 08:38:37  pierre
-    * better position info with UseTokenInfo
-      UseTokenInfo greatly simplified
-    + added check for changed tree after first time firstpass
-      (if we could remove all the cases were it happen
-      we could skip all firstpass if firstpasscount > 1)
-      Only with ExtDebug
-
-  Revision 1.5  1998/04/30 15:59:40  pierre
-    * GDB works again better :
-      correct type info in one pass
-    + UseTokenInfo for better source position
-    * fixed one remaining bug in scanner for line counts
-    * several little fixes
-
-  Revision 1.4  1998/04/29 10:33:50  pierre
-    + added some code for ansistring (not complete nor working yet)
-    * corrected operator overloading
-    * corrected nasm output
-    + started inline procedures
-    + added starstarn : use ** for exponentiation (^ gave problems)
-    + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.3  1998/04/27 23:10:28  peter
-    + new scanner
-    * $makelib -> if smartlink
-    * small filename fixes pmodule.setfilename
-    * moved import from files.pas -> import.pas
-
-  Revision 1.2  1998/04/07 11:09:04  peter
-    + filemode is set correct in tbufferedfile.reset
 }

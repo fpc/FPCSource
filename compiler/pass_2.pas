@@ -697,7 +697,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  1999-09-27 23:44:52  peter
+  Revision 1.41  1999-11-06 14:34:21  peter
+    * truncated log to 20 revs
+
+  Revision 1.40  1999/09/27 23:44:52  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
@@ -777,104 +780,5 @@ end.
 
   Revision 1.21  1999/05/17 21:57:11  florian
     * new temporary ansistring handling
-
-  Revision 1.20  1999/05/02 21:33:54  florian
-    * several bugs regarding -Or fixed
-
-  Revision 1.19  1999/05/01 13:24:28  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.18  1999/04/28 06:02:04  florian
-    * changes of Bruessel:
-       + message handler can now take an explicit self
-       * typinfo fixed: sometimes the type names weren't written
-       * the type checking for pointer comparisations and subtraction
-         and are now more strict (was also buggy)
-       * small bug fix to link.pas to support compiling on another
-         drive
-       * probable bug in popt386 fixed: call/jmp => push/jmp
-         transformation didn't count correctly the jmp references
-       + threadvar support
-       * warning if ln/sqrt gets an invalid constant argument
-
-  Revision 1.17  1999/03/31 13:55:11  peter
-    * assembler inlining working for ag386bin
-
-  Revision 1.16  1999/03/24 23:17:11  peter
-    * fixed bugs 212,222,225,227,229,231,233
-
-  Revision 1.15  1999/02/22 02:15:25  peter
-    * updates for ag386bin
-
-  Revision 1.14  1999/01/23 23:29:37  florian
-    * first running version of the new code generator
-    * when compiling exceptions under Linux fixed
-
-  Revision 1.13  1998/12/30 13:41:09  peter
-    * released valuepara
-
-  Revision 1.12  1998/12/19 00:23:51  florian
-    * ansistring memory leaks fixed
-
-  Revision 1.11  1998/12/11 00:03:28  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.10  1998/11/18 15:44:14  peter
-    * VALUEPARA for tp7 compatible value parameters
-
-  Revision 1.9  1998/11/13 15:40:21  pierre
-    + added -Se in Makefile cvstest target
-    + lexlevel cleanup
-      normal_function_level main_program_level and unit_init_level defined
-    * tins_cache grown to A_EMMS (gave range check error in asm readers)
-      (test added in code !)
-    * -Un option was wrong
-    * _FAIL and _SELF only keyword inside
-      constructors and methods respectively
-
-  Revision 1.8  1998/10/29 15:42:49  florian
-    + partial disposing of temp. ansistrings
-
-  Revision 1.7  1998/10/26 22:58:19  florian
-    * new introduded problem with classes fix, the parent class wasn't set
-      correct, if the class was defined forward before
-
-  Revision 1.6  1998/09/23 09:58:52  peter
-    * first working array of const things
-
-  Revision 1.5  1998/09/21 10:01:06  peter
-    * check if procinfo^.def is assigned before storing registersfpu
-
-  Revision 1.4  1998/09/21 08:45:16  pierre
-    + added vmt_offset in tobjectdef.write for fututre use
-      (first steps to have objects without vmt if no virtual !!)
-    + added fpu_used field for tabstractprocdef  :
-      sets this level to 2 if the functions return with value in FPU
-      (is then set to correct value at parsing of implementation)
-      THIS MIGHT refuse some code with FPU expression too complex
-      that were accepted before and even in some cases
-      that don't overflow in fact
-      ( like if f : float; is a forward that finally in implementation
-       only uses one fpu register !!)
-      Nevertheless I think that it will improve security on
-      FPU operations !!
-    * most other changes only for UseBrowser code
-      (added symtable references for record and objects)
-      local switch for refs to args and local of each function
-      (static symtable still missing)
-      UseBrowser still not stable and probably broken by
-      the definition hash array !!
-
-  Revision 1.3  1998/09/17 09:42:40  peter
-    + pass_2 for cg386
-    * Message() -> CGMessage() for pass_1/pass_2
-
-  Revision 1.2  1998/09/07 18:46:07  peter
-    * update smartlinking, uses getdatalabel
-    * renamed ptree.value vars to value_str,value_real,value_set
-
-  Revision 1.1  1998/09/01 09:07:12  peter
-    * m68k fixes, splitted cg68k like cgi386
 
 }

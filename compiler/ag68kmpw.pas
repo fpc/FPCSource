@@ -581,7 +581,10 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.9  1999-09-16 23:05:51  florian
+  Revision 1.10  1999-11-06 14:34:16  peter
+    * truncated log to 20 revs
+
+  Revision 1.9  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.8  1998/12/11 00:02:42  peter

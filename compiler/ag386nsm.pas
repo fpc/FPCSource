@@ -654,7 +654,10 @@ unit ag386nsm;
 end.
 {
   $Log$
-  Revision 1.53  1999-11-02 15:06:56  peter
+  Revision 1.54  1999-11-06 14:34:16  peter
+    * truncated log to 20 revs
+
+  Revision 1.53  1999/11/02 15:06:56  peter
     * import library fixes for win32
     * alignment works again
 
@@ -736,132 +739,5 @@ end.
     + MessagePos() which is enhanced Message() function but also gets the
       position info
     * Removed comp warnings
-
-  Revision 1.33  1999/05/07 00:08:48  pierre
-   * AG386BIN cond -> OLDASM, only cosmetic
-
-  Revision 1.32  1999/05/06 09:05:11  peter
-    * generic write_float and str_float
-    * fixed constant float conversions
-
-  Revision 1.31  1999/05/04 21:44:32  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.30  1999/05/02 22:41:50  peter
-    * moved section names to systems
-    * fixed nasm,intel writer
-
-  Revision 1.29  1999/05/01 13:23:59  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.28  1999/04/17 22:17:06  pierre
-    * ifdef USE_OP3 released (changed into ifndef NO_OP3)
-    * SHRD and SHLD first operand (ATT syntax) can only be CL reg or immediate const
-
-  Revision 1.27  1999/04/16 11:49:40  peter
-    + tempalloc
-    + -at to show temp alloc info in .s file
-
-  Revision 1.26  1999/04/16 10:00:56  pierre
-    + ifdef USE_OP3 code :
-      added all missing op_... constructors for taicpu needed
-      for SHRD,SHLD and IMUL code in assembler readers
-      (check in tests/tbs0123.pp)
-
-  Revision 1.25  1999/03/29 16:05:44  peter
-    * optimizer working for ag386bin
-
-  Revision 1.24  1999/03/10 13:25:44  pierre
-    section order changed to get closer output from coff writer
-
-  Revision 1.23  1999/03/04 13:55:39  pierre
-    * some m68k fixes (still not compilable !)
-    * new(tobj) does not give warning if tobj has no VMT !
-
-  Revision 1.22  1999/03/02 02:56:11  peter
-    + stabs support for binary writers
-    * more fixes and missing updates from the previous commit :(
-
-  Revision 1.21  1999/03/01 15:46:17  peter
-    * ag386bin finally make cycles correct
-    * prefixes are now also normal opcodes
-
-  Revision 1.20  1999/02/26 00:48:14  peter
-    * assembler writers fixed for ag386bin
-
-  Revision 1.19  1999/02/25 21:02:19  peter
-    * ag386bin updates
-    + coff writer
-
-  Revision 1.18  1999/02/22 02:15:00  peter
-    * updates for ag386bin
-
-  Revision 1.17  1998/12/20 16:21:23  peter
-    * smartlinking doesn't crash anymore
-
-  Revision 1.16  1998/12/16 00:27:18  peter
-    * removed some obsolete version checks
-
-  Revision 1.15  1998/12/01 11:19:39  peter
-    * fixed range problem with in [tasmop]
-
-  Revision 1.14  1998/11/30 09:42:56  pierre
-    * some range check bugs fixed (still not working !)
-    + added DLL writing support for win32 (also accepts variables)
-    + TempAnsi for code that could be used for Temporary ansi strings
-      handling
-
-  Revision 1.13  1998/11/17 00:26:10  peter
-    * fixed for $H+
-
-  Revision 1.12  1998/11/12 11:19:34  pierre
-   * fix for first line of function break
-
-  Revision 1.11  1998/10/12 12:20:42  pierre
-    + added tai_const_symbol_offset
-      for r : pointer = @var.field;
-    * better message for different arg names on implementation
-      of function
-
-  Revision 1.10  1998/10/06 17:16:34  pierre
-    * some memory leaks fixed (thanks to Peter for heaptrc !)
-
-  Revision 1.9  1998/10/01 20:19:07  jonas
-    + ait_marker support
-
-  Revision 1.8  1998/09/20 17:11:22  jonas
-    * released REGALLOC
-
-  Revision 1.7  1998/08/11 14:01:43  peter
-    * fixed fwait bug using direct opcode
-
-  Revision 1.6  1998/08/10 15:49:39  peter
-    * small fixes for 0.99.5
-
-  Revision 1.5  1998/08/08 10:19:18  florian
-    * small fixes to write the extended type correct
-
-  Revision 1.4  1998/06/05 17:46:03  peter
-    * tp doesn't like comp() typecast
-
-  Revision 1.3  1998/05/28 17:24:27  peter
-    - $R- for tp to solve range errors with in[]
-
-  Revision 1.2  1998/05/25 17:11:37  pierre
-    * firstpasscount bug fixed
-      now all is already set correctly the first time
-      under EXTDEBUG try -gp to skip all other firstpasses
-      it works !!
-    * small bug fixes
-      - for smallsets with -dTESTSMALLSET
-      - some warnings removed (by correcting code !)
-
-  Revision 1.1  1998/05/23 01:20:56  peter
-    + aktasmmode, aktoptprocessor, aktoutputformat
-    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
-    + $LIBNAME to set the library name where the unit will be put in
-    * splitted cgi386 a bit (codeseg to large for bp7)
-    * nasm, tasm works again. nasm moved to ag386nsm.pas
 
 }

@@ -1987,7 +1987,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  1999-10-01 07:59:20  peter
+  Revision 1.61  1999-11-06 14:34:23  peter
+    * truncated log to 20 revs
+
+  Revision 1.60  1999/10/01 07:59:20  peter
     * fixed object field parsing
 
   Revision 1.59  1999/09/27 23:44:57  peter
@@ -2067,37 +2070,6 @@ end.
 
   Revision 1.43  1999/05/04 21:45:01  florian
     * changes to compile it with Delphi 4.0
-
-  Revision 1.42  1999/05/02 14:25:07  peter
-    * only allow *<reg/ref> when call/jmp is used
-
-  Revision 1.41  1999/05/01 13:48:39  peter
-    * merged nasm compiler
-
-  Revision 1.7  1999/04/29 09:37:47  peter
-    * fixed var+const support
-
-  Revision 1.6  1999/04/26 23:26:17  peter
-    * redesigned record offset parsing to support nested records
-    * normal compiler uses the redesigned createvarinstr()
-
-  Revision 1.5  1999/04/20 11:01:23  peter
-    * better tokenpos info
-
-  Revision 1.4  1999/04/14 09:07:45  peter
-    * asm reader improvements
-
-  Revision 1.3  1999/03/06 17:24:26  peter
-    * rewritten intel parser a lot, especially reference reading
-    * size checking added for asm parsers
-
-  Revision 1.2  1999/03/02 02:56:30  peter
-    + stabs support for binary writers
-    * more fixes and missing updates from the previous commit :(
-
-  Revision 1.1  1999/03/01 15:46:26  peter
-    * ag386bin finally make cycles correct
-    * prefixes are now also normal opcodes
 
 }
 

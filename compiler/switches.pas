@@ -171,7 +171,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  1999-09-16 11:34:58  pierre
+  Revision 1.24  1999-11-06 14:34:26  peter
+    * truncated log to 20 revs
+
+  Revision 1.23  1999/09/16 11:34:58  pierre
    * typo correction
 
   Revision 1.22  1999/08/01 23:35:06  michael
@@ -252,16 +255,5 @@ end.
 
   Revision 1.4  1998/05/21 19:33:36  peter
     + better procedure directive handling and only one table
-
-  Revision 1.3  1998/05/01 07:43:56  florian
-    + basics for rtti implemented
-    + switch $m (generate rtti for published sections)
-
-  Revision 1.2  1998/04/28 11:45:53  florian
-    * make it compilable with TP
-    + small COM problems solved to compile classes.pp
-
-  Revision 1.1  1998/04/27 23:13:53  peter
-    + the new files for the scanner
 
 }

@@ -681,7 +681,10 @@ End.
 
 {
  $Log$
- Revision 1.29  1999-11-05 16:01:46  jonas
+ Revision 1.30  1999-11-06 14:34:20  peter
+   * truncated log to 20 revs
+
+ Revision 1.29  1999/11/05 16:01:46  jonas
    + first implementation of choosing least used register for alignment code
       (not yet working, between ifdef alignreg)
 
@@ -757,48 +760,5 @@ End.
 
  Revision 1.12  1998/10/20 09:32:54  peter
    * removed some unused vars
-
- Revision 1.11  1998/10/07 16:24:52  jonas
-   * changed state to WState (WriteState), added RState for future use in
-      instruction scheduling
-
- Revision 1.10  1998/10/02 17:29:23  jonas
-   * much better interregister CSE
-
- Revision 1.9  1998/10/01 20:21:49  jonas
-   * inter-register CSE, still requires some tweaks (peepholeoptpass2, better  RegAlloc)
-
- Revision 1.8  1998/09/21 08:45:09  pierre
-   + added vmt_offset in tobjectdef.write for fututre use
-     (first steps to have objects without vmt if no virtual !!)
-   + added fpu_used field for tabstractprocdef  :
-     sets this level to 2 if the functions return with value in FPU
-     (is then set to correct value at parsing of implementation)
-     THIS MIGHT refuse some code with FPU expression too complex
-     that were accepted before and even in some cases
-     that don't overflow in fact
-     ( like if f : float; is a forward that finally in implementation
-      only uses one fpu register !!)
-     Nevertheless I think that it will improve security on
-     FPU operations !!
-   * most other changes only for UseBrowser code
-     (added symtable references for record and objects)
-     local switch for refs to args and local of each function
-     (static symtable still missing)
-     UseBrowser still not stable and probably broken by
-     the definition hash array !!
-
- Revision 1.7  1998/09/20 17:12:35  jonas
- * small fix for uncertain optimizations & more cleaning up
-
- Revision 1.5  1998/09/16 17:59:59  jonas
-   * optimizer now completely dependant on GetNext/GetLast instruction, works again with -dRegAlloc
-
- Revision 1.4  1998/08/06 19:40:27  jonas
-   * removed $ before and after Log in comment
-
- Revision 1.3  1998/08/05 16:00:12  florian
-   * some fixes for ansi strings
-   * log to Log changed
 
 }

@@ -234,7 +234,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1999-11-02 15:06:57  peter
+  Revision 1.15  1999-11-06 14:34:21  peter
+    * truncated log to 20 revs
+
+  Revision 1.14  1999/11/02 15:06:57  peter
     * import library fixes for win32
     * alignment works again
 

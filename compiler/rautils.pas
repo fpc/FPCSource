@@ -1433,7 +1433,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  1999-09-27 23:44:58  peter
+  Revision 1.28  1999-11-06 14:34:26  peter
+    * truncated log to 20 revs
+
+  Revision 1.27  1999/09/27 23:44:58  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
@@ -1506,24 +1509,4 @@ end.
   Revision 1.7  1999/04/14 09:07:48  peter
     * asm reader improvements
 
-  Revision 1.6  1999/03/31 13:55:34  peter
-    * assembler inlining working for ag386bin
-
-  Revision 1.5  1999/03/26 00:01:17  peter
-    * first things for optimizer (compiles but cycle crashes)
-
-  Revision 1.4  1999/03/25 16:55:36  peter
-    + unitpath,librarypath,includepath,objectpath directives
-
-  Revision 1.3  1999/03/06 17:24:28  peter
-    * rewritten intel parser a lot, especially reference reading
-    * size checking added for asm parsers
-
-  Revision 1.2  1999/03/02 02:56:33  peter
-    + stabs support for binary writers
-    * more fixes and missing updates from the previous commit :(
-
-  Revision 1.1  1999/03/01 15:46:26  peter
-    * ag386bin finally make cycles correct
-    * prefixes are now also normal opcodes
 }

@@ -160,7 +160,10 @@ end.
 
 {
   $Log$
-  Revision 1.26  1999-10-01 08:02:46  peter
+  Revision 1.27  1999-11-06 14:34:21  peter
+    * truncated log to 20 revs
+
+  Revision 1.26  1999/10/01 08:02:46  peter
     * forward type declaration rewritten
 
   Revision 1.25  1999/09/02 18:47:44  daniel
@@ -254,38 +257,4 @@ end.
     * UseBrower updated gives a global list of all position of all used symbols
       with switch -gb
 
-  Revision 1.6  1998/05/12 10:47:00  peter
-    * moved printstatus to verb_def
-    + V_Normal which is between V_Error and V_Warning and doesn't have a
-      prefix like error: warning: and is included in V_Default
-    * fixed some messages
-    * first time parameter scan is only for -v and -T
-    - removed old style messages
-
-  Revision 1.5  1998/05/06 08:38:44  pierre
-    * better position info with UseTokenInfo
-      UseTokenInfo greatly simplified
-    + added check for changed tree after first time firstpass
-      (if we could remove all the cases were it happen
-      we could skip all firstpass if firstpasscount > 1)
-      Only with ExtDebug
-
-  Revision 1.4  1998/04/30 15:59:41  pierre
-    * GDB works again better :
-      correct type info in one pass
-    + UseTokenInfo for better source position
-    * fixed one remaining bug in scanner for line counts
-    * several little fixes
-
-  Revision 1.3  1998/04/29 10:33:57  pierre
-    + added some code for ansistring (not complete nor working yet)
-    * corrected operator overloading
-    * corrected nasm output
-    + started inline procedures
-    + added starstarn : use ** for exponentiation (^ gave problems)
-    + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.2  1998/04/07 22:45:05  florian
-    * bug0092, bug0115 and bug0121 fixed
-    + packed object/class/array
 }

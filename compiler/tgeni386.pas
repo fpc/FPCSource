@@ -615,7 +615,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  1999-09-27 23:45:02  peter
+  Revision 1.36  1999-11-06 14:34:31  peter
+    * truncated log to 20 revs
+
+  Revision 1.35  1999/09/27 23:45:02  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
@@ -696,68 +699,5 @@ end.
     * fixed previous commit bug fix of getexplicitregister32
       (usableregs32 was decremented twice, thnaks Pierre for that hint)
 
-  Revision 1.15  1998/12/11 16:10:13  florian
-    + shifting for 64 bit ints added
-    * bug in getexplicitregister32 fixed: usableregs wasn't decremented !!
-
-  Revision 1.14  1998/12/11 00:03:59  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.13  1998/10/21 08:40:03  florian
-    + ansistring operator +
-    + $h and string[n] for n>255 added
-    * small problem with TP fixed
-
-  Revision 1.12  1998/09/20 17:11:24  jonas
-    * released REGALLOC
-
-  Revision 1.11  1998/09/16 17:58:33  jonas
-    * fixed -dRegAlloc and -dDRegalloc problems
-
-  Revision 1.10  1998/09/01 09:03:47  peter
-    + resetregistercount, resetusableregisters
-
-  Revision 1.9  1998/08/19 16:07:56  jonas
-    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
-
-  Revision 1.8  1998/08/10 14:50:34  peter
-    + localswitches, moduleswitches, globalswitches splitting
-
-  Revision 1.7  1998/06/08 13:13:47  pierre
-    + temporary variables now in temp_gen.pas unit
-      because it is processor independent
-    * mppc68k.bat modified to undefine i386 and support_mmx
-      (which are defaults for i386)
-
-  Revision 1.6  1998/05/20 09:42:38  pierre
-    + UseTokenInfo now default
-    * unit in interface uses and implementation uses gives error now
-    * only one error for unknown symbol (uses lastsymknown boolean)
-      the problem came from the label code !
-    + first inlined procedures and function work
-      (warning there might be allowed cases were the result is still wrong !!)
-    * UseBrower updated gives a global list of all position of all used symbols
-      with switch -gb
-
-  Revision 1.5  1998/05/11 13:07:58  peter
-    + $ifdef NEWPPU for the new ppuformat
-    + $define GDB not longer required
-    * removed all warnings and stripped some log comments
-    * no findfirst/findnext anymore to remove smartlink *.o files
-
-  Revision 1.4  1998/04/29 10:34:08  pierre
-    + added some code for ansistring (not complete nor working yet)
-    * corrected operator overloading
-    * corrected nasm output
-    + started inline procedures
-    + added starstarn : use ** for exponentiation (^ gave problems)
-    + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.3  1998/04/09 22:16:36  florian
-    * problem with previous REGALLOC solved
-    * improved property support
-
-  Revision 1.2  1998/04/09 15:46:39  florian
-    + register allocation tracing stuff added
 }
 

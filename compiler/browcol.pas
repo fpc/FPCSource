@@ -1697,7 +1697,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  1999-10-26 12:30:40  peter
+  Revision 1.26  1999-11-06 14:34:17  peter
+    * truncated log to 20 revs
+
+  Revision 1.25  1999/10/26 12:30:40  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes
@@ -1771,8 +1774,4 @@ end.
   Revision 1.2  1999/01/21 11:49:14  peter
     * updates from gabor
 
-  Revision 1.1  1999/01/12 14:25:24  peter
-    + BrowserLog for browser.log generation
-    + BrowserCol for browser info in TCollections
-    * released all other UseBrowser
 }

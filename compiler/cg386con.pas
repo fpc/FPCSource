@@ -431,7 +431,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  1999-09-26 21:30:15  peter
+  Revision 1.43  1999-11-06 14:34:17  peter
+    * truncated log to 20 revs
+
+  Revision 1.42  1999/09/26 21:30:15  peter
     + constant pointer support which can happend with typecasting like
       const p=pointer(1)
     * better procvar parsing in typed consts
@@ -507,93 +510,5 @@ end.
     * ansistring -> pchar fixed
     * ansistring constants fixed
     * ansistring constants are now written once
-
-  Revision 1.22  1998/11/24 13:40:59  peter
-    * release smallsetord, so small sets constant are handled like longints
-
-  Revision 1.21  1998/11/24 12:52:41  peter
-    * sets are not written twice anymore
-    * optimize for emptyset+single element which uses a new routine from
-      set.inc FPC_SET_CREATE_ELEMENT
-
-  Revision 1.20  1998/11/16 12:11:29  peter
-    * fixed ansistring crash
-
-  Revision 1.19  1998/11/05 23:40:45  pierre
-   * fix for const strings
-
-  Revision 1.18  1998/11/05 15:26:38  pierre
-   * fix for missing zero after string const
-
-  Revision 1.17  1998/11/05 12:02:32  peter
-    * released useansistring
-    * removed -Sv, its now available in fpc modes
-
-  Revision 1.16  1998/11/04 21:07:43  michael
-  * undid peters change. Constant ansistrings should end on null too cd ..
-
-  Revision 1.15  1998/11/04 10:11:36  peter
-    * ansistring fixes
-
-  Revision 1.14  1998/09/17 09:42:13  peter
-    + pass_2 for cg386
-    * Message() -> CGMessage() for pass_1/pass_2
-
-  Revision 1.13  1998/09/07 18:45:53  peter
-    * update smartlinking, uses getdatalabel
-    * renamed ptree.value vars to value_str,value_real,value_set
-
-  Revision 1.12  1998/08/28 10:56:57  peter
-    * removed warnings
-
-  Revision 1.11  1998/08/14 18:18:39  peter
-    + dynamic set contruction
-    * smallsets are now working (always longint size)
-
-  Revision 1.10  1998/08/04 13:22:46  pierre
-    * weird bug fixed :
-      a pchar ' ' (simple space or any other letter) was found to
-      be equal to a string of length zero !!!
-      thus printing out non sense
-      found that out while checking Control-C !!
-    + added column info also in RHIDE format as
-      it might be usefull later
-
-  Revision 1.9  1998/07/20 18:40:10  florian
-    * handling of ansi string constants should now work
-
-  Revision 1.8  1998/07/20 10:23:00  florian
-    * better ansi string assignement
-
-  Revision 1.7  1998/07/18 22:54:25  florian
-    * some ansi/wide/longstring support fixed:
-       o parameter passing
-       o returning as result from functions
-
-  Revision 1.6  1998/07/18 17:11:07  florian
-    + ansi string constants fixed
-    + switch $H partial implemented
-
-  Revision 1.5  1998/06/25 08:48:07  florian
-    * first version of rtti support
-
-  Revision 1.4  1998/06/08 13:13:31  pierre
-    + temporary variables now in temp_gen.pas unit
-      because it is processor independent
-    * mppc68k.bat modified to undefine i386 and support_mmx
-      (which are defaults for i386)
-
-  Revision 1.3  1998/06/05 17:44:11  peter
-    * splitted cgi386
-
-  Revision 1.2  1998/06/05 16:13:31  pierre
-    * fix for real and string consts inside inlined procs
-
-  Revision 1.1  1998/05/23 01:21:02  peter
-    + aktasmmode, aktoptprocessor, aktoutputformat
-    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
-    + $LIBNAME to set the library name where the unit will be put in
-    * splitted cgi386 a bit (codeseg to large for bp7)
-    * nasm, tasm works again. nasm moved to ag386nsm.pas
 
 }

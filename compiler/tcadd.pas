@@ -1136,7 +1136,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  1999-09-27 23:45:00  peter
+  Revision 1.51  1999-11-06 14:34:29  peter
+    * truncated log to 20 revs
+
+  Revision 1.50  1999/09/27 23:45:00  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
@@ -1206,151 +1209,5 @@ end.
     * make cycle fixed i.e. compilation with 0.99.10
     * some fixes for qword
     * start of register calling conventions
-
-  Revision 1.33  1999/05/27 19:45:12  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.32  1999/05/23 18:42:18  florian
-    * better error recovering in typed constants
-    * some problems with arrays of const fixed, some problems
-      due my previous
-       - the location type of array constructor is now LOC_MEM
-       - the pushing of high fixed
-       - parameter copying fixed
-       - zero temp. allocation removed
-    * small problem in the assembler writers fixed:
-      ref to nil wasn't written correctly
-
-  Revision 1.31  1999/05/19 20:40:14  florian
-    * fixed a couple of array related bugs:
-      - var a : array[0..1] of char;   p : pchar;  p:=a+123; works now
-      - open arrays with an odd size doesn't work: movsb wasn't generated
-      - introduced some new array type helper routines (is_special_array) etc.
-      - made the array type checking in isconvertable more strict, often
-        open array can be used where is wasn't allowed etc...
-
-  Revision 1.30  1999/05/11 00:47:02  peter
-    + constant operations on enums, only in fpc mode
-
-  Revision 1.29  1999/05/06 09:05:32  peter
-    * generic write_float and str_float
-    * fixed constant float conversions
-
-  Revision 1.28  1999/05/01 13:24:46  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.27  1999/04/28 06:02:14  florian
-    * changes of Bruessel:
-       + message handler can now take an explicit self
-       * typinfo fixed: sometimes the type names weren't written
-       * the type checking for pointer comparisations and subtraction
-         and are now more strict (was also buggy)
-       * small bug fix to link.pas to support compiling on another
-         drive
-       * probable bug in popt386 fixed: call/jmp => push/jmp
-         transformation didn't count correctly the jmp references
-       + threadvar support
-       * warning if ln/sqrt gets an invalid constant argument
-
-  Revision 1.26  1999/04/16 20:44:37  florian
-    * the boolean operators =;<>;xor with LOC_JUMP and LOC_FLAGS
-      operands fixed, small things for new ansistring management
-
-  Revision 1.25  1999/04/15 09:01:34  peter
-    * fixed set loading
-    * object inheritance support for browser
-
-  Revision 1.24  1999/04/08 11:34:00  peter
-    * int/int warning removed, only the hint is left
-
-  Revision 1.23  1999/03/02 22:52:19  peter
-    * fixed char array, which can start with all possible values
-
-  Revision 1.22  1999/02/22 02:15:43  peter
-    * updates for ag386bin
-
-  Revision 1.21  1999/01/20 21:05:09  peter
-    * fixed set operations which still had array constructor as type
-
-  Revision 1.20  1999/01/20 17:39:26  jonas
-    + fixed bug0163 (set1 <= set2 support)
-
-  Revision 1.19  1998/12/30 13:35:35  peter
-    * fix for boolean=true compares
-
-  Revision 1.18  1998/12/15 17:12:35  peter
-    * pointer+ord not allowed in tp mode
-
-  Revision 1.17  1998/12/11 00:03:51  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.16  1998/12/10 09:47:31  florian
-    + basic operations with int64/qord (compiler with -dint64)
-    + rtti of enumerations extended: names are now written
-
-  Revision 1.15  1998/11/24 22:59:05  peter
-    * handle array of char the same as strings
-
-  Revision 1.14  1998/11/17 00:36:47  peter
-    * more ansistring fixes
-
-  Revision 1.13  1998/11/16 15:33:05  peter
-    * fixed return for ansistrings
-
-  Revision 1.12  1998/11/05 14:28:16  peter
-    * fixed unknown set operation msg
-
-  Revision 1.11  1998/11/05 12:03:02  peter
-    * released useansistring
-    * removed -Sv, its now available in fpc modes
-
-  Revision 1.10  1998/11/04 10:11:46  peter
-    * ansistring fixes
-
-  Revision 1.9  1998/10/25 23:32:04  peter
-    * fixed u32bit - s32bit conversion problems
-
-  Revision 1.8  1998/10/22 12:12:28  pierre
-   + better error info on unimplemented set operators
-
-  Revision 1.7  1998/10/21 15:12:57  pierre
-    * bug fix for IOCHECK inside a procedure with iocheck modifier
-    * removed the GPF for unexistant overloading
-      (firstcall was called with procedinition=nil !)
-    * changed typen to what Florian proposed
-      gentypenode(p : pdef) sets the typenodetype field
-      and resulttype is only set if inside bt_type block !
-
-  Revision 1.6  1998/10/20 15:09:24  florian
-    + binary operators for ansi strings
-
-  Revision 1.5  1998/10/20 08:07:05  pierre
-    * several memory corruptions due to double freemem solved
-      => never use p^.loc.location:=p^.left^.loc.location;
-    + finally I added now by default
-      that ra386dir translates global and unit symbols
-    + added a first field in tsymtable and
-      a nextsym field in tsym
-      (this allows to obtain ordered type info for
-      records and objects in gdb !)
-
-  Revision 1.4  1998/10/14 12:53:39  peter
-    * fixed small tp7 things
-    * boolean:=longbool and longbool fixed
-
-  Revision 1.3  1998/10/11 14:31:19  peter
-    + checks for division by zero
-
-  Revision 1.2  1998/10/05 21:33:31  peter
-    * fixed 161,165,166,167,168
-
-  Revision 1.1  1998/09/23 20:42:24  peter
-    * splitted pass_1
 
 }

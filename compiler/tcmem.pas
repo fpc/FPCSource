@@ -629,7 +629,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1999-10-26 12:30:46  peter
+  Revision 1.32  1999-11-06 14:34:30  peter
+    * truncated log to 20 revs
+
+  Revision 1.31  1999/10/26 12:30:46  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes
@@ -708,58 +711,6 @@ end.
 
   Revision 1.16  1999/05/18 09:52:21  peter
     * procedure of object and addrn fixes
-
-  Revision 1.15  1999/05/17 23:51:46  peter
-    * with temp vars now use a reference with a persistant temp instead
-      of setting datasize
-
-  Revision 1.14  1999/05/01 13:24:57  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.13  1999/04/26 18:30:05  peter
-    * farpointerdef moved into pointerdef.is_far
-
-  Revision 1.12  1999/03/02 18:24:24  peter
-    * fixed overloading of array of char
-
-  Revision 1.11  1999/02/22 02:15:54  peter
-    * updates for ag386bin
-
-  Revision 1.10  1999/02/04 11:44:47  florian
-    * fixed indexed access of ansistrings to temp. ansistring, i.e.
-      c:=(s1+s2)[i], the temp is now correctly remove and the generated
-      code is also fixed
-
-  Revision 1.9  1999/01/22 12:18:34  pierre
-   * with bug introduced with DIRECTWITH removed
-
-  Revision 1.8  1999/01/21 16:41:08  pierre
-   * fix for constructor inside with statements
-
-  Revision 1.7  1998/12/30 22:15:59  peter
-    + farpointer type
-    * absolutesym now also stores if its far
-
-  Revision 1.6  1998/12/15 17:16:02  peter
-    * fixed const s : ^string
-    * first things for const pchar : @string[1]
-
-  Revision 1.5  1998/12/11 00:03:57  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.4  1998/11/25 19:12:53  pierre
-    * var:=new(pointer_type) support added
-
-  Revision 1.3  1998/09/26 15:03:05  florian
-    * small problems with DOM and excpetions fixed (code generation
-      of raise was wrong and self was sometimes destroyed :()
-
-  Revision 1.2  1998/09/24 23:49:24  peter
-    + aktmodeswitches
-
-  Revision 1.1  1998/09/23 20:42:24  peter
-    * splitted pass_1
 
 }
 

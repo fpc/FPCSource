@@ -919,7 +919,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  1999-09-27 23:44:48  peter
+  Revision 1.43  1999-11-06 14:34:18  peter
+    * truncated log to 20 revs
+
+  Revision 1.42  1999/09/27 23:44:48  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
@@ -995,84 +998,6 @@ end.
   Revision 1.23  1999/02/25 21:02:31  peter
     * ag386bin updates
     + coff writer
-
-  Revision 1.22  1999/02/22 02:15:16  peter
-    * updates for ag386bin
-
-  Revision 1.21  1999/02/17 10:12:59  peter
-    * removed memory leak when jumps are generated
-
-  Revision 1.20  1998/12/11 00:02:56  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.19  1998/10/09 08:56:25  pierre
-    * several memory leaks fixed
-
-  Revision 1.18  1998/10/08 17:17:14  pierre
-    * current_module old scanner tagged as invalid if unit is recompiled
-    + added ppheap for better info on tracegetmem of heaptrc
-      (adds line column and file index)
-    * several memory leaks removed ith help of heaptrc !!
-
-  Revision 1.17  1998/09/17 09:42:20  peter
-    + pass_2 for cg386
-    * Message() -> CGMessage() for pass_1/pass_2
-
-  Revision 1.16  1998/09/14 10:43:53  peter
-    * all internal RTL functions start with FPC_
-
-  Revision 1.15  1998/09/09 17:51:59  florian
-    * the next try to fix the case problem ...
-
-  Revision 1.14  1998/09/09 16:44:21  florian
-    * I hope, the case bug is fixed now
-
-  Revision 1.13  1998/09/07 18:45:54  peter
-    * update smartlinking, uses getdatalabel
-    * renamed ptree.value vars to value_str,value_real,value_set
-
-  Revision 1.12  1998/09/05 23:51:05  florian
-    * possible bug with too few registers in first/secondin fixed
-
-  Revision 1.11  1998/09/04 08:41:41  peter
-    * updated some error messages
-
-  Revision 1.10  1998/09/03 17:08:40  pierre
-    * better lines for stabs
-      (no scroll back to if before else part
-      no return to case line at jump outside case)
-    + source lines also if not in order
-
-  Revision 1.9  1998/08/28 10:54:19  peter
-    * fixed smallset generation from elements, it has never worked before!
-
-  Revision 1.8  1998/08/25 11:51:46  peter
-    * fixed -15 seen as byte in case
-
-  Revision 1.7  1998/08/19 16:07:38  jonas
-    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
-
-  Revision 1.6  1998/08/18 09:24:39  pierre
-    * small warning position bug fixed
-    * support_mmx switches splitting was missing
-    * rhide error and warning output corrected
-
-  Revision 1.5  1998/08/14 18:18:40  peter
-    + dynamic set contruction
-    * smallsets are now working (always longint size)
-
-  Revision 1.4  1998/08/10 14:49:51  peter
-    + localswitches, moduleswitches, globalswitches splitting
-
-  Revision 1.3  1998/06/25 08:48:10  florian
-    * first version of rtti support
-
-  Revision 1.2  1998/06/16 08:56:18  peter
-    + targetcpu
-    * cleaner pmodules for newppu
-
-  Revision 1.1  1998/06/05 17:44:13  peter
-    * splitted cgi386
 
 }
 

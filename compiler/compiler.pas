@@ -300,7 +300,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  1999-10-12 21:20:41  florian
+  Revision 1.37  1999-11-06 14:34:20  peter
+    * truncated log to 20 revs
+
+  Revision 1.36  1999/10/12 21:20:41  florian
     * new codegenerator compiles again
 
   Revision 1.35  1999/09/28 19:48:45  florian
@@ -370,67 +373,5 @@ end.
     + BrowserLog for browser.log generation
     + BrowserCol for browser info in TCollections
     * released all other UseBrowser
-
-  Revision 1.16  1998/12/15 10:23:23  peter
-    + -iSO, -iSP, -iTO, -iTP
-
-  Revision 1.15  1998/10/29 11:35:40  florian
-    * some dll support for win32
-    * fixed assembler writing for PalmOS
-
-  Revision 1.14  1998/10/26 22:58:17  florian
-    * new introduded problem with classes fix, the parent class wasn't set
-      correct, if the class was defined forward before
-
-  Revision 1.13  1998/10/26 17:15:17  pierre
-    + added two level of longjump to
-      allow clean freeing of used memory on errors
-
-  Revision 1.12  1998/10/09 16:36:02  pierre
-    * some memory leaks specific to usebrowser define fixed
-    * removed tmodule.implsymtable (was like tmodule.localsymtable)
-
-  Revision 1.11  1998/10/08 23:28:51  peter
-    * -vu shows unit info, -vt shows tried/used files
-
-  Revision 1.10  1998/10/08 17:17:18  pierre
-    * current_module old scanner tagged as invalid if unit is recompiled
-    + added ppheap for better info on tracegetmem of heaptrc
-      (adds line column and file index)
-    * several memory leaks removed ith help of heaptrc !!
-
-  Revision 1.9  1998/10/06 17:16:46  pierre
-    * some memory leaks fixed (thanks to Peter for heaptrc !)
-
-  Revision 1.8  1998/09/01 09:00:27  peter
-    - removed tempheap creation/restore
-
-  Revision 1.7  1998/09/01 07:54:17  pierre
-    * UseBrowser a little updated (might still be buggy !!)
-    * bug in psub.pas in function specifier removed
-    * stdcall allowed in interface and in implementation
-      (FPC will not yet complain if it is missing in either part
-      because stdcall is only a dummy !!)
-
-  Revision 1.6  1998/08/29 13:51:10  peter
-    * moved get_exepath to globals
-    + date_string const with the current date for 0.99.7+
-
-  Revision 1.5  1998/08/11 21:38:24  peter
-    + createheap/restoreheap procedures (only tp7 rm currently) and support
-      for tp7 dpmi
-
-  Revision 1.4  1998/08/11 14:09:06  peter
-    * fixed some messages and smaller msgtxt.inc
-
-  Revision 1.3  1998/08/11 00:01:20  peter
-    * -vu displays now all searchpaths
-
-  Revision 1.2  1998/08/10 14:49:56  peter
-    + localswitches, moduleswitches, globalswitches splitting
-
-  Revision 1.1  1998/08/10 10:18:24  peter
-    + Compiler,Comphook unit which are the new interface units to the
-      compiler
 
 }

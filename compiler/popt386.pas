@@ -1603,7 +1603,10 @@ End.
 
 {
  $Log$
- Revision 1.66  1999-09-27 23:44:55  peter
+ Revision 1.67  1999-11-06 14:34:23  peter
+   * truncated log to 20 revs
+
+ Revision 1.66  1999/09/27 23:44:55  peter
    * procinfo is now a pointer
    * support for result setting in sub procedure
 
@@ -1670,145 +1673,5 @@ End.
 
  Revision 1.49  1999/05/02 14:26:31  peter
    * fixed dec -> sub $1 opt which didn't set ops=2
-
- Revision 1.48  1999/05/01 13:24:34  peter
-   * merged nasm compiler
-   * old asm moved to oldasm/
-
- Revision 1.5  1999/04/30 12:36:50  jonas
-   * fix from Brussels: call/jmp => push/jmp transformation didn't
-     count correctly the jmp references
-
- Revision 1.4  1999/04/10 16:14:11  peter
-   * fixed optimizer
-
- Revision 1.3  1999/04/09 08:33:18  peter
-   * fixed mov reg,treg;mov treg,x bug
-
- Revision 1.2  1999/03/29 16:05:51  peter
-   * optimizer working for ag386bin
-
- Revision 1.1  1999/03/26 00:01:15  peter
-   * first things for optimizer (compiles but cycle crashes)
-
- Revision 1.39  1999/02/26 00:48:22  peter
-   * assembler writers fixed for ag386bin
-
- Revision 1.38  1999/02/25 21:02:44  peter
-   * ag386bin updates
-   + coff writer
-
- Revision 1.37  1999/02/22 02:15:30  peter
-   * updates for ag386bin
-
- Revision 1.36  1999/01/04 22:04:15  jonas
-   + mov reg, mem1    to    mov reg, mem1
-      mov mem2, reg           cmp reg, mem2
-      cmp mem1, reg
-     # reg released
-
- Revision 1.35  1999/01/04 12:58:55  jonas
-   * no fistp/fild optimization for S_IQ (fistq doesn't exist)
-
- Revision 1.34  1998/12/29 18:48:17  jonas
-   + optimize pascal code surrounding assembler blocks
-
- Revision 1.33  1998/12/23 15:16:21  jonas
-   * change "inc x/dec x; test x, x"  to "add 1, x/sub 1,x" because inc and dec
-     don't affect the carry flag (test does). This *doesn't* fix the problem with
-    cardinal, that's a cg issue.
-
- Revision 1.32  1998/12/16 12:09:29  jonas
-   * fixed fistp/fild optimization
-
- Revision 1.31  1998/12/15 22:30:39  jonas
-   + change "sub/add const1, reg" or "dec reg" followed by "sub const2, reg" to one
-     "sub const3, reg"
-   * some small cleaning up
-
- Revision 1.30  1998/12/15 15:43:20  jonas
-   * fixed bug in shr/shl optimization
-
- Revision 1.29  1998/12/15 11:53:54  peter
-   * removed commentlevel
-
- Revision 1.28  1998/12/14 22:01:45  jonas
-   - removed $ifdef ver0_99_11's
-
- Revision 1.27  1998/12/11 00:03:35  peter
-   + globtype,tokens,version unit splitted from globals
-
- Revision 1.26  1998/12/09 18:16:13  jonas
-   * corrected small syntax error in part between ifdef ver0_99_11
-   + added fistp/fild optimization between ifdef ver0_99_11
-
- Revision 1.25  1998/12/02 16:23:29  jonas
-   * changed "if longintvar in set" to case or "if () or () .." statements
-   * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
-
- Revision 1.24  1998/11/26 15:41:45  jonas
-   + change "setxx mem; movb mem, reg8" to "setxx reg8" if mem is a local
-     variable/parameter or function result (between $ifdef ver0_99_11)
-
- Revision 1.23  1998/11/03 16:26:09  jonas
-   * "call x;jmp y" optimization not done anymore for P6 and equivalents
-   * made FPU optimizations simpler and more effective
-
- Revision 1.22  1998/10/29 18:37:55  jonas
-   + change "call x; jmp y" to "push y; jmp x" (suggestion from Daniel)
-
- Revision 1.19  1998/10/23 15:38:23  jonas
-   + some small FPU peephole optimizations (use value in FP regs instead of loading it
-      from memory if possible, mostly with var1+var1 and var1*var1)
-
- Revision 1.18  1998/10/05 14:41:14  jonas
-   * fixed small memory leak
-   * fixed small inefficiency
-   * tested multiple line comments ability of my new MacCVS client :)
-
- Revision 1.17  1998/10/02 17:29:56  jonas
-   + removal of "lea (reg), reg)", "imul $1, reg", change "mov reg1, reg2; mov (reg2), reg2" to "mov (reg1), reg2"
-
- Revision 1.16  1998/10/01 20:19:57  jonas
-   * moved UpdateUsedRegs (+ bugfix) to daopt386
-
- Revision 1.15  1998/09/30 12:18:29  peter
-   * fixed subl $2,esp;psuhw bug
-
- Revision 1.14  1998/09/20 17:11:51  jonas
-   * released REGALLOC
-
- Revision 1.13  1998/09/16 18:00:00  jonas
-   * optimizer now completely dependant on GetNext/GetLast instruction, works again with -dRegAlloc
-
- Revision 1.12  1998/09/15 14:05:22  jonas
-   * fixed optimizer incompatibilities with freelabel code in psub
-
- Revision 1.11  1998/08/28 10:57:02  peter
-   * removed warnings
-
- Revision 1.10  1998/08/27 15:17:50  florian
-   * reinstated Jonas' bugfix
-
- Revision 1.9  1998/08/25 16:58:59  pierre
-   * removed a line that add no sense and
-     introduce garbage in the asmlist
-     (uninitialized data !)
-
- Revision 1.7  1998/08/19 16:07:53  jonas
-   * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
-
- Revision 1.6  1998/08/10 14:50:14  peter
-   + localswitches, moduleswitches, globalswitches splitting
-
- Revision 1.5  1998/08/06 19:40:28  jonas
-   * removed $ before and after Log in comment
-
- Revision 1.4  1998/08/05 16:27:17  jonas
-   * fstp/fld bugfix (fstt does not exist)
-
- Revision 1.3  1998/08/05 16:00:15  florian
-   * some fixes for ansi strings
-   * log to Log changed
 
 }

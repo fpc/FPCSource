@@ -374,7 +374,10 @@ end.
 
 {
   $Log$
-  Revision 1.46  1999-10-21 14:18:54  peter
+  Revision 1.47  1999-11-06 14:34:21  peter
+    * truncated log to 20 revs
+
+  Revision 1.46  1999/10/21 14:18:54  peter
     * tp7 fix
 
   Revision 1.45  1999/10/14 14:57:52  florian
@@ -445,112 +448,4 @@ end.
     * ag386bin updates
     + coff writer
 
-  Revision 1.26  1999/02/22 02:15:21  peter
-    * updates for ag386bin
-
-  Revision 1.25  1999/01/21 22:10:45  peter
-    * fixed array of const
-    * generic platform independent high() support
-
-  Revision 1.24  1998/12/29 18:48:18  jonas
-    + optimize pascal code surrounding assembler blocks
-
-  Revision 1.23  1998/11/27 14:50:38  peter
-    + open strings, $P switch support
-
-  Revision 1.22  1998/11/16 12:12:21  peter
-    - generate_pascii which is obsolete
-
-  Revision 1.21  1998/11/04 10:11:38  peter
-    * ansistring fixes
-
-  Revision 1.20  1998/10/29 15:42:48  florian
-    + partial disposing of temp. ansistrings
-
-  Revision 1.19  1998/10/26 22:58:18  florian
-    * new introduded problem with classes fix, the parent class wasn't set
-      correct, if the class was defined forward before
-
-  Revision 1.18  1998/10/06 17:16:50  pierre
-    * some memory leaks fixed (thanks to Peter for heaptrc !)
-
-  Revision 1.17  1998/09/17 09:42:37  peter
-    + pass_2 for cg386
-    * Message() -> CGMessage() for pass_1/pass_2
-
-  Revision 1.16  1998/09/07 18:46:04  peter
-    * update smartlinking, uses getdatalabel
-    * renamed ptree.value vars to value_str,value_real,value_set
-
-  Revision 1.15  1998/09/01 09:02:51  peter
-    * moved message() to hcodegen, so pass_2 also uses them
-
-  Revision 1.14  1998/08/21 14:08:43  pierre
-    + TEST_FUNCRET now default (old code removed)
-      works also for m68k (at least compiles)
-
-  Revision 1.13  1998/08/20 09:26:38  pierre
-    + funcret setting in underproc testing
-      compile with _dTEST_FUNCRET
-
-  Revision 1.12  1998/08/10 14:50:01  peter
-    + localswitches, moduleswitches, globalswitches splitting
-
-  Revision 1.11  1998/07/28 21:52:51  florian
-    + implementation of raise and try..finally
-    + some misc. exception stuff
-
-  Revision 1.10  1998/07/20 18:40:13  florian
-    * handling of ansi string constants should now work
-
-  Revision 1.9  1998/06/05 16:13:34  pierre
-    * fix for real and string consts inside inlined procs
-
-  Revision 1.8  1998/06/04 23:51:40  peter
-    * m68k compiles
-    + .def file creation moved to gendef.pas so it could also be used
-      for win32
-
-  Revision 1.7  1998/06/04 09:55:38  pierre
-    * demangled name of procsym reworked to become independant of the mangling scheme
-
-  Revision 1.6  1998/05/23 01:21:08  peter
-    + aktasmmode, aktoptprocessor, aktoutputformat
-    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
-    + $LIBNAME to set the library name where the unit will be put in
-    * splitted cgi386 a bit (codeseg to large for bp7)
-    * nasm, tasm works again. nasm moved to ag386nsm.pas
-
-  Revision 1.5  1998/05/20 09:42:34  pierre
-    + UseTokenInfo now default
-    * unit in interface uses and implementation uses gives error now
-    * only one error for unknown symbol (uses lastsymknown boolean)
-      the problem came from the label code !
-    + first inlined procedures and function work
-      (warning there might be allowed cases were the result is still wrong !!)
-    * UseBrower updated gives a global list of all position of all used symbols
-      with switch -gb
-
-  Revision 1.4  1998/05/07 00:17:01  peter
-    * smartlinking for sets
-    + consts labels are now concated/generated in hcodegen
-    * moved some cpu code to cga and some none cpu depended code from cga
-      to tree and hcodegen and cleanup of hcodegen
-    * assembling .. output reduced for smartlinking ;)
-
-  Revision 1.3  1998/05/06 08:38:40  pierre
-    * better position info with UseTokenInfo
-      UseTokenInfo greatly simplified
-    + added check for changed tree after first time firstpass
-      (if we could remove all the cases were it happen
-      we could skip all firstpass if firstpasscount > 1)
-      Only with ExtDebug
-
-  Revision 1.2  1998/04/29 10:33:53  pierre
-    + added some code for ansistring (not complete nor working yet)
-    * corrected operator overloading
-    * corrected nasm output
-    + started inline procedures
-    + added starstarn : use ** for exponentiation (^ gave problems)
-    + started UseTokenInfo cond to get accurate positions
 }

@@ -502,7 +502,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  1999-10-26 12:30:46  peter
+  Revision 1.49  1999-11-06 14:34:30  peter
+    * truncated log to 20 revs
+
+  Revision 1.48  1999/10/26 12:30:46  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes
@@ -595,106 +598,5 @@ end.
     * two bugs reported by Romio (bugs 13) are fixed:
         - empty array constructors are now handled correctly (e.g. for sysutils.format)
         - comparsion of ansistrings was sometimes coded wrong
-
-  Revision 1.29  1999/05/17 23:51:45  peter
-    * with temp vars now use a reference with a persistant temp instead
-      of setting datasize
-
-  Revision 1.27  1999/05/12 00:20:02  peter
-    * removed R_DEFAULT_SEG
-    * uniform float names
-
-  Revision 1.26  1999/05/06 09:05:36  peter
-    * generic write_float and str_float
-    * fixed constant float conversions
-
-  Revision 1.25  1999/05/01 13:24:54  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.24  1999/04/28 06:02:17  florian
-    * changes of Bruessel:
-       + message handler can now take an explicit self
-       * typinfo fixed: sometimes the type names weren't written
-       * the type checking for pointer comparisations and subtraction
-         and are now more strict (was also buggy)
-       * small bug fix to link.pas to support compiling on another
-         drive
-       * probable bug in popt386 fixed: call/jmp => push/jmp
-         transformation didn't count correctly the jmp references
-       + threadvar support
-       * warning if ln/sqrt gets an invalid constant argument
-
-  Revision 1.23  1999/04/21 21:57:33  pierre
-   * previous log corrected
-
-  Revision 1.22  1999/04/21 16:31:47  pierre
-  * some wrong code in firstfuncret corrected
-
-  Revision 1.21  1999/04/01 21:59:57  peter
-    * type error for array constructor with array,record as argument
-
-  Revision 1.20  1999/03/24 23:17:39  peter
-    * fixed bugs 212,222,225,227,229,231,233
-
-  Revision 1.19  1999/03/18 11:21:52  peter
-    * convert only to s32bit if integer or enum
-
-  Revision 1.18  1999/03/16 21:02:10  peter
-    * all array of const enum/ord are converted to s32bit
-
-  Revision 1.17  1999/03/10 13:24:23  pierre
-   * array of const type to definition field
-
-  Revision 1.16  1999/02/22 02:15:52  peter
-    * updates for ag386bin
-
-  Revision 1.15  1999/02/15 13:13:19  pierre
-   * fix for bug0216
-
-  Revision 1.14  1999/01/27 00:13:58  florian
-    * "procedure of object"-stuff fixed
-
-  Revision 1.13  1999/01/21 16:41:07  pierre
-   * fix for constructor inside with statements
-
-  Revision 1.12  1998/12/30 13:41:19  peter
-    * released valuepara
-
-  Revision 1.11  1998/11/18 17:45:28  peter
-    * fixes for VALUEPARA
-
-  Revision 1.10  1998/11/18 15:44:23  peter
-    * VALUEPARA for tp7 compatible value parameters
-
-  Revision 1.9  1998/11/17 00:36:49  peter
-    * more ansistring fixes
-
-  Revision 1.8  1998/11/10 10:09:18  peter
-    * va_list -> array of const
-
-  Revision 1.7  1998/11/05 14:26:48  peter
-    * fixed variant warning with was sometimes said with sets
-
-  Revision 1.6  1998/10/19 08:55:12  pierre
-    * wrong stabs info corrected once again !!
-    + variable vmt offset with vmt field only if required
-      implemented now !!!
-
-  Revision 1.5  1998/10/06 20:49:12  peter
-    * m68k compiler compiles again
-
-  Revision 1.4  1998/09/28 11:07:40  peter
-    + floatdef support for array of const
-
-  Revision 1.3  1998/09/27 10:16:27  florian
-    * type casts pchar<->ansistring fixed
-    * ansistring[..] calls does now an unique call
-
-  Revision 1.2  1998/09/24 15:13:48  peter
-    * fixed type node which was always set to void :(
-
-  Revision 1.1  1998/09/23 20:42:24  peter
-    * splitted pass_1
 
 }

@@ -889,7 +889,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1999-10-27 16:11:28  peter
+  Revision 1.16  1999-11-06 14:34:20  peter
+    * truncated log to 20 revs
+
+  Revision 1.15  1999/10/27 16:11:28  peter
     * insns.dat is used to generate all i386*.inc files
 
   Revision 1.14  1999/10/14 14:57:51  florian
@@ -957,70 +960,5 @@ end.
 
   Revision 1.6  1999/06/06 15:53:15  peter
     * suffix adding can be turned of for some tasmops in att_nosuffix array
-
-  Revision 1.5  1999/05/27 19:44:34  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.4  1999/05/17 14:33:50  pierre
-   uses heaptrc need for extrainfo with heaptrc
-
-  Revision 1.3  1999/05/12 00:19:51  peter
-    * removed R_DEFAULT_SEG
-    * uniform float names
-
-  Revision 1.2  1999/05/11 16:30:00  peter
-    * more noag386bin defines, so tp7 can compile at least
-
-  Revision 1.1  1999/05/01 13:24:23  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.13  1999/04/14 09:07:43  peter
-    * asm reader improvements
-
-  Revision 1.12  1999/04/10 16:14:09  peter
-    * fixed optimizer
-
-  Revision 1.11  1999/03/31 13:55:33  peter
-    * assembler inlining working for ag386bin
-
-  Revision 1.10  1999/03/29 16:05:50  peter
-    * optimizer working for ag386bin
-
-  Revision 1.9  1999/03/26 00:01:14  peter
-    * first things for optimizer (compiles but cycle crashes)
-
-  Revision 1.8  1999/03/06 17:24:21  peter
-    * rewritten intel parser a lot, especially reference reading
-    * size checking added for asm parsers
-
-  Revision 1.7  1999/03/02 02:56:20  peter
-    + stabs support for binary writers
-    * more fixes and missing updates from the previous commit :(
-
-  Revision 1.6  1999/03/01 15:46:22  peter
-    * ag386bin finally make cycles correct
-    * prefixes are now also normal opcodes
-
-  Revision 1.5  1999/02/26 00:48:29  peter
-    * assembler writers fixed for ag386bin
-
-  Revision 1.4  1999/02/25 21:03:04  peter
-    * ag386bin updates
-    + coff writer
-
-  Revision 1.3  1999/02/22 02:44:18  peter
-    * ag386bin doesn't use i386.pas anymore
-
-  Revision 1.2  1999/02/22 02:16:03  peter
-    * updates for ag386bin
-
-  Revision 1.1  1999/02/16 17:59:38  peter
-    + initial files
 
 }

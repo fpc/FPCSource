@@ -273,7 +273,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  1999-11-05 13:15:00  florian
+  Revision 1.52  1999-11-06 14:34:23  peter
+    * truncated log to 20 revs
+
+  Revision 1.51  1999/11/05 13:15:00  florian
     * some fixes to get the new cg compiling again
 
   Revision 1.50  1999/09/17 17:14:10  peter
@@ -348,125 +351,4 @@ end.
   Revision 1.32  1998/10/02 17:03:51  peter
     * ifdef heaptrc for heaptrc
 
-  Revision 1.31  1998/09/28 16:57:23  pierre
-    * changed all length(p^.value_str^) into str_length(p)
-      to get it work with and without ansistrings
-    * changed sourcefiles field of tmodule to a pointer
-
-  Revision 1.30  1998/09/24 23:49:13  peter
-    + aktmodeswitches
-
-  Revision 1.29  1998/09/17 09:42:41  peter
-    + pass_2 for cg386
-    * Message() -> CGMessage() for pass_1/pass_2
-
-  Revision 1.28  1998/08/26 15:31:17  peter
-    * heapblocks for >0.99.5
-
-  Revision 1.27  1998/08/11 00:00:00  peter
-    * fixed dup log
-
-  Revision 1.26  1998/08/10 15:49:40  peter
-    * small fixes for 0.99.5
-
-  Revision 1.25  1998/08/10 14:50:16  peter
-    + localswitches, moduleswitches, globalswitches splitting
-
-  Revision 1.24  1998/08/10 10:18:32  peter
-    + Compiler,Comphook unit which are the new interface units to the
-      compiler
-
-  Revision 1.23  1998/08/05 16:00:16  florian
-    * some fixes for ansi strings
-
-  Revision 1.22  1998/08/04 16:28:40  jonas
-  * added support for NoRa386* in the $O ... section
-
-  Revision 1.21  1998/07/18 17:11:12  florian
-    + ansi string constants fixed
-    + switch $H partial implemented
-
-  Revision 1.20  1998/07/14 14:46:55  peter
-    * released NEWINPUT
-
-  Revision 1.19  1998/07/07 11:20:04  peter
-    + NEWINPUT for a better inputfile and scanner object
-
-  Revision 1.18  1998/06/24 14:06:33  peter
-    * fixed the name changes
-
-  Revision 1.17  1998/06/23 08:59:22  daniel
-    * Recommitted.
-
-  Revision 1.16  1998/06/17 14:10:17  peter
-    * small os2 fixes
-    * fixed interdependent units with newppu (remake3 under linux works now)
-
-  Revision 1.15  1998/06/16 11:32:18  peter
-    * small cosmetic fixes
-
-  Revision 1.14  1998/06/15 13:43:45  daniel
-
-
-  * Updated overlays.
-
-  Revision 1.12  1998/05/23 01:21:23  peter
-    + aktasmmode, aktoptprocessor, aktoutputformat
-    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
-    + $LIBNAME to set the library name where the unit will be put in
-    * splitted cgi386 a bit (codeseg to large for bp7)
-    * nasm, tasm works again. nasm moved to ag386nsm.pas
-
-  Revision 1.11  1998/05/20 09:42:35  pierre
-    + UseTokenInfo now default
-    * unit in interface uses and implementation uses gives error now
-    * only one error for unknown symbol (uses lastsymknown boolean)
-      the problem came from the label code !
-    + first inlined procedures and function work
-      (warning there might be allowed cases were the result is still wrong !!)
-    * UseBrower updated gives a global list of all position of all used symbols
-      with switch -gb
-
-  Revision 1.10  1998/05/12 10:47:00  peter
-    * moved printstatus to verb_def
-    + V_Normal which is between V_Error and V_Warning and doesn't have a
-      prefix like error: warning: and is included in V_Default
-    * fixed some messages
-    * first time parameter scan is only for -v and -T
-    - removed old style messages
-
-  Revision 1.9  1998/05/11 13:07:56  peter
-    + $ifdef NEWPPU for the new ppuformat
-    + $define GDB not longer required
-    * removed all warnings and stripped some log comments
-    * no findfirst/findnext anymore to remove smartlink *.o files
-
-  Revision 1.8  1998/05/08 09:21:57  michael
-  + Librarysearchpath is now a linker object field;
-
-  Revision 1.7  1998/05/04 17:54:28  peter
-    + smartlinking works (only case jumptable left todo)
-    * redesign of systems.pas to support assemblers and linkers
-    + Unitname is now also in the PPU-file, increased version to 14
-
-  Revision 1.6  1998/04/29 13:40:23  peter
-    + heapblocks:=true
-
-  Revision 1.5  1998/04/29 10:33:59  pierre
-    + added some code for ansistring (not complete nor working yet)
-    * corrected operator overloading
-    * corrected nasm output
-    + started inline procedures
-    + added starstarn : use ** for exponentiation (^ gave problems)
-    + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.3  1998/04/21 10:16:48  peter
-    * patches from strasbourg
-    * objects is not used anymore in the fpc compiled version
-
-  Revision 1.2  1998/04/07 13:19:47  pierre
-    * bugfixes for reset_gdb_info
-      in MEM parsing for go32v2
-      better external symbol creation
-      support for rhgdb.exe (lowercase file names)
 }

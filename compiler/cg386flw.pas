@@ -769,7 +769,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.55  1999-10-30 17:35:26  peter
+  Revision 1.56  1999-11-06 14:34:17  peter
+    * truncated log to 20 revs
+
+  Revision 1.55  1999/10/30 17:35:26  peter
     * fpc_freemem fpc_getmem new callings updated
 
   Revision 1.54  1999/10/21 16:41:37  florian
@@ -849,135 +852,5 @@ end.
 
   Revision 1.37  1999/05/17 21:57:01  florian
     * new temporary ansistring handling
-
-  Revision 1.36  1999/05/13 21:59:21  peter
-    * removed oldppu code
-    * warning if objpas is loaded from uses
-    * first things for new deref writing
-
-  Revision 1.35  1999/05/01 13:24:07  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.34  1999/04/26 13:31:25  peter
-    * release storenumber,double_checksum
-
-  Revision 1.33  1999/04/21 09:43:29  peter
-    * storenumber works
-    * fixed some typos in double_checksum
-    + incompatible types type1 and type2 message (with storenumber)
-
-  Revision 1.32  1999/04/17 13:10:58  peter
-    * fixed exit()
-
-  Revision 1.31  1999/04/14 09:14:46  peter
-    * first things to store the symbol/def number in the ppu
-
-  Revision 1.30  1999/03/05 16:14:59  peter
-    * fixed exit() with word/byte return
-
-  Revision 1.29  1999/02/25 21:02:26  peter
-    * ag386bin updates
-    + coff writer
-
-  Revision 1.28  1999/02/22 02:15:09  peter
-    * updates for ag386bin
-
-  Revision 1.27  1999/01/26 11:26:21  pierre
-   * bug0152 for i:=1 to i-5 do (i-5) evaluated first
-
-  Revision 1.26  1998/12/19 00:23:44  florian
-    * ansistring memory leaks fixed
-
-  Revision 1.25  1998/11/30 09:43:03  pierre
-    * some range check bugs fixed (still not working !)
-    + added DLL writing support for win32 (also accepts variables)
-    + TempAnsi for code that could be used for Temporary ansi strings
-      handling
-
-  Revision 1.24  1998/11/18 15:44:09  peter
-    * VALUEPARA for tp7 compatible value parameters
-
-  Revision 1.23  1998/11/12 16:43:32  florian
-    * functions with ansi strings as result didn't work, solved
-
-  Revision 1.22  1998/10/29 15:42:44  florian
-    + partial disposing of temp. ansistrings
-
-  Revision 1.21  1998/10/26 22:58:16  florian
-    * new introduded problem with classes fix, the parent class wasn't set
-      correct, if the class was defined forward before
-
-  Revision 1.20  1998/10/06 17:16:42  pierre
-    * some memory leaks fixed (thanks to Peter for heaptrc !)
-
-  Revision 1.19  1998/09/28 12:13:53  peter
-    * fixed repeat continue until true;
-
-  Revision 1.18  1998/09/26 15:03:04  florian
-    * small problems with DOM and excpetions fixed (code generation
-      of raise was wrong and self was sometimes destroyed :()
-
-  Revision 1.17  1998/09/17 09:42:14  peter
-    + pass_2 for cg386
-    * Message() -> CGMessage() for pass_1/pass_2
-
-  Revision 1.16  1998/09/14 10:43:48  peter
-    * all internal RTL functions start with FPC_
-
-  Revision 1.15  1998/09/04 08:41:39  peter
-    * updated some error CGMessages
-
-  Revision 1.14  1998/09/03 17:08:39  pierre
-    * better lines for stabs
-      (no scroll back to if before else part
-      no return to case line at jump outside case)
-    + source lines also if not in order
-
-  Revision 1.13  1998/09/01 12:47:58  peter
-    * use pdef^.size instead of orddef^.typ
-
-  Revision 1.12  1998/08/28 10:56:58  peter
-    * removed warnings
-
-  Revision 1.11  1998/08/05 16:00:10  florian
-    * some fixes for ansi strings
-
-  Revision 1.10  1998/08/04 16:26:26  jonas
-    * converted // comment to TP comment
-
-  Revision 1.9  1998/07/31 11:36:34  michael
-  Default exception handler also needs to call FPC_CATCHES
-
-  Revision 1.8  1998/07/30 13:30:32  florian
-    * final implemenation of exception support, maybe it needs
-      some fixes :)
-
-  Revision 1.7  1998/07/30 11:18:13  florian
-    + first implementation of try ... except on .. do end;
-    * limitiation of 65535 bytes parameters for cdecl removed
-
-  Revision 1.6  1998/07/29 13:29:11  michael
-  + Corrected try.. code. Type of exception fram is pushed
-
-  Revision 1.5  1998/07/28 21:52:49  florian
-    + implementation of raise and try..finally
-    + some misc. exception stuff
-
-  Revision 1.4  1998/07/24 22:16:53  florian
-    * internal error 10 together with array access fixed. I hope
-      that's the final fix.
-
-  Revision 1.3  1998/06/25 08:48:08  florian
-    * first version of rtti support
-
-  Revision 1.2  1998/06/08 13:13:33  pierre
-    + temporary variables now in temp_gen.pas unit
-      because it is processor independent
-    * mppc68k.bat modified to undefine i386 and support_mmx
-      (which are defaults for i386)
-
-  Revision 1.1  1998/06/05 17:44:12  peter
-    * splitted cgi386
 
 }

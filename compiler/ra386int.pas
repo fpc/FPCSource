@@ -1767,7 +1767,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  1999-10-01 07:59:21  peter
+  Revision 1.51  1999-11-06 14:34:24  peter
+    * truncated log to 20 revs
+
+  Revision 1.50  1999/10/01 07:59:21  peter
     * fixed object field parsing
 
   Revision 1.49  1999/09/27 23:44:58  peter
@@ -1844,34 +1847,4 @@ end.
   Revision 1.34  1999/05/21 13:55:16  peter
     * NEWLAB for label as symbol
 
-  Revision 1.33  1999/05/05 22:22:03  peter
-    * updated messages
-
-  Revision 1.32  1999/05/04 21:45:02  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.31  1999/05/01 13:48:41  peter
-    * merged nasm compiler
-
-  Revision 1.6  1999/04/26 23:26:18  peter
-    * redesigned record offset parsing to support nested records
-    * normal compiler uses the redesigned createvarinstr()
-
-  Revision 1.5  1999/04/20 11:01:24  peter
-    * better tokenpos info
-
-  Revision 1.4  1999/04/14 09:07:46  peter
-    * asm reader improvements
-
-  Revision 1.3  1999/03/06 17:24:27  peter
-    * rewritten intel parser a lot, especially reference reading
-    * size checking added for asm parsers
-
-  Revision 1.2  1999/03/02 02:56:31  peter
-    + stabs support for binary writers
-    * more fixes and missing updates from the previous commit :(
-
-  Revision 1.1  1999/03/01 15:46:26  peter
-    * ag386bin finally make cycles correct
-    * prefixes are now also normal opcodes
 }

@@ -940,7 +940,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  1999-09-28 19:43:47  florian
+  Revision 1.35  1999-11-06 14:34:18  peter
+    * truncated log to 20 revs
+
+  Revision 1.34  1999/09/28 19:43:47  florian
     * the maybe_push fix of Pierre wasn't 100%, the tree parameter
       must contain a valid location (which is saved if necessary)
 
@@ -1018,62 +1021,5 @@ end.
     + typed const int64 and qword
     + unary minus-operator  q1:=-q2;
     + not-operator
-
-  Revision 1.14  1998/12/11 16:10:07  florian
-    + shifting for 64 bit ints added
-    * bug in getexplicitregister32 fixed: usableregs wasn't decremented !!
-
-  Revision 1.13  1998/12/11 00:02:52  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.12  1998/11/26 21:45:29  jonas
-    - removed A_CLTD opcode (use A_CDQ instead)
-    * changed cbw, cwde and cwd to cbtw, cwtl and cwtd in att_op2str array
-    * in daopt386: adapted AsmInstr array to reflect changes + fixed line too long
-
-  Revision 1.11  1998/11/05 14:26:02  peter
-    * fixed shlshr which would push ecx when not needed
-
-  Revision 1.10  1998/10/20 13:12:38  peter
-    * fixed 'not not boolean', the location was not set to register
-
-  Revision 1.9  1998/10/20 08:06:42  pierre
-    * several memory corruptions due to double freemem solved
-      => never use p^.loc.location:=p^.left^.loc.location;
-    + finally I added now by default
-      that ra386dir translates global and unit symbols
-    + added a first field in tsymtable and
-      a nextsym field in tsym
-      (this allows to obtain ordered type info for
-      records and objects in gdb !)
-
-  Revision 1.8  1998/10/09 08:56:24  pierre
-    * several memory leaks fixed
-
-  Revision 1.7  1998/09/17 09:42:17  peter
-    + pass_2 for cg386
-    * Message() -> CGMessage() for pass_1/pass_2
-
-  Revision 1.6  1998/09/09 14:37:37  florian
-    * mod/div for cardinal type fixed
-
-  Revision 1.5  1998/08/23 16:07:20  florian
-    * internalerror with mod/div fixed
-
-  Revision 1.4  1998/08/18 09:24:38  pierre
-    * small warning position bug fixed
-    * support_mmx switches splitting was missing
-    * rhide error and warning output corrected
-
-  Revision 1.3  1998/06/05 17:44:12  peter
-    * splitted cgi386
-
-  Revision 1.2  1998/06/02 17:02:59  pierre
-    *  with node corrected for objects
-    * small bugs for SUPPORT_MMX fixed
-
-  Revision 1.1  1998/06/01 16:50:18  peter
-    + boolean -> ord conversion
-    * fixed ord -> boolean conversion
 
 }

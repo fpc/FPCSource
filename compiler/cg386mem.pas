@@ -861,7 +861,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  1999-10-30 17:35:26  peter
+  Revision 1.60  1999-11-06 14:34:18  peter
+    * truncated log to 20 revs
+
+  Revision 1.59  1999/10/30 17:35:26  peter
     * fpc_freemem fpc_getmem new callings updated
 
   Revision 1.58  1999/09/17 17:14:02  peter
@@ -942,144 +945,6 @@ end.
   Revision 1.40  1999/05/18 14:15:26  peter
     * containsself fixes
     * checktypes()
-
-  Revision 1.39  1999/05/17 23:51:39  peter
-    * with temp vars now use a reference with a persistant temp instead
-      of setting datasize
-
-  Revision 1.38  1999/05/17 21:57:05  florian
-    * new temporary ansistring handling
-
-  Revision 1.37  1999/05/17 14:14:14  pierre
-   + -gc for check pointer with heaptrc
-
-  Revision 1.36  1999/05/12 00:19:44  peter
-    * removed R_DEFAULT_SEG
-    * uniform float names
-
-  Revision 1.35  1999/05/01 13:24:13  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.34  1999/04/26 18:29:54  peter
-    * farpointerdef moved into pointerdef.is_far
-
-  Revision 1.33  1999/03/26 11:43:26  pierre
-   * bug0236 fixed
-
-  Revision 1.32  1999/03/24 23:16:53  peter
-    * fixed bugs 212,222,225,227,229,231,233
-
-  Revision 1.31  1999/02/25 21:02:29  peter
-    * ag386bin updates
-    + coff writer
-
-  Revision 1.30  1999/02/22 02:15:14  peter
-    * updates for ag386bin
-
-  Revision 1.29  1999/02/07 22:53:07  florian
-    * potential bug in secondvecn fixed
-
-  Revision 1.28  1999/02/04 17:16:51  peter
-    * fixed crash with temp ansistring indexing
-
-  Revision 1.27  1999/02/04 11:44:46  florian
-    * fixed indexed access of ansistrings to temp. ansistring, i.e.
-      c:=(s1+s2)[i], the temp is now correctly remove and the generated
-      code is also fixed
-
-  Revision 1.26  1999/02/04 10:49:41  florian
-    + range checking for ansi- and widestrings
-    * made it compilable with TP
-
-  Revision 1.25  1999/01/21 16:40:52  pierre
-   * fix for constructor inside with statements
-
-  Revision 1.24  1999/01/19 12:05:27  pierre
-   * bug with @procvar=procvar fiwed
-
-  Revision 1.23  1998/12/30 22:15:45  peter
-    + farpointer type
-    * absolutesym now also stores if its far
-
-  Revision 1.22  1998/12/11 00:02:55  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.21  1998/12/10 09:47:18  florian
-    + basic operations with int64/qord (compiler with -dint64)
-    + rtti of enumerations extended: names are now written
-
-  Revision 1.20  1998/11/25 19:12:54  pierre
-    * var:=new(pointer_type) support added
-
-  Revision 1.19  1998/11/20 15:35:55  florian
-    * problems with rtti fixed, hope it works
-
-  Revision 1.18  1998/11/17 00:36:40  peter
-    * more ansistring fixes
-
-  Revision 1.17  1998/11/16 15:35:09  pierre
-   * added error for with if different segment
-
-  Revision 1.16  1998/10/21 11:44:42  florian
-    + check for access to index 0 of long/wide/ansi strings added,
-      gives now an error
-    * problem with access to contant index of ansistrings fixed
-
-  Revision 1.15  1998/10/12 09:49:53  florian
-    + support of <procedure var type>:=<pointer> in delphi mode added
-
-  Revision 1.14  1998/10/02 07:20:37  florian
-    * range checking in units doesn't work if the units are smartlinked, fixed
-
-  Revision 1.13  1998/09/27 10:16:23  florian
-    * type casts pchar<->ansistring fixed
-    * ansistring[..] calls does now an unique call
-
-  Revision 1.12  1998/09/23 15:46:36  florian
-    * problem with with and classes fixed
-
-  Revision 1.11  1998/09/17 09:42:18  peter
-    + pass_2 for cg386
-    * Message() -> CGMessage() for pass_1/pass_2
-
-  Revision 1.10  1998/09/14 10:43:52  peter
-    * all internal RTL functions start with FPC_
-
-  Revision 1.9  1998/09/03 16:03:15  florian
-    + rtti generation
-    * init table generation changed
-
-  Revision 1.8  1998/08/23 21:04:34  florian
-    + rtti generation for classes added
-    + new/dispose do now also a call to INITIALIZE/FINALIZE, if necessaray
-
-  Revision 1.7  1998/08/20 11:27:40  michael
-  * Applied Peters Fix
-
-  Revision 1.6  1998/08/10 14:49:49  peter
-    + localswitches, moduleswitches, globalswitches splitting
-
-  Revision 1.5  1998/07/26 21:58:58  florian
-   + better support for switch $H
-   + index access to ansi strings added
-   + assigment of data (records/arrays) containing ansi strings
-
-  Revision 1.4  1998/07/24 22:16:55  florian
-    * internal error 10 together with array access fixed. I hope
-      that's the final fix.
-
-  Revision 1.3  1998/06/25 08:48:09  florian
-    * first version of rtti support
-
-  Revision 1.2  1998/06/08 13:13:35  pierre
-    + temporary variables now in temp_gen.pas unit
-      because it is processor independent
-    * mppc68k.bat modified to undefine i386 and support_mmx
-      (which are defaults for i386)
-
-  Revision 1.1  1998/06/05 17:44:13  peter
-    * splitted cgi386
 
 }
 

@@ -408,7 +408,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1999-10-26 12:30:46  peter
+  Revision 1.22  1999-11-06 14:34:30  peter
+    * truncated log to 20 revs
+
+  Revision 1.21  1999/10/26 12:30:46  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes
@@ -492,8 +495,5 @@ end.
 
   Revision 1.2  1998/10/11 14:31:20  peter
     + checks for division by zero
-
-  Revision 1.1  1998/09/23 20:42:24  peter
-    * splitted pass_1
 
 }

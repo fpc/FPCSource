@@ -527,7 +527,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  1999-09-27 23:45:02  peter
+  Revision 1.38  1999-11-06 14:34:31  peter
+    * truncated log to 20 revs
+
+  Revision 1.37  1999/09/27 23:45:02  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
@@ -600,67 +603,6 @@ end.
 
   Revision 1.18  1999/04/16 14:03:39  pierre
    * added paitempalloc for tempansi
-
-  Revision 1.17  1999/04/16 11:49:45  peter
-    + tempalloc
-    + -at to show temp alloc info in .s file
-
-  Revision 1.16  1999/04/14 09:10:46  peter
-    * fixed tempansi which set wrong pos in free temp
-
-  Revision 1.15  1999/04/09 13:05:45  pierre
-   * Minenumsize=1 under TEST_ENUMSIZE cond because buggy
-
-  Revision 1.14  1999/04/09 09:55:20  peter
-    * typo fixed
-
-  Revision 1.13  1999/04/09 08:39:20  peter
-    * fixed reuse position
-
-  Revision 1.12  1999/04/08 23:52:59  pierre
-   + tempansilist and gettempansistringreference
-
-  Revision 1.11  1999/04/08 20:59:44  florian
-    * fixed problem with default properties which are a class
-    * case bug (from the mailing list with -O2) fixed, the
-      distance of the case labels can be greater than the positive
-      range of a longint => it is now a dword for fpc
-
-  Revision 1.10  1999/04/06 11:19:49  peter
-    * fixed temp reuse
-
-  Revision 1.9  1999/02/22 02:15:56  peter
-    * updates for ag386bin
-
-  Revision 1.8  1999/02/11 09:35:19  pierre
-   * ExtDebug conditional infinite loop on temp problem removed
-
-  Revision 1.7  1999/02/02 23:52:33  florian
-    * problem with calls to method pointers in methods fixed
-    - double ansistrings temp management removed
-
-  Revision 1.6  1999/01/15 11:34:23  pierre
-   + better info for temp allocation debugging
-
-  Revision 1.5  1998/11/30 09:43:24  pierre
-    * some range check bugs fixed (still not working !)
-    + added DLL writing support for win32 (also accepts variables)
-    + TempAnsi for code that could be used for Temporary ansi strings
-      handling
-
-  Revision 1.4  1998/10/09 08:56:32  pierre
-    * several memory leaks fixed
-
-  Revision 1.3  1998/07/16 08:01:42  pierre
-    * small bug correction due to newinput
-      (only with tempdebug conditional)
-
-  Revision 1.2  1998/07/10 10:51:05  peter
-    * m68k updates
-
-  Revision 1.1  1998/06/08 16:07:41  pierre
-    * temp_gen contains all temporary var functions
-      (processor independent)
 
 }
 

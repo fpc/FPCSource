@@ -745,7 +745,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.54  1999-10-14 14:57:54  florian
+  Revision 1.55  1999-11-06 14:34:23  peter
+    * truncated log to 20 revs
+
+  Revision 1.54  1999/10/14 14:57:54  florian
     - removed the hcodegen use in the new cg, use cgbase instead
 
   Revision 1.53  1999/09/26 21:30:20  peter
@@ -829,131 +832,4 @@ end.
   Revision 1.35  1999/01/20 14:09:28  pierre
    * fix to bug0191
 
-  Revision 1.34  1999/01/05 08:20:08  florian
-    * mainly problem with invalid case ranges fixed (reported by Jonas)
-
-  Revision 1.33  1998/12/15 17:16:01  peter
-    * fixed const s : ^string
-    * first things for const pchar : @string[1]
-
-  Revision 1.32  1998/12/11 16:50:23  florian
-    + typed const int64 and qword
-    + unary minus-operator  q1:=-q2;
-    + not-operator
-
-  Revision 1.31  1998/12/11 00:03:41  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.30  1998/11/27 14:34:42  peter
-    * give error when string[0] decl is found
-
-  Revision 1.29  1998/11/23 18:26:44  pierre
-   * fix for bug0182
-
-  Revision 1.28  1998/11/17 10:40:16  peter
-    * H+ fixes
-
-  Revision 1.27  1998/11/16 12:12:23  peter
-    - generate_pascii which is obsolete
-
-  Revision 1.26  1998/11/10 17:53:06  peter
-    * fixed const string
-
-  Revision 1.25  1998/11/10 16:10:47  peter
-    * fixed const pchar
-
-  Revision 1.24  1998/11/05 12:02:55  peter
-    * released useansistring
-    * removed -Sv, its now available in fpc modes
-
-  Revision 1.23  1998/11/04 10:11:45  peter
-    * ansistring fixes
-
-  Revision 1.22  1998/10/20 08:06:56  pierre
-    * several memory corruptions due to double freemem solved
-      => never use p^.loc.location:=p^.left^.loc.location;
-    + finally I added now by default
-      that ra386dir translates global and unit symbols
-    + added a first field in tsymtable and
-      a nextsym field in tsym
-      (this allows to obtain ordered type info for
-      records and objects in gdb !)
-
-  Revision 1.21  1998/10/19 08:55:03  pierre
-    * wrong stabs info corrected once again !!
-    + variable vmt offset with vmt field only if required
-      implemented now !!!
-
-  Revision 1.20  1998/10/16 08:51:49  peter
-    + target_os.stackalignment
-    + stack can be aligned at 2 or 4 byte boundaries
-
-  Revision 1.19  1998/10/12 12:20:58  pierre
-    + added tai_const_symbol_offset
-      for r : pointer = @var.field;
-    * better message for different arg names on implementation
-      of function
-
-  Revision 1.18  1998/10/12 09:50:05  florian
-    + support of <procedure var type>:=<pointer> in delphi mode added
-
-  Revision 1.17  1998/10/09 08:56:29  pierre
-    * several memory leaks fixed
-
-  Revision 1.16  1998/09/24 23:49:18  peter
-    + aktmodeswitches
-
-  Revision 1.15  1998/09/07 18:46:11  peter
-    * update smartlinking, uses getdatalabel
-    * renamed ptree.value vars to value_str,value_real,value_set
-
-  Revision 1.14  1998/09/04 08:42:07  peter
-    * updated some error messages
-
-  Revision 1.13  1998/09/01 09:05:36  peter
-    * fixed string[4]='.library'
-
-  Revision 1.12  1998/08/31 12:26:32  peter
-    * m68k and palmos updates from surebugfixes
-
-  Revision 1.11  1998/08/10 14:50:20  peter
-    + localswitches, moduleswitches, globalswitches splitting
-
-  Revision 1.10  1998/07/21 11:16:25  florian
-    * bug0147 fixed
-
-  Revision 1.9  1998/07/20 22:17:16  florian
-    * hex constants in numeric char (#$54#$43 ...) are now allowed
-    * there was a bug in record_var_dec which prevents the used
-      of nested variant records (for example drivers.tevent of tv)
-
-  Revision 1.8  1998/07/20 18:40:15  florian
-    * handling of ansi string constants should now work
-
-  Revision 1.7  1998/07/18 22:54:29  florian
-    * some ansi/wide/longstring support fixed:
-       o parameter passing
-       o returning as result from functions
-
-  Revision 1.6  1998/06/08 22:59:52  peter
-    * smartlinking works for win32
-    * some defines to exclude some compiler parts
-
-  Revision 1.5  1998/06/03 22:49:01  peter
-    + wordbool,longbool
-    * rename bis,von -> high,low
-    * moved some systemunit loading/creating to psystem.pas
-
-  Revision 1.4  1998/05/05 12:05:42  florian
-    * problems with properties fixed
-    * crash fixed:  i:=l when i and l are undefined, was a problem with
-      implementation of private/protected
-
-  Revision 1.3  1998/04/29 10:34:00  pierre
-    + added some code for ansistring (not complete nor working yet)
-    * corrected operator overloading
-    * corrected nasm output
-    + started inline procedures
-    + added starstarn : use ** for exponentiation (^ gave problems)
-    + started UseTokenInfo cond to get accurate positions
 }

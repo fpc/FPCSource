@@ -328,7 +328,10 @@
 
 {
   $Log$
-  Revision 1.36  1999-10-01 08:02:48  peter
+  Revision 1.37  1999-11-06 14:34:28  peter
+    * truncated log to 20 revs
+
+  Revision 1.36  1999/10/01 08:02:48  peter
     * forward type declaration rewritten
 
   Revision 1.35  1999/09/26 21:30:22  peter
@@ -402,70 +405,5 @@
 
   Revision 1.17  1999/03/31 13:55:23  peter
     * assembler inlining working for ag386bin
-
-  Revision 1.16  1999/03/24 23:17:29  peter
-    * fixed bugs 212,222,225,227,229,231,233
-
-  Revision 1.15  1999/02/22 13:07:11  pierre
-    + -b and -bl options work !
-    + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
-      is not enabled when quitting global section
-    * local vars and procedures are not yet stored into PPU
-
-  Revision 1.14  1999/01/20 10:20:22  peter
-    * don't make localvar copies for assembler procedures
-
-  Revision 1.13  1999/01/14 21:49:59  peter
-    * fixed forwardpointer problem with multiple forwards for the same
-      typesym. It now uses a linkedlist instead of a single pointer
-
-  Revision 1.12  1999/01/12 14:25:37  peter
-    + BrowserLog for browser.log generation
-    + BrowserCol for browser info in TCollections
-    * released all other UseBrowser
-
-  Revision 1.11  1998/12/30 22:15:55  peter
-    + farpointer type
-    * absolutesym now also stores if its far
-
-  Revision 1.10  1998/12/30 13:41:15  peter
-    * released valuepara
-
-  Revision 1.9  1998/11/28 16:20:57  peter
-    + support for dll variables
-
-  Revision 1.8  1998/11/18 15:44:19  peter
-    * VALUEPARA for tp7 compatible value parameters
-
-  Revision 1.7  1998/11/16 10:13:50  peter
-    * label defines are checked at the end of the proc
-
-  Revision 1.6  1998/11/13 10:18:12  peter
-    + nil constants
-
-  Revision 1.5  1998/11/05 23:39:32  peter
-    + typedconst.getsize
-
-  Revision 1.4  1998/10/20 08:07:02  pierre
-    * several memory corruptions due to double freemem solved
-      => never use p^.loc.location:=p^.left^.loc.location;
-    + finally I added now by default
-      that ra386dir translates global and unit symbols
-    + added a first field in tsymtable and
-      a nextsym field in tsym
-      (this allows to obtain ordered type info for
-      records and objects in gdb !)
-
-  Revision 1.3  1998/10/08 17:17:34  pierre
-    * current_module old scanner tagged as invalid if unit is recompiled
-    + added ppheap for better info on tracegetmem of heaptrc
-      (adds line column and file index)
-    * several memory leaks removed ith help of heaptrc !!
-
-  Revision 1.2  1998/09/24 15:11:18  peter
-    * fixed enum for not GDB
-
-  Revision 1.1  1998/09/23 12:03:57  peter
-    * overloading fix for array of const
 
 }
