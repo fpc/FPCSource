@@ -72,6 +72,13 @@ var
   TextAttr: Byte;         { Current text attribute }
   WindMin: Word;          { Window upper left coordinates }
   WindMax: Word;          { Window lower right coordinates }
+  
+Const
+  ScreenHeight : longint=25;
+  ScreenWidth  : longint=80;
+    
+  ConsoleMaxX=80;
+  ConsoleMaxY=25;
 
 { Interface procedures }
 procedure AssignCrt(var F: Text);
