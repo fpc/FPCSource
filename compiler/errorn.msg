@@ -151,6 +151,7 @@ parser_e_illegal_symbol_exported=E_Het symbool kan niet uitgevoerd worden van ee
 parser_w_should_use_override=E_Een virtuele methode moet met OVERRIDE overroepen worden: $1
 parser_e_nothing_to_be_overridden=E_Er is geen geerfde methode die overroepen kan worden: $1
 parser_e_no_procedure_to_access_property=E_Er is geen lid om de eigenschap te bereiken
+parser_w_stored_not_implemented=W_Stored prorperty directive is not yet implemented
 parser_e_ill_property_access_sym=E_Illegaal symbool voor eigenschap toegang
 parser_e_cant_access_protected_member=E_Kan niet in beschermd veld van een object schrijven
 parser_e_cant_access_private_member=E_Kan niet in prive veld van een object schrijven
