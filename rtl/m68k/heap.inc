@@ -513,7 +513,7 @@
       function call_heaperror(addr : pointer; size : longint) : integer;
         begin
            asm
-              pea.l   size
+              move.l  size,-(sp)
               move.l  addr,a0
               jsr     (a0)
               move.w  d0,@Result
@@ -766,9 +766,8 @@ check_new:
        end;
 {$endif CHECKHEAP}
          { calc to multiple of 8 }
-         if (size mod 8)<>0 then
-           size:=size+(8-(size mod 8));
-         inc(_memavail,size);
+       	size:=(size+7) and not 7;
+         _memavail:=_memavail+size;
          if p+size>=heapptr then
            heapptr:=p
 {$ifdef UseBlocks}
@@ -1070,7 +1069,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1998-07-08 11:54:40  carl
+  Revision 1.5  1998-08-17 12:27:17  carl
+    * bugfix of heaperror, was pushing wrong parameter
+
+  Revision 1.4  1998/07/08 11:54:40  carl
     + reinstated hepasize function
     * renamed HEAPSIZE global var to HEAP_SIZE to remove conflicts
 
