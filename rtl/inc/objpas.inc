@@ -529,12 +529,12 @@
       procedure TObject.CleanupInstance;
 
         Type
-          TRecElem = Record
+          TRecElem = packed Record
             Info : Pointer;
             Offset : Longint;
           end;
 
-          TRecElemArray = Array[1..Maxint] of TRecElem;
+          TRecElemArray = packed array[1..Maxint] of TRecElem;
 
           PRecRec = ^TRecRec;
           TRecRec = record
@@ -758,7 +758,10 @@
 
 {
   $Log$
-  Revision 1.42  2004-10-24 20:01:41  peter
+  Revision 1.43  2004-11-03 10:22:19  florian
+    * info record about class fields must be packed else it will be aligned wrongly on 64 bit platforms
+
+  Revision 1.42  2004/10/24 20:01:41  peter
     * saveregisters calling convention is obsolete
 
   Revision 1.41  2004/10/10 19:18:31  florian
