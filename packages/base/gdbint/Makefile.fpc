@@ -11,8 +11,8 @@ units=gdbint gdbcon
 examples=testgdb symify
 
 [compiler]
-objectdir=libgdb/$(OS_TARGET)
-librarydir=libgdb/$(OS_TARGET)
+objectdir=$(GDBLIBDIR)
+librarydir=$(GDBLIBDIR)
 
 [require]
 libc=y
@@ -32,7 +32,14 @@ else
 CURRDIR=
 endif
 
-GDBLIBDIR+=libgdb/$(OS_TARGET)
+# Look for a valid GDBLIBDIR environment variable
+ifdef GDBLIBDIR
+override LIBGDB:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
+endif
+
+# Use default dirs if not available
+ifeq ($(LIBGDB),)
+override GDBLIBDIR=libgdb/$(OS_TARGET)
 ifeq ($(OS_TARGET),go32v2)
 ifneq ($(DJDIR),)
 GDBLIBDIR+=$(DJDIR)/lib
@@ -40,6 +47,9 @@ endif
 endif
 # Detect if libgdb.a is available
 override LIBGDB:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
+endif
+
+# Set GDBFOUND variable
 ifeq ($(LIBGDB),)
 GDBFOUND=0
 else
