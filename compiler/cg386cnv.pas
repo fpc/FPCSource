@@ -40,7 +40,7 @@ interface
 implementation
 
    uses
-      cobjects,verbose,globals,systems,
+      cobjects,verbose,globtype,globals,systems,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,pass_1,
 {$ifndef OLDASM}
@@ -1148,6 +1148,11 @@ implementation
          );
       var
          oldrl,oldlrl : plinkedlist;
+{$ifdef TESTOBJEXT2}
+      var
+         r : preference;
+         nillabel : plabel;
+{$endif TESTOBJEXT2}
       begin
          { the ansi string disposing is a little bit hairy: }
          oldrl:=temptoremove;
@@ -1171,6 +1176,43 @@ implementation
          { the second argument only is for maybe_range_checking !}
          secondconvert[p^.convtyp](p,p^.left,p^.convtyp);
 
+{$ifdef TESTOBJEXT2}
+                  { Check explicit conversions to objects pointers !! }
+                     if p^.explizit and
+                        (p^.resulttype^.deftype=pointerdef) and
+                        (ppointerdef(p^.resulttype)^.definition^.deftype=objectdef) and not
+                        (pobjectdef(ppointerdef(p^.resulttype)^.definition)^.isclass) and
+                        ((pobjectdef(ppointerdef(p^.resulttype)^.definition)^.options and oo_hasvmt)<>0) and
+                        (cs_check_range in aktlocalswitches) then
+                       begin
+                          new(r);
+                          reset_reference(r^);
+                          if p^.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                           r^.base:=p^.location.register
+                          else
+                            begin
+                               emit_mov_loc_reg(p^.location,R_EDI);
+                               r^.base:=R_EDI;
+                            end;
+                          { NIL must be accepted !! }
+                          exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,r^.base,r^.base)));
+                          getlabel(nillabel);
+{$ifndef OLDASM}
+                          exprasmlist^.concat(new(pai386_labeled,op_cond_lab(A_Jcc,C_E,nillabel)));
+{$else}
+                          exprasmlist^.concat(new(pai386_labeled,op_lab(A_JE,nillabel)));
+{$endif}
+                          
+                          { this is one point where we need vmt_offset (PM) }
+                          r^.offset:= pobjectdef(ppointerdef(p^.resulttype)^.definition)^.vmt_offset;
+                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
+                          exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
+                            newasmsymbol(pobjectdef(ppointerdef(p^.resulttype)^.definition)^.vmt_mangledname))));
+                          exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
+                          emitcall('FPC_CHECK_OBJECT_EXT',true);
+                          exprasmlist^.concat(new(pai_label,init(nillabel)));
+                       end;
+{$endif TESTOBJEXT2}
          { clean up all temp. objects (ansi/widestrings) }
          removetemps(exprasmlist,temptoremove);
          dispose(temptoremove,done);
@@ -1289,7 +1331,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  1999-05-01 13:24:04  peter
+  Revision 1.70  1999-05-07 00:33:47  pierre
+   explicit type conv to pobject checked with cond TESTOBJEXT2
+
+  Revision 1.69  1999/05/01 13:24:04  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 
