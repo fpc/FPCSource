@@ -1017,7 +1017,32 @@ Procedure TDataset.Delete;
 
 
 begin
-  //!! To be implemented
+  if State in [dsInsert] then
+  begin
+    Cancel;
+  end else begin
+    DataEvent(deCheckBrowseMode,0);
+{$ifdef dsdebug}
+    writeln ('Delete: checking required fields');
+{$endif}
+    DoBeforeDelete;
+    DoBeforeScroll;
+    If Not TryDoing(@InternalDelete,OnPostError) then exit;
+{$ifdef dsdebug}
+    writeln ('Delete: Internaldelete succeeded');
+{$endif}
+    FreeFieldBuffers;
+{$ifdef dsdebug}
+    writeln ('Delete: Freeing field buffers');
+{$endif}
+    SetState(dsBrowse);
+{$ifdef dsdebug}
+    writeln ('Delete: Browse mode set');
+{$endif}
+    Resync([]);
+    DoAfterDelete;
+    DoAfterScroll;
+  end;
 end;
 
 Procedure TDataset.DisableControls;
@@ -1740,7 +1765,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2004-07-25 11:32:40  michael
+  Revision 1.16  2004-08-02 15:13:42  michael
+  + Patch from Micha Nelissen to implement Delete method
+
+  Revision 1.15  2004/07/25 11:32:40  michael
   * Patches from Joost van der Sluis
     interbase.pp:
         * Removed unused Fprepared
