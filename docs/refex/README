@@ -83,3 +83,5 @@ ex77.pp contains an example of the Rename function.
 ex78.pp contains an example of the Power function.
 ex79.pp contains an example of the SetJmp/LongJmp functions.
 ex80.pp contains an example of the High/Low functions.
+ex81.pp contains an example of the HexStr function.
+ex82.pp contains an example of the BinStr function.
