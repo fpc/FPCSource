@@ -15,6 +15,9 @@
 
  ***********************************************************************}
 
+{$ifdef BSD}
+function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; external name 'FPC_SYSC_SIGPROCMASK';
+{$endif}
 function fptime		(var tloc:time_t): time_t; external name 'FPC_SYSC_TIME';
 function fpopen		(path: pchar; flags : cint; mode: TMode):cint;  external name 'FPC_SYSC_OPEN';
 function fpclose	(fd : cint): cint;  external name 'FPC_SYSC_CLOSE';
@@ -45,7 +48,10 @@ procedure seterrno 	(i:cint); external name  'FPC_SYS_SETERRNO';
 
 {
   $Log$
-  Revision 1.2  2003-09-20 12:38:29  marco
+  Revision 1.3  2003-10-26 17:01:35  marco
+   * moved sigprocmask to system for BSD. (needed for reenablesig)
+
+  Revision 1.2  2003/09/20 12:38:29  marco
    * FCL now compiles for FreeBSD with new 1.1. Now Linux.
 
   Revision 1.1  2003/06/01 15:25:14  marco
