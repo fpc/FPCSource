@@ -256,3 +256,4 @@ bug0190.pp   can't have typecast for var params ??
 bug0191.pp   missing vecn constant evaluation
 bug0192.pp   can't compare boolean result with true/false, because the
              boolean result is already in the flags
+bug0193.pp   overflow checking for 8 and 16 bit operations wrong
