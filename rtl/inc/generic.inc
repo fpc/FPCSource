@@ -29,6 +29,7 @@ type
 var
   i,size : longint;
 begin
+  if count <= 0 then exit;
   Dec(count);
   for i:=0 to count do
          bytearray(dest)[i]:=bytearray(source)[i];
@@ -44,7 +45,7 @@ type
 var
   i,v : longint;
 begin
-  if count = 0 then exit;
+  if count <= 0 then exit;
   v := 0;
   v:=(value shl 8) or (value and $FF);
   v:=(v shl 16) or (v and $ffff);
@@ -72,6 +73,7 @@ type
 var
   i,v : longint;
 begin
+  if Count <= 0 then exit;
   v:=value*$10000+value;
   for i:=0 to (count div 2) -1 do
     longintarray(x)[i]:=v;
@@ -85,18 +87,13 @@ end;
 procedure FillDWord(var x;count : longint;value : DWord);
 type
   longintarray = array [0..maxlongint div 4] of longint;
-var
-  i : longint;
 begin
-  if Count<>0 then
+  if count <= 0 then exit;
+  while Count<>0 do
    begin
-     i:=Count;
-     while i<>0 do
-      begin
-        { range checking must be disabled here }
-        longintarray(x)[i-1]:=value;
-        Dec(i);
-      end;
+     { range checking must be disabled here }
+     longintarray(x)[count-1]:=longint(value);
+     Dec(count);
    end;
 end;
 {$endif FPC_SYSTEM_HAS_FILLDWORD}
@@ -260,12 +257,12 @@ procedure MoveChar0(Const buf1;var buf2;len:longint);
 var
   I : longint;
 begin
-  if Len<> 0 then
-   begin
-     I:=IndexByte(Buf1,Len,0);
-     if I<>0 then
-      Move(Buf1,Buf2,I);
-   end;
+  if Len = 0 then exit;
+  I:=IndexByte(Buf1,Len,0);
+  if I<>-1 then
+    Move(Buf1,Buf2,I)
+  else
+    Move(Buf1,Buf2,len);
 end;
 {$endif ndef FPC_SYSTEM_HAS_MOVECHAR0}
 
@@ -951,7 +948,12 @@ end;
 
 {
   $Log$
-  Revision 1.42  2002-10-14 19:39:17  peter
+  Revision 1.43  2002-10-20 11:51:54  carl
+   * avoid crashes with negative len counts on fills/moves
+   * movechar0 was wrong and did not do the behavior as
+     described in docs
+
+  Revision 1.42  2002/10/14 19:39:17  peter
     * threads unit added for thread support
 
   Revision 1.41  2002/10/12 20:32:41  carl
