@@ -22,11 +22,7 @@
 { If you use an aout system, set the conditional AOUT}
 { $Define AOUT}
 
-
 Unit SysLinux;
-
-{$I os.inc}
-
 Interface
 
 {$ifdef m68k}
@@ -738,7 +734,10 @@ End.
 
 {
   $Log$
-  Revision 1.22  1999-01-18 10:05:53  pierre
+  Revision 1.23  1999-04-08 12:23:04  peter
+    * removed os.inc
+
+  Revision 1.22  1999/01/18 10:05:53  pierre
    + system_exit procedure added
 
   Revision 1.21  1998/12/28 15:50:49  peter

@@ -12,7 +12,7 @@
 
  **********************************************************************
 }
-Unit Mouse;
+Unit MSMouse;
 Interface
 
 {
@@ -102,7 +102,7 @@ Var
 
 Implementation
 
-{$I386_ATT}
+{$asmmode ATT}
 
 Function InitMouse: Boolean;
 begin
@@ -387,39 +387,10 @@ End;
 Begin
   MouseFound := InitMouse;
 End.
+
 {
   $Log$
-  Revision 1.1  1998-12-21 13:07:02  peter
-    * use -FE
+  Revision 1.1  1999-04-08 12:22:56  peter
+    * removed os.inc
 
-  Revision 1.5  1998/07/15 16:10:35  jonas
-  * new mouse uni
-
-  Revision 1.3  1998/04/05 13:56:54  peter
-    - fixed mouse to compile with $i386_att
-    + linux crt supports redirecting (not Esc-codes anymore)
-
-  Revision 1.2  1998/03/26 12:25:22  peter
-    * integrated both mouse units
-
-  Revision 1.1.1.1  1998/03/25 11:18:41  root
-  * Restored version
-
-  Revision 1.4  1998/03/24 15:53:12  peter
-    * cleanup and doesn't give warnings when compiling
-
-  Revision 1.3  1998/01/26 11:56:24  michael
-  + Added log at the end
-
-  Revision 1.2
-  date: 1997/12/01 12:15:45;  author: michael;  state: Exp;  lines: +14 -12
-  + added copyright reference in header.
-
-  Revision 1.1
-  date: 1997/11/27 08:33:49;  author: michael;  state: Exp;
-  Initial revision
-
-  Revision 1.1.1.1
-  date: 1997/11/27 08:33:49;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
 }

@@ -11,12 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{ no stack check in system }
-{$S-}
 unit system;
-
-{$I os.inc}
-
 interface
 
 { include system-independent routine headers }
@@ -137,8 +132,7 @@ var
   old_int00 : tseginfo;cvar;
   old_int75 : tseginfo;cvar;
 
-
-{$ASMMODE ATT}
+{$asmmode ATT}
 
 {*****************************************************************************
                               Go32 Helpers
@@ -1228,7 +1222,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.7  1999-03-10 22:15:28  florian
+  Revision 1.8  1999-04-08 12:23:02  peter
+    * removed os.inc
+
+  Revision 1.7  1999/03/10 22:15:28  florian
     + system.cmdline variable for go32v2 and win32 added
 
   Revision 1.6  1999/03/01 15:40:52  peter

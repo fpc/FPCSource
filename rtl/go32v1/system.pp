@@ -15,11 +15,6 @@
 unit system;
 interface
 
-{ no stack check in system }
-{$S-}
-
-{$I os.inc}
-
 { include system-independent routine headers }
 
 {$I systemh.inc}
@@ -619,7 +614,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.3  1999-01-18 10:05:49  pierre
+  Revision 1.4  1999-04-08 12:22:57  peter
+    * removed os.inc
+
+  Revision 1.3  1999/01/18 10:05:49  pierre
    + system_exit procedure added
 
   Revision 1.2  1998/12/28 15:50:44  peter

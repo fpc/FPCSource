@@ -33,7 +33,7 @@ var
   _emu_entry : emu_entry_type;
 
 
-procedure _control87(mask1,mask2 : word);
+procedure _control87(mask1,mask2 : longint);
 begin
 { Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details }
 { from file cntrl87.s in src/libc/pc_hw/fpu }
@@ -216,7 +216,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-03-01 15:40:50  peter
+  Revision 1.3  1999-04-08 12:22:59  peter
+    * removed os.inc
+
+  Revision 1.2  1999/03/01 15:40:50  peter
     * use external names
     * removed all direct assembler modes
 

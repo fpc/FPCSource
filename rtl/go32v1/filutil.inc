@@ -92,6 +92,12 @@ begin
 end;
 
 
+Function FileTruncate (Handle,Size: Longint) : boolean;
+begin
+  //!! Needs implementing
+end;
+
+
 Function FileGetDate (Handle : Longint) : Longint;
 
 begin
@@ -141,15 +147,27 @@ begin
 end;
 
 
+Procedure GetLocalTime(var SystemTime: TSystemTime);
+begin
+end ;
+
+
+{ ---------------------------------------------------------------------
+    Internationalization settings
+  ---------------------------------------------------------------------}
+
+procedure InitAnsi;
+begin
+end;
+
+Procedure InitInternational;
+begin
+end;
+
+
 {
   $Log$
-  Revision 1.1  1998-12-21 13:07:02  peter
-    * use -FE
-
-  Revision 1.2  1998/10/12 08:02:56  michael
-  wrong file committed
-
-  Revision 1.1  1998/10/11 12:21:01  michael
-  Added file calls. Implemented for linux only
+  Revision 1.2  1999-04-08 12:22:54  peter
+    * removed os.inc
 
 }

@@ -114,8 +114,6 @@ Function FileAge (Const FileName : String): Longint;
 var
   Handle: THandle;
   FindData: TWin32FindData;
-  LocalFileTime: TFileTime;
-  Fn : String;
 
 begin
   Handle := FindFirstFile(Pchar(FileName), @FindData);
@@ -428,7 +426,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  1999-03-18 16:15:59  michael
+  Revision 1.9  1999-04-08 12:23:09  peter
+    * removed os.inc
+
+  Revision 1.8  1999/03/18 16:15:59  michael
   - Really removed debug statements
 
   Revision 1.7  1999/03/16 21:01:00  peter

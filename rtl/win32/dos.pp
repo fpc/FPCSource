@@ -14,9 +14,6 @@
 
  **********************************************************************}
 unit dos;
-
-{$I os.inc}
-
 interface
 
 { Include Win32 Consts,Types }
@@ -879,7 +876,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.13  1998-11-16 15:48:53  peter
+  Revision 1.14  1999-04-08 12:23:07  peter
+    * removed os.inc
+
+  Revision 1.13  1998/11/16 15:48:53  peter
     * fixed longbool returns for api calls
 
   Revision 1.12  1998/10/27 10:55:55  michael

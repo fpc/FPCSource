@@ -22,16 +22,17 @@ interface
     uses
     {$ifdef linux}
        linux
-    {$else}
-      {$ifdef win32}
-       dos,windows
-      {$else}
-        {$ifdef go32v2}
-        dos,go32
-        {$endif go32v2}
-      {$endif win32}
-    {$endif linux}
-    ;
+    {$endif}
+    {$ifdef win32}
+       windows,dos
+    {$endif}
+    {$ifdef go32v1}
+       go32,dos
+    {$endif}
+    {$ifdef go32v2}
+       go32,dos
+    {$endif}
+       ;
 
 
 type
@@ -99,7 +100,7 @@ type
 
   { Read internationalization settings }
   {$i sysinth.inc}
- 
+
   { Read date & Time function declarations }
   {$i datih.inc}
 
@@ -278,7 +279,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.23  1999-02-28 13:17:37  michael
+    Revision 1.24  1999-04-08 12:23:05  peter
+      * removed os.inc
+
+    Revision 1.23  1999/02/28 13:17:37  michael
     + Added internationalization support and more format functions
 
     Revision 1.22  1999/02/10 22:15:13  michael

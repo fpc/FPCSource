@@ -14,24 +14,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$S-}
 unit syswin32;
-
-{$I os.inc}
-
 interface
-
-{ include system-independent routine headers }
-{$ASMMODE ATT}
-
-{$I systemh.inc}
-
-{ include heap support headers }
-{$I heaph.inc}
 
 {$ifdef i386}
   {$define Set_i386_Exception_handler}
 {$endif i386}
+
+{ include system-independent routine headers }
+{$I systemh.inc}
+
+{ include heap support headers }
+{$I heaph.inc}
 
 const
 { Default filehandles }
@@ -76,7 +70,6 @@ var
   DLLreason,DLLparam:longint;
 
 implementation
-
 
 { include system independent routines }
 {$I system.inc}
@@ -125,6 +118,9 @@ CONST
 
 var
     errno : longint;
+
+{$ASMMODE ATT}
+
 
    { misc. functions }
    function GetLastError : DWORD;
@@ -1014,7 +1010,10 @@ end.
 
 {
   $Log$
-  Revision 1.36  1999-03-24 23:25:59  peter
+  Revision 1.37  1999-04-08 12:23:11  peter
+    * removed os.inc
+
+  Revision 1.36  1999/03/24 23:25:59  peter
     * fixed file sharing
 
   Revision 1.35  1999/03/12 00:07:48  pierre

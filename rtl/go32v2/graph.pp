@@ -20,7 +20,6 @@ unit GRAPH;
 {$R-}
 {$Q-}
 { $DEFINE DEBUG}
-{$I os.inc}
 
 {$ifdef DEBUG}
 {$define TEST_24BPP}
@@ -1016,7 +1015,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1999-03-02 13:56:34  peter
+  Revision 1.4  1999-04-08 12:23:00  peter
+    * removed os.inc
+
+  Revision 1.3  1999/03/02 13:56:34  peter
     * use ATT assembler in profile
     * use AS output in graph
 
