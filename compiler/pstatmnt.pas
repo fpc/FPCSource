@@ -939,7 +939,10 @@ implementation
               begin
                 { the pointer to the following instruction }
                 { isn't a very clean way                   }
-                tlabelnode(p).left:=statement{$ifdef FPCPROCVAR}(){$endif};
+                if token in endtokens then
+                  tlabelnode(p).left:=cnothingnode.create
+                else
+                  tlabelnode(p).left:=statement{$ifdef FPCPROCVAR}(){$endif};
                 { be sure to have left also resulttypepass }
                 resulttypepass(tlabelnode(p).left);
               end;
@@ -1084,7 +1087,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.125  2004-01-12 16:36:53  peter
+  Revision 1.126  2004-01-22 17:24:49  peter
+    * except is also an end of block token
+    * after a label don't try to parse a statement when the next token
+      is an end token
+
+  Revision 1.125  2004/01/12 16:36:53  peter
     * removed asmmode_direct
 
   Revision 1.124  2003/12/07 16:40:45  jonas

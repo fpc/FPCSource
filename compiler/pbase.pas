@@ -35,7 +35,7 @@ interface
     const
        { tokens that end a block or statement. And don't require
          a ; on the statement before }
-       endtokens = [_SEMICOLON,_END,_ELSE,_UNTIL];
+       endtokens = [_SEMICOLON,_END,_ELSE,_UNTIL,_EXCEPT];
 
        { true, if we are after an assignement }
        afterassignment : boolean = false;
@@ -270,7 +270,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2003-09-23 17:56:05  peter
+  Revision 1.26  2004-01-22 17:24:49  peter
+    * except is also an end of block token
+    * after a label don't try to parse a statement when the next token
+      is an end token
+
+  Revision 1.25  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure
