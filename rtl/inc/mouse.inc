@@ -119,7 +119,7 @@ Procedure GetPendingEvent(Var MouseEvent:TMouseEvent);
 begin
   MouseEvent:=PendingMouseHead^;
   inc(PendingMouseHead);
-  if longint(PendingMouseHead)=longint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
+  if longint(PendingMouseHead)=Ptrint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
    PendingMouseHead:=@PendingMouseEvent;
   dec(PendingMouseEvents);
   if (LastMouseEvent.x<>MouseEvent.x) or
@@ -161,7 +161,7 @@ begin
     begin
     PendingMouseTail^:=MouseEvent;
     inc(PendingMouseTail);
-    if longint(PendingMouseTail)=longint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
+    if longint(PendingMouseTail)=Ptrint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
       PendingMouseTail:=@PendingMouseEvent;
     inc(PendingMouseEvents);
     end
@@ -210,7 +210,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2002-09-07 15:07:45  peter
+  Revision 1.5  2004-04-22 20:59:23  peter
+    * longint to ptrint
+
+  Revision 1.4  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
 }

@@ -972,8 +972,8 @@ TYPE
 CONSTRUCTOR TObject.Init;
 VAR LinkSize: LongInt; Dummy: DummyObject;
 BEGIN
-   LinkSize := LongInt(@Dummy.Data)-LongInt(@Dummy);  { Calc VMT link size }
-   FillChar(Pointer(LongInt(@Self)+LinkSize)^,
+   LinkSize := PtrInt(@Dummy.Data)-PtrInt(@Dummy);  { Calc VMT link size }
+   FillChar(Pointer(PtrInt(@Self)+LinkSize)^,
      SizeOf(Self)-LinkSize, #0);                      { Clear data fields }
 END;
 
@@ -2950,7 +2950,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.29  2004-03-31 21:49:19  florian
+  Revision 1.30  2004-04-22 20:59:23  peter
+    * longint to ptrint
+
+  Revision 1.29  2004/03/31 21:49:19  florian
     * fixed GetParentFrame for ARM
 
   Revision 1.28  2004/02/18 21:59:23  peter
