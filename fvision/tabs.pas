@@ -362,7 +362,9 @@ begin
 
   { --- marad‚k sor --- }
   ClearBuf; MoveChar(B[0],'³',C1,1); MoveChar(B[Size.X-1],'³',C1,1);
-  SWriteBuf(0,3,Size.X,Size.Y-4,B);
+  {SWriteBuf(0,3,Size.X,Size.Y-4,B);}
+  for i:=3 to Size.Y-1 do
+    SWriteBuf(0,i,Size.X,1,B);
 
   { --- Size.X . sor --- }
   MoveChar(B[0],'À',C1,1); MoveChar(B[1],'Ä',C1,Max(Size.X-2,0)); MoveChar(B[Size.X-1],'Ù',C1,1);
