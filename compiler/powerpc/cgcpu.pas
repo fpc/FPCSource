@@ -640,7 +640,9 @@ const
          else
            if ref.index <> R_NO Then
              list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref.base,ref.index))
-           else list.concat(taicpu.op_reg_reg(A_MR,r,ref.base));
+           else
+             if r <> ref.base then
+               list.concat(taicpu.op_reg_reg(A_MR,r,ref.base));
          if assigned(ref.symbol) then
            free_scratch_reg(list,tmpreg);
        end;
@@ -998,7 +1000,10 @@ const
 end.
 {
   $Log$
-  Revision 1.6  2001-09-28 20:40:05  jonas
+  Revision 1.7  2001-09-29 21:33:30  jonas
+    * small optimization
+
+  Revision 1.6  2001/09/28 20:40:05  jonas
     * several additions, almost complete (only some problems with resflags left)
 
   Revision 1.5  2001/09/16 10:33:21  jonas
