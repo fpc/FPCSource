@@ -48,7 +48,13 @@ ESysEINVAL      = 22;   { Invalid argument }
 ESysENFILE      = 23;   { File table overflow }
 ESysEMFILE      = 24;   { Too many open files }
 ESysENOTTY      = 25;   { Not a typewriter }
-ESysETXTBSY     = 26;   { Text file busy }
+ESysETXTBSY     = 26;   { Text file busy. The new process was
+                          a pure procedure (shared text) file which was
+                          open for writing by another process, or file
+                          which was open for writing by another process,
+                          or while the pure procedure file was being
+                          executed an open(2) call requested write access
+                          requested write access.}
 ESysEFBIG       = 27;   { File too large }
 ESysENOSPC      = 28;   { No space left on device }
 ESysESPIPE      = 29;   { Illegal seek }
@@ -217,7 +223,11 @@ ESysEDQUOT      = 122;  { Quota exceeded }
 
 {
   $Log$
-  Revision 1.7  2003-05-17 13:06:22  marco
+  Revision 1.8  2004-03-04 13:10:29  olle
+    + added comment to ETXTBSY
+    * changed i386 -> cpui386, m68k -> cpum68k
+
+  Revision 1.7  2003/05/17 13:06:22  marco
    * done.
 
   Revision 1.6  2003/01/02 23:57:32  marco

@@ -46,7 +46,13 @@ Const
        	ESysENFILE		= 23;		{ Too many open files in system }
        	ESysEMFILE		= 24;		{ Too many open files }
        	ESysENOTTY		= 25;		{ Inappropriate ioctl for device }
-       	ESysETXTBSY		= 26;		{ Text file busy }
+       	ESysETXTBSY		= 26;		{ Text file busy. The new process was
+                                      a pure procedure (shared text) file which was
+                                      open for writing by another process, or file
+                                      which was open for writing by another process,
+                                      or while the pure procedure file was being
+                                      executed an open(2) call requested write access
+                                      requested write access.}
        	ESysEFBIG		= 27;		{ File too large }
        	ESysENOSPC		= 28;		{ No space left on device }
        	ESysESPIPE		= 29;		{ Illegal seek }
@@ -132,7 +138,11 @@ Const
 
 {
   $Log$
-  Revision 1.1  2004-01-22 13:55:02  marco
+  Revision 1.2  2004-03-04 13:11:47  olle
+    + added comment to ETXTBSY
+    * changed i386 -> cpui386, m68k -> cpum68k
+
+  Revision 1.1  2004/01/22 13:55:02  marco
    * first port that shows some life based on FPC_USE_LIBC
 
   Revision 1.1  2003/06/01 16:35:28  marco

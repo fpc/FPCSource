@@ -591,7 +591,13 @@ Sys_EINVAL	= 22;	{ Invalid argument }
 Sys_ENFILE	= 23;	{ File table overflow }
 Sys_EMFILE	= 24;	{ Too many open files }
 Sys_ENOTTY	= 25;	{ Not a typewriter }
-Sys_ETXTBSY	= 26;	{ Text file busy }
+Sys_ETXTBSY	= 26;	{ Text file busy. The new process was
+                      a pure procedure (shared text) file which was
+                      open for writing by another process, or file
+                      which was open for writing by another process,
+                      or while the pure procedure file was being
+                      executed an open(2) call requested write access
+                      requested write access.}
 Sys_EFBIG	= 27;	{ File too large }
 Sys_ENOSPC	= 28;	{ No space left on device }
 Sys_ESPIPE	= 29;	{ Illegal seek }
@@ -1667,7 +1673,7 @@ asm
 end;
 {$ASMMODE DEFAULT}
 {$else}
-{$ifdef m68k}
+{$ifdef cpum68k}
 asm
 { load the registers... }
   move.l 12(a6),a0
@@ -2150,7 +2156,7 @@ begin
         movl    %eax,__RESULT
   end;
 {$endif cpui386}
-{$ifdef m68k}
+{$ifdef cpum68k}
   { No yet translated, my m68k assembler is too weak for such things PM }
 (*
   asm
@@ -2186,7 +2192,7 @@ begin
         movl    %eax,__RESULT
   end;
   *)
-{$endif m68k}
+{$endif cpum68k}
 end;
 
 
@@ -5908,7 +5914,11 @@ End.
 
 {
   $Log$
-  Revision 1.17  2004-02-19 21:30:50  daniel
+  Revision 1.18  2004-03-04 13:12:06  olle
+    + added comment to ETXTBSY
+    * changed i386 -> cpui386, m68k -> cpum68k
+
+  Revision 1.17  2004/02/19 21:30:50  daniel
     * do_syscall back to oldfpccall
 
   Revision 1.16  2004/02/19 21:06:51  daniel

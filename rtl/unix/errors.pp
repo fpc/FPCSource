@@ -48,7 +48,13 @@ const
         'File table overflow',                  { ENFILE }
         'Too many open files',                  { EMFILE }
         'Not a typewriter',                     { ENOTTY }
-        'Text file busy',                       { ETXTBSY }
+        'Text (code segment) file busy',        { ETXTBSY  Text file busy.  The new process was
+                                                    a pure procedure (shared text) file which was
+                                                    open for writing by another process, or file
+                                                    which was open for writing by another process,
+                                                    or while the pure procedure file was being
+                                                    executed an open(2) call requested write access
+                                                    requested write access.}
         'File too large',                       { EFBIG }
         'No space left on device',              { ENOSPC }
         'Illegal seek',                         { ESPIPE }
@@ -175,7 +181,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:27  peter
+  Revision 1.4  2004-03-04 13:12:06  olle
+    + added comment to ETXTBSY
+    * changed i386 -> cpui386, m68k -> cpum68k
+
+  Revision 1.3  2002/09/07 16:01:27  peter
     * old logs removed and tabs fixed
 
 }

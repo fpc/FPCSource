@@ -106,7 +106,7 @@ Function intAssignPipe(var pipe_in,pipe_out:longint;var errn:cint):cint; {$ifnde
 }
 
 begin
-{$ifdef i386}
+{$ifdef cpui386}
  asm
    mov $42,%eax
    int $0x80
@@ -277,7 +277,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-01-22 13:55:02  marco
+  Revision 1.3  2004-03-04 13:11:47  olle
+    + added comment to ETXTBSY
+    * changed i386 -> cpui386, m68k -> cpum68k
+
+  Revision 1.2  2004/01/22 13:55:02  marco
    * first port that shows some life based on FPC_USE_LIBC
 
   Revision 1.6  2004/01/04 15:55:47  marco

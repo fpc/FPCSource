@@ -60,7 +60,13 @@ Sys_EINVAL      = 22;   { Invalid argument }
 Sys_ENFILE      = 23;   { File table overflow }
 Sys_EMFILE      = 24;   { Too many open files }
 Sys_ENOTTY      = 25;   { Not a typewriter }
-Sys_ETXTBSY     = 26;   { Text file busy }
+Sys_ETXTBSY     = 26;   { Text file busy. The new process was
+                          a pure procedure (shared text) file which was
+                          open for writing by another process, or file
+                          which was open for writing by another process,
+                          or while the pure procedure file was being
+                          executed an open(2) call requested write access
+                          requested write access.}
 Sys_EFBIG       = 27;   { File too large }
 Sys_ENOSPC      = 28;   { No space left on device }
 Sys_ESPIPE      = 29;   { Illegal seek }
@@ -174,7 +180,11 @@ Sys_EDQUOT      = 122;  { Quota exceeded }
 
 {
   $Log$
-  Revision 1.2  2002-09-07 16:01:26  peter
+  Revision 1.3  2004-03-04 13:11:56  olle
+    + added comment to ETXTBSY
+    * changed i386 -> cpui386, m68k -> cpum68k
+
+  Revision 1.2  2002/09/07 16:01:26  peter
     * old logs removed and tabs fixed
 
 }

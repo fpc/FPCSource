@@ -46,7 +46,7 @@ begin
 { give runtime error at the position where the signal was raised }
   if res<>0 then
    begin
-{$ifdef I386}
+{$ifdef cpui386}
   HandleErrorAddrFrame(res,Pointer(SigContext.sc_eip),pointer(SigContext.sc_ebp));
 {$else}
      HandleError(res);
@@ -79,7 +79,11 @@ end;
 
 {
   $Log$
-  Revision 1.1  2004-01-03 12:29:36  marco
+  Revision 1.2  2004-03-04 13:10:26  olle
+    + added comment to ETXTBSY
+    * changed i386 -> cpui386, m68k -> cpum68k
+
+  Revision 1.1  2004/01/03 12:29:36  marco
    * now separately.
 
 }
