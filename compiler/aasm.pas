@@ -818,8 +818,9 @@ uses
     constructor tasmsymbol.init(const s:string;_typ:TAsmsymtype);
       begin;
         inherited initname(s);
-        typ:=_typ;
         reset;
+        orgtyp:=_typ;
+        typ:=_typ;
       end;
 
     procedure tasmsymbol.GenerateAltSymbol;
@@ -835,9 +836,6 @@ uses
 
     procedure tasmsymbol.reset;
       begin
-        { save the original typ if not done yet }
-        if orgtyp=AS_NONE then
-         orgtyp:=typ;
         { reset section info }
         section:=sec_none;
         address:=0;
@@ -1046,7 +1044,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.75  2000-01-28 15:15:31  jonas
+  Revision 1.76  2000-02-03 23:01:45  peter
+    * fixed smartlinking
+
+  Revision 1.75  2000/01/28 15:15:31  jonas
      * moved skipinstr from daopt386 to aasm
      * fixed crashing bug with -dreplacereg in csopt386.pas
 
