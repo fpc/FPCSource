@@ -2639,23 +2639,7 @@ implementation
 
     function tarraydef.elesize : longint;
       begin
-        if ((lowrange=0) and
-            (highrange=-1) and
-            (not IsArrayOfConst) and
-            (not IsVariant) and
-            (not IsDynamicArray)) or
-           IsConstructor then
-         begin
-           { strings are stored by address only }
-           case elementtype.def.deftype of
-             stringdef :
-               elesize:=4;
-             else
-               elesize:=elementtype.def.size;
-           end;
-         end
-        else
-         elesize:=elementtype.def.size;
+        elesize:=elementtype.def.size;
       end;
 
 
@@ -5523,7 +5507,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.38  2001-07-30 20:59:27  peter
+  Revision 1.39  2001-08-01 21:47:48  peter
+    * fixed passing of array of record or shortstring to open array
+
+  Revision 1.38  2001/07/30 20:59:27  peter
     * m68k updates from v10 merged
 
   Revision 1.37  2001/07/30 11:52:57  jonas

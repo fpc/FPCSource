@@ -916,11 +916,7 @@ implementation
         if dovariant then
          elesize:=8
         else
-         begin
-           elesize:=tarraydef(resulttype.def).elesize;
-           if elesize>4 then
-            internalerror(8765678);
-         end;
+         elesize:=tarraydef(resulttype.def).elesize;
         if not(nf_cargs in flags) then
          begin
            reset_reference(location.reference);
@@ -1053,8 +1049,26 @@ implementation
                      emit_mov_loc_ref(hp.left.location,href,S_W,freetemp);
                    4 :
                      emit_mov_loc_ref(hp.left.location,href,S_L,freetemp);
+                   8 :
+                     begin
+                       if hp.left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                        begin
+                          emit_reg_ref(A_MOV,S_L,hp.left.location.registerlow,newreference(href));
+                          { update href to the high bytes and write it }
+                          inc(href.offset,4);
+                          emit_reg_ref(A_MOV,S_L,hp.left.location.registerhigh,newreference(href));
+                          dec(href.offset,4)
+                        end
+                       else
+                        concatcopy(hp.left.location.reference,href,elesize,freetemp,false);
+                     end;
                    else
-                     internalerror(87656781);
+                     begin
+                       { concatcopy only supports reference }
+                       if not(hp.left.location.loc in [LOC_MEM,LOC_REFERENCE]) then
+                        internalerror(200108012);
+                       concatcopy(hp.left.location.reference,href,elesize,freetemp,false);
+                     end;
                  end;
                  inc(href.offset,elesize);
                end;
@@ -1072,7 +1086,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-07-28 15:13:17  peter
+  Revision 1.16  2001-08-01 21:47:48  peter
+    * fixed passing of array of record or shortstring to open array
+
+  Revision 1.15  2001/07/28 15:13:17  peter
     * fixed opsize for assignment with LOC_JUMP
 
   Revision 1.14  2001/05/27 14:30:56  florian
