@@ -332,11 +332,11 @@ unit i_bsd;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 1;
+                constalignmax   : 4;
                 varalignmin     : 0;
-                varalignmax     : 1;
+                varalignmax     : 4;
                 localalignmin   : 0;
-                localalignmax   : 1;
+                localalignmax   : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
@@ -376,7 +376,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2004-01-04 21:19:57  jonas
+  Revision 1.6  2004-01-06 21:26:18  jonas
+    * fixed alignment constants for Darwin
+
+  Revision 1.5  2004/01/04 21:19:57  jonas
     * use "as_darwin" assembler for Darwin
     * Cprefix = '_' on Darwin
     * use_function_relative_addresses must be false on Darwin
