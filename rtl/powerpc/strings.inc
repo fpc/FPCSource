@@ -53,12 +53,6 @@ LStrCopyAligned:
         addi    r8,r8,(0xfefefeff)@l
         lis     r7,(0x80808080)@ha
         addi    r7,r7,(0x80808080)@l
-{
-        li      r8,-257        { 0x0feff }
-        andis.  r8,r8,0x0fefe
-        li      r7,-32640      { 0x08080 }
-        andis.  r7,r7,0x08080
-}
         { load first 4 bytes  }
         lwzu    r0,4(r4)
 
@@ -74,6 +68,9 @@ LStrCopyAlignedLoop:
         lwzu    r0,4(r4)
         b       LStrCopyAlignedLoop
 LStrCopyEndFound:
+        { adjust for possible $01 bytes coming before the terminating 0 byte }
+	rlwinm	r8,r0,7,0,31
+	andc	r10,r10,r8
         { result is either 0, 8, 16 or 24 depending on which byte is zero }
         cntlzw  r10,r10
         addi    r9,r9,3
@@ -137,6 +134,9 @@ LStrECopyAlignedLoop:
         stwu    r0,4(r3)
         b       LStrECopyAlignedLoop
 LStrECopyEndFound:
+        { adjust for possible $01 bytes coming before the terminating 0 byte }
+	rlwinm	r8,r0,7,0,31
+	andc	r10,r10,r8
         { result is either 0, 8, 16 or 24 depending on which byte is zero }
         cntlzw  r10,r10
         addi    r3,r3,3
@@ -458,7 +458,11 @@ end ['R0','R9','R10','CR0','CR1'];
 
 {
   $Log$
-  Revision 1.17  2003-05-24 10:16:24  jonas
+  Revision 1.18  2003-05-28 19:18:10  jonas
+    * fixed strcopy and strecopy if there are #1 chars right before the end
+      of the string to copied
+
+  Revision 1.17  2003/05/24 10:16:24  jonas
     * fixed strscan and strrscan
 
   Revision 1.16  2003/05/17 12:55:30  florian
