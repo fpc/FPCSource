@@ -381,7 +381,7 @@ const
                  if hp2.name^<>'' then
                   importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab))
                  else
-                  importsSection.concat(Tai_const.Create_32bit($80000000 or hp2.ordnr));
+                  importsSection.concat(Tai_const.Create_32bit(cardinal($80000000) or cardinal(hp2.ordnr)));
                  { finally the import information }
                  importsSection.concat(Tai_section.Create(sec_idata6));
                  importsSection.concat(Tai_label.Create(hp2.lab));
@@ -461,7 +461,7 @@ const
                    if hp2.name^<>'' then
                      importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab))
                    else
-                     importsSection.concat(Tai_const.Create_32bit($80000000 or hp2.ordnr));
+                     importsSection.concat(Tai_const.Create_32bit(cardinal($80000000) or cardinal(hp2.ordnr)));
                    hp2:=twin32imported_item(hp2.next);
                 end;
               { finalize the names ... }
@@ -1006,7 +1006,7 @@ begin
   AsBinStr:=FindUtil(utilsprefix+'as');
   if RelocSection then
    { Using short form to avoid problems with 128 char limitation under Dos. }
-   RelocStr:='-b base.$$$';
+   RelocStr:='--base_file base.$$$';
   if apptype=app_gui then
    AppTypeStr:='--subsystem windows';
   if assigned(DLLImageBase) then
@@ -1622,7 +1622,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.23  2003-10-10 17:48:14  peter
+  Revision 1.24  2003-12-08 22:37:04  peter
+    * base_file instead of b
+
+  Revision 1.23  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units
