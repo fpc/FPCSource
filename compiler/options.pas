@@ -1780,9 +1780,15 @@ begin
   { endian define }
   case target_info.endian of
     endian_little :
-      def_symbol('ENDIAN_LITTLE');
+      begin
+         def_symbol('ENDIAN_LITTLE');
+         def_symbol('FPC_LITTLE_ENDIAN');
+      end;
     endian_big :
-      def_symbol('ENDIAN_BIG');
+      begin
+         def_symbol('ENDIAN_BIG');
+         def_symbol('FPC_BIG_ENDIAN');
+      end;
   end;
 
 {$ifdef m68k}
@@ -1918,7 +1924,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.97  2003-05-01 07:59:42  florian
+  Revision 1.98  2003-05-11 19:17:16  florian
+    * FPC_LITTLE_ENDIAN and FPC_BIG_ENDIAN is now defined as well
+
+  Revision 1.97  2003/05/01 07:59:42  florian
     * introduced defaultordconsttype to decribe the default size of ordinal constants
       on 64 bit CPUs it's equal to cs64bitdef while on 32 bit CPUs it's equal to s32bitdef
     + added defines CPU32 and CPU64 for 32 bit and 64 bit CPUs
