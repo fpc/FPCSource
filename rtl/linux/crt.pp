@@ -921,22 +921,27 @@ Begin
    FAltKey:=0;
 End;
 
-
-
-Function KeyPressed:Boolean;
+{ This one doesn't care about keypresses already processed by readkey  }
+{ and waiting in the KeyBuffer, only about waiting keypresses at the   }
+{ TTYLevel (including ones that are waiting in the TTYRecvChar buffer) }
+function sysKeyPressed: boolean;
 var
   fdsin : fdSet;
-Begin
-  if (KeySend<>KeyPut) or (InCnt>0) then
-   KeyPressed:=true
+begin
+  if (InCnt>0) then
+   sysKeyPressed:=true
   else
    begin
      FD_Zero(fdsin);
      fd_Set(TTYin,fdsin);
-     Keypressed:=(Select(TTYIn+1,@fdsin,nil,nil,0)>0);
+     sysKeypressed:=(Select(TTYIn+1,@fdsin,nil,nil,0)>0);
    end;
-End;
+end;
 
+Function KeyPressed:Boolean;
+Begin
+  Keypressed := (KeySend<>KeyPut) or sysKeyPressed;
+End;
 
 Function ReadKey:char;
 Var
@@ -952,10 +957,13 @@ Begin
      exit;
    end;
 {Wait for Key}
-
-  FD_Zero (FDS);
-  FD_Set (0,FDS);
-  Select (1,@FDS,nil,nil,nil);
+{ Only if the buffer is empty! (JM) }
+  if inCnt = 0 then
+    begin
+      FD_Zero (FDS);
+      FD_Set (0,FDS);
+      Select (1,@FDS,nil,nil,nil);
+    end;
 
   ch:=ttyRecvChar;
 {Esc Found ?}
@@ -963,7 +971,10 @@ Begin
   #27: begin
      State:=1;
      Delay(10);
-     while (State<>0) and (KeyPressed) do
+     { This has to be sysKeyPressed and not "keyPressed", since after }
+     { one iteration keyPressed will always be true because of the    }
+     { pushKey commands (JM)                                          }
+     while (State<>0) and (sysKeyPressed) do
       begin
         ch:=ttyRecvChar;
         OldState:=State;
@@ -1314,8 +1325,8 @@ Begin
      i:=F.BufPos;
      if i>255 then
       i:=255;
-     Move(F.BufPTR^[idx],Temp[1],F.BufPos);
-     Temp[0]:=Chr(i);
+     Move(F.BufPTR^[idx],Temp[1],i);
+     SetLength(Temp,i);
      DoWrite(Temp);
      dec(F.BufPos,i);
      inc(idx,i);
@@ -1610,7 +1621,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.25  2000-05-08 13:24:27  peter
+  Revision 1.26  2000-06-04 13:49:57  jonas
+    * fixed webbug 978
+
+  Revision 1.25  2000/05/08 13:24:27  peter
     * removed hardcoded limit of 80 width
 
   Revision 1.24  2000/04/14 12:15:31  pierre
