@@ -24,7 +24,6 @@ unit Classes;
 interface
 
 uses
-  strings,
   sysutils,
   typinfo;
 
@@ -47,7 +46,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2003-11-05 09:13:59  yuri
+  * exec fix
+  * unused units removed
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.1  2003/10/06 20:33:58  peter

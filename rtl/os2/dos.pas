@@ -236,7 +236,7 @@ end;
 procedure exec(const path:pathstr;const comline:comstr);
 {Execute a program.}
 begin
-    dosexitcode:=word(exec(path,execrunflags(ExecFlags),efdefault,comline));
+  dosexitcode:=word(exec(path,execrunflags(ExecFlags),efdefault,comline));
 end;
 
 function exec(path:pathstr;runflags:execrunflags;winflags:execwinflags;
@@ -320,7 +320,9 @@ begin
     end ['eax','ebx','ecx','edx','esi','edi'];
 
     //Not clear how to use
-    exec:=DosExecPgm(ObjName, cardinal (RunFlags), Args, Env, Res, Path);
+    DosError:=DosExecPgm(ObjName, cardinal (RunFlags), Args, Env, Res, Path);
+
+    exec:=Res.ExitCode;
 
     freemem(args,ArgsSize);
     FreeMem(env, envc*sizeof(pchar)+16384);
@@ -702,7 +704,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  2003-11-02 09:45:32  hajny
+  Revision 1.33  2003-11-05 09:13:59  yuri
+  * exec fix
+  * unused units removed
+
+  Revision 1.32  2003/11/02 09:45:32  hajny
   SetFTime fix
 
   Revision 1.31  2003/11/01 18:35:12  hajny

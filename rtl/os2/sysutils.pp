@@ -23,7 +23,7 @@ interface
 {$H+}
 
 uses
- Dos, Strings;
+ Dos;
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -770,7 +770,11 @@ end.
 
 {
   $Log$
-  Revision 1.36  2003-10-27 12:19:20  yuri
+  Revision 1.37  2003-11-05 09:14:00  yuri
+  * exec fix
+  * unused units removed
+
+  Revision 1.36  2003/10/27 12:19:20  yuri
   * GetLocatTime now also native
 
   Revision 1.35  2003/10/27 11:43:40  yuri
