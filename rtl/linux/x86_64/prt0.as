@@ -93,7 +93,10 @@ __data_start:
 
 #
 # $Log$
-# Revision 1.9  2004-11-02 15:26:21  florian
+# Revision 1.10  2005-02-05 23:02:37  florian
+#   + added some missing c types
+#
+# Revision 1.9  2004/11/02 15:26:21  florian
 #   * fixed sse exception handling
 #
 # Revision 1.8  2004/07/03 21:50:31  daniel

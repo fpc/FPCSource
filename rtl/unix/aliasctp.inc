@@ -26,22 +26,30 @@ Type
     cInt64  = UnixType.cInt64;
     cUInt64 = UnixType.cUInt64;
     cuchar  = UnixType.cuchar;
+    cchar   = UnixType.cchar;
     cInt    = UnixType.cInt;
     cUInt   = UnixType.cUInt;
     cLong   = UnixType.cLong;
     cuLong  = UnixType.cuLong;
     cshort  = UnixType.cshort;
     cushort = UnixType.cushort;
+    cunsigned = UnixType.cunsigned;
+    pcuchar = UnixType.pcuchar;
+    pcchar  = UnixType.pcchar;
     pcInt   = UnixType.pcInt;
     pcUInt  = UnixType.pcUInt;
     pcLong  = UnixType.pcLong;
     pculong = UnixType.pculong;
     pcshort = UnixType.pcshort;
     pcushort= UnixType.pcushort;
+    pcunsigned = UnixType.pcunsigned;
 
 {   
    $Log$
-   Revision 1.1  2004-03-04 22:15:16  marco
+   Revision 1.2  2005-02-05 23:02:37  florian
+     + added some missing c types
+
+   Revision 1.1  2004/03/04 22:15:16  marco
     * UnixType changes. Please report problems to me.
 
 

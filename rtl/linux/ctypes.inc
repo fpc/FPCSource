@@ -36,6 +36,7 @@ Type
 {$endif}
 
     cuchar = byte;
+    cchar  = shortint;
     cInt   = longint;           { minimum range is : 32-bit    }
     cUInt  = Cardinal;          { minimum range is : 32-bit    }
 {$ifdef cpu64}
@@ -51,19 +52,27 @@ Type
 {$else VER1_0}
     culonglong = int64;
 {$endif VER1_0}
-    cshort = smallint;
-    cushort= word;
+    cshort   = smallint;
+    cushort  = word;
 
-    pcInt   = ^cInt;
-    pcUInt  = ^cUInt;
-    pcLong  = ^cLong;
-    pculong = ^cuLong;
-    pcshort = ^cshort;
-    pcushort= ^cushort;
+    pcInt    = ^cInt;
+    pcUInt   = ^cUInt;
+    pcLong   = ^cLong;
+    pculong  = ^cuLong;
+    pcshort  = ^cshort;
+    pcushort = ^cushort;
+    pcchar   = ^cchar;
+    pcuchar  = ^cuchar;
+
+    cunsigned = cuint;
+    pcunsigned = ^cunsigned;
 
 {
    $Log$
-   Revision 1.5  2004-09-09 20:29:06  jonas
+   Revision 1.6  2005-02-05 23:02:37  florian
+     + added some missing c types
+
+   Revision 1.5  2004/09/09 20:29:06  jonas
      * fixed definition of pthread_mutex_t for non-linux targets (and for
        linux as well, actually).
      * base libpthread definitions are now in ptypes.inc, included in unixtype
