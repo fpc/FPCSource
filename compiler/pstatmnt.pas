@@ -276,6 +276,22 @@ implementation
 
     function for_statement : tnode;
 
+        procedure check_range(hp:tnode);
+        begin
+{$ifndef cpu64bit}
+          if hp.nodetype=ordconstn then
+            begin
+              if (tordconstnode(hp).value<low(longint)) or
+                 (tordconstnode(hp).value>high(longint)) then
+                begin
+                  CGMessage(parser_e_range_check_error);
+                  { recover, prevent more warnings/errors }
+                  tordconstnode(hp).value:=0;
+                end;
+            end;
+{$endif cpu64bit}
+        end;
+
       var
          hp,
          hloopvar,
@@ -386,6 +402,10 @@ implementation
 
          hto:=comp_expr(true);
          consume(_DO);
+
+         { Check if the constants fit in the range }
+         check_range(hfrom);
+         check_range(hto);
 
          { first set the varstate for from and to, so
            uses of loopvar in those expressions will also
@@ -1157,7 +1177,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.151  2005-01-31 20:23:53  peter
+  Revision 1.152  2005-02-03 17:10:58  peter
+    * check for-loop constants ranges
+
+  Revision 1.151  2005/01/31 20:23:53  peter
     * set varstate before parsing the instruction block in for statements
 
   Revision 1.150  2005/01/31 16:16:21  peter
