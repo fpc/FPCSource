@@ -1073,10 +1073,12 @@
 
     function tvarsym.getsize : longint;
       begin
-        if assigned(definition) and (varspez=vs_value) then
-          getsize:=definition^.size
-        else
-          getsize:=0;
+        if assigned(definition) and (varspez=vs_value) and 
+          ((definition^.deftype<>arraydef) or (Parraydef(definition)^.highrange>=
+          Parraydef(definition)^.lowrange)) then
+              getsize:=definition^.size
+          else
+              getsize:=0;
       end;
 
 
@@ -2116,7 +2118,10 @@
 
 {
   $Log$
-  Revision 1.108  1999-08-05 16:53:17  peter
+  Revision 1.109  1999-08-07 13:24:34  daniel
+  * Fixed open arrays
+
+  Revision 1.108  1999/08/05 16:53:17  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives
