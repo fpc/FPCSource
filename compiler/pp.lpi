@@ -1,0 +1,711 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="3"/>
+    <General>
+      <ProjectType Value="Custom program"/>
+      <MainUnit Value="0"/>
+      <ActiveEditorIndexAtStart Value="0"/>
+      <IconPath Value="./"/>
+      <TargetFileExt Value=""/>
+      <Title Value="pp"/>
+    </General>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="354" Column="1" TopLine="339"/>
+      </Position1>
+      <Position2>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="355" Column="1" TopLine="340"/>
+      </Position2>
+      <Position3>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="357" Column="1" TopLine="342"/>
+      </Position3>
+      <Position4>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="363" Column="1" TopLine="348"/>
+      </Position4>
+      <Position5>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="376" Column="1" TopLine="361"/>
+      </Position5>
+      <Position6>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="377" Column="1" TopLine="362"/>
+      </Position6>
+      <Position7>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="381" Column="1" TopLine="366"/>
+      </Position7>
+      <Position8>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="339" Column="1" TopLine="324"/>
+      </Position8>
+      <Position9>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="354" Column="1" TopLine="339"/>
+      </Position9>
+      <Position10>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="355" Column="1" TopLine="340"/>
+      </Position10>
+      <Position11>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="357" Column="1" TopLine="342"/>
+      </Position11>
+      <Position12>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="363" Column="1" TopLine="348"/>
+      </Position12>
+      <Position13>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="339" Column="1" TopLine="324"/>
+      </Position13>
+      <Position14>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="354" Column="1" TopLine="339"/>
+      </Position14>
+      <Position15>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="355" Column="1" TopLine="340"/>
+      </Position15>
+      <Position16>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="357" Column="1" TopLine="342"/>
+      </Position16>
+      <Position17>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="363" Column="1" TopLine="348"/>
+      </Position17>
+      <Position18>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="376" Column="1" TopLine="361"/>
+      </Position18>
+      <Position19>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="339" Column="1" TopLine="324"/>
+      </Position19>
+      <Position20>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="354" Column="1" TopLine="339"/>
+      </Position20>
+      <Position21>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="355" Column="1" TopLine="340"/>
+      </Position21>
+      <Position22>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="357" Column="1" TopLine="342"/>
+      </Position22>
+      <Position23>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="363" Column="1" TopLine="348"/>
+      </Position23>
+      <Position24>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="364" Column="1" TopLine="349"/>
+      </Position24>
+      <Position25>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="366" Column="1" TopLine="351"/>
+      </Position25>
+      <Position26>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="367" Column="1" TopLine="352"/>
+      </Position26>
+      <Position27>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="368" Column="1" TopLine="353"/>
+      </Position27>
+      <Position28>
+        <Filename Value="cutils.pas"/>
+        <Caret Line="390" Column="1" TopLine="374"/>
+      </Position28>
+      <Position29>
+        <Filename Value="cutils.pas"/>
+        <Caret Line="391" Column="1" TopLine="376"/>
+      </Position29>
+      <Position30>
+        <Filename Value="aggas.pas"/>
+        <Caret Line="372" Column="74" TopLine="354"/>
+      </Position30>
+    </JumpHistory>
+    <Units Count="71">
+      <Unit0>
+        <CursorPos X="1" Y="202"/>
+        <Filename Value="pp.pas"/>
+        <IsPartOfProject Value="True"/>
+        <TopLine Value="187"/>
+        <UnitName Value="pp"/>
+        <UsageCount Value="64"/>
+      </Unit0>
+      <Unit1>
+        <CursorPos X="9" Y="12"/>
+        <Filename Value="fpcdefs.inc"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="8"/>
+      </Unit1>
+      <Unit2>
+        <CursorPos X="26" Y="426"/>
+        <Filename Value="paramgr.pas"/>
+        <TopLine Value="406"/>
+        <UsageCount Value="21"/>
+      </Unit2>
+      <Unit3>
+        <CursorPos X="1" Y="391"/>
+        <EditorIndex Value="1"/>
+        <Filename Value="cutils.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="376"/>
+        <UnitName Value="cutils"/>
+        <UsageCount Value="10"/>
+      </Unit3>
+      <Unit4>
+        <CursorPos X="61" Y="694"/>
+        <Filename Value="aasmbase.pas"/>
+        <TopLine Value="673"/>
+        <UsageCount Value="8"/>
+      </Unit4>
+      <Unit5>
+        <CursorPos X="31" Y="859"/>
+        <Filename Value="fppu.pas"/>
+        <TopLine Value="1115"/>
+        <UsageCount Value="8"/>
+      </Unit5>
+      <Unit6>
+        <CursorPos X="1" Y="193"/>
+        <Filename Value="comphook.pas"/>
+        <TopLine Value="177"/>
+        <UnitName Value="comphook"/>
+        <UsageCount Value="14"/>
+      </Unit6>
+      <Unit7>
+        <CursorPos X="29" Y="160"/>
+        <Filename Value="sparc/cpupara.pas"/>
+        <TopLine Value="150"/>
+        <UsageCount Value="13"/>
+      </Unit7>
+      <Unit8>
+        <CursorPos X="3" Y="483"/>
+        <Filename Value="cg64f32.pas"/>
+        <TopLine Value="472"/>
+        <UsageCount Value="18"/>
+      </Unit8>
+      <Unit9>
+        <CursorPos X="15" Y="379"/>
+        <Filename Value="ncgcal.pas"/>
+        <TopLine Value="363"/>
+        <UnitName Value="ncgcal"/>
+        <UsageCount Value="28"/>
+      </Unit9>
+      <Unit10>
+        <CursorPos X="1" Y="2059"/>
+        <Filename Value="cgobj.pas"/>
+        <TopLine Value="2044"/>
+        <UnitName Value="cgobj"/>
+        <UsageCount Value="28"/>
+      </Unit10>
+      <Unit11>
+        <CursorPos X="27" Y="568"/>
+        <Filename Value="systems/t_linux.pas"/>
+        <TopLine Value="540"/>
+        <UsageCount Value="8"/>
+      </Unit11>
+      <Unit12>
+        <CursorPos X="13" Y="14"/>
+        <Filename Value="mppcsparc"/>
+        <SyntaxHighlighter Value="None"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="8"/>
+      </Unit12>
+      <Unit13>
+        <CursorPos X="8" Y="1415"/>
+        <Filename Value="aasmtai.pas"/>
+        <TopLine Value="1400"/>
+        <UnitName Value="aasmtai"/>
+        <UsageCount Value="11"/>
+      </Unit13>
+      <Unit14>
+        <CursorPos X="11" Y="25"/>
+        <Filename Value="sparc/cpuswtch.pas"/>
+        <TopLine Value="15"/>
+        <UnitName Value="cpuswtch"/>
+        <UsageCount Value="10"/>
+      </Unit14>
+      <Unit15>
+        <CursorPos X="28" Y="12"/>
+        <Filename Value="sparc/racpugas.pas"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="11"/>
+      </Unit15>
+      <Unit16>
+        <CursorPos X="13" Y="48"/>
+        <Filename Value="catch.pas"/>
+        <TopLine Value="33"/>
+        <UnitName Value="catch"/>
+        <UsageCount Value="10"/>
+      </Unit16>
+      <Unit17>
+        <CursorPos X="5" Y="224"/>
+        <Filename Value="arm/cgcpu.pas"/>
+        <TopLine Value="209"/>
+        <UsageCount Value="10"/>
+      </Unit17>
+      <Unit18>
+        <CursorPos X="1" Y="473"/>
+        <Filename Value="sparc/cgcpu.pas"/>
+        <TopLine Value="458"/>
+        <UsageCount Value="26"/>
+      </Unit18>
+      <Unit19>
+        <CursorPos X="1" Y="60"/>
+        <Filename Value="checkmem.pas"/>
+        <TopLine Value="29"/>
+        <UnitName Value="CheckMem"/>
+        <UsageCount Value="10"/>
+      </Unit19>
+      <Unit20>
+        <CursorPos X="1" Y="392"/>
+        <Filename Value="compiler.pas"/>
+        <TopLine Value="376"/>
+        <UnitName Value="compiler"/>
+        <UsageCount Value="10"/>
+      </Unit20>
+      <Unit21>
+        <CursorPos X="11" Y="27"/>
+        <Filename Value="sparc/cpubase.pas"/>
+        <TopLine Value="12"/>
+        <UnitName Value="cpubase"/>
+        <UsageCount Value="15"/>
+      </Unit21>
+      <Unit22>
+        <CursorPos X="11" Y="23"/>
+        <Filename Value="sparc/cpuinfo.pas"/>
+        <TopLine Value="7"/>
+        <UsageCount Value="9"/>
+      </Unit22>
+      <Unit23>
+        <CursorPos X="5" Y="25"/>
+        <Filename Value="sparc/cpupi.pas"/>
+        <TopLine Value="10"/>
+        <UsageCount Value="11"/>
+      </Unit23>
+      <Unit24>
+        <CursorPos X="1" Y="1"/>
+        <Filename Value="sparc/cputarg.pas"/>
+        <TopLine Value="1"/>
+        <UnitName Value="cputarg"/>
+        <UsageCount Value="8"/>
+      </Unit24>
+      <Unit25>
+        <CursorPos X="1" Y="1"/>
+        <Filename Value="sparc/cpunode.pas"/>
+        <TopLine Value="1"/>
+        <UnitName Value="CpuNode"/>
+        <UsageCount Value="8"/>
+      </Unit25>
+      <Unit26>
+        <CursorPos X="1" Y="1"/>
+        <Filename Value="systems/i_linux.pas"/>
+        <TopLine Value="1"/>
+        <UnitName Value="i_linux"/>
+        <UsageCount Value="8"/>
+      </Unit26>
+      <Unit27>
+        <CursorPos X="1" Y="1"/>
+        <Filename Value="$(FpcDir)/rtl/unix/linux.pp"/>
+        <TopLine Value="1"/>
+        <UnitName Value="linux"/>
+        <UsageCount Value="8"/>
+      </Unit27>
+      <Unit28>
+        <CursorPos X="1" Y="562"/>
+        <Filename Value="verbose.pas"/>
+        <TopLine Value="546"/>
+        <UnitName Value="verbose"/>
+        <UsageCount Value="9"/>
+      </Unit28>
+      <Unit29>
+        <CursorPos X="12" Y="67"/>
+        <Filename Value="cgutils.pas"/>
+        <TopLine Value="49"/>
+        <UnitName Value="cgutils"/>
+        <UsageCount Value="13"/>
+      </Unit29>
+      <Unit30>
+        <CursorPos X="28" Y="482"/>
+        <Filename Value="$(FpcDir)/tests/test/cg/tcalcst2.pp"/>
+        <TopLine Value="470"/>
+        <UnitName Value="tcalcst2"/>
+        <UsageCount Value="12"/>
+      </Unit30>
+      <Unit31>
+        <CursorPos X="1" Y="148"/>
+        <EditorIndex Value="11"/>
+        <Filename Value="pass_2.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="133"/>
+        <UnitName Value="pass_2"/>
+        <UsageCount Value="18"/>
+      </Unit31>
+      <Unit32>
+        <CursorPos X="1" Y="332"/>
+        <Filename Value="ncgbas.pas"/>
+        <TopLine Value="317"/>
+        <UnitName Value="ncgbas"/>
+        <UsageCount Value="15"/>
+      </Unit32>
+      <Unit33>
+        <CursorPos X="1" Y="1"/>
+        <Filename Value="pp.lpi"/>
+        <SyntaxHighlighter Value="None"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="9"/>
+      </Unit33>
+      <Unit34>
+        <CursorPos X="1" Y="132"/>
+        <Filename Value="ncal.pas"/>
+        <TopLine Value="117"/>
+        <UnitName Value="ncal"/>
+        <UsageCount Value="12"/>
+      </Unit34>
+      <Unit35>
+        <CursorPos X="1" Y="1030"/>
+        <Filename Value="symdef.pas"/>
+        <TopLine Value="1015"/>
+        <UnitName Value="symdef"/>
+        <UsageCount Value="11"/>
+      </Unit35>
+      <Unit36>
+        <CursorPos X="4" Y="1361"/>
+        <Filename Value="nobj.pas"/>
+        <TopLine Value="1345"/>
+        <UnitName Value="nobj"/>
+        <UsageCount Value="11"/>
+      </Unit36>
+      <Unit37>
+        <CursorPos X="5" Y="1455"/>
+        <EditorIndex Value="4"/>
+        <Filename Value="ncgutil.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="1454"/>
+        <UnitName Value="ncgutil"/>
+        <UsageCount Value="12"/>
+      </Unit37>
+      <Unit38>
+        <CursorPos X="69" Y="568"/>
+        <Filename Value="tgobj.pas"/>
+        <TopLine Value="540"/>
+        <UnitName Value="tgobj"/>
+        <UsageCount Value="11"/>
+      </Unit38>
+      <Unit39>
+        <CursorPos X="1" Y="139"/>
+        <Filename Value="powerpc/cpupi.pas"/>
+        <TopLine Value="124"/>
+        <UsageCount Value="9"/>
+      </Unit39>
+      <Unit40>
+        <CursorPos X="1" Y="88"/>
+        <EditorIndex Value="7"/>
+        <Filename Value="arm/cpupi.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="72"/>
+        <UsageCount Value="11"/>
+      </Unit40>
+      <Unit41>
+        <CursorPos X="1" Y="166"/>
+        <Filename Value="procinfo.pas"/>
+        <TopLine Value="150"/>
+        <UnitName Value="procinfo"/>
+        <UsageCount Value="9"/>
+      </Unit41>
+      <Unit42>
+        <CursorPos X="1" Y="682"/>
+        <Filename Value="psub.pas"/>
+        <TopLine Value="666"/>
+        <UnitName Value="psub"/>
+        <UsageCount Value="11"/>
+      </Unit42>
+      <Unit43>
+        <CursorPos X="1" Y="50"/>
+        <Filename Value="x86_64/cpupi.pas"/>
+        <TopLine Value="34"/>
+        <UsageCount Value="9"/>
+      </Unit43>
+      <Unit44>
+        <CursorPos X="34" Y="176"/>
+        <Filename Value="sparc/aasmcpu.pas"/>
+        <TopLine Value="176"/>
+        <UsageCount Value="10"/>
+      </Unit44>
+      <Unit45>
+        <CursorPos X="4" Y="755"/>
+        <Filename Value="globals.pas"/>
+        <TopLine Value="740"/>
+        <UnitName Value="globals"/>
+        <UsageCount Value="9"/>
+      </Unit45>
+      <Unit46>
+        <CursorPos X="6" Y="422"/>
+        <EditorIndex Value="5"/>
+        <Filename Value="options.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="407"/>
+        <UnitName Value="options"/>
+        <UsageCount Value="11"/>
+      </Unit46>
+      <Unit47>
+        <CursorPos X="8" Y="226"/>
+        <Filename Value="utils/mkx86ins.pp"/>
+        <TopLine Value="211"/>
+        <UnitName Value="mkx86ins"/>
+        <UsageCount Value="9"/>
+      </Unit47>
+      <Unit48>
+        <CursorPos X="1" Y="454"/>
+        <EditorIndex Value="2"/>
+        <Filename Value="assemble.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="438"/>
+        <UnitName Value="assemble"/>
+        <UsageCount Value="13"/>
+      </Unit48>
+      <Unit49>
+        <CursorPos X="1" Y="339"/>
+        <EditorIndex Value="0"/>
+        <Filename Value="aggas.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="324"/>
+        <UnitName Value="aggas"/>
+        <UsageCount Value="11"/>
+      </Unit49>
+      <Unit50>
+        <CursorPos X="6" Y="1259"/>
+        <Filename Value="browcol.pas"/>
+        <TopLine Value="1244"/>
+        <UnitName Value="browcol"/>
+        <UsageCount Value="10"/>
+      </Unit50>
+      <Unit51>
+        <CursorPos X="1" Y="240"/>
+        <Filename Value="alpha/cpubase.pas"/>
+        <TopLine Value="224"/>
+        <UsageCount Value="9"/>
+      </Unit51>
+      <Unit52>
+        <CursorPos X="28" Y="284"/>
+        <Filename Value="systems.pas"/>
+        <TopLine Value="267"/>
+        <UnitName Value="systems"/>
+        <UsageCount Value="10"/>
+      </Unit52>
+      <Unit53>
+        <CursorPos X="4" Y="1116"/>
+        <Filename Value="defcmp.pas"/>
+        <TopLine Value="1100"/>
+        <UnitName Value="defcmp"/>
+        <UsageCount Value="10"/>
+      </Unit53>
+      <Unit54>
+        <CursorPos X="5" Y="359"/>
+        <Filename Value="arm/cpupara.pas"/>
+        <TopLine Value="344"/>
+        <UnitName Value="cpupara"/>
+        <UsageCount Value="10"/>
+      </Unit54>
+      <Unit55>
+        <CursorPos X="1" Y="633"/>
+        <Filename Value="ncgld.pas"/>
+        <TopLine Value="618"/>
+        <UnitName Value="ncgld"/>
+        <UsageCount Value="14"/>
+      </Unit55>
+      <Unit56>
+        <CursorPos X="1" Y="521"/>
+        <Filename Value="ncgcnv.pas"/>
+        <TopLine Value="506"/>
+        <UnitName Value="ncgcnv"/>
+        <UsageCount Value="11"/>
+      </Unit56>
+      <Unit57>
+        <CursorPos X="1" Y="2075"/>
+        <Filename Value="ncnv.pas"/>
+        <TopLine Value="2060"/>
+        <UnitName Value="ncnv"/>
+        <UsageCount Value="11"/>
+      </Unit57>
+      <Unit58>
+        <CursorPos X="1" Y="174"/>
+        <Filename Value="sparc/ncpucnv.pas"/>
+        <TopLine Value="159"/>
+        <UsageCount Value="11"/>
+      </Unit58>
+      <Unit59>
+        <CursorPos X="1" Y="852"/>
+        <Filename Value="defutil.pas"/>
+        <TopLine Value="837"/>
+        <UnitName Value="defutil"/>
+        <UsageCount Value="11"/>
+      </Unit59>
+      <Unit60>
+        <CursorPos X="7" Y="147"/>
+        <Filename Value="cgbase.pas"/>
+        <TopLine Value="147"/>
+        <UnitName Value="cgbase"/>
+        <UsageCount Value="10"/>
+      </Unit60>
+      <Unit61>
+        <CursorPos X="1" Y="193"/>
+        <Filename Value="sparc/cpugas.pas"/>
+        <TopLine Value="147"/>
+        <UsageCount Value="10"/>
+      </Unit61>
+      <Unit62>
+        <CursorPos X="36" Y="1273"/>
+        <Filename Value="pmodules.pas"/>
+        <TopLine Value="1273"/>
+        <UnitName Value="pmodules"/>
+        <UsageCount Value="10"/>
+      </Unit62>
+      <Unit63>
+        <CursorPos X="1" Y="528"/>
+        <Filename Value="parser.pas"/>
+        <TopLine Value="512"/>
+        <UnitName Value="parser"/>
+        <UsageCount Value="10"/>
+      </Unit63>
+      <Unit64>
+        <CursorPos X="30" Y="68"/>
+        <Filename Value="fmodule.pas"/>
+        <TopLine Value="46"/>
+        <UnitName Value="fmodule"/>
+        <UsageCount Value="10"/>
+      </Unit64>
+      <Unit65>
+        <CursorPos X="7" Y="484"/>
+        <EditorIndex Value="12"/>
+        <Filename Value="regvars.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="469"/>
+        <UnitName Value="regvars"/>
+        <UsageCount Value="11"/>
+      </Unit65>
+      <Unit66>
+        <CursorPos X="6" Y="1582"/>
+        <EditorIndex Value="9"/>
+        <Filename Value="scanner.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="1567"/>
+        <UnitName Value="scanner"/>
+        <UsageCount Value="11"/>
+      </Unit66>
+      <Unit67>
+        <CursorPos X="3" Y="720"/>
+        <EditorIndex Value="10"/>
+        <Filename Value="i386/csopt386.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="704"/>
+        <UsageCount Value="11"/>
+      </Unit67>
+      <Unit68>
+        <CursorPos X="1" Y="81"/>
+        <EditorIndex Value="8"/>
+        <Filename Value="powerpc/agppcgas.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="65"/>
+        <UsageCount Value="11"/>
+      </Unit68>
+      <Unit69>
+        <CursorPos X="1" Y="1326"/>
+        <EditorIndex Value="6"/>
+        <Filename Value="symtable.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="1311"/>
+        <UnitName Value="symtable"/>
+        <UsageCount Value="11"/>
+      </Unit69>
+      <Unit70>
+        <CursorPos X="1" Y="79"/>
+        <EditorIndex Value="3"/>
+        <Filename Value="globtype.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="63"/>
+        <UnitName Value="globtype"/>
+        <UsageCount Value="11"/>
+      </Unit70>
+    </Units>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <CommandLineParams Value="-artl -Fu$(FpcDir)/rtl/unix -Fu$(FpcDir)/rtl/linux -Fu$(FpcDir)/rtl/sparc -Fu$(FpcDir)/rtl/inc -Fu$(FpcDir)/rtl/linux/sparc -Fu$(FpcDir)/rtl/objpas -Fu$(FpcDir)/rtl/inc -FD/usr/local/bin/sparc-linux -Fi$(FpcDir)/rtl/unix -Fi$(FpcDir)/rtl/linux -Fi$(FpcDir)/rtl/sparc -Fi$(FpcDir)/rtl/inc -Fi$(FpcDir)/rtl/linux/sparc -Fi$(FpcDir)/rtl/objpas/sysutils -FE$(FpcDir)/tests/test -dSPARC cg/tcnvint2.pp"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+        <WorkingDirectory Value="/home/neifer/FPC/Demo/src/fpc/tests/test/"/>
+      </local>
+    </RunParams>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="2"/>
+    <SearchPaths>
+      <IncludeFiles Value=".;sparc/"/>
+      <OtherUnitFiles Value=".;sparc/;systems/"/>
+      <UnitOutputDirectory Value="sparc/"/>
+    </SearchPaths>
+    <Parsing>
+      <Style Value="2"/>
+    </Parsing>
+    <CodeGeneration>
+      <UnitStyle Value="2"/>
+      <Generate Value="Faster"/>
+      <TargetOS Value="Linux"/>
+    </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="True"/>
+        <UseHeaptrc Value="True"/>
+      </Debugging>
+    </Linking>
+    <Other>
+      <CustomOptions Value="-dExtDebug -dSPARC -dGDB -dNewRA -dHaveLinuxRtl10"/>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <BreakPoints Count="5">
+      <Item1>
+        <Source Value="paramgr.pas"/>
+        <Line Value="427"/>
+      </Item1>
+      <Item2>
+        <Source Value="cgobj.pas"/>
+        <Line Value="640"/>
+      </Item2>
+      <Item3>
+        <Source Value="assemble.pas"/>
+        <Line Value="454"/>
+      </Item3>
+      <Item4>
+        <Source Value="aggas.pas"/>
+        <Line Value="357"/>
+      </Item4>
+      <Item5>
+        <Source Value="aggas.pas"/>
+        <Line Value="339"/>
+      </Item5>
+    </BreakPoints>
+    <Watches Count="1">
+      <Item1>
+        <Expression Value="lastfileinfo.line"/>
+        <InitialEnabled Value="False"/>
+      </Item1>
+    </Watches>
+  </Debugging>
+</CONFIG>
