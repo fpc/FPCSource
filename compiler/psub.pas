@@ -117,7 +117,10 @@ implementation
               symtablestack.insertvardata(aktprocdef.funcretsym);
               akttokenpos:=storepos;
 
+(*            already done by
+              symtablestack.insertvardata(aktprocdef.funcretsym); above (JM)              
               procinfo.set_result_offset;
+*)
               { insert result also if support is on }
               if (m_result in aktmodeswitches) then
                begin
@@ -854,7 +857,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2003-04-02 16:11:34  peter
+  Revision 1.96  2003-04-05 21:09:31  jonas
+    * several ppc/generic result offset related fixes. The "normal" result
+      offset seems now to be calculated correctly and a lot of duplicate
+      calculations have been removed. Nested functions accessing the parent's
+      function result don't work at all though :(
+
+  Revision 1.95  2003/04/02 16:11:34  peter
     * give error when exports is not supported
 
   Revision 1.94  2003/03/12 22:43:38  jonas

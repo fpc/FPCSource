@@ -166,8 +166,10 @@ unit cgbase;
           }
           procedure after_pass1;virtual;
 
+(*        done by symtablestack.insertvardata() (JM)
           { sets the offset for a temp used by the result }
           procedure set_result_offset;virtual;
+*)
        end;
 
        pregvarinfo = ^tregvarinfo;
@@ -422,28 +424,32 @@ implementation
          { !!!!!   this means that we can not set the return value
          in a subfunction !!!!! }
          { because we don't know yet where the address is }
-         if not is_void(aktprocdef.rettype.def) then
+         if not is_void(procdef.rettype.def) then
            begin
-              if paramanager.ret_in_reg(aktprocdef.rettype.def,aktprocdef.proccalloption) then
+              if paramanager.ret_in_reg(procdef.rettype.def,procdef.proccalloption) then
                 begin
+(* already done in symtable.pas:tlocalsymtable.insertvardata() (JM) 
                    { the space has been set in the local symtable }
-                   procinfo.return_offset:=tg.direction*tfuncretsym(aktprocdef.funcretsym).address;
+                   procinfo.return_offset:=tg.direction*tfuncretsym(procdef.funcretsym).address;
+*)
                    if ((procinfo.flags and pi_operator)<>0) and
                       assigned(otsym) then
-                     otsym.address:=tfuncretsym(aktprocdef.funcretsym).address;
+                     otsym.address:=tfuncretsym(procdef.funcretsym).address;
 
                    rg.usedinproc := rg.usedinproc +
-                      getfuncretusedregisters(aktprocdef.rettype.def,aktprocdef.proccalloption);
+                      getfuncretusedregisters(procdef.rettype.def,procdef.proccalloption);
                 end;
            end;
       end;
 
 
+(* already done in symtable.pas:tlocalsymtable.insertvardata() (JM) 
     procedure tprocinfo.set_result_offset;
       begin
-         if paramanager.ret_in_reg(aktprocdef,procdef.proccalloption) then
-           procinfo.return_offset:=-tfuncretsym(procdef.funcretsym).address;
+         if paramanager.ret_in_reg(procdef.rettype.def,procdef.proccalloption) then
+           procinfo.return_offset:=tg.direction*tfuncretsym(procdef.funcretsym).address;
       end;
+*)
 
 
     procedure tprocinfo.after_header;
@@ -657,7 +663,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2003-03-28 19:16:56  peter
+  Revision 1.39  2003-04-05 21:09:31  jonas
+    * several ppc/generic result offset related fixes. The "normal" result
+      offset seems now to be calculated correctly and a lot of duplicate
+      calculations have been removed. Nested functions accessing the parent's
+      function result don't work at all though :(
+
+  Revision 1.38  2003/03/28 19:16:56  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

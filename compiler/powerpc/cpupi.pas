@@ -84,28 +84,38 @@ unit cpupi;
          { this value is necessary for nested procedures }
          if assigned(procdef.localst) then
            procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
-         if assigned(aktprocdef.funcretsym) and
+
+{
+         procdef.funcretsym isn't set here yet and besides,
+         symtable.insertvardata() already sets procinfo.return_offset! (JM)
+         if assigned(procdef.funcretsym) and
            not(paramanager.ret_in_param(procdef.rettype.def,procdef.proccalloption)) then
-           procinfo.return_offset:=tg.direction*tfuncretsym(aktprocdef.funcretsym).address+procdef.localst.address_fixup;
+           procinfo.return_offset:=tg.direction*tfuncretsym(procdef.funcretsym).address+procdef.localst.address_fixup;
+}
      end;
 
     procedure tppcprocinfo.after_pass1;
       var
          ofs : aword;
       begin
-         ofs:=align(maxpushedparasize,16)+LinkageAreaSize;
+         ofs:=align(maxpushedparasize+LinkageAreaSize,16);
          inc(procdef.parast.address_fixup,ofs);
          inc(procinfo.return_offset,ofs);
          inc(procinfo.framepointer_offset,ofs);
          inc(procinfo.selfpointer_offset,ofs);
+         inc(procdef.localst.address_fixup,ofs);
          if cs_asm_source in aktglobalswitches then
            aktproccode.insert(Tai_comment.Create(strpnew('Parameter copies start at: r1+'+tostr(procdef.parast.address_fixup))));
 
-         procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
+{ 
+         Already done with an "inc" above now, not sure if it's correct (JM)
+         procdef.localst.address_fixup:=procdef.parast.address_fixup+procdef.parast.datasize;
 
-         if assigned(aktprocdef.funcretsym) and
+         Already done with an "inc" above, should be correct (JM)
+         if assigned(procdef.funcretsym) and
            not(paramanager.ret_in_param(procdef.rettype.def,procdef.proccalloption)) then
-           procinfo.return_offset:=tg.direction*tfuncretsym(aktprocdef.funcretsym).address+procdef.localst.address_fixup;
+           procinfo.return_offset:=tg.direction*tfuncretsym(procdef.funcretsym).address+procdef.localst.address_fixup;
+}
 
          if cs_asm_source in aktglobalswitches then
            aktproccode.insert(Tai_comment.Create(strpnew('Locals start at: r1+'+tostr(procdef.localst.address_fixup))));
@@ -124,7 +134,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-12-15 19:22:01  florian
+  Revision 1.7  2003-04-05 21:09:32  jonas
+    * several ppc/generic result offset related fixes. The "normal" result
+      offset seems now to be calculated correctly and a lot of duplicate
+      calculations have been removed. Nested functions accessing the parent's
+      function result don't work at all though :(
+
+  Revision 1.6  2002/12/15 19:22:01  florian
     * fixed some crashes and a rte 201
 
   Revision 1.5  2002/11/18 17:32:01  peter

@@ -288,7 +288,7 @@ implementation
       gdb,
 {$endif GDB}
       { codegen }
-      cgbase
+      cgbase,tgobj
       ;
 
 
@@ -1332,9 +1332,15 @@ implementation
                     l:=tfuncretsym(sym).returntype.def.size;
                     varalign:=size_2_align(l);
                     varalign:=used_align(varalign,aktalignment.localalignmin,dataalignment);
+{$ifdef powerpc}
+                    { on the powerpc, the local variables are accessed with a positiv offset }
+                    tfuncretsym(sym).address:=align(datasize,varalign);
+                    datasize:=tfuncretsym(sym).address+l;
+{$else powerpc}
                     tfuncretsym(sym).address:=align(datasize+l,varalign);
                     datasize:=tfuncretsym(sym).address;
-                    procinfo.return_offset:=-tfuncretsym(sym).address;
+{$endif powerpc}
+                    procinfo.return_offset:=tg.direction*tfuncretsym(sym).address;
                   end;
                end;
             end;
@@ -2451,7 +2457,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2003-03-17 18:56:49  peter
+  Revision 1.92  2003-04-05 21:09:32  jonas
+    * several ppc/generic result offset related fixes. The "normal" result
+      offset seems now to be calculated correctly and a lot of duplicate
+      calculations have been removed. Nested functions accessing the parent's
+      function result don't work at all though :(
+
+  Revision 1.91  2003/03/17 18:56:49  peter
     * ignore hints for default parameter values
 
   Revision 1.90  2003/03/17 16:54:41  peter
