@@ -1163,7 +1163,8 @@ end;
         Name:=sym^.consttype.def^.typesym^.name+'('+IntToStr(sym^.value)+')';
       constresourcestring,
       conststring :
-        Name:=''''+GetStr(PString(sym^.Value))+'''';
+{        Name:=''''+GetStr(PString(sym^.Value))+'''';}
+        Name:=''''+StrPas(pointer(sym^.Value))+'''';
       constreal:
         Name:=FloatToStr(PBestReal(sym^.Value)^);
       constbool:
@@ -1810,7 +1811,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2000-04-20 08:52:01  pierre
+  Revision 1.39  2000-05-29 10:04:40  pierre
+    * New bunch of Gabor changes
+
+  Revision 1.38  2000/04/20 08:52:01  pierre
    * allow to view objects having the same name
 
   Revision 1.37  2000/03/14 15:04:19  pierre

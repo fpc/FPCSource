@@ -58,9 +58,6 @@ unit parser;
 {$ifdef BrowserLog}
       browlog,
 {$endif BrowserLog}
-{$ifdef BrowserCol}
-      browcol,
-{$endif BrowserCol}
 {$ifdef UseExcept}
       tpexcept,compiler,
 {$endif UseExcept}
@@ -570,10 +567,8 @@ unit parser;
                  end;
 {$endif BrowserLog}
 
-{$ifdef BrowserCol}
-              { Write Browser Collections }
-              CreateBrowserCol;
-{$endif}
+                 { Write Browser Collections }
+                 do_extractsymbolinfo;
               end;
 
          if current_module^.in_second_compile then
@@ -609,7 +604,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.103  2000-05-11 06:52:37  pierre
+  Revision 1.104  2000-05-29 10:04:40  pierre
+    * New bunch of Gabor changes
+
+  Revision 1.103  2000/05/11 06:52:37  pierre
    * fix localswitch problem if compiling objpas
 
   Revision 1.102  2000/04/24 12:45:44  peter

@@ -81,6 +81,9 @@ procedure def_halt(i : longint);
 Function  def_status:boolean;
 Function  def_comment(Level:Longint;const s:string):boolean;
 function  def_internalerror(i:longint):boolean;
+procedure def_initsymbolinfo;
+procedure def_donesymbolinfo;
+procedure def_extractsymbolinfo;
 {$ifdef DEBUG}
 { allow easy stopping in GDB
   using
@@ -95,6 +98,10 @@ type
   tstatusfunction        = function:boolean;
   tcommentfunction       = function(Level:Longint;const s:string):boolean;
   tinternalerrorfunction = function(i:longint):boolean;
+
+  tinitsymbolinfoproc = procedure;
+  tdonesymbolinfoproc = procedure;
+  textractsymbolinfoproc = procedure;
 const
   do_stop          : tstopprocedure   = def_stop;
   do_halt          : thaltprocedure   = def_halt;
@@ -102,7 +109,9 @@ const
   do_comment       : tcommentfunction = def_comment;
   do_internalerror : tinternalerrorfunction = def_internalerror;
 
-
+  do_initsymbolinfo : tinitsymbolinfoproc = def_initsymbolinfo;
+  do_donesymbolinfo : tdonesymbolinfoproc = def_donesymbolinfo;
+  do_extractsymbolinfo : textractsymbolinfoproc = def_extractsymbolinfo;
 
 implementation
 
@@ -294,11 +303,25 @@ begin
   def_internalerror:=true;
 end;
 
+procedure def_initsymbolinfo;
+begin
+end;
+
+procedure def_donesymbolinfo;
+begin
+end;
+
+procedure def_extractsymbolinfo;
+begin
+end;
 
 end.
 {
   $Log$
-  Revision 1.22  2000-05-10 13:40:19  peter
+  Revision 1.23  2000-05-29 10:04:40  pierre
+    * New bunch of Gabor changes
+
+  Revision 1.22  2000/05/10 13:40:19  peter
     * -Se<x> option extended to increase errorcount for
       warning,notes or hints
 

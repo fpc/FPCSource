@@ -114,9 +114,6 @@ uses
 {$ifdef BrowserLog}
   browlog,
 {$endif BrowserLog}
-{$ifdef BrowserCol}
-  browcol,
-{$endif BrowserCol}
 {$ifdef Delphi}
   dmisc,
 {$else Delphi}
@@ -181,7 +178,7 @@ begin
   DoneBrowserLog;
 {$endif BrowserLog}
 {$ifdef BrowserCol}
-  DoneBrowserCol;
+  do_doneSymbolInfo;
 {$endif BrowserCol}
   if CompilerInitedAfterArgs then
    begin
@@ -215,7 +212,7 @@ begin
   InitBrowserLog;
 {$endif BrowserLog}
 {$ifdef BrowserCol}
-  InitBrowserCol;
+  do_initSymbolInfo;
 {$endif BrowserCol}
   InitGlobals;
   inittokens;
@@ -358,7 +355,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.49  2000-05-03 16:31:22  pierre
+  Revision 1.50  2000-05-29 10:04:40  pierre
+    * New bunch of Gabor changes
+
+  Revision 1.49  2000/05/03 16:31:22  pierre
    + easier debug when memory is lost
 
   Revision 1.48  2000/04/05 21:18:04  pierre
