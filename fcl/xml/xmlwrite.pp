@@ -261,7 +261,7 @@ end;
 
 procedure WriteEntityRef(node: TDOMNode);
 begin
-  wrt('&' + node.NodeValue + ';');
+  wrt('&' + node.NodeName + ';');
 end;
 
 procedure WriteEntity(node: TDOMNode);
@@ -398,7 +398,22 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:08  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-07-25 09:13:54  sg
+  * Fixed some small bugs
+    - some methods where 'virtual' instead of 'override' in dom.pp
+    - corrections regaring wether NodeName or NodeValue is used, for
+      some node types (Entity, EntityReference)
+
+  Revision 1.1  2000/07/13 06:33:50  michael
+  + Initial import
+
+  Revision 1.9  2000/07/09 11:40:09  sg
+  * ">" and "&" in text nodes are now replaced by "&gt;" and "&amp;"
+
+  Revision 1.8  2000/06/29 08:45:32  sg
+  * Now produces _much_ better output...!
+
+  Revision 1.7  2000/04/20 14:15:45  sg
+  * Minor bugfixes
+  * Started support for DOM level 2
 }
