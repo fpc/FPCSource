@@ -42,6 +42,8 @@ function  GTK_IS_CHECK_MENU_ITEM(obj:pointer):boolean;
 function  GTK_IS_CHECK_MENU_ITEM_CLASS(klass:pointer):boolean;
 
 function  gtk_check_menu_item_get_type:TGtkType;cdecl;external gtkdll name 'gtk_check_menu_item_get_type';
+function  gtk_check_menu_item_new : PGtkWidget;cdecl;external gtkdll name 'gtk_check_menu_item_new'; 
+function  gtk_check_menu_item_new_with_label (thelabel:Pgchar):PGtkWidget;cdecl;external gtkdll name 'gtk_check_menu_item_new_with_label'; 
 procedure gtk_check_menu_item_set_active(check_menu_item:PGtkCheckMenuItem; is_active:gboolean);cdecl;external gtkdll name 'gtk_check_menu_item_set_active';
 procedure gtk_check_menu_item_set_show_toggle(menu_item:PGtkCheckMenuItem; always:gboolean);cdecl;external gtkdll name 'gtk_check_menu_item_set_show_toggle';
 procedure gtk_check_menu_item_toggled(check_menu_item:PGtkCheckMenuItem);cdecl;external gtkdll name 'gtk_check_menu_item_toggled';
@@ -90,7 +92,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:35  peter
+  Revision 1.2  2000-01-24 18:35:38  sg
+  * added gtk_check_menu_item_new and ~_new_with_label
+
+  Revision 1.1  1999/11/24 23:36:35  peter
     * moved to packages dir
 
   Revision 1.12  1999/10/06 17:42:48  peter
