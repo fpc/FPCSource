@@ -2065,7 +2065,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 32768;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := TRUE;
              mode.MaxX := 319;
@@ -2102,7 +2102,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 65536;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := TRUE;
              mode.MaxX := 319;
@@ -2139,7 +2139,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 256;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := FALSE;
              mode.MaxX := 639;
@@ -2180,7 +2180,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 256;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 639;
              mode.MaxY := 479;
@@ -2220,7 +2220,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 32768;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := TRUE;
              mode.MaxX := 639;
@@ -2257,7 +2257,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 65536;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := TRUE;
              mode.MaxX := 639;
@@ -2294,7 +2294,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 16;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.DirectColor := FALSE;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 799;
@@ -2331,7 +2331,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 256;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := FALSE;
              mode.MaxX := 799;
@@ -2372,7 +2372,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 32768;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := TRUE;
              mode.MaxX := 799;
@@ -2409,7 +2409,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 65536;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := TRUE;
              mode.MaxX := 799;
@@ -2446,7 +2446,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 16;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := FALSE;
              mode.MaxX := 1023;
@@ -2483,7 +2483,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 256;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := FALSE;
              mode.MaxX := 1023;
@@ -2524,7 +2524,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 32768;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := TRUE;
              mode.MaxX := 1023;
@@ -2562,7 +2562,7 @@ const CrtAddress: word = 0;
              mode.DirectColor := TRUE;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 1023;
              mode.MaxY := 767;
@@ -2598,7 +2598,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 16;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.DirectColor := FALSE;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 1279;
@@ -2635,7 +2635,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 256;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.DirectColor := FALSE;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 1279;
@@ -2676,7 +2676,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 32768;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.DirectColor := TRUE;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 1279;
@@ -2713,7 +2713,7 @@ const CrtAddress: word = 0;
              mode.MaxColor := 65536;
              { the ModeInfo is automatically set if the mode is supported }
              { by the call to SearchVESAMode.                             }
-             mode.HardwarePages := ModeInfo.NumberOfPages;
+             mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.DirectColor := TRUE;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 1279;
@@ -2746,7 +2746,14 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.19  1999-09-24 22:52:38  jonas
+Revision 1.20  1999-09-26 13:31:06  jonas
+  * changed name of modeinfo variable to vesamodeinfo and fixed
+    associated errors (fillchar(modeinfo,sizeof(tmodeinfo),#0) instead
+    of sizeof(TVesamodeinfo) etc)
+  * changed several sizeof(type) to sizeof(varname) to avoid similar
+    errors in the future
+
+Revision 1.19  1999/09/24 22:52:38  jonas
   * optimized patternline a bit (always use hline when possible)
   * isgraphmode stuff cleanup
   * vesainfo.modelist now gets disposed in cleanmode instead of in

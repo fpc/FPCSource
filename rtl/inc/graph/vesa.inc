@@ -116,7 +116,7 @@ end;
     RealSeg := word(Ptrlong shr 16);
     if not assigned(VESAPtr) then
       RunError(203);
-    FillChar(regs, sizeof(TDPMIRegisters), #0);
+    FillChar(regs, sizeof(regs), #0);
 
     { Get VESA Mode information ... }
     regs.eax := $4f00;
@@ -164,7 +164,7 @@ end;
 
      { copy VESA mode information to a protected mode buffer and }
      { then free the real mode buffer...                         }
-     Move(VESAPtr^, VESAInfo, sizeof(TVESAInfo));
+     Move(VESAPtr^, VESAInfo, sizeof(VESAInfo));
      GlobalDosFree(word(PtrLong and $ffff));
 
     { ModeList points to the mode list     }
@@ -184,7 +184,7 @@ end;
 
      { copy VESA mode information to a protected mode buffer and }
      { then free the real mode buffer...                         }
-     Move(VESAPtr^, VESAInfo, sizeof(TVESAInfo));
+     Move(VESAPtr^, VESAInfo, sizeof(VESAInfo));
      If not Global_Dos_Free(word(PtrLong and $ffff)) then
        RunError(216);
      Dispose(VESAPtr);
@@ -209,7 +209,7 @@ end;
 {$endif fpc}
    end;
 
-  function getModeInfo(var ModeInfo: TVESAModeInfo;mode:word):boolean;
+  function getVESAModeInfo(var ModeInfo: TVESAModeInfo;mode:word):boolean;
    var
     Ptr: longint;
 {$ifndef fpc}
@@ -231,7 +231,7 @@ end;
     { get the segment value }
     RealSeg := word(Ptr shr 16);
     { setup interrupt registers }
-    FillChar(regs, sizeof(TDPMIRegisters), #0);
+    FillChar(regs, sizeof(regs), #0);
     { call VESA mode information...}
     regs.eax := $4f01;
     regs.es := RealSeg;
@@ -239,14 +239,14 @@ end;
     regs.ecx := mode;
     RealIntr($10, regs);
     if word(regs.eax) <> $4f then
-      getModeInfo := FALSE
+      getVESAModeInfo := FALSE
     else
-      getModeInfo := TRUE;
+      getVESAModeInfo := TRUE;
     { copy to protected mode buffer ... }
 {$ifndef fpc}
-    Move(VESAPtr^, ModeInfo, sizeof(TVESAModeInfo));
+    Move(VESAPtr^, ModeInfo, sizeof(ModeInfo));
 {$else fpc}
-    DosMemGet(RealSeg,0,ModeInfo,sizeof(TVESAModeInfo));
+    DosMemGet(RealSeg,0,ModeInfo,sizeof(ModeInfo));
 {$endif fpc}
     { free real mode memory  }
 {$ifndef fpc}
@@ -318,9 +318,9 @@ end;
         begin
           { we have to init everything to zero, since VBE < 1.1  }
           { may not setup fields correctly.                      }
-          FillChar(ModeInfo, sizeof(ModeInfo), #0);
-          If GetModeInfo(ModeInfo, Mode) And
-             ((ModeInfo.attr and modeAvail) <> 0) then
+          FillChar(VESAModeInfo, sizeof(VESAModeInfo), #0);
+          If GetVESAModeInfo(VESAModeInfo, Mode) And
+             ((VESAModeInfo.attr and modeAvail) <> 0) then
             ModeSupported := TRUE
           else
             ModeSupported := FALSE;
@@ -1132,12 +1132,12 @@ end;
             {get the segment value}
             RealSeg := word(Ptr shr 16);
             { setup interrupt registers }
-            FillChar(regs, sizeof(TDPMIRegisters), #0);
+            FillChar(regs, sizeof(regs), #0);
             { copy palette values to real mode buffer }
 {$ifndef fpc}
-            move(pal, palptr^, sizeof(palrec));
+            move(pal, palptr^, sizeof(pal));
 {$else fpc}
-            DosMemPut(RealSeg,0,pal,sizeof(palrec));
+            DosMemPut(RealSeg,0,pal,sizeof(pal));
 {$endif fpc}
             regs.eax := $4F09;
             regs.ebx := FunctionNr;
@@ -1200,7 +1200,7 @@ end;
             { get the segment value }
             RealSeg := word(Ptr shr 16);
             { setup interrupt registers }
-            FillChar(regs, sizeof(TDPMIRegisters), #0);
+            FillChar(regs, sizeof(regs), #0);
 
             regs.eax := $4F09;
             regs.ebx := $01;       { get palette data      }
@@ -1212,9 +1212,9 @@ end;
 
            { copy to protected mode buffer ... }
 {$ifndef fpc}
-           Move(PalPtr^, Pal, sizeof(palrec));
+           Move(PalPtr^, Pal, sizeof(pal));
 {$else fpc}
-           DosMemGet(RealSeg,0,Pal,sizeof(palrec));
+           DosMemGet(RealSeg,0,Pal,sizeof(pal));
 {$endif fpc}
            { free real mode memory  }
 {$ifndef fpc}
@@ -1482,12 +1482,12 @@ end;
     var i:word;
   begin
    { Init mode information, for compatibility with VBE < 1.1 }
-   FillChar(ModeInfo, sizeof(ModeInfo), #0);
+   FillChar(VESAModeInfo, sizeof(TVESAModeInfo), #0);
    { get the video mode information }
-   if getModeInfo(modeinfo, mode) then
+   if getVESAModeInfo(VESAmodeinfo, mode) then
    begin
      { checks if the hardware supports the video mode. }
-     if (ModeInfo.attr and modeAvail) <> 0 then
+     if (VESAModeInfo.attr and modeAvail) <> 0 then
        begin
          SetVESAMode := TRUE;
        end
@@ -1499,11 +1499,11 @@ end;
        end;
 
      BankShift := 0;
-     while (64 shr BankShift) <> ModeInfo.WinGranularity do
+     while (64 shr BankShift) <> VESAModeInfo.WinGranularity do
         Inc(BankShift);
      CurrentWriteBank := -1;
      CurrentReadBank := -1;
-     BytesPerLine := ModeInfo.BytesPerScanLine;
+     BytesPerLine := VESAModeInfo.BytesPerScanLine;
 
      { These are the window adresses ... }
      WinWriteSeg := 0;  { This is the segment to use for writes }
@@ -1513,13 +1513,13 @@ end;
 
      { VBE 2.0 and higher supports >= non VGA linear buffer types...}
      { this is backward compatible.                                 }
-     if ((ModeInfo.Attr and ModeNoWindowed) <> 0) and
-          ((ModeInfo.Attr and ModeLinearBuffer) <> 0) then
-        SetupLinear(ModeInfo)
+     if ((VESAModeInfo.Attr and ModeNoWindowed) <> 0) and
+          ((VESAModeInfo.Attr and ModeLinearBuffer) <> 0) then
+        SetupLinear(VESAModeInfo)
      else
      { if linear and windowed is supported, then use windowed }
      { method.                                                }
-        SetUpWindows(ModeInfo);
+        SetUpWindows(VESAModeInfo);
 
 
    asm
@@ -1696,6 +1696,9 @@ end;
     end;
     if SaveSupported then
       begin
+{$ifdef logging}
+        LogLn('allocating VESA save buffer of '+strf(64*StateSize));
+{$endif logging}
 {$ifndef fpc}
         PtrLong:=GlobalDosAlloc(64*StateSize);  { values returned in 64-byte blocks }
 {$else fpc}
@@ -1877,7 +1880,14 @@ end;
 
 {
 $Log$
-Revision 1.15  1999-09-24 22:52:39  jonas
+Revision 1.16  1999-09-26 13:31:07  jonas
+  * changed name of modeinfo variable to vesamodeinfo and fixed
+    associated errors (fillchar(modeinfo,sizeof(tmodeinfo),#0) instead
+    of sizeof(TVesamodeinfo) etc)
+  * changed several sizeof(type) to sizeof(varname) to avoid similar
+    errors in the future
+
+Revision 1.15  1999/09/24 22:52:39  jonas
   * optimized patternline a bit (always use hline when possible)
   * isgraphmode stuff cleanup
   * vesainfo.modelist now gets disposed in cleanmode instead of in

@@ -272,16 +272,16 @@
               hp:=pchar(font);
               { Move to EOF in prefix header }
               while (hp[i] <> chr($1a)) do Inc(i);
-              move(hp[i+1],FHeader,sizeof(TFHeader));
-              move(hp[Prefix_Size],header,sizeof(THeader));
+              move(hp[i+1],FHeader,sizeof(FHeader));
+              move(hp[Prefix_Size],header,sizeof(Header));
               { check if the font name is already allocated? }
-              i:=Prefix_Size+sizeof(THeader)+1;
+              i:=Prefix_Size+sizeof(Header)+1;
               for b:=1 to installedfonts do
                 begin
                    if fonts[b].name=FHeader.Font_name then
                      begin
-                        move(FHeader,fonts[b].PHeader,sizeof(TFHeader));
-                        move(Header,fonts[b].Header,sizeof(THeader));
+                        move(FHeader,fonts[b].PHeader,sizeof(FHeader));
+                        move(Header,fonts[b].Header,sizeof(Header));
                         move(hp[i],Fonts[b].Offsets[Fonts[b].Header.First_Char],Fonts[b].Header.Nr_chars*sizeof(integer));
                         Inc(i,Fonts[b].Header.Nr_chars*sizeof(integer));
                         move(hp[i],Fonts[b].Widths[Fonts[b].Header.First_Char],Fonts[b].Header.Nr_chars*sizeof(byte));
@@ -734,16 +734,23 @@
 
 {
 $Log$
-Revision 1.3  1999-09-22 14:54:11  jonas
+Revision 1.4  1999-09-26 13:31:07  jonas
+  * changed name of modeinfo variable to vesamodeinfo and fixed
+    associated errors (fillchar(modeinfo,sizeof(tmodeinfo),#0) instead
+    of sizeof(TVesamodeinfo) etc)
+  * changed several sizeof(type) to sizeof(varname) to avoid similar
+    errors in the future
+
+Revision 1.3  1999/09/22 14:54:11  jonas
   * changed ratios so font sizes on screen are the same as with TP
   * SetUserCharSize must also use / instead of DIV
 
-Revision 1.2  1999/09/22 13:30:52  jonas  
+Revision 1.2  1999/09/22 13:30:52  jonas
   * changed org_to_cap, org_to_dec and org_to_base to shortint (from
     Michael Knapp's gxtext unit, part of the GraphiX package)
   * in settextstyle, the calculation of the ratios must be done
     with /, not DIV!!
-                
+
 Revision 1.1  1999/09/22 13:13:36  jonas
   * renamed text.inc -> gtext.inc to avoid conflict with system unit
   * fixed textwidth

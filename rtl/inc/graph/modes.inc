@@ -18,6 +18,8 @@
 {-----------------------------------------------------------------------}
 {                          Internal routines                            }
 {-----------------------------------------------------------------------}
+var
+ ExitSave: pointer;
 
  procedure addmode(mode: TModeInfo);
   {********************************************************}
@@ -37,7 +39,7 @@
         LogLn('Modelist = '+strf(Longint(modelist)));
         LogLn('Adding mode 1 and modelist^.next = '+strf(Longint(mode.next)));
 {$endif logging}
-        move(mode, ModeList^, sizeof(TModeInfo));
+        move(mode, ModeList^, sizeof(Mode));
       end
     else
       begin
@@ -51,7 +53,7 @@
           list:=list^.next;
         new(NewLst);
         list^.next := NewLst;
-        move(mode, NewLst^, sizeof(TModeInfo));
+        move(mode, NewLst^, sizeof(Mode));
       end;
   end;
 
@@ -63,7 +65,7 @@
   { This routine initialized the mode to default values.   }
   {********************************************************}
    begin
-     FillChar(mode,sizeof(TModeInfo),#0);
+     FillChar(mode,sizeof(Mode),#0);
    end;
 
 
@@ -109,6 +111,11 @@
       c: word;
 {$endif logging}
     begin
+{$ifdef testsave}
+      restorevideostate;
+{$endif testsave}
+      { restore old exitproc! }
+      exitproc := exitsave;
 {$ifdef logging}
       LogLn('Modelist at exit: '+strf(longint(modelist)));
       LogLn('Modelist^.next at exit: '+strf(longint(modelist^.next)));
@@ -347,7 +354,14 @@
 
 {
 $Log$
-Revision 1.10  1999-09-24 22:52:39  jonas
+Revision 1.11  1999-09-26 13:31:07  jonas
+  * changed name of modeinfo variable to vesamodeinfo and fixed
+    associated errors (fillchar(modeinfo,sizeof(tmodeinfo),#0) instead
+    of sizeof(TVesamodeinfo) etc)
+  * changed several sizeof(type) to sizeof(varname) to avoid similar
+    errors in the future
+
+Revision 1.10  1999/09/24 22:52:39  jonas
   * optimized patternline a bit (always use hline when possible)
   * isgraphmode stuff cleanup
   * vesainfo.modelist now gets disposed in cleanmode instead of in

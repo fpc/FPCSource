@@ -2807,9 +2807,6 @@ end;
 
 
 
-var
- ExitSave: pointer;
-
 begin
 {$ifdef logging}
  assign(debuglog,'grlog.txt');
@@ -2837,19 +2834,25 @@ begin
  { This installs an exit procedure which cleans up the mode list...}
  ExitSave := ExitProc;
  ExitProc := @CleanMode;
+{$ifdef testsave}
+ savevideostate;
+{$endif testsave}
 end.
 
 
 SetGraphBufSize
-SetBkColor
-DetectGraph
 
-{   DetectGraph()                                       }
-{   SetBkColor()                                        }
 
 {
   $Log$
-  Revision 1.28  1999-09-25 11:48:43  jonas
+  Revision 1.29  1999-09-26 13:31:06  jonas
+    * changed name of modeinfo variable to vesamodeinfo and fixed
+      associated errors (fillchar(modeinfo,sizeof(tmodeinfo),#0) instead
+      of sizeof(TVesamodeinfo) etc)
+    * changed several sizeof(type) to sizeof(varname) to avoid similar
+      errors in the future
+
+  Revision 1.28  1999/09/25 11:48:43  jonas
     + detectgraph
     * small change to internalellipsedefault so less pixels are
       calculated twice

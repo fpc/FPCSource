@@ -59,12 +59,19 @@ TYPE
 
 var
   VESAInfo    : TVESAInfo;         { VESA Driver information  }
-  ModeInfo    : TVESAModeInfo;     { Current Mode information }
+  VESAModeInfo    : TVESAModeInfo;     { Current Mode information }
   hasVesa: Boolean;       { true if we have a VESA compatible graphics card}
                           { initialized in QueryAdapterInfo in graph.inc }
 {
   $Log$
-  Revision 1.1  1999-09-24 22:52:40  jonas
+  Revision 1.2  1999-09-26 13:31:07  jonas
+    * changed name of modeinfo variable to vesamodeinfo and fixed
+      associated errors (fillchar(modeinfo,sizeof(tmodeinfo),#0) instead
+      of sizeof(TVesamodeinfo) etc)
+    * changed several sizeof(type) to sizeof(varname) to avoid similar
+      errors in the future
+
+  Revision 1.1  1999/09/24 22:52:40  jonas
     * optimized patternline a bit (always use hline when possible)
     * isgraphmode stuff cleanup
     * vesainfo.modelist now gets disposed in cleanmode instead of in
