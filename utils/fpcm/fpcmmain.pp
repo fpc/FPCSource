@@ -92,7 +92,7 @@ interface
         { go32v2 }  ( true,  false, false, false, false, false),
         { win32 }   ( true,  false, false, false, false, false),
         { os2 }     ( true,  false, false, false, false, false),
-        { freebsd } ( true,  true,  false, false, false, false),
+        { freebsd } ( true,  true,  false, false, true, false),
         { beos }    ( true,  false, false, false, false, false),
         { netbsd }  ( true,  true,  true,  true,  false, false),
         { amiga }   ( false, true,  false, false, false, false),
@@ -1556,7 +1556,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2004-02-22 14:55:22  hajny
+  Revision 1.38  2004-05-20 12:02:48  marco
+   * freebsd/x86_64
+
+  Revision 1.37  2004/02/22 14:55:22  hajny
     * small correction for checking of absolute paths
 
   Revision 1.36  2004/02/07 00:22:24  florian
