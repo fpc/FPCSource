@@ -62,7 +62,9 @@ Function  Sysheapsize:longint;
 
 { Tp7 functions }
 Procedure Getmem(Var p:pointer;Size:Longint);
+Procedure Getmemory(Var p:pointer;Size:Longint);
 Procedure Freemem(p:pointer;Size:Longint);
+Procedure Freememory(p:pointer;Size:Longint);
 Function  memavail:Longint;
 Function  maxavail:Longint;
 
@@ -72,9 +74,12 @@ Function  heapsize:longint;
 
 { Delphi functions }
 function GetMem(size:longint):pointer;
+function GetMemory(size:longint):pointer;
 function Freemem(p:pointer):longint;
+function Freememory(p:pointer):longint;
 function AllocMem(Size:Longint):pointer;
 function ReAllocMem(var p:pointer;Size:Longint):pointer;
+function ReAllocMemory(var p:pointer;Size:Longint):pointer;
 
 { Do nothing functions, are only here for tp7 compat }
 Procedure mark(var p : pointer);
@@ -90,7 +95,10 @@ Procedure AsmFreemem(var p:pointer);
 
 {
   $Log$
-  Revision 1.6  2002-10-30 20:39:13  peter
+  Revision 1.7  2003-10-02 14:03:24  marco
+   * *memORY overloads
+
+  Revision 1.6  2002/10/30 20:39:13  peter
     * MemoryManager record has a field NeedLock if the wrapper functions
       need to provide locking for multithreaded programs
 

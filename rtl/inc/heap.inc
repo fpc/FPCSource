@@ -205,6 +205,10 @@ begin
    end;
 end;
 
+procedure GetMemory(Var p:pointer;Size:Longint);
+begin
+  GetMem(p,size);
+end;
 
 procedure FreeMem(p:pointer;Size:Longint);
 begin
@@ -223,6 +227,10 @@ begin
    end;
 end;
 
+procedure FreeMemory(p:pointer;Size:Longint);
+begin
+  FreeMem(p,size);
+end;
 
 function MaxAvail:Longint;
 begin
@@ -315,6 +323,11 @@ begin
    end;
 end;
 
+function FreeMemory(p:pointer):Longint;
+
+begin
+ FreeMemory:=FreeMem(p);
+end;
 
 function GetMem(size:longint):pointer;
 begin
@@ -333,6 +346,11 @@ begin
    end;
 end;
 
+function GetMemory(size:longint):pointer;
+
+begin
+ GetMemory:=Getmem(size);
+end;
 
 function AllocMem(Size:Longint):pointer;
 begin
@@ -369,6 +387,12 @@ begin
    end;
 end;
 
+
+function ReAllocMemory(var p:pointer;Size:Longint):pointer;
+
+begin
+ ReAllocMemory:=ReAllocMem(p,size);
+end;
 
 {$ifdef ValueGetmem}
 
@@ -1265,7 +1289,10 @@ end;
 
 {
   $Log$
-  Revision 1.23  2003-09-28 12:43:48  peter
+  Revision 1.24  2003-10-02 14:03:24  marco
+   * *memORY overloads
+
+  Revision 1.23  2003/09/28 12:43:48  peter
     * fixed wrong check when allocation of a block > 1mb failed
 
   Revision 1.22  2003/09/27 11:52:35  peter
