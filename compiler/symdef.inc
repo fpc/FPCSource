@@ -252,27 +252,42 @@
 {$endif GDB}
 
     procedure tdef.deref;
+
       begin
       end;
 
     function tdef.needs_rtti : boolean;
+
       begin
          needs_rtti:=false;
       end;
 
     procedure tdef.generate_rtti;
+
       begin
+         has_rtti:=true;
          getlabel(rtti_label);
          rttilist^.concat(new(pai_label,init(rtti_label)));
       end;
 
     function tdef.get_rtti_label : plabel;
+
       begin
          if not(has_rtti) then
            generate_rtti;
          { I don't know what's the use of rtti_label
            but this was missing  (PM) }
          get_rtti_label:=rtti_label;
+      end;
+
+    procedure tdef.writename;
+
+      begin
+         { name }
+         if assigned(sym) then
+           rttilist^.concat(new(pai_string,init(chr(length(sym^.name))+sym^.name)))
+         else
+           rttilist^.concat(new(pai_string,init(#0)))
       end;
 
 {*************************************************************************************************************************
@@ -448,6 +463,32 @@
          needs_rtti:=string_typ in [ansistring,widestring];
       end;
 
+    procedure tstringdef.generate_rtti;
+
+      begin
+         inherited generate_rtti;
+         case string_typ of
+            ansistring:
+              begin
+                 rttilist^.concat(new(pai_const,init_8bit(9)));
+              end;
+            widestring:
+              begin
+                 rttilist^.concat(new(pai_const,init_8bit(11)));
+              end;
+            longstring:
+              begin
+                 rttilist^.concat(new(pai_const,init_8bit(10)));
+                 rttilist^.concat(new(pai_const,init_32bit(len)));
+              end;
+            shortstring:
+              begin
+                 rttilist^.concat(new(pai_const,init_8bit(8)));
+                 rttilist^.concat(new(pai_const,init_32bit(len)));
+              end;
+         end;
+      end;
+
 {*************************************************************************************************************************
                                  TENUMDEF
 ****************************************************************************}
@@ -525,6 +566,13 @@
         freemem(st,memsize);
       end;
 {$endif GDB}
+
+    procedure tenumdef.generate_rtti;
+
+      begin
+         inherited generate_rtti;
+         rttilist^.concat(new(pai_const,init_8bit(255)));
+      end;
 
 {*************************************************************************************************************************
                                  TORDDEF
@@ -666,6 +714,13 @@
       end;
 {$endif GDB}
 
+    procedure torddef.generate_rtti;
+
+      begin
+         inherited generate_rtti;
+         rttilist^.concat(new(pai_const,init_8bit(255)));
+      end;
+
 {*************************************************************************************************************************
                                 TFLOATDEF
 ****************************************************************************}
@@ -685,7 +740,6 @@
          typ:=tfloattype(readbyte);
          setsize;
       end;
-
 
     procedure tfloatdef.setsize;
       begin
@@ -743,6 +797,13 @@
          end;
       end;
 {$endif GDB}
+
+    procedure tfloatdef.generate_rtti;
+
+      begin
+         inherited generate_rtti;
+         rttilist^.concat(new(pai_const,init_8bit(255)));
+      end;
 
 {*************************************************************************************************************************
                                 TFILEDEF
@@ -905,6 +966,13 @@
       end;
 {$endif GDB}
 
+    procedure tfiledef.generate_rtti;
+
+      begin
+         inherited generate_rtti;
+         rttilist^.concat(new(pai_const,init_8bit(255)));
+      end;
+
 {*************************************************************************************************************************
                                TPOINTERDEF
 ****************************************************************************}
@@ -992,6 +1060,13 @@
       end;
 {$endif GDB}
 
+    procedure tpointerdef.generate_rtti;
+
+      begin
+         inherited generate_rtti;
+         rttilist^.concat(new(pai_const,init_8bit(255)));
+      end;
+
 {*************************************************************************************************************************
                               TCLASSREFDEF
 ****************************************************************************}
@@ -1032,6 +1107,13 @@
       begin
       end;
 {$endif GDB}
+
+    procedure tclassrefdef.generate_rtti;
+
+      begin
+         inherited generate_rtti;
+         rttilist^.concat(new(pai_const,init_8bit(255)));
+      end;
 
 {***********************************************************************************
                                    TSETDEF
@@ -1117,6 +1199,13 @@
          resolvedef(setof);
       end;
 
+    procedure tsetdef.generate_rtti;
+
+      begin
+         inherited generate_rtti;
+         rttilist^.concat(new(pai_const,init_8bit(255)));
+      end;
+
 {***********************************************************************************
                                  TFORMALDEF
 ***************************************************************************}
@@ -1163,6 +1252,13 @@
       { formaldef can't be stab'ed !}
       end;
 {$endif GDB}
+
+    procedure tformaldef.generate_rtti;
+
+      begin
+         inherited generate_rtti;
+         rttilist^.concat(new(pai_const,init_8bit(255)));
+      end;
 
 {***********************************************************************************
                TARRAYDEF
@@ -1263,6 +1359,24 @@
 
       begin
          needs_rtti:=definition^.needs_rtti;
+      end;
+
+    procedure tarraydef.generate_rtti;
+
+      begin
+         { first, generate the rtti of the element type, else we get mixed }
+         { up because the rtti would be mixed                              }
+         if not(definition^.has_rtti) then
+           definition^.generate_rtti;
+         inherited generate_rtti;
+         rttilist^.concat(new(pai_const,init_8bit(13)));
+         writename;
+         { size of elements }
+         rttilist^.concat(new(pai_const,init_32bit(definition^.size)));
+         { count of elements }
+         rttilist^.concat(new(pai_const,init_32bit(highrange-lowrange+1)));
+         { element type }
+         rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(definition^.get_rtti_label)))));
       end;
 
 {***********************************************************************************
@@ -1436,6 +1550,45 @@
       end;
 
 {$endif GDB}
+    var
+       count : longint;
+
+    procedure count_field(sym : psym);{$ifndef fpc}far;{$endif}
+
+      begin
+         inc(count);
+      end;
+
+    procedure write_field_info(sym : psym);{$ifndef fpc}far;{$endif}
+
+      begin
+         if (sym^.typ=varsym) and (pvarsym(sym)^.definition^.needs_rtti) then
+           begin
+              rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(pvarsym(sym)^.definition^.get_rtti_label)))));
+              rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
+           end;
+      end;
+
+    procedure generate_child_rtti(sym : psym);{$ifndef fpc}far;{$endif}
+
+      begin
+         if (sym^.typ=varsym) and not(pvarsym(sym)^.definition^.has_rtti) then
+           pvarsym(sym)^.definition^.generate_rtti;
+      end;
+
+    procedure trecdef.generate_rtti;
+
+      begin
+         symtable^.foreach(generate_child_rtti);
+         inherited generate_rtti;
+         rttilist^.concat(new(pai_const,init_8bit(14)));
+         writename;
+         rttilist^.concat(new(pai_const,init_32bit(size)));
+         count:=0;
+         symtable^.foreach(count_field);
+         rttilist^.concat(new(pai_const,init_32bit(count)));
+         symtable^.foreach(write_field_info);
+      end;
 
 {***********************************************************************************
                TABSTRACTPROCDEF
@@ -2097,6 +2250,13 @@
       end;
 {$endif GDB}
 
+    procedure tprocvardef.generate_rtti;
+
+      begin
+         inherited generate_rtti;
+         rttilist^.concat(new(pai_const,init_8bit(255)));
+      end;
+
 {***************************************************************************
                               TOBJECTDEF
 ***************************************************************************}
@@ -2232,7 +2392,7 @@
            begin
               hp^.deref;
 
-              {Besitzer setzen }
+              { set owner }
               hp^.owner:=publicsyms;
 
               hp:=hp^.next;
@@ -2424,6 +2584,23 @@
       end;
 {$endif GDB}
 
+    procedure tobjectdef.generate_rtti;
+
+      begin
+         publicsyms^.foreach(generate_child_rtti);
+         inherited generate_rtti;
+         if isclass then
+           rttilist^.concat(new(pai_const,init_8bit(17)))
+         else
+           rttilist^.concat(new(pai_const,init_8bit(16)));
+         writename;
+         rttilist^.concat(new(pai_const,init_32bit(size)));
+         count:=0;
+         publicsyms^.foreach(count_field);
+         rttilist^.concat(new(pai_const,init_32bit(count)));
+         publicsyms^.foreach(write_field_info);
+      end;
+
 {****************************************************************************
                                   TERRORDEF
 ****************************************************************************}
@@ -2443,7 +2620,11 @@
 
 {
   $Log$
-  Revision 1.6  1998-06-05 14:37:37  pierre
+  Revision 1.7  1998-06-07 15:30:25  florian
+    + first working rtti
+    + data init/final. for local variables
+
+  Revision 1.6  1998/06/05 14:37:37  pierre
     * fixes for inline for operators
     * inline procedure more correctly restricted
 
