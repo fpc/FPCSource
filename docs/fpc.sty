@@ -245,14 +245,29 @@
 %
 % For examples
 %
+\makeatletter
+\@ifpackageloaded{tex4ht}{%
+\newcommand{\FPCexample}[1]{
+\par \file{\textbf{Listing:} \exampledir/#1.pp}%
+\HCode{<HR/>}%
+\listinginput[9999]{5000}{\exampledir/#1.pp}%
+\HCode{<HR/>}%
+}%
+\newcommand{\Cexample}[1]{
+\par \file{\textbf{Listing:} \exampledir/#1.pp}%
+\listinginput[9999]{5000}{\exampledir/#1.c}%
+}
+}{% else ifpackageloaded
 \newcommand{\FPCexample}[1]{%
-    \par \file{\textbf{Listing:} \exampledir/#1.pp}%
-    \lstinputlisting{\exampledir/#1.pp}%
-}
+\par \file{\textbf{Listing:} \exampledir/#1.pp}%
+\lstinputlisting{\exampledir/#1.pp}%
+}% End of FPCExample
 \newcommand{\Cexample}[1]{%
-    \par \file{\textbf{Listing:} \exampledir/#1.c}%
-    \lstinputlisting[language=c]{\exampledir/#1.c}%
-}
+\par \file{\textbf{Listing:} \exampledir/#1.c}%
+\lstinputlisting[language=c]{\exampledir/#1.c}%
+}% End of CExample
+}% End of ifpackageloaded.
+\makeatother
 \newcommand{\exampledir}{.}
 \newcommand{\FPCexampledir}[1]{\renewcommand{\exampledir}{#1}}
 %
@@ -293,15 +308,19 @@
 %
 % Set some listings options.
 %
-\latex{%
+\makeatletter
+\@ifpackageloaded{tex4ht}{%
+\usepackage{moreverb}
+}{%
   \usepackage{listings}%
   \lstset{language=Delphi}%
   \lstset{basicstyle=\sffamily\small}%
   \lstset{commentstyle=\itshape}%
   \lstset{keywordstyle=\bfseries}%
   \lstset{frame=tb}%
-%  \lstset{stringspaces=false}%
-}
+  \lstset{showstringspaces=false}%
+} 
+\makeatother
 %
 % Page settings
 \setlength{\oddsidemargin}{20pt}

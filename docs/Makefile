@@ -22,7 +22,7 @@
 #INSTALLDEBUG=1
 
 # Which docs are made when 'html' is specified
-HTML = user units ref prog fpdoc
+HTML = user units ref prog fpdoc fcl
 
 # Can be 'report','book', 'html', 'hevea', 'ts3' 'ts4'
 ifdef USEHEVEA
@@ -44,7 +44,7 @@ ifndef DOCINSTALLDIR
 DOCINSTALLDIR:=$(PREFIXINSTALLDIR)/doc/fpc-$(shell ppc386 -iV)
 endif
 
-FPDOC=/home/michael/projects/fpdoc/fpdoc
+FPDOC=fpdoc
 
 # Use Ascii mode ? (i.e. no pics in produced HTML ?)
 ifndef ASCIIMODE
@@ -124,7 +124,6 @@ CHAPTERS = $(addsuffix .tex, crt dos getopts go32 graph linux printer\
              strings objects heaptrc sysutils ipc mouse gpm dxeload \
              emu387 ports math keyboard typinfo video)
 
-FCLCHAPTERS = $(addsuffix .tex, classes)
 
 GTKPDF=$(addsuffix .pdf,$(addprefix gtk, 1 2 3 4 5))
 
@@ -313,10 +312,10 @@ endif
 #####################################################################
 # Tex from XML
 #####################################################################
-FPCLASSESOPT=--package=fcl --descr=classes.xml --input='../fcl/linux/classes.pp -I../fcl/inc'
+FCLOPTS=--package=fcl --descr=classes.xml --input='../fcl/linux/classes.pp -Fi../fcl/inc'
 
-classes.tex: classes.xml
-	$(FPDOC) --output=. $(FPCLASSESOPT) --format=latex
+fcl.inc: classes.xml
+	$(FPDOC) --output=fcl.inc $(FCLOPTS) --format=latex
 
 #####################################################################
 # DVI files
@@ -334,6 +333,8 @@ user.dvi: user.tex includes
 
 fpdoc.dvi: fpdoc.tex includes
 
+fcl.dvi: fcl.tex fcl.inc includes
+
 units.pdf: units.tex includes $(CHAPTERS)
 
 ref.pdf: ref.tex includes
@@ -347,6 +348,8 @@ onechap.pdf: onechap.tex includes
 onechap.dvi: onechap.tex includes
 
 fpdoc.pdf: fpdoc.tex includes
+
+fcl.pdf: fcl.tex fcl.inc includes
 
 dvi : $(DVI)
 
@@ -394,10 +397,10 @@ l2h:
 4ht:
 	$(MAKE) html USETEX4HT=1
 
-classes: classes/index.html
+fcl: fcl/index.html
 
-classes/index.html: classes.xml
-	$(FPDOC) $(FPCLASSESOPT) --format=html
+fcl/index.html: classes.xml
+	$(FPDOC) $(FCLOPTS) --format=html --output=fcl
 
 #####################################################################
 # GTK Articles
@@ -540,7 +543,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.20  2003-03-18 00:14:51  michael
+# Revision 1.21  2003-03-18 21:25:23  michael
+# + Added fcl docs and fpdoc
+#
+# Revision 1.20  2003/03/18 00:14:51  michael
 # + Added fpdoc
 #
 # Revision 1.19  2003/03/17 08:27:27  michael
