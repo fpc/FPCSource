@@ -3768,7 +3768,7 @@ Const local_symtable_index : longint = $8001;
                                 TFORWARDDEF
 ****************************************************************************}
 
-   constructor tforwarddef.init(const s:string);
+   constructor tforwarddef.init(const s:string;const pos : tfileposinfo);
      var
        oldregisterdef : boolean;
      begin
@@ -3780,6 +3780,7 @@ Const local_symtable_index : longint = $8001;
         registerdef:=oldregisterdef;
         deftype:=forwarddef;
         tosymname:=s;
+        forwardpos:=pos;
      end;
 
 
@@ -3815,7 +3816,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.175  1999-11-07 23:57:36  pierre
+  Revision 1.176  1999-11-09 23:35:49  pierre
+   + better reference pos for forward defs
+
+  Revision 1.175  1999/11/07 23:57:36  pierre
    + higher level browser
 
   Revision 1.174  1999/11/06 14:34:26  peter

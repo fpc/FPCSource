@@ -1578,6 +1578,7 @@ implementation
     function tsymtable.speedsearch(const s : stringid;speedvalue : longint) : psym;
       var
         hp : psym;
+        newref : pref;
       begin
         hp:=psym(symsearch^.speedsearch(s,speedvalue));
         if assigned(hp) then
@@ -1604,11 +1605,24 @@ implementation
            if assigned(hp) and
               (cs_browser in aktmoduleswitches) and make_ref then
              begin
-                hp^.lastref:=new(pref,init(hp^.lastref,@tokenpos));
+                new(newref,init(hp^.lastref,@tokenpos));
                 { for symbols that are in tables without
                 browser info or syssyms (PM) }
                 if hp^.refcount=0 then
-                  hp^.defref:=hp^.lastref;
+                  begin
+                    hp^.defref:=newref;
+                    hp^.lastref:=newref;
+                  end
+                else
+                if resolving_forward and assigned(hp^.defref) then
+                { put it as second reference }
+                  begin
+                   newref^.nextref:=hp^.defref^.nextref;
+                   hp^.defref^.nextref:=newref;
+                   hp^.lastref^.nextref:=nil;
+                  end
+                else
+                  hp^.lastref:=newref;
                 inc(hp^.refcount);
              end;
          end;
@@ -2468,7 +2482,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  1999-11-06 16:21:57  jonas
+  Revision 1.60  1999-11-09 23:35:50  pierre
+   + better reference pos for forward defs
+
+  Revision 1.59  1999/11/06 16:21:57  jonas
     + search optimial register to use in alignment code (compile with
       -dalignreg, -dalignregdebug to see chosen register in
       assembler code). Still needs support in ag386bin.

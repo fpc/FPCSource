@@ -140,7 +140,8 @@
        pforwarddef = ^tforwarddef;
        tforwarddef = object(tdef)
           tosymname : string;
-          constructor init(const s:string);
+          forwardpos : tfileposinfo;
+          constructor init(const s:string;const pos : tfileposinfo);
           function  gettypename:string;virtual;
        end;
 
@@ -530,7 +531,10 @@
 
 {
   $Log$
-  Revision 1.45  1999-11-06 14:34:27  peter
+  Revision 1.46  1999-11-09 23:35:50  pierre
+   + better reference pos for forward defs
+
+  Revision 1.45  1999/11/06 14:34:27  peter
     * truncated log to 20 revs
 
   Revision 1.44  1999/10/26 12:30:45  peter
