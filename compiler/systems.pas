@@ -1004,11 +1004,7 @@ implementation
             exeext      : '.exe';
             os          : os_i386_Win32;
             link        : link_i386_ldw;
-{$ifdef PECOFF}
             assem       : as_i386_pecoff;
-{$else}
-            assem       : as_i386_asw;
-{$endif}
             ar          : ar_i386_arw;
             res         : res_i386_windres;
             heapsize    : 2048*1024;
@@ -1474,7 +1470,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  1999-05-05 22:22:05  peter
+  Revision 1.73  1999-05-11 00:44:06  peter
+    * released pecoff for win32 as default
+
+  Revision 1.72  1999/05/05 22:22:05  peter
     * updated messages
 
   Revision 1.71  1999/05/05 17:34:33  peter
