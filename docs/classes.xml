@@ -5303,7 +5303,8 @@ method.
 </element>
 
 <element name="TStringStream.Write">  <!-- Function -->
-<short></short>
+<short><var>Write</var> implements the abstract <link id="TStream.Write"/>
+method.</short>
 <descr>
 </descr>
 <seealso>
@@ -5311,7 +5312,7 @@ method.
 </element>
 
 <element name="TStringStream.WriteString">  <!-- Procedure -->
-<short></short>
+<short><var>WriteString</var> writes a string to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -5319,7 +5320,7 @@ method.
 </element>
 
 <element name="TStringStream.DataString">  <!-- Property -->
-<short></short>
+<short>Contains the contents of the stream in string form</short>
 <descr>
 </descr>
 <seealso>
@@ -5341,7 +5342,7 @@ method.
 </element>
 
 <element name="TResourceStream.Initialize">  <!-- Procedure -->
-<short></short>
+<short>Initializes the resource stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -5349,7 +5350,7 @@ method.
 </element>
 
 <element name="TResourceStream.Create">  <!-- Constructor -->
-<short></short>
+<short>Creates a new instance of a resource stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -5357,7 +5358,7 @@ method.
 </element>
 
 <element name="TResourceStream.CreateFromID">  <!-- Constructor -->
-<short></short>
+<short>Creates a new instance of a resource stream with resource</short>
 <descr>
 </descr>
 <seealso>
@@ -5365,7 +5366,7 @@ method.
 </element>
 
 <element name="TResourceStream.Destroy">  <!-- Destructor -->
-<short></short>
+<short>Destroys the instance of the resource stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -5373,7 +5374,8 @@ method.
 </element>
 
 <element name="TResourceStream.Write">  <!-- Function -->
-<short></short>
+<short><var>Write</var> implements the abstract <link id="TStream.Write"/>
+method.</short>
 <descr>
 </descr>
 <seealso>
@@ -5381,7 +5383,7 @@ method.
 </element>
 
 <element name="TValueType">  <!-- Enumeration type -->
-<short></short>
+<short>Enumerated type used to identify the kind of streamed property</short>
 <descr>
 </descr>
 <seealso>
@@ -5389,158 +5391,137 @@ method.
 </element>
 
 <element name="TValueType.vaNull">  <!-- Enumeration value -->
-<short></short>
+<short>Empty value. Ends a list.</short>
 </element>
 
 <element name="TValueType.vaList">  <!-- Enumeration value -->
-<short></short>
+<short>Identifies the start of a list of values</short>
 </element>
 
 <element name="TValueType.vaInt8">  <!-- Enumeration value -->
-<short></short>
+<short>Integer value, 8 bits long.</short>
 </element>
 
 <element name="TValueType.vaInt16">  <!-- Enumeration value -->
-<short></short>
+<short>Integer value, 16 bits long.</short>
 </element>
 
 <element name="TValueType.vaInt32">  <!-- Enumeration value -->
-<short></short>
+<short>Integer value, 32 bits long.</short>
 </element>
 
 <element name="TValueType.vaExtended">  <!-- Enumeration value -->
-<short></short>
+<short>Extended value.</short>
 </element>
 
 <element name="TValueType.vaString">  <!-- Enumeration value -->
-<short></short>
+<short>String value.</short>
 </element>
 
 <element name="TValueType.vaIdent">  <!-- Enumeration value -->
-<short></short>
+<short>Identifier.</short>
 </element>
 
 <element name="TValueType.vaFalse">  <!-- Enumeration value -->
-<short></short>
+<short>Boolean <var>False</var> value.</short>
 </element>
 
 <element name="TValueType.vaTrue">  <!-- Enumeration value -->
-<short></short>
+<short>Boolean <var>True</var> value.</short>
 </element>
 
 <element name="TValueType.vaBinary">  <!-- Enumeration value -->
-<short></short>
+<short>Binary data follows.</short>
 </element>
 
 <element name="TValueType.vaSet">  <!-- Enumeration value -->
-<short></short>
+<short>Set data follows.</short>
 </element>
 
 <element name="TValueType.vaLString">  <!-- Enumeration value -->
-<short></short>
+<short>Ansistring data follows.</short>
 </element>
 
 <element name="TValueType.vaNil">  <!-- Enumeration value -->
-<short></short>
+<short>Nil pointer.</short>
 </element>
 
 <element name="TValueType.vaCollection">  <!-- Enumeration value -->
-<short></short>
+<short>Collection follows</short>
 </element>
 
 <element name="TValueType.vaSingle">  <!-- Enumeration value -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<short>Single type follows.</short>
 </element>
 
 <element name="TValueType.vaCurrency">  <!-- Enumeration value -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<short>Currency value follows</short>
 </element>
 
 <element name="TValueType.vaDate">  <!-- Enumeration value -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<short>Date value follows</short>
 </element>
 
 <element name="TValueType.vaWString">  <!-- Enumeration value -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<short>Widestring value follows.</short>
 </element>
 
 <element name="TValueType.vaInt64">  <!-- Enumeration value -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<short>Integer value, 64 bits long.</short>
 </element>
 
 <element name="TFilerFlag">  <!-- Enumeration type -->
-<short></short>
+<short>Flags used by the <link id="TFiler"/> class</short>
 <descr>
+The <var>TFiler</var> class uses this enumeration type to decide whether the
+streamed object was streamed as part of an inherited form or not.
 </descr>
 <seealso>
+<link id="TFiler"/>
 </seealso>
 </element>
 
 <element name="TFilerFlag.ffInherited">  <!-- Enumeration value -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<short>Stored object is an inherited object.</short>
 </element>
 
 <element name="TFilerFlag.ffChildPos">  <!-- Enumeration value -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<short>The position of the child on it's parent is included.</short>
 </element>
 
 <element name="TFilerFlag.ffInline">  <!-- Enumeration value -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<short>Used for frames.</short>
 </element>
 
 <element name="TFilerFlags">  <!-- Set type -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<short>Set of <link id="TFilerFlag"/></short>
 </element>
 
 <element name="TReaderProc">  <!-- Procedure type -->
-<short></short>
+<short>Reader procedure used by <link id="TPersistent.DefineProperties">DefineProperties</link></short>
 <descr>
+The <var>TReaderProc</var> reader procedure is a callback procedure which 
+will be used by a <link id="TPersistent"/> descendent to read user 
+properties from a stream during the streaming process. The <var>Reader</var>
+argument is the writer object which can be used read properties from the
+stream.
 </descr>
 <seealso>
+<Link id="TPersistent.DefineProperties"/>
 </seealso>
 </element>
 
 <element name="TWriterProc">  <!-- Procedure type -->
-<short></short>
+<short>Writer procedure used by <link id="TPersistent.DefineProperties">DefineProperties</link></short>
 <descr>
+The <var>TWriterProc</var> writer procedure is a callback procedure which 
+will be used by a <link id="TPersistent"/> descendent to write user 
+properties from a stream during the streaming process. The <var>Writer</var>
+argument is the writer object which can be used write properties to the
+stream.
 </descr>
 <seealso>
+<Link id="TPersistent.DefineProperties"/>
 </seealso>
 </element>
 
@@ -5566,41 +5547,11 @@ method.
 </seealso>
 </element>
 
-<element name="TFiler.FRoot">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TFiler.FLookupRoot">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TFiler.FAncestor">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TFiler.FIgnoreChildren">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
 <element name="TFiler.SetRoot">  <!-- Procedure -->
-<short></short>
+<short>Sets the root component which is being streamed.</short>
 <descr>
+Sets the root component. 
+The root component is the initial component which is being streamed.
 </descr>
 <seealso>
 </seealso>
@@ -5623,42 +5574,60 @@ method.
 </element>
 
 <element name="TFiler.Root">  <!-- Property -->
-<short></short>
+<short>The root component is the initial component which is being streamed.
+</short>
 <descr>
+The streaming process will stream a component and all the components which
+it owns. The <var>Root</var> component is the component which is initially
+streamed.
 </descr>
 <seealso>
+<link id="TFiler.LookupRoot">LookupRoot</link>
 </seealso>
 </element>
 
 <element name="TFiler.LookupRoot">  <!-- Property -->
-<short></short>
+<short>Component used to look up ancestor components.</short>
 <descr>
+When comparing inherited component's values against parent values, the
+values are compared with the component in <var>LookupRoot</var>. Initially,
+it is set to <link id="TFiler.Root">Root</link>.
 </descr>
 <seealso>
+<link id="TFiler.Root">Root</link>
 </seealso>
 </element>
 
 <element name="TFiler.Ancestor">  <!-- Property -->
-<short></short>
+<short>Ancestor component from which an inherited component is streamed.</short>
 <descr>
+When streaming a component, this is the parent component. Only properties
+that differ from the parent's property value will be streamed.
 </descr>
 <seealso>
+<link id="TFiler.Root">Root</link>
+<link id="TFiler.LookupRoot">LookupRoot</link>
 </seealso>
 </element>
 
 <element name="TFiler.IgnoreChildren">  <!-- Property -->
-<short></short>
+<short>Determines whether children will be streamed as well.</short>
 <descr>
+By default, all children (i.e. owned objects) will also be streamed when
+streaming a component. This property can be used to prevent owned objects
+from being streamed.
 </descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TComponentClass">  <!-- "class of" type -->
-<short></short>
+<short>Class of TComponent</short>
 <descr>
+The <var>TComponentClass</var> type is used when constructing 
+<link id="TComponent"/> descendent instances and when registering
+components.
 </descr>
 <seealso>
+<link id="TComponent"/>
 </seealso>
 </element>
 
@@ -5671,37 +5640,71 @@ method.
 <element name="TAbstractObjectReader">  <!-- Class -->
 <short>Abstract driver class to read stored component data.</short>
 <descr>
+<p>
+The Free Pascal streaming mechanism, while compatible with Delphi's
+mechanism, differs from it in the sense that the streaming mechanism uses
+a driver class when streaming components. The <var>TAbstractObjectReader</var>
+class is the base driver class for reading property values from streams.
+It consists entirely of abstract methods, which must be implemented by
+descendent classes.
+</p>
+<p>
+Different streaming mechanisms can be implemented by making a descendent
+from <var>TAbstractObjectReader</var>. The <link id="TBinaryObjectReader"/>
+class is such a descendent class, which streams data in binary (Delphi
+compatible) format.
+</p>
+<p>
+All methods described in this class, mustbe implemented by descendent
+classes.
+</p>
 </descr>
 <seealso>
+<link id="TBinaryObjectReader"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.NextValue">  <!-- Function -->
-<short></short>
+<short>Returns the type of the next value in the stream.</short>
 <descr>
+<p>
+This function should return the type of the next value in the stream, 
+but should not read it, i.e. the stream position should not be altered by
+this method. This is used to 'peek' in the stream what value is next.
+</p>
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.ReadValue"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.ReadValue">  <!-- Function -->
-<short></short>
+<short>Reads the type of the next value.</short>
 <descr>
+This function returns the type of the next value in the stream and reads it.
+i.e. after the call to this method, the stream is positioned to read the
+value of the type returned by this function.
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.ReadValue"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.BeginRootComponent">  <!-- Procedure -->
-<short></short>
+<short>Starts the reading of the root component.</short>
 <descr>
+This function can be used to initialize the driver class for reading a
+component. It is called once at the beginning of the read process, and 
+is immediatly followed by a call to <link
+id="TAbstractObjectReader.BeginComponent">BeginComponent</link>.
 </descr>
 <seealso>
+<link id="TAbstractObjectReader.BeginComponent"/>
 </seealso>
 </element>
 
 <element name="TAbstractObjectReader.BeginComponent">  <!-- Procedure -->
-<short></short>
+<short>Marks the reading of a new component. </short>
 <descr>
 </descr>
 <seealso>
@@ -5709,7 +5712,7 @@ method.
 </element>
 
 <element name="TAbstractObjectReader.BeginProperty">  <!-- Function -->
-<short></short>
+<short>Marks the reading of a property value.</short>
 <descr>
 </descr>
 <seealso>
@@ -5717,7 +5720,7 @@ method.
 </element>
 
 <element name="TAbstractObjectReader.ReadBinary">  <!-- Procedure -->
-<short></short>
+<short>Read binary data from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -5725,7 +5728,7 @@ method.
 </element>
 
 <element name="TAbstractObjectReader.ReadFloat">  <!-- Function -->
-<short></short>
+<short>Read a float value from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -5733,7 +5736,7 @@ method.
 </element>
 
 <element name="TAbstractObjectReader.ReadSingle">  <!-- Function -->
-<short></short>
+<short>Read a single (real-type) value from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -5741,7 +5744,7 @@ method.
 </element>
 
 <element name="TAbstractObjectReader.ReadDate">  <!-- Function -->
-<short></short>
+<short>Read a date value from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -5749,7 +5752,7 @@ method.
 </element>
 
 <element name="TAbstractObjectReader.ReadIdent">  <!-- Function -->
-<short></short>
+<short>Read an identifier from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -5757,7 +5760,7 @@ method.
 </element>
 
 <element name="TAbstractObjectReader.ReadInt8">  <!-- Function -->
-<short></short>
+<short>Read an 8-bit integer from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -5765,7 +5768,7 @@ method.
 </element>
 
 <element name="TAbstractObjectReader.ReadInt16">  <!-- Function -->
-<short></short>
+<short>Read a 16-bit integer from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -5773,7 +5776,7 @@ method.
 </element>
 
 <element name="TAbstractObjectReader.ReadInt32">  <!-- Function -->
-<short></short>
+<short>Read a 32-bit integer from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -5781,7 +5784,7 @@ method.
 </element>
 
 <element name="TAbstractObjectReader.ReadInt64">  <!-- Function -->
-<short></short>
+<short>Read a 64-bit integer from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -5789,7 +5792,7 @@ method.
 </element>
 
 <element name="TAbstractObjectReader.ReadSet">  <!-- Function -->
-<short></short>
+<short>Read a set from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -5797,7 +5800,7 @@ method.
 </element>
 
 <element name="TAbstractObjectReader.ReadStr">  <!-- Function -->
-<short></short>
+<short>Read a shortstring from the stream</short>
 <descr>
 </descr>
 <seealso>
@@ -5805,7 +5808,7 @@ method.
 </element>
 
 <element name="TAbstractObjectReader.ReadString">  <!-- Function -->
-<short></short>
+<short>Read a string of type <var>StringType</var> from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -5813,7 +5816,7 @@ method.
 </element>
 
 <element name="TAbstractObjectReader.SkipComponent">  <!-- Procedure -->
-<short></short>
+<short>Skip till the end of the component.</short>
 <descr>
 </descr>
 <seealso>
@@ -5821,7 +5824,7 @@ method.
 </element>
 
 <element name="TAbstractObjectReader.SkipValue">  <!-- Procedure -->
-<short></short>
+<short>Skip the current value.</short>
 <descr>
 </descr>
 <seealso>
@@ -5835,71 +5838,7 @@ method.
 -->
 
 <element name="TBinaryObjectReader">  <!-- Class -->
-<short>Driver class which reads component data stored in binary format.</short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectReader.FStream">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectReader.FBuffer">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectReader.FBufSize">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectReader.FBufPos">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectReader.FBufEnd">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectReader.Read">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectReader.SkipProperty">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectReader.SkipSetBody">  <!-- Procedure -->
-<short></short>
+<short>Driver class descendent which reads component data stored in binary format.</short>
 <descr>
 </descr>
 <seealso>
@@ -5907,7 +5846,7 @@ method.
 </element>
 
 <element name="TBinaryObjectReader.Create">  <!-- Constructor -->
-<short></short>
+<short>Creates a new binary data reader instance.</short>
 <descr>
 </descr>
 <seealso>
@@ -5915,175 +5854,111 @@ method.
 </element>
 
 <element name="TBinaryObjectReader.Destroy">  <!-- Destructor -->
-<short></short>
+<short>Destroys the binary data reader.</short>
 <descr>
 </descr>
 <seealso>
 </seealso>
 </element>
 
-<element name="TBinaryObjectReader.NextValue">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.NextValue" link="TAbstractObjectReader.NextValue">  <!-- Function -->
+<short>Returns the type of the next value, but does not position the stream to read
+it</short>
 </element>
 
-<element name="TBinaryObjectReader.ReadValue">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.ReadValue" link="TAbstractObjectReader.ReadValue">  <!-- Function -->
+<short>Returns the type of the next value, and positions the stream to read it</short>
 </element>
 
-<element name="TBinaryObjectReader.BeginRootComponent">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.BeginRootComponent" link="TAbstractObjectReader.BeginRootComponent">  <!-- Procedure -->
+<short>Signals the beginning of the reading of the root component</short>
 </element>
 
-<element name="TBinaryObjectReader.BeginComponent">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.BeginComponent" link="TAbstractObjectReader.BeginComponent">   <!-- Procedure -->
+<short>Signals the beginning of the reading of a component</short>
 </element>
 
-<element name="TBinaryObjectReader.BeginProperty">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.BeginProperty"
+link="TAbstractObjectReader.BeginProperty">  <!-- Function -->
+<short>Starts reading a property.</short>
 </element>
 
-<element name="TBinaryObjectReader.ReadBinary">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.ReadBinary"
+link="TAbstractObjectReader.ReadBinary">  <!-- Procedure -->
+<short>Starts reading binary data.</short>
 </element>
 
-<element name="TBinaryObjectReader.ReadFloat">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.ReadFloat"
+link="TAbstractObjectReader.ReadFloat">  <!-- Function -->
+<short>Reads a float from the stream.</short>
 </element>
 
-<element name="TBinaryObjectReader.ReadSingle">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.ReadSingle"
+link="TAbstractObjectReader.ReadSingle">  <!-- Function -->
+<short>Reads a signle-type real from the stream.</short>
 </element>
 
-<element name="TBinaryObjectReader.ReadDate">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.ReadDate"
+link="TAbstractObjectReader.ReadDate">  <!-- Function -->
+<short>Reads a date from the stream</short>
 </element>
 
-<element name="TBinaryObjectReader.ReadIdent">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.ReadIdent"
+link="TAbstractObjectReader.ReadIdent">  <!-- Function -->
+<short>Reads an identifier from the stream</short>
 </element>
 
-<element name="TBinaryObjectReader.ReadInt8">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.ReadInt8"
+link="TAbstractObjectReader.ReadInt8">  <!-- Function -->
+<short>Reads an 8-bit integer from the stream.</short>
 </element>
 
-<element name="TBinaryObjectReader.ReadInt16">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.ReadInt16"
+link="TAbstractObjectReader.ReadInt16">  <!-- Function -->
+<short>Reads a 16-bit integer from the stream</short>
 </element>
 
-<element name="TBinaryObjectReader.ReadInt32">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.ReadInt32"
+link="TAbstractObjectReader.ReadInt32">  <!-- Function -->
+<short>Reads a 32-bit integer from the stream.</short>
 </element>
 
-<element name="TBinaryObjectReader.ReadInt64">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.ReadInt64"
+link="TAbstractObjectReader.ReadInt64">  <!-- Function -->
+<short>Reads a 64-bit integer from the stream.</short>
 </element>
 
-<element name="TBinaryObjectReader.ReadSet">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.ReadSet"
+link="TAbstractObjectReader.ReadSet">  <!-- Function -->
+<short>Reads a set from the stream.</short>
 </element>
 
-<element name="TBinaryObjectReader.ReadStr">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.ReadStr"
+link="TAbstractObjectReader.ReadStr">  <!-- Function -->
+<short>Reads a shortstring from the stream.</short>
 </element>
 
-<element name="TBinaryObjectReader.ReadString">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.ReadString"
+link="TAbstractObjectReader.ReadString">  <!-- Function -->
+<short>Reads a string of type <var>StringType</var> from the stream.</short>
 </element>
 
-<element name="TBinaryObjectReader.SkipComponent">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.SkipComponent"
+link="TAbstractObjectReader.SkipComponent">  <!-- Procedure -->
+<short>Skips over a component's data in the stream.</short>
 </element>
 
-<element name="TBinaryObjectReader.SkipValue">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectReader.SkipValue"
+link="TAbstractObjectReader.SkipValue">  <!-- Procedure -->
+<short>Skip over a value in the data.</short>
 </element>
 
 <element name="TFindMethodEvent">  <!-- Procedure type -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<short>Occurs when the streaming process needs to locate a method</short>
 </element>
 
 <element name="TSetNameEvent">  <!-- Procedure type -->
-<short></short>
+<short>Occurs when the reader needs to set a component's name.</short>
 <descr>
 </descr>
 <seealso>
@@ -6091,7 +5966,7 @@ method.
 </element>
 
 <element name="TReferenceNameEvent">  <!-- Procedure type -->
-<short></short>
+<short>Occurs when a named object needs to be looked up.</short>
 <descr>
 </descr>
 <seealso>
@@ -6099,7 +5974,7 @@ method.
 </element>
 
 <element name="TAncestorNotFoundEvent">  <!-- Procedure type -->
-<short></short>
+<short>This event occurs when an ancestor component cannot be found.</short>
 <descr>
 </descr>
 <seealso>
@@ -6107,7 +5982,7 @@ method.
 </element>
 
 <element name="TReadComponentsProc">  <!-- Procedure type -->
-<short></short>
+<short>Callback type when reading a component from a stream</short>
 <descr>
 </descr>
 <seealso>
@@ -6115,7 +5990,7 @@ method.
 </element>
 
 <element name="TReaderError">  <!-- Procedure type -->
-<short></short>
+<short>Event handler type, called when an error occurs during the streaming.</short>
 <descr>
 </descr>
 <seealso>
@@ -6123,7 +5998,8 @@ method.
 </element>
 
 <element name="TFindComponentClassEvent">  <!-- Procedure type -->
-<short></short>
+<short>Event handler type, occurs when a component class pointer must be
+found when reading a component from a stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6131,7 +6007,8 @@ method.
 </element>
 
 <element name="TCreateComponentEvent">  <!-- Procedure type -->
-<short></short>
+<short>Event handler type, occurs when a component instance must be created
+when a component is read from a stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6152,144 +6029,8 @@ method.
 </seealso>
 </element>
 
-<element name="TReader.FDriver">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TReader.FOwner">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TReader.FParent">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TReader.FFixups">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TReader.FLoaded">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TReader.FOnFindMethod">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TReader.FOnSetName">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TReader.FOnReferenceName">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TReader.FOnAncestorNotFound">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TReader.FOnError">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TReader.FOnFindComponentClass">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TReader.FOnCreateComponent">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TReader.FPropName">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TReader.FCanHandleExcepts">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TReader.DoFixupReferences">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TReader.FreeFixups">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TReader.FindComponentClass">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
 <element name="TReader.Error">  <!-- Function -->
-<short></short>
+<short>Raises an error with message <var>Message</var></short>
 <descr>
 </descr>
 <seealso>
@@ -6297,7 +6038,7 @@ method.
 </element>
 
 <element name="TReader.FindMethod">  <!-- Function -->
-<short></short>
+<short>Return the address of a published method.</short>
 <descr>
 </descr>
 <seealso>
@@ -6305,7 +6046,7 @@ method.
 </element>
 
 <element name="TReader.ReadProperty">  <!-- Procedure -->
-<short></short>
+<short>Read and process a property name</short>
 <descr>
 </descr>
 <seealso>
@@ -6313,7 +6054,7 @@ method.
 </element>
 
 <element name="TReader.ReadPropValue">  <!-- Procedure -->
-<short></short>
+<short>Reads a property value for <var>PropInfo</var>.</short>
 <descr>
 </descr>
 <seealso>
@@ -6321,7 +6062,7 @@ method.
 </element>
 
 <element name="TReader.PropertyError">  <!-- Procedure -->
-<short></short>
+<short>Skips a property value and raises an exception.</short>
 <descr>
 </descr>
 <seealso>
@@ -6329,7 +6070,7 @@ method.
 </element>
 
 <element name="TReader.ReadData">  <!-- Procedure -->
-<short></short>
+<short>Reads the components data after it has been created.</short>
 <descr>
 </descr>
 <seealso>
@@ -6337,7 +6078,7 @@ method.
 </element>
 
 <element name="TReader.PropName">  <!-- Property -->
-<short></short>
+<short>Name of the property being read at this moment.</short>
 <descr>
 </descr>
 <seealso>
@@ -6345,7 +6086,7 @@ method.
 </element>
 
 <element name="TReader.CanHandleExceptions">  <!-- Property -->
-<short></short>
+<short>Indicates whether the reader is handling exceptions at this stage.</short>
 <descr>
 </descr>
 <seealso>
@@ -6353,7 +6094,7 @@ method.
 </element>
 
 <element name="TReader.Create">  <!-- Constructor -->
-<short></short>
+<short>Creates a new reader class</short>
 <descr>
 </descr>
 <seealso>
@@ -6361,7 +6102,7 @@ method.
 </element>
 
 <element name="TReader.Destroy">  <!-- Destructor -->
-<short></short>
+<short>Destroys a reader class.</short>
 <descr>
 </descr>
 <seealso>
@@ -6369,7 +6110,7 @@ method.
 </element>
 
 <element name="TReader.BeginReferences">  <!-- Procedure -->
-<short></short>
+<short>Initializes the component referencing mechanism.</short>
 <descr>
 </descr>
 <seealso>
@@ -6377,7 +6118,8 @@ method.
 </element>
 
 <element name="TReader.CheckValue">  <!-- Procedure -->
-<short></short>
+<short>Raises an exception if the next value in the stream is not of type
+<var>Value</var></short>
 <descr>
 </descr>
 <seealso>
@@ -6385,7 +6127,7 @@ method.
 </element>
 
 <element name="TReader.DefineProperty">  <!-- Procedure -->
-<short></short>
+<short>Reads a user-defined property from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6393,7 +6135,7 @@ method.
 </element>
 
 <element name="TReader.DefineBinaryProperty">  <!-- Procedure -->
-<short></short>
+<short>Reads a user-defined binary property from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6401,7 +6143,7 @@ method.
 </element>
 
 <element name="TReader.EndOfList">  <!-- Function -->
-<short></short>
+<short>Returns true if the stream contains an end-of-list marker.</short>
 <descr>
 </descr>
 <seealso>
@@ -6409,7 +6151,7 @@ method.
 </element>
 
 <element name="TReader.EndReferences">  <!-- Procedure -->
-<short></short>
+<short>Finalizes the component referencing mechanism.</short>
 <descr>
 </descr>
 <seealso>
@@ -6417,7 +6159,7 @@ method.
 </element>
 
 <element name="TReader.FixupReferences">  <!-- Procedure -->
-<short></short>
+<short>Tries to resolve all unresolved component references.</short>
 <descr>
 </descr>
 <seealso>
@@ -6425,7 +6167,7 @@ method.
 </element>
 
 <element name="TReader.NextValue">  <!-- Function -->
-<short></short>
+<short>Returns the type of the next value.</short>
 <descr>
 </descr>
 <seealso>
@@ -6433,7 +6175,7 @@ method.
 </element>
 
 <element name="TReader.ReadBoolean">  <!-- Function -->
-<short></short>
+<short>Reads a boolean from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6441,7 +6183,7 @@ method.
 </element>
 
 <element name="TReader.ReadChar">  <!-- Function -->
-<short></short>
+<short>Reads a character from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6449,7 +6191,7 @@ method.
 </element>
 
 <element name="TReader.ReadCollection">  <!-- Procedure -->
-<short></short>
+<short>Reads a collection from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6457,7 +6199,7 @@ method.
 </element>
 
 <element name="TReader.ReadComponent">  <!-- Function -->
-<short></short>
+<short>Starts reading a component from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6465,7 +6207,7 @@ method.
 </element>
 
 <element name="TReader.ReadComponents">  <!-- Procedure -->
-<short></short>
+<short>Starts reading child components from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6473,7 +6215,7 @@ method.
 </element>
 
 <element name="TReader.ReadFloat">  <!-- Function -->
-<short></short>
+<short>Reads a float from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6481,7 +6223,7 @@ method.
 </element>
 
 <element name="TReader.ReadSingle">  <!-- Function -->
-<short></short>
+<short>Reads a single-type real from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6489,7 +6231,7 @@ method.
 </element>
 
 <element name="TReader.ReadDate">  <!-- Function -->
-<short></short>
+<short>Reads a date from the stream</short>
 <descr>
 </descr>
 <seealso>
@@ -6497,7 +6239,7 @@ method.
 </element>
 
 <element name="TReader.ReadIdent">  <!-- Function -->
-<short></short>
+<short>Reads an identifier from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6505,7 +6247,7 @@ method.
 </element>
 
 <element name="TReader.ReadInteger">  <!-- Function -->
-<short></short>
+<short>Reads an integer from the stream</short>
 <descr>
 </descr>
 <seealso>
@@ -6513,7 +6255,7 @@ method.
 </element>
 
 <element name="TReader.ReadInt64">  <!-- Function -->
-<short></short>
+<short>Reads a 64-bit integer from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6521,7 +6263,7 @@ method.
 </element>
 
 <element name="TReader.ReadListBegin">  <!-- Procedure -->
-<short></short>
+<short>Checks for the beginning of a list.</short>
 <descr>
 </descr>
 <seealso>
@@ -6529,7 +6271,7 @@ method.
 </element>
 
 <element name="TReader.ReadListEnd">  <!-- Procedure -->
-<short></short>
+<short>Checks for the end of a list.</short>
 <descr>
 </descr>
 <seealso>
@@ -6537,7 +6279,7 @@ method.
 </element>
 
 <element name="TReader.ReadRootComponent">  <!-- Function -->
-<short></short>
+<short>Starts reading a root component.</short>
 <descr>
 </descr>
 <seealso>
@@ -6545,7 +6287,7 @@ method.
 </element>
 
 <element name="TReader.ReadString">  <!-- Function -->
-<short></short>
+<short>Reads a string from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6553,7 +6295,7 @@ method.
 </element>
 
 <element name="TReader.ReadValue">  <!-- Function -->
-<short></short>
+<short>Reads the next value type from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6561,7 +6303,7 @@ method.
 </element>
 
 <element name="TReader.CopyValue">  <!-- Procedure -->
-<short></short>
+<short>Copy a value to a writer.</short>
 <descr>
 </descr>
 <seealso>
@@ -6569,7 +6311,7 @@ method.
 </element>
 
 <element name="TReader.Owner">  <!-- Property -->
-<short></short>
+<short>Owner of the component being read</short>
 <descr>
 </descr>
 <seealso>
@@ -6577,15 +6319,25 @@ method.
 </element>
 
 <element name="TReader.Parent">  <!-- Property -->
-<short></short>
+<short>Parent of the component being read.</short>
 <descr>
 </descr>
 <seealso>
 </seealso>
 </element>
 
+<element name="TReader.Driver">  <!-- Property -->
+<short>The driver in use for streaming the data.</short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+
+
 <element name="TReader.OnError">  <!-- Property -->
-<short></short>
+<short>Handler called when an error occurs.</short>
 <descr>
 </descr>
 <seealso>
@@ -6593,7 +6345,7 @@ method.
 </element>
 
 <element name="TReader.OnFindMethod">  <!-- Property -->
-<short></short>
+<short>Handler to find or change a method address.</short>
 <descr>
 </descr>
 <seealso>
@@ -6601,7 +6353,7 @@ method.
 </element>
 
 <element name="TReader.OnSetName">  <!-- Property -->
-<short></short>
+<short>Handler called when setting a component name.</short>
 <descr>
 </descr>
 <seealso>
@@ -6609,7 +6361,7 @@ method.
 </element>
 
 <element name="TReader.OnReferenceName">  <!-- Property -->
-<short></short>
+<short>Handler called when another component is referenced.</short>
 <descr>
 </descr>
 <seealso>
@@ -6617,7 +6369,7 @@ method.
 </element>
 
 <element name="TReader.OnAncestorNotFound">  <!-- Property -->
-<short></short>
+<short>Handler called when the ancestor component cannot be found.</short>
 <descr>
 </descr>
 <seealso>
@@ -6625,7 +6377,7 @@ method.
 </element>
 
 <element name="TReader.OnCreateComponent">  <!-- Property -->
-<short></short>
+<short>Handler called when a component needs to be created.</short>
 <descr>
 </descr>
 <seealso>
@@ -6633,7 +6385,7 @@ method.
 </element>
 
 <element name="TReader.OnFindComponentClass">  <!-- Property -->
-<short></short>
+<short>Handler called when a component class reference needs to be found.</short>
 <descr>
 </descr>
 <seealso>
@@ -6655,7 +6407,7 @@ method.
 </element>
 
 <element name="TAbstractObjectWriter.BeginCollection">  <!-- Procedure -->
-<short></short>
+<short>Start writing a collection.</short>
 <descr>
 </descr>
 <seealso>
@@ -6663,7 +6415,7 @@ method.
 </element>
 
 <element name="TAbstractObjectWriter.BeginComponent">  <!-- Procedure -->
-<short></short>
+<short>Start writing a component</short>
 <descr>
 </descr>
 <seealso>
@@ -6671,7 +6423,7 @@ method.
 </element>
 
 <element name="TAbstractObjectWriter.BeginList">  <!-- Procedure -->
-<short></short>
+<short>Start writing a list.</short>
 <descr>
 </descr>
 <seealso>
@@ -6679,7 +6431,7 @@ method.
 </element>
 
 <element name="TAbstractObjectWriter.EndList">  <!-- Procedure -->
-<short></short>
+<short>Mark the end of a list.</short>
 <descr>
 </descr>
 <seealso>
@@ -6687,7 +6439,7 @@ method.
 </element>
 
 <element name="TAbstractObjectWriter.BeginProperty">  <!-- Procedure -->
-<short></short>
+<short>Start writing a property</short>
 <descr>
 </descr>
 <seealso>
@@ -6695,7 +6447,7 @@ method.
 </element>
 
 <element name="TAbstractObjectWriter.EndProperty">  <!-- Procedure -->
-<short></short>
+<short>Marks the end of writing of a property.</short>
 <descr>
 </descr>
 <seealso>
@@ -6703,7 +6455,7 @@ method.
 </element>
 
 <element name="TAbstractObjectWriter.WriteBinary">  <!-- Procedure -->
-<short></short>
+<short>Writes binary data to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6711,7 +6463,7 @@ method.
 </element>
 
 <element name="TAbstractObjectWriter.WriteBoolean">  <!-- Procedure -->
-<short></short>
+<short>Writes a boolean value to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6719,7 +6471,7 @@ method.
 </element>
 
 <element name="TAbstractObjectWriter.WriteFloat">  <!-- Procedure -->
-<short></short>
+<short>Writes a float value to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6727,7 +6479,7 @@ method.
 </element>
 
 <element name="TAbstractObjectWriter.WriteSingle">  <!-- Procedure -->
-<short></short>
+<short>Writes a single-type real value to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6735,7 +6487,7 @@ method.
 </element>
 
 <element name="TAbstractObjectWriter.WriteDate">  <!-- Procedure -->
-<short></short>
+<short>Writes a date type to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6743,7 +6495,7 @@ method.
 </element>
 
 <element name="TAbstractObjectWriter.WriteIdent">  <!-- Procedure -->
-<short></short>
+<short>Writes an identifier to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6751,7 +6503,7 @@ method.
 </element>
 
 <element name="TAbstractObjectWriter.WriteInteger">  <!-- Procedure -->
-<short></short>
+<short>Writes an integer value to the stream</short>
 <descr>
 </descr>
 <seealso>
@@ -6759,7 +6511,7 @@ method.
 </element>
 
 <element name="TAbstractObjectWriter.WriteMethodName">  <!-- Procedure -->
-<short></short>
+<short>Writes a methodname to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6767,7 +6519,7 @@ method.
 </element>
 
 <element name="TAbstractObjectWriter.WriteSet">  <!-- Procedure -->
-<short></short>
+<short>Writes a set value to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6775,7 +6527,7 @@ method.
 </element>
 
 <element name="TAbstractObjectWriter.WriteString">  <!-- Procedure -->
-<short></short>
+<short>Writes a string value to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -6796,88 +6548,8 @@ method.
 </seealso>
 </element>
 
-<element name="TBinaryObjectWriter.FStream">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectWriter.FBuffer">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectWriter.FBufSize">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectWriter.FBufPos">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectWriter.FBufEnd">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectWriter.FSignatureWritten">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectWriter.FlushBuffer">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectWriter.Write">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectWriter.WriteValue">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TBinaryObjectWriter.WriteStr">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
 <element name="TBinaryObjectWriter.Create">  <!-- Constructor -->
-<short></short>
+<short>Creates a new instance of a binary object writer.</short>
 <descr>
 </descr>
 <seealso>
@@ -6885,139 +6557,91 @@ method.
 </element>
 
 <element name="TBinaryObjectWriter.Destroy">  <!-- Destructor -->
-<short></short>
+<short>Destroys an instance of the binary object writer.</short>
 <descr>
 </descr>
 <seealso>
 </seealso>
 </element>
 
-<element name="TBinaryObjectWriter.BeginCollection">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectWriter.BeginCollection"
+link="TAbstractObjectWriter.BeginCollection">  <!-- Procedure -->
+<short>Start writing a collection.</short>
 </element>
 
-<element name="TBinaryObjectWriter.BeginComponent">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectWriter.BeginComponent"
+link="TAbstractObjectWriter.BeginComponent">  <!-- Procedure -->
+<short>Start writing a component</short>
 </element>
 
-<element name="TBinaryObjectWriter.BeginList">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectWriter.BeginList"
+link="TAbstractObjectWriter.BeginList">  <!-- Procedure -->
+<short>Start writing a list.</short>
 </element>
 
-<element name="TBinaryObjectWriter.EndList">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectWriter.EndList"
+link="TAbstractObjectWriter.EndList">  <!-- Procedure -->
+<short>Mark the end of a list.</short>
 </element>
 
-<element name="TBinaryObjectWriter.BeginProperty">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectWriter.BeginProperty"
+link="TAbstractObjectWriter.BeginProperty">  <!-- Procedure -->
+<short>Start writing a property</short>
 </element>
 
-<element name="TBinaryObjectWriter.EndProperty">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectWriter.EndProperty"
+link="TAbstractObjectWriter.EndProperty">  <!-- Procedure -->
+<short>Marks the end of writing of a property.</short>
 </element>
 
-<element name="TBinaryObjectWriter.WriteBinary">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectWriter.WriteBinary"
+link="TAbstractObjectWriter.WriteBinary">  <!-- Procedure -->
+<short>Writes binary data to the stream.</short>
 </element>
 
-<element name="TBinaryObjectWriter.WriteBoolean">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectWriter.WriteBoolean"
+link="TAbstractObjectWriter.WriteBoolean">  <!-- Procedure -->
+<short>Writes a boolean value to the stream.</short>
 </element>
 
-<element name="TBinaryObjectWriter.WriteFloat">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectWriter.WriteFloat"
+link="TAbstractObjectWriter.WriteFloat">  <!-- Procedure -->
+<short>Writes a float value to the stream.</short>
 </element>
 
-<element name="TBinaryObjectWriter.WriteSingle">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectWriter.WriteSingle"
+link="TAbstractObjectWriter.WriteSingle">  <!-- Procedure -->
+<short>Writes a single-type real value to the stream.</short>
 </element>
 
-<element name="TBinaryObjectWriter.WriteDate">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectWriter.WriteDate"
+link="TAbstractObjectWriter.WriteDate">  <!-- Procedure -->
+<short>Writes a date type to the stream.</short>
 </element>
 
-<element name="TBinaryObjectWriter.WriteIdent">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectWriter.WriteIdent"
+link="TAbstractObjectWriter.WriteIdent">  <!-- Procedure -->
+<short>Writes an identifier to the stream.</short>
 </element>
 
-<element name="TBinaryObjectWriter.WriteInteger">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectWriter.WriteInteger"
+link="TAbstractObjectWriter.WriteInteger">  <!-- Procedure -->
+<short>Writes an integer value to the stream.</short>
 </element>
 
-<element name="TBinaryObjectWriter.WriteMethodName">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectWriter.WriteMethodName"
+link="TAbstractObjectWriter.WriteMethodName">  <!-- Procedure -->
+<short>Writes a methodname to the stream.</short>
 </element>
 
-<element name="TBinaryObjectWriter.WriteSet">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectWriter.WriteSet"
+link="TAbstractObjectWriter.WriteSet">  <!-- Procedure -->
+<short>Writes a set value to the stream.</short>
 </element>
 
-<element name="TBinaryObjectWriter.WriteString">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TBinaryObjectWriter.WriteString"
+link="TAbstractObjectWriter.WriteString">  <!-- Procedure -->
+<short>Writes a string value to the stream.</short>
 </element>
 
 <!--
@@ -7029,13 +6653,14 @@ method.
 <element name="TTextObjectWriter">  <!-- Class -->
 <short>Driver class which stores component data in text format.</short>
 <descr>
+Not yet implemented.
 </descr>
 <seealso>
 </seealso>
 </element>
 
 <element name="TFindAncestorEvent">  <!-- Procedure type -->
-<short></short>
+<short>Event that occurs w</short>
 <descr>
 </descr>
 <seealso>
@@ -7056,96 +6681,12 @@ method.
 </seealso>
 </element>
 
-<element name="TWriter.FDriver">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TWriter.FDestroyDriver">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TWriter.FRootAncestor">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TWriter.FPropPath">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TWriter.FAncestorList">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TWriter.FAncestorPos">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TWriter.FChildPos">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TWriter.FOnFindAncestor">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TWriter.AddToAncestorList">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TWriter.WriteComponentData">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TWriter.SetRoot">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
+<element name="TWriter.SetRoot" link="TFiler.SetRoot">   <!-- Procedure -->
+<short>Sets the root component</short>
 </element>
 
 <element name="TWriter.WriteBinary">  <!-- Procedure -->
-<short></short>
+<short>Writes binary data to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7153,7 +6694,7 @@ method.
 </element>
 
 <element name="TWriter.WriteProperty">  <!-- Procedure -->
-<short></short>
+<short>Writes one property to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7161,7 +6702,7 @@ method.
 </element>
 
 <element name="TWriter.WriteProperties">  <!-- Procedure -->
-<short></short>
+<short>Writes the published properties to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7169,7 +6710,7 @@ method.
 </element>
 
 <element name="TWriter.Create">  <!-- Constructor -->
-<short></short>
+<short>Creates a new Writer instance with a driver.</short>
 <descr>
 </descr>
 <seealso>
@@ -7177,7 +6718,7 @@ method.
 </element>
 
 <element name="TWriter.Create">  <!-- Constructor -->
-<short></short>
+<short>Creates a new Writer with a stream and bufsize.</short>
 <descr>
 </descr>
 <seealso>
@@ -7185,7 +6726,7 @@ method.
 </element>
 
 <element name="TWriter.Destroy">  <!-- Destructor -->
-<short></short>
+<short>Destroys the writer instance.</short>
 <descr>
 </descr>
 <seealso>
@@ -7193,7 +6734,7 @@ method.
 </element>
 
 <element name="TWriter.DefineProperty">  <!-- Procedure -->
-<short></short>
+<short>Callback used when defining and streaming custom properties.</short>
 <descr>
 </descr>
 <seealso>
@@ -7201,7 +6742,7 @@ method.
 </element>
 
 <element name="TWriter.DefineBinaryProperty">  <!-- Procedure -->
-<short></short>
+<short>Callback used when defining and streaming custom properties.</short>
 <descr>
 </descr>
 <seealso>
@@ -7209,7 +6750,7 @@ method.
 </element>
 
 <element name="TWriter.WriteBoolean">  <!-- Procedure -->
-<short></short>
+<short>Write boolean value to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7217,7 +6758,7 @@ method.
 </element>
 
 <element name="TWriter.WriteCollection">  <!-- Procedure -->
-<short></short>
+<short>Write a collection to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7225,7 +6766,7 @@ method.
 </element>
 
 <element name="TWriter.WriteComponent">  <!-- Procedure -->
-<short></short>
+<short>Stream a component to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7233,7 +6774,7 @@ method.
 </element>
 
 <element name="TWriter.WriteChar">  <!-- Procedure -->
-<short></short>
+<short>Write a character to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7241,7 +6782,7 @@ method.
 </element>
 
 <element name="TWriter.WriteDescendent">  <!-- Procedure -->
-<short></short>
+<short>Write a descendent component to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7249,7 +6790,7 @@ method.
 </element>
 
 <element name="TWriter.WriteFloat">  <!-- Procedure -->
-<short></short>
+<short>Write a float to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7257,7 +6798,7 @@ method.
 </element>
 
 <element name="TWriter.WriteSingle">  <!-- Procedure -->
-<short></short>
+<short>Write a single-type real to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7265,7 +6806,7 @@ method.
 </element>
 
 <element name="TWriter.WriteDate">  <!-- Procedure -->
-<short></short>
+<short>Write a date to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7273,7 +6814,7 @@ method.
 </element>
 
 <element name="TWriter.WriteIdent">  <!-- Procedure -->
-<short></short>
+<short>Write an identifier to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7281,15 +6822,7 @@ method.
 </element>
 
 <element name="TWriter.WriteInteger">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TWriter.WriteInteger">  <!-- Procedure -->
-<short></short>
+<short>Write an integer to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7297,7 +6830,7 @@ method.
 </element>
 
 <element name="TWriter.WriteListBegin">  <!-- Procedure -->
-<short></short>
+<short>Write a start-of-list marker to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7305,7 +6838,7 @@ method.
 </element>
 
 <element name="TWriter.WriteListEnd">  <!-- Procedure -->
-<short></short>
+<short>Write an end-of-list marker to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7313,7 +6846,7 @@ method.
 </element>
 
 <element name="TWriter.WriteRootComponent">  <!-- Procedure -->
-<short></short>
+<short>Write a root component to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7321,7 +6854,7 @@ method.
 </element>
 
 <element name="TWriter.WriteString">  <!-- Procedure -->
-<short></short>
+<short>Write a string to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7329,7 +6862,7 @@ method.
 </element>
 
 <element name="TWriter.RootAncestor">  <!-- Property -->
-<short></short>
+<short>Ancestor of root component.</short>
 <descr>
 </descr>
 <seealso>
@@ -7337,7 +6870,7 @@ method.
 </element>
 
 <element name="TWriter.OnFindAncestor">  <!-- Property -->
-<short></short>
+<short>Event occurring when an ancestor component must be found.</short>
 <descr>
 </descr>
 <seealso>
@@ -7345,7 +6878,7 @@ method.
 </element>
 
 <element name="TWriter.Driver">  <!-- Property -->
-<short></short>
+<short>Driver used when writing to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7366,120 +6899,8 @@ method.
 </seealso>
 </element>
 
-<element name="TParser.FStream">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TParser.FOrigin">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TParser.FBuffer">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TParser.FBufPtr">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TParser.FBufEnd">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TParser.FSourcePtr">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TParser.FSourceEnd">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TParser.FTokenPtr">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TParser.FStringPtr">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TParser.FSourceLine">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TParser.FSaveChar">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TParser.FToken">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TParser.ReadBuffer">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TParser.SkipBlanks">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
 <element name="TParser.Create">  <!-- Constructor -->
-<short></short>
+<short>Creates a new parser instance.</short>
 <descr>
 </descr>
 <seealso>
@@ -7487,7 +6908,7 @@ method.
 </element>
 
 <element name="TParser.Destroy">  <!-- Destructor -->
-<short></short>
+<short>Destroys the parser instance.</short>
 <descr>
 </descr>
 <seealso>
@@ -7495,7 +6916,7 @@ method.
 </element>
 
 <element name="TParser.CheckToken">  <!-- Procedure -->
-<short></short>
+<short>Checks whether the token if of the given type.</short>
 <descr>
 </descr>
 <seealso>
@@ -7503,7 +6924,7 @@ method.
 </element>
 
 <element name="TParser.CheckTokenSymbol">  <!-- Procedure -->
-<short></short>
+<short>Checks whether the token equals the given symbol</short>
 <descr>
 </descr>
 <seealso>
@@ -7511,7 +6932,7 @@ method.
 </element>
 
 <element name="TParser.Error">  <!-- Procedure -->
-<short></short>
+<short>Raises an <link id="EParserError"/> exception with the given message</short>
 <descr>
 </descr>
 <seealso>
@@ -7519,7 +6940,7 @@ method.
 </element>
 
 <element name="TParser.ErrorFmt">  <!-- Procedure -->
-<short></short>
+<short>Raises an <link id="EParserError"/> exception and formats the message.</short>
 <descr>
 </descr>
 <seealso>
@@ -7527,7 +6948,7 @@ method.
 </element>
 
 <element name="TParser.ErrorStr">  <!-- Procedure -->
-<short></short>
+<short>Raises an <link id="EParserError"/> exception with the given message</short>
 <descr>
 </descr>
 <seealso>
@@ -7535,7 +6956,7 @@ method.
 </element>
 
 <element name="TParser.HexToBinary">  <!-- Procedure -->
-<short></short>
+<short>Writes hexadecimal data to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7543,7 +6964,7 @@ method.
 </element>
 
 <element name="TParser.NextToken">  <!-- Function -->
-<short></short>
+<short>Reads the next token and returns its type.</short>
 <descr>
 </descr>
 <seealso>
@@ -7551,7 +6972,7 @@ method.
 </element>
 
 <element name="TParser.SourcePos">  <!-- Function -->
-<short></short>
+<short>Returns the current position in the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -7559,7 +6980,7 @@ method.
 </element>
 
 <element name="TParser.TokenComponentIdent">  <!-- Function -->
-<short></short>
+<short>Checks whether the current token is a component identifier.</short>
 <descr>
 </descr>
 <seealso>
@@ -7567,7 +6988,7 @@ method.
 </element>
 
 <element name="TParser.TokenFloat">  <!-- Function -->
-<short></short>
+<short>Returns the current token as a float.</short>
 <descr>
 </descr>
 <seealso>
@@ -7575,7 +6996,7 @@ method.
 </element>
 
 <element name="TParser.TokenInt">  <!-- Function -->
-<short></short>
+<short>Returns the current token as an integer.</short>
 <descr>
 </descr>
 <seealso>
@@ -7583,7 +7004,7 @@ method.
 </element>
 
 <element name="TParser.TokenString">  <!-- Function -->
-<short></short>
+<short>Returns the current token as a string.</short>
 <descr>
 </descr>
 <seealso>
@@ -7591,7 +7012,7 @@ method.
 </element>
 
 <element name="TParser.TokenSymbolIs">  <!-- Function -->
-<short></short>
+<short>Returns <var>True</var> if the current token is a symbol.</short>
 <descr>
 </descr>
 <seealso>
@@ -7599,7 +7020,7 @@ method.
 </element>
 
 <element name="TParser.SourceLine">  <!-- Property -->
-<short></short>
+<short>Current source linenumber.</short>
 <descr>
 </descr>
 <seealso>
@@ -7607,7 +7028,7 @@ method.
 </element>
 
 <element name="TParser.Token">  <!-- Property -->
-<short></short>
+<short>Contents of the current token.</short>
 <descr>
 </descr>
 <seealso>
@@ -7629,7 +7050,7 @@ method.
 </element>
 
 <element name="TThreadMethod">  <!-- Procedure type -->
-<short></short>
+<short>Procedure variable used when synchronizing threads.</short>
 <descr>
 </descr>
 <seealso>
@@ -7637,7 +7058,7 @@ method.
 </element>
 
 <element name="TThreadPriority">  <!-- Enumeration type -->
-<short></short>
+<short>Enumeration specifying the priority at which a thread runs.</short>
 <descr>
 </descr>
 <seealso>
@@ -7645,7 +7066,7 @@ method.
 </element>
 
 <element name="TThreadPriority.tpIdle">  <!-- Enumeration value -->
-<short></short>
+<short>Thread only runs when other processes are idle.</short>
 <descr>
 </descr>
 <seealso>
@@ -7653,7 +7074,7 @@ method.
 </element>
 
 <element name="TThreadPriority.tpLowest">  <!-- Enumeration value -->
-<short></short>
+<short>Thread runs at the lowest priority.</short>
 <descr>
 </descr>
 <seealso>
@@ -7661,7 +7082,7 @@ method.
 </element>
 
 <element name="TThreadPriority.tpLower">  <!-- Enumeration value -->
-<short></short>
+<short>Thread runs at a lower priority.</short>
 <descr>
 </descr>
 <seealso>
@@ -7669,7 +7090,7 @@ method.
 </element>
 
 <element name="TThreadPriority.tpNormal">  <!-- Enumeration value -->
-<short></short>
+<short>Thread runs at normal process priority.</short>
 <descr>
 </descr>
 <seealso>
@@ -7677,7 +7098,7 @@ method.
 </element>
 
 <element name="TThreadPriority.tpHigher">  <!-- Enumeration value -->
-<short></short>
+<short>Thread runs at high priority</short>
 <descr>
 </descr>
 <seealso>
@@ -7685,7 +7106,7 @@ method.
 </element>
 
 <element name="TThreadPriority.tpHighest">  <!-- Enumeration value -->
-<short></short>
+<short>Thread runs at highest possible priority.</short>
 <descr>
 </descr>
 <seealso>
@@ -7693,7 +7114,7 @@ method.
 </element>
 
 <element name="TThreadPriority.tpTimeCritical">  <!-- Enumeration value -->
-<short></short>
+<short>Thread runs at realtime priority.</short>
 <descr>
 </descr>
 <seealso>
@@ -7706,128 +7127,8 @@ method.
   *********************************************************************
 -->
 
-<element name="TThread">  <!-- Class -->
-<short>Basic thread class, which starts a new thread.</short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TThread.FHandle">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TThread.FThreadID">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TThread.FTerminated">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TThread.FSuspended">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TThread.FFreeOnTerminate">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TThread.FFinished">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TThread.FReturnValue">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TThread.FOnTerminate">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TThread.FMethod">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TThread.FSynchronizeException">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TThread.CallOnTerminate">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TThread.GetPriority">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TThread.SetPriority">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TThread.SetSuspended">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
 <element name="TThread.DoTerminate">  <!-- Procedure -->
-<short></short>
+<short>Terminates the thread.</short>
 <descr>
 </descr>
 <seealso>
@@ -7835,7 +7136,7 @@ method.
 </element>
 
 <element name="TThread.Execute">  <!-- Procedure -->
-<short></short>
+<short>Execute method. Should be overridden in a descendent thread.</short>
 <descr>
 </descr>
 <seealso>
@@ -7843,7 +7144,7 @@ method.
 </element>
 
 <element name="TThread.Synchronize">  <!-- Procedure -->
-<short></short>
+<short>Synchronizes the thread by executing the method in the main thread.</short>
 <descr>
 </descr>
 <seealso>
@@ -7851,7 +7152,7 @@ method.
 </element>
 
 <element name="TThread.ReturnValue">  <!-- Property -->
-<short></short>
+<short>Return value of the thread when it stops executing.</short>
 <descr>
 </descr>
 <seealso>
@@ -7859,7 +7160,7 @@ method.
 </element>
 
 <element name="TThread.Terminated">  <!-- Property -->
-<short></short>
+<short>Indicates whether the <link id="TThread.Terminate">Terminate</link>method was called by the user.</short>
 <descr>
 </descr>
 <seealso>
@@ -7891,7 +7192,7 @@ method.
 </element>
 
 <element name="TThread.Create">  <!-- Constructor -->
-<short></short>
+<short>Creates a new thread.</short>
 <descr>
 </descr>
 <seealso>
@@ -7899,7 +7200,7 @@ method.
 </element>
 
 <element name="TThread.Destroy">  <!-- Destructor -->
-<short></short>
+<short>Destroys the thread object.</short>
 <descr>
 </descr>
 <seealso>
@@ -7907,7 +7208,7 @@ method.
 </element>
 
 <element name="TThread.Resume">  <!-- Procedure -->
-<short></short>
+<short>Resumes the thread's execution.</short>
 <descr>
 </descr>
 <seealso>
@@ -7915,7 +7216,7 @@ method.
 </element>
 
 <element name="TThread.Suspend">  <!-- Procedure -->
-<short></short>
+<short>Suspends the thread's execution.</short>
 <descr>
 </descr>
 <seealso>
@@ -7923,7 +7224,7 @@ method.
 </element>
 
 <element name="TThread.Terminate">  <!-- Procedure -->
-<short></short>
+<short>Signals the thread it should terminate.</short>
 <descr>
 </descr>
 <seealso>
@@ -7931,7 +7232,7 @@ method.
 </element>
 
 <element name="TThread.WaitFor">  <!-- Function -->
-<short></short>
+<short>Waits for the thread to terminate and returns the exit status.</short>
 <descr>
 </descr>
 <seealso>
@@ -7939,7 +7240,7 @@ method.
 </element>
 
 <element name="TThread.FreeOnTerminate">  <!-- Property -->
-<short></short>
+<short>Indicates whether the thread should free itself when it stops executing.</short>
 <descr>
 </descr>
 <seealso>
@@ -7947,7 +7248,7 @@ method.
 </element>
 
 <element name="TThread.Handle">  <!-- Property -->
-<short></short>
+<short>Returns the thread handle.</short>
 <descr>
 </descr>
 <seealso>
@@ -7955,7 +7256,7 @@ method.
 </element>
 
 <element name="TThread.Priority">  <!-- Property -->
-<short></short>
+<short>Returns the thread priority.</short>
 <descr>
 </descr>
 <seealso>
@@ -7963,7 +7264,7 @@ method.
 </element>
 
 <element name="TThread.Suspended">  <!-- Property -->
-<short></short>
+<short>Indicates whether the thread is suspended.</short>
 <descr>
 </descr>
 <seealso>
@@ -7971,7 +7272,7 @@ method.
 </element>
 
 <element name="TThread.ThreadID">  <!-- Property -->
-<short></short>
+<short>Returns the thread ID.</short>
 <descr>
 </descr>
 <seealso>
@@ -7979,7 +7280,7 @@ method.
 </element>
 
 <element name="TThread.OnTerminate">  <!-- Property -->
-<short></short>
+<short>Event called when the thread terminates.</short>
 <descr>
 </descr>
 <seealso>
@@ -7987,7 +7288,7 @@ method.
 </element>
 
 <element name="TOperation">  <!-- Enumeration type -->
-<short></short>
+<short>Operation of which a component is notified.</short>
 <descr>
 </descr>
 <seealso>
@@ -7995,7 +7296,7 @@ method.
 </element>
 
 <element name="TOperation.opInsert">  <!-- Enumeration value -->
-<short></short>
+<short>A new component is being inserted in the child component list.</short>
 <descr>
 </descr>
 <seealso>
@@ -8003,7 +7304,7 @@ method.
 </element>
 
 <element name="TOperation.opRemove">  <!-- Enumeration value -->
-<short></short>
+<short>A component is being removed from the child component list.</short>
 <descr>
 </descr>
 <seealso>
@@ -8011,7 +7312,7 @@ method.
 </element>
 
 <element name="TComponentState">  <!-- Set type -->
-<short></short>
+<short>Indicates the state of the component during the streaming process.</short>
 <descr>
 </descr>
 <seealso>
@@ -8019,7 +7320,7 @@ method.
 </element>
 
 <element name="TComponentState.csLoading">  <!-- Enumeration value -->
-<short></short>
+<short>The component is being loaded from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -8027,7 +7328,7 @@ method.
 </element>
 
 <element name="TComponentState.csReading">  <!-- Enumeration value -->
-<short></short>
+<short>Properties are being read from the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -8035,7 +7336,7 @@ method.
 </element>
 
 <element name="TComponentState.csWriting">  <!-- Enumeration value -->
-<short></short>
+<short>Properties are being written to the stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -8043,7 +7344,7 @@ method.
 </element>
 
 <element name="TComponentState.csDestroying">  <!-- Enumeration value -->
-<short></short>
+<short>The component is being destroyed.</short>
 <descr>
 </descr>
 <seealso>
@@ -8051,7 +7352,7 @@ method.
 </element>
 
 <element name="TComponentState.csDesigning">  <!-- Enumeration value -->
-<short></short>
+<short>The component is being designed in an IDE.</short>
 <descr>
 </descr>
 <seealso>
@@ -8059,7 +7360,7 @@ method.
 </element>
 
 <element name="TComponentState.csAncestor">  <!-- Enumeration value -->
-<short></short>
+<short>The component is being streamed as part of a frame (?) </short>
 <descr>
 </descr>
 <seealso>
@@ -8067,7 +7368,7 @@ method.
 </element>
 
 <element name="TComponentState.csUpdating">  <!-- Enumeration value -->
-<short></short>
+<short>The component is being updated.</short>
 <descr>
 </descr>
 <seealso>
@@ -8075,7 +7376,7 @@ method.
 </element>
 
 <element name="TComponentState.csFixups">  <!-- Enumeration value -->
-<short></short>
+<short>The component's references to other components are being fixed.</short>
 <descr>
 </descr>
 <seealso>
@@ -8083,7 +7384,7 @@ method.
 </element>
 
 <element name="TComponentState.csFreeNotification">  <!-- Enumeration value -->
-<short></short>
+<short>Indicates whether the component has freenotifications</short>
 <descr>
 </descr>
 <seealso>
@@ -8091,7 +7392,7 @@ method.
 </element>
 
 <element name="TComponentState.csInline">  <!-- Enumeration value -->
-<short></short>
+<short>Component is part of a frame (?).</short>
 <descr>
 </descr>
 <seealso>
@@ -8099,7 +7400,7 @@ method.
 </element>
 
 <element name="TComponentState.csDesignInstance">  <!-- Enumeration value -->
-<short></short>
+<short>??</short>
 <descr>
 </descr>
 <seealso>
@@ -8107,7 +7408,7 @@ method.
 </element>
 
 <element name="TComponentStyle">  <!-- Set type -->
-<short></short>
+<short>Describes the style of the component.</short>
 <descr>
 </descr>
 <seealso>
@@ -8115,7 +7416,7 @@ method.
 </element>
 
 <element name="TComponentStyle.csInheritable">  <!-- Enumeration value -->
-<short></short>
+<short>The component can be on inherited forms.</short>
 <descr>
 </descr>
 <seealso>
@@ -8123,7 +7424,7 @@ method.
 </element>
 
 <element name="TComponentStyle.csCheckPropAvail">  <!-- Enumeration value -->
-<short></short>
+<short>??</short>
 <descr>
 </descr>
 <seealso>
@@ -8131,7 +7432,7 @@ method.
 </element>
 
 <element name="TGetChildProc">  <!-- Procedure type -->
-<short></short>
+<short>Callback used when obtaining child components.</short>
 <descr>
 </descr>
 <seealso>
@@ -8152,160 +7453,9 @@ method.
 </seealso>
 </element>
 
-<element name="TComponent.FOwner">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.FName">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.FTag">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.FComponents">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.FFreeNotifies">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.FDesignInfo">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.FVCLComObject">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.FComponentState">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.GetComponent">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.GetComponentCount">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.GetComponentIndex">  <!-- Function -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.Insert">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.ReadLeft">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.ReadTop">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.Remove">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.SetComponentIndex">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.SetReference">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.WriteLeft">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TComponent.WriteTop">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
 
 <element name="TComponent.FComponentStyle">  <!-- Variable -->
-<short></short>
+<short>Contains the component's style.</short>
 <descr>
 </descr>
 <seealso>
@@ -8313,7 +7463,7 @@ method.
 </element>
 
 <element name="TComponent.ChangeName">  <!-- Procedure -->
-<short></short>
+<short>Called when the name of the component is changed.</short>
 <descr>
 </descr>
 <seealso>
@@ -8321,7 +7471,7 @@ method.
 </element>
 
 <element name="TComponent.DefineProperties">  <!-- Procedure -->
-<short></short>
+<short>Defines fake top,left properties for handling in the IDE.</short>
 <descr>
 </descr>
 <seealso>
@@ -8329,7 +7479,7 @@ method.
 </element>
 
 <element name="TComponent.GetChildren">  <!-- Procedure -->
-<short></short>
+<short>Must be overridden by descendents to return all child components that must be streamed.</short>
 <descr>
 </descr>
 <seealso>
@@ -8337,7 +7487,7 @@ method.
 </element>
 
 <element name="TComponent.GetChildOwner">  <!-- Function -->
-<short></short>
+<short>Returns the owner of any children.</short>
 <descr>
 </descr>
 <seealso>
@@ -8345,7 +7495,7 @@ method.
 </element>
 
 <element name="TComponent.GetChildParent">  <!-- Function -->
-<short></short>
+<short>Returns the parent of any children.</short>
 <descr>
 </descr>
 <seealso>
@@ -8353,7 +7503,7 @@ method.
 </element>
 
 <element name="TComponent.GetNamePath">  <!-- Function -->
-<short></short>
+<short>Returns the name path of this component.</short>
 <descr>
 </descr>
 <seealso>
@@ -8361,7 +7511,7 @@ method.
 </element>
 
 <element name="TComponent.GetOwner">  <!-- Function -->
-<short></short>
+<short>Returns the owner of this component.</short>
 <descr>
 </descr>
 <seealso>
@@ -8369,7 +7519,7 @@ method.
 </element>
 
 <element name="TComponent.Loaded">  <!-- Procedure -->
-<short></short>
+<short>Called when the component has finished loading.</short>
 <descr>
 </descr>
 <seealso>
@@ -8377,7 +7527,7 @@ method.
 </element>
 
 <element name="TComponent.Notification">  <!-- Procedure -->
-<short></short>
+<short>Called by components that are freed and which received a FreeNotification.</short>
 <descr>
 </descr>
 <seealso>
@@ -8385,7 +7535,7 @@ method.
 </element>
 
 <element name="TComponent.ReadState">  <!-- Procedure -->
-<short></short>
+<short>Read the component's state from a stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -8393,7 +7543,7 @@ method.
 </element>
 
 <element name="TComponent.SetAncestor">  <!-- Procedure -->
-<short></short>
+<short>Sets the <var>csAncestor</var> state of the component.</short>
 <descr>
 </descr>
 <seealso>
@@ -8401,7 +7551,7 @@ method.
 </element>
 
 <element name="TComponent.SetDesigning">  <!-- Procedure -->
-<short></short>
+<short>Sets the <var>csDesigning</var> state of the component.</short>
 <descr>
 </descr>
 <seealso>
@@ -8409,7 +7559,7 @@ method.
 </element>
 
 <element name="TComponent.SetName">  <!-- Procedure -->
-<short></short>
+<short>Write handler for <link id="TComponent.Name">Name</link> property.</short>
 <descr>
 </descr>
 <seealso>
@@ -8417,7 +7567,7 @@ method.
 </element>
 
 <element name="TComponent.SetChildOrder">  <!-- Procedure -->
-<short></short>
+<short>Determines the order in which children are streamed/created.</short>
 <descr>
 </descr>
 <seealso>
@@ -8425,7 +7575,7 @@ method.
 </element>
 
 <element name="TComponent.SetParentComponent">  <!-- Procedure -->
-<short></short>
+<short>Set the parent component.</short>
 <descr>
 </descr>
 <seealso>
@@ -8433,7 +7583,7 @@ method.
 </element>
 
 <element name="TComponent.Updating">  <!-- Procedure -->
-<short></short>
+<short>Sets the state to <var>csUpdating</var></short>
 <descr>
 </descr>
 <seealso>
@@ -8441,7 +7591,7 @@ method.
 </element>
 
 <element name="TComponent.Updated">  <!-- Procedure -->
-<short></short>
+<short>Ends the <var>csUpdating</var> state.</short>
 <descr>
 </descr>
 <seealso>
@@ -8449,7 +7599,7 @@ method.
 </element>
 
 <element name="TComponent.UpdateRegistry">  <!-- Procedure -->
-<short></short>
+<short>For compatibilty only.</short>
 <descr>
 </descr>
 <seealso>
@@ -8457,7 +7607,7 @@ method.
 </element>
 
 <element name="TComponent.ValidateRename">  <!-- Procedure -->
-<short></short>
+<short>Called when a name change must be validated</short>
 <descr>
 </descr>
 <seealso>
@@ -8465,7 +7615,7 @@ method.
 </element>
 
 <element name="TComponent.ValidateContainer">  <!-- Procedure -->
-<short></short>
+<short>??</short>
 <descr>
 </descr>
 <seealso>
@@ -8473,7 +7623,7 @@ method.
 </element>
 
 <element name="TComponent.ValidateInsert">  <!-- Procedure -->
-<short></short>
+<short>Called when an insert must be validated.</short>
 <descr>
 </descr>
 <seealso>
@@ -8481,7 +7631,7 @@ method.
 </element>
 
 <element name="TComponent.WriteState">  <!-- Procedure -->
-<short></short>
+<short>Writes the component to a stream.</short>
 <descr>
 </descr>
 <seealso>
@@ -8489,7 +7639,7 @@ method.
 </element>
 
 <element name="TComponent.Create">  <!-- Constructor -->
-<short></short>
+<short>Creates a new instance of the component.</short>
 <descr>
 </descr>
 <seealso>
@@ -8497,7 +7647,7 @@ method.
 </element>
 
 <element name="TComponent.Destroy">  <!-- Destructor -->
-<short></short>
+<short>Destroys the instance of the component.</short>
 <descr>
 </descr>
 <seealso>
@@ -8505,7 +7655,7 @@ method.
 </element>
 
 <element name="TComponent.DestroyComponents">  <!-- Procedure -->
-<short></short>
+<short>Destroy child components.</short>
 <descr>
 </descr>
 <seealso>
@@ -8513,7 +7663,7 @@ method.
 </element>
 
 <element name="TComponent.Destroying">  <!-- Procedure -->
-<short></short>
+<short>Called when the component is being destroyed</short>
 <descr>
 </descr>
 <seealso>
@@ -8521,7 +7671,7 @@ method.
 </element>
 
 <element name="TComponent.FindComponent">  <!-- Function -->
-<short></short>
+<short>Finds and returns the named component in the owned components.</short>
 <descr>
 </descr>
 <seealso>
@@ -8529,7 +7679,7 @@ method.
 </element>
 
 <element name="TComponent.FreeNotification">  <!-- Procedure -->
-<short></short>
+<short>Ask the component to notify called when it is being destroyed.</short>
 <descr>
 </descr>
 <seealso>
@@ -8537,7 +7687,7 @@ method.
 </element>
 
 <element name="TComponent.FreeOnRelease">  <!-- Procedure -->
-<short></short>
+<short>Part of the <var>IVCLComObject</var> interface.</short>
 <descr>
 </descr>
 <seealso>
@@ -8545,7 +7695,7 @@ method.
 </element>
 
 <element name="TComponent.GetParentComponent">  <!-- Function -->
-<short></short>
+<short>Returns the parent component.</short>
 <descr>
 </descr>
 <seealso>
@@ -8553,7 +7703,7 @@ method.
 </element>
 
 <element name="TComponent.HasParent">  <!-- Function -->
-<short></short>
+<short>Does the component have a parent ?</short>
 <descr>
 </descr>
 <seealso>
@@ -8561,7 +7711,7 @@ method.
 </element>
 
 <element name="TComponent.InsertComponent">  <!-- Procedure -->
-<short></short>
+<short>Insert the given component in the list of owned components.</short>
 <descr>
 </descr>
 <seealso>
@@ -8569,7 +7719,7 @@ method.
 </element>
 
 <element name="TComponent.RemoveComponent">  <!-- Procedure -->
-<short></short>
+<short>Remove the given component from the list of owned components.</short>
 <descr>
 </descr>
 <seealso>
@@ -8577,7 +7727,7 @@ method.
 </element>
 
 <element name="TComponent.SafeCallException">  <!-- Function -->
-<short></short>
+<short>Part of the <var>IVCLComObject</var> Interface.</short>
 <descr>
 </descr>
 <seealso>
@@ -8585,7 +7735,7 @@ method.
 </element>
 
 <element name="TComponent.Components">  <!-- Property -->
-<short></short>
+<short>Indexed list (zero-based) of all owned components.</short>
 <descr>
 </descr>
 <seealso>
@@ -8593,7 +7743,7 @@ method.
 </element>
 
 <element name="TComponent.ComponentCount">  <!-- Property -->
-<short></short>
+<short>Count of owned components</short>
 <descr>
 </descr>
 <seealso>
@@ -8601,7 +7751,7 @@ method.
 </element>
 
 <element name="TComponent.ComponentIndex">  <!-- Property -->
-<short></short>
+<short>Index of component in it's owner's list.</short>
 <descr>
 </descr>
 <seealso>
@@ -8609,7 +7759,7 @@ method.
 </element>
 
 <element name="TComponent.ComponentState">  <!-- Property -->
-<short></short>
+<short>Current component's state.</short>
 <descr>
 </descr>
 <seealso>
@@ -8617,7 +7767,7 @@ method.
 </element>
 
 <element name="TComponent.ComponentStyle">  <!-- Property -->
-<short></short>
+<short>Current component's style.</short>
 <descr>
 </descr>
 <seealso>
@@ -8625,7 +7775,7 @@ method.
 </element>
 
 <element name="TComponent.DesignInfo">  <!-- Property -->
-<short></short>
+<short>Information for IDE designer.</short>
 <descr>
 </descr>
 <seealso>
@@ -8633,7 +7783,7 @@ method.
 </element>
 
 <element name="TComponent.Owner">  <!-- Property -->
-<short></short>
+<short>Owner of this component.</short>
 <descr>
 </descr>
 <seealso>
@@ -8641,7 +7791,7 @@ method.
 </element>
 
 <element name="TComponent.VCLComObject">  <!-- Property -->
-<short></short>
+<short>Not implemented.</short>
 <descr>
 </descr>
 <seealso>
@@ -8649,7 +7799,7 @@ method.
 </element>
 
 <element name="TComponent.Name">  <!-- Property -->
-<short></short>
+<short>Name of the component.</short>
 <descr>
 </descr>
 <seealso>
@@ -8657,7 +7807,7 @@ method.
 </element>
 
 <element name="TComponent.Tag">  <!-- Property -->
-<short></short>
+<short>Tag value of the component.</short>
 <descr>
 </descr>
 <seealso>
@@ -8665,7 +7815,7 @@ method.
 </element>
 
 <element name="TActiveXRegType">  <!-- Enumeration type -->
-<short></short>
+<short>Used when registering ActveX component types.</short>
 <descr>
 </descr>
 <seealso>
@@ -8689,7 +7839,7 @@ method.
 </element>
 
 <element name="RegisterComponentsProc">  <!-- Variable -->
-<short></short>
+<short>Callback procedure used when handling component registration.</short>
 <descr>
 </descr>
 <seealso>
@@ -8697,7 +7847,8 @@ method.
 </element>
 
 <element name="RegisterNoIconProc">  <!-- Variable -->
-<short></short>
+<short>>Callback procedure used when handling iconless component
+registration.</short>
 <descr>
 </descr>
 <seealso>
@@ -8705,7 +7856,7 @@ method.
 </element>
 
 <element name="Point">  <!-- Function -->
-<short></short>
+<short>Returns a <var>TPoint</var> record with the given coordinates.</short>
 <descr>
 </descr>
 <seealso>
@@ -8713,7 +7864,7 @@ method.
 </element>
 
 <element name="SmallPoint">  <!-- Function -->
-<short></short>
+<short>Returns a <var>TSmallPoint</var> record with the given coordinates.</short>
 <descr>
 </descr>
 <seealso>
@@ -8721,7 +7872,7 @@ method.
 </element>
 
 <element name="Rect">  <!-- Function -->
-<short></short>
+<short>Returns a <var>TRect</var> record with the given coordinates.</short>
 <descr>
 </descr>
 <seealso>
@@ -8729,7 +7880,8 @@ method.
 </element>
 
 <element name="Bounds">  <!-- Function -->
-<short></short>
+<short>Returns a <var>TRect</var> structure with the bounding rect of the
+given location and size.</short>
 <descr>
 </descr>
 <seealso>
@@ -8737,7 +7889,7 @@ method.
 </element>
 
 <element name="RegisterClass">  <!-- Procedure -->
-<short></short>
+<short>Registers a class with the streaming system.</short>
 <descr>
 </descr>
 <seealso>
@@ -8745,7 +7897,7 @@ method.
 </element>
 
 <element name="RegisterClasses">  <!-- Procedure -->
-<short></short>
+<short>Registers multiple classes with the streaming system.</short>
 <descr>
 </descr>
 <seealso>
@@ -8753,7 +7905,7 @@ method.
 </element>
 
 <element name="RegisterClassAlias">  <!-- Procedure -->
-<short></short>
+<short>Registers a class alias with the streaming system.</short>
 <descr>
 </descr>
 <seealso>
@@ -8761,7 +7913,7 @@ method.
 </element>
 
 <element name="UnRegisterClass">  <!-- Procedure -->
-<short></short>
+<short>Unregisters a class from the streaming system.</short>
 <descr>
 </descr>
 <seealso>
@@ -8769,7 +7921,7 @@ method.
 </element>
 
 <element name="UnRegisterClasses">  <!-- Procedure -->
-<short></short>
+<short>Unregisters multiple classes from the streaming system.</short>
 <descr>
 </descr>
 <seealso>
@@ -8785,7 +7937,7 @@ method.
 </element>
 
 <element name="FindClass">  <!-- Function -->
-<short></short>
+<short>Returns the class pointer of a class with given name.</short>
 <descr>
 </descr>
 <seealso>
@@ -8793,7 +7945,7 @@ method.
 </element>
 
 <element name="GetClass">  <!-- Function -->
-<short></short>
+<short>Returns the class pointer of a class with given name.</short>
 <descr>
 </descr>
 <seealso>
@@ -8801,7 +7953,7 @@ method.
 </element>
 
 <element name="RegisterComponents">  <!-- Procedure -->
-<short></short>
+<short>Registers components for the component palette.</short>
 <descr>
 </descr>
 <seealso>
@@ -8809,7 +7961,7 @@ method.
 </element>
 
 <element name="RegisterNoIcon">  <!-- Procedure -->
-<short></short>
+<short>Registers components that have no icon on component palette.</short>
 <descr>
 </descr>
 <seealso>
@@ -8817,7 +7969,7 @@ method.
 </element>
 
 <element name="RegisterNonActiveX">  <!-- Procedure -->
-<short></short>
+<short>Register non-activex component.</short>
 <descr>
 </descr>
 <seealso>
@@ -8825,7 +7977,7 @@ method.
 </element>
 
 <element name="TIdentMapEntry">  <!-- Record type -->
-<short></short>
+<short>Record used when associating names with integer values.</short>
 <descr>
 </descr>
 <seealso>
@@ -8833,7 +7985,7 @@ method.
 </element>
 
 <element name="TIdentMapEntry.Value">  <!-- Variable -->
-<short></short>
+<short>Integer value</short>
 <descr>
 </descr>
 <seealso>
@@ -8841,7 +7993,7 @@ method.
 </element>
 
 <element name="TIdentMapEntry.Name">  <!-- Variable -->
-<short></short>
+<short>Name of the integer value.</short>
 <descr>
 </descr>
 <seealso>
@@ -8849,7 +8001,7 @@ method.
 </element>
 
 <element name="TIdentToInt">  <!-- Function type -->
-<short></short>
+<short>Callback for converting identifiers to integers.</short>
 <descr>
 </descr>
 <seealso>
@@ -8857,7 +8009,7 @@ method.
 </element>
 
 <element name="TIntToIdent">  <!-- Function type -->
-<short></short>
+<short>Callback for converting integers to identifiers.</short>
 <descr>
 </descr>
 <seealso>
@@ -8865,7 +8017,7 @@ method.
 </element>
 
 <element name="TFindGlobalComponent">  <!-- Function type -->
-<short></short>
+<short>Callback type to search for a component.</short>
 <descr>
 </descr>
 <seealso>
@@ -8873,7 +8025,7 @@ method.
 </element>
 
 <element name="MainThreadID">  <!-- Variable -->
-<short></short>
+<short>ID of main thread. Unused at this point.</short>
 <descr>
 </descr>
 <seealso>
@@ -8881,7 +8033,7 @@ method.
 </element>
 
 <element name="FindGlobalComponent">  <!-- Variable -->
-<short></short>
+<short>Callback used when a component must be found.</short>
 <descr>
 </descr>
 <seealso>
@@ -8889,7 +8041,7 @@ method.
 </element>
 
 <element name="RegisterIntegerConsts">  <!-- Procedure -->
-<short></short>
+<short>Registers some integer-to-identifier mappings.</short>
 <descr>
 </descr>
 <seealso>
@@ -8897,7 +8049,7 @@ method.
 </element>
 
 <element name="IdentToInt">  <!-- Function -->
-<short></short>
+<short>Returns the integer value that corresponds with the identifier.</short>
 <descr>
 </descr>
 <seealso>
