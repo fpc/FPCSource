@@ -831,7 +831,7 @@ begin
 end;
 
 
-Procedure fpc_WideStr_Cardinal(C : Cardinal;Len : Longint; Var S : WideString);[Public,Alias : 'FPC_WIDESTR_CARDINAL']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_Longword(C : Longword;Len : Longint; Var S : WideString);[Public,Alias : 'FPC_WIDESTR_CARDINAL']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Var
   SS : ShortString;
 begin
@@ -853,7 +853,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  2002-09-07 15:07:46  peter
+  Revision 1.20  2002-09-07 21:16:45  carl
+    * cardinal -> longword
+
+  Revision 1.19  2002/09/07 15:07:46  peter
     * old logs removed and tabs fixed
 
   Revision 1.18  2002/07/29 21:28:17  florian

@@ -341,8 +341,11 @@ begin
     s:=space(len-length(s))+s;
 end;
 
-
-procedure fpc_shortstr_cardinal(v : cardinal;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_CARDINAL']; {$ifdef hascompilerproc} compilerproc; {$endif}
+{$ifdef ver1_0}
+procedure fpc_shortstr_cardinal(v : longword;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_CARDINAL']; {$ifdef hascompilerproc} compilerproc; {$endif}
+{$else}
+procedure fpc_shortstr_longword(v : longword;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_LONGWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+{$endif}
 begin
   int_str(v,s);
   if length(s)<len then
@@ -380,8 +383,7 @@ begin
   move(ss[1],pchar(@a)^,maxlen);
 end;
 
-
-procedure fpc_chararray_cardinal(v : cardinal;len : longint;var a : array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_chararray_longword(v : longword;len : longint;var a : array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
 var
   ss : shortstring;
   maxlen : longint;
@@ -660,7 +662,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  2002-09-07 15:07:46  peter
+  Revision 1.22  2002-09-07 21:19:00  carl
+    * cardinal -> longword
+
+  Revision 1.21  2002/09/07 15:07:46  peter
     * old logs removed and tabs fixed
 
   Revision 1.20  2002/09/02 19:24:41  peter
