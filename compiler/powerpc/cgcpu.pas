@@ -89,7 +89,7 @@ unit cgcpu;
         procedure g_overflowcheck(list: taasmoutput; const p: tnode); override;
         { find out whether a is of the form 11..00..11b or 00..11...00. If }
         { that's the case, we can use rlwinm to do an AND operation        }
-        function get_rlwi_const(a: longint; var l1, l2: longint): boolean;
+        function get_rlwi_const(a: aword; var l1, l2: longint): boolean;
 
         procedure g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
         procedure g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
@@ -1476,7 +1476,7 @@ const
 
     { find out whether a is of the form 11..00..11b or 00..11...00. If }
     { that's the case, we can use rlwinm to do an AND operation        }
-    function tcgppc.get_rlwi_const(a: longint; var l1, l2: longint): boolean;
+    function tcgppc.get_rlwi_const(a: aword; var l1, l2: longint): boolean;
 
       var
         temp, testbit: longint;
@@ -1688,7 +1688,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2002-09-01 21:04:49  florian
+  Revision 1.51  2002-09-02 06:09:02  jonas
+    * fixed range error
+
+  Revision 1.50  2002/09/01 21:04:49  florian
     * several powerpc related stuff fixed
 
   Revision 1.49  2002/09/01 12:09:27  peter
