@@ -135,7 +135,6 @@ procedure pixel(offset:longint);
       je     dxor24BPP
  dxor32BPP:
       movl   %gs:(%esi),%edx
-      andl   $0x00FFFFFF,%eax
       xorl   %edx,%eax
       movl   %eax,%gs:(%esi)
       jmp    pd_exit
@@ -163,7 +162,6 @@ procedure pixel(offset:longint);
       cmpl   $3,%ebx
       je     dmove24BPP
  dmove32BPP:
-      andl   $0x00FFFFFF,%eax
       movl   %eax,%gs:(%esi)
       jmp    pd_exit
  dmove24BPP:
@@ -243,7 +241,6 @@ if aktviewport.clip then viewport:=aktviewport else viewport:=aktscreen;
       je     g_24BPP
   g_32BPP:
       movl   %gs:(%esi),%eax
-      andl   $0x00FFFFFF,%eax
       jmp    g_Result
   g_24BPP:
       movl   _WINLOMASKMINUSPIXELSIZE,%edi
@@ -284,7 +281,14 @@ end; { proc }
 
 {
   $Log$
-  Revision 1.3  1998-11-18 09:31:40  pierre
+  Revision 1.4  1998-11-18 13:23:36  pierre
+    * floodfill got into an infinite loop !!
+    + added partial support for fillpoly
+      (still wrong if the polygon is not convex)
+      Simply make a floodfill from the barycenter !
+    * some 24BPP code changed (still does not work for my S3VBE program !)
+
+  Revision 1.3  1998/11/18 09:31:40  pierre
     * changed color scheme
       all colors are in RGB format if more than 256 colors
     + added 24 and 32 bits per pixel mode

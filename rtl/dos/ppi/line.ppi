@@ -58,9 +58,9 @@ begin
  .Lpl_movd32BPP:
     andl   $7,%ebx
     movl   (%esi,%ebx,4),%eax
-    andl   $0x00FFFFFF,%eax
     movl   %eax,%es:(%edi)
     addl   $4,%edi
+    { should not be necessary !! }
     cmpl   _WINLOMASKMINUSPIXELSIZE,%edi
     ja     .Lpl_d_exit
     incl   %ebx
@@ -117,7 +117,6 @@ begin
  .Lpl_xord32BPP:
     andl   $7,%ebx
     movl   (%esi,%ebx,4),%eax
-    andl   $0x00FFFFFF,%eax
     movl   %es:(%edi),%edx
     xorl   %edx,%eax
     movl   %eax,%es:(%edi)
@@ -382,7 +381,7 @@ begin
 dontcheck:=(y1>=viewport.y1) and (y2<=viewport.y2) and 
            (x1>=viewport.x1) and (x1<=viewport.x2) and
            (x2>=viewport.x1) and (x2<=viewport.x2) and
-           (BytesPerPixel<=2);
+           (BytesPerPixel<3);
 
 if aktlineinfo.thickness=3 then 
 
@@ -653,7 +652,14 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-11-18 09:31:37  pierre
+  Revision 1.4  1998-11-18 13:23:35  pierre
+    * floodfill got into an infinite loop !!
+    + added partial support for fillpoly
+      (still wrong if the polygon is not convex)
+      Simply make a floodfill from the barycenter !
+    * some 24BPP code changed (still does not work for my S3VBE program !)
+
+  Revision 1.3  1998/11/18 09:31:37  pierre
     * changed color scheme
       all colors are in RGB format if more than 256 colors
     + added 24 and 32 bits per pixel mode

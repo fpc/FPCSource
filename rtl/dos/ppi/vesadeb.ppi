@@ -55,7 +55,7 @@
     write('    write: ');     if (VESAInfo.WinBAttributes and 5)=5 then write('yes')else write('no ');
     writeln('   Segment:  ',HexStr(VESAInfo.segWinB,4));
     writeln('Granularity  : ',VESAInfo.WinGranularity);
-    writeln('WinSize      : ',VESAInfo.Winsize,' KByte');
+    writeln('WinSize      : ',Winsize,' KByte  WinShift : ',WinShift);
     writeln('BytesPerLine : ',BytesPerLine);
     writeln('BytesPerPixel: ',BytesPerPixel);
     if isDPMI then
@@ -74,7 +74,14 @@
  
 {
   $Log$
-  Revision 1.2  1998-11-18 09:31:43  pierre
+  Revision 1.3  1998-11-18 13:23:37  pierre
+    * floodfill got into an infinite loop !!
+    + added partial support for fillpoly
+      (still wrong if the polygon is not convex)
+      Simply make a floodfill from the barycenter !
+    * some 24BPP code changed (still does not work for my S3VBE program !)
+
+  Revision 1.2  1998/11/18 09:31:43  pierre
     * changed color scheme
       all colors are in RGB format if more than 256 colors
     + added 24 and 32 bits per pixel mode

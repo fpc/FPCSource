@@ -26,14 +26,14 @@ var start,ende,xx : integer;
 begin  
   xx:=x; col:=getpixel(xx,y);
   if col=bordercol then exit;
-  while (col<>bordercol) and (xx > viewport.x1) and (col<>fillcol)
+  while (col<>bordercol) and (xx >= viewport.x1) and (col<>fillcol)
     do begin
       xx:=xx-1; col:=getpixel(xx,y);
     end;
   start:=xx+1; 
 
   xx:=x+1; col:=getpixel(xx,y);
-  while (col<>bordercol) and (xx < viewport.x2) and (col<>fillcol)
+  while (col<>bordercol) and (xx <= viewport.x2) and (col<>fillcol)
     do begin
       xx:=xx+1; col:=getpixel(xx,y);
     end;
@@ -56,8 +56,8 @@ begin
     until xx > ende;
   end;
 
-  if (y > viewport.y1) 
-  then begin
+  if (y >= viewport.y1) and (y<viewport.y2) then
+   begin
     xx:=start;
     repeat
       col:=getpixel(xx,y+1);
@@ -177,15 +177,38 @@ end;
 
 { just dummy not implemented yet }
 procedure FillPoly(points : word;var polypoints);
+{$R-}
+ type PointTypeArray = Array[0..0] of PointType;
+ var xm,ym : longint;
+     i : word;
 begin
    { simply call drawpoly instead (PM) }
    DrawPoly(points,polypoints);
+   { assume the poly is convex so the barcenter is inside PM }
+   { this can be completely wrong !! }
+   xm:=0;
+   ym:=0;
+   For i:=0 to points-1 do
+     begin
+        xm:=xm+PointTypeArray(polypoints)[i].x;
+        ym:=ym+PointTypeArray(polypoints)[i].y;
+     end;
+   xm:=xm div points;
+   ym:=ym div points;
+   floodfill(xm,ym,truecolor);
 end;
 
 
 {
   $Log$
-  Revision 1.2  1998-11-18 09:31:33  pierre
+  Revision 1.3  1998-11-18 13:23:34  pierre
+    * floodfill got into an infinite loop !!
+    + added partial support for fillpoly
+      (still wrong if the polygon is not convex)
+      Simply make a floodfill from the barycenter !
+    * some 24BPP code changed (still does not work for my S3VBE program !)
+
+  Revision 1.2  1998/11/18 09:31:33  pierre
     * changed color scheme
       all colors are in RGB format if more than 256 colors
     + added 24 and 32 bits per pixel mode
