@@ -66,7 +66,7 @@ interface
        gpcmodeswitches    : tmodeswitches=
          [m_gpc,m_all];
        macmodeswitches : tmodeswitches=
-         [m_mac,m_all,m_result,m_repeat_forward,m_cvar_support];
+         [m_mac,m_all,m_result,m_repeat_forward,m_cvar_support,m_tp_procvar];
 
 
        { maximum number of locals in bytes before warning is emitted }
@@ -2218,7 +2218,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.165  2005-02-01 08:46:13  michael
+  Revision 1.166  2005-02-01 17:57:30  olle
+    * macpas now uses tp style proc params
+
+  Revision 1.165  2005/02/01 08:46:13  michael
    * Patch from peter: fix macpas anonymous function procvar
 
   Revision 1.164  2005/01/31 21:30:56  olle
