@@ -55,7 +55,7 @@ unit ptconst;
 {$ifdef m68k}
          j : longint;
 {$endif m68k}
-         len       : longint;
+         len,base  : longint;
          p,hp      : ptree;
          i,l,offset,
          strlength : longint;
@@ -179,6 +179,14 @@ unit ptconst;
            begin
               p:=comp_expr(true);
               do_firstpass(p);
+              if (p^.treetype=typeconvn) and
+                 ((p^.left^.treetype=addrn) or (p^.left^.treetype=niln)) and
+                 is_equal(def,p^.resulttype) then
+                begin
+                   hp:=p^.left;
+                   putnode(p);
+                   p:=hp;
+                end;
               { allows horrible ofs(typeof(TButton)^) code !! }
               if (p^.treetype=addrn) and (p^.left^.treetype=derefn) then
                 begin
@@ -193,7 +201,8 @@ unit ptconst;
               { maybe pchar ? }
               else
                 if (ppointerdef(def)^.definition^.deftype=orddef) and
-                   (porddef(ppointerdef(def)^.definition)^.typ=uchar) then
+                   (porddef(ppointerdef(def)^.definition)^.typ=uchar) and
+		   (p^.treetype<>addrn) then
                   begin
                     getdatalabel(ll);
                     datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(ll)))));
@@ -227,7 +236,29 @@ unit ptconst;
                         while assigned(hp) and (hp^.treetype<>loadn) do
                           begin
                              case hp^.treetype of
-                               vecn       : internalerror(9779);
+                               vecn       :
+                                 begin
+                                    if (hp^.left^.resulttype^.deftype=stringdef) then
+                                      begin
+                                         { this seems OK for shortstring and ansistrings PM }
+                                         { it is wrong for widestrings !! }
+                                         len:=1;
+                                         base:=0;
+                                      end
+                                    else if (hp^.left^.resulttype^.deftype=arraydef) then
+                                      begin
+                                         len:=parraydef(hp^.left^.resulttype)^.elesize;
+                                         base:=parraydef(hp^.left^.resulttype)^.lowrange;
+                                      end
+                                    else
+                                      Message(cg_e_illegal_expression);
+                                    if is_constintnode(hp^.right) then
+                                      inc(offset,len*(get_ordinal_value(hp^.right)-base))
+                                    else
+                                      Message(cg_e_illegal_expression);
+                                      {internalerror(9779);}
+                                 end;
+                                 
                                subscriptn : inc(offset,hp^.vs^.address)
                              else
                                Message(cg_e_illegal_expression);
@@ -661,7 +692,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.34  1999-01-05 08:20:08  florian
+  Revision 1.35  1999-01-20 14:09:28  pierre
+   * fix to bug0191
+
+  Revision 1.34  1999/01/05 08:20:08  florian
     * mainly problem with invalid case ranges fixed (reported by Jonas)
 
   Revision 1.33  1998/12/15 17:16:01  peter
