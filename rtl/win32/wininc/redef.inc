@@ -753,8 +753,8 @@ function RegisterClass(const lpWndClass: TWndClass): ATOM;external 'user32' name
 function RegisterClassA(const lpWndClass: TWndClassA): ATOM; external 'user32' name 'RegisterClassA';
 function RegisterClassEx(const WndClass: TWndClassEx): ATOM;external 'user32' name 'RegisterClassExA';
 function RegisterClassExA(const WndClass: TWndClassExA): ATOM; external 'user32' name 'RegisterClassExA';
-//function RegisterClassExW(const WndClass: TWndClassExW): ATOM; external 'user32' name 'RegisterClassExW';
-//function RegisterClassW(const lpWndClass: TWndClassW): ATOM; external 'user32' name 'RegisterClassW';
+function RegisterClassExW(const WndClass: TWndClassExW): ATOM; external 'user32' name 'RegisterClassExW';
+function RegisterClassW(const lpWndClass: TWndClassW): ATOM; external 'user32' name 'RegisterClassW';
 function RegOpenKey(hKey: HKEY; lpSubKey: PChar; var phkResult: HKEY): Longint;external 'advapi32' name 'RegOpenKeyA';
 function RegOpenKeyA(hKey: HKEY; lpSubKey: LPCSTR; var phkResult: HKEY): Longint; external 'advapi32' name 'RegOpenKeyA';
 function RegOpenKeyEx(hKey: HKEY; lpSubKey: PChar; ulOptions: DWORD; samDesired: REGSAM; var phkResult: HKEY): Longint;external 'advapi32' name 'RegOpenKeyExA';
@@ -1059,7 +1059,10 @@ end;
 
 {
   $Log$
-  Revision 1.26  2004-11-07 20:25:02  marco
+  Revision 1.27  2004-11-07 20:46:27  marco
+   * fix for 3299
+
+  Revision 1.26  2004/11/07 20:25:02  marco
    * fixes for bug 3303 (devmodew)
 
   Revision 1.25  2004/08/08 16:52:52  florian

@@ -188,10 +188,10 @@ function PostMessageW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL
 function PostThreadMessageW(idThread:DWORD; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external 'user32' name 'PostThreadMessageW';
 function DefWindowProcW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'DefWindowProcW';
 function CallWindowProcW(lpPrevWndFunc:WNDPROC; hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'CallWindowProcW';
-function RegisterClassW(lpWndClass:LPWNDCLASS):ATOM; external 'user32' name 'RegisterClassW';
+function RegisterClassW(lpWndClass:LPWNDCLASSW):ATOM; external 'user32' name 'RegisterClassW';
 function UnregisterClassW(lpClassName:LPCWSTR; hInstance:HINST):WINBOOL; external 'user32' name 'UnregisterClassW';
 function GetClassInfoW(hInstance:HINST; lpClassName:LPCWSTR; lpWndClass:LPWNDCLASS):WINBOOL; external 'user32' name 'GetClassInfoW';
-function RegisterClassExW(_para1:LPWNDCLASSEX):ATOM; external 'user32' name 'RegisterClassExW';
+function RegisterClassExW(_para1:LPWNDCLASSEXW):ATOM; external 'user32' name 'RegisterClassExW';
 function GetClassInfoExW(_para1:HINST; _para2:LPCWSTR; _para3:LPWNDCLASSEX):WINBOOL; external 'user32' name 'GetClassInfoExW';
 function CreateWindowExW(dwExStyle:DWORD; lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:longint;Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU;hInstance:HINST; lpParam:LPVOID):HWND;
   external 'user32' name 'CreateWindowExW';
@@ -492,7 +492,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2004-11-07 20:25:02  marco
+  Revision 1.11  2004-11-07 20:46:27  marco
+   * fix for 3299
+
+  Revision 1.10  2004/11/07 20:25:02  marco
    * fixes for bug 3303 (devmodew)
 
   Revision 1.9  2004/08/08 16:52:52  florian

@@ -6194,6 +6194,24 @@
      TWNDCLASSA = WNDCLASS;
      PWNDCLASS = ^WNDCLASS;
 
+
+     WNDCLASSW = record
+          style : UINT;
+          lpfnWndProc : WNDPROC;
+          cbClsExtra : longint;
+          cbWndExtra : longint;
+          hInstance : HANDLE;
+          hIcon : HICON;
+          hCursor : HCURSOR;
+          hbrBackground : HBRUSH;
+          lpszMenuName : LPCWSTR;
+          lpszClassName : LPCWSTR;
+       end;
+     LPWNDCLASSW = ^WNDCLASSW;
+     _WNDCLASSW  = WNDCLASSW;
+     TWNDCLASSW  = WNDCLASSW;
+     PWNDCLASSW  = ^WNDCLASSW;
+
      WNDCLASSEX = record
           cbSize : UINT;
           style : UINT;
@@ -6213,6 +6231,25 @@
      TWNDCLASSEX = WNDCLASSEX;
      TWNDCLASSEXA = WNDCLASSEX;
      PWNDCLASSEX = ^WNDCLASSEX;
+
+     WNDCLASSEXW = record
+          cbSize : UINT;
+          style : UINT;
+          lpfnWndProc : WNDPROC;
+          cbClsExtra : longint;
+          cbWndExtra : longint;
+          hInstance : HANDLE;
+          hIcon : HICON;
+          hCursor : HCURSOR;
+          hbrBackground : HBRUSH;
+          lpszMenuName : LPCWSTR;
+          lpszClassName : LPCWSTR;
+          hIconSm : HANDLE;
+       end;
+     LPWNDCLASSEXW = ^WNDCLASSEXW;
+     _WNDCLASSEXW  = WNDCLASSEXW;
+     TWNDCLASSEXW  = WNDCLASSEXW;
+     PWNDCLASSEXW  = ^WNDCLASSEXW;
 
      CONNECTDLGSTRUCT = record
           cbStructure : DWORD;
@@ -7082,7 +7119,10 @@ type
 
 {
   $Log$
-  Revision 1.27  2004-11-07 20:25:02  marco
+  Revision 1.28  2004-11-07 20:46:27  marco
+   * fix for 3299
+
+  Revision 1.27  2004/11/07 20:25:02  marco
    * fixes for bug 3303 (devmodew)
 
   Revision 1.26  2004/07/27 12:03:15  michael

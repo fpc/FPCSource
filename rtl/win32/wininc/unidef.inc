@@ -191,7 +191,7 @@ function CallWindowProc(lpPrevWndFunc:WNDPROC; hWnd:HWND; Msg:UINT; wParam:WPARA
 function RegisterClass(lpWndClass:LPWNDCLASS):ATOM; external 'user32' name 'RegisterClassW';
 function UnregisterClass(lpClassName:LPCWSTR; hInstance:HINST):WINBOOL; external 'user32' name 'UnregisterClassW';
 function GetClassInfo(hInstance:HINST; lpClassName:LPCWSTR; lpWndClass:LPWNDCLASS):WINBOOL; external 'user32' name 'GetClassInfoW';
-function RegisterClassEx(_para1:LPWNDCLASSEX):ATOM; external 'user32' name 'RegisterClassExW';
+function RegisterClassEx(_para1:LPWNDCLASSEXW):ATOM; external 'user32' name 'RegisterClassExW';
 function GetClassInfoEx(_para1:HINST; _para2:LPCWSTR; _para3:LPWNDCLASSEX):WINBOOL; external 'user32' name 'GetClassInfoExW';
 function CreateWindowEx(dwExStyle:DWORD; lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:longint;Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU;hInstance:HINST; lpParam:LPVOID):HWND;
   external 'user32' name 'CreateWindowExW';
@@ -492,7 +492,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2004-11-07 20:25:02  marco
+  Revision 1.11  2004-11-07 20:46:27  marco
+   * fix for 3299
+
+  Revision 1.10  2004/11/07 20:25:02  marco
    * fixes for bug 3303 (devmodew)
 
   Revision 1.9  2004/08/08 16:52:52  florian
