@@ -1338,6 +1338,10 @@ ifdef GDBVER
 gdbint$(PPUEXT): gdbint$(PASEXT)
 	$(COMPILER) -d$(GDBVER) gdbint$(PASEXT)
 else
+ifeq ($(strip $(shell gdbver$(EXEEXT) -n)),)
+gdbint$(PPUEXT): gdbver$(EXEEXT)
+	$(MAKE) gdbint$(PPUEXT)
+else
 gdbint$(PPUEXT): gdbver$(EXEEXT) gdbint$(PASEXT)
 ifeq ($(shell gdbver$(EXEEXT) -n),5)
 	$(ECHO) Using GDB 5
@@ -1345,6 +1349,7 @@ ifeq ($(shell gdbver$(EXEEXT) -n),5)
 else
 	$(ECHO) Using GDB 4
 	$(MAKE) gdbint$(PPUEXT) GDBVER=GDB_V4
+endif
 endif
 endif
 
