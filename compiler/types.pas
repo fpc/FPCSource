@@ -186,7 +186,8 @@ interface
           tc_intf_2_guid,
           tc_class_2_intf,
           tc_char_2_char,
-          tc_normal_2_smallset
+          tc_normal_2_smallset,
+          tc_dynarray_2_openarray
        );
 
     function assignment_overloaded(from_def,to_def : tdef) : tprocdef;
@@ -1174,6 +1175,12 @@ implementation
                      (is_array_of_const(def2) and is_array_constructor(def1));
                  end
                else
+                if (is_dynamic_array(def1) or is_dynamic_array(def2)) then
+                  begin
+                    b := is_dynamic_array(def1) and is_dynamic_array(def2) and
+                         is_equal(tarraydef(def1).elementtype.def,tarraydef(def2).elementtype.def);
+                  end
+               else   
                 if is_open_array(def1) or is_open_array(def2) then
                  begin
                    b:=is_equal(tarraydef(def1).elementtype.def,tarraydef(def2).elementtype.def);
@@ -1523,6 +1530,15 @@ implementation
                              end;
                          end
                         else
+                         { dynamic array -> open array }
+                         if is_dynamic_array(def_from) and
+                            is_open_array(def_to) and
+                            is_equal(tarraydef(def_to).elementtype.def,tarraydef(def_from).elementtype.def) then
+                           begin
+                             doconv := tc_dynarray_2_openarray;
+                             b := 2;
+                           end
+                        else
                         { array of tvarrec -> array of const }
                          if is_array_of_const(def_to) and
                             is_equal(tarraydef(def_to).elementtype.def,tarraydef(def_from).elementtype.def) then
@@ -1869,7 +1885,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2001-12-03 21:48:43  peter
+  Revision 1.59  2001-12-10 14:34:04  jonas
+    * fixed type conversions from dynamic arrays to open arrays
+
+  Revision 1.58  2001/12/03 21:48:43  peter
     * freemem change to value parameter
     * torddef low/high range changed to int64
 

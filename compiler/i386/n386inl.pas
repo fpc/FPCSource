@@ -455,11 +455,6 @@ implementation
                    end;
                  location.resflags:=F_NE;
               end;
-             in_reset_typedfile,in_rewrite_typedfile :
-               begin
-                  { should be removed in pass_1 (JM) }
-                  internalerror(200108132);
-               end;
             in_setlength_x:
                begin
                   pushusedregisters(pushed,$ff);
@@ -548,22 +543,6 @@ implementation
                   popusedregisters(pushed);
                   maybe_loadself;
                end;
-              in_read_x,
-              in_readln_x,
-              in_write_x,
-              in_writeln_x :
-                { should be removed in the resulttype pass already (JM) }
-                internalerror(200108162);
-            in_str_x_string :
-              begin
-                 { should be removed in det_resulttype (JM) }
-                 internalerror(200108131);
-              end;
-            in_val_x :
-              Begin
-                 { should be removed in det_resulttype (JM) }
-                 internalerror(200108241);
-              End;
             in_include_x_y,
             in_exclude_x_y:
               begin
@@ -750,7 +729,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2001-12-04 15:59:03  jonas
+  Revision 1.30  2001-12-10 14:34:04  jonas
+    * fixed type conversions from dynamic arrays to open arrays
+
+  Revision 1.29  2001/12/04 15:59:03  jonas
     * converted lo/hi to processor independent code, generated code is the
       same as before (when turning on the optimizer)
 

@@ -55,6 +55,7 @@ interface
           function resulttype_arrayconstructor_to_set : tnode;
           function resulttype_pchar_to_string : tnode;
           function resulttype_interface_to_guid : tnode;
+          function resulttype_dynarray_to_openarray : tnode;
           function resulttype_call_helper(c : tconverttype) : tnode;
        protected
           function first_int_to_int : tnode;virtual;
@@ -133,7 +134,7 @@ implementation
       globtype,systems,tokens,
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symtable,
-      ncon,ncal,nset,nadd,ninl,
+      ncon,ncal,nset,nadd,ninl,nmem,
       cgbase,
       htypechk,pass_1,cpubase,cpuinfo;
 
@@ -731,6 +732,20 @@ implementation
       end;
 
 
+    function ttypeconvnode.resulttype_dynarray_to_openarray : tnode;
+    
+      begin
+        { a dynamic array is a pointer to an array, so to convert it to }
+        { an open array, we have to dereference it (JM)                 }
+        result := ctypeconvnode.create(left,voidpointertype);
+        { left is reused }
+        left := nil;
+        result.toggleflag(nf_explizit);
+        result := cderefnode.create(result);
+        result.resulttype := resulttype;
+      end;
+
+
     function ttypeconvnode.resulttype_call_helper(c : tconverttype) : tnode;
 
       const
@@ -762,7 +777,8 @@ implementation
           { intf_2_guid } @ttypeconvnode.resulttype_interface_to_guid,
           { class_2_intf } nil,
           { char_2_char } @ttypeconvnode.resulttype_char_to_char,
-          { nomal_2_smallset} nil
+          { normal_2_smallset} nil,
+          { dynarray_2_openarray} @resulttype_dynarray_to_openarray
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -1404,6 +1420,7 @@ implementation
            @ttypeconvnode.first_nothing,
            @ttypeconvnode.first_class_to_intf,
            @ttypeconvnode.first_char_to_char,
+           @ttypeconvnode.first_nothing,
            @ttypeconvnode.first_nothing
          );
       type
@@ -1618,7 +1635,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2001-12-06 17:57:34  florian
+  Revision 1.47  2001-12-10 14:34:04  jonas
+    * fixed type conversions from dynamic arrays to open arrays
+
+  Revision 1.46  2001/12/06 17:57:34  florian
     + parasym to tparaitem added
 
   Revision 1.45  2001/12/03 21:48:41  peter
