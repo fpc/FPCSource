@@ -7,7 +7,7 @@ name=postgres
 version=1.9.7
 
 [target]
-units=dllist postgres postgres3
+units=dllist dllistdyn postgres postgres3 postgres3dyn
 examples=testpg1 testpg2
 
 [require]

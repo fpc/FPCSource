@@ -4,37 +4,7 @@ interface
 
 {$linklib pq}
 
-{ Pointers to basic pascal types, inserted by h2pas conversion program.}
-Type
-  PLongint  = ^Longint;
-  PByte     = ^Byte;
-  PWord     = ^Word;
-  PINteger  = ^Integer;
-  PCardinal = ^Cardinal;
-  PReal     = ^Real;
-  PDouble   = ^Double;
-
-{ next element }
-{ previous element }
-{ value of the element }
-{ what list this element is in }
-
-type
-   { Pointer types }
-   PDllist= ^TDllist;
-   PDlelem= ^TDlelem;
-
-   TDlelem = record
-        dle_next : PDlelem;
-        dle_prev : PDlElem;
-        dle_val : pointer;
-        dle_list : PDllist;
-     end;
-
-   TDllist = record
-        dll_head : PDlelem;
-        dll_tail : PDlelem;
-     end;
+{$i dllisttypes.inc}
 
 function  DLNewList:PDllist;cdecl; external;
 procedure DLFreeList(_para1:PDllist);cdecl; external;
@@ -55,8 +25,7 @@ Function  DLE_VAL(elem : PDlelem) : pointer;
 
 implementation
 
-
-
+// This function is also defined in DllistDyn!
 Function DLE_VAL(elem : PDlelem) : pointer;
 begin
   DLE_VAL:=elem^.dle_val
@@ -64,7 +33,10 @@ end;
 
 end.
   $Log$
-  Revision 1.3  2004-11-21 16:33:55  peter
+  Revision 1.4  2005-01-24 10:58:26  michael
+  + Dynamic library implementation by Joost van der Sluis
+
+  Revision 1.3  2004/11/21 16:33:55  peter
     * external fixes
 
   Revision 1.2  2002/09/07 15:42:53  peter
