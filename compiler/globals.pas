@@ -448,7 +448,26 @@ implementation
     Function PathExists ( F : String) : Boolean;
       Var
         Info : SearchRec;
+{$ifdef i386}
+        disk : byte;
+{$endif i386}
       begin
+{$ifdef i386}
+        if (Length(f)=3) and (F[2]=':') and (F[3] in ['/','\']) then
+          begin
+            if F[1] in ['A'..'Z'] then
+              disk:=ord(F[1])-ord('A')+1
+            else if F[1] in ['a'..'z'] then
+              disk:=ord(F[1])-ord('a')+1
+            else
+              disk:=255;
+            if disk=255 then
+              PathExists:=false
+            else
+              PathExists:=(DiskSize(disk)<>-1);
+            exit;
+          end;
+{$endif i386}
         if F[Length(f)] in ['/','\'] then
          Delete(f,length(f),1);
         findfirst(F,readonly+archive+hidden+directory,info);
@@ -1391,7 +1410,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2001-09-18 11:30:47  michael
+  Revision 1.44  2001-10-12 16:06:17  peter
+    * pathexists fix (merged)
+
+  Revision 1.43  2001/09/18 11:30:47  michael
   * Fixes win32 linking problems with import libraries
   * LINKLIB Libraries are now looked for using C file extensions
   * get_exepath fix
