@@ -218,10 +218,10 @@
            FreeMem(Pointer(Self));
         end;
 
-      function TObject.ClassType : TClass;
+      class function TObject.ClassType : TClass;
 
         begin
-           ClassType:=TClass(Pointer(Self)^)
+           ClassType:=TClass(Pointer(Self))
         end;
 
       type
@@ -691,7 +691,10 @@
 
 {
   $Log$
-  Revision 1.30  2002-10-19 15:53:20  peter
+  Revision 1.31  2003-03-17 20:55:58  peter
+    * ClassType changed to class method
+
+  Revision 1.30  2002/10/19 15:53:20  peter
     * 'inlined' some more calls
 
   Revision 1.29  2002/10/15 19:29:49  peter

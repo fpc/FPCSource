@@ -117,7 +117,7 @@
           procedure Free;
           class function InitInstance(instance : pointer) : tobject;
           procedure CleanupInstance;
-          function ClassType : tclass;
+          class function ClassType : tclass;
           class function ClassInfo : pointer;
           class function ClassName : shortstring;
           class function ClassNameIs(const name : string) : boolean;
@@ -271,7 +271,10 @@
 
 {
   $Log$
-  Revision 1.15  2002-09-26 14:43:24  florian
+  Revision 1.16  2003-03-17 20:55:58  peter
+    * ClassType changed to class method
+
+  Revision 1.15  2002/09/26 14:43:24  florian
     + tvarrec field vcurrency for compilers with hascurrency released
 
   Revision 1.14  2002/09/07 15:07:46  peter
