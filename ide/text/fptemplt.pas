@@ -106,6 +106,9 @@ begin
     Templates^.Insert(NewTemplate(S,FExpand(Dir+SR.Name)));
     FindNext(SR);
   end;
+{$ifdef FPC}
+  FindClose(SR);
+{$endif def FPC}
 end;
 begin
   New(Templates, Init(10,10));
@@ -157,7 +160,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  1999-01-21 11:54:24  peter
+  Revision 1.4  1999-02-16 17:13:56  pierre
+   + findclose added for FPC
+
+  Revision 1.3  1999/01/21 11:54:24  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command

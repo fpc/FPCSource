@@ -162,13 +162,13 @@ begin
      case s[i] of
  {$ifdef Linux}
   '/','\' : begin
-              FixFileName[i]:='/';
-              NoPath:=false; {Skip lowercasing path: 'X11'<>'x11' }
-            end;
+	      FixFileName[i]:='/';
+	      NoPath:=false; {Skip lowercasing path: 'X11'<>'x11' }
+	    end;
  'A'..'Z' : if NoPath then
-             FixFileName[i]:=char(byte(s[i])+32)
-            else
-             FixFileName[i]:=s[i];
+	     FixFileName[i]:=char(byte(s[i])+32)
+	    else
+	     FixFileName[i]:=s[i];
  {$else}
       '/' : FixFileName[i]:='\';
  'A'..'Z' : FixFileName[i]:=char(byte(s[i])+32);
@@ -293,7 +293,7 @@ end;
 function Power(const A,B: double): double;
 begin
   if A=0 then Power:=0
-         else Power:=exp(B*ln(A));
+	 else Power:=exp(B*ln(A));
 end;
 
 function GetCurDir: string;
@@ -418,7 +418,7 @@ begin
     F:=copy(FileList,1,P-1);
     FSplit(F,FD.D,FD.N,FD.E);
     Match:=MatchesMask(WD.D+WD.N,FD.D+FD.N) and
-           MatchesMask(WD.E,FD.E);
+	   MatchesMask(WD.E,FD.E);
     Delete(FileList,1,P);
   until Match or (FileList='');
   MatchesFileList:=Match;
@@ -435,6 +435,9 @@ var
 begin
   FindFirst(FileName,Archive+ReadOnly,Dir);
   ExistsFile:=(DosError=0);
+{$ifdef FPC}
+  FindClose(Dir);
+{$endif def FPC}
 end;
 
 function CompleteDir(const Path: string): string;
@@ -510,24 +513,24 @@ begin
       LocateExeFile:=true;
       Exit;
     end;
-   
+
   S:=GetEnv('PATH');
   i:=1;
   While Length(S)>0 do
     begin
       While (i<=Length(S)) and not (S[i] in ListSep) do
-        Inc(i);
+	Inc(i);
       Dir:=CompleteDir(Copy(S,1,i-1));
       if i<Length(S) then
-        S:=Copy(S,i+1,255)
+	S:=Copy(S,i+1,255)
       else
-        S:='';
+	S:='';
       if ExistsFile(Dir+FileName) then
-        Begin
-           FileName:=Dir+FileName;
-           LocateExeFile:=true;
-           Exit;
-        End;
+	Begin
+	   FileName:=Dir+FileName;
+	   LocateExeFile:=true;
+	   Exit;
+	End;
    end;
 end;
 
@@ -541,7 +544,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  1999-02-05 12:12:01  pierre
+  Revision 1.7  1999-02-16 17:13:55  pierre
+   + findclose added for FPC
+
+  Revision 1.6  1999/02/05 12:12:01  pierre
     + SourceDir that stores directories for sources that the
       compiler should not know about
       Automatically asked for addition when a new file that
