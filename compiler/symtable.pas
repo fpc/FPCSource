@@ -647,16 +647,13 @@ implementation
        begin
          Message1(sym_e_duplicate_id,sym^.name);
          st:=findunitsymtable(sym^.owner);
-         if assigned(st) then
-          begin
-            with sym^.fileinfo do
-             begin
-               if st^.unitid=0 then
-                Message2(sym_h_duplicate_id_where,current_module^.sourcefiles^.get_file_name(fileindex),tostr(line))
-               else
-                Message2(sym_h_duplicate_id_where,'unit '+st^.name^,tostr(line));
-             end;
-          end;
+         with sym^.fileinfo do
+           begin
+             if assigned(st) and (st^.unitid<>0) then
+               Message2(sym_h_duplicate_id_where,'unit '+st^.name^,tostr(line))
+             else
+               Message2(sym_h_duplicate_id_where,current_module^.sourcefiles^.get_file_name(fileindex),tostr(line));
+           end;
        end;
 
 
@@ -2794,7 +2791,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  1999-11-30 10:40:56  peter
+  Revision 1.69  1999-12-01 22:32:35  pierre
+   * give info of original duplicated symbol more often
+
+  Revision 1.68  1999/11/30 10:40:56  peter
     + ttype, tsymlist
 
   Revision 1.67  1999/11/24 11:41:05  pierre
