@@ -1,7 +1,7 @@
 { Old file: tbs0291.pp }
 { @procvar in tp mode bugss                             OK 0.99.13 (PFV) }
 
-{$mode tp}
+{$ifdef fpc}{$mode tp}{$endif}
 
 function ReturnString: string;
 begin
@@ -11,6 +11,11 @@ end;
 procedure AcceptString(S: string);
 begin
   WriteLn('Got: ', S);
+  if S<>'A string' then
+   begin
+     writeln('ERROR!');
+     halt(1);
+   end;
 end;
 
 type
