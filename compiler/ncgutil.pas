@@ -59,7 +59,8 @@ interface
     procedure gen_proc_symbol_end(list:Taasmoutput);
     procedure gen_proc_entry_code(list:Taasmoutput);
     procedure gen_proc_exit_code(list:Taasmoutput);
-    procedure gen_stack_check_code(list:Taasmoutput);
+    procedure gen_stack_check_size_para(list:Taasmoutput);
+    procedure gen_stack_check_call(list:Taasmoutput);
     procedure gen_save_used_regs(list:TAAsmoutput);
     procedure gen_restore_used_regs(list:TAAsmoutput);
     procedure gen_initialize_code(list:TAAsmoutput);
@@ -1808,7 +1809,7 @@ implementation
       end;
 
 
-    procedure gen_stack_check_code(list:Taasmoutput);
+    procedure gen_stack_check_size_para(list:Taasmoutput);
       var
         paraloc1   : tcgpara;
       begin
@@ -1817,6 +1818,20 @@ implementation
         paramanager.allocparaloc(list,paraloc1);
         cg.a_param_const(list,OS_INT,current_procinfo.calc_stackframe_size,paraloc1);
         paramanager.freeparaloc(list,paraloc1);
+        paraloc1.done;
+      end;
+
+
+    procedure gen_stack_check_call(list:Taasmoutput);
+      var
+        paraloc1   : tcgpara;
+      begin
+        paraloc1.init;
+        { Also alloc the register needed for the parameter }
+        paramanager.getintparaloc(pocall_default,1,paraloc1);
+        paramanager.allocparaloc(list,paraloc1);
+        paramanager.freeparaloc(list,paraloc1);
+        { Call the helper }
         cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         cg.a_call_name(list,'FPC_STACKCHECK');
         cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -2326,7 +2341,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.250  2004-12-15 16:00:16  peter
+  Revision 1.251  2005-01-03 22:27:56  peter
+    * insert stack_check helper call before doing register allocation
+      so the used registers can't be reused when parameters are loaded
+      into register variables
+
+  Revision 1.250  2004/12/15 16:00:16  peter
     * external is again allowed in implementation
 
   Revision 1.249  2004/12/11 12:42:28  jonas

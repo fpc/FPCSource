@@ -780,6 +780,17 @@ implementation
             gen_free_symtable(aktproccode,procdef.localst);
             gen_free_symtable(aktproccode,procdef.parast);
 
+            { Already reserve all registers for stack checking code and
+              generate the call to the helper function }
+            if (cs_check_stack in entryswitches) and
+               not(po_assembler in procdef.procoptions) and
+               (current_procinfo.procdef.proctypeoption<>potype_proginit) then
+              begin
+                aktfilepos:=entrypos;
+                gen_stack_check_call(templist);
+                aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist)
+              end;
+
             { The procedure body is finished, we can now
               allocate the registers }
             cg.do_register_allocation(aktproccode,headertai);
@@ -790,13 +801,14 @@ implementation
             aktproccode.insertlistafter(headertai,templist);
             aktfilepos:=exitpos;
             gen_restore_used_regs(aktproccode);
-            { Add stack checking code }
+            { We know the size of the stack, now we can generate the
+              parameter that is passed to the stack checking code }
             if (cs_check_stack in entryswitches) and
                not(po_assembler in procdef.procoptions) and
                (current_procinfo.procdef.proctypeoption<>potype_proginit) then
               begin
                 aktfilepos:=entrypos;
-                gen_stack_check_code(templist);
+                gen_stack_check_size_para(templist);
                 aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist)
               end;
             { Add entry code (stack allocation) after header }
@@ -1447,7 +1459,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.227  2004-12-27 16:35:48  peter
+  Revision 1.228  2005-01-03 22:27:56  peter
+    * insert stack_check helper call before doing register allocation
+      so the used registers can't be reused when parameters are loaded
+      into register variables
+
+  Revision 1.227  2004/12/27 16:35:48  peter
     * set flag if a procedure references a symbol in staticsymtable
 
   Revision 1.226  2004/12/27 14:41:09  jonas

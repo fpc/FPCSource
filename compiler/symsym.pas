@@ -1323,6 +1323,12 @@ implementation
 
     function tabstractvarsym.is_regvar:boolean;
       begin
+        { Register variables are not allowed in the following cases:
+           - regvars are disabled
+           - exceptions are used (after an exception is raised the contents of the
+               registers is not valid anymore)
+           - it has a local copy
+           - the value needs to be in memory (i.e. reference counted) }
         result:=(cs_regvars in aktglobalswitches) and
                 not(pi_has_assembler_block in current_procinfo.flags) and
                 not(pi_uses_exceptions in current_procinfo.flags) and
@@ -2554,7 +2560,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.196  2004-12-07 16:11:52  peter
+  Revision 1.197  2005-01-03 22:27:56  peter
+    * insert stack_check helper call before doing register allocation
+      so the used registers can't be reused when parameters are loaded
+      into register variables
+
+  Revision 1.196  2004/12/07 16:11:52  peter
     * set vo_explicit_paraloc flag
 
   Revision 1.195  2004/11/29 20:50:37  peter
