@@ -213,16 +213,72 @@ begin
   end;
 end;
 
+{$IFDEF FPC}
+  {$IFNDEF VER1_0}
+    {$DEFINE UsesFPCWidestrings}
+  {$ENDIF}
+{$ENDIF}
+
+{$IFDEF UsesFPCWidestrings}
+
+procedure SimpleWide2AnsiMove(source:pwidechar;dest:pchar;len:longint);
+var
+  i : longint;
+begin
+  for i:=1 to len do
+   begin
+     if word(source^)<256 then
+      dest^:=char(word(source^))
+     else
+      dest^:='?';
+     inc(dest);
+     inc(source);
+   end;
+end;
+
+procedure SimpleAnsi2WideMove(source:pchar;dest:pwidechar;len:longint);
+var
+  i : longint;
+begin
+  for i:=1 to len do
+   begin
+     dest^:=widechar(byte(source^));
+     inc(dest);
+     inc(source);
+   end;
+end;
+
+const
+  WideStringManager: TWideStringManager = (
+    Wide2AnsiMove: @SimpleWide2AnsiMove;
+    Ansi2WideMove: @SimpleAnsi2WideMove
+  );
+
+{$ENDIF}
+
 procedure TXMLReader.ProcessXML(ABuf: PChar; AFilename: String);    // [1]
+{$IFDEF UsesFPCWidestrings}
+var
+  OldWideStringManager: TWideStringManager;
+{$ENDIF}
 begin
   buf := ABuf;
   BufStart := ABuf;
   Filename := AFilename;
 
-  doc := TXMLReaderDocument.Create;
-  ExpectProlog;
-  ExpectElement(doc);
-  ParseMisc(doc);
+  {$IFDEF UsesFPCWidestrings}
+  SetWideStringManager(WideStringManager, OldWideStringManager);
+  try
+  {$ENDIF}
+    doc := TXMLReaderDocument.Create;
+    ExpectProlog;
+    ExpectElement(doc);
+    ParseMisc(doc);
+  {$IFDEF UsesFPCWidestrings}
+  finally
+    SetWideStringManager(OldWideStringManager);
+  end;
+  {$ENDIF}
 
   if buf[0] <> #0 then
     RaiseExc('Text after end of document element found');
@@ -230,16 +286,29 @@ end;
 
 procedure TXMLReader.ProcessFragment(AOwner: TDOMNode; ABuf: PChar;
   AFilename: String);
+{$IFDEF UsesFPCWidestrings}
+var
+  OldWideStringManager: TWideStringManager;
+{$ENDIF}
 begin
   buf := ABuf;
   BufStart := ABuf;
   Filename := AFilename;
 
-  SkipWhitespace;
-  while ParseCharData(AOwner) or ParseCDSect(AOwner) or ParsePI or
-    ParseComment(AOwner) or ParseElement(AOwner) or
-    ParseReference(AOwner) do
+  {$IFDEF UsesFPCWidestrings}
+  SetWideStringManager(WideStringManager, OldWideStringManager);
+  try
+  {$ENDIF}
     SkipWhitespace;
+    while ParseCharData(AOwner) or ParseCDSect(AOwner) or ParsePI or
+      ParseComment(AOwner) or ParseElement(AOwner) or
+      ParseReference(AOwner) do
+      SkipWhitespace;
+  {$IFDEF UsesFPCWidestrings}
+  finally
+    SetWideStringManager(OldWideStringManager);
+  end;
+  {$ENDIF}
 end;
 
 
@@ -1226,7 +1295,12 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-11-04 20:00:46  michael
+  Revision 1.10  2003-12-01 23:59:12  sg
+  * Added support for main branch to be able to read and write at least
+    ISO8859-1 encoded files correctly. A much improved solution will be
+    provided when the mainbranch RTL fully supports Unicode/WideStrings.
+
+  Revision 1.9  2003/11/04 20:00:46  michael
   + Fixed processing instruction parsing. <?xml is not allowed but <?xml-XXX is
 
   Revision 1.8  2003/01/15 21:59:55  sg

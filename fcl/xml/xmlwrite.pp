@@ -80,7 +80,7 @@ end;
 // -------------------------------------------------------------------
 
 type
-  TOutputProc = procedure(s: String);
+  TOutputProc = procedure(const s: String);
 
 var
   f: ^Text;
@@ -89,23 +89,23 @@ var
   InsideTextNode: Boolean;
 
 
-procedure Text_Write(s: String);
+procedure Text_Write(const s: String);
 begin
   Write(f^, s);
 end;
 
-procedure Text_WriteLn(s: String);
+procedure Text_WriteLn(const s: String);
 begin
   WriteLn(f^, s);
 end;
 
-procedure Stream_Write(s: String);
+procedure Stream_Write(const s: String);
 begin
   if Length(s) > 0 then
     Stream.Write(s[1], Length(s));
 end;
 
-procedure Stream_WriteLn(s: String);
+procedure Stream_WriteLn(const s: String);
 const
   LF: Char = #10;
 begin
@@ -365,58 +365,179 @@ end;
 //   Interface implementation
 // -------------------------------------------------------------------
 
-procedure WriteXMLFile(doc: TXMLDocument; const AFileName: String);
+{$IFDEF FPC}
+  {$IFNDEF VER1_0}
+    {$DEFINE UsesFPCWidestrings}
+  {$ENDIF}
+{$ENDIF}
+
+{$IFDEF UsesFPCWidestrings}
+
+procedure SimpleWide2AnsiMove(source:pwidechar;dest:pchar;len:longint);
+var
+  i : longint;
 begin
-  Stream := TFileStream.Create(AFileName, fmCreate);
-  wrt := @Stream_Write;
-  wrtln := @Stream_WriteLn;
-  RootWriter(doc);
-  Stream.Free;
+  for i:=1 to len do
+   begin
+     if word(source^)<256 then
+      dest^:=char(word(source^))
+     else
+      dest^:='?';
+     inc(dest);
+     inc(source);
+   end;
+end;
+
+procedure SimpleAnsi2WideMove(source:pchar;dest:pwidechar;len:longint);
+var
+  i : longint;
+begin
+  for i:=1 to len do
+   begin
+     dest^:=widechar(byte(source^));
+     inc(dest);
+     inc(source);
+   end;
+end;
+
+const
+  WideStringManager: TWideStringManager = (
+    Wide2AnsiMove: @SimpleWide2AnsiMove;
+    Ansi2WideMove: @SimpleAnsi2WideMove
+  );
+
+{$ENDIF}
+
+procedure WriteXMLFile(doc: TXMLDocument; const AFileName: String);
+{$IFDEF UsesFPCWidestrings}
+var
+  OldWideStringManager: TWideStringManager;
+{$ENDIF}
+begin
+  {$IFDEF UsesFPCWidestrings}
+  SetWideStringManager(WideStringManager, OldWideStringManager);
+  try
+  {$ENDIF}
+    Stream := TFileStream.Create(AFileName, fmCreate);
+    wrt := @Stream_Write;
+    wrtln := @Stream_WriteLn;
+    RootWriter(doc);
+    Stream.Free;
+  {$IFDEF UsesFPCWidestrings}
+  finally
+    SetWideStringManager(OldWideStringManager);
+  end;
+  {$ENDIF}
 end;
 
 procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text);
+{$IFDEF UsesFPCWidestrings}
+var
+  OldWideStringManager: TWideStringManager;
+{$ENDIF}
 begin
-  f := @AFile;
-  wrt := @Text_Write;
-  wrtln := @Text_WriteLn;
-  RootWriter(doc);
+  {$IFDEF UsesFPCWidestrings}
+  SetWideStringManager(WideStringManager, OldWideStringManager);
+  try
+  {$ENDIF}
+    f := @AFile;
+    wrt := @Text_Write;
+    wrtln := @Text_WriteLn;
+    RootWriter(doc);
+  {$IFDEF UsesFPCWidestrings}
+  finally
+    SetWideStringManager(OldWideStringManager);
+  end;
+  {$ENDIF}
 end;
 
 procedure WriteXMLFile(doc: TXMLDocument; AStream: TStream);
+{$IFDEF UsesFPCWidestrings}
+var
+  OldWideStringManager: TWideStringManager;
+{$ENDIF}
 begin
-  Stream := AStream;
-  wrt := @Stream_Write;
-  wrtln := @Stream_WriteLn;
-  RootWriter(doc);
+  {$IFDEF UsesFPCWidestrings}
+  SetWideStringManager(WideStringManager, OldWideStringManager);
+  try
+  {$ENDIF}
+    Stream := AStream;
+    wrt := @Stream_Write;
+    wrtln := @Stream_WriteLn;
+    RootWriter(doc);
+  {$IFDEF UsesFPCWidestrings}
+  finally
+    SetWideStringManager(OldWideStringManager);
+  end;
+  {$ENDIF}
 end;
 
 
 procedure WriteXML(Node: TDOMNode; const AFileName: String);
+{$IFDEF UsesFPCWidestrings}
+var
+  OldWideStringManager: TWideStringManager;
+{$ENDIF}
 begin
-  Stream := TFileStream.Create(AFileName, fmCreate);
-  wrt := @Stream_Write;
-  wrtln := @Stream_WriteLn;
-  InitWriter;
-  WriteNode(Node);
-  Stream.Free;
+  {$IFDEF UsesFPCWidestrings}
+  SetWideStringManager(WideStringManager, OldWideStringManager);
+  try
+  {$ENDIF}
+    Stream := TFileStream.Create(AFileName, fmCreate);
+    wrt := @Stream_Write;
+    wrtln := @Stream_WriteLn;
+    InitWriter;
+    WriteNode(Node);
+    Stream.Free;
+  {$IFDEF UsesFPCWidestrings}
+  finally
+    SetWideStringManager(OldWideStringManager);
+  end;
+  {$ENDIF}
 end;
 
 procedure WriteXML(Node: TDOMNode; var AFile: Text);
+{$IFDEF UsesFPCWidestrings}
+var
+  OldWideStringManager: TWideStringManager;
+{$ENDIF}
 begin
-  f := @AFile;
-  wrt := @Text_Write;
-  wrtln := @Text_WriteLn;
-  InitWriter;
-  WriteNode(Node);
+  {$IFDEF UsesFPCWidestrings}
+  SetWideStringManager(WideStringManager, OldWideStringManager);
+  try
+  {$ENDIF}
+    f := @AFile;
+    wrt := @Text_Write;
+    wrtln := @Text_WriteLn;
+    InitWriter;
+    WriteNode(Node);
+  {$IFDEF UsesFPCWidestrings}
+  finally
+    SetWideStringManager(OldWideStringManager);
+  end;
+  {$ENDIF}
 end;
 
 procedure WriteXML(Node: TDOMNode; AStream: TStream);
+{$IFDEF UsesFPCWidestrings}
+var
+  OldWideStringManager: TWideStringManager;
+{$ENDIF}
 begin
-  stream := AStream;
-  wrt := @Stream_Write;
-  wrtln := @Stream_WriteLn;
-  InitWriter;
-  WriteNode(Node);
+  {$IFDEF UsesFPCWidestrings}
+  SetWideStringManager(WideStringManager, OldWideStringManager);
+  try
+  {$ENDIF}
+    stream := AStream;
+    wrt := @Stream_Write;
+    wrtln := @Stream_WriteLn;
+    InitWriter;
+    WriteNode(Node);
+  {$IFDEF UsesFPCWidestrings}
+  finally
+    SetWideStringManager(OldWideStringManager);
+  end;
+  {$ENDIF}
 end;
 
 
@@ -425,7 +546,12 @@ end.
 
 {
   $Log$
-  Revision 1.11  2003-01-15 21:59:55  sg
+  Revision 1.12  2003-12-01 23:59:12  sg
+  * Added support for main branch to be able to read and write at least
+    ISO8859-1 encoded files correctly. A much improved solution will be
+    provided when the mainbranch RTL fully supports Unicode/WideStrings.
+
+  Revision 1.11  2003/01/15 21:59:55  sg
   * the units DOM, XMLRead and XMLWrite now compile with Delphi without
     modifications as well
 
