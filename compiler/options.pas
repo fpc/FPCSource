@@ -55,6 +55,7 @@ type
     procedure Interpret_file(const filename : string);
     procedure Read_Parameters;
     procedure parsecmd(cmd:string);
+    procedure TargetDefines(def:boolean);
   end;
 
   TOptionClass=class of toption;
@@ -729,7 +730,7 @@ begin
                       if not target_is_set then
                        begin
                          { remove old target define }
-                         undef_symbol(upper(target_info.shortname));
+                         TargetDefines(false);
                          { Save assembler if set }
                          if asm_is_set then
                           forceasm:=target_asm.id;
@@ -740,7 +741,7 @@ begin
                          if asm_is_set then
                           set_target_asm(forceasm);
                          { set new define }
-                         def_symbol(upper(target_info.shortname));
+                         TargetDefines(true);
                          target_is_set:=true;
                        end
                       else
@@ -1241,6 +1242,30 @@ begin
 end;
 
 
+procedure TOption.TargetDefines(def:boolean);
+var
+  s : string;
+  i : integer;
+begin
+  if def then
+   def_symbol(upper(target_info.shortname))
+  else
+   undef_symbol(upper(target_info.shortname));
+  s:=target_info.extradefines;
+  while (s<>'') do
+   begin
+     i:=pos(';',s);
+     if i=0 then
+      i:=length(s)+1;
+     if def then
+      def_symbol(Copy(s,1,i-1))
+     else
+      def_symbol(Copy(s,1,i-1));
+     delete(s,1,i);
+   end;
+end;
+
+
 constructor TOption.create;
 begin
   DoWriteLogo:=false;
@@ -1437,15 +1462,7 @@ begin
    StopOptions;
 
   { Non-core target defines }
-  s:=target_info.extradefines;
-  while (s<>'') do
-   begin
-     i:=pos(';',s);
-     if i=0 then
-      i:=length(s)+1;
-     def_symbol(Copy(s,1,i-1));
-     delete(s,1,i);
-   end;
+  Option.TargetDefines(true);
 
   { endian define }
   case target_info.endian of
@@ -1567,10 +1584,6 @@ begin
    end;
   UpdateAlignment(initalignment,option.paraalignment);
 
-{ Set defines depending on the target }
-  if (target_info.target in [target_i386_GO32V1,target_i386_GO32V2]) then
-   def_symbol('DPMI'); { MSDOS is not defined in BP when target is DPMI }
-
   option.free;
   Option:=nil;
 end;
@@ -1584,7 +1597,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.54  2001-08-12 17:57:06  peter
+  Revision 1.55  2001-08-19 11:22:23  peter
+    * palmos support from v10 merged
+
+  Revision 1.54  2001/08/12 17:57:06  peter
     * under development flag for targets
 
   Revision 1.53  2001/08/07 18:42:46  peter

@@ -62,7 +62,7 @@ const
   scan_t_back_in=02043;
   scan_w_unsupported_app_type=02044;
   scan_w_app_type_not_support=02045;
-  scan_w_decription_not_support=02046;
+  scan_w_description_not_support=02046;
   scan_n_version_not_support=02047;
   scan_n_only_exe_version=02048;
   scan_w_wrong_version_ignored=02049;
@@ -75,6 +75,8 @@ const
   scan_w_only_one_resourcefile_supported=02056;
   scan_w_macro_support_turned_off=02057;
   scan_e_invalid_interface_type=02058;
+  scan_w_appid_not_support=02059;
+  scan_w_appname_not_support=02060;
   parser_e_syntax_error=03000;
   parser_w_proc_far_ignored=03001;
   parser_w_proc_near_ignored=03002;
@@ -592,9 +594,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 33103;
+  MsgTxtSize = 33191;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,59,179,37,41,41,98,14,35,42,
+    17,61,179,37,41,41,98,14,35,42,
     30,1,1,1,1,1,1,1,1,1
   );

@@ -69,7 +69,8 @@ interface
               as_i386_nasmelf,as_i386_nasmobj,
               as_i386_tasm,as_i386_masm,
               as_i386_dbg,as_i386_coff,as_i386_pecoff,as_i386_elf32
-            ,as_m68k_as,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw
+            ,as_m68k_as,as_m68k_gas,as_m68k_mit,as_m68k_mot,
+              as_m68k_mpw,as_m68k_palm
             ,as_alpha_as
             ,as_powerpc_as,as_powerpc_mpw
        );
@@ -152,6 +153,9 @@ interface
        ttargetflags = (tf_none,
             tf_under_development,tf_supports_stack_checking,
             tf_need_export,tf_needs_isconsole
+{$ifdef m68k}
+            ,tf_code_small,tf_static_a5_based
+{$endif m68k}
        );
 
        ptargetinfo = ^ttargetinfo;
@@ -637,7 +641,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.23  2001-08-12 17:57:07  peter
+  Revision 1.24  2001-08-19 11:22:24  peter
+    * palmos support from v10 merged
+
+  Revision 1.23  2001/08/12 17:57:07  peter
     * under development flag for targets
 
   Revision 1.22  2001/08/07 18:47:13  peter

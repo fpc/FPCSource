@@ -27,7 +27,8 @@ unit link;
 
 { Needed for LFN support in path to the executable }
 {$ifdef GO32V2}
-  {$define ALWAYSSHELL}
+  { define ALWAYSSHELL, obsolete as go32v2 Dos.Exec
+    now handles LFN names and converts them to SFN PM }
 {$endif}
 
 interface
@@ -482,7 +483,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.20  2001-08-13 19:26:03  peter
+  Revision 1.21  2001-08-19 11:22:22  peter
+    * palmos support from v10 merged
+
+  Revision 1.20  2001/08/13 19:26:03  peter
     * fixed ordering of object and libraries
 
   Revision 1.19  2001/08/07 18:47:12  peter

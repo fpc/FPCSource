@@ -1208,10 +1208,6 @@ implementation
             aktprocsym.definition.aliasnames.insert('program_init');
             aktprocsym.definition.aliasnames.insert('PASCALMAIN');
             aktprocsym.definition.aliasnames.insert(target_info.cprefix+'main');
-{$ifdef m68k}
-            if target_info.target=target_m68k_PalmOS then
-              aktprocsym.definition.aliasnames.insert('PilotMain');
-{$endif m68k}
           end;
          compile_proc_body(true,false);
 
@@ -1339,7 +1335,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2001-08-12 19:59:49  peter
+  Revision 1.44  2001-08-19 11:22:23  peter
+    * palmos support from v10 merged
+
+  Revision 1.43  2001/08/12 19:59:49  peter
     * typo in extdebug msg
 
   Revision 1.42  2001/08/06 21:40:47  peter

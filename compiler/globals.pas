@@ -231,6 +231,12 @@ interface
        { for error info in pp.pas }
        parser_current_file : string = '';
 
+{$ifdef m68k}
+       { PalmOS resources }
+       palmos_applicationname : string = 'FPC Application';
+       palmos_applicationid : string[4] = 'FPCA';
+{$endif m68k}
+
 
     procedure abstract;
 
@@ -1327,7 +1333,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2001-08-04 10:23:54  peter
+  Revision 1.41  2001-08-19 11:22:22  peter
+    * palmos support from v10 merged
+
+  Revision 1.40  2001/08/04 10:23:54  peter
     * updates so it works with the ide
 
   Revision 1.39  2001/07/01 20:16:15  peter

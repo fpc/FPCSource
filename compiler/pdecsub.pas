@@ -1386,9 +1386,9 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_SYSCALL;
-      pd_flags : pd_interface+pd_notobjintf;
+      pd_flags : pd_interface+pd_implemen+pd_notobjintf;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_syscall;
-      pocall   : [pocall_palmossyscall];
+      pocall   : [pocall_palmossyscall,pocall_cdecl,pocall_clearstack];
       pooption : [];
       mutexclpocall : [pocall_cdecl,pocall_cppdecl,pocall_inline,
         pocall_internproc,pocall_leftright];
@@ -1910,7 +1910,10 @@ const
 end.
 {
   $Log$
-  Revision 1.31  2001-08-05 13:18:50  peter
+  Revision 1.32  2001-08-19 11:22:23  peter
+    * palmos support from v10 merged
+
+  Revision 1.31  2001/08/05 13:18:50  peter
     * turn pocall_inline off when inline is not supported
 
   Revision 1.30  2001/08/01 15:07:29  jonas

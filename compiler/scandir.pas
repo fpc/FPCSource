@@ -156,6 +156,28 @@ implementation
           Message1(scan_w_unsupported_asmmode_specifier,s);
       end;
 
+{$ifdef m68k}
+    procedure dir_appid;
+      begin
+        if target_info.target<>target_m68k_palmos then
+          Message(scan_w_appid_not_support);
+        { change description global var in all cases }
+        { it not used but in win32 and os2 }
+        current_scanner^.skipspace;
+        palmos_applicationid:=current_scanner^.readcomment;
+      end;
+
+    procedure dir_appname;
+      begin
+        if target_info.target<>target_m68k_palmos then
+          Message(scan_w_appname_not_support);
+        { change description global var in all cases }
+        { it not used but in win32 and os2 }
+        current_scanner^.skipspace;
+        palmos_applicationname:=current_scanner^.readcomment;
+      end;
+{$endif m68k}
+
     procedure dir_apptype;
       var
          hs : string;
@@ -198,7 +220,7 @@ implementation
     procedure dir_description;
       begin
         if not (target_info.target in [target_i386_os2,target_i386_win32,target_i386_netware]) then
-          Message(scan_w_decription_not_support);
+          Message(scan_w_description_not_support);
         { change description global var in all cases }
         { it not used but in win32, os2 and netware }
         current_scanner.skipspace;
@@ -810,6 +832,10 @@ implementation
     procedure InitScannerDirectives;
       begin
         AddDirective('ALIGN',{$ifdef FPCPROCVAR}@{$endif}dir_align);
+{$ifdef m68k}
+        AddDirective('APPID',{$ifdef FPCPROCVAR}@{$endif}dir_appid);
+        AddDirective('APPNAME',{$ifdef FPCPROCVAR}@{$endif}dir_appname);
+{$endif m68k}
         AddDirective('APPTYPE',{$ifdef FPCPROCVAR}@{$endif}dir_apptype);
         AddDirective('ASMMODE',{$ifdef FPCPROCVAR}@{$endif}dir_asmmode);
         AddDirective('ASSERTIONS',{$ifdef FPCPROCVAR}@{$endif}dir_assertions);
@@ -887,7 +913,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2001-08-07 18:47:13  peter
+  Revision 1.7  2001-08-19 11:22:24  peter
+    * palmos support from v10 merged
+
+  Revision 1.6  2001/08/07 18:47:13  peter
     * merged netbsd start
     * profile for win32
 

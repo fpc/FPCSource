@@ -200,7 +200,7 @@ end;
             flags        : [];
             cpu          : i386;
             unit_env     : 'GO32V1UNITS';
-            extradefines : '';
+            extradefines : 'DPMI';
             sharedlibext : '.dll';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -260,7 +260,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2001-08-07 18:47:15  peter
+  Revision 1.9  2001-08-19 11:22:24  peter
+    * palmos support from v10 merged
+
+  Revision 1.8  2001/08/07 18:47:15  peter
     * merged netbsd start
     * profile for win32
 

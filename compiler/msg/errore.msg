@@ -261,7 +261,7 @@ scan_w_unsupported_app_type=02044_W_Unsupported application type: "$1"
 % with the directive \var{\{\$APPTYPE\}}
 scan_w_app_type_not_support=02045_W_APPTYPE isn't support by the target OS
 % The \var{\{\$APPTYPE\}} directive is supported by win32 applications only.
-scan_w_decription_not_support=02046_W_DESCRIPTION is only supported for OS2 and Win32
+scan_w_description_not_support=02046_W_DESCRIPTION is only supported for OS2 and Win32
 % The \var{\{\$DESCRIPTION\}} directive is only supported for OS2 and Win32 targets.
 scan_n_version_not_support=02047_N_VERSION is not supported by target OS.
 % The \var{\{\$VERSION\}} directive is only supported by win32 target.
@@ -296,6 +296,11 @@ scan_w_macro_support_turned_off=02057_W_Macro support has been turned off
 % so the declaration will be ignored. To turn macro support on compile with
 % -Sm on the commandline or add {$MACRO ON} in the source
 scan_e_invalid_interface_type=02058_E_Illegal interface type specified. Valids are COM, CORBA or DEFAULT.
+% The interface type that was specified is not supported
+scan_w_appid_not_support=02059_W_APPID is only supported for PalmOS
+% The \var{\{\$APPID\}} directive is only supported for the PalmOS target.
+scan_w_appname_not_support=02060_W_APPNAME is only supported for PalmOS
+% The \var{\{\$APPNAME\}} directive is only supported for the PalmOS target.
 % \end{description}
 #
 # Parser
