@@ -292,7 +292,8 @@ type
     vo_is_vmt,
     vo_is_result,  { special result variable }
     vo_is_reg_para, { register parameter, no space allocation in parast, but in localst }
-    vo_is_parentfp
+    vo_is_parentfp,
+    vo_is_loop_counter { used to detect assignments to loop counter }
   );
   tvaroptions=set of tvaroption;
 
@@ -410,7 +411,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.87  2004-08-25 15:57:04  peter
+  Revision 1.88  2004-09-13 20:30:22  peter
+    * vo_is_loop_counter added
+
+  Revision 1.87  2004/08/25 15:57:04  peter
     * allow only 1 default property
 
   Revision 1.86  2004/07/09 22:17:32  peter
