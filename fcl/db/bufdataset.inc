@@ -57,6 +57,7 @@ begin
   FBRecordcount := 0;
   FBBuffercount := 0;
   FBCurrentrecord := -1;
+  FOpen:=True;
   FIsEOF := false;
   FIsbOF := true;
 end;
@@ -66,6 +67,7 @@ procedure TBufDataset.InternalClose;
 var i : integer;
 
 begin
+  FOpen:=False;
   for i := 0 to FBRecordCount-1 do FreeRecordBuffer(FBBuffers[i]);
   If FBRecordCount > 0 then ReAllocMem(FBBuffers,0);
   FBRecordcount := 0;
@@ -176,7 +178,7 @@ end;
 
 procedure TBufDataset.InternalGotoBookmark(ABookmark: Pointer);
 begin
-  FBCurrentRecord := PInteger(ABookmark)^;
+  FBCurrentRecord := Plongint(ABookmark)^;
   FIsEOF := False;
   FIsBOF := False;
 end;
@@ -217,11 +219,14 @@ begin
       ftInteger,
       ftword     : result := sizeof(longint);
     ftBoolean    : result := sizeof(boolean);
+    ftBCD        : result := sizeof(currency);
     ftFloat      : result := sizeof(double);
     ftTime,
       ftDate,
-      ftDateTime : result := sizeof(TDateTime);
+      ftDateTime : result := sizeof(TDateTime)
+  else Result := 10
   end;
+  
 end;
 
 function TBufDataset.LoadBuffer(Buffer : PChar): TGetResult;
@@ -260,27 +265,71 @@ var
 begin
   Result := False;
   
-  CurrBuff := ActiveBuffer;
-
-  if ord(currbuff[(Field.Fieldno-1) div 8]) and (1 shl ((Field.Fieldno-1) mod 8)) > 0 then
+  If Field.Fieldno > 0 then // If = 0, then calculated field or something similar
     begin
-    result := false;
-    exit;
-    end;
-  inc(Currbuff,FNullmaskSize);
+    CurrBuff := ActiveBuffer;
 
-  for x := 0 to FieldDefs.count-1 do
-    begin
-    if (Field.FieldName = FieldDefs[x].Name) then
+    if ord(currbuff[(Field.Fieldno-1) div 8]) and (1 shl ((Field.Fieldno-1) mod 8)) > 0 then
       begin
-      Move(CurrBuff^, Buffer^, GetFieldSize(FieldDefs[x]));
-      Result := True;
-      Break;
-      end
-    else Inc(CurrBuff, GetFieldSize(FieldDefs[x]));
+      result := false;
+      exit;
+      end;
+    inc(Currbuff,FNullmaskSize);
+
+    for x := 0 to FieldDefs.count-1 do
+      begin
+      if (Field.FieldName = FieldDefs[x].Name) then
+        begin
+        Move(CurrBuff^, Buffer^, GetFieldSize(FieldDefs[x]));
+        Result := True;
+        Break;
+        end
+      else Inc(CurrBuff, GetFieldSize(FieldDefs[x]));
+      end;
     end;
 end;
 
+procedure TBufDataset.SetFieldData(Field: TField; Buffer: Pointer);
+var
+  x        : longint;
+  CurrBuff : pointer;
+  NullMask : pbyte;
+
+begin
+  If Field.Fieldno > 0 then // If = 0, then calculated field or something
+    begin
+    CurrBuff := ActiveBuffer;
+    
+    if buffer = nil  then
+      NullMask[(Field.fieldno-1) div 8] := (NullMask[(Field.fieldno-1) div 8]) or (1 shl ((Field.fieldno-1) mod 8))
+    else
+      begin
+      NullMask[(Field.fieldno-1) div 8] := (NullMask[(Field.fieldno-1) div 8]) and not (1 shl ((Field.fieldno-1) mod 8));
+
+      inc(Currbuff,FNullmaskSize);
+
+      for x := 0 to FieldDefs.count-1 do
+        begin
+        if (Field.FieldName = FieldDefs[x].Name) then
+          begin
+          Move(Buffer^, CurrBuff^, GetFieldSize(FieldDefs[x]));
+          Break;
+          end
+        else Inc(CurrBuff, GetFieldSize(FieldDefs[x]));
+        end;
+      end;
+    if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
+      DataEvent(deFieldChange, Longint(Field));
+    end;
+end;
+
+procedure TBufDataset.internalpost;
+
+begin
+  if state=dsEdit then
+    begin
+    end;
+end;
 
 procedure TBufDataset.CalcRecordSize;
 
@@ -302,6 +351,32 @@ end;
 procedure TBufDataset.InternalInitRecord(Buffer: PChar);
 begin
   FillChar(Buffer^, FRecordSize, #0);
+end;
+
+procedure TBufDataset.SetRecNo(Value: Longint);
+
+begin
+  GotoBookmark(@value);
+end;
+
+function TBufDataset.GetRecNo: Longint;
+
+begin
+  If FBCurrentRecord = -1 then Result := 0
+    else if FBCurrentRecord = FBRecordcount then Result := FBCurrentRecord-1
+    else Result := FBCurrentRecord;
+end;
+
+function TBufDataset.IsCursorOpen: Boolean;
+
+begin
+  Result := FOpen;
+end;
+
+Function TBufDataset.GetRecordCount: Longint;
+
+begin
+  Result := FBRecordCount;
 end;
 
 
