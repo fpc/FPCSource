@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0311.pp }
 { No dup id checking in variant records                  OK 0.99.15 (FK) }
 

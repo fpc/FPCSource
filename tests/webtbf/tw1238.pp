@@ -1,3 +1,4 @@
+{ %FAIL }
 { Source provided for Free Pascal Bug Report 1238 }
 { Submitted by "Mazen NEIFER" on  2000-11-14 }
 { e-mail: mazen_neifer@ayna.com }

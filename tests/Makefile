@@ -1176,6 +1176,22 @@ $(DOTEST) : utils/dotest.pp utils/redir.pp
 testcheck: units $(DOTEST)
 
 #
+# Dotest options
+#
+
+ifneq ($(FPC),ppc386)
+override DOTESTOPT+=-c$(FPC)
+endif
+
+ifdef GRAPH
+override DOTESTOPT+=-g
+endif
+
+ifdef INTERACTIVE
+override DOTESTOPT+=-i
+endif
+
+#
 # Test run targets
 #
 
@@ -1188,11 +1204,14 @@ tests : clean all_compilations
 cont_tests : all_compilations
 
 %.log : %.pp
-	$(DOTEST) $<
+	$(DOTEST) $(DOTESTOPT) $<
 
 %.elg : %.pp
-	$(DOTEST) -e $<
+	$(DOTEST) $(DOTESTOPT) -e $<
 
+#
+# Compile tests
+#
 alltbs : testcheck $(patsubst %.pp,%.log,$(wildcard tbs/*.pp))
 alltbf : testcheck $(patsubst %.pp,%.log,$(wildcard tbf/*.pp))
 
@@ -1203,6 +1222,25 @@ alltest : testcheck $(patsubst %.pp,%.log,$(wildcard test/*.pp))
 alltestopt : testcheck $(patsubst %.pp,%.log,$(wildcard testopt/*.pp))
 
 alltests: alltest alltbs alltbf allwebtbs allwebtbf
+
+#
+# Compile and Run tests
+#
+
+allexectbs : testcheck $(patsubst %.pp,%.elg,$(wildcard tbs/*.pp))
+allexectbf : testcheck $(patsubst %.pp,%.elg,$(wildcard tbf/*.pp))
+
+allexecwebtbs : testcheck $(patsubst %.pp,%.elg,$(wildcard webtbs/*.pp))
+allexecwebtbf : testcheck $(patsubst %.pp,%.elg,$(wildcard webtbf/*.pp))
+
+allexectest : testcheck $(patsubst %.pp,%.elg,$(wildcard test/*.pp))
+allexectestopt : testcheck $(patsubst %.pp,%.elg,$(wildcard testopt/*.pp))
+
+allexectests: allexectest allexectbs allexectbf allexecwebtbs allexecwebtbf
+
+#
+# Clean
+#
 
 clean:
 	-rm -f $(addsuffix /*$(PPUEXT),$(DIRS))
@@ -1220,7 +1258,7 @@ endif
 	-rm -f $(LOG) $(LONGLOG) $(FAILLIST)
 	-rm -f ppas.sh ppas.bat gmon.out
 
-full : clean all_compilations allexec
+full : clean allexectests
 
 info :
 	@echo This Makefile allows to test the compiler

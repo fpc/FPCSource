@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0148.pp }
 { crash when setting function result of a declared but not yet implemented function in another function }
 

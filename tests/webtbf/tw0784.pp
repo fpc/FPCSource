@@ -1,3 +1,4 @@
+{ %FAIL }
 {$R+}
 { should not compile if range check on }
 program BigRange;

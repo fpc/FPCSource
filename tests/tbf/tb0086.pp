@@ -1,3 +1,4 @@
+{ %FAIL }
 
 var
   i,j : longint;

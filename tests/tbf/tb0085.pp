@@ -1,3 +1,4 @@
+{ %FAIL }
 
 type
   r=record

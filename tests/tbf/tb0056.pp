@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0298.pp }
 { l1+l2:=l1+l2 gives no error                          OK 0.99.13 (PFV) }
 

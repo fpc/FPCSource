@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0219.pp }
 { wrong error message                                  OK 0.99.11 (PFV) }
 

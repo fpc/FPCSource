@@ -1,3 +1,4 @@
+{ %FAIL }
 {$mode objfpc}
 label l;
 

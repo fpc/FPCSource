@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0109.pp }
 { syntax error not detected when using a set as pointer OK 0.99.1 (FK) }
 

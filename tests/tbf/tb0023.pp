@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0136.pp }
 { No types necessary in the procedure header            OK 0.99.6 (PFV) }
 

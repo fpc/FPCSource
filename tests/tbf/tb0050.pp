@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0248.pp }
 { Asm, Wrong assembler code accepted by new assembler reader OK 0.99.11 (PFV) }
 

@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0265.pp }
 { nested proc with for-counter in other lex level      OK 0.99.13 (PFV) }
 

@@ -8,11 +8,11 @@ const
   ExeExt='';
 {$else UNIX}
   ExeExt:='exe';
-{$endif UNIX}    
-  
+{$endif UNIX}
+
 type
   TVerboseLevel=(V_Abort,V_Error,V_Warning,V_Normal,V_Debug);
-  
+
   TConfig = record
     NeedOptions,
     NeedCPU,
@@ -20,6 +20,7 @@ type
     ResultCode    : longint;
     IsInteractive : boolean;
     UsesGraph     : boolean;
+    ShouldFail    : boolean;
     Category      : string;
   end;
 
@@ -30,7 +31,7 @@ var
   CompilerVersion : string;
   PPFile : string;
   TestName : string;
-  
+
 const
   ResLogfile  : string[32] = 'log';
   LongLogfile : string[32] = 'longlog';
@@ -38,7 +39,8 @@ const
   DoVerbose : boolean = false;
   DoGraph : boolean = false;
   DoInteractive : boolean = false;
-    
+  DoExecute : boolean = false;
+
 procedure Verbose(lvl:TVerboseLevel;const s:string);
 begin
   case lvl of
@@ -52,14 +54,14 @@ begin
     V_Error :
       begin
         writeln('Error: ',s);
-	halt(1);
-      end;	
+        halt(1);
+      end;
     V_Abort :
       begin
         writeln('Abort: ',s);
-	halt(0);
-      end;	
-  end;      
+        halt(0);
+      end;
+  end;
 end;
 
 
@@ -135,9 +137,9 @@ begin
    dec(j);
   if j=0 then
    j:=255;
-  if Ext<>'' then 
+  if Ext<>'' then
    ForceExtension:=Copy(Hstr,1,j-1)+'.'+Ext
-  else 
+  else
    ForceExtension:=Copy(Hstr,1,j-1);
 end;
 
@@ -169,7 +171,7 @@ begin
      if ioresult<>0 then
       append:=false
      else
-      seek(g,filesize(g)); 
+      seek(g,filesize(g));
    end;
   if not append then
    begin
@@ -179,14 +181,14 @@ begin
      if ioresult<>0 then
       Verbose(V_Error,'Can''t open '+fn2+' for output');
    end;
-  getmem(buf,bufsize); 
+  getmem(buf,bufsize);
   repeat
     blockread(f,buf^,bufsize,i);
     blockwrite(g,buf^,i);
-  until i<bufsize;  
+  until i<bufsize;
   freemem(buf,bufsize);
   close(f);
-  close(g);      
+  close(g);
 end;
 
 
@@ -207,7 +209,7 @@ begin
       Verbose(V_Abort,'Can''t append to '+logfile);
    end;
   writeln(t,s);
-  close(t);      
+  close(t);
 end;
 
 
@@ -235,13 +237,13 @@ var
              i:=pos('}',s);
              if i=0 then
               i:=255
-	     else
-	      dec(i); 
+             else
+              dec(i);
              res:=Copy(s,1,i);
              TrimB(res);
              TrimE(res);
            end;
-	  Verbose(V_Debug,'Config: '+Entry+' = "'+Res+'"'); 
+          Verbose(V_Debug,'Config: '+Entry+' = "'+Res+'"');
           GetEntry:=true;
         end;
      end;
@@ -257,8 +259,8 @@ begin
   if ioresult<>0 then
    begin
      Verbose(V_Error,'Can''t open '+fn);
-     exit; 
-   end;  
+     exit;
+   end;
   while not eof(t) do
    begin
      readln(t,s);
@@ -282,14 +284,17 @@ begin
               else
                if GetEntry('RESULT') then
                 Val(res,r.ResultCode,code)
-              else		
+              else
                if GetEntry('GRAPH') then
                 r.UsesGraph:=true
-              else		
+              else
+               if GetEntry('FAIL') then
+                r.ShouldFail:=true
+              else
                if GetEntry('INTERACTIVE') then
                 r.IsInteractive:=true
               else
-	       Verbose(V_Error,'Unknown entry: '+s);
+               Verbose(V_Error,'Unknown entry: '+s);
             end;
          end
         else
@@ -320,7 +325,7 @@ begin
    begin
      Verbose(V_Debug,'Current Compiler Version: '+CompilerVersion);
      GetCompilerVersion:=true;
-   end; 
+   end;
 end;
 
 
@@ -343,7 +348,7 @@ begin
    begin
      Verbose(V_Debug,'Current Compiler CPU Target: '+CompilerCPU);
      GetCompilerCPU:=true;
-   end; 
+   end;
 end;
 
 
@@ -357,22 +362,43 @@ begin
   args:='-Fuunits';
   if Config.NeedOptions<>'' then
    args:=args+' '+Config.NeedOptions;
-  args:=args+' '+ppfile; 
+  args:=args+' '+ppfile;
   Verbose(V_Debug,'Executing '+compilerbin+' '+args);
   ExecuteRedir(CompilerBin,args,'',OutName,'');
-  if ExecuteResult<>0 then
+  { Shoud the compile fail ? }
+  if Config.ShouldFail then
    begin
-     AddLog(FailLogFile,TestName);
-     AddLog(ResLogFile,'Failed to compile '+PPFile);
-     AddLog(LongLogFile,'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-     CopyFile(OutName,LongLogFile,true);
-     Verbose(V_Abort,'Exitcode: '+ToStr(ExecuteResult)+' (expected 0)');
+     if ExecuteResult<>0 then
+      begin
+        AddLog(ResLogFile,'Success, compilation failed '+PPFile);
+        RunCompiler:=true;
+      end
+     else
+      begin
+        AddLog(FailLogFile,TestName);
+        AddLog(ResLogFile,'Failed, compilation successfull '+PPFile);
+        AddLog(LongLogFile,'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+        AddLog(LongLogFile,'Failed, compilation successfull '+PPFile);
+        CopyFile(OutName,LongLogFile,true);
+      end;
    end
   else
    begin
-     AddLog(ResLogFile,'Successfully compiled '+PPFile);
-     RunCompiler:=true;
-   end;   
+     if ExecuteResult<>0 then
+      begin
+        AddLog(FailLogFile,TestName);
+        AddLog(ResLogFile,'Failed to compile '+PPFile);
+        AddLog(LongLogFile,'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+        AddLog(LongLogFile,'Failed to compile '+PPFile);
+        CopyFile(OutName,LongLogFile,true);
+        Verbose(V_Abort,'Exitcode: '+ToStr(ExecuteResult)+' (expected 0)');
+      end
+     else
+      begin
+        AddLog(ResLogFile,'Successfully compiled '+PPFile);
+        RunCompiler:=true;
+      end;
+   end;
 end;
 
 
@@ -399,7 +425,7 @@ begin
    begin
      AddLog(ResLogFile,'Successfully run '+PPFile);
      RunExecutable:=true;
-   end;   
+   end;
 end;
 
 
@@ -412,10 +438,13 @@ var
   procedure helpscreen;
   begin
     writeln('dotest [Options] <File>');
-    Writeln;
-    Writeln('Options can be:');
+    writeln;
+    writeln('Options can be:');
     writeln('  -C<compiler>  set compiler to use');
     writeln('  -V            verbose');
+    writeln('  -E            execute test also');
+    writeln('  -G            include graph tests');
+    writeln('  -I            include interactive tests');
     halt(1);
   end;
 
@@ -430,10 +459,11 @@ begin
         ch:=Upcase(para[2]);
         delete(para,1,2);
         case ch of
-	 'C' : CompilerBin:=Para;
-	 'V' : DoVerbose:=true;
-	 'G' : DoGraph:=true;
-	 'I' : DoInteractive:=true;
+         'C' : CompilerBin:=Para;
+         'E' : DoExecute:=true;
+         'G' : DoGraph:=true;
+         'I' : DoInteractive:=true;
+         'V' : DoVerbose:=true;
         end;
      end
     else
@@ -443,7 +473,7 @@ begin
     end;
   if (PPFile='') then
    HelpScreen;
-  TestName:=Copy(PPFile,1,Pos('.pp',PPFile)-1); 
+  TestName:=Copy(PPFile,1,Pos('.pp',PPFile)-1);
   Verbose(V_Debug,'Running test '+TestName+', file '+PPFile);
 end;
 
@@ -452,7 +482,6 @@ procedure RunTest;
 var
   Res : boolean;
 begin
-  Verbose(V_Normal,'Running test '+TestName);  
   Res:=GetConfig(ppfile,Config);
 
   if Res then
@@ -461,56 +490,59 @@ begin
       begin
         Verbose(V_Abort,'Skipping test because it uses graph');
         Res:=false;
-      end;  
+      end;
    end;
-   
+
   if Res then
    begin
      if Config.IsInteractive and (not DoInteractive) then
       begin
         Verbose(V_Abort,'Skipping test because it is interactive');
         Res:=false;
-      end;  
+      end;
    end;
-   
+
   if Res then
    begin
      if Config.NeedVersion<>'' then
       begin
         Verbose(V_Debug,'Required compiler version: '+Config.NeedVersion);
-        Res:=GetCompilerVersion;  
-        if Config.NeedVersion<CompilerVersion then
-	 begin
+        Res:=GetCompilerVersion;
+        if CompilerVersion<Config.NeedVersion then
+         begin
            Verbose(V_Abort,'Compiler version to low '+CompilerVersion+' < '+Config.NeedVersion);
-	   Res:=false;
-	 end;  
-      end;  
-   end;    
+           Res:=false;
+         end;
+      end;
+   end;
 
   if Res then
    begin
      if Config.NeedCPU<>'' then
       begin
         Verbose(V_Debug,'Required compiler cpu: '+Config.NeedCPU);
-        Res:=GetCompilerVersion;  
-        if Upper(Config.NeedCPU)<Upper(CompilerCPU) then
-	 begin
+        Res:=GetCompilerVersion;
+        if Upper(Config.NeedCPU)<>Upper(CompilerCPU) then
+         begin
            Verbose(V_Abort,'Compiler cpu wrong '+CompilerCPU+' <> '+Config.NeedCPU);
-	   Res:=false;
-	 end;  
-      end;  
-   end;    
+           Res:=false;
+         end;
+      end;
+   end;
 
   if Res then
    Res:=RunCompiler;
 
   if Res then
    begin
-     if FileExists(ForceExtension(PPFile,'ppu')) or
-        FileExists(ForceExtension(PPFile,'ppw')) then
-      Verbose(V_Debug,'Unit found, skipping run test')
-     else      
-      Res:=RunExecutable;
+     if (not Config.ShouldFail) and DoExecute then
+      begin
+        if FileExists(ForceExtension(PPFile,'ppu')) or
+           FileExists(ForceExtension(PPFile,'ppw')) then
+         Verbose(V_Debug,'Unit found, skipping run test')
+        else
+         Res:=RunExecutable;
+      end;
    end;
 end;
 

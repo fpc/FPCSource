@@ -1,4 +1,5 @@
-{ $version >= 1.1}
+{ %VERSION=1.1 }
+
 {$mode objfpc}
 type
   ITest = interface(IUnknown)

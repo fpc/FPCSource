@@ -1,3 +1,5 @@
+{ %VERSION=1.1 }
+
 PROGRAM bug1068;
 VAR i: INT64;
     s : string;

@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0049.pp }
 {  shows an error while defining subrange types         OK 0.99.7 (PFV) }
 

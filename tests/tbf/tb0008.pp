@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0075.pp }
 {  shows invalid pchar output to console                 OK 0.99.1 }
 

@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0242.pp }
 { Crash when passing a procedure to formal parameter   OK 0.99.11 (PM) }
 

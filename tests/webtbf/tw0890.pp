@@ -1,3 +1,4 @@
+{ %FAIL }
 {$ifdef FPC}
   {$MODE TP}
 {$endif FPC}

@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0205.pp }
 { and parsing bugs, generates wrong code (tp7 gives parser error) OK 0.99.11 (PM) }
 

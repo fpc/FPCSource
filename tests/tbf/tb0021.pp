@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0117.pp }
 { internalerror 17 (and why is there an automatic float OK 0.99.6 (FK) }
 

@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0245.pp }
 { assigning pointers to address of consts is allowed (refused by BP !) OK 0.99.13 (PFV) }
 

@@ -2,7 +2,9 @@
 { Submitted by "Marco van de Voort" on  2000-10-29 }
 { e-mail: marco@freepascal.org }
 
-Uses Windows,Sysutils,Classes;
+{$mode delphi}
+
+Uses Sysutils,Classes;
 
 type
   TICMPDisplay = procedure(Sender: TObject; Msg : String) of object;
@@ -12,17 +14,14 @@ object;
   // The object wich encapsulate the ICMP.DLL
   TICMP = class(TObject)
   private
-    FOnDisplay :      TICMPDisplay;               // Event handler to
-display
+    FOnDisplay :      TICMPDisplay;               // Event handler to display
   public
     constructor Create; virtual;
     destructor  Destroy; override;
-    property OnDisplay     : TICMPDisplay   read  FOnDisplay write
-FOnDisplay;
+    property OnDisplay     : TICMPDisplay   read  FOnDisplay write FOnDisplay;
   end;
 
-  TPingDisplay   = procedure(Sender: TObject; Icmp: TObject; Msg :
-String) of object;
+  TPingDisplay   = procedure(Sender: TObject; Icmp: TObject; Msg : String) of object;
 
 
   TPing = class(TComponent)

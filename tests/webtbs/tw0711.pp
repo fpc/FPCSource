@@ -1,3 +1,5 @@
+{ %GRAPH }
+
 program TestGetPutim; {Compiled with the 0.99.13 version under GO32V2!}
 
 uses

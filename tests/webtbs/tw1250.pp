@@ -1,3 +1,5 @@
+{$mode objfpc}
+
 uses classes;
 
 var list : TStringList;

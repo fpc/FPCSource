@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0060.pp }
 {  shows missing type checking for case statements      OK 0.99.1 (CEC) }
 

@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0166.pp }
 { forward type used in declaration crashes instead of error OK 0.99.9 (PFV) }
 

@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0087.pp }
 {  shows internal error 12 - no more SegFaults           OK 0.99.1 (FK) }
 

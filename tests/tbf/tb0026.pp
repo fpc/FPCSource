@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0153.pp }
 { Asm, indexing a local/para var should produce an error like tp7 OK 0.99.9 (PFV) }
 

@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0157.pp }
 { Invalid compilation and also crashes                  OK 0.99.7 (PFV) }
 

@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0094.pp }
 { internal error when recordtype not found with case    OK 0.99.1 }
 

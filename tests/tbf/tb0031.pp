@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0164.pp }
 { crash when using undeclared array index in with statement OK 0.99.8 (PFV) }
 

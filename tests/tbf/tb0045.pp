@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0231.pp }
 { Problem with comments                                OK 0.99.11 (PFV) }
 

@@ -1,3 +1,4 @@
+{ %FAIL }
 {$MODE objfpc}
 uses
   uw0856;

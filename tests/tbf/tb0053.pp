@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0272.pp }
 { No error issued if wrong parameter in function inside a second function OK 0.99.13 (PFV) }
 

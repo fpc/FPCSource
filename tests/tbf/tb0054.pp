@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0281.pp }
 { dup id checking with property is wrong }
 

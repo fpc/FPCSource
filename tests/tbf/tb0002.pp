@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0029.pp }
 {  tests typeof(object type)                         OK 0.99.1 (FK) }
 

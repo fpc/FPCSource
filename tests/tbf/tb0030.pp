@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0161.pp }
 { internal error when trying to create a set with another OK 0.99.9 (PFV) }
 

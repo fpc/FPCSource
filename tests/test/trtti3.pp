@@ -1,3 +1,5 @@
+{ %VERSION=1.1 }
+
 {$mode delphi}
 var
    a,c1,c2 : ansistring;

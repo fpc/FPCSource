@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0197.pp }
 { should produce an error: problem with c1:=c2<c3 where c? is OK 0.99.11 (PM) a comp type }
 

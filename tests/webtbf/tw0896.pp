@@ -1,3 +1,4 @@
+{ %FAIL }
 
 var
   dat : file;

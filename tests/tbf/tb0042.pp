@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0208.pp }
 { implicit conversion from boolean to longint should not be allowed }
 

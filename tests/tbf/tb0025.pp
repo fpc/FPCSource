@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0151.pp }
 { crash when using undeclared variable in withstatement OK 0.99.7 (PFV) }
 

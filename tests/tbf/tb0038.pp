@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0186.pp }
 { Erroneous array syntax is accepted.                   OK 0.99.9 (PFV) }
 

@@ -40,13 +40,29 @@ endif
 
 units : units/$(FPCMADE)
 units/$(FPCMADE):
-	$(MAKE) -C units
+        $(MAKE) -C units
 
 DOTEST=dotest$(EXEEXT)
 $(DOTEST) : utils/dotest.pp utils/redir.pp
-	$(FPC) -Fu../units -FE. utils/dotest
+        $(FPC) -Fu../units -FE. utils/dotest
 
 testcheck: units $(DOTEST)
+
+#
+# Dotest options
+#
+
+ifneq ($(FPC),ppc386)
+override DOTESTOPT+=-c$(FPC)
+endif
+
+ifdef GRAPH
+override DOTESTOPT+=-g
+endif
+
+ifdef INTERACTIVE
+override DOTESTOPT+=-i
+endif
 
 #
 # Test run targets
@@ -61,11 +77,14 @@ tests : clean all_compilations
 cont_tests : all_compilations
 
 %.log : %.pp
-	$(DOTEST) $<
+        $(DOTEST) $(DOTESTOPT) $<
 
 %.elg : %.pp
-	$(DOTEST) -e $<
+        $(DOTEST) $(DOTESTOPT) -e $<
 
+#
+# Compile tests
+#
 alltbs : testcheck $(patsubst %.pp,%.log,$(wildcard tbs/*.pp))
 alltbf : testcheck $(patsubst %.pp,%.log,$(wildcard tbf/*.pp))
 
@@ -77,32 +96,51 @@ alltestopt : testcheck $(patsubst %.pp,%.log,$(wildcard testopt/*.pp))
 
 alltests: alltest alltbs alltbf allwebtbs allwebtbf
 
-clean:
-	-rm -f $(addsuffix /*$(PPUEXT),$(DIRS))
-	-rm -f $(addsuffix /*$(OEXT),$(DIRS))
-	-rm -f $(addsuffix /*.rst,$(DIRS))
-	-rm -f $(addsuffix /*$(SHAREDLIBEXT),$(DIRS))
-	-rm -f $(addsuffix /*.log,$(DIRS))
-	-rm -f $(addsuffix /*.elg,$(DIRS))
-ifdef INUNIX
-	-rm -f $(wildcard $(patsubst %.pp,%$(EXEEXT),$(wildcard $(addsuffix /t*.pp,$(DIRS)))))
-else
-	-rm -f $(addsuffix /*$(EXEEXT),$(DIRS))
-endif
-	-rm -f *.tmp
-	-rm -f $(LOG) $(LONGLOG) $(FAILLIST)
-	-rm -f ppas.sh ppas.bat gmon.out
+#
+# Compile and Run tests
+#
 
-full : clean all_compilations allexec
+allexectbs : testcheck $(patsubst %.pp,%.elg,$(wildcard tbs/*.pp))
+allexectbf : testcheck $(patsubst %.pp,%.elg,$(wildcard tbf/*.pp))
+
+allexecwebtbs : testcheck $(patsubst %.pp,%.elg,$(wildcard webtbs/*.pp))
+allexecwebtbf : testcheck $(patsubst %.pp,%.elg,$(wildcard webtbf/*.pp))
+
+allexectest : testcheck $(patsubst %.pp,%.elg,$(wildcard test/*.pp))
+allexectestopt : testcheck $(patsubst %.pp,%.elg,$(wildcard testopt/*.pp))
+
+allexectests: allexectest allexectbs allexectbf allexecwebtbs allexecwebtbf
+
+#
+# Clean
+#
+
+clean:
+        -rm -f $(addsuffix /*$(PPUEXT),$(DIRS))
+        -rm -f $(addsuffix /*$(OEXT),$(DIRS))
+        -rm -f $(addsuffix /*.rst,$(DIRS))
+        -rm -f $(addsuffix /*$(SHAREDLIBEXT),$(DIRS))
+        -rm -f $(addsuffix /*.log,$(DIRS))
+        -rm -f $(addsuffix /*.elg,$(DIRS))
+ifdef INUNIX
+        -rm -f $(wildcard $(patsubst %.pp,%$(EXEEXT),$(wildcard $(addsuffix /t*.pp,$(DIRS)))))
+else
+        -rm -f $(addsuffix /*$(EXEEXT),$(DIRS))
+endif
+        -rm -f *.tmp
+        -rm -f $(LOG) $(LONGLOG) $(FAILLIST)
+        -rm -f ppas.sh ppas.bat gmon.out
+
+full : clean allexectests
 
 info :
-	@echo This Makefile allows to test the compiler
-	@echo compilation of 'ts*.pp' should succeed
-	@echo compilation of 'tf*.pp' should fail
-	@echo compilation of 'test*.pp' should succeed
-	@echo 'to*.pp' files should also compile
-	@echo simply run \'make tests\' to test all compilation
-	@echo run \'make allexec\' to test also if the executables
-	@echo created behave like the should
-	@echo run \'make tesiexec\' to test executables
-	@echo that require interactive mode
+        @echo This Makefile allows to test the compiler
+        @echo compilation of 'ts*.pp' should succeed
+        @echo compilation of 'tf*.pp' should fail
+        @echo compilation of 'test*.pp' should succeed
+        @echo 'to*.pp' files should also compile
+        @echo simply run \'make tests\' to test all compilation
+        @echo run \'make allexec\' to test also if the executables
+        @echo created behave like the should
+        @echo run \'make tesiexec\' to test executables
+        @echo that require interactive mode

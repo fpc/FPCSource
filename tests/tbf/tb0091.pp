@@ -1,3 +1,4 @@
+{ %FAIL }
 {$mode objfpc}
 type
    tc1 = class

@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0127.pp }
 { problem with cdecl in implementation part             OK 0.99.7 (PFV) }
 

@@ -1,3 +1,5 @@
+{ %VERSION=1.1 }
+
 {$mode objfpc}
 uses sysutils;
 

@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0097.pp }
 { two errors in bp7 but not in FPC                      OK 0.99.6 (FK) }
 

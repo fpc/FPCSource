@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0310.pp }
 { local and para dup are not detected                    OK 0.99.15 (FK) }
 

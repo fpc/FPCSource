@@ -10,7 +10,8 @@ Const TypeNames : Array [TTYpeKind] of string[15] =
                     ('Unknown','Integer','Char','Enumeration',
                      'Float','Set','Method','ShortString','LongString',
                      'AnsiString','WideString','Variant','Array','Record',
-                     'Interface','Class','Object','WideChar','Bool','Int64','QWord');
+                     'Interface','Class','Object','WideChar','Bool','Int64','QWord',
+                     'DynamicArray','RawInterface');
 
 Const OrdinalTypes = [tkInteger,tkChar,tkENumeration,tkbool];
 

@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0158.pp }
 { Invalid boolean typecast                              OK 0.99.7 (PFV) }
 

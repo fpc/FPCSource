@@ -1,5 +1,5 @@
 uses
-   tb0308;
+   ub0308;
 
   var
      r : tr;

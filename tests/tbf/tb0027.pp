@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0155.pp }
 { Asm, Missing string return for asm functions }
 

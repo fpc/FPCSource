@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0086.pp }
 {  shows runerror 216                                    OK 0.99.1 (CEC) }
 

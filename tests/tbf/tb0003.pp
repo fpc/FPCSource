@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0036.pp }
 {  assigning a single character to array of char      ?OK 0.9.9 }
 

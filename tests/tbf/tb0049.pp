@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0246.pp }
 { const para can be changed without error              OK 0.99.13 (PFV) }
 

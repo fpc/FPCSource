@@ -1,3 +1,4 @@
+{ %FAIL }
 { Old file: tbf0168.pp }
 { set:=set+element is allowed (should be: set:=set+[element]) OK 0.99.9 (PFV) }
 
