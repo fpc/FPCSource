@@ -39,7 +39,7 @@ unit i_os2;
        system_i386_os2_info : tsysteminfo =
           (
             system       : system_i386_OS2;
-            name         : 'OS/2 via EMX';
+            name         : 'OS/2';
             shortname    : 'OS2';
             flags        : [tf_need_export];
             cpu          : cpu_i386;
@@ -51,17 +51,17 @@ unit i_os2;
             defext       : '.def';
             scriptext    : '.cmd';
             smartext     : '.sl';
-            unitext      : '.ppo';
+            unitext      : '.ppu';
             unitlibext   : '.ppl';
-            asmext       : '.so2';
-            objext       : '.oo2';
+            asmext       : '.s';
+            objext       : '.o';
             resext       : '.res';
-            resobjext    : '.oor';
-            sharedlibext : '.ao2';
-            staticlibext : '.ao2';
+            resobjext    : '.or';
+            sharedlibext : '.dll';
+            staticlibext : '.a';
             staticlibprefix : '';
             sharedlibprefix : '';
-            sharedClibext : 'dll';
+            sharedClibext : '.dll';
             staticClibext : '.a';
             staticClibprefix : '';
             sharedClibprefix : '';
@@ -106,16 +106,21 @@ unit i_os2;
 initialization
 {$ifdef CPU86}
   {$ifdef os2}
-    set_source_info(system_i386_os2_info);
-    { OS/2 via EMX can be run under DOS as well }
-    if (OS_Mode=osDOS) or (OS_Mode=osDPMI) then
-      source_info.scriptext := '.bat';
+    {$IFNDEF EMX}
+      set_source_info(system_i386_os2_info);
+    {$ENDIF EMX}
+    {$IFDEF VER1_0}
+      set_source_info(system_i386_os2_info);
+    {$ENDIF VER1_0}
   {$endif os2}
 {$endif CPU86}
 end.
 {
   $Log$
-  Revision 1.1  2002-09-06 15:03:51  carl
+  Revision 1.2  2003-03-23 23:31:54  hajny
+    + platform extensions unified
+
+  Revision 1.1  2002/09/06 15:03:51  carl
     * moved files to systems directory
 
   Revision 1.2  2002/08/12 15:08:39  carl

@@ -57,15 +57,15 @@ unit i_win32;
             exeext       : '.exe';
             defext       : '.def';
             scriptext    : '.bat';
-            smartext     : '.slw';
-            unitext      : '.ppw';
+            smartext     : '.sl';
+            unitext      : '.ppu';
             unitlibext   : '.ppl';
-            asmext       : '.sw';
-            objext       : '.ow';
+            asmext       : '.s';
+            objext       : '.o';
             resext       : '.rc';
-            resobjext    : '.owr';
+            resobjext    : '.or';
             sharedlibext : '.dll';
-            staticlibext : '.aw';
+            staticlibext : '.a';
             staticlibprefix : 'libp';
             sharedlibprefix : '';
             sharedClibext : '.dll';
@@ -120,7 +120,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:25:15  peter
+  Revision 1.3  2003-03-23 23:31:54  hajny
+    + platform extensions unified
+
+  Revision 1.2  2002/09/07 15:25:15  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/09/06 15:03:51  carl

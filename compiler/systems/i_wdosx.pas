@@ -42,16 +42,16 @@ unit i_wdosx;
             exeext       : '.exe';
             defext       : '.def';
             scriptext    : '.bat';
-            smartext     : '.sld';
-            unitext      : '.ppd';
+            smartext     : '.sl';
+            unitext      : '.ppu';
             unitlibext   : '.ppl';
-            asmext       : '.sd';
-            objext       : '.od';
+            asmext       : '.s';
+            objext       : '.o';
             resext       : '.rc';
-            resobjext    : '.odr';
+            resobjext    : '.or';
             sharedlibext : '.dll';
-            staticlibext : '.ad';
-            staticlibprefix : 'libp';
+            staticlibext : '.a';
+            staticlibprefix : '';
             sharedlibprefix : '';
             sharedClibext : '.dll';
             staticClibext : '.a';
@@ -105,7 +105,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:25:15  peter
+  Revision 1.3  2003-03-23 23:31:54  hajny
+    + platform extensions unified
+
+  Revision 1.2  2002/09/07 15:25:15  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/09/06 15:03:51  carl

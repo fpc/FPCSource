@@ -45,7 +45,7 @@ unit i_amiga;
             smartext     : '.sl';
             unitext      : '.ppu';
             unitlibext   : '.ppl';
-            asmext       : '.asm';
+            asmext       : '.s';
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
@@ -103,7 +103,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2003-02-02 19:25:54  carl
+  Revision 1.3  2003-03-23 23:31:54  hajny
+    + platform extensions unified
+
+  Revision 1.2  2003/02/02 19:25:54  carl
     * Several bugfixes for m68k target (register alloc., opcode emission)
     + VIS target
     + Generic add more complete (still not verified)

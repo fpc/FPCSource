@@ -277,7 +277,7 @@ const   ar_magic:array[1..8] of char='!<arch>'#10;
 var
   libname : string;
 begin
-    libname:=FixFileName(s+'.ao2');
+    libname:=FixFileName(S + Target_Info.StaticCLibExt);
     seq_no:=1;
     current_module.linkotherstaticlibs.add(libname,link_allways);
     assign(out_file,current_module.outputpath^+libname);
@@ -511,12 +511,15 @@ end;
 initialization
   RegisterExternalLinker(system_i386_os2_info,TLinkerOS2);
   RegisterImport(system_i386_os2,TImportLibOS2);
-  RegisterRes(res_emxbind_info);
+{  RegisterRes(res_emxbind_info);}
   RegisterTarget(system_i386_os2_info);
 end.
 {
   $Log$
-  Revision 1.4  2003-03-17 13:36:39  peter
+  Revision 1.5  2003-03-23 23:31:54  hajny
+    + platform extensions unified
+
+  Revision 1.4  2003/03/17 13:36:39  peter
     * fix import linking under linux
 
   Revision 1.3  2002/12/01 16:19:16  carl

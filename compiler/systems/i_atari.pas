@@ -46,7 +46,7 @@ unit i_atari;
             defext       : '';
             scriptext    : '';
             smartext     : '.sl';
-            unitext      : '.ppt';
+            unitext      : '.ppu';
             unitlibext   : '.ppl';
             asmext       : '.s';
             objext       : '.o';
@@ -85,7 +85,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-09-06 15:03:51  carl
+  Revision 1.2  2003-03-23 23:31:54  hajny
+    + platform extensions unified
+
+  Revision 1.1  2002/09/06 15:03:51  carl
     * moved files to systems directory
 
   Revision 1.3  2002/08/13 18:01:51  carl
