@@ -532,6 +532,7 @@ ait_labeled_instruction :
              ait_stabs,
 ait_stab_function_name : ;
 {$endif GDB}
+        ait_marker : ;
          else
           internalerror(10000);
          end;
@@ -570,7 +571,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.8  1998-09-20 17:11:22  jonas
+  Revision 1.9  1998-10-01 20:19:07  jonas
+    + ait_marker support
+
+  Revision 1.8  1998/09/20 17:11:22  jonas
     * released REGALLOC
 
   Revision 1.7  1998/08/11 14:01:43  peter

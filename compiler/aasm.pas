@@ -69,6 +69,7 @@ unit aasm;
           ait_cut, { used to split into tiny assembler files }
           ait_regalloc,
           ait_regdealloc,
+          ait_marker,
           { never used, makes insertation of new ait_ easier to type }
           ait_dummy);
 
@@ -243,6 +244,14 @@ unit aasm;
           constructor init;
           constructor init_end;
        end;
+
+       TMarker = (NoPropInfoStart, NoPropInfoEnd);
+       pai_marker = ^tai_marker;
+       tai_marker = object(tai)
+         Kind: TMarker;
+         Constructor init(_Kind: TMarker);
+       end;
+
 
 { for each processor define the best precision }
 { bestreal is defined in globals }
@@ -691,6 +700,19 @@ uses
           endname:=true;
        end;
 
+
+{****************************************************************************
+                             Tai_Marker
+ ****************************************************************************}
+
+     Constructor Tai_Marker.Init(_Kind: TMarker);
+     Begin
+       Inherited Init;
+       typ := ait_marker;
+       Kind := _Kind;
+     End;
+
+
 {*****************************************************************************
                            External Helpers
 *****************************************************************************}
@@ -850,7 +872,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.18  1998-09-20 17:11:25  jonas
+  Revision 1.19  1998-10-01 20:19:11  jonas
+    + ait_marker support
+
+  Revision 1.18  1998/09/20 17:11:25  jonas
     * released REGALLOC
 
   Revision 1.17  1998/09/07 18:33:31  peter

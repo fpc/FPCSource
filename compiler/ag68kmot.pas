@@ -485,6 +485,7 @@ ait_labeled_instruction :
               ait_stabs,
  ait_stab_function_name : ;
 {$endif GDB}
+        ait_marker : ;
          else
           internalerror(10000);
          end;
@@ -523,7 +524,10 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.8  1998-09-16 01:08:08  carl
+  Revision 1.9  1998-10-01 20:19:10  jonas
+    + ait_marker support
+
+  Revision 1.8  1998/09/16 01:08:08  carl
     * alignment of byte bugfix
 
   Revision 1.7  1998/08/10 14:49:38  peter

@@ -590,6 +590,7 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
                          AsmWriteLn(ait_section2str(lastsec));
                        AsmStartSize:=AsmSize;
                      end;
+        ait_marker : ;
          else
           internalerror(10000);
          end;
@@ -663,7 +664,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.12  1998-09-28 16:57:09  pierre
+  Revision 1.13  1998-10-01 20:19:08  jonas
+    + ait_marker support
+
+  Revision 1.12  1998/09/28 16:57:09  pierre
     * changed all length(p^.value_str^) into str_length(p)
       to get it work with and without ansistrings
     * changed sourcefiles field of tmodule to a pointer

@@ -581,6 +581,7 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
                        if lastsec<>sec_none then
                          AsmWriteLn(ait_section2str[lastsec,lastsecidx]);
                      end;
+        ait_marker : ;
          else
           internalerror(10000);
          end;
@@ -641,7 +642,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.10  1998-09-28 16:57:11  pierre
+  Revision 1.11  1998-10-01 20:19:09  jonas
+    + ait_marker support
+
+  Revision 1.10  1998/09/28 16:57:11  pierre
     * changed all length(p^.value_str^) into str_length(p)
       to get it work with and without ansistrings
     * changed sourcefiles field of tmodule to a pointer
