@@ -120,9 +120,9 @@ implementation
           end
          else
           begin
-            cg.a_loadaddr_ref_reg(exprasmlist,location.reference,location.reference.base);
-            rg.ungetregisterint(exprasmlist,location.reference.index);
-            reference_reset_base(location.reference,location.reference.base,0);
+            cg.a_loadaddr_ref_reg(exprasmlist,location.reference,location.reference.index);
+            rg.ungetregisterint(exprasmlist,location.reference.base);
+            reference_reset_base(location.reference,location.reference.index,0);
           end;
          { insert the new index register and scalefactor or
            do the multiplication manual }
@@ -156,7 +156,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2002-09-01 18:46:01  peter
+  Revision 1.43  2002-09-01 19:27:35  peter
+    * use index register when available for generating a reference with
+      only a signle register. Using the base register could possibly
+      destroy the framepointer
+
+  Revision 1.42  2002/09/01 18:46:01  peter
     * fixed generic tcgvecnode
     * move code that updates a reference with index register and multiplier
       to separate method so it can be overriden for scaled indexing

@@ -595,7 +595,7 @@ implementation
                      (l.reference.index<>R_NO)) then
                   begin
                     { load address into a single base register }
-                    if l.reference.base=R_NO then
+                    if l.reference.index<>R_NO then
                      begin
                        cg.a_loadaddr_ref_reg(list,l.reference,l.reference.index);
                        rg.ungetregister(list,l.reference.base);
@@ -1786,7 +1786,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2002-09-01 18:50:20  peter
+  Revision 1.46  2002-09-01 19:27:34  peter
+    * use index register when available for generating a reference with
+      only a signle register. Using the base register could possibly
+      destroy the framepointer
+
+  Revision 1.45  2002/09/01 18:50:20  peter
     * fixed maybe_save that did not support a reference with only
       a index register. It now also updates the location with the new
       base register only
