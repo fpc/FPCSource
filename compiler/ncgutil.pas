@@ -1188,7 +1188,12 @@ function returns in a register and the caller receives it in an other one}
              floatdef :
                begin
                  uses_fpu := true;
-                 r.enum:=fpu_result_reg;
+{$ifdef cpufpemu}
+                  if cs_fp_emulation in aktmoduleswitches then
+                    r.enum := accumulator
+                 else
+{$endif cpufpemu}
+                  r.enum:=fpu_result_reg;
                  cg.a_loadfpu_ref_reg(list,cgsize,href,r);
                end;
              else
@@ -1249,7 +1254,12 @@ function returns in a register and the caller receives it in an other one}
                end;
              floatdef :
                begin
-                 r.enum:=fpu_result_reg;
+{$ifdef cpufpemu}
+                  if cs_fp_emulation in aktmoduleswitches then
+                    r.enum := accumulator
+                 else
+{$endif cpufpemu}
+                    r.enum:=fpu_result_reg;
                  cg.a_loadfpu_reg_ref(list,cgsize,r,href);
                end;
              else
@@ -1964,7 +1974,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.75  2003-01-09 22:00:53  florian
+  Revision 1.76  2003-02-15 22:17:38  carl
+   * bugfix of FPU emulation code
+
+  Revision 1.75  2003/01/09 22:00:53  florian
     * fixed some PowerPC issues
 
   Revision 1.74  2003/01/09 20:41:10  florian

@@ -449,6 +449,11 @@ implementation
               floatdef :
                 begin
                   location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+{$ifdef cpufpemu}
+                  if cs_fp_emulation in aktmoduleswitches then
+                    location.register.enum := accumulator
+                 else
+{$endif cpufpemu}
                   location.register.enum:=fpu_result_reg;
 {$ifdef x86}
                   inc(trgcpu(rg).fpuvaroffset);
@@ -1622,7 +1627,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2003-02-12 22:10:07  carl
+  Revision 1.38  2003-02-15 22:17:38  carl
+   * bugfix of FPU emulation code
+
+  Revision 1.37  2003/02/12 22:10:07  carl
     * load_frame_pointer is now generic
     * change fpu emulation routine names
 

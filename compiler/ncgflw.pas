@@ -735,7 +735,12 @@ implementation
                       end;
                     floatdef :
                       begin
-                        r.enum:=fpu_result_reg;
+{$ifdef cpufpemu}
+                        if cs_fp_emulation in aktmoduleswitches then
+                           r.enum := accumulator
+                        else
+{$endif cpufpemu}
+                           r.enum:=fpu_result_reg;
 {$ifndef i386}
                         cg.a_reg_alloc(exprasmlist,r);
 {$endif not i386}
@@ -1470,7 +1475,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-01-08 18:43:56  daniel
+  Revision 1.50  2003-02-15 22:17:38  carl
+   * bugfix of FPU emulation code
+
+  Revision 1.49  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.48  2003/01/03 09:51:58  daniel
