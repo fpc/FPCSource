@@ -115,7 +115,7 @@ implementation
                      CGMessage(type_e_mismatch)
                    else
                      begin
-                        emitpushreferenceaddr(p^.left^.location.reference);
+                        emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                         del_reference(p^.left^.location.reference);
                      end;
                 end;
@@ -128,7 +128,7 @@ implementation
                 CGMessage(cg_e_var_must_be_reference);
               maybe_push_open_array_high;
               inc(pushedparasize,4);
-              emitpushreferenceaddr(p^.left^.location.reference);
+              emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
               del_reference(p^.left^.location.reference);
            end
          else
@@ -141,7 +141,7 @@ implementation
                 begin
                    maybe_push_open_array_high;
                    inc(pushedparasize,4);
-                   emitpushreferenceaddr(p^.left^.location.reference);
+                   emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                    del_reference(p^.left^.location.reference);
                 end
               else
@@ -497,7 +497,7 @@ implementation
          p^.left:=nil;
          if ret_in_param(p^.resulttype) then
            begin
-              emitpushreferenceaddr(funcretref);
+              emitpushreferenceaddr(exprasmlist,funcretref);
               inc(pushedparasize,4);
            end;
          { overloaded operator have no symtable }
@@ -1047,7 +1047,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-10-13 16:50:04  pierre
+  Revision 1.9  1998-10-14 11:28:16  florian
+    * emitpushreferenceaddress gets now the asmlist as parameter
+    * m68k version compiles with -duseansistrings
+
+  Revision 1.8  1998/10/13 16:50:04  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

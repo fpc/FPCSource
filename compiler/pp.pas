@@ -151,8 +151,10 @@ uses
   {$O messages}
   {$O gendef}
   {$O import}
+{$ifdef i386}
   {$O os2_targ}
   {$O win_targ}
+{$endif i386}
   {$O asmutils}
   {$ifdef gdb}
         {$O gdb}
@@ -261,7 +263,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  1998-10-08 17:17:26  pierre
+  Revision 1.34  1998-10-14 11:28:24  florian
+    * emitpushreferenceaddress gets now the asmlist as parameter
+    * m68k version compiles with -duseansistrings
+
+  Revision 1.33  1998/10/08 17:17:26  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)

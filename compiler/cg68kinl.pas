@@ -795,7 +795,7 @@ implementation
                   exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,
                     pfiledef(p^.left^.resulttype)^.typed_as^.size,R_SPPUSH)));
                   secondload(p^.left);
-                  emitpushreferenceaddr(p^.left^.location.reference);
+                  emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                   if p^.inlinenumber=in_reset_typedfile then
                     emitcall('FPC_RESET_TYPED',true)
                   else
@@ -890,7 +890,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-10-14 08:08:52  pierre
+  Revision 1.9  1998-10-14 11:28:20  florian
+    * emitpushreferenceaddress gets now the asmlist as parameter
+    * m68k version compiles with -duseansistrings
+
+  Revision 1.8  1998/10/14 08:08:52  pierre
     * following Peters remark, removed all ifdef in
       the systems unit enums
     * last bugs of cg68k removed for sysamiga

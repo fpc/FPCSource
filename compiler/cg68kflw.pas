@@ -580,7 +580,7 @@ do_jmp:
                 exit;
 
               case p^.left^.location.loc of
-                 LOC_MEM,LOC_REFERENCE : emitpushreferenceaddr(p^.left^.location.reference);
+                 LOC_MEM,LOC_REFERENCE : emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                  LOC_CREGISTER,LOC_REGISTER : exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
                    p^.left^.location.register,R_SPPUSH)));
                  else CGMessage(type_e_mismatch);
@@ -778,7 +778,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.6  1998-10-13 16:50:07  pierre
+  Revision 1.7  1998-10-14 11:28:19  florian
+    * emitpushreferenceaddress gets now the asmlist as parameter
+    * m68k version compiles with -duseansistrings
+
+  Revision 1.6  1998/10/13 16:50:07  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

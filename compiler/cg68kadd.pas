@@ -278,8 +278,8 @@ implementation
                            pushusedregisters(pushedregs,$ffff);
                            { WE INVERSE THE PARAMETERS!!! }
                            { Because parameters are inversed in the rtl }
-                           emitpushreferenceaddr(p^.right^.location.reference);
-                           emitpushreferenceaddr(p^.left^.location.reference);
+                           emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                           emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                            emitcall('FPC_STRCONCAT',true);
                            maybe_loadA5;
                            popusedregisters(pushedregs);
@@ -386,8 +386,8 @@ implementation
                      del_reference(p^.left^.location.reference);
                      del_reference(p^.right^.location.reference);
                      pushusedregisters(pushedregs,$ff);
-                     emitpushreferenceaddr(p^.right^.location.reference);
-                     emitpushreferenceaddr(p^.left^.location.reference);
+                     emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                     emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                      emitcall('FPC_SET_COMP_SETS',true);
                      maybe_loada5;
                      popusedregisters(pushedregs);
@@ -409,22 +409,22 @@ implementation
                          begin
                            loadsetelement(p^.right^.right);
                            loadsetelement(p^.right^.left);
-                           emitpushreferenceaddr(href);
+                           emitpushreferenceaddr(exprasmlist,href);
                            emitcall('FPC_SET_SET_RANGE',true);
                          end
                         else
                          begin
                            loadsetelement(p^.right^.left);
-                           emitpushreferenceaddr(href);
+                           emitpushreferenceaddr(exprasmlist,href);
                            emitcall('FPC_SET_SET_BYTE',true);
                          end;
                       end
                      else
                       begin
                       { must be an other set }
-                        emitpushreferenceaddr(href);
-                        emitpushreferenceaddr(p^.right^.location.reference);
-                        emitpushreferenceaddr(p^.left^.location.reference);
+                        emitpushreferenceaddr(exprasmlist,href);
+                        emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                        emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                         emitcall('FPC_SET_ADD_SETS',true);
                       end;
                      maybe_loada5;
@@ -443,9 +443,9 @@ implementation
                      href.symbol:=nil;
                      pushusedregisters(pushedregs,$ff);
                      gettempofsizereference(32,href);
-                     emitpushreferenceaddr(href);
-                     emitpushreferenceaddr(p^.right^.location.reference);
-                     emitpushreferenceaddr(p^.left^.location.reference);
+                     emitpushreferenceaddr(exprasmlist,href);
+                     emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                     emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                      case p^.treetype of
                       subn : emitcall('FPC_SET_SUB_SETS',true);
                    symdifn : emitcall('FPC_SET_SYMDIF_SETS',true);
@@ -1272,7 +1272,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-10-13 16:50:03  pierre
+  Revision 1.11  1998-10-14 11:28:15  florian
+    * emitpushreferenceaddress gets now the asmlist as parameter
+    * m68k version compiles with -duseansistrings
+
+  Revision 1.10  1998/10/13 16:50:03  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

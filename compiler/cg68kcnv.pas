@@ -514,7 +514,7 @@ implementation
                       case p^.right^.location.loc of
                          LOC_REGISTER,LOC_CREGISTER:
                            begin
-                              exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.right^.location.register)));
+                              { !!!!! exprasmlist^.concat(new(pai68k,op_reg(A_PUSH,S_L,p^.right^.location.register))); }
                               ungetregister32(p^.left^.location.register);
                            end;
                          LOC_REFERENCE,LOC_MEM:
@@ -524,7 +524,7 @@ implementation
                            end;
                       end;
                       emitcall('FPC_ANSI_TO_SHORTSTRING',true);
-                      maybe_loadesi;
+                      maybe_loada5;
                       popusedregisters(pushed);
                    end;
                  st_longstring:
@@ -1196,8 +1196,8 @@ implementation
         href.symbol:=nil;
         pushusedregisters(pushedregs,$ff);
         gettempofsizereference(32,href);
-        emitpushreferenceaddr(p^.left^.location.reference);
-        emitpushreferenceaddr(href);
+        emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+        emitpushreferenceaddr(exprasmlist,href);
         emitcall('FPC_SET_LOAD_SMALL',true);
         maybe_loada5;
         popusedregisters(pushedregs);
@@ -1387,7 +1387,7 @@ implementation
          exprasmlist^.concat(new(pai68k,op_csymbol_reg(A_MOVE,
            S_L,newcsymbol(pobjectdef(p^.right^.resulttype)^.vmt_mangledname,0),R_SPPUSH)));
          concat_external(pobjectdef(p^.right^.resulttype)^.vmt_mangledname,EXT_NEAR);
-         emitpushreferenceaddr(p^.location.reference);
+         emitpushreferenceaddr(exprasmlist,p^.location.reference);
           emitcall('FPC_DO_AS',true);
          popusedregisters(pushed);
       end;
@@ -1396,7 +1396,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-10-14 10:45:05  pierre
+  Revision 1.9  1998-10-14 11:28:17  florian
+    * emitpushreferenceaddress gets now the asmlist as parameter
+    * m68k version compiles with -duseansistrings
+
+  Revision 1.8  1998/10/14 10:45:05  pierre
     * ppu problems for m68k fixed (at least in cross compiling)
     * one last memory leak for sysamiga fixed
     * the amiga RTL compiles now completely !!

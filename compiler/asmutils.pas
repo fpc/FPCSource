@@ -79,7 +79,6 @@ Type
 
 
     PAsmLabel = ^TAsmLabel;
-    PString = ^String;
 
     { Each local label has this structure associated with it }
     TAsmLabel = record
@@ -813,7 +812,7 @@ end;
             stringdispose(operands[k].symbol);
     end;
  end;
- 
+
 {*************************************************************************}
 {                          Local label utilities                          }
 {*************************************************************************}
@@ -1885,7 +1884,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1998-10-13 16:49:59  pierre
+  Revision 1.12  1998-10-14 11:28:13  florian
+    * emitpushreferenceaddress gets now the asmlist as parameter
+    * m68k version compiles with -duseansistrings
+
+  Revision 1.11  1998/10/13 16:49:59  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

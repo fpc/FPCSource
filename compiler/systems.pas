@@ -208,7 +208,7 @@ implementation
        os_infos : array[1..oscnt] of tosinfo = (
           (
             id           : os_none;
-            name         : 'No operating system';
+            name         : 'No operating system'
           ),
           (
             id           : os_i386_go32v1;
@@ -500,7 +500,7 @@ implementation
 ****************************************************************************}
        link_infos : array[1..linkcnt] of tlinkinfo = (
           (
-            id      : link_none;
+            id      : link_none
           )
 {$ifdef i386}
           ,(
@@ -603,7 +603,7 @@ implementation
 ****************************************************************************}
            ar_infos : array[1..arcnt] of tarinfo = (
           (
-            id    : ar_none;
+            id    : ar_none
           )
 {$ifdef i386}
           ,(
@@ -1130,7 +1130,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  1998-10-14 08:08:56  pierre
+  Revision 1.44  1998-10-14 11:28:25  florian
+    * emitpushreferenceaddress gets now the asmlist as parameter
+    * m68k version compiles with -duseansistrings
+
+  Revision 1.43  1998/10/14 08:08:56  pierre
     * following Peters remark, removed all ifdef in
       the systems unit enums
     * last bugs of cg68k removed for sysamiga

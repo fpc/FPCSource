@@ -41,7 +41,7 @@ unit cga68k;
     function maybe_push(needed : byte;p : ptree) : boolean;
     procedure restore(p : ptree);
     procedure emit_push_mem(const ref : treference);
-    procedure emitpushreferenceaddr(const ref : treference);
+    procedure emitpushreferenceaddr(list : paasmoutput;const ref : treference);
     procedure copystring(const dref,sref : treference;len : byte);
     procedure concatcopy(source,dest : treference;size : longint;delsource : boolean);
     { see implementation }
@@ -431,7 +431,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
 
     { USES REGISTER R_A1 }
-    procedure emitpushreferenceaddr(const ref : treference);
+    procedure emitpushreferenceaddr(list : paasmoutput;const ref : treference);
     { Push a pointer to a value on the stack }
       begin
          if ref.isintvalue then
@@ -439,19 +439,19 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          else
            begin
               if (ref.base=R_NO) and (ref.index=R_NO) then
-                exprasmlist^.concat(new(pai68k,op_ref(A_PEA,S_L,
+                list^.concat(new(pai68k,op_ref(A_PEA,S_L,
                     newreference(ref))))
               else if (ref.base=R_NO) and (ref.index<>R_NO) and
                  (ref.offset=0) and (ref.scalefactor=0) and (ref.symbol=nil) then
-                exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
+                list^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
                     ref.index,R_SPPUSH)))
               else if (ref.base<>R_NO) and (ref.index=R_NO) and
                  (ref.offset=0) and (ref.symbol=nil) then
-                exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,ref.base,R_SPPUSH)))
+                list^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,ref.base,R_SPPUSH)))
               else
                 begin
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(ref),R_A1)));
-                   exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A1,R_SPPUSH)));
+                   list^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(ref),R_A1)));
+                   list^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A1,R_SPPUSH)));
                 end;
            end;
         end;
@@ -1344,7 +1344,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  1998-10-13 16:50:12  pierre
+  Revision 1.23  1998-10-14 11:28:22  florian
+    * emitpushreferenceaddress gets now the asmlist as parameter
+    * m68k version compiles with -duseansistrings
+
+  Revision 1.22  1998/10/13 16:50:12  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

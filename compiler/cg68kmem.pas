@@ -138,7 +138,8 @@ implementation
          case p^.left^.location.loc of
             LOC_CREGISTER : exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
               p^.left^.location.register,R_SPPUSH)));
-            LOC_REFERENCE : emitpushreferenceaddr(p^.left^.location.reference);
+            LOC_REFERENCE:
+              emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
 
          end;
 
@@ -688,7 +689,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-10-14 08:08:54  pierre
+  Revision 1.8  1998-10-14 11:28:21  florian
+    * emitpushreferenceaddress gets now the asmlist as parameter
+    * m68k version compiles with -duseansistrings
+
+  Revision 1.7  1998/10/14 08:08:54  pierre
     * following Peters remark, removed all ifdef in
       the systems unit enums
     * last bugs of cg68k removed for sysamiga
