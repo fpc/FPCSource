@@ -595,7 +595,18 @@ implementation
                      (l.reference.index<>R_NO)) then
                   begin
                     { load address into a single base register }
-                    cg.a_loadaddr_ref_reg(list,l.reference,l.reference.base);
+                    if l.reference.base=R_NO then
+                     begin
+                       cg.a_loadaddr_ref_reg(list,l.reference,l.reference.index);
+                       rg.ungetregister(list,l.reference.base);
+                       reference_reset_base(l.reference,l.reference.index,0);
+                     end
+                    else
+                     begin
+                       cg.a_loadaddr_ref_reg(list,l.reference,l.reference.base);
+                       rg.ungetregister(list,l.reference.index);
+                       reference_reset_base(l.reference,l.reference.base,0);
+                     end;
                     { save base register }
                     tg.GetTemp(exprasmlist,TCGSize2Size[OS_ADDR],tt_normal,s.ref);
                     cg.a_load_reg_ref(exprasmlist,OS_ADDR,l.reference.base,s.ref);
@@ -1775,7 +1786,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2002-09-01 14:42:41  peter
+  Revision 1.45  2002-09-01 18:50:20  peter
+    * fixed maybe_save that did not support a reference with only
+      a index register. It now also updates the location with the new
+      base register only
+
+  Revision 1.44  2002/09/01 14:42:41  peter
     * removevaluepara added to fix the stackpointer so restoring of
       saved registers works
 
