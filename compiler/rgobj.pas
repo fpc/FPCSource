@@ -1523,13 +1523,19 @@ unit rgobj;
       for i:=1 to length(simplifyworklist) do
         begin
           adj:=igraph.adjlist[Tsuperregister(simplifyworklist[i])];
-          if (adj<>nil) and (length(adj^)<min) then
+          if adj=nil then
             begin
-              min:=length(adj^);
-              if min=0 then
-                break;  {We won't find smaller ones.}
-              p:=i;
-            end;
+              min:=0;
+              break;  {We won't find smaller ones.}
+            end
+          else
+            if length(adj^)<min then
+              begin
+                min:=length(adj^);
+                if min=0 then
+                  break;  {We won't find smaller ones.}
+                p:=i;
+              end;
         end;
       n:=Tsuperregister(simplifyworklist[p]);
       delete(simplifyworklist,p,1);
@@ -2016,7 +2022,10 @@ end.
 
 {
   $Log$
-  Revision 1.41  2003-04-25 20:59:35  peter
+  Revision 1.42  2003-04-26 20:03:49  daniel
+    * Bug fix in simplify
+
+  Revision 1.41  2003/04/25 20:59:35  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter
