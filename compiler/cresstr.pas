@@ -222,7 +222,7 @@ Var
 begin
   If List.Empty then
     exit;
-  FileName:=ForceExtension(lower(FileName),'.rst');
+  FileName:=current_module^.outputpath^+FixFileName(ForceExtension(FileName,'.rst'));
   message1 (general_i_writingresourcefile,filename);
   Assign(F,Filename);
   {$i-}
@@ -284,10 +284,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:25  michael
-  + patched to 1.1.0 with former 1.09patch from peter
+  Revision 1.4  2000-08-15 09:45:29  michael
+  + Merged changes in fixbranch
 
-  Revision 1.2  2000/07/13 11:32:39  michael
-  + removed logs
+  Revision 1.1.2.1  2000/08/15 09:41:56  michael
+  + Fix to write rst file in output directory of module
+
+  Revision 1.1  2000/07/13 06:29:48  michael
+  + Initial import
 
 }
