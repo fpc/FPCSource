@@ -1254,10 +1254,10 @@ end;
        end;
        if assigned(dc^.paratype.def) then
          CurName:=CurName+GetDefinitionStr(dc^.paratype.def);
-       if dc^.indexnext<>nil then
+       if dc^.next<>nil then
          CurName:=', '+CurName;
        Name:=CurName+Name;
-       dc:=pparaitem(dc^.indexnext);
+       dc:=pparaitem(dc^.next);
        Inc(Count);
      end;
     GetAbsProcParmDefStr:=Name;
@@ -2094,7 +2094,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-08-16 18:33:53  peter
+  Revision 1.5  2000-08-18 13:18:12  pierre
+   * restore next instead of indexnext field for dc local var in GetAbsProcParmDefStr
+
+  Revision 1.4  2000/08/16 18:33:53  peter
     * splitted namedobjectitem.next into indexnext and listnext so it
       can be used in both lists
     * don't allow "word = word" type definitions (merged)
