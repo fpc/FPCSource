@@ -17,9 +17,10 @@ var
   ThreadWindow: HWND;
   ThreadCount: Integer;
 
-function ThreadWndProc(Window: HWND; Message, wParam, lParam: Longint): Longint;stdcall;
+function ThreadWndProc(Window: HWnd; AMessage:UInt; WParam : WParam; LParam: LParam): Longint; stdcall;
+
 begin
-  case Message of
+  case AMessage of
     CM_EXECPROC:
       with TThread(lParam) do
       begin
@@ -41,7 +42,7 @@ begin
         Result := 0;
       end;
   else
-    Result := DefWindowProc(Window, Message, wParam, lParam);
+    Result := DefWindowProc(Window, AMessage, wParam, lParam);
   end;
 end;
 
@@ -211,7 +212,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.6  2002-09-07 15:15:29  peter
+  Revision 1.7  2003-04-23 11:35:30  peter
+    * wndproc definition fix
+
+  Revision 1.6  2002/09/07 15:15:29  peter
     * old logs removed and tabs fixed
 
 }
