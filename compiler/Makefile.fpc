@@ -152,7 +152,7 @@ TEMPNAME1=ppc1$(EXEEXT)
 TEMPNAME2=ppc2$(EXEEXT)
 TEMPNAME3=ppc3$(EXEEXT)
 MAKEDEP=ppdep$(EXEEXT)
-MSG2INC=msg2inc$(EXEEXT)
+MSG2INC=./msg2inc$(EXEEXT)
 
 
 #####################################################################
