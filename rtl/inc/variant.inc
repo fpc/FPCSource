@@ -44,7 +44,9 @@ end;
 procedure variant_init(var v : variant);[Public,Alias:'FPC_VARIANT_INIT'];
 
   begin
-     variantmanager.varinit(v);
+     { calling the variant manager here is a problem because the static/global variants 
+       are initialized while the variant manager isn't assigned }
+     fillchar(v,sizeof(variant),0);
   end;
 
 procedure variant_clear(var v : variant);[Public,Alias:'FPC_VARIANT_CLEAR'];
@@ -554,10 +556,8 @@ procedure initvariantmanager;
   begin
      VarDispProc:=@vardisperror;
      DispCallByIDProc:=@vardisperror;
-     {
      tvardata(Unassigned).VType:=varEmpty;
      tvardata(Null).VType:=varNull;
-     }
      for i:=0 to (sizeof(tvariantmanager) div sizeof(pointer))-1 do
        ppointer(@variantmanager+i*sizeof(pointer))^:=@invalidvariantop;
      pointer(variantmanager.varclear):=@varclear
@@ -566,7 +566,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.10  2002-10-09 19:56:01  florian
+  Revision 1.11  2002-10-09 20:13:26  florian
+    * hopefully last fix to get things working :/
+
+  Revision 1.10  2002/10/09 19:56:01  florian
     * variant assignments don't work yet, commented out
 
   Revision 1.9  2002/10/09 19:08:22  florian
