@@ -1,0 +1,12 @@
+#: testo:first
+msgid "First"
+msgstr "Eerste"
+
+#: testo:second
+msgid "Second"
+msgstr "Tweede"
+
+#: testo:third
+msgid "Third"
+msgstr "Derde"
+
