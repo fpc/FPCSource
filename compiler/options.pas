@@ -1357,12 +1357,19 @@ begin
   if ErrorCount>0 then
    StopOptions;
 
-{ Hack: Linux define is also needed for freebsd (MvdV) }
-if target_info.target=target_i386_freebsd then
+
+ if target_info.target=target_i386_freebsd then
   begin
-   def_symbol('LINUX');
+   def_symbol('LINUX'); { Hack: Linux define is also needed for freebsd (MvdV) }
    def_symbol('BSD');
    def_symbol('FREEBSD');
+   def_symbol('UNIX');
+  end;
+
+ if target_info.target=target_i386_linux then
+  begin
+   def_symbol('LINUX'); 
+   def_symbol('UNIX');
   end;
 
 { write logo if set }
@@ -1497,7 +1504,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2000-11-06 20:30:54  peter
+  Revision 1.14  2000-11-07 14:25:08  marco
+   * FreeBSD defines (FreeBSD,Linux,BSD,Unix) Linux defines (Linux,Unix)
+
+  Revision 1.13  2000/11/06 20:30:54  peter
     * more fixes to get make cycle working
 
   Revision 1.12  2000/11/04 14:25:20  florian
