@@ -26,49 +26,25 @@
 }
 unit og386elf;
 
-{
-  Notes on COFF:
-
-  (0) When I say `standard COFF' below, I mean `COFF as output and
-  used by DJGPP'. I assume DJGPP gets it right.
-
-  (1) Win32 appears to interpret the term `relative relocation'
-  differently from standard COFF. Standard COFF understands a
-  relative relocation to mean that during relocation you add the
-  address of the symbol you're referencing, and subtract the base
-  address of the section you're in. Win32 COFF, by contrast, seems
-  to add the address of the symbol and then subtract the address
-  of THE BYTE AFTER THE RELOCATED DWORD. Hence the two formats are
-  subtly incompatible.
-
-  (2) Win32 doesn't bother putting any flags in the header flags
-  field (at offset 0x12 into the file).
-
-  (3) Win32 uses some extra flags into the section header table:
-  it defines flags 0x80000000 (writable), 0x40000000 (readable)
-  and 0x20000000 (executable), and uses them in the expected
-  combinations. It also defines 0x00100000 through 0x00700000 for
-  section alignments of 1 through 64 bytes.
-
-  (4) Both standard COFF and Win32 COFF seem to use the DWORD
-  field directly after the section name in the section header
-  table for something strange: they store what the address of the
-  section start point _would_ be, if you laid all the sections end
-  to end starting at zero. Dunno why. Microsoft's documentation
-  lists this field as "Virtual Size of Section", which doesn't
-  seem to fit at all. In fact, Win32 even includes non-linked
-  sections such as .drectve in this calculation.
-
-  (5) Standard COFF does something very strange to common
-  variables: the relocation point for a common variable is as far
-  _before_ the variable as its size stretches out _after_ it. So
-  we must fix up common variable references. Win32 seems to be
-  sensible on this one.
-}
   interface
 
     uses
        cobjects,og386,cpubase,aasm;
+
+    const
+      R_386_32 = 1;                    { ordinary absolute relocation }
+      R_386_PC32 = 2;                  { PC-relative relocation }
+      R_386_GOT32 = 3;                 { an offset into GOT }
+      R_386_PLT32 = 4;                 { a PC-relative offset into PLT }
+      R_386_GOTOFF = 9;                { an offset from GOT base }
+      R_386_GOTPC = 10;                { a PC-relative offset _to_ GOT }
+
+      SHT_PROGBITS = 1;
+      SHT_NOBITS = 8;
+
+      SHF_WRITE = 1;
+      SHF_ALLOC = 2;
+      SHF_EXECINSTR = 4;
 
     type
        preloc = ^treloc;
@@ -76,31 +52,36 @@ unit og386elf;
           next     : preloc;
           address  : longint;
           symbol   : pasmsymbol;
-          section  : tsection; { only used if symbol=nil }
-          relative : relative_type;
+          {section  : tsection;} { only used if symbol=nil }
+          typ      : byte;
        end;
 
        psymbol = ^tsymbol;
        tsymbol = packed record
-         name    : string[8];
          strpos  : longint;
          section : longint;
          value   : longint;
          typ     : TAsmsymtype;
+         size    : longint;
+         globnum : longint;
+         next,
+         nextfwd : psymbol;
        end;
 
-       pcoffsection = ^tcoffsection;
-       tcoffsection = object
+       pelfsection = ^telfsection;
+       telfsection = object
           index : tsection;
           data  : PDynamicArray;
           len,
           pos,
-          datapos,
-          relocpos,
           nrelocs,
           flags     : longint;
           relochead : PReloc;
           reloctail : ^PReloc;
+
+          rel       : PDynamicArray;
+          gsyms     : PSymbol;
+
           constructor init(sec:TSection;Aflags:longint);
           destructor  done;
           procedure  write(var d;l:longint);
@@ -109,10 +90,14 @@ unit og386elf;
           procedure  addsectionreloc(ofs:longint;sec:tsection);
        end;
 
-       pgenericcoffoutput = ^tgenericcoffoutput;
-       tgenericcoffoutput = object(tobjectoutput)
-         win32   : boolean;
-         sects   : array[TSection] of PCoffSection;
+       pelfoutput = ^telfoutput;
+       telfoutput = object(tobjectoutput)
+         sects   : array[TSection] of PElfSection;
+         elf_gotpc_sect,
+         elf_gotoff_sect,
+         elf_got_sect,
+         elf_plt_sect,
+         elf_sym_sect  : PElfSection;
          strs,
          syms    : Pdynamicarray;
          initsym : longint;
@@ -125,11 +110,6 @@ unit og386elf;
          procedure writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);virtual;
          procedure writesymbol(p:pasmsymbol);virtual;
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;
-
-         function  text_flags : longint;virtual;
-         function  data_flags : longint;virtual;
-         function  bss_flags : longint;virtual;
-         function  info_flags : longint;virtual;
        private
          procedure createsection(sec:tsection);
          procedure write_relocs(s:pcoffsection);
@@ -138,23 +118,6 @@ unit og386elf;
          procedure writetodisk;
        end;
 
-       pdjgppcoffoutput = ^tdjgppcoffoutput;
-       tdjgppcoffoutput = object(tgenericcoffoutput)
-         constructor init;
-         function text_flags : longint;virtual;
-         function data_flags : longint;virtual;
-         function bss_flags : longint;virtual;
-         function info_flags : longint;virtual;
-       end;
-
-       pwin32coffoutput = ^twin32coffoutput;
-       twin32coffoutput = object(tgenericcoffoutput)
-         constructor init;
-         function text_flags : longint;virtual;
-         function data_flags : longint;virtual;
-         function bss_flags : longint;virtual;
-         function info_flags : longint;virtual;
-       end;
 
   implementation
 
@@ -164,54 +127,6 @@ unit og386elf;
 
       type
       { Structures which are written directly to the output file }
-        coffheader=packed record
-          mach   : word;
-          nsects : word;
-          time   : longint;
-          sympos : longint;
-          syms   : longint;
-          opthdr : word;
-          flag   : word;
-        end;
-        coffsechdr=packed record
-          name     : array[0..7] of char;
-          vsize    : longint;
-          rvaofs   : longint;
-          datalen  : longint;
-          datapos  : longint;
-          relocpos : longint;
-          lineno1  : longint;
-          nrelocs  : word;
-          lineno2  : word;
-          flags    : longint;
-        end;
-        coffsectionrec=packed record
-          len     : longint;
-          nrelocs : word;
-          empty   : array[0..11] of char;
-        end;
-        coffreloc=packed record
-          address  : longint;
-          sym      : longint;
-          relative : word;
-        end;
-        coffsymbol=packed record
-          name    : array[0..3] of char; { real is [0..7], which overlaps the strpos ! }
-          strpos  : longint;
-          value   : longint;
-          section : integer;
-          empty   : integer;
-          typ     : byte;
-          aux     : byte;
-        end;
-        pcoffstab=^coffstab;
-        coffstab=packed record
-          strpos  : longint;
-          ntype   : byte;
-          nother  : byte;
-          ndesc   : word;
-          nvalue  : longint;
-        end;
 
 
       const
@@ -838,13 +753,7 @@ unit og386elf;
 end.
 {
   $Log$
-  Revision 1.4  2000-02-09 13:22:54  peter
-    * log truncated
-
-  Revision 1.3  2000/01/07 01:14:27  peter
-    * updated copyright to 2000
-
-  Revision 1.2  1999/08/04 00:23:07  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
+  Revision 1.5  2000-03-19 18:46:50  peter
+    * some beginning
 
 }
