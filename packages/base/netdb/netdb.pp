@@ -45,6 +45,7 @@ Const
   SServicesFile  = '/etc/services'; 
   SHostsFile     = '/etc/hosts';
   SNetworksFile  = '/etc/networks';
+  SProtocolFile  = '/etc/protocols';
 
   MaxRecursion = 10;
   MaxIP4Mapped = 10;
@@ -69,7 +70,13 @@ Type
     Addr : TNetAddr;
     Aliases : String;
   end;  
-  
+
+  TProtocolEntry = Record
+    Name : String;
+    Number : integer;
+    Aliases : String;
+  end;  
+
 Var  
   DNSServers            : TDNSServerArray;
   DNSServerCount        : Integer;
@@ -100,6 +107,10 @@ Function GetNetworkByAddr(Addr: THostAddr; Var N : TNetworkEntry) : boolean;
 
 Function GetServiceByName(Const Name,Proto : String; Var E : TServiceEntry) : Boolean;
 Function GetServiceByPort(Port : Word;Const Proto : String; Var E : TServiceEntry) : Boolean;
+
+Function GetProtocolByName(ProtoName: String;  Var H : TProtocolEntry) : boolean;
+Function GetProtocolByNumber(proto: Integer;  Var H : TProtocolEntry) : boolean;
+
 
 Implementation
 
@@ -926,6 +937,92 @@ begin
 end;
 
 { ---------------------------------------------------------------------
+    /etc/protocols handling.
+  ---------------------------------------------------------------------}
+
+Function GetNextProtoEntry(var F : Text; Var H : TProtocolEntry): boolean;
+
+Var
+  Line,S : String;
+  I      : integer;
+  
+begin
+  Result:=False;
+  Repeat
+    ReadLn(F,Line);
+    StripComment(Line);
+    S:=NextWord(Line);
+    If (S<>'') then
+      begin
+        H.Name:=S;	
+        S:=NextWord(Line);
+	i:=strtointdef(s,-1);
+        If (i<>-1) then
+          begin
+          H.number:=i;
+          Result:=True;
+          H.Aliases:='';
+          Repeat
+            S:=NextWord(line);
+            If (S<>'') then
+              If (H.Aliases='') then
+                H.Aliases:=S
+              else
+                H.Aliases:=H.Aliases+','+S;  
+          until (S='');
+          end;
+      end;
+  until Result or EOF(F);
+end;  
+
+Function FindProtoEntryInProtoFile(N: String; prot: integer; Var H : TProtocolEntry) : boolean;
+
+Var
+  F : Text;
+  HE : TProtocolEntry;
+  
+begin
+  Result:=False;
+  If FileExists(SProtocolFile) then
+    begin
+    Assign(F,SProtocolFile);
+    {$i-}
+    Reset(F);
+    {$i+}
+    If (IOResult=0) then
+      begin
+      While Not Result and GetNextProtoEntry(F,HE) do
+        begin
+        If (N<>'') then
+          Result:=MatchNameOrAlias(N,HE.Name,HE.Aliases)
+        else
+          Result:=prot=he.number;
+        end; 
+      Close(f);
+      If Result then
+        begin
+        H.Name:=HE.Name;
+        H.number:=he.number;
+        H.Aliases:=HE.Aliases;
+        end;
+      end;  
+    end;
+end;
+
+Function GetProtocolByName(ProtoName: String;  Var H : TProtocolEntry) : boolean;
+
+begin
+  Result:=FindProtoEntryInProtoFile(ProtoName,0,H);
+end;
+
+
+Function GetProtocolByNumber(proto: Integer;  Var H : TProtocolEntry) : boolean;
+
+begin
+  Result:=FindProtoEntryInProtoFile('',Proto,H);
+end;
+
+{ ---------------------------------------------------------------------
     /etc/networks handling
   ---------------------------------------------------------------------}
 
@@ -1146,7 +1243,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2005-03-27 16:09:47  marco
+  Revision 1.17  2005-03-27 18:15:07  marco
+   * /etc/protocol support
+
+  Revision 1.16  2005/03/27 16:09:47  marco
    * some order fixes to the hosts file functions. Also tested on OS X, but
      no changes necessary on Mac.
 
