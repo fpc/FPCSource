@@ -1585,7 +1585,13 @@ implementation
          a_param_const(list,OS_32,stackframesize,paraloc1);
          paramanager.freeparaloc(list,paraloc1);
          { No register saving needed, saveregisters is used }
+{$ifndef x86}
+         allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+{$endif x86}
          a_call_name(list,'FPC_STACKCHECK');
+{$ifndef x86}
+         deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+{$endif x86}
       end;
 
 
@@ -1638,7 +1644,13 @@ implementation
            paramanager.freeparaloc(list,paraloc1);
            paramanager.freeparaloc(list,paraloc2);
            { No register saving needed, saveregisters is used }
+{$ifndef x86}
+           allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+{$endif x86}
            a_call_name(list,'FPC_CHECK_OBJECT_EXT');
+{$ifndef x86}
+           deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+{$endif x86}
          end
         else
          if (cs_check_range in aktlocalswitches) then
@@ -1647,7 +1659,13 @@ implementation
             a_param_reg(list,OS_ADDR,reg,paraloc1);
             paramanager.freeparaloc(list,paraloc1);
             { No register saving needed, saveregisters is used }
+{$ifndef x86}
+            allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+{$endif x86}
             a_call_name(list,'FPC_CHECK_OBJECT');
+{$ifndef x86}
+            deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+{$endif x86}
           end;
       end;
 
@@ -1817,7 +1835,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.136  2003-12-06 01:15:22  florian
+  Revision 1.137  2003-12-06 22:11:47  jonas
+    + allocate volatile registers around calls to procedures declared with
+      "saveregisters" on non-x86 processors
+
+  Revision 1.136  2003/12/06 01:15:22  florian
     * reverted Peter's alloctemp patch; hopefully properly
 
   Revision 1.135  2003/12/03 23:13:19  peter
