@@ -275,7 +275,7 @@
               move(hp[i+1],FHeader,sizeof(TFHeader));
               move(hp[Prefix_Size],header,sizeof(THeader));
               { check if the font name is already allocated? }
-              i:=Prefix_Size+sizeof(THeader);
+              i:=Prefix_Size+sizeof(THeader)+1;
               for b:=1 to installedfonts do
                 begin
                    if fonts[b].name=FHeader.Font_name then
@@ -323,8 +323,8 @@
          if Currenttextinfo.font=DefaultFont
             then TextHeight:=8*CurrentTextInfo.CharSize
             else
-              TextHeight:=fonts[Currenttextinfo.font].header.org_to_cap-
-                round(fonts[Currenttextinfo.font].header.org_to_base * CurrentYRatio) ;
+              TextHeight:=Trunc((fonts[Currenttextinfo.font].header.org_to_cap-
+                fonts[Currenttextinfo.font].header.org_to_base) * CurrentYRatio);
       end;
 
     function TextWidth(const TextString : string) : word;
@@ -340,8 +340,9 @@
                for i:=1 to length(TextString) do
                 begin
                    c:=byte(textstring[i]);
-                   dec(c,fonts[Currenttextinfo.font].header.first_char);
-                   if (c<0) or (c>=fonts[Currenttextinfo.font].header.nr_chars) then
+{                   dec(c,fonts[Currenttextinfo.font].header.first_char);}
+                   if (c-fonts[Currenttextinfo.font].header.first_char>=
+                       fonts[Currenttextinfo.font].header.nr_chars) then
                      continue;
                    x:=x+byte(fonts[Currenttextinfo.font].widths[c]);
                end;
@@ -690,7 +691,13 @@
 
 {
 $Log$
-Revision 1.7  1999-09-12 17:29:00  jonas
+Revision 1.1  1999-09-22 13:13:36  jonas
+  * renamed text.inc -> gtext.inc to avoid conflict with system unit
+  * fixed textwidth
+  * isgraphmode now gets properly updated, so mode restoring works
+    again
+
+Revision 1.7  1999/09/12 17:29:00  jonas
   * several changes to internalellipse to make it faster
     and to make sure it updates the ArcCall correctly
     (not yet done for width = 3)

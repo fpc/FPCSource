@@ -33,10 +33,18 @@
     if not assigned(ModeList) then
       begin
         new(ModeList);
+{$ifdef logging}
+        LogLn('Modelist = '+strf(Longint(modelist)));
+        LogLn('Adding mode 1 and modelist^.next = '+strf(Longint(mode.next)));
+{$endif logging}
         move(mode, ModeList^, sizeof(TModeInfo));
       end
     else
       begin
+{$ifdef logging}
+        LogLn('Adding another mode, modelist = '+strf(Longint(modelist)));
+        LogLn('and modelist^.next = '+strf(Longint(modelist^.next)));
+{$endif logging}
         list := ModeList;
         { go to the end of the list }
         while assigned(list^.next) do
@@ -97,13 +105,26 @@
     var
       list: PModeInfo;
       tmp : PModeInfo;
+{$ifdef logging}
+      c: word;
+{$endif logging}
     begin
+      exit;
+{$ifdef logging}
+      LogLn('Modelist at exit: '+strf(longint(modelist)));
+      LogLn('Modelist^.next at exit: '+strf(longint(modelist^.next)));
+      c := 1;
+{$endif logging}
         list := ModeList;
         { go to the end of the list }
         while assigned(list) do
         begin
           tmp := list;
           list:=list^.next;
+{$ifdef logging}
+          LogLn('disposing mode '+strf(c));
+          inc(c);
+{$endif logging}
           dispose(tmp);
         end;
     end;
@@ -291,6 +312,7 @@
         end;
       modeinfo^.InitMode;
       if _GraphResult <> grOk then exit;
+      isgraphmode := true;
       { It is very important that this call be made }
       { AFTER the other variables have been setup.  }
       { Since it calls some routines which rely on  }
@@ -312,12 +334,20 @@
   {       -                                                }
   {********************************************************}
      begin
+       isgraphmode := false;
        RestoreVideoState;
+       isgraphmode := true;
      end;
 
 {
 $Log$
-Revision 1.8  1999-09-18 22:21:11  jonas
+Revision 1.9  1999-09-22 13:13:36  jonas
+  * renamed text.inc -> gtext.inc to avoid conflict with system unit
+  * fixed textwidth
+  * isgraphmode now gets properly updated, so mode restoring works
+    again
+
+Revision 1.8  1999/09/18 22:21:11  jonas
   + hlinevesa256 and vlinevesa256
   + support for not/xor/or/andput in vesamodes with 32k/64k colors
   * lots of changes to avoid warnings under FPC

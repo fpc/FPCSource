@@ -1407,6 +1407,7 @@ const CrtAddress: word = 0;
     end;
     if SaveSupported then
       begin
+
 {$ifndef fpc}
         PtrLong:=GlobalDosAlloc(64*StateSize);  { values returned in 64-byte blocks }
 {$else fpc}
@@ -1493,7 +1494,7 @@ const CrtAddress: word = 0;
       {**************************************************************}
 
 
- Procedure SaveStateVGA; far; 
+ Procedure SaveStateVGA; far;
   begin
     SavePtr := nil;
     SaveSupported := FALSE;
@@ -1635,14 +1636,21 @@ const CrtAddress: word = 0;
         _graphresult := grnoinitgraph;
         exit
       end;
+{$ifdef logging}
+    LogLn('calling RestoreVideoState at '+strf(longint(RestoreVideoState)));
+{$endif logging}
     if not assigned(RestoreVideoState) then
       RunError(216);
+{$ifdef logging}
+    LogLn('actual call of RestoreVideoState');
+{$endif logging}
     RestoreVideoState;
 {$IFDEF DPMI}
     { We had copied the buffer of mode information }
     { and allocated it dynamically... now free it  }
     { Warning: if GetVESAInfo returned false, this buffer is not allocated!
       (JM)}
+    isgraphmode := false;
     If hasVesa then
       Dispose(VESAInfo.ModeList);
 {$ENDIF}
@@ -1724,10 +1732,12 @@ const CrtAddress: word = 0;
 {$endif logging}
      if VGADetected then
        begin
-
+{$ifdef logging}
          SaveVideoState := SaveStateVGA;
+         LogLn('Setting VGA SaveVideoState to '+strf(longint(SaveVideoState)));
          RestoreVideoState := RestoreStateVGA;
-
+         LogLn('Setting VGA RestoreVideoState to '+strf(longint(RestoreVideoState)));
+{$endif logging}
 
          InitMode(mode);
          { now add all standard VGA modes...       }
@@ -1915,8 +1925,12 @@ const CrtAddress: word = 0;
          { otherwise, if we use the VGA BIOS only function  }
          { there might be a crash under DPMI, such as in the}
          { ATI Mach64                                       }
+{$ifdef logging}
          SaveVideoState := SaveStateVESA;
+         LogLn('Setting SaveVideoState to '+strf(longint(SaveVideoState)));
          RestoreVideoState := RestoreStateVESA;
+         LogLn('Setting RestoreVideoState to '+strf(longint(RestoreVideoState)));
+{$endif logging}
          { now check all supported modes...}
          if SearchVESAModes(m320x200x32k) then
            begin
@@ -2608,7 +2622,13 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.14  1999-09-18 22:21:09  jonas
+Revision 1.15  1999-09-22 13:13:34  jonas
+  * renamed text.inc -> gtext.inc to avoid conflict with system unit
+  * fixed textwidth
+  * isgraphmode now gets properly updated, so mode restoring works
+    again
+
+Revision 1.14  1999/09/18 22:21:09  jonas
   + hlinevesa256 and vlinevesa256
   + support for not/xor/or/andput in vesamodes with 32k/64k colors
   * lots of changes to avoid warnings under FPC

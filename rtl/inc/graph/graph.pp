@@ -2754,7 +2754,7 @@ end;
   end;
 
 {$i fills.inc}
-{$i text.inc}
+{$i gtext.inc}
 
 
   procedure InitGraph(var GraphDriver:Integer;var GraphMode:Integer;
@@ -2773,6 +2773,9 @@ end;
     QueryAdapterInfo;
     if not assigned(SaveVideoState) then
       RunError(216);
+{$ifdef logging}
+    LogLn('Calling SaveVideoState at '+strf(longint(savevideostate)));
+{$endif logging}
     SaveVideoState;
     InitVars;
     DriverName:=InternalDriverName;   { DOS Graphics driver }
@@ -2844,6 +2847,7 @@ begin
  rewrite(debuglog);
  close(debuglog);
 {$endif logging}
+ isgraphmode := false;
  ModeList := nil;
  SaveVideoState := nil;
  RestoreVideoState := nil;
@@ -2876,7 +2880,13 @@ DetectGraph
 
 {
   $Log$
-  Revision 1.25  1999-09-18 22:21:10  jonas
+  Revision 1.26  1999-09-22 13:13:35  jonas
+    * renamed text.inc -> gtext.inc to avoid conflict with system unit
+    * fixed textwidth
+    * isgraphmode now gets properly updated, so mode restoring works
+      again
+
+  Revision 1.25  1999/09/18 22:21:10  jonas
     + hlinevesa256 and vlinevesa256
     + support for not/xor/or/andput in vesamodes with 32k/64k colors
     * lots of changes to avoid warnings under FPC
