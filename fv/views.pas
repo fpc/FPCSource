@@ -470,6 +470,7 @@ TYPE
       PROCEDURE ChangeBounds (Var Bounds: TRect); Virtual;
       PROCEDURE GetSubViewPtr (Var S: TStream; Var P);
       PROCEDURE PutSubViewPtr (Var S: TStream; P: PView);
+      function ClipChilds: boolean; virtual;
       procedure BeforeInsert(P: PView); virtual;
       procedure AfterInsert(P: PView); virtual;
       procedure BeforeDelete(P: PView); virtual;
@@ -1835,10 +1836,13 @@ PROCEDURE TView.SizeLimits (Var Min, Max: TPoint);
 BEGIN
    Min.X := 0;                                        { Zero x minimum }
    Min.Y := 0;                                        { Zero y minimum }
-   If (Owner = Nil) Then Begin
-     Max.X := $7FFF;                                  { Max possible x size }
-     Max.Y := $7FFF;                                  { Max possible y size }
-   End Else Max := Owner^.Size;                       { Max owner size }
+   If (Owner <> Nil) and(Owner^.ClipChilds) Then
+     Max := Owner^.Size
+   else                         { Max owner size }
+    Begin
+     Max.X := high(sw_integer);                      { Max possible x size }
+     Max.Y := high(sw_integer);                        { Max possible y size }
+   End;
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -2213,6 +2217,12 @@ BEGIN
      End Else P := P^.PrevView;                       { Prior subview }
    End;
 END;
+
+
+function TGroup.ClipChilds: boolean;
+begin
+  ClipChilds:=true;
+end;
 
 
 procedure TGroup.BeforeInsert(P: PView);
@@ -4636,7 +4646,10 @@ END.
 
 {
  $Log$
- Revision 1.53  2004-12-21 18:53:41  peter
+ Revision 1.54  2004-12-22 15:28:22  peter
+   * TGroup.ClipChildes added
+
+ Revision 1.53  2004/12/21 18:53:41  peter
  cmCursorChange event
 
  Revision 1.52  2004/12/19 20:20:48  hajny
