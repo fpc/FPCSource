@@ -119,11 +119,23 @@ installbinary ()
       PPCSUFFIX=arm;;
     x86_64*)
       PPCSUFFIX=x64;;
+    mips*)
+      PPCSUFFIX=mips;;
+    ia64*)
+      PPCSUFFIX=ia64;;
+    alpha*)
+      PPCSUFFIX=alpha;;
   esac
 
   # Install compiler/RTL. Mandatory.
   echo "Installing compiler and RTL for $FPCTARGET..."
   unztarfromtar $BINARYTAR ${CROSSPREFIX}base.$1.tar.gz $PREFIX
+
+  if [ -f binutils-${CROSSPREFIX}$1.tar.gz ]; then
+    if yesno "Install Cross binutils"; then
+      unztar binutils-${CROSSPREFIX}$1.tar.gz $PREFIX
+    fi
+  fi
   
   # Install symlink
   rm -f $EXECDIR/ppc${PPCSUFFIX}
@@ -131,9 +143,12 @@ installbinary ()
   
   echo "Installing utilities..."
   unztarfromtar $BINARYTAR ${CROSSPREFIX}utils.$1.tar.gz $PREFIX
-  if yesno "Install Textmode IDE"; then
+  if [ -f ${CROSSPREFIX}ide.$1.tar.gz ]; then
+    if yesno "Install Textmode IDE"; then
       unztarfromtar $BINARYTAR ${CROSSPREFIX}ide.$1.tar.gz $PREFIX
+    fi
   fi
+
   if yesno "Install FCL"; then
       unztarfromtar $BINARYTAR ${CROSSPREFIX}units-fcl.$1.tar.gz $PREFIX
   fi
@@ -193,13 +208,25 @@ SHORTARCH=$ARCHNAME
 
 FULLARCH=$ARCHNAME-$OSNAME
 DOCDIR=$PREFIX/share/doc/fpc-$VERSION
-DEMODIR=$DOCDIR/examples
 
 # Install all binary releases
 for f in *binary*.tar
 do
   target=`echo $f | sed 's+^.*binary\.\(.*\)\.tar$+\1+'`
   cross=`echo $f | sed 's+binary\..*\.tar$++'`
+
+  # cross install? 
+  if [ cross != '' ]; then
+    if [ `which fpc` = '' ]; then
+      echo "No native FPC found."
+      echo "For a proper installation of a cross FPC the installation of a native FPC is required"
+      exit 1
+    else
+      if [ `fpc -iV` != $VERSION ]; then
+        echo "Warning: Native and cross FPC doesn't match; this could cause problems"
+      fi
+    fi
+  fi
   installbinary $target $cross
 done
 
@@ -207,25 +234,33 @@ echo Done.
 echo
 
 # Install the documentation. Optional.
-if yesno "Install documentation"; then
-  echo Installing documentation in $DOCDIR ...
-  unztar docs.tar.gz $DOCDIR
-  echo Done.
+if [ -f docs.tar.gz ]; then
+  if yesno "Install documentation"; then
+    echo Installing documentation in $DOCDIR ...
+    unztar docs.tar.gz $DOCDIR
+    echo Done.
+  fi
 fi
 echo
 
 # Install the demos. Optional.
-if yesno "Install demos"; then
-  ask "Install demos in" DEMODIR
-  echo Installing demos in $DEMODIR ...
-  makedirhierarch $DEMODIR
-  unztar demo.tar.gz $DEMODIR
-  echo Done.
+if [ -f demo.tar.gz ]; then
+  if yesno "Install demos"; then
+    ask "Install demos in" DEMODIR
+    echo Installing demos in $DEMODIR ...
+    makedirhierarch $DEMODIR
+    unztar demo.tar.gz $DEMODIR
+    echo Done.
+  fi
 fi
 echo
 
 # Install /etc/fpc.cfg, this is done using the samplecfg script
-$LIBDIR/samplecfg $LIBDIR
+if [ cross = '' ]; then
+  $LIBDIR/samplecfg $LIBDIR
+else
+  echo "No fpc.cfg created because a cross installation has been done."
+fi
 
 # The End
 echo
