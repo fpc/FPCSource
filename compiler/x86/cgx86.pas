@@ -474,6 +474,9 @@ unit cgx86;
          make_simple_ref(list,tmpref);
          floatstoreops(t,op,s);
          list.concat(Taicpu.Op_ref(op,s,tmpref));
+         { storing non extended floats can cause a floating point overflow }
+         if t<>OS_F80 then
+           list.concat(Taicpu.Op_none(A_FWAIT,S_NO));
          dec_fpu_stack;
       end;
 
@@ -1771,7 +1774,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.146  2005-02-14 17:13:10  peter
+  Revision 1.147  2005-03-13 17:15:26  florian
+    + storing non-extended floats to memory generates now a fwait to get exceptions at the correct place
+
+  Revision 1.146  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.145  2005/02/06 00:05:56  florian
