@@ -1,6 +1,6 @@
 program testib;
 
-uses Ibase, strings;
+uses Ibase60, strings;
 
 {$h-}
 

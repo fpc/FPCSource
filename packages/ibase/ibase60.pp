@@ -1,4 +1,4 @@
-unit ibase;
+unit ibase60;
 
 {$mode objfpc}
 

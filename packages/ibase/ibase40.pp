@@ -1,4 +1,4 @@
-unit ibase;
+unit ibase40;
 
 interface
 
