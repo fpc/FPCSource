@@ -564,8 +564,12 @@ begin
   l:=ioresult;
   if l<>0 then
    begin
+{$ifndef RTLLITE}
+     writeln('IO-Error ',l,' at 0x',HexStr(addr,8));
+{$else}
      writeln('IO-Error ',l,' at ',addr);
-     halt(l);
+{$endif}
+     halt(byte(l));
    end;
   asm
         popal
@@ -582,7 +586,11 @@ begin
         movl    4(%ebp),%edi
         movl    %edi,addr
    end;
+{$ifndef RTLLITE}
+   writeln('Overflow at 0x',HexStr(addr,8));
+{$else}
    writeln('Overflow at ',addr);
+{$endif}
    RunError(215);
 end;
 
@@ -713,24 +721,16 @@ end;
 
 
 {$I386_ATT} {can be removed}
-
-Function Random(L: LongInt): LongInt;assembler;
-asm
-          movl  $134775813,%eax
-          mull  RandSeed
-          incl  %eax
-          movl  %eax,RandSeed
-          mull  4(%esp)
-          movl  %edx,%eax
-end;
-
 {$I386_DIRECT} {can be removed}
 
 {$ASMMODE ATT}
 
 {
   $Log$
-  Revision 1.14  1998-07-01 15:29:58  peter
+  Revision 1.15  1998-07-02 12:19:32  carl
+    + IO-Error and Overflow now print address in hex
+
+  Revision 1.14  1998/07/01 15:29:58  peter
     * better readln/writeln
 
   Revision 1.13  1998/06/26 08:20:57  daniel
