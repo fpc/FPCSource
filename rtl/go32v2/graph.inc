@@ -2225,7 +2225,7 @@ const CrtAddress: word = 0;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
-             //!!!!! mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
+             mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2330,7 +2330,7 @@ const CrtAddress: word = 0;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x256;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
-             //!!!!! mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
+             mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
@@ -2436,7 +2436,7 @@ const CrtAddress: word = 0;
              mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
-             //!!!!! mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
+             mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
@@ -2499,7 +2499,11 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.2  1999-11-11 14:05:21  florian
+Revision 1.3  1999-11-27 21:48:00  jonas
+  * fixed VlineVESA256 and re-enabled it in graph.inc
+  * added procedure detectgraph to interface of graph unit
+
+Revision 1.2  1999/11/11 14:05:21  florian
   + support font loaded from BIOS
 
 Revision 1.1  1999/11/08 11:15:21  peter

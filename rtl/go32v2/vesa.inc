@@ -753,6 +753,7 @@ end;
                 StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
             exit;
       end;
+    Col := Byte(CurrentColor);
     {$ifdef logging}
     LogLn('vline '+strf(y)+' - '+strf(y2)+' on '+strf(x)+' in mode '+strf(currentwritemode));
     {$endif logging}
@@ -786,7 +787,7 @@ end;
                  For l := 0 to Bankrest-1 Do
                    begin
                      Mem[WinWriteSeg:word(offs)] :=
-                       Mem[WinReadSeg:word(offs)] And Byte(CurrentColor);
+                       Mem[WinReadSeg:word(offs)] And Col;
                      inc(offs,bytesperline);
                    end;
                  dec(VLength,l+1);
@@ -814,7 +815,7 @@ end;
                  For l := 0 to Bankrest-1 Do
                    begin
                      Mem[WinWriteSeg:word(offs)] :=
-                       Mem[WinReadSeg:word(offs)] Xor Byte(CurrentColor);
+                       Mem[WinReadSeg:word(offs)] Xor Col;
                      inc(offs,bytesperline);
                    end;
                  dec(VLength,l+1);
@@ -842,7 +843,7 @@ end;
                  For l := 0 to Bankrest-1 Do
                    begin
                      Mem[WinWriteSeg:word(offs)] :=
-                       Mem[WinReadSeg:word(offs)] Or Byte(CurrentColor);
+                       Mem[WinReadSeg:word(offs)] Or Col;
                      inc(offs,bytesperline);
                    end;
                  dec(VLength,l+1);
@@ -854,7 +855,7 @@ end;
            Else
              Begin
                If CurrentWriteMode = NotPut Then
-                 Col := Not(CurrentColor);
+                 Col := Not(Col);
                Repeat
                  curbank := integer(offs shr 16);
                  SetWriteBank(curbank);
@@ -1529,17 +1530,14 @@ end;
    if getVESAModeInfo(VESAmodeinfo, mode) then
    begin
      { checks if the hardware supports the video mode. }
-     if (VESAModeInfo.attr and modeAvail) <> 0 then
-       begin
-         SetVESAMode := TRUE;
-       end
-     else
+     if (VESAModeInfo.attr and modeAvail) = 0 then
        begin
          SetVESAmode := FALSE;
          _GraphResult := grError;
          exit;
        end;
 
+     SetVESAMode := TRUE;
      BankShift := 0;
      while (64 shr BankShift) <> VESAModeInfo.WinGranularity do
         Inc(BankShift);
@@ -1563,6 +1561,14 @@ end;
      { method.                                                }
         SetUpWindows(VESAModeInfo);
 
+{$ifdef logging}
+  LogLn('Entering vesa mode '+strf(mode));
+  LogLn('Read segment: $'+hexstr(winreadseg,4));
+  LogLn('Write segment: $'+hexstr(winwriteseg,4));
+  LogLn('Window granularity: '+strf(VESAModeInfo.WinGranularity)+'kb');
+  LogLn('Window size: '+strf(VESAModeInfo.winSize)+'kb');
+  LogLn('Bytes per line: '+strf(bytesperline));
+{$endif logging}
 
    asm
     mov ax,4F02h
@@ -1938,7 +1944,11 @@ end;
 
 {
 $Log$
-Revision 1.1  1999-11-08 11:15:21  peter
+Revision 1.2  1999-11-27 21:48:01  jonas
+  * fixed VlineVESA256 and re-enabled it in graph.inc
+  * added procedure detectgraph to interface of graph unit
+
+Revision 1.1  1999/11/08 11:15:21  peter
   * move graph.inc to the target dir
 
 Revision 1.21  1999/11/03 20:23:01  florian

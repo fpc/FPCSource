@@ -617,6 +617,7 @@ procedure GetFillSettings(var Fillinfo:Fillsettingstype);
 procedure GetFillPattern(var FillPattern:FillPatternType);
 procedure GetLineSettings(var ActiveLineInfo : LineSettingsType);
 procedure InitGraph(var GraphDriver:Integer;var GraphMode:Integer;const PathToDriver:String);
+procedure DetectGraph(var GraphDriver:Integer;var GraphMode:Integer);
 function InstallUserDriver(Name: string; AutoDetectPtr: Pointer): integer;
 function RegisterBGIDriver(driver: pointer): integer;
 procedure SetFillStyle(Pattern : word; Color: word);
@@ -3002,7 +3003,11 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.40  1999-11-25 17:44:14  pierre
+  Revision 1.41  1999-11-27 21:48:01  jonas
+    * fixed VlineVESA256 and re-enabled it in graph.inc
+    * added procedure detectgraph to interface of graph unit
+
+  Revision 1.40  1999/11/25 17:44:14  pierre
    * memory corruption within GetImage removed
 
   Revision 1.39  1999/11/24 23:42:31  pierre
