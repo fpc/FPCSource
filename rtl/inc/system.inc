@@ -452,11 +452,6 @@ begin
 end;
 
 
-function random(l:cardinal): cardinal;
-begin
-  random := cardinal((int64(cardinal(genrand_MT19937))*l) shr 32);
-end;
-
 function random(l:longint): longint;
 begin
   random := longint((int64(cardinal(genrand_MT19937))*l) shr 32);
@@ -464,7 +459,7 @@ end;
 
 function random(l:int64): int64;
 begin
-  random := longint((int64(cardinal(genrand_MT19937))*l) shr 32);
+  random:= longint((int64(cardinal(genrand_MT19937))*l) shr 32);
 end;
 
 function random: extended;
@@ -886,7 +881,10 @@ end;
 
 {
   $Log$
-  Revision 1.60  2004-07-18 20:21:44  florian
+  Revision 1.61  2004-08-29 10:23:12  peter
+  no message
+
+  Revision 1.60  2004/07/18 20:21:44  florian
     + several unicode (to/from utf-8 conversion) stuff added
     * some longint -> SizeInt changes
 

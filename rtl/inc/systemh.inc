@@ -415,7 +415,6 @@ Function  Swap (X:LongInt):LongInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Swap (X:QWord):QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Swap (X:Int64):Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 
-Function  Random(l:cardinal):cardinal;
 Function  Random(l:longint):longint;
 Function  Random(l:int64):int64;
 Function  Random: extended;
@@ -754,7 +753,10 @@ const
 
 {
   $Log$
-  Revision 1.98  2004-07-18 20:21:44  florian
+  Revision 1.99  2004-08-29 10:23:12  peter
+  no message
+
+  Revision 1.98  2004/07/18 20:21:44  florian
     + several unicode (to/from utf-8 conversion) stuff added
     * some longint -> SizeInt changes
 
