@@ -51,6 +51,7 @@ unit cpupara;
        private
           procedure create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
           function create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+          function create_inline_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
           function create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
        end;
 
@@ -359,16 +360,80 @@ unit cpupara;
       end;
 
 
+    function ti386paramanager.create_inline_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+      var
+        hp : tparaitem;
+        paraloc : tparalocation;
+        l,
+        varalign,
+        parasize : longint;
+      begin
+        parasize:=0;
+        hp:=tparaitem(p.para.first);
+        while assigned(hp) do
+          begin
+            if push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption) then
+              paraloc.size:=OS_ADDR
+            else
+              paraloc.size:=def_cgsize(hp.paratype.def);
+            if paraloc.size=OS_NO then
+              internalerror(200309301);
+            { Indicate parameter is loaded in register, the register
+              will be allocated when the allocpara is called }
+            paraloc.loc:=LOC_REGISTER;
+            paraloc.register:=NR_NO;
+(*
+                paraloc.loc:=LOC_REFERENCE;
+                if assigned(current_procinfo) then
+                  paraloc.reference.index:=current_procinfo.framepointer
+                else
+                  paraloc.reference.index:=NR_FRAME_POINTER_REG;
+                l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+                varalign:=size_2_align(l);
+                paraloc.reference.offset:=parasize+target_info.first_parm_offset;
+                varalign:=used_align(varalign,p.paraalign,p.paraalign);
+                parasize:=align(parasize+l,varalign);
+*)
+            hp.paraloc[side]:=paraloc;
+            hp:=tparaitem(hp.next);
+          end;
+        { We need to return the size allocated }
+        result:=parasize;
+      end;
+
+
     procedure ti386paramanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee);
       var
         l : longint;
       begin
-        if (p.proccalloption=pocall_register) or
-           ((pocall_default=pocall_register) and
-            (p.proccalloption in [pocall_compilerproc,pocall_internproc])) then
-          l:=create_register_paraloc_info(p,side)
-        else
-          l:=create_stdcall_paraloc_info(p,side);
+        case p.proccalloption of
+          pocall_register :
+            l:=create_register_paraloc_info(p,side);
+          pocall_inline :
+            begin
+              if inlining_procedure then
+                l:=create_inline_paraloc_info(p,side)
+              else
+                begin
+                  { Use default calling }
+                  if (pocall_default=pocall_register) then
+                    l:=create_register_paraloc_info(p,side)
+                  else
+                    l:=create_stdcall_paraloc_info(p,side);
+                end;
+            end;
+          pocall_compilerproc,
+          pocall_internproc :
+            begin
+              { Use default calling }
+              if (pocall_default=pocall_register) then
+                l:=create_register_paraloc_info(p,side)
+              else
+                l:=create_stdcall_paraloc_info(p,side);
+            end;
+          else
+            l:=create_stdcall_paraloc_info(p,side);
+        end;
         create_funcret_paraloc_info(p,side);
         { Store the size of the parameters on the stack }
         if (side=calleeside) then
@@ -381,7 +446,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2003-09-28 17:55:04  peter
+  Revision 1.34  2003-09-30 21:02:37  peter
+    * updates for inlining
+
+  Revision 1.33  2003/09/28 17:55:04  peter
     * parent framepointer changed to hidden parameter
     * tloadparentfpnode added
 

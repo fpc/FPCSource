@@ -79,7 +79,7 @@ unit paramgr;
             @param(list Current assembler list)
             @param(loc Parameter location)
           }
-          procedure allocparaloc(list: taasmoutput; const loc: tparalocation); virtual;
+          procedure allocparaloc(list: taasmoutput; var loc: tparalocation); virtual;
 
           {# free a parameter location allocated with allocparaloc
 
@@ -253,23 +253,45 @@ implementation
       end;
 
 
-    procedure tparamanager.allocparaloc(list: taasmoutput; const loc: tparalocation);
+    procedure tparamanager.allocparaloc(list: taasmoutput; var loc: tparalocation);
       begin
         case loc.loc of
           LOC_REGISTER, LOC_CREGISTER:
             begin
-{$ifndef cpu64bit}
-              if (loc.size in [OS_64,OS_S64,OS_F64]) then
+              { NR_NO means we need to allocate imaginary registers.
+                This is used for inlining parameters (PFV) }
+              if loc.register=NR_NO then
                 begin
-                  rg.getexplicitregisterint(list,loc.registerhigh);
-                  rg.getexplicitregisterint(list,loc.registerlow);
+{$ifndef cpu64bit}
+                  if (loc.size in [OS_64,OS_S64,OS_F64]) then
+                    begin
+                      loc.registerhigh:=rg.getregisterint(list,OS_32);
+                      loc.registerlow:=rg.getregisterint(list,OS_32);
+                    end
+                  else
+{$endif cpu64bit}
+                    loc.register:=rg.getregisterint(list,loc.size);
                 end
               else
+                begin
+{$ifndef cpu64bit}
+                  if (loc.size in [OS_64,OS_S64,OS_F64]) then
+                    begin
+                      rg.getexplicitregisterint(list,loc.registerhigh);
+                      rg.getexplicitregisterint(list,loc.registerlow);
+                    end
+                  else
 {$endif cpu64bit}
-                rg.getexplicitregisterint(list,loc.register);
+                    rg.getexplicitregisterint(list,loc.register);
+                end;
             end;
           LOC_FPUREGISTER, LOC_CFPUREGISTER:
-            rg.getexplicitregisterfpu(list,loc.register);
+            begin
+              if loc.register=NR_NO then
+                loc.register:=rg.getregisterfpu(list,loc.size)
+              else
+                rg.getexplicitregisterfpu(list,loc.register);
+            end;
           LOC_REFERENCE,LOC_CREFERENCE:
             { do nothing by default, most of the time it's the framepointer }
           else
@@ -358,7 +380,10 @@ end.
 
 {
    $Log$
-   Revision 1.56  2003-09-23 17:56:05  peter
+   Revision 1.57  2003-09-30 21:02:37  peter
+     * updates for inlining
+
+   Revision 1.56  2003/09/23 17:56:05  peter
      * locals and paras are allocated in the code generation
      * tvarsym.localloc contains the location of para/local when
        generating code for the current procedure

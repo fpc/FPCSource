@@ -1786,8 +1786,11 @@ implementation
               begin
                 with tvarsym(sym) do
                   begin
-                    { Allocate imaginary register for register parameters }
-                    if paraitem.paraloc[calleeside].loc=LOC_REGISTER then
+                    { Allocate imaginary register for register parameters,
+                      this is not required when the parameter is already an
+                      imaginary register }
+                    if (paraitem.paraloc[calleeside].loc=LOC_REGISTER) and
+                       (getsupreg(paraitem.paraloc[calleeside].register)<first_int_imreg) then
                       begin
                         (*
 {$warning TODO Allocate register paras}
@@ -1856,7 +1859,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.152  2003-09-29 20:58:56  peter
+  Revision 1.153  2003-09-30 21:02:37  peter
+    * updates for inlining
+
+  Revision 1.152  2003/09/29 20:58:56  peter
     * optimized releasing of registers
 
   Revision 1.151  2003/09/28 21:47:18  peter

@@ -977,7 +977,6 @@ implementation
          pushedother : tpushedsavedother;
          oldpushedparasize : longint;
          oldaktcallnode : tcallnode;
-         oldprocdef : tprocdef;
          i : longint;
          oldprocinfo : tprocinfo;
          oldinlining_procedure : boolean;
@@ -998,23 +997,19 @@ implementation
 {$warning TODO Fix inlining}
          internalerror(200309211);
 
-(*
          if not(assigned(procdefinition) and (procdefinition.deftype=procdef)) then
            internalerror(200305262);
 
          oldinlining_procedure:=inlining_procedure;
-         oldprocdef:=current_procinfo.procdef;
          oldprocinfo:=current_procinfo;
          { we're inlining a procedure }
          inlining_procedure:=true;
 
-         { calculate the parameter info for the procdef }
-         if not procdefinition.has_paraloc_info then
-           begin
-             paramanager.create_paraloc_info(procdefinition,callerside);
-             procdefinition.has_paraloc_info:=true;
-           end;
+         { calculate registers to pass the parameters }
+         paramanager.create_paraloc_info(procdefinition,callerside);
+         paramanager.create_paraloc_info(procdefinition,calleeside);
 
+(*
          { deallocate the registers used for the current procedure's regvars }
          if assigned(current_procinfo.procdef.regvarinfo) then
            begin
@@ -1038,11 +1033,13 @@ implementation
                        internalerror(200301232);
                      end;
            end;
+*)
 
          { create temp procinfo }
          current_procinfo:=cprocinfo.create(nil);
          current_procinfo.procdef:=tprocdef(procdefinition);
 
+(*
          { Localsymtable }
          current_procinfo.procdef.localst.symtablelevel:=oldprocdef.localst.symtablelevel;
          if current_procinfo.procdef.localst.datasize>0 then
@@ -1073,34 +1070,42 @@ implementation
                'inlined para symtable ('+tostr(current_procinfo.procdef.parast.datasize)+' bytes) is at offset '+tostr(current_procinfo.procdef.parast.address_fixup))));
 {$endif extdebug}
            end;
+*)
 
+         { Add inling start }
          exprasmList.concat(Tai_Marker.Create(InlineStart));
 {$ifdef extdebug}
          exprasmList.concat(tai_comment.Create(strpnew('Start of inlined proc')));
 {$endif extdebug}
+
+         { Allocate parameters and locals }
+         gen_alloc_parast(exprasmlist,tparasymtable(current_procinfo.procdef.parast));
+         if current_procinfo.procdef.localst.symtabletype=localsymtable then
+           gen_alloc_localst(exprasmlist,tlocalsymtable(current_procinfo.procdef.localst));
+
 {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) then
            begin
              objectlibrary.getaddrlabel(startlabel);
              objectlibrary.getaddrlabel(endlabel);
              cg.a_label(exprasmlist,startlabel);
-             tprocdef(procdefinition).localst.symtabletype:=inlinelocalsymtable;
-             procdefinition.parast.symtabletype:=inlineparasymtable;
+//             tprocdef(procdefinition).localst.symtabletype:=inlinelocalsymtable;
+//             procdefinition.parast.symtabletype:=inlineparasymtable;
 
              { Here we must include the para and local symtable info }
              procdefinition.concatstabto(withdebuglist);
 
              { set it back for safety }
-             tprocdef(procdefinition).localst.symtabletype:=localsymtable;
-             procdefinition.parast.symtabletype:=parasymtable;
+//             tprocdef(procdefinition).localst.symtabletype:=localsymtable;
+//             procdefinition.parast.symtabletype:=parasymtable;
 
-             mangled_length:=length(oldprocdef.mangledname);
+             mangled_length:=length(oldprocinfo.procdef.mangledname);
              getmem(pp,mangled_length+50);
              strpcopy(pp,'192,0,0,'+startlabel.name);
              if (target_info.use_function_relative_addresses) then
                begin
                  strpcopy(strend(pp),'-');
-                 strpcopy(strend(pp),oldprocdef.mangledname);
+                 strpcopy(strend(pp),oldprocinfo.procdef.mangledname);
                end;
              withdebugList.concat(Tai_stabn.Create(strnew(pp)));
            end;
@@ -1121,6 +1126,7 @@ implementation
              cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
            end;
 
+(*
          { save all used registers and possible registers
            used for the return value }
          regs_to_push_int:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
@@ -1144,26 +1150,20 @@ implementation
            end;
 
          rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
+*)
 
          { Initialize for pushing the parameters }
-         oldpushedparasize:=pushedparasize;
-         pushedparasize:=0;
+//         oldpushedparasize:=pushedparasize;
+//         pushedparasize:=0;
 
          { Push parameters }
          oldaktcallnode:=aktcallnode;
          aktcallnode:=self;
-
          if assigned(left) then
-           begin
-              { we push from right to left, so start with parameters at the end of
-                the parameter block }
-              tcallparanode(left).secondcallparan(
-                  (procdefinition.proccalloption in pushleftright_pocalls),procdefinition.proccalloption,
-                  0,procdefinition.parast.address_fixup+procdefinition.parast.datasize);
-           end;
+           tcallparanode(left).secondcallparan(procdefinition.proccalloption,0);
          aktcallnode:=oldaktcallnode;
 
-         rg.saveotherregvars(exprasmlist,regs_to_push_other);
+//         rg.saveotherregvars(exprasmlist,regs_to_push_other);
 
          { takes care of local data initialization }
          inlineentrycode:=TAAsmoutput.Create;
@@ -1178,20 +1178,17 @@ implementation
          secondpass(inlinecode);
 
          { Reserve space for storing parameters that will be pushed }
-         current_procinfo.allocate_push_parasize(pushedparasize);
+//         current_procinfo.allocate_push_parasize(pushedparasize);
 
          { Restore }
-         pushedparasize:=oldpushedparasize;
-         rg.restoreunusedstate(unusedstate);
-{$ifdef TEMPREGDEBUG}
-         testregisters32;
-{$endif TEMPREGDEBUG}
+//         pushedparasize:=oldpushedparasize;
+//         rg.restoreunusedstate(unusedstate);
 
          gen_finalize_code(inlineexitcode,true);
          gen_load_return_value(inlineexitcode,usesacc,usesacchi,usesfpu);
          if po_assembler in current_procinfo.procdef.procoptions then
            inlineexitcode.concat(Tai_marker.Create(asmblockend));
-         exprasmList.concatlist(inlineexitcode);
+         exprasmlist.concatlist(inlineexitcode);
 
          inlineentrycode.free;
          inlineexitcode.free;
@@ -1200,6 +1197,7 @@ implementation
 {$endif extdebug}
          exprasmList.concat(Tai_Marker.Create(InlineEnd));
 
+(*
          {we can free the local data now, reset also the fixup address }
          if current_procinfo.procdef.localst.datasize>0 then
            begin
@@ -1212,6 +1210,7 @@ implementation
              tg.UnGetTemp(exprasmlist,pararef);
              current_procinfo.procdef.parast.address_fixup:=old_para_fixup;
            end;
+*)
 
          { handle function results }
          if (not is_void(resulttype.def)) then
@@ -1233,7 +1232,7 @@ implementation
            end;
 
          { restore registers }
-         rg.restoreusedotherregisters(exprasmlist,pushedother);
+//         rg.restoreusedotherregisters(exprasmlist,pushedother);
 
          { release temps of paras }
          release_para_temps;
@@ -1275,7 +1274,7 @@ implementation
             if (target_info.use_function_relative_addresses) then
               begin
                 strpcopy(strend(pp),'-');
-                strpcopy(strend(pp),oldprocdef.mangledname);
+                strpcopy(strend(pp),oldprocinfo.procdef.mangledname);
               end;
              withdebugList.concat(Tai_stabn.Create(strnew(pp)));
              freemem(pp,mangled_length+50);
@@ -1283,15 +1282,14 @@ implementation
 {$endif GDB}
 
          { restore }
-         current_procinfo.procdef:=oldprocdef;
+         current_procinfo:=oldprocinfo;
          inlining_procedure:=oldinlining_procedure;
 
          { reallocate the registers used for the current procedure's regvars, }
          { since they may have been used and then deallocated in the inlined  }
          { procedure (JM)                                                     }
-         if assigned(current_procinfo.procdef.regvarinfo) then
-           rg.restoreStateAfterInline(oldregstate);
-*)
+//         if assigned(current_procinfo.procdef.regvarinfo) then
+//           rg.restoreStateAfterInline(oldregstate);
       end;
 
 
@@ -1310,7 +1308,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.121  2003-09-30 19:55:19  peter
+  Revision 1.122  2003-09-30 21:02:37  peter
+    * updates for inlining
+
+  Revision 1.121  2003/09/30 19:55:19  peter
     * remove abt reg for vmtreg
 
   Revision 1.120  2003/09/29 20:58:55  peter
