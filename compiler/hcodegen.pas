@@ -249,8 +249,11 @@ implementation
          importssection:=nil;
          exportssection:=nil;
          resourcesection:=nil;
+         { assembler symbols }
          asmsymbollist:=new(pasmsymbollist,init);
          asmsymbollist^.usehash;
+         { resourcestrings }
+         resourcestringlist:=nil;
       end;
 
 
@@ -270,9 +273,11 @@ implementation
           dispose(exportssection,done);
          if assigned(resourcesection) then
           dispose(resourcesection,done);
+         { assembler symbols }
+         dispose(asmsymbollist,done);
+         { resource strings }
          if assigned(resourcestringlist) then
           dispose(resourcestringlist,done);
-         dispose(asmsymbollist,done);
       end;
 
 
@@ -291,7 +296,10 @@ end.
 
 {
   $Log$
-  Revision 1.37  1999-08-04 00:23:02  florian
+  Revision 1.38  1999-08-16 18:23:56  peter
+    * reset resourcestringlist in newmodule.
+
+  Revision 1.37  1999/08/04 00:23:02  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.36  1999/08/01 23:09:26  michael
