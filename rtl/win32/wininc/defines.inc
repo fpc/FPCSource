@@ -1725,7 +1725,8 @@
     function STD_ERROR_HANDLE : DWORD;
 
     { was #define dname def_expr }
-    function INVALID_HANDLE_VALUE : HANDLE;
+Const
+  INVALID_HANDLE_VALUE = HANDLE(-1);
 
   { GetStockObject  }
 
@@ -5746,7 +5747,10 @@ const
 
 {
   $Log$
-  Revision 1.9  2002-10-11 09:20:31  michael
+  Revision 1.10  2003-06-15 14:33:22  michael
+  + INVALID_HANDLE_VALUE is a constant, not a function
+
+  Revision 1.9  2002/10/11 09:20:31  michael
   + Added missing version strings
 
   Revision 1.8  2002/10/08 17:13:31  jonas
