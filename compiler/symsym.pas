@@ -1153,11 +1153,13 @@ implementation
         pd:=pdlistfirst;
         while assigned(pd) do
           begin
-            eq1:=compare_defs_ext(def1,Tparaitem(pd^.def.para.first).paratype.def,
+            { Compare def1 with the last para (right to left order) }
+            eq1:=compare_defs_ext(def1,Tparaitem(pd^.def.para.last).paratype.def,
                                  nothingn,false,false,convtyp,hpd);
             if eq1<>te_incompatible then
              begin
-               eq2:=compare_defs_ext(def1,Tparaitem(pd^.def.para.first).paratype.def,
+               { Compare def2 with the first para (right to left order) }
+               eq2:=compare_defs_ext(def2,Tparaitem(pd^.def.para.first).paratype.def,
                                     nothingn,false,false,convtyp,hpd);
                if eq2<>te_incompatible then
                 begin
@@ -2517,7 +2519,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2002-12-16 22:08:31  peter
+  Revision 1.84  2002-12-20 16:02:22  peter
+    * fix stupid copy&paste bug in binary operator search
+
+  Revision 1.83  2002/12/16 22:08:31  peter
     * fix order of procdefs in procsym, procdefs are now always appended
       so that loading from a ppu will keep the same order. This is
       important for the generation of VMTs
