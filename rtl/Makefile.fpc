@@ -14,9 +14,11 @@ dirs_go32v1=go32v1
 dirs_os2=os2
 dirs_freebsd=freebsd
 dirs_beos=beos
+dirs_amiga=amiga
 
 [install]
 fpcpackage=y
+createpackagefpc=y
 
 [default]
 fpcdir=..
