@@ -381,7 +381,7 @@ type
     function CreateEntityReference(const name: DOMString): TDOMEntityReference; override;
 
     // Extensions to DOM interface:
-    XMLVersion, Encoding: String;
+    XMLVersion, Encoding, StylesheetType, StylesheetHRef: DOMString;
   end;
 
 
@@ -1499,7 +1499,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-07-29 14:52:24  sg
+  Revision 1.5  2000-09-12 14:07:58  sg
+  * Added fields "StylesheetType" and "StylesheetHRef" to TXMLDocument
+
+  Revision 1.4  2000/07/29 14:52:24  sg
   * Modified the copyright notice to remove ambiguities
 
   Revision 1.3  2000/07/25 09:20:08  sg
