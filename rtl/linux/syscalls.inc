@@ -412,41 +412,61 @@ begin
   SysCall(Syscall_nr_sigaction,sr);
 end;
 
+function Sys_FTruncate(Handle,Pos:longint):longint;  //moved from sysunix.inc Do_Truncate
+var
+  sr : syscallregs;
+begin
+  sr.reg2:=Handle;
+  sr.reg3:=Pos;
+  Sys_FTruncate:=syscall(syscall_nr_ftruncate,sr);
+end;
+
+Function Sys_mmap(adr,len,prot,flags,fdes,off:longint):longint; // moved from sysunix.inc, used in sbrk
+type
+  tmmapargs=packed record
+    address : longint;
+    size    : longint;
+    prot    : longint;
+    flags   : longint;
+    fd      : longint;
+    offset  : longint;
+  end;
+var
+  t     : syscallregs;
+  mmapargs : tmmapargs;
+begin
+  mmapargs.address:=adr;
+  mmapargs.size:=len;
+  mmapargs.prot:=prot;
+  mmapargs.flags:=flags;
+  mmapargs.fd:=fdes;
+  mmapargs.offset:=off;
+  t.reg2:=longint(@mmapargs);
+  Sys_mmap:=syscall(syscall_nr_mmap,t);
+end;
+
+{
+  Interface to Unix ioctl call.
+  Performs various operations on the filedescriptor Handle.
+  Ndx describes the operation to perform.
+  Data points to data needed for the Ndx function. The structure of this
+  data is function-dependent.
+}
+Function Sys_IOCtl(Handle,Ndx: Longint;Data: Pointer):LongInt;  // This was missing here, instead hardcode in Do_IsDevice
+var
+  sr: SysCallRegs;
+begin
+  sr.reg2:=Handle;
+  sr.reg3:=Ndx;
+  sr.reg4:=Longint(Data);
+  Sys_IOCtl:=SysCall(Syscall_nr_ioctl,sr);
+end;
+
 
 {
   $Log$
-  Revision 1.3  2000-09-11 14:05:31  marco
-   * FreeBSD support and removed old signalhandling
-
-
-  Revision 1.2  2000/07/13 11:33:49  michael
-  + removed logs
-
-  Revision 1.1  2000/07/13 06:30:54  michael
-  + Initial import
-
-  Revision 1.11  2000/07/08 18:02:39  peter
-    * do_open checks for directory, if directory then ioerror 2
-
-  Revision 1.10  2000/02/09 16:59:32  peter
-    * truncated log
-
-  Revision 1.9  2000/02/08 11:47:09  peter
-    * paramstr(0) support
-
-  Revision 1.8  2000/01/07 16:41:41  daniel
-    * copyright 2000
-
-  Revision 1.7  2000/01/07 16:32:28  daniel
-    * copyright 2000 added
-
-  Revision 1.6  1999/07/28 17:37:06  michael
-  * forgot ;
-
-  Revision 1.5  1999/07/28 12:15:16  michael
-  * Memory leak fixed in CloseDir, by Sebastian Guenther
-
-  Revision 1.4  1999/07/28 12:14:37  michael
-  * Memory leak fixed in CloseDir, by Sebastian Guenther
+  Revision 1.4  2001-06-02 00:31:30  peter
+    * merge unix updates from the 1.0 branch, mostly related to the
+      solaris target
 
 }

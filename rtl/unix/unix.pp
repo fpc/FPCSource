@@ -51,9 +51,14 @@ const
   Prio_PGrp    = 1;
   Prio_User    = 2;
 
+{$ifdef Solaris}
+  WNOHANG   = $100;
+  WUNTRACED = $4;
+{$ELSE}
   WNOHANG   = $1;
   WUNTRACED = $2;
   __WCLONE  = $80000000;
+{$ENDIF}
 
 
 {********************
@@ -99,11 +104,22 @@ const
   F_SetFd  = 2;
   F_GetFl  = 3;
   F_SetFl  = 4;
+{$ifdef Solaris}
+  F_DupFd  = 0;
+  F_Dup2Fd = 9;
+  F_GetOwn = 23;
+  F_SetOwn = 24;
+  F_GetLk  = 14;
+  F_SetLk  = 6;
+  F_SetLkW = 7;
+  F_FreeSp = 11;
+{$else}
   F_GetLk  = 5;
   F_SetLk  = 6;
   F_SetLkW = 7;
   F_SetOwn = 8;
   F_GetOwn = 9;
+{$endif}
 
 {********************
    IOCtl(TermIOS)
@@ -215,7 +231,8 @@ Function  Fork:longint;
 {Clone for FreeBSD is copied from the LinuxThread port, and rfork based}
 function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 Procedure ExitProcess(val:longint);
-Function  WaitPid(Pid:longint;Status:pointer;Options:longint):Longint;
+Function  WaitPid(Pid:longint;Status:pointer;Options:Longint):Longint;  {=>PID (Status Valid), 0 (No Status), -1: Error, special case errno=EINTR }
+Function  WaitProcess(Pid:longint):Longint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
 Procedure Nice(N:integer);
 {$ifdef bsd}
 Function  GetPriority(Which,Who:longint):longint;
@@ -242,14 +259,16 @@ Function  fdOpen(pathname:pchar;flags:longint):longint;
 Function  fdOpen(pathname:pchar;flags,mode:longint):longint;
 Function  fdClose(fd:longint):boolean;
 Function  fdRead(fd:longint;var buf;size:longint):longint;
-Function  fdWrite(fd:longint;var buf;size:longint):longint;
+Function  fdWrite(fd:longint;const buf;size:longint):longint;
 Function  fdTruncate(fd,size:longint):boolean;
 Function  fdSeek (fd,pos,seektype :longint): longint;
 Function  fdFlush (fd : Longint) : Boolean;
 Function  Link(OldPath,NewPath:pathstr):boolean;
 Function  SymLink(OldPath,NewPath:pathstr):boolean;
+{$ifndef bsd}
 Function  ReadLink(name,linkname:pchar;maxlen:longint):longint;
 Function  ReadLink(name:pathstr):pathstr;
+{$endif}
 Function  UnLink(Path:pathstr):boolean;
 Function  UnLink(Path:pchar):Boolean;
 Function  FReName (OldName,NewName : Pchar) : Boolean;
@@ -293,6 +312,7 @@ Function  Dup2(var oldfile,newfile:file):Boolean;
 Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:PTimeVal):longint;
 Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:Longint):longint;
 Function  SelectText(var T:Text;TimeOut :PTimeVal):Longint;
+Function  SelectText(var T:Text;TimeOut :Longint):Longint;
 
 {**************************
    Directory Handling
@@ -383,10 +403,10 @@ const
   PROT_NONE  = $0;             { page can not be accessed }
 
   MAP_SHARED    = $1;          { Share changes }
-  MAP_PRIVATE   = $2;          { Changes are private }
+//  MAP_PRIVATE   = $2;          { Changes are private }
   MAP_TYPE      = $f;          { Mask for type of mapping }
   MAP_FIXED     = $10;         { Interpret addr exactly }
-  MAP_ANONYMOUS = $20;         { don't use a file }
+//  MAP_ANONYMOUS = $20;         { don't use a file }
 
   MAP_GROWSDOWN  = $100;       { stack-like segment }
   MAP_DENYWRITE  = $800;       { ETXTBSY }
@@ -412,6 +432,9 @@ function MUnMap (P : Pointer; Size : Longint) : Boolean;
 ***************************}
 
 Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
+{$ifndef BSD}
+Function  IoPL(Level : longint) : Boolean;
+{$endif}
 {$ifdef i386}
 Procedure WritePort (Port : Longint; Value : Byte);
 Procedure WritePort (Port : Longint; Value : Word);
@@ -480,36 +503,65 @@ Uses Strings;
 
 { Raw System calls are in Syscalls.inc}
 {$i syscalls.inc}
-{$ifdef BSD}
- {$i bsdsysca.inc}
-{$else}
- {$i linsysca.inc}
-{$endif}
+
+{$i unixsysc.inc}   {Syscalls only used in unit Unix/Linux}
 
 
 {******************************************************************************
                           Process related calls
 ******************************************************************************}
 
-function CreateShellArgV(const prog:string):ppchar;
+{ Most calls of WaitPID do not handle the result correctly, this funktion treats errors more correctly }
+Function  WaitProcess(Pid:longint):Longint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
+var     r,s     : LongInt;
+begin
+  repeat
+    s:=$7F00;
+    r:=WaitPid(Pid,@s,0);
+  until (r<>-1) or (LinuxError<>Sys_EINTR);
+  if (r=-1) or (r=0) then // 0 is not a valid return and should never occur (it means status invalid when using WNOHANG)
+    WaitProcess:=-1 // return -1 to indicate an error
+  else
+   begin
+{$ifndef Solaris}
+     WaitProcess:=s; // s<0 should not occur, but wie return also a negativ value
+{$else}
+     if (s and $FF)=0 then // Only this is a valid returncode
+      WaitProcess:=s shr 8
+     else if (s>0) then  // Until now there is not use of the highest bit , but check this for the future
+      WaitProcess:=-s // normal case
+     else
+      WaitProcess:=s; // s<0 should not occur, but wie return also a negativ value
+{$endif}
+   end;
+end;
+
+function InternalCreateShellArgV(cmd:pChar; len:longint):ppchar;
 {
   Create an argv which executes a command in a shell using /bin/sh -c
 }
+const   Shell   = '/bin/sh'#0'-c'#0;
 var
   pp,p : ppchar;
-  temp : string;
+//  temp : string; !! Never pass a local var back!!
 begin
   getmem(pp,4*4);
-  temp:='/bin/sh'#0'-c'#0+prog+#0;
   p:=pp;
-  p^:=@temp[1];
+  p^:=@Shell[1];
   inc(p);
-  p^:=@temp[9];
+  p^:=@Shell[9];
   inc(p);
-  p^:=@temp[12];
+  getmem(p^,len+1);
+  move(cmd^,p^^,len);
+  pchar(p^)[len]:=#0;
   inc(p);
   p^:=Nil;
-  CreateShellArgV:=pp;
+  InternalCreateShellArgV:=pp;
+end;
+
+function CreateShellArgV(const prog:string):ppchar;
+begin
+  CreateShellArgV:=InternalCreateShellArgV(@prog[1],length(prog));
 end;
 
 function CreateShellArgV(const prog:Ansistring):ppchar;
@@ -517,24 +569,18 @@ function CreateShellArgV(const prog:Ansistring):ppchar;
   Create an argv which executes a command in a shell using /bin/sh -c
   using a AnsiString;
 }
-var
-  pp,p : ppchar;
-  temp : AnsiString;
 begin
-  getmem(pp,4*4);
-  temp:='/bin/sh'#0'-c'#0+prog+#0;
-  p:=pp;
-  GetMem(p^,Length(Temp));
-  Move(Temp[1],p^^,Length(Temp));
-  inc(p);
-  p^:=@pp[0][8];
-  inc(p);
-  p^:=@pp[0][11];
-  inc(p);
-  p^:=Nil;
-  CreateShellArgV:=pp;
+  CreateShellArgV:=InternalCreateShellArgV(@prog[1],length(prog)); // if ppc works like delphi this also work when @prog[1] is invalid (len=0)
 end;
 
+
+procedure FreeShellArgV(p:ppchar);
+begin
+  if (p<>nil) then begin
+    freemem(p[2]);
+    freemem(p);
+   end;
+end;
 
 
 Procedure Execv(const path:pathstr;args:ppchar);
@@ -546,7 +592,6 @@ Procedure Execv(const path:pathstr;args:ppchar);
 begin
   Execve(path,args,envp); {On error linuxerror will get set there}
 end;
-
 
 
 Procedure Execvp(Path:Pathstr;Args:ppchar;Ep:ppchar);
@@ -574,7 +619,6 @@ begin
 end;
 
 
-
 Procedure Execle(Todo:string;Ep:ppchar);
 {
   This procedure takes the string 'Todo', parses it for command and
@@ -594,7 +638,6 @@ begin
 end;
 
 
-
 Procedure Execl(const Todo:string);
 {
   This procedure takes the string 'Todo', parses it for command and
@@ -607,7 +650,6 @@ Procedure Execl(const Todo:string);
 begin
   ExecLE(ToDo,EnvP);
 end;
-
 
 
 Procedure Execlp(Todo:string;Ep:ppchar);
@@ -628,6 +670,7 @@ begin
   ExecVP(StrPas(p^),p,EP);
 end;
 
+
 Function Shell(const Command:String):Longint;
 {
   Executes the shell, and passes it the string Command. (Through /bin/sh -c)
@@ -635,25 +678,31 @@ Function Shell(const Command:String):Longint;
   It waits for the shell to exit, and returns its exit status.
   If the Exec call failed exit status 127 is reported.
 }
+{ Changed the structure:
+- the previous version returns an undefinied value if fork fails
+- it returns the status of Waitpid instead of the Process returnvalue (see the doc to Shell)
+- it uses exit(127) not ExitProc (The Result in pp386: going on Compiling in 2 processes!)
+- ShellArgs are now released
+- The Old CreateShellArg gives back pointers to a local var
+}
 var
-  p        : ppchar;
-  temp,pid : longint;
+  p      : ppchar;
+  pid    : longint;
 begin
+  p:=CreateShellArgv(command);
   pid:=fork;
-  if pid=-1 then
-   exit; {Linuxerror already set in Fork}
-  if pid=0 then
+  if pid=0 then // We are in the Child
    begin
      {This is the child.}
-     p:=CreateShellArgv(command);
      Execve(p^,p,envp);
-     exit(127);
-   end;
-  temp:=0;
-  WaitPid(pid,@temp,0);{Linuxerror is set there}
-  Shell:=temp;{ Return exit status }
+     ExitProcess(127);  // was Exit(127)
+   end
+  else if (pid<>-1) then // Successfull started
+   Shell:=WaitProcess(pid) {Linuxerror is set there}
+  else // no success
+   Shell:=-1; // indicate an error
+  FreeShellArgV(p);
 end;
-
 
 
 Function Shell(const Command:AnsiString):Longint;
@@ -661,23 +710,23 @@ Function Shell(const Command:AnsiString):Longint;
   AnsiString version of Shell
 }
 var
-  p        : ppchar;
-  temp,pid : longint;
-begin
+  p     : ppchar;
+  pid   : longint;
+begin { Changes as above }
+  p:=CreateShellArgv(command);
   pid:=fork;
-  if pid=-1 then
-   exit; {Linuxerror already set in Fork}
-  if pid=0 then
+  if pid=0 then // We are in the Child
    begin
-     {This is the child.}
-     p:=CreateShellArgv(command);
      Execve(p^,p,envp);
-     exit(127);
-   end;
-  temp:=0;
-  WaitPid(pid,@temp,0);{Linuxerror is set there}
-  Shell:=temp;{ Return exit status }
+     ExitProcess(127); // was exit(127)!! We must exit the Process, not the function
+   end
+  else if (pid<>-1) then // Successfull started
+   Shell:=WaitProcess(pid) {Linuxerror is set there}
+  else // no success
+   Shell:=-1;
+  FreeShellArgV(p);
 end;
+
 
 {******************************************************************************
                        Date and Time related calls
@@ -881,7 +930,7 @@ end;
 
 
 
-Function fdWrite(fd:longint;var buf;size:longint):longint;
+Function fdWrite(fd:longint;const buf;size:longint):longint;
 begin
   fdWrite:=Sys_Write(fd,pchar(@buf),size);
   LinuxError:=Errno;
@@ -1201,6 +1250,23 @@ begin
    SelectText:=select(textrec(T).handle+1,@f,nil,nil,TimeOut)
   else
    SelectText:=select(textrec(T).handle+1,nil,@f,nil,TimeOut);
+end;
+
+
+Function SelectText(var T:Text;TimeOut :Longint):Longint;
+var
+  p  : PTimeVal;
+  tv : TimeVal;
+begin
+  if TimeOut=-1 then
+   p:=nil
+  else
+   begin
+     tv.Sec:=Timeout div 1000;
+     tv.Usec:=(Timeout mod 1000)*1000;
+     p:=@tv;
+   end;
+  SelectText:=SelectText(T,p);
 end;
 
 
@@ -1932,27 +1998,15 @@ begin
 end;
 
 
-
 Function TCFlush(fd,qsel:longint):boolean;
-
-{var com:longint;}
-
 begin
  {$ifndef BSD}
   TCFlush:=IOCtl(fd,TCFLSH,pointer(qsel));
  {$else}
-  {
-  CASE Qsel of
-   TCIFLUSH :  com:=fread;
-   TCOFLUSH :  com:=FWRITE;
-   TCIOFLUSH:  com:=FREAD OR FWRITE;
-  else
-   exit(false);
-  end;
-  }
   TCFlush:=IOCtl(fd,TIOCFLUSH,pointer(qsel));
  {$endif}
 end;
+
 
 Function IsATTY(Handle:Longint):Boolean;
 {
@@ -2122,13 +2176,13 @@ begin
 end;
 
 
-(*
+{
 function FExpand (const Path: PathStr): PathStr;
 - declared in fexpand.inc
-*)
+}
 
-{$DEFINE FPC_FEXPAND_TILDE} (* Tilde is expanded to home *)
-{$DEFINE FPC_FEXPAND_GETENVPCHAR} (* GetEnv result is a PChar *)
+{$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
+{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
 
 const
   LFNSupport = true;
@@ -2561,7 +2615,6 @@ end;
 --------------------------------}
 
 {$IFDEF I386}
-
 Procedure WritePort (Port : Longint; Value : Byte);
 {
   Writes 'Value' to port 'Port'
@@ -2839,7 +2892,11 @@ End.
 
 {
   $Log$
-  Revision 1.7  2001-04-19 12:57:33  marco
+  Revision 1.8  2001-06-02 00:31:31  peter
+    * merge unix updates from the 1.0 branch, mostly related to the
+      solaris target
+
+  Revision 1.7  2001/04/19 12:57:33  marco
    * Readlink uncommented for FreeBSD.
 
   Revision 1.6  2001/04/13 22:37:21  peter

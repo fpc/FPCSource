@@ -34,7 +34,7 @@ begin
   if (pointer(func)=nil) or (sp=nil) then
    begin
      LinuxError:=Sys_EInval;
-     exit;
+     exit(-1); // give an error result
    end;
   asm
         { Insert the argument onto the new stack. }
@@ -927,8 +927,12 @@ end;
 
 {
   $Log$
-  Revision 1.6  2001-01-22 07:25:10  marco
-   * IOPERM for FreeBSD. Port routines moved from linsysca to Unix again .
+  Revision 1.2  2001-06-02 00:31:30  peter
+    * merge unix updates from the 1.0 branch, mostly related to the
+      solaris target
+
+  Revision 1.6  2001/01/22 07:25:10  marco
+   * IOPERM for FreeBSD. Port routines moved from unixsysc to Unix again .
 
   Revision 1.5  2000/12/28 20:50:04  peter
     * merged fixes from 1.0.x

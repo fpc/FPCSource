@@ -55,7 +55,7 @@ begin
   SocketCall:=Syscall(syscall_nr_socketcall,regs);
   If SocketCall<0 then
    SocketError:=Errno
-  else 
+  else
    SocketError:=0;
  {$ELSE}
   SocketError:=-1;
@@ -262,7 +262,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-09-18 13:14:50  marco
+  Revision 1.2  2001-06-02 00:31:30  peter
+    * merge unix updates from the 1.0 branch, mostly related to the
+      solaris target
+
+  Revision 1.2  2000/09/18 13:14:50  marco
    * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
 
   Revision 1.2  2000/09/11 14:05:31  marco

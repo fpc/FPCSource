@@ -31,14 +31,14 @@ End;
 {
 function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 {NOT IMPLEMENTED YET UNDER BSD}
-begin
+begin // perhaps it is better to implement the hack from solaris then this msg
  HALT;
 END;
 
   if (pointer(func)=nil) or (sp=nil) then
    begin
      LinuxError:=Sys_EInval;
-     exit;
+     exit(-1);
    end;
   asm
         { Insert the argument onto the new stack. }
@@ -306,12 +306,14 @@ begin
   LinuxError:=Errno;
 end;
 
+{$ifndef newreaddir}
 function sys_fcntl(Fd:longint;Cmd:longint;Arg:Longint):longint;
 
 begin
  sys_fcntl:=do_syscall(syscall_nr_fcntl,fd,cmd,arg);
  LinuxError:=Errno;
 end;
+{$endif}
 
 Function Chmod(path:pathstr;Newmode:longint):Boolean;
 {
@@ -591,12 +593,12 @@ begin
   LinuxError:=Errno;
 end;
 
-
 Function NanoSleep(const req : timespec;var rem : timespec) : longint;
 begin
   NanoSleep:=Do_SysCall(syscall_nr_nanosleep,longint(@req),longint(@rem));
   LinuxError:=Errno;
 end;
+
 
 
 Function IOCtl(Handle,Ndx: Longint;Data: Pointer):boolean;
@@ -628,7 +630,6 @@ begin
   LinuxError:=Errno;
 end;
 
-
 function signal(signum:longint;Handler:signalhandler):signalhandler;
 
 var sa,osa : sigactionrec;
@@ -637,8 +638,8 @@ begin
      sa.handler.sh:=handler;
      FillChar(sa.sa_mask,sizeof(sigset),#0);
      sa.sa_flags := 0;
-{     if (sigintr and signum) =0 then {restart behaviour needs libc}
-      sa.sa_flags :=sa.sa_flags or SA_RESTART;}
+{     if (sigintr and signum) =0 then {restart behaviour needs libc}
+      sa.sa_flags :=sa.sa_flags or SA_RESTART;}
      sigaction(signum,@sa,@osa);
      if ErrNo<>0 then
       signal:=NIL
@@ -651,40 +652,35 @@ end;
 
 function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; assembler;
 asm
-        pushl   %esi
-        movl    12(%ebp), %esi  // get stack addr
-        subl    $4, %esi
-        movl    20(%ebp), %eax  // get __arg
-        movl    %eax, (%esi)
-        subl    $4, %esi
-        movl    8(%ebp), %eax   // get __fn
-        movl    %eax, (%esi)
-        pushl   16(%ebp)
-        pushl   %esi
-        mov     syscall_nr_rfork, %eax
-        int     $0x80                  // call actualsyscall
-        jb      .L2
-        test    %edx, %edx
-        jz      .L1
-        movl    %esi,%esp
-        popl    %eax
-        call    %eax
-        addl    $8, %esp
-        call    halt            // Does not return
-.L2:
-        mov     %eax,ErrNo
-        mov     $-1,%eax
-        jmp     .L1
-//      jmp     PIC_PLT(HIDENAME(cerror))
+	pushl	%esi
+	movl	12(%ebp), %esi	// get stack addr
+	subl	$4, %esi
+	movl	20(%ebp), %eax	// get __arg
+	movl	%eax, (%esi)
+	subl	$4, %esi
+	movl	8(%ebp), %eax	// get __fn
+	movl	%eax, (%esi)
+	pushl	16(%ebp)
+	pushl	%esi
+	mov	syscall_nr_rfork, %eax
+	int     $0x80                  // call actualsyscall
+	jb 	.L2
+	test    %edx, %edx
+	jz	.L1
+	movl	%esi,%esp
+	popl	%eax
+	call	%eax
+	addl	$8, %esp
+        call	halt		// Does not return
+.L2:	
+	mov	%eax,ErrNo
+	mov	$-1,%eax
+	jmp     .L1
+//	jmp	PIC_PLT(HIDENAME(cerror))
 .L1:
-        addl    $8, %esp
-        popl    %esi
+	addl	$8, %esp
+	popl	%esi
 end;
-
-
-{
- * Architecture specific syscalls (i386) using the SYSARCH pseudo call
-}
 
 {$packrecords C}
 
@@ -750,23 +746,10 @@ begin
   LinuxError:=ErrNo;
 end;
 
-
-
 {
   $Log$
-  Revision 1.4  2001-01-22 07:25:10  marco
-   * IOPERM for FreeBSD. Port routines moved from linsysca to Unix again .
-
-  Revision 1.3  2000/10/26 22:51:12  peter
-    * nano sleep (merged)
-
-  Revision 1.2  2000/09/18 13:14:50  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.3  2000/09/11 14:05:31  marco
-   * FreeBSD support and removed old signalhandling
-
-  Revision 1.2  2000/07/13 11:33:47  michael
-  + removed logs
+  Revision 1.2  2001-06-02 00:31:30  peter
+    * merge unix updates from the 1.0 branch, mostly related to the
+      solaris target
 
 }

@@ -32,9 +32,9 @@ Const
   Open_NDelay    = Open_NonBlock;
   Open_Sync      = 1 shl 12;
   Open_Direct    = 4 shl 12;
-  Open_LargeFile = 1 shl 15;
-  Open_Directory = 2 shl 15;
-  Open_NoFollow  = 4 shl 15;
+  Open_LargeFile = 1 shl 15; 
+  Open_Directory = 2 shl 15; 
+  Open_NoFollow  = 4 shl 15; 
   { The waitpid uses the following options:}
   Wait_NoHang   = 1;
   Wait_UnTraced = 2;
@@ -82,12 +82,17 @@ Const
   fs_proc     = $9fa0;
   fs_xia      = $012FD16D;
 
+  { Constansts for MMAP }
+  MAP_PRIVATE   =2;
+  MAP_ANONYMOUS =$20;
+
+  {Constansts Termios/Ioctl (used in Do_IsDevice) }
+  IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
+  
 {
   $Log$
-  Revision 1.3  2000-10-26 22:55:11  peter
-    * merges from fixes
-
-  Revision 1.2  2000/07/13 11:33:49  michael
-  + removed logs
+  Revision 1.4  2001-06-02 00:31:30  peter
+    * merge unix updates from the 1.0 branch, mostly related to the
+      solaris target
 
 }

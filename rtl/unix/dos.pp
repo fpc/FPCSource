@@ -319,7 +319,7 @@ var
 Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
 var
   pid    : longint;
-  status : longint;
+  // The Error-Checking in the previous Version failed, since halt($7F) gives an WaitPid-status of $7F00
 Begin
   LastDosExitCode:=0;
   pid:=Fork;
@@ -328,7 +328,7 @@ Begin
    {The child does the actual exec, and then exits}
      Execl (Path+' '+ComLine);
    {If the execve fails, we return an exitvalue of 127, to let it be known}
-     halt (127)
+     ExitProcess(127);
    end
   else
    if pid=-1 then         {Fork failed}
@@ -337,14 +337,11 @@ Begin
       exit
     end;
 {We're in the parent, let's wait.}
-  Waitpid (pid,@status,0);
-  if status=127 then {The child couldn't execve !!}
-   DosError:=8 {We set this error, erroneously, since we cannot get to the real error}
+  LastDosExitCode:=WaitProcess(pid); // WaitPid and result-convert
+  if (LastDosExitCode>=0) and (LastDosExitCode<>127) then
+   DosError:=0
   else
-   begin
-     LastDosExitCode:=status shr 8;
-     DosError:=0
-   end;
+   DosError:=8; // perhaps one time give an better error
 End;
 
 
@@ -880,7 +877,11 @@ End.
 
 {
   $Log$
-  Revision 1.4  2001-05-06 14:23:21  peter
+  Revision 1.5  2001-06-02 00:31:30  peter
+    * merge unix updates from the 1.0 branch, mostly related to the
+      solaris target
+
+  Revision 1.4  2001/05/06 14:23:21  peter
     * fixed adddisk
 
   Revision 1.3  2001/01/21 20:21:40  marco

@@ -4,6 +4,9 @@
     Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
 
+    This is the core of the system unit *nix systems (now FreeBSD
+     and Unix).
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -129,45 +132,14 @@ end ['D0'];
 {$endif}
 
 
-{$ifdef bsd}
 Function sbrk(size : longint) : Longint;
-
-CONST MAP_PRIVATE   =2;
-      MAP_ANONYMOUS =$1000;             {$20 under linux}
-
 begin
-  Sbrk:=do_syscall(syscall_nr_mmap,0,size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0,0);
-  if ErrNo<>0 then
-   Sbrk:=0;
+  sbrk:=Sys_mmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
+  if sbrk<>-1 then
+   errno:=0;
+  {! It must be -1, not 0 as before, see heap.inc. Should be in sysmmap?}
 end;
 
-{$else}
-Function sbrk(size : longint) : Longint;
-type
-  tmmapargs=packed record
-    address : longint;
-    size    : longint;
-    prot    : longint;
-    flags   : longint;
-    fd      : longint;
-    offset  : longint;
-  end;
-var
-  t     : syscallregs;
-  mmapargs : tmmapargs;
-begin
-  mmapargs.address:=0;
-  mmapargs.size:=Size;
-  mmapargs.prot:=3;
-  mmapargs.flags:=$22;
-  mmapargs.fd:=-1;
-  mmapargs.offset:=0;
-  t.reg2:=longint(@mmapargs);
-  Sbrk:=syscall(syscall_nr_mmap,t);
-  if ErrNo<>0 then
-   Sbrk:=0;
-end;
-{$endif}
 
 { include standard heap management }
 {$I heap.inc}
@@ -190,6 +162,7 @@ Procedure Errno2Inoutres;
 begin
   if ErrNo=0 then { Else it will go through all the cases }
    exit;
+  If errno<0 then Errno:=-errno;
   case ErrNo of
    Sys_ENFILE,
    Sys_EMFILE : Inoutres:=4;
@@ -266,54 +239,31 @@ End;
 Procedure Do_Seek(Handle,Pos:Longint);
 Begin
   sys_lseek(Handle, pos, Seek_set);
+  errno2inoutres;
 End;
 
 
 Function Do_SeekEnd(Handle:Longint): Longint;
 begin
   Do_SeekEnd:=sys_lseek(Handle,0,Seek_End);
+  errno2inoutres;
 end;
 
-{$ifdef BSD}
 Function Do_FileSize(Handle:Longint): Longint;
 var
   Info : Stat;
 Begin
-  if do_SysCall(syscall_nr_fstat,handle,longint(@info))=0 then
+  if sys_fstat(handle,info)=0 then
    Do_FileSize:=Info.Size
   else
    Do_FileSize:=0;
   Errno2Inoutres;
 End;
-{$ELSE}
-Function Do_FileSize(Handle:Longint): Longint;
-var
-  regs : Syscallregs;
-  Info : Stat;
-Begin
-  regs.reg2:=Handle;
-  regs.reg3:=longint(@Info);
-  if SysCall(SysCall_nr_fstat,regs)=0 then
-   Do_FileSize:=Info.Size
-  else
-   Do_FileSize:=0;
-  Errno2Inoutres;
-End;
-{$endif}
 
-Procedure Do_Truncate(Handle,Pos:longint);
-{$ifndef bsd}
-var
-  sr : syscallregs;
-{$endif}
+
+Procedure Do_Truncate(Handle,fPos:longint);
 begin
-{$ifdef bsd}
-  do_syscall(syscall_nr_ftruncate,handle,pos,0);
-{$else}
-  sr.reg2:=Handle;
-  sr.reg3:=Pos;
-  syscall(syscall_nr_ftruncate,sr);
-{$endif}
+  sys_ftruncate(handle,fpos);
   Errno2Inoutres;
 end;
 
@@ -401,19 +351,9 @@ Function Do_IsDevice(Handle:Longint):boolean;
   data is function-dependent.
 }
 var
-{$ifndef BSD}
-  sr: SysCallRegs;
-{$endif}
   Data : array[0..255] of byte; {Large enough for termios info}
 begin
-{$ifdef BSD}
-  Do_IsDevice:=(do_SysCall(syscall_nr_ioctl,handle,$5413,longint(@data))=0);
-{$else}
-  sr.reg2:=Handle;
-  sr.reg3:=$5401; {=TCGETS}
-  sr.reg4:=Longint(@Data);
-  Do_IsDevice:=(SysCall(Syscall_nr_ioctl,sr)=0);
-{$endif}
+  Do_IsDevice:=(sys_ioctl(handle,IOCTL_TCGETS,@data)<>-1);
 end;
 
 
@@ -489,7 +429,7 @@ var
   dotdotino    : longint;
   rootdev,
   thisdev,
-  dotdotdev    : {$ifdef bsd}longint{$else}word{$endif};
+  dotdotdev    : dev_t;
   thedir,dummy : string[255];
   dirstream    : pdir;
   d            : pdirent;
@@ -585,9 +525,13 @@ end;
 
 
 {$ifdef BSD}
-procedure SignalToRunerror(Sig: longint; SigContext: SigContextRec;someptr:pointer); cdecl;
+ procedure SignalToRunerror(Sig: longint; SigContext: SigContextRec;someptr:pointer); cdecl;
 {$else}
-procedure SignalToRunerror(Sig: longint; SigContext: SigContextRec); cdecl;
+ {$ifdef Solaris}
+  procedure SignalToRunerror(Sig: longint; SigContext: SigContextRec;someptr:pointer); cdecl;
+ {$else}
+  procedure SignalToRunerror(Sig: longint; SigContext: SigContextRec); cdecl;
+ {$endif}
 {$ENDIF}
 var
 
@@ -659,8 +603,12 @@ end;
 Procedure InstallSignals;
 const
 {$Ifndef BSD}
+ {$ifdef solaris}
+  act: SigActionRec =(sa_flags:SA_SIGINFO;Handler:(sa:@signaltorunerror;sa_mask:0);
+ {$else}
   act: SigActionRec = (handler:(Sa:@SignalToRunError);sa_mask:0;sa_flags:0;
                        Sa_restorer: NIL);
+ {$endif}
 {$ELSE}
    act: SigActionRec = (handler:(Sa:@SignalToRunError);sa_flags:SA_SIGINFO;
     sa_mask:0);
@@ -671,9 +619,11 @@ const
 begin
   ResetFPU;
   SigAction(SIGFPE,@act,oldact);
+{$ifndef Solaris}
   SigAction(SIGSEGV,@act,oldact);
   SigAction(SIGBUS,@act,oldact);
   SigAction(SIGILL,@act,oldact);
+{$endif}
 end;
 
 
@@ -753,7 +703,11 @@ End.
 
 {
   $Log$
-  Revision 1.10  2001-04-23 20:33:31  peter
+  Revision 1.11  2001-06-02 00:31:31  peter
+    * merge unix updates from the 1.0 branch, mostly related to the
+      solaris target
+
+  Revision 1.10  2001/04/23 20:33:31  peter
     * also install sig handlers for sigill,sigbus
 
   Revision 1.9  2001/04/13 22:39:05  peter

@@ -139,15 +139,12 @@ Uses Unix;
 { Include filerec and textrec structures }
 {$i filerec.inc}
 {$i textrec.inc}
+
 {******************************************************************************
                           Kernel Socket Callings
 ******************************************************************************}
 
-{$ifdef BSD}
- {$I bsdsock.inc}
-{$else}
- {$I linsock.inc}
-{$endif}
+{$I unixsock.inc}
 
 {$i sockets.inc}
 
@@ -155,7 +152,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-01-21 20:21:40  marco
+  Revision 1.4  2001-06-02 00:31:31  peter
+    * merge unix updates from the 1.0 branch, mostly related to the
+      solaris target
+
+  Revision 1.3  2001/01/21 20:21:40  marco
    * Rename fest II. Rtl OK
 
   Revision 1.2  2000/09/18 13:14:51  marco
@@ -166,5 +167,5 @@ end.
 
   Revision 1.2  2000/07/13 11:33:49  michael
   + removed logs
- 
+
 }

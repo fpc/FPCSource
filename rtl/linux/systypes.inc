@@ -58,15 +58,17 @@ type
   end;
   PDir =^TDir;
 
+  dev_t	= word;
+
   Stat = packed record
-    dev,
+    dev     : dev_t;		
     pad1    : word;
     ino     : longint;
     mode,
     nlink,
     uid,
-    gid,
-    rdev,
+    gid     : word;
+    rdev    : dev_t;
     pad2    : word;
     size,
     blksze,
@@ -131,10 +133,8 @@ type
 
 {
   $Log$
-  Revision 1.3  2000-10-26 22:55:11  peter
-    * merges from fixes
-
-  Revision 1.2  2000/07/13 11:33:49  michael
-  + removed logs
+  Revision 1.4  2001-06-02 00:31:30  peter
+    * merge unix updates from the 1.0 branch, mostly related to the
+      solaris target
 
 }
