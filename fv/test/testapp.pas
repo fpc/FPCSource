@@ -1,7 +1,11 @@
 { $Id$ }
 PROGRAM TestApp;
 
-{&PMTYPE PM}                                          { FULL GUI MODE }
+{ $UNDEF OS2PM}
+
+{$IFDEF OS2PM}
+ {&PMTYPE PM}                                          { FULL GUI MODE }
+{$ENDIF OS2PM}
 
 { ******************************* REMARK ****************************** }
 {  This is a basic test program to test the app framework. In use will  }
@@ -34,7 +38,9 @@ PROGRAM TestApp;
 
 {$I Platform.inc}
   USES
+{$IFDEF OS2PM}
      {$IFDEF OS_OS2} Os2Def, os2PmApi,  {$ENDIF}
+{$ENDIF OS2PM}
      Objects, Drivers, Views, Menus, Dialogs, App,             { Standard GFV units }
      FVConsts,
      {$ifdef TEST}
@@ -43,13 +49,14 @@ PROGRAM TestApp;
      {$ifdef DEBUG}
      Gfvgraph,
      {$endif DEBUG}
-     Gadgets;
+     Gadgets, TimedDlg, MsgBox;
 
 
 CONST cmAppToolbar = 1000;
       cmWindow1    = 1001;
       cmWindow2    = 1002;
       cmWindow3    = 1003;
+      cmTimedBox   = 1004;
       cmAscii      = 1010;
       cmCloseWindow1    = 1101;
       cmCloseWindow2    = 1102;
@@ -75,6 +82,7 @@ TYPE
       PROCEDURE Window1;
       PROCEDURE Window2;
       PROCEDURE Window3;
+      PROCEDURE TimedBox;
       PROCEDURE AsciiWindow;
       PROCEDURE CloseWindow(var P : PGroup);
     End;
@@ -145,6 +153,7 @@ BEGIN
        cmWindow1 : Window1;
        cmWindow2 : Window2;
        cmWindow3 : Window3;
+       cmTimedBox: TimedBox;
        cmAscii   : AsciiWindow;
        cmCloseWindow1 : CloseWindow(P1);
        cmCloseWindow2 : CloseWindow(P2);
@@ -173,10 +182,11 @@ BEGIN
       NewItem('Window 1','',kbNoKey,cmWindow1,hcNoContext,
       NewItem('Window 2','',kbNoKey,cmWindow2,hcNoContext,
       NewItem('Window 3','',kbNoKey,cmWindow3,hcNoContext,
+      NewItem('Timed Box','',kbNoKey,cmTimedBox,hcNoContext,
       NewItem('Close Window 1','',kbNoKey,cmCloseWindow1,hcNoContext,
       NewItem('Close Window 2','',kbNoKey,cmCloseWindow2,hcNoContext,
       NewItem('Close Window 3','',kbNoKey,cmCloseWindow3,hcNoContext,
-      Nil)))))))),
+      Nil))))))))),
     NewSubMenu('~W~indow', 0, NewMenu(
       StdWindowMenuItems(Nil)), Nil)))))));            { Standard window  menu }
 END;
@@ -244,6 +254,23 @@ begin
 {$endif TEST}
 end;
 
+
+PROCEDURE TTvDemo.TimedBox;
+var
+  X: longint;
+  S: string;
+begin
+  X := TimedMessageBox ('Everything OK?', nil, mfConfirmation or mfOKCancel, 10);
+  case X of
+   cmCancel: MessageBox ('cmCancel', nil, mfOKButton);
+   cmOK: MessageBox ('cmOK', nil, mfOKButton);
+  else
+   begin
+    Str (X, S);
+    MessageBox (S, nil, mfOKButton);
+   end;
+  end;
+end;
 
 PROCEDURE TTvDemo.CloseWindow(var P : PGroup);
 BEGIN
@@ -325,7 +352,9 @@ END;
 {                             MAIN PROGRAM START                            }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 VAR I: Integer; R: TRect; P: PGroup; MyApp: TTvDemo;
+{$IFDEF OS2PM}
     {$IFDEF OS_OS2} Message: QMSg; Event: TEvent; {$ENDIF}
+{$ENDIF OS2PM}
 BEGIN
    (*SystemPalette := CreateRGBPalette(256);            { Create palette }
    For I := 0 To 15 Do Begin
@@ -337,6 +366,7 @@ BEGIN
 
 
    MyApp.Run;                                         { Run the app }
+{$IFDEF OS2PM}
    {$IFDEF OS_OS2}
    while (MyApp.EndState = 0)
    AND WinGetMsg(Anchor, Message, 0, 0, 0) Do Begin
@@ -346,6 +376,7 @@ BEGIN
          Then MyApp.handleEvent(Event);
    End;
    {$ENDIF}
+{$ENDIF OS2PM}
    MyApp.Done;                                        { Dispose of app }
 
    {DisposeRGBPalette(SystemPalette);}
@@ -354,7 +385,10 @@ END.
 
 {
  $Log$
- Revision 1.3  2004-03-22 15:50:31  peter
+ Revision 1.4  2004-12-19 20:26:36  hajny
+   + TTimedDialog and TimedMessageBox added
+
+ Revision 1.3  2004/03/22 15:50:31  peter
    * compile fixes
 
  Revision 1.2  2002/09/07 15:06:38  peter

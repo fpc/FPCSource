@@ -76,7 +76,7 @@ UNIT MsgBox;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
-USES Objects;                                         { Standard GFV unit }
+USES objects, dialogs;                                 { Standard GFV units }
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -107,6 +107,10 @@ CONST
    mfOKCancel     = mfOKButton + mfCancelButton;
                                                       { Standard OK, Cancel dialog }
 
+var
+  MsgBoxTitles: array[0..3] of string[40];
+
+
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
 {***************************************************************************}
@@ -134,6 +138,13 @@ to occupy.
 FUNCTION MessageBoxRect (Var R: TRect; Const Msg: String; Params: Pointer;
   AOptions: Word): Word;
 
+{-MessageBoxRectDlg--------------------------------------------------
+MessageBoxRecDlg allows the specification of a TRect for the message box
+to occupy plus the dialog window (to allow different dialog window types).
+---------------------------------------------------------------------}
+FUNCTION MessageBoxRectDlg (Dlg: PDialog; Var R: TRect; Const Msg: String;
+  Params: Pointer; AOptions: Word): Word;
+
 {-InputBox-----------------------------------------------------------
 InputBox displays a simple dialog that allows user to type in a string
 30Sep99 LdB
@@ -152,7 +163,7 @@ FUNCTION InputBoxRect (Var Bounds: TRect; Const Title, ALabel: String;
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
-USES Drivers, Views, App, Dialogs, Resource;           { Standard GFV units }
+USES Drivers, Views, App, Resource;                    { Standard GFV units }
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
@@ -163,7 +174,6 @@ const
     (cmYes, cmNo, cmOK, cmCancel);
 var
   ButtonName: array[0..3] of string[40];
-  Titles: array[0..3] of string[40];
 
 {---------------------------------------------------------------------------}
 {  MessageBox -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB        }
@@ -181,18 +191,12 @@ BEGIN
      AOptions);                                       { Create message box }
 END;
 
-{---------------------------------------------------------------------------}
-{  MessageBoxRect -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB    }
-{---------------------------------------------------------------------------}
-FUNCTION MessageBoxRect(Var R: TRect; Const Msg: String; Params: Pointer;
-  AOptions: Word): Word;
-VAR I, X, ButtonCount: Integer; S: String; Dialog: PDialog; Control: PView;
+FUNCTION MessageBoxRectDlg (Dlg: PDialog; Var R: TRect; Const Msg: String;
+  Params: Pointer; AOptions: Word): Word;
+VAR I, X, ButtonCount: Integer; S: String; Control: PView;
     ButtonList: Array[0..4] Of PView;
 BEGIN
-   Dialog := New(PDialog, Init(R, Titles[AOptions
-     AND $3]));                                       { Create dialog }
-   With Dialog^ Do Begin
-     R.Assign(3, 2, Size.X - 2, Size.Y - 3);          { Assign screen area }
+   With Dlg^ Do Begin
      FormatStr(S, Msg, Params^);                      { Format the message }
      Control := New(PStaticText, Init(R, S));         { Create static text }
      Insert(Control);                                 { Insert the text }
@@ -218,9 +222,25 @@ BEGIN
      SelectNext(False);                               { Select first button }
    End;
    If (AOptions AND mfInsertInApp = 0) Then
-     MessageBoxRect := DeskTop^.ExecView(Dialog) Else { Execute dialog }
-     MessageBoxRect := Application^.ExecView(Dialog); { Execute dialog }
-   Dispose(Dialog, Done);                             { Dispose of dialog }
+     MessageBoxRectDlg := DeskTop^.ExecView(Dlg) Else { Execute dialog }
+     MessageBoxRectDlg := Application^.ExecView(Dlg); { Execute dialog }
+end;
+
+
+{---------------------------------------------------------------------------}
+{  MessageBoxRect -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB    }
+{---------------------------------------------------------------------------}
+FUNCTION MessageBoxRect(Var R: TRect; Const Msg: String; Params: Pointer;
+  AOptions: Word): Word;
+var
+  Dialog: PDialog;
+BEGIN
+  Dialog := New (PDialog, Init (R, MsgBoxTitles [AOptions
+    AND $3]));                                       { Create dialog }
+  with Dialog^ do
+    R.Assign(3, 2, Size.X - 2, Size.Y - 3);          { Assign area for text }
+  MessageBoxRect := MessageBoxRectDlg (Dialog, R, Msg, Params, AOptions);
+  Dispose (Dialog, Done);                            { Dispose of dialog }
 END;
 
 {---------------------------------------------------------------------------}
@@ -277,10 +297,10 @@ begin
   ButtonName[1] := Labels^.Get(slNo);
   ButtonName[2] := Labels^.Get(slOk);
   ButtonName[3] := Labels^.Get(slCancel);
-  Titles[0] := Strings^.Get(sWarning);
-  Titles[1] := Strings^.Get(sError);
-  Titles[2] := Strings^.Get(sInformation);
-  Titles[3] := Strings^.Get(sConfirm);
+  MsgBoxTitles[0] := Strings^.Get(sWarning);
+  MsgBoxTitles[1] := Strings^.Get(sError);
+  MsgBoxTitles[2] := Strings^.Get(sInformation);
+  MsgBoxTitles[3] := Strings^.Get(sConfirm);
 end;
 
 procedure DoneMsgBox;
@@ -291,7 +311,10 @@ END.
 
 {
  $Log$
- Revision 1.6  2004-11-06 17:08:48  peter
+ Revision 1.7  2004-12-19 20:25:11  hajny
+   + TTimedDialog and TimedMessageBox added
+
+ Revision 1.6  2004/11/06 17:08:48  peter
    * drawing of tview merged from old fv code
 
 }
