@@ -435,6 +435,15 @@ implementation
                     found_error := true;
                   end;
 
+                { support writeln(procvar) }
+                if (para.left.resulttype.def.deftype=procvardef) then
+                  begin
+                    p1:=ccallnode.create(nil,nil,nil,nil);
+                    tcallnode(p1).set_procvar(para.left);
+                    resulttypepass(p1);
+                    para.left:=p1;
+                  end;
+
                 if not is_equal(para.left.resulttype.def,tfiledef(filepara.resulttype.def).typedfiletype.def) then
                   begin
                     CGMessagePos(para.left.fileinfo,type_e_mismatch);
@@ -458,6 +467,26 @@ implementation
                   { get next parameter }
                   nextpara := tcallparanode(para.right);
 
+                { When we have a call, we have a problem: you can't pass the  }
+                { result of a call as a formal const parameter. Solution:     }
+                { assign the result to a temp and pass this temp as parameter }
+                { This is not very efficient, but write(typedfile,x) is       }
+                { already slow by itself anyway (no buffering) (JM)           }
+                if (para.left.nodetype = calln) then
+                  begin
+                    { create temp for result }
+                    temp := ctempcreatenode.create(para.left.resulttype,
+                      para.left.resulttype.def.size,true);
+                    newstatement.left := cstatementnode.create(nil,temp);
+                    { assign result to temp }
+                    newstatement := tstatementnode(newstatement.left);
+                    newstatement.left := cstatementnode.create(nil,
+                      cassignmentnode.create(ctemprefnode.create(temp),
+                      para.left));
+                    newstatement := tstatementnode(newstatement.left);
+                    { replace (reused) paranode with temp }
+                    para.left := ctemprefnode.create(temp);
+                  end;
                 { add fileparameter }
                 para.right := filepara.getcopy;
 
@@ -467,6 +496,14 @@ implementation
                 newstatement.left := cstatementnode.create(nil,
                   ccallnode.createintern(procprefix,para));
                 newstatement := tstatementnode(newstatement.left);
+
+                { if we used a temp, free it }
+                if para.left.nodetype = temprefn then
+                  begin
+                    newstatement.left := cstatementnode.create(nil,
+                      ctempdeletenode.create(temp));
+                    newstatement := tstatementnode(newstatement.left);
+                  end;
 
                 { process next parameter }
                 para := nextpara;
@@ -2256,7 +2293,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2001-09-30 16:16:28  jonas
+  Revision 1.63  2001-10-24 16:17:36  jonas
+    * fixed web bug 1621 (write(typed_file,function_call) works again)
+    * allow write(typed_file,procvar_call) too (it was already allowed for
+      text file writes)
+
+  Revision 1.62  2001/09/30 16:16:28  jonas
     - removed unused units form uses-clause and unused local vars
 
   Revision 1.61  2001/09/24 16:09:55  jonas
