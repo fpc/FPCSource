@@ -44,13 +44,17 @@ asm
   movl 12(%ecx),%ebp
   movl 16(%ecx),%esp
   // we should also clear the fpu
-  fninit
+  // fninit no must be done elsewhere PM
+  // or we should reset the control word also
   jmp 20(%ecx)
 end;
 
 {
   $Log$
-  Revision 1.11  2000-02-18 16:16:13  florian
+  Revision 1.12  2000-03-31 23:12:09  pierre
+   * remove fninit in longjump
+
+  Revision 1.11  2000/02/18 16:16:13  florian
     * we don't need to to finit twice ...
 
   Revision 1.10  2000/02/18 15:23:01  florian
