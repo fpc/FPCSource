@@ -1133,7 +1133,7 @@ implementation
                 ungetiftemp(p^.location.reference)
               else if p^.location.loc=LOC_FPU then
                 { release FPU stack }
-                exprasmlist^.concat(new(pai386,op_none(A_FDECSTP,S_NO)));
+                exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,R_ST0)));
            end;
       end;
 
@@ -1215,7 +1215,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  1999-04-25 22:33:19  pierre
+  Revision 1.77  1999-04-29 22:12:21  pierre
+   * fix for ID 388 removing real from stack was wrong
+
+  Revision 1.76  1999/04/25 22:33:19  pierre
    * fix for TESTOBJEXT code
 
   Revision 1.75  1999/04/19 09:45:46  pierre
