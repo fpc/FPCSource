@@ -29,6 +29,33 @@ begin
   realintr($10,regs);
 end;
 
+function BIOSGetScreenMode(var Cols,Rows: word; var Color: boolean): boolean;
+var r: trealregs;
+    L: longint;
+    LSel,LSeg: word;
+    B: array[0..63] of byte;
+type TWord = word; PWord = ^TWord;
+var Size: word;
+    OK: boolean;
+begin
+  L:=global_dos_alloc(64);
+  LSeg:=(L shr 16);
+  LSel:=(L and $ffff);
+
+  r.ah:=$1b; r.bx:=0;
+  r.es:=LSeg; r.di:=0;
+  realintr($10,r);
+  OK:=(r.al=$1b);
+  if OK then
+  begin
+    dpmi_dosmemget(LSeg,0,B,64);
+    Cols:=PWord(@B[5])^; Rows:=B[$22];
+    Color:=PWord(@B[$27])^<>0;
+  end;
+  global_dos_free(LSel);
+  BIOSGetScreenMode:=OK;
+end;
+
 procedure InitVideo;
 var
   regs : trealregs;
@@ -54,6 +81,7 @@ begin
        regs.bx:=0;
        realintr($10,regs);
        ScreenHeight:=regs.dl+1;
+       BIOSGetScreenMode(ScreenWidth,ScreenHeight,ScreenColor);
     end;
   regs.ah:=$03;
   regs.bh:=0;
@@ -75,7 +103,6 @@ begin
   SetCursorType(LastCursorType);
   { ClearScreen; removed here
     to be able to catch the content of the monitor }
-
 end;
 
 
@@ -266,7 +293,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:24  michael
+  Revision 1.3  2000-08-16 18:51:57  peter
+    * Fixes from Gabor (merged)
+
+  Revision 1.2  2000/07/13 11:32:24  michael
   + removed logs
- 
+
 }

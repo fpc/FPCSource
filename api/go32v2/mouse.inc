@@ -12,6 +12,7 @@ var
   RealOfs : Word;                                    { Real mode offset }
   CurrentMask : word;
   MouseCallback : Pointer;                           { Mouse call back ptr }
+  UnderNT: boolean;
 {$ifdef DEBUG}
   EntryEDI,EntryESI : longint;
   EntryDS,EntryES : word;
@@ -188,6 +189,57 @@ ASM
    IRET;                                              { Interrupt return }
 END;
 
+PROCEDURE Mouse_Trap_NT; ASSEMBLER;
+ASM
+   PUSH %ES;                                          { Save ES register }
+   PUSH %DS;                                          { Save DS register }
+   PUSHL %EDI;                                        { Save register }
+   PUSHL %ESI;                                        { Save register }
+   { ; caution : ds is not the selector for our data !! }
+{$ifdef DEBUG}
+   MOVL  %EDI,%ES:EntryEDI
+   MOVL  %ESI,%ES:EntryESI
+   MOVW  %DS,%AX
+   MOVW  %AX,%ES:EntryDS
+   MOVW  %ES,%AX
+   MOVW  %AX,%ES:EntryES
+{$endif DEBUG}
+ {  movw  %cs:v2prt0_ds_alias,%ax v2prt0 is not locked !!
+   movw  %ax,%ds
+   movw  %ax,%es }
+   PUSH %ES;                                          { Push data seg }
+   POP %DS;                                           { Load data seg }
+{$ifdef DEBUG}
+   incl callcounter
+   CMPL $ACTIONREGS,%edi
+   JE  .L_ActionRegsOK
+   INCL MouseError
+   JMP  .L_NoCallBack
+.L_ActionRegsOK:
+{$endif DEBUG}
+   MOVL MOUSECALLBACK, %EAX;                          { Fetch callback addr }
+   CMPL $0, %EAX;                                     { Check for nil ptr }
+   JZ .L_NoCallBack;                                  { Ignore if nil }
+   MOVL %EDI,%EAX;                                    { %EAX = @actionregs }
+   MOVL (%EAX), %EDI;                                 { EDI from actionregs }
+   MOVL 4(%EAX), %ESI;                                { ESI from actionregs }
+   MOVL 16(%EAX), %EBX;                               { EBX from actionregs }
+   MOVL 20(%EAX), %EDX;                               { EDX from actionregs }
+   MOVL 24(%EAX), %ECX;                               { ECX from actionregs }
+   MOVL 28(%EAX), %EAX;                               { EAX from actionregs }
+   CALL *MOUSECALLBACK;                               { Call callback proc }
+.L_NoCallBack:
+   POPL %ESI;                                         { Recover register }
+   POPL %EDI;                                         { Recover register }
+   POP %DS;                                           { Restore DS register }
+   POP %ES;                                           { Restore ES register }
+   movzwl %si,%eax
+   MOVL %ds:(%Eax), %EAX;
+   MOVL %EAX, %ES:42(%EDI);                           { Set as return addr }
+   ADDW $4, %ES:46(%EDI);                             { adjust stack }
+   IRET;                                              { Interrupt return }
+END;
+
 Function Allocate_mouse_bridge : boolean;
 var
   error : word;
@@ -195,6 +247,10 @@ begin
   ASM
     LEAL ACTIONREGS, %EDI;                       { Addr of actionregs }
     LEAL MOUSE_TRAP, %ESI;                       { Procedure address }
+    CMPB $0, UnderNT
+    JZ  .LGo32
+    LEAL MOUSE_TRAP_NT, %ESI;                       { Procedure address }
+  .LGo32:
     PUSH %DS;                                    { Save DS segment }
     PUSH %ES;                                    { Save ES segment }
     MOVW v2prt0_ds_alias,%ES;                    { ES now has dataseg  alias that is never invalid }
@@ -305,6 +361,7 @@ begin
     exit;
   FirstMouseInitDone:=false;
   Unlock_Code(Pointer(@Mouse_Trap), 400);            { Release trap code }
+  Unlock_Code(Pointer(@Mouse_Trap_NT), 400);            { Release trap code }
   Unlock_Code(Pointer(@MouseInt), 400);               { Lock MouseInt code  }
   Unlock_Data(ActionRegs, SizeOf(TRealRegs));        { Release registers }
   UnLock_Data(MouseCallBack,SizeOf(Pointer));
@@ -335,9 +392,18 @@ begin
   Release_mouse_bridge;
 end;
 
+function RunningUnderWINNT: boolean;
+var r: trealregs;
+begin
+  fillchar(r,sizeof(r),0);
+  r.ax:=$3306;
+  realintr($21,r);
+  RunningUnderWINNT:=(r.bx=$3205);
+end;
 
 procedure InitMouse;
 begin
+  UnderNT:=RunningUnderWINNT;
   if not MousePresent then
     begin
       if DetectMouse=0 then
@@ -360,6 +426,7 @@ begin
       StoredExit:=ExitProc;
       ExitProc:=@MouseSafeExit;
       Lock_Code(Pointer(@Mouse_Trap), 400);              { Lock trap code }
+      Lock_Code(Pointer(@Mouse_Trap_NT), 400);              { Lock trap code }
       Lock_Code(Pointer(@MouseInt), 400);               { Lock MouseInt code  }
       Lock_Data(ActionRegs, SizeOf(TRealRegs));          { Lock registers }
       Lock_Data(MouseCallBack, SizeOf(pointer));
@@ -642,7 +709,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:24  michael
+  Revision 1.3  2000-08-16 18:51:57  peter
+    * Fixes from Gabor (merged)
+
+  Revision 1.2  2000/07/13 11:32:24  michael
   + removed logs
- 
+
 }
