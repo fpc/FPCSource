@@ -427,6 +427,8 @@ implementation
                rg.ungetregisterint(list,l.registerhigh);
                l.registerhigh.enum:=R_NO;
              end;
+            if l.loc=LOC_REGISTER then
+              rg.ungetregisterint(list,l.register);
            {Do not bother to recycle the existing register. The register
             allocator eliminates unnecessary moves, so it's not needed
             and trying to recycle registers can cause problems because
@@ -513,6 +515,7 @@ implementation
                  if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
                    l.size:=dst_size;
 {$endif not i386}
+{$ifndef newra}
                  { Release old register when the superregister is changed }
                  if (l.loc=LOC_REGISTER) and
                     (l.register.number shr 8<>hregister.number shr 8) then
@@ -522,6 +525,7 @@ implementation
                      else
                        rg.ungetregisterint(list,l.register);
                    end;
+{$endif}
                end;
            end;
            if (l.loc <> LOC_CREGISTER) or
@@ -2026,7 +2030,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.131  2003-07-23 11:04:15  jonas
+  Revision 1.132  2003-08-03 14:09:50  daniel
+    * Fixed a register allocator bug
+    * Figured out why -dnewra generates superfluous "mov reg1,reg2"
+      statements: changes in location_force. These moves are now no longer
+      constrained so they are optimized away.
+
+  Revision 1.131  2003/07/23 11:04:15  jonas
     * split en_exit_code into a part that may allocate a register and a part
       that doesn't, so the former can be done before the register colouring
       has been performed

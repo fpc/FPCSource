@@ -1861,8 +1861,12 @@ unit rgobj;
             t:=adj^[i];
             if (pos(t,selectstack) or pos(t,coalescednodes))=0 then
               begin
-                decrement_degree(Tsuperregister(t));
                 add_edge(Tsuperregister(t),u);
+                {Do not call decrement_degree because it might move nodes between
+                 lists while the degree does not change (add_edge will increase it).
+                 Instead, we will decrement manually.}
+                if degree[Tsuperregister(t)]>0 then
+                  dec(degree[Tsuperregister(t)]);
               end;
           end;
       p:=pos(char(u),freezeworklist);
@@ -2538,7 +2542,13 @@ end.
 
 {
   $Log$
-  Revision 1.61  2003-07-21 13:32:39  jonas
+  Revision 1.62  2003-08-03 14:09:50  daniel
+    * Fixed a register allocator bug
+    * Figured out why -dnewra generates superfluous "mov reg1,reg2"
+      statements: changes in location_force. These moves are now no longer
+      constrained so they are optimized away.
+
+  Revision 1.61  2003/07/21 13:32:39  jonas
     * add_edges_used() is now also called for registers allocated with
       getexplicitregisterint()
     * writing the intereference graph is now only done with -dradebug2 and
