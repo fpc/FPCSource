@@ -37,9 +37,9 @@ type
       { Token variables }
       aString : String;
       aSepStr : String;
-      aPos    : Byte;
-      aLenStr : Byte;
-      aLenSep : Byte;
+      aPos    : Integer;
+      aLenStr : Integer;
+      aLenSep : Integer;
 
       procedure InitToken(aStr, aSep : String);
       function NextToken(var aToken : String; var aSepChar : Char) : Boolean;
@@ -345,10 +345,10 @@ end;
 
 function TEZcgi.NextToken(var aToken : String; var aSepChar : Char) : Boolean;
 var
-   i : Byte;
-   j : Byte;
-   BoT : Byte;
-   EoT : Byte;
+   i : Integer;
+   j : Integer;
+   BoT : Integer;
+   EoT : Integer;
    isSep : Boolean;
 
 begin
@@ -406,7 +406,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
+  Revision 1.3  2001-10-19 03:42:52  carl
+  * Replace byte -> Integer for environment variable scanning
+    (since AnsiString is on) Bug report #1647
+
+  Revision 1.2  2000/07/13 11:32:59  michael
   + removed logs
  
 }
