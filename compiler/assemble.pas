@@ -159,6 +159,7 @@ end;
 
 Function TAsmList.CallAssembler(const command,para:string):Boolean;
 begin
+  callassembler:=true;
   if not(cs_asm_extern in aktglobalswitches) then
    begin
      swapvectors;
@@ -167,19 +168,18 @@ begin
      if (doserror<>0) then
       begin
         Message(exec_w_cant_call_assembler);
-        aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
-        exit;
+        callassembler:=false;
       end
      else
       if (dosexitcode<>0) then
        begin
         Message(exec_w_error_while_assembling);
+        aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
         callassembler:=false;
        end;
    end;
   if cs_asm_extern in aktglobalswitches then
    AsmRes.AddAsmCommand(command,para,name);
-  callassembler:=true;
 end;
 
 
@@ -452,7 +452,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1998-08-10 14:49:41  peter
+  Revision 1.15  1998-08-14 18:16:09  peter
+    * return after a failed call will now add it to ppas
+
+  Revision 1.14  1998/08/10 14:49:41  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.13  1998/07/14 21:46:40  peter

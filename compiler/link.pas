@@ -254,14 +254,15 @@ begin
      if (dosexitcode<>0) then
       begin
         Message(exec_w_error_while_linking);
+        aktglobalswitches:=aktglobalswitches+[cs_link_extern];
         DoExec:=false;
-        exit;
       end
      else
       if (dosError<>0) then
        begin
          Message(exec_w_cant_call_linker);
          aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+         DoExec:=false;
        end;
    end;
 { Update asmres when externmode is set }
@@ -282,7 +283,6 @@ Var
   prtobj,s,s2  : string;
   found,
   linklibc     : boolean;
-
 
   procedure WriteRes(const s:string);
   begin
@@ -311,7 +311,6 @@ begin
                        if linklibc then
                         prtobj:='cprt0';
                      end;
-
                   end;
 {$endif i386}
 {$ifdef m68k}
@@ -364,7 +363,6 @@ begin
         WriteRes(s2+'crti.o');
         WriteRes(s2+'crtbegin.o');
       end;
-
    end;
 
   while not ObjectFiles.Empty do
@@ -380,9 +378,7 @@ begin
         WriteRes(s2+'crtend.o');
         WriteRes(s2+'crtn.o');
       end;
-
    end;
-
 
   { Write sharedlibraries like -l<lib> }
   While not SharedLibFiles.Empty do
@@ -518,7 +514,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1998-08-12 19:28:15  peter
+  Revision 1.17  1998-08-14 18:16:08  peter
+    * return after a failed call will now add it to ppas
+
+  Revision 1.16  1998/08/12 19:28:15  peter
     * better libc support
 
   Revision 1.15  1998/08/10 14:50:02  peter
