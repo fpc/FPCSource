@@ -146,6 +146,7 @@ procedure RegisterHelpType;
 
 implementation
 
+
 constructor TOAHelpFile.Init(AFileName: string; AID: word);
 var OK: boolean;
     FS,L: longint;
@@ -223,6 +224,11 @@ begin
       OK:=ReadRecord(R,true);
       OK:=OK and (R.SClass=oa_rtFileHeader) and (R.Size=SizeOf(Header));
       if OK then Move(R.Data^,Header,SizeOf(Header));
+{$ifdef ENDIAN_BIG}
+      SwapWord(Header.Options);
+      SwapWord(Header.MainIndexScreen);
+      SwapWord(Header.MaxScreenSize);
+{$endif ENDIAN_BIG}
       DisposeRecord(R);
     end;
   end;
@@ -235,12 +241,19 @@ var OK: boolean;
     L,I: longint;
 function GetCtxPos(C: THLPContextPos): longint;
 begin
+{$ifdef ENDIAN_BIG}
+  SwapWord(C.LoW);
+{$endif ENDIAN_BIG}
   GetCtxPos:=longint(C.HiB) shl 16 + C.LoW;
 end;
 begin
   OK:=ReadRecord(R, true);
   if OK then
   with THLPContexts(R.Data^) do
+  begin
+{$ifdef ENDIAN_BIG}
+  SwapWord(ContextCount);
+{$endif ENDIAN_BIG}
   for I:=1 to longint(ContextCount)-1 do
   begin
     if Topics^.Count=MaxCollectionSize then Break;
@@ -250,6 +263,7 @@ begin
        L:=GetCtxPos(Contexts[Header.MainIndexScreen]);
     if (L>0) then
       AddTopic(I,L,'',nil,0);
+  end;
   end;
   DisposeRecord(R);
   TopicsRead:=OK;
@@ -275,6 +289,10 @@ begin
   if OK then OK:=ReadRecord(R, true);
   if OK then
   with THLPIndexTable(R.Data^) do
+  begin
+{$ifdef ENDIAN_BIG}
+  SwapWord(IndexCount);
+{$endif ENDIAN_BIG}
   for I:=0 to IndexCount-1 do
   begin
     LenCode:=PByteArray(@Entries)^[CurPtr];
@@ -284,6 +302,7 @@ begin
     HelpCtx:=PWord(@PByteArray(@Entries)^[CurPtr+1+AddLen])^;
     AddIndexEntry(LastTag,HelpCtx);
     Inc(CurPtr,1+AddLen+2);
+  end;
   end;
   DisposeRecord(R);
   IndexTableRead:=OK;
@@ -317,6 +336,9 @@ var OK: boolean;
 begin
   FillChar(R, SizeOf(R), 0);
   F^.Read(H,SizeOf(H));
+{$ifdef ENDIAN_BIG}
+  SwapWord(H.RecLength);
+{$endif ENDIAN_BIG}
   OK:=F^.Status=stOK;
   if OK then
   begin
@@ -495,12 +517,19 @@ begin
         TP55FormatVersion :
            with THLPKeywordRecord55(KeyWR.Data^) do
            begin
+{$ifdef ENDIAN_BIG}
+             SwapWord(UpContext);
+             SwapWord(DownContext);
+{$endif ENDIAN_BIG}
              T^.LinkCount:=KeywordCount;
              GetMem(T^.Links,T^.LinkSize);
              if T^.LinkCount>0 then
              for I:=0 to T^.LinkCount-1 do
              with Keywords[I] do
              begin
+{$ifdef ENDIAN_BIG}
+               SwapWord(KwContext);
+{$endif ENDIAN_BIG}
                T^.Links^[I].Context:=KwContext;
                T^.Links^[I].FileID:=ID;
                Inc(LinkPosCount);
@@ -514,11 +543,19 @@ begin
       else
            with THLPKeywordRecord(KeyWR.Data^) do
            begin
+{$ifdef ENDIAN_BIG}
+             SwapWord(KeywordCount);
+             SwapWord(UpContext);
+             SwapWord(DownContext);
+{$endif ENDIAN_BIG}
              T^.LinkCount:=KeywordCount;
              GetMem(T^.Links,T^.LinkSize);
              if KeywordCount>0 then
              for I:=0 to KeywordCount-1 do
              begin
+{$ifdef ENDIAN_BIG}
+               SwapWord(Keywords[I].KwContext);
+{$endif ENDIAN_BIG}
                T^.Links^[I].Context:=Keywords[I].KwContext;
                T^.Links^[I].FileID:=ID;
              end;
