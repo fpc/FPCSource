@@ -44,7 +44,15 @@ Const
 Constructor TIOStream.Create(IOSType : TiosType);
 
 begin
+{$ifdef win32}
+  Case IOSType of 
+    iosOutput : FType:=Stdoutputhandle;
+    iosInput : FType:=Stdinputhandle;
+    iosError : FType:=StdErrorHandle;
+  end;
+{$else}
   FType:=Ord(IOSType);
+{$endif}  
   Inherited Create(Ftype);
 end;
 
