@@ -151,15 +151,13 @@ implementation
                     {$endif}
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),0);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(exprasmlist,1));
-                    {$ifdef newra}
-                       rg.ungetregisterint(exprasmlist,hregister);
-                       r:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT_REG);
-                    {$endif}
                        { the called procedure isn't allowed to change }
                        { any register except EAX                    }
                        cg.a_call_reg(exprasmlist,hregister);
                        paramanager.freeintparaloc(exprasmlist,1);
                     {$ifdef newra}
+                       rg.ungetregisterint(exprasmlist,hregister);
+                       r:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT_REG);
                        rg.ungetregisterint(exprasmlist,r);
                        hregister:=rg.getregisterint(exprasmlist,OS_ADDR);
                     {$else}
@@ -953,7 +951,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2003-06-13 21:19:30  peter
+  Revision 1.72  2003-06-15 15:13:12  jonas
+    * fixed register allocation for threadvar loads with newra
+
+  Revision 1.71  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.70  2003/06/12 16:43:07  peter
