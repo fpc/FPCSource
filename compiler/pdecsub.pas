@@ -1958,7 +1958,7 @@ const
                         ad:=tsym(ad.indexnext);
                         fd:=tsym(fd.indexnext);
                       until false;
-                      if assigned(ad) or assigned(fd) then
+                      if assigned(ad) xor assigned(fd) then
                         internalerror(200204178);
                     end;
 
@@ -2087,7 +2087,10 @@ const
 end.
 {
   $Log$
-  Revision 1.91  2002-12-23 20:58:52  peter
+  Revision 1.92  2002-12-23 21:24:22  peter
+    * fix wrong internalerror when var names were different
+
+  Revision 1.91  2002/12/23 20:58:52  peter
     * cdecl array fix, hack to change it to vs_var is not needed
 
   Revision 1.90  2002/12/17 22:19:33  peter
