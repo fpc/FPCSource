@@ -777,11 +777,18 @@ procedure readsymbols;
 Const
   vo_is_C_var = 2;
 Type
+  pguid = ^tguid;
+  tguid = packed record
+    D1: LongWord;
+    D2: Word;
+    D3: Word;
+    D4: array[0..7] of Byte;
+  end;
   absolutetyp = (tovar,toasm,toaddr);
   tconsttyp = (constnone,
     constord,conststring,constreal,constbool,
     constint,constchar,constset,constpointer,constnil,
-    constresourcestring
+    constresourcestring,constwstring,constwchar,constguid
   );
 var
   b      : byte;
@@ -789,6 +796,8 @@ var
   totalsyms,
   symcnt,
   i,j,len : longint;
+  guid : tguid;
+
 begin
   symcnt:=1;
   with ppufile do
@@ -890,6 +899,22 @@ begin
                       writeln;
                     end;
                  end;
+               constwstring:
+                 begin
+                 end;
+               constwchar:
+                 writeln(space,'       Value: #',getlongint);
+               constguid:
+                 begin
+                    getdata(guid,sizeof(guid));
+                    write (space,'     IID String: {',hexstr(guid.d1,8),'-',hexstr(guid.d2,4),'-',hexstr(guid.d3,4),'-');
+                    for i:=0 to 7 do
+                      begin
+                         write(hexstr(guid.d4[i],2));
+                         if i=1 then write('-');
+                      end;
+                    writeln('}');
+                 end
                else
                  Writeln ('!! Invalid unit format : Invalid const type encountered: ',b);
              end;
@@ -1827,7 +1852,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-08-20 16:54:40  peter
+  Revision 1.30  2002-09-26 12:03:54  florian
+    + support of constguid and constwchar const symbols added
+
+  Revision 1.29  2002/08/20 16:54:40  peter
     * write address of varsym always
 
   Revision 1.28  2002/08/19 19:36:44  peter
