@@ -330,10 +330,11 @@ end;
                                TraceGetMem
 *****************************************************************************}
 
-procedure TraceGetMem(var p:pointer;size:longint);
+Function TraceGetMem(size:longint):pointer;
 var
   i,bp : longint;
   pl : plongint;
+  p : pointer;
 begin
   inc(getmem_size,size);
   inc(getmem8_size,((size+7) div 8)*8);
@@ -341,7 +342,7 @@ begin
   bp:=size+sizeof(theap_mem_info)+extra_info_size;
   if add_tail then
     inc(bp,sizeof(longint));
-  SysGetMem(p,bp);
+  p:=SysGetMem(bp);
 { Create the info block }
   pheap_mem_info(p)^.sig:=$DEADBEEF;
   pheap_mem_info(p)^.size:=size;
@@ -377,6 +378,7 @@ begin
     pheap_mem_info(p)^.sig:=calculate_sig(pheap_mem_info(p));
   inc(p,sizeof(theap_mem_info)+extra_info_size);
   inc(getmem_cnt);
+  TraceGetmem:=p;
 end;
 
 
@@ -384,9 +386,9 @@ end;
                                TraceFreeMem
 *****************************************************************************}
 
-procedure TraceFreeMemSize(var p:pointer;size:longint);
-
-  var i,bp, ppsize : longint;
+function TraceFreeMemSize(p:pointer;size:longint):longint;
+var
+  i,bp, ppsize : longint;
   pp : pheap_mem_info;
 {$ifdef EXTRA}
   pp2 : pheap_mem_info;
@@ -486,7 +488,11 @@ begin
        exit;
 {$endif EXTRA}
     end;
-  SysFreeMemSize(p,ppsize);
+  i:=SysFreeMemSize(p,ppsize);
+  dec(i,sizeof(theap_mem_info)+extra_info_size);
+  if add_tail then
+   dec(i,sizeof(longint));
+  TraceFreeMemSize:=i;
 end;
 
 
@@ -502,7 +508,7 @@ begin
 end;
 
 
-procedure TraceFreeMem(var p:pointer);
+function TraceFreeMem(p:pointer):longint;
 var
   size : longint;
   pp : pheap_mem_info;
@@ -517,7 +523,7 @@ begin
      dump_wrong_size(pp,size,error_file);
 {$endif EXTRA}
    end;
-  TraceFreeMemSize(p,pp^.size);
+  TraceFreeMem:=TraceFreeMemSize(p,pp^.size);
 end;
 
 
@@ -705,6 +711,98 @@ begin
 end;
 
 
+{*****************************************************************************
+                                AllocMem
+*****************************************************************************}
+
+function TraceAllocMem(size:longint):Pointer;
+begin
+  TraceAllocMem:=SysAllocMem(size);
+end;
+
+
+{*****************************************************************************
+                                ReAllocMem
+*****************************************************************************}
+
+function TraceReAllocMem(p:pointer;size:longint):Pointer;
+var
+  i,bp : longint;
+  pl : plongint;
+  pp : pheap_mem_info;
+begin
+  dec(p,sizeof(theap_mem_info)+extra_info_size);
+{ remove heap_mem_info for linked list }
+  pp:=pheap_mem_info(p);
+  if pp^.next<>nil then
+    pp^.next^.previous:=pp^.previous;
+  if pp^.previous<>nil then
+    pp^.previous^.next:=pp^.next;
+  if pp=heap_mem_root then
+    heap_mem_root:=heap_mem_root^.previous;
+{ Do the real GetMem, but alloc also for the info block }
+  bp:=size+sizeof(theap_mem_info)+extra_info_size;
+  if add_tail then
+    inc(bp,sizeof(longint));
+  p:=SysReAllocMem(p,bp);
+{ Create the info block }
+  pheap_mem_info(p)^.sig:=$DEADBEEF;
+  pheap_mem_info(p)^.size:=size;
+  if add_tail then
+    begin
+      pl:=pointer(p)+bp-sizeof(longint);
+      pl^:=$DEADBEEF;
+    end;
+  bp:=get_caller_frame(get_frame);
+  for i:=1 to tracesize do
+   begin
+     pheap_mem_info(p)^.calls[i]:=get_caller_addr(bp);
+     bp:=get_caller_frame(bp);
+   end;
+  { insert in the linked list }
+  if heap_mem_root<>nil then
+   heap_mem_root^.next:=pheap_mem_info(p);
+  pheap_mem_info(p)^.previous:=heap_mem_root;
+  pheap_mem_info(p)^.next:=nil;
+{$ifdef EXTRA}
+  pheap_mem_info(p)^.next_valid:=nil;
+  if assigned(heap_valid_last) then
+    heap_valid_last^.next_valid:=pheap_mem_info(p);
+  heap_valid_last:=pheap_mem_info(p);
+  if not assigned(heap_valid_first) then
+    heap_valid_first:=pheap_mem_info(p);
+{$endif EXTRA}
+  heap_mem_root:=p;
+  if assigned(fill_extra_info) then
+    fill_extra_info(@pheap_mem_info(p)^.extra_info);
+{ update the pointer }
+  if usecrc then
+    pheap_mem_info(p)^.sig:=calculate_sig(pheap_mem_info(p));
+  inc(p,sizeof(theap_mem_info)+extra_info_size);
+  inc(getmem_cnt);
+  TraceReAllocmem:=p;
+end;
+
+
+{*****************************************************************************
+                            No specific tracing calls
+*****************************************************************************}
+
+function TraceMemAvail:longint;
+begin
+  TraceMemAvail:=SysMemAvail;
+end;
+
+function TraceMaxAvail:longint;
+begin
+  TraceMaxAvail:=SysMaxAvail;
+end;
+
+function TraceHeapSize:longint;
+begin
+  TraceHeapSize:=SysHeapSize;
+end;
+
 
 {*****************************************************************************
                            Install MemoryManager
@@ -715,7 +813,12 @@ const
     Getmem  : TraceGetMem;
     Freemem : TraceFreeMem;
     FreememSize : TraceFreeMemSize;
-    MemSize : TraceMemSize
+    AllocMem : TraceAllocMem;
+    ReAllocMem : TraceReAllocMem;
+    MemSize : TraceMemSize;
+    MemAvail : TraceMemAvail;
+    MaxAvail : TraceMaxAvail;
+    HeapSize : TraceHeapsize;
   );
 
 procedure TraceExit;
@@ -794,7 +897,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.24  1999-09-17 17:14:12  peter
+  Revision 1.25  1999-10-30 17:39:05  peter
+    * memorymanager expanded with allocmem/reallocmem
+
+  Revision 1.24  1999/09/17 17:14:12  peter
     + new heap manager supporting delphi freemem(pointer)
 
   Revision 1.23  1999/09/10 17:13:41  peter

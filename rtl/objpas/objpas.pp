@@ -14,8 +14,10 @@
 
  **********************************************************************}
 {$Mode ObjFpc}
-{$I-,S-}
-
+{$I-}
+{$ifndef linux}
+  {$S-}
+{$endif}
 unit objpas;
 
   interface
@@ -360,7 +362,10 @@ end.
 
 {
   $Log$
-  Revision 1.42  1999-10-03 19:41:30  peter
+  Revision 1.43  1999-10-30 17:39:05  peter
+    * memorymanager expanded with allocmem/reallocmem
+
+  Revision 1.42  1999/10/03 19:41:30  peter
     * moved tvarrec to systemunit
 
   Revision 1.41  1999/09/28 21:13:33  florian

@@ -182,7 +182,7 @@ asm
       { Memory size }
         pushl   (%eax)
         pushl   %esi
-        call    GetMem
+        call    AsmGetMem
         movl    $-1,8(%ebp)
         popal
       { Memory position to %esi }
@@ -884,7 +884,10 @@ end;
 
 {
   $Log$
-  Revision 1.57  1999-10-08 14:40:54  pierre
+  Revision 1.58  1999-10-30 17:39:05  peter
+    * memorymanager expanded with allocmem/reallocmem
+
+  Revision 1.57  1999/10/08 14:40:54  pierre
    * fix for FPC_HELP_FAIL_CLASS
 
   Revision 1.56  1999/10/05 20:50:06  pierre

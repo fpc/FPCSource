@@ -18,19 +18,19 @@
 type
   PMemoryManager = ^TMemoryManager;
   TMemoryManager = record
-    Getmem  : procedure(Var p:pointer;Size:Longint);
-    Freemem : procedure(Var p:pointer);
-    FreememSize : procedure(Var p:pointer;Size:Longint);
-    MemSize : function(p:pointer):Longint;
+    Getmem      : Function(Size:Longint):Pointer;
+    Freemem     : Function(p:pointer):Longint;
+    FreememSize : Function(p:pointer;Size:Longint):Longint;
+    AllocMem    : Function(Size:longint):Pointer;
+    ReAllocMem  : Function(p:pointer;Size:longint):Pointer;
+    MemSize     : function(p:pointer):Longint;
+    MemAvail    : Function:Longint;
+    MaxAvail    : Function:Longint;
+    HeapSize    : Function:Longint;
   end;
 procedure GetMemoryManager(var MemMgr: TMemoryManager);
 procedure SetMemoryManager(const MemMgr: TMemoryManager);
 function  IsMemoryManagerSet: Boolean;
-
-Procedure SysGetmem(Var p:pointer;Size:Longint);
-Procedure SysFreemem(Var p:pointer);
-Procedure SysFreememSize(Var p:pointer;Size:Longint);
-Function  SysMemSize(p:pointer):Longint;
 
 { Variables }
 const
@@ -39,24 +39,47 @@ const
 var
   heaporg,heapptr,heapend,heaperror,freelist : pointer;
 
-{ Needed to some overloading problem with call from assembler (PFV) }
-Procedure AsmFreemem(Var p:pointer);
+{ Default MemoryManager functions }
+Function  SysGetmem(Size:Longint):Pointer;
+Function  SysFreemem(p:pointer):Longint;
+Function  SysFreememSize(p:pointer;Size:Longint):Longint;
+Function  SysMemSize(p:pointer):Longint;
+Function  SysAllocMem(size:longint):Pointer;
+Function  SysReAllocMem(p:pointer;size:longint):Pointer;
+Function  Sysmemavail:Longint;
+Function  Sysmaxavail:Longint;
+Function  Sysheapsize:longint;
 
-{ Basic (TP7,Delphi) functions }
-Procedure getmem(Var p:pointer;Size:Longint);
-Procedure freemem(Var p:pointer);
-Procedure freemem(Var p:pointer;Size:Longint);
+{ Tp7 functions }
+Procedure Getmem(Var p:pointer;Size:Longint);
+Procedure Freemem(Var p:pointer;Size:Longint);
 Function  memavail:Longint;
 Function  maxavail:Longint;
+
+{ FPC additions }
+Function  MemSize(p:pointer):Longint;
+Function  heapsize:longint;
+
+{ Delphi functions }
+function Freemem(p:pointer):longint;
+function GetMem(size:longint):pointer;
+function AllocMem(Size:Longint):pointer;
+function ReAllocMem(p:pointer;Size:Longint):pointer;
+
+{ Needed to solve overloading problem with call from assembler (PFV) }
+Procedure AsmGetmem(var p:pointer;size:Longint);
+Procedure AsmFreemem(var p:pointer);
+
+{ Do nothing functions, are only here for tp7 compat }
 Procedure mark(var p : pointer);
 Procedure release(var p : pointer);
 
-{ Fpc Functions }
-Function  heapsize : longint;
-
 {
   $Log$
-  Revision 1.10  1999-09-17 17:14:12  peter
+  Revision 1.11  1999-10-30 17:39:05  peter
+    * memorymanager expanded with allocmem/reallocmem
+
+  Revision 1.10  1999/09/17 17:14:12  peter
     + new heap manager supporting delphi freemem(pointer)
 
   Revision 1.9  1999/05/31 20:36:35  peter

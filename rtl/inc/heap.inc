@@ -52,7 +52,12 @@ const
     GetMem: SysGetMem;
     FreeMem: SysFreeMem;
     FreeMemSize: SysFreeMemSize;
-    MemSize: SysMemSize
+    AllocMem: SysAllocMem;
+    ReAllocMem: SysReAllocMem;
+    MemSize: SysMemSize;
+    MemAvail: SysMemAvail;
+    MaxAvail: SysMaxAvail;
+    HeapSize: SysHeapSize;
   );
 
 type
@@ -101,22 +106,35 @@ begin
 end;
 
 
-procedure GetMem(Var p:pointer;Size:Longint);[public,alias:'FPC_GETMEM'];
+procedure GetMem(Var p:pointer;Size:Longint);{$ifndef NEWMM}[public,alias:'FPC_GETMEM'];{$endif}
 begin
-  MemoryManager.GetMem(p,Size);
+  p:=MemoryManager.GetMem(Size);
 end;
 
 
-procedure FreeMem(Var p:pointer);
-begin
-  if p <> nil then
-    MemoryManager.FreeMem(p);
-end;
-
-
-procedure FreeMem(Var p:pointer;Size:Longint);[public,alias:'FPC_FREEMEM'];
+procedure FreeMem(Var p:pointer;Size:Longint);{$ifndef NEWMM}[public,alias:'FPC_FREEMEM'];{$endif}
 begin
   MemoryManager.FreeMemSize(p,Size);
+  p:=nil;
+end;
+
+
+function MaxAvail:Longint;
+begin
+  MaxAvail:=MemoryManager.MaxAvail();
+end;
+
+
+function MemAvail:Longint;
+begin
+  MemAvail:=MemoryManager.MemAvail();
+end;
+
+
+{ FPC Additions }
+function HeapSize:Longint;
+begin
+  HeapSize:=MemoryManager.HeapSize();
 end;
 
 
@@ -126,39 +144,75 @@ begin
 end;
 
 
-{ Needed for calls from Assembler }
-procedure AsmFreeMem(Var p:pointer);
+{ Delphi style }
+function FreeMem(p:pointer):Longint;
 begin
-  MemoryManager.FreeMem(p);
+  if p <> nil then
+    Freemem:=MemoryManager.FreeMem(p);
+end;
+
+
+function GetMem(size:longint):pointer;
+begin
+  GetMem:=MemoryManager.GetMem(Size);
+end;
+
+
+function AllocMem(Size:Longint):pointer;
+begin
+  AllocMem:=MemoryManager.AllocMem(size);
+end;
+
+
+function ReAllocMem(p:pointer;Size:Longint):pointer;
+begin
+  ReAllocMem:=MemoryManager.ReAllocMem(p,size);
+end;
+
+
+{ Needed for calls from Assembler }
+procedure AsmGetMem(var p:pointer;size:longint);{$ifdef NEWMM}[public,alias:'FPC_GETMEM'];{$endif}
+begin
+  p:=MemoryManager.GetMem(size);
+end;
+
+
+procedure AsmFreeMem(var p:pointer);{$ifdef NEWMM}[public,alias:'FPC_FREEMEM'];{$endif}
+begin
+  if p <> nil then
+   begin
+     MemoryManager.FreeMem(p);
+     p:=nil;
+   end;
 end;
 
 
 {*****************************************************************************
-                       Heapsize,Memavail,MaxAvail
+                         Heapsize,Memavail,MaxAvail
 *****************************************************************************}
 
-function heapsize : longint;
+function SysHeapsize : longint;
 begin
-  heapsize:=internal_heapsize;
+  Sysheapsize:=internal_heapsize;
 end;
 
 
-function memavail : longint;
+function SysMemavail : longint;
 begin
-  memavail:=internal_memavail;
+  Sysmemavail:=internal_memavail;
 end;
 
 
-function maxavail : longint;
+function SysMaxavail : longint;
 var
   hp : pfreerecord;
 begin
-  maxavail:=heapend-heapptr;
+  Sysmaxavail:=heapend-heapptr;
   hp:=freelists[0];
   while assigned(hp) do
    begin
-     if hp^.size>maxavail then
-       maxavail:=hp^.size;
+     if hp^.size>Sysmaxavail then
+       Sysmaxavail:=hp^.size;
      hp:=hp^.next;
    end;
 end;
@@ -201,7 +255,7 @@ end;
                                  SysGetMem
 *****************************************************************************}
 
-procedure SysGetMem(var p : pointer;size : longint);
+function SysGetMem(size : longint):pointer;
 type
   heaperrorproc=function(size:longint):integer;
 var
@@ -236,7 +290,7 @@ begin
      if assigned(pcurr) then
       begin
         { create the block we should return }
-        p:=pointer(pcurr)+sizeof(theaprecord);
+        sysgetmem:=pointer(pcurr)+sizeof(theaprecord);
         { fix size }
         pcurr^.size:=pcurr^.size or usedmask;
         { update freelist }
@@ -248,9 +302,9 @@ begin
 {$ifdef SMALLATHEAPPTR}
      if heapend-heapptr>size then
       begin
-        p:=heapptr;
-        pheaprecord(p)^.size:=size;
-        inc(p,sizeof(theaprecord));
+        sysgetmem:=heapptr;
+        pheaprecord(sysgetmem)^.size:=size or usedmask;
+        inc(sysgetmem,sizeof(theaprecord));
         inc(heapptr,size);
         exit;
       end;
@@ -312,7 +366,7 @@ begin
   if assigned(pcurr) then
    begin
      { get pointer of the block we should return }
-     p:=pointer(pcurr);
+     sysgetmem:=pointer(pcurr);
      { remove the current block from the freelist }
      if assigned(pcurr^.next) then
       pcurr^.next^.prev:=pcurr^.prev;
@@ -337,8 +391,8 @@ begin
         freelists[s1]:=pcurr;
       end;
      { create the block we need to return }
-     pheaprecord(p)^.size:=size;
-     inc(p,sizeof(theaprecord));
+     pheaprecord(sysgetmem)^.size:=size or usedmask;
+     inc(sysgetmem,sizeof(theaprecord));
      exit;
    end;
   { Lastly, the top of the heap is checked, to see if there is }
@@ -347,9 +401,9 @@ begin
     again:=false;
     if heapend-heapptr>size then
      begin
-       p:=heapptr;
-       pheaprecord(p)^.size:=size;
-       inc(p,sizeof(theaprecord));
+       sysgetmem:=heapptr;
+       pheaprecord(sysgetmem)^.size:=size or usedmask;
+       inc(sysgetmem,sizeof(theaprecord));
        inc(heapptr,size);
        exit;
      end;
@@ -359,7 +413,7 @@ begin
        proc:=heaperrorproc(heaperror);
        case proc(size) of
         0 : HandleError(203);
-        1 : p:=nil;
+        1 : sysgetmem:=nil;
         2 : again:=true;
        end;
      end
@@ -373,7 +427,7 @@ end;
                                SysFreeMem
 *****************************************************************************}
 
-procedure SysFreeMem(var p : pointer);
+Function SysFreeMem(p : pointer):Longint;
 var
   s : longint;
   pcurr : pfreerecord;
@@ -393,15 +447,20 @@ begin
   if assigned(pcurr^.next) then
    pcurr^.next^.prev:=pcurr;
   freelists[s]:=pcurr;
-  p:=nil;
+  SysFreeMem:=pcurr^.size;
 end;
 
 
-procedure SysFreeMemSize(var p : pointer;size : longint);
+{*****************************************************************************
+                              SysFreeMemSize
+*****************************************************************************}
+
+Function SysFreeMemSize(p : pointer;size : longint):longint;
 var
   s : longint;
   pcurr : pfreerecord;
 begin
+  SysFreeMemSize:=0;
   if size<=0 then
    begin
      if size<0 then
@@ -429,16 +488,154 @@ begin
    pcurr^.next^.prev:=pcurr;
   freelists[s]:=pcurr;
   p:=nil;
+  SysFreeMemSize:=pcurr^.size;
 end;
 
 
 {*****************************************************************************
-                                    MemSize
+                                 SysMemSize
 *****************************************************************************}
 
 function SysMemSize(p:pointer):longint;
 begin
   SysMemSize:=(pheaprecord(pointer(p)-sizeof(theaprecord))^.size-sizeof(theaprecord)) and sizemask;
+end;
+
+
+{*****************************************************************************
+                                 SysAllocMem
+*****************************************************************************}
+
+function SysAllocMem(size : longint):pointer;
+begin
+  sysallocmem:=MemoryManager.GetMem(size);
+  if sysallocmem<>nil then
+   FillChar(sysallocmem^,size,0);
+end;
+
+
+{*****************************************************************************
+                                 SysReAllocMem
+*****************************************************************************}
+
+function SysReAllocMem(p:pointer;size : longint):pointer;
+var
+  currsize,
+  foundsize,
+  sizeleft,
+  s     : longint;
+  p2    : pointer;
+  hp,
+  pnew,
+  pcurr : pfreerecord;
+begin
+{ Allocate a new block? }
+  if p=nil then
+   begin
+     SysReAllocMem:=MemoryManager.GetMem(size);
+     exit;
+   end;
+{ fix needed size }
+  size:=(size+sizeof(theaprecord)+(blocksize-1)) and (not (blocksize-1));
+{ fix p to point to the heaprecord }
+  pcurr:=pfreerecord(pointer(p)-sizeof(theaprecord));
+  currsize:=pcurr^.size and sizemask;
+{ is the allocated block still correct? }
+  if currsize=size then
+   begin
+     SysReAllocMem:=p;
+     exit;
+   end;
+{ do we need to allocate more memory ? }
+  if size>currsize then
+   begin
+   { the size is bigger than the previous size, we need to allocated more mem.
+     We first check if the blocks after the current block are free. If not we
+     simply call getmem/freemem to get the new block }
+     foundsize:=pcurr^.size and sizemask;
+     hp:=pcurr;
+     repeat
+       { get next block }
+       hp:=pfreerecord(pointer(hp)+(hp^.size and sizemask));
+       { when we're at heapptr then we can stop }
+       if (hp=heapptr) then
+        begin
+          inc(foundsize,heapend-heapptr);
+          break;
+        end;
+       { block used? }
+       if (hp^.size and usedmask)<>0 then
+        break;
+       inc(foundsize,hp^.size and sizemask);
+     until (foundsize>=size);
+   { found enough free blocks? }
+     if foundsize>=size then
+      begin
+        { we walk the list again and remove all blocks }
+        foundsize:=pcurr^.size and sizemask;
+        hp:=pcurr;
+        repeat
+          { get next block }
+          hp:=pfreerecord(pointer(hp)+(hp^.size and sizemask));
+          { when we're at heapptr then we can increase it, if there is enough
+            room is already checked }
+          if (hp=heapptr) then
+           begin
+             inc(heapptr,size-foundsize);
+             foundsize:=size;
+             break;
+           end;
+          s:=hp^.size and sizemask;
+          inc(foundsize,s);
+          s:=s shr blockshr;
+          if s>maxblock then
+           s:=0;
+          { remove block from freelist }
+          if assigned(hp^.next) then
+           hp^.next^.prev:=hp^.prev;
+          if assigned(hp^.prev) then
+           hp^.prev^.next:=hp^.next
+          else
+           freelists[s]:=hp^.next;
+        until (foundsize>=size);
+        pcurr^.size:=foundsize or usedmask;
+      end
+     else
+      begin
+        { we need to call getmem/move/freemem }
+        p2:=MemoryManager.GetMem(size);
+        if p2<>nil then
+         Move(p^,p2^,size);
+        MemoryManager.Freemem(p);
+        SysReAllocMem:=p2;
+        exit;
+      end;
+     currsize:=pcurr^.size and sizemask;
+   end;
+{ is the size smaller then we can adjust the block to that size and insert
+  the other part into the freelist }
+  if size<currsize then
+   begin
+     { create the left over freelist block, if at least 16 bytes are free }
+     sizeleft:=currsize-size;
+     if sizeleft>sizeof(tfreerecord) then
+      begin
+        pnew:=pfreerecord(pointer(pcurr)+size);
+        pnew^.size:=sizeleft;
+        { insert the block in the freelist }
+        pnew^.prev:=nil;
+        s:=sizeleft shr blockshr;
+        if s>maxblock then
+         s:=0;
+        pnew^.next:=freelists[s];
+        if assigned(freelists[s]) then
+         freelists[s]^.prev:=pnew;
+        freelists[s]:=pnew;
+      end;
+     { fix the size of the current block and leave }
+     pcurr^.size:=size or usedmask;
+   end;
+  SysReAllocMem:=p;
 end;
 
 
@@ -553,7 +750,10 @@ end;
 
 {
   $Log$
-  Revision 1.20  1999-10-22 22:03:07  sg
+  Revision 1.21  1999-10-30 17:39:05  peter
+    * memorymanager expanded with allocmem/reallocmem
+
+  Revision 1.20  1999/10/22 22:03:07  sg
   * FreeMem(p) is ignored if p is NIL, instead of throwing an
     runtime error 204. (Delphi ignores NIL FreeMem's, too)
 
