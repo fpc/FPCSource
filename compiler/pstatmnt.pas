@@ -1182,6 +1182,9 @@ implementation
          { space for the return value       }
           if not is_void(aktprocsym.definition.rettype.def) then
            begin
+              aktprocsym.definition.funcretsym:=tfuncretsym.create(aktprocsym.name,aktprocsym.definition.rettype);
+              { insert in local symtable }
+              symtablestack.insert(aktprocsym.definition.funcretsym);
               if ret_in_acc(aktprocsym.definition.rettype.def) then
                 begin
                    { in assembler code the result should be directly in %eax
@@ -1237,7 +1240,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2001-08-26 13:36:46  florian
+  Revision 1.35  2001-09-03 13:19:12  jonas
+    * set funcretsym for assembler procedures too (otherwise using __RESULT
+      in assembler procedures causes a crash)
+
+  Revision 1.34  2001/08/26 13:36:46  florian
     * some cg reorganisation
     * some PPC updates
 
