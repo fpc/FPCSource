@@ -26,7 +26,7 @@ endif
 
 # in case pwd is not present on the DOS-OS
 ifeq ($(strip $(BASEDIR)),'')
-undef inlinux
+inlinux=
 BASEDIR:=.
 endif
 

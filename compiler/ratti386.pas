@@ -868,6 +868,7 @@ const
   var
     p : pai_external;
   Begin
+     SearchDirectVar:=false;
      { search in the list of internals }
      p:=search_assembler_symbol(internals,hs,EXT_ANY);
        if p=nil then
@@ -3670,8 +3671,13 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
+  Revision 1.2  1998-03-30 15:53:01  florian
+    * last changes before release:
+       - gdb fixed
+       - ratti386 warning removed (about unset function result)
+
+  Revision 1.1.1.1  1998/03/25 11:18:15  root
+  * Restored version
 
   Revision 1.21  1998/03/10 16:27:44  pierre
     * better line info in stabs debug

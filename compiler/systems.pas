@@ -109,7 +109,7 @@ unit systems;
             pasext : '.pp';
             newline : #13#10;
             labelprefix : 'L';
-            Cprefix : ''; {???}
+            Cprefix : '_'; {???}
             use_function_relative_addresses : true;
             endian : endian_little
           ),
@@ -149,7 +149,7 @@ unit systems;
             pasext : '.pas';
             newline : #13#10;
             labelprefix : '.L';
-            Cprefix : ''; {???}
+            Cprefix : '_'; {???}
             use_function_relative_addresses : true; {????}
             endian : endian_little
           ),
@@ -357,8 +357,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
+  Revision 1.2  1998-03-30 15:53:01  florian
+    * last changes before release:
+       - gdb fixed
+       - ratti386 warning removed (about unset function result)
+
+  Revision 1.1.1.1  1998/03/25 11:18:15  root
+  * Restored version
 
   Revision 1.33  1998/03/10 23:48:37  florian
     * a couple of bug fixes to get the compiler with -OGaxz compiler, sadly

@@ -816,10 +816,10 @@ unit pmodules;
          st:=new(punitsymtable,init(staticsymtable,programname));
 
          {Generate a procsym.}
-         aktprocsym:=new(Pprocsym,init('program_init'));
+         aktprocsym:=new(Pprocsym,init('main'));
          aktprocsym^.definition:=new(Pprocdef,init);
          aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poproginit;
-         aktprocsym^.definition^.setmangledname('program_init');
+         aktprocsym^.definition^.setmangledname(target_info.Cprefix+'main');
          {The localst is a local symtable. Change it into the static
           symtable.}
          dispose(aktprocsym^.definition^.localst,done);
@@ -932,8 +932,13 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
+  Revision 1.2  1998-03-30 15:53:01  florian
+    * last changes before release:
+       - gdb fixed
+       - ratti386 warning removed (about unset function result)
+
+  Revision 1.1.1.1  1998/03/25 11:18:15  root
+  * Restored version
 
   Revision 1.43  1998/03/20 23:31:34  florian
     * bug0113 fixed
