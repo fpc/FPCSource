@@ -113,6 +113,9 @@ uses X;
        { Added this for functions at the end. }
        PCardinal = ^Cardinal;
 
+       PDisplay=^TDisplay;
+
+
        PXExtData = ^TXExtData ;
        PPXExtData = ^PXExtData ;
        { Put this in to accomodate for the next in the following record. MVC}
@@ -491,7 +494,6 @@ uses X;
             private19 : longint;
             xdefaults : pchar;
          end;
-         PDisplay=^TDisplay;
     {
      * Definitions of specific events.
      }
@@ -1733,7 +1735,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1.2.4  2000-10-29 12:33:41  sg
+  Revision 1.1.2.5  2000-11-06 09:54:41  sg
+  * Moved declaration of PDisplay so that this unit compiles again :)
+
+  Revision 1.1.2.4  2000/10/29 12:33:41  sg
   * Fixed XImage (function pointers are now declared)
 
   Revision 1.1.2.3  2000/10/26 23:13:27  peter
