@@ -86,6 +86,17 @@ begin
  fStatFS:=do_syscall(syscall_nr_fstatfs,fd,longint(@info));
 end;
 
+Function StatFS(path:pchar;Var Info:tstatfs):cint;
+{
+  Get all information on a fileSystem, and return it in Info.
+  Fd is the file descriptor of a file/directory on the fileSystem
+  you wish to investigate.
+}
+
+begin
+ StatFS:=do_syscall(syscall_nr_statfs,longint(path),longint(@info));
+end;
+
 // needs oldfpccall;
 Function intAssignPipe(var pipe_in,pipe_out:longint;var errn:cint):cint; {$ifndef ver1_0} oldfpccall;{$endif} 
 {
@@ -264,7 +275,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2003-12-30 12:32:30  marco
+  Revision 1.18  2004-01-01 17:07:21  marco
+   * few small freebsd fixes backported from debugging linux
+
+  Revision 1.17  2003/12/30 12:32:30  marco
   *** empty log message ***
 
   Revision 1.16  2003/11/19 17:11:40  marco

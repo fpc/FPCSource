@@ -1,3 +1,17 @@
+{
+   $Id$
+   This file is part of the Free Pascal run time library.
+   Copyright (c) 2003 Marco van de Voort
+   member of the Free Pascal development team.
+
+   See the file COPYING.FPC, included in this distribution,
+   for details about the copyright.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY;without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+**********************************************************************}
 
 function fpNice(N:cint):cint;
 {
@@ -96,22 +110,10 @@ begin
   fpreadlink:=do_syscall(syscall_nr_readlink, TSysParam(name),TSysParam(linkname),maxlen);
 end;
 
-
-Function fpReadLink(Name:pathstr):pathstr;
 {
-  Read a link (where it points to)
+   $Log$
+   Revision 1.4  2004-01-01 17:07:21  marco
+    * few small freebsd fixes backported from debugging linux
+
+
 }
-var
-  LinkName : pathstr;
-  i : cint;
-begin
-  Name:=Name+#0;
-  i:=fpReadLink(@Name[1],@LinkName[1],high(linkname));
-  if i>0 then
-   begin
-     linkname[0]:=chr(i);
-     fpReadLink:=LinkName;
-   end
-  else
-   fpReadLink:='';
-end;
