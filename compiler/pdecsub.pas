@@ -1206,8 +1206,6 @@ begin
 {$ifdef powerpc}
    if target_info.system in [system_powerpc_morphos,system_m68k_amiga] then
     begin
-      pd.has_paraloc_info:=true;
-      include(pd.procoptions,po_explicitparaloc);
       if consume_sym(sym,symtable) then
         begin
           if (sym.typ=globalvarsym) and
@@ -2348,7 +2346,10 @@ const
 end.
 {
   $Log$
-  Revision 1.219  2004-12-15 16:00:16  peter
+  Revision 1.220  2004-12-15 19:30:32  peter
+    * syscall with sysv abi for morphos
+
+  Revision 1.219  2004/12/15 16:00:16  peter
     * external is again allowed in implementation
 
   Revision 1.218  2004/12/07 16:11:52  peter

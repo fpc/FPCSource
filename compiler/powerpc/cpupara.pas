@@ -347,6 +347,13 @@ unit cpupara;
           for i:=0 to paras.count-1 do
             begin
               hp:=tparavarsym(paras[i]);
+              { Syscall for Morphos can have already a paraloc set }
+              if (vo_has_explicit_paraloc in hp.varoptions) then
+                begin
+                  if not(vo_is_syscall_lib in hp.varoptions) then
+                    internalerror(200412153);
+                  continue;
+                end;
               hp.paraloc[side].reset;
               { currently only support C-style array of const }
               if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
@@ -599,7 +606,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2004-12-04 21:47:46  jonas
+  Revision 1.76  2004-12-15 19:30:32  peter
+    * syscall with sysv abi for morphos
+
+  Revision 1.75  2004/12/04 21:47:46  jonas
     * modifications to work with the generic code to copy LOC_REFERENCE
       parameters to local temps (fixes tests/test/cg/tmanypara)
 
