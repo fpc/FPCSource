@@ -73,7 +73,7 @@ Begin
  CheckDosError(0);
 { verify actually only works under dos       }
 { and always returns TRUE on other platforms }
-{$ifdef supports_verify}
+{ not anymore (JM)                           }
  if NOT b then
    WriteLn(s+'Success.')
  else
@@ -81,15 +81,6 @@ Begin
     WriteLn(s+'FAILURE.');
     has_errors:=true;
   end;
-{$else}
- if b then
-   WriteLn(s+'Success.')
- else
-  Begin
-    WriteLn(s+'FAILURE.');
-    has_errors:=true;
-  end;
-{$endif}
 end;
 
 
@@ -100,7 +91,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.2  2002-11-18 09:49:49  pierre
+  Revision 1.3  2004-12-07 19:02:33  jonas
+    * fixed test for new platform-independent get/setverify implementation
+
+  Revision 1.2  2002/11/18 09:49:49  pierre
    * tried to make as many as possible tests non interactive
 
   Revision 1.1  2002/11/08 21:01:18  carl
