@@ -648,7 +648,7 @@ begin
   {$ifdef cpualpha}
     default_target(source_info.system);
   {$else cpualpha}
-    default_target(target_alpha_linux);
+    default_target(system_alpha_linux);
   {$endif cpualpha}
 {$endif alpha}
 {$ifdef powerpc}
@@ -671,7 +671,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.52  2002-08-13 21:40:57  florian
+  Revision 1.53  2002-08-18 09:13:02  florian
+    * small fixes to the alpha stuff
+
+  Revision 1.52  2002/08/13 21:40:57  florian
     * more fixes for ppc calling conventions
 
   Revision 1.51  2002/08/12 15:08:40  carl
