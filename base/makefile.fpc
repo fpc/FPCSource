@@ -780,7 +780,7 @@ ifdef UNITOBJECTS
 	$(MKDIR) $(UNITINSTALLDIR)
 	$(INSTALL) $(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES)) $(UNITINSTALLDIR)
 endif
-ifdef EXTRAINSTALLUNITS
+ifneq ($(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS))),)
 	$(MKDIR) $(UNITINSTALLDIR)
 	$(INSTALL) $(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS))) $(UNITINSTALLDIR)
 endif
@@ -878,6 +878,9 @@ endif
 #####################################################################
 
 fpc_clean:
+	make fpc_clean2
+
+fpc_clean2:
 ifdef EXEOBJECTS
 	-$(DEL) $(EXEFILES) $(EXEOFILES)
 endif
@@ -887,7 +890,7 @@ endif
 ifdef UNITOBJECTS
 	-$(DEL) $(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES))
 endif
-ifdef EXTRACLEANUNITS
+ifneq ($(wildcard $(addsuffix $(OEXT),$(EXTRACLEANUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRACLEANUNITS)) $(addsuffix $(PPUEXT),$(EXTRACLEANUNITS))) ,)
 	-$(DEL) $(wildcard $(addsuffix $(OEXT),$(EXTRACLEANUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRACLEANUNITS)) $(addsuffix $(PPUEXT),$(EXTRACLEANUNITS)))
 endif
 	-$(DEL) $(PPAS) link.res log
@@ -1042,7 +1045,10 @@ endif
 
 #
 # $Log$
-# Revision 1.41  1999-07-21 14:21:00  peter
+# Revision 1.42  1999-07-22 16:13:32  peter
+#   * install,clean fixes
+#
+# Revision 1.41  1999/07/21 14:21:00  peter
 #   * install works again
 #
 # Revision 1.40  1999/07/17 14:22:54  peter
