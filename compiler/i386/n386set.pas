@@ -392,7 +392,8 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hr:=rg.makeregsize(left.location.register,OS_INT);
+                          hr.enum:=R_INTREGISTER;
+                          hr.number:=(left.location.register.number and not $ff) or R_SUBWHOLE;
                           cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr);
                        end;
                   else
@@ -719,7 +720,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-02-19 22:39:56  daniel
+  Revision 1.50  2003-02-26 23:06:13  daniel
+    * Fixed an illegal use of makeregsize
+
+  Revision 1.49  2003/02/19 22:39:56  daniel
     * Fixed a few issues
 
   Revision 1.48  2003/02/19 22:00:15  daniel
