@@ -69,6 +69,7 @@ type
 
 Function GetThreadManager(Var TM : TThreadManager) : Boolean;
 Function SetThreadManager(Const NewTM : TThreadManager; Var OldTM : TThreadManager) : Boolean;
+Function SetThreadManager(Const NewTM : TThreadManager) : Boolean;
 Procedure SetNoThreadManager;
 // Needs to be exported, so the manager can call it.
 {$ifdef HASTHREADVAR}
@@ -119,7 +120,10 @@ procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
 
 {
   $Log$
-  Revision 1.13  2003-11-27 10:28:41  michael
+  Revision 1.14  2003-11-29 17:29:32  michael
+  + Added overloaded version of SetThreadManager without old parameter
+
+  Revision 1.13  2003/11/27 10:28:41  michael
   + Patch from peter to fix make cycle
 
   Revision 1.12  2003/11/26 20:10:59  michael

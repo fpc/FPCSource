@@ -174,8 +174,14 @@ end;
 Function SetThreadManager(Const NewTM : TThreadManager; Var OldTM : TThreadManager) : Boolean;
 
 begin
+  GetThreadManager(OldTM);
+  Result:=SetThreadManager(NewTM);
+end;
+
+Function SetThreadManager(Const NewTM : TThreadManager) : Boolean;
+
+begin
   Result:=True;
-  OldTM:=CurrentTM;
   If Assigned(CurrentTM.DoneManager) then
     Result:=CurrentTM.DoneManager();
   If Result then
@@ -317,7 +323,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2003-11-26 20:10:59  michael
+  Revision 1.5  2003-11-29 17:29:32  michael
+  + Added overloaded version of SetThreadManager without old parameter
+
+  Revision 1.4  2003/11/26 20:10:59  michael
   + New threadmanager implementation
 
   Revision 1.3  2002/11/14 12:40:06  jonas
