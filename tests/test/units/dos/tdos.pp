@@ -7,7 +7,21 @@
 }
 {$V-}
 program tesidos;
+
 uses dos;
+
+
+{ These should be defined for each operating system to be tested  }
+{ NOEXESUFFIX = No .EXE to prepend to prefix the file with to get }
+{               a file executable.                                }
+
+{$ifdef unix}
+{$DEFINE NOEXESUFFIX}
+{$endif}
+
+{$ifdef amiga}
+{$DEFINE NOEXESUFFIX}
+{$endif}
 
 procedure TestInfo;
 var
@@ -60,15 +74,17 @@ begin
   writeln;
   writeln('Exec Functions');
   writeln('**************');
-  write('Press Enter for an Exec of ''ls -la''');
+  write('Press Enter for an Exec of ''hello -good -day''');
   Readln;
-{$ifdef unix }
-  Exec('ls','-la');
-{$else not unix }
   SwapVectors;
-  Exec('ls','-la');
+{$ifdef noexesuffix}
+  Exec('hello','-good -day');
+{$else}
+  Exec('hello.exe','-good -day');
+{$endif}
   SwapVectors;
-{$endif not unix }
+  writeln('Exit should be 213 : ',DosExitCode);
+  writeln('Error code should be 0 : ',DosError);
   write('Press Enter');
   Readln;
 end;
@@ -157,11 +173,11 @@ begin
   test:='..\;\usr\;\usr\bin\;\usr\bin;\bin\;';
 {$endif not linux}
   test:=test+getenv('PATH');
-{$ifdef unix}
+{$ifdef NOEXESUFFIX}
   Writeln('FSearch ls: ',FSearch('ls',test));
-{$else not unix}
+{$else not noexesuffix}
   Writeln('FSearch ls: ',FSearch('ls.exe',test));
-{$endif not unix}
+{$endif not noexesuffix}
 
   write('Press Enter');
   Readln;
@@ -177,3 +193,9 @@ begin
   TestFile;
 end.
 
+{
+  $Log$
+  Revision 1.3  2001-12-10 02:25:08  carl
+  + exec now tests hello, which permits testing of DosError and DosExitCode
+
+}  
