@@ -140,6 +140,9 @@ uses
 {$else Delphi}
   dos,
 {$endif Delphi}
+{$ifdef HEAPTRC}
+  fmodule,
+{$endif HEAPTRC}
   globals,systems
   ;
 
@@ -680,7 +683,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.6  2000-12-25 00:07:25  peter
+  Revision 1.7  2001-03-13 18:43:17  peter
+    * made memdebug and heaptrc compilable again
+
+  Revision 1.6  2000/12/25 00:07:25  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

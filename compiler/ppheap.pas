@@ -46,7 +46,7 @@ implementation
          pl^:=aktfilepos.column;
          pl:=plongint(cardinal(p)+8);
          if assigned(current_module) then
-          pl^:=current_module^.unit_index*100000+aktfilepos.fileindex
+          pl^:=current_module.unit_index*100000+aktfilepos.fileindex
          else
           pl^:=aktfilepos.fileindex
       end;
@@ -70,7 +70,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-10-14 21:52:56  peter
+  Revision 1.5  2001-03-13 18:43:17  peter
+    * made memdebug and heaptrc compilable again
+
+  Revision 1.4  2000/10/14 21:52:56  peter
     * fixed memory leaks
 
   Revision 1.3  2000/09/24 15:06:24  peter
