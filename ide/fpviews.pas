@@ -518,9 +518,15 @@ uses
   Video,Strings,Keyboard,Validate,
   globtype,Tokens,Version,
   cpubase,
-{$ifdef I386}
-   ra386,
-{$endif I386}
+{$ifdef COMPILER_1_0}
+  {$ifdef I386}
+     ra386,
+  {$endif I386}
+{$else}
+  {$if defined(I386) or defined(x64_86)}
+     rax86,
+  {$endif}
+{$endif}
 {$ifdef USE_EXTERNAL_COMPILER}
    fpintf, { superseeds version_string of version unit }
 {$endif USE_EXTERNAL_COMPILER}
@@ -4568,7 +4574,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.41  2003-02-09 23:50:10  pierre
+  Revision 1.42  2003-05-07 21:33:22  peter
+    * 1.1 has rax86
+
+  Revision 1.41  2003/02/09 23:50:10  pierre
    + i386 openbsd target added
 
   Revision 1.40  2003/01/22 00:27:58  pierre
