@@ -2066,7 +2066,7 @@ implementation
                     if oper[0].ref^.index.number=NR_NO then
                       pos:=Tai(previous)
                     else
-                      pos:=get_insert_pos(Tai(previous),oper[0].ref^.index.number shr 8,0,0);
+                      pos:=get_insert_pos(Tai(previous),oper[0].ref^.index.number shr 8,0,0,unusedregsint);
                     rgget(list,pos,subreg,helpreg);
                     spill_registers:=true;
                     helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0].ref^.base),spilltemplist[supreg],helpreg);
@@ -2075,7 +2075,7 @@ implementation
                     else
                       list.insertafter(helpins,pos.next);
                     rgunget(list,helpins,helpreg);
-                    forward_allocation(Tai(helpins.next));
+                    forward_allocation(Tai(helpins.next),unusedregsint);
                     oper[0].ref^.base:=helpreg;
                   end;
                 supreg:=oper[0].ref^.index.number shr 8;
@@ -2092,7 +2092,7 @@ implementation
                     if oper[0].ref^.base.number=NR_NO then
                       pos:=Tai(previous)
                     else
-                      pos:=get_insert_pos(Tai(previous),oper[0].ref^.base.number shr 8,0,0);
+                      pos:=get_insert_pos(Tai(previous),oper[0].ref^.base.number shr 8,0,0,unusedregsint);
                     rgget(list,pos,subreg,helpreg);
                     spill_registers:=true;
                     helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0].ref^.index),spilltemplist[supreg],helpreg);
@@ -2101,7 +2101,7 @@ implementation
                     else
                       list.insertafter(helpins,pos.next);
                     rgunget(list,helpins,helpreg);
-                    forward_allocation(Tai(helpins.next));
+                    forward_allocation(Tai(helpins.next),unusedregsint);
                     oper[0].ref^.index:=helpreg;
                   end;
                 end;
@@ -2123,7 +2123,8 @@ implementation
                        mov r22d,[ebp-12]    ; Use a help register
                        add [r20d],r22d      ; Replace register by helpregister }
                       pos:=get_insert_pos(Tai(previous),oper[0].reg.number shr 8,
-                                          oper[1].ref^.base.number shr 8,oper[1].ref^.index.number shr 8);
+                                          oper[1].ref^.base.number shr 8,oper[1].ref^.index.number shr 8,
+                                          unusedregsint);
                       rgget(list,pos,subreg,helpreg);
                       spill_registers:=true;
                       helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0].reg),spilltemplist[supreg],helpreg);
@@ -2133,7 +2134,7 @@ implementation
                         list.insertafter(helpins,pos.next);
                       oper[0].reg:=helpreg;
                       rgunget(list,helpins,helpreg);
-                      forward_allocation(Tai(helpins.next));
+                      forward_allocation(Tai(helpins.next),unusedregsint);
                     end
                   else
                     begin
@@ -2164,7 +2165,7 @@ implementation
                          mov r22d,[r21d]      ; Use a help register
                          add [ebp-12],r22d    ; Replace register by helpregister }
                         pos:=get_insert_pos(Tai(previous),oper[0].ref^.base.number shr 8,
-                                            oper[0].ref^.index.number shr 8,0);
+                                            oper[0].ref^.index.number shr 8,0,unusedregsint);
                         rgget(list,pos,subreg,helpreg);
                         spill_registers:=true;
                         op:=A_MOV;
@@ -2188,7 +2189,7 @@ implementation
                         new(oper[1].ref);
                         oper[1].ref^:=spilltemplist[supreg];
                         rgunget(list,helpins,helpreg);
-                        forward_allocation(Tai(helpins.next));
+                        forward_allocation(Tai(helpins.next),unusedregsint);
                       end
                     else
                       begin
@@ -2205,7 +2206,7 @@ implementation
                             op:=opcode;
                             opcode:=A_MOV;
                             opsize:=reg2opsize(oper[1].reg);
-                            pos:=get_insert_pos(Tai(previous),oper[0].reg.number,0,0);
+                            pos:=get_insert_pos(Tai(previous),oper[0].reg.number,0,0,unusedregsint);
                             rgget(list,pos,subreg,helpreg);
                             helpins:=Taicpu.op_reg_reg(op,hopsize,oper[0].reg,helpreg);
                             if pos=nil then
@@ -2213,7 +2214,7 @@ implementation
                             else
                               list.insertafter(helpins,pos.next);
                             rgunget(list,helpins,helpreg);
-                            forward_allocation(Tai(helpins.next));
+                            forward_allocation(Tai(helpins.next),unusedregsint);
                           end;
                         oper[1].typ:=top_ref;
                         new(oper[1].ref);
@@ -2267,9 +2268,10 @@ implementation
                        add r20d,[r23d+4*r22d]    ; Replace register by helpregister }
                       subreg:=oper[i].ref^.base.number and $ff;
                       if i=1 then
-                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.index.number shr 8,oper[0].reg.number shr 8,0)
+                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.index.number shr 8,oper[0].reg.number shr 8,
+                                            0,unusedregsint)
                       else
-                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.index.number shr 8,0,0);
+                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.index.number shr 8,0,0,unusedregsint);
                       rgget(list,pos,subreg,helpreg);
                       spill_registers:=true;
                       helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i].ref^.base),spilltemplist[supreg],helpreg);
@@ -2279,7 +2281,7 @@ implementation
                         list.insertafter(helpins,pos.next);
                       oper[i].ref^.base:=helpreg;
                       rgunget(list,helpins,helpreg);
-                      forward_allocation(Tai(helpins.next));
+                      forward_allocation(Tai(helpins.next),unusedregsint);
                   end;
                   supreg:=oper[i].ref^.index.number shr 8;
                   if supreg in r then
@@ -2293,9 +2295,10 @@ implementation
                        add r20d,[r21d+4*r23d]    ; Replace register by helpregister }
                       subreg:=oper[i].ref^.index.number and $ff;
                       if i=1 then
-                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.base.number shr 8,oper[0].reg.number shr 8,0)
+                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.base.number shr 8,oper[0].reg.number shr 8,
+                                            0,unusedregsint)
                       else
-                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.base.number shr 8,0,0);
+                        pos:=get_insert_pos(Tai(previous),oper[i].ref^.base.number shr 8,0,0,unusedregsint);
                       rgget(list,pos,subreg,helpreg);
                       spill_registers:=true;
                       helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i].ref^.index),spilltemplist[supreg],helpreg);
@@ -2305,7 +2308,7 @@ implementation
                         list.insertafter(helpins,pos.next);
                       oper[i].ref^.index:=helpreg;
                       rgunget(list,helpins,helpreg);
-                      forward_allocation(Tai(helpins.next));
+                      forward_allocation(Tai(helpins.next),unusedregsint);
                     end;
                 end;
           end;
@@ -2367,7 +2370,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2003-08-11 21:18:20  peter
+  Revision 1.10  2003-08-15 14:44:20  daniel
+    * Fixed newra compilation
+
+  Revision 1.9  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 
   Revision 1.8  2003/08/09 18:56:54  daniel
