@@ -222,7 +222,7 @@ begin
          S:=INIFile^.GetEntry(secBreakpoint,ieBreakpointName+S2,'');
        end;
      end;
-   SC:=INIFile^.GetEntry(secBreakpoint,ieBreakpointCond+S,'');
+   SC:=INIFile^.GetEntry(secBreakpoint,ieBreakpointCond+S2,'');
    if (typ=bt_function) and (S<>'') then
      new(PB,init_function(S))
    else if (typ=bt_file_line) and (S<>'') then
@@ -529,7 +529,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  1999-09-16 14:34:59  pierre
+  Revision 1.25  1999-11-05 13:47:19  pierre
+   * Breakpoint conditions were not reloaded correctly
+
+  Revision 1.24  1999/09/16 14:34:59  pierre
     + TBreakpoint and TWatch registering
     + WatchesCollection and BreakpointsCollection stored in desk file
     * Syntax highlighting was broken
