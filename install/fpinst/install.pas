@@ -571,7 +571,7 @@ program install;
           if file_exists(cfg.source[i].zip,startpath) then
            begin
              srcitems:=newsitem(cfg.source[i].name+diskspace(startpath+DirSep+cfg.source[i].zip),srcitems);
-             mask_components:=mask_components or packagemask(i);
+             srcmask:=srcmask or packagemask(i);
            end
           else
            srcitems:=newsitem(cfg.source[i].name,srcitems);
@@ -1044,10 +1044,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1999-07-17 14:24:47  peter
-    * updates for new installer
-    + checkbox if ppc386.cfg needs to be written, also createdir() is used
-      for ppc386.cfg creation
+  Revision 1.9  1999-08-03 20:21:53  peter
+    * fixed sources mask which was not set correctly
 
   Revision 1.7  1999/07/01 07:56:58  hajny
     * installation to root fixed
