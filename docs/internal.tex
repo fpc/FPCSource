@@ -22,36 +22,26 @@
 %
 % Preamble
 %
-\usepackage{ifthen}
-\usepackage{xspace}
-\usepackage{a4dutch}
-\usepackage{makeidx}
-\usepackage{fancyheadings}
-\usepackage{epsfig}
-\usepackage{multicol}
 \ifx\pdfoutput\undefined
   \usepackage{html}
   \usepackage{htmllist}
+  \latex{\usepackage{fpc}}
+\else
+  \usepackage{fpc}
 \fi
-\latex{%
-  \ifpdf
-  \pdfcompresslevel=9
-  \pdfpagewidth=210mm
-  \pdfpageheight=297mm
+%
+\html{\input{fpc-html.tex}}
+%
+\ifpdf
   \pdfinfo{/Author(Michael Van Canneyt)
-           /Title(Compiler documentation)
+           /Title(Programmers' Guide)
            /Subject(Free Pascal Compiler documentation)
            /Keywords(Free Pascal, Compiler, Internals)
            }
-  \fi
-}
-%
-\latex{\usepackage{fpc}}
-\html{\input{fpc-html.tex}}
+\fi
 %
 % Settings
 %
-\pagestyle{fancy}
 \makeindex
 %
 % Start of document.
