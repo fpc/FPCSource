@@ -83,7 +83,7 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
 
 {$ifdef FPC_USE_LIBC}
 { prefer libc implementations over our own, as they're most likely faster }
-{$i libcproc.inc}
+{$i cgeneric.inc}
 {$endif FPC_USE_LIBC}
 
 {$ifdef cpui386}
@@ -864,7 +864,10 @@ end;
 
 {
   $Log$
-  Revision 1.50  2004-01-11 11:10:07  jonas
+  Revision 1.51  2004-01-11 12:21:06  jonas
+    * fixed wrong include filename
+
+  Revision 1.50  2004/01/11 11:10:07  jonas
     + cgeneric.inc: implementations of rtl routines based on libc
     * system.inc: include cgeneric.inc before powerpc.inc/i386.inc/... if
       FPC_USE_LIBC is defined
