@@ -285,7 +285,8 @@ Begin
                        Begin
                          AsmL^.Remove(hp1);
                          Dispose(hp1, done);
-                       End;
+                       End
+                     else break;
                   End;
                If GetNextInstruction(p, hp1) then
                  Begin
@@ -1948,7 +1949,10 @@ End.
 
 {
   $Log$
-  Revision 1.9  2000-08-05 13:33:08  peter
+  Revision 1.10  2000-08-18 10:09:13  jonas
+    * fix for web bug1099 (merged from fixes branch)
+
+  Revision 1.9  2000/08/05 13:33:08  peter
     * $ifdef go32v2 -> target_info.target=go32v2
 
   Revision 1.8  2000/08/05 10:35:51  jonas
