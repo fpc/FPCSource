@@ -707,6 +707,14 @@ var
   Debuggeefile : text;
   ResetOK, TTYUsed  : boolean;
 {$endif Unix}
+{$ifdef PALMOSGDB}
+const
+  TargetProtocol = 'palmos';
+{$else}
+const
+  TargetProtocol = 'remote';
+{$endif PALMOSGDB}
+
 {$ifdef SUPPORT_REMOTE}
 var
   S,ErrorStr : string;
@@ -724,13 +732,23 @@ begin
       S:=RemoteMachine;
       If pos('@',S)>0 then
         S:=copy(S,pos('@',S)+1,High(S));
-      Command('target remote '+S+':'+RemotePort);
+      If RemotePort<>'' then
+        S:=S+':'+RemotePort;
+{$ifdef PALMOSGDB}
+      { set the default value for PalmOS }
+      If S='' then
+        S:='localhost:2000';
+{$endif PALMOSGDB}
+      PushStatus(msg_connectingto+S);
+      Command('target '+TargetProtocol+' '+S);
       if Error then
         begin
            ErrorStr:=strpas(GetError);
-           ErrorBox(#3'Error in "target remote"'#13#3+ErrorStr,nil);
+           ErrorBox(#3'Error in "target '+TargetProtocol+'"'#13#3+ErrorStr,nil);
+           PopStatus;
            exit;
         end;
+      PopStatus;
     end
   else
     begin
@@ -3342,7 +3360,11 @@ end;
 function GetGDBTargetShortName : string;
 begin
 {$ifdef SUPPORT_REMOTE}
+{$ifdef PALMOSGDB}
+GetGDBTargetShortName:='palmos';
+{$else}
 GetGDBTargetShortName:='linux';
+{$endif PALMOSGDB}
 {$else not SUPPORT_REMOTE}
 {$ifdef COMPILER_1_0}
 GetGDBTargetShortName:=source_os.shortname
@@ -3574,7 +3596,10 @@ end.
 
 {
   $Log$
-  Revision 1.43  2002-12-18 01:20:12  pierre
+  Revision 1.44  2003-01-14 16:25:23  pierre
+   + small palmos specific additions
+
+  Revision 1.43  2002/12/18 01:20:12  pierre
    + Use TEditorInputLine instead of TInputLine
 
   Revision 1.42  2002/12/16 15:15:40  pierre
