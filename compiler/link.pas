@@ -107,8 +107,9 @@ end;
 Constructor TLinker.Init;
 begin
   ObjectFiles.Init_no_double;
-  SharedLibFiles.Init_no_double;
-  StaticLibFiles.Init_no_double;
+  { libraries sometimes need to be loaded several times PM }
+  SharedLibFiles.Init{_no_double};
+  StaticLibFiles.Init{_no_double};
   LinkToC:=(cs_link_toc in aktglobalswitches);
   Strip:=(cs_link_strip in aktglobalswitches);
   LinkOptions:=ParaLinkOptions;
@@ -545,6 +546,8 @@ begin
       end
      else
       begin
+        { Some times several references to libc are necessary !! PM }
+        WriteRes(target_link.libprefix+s);
         linklibc:=true;
         linkdynamic:=false; { C add's it automaticly }
       end;
@@ -789,7 +792,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.72  1999-09-16 23:05:52  florian
+  Revision 1.73  1999-10-08 15:38:42  pierre
+   * library list keeps doubles
+
+  Revision 1.72  1999/09/16 23:05:52  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.71  1999/09/16 11:34:56  pierre
