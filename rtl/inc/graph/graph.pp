@@ -1950,7 +1950,7 @@ Function DefaultImageSize(X1,Y1,X2,Y2: Integer): longint; {$ifndef fpc}far;{$end
 Begin
   { each pixel uses two bytes, to enable modes with colors up to 64K }
   { to work.                                                         }
-  DefaultImageSize := 12 + (((X2-X1)*(Y2-Y1))*2);
+  DefaultImageSize := 12 + (((X2-X1+1)*(Y2-Y1+1))*2);
 end;
 
 Procedure DefaultPutImage(X,Y: Integer; var Bitmap; BitBlt: Word); {$ifndef fpc}far;{$endif fpc}
@@ -2966,7 +2966,10 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.37  1999-11-11 14:07:14  florian
+  Revision 1.38  1999-11-11 17:55:07  florian
+    * the size was calculated wrong by imagesize
+
+  Revision 1.37  1999/11/11 14:07:14  florian
     * better looking font
 
   Revision 1.36  1999/11/08 15:01:38  peter
