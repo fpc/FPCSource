@@ -51,8 +51,8 @@ begin
     A_IMUL:
       canBeFirstSwitch :=
         (p.ops >= 2) and
+        (p.oper[0]^.typ = top_const) and
         (getsupreg(p.oper[p.ops-1]^.reg) = supreg) and
-        (p.oper[0]^.typ <> top_ref) and
         (not pTaiprop(p.optinfo)^.FlagsUsed);
     A_INC,A_DEC:
       canBeFirstSwitch :=
@@ -131,8 +131,8 @@ begin
     A_IMUL:
       begin
         p.ops := 3;
-        p.loadreg(2,p.oper[1]^.reg);
-        changeOp(p.oper[2]^,reg1,reg2);
+        p.loadreg(2,newreg(R_INTREGISTER,reg2,R_SUBWHOLE));
+        changeOp(p.oper[1]^,reg2,reg1);
       end;
     A_INC,A_DEC:
       begin
@@ -366,7 +366,10 @@ End.
 
 {
   $Log$
-  Revision 1.29  2004-10-10 15:01:19  jonas
+  Revision 1.30  2004-10-31 15:17:08  jonas
+    * fixed web bug 3378
+
+  Revision 1.29  2004/10/10 15:01:19  jonas
     * several fixes to allocregbetween()
 
   Revision 1.28  2004/08/17 16:34:58  jonas
