@@ -81,6 +81,22 @@ Const
   );
 {$endif fpc}
 
+{$ifdef DEBUG}
+const
+  CloseImmediately : boolean = false;
+var
+  StartTime : real;
+
+  function getrealtime : real;
+  var
+    h,m,s,s100 : word;
+  begin
+    gettime(h,m,s,s100);
+    getrealtime:=h*3600.0+m*60.0+s+s100/100.0;
+  end;
+
+{$endif DEBUG}
+
 procedure ProcessParams(BeforeINI: boolean);
 
   function IsSwitch(const Param: string): boolean;
@@ -154,6 +170,10 @@ begin
 {$endif Unix}
          { 'M' : TryToMaximizeScreen:=true;}
 {$endif fpc}
+{$ifdef DEBUG}
+          'Z' : UseFastBufStreamMethod:=true;
+          'X' : CloseImmediately:=true;
+{$endif DEBUG}
         end;
       end
     else
@@ -270,6 +290,10 @@ BEGIN
 
   ProcessParams(true);
 
+{$ifdef DEBUG}
+  StartTime:=getrealtime;
+{$endif DEBUG}
+
   InitDirs;
 
   RegisterIDEObjects;
@@ -338,7 +362,12 @@ BEGIN
     UserWantsToGoOn:=false;
 
     if SetJmpRes=0 then
-      IDEApp.Run
+      begin
+{$ifdef DEBUG}
+        if not CloseImmediately then
+{$endif DEBUG}
+          IDEApp.Run;
+      end
     else
       begin
         if (SetJmpRes=1) and ExitIntercepted then
@@ -434,10 +463,17 @@ BEGIN
   Keyboard.RestoreStartMode;
 {$endif unix}
   StreamError:=nil;
+{$ifdef DEBUG}
+  if CloseImmediately then
+    writeln('Used time is ',getrealtime-StartTime:0:2);
+{$endif DEBUG}
 END.
 {
   $Log$
-  Revision 1.11  2002-09-07 15:40:41  peter
+  Revision 1.12  2002-09-09 06:59:16  pierre
+   * new debug options added
+
+  Revision 1.11  2002/09/07 15:40:41  peter
     * old logs removed and tabs fixed
 
   Revision 1.10  2002/09/04 14:07:12  pierre
