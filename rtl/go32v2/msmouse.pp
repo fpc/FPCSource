@@ -17,6 +17,8 @@
 Unit MSMouse;
 Interface
 
+{$calling oldfpccall}
+
 {
   Mouse support functions and procedures, with error checking: if mouse
   isn't present then the routine ends. If you want to remove error checking,
@@ -103,7 +105,6 @@ Var
 
 Implementation
 
-{$calling oldfpccall}
 {$asmmode ATT}
 
 Function InitMouse: Boolean;
@@ -359,7 +360,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.5  2003-10-03 21:46:25  peter
+  Revision 1.6  2005-02-07 17:28:09  peter
+  moved $calling to interface
+
+  Revision 1.5  2003/10/03 21:46:25  peter
     * stdcall fixes
 
   Revision 1.4  2002/09/07 21:30:00  carl
