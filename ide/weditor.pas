@@ -2521,7 +2521,7 @@ procedure TCustomCodeEditor.Lock;
 begin
   Inc(ELockFlag);
 {$ifdef FVISION}
-  Inc(LockUpdateScreen);
+  LockScreenUpdate;
 {$endif FVISION}
 end;
 
@@ -2533,7 +2533,7 @@ begin
   else
 {$endif DEBUG}
 {$ifdef FVISION}
-  Dec(LockUpdateScreen);
+  UnlockScreenUpdate;
 {$endif FVISION}
     Dec(ELockFlag);
   if (ELockFlag>0) then
@@ -3888,13 +3888,14 @@ begin
    begin
      p:=@Self;
      cur:=cursor;
+     { origin is reelative to screen for fvision }
+     cur.x:=cur.x+p^.origin.x;
+     cur.y:=cur.y+p^.origin.y;
      while true do
       begin
         if (cur.x<0) or (cur.x>=p^.size.x) or
            (cur.y<0) or (cur.y>=p^.size.y) then
           break;
-        cur.x:=cur.x+p^.origin.x;
-        cur.y:=cur.y+p^.origin.y;
         p2:=p;
         G:=p^.owner;
         if G=Nil then { top view }
@@ -7086,7 +7087,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.13  2001-10-01 09:08:21  pierre
+  Revision 1.14  2001-10-02 16:35:04  pierre
+   * get correct curosr position for fvision
+
+  Revision 1.13  2001/10/01 09:08:21  pierre
    * fix hexadecimal number highlighting
 
   Revision 1.12  2001/09/27 16:30:16  pierre
