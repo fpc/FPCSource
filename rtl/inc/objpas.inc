@@ -207,26 +207,29 @@
 	   i: Integer;
 
         begin
-	   UName := UpCase(name);
-	   CurClassType := ClassType;
-	   while CurClassType <> nil do
+	   if Length(name) > 0 then
 	   begin
-	     FieldTable := PFieldTable((Pointer(CurClassType) + vmtFieldTable)^);
-	     if FieldTable <> nil then
+	     UName := UpCase(name);
+	     CurClassType := ClassType;
+	     while CurClassType <> nil do
 	     begin
-	       FieldInfo := PFieldInfo(Pointer(FieldTable) + 6);
-	       for i := 0 to FieldTable^.FieldCount - 1 do
+	       FieldTable := PFieldTable((Pointer(CurClassType) + vmtFieldTable)^);
+	       if FieldTable <> nil then
 	       begin
-	         if UpCase(FieldInfo^.Name) = UName then
-		 begin
-		   fieldaddress := Pointer(Self) + FieldInfo^.FieldOffset;
-	           exit;
-		 end;
-		 Inc(FieldInfo, 7 + Length(FieldInfo^.Name));
+	         FieldInfo := PFieldInfo(Pointer(FieldTable) + 6);
+	         for i := 0 to FieldTable^.FieldCount - 1 do
+	         begin
+	           if UpCase(FieldInfo^.Name) = UName then
+		   begin
+		     fieldaddress := Pointer(Self) + FieldInfo^.FieldOffset;
+	             exit;
+		   end;
+		   Inc(FieldInfo, 7 + Length(FieldInfo^.Name));
+	         end;
 	       end;
+	       { Try again with the parent class type }
+	       CurClassType := CurClassType.ClassParent;
 	     end;
-	     { Try again with the parent class type }
-	     CurClassType := CurClassType.ClassParent;
 	   end;
 
            fieldaddress:=nil;
@@ -452,7 +455,10 @@
 
 {
   $Log$
-  Revision 1.16  2000-06-29 16:32:50  sg
+  Revision 1.17  2000-07-08 07:24:24  sg
+  * FieldAddress now returns immediately if name=''
+
+  Revision 1.16  2000/06/29 16:32:50  sg
   * Implemented TObject.FieldAddress
 
   Revision 1.15  2000/05/16 08:06:14  michael
