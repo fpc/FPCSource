@@ -855,6 +855,7 @@ implementation
             AddStrings(TFPCMakeSection(FInput['rules']).List);
          end;
         { write to disk }
+        FInput.Verbose(FPCMakeInfo,'Writing Makefile');
         Fixtab(FOutput);
         FOutput.SaveToFile(FFileName);
       end;
@@ -862,7 +863,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2001-06-07 21:21:38  peter
+  Revision 1.13  2001-07-13 21:01:59  peter
+    * cygdrive support
+    * fixed cygwin detection
+    * fixed some duplicate and extraeous spaces
+
+  Revision 1.12  2001/06/07 21:21:38  peter
     * remove ppufiles
     * fix staticlib prefix that is now libp instead of lib
 

@@ -142,7 +142,7 @@ program fpcmake;
           { Load Makefile.fpc }
           CurrFPCMake:=TFPCMakeConsole.Create(fn);
           CurrFPCMake.LoadMakefileFPC;
-          CurrFPCMake.Print;
+//          CurrFPCMake.Print;
 
           { Write Package.fpc }
           CurrPackageFpc:=TPackageFpcWriter.Create(CurrFPCMake,ExtractFilePath(fn)+'Package.fpc');
@@ -251,7 +251,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2001-06-04 21:42:57  peter
+  Revision 1.5  2001-07-13 21:01:59  peter
+    * cygdrive support
+    * fixed cygwin detection
+    * fixed some duplicate and extraeous spaces
+
+  Revision 1.4  2001/06/04 21:42:57  peter
     * Arguments added
     * Start of Package.fpc creation
 

@@ -31,6 +31,7 @@ interface
         constructor Create(AFPCMake:TFPCMake;const AFileName:string);
         destructor  Destroy;override;
         procedure WritePackageFpc;
+        procedure AddSection(const s:string);
       end;
 
 
@@ -69,22 +70,51 @@ implementation
       end;
 
 
+    procedure TPackageFpcWriter.AddSection(const s:string);
+      var
+        Sec : TFPCMakeSection;
+      begin
+        Sec:=TFPCMakeSection(FInput[s]);
+        if assigned(Sec) then
+         begin
+           Sec.BuildIni;
+           FOutput.Add('['+s+']');
+           FOutput.AddStrings(Sec.List);
+         end;
+      end;
+
+
     procedure TPackageFpcWriter.WritePackageFpc;
       begin
-        FInput.Print;
+        { Only write the Package.fpc if the package is
+          section available }
+        if not assigned(FInput['package']) then
+         begin
+           FInput.Verbose(FPCMakeInfo,'Not writing Package.fpc, no package section');
+           exit;
+         end;
 
         { Generate Output }
         with FOutput do
          begin
+           AddSection('package');
+           AddSection('require');
          end;
+
         { write to disk }
+        FInput.Verbose(FPCMakeInfo,'Writing Package.fpc');
         FOutput.SaveToFile(FFileName);
       end;
 
 end.
 {
   $Log$
-  Revision 1.1  2001-06-04 21:42:57  peter
+  Revision 1.2  2001-07-13 21:01:59  peter
+    * cygdrive support
+    * fixed cygwin detection
+    * fixed some duplicate and extraeous spaces
+
+  Revision 1.1  2001/06/04 21:42:57  peter
     * Arguments added
     * Start of Package.fpc creation
 

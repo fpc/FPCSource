@@ -79,6 +79,7 @@ interface
         destructor  Destroy;override;
         procedure AddLine(const s:string);
         procedure AddKey(const k,v:string);
+        procedure Clear;
         procedure ParseIni;
         procedure BuildIni;
         procedure BuildMakefile;
@@ -116,11 +117,11 @@ interface
         function  CopySection(Sec:TFPCMakeSection;Secname:string):TFPCMakeSection;
       protected
         VerboseIdent : string;
-        procedure Verbose(lvl:TFPCMakeVerbose;const s:string);virtual;
       public
         constructor Create(const AFileName:string);
         constructor CreateFromStream(s:TStream;const AFileName:string);
         destructor  Destroy;override;
+        procedure Verbose(lvl:TFPCMakeVerbose;const s:string);virtual;
         procedure LoadSections;
         procedure LoadMakefileFPC;
         procedure LoadPackageSection;
@@ -297,6 +298,15 @@ implementation
         inherited Destroy;
         FList.Free;
         FDictionary.Free;
+      end;
+
+
+    procedure TFPCMakeSection.Clear;
+      begin
+        FList.Free;
+        FList:=TStringList.Create;
+        FDictionary.Free;
+        FDictionary:=nil;
       end;
 
 
@@ -530,8 +540,9 @@ implementation
         Result:=TFPCMakeSection(FSections[SecName]);
         if Sec=Nil then
          exit;
+        { Clear old section or if not existing create new }
         if assigned(Result) then
-         Result.BuildIni
+         Result.Clear
         else
          Result:=TFPCMakeSection(FSections.Insert(TFPCMakeSection.Create(SecName)));
         Sec.BuildIni;
@@ -685,7 +696,7 @@ implementation
           { Load the requirements of this package }
           LoadRequires(t,ReqFPCMake);
           { Add the current requirements to our parents requirements }
-          s:=ReqFPCMake.GetVariable('require_packages',true)+' '+ReqFPCMake.GetVariable('require_packages'+targetsuffix[t],true);
+          s:=Trim(ReqFPCMake.GetVariable('require_packages',true)+' '+ReqFPCMake.GetVariable('require_packages'+targetsuffix[t],true));
           SetVariable('require_packages'+targetsuffix[t],s,true);
           if ReqFPCMake.GetVariable('require_libc',false)<>'' then
            SetVariable('require_libc','y',false);
@@ -704,7 +715,7 @@ implementation
         i,j : integer;
       begin
         { packages }
-        s:=FromFPCMake.GetVariable('require_packages',true)+' '+FromFPCMake.GetVariable('require_packages'+TargetSuffix[t],true);
+        s:=Trim(FromFPCMake.GetVariable('require_packages',true)+' '+FromFPCMake.GetVariable('require_packages'+TargetSuffix[t],true));
         Verbose(FPCMakeDebug,'Required packages for '+TargetStr[t]+': '+s);
         repeat
           reqname:=GetToken(s);
@@ -1131,8 +1142,11 @@ implementation
            p:=TKeyValueItem(Sec.Dictionary.Search(Key));
            if assigned(p) then
             begin
-              if Add then
-               p.Value:=p.Value+' '+Value
+              if Add and (p.Value<>'') then
+               begin
+                 if Value<>'' then
+                  p.Value:=p.Value+' '+Value;
+               end
               else
                p.Value:=Value;
             end
@@ -1202,7 +1216,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2001-06-04 21:42:57  peter
+  Revision 1.8  2001-07-13 21:01:59  peter
+    * cygdrive support
+    * fixed cygwin detection
+    * fixed some duplicate and extraeous spaces
+
+  Revision 1.7  2001/06/04 21:42:57  peter
     * Arguments added
     * Start of Package.fpc creation
 
