@@ -31,6 +31,8 @@ unit i386;
       extended_size = 10;
 
     type
+       tcpuflags = (cf_registers64);
+
        tasmop = (
          A_MOV,A_MOVZX,A_MOVSX,A_LABEL,A_ADD,
          A_CALL,A_IDIV,A_IMUL,A_JMP,A_LEA,A_MUL,A_NEG,A_NOT,
@@ -119,7 +121,7 @@ unit i386;
        { S_IS  = integer on 16 bits   }
        { S_D   = integer on  bits for MMX }
        topsize = (S_NO,S_B,S_W,S_L,S_BW,S_BL,S_WL,
-                  S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX,S_D);
+                  S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX,S_D,S_Q);
        { S_FS and S_FL added
          S_X renamed to S_FX
          S_IL added
@@ -207,6 +209,11 @@ unit i386;
        { this is for calls }
        top_symbol = 4;
 
+    const
+       { description of the cpu }
+
+       cpuflags : set of tcpuflags = [];
+
        stack_pointer = R_ESP;
 
        frame_pointer = R_EBP;
@@ -221,6 +228,10 @@ unit i386;
        general_registers = [R_EAX,R_EBX,R_ECX,R_EDX];
 
        registers_saved_on_cdecl = [R_ESI,R_EDI,R_EBX];
+
+       { size of pointers }
+       pointersize = 4;
+       sizepostfix_pointer = S_L;
 
     type
        pai_labeled = ^tai_labeled;
@@ -298,8 +309,6 @@ unit i386;
           destructor done;virtual;
        end;
 
-
-
     const
        maxvarregs = 4;
        varregs : array[1..maxvarregs] of tregister =
@@ -317,6 +326,14 @@ unit i386;
     function reg32toreg8(reg : tregister) : tregister;
     function reg32toreg16(reg : tregister) : tregister;
     function reg16toreg32(reg : tregister) : tregister;
+
+    { these procedures must be defined by all target cpus }
+    function regtoreg8(reg : tregister) : tregister;
+    function regtoreg16(reg : tregister) : tregister;
+    function regtoreg32(reg : tregister) : tregister;
+
+    { can be ignored on 32 bit systems }
+    function regtoreg64(reg : tregister) : tregister;
 
     { resets all values of ref to defaults }
     procedure reset_reference(var ref : treference);
@@ -988,7 +1005,7 @@ unit i386;
                   S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX,S_D); }
      att_opsize2str : array[topsize] of string[2] =
        ('','b','w','l','bw','bl','wl',
-        's','l','q','s','l','t','d');
+        's','l','q','s','l','t','d','q');
 
      att_reg2str : array[tregister] of string[6] =
        ('','%eax','%ecx','%edx','%ebx','%esp','%ebp','%esi','%edi',
@@ -1144,6 +1161,30 @@ unit i386;
       begin
          reg8toreg32:=tregister(byte(reg)-byte(R_DI));
       end;
+
+    function regtoreg8(reg : tregister) : tregister;
+
+     begin
+        regtoreg8:=reg32toreg8(reg);
+     end;
+
+    function regtoreg16(reg : tregister) : tregister;
+
+     begin
+        regtoreg16:=reg32toreg16(reg);
+     end;
+
+    function regtoreg32(reg : tregister) : tregister;
+
+     begin
+        regtoreg32:=reg;
+     end;
+
+    function regtoreg64(reg : tregister) : tregister;
+
+     begin
+        internalerror(6464);
+     end;
 
     procedure reset_reference(var ref : treference);
 
@@ -1754,7 +1795,10 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.2  1998-12-15 22:18:56  florian
+  Revision 1.3  1999-01-06 22:58:49  florian
+    + some stuff for the new code generator
+
+  Revision 1.2  1998/12/15 22:18:56  florian
     * some code added
 
   Revision 1.1  1998/12/15 16:32:58  florian

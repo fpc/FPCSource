@@ -57,7 +57,7 @@ unit cgbase;
           { frame pointer offset }
           framepointer_offset : longint;
           { self pointer offset }
-          ESI_offset : longint;
+          selfpointer_offset : longint;
           { result value offset }
           retoffset : longint;
 
@@ -395,7 +395,10 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.2  1998-12-26 15:20:28  florian
+  Revision 1.3  1999-01-06 22:58:48  florian
+    + some stuff for the new code generator
+
+  Revision 1.2  1998/12/26 15:20:28  florian
     + more changes for the new version
 
   Revision 1.1  1998/12/15 22:18:55  florian

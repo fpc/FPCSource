@@ -55,6 +55,9 @@ unit systems;
             ,target_m68k_Amiga,target_m68k_Atari,target_m68k_Mac,
             target_m68k_linux,target_m68k_PalmOS
        );
+
+       ttargetflags = (tf_needs_isconsole,tf_supports_stack_checking);
+
      const
        {$ifdef i386} i386targetcnt=5; {$else} i386targetcnt=0; {$endif}
        {$ifdef m68k} m68ktargetcnt=5; {$else} m68ktargetcnt=0; {$endif}
@@ -178,6 +181,7 @@ unit systems;
 
        ttargetinfo = packed record
           target      : ttarget;
+          flags       : set of ttargetflags;
           cpu         : ttargetcpu;
           short_name  : string[8];
           unit_env    : string[12];
@@ -732,12 +736,14 @@ implementation
        target_infos : array[1..targetcnt] of ttargetinfo = (
           (
             target      : target_none;
+            flags       : [];
             cpu         : no_cpu;
             short_name  : 'notarget'
           )
 {$ifdef i386}
           ,(
             target      : target_i386_GO32V1;
+            flags       : [];
             cpu         : i386;
             short_name  : 'GO32V1';
             unit_env    : 'GO32V1UNITS';
@@ -761,6 +767,7 @@ implementation
           ),
           (
             target      : target_i386_GO32V2;
+            flags       : [];
             cpu         : i386;
             short_name  : 'GO32V2';
             unit_env    : 'GO32V2UNITS';
@@ -784,6 +791,7 @@ implementation
           ),
           (
             target      : target_i386_LINUX;
+            flags       : [];
             cpu         : i386;
             short_name  : 'LINUX';
             unit_env    : 'LINUXUNITS';
@@ -807,6 +815,7 @@ implementation
           ),
           (
             target      : target_i386_OS2;
+            flags       : [];
             cpu         : i386;
             short_name  : 'OS2';
             unit_env    : 'OS2UNITS';
@@ -830,6 +839,7 @@ implementation
           ),
           (
             target      : target_i386_WIN32;
+            flags       : [];
             cpu         : i386;
             short_name  : 'WIN32';
             unit_env    : 'WIN32UNITS';
@@ -855,6 +865,7 @@ implementation
 {$ifdef m68k}
           ,(
             target      : target_m68k_Amiga;
+            flags       : [];
             cpu         : m68k;
             short_name  : 'AMIGA';
             unit_env    : '';
@@ -878,6 +889,7 @@ implementation
           ),
           (
             target      : target_m68k_Atari;
+            flags       : [];
             cpu         : m68k;
             short_name  : 'ATARI';
             unit_env    : '';
@@ -901,6 +913,7 @@ implementation
           ),
           (
             target      : target_m68k_Mac;
+            flags       : [];
             cpu         : m68k;
             short_name  : 'MACOS';
             unit_env    : '';
@@ -924,6 +937,7 @@ implementation
           ),
           (
             target      : target_m68k_linux;
+            flags       : [];
             cpu         : m68k;
             short_name  : 'LINUX';
             unit_env    : 'LINUXUNITS';
@@ -947,6 +961,7 @@ implementation
           ),
           (
             target      : target_m68k_PalmOS;
+            flags       : [];
             cpu         : m68k;
             short_name  : 'PALMOS';
             unit_env    : 'PALMUNITS';
@@ -1299,7 +1314,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  1998-12-28 23:26:26  peter
+  Revision 1.55  1999-01-06 22:58:47  florian
+    + some stuff for the new code generator
+
+  Revision 1.54  1998/12/28 23:26:26  peter
     + resource file handling ($R directive) for Win32
 
   Revision 1.53  1998/12/15 10:23:30  peter
