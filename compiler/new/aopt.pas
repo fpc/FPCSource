@@ -26,37 +26,34 @@ Unit aopt;
 
 Interface
 
-Uses Aasm, cobjects, aoptmsc, aoptda, aoptcs, aoptpeep
-{$ifdef i386}
-   , ao386msc;
-{$endif i386}
-
+Uses Aasm, cobjects, aoptobj, aoptda, aoptcs, aoptpeep, aoptcpu;
 
 Type
 
   TAsmOptimizer = Object
-{ the PAasmOutput list this optimizer instance works on                      }
+    { the PAasmOutput list this optimizer instance works on }
     AsmL: PAasmOutput;
 
-{ The labeltable contains the addresses of the Pai objects that are labels   }
+    { The labeltable contains the addresses of the Pai objects that are }
+    { labels                                                            }
     LabelInfo: PLabelInfo;
 
-{ Start and end of the block that is currently being optimized, initialized  }
-{ by InitDFA                                                                 }
-
+    { Start and end of the block that is currently being optimized, }
+    { initialized by InitDFA                                        }
     BlockStart, BlockEnd: Pai;
 
-{ How many instructions are between the current instruction and the last one }
-{ that modified the register                                                 }
-    NrOfInstrSinceLastMod: TInstrSinceLastMod;
-
-
-{ _AsmL is the PAasmOutpout list that has to be optimized                    }
+    { _AsmL is the PAasmOutpout list that has to be optimized }
     Constructor Init(_AsmL: PAasmOutput);
 
-  {  general, processor independent procedures  }
+    { call the necessary optimizer procedures }
+    Procedure Optimize;
+    Destructor Done;
 
-  {  general, processor dependent procedures  }
+    private
+
+    Function FindLoHiLabels: Pai;
+
+  End;
 
 Implementation
 
@@ -65,53 +62,158 @@ Begin
   AsmL := _AsmL;
 End;
 
-Procedure Optimize;
+Function TAsmOptimizer.FindLoHiLabels: Pai;
+{ Walks through the paasmlist to find the lowest and highest label number.  }
+{ Returns the last Pai object of the current block                          }
+Var LabelFound: Boolean;
+    P: Pai;
+Begin
+  LabelFound := False;
+  P := BlockStart;
+  While Assigned(P) And
+        ((P^.typ <> Ait_Marker) Or
+         (Pai_Marker(P)^.Kind <> AsmBlockStart)) Do
+    Begin
+      If (Pai(p)^.typ = ait_label) Then
+        If (Pai_Label(p)^.l^.is_used)
+          Then
+            Begin
+              LabelFound := True;
+              If (Pai_Label(p)^.l^.labelnr < LowLabel) Then
+                LowLabel := Pai_Label(p)^.l^.labelnr;
+              If (Pai_Label(p)^.l^.labelnr > HighLabel) Then
+                HighLabel := Pai_Label(p)^.l^.labelnr;
+            End;
+      GetNextInstruction(p, p);
+    End;
+  FindLoHiLabels := p;
+  If LabelFound
+    Then LabelDif := HighLabel-LowLabel+1
+    Else LabelDif := 0;
+End;
+
+Procedure TAsmOptimizer.BuildLabelTableAndFixRegAlloc;
+{ Builds a table with the locations of the labels in the paasmoutput.       }
+{ Also fixes some RegDeallocs like "# %eax released; push (%eax)"           }
+Var p, hp1, hp2: Pai;
+    UsedRegs: TRegSet;
+Begin
+  UsedRegs := [];
+  With LabelInfo Do
+    If (LabelDif <> 0) Then
+      Begin
+        GetMem(LabelTable, LabelDif*SizeOf(TLabelTableItem));
+        FillChar(LabelTable^, LabelDif*SizeOf(TLabelTableItem), 0);
+        p := BlockStart;
+        While (P <> BlockEnd) Do
+          Begin
+            Case p^.typ Of
+              ait_Label:
+                If Pai_Label(p)^.l^.is_used Then
+                  LabelTable^[Pai_Label(p)^.l^.labelnr-LowLabel].PaiObj := p;
+              ait_regAlloc:
+                begin
+                  if PairegAlloc(p)^.Allocation then
+                    Begin
+                      If Not(PaiRegAlloc(p)^.Reg in UsedRegs) Then
+                        UsedRegs := UsedRegs + [PaiRegAlloc(p)^.Reg]
+                      Else
+                        Begin
+                          hp1 := p;
+                          hp2 := nil;
+                          While GetLastInstruction(hp1, hp1) And
+                                Not(RegInInstruction(PaiRegAlloc(p)^.Reg, hp1)) Do
+                            hp2 := hp1;
+                          If hp2 <> nil Then
+                            Begin
+                              hp1 := New(PaiRegAlloc, DeAlloc(PaiRegAlloc(p)^.Reg));
+                              InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp1);
+                            End;
+                        End;
+                    End
+                  else
+                    Begin
+                      UsedRegs := UsedRegs - [PaiRegAlloc(p)^.Reg];
+                      hp1 := p;
+                      hp2 := nil;
+                      While Not(FindRegAlloc(PaiRegAlloc(p)^.Reg, Pai(hp1^.Next))) And
+                            GetNextInstruction(hp1, hp1) And
+                            RegInInstruction(PaiRegAlloc(p)^.Reg, hp1) Do
+                        hp2 := hp1;
+                      If hp2 <> nil Then
+                        Begin
+                          hp1 := Pai(p^.previous);
+                          AsmL^.Remove(p);
+                          InsertLLItem(AsmL, hp2, Pai(hp2^.Next), p);
+                          p := hp1;
+                        End;
+                End;
+            end;
+          End;
+        P := Pai(p^.Next);
+        While Assigned(p) And
+              (p^.typ in (SkipInstr - [ait_regalloc])) Do
+          P := Pai(P^.Next);
+      End;
+End;
+
+
+
+Procedure TAsmOptimizer.Optimize;
 Var HP: Pai;
     AsmDFA: TAsmDFA;
 Begin
 {setup labeltable, always necessary}
   BlockStart := Pai(AsmL^.First);
-  AsmDFA.Init(AsmL, BlockStart, BlockEnd);
 {Blockend now either contains an ait_marker with Kind = AsmBlockStart, or nil}
   While Assigned(BlockStart) Do
     Begin
-      LabelInfo := AsmDFA.GetLabelInfo;
-{ peephole optimizations, twice }
+      { Initialize BlockEnd and the LabelInfo (low and high label) }
+      BlockEnd := FindLoHiLabels;
+      { initialize the LabelInfo (labeltable) and fix the regalloc info }
+      BuilLabelTableAndFixRegAlloc;
+      { peephole optimizations, twice because you can't do them all in one }
+      { pass                                                               }
       PeepHoleOptPass1;
       PeepHoleOptPass1;
       If (cs_slowoptimize in aktglobalswitches) Then
         Begin
-{ data flow analyzer }
+          { data flow analyzer }
           DFAPass2;
-{ common subexpression elimination }
+          { common subexpression elimination }
           CSE;
         End;
-{ more peephole optimizations }
+      { more peephole optimizations }
       PeepHoleOptPass2;
-{dispose labeltabel}
-      AsmDFA.Done;
-{continue where we left off, BlockEnd is either the start of an assembler
- block or nil}
+      {dispose labeltabel}
+      If Assigned(LabelInfo.LabelTable) Then
+        Begin
+          Dispose(LabelInfo.LabelTable);
+          LabelInfo := Nil
+        End;
+      { continue where we left off, BlockEnd is either the start of an }
+      { assembler block or nil}
       BlockStart := BlockEnd;
       While Assigned(BlockStart) And
             (BlockStart^.typ = ait_Marker) And
             (Pai_Marker(BlockStart)^.Kind = AsmBlockStart) Do
         Begin
-         {we stopped at an assembler block, so skip it}
+         { we stopped at an assembler block, so skip it }
           While GetNextInstruction(BlockStart, BlockStart) And
                 ((BlockStart^.Typ <> Ait_Marker) Or
                  (Pai_Marker(Blockstart)^.Kind <> AsmBlockEnd)) Do;
-         {blockstart now contains a pai_marker(asmblockend)}
-          If GetNextInstruction(BlockStart, HP) And
-             ((HP^.typ <> ait_Marker) Or
-              (Pai_Marker(HP)^.Kind <> AsmBlockStart)) Then
-           {there is no assembler block anymore after the current one, so
-            optimize the next block of "normal" instructions}
-           AsmDFA.Init(AsmL, BlockStart, BlockEnd);
-           {otherwise, skip the next assembler block}
-          Else BlockStart := HP;
+         { blockstart now contains a pai_marker(asmblockend) }
+          If Not(GetNextInstruction(BlockStart, HP) And
+                 ((HP^.typ <> ait_Marker) Or
+                  (Pai_Marker(HP)^.Kind <> AsmBlockStart)
+                 )
+                ) Then
+           {skip the next assembler block }
+           BlockStart := HP;
+         { otherwise there is no assembler block anymore after the current }
+         { one, so optimize the next block of "normal" instructions        }
         End
-   End;
+   End
 End;
 
 Destructor TAsmOptimizer.Done;
@@ -122,7 +224,10 @@ End;
 
 {
  $Log$
- Revision 1.1  1999-08-08 13:24:50  jonas
+ Revision 1.2  1999-08-09 14:07:22  jonas
+ commit.msg
+
+ Revision 1.1  1999/08/08 13:24:50  jonas
    + added copyright header/GNU license info
    * made the assembler optimizer almost completely OOP
    * some code style clean up and extra comments

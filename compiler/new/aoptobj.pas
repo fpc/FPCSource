@@ -28,7 +28,7 @@ Unit AoptObj;
 
 Interface
 
-uses Cobjects, cpubase, aoptcpu;
+uses Cobjects, cpubase, aoptcpub;
 
 {***************** Constants *****************}
 
@@ -63,7 +63,7 @@ Type
                 NewRegsEncountered, OldRegsEncountered,
                 { registers which only have been loaded for use as base or }
                 { index in a reference later on                            }
-                  RegsLoadedForRef: TRegSet;
+                RegsLoadedForRef: TRegSet;
                 { to which register in the old sequence corresponds every }
                 { register in the new sequence                            }
                 New2OldReg: TRegArray;
@@ -173,8 +173,10 @@ Type
 
                Constructor init;
 
-               { destroy the contents of a register }
-               Procedure DestroyReg(Reg: TRegister);
+               { destroy the contents of a register, as well as those whose }
+               { contents are based on those of that register               }
+               Procedure DestroyReg(Reg: TRegister; var NrOfInstrSinceLastMod:
+                                      TInstrSinceLastMod);
                { if the contents of WhichReg (can be R_NO in case of a    }
                { constant) are written to memory at the location Ref, the }
                { contents of the registers that depend on Ref have to be  }
@@ -254,6 +256,24 @@ Type
 {***** General optimizer object, used to derive others from *****}
 
 Type TAOptObj = Object
+       { the PAasmOutput list this optimizer instance works on }
+       AsmL: PAasmOutput;
+
+       { The labelinfo record contains the addresses of the Pai objects }
+       { that are labels, how many labels there are and the min and max }
+       { label numbers                                                  }
+       LabelInfo: PLabelInfo;
+
+       { Start and end of the block that is currently being optimized }
+       BlockStart, BlockEnd: Pai;
+
+       { _AsmL is the PAasmOutpout list that has to be optimized,     }
+       { _BlockStart and _BlockEnd the start and the end of the block }
+       { that has to be optimized and _LabelInfo a pointer to a       }
+       { TLabelInfo record                                            }
+       Constructor Init(_AsmL: PAasmOutput; _BlockStart, _BlockEnd: Pai;
+                          _LabelInfo: PLabelInfo);
+
        { processor independent methods }
 
        { returns true if the label L is found between hp and the next }
@@ -624,9 +644,10 @@ Begin
 {  DirFlag: TFlagContents; I386 specific}
 End;
 
-Procedure TPaiProp.DestroyReg(Reg: TRegister);
-{Destroys the contents of the register Reg in the PPaiProp p1, as well as the
- contents of registers are loaded with a memory location based on Reg}
+Procedure TPaiProp.DestroyReg(Reg: TRegister; var NrOfInstrSinceLastMod:
+                                                TInstrSinceLastMod);
+{ Destroys the contents of the register Reg in the PPaiProp p1, as well as }
+{ the contents of registers are loaded with a memory location based on Reg }
 Var TmpWState, TmpRState: Byte;
     Counter: TRegister;
 Begin
@@ -773,7 +794,8 @@ Begin
 End;
 
 {$ifdef arithopt}
-Procedure TPaiProp.ModifyReg(reg: TRegister);
+Procedure TPaiProp.ModifyReg(reg: TRegister; Var NrOfInstrSinceLastMod:
+                               TInstrSinceLastMod);
 Begin
   With Regs[reg] Do
     If (Typ = Con_Ref)
@@ -788,7 +810,7 @@ Begin
           NrOfInstrSinceLastMod[Reg] := 0;
         End
       Else
-        DestroyReg(Reg);
+        DestroyReg(Reg, NrOfInstrSinceLastMod);
 End;
 
 Procedure TPaiProp.ModifyOp(const oper: TOper);
@@ -831,10 +853,19 @@ End;
 
 Function TPaiProp.GetRegContentKind(Reg: TRegister): Byte;
 Begin
-  GetRegContentKind := Regs[Reg].ty
+  GetRegContentKind := Regs[Reg].typ
 End;
 
 {******************* TAOptObj *******************}
+
+Constructor TAoptObj.Init(_AsmL: PAasmOutput; _BlockStart, _BlockEnd: Pai;
+                            _LabelInfo: PLabelInfo);
+Begin
+  AsmL := _AsmL;
+  BlockStart := _BlockStart;
+  BlockEnd := _BlockEnd;
+  LabelInfo := _LabelInfo
+End;
 
 Function TAOptObj.FindLabel(L: PasmLabel; Var hp: Pai): Boolean;
 Var TempP: Pai;
@@ -1161,7 +1192,10 @@ End.
 
 {
  $Log$
- Revision 1.1  1999-08-08 13:24:50  jonas
+ Revision 1.2  1999-08-09 14:07:24  jonas
+ commit.msg
+
+ Revision 1.1  1999/08/08 13:24:50  jonas
    + added copyright header/GNU license info
    * made the assembler optimizer almost completely OOP
    * some code style clean up and extra comments

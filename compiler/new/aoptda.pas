@@ -25,21 +25,17 @@ Unit aoptda;
 
 Interface
 
-uses Aasm;
+uses Aasm, TAoptObj, TAoptCpu;
 
 Type TAsmDFA = Object(TAoptCpu)
-       Constructor Init(_AsmL: PaasmOutPut; _Blockstart, _Blockend: Pai);
-{ returns a pointer to the LabelInfo table }
-       Function GetLabelInfo: PLabelInfo;
+       { uses the same constructor as TAoptCpu = constructor from TAoptObj }
+
        Destructor Done;
 
        private
 
-       AsmL: PAasmOutput;
-       LabelInfo: TLabelInfo;
-
-{ How many instructions are between the current instruction and the last one }
-{ that modified the register                                                 }
+      { How many instructions are between the current instruction and the }
+      { last one that modified the register                               }
       NrOfInstrSinceLastMod: TInstrSinceLastMod;
 
       Procedure BuildLabelTableAndFixRegAlloc;
@@ -55,121 +51,8 @@ uses aoptmsc
 {$endif i386}
 ;
 
-Constructor TAsmDFA.Init(_AsmL: PaasmOutPut; _Blockstart: Pai;
-                         Var _BlockEnd: Pai);
-Begin
-  AsmL := _AsmL;
-  LabelInfo.Lowabel := High(AWord);
-  BlockStart := _BlockStart;
-{ initializes BlockEnd and through the methodcall also the labeltable,       }
-{ lolab, hilab and labeldif. Also, the regalloc info gets corrected.         }
-  BlockEnd := FindLoHiLabels;
-  BuildLabelTableAndFixRegAlloc;
-End;
-
-Function TAsmDFA.GetLabelInfo: TLabelInfo;
-Begin
-  GetLabelInfo := LabelInfo;
-End;
-
-Function TAsmDFA.FindLoHiLabels: Pai;
-{ Walks through the paasmlist to find the lowest and highest label number.  }
-{ Returns the last Pai object of the current block                          }
-Var LabelFound: Boolean;
-    P: Pai;
-Begin
-  LabelFound := False;
-  P := BlockStart;
-  While Assigned(P) And
-        ((P^.typ <> Ait_Marker) Or
-         (Pai_Marker(P)^.Kind <> AsmBlockStart)) Do
-    Begin
-      If (Pai(p)^.typ = ait_label) Then
-        If (Pai_Label(p)^.l^.is_used)
-          Then
-            Begin
-              LabelFound := True;
-              If (Pai_Label(p)^.l^.labelnr < LowLabel) Then
-                LowLabel := Pai_Label(p)^.l^.labelnr;
-              If (Pai_Label(p)^.l^.labelnr > HighLabel) Then
-                HighLabel := Pai_Label(p)^.l^.labelnr;
-            End;
-      GetNextInstruction(p, p);
-    End;
-  FindLoHiLabels := p;
-  If LabelFound
-    Then LabelDif := HighLabel-LowLabel+1
-    Else LabelDif := 0;
-End;
-
-Procedure TAsmDFA.BuildLabelTableAndFixRegAlloc;
-{ Builds a table with the locations of the labels in the paasmoutput.       }
-{ Also fixes some RegDeallocs like "# %eax released; push (%eax)"           }
-Var p, hp1, hp2: Pai;
-    UsedRegs: TRegSet;
-Begin
-  UsedRegs := [];
-  With LabelInfo Do
-    If (LabelDif <> 0) Then
-      Begin
-        GetMem(LabelTable, LabelDif*SizeOf(TLabelTableItem));
-        FillChar(LabelTable^, LabelDif*SizeOf(TLabelTableItem), 0);
-        p := BlockStart;
-        While (P <> BlockEnd) Do
-          Begin
-            Case p^.typ Of
-              ait_Label:
-                If Pai_Label(p)^.l^.is_used Then
-                  LabelTable^[Pai_Label(p)^.l^.labelnr-LowLabel].PaiObj := p;
-              ait_regAlloc:
-                begin
-                  if PairegAlloc(p)^.Allocation then
-                    Begin
-                      If Not(PaiRegAlloc(p)^.Reg in UsedRegs) Then
-                        UsedRegs := UsedRegs + [PaiRegAlloc(p)^.Reg]
-                      Else
-                        Begin
-                          hp1 := p;
-                          hp2 := nil;
-                          While GetLastInstruction(hp1, hp1) And
-                                Not(RegInInstruction(PaiRegAlloc(p)^.Reg, hp1)) Do
-                            hp2 := hp1;
-                          If hp2 <> nil Then
-                            Begin
-                              hp1 := New(PaiRegAlloc, DeAlloc(PaiRegAlloc(p)^.Reg));
-                              InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp1);
-                            End;
-                        End;
-                    End
-                  else
-                    Begin
-                      UsedRegs := UsedRegs - [PaiRegAlloc(p)^.Reg];
-                      hp1 := p;
-                      hp2 := nil;
-                      While Not(FindRegAlloc(PaiRegAlloc(p)^.Reg, Pai(hp1^.Next))) And
-                            GetNextInstruction(hp1, hp1) And
-                            RegInInstruction(PaiRegAlloc(p)^.Reg, hp1) Do
-                        hp2 := hp1;
-                      If hp2 <> nil Then
-                        Begin
-                          hp1 := Pai(p^.previous);
-                          AsmL^.Remove(p);
-                          InsertLLItem(AsmL, hp2, Pai(hp2^.Next), p);
-                          p := hp1;
-                        End;
-                End;
-            end;
-          End;
-        P := Pai(p^.Next);
-        While Assigned(p) And
-              (p^.typ in (SkipInstr - [ait_regalloc])) Do
-          P := Pai(P^.Next);
-      End;
-End;
-
 Destructor TAsmDFA.Done;
 Begin
-  If Assigned(LabelInfo.LabelTable) Then Dispose(LabelInfo.LabelTable);
 End;
 
 Procedure TAsmOptimizer.DoDFAPass2;
