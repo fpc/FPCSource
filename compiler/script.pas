@@ -362,7 +362,11 @@ Begin
   AddStart('DoExitLink ()');
   AddStart('{ echo "An error occurred while assembling $1"; exit 1; }');
   AddStart('DoExitAsm ()');
-  AddStart('#!/bin/sh');
+  {$ifdef BEOS}
+   AddStart('#!/boot/beos/bin/sh');
+  {$else}
+   AddStart('#!/bin/sh');
+  {$endif}
   inherited WriteToDisk;
 end;
 
@@ -415,7 +419,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2003-01-10 21:49:00  marco
+  Revision 1.20  2003-02-07 21:21:39  marco
+   * Some small fix
+
+  Revision 1.19  2003/01/10 21:49:00  marco
    * more hasunix fixes
 
   Revision 1.18  2003/01/06 20:16:42  peter
