@@ -171,6 +171,21 @@ implementation
               AsmWrite(symbol.name);
               first:=false;
             end;
+           if (aktoutputformat = as_i386_wasm) then
+            begin
+              if offset<0 then
+              begin
+                AsmWrite(tostr(offset));
+                first:=false;
+              end
+              else if (offset>0) then
+              begin
+                if not first then
+                  AsmWrite('+');
+                AsmWrite(tostr(offset));
+                first:=false;
+              end;
+            end;
            if (base<>NR_NO) then
             begin
               if not(first) then
@@ -189,16 +204,19 @@ implementation
               if scalefactor<>0 then
                AsmWrite('*'+tostr(scalefactor));
             end;
-           if offset<0 then
-            begin
-              AsmWrite(tostr(offset));
-              first:=false;
-            end
-           else if (offset>0) then
-            begin
-              AsmWrite('+'+tostr(offset));
-              first:=false;
-            end;
+           if (aktoutputformat <> as_i386_wasm) then
+             begin
+               if offset<0 then
+                begin
+                  AsmWrite(tostr(offset));
+                  first:=false;
+                end
+               else if (offset>0) then
+                begin
+                  AsmWrite('+'+tostr(offset));
+                  first:=false;
+                end;
+             end;
            if first then
              AsmWrite('0');
            AsmWrite(']');
@@ -729,7 +747,7 @@ ait_stab_function_name : ;
       begin
         if tasmsymbol(p).defbind=AB_EXTERNAL then
           begin
-            if (aktoutputformat = as_i386_masm) then
+            if (aktoutputformat in [as_i386_masm,as_i386_wasm]) then
               currentasmlist.AsmWriteln(#9'EXTRN'#9+p.name
                 +': NEAR')
             else
@@ -749,7 +767,7 @@ ait_stab_function_name : ;
     begin
       DoAssemble:=Inherited DoAssemble;
       { masm does not seem to recognize specific extensions and uses .obj allways PM }
-      if (aktoutputformat = as_i386_masm) then
+      if (aktoutputformat in [as_i386_masm,as_i386_wasm]) then
         begin
           if not(cs_asm_extern in aktglobalswitches) then
             begin
@@ -848,13 +866,36 @@ ait_stab_function_name : ;
               '','','')
           );
 
+       as_i386_wasm_info : tasminfo =
+          (
+            id     : as_i386_wasm;
+            idtxt  : 'WASM';
+            asmbin : 'wasm';
+            asmcmd : '$ASM -5s -fpc -fp3 -ms -zq -Fo=$OBJ';
+            supported_target : system_any; { what should I write here ?? }
+            outputbinary: false;
+            allowdirect : true;
+            needar : true;
+            labelprefix_only_inside_procedure : false;
+            labelprefix : '@@';
+            comment : '; ';
+            secnames : ('',
+              'CODE','DATA','BSS',
+              '','','','','','',
+              '','','')
+          );
+
 initialization
   RegisterAssembler(as_i386_tasm_info,T386IntelAssembler);
   RegisterAssembler(as_i386_masm_info,T386IntelAssembler);
+  RegisterAssembler(as_i386_wasm_info,T386IntelAssembler);
 end.
 {
   $Log$
-  Revision 1.37  2003-09-03 15:55:01  peter
+  Revision 1.38  2003-09-05 17:41:13  florian
+    * merged Wiktor's Watcom patches in 1.1
+
+  Revision 1.37  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.36.2.3  2003/08/31 15:46:26  peter

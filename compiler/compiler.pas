@@ -117,6 +117,10 @@ uses
   {$ifdef GO32V2}
     emu387,
   {$endif GO32V2}
+  {$ifdef WATCOM} // wiktor: pewnie nie potrzeba
+    emu387,
+{    dpmiexcp, }
+  {$endif WATCOM}
 {$endif}
 {$ifdef USEEXCEPT}
   tpexcept,
@@ -399,7 +403,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.39  2003-09-03 11:18:36  florian
+  Revision 1.40  2003-09-05 17:41:12  florian
+    * merged Wiktor's Watcom patches in 1.1
+
+  Revision 1.39  2003/09/03 11:18:36  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around

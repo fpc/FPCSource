@@ -66,6 +66,9 @@ implementation
     {$ifndef NOTARGETWDOSX}
       ,t_wdosx
     {$endif}
+    {$ifndef NOTARGETWATCOM}
+      ,t_watcom
+    {$endif}
 
 {**************************************
              Assemblers
@@ -88,7 +91,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2003-05-20 23:54:00  florian
+  Revision 1.13  2003-09-05 17:41:13  florian
+    * merged Wiktor's Watcom patches in 1.1
+
+  Revision 1.12  2003/05/20 23:54:00  florian
     + basic darwin support added
 
   Revision 1.11  2003/04/25 12:04:31  florian

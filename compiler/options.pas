@@ -1851,13 +1851,13 @@ begin
        inputextension:=target_info.pasext;
    end;
 
-{ Add paths specified with parameters to the searchpaths }
+  { Add paths specified with parameters to the searchpaths }
   UnitSearchPath.AddList(option.ParaUnitPath,true);
   ObjectSearchPath.AddList(option.ParaObjectPath,true);
   IncludeSearchPath.AddList(option.ParaIncludePath,true);
   LibrarySearchPath.AddList(option.ParaLibraryPath,true);
 
-{ add unit environment and exepath to the unit search path }
+  { add unit environment and exepath to the unit search path }
   if inputdir<>'' then
    Unitsearchpath.AddPath(inputdir,true);
   if not disable_configfile then
@@ -1906,7 +1906,7 @@ begin
   objectsearchpath.AddList(unitsearchpath,false);
   librarysearchpath.AddList(unitsearchpath,false);
 
-{ switch assembler if it's binary and we got -a on the cmdline }
+  { switch assembler if it's binary and we got -a on the cmdline }
   if (cs_asm_leave in initglobalswitches) and
      (target_asm.outputbinary) then
    begin
@@ -1922,7 +1922,7 @@ begin
      Message1(option_asm_forced,target_asm.idtxt);
    end;
 
-{ turn off stripping if compiling with debuginfo or profile }
+  { turn off stripping if compiling with debuginfo or profile }
   if (cs_debuginfo in initmoduleswitches) or
      (cs_profile in initmoduleswitches) then
     exclude(initglobalswitches,cs_link_strip);
@@ -1956,7 +1956,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.102  2003-09-03 21:06:05  peter
+  Revision 1.103  2003-09-05 17:41:12  florian
+    * merged Wiktor's Watcom patches in 1.1
+
+  Revision 1.102  2003/09/03 21:06:05  peter
     * powerpc needs software int64 to double
 
   Revision 1.101  2003/09/03 15:55:01  peter
@@ -2143,5 +2146,4 @@ end.
 
   Revision 1.65  2002/04/04 18:39:45  carl
   + added wdosx support (patch from Pavel)
-
 }

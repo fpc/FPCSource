@@ -257,7 +257,7 @@ implementation
                  end
                 { address }
                 else if is_constintnode(pt) and
-                        ((target_info.system=system_i386_go32v2) or
+                        ((target_info.system in [system_i386_go32v2,system_i386_watcom]) or
                          (m_objfpc in aktmodeswitches) or
                          (m_delphi in aktmodeswitches)) then
                  begin
@@ -266,7 +266,7 @@ implementation
                    abssym.abstyp:=toaddr;
                    abssym.absseg:=false;
                    abssym.address:=tordconstnode(pt).value;
-                   if (target_info.system=system_i386_go32v2) and
+                   if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
                       try_to_consume(_COLON) then
                     begin
                       pt.free;
@@ -601,7 +601,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2003-07-02 22:18:04  peter
+  Revision 1.49  2003-09-05 17:41:12  florian
+    * merged Wiktor's Watcom patches in 1.1
+
+  Revision 1.48  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 

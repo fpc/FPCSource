@@ -113,7 +113,8 @@ interface
              system_i386_EMX,           { 28 }
 	     system_powerpc_netbsd,     { 29 }
     	     system_powerpc_openbsd,    { 30 }
-             system_arm_linux           { 31 }
+             system_arm_linux,          { 31 }
+             system_i386_watcom         { 32 }
        );
 
        tasm = (as_none
@@ -127,6 +128,7 @@ interface
              ,as_i386_nasmobj
              ,as_i386_tasm
              ,as_i386_masm
+             ,as_i386_wasm
              ,as_i386_coff
              ,as_i386_pecoff
              ,as_i386_elf32
@@ -695,7 +697,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.67  2003-08-08 15:49:24  olle
+  Revision 1.68  2003-09-05 17:41:13  florian
+    * merged Wiktor's Watcom patches in 1.1
+
+  Revision 1.67  2003/08/08 15:49:24  olle
     * merged macos entry/exit code generation into the general one.
 
   Revision 1.66  2003/07/21 11:52:57  florian

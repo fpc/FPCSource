@@ -29,6 +29,9 @@ unit fppu;
 {$ifdef GO32V2}
   {$define SHORT_ON_FILE_HANDLES}
 {$endif GO32V2}
+{$ifdef WATCOM}
+  {$define SHORT_ON_FILE_HANDLES}
+{$endif WATCOM}
 
 interface
 
@@ -1418,7 +1421,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.38  2003-08-23 22:29:24  peter
+  Revision 1.39  2003-09-05 17:41:12  florian
+    * merged Wiktor's Watcom patches in 1.1
+
+  Revision 1.38  2003/08/23 22:29:24  peter
     * reload flagged units when interface is loaded
 
   Revision 1.37  2003/06/08 11:40:14  peter

@@ -1593,7 +1593,7 @@ implementation
                               begin
                                 p2:=comp_expr(true);
                               { support SEG:OFS for go32v2 Mem[] }
-                                if (target_info.system=system_i386_go32v2) and
+                                if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
                                    (p1.nodetype=loadn) and
                                    assigned(tloadnode(p1).symtableentry) and
                                    assigned(tloadnode(p1).symtableentry.owner.name) and
@@ -2419,7 +2419,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.126  2003-08-23 22:29:51  peter
+  Revision 1.127  2003-09-05 17:41:12  florian
+    * merged Wiktor's Watcom patches in 1.1
+
+  Revision 1.126  2003/08/23 22:29:51  peter
     * fixed static class check for properties
 
   Revision 1.125  2003/08/23 18:41:52  peter

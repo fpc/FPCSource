@@ -446,7 +446,7 @@ implementation
           AddUnit('ObjPas');
         { Profile unit? Needed for go32v2 only }
         if (cs_profile in aktmoduleswitches) and
-           (target_info.system=system_i386_go32v2) then
+           (target_info.system in [system_i386_go32v2,system_i386_watcom]) then
           AddUnit('Profile');
         { Units only required for main module }
         if not(current_module.is_unit) then
@@ -1465,7 +1465,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.120  2003-08-23 22:29:24  peter
+  Revision 1.121  2003-09-05 17:41:12  florian
+    * merged Wiktor's Watcom patches in 1.1
+
+  Revision 1.120  2003/08/23 22:29:24  peter
     * reload flagged units when interface is loaded
 
   Revision 1.119  2003/08/21 14:47:41  peter

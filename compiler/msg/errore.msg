@@ -2152,6 +2152,7 @@ option_help_pages=11025_[
 3*2Aas_assemble using GNU AS
 3*2Anasmcoff_coff (Go32v2) file using Nasm
 3*2Anasmelf_elf32 (Linux) file using Nasm
+3*2Awasm_obj file using Wasm (Watcom)
 3*2Anasmobj_obj file using Nasm
 3*2Amasm_obj file using Masm (Microsoft)
 3*2Atasm_obj file using Tasm (Borland)
@@ -2176,6 +2177,7 @@ option_help_pages=11025_[
 3*1T<x>_Target operating system:
 3*2TEMX_OS/2 via EMX (including EMX/RSX extender)
 3*2TGO32V2_Version 2 of DJ Delorie DOS extender
+3*2TWATCOM_Watcom compatible DOS extender
 3*2TLINUX_Linux
 3*2TNETWARE_Novell Netware Module (clib)
 3*2TOS2_OS/2 / eComStation

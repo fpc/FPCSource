@@ -1336,7 +1336,7 @@ unit cgx86;
                 include(rg.used_in_proc_int,RS_EDX);
              end;
 
-           system_i386_go32v2:
+           system_i386_go32v2,system_i386_watcom:
              begin
                a_call_name(list,'MCOUNT');
              end;
@@ -1516,7 +1516,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.59  2003-09-03 15:55:02  peter
+  Revision 1.60  2003-09-05 17:41:13  florian
+    * merged Wiktor's Watcom patches in 1.1
+
+  Revision 1.59  2003/09/03 15:55:02  peter
     * NEWRA branch merged
 
   Revision 1.58.2.5  2003/08/31 20:40:50  daniel

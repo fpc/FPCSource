@@ -1986,6 +1986,7 @@ option_help_pages=11025_[
 3*2Anasmobj_plik obj przy u¿yciu Nasm
 3*2Amasm_plik obj przy u¿yciu Masm (Microsoft)
 3*2Atasm_plik obj przy u¿yciu Tasm (Borland)
+3*2Awasm_plik obj przy u¿yciu Wasm (Watcom)
 3*2Acoff_bezpo¶redni zapis do pliku coff (Go32v2)
 3*2Apecoff_bezpo¶redni zapis do pliku pecoff (Win32)
 3*1R<x>_styl zapisu asemblera:
@@ -2009,6 +2010,7 @@ option_help_pages=11025_[
 3*2TFREEBSD_FreeBSD
 3*2TGO32V1_DOS extender DJ Delorie wersja 1
 3*2TGO32V2_DOS extender DJ Delorie wersja 2
+3*2TWATCOM_DOS extendery zgodne z Watcomem
 3*2TLINUX_Linux
 3*2TNETBSD_NetBSD
 3*2TOPENBSD_OpenBSD(a.out)

@@ -29,6 +29,9 @@ Unit catch;
   { go32v2 stack check goes nuts if ss is not the data selector (PM) }
   {$S-}
 {$endif}
+{$ifdef watcom} // wiktor: pewnei nie potrzeba
+  {$S-}
+{$endif}
 
 {$ifdef DEBUG}
   {$define NOCATCH}
@@ -47,6 +50,10 @@ uses
  {$endif}
 {$endif}
 {$ifdef go32v2}
+{$define has_signal}
+  dpmiexcp,
+{$endif}
+{$ifdef watcom}
   {$define has_signal}
   dpmiexcp,
 {$endif}
@@ -109,7 +116,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2003-04-23 10:10:31  peter
+  Revision 1.14  2003-09-05 17:41:12  florian
+    * merged Wiktor's Watcom patches in 1.1
+
+  Revision 1.13  2003/04/23 10:10:31  peter
     * unix signalhandler has longint argument
 
   Revision 1.12  2003/01/10 21:37:48  marco

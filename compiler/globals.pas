@@ -1104,6 +1104,10 @@ implementation
       var
         hs : string;
 {$endif}
+{$ifdef watcom}
+      var
+        hs : string;
+{$endif}
       begin
         GetShortName:=n;
 {$ifdef win32}
@@ -1116,6 +1120,11 @@ implementation
           end;
 {$endif}
 {$ifdef go32v2}
+        hs:=n;
+        if Dos.GetShortName(hs) then
+         GetShortName:=hs;
+{$endif}
+{$ifdef watcom}
         hs:=n;
         if Dos.GetShortName(hs) then
          GetShortName:=hs;
@@ -1602,7 +1611,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2003-09-04 21:37:29  olle
+  Revision 1.95  2003-09-05 17:41:12  florian
+    * merged Wiktor's Watcom patches in 1.1
+
+  Revision 1.94  2003/09/04 21:37:29  olle
     + added new lagnuage mode: MAC
 
   Revision 1.93  2003/09/03 11:18:36  florian

@@ -1,7 +1,7 @@
 {$ifdef Delphi}
-const msgtxt : array[0..000146] of string[240]=(
+const msgtxt : array[0..000147] of string[240]=(
 {$else Delphi}
-const msgtxt : array[0..000146,1..240] of char=(
+const msgtxt : array[0..000147,1..240] of char=(
 {$endif Delphi}
   '01000_T_Compiler: $1'#000+
   '01001_D_Compiler OS: $1'#000+
@@ -793,58 +793,60 @@ const msgtxt : array[0..000146,1..240] of char=(
   '3*2Aas_assemble using GNU AS'#010+
   '3*2Anasmcoff_coff (Go32v2) file using Nasm'#010+
   '3*2Anasmelf_elf32 (Linux) file using Nasm'#010+
+  '3*2Awasm_obj file using Wasm (Watcom)'#010+
   '3*2Anasmobj_obj file using Nasm'#010+
-  '3*2Amasm_obj file using Masm (Microsoft)'#010+
-  '3*2Atasm_ob','j file using Tasm (Borland)'#010+
+  '3*2Amasm_obj f','ile using Masm (Microsoft)'#010+
+  '3*2Atasm_obj file using Tasm (Borland)'#010+
   '3*2Acoff_coff (Go32v2) using internal writer'#010+
   '3*2Apecoff_pecoff (Win32) using internal writer'#010+
   '3*1R<x>_assembler reading style:'#010+
   '3*2Ratt_read AT&T style assembler'#010+
-  '3*2Rintel_read Intel style assembler'#010+
-  '3*2Rdirect_copy',' assembler text directly to assembler file'#010+
+  '3*2Rintel_read',' Intel style assembler'#010+
+  '3*2Rdirect_copy assembler text directly to assembler file'#010+
   '3*1O<x>_optimizations:'#010+
   '3*2Og_generate smaller code'#010+
   '3*2OG_generate faster code (default)'#010+
   '3*2Or_keep certain variables in registers'#010+
-  '3*2Ou_enable uncertain optimizations (see docs)'#010+
-  '3*2O1_level 1 optim','izations (quick optimizations)'#010+
+  '3*2Ou_enable uncertain optimi','zations (see docs)'#010+
+  '3*2O1_level 1 optimizations (quick optimizations)'#010+
   '3*2O2_level 2 optimizations (-O1 + slower optimizations)'#010+
   '3*2O3_level 3 optimizations (-O2 repeatedly, max 5 times)'#010+
   '3*2Op<x>_target processor:'#010+
-  '3*3Op1_set target processor to 386/486'#010+
-  '3*3Op2_set target processor ','to Pentium/PentiumMMX (tm)'#010+
+  '3*3Op1_set target processor t','o 386/486'#010+
+  '3*3Op2_set target processor to Pentium/PentiumMMX (tm)'#010+
   '3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)'#010+
   '3*1T<x>_Target operating system:'#010+
   '3*2TEMX_OS/2 via EMX (including EMX/RSX extender)'#010+
-  '3*2TGO32V2_Version 2 of DJ Delorie DOS extender'#010+
+  '3*2TGO32V2_Version 2 of DJ Delorie DOS',' extender'#010+
+  '3*2TWATCOM_Watcom compatible DOS extender'#010+
   '3*2TLINUX_Linux'#010+
-  '3*2TNETWARE_','Novell Netware Module (clib)'#010+
+  '3*2TNETWARE_Novell Netware Module (clib)'#010+
   '3*2TOS2_OS/2 / eComStation'#010+
   '3*2TSUNOS_SunOS/Solaris'#010+
   '3*2TWDOSX_WDOSX DOS extender'#010+
   '3*2TWIN32_Windows 32 Bit'#010+
-  '3*1W<x>_Win32-like target options'#010+
+  '3*1W<x>_Win32-like target ','options'#010+
   '3*2WB<x>_Set Image base to Hexadecimal <x> value'#010+
-  '3*2WC_Specify console t','ype application'#010+
+  '3*2WC_Specify console type application'#010+
   '3*2WD_Use DEFFILE to export functions of DLL or EXE'#010+
   '3*2WF_Specify full-screen type application (OS/2 only)'#010+
-  '3*2WG_Specify graphic type application'#010+
+  '3*2WG_Specify graphic type applicatio','n'#010+
   '3*2WN_Do not generate relocation code (necessary for debugging)'#010+
-  '3*2WR_Generate',' relocation code'#010+
+  '3*2WR_Generate relocation code'#010+
   '6*1A<x>_output format'#010+
   '6*2Aas_Unix o-file using GNU AS'#010+
   '6*2Agas_GNU Motorola assembler'#010+
   '6*2Amit_MIT Syntax (old GAS)'#010+
-  '6*2Amot_Standard Motorola assembler'#010+
+  '6*2Amot_Standard Motorola ass','embler'#010+
   '6*1O_optimizations:'#010+
   '6*2Oa_turn on the optimizer'#010+
-  '6*2Og_generate smaller co','de'#010+
+  '6*2Og_generate smaller code'#010+
   '6*2OG_generate faster code (default)'#010+
   '6*2Ox_optimize maximum (still BUGGY!!!)'#010+
   '6*2O0_set target processor to a MC68000'#010+
-  '6*2O2_set target processor to a MC68020+ (default)'#010+
+  '6*2O2_set target processor to a MC68020+',' (default)'#010+
   '6*1R<x>_assembler reading style:'#010+
-  '6*2RMOT_read motorola style assemble','r'#010+
+  '6*2RMOT_read motorola style assembler'#010+
   '6*1T<x>_Target operating system:'#010+
   '6*2TAMIGA_Commodore Amiga'#010+
   '6*2TATARI_Atari ST/STe/TT'#010+
@@ -852,6 +854,6 @@ const msgtxt : array[0..000146,1..240] of char=(
   '6*2TLINUX_Linux-68k'#010+
   '6*2TPALMOS_PalmOS'#010+
   '**1*_'#010+
-  '**1?_shows this help'#010+
+  '**1?','_shows this help'#010+
   '**1h_shows this help without waiting'#000
 );

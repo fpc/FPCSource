@@ -146,6 +146,9 @@ uses
     {$ifdef go32v2}
       catch,
     {$endif}
+    {$ifdef WATCOM}
+      catch,
+    {$endif}
   {$endif NOCATCH}
 {$endif FPC}
   globals,compiler;
@@ -196,7 +199,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2003-09-03 11:18:37  florian
+  Revision 1.26  2003-09-05 17:41:12  florian
+    * merged Wiktor's Watcom patches in 1.1
+
+  Revision 1.25  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
