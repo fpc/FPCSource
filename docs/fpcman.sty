@@ -21,6 +21,9 @@
 \ProvidesPackage{fpcman}[1997/06/25]
 \NeedsTeXFormat{LaTeX2e}
 \ExecuteOptions{titlepage}
+% Some style elements
+\parindent 0pt%
+\parskip 0.35\baselineskip%
 % First, all definitions for latex only.
 \newcommand{\docdescription}[1]{\def\@FPCDescription{#1}}
 \gdef\@FPCDescription{}%
@@ -135,10 +138,8 @@
 %
 % Nice environments
 %
-% For Code examples (complete programs only)
-\newenvironment{CodEx}{}{}
 % For Tables.
-\newenvironment{FPCtable}[2]{\begin{table}\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+\newenvironment{FPCtable}[2]{\begin{table}[h]\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
 % The same, but with label in third argument (tab:#3)
 \newenvironment{FPCltable}[3]{\begin{table}\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
 %

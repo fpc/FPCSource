@@ -21,6 +21,9 @@
 \ProvidesPackage{fpc}[1996/12/09]
 \NeedsTeXFormat{LaTeX2e}
 \ExecuteOptions{titlepage}
+% Some style elements
+\parindent 0pt%  
+\parskip 0.35\baselineskip%
 % First, all definitions for latex only.
 \newcommand{\docdescription}[1]{\def\@FPCDescription{#1}}
 \gdef\@FPCDescription{}%
@@ -162,6 +165,8 @@
 \newcommand{\seegraph}{\htmladdnormallink{graph}{../graph/graph.html}}
 \newcommand{\seeprinter}{\htmladdnormallink{printer}{../printer/printer.html}}
 \newcommand{\seego}{\htmladdnormallink{GO32}{../go32/go32.html}}
+\newcommand{\seec}[1]{chapter \ref{ch:#1}}
+\newcommand{\sees}[1]{section \ref{se:#1}}
 %
 % Nice environments
 %
