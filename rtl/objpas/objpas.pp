@@ -28,6 +28,9 @@ unit objpas;
     type
        integer = longint;
 
+       { Ansistring are the default }
+       PString = PAnsiString;
+
 {****************************************************************************
                              Compatibility routines.
 ****************************************************************************}
@@ -366,7 +369,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2001-10-22 21:19:33  peter
+  Revision 1.9  2002-01-06 21:59:13  peter
+    * regenerated
+
+  Revision 1.8  2001/10/22 21:19:33  peter
     * LoadResString, PResStringRec, TResStringRec compatibility added
 
   Revision 1.7  2001/08/19 21:02:02  florian
