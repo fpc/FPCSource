@@ -30,11 +30,11 @@ asm
         jz      .LDoAnsiStringInit
         decb    %al
         jz      .LDoAnsiStringInit
-        subb    $3,%al
+        subb    $2,%al
         jz      .LDoArrayInit
         decb    %al
         jz      .LDoRecordInit
-        decb    %al
+        subb    $2,%al
         jz      .LDoClassInit
         decb    %al
         jz      .LDoObjectInit
@@ -122,11 +122,11 @@ asm
         jz      .LDoAnsiStringFinal
         decb    %al
         jz      .LDoAnsiStringFinal
-        subb    $3,%al
+        subb    $2,%al
         jz      .LDoArrayFinal
         decb    %al
         jz      .LDoRecordFinal
-        decb    %al
+        subb    $2,%al
         jz      .LDoClassFinal
         decb    %al
         jz      .LDoObjectFinal
@@ -219,7 +219,7 @@ asm
         jz      .LDoArrayAddRef
         decb    %al
         jz      .LDoRecordAddRef
-        decb    %al
+        subb    $2,%al
         jz      .LDoClassAddRef
         decb    %al
         jz      .LDoObjectAddRef
@@ -305,7 +305,7 @@ asm
         jz      .LDoArrayDecRef
         decb    %al
         jz      .LDoRecordDecRef
-        decb    %al
+        subb    $2,%al
         jz      .LDoClassDecRef
         decb    %al
         jz      .LDoObjectDecRef
@@ -375,7 +375,11 @@ end;
 
 {
   $Log$
-  Revision 1.20  2000-02-09 16:59:29  peter
+  Revision 1.21  2000-02-18 15:23:01  florian
+    * fixed constants in rtti
+    * longjmp does now a finit
+
+  Revision 1.20  2000/02/09 16:59:29  peter
     * truncated log
 
   Revision 1.19  2000/01/11 21:11:34  marco
