@@ -578,20 +578,24 @@ implementation
                      begin
                         if p^.right^.right^.treetype=ordconstn then
                           begin
-                             extraoffset:=p^.right^.right^.value;
+{ this was "extraoffset:=p^.right^.right^.value;" Looks a bit like
+  copy-paste bug :) (JM) }
+                             extraoffset:=-p^.right^.right^.value;
                              t:=p^.right^.left;
                              putnode(p^.right);
                              putnode(p^.right^.right);
                              p^.right:=t
                           end
+{ You also have to negate p^.right^.right in this case! I can't add an
+  unaryminusn without causing a crash, so I've disabled it (JM)
                         else if p^.right^.left^.treetype=ordconstn then
                           begin
                              extraoffset:=p^.right^.left^.value;
                              t:=p^.right^.right;
                              putnode(p^.right);
                              putnode(p^.right^.left);
-                             p^.right:=t
-                          end;
+                             p^.right:=t;
+                          end;}
                      end;
                    inc(p^.location.reference.offset,
                        get_mul_size*extraoffset);
@@ -881,7 +885,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  1999-12-01 12:42:32  peter
+  Revision 1.64  2000-01-03 17:10:39  jonas
+    * fixed "quick hack, to overcome Delphi 2" :)
+
+  Revision 1.63  1999/12/01 12:42:32  peter
     * fixed bug 698
     * removed some notes about unused vars
 
