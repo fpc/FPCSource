@@ -232,6 +232,7 @@ constructor TFPMemoryImage.Create (AWidth,AHeight:integer);
 begin
   inherited create (AWidth,AHeight);
   UsePalette := True;
+  Palette.Add (clTransparent);
 end;
 
 destructor TFPMemoryImage.Destroy;
@@ -264,7 +265,6 @@ procedure TFPMemoryImage.SetSize (AWidth, AHeight : integer);
 var w, h, r, old : integer;
     NewData : PFPIntegerArray;
 begin
-  // MG: bug: was 'and'
   if (AWidth <> Width) or (AHeight <> Height) then
     begin
     old := Height * Width;
@@ -274,7 +274,7 @@ begin
     else
       begin
       GetMem (NewData, r);
-      Fillchar (Newdata^[0], r, $FF);
+      Fillchar (Newdata^[0], r, 0);
       end;
     // MG: missing "and (NewData<>nil)"
     if (old <> 0) and assigned(FData) and (NewData<>nil) then
@@ -283,7 +283,7 @@ begin
         begin
         w := Lowest(Width, AWidth);
         h := Lowest(Height, AHeight);
-        for r := 0 to h do
+        for r := 0 to h-1 do
           move (FData^[r*Width], NewData^[r*AWidth], w);
         end;
       FreeMem (FData);
