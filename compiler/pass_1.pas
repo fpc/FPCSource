@@ -29,10 +29,6 @@ interface
     uses
        node;
 
-    var
-      resulttypepasscnt,
-      multiresulttypepasscnt : longint;
-
     procedure resulttypepass(var p : tnode);
     function  do_resulttypepass(var p : tnode) : boolean;
 
@@ -69,7 +65,6 @@ implementation
          oldpos    : tfileposinfo;
          hp        : tnode;
       begin
-        inc(resulttypepasscnt);
         if (p.resulttype.def=nil) then
          begin
            oldcodegenerror:=codegenerror;
@@ -104,7 +99,6 @@ implementation
            { update the codegenerror boolean with the previous result of this node }
            if (nf_error in p.flags) then
             codegenerror:=true;
-           inc(multiresulttypepasscnt);
          end;
       end;
 
@@ -124,18 +118,11 @@ implementation
          oldpos    : tfileposinfo;
          hp : tnode;
       begin
-{$ifdef extdebug}
-{         inc(total_of_firstpass);}
-{$endif extdebug}
-         oldcodegenerror:=codegenerror;
-         oldpos:=aktfilepos;
-         oldlocalswitches:=aktlocalswitches;
-{$ifdef extdebug}
-{         if p.firstpasscount>0 then
-          inc(firstpass_several);}
-{$endif extdebug}
          if not(nf_error in p.flags) then
            begin
+              oldcodegenerror:=codegenerror;
+              oldpos:=aktfilepos;
+              oldlocalswitches:=aktlocalswitches;
               codegenerror:=false;
               aktfilepos:=p.fileinfo;
               aktlocalswitches:=p.localswitches;
@@ -186,10 +173,6 @@ implementation
            end
          else
            codegenerror:=true;
-{$ifdef extdebug}
-{         if count_ref then
-           inc(p.firstpasscount);}
-{$endif extdebug}
       end;
 
 
@@ -199,30 +182,34 @@ implementation
          firstpass(p);
 {$ifdef state_tracking}
          writeln('TRACKSTART');
-	 writeln('before');
+         writeln('before');
          writenode(p);
          do_track_state_pass(p);
          writeln('after');
-	 writenode(p);
-	 writeln('TRACKDONE');
+         writenode(p);
+         writeln('TRACKDONE');
 {$endif}
          do_firstpass:=codegenerror;
       end;
-      
+
 {$ifdef state_tracking}
      procedure do_track_state_pass(p:Tnode);
-     
+
      begin
         aktstate:=Tstate_storage.create;
         p.track_state_pass(true);
-	aktstate.destroy;
+            aktstate.destroy;
      end;
 {$endif}
 
 end.
 {
   $Log$
-  Revision 1.27  2002-07-19 12:55:27  daniel
+  Revision 1.28  2002-09-05 19:28:30  peter
+    * removed repetitive pass counting
+    * display heapsize also for extdebug
+
+  Revision 1.27  2002/07/19 12:55:27  daniel
   * Further developed state tracking in whilerepeatn
 
   Revision 1.26  2002/07/19 11:41:36  daniel

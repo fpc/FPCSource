@@ -179,6 +179,13 @@ implementation
 uses
   aasmcpu;
 
+{$ifdef EXTDEBUG}
+  {$define SHOWUSEDMEM}
+{$endif}
+{$ifdef MEMDEBUG}
+  {$define SHOWUSEDMEM}
+{$endif}
+
 var
   CompilerInitedAfterArgs,
   CompilerInited : boolean;
@@ -194,22 +201,7 @@ begin
 end;
 {$endif USEEXCEPT}
 
-{$ifdef EXTDEBUG}
-{$ifdef FPC}
-  Var
-    LostMemory : longint;
-  Procedure CheckMemory(LostMemory : longint);
-  begin
-    if LostMemory<>0 then
-      begin
-        Writeln('Memory Lost = '+tostr(LostMemory));
-{$ifdef DEBUG}
-        def_gdb_stop(V_Warning);
-{$endif DEBUG}
-      end;
-  end;
-{$endif FPC}
-{$endif EXTDEBUG}
+
 {****************************************************************************
                                 Compiler
 ****************************************************************************}
@@ -374,17 +366,9 @@ begin
    Compile:=1;
 
   DoneVerbose;
-{$ifdef EXTDEBUG}
-  {$ifdef FPC}
-    LostMemory:=system.HeapSize-MemAvail-EntryMemUsed;
-    CheckMemory(LostMemory);
-  {$endif FPC}
-  Writeln('Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
-  Writeln('Repetitive resulttypepass = ',multiresulttypepasscnt,'/',resulttypepasscnt);
-{$endif EXTDEBUG}
-{$ifdef MEMDEBUG}
-  Writeln('Memory used: ',system.Heapsize);
-{$endif}
+{$ifdef SHOWUSEDMEM}
+  Writeln('Memory used (heapsize): ',DStr(system.Heapsize shr 10),' Kb');
+{$endif SHOWUSEDMEM}
 {$ifdef fixLeaksOnError}
   do_stop{$ifdef FPCPROCVAR}(){$endif};
 {$endif fixLeaksOnError}
@@ -393,7 +377,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  2002-08-17 09:23:34  florian
+  Revision 1.35  2002-09-05 19:28:31  peter
+    * removed repetitive pass counting
+    * display heapsize also for extdebug
+
+  Revision 1.34  2002/08/17 09:23:34  florian
     * first part of procinfo rewrite
 
   Revision 1.33  2002/07/26 21:15:37  florian

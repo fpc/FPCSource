@@ -200,11 +200,9 @@ interface
        stacksize    : longint;
 
 {$Ifdef EXTDEBUG}
-       total_of_firstpass,
-       firstpass_several : longint;
-{$ifdef FPC}
+  {$ifdef FPC}
        EntryMemUsed : longint;
-{$endif FPC}
+  {$endif FPC}
      { parameter switches }
        debugstop : boolean;
 {$EndIf EXTDEBUG}
@@ -1479,7 +1477,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2002-08-19 19:36:42  peter
+  Revision 1.66  2002-09-05 19:28:29  peter
+    * removed repetitive pass counting
+    * display heapsize also for extdebug
+
+  Revision 1.65  2002/08/19 19:36:42  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small
