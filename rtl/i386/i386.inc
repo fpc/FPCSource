@@ -823,6 +823,7 @@ begin
 {$else not SYSTEMDEBUG}
 procedure int_boundcheck;assembler;[public,alias: 'FPC_BOUNDCHECK'];
 {$endif not SYSTEMDEBUG}
+var dummy_to_force_stackframe_generation_for_trace: Longint;
 {
   called with:
     %ecx - value
@@ -872,7 +873,10 @@ end;
 
 {
   $Log$
-  Revision 1.53  1999-08-19 12:50:08  pierre
+  Revision 1.54  1999-09-15 13:04:04  jonas
+    * added dummy local var to boundcheck to force stackframe generation
+
+  Revision 1.53  1999/08/19 12:50:08  pierre
    * changes for fail support
 
   Revision 1.52  1999/08/18 10:43:31  pierre
