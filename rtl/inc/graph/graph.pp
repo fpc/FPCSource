@@ -864,6 +864,17 @@ var
     for y := y to y2 do Directputpixel(x,y)
   End;
 
+  Procedure DirectPutPixelClip(x,y: Integer);
+  { for thickwidth lines, because they may call DirectPutPixel for coords }
+  { outside the current viewport (bug found by CEC)                       }
+  Begin
+    If (Not ClipPixels) Or
+       ((X >= StartXViewPort) And (X <= (StartXViewPort + ViewWidth)) And
+        (Y >= StartYViewPort) And (Y <= (StartYViewPort + ViewHeight))) then
+      Begin
+        DirectPutPixel(x,y)
+      End
+  End;
 
   procedure LineDefault(X1, Y1, X2, Y2: Integer); {$ifndef fpc}far;{$endif fpc}
 
@@ -1014,25 +1025,25 @@ var
                   CurrentColor := OldCurrentColor;
              end;
           end
-         else
+        else
          { Thick width lines }
           begin
             { Draw the pixels }
-            for i := 1 to numpixels do
+             for i := 1 to numpixels do
                begin
                 { all depending on the slope, we can determine         }
                 { in what direction the extra width pixels will be put }
                 If Flag then
                   Begin
-                    DirectPutPixel(x-1,y);
-                    DirectPutPixel(x,y);
-                    DirectPutPixel(x+1,y);
+                    DirectPutPixelClip(x-1,y);
+                    DirectPutPixelClip(x,y);
+                    DirectPutPixelClip(x+1,y);
                   end
                 else
                   Begin
-                    DirectPutPixel(x, y-1);
-                    DirectPutPixel(x, y);
-                    DirectPutPixel(x, y+1);
+                    DirectPutPixelClip(x, y-1);
+                    DirectPutPixelClip(x, y);
+                    DirectPutPixelClip(x, y+1);
                   end;
                 if d < 0 then
                   begin
@@ -1099,7 +1110,7 @@ var
                           for while as well (JM)}
                          if LinePatterns[PixelCount and 15] = TRUE then
                            begin
-                                 DirectPutPixel(PixelCount,y2+i);
+                                 DirectPutPixelClip(PixelCount,y2+i);
                            end;
                      end;
               end;
@@ -1133,7 +1144,7 @@ var
                        { with predefined line patterns...                 }
                          if LinePatterns[PixelCount and 15] = TRUE then
                            begin
-                             DirectPutPixel(x1+i,PixelCount);
+                             DirectPutPixelClip(x1+i,PixelCount);
                            end;
                      end;
               end;
@@ -1206,20 +1217,20 @@ var
                             { with predefined line patterns...                 }
                             if LinePatterns[i and 15] = TRUE then
                               begin
-                                DirectPutPixel(x-1,y);
-                                DirectPutPixel(x,y);
-                                DirectPutPixel(x+1,y);
+                                DirectPutPixelClip(x-1,y);
+                                DirectPutPixelClip(x,y);
+                                DirectPutPixelClip(x+1,y);
                               end;
                           end
                        else
                           Begin
                             { compare if we should plot a pixel here , compare }
-                        { with predefined line patterns...                 }
+                            { with predefined line patterns...                 }
                             if LinePatterns[i and 15] = TRUE then
                              begin
-                               DirectPutPixel(x,y-1);
-                               DirectPutPixel(x,y);
-                               DirectPutPixel(x,y+1);
+                               DirectPutPixelClip(x,y-1);
+                               DirectPutPixelClip(x,y);
+                               DirectPutPixelClip(x,y+1);
                              end;
                           end;
                    if d < 0 then
@@ -1306,10 +1317,12 @@ var
 
   Procedure InternalEllipseDefault(X,Y: Integer;XRadius: word;
     YRadius:word; stAngle,EndAngle: word; pl: PatternLineProc); {$ifndef fpc}far;{$endif fpc}
+   Const ConvFac = Pi/180.0;
+
    var
     j, Delta, DeltaEnd: graph_float;
     NumOfPixels: longint;
-    ConvFac,TempTerm: graph_float;
+    TempTerm: graph_float;
     xtemp, ytemp, xp, yp, xm, ym, xnext, ynext,
       plxpyp, plxmyp, plxpym, plxmym: integer;
     BackupColor, DeltaAngle, TmpAngle, OldLineWidth: word;
@@ -1348,8 +1361,8 @@ var
      end;
    { for restoring after PatternLine }
    BackupColor := CurrentColor;
-   If xradius = 0 then inc(x);
-   if yradius = 0 then inc(y);
+   If xradius = 0 then inc(xradius);
+   if yradius = 0 then inc(yradius);
    { check if valid angles }
    stangle := stAngle mod 361;
    EndAngle := EndAngle mod 361;
@@ -1364,8 +1377,8 @@ var
    DeltaAngle:= EndAngle-StAngle;
    { approximate the number of pixels required by using the circumference }
    { equation of an ellipse.                                              }
-   { In the worst case, we have to calculate everything from the }
-   { quadrant, so divide the circumference value by 4 (JM)       }
+   { Changed this formula a it (trial and error), but the net result is that }
+   { less pixels have to be calculated now                                   }
    NumOfPixels:=Round(Sqrt(3)*sqrt(sqr(XRadius)+sqr(YRadius)));
    { Calculate the angle precision required }
    Delta := 90.0 / (NumOfPixels);
@@ -1373,7 +1386,6 @@ var
    XRadius:=(longint(XRadius)*10000) div XAspect;
    YRadius:=(longint(YRadius)*10000) div YAspect;
    { removed from inner loop to make faster }
-   ConvFac:=Pi/180.0;
    { store some arccall info }
    ArcCall.X := X;
    ArcCall.Y := Y;
@@ -1383,12 +1395,6 @@ var
    TempTerm := (EndAngle)*ConvFac;
    ArcCall.XEnd := round(XRadius*Cos(TempTerm)) + X;
    ArcCall.YEnd := round(YRadius*Sin(TempTerm+Pi)) + Y;
-   { otherwise we get an endless loop }
-{   If DeltaAngle = 0 Then
-     Begin
-       Line(X,Y,ArcCall.XStart,ArcCall.YStart);
-       exit
-     End;}
    { Always just go over the first 90 degrees. Could be optimized a   }
    { bit if StAngle and EndAngle lie in the same quadrant, left as an }
    { exercise for the reader :) (JM)                                  }
@@ -1448,7 +1454,6 @@ var
    Until j > (DeltaEnd);
   end;
 
-
   {********************************************************}
   { Procedure InternalEllipse()                            }
   {--------------------------------------------------------}
@@ -1469,11 +1474,13 @@ var
   {********************************************************}
 (*
 Procedure InternalEllipseDefault (x, y : integer;
-    xradius, yradius, stAngle, EndAngle : Word); far
+    xradius, yradius, stAngle, EndAngle : Word; pl: PatternLineProc); {$ifndef fpc} far; {$endif fpc}
 { Draw an ellipse arc. Crude but it works (anyone have a better one?) }
 Var
   aSqr, bSqr, twoaSqr, twobSqr, xa, ya, twoXbSqr, twoYaSqr, error : LongInt;
-  Alpha : graph_float;
+  Alpha, TempTerm : graph_float;
+  BackupColor: Word;
+  plxpyp, plxmyp, plxpym, plxmym: integer;
 const
   RadToDeg = 180/Pi;
 
@@ -1489,39 +1496,100 @@ Begin
    yp := y+ya;
    xm := x-xa;
    xp := x+xa;
+   plxpyp := maxint;
+   plxmyp := -maxint-1;
+   plxpym := maxint;
+   plxmym := -maxint-1;
    if LineInfo.Thickness = Normwidth then
      Begin
-       If (Alpha>=StAngle) And (Alpha<=EndAngle) then
-          PutPixel (xm,ym, CurrentColor);
-       If (180-Alpha>=StAngle) And (180-Alpha<=EndAngle) then
-          PutPixel (xm,yp, CurrentColor);
-       If (180+Alpha>=StAngle) And (180+Alpha<=EndAngle) then
-          PutPixel (xp,yp, CurrentColor);
-       If (360-Alpha>=StAngle) And (360-Alpha<=EndAngle) then
-          PutPixel (xp,ym, CurrentColor);
+       If (Alpha+270>=StAngle) And (Alpha+270<=EndAngle) then
+          Begin
+            plxmym := xm;
+            PutPixel (xm,ym, CurrentColor);
+          End;
+       If ((180+270)-Alpha>=StAngle) And ((180+270)-Alpha<=EndAngle) then
+          Begin
+            plxmyp := xm;
+            PutPixel (xm,yp, CurrentColor);
+          End;
+       If ((180+270)+Alpha>=StAngle) And ((180+270)+Alpha<=EndAngle) then
+          Begin
+            plxpyp := xp;
+            PutPixel (xp,yp, CurrentColor);
+          End;
+       If ((360+270)-Alpha>=StAngle) And ((360+270)-Alpha<=EndAngle) then
+          Begin
+            plxpym := xp;
+            PutPixel (xp,ym, CurrentColor);
+          End;
      end
    else
      Begin
-       If (Alpha>=StAngle) And (Alpha<=EndAngle) then
-          for i:=-1 to 1 do
-            for j:=-1 to 1 do
-              PutPixel (xm+i,ym+j, CurrentColor);
-       If (180-Alpha>=StAngle) And (180-Alpha<=EndAngle) then
-          for i:=-1 to 1 do
-            for j:=-1 to 1 do
-              PutPixel (xm+i,yp+j, CurrentColor);
-       If (180+Alpha>=StAngle) And (180+Alpha<=EndAngle) then
-          for i:=-1 to 1 do
-            for j:=-1 to 1 do
-              PutPixel (xp+i,yp+j, CurrentColor);
-       If (360-Alpha>=StAngle) And (360-Alpha<=EndAngle) then
-          for i:=-1 to 1 do
-            for j:=-1 to 1 do
-              PutPixel (xp+i,ym+j, CurrentColor);
+       If (Alpha+270>=StAngle) And (Alpha+270<=EndAngle) then
+         Begin
+           plxmym := xm + 1;
+           for i:=-1 to 1 do
+             for j:=-1 to 1 do
+               PutPixel (xm+i,ym+j, CurrentColor);
+         End;
+       If ((180+270)-Alpha>=StAngle) And ((180+270)-Alpha<=EndAngle) then
+         Begin
+           plxmyp := xm + 1;
+           for i:=-1 to 1 do
+             for j:=-1 to 1 do
+               PutPixel (xm+i,yp+j, CurrentColor);
+         End;
+       If ((180+270)+Alpha>=StAngle) And ((180+270)+Alpha<=EndAngle) then
+         Begin
+           plxpyp := xp - 1;
+           for i:=-1 to 1 do
+             for j:=-1 to 1 do
+               PutPixel (xp+i,yp+j, CurrentColor);
+         End;
+       If ((360+270)-Alpha>=StAngle) And ((360+270)-Alpha<=EndAngle) then
+         Begin
+           plxpym := xp - 1;
+           for i:=-1 to 1 do
+             for j:=-1 to 1 do
+               PutPixel (xp+i,ym+j, CurrentColor);
+         End;
      end;
+     If (xp <> xm) then
+       begin
+         CurrentColor := FillSettings.Color;
+         pl(plxmyp+1,plxpyp-1,yp);
+         pl(plxmym+1,plxpym-1,ym);
+         CurrentColor := BackupColor;
+       end;
 End;
 
 Begin
+  { check for an ellipse with negligable x and y radius }
+  If (xradius <= 1) and (yradius <= 1) then
+    begin
+      putpixel(x,y,CurrentColor);
+      ArcCall.X := X;
+      ArcCall.Y := Y;
+      ArcCall.XStart := X;
+      ArcCall.YStart := Y;
+      ArcCall.XEnd := X;
+      ArcCall.YEnd := Y;
+      exit;
+    end;
+  { for restoring after PatternLine }
+  BackupColor := CurrentColor;
+  If xradius = 0 then inc(xradius);
+  if yradius = 0 then inc(yradius);
+  { store arccall info }
+  ArcCall.x := x;
+  ArcCall.y := y;
+  TempTerm := StAngle*RadToDeg;
+  ArcCall.XStart := round(XRadius*Cos(TempTerm)) + X;
+  ArcCall.YStart := round(YRadius*Sin(TempTerm+Pi)) + Y;
+  TempTerm := EndAngle*RadToDeg;
+  ArcCall.XEnd := round(XRadius*Cos(TempTerm)) + X;
+  ArcCall.YEnd := round(YRadius*Sin(TempTerm+Pi)) + Y;
+
   StAngle:=StAngle MOD 361;
   EndAngle:=EndAngle MOD 361;
   StAngle := StAngle + 270;
@@ -1572,7 +1640,7 @@ Begin
     End;
   End;
 End;
-  *)
+*)
   procedure PatternLineDefault(x1,x2,y: integer); {$ifndef fpc}far;{$endif fpc}
   {********************************************************}
   { Draws a horizontal patterned line according to the     }
@@ -2877,7 +2945,12 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.32  1999-09-28 15:07:46  jonas
+  Revision 1.33  1999-10-17 10:20:13  jonas
+    * fixed clipping for thickwidth lines (bug 659)
+    * fixed the faster internalellipsedefault, but it doesn't plot
+      all pixels (there are gaps in the ellipses)
+
+  Revision 1.32  1999/09/28 15:07:46  jonas
     * fix for disposing font data because it can contain #0 chars
 
   Revision 1.31  1999/09/28 13:56:25  jonas
