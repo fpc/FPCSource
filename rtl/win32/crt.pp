@@ -64,6 +64,11 @@ var
   TextAttr: Byte;         { Current text attribute }
   WindMin: Word;          { Window upper left coordinates }
   WindMax: Word;          { Window lower right coordinates }
+  { FPC Specific for large screen support }
+  WinMinX,
+  WinMinY,
+  WinMaxX,
+  WinMaxY  : Longint;
 
 { Interface procedures }
 procedure AssignCrt(var F: Text);
@@ -112,7 +117,6 @@ var
     IsWindowsNT   : Boolean;
 
     SaveCursorSize: Longint;
-
 
 
 {
@@ -209,46 +213,6 @@ end;
 ****************************************************************************}
 
 
-Function WinMinX: Byte;
-{
-  Current Minimum X coordinate
-}
-Begin
-  WinMinX:=(WindMin and $ff)+1;
-End;
-
-
-
-Function WinMinY: Byte;
-{
-  Current Minimum Y Coordinate
-}
-Begin
-  WinMinY:=(WindMin shr 8)+1;
-End;
-
-
-
-Function WinMaxX: Byte;
-{
-  Current Maximum X coordinate
-}
-Begin
-  WinMaxX:=(WindMax and $ff)+1;
-End;
-
-
-
-Function WinMaxY: Byte;
-{
-  Current Maximum Y coordinate;
-}
-Begin
-  WinMaxY:=(WindMax shr 8) + 1;
-End;
-
-
-
 Function FullWin:boolean;
 {
   Full Screen 80x25? Window(1,1,80,25) is used, allows faster routines
@@ -343,6 +307,10 @@ Begin
   if (X1>X2) or (X2>ScreenWidth) or
      (Y1>Y2) or (Y2>ScreenHeight) then
    exit;
+  WinMinX:=X1;
+  WinMaxX:=X2;
+  WinMinY:=Y1;
+  WinMaxY:=Y2;
   WindMin:=((Y1-1) Shl 8)+(X1-1);
   WindMax:=((Y2-1) Shl 8)+(X2-1);
   GoToXY(1,1);
@@ -990,6 +958,10 @@ begin
   IsWindowsNT := (GetPlatformID = VER_PLATFORM_WIN32_NT);
   TurnMouseOff;
 
+  WinMinX:=1;
+  WinMinY:=1;
+  WinMaxX:=ScreenWidth;
+  WinMaxY:=ScreenHeight;
   WindMax := (ScreenWidth - 1) OR ((ScreenHeight - 1) SHL 8);
   DoingNumChars := false;
   DoingNumCode := 0;
@@ -1006,7 +978,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.8  2001-04-14 14:05:42  peter
+  Revision 1.9  2001-06-27 20:21:47  peter
+    * support large screens
+
+  Revision 1.8  2001/04/14 14:05:42  peter
     * fixed for stricter checking
 
   Revision 1.7  2001/04/10 21:28:36  peter

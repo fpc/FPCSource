@@ -123,6 +123,10 @@ Const
 Var
   CurrX,CurrY : Byte;
   OutputRedir, InputRedir : boolean; { is the output/input being redirected (not a TTY) }
+  WinMinX,
+  WinMinY,
+  WinMaxX,
+  WinMaxY : Longint;
 
 
 {*****************************************************************************
@@ -501,46 +505,6 @@ end;
 
 
 
-Function WinMinX: Longint;
-{
-  Current Minimum X coordinate
-}
-Begin
-  WinMinX:=(WindMin and $ff)+1;
-End;
-
-
-
-Function WinMinY: Longint;
-{
-  Current Minimum Y Coordinate
-}
-Begin
-  WinMinY:=(WindMin shr 8)+1;
-End;
-
-
-
-Function WinMaxX: Longint;
-{
-  Current Maximum X coordinate
-}
-Begin
-  WinMaxX:=(WindMax and $ff)+1;
-End;
-
-
-
-Function WinMaxY: Longint;
-{
-  Current Maximum Y coordinate;
-}
-Begin
-  WinMaxY:=(WindMax shr 8) + 1;
-End;
-
-
-
 Function FullWin:boolean;
 {
   Full Screen 80x25? Window(1,1,80,25) is used, allows faster routines
@@ -698,6 +662,10 @@ Begin
   if (X1>X2) or (X2>ScreenWidth) or
      (Y1>Y2) or (Y2>ScreenHeight) then
    exit;
+  WinMinX:=X1;
+  WinMaxX:=X2;
+  WinMinY:=Y1;
+  WinMaxY:=Y2;
   WindMin:=((Y1-1) Shl 8)+(X1-1);
   WindMax:=((Y2-1) Shl 8)+(X2-1);
   GoToXY(1,1);
@@ -762,17 +730,21 @@ Begin
    end
   else
    begin
-   { Tweak windmax so no scrolling happends }
+   { Tweak winmaxx and winmaxy so no scrolling happends }
      len:=WinMaxX-CurrX+1;
      IsLastLine:=false;
      if CurrY=WinMaxY then
       begin
-        inc(WindMax,$0203);
+        inc(WinMaxX,3);
+        inc(WinMaxY,2);
         IsLastLine:=true;
       end;
      ttySendStr(Space(len));
      if IsLastLine then
-      dec(WindMax,$0203);
+      begin
+        dec(WinMaxX,3);
+        dec(WinMaxY,2);
+      end;  
      ttyGotoXY(0,0);
    end;
 End;
@@ -1660,6 +1632,8 @@ Initialization
     (TTYName(TextRec(Input).Handle) <> TTYName(TextRec(Output).Handle)));
 { Get Size of terminal and set WindMax to the window }
   GetConsoleBuf;
+  WinMaxX:=ScreenWidth;
+  WinMaxY:=ScreenHeight;
   WindMax:=((ScreenHeight-1) Shl 8)+(ScreenWidth-1);
 {Get Current X&Y or Reset to Home}
   if OutputRedir then
@@ -1693,7 +1667,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.5  2001-03-21 16:07:03  jonas
+  Revision 1.6  2001-06-27 20:21:46  peter
+    * support large screens
+
+  Revision 1.5  2001/03/21 16:07:03  jonas
     * fixed problems when using together with graph (web bugs 1225 and 1441)
 
   Revision 1.4  2001/01/21 20:21:40  marco
