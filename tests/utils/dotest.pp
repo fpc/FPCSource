@@ -524,7 +524,7 @@ begin
      if Config.NeedCPU<>'' then
       begin
         Verbose(V_Debug,'Required compiler cpu: '+Config.NeedCPU);
-        Res:=GetCompilerVersion;
+        Res:=GetCompilerCPU;
         if Upper(Config.NeedCPU)<>Upper(CompilerCPU) then
          begin
            Verbose(V_Abort,'Compiler cpu wrong '+CompilerCPU+' <> '+Config.NeedCPU);
@@ -556,7 +556,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-12-03 22:59:10  florian
+  Revision 1.6  2000-12-04 22:06:25  peter
+    * fixed stupid c&p bug for CPU check
+
+  Revision 1.5  2000/12/03 22:59:10  florian
     * some problems for go32v2 fixed
 
 }
