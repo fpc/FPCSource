@@ -92,7 +92,7 @@ unit mmx;
                  cpuid
                  movl %edx,_edx
               end;
-              amd_3d_support:=(_edx and $80000000)<>0;
+              amd_3d_support:=(_edx and longint($80000000))<>0;
            end
          else
            { a cpu with without cpuid instruction supports never mmx }
@@ -127,7 +127,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:41  michael
+  Revision 1.3  2000-12-16 15:58:18  jonas
+    * removed warnings about possible range check errors
+
+  Revision 1.2  2000/07/13 11:33:41  michael
   + removed logs
- 
+
 }

@@ -950,7 +950,7 @@ implementation
          { we need the min_label always to choose between }
          { cmps and subs/decs                             }
          min_label:=case_get_min(nodes);
-         
+
          load_all_regvars(exprasmlist);
          { now generate the jumps }
          if opsize=S_Q then
@@ -1021,7 +1021,7 @@ implementation
                           genlinearlist(nodes)
                         else
                           begin
-                             if (dist>4*labels) then
+                             if (dist>4*cardinal(labels)) then
                                begin
                                   if labels>16 then
                                     gentreejmp(nodes)
@@ -1071,7 +1071,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-12-05 11:44:34  jonas
+  Revision 1.8  2000-12-16 15:58:18  jonas
+    * removed warnings about possible range check errors
+
+  Revision 1.7  2000/12/05 11:44:34  jonas
     + new integer regvar handling, should be much more efficient
 
   Revision 1.6  2000/11/29 00:30:49  florian

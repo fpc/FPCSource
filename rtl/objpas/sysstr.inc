@@ -118,7 +118,7 @@ end ;
     P1 = P2    = 0    }
 
 function CompareMemRange(P1, P2: Pointer; Length: cardinal): integer;
-var i: integer;
+var i: cardinal;
 begin
 i := 0;
 result := 0;
@@ -132,7 +132,7 @@ end ;
 
 function CompareMem(P1, P2: Pointer; Length: cardinal): Boolean;
 var
-  i: Integer;
+  i: cardinal;
 begin
   for i := 0 to Length - 1 do
   begin
@@ -280,7 +280,7 @@ end;
 
 function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;
 
-Var I : longint;
+Var I : cardinal;
 
 begin
   Result:=0;
@@ -306,7 +306,7 @@ end ;
 
 function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;
 
-Var I : longint;
+Var I : cardinal;
 
 begin
   Result:=0;
@@ -538,7 +538,7 @@ function IntToHex(Value: integer; Digits: integer): string;
 var i: integer;
 begin
  SetLength(result, digits);
- for i := 0 to digits - 1 do 
+ for i := 0 to digits - 1 do
   begin
    result[digits - i] := HexDigits[value and 15];
    value := value shr 4;
@@ -550,7 +550,7 @@ function IntToHex(Value: int64; Digits: integer): string;
 var i: integer;
 begin
  SetLength(result, digits);
- for i := 0 to digits - 1 do 
+ for i := 0 to digits - 1 do
   begin
    result[digits - i] := HexDigits[value and 15];
    value := value shr 4;
@@ -846,7 +846,7 @@ begin
                 ToAdd:=StringOfChar('0',Index)+ToAdd
               else
                 // + 1 to accomodate for - sign in length !!
-                Insert(StringOfChar('0',Index+1),toadd,2);  
+                Insert(StringOfChar('0',Index+1),toadd,2);
               end;
         'E' : begin
               CheckArg(vtExtended,true);
@@ -932,7 +932,7 @@ begin
   if fmtlen > 0 then
     Move(fmt,F[1],fmtlen);
   S:=Format (F,Args);
-  If Length(S)>Buflen then
+  If Cardinal(Length(S))>Buflen then
     Result:=Length(S)
   else
     Result:=Buflen;
@@ -1134,24 +1134,24 @@ begin
   If (Value<MinDateTime) or (Value>MaxDateTime) then
     Raise EConvertError.CreateFmt (SInvalidDateTime,[Value]);
   Result:=Value;
-end; 
+end;
 
 Function FloatToCurr (Const Value : Extended) : Currency;
 begin
-    
-end; 
+
+end;
 
 Function CurrToStr(Value: Currency): string;
 begin
-end; 
+end;
 
 function StrToCurr(const S: string): Currency;
 begin
-end; 
+end;
 
 function StrToBool(const S: string): Boolean;
 
-Var 
+Var
   Temp : String;
   D : Double;
   Code : word;
@@ -1167,14 +1167,14 @@ begin
     result:=false
   else
     Raise EConvertError.CreateFmt(SInvalidBoolean,[S]);
-end; 
+end;
 
 function BoolToStr(B: Boolean): string;
 begin
   If B then
     Result:='TRUE'
   else
-    Result:='FALSE'; 
+    Result:='FALSE';
 end;
 
 {==============================================================================}
@@ -1215,7 +1215,7 @@ Function LastDelimiter(const Delimiters, S: string): Integer;
 
 begin
   Result:=Length(S);
-  While (Result>0) and (Pos(S[Result],Delimiters)=0) do 
+  While (Result>0) and (Pos(S[Result],Delimiters)=0) do
     Dec(Result);
 end;
 
@@ -1277,7 +1277,10 @@ const
 
 {
   $Log$
-  Revision 1.9  2000-12-07 21:58:30  michael
+  Revision 1.10  2000-12-16 15:58:18  jonas
+    * removed warnings about possible range check errors
+
+  Revision 1.9  2000/12/07 21:58:30  michael
   + Merged lastdelimiter from fixbranch
 
   Revision 1.8  2000/12/06 22:55:29  michael

@@ -361,7 +361,7 @@ Begin
                                 Paicpu(p)^.opcode := A_AND;
                                 l := (1 shl (Paicpu(p)^.oper[0].val))-1;
                                 Case Paicpu(p)^.opsize Of
-                                  S_L: Paicpu(p)^.LoadConst(0,l Xor $ffffffff);
+                                  S_L: Paicpu(p)^.LoadConst(0,l Xor longint($ffffffff));
                                   S_B: Paicpu(p)^.LoadConst(0,l Xor $ff);
                                   S_W: Paicpu(p)^.LoadConst(0,l Xor $ffff);
                                 End;
@@ -377,7 +377,7 @@ Begin
                                   Case Paicpu(p)^.opsize Of
                                     S_B: Paicpu(p)^.LoadConst(0,l Xor $ff);
                                     S_W: Paicpu(p)^.LoadConst(0,l Xor $ffff);
-                                    S_L: Paicpu(p)^.LoadConst(0,l Xor $ffffffff);
+                                    S_L: Paicpu(p)^.LoadConst(0,l Xor longint($ffffffff));
                                   End;
                                   AsmL^.remove(hp1);
                                   dispose(hp1, done);
@@ -2000,7 +2000,10 @@ End.
 
 {
   $Log$
-  Revision 1.4  2000-11-29 00:30:49  florian
+  Revision 1.5  2000-12-16 16:00:12  jonas
+    * removed warnings about possible range check errors
+
+  Revision 1.4  2000/11/29 00:30:49  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
