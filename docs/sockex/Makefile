@@ -32,7 +32,7 @@ endif
 
 .PHONY: all tex clean
 
-OBJECTS=sock_cli sock_svr pfinger
+OBJECTS=sockcli socksvr pfinger
 
 TEXOBJECTS=$(addsuffix .tex, $(OBJECTS))
 

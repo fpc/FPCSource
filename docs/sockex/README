@@ -3,5 +3,5 @@ These are the example programs that appear in the FPC documentation.
 Units guide, chapter on Sockets unit :
 
 Example programs
-sock_svr.pp implements a small server application.
-sock_cli.pp implements a small client application.
+socksvr.pp implements a small server application.
+sockcli.pp implements a small client application.
