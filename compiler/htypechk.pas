@@ -595,15 +595,21 @@ implementation
            (ld^.deftype=recorddef) or
            (rd^.deftype=recorddef) or
            ((rd^.deftype=pointerdef) and
-            not(is_pchar(rd) and (treetyp=addn)) and
+            not(is_pchar(rd) and
+                (is_chararray(ld) or
+                 (ld^.deftype=stringdef) or
+                 (treetyp=addn))) and
             (not(ld^.deftype in [pointerdef,objectdef,classrefdef,procvardef]) or
              not (treetyp in [equaln,unequaln,gtn,gten,ltn,lten,subn])
             ) and
             (not is_integer(ld) or not (treetyp in [addn,subn]))
            ) or
            ((ld^.deftype=pointerdef) and
-            not(is_pchar(ld) and (treetyp=addn)) and
-            (not(rd^.deftype in [pointerdef,objectdef,classrefdef,procvardef]) and
+            not(is_pchar(ld) and
+                (is_chararray(rd) or
+                 (rd^.deftype=stringdef) or
+                 (treetyp=addn))) and
+            (not(rd^.deftype in [stringdef,pointerdef,objectdef,classrefdef,procvardef]) and
              ((not is_integer(rd) and (rd^.deftype<>objectdef)
                and (rd^.deftype<>classrefdef)) or
               not (treetyp in [equaln,unequaln,gtn,gten,ltn,lten,addn,subn])
@@ -1121,7 +1127,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2000-06-11 07:00:21  peter
+  Revision 1.70  2000-06-18 19:41:19  peter
+    * fixed pchar<->[string,chararray] operations
+
+  Revision 1.69  2000/06/11 07:00:21  peter
     * fixed pchar->string conversion for delphi mode
 
   Revision 1.68  2000/06/06 20:25:43  pierre
