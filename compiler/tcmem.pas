@@ -485,25 +485,24 @@ implementation
               exit;
            end;
 
+         { are we accessing a pointer[], then convert the pointer to
+           an array first }
+         if (p^.left^.resulttype^.deftype=pointerdef) then
+           begin
+             { convert pointer to array }
+             harr:=new(parraydef,init(0,$7fffffff,s32bitdef));
+             parraydef(harr)^.elementtype.def:=ppointerdef(p^.left^.resulttype)^.pointertype.def;
+             p^.left:=gentypeconvnode(p^.left,harr);
+             firstpass(p^.left);
+             if codegenerror then
+               exit;
+             p^.resulttype:=parraydef(harr)^.elementtype.def
+           end;
+
          { determine return type }
          if not assigned(p^.resulttype) then
            if p^.left^.resulttype^.deftype=arraydef then
              p^.resulttype:=parraydef(p^.left^.resulttype)^.elementtype.def
-           else if (p^.left^.resulttype^.deftype=pointerdef) then
-             begin
-                { convert pointer to array }
-                harr:=new(parraydef,init(0,$7fffffff,s32bitdef));
-                parraydef(harr)^.elementtype.def:=ppointerdef(p^.left^.resulttype)^.pointertype.def;
-                p^.left:=gentypeconvnode(p^.left,harr);
-
-                firstpass(p^.left);
-
-                if codegenerror then
-                  begin
-                    exit;
-                  end;
-                p^.resulttype:=parraydef(harr)^.elementtype.def
-             end
            else if p^.left^.resulttype^.deftype=stringdef then
              begin
                 { indexed access to strings }
@@ -647,7 +646,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2000-03-23 16:29:32  jonas
+  Revision 1.45  2000-04-08 09:30:01  peter
+     * fixed pointer->array conversion when resulttype was already set
+
+  Revision 1.44  2000/03/23 16:29:32  jonas
     * real fix for web bug882
 
   Revision 1.43  2000/03/22 15:41:10  jonas
