@@ -29,14 +29,30 @@ ifndef TEST_OPT
 TEST_OPT=
 endif
 
+# Retrieve Test compiler info
+ifndef TEST_FPC_VERSION
+TEST_FPC_COMPILERINFO:=$(shell $(TEST_FPC) -iVSPTPSOTO)
+TEST_FPC_VERSION:=$(word 1,$(TEST_FPC_COMPILERINFO))
+endif
+export TEST_FPC TEST_FPC_VERSION TEST_FPC_COMPILERINFO
+ifneq ($(words $(TEST_FPC_COMPILERINFO)),5)
+TEST_FPC_COMPILERINFO+=$(shell $(TEST_FPC) -iSP)
+TEST_FPC_COMPILERINFO+=$(shell $(TEST_FPC) -iTP)
+TEST_FPC_COMPILERINFO+=$(shell $(TEST_FPC) -iSO)
+TEST_FPC_COMPILERINFO+=$(shell $(TEST_FPC) -iTO)
+endif
+ifndef TEST_CPU_SOURCE
+TEST_CPU_SOURCE:=$(word 2,$(TEST_FPC_COMPILERINFO))
+endif
 ifndef TEST_CPU_TARGET
-TEST_CPU_TARGET=$(CPU_TARGET)
+TEST_CPU_TARGET:=$(word 3,$(TEST_FPC_COMPILERINFO))
 endif
-
+ifndef TEST_OS_SOURCE
+TEST_OS_SOURCE:=$(word 4,$(TEST_FPC_COMPILERINFO))
+endif
 ifndef TEST_OS_TARGET
-TEST_OS_TARGET=$(OS_TARGET)
+TEST_OS_TARGET:=$(word 5,$(TEST_FPC_COMPILERINFO))
 endif
-
 
 ifndef TEST_CCOMPILER
 ifeq ($(CPU_TARGET),$(TEST_CPU_TARGET))
@@ -49,14 +65,6 @@ endif
 endif
 endif
 
-
-# FPC version (code copied from fpcmake.ini)
-ifndef TEST_FPC_VERSION
-# For 1.1 and up we can use a single compiler call to retrieve
-# all needed information
-TEST_FPC_COMPILERINFO:=$(shell $(TEST_FPC) -iVSPTPSOTO)
-TEST_FPC_VERSION:=$(word 1,$(TEST_FPC_COMPILERINFO))
-endif
 
 ################################
 # Misc
@@ -132,7 +140,7 @@ endif
 
 units:
         $(MAKE) -C units FPC=$(TEST_FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) \
-                         OPT="$(TEST_OPT)" CCOMPILER=$(TEST_CCOMPILER)
+                         OPT="$(TEST_OPT)" CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
 
 ################################
 # Copy test environment dependent files ctest.o to test/cg etc
@@ -163,6 +171,24 @@ endif
 
 ifneq ($(OS_TARGET),$(TEST_OS_TARGET)) 
 override DOTESTOPT+=-Y-T$(TEST_OS_TARGET)
+endif
+ifneq ($(OS_TARGET),$(TEST_BINUTILSPREFIX)) 
+override DOTESTOPT+=-Y-XP$(TEST_BINUTILSPREFIX)
+endif
+ifdef TEST_RSH
+override DOTESTOPT+=-R$(TEST_RSH)
+endif
+ifdef TEST_SSH
+override DOTESTOPT+=-R$(TEST_SSH) -S
+endif
+ifdef TEST_REMOTEPATH
+override DOTESTOPT+=-P$(TEST_REMOTEPATH)
+endif
+ifdef TEST_DELTEMP
+override DOTESTOPT+=-T
+endif
+ifdef TEST_VERBOSE
+override DOTESTOPT+=-V
 endif
 
 ifdef TEST_OPT

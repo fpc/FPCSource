@@ -112,6 +112,7 @@ Const
 
 var
   FIN,FOUT,FERR     : ^File;
+  RedirStdErrToStdOut,
   RedirChangedOut,
   RedirChangedIn    : Boolean;
   RedirChangedError : Boolean;
@@ -417,7 +418,8 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
     ChangeRedirError:=False;
     If Redir = '' then
       Exit;
-    if Redir='stdout' then
+    RedirStdErrToStdOut:=(Redir='stdout');
+    if RedirStdErrToStdOut then
       begin
         PF:=FOut;
       end
@@ -635,7 +637,9 @@ end;
     {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(TempHError,StdErrorHandle);
 {$endif not win32}
 {$endif}
-    Close (FERR^);
+    { don't close when redirected to STDOUT }
+    if not RedirStdErrToStdOut then
+      Close (FERR^);
     {$ifdef ver1_0}fdclose{$else}fpclose{$endif}(TempHError);
     RedirChangedError:=false;
   end;
@@ -983,7 +987,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.17  2004-05-03 14:48:51  peter
+  Revision 1.18  2004-05-16 20:13:04  peter
+    * remote execute updates, see readme.txt
+
+  Revision 1.17  2004/05/03 14:48:51  peter
     * support redir from stderr to stdout so the same file can be used
 
   Revision 1.16  2003/10/14 08:30:37  peter

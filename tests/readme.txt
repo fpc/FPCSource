@@ -85,12 +85,14 @@ This differentiation also enables cross testing.
 The following test options can be given:
 
 TEST_FPC               defaults to FPC
-TEST_OS_TARGET         defaults to OS_TARGET
-TEST_CPU_TARGET        defaults to CPU_TARGET
+TEST_OS_TARGET         defaults to default target of TEST_FPC
+TEST_CPU_TARGET        defaults to default target of TEST_FPC
 TEST_OPT               defaults to ""
 TEST_FPC_VERSION       defaults to version of TEST_FPC
 TEST_CCOMPILER         defaults to installed gcc compiler, but only
                        if driver and test full-targets are the same.
+TEST_VERBOSE           let dotest be more verbose, only usefull for debugging
+TEST_DELTEMP           delete temporary executable/object/ppu file, default is off
 
   (Please add more test options if needed)
 
@@ -103,11 +105,18 @@ all other directories belongs to the test environment.
 Remote execution
 ----------------
 Also remote execution of the testsuite is possible
+
 Requirements:
-- current build tree contains a cross compiled rtl/fcl
-- the cross compiler is installed works without passing extra parameters
-- the tests tree is somewhere on the remote machine e.g. /mnt/cf/fpc/tests
-- some dir, e.g. i386-utils contains a dotest executable for the host system
-- ssh must work without keyboard interaction or extra parameters
-then a example make command could be
-make DOTEST=i386-utils/dotest FPC=ppcarm "DOTESTOPT=-Y-XParm-linux- -Rroot@192.168.44.9 -P/mnt/cf/fpc/tests -T"
+- rsh/ssh must work without keyboard interaction or extra parameters
+
+Test options:
+TEST_RSH             set this to the hostname when you want to use rsh/rcp
+                     to execute/copy the test
+TEST_SSH             set this to use ssh/scp to execute the test  
+TEST_REMOTEPATH      set remote path to use, default is /tmp
+TEST_DELTEMP         delete executable after running, so the remote system
+                     doesn't need much free disk space
+Example:
+
+make TEST_FPC=$HOME/fpc/compiler/ppcsparc TEST_BINUTILSPREFIX=sparc-linux- TEST_RSH=sunny TEST_REMOTEPATH=/tmp/tests
+make TEST_FPC=$HOME/fpc/compiler/ppcsparc TEST_BINUTILSPREFIX=sparc-linux- TEST_SSH=fpc@sunny TEST_REMOTEPATH=/tmp/tests

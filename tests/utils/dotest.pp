@@ -26,6 +26,8 @@ type
   tcompinfo = (compver,comptarget,compcpu);
 
 const
+  ObjExt='o';
+  PPUExt='ppu';
 {$ifdef UNIX}
   ExeExt='';
 {$else UNIX}
@@ -54,8 +56,10 @@ const
   ExtraCompilerOpts : string = '';
   DelExecutable : boolean = false;
   RemoteAddr : string = '';
-  RemotePath : string = '';
-
+  RemotePath : string = '/tmp';
+  rshprog : string = 'rsh';
+  rcpprog : string = 'rcp';
+  
 Function FileExists (Const F : String) : Boolean;
 {
   Returns True if the file exists, False if not.
@@ -156,6 +160,17 @@ begin
 end;
 
 
+Function SplitFileName(const s:string):string;
+var
+  p : dirstr;
+  n : namestr;
+  e : extstr;
+begin
+  FSplit(s,p,n,e);
+  SplitFileName:=n+e;
+end;
+
+
 function ForceExtension(Const HStr,ext:String):String;
 {
   Return a filename which certainly has the extension ext
@@ -173,6 +188,18 @@ begin
   else
    ForceExtension:=Copy(Hstr,1,j-1);
 end;
+
+
+    Function RemoveFile(const f:string):boolean;
+      var
+        g : file;
+      begin
+        assign(g,f);
+        {$I-}
+         erase(g);
+        {$I+}
+        RemoveFile:=(ioresult=0);
+      end;
 
 
 procedure Copyfile(const fn1,fn2:string;append:boolean);
@@ -490,37 +517,41 @@ end;
 function RunExecutable:boolean;
 var
   outname,
-  TestExe : string;
+  TestRemoteExe,
+  TestExe  : string;
   execres  : boolean;
+  
+  function ExecuteRemote(const prog,args:string):boolean;
+  begin
+    Verbose(V_Debug,'RemoteExecuting '+Prog+' '+args);
+    ExecuteRemote:=ExecuteRedir(prog,args,'',OutName,'stdout');
+  end;
+  
 begin
   RunExecutable:=false;
   execres:=true;
   TestExe:=ForceExtension(PPFile,ExeExt);
   OutName:=ForceExtension(PPFile,'elg');
-  Verbose(V_Debug,'Executing '+TestExe);
   if RemoteAddr<>'' then
     begin
-      ExecuteRedir('ssh',RemoteAddr+' rm -f '+RemotePath+'/'+TestExe,'',OutName,'');
-      ExecuteRedir('scp',TestExe+' '+RemoteAddr+':'+RemotePath+'/'+TestExe,'',OutName,'');
-      { don't redirect interactive and graph programs .. }
-      if Config.IsInteractive or Config.UsesGraph then
-        ExecuteRedir(TestExe,'','','','')
-      else
-        ExecuteRedir('ssh',RemoteAddr+' '+RemotePath+'/'+TestExe,'',OutName,'');
-      if DelExecutable then
-        ExecuteRedir('ssh',RemoteAddr+' rm -f '+RemotePath+'/'+TestExe,'',OutName,'');
+      { We don't want to create subdirs, remove paths from the test }
+      TestRemoteExe:=RemotePath+'/'+SplitFileName(TestExe);
+      ExecuteRemote(rshprog,RemoteAddr+' rm -f '+TestRemoteExe);
+      ExecuteRemote(rcpprog,TestExe+' '+RemoteAddr+':'+TestRemoteExe);
+      execres:=ExecuteRemote(rshprog,RemoteAddr+' '+TestRemoteExe);
     end
   else
     begin
+      Verbose(V_Debug,'Executing '+TestExe);
       { don't redirect interactive and graph programs .. }
       if Config.IsInteractive or Config.UsesGraph then
         execres:=ExecuteRedir(TestExe,'','','','')
       else
-        execres:=ExecuteRedir(TestExe,'','',OutName,'');
+        execres:=ExecuteRedir(TestExe,'','',OutName,'stdout');
     end;
-  Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
 
   { Error during execution? }
+  Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
   if (not execres) and (ExecuteResult=0) then
     begin
       AddLog(FailLogFile,TestName);
@@ -562,6 +593,16 @@ begin
      AddLog(ResLogFile,successfully_run+PPFileInfo);
      RunExecutable:=true;
    end;
+   
+  if DelExecutable then
+    begin
+      Verbose(V_Debug,'Deleting executable '+TestExe);
+      if RemoteAddr<>'' then
+        ExecuteRemote(rshprog,RemoteAddr+' rm -f '+TestRemoteExe);
+      RemoveFile(TestExe);
+      RemoveFile(ForceExtension(TestExe,ObjExt));
+      RemoveFile(ForceExtension(TestExe,PPUExt));
+    end;  	
 end;
 
 
@@ -584,9 +625,10 @@ var
     writeln('  -G            include graph tests');
     writeln('  -K            include known bug tests');
     writeln('  -I            include interactive tests');
-    writeln('  -R<remote>    run the tests remotely with the given ssh address');
+    writeln('  -R<remote>    run the tests remotely with the given rsh/ssh address');
+    writeln('  -S            use ssh instead of rsh');
     writeln('  -P<path>      path to the tests tree on the remote machine');
-    writeln('  -T            remove executables after execution (applies only for remote tests)');
+    writeln('  -T            leave temporary files (executable,ppu,o)');
     writeln('  -Y<opts>      extra options passed to the compiler. Several -Y<opt> can be given.');
     halt(1);
   end;
@@ -639,7 +681,14 @@ begin
 
          'R' : RemoteAddr:=Para;
 
-         'T' : DelExecutable:=true;
+         'T' :
+	   DelExecutable:=true;
+	   
+	 'S' : 
+	   begin
+	     rshprog:='ssh';
+	     rcpprog:='scp';
+	   end;
         end;
      end
     else
@@ -651,6 +700,12 @@ begin
     end;
   if (PPFile='') then
    HelpScreen;
+  { disable graph,interactive when running remote } 
+  if RemoteAddr<>'' then
+    begin
+      DoGraph:=false;
+      DoInteractive:=false;
+    end;
   SetPPFileInfo;
   TestName:=Copy(PPFile,1,Pos('.pp',PPFile)-1);
   Verbose(V_Debug,'Running test '+TestName+', file '+PPFile);
@@ -857,7 +912,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2004-05-03 14:48:51  peter
+  Revision 1.35  2004-05-16 20:13:04  peter
+    * remote execute updates, see readme.txt
+
+  Revision 1.34  2004/05/03 14:48:51  peter
     * support redir from stderr to stdout so the same file can be used
 
   Revision 1.33  2004/05/02 09:31:52  peter
