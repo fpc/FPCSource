@@ -855,13 +855,20 @@ procedure TCgSparc.a_cmp_const_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:to
     a_jmp_cond(list,cmp_op,l);
   end;
 procedure TCgSparc.a_cmp_const_ref_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;a:aword;const ref:TReference;l:tasmlabel);
+  var
+    cReg,rReg:TRegister;
   begin
-    with List do
+    with cg do
       begin
-        Concat(taicpu.op_const(A_LD,a));
-        Concat(taicpu.op_ref(A_CMP,ref));
+        cReg:=get_scratch_reg_int(List,size);
+        rReg:=get_scratch_reg_int(List,size);
+        a_load_const_reg(List,OS_32,a,cReg);
+        a_load_ref_reg(List,OS_32,ref,rReg);
+        List.Concat(taicpu.op_reg_reg(A_CMP,rReg,cReg));
+        a_jmp_cond(list,cmp_op,l);
+        free_scratch_reg(List,cReg);
+        free_scratch_reg(List,rReg);
       end;
-    a_jmp_cond(list,cmp_op,l);
   end;
 
       procedure TCgSparc.a_cmp_reg_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;
@@ -873,14 +880,13 @@ procedure TCgSparc.a_cmp_const_ref_label(list:TAasmOutput;size:tcgsize;cmp_op:to
           list.concat(taicpu.op_reg_reg(A_CMP,regsize(reg1),reg1,reg2));
           a_jmp_cond(list,cmp_op,l);}
         end;
-
 procedure TCgSparc.a_cmp_ref_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;CONST ref:TReference;reg:tregister;l:tasmlabel);
   var
     TempReg:TRegister;
    begin
      TempReg:=cg.get_scratch_reg_int(List,size);
      a_load_ref_reg(list,OS_32,Ref,TempReg);
-     list.concat(taicpu.op_reg_reg(A_SUBcc,TempReg,Reg));
+     list.concat(taicpu.op_reg_reg_reg(A_SUBcc,TempReg,Reg,CpuReg[R_G0]));
      a_jmp_cond(list,cmp_op,l);
      cg.free_scratch_reg(exprasmlist,TempReg);
    end;
@@ -1438,7 +1444,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.44  2003-04-28 09:44:42  mazen
+  Revision 1.45  2003-04-29 11:58:21  mazen
+  * fixed bug of output generated assembler for a_cmp_const_ref_label
+
+  Revision 1.44  2003/04/28 09:44:42  mazen
   + NOP after conditional jump instruction to prevent delay slot execution
 
   Revision 1.43  2003/04/27 11:21:36  peter
