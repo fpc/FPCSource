@@ -1247,29 +1247,28 @@ implementation
       var
          hsym : tsym;
       begin
-         if assigned(next) then
+        { need to hide function result? }
+        hsym:=tsym(search(sym.name));
+        if assigned(hsym) then
           begin
-            if (next.symtabletype=parasymtable) then
-             begin
-               hsym:=tsym(next.search(sym.name));
-               if assigned(hsym) then
-                begin
-                  { a parameter and the function can have the same
-                    name in TP and Delphi, but RESULT not }
-                  if (m_duplicate_names in aktmodeswitches) and
-                     (sym.typ in [absolutesym,varsym]) and
-                     (vo_is_funcret in tvarsym(sym).varoptions) and
-                     not((m_result in aktmodeswitches) and
-                         (vo_is_result in tvarsym(sym).varoptions)) then
-                   sym.name:='hidden'+sym.name
-                  else
-                   begin
-                     DuplicateSym(hsym);
-                     exit;
-                   end;
-                end;
-             end;
+            { a local and the function can have the same
+              name in TP and Delphi, but RESULT not }
+            if (m_duplicate_names in aktmodeswitches) and
+               (hsym.typ in [absolutesym,varsym]) and
+               (vo_is_funcret in tvarsym(hsym).varoptions) and
+               not((m_result in aktmodeswitches) and
+                   (vo_is_result in tvarsym(hsym).varoptions)) then
+              hsym.owner.rename(hsym.name,'hidden'+hsym.name)
+            else
+              begin
+                DuplicateSym(hsym);
+                exit;
+              end;
+          end;
 
+        if assigned(next) and
+           (next.symtabletype=parasymtable) then
+          begin
             { check for duplicate id in local symtable of methods }
             if assigned(next.next) and
                { funcretsym is allowed !! }
@@ -2420,7 +2419,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  2003-05-15 18:58:53  peter
+  Revision 1.101  2003-05-16 14:32:58  peter
+    * fix dup check for hiding the result varsym in localst, the result
+      sym was already in the localst when adding the locals
+
+  Revision 1.100  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction
