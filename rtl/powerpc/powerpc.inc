@@ -45,8 +45,6 @@ asm
   mtfsb0 22
   mtfsb0 23
   
-  { round .5-cases towards +infinity }
-  mtfsb1 30
 {$endif fpc_mtfsb0_corrected}
 
   { enable invalid operations and division by zero exceptions. }
@@ -1140,7 +1138,11 @@ end;
 
 {
   $Log$
-  Revision 1.71  2004-10-24 14:43:26  jonas
+  Revision 1.72  2004-11-08 08:54:51  jonas
+    * use "round to nearest" rounding mode again, just like C (affects
+      results of divisions as well)
+
+  Revision 1.71  2004/10/24 14:43:26  jonas
     * fixed redzone usage in fillchar
 
   Revision 1.70  2004/10/24 14:20:21  jonas
