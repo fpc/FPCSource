@@ -416,6 +416,7 @@ interface
           { saves a definition to the return type }
           rettype         : ttype;
           para            : tparalinkedlist;
+          selfpara        : tparaitem;
           proctypeoption  : tproctypeoption;
           proccalloption  : tproccalloption;
           procoptions     : tprocoptions;
@@ -428,7 +429,7 @@ interface
           destructor destroy;override;
           procedure  ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
-          procedure concatpara(const tt:ttype;sym : tsym;vsp : tvarspez;defval:tsym);
+          function  concatpara(const tt:ttype;sym : tsym;vsp : tvarspez;defval:tsym):tparaitem;
           function  para_size(alignsize:longint) : longint;
           function  typename_paras : string;
           procedure test_if_fpu_result;
@@ -3017,6 +3018,7 @@ implementation
       begin
          inherited create;
          para:=TParaLinkedList.Create;
+         selfpara:=nil;
          minparacount:=0;
          maxparacount:=0;
          proctypeoption:=potype_none;
@@ -3036,7 +3038,7 @@ implementation
       end;
 
 
-    procedure tabstractprocdef.concatpara(const tt:ttype;sym : tsym;vsp : tvarspez;defval:tsym);
+    function tabstractprocdef.concatpara(const tt:ttype;sym : tsym;vsp : tvarspez;defval:tsym):tparaitem;
       var
         hp : TParaItem;
       begin
@@ -3053,6 +3055,7 @@ implementation
             inc(minparacount);
            inc(maxparacount);
          end;
+        concatpara:=hp;
       end;
 
 
@@ -3094,6 +3097,7 @@ implementation
       begin
          inherited ppuloaddef(ppufile);
          Para:=TParaLinkedList.Create;
+         selfpara:=nil;
          minparacount:=0;
          maxparacount:=0;
          ppufile.gettype(rettype);
@@ -5553,7 +5557,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.119  2002-12-29 18:25:59  peter
+  Revision 1.120  2003-01-02 19:49:00  peter
+    * update self parameter only for methodpointer and methods
+
+  Revision 1.119  2002/12/29 18:25:59  peter
     * tprocdef.gettypename implemented
 
   Revision 1.118  2002/12/27 15:23:09  peter

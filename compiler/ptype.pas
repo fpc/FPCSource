@@ -615,6 +615,7 @@ implementation
                     consume(_OF);
                     consume(_OBJECT);
                     include(tprocvardef(tt.def).procoptions,po_methodpointer);
+                    check_self_para(tprocvardef(tt.def));
                   end;
               end;
             _FUNCTION:
@@ -642,7 +643,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2002-12-21 13:07:34  peter
+  Revision 1.48  2003-01-02 19:49:00  peter
+    * update self parameter only for methodpointer and methods
+
+  Revision 1.47  2002/12/21 13:07:34  peter
     * type redefine fix for tb0437
 
   Revision 1.46  2002/11/25 17:43:23  peter

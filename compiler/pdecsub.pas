@@ -41,6 +41,7 @@ interface
 
     function  is_proc_directive(tok:ttoken):boolean;
 
+    procedure check_self_para(aktprocdef:tabstractprocdef);
     procedure parameter_dec(aktprocdef:tabstractprocdef);
 
     procedure parse_proc_directives(var pdflags:word);
@@ -154,6 +155,32 @@ implementation
       end;
 
 
+    procedure check_self_para(aktprocdef:tabstractprocdef);
+      var
+        hpara : tparaitem;
+      begin
+        hpara:=aktprocdef.selfpara;
+        if assigned(hpara) and
+           (
+            ((aktprocdef.deftype=procvardef) and
+             (po_methodpointer in aktprocdef.procoptions)) or
+            ((aktprocdef.deftype=procdef) and
+             assigned(tprocdef(aktprocdef)._class))
+           ) then
+         begin
+           include(aktprocdef.procoptions,po_containsself);
+           if hpara.paratyp <> vs_value then
+             CGMessage(parser_e_self_call_by_value);
+           if (aktprocdef.deftype=procdef) then
+            begin
+              inc(procinfo.selfpointer_offset,tvarsym(hpara.parasym).address);
+              if compare_defs(hpara.paratype.def,tprocdef(aktprocdef)._class,nothingn)=te_incompatible then
+                CGMessage2(type_e_incompatible_types,hpara.paratype.def.typename,tprocdef(aktprocdef)._class.typename);
+            end;
+         end;
+      end;
+
+
     procedure parameter_dec(aktprocdef:tabstractprocdef);
       {
         handle_procvar needs the same changes
@@ -161,7 +188,6 @@ implementation
       var
         is_procvar : boolean;
         sc      : tsinglelist;
-        htype,
         tt      : ttype;
         arrayelementtype : ttype;
         hvs,
@@ -169,6 +195,7 @@ implementation
         srsym   : tsym;
         hs1 : string;
         varspez : Tvarspez;
+        hpara      : tparaitem;
         inserthigh : boolean;
         tdefaultvalue : tconstsym;
         defaultrequired : boolean;
@@ -218,41 +245,6 @@ implementation
           inserthigh:=false;
           tdefaultvalue:=nil;
           tt.reset;
-          { self is only allowed in procvars and class methods }
-          if (idtoken=_SELF) and
-             (is_procvar or
-              (assigned(procinfo._class) and is_class(procinfo._class))) then
-            begin
-              if varspez <> vs_value then
-                 CGMessage(parser_e_self_call_by_value);
-              if not is_procvar then
-               begin
-                 htype.setdef(procinfo._class);
-                 vs:=tvarsym.create('@',htype);
-                 vs.varspez:=vs_var;
-               { insert the sym in the parasymtable }
-                 tprocdef(aktprocdef).parast.insert(vs);
-                 inc(procinfo.selfpointer_offset,vs.address);
-               end
-              else
-               vs:=nil;
-              { must also be included for procvars to allow the proc2procvar }
-              { type conversions (po_containsself is in po_comp) (JM)        }
-              include(aktprocdef.procoptions,po_containsself);
-              consume(idtoken);
-              consume(_COLON);
-              single_type(tt,hs1,false);
-              { this must be call-by-value, but we generate already an }
-              { an error above if that's not the case (JM)             }
-              aktprocdef.concatpara(tt,vs,varspez,nil);
-              { check the types for procedures only }
-              if not is_procvar then
-               begin
-                 if compare_defs(tt.def,procinfo._class,nothingn)=te_incompatible then
-                   CGMessage2(type_e_incompatible_types,tt.def.typename,procinfo._class.typename);
-               end;
-            end
-          else
             begin
              { read identifiers and insert with error type }
                sc.reset;
@@ -371,7 +363,9 @@ implementation
                         currparast.insert(hvs);
                         vs.highvarsym:=hvs;
                       end;
-                     aktprocdef.concatpara(tt,vs,varspez,tdefaultvalue);
+                     hpara:=aktprocdef.concatpara(tt,vs,varspez,tdefaultvalue);
+                     if vs.name='SELF' then
+                      aktprocdef.selfpara:=hpara;
                      vs:=tvarsym(vs.listnext);
                    end;
                 end
@@ -382,7 +376,9 @@ implementation
                    begin
                      { don't insert a parasym, the varsyms will be
                        disposed }
-                     aktprocdef.concatpara(tt,nil,varspez,tdefaultvalue);
+                     hpara:=aktprocdef.concatpara(tt,nil,varspez,tdefaultvalue);
+                     if vs.name='SELF' then
+                      aktprocdef.selfpara:=hpara;
                      vs:=tvarsym(vs.listnext);
                    end;
                 end;
@@ -393,6 +389,10 @@ implementation
         if is_procvar then
           dummyst.free;
         sc.free;
+        { check for a self parameter, only for normal procedures. For
+          procvars we need to wait until the 'of object' is parsed }
+        if not is_procvar then
+          check_self_para(aktprocdef);
         { reset object options }
         dec(testcurobject);
         current_object_option:=old_object_option;
@@ -2120,7 +2120,10 @@ const
 end.
 {
   $Log$
-  Revision 1.99  2003-01-01 22:51:03  peter
+  Revision 1.100  2003-01-02 19:49:00  peter
+    * update self parameter only for methodpointer and methods
+
+  Revision 1.99  2003/01/01 22:51:03  peter
     * high value insertion changed so it works also when 2 parameters
       are passed
 
