@@ -544,7 +544,9 @@ begin
    end;
   readdata(l,4);
   if change_endian then
-   getlongint:=swap(l shr 16) or (longint(swap(l and $ffff)) shl 16)
+  { someone added swap(l : longint) in system unit
+   this broke the following code !! }
+   getlongint:=swap(word(l shr 16)) or (longint(swap(word(l and $ffff))) shl 16)
   else
    getlongint:=l;
   inc(entryidx,4);
@@ -752,7 +754,9 @@ end;
 procedure tppufile.putlongint(l:longint);
 begin
   if change_endian then
-   l:=swap(l shr 16) or (longint(swap(l and $ffff)) shl 16);
+  { someone added swap(l : longint) in system unit
+   this broke the following code !! }
+   l:=swap(word(l shr 16)) or (longint(swap(word(l and $ffff))) shl 16);
   putdata(l,4);
 end;
 
@@ -772,7 +776,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1998-09-24 23:49:14  peter
+  Revision 1.17  1998-10-14 10:45:08  pierre
+    * ppu problems for m68k fixed (at least in cross compiling)
+    * one last memory leak for sysamiga fixed
+    * the amiga RTL compiles now completely !!
+
+  Revision 1.16  1998/09/24 23:49:14  peter
     + aktmodeswitches
 
   Revision 1.15  1998/09/23 15:39:10  pierre

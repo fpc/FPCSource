@@ -740,6 +740,7 @@ implementation
 +           if porddef(p^.left^.resulttype)^.typ=u32bit then
 +             exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IQ,r)))
 +           else}
+          clear_location(p^.location);
           p^.location.loc := LOC_FPU;
           { get floating point register. }
           if (cs_fp_emulation in aktmoduleswitches) then
@@ -812,6 +813,7 @@ implementation
          case p^.left^.location.loc of
             LOC_FPU :  begin
                          { reload }
+                         clear_location(p^.location);
                          p^.location.loc := LOC_FPU;
                          p^.location.fpureg := p^.left^.location.fpureg;
                        end;
@@ -1394,7 +1396,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-10-13 16:50:06  pierre
+  Revision 1.8  1998-10-14 10:45:05  pierre
+    * ppu problems for m68k fixed (at least in cross compiling)
+    * one last memory leak for sysamiga fixed
+    * the amiga RTL compiles now completely !!
+
+  Revision 1.7  1998/10/13 16:50:06  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

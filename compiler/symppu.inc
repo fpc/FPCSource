@@ -203,10 +203,10 @@
 
        { open ppufile }
          current_ppu:=new(pppufile,init(s));
-         current_ppu^.change_endian:=source_os.endian<>target_os.endian;
          if not current_ppu^.create then
           Message(unit_f_ppu_cannot_write);
 
+         current_ppu^.change_endian:=source_os.endian<>target_os.endian;
        { write symbols and definitions }
          unittable^.writeasunit;
 
@@ -443,7 +443,12 @@
 
 {
   $Log$
-  Revision 1.20  1998-10-13 13:10:30  peter
+  Revision 1.21  1998-10-14 10:45:10  pierre
+    * ppu problems for m68k fixed (at least in cross compiling)
+    * one last memory leak for sysamiga fixed
+    * the amiga RTL compiles now completely !!
+
+  Revision 1.20  1998/10/13 13:10:30  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.19  1998/10/08 23:29:07  peter

@@ -631,6 +631,7 @@ unit files;
       { Open the ppufile }
         Message1(unit_u_ppu_name,ppufilename^);
         ppufile:=new(pppufile,init(ppufilename^));
+        ppufile^.change_endian:=source_os.endian<>target_os.endian;
         if not ppufile^.open then
          begin
            dispose(ppufile,done);
@@ -1007,7 +1008,12 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.59  1998-10-13 14:01:07  peter
+  Revision 1.60  1998-10-14 10:45:07  pierre
+    * ppu problems for m68k fixed (at least in cross compiling)
+    * one last memory leak for sysamiga fixed
+    * the amiga RTL compiles now completely !!
+
+  Revision 1.59  1998/10/13 14:01:07  peter
     * fixed -al
 
   Revision 1.58  1998/10/12 11:59:00  peter
