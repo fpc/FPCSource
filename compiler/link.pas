@@ -51,7 +51,7 @@ Type
        Procedure AddStaticLibrary(const S : String);
        Procedure AddSharedLibrary(const S : String);
        Function  FindLinker:String;      { Find linker, sets Name }
-       Function  DoExec(const command,para:string;info:boolean):boolean;
+       Function  DoExec(const command,para:string;info,useshell:boolean):boolean;
        Function  WriteResponseFile:Boolean;
        Function  MakeExecutable:boolean;
        Procedure MakeStaticLibrary(const path:string);
@@ -217,13 +217,16 @@ begin
 end;
 
 
-Function TLinker.DoExec(const command,para:string;info:boolean):boolean;
+Function TLinker.DoExec(const command,para:string;info,useshell:boolean):boolean;
 begin
   DoExec:=true;
   if not externlink then
    begin
      swapvectors;
-     shell(command+' '+para);
+     if useshell then
+      shell(command+' '+para)
+     else
+      exec(command,para); 
      swapvectors;
      if (dosexitcode<>0) then
       begin
@@ -349,7 +352,7 @@ begin
   Replace(s,'$EXE',exename);
   Replace(s,'$OPT',LinkOptions);
   Replace(s,'$RES',inputdir+LinkResName);
-  success:=DoExec(FindLinker,s,true);
+  success:=DoExec(FindLinker,s,true,false);
 
 {Bind}
   if target_info.target=target_os2 then
@@ -368,7 +371,7 @@ begin
         Message(exec_w_binder_not_found);
         externlink:=true;
       end;
-     DoExec(bindbin,'-k'+s+' -o '+exename+'.exe '+exename+' -aim -s'+s2,false);
+     DoExec(bindbin,'-k'+s+' -o '+exename+'.exe '+exename+' -aim -s'+s2,false,false);
    end;
 {Remove ReponseFile}
   if (success) and (not externlink) then
@@ -397,7 +400,7 @@ begin
      Message(exec_w_ar_not_found);
      externlink:=true;
    end;
-  DoExec(arbin,'rs '+staticlibname+' '+FixPath(path)+'*'+target_info.objext,false);
+  DoExec(arbin,'rs '+staticlibname+' '+FixPath(path)+'*'+target_info.objext,false,true);
 { Clean up }
   if (not writeasmfile) and (not externlink) then
    begin
@@ -421,15 +424,15 @@ end;
 
 Procedure TLinker.MakeSharedLibrary;
 begin
-  DoExec(FindLinker,' -shared -o '+sharedlibname+' link.res',false);
+  DoExec(FindLinker,' -shared -o '+sharedlibname+' link.res',false,false);
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.5  1998-05-04 20:19:54  peter
-    * small fix for go32v2
+  Revision 1.6  1998-05-06 09:26:49  peter
+    * fixed ld call with shell
 
   Revision 1.4  1998/05/04 17:54:25  peter
     + smartlinking works (only case jumptable left todo)
