@@ -2315,6 +2315,7 @@
          usedregisters_fpu:=$ffffffff;
 {$endif alpha}
          forwarddef:=true;
+         interfacedef:=false;
          _class := nil;
          code:=nil;
          count:=false;
@@ -2353,6 +2354,7 @@
          parast:=nil;
          localst:=nil;
          forwarddef:=false;
+         interfacedef:=false;
          lastref:=nil;
          lastwritten:=nil;
          defref:=nil;
@@ -3495,7 +3497,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.123  1999-05-27 19:45:02  peter
+  Revision 1.124  1999-05-31 16:42:33  peter
+    * interfacedef flag for procdef if it's defined in the interface, to
+      make a difference with 'forward;' directive forwarddef. Fixes 253
+
+  Revision 1.123  1999/05/27 19:45:02  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

@@ -403,7 +403,9 @@
           code : pointer;
           { true, if the procedure is only declared }
           { (forward procedure) }
-          forwarddef : boolean;
+          forwarddef,
+          { true if the procedure is declared in the interface }
+          interfacedef : boolean;
           { check the problems of manglednames }
           count      : boolean;
           is_used    : boolean;
@@ -517,7 +519,11 @@
 
 {
   $Log$
-  Revision 1.30  1999-05-27 19:45:04  peter
+  Revision 1.31  1999-05-31 16:42:35  peter
+    * interfacedef flag for procdef if it's defined in the interface, to
+      make a difference with 'forward;' directive forwarddef. Fixes 253
+
+  Revision 1.30  1999/05/27 19:45:04  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
