@@ -709,6 +709,12 @@ asm
     movl (%ebp), %eax
 end ['EAX'];
 {$endif}
+{$ifdef cpux86_64}
+{$define FPC_PreviousFramePointer_Implemented}
+asm
+    movq (%rbp), %rax
+end ['RAX'];
+{$endif}
 {$ifdef cpum68k}
 {$define FPC_PreviousFramePointer_Implemented}
 asm
@@ -2940,7 +2946,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.27  2004-01-01 15:30:04  jonas
+  Revision 1.28  2004-02-18 21:59:23  peter
+    * x86_64 added
+
+  Revision 1.27  2004/01/01 15:30:04  jonas
     * fixed PreviousFramePointer() for ppc
 
   Revision 1.26  2003/11/30 19:48:20  florian
