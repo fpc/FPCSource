@@ -128,6 +128,9 @@ begin
     begin
       WatchesCollection^.Insert(P);
       WatchesCollection^.Update;
+      { If not assigned(WatchesWindow) then
+        should we only open it the first time ?? PM }
+        DoShowWatches;
     end
   else
     dispose(P,Done);
@@ -136,7 +139,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2000-01-08 18:26:20  florian
+  Revision 1.11  2000-02-04 00:13:59  pierre
+   * AddWatch calls DoShowWatches
+
+  Revision 1.10  2000/01/08 18:26:20  florian
     + added a register window, doesn't work yet
 
   Revision 1.9  1999/09/22 16:18:19  pierre
