@@ -44,7 +44,7 @@ unit i_macos;
             smartext     : '.sl';
             unitext      : '.pput';
             unitlibext   : '.ppl';
-            asmext       : '.a';
+            asmext       : '.s';
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
@@ -57,9 +57,9 @@ unit i_macos;
             staticClibprefix : '';
             sharedClibprefix : '';
             Cprefix      : '';
-            newline      : #10;
+            newline      : #13;
             dirsep       : ':';
-            files_case_relevent : true;
+            files_case_relevent : false;
             assem        : as_powerpc_mpw;
             assemextern  : as_powerpc_mpw;
             link         : nil;
@@ -102,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2002-10-02 21:50:19  florian
+  Revision 1.5  2002-10-20 17:54:32  olle
+    * changed newline char, asm file ending and case sensitivity
+
+  Revision 1.4  2002/10/02 21:50:19  florian
     * importing via external is now possible for macos
 
   Revision 1.3  2002/10/02 21:29:34  florian
