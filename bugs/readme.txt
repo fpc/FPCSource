@@ -183,3 +183,4 @@ bug0132.pp   segmentation fault with type loop
 bug0133.pp   object type declaration not 100% compatibile with TP7
 bug0135.pp   Unsupported subrange type construction.
 bug0136.pp   No types necessary in the procedure header
+bug0137.pp   Cannot assign child object variable to parent objcet type variable
