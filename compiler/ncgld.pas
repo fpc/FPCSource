@@ -696,8 +696,10 @@ implementation
          end;
 
         if releaseright then
-          location_release(exprasmlist,right.location);
-        location_freetemp(exprasmlist,right.location);
+          begin
+            location_release(exprasmlist,right.location);
+            location_freetemp(exprasmlist,right.location);
+          end;
         location_release(exprasmlist,left.location);
 
         truelabel:=otlabel;
@@ -950,7 +952,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.118  2004-06-20 08:55:29  florian
+  Revision 1.119  2004-06-29 20:57:03  peter
+    * redundant freetemp removed
+
+  Revision 1.118  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.117  2004/06/16 20:07:08  florian
