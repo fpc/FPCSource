@@ -53,7 +53,7 @@ end;
 //function SIGCHLDHandler(Sig: longint): longint; cdecl;//this is std linux C declaration as function
 procedure SIGCHLDHandler(Sig: longint); cdecl;
 begin
-  {$ifdef ver1_0}waitpid{$else}fpwaitpid{$endif}(-1, nil, WNOHANG);
+  fpwaitpid(-1, nil, WNOHANG);
 end;
 
 procedure InitThreads;
@@ -74,11 +74,7 @@ begin
   Act^.sa_handler := @SIGCHLDHandler;
   Act^.sa_flags := SA_NOCLDSTOP {or SA_NOMASK or SA_RESTART};
   Fillchar(Act^.sa_mask,sizeof(Act^.sa_mask),0); //Do not block all signals ??. Don't need if SA_NOMASK in flags
-  {$ifdef ver1_0}
-  SigAction(SIGCHLD, Act, OldAct);
-  {$else}
   FpSigAction(SIGCHLD, @Act, @OldAct);
-  {$endif}
 
   FreeMem(Act, SizeOf(SigActionRec));
   FreeMem(OldAct, SizeOf(SigActionRec));
@@ -161,7 +157,7 @@ begin
   Thread.DoTerminate;
   if FreeThread then
     Thread.Free;
-  {$ifdef ver1_0}ExitProcess{$else}fpexit{$endif}(Result);
+  fpexit(Result);
 end;
 
 
@@ -195,7 +191,7 @@ begin
      WaitFor;
    end;
   if FHandle <> -1 then
-    {$ifdef ver1_0}Kill{$else}fpkill{$endif}(FHandle, SIGKILL);
+  fpkill(FHandle, SIGKILL);
   dec(FStackPointer,FStackSize);
   Freemem(FStackPointer);
   FFatalException.Free;
@@ -228,11 +224,8 @@ var
   P: Integer;
   I: TThreadPriority;
 begin
-  P := {$ifdef ver1_0}
-	 Linux.GetPriority(Prio_Process,FHandle);
-       {$else}
+  P := 
          Unix.fpGetPriority(Prio_Process,FHandle);
-       {$endif}
   Result := tpNormal;
   for I := Low(TThreadPriority) to High(TThreadPriority) do
     if Priorities[I] = P then
@@ -242,11 +235,7 @@ end;
 
 procedure TThread.SetPriority(Value: TThreadPriority);
 begin
-       {$ifdef ver1_0}
-	 Linux.SetPriority(Prio_Process,FHandle,Priorities[Value]);
-       {$else}
          Unix.fpSetPriority(Prio_Process,FHandle,Priorities[Value]);
-       {$endif}
 end;
 
 
@@ -272,14 +261,14 @@ end;
 
 procedure TThread.Suspend;
 begin
-  {$ifdef ver1_0}Kill{$else}fpkill{$endif}(FHandle, SIGSTOP);
+  fpkill(FHandle, SIGSTOP);
   FSuspended := true;
 end;
 
 
 procedure TThread.Resume;
 begin
-  {$ifdef ver1_0}Kill{$else}fpkill{$endif}(FHandle, SIGCONT);
+  fpkill(FHandle, SIGCONT);
   FSuspended := False;
 end;
 
@@ -294,15 +283,18 @@ var
   status : longint;
 begin
   if FThreadID = MainThreadID then
-   {$ifdef ver1_0}waitpid{$else}fpwaitpid{$endif}(0,@status,0)
+   fpwaitpid(0,@status,0)
   else
-   {$ifdef ver1_0}waitpid{$else}fpwaitpid{$endif}(FHandle,@status,0);
+   fpwaitpid(FHandle,@status,0);
   Result:=status;
 end;
 
 {
   $Log$
-  Revision 1.2  2003-11-03 09:42:28  marco
+  Revision 1.3  2003-11-10 16:54:28  marco
+   * new oldlinux unit. 1_0 defines killed in some former FCL parts.
+
+  Revision 1.2  2003/11/03 09:42:28  marco
    * Peter's Cardinal<->Longint fixes patch
 
   Revision 1.1  2003/10/06 21:01:06  peter

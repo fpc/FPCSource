@@ -5,11 +5,6 @@
    BSD parts (c) 2000 by Marco van de Voort
    members of the Free Pascal development team.
 
-   The old 1.0.x linux unit fixed to work under 1.1.x.
-   At the moment the errorhandling can be different.
-   Probably it won't be supported for anything else then FreeBSD
-   and Linux/i386.
-
    See the file COPYING.FPC, included in this distribution,
    for details about the copyright.
 
@@ -18,8 +13,6 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 **********************************************************************}
-
-// unit clause is linux or oldlinux depending on compiler version
 {$ifdef VER1_0}
 unit linux;
 {$else}
@@ -28,41 +21,889 @@ unit oldlinux;
 
 Interface
 
-Uses BaseUnix,Unix;
+Const
+  { Things for LSEEK call }
+  Seek_set = 0;
+  Seek_Cur = 1;
+  Seek_End = 2;
+  { Things for OPEN call - after linux/fcntl.h }
+  Open_Accmode   = 3;
+  Open_RdOnly    = 0;
+  Open_WrOnly    = 1;
+  Open_RdWr      = 2;
+  Open_Creat     = 1 shl 6;
+  Open_Excl      = 2 shl 6;
+  Open_NoCtty    = 4 shl 6;
+  Open_Trunc     = 1 shl 9;
+  Open_Append    = 2 shl 9;
+  Open_NonBlock  = 4 shl 9;
+  Open_NDelay    = Open_NonBlock;
+  Open_Sync      = 1 shl 12;
+  Open_Direct    = 4 shl 12;
+  Open_LargeFile = 1 shl 15; 
+  Open_Directory = 2 shl 15; 
+  Open_NoFollow  = 4 shl 15; 
+  { The waitpid uses the following options:}
+  Wait_NoHang   = 1;
+  Wait_UnTraced = 2;
+  Wait_Any      = -1;
+  Wait_MyPGRP   = 0;
+  Wait_Clone    = $80000000;
+  { Constants to check stat.mode }
+  STAT_IFMT   = $f000; {00170000}
+  STAT_IFSOCK = $c000; {0140000}
+  STAT_IFLNK  = $a000; {0120000}
+  STAT_IFREG  = $8000; {0100000}
+  STAT_IFBLK  = $6000; {0060000}
+  STAT_IFDIR  = $4000; {0040000}
+  STAT_IFCHR  = $2000; {0020000}
+  STAT_IFIFO  = $1000; {0010000}
+  STAT_ISUID  = $0800; {0004000}
+  STAT_ISGID  = $0400; {0002000}
+  STAT_ISVTX  = $0200; {0001000}
+  { Constants to check permissions }
+  STAT_IRWXO = $7;
+  STAT_IROTH = $4;
+  STAT_IWOTH = $2;
+  STAT_IXOTH = $1;
 
-{ Get Types and Constants }
-{$i sysconst.inc}
-//{$i systypes.inc}
+  STAT_IRWXG = STAT_IRWXO shl 3;
+  STAT_IRGRP = STAT_IROTH shl 3;
+  STAT_IWGRP = STAT_IWOTH shl 3;
+  STAT_IXGRP = STAT_IXOTH shl 3;
 
-{$i ptypes.inc}
-{$i ostypes.inc}
-{$i sysnr.inc}
-{$i syscallh.inc}
+  STAT_IRWXU = STAT_IRWXO shl 6;
+  STAT_IRUSR = STAT_IROTH shl 6;
+  STAT_IWUSR = STAT_IWOTH shl 6;
+  STAT_IXUSR = STAT_IXOTH shl 6;
+
+  { Constants to test the type of filesystem }
+  fs_old_ext2 = $ef51;
+  fs_ext2     = $ef53;
+  fs_ext      = $137d;
+  fs_iso      = $9660;
+  fs_minix    = $137f;
+  fs_minix_30 = $138f;
+  fs_minux_V2 = $2468;
+  fs_msdos    = $4d44;
+  fs_nfs      = $6969;
+  fs_proc     = $9fa0;
+  fs_xia      = $012FD16D;
+
+  { Constansts for MMAP }
+  MAP_PRIVATE   =2;
+  MAP_ANONYMOUS =$20;
+
+  {Constansts Termios/Ioctl (used in Do_IsDevice) }
+  IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
+
+type
+
+{
+ Linux system calls take arguments as follows :
+
+   cpui386/m68k:
+
+   %eax/%d0 : System call number
+   %ebx/%d1 : first argument
+   %ecx/%d2 : second argument
+   %edx/%d3 : third argumens
+   %esi/%d3 : fourth argument
+   %edi/%d4 : fifth argument
+
+  That is why we define a special type, with only these arguments
+  To make it processor independent, we don't give any system dependent
+  names, but the rather abstract reg1,reg2 etc;
+}
+  SysCallRegs=record
+    reg1,reg2,reg3,reg4,reg5,reg6 : longint;
+  end;
+  PSysCallRegs=^SysCallRegs;
+  TSysCallRegs=SysCallRegs;
+
+{ The following are records for system calls }
+  dirent = packed record
+    ino,
+    off    : longint;
+    reclen : word;
+    name   : array [0..255] of char;
+  end;
+  pdirent =^dirent;
+  TDirEnt = dirent;
+
+  TDir = packed record
+    fd     : integer;
+    loc    : longint;
+    size   : integer;
+    buf    : pdirent;
+  {The following are used in libc, but NOT in the linux kernel sources ??}
+    nextoff: longint;
+    dd_max : integer; {size of buf. Irrelevant, as buf is of type dirent}
+    lock   : pointer;
+  end;
+  PDir =^TDir;
+
+  dev_t	= word;
+
+  Stat = packed record
+    dev     : dev_t;		
+    pad1    : word;
+    ino     : longint;
+    mode,
+    nlink,
+    uid,
+    gid     : word;
+    rdev    : dev_t;
+    pad2    : word;
+    size,
+    blksze,
+    blocks,
+    atime,
+    unused1,
+    mtime,
+    unused2,
+    ctime,
+    unused3,
+    unused4,
+    unused5 : longint;
+  end;
+  PStat=^Stat;
+  TStat=Stat;
+
+  Statfs = packed record
+    fstype,            { File system type }
+    bsize,             { Optimal block trensfer size }
+    blocks,            { Data blocks in system }
+    bfree,             { free blocks in system }
+    bavail,            { Available free blocks to non-root users }
+    files,             { File nodes in system }
+    ffree,             { Free file nodes in system }
+    fsid,              { File system ID }
+    namelen : longint; { Maximum name length in system }
+    spare   : array [0..6] of longint; { For later use }
+  end;
+  PStatFS=^StatFS;
+  TStatFS=StatFS;
+
+  fdSet=array[0..7] of longint;{=256 bits}
+  pfdset=^fdset;
+  TFDSet=fdset;
+
+  timeval = packed record
+    sec,usec:longint
+  end;
+  ptimeval=^timeval;
+  TTimeVal=timeval;
+
+  timespec = packed record
+    tv_sec,tv_nsec:longint;
+  end;
+
+  timezone = packed record
+    minuteswest,dsttime:longint;
+  end;
+  ptimezone =^timezone;
+  TTimeZone = timezone;
+
+  utsname = packed record
+    sysname,
+    nodename,
+    release,
+    version,
+    machine,
+    domainname : Array[0..64] of char;
+  end;
+  PUTSName=^UTSName;
+  TUTSName=UTSName;
 
 { Get System call numbers and error-numbers}
-{$i errno.inc}
-{$I signal.inc}
 
-{$ifdef linux}
-{$IFNDEF VER1_0}                // ugly voodoo. Sacrifice a chicken and hope
-                                // that it works.
-Type stat=baseunix.tstat;
-{$ELSE}
+const 		
+ syscall_nr_setup			= 0;
+ syscall_nr_exit			= 1;
+ syscall_nr_fork			= 2;
+ syscall_nr_read			= 3;
+ syscall_nr_write			= 4;
+ syscall_nr_open			= 5;
+ syscall_nr_close			= 6;
+ syscall_nr_waitpid			= 7;
+ syscall_nr_creat			= 8;
+ syscall_nr_link			= 9;
+ syscall_nr_unlink			= 10;
+ syscall_nr_execve			= 11;
+ syscall_nr_chdir			= 12;
+ syscall_nr_time			= 13;
+ syscall_nr_mknod			= 14;
+ syscall_nr_chmod			= 15;
+ syscall_nr_chown			= 16;
+ syscall_nr_break			= 17;
+ syscall_nr_oldstat			= 18;
+ syscall_nr_lseek			= 19;
+ syscall_nr_getpid			= 20;
+ syscall_nr_mount			= 21;
+ syscall_nr_umount			= 22;
+ syscall_nr_setuid			= 23;
+ syscall_nr_getuid			= 24;
+ syscall_nr_stime			= 25;
+ syscall_nr_ptrace			= 26;
+ syscall_nr_alarm			= 27;
+ syscall_nr_oldfstat			= 28;
+ syscall_nr_pause			= 29;
+ syscall_nr_utime			= 30;
+ syscall_nr_stty			= 31;
+ syscall_nr_gtty			= 32;
+ syscall_nr_access			= 33;
+ syscall_nr_nice			= 34;
+ syscall_nr_ftime			= 35;
+ syscall_nr_sync			= 36;
+ syscall_nr_kill			= 37;
+ syscall_nr_rename			= 38;
+ syscall_nr_mkdir			= 39;
+ syscall_nr_rmdir			= 40;
+ syscall_nr_dup				= 41;
+ syscall_nr_pipe			= 42;
+ syscall_nr_times			= 43;
+ syscall_nr_prof			= 44;
+ syscall_nr_brk				= 45;
+ syscall_nr_setgid			= 46;
+ syscall_nr_getgid			= 47;
+ syscall_nr_signal			= 48;
+ syscall_nr_geteuid			= 49;
+ syscall_nr_getegid			= 50;
+ syscall_nr_acct			= 51;
+ syscall_nr_phys			= 52;
+ syscall_nr_lock			= 53;
+ syscall_nr_ioctl			= 54;
+ syscall_nr_fcntl			= 55;
+ syscall_nr_mpx				= 56;
+ syscall_nr_setpgid			= 57;
+ syscall_nr_ulimit			= 58;
+ syscall_nr_oldolduname			= 59;
+ syscall_nr_umask			= 60;
+ syscall_nr_chroot			= 61;
+ syscall_nr_ustat			= 62;
+ syscall_nr_dup2			= 63;
+ syscall_nr_getppid			= 64;
+ syscall_nr_getpgrp			= 65;
+ syscall_nr_setsid			= 66;
+ syscall_nr_sigaction			= 67;
+ syscall_nr_sgetmask			= 68;
+ syscall_nr_ssetmask			= 69;
+ syscall_nr_setreuid			= 70;
+ syscall_nr_setregid			= 71;
+ syscall_nr_sigsuspend			= 72;
+ syscall_nr_sigpending			= 73;
+ syscall_nr_sethostname			= 74;
+ syscall_nr_setrlimit			= 75;
+ syscall_nr_getrlimit			= 76;
+ syscall_nr_getrusage			= 77;
+ syscall_nr_gettimeofday		= 78;
+ syscall_nr_settimeofday		= 79;
+ syscall_nr_getgroups			= 80;
+ syscall_nr_setgroups			= 81;
+ syscall_nr_select			= 82;
+ syscall_nr_symlink			= 83;
+ syscall_nr_oldlstat			= 84;
+ syscall_nr_readlink			= 85;
+ syscall_nr_uselib			= 86;
+ syscall_nr_swapon			= 87;
+ syscall_nr_reboot			= 88;
+ syscall_nr_readdir			= 89;
+ syscall_nr_mmap			= 90;
+ syscall_nr_munmap			= 91;
+ syscall_nr_truncate			= 92;
+ syscall_nr_ftruncate			= 93;
+ syscall_nr_fchmod			= 94;
+ syscall_nr_fchown			= 95;
+ syscall_nr_getpriority			= 96;
+ syscall_nr_setpriority			= 97;
+ syscall_nr_profil			= 98;
+ syscall_nr_statfs			= 99;
+ syscall_nr_fstatfs			= 100;
+ syscall_nr_ioperm			= 101;
+ syscall_nr_socketcall			= 102;
+ syscall_nr_syslog			= 103;
+ syscall_nr_setitimer			= 104;
+ syscall_nr_getitimer			= 105;
+ syscall_nr_stat			= 106;
+ syscall_nr_lstat			= 107;
+ syscall_nr_fstat			= 108;
+ syscall_nr_olduname			= 109;
+ syscall_nr_iopl			= 110;
+ syscall_nr_vhangup			= 111;
+ syscall_nr_idle			= 112;
+ syscall_nr_vm86old			= 113;
+ syscall_nr_wait4			= 114;
+ syscall_nr_swapoff			= 115;
+ syscall_nr_sysinfo			= 116;
+ syscall_nr_ipc				= 117;
+ syscall_nr_fsync			= 118;
+ syscall_nr_sigreturn			= 119;
+ syscall_nr_clone			= 120;
+ syscall_nr_setdomainname		= 121;
+ syscall_nr_uname			= 122;
+ syscall_nr_modify_ldt			= 123;
+ syscall_nr_adjtimex			= 124;
+ syscall_nr_mprotect			= 125;
+ syscall_nr_sigprocmask			= 126;
+ syscall_nr_create_module		= 127;
+ syscall_nr_init_module			= 128;
+ syscall_nr_delete_module		= 129;
+ syscall_nr_get_kernel_syms		= 130;
+ syscall_nr_quotactl			= 131;
+ syscall_nr_getpgid			= 132;
+ syscall_nr_fchdir			= 133;
+ syscall_nr_bdflush			= 134;
+ syscall_nr_sysfs			= 135;
+ syscall_nr_personality			= 136;
+ syscall_nr_afs_syscall			= 137;
+ syscall_nr_setfsuid			= 138;
+ syscall_nr_setfsgid			= 139;
+ syscall_nr__llseek			= 140;
+ syscall_nr_getdents			= 141;
+ syscall_nr__newselect			= 142;
+ syscall_nr_flock			= 143;
+ syscall_nr_msync			= 144;
+ syscall_nr_readv			= 145;
+ syscall_nr_writev			= 146;
+ syscall_nr_getsid			= 147;
+ syscall_nr_fdatasync			= 148;
+ syscall_nr__sysctl			= 149;
+ syscall_nr_mlock			= 150;
+ syscall_nr_munlock			= 151;
+ syscall_nr_mlockall			= 152;
+ syscall_nr_munlockall			= 153;
+ syscall_nr_sched_setparam		= 154;
+ syscall_nr_sched_getparam		= 155;
+ syscall_nr_sched_setscheduler		= 156;
+ syscall_nr_sched_getscheduler		= 157;
+ syscall_nr_sched_yield			= 158;
+ syscall_nr_sched_get_priority_max	= 159;
+ syscall_nr_sched_get_priority_min	= 160;
+ syscall_nr_sched_rr_get_interval	= 161;
+ syscall_nr_nanosleep			= 162;
+ syscall_nr_mremap			= 163;
+ syscall_nr_setresuid			= 164;
+ syscall_nr_getresuid			= 165;
+ syscall_nr_vm86			= 166;
+ syscall_nr_query_module		= 167;
+ syscall_nr_poll			= 168;
+ syscall_nr_sigaltstack                 = 186;
+
+{$IFDEF SYSCALL_DEBUG}
+const
+  Sys_nr_txt : array[0..168] of string[15]=(
+   'Setup',		{   0 }
+   'Exit',		{   1 }
+   'Fork',		{   2 }
+   'Read',		{   3 }
+   'Write',		{   4 }
+   'Open',		{   5 }
+   'Close',		{   6 }
+   'WaitPid',		{   7 }
+   'Create',		{   8 }
+   'Link',		{   9 }
+   'UnLink',		{  10 }
+   'ExecVe',		{  11 }
+   'ChDir',		{  12 }
+   'Time',		{  13 }
+   'MkNod',		{  14 }
+   'ChMod',		{  15 }
+   'ChOwn',		{  16 }
+   'Break',		{  17 }
+   'OldState',		{  18 }
+   'LSeek',		{  19 }
+   'GetPid',		{  20 }
+   'Mount',		{  21 }
+   'UMount',		{  22 }
+   'SetUid',		{  23 }
+   'GetUid',		{  24 }
+   'STime',		{  25 }
+   'PTrace',		{  26 }
+   'Alarm',		{  27 }
+   'OldFStat',		{  28 }
+   'Pause',		{  29 }
+   'UTime',		{  30 }
+   'STTY',		{  31 }
+   'GTTY',		{  32 }
+   'Access',		{  33 }
+   'Nice',		{  34 }
+   'FTime',		{  35 }
+   'Sync',		{  36 }
+   'Kill',		{  37 }
+   'Rename',		{  38 }
+   'MkDir',		{  39 }
+   'RmDir',		{  40 }
+   'Dup',		{  41 }
+   'Pipe',		{  42 }
+   'Times',		{  43 }
+   'Prof',		{  44 }
+   'Break',		{  45 }
+   'SetGid',		{  46 }
+   'GetGid',		{  47 }
+   'Signal',		{  48 }
+   'GetEUid',		{  49 }
+   'GetEGid',		{  50 }
+   'Acct',		{  51 }
+   'Phys',		{  52 }
+   'Lock',		{  53 }
+   'IOCtl',		{  54 }
+   'FCNtl',		{  55 }
+   'Mpx',		{  56 }
+   'SetPGid',		{  57 }
+   'ULimit',		{  58 }
+   'OldOldUName',	{  59 }
+   'UMask',		{  60 }
+   'ChRoot',		{  61 }
+   'UStat',		{  62 }
+   'Dup2',		{  63 }
+   'GetPPid',		{  64 }
+   'GetPGrp',		{  65 }
+   'SetSid',		{  66 }
+   'SigAction',		{  67 }
+   'SGetMask',		{  68 }
+   'SSetMask',		{  69 }
+   'SetReUid',		{  70 }
+   'SetReGid',		{  71 }
+   'SigSuspend',	{  72 }
+   'SigPending',	{  73 }
+   'SetHostName',	{  74 }
+   'SetRLimit',		{  75 }
+   'GetRLimit',		{  76 }
+   'GetRUsage',		{  77 }
+   'GetTimeOfDay',	{  78 }
+   'SetTimeOfDay',	{  79 }
+   'GetGroups',		{  80 }
+   'SetGroups',		{  81 }
+   'Select',		{  82 }
+   'SymLink',		{  83 }
+   'OldLStat',		{  84 }
+   'ReadLink',		{  85 }
+   'UseLib',		{  86 }
+   'SwapOn',		{  87 }
+   'Reboot',		{  88 }
+   'ReadDir',		{  89 }
+   'MMap',		{  90 }
+   'MunMap',		{  91 }
+   'Truncate',		{  92 }
+   'FTruncate',		{  93 }
+   'FChMod',		{  94 }
+   'FChOwn',		{  95 }
+   'GetPriority',	{  96 }
+   'SetPriority',	{  97 }
+   'Profile',		{  98 }
+   'StatFs',		{  99 }
+   'FStatFs',		{ 100 }
+   'IOPerm',		{ 101 }
+   'SocketCall',	{ 102 }
+   'SysLog',		{ 103 }
+   'SetITimer',		{ 104 }
+   'GetITimer',		{ 105 }
+   'Stat',		{ 106 }
+   'LStat',		{ 107 }
+   'FStat',		{ 108 }
+   'OldUName',		{ 109 }
+   'IOPl',		{ 110 }
+   'VHangup',		{ 111 }
+   'Idle',		{ 112 }
+   'VM86',		{ 113 }
+   'Wait4',		{ 114 }
+   'SwapOff',		{ 115 }
+   'SysInfo',		{ 116 }
+   'IPC',		{ 117 }
+   'FSync',		{ 118 }
+   'SigReturn',		{ 119 }
+   'Clone',		{ 120 }
+   'SetDomainName',	{ 121 }
+   'UName',		{ 122 }
+   'Modify_Ldt',	{ 123 }
+   'AdjTimeX',		{ 124 }
+   'MProtect',		{ 125 }
+   'SigProcMask',	{ 126 }
+   'Create_Module',	{ 127 }
+   'Init_Module',	{ 128 }
+   'Delete_Module',	{ 129 }
+   'Get_Kernel_Syms',	{ 130 }
+   'QuotaCtl',		{ 131 }
+   'GetPGid',		{ 132 }
+   'FChDir',		{ 133 }
+   'BDFlush',		{ 134 }
+   'SysFs',		{ 135 }
+   'Personality',	{ 136 }
+   'AFS_SysCall',	{ 137 }
+   'SetFsUid',		{ 138 }
+   'SetFsGid',		{ 139 }
+   '__LLSeek',		{ 140 }
+   'GetDents',		{ 141 }
+   '__NewSelect',	{ 142 }
+   'FLock',		{ 143 }
+   'MSync',		{ 144 }
+   'ReadV',		{ 145 }
+   'WriteV',		{ 146 }
+   'GetSid',		{ 147 }
+   'FDataSync',		{ 148 }
+   '__SysCtl',		{ 149 }
+   'MLock',		{ 150 }
+   'MUnLock',		{ 151 }
+   'MLockAll',		{ 152 }
+   'MUnLockAll',	{ 153 }
+   'MSchdSetParam',	{ 154 }
+   'MSchdGetParam',	{ 155 }
+   'MSchdSetSchd',	{ 156 }
+   'MSchdGetSchd',	{ 157 }
+   'MSchdYield',	{ 158 }
+   'MSchdGetPriMax',	{ 159 }
+   'MSchdGetPriMin',	{ 160 }
+   'MSchdRRGetInt',	{ 161 }
+   'NanoSleep',		{ 162 }
+   'MRemap',		{ 163 }
+   'SetReSuid',		{ 164 }
+   'GetReSuid',		{ 165 }
+   'vm86',		{ 166 }
+   'QueryModule',	{ 167 }
+   'Poll');		{ 168 }
+{$ENDIF}
+
+Const 
+
+Sys_EPERM	= 1;	{ Operation not permitted }
+Sys_ENOENT	= 2;	{ No such file or directory }
+Sys_ESRCH	= 3;	{ No such process }
+Sys_EINTR	= 4;	{ Interrupted system call }
+Sys_EIO	= 5;	{ I/O error }
+Sys_ENXIO	= 6;	{ No such device or address }
+Sys_E2BIG	= 7;	{ Arg list too long }
+Sys_ENOEXEC	= 8;	{ Exec format error }
+Sys_EBADF	= 9;	{ Bad file number }
+Sys_ECHILD	= 10;	{ No child processes }
+Sys_EAGAIN	= 11;	{ Try again }
+Sys_ENOMEM	= 12;	{ Out of memory }
+Sys_EACCES	= 13;	{ Permission denied }
+Sys_EFAULT	= 14;	{ Bad address }
+Sys_ENOTBLK	= 15;	{ Block device required, NOT POSIX! }
+Sys_EBUSY	= 16;	{ Device or resource busy }
+Sys_EEXIST	= 17;	{ File exists }
+Sys_EXDEV	= 18;	{ Cross-device link }
+Sys_ENODEV	= 19;	{ No such device }
+Sys_ENOTDIR	= 20;	{ Not a directory }
+Sys_EISDIR	= 21;	{ Is a directory }
+Sys_EINVAL	= 22;	{ Invalid argument }
+Sys_ENFILE	= 23;	{ File table overflow }
+Sys_EMFILE	= 24;	{ Too many open files }
+Sys_ENOTTY	= 25;	{ Not a typewriter }
+Sys_ETXTBSY	= 26;	{ Text file busy }
+Sys_EFBIG	= 27;	{ File too large }
+Sys_ENOSPC	= 28;	{ No space left on device }
+Sys_ESPIPE	= 29;	{ Illegal seek }
+Sys_EROFS	= 30;	{ Read-only file system }
+Sys_EMLINK	= 31;	{ Too many links }
+Sys_EPIPE	= 32;	{ Broken pipe }
+Sys_EDOM	= 33;	{ Math argument out of domain of func }
+Sys_ERANGE	= 34;	{ Math result not representable }
+Sys_EDEADLK	= 35;	{ Resource deadlock would occur }
+Sys_ENAMETOOLONG= 36;	{ File name too long }
+Sys_ENOLCK	= 37;	{ No record locks available }
+Sys_ENOSYS	= 38;	{ Function not implemented }
+Sys_ENOTEMPTY= 39;	{ Directory not empty }
+Sys_ELOOP	= 40;	{ Too many symbolic links encountered }
+Sys_EWOULDBLOCK	= Sys_EAGAIN;	{ Operation would block }
+Sys_ENOMSG	= 42;	{ No message of desired type }
+Sys_EIDRM	= 43;	{ Identifier removed }
+Sys_ECHRNG	= 44;	{ Channel number out of range }
+Sys_EL2NSYNC= 45;	{ Level 2 not synchronized }
+Sys_EL3HLT	= 46;	{ Level 3 halted }
+Sys_EL3RST	= 47;	{ Level 3 reset }
+Sys_ELNRNG	= 48;	{ Link number out of range }
+Sys_EUNATCH	= 49;	{ Protocol driver not attached }
+Sys_ENOCSI	= 50;	{ No CSI structure available }
+Sys_EL2HLT	= 51;	{ Level 2 halted }
+Sys_EBADE	= 52;	{ Invalid exchange }
+Sys_EBADR	= 53;	{ Invalid request descriptor }
+Sys_EXFULL	= 54;	{ Exchange full }
+Sys_ENOANO	= 55;	{ No anode }
+Sys_EBADRQC	= 56;	{ Invalid request code }
+Sys_EBADSLT	= 57;	{ Invalid slot }
+Sys_EDEADLOCK= 58;	{ File locking deadlock error }
+Sys_EBFONT	= 59;	{ Bad font file format }
+Sys_ENOSTR	= 60;	{ Device not a stream }
+Sys_ENODATA	= 61;	{ No data available }
+Sys_ETIME	= 62;	{ Timer expired }
+Sys_ENOSR	= 63;	{ Out of streams resources }
+Sys_ENONET	= 64;	{ Machine is not on the network }
+Sys_ENOPKG	= 65;	{ Package not installed }
+Sys_EREMOTE	= 66;	{ Object is remote }
+Sys_ENOLINK	= 67;	{ Link has been severed }
+Sys_EADV	= 68;	{ Advertise error }
+Sys_ESRMNT	= 69;	{ Srmount error }
+Sys_ECOMM	= 70;	{ Communication error on send }
+Sys_EPROTO	= 71;	{ Protocol error }
+Sys_EMULTIHOP= 72;	{ Multihop attempted }
+Sys_EDOTDOT	= 73;	{ RFS specific error }
+Sys_EBADMSG	= 74;	{ Not a data message }
+Sys_EOVERFLOW= 75;	{ Value too large for defined data type }
+Sys_ENOTUNIQ= 76;	{ Name not unique on network }
+Sys_EBADFD	= 77;	{ File descriptor in bad state }
+Sys_EREMCHG	= 78;	{ Remote address changed }
+Sys_ELIBACC	= 79;	{ Can not access a needed shared library }
+Sys_ELIBBAD	= 80;	{ Accessing a corrupted shared library }
+Sys_ELIBSCN	= 81;	{ .lib section in a.out corrupted }
+Sys_ELIBMAX	= 82;	{ Attempting to link in too many shared libraries }
+Sys_ELIBEXEC= 83;	{ Cannot exec a shared library directly }
+Sys_EILSEQ	= 84;	{ Illegal byte sequence }
+Sys_ERESTART= 85;	{ Interrupted system call should be restarted }
+Sys_ESTRPIPE= 86;	{ Streams pipe error }
+Sys_EUSERS	= 87;	{ Too many users }
+Sys_ENOTSOCK= 88;	{ Socket operation on non-socket }
+Sys_EDESTADDRREQ= 89;	{ Destination address required }
+Sys_EMSGSIZE= 90;	{ Message too long }
+Sys_EPROTOTYPE= 91;	{ Protocol wrong type for socket }
+Sys_ENOPROTOOPT= 92;	{ Protocol not available }
+Sys_EPROTONOSUPPORT= 93;	{ Protocol not supported }
+Sys_ESOCKTNOSUPPORT= 94;	{ Socket type not supported }
+Sys_EOPNOTSUPP= 95;	{ Operation not supported on transport endpoint }
+Sys_EPFNOSUPPORT= 96;	{ Protocol family not supported }
+Sys_EAFNOSUPPORT= 97;	{ Address family not supported by protocol }
+Sys_EADDRINUSE= 98;	{ Address already in use }
+Sys_EADDRNOTAVAIL= 99;	{ Cannot assign requested address }
+Sys_ENETDOWN= 100;	{ Network is down }
+Sys_ENETUNREACH= 101;	{ Network is unreachable }
+Sys_ENETRESET= 102;	{ Network dropped connection because of reset }
+Sys_ECONNABORTED= 103;	{ Software caused connection abort }
+Sys_ECONNRESET= 104;	{ Connection reset by peer }
+Sys_ENOBUFS	= 105;	{ No buffer space available }
+Sys_EISCONN	= 106;	{ Transport endpoint is already connected }
+Sys_ENOTCONN= 107;	{ Transport endpoint is not connected }
+Sys_ESHUTDOWN= 108;	{ Cannot send after transport endpoint shutdown }
+Sys_ETOOMANYREFS= 109;	{ Too many references: cannot splice }
+Sys_ETIMEDOUT= 110;	{ Connection timed out }
+Sys_ECONNREFUSED= 111;	{ Connection refused }
+Sys_EHOSTDOWN= 112;	{ Host is down }
+Sys_EHOSTUNREACH= 113;	{ No route to host }
+Sys_EALREADY= 114;	{ Operation already in progress }
+Sys_EINPROGRESS= 115;	{ Operation now in progress }
+Sys_ESTALE	= 116;	{ Stale NFS file handle }
+Sys_EUCLEAN	= 117;	{ Structure needs cleaning }
+Sys_ENOTNAM	= 118;	{ Not a XENIX named type file }
+Sys_ENAVAIL	= 119;	{ No XENIX semaphores available }
+Sys_EISNAM	= 120;	{ Is a named type file }
+Sys_EREMOTEIO= 121;	{ Remote I/O error }
+Sys_EDQUOT	= 122;	{ Quota exceeded }
+
+
+{ This value was suggested by Daniel
+  based on infos from www.linuxassembly.org }
+
+Sys_ERROR_MAX = $fff;
+
+{$packrecords C}
+
+{********************
+      Signal
+********************}
 type
-{$I stat.inc}
-{$define oldlinuxstat}
-{$ENDIF}
-{$ELSE}
-Type stat=baseunix.tstat;
-{$ENDIF}
+  SigSet  = Longint;
+  PSigSet = ^SigSet;
+
+Const
+  { For sending a signal }
+  SA_NOCLDSTOP = 1;
+  SA_SHIRQ     = $04000000;
+  SA_STACK     = $08000000;
+  SA_RESTART   = $10000000;
+  SA_INTERRUPT = $20000000;
+  SA_NOMASK    = $40000000;
+  SA_ONESHOT   = $80000000;
+  SA_ONSTACK   = SA_STACK;
+
+  SIG_BLOCK   = 0;
+  SIG_UNBLOCK = 1;
+  SIG_SETMASK = 2;
+
+  SIG_DFL = 0 ;
+  SIG_IGN = 1 ;
+  SIG_ERR = -1 ;
+
+  SIGHUP     = 1;
+  SIGINT     = 2;
+  SIGQUIT    = 3;
+  SIGILL     = 4;
+  SIGTRAP    = 5;
+  SIGABRT    = 6;
+  SIGIOT     = 6;
+  SIGBUS     = 7;
+  SIGFPE     = 8;
+  SIGKILL    = 9;
+  SIGUSR1    = 10;
+  SIGSEGV    = 11;
+  SIGUSR2    = 12;
+  SIGPIPE    = 13;
+  SIGALRM    = 14;
+  SIGTerm    = 15;
+  SIGSTKFLT  = 16;
+  SIGCHLD    = 17;
+  SIGCONT    = 18;
+  SIGSTOP    = 19;
+  SIGTSTP    = 20;
+  SIGTTIN    = 21;
+  SIGTTOU    = 22;
+  SIGURG     = 23;
+  SIGXCPU    = 24;
+  SIGXFSZ    = 25;
+  SIGVTALRM  = 26;
+  SIGPROF    = 27;
+  SIGWINCH   = 28;
+  SIGIO      = 29;
+  SIGPOLL    = SIGIO;
+  SIGPWR     = 30;
+  SIGUNUSED  = 31;
+
+
+const
+  SI_PAD_SIZE	= ((128/sizeof(longint)) - 3);
+
+type
+  Size_T = cardinal;
+
+  tfpreg = record
+	  significand: array[0..3] of word;
+	  exponent: word;
+  end;
+
+  pfpstate = ^tfpstate;
+  tfpstate = record
+	   cw, sw, tag, ipoff, cssel, dataoff, datasel: cardinal;
+	   st: array[0..7] of tfpreg;
+	   status: cardinal;
+  end;
+
+  PSigContextRec = ^SigContextRec;
+  SigContextRec = record
+    gs, __gsh: word;
+    fs, __fsh: word;
+    es, __esh: word;
+    ds, __dsh: word;
+    edi: cardinal;
+    esi: cardinal;
+    ebp: cardinal;
+    esp: cardinal;
+    ebx: cardinal;
+    edx: cardinal;
+    ecx: cardinal;
+    eax: cardinal;
+    trapno: cardinal;
+    err: cardinal;
+    eip: cardinal;
+    cs, __csh: word;
+    eflags: cardinal;
+    esp_at_signal: cardinal;
+    ss, __ssh: word;
+    fpstate: pfpstate;
+    oldmask: cardinal;
+    cr2: cardinal;
+  end;
+
+(*
+  PSigInfoRec = ^SigInfoRec;
+  SigInfoRec = record
+    si_signo: longint;
+    si_errno: longint;
+    si_code: longint;
+
+    case longint of
+      0:
+        (pad: array[SI_PAD_SIZE] of longint);
+      1: { kill }
+        ( kill: record
+            pid: longint;  { sender's pid }
+            uid : longint; { sender's uid }
+          end );
+      2: { POSIX.1b timers }
+        ( timer : record
+            timer1 : cardinal;
+            timer2 : cardinal;
+           end );
+      3: { POSIX.1b signals }
+        ( rt : record
+            pid : longint;    { sender's pid }
+            uid : longint;    { sender's uid }
+            sigval : longint;
+         end );
+      4: { SIGCHLD }
+        ( sigchld : record
+          pid : longint;    { which child }
+          uid : longint;    { sender's uid }
+          status : longint; { exit code }
+          utime : timeval;
+          stime : timeval;
+         end );
+      5: { SIGILL, SIGFPE, SIGSEGV, SIGBUS }
+        ( sigfault : record
+            addr : pointer;{ faulting insn/memory ref. }
+          end );
+      6:
+        ( sigpoll : record
+            band : longint; { POLL_IN, POLL_OUT, POLL_MSG }
+            fd : longint;
+          end );
+  end;
+*)
+
+  SignalHandler   = Procedure(Sig : Longint);cdecl;
+  PSignalHandler  = ^SignalHandler;
+  SignalRestorer  = Procedure;cdecl;
+  PSignalRestorer = ^SignalRestorer;
+  TSigAction = procedure(Sig: Longint; SigContext: SigContextRec);cdecl;
+
+  SigActionRec = packed record
+    Handler  : record
+      case byte of
+        0: (Sh: SignalHandler);
+        1: (Sa: TSigAction);
+      end;
+    Sa_Mask     : SigSet;
+    Sa_Flags    : Longint;
+    Sa_restorer : SignalRestorer; { Obsolete - Don't use }
+  end;
+  PSigActionRec = ^SigActionRec;
+
+const
+  SS_ONSTACK = 1;
+  SS_DISABLE = 2;
+  MINSIGSTKSZ = 2048;
+  SIGSTKSZ    = 8192;
+
+type
+  SigAltStack = record
+    ss_sp : pointer;
+    ss_flags : longint;
+    ss_size : size_t;
+  end;
+
+  stack_t = sigaltstack;
+
+  PSigAltStack = ^SigAltStack;
+
+  pstack_t = ^stack_t;
 
 var
+  ErrNo,
   LinuxError : Longint;
 
 
 {********************
       Process
 ********************}
+const
+  {Checked for BSD using Linuxthreads port}
+  { cloning flags }
+  CSIGNAL       = $000000ff; // signal mask to be sent at exit
+  CLONE_VM      = $00000100; // set if VM shared between processes
+  CLONE_FS      = $00000200; // set if fs info shared between processes
+  CLONE_FILES   = $00000400; // set if open files shared between processes
+  CLONE_SIGHAND = $00000800; // set if signal handlers shared
+  CLONE_PID     = $00001000; // set if pid shared
+type
+  TCloneFunc=function(args:pointer):longint;cdecl;
 
 const
   { For getting/setting priority }
@@ -78,7 +919,6 @@ const
   WUNTRACED = $2;
   __WCLONE  = $80000000;
 {$ENDIF}
-
 
 {********************
       File
@@ -118,11 +958,13 @@ const
   X_OK = 1;
   F_OK = 0;
 
+{$ifndef newreaddir}
   { For File control mechanism }
   F_GetFd  = 1;
   F_SetFd  = 2;
   F_GetFl  = 3;
   F_SetFl  = 4;
+
 {$ifdef Solaris}
   F_DupFd  = 0;
   F_Dup2Fd = 9;
@@ -139,6 +981,7 @@ const
   F_SetOwn = 8;
   F_GetOwn = 9;
 {$endif}
+{$endif}
 
 {********************
    IOCtl(TermIOS)
@@ -146,36 +989,312 @@ const
 
 {Is too freebsd/Linux specific}
 
-{$I termios.inc}
+{********************
+   IOCtl(TermIOS)
+********************}
+
+Const
+  { Amount of Control Chars }
+  NCCS = 32;
+  NCC = 8;
+
+{$Ifndef BSD}
+  { For Terminal handling }
+  TCGETS          = $5401;
+  TCSETS          = $5402;
+  TCSETSW         = $5403;
+  TCSETSF         = $5404;
+  TCGETA          = $5405;
+  TCSETA          = $5406;
+  TCSETAW         = $5407;
+  TCSETAF         = $5408;
+  TCSBRK          = $5409;
+  TCXONC          = $540A;
+  TCFLSH          = $540B;
+  TIOCEXCL        = $540C;
+  TIOCNXCL        = $540D;
+  TIOCSCTTY       = $540E;
+  TIOCGPGRP       = $540F;
+  TIOCSPGRP       = $5410;
+  TIOCOUTQ        = $5411;
+  TIOCSTI         = $5412;
+  TIOCGWINSZ      = $5413;
+  TIOCSWINSZ      = $5414;
+  TIOCMGET        = $5415;
+  TIOCMBIS        = $5416;
+  TIOCMBIC        = $5417;
+  TIOCMSET        = $5418;
+  TIOCGSOFTCAR    = $5419;
+  TIOCSSOFTCAR    = $541A;
+  FIONREAD        = $541B;
+  TIOCINQ         = FIONREAD;
+  TIOCLINUX       = $541C;
+  TIOCCONS        = $541D;
+  TIOCGSERIAL     = $541E;
+  TIOCSSERIAL     = $541F;
+  TIOCPKT         = $5420;
+  FIONBIO         = $5421;
+  TIOCNOTTY       = $5422;
+  TIOCSETD        = $5423;
+  TIOCGETD        = $5424;
+  TCSBRKP         = $5425;
+  TIOCTTYGSTRUCT  = $5426;
+  FIONCLEX        = $5450;
+  FIOCLEX         = $5451;
+  FIOASYNC        = $5452;
+  TIOCSERCONFIG   = $5453;
+  TIOCSERGWILD    = $5454;
+  TIOCSERSWILD    = $5455;
+  TIOCGLCKTRMIOS  = $5456;
+  TIOCSLCKTRMIOS  = $5457;
+  TIOCSERGSTRUCT  = $5458;
+  TIOCSERGETLSR   = $5459;
+  TIOCSERGETMULTI = $545A;
+  TIOCSERSETMULTI = $545B;
+
+  TIOCMIWAIT      = $545C;
+  TIOCGICOUNT     = $545D;
+  TIOCPKT_DATA       = 0;
+  TIOCPKT_FLUSHREAD  = 1;
+  TIOCPKT_FLUSHWRITE = 2;
+  TIOCPKT_STOP       = 4;
+  TIOCPKT_START      = 8;
+  TIOCPKT_NOSTOP     = 16;
+  TIOCPKT_DOSTOP     = 32;
+{$else}
+
+{$endif}
+Type
+  winsize = packed record
+    ws_row,
+    ws_col,
+    ws_xpixel,
+    ws_ypixel : word;
+  end;
+  TWinSize=winsize;
+
+  Termio = packed record
+    c_iflag,                             { input mode flags }
+    c_oflag,                             { output mode flags }
+    c_cflag,                             { control mode flags }
+    c_lflag  : Word;                    { local mode flags }
+    c_line   : Word;                    { line discipline - careful, only High byte in use}
+    c_cc     : array [0..NCC-1] of char;{ control characters }
+  end;
+  TTermio=Termio;
+
+{$PACKRECORDS C}
+  Termios = record
+    c_iflag,
+    c_oflag,
+    c_cflag,
+    c_lflag  : Cardinal;
+    c_line   : char;
+    c_cc     : array[0..NCCS-1] of byte;
+    c_ispeed,
+    c_ospeed : longint; 
+  end;
+  TTermios=Termios;
+{$PACKRECORDS Default}
+
+
+{const
+  InitCC:array[0..NCCS-1] of byte=(3,34,177,25,4,0,1,0,21,23,32,0,22,17,27,26,0,0,0);}
+
+const
+{c_cc characters}
+   VINTR    = 0;
+   VQUIT    = 1;
+   VERASE   = 2;
+   VKILL    = 3;
+   VEOF     = 4;
+   VTIME    = 5;
+   VMIN     = 6;
+   VSWTC    = 7;
+   VSTART   = 8;
+   VSTOP    = 9;
+   VSUSP    = 10;
+   VEOL     = 11;
+   VREPRINT = 12;
+   VDISCARD = 13;
+   VWERASE  = 14;
+   VLNEXT   = 15;
+   VEOL2    = 16;
+
+{c_iflag bits}
+   IGNBRK  = $0000001;
+   BRKINT  = $0000002;
+   IGNPAR  = $0000004;
+   PARMRK  = $0000008;
+   INPCK   = $0000010;
+   ISTRIP  = $0000020;
+   INLCR   = $0000040;
+   IGNCR   = $0000080;
+   ICRNL   = $0000100;
+   IUCLC   = $0000200;
+   IXON    = $0000400;
+   IXANY   = $0000800;
+   IXOFF   = $0001000;
+   IMAXBEL = $0002000;
+
+{c_oflag bits}
+   OPOST  = $0000001;
+   OLCUC  = $0000002;
+   ONLCR  = $0000004;
+   OCRNL  = $0000008;
+   ONOCR  = $0000010;
+   ONLRET = $0000020;
+   OFILL  = $0000040;
+   OFDEL  = $0000080;
+   NLDLY  = $0000100;
+     NL0  = $0000000;
+     NL1  = $0000100;
+   CRDLY  = $0000600;
+     CR0  = $0000000;
+     CR1  = $0000200;
+     CR2  = $0000400;
+     CR3  = $0000600;
+   TABDLY = $0001800;
+     TAB0 = $0000000;
+     TAB1 = $0000800;
+     TAB2 = $0001000;
+     TAB3 = $0001800;
+    XTABS = $0001800;
+   BSDLY  = $0002000;
+     BS0  = $0000000;
+     BS1  = $0002000;
+   VTDLY  = $0004000;
+     VT0  = $0000000;
+     VT1  = $0004000;
+   FFDLY  = $0008000;
+     FF0  = $0000000;
+     FF1  = $0008000;
+
+{c_cflag bits}
+   CBAUD   = $000100F;
+   B0      = $0000000;
+   B50     = $0000001;
+   B75     = $0000002;
+   B110    = $0000003;
+   B134    = $0000004;
+   B150    = $0000005;
+   B200    = $0000006;
+   B300    = $0000007;
+   B600    = $0000008;
+   B1200   = $0000009;
+   B1800   = $000000A;
+   B2400   = $000000B;
+   B4800   = $000000C;
+   B9600   = $000000D;
+   B19200  = $000000E;
+   B38400  = $000000F;
+   EXTA    = B19200;
+   EXTB    = B38400;
+   CSIZE   = $0000030;
+     CS5   = $0000000;
+     CS6   = $0000010;
+     CS7   = $0000020;
+     CS8   = $0000030;
+   CSTOPB  = $0000040;
+   CREAD   = $0000080;
+   PARENB  = $0000100;
+   PARODD  = $0000200;
+   HUPCL   = $0000400;
+   CLOCAL  = $0000800;
+   CBAUDEX = $0001000;
+   B57600  = $0001001;
+   B115200 = $0001002;
+   B230400 = $0001003;
+   B460800 = $0001004;
+   CIBAUD  = $100F0000;
+   CMSPAR  = $40000000;
+   CRTSCTS = $80000000;
+
+{c_lflag bits}
+   ISIG    = $0000001;
+   ICANON  = $0000002;
+   XCASE   = $0000004;
+   ECHO    = $0000008;
+   ECHOE   = $0000010;
+   ECHOK   = $0000020;
+   ECHONL  = $0000040;
+   NOFLSH  = $0000080;
+   TOSTOP  = $0000100;
+   ECHOCTL = $0000200;
+   ECHOPRT = $0000400;
+   ECHOKE  = $0000800;
+   FLUSHO  = $0001000;
+   PENDIN  = $0004000;
+   IEXTEN  = $0008000;
+
+{c_line bits}
+   TIOCM_LE   = $001;
+   TIOCM_DTR  = $002;
+   TIOCM_RTS  = $004;
+   TIOCM_ST   = $008;
+   TIOCM_SR   = $010;
+   TIOCM_CTS  = $020;
+   TIOCM_CAR  = $040;
+   TIOCM_RNG  = $080;
+   TIOCM_DSR  = $100;
+   TIOCM_CD   = TIOCM_CAR;
+   TIOCM_RI   = TIOCM_RNG;
+   TIOCM_OUT1 = $2000;
+   TIOCM_OUT2 = $4000;
+
+{TCSetAttr}
+   TCSANOW   = 0;
+   TCSADRAIN = 1;
+   TCSAFLUSH = 2;
+
+{TCFlow}
+   TCOOFF = 0;
+   TCOON  = 1;
+   TCIOFF = 2;
+   TCION  = 3;
+
+{TCFlush}
+   TCIFLUSH  = 0;
+   TCOFLUSH  = 1;
+   TCIOFLUSH = 2;
+
+
 
 {********************
       Info
 ********************}
 
 Type
-{
+
   UTimBuf = packed record{in BSD array[0..1] of timeval, but this is
                                 backwards compatible with linux version}
     actime,
-    {$ifdef BSD}
-    uactime,            {BSD Micro seconds}
-    {$endif}
     modtime
-    {$ifdef BSD}
-         ,
-    umodtime             {BSD Micro seconds}
-    {$endif}
          : longint;
   end;
-}
   UTimeBuf=UTimBuf;
   TUTimeBuf=UTimeBuf;
   PUTimeBuf=^UTimeBuf;
 
+  TSysinfo = packed record
+    uptime    : longint;
+    loads     : array[1..3] of longint;
+    totalram,
+    freeram,
+    sharedram,
+    bufferram,
+    totalswap,
+    freeswap  : longint;
+    procs     : integer;
+    s         : string[18];
+  end;
+  PSysInfo = ^TSysInfo;
 
 {******************************************************************************
                             Procedure/Functions
 ******************************************************************************}
+
+Function SysCall(callnr:longint;var regs:SysCallregs):longint;
 
 {**************************
      Time/Date Handling
@@ -212,7 +1331,6 @@ function SetDateTime(Year,Month,Day,hour,minute,second:Word) : Boolean;
 
 function  CreateShellArgV(const prog:string):ppchar;
 function  CreateShellArgV(const prog:Ansistring):ppchar;
-procedure FreeShellArgV(p:ppchar);
 Procedure Execve(Path: pathstr;args:ppchar;ep:ppchar);
 Procedure Execve(Path: AnsiString;args:ppchar;ep:ppchar);
 Procedure Execve(path: pchar;args:ppchar;ep:ppchar);
@@ -230,13 +1348,21 @@ Function  Shell(const Command:String):Longint;
 Function  Shell(const Command:AnsiString):Longint;
 Function  Fork:longint;
 {Clone for FreeBSD is copied from the LinuxThread port, and rfork based}
-//function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
+function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 Procedure ExitProcess(val:longint);
 Function  WaitPid(Pid:longint;Status:pointer;Options:Longint):Longint;  {=>PID (Status Valid), 0 (No Status), -1: Error, special case errno=EINTR }
 Function  WaitProcess(Pid:longint):Longint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
 Procedure Nice(N:integer);
-Function  GetPriority(Which,Who:longint):longint;
-procedure SetPriority(Which,Who,What:longint);
+Function  GetPriority(Which,Who:Integer):integer;
+Procedure SetPriority(Which:Integer;Who:Integer;What:Integer);
+function WEXITSTATUS(Status: Integer): Integer;
+function WTERMSIG(Status: Integer): Integer;
+function WSTOPSIG(Status: Integer): Integer;
+Function WIFEXITED(Status: Integer): Boolean;
+Function WIFSTOPPED(Status: Integer): Boolean;
+Function WIFSIGNALED(Status: Integer): Boolean;
+Function W_EXITCODE(ReturnCode, Signal: Integer): Integer;
+Function W_STOPCODE(Signal: Integer): Integer;
 
 Function  GetPid:LongInt;
 Function  GetPPid:LongInt;
@@ -244,19 +1370,6 @@ Function  GetUid:Longint;
 Function  GetEUid:Longint;
 Function  GetGid:Longint;
 Function  GetEGid:Longint;
-
-{$ifdef solaris}
-// Set the real userid/groupid (uid/gid from calling process)
-Function SetUid(aUID:Longint):Boolean;
-Function SetGid(aGID:Longint):Boolean;
-
-// Set the real and effective userid/groupid (like setuid/setgid bit in file permissions)
-function SetreUid(aRealUID,aEffUid:Longint):Boolean; overload;
-function SetreUid(aUID:Longint):Boolean;overload;
-
-function SetreGid(aRealGid,aEffGid:Longint):Boolean; overload;
-function SetreGid(aGid:Longint):Boolean;overload;
-{$endif}
 
 {**************************
      File Handling
@@ -267,7 +1380,7 @@ Function  fdOpen(pathname:string;flags,mode:longint):longint;
 Function  fdOpen(pathname:pchar;flags:longint):longint;
 Function  fdOpen(pathname:pchar;flags,mode:longint):longint;
 Function  fdClose(fd:longint):boolean;
-Function  fdRead(fd:longint;var buf;tsize:longint):longint;
+Function  fdRead(fd:longint;var buf;size:longint):longint;
 Function  fdWrite(fd:longint;const buf;size:longint):longint;
 Function  fdTruncate(fd,size:longint):boolean;
 Function  fdSeek (fd,pos,seektype :longint): longint;
@@ -282,8 +1395,8 @@ Function  FReName (OldName,NewName : Pchar) : Boolean;
 Function  FReName (OldName,NewName : String) : Boolean;
 Function  Chown(path:pathstr;NewUid,NewGid:longint):boolean;
 Function  Chmod(path:pathstr;Newmode:longint):boolean;
-Function  Utime(path:pathstr;utim:utimebuf):boolean;
-Function  Access(Path:Pathstr ;mode:longint):boolean;
+Function  Utime(const path:pathstr;utim:utimebuf):boolean;
+Function  Access(Path:Pathstr ;mode:integer):boolean;
 Function  Umask(Mask:Integer):integer;
 Function  Flock (fd,mode : longint) : boolean;
 Function  Flock (var T : text;mode : longint) : boolean;
@@ -293,8 +1406,8 @@ Function  FStat(Fd:longint;Var Info:stat):Boolean;
 Function  FStat(var F:Text;Var Info:stat):Boolean;
 Function  FStat(var F:File;Var Info:stat):Boolean;
 Function  Lstat(Filename: PathStr;var Info:stat):Boolean;
-Function  StatFS(Path:Pathstr;Var Info:tstatfs):Boolean;
-Function  StatFS(Fd: Longint;Var Info:tstatfs):Boolean;
+Function  FSStat(Path:Pathstr;Var Info:statfs):Boolean;
+Function  FSStat(Fd: Longint;Var Info:statfs):Boolean;
 Function  Fcntl(Fd:longint;Cmd:longint):longint;
 Procedure Fcntl(Fd:longint;Cmd:longint;Arg:Longint);
 Function  Fcntl(var Fd:Text;Cmd:longint):longint;
@@ -305,8 +1418,8 @@ Function  Dup(var oldfile,newfile:file):Boolean;
 Function  Dup2(oldfile,newfile:longint):Boolean;
 Function  Dup2(var oldfile,newfile:text):Boolean;
 Function  Dup2(var oldfile,newfile:file):Boolean;
-Function  Select(N:longint;readfds,writefds,exceptfds:pfdset;TimeOut:PTimeVal):longint;
-Function  Select(N:longint;readfds,writefds,exceptfds:pfdset;TimeOut:Longint):longint;
+Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:PTimeVal):longint;
+Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:Longint):longint;
 Function  SelectText(var T:Text;TimeOut :PTimeVal):Longint;
 Function  SelectText(var T:Text;TimeOut :Longint):Longint;
 
@@ -314,12 +1427,23 @@ Function  SelectText(var T:Text;TimeOut :Longint):Longint;
    Directory Handling
 ***************************}
 
+{$ifndef newreaddir}    {only for FreeBSD, temporary solution}
+
 Function  OpenDir(f:pchar):pdir;
 Function  OpenDir(f: String):pdir;
 function  CloseDir(p:pdir):integer;
 Function  ReadDir(p:pdir):pdirent;
 procedure SeekDir(p:pdir;off:longint);
 function  TellDir(p:pdir):longint;
+{$else}
+Function  OpenDir(name:pchar):pdir;
+Function  OpenDir(f: String):pdir;
+function  CloseDir(dirp:pdir):integer;
+Function  ReadDir(p:pdir):pdirent;
+procedure SeekDir(dirp:pdir;loc:longint);
+function  TellDir(dirp:pdir):longint;
+
+{$endif}
 
 {**************************
     Pipe/Fifo/Stream
@@ -344,26 +1468,24 @@ function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: Stri
 
 Function  GetEnv(P:string):Pchar;
 
-{$ifndef BSD}
 Function  GetDomainName:String;
 Function  GetHostName:String;
+Function  Sysinfo(var Info:TSysinfo):Boolean;
 Function  Uname(var unamerec:utsname):Boolean;
-{$endif}
 {**************************
         Signal
 ***************************}
 
-Procedure SigAction(Signum:longint;Act,OldAct:baseunix.PSigActionRec );
+Procedure SigAction(Signum:longint;Act,OldAct:PSigActionRec );
 Procedure SigProcMask (How:longint;SSet,OldSSet:PSigSet);
 Function  SigPending:SigSet;
 Procedure SigSuspend(Mask:Sigset);
 Function  Signal(Signum:longint;Handler:SignalHandler):SignalHandler;
 Function  Kill(Pid:longint;Sig:longint):integer;
 Procedure SigRaise(Sig:integer);
-{$ifndef BSD}
-Function  Alarm(Sec : Longint) : longint;
+  Function  Alarm(Sec : Longint) : longint;
+
 Procedure Pause;
-{$endif}
 Function NanoSleep(const req : timespec;var rem : timespec) : longint;
 
 {**************************
@@ -390,7 +1512,7 @@ function  TTYname(var F:Text):string;
 {**************************
      Memory functions
 ***************************}
-(* the consts are System-dependend, not checked for solaris *)
+
 const
   PROT_READ  = $1;             { page can be read }
   PROT_WRITE = $2;             { page can be written }
@@ -419,15 +1541,15 @@ type
     offset  : longint;
   end;
 
-function MMap(const m:tmmapargs):pointer;
+function MMap(const m:tmmapargs):longint;
 function MUnMap (P : Pointer; Size : Longint) : Boolean;
 
 {**************************
      Port IO functions
 ***************************}
 
-//Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
-//Function  IoPL(Level : longint) : Boolean;
+Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
+Function IoPL(Level : longint) : Boolean;
 {$ifdef cpui386}
 Procedure WritePort (Port : Longint; Value : Byte);
 Procedure WritePort (Port : Longint; Value : Word);
@@ -468,10 +1590,10 @@ Function  StringToPPChar(S : Pchar):ppchar;
 Function  GetFS(var T:Text):longint;
 Function  GetFS(Var F:File):longint;
 {Filedescriptorsets}
-Procedure FD_Zero(var fds:tfdset);
-Procedure FD_Clr(fd:longint;var fds:tfdset);
-Procedure FD_Set(fd:longint;var fds:tfdset);
-Function  FD_IsSet(fd:longint;var fds:tfdset):boolean;
+Procedure FD_Zero(var fds:fdSet);
+Procedure FD_Clr(fd:longint;var fds:fdSet);
+Procedure FD_Set(fd:longint;var fds:fdSet);
+Function  FD_IsSet(fd:longint;var fds:fdSet):boolean;
 {Stat.Mode Types}
 Function S_ISLNK(m:word):boolean;
 Function S_ISREG(m:word):boolean;
@@ -491,22 +1613,1435 @@ Implementation
 
 Uses Strings;
 
-{$i ossysch.inc}
-
-
 { Get the definitions of textrec and filerec }
 {$i textrec.inc}
 {$i filerec.inc}
 
-{ Raw System calls are in Syscalls.inc}
-{$DEFINE FROMLINUXUNIT}
-{$i syscalls.inc}
+{No debugging for syslinux include !}
+{$IFDEF SYS_LINUX}
+  {$UNDEF SYSCALL_DEBUG}
+{$ENDIF SYS_LINUX}
 
-{$i liunsysc.inc}   {Syscalls only used in unit Unix/Linux}
 
-{$ifndef Linux}
-Function FpNanoSleep(const req : timespec;rem : ptimespec) : longint; external name 'FPC_SYSC_NANOSLEEP';
+{*****************************************************************************
+                     --- Main:The System Call Self ---
+*****************************************************************************}
+
+{$ifdef FPC_PROFILE}
+  {$define PROFILE_WAS_ACTIVE}
+  {$profile off}
+{$else}
+  {$undef PROFILE_WAS_ACTIVE}
 {$endif}
+
+
+Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );assembler;
+{
+  This function puts the registers in place, does the call, and then
+  copies back the registers as they are after the SysCall.
+}
+{$ifdef cpui386}
+{$ASMMODE ATT}
+asm
+{ load the registers... }
+  movl 12(%ebp),%eax
+  movl 4(%eax),%ebx
+  movl 8(%eax),%ecx
+  movl 12(%eax),%edx
+  movl 16(%eax),%esi
+  movl 20(%eax),%edi
+{ set the call number }
+  movl 8(%ebp),%eax
+{ Go ! }
+  int $0x80
+{ Put back the registers... }
+  pushl %eax
+  movl 12(%ebp),%eax
+  movl %edi,20(%eax)
+  movl %esi,16(%eax)
+  movl %edx,12(%eax)
+  movl %ecx,8(%eax)
+  movl %ebx,4(%eax)
+  popl %ebx
+  movl %ebx,(%eax)
+end;
+{$ASMMODE DEFAULT}
+{$else}
+{$ifdef m68k}
+asm
+{ load the registers... }
+  move.l 12(a6),a0
+  move.l 4(a0),d1
+  move.l 8(a0),d2
+  move.l 12(a0),d3
+  move.l 16(a0),d4
+  move.l 20(a0),d5
+{ set the call number }
+  move.l 8(a6),d0
+{ Go ! }
+  trap #0
+{ Put back the registers... }
+  move.l d0,-(sp)
+  move.l 12(a6),a0
+  move.l d5,20(a0)
+  move.l d4,16(a0)
+  move.l d3,12(a0)
+  move.l d2,8(a0)
+  move.l d1,4(a0)
+  move.l (sp)+,d1
+  move.l d1,(a0)
+end;
+{$else}
+{$error Cannot decide which processor you have ! define cpui386 or m68k }
+{$endif}
+{$endif}
+
+{$IFDEF SYSCALL_DEBUG}
+Const
+  DoSysCallDebug : Boolean = False;
+
+var
+  LastCnt,
+  LastEax,
+  LastCall : longint;
+  DebugTxt : string[20];
+{$ENDIF}
+Function SysCall( callnr:longint;var regs : SysCallregs ):longint;
+{
+  This function serves as an interface to do_SysCall.
+  If the SysCall returned a negative number, it returns -1, and puts the
+  SysCall result in errno. Otherwise, it returns the SysCall return value
+}
+begin
+  do_SysCall(callnr,regs);
+  if (regs.reg1<0) and (regs.reg1>=-Sys_ERROR_MAX) then
+   begin
+{$IFDEF SYSCALL_DEBUG}
+     If DoSysCallDebug then
+       debugtxt:=' syscall error: ';
+{$endif}
+     ErrNo:=-regs.reg1;
+     SysCall:=-1;
+   end
+  else
+   begin
+{$IFDEF SYSCALL_DEBUG}
+  if DoSysCallDebug then
+       debugtxt:=' syscall returned: ';
+{$endif}
+     SysCall:=regs.reg1;
+     errno:=0
+   end;
+{$IFDEF SYSCALL_DEBUG}
+  if DoSysCallDebug then
+    begin
+    inc(lastcnt);
+    if (callnr<>lastcall) or (regs.reg1<>lasteax) then
+      begin
+      if lastcnt>1 then
+        writeln(sys_nr_txt[lastcall],debugtxt,lasteax,' (',lastcnt,'x)');
+      lastcall:=callnr;
+      lasteax:=regs.reg1;
+      lastcnt:=0;
+      writeln(sys_nr_txt[lastcall],debugtxt,lasteax);
+      end;
+    end;
+{$endif}
+end;
+
+{$ifdef PROFILE_WAS_ACTIVE}
+  {$profile on}
+  {$undef PROFILE_WAS_ACTIVE}
+{$endif}
+
+
+Function Sys_Time:longint;
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=0;
+  Sys_Time:=SysCall(SysCall_nr_time,regs);
+end;
+
+
+{*****************************************************************************
+               --- File:File handling related calls ---
+*****************************************************************************}
+
+
+Function Sys_Open(f:pchar;flags:longint;mode:integer):longint;
+var
+  regs : SysCallregs;
+Begin
+  regs.reg2:=longint(f);
+  regs.reg3:=flags;
+  regs.reg4:=mode;
+  Sys_Open:=SysCall(SysCall_nr_open,regs);
+End;
+
+
+
+Function Sys_Close(f:longint):longint;
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=f;
+  Sys_Close:=SysCall(SysCall_nr_close,regs);
+end;
+
+
+
+Function Sys_Lseek(F:longint;Off:longint;Whence:longint):longint;
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=f;
+  regs.reg3:=off;
+  regs.reg4:=Whence;
+  Sys_lseek:=SysCall(SysCall_nr_lseek,regs);
+end;
+
+
+
+Function Sys_Read(f:longint;buffer:pchar;count:longint):longint;
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=f;
+  regs.reg3:=longint(buffer);
+  regs.reg4:=count;
+  Sys_Read:=SysCall(SysCall_nr_read,regs);
+end;
+
+
+
+Function Sys_Write(f:longint;buffer:pchar;count:longint):longint;
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=f;
+  regs.reg3:=longint(buffer);
+  regs.reg4:=count;
+  Sys_Write:=SysCall(SysCall_nr_write,regs);
+end;
+
+
+
+Function Sys_Unlink(Filename:pchar):longint;
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=longint(filename);
+  Sys_Unlink:=SysCall(SysCall_nr_unlink,regs);
+end;
+
+
+Function Sys_fstat(fd : longint;var Info:stat):Longint;
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=fd;
+  regs.reg3:=longint(@Info);
+  Sys_fStat:=SysCall(SysCall_nr_fstat,regs);
+end;
+
+
+Function Sys_Rename(Oldname,Newname:pchar):longint;
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=longint(oldname);
+  regs.reg3:=longint(newname);
+  Sys_Rename:=SysCall(SysCall_nr_rename,regs);
+end;
+
+
+
+Function Sys_Stat(Filename:pchar;var Buffer: stat):longint;
+{
+   We need this for getcwd
+}
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=longint(filename);
+  regs.reg3:=longint(@buffer);
+  Sys_Stat:=SysCall(SysCall_nr_stat,regs);
+end;
+
+
+Function Sys_Symlink(oldname,newname:pchar):longint;
+{
+  We need this for erase
+}
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=longint(oldname);
+  regs.reg3:=longint(newname);
+  Sys_symlink:=SysCall(SysCall_nr_symlink,regs);
+end;
+
+
+Function Sys_ReadLink(name,linkname:pchar;maxlen:longint):longint;
+var
+  regs : SysCallRegs;
+begin
+  regs.reg2:=longint(name);
+  regs.reg3:=longint(linkname);
+  regs.reg4:=maxlen;
+  Sys_ReadLink:=SysCall(Syscall_nr_readlink,regs);
+end;
+
+
+{*****************************************************************************
+               --- Directory:Directory related calls ---
+*****************************************************************************}
+
+
+Function Sys_Chdir(Filename:pchar):longint;
+var
+  regs : SysCallregs;
+
+begin
+  regs.reg2:=longint(filename);
+  Sys_ChDir:=SysCall(SysCall_nr_chdir,regs);
+end;
+
+
+
+Function Sys_Mkdir(Filename:pchar;mode:longint):longint;
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=longint(filename);
+  regs.reg3:=mode;
+  Sys_MkDir:=SysCall(SysCall_nr_mkdir,regs);
+end;
+
+
+
+Function Sys_Rmdir(Filename:pchar):longint;
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=longint(filename);
+  Sys_Rmdir:=SysCall(SysCall_nr_rmdir,regs);
+end;
+
+
+
+{ we need this for getcwd }
+Function OpenDir(f:pchar):pdir;
+var
+  fd:integer;
+  st:stat;
+  ptr:pdir;
+begin
+  opendir:=nil;
+  if sys_stat(f,st)<0 then
+   exit;
+{ Is it a dir ? }
+  if not((st.mode and $f000)=$4000)then
+   begin
+     errno:=sys_enotdir;
+     exit
+   end;
+{ Open it}
+  fd:=sys_open(f,OPEN_RDONLY,438);
+  if fd<0 then
+   exit;
+  new(ptr);
+  if ptr=nil then
+   exit;
+  new(ptr^.buf);
+  if ptr^.buf=nil then
+   exit;
+  ptr^.fd:=fd;
+  ptr^.loc:=0;
+  ptr^.size:=0;
+  ptr^.dd_max:=sizeof(ptr^.buf^);
+  opendir:=ptr;
+end;
+
+
+
+function CloseDir(p:pdir):integer;
+begin
+  closedir:=sys_close(p^.fd);
+  dispose(p^.buf);
+  dispose(p);
+end;
+
+
+
+Function Sys_ReadDir(p:pdir):pdirent;
+var
+  regs :SysCallregs;
+  dummy:longint;
+begin
+  regs.reg3:=longint(p^.buf);
+  regs.reg2:=p^.fd;
+  regs.reg4:=1;
+  dummy:=SysCall(SysCall_nr_readdir,regs);
+{ the readdir system call returns the number of bytes written }
+  if dummy=0 then
+   sys_readdir:=nil
+  else
+   sys_readdir:=p^.buf
+end;
+
+
+{*****************************************************************************
+        --- Process:Process & program handling - related calls ---
+*****************************************************************************}
+
+Function Sys_GetPid:LongInt;
+var
+  regs : SysCallregs;
+begin
+  Sys_GetPid:=SysCall(SysCall_nr_getpid,regs);
+end;
+
+
+Procedure Sys_Exit(ExitCode:Integer);
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=exitcode;
+  SysCall(SysCall_nr_exit,regs)
+end;
+
+Procedure SigAction(Signum:longint;Act,OldAct:PSigActionRec );
+{
+  Change action of process upon receipt of a signal.
+  Signum specifies the signal (all except SigKill and SigStop).
+  If Act is non-nil, it is used to specify the new action.
+  If OldAct is non-nil the previous action is saved there.
+}
+Var
+  sr : Syscallregs;
+begin
+  sr.reg2:=Signum;
+  sr.reg3:=Longint(act);
+  sr.reg4:=Longint(oldact);
+  SysCall(Syscall_nr_sigaction,sr);
+end;
+
+function Sys_FTruncate(Handle,Pos:longint):longint;  //moved from sysunix.inc Do_Truncate
+var
+  sr : syscallregs;
+begin
+  sr.reg2:=Handle;
+  sr.reg3:=Pos;
+  Sys_FTruncate:=syscall(syscall_nr_ftruncate,sr);
+end;
+
+Function Sys_mmap(adr,len,prot,flags,fdes,off:longint):longint; // moved from sysunix.inc, used in sbrk
+type
+  tmmapargs=packed record
+    address : longint;
+    size    : longint;
+    prot    : longint;
+    flags   : longint;
+    fd      : longint;
+    offset  : longint;
+  end;
+var
+  t     : syscallregs;
+  mmapargs : tmmapargs;
+begin
+  mmapargs.address:=adr;
+  mmapargs.size:=len;
+  mmapargs.prot:=prot;
+  mmapargs.flags:=flags;
+  mmapargs.fd:=fdes;
+  mmapargs.offset:=off;
+  t.reg2:=longint(@mmapargs);
+  do_syscall(syscall_nr_mmap,t);
+  Sys_mmap:=t.reg1;
+  if t.reg1=-1 then
+    errno:=-1;
+end;
+
+{
+  Interface to Unix ioctl call.
+  Performs various operations on the filedescriptor Handle.
+  Ndx describes the operation to perform.
+  Data points to data needed for the Ndx function. The structure of this
+  data is function-dependent.
+}
+Function Sys_IOCtl(Handle,Ndx: Longint;Data: Pointer):LongInt;  // This was missing here, instead hardcode in Do_IsDevice
+var
+  sr: SysCallRegs;
+begin
+  sr.reg2:=Handle;
+  sr.reg3:=Ndx;
+  sr.reg4:=Longint(Data);
+  Sys_IOCtl:=SysCall(Syscall_nr_ioctl,sr);
+end;
+
+
+Function Sys_SigAltStack(ss, oss :psigaltstack):longint;
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=longint(ss);
+  regs.reg3:=longint(oss);
+  sys_sigaltstack:=SysCall(syscall_nr_sigaltstack,regs);
+end;
+
+Function Fork:longint;
+{
+  This function issues the 'fork' System call. the program is duplicated in memory
+  and Execution continues in parent and child process.
+  In the parent process, fork returns the PID of the child. In the child process,
+  zero is returned.
+  A negative value indicates that an error has occurred, the error is returned in
+  LinuxError.
+}
+var
+  regs:SysCallregs;
+begin
+  Fork:=SysCall(SysCall_nr_fork,regs);
+  LinuxError:=Errno;
+End;
+
+
+function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
+begin
+  if (pointer(func)=nil) or (sp=nil) then
+   begin
+     LinuxError:=Sys_EInval;
+     exit(-1); // give an error result
+   end;
+{$ifdef cpui386}
+  asm
+        { Insert the argument onto the new stack. }
+        movl    sp,%ecx
+        subl    $8,%ecx
+        movl    args,%eax
+        movl    %eax,4(%ecx)
+
+        { Save the function pointer as the zeroth argument.
+          It will be popped off in the child in the ebx frobbing below. }
+        movl    func,%eax
+        movl    %eax,0(%ecx)
+
+        { Do the system call }
+        pushl   %ebx
+        movl    flags,%ebx
+        movl    SysCall_nr_clone,%eax
+        int     $0x80
+        popl    %ebx
+        test    %eax,%eax
+        jnz     .Lclone_end
+
+        { We're in the new thread }
+        subl    %ebp,%ebp       { terminate the stack frame }
+        call    *%ebx
+        { exit process }
+        movl    %eax,%ebx
+        movl    $1,%eax
+        int     $0x80
+
+.Lclone_end:
+        movl    %eax,__RESULT
+  end;
+{$endif cpui386}
+{$ifdef m68k}
+  { No yet translated, my m68k assembler is too weak for such things PM }
+(*
+  asm
+        { Insert the argument onto the new stack. }
+        movl    sp,%ecx
+        subl    $8,%ecx
+        movl    args,%eax
+        movl    %eax,4(%ecx)
+
+        { Save the function pointer as the zeroth argument.
+          It will be popped off in the child in the ebx frobbing below. }
+        movl    func,%eax
+        movl    %eax,0(%ecx)
+
+        { Do the system call }
+        pushl   %ebx
+        movl    flags,%ebx
+        movl    SysCall_nr_clone,%eax
+        int     $0x80
+        popl    %ebx
+        test    %eax,%eax
+        jnz     .Lclone_end
+
+        { We're in the new thread }
+        subl    %ebp,%ebp       { terminate the stack frame }
+        call    *%ebx
+        { exit process }
+        movl    %eax,%ebx
+        movl    $1,%eax
+        int     $0x80
+
+.Lclone_end:
+        movl    %eax,__RESULT
+  end;
+  *)
+{$endif m68k}
+end;
+
+
+Procedure Execve(path:pathstr;args:ppchar;ep:ppchar);
+{
+  Replaces the current program by the program specified in path,
+  arguments in args are passed to Execve.
+  environment specified in ep is passed on.
+}
+var
+  regs:SysCallregs;
+begin
+  path:=path+#0;
+  regs.reg2:=longint(@path[1]);
+  regs.reg3:=longint(args);
+  regs.reg4:=longint(ep);
+  SysCall(SysCall_nr_Execve,regs);
+{ This only gets set when the call fails, otherwise we don't get here ! }
+  Linuxerror:=errno;
+end;
+
+
+Procedure Execve(path:pchar;args:ppchar;ep:ppchar);
+{
+  Replaces the current program by the program specified in path,
+  arguments in args are passed to Execve.
+  environment specified in ep is passed on.
+}
+var
+  regs:SysCallregs;
+begin
+  regs.reg2:=longint(path);
+  regs.reg3:=longint(args);
+  regs.reg4:=longint(ep);
+  SysCall(SysCall_nr_Execve,regs);
+{ This only gets set when the call fails, otherwise we don't get here ! }
+  Linuxerror:=errno;
+end;
+
+Procedure ExitProcess(val:longint);
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=val;
+  SysCall(SysCall_nr_exit,regs);
+end;
+
+
+Function WaitPid(Pid:longint;Status:pointer;Options:Longint):Longint;
+{
+  Waits until a child with PID Pid exits, or returns if it is exited already.
+  Any resources used by the child are freed.
+  The exit status is reported in the adress referred to by Status. It should
+  be a longint.
+}
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=pid;
+  regs.reg3:=longint(status);
+  regs.reg4:=options;
+  WaitPid:=SysCall(SysCall_nr_waitpid,regs);
+  LinuxError:=errno;
+end;
+
+
+Procedure GetTimeOfDay(var tv:timeval);
+{
+  Get the number of seconds since 00:00, January 1 1970, GMT
+  the time NOT corrected any way
+}
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=longint(@tv);
+  regs.reg3:=0;
+  SysCall(SysCall_nr_gettimeofday,regs);
+  LinuxError:=Errno;
+end;
+
+Function GetPriority(Which,Who:Integer):integer;
+{
+  Get Priority of process, process group, or user.
+   Which : selects what kind of priority is used.
+           can be one of the following predefined Constants :
+              Prio_User.
+              Prio_PGrp.
+              Prio_Process.
+   Who : depending on which, this is , respectively :
+              Uid
+              Pid
+              Process Group id
+   Errors are reported in linuxerror _only_. (priority can be negative)
+}
+var
+  sr : Syscallregs;
+begin
+  errno:=0;
+  if (which<prio_process) or (which>prio_user) then
+   begin
+     { We can save an interrupt here }
+     getpriority:=0;
+     linuxerror:=Sys_einval;
+   end
+  else
+   begin
+     sr.reg2:=which;
+     sr.reg3:=who;
+     getpriority:=SysCall(Syscall_nr_getpriority,sr);
+     linuxerror:=errno;
+   end;
+end;
+
+
+
+Procedure SetPriority(Which:Integer;Who:Integer;What:Integer);
+{
+ Set Priority of process, process group, or user.
+   Which : selects what kind of priority is used.
+           can be one of the following predefined Constants :
+              Prio_User.
+              Prio_PGrp.
+              Prio_Process.
+   Who : depending on value of which, this is, respectively :
+              Uid
+              Pid
+              Process Group id
+   what : A number between -20 and 20. -20 is most favorable, 20 least.
+          0 is the default.
+}
+var
+  sr : Syscallregs;
+begin
+  errno:=0;
+  if ((which<prio_process) or (which>prio_user)) or ((what<-20) or (what>20)) then
+   linuxerror:=Sys_einval  { We can save an interrupt here }
+  else
+   begin
+     sr.reg2:=which;
+     sr.reg3:=who;
+     sr.reg4:=what;
+     SysCall(Syscall_nr_setpriority,sr);
+     linuxerror:=errno;
+   end;
+end;
+
+
+Procedure Nice(N:integer);
+{
+  Set process priority. A positive N means a lower priority.
+  A negative N decreases priority.
+}
+var
+  sr : Syscallregs;
+begin
+  sr.reg2:=n;
+  SysCall(Syscall_nr_nice,sr);
+  linuxerror:=errno;
+end;
+
+
+
+Function GetPid:LongInt;
+{
+  Get Process ID.
+}
+var
+  regs : SysCallregs;
+begin
+  GetPid:=SysCall(SysCall_nr_getpid,regs);
+  linuxerror:=errno;
+end;
+
+
+
+Function GetPPid:LongInt;
+{
+  Get Process ID of parent process.
+}
+var
+  regs : SysCallregs;
+begin
+  GetPpid:=SysCall(SysCall_nr_getppid,regs);
+  linuxerror:=errno;
+end;
+
+
+
+Function GetUid:Longint;
+{
+  Get User ID.
+}
+var
+  regs : SysCallregs;
+begin
+  GetUid:=SysCall(SysCall_nr_getuid,regs);
+  Linuxerror:=errno;
+end;
+
+
+
+Function GetEUid:Longint;
+{
+  Get _effective_ User ID.
+}
+var
+  regs : SysCallregs;
+begin
+  GetEuid:=SysCall(SysCall_nr_geteuid,regs);
+  Linuxerror:=errno;
+end;
+
+
+
+Function GetGid:Longint;
+{
+  Get Group ID.
+}
+var
+  regs : SysCallregs;
+begin
+  Getgid:=SysCall(SysCall_nr_getgid,regs);
+  Linuxerror:=errno;
+end;
+
+
+
+Function GetEGid:Longint;
+{
+  Get _effective_ Group ID.
+}
+var
+  regs : SysCallregs;
+begin
+  GetEgid:=SysCall(SysCall_nr_getegid,regs);
+  Linuxerror:=errno;
+end;
+
+
+Function GetTimeOfDay: longint;
+{
+  Get the number of seconds since 00:00, January 1 1970, GMT
+  the time NOT corrected any way
+}
+var
+  regs : SysCallregs;
+  tv   : timeval;
+begin
+  regs.reg2:=longint(@tv);
+  regs.reg3:=0;
+  SysCall(SysCall_nr_gettimeofday,regs);
+  LinuxError:=Errno;
+  GetTimeOfDay:=tv.sec;
+end;
+
+
+Function fdTruncate(fd,size:longint):boolean;
+var
+  Regs : SysCallRegs;
+begin
+  Regs.reg2:=fd;
+  Regs.reg3:=size;
+  fdTruncate:=(SysCall(Syscall_nr_ftruncate,regs)=0);
+  LinuxError:=Errno;
+end;
+
+
+
+Function  fdFlush (fd : Longint) : Boolean;
+var
+  SR: SysCallRegs;
+begin
+  SR.reg2 := fd;
+  fdFlush := (SysCall(syscall_nr_fsync, SR)=0);
+  LinuxError:=Errno;
+end;
+
+
+
+Function Fcntl(Fd:longint;Cmd:longint): longint;
+{
+  Read or manipulate a file.(See also fcntl (2) )
+  Possible values for Cmd are :
+    F_GetFd,F_GetFl,F_GetOwn
+  Errors are reported in Linuxerror;
+  If Cmd is different from the allowed values, linuxerror=Sys_eninval.
+}
+var
+  sr : Syscallregs;
+begin
+  if (cmd in [F_GetFd,F_GetFl,F_GetOwn]) then
+   begin
+     sr.reg2:=Fd;
+     sr.reg3:=cmd;
+     Linuxerror:=SysCall(Syscall_nr_fcntl,sr);
+     if linuxerror=-1 then
+      begin
+        linuxerror:=errno;
+        fcntl:=0;
+      end
+     else
+      begin
+        fcntl:=linuxerror;
+        linuxerror:=0;
+      end;
+   end
+  else
+   begin
+     linuxerror:=Sys_einval;
+     Fcntl:=0;
+   end;
+end;
+
+
+
+Procedure Fcntl(Fd:longint;Cmd:LongInt;Arg:Longint);
+{
+  Read or manipulate a file. (See also fcntl (2) )
+  Possible values for Cmd are :
+    F_setFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkW,F_SetOwn;
+  Errors are reported in Linuxerror;
+  If Cmd is different from the allowed values, linuxerror=Sys_eninval.
+  F_DupFD is not allowed, due to the structure of Files in Pascal.
+}
+var
+  sr : Syscallregs;
+begin
+  if (cmd in [F_SetFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkw,F_SetOwn]) then
+   begin
+     sr.reg2:=Fd;
+     sr.reg3:=cmd;
+     sr.reg4:=arg;
+     SysCall(Syscall_nr_fcntl,sr);
+     linuxerror:=errno;
+   end
+  else
+   linuxerror:=Sys_einval;
+end;
+
+
+Function Chmod(path:pathstr;Newmode:longint):Boolean;
+{
+  Changes the permissions of a file.
+}
+var
+  sr : Syscallregs;
+begin
+  path:=path+#0;
+  sr.reg2:=longint(@(path[1]));
+  sr.reg3:=newmode;
+  Chmod:=(SysCall(Syscall_nr_chmod,sr)=0);
+  linuxerror:=errno;
+end;
+
+
+
+Function Chown(path:pathstr;NewUid,NewGid:longint):boolean;
+{
+  Change the owner and group of a file.
+  A user can only change the group to a group of which he is a member.
+  The super-user can change uid and gid of any file.
+}
+var
+  sr : Syscallregs;
+begin
+  path:=path+#0;
+  sr.reg2:=longint(@(path[1]));
+  sr.reg3:=newuid;
+  sr.reg4:=newgid;
+  ChOwn:=(Syscall(Syscall_nr_chown,sr)=0);
+  linuxerror:=errno;
+end;
+
+
+
+Function Utime(const path:pathstr;utim:utimebuf):boolean;
+var
+  sr : Syscallregs;
+  buf : pathstr;
+begin
+  buf:=path+#0;
+  sr.reg2:=longint(@(buf[1]));
+  sr.reg3:=longint(@utim);
+  Utime:=SysCall(Syscall_nr_utime,sr)=0;
+  linuxerror:=errno;
+end;
+
+
+
+Function  Flock (fd,mode : longint) : boolean;
+var
+  sr : Syscallregs;
+begin
+  sr.reg2:=fd;
+  sr.reg3:=mode;
+  flock:=Syscall(Syscall_nr_flock,sr)=0;
+  LinuxError:=errno;
+end;
+
+
+
+Function Fstat(Fd:Longint;var Info:stat):Boolean;
+{
+  Get all information on a file descriptor, and return it in info.
+}
+var
+ regs : SysCallregs;
+begin
+  regs.reg2:=Fd;
+  regs.reg3:=longint(@Info);
+  FStat:=(SysCall(SysCall_nr_fstat,regs)=0);
+  LinuxError:=Errno;
+end;
+
+
+Function Lstat(Filename: PathStr;var Info:stat):Boolean;
+{
+  Get all information on a link (the link itself), and return it in info.
+}
+var
+  regs : SysCallregs;
+begin
+  FileName:=FileName+#0;
+  regs.reg2:=longint(@filename[1]);
+  regs.reg3:=longint(@Info);
+  LStat:=(SysCall(SysCall_nr_lstat,regs)=0);
+  LinuxError:=Errno;
+end;
+
+
+
+Function FSStat(Path:Pathstr;Var Info:statfs):Boolean;
+{
+  Get all information on a fileSystem, and return it in Info.
+  Path is the name of a file/directory on the fileSystem you wish to
+  investigate.
+}
+var
+  regs : SysCallregs;
+begin
+  path:=path+#0;
+  regs.reg2:=longint(@path[1]);
+  regs.reg3:=longint(@Info);
+  FSStat:=(SysCall(SysCall_nr_statfs,regs)=0);
+  LinuxError:=errno;
+end;
+
+
+
+Function FSStat(Fd:Longint;Var Info:statfs):Boolean;
+{
+  Get all information on a fileSystem, and return it in Info.
+  Fd is the file descriptor of a file/directory on the fileSystem
+  you wish to investigate.
+}
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=Fd;
+  regs.reg3:=longint(@Info);
+  FSStat:=(SysCall(SysCall_nr_fstatfs,regs)=0);
+  LinuxError:=errno;
+end;
+
+
+
+Function Link(OldPath,NewPath:pathstr):boolean;
+{
+  Proceduces a hard link from new to old.
+  In effect, new will be the same file as old.
+}
+var
+  regs : SysCallregs;
+begin
+  oldpath:=oldpath+#0;
+  newpath:=newpath+#0;
+  regs.reg2:=longint(@oldpath[1]);
+  regs.reg3:=longint(@newpath[1]);
+  Link:=SysCall(SysCall_nr_link,regs)=0;
+  linuxerror:=errno;
+end;
+
+
+
+
+Function Umask(Mask:Integer):integer;
+{
+  Sets file creation mask to (Mask and 0777 (octal) ), and returns the
+  previous value.
+}
+var
+  sr : Syscallregs;
+begin
+  sr.reg2:=mask;
+  Umask:=SysCall(Syscall_nr_umask,sr);
+  linuxerror:=0;
+end;
+
+
+
+Function Access(Path:Pathstr ;mode:integer):boolean;
+{
+  Test users access rights on the specified file.
+  Mode is a mask xosisting of one or more of R_OK, W_OK, X_OK, F_OK.
+  R,W,X stand for read,write and Execute access, simultaneously.
+  F_OK checks whether the test would be allowed on the file.
+  i.e. It checks the search permissions in all directory components
+  of the path.
+  The test is done with the real user-ID, instead of the effective.
+  If access is denied, or an error occurred, false is returned.
+  If access is granted, true is returned.
+  Errors other than no access,are reported in linuxerror.
+}
+var
+  sr : Syscallregs;
+begin
+  path:=path+#0;
+  sr.reg2:=longint(@(path[1]));
+  sr.reg3:=mode;
+  access:=(SysCall(Syscall_nr_access,sr)=0);
+  linuxerror:=errno;
+end;
+
+
+Function  Dup(oldfile:longint;var newfile:longint):Boolean;
+{
+  Copies the filedescriptor oldfile to newfile
+}
+var
+  sr : Syscallregs;
+begin
+  sr.reg2:=oldfile;
+  newfile:=Syscall(Syscall_nr_dup,sr);
+  linuxerror:=errno;
+  Dup:=(LinuxError=0);
+end;
+
+
+Function Dup2(oldfile,newfile:longint):Boolean;
+{
+  Copies the filedescriptor oldfile to newfile
+}
+var
+  sr : Syscallregs;
+begin
+  sr.reg2:=oldfile;
+  sr.reg3:=newfile;
+  SysCall(Syscall_nr_dup2,sr);
+  linuxerror:=errno;
+  Dup2:=(LinuxError=0);
+end;
+
+
+Function Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:PTimeVal):longint;
+{
+  Select checks whether the file descriptor sets in readfs/writefs/exceptfs
+  have changed.
+}
+Var
+  SelectArray : Array[1..5] of longint;
+  Sr : Syscallregs;
+begin
+  SelectArray[1]:=n;
+  SelectArray[2]:=longint(Readfds);
+  Selectarray[3]:=longint(Writefds);
+  selectarray[4]:=longint(exceptfds);
+  Selectarray[5]:=longint(TimeOut);
+  sr.reg2:=longint(@selectarray);
+  Select:=SysCall(Syscall_nr_select,sr);
+  LinuxError:=Errno;
+end;
+
+
+
+Function AssignPipe(var pipe_in,pipe_out:longint):boolean;
+{
+  Sets up a pair of file variables, which act as a pipe. The first one can
+  be read from, the second one can be written to.
+  If the operation was unsuccesful, linuxerror is set.
+}
+var
+  pip  : tpipe;
+  regs : SysCallregs;
+begin
+  regs.reg2:=longint(@pip);
+  SysCall(SysCall_nr_pipe,regs);
+  pipe_in:=pip[1];
+  pipe_out:=pip[2];
+  linuxerror:=errno;
+  AssignPipe:=(LinuxError=0);
+end;
+
+
+
+
+Function PClose(Var F:text) :longint;
+var
+  sr  : syscallregs;
+  pl  : ^longint;
+  res : longint;
+begin
+  sr.reg2:=Textrec(F).Handle;
+  SysCall (syscall_nr_close,sr);
+{ closed our side, Now wait for the other - this appears to be needed ?? }
+  pl:=@(textrec(f).userdata[2]);
+  waitpid(pl^,@res,0);
+  pclose:=res shr 8;
+end;
+
+
+Function PClose(Var F:file) : longint;
+var
+  sr : syscallregs;
+  pl : ^longint;
+  res : longint;
+begin
+  sr.reg2:=FileRec(F).Handle;
+  SysCall (Syscall_nr_close,sr);
+{ closed our side, Now wait for the other - this appears to be needed ?? }
+  pl:=@(filerec(f).userdata[2]);
+  waitpid(pl^,@res,0);
+  pclose:=res shr 8;
+end;
+
+
+Function Sysinfo(var Info:TSysinfo):Boolean;
+{
+  Get system info
+}
+var
+  regs : SysCallregs;
+Begin
+  regs.reg2:=longint(@info);
+  Sysinfo:=SysCall(SysCall_nr_Sysinfo,regs)=0;
+End;
+
+Function mkFifo(pathname:string;mode:longint):boolean;
+var
+  regs : SysCallRegs;
+begin
+  pathname:=pathname+#0;
+  regs.reg2:=longint(@pathname[1]);
+  regs.reg3:=mode or STAT_IFIFO;
+  regs.reg4:=0;
+  mkFifo:=(SysCall(syscall_nr_mknod,regs)=0);
+end;
+
+
+
+
+Function Uname(var unamerec:utsname):Boolean;
+{
+  Get machine's names
+}
+var
+  regs : SysCallregs;
+Begin
+  regs.reg2:=longint(@unamerec);
+  Uname:=SysCall(SysCall_nr_uname,regs)=0;
+  LinuxError:=Errno;
+End;
+
+
+Function Kill(Pid:longint;Sig:longint):integer;
+{
+  Send signal 'sig' to a process, or a group of processes.
+  If Pid >  0 then the signal is sent to pid
+     pid=-1                         to all processes except process 1
+     pid < -1                         to process group -pid
+  Return value is zero, except for case three, where the return value
+  is the number of processes to which the signal was sent.
+}
+var
+  regs : Syscallregs;
+begin
+  regs.reg2:=Pid;
+  regs.reg3:=Sig;
+  kill:=SysCall(Syscall_nr_kill,regs);
+  if kill<0 then
+   Kill:=0;
+  linuxerror:=errno;
+end;
+
+
+Procedure SigProcMask(How:longint;SSet,OldSSet:PSigSet);
+{
+  Change the list of currently blocked signals.
+  How determines which signals will be blocked :
+   SigBlock   : Add SSet to the current list of blocked signals
+   SigUnBlock : Remove the signals in SSet from the list of blocked signals.
+   SigSetMask : Set the list of blocked signals to SSet
+  if OldSSet is non-null, the old set will be saved there.
+}
+Var
+  sr : SyscallRegs;
+begin
+  sr.reg2:=how;
+  sr.reg3:=longint(SSet);
+  sr.reg4:=longint(OldSSet);
+  SysCall(Syscall_nr_sigprocmask,sr);
+  linuxerror:=errno;
+end;
+
+
+
+Function SigPending:SigSet;
+{
+  Allows examination of pending signals. The signal mask of pending
+  signals is set in SSet
+}
+Var
+  sr    : SyscallRegs;
+  dummy : Sigset;
+begin
+  sr.reg2:=longint(@dummy);
+  SysCall(Syscall_nr_sigpending,sr);
+  linuxerror:=errno;
+  Sigpending:=dummy;
+end;
+
+
+
+Procedure SigSuspend(Mask:Sigset);
+{
+ Set the signal mask with Mask, and suspend the program until a signal
+ is received.
+}
+Var
+  sr : SyscallRegs;
+begin
+  sr.reg2:=mask;
+  SysCall(Syscall_nr_sigsuspend,sr);
+  linuxerror:=errno;
+end;
+
+
+
+Function Signal(Signum:longint;Handler:SignalHandler):SignalHandler;
+{
+  Install a new handler for signal Signum.
+  The old signal handler is returned.
+  This call does, in fact, the same as SigAction.
+}
+var
+  sr : Syscallregs;
+begin
+  sr.reg2:=signum;
+  sr.reg3:=longint(handler);
+  Linuxerror:=SysCall(Syscall_nr_signal,sr);
+  If linuxerror=Sig_Err then
+   begin
+     Signal:=nil;
+     Linuxerror:=errno;
+   end
+  else
+   begin
+     Signal:=signalhandler(Linuxerror);
+     linuxerror:=0;
+   end;
+end;
+
+Function  Alarm(Sec : Longint) : longint;
+
+Var Sr : Syscallregs;
+
+begin
+  sr.reg2:=Sec;
+  Alarm:=Syscall(syscall_nr_alarm,sr);
+end;
+
+Procedure Pause;
+
+Var Sr : Syscallregs;
+
+begin
+  syscall(syscall_nr_pause,sr);
+end;
+
+Function NanoSleep(const req : timespec;var rem : timespec) : longint;
+
+var Sr : Syscallregs;
+
+begin
+  sr.reg2:=longint(@req);
+  sr.reg3:=longint(@rem);
+  NanoSleep:=Syscall(syscall_nr_nanosleep,sr);
+  LinuxError:=Errno;
+end;
+
+Function IOCtl(Handle,Ndx: Longint;Data: Pointer):boolean;
+{
+  Interface to Unix ioctl call.
+  Performs various operations on the filedescriptor Handle.
+  Ndx describes the operation to perform.
+  Data points to data needed for the Ndx function. The structure of this
+  data is function-dependent.
+}
+var
+  sr: SysCallRegs;
+begin
+  sr.reg2:=Handle;
+  sr.reg3:=Ndx;
+  sr.reg4:=Longint(Data);
+  IOCtl:=(SysCall(Syscall_nr_ioctl,sr)=0);
+  LinuxError:=Errno;
+end;
+
+
+function MMap(const m:tmmapargs):longint;
+Var
+  Sr : Syscallregs;
+begin
+  Sr.reg2:=longint(@m);
+  MMap:=syscall(syscall_nr_mmap,sr);
+  LinuxError:=Errno;
+end;
+
+function MUnMap (P : Pointer; Size : Longint) : Boolean;
+Var
+  Sr : Syscallregs;
+begin
+  Sr.reg2:=longint(P);
+  sr.reg3:=Size;
+  MUnMap:=syscall(syscall_nr_munmap,sr)=0;
+  LinuxError:=Errno;
+end;
+
+{--------------------------------
+      Port IO functions
+--------------------------------}
+
+Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
+{
+  Set permissions on NUM ports starting with port FROM to VALUE
+  this works ONLY as root.
+}
+
+Var
+  Sr : Syscallregs;
+begin
+  Sr.Reg2:=From;
+  Sr.Reg3:=Num;
+  Sr.Reg4:=Value;
+  IOPerm:=Syscall(Syscall_nr_ioperm,sr)=0;
+  LinuxError:=Errno;
+end;
+
+Function IoPL(Level : longint) : Boolean;
+
+Var
+  Sr : Syscallregs;
+begin
+  Sr.Reg2:=Level;
+  IOPL:=Syscall(Syscall_nr_iopl,sr)=0;
+  LinuxError:=Errno;
+end;
 
 {******************************************************************************
                           Process related calls
@@ -519,21 +3054,22 @@ begin
   repeat
     s:=$7F00;
     r:=WaitPid(Pid,@s,0);
-  until (r<>-1) or (LinuxError<>ESysEINTR);
+  until (r<>-1) or (LinuxError<>Sys_EINTR);
   if (r=-1) or (r=0) then // 0 is not a valid return and should never occur (it means status invalid when using WNOHANG)
     WaitProcess:=-1 // return -1 to indicate an error
   else
    begin
-{$ifndef Solaris}
-     WaitProcess:=s; // s<0 should not occur, but wie return also a negativ value
-{$else}
+{$ifdef solaris}
      if (s and $FF)=0 then // Only this is a valid returncode
+{$else solaris}
+     { the following is at least correct for Linux and Darwin (JM) }
+     if (s and $7F)=0 then
+{$endif solaris}
       WaitProcess:=s shr 8
      else if (s>0) then  // Until now there is not use of the highest bit , but check this for the future
       WaitProcess:=-s // normal case
      else
       WaitProcess:=s; // s<0 should not occur, but wie return also a negativ value
-{$endif}
    end;
 end;
 
@@ -574,7 +3110,6 @@ begin
   CreateShellArgV:=InternalCreateShellArgV(@prog[1],length(prog)); // if ppc works like delphi this also work when @prog[1] is invalid (len=0)
 end;
 
-
 procedure FreeShellArgV(p:ppchar);
 begin
   if (p<>nil) then begin
@@ -582,7 +3117,6 @@ begin
     freemem(p);
    end;
 end;
-
 
 Procedure Execve(Path: AnsiString;args:ppchar;ep:ppchar);
 {
@@ -617,7 +3151,7 @@ begin
   else
    Path:='';
   if Path='' then
-   linuxerror:=ESysenoent
+   linuxerror:=Sys_enoent
   else
    Execve(Path,args,ep);{On error linuxerror will get set there}
 end;
@@ -631,7 +3165,6 @@ Procedure Execv(const path:pathstr;args:ppchar);
 begin
   Execve(path,args,envp); {On error linuxerror will get set there}
 end;
-
 
 Procedure Execvp(Path:Pathstr;Args:ppchar;Ep:ppchar);
 {
@@ -652,11 +3185,10 @@ begin
   else
    Path:='';
   if Path='' then
-   linuxerror:=ESysenoent
+   linuxerror:=Sys_enoent
   else
    Execve(Path,args,ep);{On error linuxerror will get set there}
 end;
-
 
 Procedure Execle(Todo:string;Ep:ppchar);
 {
@@ -675,7 +3207,6 @@ begin
    exit;
   ExecVE(p^,p,EP);
 end;
-
 
 Procedure Execle(Todo:AnsiString;Ep:ppchar);
 {
@@ -708,6 +3239,16 @@ begin
   ExecLE(ToDo,EnvP);
 end;
 
+Procedure Execl(const Todo:Ansistring);
+
+{
+  Overloaded AnsiString Version of ExecL.
+}
+
+begin
+  ExecLE(ToDo,EnvP);
+end;
+
 
 Procedure Execlp(Todo:string;Ep:ppchar);
 {
@@ -727,7 +3268,6 @@ begin
   ExecVP(StrPas(p^),p,EP);
 end;
 
-
 Procedure Execlp(Todo: Ansistring;Ep:ppchar);
 {
   Overloaded ansistring version.
@@ -740,7 +3280,6 @@ begin
    exit;
   ExecVP(StrPas(p^),p,EP);
 end;
-
 
 Function Shell(const Command:String):Longint;
 {
@@ -757,8 +3296,8 @@ Function Shell(const Command:String):Longint;
 - The Old CreateShellArg gives back pointers to a local var
 }
 var
-  p      : ppchar;
-  pid    : longint;
+  p       : ppchar;
+  pid,r,s  : longint;
 begin
   p:=CreateShellArgv(command);
   pid:=fork;
@@ -769,12 +3308,20 @@ begin
      ExitProcess(127);  // was Exit(127)
    end
   else if (pid<>-1) then // Successfull started
-   Shell:=WaitProcess(pid) {Linuxerror is set there}
+    begin
+      repeat
+      s:=$7F00;
+      r:=WaitPid(Pid,@s,0);
+    until (r<>-1) or (LinuxError<>Sys_EINTR);
+    if (r=-1) or (r=0) then 
+      Shell:=-1
+    else
+      Shell:=s;
+    end
   else // no success
    Shell:=-1; // indicate an error
   FreeShellArgV(p);
 end;
-
 
 Function Shell(const Command:AnsiString):Longint;
 {
@@ -796,6 +3343,48 @@ begin { Changes as above }
   else // no success
    Shell:=-1;
   FreeShellArgV(p);
+end;
+
+function WEXITSTATUS(Status: Integer): Integer;
+begin
+  WEXITSTATUS:=(Status and $FF00) shr 8;
+end;
+
+function WTERMSIG(Status: Integer): Integer;
+begin
+  WTERMSIG:=(Status and $7F);
+end;
+
+function WSTOPSIG(Status: Integer): Integer;
+begin
+  WSTOPSIG:=WEXITSTATUS(Status);
+end;
+
+Function WIFEXITED(Status: Integer): Boolean;
+begin
+  WIFEXITED:=(WTERMSIG(Status)=0);
+end;
+
+Function WIFSTOPPED(Status: Integer): Boolean;
+begin
+  WIFSTOPPED:=((Status and $FF)=$7F);
+end;
+
+Function WIFSIGNALED(Status: Integer): Boolean;
+begin
+  WIFSIGNALED:=(not WIFSTOPPED(Status)) and
+               (not WIFEXITED(Status));
+end;
+
+Function W_EXITCODE(ReturnCode, Signal: Integer): Integer;
+begin
+  W_EXITCODE:=(ReturnCode shl 8) or Signal;
+end;
+
+Function W_STOPCODE(Signal: Integer): Integer;
+
+begin
+  W_STOPCODE:=(Signal shl 8) or $7F;
 end;
 
 
@@ -896,9 +3485,9 @@ var
   t : timeval;
 begin
   gettimeofday(t);
-  EpochToLocal(t.tv_sec,year,month,day,hour,min,sec);
-  msec:=t.tv_usec div 1000;
-  usec:=t.tv_usec mod 1000;
+  EpochToLocal(t.sec,year,month,day,hour,min,sec);
+  msec:=t.usec div 1000;
+  usec:=t.usec mod 1000;
 end;
 
 
@@ -944,24 +3533,24 @@ Begin
   EpochToLocal(GetTimeOfDay,year,month,day,hour,minute,second);
 End;
 
-{$ifndef BSD}     {Start 1.0.x compiler FreeBSD cycle defines linux}
-{$ifdef Linux}
+{$ifndef BSD}          {Fix for 1.0.x starting compiler only}
+{$ifdef linux}
 Function stime (t : longint) : Boolean;
 var
   sr : Syscallregs;
 begin
   sr.reg2:=longint(@t);
   SysCall(Syscall_nr_stime,sr);
-  linuxerror:=fpgeterrno;
+  linuxerror:=errno;
    stime:=linuxerror=0;
 end;
 {$endif}
 {$endif}
 
-{$ifdef bsd}
+{$ifdef BSD}
 Function stime (t : longint) : Boolean;
 begin
-
+  stime:=false;
 end;
 {$endif}
 
@@ -987,133 +3576,290 @@ begin
   SetDateTime:=stime ( LocalToEpoch ( Year, Month, Day, Hour, Minute, Second ) );
 end;
 
-Procedure Execl(const Todo:Ansistring);
-
-{
-  Overloaded AnsiString Version of ExecL.
-}
-
-begin
-  ExecLE(ToDo,EnvP);
-end;
-
 { Include timezone handling routines which use /usr/share/timezone info }
-{$i timezone.inc}
 
-Function NanoSleep(const req : timespec;var rem : timespec) : longint;
+type
+  plongint=^longint;
+  pbyte=^byte;
 
+  ttzhead=packed record
+    tzh_reserved : array[0..19] of byte;
+    tzh_ttisgmtcnt,
+    tzh_ttisstdcnt,
+    tzh_leapcnt,
+    tzh_timecnt,
+    tzh_typecnt,
+    tzh_charcnt  : longint;
+  end;
+
+  pttinfo=^tttinfo;
+  tttinfo=packed record
+    offset : longint;
+    isdst  : boolean;
+    idx    : byte;
+    isstd  : byte;
+    isgmt  : byte;
+  end;
+
+  pleap=^tleap;
+  tleap=record
+    transition : longint;
+    change     : longint;
+  end;
+
+var
+  num_transitions,
+  num_leaps,
+  num_types    : longint;
+
+  transitions  : plongint;
+  type_idxs    : pbyte;
+  types        : pttinfo;
+  zone_names   : pchar;
+  leaps        : pleap;
+
+function find_transition(timer:longint):pttinfo;
+var
+  i : longint;
 begin
- nanosleep:=fpnanosleep(@req,@rem);
-end;
-
-Function  OpenDir(f:pchar):pdir;
-
-begin
-   OpenDir:=fpopendir(f);
-  linuxerror:=fpgeterrno;
-end;
-
-function  CloseDir(p:pdir):integer;
-
-begin
-  CloseDir:=Fpclosedir(p^);
-  linuxerror:=fpgeterrno;
-end;
-
-Procedure SigAction(Signum:longint;Act:baseunix.psigactionrec;OldAct:baseunix.PSigActionRec );
-
-begin
-   fpsigaction(signum,act,oldact);
-  linuxerror:=fpgeterrno;
-end;
-
-
-Function  sys_ReadDir(p:pdir):pdirent;
-
-begin
-  sys_readdir:=fpreaddir(p^);
-  linuxerror:=fpgeterrno;
-end;
-
-function sys_unlink(p:pchar):longint;
-
-begin
-  sys_unlink:=fpunlink(p);
-  linuxerror:=fpgeterrno;
-end;
-
-function sys_rename(p,p2:pchar):longint;
-
-begin
-  sys_rename:=fprename(p,p2);
-  linuxerror:=fpgeterrno;
-end;
-
-Function sys_SymLink(OldPath,newPath:pchar):longint;
-
-begin
-  sys_Symlink:=fpsymlink(oldpath,newpath);
-  linuxerror:=fpgeterrno;
-end;
-
-
-Function sys_ReadLink(name,linkname:pchar;maxlen:longint):longint;
-{
-  Read a link (where it points to)
-}
-begin
-  sys_Readlink:=fpreadlink(Name,LinkName,maxlen);
-  linuxerror:=fpgeterrno;
-end;
-
-function sys_open(p:pchar;f,i:longint):longint;
-
-begin
-  sys_open:=fpopen(p,f,i);
-  linuxerror:=fpgeterrno;
-end;
-
-Function Sys_Lseek(F:longint;Off:longint;Whence:longint):longint;
-begin
- sys_lseek:=fplseek(f,off,whence);
- linuxerror:=fpgeterrno;
-end;
-
-Function Sys_Stat(Filename:pchar;var Buffer: stat):longint;
-
-begin
- Sys_stat:=fpstat(filename,{$ifdef oldlinuxstat}baseunix.stat(buffer){$else}buffer{$endif});
- linuxerror:=fpgeterrno;
-end;
-
-function sys_close(f:longint):longint;
-
-begin
- sys_close:=fpclose(f);
- linuxerror:=fpgeterrno;
-end;
-
-function sys_read(f:longint;p:pchar;i:longint):longint;
-
-begin
- sys_read:=fpread(f,p,i);
- linuxerror:=fpgeterrno;
-end;
-
-function sys_write(f:longint;p:pchar;i:longint):longint;
-
-begin
- sys_write:=fpwrite(f,p,i);
- linuxerror:=fpgeterrno;
+  if (num_transitions=0) or (timer<transitions[0]) then
+   begin
+     i:=0;
+     while (i<num_types) and (types[i].isdst) do
+      inc(i);
+     if (i=num_types) then
+      i:=0;
+   end
+  else
+   begin
+     for i:=1 to num_transitions do
+      if (timer<transitions[i]) then
+       break;
+     i:=type_idxs[i-1];
+   end;
+  find_transition:=@types[i];
 end;
 
 
-Function  Select(N:longint;readfds,writefds,exceptfds:pfdset;TimeOut:PTimeVal):longint;
-
+procedure GetLocalTimezone(timer:longint;var leap_correct,leap_hit:longint);
+var
+  info : pttinfo;
+  i    : longint;
 begin
-   select:=fpSelect(N,readfds,writefds,exceptfds,TimeOut^.tv_sec);
-   linuxerror:=fpgeterrno;
+{ reset }
+  TZDaylight:=false;
+  TZSeconds:=0;
+  TZName[false]:=nil;
+  TZName[true]:=nil;
+  leap_correct:=0;
+  leap_hit:=0;
+{ get info }
+  info:=find_transition(timer);
+  if not assigned(info) then
+   exit;
+  TZDaylight:=info^.isdst;
+  TZSeconds:=info^.offset;
+  i:=0;
+  while (i<num_types) do
+   begin
+     tzname[types[i].isdst]:=@zone_names[types[i].idx];
+     inc(i);
+   end;
+  tzname[info^.isdst]:=@zone_names[info^.idx];
+  i:=num_leaps;
+  repeat
+    if i=0 then
+     exit;
+    dec(i);
+  until (timer>leaps[i].transition);
+  leap_correct:=leaps[i].change;
+  if (timer=leaps[i].transition) and
+     (((i=0) and (leaps[i].change>0)) or
+      (leaps[i].change>leaps[i-1].change)) then
+   begin
+     leap_hit:=1;
+     while (i>0) and
+           (leaps[i].transition=leaps[i-1].transition+1) and
+           (leaps[i].change=leaps[i-1].change+1) do
+      begin
+        inc(leap_hit);
+        dec(i);
+      end;
+   end;
 end;
+
+
+procedure GetLocalTimezone(timer:longint);
+var
+  lc,lh : longint;
+begin
+  GetLocalTimezone(timer,lc,lh);
+end;
+
+
+procedure ReadTimezoneFile(fn:string);
+
+  procedure decode(var l:longint);
+  var
+    k : longint;
+    p : pbyte;
+  begin
+    p:=pbyte(@l);
+    if (p[0] and (1 shl 7))<>0 then
+     k:=not 0
+    else
+     k:=0;
+    k:=(k shl 8) or p[0];
+    k:=(k shl 8) or p[1];
+    k:=(k shl 8) or p[2];
+    k:=(k shl 8) or p[3];
+    l:=k;
+  end;
+
+var
+  f      : longint;
+  tzdir  : string;
+  tzhead : ttzhead;
+  i      : longint;
+  chars  : longint;
+  buf    : pbyte;
+begin
+  if fn='' then
+   fn:='localtime';
+  if fn[1]<>'/' then
+   begin
+     tzdir:=getenv('TZDIR');
+     if tzdir='' then
+      tzdir:='/usr/share/zoneinfo';
+     if tzdir[length(tzdir)]<>'/' then
+      tzdir:=tzdir+'/';
+     fn:=tzdir+fn;
+   end;
+  f:=fdopen(fn,Open_RdOnly);
+  if f<0 then
+   exit;
+  i:=fdread(f,tzhead,sizeof(tzhead));
+  if i<>sizeof(tzhead) then
+   exit;
+  decode(tzhead.tzh_timecnt);
+  decode(tzhead.tzh_typecnt);
+  decode(tzhead.tzh_charcnt);
+  decode(tzhead.tzh_leapcnt);
+  decode(tzhead.tzh_ttisstdcnt);
+  decode(tzhead.tzh_ttisgmtcnt);
+
+  num_transitions:=tzhead.tzh_timecnt;
+  num_types:=tzhead.tzh_typecnt;
+  chars:=tzhead.tzh_charcnt;
+
+  reallocmem(transitions,num_transitions*sizeof(longint));
+  reallocmem(type_idxs,num_transitions);
+  reallocmem(types,num_types*sizeof(tttinfo));
+  reallocmem(zone_names,chars);
+  reallocmem(leaps,num_leaps*sizeof(tleap));
+
+  fdread(f,transitions^,num_transitions*4);
+  fdread(f,type_idxs^,num_transitions);
+
+  for i:=0 to num_transitions-1 do
+   decode(transitions[i]);
+
+  for i:=0 to num_types-1 do
+   begin
+     fdread(f,types[i].offset,4);
+     fdread(f,types[i].isdst,1);
+     fdread(f,types[i].idx,1);
+     decode(types[i].offset);
+     types[i].isstd:=0;
+     types[i].isgmt:=0;
+   end;
+
+  fdread(f,zone_names^,chars);
+
+  for i:=0 to num_leaps-1 do
+   begin
+     fdread(f,leaps[i].transition,4);
+     fdread(f,leaps[i].change,4);
+     decode(leaps[i].transition);
+     decode(leaps[i].change);
+   end;
+
+  getmem(buf,tzhead.tzh_ttisstdcnt);
+  fdread(f,buf^,tzhead.tzh_ttisstdcnt);
+  for i:=0 to tzhead.tzh_ttisstdcnt-1 do
+   types[i].isstd:=byte(buf[i]<>0);
+  freemem(buf);
+
+  getmem(buf,tzhead.tzh_ttisgmtcnt);
+  fdread(f,buf^,tzhead.tzh_ttisgmtcnt);
+  for i:=0 to tzhead.tzh_ttisgmtcnt-1 do
+   types[i].isgmt:=byte(buf[i]<>0);
+  freemem(buf);
+  fdclose(f);
+end;
+
+Const
+  // Debian system; contains location of timezone file.
+  TimeZoneLocationFile = '/etc/timezone'; 
+  // SuSE has link in /usr/lib/zoneinfo/localtime to /etc/localtime
+  // RedHat uses /etc/localtime
+  TimeZoneFile = '/usr/lib/zoneinfo/localtime'; 
+  AltTimeZoneFile = '/etc/localtime'; 
+  
+function GetTimezoneFile:string;
+var
+  f,len : longint;
+  s : string;
+  info : stat;
+  
+begin
+  GetTimezoneFile:='';
+  f:=fdopen(TimeZoneLocationFile,Open_RdOnly);
+  if f>0 then
+    begin
+    len:=fdread(f,s[1],high(s));
+    s[0]:=chr(len);
+    len:=pos(#10,s);
+    if len<>0 then
+     s[0]:=chr(len-1);
+    fdclose(f);
+    GetTimezoneFile:=s;
+    end
+  // Try SuSE  
+  else if fstat(TimeZoneFile,info) then
+    GetTimeZoneFile:=TimeZoneFile
+  // Try RedHat  
+  else If fstat(AltTimeZoneFile,Info) then
+      GetTimeZoneFile:=AltTimeZoneFile;
+end;
+
+
+procedure InitLocalTime;
+begin
+  ReadTimezoneFile(GetTimezoneFile);
+  GetLocalTimezone(GetTimeOfDay);
+end;
+
+
+procedure DoneLocalTime;
+begin
+  if assigned(transitions) then
+   freemem(transitions);
+  if assigned(type_idxs) then
+   freemem(type_idxs);
+  if assigned(types) then
+   freemem(types);
+  if assigned(zone_names) then
+   freemem(zone_names);
+  if assigned(leaps) then
+   freemem(leaps);
+  num_transitions:=0;
+  num_leaps:=0;
+  num_types:=0;
+end;
+
+
+
 
 {******************************************************************************
                            FileSystem calls
@@ -1123,6 +3869,7 @@ Function fdOpen(pathname:string;flags:longint):longint;
 begin
   pathname:=pathname+#0;
   fdOpen:=Sys_Open(@pathname[1],flags,438);
+  LinuxError:=Errno;
 end;
 
 
@@ -1130,6 +3877,7 @@ Function fdOpen(pathname:string;flags,mode:longint):longint;
 begin
   pathname:=pathname+#0;
   fdOpen:=Sys_Open(@pathname[1],flags,mode);
+  LinuxError:=Errno;
 end;
 
 
@@ -1137,6 +3885,7 @@ end;
 Function  fdOpen(pathname:pchar;flags:longint):longint;
 begin
   fdOpen:=Sys_Open(pathname,flags,0);
+  LinuxError:=Errno;
 end;
 
 
@@ -1144,6 +3893,7 @@ end;
 Function  fdOpen(pathname:pchar;flags,mode:longint):longint;
 begin
   fdOpen:=Sys_Open(pathname,flags,mode);
+  LinuxError:=Errno;
 end;
 
 
@@ -1151,13 +3901,15 @@ end;
 Function fdClose(fd:longint):boolean;
 begin
   fdClose:=(Sys_Close(fd)=0);
+  LinuxError:=Errno;
 end;
 
 
 
-Function fdRead(fd:longint;var buf;tsize:longint):longint;
+Function fdRead(fd:longint;var buf;size:longint):longint;
 begin
-  fdRead:=Sys_Read(fd,pchar(@buf),tsize);
+  fdRead:=Sys_Read(fd,pchar(@buf),size);
+  LinuxError:=Errno;
 end;
 
 
@@ -1165,6 +3917,7 @@ end;
 Function fdWrite(fd:longint;const buf;size:longint):longint;
 begin
   fdWrite:=Sys_Write(fd,pchar(@buf),size);
+  LinuxError:=Errno;
 end;
 
 
@@ -1177,26 +3930,26 @@ Function  fdSeek (fd,pos,seektype :longint): longint;
 }
 begin
    fdseek:=Sys_LSeek (fd,pos,seektype);
-   linuxerror:=fpgeterrno;
+   LinuxError:=Errno;
 end;
 
-{$ifdef xBSD}
+{$ifdef BSD}
 Function Fcntl(Fd:longint;Cmd:longint):longint;
 {
   Read or manipulate a file.(See also fcntl (2) )
   Possible values for Cmd are :
     F_GetFd,F_GetFl,F_GetOwn
   Errors are reported in Linuxerror;
-  If Cmd is different from the allowed values, linuxerror=ESyseninval.
+  If Cmd is different from the allowed values, linuxerror=Sys_eninval.
 }
 
 begin
   if (cmd in [F_GetFd,F_GetFl,F_GetOwn]) then
    begin
-     Linuxerror:=fpfcntl(fd,cmd,0);
+     Linuxerror:=sys_fcntl(fd,cmd,0);
      if linuxerror=-1 then
       begin
-        linuxerror:=fpgeterrno;
+        linuxerror:=errno;
         fcntl:=0;
       end
      else
@@ -1207,7 +3960,7 @@ begin
    end
   else
    begin
-     linuxerror:=ESyseinval;
+     linuxerror:=Sys_einval;
      Fcntl:=0;
    end;
 end;
@@ -1225,11 +3978,11 @@ Procedure Fcntl(Fd:longint;Cmd:longint;Arg:Longint);
 begin
   if (cmd in [F_SetFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkw,F_SetOwn]) then
    begin
-     fpfcntl(fd,cmd,arg);
-     linuxerror:=fpgeterrno;
+     sys_fcntl(fd,cmd,arg);
+     LinuxError:=ErrNo;
    end
   else
-   linuxerror:=ESyseinval;
+   linuxerror:=Sys_einval;
 end;
 {$endif}
 
@@ -1267,7 +4020,7 @@ Function FStat(Path:Pathstr;Var Info:stat):Boolean;
 begin
   path:=path+#0;
   FStat:=(Sys_stat(@(path[1]),Info)=0);
-  linuxerror:=fpgeterrno;
+  LinuxError:=errno;
 end;
 
 
@@ -1299,7 +4052,7 @@ begin
   oldpath:=oldpath+#0;
   newpath:=newpath+#0;
   Symlink:=Sys_symlink(pchar(@(oldpath[1])),pchar(@(newpath[1])))=0;
-  linuxerror:=fpgeterrno;
+  linuxerror:=errno;
 end;
 
 
@@ -1309,7 +4062,7 @@ Function ReadLink(name,linkname:pchar;maxlen:longint):longint;
 }
 begin
   Readlink:=Sys_readlink(Name,LinkName,maxlen);
-  linuxerror:=fpgeterrno;
+  linuxerror:=errno;
 end;
 
 
@@ -1341,7 +4094,7 @@ Function UnLink(Path:pathstr):boolean;
 begin
   path:=path+#0;
   Unlink:=Sys_unlink(pchar(@(path[1])))=0;
-  linuxerror:=fpgeterrno;
+  linuxerror:=errno;
 end;
 
 
@@ -1352,14 +4105,14 @@ Function  UnLink(Path:pchar):Boolean;
 }
 begin
   Unlink:=(Sys_unlink(path)=0);
-  linuxerror:=fpgeterrno;
+  linuxerror:=errno;
 end;
 
 
 Function  FRename (OldName,NewName : Pchar) : Boolean;
 begin
   FRename:=Sys_rename(OldName,NewName)=0;
-  linuxerror:=fpgeterrno;
+  LinuxError:=Errno;
 end;
 
 
@@ -1433,7 +4186,9 @@ begin
   Dup2:=Dup2(filerec(oldfile).handle,filerec(newfile).handle);
 end;
 
-Function  Select(N:longint;readfds,writefds,exceptfds:pfdset;TimeOut:Longint):longint;
+
+
+Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:Longint):longint;
 {
   Select checks whether the file descriptor sets in readfs/writefs/exceptfs
   have changed.
@@ -1447,8 +4202,8 @@ begin
    p:=nil
   else
    begin
-     tv.tv_Sec:=Timeout div 1000;
-     tv.tv_Usec:=(Timeout mod 1000)*1000;
+     tv.Sec:=Timeout div 1000;
+     tv.Usec:=(Timeout mod 1000)*1000;
      p:=@tv;
    end;
   Select:=Select(N,Readfds,WriteFds,ExceptFds,p);
@@ -1458,11 +4213,11 @@ end;
 
 Function SelectText(var T:Text;TimeOut :PTimeval):Longint;
 Var
-  F:tfdset;
+  F:FDSet;
 begin
   if textrec(t).mode=fmclosed then
    begin
-     LinuxError:=ESysEBadf;
+     LinuxError:=Sys_EBADF;
      exit(-1);
    end;
   FD_Zero(f);
@@ -1483,8 +4238,8 @@ begin
    p:=nil
   else
    begin
-     tv.tv_Sec:=Timeout div 1000;
-     tv.tv_Usec:=(Timeout mod 1000)*1000;
+     tv.Sec:=Timeout div 1000;
+     tv.Usec:=(Timeout mod 1000)*1000;
      p:=@tv;
    end;
   SelectText:=SelectText(T,p);
@@ -1499,49 +4254,45 @@ Function OpenDir(F:String):PDir;
 begin
   F:=F+#0;
   OpenDir:=OpenDir(@F[1]);
-  linuxerror:=fpgeterrno;
+  LinuxError:=ErrNo;
 end;
 
-
+{$ifndef newreaddir}
 procedure SeekDir(p:pdir;off:longint);
 begin
   if p=nil then
    begin
-     fpseterrno(ESysEBadf);
+     errno:=Sys_EBADF;
      exit;
    end;
  {$ifndef bsd}
-  {$ifndef Solaris}
-  p^.dd_nextoff:=Sys_lseek(p^.dd_fd,off,seek_set);
-  {$endif}
+  p^.nextoff:=Sys_lseek(p^.fd,off,seek_set);
  {$endif}
-  p^.dd_size:=0;
-  p^.dd_loc:=0;
+  p^.size:=0;
+  p^.loc:=0;
 end;
-
 
 function TellDir(p:pdir):longint;
 begin
   if p=nil then
    begin
-     fpseterrno(ESysEBadf);
+     errno:=Sys_EBADF;
      telldir:=-1;
      exit;
    end;
-  telldir:=Sys_lseek(p^.dd_fd,0,seek_cur)
+  telldir:=Sys_lseek(p^.fd,0,seek_cur)
   { We could try to use the nextoff field here, but on my 1.2.13
     kernel, this gives nothing... This may have to do with
     the readdir implementation of libc... I also didn't find any trace of
     the field in the kernel code itself, So I suspect it is an artifact of libc.
     Michael. }
 end;
-
-
+{$endif}
 
 Function ReadDir(P:pdir):pdirent;
 begin
   ReadDir:=Sys_ReadDir(p);
-  linuxerror:=fpgeterrno;
+  LinuxError:=Errno;
 end;
 
 
@@ -1690,7 +4441,7 @@ begin
   rw:=upcase(rw);
   if not (rw in ['R','W']) then
    begin
-     LinuxError:=ESysENOENT;
+     LinuxError:=Sys_enoent;
      exit;
    end;
   AssignPipe(pipi,pipo);
@@ -1705,6 +4456,26 @@ begin
    end;
   if pid=0 then
    begin
+     {$ifdef BSD} // FreeBSD checked only
+   { We're in the child }
+	close(pipi);
+	if textrec(pipo).handle<>textrec(output).handle Then
+	  begin
+	   dup2(textrec(pipo).handle,textrec(output).handle);
+	   if rw='W' Then
+	    dup2(textrec(output).handle,textrec(input).handle);
+          end
+	 else
+ 	  if (rw='W') and (textrec(pipi).handle<>textrec(input).handle) then
+	     dup2(textrec(output).handle,textrec(input).handle);
+        close(pipo);
+        if linuxerror<>0 then
+         halt(127);
+     pp:=createshellargv(prog);
+     Execve(pp^,pp,envp);
+     halt(127);
+   end
+   {$else}
    { We're in the child }
      if rw='W' then
       begin
@@ -1726,6 +4497,7 @@ begin
      Execve(pp^,pp,envp);
      halt(127);
    end
+ {$endif}
   else
    begin
    { We're in the parent }
@@ -1769,7 +4541,7 @@ begin
   rw:=upcase(rw);
   if not (rw in ['R','W']) then
    begin
-     LinuxError:=ESysENOENT;
+     LinuxError:=Sys_enoent;
      exit;
    end;
   AssignPipe(pipi,pipo);
@@ -2043,11 +4815,11 @@ Var
   Sysn : utsname;
 begin
   Uname(Sysn);
-  linuxerror:=fpgeterrno;
+  linuxerror:=errno;
   If linuxerror<>0 then
    getdomainname:=''
   else
-   getdomainname:=strpas(@Sysn.domain[0]);
+   getdomainname:=strpas(@Sysn.domainname[0]);
 end;
 
 
@@ -2060,7 +4832,7 @@ Var
   Sysn : utsname;
 begin
   uname(Sysn);
-  linuxerror:=fpgeterrno;
+  linuxerror:=errno;
   If linuxerror<>0 then
    gethostname:=''
   else
@@ -2111,7 +4883,7 @@ begin
   {$endif}
   else
    begin
-     fpsetErrNo(ESysEINVAL);
+     ErrNo:=Sys_EINVAL;
      TCSetAttr:=false;
      exit;
    end;
@@ -2124,7 +4896,7 @@ end;
 Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal);
 begin
  {$ifndef BSD}
-  tios.c_cflag:=(tios.c_cflag and (not CBAUD)) or speed;
+  tios.c_cflag:=Cardinal(tios.c_cflag and cardinal(not CBAUD)) or speed;
  {$else}
   tios.c_ispeed:=speed; {Probably the Bxxxx speed constants}
  {$endif}
@@ -2149,11 +4921,11 @@ begin
  {$ifndef BSD}
   with tios do
    begin
-     c_iflag:=c_iflag and (not (IGNBRK or BRKINT or PARMRK or ISTRIP or
+     c_iflag:=c_iflag and cardinal(not (IGNBRK or BRKINT or PARMRK or ISTRIP or
                                 INLCR or IGNCR or ICRNL or IXON));
-     c_oflag:=c_oflag and (not OPOST);
-     c_lflag:=c_lflag and (not (ECHO or ECHONL or ICANON or ISIG or IEXTEN));
-     c_cflag:=(c_cflag and (not (CSIZE or PARENB))) or CS8;
+     c_oflag:=c_oflag and cardinal(not OPOST);
+     c_lflag:=c_lflag and cardinal(not (ECHO or ECHONL or ICANON or ISIG or IEXTEN));
+     c_cflag:=(c_cflag and cardinal(not (CSIZE or PARENB))) or CS8;
    end;
  {$else}
   with tios do
@@ -2222,7 +4994,9 @@ begin
 end;
 
 
+
 Function TCFlush(fd,qsel:longint):boolean;
+
 begin
  {$ifndef BSD}
   TCFlush:=IOCtl(fd,TCFLSH,pointer(qsel));
@@ -2230,7 +5004,6 @@ begin
   TCFlush:=IOCtl(fd,TIOCFLUSH,pointer(qsel));
  {$endif}
 end;
-
 
 Function IsATTY(Handle:Longint):Boolean;
 {
@@ -2259,9 +5032,15 @@ function TTYName(Handle:Longint):string;
   Return the name of the current tty described by handle f.
   returns empty string in case of an error.
 }
+{$ifdef BSD}
+var
+  mydev,
+  myino     : cardinal;
+{$else not BSD}
 var
   mydev,
   myino     : longint;
+{$endif not BSD}
   st        : stat;
 
   function mysearch(n:string): boolean;
@@ -2278,15 +5057,15 @@ var
     d:=Readdir(dirstream);
     while (d<>nil) do
      begin
-       name:=n+'/'+strpas(@(d^.d_name));
+       name:=n+'/'+strpas(@(d^.name));
        fstat(name,st);
        if linuxerror=0 then
         begin
-          if ((st.st_mode and $E000)=$4000) and  { if it is a directory }
-             (strpas(@(d^.d_name))<>'.') and    { but not ., .. and fd subdirs }
-             (strpas(@(d^.d_name))<>'..') and
-             (strpas(@(d^.d_name))<>'') and
-             (strpas(@(d^.d_name))<>'fd') then
+          if ((st.mode and $E000)=$4000) and  { if it is a directory }
+             (strpas(@(d^.name))<>'.') and    { but not ., .. and fd subdirs }
+             (strpas(@(d^.name))<>'..') and
+	     (strpas(@(d^.name))<>'') and
+             (strpas(@(d^.name))<>'fd') then
            begin                      {we found a directory, search inside it}
              if mysearch(name) then
               begin                 {the device is here}
@@ -2295,7 +5074,7 @@ var
                 exit;
               end;
            end
-          else if (d^.d_fileno=myino) and (st.st_dev=mydev) then
+          else if (d^.ino=myino) and (st.dev=mydev) then
            begin
              closedir(dirstream);
              ttyname:=name;
@@ -2312,14 +5091,12 @@ var
 begin
   TTYName:='';
   fstat(handle,st);
-  if (fpgeterrno<>0) and isatty (handle) then
+  if (errno<>0) and isatty (handle) then
    exit;
-  mydev:=st.st_dev;
-  myino:=st.st_ino;
+  mydev:=st.dev;
+  myino:=st.ino;
   mysearch('/dev');
 end;
-
-
 
 function TTYName(var F:Text):string;
 {
@@ -2371,11 +5148,11 @@ begin
      while not (buf^ in [' ',#0,#9,#10]) do
       inc(buf);
    end;
-  getmem(p,nr*4+1);
+  getmem(p,(nr+1)*4);
   StringToPPChar:=p;
   if p=nil then
    begin
-     LinuxError:=ESysENOMEM;
+     LinuxError:=sys_enomem;
      exit;
    end;
   buf:=s;
@@ -2392,6 +5169,28 @@ begin
      while not (buf^ in [' ',#0,#9,#10]) do
       inc(buf);
    end;
+end;
+
+Function StringToPPChar(Var S:String):ppchar;
+{
+  Create a PPChar to structure of pchars which are the arguments specified
+  in the string S. Especially usefull for creating an ArgV for Exec-calls
+  Note that the string S is destroyed by this call.
+}
+
+begin
+  S:=S+#0;
+  StringToPPChar:=StringToPPChar(@S[1]);
+end;
+
+Function StringToPPChar(Var S:AnsiString):ppchar;
+{
+  Create a PPChar to structure of pchars which are the arguments specified
+  in the string S. Especially usefull for creating an ArgV for Exec-calls
+}
+
+begin
+  StringToPPChar:=StringToPPChar(PChar(S));
 end;
 
 
@@ -2411,6 +5210,7 @@ const
 
 {$UNDEF FPC_FEXPAND_GETENVPCHAR}
 {$UNDEF FPC_FEXPAND_TILDE}
+
 
 
 Function FSearch(const path:pathstr;dirlist:string):pathstr;
@@ -2499,27 +5299,6 @@ begin
   DirName:=Dir;
 end;
 
-Function StringToPPChar(Var S:String):ppchar;
-{
-  Create a PPChar to structure of pchars which are the arguments specified
-  in the string S. Especially usefull for creating an ArgV for Exec-calls
-  Note that the string S is destroyed by this call.
-}
-
-begin
-  S:=S+#0;
-  StringToPPChar:=StringToPPChar(@S[1]);
-end;
-
-Function StringToPPChar(Var S:AnsiString):ppchar;
-{
-  Create a PPChar to structure of pchars which are the arguments specified
-  in the string S. Especially usefull for creating an ArgV for Exec-calls
-}
-
-begin
-  StringToPPChar:=StringToPPChar(PChar(S));
-end;
 
 
 Function Basename(Const path:pathstr;Const suf:pathstr):pathstr;
@@ -2654,13 +5433,13 @@ begin
   if thedir=nil then
    begin
      glob:=nil;
-     linuxerror:=fpgeterrno;
+     linuxerror:=errno;
      exit;
    end;
   temp:=basename(path,''); { get the pattern }
-  if thedir^.dd_fd<0 then
+  if thedir^.fd<0 then
    begin
-     linuxerror:=fpgeterrno;
+     linuxerror:=errno;
      glob:=nil;
      exit;
    end;
@@ -2671,7 +5450,7 @@ begin
     buffer:=Sys_readdir(thedir);
     if buffer=nil then
      break;
-    temp2:=strpas(@(buffer^.d_name[0]));
+    temp2:=strpas(@(buffer^.name[0]));
     if fnmatch(temp,temp2) then
      begin
        if root=nil then
@@ -2686,7 +5465,7 @@ begin
         end;
        if current=nil then
         begin
-          linuxerror:=ESysENOMEM;
+          linuxerror:=Sys_ENOMEM;
           globfree(root);
           break;
         end;
@@ -2694,11 +5473,11 @@ begin
        getmem(current^.name,length(temp2)+1);
        if current^.name=nil then
         begin
-          linuxerror:=ESysENOMEM;
+          linuxerror:=Sys_ENOMEM;
           globfree(root);
           break;
         end;
-       move(buffer^.d_name[0],current^.name^,length(temp2)+1);
+       move(buffer^.name[0],current^.name^,length(temp2)+1);
      end;
   until false;
   closedir(thedir);
@@ -2710,17 +5489,17 @@ end;
       FiledescriptorSets
 --------------------------------}
 
-Procedure FD_Zero(var fds:tfdset);
+Procedure FD_Zero(var fds:fdSet);
 {
   Clear the set of filedescriptors
 }
 begin
-  FillChar(fds,sizeof(tfdset),0);
+  FillChar(fds,sizeof(fdSet),0);
 end;
 
 
 
-Procedure FD_Clr(fd:longint;var fds:tfdset);
+Procedure FD_Clr(fd:longint;var fds:fdSet);
 {
   Remove fd from the set of filedescriptors
 }
@@ -2730,7 +5509,7 @@ end;
 
 
 
-Procedure FD_Set(fd:longint;var fds:tfdset);
+Procedure FD_Set(fd:longint;var fds:fdSet);
 {
   Add fd to the set of filedescriptors
 }
@@ -2740,7 +5519,7 @@ end;
 
 
 
-Function FD_IsSet(fd:longint;var fds:tfdset):boolean;
+Function FD_IsSet(fd:longint;var fds:fdSet):boolean;
 {
   Test if fd is part of the set of filedescriptors
 }
@@ -2850,11 +5629,6 @@ begin
 end;
 
 
-{--------------------------------
-      Memory functions
---------------------------------}
-
-{$IFDEF cpui386}
 Procedure WritePort (Port : Longint; Value : Byte);
 {
   Writes 'Value' to port 'Port'
@@ -3115,12 +5889,13 @@ begin
         movl port,%edx
         cld
         rep
-        insb
+         insb
   end ['ECX','EDI','EDX'];
 end;
-{$ENDIF}
 
-
+{--------------------------------
+      Memory functions
+--------------------------------}
 
 Initialization
   InitLocalTime;
@@ -3128,73 +5903,263 @@ Initialization
 finalization
   DoneLocalTime;
 
-end.
+End.
+
 {
   $Log$
-  Revision 1.9  2003-10-17 22:13:30  olle
-    * changed i386 to cpui386
+  Revision 1.10  2003-11-10 16:54:28  marco
+   * new oldlinux unit. 1_0 defines killed in some former FCL parts.
 
-  Revision 1.8  2003/09/29 14:36:06  peter
-    * fixed for stricter compiler
 
-  Revision 1.7  2003/09/27 13:49:41  peter
-    * fpnanosleep exported
+  Revision 1.1.2.41  2003/06/18 06:56:51  pierre
+   * restore return value of shell function to status parameter
 
-  Revision 1.6  2003/09/16 16:06:02  peter
-    * add typecasts for oldlinuxstat
+  Revision 1.1.2.40  2003/05/24 20:36:41  jonas
+    * fixed DosExitCode translation (at least for linux, and it's the same
+      for Darwin, other BSD's should still be checked)
 
-  Revision 1.5  2003/09/16 15:40:31  marco
-   * voodoo is now linux only
+  Revision 1.1.2.39  2003/03/15 15:41:03  marco
+   * utime fixes. Has now "const" argument.
 
-  Revision 1.4  2003/09/16 15:39:31  marco
-   * voodoo....
-
-  Revision 1.3  2003/09/15 21:07:41  marco
-   * second round of linux fixes. oldlinux now works
-
-  Revision 1.2  2003/09/15 20:08:49  marco
-   * small fixes. FreeBSD now cycles
-
-  Revision 1.1  2003/09/15 14:12:17  marco
-   * moved linux.pp contents to linuxold etc
-
-  Revision 1.31  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.30  2003/05/30 19:58:40  marco
-   * Getting NetBSD/i386 to compile.
-
-  Revision 1.29  2003/05/30 19:37:14  marco
-   * small changes
-
-  Revision 1.28  2003/03/11 08:26:50  michael
+  Revision 1.1.2.38  2003/03/11 08:24:46  michael
   * stringtoppchar should use tabs instead of backspace as delimiter
 
-  Revision 1.27  2003/01/05 19:11:32  marco
-   * small changes originating from introduction of Baseunix to FreeBSD
+  Revision 1.1.2.37  2002/11/25 19:43:47  marco
+   * Hmm, I cycled this?
 
-  Revision 1.26  2002/12/18 17:52:07  peter
-    * replaced some Fp with Sys_ to get cycle working
+  Revision 1.1.2.36  2002/11/25 19:38:24  marco
+   * quick pipe fix.
 
-  Revision 1.25  2002/12/18 16:50:39  marco
-   * Unix RTL generic parts. Linux working, *BSD will follow shortly
+  Revision 1.1.2.35  2002/09/20 07:08:41  pierre
+   * avoid compiler warnings for bsd
 
-  Revision 1.24  2002/09/13 13:03:27  jonas
+  Revision 1.1.2.34  2002/09/13 13:02:06  jonas
     * fixed buffer overflow error in StringToPPChar(), detected using
       DIOTA (http://www.elis/rug.ac.be/~ronsse/diota) (which I also work on :)
-      (merged)
 
-  Revision 1.23  2002/09/07 16:01:27  peter
-    * old logs removed and tabs fixed
+  Revision 1.1.2.33  2002/09/10 09:18:43  pierre
+    * added several explicit typecast to remove warnings
 
-  Revision 1.22  2002/08/06 13:30:46  sg
+  Revision 1.1.2.32  2002/08/06 11:12:26  sg
   * replaced some Longints with Cardinals, to mach the C headers
   * updated the termios record
 
-  Revision 1.21  2002/03/06 11:34:04  michael
-  + Forgot to patch linux.pp
+  Revision 1.1.2.31  2002/07/30 11:33:52  marco
+   * Small OpenBSD fix.
 
-  Revision 1.20  2002/01/02 12:22:54  marco
-   * Removed ifdef arround getepoch.
+  Revision 1.1.2.30  2002/06/10 19:28:49  pierre
+   * fix IsATTY declaration
+
+  Revision 1.1.2.29  2002/03/05 20:07:01  michael
+  + Patched patch from Sebastian for FCNTL call
+
+  Revision 1.1.2.28  2002/03/05 19:59:42  michael
+  + Patch from Sebastian for FCNTL call
+
+  Revision 1.1.2.27  2002/02/19 14:37:54  marco
+   * Changes to support Alarm()
+
+  Revision 1.1.2.26  2001/12/31 23:26:45  marco
+   * Gettimeofday uncommented for FreeBSD.
+
+  Revision 1.1.2.25  2001/12/15 19:55:33  michael
+  + removed debug writelns
+
+  Revision 1.1.2.24  2001/12/13 18:29:49  michael
+    + Added ansistring version of most Exec* calls.
+
+  Revision 1.1.2.23  2001/11/30 07:20:22  marco
+   * TTYName fix from Maarten Beekers.
+
+  Revision 1.1.2.22  2001/11/05 20:52:47  michael
+  + Added exit status examination macros
+
+  Revision 1.1.2.21  2001/10/14 13:34:27  peter
+    * tcsetattr const argument
+
+  Revision 1.1.2.20  2001/09/10 18:40:04  marco
+   * OpenDir(String) now correctly updates linuxerror
+
+  Revision 1.1.2.19  2001/08/12 15:17:46  carl
+  * avoid range check error when with timezone info, we get a negative result here
+
+  Revision 1.1.2.18  2001/07/12 12:53:28  marco
+   * Small fix to datetime routines for 1.0.x starting compiler
+
+  Revision 1.1.2.17  2001/07/12 07:09:36  michael
+  + Corrected setdate/time/datetime implementation
+
+  Revision 1.1.2.16  2001/07/12 07:05:53  michael
+  + Added SetDate/time/datetime functions
+
+  Revision 1.1.2.15  2001/07/08 14:02:16  marco
+   * Readlink fix
+
+  Revision 1.1.2.14  2001/06/13 22:13:15  hajny
+    * universal FExpand merged
+
+  Revision 1.1.2.13  2001/06/02 00:21:06  peter
+    * waitprocess fixed to give the correct exitcode back under linux
+
+  Revision 1.1.2.12  2001/03/27 11:45:35  michael
+  + Fixed F_[G,S]etOwn constants. By Alexander Sychev
+
+  Revision 1.1.2.11  2001/03/15 16:02:18  marco
+   * More NewReaddir fixes. Now compiles
+
+  Revision 1.1.2.10  2001/03/13 10:31:48  marco
+   * Small fixes + moving of linsyscall and bsdsyscall
+
+  Revision 1.1.2.9  2001/03/12 20:37:50  marco
+   * [Solaris] Now cycles for FreeBSD (wrong version Linux unit commited)
+
+  Revision 1.1.2.8  2001/01/23 06:39:27  marco
+   * IOPerm for FreeBSD; I/O routines back to Unix.
+
+  Revision 1.1.2.7  2001/01/01 20:16:14  marco
+   * Fdwrite now has a CONST instead of a var parameter
+
+  Revision 1.1.2.6  2000/12/28 20:41:26  peter
+    * ttyname fix from the mailinglist
+
+  Revision 1.1.2.5  2000/12/17 13:58:43  peter
+    * removed unused var
+
+  Revision 1.1.2.4  2000/11/14 22:08:53  michael
+  + Added missing iopl call
+
+  Revision 1.1.2.3  2000/10/25 09:44:54  marco
+   * Termios backport
+
+  Revision 1.1.2.2  2000/10/24 12:18:51  pierre
+   + NanoSleep function
+
+  Revision 1.1.2.1  2000/09/14 13:38:26  marco
+   * Moved from Linux dir. now start of generic unix dir, from which the
+      really exotic features should be moved to the target specific dirs.
+
+  Revision 1.1.2.6  2000/09/10 16:12:40  marco
+  The rearrangement to linux for
+
+  Revision 1.1.2.5  2000/09/06 20:46:19  peter
+    * removed previous fsplit() patch as it's not the correct behaviour for
+      LFNs. The code showing the bug could easily be adapted
+
+  Revision 1.1.2.4  2000/09/04 20:15:22  peter
+    * fixed previous commit
+
+  Revision 1.1.2.3  2000/09/04 19:36:25  peter
+    * fsplit with .. fix from Thomas
+
+  Revision 1.1.2.2  2000/07/30 19:18:49  peter
+    * added overloaded selecttext with timeout as longint
+
+  Revision 1.1.2.1  2000/07/20 16:50:49  michael
+  + Fixed waitpid. Thanks to Rob Bugel
+
+  Revision 1.1  2000/07/13 06:30:54  michael
+  + Initial import
+
+  Revision 1.72  2000/05/26 18:21:04  peter
+    * fixed @ with var parameters
+
+  Revision 1.71  2000/05/25 19:59:57  michael
+  + Added munmap call
+
+  Revision 1.70  2000/05/21 17:10:13  michael
+  + AssignStream now always returns PID of spawned process
+
+  Revision 1.69  2000/05/17 17:11:44  peter
+    * added sigaction record from signal.inc
+
+  Revision 1.68  2000/04/16 16:09:32  marco
+   * Some small mistakes when merging BSD and Linux version fixed
+
+  Revision 1.67  2000/04/14 16:07:06  marco
+   * Splitted linux into linux.pp and linsysca.inc, and merged BSD diffs
+      into header
+
+  Revision 1.66  2000/03/27 13:25:48  jonas
+    * fixed readport* functions (thanks Florian ;)
+
+  Revision 1.65  2000/03/23 17:10:32  jonas
+    * fixes for port reading
+
+  Revision 1.64  2000/03/17 13:27:00  sg
+  * Added WritePort[B|W|L] for single data access
+  * Added ReadPort[B|W|L] functions
+
+  Revision 1.63  2000/02/23 17:19:06  peter
+    + readded getepochtime which simply calls gettimeofday
+
+  Revision 1.62  2000/02/09 23:09:13  peter
+    * rewrote glob to be much simpler and cleaner, the old code did
+      strange complex things with pointers which was unnecessary
+
+  Revision 1.61  2000/02/09 16:59:31  peter
+    * truncated log
+
+  Revision 1.60  2000/02/08 12:05:58  peter
+    + readlink
+
+  Revision 1.59  2000/01/07 16:41:40  daniel
+    * copyright 2000
+
+  Revision 1.58  2000/01/07 16:32:26  daniel
+    * copyright 2000 added
+
+  Revision 1.57  2000/01/04 12:56:09  jonas
+    * fixed modified registers for port routines
+
+  Revision 1.56  1999/12/28 09:38:07  sg
+  * the long version of AssignStream now sets the result value to -1 in
+    _all_ cases when it would fail.
+
+  Revision 1.55  1999/12/08 01:03:54  peter
+    * overloaded gettime functions supporting hsec and msec,usec
+
+  Revision 1.54  1999/12/01 22:46:59  peter
+    + timezone support
+
+  Revision 1.53  1999/11/14 21:35:04  peter
+    * removed warnings
+
+  Revision 1.52  1999/11/14 11:11:15  michael
+  + Added Pause() and alarm()
+
+  Revision 1.51  1999/11/11 19:43:49  sg
+  * fixed severe bug: change by ? in dup2 (flushing) resulted in broken
+    AssignStream functions
+
+  Revision 1.50  1999/11/06 14:39:12  peter
+    * truncated log
+
+  Revision 1.49  1999/10/28 09:48:31  peter
+    + mmap
+
+  Revision 1.48  1999/10/22 10:37:44  peter
+    * fixed sigset
+
+  Revision 1.47  1999/10/06 17:43:58  peter
+    * freemem with wrong size (found with the new heapmanager)
+
+  Revision 1.46  1999/09/08 16:14:41  peter
+    * pointer fixes
+
+  Revision 1.45  1999/08/11 22:02:25  peter
+    * removed old integer versions of localtoepoch and epochtolocal, you
+      need to use the word versions instead else you got an overloaded bug
+
+  Revision 1.44  1999/07/31 23:55:04  michael
+  + FCNTL patch from Sebastian Guenther
+
+  Revision 1.43  1999/07/29 16:33:24  michael
+  + Yet more Fixes to assignstream with rerouting of stderr
+
+  Revision 1.42  1999/07/29 15:55:54  michael
+  + Fixes to assignstream with rerouting of stderr, by Sebastian Guenther
+
+  Revision 1.41  1999/07/29 15:53:55  michael
+  + Added assignstream with rerouting of stderr, by Sebastian Guenther
 
 }

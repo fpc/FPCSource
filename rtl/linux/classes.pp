@@ -37,7 +37,7 @@ uses
 implementation
 
 uses
-  BaseUnix,unix,Linux
+  BaseUnix,unix
   ;
 
 { OS - independent class implementations are in /inc directory. }
@@ -56,7 +56,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2003-11-10 16:54:28  marco
+   * new oldlinux unit. 1_0 defines killed in some former FCL parts.
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.7  2003/09/20 15:10:30  marco
