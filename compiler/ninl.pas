@@ -130,10 +130,14 @@ implementation
              enumdef:
                begin
                   enum:=penumsym(Penumdef(Adef)^.firstenum);
+                  v:=Penumdef(adef)^.maxval;
                   if inlinenumber=in_high_x then
-                    while enum^.nextenum<>nil do
+                    while assigned(enum) and (enum^.value <> v) do
                       enum:=enum^.nextenum;
-                  hp:=genenumnode(enum);
+                  if not assigned(enum) then
+                    internalerror(309993)
+                  else
+                    hp:=genenumnode(enum);
                   do_lowhigh:=hp;
                end;
            else
@@ -1503,7 +1507,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2001-01-06 18:28:39  peter
+  Revision 1.24  2001-01-06 19:54:11  peter
+    * merged fix for 1310
+
+  Revision 1.23  2001/01/06 18:28:39  peter
     * fixed wrong notes about locals
 
   Revision 1.22  2000/12/31 11:14:10  jonas
