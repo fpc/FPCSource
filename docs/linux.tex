@@ -385,7 +385,13 @@ the following constants:
   fs_proc     = $9fa0;
   fs_xia      = $012FD16D;
 \end{verbatim}
-
+the \seep{FLock} call uses the following mode constants :
+\begin{verbatim}
+  LOCK_SH = 1;
+  LOCK_EX = 2;
+  LOCK_UN = 8;
+  LOCK_NB = 4;
+\end{verbatim}
 
 \section{Functions and procedures}
 
@@ -1192,21 +1198,36 @@ Other errors include the ones by the fork and exec programs
 
 \input{linuxex/ex38.tex}
 
-\procedure {POpen}{(F : Text; Cmd : pathstr; rw : char)}
+\procedure {POpen}{(Var F : FileType; Cmd : pathstr; rw : char)}
 { Popen runs the command specified in \var{Cmd},
  and redirects the standard in or output of the
 command to the other end of the pipe \var{F}. The parameter \var{rw}
 indicates the direction of the pipe. If it is set to \var{'W'}, then F can
 be used to write data, which will then be read by the command from stdinput.
 If it is set to \var{'R'}, then the standard output of the command can be 
-read from \var{F}. \var{F} should be reset or rewritten.
-.}
+read from \var{F}. \var{F} should be reset or rewritten prior to using it.
+
+\var{F} can be of type \var{Text} or \var{File}.
+
+A file opened with \var {POpen} can be closed with \var{Close}, but also
+with \seef{PClose}. The result is the same, but \var{PClose} returns the
+exit status of the command \var{Cmd}.}
 {Errors are reported in \var{LinuxError} and are essentially those of the
 Execve, Dup and AssignPipe commands.
 }
-{\seep{AssignPipe}, \seem{popen}{3}}
+{\seep{AssignPipe}, \seem{popen}{3}, \seef{PClose}}
 
 \input{linuxex/ex37.tex}
+
+\function{PClose}{(Var F : FileType)}{longint}
+{ \var{PClose} closes a file opened with \var{POpen}. It waits for the
+command to complete, and then returns the exit status of the command. 
+}
+{\var{LinuxError} is used to report errors. If it is different from zero,
+the exit status is not valid.}
+{\seep{POpen}}
+
+For an example, see \seep{POpen}
 
 \function{Fcntl}{(Fd :  text, Cmd : Integer)}{Integer}
 {
@@ -1961,3 +1982,18 @@ otherwise.
 {Errors are reported in LinuxError.}
 {\seem{termios}{2}}
 
+\function{FLock}{(Var F; Mode : longint)}
+{\var{FLock} implements file locking. it sets or removes a lock on the file
+\var{F}. F can be of type \var{Text} or \var{File}, or it can be a \linux
+filedescriptor (a longint)
+
+\var{Mode} can be one of the following constants :
+\begin{description}
+\item [LOCK_SH] \ sets a shared lock.
+\item [LOCK_EX] \ sets an exclusive lock.
+\item [LOCK_UN] \ unlocks the file.
+\item [LOCK_NB] \ This can be OR-ed together with the other. If this is done
+the application doesn't block when locking.
+\end{description}
+}
+{Errors are reported in \var{LinuxError}.}{\seef{Fcntl}, \seem{flock}{2}}

@@ -24,6 +24,7 @@
 \makeindex
 \latex{\usepackage{multicol}}
 \latex{\usepackage{fpcman}}
+\latex{\usepackage{epsfig}}
 \html{\input{fpc-html.tex}}
 \newcommand{\remark}[1]{\par$\rightarrow$\textbf{#1}\par}
 \newcommand{\olabel}[1]{\label{option:#1}}
@@ -182,10 +183,28 @@ We discuss the process for each platform separately.
 First, you must get the latest distribution files of \fpc. They come as zip
 files, which you must unzip first. The distribution zip file contains an
 installation program \file{INSTALL.EXE}. You must run this program to install
-the compiler. It allows you to select:
+the compiler. 
+
+\html{
+The screen of the installation program looks like this:
+
+\htmladdimg{../pics/install.gif}
+}
+\latex{
+The screen of the installation program looks like figure \ref{fig:install}.
+\begin{figure}
+\caption{The \dos install program screen.}
+\label{fig:install}
+\epsfig{file=pics/install.eps,width=\textwidth}
+\end{figure}
+}
+
+The program allows you to select:
 \begin{itemize}
 \item What components you wish to install. (e.g do you want the sources or
-not, do you want Free Vision etc.)
+not, do you want docs or not) Items that you didn't download will not
+be enabled, i.e. you can't select them.
+
 \item Where you want to install (the default location is \verb|C:\PP|).
 \end{itemize}
 The installation program generates a batch file which sets some environment
@@ -252,8 +271,12 @@ rpm -i fpc-pascal-XXX.rpm
 
 If you use debian, installation is limited to 
 \begin{verbatim}
-???
+dpkg -i fpc-XXX.deb
 \end{verbatim}
+Here again, \var{XXX} is the version number of the \file{.deb} file.
+
+You need root access to install these packages. The \file{.tar} file
+allows you to do an installation if you don't have root permissions.
 
 When downloading the \var{.tar} file, installation is more interactive:
 
@@ -439,6 +462,17 @@ So don't delete them. If you want to distribute the unit, you must
 provide both the \file{.ppu} and \file{.o} file. One is useless without the
 other.
 
+{\em Remark:}
+Under \linux, a unit source file {\em must} have a lowercase filename.
+Since Pascal is case independent, you can specify the names of units in the
+\var{uses} clause in either case. To get a unique filename, the \fpc compiler
+changes the name of the unit to all lowercase when looking for unit files.
+
+The compiler produces lowercase files, so your unit will be found, even if
+your source file has uppercase letters in it. Only when the compiler tries to
+recompile the unit, it will not find your source because of the uppercase
+letters. 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Creating an executable for GO32V1, PMODE/DJ targets
 \section{Creating an executable for GO32V1 and PMODE/DJ targets}
@@ -451,7 +485,7 @@ section (unless they're cross-compiling)
 %
 \subsection{GO32V1}
 When compiling under \dos, GO32V2 is the default target. However, if you use
-go32V1 (using the \var{-TDOS} switch), the 
+go32V1 (using the \var{-TGO32V1} switch), the 
 compilation process leaves you with a file which you cannot execute right away.
 There are 2 things you can do when compiling has finished.
 
@@ -807,18 +841,12 @@ blocks. Here \var{xxx} is one of the following:
 file.   
 \end{description}
 \item [-S2] \olabel{Stwo} Switch on Delphi 2 extensions.
-\item [-Sann] \olabel{Sa} How severe should the compiler check your code ?
-\var{nn} can be one of the following:
-\begin{itemize}
-\item \var{0} : Only ANSI Pascal expressions allowed.
-\item \var{1} : Do not necessarily assign function results to variables.
-\item \var{2} : Address operator \var{@} returns a typed pointer.
-\item \var{4} : Assignment results are typed. (This allows constructs like
-\var{a:=b:=0}. See also ...
-\item \var{9} : Allows expressions with no side effect. \remark{Florian ???}
-\end{itemize}
 \item [-Sc] \olabel{Sc} Support C-style operators, i.e. \var{*=, +=, /= and
 -=}.
+\item [-Se] \olabel{Se} The compiler stops after the first error. Normally,
+the compiler tries to continue compiling after an error, until 50 errors are
+reached, or a fatal error is reachd, and then it stops. With this switch,
+the compiler will stop after the first error.
 \item [-Sg] \olabel{Sg} Support the \var{label} and \var{goto} commands.
 \item [-Si] \olabel{Si} Support \var{C++} style INLINE.
 \item [-Sm] \olabel{Sm} Support C-style macros.
@@ -843,12 +871,15 @@ line options. When a configuration file is found, it is read, and the lines
 in it are treated like you typed them on the command line. They are treated
 before the options that you type on the command line.
 
+You can specify comments in the configuration file with the \var{\#} sign.
+Everything from the \var{\#} on will be ignored.
+
 The compiler looks for the \file{ppc386.cfg} file in the following places :
 \begin{enumerate}
 \item The current directory.
 \item Under \dos, the directory where the compiler is. Under \linux, 
-       the compiler looks in the \file{/etc} directory, or, if specified,
-the directory in the \var{PPC\_CONFIG\_PATH} environment variable.
+       the compiler looks in the \file{/etc} directory
+\item if specified, the directory in the \var{PPC\_CONFIG\_PATH} environment variable.
 \end{enumerate}
 When the compiler has finished reading the configuration file, it continues
 to treat the command line options.
@@ -1102,6 +1133,7 @@ this text is processed too.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{Utilities and units that come with Free Pascal}
+\label{ch:Utilities}
 Besides the compiler and the Run-Time Library, \fpc comes with some utility
 programs and units. Here we list these programs and units. 
 
@@ -1122,7 +1154,9 @@ These programs have no other purpose than demonstrating the capabilities of
 \fpc. They are located in the \file{demo} directory of the sources.
 \item All example programs of the documentation are available. Check out the
 directories that end on \file{ex} in the documentation sources. There you
-wll find all example sources.
+will find all example sources.
+\item \file{ppumove} is a program to make shared or static libraries from
+units. It should be distributed in binary form along with the compiler.
 \end{itemize}
 
 
@@ -1131,68 +1165,72 @@ wll find all example sources.
 \section{Supplied units}
 Here we list the units that come with the \fpc distribution. Since there is
 a difference in the supplied units per operating system, we list them
-separately per system.
+separately per system. They are documented in the \unitsref.
 
 %
-%
-
 % Under DOS
+%
 \subsection{Under DOS}
 \begin{itemize}
-\item \seestrings\ This unit provides basic
+\item [strings] This unit provides basic
 string handling routines for the \var{pchar} type, comparable to similar
 routines in standard \var{C} libraries.
-\item \seeobjects\  This unit provides basic
+\item [objects]  This unit provides basic
 routines for handling objects.
-\item \seedos\ This unit provides basic routines for
+\item [dos] This unit provides basic routines for
 accessing the operating system \dos. It provides almost the same
 functionality as the Turbo Pascal unit. 
-\item \seeprinter\  This unit provides all you
+\item [printer]  This unit provides all you
 need for rudimentary access to the printer.
-\item \seegetopts\ This unit gives you the
+\item [getopts] This unit gives you the
 \gnu \var{getopts} command-line arguments  handling mechanism. 
 It also supports long options.
-\item \seecrt\ This unit provides basic screen
+\item [crt] This unit provides basic screen
 handling routines. It provides the same functionality  as the Turbo Pascal \var{CRT}
 unit.
-\item \seegraph\ This unit provides basic graphics
+\item [graph] This unit provides basic graphics
 handling, with routines to draw lines on the screen, display texts etc. It
 provides the same functions as the Turbo Pascal unit.
-\item \seego\ This unit provides access to possibilities of the \var{GO32}
+\item [go32] This unit provides access to possibilities of the \var{GO32}
 \dos extender.
+\item [emu387] This unit provides support for the coprocessor emulator.
+\item [mmx] This unit provides support for \var{mmx} extensions in your
+code.
 \end{itemize}
-\remark{Florian, I don't know the full list - let me know what is available}
 
 %
-%
-
 % Under Linux
+%
 \subsection{Under Linux}
 \begin{itemize}
-\item \seestrings\ This unit provides basic
+\item [strings] This unit provides basic
 string handling routines for the \var{PChar} type, comparable to similar
 routines in standard \var{C} libraries.
-\item \seeobjects\ This unit provides basic
+\item [objects] This unit provides basic
 routines for handling objects.
-\item \seecrt\ This unit provides basic screen
+\item [crt] This unit provides basic screen
 handling routines. It provides the same functionality Turbo Pascal \var{CRT}
 unit. It works on any terminal which supports the \var{vt100} escape
 sequences.
-\item \seedos\ This unit provides an emulation of the
+\item [dos] This unit provides an emulation of the
 same unit under \dos. It is intended primarily for easy porting of Pascal
 programs from \dos to \linux. For good performance, however, it is
 recommended to use the \var{linux} unit.
-\item \seelinux This unit provides access to the
+\item [linux] This unit provides access to the
 \linux operating system. It provides most file and I/O handling routines
 that you may need. It implements most of the standard \var{C} library constructs
 that you will find on a Unix system. If you do a lot of disk/file
 operations, the use of this unit is recommended over the one you use under
 Dos.
-\item \seeprinter\ This unit provides an
+\item [printer] This unit provides an
 interface to the standard Unix printing mechanism.
-\item \seegetopts This unit gives you the
+\item [getopts] This unit gives you the
 \gnu \var{getopts} command-line arguments  handling mechanism. 
 It also supports long options.
+\item [mmx] This unit provides support for \var{mmx} extensions in your
+code.
+\item [sockets] This unit gives you access to sockets and TCP/IP
+programming.
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1249,14 +1287,19 @@ which you can debug it using \gnu \var{gdb}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Using \var{gdb
+% Using gdb
 \section{Using \var{gdb} to debug your program}
 
 To use gdb to debug your program, you can start the debugger, and give it as
-an option the name of your program:
+an option the {\em full} name of your program:
 \begin{verbatim}
 gdb hello
 \end{verbatim}
+Or, under \dos :
+\begin{verbatim}
+gdb hello.exe
+\end{verbatim}
+
 This starts the debugger, and the debugger immediately loads your program
 into memory, but it does not run the program yet. Instead, you are presented
 with the following (more or less) message, followed by the \var{gdb} prompt
@@ -1307,6 +1350,71 @@ read or written.
 for more information, see the \var{gdb} users' guide, or use the \var{'help'}
 function in \var{gdb}.
 
+The appendix {\ref{ch:GdbIniFile}} contains a sample init file for
+\var{gdb}, which produces good results when debugging \fpc programs.
+
+\section{Caveats when debugging with \var{gdb}}
+There are some peculiarities of \fpc which you should be aware of when using
+\var{gdb}. We list the main ones here:
+\begin{enumerate}
+\item \fpc generates information for GDB in uppercare letters. This is a
+consequence of the fact that pascal is a case insensitive language. So, when
+referring to a variable or function, you need to make it's name all
+uppercase.
+
+As an example, of you want to watch the value of a loop variable
+\var{count}, you should type
+\begin{verbatim}
+watch COUNT
+\end{verbatim}
+Or if you want stop when a certain function (e.g \var{MyFunction}) is called, 
+type
+\begin{verbatim}
+break MYFUNCTION
+\end{verbatim}
+
+\item Line numbers may be off by a little. This is a bug in \fpc and will be
+fixed as soon as possible.
+
+\item \var{gdb} does not know sets.
+
+\item \var{gdb} doesn't know strings. Strings are represented in \var{gdb} 
+as records with a length field and an array of char contaning the string.
+
+You can also use the following user function to print strings:
+\begin{verbatim}
+define pst
+set $pos=&$arg0
+set $strlen = {byte}$pos
+print {char}&$arg0.st@($strlen+1)
+end
+
+document pst
+  Print out a Pascal string
+end 
+\end{verbatim}
+If you insert it in your \file{gdb.ini} file, you can look at a string with this
+function. There is a sample \file{gdb.ini} in appendix \ref{ch:GdbIniFile}.
+
+
+\item Objects are difficult to handle, mainly because \var{gdb} is oriented
+towards C and C++. The workaround implemented in \fpc is that object methods
+are represented as functions, with an extra parameter \var{this} (all
+lowercase !) The name of this function is a concatenation of the object type
+and the function name, separated by two underscore characters.
+
+
+For example, the method \var{TPoint.Draw} would be converted to
+\var{TPOINT\_\_DRAW}, and could be stopped at with
+\begin{verbatim}
+break TPOINT__DRAW
+\end{verbatim}
+
+\item Global overloaded functions confuse \var{gdb} because they have the same
+name. Thus you cannot set a breakpoint at an overloaded function, unless you
+know it's line number, in which case you can set a breakpoint at the
+starting linenumber of the function.
+\end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Using gprof
@@ -1624,8 +1732,9 @@ Windows, I'd be willing to include it here.
 The following is alphabetical listing of all command-line options, as
 generated by the compiler:
 \begin{verbatim}
+ppc386 [options] <inputfile> [options]
 + switch option on, - off
-  -a     the compiler doesn''t delete the generated assembler file
+  -a     the compiler doesn't delete the generated assembler file
   -B+    build
   -C     code generation options
            -Ca      not implemented
@@ -1662,10 +1771,8 @@ generated by the compiler:
   -P     use pipes instead of creating temporary assembler files
   -S     syntax options
            -S2      switch some Delphi 2 extension on
-           -Sa      semantic check of expressions (higher level includes lower)
-                     -Sa4  assigment results are typed (allows a:=b:=0)
-                     -Sa9  allows expressions with no side effect
            -Sc      supports operators like C (*=,+=,/= and -=)
+           -Se      compiler stops after the first error
            -Sg      allows LABEL and GOTO
            -Si      support C++ stlyed INLINE
            -Sm      support macros like C (global)
@@ -1674,7 +1781,7 @@ generated by the compiler:
            -St      allows static keyword in objects
   -s     don't call assembler and linker (only with -a)
   -T<x>  Target operating system
-           -TDOS    DOS extender by DJ Delorie
+           -TGO32V1 DOS extender by DJ Delorie
            -TOS2    OS/2 2.x
            -TLINUX  Linux
            -TWin32  Windows 32 Bit
@@ -1721,6 +1828,8 @@ Processor specific options:
            -O5      optimize for Pentium (tm)
            -O6      optimizations for PentiumPro (tm)
   
+  -?     shows this help
+  -h     shows this help without waiting
 \end{verbatim}
 
 
@@ -1742,6 +1851,7 @@ assembler
 begin
 break
 case
+cdecl
 class
 const
 constructor
@@ -1770,6 +1880,7 @@ goto
 if
 implementation
 in
+index
 inherited
 initialization
 inline
@@ -1804,6 +1915,7 @@ self
 set
 shl
 shr
+stdcall
 string
 then
 to
@@ -2250,6 +2362,57 @@ When trying to do a build, the compiler cannot compile one of the units.
 \item [Re-raise isn't possible there]
 You are trying to raise an exception where it isn't allowed. You can only
 raise exceptions in an \var{except} block.
+
+\item [ Syntax error while parsing a conditional compiling expression ]
+\item [ Evaluating a conditional compiling expression ]
+\item [ Keyword redefined as macro has no effect ]
+\item [ compiler switches aren't allowed in (* ... *) styled comments ]
+\item [ No DLL File specified ]
+\item [ Illegal open parameter ]
+\item [ Illegal floating point constant ]
+\item [ string types doesn't match, because of \$V+ mode ]
+\item [ Only class methods can be referred with class references ]
+\item [ Only class methods can be accessed in class methods ]
+\item [ Constant and CASE types do not match ]
+\item [ The symbol can't be exported from a library ]
+\item [ A virtual method must be overridden using the OVERRIDE directive:  ]
+\item [ There is no method in an ancestor class to be overridden: ]
+\item [ No member is provided to access property ]
+\item [ Illegal symbol for property access ]
+\item [ Cannot write a protected field of an object ]
+\item [ range check error in set constructor or duplicate set element ]
+\item [ Pointer to class expected ]
+\item [ Operator is not overloaded ]
+\item [ Variable or type indentifier expected ]
+\item [ Assembler incompatible with function return value ]
+\item [ Procedure overloading is switched off ]
+\item [ Comparative operator must return a boolean value ]
+\item [ Use of unsupported feature! ]
+\item [ absolute can only be associated to ONE variable ]
+\item [ absolute can only be associated a var or const ]
+\item [ succ or pred on enums with assignments not possible ]
+\item [ Array properties aren't allowed at this point ]
+\item [ No property found to override ]
+\item [ Only one default property is allowed, found inherited default property in class ]
+\item [ The default property must be an array property ]
+\item [ Internal Error in SymTableStack() ]
+\item [ Error in type defenition ]
+\item [ Only static variables can be used in static methods or outside methods ]
+\item [ Invalid call to tvarsym.mangledname() ]
+\item [ illegal type declaration of set elements ]
+\item [ Forward class definition not resolved  ]
+\item [ identifier idents no member ]
+\item [ The use of a far pointer isn't allowed there ]
+\item [ procedure call with stackframe ESP/SP ]
+\item [ Abstract methods can't be called directly ]
+\item [ Internal Error in getfloatreg(), allocation failure ]
+\item [ Unknown float type ]
+\item [ SecondVecn() base defined twice ]
+\item [ Extended cg68k not supported ]
+\item [ 32-bit unsigned not supported in MC68000 mode ]
+\item [ Internal Error in secondinline() ]
+\item [ Stack limit excedeed in local routine ]
+
 \end{description}
 
 \chapter{Run time errors}
@@ -2713,5 +2876,37 @@ the installation section.
 
 {\em   A} : \ostwo installs an emulator for native \ostwo images, but does not
    provide FPU emulation for DOS sessions.
+
+
+\chapter{A sample \file{gdb.ini} file}
+\label{ch:GdbIniFile}
+
+Here you have a sample \file{gdb.ini} file listing, which gives better
+results when using \var{gdb}. Under \linux you should put this in a
+\file{.gdbinit} file in your home directory or the current directory..  
+ 
+\begin{verbatim}
+set print demangle off
+set gnutarget auto
+set verbose on
+set complaints 1000
+dir ./rtl/dosv2
+set language c++
+set print vtbl on
+set print object on
+set print sym on
+set print pretty on
+disp /i $eip
+
+define pst
+set $pos=&$arg0
+set $strlen = {byte}$pos
+print {char}&$arg0.st@($strlen+1)
+end
+
+document pst
+  Print out a pascal string
+end    
+\end{verbatim}
 
 \end{document}
