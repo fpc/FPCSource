@@ -54,7 +54,7 @@ implementation
        { aasm }
        aasmbase,aasmtai,aasmcpu,fmodule,
        { symtable }
-       symconst,symbase,symtype,symdef,symtable,
+       symconst,symbase,symtype,symdef,symtable,paramgr,
        { pass 1 }
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
        { parser }
@@ -215,6 +215,7 @@ implementation
                        end;
                       { add default calling convention }
                       handle_calling_convention(nil,tabstractprocdef(tt.def));
+                      paramanager.create_param_loc_info(tabstractprocdef(tt.def));
                     end;
                    if not skipequal then
                     begin
@@ -472,6 +473,7 @@ implementation
                         consume(_SEMICOLON);
                        parse_var_proc_directives(tsym(newtype));
                      end;
+                    paramanager.create_param_loc_info(tabstractprocdef(tt.def));
                   end;
                 objectdef,
                 recorddef :
@@ -611,7 +613,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2002-07-01 18:46:25  peter
+  Revision 1.49  2002-07-29 21:23:43  florian
+    * more fixes for the ppc
+    + wrappers for the tcnvnode.first_* stuff introduced
+
+  Revision 1.48  2002/07/01 18:46:25  peter
     * internal linker
     * reorganized aasm layer
 

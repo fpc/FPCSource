@@ -44,6 +44,7 @@ unit cgcpu;
 
 
         procedure a_call_name(list : taasmoutput;const s : string);override;
+        procedure a_call_ref(list : taasmoutput;const ref : treference);override;
 
         procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister); override;
         procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
@@ -91,6 +92,13 @@ unit cgcpu;
         { that's the case, we can use rlwinm to do an AND operation        }
         function get_rlwi_const(a: longint; var l1, l2: longint): boolean;
 
+        procedure g_push_exception(list : taasmoutput;const exceptbuf:treference;l:AWord; exceptlabel:TAsmLabel);override;
+        procedure g_pop_exception(list : taasmoutput;endexceptlabel:tasmlabel);override;
+
+        procedure g_save_standard_registers(list : taasmoutput);override;
+        procedure g_restore_standard_registers(list : taasmoutput);override;
+        procedure g_save_all_registers(list : taasmoutput);override;
+        procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);override;
         private
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
@@ -201,7 +209,11 @@ const
                  internalerror(2002072801);
             end;
           else
-            internalerror(2002081103);
+            begin
+               runerror(216);
+               writeln(ord(locpara.loc));
+               internalerror(2002081103);
+            end;
         end;
         if locpara.sp_fixup<>0 then
           internalerror(2002081104);
@@ -231,20 +243,25 @@ const
   {$endif para_sizes_known}
       end;
 
-{ calling a code fragment by name }
-
+    { calling a code fragment by name }
     procedure tcgppc.a_call_name(list : taasmoutput;const s : string);
 
       var
         href : treference;
       begin
- { save our RTOC register value. Only necessary when doing pointer based    }
- { calls or cross TOC calls, but currently done always                      }
+         { save our RTOC register value. Only necessary when doing pointer based    }
+         { calls or cross TOC calls, but currently done always                      }
          reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
          list.concat(taicpu.op_reg_ref(A_STW,R_TOC,href));
          list.concat(taicpu.op_sym(A_BL,newasmsymbol(s)));
          reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
          list.concat(taicpu.op_reg_ref(A_LWZ,R_TOC,href));
+      end;
+
+    { calling a code fragment through a reference }
+    procedure tcgppc.a_call_ref(list : taasmoutput;const ref : treference);
+      begin
+         {$warning FIX ME}
       end;
 
 {********************** load instructions ********************}
@@ -625,6 +642,36 @@ const
           a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],0,l);
         end;
 
+
+     procedure tcgppc.g_push_exception(list : taasmoutput;const exceptbuf:treference;l:AWord; exceptlabel:TAsmLabel);
+       begin
+         {$warning FIX ME}
+       end;
+
+     procedure tcgppc.g_pop_exception(list : taasmoutput;endexceptlabel:tasmlabel);
+       begin
+         {$warning FIX ME}
+       end;
+
+     procedure tcgppc.g_save_standard_registers(list : taasmoutput);
+       begin
+         {$warning FIX ME}
+       end;
+
+     procedure tcgppc.g_restore_standard_registers(list : taasmoutput);
+       begin
+         {$warning FIX ME}
+       end;
+
+     procedure tcgppc.g_save_all_registers(list : taasmoutput);
+       begin
+         {$warning FIX ME}
+       end;
+
+     procedure tcgppc.g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);
+       begin
+         {$warning FIX ME}
+       end;
 
      procedure tcgppc.a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
@@ -1410,7 +1457,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-07-28 21:38:30  florian
+  Revision 1.30  2002-07-29 21:23:44  florian
+    * more fixes for the ppc
+    + wrappers for the tcnvnode.first_* stuff introduced
+
+  Revision 1.29  2002/07/28 21:38:30  florian
     - removed debug code which was commited by accident
 
   Revision 1.28  2002/07/28 21:34:31  florian

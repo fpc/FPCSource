@@ -85,6 +85,7 @@ implementation
               fname := 'fpc_qword_to_double';
             result := ccallnode.createintern(fname,ccallparanode.create(
               left,nil));
+            left:=nil;
             firstpass(result);
             exit;
           end
@@ -416,7 +417,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2002-07-29 09:20:20  jonas
+  Revision 1.19  2002-07-29 21:23:44  florian
+    * more fixes for the ppc
+    + wrappers for the tcnvnode.first_* stuff introduced
+
+  Revision 1.18  2002/07/29 09:20:20  jonas
     + second_int_to_int implementation which is almost the same as the
       generic implementation, but it avoids some unnecessary type conversions
 

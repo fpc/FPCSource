@@ -1071,6 +1071,30 @@ implementation
       end;
 
 
+    procedure gen_exception_frame(list : taasmoutput);
+      var
+        tempbuf : treference;
+        tmpreg : tregister;
+      begin
+         include(rg.usedinproc,accumulator);
+
+         { allocate exception frame buffer }
+         { this isn't generic, several APIs doesn't }
+         { allow to change the stack pointer inside }
+         { a procedure                              }
+         { we should allocate a persistent temp.    }
+         { instead                                  }
+         cg.a_op_const_reg(list,OP_SUB,36,STACK_POINTER_REG);
+         tmpreg:=rg.getaddressregister(list);
+         cg.a_load_reg_reg(list,OS_ADDR,STACK_POINTER_REG,tmpreg);
+         reference_reset_base(tempbuf,tmpreg,0);
+         cg.g_push_exception(list,tempbuf,1,aktexitlabel);
+         reference_release(list,tempbuf);
+
+         { probably we've to reload self here }
+         cg.g_maybe_loadself(list);
+      end;
+
     procedure genentrycode(list : TAAsmoutput;
                            make_global:boolean;
                            stackframe:longint;
@@ -1080,7 +1104,6 @@ implementation
         hs : string;
         href : treference;
         p : tsymtable;
-        tempbuf : treference;
         tmpreg : tregister;
       begin
         { Insert alignment and assembler names }
@@ -1160,11 +1183,11 @@ implementation
         { for the save all registers we can simply use a pusha,popa which
           push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
         if (po_saveregisters in aktprocdef.procoptions) then
-         cg.g_save_all_registers(list)
+          cg.g_save_all_registers(list)
         else
          { should we save edi,esi,ebx like C ? }
          if (po_savestdregs in aktprocdef.procoptions) then
-          cg.g_save_standard_registers(list);
+           cg.g_save_standard_registers(list);
 
         { a constructor needs a help procedure }
         if (aktprocdef.proctypeoption=potype_constructor) then
@@ -1253,20 +1276,7 @@ implementation
            if ((procinfo^.flags and pi_needs_implicit_finally)<>0) and
               { but it's useless in init/final code of units }
               not(aktprocdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
-            begin
-              include(rg.usedinproc,accumulator);
-
-              { allocate exception frame buffer }
-              cg.a_op_const_reg(list,OP_SUB,36,STACK_POINTER_REG);
-              tmpreg:=rg.getaddressregister(list);
-              cg.a_load_reg_reg(list,OS_ADDR,STACK_POINTER_REG,tmpreg);
-              reference_reset_base(tempbuf,tmpreg,0);
-              cg.g_push_exception(list,tempbuf,1,aktexitlabel);
-              reference_release(list,tempbuf);
-
-              { probably we've to reload self here }
-              cg.g_maybe_loadself(list);
-            end;
+             gen_exception_frame(list);
 
 {$ifdef GDB}
            if (cs_debuginfo in aktmoduleswitches) then
@@ -1628,7 +1638,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2002-07-28 15:59:57  jonas
+  Revision 1.28  2002-07-29 21:23:42  florian
+    * more fixes for the ppc
+    + wrappers for the tcnvnode.first_* stuff introduced
+
+  Revision 1.27  2002/07/28 15:59:57  jonas
     * fixed bug in location_force_reg32() when converting smaller values to
       64 bit locations
     * use cg.op_const_reg_reg() instead of a move and then cg.op_const_reg()

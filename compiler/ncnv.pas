@@ -81,6 +81,30 @@ interface
           function first_char_to_char : tnode;virtual;
           function first_call_helper(c : tconverttype) : tnode;
 
+          { these wrapper are necessary, because the first_* stuff is called }
+          { through a table. Without the wrappers override wouldn't have     }
+          { any effect                                                       }
+          function _first_int_to_int : tnode;
+          function _first_cstring_to_pchar : tnode;
+          function _first_string_to_chararray : tnode;
+          function _first_char_to_string : tnode;
+          function _first_nothing : tnode;
+          function _first_array_to_pointer : tnode;
+          function _first_int_to_real : tnode;
+          function _first_real_to_real : tnode;
+          function _first_pointer_to_array : tnode;
+          function _first_cchar_to_pchar : tnode;
+          function _first_bool_to_int : tnode;
+          function _first_int_to_bool : tnode;
+          function _first_bool_to_bool : tnode;
+          function _first_proc_to_procvar : tnode;
+          function _first_load_smallset : tnode;
+          function _first_cord_to_pointer : tnode;
+          function _first_ansistring_to_pchar : tnode;
+          function _first_arrayconstructor_to_set : tnode;
+          function _first_class_to_intf : tnode;
+          function _first_char_to_char : tnode;
+
           procedure second_int_to_int;virtual;abstract;
           procedure second_string_to_string;virtual;abstract;
           procedure second_cstring_to_pchar;virtual;abstract;
@@ -1485,40 +1509,139 @@ implementation
            registers32:=1;
       end;
 
+    function ttypeconvnode._first_int_to_int : tnode;
+      begin
+         result:=first_int_to_int;
+      end;
+
+    function ttypeconvnode._first_cstring_to_pchar : tnode;
+      begin
+         result:=first_cstring_to_pchar;
+      end;
+
+    function ttypeconvnode._first_string_to_chararray : tnode;
+      begin
+         result:=first_string_to_chararray;
+      end;
+
+    function ttypeconvnode._first_char_to_string : tnode;
+      begin
+         result:=first_char_to_string;
+      end;
+
+    function ttypeconvnode._first_nothing : tnode;
+      begin
+         result:=first_nothing;
+      end;
+
+    function ttypeconvnode._first_array_to_pointer : tnode;
+      begin
+         result:=first_array_to_pointer;
+      end;
+
+    function ttypeconvnode._first_int_to_real : tnode;
+      begin
+         result:=first_int_to_real;
+      end;
+
+    function ttypeconvnode._first_real_to_real : tnode;
+      begin
+         result:=first_real_to_real;
+      end;
+
+    function ttypeconvnode._first_pointer_to_array : tnode;
+      begin
+         result:=first_pointer_to_array;
+      end;
+
+    function ttypeconvnode._first_cchar_to_pchar : tnode;
+      begin
+         result:=first_cchar_to_pchar;
+      end;
+
+    function ttypeconvnode._first_bool_to_int : tnode;
+      begin
+         result:=first_bool_to_int;
+      end;
+
+    function ttypeconvnode._first_int_to_bool : tnode;
+      begin
+         result:=first_int_to_bool;
+      end;
+
+    function ttypeconvnode._first_bool_to_bool : tnode;
+      begin
+         result:=first_bool_to_bool;
+      end;
+
+    function ttypeconvnode._first_proc_to_procvar : tnode;
+      begin
+         result:=first_proc_to_procvar;
+      end;
+
+    function ttypeconvnode._first_load_smallset : tnode;
+      begin
+         result:=first_load_smallset;
+      end;
+
+    function ttypeconvnode._first_cord_to_pointer : tnode;
+      begin
+         result:=first_cord_to_pointer;
+      end;
+
+    function ttypeconvnode._first_ansistring_to_pchar : tnode;
+      begin
+         result:=first_ansistring_to_pchar;
+      end;
+
+    function ttypeconvnode._first_arrayconstructor_to_set : tnode;
+      begin
+         result:=first_arrayconstructor_to_set;
+      end;
+
+    function ttypeconvnode._first_class_to_intf : tnode;
+      begin
+         result:=first_class_to_intf;
+      end;
+
+    function ttypeconvnode._first_char_to_char : tnode;
+      begin
+         result:=first_char_to_char;
+      end;
 
     function ttypeconvnode.first_call_helper(c : tconverttype) : tnode;
 
       const
          firstconvert : array[tconverttype] of pointer = (
-           @ttypeconvnode.first_nothing, {equal}
-           @ttypeconvnode.first_nothing, {not_possible}
+           @ttypeconvnode._first_nothing, {equal}
+           @ttypeconvnode._first_nothing, {not_possible}
            nil, { removed in resulttype_string_to_string }
-           @ttypeconvnode.first_char_to_string,
-           @ttypeconvnode.first_nothing, { char_2_chararray, needs nothing extra }
+           @ttypeconvnode._first_char_to_string,
+           @ttypeconvnode._first_nothing, { char_2_chararray, needs nothing extra }
            nil, { removed in resulttype_chararray_to_string }
-           @ttypeconvnode.first_cchar_to_pchar,
-           @ttypeconvnode.first_cstring_to_pchar,
-           @ttypeconvnode.first_ansistring_to_pchar,
-           @ttypeconvnode.first_string_to_chararray,
+           @ttypeconvnode._first_cchar_to_pchar,
+           @ttypeconvnode._first_cstring_to_pchar,
+           @ttypeconvnode._first_ansistring_to_pchar,
+           @ttypeconvnode._first_string_to_chararray,
            nil, { removed in resulttype_chararray_to_string }
-           @ttypeconvnode.first_array_to_pointer,
-           @ttypeconvnode.first_pointer_to_array,
-           @ttypeconvnode.first_int_to_int,
-           @ttypeconvnode.first_int_to_bool,
-           @ttypeconvnode.first_bool_to_bool,
-           @ttypeconvnode.first_bool_to_int,
-           @ttypeconvnode.first_real_to_real,
-           @ttypeconvnode.first_int_to_real,
-           @ttypeconvnode.first_proc_to_procvar,
-           @ttypeconvnode.first_arrayconstructor_to_set,
-           @ttypeconvnode.first_load_smallset,
-           @ttypeconvnode.first_cord_to_pointer,
-           @ttypeconvnode.first_nothing,
-           @ttypeconvnode.first_nothing,
-           @ttypeconvnode.first_class_to_intf,
-           @ttypeconvnode.first_char_to_char,
-           @ttypeconvnode.first_nothing,
-           @ttypeconvnode.first_nothing
+           @ttypeconvnode._first_array_to_pointer,
+           @ttypeconvnode._first_pointer_to_array,
+           @ttypeconvnode._first_int_to_int,
+           @ttypeconvnode._first_int_to_bool,
+           @ttypeconvnode._first_bool_to_bool,
+           @ttypeconvnode._first_bool_to_int,
+           @ttypeconvnode._first_real_to_real,
+           @ttypeconvnode._first_int_to_real,
+           @ttypeconvnode._first_proc_to_procvar,
+           @ttypeconvnode._first_arrayconstructor_to_set,
+           @ttypeconvnode._first_load_smallset,
+           @ttypeconvnode._first_cord_to_pointer,
+           @ttypeconvnode._first_nothing,
+           @ttypeconvnode._first_nothing,
+           @ttypeconvnode._first_class_to_intf,
+           @ttypeconvnode._first_char_to_char,
+           @ttypeconvnode._first_nothing,
+           @ttypeconvnode._first_nothing
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -1770,7 +1893,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2002-07-23 12:34:30  daniel
+  Revision 1.65  2002-07-29 21:23:42  florian
+    * more fixes for the ppc
+    + wrappers for the tcnvnode.first_* stuff introduced
+
+  Revision 1.64  2002/07/23 12:34:30  daniel
   * Readded old set code. To use it define 'oldset'. Activated by default
     for ppc.
 

@@ -39,7 +39,7 @@ implementation
        globtype,globals,tokens,verbose,
        systems,
        { symtable }
-       symconst,symbase,symtype,symdef,symsym,symtable,defbase,fmodule,
+       symconst,symbase,symtype,symdef,symsym,symtable,defbase,fmodule,paramgr,
        { pass 1 }
        node,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
@@ -334,6 +334,7 @@ implementation
                begin
                   newtype:=ttypesym.create('unnamed',tt);
                   parse_var_proc_directives(tsym(newtype));
+                  paramanager.create_param_loc_info(tabstractprocdef(tt.def));
                   newtype.restype.def:=nil;
                   tt.def.typesym:=nil;
                   newtype.free;
@@ -583,7 +584,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2002-07-26 21:15:40  florian
+  Revision 1.30  2002-07-29 21:23:44  florian
+    * more fixes for the ppc
+    + wrappers for the tcnvnode.first_* stuff introduced
+
+  Revision 1.29  2002/07/26 21:15:40  florian
     * rewrote the system handling
 
   Revision 1.28  2002/07/20 11:57:55  florian

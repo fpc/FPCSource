@@ -2259,94 +2259,94 @@ implementation
       begin
         { create the call to the helper }
         first_pi := ccallnode.createintern('fpc_pi',nil);
-        { now left is nil, nothing left, so no second pass 
+        { now left is nil, nothing left, so no second pass
           required.
-        }        
+        }
         left := nil;
       end;
-      
-      
+
+
      function tinlinenode.first_arctan_real : tnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
         first_arctan_real := ccallnode.createintern('fpc_arctan_real',
                 ccallparanode.create(left,nil));
-        { now left is nil, nothing left, so no second pass 
+        { now left is nil, nothing left, so no second pass
           required.
-        }        
+        }
         left := nil;
       end;
-      
+
      function tinlinenode.first_abs_real : tnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
         first_abs_real := ccallnode.createintern('fpc_abs_real',
                 ccallparanode.create(left,nil));
-        { now left is nil, nothing left, so no second pass 
+        { now left is nil, nothing left, so no second pass
           required.
-        }        
+        }
         left := nil;
       end;
-      
+
      function tinlinenode.first_sqr_real : tnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
         first_sqr_real := ccallnode.createintern('fpc_sqr_real',
                 ccallparanode.create(left,nil));
-        { now left is nil, nothing left, so no second pass 
+        { now left is nil, nothing left, so no second pass
           required.
-        }        
+        }
         left := nil;
       end;
-      
+
      function tinlinenode.first_sqrt_real : tnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
         first_sqrt_real := ccallnode.createintern('fpc_sqrt_real',
                 ccallparanode.create(left,nil));
-        { now left is nil, nothing left, so no second pass 
+        { now left is nil, nothing left, so no second pass
           required.
-        }        
+        }
         left := nil;
       end;
-      
+
      function tinlinenode.first_ln_real : tnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
         first_ln_real := ccallnode.createintern('fpc_ln_real',
                 ccallparanode.create(left,nil));
-        { now left is nil, nothing left, so no second pass 
+        { now left is nil, nothing left, so no second pass
           required.
-        }        
+        }
         left := nil;
       end;
-      
+
      function tinlinenode.first_cos_real : tnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
         first_cos_real := ccallnode.createintern('fpc_cos_real',
                 ccallparanode.create(left,nil));
-        { now left is nil, nothing left, so no second pass 
+        { now left is nil, nothing left, so no second pass
           required.
-        }        
+        }
         left := nil;
       end;
-      
+
      function tinlinenode.first_sin_real : tnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
         first_sin_real := ccallnode.createintern('fpc_sin_real',
                 ccallparanode.create(left,nil));
-        { now left is nil, nothing left, so no second pass 
+        { now left is nil, nothing left, so no second pass
           required.
-        }        
+        }
         left := nil;
       end;
 
@@ -2356,7 +2356,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  2002-07-26 12:28:50  jonas
+  Revision 1.82  2002-07-29 21:23:43  florian
+    * more fixes for the ppc
+    + wrappers for the tcnvnode.first_* stuff introduced
+
+  Revision 1.81  2002/07/26 12:28:50  jonas
     * don't always convert the second argument of inc/dec to a longint, but
       to a type based on the first argument
 

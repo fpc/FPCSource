@@ -106,7 +106,7 @@ implementation
                   second_TypeInfo;
                end;
             in_assigned_x :
-              begin
+              begin                 
                  second_Assigned;
               end;
             in_include_x_y,
@@ -583,7 +583,11 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-07-28 20:45:22  florian
+  Revision 1.6  2002-07-29 21:23:42  florian
+    * more fixes for the ppc
+    + wrappers for the tcnvnode.first_* stuff introduced
+
+  Revision 1.5  2002/07/28 20:45:22  florian
     + added direct assembler reader for PowerPC
 
   Revision 1.4  2002/07/26 09:45:20  florian
