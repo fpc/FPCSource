@@ -444,6 +444,7 @@ END;
 
 
 procedure GraphUpdateScreen(Force: Boolean);
+{$IFDEF GRAPH_API}
 var
    smallforce  : boolean;
    i,x,y : longint;
@@ -453,8 +454,7 @@ var
    CurColor,CurBkColor : longint;
    NextColor,NextBkColor : longint;
    StoreFillSettings: FillSettingsType;
-
-
+{$ENDIF GRAPH_API}
 begin
 {$IFDEF GRAPH_API}
 {$ifdef USE_VIDEO_API}
@@ -535,7 +535,10 @@ end;
 END.
 {
  $Log$
- Revision 1.13  2002-05-29 19:35:31  pierre
+ Revision 1.14  2002-05-29 22:15:57  pierre
+  * fix build failure in non graph mode
+
+ Revision 1.13  2002/05/29 19:35:31  pierre
   * fix GraphUpdateScreen procedure
 
  Revision 1.12  2002/05/28 19:42:32  pierre
