@@ -26,6 +26,7 @@ const
   colWhite       = $ffffff;
   colInvalid     = $ff000000;
   colDefault     = $ffffffff;
+
 type
 
   TSHFontStyle = (fsNormal, fsBold, fsItalics, fsBoldItalics);
@@ -53,6 +54,7 @@ type
     hadj, vadj: PGtkAdjustment;
     PaintBox: PGtkWidget;
     Edit: TSHTextEdit;
+    LeftIndent: Integer;
     CharW, CharH: Integer;
     Font: array[TSHFontStyle] of PGdkFont; // Fonts for content drawing
     gc: PGdkGC;
@@ -149,6 +151,7 @@ begin
   CharH := 14 {=FontHeight} + 3;   // *** find better way to determine max. cell height
   Edit := nil;
 
+  LeftIndent := CharW;
 
   // Create scrolled window and drawing area
 
@@ -210,7 +213,8 @@ procedure TGtkSHEdit.ClearRect(x1, y1, x2, y2: Integer);
 begin
   SetGCColor(SHStyles^[shWhitespace].Background);
   gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1,
-    x1 * CharW, y1 * CharH, (x2 - x1 + 1) * CharW, (y2 - y1 + 1) * CharH);
+    x1 * CharW + LeftIndent, y1 * CharH,
+    (x2 - x1 + 1) * CharW, (y2 - y1 + 1) * CharH);
 end;
 
 procedure TGtkSHEdit.DrawTextLine(x1, x2, y: Integer; s: PChar);
@@ -223,6 +227,7 @@ var
     SetGCColor(CurColor);
     gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1,
       rx1 * CharW, y * CharH, (rx2 - rx1 + 1) * CharW, CharH);
+    rx1 := rx2;
   end;
 
 var
@@ -235,7 +240,7 @@ begin
   // Erase the (potentially multi-coloured) background
 
   rx1 := 0;
-  rx2 := px;
+  rx2 := 0;
   j := 0;
   CurColor := SHStyles^[shWhitespace].Background;
 
@@ -243,7 +248,7 @@ begin
     if s[j] = LF_Escape then begin
       NewColor := SHStyles^[Ord(s[j + 1])].Background;
       if NewColor = colDefault then
-        NewColor := SHStyles^[1].Background;
+        NewColor := SHStyles^[shWhitespace].Background;
       if NewColor <> CurColor then begin
         DoErase;
         CurColor := NewColor;
@@ -276,8 +281,8 @@ begin
       if (px >= x1) and (px <= x2) then begin
         SetGCColor(SHStyles^[Ord(RequestedColor)].Color);
         gdk_draw_text(PGdkDrawable(GdkWnd),
-          Font[SHStyles^[Ord(RequestedColor)].FontStyle], GC, px * CharW,
-          (y + 1) * CharH, s, 1);
+          Font[SHStyles^[Ord(RequestedColor)].FontStyle], GC,
+	  px * CharW + LeftIndent, (y + 1) * CharH - 3, s, 1);
       end;
       Inc(s);
       Inc(i);
@@ -288,7 +293,7 @@ end;
 
 procedure TGtkSHEdit.SetLineCount(count: Integer);
 begin
-  vadj^.upper := (count + 1) * 16;
+  vadj^.upper := count * CharH;
   gtk_adjustment_changed(vadj);
   gtk_widget_set_usize(PaintBox, Trunc(hadj^.upper), Trunc(vadj^.upper));
 end;
