@@ -18,7 +18,6 @@ Type
       Procedure VirtualMethod; virtual;
    End;
 
-
 Constructor Y.Init(NewA:LongInt);
    Begin
       A:=NewA;
