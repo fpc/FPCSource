@@ -384,7 +384,7 @@ end;
 
 
 
-procedure Oh_Kacke(ErrString:String);
+procedure GraphFault(ErrString:String);
 begin
   CloseGraph;
   writeln('Error in Unit VESA: ',ErrString);
@@ -991,7 +991,7 @@ end;
 begin
   InitVESA;
   if not DetectVESA then
-    Oh_Kacke('VESA-BIOS not found...');
+    GraphFault('VESA-BIOS not found...');
   startmode:=GetVESAMode;
   PrevExitProc:=ExitProc;
   ExitProc:=@GraphExit;
@@ -1015,7 +1015,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1999-04-08 12:23:00  peter
+  Revision 1.5  1999-05-04 17:17:31  florian
+    * some explicit language removed
+
+  Revision 1.4  1999/04/08 12:23:00  peter
     * removed os.inc
 
   Revision 1.3  1999/03/02 13:56:34  peter

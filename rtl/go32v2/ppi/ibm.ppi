@@ -79,7 +79,7 @@ begin
 {$endif TEST_24BPP}
        else    begin
                str(VESAInfo.BitsPerPixel,St);
-               Oh_Kacke(St+'-Bit Mode not implemented !');
+               GraphFault(St+'-Bit Mode not implemented !');
                exit;
                end;
       end;
@@ -90,7 +90,7 @@ begin
      { problem with pseudo 32 bit modes !! }
      if BytesPerPixel*VESAInfo.XResolution<>BytesPerLine then
        begin
-          Oh_Kacke('Unconsistant VESA data');
+          GraphFault('Unconsistant VESA data');
           { GetVesaInfo:=False; }
           BytesPerPixel:=BytesPerLine div VESAInfo.XResolution;
        end;
@@ -142,12 +142,12 @@ begin
        AW_Window:=AWindow
      else if ((VESAInfo.WinBAttributes and 5)=5) then
        AW_Window:=BWindow
-     else Oh_Kacke('No write window !! ');
+     else GraphFault('No write window !! ');
      if ((VESAInfo.WinAAttributes and 3)=3) then
        AR_Window:=AWindow
      else if ((VESAInfo.WinBAttributes and 3)=3) then
        AR_Window:=BWindow
-     else Oh_Kacke('No read window !! ');
+     else GraphFault('No read window !! ');
      if AW_Window=AR_Window then
        same_window:=true
      else
@@ -333,7 +333,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-12-21 14:06:03  pierre
+  Revision 1.3  1999-05-04 17:17:32  florian
+    * some explicit language removed
+
+  Revision 1.2  1998/12/21 14:06:03  pierre
   * var declaration was missing ??
 
   Revision 1.1  1998/12/21 13:07:03  peter
