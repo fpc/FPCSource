@@ -2,6 +2,14 @@
 {$H+}
 Unit resolve;
 
+{$ifndef win32}
+// Here till BSD supports the netbsd unit.
+{$ifdef linux}
+// Undefine this to use the C library resolve routines. 
+// Don't use under win32, netdb does not work on Win32 (yet) !!
+{$define usenetdb}
+{$endif linux}
+{$endif}
 { --------------------------------------------------------------------
   Unit for internet domain calls.
   Copyright (C) 2003  Michael Van Canneyt
@@ -165,8 +173,12 @@ Implementation
 { ---------------------------------------------------------------------
     Include system dependent stuff.
   ---------------------------------------------------------------------}
-  
+
+{$ifdef usenetdb}
+uses netdb;
+{$else}  
 {$i resolve.inc}
+{$endif}
 
 function HostAddrToStr (Entry : THostAddr) : String;
 
@@ -390,6 +402,52 @@ begin
   Result:=AddressLookup(StrToHostAddr(S));
 end;
 
+{$ifdef usenetdb}
+Function THostResolver.NameLookup (Const S : String) : Boolean;
+
+Var
+  H : THostEntry;
+
+begin
+  Result:=Inherited NameLookup(S);
+  If Result then
+    begin
+    Result:=GetHostByName(S,H);
+    If Result then
+      SaveHostEntry(@H);
+    end;
+end;
+
+Function THostResolver.AddressLookup (Const Address: THostAddr) : Boolean;
+
+Var
+  H : THostEntry;
+
+begin
+  ClearData;
+  Result:=GetHostByAddr(Address,H);
+  If Result then
+    SaveHostEntry(@H);
+end;
+
+Procedure THostResolver.SaveHostEntry(Entry : Pointer);
+
+Var
+  PH : ^THostEntry;
+  I : Integer;
+  
+begin
+  PH:=ENtry;
+  FName:=PH^.Name;
+  FHostAddress:=PH^.Addr;
+  FAddressCount:=1;
+  GetMem(FAddresses,SizeOf(THostAddr));
+  FAddresses[0]:=PH^.Addr;
+  FAliases.CommaText:=PH^.Aliases;
+end;
+
+{$else}
+
 Function THostResolver.NameLookup (Const S : String) : Boolean;
 
 Var
@@ -452,6 +510,7 @@ begin
     CheckOperation(SErrHostByAddr);
     end;
 end;
+{$endif}
 
 Function THostResolver.GetNetAddress (Index : Integer) : THostAddr;
 
@@ -470,7 +529,47 @@ end;
     TNetResolver
   ---------------------------------------------------------------------}
 
+{$ifdef usenetdb}
+Function TNetResolver.AddressLookup (Const Address: TNetAddr) : boolean;
 
+Var
+  N : TNetworkEntry;
+
+begin
+  ClearData;
+  Result:=GetNetworkByAddr(Address,N);
+  If Result then
+    SaveNetEntry(@N);
+end;
+
+Function TNetResolver.NameLookup (Const S : String) : Boolean;
+
+Var
+  N : TNetworkEntry;
+
+begin
+  Result:=Inherited NameLookup(S);
+  If Result then
+    begin
+    Result:=GetNetworkByName(S,N);
+    If Result then
+      SaveNetEntry(@N);
+    end;
+end;
+
+Procedure TNetResolver.SaveNetEntry(Entry : Pointer);
+
+Var
+  PN : ^TNetworkEntry;
+
+begin
+  PN:=ENtry;
+  FName:=PN^.Name;
+  FNetAddress:=PN^.Addr;
+  FAliases.CommaText:=PN^.Aliases;
+end;
+
+{$else}
 Function TNetResolver.NameLookup (Const S : String) : Boolean;
 
 Var
@@ -526,6 +625,8 @@ begin
     end;
 end;
 
+{$endif}
+
 Function TNetResolver.AddressLookup(Const S : String) : Boolean;
 
 begin
@@ -563,6 +664,47 @@ Function TServiceResolver.NameLookup (Const S : String) : Boolean;
 begin
   Result:=NameLookup(S,'');
 end;
+
+{$ifdef usenetdb}
+
+Function TServiceResolver.NameLookup (Const S,Proto : String) : Boolean;
+
+Var
+  E : TServiceEntry;
+
+begin
+  ClearData;
+  Result:=GetServiceByName(S,Proto,E);
+  If Result then
+    SaveServiceEntry(@E);
+end;
+
+Function TServiceResolver.PortLookup (APort: Longint; Proto : String) : Boolean;
+
+Var
+  E : TServiceEntry;
+
+begin
+  ClearData;
+  Result:=GetServiceByPort(APort,Proto,E);
+  If Result then
+    SaveServiceEntry(@E);
+end;
+
+Procedure TServiceResolver.SaveServiceEntry(Entry : Pointer);
+
+Var
+  PE : ^TServiceEntry;
+
+begin
+  PE:=Entry;
+  FName:=PE^.Name;
+  FPort:=PE^.Port;
+  FProtocol:=PE^.Protocol;
+  FAliases.CommaText:=PE^.Aliases;
+end;
+
+{$else}
 
 Function TServiceResolver.NameLookup (Const S,Proto : String) : Boolean;
 
@@ -621,6 +763,7 @@ begin
    SaveAliases(S_aliases);
    end;    
 end;
+{$endif}
 
 Procedure TServiceResolver.ClearData;
 
@@ -636,6 +779,18 @@ begin
   Result:=ShortHostToNet(FPort);
 end;
 
+{$ifdef usenetdb}
+Procedure InitResolve;
+
+begin
+end; 
+
+Procedure FinalResolve;
+
+begin
+end; 
+{$endif}
+
 Initialization
   InitResolve;
   
@@ -645,7 +800,10 @@ Finalization
 end.
 {
    $Log$
-   Revision 1.2  2003-02-03 10:14:12  michael
+   Revision 1.3  2003-03-07 20:33:33  michael
+   Use native pascal netdb on Linux
+
+   Revision 1.2  2003/02/03 10:14:12  michael
    + Added init/final routines to initialize winsock library
 
    Revision 1.1  2003/02/01 16:50:38  michael
