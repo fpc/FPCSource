@@ -1589,14 +1589,32 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                             ((p^.resulttype^.deftype=objectdef) and
                              pobjectdef(p^.resulttype)^.is_class) then
                            begin
-                              inc(pushedparasize,4);
-                              if inlined then
+                              if (p^.resulttype^.size>2) or
+                                 (alignment=4) then
                                 begin
-                                  r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
-                                  concatcopy(tempreference,r^,4,false,false);
+                                  inc(pushedparasize,4);
+                                  if inlined then
+                                    begin
+                                      r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
+                                      concatcopy(tempreference,r^,4,false,false);
+                                    end
+                                  else
+                                    emit_push_mem(tempreference);
                                 end
                               else
-                                emit_push_mem(tempreference);
+                                begin
+                                  if p^.resulttype^.size>0 then
+                                    begin
+                                      inc(pushedparasize,2);
+                                      if inlined then
+                                        begin
+                                          r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
+                                          concatcopy(tempreference,r^,2,false,false);
+                                        end
+                                      else
+                                        exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_W,newreference(tempreference))));
+                                    end;
+                                end;
                            end
                          { call by value open array ? }
                          else
@@ -3396,7 +3414,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.52  1999-10-08 15:40:47  pierre
+  Revision 1.53  1999-10-13 22:09:29  pierre
+   * fix for uggly bug of Marco
+
+  Revision 1.52  1999/10/08 15:40:47  pierre
    * use and remember that C functions with complex data results use ret $4
 
   Revision 1.51  1999/10/05 22:01:52  pierre
