@@ -190,7 +190,7 @@ begin
                 if dirlist[i]='/' then dirlist[i]:='\';
             repeat
                 p1:=pos(';',dirlist);
-                if p1=0 then
+                if p1<>0 then
                     begin
                         newdir:=copy(dirlist,1,p1-1);
                         delete(dirlist,1,p1);
@@ -980,7 +980,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1998-10-16 14:18:02  daniel
+  Revision 1.9  1998-12-07 18:55:41  jonas
+    * fixed bug reported in the mailing list by Frank McCormick (fsearch: changed
+      "if p1 = 0" to "if p1 <> 0"
+
+  Revision 1.8  1998/10/16 14:18:02  daniel
   * Updates
 
   Revision 1.7  1998/07/08 14:44:11  daniel
