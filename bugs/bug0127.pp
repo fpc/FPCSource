@@ -2,16 +2,16 @@ unit test;
 
   interface
 
-    procedure x;
+    procedure x(l : longint);
 
   implementation
 
     procedure crash;
 
       begin
-         x; { called with pascal calling conventions }
+         x(1234); { called with pascal calling conventions }
       end;
 
-   procedure x;external;cdecl;
+   procedure x(l : longint);external;cdecl;
 
 end.
