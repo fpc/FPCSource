@@ -1,8 +1,9 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by Florian Klaempfl,
-    member of the Free Pascal development team.
+    Copyright (c) 1993-98 by the Free Pascal development team.
+
+    Borland Pascal 7 Compatible CRT Unit for Go32V1 and Go32V2
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -15,12 +16,7 @@
 unit crt;
 interface
 
-  var
-    DelayCnt : longint;
-
 {$I os.inc}
-
-{$I386_ATT}
 
 const
 { CRT modes }
@@ -103,11 +99,14 @@ implementation
 uses
   go32;
 
-{$I386_ATT} {can be removed in the future}
+{$ifdef VER0_99_5}
+  {$I386_ATT} {can be removed in the future}
+{$endif}
 
 {$ASMMODE ATT}
 
 var
+  DelayCnt,
   ScreenWidth,
   ScreenHeight : longint;
 
@@ -924,7 +923,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  1998-08-08 21:56:45  peter
+  Revision 1.9  1998-08-15 17:00:10  peter
+    * moved delaycnt from interface to implementation
+
+  Revision 1.8  1998/08/08 21:56:45  peter
     * updated crt with new delay, almost like bp7 routine
 
   Revision 1.5  1998/05/31 14:18:12  peter
