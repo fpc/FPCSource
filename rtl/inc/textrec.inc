@@ -32,9 +32,10 @@
 
 
 const
-  TextRecNameLength = 255;
+  TextRecNameLength = 256;
+  TextRecBufSize    = 256;
 type
-  TextBuf = array[0..255] of char;
+  TextBuf = array[0..TextRecBufSize-1] of char;
   TextRec = Packed Record
     Handle,
     Mode,
@@ -48,7 +49,7 @@ type
     flushfunc,
     closefunc : pointer;
     UserData  : array[1..16] of byte;
-    name      : array[0..textrecnamelength] of char;
+    name      : array[0..textrecnamelength-1] of char;
     buffer    : textbuf;
   End;
 
@@ -62,32 +63,33 @@ type
 
 Const
 {$ifdef linux}
-  textrecnamelength = 255;
+  textrecnamelength = 256;
 {$endif}
 {$ifdef Win32}
-    textrecnamelength = 255;
+    textrecnamelength = 256;
 {$endif}
 {$ifdef MACOS}
-    textrecnamelength = 255;
+    textrecnamelength = 256;
 {$endif}
 {$ifdef AMIGA}
-    textrecnamelength = 255;
+    textrecnamelength = 256;
 {$endif}
 {$ifdef OS2}
-    textrecnamelength = 79;
+    textrecnamelength = 80;
 {$endif}
 {$ifdef Go32v1}
-    textrecnamelength = 79;
+    textrecnamelength = 80;
 {$endif Go32v1}
 {$ifdef Go32v2}
-    textrecnamelength = 79;
+    textrecnamelength = 80;
 {$endif Go32v2}
 {$ifdef ATARI}
-    textrecnamelength = 79;
+    textrecnamelength = 80;
 {$endif}
+  TextRecBufSize    = 128;
 
 type
-  textbuf = array[0..127] of char;
+  textbuf = array[0..TextRecBufSize-1] of char;
 
 {$PACKRECORDS 2}
   textrec = record
@@ -126,7 +128,7 @@ type
      flushfunc,
      closefunc : pointer;
      userdata  : array[1..16] of byte;
-     name      : array[0..textrecnamelength] of char;
+     name      : array[0..textrecnamelength-1] of char;
      buffer    : textbuf;
   end;
 
@@ -134,7 +136,10 @@ type
 
 {
   $Log$
-  Revision 1.4  1998-09-04 18:16:15  peter
+  Revision 1.5  1998-09-08 10:14:07  peter
+    + textrecbufsize
+
+  Revision 1.4  1998/09/04 18:16:15  peter
     * uniform filerec/textrec (with recsize:longint and name:0..255)
 
   Revision 1.3  1998/05/21 15:37:19  carl

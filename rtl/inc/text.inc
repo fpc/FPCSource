@@ -83,7 +83,7 @@ Begin
 { only set things that are not zero }
   TextRec(t).Handle:=UnusedHandle;
   TextRec(t).mode:=fmClosed;
-  TextRec(t).BufSize:=128;
+  TextRec(t).BufSize:=TextRecBufSize;
   TextRec(t).Bufptr:=@TextRec(t).Buffer;
   TextRec(t).OpenFunc:=@FileOpenFunc;
   Move(s[1],TextRec(t).Name,Length(s));
@@ -1202,7 +1202,10 @@ end;
 
 {
   $Log$
-  Revision 1.23  1998-08-26 15:33:28  peter
+  Revision 1.24  1998-09-08 10:14:06  peter
+    + textrecbufsize
+
+  Revision 1.23  1998/08/26 15:33:28  peter
     * reset bufpos,bufend in opentext like tp7
 
   Revision 1.22  1998/08/26 11:23:25  pierre
