@@ -90,22 +90,22 @@ var
   tmp: pointer;
 asm
 { load the registers... }
-  lwz  r5, 8(r4)
-  lwz  r6, 12(r4)
-  lwz  r7, 16(r4)
+  lwz  r5, 12(r4)
+  lwz  r6, 16(r4)
+  lwz  r7, 20(r4)
   mr   r0, r3
-  lwz  r3, 0(r4)
+  lwz  r3, 4(r4)
   stw  r4, tmp
-  lwz  r4, 4(r4)
+  lwz  r4, 8(r4)
 { Go ! }
   sc
 { Put back the registers... }
   lwz    r0, tmp
-  stw    r3, 0(r0)
-  stw    r4, 4(r0)
-  stw    r5, 8(r0) 
-  stw    r6, 12(r0)
-  stw    r7, 16(r0)
+  stw    r3, 4(r0)
+  stw    r4, 8(r0)
+  stw    r5, 12(r0)
+  stw    r6, 16(r0)
+  stw    r7, 20(r0)
 end;
 {$endif powerpc}
 {$ifndef fpc_syscall_ok}
@@ -582,7 +582,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2002-08-19 18:24:05  jonas
+  Revision 1.9  2002-09-02 20:03:20  florian
+    * ppc syscall code fixed
+
+  Revision 1.8  2002/08/19 18:24:05  jonas
     + ppc support for do_syscall
 
   Revision 1.7  2002/07/29 21:28:17  florian
