@@ -384,6 +384,13 @@ function func_array_mixed_nested(b: byte): tsmallarray;
        global_u16bit := b;
        global_s32bit := l;
      end;
+     
+    procedure nested_two_proc(l : longint);
+     begin
+       global_s64bit := l;  
+     end;
+
+     
 
    function nested_one_func(level1_b : byte; s: shortstring): byte;
      var
@@ -399,6 +406,7 @@ function func_array_mixed_nested(b: byte): tsmallarray;
     begin
       s1:=s;
       nested_one_func := nested_two_func(level1_b,s1);
+      nested_two_proc(level1_b);
     end;
     
     
@@ -422,6 +430,13 @@ function func_largerecord_mixed_nested(b: byte): tlargerecord;
        global_u16bit := b;
        global_s32bit := l;
      end;
+     
+    procedure nested_two_proc(l : longint);
+     begin
+       global_s64bit := l;  
+     end;
+
+     
 
    function nested_one_func(level1_b : byte; s: shortstring): byte;
      var
@@ -437,7 +452,9 @@ function func_largerecord_mixed_nested(b: byte): tlargerecord;
     begin
       s1:=s;
       nested_one_func := nested_two_func(level1_b,s1);
+      nested_two_proc(level1_b);
     end;
+    
 
  var
    local_b: byte;
@@ -458,6 +475,13 @@ function func_shortstring_mixed_nested(b: byte): shortstring;
        global_u16bit := b;
        global_s32bit := l;
      end;
+     
+    procedure nested_two_proc(l : longint);
+     begin
+       global_s64bit := l;  
+     end;
+
+     
 
    function nested_one_func(level1_b : byte; s: shortstring): byte;
      var
@@ -473,8 +497,9 @@ function func_shortstring_mixed_nested(b: byte): shortstring;
     begin
       s1:=s;
       nested_one_func := nested_two_func(level1_b,s1);
+      nested_two_proc(level1_b);
     end;
-
+    
  var
   local_b: byte;
  begin
@@ -490,6 +515,13 @@ function func_largeset_mixed_nested(b: byte) : tlargeset;
        global_u16bit := b;
        global_s32bit := l;
      end;
+     
+    procedure nested_two_proc(l : longint);
+     begin
+       global_s64bit := l;  
+     end;
+
+     
 
    function nested_one_func(level1_b : byte; s: shortstring): byte;
      var
@@ -505,7 +537,9 @@ function func_largeset_mixed_nested(b: byte) : tlargeset;
     begin
       s1:=s;
       nested_one_func := nested_two_func(level1_b,s1);
+      nested_two_proc(level1_b);
     end;
+    
 
  var
   local_b: byte;
@@ -524,6 +558,13 @@ function func_u8bit_mixed_nested(b: byte) : byte;
        global_u16bit := b;
        global_s32bit := l;
      end;
+     
+    procedure nested_two_proc(l : longint);
+     begin
+       global_s64bit := l;  
+     end;
+
+     
 
    function nested_one_func(level1_b : byte; s: shortstring): byte;
      var
@@ -539,7 +580,9 @@ function func_u8bit_mixed_nested(b: byte) : byte;
     begin
       s1:=s;
       nested_one_func := nested_two_func(level1_b,s1);
+      nested_two_proc(level1_b);
     end;
+    
 
  var
   local_b: byte;
@@ -556,6 +599,13 @@ function func_u16bit_mixed_nested(b: byte) : word;
        global_u16bit := b;
        global_s32bit := l;
      end;
+     
+    procedure nested_two_proc(l : longint);
+     begin
+       global_s64bit := l;  
+     end;
+
+     
 
    function nested_one_func(level1_b : byte; s: shortstring): byte;
      var
@@ -571,7 +621,9 @@ function func_u16bit_mixed_nested(b: byte) : word;
     begin
       s1:=s;
       nested_one_func := nested_two_func(level1_b,s1);
+      nested_two_proc(level1_b);
     end;
+    
 
  var
   local_b: byte;
@@ -588,6 +640,13 @@ function func_s32bit_mixed_nested(b: byte) : longint;
        global_u16bit := b;
        global_s32bit := l;
      end;
+     
+    procedure nested_two_proc(l : longint);
+     begin
+       global_s64bit := l;  
+     end;
+
+     
 
    function nested_one_func(level1_b : byte; s: shortstring): byte;
      var
@@ -603,7 +662,9 @@ function func_s32bit_mixed_nested(b: byte) : longint;
     begin
       s1:=s;
       nested_one_func := nested_two_func(level1_b,s1);
+      nested_two_proc(level1_b);
     end;
+    
 
  var
   local_b: byte;
@@ -620,6 +681,13 @@ function func_s64bit_mixed_nested(b: byte) : int64;
        global_u16bit := b;
        global_s32bit := l;
      end;
+     
+    procedure nested_two_proc(l : longint);
+     begin
+       global_s64bit := l;  
+     end;
+
+     
 
    function nested_one_func(level1_b : byte; s: shortstring): byte;
      var
@@ -635,7 +703,9 @@ function func_s64bit_mixed_nested(b: byte) : int64;
     begin
       s1:=s;
       nested_one_func := nested_two_func(level1_b,s1);
+      nested_two_proc(level1_b);
     end;
+    
 
  var
   local_b: byte;
@@ -652,6 +722,13 @@ function func_s32real_mixed_nested(b: byte) : single;
        global_u16bit := b;
        global_s32bit := l;
      end;
+     
+    procedure nested_two_proc(l : longint);
+     begin
+       global_s64bit := l;  
+     end;
+
+     
 
    function nested_one_func(level1_b : byte; s: shortstring): byte;
      var
@@ -667,7 +744,9 @@ function func_s32real_mixed_nested(b: byte) : single;
     begin
       s1:=s;
       nested_one_func := nested_two_func(level1_b,s1);
+      nested_two_proc(level1_b);
     end;
+    
 
  var
   local_b: byte;
@@ -684,6 +763,13 @@ function func_s64real_mixed_nested(b: byte) : double;
        global_u16bit := b;
        global_s32bit := l;
      end;
+     
+    procedure nested_two_proc(l : longint);
+     begin
+       global_s64bit := l;  
+     end;
+
+     
 
    function nested_one_func(level1_b : byte; s: shortstring): byte;
      var
@@ -699,7 +785,9 @@ function func_s64real_mixed_nested(b: byte) : double;
     begin
       s1:=s;
       nested_one_func := nested_two_func(level1_b,s1);
+      nested_two_proc(level1_b);
     end;
+    
 
  var
   local_b: byte;
@@ -716,6 +804,13 @@ function func_ansistring_mixed_nested(b: byte) : ansistring;
        global_u16bit := b;
        global_s32bit := l;
      end;
+     
+    procedure nested_two_proc(l : longint);
+     begin
+       global_s64bit := l;  
+     end;
+
+     
 
    function nested_one_func(level1_b : byte; s: shortstring): byte;
      var
@@ -731,7 +826,9 @@ function func_ansistring_mixed_nested(b: byte) : ansistring;
     begin
       s1:=s;
       nested_one_func := nested_two_func(level1_b,s1);
+      nested_two_proc(level1_b);
     end;
+    
 
  var
   local_b: byte;
@@ -748,6 +845,13 @@ function func_pchar_mixed_nested(b: byte) : pchar;
        global_u16bit := b;
        global_s32bit := l;
      end;
+     
+    procedure nested_two_proc(l : longint);
+     begin
+       global_s64bit := l;  
+     end;
+
+     
 
    function nested_one_func(level1_b : byte; s: shortstring): byte;
      var
@@ -763,7 +867,9 @@ function func_pchar_mixed_nested(b: byte) : pchar;
     begin
       s1:=s;
       nested_one_func := nested_two_func(level1_b,s1);
+      nested_two_proc(level1_b);
     end;
+    
 
  var
   local_b: byte;
@@ -1063,6 +1169,8 @@ if value_ansistring <> RESULT_BIGSTRING then
    failed := true;
  if global_s32bit <> RESULT_S32BIT then
    failed := true;
+ if global_s64bit <> RESULT_U8BIT then
+   failed := true;
 
  clear_globals; 
  clear_values;
@@ -1074,6 +1182,8 @@ if value_ansistring <> RESULT_BIGSTRING then
  if global_bigstring <> RESULT_BIGSTRING then
    failed := true;
  if global_u16bit <> RESULT_U8BIT then
+   failed := true;
+ if global_s64bit <> RESULT_U8BIT then
    failed := true;
  if global_s32bit <> RESULT_S32BIT then
    failed := true;
@@ -1091,6 +1201,8 @@ if value_ansistring <> RESULT_BIGSTRING then
    failed := true;
  if global_s32bit <> RESULT_S32BIT then
    failed := true;
+ if global_s64bit <> RESULT_U8BIT then
+   failed := true;
  
  clear_globals; 
  clear_values;
@@ -1104,6 +1216,8 @@ if value_ansistring <> RESULT_BIGSTRING then
  if global_u16bit <> RESULT_U8BIT then
    failed := true;
  if global_s32bit <> RESULT_S32BIT then
+   failed := true;
+ if global_s64bit <> RESULT_U8BIT then
    failed := true;
 
  if failed then
@@ -1129,6 +1243,8 @@ if value_ansistring <> RESULT_BIGSTRING then
    failed := true;
  if global_s32bit <> RESULT_S32BIT then
    failed := true;
+ if global_s64bit <> RESULT_U8BIT then
+   failed := true;
      
  clear_globals; 
  clear_values;
@@ -1140,6 +1256,8 @@ if value_ansistring <> RESULT_BIGSTRING then
  if global_bigstring <> RESULT_BIGSTRING then
    failed := true;
  if global_u16bit <> RESULT_U8BIT then
+   failed := true;
+ if global_s64bit <> RESULT_U8BIT then
    failed := true;
  if global_s32bit <> RESULT_S32BIT then
    failed := true;
@@ -1155,6 +1273,8 @@ if value_ansistring <> RESULT_BIGSTRING then
    failed := true;
  if global_u16bit <> RESULT_U8BIT then
    failed := true;
+ if global_s64bit <> RESULT_U8BIT then
+   failed := true;
  if global_s32bit <> RESULT_S32BIT then
    failed := true;
      
@@ -1168,6 +1288,8 @@ if value_ansistring <> RESULT_BIGSTRING then
  if global_bigstring <> RESULT_BIGSTRING then
    failed := true;
  if global_u16bit <> RESULT_U8BIT then
+   failed := true;
+ if global_s64bit <> RESULT_U8BIT then
    failed := true;
  if global_s32bit <> RESULT_S32BIT then
    failed := true;
@@ -1193,6 +1315,8 @@ if value_ansistring <> RESULT_BIGSTRING then
    failed := true;
  if global_u16bit <> RESULT_U8BIT then
    failed := true;
+ if global_s64bit <> RESULT_U8BIT then
+   failed := true;
  if global_s32bit <> RESULT_S32BIT then
    failed := true;
 
@@ -1206,6 +1330,8 @@ if value_ansistring <> RESULT_BIGSTRING then
  if global_bigstring <> RESULT_BIGSTRING then
    failed := true;
  if global_u16bit <> RESULT_U8BIT then
+   failed := true;
+ if global_s64bit <> RESULT_U8BIT then
    failed := true;
  if global_s32bit <> RESULT_S32BIT then
    failed := true;
@@ -1231,6 +1357,8 @@ if value_ansistring <> RESULT_BIGSTRING then
    failed := true;
  if global_u16bit <> RESULT_U8BIT then
    failed := true;
+ if global_s64bit <> RESULT_U8BIT then
+   failed := true;
  if global_s32bit <> RESULT_S32BIT then
    failed := true;
    
@@ -1254,6 +1382,8 @@ if value_ansistring <> RESULT_BIGSTRING then
    failed := true;
  if global_u16bit <> RESULT_U8BIT then
    failed := true;
+ if global_s64bit <> RESULT_U8BIT then
+   failed := true;
  if global_s32bit <> RESULT_S32BIT then
    failed := true;
     
@@ -1265,8 +1395,9 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-04-11 19:35:49  carl
-  + function call testing
+  Revision 1.2  2002-04-13 07:48:47  carl
+  + testing for symtablelevel = lexlevel
 
-  
+  Revision 1.1  2002/04/11 19:35:49  carl
+  + function call testing
 }
