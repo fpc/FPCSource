@@ -226,8 +226,8 @@ implementation
               if (p^.right^.location.loc=LOC_REGISTER) or
                  (p^.right^.location.loc=LOC_CREGISTER) then
                 begin
-                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,p^.right^.location.register,
-                      newreference(temp1))));
+                   emit_reg_ref(A_MOV,opsize,p^.right^.location.register,
+                      newreference(temp1));
                  end
               else
                  concatcopy(p^.right^.location.reference,temp1,hs,false,false);
@@ -243,15 +243,15 @@ implementation
              begin
               if p^.t2^.location.loc=LOC_CREGISTER then
                 begin
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_CMP,opsize,newreference(temp1),
-                     p^.t2^.location.register)));
+                   emit_ref_reg(A_CMP,opsize,newreference(temp1),
+                     p^.t2^.location.register);
                 end
               else
                 begin
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,newreference(p^.t2^.location.reference),
-                     cmpreg)));
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_CMP,opsize,newreference(temp1),
-                     cmpreg)));
+                   emit_ref_reg(A_MOV,opsize,newreference(p^.t2^.location.reference),
+                     cmpreg);
+                   emit_ref_reg(A_CMP,opsize,newreference(temp1),
+                     cmpreg);
                 end;
            end
          else
@@ -259,11 +259,11 @@ implementation
               if not(omitfirstcomp) then
                 begin
                    if p^.t2^.location.loc=LOC_CREGISTER then
-                     exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,p^.right^.value,
-                       p^.t2^.location.register)))
+                     emit_const_reg(A_CMP,opsize,p^.right^.value,
+                       p^.t2^.location.register)
                    else
-                     exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,opsize,p^.right^.value,
-                 newreference(p^.t2^.location.reference))));
+                     emit_const_ref(A_CMP,opsize,p^.right^.value,
+                       newreference(p^.t2^.location.reference));
                 end;
            end;
          if p^.backward then
@@ -312,25 +312,25 @@ implementation
            begin
               if p^.t2^.location.loc=LOC_CREGISTER then
                 begin
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_CMP,opsize,newreference(temp1),
-                     p^.t2^.location.register)));
+                   emit_ref_reg(A_CMP,opsize,newreference(temp1),
+                     p^.t2^.location.register);
                 end
               else
                 begin
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,newreference(p^.t2^.location.reference),
-                     cmpreg)));
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_CMP,opsize,newreference(temp1),
-                     cmpreg)));
+                   emit_ref_reg(A_MOV,opsize,newreference(p^.t2^.location.reference),
+                     cmpreg);
+                   emit_ref_reg(A_CMP,opsize,newreference(temp1),
+                     cmpreg);
                     end;
            end
          else
            begin
               if p^.t2^.location.loc=LOC_CREGISTER then
-                exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,p^.right^.value,
-                  p^.t2^.location.register)))
+                emit_const_reg(A_CMP,opsize,p^.right^.value,
+                  p^.t2^.location.register)
               else
-                 exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,opsize,p^.right^.value,
-                   newreference(p^.t2^.location.reference))));
+                 emit_const_ref(A_CMP,opsize,p^.right^.value,
+                   newreference(p^.t2^.location.reference));
            end;
          if p^.backward then
            if count_var_is_signed then
@@ -351,9 +351,9 @@ implementation
            hop:=A_INC;
 
          if p^.t2^.location.loc=LOC_CREGISTER then
-           exprasmlist^.concat(new(pai386,op_reg(hop,opsize,p^.t2^.location.register)))
+           emit_reg(hop,opsize,p^.t2^.location.register)
          else
-           exprasmlist^.concat(new(pai386,op_ref(hop,opsize,newreference(p^.t2^.location.reference))));
+           emit_ref(hop,opsize,newreference(p^.t2^.location.reference));
          emitjmp(C_None,l3);
 
          { this is the break label: }
@@ -403,10 +403,10 @@ implementation
                            end;
                 LOC_JUMP : begin
                              emitlab(truelabel);
-                             exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_B,1,R_AL)));
+                             emit_const_reg(A_MOV,S_B,1,R_AL);
                              emitjmp(C_None,aktexit2label);
                              emitlab(falselabel);
-                             exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_B,R_AL,R_AL)));
+                             emit_reg_reg(A_XOR,S_B,R_AL,R_AL);
                              goto do_jmp;
                            end;
               else
@@ -417,18 +417,18 @@ implementation
               enumdef : begin
                           case procinfo.retdef^.size of
                            4 : if is_mem then
-                                 exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                   newreference(p^.left^.location.reference),R_EAX)))
+                                 emit_ref_reg(A_MOV,S_L,
+                                   newreference(p^.left^.location.reference),R_EAX)
                                else
                                  emit_reg_reg(A_MOV,S_L,p^.left^.location.register,R_EAX);
                            2 : if is_mem then
-                                 exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_W,
-                                   newreference(p^.left^.location.reference),R_AX)))
+                                 emit_ref_reg(A_MOV,S_W,
+                                   newreference(p^.left^.location.reference),R_AX)
                                else
                                  emit_reg_reg(A_MOV,S_W,makereg16(p^.left^.location.register),R_AX);
                            1 : if is_mem then
-                                 exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_B,
-                                   newreference(p^.left^.location.reference),R_AL)))
+                                 emit_ref_reg(A_MOV,S_B,
+                                   newreference(p^.left^.location.reference),R_AL)
                                else
                                  emit_reg_reg(A_MOV,S_B,makereg8(p^.left^.location.register),R_AL);
                           end;
@@ -436,18 +436,18 @@ implementation
            pointerdef,
            procvardef : begin
                           if is_mem then
-                            exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                              newreference(p^.left^.location.reference),R_EAX)))
+                            emit_ref_reg(A_MOV,S_L,
+                              newreference(p^.left^.location.reference),R_EAX)
                           else
-                            exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
-                              p^.left^.location.register,R_EAX)));
+                            emit_reg_reg(A_MOV,S_L,
+                              p^.left^.location.register,R_EAX);
                         end;
              floatdef : begin
                           if pfloatdef(procinfo.retdef)^.typ=f32bit then
                            begin
                              if is_mem then
-                               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                 newreference(p^.left^.location.reference),R_EAX)))
+                               emit_ref_reg(A_MOV,S_L,
+                                 newreference(p^.left^.location.reference),R_EAX)
                              else
                                emit_reg_reg(A_MOV,S_L,p^.left^.location.register,R_EAX);
                            end
@@ -542,8 +542,7 @@ do_jmp:
                 begin
                    getlabel(a);
                    emitlab(a);
-                   exprasmlist^.concat(new(pai386,
-                     op_sym(A_PUSH,S_L,a)));
+                   emit_sym(A_PUSH,S_L,a);
                 end;
               secondpass(p^.left);
               if codegenerror then
@@ -551,10 +550,10 @@ do_jmp:
 
               case p^.left^.location.loc of
                  LOC_MEM,LOC_REFERENCE:
-                   exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,
-                       newreference(p^.left^.location.reference))));
-                 LOC_CREGISTER,LOC_REGISTER : exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
-                       p^.left^.location.register)));
+                   emit_ref(A_PUSH,S_L,
+                       newreference(p^.left^.location.reference));
+                 LOC_CREGISTER,LOC_REGISTER : emit_reg(A_PUSH,S_L,
+                       p^.left^.location.register);
                  else CGMessage(type_e_mismatch);
               end;
               emitcall('FPC_RAISEEXCEPTION');
@@ -592,13 +591,10 @@ do_jmp:
          getlabel(lastonlabel);
          push_int (1); { push type of exceptionframe }
          emitcall('FPC_PUSHEXCEPTADDR');
-         exprasmlist^.concat(new(pai386,
-           op_reg(A_PUSH,S_L,R_EAX)));
+         emit_reg(A_PUSH,S_L,R_EAX);
          emitcall('FPC_SETJMP');
-         exprasmlist^.concat(new(pai386,
-           op_reg(A_PUSH,S_L,R_EAX)));
-         exprasmlist^.concat(new(pai386,
-           op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+         emit_reg(A_PUSH,S_L,R_EAX);
+         emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          emitjmp(C_NE,exceptlabel);
 
          { try code }
@@ -608,10 +604,8 @@ do_jmp:
 
          emitlab(exceptlabel);
          emitcall('FPC_POPADDRSTACK');
-         exprasmlist^.concat(new(pai386,
-           op_reg(A_POP,S_L,R_EAX)));
-         exprasmlist^.concat(new(pai386,
-           op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+         emit_reg(A_POP,S_L,R_EAX);
+         emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          emitjmp(C_E,endexceptlabel);
          emitlab(doexceptlabel);
 
@@ -650,11 +644,10 @@ do_jmp:
          getlabel(nextonlabel);
 
          { push the vmt }
-         exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
-           newasmsymbol(p^.excepttype^.vmt_mangledname))));
+         emit_sym(A_PUSH,S_L,
+           newasmsymbol(p^.excepttype^.vmt_mangledname));
          emitcall('FPC_CATCHES');
-         exprasmlist^.concat(new(pai386,
-           op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+         emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          emitjmp(C_E,nextonlabel);
          ref.symbol:=nil;
          gettempofsizereference(4,ref);
@@ -663,13 +656,13 @@ do_jmp:
          if assigned(p^.exceptsymtable) then
            pvarsym(p^.exceptsymtable^.symindex^.first)^.address:=ref.offset;
 
-         exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-           R_EAX,newreference(ref))));
+         emit_reg_ref(A_MOV,S_L,
+           R_EAX,newreference(ref));
 
          if assigned(p^.right) then
            secondpass(p^.right);
-         exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,
-           newreference(ref))));
+         emit_ref(A_PUSH,S_L,
+           newreference(ref));
          emitcall('FPC_DESTROYEXCEPTION');
          emitcall('FPC_POPOBJECTSTACK');
 
@@ -706,13 +699,10 @@ do_jmp:
 
          push_int(1); { Type of stack-frame must be pushed}
          emitcall('FPC_PUSHEXCEPTADDR');
-         exprasmlist^.concat(new(pai386,
-           op_reg(A_PUSH,S_L,R_EAX)));
+         emit_reg(A_PUSH,S_L,R_EAX);
          emitcall('FPC_SETJMP');
-         exprasmlist^.concat(new(pai386,
-           op_reg(A_PUSH,S_L,R_EAX)));
-         exprasmlist^.concat(new(pai386,
-           op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+         emit_reg(A_PUSH,S_L,R_EAX);
+         emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          emitjmp(C_NE,finallylabel);
 
          { try code }
@@ -726,23 +716,18 @@ do_jmp:
          secondpass(p^.right);
          if codegenerror then
            exit;
-         exprasmlist^.concat(new(pai386,
-           op_reg(A_POP,S_L,R_EAX)));
-         exprasmlist^.concat(new(pai386,
-           op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+         emit_reg(A_POP,S_L,R_EAX);
+         emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          emitjmp(C_E,noreraiselabel);
-         exprasmlist^.concat(new(pai386,
-           op_reg(A_DEC,S_L,R_EAX)));
+         emit_reg(A_DEC,S_L,R_EAX);
          emitjmp(C_NE,oldaktexitlabel);
          emitcall('FPC_RERAISE');
          { reraise never returns ! }
          emitlab(exitfinallylabel);
 
          { do some magic for exit in the try block }
-         exprasmlist^.concat(new(pai386,
-           op_reg(A_POP,S_L,R_EAX)));
-         exprasmlist^.concat(new(pai386,
-           op_const(A_PUSH,S_L,2)));
+         emit_reg(A_POP,S_L,R_EAX);
+         emit_const(A_PUSH,S_L,2);
          emitjmp(C_NONE,finallylabel);
          emitlab(noreraiselabel);
          aktexitlabel:=oldaktexitlabel;
@@ -755,24 +740,70 @@ do_jmp:
 *****************************************************************************}
 
     procedure secondfail(var p : ptree);
-      var
+      {var
         hp : preference;
+        nofreememcall, afterfreememcall : pasmlabel; }
       begin
-         exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,R_ESI,R_ESI)));
+         (* { check if getmem was called :
+           VMT at 8(%ebp) is set to -1 after call to getmem PM }
+         { also reset to zero in the stack }
+         getlabel(nofreememcall);
+         getlabel(afterfreememcall);
+         new(hp);
+         reset_reference(hp^);
+         hp^.offset:=8;
+         hp^.base:=procinfo.framepointer;
+         emit_const_ref(A_CMP,S_L,-1,hp);
+         emitjmp(C_NE,nofreememcall);
+         new(hp);
+         reset_reference(hp^);
+         hp^.offset:=procinfo._class^.vmt_offset;
+         hp^.base:=R_ESI;
+         emit_ref_reg(A_MOV,S_L,hp,R_EDI);
+         new(hp);
+         reset_reference(hp^);
+         hp^.base:=R_EDI;
+         {hp^.offset:=0; done in reset_reference }
+         emit_ref(A_PUSH,S_L,hp);
+         new(hp);
+         reset_reference(hp^);
+         hp^.offset:=procinfo.ESI_offset;
+         hp^.base:=procinfo.framepointer;
+         emit_ref_reg(A_LEA,S_L,hp,R_EDI);
+         emit_reg(A_PUSH,S_L,R_EDI);
+         emitcall('FPC_FREEMEM');
+         emitjmp(C_None,afterfreememcall);
+         
+         emitlab(nofreememcall);
+         { reset VMT field for static object }
+         new(hp);
+         reset_reference(hp^);
+         hp^.offset:=procinfo._class^.vmt_offset;
+         hp^.base:=R_ESI;
+         emit_const_ref(A_MOV,S_L,0,hp);
+         emitlab(afterfreememcall);
+         emit_reg_reg(A_XOR,S_L,R_ESI,R_ESI);
          { also reset to zero in the stack }
          new(hp);
          reset_reference(hp^);
          hp^.offset:=procinfo.ESI_offset;
          hp^.base:=procinfo.framepointer;
-         exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_ESI,hp)));
-         emitjmp(C_None,quickexitlabel);
+         emit_reg_ref(A_MOV,S_L,R_ESI,hp); *)
+         emitjmp(C_None,faillabel);
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.45  1999-08-04 00:22:46  florian
+  Revision 1.46  1999-08-19 13:06:47  pierre
+    * _FAIL will now free memory correctly
+      and reset VMT field on static instances
+      (not yet tested for classes, is it allowed ?)
+    + emit_.... all variant defined here to avoid tons of
+      exprasmlist^.concat(new(pai386,...) in cg386***
+
+  Revision 1.45  1999/08/04 00:22:46  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.44  1999/08/03 22:02:39  peter

@@ -42,8 +42,30 @@ unit cgai386;
     procedure emitlab(var l : pasmlabel);
     procedure emitjmp(c : tasmcond;var l : pasmlabel);
     procedure emit_flag2reg(flag:tresflags;hregister:tregister);
+
+    procedure emit_none(i : tasmop;s : topsize);
+
+    procedure emit_const(i : tasmop;s : topsize;c : longint);
+    procedure emit_reg(i : tasmop;s : topsize;reg : tregister);
+    procedure emit_ref(i : tasmop;s : topsize;ref : preference);
+
+    procedure emit_const_reg(i : tasmop;s : topsize;c : longint;reg : tregister);
+    procedure emit_const_ref(i : tasmop;s : topsize;c : longint;ref : preference);
+    procedure emit_ref_reg(i : tasmop;s : topsize;ref : preference;reg : tregister);
+    procedure emit_reg_ref(i : tasmop;s : topsize;reg : tregister;ref : preference);
     procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
+
+    procedure emit_const_reg_reg(i : tasmop;s : topsize;c : longint;reg1,reg2 : tregister);
+    procedure emit_reg_reg_reg(i : tasmop;s : topsize;reg1,reg2,reg3 : tregister);
+
+
+    procedure emit_sym(i : tasmop;s : topsize;op : pasmsymbol);
+    procedure emit_sym_ofs(i : tasmop;s : topsize;op : pasmsymbol;ofs : longint);
+    procedure emit_sym_ofs_reg(i : tasmop;s : topsize;op : pasmsymbol;ofs:longint;reg : tregister);
+    procedure emit_sym_ofs_ref(i : tasmop;s : topsize;op : pasmsymbol;ofs:longint;ref : preference);
+
     procedure emitcall(const routine:string);
+
     procedure emit_mov_loc_ref(const t:tlocation;const ref:treference;siz:topsize);
     procedure emit_mov_loc_reg(const t:tlocation;reg:tregister);
     procedure emit_push_loc(const t:tlocation);
@@ -297,16 +319,91 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 
 
+    procedure emit_none(i : tasmop;s : topsize);
+      begin
+         exprasmlist^.concat(new(pai386,op_none(i,s)));
+      end;
+
+    procedure emit_reg(i : tasmop;s : topsize;reg : tregister);
+      begin
+         exprasmlist^.concat(new(pai386,op_reg(i,s,reg)));
+      end;
+
+    procedure emit_ref(i : tasmop;s : topsize;ref : preference);
+      begin
+         exprasmlist^.concat(new(pai386,op_ref(i,s,ref)));
+      end;
+
+    procedure emit_const(i : tasmop;s : topsize;c : longint);
+      begin
+         exprasmlist^.concat(new(pai386,op_const(i,s,c)));
+      end;
+
+    procedure emit_const_reg(i : tasmop;s : topsize;c : longint;reg : tregister);
+      begin
+         exprasmlist^.concat(new(pai386,op_const_reg(i,s,c,reg)));
+      end;
+
+    procedure emit_const_ref(i : tasmop;s : topsize;c : longint;ref : preference);
+      begin
+         exprasmlist^.concat(new(pai386,op_const_ref(i,s,c,ref)));
+      end;
+
+    procedure emit_ref_reg(i : tasmop;s : topsize;ref : preference;reg : tregister);
+      begin
+         exprasmlist^.concat(new(pai386,op_ref_reg(i,s,ref,reg)));
+      end;
+
+    procedure emit_reg_ref(i : tasmop;s : topsize;reg : tregister;ref : preference);
+      begin
+         exprasmlist^.concat(new(pai386,op_reg_ref(i,s,reg,ref)));
+      end;
+
     procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
       begin
          if (reg1<>reg2) or (i<>A_MOV) then
            exprasmlist^.concat(new(pai386,op_reg_reg(i,s,reg1,reg2)));
       end;
 
+    procedure emit_const_reg_reg(i : tasmop;s : topsize;c : longint;reg1,reg2 : tregister);
+      begin
+         exprasmlist^.concat(new(pai386,op_const_reg_reg(i,s,c,reg1,reg2)));
+      end;
+      
+    procedure emit_reg_reg_reg(i : tasmop;s : topsize;reg1,reg2,reg3 : tregister);
+      begin
+         exprasmlist^.concat(new(pai386,op_reg_reg_reg(i,s,reg1,reg2,reg3)));
+      end;
+      
+    procedure emit_sym(i : tasmop;s : topsize;op : pasmsymbol);
+      begin
+        exprasmlist^.concat(new(pai386,op_sym(i,s,op)));
+      end;
+
+    procedure emit_sym_ofs(i : tasmop;s : topsize;op : pasmsymbol;ofs : longint);
+      begin
+        exprasmlist^.concat(new(pai386,op_sym_ofs(i,s,op,ofs)));
+      end;
+
+    procedure emit_sym_ofs_reg(i : tasmop;s : topsize;op : pasmsymbol;ofs:longint;reg : tregister);
+      begin
+        exprasmlist^.concat(new(pai386,op_sym_ofs_reg(i,s,op,ofs,reg)));
+      end;
+
+    procedure emit_sym_ofs_ref(i : tasmop;s : topsize;op : pasmsymbol;ofs:longint;ref : preference);
+      begin
+        exprasmlist^.concat(new(pai386,op_sym_ofs_ref(i,s,op,ofs,ref)));
+      end;
 
     procedure emitcall(const routine:string);
       begin
         exprasmlist^.concat(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol(routine))));
+      end;
+
+    { only usefull in startup code }
+    procedure emitinsertcall(const routine:string);
+      begin
+        exprasmlist^.insert(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol(routine))));
       end;
 
 
@@ -324,8 +421,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                LOC_MEM,
          LOC_REFERENCE : begin
                            if t.reference.is_immediate then
-                             exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,siz,
-                               t.reference.offset,newreference(ref))))
+                             emit_const_ref(A_MOV,siz,
+                               t.reference.offset,newreference(ref))
                            else
                              begin
                                case siz of
@@ -333,8 +430,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                  S_W : hreg:=reg32toreg16(getregister32);
                                  S_L : hreg:=R_EDI;
                                end;
-                               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,siz,
-                                 newreference(t.reference),hreg)));
+                               emit_ref_reg(A_MOV,siz,
+                                 newreference(t.reference),hreg);
                                exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,siz,
                                  hreg,newreference(ref))));
                                if siz<>S_L then
@@ -357,19 +454,18 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         case t.loc of
           LOC_REGISTER,
          LOC_CREGISTER : begin
-                           exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
-                             t.register,reg)));
+                           emit_reg_reg(A_MOV,S_L,t.register,reg);
                            ungetregister32(t.register); { the register is not needed anymore }
                          end;
                LOC_MEM,
          LOC_REFERENCE : begin
                            if t.reference.is_immediate then
-                             exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,
-                               t.reference.offset,reg)))
+                             emit_const_reg(A_MOV,S_L,
+                               t.reference.offset,reg)
                            else
                              begin
-                               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                 newreference(t.reference),reg)));
+                               emit_ref_reg(A_MOV,S_L,
+                                 newreference(t.reference),reg);
                              end;
                            ungetiftemp(t.reference);
                          end;
@@ -383,8 +479,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         case t.loc of
           LOC_REGISTER,
          LOC_CREGISTER : begin
-                           exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,RegSize(Reg),
-                             reg,t.register)));
+                           emit_reg_reg(A_MOV,RegSize(Reg),
+                             reg,t.register);
                          end;
                LOC_MEM,
          LOC_REFERENCE : begin
@@ -406,10 +502,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         case t.loc of
           LOC_REGISTER,
          LOC_CREGISTER : begin
-                           exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
-                             reglow,t.registerlow)));
-                           exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
-                             reghigh,t.registerhigh)));
+                           emit_reg_reg(A_MOV,S_L,
+                             reglow,t.registerlow);
+                           emit_reg_reg(A_MOV,S_L,
+                             reghigh,t.registerhigh);
                          end;
                LOC_MEM,
          LOC_REFERENCE : begin
@@ -557,8 +653,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                              internalerror(331)
                            else
                              begin
-                               exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-                                 newreference(t.reference),R_EDI)));
+                               emit_ref_reg(A_LEA,S_L,
+                                 newreference(t.reference),R_EDI);
                                exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
                                  R_EDI,newreference(ref))));
                              end;
@@ -579,8 +675,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                              internalerror(331)
                            else
                              begin
-                               exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-                                 newreference(t.reference),R_EDI)));
+                               emit_ref_reg(A_LEA,S_L,
+                                 newreference(t.reference),R_EDI);
                                exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
                              end;
                            {   Wrong !!
@@ -620,12 +716,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            R_AL,R_BL,R_CL,R_DL:
              begin
                hr:=reg8toreg16(hr);
-               exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_W,$ff,hr)));
+               emit_const_reg(A_AND,S_W,$ff,hr);
              end;
            R_AH,R_BH,R_CH,R_DH:
              begin
                hr:=reg8toreg16(hr);
-               exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_W,$ff00,hr)));
+               emit_const_reg(A_AND,S_W,$ff00,hr);
              end;
         end;
       end;
@@ -638,17 +734,17 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            R_AX,R_BX,R_CX,R_DX,R_DI,R_SI,R_SP,R_BP:
              begin
                 hr:=reg16toreg32(hr);
-                exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,$ffff,hr)));
+                emit_const_reg(A_AND,S_L,$ffff,hr);
              end;
            R_AL,R_BL,R_CL,R_DL:
              begin
                 hr:=reg8toreg32(hr);
-                exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,$ff,hr)));
+                emit_const_reg(A_AND,S_L,$ff,hr);
              end;
            R_AH,R_BH,R_CH,R_DH:
              begin
                 hr:=reg8toreg32(hr);
-                exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,$ff00,hr)));
+                emit_const_reg(A_AND,S_L,$ff00,hr);
              end;
         end;
       end;
@@ -693,13 +789,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          emitpushreferenceaddr(ref);
          if is_ansistring(t) then
            begin
-              exprasmlist^.concat(new(pai386,
-                op_sym(A_CALL,S_NO,newasmsymbol('FPC_ANSISTR_DECR_REF'))));
+              emitcall('FPC_ANSISTR_DECR_REF');
            end
          else if is_widestring(t) then
            begin
-              exprasmlist^.concat(new(pai386,
-                op_sym(A_CALL,S_NO,newasmsymbol('FPC_WIDESTR_DECR_REF'))));
+              emitcall('FPC_WIDESTR_DECR_REF');
            end
          else internalerror(1859);
          popusedregisters(pushedregs);
@@ -815,8 +909,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                       ) then
                   begin
                      del_reference(p^.location.reference);
-                     exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,newreference(p^.location.reference),
-                       R_EDI)));
+                     emit_ref_reg(A_LEA,S_L,newreference(p^.location.reference),
+                       R_EDI);
 {$ifdef TEMPS_NOT_PUSH}
                      gettempofsizereference(href,4);
                      exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,href)));
@@ -868,8 +962,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                       ) then
                   begin
                      del_reference(p^.location.reference);
-                     exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,newreference(p^.location.reference),
-                       R_EDI)));
+                     emit_ref_reg(A_LEA,S_L,newreference(p^.location.reference),
+                       R_EDI);
                      gettempofsizereference(href,4);
                      exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,href)));
                      p^.temp_offset:=href.offset;
@@ -890,7 +984,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             not(cs_littlesize in aktglobalswitches)
            Then
              begin
-               exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,R_EDI,R_EDI)));
+               emit_reg_reg(A_XOR,S_L,R_EDI,R_EDI);
                exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
              end
            else
@@ -908,7 +1002,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 not(cs_littlesize in aktglobalswitches)
                then
                  begin
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(ref),R_EDI)));
+                   emit_ref_reg(A_MOV,S_L,newreference(ref),R_EDI);
                    exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
                  end
                else exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(ref))));
@@ -926,7 +1020,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            begin
               { push_int(ref.offset)}
               gettempofsizereference(4,href);
-              exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,ref.offset,newreference(href))));
+              emit_const_ref(A_MOV,S_L,ref.offset,newreference(href));
               emitpushreferenceaddr(href);
               del_reference(href);
            end
@@ -944,7 +1038,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,ref.base)))
               else
                 begin
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,newreference(ref),R_EDI)));
+                   emit_ref_reg(A_LEA,S_L,newreference(ref),R_EDI);
                    exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
                 end;
            end;
@@ -1021,7 +1115,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          reset_reference(href);
          href.base:=procinfo.frame_pointer;
          href.offset:=p^.temp_offset;
-         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,href,hregister)));
+         emit_ref_reg(A_MOV,S_L,href,hregister);
 {$else  TEMPS_NOT_PUSH}
          exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,hregister)));
 {$endif TEMPS_NOT_PUSH}
@@ -1033,7 +1127,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    p^.location.registerhigh:=getregister32;
 {$ifdef TEMPS_NOT_PUSH}
                    href.offset:=p^.temp_offset+4;
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,p^.location.registerhigh)));
+                   emit_ref_reg(A_MOV,S_L,p^.location.registerhigh);
                    { set correctly for release ! }
                    href.offset:=p^.temp_offset;
 {$else  TEMPS_NOT_PUSH}
@@ -1063,7 +1157,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          reset_reference(href);
          href.base:=procinfo.frame_pointer;
          href.offset:=p^.temp_offset;
-         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,href,hregister)));
+         emit_ref_reg(A_MOV,S_L,href,hregister);
          if (p^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
            begin
               p^.location.register:=hregister;
@@ -1071,7 +1165,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 begin
                    p^.location.registerhigh:=getregister32;
                    href.offset:=p^.temp_offset+4;
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,p^.location.registerhigh)));
+                   emit_ref_reg(A_MOV,S_L,p^.location.registerhigh);
                    { set correctly for release ! }
                    href.offset:=p^.temp_offset;
                 end;
@@ -1191,7 +1285,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   size:=align(pfloatdef(p^.resulttype)^.size,alignment);
                   inc(pushedparasize,size);
                   if not inlined then
-                   exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,size,R_ESP)));
+                   emit_const_reg(A_SUB,S_L,size,R_ESP);
 {$ifdef GDB}
                   if (cs_debuginfo in aktmoduleswitches) and
                      (exprasmlist^.first=exprasmlist^.last) then
@@ -1215,7 +1309,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   size:=align(pfloatdef(p^.resulttype)^.size,alignment);
                   inc(pushedparasize,size);
                   if not inlined then
-                   exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,size,R_ESP)));
+                   emit_const_reg(A_SUB,S_L,size,R_ESP);
 {$ifdef GDB}
                   if (cs_debuginfo in aktmoduleswitches) and
                      (exprasmlist^.first=exprasmlist^.last) then
@@ -1244,13 +1338,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                inc(pushedparasize,8);
                                if inlined then
                                  begin
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                     newreference(tempreference),R_EDI)));
+                                   emit_ref_reg(A_MOV,S_L,
+                                     newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                    inc(tempreference.offset,4);
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                     newreference(tempreference),R_EDI)));
+                                   emit_ref_reg(A_MOV,S_L,
+                                     newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize+4);
                                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                  end
@@ -1266,8 +1360,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                inc(pushedparasize,4);
                                if inlined then
                                  begin
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                     newreference(tempreference),R_EDI)));
+                                   emit_ref_reg(A_MOV,S_L,
+                                     newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                  end
@@ -1289,8 +1383,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 end;
                                if inlined then
                                 begin
-                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
-                                    newreference(tempreference),hreg)));
+                                  emit_ref_reg(A_MOV,opsize,
+                                    newreference(tempreference),hreg);
                                   r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
                                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,hreg,r)));
                                 end
@@ -1311,8 +1405,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                inc(pushedparasize,4);
                                if inlined then
                                  begin
-                                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                      newreference(tempreference),R_EDI)));
+                                    emit_ref_reg(A_MOV,S_L,
+                                      newreference(tempreference),R_EDI);
                                     r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
                                     exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                  end
@@ -1326,8 +1420,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                               inc(tempreference.offset,4);
                               if inlined then
                                 begin
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                     newreference(tempreference),R_EDI)));
+                                   emit_ref_reg(A_MOV,S_L,
+                                     newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                 end
@@ -1337,8 +1431,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                               dec(tempreference.offset,4);
                               if inlined then
                                 begin
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                     newreference(tempreference),R_EDI)));
+                                   emit_ref_reg(A_MOV,S_L,
+                                     newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                 end
@@ -1354,8 +1448,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 inc(tempreference.offset,6);
                               if inlined then
                                 begin
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                     newreference(tempreference),R_EDI)));
+                                   emit_ref_reg(A_MOV,S_L,
+                                     newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                 end
@@ -1365,8 +1459,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                               inc(pushedparasize,4);
                               if inlined then
                                 begin
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                     newreference(tempreference),R_EDI)));
+                                   emit_ref_reg(A_MOV,S_L,
+                                     newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                 end
@@ -1388,8 +1482,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 end;
                               if inlined then
                                 begin
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
-                                     newreference(tempreference),hreg)));
+                                   emit_ref_reg(A_MOV,opsize,
+                                     newreference(tempreference),hreg);
                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,hreg,r)));
                                 end
@@ -1406,8 +1500,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                          inc(pushedparasize,4);
                          if inlined then
                            begin
-                              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                newreference(tempreference),R_EDI)));
+                              emit_ref_reg(A_MOV,S_L,
+                                newreference(tempreference),R_EDI);
                               r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
                               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                            end
@@ -1467,7 +1561,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   if inlined then
                     begin
                        r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                       exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,opsize,1,r)));
+                       emit_const_ref(A_MOV,opsize,1,r);
                     end
                   else
                     exprasmlist^.concat(new(pai386,op_const(A_PUSH,opsize,1)));
@@ -1476,7 +1570,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   if inlined then
                     begin
                        r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                       exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,opsize,0,r)));
+                       emit_const_ref(A_MOV,opsize,0,r);
                     end
                   else
                     exprasmlist^.concat(new(pai386,op_const(A_PUSH,opsize,0)));
@@ -1485,9 +1579,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
              LOC_FLAGS:
                begin
                   if not(R_EAX in unused) then
-                    exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_EAX,R_EDI)));
+                    emit_reg_reg(A_MOV,S_L,R_EAX,R_EDI);
                   emit_flag2reg(p^.location.resflags,R_AL);
-                  exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,R_AL,R_AX)));
+                  emit_reg_reg(A_MOVZX,S_BW,R_AL,R_AX);
                   if alignment=4 then
                    begin
                      opsize:=S_L;
@@ -1508,15 +1602,15 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   else
                     exprasmlist^.concat(new(pai386,op_reg(A_PUSH,opsize,hreg)));
                   if not(R_EAX in unused) then
-                    exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_EDI,R_EAX)));
+                    emit_reg_reg(A_MOV,S_L,R_EDI,R_EAX);
                end;
 {$ifdef SUPPORT_MMX}
              LOC_MMXREGISTER,
              LOC_CMMXREGISTER:
                begin
                   inc(pushedparasize,8); { was missing !!! (PM) }
-                  exprasmlist^.concat(new(pai386,op_const_reg(
-                    A_SUB,S_L,8,R_ESP)));
+                  emit_const_reg(
+                    A_SUB,S_L,8,R_ESP);
 {$ifdef GDB}
                   if (cs_debuginfo in aktmoduleswitches) and
                      (exprasmlist^.first=exprasmlist^.last) then
@@ -1649,15 +1743,15 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    opsize:=def_opsize(p^.resulttype);
                    case p^.location.loc of
                       LOC_CREGISTER,LOC_REGISTER : begin
-                                        exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,opsize,p^.location.register,
-                                          p^.location.register)));
+                                        emit_reg_reg(A_OR,opsize,p^.location.register,
+                                          p^.location.register);
                                         ungetregister(p^.location.register);
                                         emitjmp(C_NZ,truelabel);
                                         emitjmp(C_None,falselabel);
                                      end;
                       LOC_MEM,LOC_REFERENCE : begin
-                                        exprasmlist^.concat(new(pai386,op_const_ref(
-                                          A_CMP,opsize,0,newreference(p^.location.reference))));
+                                        emit_const_ref(
+                                          A_CMP,opsize,0,newreference(p^.location.reference));
                                         del_reference(p^.location.reference);
                                         emitjmp(C_NZ,truelabel);
                                         emitjmp(C_None,falselabel);
@@ -1797,15 +1891,15 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                  popecx:=true;
                end;
               if is_reg then
-               exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,p^.location.register,R_ECX)))
+               emit_reg_reg(op,opsize,p^.location.register,R_ECX)
               else
-               exprasmlist^.concat(new(pai386,op_ref_reg(op,opsize,newreference(p^.location.reference),R_ECX)));
+               emit_ref_reg(op,opsize,newreference(p^.location.reference),R_ECX);
             end;
            if doublebound then
             begin
               getlabel(neglabel);
               getlabel(poslabel);
-              exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,R_ECX,R_ECX)));
+              emit_reg_reg(A_OR,S_L,R_ECX,R_ECX);
               emitjmp(C_L,neglabel);
             end;
            { insert bound instruction only }
@@ -1835,20 +1929,20 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                hreg:=p^.location.register
               else
                begin
-                 exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,p^.location.register,R_EDI)));
+                 emit_reg_reg(op,opsize,p^.location.register,R_EDI);
                  hreg:=R_EDI;
                end;
             end
            else
             begin
-              exprasmlist^.concat(new(pai386,op_ref_reg(op,opsize,newreference(p^.location.reference),R_EDI)));
+              emit_ref_reg(op,opsize,newreference(p^.location.reference),R_EDI);
               hreg:=R_EDI;
             end;
            if doublebound then
             begin
               getlabel(neglabel);
               getlabel(poslabel);
-              exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,hreg,hreg)));
+              emit_reg_reg(A_OR,S_L,hreg,hreg);
               emitjmp(C_L,neglabel);
             end;
            { insert bound instruction only }
@@ -1900,7 +1994,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               helpsize:=size shr 2;
               for i:=1 to helpsize do
                 begin
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(source),R_EDI)));
+                   emit_ref_reg(A_MOV,S_L,newreference(source),R_EDI);
 {$ifdef regallocfix}
                    If (size = 4) and delsource then
                      del_reference(source);
@@ -1912,7 +2006,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 end;
               if size>1 then
                 begin
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_W,newreference(source),R_DI)));
+                   emit_ref_reg(A_MOV,S_W,newreference(source),R_DI);
 {$ifdef regallocfix}
                    If (size = 2) and delsource then
                      del_reference(source);
@@ -1954,7 +2048,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    if swap then
                      { was earlier XCHG, of course nonsense }
                      emit_reg_reg(A_MOV,S_L,reg32,R_EDI);
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_B,newreference(source),reg8)));
+                   emit_ref_reg(A_MOV,S_B,newreference(source),reg8);
 {$ifdef regallocfix}
                    If delsource then
                      del_reference(source);
@@ -1966,16 +2060,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            end
          else
            begin
-              exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,newreference(dest),R_EDI)));
+              emit_ref_reg(A_LEA,S_L,newreference(dest),R_EDI);
 {$ifdef regallocfix}
              {is this ok?? (JM)}
               del_reference(dest);
 {$endif regallocfix}
               if loadref then
-                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(source),R_ESI)))
+                emit_ref_reg(A_MOV,S_L,newreference(source),R_ESI)
               else
                 begin
-                  exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,newreference(source),R_ESI)));
+                  emit_ref_reg(A_LEA,S_L,newreference(source),R_ESI);
 {$ifdef regallocfix}
                   if delsource then
                     del_reference(source);
@@ -1987,7 +2081,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               if cs_littlesize in aktglobalswitches  then
                 begin
                    maybepushecx;
-                   exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,size,R_ECX)));
+                   emit_const_reg(A_MOV,S_L,size,R_ECX);
                    exprasmlist^.concat(new(pai386,op_none(A_REP,S_NO)));
                    exprasmlist^.concat(new(pai386,op_none(A_MOVSB,S_NO)));
                 end
@@ -1998,7 +2092,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    if helpsize>1 then
                     begin
                       maybepushecx;
-                      exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,helpsize,R_ECX)));
+                      emit_const_reg(A_MOV,S_L,helpsize,R_ECX);
                       exprasmlist^.concat(new(pai386,op_none(A_REP,S_NO)));
                     end;
                    if helpsize>0 then
@@ -2100,7 +2194,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    reset_reference(hp^);
                    hp^.offset:=procinfo.framepointer_offset;
                    hp^.base:=procinfo.framepointer;
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,R_ESI)));
+                   emit_ref_reg(A_MOV,S_L,hp,R_ESI);
                    p:=procinfo.parent;
                    for i:=3 to lexlevel-1 do
                      begin
@@ -2108,14 +2202,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                         reset_reference(hp^);
                         hp^.offset:=p^.framepointer_offset;
                         hp^.base:=R_ESI;
-                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,R_ESI)));
+                        emit_ref_reg(A_MOV,S_L,hp,R_ESI);
                         p:=p^.parent;
                      end;
                    new(hp);
                    reset_reference(hp^);
                    hp^.offset:=p^.ESI_offset;
                    hp^.base:=R_ESI;
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,R_ESI)));
+                   emit_ref_reg(A_MOV,S_L,hp,R_ESI);
                 end
               else
                 begin
@@ -2123,7 +2217,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    reset_reference(hp^);
                    hp^.offset:=procinfo.ESI_offset;
                    hp^.base:=procinfo.framepointer;
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,R_ESI)));
+                   emit_ref_reg(A_MOV,S_L,hp,R_ESI);
                 end;
            end;
       end;
@@ -2181,7 +2275,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
          target_i386_go32v2:
            begin
-              exprasmlist^.insert(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol('MCOUNT'))));
+              emitinsertcall('MCOUNT');
            end;
       end;
     end;
@@ -2241,8 +2335,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             reset_reference(hr);
             hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
             emitpushreferenceaddr(hr);
-            exprasmlist^.concat(new(pai386,
-              op_sym(A_CALL,S_NO,newasmsymbol('FPC_INIT_THREADVAR'))));
+            emitcall('FPC_INIT_THREADVAR');
          end;
     end;
 
@@ -2258,8 +2351,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          if is_ansistring(t) or
            is_widestring(t) then
            begin
-              exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,
-                newreference(ref))));
+              emit_const_ref(A_MOV,S_L,0,
+                newreference(ref));
            end
          else
            begin
@@ -2271,8 +2364,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   newreference(ref))))
               else
                 emitpushreferenceaddr(ref);
-              exprasmlist^.concat(new(pai386,
-                op_sym(A_CALL,S_NO,newasmsymbol('FPC_INITIALIZE'))));
+              emitcall('FPC_INITIALIZE');
            end;
       end;
 
@@ -2359,8 +2451,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             emitpushreferenceaddr(hr);
             reset_reference(hr);
 
-            exprasmlist^.concat(new(pai386,
-              op_sym(A_CALL,S_NO,newasmsymbol('FPC_ADDREF'))));
+            emitcall('FPC_ADDREF');
          end;
     end;
 
@@ -2583,7 +2674,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               reset_reference(r^);
               r^.base:=procinfo.framepointer;
               r^.offset:=hp^.pos;
-              exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,r)));
+              emit_const_ref(A_MOV,S_L,0,r);
             end;
             hp:=hp^.next;
          end;
@@ -2605,8 +2696,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                  hr.base:=procinfo.framepointer;
                  hr.offset:=hp^.pos;
                  emitpushreferenceaddr(hr);
-                 exprasmlist^.concat(new(pai386,
-                   op_sym(A_CALL,S_NO,newasmsymbol('FPC_ANSISTR_DECR_REF'))));
+                 emitcall('FPC_ANSISTR_DECR_REF');
               end;
             hp:=hp^.next;
          end;
@@ -2637,8 +2727,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
        exprasmlist:=alist;
        if (not inlined) and (aktprocsym^.definition^.proctypeoption=potype_proginit) then
            begin
-              exprasmlist^.insert(new(pai386,
-                op_sym(A_CALL,S_NO,newasmsymbol('FPC_INITIALIZEUNITS'))));
+              emitinsertcall('FPC_INITIALIZEUNITS');
               if target_info.target=target_I386_WIN32 then
                 begin
                    new(hr);
@@ -2670,13 +2759,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         begin
           if procinfo._class^.is_class then
             begin
-              exprasmlist^.insert(new(pai386,op_cond_sym(A_Jcc,C_Z,S_NO,quickexitlabel)));
-              exprasmlist^.insert(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol('FPC_NEW_CLASS'))));
+              exprasmlist^.insert(new(pai386,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
+              emitinsertcall('FPC_NEW_CLASS');
             end
           else
             begin
-              exprasmlist^.insert(new(pai386,op_cond_sym(A_Jcc,C_Z,S_NO,quickexitlabel)));
-              exprasmlist^.insert(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol('FPC_HELP_CONSTRUCTOR'))));
+              exprasmlist^.insert(new(pai386,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
+              emitinsertcall('FPC_HELP_CONSTRUCTOR');
               exprasmlist^.insert(new(pai386,op_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI)));
             end;
         end;
@@ -2738,8 +2827,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                               if (cs_check_stack in aktlocalswitches) and
                                  not(target_info.target in [target_i386_linux,target_i386_win32]) then
                                 begin
-                                  exprasmlist^.insert(new(pai386,
-                                    op_sym(A_CALL,S_NO,newasmsymbol('FPC_STACKCHECK'))));
+                                  emitinsertcall('FPC_STACKCHECK');
                                   exprasmlist^.insert(new(pai386,op_const(A_PUSH,S_L,stackframe)));
                                 end;
                               if cs_profile in aktmoduleswitches then
@@ -2794,7 +2882,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                             if (cs_check_stack in aktlocalswitches) and
                               not(target_info.target in [target_i386_linux,target_i386_win32]) then
                               begin
-                                 exprasmlist^.insert(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol('FPC_STACKCHECK'))));
+                                 emitinsertcall('FPC_STACKCHECK');
                                  exprasmlist^.insert(new(pai386,op_const(A_PUSH,S_L,stackframe)));
                               end;
                             if cs_profile in aktmoduleswitches then
@@ -2940,24 +3028,24 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   case procinfo.retdef^.size of
                    8:
                      begin
-                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hr,R_EAX)));
+                        emit_ref_reg(A_MOV,S_L,hr,R_EAX);
                         hr:=new_reference(procinfo.framepointer,procinfo.retoffset+4);
-                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hr,R_EDX)));
+                        emit_ref_reg(A_MOV,S_L,hr,R_EDX);
                      end;
 
                    4:
-                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hr,R_EAX)));
+                     emit_ref_reg(A_MOV,S_L,hr,R_EAX);
 
                    2:
-                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_W,hr,R_AX)));
+                     emit_ref_reg(A_MOV,S_W,hr,R_AX);
 
                    1:
-                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_B,hr,R_AL)));
+                     emit_ref_reg(A_MOV,S_B,hr,R_AL);
                   end;
                 end
               else
                 if ret_in_acc(procinfo.retdef) then
-                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hr,R_EAX)))
+                  emit_ref_reg(A_MOV,S_L,hr,R_EAX)
               else
                  if (procinfo.retdef^.deftype=floatdef) then
                    begin
@@ -2977,7 +3065,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
        mangled_length : longint;
        p : pchar;
 {$endif GDB}
-       noreraiselabel : pasmlabel;
+       okexitlabel,noreraiselabel : pasmlabel;
        hr : treference;
        oldexprasmlist : paasmoutput;
   begin
@@ -2992,13 +3080,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         begin
           if procinfo._class^.is_class then
             begin
-              exprasmlist^.insert(new(pai386,op_sym(A_CALL,S_NO,
-                newasmsymbol('FPC_DISPOSE_CLASS'))));
+              emitinsertcall('FPC_DISPOSE_CLASS');
             end
           else
             begin
-              exprasmlist^.insert(new(pai386,op_sym(A_CALL,S_NO,
-                newasmsymbol('FPC_HELP_DESTRUCTOR'))));
+              emitinsertcall('FPC_HELP_DESTRUCTOR');
               exprasmlist^.insert(new(pai386,op_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI)));
             end;
         end;
@@ -3017,8 +3103,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       if (procinfo.flags and pi_needs_implicit_finally)<>0 then
         begin
            getlabel(noreraiselabel);
-           exprasmlist^.concat(new(pai386,
-             op_sym(A_CALL,S_NO,newasmsymbol('FPC_POPADDRSTACK'))));
+           emitcall('FPC_POPADDRSTACK');
            exprasmlist^.concat(new(pai386,
              op_reg(A_POP,S_L,R_EAX)));
            exprasmlist^.concat(new(pai386,
@@ -3036,15 +3121,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 finalize(procinfo.retdef,hr,ret_in_param(procinfo.retdef));
              end;
 
-           exprasmlist^.concat(new(pai386,
-             op_sym(A_CALL,S_NO,newasmsymbol('FPC_RERAISE'))));
-           exprasmlist^.concat(new(pai_label,init(noreraiselabel)));
+           emitcall('FPC_RERAISE');
+           emitlab(noreraiselabel);
         end;
 
       { call __EXIT for main program }
       if (not DLLsource) and (not inlined) and (aktprocsym^.definition^.proctypeoption=potype_proginit) then
        begin
-         exprasmlist^.concat(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol('FPC_DO_EXIT'))));
+         emitcall('FPC_DO_EXIT');
        end;
 
       { handle return value }
@@ -3055,16 +3139,22 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               begin
                   { successful constructor deletes the zero flag }
                   { and returns self in eax                   }
-                  exprasmlist^.concat(new(pai_label,init(quickexitlabel)));
                   { eax must be set to zero if the allocation failed !!! }
-                  exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_ESI,R_EAX)));
-                  exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,R_EAX,R_EAX)));
+                  getlabel(okexitlabel);
+                  emitjmp(C_NONE,okexitlabel);
+                  emitlab(faillabel);
+                  emit_ref_reg(A_MOV,S_L,new_reference(procinfo.framepointer,12),R_ESI);
+                  emit_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI);
+                  emitcall('FPC_HELP_FAIL');
+                  emitlab(okexitlabel);
+                  emit_reg_reg(A_MOV,S_L,R_ESI,R_EAX);
+                  emit_reg_reg(A_OR,S_L,R_EAX,R_EAX);
               end;
 
       { stabs uses the label also ! }
       if aktexit2label^.is_used or
          ((cs_debuginfo in aktmoduleswitches) and not inlined) then
-        exprasmlist^.concat(new(pai_label,init(aktexit2label)));
+        emitlab(aktexit2label);
       { gives problems for long mangled names }
       {list^.concat(new(pai_symbol,init(aktprocsym^.definition^.mangledname+'_end')));}
 
@@ -3197,7 +3287,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.29  1999-08-14 00:36:07  peter
+  Revision 1.30  1999-08-19 13:06:45  pierre
+    * _FAIL will now free memory correctly
+      and reset VMT field on static instances
+      (not yet tested for classes, is it allowed ?)
+    + emit_.... all variant defined here to avoid tons of
+      exprasmlist^.concat(new(pai386,...) in cg386***
+
+  Revision 1.29  1999/08/14 00:36:07  peter
     * array constructor support
 
   Revision 1.28  1999/08/07 14:20:57  florian
