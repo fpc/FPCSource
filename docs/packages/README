@@ -1,0 +1,9 @@
+This directory contains some packages needed by TeX.
+
+To install them, run latex on the files ending on *.ins:
+  listings.ins
+  mdwtools.ins
+This will unpack a series of files, which then should be moved
+to a directory, searched by latex.
+
+Michael.
