@@ -40,11 +40,11 @@ _start:
 
   /* Load the addresses of the user entry points.  */
 	sethi	%hi(main), %o0
-	sethi	%hi(_init), %o3
-	sethi	%hi(_fini), %o4
+	sethi	%hi(fpc_initialize), %o3
+	sethi	%hi(fpc_finalize), %o4
 	or	%o0, %lo(main), %o0
-	or	%o3, %lo(_init), %o3
-	or	%o4, %lo(_fini), %o4
+	or	%o3, %lo(fpc_initialize), %o3
+	or	%o4, %lo(fpc_finalize), %o4
 
   /* When starting a binary via the dynamic linker, %g1 contains the
      address of the shared library termination function, which will be
@@ -62,6 +62,11 @@ _start:
 	.size _start, .-_start
 
 # $Log$
-# Revision 1.3  2002-11-18 19:03:46  mazen
+# Revision 1.4  2003-06-02 22:03:37  mazen
+# *making init and fini symbols compatible FPC code by
+#  changing  _init ==> fpc_initialize
+#  and _fini ==> fpc_finalize
+#
+# Revision 1.3  2002/11/18 19:03:46  mazen
 # * start code of gcc adapted for FPC
 #
