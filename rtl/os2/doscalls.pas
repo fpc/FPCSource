@@ -1600,7 +1600,7 @@ function DosQueryMuxWaitSem(Handle:longint;var CSemRec:longint;
 ****************************************************************************}
 
 
-type    TDateTime=record
+type    TDateTime=packed record
             Hour,
             Minute,
             Second,
@@ -1608,7 +1608,7 @@ type    TDateTime=record
             Day,
             Month:byte;
             Year:word;
-            TimeZone:integer;
+            TimeZone:smallint;
             WeekDay:byte;
         end;
         PDateTime=^TDateTime;
@@ -4031,7 +4031,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.9  2001-01-27 18:31:38  hajny
+  Revision 1.10  2001-05-20 18:40:32  hajny
+    * merging Carl's fixes from the fixes branch
+
+  Revision 1.9  2001/01/27 18:31:38  hajny
     * Another bunch of compatibility additions
 
   Revision 1.8  2001/01/23 20:28:05  hajny

@@ -1,5 +1,5 @@
-/ prt0.s (emx+fpk) -- Made from crt0.s,
-/                     Copyright (c) 1990-1999-2000 by Eberhard Mattes.
+/ prt0.s (emx+fpc) -- Made from crt0.s,
+/                     Copyright (c) 1990-1999-2001 by Eberhard Mattes.
 /                     Changed for Free Pascal in 1997 Daniel Mantione.
 /                     This code is _not_ under the Library GNU Public
 /                     License, because the original is not. See copying.emx
@@ -71,3 +71,4 @@ __heap_brk:
         .stabs  "___DTOR_LIST__", 21, 0, 0, 0xffffffff
         .stabs  "___crtinit1__", 21, 0, 0, 0xffffffff
         .stabs  "___crtexit1__", 21, 0, 0, 0xffffffff
+        .stabs  "___eh_frame__", 21, 0, 0, 0xffffffff

@@ -159,8 +159,42 @@ external 'DOSCALLS' index 255;
 function DosSetDefaultDisk (DiskNum:longint): longint; cdecl;
 external 'DOSCALLS' index 220;
 
+{ This is not real prototype, but its close enough  }
+{ for us. (The 2nd parameter is acutally a pointer) }
+{ to a structure.                                   }
+function DosCreateDir( Name : pchar; p : pointer): longint; cdecl;
+external 'DOSCALLS' index 270;
+
+function DosDeleteDir( Name : pchar) : longint; cdecl;
+external 'DOSCALLS' index 226;
+
 {This is the correct way to call external assembler procedures.}
 procedure syscall; external name '___SYSCALL';
+
+
+
+   { converts an OS/2 error code to a TP compatible error }
+   { code. Same thing exists under most other supported   }
+   { systems.                                             }
+   { Only call for OS/2 DLL imported routines             }
+   Procedure Errno2InOutRes;
+   Begin
+     { errors 1..18 are the same as in DOS }
+     case InOutRes of
+      { simple offset to convert these error codes }
+      { exactly like the error codes in Win32      }
+      19..31 : InOutRes := InOutRes + 131;
+      { gets a bit more complicated ... }
+      32..33 : InOutRes := 5;
+      38 : InOutRes := 100;
+      39 : InOutRes := 101;
+      112 : InOutRes := 101;
+      110 : InOutRes := 5;
+      114 : InOutRes := 6;
+      290 : InOutRes := 290;
+     end;
+     { all other cases ... we keep the same error code }
+   end;
 
 {***************************************************************************
 
@@ -169,6 +203,23 @@ procedure syscall; external name '___SYSCALL';
 ***************************************************************************}
 
 {$S-}
+procedure st1(stack_size : longint); [public,alias : 'FPC_STACKCHECK'];
+var
+ c: cardinal;
+begin
+ c := cardinal(Sptr) - cardinal(stack_size) - 16384;
+ if os_mode = osos2 then
+   begin
+     if (c <= cardinal(StackBottom)) then
+        HandleError(202);
+   end
+ else
+   begin
+     if (c <= cardinal(heap_brk)) then
+        HandleError(202);
+   end;
+end;
+(*
 procedure st1(stack_size:longint); assembler; [public,alias: 'FPC_STACKCHECK'];
 { called when trying to get local stack }
 { if the compiler directive $S is set   }
@@ -198,6 +249,7 @@ asm
     call HandleError
 end ['EAX','EBX'];
 {no stack check in system }
+*)
 
 {****************************************************************************
 
@@ -222,26 +274,33 @@ asm
     decl %eax
 end ['EAX'];
 
-function paramstr(l:longint):string;
-
     function args:pointer;assembler;
 
     asm
         movl argv,%eax
     end ['EAX'];
 
+
+function paramstr(l:longint):string;
+
 var p:^Pchar;
 
 begin
+    { There seems to be a problem with EMX for DOS when trying to }
+    { access paramstr(0), and to avoid problems between DOS and   }
+    { OS/2 they have been separated.                              }
+    if os_Mode = OsOs2 then
+    begin
     if L = 0 then
         begin
             GetMem (P, 260);
+            p[0] := #0;  { in case of error, initialize to empty string }
 {$ASMMODE INTEL}
             asm
                 mov edx, P
                 mov ecx, 260
                 mov eax, 7F33h
-                call syscall
+                call syscall    { error handle already with empty string }
             end;
             ParamStr := StrPas (PChar (P));
             FreeMem (P, 260);
@@ -253,23 +312,14 @@ begin
                 paramstr:=strpas(p[l]);
             end
         else paramstr:='';
-end;
-
-{
-procedure randomize;
-
-var hl:longint;
-
-begin
-    asm
-        movb $0x2c,%ah
-        call syscall
-        movw %cx,-4(%ebp)
-        movw %dx,-2(%ebp)
+    end
+   else
+    begin
+      p:=args;
+      paramstr:=strpas(p[l]);
     end;
-    randseed:=hl;
 end;
-}
+
 
 procedure randomize; assembler;
 asm
@@ -295,7 +345,7 @@ function sbrk(size:longint):longint; assembler;
 asm
     movl size,%edx
     movw $0x7f00,%ax
-    call syscall
+    call syscall     { result directly in EAX }
 end;
 
 function getheapstart:pointer;assembler;
@@ -333,12 +383,15 @@ procedure do_close(h:longint);
 begin
 { Only three standard handles under real OS/2 }
   if (h > 4) or
-     (os_MODE = osOS2) and (h > 2) then
+     ((os_MODE = osOS2) and (h > 2)) then
    begin
      asm
         movb $0x3e,%ah
         movl h,%ebx
         call syscall
+        jnc  .Lnoerror           { error code?            }
+        movw  %ax, InOutRes       { yes, then set InOutRes }
+     .Lnoerror:
      end;
    end;
 end;
@@ -388,6 +441,9 @@ end;
 
 function do_write(h,addr,len:longint) : longint; assembler;
 asm
+    xorl %eax,%eax
+    cmpl $0,len    { 0 bytes to write is undefined behavior }
+    jz   .LDOSWRITE1
     movl len,%ecx
     movl addr,%edx
     movl h,%ebx
@@ -445,26 +501,14 @@ end;
 
 procedure do_truncate(handle,pos:longint); assembler;
 asm
-(* DOS function 40h isn't safe for this according to EMX documentation
-        movl $0x4200,%eax
-        movl handle,%ebx
-        movl pos,%edx
-        call syscall
-        jc .LTruncate1
-        movl handle,%ebx
-        movl pos,%edx
-        movl %ebp,%edx
-        xorl %ecx,%ecx
-        movb $0x40,%ah
-        call syscall
-*)
+(* DOS function 40h isn't safe for this according to EMX documentation *)
     movl $0x7F25,%eax
     movl Handle,%ebx
     movl Pos,%edx
     call syscall
-    inc %eax
+    incl %eax
     movl %ecx, %eax
-    jnz .LTruncate1
+    jnz .LTruncate1      { compare the value of EAX to verify error }
 (* File position is undefined after truncation, move to the end. *)
     movl $0x4202,%eax
     movl Handle,%ebx
@@ -588,8 +632,8 @@ begin
         movw %cx, InOutRes
         movw UnusedHandle, %ax
 .LOPEN1:
-        movl f,%edx
-        movw %ax,(%edx)
+        movl f,%edx         { Warning : This assumes Handle is first }
+        movw %ax,(%edx)     { field of FileRec                       }
     end;
     if (InOutRes = 4) and Increase_File_Handle_Count then
 (* Trying again after increasing amount of file handles *)
@@ -633,9 +677,9 @@ asm
     call syscall
     mov eax, 1
     jc @IsDevEnd
-    test edx, 80h
+    test edx, 80h           { verify if it is a file  }
     jnz @IsDevEnd
-    dec eax
+    dec eax                 { nope, so result is zero }
 @IsDevEnd:
 end;
 {$ASMMODE ATT}
@@ -671,6 +715,7 @@ end;
                            Directory Handling
 *****************************************************************************}
 
+
 procedure dosdir(func:byte;const s:string);
 
 var buffer:array[0..255] of char;
@@ -690,26 +735,66 @@ begin
 end;
 
 
-procedure MkDir (const S: string);
+procedure MkDir (const S: string);[IOCHECK];
+
+var buffer:array[0..255] of char;
+    Rc : word;
 
 begin
   If (s='') or (InOutRes <> 0) then
    exit;
+ if os_mode = osOs2 then
+    begin
+      move(s[1],buffer,length(s));
+      buffer[length(s)]:=#0;
+      allowslash(Pchar(@buffer));
+      Rc := DosCreateDir(buffer,nil);
+      if Rc <> 0 then
+       begin
+         InOutRes := Rc;
+         Errno2Inoutres;
+       end;
+    end
+  else
+   begin
+     { Under EMX 0.9d DOS this routine call may sometimes fail   }
+     { The syscall documentation indicates clearly that this     }
+     { routine was NOT tested.                                   }
         DosDir ($39, S);
+end;
 end;
 
 
-procedure rmdir(const s : string);
-
+procedure rmdir(const s : string);[IOCHECK];
+var buffer:array[0..255] of char;
+    Rc : word;
 begin
   If (s='') or (InOutRes <> 0) then
    exit;
+  if os_mode = osOs2 then
+    begin
+      move(s[1],buffer,length(s));
+      buffer[length(s)]:=#0;
+      allowslash(Pchar(@buffer));
+      Rc := DosDeleteDir(buffer);
+      if Rc <> 0 then
+       begin
+         InOutRes := Rc;
+         Errno2Inoutres;
+       end;
+    end
+  else
+   begin
+     { Under EMX 0.9d DOS this routine call may sometimes fail   }
+     { The syscall documentation indicates clearly that this     }
+     { routine was NOT tested.                                   }
         DosDir ($3A, S);
+end;
 end;
 
 {$ASMMODE INTEL}
 
-procedure ChDir (const S: string);
+procedure ChDir (const S: string);[IOCheck];
 
 var RC: longint;
     Buffer: array [0..255] of char;
@@ -735,7 +820,10 @@ begin
                                         AllowSlash (PChar (@Buffer));
                                         RC := DosSetCurrentDir (@Buffer);
                                         if RC <> 0 then
+                                         begin
                                             InOutRes := RC;
+                                            Errno2InOutRes;
+                                         end;
                                     end;
                         end
                     else
@@ -745,7 +833,10 @@ begin
                             AllowSlash (PChar (@Buffer));
                             RC := DosSetCurrentDir (@Buffer);
                             if RC <> 0 then
-                                InOutRes := RC;
+                             begin
+                                  InOutRes:= RC;
+                                  Errno2InOutRes;
+                             end;
                         end;
                 end
             else
@@ -767,9 +858,13 @@ begin
 @LCHDIR:
                         end;
                         if (Length (S) > 2) and (InOutRes <> 0) then
+                            { Under EMX 0.9d DOS this routine may sometime }
+                            { fail or crash the system.                    }
                             DosDir ($3B, S);
                     end
                 else
+                    { Under EMX 0.9d DOS this routine may sometime }
+                    { fail or crash the system.                    }
                     DosDir ($3B, S);
 end;
 
@@ -894,7 +989,9 @@ begin
         call HandleError
     @heapok:
     end;
-
+    { in OS/2 this will always be nil, but in DOS mode }
+    { this can be changed.                             }
+    first_meg := nil;
     {Now request, if we are running under DOS,
      read-access to the first meg. of memory.}
     if os_mode in [osDOS,osDPMI] then
@@ -904,11 +1001,12 @@ begin
             mov ecx, 0FFFh
             xor edx, edx
             call syscall
+            jnc  @endmem
             mov first_meg, eax
+         @endmem:
         end
     else
         begin
-            first_meg := nil;
     (* Initialize the amount of file handles *)
             FileHandleCount := GetFileHandleCount;
         end;
@@ -920,7 +1018,7 @@ begin
         osOS2:
             begin
                 dosgetinfoblocks(@tib,nil);
-                stackbottom:=longint(tib^.stack);
+                stackbottom:=cardinal(tib^.stack);
             end;
         osDPMI:
             stackbottom:=0;     {Not sure how to get it, but seems to be
@@ -958,7 +1056,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2001-04-20 19:05:11  hajny
+  Revision 1.13  2001-05-20 18:40:32  hajny
+    * merging Carl's fixes from the fixes branch
+
+  Revision 1.12  2001/04/20 19:05:11  hajny
     * setne operand size fixed
 
   Revision 1.11  2001/03/21 23:29:40  florian

@@ -529,7 +529,7 @@ begin
     if (os_mode = osDOS) or (os_mode = osDPMI) then
     {Function 36 is not supported in OS/2.}
         asm
-            movb 8(%ebp),%dl
+            movb Drive,%dl
             movb $0x36,%ah
             call syscall
             cmpw $-1,%ax
@@ -538,6 +538,7 @@ begin
             mulw %bx
             shll $16,%edx
             movw %ax,%dx
+            movl $0,%eax
             xchgl %edx,%eax
             leave
             ret
@@ -567,7 +568,7 @@ begin
     if (os_mode = osDOS) or (os_mode = osDPMI) then
         {Function 36 is not supported in OS/2.}
         asm
-            movb 8(%ebp),%dl
+            Drive,%dl
             movb $0x36,%ah
             call syscall
             movw %dx,%bx
@@ -577,6 +578,7 @@ begin
             mulw %bx
             shll $16,%edx
             movw %ax,%dx
+            movl $0,%eax
             xchgl %edx,%eax
             leave
             ret
@@ -704,7 +706,7 @@ end;
 procedure InitInternational;
 var Country: TCountryCode;
     CtryInfo: TCountryInfo;
-    Size: cardinal;
+    Size: longint;
     RC: longint;
 begin
     Size := 0;
@@ -759,7 +761,6 @@ begin
 end;
 
 
-
 {****************************************************************************
                               Initialization code
 ****************************************************************************}
@@ -774,7 +775,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2001-02-21 21:23:38  hajny
+  Revision 1.10  2001-05-20 18:40:33  hajny
+    * merging Carl's fixes from the fixes branch
+
+  Revision 1.9  2001/02/21 21:23:38  hajny
     * GetEnvironmentVariable now really merged
 
   Revision 1.8  2001/02/20 22:14:19  peter

@@ -16,6 +16,11 @@ finish PM support                             high
           - PMBitmap................................................RB
     - PMStdDlg
 
+RTL
+    - sockets
+    - graph
+    - pass dos compatibility tests
+
 ? enhance ld linker                           high
 
 libgdb                                        medium

@@ -1993,7 +1993,7 @@ const
     function WinInitialize(flOptions : cardinal) : cardinal; cdecl;external 'pmwin' index 763;
     function WinTerminate(hab : cardinal) : longbool; cdecl;external 'pmwin' index 888;
     function WinQueryAnchorBlock(hwnd : cardinal) : cardinal; cdecl;external 'pmwin' index 800;
-    function WinCreateWindow(hwndParent : cardinal;pszClass,pszName : pchar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;var pCtlData,PresParams : pointer) : cardinal; cdecl;external 'pmwin' index 909;
+    function WinCreateWindow(hwndParent : cardinal;pszClass,pszName : pchar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;var pCtlData,pPresParams : pointer) : cardinal; cdecl;external 'pmwin' index 909;
     function WinEnableWindow(hwnd : cardinal;fEnable : longbool) : longbool; cdecl;external 'pmwin' index 735;
     function WinIsWindowEnabled(hwnd : cardinal) : longbool; cdecl;external 'pmwin' index 773;
     function WinEnableWindowUpdate(hwnd : cardinal;fEnable : longbool) : longbool; cdecl;external 'pmwin' index 736;
@@ -2150,7 +2150,7 @@ const
     function WinCopyRect(hab : cardinal;var rclDst,rclSrc : TRectl) : longbool; cdecl;external 'pmwin' index 710;
     function WinCopyRect(hab : cardinal;prclDst,prclSrc : PRectl) : longbool; cdecl;external 'pmwin' index 710;
     function WinSetRect(hab : cardinal;var rcl : TRectl;xLeft,yBottom,xRight,yTop : longint) : longbool; cdecl;external 'pmwin' index 868;
-    function WinSetRect(hab : cardinal;prcl : PRectl;xLeft,yBottom,xRight,yTop : longint) : longbool; cdecl;external 'pmwin' index 868;
+    function WinSetRect(hab : cardinal;_prcl : PRectl;xLeft,yBottom,xRight,yTop : longint) : longbool; cdecl;external 'pmwin' index 868;
     function WinIsRectEmpty(hab : cardinal;var rcl : TRectl) : longbool; cdecl;external 'pmwin' index 770;
     function WinIsRectEmpty(hab : cardinal;prcl : PRectl) : longbool; cdecl;external 'pmwin' index 770;
     function WinEqualRect(hab : cardinal;var rcl1,rcl2 : TRectl) : longbool; cdecl;external 'pmwin' index 741;
@@ -2169,7 +2169,7 @@ const
     function WinUnionRect(hab : cardinal;prclDst,prclSrc1,prclSrc2 : PRectl) : longbool; cdecl;external 'pmwin' index 891;
     function WinSubtractRect(hab : cardinal;var rclDst,rclSrc1,rclSrc2 : TRectl) : longbool; cdecl;external 'pmwin' index 887;
     function WinSubtractRect(hab : cardinal;prclDst,prclSrc1,prclSrc2 : PRectl) : longbool; cdecl;external 'pmwin' index 887;
-    function WinMakeRect(hab : cardinal;var pwrc : TRectl) : longbool; cdecl;external 'pmwin' index 786;
+    function WinMakeRect(hab : cardinal;var wrc : TRectl) : longbool; cdecl;external 'pmwin' index 786;
     function WinMakeRect(hab : cardinal;pwrc : PRectl) : longbool; cdecl;external 'pmwin' index 786;
     function WinMakePoints(hab : cardinal;var wpt : TPointL;cwpt : cardinal) : longbool; cdecl;external 'pmwin' index 785;
     function WinMakePoints(hab : cardinal;pwpt : PPointL;cwpt : cardinal) : longbool; cdecl;external 'pmwin' index 785;
@@ -2265,7 +2265,7 @@ const
     function WinGetErrorInfo(hab : cardinal) : PERRINFO; cdecl;external 'pmwin' index 751;
     function WinFreeErrorInfo(var perrinfo : ERRINFO) : longbool; cdecl;external 'pmwin' index 748;
     function WinDdeInitiate(hwndClient : cardinal;pszAppName,pszTopicName : pchar;var cctxt : TConvContext) : longbool; cdecl;external 'pmwin' index 718;
-    function WinDdeInitiate(hwndClient : cardinal;pszAppName,pszTopicName : pchar;cctxt : PConvContext) : longbool; cdecl;external 'pmwin' index 718;
+    function WinDdeInitiate(hwndClient : cardinal;pszAppName,pszTopicName : pchar;pcctxt : PConvContext) : longbool; cdecl;external 'pmwin' index 718;
     function WinDdeRespond(hwndClient,hwndServer : cardinal;pszAppName,pszTopicName : pchar;var cctxt : TConvContext) : pointer; cdecl;external 'pmwin' index 720;
     function WinDdeRespond(hwndClient,hwndServer : cardinal;pszAppName,pszTopicName : pchar;pcctxt : PConvContext) : pointer; cdecl;external 'pmwin' index 720;
     function WinDdePostMsg(hwndTo,hwndFrom,wm : cardinal;var ddest : DDEStruct;flOptions : cardinal) : longbool; cdecl;external 'pmwin' index 719;
@@ -2970,7 +2970,10 @@ const
 end.
 {
   $Log$
-  Revision 1.3  2000-09-03 19:01:14  hajny
+  Revision 1.4  2001-05-20 18:40:34  hajny
+    * merging Carl's fixes from the fixes branch
+
+  Revision 1.3  2000/09/03 19:01:14  hajny
     + pmerr merged into PMWin
 
   Revision 1.1.2.1  2000/09/03 18:23:12  hajny
