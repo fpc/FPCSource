@@ -937,7 +937,7 @@ implementation
                      on the location in which the elements will be found in
                      pass 2.}
                     if not do_variant then
-                      include(procinfo.flags,pi_do_call);
+                      include(current_procinfo.flags,pi_do_call);
                     firstpass(hp.left);
                   end;
                 hp:=tarrayconstructornode(hp.right);
@@ -1122,7 +1122,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.123  2004-02-20 21:55:59  peter
+  Revision 1.124  2004-02-20 22:15:26  peter
+    * fixed compiler err
+
+  Revision 1.123  2004/02/20 21:55:59  peter
     * procvar cleanup
 
   Revision 1.122  2004/02/20 20:21:16  daniel
