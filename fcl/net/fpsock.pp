@@ -190,7 +190,7 @@ uses
 {$IFDEF VER1_0}
   Linux;
 {$ELSE}
-  Unix;
+  Baseunix,Unix;
 {$ENDIF}
 
 resourcestring
@@ -219,7 +219,7 @@ begin
   if Result = -1 then
   begin
     Result := 0;
-    if SocketError <> Sys_EAGAIN then
+    if SocketError <> {$ifdef ver1_0}Sys_EAGAIN{$else}ESysEAgain{$endif} then
       Disconnected;
   end;
 end;
@@ -230,7 +230,7 @@ begin
   if Result = -1 then
   begin
     Result := 0;
-    if SocketError <> Sys_EAGAIN then
+    if SocketError <> {$ifdef ver1_0}Sys_EAGAIN{$else}ESysEAgain{$endif} then
       Disconnected;
   end;
 end;
@@ -516,7 +516,7 @@ begin
   SockAddr.Port := ShortHostToNet(Port);
   SockAddr.Addr := Cardinal(HostAddr);
   Sockets.Connect(Stream.Handle, SockAddr, SizeOf(SockAddr));
-  if (SocketError <> sys_EINPROGRESS) and (SocketError <> 0) then
+  if (SocketError <> {$ifdef ver1_0}sys_EINPROGRESS{$else}ESysEInProgress{$endif}) and (SocketError <> 0) then
     raise ESocketError.CreateFmt(SSocketConnectFailed,
       [GetPeerName, StrError(SocketError)]);
 end;
@@ -581,7 +581,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-01-31 19:13:14  sg
+  Revision 1.3  2004-02-02 14:39:48  marco
+   * 1.0.x problems fixed
+
+  Revision 1.2  2004/01/31 19:13:14  sg
   * Splittet old HTTP unit into httpbase and httpclient
   * Many improvements in fpSock (e.g. better disconnection detection)
 
