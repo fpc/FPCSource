@@ -15,7 +15,7 @@ begin
       MouseActionUp   : Write('Mouse up.');
       MouseActionMove : Write('Mouse move.');
     end;
-    Writeln('Button state : ');
+    Write('Button state : ');
     If (Buttons and MouseLeftbutton)<>0 then
       Write('Left ');
     If (Buttons and MouseRightbutton)<>0 then
@@ -35,7 +35,10 @@ begin
   Writeln('Play with mouse. Press right mouse button to end.');
   Repeat
     If PollMouseEvent(Event)Then
-      DumpEvent(Event)
+      begin
+      DumpEvent(Event);
+      GetMouseEvent(Event);
+      end
     else
       Write('.');
   Until (Event.Buttons=MouseRightButton) and 

@@ -17,7 +17,7 @@ begin
     If (GetMouseY>20) then
       SetMouseXY(GetMouseX,5);
     GetMouseEvent(Event);
-  Until (Event.Buttons=MouseLeftButton) and
+  Until (Event.Buttons=MouseRightButton) and
         (Event.Action=MouseActionDown);
   DoneMouse;
 end.
