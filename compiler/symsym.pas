@@ -2144,7 +2144,7 @@ implementation
             constint,
             constpointer,
             constord,
-            constchar : st := 'i'+tostr(value);
+            constchar : st := 'i'+int64tostr(value);
             constreal : begin
                         system.str(pbestreal(TPointerOrd(value))^,st);
                         st := 'r'+st;
@@ -2471,7 +2471,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-11-13 14:44:35  jonas
+  Revision 1.6  2000-11-28 00:25:17  pierre
+   + use int64tostr function for integer consts
+
+  Revision 1.5  2000/11/13 14:44:35  jonas
     * fixes so no more range errors with improved range checking code
 
   Revision 1.4  2000/11/08 23:15:17  florian
