@@ -32,6 +32,7 @@
     Var
       I : longint;
       Temp : String;
+
     begin
       Result:='';
       temp:=Dirlist;
@@ -170,6 +171,9 @@
 Procedure CatchUnhandledException (Obj : TObject; Addr,Frame: Pointer);
 Var
   Message : String;
+  {$IFDEF VIRTUALPASCAL}
+  stdout:text absolute output;
+  {$ENDIF}                           
 begin
   Writeln(stdout,'An unhandled exception occurred at 0x',HexStr(Longint(Addr),8),' :');
   if Obj is exception then
@@ -180,8 +184,10 @@ begin
   else
    Writeln(stdout,'Exception object ',Obj.ClassName,' is not of class Exception.');
   { to get a nice symify }
+  {$IFNDEF VIRTUALPASCAL}
   Writeln(stdout,BackTraceStrFunc(Addr));
   Dump_Stack(stdout,frame);
+  {$ENDIF}
   Writeln(stdout,'');
   Halt(217);
 end;
@@ -302,19 +308,29 @@ end;
 function ExceptObject: TObject;
 
 begin
+  {$IFDEF VIRTUALPASCAL}
+  // vpascal does exceptions more the delphi way...
+  // this needs to be written from scratch.
+  {$ELSE} 
   If RaiseList=Nil then
     Result:=Nil
   else
     Result:=RaiseList^.FObject;
+  {$ENDIF}
 end;
 
 function ExceptAddr: Pointer;
 
 begin
+  {$IFDEF VIRTUALPASCAL}
+  // vpascal does exceptions more the delphi way...
+  // this needs to be written from scratch.
+  {$ELSE}                         
   If RaiseList=Nil then
     Result:=Nil
   else
     Result:=RaiseList^.Addr;
+  {$ENDIF}
 end;
 
 function ExceptionErrorMessage(ExceptObject: TObject; ExceptAddr: Pointer;
@@ -363,7 +379,10 @@ begin
 {$ifdef VER1_0}
   Raise EAbort.Create(SAbortError) at Longint(Get_Caller_addr(Get_Frame));
 {$else VER1_0}
-  Raise EAbort.Create(SAbortError) at Pointer(Get_Caller_addr(Get_Frame));
+  Raise EAbort.Create(SAbortError) 
+  {$IFNDEF VIRTUALPASCAL}
+    at Pointer(Get_Caller_addr(Get_Frame));
+  {$ENDIF}
 {$endif VER1_0}
 end;
 
@@ -375,7 +394,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2003-04-06 11:06:39  michael
+  Revision 1.17  2003-09-06 20:46:07  marco
+   * 3 small VP fixes from Noah Silva. One (OutOfMemory error) failed.
+
+  Revision 1.16  2003/04/06 11:06:39  michael
   + Added exception classname to output of unhandled exception for better identification
 
   Revision 1.15  2003/03/18 08:28:23  michael
