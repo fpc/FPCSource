@@ -127,6 +127,12 @@ interface
     {# Returns true if p is a wide char array def }
     function is_widechararray(p : tdef) : boolean;
 
+    {# Returns true if p is a open char array def }
+    function is_open_chararray(p : tdef) : boolean;
+
+    {# Returns true if p is a open wide char array def }
+    function is_open_widechararray(p : tdef) : boolean;
+
 {*****************************************************************************
                           String helper functions
  *****************************************************************************}
@@ -565,6 +571,20 @@ implementation
       end;
 
 
+    { true if p is a open char array def }
+    function is_open_chararray(p : tdef) : boolean;
+      begin
+        is_open_chararray:= is_open_array(p) and
+                            is_char(tarraydef(p).elementtype.def);
+      end;
+
+    { true if p is a open wide char array def }
+    function is_open_widechararray(p : tdef) : boolean;
+      begin
+        is_open_widechararray:= is_open_array(p) and
+                                is_widechar(tarraydef(p).elementtype.def);
+      end;
+
     { true if p is a pchar def }
     function is_pchar(p : tdef) : boolean;
       begin
@@ -888,7 +908,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2004-11-01 23:30:11  peter
+  Revision 1.22  2005-01-10 22:10:26  peter
+    * widestring patches from Alexey Barkovoy
+
+  Revision 1.21  2004/11/01 23:30:11  peter
     * support > 32bit accesses for x86_64
     * rewrote array size checking to support 64bit
 

@@ -114,6 +114,7 @@ implementation
          rv,lv   : tconstexprint;
          rvd,lvd : bestreal;
          resultrealtype : ttype;
+         strtype: tstringtype;
 {$ifdef state_tracking}
      factval : Tnode;
      change  : boolean;
@@ -1061,67 +1062,77 @@ implementation
            care of chararray+chararray and chararray+char.
            Note: Must be done after pointerdef+pointerdef has been checked, else
            pchar is converted to string }
-         else if (rd.deftype=stringdef) or (ld.deftype=stringdef) or
-                 ((is_pchar(rd) or is_chararray(rd) or is_char(rd)) and
-                  (is_pchar(ld) or is_chararray(ld) or is_char(ld))) then
+         else if (rd.deftype=stringdef) or
+	         (ld.deftype=stringdef) or
+                 ((is_pchar(rd) or is_chararray(rd) or is_char(rd) or is_open_chararray(rd) or
+                   is_pwidechar(rd) or is_widechararray(rd) or is_widechar(rd) or is_open_widechararray(rd)) and
+                  (is_pchar(ld) or is_chararray(ld) or is_char(ld) or is_open_chararray(ld) or
+                   is_pwidechar(ld) or is_widechararray(ld) or is_widechar(ld) or is_open_widechararray(ld))) then
           begin
             if (nodetype in [addn,equaln,unequaln,lten,gten,ltn,gtn]) then
               begin
-                if is_widestring(rd) or is_widestring(ld) then
-                  begin
-                     if not(is_widestring(rd)) then
-                       inserttypeconv(right,cwidestringtype);
-                     if not(is_widestring(ld)) then
-                       inserttypeconv(left,cwidestringtype);
-                  end
-                else if is_ansistring(rd) or is_ansistring(ld) then
-                  begin
-                     if not(is_ansistring(rd)) then
-                       begin
-                       {$ifdef ansistring_bits}
-                         case Tstringdef(ld).string_typ of
-                           st_ansistring16:
-                             inserttypeconv(right,cansistringtype16);
-                           st_ansistring32:
-                             inserttypeconv(right,cansistringtype32);
-                           st_ansistring64:
-                             inserttypeconv(right,cansistringtype64);
-                         end;
-                       {$else}
-                         inserttypeconv(right,cansistringtype);
-                       {$endif}
-                       end;
-                     if not(is_ansistring(ld)) then
-                       begin
-                       {$ifdef ansistring_bits}
-                         case Tstringdef(rd).string_typ of
-                           st_ansistring16:
-                             inserttypeconv(left,cansistringtype16);
-                           st_ansistring32:
-                             inserttypeconv(left,cansistringtype32);
-                           st_ansistring64:
-                             inserttypeconv(left,cansistringtype64);
-                         end;
-                       {$else}
-                         inserttypeconv(left,cansistringtype);
-                       {$endif}
-                       end;
-                  end
-                else if is_longstring(rd) or is_longstring(ld) then
-                  begin
-                     if not(is_longstring(rd)) then
-                       inserttypeconv(right,clongstringtype);
-                     if not(is_longstring(ld)) then
-                       inserttypeconv(left,clongstringtype);
-                  end
+                { Is there a widestring? }
+                if is_widestring(rd) or is_widestring(ld) or
+                   is_pwidechar(rd) or is_widechararray(rd) or is_widechar(rd) or is_open_widechararray(rd) or
+                   is_pwidechar(ld) or is_widechararray(ld) or is_widechar(ld) or is_open_widechararray(ld) then
+                  strtype:= st_widestring
                 else
-                  begin
-                     if not(is_shortstring(ld)) then
-                       inserttypeconv(left,cshortstringtype);
-                     { don't convert char, that can be handled by the optimized node }
-                     if not(is_shortstring(rd) or is_char(rd)) then
-                       inserttypeconv(right,cshortstringtype);
-                  end;
+		  if is_ansistring(rd) or is_ansistring(ld) or
+                     ((cs_ansistrings in aktlocalswitches) and
+                     //todo: Move some of this to longstring's then they are implemented?
+                      (
+		       is_pchar(rd) or (is_chararray(rd) and (rd.size > 255)) or is_open_chararray(rd) or
+                       is_pchar(ld) or (is_chararray(ld) and (ld.size > 255)) or is_open_chararray(ld)
+                      )
+                     ) then
+                    strtype:= st_ansistring
+                else
+		  if is_longstring(rd) or is_longstring(ld) then
+                    strtype:= st_longstring
+                else
+		  begin
+                    {$warning todo: add a warning/hint here if one converting a too large array}
+                    { nodes is PChar, array [with size > 255] or OpenArrayOfChar.
+                      Note: Delphi halts with error if "array [0..xx] of char"
+                           is assigned to ShortString and string length is less
+                           then array size }
+                    strtype:= st_shortstring;
+		  end;
+
+                // Now convert nodes to common string type
+		case strtype of
+		  st_widestring :
+                    begin
+                      if not(is_widestring(rd)) then
+                        inserttypeconv(right,cwidestringtype);
+                      if not(is_widestring(ld)) then
+                        inserttypeconv(left,cwidestringtype);
+                    end;
+                  st_ansistring :
+                    begin
+                      if not(is_ansistring(rd)) then
+                        inserttypeconv(right,cansistringtype);
+                      if not(is_ansistring(ld)) then
+                        inserttypeconv(left,cansistringtype);
+                    end;
+                  st_longstring :
+                    begin
+                      if not(is_longstring(rd)) then
+                        inserttypeconv(right,clongstringtype);
+                      if not(is_longstring(ld)) then
+                        inserttypeconv(left,clongstringtype);
+                     end;
+                   st_shortstring :
+                     begin
+                       if not(is_shortstring(ld)) then
+                         inserttypeconv(left,cshortstringtype);
+                       { don't convert char, that can be handled by the optimized node }
+                       if not(is_shortstring(rd) or is_char(rd)) then
+                         inserttypeconv(right,cshortstringtype);
+                     end;
+                   else
+                     internalerror(2005101);
+                end;
               end
             else
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
@@ -2058,7 +2069,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.133  2005-01-02 17:31:07  peter
+  Revision 1.134  2005-01-10 22:10:26  peter
+    * widestring patches from Alexey Barkovoy
+
+  Revision 1.133  2005/01/02 17:31:07  peter
   unsigned*unsigned will also have unsigned result.
 
   Revision 1.132  2004/12/06 15:57:22  peter

@@ -230,13 +230,15 @@ implementation
                  end;
                 { not chararray+[(wide)char,(wide)string,(wide)chararray] }
                 if (is_chararray(ld) or is_widechararray(ld) or
-                    (is_open_array(ld) and (is_char(tarraydef(ld).elementtype.def) or is_widechar(tarraydef(ld).elementtype.def)))
-                   ) and
+                    is_open_chararray(ld) or is_open_widechararray(ld))
+                   and
                    ((rd.deftype in [stringdef,orddef,enumdef]) or
                     is_pchar(rd) or
                     is_pwidechar(rd) or
                     is_chararray(rd) or
                     is_widechararray(rd) or
+                    is_open_chararray(rd) or
+                    is_open_widechararray(rd) or
                     (rt=niln)) then
                  begin
                    allowed:=false;
@@ -267,12 +269,13 @@ implementation
               end;
             stringdef :
               begin
-                if ((rd.deftype in [orddef,enumdef,stringdef]) or
-                    is_pchar(rd) or
-                    is_pwidechar(rd) or
-                    is_chararray(rd) or
-                    is_widechararray(rd) or
-                    (is_open_array(rd) and (is_char(tarraydef(rd).elementtype.def) or is_widechar(tarraydef(rd).elementtype.def)))) then
+                if (rd.deftype in [orddef,enumdef,stringdef]) or
+                   is_pchar(rd) or
+                   is_pwidechar(rd) or
+                   is_chararray(rd) or
+                   is_widechararray(rd) or
+                   is_open_chararray(rd) or
+                   is_open_widechararray(rd) then
                  begin
                    allowed:=false;
                    exit;
@@ -1974,7 +1977,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.107  2005-01-07 16:22:47  peter
+  Revision 1.108  2005-01-10 22:10:26  peter
+    * widestring patches from Alexey Barkovoy
+
+  Revision 1.107  2005/01/07 16:22:47  peter
     * handle string-open array of (wide)char without variants
 
   Revision 1.106  2004/12/05 12:28:10  peter

@@ -166,7 +166,6 @@ implementation
          hct : tconverttype;
          hd3 : tobjectdef;
          hpd : tprocdef;
-         hpe : tenumsym;
       begin
          eq:=te_incompatible;
          doconv:=tc_not_possible;
@@ -326,31 +325,49 @@ implementation
                  arraydef :
                    begin
                      { array of char to string, the length check is done by the firstpass of this node }
-                     if is_chararray(def_from) or
-                        (is_char(tarraydef(def_from).elementtype.def) and
-                         is_open_array(def_from)) then
+                     if is_chararray(def_from) or is_open_chararray(def_from) then
                       begin
                         doconv:=tc_chararray_2_string;
-                        if is_open_array(def_from) or
-                           (is_shortstring(def_to) and
-                            (def_from.size <= 255)) or
-                           (is_ansistring(def_to) and
-                            (def_from.size > 255)) then
-                         eq:=te_convert_l1
-                        else
-                         eq:=te_convert_l2;
+                        if is_open_array(def_from) then
+                          begin
+                            if is_ansistring(def_to) then
+  			      eq:=te_convert_l1
+                            else if is_widestring(def_to) then
+			      eq:=te_convert_l2
+                            else
+			      eq:=te_convert_l2;
+                          end
+			else
+                          begin
+                            if is_shortstring(def_to) then
+                              begin
+                                { Only compatible with arrays that fit
+                                  smaller than 255 chars }
+                                if (def_from.size <= 255) then
+                                  eq:=te_convert_l1;
+                              end
+                            else if is_ansistring(def_to) then
+                              begin
+                                if (def_from.size > 255) then
+                                  eq:=te_convert_l1
+                                else
+                                  eq:=te_convert_l2;
+                              end
+                            else
+                              eq:=te_convert_l2;
+                          end;
                       end
                      else
                      { array of widechar to string, the length check is done by the firstpass of this node }
-                      if is_widechararray(def_from) or
-                         (is_widechar(tarraydef(def_from).elementtype.def) and
-                          is_open_array(def_from)) then
+                      if is_widechararray(def_from) or is_open_widechararray(def_from) then
                        begin
                          doconv:=tc_chararray_2_string;
                          if is_widestring(def_to) then
-                          eq:=te_convert_l1
+                           eq:=te_convert_l1
                          else
-                          eq:=te_convert_l3;
+                           { size of widechar array is double due the sizeof a widechar }
+                           if not(is_shortstring(def_to) and (def_from.size>255*sizeof(widechar))) then
+                             eq:=te_convert_l3;
                        end;
                    end;
                  pointerdef :
@@ -1349,7 +1366,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2005-01-07 21:14:21  florian
+  Revision 1.66  2005-01-10 22:10:26  peter
+    * widestring patches from Alexey Barkovoy
+
+  Revision 1.65  2005/01/07 21:14:21  florian
     + compiler side of variant<->interface implemented
 
   Revision 1.64  2005/01/06 13:30:40  florian
