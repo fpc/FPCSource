@@ -4,7 +4,7 @@
 #
 #  Generate Sample Free Pascal configuration file
 #
-if [ $# == 0 ]; then
+if [ $# = 0 ]; then
   echo 'Usage :'
   echo 'samplecfg fpcdir confdir'
   echo 'fpcdir = Path where FPC is installed'
@@ -13,7 +13,7 @@ if [ $# == 0 ]; then
 fi
 if [ $2 ]; then
   sysdir=$2
-  [ -d $sysdir ] || mkdir $sysdir 
+  [ -d $sysdir ] || mkdir $sysdir
 else
   sysdir=/etc
 fi
@@ -29,7 +29,7 @@ fi
 #
 if [ -f $thefile ] ; then
   mv $thefile $thefile.orig  >/dev/null 2>&1
-  if [ $? == 0 ]; then
+  if [ $? = 0 ]; then
     echo Saved old config to $thefile.orig
   else
     echo Could not save old config. Bailing out...
