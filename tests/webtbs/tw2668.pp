@@ -3,7 +3,7 @@
 { Submitted by "Marco" on  2003-09-06 }
 { e-mail: marco+bugs@freepascal.org }
 
-{$MODE DELPHI} {$ASMMODE INTEL}
+{$ifdef fpc}{$MODE DELPHI} {$ASMMODE INTEL} {$endif}
 
 type
   TFloatingPointClass =
@@ -30,4 +30,5 @@ const
 asm
         MOVZX   EAX, TFloatingPointClass(FPClasses[EDX])
         MOVZX   EAX, TFloatingPointClass([ECX].FPClasses[EDX])
+        MOVZX   EAX, TFloatingPointClass([ECX].1[EDX])
 end.
