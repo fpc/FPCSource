@@ -272,15 +272,12 @@ unit cpupara;
               begin
                 getvalueparaloc(hp.paratype.def,loc1,loc2);
                 paracgsize:=def_cgsize(hp.paratype.def);
-                if paracgsize=OS_C64 then
-                  paracgsize:=OS_64;
               end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].Alignment:=paraalign;
             { First location }
             paraloc:=hp.paraloc[side].add_location;
-            paraloc^.size:=paracgsize;
             if (loc1=LOC_REGISTER) and
                (intparareg<=high(paraintsupregs)) then
               begin
@@ -292,7 +289,10 @@ unit cpupara;
                 else
                   begin
                     paraloc^.size:=paracgsize;
-                    subreg:=cgsize2subreg(paracgsize);
+                    { s64comp is pushed in an int register }
+                    if paraloc^.size=OS_C64 then
+                      paraloc^.size:=OS_64;
+                    subreg:=cgsize2subreg(paraloc^.size);
                   end;
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=newreg(R_INTREGISTER,paraintsupregs[intparareg],subreg);
@@ -312,6 +312,7 @@ unit cpupara;
             else
               begin
                 paraloc^.loc:=LOC_REFERENCE;
+                paraloc^.size:=paracgsize;
                 if side=callerside then
                   paraloc^.reference.index:=NR_STACK_POINTER_REG
                 else
@@ -357,6 +358,7 @@ unit cpupara;
                       dec(mmparareg);
                     { Overwrite with LOC_REFERENCE }
                     paraloc^.loc:=LOC_REFERENCE;
+                    paraloc^.size:=paracgsize;
                     if side=callerside then
                       paraloc^.reference.index:=NR_STACK_POINTER_REG
                     else
@@ -427,7 +429,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2004-09-21 17:25:13  peter
+  Revision 1.11  2004-10-05 20:55:49  peter
+    * fixed location size for s64comp
+
+  Revision 1.10  2004/09/21 17:25:13  peter
     * paraloc branch merged
 
   Revision 1.9.4.1  2004/08/31 20:43:06  peter
