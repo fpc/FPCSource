@@ -143,17 +143,15 @@ function CompareMem(P1, P2: Pointer; Length: cardinal): Boolean;
 var
   i: cardinal;
 begin
-  for i := 0 to Length - 1 do
-  begin
-    if Byte(P1^) <> Byte(P2^) then
-    begin
-      Result := False;
-      exit;
-    end;
+  Result:=True;
+  I:=0;
+  While Result and (i<Length) do
+    begin 
+    Result:=Byte(P1^)=Byte(P2^);
+    Inc(I);
     Inc(pchar(P1));
     Inc(pchar(P2));
-  end;
-  Result := True;
+    end;
 end;
 
 
@@ -2010,7 +2008,10 @@ const
 
 {
   $Log$
-  Revision 1.4  2003-11-09 13:37:42  michael
+  Revision 1.5  2003-11-22 15:46:48  michael
+  + Patched CompareMem for case when length is 0
+
+  Revision 1.4  2003/11/09 13:37:42  michael
   + Position specifier in format string affects all later specifiers
 
   Revision 1.3  2003/11/03 09:42:28  marco
