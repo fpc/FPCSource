@@ -19,10 +19,6 @@
                        EXTENDED data type routines
  ****************************************************************************}
 
-{$ifndef NEWATT}
-  {$asmmode DIRECT}
-{$endif}
-
     function pi : extended;assembler;[internconst:in_const_pi];
       asm
             fldpi
@@ -343,13 +339,12 @@
 
 {$endif SUPPORT_FIXED}
 
-{$ifndef NEWATT}
-  {$asmmode ATT}
-{$endif}
-
 {
   $Log$
-  Revision 1.14  1999-03-01 15:40:57  peter
+  Revision 1.15  1999-07-06 15:35:59  peter
+    * removed temp defines
+
+  Revision 1.14  1999/03/01 15:40:57  peter
     * use external names
     * removed all direct assembler modes
 
