@@ -24,6 +24,14 @@ program fpc;
   uses
      dos;
 
+  const
+{$ifdef UNIX}
+    exeext='';
+{$else UNIX}
+    exeext='.exe';
+{$endif UNIX}
+
+
   procedure error(const s : string);
     begin
        writeln('Error: ',s);
@@ -91,6 +99,9 @@ program fpc;
           else
             ppccommandline:=ppccommandline+s+' ';
        end;
+
+     { add .exe extension }
+     ppcbin:=ppcbin+exeext;
 
      { get path of fpc.exe }
      path:=splitpath(paramstr(0));
