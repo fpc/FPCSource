@@ -1,7 +1,7 @@
 {$ifdef Delphi}
-const msgtxt : array[0..000149] of string[240]=(
+const msgtxt : array[0..000150] of string[240]=(
 {$else Delphi}
-const msgtxt : array[0..000149,1..240] of char=(
+const msgtxt : array[0..000150,1..240] of char=(
 {$endif Delphi}
   '01000_T_Compiler: $1'#000+
   '01001_D_Compiler OS: $1'#000+
@@ -871,7 +871,8 @@ const msgtxt : array[0..000149,1..240] of char=(
   'P*2Tdarwin_Darwin and MacOS X on PowerPC'#010+
   'P*2Tlinux_Linux on PowerPC'#010+
   'P*2Tmacos_MacOS (classic) on PowerPC'#010+
+  'P*2Tmorphos_MorphOS '#010+
   '**1*_'#010+
   '**1?_shows this help'#010+
-  '**1h_shows this help without waiting'#000
+  '**1h_shows this help without waiting',#000
 );
