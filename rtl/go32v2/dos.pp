@@ -484,7 +484,7 @@ BEGIN
     dosregs.ax:=$7303;
     msdos(dosregs);
     copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
-    if dosregs.eax<>-1 THEN {No error clausule in int except cf}
+    if dosregs.ax<>$ffff then {No error clausule in int except cf}
      begin
        copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
        if Free then
@@ -1139,7 +1139,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.10  2000-10-11 15:38:03  peter
+  Revision 1.11  2000-12-16 15:27:15  peter
+    * fixed disksize to return -1 on error
+
+  Revision 1.10  2000/10/11 15:38:03  peter
     * diskfree doserror fix (merged)
 
   Revision 1.9  2000/09/06 20:47:34  peter
