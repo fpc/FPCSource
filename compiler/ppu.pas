@@ -719,20 +719,19 @@ begin
   { update size (w/o header!) in the header }
   header.size:=bufstart-sizeof(tppuheader);
   { set the endian flag }
-  if source_info.endian = endian_little then
-    header.flags := header.flags or uf_little_endian
-  else
-    begin
-      header.flags := header.flags or uf_big_endian;
-      { Now swap the header in the correct endian (always little endian) }
-      header.compiler := SwapWord(header.compiler);
-      header.cpu := SwapWord(header.cpu);
-      header.target := SwapWord(header.target);
-      header.flags := SwapLong(header.flags);
-      header.size := SwapLong(header.size);
-      header.checksum := SwapLong(header.checksum);
-      header.interface_checksum := SwapLong(header.interface_checksum);
-    end;
+{$ifndef FPC_BIG_ENDIAN}
+    header.flags := header.flags or uf_little_endian;
+{$else not FPC_BIG_ENDIAN}
+    header.flags := header.flags or uf_big_endian;
+    { Now swap the header in the correct endian (always little endian) }
+    header.compiler := SwapWord(header.compiler);
+    header.cpu := SwapWord(header.cpu);
+    header.target := SwapWord(header.target);
+    header.flags := SwapLong(header.flags);
+    header.size := SwapLong(header.size);
+    header.checksum := SwapLong(header.checksum);
+    header.interface_checksum := SwapLong(header.interface_checksum);
+{$endif not FPC_BIG_ENDIAN}
 { write header and restore filepos after it }
   opos:=filepos(f);
   seek(f,0);
@@ -985,7 +984,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  2003-05-24 13:37:10  jonas
+  Revision 1.37  2003-05-26 15:49:54  jonas
+    * endian fix is now done using a define instead of with source_info
+
+  Revision 1.36  2003/05/24 13:37:10  jonas
     * endian fixes
 
   Revision 1.35  2003/05/23 17:03:51  peter
