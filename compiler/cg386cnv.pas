@@ -515,7 +515,8 @@ implementation
 
          if (pfrom^.treetype = stringconstn) and
             { pfrom^.length+1 since there's always a terminating #0 character (JM) }
-            (pfrom^.length+1 >= arrsize) then
+            (pfrom^.length+1 >= arrsize) and
+            (pstringdef(pfrom^.resulttype)^.string_typ=st_shortstring) then
            begin
              inc(pto^.location.reference.offset);
              exit;
@@ -527,9 +528,9 @@ implementation
          regstopush := $ff;
          remove_non_regvars_from_loc(pfrom^.location,regstopush);
          pushusedregisters(pushedregs,regstopush);
-         
+
          emit_push_lea_loc(pto^.location,false);
-         
+
          case pstringdef(pfrom^.resulttype)^.string_typ of
            st_shortstring :
              begin
@@ -1567,7 +1568,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-08-09 11:30:21  jonas
+  Revision 1.6  2000-08-29 18:31:32  peter
+    * string to chararray with stringconst only supports shortstring, don't
+      use the trick for ansistring (merged)
+
+  Revision 1.5  2000/08/09 11:30:21  jonas
     * fixed bug1093 and other string -> chararray conversion bugs
       (merged from fixes branch)
 
