@@ -1,0 +1,80 @@
+These are the example programs that appear in the FPC documentation.
+ 
+Units guide, Linux unit :
+
+ex1.pp contains an example of the FpGetEpochTime function.
+ex2.pp contains an example of the FpGetTimeOfDay function.
+ex3.pp contains an example of the FpEpochToLocal function.
+ex4.pp contains an example of the FpLocalToEpoch function.
+ex5.pp contains an example of the FpGetTime function.
+ex6.pp contains an example of the FpGetDate function.
+ex7.pp contains an example of the FpExecve function.
+ex8.pp contains an example of the FpExecv function.
+ex9.pp contains an example of the FpExecvp function.
+ex10.pp contains an example of the FpExecl function.
+ex11.pp contains an example of the FpExecle function.
+ex11.pp contains an example of the FpExeclp function.
+ex13.pp contains an example of the FpShell function.
+ex14.pp contains an example of the FpFork function.
+ex15.pp contains an example of the FpNice, FpSet- and FpGetPriority functions.
+ex16.pp contains an example of the FpGetPid and FpGetPPid functions.
+ex17.pp contains an example of the FpGetUid and FpGetEUid functions.
+ex18.pp contains an example of the FpGetGid and FpGetEgid functions.
+ex19.pp contains an example of the FpOpen, FpWrite and FpCLose functions.
+ex20.pp contains an example of the FpRead and FpTuncate functions.
+ex21.pp contains an example of the FpLink and FpUnLink functions.
+ex22.pp contains an example of the FpSymLink and FpUnLink functions.
+ex23.pp contains an example of the FpChmod function.
+ex24.pp contains an example of the FpChown function.
+ex25.pp contains an example of the FpUTime function.
+ex26.pp contains an example of the FpAccess function.
+ex27.pp contains an example of the FpUmask function.
+ex28.pp contains an example of the FpFStat function.
+ex29.pp contains an example of the FpLStat function.
+ex30.pp contains an example of the FpFSStat function.
+ex31.pp contains an example of the FpDup function.
+ex32.pp contains an example of the FpDup2 function.
+ex33.pp contains an example of the FpSelect function.
+ex34.pp contains an example of the FpSelectText function.
+ex35.pp contains an example of the FpOpenDir, FpReadDir FpTelldir and FpSeekDir functions.
+ex36.pp contains an example of the FpAssignPipe function.
+ex37.pp contains an example of the FpPOpen and PClose functions.
+ex38.pp contains an example of the FpAssignStream function.
+ex39.pp contains an example of the FpGetDomainName function.
+ex40.pp contains an example of the FpGetHostName function.
+ex41.pp contains an example of the FpGetEnv function.
+ex42.pp contains an example of the FpSysInfo function.
+ex43.pp contains an example of the FpUname function.
+ex44.pp contains an example of the FpOctal function.
+ex45.pp contains an example of the FpFExpand function.
+ex46.pp contains an example of the FpFSearch function.
+ex47.pp contains an example of the FpDirName function.
+ex48.pp contains an example of the FpBaseName function.
+ex49.pp contains an example of the FpGlob function.
+ex51.pp contains an example of the FpStringToPPChar function.
+ex52.pp contains an example of the FpGetFS function.
+ex53.pp contains an example of the FpS_ISLNK and related functions.
+ex54.pp contains an example of the FpIOCtl function.
+ex55.pp contains an example of the FpTCGetAttr,TCSetAttr,CFMakeRaw functions.
+ex56.pp contains an example of the FpShell function.
+ex57.pp contains an example of the FpSigAction function.
+ex58.pp contains an example of the FpSignal function.
+ex59.pp contains an example of the FpAlarm function.
+ex60.pp contains an example of the FpGetDateTime function.
+ex61.pp contains an example of the FpCreateShellArgV function.
+ex62.pp contains an example of the FpReadLink function.
+ex63.pp contains an example of the FpFRename function.
+ex64.pp contains an example of the FpSysInfo function.
+ex64.pp contains an example of the FpSigRaise function.
+ex66.pp contains an example of the FpMMap function.
+ex67.pp contains an example of the FpFSplit function.
+ex68.pp contains an example of the FpOctal function.
+ex69.pp contains an example of the FpFNMatch function.
+ex70.pp contains an example of the FpStringToPPchar function.
+ex71.pp contains an example of the Fpclone function.
+ex72.pp contains an example of the FpNanoSleep function.
+ex73.pp contains an example of the FpSleep function.
+ex74.pp contains an example of the FpGetGroups function.
+
+serial.pp contains an example of serial port programming in FPC.
+ex75.pp contains an example of the setsid function.
