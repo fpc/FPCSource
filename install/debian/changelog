@@ -1,8 +1,16 @@
-fpc (1.0.3-0) unstable; urgency=low
+fpc (1.0.3-0.20001206.1) unstable; urgency=low
 
-  * Snapshot release
+  * Snapshot release from CVS 2000/12/06.
+  * Fixes internal compiler error on (buggy) appearance of
+    array of Date (Closes:#60720).
+  * ppc386 can be called more intuitively as fpc (Closes:#74810).
+  * Help option '-h' is (somewhat) more propagated than '-?'
+    (Closes:#74811). Furthermore, help is displayed when fpc
+    is called without any parameter.
+  * Package supports alternatives now, in order to be used as
+    "Pascal compiler" (pc) from Makefile(s) (Closes:#76615).
 
- -- Peter Vreman <peter@freepascal.org>  Sat, 18 Nov 2000 12:00:00 +0200
+ -- Ulf Jaenicke-Roessler <ujr@debian.org>  Wed,  6 Dec 2000 11:29:28 +0100
 
 fpc (1.0.2-1) unstable; urgency=low
 

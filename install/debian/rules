@@ -46,11 +46,14 @@ clean:
 	$(MAKE) packages_distclean
 
 	$(MAKE) -C docs clean
+
+	-(find . -name \*.a | xargs rm)
+
 	rm -f docs/syntax.sty
 
 	dh_clean
 
-# Cannot do that because the control-file is often needed afetr a cleanup
+# Cannot do that because the control-file is often needed after a cleanup
 #	rm -f debian/control
 
 
