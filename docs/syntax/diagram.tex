@@ -16,8 +16,8 @@
 % Under Tex4HT, the diagrams are rendered as pictures.
 \@ifpackageloaded{tex4ht}{%
 \newenvironment{mysyntdiag}%
-{\Picture*{}\begin{syntdiag}\setlength{\sdmidskip}{.5em}\sffamily\sloppy}%
-{\end{syntdiag}\EndPicture}%
+{\HCode{<BR/>}\Picture*{}\begin{syntdiag}\setlength{\sdmidskip}{.5em}\sffamily\sloppy}%
+{\end{syntdiag}\EndPicture\HCode{<BR/>}}%
 }{%
 \newenvironment{mysyntdiag}%
 {\begin{syntdiag}\setlength{\sdmidskip}{.5em}\sffamily\sloppy}%
