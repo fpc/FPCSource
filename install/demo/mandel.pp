@@ -25,13 +25,7 @@ uses
 {$ifdef go32v2}
   dpmiexcp,
 {$endif go32v2}
-  Graph;
-
-{$ifdef go32v2}
-  {$ifndef ver0_99_8}
-    {$define has_colors_equal}
-  {$endif ver0_99_8}
-{$endif go32v2}
+  dos,Graph;
 
 const
   shift:byte=12;
@@ -44,7 +38,7 @@ var
   Max_Y_Width,Y_Width                    : integer;
   Y1,Y2,X1,X2,Dy,Dx                      : Real;
   Zm                                     : Integer;
-  Flag                                   : boolean;
+  SymetricCase                                   : boolean;
   LineY                                  : array [0..600] OF BYTE;
   LineX                                  : array [0..100,0..600] OF INTEGER;
 const
@@ -54,7 +48,6 @@ type
     arrayType = array[1..50] of integer;
 
 {------------------------------------------------------------------------------}
-{$ifndef has_colors_equal}
   function ColorsEqual(c1, c2 : longint) : boolean;
     begin
        ColorsEqual:=((GetMaxColor=$FF) and ((c1 and $FF)=(c2 and $FF))) or
@@ -62,8 +55,6 @@ type
          ((GetMaxColor=$FFFF) and ((c1 and $F8FCF8)=(c2 and $F8FCF8))) or
          ((GetMaxColor>$10000) and ((c1 and $FFFFFF)=(c2 and $FFFFFF)));
     end;
-
-{$endif not has_colors_equal}
 
 {------------------------------------------------------------------------------}
 function CalcMandel(Point:PointType; z:integer) : Longint ;
@@ -84,12 +75,7 @@ begin
   if Z=0 Then
     CalcMandel:=(blue and $FFFFFF)
   else
-{$ifdef go32v2}
-    if getMaxColor>255 then
-      CalcMandel:=(stdcolors[(z mod 254) + 1] and $FFFFFF)
-    else
-{$endif}
-      CalcMandel:=(z mod Max_Color) + 1 ;
+    CalcMandel:=(z mod Max_Color) + 1 ;
 end;
 
 {-----------------------------------------------------------------------------}
@@ -166,7 +152,7 @@ begin
           if P3 <> P4 then
            begin
              line ( P3 , P1 , P4 , P1) ;
-             if Flag then
+             if SymetricCase then
               begin
                 P:=Max_Y_Width-P1;
                 line ( P3 , P , P4 , P ) ;
@@ -200,7 +186,7 @@ begin
     ActualPoint:=NextPoint;
     LastColor:=CalcMandel(NextPoint,Zm) ;
     putpixel (ActualPoint.X,ActualPoint.Y,LastColor);
-    if Flag then
+    if SymetricCase then
       putpixel (ActualPoint.X,Max_Y_Width-ActualPoint.Y,LastColor) ;
     Ymax:=NextPoint.Y ;
     MerkY:=NextPoint.Y ;
@@ -232,7 +218,7 @@ begin
               begin
                 FoundColor:= CalcMandel (SearchPoint,Zm) ;
                 Putpixel (SearchPoint.X,SearchPoint.Y,FoundColor) ;
-                if Flag then
+                if SymetricCase then
                   PutPixel (SearchPoint.X,Max_Y_Width-SearchPoint.Y,FoundColor) ;
               end ;
             if ColorsEqual(FoundColor,LastColor) then
@@ -268,40 +254,36 @@ end ;
 {------------------------------------------------------------------------------
                               MAINROUTINE
 ------------------------------------------------------------------------------}
-{$ifndef Linux}
   var
      error : word;
-{$endif not Linux}
+
+var neededtime,starttime : longint;
+  hour, minute, second, sec100 : word;
+const
+{$ifdef win32}
+  gmdefault : word = m640x480x16;
+{$else not win32}
+  gmdefault : word = m640x480x256;
+{$endif win32}
 
 begin
-{$ifdef go32v2}
-  {$ifdef debug}
-  {$warning If the compilation fails, you need to recompile}
-  {$warning the graph unit with -dDEBUG option }
-  Write('Use linear ? ');
-  readln(st);
-  if st='y' then UseLinear:=true;
-  {$endif debug}
-{$endif go32v2}
-{$ifdef Linux}
-  gm:=0;
-  gd:=0;
-{$else}
   if paramcount>0 then
     begin
        val(paramstr(1),gm,error);
        if error<>0 then
-         gm:=$103;
+         gm:=m640x400x256;
     end
   else
-    gm:=$103;
-  gd:=$ff;
-  {$ifDEF TURBO}
-    gd:=detect;
-  {$endif}
-{$endif}
+    gm:=m640x400x256;
+  gd:=detect;
+  GetTime(hour, minute, second, sec100);
+  starttime:=((hour*60+minute)*60+second)*100+sec100;
   InitGraph(gd,gm,'');
-  if GraphResult <> grOk then Halt(1);
+  if GraphResult <> grOk then
+    begin
+      Writeln('Graph driver ',gd,' graph mode ',gm,' not supported');
+      Halt(1);
+    end;
   Max_X_Width:=GetMaxX;
   Max_y_Width:=GetMaxY;
   Max_Color:=GetMaxColor-1;
@@ -316,28 +298,33 @@ begin
   dy:=(y1 - y2) / Max_Y_Width ;
   if abs(y1) = abs(y2) then
    begin
-{$ifndef NOFLAG}
-     flag:=true;
-{$endif NOFLAG}
+     SymetricCase:=true;
      Y_Width:=Max_Y_Width shr 1
    end
   else
    begin
-     flag:=false;
+     SymetricCase:=false;
      Y_Width:=Max_Y_Width;
    end;
   NextPoint.X:=0;
   NextPoint.Y:=0;
   LastColor:=CalcMandel(SearchPoint,zm);
   CalcBounds ;
+  GetTime(hour, minute, second, sec100);
+  neededtime:=((hour*60+minute)*60+second)*100+sec100-starttime;
 {$ifndef fpc_profile}
   readln;
 {$endif fpc_profile}
   CloseGraph;
+  Writeln('Mandel took ',neededtime/100:0:3,' secs to generate mandel graph');
+  Writeln('With graph driver ',gd,' and graph mode ',gm);
 end.
 {
   $Log$
-  Revision 1.5  1999-05-27 21:36:33  peter
+  Revision 1.6  1999-12-14 22:59:52  pierre
+   * adapted to new graph unit
+
+  Revision 1.5  1999/05/27 21:36:33  peter
     * new demo's
     * fixed mandel for linux
 
