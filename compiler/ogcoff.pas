@@ -559,7 +559,7 @@ const go32v2stub : array[0..2047] of byte=(
     function TCoffObjectData.sectionname(atype:tasmsectiontype;const aname:string):string;
       const
         secnames : array[tasmsectiontype] of string[16] = ('',
-          '.text','.data','.rodata','.bss',
+          '.text','.data','.data','.bss',
           'common',
           '.note',
           '.stab','.stabstr',
@@ -1793,7 +1793,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.31  2004-08-25 15:55:32  peter
+  Revision 1.32  2004-08-27 20:55:08  peter
+  don't use .rodata, it doesn't work yet
+
+  Revision 1.31  2004/08/25 15:55:32  peter
     * fixed win32 that was broken by previous fix
 
   Revision 1.30  2004/08/24 19:31:44  hajny
