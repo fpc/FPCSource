@@ -692,7 +692,9 @@ begin
      if p^.data^=s then
       begin
         if assigned(prev) then
-         prev^.next:=p^.next;
+         prev^.next:=p^.next
+        else
+         first:=p^.next;
         dispose(p);
         Delete:=true;
         exit;
@@ -2317,7 +2319,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.45  1999-11-12 11:03:49  peter
+  Revision 1.46  1999-11-14 15:56:36  peter
+    * fixed stringqueue.delete
+
+  Revision 1.45  1999/11/12 11:03:49  peter
     * searchpaths changed to stringqueue object
 
   Revision 1.44  1999/11/06 14:34:20  peter
