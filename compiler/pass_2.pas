@@ -550,8 +550,8 @@ implementation
       label
          nextreg;
       begin
-         {!!!!!!!! temptoremove:=nil; }
          cleartempgen;
+         flowcontrol:=[];
          { when size optimization only count occurrence }
          if cs_littlesize in aktglobalswitches then
            t_times:=1
@@ -608,7 +608,6 @@ implementation
                        end;
                      end;
                    *)
-{ $ifdef dummy}
                    if (p^.registers32<4) then
                      begin
                         for i:=1 to maxvarregs do
@@ -725,7 +724,6 @@ implementation
                                end;
                           end;
                      end;
-{ $endif dummy}
                    if ((p^.registersfpu+1)<maxfpuvarregs) then
                      begin
                         for i:=1 to maxfpuvarregs do
@@ -834,7 +832,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2000-02-09 13:22:55  peter
+  Revision 1.57  2000-02-10 23:44:43  florian
+    * big update for exception handling code generation: possible mem holes
+      fixed, break/continue/exit should work always now as expected
+
+  Revision 1.56  2000/02/09 13:22:55  peter
     * log truncated
 
   Revision 1.55  2000/02/05 15:57:58  florian

@@ -121,6 +121,9 @@ uses
 {$endif}
 {$ifdef go32v2}
   catch,
+  {$ifdef nocatch}
+  lineinfo,
+  {$endif nocatch}
 {$endif}
 {$endif FPC}
   globals,compiler
@@ -273,7 +276,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2000-02-09 13:22:59  peter
+  Revision 1.55  2000-02-10 23:44:43  florian
+    * big update for exception handling code generation: possible mem holes
+      fixed, break/continue/exit should work always now as expected
+
+  Revision 1.54  2000/02/09 13:22:59  peter
     * log truncated
 
   Revision 1.53  2000/01/07 01:14:30  peter
@@ -306,5 +313,4 @@ end.
 
   Revision 1.45  1999/08/04 00:23:18  florian
     * renamed i386asm and i386base to cpuasm and cpubase
-
 }

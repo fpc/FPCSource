@@ -40,6 +40,13 @@ interface
     procedure secondon(var p : ptree);
     procedure secondfail(var p : ptree);
 
+    type
+       tenumflowcontrol = (fc_exit,fc_break,fc_continue);
+       tflowcontrol = set of tenumflowcontrol;
+
+    var
+       flowcontrol : tflowcontrol;
+
 implementation
 
     uses
@@ -102,6 +109,8 @@ implementation
 
          aktcontinuelabel:=oldclabel;
          aktbreaklabel:=oldblabel;
+         { a break/continue in a while/repeat block can't be seen outside }
+         flowcontrol:=flowcontrol-[fc_break,fc_continue];
       end;
 
 
@@ -363,6 +372,8 @@ implementation
 
          aktcontinuelabel:=oldclabel;
          aktbreaklabel:=oldblabel;
+         { a break/continue in a for block can't be seen outside }
+         flowcontrol:=flowcontrol-[fc_break,fc_continue];
       end;
 
 
@@ -379,6 +390,7 @@ implementation
       label
          do_jmp;
       begin
+         include(flowcontrol,fc_exit);
          if assigned(p^.left) then
          if p^.left^.treetype=assignn then
            begin
@@ -482,6 +494,7 @@ do_jmp:
 
     procedure secondbreakn(var p : ptree);
       begin
+         include(flowcontrol,fc_break);
          if aktbreaklabel<>nil then
            emitjmp(C_None,aktbreaklabel)
          else
@@ -495,6 +508,7 @@ do_jmp:
 
     procedure secondcontinuen(var p : ptree);
       begin
+         include(flowcontrol,fc_continue);
          if aktcontinuelabel<>nil then
            emitjmp(C_None,aktcontinuelabel)
          else
@@ -585,6 +599,32 @@ do_jmp:
     var
        endexceptlabel : pasmlabel;
 
+    { does the necessary things to clean up the object stack }
+    { in the except block                                    }
+    procedure cleanupobjectstack;
+
+      begin
+         emitcall('FPC_POPOBJECTSTACK');
+         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+         emit_reg(A_PUSH,S_L,R_EAX);
+         emitcall('FPC_DESTROYEXCEPTION');
+         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         maybe_loadesi;
+      end;
+
+    { pops one element from the exception address stack }
+    { and removes the flag                              }
+    procedure cleanupaddrstack;
+
+      begin
+         emitcall('FPC_POPADDRSTACK');
+         { allocate eax }
+         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+         emit_reg(A_POP,S_L,R_EAX);
+         { deallocate eax }
+         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+      end;
+
     procedure secondtryexcept(var p : ptree);
 
       var
@@ -593,32 +633,50 @@ do_jmp:
          exitexceptlabel,
          continueexceptlabel,
          breakexceptlabel,
+         exittrylabel,
+         continuetrylabel,
+         breaktrylabel,
+         doobjectdestroy,
+         doobjectdestroyandreraise,
          oldaktexitlabel,
          oldaktexit2label,
          oldaktcontinuelabel,
          oldaktbreaklabel : pasmlabel;
          oldexceptblock : ptree;
 
+
+         oldflowcontrol,tryflowcontrol,
+         exceptflowcontrol : tflowcontrol;
+
       begin
+         oldflowcontrol:=flowcontrol;
+         flowcontrol:=[];
          { this can be called recursivly }
          oldendexceptlabel:=endexceptlabel;
+
          { we modify EAX }
          usedinproc:=usedinproc or ($80 shr byte(R_EAX));
 
+         { save the old labels for control flow statements }
          oldaktexitlabel:=aktexitlabel;
          oldaktexit2label:=aktexit2label;
-         getlabel(exitexceptlabel);
-         aktexitlabel:=exitexceptlabel;
-         aktexit2label:=exitexceptlabel;
          if assigned(aktbreaklabel) then
-          begin
-            oldaktcontinuelabel:=aktcontinuelabel;
-            oldaktbreaklabel:=aktbreaklabel;
-            getlabel(breakexceptlabel);
-            getlabel(continueexceptlabel);
-            aktcontinuelabel:=continueexceptlabel;
-            aktbreaklabel:=breakexceptlabel;
-          end;
+           begin
+              oldaktcontinuelabel:=aktcontinuelabel;
+              oldaktbreaklabel:=aktbreaklabel;
+           end;
+
+         { get new labels for the control flow statements }
+         getlabel(exittrylabel);
+         getlabel(exitexceptlabel);
+         if assigned(aktbreaklabel) then
+           begin
+              getlabel(breaktrylabel);
+              getlabel(continuetrylabel);
+              getlabel(breakexceptlabel);
+              getlabel(continueexceptlabel);
+           end;
+
          getlabel(exceptlabel);
          getlabel(doexceptlabel);
          getlabel(endexceptlabel);
@@ -634,24 +692,49 @@ do_jmp:
          { deallocate eax }
          exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
          emitjmp(C_NE,exceptlabel);
-   
-         { try code }
+
+         { try block }
+         { set control flow labels for the try block }
+         aktexitlabel:=exittrylabel;
+         aktexit2label:=exittrylabel;
+         if assigned(oldaktbreaklabel) then
+          begin
+            aktcontinuelabel:=continuetrylabel;
+            aktbreaklabel:=breaktrylabel;
+          end;
+
          oldexceptblock:=aktexceptblock;
          aktexceptblock:=p^.left;
+         flowcontrol:=[];
          secondpass(p^.left);
+         tryflowcontrol:=flowcontrol;
          aktexceptblock:=oldexceptblock;
          if codegenerror then
            exit;
 
          emitlab(exceptlabel);
          emitcall('FPC_POPADDRSTACK');
-         { allocate eax }
+
          exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
          emit_reg(A_POP,S_L,R_EAX);
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
+         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+
          emitjmp(C_E,endexceptlabel);
          emitlab(doexceptlabel);
 
+         { set control flow labels for the except block }
+         { and the on statements                        }
+         aktexitlabel:=exitexceptlabel;
+         aktexit2label:=exitexceptlabel;
+         if assigned(oldaktbreaklabel) then
+          begin
+            aktcontinuelabel:=continueexceptlabel;
+            aktbreaklabel:=breakexceptlabel;
+          end;
+
+         flowcontrol:=[];
+         { on statements }
          if assigned(p^.right) then
            begin
               oldexceptblock:=aktexceptblock;
@@ -661,7 +744,7 @@ do_jmp:
            end;
 
          emitlab(lastonlabel);
-         { default handling }
+         { default handling except handling }
          if assigned(p^.t1) then
            begin
               { FPC_CATCHES must be called with
@@ -669,72 +752,154 @@ do_jmp:
               }
               push_int (-1);
               emitcall('FPC_CATCHES');
-              if assigned(p^.t1) then
-                begin
-                   maybe_loadesi;
-                   oldexceptblock:=aktexceptblock;
-                   aktexceptblock:=p^.t1;
-                   secondpass(p^.t1);
-                   aktexceptblock:=oldexceptblock;
-                end;
-              emitcall('FPC_POPOBJECTSTACK');
               maybe_loadesi;
+
+              { the destruction of the exception object must be also }
+              { guarded by an exception frame                        }
+              getlabel(doobjectdestroy);
+              getlabel(doobjectdestroyandreraise);
+              exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,1)));
+              emitcall('FPC_PUSHEXCEPTADDR');
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              exprasmlist^.concat(new(paicpu,
+                op_reg(A_PUSH,S_L,R_EAX)));
+              exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+              emitcall('FPC_SETJMP');
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              exprasmlist^.concat(new(paicpu,
+                op_reg(A_PUSH,S_L,R_EAX)));
+              exprasmlist^.concat(new(paicpu,
+                op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+              exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+              emitjmp(C_NE,doobjectdestroyandreraise);
+
+              oldexceptblock:=aktexceptblock;
+              aktexceptblock:=p^.t1;
+              { here we don't have to reset flowcontrol           }
+              { the default and on flowcontrols are handled equal }
+              secondpass(p^.t1);
+              exceptflowcontrol:=flowcontrol;
+              aktexceptblock:=oldexceptblock;
+
+              emitlab(doobjectdestroyandreraise);
+              emitcall('FPC_POPADDRSTACK');
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              exprasmlist^.concat(new(paicpu,
+                op_reg(A_POP,S_L,R_EAX)));
+              exprasmlist^.concat(new(paicpu,
+                op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+              exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+              emitjmp(C_E,doobjectdestroy);
+              emitcall('FPC_POPSECONDOBJECTSTACK');
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              emit_reg(A_PUSH,S_L,R_EAX);
+              emitcall('FPC_DESTROYEXCEPTION');
+              exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+              { we don't need to restore esi here because reraise never }
+              { returns                                                 }
+              emitcall('FPC_RERAISE');
+
+              emitlab(doobjectdestroy);
+              cleanupobjectstack;
+              emitjmp(C_None,endexceptlabel);
            end
          else
-           emitcall('FPC_RERAISE');
-         { deallocate eax }
-         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+           begin
+              emitcall('FPC_RERAISE');
+              exceptflowcontrol:=flowcontrol;
+           end;
 
-         { do some magic for exit in the try block }
-         emitlab(exitexceptlabel);
-         emitcall('FPC_POPADDRSTACK');
-         { allocate eax }
-         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-         emit_reg(A_POP,S_L,R_EAX);
-         emitjmp(C_None,oldaktexitlabel);
-         { deallocate eax }
-         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         if fc_exit in exceptflowcontrol then
+           begin
+              { do some magic for exit in the try block }
+              emitlab(exitexceptlabel);
+              { we must also destroy the address frame which guards }
+              { exception object                                    }
+              cleanupaddrstack;
+              cleanupobjectstack;
+              emitjmp(C_None,oldaktexitlabel);
+           end;
 
-         if assigned(aktbreaklabel) then
-          begin
-            emitlab(breakexceptlabel);
-            emitcall('FPC_POPADDRSTACK');
-            { allocate eax }
-            exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-            emit_reg(A_POP,S_L,R_EAX);
-            { deallocate eax }
-            exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
-            emitjmp(C_None,oldaktbreaklabel);
-            emitlab(continueexceptlabel);
-            emitcall('FPC_POPADDRSTACK');
-            { allocate eax }
-            exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-            emit_reg(A_POP,S_L,R_EAX);
-            { deallocate eax }
-            exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
-            emitjmp(C_None,oldaktcontinuelabel);
-          end;
+         if fc_break in exceptflowcontrol then
+           begin
+              emitlab(breakexceptlabel);
+              { we must also destroy the address frame which guards }
+              { exception object                                    }
+              cleanupaddrstack;
+              cleanupobjectstack;
+              emitjmp(C_None,oldaktbreaklabel);
+           end;
+
+         if fc_continue in exceptflowcontrol then
+           begin
+              emitlab(continueexceptlabel);
+              { we must also destroy the address frame which guards }
+              { exception object                                    }
+              cleanupaddrstack;
+              cleanupobjectstack;
+              emitjmp(C_None,oldaktcontinuelabel);
+           end;
+
+         if fc_exit in tryflowcontrol then
+           begin
+              { do some magic for exit in the try block }
+              emitlab(exittrylabel);
+              cleanupaddrstack;
+              emitjmp(C_None,oldaktexitlabel);
+           end;
+
+         if fc_break in tryflowcontrol then
+           begin
+              emitlab(breaktrylabel);
+              cleanupaddrstack;
+              emitjmp(C_None,oldaktbreaklabel);
+           end;
+
+         if fc_continue in tryflowcontrol then
+           begin
+              emitlab(continuetrylabel);
+              cleanupaddrstack;
+              emitjmp(C_None,oldaktcontinuelabel);
+           end;
 
          emitlab(endexceptlabel);
 
          endexceptlabel:=oldendexceptlabel;
+
+         { restore the control flow labels }
          aktexitlabel:=oldaktexitlabel;
          aktexit2label:=oldaktexit2label;
-         if assigned(aktbreaklabel) then
+         if assigned(oldaktbreaklabel) then
           begin
             aktcontinuelabel:=oldaktcontinuelabel;
             aktbreaklabel:=oldaktbreaklabel;
           end;
+
+         { return all used control flow statements }
+         flowcontrol:=oldflowcontrol+exceptflowcontrol+
+           tryflowcontrol;
       end;
 
     procedure secondon(var p : ptree);
 
       var
-         nextonlabel : pasmlabel;
+         nextonlabel,
+         exitonlabel,
+         continueonlabel,
+         breakonlabel,
+         oldaktexitlabel,
+         oldaktexit2label,
+         oldaktcontinuelabel,
+         doobjectdestroyandreraise,
+         doobjectdestroy,
+         oldaktbreaklabel : pasmlabel;
          ref : treference;
          oldexceptblock : ptree;
+         oldflowcontrol : tflowcontrol;
 
       begin
+         oldflowcontrol:=flowcontrol;
+         flowcontrol:=[];
          getlabel(nextonlabel);
 
          { push the vmt }
@@ -757,8 +922,41 @@ do_jmp:
          { deallocate eax }
          exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
 
+         { in the case that another exception is risen }
+         { we've to destroy the old one                }
+         getlabel(doobjectdestroyandreraise);
+         exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,1)));
+         emitcall('FPC_PUSHEXCEPTADDR');
+         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+         exprasmlist^.concat(new(paicpu,
+           op_reg(A_PUSH,S_L,R_EAX)));
+         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         emitcall('FPC_SETJMP');
+         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+         exprasmlist^.concat(new(paicpu,
+           op_reg(A_PUSH,S_L,R_EAX)));
+         exprasmlist^.concat(new(paicpu,
+           op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         emitjmp(C_NE,doobjectdestroyandreraise);
+
          if assigned(p^.right) then
            begin
+              oldaktexitlabel:=aktexitlabel;
+              oldaktexit2label:=aktexit2label;
+              getlabel(exitonlabel);
+              aktexitlabel:=exitonlabel;
+              aktexit2label:=exitonlabel;
+              if assigned(aktbreaklabel) then
+               begin
+                 oldaktcontinuelabel:=aktcontinuelabel;
+                 oldaktbreaklabel:=aktbreaklabel;
+                 getlabel(breakonlabel);
+                 getlabel(continueonlabel);
+                 aktcontinuelabel:=continueonlabel;
+                 aktbreaklabel:=breakonlabel;
+               end;
+
               { esi is destroyed by FPC_CATCHES }
               maybe_loadesi;
               oldexceptblock:=aktexceptblock;
@@ -766,17 +964,66 @@ do_jmp:
               secondpass(p^.right);
               aktexceptblock:=oldexceptblock;
            end;
-
-
-         emit_ref(A_PUSH,S_L,newreference(ref));
+         getlabel(doobjectdestroy);
+         emitlab(doobjectdestroyandreraise);
+         emitcall('FPC_POPADDRSTACK');
+         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+         exprasmlist^.concat(new(paicpu,
+           op_reg(A_POP,S_L,R_EAX)));
+         exprasmlist^.concat(new(paicpu,
+           op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         emitjmp(C_E,doobjectdestroy);
+         emitcall('FPC_POPSECONDOBJECTSTACK');
+         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+         emit_reg(A_PUSH,S_L,R_EAX);
          emitcall('FPC_DESTROYEXCEPTION');
-         emitcall('FPC_POPOBJECTSTACK');
-         maybe_loadesi;
+         exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+         { we don't need to restore esi here because reraise never }
+         { returns                                                 }
+         emitcall('FPC_RERAISE');
 
+         emitlab(doobjectdestroy);
+         cleanupobjectstack;
          { clear some stuff }
          ungetiftemp(ref);
          emitjmp(C_None,endexceptlabel);
+
+         if assigned(p^.right) then
+           begin
+              { special handling for control flow instructions }
+              if fc_exit in flowcontrol then
+                begin
+                   { the address and object pop does secondtryexcept }
+                   emitlab(exitonlabel);
+                   emitjmp(C_None,oldaktexitlabel);
+                end;
+
+              if fc_break in flowcontrol then
+                begin
+                   { the address and object pop does secondtryexcept }
+                   emitlab(breakonlabel);
+                   emitjmp(C_None,oldaktbreaklabel);
+                end;
+
+              if fc_continue in flowcontrol then
+                begin
+                   { the address and object pop does secondtryexcept }
+                   emitlab(continueonlabel);
+                   emitjmp(C_None,oldaktcontinuelabel);
+                end;
+
+              aktexitlabel:=oldaktexitlabel;
+              aktexit2label:=oldaktexit2label;
+              if assigned(oldaktbreaklabel) then
+               begin
+                 aktcontinuelabel:=oldaktcontinuelabel;
+                 aktbreaklabel:=oldaktbreaklabel;
+               end;
+           end;
+
          emitlab(nextonlabel);
+         flowcontrol:=oldflowcontrol+flowcontrol;
          { next on node }
          if assigned(p^.left) then
            secondpass(p^.left);
@@ -800,15 +1047,23 @@ do_jmp:
          oldaktcontinuelabel,
          oldaktbreaklabel : pasmlabel;
          oldexceptblock : ptree;
+         oldflowcontrol,tryflowcontrol : tflowcontrol;
+         decconst : longint;
 
       begin
+         { check if child nodes do a break/continue/exit }
+         oldflowcontrol:=flowcontrol;
+         flowcontrol:=[];
          { we modify EAX }
          usedinproc:=usedinproc or ($80 shr byte(R_EAX));
          getlabel(finallylabel);
          getlabel(endfinallylabel);
+         getlabel(reraiselabel);
+
+         { the finally block must catch break, continue and exit }
+         { statements                                            }
          oldaktexitlabel:=aktexitlabel;
          oldaktexit2label:=aktexit2label;
-         getlabel(reraiselabel);
          getlabel(exitfinallylabel);
          aktexitlabel:=exitfinallylabel;
          aktexit2label:=exitfinallylabel;
@@ -840,6 +1095,7 @@ do_jmp:
               oldexceptblock:=aktexceptblock;
               aktexceptblock:=p^.left;
               secondpass(p^.left);
+              tryflowcontrol:=flowcontrol;
               if codegenerror then
                 exit;
               aktexceptblock:=oldexceptblock;
@@ -850,7 +1106,10 @@ do_jmp:
          { finally code }
          oldexceptblock:=aktexceptblock;
          aktexceptblock:=p^.right;
+         flowcontrol:=[];
          secondpass(p^.right);
+         if flowcontrol<>[] then
+           CGMessage(cg_e_control_flow_outside_finally);
          aktexceptblock:=oldexceptblock;
          if codegenerror then
            exit;
@@ -861,46 +1120,62 @@ do_jmp:
          emitjmp(C_E,endfinallylabel);
          emit_reg(A_DEC,S_L,R_EAX);
          emitjmp(C_Z,reraiselabel);
-         emit_reg(A_DEC,S_L,R_EAX);
-         emitjmp(C_Z,oldaktexitlabel);
-         if assigned(aktbreaklabel) then
-          begin
-            emit_reg(A_DEC,S_L,R_EAX);
-            emitjmp(C_Z,oldaktbreaklabel);
-            emit_reg(A_DEC,S_L,R_EAX);
-            emitjmp(C_Z,oldaktcontinuelabel);
-          end;
+         if fc_exit in tryflowcontrol then
+           begin
+              emit_reg(A_DEC,S_L,R_EAX);
+              emitjmp(C_Z,oldaktexitlabel);
+              decconst:=1;
+           end
+         else
+           decconst:=2;
+         if fc_break in tryflowcontrol then
+           begin
+              emit_const_reg(A_SUB,S_L,decconst,R_EAX);
+              emitjmp(C_Z,oldaktbreaklabel);
+              decconst:=1;
+           end
+         else
+           inc(decconst);
+         if fc_continue in tryflowcontrol then
+           begin
+              emit_const_reg(A_SUB,S_L,decconst,R_EAX);
+              emitjmp(C_Z,oldaktcontinuelabel);
+           end;
          { deallocate eax }
          exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
          emitlab(reraiselabel);
          emitcall('FPC_RERAISE');
-
          { do some magic for exit,break,continue in the try block }
-         emitlab(exitfinallylabel);
-         { allocate eax }
-         exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-         emit_reg(A_POP,S_L,R_EAX);
-         emit_const(A_PUSH,S_L,2);
-         emitjmp(C_NONE,finallylabel);
-         if assigned(aktbreaklabel) then
+         if fc_exit in tryflowcontrol then
+           begin
+              emitlab(exitfinallylabel);
+              { allocate eax }
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              emit_reg(A_POP,S_L,R_EAX);
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              emit_const(A_PUSH,S_L,2);
+              emitjmp(C_NONE,finallylabel);
+           end;
+         if fc_break in tryflowcontrol then
           begin
-            emitlab(breakfinallylabel);
-            { allocate eax }
+             emitlab(breakfinallylabel);
+             { allocate eax }
              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-            emit_reg(A_POP,S_L,R_EAX);
-            { deallocate eax }
-            exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
-            emit_const(A_PUSH,S_L,3);
-            emitjmp(C_NONE,finallylabel);
-            emitlab(continuefinallylabel);
-            { allocate eax }
-            exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-            emit_reg(A_POP,S_L,R_EAX);
-            { deallocate eax }
-            exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-            emit_const(A_PUSH,S_L,4);
-            emitjmp(C_NONE,finallylabel);
-          end;
+             emit_reg(A_POP,S_L,R_EAX);
+             { deallocate eax }
+             exprasmlist^.concat(new(pairegalloc,dealloc(R_EAX)));
+             emit_const(A_PUSH,S_L,3);
+             emitjmp(C_NONE,finallylabel);
+           end;
+         if fc_continue in tryflowcontrol then
+           begin
+              emitlab(continuefinallylabel);
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              emit_reg(A_POP,S_L,R_EAX);
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              emit_const(A_PUSH,S_L,4);
+              emitjmp(C_NONE,finallylabel);
+           end;
 
          emitlab(endfinallylabel);
 
@@ -911,6 +1186,7 @@ do_jmp:
             aktcontinuelabel:=oldaktcontinuelabel;
             aktbreaklabel:=oldaktbreaklabel;
           end;
+         flowcontrol:=oldflowcontrol+tryflowcontrol;
       end;
 
 
@@ -927,7 +1203,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.68  2000-02-09 13:22:47  peter
+  Revision 1.69  2000-02-10 23:44:42  florian
+    * big update for exception handling code generation: possible mem holes
+      fixed, break/continue/exit should work always now as expected
+
+  Revision 1.68  2000/02/09 13:22:47  peter
     * log truncated
 
   Revision 1.67  2000/01/21 12:17:42  jonas
@@ -1005,4 +1285,6 @@ end.
   Revision 1.48  1999/09/07 07:56:37  peter
     * reload esi in except block to allow virtual methods
 
+  Revision 1.47  1999/08/25 11:59:42  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 }

@@ -3471,7 +3471,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       { do we need to handle exceptions because of ansi/widestrings ? }
       if (procinfo^.flags and pi_needs_implicit_finally)<>0 then
         begin
-           { the excpetion helper routines modify all registers }
+           { the exception helper routines modify all registers }
            aktprocsym^.definition^.usedregisters:=$ff;
 
            getlabel(noreraiselabel);
@@ -3740,7 +3740,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.80  2000-02-09 17:36:10  jonas
+  Revision 1.81  2000-02-10 23:44:43  florian
+    * big update for exception handling code generation: possible mem holes
+      fixed, break/continue/exit should work always now as expected
+
+  Revision 1.80  2000/02/09 17:36:10  jonas
     * added missing regalloc for ecx in range check code
 
   Revision 1.79  2000/02/09 13:22:50  peter
