@@ -685,6 +685,7 @@ implementation
         aktproccode.concatlist(templist);
 
         { generate symbol and save end of header position }
+        aktfilepos:=entrypos;
         gen_proc_symbol(templist);
         headertai:=tai(templist.last);
         { add entry code after header }
@@ -694,6 +695,7 @@ implementation
 
         { Free space in temp/registers for parast and localst, must be
           done after gen_entry_code }
+        aktfilepos:=exitpos;
         if current_procinfo.procdef.localst.symtabletype=localsymtable then
           gen_free_localst(aktproccode,tlocalsymtable(current_procinfo.procdef.localst));
         gen_free_parast(aktproccode,tparasymtable(current_procinfo.procdef.parast));
@@ -718,7 +720,7 @@ implementation
                   inc(spillingcounter);
                   if spillingcounter>maxspillingcounter then
                     internalerror(200309041);
-                  fastspill:=rg.spill_registers(aktproccode,rg.spillednodes);
+                  fastspill:=rg.spill_registers(aktproccode,headertai,rg.spillednodes);
                 end;
             until (rg.spillednodes='') or not fastspill;
             aktproccode.translate_registers(rg.colour);
@@ -734,13 +736,17 @@ implementation
 
         translate_regvars(aktproccode,rg.colour);
         { Add save and restore of used registers }
+        aktfilepos:=entrypos;
         gen_save_used_regs(templist);
         aktproccode.insertlistafter(headertai,templist);
+        aktfilepos:=exitpos;
         gen_restore_used_regs(aktproccode,usesacc,usesacchi,usesfpu);
         { Add stack allocation code after header }
+        aktfilepos:=entrypos;
         gen_stackalloc_code(templist);
         aktproccode.insertlistafter(headertai,templist);
         { Add exit code at the end }
+        aktfilepos:=exitpos;
         gen_exit_code(templist,false,usesacc,usesacchi);
         aktproccode.concatlist(templist);
 
@@ -1295,7 +1301,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.149  2003-09-23 17:56:06  peter
+  Revision 1.150  2003-09-25 16:19:32  peter
+    * fix filepositions
+    * insert spill temp allocations at the start of the proc
+
+  Revision 1.149  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

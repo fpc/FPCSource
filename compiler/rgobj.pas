@@ -338,7 +338,7 @@ unit rgobj;
           procedure prepare_colouring;
           procedure epilogue_colouring;
           procedure colour_registers;
-          function spill_registers(list:Taasmoutput;const regs_to_spill:string):boolean;
+          function spill_registers(list:Taasmoutput;headertai:tai;const regs_to_spill:string):boolean;
           procedure add_edge(u,v:Tsuperregister);
        protected
           cpu_registers:byte;
@@ -2034,7 +2034,7 @@ unit rgobj;
       add_constraints(r);
     end;
 
-    function Trgobj.spill_registers(list:Taasmoutput;const regs_to_spill:string):boolean;
+    function Trgobj.spill_registers(list:Taasmoutput;headertai:tai;const regs_to_spill:string):boolean;
 
     {Returns true if any help registers have been used.}
 
@@ -2042,9 +2042,11 @@ unit rgobj;
         p,q:Tai;
         regs_to_spill_set:Tsuperregisterset;
         spill_temps:^Tspill_temp_list;
+        templist : taasmoutput;
         supreg : tsuperregister;
 
     begin
+      aktfilepos:=current_procinfo.entrypos;
       spill_registers:=false;
       unusedregsint:=[0..255];
       fillchar(degree,sizeof(degree),0);
@@ -2059,16 +2061,22 @@ unit rgobj;
       new(spill_temps);
       fillchar(spill_temps^,sizeof(spill_temps^),0);
       regs_to_spill_set:=[];
+      { Allocate temps and insert in front of the list }
+      templist:=taasmoutput.create;
       for i:=1 to length(regs_to_spill) do
         begin
           {Alternative representation.}
           include(regs_to_spill_set,Tsuperregister(regs_to_spill[i]));
           {Clear all interferences of the spilled register.}
           clear_interferences(Tsuperregister(regs_to_spill[i]));
-          {Get a temp for the spilled register.}
-          tg.gettemp(list,4,tt_noreuse,spill_temps^[Tsuperregister(regs_to_spill[i])]);
+          {Get a temp for the spilled register}
+          tg.gettemp(templist,4,tt_noreuse,spill_temps^[Tsuperregister(regs_to_spill[i])]);
         end;
-      p:=Tai(list.first);
+      list.insertlistafter(headertai,templist);
+      templist.free;
+      { Walk through all instructions, we can start with the headertai,
+        because before the header tai is only symbols }
+      p:=headertai;
       while assigned(p) do
         begin
           case p.typ of
@@ -2091,6 +2099,8 @@ unit rgobj;
               end;
             ait_instruction:
               begin
+                aktfilepos:=Taicpu_abstract(p).fileinfo
+                ;
                 if Taicpu_abstract(p).spill_registers(list,@getregisterintinline,
                                                       @ungetregisterintinline,
                                                       regs_to_spill_set,
@@ -2103,6 +2113,7 @@ unit rgobj;
           end;
           p:=Tai(p.next);
         end;
+      aktfilepos:=current_procinfo.exitpos;
       for i:=1 to length(regs_to_spill) do
         begin
           tg.ungettemp(list,spill_temps^[Tsuperregister(regs_to_spill[i])]);
@@ -2225,7 +2236,11 @@ end.
 
 {
   $Log$
-  Revision 1.76  2003-09-16 16:17:01  peter
+  Revision 1.77  2003-09-25 16:19:32  peter
+    * fix filepositions
+    * insert spill temp allocations at the start of the proc
+
+  Revision 1.76  2003/09/16 16:17:01  peter
     * varspez in calls to push_addr_param
 
   Revision 1.75  2003/09/12 19:07:42  daniel
