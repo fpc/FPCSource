@@ -1064,6 +1064,7 @@ implementation
         AddDirective('R',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_resource);
         AddDirective('RANGECHECKS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_rangechecks);
         AddDirective('REFERENCEINFO',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_referenceinfo);
+        AddDirective('RESOURCE',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_resource);
         AddDirective('SATURATION',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_saturation);
         AddDirective('SCREENNAME',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_screenname);
         AddDirective('SMARTLINK',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_smartlink);
@@ -1091,7 +1092,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2004-08-16 11:34:25  olle
+  Revision 1.41  2004-08-22 10:17:27  peter
+    * support $RESOURCE
+
+  Revision 1.40  2004/08/16 11:34:25  olle
     + added directive LibExport for macpas, which does nothing atm
 
   Revision 1.39  2004/07/06 09:41:46  olle
