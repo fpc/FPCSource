@@ -15,25 +15,6 @@
 {*                             TStream                                      *}
 {****************************************************************************}
 
-Function TStream.GetPositionReadable : Boolean;
-
-begin
-  Result:=SeekSupport in [ssFull,ssForwardOnly]
-end;
-
-Function TStream.GetSizeReadable : Boolean;
-
-begin
-  Result:=SeekSupport=ssFull;
-end;
-
-Function Tstream.GetSizeWritable : Boolean;
-
-begin
-  Result:=true; // For Delphi compatibility.
-end;
-
-
 {$ifdef seek64bit}
   function TStream.GetPosition: Int64;
 
@@ -806,7 +787,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-10-26 14:52:29  michael
+  Revision 1.3  2003-10-28 22:04:29  michael
+  + Fixed private seeksupport stuff
+
+  Revision 1.2  2003/10/26 14:52:29  michael
   + Fixed TStream.CopyFrom with Count=0
 
   Revision 1.13  2003/07/26 16:20:50  michael
