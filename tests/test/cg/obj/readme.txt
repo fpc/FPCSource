@@ -8,4 +8,5 @@ used by Free Pascal for interfacing to C modules.
 Tested compilers (OK)
 ---------------------
 Win32 :  GCC 2.95.2
+Amiga :  GCC 2.91.66
  
